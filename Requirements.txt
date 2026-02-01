@@ -1,0 +1,552 @@
+Below is a **Claude-ready, detailed requirements package** distilled from your **Requirements.xlsx**, the **SoI PDF**, and everything we defined in-chat (CRS 1–35, cubes 1–10, workflow, tokens, simulation/self-improvement path). You can paste this whole spec into Claude and ask it to generate the full website + backend.
+
+---
+
+## 0) Product Summary
+
+**Product name:** SoI Polling Tool (Polling Project)
+**Purpose:** Enable fast, secure, large-group polling (100–10,000+ users) that turns free-form responses into **AI themes**, then into **ranked priorities**, then into **exportable reports**, while also supporting **SoI Trinity Tokens (♡ SI, 웃 HI, ◬ AI)** and a future-facing **cube simulation system** that enables humans (and eventually AI) to optimize modular code blocks safely.
+
+**Core promise:** “Turn messy group input into clear priorities in under a minute (at scale), with governance + traceability + contribution value capture.”
+
+---
+
+## 1) Roles & Permissions
+
+### 1.1 Roles
+
+1. **Moderator** (runs the session)
+
+* Creates session, configures mode (single-round vs multi-cycle), questions, anonymity rules.
+* Opens/closes polls.
+* Sees aggregated results.
+* Can enable live prioritization (MVP2+).
+* Can initiate deep dives (MVP3).
+* Cannot silently change outcomes without audit (MVP3 governance).
+
+2. **User (Participant)**
+
+* Joins via QR/link.
+* Submits responses (text MVP1, voice MVP2).
+* Sees themes & ranks.
+* Optionally sees personal vs group view (if enabled).
+* Can flag token issues (MVP3+).
+
+3. **Lead/Developer** (Team Leads and Developers are treated as one role label: **Lead/Developer**)
+
+* Reviews prioritized outcomes and incorporates feedback.
+* Can apply overrides with justification (MVP3 governance).
+* Uses simulation mode to “check out” cube code, run tests, compare metrics, and propose improvements (MVP3+ simulation).
+
+4. **Business Owner / Admin**
+
+* Defines token rules/valuation defaults (per org).
+* Manages paywall/Stripe unlock rules (optional).
+* Owns compliance posture (RBAC, audit exports).
+
+### 1.2 RBAC (minimum)
+
+* **Moderator:** session config + control; view analytics for their sessions.
+* **User:** submit + rank + view allowed outputs.
+* **Lead/Developer:** audit view + override + simulation features (restricted).
+* **Admin:** system-wide configuration + billing + token policy.
+
+---
+
+## 2) Workflow (User Journey) with Cubes
+
+**Step 1.1 (Cube 1):** Moderator defines session objective, roles, questions, format.
+**Step 1.2 (Cube 1):** System generates session ID + QR + share link.
+**Step 2 (Cubes 2–3):** Users join and submit text/voice, anonymous or identified.
+**Step 3 (Cubes 4–5):** Moderator opens/closes poll; System validates, timestamps, encrypts, stores.
+**Step 4 (Cube 6):** System runs AI to generate themes, clusters, summaries, confidence.
+**Step 5–6 (Cube 7):** Users rank; System aggregates into ordered priorities.
+**Step 7 (Cubes 7–8):** Lead/Developer reviews outcomes, can override with justification, approves final decisions + token attribution.
+**Step 8 (Cube 9):** System generates exports, reports, analytics, SoI token logs.
+**Step 9 (Cube 10):** Simulation mode: Lead/Developer checks out a cube, improves code, runs replay tests, compares metrics, and proposes merge; prepares future AI self-optimization.
+
+---
+
+## 3) Cube Architecture (Modules)
+
+### Cube 1 — Session Join & QR (1,1,1)
+
+* Session create
+* Session ID generation
+* QR + share link generation
+* Join flow + presence setup
+* Session state: draft/open/closed/archived
+* Basic security checks
+
+### Cube 2 — Text Submission Handler (1,1,2)
+
+* Validate text inputs
+* Enforce limits: **question ≤ 500 chars**; response length configurable (default ≤ 500)
+* Optional anonymization
+* Basic profanity/PII detection (optional)
+
+### Cube 3 — Voice-to-Text Engine (1,1,3) (MVP2)
+
+* Browser mic capture (Web Audio API)
+* Speech-to-text provider abstraction (future multi-provider)
+* Convert to text and forward into same ingestion pipeline
+* Language selection (stretch)
+
+### Cube 4 — Response Collector (1,2,1)
+
+* Aggregates inputs from cubes 1–3
+* Writes to storage
+* Caching for live status
+* Presence tracking
+
+### Cube 5 — User Input Gateway / Orchestrator (1,2,2)
+
+* Central gateway for: join events, submissions, poll state updates
+* Triggers AI processing after poll close
+* Triggers ranking aggregation after ranking close
+
+### Cube 6 — AI Theming Clusterer (1,2,3)
+
+* Embeddings + clustering + summarization
+* Returns: themes, subthemes, confidence, counts, exemplars
+* Must support “Theme-01 basic” first; “Theme-02 enhanced” later; deep dives in MVP3
+
+### Cube 7 — Prioritization & Voting (1,3,1)
+
+* Ranking UI and backend aggregation
+* Non-real-time (MVP1) then real-time websocket (MVP2)
+* Aggregation rules: deterministic + reproducible (median or stable scoring)
+
+### Cube 8 — Token Reward Calculator (1,3,2) + Governance/Audit (MVP3)
+
+* Assign SoI Trinity Tokens
+* Track overrides and audit trail
+* Resolve disputes and lifecycle states
+* Optional: on-chain logging later
+
+### Cube 9 — Reports, Export & Dashboards (1,3,3)
+
+* Exports CSV MVP1; PDF/XLS/API later
+* Analytics dashboard (MVP2)
+* Token dashboard (MVP3)
+* Compliance exports (MVP2/3)
+
+### Cube 10 — Simulation Orchestrator (2,2,2)
+
+* “Check out cube” into sandbox
+* Run replay tests (upstream/downstream dependencies)
+* Compare metrics, approve/reject changes
+* Versioning, rollback, lineage
+* Prepares for AI self-optimization
+
+---
+
+## 4) MVP Phases (Scope)
+
+### MVP 1 (Working Prototype)
+
+* Session + QR join
+* Question prep + poll open/close
+* Text responses only
+* Basic AI theme generation
+* Theme visualization (basic)
+* Ranking (auto, non-real-time)
+* Export CSV
+* Auth/Security baseline
+* Single environment DevOps
+* QA + PM process
+
+### MVP 2 (Usability, Intelligence & Collaboration)
+
+* Voice input
+* Enhanced AI theming (Theme-02)
+* Enhanced theme visualization
+* Live prioritization via WebSockets
+* Analytics & engagement metrics
+* Reporting & compliance improvements
+* K8s upgrade
+* Regression testing + realtime testing
+
+### MVP 3 (Governance, Monetization & Production Readiness)
+
+* Deep dive cycles (up to 3)
+* Governance + audit logs + RBAC hardening
+* Trinity Tokens (♡/웃/◬)
+* Payments (Stripe) optional for report unlock
+* DevOps hardening
+* Final release QA
+* Simulation + optimization + evolution system
+
+---
+
+## 5) Functional Requirements (CRS 1–35)
+
+Use these exactly as “build targets” for website + backend.
+
+### MVP1 — QR Code & Session Access (Core)
+
+**CRS-01** Moderator creates session + secure link/QR so participants can join instantly.
+**CRS-02** User joins via QR/link without authentication friction.
+**CRS-03** System generates collision-free session IDs bound to QR to prevent spoofing.
+**CRS-04** System validates QR access; blocks expired/invalid sessions.
+
+### MVP1 — Poll Control & Text Input
+
+**CRS-05** System supports anonymous vs identified modes configurable by Moderator.
+**CRS-06** Moderator opens/closes polling window deliberately.
+**CRS-07** User submits text responses reliably with constraints.
+**CRS-08** System stores responses securely (timestamps + encryption).
+
+### MVP1 — AI Theme Generation & Review
+
+**CRS-09** System clusters responses into meaningful AI themes.
+**CRS-10** User views summarized themes to understand collective patterns.
+
+### MVP1 — Ranking & Export
+
+**CRS-11** User ranks themes after poll closes.
+**CRS-12** System aggregates rankings deterministically and reproducibly.
+**CRS-13** Lead/Developer reviews ranked priorities with metadata for evidence-based decisions.
+**CRS-14** System exports session results to CSV.
+
+### MVP2 — Voice, Live Collaboration & Analytics
+
+**CRS-15** User submits voice responses (STT) instead of typing.
+**CRS-16** Moderator enables live prioritization during sessions.
+**CRS-17** User sees real-time ranking updates.
+**CRS-18** System supports real-time updates via WebSockets.
+**CRS-19** System tracks engagement metrics (join, response, completion, timing).
+
+### MVP3 — Deep Dives, Governance & Tokens
+
+**CRS-20** Moderator initiates deep-dive cycles to explore complex topics iteratively.
+**CRS-21** User participates in deep dives while preserving context.
+**CRS-22** Lead/Developer overrides rankings with documented justification.
+**CRS-23** System supports multi-cycle polling logic (structured phases).
+**CRS-24** System enforces governance + audit logging + RBAC.
+**CRS-25** System calculates and assigns Trinity Tokens (♡ SI, 웃 HI, ◬ AI).
+
+### MVP3 — Simulation, Optimization & Evolution
+
+**CRS-26** Lead/Developer checks out a cube into simulation mode safely.
+**CRS-27** Lead/Developer updates cube code and reruns simulations to validate improvements.
+**CRS-28** System replays upstream/downstream dependencies for end-to-end validation.
+**CRS-29** System compares simulation vs production metrics objectively.
+**CRS-30** Lead/Developer approves or rejects simulated cube changes.
+**CRS-31** System versions every cube + dependency for rollback, audit, lineage.
+**CRS-32** System attributes tokens to actions/cubes/timestamps transparently.
+**CRS-33** User or Lead/Developer can flag/dispute token calculations.
+**CRS-34** System assigns token lifecycle states (simulated, pending, approved, finalized, reversed).
+**CRS-35** Business Owner sees standardized token definitions + valuation rules per session.
+
+---
+
+## 6) Token System Requirements (SoI Currency)
+
+### 6.1 Token Definitions (must be visible in UI)
+
+* **♡ Shared Intention (SI):** 1 minute of aligned contribution = **1 ♡**
+* **웃 Human Intelligence (HI):** compensated skilled time; baseline conversion anchored to minimum wage (default $7.25/hr → ~7.25 웃/hr). Allow org override.
+* **◬ Artificial Intelligence (AI):** time saved / scaled impact via automation; baseline multiplier example: **1 min SI = 5 ◬**
+
+### 6.2 Token Ledger (minimum)
+
+* Every token event must be logged:
+
+  * session_id, user_id (or anonymous hash), timestamp, action_type, cube_id, delta_♡, delta_웃, delta_◬, rationale/inputs, version_id
+* Token lifecycle states:
+
+  * **simulated → pending → approved → finalized** (+ reversed if needed)
+* Dispute workflow:
+
+  * flagged_by, reason, evidence, status, resolution notes, resolved_by
+
+### 6.3 Value Flow (MVP3+)
+
+* Tokens can be:
+
+  * redeemed (HI only; “treasury availability” config)
+  * exchanged internally (services/time/tools/mentoring)
+  * staked for governance (future)
+  * amplified (SI converted to AI when automated outputs scale)
+
+### 6.4 Business Clarity (CRS-35)
+
+Per session, show:
+
+* token rules and multipliers used
+* definitions and examples
+* what counts as contribution
+* how overrides affect tokens
+
+---
+
+## 7) Simulation & Self-Optimization Requirements (Cube 10)
+
+### 7.1 Simulation Concept (human-in-the-loop)
+
+* Lead/Developer selects **Cube N** and clicks **“Check Out to Simulation”**
+* System creates a sandbox environment:
+
+  * pins dependencies (versions of adjacent cubes)
+  * provides test fixtures + replay data (captured real sessions or synthetic load)
+* Developer modifies code (in repo or in platform editor)
+* Runs simulation:
+
+  * unit tests for that cube
+  * integration tests for upstream/downstream flows
+  * load test (example: 1M inputs sampled) target: **< 60 seconds** for theme clustering pipeline (using sampling + batching + async jobs)
+* Produces report:
+
+  * latency, throughput, cost, error rate, memory, token correctness, audit integrity
+* Lead/Developer submits “Check-In Proposal”
+* Approver accepts/rejects; system versions and can roll back
+
+### 7.2 Required Metrics
+
+* latency per cube (p50/p95)
+* throughput
+* error rate
+* cost estimate per 1k / 1M responses (AI + infra)
+* correctness checks (deterministic rankings, token ledger integrity)
+* dependency graph impact summary
+
+### 7.3 Future AI Self-Optimization (not immediate build, but design for it)
+
+* Keep simulation APIs consistent so “AI agent” can propose code diffs
+* Humans remain final approvers (CRS-30)
+
+---
+
+## 8) Website Pages & UI Requirements (Minimum)
+
+### Public / Entry
+
+* **Landing page** (what it does, how to run session)
+* **Join session page** (QR link opens here)
+
+  * states: valid, invalid, expired, closed, already joined
+* **Auth pages** (if enabled): sign-in, role selection (optional)
+
+### Moderator
+
+* **Create session**
+
+  * objective, roles, anonymity mode, single vs multi-cycle
+  * question builder (draft autosave, finalize)
+  * generate QR/link
+* **Live session control**
+
+  * open/close poll
+  * participant presence count
+  * status indicators (open/closed/processing)
+* **Theme review dashboard**
+* **Ranking configuration**
+
+  * non-real-time (MVP1) then live (MVP2)
+* **Deep dive control** (MVP3)
+
+  * choose 1–3 themes
+  * generate follow-up questions (AI)
+  * cycle progress and limit = 3
+
+### User
+
+* **Respond page**
+
+  * text input (MVP1)
+  * voice input (MVP2)
+  * anonymized mode indicator
+* **Theme view**
+
+  * list + confidence + counts
+* **Ranking UI**
+
+  * simple (MVP1), drag-drop + live sync (MVP2)
+
+### Lead/Developer
+
+* **Outcome review**
+
+  * ranked priorities + metadata
+* **Override panel** (MVP3)
+
+  * justification required
+  * audit log preview
+* **Token audit + dispute**
+* **Simulation mode** (Cube checkout)
+
+  * cube list, dependency graph, versions
+  * run simulation, compare metrics
+  * approve/reject merge
+
+### Reports & Analytics
+
+* **Exports**
+
+  * CSV MVP1
+  * masked vs full (MVP2/3)
+* **Analytics dashboard** (MVP2)
+
+  * participation, completion, time-to-decision
+* **Token dashboard** (MVP3)
+
+  * balances, session breakdown, ledger export
+
+---
+
+## 9) Backend Requirements (APIs + Data)
+
+### 9.1 Core Entities (minimum schema)
+
+**Session**
+
+* id, created_by, created_at, status (draft/open/closed/archived)
+* config: anonymity_mode, cycle_mode, max_cycles, language, ranking_mode
+* qr_url, join_url
+
+**Participant**
+
+* session_id, user_id or anon_hash, joined_at, device_type, last_seen
+
+**Question**
+
+* session_id, cycle_id, question_text, status (draft/final)
+
+**Response**
+
+* session_id, cycle_id, question_id
+* user_id/anon_hash
+* raw_text, source (text/voice), created_at
+* encrypted_payload_ref (if storing securely)
+
+**Theme**
+
+* session_id, cycle_id
+* theme_id, label, summary, confidence, count, exemplar_response_ids
+
+**Ranking**
+
+* session_id, cycle_id
+* user ranking list (theme_id ordered)
+* aggregated ranking output (deterministic)
+
+**AuditLog**
+
+* actor_id, role, action_type, object_type/id, before/after, timestamp
+
+**TokenLedger**
+
+* session_id, user_id/anon_hash, cube_id, action_type, timestamp
+* delta_♡, delta_웃, delta_◬, lifecycle_state, reason, references
+
+**SimulationRun**
+
+* cube_id, base_version, proposed_version
+* replay_dataset_ref
+* metrics JSON, results, pass/fail, approved_by
+
+### 9.2 API Endpoints (starter list)
+
+* POST /sessions (create)
+* GET /sessions/{id}
+* POST /sessions/{id}/open
+* POST /sessions/{id}/close
+* POST /sessions/{id}/join (via qr/link)
+* POST /sessions/{id}/questions (create/update/finalize)
+* POST /sessions/{id}/responses (text/voice transcript)
+* POST /sessions/{id}/ai/run (trigger theming after close)
+* GET /sessions/{id}/themes
+* POST /sessions/{id}/rankings (submit)
+* GET /sessions/{id}/rankings/aggregate
+* POST /sessions/{id}/override (Lead/Developer)
+* GET /sessions/{id}/export/csv
+* GET /sessions/{id}/analytics
+* GET /sessions/{id}/tokens
+* POST /tokens/dispute
+* Simulation:
+
+  * POST /sim/cubes/{cubeId}/checkout
+  * POST /sim/runs
+  * GET /sim/runs/{id}
+  * POST /sim/runs/{id}/approve
+  * POST /sim/runs/{id}/reject
+
+### 9.3 WebSockets (MVP2)
+
+Events:
+
+* participant_joined
+* poll_opened / poll_closed
+* ai_processing_started / completed
+* rankings_updated
+* consensus_updated
+* override_applied
+* notifications
+
+---
+
+## 10) AI Requirements (Theming)
+
+### MVP1
+
+* embeddings + clustering + summary
+* store theme outputs with confidence + counts
+* target coherence threshold (initial) and ability to improve
+
+### MVP2+
+
+* Theme-02 sub-clustering and refinements
+* bias/quality monitoring
+* job orchestration queue
+* “processing status” in UI
+
+### Deep Dives (MVP3)
+
+* select top themes → generate follow-up questions
+* preserve context across cycles
+* max cycles = 3 (configurable)
+
+---
+
+## 11) Non-Functional Requirements
+
+### Performance
+
+* Join flow responsive on mobile
+* AI processing must support scale:
+
+  * **Goal example:** process **1M inputs via sampling/batching** and produce usable themes in **< 60 seconds** (simulation target), with stable degradation strategy (sampling, queueing, partial outputs).
+
+### Security
+
+* encryption at rest for responses
+* RBAC enforcement across all endpoints
+* audit logs for sensitive actions (override, token changes, exports)
+
+### Privacy/Compliance
+
+* anonymity mode = no PII stored
+* data retention controls (later)
+* export redaction (later)
+* basic GDPR delete request flow (MVP2/3)
+
+### Accessibility
+
+* WCAG-friendly UI
+* keyboard navigation for ranking UI
+
+### Observability
+
+* logging, metrics dashboards, error tracking
+* simulation vs production metric comparisons
+
+---
+
+## 12) What to Ask Claude To Build (Prompt Template)
+
+Copy/paste this into Claude:
+
+> Build a full-stack web app called “SoI Polling Tool” using the following requirements. Implement frontend pages for Moderator, User, and Lead/Developer. Implement backend APIs in FastAPI. Use PostgreSQL for sessions/questions/rankings/audit/tokens, MongoDB (optional) for raw responses, Redis (optional) for live state, and WebSockets for real-time updates (MVP2). Implement AI theme clustering pipeline with embeddings + clustering + summarization returning themes with confidence and counts. Implement token ledger for ♡ SI, 웃 HI, ◬ AI with lifecycle states and dispute flow. Implement a modular “Cube Simulation Mode” that allows Lead/Developer to check out a cube, run replay tests (including upstream/downstream dependency replays), compare metrics, and approve/reject changes with versioning and rollback. Follow CRS-01 through CRS-35 exactly as functional requirements and implement the workflow steps 1–9. Provide complete code structure, database schema, API routes, and UI screens.
+
+---
