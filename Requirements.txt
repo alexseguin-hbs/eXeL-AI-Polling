@@ -531,6 +531,20 @@ Events:
 * export redaction (later)
 * basic GDPR delete request flow (MVP2/3)
 
+### Device & Responsive UI
+
+* **Fully responsive design** — must work seamlessly on:
+  * **Desktop** (1920px+)
+  * **Laptop** (1024px–1440px)
+  * **Tablet** (768px–1024px)
+  * **Phone — Android** (360px–414px typical)
+  * **Phone — iOS** (375px–430px typical)
+* Mobile-first approach: all core flows (join, respond, rank, view themes) must be touch-friendly
+* No native app required — responsive web UI via browser on all devices
+* QR join flow must be optimized for mobile (primary entry point)
+* Ranking UI must support both drag-drop (desktop/laptop) and tap-to-reorder (phone/tablet)
+* Test across Chrome, Safari (iOS), Firefox, and Edge
+
 ### Accessibility
 
 * WCAG-friendly UI
@@ -543,10 +557,46 @@ Events:
 
 ---
 
-## 12) What to Ask Claude To Build (Prompt Template)
+## 12) Technology Decisions (Confirmed)
 
-Copy/paste this into Claude:
+The following technology choices were confirmed during project setup:
 
-> Build a full-stack web app called “SoI Polling Tool” using the following requirements. Implement frontend pages for Moderator, User, and Lead/Developer. Implement backend APIs in FastAPI. Use PostgreSQL for sessions/questions/rankings/audit/tokens, MongoDB (optional) for raw responses, Redis (optional) for live state, and WebSockets for real-time updates (MVP2). Implement AI theme clustering pipeline with embeddings + clustering + summarization returning themes with confidence and counts. Implement token ledger for ♡ SI, 웃 HI, ◬ AI with lifecycle states and dispute flow. Implement a modular “Cube Simulation Mode” that allows Lead/Developer to check out a cube, run replay tests (including upstream/downstream dependency replays), compare metrics, and approve/reject changes with versioning and rollback. Follow CRS-01 through CRS-35 exactly as functional requirements and implement the workflow steps 1–9. Provide complete code structure, database schema, API routes, and UI screens.
+### Frontend
+- **Framework:** React + Next.js
+- **UI Library:** shadcn/ui (clean, professional default)
+- **Hosting:** Cloudflare Pages
+
+### Backend
+- **Framework:** FastAPI (Python) — as originally specified
+- **Deployment:** VPS/cloud server with Cloudflare as CDN/reverse proxy
+- **Rationale:** Python ecosystem required for AI/ML (embeddings, clustering, scikit-learn, etc.)
+
+### Databases (Full Stack)
+- **PostgreSQL:** Sessions, questions, rankings, audit logs, token ledger, users
+- **MongoDB:** Raw responses (flexible schema for text/voice payloads)
+- **Redis:** Real-time state — presence tracking, live rankings, WebSocket pub/sub, caching
+
+### Authentication & RBAC
+- **Provider:** Auth0
+- **Roles:** Moderator, User (Participant), Lead/Developer, Business Owner/Admin
+
+### AI Theme Clustering (Cube 6)
+- **Architecture:** Multi-provider abstraction layer (provider-agnostic interface)
+- **Initial providers:** Implement as needed (OpenAI, Anthropic, Cohere, open-source)
+- **Pipeline:** Embeddings → Clustering → Summarization
+
+### Scale
+- **MVP1 target:** 2,000–10,000 concurrent users per session
+- **AI simulation target:** 1M inputs via sampling/batching < 60 seconds
+
+### Build Approach
+- **Incremental** — build and deploy cube by cube
+- **MVP1 cube build order:** 1 → 2 → 4 → 5 → 6 → 7 → 9
+
+---
+
+## 13) Original Prompt Template (Reference)
+
+> Build a full-stack web app called "SoI Polling Tool" using the following requirements. Implement frontend pages for Moderator, User, and Lead/Developer. Implement backend APIs in FastAPI. Use PostgreSQL for sessions/questions/rankings/audit/tokens, MongoDB for raw responses, Redis for live state, and WebSockets for real-time updates (MVP2). Implement AI theme clustering pipeline with embeddings + clustering + summarization returning themes with confidence and counts. Implement token ledger for ♡ SI, 웃 HI, ◬ AI with lifecycle states and dispute flow. Implement a modular "Cube Simulation Mode" that allows Lead/Developer to check out a cube, run replay tests (including upstream/downstream dependency replays), compare metrics, and approve/reject changes with versioning and rollback. Follow CRS-01 through CRS-35 exactly as functional requirements and implement the workflow steps 1–9. Provide complete code structure, database schema, API routes, and UI screens. Use React + Next.js frontend, FastAPI backend, Auth0 for auth, Cloudflare for hosting/CDN, and a multi-provider AI abstraction layer.
 
 ---
