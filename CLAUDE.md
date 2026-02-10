@@ -83,8 +83,15 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 - **AI processing goal:** 1M inputs via sampling/batching in < 60 seconds (simulation target)
 
 ## Build Approach
-- **Incremental:** Build and deploy cube by cube for MVP1
-- **MVP1 cube order:** Cube 1 → 2 → 4 → 5 → 6 → 7 → 9 (Cube 3 is MVP2, Cube 8/10 are MVP3)
+- **Scaffold all Cubes 1-9 first,** then implement cube by cube
+- **Cube grid (3x3, Layer 1):**
+  ```
+  Cube 1 (Session) | Cube 2 (Text)    | Cube 3 (Voice)
+  Cube 4 (Collect)  | Cube 5 (Gateway) | Cube 6 (AI)
+  Cube 7 (Ranking)  | Cube 8 (Tokens)  | Cube 9 (Reports)
+  ```
+- **Implementation order:** Cube 5 FIRST (center/orchestrator) → 1 → 2 → 4 → 6 → 7 → 9
+- **Deferred:** Cube 3 (MVP2), Cube 8 (MVP3), Cube 10 (MVP3, paused)
 - **MVP phases:** MVP1 (working prototype) → MVP2 (usability/intelligence) → MVP3 (governance/monetization)
 
 ## Cube Architecture Overview
@@ -94,23 +101,32 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 | 2 | Text Submission Handler | 1 | Validate text inputs, limits, anonymization, PII detection |
 | 3 | Voice-to-Text Engine | 2 | Browser mic, STT, language selection |
 | 4 | Response Collector | 1 | Aggregate inputs, write to storage, caching, presence |
-| 5 | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking |
+| 5 | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking, **TIME TRACKING** |
 | 6 | AI Theming Clusterer | 1 | Embeddings + clustering + summarization |
 | 7 | Prioritization & Voting | 1 | Ranking UI + backend aggregation |
 | 8 | Token Reward Calculator | 3 | SoI Trinity Tokens + governance/audit |
 | 9 | Reports, Export & Dashboards | 1 | CSV export (MVP1), PDF/analytics (MVP2+) |
 | 10 | Simulation Orchestrator | 3 | Sandbox checkout, replay tests, metrics, versioning |
 
-## Local Environment
-- Python virtual environment is present (`pyvenv.cfg`, `bin/`, `lib/`)
-- Node.js packages installed (`node_modules/`, `package.json`)
-- These local environment files should NOT be committed to GitHub
+## Time Tracking (Critical — built into Cube 5)
+- **What is tracked:** Active participation time per user per session
+- **When it starts:** User begins responding to a question or starts voting/ranking
+- **When it stops:** User submits response or completes ranking action
+- **Granularity:** Per-action timestamps (start/stop for each response, each ranking)
+- **Token mapping:** 1 minute of active participation = 1 ♡ SI token
+- **Only SI tokens during polling/voting.** HI tokens (웃) are for later project execution, not polling.
 
-## .gitignore Recommendations
-The following should be excluded from version control:
-- `node_modules/`
-- `bin/`, `lib/`, `lib64`, `include/`
-- `pyvenv.cfg`
-- `package-lock.json`
-- `.claude/`
-- `.env` (never commit secrets/API keys)
+## Monetization Model (MVP1)
+- **Free tier:** Small sessions available at no cost
+- **Moderator pays:** Per-session fee for larger sessions (Stripe)
+- **User pays for results:** Users pay to download full results/reports
+- **Lead/Developer exception:** Leads ALWAYS get free access to session results (transparency + accountability requirement)
+- **Stripe integration:** Set up from MVP1
+
+## Local Environment
+- Backend: Python venv in `backend/` directory
+- Frontend: Node.js in `frontend/` directory
+- Databases: Docker Compose (PostgreSQL, MongoDB, Redis)
+
+## .gitignore
+See `.gitignore` file in project root. Key exclusions: node_modules, __pycache__, .env, venv, .next, .claude
