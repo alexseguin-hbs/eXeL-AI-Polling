@@ -2,8 +2,13 @@
 
 Tracks active participation time and calculates SoI Trinity tokens:
   ♡ SI (Shared Intention) = floor(active_minutes) — 1 min default on login
-  웃 HI (Human Intelligence) = 0.0 (until paid incentives assigned)
+  웃 HI (Human Intelligence) = min-wage rate per minute when enabled ($7.25/hr default)
+                               0.0 when hi_enabled=False (pre-treasury)
   ◬ AI (Artificial Intelligence) = SI * ai_si_multiplier (default 5x)
+
+HI vision: Pay out globally at local minimum wage to leverage global talent.
+           Default rate = US federal min wage ($7.25/hr = $0.1208/min).
+           Flip hi_enabled=True once treasury is funded.
 """
 
 import math
@@ -24,6 +29,22 @@ from app.models.token_ledger import TokenLedger
 # ---------------------------------------------------------------------------
 
 
+def _calculate_hi(duration_minutes: float) -> float:
+    """Calculate 웃 HI tokens from duration.
+
+    When hi_enabled=True: HI = duration_minutes * (hi_hourly_rate / 60)
+    When hi_enabled=False: HI = 0.0 (pre-treasury, no payouts yet)
+
+    Default rate: $7.25/hr (US federal / Texas minimum wage) = $0.1208/min.
+    Goal: anchor HI to jurisdiction min wage so the system can leverage
+    global talent by paying out HI at their local rate.
+    """
+    if not settings.hi_enabled:
+        return 0.0
+    rate_per_minute = settings.hi_hourly_rate / 60.0
+    return round(duration_minutes * rate_per_minute, 4)
+
+
 def calculate_tokens(
     duration_seconds: float,
     action_type: str,
@@ -34,13 +55,13 @@ def calculate_tokens(
         (si_tokens, hi_tokens, ai_tokens)
 
     Rules:
-        ♡ SI = floor(duration_minutes)  — 1 minute = 1 SI token
-        웃 HI = 0.0                     — zero until paid incentives
-        ◬ AI = SI * ai_si_multiplier    — default 5x SI
+        ♡ SI = floor(duration_minutes)         — 1 minute = 1 SI token
+        웃 HI = duration_min * (wage/60)       — $7.25/hr when enabled, else 0
+        ◬ AI = SI * ai_si_multiplier           — default 5x SI
     """
     duration_minutes = duration_seconds / 60.0
     si = math.floor(duration_minutes) if duration_minutes >= 1.0 else 0.0
-    hi = settings.hi_default  # 0.0 by default
+    hi = _calculate_hi(duration_minutes)
     ai = si * settings.ai_si_multiplier  # 5x SI by default
     return float(si), hi, ai
 
@@ -108,7 +129,7 @@ async def stop_time_tracking(
     entry.ai_tokens_earned = ai
 
     # Create append-only token ledger entry if any tokens earned
-    if si > 0 or ai > 0:
+    if si > 0 or hi > 0 or ai > 0:
         ledger = TokenLedger(
             session_id=entry.session_id,
             user_id=str(entry.participant_id),
@@ -140,12 +161,18 @@ async def create_login_time_entry(
     participant_id: uuid.UUID,
     user_id: str | None = None,
 ) -> TimeEntry:
-    """Create a login time entry and immediately award default SI tokens.
+    """Create a login time entry and immediately award default tokens.
 
     Called automatically when a participant joins a session.
-    Awards settings.login_si_tokens (default 1 ♡ SI) immediately.
+    Awards:
+      ♡ SI = login_si_tokens (default 1)
+      웃 HI = 1 min at hourly rate when enabled, else 0
+      ◬ AI = SI * ai_si_multiplier (default 5)
     """
     now = datetime.now(timezone.utc)
+    login_si = settings.login_si_tokens
+    login_hi = _calculate_hi(1.0)  # 1 minute of login time
+    login_ai = login_si * settings.ai_si_multiplier
 
     entry = TimeEntry(
         session_id=session_id,
@@ -155,9 +182,9 @@ async def create_login_time_entry(
         started_at=now,
         stopped_at=now,  # instant — login credit is immediate
         duration_seconds=60.0,  # 1 minute default
-        si_tokens_earned=settings.login_si_tokens,
-        hi_tokens_earned=settings.hi_default,
-        ai_tokens_earned=settings.login_si_tokens * settings.ai_si_multiplier,
+        si_tokens_earned=login_si,
+        hi_tokens_earned=login_hi,
+        ai_tokens_earned=login_ai,
     )
     db.add(entry)
 
@@ -167,9 +194,9 @@ async def create_login_time_entry(
         user_id=user_id or str(participant_id),
         cube_id="cube5",
         action_type="login",
-        delta_si=settings.login_si_tokens,
-        delta_hi=settings.hi_default,
-        delta_ai=settings.login_si_tokens * settings.ai_si_multiplier,
+        delta_si=login_si,
+        delta_hi=login_hi,
+        delta_ai=login_ai,
         lifecycle_state="pending",
         reason="Session join — login participation credit",
         reference_id=str(participant_id),
