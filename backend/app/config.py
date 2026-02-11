@@ -37,18 +37,17 @@ class Settings(BaseSettings):
     # Session defaults
     default_session_expiry_hours: int = 24
 
-    # Token defaults (SoI Trinity: ♡ SI, 웃 HI, ◬ AI)
-    login_si_tokens: float = 1.0          # ♡ SI awarded on session join (1 min default)
-    ai_si_multiplier: float = 5.0         # ◬ AI = 5x SI as default
+    # Token defaults (SoI Trinity: ♡, 웃, ◬)
+    login_si_tokens: float = 1.0          # ♡ awarded on session join (1 min default)
+    ai_si_multiplier: float = 5.0         # ◬ = 5x ♡ as default
 
-    # 웃 HI (Human Intelligence) — compensated skilled time
-    # Goal: pay out HI globally to leverage global talent at local min wage.
+    # 웃 — compensated skilled time (global talent at local min wage)
     # Set hi_enabled=True + hi_hourly_rate to activate. Rate anchored to
     # jurisdiction minimum wage (e.g., Texas $7.25/hr, federal $7.25/hr).
-    # HI per minute = hi_hourly_rate / 60. Redeemable against treasury only.
+    # 웃 per minute = hi_hourly_rate / 60. Redeemable against treasury only.
     hi_enabled: bool = False              # Flip to True when treasury funded
     hi_hourly_rate: float = 7.25          # USD/hr — default US federal min wage
-    hi_currency: str = "USD"              # Currency for HI payouts
+    hi_currency: str = "USD"              # Currency for 웃 payouts
 
     # Free tier limits
     free_tier_max_participants: int = 50

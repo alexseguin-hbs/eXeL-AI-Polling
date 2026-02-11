@@ -1,12 +1,12 @@
-"""Time tracking model — core to Cube 5 and SI token calculation.
+"""Time tracking model — core to Cube 5 and ♡ token calculation.
 
 Tracks active participation time per user per session.
 Each action (login, responding, ranking) gets a start/stop entry.
 
 Token defaults (SoI Trinity):
-  ♡ SI = floor(active_minutes) — 1 min default on login
-  웃 HI = 0 (until paid incentives assigned)
-  ◬ AI = 5x SI
+  ♡ = floor(active_minutes) — 1 min default on login
+  웃 = 0 (until treasury funded, then $7.25/hr default)
+  ◬ = 5x ♡
 """
 
 import uuid

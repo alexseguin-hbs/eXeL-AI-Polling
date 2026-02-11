@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TimeEntryStart(BaseModel):
@@ -23,18 +23,20 @@ class TimeEntryRead(BaseModel):
     started_at: datetime
     stopped_at: datetime | None
     duration_seconds: float | None
-    si_tokens_earned: float
-    hi_tokens_earned: float
-    ai_tokens_earned: float
+    si_tokens_earned: float = Field(serialization_alias="♡")
+    hi_tokens_earned: float = Field(serialization_alias="웃")
+    ai_tokens_earned: float = Field(serialization_alias="◬")
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class ParticipantTimeSummary(BaseModel):
     participant_id: uuid.UUID
     session_id: uuid.UUID
     total_active_seconds: float
-    total_si_tokens: float
-    total_hi_tokens: float
-    total_ai_tokens: float
+    total_si_tokens: float = Field(serialization_alias="♡")
+    total_hi_tokens: float = Field(serialization_alias="웃")
+    total_ai_tokens: float = Field(serialization_alias="◬")
     entries: list[TimeEntryRead]
+
+    model_config = {"populate_by_name": True}

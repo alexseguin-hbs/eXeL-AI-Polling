@@ -1,9 +1,9 @@
 """Cube 8 — Token Reward Calculator Service.
 
 Manages the append-only token ledger for the SoI Trinity:
-  ♡ SI (Shared Intention) — time-based participation tokens
-  웃 HI (Human Intelligence) — paid incentive tokens (0 by default)
-  ◬ AI (Artificial Intelligence) — automation multiplier (5x SI default)
+  ♡ — time-based participation tokens (1 min = 1 ♡)
+  웃 — compensated skilled time ($7.25/hr when enabled, 0 pre-treasury)
+  ◬ — automation multiplier (5x ♡ default)
 """
 
 import uuid

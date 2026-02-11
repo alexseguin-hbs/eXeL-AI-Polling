@@ -1,14 +1,14 @@
 """Cube 5 — Time Tracking Service.
 
 Tracks active participation time and calculates SoI Trinity tokens:
-  ♡ SI (Shared Intention) = floor(active_minutes) — 1 min default on login
-  웃 HI (Human Intelligence) = min-wage rate per minute when enabled ($7.25/hr default)
-                               0.0 when hi_enabled=False (pre-treasury)
-  ◬ AI (Artificial Intelligence) = SI * ai_si_multiplier (default 5x)
+  ♡ = floor(active_minutes) — 1 min default on login
+  웃 = min-wage rate per minute when enabled ($7.25/hr default)
+      0.0 when hi_enabled=False (pre-treasury)
+  ◬ = ♡ * ai_si_multiplier (default 5x)
 
-HI vision: Pay out globally at local minimum wage to leverage global talent.
-           Default rate = US federal min wage ($7.25/hr = $0.1208/min).
-           Flip hi_enabled=True once treasury is funded.
+웃 vision: Pay out globally at local minimum wage to leverage global talent.
+          Default rate = US federal min wage ($7.25/hr = $0.1208/min).
+          Flip hi_enabled=True once treasury is funded.
 """
 
 import math
@@ -30,14 +30,14 @@ from app.models.token_ledger import TokenLedger
 
 
 def _calculate_hi(duration_minutes: float) -> float:
-    """Calculate 웃 HI tokens from duration.
+    """Calculate 웃 tokens from duration.
 
-    When hi_enabled=True: HI = duration_minutes * (hi_hourly_rate / 60)
-    When hi_enabled=False: HI = 0.0 (pre-treasury, no payouts yet)
+    When hi_enabled=True: 웃 = duration_minutes * (hi_hourly_rate / 60)
+    When hi_enabled=False: 웃 = 0.0 (pre-treasury, no payouts yet)
 
     Default rate: $7.25/hr (US federal / Texas minimum wage) = $0.1208/min.
-    Goal: anchor HI to jurisdiction min wage so the system can leverage
-    global talent by paying out HI at their local rate.
+    Goal: anchor 웃 to jurisdiction min wage so the system can leverage
+    global talent by paying out 웃 at their local rate.
     """
     if not settings.hi_enabled:
         return 0.0
@@ -49,15 +49,15 @@ def calculate_tokens(
     duration_seconds: float,
     action_type: str,
 ) -> tuple[float, float, float]:
-    """Calculate ♡ SI, 웃 HI, ◬ AI tokens from duration.
+    """Calculate ♡, 웃, ◬ tokens from duration.
 
     Returns:
-        (si_tokens, hi_tokens, ai_tokens)
+        (♡, 웃, ◬)
 
     Rules:
-        ♡ SI = floor(duration_minutes)         — 1 minute = 1 SI token
-        웃 HI = duration_min * (wage/60)       — $7.25/hr when enabled, else 0
-        ◬ AI = SI * ai_si_multiplier           — default 5x SI
+        ♡ = floor(duration_minutes)          — 1 minute = 1 ♡
+        웃 = duration_min * (wage/60)        — $7.25/hr when enabled, else 0
+        ◬ = ♡ * ai_si_multiplier            — default 5x ♡
     """
     duration_minutes = duration_seconds / 60.0
     si = math.floor(duration_minutes) if duration_minutes >= 1.0 else 0.0
@@ -139,7 +139,7 @@ async def stop_time_tracking(
             delta_hi=hi,
             delta_ai=ai,
             lifecycle_state="pending",
-            reason=f"Time tracked: {entry.action_type} ({entry.duration_seconds:.0f}s)",
+            reason=f"{entry.action_type} ({entry.duration_seconds:.0f}s) — ♡{si} 웃{hi} ◬{ai}",
             reference_id=str(entry.id),
         )
         db.add(ledger)
@@ -165,9 +165,9 @@ async def create_login_time_entry(
 
     Called automatically when a participant joins a session.
     Awards:
-      ♡ SI = login_si_tokens (default 1)
-      웃 HI = 1 min at hourly rate when enabled, else 0
-      ◬ AI = SI * ai_si_multiplier (default 5)
+      ♡ = login_si_tokens (default 1)
+      웃 = 1 min at hourly rate when enabled, else 0
+      ◬ = ♡ * ai_si_multiplier (default 5)
     """
     now = datetime.now(timezone.utc)
     login_si = settings.login_si_tokens
@@ -198,7 +198,7 @@ async def create_login_time_entry(
         delta_hi=login_hi,
         delta_ai=login_ai,
         lifecycle_state="pending",
-        reason="Session join — login participation credit",
+        reason=f"Login — ♡{login_si} 웃{login_hi} ◬{login_ai}",
         reference_id=str(participant_id),
     )
     db.add(ledger)

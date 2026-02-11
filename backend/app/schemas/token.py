@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TokenLedgerRead(BaseModel):
@@ -10,14 +10,14 @@ class TokenLedgerRead(BaseModel):
     user_id: str | None
     cube_id: str | None
     action_type: str
-    delta_si: float
-    delta_hi: float
-    delta_ai: float
+    delta_si: float = Field(serialization_alias="♡")
+    delta_hi: float = Field(serialization_alias="웃")
+    delta_ai: float = Field(serialization_alias="◬")
     lifecycle_state: str
     reason: str | None
     created_at: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class TokenDisputeCreate(BaseModel):

@@ -1,9 +1,9 @@
 """Cube 8 — Token Reward Calculator.
 
 SoI Trinity token ledger:
-  ♡ SI (Shared Intention) = time-based participation (1 min = 1 token)
-  웃 HI (Human Intelligence) = 0 by default (paid incentives later)
-  ◬ AI (Artificial Intelligence) = 5x SI default
+  ♡ = time-based participation (1 min = 1 token)
+  웃 = 0 by default ($7.25/hr when treasury funded)
+  ◬ = 5x ♡ default
 """
 
 import uuid

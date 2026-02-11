@@ -5,7 +5,7 @@ The CENTER of the 3x3 cube grid. All flows pass through here:
 - Submissions (triggers Cube 2/3 → Cube 4)
 - Poll state changes (triggers Cube 6 AI after close)
 - Ranking aggregation triggers (Cube 7)
-- Time tracking (start/stop per action, feeds SI tokens)
+- Time tracking (start/stop per action, feeds ♡ 웃 ◬ tokens)
 """
 
 import uuid
@@ -43,7 +43,7 @@ async def start_time_tracking(
     """Start tracking active participation time.
 
     Called when user begins responding or ranking.
-    ♡ SI = floor(active_minutes), 웃 HI = 0, ◬ AI = 5x SI.
+    ♡ = floor(active_minutes), 웃 = 0, ◬ = 5x ♡.
     """
     # Use user_id as participant_id fallback for now
     participant_id_str = user.user_id if user else str(session_id)
@@ -68,7 +68,7 @@ async def stop_time_tracking(
 ):
     """Stop tracking active participation time.
 
-    Calculates duration and SoI Trinity tokens (♡ SI, 웃 HI, ◬ AI).
+    Calculates duration and ♡ 웃 ◬ tokens.
     Creates append-only token ledger entry.
     """
     entry = await service.stop_time_tracking(
@@ -87,7 +87,7 @@ async def get_time_summary(
     participant_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
 ):
-    """Get total active time and SoI Trinity tokens for a participant."""
+    """Get total active time and ♡ 웃 ◬ tokens for a participant."""
     summary = await service.get_participant_time_summary(
         db,
         session_id=session_id,
