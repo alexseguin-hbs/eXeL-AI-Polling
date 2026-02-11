@@ -2,12 +2,13 @@
 
 Tracks active participation time and calculates SoI Trinity tokens:
   ♡ = floor(active_minutes) — 1 min default on login
-  웃 = min-wage rate per minute when enabled ($7.25/hr default)
+  웃 = jurisdiction min-wage rate per minute when enabled
       0.0 when hi_enabled=False (pre-treasury)
   ◬ = ♡ * ai_si_multiplier (default 5x)
 
 웃 vision: Pay out globally at local minimum wage to leverage global talent.
-          Default rate = US federal min wage ($7.25/hr = $0.1208/min).
+          Rate resolved per participant from hi_rates table.
+          Default: Austin, Texas = $7.25/hr.
           Flip hi_enabled=True once treasury is funded.
 """
 
@@ -20,6 +21,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.core.hi_rates import resolve_hi_rate
 from app.models.time_tracking import TimeEntry
 from app.models.token_ledger import TokenLedger
 
@@ -29,25 +31,31 @@ from app.models.token_ledger import TokenLedger
 # ---------------------------------------------------------------------------
 
 
-def _calculate_hi(duration_minutes: float) -> float:
-    """Calculate 웃 tokens from duration.
+def _calculate_hi(
+    duration_minutes: float,
+    country: str | None = None,
+    state: str | None = None,
+) -> float:
+    """Calculate 웃 tokens from duration using jurisdiction rate.
 
-    When hi_enabled=True: 웃 = duration_minutes * (hi_hourly_rate / 60)
+    When hi_enabled=True: 웃 = duration_minutes * (rate / 60)
     When hi_enabled=False: 웃 = 0.0 (pre-treasury, no payouts yet)
 
-    Default rate: $7.25/hr (US federal / Texas minimum wage) = $0.1208/min.
-    Goal: anchor 웃 to jurisdiction min wage so the system can leverage
-    global talent by paying out 웃 at their local rate.
+    Rate resolved from hi_rates table by country + state.
+    Default: $7.25/hr (Austin, Texas / US federal).
     """
     if not settings.hi_enabled:
         return 0.0
-    rate_per_minute = settings.hi_hourly_rate / 60.0
+    rate = resolve_hi_rate(country, state)
+    rate_per_minute = rate / 60.0
     return round(duration_minutes * rate_per_minute, 4)
 
 
 def calculate_tokens(
     duration_seconds: float,
     action_type: str,
+    country: str | None = None,
+    state: str | None = None,
 ) -> tuple[float, float, float]:
     """Calculate ♡, 웃, ◬ tokens from duration.
 
@@ -56,13 +64,13 @@ def calculate_tokens(
 
     Rules:
         ♡ = floor(duration_minutes)          — 1 minute = 1 ♡
-        웃 = duration_min * (wage/60)        — $7.25/hr when enabled, else 0
+        웃 = duration_min * (wage/60)        — jurisdiction rate when enabled
         ◬ = ♡ * ai_si_multiplier            — default 5x ♡
     """
     duration_minutes = duration_seconds / 60.0
     si = math.floor(duration_minutes) if duration_minutes >= 1.0 else 0.0
-    hi = _calculate_hi(duration_minutes)
-    ai = si * settings.ai_si_multiplier  # 5x SI by default
+    hi = _calculate_hi(duration_minutes, country, state)
+    ai = si * settings.ai_si_multiplier
     return float(si), hi, ai
 
 
@@ -99,10 +107,13 @@ async def stop_time_tracking(
     db: AsyncSession,
     *,
     time_entry_id: uuid.UUID,
+    country: str | None = None,
+    state: str | None = None,
 ) -> TimeEntry:
-    """Stop tracking time, calculate duration and SoI Trinity tokens.
+    """Stop tracking time, calculate duration and ♡ 웃 ◬ tokens.
 
     Also creates a TokenLedger entry (append-only) for the earned tokens.
+    Country/state used to resolve 웃 jurisdiction rate.
     """
     result = await db.execute(
         select(TimeEntry).where(TimeEntry.id == time_entry_id)
@@ -123,7 +134,9 @@ async def stop_time_tracking(
     entry.stopped_at = now
     entry.duration_seconds = (now - entry.started_at).total_seconds()
 
-    si, hi, ai = calculate_tokens(entry.duration_seconds, entry.action_type)
+    si, hi, ai = calculate_tokens(
+        entry.duration_seconds, entry.action_type, country, state
+    )
     entry.si_tokens_earned = si
     entry.hi_tokens_earned = hi
     entry.ai_tokens_earned = ai
@@ -160,18 +173,20 @@ async def create_login_time_entry(
     session_id: uuid.UUID,
     participant_id: uuid.UUID,
     user_id: str | None = None,
+    country: str | None = None,
+    state: str | None = None,
 ) -> TimeEntry:
     """Create a login time entry and immediately award default tokens.
 
     Called automatically when a participant joins a session.
     Awards:
       ♡ = login_si_tokens (default 1)
-      웃 = 1 min at hourly rate when enabled, else 0
+      웃 = 1 min at jurisdiction rate when enabled, else 0
       ◬ = ♡ * ai_si_multiplier (default 5)
     """
     now = datetime.now(timezone.utc)
     login_si = settings.login_si_tokens
-    login_hi = _calculate_hi(1.0)  # 1 minute of login time
+    login_hi = _calculate_hi(1.0, country, state)
     login_ai = login_si * settings.ai_si_multiplier
 
     entry = TimeEntry(
