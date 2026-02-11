@@ -1,8 +1,12 @@
 """Time tracking model — core to Cube 5 and SI token calculation.
 
 Tracks active participation time per user per session.
-Each action (responding, ranking) gets a start/stop entry.
-1 minute of active participation = 1 SI token.
+Each action (login, responding, ranking) gets a start/stop entry.
+
+Token defaults (SoI Trinity):
+  ♡ SI = floor(active_minutes) — 1 min default on login
+  웃 HI = 0 (until paid incentives assigned)
+  ◬ AI = 5x SI
 """
 
 import uuid
@@ -13,6 +17,9 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+# Valid action types for time tracking
+VALID_ACTION_TYPES = ("login", "responding", "ranking", "reviewing")
 
 
 class TimeEntry(Base):
@@ -26,7 +33,7 @@ class TimeEntry(Base):
     )
     action_type: Mapped[str] = mapped_column(
         String(50), nullable=False
-    )  # "responding", "ranking", "reviewing"
+    )  # "login", "responding", "ranking", "reviewing"
     cube_id: Mapped[str | None] = mapped_column(String(20))
     reference_id: Mapped[str | None] = mapped_column(
         String(255)
@@ -34,7 +41,11 @@ class TimeEntry(Base):
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     stopped_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     duration_seconds: Mapped[float | None] = mapped_column(Float)
+
+    # SoI Trinity token earnings (calculated on stop)
     si_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
+    hi_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
+    ai_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
 
     session = relationship("Session", back_populates="time_entries")
 

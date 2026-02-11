@@ -1,11 +1,12 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
 
 class TimeEntryStart(BaseModel):
-    action_type: str  # "responding", "ranking", "reviewing"
+    action_type: Literal["login", "responding", "ranking", "reviewing"]
     reference_id: str | None = None  # question_id or ranking context
 
 
@@ -23,6 +24,8 @@ class TimeEntryRead(BaseModel):
     stopped_at: datetime | None
     duration_seconds: float | None
     si_tokens_earned: float
+    hi_tokens_earned: float
+    ai_tokens_earned: float
 
     model_config = {"from_attributes": True}
 
@@ -32,4 +35,6 @@ class ParticipantTimeSummary(BaseModel):
     session_id: uuid.UUID
     total_active_seconds: float
     total_si_tokens: float
+    total_hi_tokens: float
+    total_ai_tokens: float
     entries: list[TimeEntryRead]

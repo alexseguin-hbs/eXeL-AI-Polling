@@ -23,6 +23,7 @@ from sqlalchemy.orm import selectinload
 from app.config import settings
 from app.core.auth import CurrentUser
 from app.core.exceptions import SessionExpiredError, SessionNotFoundError, SessionStateError
+from app.cubes.cube5_gateway.service import create_login_time_entry
 from app.core.security import anonymize_user_id
 from app.models.participant import Participant
 from app.models.question import Question
@@ -263,6 +264,15 @@ async def join_session(
     db.add(participant)
     await db.commit()
     await db.refresh(participant)
+
+    # Auto-create login time entry → awards default ♡ SI + ◬ AI tokens
+    await create_login_time_entry(
+        db,
+        session_id=session.id,
+        participant_id=participant.id,
+        user_id=user_id,
+    )
+
     return session, participant
 
 

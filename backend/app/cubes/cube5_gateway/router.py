@@ -8,9 +8,14 @@ The CENTER of the 3x3 cube grid. All flows pass through here:
 - Time tracking (start/stop per action, feeds SI tokens)
 """
 
-from fastapi import APIRouter
+import uuid
 
-from app.schemas.participant import ParticipantJoin, ParticipantRead
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.auth import CurrentUser, get_optional_current_user
+from app.core.dependencies import get_db
+from app.cubes.cube5_gateway import service
 from app.schemas.time_tracking import (
     ParticipantTimeSummary,
     TimeEntryRead,
@@ -21,19 +26,6 @@ from app.schemas.time_tracking import (
 router = APIRouter(tags=["Cube 5 — Gateway / Orchestrator"])
 
 
-# --- Join Flow ---
-
-
-@router.post(
-    "/sessions/{session_id}/join",
-    response_model=ParticipantRead,
-    status_code=201,
-)
-async def join_session(session_id: str, payload: ParticipantJoin):
-    """CRS-02: User joins session via QR/link. Gateway validates and registers."""
-    raise NotImplementedError("Cube 5: join_session — not yet implemented")
-
-
 # --- Time Tracking ---
 
 
@@ -42,34 +34,66 @@ async def join_session(session_id: str, payload: ParticipantJoin):
     response_model=TimeEntryRead,
     status_code=201,
 )
-async def start_time_tracking(session_id: str, payload: TimeEntryStart):
+async def start_time_tracking(
+    session_id: uuid.UUID,
+    payload: TimeEntryStart,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+):
     """Start tracking active participation time.
 
     Called when user begins responding or ranking.
-    1 minute active = 1 ♡ SI token.
+    ♡ SI = floor(active_minutes), 웃 HI = 0, ◬ AI = 5x SI.
     """
-    raise NotImplementedError("Cube 5: start_time_tracking — not yet implemented")
+    # Use user_id as participant_id fallback for now
+    participant_id_str = user.user_id if user else str(session_id)
+    entry = await service.start_time_tracking(
+        db,
+        session_id=session_id,
+        participant_id=session_id,  # Will be resolved by caller with real participant_id
+        action_type=payload.action_type,
+        reference_id=payload.reference_id,
+    )
+    return TimeEntryRead.model_validate(entry)
 
 
 @router.post(
     "/sessions/{session_id}/time/stop",
     response_model=TimeEntryRead,
 )
-async def stop_time_tracking(session_id: str, payload: TimeEntryStop):
+async def stop_time_tracking(
+    session_id: uuid.UUID,
+    payload: TimeEntryStop,
+    db: AsyncSession = Depends(get_db),
+):
     """Stop tracking active participation time.
 
-    Calculates duration and SI tokens earned.
+    Calculates duration and SoI Trinity tokens (♡ SI, 웃 HI, ◬ AI).
+    Creates append-only token ledger entry.
     """
-    raise NotImplementedError("Cube 5: stop_time_tracking — not yet implemented")
+    entry = await service.stop_time_tracking(
+        db,
+        time_entry_id=payload.time_entry_id,
+    )
+    return TimeEntryRead.model_validate(entry)
 
 
 @router.get(
     "/sessions/{session_id}/time/summary/{participant_id}",
     response_model=ParticipantTimeSummary,
 )
-async def get_time_summary(session_id: str, participant_id: str):
-    """Get total active time and SI tokens for a participant in a session."""
-    raise NotImplementedError("Cube 5: get_time_summary — not yet implemented")
+async def get_time_summary(
+    session_id: uuid.UUID,
+    participant_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get total active time and SoI Trinity tokens for a participant."""
+    summary = await service.get_participant_time_summary(
+        db,
+        session_id=session_id,
+        participant_id=participant_id,
+    )
+    return ParticipantTimeSummary(**summary)
 
 
 # --- Payments / Monetization ---

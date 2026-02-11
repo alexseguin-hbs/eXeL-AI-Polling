@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     # Session defaults
     default_session_expiry_hours: int = 24
 
+    # Token defaults (SoI Trinity: ♡ SI, 웃 HI, ◬ AI)
+    login_si_tokens: float = 1.0          # ♡ SI awarded on session join (1 min default)
+    hi_default: float = 0.0               # 웃 HI = 0 until paid incentives assigned
+    ai_si_multiplier: float = 5.0         # ◬ AI = 5x SI as default
+
     # Free tier limits
     free_tier_max_participants: int = 50
 
