@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.config import settings
@@ -16,7 +17,7 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 async def init_postgres() -> None:
     """Test the database connection on startup."""
     async with engine.begin() as conn:
-        await conn.execute(conn.default_dialect.statement_compiler(conn.dialect, None))
+        await conn.execute(text("SELECT 1"))
 
 
 async def close_postgres() -> None:

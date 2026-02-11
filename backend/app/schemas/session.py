@@ -13,6 +13,7 @@ class SessionCreate(BaseModel):
     ranking_mode: str = "auto"
     language: str = "en"
     max_response_length: int = 500
+    ai_provider: str = "openai"
 
 
 class SessionUpdate(BaseModel):
@@ -21,6 +22,7 @@ class SessionUpdate(BaseModel):
     anonymity_mode: str | None = None
     ranking_mode: str | None = None
     max_response_length: int | None = None
+    ai_provider: str | None = None
 
 
 class SessionRead(BaseModel):
@@ -37,6 +39,7 @@ class SessionRead(BaseModel):
     ranking_mode: str
     language: str
     max_response_length: int
+    ai_provider: str
     qr_url: str | None
     join_url: str | None
     is_paid: bool
@@ -47,3 +50,18 @@ class SessionRead(BaseModel):
     participant_count: int = 0
 
     model_config = {"from_attributes": True}
+
+
+class SessionJoinRequest(BaseModel):
+    """Payload when a participant joins via short_code."""
+    display_name: str | None = None
+    device_type: str | None = None
+
+
+class SessionJoinResponse(BaseModel):
+    session_id: uuid.UUID
+    participant_id: uuid.UUID
+    short_code: str
+    title: str
+    status: str
+    display_name: str | None

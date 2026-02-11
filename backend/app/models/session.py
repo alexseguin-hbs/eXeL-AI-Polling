@@ -16,6 +16,18 @@ if TYPE_CHECKING:
     from app.models.time_tracking import TimeEntry
 
 
+# Valid session state transitions
+SESSION_STATES = ("draft", "open", "polling", "ranking", "closed", "archived")
+SESSION_TRANSITIONS: dict[str, tuple[str, ...]] = {
+    "draft": ("open",),
+    "open": ("polling", "closed"),
+    "polling": ("ranking", "closed"),
+    "ranking": ("polling", "closed"),  # can cycle back
+    "closed": ("archived",),
+    "archived": (),
+}
+
+
 class Session(Base):
     __tablename__ = "sessions"
 
@@ -34,6 +46,9 @@ class Session(Base):
     language: Mapped[str] = mapped_column(String(10), default="en")
     max_response_length: Mapped[int] = mapped_column(Integer, default=500)
 
+    # AI provider for this session (moderator selects at creation)
+    ai_provider: Mapped[str] = mapped_column(String(20), default="openai")
+
     # URLs
     qr_url: Mapped[str | None] = mapped_column(String(2048))
     join_url: Mapped[str | None] = mapped_column(String(2048))
@@ -48,11 +63,14 @@ class Session(Base):
 
     # Relationships
     participants: Mapped[list["Participant"]] = relationship(back_populates="session")
-    questions: Mapped[list["Question"]] = relationship(back_populates="session")
+    questions: Mapped[list["Question"]] = relationship(back_populates="session", order_by="Question.order_index")
     themes: Mapped[list["Theme"]] = relationship(back_populates="session")
     rankings: Mapped[list["Ranking"]] = relationship(back_populates="session")
     audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="session")
     time_entries: Mapped[list["TimeEntry"]] = relationship(back_populates="session")
+
+    def can_transition_to(self, new_status: str) -> bool:
+        return new_status in SESSION_TRANSITIONS.get(self.status, ())
 
     __table_args__ = (
         Index("ix_sessions_status", "status"),

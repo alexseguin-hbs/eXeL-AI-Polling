@@ -1,0 +1,306 @@
+"""Cube 1 — Session Service: CRUD, state machine, QR generation, join flow.
+
+Handles:
+- Session creation with short_code + join_url + QR
+- State machine transitions (draft → open → polling → ranking → closed → archived)
+- Participant join flow (via short_code / QR)
+- Question management within sessions
+- Redis presence tracking for active participants
+"""
+
+import io
+import uuid
+from datetime import datetime, timezone
+
+import qrcode
+import qrcode.constants
+from nanoid import generate as nanoid
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from app.config import settings
+from app.core.exceptions import SessionNotFoundError, SessionStateError
+from app.core.security import anonymize_user_id
+from app.models.participant import Participant
+from app.models.question import Question
+from app.models.session import SESSION_TRANSITIONS, Session
+
+
+# Short code alphabet: URL-safe, no ambiguous chars (0/O, 1/l/I)
+_SHORT_CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz"
+_SHORT_CODE_LENGTH = 8
+
+
+def _generate_short_code() -> str:
+    """Generate a human-readable session short code (e.g., 'Ab3kQ7xR')."""
+    return nanoid(_SHORT_CODE_ALPHABET, _SHORT_CODE_LENGTH)
+
+
+def _build_join_url(short_code: str) -> str:
+    """Build the participant join URL."""
+    return f"{settings.frontend_url}/join/{short_code}"
+
+
+def generate_qr_png(data: str) -> bytes:
+    """Generate QR code as PNG bytes."""
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(data)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+# ---------------------------------------------------------------------------
+# Session CRUD
+# ---------------------------------------------------------------------------
+
+async def create_session(
+    db: AsyncSession,
+    *,
+    title: str,
+    created_by: str,
+    description: str | None = None,
+    anonymity_mode: str = "identified",
+    cycle_mode: str = "single",
+    max_cycles: int = 1,
+    ranking_mode: str = "auto",
+    language: str = "en",
+    max_response_length: int = 500,
+    ai_provider: str = "openai",
+) -> Session:
+    """Create a new session with short_code, join_url, and QR."""
+    short_code = _generate_short_code()
+    join_url = _build_join_url(short_code)
+    qr_url = join_url  # QR encodes the join URL
+
+    session = Session(
+        short_code=short_code,
+        created_by=created_by,
+        title=title,
+        description=description,
+        anonymity_mode=anonymity_mode,
+        cycle_mode=cycle_mode,
+        max_cycles=max_cycles,
+        ranking_mode=ranking_mode,
+        language=language,
+        max_response_length=max_response_length,
+        ai_provider=ai_provider,
+        join_url=join_url,
+        qr_url=qr_url,
+        status="draft",
+    )
+    db.add(session)
+    await db.commit()
+    await db.refresh(session)
+    return session
+
+
+async def get_session_by_id(db: AsyncSession, session_id: uuid.UUID) -> Session:
+    """Fetch session by UUID. Raises SessionNotFoundError if missing."""
+    result = await db.execute(select(Session).where(Session.id == session_id))
+    session = result.scalar_one_or_none()
+    if session is None:
+        raise SessionNotFoundError(str(session_id))
+    return session
+
+
+async def get_session_by_short_code(db: AsyncSession, short_code: str) -> Session:
+    """Fetch session by short_code. Raises SessionNotFoundError if missing."""
+    result = await db.execute(select(Session).where(Session.short_code == short_code))
+    session = result.scalar_one_or_none()
+    if session is None:
+        raise SessionNotFoundError(short_code)
+    return session
+
+
+async def update_session(
+    db: AsyncSession,
+    session: Session,
+    **updates: object,
+) -> Session:
+    """Update mutable session fields. Only allowed in draft state."""
+    if session.status != "draft":
+        raise SessionStateError(session.status, "update config")
+
+    allowed = {"title", "description", "anonymity_mode", "ranking_mode", "max_response_length", "ai_provider"}
+    for key, value in updates.items():
+        if key in allowed and value is not None:
+            setattr(session, key, value)
+    await db.commit()
+    await db.refresh(session)
+    return session
+
+
+async def get_participant_count(db: AsyncSession, session_id: uuid.UUID) -> int:
+    """Count active participants in a session."""
+    result = await db.execute(
+        select(func.count(Participant.id)).where(
+            Participant.session_id == session_id,
+            Participant.is_active.is_(True),
+        )
+    )
+    return result.scalar_one()
+
+
+# ---------------------------------------------------------------------------
+# State Machine
+# ---------------------------------------------------------------------------
+
+async def transition_session(
+    db: AsyncSession,
+    session: Session,
+    new_status: str,
+) -> Session:
+    """Transition session to a new state. Validates against allowed transitions."""
+    if not session.can_transition_to(new_status):
+        allowed = SESSION_TRANSITIONS.get(session.status, ())
+        raise SessionStateError(
+            session.status,
+            f"transition to '{new_status}' (allowed: {allowed})",
+        )
+
+    now = datetime.now(timezone.utc)
+
+    if new_status == "open" and session.opened_at is None:
+        session.opened_at = now
+    elif new_status == "closed":
+        session.closed_at = now
+
+    session.status = new_status
+    await db.commit()
+    await db.refresh(session)
+    return session
+
+
+# ---------------------------------------------------------------------------
+# Participant Join
+# ---------------------------------------------------------------------------
+
+async def join_session(
+    db: AsyncSession,
+    *,
+    short_code: str,
+    user_id: str | None = None,
+    display_name: str | None = None,
+    device_type: str | None = None,
+) -> tuple[Session, Participant]:
+    """Join a session via short_code. Returns (session, participant).
+
+    - Session must be in 'open' or 'polling' state.
+    - Duplicate joins (same user_id + session) return existing participant.
+    - Anonymous sessions generate an anon_hash from user_id + session salt.
+    """
+    session = await get_session_by_short_code(db, short_code)
+
+    if session.status not in ("open", "polling"):
+        raise SessionStateError(session.status, "join")
+
+    # Check for existing participant (rejoin)
+    if user_id:
+        result = await db.execute(
+            select(Participant).where(
+                Participant.session_id == session.id,
+                Participant.user_id == user_id,
+            )
+        )
+        existing = result.scalar_one_or_none()
+        if existing:
+            existing.is_active = True
+            existing.last_seen = datetime.now(timezone.utc)
+            await db.commit()
+            await db.refresh(existing)
+            return session, existing
+
+    # Build anon hash if anonymity mode enabled
+    anon_hash = None
+    if session.anonymity_mode == "anonymous" and user_id:
+        anon_hash = anonymize_user_id(user_id, str(session.id))
+
+    participant = Participant(
+        session_id=session.id,
+        user_id=user_id,
+        anon_hash=anon_hash,
+        display_name=display_name or f"Participant-{nanoid(_SHORT_CODE_ALPHABET, 4)}",
+        device_type=device_type,
+        joined_at=datetime.now(timezone.utc),
+        is_active=True,
+    )
+    db.add(participant)
+    await db.commit()
+    await db.refresh(participant)
+    return session, participant
+
+
+async def list_participants(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    active_only: bool = True,
+) -> list[Participant]:
+    """List participants for a session."""
+    stmt = select(Participant).where(Participant.session_id == session_id)
+    if active_only:
+        stmt = stmt.where(Participant.is_active.is_(True))
+    result = await db.execute(stmt.order_by(Participant.joined_at))
+    return list(result.scalars().all())
+
+
+# ---------------------------------------------------------------------------
+# Question Management
+# ---------------------------------------------------------------------------
+
+async def add_question(
+    db: AsyncSession,
+    session: Session,
+    *,
+    question_text: str,
+    order_index: int = 0,
+) -> Question:
+    """Add a question to a session. Only in draft or open state."""
+    if session.status not in ("draft", "open"):
+        raise SessionStateError(session.status, "add question")
+
+    question = Question(
+        session_id=session.id,
+        cycle_id=session.current_cycle,
+        question_text=question_text,
+        order_index=order_index,
+        status="draft",
+    )
+    db.add(question)
+    await db.commit()
+    await db.refresh(question)
+    return question
+
+
+async def list_questions(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+) -> list[Question]:
+    """List questions for a session, ordered by order_index."""
+    result = await db.execute(
+        select(Question)
+        .where(Question.session_id == session_id)
+        .order_by(Question.order_index)
+    )
+    return list(result.scalars().all())
+
+
+async def get_question(
+    db: AsyncSession,
+    question_id: uuid.UUID,
+) -> Question:
+    """Get a single question by ID."""
+    result = await db.execute(select(Question).where(Question.id == question_id))
+    question = result.scalar_one_or_none()
+    if question is None:
+        from fastapi import HTTPException, status
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
+    return question
