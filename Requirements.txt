@@ -4,10 +4,16 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 ## 0) Product Summary
 
-**Product name:** SoI Polling Tool (Polling Project)
-**Purpose:** Enable fast, secure, large-group polling (100–10,000+ users) that turns free-form responses into **AI themes**, then into **ranked priorities**, then into **exportable reports**, while also supporting **SoI Trinity Tokens (♡ SI, 웃 HI, ◬ AI)** and a future-facing **cube simulation system** that enables humans (and eventually AI) to optimize modular code blocks safely.
+**Product name:** SoI Governance Engine (eXeL-AI-Polling)
+**Purpose:** Production-scale, deterministic, horizontally scalable Governance Compression Infrastructure that turns free-form responses into **AI themes**, then into **ranked priorities**, then into **exportable reports**, while supporting **SoI Trinity Tokens (♡ SI, 웃 HI, ◬ AI)**, governance compression, and a cube simulation system that enables humans (and eventually AI) to optimize modular code blocks safely.
 
-**Core promise:** “Turn messy group input into clear priorities in under a minute (at scale), with governance + traceability + contribution value capture.”
+**Core promise:** "Turn messy group input into clear priorities in under a minute (at scale), with governance + traceability + contribution value capture."
+
+**Scale targets:**
+* **Stable:** 100,000 concurrent users
+* **Burst:** 1,000,000 concurrent capacity
+* **AI processing:** 1M inputs via sampling/batching in < 60 seconds
+* **Theme determinism:** Identical inputs MUST yield identical themes
 
 ---
 
@@ -586,8 +592,10 @@ The following technology choices were confirmed during project setup:
 - **Pipeline:** Embeddings → Clustering → Summarization
 
 ### Scale
-- **MVP1 target:** 2,000–10,000 concurrent users per session
-- **AI simulation target:** 1M inputs via sampling/batching < 60 seconds
+- **Stable:** 100,000 concurrent users
+- **Burst:** 1,000,000 concurrent capacity
+- **AI processing:** 1M inputs via sampling/batching < 60 seconds
+- **Theme determinism:** Identical inputs MUST yield identical themes
 
 ### Build Approach
 - **Scaffold all Cubes 1-9,** then implement cube by cube
@@ -611,7 +619,89 @@ The following technology choices were confirmed during project setup:
 
 ---
 
-## 13) Original Prompt Template (Reference)
+## 13) Production Architecture Constraints
+
+### Architectural Rules
+* **No row-by-row API calls** — batch all embedding requests efficiently
+* **No disk-heavy CSV intermediates** — stream data through pipeline in memory
+* **No repeated full clustering** — use streaming/incremental MiniBatchKMeans updates
+* **Horizontal scaling** — all services must be stateless or use shared state (Redis/Postgres)
+* **Rate limiting** on all public endpoints
+* **Anti-sybil safeguards** on voting and response submission
+* **Governance weight damping** to prevent manipulation
+* **Circuit breaker pattern** for all external API calls (OpenAI, etc.)
+* **Graceful degradation** — system must serve partial results if AI pipeline is delayed
+
+### Determinism Requirements
+All clustering and ranking operations must be fully reproducible:
+* **Seeded MiniBatchKMeans** — fixed `random_state` for identical outputs
+* **Fixed embedding model version** — pin exact model ID, never auto-upgrade
+* **Stable cluster ordering** — deterministic sort after clustering
+* **Replay reproducibility hash** — SHA-256 of (inputs + parameters) = expected output hash
+* **Version-locked cube dependency graph** — every cube pins its upstream/downstream versions
+
+### Background Processing Architecture
+* **Task queue:** Celery or async worker pool for background AI processing
+* **Embedding worker fleet:** Dedicated batch workers, horizontally scaled
+* **Streaming clusterer:** MiniBatchKMeans with deterministic seed, incremental updates
+* **Governance engine:** Voting weight compression, quadratic normalization
+* **Append-only token ledger:** Immutable entries with lifecycle states
+
+### Failure Mode Handling
+* **OpenAI API outage:** Circuit breaker → queue → exponential backoff → cached embedding fallback
+* **Embedding backlog surge:** Back-pressure → sampling mode → priority queue
+* **Partial cluster update:** Atomic batch commits → rollback on failure → serve last stable cluster
+* **Redis failure:** Graceful degradation to Postgres → reconnect with backoff
+* **Postgres failover:** Read replicas → automatic promotion → connection pool retry
+* **Burst queue overflow:** Load shedding via sampling → 503 + retry-after header
+* **Governance manipulation:** Anti-sybil detection → weight damping → anomaly flagging → audit log
+
+---
+
+## 14) Governance Compression & Token Math
+
+See `Token_Governance_Math.md` for full formal specification. Summary:
+
+### Governance Requirements
+* **Governance weight damping** — prevent any single actor from dominating outcomes
+* **Quadratic vote normalization** — diminishing returns on repeated votes: `weight = sqrt(tokens_staked)`
+* **Token velocity caps** — limit transfer/redemption speed to prevent gaming
+* **Reputation multipliers** — earned trust increases governance weight over time
+* **Drift detection** — `cosine(previous_centroid, new_centroid)` to detect theme drift between runs
+* **Cluster stability scoring** — measure consistency of theme assignments across re-runs
+
+### Treasury Accounting
+* **Treasury-backed HI redemption** — HI tokens only redeemable against available treasury balance
+* **Token dispute workflow** — flag → review → resolve with complete audit trail
+* **Version-locked ledger** — every entry references cube version + dependency graph hash
+
+---
+
+## 15) Observability & Cost Modeling
+
+### Observability Plan
+* **Metrics (Prometheus):** Request latency, queue depth, embedding throughput, cluster stability, token velocity
+* **Logs:** Structured JSON — every request, every AI call, every state transition
+* **Alerts:** Queue depth threshold, API error rate spike, drift detection trigger, governance anomaly
+* **Dashboards (Grafana):** Ingestion rate, embedding batch latency, clustering time, cost-per-1M
+* **Drift monitoring:** Cosine similarity between previous and new cluster centroids
+
+### Cost Modeling (required per deployment tier)
+* **OpenAI embedding cost** per 1K / 1M responses
+* **Infrastructure cost** at 100K stable / 1M burst
+* **Cost-per-session** breakdown (compute + AI + storage)
+* **Throughput equations:** ingestion rate x embedding batch latency x clustering complexity x queue buffering
+
+### Required Throughput Metrics
+* Ingestion rate (responses/sec)
+* Embedding batch latency (ms per batch of N)
+* Clustering complexity (O(n) for MiniBatchKMeans)
+* Queue depth and buffering capacity
+* Horizontal scaling factor (workers x throughput per worker)
+
+---
+
+## 16) Original Prompt Template (Reference)
 
 > Build a full-stack web app called "SoI Polling Tool" using the following requirements. Implement frontend pages for Moderator, User, and Lead/Developer. Implement backend APIs in FastAPI. Use PostgreSQL for sessions/questions/rankings/audit/tokens, MongoDB for raw responses, Redis for live state, and WebSockets for real-time updates (MVP2). Implement AI theme clustering pipeline with embeddings + clustering + summarization returning themes with confidence and counts. Implement token ledger for ♡ SI, 웃 HI, ◬ AI with lifecycle states and dispute flow. Implement a modular "Cube Simulation Mode" that allows Lead/Developer to check out a cube, run replay tests (including upstream/downstream dependency replays), compare metrics, and approve/reject changes with versioning and rollback. Follow CRS-01 through CRS-35 exactly as functional requirements and implement the workflow steps 1–9. Provide complete code structure, database schema, API routes, and UI screens. Use React + Next.js frontend, FastAPI backend, Auth0 for auth, Cloudflare for hosting/CDN, and a multi-provider AI abstraction layer.
 
