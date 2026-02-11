@@ -20,6 +20,14 @@ class SessionStateError(HTTPException):
         )
 
 
+class SessionExpiredError(HTTPException):
+    def __init__(self, session_id: str):
+        super().__init__(
+            status_code=status.HTTP_410_GONE,
+            detail=f"Session '{session_id}' has expired",
+        )
+
+
 class PaymentRequiredError(HTTPException):
     def __init__(self, detail: str = "Payment required"):
         super().__init__(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail=detail)

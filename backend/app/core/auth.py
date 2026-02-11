@@ -8,6 +8,7 @@ from jose import JWTError, jwt
 from app.config import settings
 
 security = HTTPBearer()
+optional_security = HTTPBearer(auto_error=False)
 
 _jwks_cache: dict | None = None
 
@@ -82,3 +83,53 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid token: {e}",
         )
+
+
+async def get_optional_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(optional_security),
+) -> CurrentUser | None:
+    """Return authenticated user if Bearer token is present, else None.
+
+    This allows endpoints to accept both authenticated and anonymous requests.
+    Invalid or expired tokens are treated as anonymous (returns None).
+    """
+    if credentials is None:
+        return None
+
+    try:
+        jwks = await _get_jwks()
+        unverified_header = jwt.get_unverified_header(credentials.credentials)
+
+        rsa_key = {}
+        for key in jwks.get("keys", []):
+            if key["kid"] == unverified_header.get("kid"):
+                rsa_key = {
+                    "kty": key["kty"],
+                    "kid": key["kid"],
+                    "use": key["use"],
+                    "n": key["n"],
+                    "e": key["e"],
+                }
+                break
+
+        if not rsa_key:
+            return None
+
+        payload = jwt.decode(
+            credentials.credentials,
+            rsa_key,
+            algorithms=["RS256"],
+            audience=settings.auth0_api_audience,
+            issuer=f"https://{settings.auth0_domain}/",
+        )
+
+        namespace = "https://exel-polling.com"
+        return CurrentUser(
+            user_id=payload.get("sub", ""),
+            email=payload.get(f"{namespace}/email"),
+            role=payload.get(f"{namespace}/role", "user"),
+            permissions=payload.get("permissions", []),
+        )
+
+    except (JWTError, Exception):
+        return None

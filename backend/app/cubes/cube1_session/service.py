@@ -10,17 +10,19 @@ Handles:
 
 import io
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import qrcode
 import qrcode.constants
+from fastapi import HTTPException, status
 from nanoid import generate as nanoid
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.config import settings
-from app.core.exceptions import SessionNotFoundError, SessionStateError
+from app.core.auth import CurrentUser
+from app.core.exceptions import SessionExpiredError, SessionNotFoundError, SessionStateError
 from app.core.security import anonymize_user_id
 from app.models.participant import Participant
 from app.models.question import Question
@@ -35,6 +37,24 @@ _SHORT_CODE_LENGTH = 8
 def _generate_short_code() -> str:
     """Generate a human-readable session short code (e.g., 'Ab3kQ7xR')."""
     return nanoid(_SHORT_CODE_ALPHABET, _SHORT_CODE_LENGTH)
+
+
+_SHORT_CODE_MAX_RETRIES = 5
+
+
+async def _generate_unique_short_code(db: AsyncSession) -> str:
+    """Generate a short code with collision retry (up to 5 attempts)."""
+    for attempt in range(_SHORT_CODE_MAX_RETRIES):
+        code = _generate_short_code()
+        result = await db.execute(
+            select(Session.id).where(Session.short_code == code)
+        )
+        if result.scalar_one_or_none() is None:
+            return code
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Failed to generate unique session code after multiple attempts",
+    )
 
 
 def _build_join_url(short_code: str) -> str:
@@ -77,9 +97,12 @@ async def create_session(
     ai_provider: str = "openai",
 ) -> Session:
     """Create a new session with short_code, join_url, and QR."""
-    short_code = _generate_short_code()
+    short_code = await _generate_unique_short_code(db)
     join_url = _build_join_url(short_code)
     qr_url = join_url  # QR encodes the join URL
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        hours=settings.default_session_expiry_hours
+    )
 
     session = Session(
         short_code=short_code,
@@ -95,6 +118,7 @@ async def create_session(
         ai_provider=ai_provider,
         join_url=join_url,
         qr_url=qr_url,
+        expires_at=expires_at,
         status="draft",
     )
     db.add(session)
@@ -200,6 +224,9 @@ async def join_session(
     """
     session = await get_session_by_short_code(db, short_code)
 
+    if session.is_expired:
+        raise SessionExpiredError(short_code)
+
     if session.status not in ("open", "polling"):
         raise SessionStateError(session.status, "join")
 
@@ -250,6 +277,30 @@ async def list_participants(
         stmt = stmt.where(Participant.is_active.is_(True))
     result = await db.execute(stmt.order_by(Participant.joined_at))
     return list(result.scalars().all())
+
+
+# ---------------------------------------------------------------------------
+# Ownership + QR Validation
+# ---------------------------------------------------------------------------
+
+
+def verify_session_owner(session: Session, user: CurrentUser) -> None:
+    """Verify the user owns the session. Admins bypass the check."""
+    if user.role == "admin":
+        return
+    if session.created_by != user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not own this session",
+        )
+
+
+def validate_qr_accessible(session: Session) -> None:
+    """Block QR code access for expired, closed, or archived sessions."""
+    if session.is_expired:
+        raise SessionExpiredError(str(session.id))
+    if session.status in ("closed", "archived"):
+        raise SessionStateError(session.status, "generate QR code")
 
 
 # ---------------------------------------------------------------------------

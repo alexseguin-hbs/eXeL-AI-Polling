@@ -22,7 +22,7 @@ import uuid
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import CurrentUser, get_current_user
+from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
 from app.cubes.cube1_session import service
@@ -107,6 +107,7 @@ async def update_session(
 ):
     """Update session configuration (draft state only)."""
     session = await service.get_session_by_id(db, session_id)
+    service.verify_session_owner(session, user)
     updated = await service.update_session(
         db,
         session,
@@ -129,6 +130,7 @@ async def open_session(
 ):
     """CRS-06: Moderator opens session for participants to join."""
     session = await service.get_session_by_id(db, session_id)
+    service.verify_session_owner(session, user)
     updated = await service.transition_session(db, session, "open")
     count = await service.get_participant_count(db, updated.id)
     return SessionRead(**_session_to_read(updated, count))
@@ -142,6 +144,7 @@ async def start_polling(
 ):
     """Moderator starts polling phase (participants can submit responses)."""
     session = await service.get_session_by_id(db, session_id)
+    service.verify_session_owner(session, user)
     updated = await service.transition_session(db, session, "polling")
     count = await service.get_participant_count(db, updated.id)
     return SessionRead(**_session_to_read(updated, count))
@@ -155,6 +158,7 @@ async def start_ranking(
 ):
     """Moderator starts ranking phase (after AI theming completes)."""
     session = await service.get_session_by_id(db, session_id)
+    service.verify_session_owner(session, user)
     updated = await service.transition_session(db, session, "ranking")
     count = await service.get_participant_count(db, updated.id)
     return SessionRead(**_session_to_read(updated, count))
@@ -168,6 +172,7 @@ async def close_session(
 ):
     """CRS-06: Moderator closes the session."""
     session = await service.get_session_by_id(db, session_id)
+    service.verify_session_owner(session, user)
     updated = await service.transition_session(db, session, "closed")
     count = await service.get_participant_count(db, updated.id)
     return SessionRead(**_session_to_read(updated, count))
@@ -181,6 +186,7 @@ async def archive_session(
 ):
     """Archive a closed session."""
     session = await service.get_session_by_id(db, session_id)
+    service.verify_session_owner(session, user)
     updated = await service.transition_session(db, session, "archived")
     count = await service.get_participant_count(db, updated.id)
     return SessionRead(**_session_to_read(updated, count))
@@ -196,7 +202,7 @@ async def join_session(
     short_code: str,
     payload: SessionJoinRequest,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_current_user),
+    user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """CRS-03: Participant joins session via short_code or QR link."""
     session, participant = await service.join_session(
@@ -241,6 +247,7 @@ async def create_question(
 ):
     """Add a question to a session."""
     session = await service.get_session_by_id(db, session_id)
+    service.verify_session_owner(session, user)
     question = await service.add_question(
         db,
         session,
@@ -272,5 +279,6 @@ async def get_qr_code(
 ):
     """Generate and return QR code PNG for session join URL."""
     session = await service.get_session_by_id(db, session_id)
+    service.validate_qr_accessible(session)
     png_bytes = service.generate_qr_png(session.join_url or session.qr_url or "")
     return Response(content=png_bytes, media_type="image/png")

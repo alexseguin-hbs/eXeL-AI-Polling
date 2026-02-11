@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     stripe_publishable_key: str = ""
     stripe_webhook_secret: str = ""
 
+    # Session defaults
+    default_session_expiry_hours: int = 24
+
     # Free tier limits
     free_tier_max_participants: int = 50
 

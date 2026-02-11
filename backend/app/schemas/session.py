@@ -1,28 +1,29 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
 
 class SessionCreate(BaseModel):
-    title: str = Field(..., max_length=500)
+    title: str = Field(..., min_length=1, max_length=500)
     description: str | None = None
-    anonymity_mode: str = "identified"
-    cycle_mode: str = "single"
-    max_cycles: int = 1
-    ranking_mode: str = "auto"
-    language: str = "en"
-    max_response_length: int = 500
-    ai_provider: str = "openai"
+    anonymity_mode: Literal["identified", "anonymous", "pseudonymous"] = "identified"
+    cycle_mode: Literal["single", "multi"] = "single"
+    max_cycles: int = Field(1, ge=1, le=100)
+    ranking_mode: Literal["auto", "manual"] = "auto"
+    language: str = Field("en", min_length=2, max_length=10)
+    max_response_length: int = Field(500, ge=50, le=5000)
+    ai_provider: Literal["openai", "grok", "gemini"] = "openai"
 
 
 class SessionUpdate(BaseModel):
-    title: str | None = None
+    title: str | None = Field(None, min_length=1, max_length=500)
     description: str | None = None
-    anonymity_mode: str | None = None
-    ranking_mode: str | None = None
-    max_response_length: int | None = None
-    ai_provider: str | None = None
+    anonymity_mode: Literal["identified", "anonymous", "pseudonymous"] | None = None
+    ranking_mode: Literal["auto", "manual"] | None = None
+    max_response_length: int | None = Field(None, ge=50, le=5000)
+    ai_provider: Literal["openai", "grok", "gemini"] | None = None
 
 
 class SessionRead(BaseModel):
@@ -45,6 +46,7 @@ class SessionRead(BaseModel):
     is_paid: bool
     opened_at: datetime | None
     closed_at: datetime | None
+    expires_at: datetime | None
     created_at: datetime
     updated_at: datetime
     participant_count: int = 0

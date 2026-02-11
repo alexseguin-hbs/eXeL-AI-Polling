@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Index, Integer, String, Text
@@ -18,6 +18,12 @@ if TYPE_CHECKING:
 
 # Valid session state transitions
 SESSION_STATES = ("draft", "open", "polling", "ranking", "closed", "archived")
+
+# Validation constants for enum-like fields
+VALID_ANONYMITY_MODES = ("identified", "anonymous", "pseudonymous")
+VALID_CYCLE_MODES = ("single", "multi")
+VALID_RANKING_MODES = ("auto", "manual")
+VALID_AI_PROVIDERS = ("openai", "grok", "gemini")
 SESSION_TRANSITIONS: dict[str, tuple[str, ...]] = {
     "draft": ("open",),
     "open": ("polling", "closed"),
@@ -56,6 +62,7 @@ class Session(Base):
     # Timestamps
     opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     # Monetization
     is_paid: Mapped[bool] = mapped_column(default=False)
@@ -68,6 +75,12 @@ class Session(Base):
     rankings: Mapped[list["Ranking"]] = relationship(back_populates="session")
     audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="session")
     time_entries: Mapped[list["TimeEntry"]] = relationship(back_populates="session")
+
+    @property
+    def is_expired(self) -> bool:
+        if self.expires_at is None:
+            return False
+        return datetime.now(timezone.utc) >= self.expires_at
 
     def can_transition_to(self, new_status: str) -> bool:
         return new_status in SESSION_TRANSITIONS.get(self.status, ())
