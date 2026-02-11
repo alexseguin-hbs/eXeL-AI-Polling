@@ -84,29 +84,39 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 
 ## Build Approach
 - **Scaffold all Cubes 1-9 first,** then implement cube by cube
-- **Cube grid (3x3, Layer 1):**
+- **Cube grid (3x3x3):**
   ```
-  Cube 1 (Session) | Cube 2 (Text)    | Cube 3 (Voice)
-  Cube 4 (Collect)  | Cube 5 (Gateway) | Cube 6 (AI)
-  Cube 7 (Ranking)  | Cube 8 (Tokens)  | Cube 9 (Reports)
+  Level 1 (Base Layer) — positions are (Level, Row, Col):
+
+         Col 1                Col 2                Col 3
+  Row 1: Cube 7 Ranking       Cube 8 Tokens        Cube 9 Reports
+         (1,1,1)              (1,1,2)              (1,1,3)
+
+  Row 2: Cube 6 AI            Cube 1 Session       Cube 2 Text
+         (1,2,1)              (1,2,2) ← CENTER     (1,2,3)
+
+  Row 3: Cube 5 Gateway       Cube 4 Collector     Cube 3 Voice
+         (1,3,1)              (1,3,2)              (1,3,3)
+
+  Level 2 — Cube 10 Simulation at (2,2,2) — center of full 3x3x3
   ```
-- **Implementation order:** Cube 5 FIRST (center/orchestrator) → 1 → 2 → 4 → 6 → 7 → 9
+- **Implementation order:** Cube 1 FIRST (center of Level 1) → 5 → 2 → 4 → 6 → 7 → 9
 - **Deferred:** Cube 3 (MVP2), Cube 8 (MVP3), Cube 10 (MVP3, paused)
 - **MVP phases:** MVP1 (working prototype) → MVP2 (usability/intelligence) → MVP3 (governance/monetization)
 
 ## Cube Architecture Overview
-| Cube | Name | MVP | Description |
-|------|------|-----|-------------|
-| 1 | Session Join & QR | 1 | Session create, ID gen, QR/link, join flow, state management |
-| 2 | Text Submission Handler | 1 | Validate text inputs, limits, anonymization, PII detection |
-| 3 | Voice-to-Text Engine | 2 | Browser mic, STT, language selection |
-| 4 | Response Collector | 1 | Aggregate inputs, write to storage, caching, presence |
-| 5 | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking, **TIME TRACKING** |
-| 6 | AI Theming Clusterer | 1 | Embeddings + clustering + summarization |
-| 7 | Prioritization & Voting | 1 | Ranking UI + backend aggregation |
-| 8 | Token Reward Calculator | 3 | SoI Trinity Tokens + governance/audit |
-| 9 | Reports, Export & Dashboards | 1 | CSV export (MVP1), PDF/analytics (MVP2+) |
-| 10 | Simulation Orchestrator | 3 | Sandbox checkout, replay tests, metrics, versioning |
+| Cube | Position | Name | MVP | Description |
+|------|----------|------|-----|-------------|
+| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create, ID gen, QR/link, join flow, state management |
+| 2 | (1,2,3) | Text Submission Handler | 1 | Validate text inputs, limits, anonymization, PII detection |
+| 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT, language selection |
+| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs, write to storage, caching, presence |
+| 5 | (1,3,1) | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking, **TIME TRACKING** |
+| 6 | (1,2,1) | AI Theming Clusterer | 1 | Embeddings + clustering + summarization |
+| 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI + backend aggregation |
+| 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens + governance/audit |
+| 9 | (1,1,3) | Reports, Export & Dashboards | 1 | CSV export (MVP1), PDF/analytics (MVP2+) |
+| 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Sandbox checkout, replay tests, metrics, versioning |
 
 ## Time Tracking (Critical — built into Cube 5)
 - **What is tracked:** Active participation time per user per session

@@ -69,7 +69,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 ## 3) Cube Architecture (Modules)
 
-### Cube 1 — Session Join & QR (1,1,1)
+### Cube 1 — Session Join & QR (1,2,2) — CENTER of Level 1
 
 * Session create
 * Session ID generation
@@ -78,60 +78,60 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Session state: draft/open/closed/archived
 * Basic security checks
 
-### Cube 2 — Text Submission Handler (1,1,2)
+### Cube 2 — Text Submission Handler (1,2,3)
 
 * Validate text inputs
 * Enforce limits: **question ≤ 500 chars**; response length configurable (default ≤ 500)
 * Optional anonymization
 * Basic profanity/PII detection (optional)
 
-### Cube 3 — Voice-to-Text Engine (1,1,3) (MVP2)
+### Cube 3 — Voice-to-Text Engine (1,3,3) (MVP2)
 
 * Browser mic capture (Web Audio API)
 * Speech-to-text provider abstraction (future multi-provider)
 * Convert to text and forward into same ingestion pipeline
 * Language selection (stretch)
 
-### Cube 4 — Response Collector (1,2,1)
+### Cube 4 — Response Collector (1,3,2)
 
 * Aggregates inputs from cubes 1–3
 * Writes to storage
 * Caching for live status
 * Presence tracking
 
-### Cube 5 — User Input Gateway / Orchestrator (1,2,2)
+### Cube 5 — User Input Gateway / Orchestrator (1,3,1)
 
 * Central gateway for: join events, submissions, poll state updates
 * Triggers AI processing after poll close
 * Triggers ranking aggregation after ranking close
 
-### Cube 6 — AI Theming Clusterer (1,2,3)
+### Cube 6 — AI Theming Clusterer (1,2,1)
 
 * Embeddings + clustering + summarization
 * Returns: themes, subthemes, confidence, counts, exemplars
 * Must support “Theme-01 basic” first; “Theme-02 enhanced” later; deep dives in MVP3
 
-### Cube 7 — Prioritization & Voting (1,3,1)
+### Cube 7 — Prioritization & Voting (1,1,1)
 
 * Ranking UI and backend aggregation
 * Non-real-time (MVP1) then real-time websocket (MVP2)
 * Aggregation rules: deterministic + reproducible (median or stable scoring)
 
-### Cube 8 — Token Reward Calculator (1,3,2) + Governance/Audit (MVP3)
+### Cube 8 — Token Reward Calculator (1,1,2) + Governance/Audit (MVP3)
 
 * Assign SoI Trinity Tokens
 * Track overrides and audit trail
 * Resolve disputes and lifecycle states
 * Optional: on-chain logging later
 
-### Cube 9 — Reports, Export & Dashboards (1,3,3)
+### Cube 9 — Reports, Export & Dashboards (1,1,3)
 
 * Exports CSV MVP1; PDF/XLS/API later
 * Analytics dashboard (MVP2)
 * Token dashboard (MVP3)
 * Compliance exports (MVP2/3)
 
-### Cube 10 — Simulation Orchestrator (2,2,2)
+### Cube 10 — Simulation Orchestrator (2,2,2) — CENTER of full 3x3x3
 
 * “Check out cube” into sandbox
 * Run replay tests (upstream/downstream dependencies)
@@ -591,8 +591,8 @@ The following technology choices were confirmed during project setup:
 
 ### Build Approach
 - **Scaffold all Cubes 1-9,** then implement cube by cube
-- **Cube 5 (Gateway/Orchestrator) is built FIRST** — center of the 3x3 grid
-- **Implementation order:** 5 → 1 → 2 → 4 → 6 → 7 → 9
+- **Cube 1 (Session) is built FIRST** — center of Level 1 at position (1,2,2)
+- **Implementation order:** 1 → 5 → 2 → 4 → 6 → 7 → 9
 - **Deferred:** Cube 3 (MVP2), Cube 8 (MVP3), Cube 10 (MVP3, paused)
 
 ### Time Tracking (Built into Cube 5 from Day 1)
