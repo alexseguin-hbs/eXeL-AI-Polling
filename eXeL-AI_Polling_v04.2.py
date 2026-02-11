@@ -287,7 +287,7 @@ def prompt_openai_reduce_themes(themes, target_count, type_str):
         {"role": "system", "content": f"You are an AI expert at reducing {type_str} themes. Reduce the list to exactly {target_count} unique themes, each with a 5-word name and 7-12 word description (no commas/punctuation). Reply in CSV format with headers T_Number, Theme, T_Description, Confidence (XX%). Confidence is your certainty in the theme (70-100%). Ensure themes are distinct."},
         {"role": "user", "content": f"Reduce these themes to {target_count}: \n{themes_str}"}
     ]
-    = openai.ChatCompletion.create(model=MODEL, messages=messages)
+    response = openai.ChatCompletion.create(model=MODEL, messages=messages)
     return response['choices'][0]['message']['content'].strip()
 
 # For Risks
