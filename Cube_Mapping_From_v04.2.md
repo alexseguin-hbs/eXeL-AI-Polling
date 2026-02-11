@@ -9,7 +9,7 @@ showing how the monolith decomposes into the modular architecture.
 
 | v04.2.py Section | Lines | Target Cube | Service | What Changes |
 |-----------------|-------|-------------|---------|-------------|
-| OPENAI API KEY + MODEL | 1–20 | Cube 6 | AI Provider Abstraction | Move to config; multi-provider interface; circuit breaker |
+| OPENAI API KEY + MODEL | 1–20 | Cube 6 | AI Provider Abstraction | Move to config; multi-provider interface (OpenAI, Grok, Gemini at launch); circuit breaker + failover |
 | FILE PATHS + folder setup | 22–33 | Cube 4 | Collection Service | Eliminate filesystem; use Postgres + MongoDB + Redis |
 | LOAD & MERGE (CSV read + entry split) | 35–54 | Cube 1 + Cube 4 | Session + Collection | Session creates context; Collector ingests via API |
 | SUMMARIZATION FUNCTIONS | 56–73 | Cube 6 | AI Theming Engine | Batch API calls; eliminate row-by-row; async worker |
@@ -73,10 +73,10 @@ Cube 10 (Simulation) ──replays──→ Metrics Comparison
 
 ## Key Refactoring Decisions
 
-### 1. Eliminate Row-by-Row OpenAI Calls
+### 1. Eliminate Row-by-Row AI API Calls
 **v04.2 pattern:** Loop over each row, call `openai.ChatCompletion.create()` per response.
-**Target:** Batch embeddings via `openai.embeddings.create()` with batches of 100–2000 texts.
-Use async workers to parallelize across batches.
+**Target:** Batch embeddings via provider abstraction (OpenAI, Grok, Gemini) with batches of 100–2000 texts.
+Use async workers to parallelize across batches. Provider selected per session by Moderator.
 
 ### 2. Eliminate Filesystem Intermediates
 **v04.2 pattern:** Write CSV after every stage (entries, samples, themes, reduced themes).
@@ -91,7 +91,7 @@ except for the word "RISK" / "SUPPORT" / "NEUTRAL" in the prompt.
 ### 4. Deterministic Clustering
 **v04.2 pattern:** No clustering — uses OpenAI chat to "generate themes" non-deterministically.
 **Target:** Replace with MiniBatchKMeans on embeddings with fixed `random_state`.
-Use OpenAI only for generating human-readable theme labels from cluster centroids.
+Use selected AI provider only for generating human-readable theme labels from cluster centroids.
 
 ### 5. Streaming Theme Updates
 **v04.2 pattern:** Full re-clustering after every batch.
@@ -99,7 +99,7 @@ Use OpenAI only for generating human-readable theme labels from cluster centroid
 Track centroid drift via cosine similarity (see Token_Governance_Math.md Section 7).
 
 ### 6. Confidence from Embeddings, Not Chat
-**v04.2 pattern:** Ask OpenAI to self-report confidence (unreliable, non-deterministic).
+**v04.2 pattern:** Ask AI provider to self-report confidence (unreliable, non-deterministic).
 **Target:** Compute confidence from:
 - Distance to nearest cluster centroid (closer = higher confidence)
 - Cluster density / spread

@@ -284,11 +284,12 @@ IF dispute unresolved for > escalation_window (default 72 hours):
 
 ## 11) Cost-Per-Response Modeling
 
-### Embedding cost:
+### Embedding cost (per provider — OpenAI, Grok, Gemini):
 ```
-embedding_cost_per_response = (tokens_per_response / 1000) * price_per_1k_tokens
+embedding_cost_per_response = (tokens_per_response / 1000) * price_per_1k_tokens[provider]
 tokens_per_response ≈ word_count * 1.3  (average tokenization ratio)
 ```
+Compare across providers to optimize cost. Provider selected per session.
 
 ### Batch efficiency:
 ```

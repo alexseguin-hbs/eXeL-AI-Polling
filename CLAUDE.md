@@ -87,11 +87,12 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 - **Roles (RBAC):** Moderator, User (Participant), Lead/Developer, Business Owner/Admin
 
 ### AI / Theme Clustering (Cube 6)
-- **Architecture:** Multi-provider abstraction layer
-- **Providers to support:** Build abstraction interface; implement providers as needed (OpenAI, Anthropic, Cohere, open-source)
+- **Architecture:** Multi-provider abstraction layer (provider-agnostic interface)
+- **Launch providers:** OpenAI, Grok (xAI), Gemini (Google) — user selects per session
+- **Extensibility:** Abstraction interface allows adding more providers later (Anthropic, Cohere, open-source, etc.)
 - **Pipeline:** Batch Embeddings → MiniBatchKMeans Streaming Clustering → Summarization → Themes with confidence + counts
-- **Determinism:** Seeded clustering, fixed embedding model version, stable cluster ordering
-- **Circuit Breaker:** OpenAI fallback strategy for API outages
+- **Determinism:** Seeded clustering, fixed embedding model version per provider, stable cluster ordering
+- **Circuit Breaker:** Per-provider fallback strategy; failover to next available provider on outage
 
 ### Scale Targets
 - **Stable:** 100,000 concurrent users
@@ -129,7 +130,7 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 - **Rate limiting** on all public endpoints
 - **Anti-sybil safeguards** on voting and response submission
 - **Governance weight damping** to prevent manipulation
-- **Circuit breaker** pattern for all external API calls (OpenAI, etc.)
+- **Circuit breaker** pattern for all external AI provider calls (OpenAI, Grok, Gemini)
 - **Graceful degradation** — system must serve partial results if AI pipeline is delayed
 
 ### Determinism Requirements
@@ -143,7 +144,7 @@ All clustering and ranking operations must be fully reproducible:
 ### Failure Mode Handling
 | Failure | Strategy |
 |---------|----------|
-| OpenAI API outage | Circuit breaker → queue requests → retry with exponential backoff → fallback to cached embeddings |
+| AI provider outage | Circuit breaker → queue requests → retry with exponential backoff → failover to next provider → fallback to cached embeddings |
 | Embedding backlog surge | Back-pressure signal to ingestion → sampling mode → priority queue |
 | Partial cluster update | Atomic batch commits → rollback on failure → serve last stable cluster |
 | Redis failure | Graceful degradation to Postgres for state → reconnect with backoff |
@@ -257,7 +258,7 @@ See `Token_Governance_Math.md` for formal math. Key requirements:
 
 ## Cost Modeling
 Track and optimize for:
-- **OpenAI embedding cost** per 1K / 1M responses
+- **AI provider embedding cost** per 1K / 1M responses (OpenAI, Grok, Gemini — compare per provider)
 - **Infrastructure cost** at 100K stable / 1M burst
 - **Cost-per-session** breakdown (compute + AI + storage)
 - **Throughput equations:** ingestion rate × embedding batch latency × clustering complexity

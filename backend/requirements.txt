@@ -23,10 +23,10 @@ httpx>=0.28.0
 pydantic>=2.12.0
 pydantic-settings>=2.7.0
 
-# AI providers
+# AI providers (launch: OpenAI, Grok/xAI, Gemini/Google)
 openai>=2.18.0
-anthropic>=0.50.0
-cohere>=5.13.0
+google-genai>=1.0.0
+# xAI Grok uses OpenAI-compatible API via httpx (no separate SDK needed)
 
 # ML / Clustering
 scikit-learn>=1.6.0

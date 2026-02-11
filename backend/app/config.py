@@ -13,11 +13,11 @@ class Settings(BaseSettings):
     auth0_client_id: str = ""
     auth0_client_secret: str = ""
 
-    # AI Providers
+    # AI Providers (launch: OpenAI, Grok/xAI, Gemini/Google)
     openai_api_key: str = ""
-    anthropic_api_key: str = ""
-    cohere_api_key: str = ""
-    default_ai_provider: str = "openai"
+    xai_api_key: str = ""
+    gemini_api_key: str = ""
+    default_ai_provider: str = "openai"  # openai | grok | gemini
 
     # Security
     encryption_key: str = ""
