@@ -51,3 +51,8 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+
+# Secrets / tokens
+GitHub_Token_Claude.txt
+*.token
+*.secret

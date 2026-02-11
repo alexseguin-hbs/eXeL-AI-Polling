@@ -1,0 +1,75 @@
+"""SoI Polling Tool — FastAPI Application."""
+
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import settings
+from app.core.exceptions import generic_exception_handler
+from app.core.middleware import RequestIdMiddleware, TimingMiddleware
+from app.cubes.cube1_session.router import router as session_router
+from app.cubes.cube2_text.router import router as text_router
+from app.cubes.cube3_voice.router import router as voice_router
+from app.cubes.cube4_collector.router import router as collector_router
+from app.cubes.cube5_gateway.router import router as gateway_router
+from app.cubes.cube6_ai.router import router as ai_router
+from app.cubes.cube7_ranking.router import router as ranking_router
+from app.cubes.cube8_tokens.router import router as tokens_router
+from app.cubes.cube9_reports.router import router as reports_router
+from app.db.mongo import close_mongo, init_mongo
+from app.db.postgres import close_postgres
+from app.db.redis import close_redis, init_redis
+from app.schemas.common import HealthResponse
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup/shutdown lifecycle for database connections."""
+    # Startup
+    await init_mongo()
+    await init_redis()
+    yield
+    # Shutdown
+    await close_postgres()
+    await close_mongo()
+    await close_redis()
+
+
+app = FastAPI(
+    title="SoI Polling Tool API",
+    description="Fast, secure, large-group polling with AI theming and prioritization",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+# Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.frontend_url, "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.add_middleware(RequestIdMiddleware)
+app.add_middleware(TimingMiddleware)
+
+# Exception handlers
+app.add_exception_handler(Exception, generic_exception_handler)
+
+# Register all cube routers under /api/v1
+PREFIX = "/api/v1"
+app.include_router(session_router, prefix=PREFIX)
+app.include_router(text_router, prefix=PREFIX)
+app.include_router(voice_router, prefix=PREFIX)
+app.include_router(collector_router, prefix=PREFIX)
+app.include_router(gateway_router, prefix=PREFIX)
+app.include_router(ai_router, prefix=PREFIX)
+app.include_router(ranking_router, prefix=PREFIX)
+app.include_router(tokens_router, prefix=PREFIX)
+app.include_router(reports_router, prefix=PREFIX)
+
+
+@app.get("/api/v1/health", response_model=HealthResponse, tags=["Health"])
+async def health_check():
+    return HealthResponse()

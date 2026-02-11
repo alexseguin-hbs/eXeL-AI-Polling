@@ -1,0 +1,46 @@
+# Web framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+python-multipart>=0.0.20
+
+# Database - PostgreSQL
+sqlalchemy[asyncio]>=2.0.36
+asyncpg>=0.30.0
+alembic>=1.14.0
+
+# Database - MongoDB
+motor>=3.6.0
+pymongo>=4.10.0
+
+# Database - Redis
+redis>=5.2.0
+
+# Auth
+python-jose[cryptography]>=3.4.0
+httpx>=0.28.0
+
+# Schemas / Validation
+pydantic>=2.12.0
+pydantic-settings>=2.7.0
+
+# AI providers
+openai>=2.18.0
+anthropic>=0.50.0
+cohere>=5.13.0
+
+# ML / Clustering
+scikit-learn>=1.6.0
+numpy>=2.4.0
+hdbscan>=0.8.40
+
+# Utilities
+qrcode[pil]>=8.0
+python-dotenv>=1.1.0
+cryptography>=44.0.0
+nanoid>=2.0.0
+
+# Export
+openpyxl>=3.1.5
+
+# Payments
+stripe>=8.0.0
