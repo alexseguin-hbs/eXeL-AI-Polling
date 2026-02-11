@@ -100,8 +100,10 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 
   Level 2 — Cube 10 Simulation at (2,2,2) — center of full 3x3x3
   ```
-- **Implementation order:** Cube 1 FIRST (center of Level 1) → 5 → 2 → 4 → 6 → 7 → 9
-- **Deferred:** Cube 3 (MVP2), Cube 8 (MVP3), Cube 10 (MVP3, paused)
+- **Implementation order (clockwise spiral from center):**
+  1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
+  (center → right → bottom-right → bottom → bottom-left → left → top-left → top → top-right)
+- **Cube 10** (2,2,2) is Level 2, implemented after Layer 1 is complete
 - **MVP phases:** MVP1 (working prototype) → MVP2 (usability/intelligence) → MVP3 (governance/monetization)
 
 ## Cube Architecture Overview
