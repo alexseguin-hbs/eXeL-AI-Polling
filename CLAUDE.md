@@ -214,10 +214,21 @@ The AI pipeline must produce output matching this 15-column format (see `Updated
 ## Governance + Token Engine
 See `Token_Governance_Math.md` for formal math. Key requirements:
 
-### Token System (SoI Trinity)
-- **♡ SI (Shared Intention):** 1 minute active participation = 1 ♡
-- **웃 HI (Human Intelligence):** Compensated skilled time; baseline anchored to minimum wage
-- **◬ AI (Artificial Intelligence):** Time saved / scaled impact via automation
+### Token System (SoI Trinity — symbols are the primary identifiers)
+- **♡:** 1 minute active participation = 1 ♡ (1 ♡ awarded on login)
+- **웃:** Jurisdiction min-wage rate per minute when enabled. Default $7.25/hr (Austin, TX). 59 jurisdictions loaded (9 international + 50 US states). `hi_enabled=False` pre-treasury.
+- **◬:** 5x ♡ default multiplier
+
+### 웃 Rate Table ($/hr — `backend/app/core/hi_rates.py`)
+| Range | Jurisdictions |
+|-------|---------------|
+| $0.34–$1.04 | Nigeria, Nepal, Cambodia |
+| $1.43–$3.02 | Mexico, Thailand, Brazil, Honduras, Colombia, Chile |
+| $7.25 | TX, AL, GA, ID, IN, IA, KS, KY, LA, MS, NH, NC, ND, OK, PA, SC, TN, UT, WI, WY |
+| $8.75–$12.30 | WV, MI, OH, MT, MN, AR, SD, AK, NE, NV, NM, VA, MO |
+| $13.00–$16.28 | FL, VT, HI, RI, ME, CO, AZ, OR, DE, IL, MD, MA, NY, NJ, CT, CA, WA |
+
+API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&state=California`
 
 ### Governance Requirements
 - **Governance weight damping** — prevent any single actor from dominating outcomes
@@ -234,13 +245,18 @@ See `Token_Governance_Math.md` for formal math. Key requirements:
 - **Token dispute workflow** — flag → review → resolve with audit trail
 - **Version-locked** — every ledger entry references cube version + dependency graph hash
 
-## Time Tracking (Critical — built into Cube 5)
+## Time Tracking (Implemented — Cube 5)
 - **What is tracked:** Active participation time per user per session
-- **When it starts:** User begins responding to a question or starts voting/ranking
+- **Action types:** `login`, `responding`, `ranking`, `reviewing`
+- **When it starts:** User joins session (login auto-entry) or begins responding/ranking
 - **When it stops:** User submits response or completes ranking action
 - **Granularity:** Per-action timestamps (start/stop for each response, each ranking)
-- **Token mapping:** 1 minute of active participation = 1 ♡ SI token
-- **Only SI tokens during polling/voting.** HI tokens (웃) are for later project execution, not polling.
+- **Token mapping:**
+  - **♡** = `floor(active_minutes)` — 1 ♡ awarded on login
+  - **웃** = `duration_min * (jurisdiction_rate / 60)` — $0 when `hi_enabled=False`
+  - **◬** = `♡ * 5` (default multiplier)
+- **API serialization:** JSON fields are `♡`, `웃`, `◬` (not SI/HI/AI)
+- **Login auto-tracking:** On session join, Cube 1 calls `create_login_time_entry()` → awards ♡1 웃0 ◬5 + creates ledger entry
 
 ## Monetization Model (MVP1)
 - **Free tier:** Small sessions available at no cost
@@ -267,6 +283,34 @@ Track and optimize for:
 - Backend: Python venv in `backend/` directory
 - Frontend: Node.js in `frontend/` directory
 - Databases: Docker Compose (PostgreSQL, MongoDB, Redis)
+
+## Implementation Status
+
+### Cube 1 — Session Join & QR: COMPLETE (CRS-01→CRS-04)
+- Session CRUD, state machine (draft→open→polling→ranking→closed→archived)
+- QR code generation, join flow, participant management
+- **CRS-01:** Literal type validation on all enum fields (422 on invalid input), session ownership enforcement (403)
+- **CRS-02:** Anonymous join via `get_optional_current_user()` — no Bearer token required
+- **CRS-03:** Short code collision retry (5 attempts with DB uniqueness check)
+- **CRS-04:** `expires_at` field (default 24h), `SessionExpiredError` (410 Gone), QR blocked for expired/closed sessions
+- Files: `config.py`, `models/session.py`, `schemas/session.py`, `core/auth.py`, `core/exceptions.py`, `cubes/cube1_session/service.py`, `cubes/cube1_session/router.py`
+
+### Cube 5 — Time Tracking: IMPLEMENTED
+- `TimeTrackingService`: start/stop tracking, login auto-entry, ♡ 웃 ◬ calculation
+- Token calculation: `calculate_tokens()` with jurisdiction rate lookup
+- Login auto-tracking on session join (Cube 1 integration)
+- Append-only token ledger entries created on stop + login
+- Files: `cubes/cube5_gateway/service.py`, `cubes/cube5_gateway/router.py`, `models/time_tracking.py`, `schemas/time_tracking.py`
+
+### Cube 8 — Token Ledger: IMPLEMENTED
+- `TokenService`: session tokens query, user balance, disputes
+- 웃 rate table: 59 jurisdictions (9 international + 50 US states)
+- Rate lookup API: `GET /tokens/rates`, `GET /tokens/rates/lookup`
+- Files: `cubes/cube8_tokens/service.py`, `cubes/cube8_tokens/router.py`, `core/hi_rates.py`, `schemas/token.py`, `models/token_ledger.py`
+
+### Cubes 2–4, 6–7, 9–10: SCAFFOLDED (stubs only)
+- Models, schemas, and route stubs exist
+- Service implementations pending
 
 ## .gitignore
 See `.gitignore` file in project root. Key exclusions: node_modules, __pycache__, .env, venv, .next, .claude

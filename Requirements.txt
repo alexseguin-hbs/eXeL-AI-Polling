@@ -230,7 +230,7 @@ Use these exactly as “build targets” for website + backend.
 **CRS-22** Lead/Developer overrides rankings with documented justification.
 **CRS-23** System supports multi-cycle polling logic (structured phases).
 **CRS-24** System enforces governance + audit logging + RBAC.
-**CRS-25** System calculates and assigns Trinity Tokens (♡ SI, 웃 HI, ◬ AI).
+**CRS-25** System calculates and assigns Trinity Tokens (♡, 웃, ◬).
 
 ### MVP3 — Simulation, Optimization & Evolution
 
@@ -251,15 +251,19 @@ Use these exactly as “build targets” for website + backend.
 
 ### 6.1 Token Definitions (must be visible in UI)
 
-* **♡ Shared Intention (SI):** 1 minute of aligned contribution = **1 ♡**
-* **웃 Human Intelligence (HI):** compensated skilled time; baseline conversion anchored to minimum wage (default $7.25/hr → ~7.25 웃/hr). Allow org override.
-* **◬ Artificial Intelligence (AI):** time saved / scaled impact via automation; baseline multiplier example: **1 min SI = 5 ◬**
+**Symbols are the primary identifiers** — no need to write "SI", "HI", "AI" in UI/tracking:
+
+* **♡:** 1 minute of aligned contribution = **1 ♡** (Shared Intention)
+* **웃:** compensated skilled time; baseline anchored to jurisdiction minimum wage. Default $7.25/hr (Austin, Texas / US federal). **59 jurisdictions loaded** — 9 international ($0.34–$3.02/hr) + 50 US states ($7.25–$16.28/hr). Currently `hi_enabled=False` (pre-treasury); flip to True when funded.
+* **◬:** time saved / scaled impact via automation; default multiplier: **◬ = 5x ♡**
+
+**웃 vision:** Pay out globally at local minimum wage to leverage global talent. Rate resolved per participant from jurisdiction rate table.
 
 ### 6.2 Token Ledger (minimum)
 
-* Every token event must be logged:
+* Every token event must be logged (append-only ledger):
 
-  * session_id, user_id (or anonymous hash), timestamp, action_type, cube_id, delta_♡, delta_웃, delta_◬, rationale/inputs, version_id
+  * session_id, user_id (or anonymous hash), timestamp, action_type, cube_id, ♡, 웃, ◬, rationale/inputs, version_id
 * Token lifecycle states:
 
   * **simulated → pending → approved → finalized** (+ reversed if needed)
