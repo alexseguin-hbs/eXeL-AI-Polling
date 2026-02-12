@@ -15,23 +15,30 @@ Endpoints:
     POST   /sessions/{id}/questions — Add question
     GET    /sessions/{id}/questions — List questions
     GET    /sessions/{id}/qr        — Download QR code PNG
+    GET    /sessions/{id}/qr-json   — QR code as base64 JSON
+    GET    /sessions/{id}/presence  — Live participant count from Redis
+    GET    /sessions/{id}/verify-determinism — Replay hash verification
 """
 
 import uuid
 
-from fastapi import APIRouter, Depends, Response
+import redis.asyncio as aioredis
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
-from app.core.dependencies import get_db
+from app.core.dependencies import get_db, get_redis
 from app.core.permissions import require_role
+from app.core.rate_limit import limiter
 from app.cubes.cube1_session import service
 from app.schemas.participant import ParticipantRead
 from app.schemas.question import QuestionCreate, QuestionRead
 from app.schemas.session import (
+    QrJsonResponse,
     SessionCreate,
     SessionJoinRequest,
     SessionJoinResponse,
+    SessionPresence,
     SessionRead,
     SessionUpdate,
 )
@@ -71,6 +78,7 @@ async def create_session(
         language=payload.language,
         max_response_length=payload.max_response_length,
         ai_provider=payload.ai_provider,
+        seed=payload.seed,
     )
     count = await service.get_participant_count(db, session.id)
     return SessionRead(**_session_to_read(session, count))
@@ -183,26 +191,30 @@ async def archive_session(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
+    redis: aioredis.Redis = Depends(get_redis),
 ):
-    """Archive a closed session."""
+    """Archive a closed session. Clears Redis presence data."""
     session = await service.get_session_by_id(db, session_id)
     service.verify_session_owner(session, user)
-    updated = await service.transition_session(db, session, "archived")
+    updated = await service.transition_session(db, session, "archived", redis=redis)
     count = await service.get_participant_count(db, updated.id)
     return SessionRead(**_session_to_read(updated, count))
 
 
 # ---------------------------------------------------------------------------
-# Participant Join
+# Participant Join (rate-limited)
 # ---------------------------------------------------------------------------
 
 
 @router.post("/join/{short_code}", response_model=SessionJoinResponse, status_code=201)
+@limiter.limit("100/minute")
 async def join_session(
+    request: Request,
     short_code: str,
     payload: SessionJoinRequest,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
+    redis: aioredis.Redis = Depends(get_redis),
 ):
     """CRS-03: Participant joins session via short_code or QR link."""
     session, participant = await service.join_session(
@@ -211,6 +223,7 @@ async def join_session(
         user_id=user.user_id if user else None,
         display_name=payload.display_name,
         device_type=payload.device_type,
+        redis=redis,
     )
     return SessionJoinResponse(
         session_id=session.id,
@@ -231,6 +244,21 @@ async def list_participants(
     """List active participants in a session."""
     participants = await service.list_participants(db, session_id)
     return [ParticipantRead.model_validate(p) for p in participants]
+
+
+# ---------------------------------------------------------------------------
+# Presence (Redis)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/{session_id}/presence", response_model=SessionPresence)
+async def get_presence(
+    session_id: uuid.UUID,
+    redis: aioredis.Redis = Depends(get_redis),
+):
+    """Live participant count from Redis presence tracking."""
+    data = await service.get_presence(redis, session_id)
+    return SessionPresence(**data)
 
 
 # ---------------------------------------------------------------------------
@@ -282,3 +310,37 @@ async def get_qr_code(
     service.validate_qr_accessible(session)
     png_bytes = service.generate_qr_png(session.join_url or session.qr_url or "")
     return Response(content=png_bytes, media_type="image/png")
+
+
+@router.get("/{session_id}/qr-json", response_model=QrJsonResponse)
+async def get_qr_json(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """QR code as base64-encoded JSON (for embedding in web UIs)."""
+    session = await service.get_session_by_id(db, session_id)
+    service.validate_qr_accessible(session)
+    join_url = session.join_url or session.qr_url or ""
+    qr_b64 = service.generate_qr_base64(join_url)
+    return QrJsonResponse(qr_base64=qr_b64, join_url=join_url)
+
+
+# ---------------------------------------------------------------------------
+# Determinism Verification
+# ---------------------------------------------------------------------------
+
+
+@router.get("/{session_id}/verify-determinism")
+async def verify_determinism(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Return stored replay_hash, seed, and verification status."""
+    session = await service.get_session_by_id(db, session_id)
+    return {
+        "session_id": session.id,
+        "seed": session.seed,
+        "replay_hash": session.replay_hash,
+        "is_deterministic": session.seed is not None,
+        "has_replay_hash": session.replay_hash is not None,
+    }

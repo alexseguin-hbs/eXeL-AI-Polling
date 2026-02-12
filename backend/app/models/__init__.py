@@ -8,6 +8,7 @@ from app.models.response_meta import ResponseMeta
 from app.models.session import Session
 from app.models.simulation_run import SimulationRun
 from app.models.theme import Theme
+from app.models.theme_sample import ThemeSample
 from app.models.time_tracking import TimeEntry
 from app.models.token_ledger import TokenDispute, TokenLedger
 from app.models.user import User
@@ -22,6 +23,7 @@ __all__ = [
     "Session",
     "SimulationRun",
     "Theme",
+    "ThemeSample",
     "TimeEntry",
     "TokenDispute",
     "TokenLedger",

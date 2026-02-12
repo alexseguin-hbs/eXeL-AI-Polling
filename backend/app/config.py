@@ -37,6 +37,16 @@ class Settings(BaseSettings):
     # Session defaults
     default_session_expiry_hours: int = 24
 
+    # Determinism
+    session_seed: str | None = None       # Optional global seed for deterministic session_id
+
+    # AI pipeline / sampling (moved from magic numbers)
+    batch_size: int = 2048                # Embedding batch size
+    sample_count: int = 100               # Number of marble draws per Theme01 bin
+    sample_size: int = 10                 # Items per marble draw (matches monolith: groups of 10)
+    max_sampling_workers: int = 32        # ThreadPoolExecutor workers
+    themes_per_sample: int = 3            # Secondary themes generated per sample (matches monolith)
+
     # Token defaults (SoI Trinity: ♡, 웃, ◬)
     login_si_tokens: float = 1.0          # ♡ awarded on session join (1 min default)
     ai_si_multiplier: float = 5.0         # ◬ = 5x ♡ as default

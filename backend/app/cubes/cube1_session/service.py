@@ -8,12 +8,14 @@ Handles:
 - Redis presence tracking for active participants
 """
 
+import base64
 import io
 import uuid
 from datetime import datetime, timedelta, timezone
 
 import qrcode
 import qrcode.constants
+import redis.asyncio as aioredis
 from fastapi import HTTPException, status
 from nanoid import generate as nanoid
 from sqlalchemy import func, select
@@ -79,6 +81,50 @@ def generate_qr_png(data: str) -> bytes:
     return buf.getvalue()
 
 
+def generate_qr_base64(data: str) -> str:
+    """Generate QR code as a base64-encoded data URI string."""
+    png_bytes = generate_qr_png(data)
+    b64 = base64.b64encode(png_bytes).decode("ascii")
+    return f"data:image/png;base64,{b64}"
+
+
+# ---------------------------------------------------------------------------
+# Redis Presence Tracking
+# ---------------------------------------------------------------------------
+
+
+async def _set_presence(
+    redis: aioredis.Redis,
+    session_id: uuid.UUID,
+    participant_id: uuid.UUID,
+) -> None:
+    """Record a participant as present in a session (Redis HSET + TTL)."""
+    key = f"session:{session_id}:presence"
+    await redis.hset(key, str(participant_id), datetime.now(timezone.utc).isoformat())
+    await redis.expire(key, 3600)
+
+
+async def _clear_presence(redis: aioredis.Redis, session_id: uuid.UUID) -> None:
+    """Clear all presence data for a session (called on archive)."""
+    key = f"session:{session_id}:presence"
+    await redis.delete(key)
+
+
+async def get_presence(redis: aioredis.Redis, session_id: uuid.UUID) -> dict:
+    """Return presence data: {session_id, active_count, participants}."""
+    key = f"session:{session_id}:presence"
+    data = await redis.hgetall(key)
+    participants = [
+        {"participant_id": pid, "joined_at": ts}
+        for pid, ts in data.items()
+    ]
+    return {
+        "session_id": session_id,
+        "active_count": len(participants),
+        "participants": participants,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Session CRUD
 # ---------------------------------------------------------------------------
@@ -96,8 +142,25 @@ async def create_session(
     language: str = "en",
     max_response_length: int = 500,
     ai_provider: str = "openai",
+    seed: str | None = None,
 ) -> Session:
-    """Create a new session with short_code, join_url, and QR."""
+    """Create a new session with short_code, join_url, and QR.
+
+    If a seed is provided, generates a deterministic UUID5 session ID.
+    Re-creating with the same seed+title returns the existing session (idempotent).
+    """
+    effective_seed = seed or settings.session_seed
+
+    # Deterministic ID when seed is provided
+    session_id: uuid.UUID | None = None
+    if effective_seed:
+        session_id = uuid.uuid5(uuid.NAMESPACE_URL, f"exel:{effective_seed}:{title}")
+        # Idempotent: return existing session if same seed+title already exists
+        result = await db.execute(select(Session).where(Session.id == session_id))
+        existing = result.scalar_one_or_none()
+        if existing:
+            return existing
+
     short_code = await _generate_unique_short_code(db)
     join_url = _build_join_url(short_code)
     qr_url = join_url  # QR encodes the join URL
@@ -105,7 +168,7 @@ async def create_session(
         hours=settings.default_session_expiry_hours
     )
 
-    session = Session(
+    kwargs: dict = dict(
         short_code=short_code,
         created_by=created_by,
         title=title,
@@ -121,7 +184,12 @@ async def create_session(
         qr_url=qr_url,
         expires_at=expires_at,
         status="draft",
+        seed=effective_seed,
     )
+    if session_id:
+        kwargs["id"] = session_id
+
+    session = Session(**kwargs)
     db.add(session)
     await db.commit()
     await db.refresh(session)
@@ -183,6 +251,7 @@ async def transition_session(
     db: AsyncSession,
     session: Session,
     new_status: str,
+    redis: aioredis.Redis | None = None,
 ) -> Session:
     """Transition session to a new state. Validates against allowed transitions."""
     if not session.can_transition_to(new_status):
@@ -198,6 +267,10 @@ async def transition_session(
         session.opened_at = now
     elif new_status == "closed":
         session.closed_at = now
+
+    # Clear presence data on archive
+    if new_status == "archived" and redis:
+        await _clear_presence(redis, session.id)
 
     session.status = new_status
     await db.commit()
@@ -216,6 +289,7 @@ async def join_session(
     user_id: str | None = None,
     display_name: str | None = None,
     device_type: str | None = None,
+    redis: aioredis.Redis | None = None,
 ) -> tuple[Session, Participant]:
     """Join a session via short_code. Returns (session, participant).
 
@@ -272,6 +346,10 @@ async def join_session(
         participant_id=participant.id,
         user_id=user_id,
     )
+
+    # Record presence in Redis
+    if redis:
+        await _set_presence(redis, session.id, participant.id)
 
     return session, participant
 

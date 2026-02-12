@@ -41,6 +41,13 @@ nanoid>=2.0.0
 
 # Export
 openpyxl>=3.1.5
+pandas>=2.2.0
+
+# Rate limiting
+slowapi>=0.1.9
+
+# Structured logging
+structlog>=24.0.0
 
 # Payments
 stripe>=8.0.0

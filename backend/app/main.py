@@ -4,10 +4,14 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.core.exceptions import generic_exception_handler
+from app.core.logging import setup_logging
 from app.core.middleware import RequestIdMiddleware, TimingMiddleware
+from app.core.rate_limit import limiter
 from app.cubes.cube1_session.router import router as session_router
 from app.cubes.cube2_text.router import router as text_router
 from app.cubes.cube3_voice.router import router as voice_router
@@ -22,10 +26,25 @@ from app.db.postgres import close_postgres
 from app.db.redis import close_redis, init_redis
 from app.schemas.common import HealthResponse
 
+# OpenAPI tags for all 9 cubes + health
+openapi_tags = [
+    {"name": "Health", "description": "Application health checks"},
+    {"name": "Cube 1 — Sessions", "description": "Session CRUD, state machine, QR, join flow"},
+    {"name": "Cube 2 — Text Input", "description": "Text submission, validation, PII detection"},
+    {"name": "Cube 3 — Voice", "description": "Voice-to-text STT engine (MVP2)"},
+    {"name": "Cube 4 — Collector", "description": "Response aggregation, presence tracking"},
+    {"name": "Cube 5 — Gateway", "description": "Time tracking, orchestration, token calculation"},
+    {"name": "Cube 6 — AI Theming", "description": "Embeddings, marble sampling, theme clustering"},
+    {"name": "Cube 7 — Ranking", "description": "Voting, aggregation, governance compression"},
+    {"name": "Cube 8 — Tokens", "description": "SoI Trinity token ledger, HI rates, disputes"},
+    {"name": "Cube 9 — Reports", "description": "CSV/PDF export, analytics, insights"},
+]
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle for database connections."""
+    setup_logging()
     # Startup
     await init_mongo()
     await init_redis()
@@ -41,7 +60,12 @@ app = FastAPI(
     description="Fast, secure, large-group polling with AI theming and prioritization",
     version="0.1.0",
     lifespan=lifespan,
+    openapi_tags=openapi_tags,
 )
+
+# Rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Middleware
 app.add_middleware(

@@ -15,6 +15,7 @@ class SessionCreate(BaseModel):
     language: str = Field("en", min_length=2, max_length=10)
     max_response_length: int = Field(500, ge=50, le=5000)
     ai_provider: Literal["openai", "grok", "gemini"] = "openai"
+    seed: str | None = None
 
 
 class SessionUpdate(BaseModel):
@@ -41,6 +42,8 @@ class SessionRead(BaseModel):
     language: str
     max_response_length: int
     ai_provider: str
+    seed: str | None = None
+    replay_hash: str | None = None
     qr_url: str | None
     join_url: str | None
     is_paid: bool
@@ -67,3 +70,19 @@ class SessionJoinResponse(BaseModel):
     title: str
     status: str
     display_name: str | None
+
+
+class PresenceEntry(BaseModel):
+    participant_id: str
+    joined_at: str | None = None
+
+
+class SessionPresence(BaseModel):
+    session_id: uuid.UUID
+    active_count: int
+    participants: list[PresenceEntry]
+
+
+class QrJsonResponse(BaseModel):
+    qr_base64: str
+    join_url: str

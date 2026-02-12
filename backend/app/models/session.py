@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from app.models.question import Question
     from app.models.ranking import Ranking
     from app.models.theme import Theme
+    from app.models.theme_sample import ThemeSample
     from app.models.time_tracking import TimeEntry
 
 
@@ -55,6 +56,10 @@ class Session(Base):
     # AI provider for this session (moderator selects at creation)
     ai_provider: Mapped[str] = mapped_column(String(20), default="openai")
 
+    # Determinism
+    seed: Mapped[str | None] = mapped_column(String(255))
+    replay_hash: Mapped[str | None] = mapped_column(String(64))
+
     # URLs
     qr_url: Mapped[str | None] = mapped_column(String(2048))
     join_url: Mapped[str | None] = mapped_column(String(2048))
@@ -75,6 +80,7 @@ class Session(Base):
     rankings: Mapped[list["Ranking"]] = relationship(back_populates="session")
     audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="session")
     time_entries: Mapped[list["TimeEntry"]] = relationship(back_populates="session")
+    theme_samples: Mapped[list["ThemeSample"]] = relationship(back_populates="session")
 
     @property
     def is_expired(self) -> bool:
