@@ -1,3 +1,4 @@
+import time
 from dataclasses import dataclass
 
 import httpx
@@ -11,6 +12,8 @@ security = HTTPBearer()
 optional_security = HTTPBearer(auto_error=False)
 
 _jwks_cache: dict | None = None
+_jwks_fetched_at: float = 0.0
+_JWKS_TTL: int = 3600  # Re-fetch JWKS every 1 hour
 
 
 @dataclass
@@ -22,15 +25,17 @@ class CurrentUser:
 
 
 async def _get_jwks() -> dict:
-    """Fetch and cache Auth0 JWKS."""
-    global _jwks_cache
-    if _jwks_cache is None:
+    """Fetch and cache Auth0 JWKS with a 1-hour TTL."""
+    global _jwks_cache, _jwks_fetched_at
+    now = time.monotonic()
+    if _jwks_cache is None or (now - _jwks_fetched_at) > _JWKS_TTL:
         async with httpx.AsyncClient() as client:
             resp = await client.get(
                 f"https://{settings.auth0_domain}/.well-known/jwks.json"
             )
             resp.raise_for_status()
             _jwks_cache = resp.json()
+            _jwks_fetched_at = now
     return _jwks_cache
 
 

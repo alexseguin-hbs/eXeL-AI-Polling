@@ -10,7 +10,13 @@ from slowapi.errors import RateLimitExceeded
 from app.config import settings
 from app.core.exceptions import generic_exception_handler
 from app.core.logging import setup_logging
-from app.core.middleware import RequestIdMiddleware, TimingMiddleware
+from app.core.middleware import (
+    CacheControlMiddleware,
+    CloudflareProxyMiddleware,
+    RequestIdMiddleware,
+    SecurityHeadersMiddleware,
+    TimingMiddleware,
+)
 from app.core.rate_limit import limiter
 from app.cubes.cube1_session.router import router as session_router
 from app.cubes.cube2_text.router import router as text_router
@@ -67,15 +73,24 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Middleware
+# Middleware (Starlette executes in reverse registration order, so last-added runs first)
+# Build dynamic CORS origins
+origins = [settings.frontend_url, "http://localhost:3000"]
+if settings.allowed_origins:
+    origins.extend(o.strip() for o in settings.allowed_origins.split(",") if o.strip())
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url, "http://localhost:3000"],
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.pages\.dev",
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CacheControlMiddleware)
 app.add_middleware(RequestIdMiddleware)
+app.add_middleware(CloudflareProxyMiddleware)
 app.add_middleware(TimingMiddleware)
 
 # Exception handlers

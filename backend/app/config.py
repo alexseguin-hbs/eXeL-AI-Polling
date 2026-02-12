@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     hi_hourly_rate: float = 7.25          # USD/hr — default US federal min wage
     hi_currency: str = "USD"              # Currency for 웃 payouts
 
+    # Cloudflare deployment
+    behind_cloudflare: bool = False          # Enable CF-Connecting-IP extraction
+    allowed_origins: str = ""                # Comma-separated extra CORS origins
+    cloudflare_turnstile_secret: str = ""    # Turnstile bot protection secret
+    cloudflare_turnstile_site_key: str = ""  # Turnstile site key (sent to frontend)
+
     # Free tier limits
     free_tier_max_participants: int = 50
 
