@@ -1,1 +1,2 @@
-/api/* https://api.exel-polling.com/api/:splat 200
+# API proxy handled by wrangler.jsonc or client-side API calls
+# Cloudflare Workers does not support proxy redirects to external URLs
