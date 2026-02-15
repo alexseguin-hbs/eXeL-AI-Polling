@@ -192,7 +192,7 @@ All clustering and ranking operations must be fully reproducible:
 ## Cube Architecture Overview
 | Cube | Position | Name | MVP | Description |
 |------|----------|------|-----|-------------|
-| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create (3 types: polling/peer_volunteer/team_collab), ID gen, QR/link, **language selection gate (33 langs)**, join flow, Desired Outcome setup (M2/M3), state management |
+| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create (3 types, 2 polling modes: Single Round / Multi-Round Deep Dive), ID gen, QR/link, **join flow: language gate → results opt-in → session**, Desired Outcome setup (M2/M3), state management, **system/user/outcome metrics** |
 | 2 | (1,2,3) | Text Submission Handler | 1 | Validate text inputs **in all 33 languages**, limits (Unicode-aware), language tag per response, anonymization, PII detection |
 | 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT **in all 33 languages**, language tag per transcript, forwards to Cube 2 pipeline |
 | 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs **in all 33 languages** with language tags, write to storage, caching, presence, **collect Desired Outcomes + result logs (M2/M3)** |
@@ -309,9 +309,12 @@ Track and optimize for:
 ### Cube 1 — Session Join & QR: COMPLETE (CRS-01→CRS-04)
 - **All code is modular** — every cube is self-contained with clean interfaces
 - Session CRUD, state machine (draft→open→polling→ranking→closed→archived)
+- **Polling modes** (Moderator sets at creation): **Single Round** (one cycle) | **Multi-Round Deep Dive** (iterative, up to 3 rounds, context preserved)
 - QR code generation, join flow, participant management
-- **Language selection gate:** First screen after QR scan is a 33-language dropdown before join flow
+- **User join flow (sequential):** (1) Language dropdown (33 langs) → (2) Results opt-in ("Want a copy of results?") → (3) See question
+- **Results opt-in:** Stored per participant; flagged for Cube 9 distribution after session closes
 - **Master UI/UX language table:** Centralized, extensible language registry — admins/devs can add languages without code changes; all cubes reference this table
+- **Metrics:** System (latency, QR gen time, join rate, concurrent sessions) | User (join funnel time, opt-in rate, device distribution) | Outcome (completion rate by mode, deep dive utilization, retention across rounds)
 - **CRS-01:** Literal type validation on all enum fields (422 on invalid input), session ownership enforcement (403)
 - **CRS-02:** Anonymous join via `get_optional_current_user()` — no Bearer token required
 - **CRS-03:** Short code collision retry (5 attempts with DB uniqueness check)

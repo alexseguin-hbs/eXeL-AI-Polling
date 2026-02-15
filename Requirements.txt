@@ -81,14 +81,46 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 * **All code is modular** — every cube is a self-contained module with clean interfaces; all aspects of each cube must be modular and independently maintainable
 * Session create — supports 3 session types: **polling** (Method 1), **peer_volunteer** (Method 2), **team_collaboration** (Method 3)
+* **Polling modes** (set by Moderator at session creation):
+  * **Single Round:** One question cycle → responses → AI themes → ranking → results. No follow-up.
+  * **Multi-Round Deep Dive:** Iterative cycles (up to 3 configurable). After initial results, Moderator selects top themes → system generates follow-up questions → participants respond again → re-cluster → re-rank. Preserves context across rounds.
 * Session ID generation
 * QR + share link generation
-* **Language selection gate:** When user scans QR, they FIRST see a language dropdown (33 languages) before proceeding to the join flow
+* **User join flow (sequential screens after QR scan):**
+  1. **Language selection gate:** Dropdown with 33 languages (references Master language table)
+  2. **Results opt-in prompt:** "Would you like to receive a copy of the polling results?" (Yes/No) — preference stored per participant for later distribution by Cube 9
+  3. **Session join** → see question(s)
 * **Master UI/UX language table:** A centralized, extensible language registry that drives all UI translations and language options. Admins and developers can add new languages to expand the tool without code changes. All cubes reference this single table for language support.
 * Join flow + presence setup
 * **Method 2/3 setup flow:** Desired Outcome input, role assignment (Method 3: Tech/Creative/Business), time estimate, all-participant confirmation gate before timer starts
 * Session state: draft/open/closed/archived
 * Basic security checks
+
+#### Cube 1 Metrics
+
+**System Metrics:**
+* Session creation latency (p50/p95)
+* QR generation time
+* Join flow completion rate (started vs completed)
+* Language selection distribution (which languages are selected)
+* Session state transition success/failure rate
+* Concurrent active sessions count
+* API endpoint response times per route
+
+**User Metrics:**
+* Time from QR scan to session join (join funnel duration)
+* Language selection abandonment rate
+* Results opt-in rate (% of users requesting results copy)
+* Participants per session (average, median, max)
+* Device type distribution (desktop/tablet/phone)
+* Return user rate (users who join multiple sessions)
+
+**Outcome Metrics:**
+* Sessions completed vs abandoned (by polling mode: Single Round vs Multi-Round Deep Dive)
+* Deep dive utilization rate (how often Moderators use multi-round vs single)
+* Average rounds per deep dive session
+* Participant retention across deep dive rounds (drop-off per round)
+* Time-to-first-response after join (how quickly users engage)
 
 ### Cube 2 — Text Submission Handler (1,2,3)
 
