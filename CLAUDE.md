@@ -193,14 +193,14 @@ All clustering and ranking operations must be fully reproducible:
 | Cube | Position | Name | MVP | Description |
 |------|----------|------|-----|-------------|
 | 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create (3 types, 2 polling modes: Single Round / Multi-Round Deep Dive), ID gen, QR/link, **join flow: language gate → results opt-in → session**, Desired Outcome setup (M2/M3), state management, **system/user/outcome metrics** |
-| 2 | (1,2,3) | Text Submission Handler | 1 | Validate text inputs **in all 33 languages**, limits (Unicode-aware), language tag per response, anonymization, PII detection |
-| 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT **in all 33 languages**, language tag per transcript, forwards to Cube 2 pipeline |
+| 2 | (1,2,3) | Text Submission Handler | 1 | Validate text inputs **in all 33 languages**, limits (Unicode-aware), language tag per response, **immediate ♡/◬ token display post-submit**, anonymization, PII detection |
+| 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT **in all 33 languages**, language tag per transcript, **immediate ♡/◬ token display post-submit**, forwards to Cube 2 pipeline |
 | 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs **in all 33 languages** with language tags, write to storage, caching, presence, **collect Desired Outcomes + result logs (M2/M3)** |
 | 5 | (1,3,1) | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking, **TIME TRACKING (all 3 ♡ methods)**, confirmation gates, post-task outcome flow |
 | 6 | (1,2,1) | AI Theming Clusterer | 1 | Batch embeddings + streaming clustering + summarization |
 | 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI + deterministic aggregation + governance compression |
 | 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens (3 ♡ methods) + method-tagged ledger + outcome tracking + governance/audit + treasury accounting |
-| 9 | (1,1,3) | Reports, Export & Dashboards | 1 | CSV export (MVP1), PDF/analytics (MVP2+), dynamic insights, **M2/M3 full content export per Project ID** |
+| 9 | (1,1,3) | Reports, Export & Dashboards | 1 | CSV export (MVP1), PDF/analytics (MVP2+), **Pixelated Tokens (image+QR export with pixel-encoded token data)**, results distribution, **data destruction post-delivery**, M2/M3 export per Project ID |
 | 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Sandbox checkout, replay tests, metrics, versioning, reproducibility hash |
 
 ## Target Output Schema
@@ -276,7 +276,21 @@ API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&sta
   - **웃** = `duration_min * (jurisdiction_rate / 60)` — $0 when `hi_enabled=False`
   - **◬** = `♡ * 5` (default multiplier)
 - **API serialization:** JSON fields are `♡`, `웃`, `◬` (not SI/HI/AI)
+- **Immediate token display:** After every text/voice submission, ♡ and ◬ (= 5x ♡ minutes) shown to user instantly
 - **Login auto-tracking:** On session join, Cube 1 calls `create_login_time_entry()` → awards ♡1 웃0 ◬5 + creates ledger entry
+
+## Pixelated Tokens (Cube 9 — Image Export Format)
+- **Self-contained value-carrying image** — token value lives in the image, not on the server
+- **Structure (bordered frame around center QR):**
+  - **Top pixel line:** Color-encoded data — Session Name, Session ID, Date, Time, ♡, ◬, 웃, User hash, Project ID, encoding version
+  - **Bottom pixel line:** Mirror/reverse of top line (DNA-style integrity check — forward top must match reversed bottom)
+  - **Left vertical pixels:** Encryption key (first half) — needed to decode top/bottom data
+  - **Right vertical pixels:** Encryption key (second half) — combined with left for full decryption
+  - **Center:** QR code for quick scan/verification
+- **Pixel encoding:** Versioned color-to-character mapping; each pixel = one character; left+right verticals = decryption key
+- **Delivery:** User chooses download, SMS, or email
+- **Data destruction:** After image delivery, user token data is destroyed from the system. User owns their token proof via the image.
+- **Token independence:** ♡ (SI), ◬ (AI), 웃 (HI) track value independently — no dependency on Quai, Qi, or any crypto integration. Blockchain/crypto integrations can be introduced later as optional layers; the token system is fully functional standalone.
 
 ## Monetization Model (MVP1)
 - **Free tier:** Small sessions available at no cost

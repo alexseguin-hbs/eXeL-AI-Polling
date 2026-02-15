@@ -127,6 +127,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Validate text inputs **in all 33 supported languages** (references Master UI/UX language table from Cube 1)
 * Enforce limits: **question ≤ 500 chars**; response length configurable (default ≤ 500) — character limits must account for multi-byte Unicode (CJK, Arabic, etc.)
 * Language-aware input: user submits in their selected language; language tag stored with each response for downstream AI processing (Cube 6)
+* **Immediate token display:** After text submission, user sees their earned ♡ (SI) and ◬ (AI) tokens on screen (◬ = 5x ♡ minutes). Calculated by Cube 5, displayed inline.
 * Optional anonymization
 * Basic profanity/PII detection (optional) — must support multilingual detection across all 33 languages
 
@@ -138,6 +139,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * STT engine must accept the user's selected language to optimize transcription accuracy
 * Language tag stored with each voice transcript for downstream AI processing (Cube 6)
 * Convert to text and forward into same ingestion pipeline as Cube 2
+* **Immediate token display:** After voice submission, user sees their earned ♡ (SI) and ◬ (AI) tokens on screen (◬ = 5x ♡ minutes). Same behavior as Cube 2 text submissions.
 
 ### Cube 4 — Response Collector (1,3,2)
 
@@ -159,6 +161,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
   * Method 3: Track team collaboration session — timer starts after all members confirm, stops when meeting ends
 * **Confirmation gates:** Timer cannot start until all required participants confirm presence + Desired Outcome (Methods 2 & 3)
 * **Post-task flow:** Trigger outcome assessment (all participants sign off), log results, calculate ♡ for all participants
+* **Immediate token display:** On every submission (text/voice), Cube 5 calculates current ♡ and ◬ (= 5x ♡ minutes) and returns them to the frontend for instant display
 
 ### Cube 6 — AI Theming Clusterer (1,2,1)
 
@@ -187,6 +190,28 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Analytics dashboard (MVP2)
 * Token dashboard (MVP3)
 * Compliance exports (MVP2/3)
+* **Results distribution:** Users who opted in during Cube 1 join flow receive polling results after session closes
+
+#### Pixelated Tokens (Image Export Format)
+
+A self-contained, value-carrying image that encodes a user's earned tokens. The image is structured as a bordered frame around a center QR code:
+
+* **Top pixel line:** Row of colored pixels — color and position of each pixel encodes a character. Encoded data includes: Session Name, Session ID, Date, Time, ♡ (SI) earned, ◬ (AI) earned, 웃 (HI) earned, User hash, Project ID, encoding version
+* **Bottom pixel line:** **Mirror/reverse of top line** — DNA-style integrity check. Top read forward and bottom read backward must match to confirm authenticity. Mismatch = tampered/invalid
+* **Left vertical pixel line:** Encryption key (first half) — required to decode the top/bottom pixel data
+* **Right vertical pixel line:** Encryption key (second half) — combined with left vertical to form the full decryption key
+* **Center:** QR code — scannable for quick verification and token data retrieval
+* **Pixel encoding scheme:** Versioned color-to-character mapping. Each pixel = one encoded character. Color + position = value. Left + right verticals provide the key to translate.
+
+#### Delivery & Data Destruction
+
+* **Delivery methods (user chooses one):**
+  * Download directly from app
+  * System sends via text/SMS
+  * System sends via email
+* **Data destruction:** After the Pixelated Token image is delivered to the user, **the user's token data is destroyed from the system**. The token value lives in the image itself, not on the server. Privacy-by-design — the system does not retain user token data post-delivery.
+* **Implication:** Users are responsible for safekeeping their Pixelated Token image. Lost image = lost token proof.
+
 * **Methods 2 & 3 export:** Full content package per session attached to Project ID — includes meeting purpose, Desired Outcome, time logged, participant roles, results, outcome status, ♡ earned. All participants automatically receive export on completion.
 
 ### Cube 10 — Simulation Orchestrator (2,2,2) — CENTER of full 3x3x3
@@ -310,6 +335,8 @@ Use these exactly as “build targets” for website + backend.
 * **◬:** time saved / scaled impact via automation; default multiplier: **◬ = 5x ♡**
 
 **웃 vision:** Pay out globally at local minimum wage to leverage global talent. Rate resolved per participant from jurisdiction rate table.
+
+**Token independence:** ♡ (SI), ◬ (AI), and 웃 (HI) track value independently with no dependency on Quai, Qi, or any cryptocurrency/blockchain integration. The token system is fully functional as a standalone value-tracking layer. Crypto/blockchain integrations (Quai, Qi, or others) can be introduced later as optional layers when available.
 
 ### 6.2 ♡ SI Distribution Methods (3 Methods at Launch)
 
