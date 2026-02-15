@@ -109,11 +109,12 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 ### Cube 4 — Response Collector (1,3,2)
 
-* Aggregates inputs from cubes 1–3
-* Writes to storage
+* Aggregates inputs from Cubes 2 (text) and 3 (voice) — **all 33 supported languages**
+* Stores each response with its language tag; preserves original language for AI processing (Cube 6)
+* Writes to storage (MongoDB for raw responses, Redis for live state)
 * Caching for live status
 * Presence tracking
-* **Methods 2 & 3:** Collects Desired Outcome docs, role assignments, pre-meeting confirmations, and post-task result logs
+* **Methods 2 & 3:** Collects Desired Outcome docs, role assignments, pre-meeting confirmations, and post-task result logs — all in the participant's selected language
 
 ### Cube 5 — User Input Gateway / Orchestrator (1,3,1)
 

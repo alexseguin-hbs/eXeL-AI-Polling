@@ -195,7 +195,7 @@ All clustering and ranking operations must be fully reproducible:
 | 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create (3 types: polling/peer_volunteer/team_collab), ID gen, QR/link, **language selection gate (33 langs)**, join flow, Desired Outcome setup (M2/M3), state management |
 | 2 | (1,2,3) | Text Submission Handler | 1 | Validate text inputs **in all 33 languages**, limits (Unicode-aware), language tag per response, anonymization, PII detection |
 | 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT **in all 33 languages**, language tag per transcript, forwards to Cube 2 pipeline |
-| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs, write to storage, caching, presence, **collect Desired Outcomes + result logs (M2/M3)** |
+| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs **in all 33 languages** with language tags, write to storage, caching, presence, **collect Desired Outcomes + result logs (M2/M3)** |
 | 5 | (1,3,1) | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking, **TIME TRACKING (all 3 ♡ methods)**, confirmation gates, post-task outcome flow |
 | 6 | (1,2,1) | AI Theming Clusterer | 1 | Batch embeddings + streaming clustering + summarization |
 | 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI + deterministic aggregation + governance compression |
