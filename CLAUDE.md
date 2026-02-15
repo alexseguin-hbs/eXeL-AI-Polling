@@ -199,9 +199,9 @@ All clustering and ranking operations must be fully reproducible:
 | 5 | (1,3,1) | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking + **CQS scoring pipeline**, **TIME TRACKING (all 3 ♡ methods)**, confirmation gates, post-task outcome flow, **payment orchestration**, **system/user/outcome metrics** |
 | 6 | (1,2,1) | AI Theming Clusterer | 1 | Batch embeddings + streaming clustering + summarization + **CQS scoring engine (6 metrics per response, hidden from users)** |
 | 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI + deterministic aggregation + governance compression + **#1 Theme2 cluster ID → CQS reward selection** |
-| 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens (3 ♡ methods) + method-tagged ledger + outcome tracking + **gamified reward payout (Stripe/GPay/ApplePay)** + **payment processing** + governance/audit + treasury accounting |
-| 9 | (1,1,3) | Reports, Export & Dashboards | 1 | CSV export (MVP1), PDF/analytics (MVP2+), **Pixelated Tokens**, **results distribution (paying members + Lead exempt)**, **CQS dashboard (Moderator-only)**, **reward announcement**, **data destruction post-delivery**, M2/M3 export per Project ID |
-| 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Sandbox checkout, replay tests, metrics, versioning, reproducibility hash |
+| 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens (3 ♡ methods) + method-tagged ledger + outcome tracking + **gamified reward payout** + **payment processing** + **talent profiles + recommendation** + **ideation/execution separation** + governance/audit |
+| 9 | (1,1,3) | Reports, Export & Dashboards | 1 | CSV/PDF, **Pixelated Tokens**, **results distribution (paying + Lead exempt)**, **CQS dashboard**, **talent recommendations (with execution separation)**, **reward announcement**, **data destruction**, **feedback system**, M2/M3 export |
+| 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | **In-browser code editor**, replay past sessions, compare metrics, version/rollback, **self-improvement feedback pipeline (system-prompted + feedback icon)** |
 
 ## Target Output Schema
 The AI pipeline must produce output matching this 15-column format (see `Updated_Web_Results_With_Themes_And_Summaries_v03 (1).csv`):
@@ -357,6 +357,40 @@ Track and optimize for:
 ### Cubes 2–4, 6–7, 9–10: SCAFFOLDED (stubs only)
 - Models, schemas, and route stubs exist
 - Service implementations pending
+
+## Detailed Cube Specs (in Requirements.txt)
+Full detailed specs for all 10 cubes are in `Requirements.txt` Section 3, including:
+- **Data Tables** with all variables, types, and descriptions
+- **Inputs/Outputs** with source/destination mapping between cubes
+- **Functions** per cube (isolated + shared core)
+- **UI/UX Translation Strings** — all user-facing text keyed for 33-language translation
+- **Metrics** (System / User / Outcome) for Cubes 1, 5, and 10
+- **Traceability** to Project ID / Specification ID / Differentiator ID per cube
+
+### Key Data Table Counts
+| Cube | Tables | Functions | UI Strings |
+|------|--------|-----------|------------|
+| 1 Session | 4 (sessions, participants, languages, ui_translations, session_config) | 11 | 30+ |
+| 2 Text | 3 (text_responses, questions, profanity_filters) | 8 | 13 |
+| 3 Voice | 2 (voice_responses, stt_providers) | 7 | 14 |
+| 4 Collector | 3 (collected_responses, desired_outcomes, presence_tracking) | 10 | 15 |
+| 5 Gateway | 3 (time_entries, pipeline_triggers, confirmation_gates) | 12 | 12 |
+| 6 AI Theming | 6 (embeddings, clusters, themes, response_theme_assignments, summaries, cqs_scores) | 12 | 11 |
+| 7 Ranking | 3 (user_rankings, aggregated_rankings, governance_overrides) | 8 | 14 |
+| 8 Tokens | 6 (token_ledger, payment_transactions, reward_payouts, token_disputes, talent_profiles, execution_separation_log) | 14 | 17 |
+| 9 Reports | 4 (exports, pixelated_tokens, results_distribution, talent_recommendations) | 14 | 26 |
+| 10 Simulation | 5 (simulation_runs, simulation_results, replay_datasets, cube_versions, user_feedback) | 12 | 25 |
+
+### Shared Core Library
+All cubes import from `core/`: auth, db, translations, hi_rates, payment, logging, exceptions, config, metrics, circuit_breaker, scoping.
+
+### Key Architectural Decisions
+- **Translation:** Admin UI panel shared with Team/Leads. AI-verified + 1 Team/Lead/Admin approval for new languages.
+- **Traceability:** User selects ONE of 3 scoping contexts per poll (Project / Specification / Product Differentiator). All downstream data inherits via session_id.
+- **Talent recommendation:** Cube 8 builds talent profiles from CQS + participation. Cube 9 recommends talent for projects.
+- **Ideation/execution separation:** Ideation team members blocked from execution roles per scoping_id (anti-corruption).
+- **Simulation pass criteria:** Must EXCEED existing System, User, and Business/Outcome metrics from production sessions.
+- **Self-improvement:** System-prompted feedback + persistent feedback icon → prioritized backlog tagged by cube/scoping context.
 
 ## .gitignore
 See `.gitignore` file in project root. Key exclusions: node_modules, __pycache__, .env, venv, .next, .claude

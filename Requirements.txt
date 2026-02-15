@@ -1331,11 +1331,196 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 ### Cube 10 — Simulation Orchestrator (2,2,2) — CENTER of full 3x3x3
 
-* “Check out cube” into sandbox
-* Run replay tests (upstream/downstream dependencies)
-* Compare metrics, approve/reject changes
+* **In-browser simulation engine** — Team/Leads can rewrite their own version of any Cube's code directly in the website. No git commits, no code reviews, no external API calls required during simulation.
+* All inputs and outputs come from a **past recorded session** — real data replayed in sandbox
+* Compare simulation results against original production results — **simulation must exceed existing System, User, and Business/Outcome metrics to pass**. Metrics baseline is sourced from existing recorded sessions. If any metric category degrades, the simulation fails and cannot be approved.
 * Versioning, rollback, lineage
-* Prepares for AI self-optimization
+* **Self-improvement feedback pipeline:** System-prompted feedback at key moments + persistent feedback icon always visible. Feedback tagged by cube, feature, and scoping context.
+* Prepares for AI self-optimization (future: AI proposes code diffs)
+
+#### Cube 10 Data Tables
+
+**Table: `simulation_runs`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Simulation run ID |
+| cube_id | INTEGER | Which cube is being simulated (1–9) |
+| session_id | UUID (FK→sessions) | Source session for replay data |
+| initiated_by | UUID (FK→users) | Team/Lead who started simulation |
+| base_version | VARCHAR(100) | Current production version of the cube |
+| proposed_code | TEXT | Modified cube code (written in-browser) |
+| status | ENUM | `draft` / `running` / `completed` / `failed` / `approved` / `rejected` |
+| created_at | TIMESTAMP | When simulation was initiated |
+| completed_at | TIMESTAMP (nullable) | When simulation finished |
+
+**Table: `simulation_results`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Result record ID |
+| simulation_run_id | UUID (FK→simulation_runs) | Simulation reference |
+| metric_name | VARCHAR(100) | Metric measured (latency_p50, latency_p95, throughput, error_rate, etc.) |
+| production_value | FLOAT | Original production metric value |
+| simulation_value | FLOAT | Simulated metric value |
+| delta | FLOAT | Difference (simulation - production) |
+| delta_percent | FLOAT | Percentage change |
+| pass_fail | ENUM | `pass` / `fail` / `neutral` — based on threshold rules |
+
+**Table: `replay_datasets`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Replay dataset ID |
+| source_session_id | UUID (FK→sessions) | Session the data was recorded from |
+| cube_id | INTEGER | Which cube this replay data is for |
+| input_snapshot | JSONB | Frozen inputs as they existed during the original session |
+| expected_output_snapshot | JSONB | Production outputs for comparison |
+| replay_hash | VARCHAR(64) | SHA-256 of (inputs + parameters) for reproducibility |
+| created_at | TIMESTAMP | When snapshot was captured |
+
+**Table: `cube_versions`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Version record ID |
+| cube_id | INTEGER | Which cube (1–10) |
+| version_tag | VARCHAR(100) | Semantic version (e.g., 1.2.3) |
+| code_hash | VARCHAR(64) | SHA-256 of cube code |
+| dependency_graph_hash | VARCHAR(64) | Hash of upstream/downstream dependency versions |
+| is_production | BOOLEAN | Whether this is the current live version |
+| promoted_by | UUID (FK→users, nullable) | Who approved promotion to production |
+| created_at | TIMESTAMP | When version was created |
+
+**Table: `user_feedback`** (Self-Improvement Pipeline)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Feedback ID |
+| user_id | UUID (FK→users) | Who submitted |
+| session_id | UUID (FK→sessions, nullable) | Session context (if submitted during session) |
+| cube_id | INTEGER (nullable) | Which cube the feedback relates to |
+| scoping_id | UUID (nullable) | Project/Differentiator/Specification context |
+| scoping_type | ENUM (nullable) | `project` / `specification` / `product_differentiator` |
+| feedback_source | ENUM | `system_prompted` / `user_initiated` (via feedback icon) |
+| feedback_text | TEXT | The feedback content |
+| category | ENUM (nullable) | `bug` / `feature_request` / `improvement` / `usability` / `performance` |
+| priority | ENUM | `low` / `medium` / `high` — auto-assigned or manually set |
+| status | ENUM | `new` / `triaged` / `in_progress` / `resolved` / `wont_fix` |
+| created_at | TIMESTAMP | When submitted |
+
+#### Cube 10 Inputs
+| Input | Source | Description |
+|-------|--------|-------------|
+| Cube selection | Team/Lead UI | Which cube to simulate |
+| Recorded session | Replay datasets | Past session data for replay |
+| Modified code | In-browser editor | Team/Lead's rewritten cube code |
+| Approval/rejection | Lead/Approver UI | Decision on simulation results |
+| User feedback | System prompt / Feedback icon | Improvement suggestions from any user |
+
+#### Cube 10 Outputs
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Simulation results | Team/Lead UI | Side-by-side metric comparison (production vs simulation) |
+| Pass/fail assessment | Team/Lead UI | Whether simulation meets threshold rules |
+| New cube version | Cube versions table | If approved, code is versioned and can be promoted |
+| Feedback records | Backlog / Team dashboard | Prioritized improvement items |
+| Dependency impact summary | Team/Lead UI | Which other cubes are affected by the change |
+
+#### Cube 10 Functions
+| Function | Description |
+|----------|-------------|
+| `checkout_cube()` | Loads current production code for a cube into the in-browser editor |
+| `create_replay_dataset()` | Snapshots a past session's inputs/outputs for a specific cube |
+| `run_simulation()` | Executes modified cube code against replay dataset in sandboxed environment |
+| `compare_metrics()` | Compares simulation vs production on all tracked metrics |
+| `assess_pass_fail()` | Simulation MUST exceed existing production metrics (System, User, and Outcome/Business metrics) to pass. Metrics baseline sourced from existing sessions. If any metric category degrades, simulation fails. |
+| `calculate_dependency_impact()` | Analyzes which upstream/downstream cubes are affected |
+| `approve_simulation()` | Lead approves: creates new cube version, optionally promotes to production |
+| `reject_simulation()` | Lead rejects: logs rejection reason, no version change |
+| `rollback_cube_version()` | Reverts a cube to a previous version |
+| `collect_feedback()` | Records user feedback from system prompt or feedback icon |
+| `triage_feedback()` | Auto-categorizes and prioritizes feedback (AI-assisted) |
+| `get_feedback_backlog()` | Returns prioritized feedback list filtered by cube/scoping context |
+
+#### Cube 10 UI/UX Translation Strings
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube10.sim.title` | "Simulation Mode" | Simulation page header |
+| `cube10.sim.select_cube` | "Select a cube to simulate" | Cube selector label |
+| `cube10.sim.select_session` | "Select a past session for replay data" | Session selector |
+| `cube10.sim.editor_title` | "Code Editor" | In-browser editor header |
+| `cube10.sim.run` | "Run Simulation" | Run button |
+| `cube10.sim.running` | "Simulation running..." | Processing state |
+| `cube10.sim.results_title` | "Simulation Results" | Results header |
+| `cube10.sim.production_value` | "Production" | Column header |
+| `cube10.sim.simulation_value` | "Simulation" | Column header |
+| `cube10.sim.delta` | "Change" | Delta column header |
+| `cube10.sim.pass` | "Pass" | Pass indicator |
+| `cube10.sim.fail` | "Fail" | Fail indicator |
+| `cube10.sim.approve` | "Approve & Version" | Approval button |
+| `cube10.sim.reject` | "Reject" | Rejection button |
+| `cube10.sim.rollback` | "Rollback to previous version" | Rollback button |
+| `cube10.sim.dependency_impact` | "Dependency Impact" | Impact summary header |
+| `cube10.feedback.icon_tooltip` | "Help improve this tool" | Persistent feedback icon |
+| `cube10.feedback.prompt_title` | "Quick feedback" | System-prompted feedback header |
+| `cube10.feedback.prompt_text` | "How can we improve your experience?" | Prompt text |
+| `cube10.feedback.submit` | "Submit" | Submit button |
+| `cube10.feedback.thanks` | "Thanks for helping us improve!" | Confirmation |
+| `cube10.feedback.category` | "What type of feedback?" | Category selector |
+| `cube10.feedback.bug` | "Bug report" | Category option |
+| `cube10.feedback.feature` | "Feature request" | Category option |
+| `cube10.feedback.improvement` | "Improvement" | Category option |
+| `cube10.feedback.usability` | "Usability" | Category option |
+
+#### Cube 10 Metrics
+
+**System Metrics:**
+* Simulation execution time per cube (p50/p95)
+* Sandbox environment spin-up latency
+* Replay dataset load time
+* In-browser editor load time
+* Feedback submission latency
+
+**User Metrics:**
+* Simulations initiated per Lead/Team member
+* Simulation approval/rejection ratio
+* Average code change size (lines modified)
+* Feedback submission rate (system-prompted vs user-initiated)
+* Feedback category distribution
+
+**Outcome Metrics:**
+* Simulations that improve metrics vs degrade
+* Time from simulation to production promotion
+* Rollback frequency
+* Feedback-to-resolution time
+* Cubes most frequently simulated
+
+#### Cube 10 Traceability
+* `simulation_runs` link to `session_id` (source replay data) → inherits scoping context
+* `cube_versions` track full version history per cube with dependency graph hashes
+* `user_feedback` tagged with `cube_id` and `scoping_id/scoping_type` for direct traceability
+* Feedback flows back into the tool's own improvement cycle — the tool uses itself to improve itself
+
+---
+
+### Shared Core Library
+
+All cubes reference a shared core library for common functionality. The shared core is NOT a cube — it is a utility layer that all cubes import from.
+
+**Shared Core Modules:**
+| Module | Description | Used By |
+|--------|-------------|---------|
+| `core/auth.py` | Authentication, RBAC, permission checks, API key validation | All cubes |
+| `core/db.py` | Database connections (PostgreSQL, MongoDB, Redis) | All cubes |
+| `core/translations.py` | Translation lookup from `ui_translations` table, locale management, fallback chains | All cubes |
+| `core/hi_rates.py` | 웃 jurisdiction rate table (59 jurisdictions) | Cube 5, 8 |
+| `core/payment.py` | Stripe / Google Pay / Apple Pay integration, payment processing | Cube 1, 8 |
+| `core/logging.py` | Structured JSON logging, request/response logging | All cubes |
+| `core/exceptions.py` | Shared exception classes (SessionExpiredError, PaymentFailedError, etc.) | All cubes |
+| `core/config.py` | Environment config, feature flags, provider settings | All cubes |
+| `core/metrics.py` | Prometheus metrics helpers, timing decorators | All cubes |
+| `core/circuit_breaker.py` | Circuit breaker pattern for external service calls (AI, STT, payment) | Cube 3, 6, 8 |
+| `core/scoping.py` | Scoping context resolution (Project/Specification/Differentiator lookup) | All cubes |
+
+**Translation Lookup Function (shared core):**
+`get_translation(string_key, language_code, fallback="en") → str`
+All UI text in every cube calls this function. Adding a new language = adding rows to `languages` + `ui_translations` tables via Admin UI. No code changes required.
 
 ---
 
