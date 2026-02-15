@@ -163,6 +163,38 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * **Post-task flow:** Trigger outcome assessment (all participants sign off), log results, calculate ♡ for all participants
 * **Immediate token display:** On every submission (text/voice), Cube 5 calculates current ♡ and ◬ (= 5x ♡ minutes) and returns them to the frontend for instant display
 
+#### Cube 5 Metrics
+
+**System Metrics:**
+* Time tracking start/stop latency (p50/p95)
+* Token calculation latency per submission
+* Confirmation gate processing time (Methods 2 & 3)
+* AI pipeline trigger latency (time from poll close to Cube 6 invocation)
+* Ranking pipeline trigger latency (time from ranking close to Cube 7 invocation)
+* Gateway throughput (events processed per second)
+* Queue depth for pending AI/ranking triggers
+* API endpoint response times per route
+* Error rate by event type (join, submit, poll state change, timer start/stop)
+
+**User Metrics:**
+* Active participation time per user per session (avg, median, p95)
+* ♡ tokens earned per user per session (avg, median, max)
+* ◬ tokens earned per user per session
+* Time tracking distribution by method (Method 1 vs 2 vs 3)
+* Confirmation gate completion time — time from first confirm to all-confirmed (Methods 2 & 3)
+* Submission rate per user (responses per minute)
+* Timer abandonment rate (timers started but never stopped cleanly)
+
+**Outcome Metrics:**
+* Total ♡ distributed per session
+* Total ◬ distributed per session
+* Desired Outcome achievement rate (Methods 2 & 3: achieved / partial / not achieved)
+* Post-task sign-off completion rate (all participants signed off vs incomplete)
+* AI pipeline success rate (triggered vs completed successfully)
+* Ranking pipeline success rate
+* Average time from poll close to themes ready
+* Average time from ranking close to aggregated results ready
+
 ### Cube 6 — AI Theming Clusterer (1,2,1)
 
 * Embeddings + clustering + summarization
