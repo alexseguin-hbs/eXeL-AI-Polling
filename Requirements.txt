@@ -133,6 +133,167 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Gamified reward utilization rate (% of sessions with reward enabled)
 * Average per-user fee (when cost splitting enabled)
 
+#### Cube 1 Data Tables
+
+**Table: `sessions`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Session unique identifier |
+| short_code | VARCHAR(8) | Human-readable join code (collision-retry) |
+| created_by | UUID (FK→users) | Moderator user ID |
+| session_type | ENUM | `polling` / `peer_volunteer` / `team_collaboration` |
+| polling_mode | ENUM | `single_round` / `multi_round_deep_dive` |
+| status | ENUM | `draft` / `open` / `polling` / `ranking` / `closed` / `archived` |
+| scoping_type | ENUM | `project` / `specification` / `product_differentiator` — user selects one |
+| scoping_id | UUID | FK to projects, specifications, or differentiators table based on scoping_type |
+| fee_amount_cents | INTEGER | Moderator session fee in cents |
+| cost_splitting_enabled | BOOLEAN | Whether fee is split among participants |
+| reward_enabled | BOOLEAN | Whether gamified reward is active |
+| reward_amount_cents | INTEGER | Bonus reward amount in cents |
+| cqs_weights | JSONB | Custom CQS metric weights (null = defaults) |
+| anonymity_mode | ENUM | `anonymous` / `identified` |
+| max_deep_dive_rounds | INTEGER | Max rounds for deep dive (default 3) |
+| language_default | VARCHAR(5) | Default session language code |
+| qr_url | TEXT | Generated QR code URL |
+| join_url | TEXT | Shareable join link |
+| expires_at | TIMESTAMP | Session expiry (default 24h) |
+| created_at | TIMESTAMP | Creation timestamp |
+| updated_at | TIMESTAMP | Last update timestamp |
+
+**Table: `participants`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Participant record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| user_id | UUID (FK→users, nullable) | Authenticated user or null for anonymous |
+| anon_hash | VARCHAR(64) | Anonymous identifier hash |
+| language_code | VARCHAR(5) | Selected language from 33-language dropdown |
+| results_opt_in | BOOLEAN | Clicked Yes for results copy |
+| payment_status | ENUM | `unpaid` / `paid` / `lead_exempt` |
+| payment_transaction_id | UUID (FK→payment_transactions, nullable) | Stripe/GPay/ApplePay reference |
+| role_type | ENUM (nullable) | `technology` / `creative` / `business_value` (Method 3 only) |
+| device_type | VARCHAR(20) | `desktop` / `tablet` / `phone` |
+| joined_at | TIMESTAMP | Join timestamp |
+| last_seen | TIMESTAMP | Last activity timestamp |
+
+**Table: `languages`** (Master UI/UX Language Table)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | SERIAL (PK) | Auto-increment ID |
+| code | VARCHAR(5) UNIQUE | ISO 639-1 code (e.g., `en`, `fr`, `zh-CN`) |
+| name_english | VARCHAR(100) | Language name in English |
+| name_native | VARCHAR(100) | Language name in native script (e.g., "Français") |
+| direction | ENUM | `ltr` / `rtl` (for Arabic, Hebrew, etc.) |
+| is_active | BOOLEAN | Whether available in dropdown (soft-disable without deleting) |
+| added_by | UUID (FK→users) | Who added this language |
+| verified_by | UUID (FK→users, nullable) | AI-verified + 1 Team/Lead/Admin who approved |
+| verified_at | TIMESTAMP (nullable) | Approval timestamp |
+| created_at | TIMESTAMP | When added |
+
+**Table: `ui_translations`** (Translation Strings Master)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | SERIAL (PK) | Auto-increment ID |
+| string_key | VARCHAR(255) | Unique key (e.g., `cube1.join.language_prompt`) |
+| cube_id | INTEGER | Which cube this string belongs to (0 = shared/global) |
+| language_code | VARCHAR(5) (FK→languages.code) | Language this translation is for |
+| translated_text | TEXT | The translated string |
+| context_hint | TEXT (nullable) | Context for translators (e.g., "Button label on join screen") |
+| ai_verified | BOOLEAN | Whether AI has verified translation quality |
+| approved_by | UUID (FK→users, nullable) | Team/Lead/Admin who approved |
+| approved_at | TIMESTAMP (nullable) | Approval timestamp |
+| created_at | TIMESTAMP | When added |
+| updated_at | TIMESTAMP | Last edit |
+
+**Adding new languages:** Admin UI panel accessible to Admins, Leads, and Team members. To add a language: (1) Add row to `languages` table, (2) Add translations for all `string_key` entries, (3) AI verifies translation quality, (4) At least 1 other Team/Lead/Admin user approves. Language becomes active after approval.
+
+**Table: `session_config`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Config record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| cycle_mode | ENUM | `single` / `multi` |
+| max_cycles | INTEGER | Max deep dive rounds |
+| ranking_mode | ENUM | `auto` / `manual` / `live` |
+| response_char_limit | INTEGER | Max response length (default 500) |
+| question_char_limit | INTEGER | Max question length (default 500) |
+
+#### Cube 1 Inputs
+| Input | Source | Description |
+|-------|--------|-------------|
+| Moderator config | Moderator UI | Session type, polling mode, fee, cost splitting, reward, CQS weights, anonymity, language default |
+| QR scan | User device | User scans QR code to initiate join flow |
+| Language selection | User UI | User picks from 33-language dropdown |
+| Results opt-in click | User UI | Active Yes/No click for results copy |
+| Payment authorization | Stripe/GPay/ApplePay | Payment confirmation if cost splitting enabled |
+| Scoping selection | User UI | User selects one of: Project, Specification, or Product Differentiator |
+
+#### Cube 1 Outputs
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Session ID + short code | All cubes | Unique session identifier used across system |
+| QR code image + join URL | Moderator UI / sharing | Scannable QR and link for participants |
+| Participant record | Cube 4, 5, 8, 9 | Language, payment status, results opt-in, scoping context |
+| Session state events | Cube 5 (Gateway) | State transitions (draft→open→polling→ranking→closed→archived) |
+| Scoping context | All cubes | project_id, differentiator_id, or specification_id linked to session |
+| Payment event | Cube 8 | Payment transaction for cost-split or Moderator fee |
+
+#### Cube 1 Functions
+| Function | Description |
+|----------|-------------|
+| `create_session()` | Creates session with Moderator config, generates ID + short code, initializes state machine |
+| `generate_qr_code()` | Generates QR image and join URL from session ID |
+| `validate_join_request()` | Checks session validity (not expired, not closed, not full) |
+| `select_language()` | Stores participant's language selection, sets UI locale |
+| `process_results_optin()` | Records opt-in preference, triggers payment flow if cost splitting enabled |
+| `process_join_payment()` | Handles Stripe/GPay/ApplePay payment for cost-split participants |
+| `create_participant()` | Creates participant record with language, payment status, device, scoping context |
+| `transition_session_state()` | State machine transitions with validation (e.g., can't go from closed→open) |
+| `calculate_per_user_fee()` | Dynamically recalculates fee/participant as users join (fee_amount / participant_count) |
+| `get_session_by_code()` | Lookup session by short code for QR join |
+| `check_session_expiry()` | Validates session hasn't expired (410 Gone if expired) |
+
+#### Cube 1 UI/UX Translation Strings
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube1.join.select_language` | "Select your language" | Language dropdown header |
+| `cube1.join.language_prompt` | "Choose your preferred language to continue" | Subtitle under dropdown |
+| `cube1.join.results_optin` | "Would you like to receive a copy of the polling results?" | Results opt-in prompt |
+| `cube1.join.results_yes` | "Yes, I want results" | Opt-in button |
+| `cube1.join.results_no` | "No, thanks" | Decline button |
+| `cube1.join.fee_display` | "Your share: ${amount}" | Per-user fee when cost splitting |
+| `cube1.join.payment_prompt` | "Pay to receive results" | Payment button label |
+| `cube1.join.joining_session` | "Joining session..." | Loading state |
+| `cube1.join.session_expired` | "This session has expired" | Expired session error |
+| `cube1.join.session_closed` | "This session is closed" | Closed session error |
+| `cube1.join.session_invalid` | "Invalid session link" | Invalid QR/link error |
+| `cube1.join.welcome` | "Welcome to the session" | Post-join greeting |
+| `cube1.join.scoping_prompt` | "What is this poll for?" | Scoping type selection |
+| `cube1.join.scoping_project` | "Project" | Scoping option 1 |
+| `cube1.join.scoping_spec` | "Specification" | Scoping option 2 |
+| `cube1.join.scoping_differentiator` | "Product Differentiator" | Scoping option 3 |
+| `cube1.moderator.create_session` | "Create New Session" | Session creation button |
+| `cube1.moderator.polling_mode` | "Polling Mode" | Config label |
+| `cube1.moderator.single_round` | "Single Round" | Mode option |
+| `cube1.moderator.deep_dive` | "Multi-Round Deep Dive" | Mode option |
+| `cube1.moderator.session_fee` | "Session Fee" | Fee input label |
+| `cube1.moderator.enable_cost_split` | "Split cost with participants" | Toggle label |
+| `cube1.moderator.enable_reward` | "Enable contribution reward" | Toggle label |
+| `cube1.moderator.reward_amount` | "Reward amount" | Reward input label |
+| `cube1.moderator.generate_qr` | "Generate QR Code" | QR generation button |
+| `cube1.moderator.share_link` | "Share Link" | Copy link button |
+| `cube1.session.status_draft` | "Draft" | Status label |
+| `cube1.session.status_open` | "Open" | Status label |
+| `cube1.session.status_polling` | "Polling Active" | Status label |
+| `cube1.session.status_ranking` | "Ranking Active" | Status label |
+| `cube1.session.status_closed` | "Closed" | Status label |
+
+#### Cube 1 Traceability
+* Every session is linked to exactly ONE scoping context selected by the user: **Project ID**, **Specification ID**, or **Product Differentiator ID**
+* `sessions.scoping_type` + `sessions.scoping_id` provide the link
+* All downstream data (responses, themes, rankings, tokens, exports) inherits scoping context via `session_id` → `sessions.scoping_type/scoping_id`
+* This enables filtering, aggregation, and feedback loops per Project, Specification, or Differentiator
+
 ### Cube 2 — Text Submission Handler (1,2,3)
 
 * Validate text inputs **in all 33 supported languages** (references Master UI/UX language table from Cube 1)
@@ -141,6 +302,100 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * **Immediate token display:** After text submission, user sees their earned ♡ (SI) and ◬ (AI) tokens on screen (◬ = 5x ♡ minutes). Calculated by Cube 5, displayed inline.
 * Optional anonymization
 * Basic profanity/PII detection (optional) — must support multilingual detection across all 33 languages
+
+#### Cube 2 Data Tables
+
+**Table: `text_responses`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Response unique identifier |
+| session_id | UUID (FK→sessions) | Session reference |
+| question_id | UUID (FK→questions) | Question being answered |
+| participant_id | UUID (FK→participants) | Who submitted |
+| raw_text | TEXT | Original response text in user's language |
+| language_code | VARCHAR(5) (FK→languages.code) | Language of submission |
+| char_count | INTEGER | Character count (Unicode-aware) |
+| is_anonymous | BOOLEAN | Whether response is anonymized |
+| pii_detected | BOOLEAN | Whether PII was flagged |
+| pii_scrubbed_text | TEXT (nullable) | Cleaned text if PII was removed |
+| profanity_flagged | BOOLEAN | Whether profanity was detected |
+| submitted_at | TIMESTAMP | Submission timestamp |
+
+**Table: `questions`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Question unique identifier |
+| session_id | UUID (FK→sessions) | Session reference |
+| cycle_number | INTEGER | Deep dive round (1 = initial, 2-3 = follow-up) |
+| question_text | TEXT | The question in Moderator's language |
+| status | ENUM | `draft` / `final` |
+| parent_theme_id | UUID (FK→themes, nullable) | For deep dive follow-ups: which theme spawned this question |
+| created_at | TIMESTAMP | Creation timestamp |
+
+**Table: `profanity_filters`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | SERIAL (PK) | Auto-increment ID |
+| language_code | VARCHAR(5) (FK→languages.code) | Language this filter applies to |
+| pattern | TEXT | Regex or keyword pattern |
+| severity | ENUM | `low` / `medium` / `high` |
+| is_active | BOOLEAN | Whether filter is active |
+
+#### Cube 2 Inputs
+| Input | Source | Description |
+|-------|--------|-------------|
+| Raw text input | User UI | Text typed by user in their selected language |
+| session_id | Cube 1 | Current session context |
+| question_id | Cube 1 | Which question is being answered |
+| participant_id | Cube 1 | User identity / anon hash |
+| language_code | Cube 1 (participant record) | User's selected language |
+| response_char_limit | Cube 1 (session_config) | Max character limit for response |
+| anonymity_mode | Cube 1 (session) | Whether to anonymize |
+
+#### Cube 2 Outputs
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Validated text response | Cube 4 (Collector) | Cleaned, validated response with language tag |
+| PII detection result | Cube 4, Cube 9 | Whether PII was found and scrubbed |
+| Profanity flag | Cube 4, Moderator dashboard | Whether profanity was detected |
+| Token display trigger | Cube 5 (Gateway) | Triggers ♡/◬ calculation for immediate display |
+| Submission event | Cube 5 (Gateway) | Notifies gateway of new response for time tracking |
+
+#### Cube 2 Functions
+| Function | Description |
+|----------|-------------|
+| `validate_text_input()` | Validates length (Unicode-aware), non-empty, within char limit |
+| `detect_language()` | Confirms text matches selected language (optional sanity check) |
+| `detect_pii()` | Scans for PII patterns (email, phone, names) across 33 languages |
+| `scrub_pii()` | Redacts detected PII from response text |
+| `detect_profanity()` | Checks against language-specific profanity filters |
+| `anonymize_response()` | Strips identifying info if anonymity mode is on |
+| `store_text_response()` | Writes validated response to `text_responses` table |
+| `emit_submission_event()` | Notifies Cube 5 of new submission for time tracking + token calc |
+
+#### Cube 2 UI/UX Translation Strings
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube2.input.placeholder` | "Type your response here..." | Text input placeholder |
+| `cube2.input.char_count` | "{count}/{max} characters" | Live character counter |
+| `cube2.input.char_limit_warning` | "You've reached the character limit" | At-limit warning |
+| `cube2.input.submit` | "Submit Response" | Submit button |
+| `cube2.input.submitting` | "Submitting..." | Loading state |
+| `cube2.input.submitted` | "Response submitted!" | Success confirmation |
+| `cube2.input.anonymous_badge` | "Anonymous" | Anonymity indicator |
+| `cube2.input.pii_warning` | "Personal information detected and removed" | PII scrub notice |
+| `cube2.input.profanity_warning` | "Please revise — inappropriate language detected" | Profanity rejection |
+| `cube2.tokens.earned` | "You earned" | Token display prefix |
+| `cube2.tokens.si_label` | "♡" | SI token symbol |
+| `cube2.tokens.ai_label` | "◬" | AI token symbol |
+| `cube2.input.empty_error` | "Please enter a response" | Empty submission error |
+
+#### Cube 2 Traceability
+* All `text_responses` link to `session_id` → inherits scoping context (Project/Specification/Differentiator)
+* `question_id` traces to cycle_number for deep dive round tracking
+* Responses feed into Cube 6 AI theming and Cube 9 exports, all carrying session scoping
+
+---
 
 ### Cube 3 — Voice-to-Text Engine (1,3,3) (MVP2)
 
@@ -151,6 +406,83 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Language tag stored with each voice transcript for downstream AI processing (Cube 6)
 * Convert to text and forward into same ingestion pipeline as Cube 2
 * **Immediate token display:** After voice submission, user sees their earned ♡ (SI) and ◬ (AI) tokens on screen (◬ = 5x ♡ minutes). Same behavior as Cube 2 text submissions.
+
+#### Cube 3 Data Tables
+
+**Table: `voice_responses`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Voice response unique identifier |
+| session_id | UUID (FK→sessions) | Session reference |
+| question_id | UUID (FK→questions) | Question being answered |
+| participant_id | UUID (FK→participants) | Who submitted |
+| audio_duration_sec | FLOAT | Duration of audio recording in seconds |
+| stt_provider | VARCHAR(50) | Which STT provider was used |
+| language_code | VARCHAR(5) (FK→languages.code) | Language for STT processing |
+| transcript_text | TEXT | STT-generated transcript |
+| transcript_confidence | FLOAT | STT confidence score (0.0–1.0) |
+| is_anonymous | BOOLEAN | Whether response is anonymized |
+| submitted_at | TIMESTAMP | Submission timestamp |
+
+**Table: `stt_providers`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | SERIAL (PK) | Auto-increment ID |
+| name | VARCHAR(50) | Provider name (e.g., "Google STT", "Whisper") |
+| supported_languages | JSONB | Array of language codes this provider supports |
+| is_active | BOOLEAN | Whether provider is available |
+| priority | INTEGER | Failover priority (1 = primary) |
+
+#### Cube 3 Inputs
+| Input | Source | Description |
+|-------|--------|-------------|
+| Audio stream | User device mic | Browser-captured audio via Web Audio API |
+| session_id | Cube 1 | Current session context |
+| question_id | Cube 1 | Which question is being answered |
+| participant_id | Cube 1 | User identity / anon hash |
+| language_code | Cube 1 (participant record) | User's selected language for STT optimization |
+
+#### Cube 3 Outputs
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Transcript text | Cube 2 pipeline (then Cube 4) | Converted text forwarded into text ingestion pipeline |
+| STT confidence score | Cube 4, Cube 9 | Confidence of transcription accuracy |
+| Token display trigger | Cube 5 (Gateway) | Triggers ♡/◬ calculation for immediate display |
+| Submission event | Cube 5 (Gateway) | Notifies gateway of new voice response |
+
+#### Cube 3 Functions
+| Function | Description |
+|----------|-------------|
+| `capture_audio()` | Initializes browser mic via Web Audio API, records audio stream |
+| `select_stt_provider()` | Picks best STT provider for the user's language (priority + availability) |
+| `transcribe_audio()` | Sends audio to STT provider with language hint, returns transcript + confidence |
+| `validate_transcript()` | Checks transcript is non-empty and confidence meets threshold |
+| `forward_to_text_pipeline()` | Passes transcript into Cube 2's text validation pipeline |
+| `store_voice_response()` | Writes voice response record with audio metadata + transcript |
+| `handle_stt_failure()` | Circuit breaker: failover to next STT provider if primary fails |
+
+#### Cube 3 UI/UX Translation Strings
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube3.voice.start_recording` | "Tap to speak" | Recording start button |
+| `cube3.voice.recording` | "Recording... tap to stop" | Active recording indicator |
+| `cube3.voice.stop_recording` | "Stop" | Stop recording button |
+| `cube3.voice.processing` | "Converting speech to text..." | STT processing state |
+| `cube3.voice.transcript_preview` | "Here's what we heard:" | Transcript preview header |
+| `cube3.voice.confirm_submit` | "Submit this response" | Confirm transcript button |
+| `cube3.voice.retry` | "Try again" | Re-record button |
+| `cube3.voice.mic_permission` | "Please allow microphone access" | Mic permission prompt |
+| `cube3.voice.mic_denied` | "Microphone access denied" | Permission denied error |
+| `cube3.voice.no_speech` | "No speech detected — please try again" | Empty recording error |
+| `cube3.voice.low_confidence` | "We're not confident in the transcription — please review" | Low confidence warning |
+| `cube3.tokens.earned` | "You earned" | Token display prefix |
+| `cube3.tokens.si_label` | "♡" | SI token symbol |
+| `cube3.tokens.ai_label` | "◬" | AI token symbol |
+
+#### Cube 3 Traceability
+* All `voice_responses` link to `session_id` → inherits scoping context (Project/Specification/Differentiator)
+* Transcript flows into Cube 2 pipeline → Cube 4 → same traceability chain as text responses
+* STT provider and confidence tracked for quality auditing
 
 ### Cube 4 — Response Collector (1,3,2)
 
