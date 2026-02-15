@@ -119,21 +119,21 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 
 ## Production Architecture
 
-### Core Services
-| Service | Responsibility |
-|---------|---------------|
-| API Gateway | FastAPI routes, rate limiting, auth, request validation |
-| Session Service | Session CRUD, state machine, QR generation |
-| Ingestion Service | Text/voice input validation, anonymization, PII detection |
-| Collection Service | Response aggregation, MongoDB writes, Redis caching |
-| Orchestrator Service | Triggers AI + ranking pipelines, time tracking |
-| Embedding Worker Fleet | Batch embedding generation (async, horizontally scaled) |
-| Clustering Engine | MiniBatchKMeans streaming clusterer (deterministic seed) |
-| Governance Engine | Voting weight, compression, quadratic normalization |
-| Token Ledger Service | Append-only ledger, lifecycle states, treasury accounting |
-| Ranking Service | Deterministic aggregation, live WebSocket updates |
-| Reporting Service | CSV/PDF export, dynamic analytics, insights engine |
-| Simulation Runner | Cube checkout, replay tests, metric comparison |
+### Core Services (maps to Cube Architecture)
+| Service | Cube | Responsibility |
+|---------|------|---------------|
+| API Gateway | Shared / Cube 5 | FastAPI routes, rate limiting, auth, request validation |
+| Session Service | **Cube 1** | Session CRUD, state machine, QR generation |
+| Ingestion Service | **Cubes 2 & 3** | Text/voice input validation, anonymization, PII detection |
+| Collection Service | **Cube 4** | Response aggregation, MongoDB writes, Redis caching |
+| Orchestrator Service | **Cube 5** | Triggers AI + ranking pipelines, time tracking |
+| Embedding Worker Fleet | **Cube 6** (workers) | Batch embedding generation (async, horizontally scaled) |
+| Clustering Engine | **Cube 6** (clusterer) | MiniBatchKMeans streaming clusterer (deterministic seed) |
+| Governance Engine | **Cube 7** | Voting weight, compression, quadratic normalization |
+| Token Ledger Service | **Cube 8** | Append-only ledger, lifecycle states, treasury accounting |
+| Ranking Service | **Cube 7** | Deterministic aggregation, live WebSocket updates |
+| Reporting Service | **Cube 9** | CSV/PDF export, dynamic analytics, insights engine |
+| Simulation Runner | **Cube 10** | Cube checkout, replay tests, metric comparison |
 
 ### Architectural Constraints
 - **No row-by-row API calls** — batch all embedding requests
@@ -258,7 +258,7 @@ API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&sta
 ### Ledger Requirements
 - **Append-only** — no mutations, only new entries
 - **Lifecycle states:** simulated → pending → approved → finalized (+ reversed)
-- **Treasury-backed HI redemption** — HI tokens only redeemable against treasury balance
+- **Treasury-backed 웃 redemption** — 웃 tokens only redeemable against treasury balance
 - **Token dispute workflow** — flag → review → resolve with audit trail
 - **Version-locked** — every ledger entry references cube version + dependency graph hash
 
@@ -374,7 +374,7 @@ Full detailed specs for all 10 cubes are in `Requirements.txt` Section 3, includ
 ### Key Data Table Counts
 | Cube | Tables | Functions | UI Strings |
 |------|--------|-----------|------------|
-| 1 Session | 4 (sessions, participants, languages, ui_translations, session_config) | 11 | 30+ |
+| 1 Session | 4 (sessions, participants, languages, ui_translations) | 11 | 30+ |
 | 2 Text | 3 (text_responses, questions, profanity_filters) | 8 | 13 |
 | 3 Voice | 2 (voice_responses, stt_providers) | 7 | 14 |
 | 4 Collector | 3 (collected_responses, desired_outcomes, presence_tracking) | 10 | 15 |
@@ -390,7 +390,7 @@ All cubes import from `core/`: auth, db, translations, hi_rates, payment, loggin
 
 ### Key Architectural Decisions
 - **Translation:** Admin UI panel shared with Team/Leads. AI-verified + 1 Team/Lead/Admin approval for new languages.
-- **Traceability:** User selects ONE of 3 scoping contexts per poll (Project / Specification / Product Differentiator). All downstream data inherits via session_id.
+- **Traceability:** **Moderator sets** ONE of 3 scoping contexts at session creation (Project / Specification / Product Differentiator). All downstream data inherits via session_id.
 - **Talent recommendation:** Cube 8 builds talent profiles from CQS + participation. Cube 9 recommends talent for projects.
 - **Ideation/execution separation:** Ideation team members blocked from execution roles per scoping_id (anti-corruption).
 - **Simulation pass criteria:** Must EXCEED existing System, User, and Business/Outcome metrics from production sessions.

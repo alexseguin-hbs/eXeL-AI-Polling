@@ -118,28 +118,33 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Session creation latency (p50/p95)
 * QR generation time
 * Join flow completion rate (started vs completed)
-* Language selection distribution (which languages are selected)
 * Session state transition success/failure rate
 * Concurrent active sessions count
 * API endpoint response times per route
+* WebSocket sync latency between Moderator devices (ms)
+* Capacity check response time (ms)
 
 **User Metrics:**
 * Time from QR scan to session join (join funnel duration)
+* Join-to-first-question time (seconds from QR scan to seeing question)
+* Language selection distribution (which languages are selected)
 * Language selection abandonment rate
 * Results opt-in rate (% of users requesting results copy)
 * Payment conversion rate (% of users who pay when cost splitting enabled)
 * Payment abandonment rate (started Stripe checkout but didn't complete)
-* Participants per session (average, median, max)
+* Participants per session (average, median, max) by pricing tier
 * Device type distribution (desktop/tablet/phone)
+* Moderator device usage (% PC vs Phone vs both)
 * Return user rate (users who join multiple sessions)
 
 **Outcome Metrics:**
 * Sessions completed vs abandoned (by polling mode: Single Round vs Multi-Round Deep Dive)
 * Deep dive utilization rate (how often Moderators use multi-round vs single)
+* Multi-round progression rate (% that use >1 round in deep dive mode)
 * Average rounds per deep dive session
 * Participant retention across deep dive rounds (drop-off per round)
 * Time-to-first-response after join (how quickly users engage)
-* Revenue per session (Moderator fee + participant payments)
+* Revenue per session (Moderator fee + cost split totals)
 * Cost splitting utilization rate (% of sessions with cost splitting enabled)
 * Gamified reward utilization rate (% of sessions with reward enabled)
 * Average per-user fee (when cost splitting enabled)
@@ -317,27 +322,6 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * `sessions.scoping_type` + `sessions.scoping_id` provide the link
 * All downstream data (responses, themes, rankings, tokens, exports) inherits scoping context via `session_id` → `sessions.scoping_type/scoping_id`
 * This enables filtering, aggregation, and feedback loops per Project, Specification, or Differentiator
-
-#### Cube 1 Metrics
-**System Metrics:**
-* Session creation latency (ms)
-* QR generation time (ms)
-* Join flow completion rate (%)
-* WebSocket sync latency between Moderator devices (ms)
-* Capacity check response time (ms)
-
-**User Metrics:**
-* Language selection distribution (which languages are chosen)
-* Results opt-in rate (% Yes vs No)
-* Join-to-first-question time (seconds from QR scan to seeing question)
-* Payment conversion rate (% who pay when cost split enabled)
-* Moderator device usage (% PC vs Phone vs both)
-
-**Outcome Metrics:**
-* Sessions completed vs abandoned (%)
-* Average participants per session by pricing tier
-* Revenue per session (Moderator fee + cost split totals)
-* Multi-round progression rate (% that use >1 round in deep dive mode)
 
 ### Cube 2 — Text Submission Handler (1,2,3)
 
@@ -914,8 +898,8 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | AI pipeline trigger | Cube 5 | Signal to start embedding + clustering |
 | CQS scoring trigger | Cube 5 | Signal to score eligible responses (after ranking) |
 | Top Theme2 cluster ID | Cube 7 (via Cube 5) | #1 most-voted Theme2 for CQS eligibility |
-| AI provider config | Cube 1 (session config) | Which provider to use (OpenAI/Grok/Gemini) |
-| CQS weights | Cube 1 (session config) | Moderator-adjusted CQS metric weights |
+| AI provider config | Cube 1 (sessions) | Which provider to use (OpenAI/Grok/Gemini) |
+| CQS weights | Cube 1 (sessions) | Moderator-adjusted CQS metric weights |
 | Random seed | Session config | Fixed seed for deterministic clustering |
 
 #### Cube 6 Outputs
@@ -1988,68 +1972,7 @@ This hierarchy allows companies to:
 
 ## 9) Backend Requirements (APIs + Data)
 
-### 9.1 Core Entities (minimum schema)
-
-**Session**
-
-* id, created_by, created_at, status (draft/open/closed/archived)
-* config: anonymity_mode, cycle_mode, max_cycles, language, ranking_mode
-* **session_type:** `polling` | `peer_volunteer` | `team_collaboration` — determines which ♡ distribution method applies
-* qr_url, join_url
-* project_id (optional — required for SDK/API use), differentiator_id (optional), specification_id (optional)
-
-**Participant**
-
-* session_id, user_id or anon_hash, joined_at, device_type, last_seen
-* **role_type** (Method 3 only): `technology` | `creative` | `business_value` | `null`
-
-**DesiredOutcome** (Methods 2 & 3)
-
-* id, session_id, description, created_at, created_by
-* time_estimate_minutes (agreed upfront)
-* confirmed_by: list of user_ids who confirmed before timer start
-* all_confirmed: boolean (timer cannot start until true)
-* outcome_status: `pending` | `achieved` | `partially_achieved` | `not_achieved`
-* assessed_by: list of user_ids who signed off on outcome
-* results_log: text (post-task results input by participants)
-* completed_at: timestamp
-
-**Question**
-
-* session_id, cycle_id, question_text, status (draft/final)
-
-**Response**
-
-* session_id, cycle_id, question_id
-* user_id/anon_hash
-* raw_text, source (text/voice), created_at
-* encrypted_payload_ref (if storing securely)
-
-**Theme**
-
-* session_id, cycle_id
-* theme_id, label, summary, confidence, count, exemplar_response_ids
-
-**Ranking**
-
-* session_id, cycle_id
-* user ranking list (theme_id ordered)
-* aggregated ranking output (deterministic)
-
-**AuditLog**
-
-* actor_id, role, action_type, object_type/id, before/after, timestamp
-
-**TokenLedger**
-
-* session_id, user_id/anon_hash, cube_id, action_type, timestamp
-* delta_♡, delta_웃, delta_◬, lifecycle_state, reason, references
-
-**SimulationRun**
-
-* cube_id, base_version, proposed_version
-* replay_dataset_ref
-* metrics JSON, results, pass/fail, approved_by
+*Note: Section 9.1 (Core Entities) has been removed. The **authoritative entity definitions** are the detailed data tables in each Cube section (Cubes 1-10). Refer to those for the full schema with types, FKs, and descriptions.*
 
 ### 9.2 API Endpoints (starter list)
 
@@ -2229,14 +2152,7 @@ The following technology choices were confirmed during project setup:
   2. Only responses assigned to that cluster with **>95% theme confidence** are eligible
   3. CQS Composite Score is calculated ONLY for eligible responses (saves API calls — no wasted scoring on ineligible responses)
   4. Highest CQS wins. If tie, **randomize among tied responses** (fair and unpredictable)
-- **CQS Rating Metrics (hidden from users, visible to Moderators and system):**
-  * **Insight Score (0–100):** Does the response reveal a non-obvious perspective, connection, or pattern? AI-assessed against the full response corpus
-  * **Depth Score (0–100):** Does the response go beyond surface-level commentary? Measures specificity, examples, supporting reasoning, and detail relative to session average response length
-  * **Future Impact Score (0–100):** Does the response address forward-looking implications, emerging trends, risks, or opportunities? AI-assessed for temporal orientation and strategic relevance
-  * **Originality Score (0–100):** How unique is this response compared to others in the same theme cluster? Measured via embedding distance from cluster centroid — further (while still in-cluster) = more original
-  * **Actionability Score (0–100):** Does the response suggest concrete next steps, solutions, or implementable ideas?
-  * **Relevance Score (0–100):** How closely does the response align with the question asked and the theme it was clustered into? Embedding similarity to question + theme centroid
-- **CQS Composite:** Weighted average of all 6 metrics. Default weights: Insight 20%, Depth 15%, Future Impact 25%, Originality 15%, Actionability 15%, Relevance 10%. Moderator can adjust weights per session (advanced config).
+- **CQS Rating Metrics and Composite:** See **Cube 6 — AI Theming Clusterer** section for the full 6-metric definition (Insight, Depth, Future Impact, Originality, Actionability, Relevance) and composite weights. Moderator-adjustable per session.
 - **Visibility:** CQS scores hidden from all users. Moderators see scores in their dashboard. System uses scores for reward selection and analytics.
 - **Tie-breaking:** If CQS tie, **randomize** among tied responses (fair and unpredictable)
 
