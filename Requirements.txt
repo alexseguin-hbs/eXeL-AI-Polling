@@ -88,7 +88,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * QR + share link generation
 * **User join flow (sequential screens after QR scan):**
   1. **Language selection gate:** Dropdown with 33 languages (references Master language table)
-  2. **Results opt-in prompt:** "Would you like to receive a copy of the polling results?" (Yes/No) — preference stored per participant for later distribution by Cube 9
+  2. **Results opt-in + payment (click required):** "Would you like to receive a copy of the polling results?" — must actively click Yes or No. If Moderator enabled cost splitting, the per-user fee is displayed (e.g., "$0.50 for results"). Payment processed via Stripe if Yes. Paying users flagged for Cube 9 results distribution.
   3. **Session join** → see question(s)
 * **Master UI/UX language table:** A centralized, extensible language registry that drives all UI translations and language options. Admins and developers can add new languages to expand the tool without code changes. All cubes reference this single table for language support.
 * Join flow + presence setup
@@ -860,9 +860,32 @@ The following technology choices were confirmed during project setup:
 - **Only SI tokens are tracked during polling/voting** — HI tokens (웃) are for later project execution phases, not polling
 
 ### Monetization (MVP1 — Stripe)
-- **Free tier:** Small sessions at no cost
-- **Moderator pays:** Per-session fee for larger sessions
-- **User pays for results:** Users pay to download full results/reports
+
+#### Moderator Fee (Required)
+- **Moderator must pay** to use the tool (per-session fee via Stripe)
+- **Cost splitting option:** Moderator can choose to split the fee equally among participants
+  * Example: $100 fee / 100 users = $1 per person
+  * Example: $100 fee / 200 users = $0.50 per person
+  * Fee per user is calculated dynamically as participants join (displayed in real-time)
+  * If Moderator does not enable cost splitting, Moderator pays the full fee
+- **Paying members receive Polling Results** — any user who pays their share automatically receives the full session output
+
+#### Gamified Contribution Reward
+- **Moderator-funded bonus:** Moderator can set a reward amount (e.g., $25) to be awarded to one participant
+- **Appears random to users** but is determined by the **Contribution Quality Score (CQS)** — a hidden rating system
+- **Winner criteria:** The participant whose response falls within the **#1 most-voted Theme (Theme2 level)** and has the highest CQS
+- **CQS Rating Metrics (hidden from users, visible to Moderators and system):**
+  * **Insight Score (0–100):** Does the response reveal a non-obvious perspective, connection, or pattern? AI-assessed against the full response corpus
+  * **Depth Score (0–100):** Does the response go beyond surface-level commentary? Measures specificity, examples, supporting reasoning, and detail relative to session average response length
+  * **Future Impact Score (0–100):** Does the response address forward-looking implications, emerging trends, risks, or opportunities? AI-assessed for temporal orientation and strategic relevance
+  * **Originality Score (0–100):** How unique is this response compared to others in the same theme cluster? Measured via embedding distance from cluster centroid — further (while still in-cluster) = more original
+  * **Actionability Score (0–100):** Does the response suggest concrete next steps, solutions, or implementable ideas?
+  * **Relevance Score (0–100):** How closely does the response align with the question asked and the theme it was clustered into? Embedding similarity to question + theme centroid
+- **CQS Composite:** Weighted average of all 6 metrics. Default weights: Insight 20%, Depth 15%, Future Impact 25%, Originality 15%, Actionability 15%, Relevance 10%. Moderator can adjust weights per session (advanced config).
+- **Visibility:** CQS scores hidden from all users. Moderators see scores in their dashboard. System uses scores for reward selection and analytics.
+- **Tie-breaking:** If CQS tie, earlier submission wins (first-mover advantage)
+
+#### Access Rules
 - **Lead/Developer exception:** Leads ALWAYS get free access to results (transparency + accountability)
 - Stripe integration set up from MVP1
 

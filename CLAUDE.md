@@ -293,10 +293,14 @@ API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&sta
 - **Token independence:** ♡ (SI), ◬ (AI), 웃 (HI) track value independently — no dependency on Quai, Qi, or any crypto integration. Blockchain/crypto integrations can be introduced later as optional layers; the token system is fully functional standalone.
 
 ## Monetization Model (MVP1)
-- **Free tier:** Small sessions available at no cost
-- **Moderator pays:** Per-session fee for larger sessions (Stripe)
-- **User pays for results:** Users pay to download full results/reports
-- **Lead/Developer exception:** Leads ALWAYS get free access to session results (transparency + accountability requirement)
+- **Moderator must pay** per-session fee to use the tool (Stripe)
+- **Cost splitting:** Moderator can split fee equally among participants (e.g., $100 fee / 200 users = $0.50 each). Fee per user calculated dynamically as users join. Paying members automatically receive Polling Results.
+- **Results opt-in:** Step 2 of join flow — user must click to opt in. If cost splitting enabled, per-user fee shown and Stripe payment processed inline.
+- **Gamified contribution reward:** Moderator sets a bonus amount (e.g., $25) awarded to one participant. Appears random to users but determined by hidden **Contribution Quality Score (CQS):**
+  - 6 metrics: Insight (20%), Depth (15%), Future Impact (25%), Originality (15%), Actionability (15%), Relevance (10%)
+  - Winner: highest CQS within the #1 most-voted Theme2 cluster
+  - CQS hidden from users, visible to Moderators and system
+- **Lead/Developer exception:** Leads ALWAYS get free access to results (transparency + accountability)
 - **Stripe integration:** Set up from MVP1
 
 ## Observability Plan
@@ -325,8 +329,8 @@ Track and optimize for:
 - Session CRUD, state machine (draft→open→polling→ranking→closed→archived)
 - **Polling modes** (Moderator sets at creation): **Single Round** (one cycle) | **Multi-Round Deep Dive** (iterative, up to 3 rounds, context preserved)
 - QR code generation, join flow, participant management
-- **User join flow (sequential):** (1) Language dropdown (33 langs) → (2) Results opt-in ("Want a copy of results?") → (3) See question
-- **Results opt-in:** Stored per participant; flagged for Cube 9 distribution after session closes
+- **User join flow (sequential):** (1) Language dropdown (33 langs) → (2) Results opt-in + payment (click required; shows per-user fee if cost splitting enabled) → (3) See question
+- **Results opt-in:** Must actively click Yes/No. Paying users flagged for Cube 9 results distribution after session closes
 - **Master UI/UX language table:** Centralized, extensible language registry — admins/devs can add languages without code changes; all cubes reference this table
 - **Metrics:** System (latency, QR gen time, join rate, concurrent sessions) | User (join funnel time, opt-in rate, device distribution) | Outcome (completion rate by mode, deep dive utilization, retention across rounds)
 - **CRS-01:** Literal type validation on all enum fields (422 on invalid input), session ownership enforcement (403)
