@@ -192,7 +192,7 @@ All clustering and ranking operations must be fully reproducible:
 ## Cube Architecture Overview
 | Cube | Position | Name | MVP | Description |
 |------|----------|------|-----|-------------|
-| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create (3 types, 2 polling modes, **Moderator config: fee + cost splitting + gamified reward + CQS weights**), ID gen, QR/link, **join flow: language gate → results opt-in + payment (Stripe/GPay/ApplePay) → session**, Desired Outcome setup (M2/M3), state management, **system/user/outcome metrics** |
+| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create (3 types, 2 polling modes, **Moderator config: scoping + pricing tier + fee + cost splitting + gamified reward + CQS weights + ranking mode + response limits**), ID gen, QR/link, **join flow: language gate → results opt-in + payment (Stripe/GPay/ApplePay) → session** (scoping set by Moderator, not user), **capacity tiers: Free ≤19 / Moderator Paid / Cost Split**, Desired Outcome setup (M2/M3), state management, **Moderator multi-device (PC + Phone) via WebSocket sync**, **session_config merged into sessions table**, **system/user/outcome metrics** |
 | 2 | (1,2,3) | Text Submission Handler | 1 | Validate text inputs **in all 33 languages**, limits (Unicode-aware), language tag per response, **immediate ♡/◬ token display post-submit**, anonymization, PII detection |
 | 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT **in all 33 languages**, language tag per transcript, **immediate ♡/◬ token display post-submit**, forwards to Cube 2 pipeline |
 | 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs **in all 33 languages** with language tags, write to storage, caching, presence, **payment status per participant**, **collect Desired Outcomes + result logs (M2/M3)** |
@@ -328,13 +328,17 @@ Track and optimize for:
 ### Cube 1 — Session Join & QR: COMPLETE (CRS-01→CRS-04)
 - **All code is modular** — every cube is self-contained with clean interfaces
 - Session CRUD, state machine (draft→open→polling→ranking→closed→archived)
-- **Moderator session config:** polling mode, session fee (Stripe/GPay/ApplePay), cost splitting toggle, gamified reward amount + CQS weights
+- **Moderator session config:** scoping context (Project/Spec/Differentiator), pricing tier, polling mode, session fee (Stripe/GPay/ApplePay), cost splitting toggle, gamified reward amount + CQS weights, ranking mode, response/question char limits
+- **Pricing tiers:** **Free** (≤19 participants) | **Moderator Paid** (Moderator pays full fee) | **Moderator+User Cost Split** (fee divided among participants)
+- **Scoping:** Set by **Moderator at session creation** (not by users in join flow)
+- **`session_config` merged into `sessions`** — ranking_mode, response_char_limit, question_char_limit now live on sessions table
 - **Polling modes:** **Single Round** (one cycle) | **Multi-Round Deep Dive** (iterative, up to 3 rounds, context preserved)
 - QR code generation, join flow, participant management
-- **User join flow (sequential):** (1) Language dropdown (33 langs) → (2) Results opt-in + payment via Stripe/Google Pay/Apple Pay (click required; shows per-user fee if cost splitting enabled) → (3) See question
+- **User join flow (sequential):** (1) Language dropdown (33 langs) → (2) Results opt-in + payment via Stripe/Google Pay/Apple Pay (click required; shows per-user fee if cost splitting enabled; free tier: no payment) → (3) See question
 - **Results opt-in:** Must actively click Yes/No. Paying users flagged for Cube 9 results distribution after session closes
+- **Moderator multi-device:** PC and Phone can manage same session simultaneously — real-time sync via WebSocket/Redis. Phone-optimized UI (status, participant count, open/close poll). PC full dashboard.
 - **Master UI/UX language table:** Centralized, extensible language registry — admins/devs can add languages without code changes; all cubes reference this table
-- **Metrics:** System (latency, QR gen time, join rate, concurrent sessions) | User (join funnel time, opt-in rate, device distribution) | Outcome (completion rate by mode, deep dive utilization, retention across rounds)
+- **Metrics:** System (latency, QR gen time, join rate, WebSocket sync latency, capacity check time) | User (language distribution, opt-in rate, join-to-question time, payment conversion, Moderator device usage) | Outcome (sessions completed vs abandoned, avg participants by tier, revenue per session, multi-round progression rate)
 - **CRS-01:** Literal type validation on all enum fields (422 on invalid input), session ownership enforcement (403)
 - **CRS-02:** Anonymous join via `get_optional_current_user()` — no Bearer token required
 - **CRS-03:** Short code collision retry (5 attempts with DB uniqueness check)

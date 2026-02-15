@@ -83,9 +83,17 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Session create — supports 3 session types: **polling** (Method 1), **peer_volunteer** (Method 2), **team_collaboration** (Method 3)
 * **Moderator session config (at creation):**
   * **Polling mode:** Single Round | Multi-Round Deep Dive
-  * **Session fee:** Amount (required, via Stripe)
-  * **Cost splitting:** Enable/disable — if enabled, fee is divided equally among participants dynamically
+  * **Scoping context:** Moderator selects one of Project, Specification, or Product Differentiator and links to existing scoping ID
+  * **Capacity / Pricing tier:**
+    * **Free:** ≤19 participants — no payment required
+    * **Moderator Paid:** Moderator pays full session fee (Stripe/GPay/ApplePay) — no user payment
+    * **Moderator+User Cost Split:** Moderator sets base fee; fee is divided equally among participants dynamically. All paying participants receive results.
+  * **Max participants:** Configurable per session (default unlimited for paid tiers, hard cap 19 for Free tier)
+  * **Session fee:** Amount (required for paid tiers, via Stripe/GPay/ApplePay)
   * **Gamified reward:** Enable/disable — if enabled, set bonus amount (e.g., $25) and optionally adjust CQS metric weights
+  * **Ranking mode:** `auto` (system aggregates) / `manual` (Moderator curates) / `live` (real-time WebSocket updates)
+  * **Response limits:** Max response character limit (default 500), max question character limit (default 500)
+* **Moderator multi-device support:** Moderator can manage a session from **PC and Phone simultaneously**. Session control state is synced in real-time via WebSocket/Redis. Phone-optimized Moderator UI shows: session status, participant count, open/close poll controls, quick stats. PC UI shows: full dashboard, analytics, configuration, QR management. Both devices share the same session auth token with device-aware layout adaptation.
 * **Polling modes:**
   * **Single Round:** One question cycle → responses → AI themes → ranking → results. No follow-up.
   * **Multi-Round Deep Dive:** Iterative cycles (up to 3 configurable). After initial results, Moderator selects top themes → system generates follow-up questions → participants respond again → re-cluster → re-rank. Preserves context across rounds.
@@ -93,8 +101,9 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * QR + share link generation
 * **User join flow (sequential screens after QR scan):**
   1. **Language selection gate:** Dropdown with 33 languages (references Master language table)
-  2. **Results opt-in + payment (click required):** "Would you like to receive a copy of the polling results?" — must actively click Yes or No. If Moderator enabled cost splitting, the per-user fee is displayed (e.g., "$0.50 for results"). Payment processed via Stripe, Google Pay, or Apple Pay if Yes. Paying users flagged for Cube 9 results distribution.
+  2. **Results opt-in + payment (click required):** "Would you like to receive a copy of the polling results?" — must actively click Yes or No. If Moderator enabled cost splitting, the per-user fee is displayed (e.g., "$0.50 for results"). Payment processed via Stripe, Google Pay, or Apple Pay if Yes. Paying users flagged for Cube 9 results distribution. (Free tier: no payment screen.)
   3. **Session join** → see question(s)
+  * *(Note: Scoping context is set by Moderator at session creation — users do NOT select scoping in the join flow.)*
 * **Master UI/UX language table:** A centralized, extensible language registry that drives all UI translations and language options. Admins and developers can add new languages to expand the tool without code changes. All cubes reference this single table for language support.
 * Join flow + presence setup
 * **Method 2/3 setup flow:** Desired Outcome input, role assignment (Method 3: Tech/Creative/Business), time estimate, all-participant confirmation gate before timer starts
@@ -144,14 +153,19 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | session_type | ENUM | `polling` / `peer_volunteer` / `team_collaboration` |
 | polling_mode | ENUM | `single_round` / `multi_round_deep_dive` |
 | status | ENUM | `draft` / `open` / `polling` / `ranking` / `closed` / `archived` |
-| scoping_type | ENUM | `project` / `specification` / `product_differentiator` — user selects one |
+| scoping_type | ENUM | `project` / `specification` / `product_differentiator` — **Moderator sets at session creation** |
 | scoping_id | UUID | FK to projects, specifications, or differentiators table based on scoping_type |
-| fee_amount_cents | INTEGER | Moderator session fee in cents |
+| pricing_tier | ENUM | `free` / `moderator_paid` / `moderator_user_split` — determines payment behavior |
+| max_participants | INTEGER (nullable) | Capacity cap (null = unlimited for paid tiers; hard cap 19 for free tier) |
+| fee_amount_cents | INTEGER | Moderator session fee in cents (0 for free tier) |
 | cost_splitting_enabled | BOOLEAN | Whether fee is split among participants |
 | reward_enabled | BOOLEAN | Whether gamified reward is active |
 | reward_amount_cents | INTEGER | Bonus reward amount in cents |
 | cqs_weights | JSONB | Custom CQS metric weights (null = defaults) |
 | anonymity_mode | ENUM | `anonymous` / `identified` |
+| ranking_mode | ENUM | `auto` / `manual` / `live` — how rankings are aggregated (merged from session_config) |
+| response_char_limit | INTEGER | Max response character length (default 500, merged from session_config) |
+| question_char_limit | INTEGER | Max question character length (default 500, merged from session_config) |
 | max_deep_dive_rounds | INTEGER | Max rounds for deep dive (default 3) |
 | language_default | VARCHAR(5) | Default session language code |
 | qr_url | TEXT | Generated QR code URL |
@@ -207,26 +221,17 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 **Adding new languages:** Admin UI panel accessible to Admins, Leads, and Team members. To add a language: (1) Add row to `languages` table, (2) Add translations for all `string_key` entries, (3) AI verifies translation quality, (4) At least 1 other Team/Lead/Admin user approves. Language becomes active after approval.
 
-**Table: `session_config`**
-| Variable | Type | Description |
-|----------|------|-------------|
-| id | UUID (PK) | Config record ID |
-| session_id | UUID (FK→sessions) | Session reference |
-| cycle_mode | ENUM | `single` / `multi` |
-| max_cycles | INTEGER | Max deep dive rounds |
-| ranking_mode | ENUM | `auto` / `manual` / `live` |
-| response_char_limit | INTEGER | Max response length (default 500) |
-| question_char_limit | INTEGER | Max question length (default 500) |
+*Note: `session_config` has been **merged into `sessions`** table — fields `ranking_mode`, `response_char_limit`, and `question_char_limit` now live directly on `sessions` for simpler queries and fewer JOINs. `cycle_mode` is derived from `polling_mode`, and `max_cycles` is `max_deep_dive_rounds`.*
 
 #### Cube 1 Inputs
 | Input | Source | Description |
 |-------|--------|-------------|
-| Moderator config | Moderator UI | Session type, polling mode, fee, cost splitting, reward, CQS weights, anonymity, language default |
+| Moderator config | Moderator UI (PC or Phone) | Session type, polling mode, pricing tier, max participants, fee, cost splitting, reward, CQS weights, anonymity, ranking mode, response/question limits, language default, **scoping context** (Project/Spec/Differentiator) |
 | QR scan | User device | User scans QR code to initiate join flow |
 | Language selection | User UI | User picks from 33-language dropdown |
 | Results opt-in click | User UI | Active Yes/No click for results copy |
 | Payment authorization | Stripe/GPay/ApplePay | Payment confirmation if cost splitting enabled |
-| Scoping selection | User UI | User selects one of: Project, Specification, or Product Differentiator |
+| Moderator device sync | PC / Phone | Both devices connect via WebSocket for real-time session state sync |
 
 #### Cube 1 Outputs
 | Output | Destination | Description |
@@ -252,6 +257,10 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `calculate_per_user_fee()` | Dynamically recalculates fee/participant as users join (fee_amount / participant_count) |
 | `get_session_by_code()` | Lookup session by short code for QR join |
 | `check_session_expiry()` | Validates session hasn't expired (410 Gone if expired) |
+| `check_capacity()` | Validates session hasn't reached max_participants cap (Free tier: hard cap 19; Paid tiers: configurable or unlimited) |
+| `determine_pricing_tier()` | Returns applicable pricing logic based on `pricing_tier` (free / moderator_paid / moderator_user_split) |
+| `sync_moderator_state()` | Pushes session control state to all connected Moderator devices via WebSocket/Redis (PC + Phone sync) |
+| `get_moderator_layout()` | Returns device-aware UI layout: Phone = compact controls; PC = full dashboard |
 
 #### Cube 1 UI/UX Translation Strings
 | String Key | English Default | Context |
@@ -268,10 +277,8 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube1.join.session_closed` | "This session is closed" | Closed session error |
 | `cube1.join.session_invalid` | "Invalid session link" | Invalid QR/link error |
 | `cube1.join.welcome` | "Welcome to the session" | Post-join greeting |
-| `cube1.join.scoping_prompt` | "What is this poll for?" | Scoping type selection |
-| `cube1.join.scoping_project` | "Project" | Scoping option 1 |
-| `cube1.join.scoping_spec` | "Specification" | Scoping option 2 |
-| `cube1.join.scoping_differentiator` | "Product Differentiator" | Scoping option 3 |
+| `cube1.join.session_full` | "This session is full" | Capacity limit reached error |
+| `cube1.join.free_session` | "Free session — no payment required" | Free tier indicator |
 | `cube1.moderator.create_session` | "Create New Session" | Session creation button |
 | `cube1.moderator.polling_mode` | "Polling Mode" | Config label |
 | `cube1.moderator.single_round` | "Single Round" | Mode option |
@@ -282,6 +289,19 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube1.moderator.reward_amount` | "Reward amount" | Reward input label |
 | `cube1.moderator.generate_qr` | "Generate QR Code" | QR generation button |
 | `cube1.moderator.share_link` | "Share Link" | Copy link button |
+| `cube1.moderator.scoping_type` | "Poll Scoping" | Scoping selection label (Moderator sets) |
+| `cube1.moderator.scoping_project` | "Project" | Scoping option |
+| `cube1.moderator.scoping_spec` | "Specification" | Scoping option |
+| `cube1.moderator.scoping_differentiator` | "Product Differentiator" | Scoping option |
+| `cube1.moderator.pricing_tier` | "Session Pricing" | Pricing tier selector label |
+| `cube1.moderator.tier_free` | "Free (up to 19 participants)" | Free tier option |
+| `cube1.moderator.tier_paid` | "Moderator Paid" | Moderator-paid tier option |
+| `cube1.moderator.tier_split` | "Cost Split with Participants" | Split tier option |
+| `cube1.moderator.max_participants` | "Max Participants" | Capacity input label |
+| `cube1.moderator.phone_sync` | "Connected on another device" | Multi-device sync indicator |
+| `cube1.moderator.open_poll` | "Open Poll" | Quick action (phone-friendly) |
+| `cube1.moderator.close_poll` | "Close Poll" | Quick action (phone-friendly) |
+| `cube1.moderator.participant_count` | "{count} participants" | Live participant counter |
 | `cube1.session.status_draft` | "Draft" | Status label |
 | `cube1.session.status_open` | "Open" | Status label |
 | `cube1.session.status_polling` | "Polling Active" | Status label |
@@ -289,10 +309,31 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube1.session.status_closed` | "Closed" | Status label |
 
 #### Cube 1 Traceability
-* Every session is linked to exactly ONE scoping context selected by the user: **Project ID**, **Specification ID**, or **Product Differentiator ID**
+* Every session is linked to exactly ONE scoping context **set by the Moderator at session creation**: **Project ID**, **Specification ID**, or **Product Differentiator ID**
 * `sessions.scoping_type` + `sessions.scoping_id` provide the link
 * All downstream data (responses, themes, rankings, tokens, exports) inherits scoping context via `session_id` → `sessions.scoping_type/scoping_id`
 * This enables filtering, aggregation, and feedback loops per Project, Specification, or Differentiator
+
+#### Cube 1 Metrics
+**System Metrics:**
+* Session creation latency (ms)
+* QR generation time (ms)
+* Join flow completion rate (%)
+* WebSocket sync latency between Moderator devices (ms)
+* Capacity check response time (ms)
+
+**User Metrics:**
+* Language selection distribution (which languages are chosen)
+* Results opt-in rate (% Yes vs No)
+* Join-to-first-question time (seconds from QR scan to seeing question)
+* Payment conversion rate (% who pay when cost split enabled)
+* Moderator device usage (% PC vs Phone vs both)
+
+**Outcome Metrics:**
+* Sessions completed vs abandoned (%)
+* Average participants per session by pricing tier
+* Revenue per session (Moderator fee + cost split totals)
+* Multi-round progression rate (% that use >1 round in deep dive mode)
 
 ### Cube 2 — Text Submission Handler (1,2,3)
 
@@ -349,7 +390,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | question_id | Cube 1 | Which question is being answered |
 | participant_id | Cube 1 | User identity / anon hash |
 | language_code | Cube 1 (participant record) | User's selected language |
-| response_char_limit | Cube 1 (session_config) | Max character limit for response |
+| response_char_limit | Cube 1 (sessions) | Max character limit for response |
 | anonymity_mode | Cube 1 (session) | Whether to anonymize |
 
 #### Cube 2 Outputs
