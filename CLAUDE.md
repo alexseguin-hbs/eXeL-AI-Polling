@@ -192,15 +192,15 @@ All clustering and ranking operations must be fully reproducible:
 ## Cube Architecture Overview
 | Cube | Position | Name | MVP | Description |
 |------|----------|------|-----|-------------|
-| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create, ID gen, QR/link, **language selection gate (33 langs)**, join flow, state management |
+| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create (3 types: polling/peer_volunteer/team_collab), ID gen, QR/link, **language selection gate (33 langs)**, join flow, Desired Outcome setup (M2/M3), state management |
 | 2 | (1,2,3) | Text Submission Handler | 1 | Validate text inputs, limits, anonymization, PII detection |
 | 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT, language selection |
-| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs, write to storage, caching, presence |
-| 5 | (1,3,1) | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking, **TIME TRACKING** |
+| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs, write to storage, caching, presence, **collect Desired Outcomes + result logs (M2/M3)** |
+| 5 | (1,3,1) | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking, **TIME TRACKING (all 3 ♡ methods)**, confirmation gates, post-task outcome flow |
 | 6 | (1,2,1) | AI Theming Clusterer | 1 | Batch embeddings + streaming clustering + summarization |
 | 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI + deterministic aggregation + governance compression |
-| 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens + governance/audit + treasury accounting |
-| 9 | (1,1,3) | Reports, Export & Dashboards | 1 | CSV export (MVP1), PDF/analytics (MVP2+), dynamic insights |
+| 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens (3 ♡ methods) + method-tagged ledger + outcome tracking + governance/audit + treasury accounting |
+| 9 | (1,1,3) | Reports, Export & Dashboards | 1 | CSV export (MVP1), PDF/analytics (MVP2+), dynamic insights, **M2/M3 full content export per Project ID** |
 | 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Sandbox checkout, replay tests, metrics, versioning, reproducibility hash |
 
 ## Target Output Schema
@@ -228,7 +228,11 @@ The AI pipeline must produce output matching this 15-column format (see `Updated
 See `Token_Governance_Math.md` for formal math. Key requirements:
 
 ### Token System (SoI Trinity — symbols are the primary identifiers)
-- **♡:** 1 minute active participation = 1 ♡ (1 ♡ awarded on login)
+- **♡:** 1 minute active participation = 1 ♡ (1 ♡ awarded on login) — **3 distribution methods at launch:**
+  - **Method 1 — Polling Contribution:** Active participation in polling sessions (existing model)
+  - **Method 2 — Peer-to-Peer Volunteer:** 2 people (helper + recipient) + 1 witness. All 3 must document Desired Outcome before timer starts. All 3 assess outcome at task end. No monetary payment — ♡ only. All earn ♡ for time present.
+  - **Method 3 — Team Collaboration:** 3-person minimum with required roles: Technology Rep, Creative Rep, Business/Value Rep. All agree on meeting purpose, time estimate, and Desired Outcome upfront. All sign off on results after. All earn ♡ for time. Full export attached to Project ID.
+- **Outcome tracking:** Methods 2 & 3 log outcome status (achieved/partial/not achieved). ♡ awarded for time regardless of outcome; outcome logged for accountability.
 - **웃:** Jurisdiction min-wage rate per minute when enabled. Default $7.25/hr (Austin, TX). 59 jurisdictions loaded (9 international + 50 US states). `hi_enabled=False` pre-treasury.
 - **◬:** 5x ♡ default multiplier
 
@@ -259,11 +263,14 @@ API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&sta
 - **Version-locked** — every ledger entry references cube version + dependency graph hash
 
 ## Time Tracking (Implemented — Cube 5)
-- **What is tracked:** Active participation time per user per session
-- **Action types:** `login`, `responding`, `ranking`, `reviewing`
-- **When it starts:** User joins session (login auto-entry) or begins responding/ranking
-- **When it stops:** User submits response or completes ranking action
-- **Granularity:** Per-action timestamps (start/stop for each response, each ranking)
+- **What is tracked:** Active participation time per user per session across all 3 ♡ distribution methods
+- **Action types:** `login`, `responding`, `ranking`, `reviewing`, `peer_volunteer`, `team_collaboration`
+- **Method 1 (Polling):** Starts on join/respond/rank, stops on submit/complete
+- **Method 2 (Peer Volunteer):** Starts after all 3 users confirm Desired Outcome, stops when task ends and outcome is assessed
+- **Method 3 (Team Collab):** Starts after all team members confirm meeting/outcome/estimate, stops when meeting ends and results are logged
+- **Confirmation gates:** Timer CANNOT start for Methods 2 & 3 until all participants confirm presence + Desired Outcome
+- **Post-task flow:** All participants assess outcome → sign off → results logged → ♡ calculated → export generated
+- **Granularity:** Per-action timestamps (start/stop for each response, each ranking, each volunteer/collab session)
 - **Token mapping:**
   - **♡** = `floor(active_minutes)` — 1 ♡ awarded on login
   - **웃** = `duration_min * (jurisdiction_rate / 60)` — $0 when `hi_enabled=False`
