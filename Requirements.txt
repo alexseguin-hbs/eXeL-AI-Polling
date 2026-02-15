@@ -761,12 +761,242 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
   * **CQS Composite:** Weighted average. Default weights: Insight 20%, Depth 15%, Future Impact 25%, Originality 15%, Actionability 15%, Relevance 10%. Moderator-adjustable per session.
 * CQS scores stored per response; hidden from users, visible to Moderators and system
 
+#### Cube 6 Data Tables
+
+**Table: `embeddings`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Embedding record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| response_id | UUID (FK→collected_responses) | Response this embedding is for |
+| provider | VARCHAR(50) | AI provider used (OpenAI, Grok, Gemini) |
+| model_version | VARCHAR(100) | Exact model ID (pinned, never auto-upgrade) |
+| embedding_vector | VECTOR | Embedding array (dimension depends on provider) |
+| created_at | TIMESTAMP | When generated |
+
+**Table: `clusters`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Cluster record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| cycle_number | INTEGER | Deep dive round (1 = initial) |
+| cluster_level | ENUM | `theme01` / `theme2_9` / `theme2_6` / `theme2_3` |
+| cluster_index | INTEGER | Cluster number within level |
+| centroid | VECTOR | Cluster centroid vector |
+| response_count | INTEGER | Number of responses in cluster |
+| random_seed | INTEGER | Seed used for reproducibility |
+| created_at | TIMESTAMP | When clustered |
+
+**Table: `themes`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Theme ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| cluster_id | UUID (FK→clusters) | Source cluster |
+| label | TEXT | AI-generated theme label |
+| summary | TEXT | Theme summary |
+| confidence | FLOAT | Theme confidence (0.0–1.0) |
+| response_count | INTEGER | Responses in this theme |
+| exemplar_response_ids | JSONB | Array of best-example response IDs |
+| created_at | TIMESTAMP | When created |
+
+**Table: `response_theme_assignments`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Assignment ID |
+| response_id | UUID (FK→collected_responses) | Response reference |
+| theme_id | UUID (FK→themes) | Theme assigned to |
+| confidence | FLOAT | Assignment confidence (0.0–1.0) |
+| distance_from_centroid | FLOAT | Embedding distance from cluster centroid |
+
+**Table: `summaries`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Summary ID |
+| response_id | UUID (FK→collected_responses) | Response reference |
+| summary_333 | TEXT | ~333-word summary (translated to English if needed) |
+| summary_111 | TEXT | ~111-word summary |
+| summary_33 | TEXT | ~33-word summary |
+| source_language | VARCHAR(5) | Original response language |
+| created_at | TIMESTAMP | When generated |
+
+**Table: `cqs_scores`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | CQS record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| response_id | UUID (FK→collected_responses) | Response scored |
+| theme_id | UUID (FK→themes) | Theme this response belongs to |
+| theme_confidence | FLOAT | Response's confidence in this theme (must be >0.95 to be eligible) |
+| insight_score | INTEGER | 0–100 |
+| depth_score | INTEGER | 0–100 |
+| future_impact_score | INTEGER | 0–100 |
+| originality_score | INTEGER | 0–100 |
+| actionability_score | INTEGER | 0–100 |
+| relevance_score | INTEGER | 0–100 |
+| composite_score | FLOAT | Weighted average of all 6 metrics |
+| cqs_weights_used | JSONB | Weights snapshot at time of scoring |
+| is_winner | BOOLEAN | Whether this response won the reward |
+| scored_at | TIMESTAMP | When scored |
+
+#### Cube 6 Inputs
+| Input | Source | Description |
+|-------|--------|-------------|
+| Collected response set | Cube 4 | Full set of validated responses with language tags |
+| AI pipeline trigger | Cube 5 | Signal to start embedding + clustering |
+| CQS scoring trigger | Cube 5 | Signal to score eligible responses (after ranking) |
+| Top Theme2 cluster ID | Cube 7 (via Cube 5) | #1 most-voted Theme2 for CQS eligibility |
+| AI provider config | Cube 1 (session config) | Which provider to use (OpenAI/Grok/Gemini) |
+| CQS weights | Cube 1 (session config) | Moderator-adjusted CQS metric weights |
+| Random seed | Session config | Fixed seed for deterministic clustering |
+
+#### Cube 6 Outputs
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Themes with confidence + counts | Cube 7, Frontend | Theme labels, summaries, confidence, exemplars |
+| Response-theme assignments | Cube 7, Cube 9 | Every response mapped to themes with confidence |
+| Summaries (333/111/33 word) | Cube 9 (Export) | Multi-level summaries per response |
+| CQS scores | Cube 5, Cube 8, Cube 9 | Scores for eligible responses + winner flag |
+| Embeddings | Internal (Cube 6) | Stored for drift detection and originality calculation |
+| Cluster centroids | Internal (Cube 6) | For drift monitoring between runs |
+
+#### Cube 6 Functions
+| Function | Description |
+|----------|-------------|
+| `generate_embeddings()` | Batch-generates embeddings for all responses via selected AI provider |
+| `run_clustering()` | MiniBatchKMeans with fixed seed — produces clusters at 4 levels (theme01, theme2_9/6/3) |
+| `assign_responses_to_themes()` | Maps each response to its theme with confidence score |
+| `generate_theme_labels()` | AI-generates human-readable labels for each cluster |
+| `generate_summaries()` | Produces 333/111/33-word summaries per response (translates to English if needed) |
+| `select_exemplars()` | Picks best-example responses per theme (closest to centroid) |
+| `score_cqs_eligible()` | Filters responses in top Theme2 with >95% confidence, scores only those |
+| `calculate_cqs_composite()` | Computes weighted CQS from 6 metrics using session weights |
+| `select_cqs_winner()` | Picks highest CQS; randomizes among ties |
+| `detect_theme_drift()` | Cosine similarity between previous and new centroids for drift monitoring |
+| `calculate_cluster_stability()` | Measures consistency of assignments across re-runs |
+| `handle_provider_failover()` | Circuit breaker: failover to next AI provider on outage |
+
+#### Cube 6 UI/UX Translation Strings
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube6.themes.title` | "Themes" | Theme view header |
+| `cube6.themes.generated` | "AI has identified {count} themes" | Theme count display |
+| `cube6.themes.confidence` | "Confidence: {percent}%" | Per-theme confidence |
+| `cube6.themes.responses_count` | "{count} responses" | Response count per theme |
+| `cube6.themes.summary` | "Summary" | Summary section label |
+| `cube6.themes.exemplar` | "Example response" | Exemplar label |
+| `cube6.themes.processing` | "Analyzing responses..." | Processing state |
+| `cube6.themes.no_themes` | "Not enough responses to generate themes" | No themes state |
+| `cube6.themes.risk_concerns` | "Risk & Concerns" | Theme01 category |
+| `cube6.themes.supporting` | "Supporting Comments" | Theme01 category |
+| `cube6.themes.neutral` | "Neutral Comments" | Theme01 category |
+
+#### Cube 6 Traceability
+* All `embeddings`, `clusters`, `themes`, `cqs_scores` link to `session_id` → inherits scoping context
+* `response_theme_assignments` connects responses to themes with full audit trail
+* `cqs_scores` links back to both `response_id` and `theme_id` for complete lineage
+* Embedding model version + random seed stored for exact reproducibility
+* Drift detection tracks changes across runs within the same scoping context
+
+---
+
 ### Cube 7 — Prioritization & Voting (1,1,1)
 
 * Ranking UI and backend aggregation
 * Non-real-time (MVP1) then real-time websocket (MVP2)
 * Aggregation rules: deterministic + reproducible (median or stable scoring)
 * **CQS winner input:** After ranking completes, Cube 7 provides the #1 most-voted Theme2 cluster ID to Cube 5/6 for CQS reward selection — the winner is the highest-CQS response within that cluster
+
+#### Cube 7 Data Tables
+
+**Table: `user_rankings`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Ranking record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| cycle_number | INTEGER | Deep dive round |
+| participant_id | UUID (FK→participants) | Who submitted ranking |
+| ranked_theme_ids | JSONB | Ordered array of theme_ids (1st = most important) |
+| submitted_at | TIMESTAMP | When ranking was submitted |
+
+**Table: `aggregated_rankings`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Aggregation record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| cycle_number | INTEGER | Deep dive round |
+| theme_id | UUID (FK→themes) | Theme being ranked |
+| rank_position | INTEGER | Final aggregated rank (1 = top) |
+| score | FLOAT | Aggregated score (deterministic algorithm) |
+| vote_count | INTEGER | How many participants ranked this theme |
+| is_top_theme2 | BOOLEAN | Whether this is the #1 most-voted Theme2 |
+| aggregated_at | TIMESTAMP | When aggregation ran |
+
+**Table: `governance_overrides`** (MVP3)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Override record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| theme_id | UUID (FK→themes) | Theme being overridden |
+| original_rank | INTEGER | Rank before override |
+| new_rank | INTEGER | Rank after override |
+| overridden_by | UUID (FK→users) | Lead/Developer who applied override |
+| justification | TEXT | Required justification text |
+| created_at | TIMESTAMP | When override was applied |
+
+#### Cube 7 Inputs
+| Input | Source | Description |
+|-------|--------|-------------|
+| Theme list | Cube 6 | Themes with labels, confidence, counts for ranking UI |
+| User rankings | User UI | Each participant's ordered ranking of themes |
+| Ranking trigger | Cube 5 | Signal to start aggregation after ranking window closes |
+| Governance override | Lead/Developer UI (MVP3) | Override with justification |
+
+#### Cube 7 Outputs
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Aggregated rankings | Frontend, Cube 9 | Final ranked theme list with scores |
+| #1 Theme2 cluster ID | Cube 5 → Cube 6 | Top-voted Theme2 for CQS eligibility |
+| Ranking complete event | Cube 5 | Signal that ranking is finalized |
+| Override audit entry | Cube 8 (audit), Cube 9 | Override record for audit trail |
+
+#### Cube 7 Functions
+| Function | Description |
+|----------|-------------|
+| `submit_user_ranking()` | Records a participant's theme ranking order |
+| `aggregate_rankings()` | Deterministic aggregation algorithm (median-based stable scoring) |
+| `identify_top_theme2()` | Finds the #1 most-voted Theme2 cluster from aggregated results |
+| `apply_governance_override()` | Lead/Developer overrides rank with mandatory justification |
+| `validate_override_permission()` | Checks RBAC — only Lead/Developer role can override |
+| `emit_ranking_complete()` | Notifies Cube 5 that rankings are finalized |
+| `get_live_rankings()` | Returns current ranking state for real-time display (MVP2 WebSocket) |
+| `detect_voting_anomalies()` | Anti-sybil: flags suspicious voting patterns |
+
+#### Cube 7 UI/UX Translation Strings
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube7.ranking.title` | "Rank the Themes" | Ranking page header |
+| `cube7.ranking.instructions` | "Drag themes to rank them by importance (most important first)" | Instructions |
+| `cube7.ranking.tap_instructions` | "Tap to select your ranking order" | Mobile touch instructions |
+| `cube7.ranking.submit` | "Submit Ranking" | Submit button |
+| `cube7.ranking.submitted` | "Ranking submitted!" | Success confirmation |
+| `cube7.ranking.waiting` | "Waiting for others to rank..." | Waiting state |
+| `cube7.ranking.results_title` | "Ranked Priorities" | Results header |
+| `cube7.ranking.rank_label` | "#{rank}" | Rank position display |
+| `cube7.ranking.votes` | "{count} votes" | Vote count per theme |
+| `cube7.ranking.score` | "Score: {score}" | Aggregated score display |
+| `cube7.ranking.top_theme` | "Top Priority" | Badge for #1 theme |
+| `cube7.ranking.override_applied` | "Ranking adjusted by Lead" | Override notice (MVP3) |
+| `cube7.ranking.override_justification` | "Reason: {text}" | Override justification display |
+| `cube7.ranking.no_rankings_yet` | "No rankings submitted yet" | Empty state |
+
+#### Cube 7 Traceability
+* `user_rankings` and `aggregated_rankings` link to `session_id` → inherits scoping context
+* `governance_overrides` creates audit trail linking override to actor, justification, and original/new rank
+* `is_top_theme2` flag on aggregated rankings directly feeds CQS reward pipeline
+* All ranking data exportable via Cube 9 with full session scoping
+
+---
 
 ### Cube 8 — Token Reward Calculator (1,1,2) + Governance/Audit (MVP3)
 
