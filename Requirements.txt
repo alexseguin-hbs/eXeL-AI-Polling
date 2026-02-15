@@ -1009,6 +1009,161 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Resolve disputes and lifecycle states
 * Optional: on-chain logging later
 
+#### Cube 8 Data Tables
+
+**Table: `token_ledger`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Ledger entry ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| participant_id | UUID (FK→participants) | Token recipient |
+| cube_id | INTEGER | Which cube generated this entry |
+| action_type | ENUM | `login` / `responding` / `ranking` / `reviewing` / `peer_volunteer` / `team_collaboration` / `reward_payout` |
+| distribution_method | ENUM | `polling` / `peer_volunteer` / `team_collaboration` |
+| delta_si | INTEGER | ♡ tokens awarded |
+| delta_hi | FLOAT | 웃 tokens awarded |
+| delta_ai | INTEGER | ◬ tokens awarded |
+| desired_outcome_id | UUID (FK→desired_outcomes, nullable) | Linked outcome (Methods 2 & 3) |
+| outcome_status | ENUM | `achieved` / `partially_achieved` / `not_achieved` / `n_a` |
+| lifecycle_state | ENUM | `simulated` / `pending` / `approved` / `finalized` / `reversed` |
+| reason | TEXT | Rationale for this entry |
+| version_id | VARCHAR(50) | Cube version + dependency graph hash |
+| created_at | TIMESTAMP | Entry creation (append-only) |
+
+**Table: `payment_transactions`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Transaction ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| participant_id | UUID (FK→participants, nullable) | Participant (null for Moderator fee) |
+| transaction_type | ENUM | `moderator_fee` / `cost_split` / `reward_payout` |
+| provider | ENUM | `stripe` / `google_pay` / `apple_pay` |
+| amount_cents | INTEGER | Amount in cents |
+| currency | VARCHAR(3) | Currency code (e.g., USD) |
+| provider_transaction_id | VARCHAR(255) | Stripe/GPay/ApplePay reference |
+| status | ENUM | `pending` / `completed` / `failed` / `refunded` |
+| created_at | TIMESTAMP | Transaction timestamp |
+
+**Table: `reward_payouts`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Payout record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| winner_participant_id | UUID (FK→participants) | CQS winner |
+| cqs_score_id | UUID (FK→cqs_scores) | Winning CQS record |
+| reward_amount_cents | INTEGER | Payout amount |
+| payment_transaction_id | UUID (FK→payment_transactions) | Payment reference |
+| status | ENUM | `pending` / `disbursed` / `failed` |
+| created_at | TIMESTAMP | When payout was initiated |
+
+**Table: `token_disputes`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Dispute ID |
+| ledger_entry_id | UUID (FK→token_ledger) | Disputed entry |
+| flagged_by | UUID (FK→users) | Who raised dispute |
+| reason | TEXT | Dispute reason |
+| evidence | TEXT (nullable) | Supporting evidence |
+| status | ENUM | `open` / `under_review` / `resolved` / `rejected` |
+| resolution_notes | TEXT (nullable) | Resolution details |
+| resolved_by | UUID (FK→users, nullable) | Who resolved |
+| created_at | TIMESTAMP | When filed |
+| resolved_at | TIMESTAMP (nullable) | When resolved |
+
+**Table: `talent_profiles`** (Project Mode — Talent Recommendation)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Talent profile ID |
+| user_id | UUID (FK→users) | User reference |
+| skills | JSONB | Array of skill tags (from CQS scores, session participation, role history) |
+| avg_cqs_composite | FLOAT | Average CQS score across all sessions |
+| total_si_earned | INTEGER | Total ♡ earned lifetime |
+| session_count | INTEGER | Total sessions participated in |
+| top_theme_categories | JSONB | Theme categories the user excels in |
+| role_history | JSONB | Array of roles held (technology/creative/business_value) |
+| is_available | BOOLEAN | Whether user opts into talent pool |
+| updated_at | TIMESTAMP | Last profile update |
+
+**Table: `execution_separation_log`** (Anti-Corruption: Ideation ≠ Execution)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Log entry ID |
+| scoping_id | UUID | Project/Differentiator/Specification ID |
+| scoping_type | ENUM | `project` / `specification` / `product_differentiator` |
+| ideation_participant_ids | JSONB | Array of user_ids who participated in ideation/polling |
+| blocked_from_execution | BOOLEAN | True = these users cannot be on execution team |
+| enforcement_level | ENUM | `hard_block` / `soft_warn` | Hard = system prevents; Soft = system warns but allows |
+| created_at | TIMESTAMP | When rule was established |
+
+#### Cube 8 Inputs
+| Input | Source | Description |
+|-------|--------|-------------|
+| Time entries | Cube 5 | Completed time tracking data with durations |
+| CQS winner | Cube 5 → Cube 6 | Winner participant_id + CQS score for reward |
+| Payment events | Cube 1 (join), Moderator | Stripe/GPay/ApplePay confirmations |
+| Jurisdiction rate | Shared core (hi_rates) | 웃 rate per participant's jurisdiction |
+| Token dispute | User UI | Dispute filing on a ledger entry |
+| Override event | Cube 7 | Governance override affecting token attribution |
+
+#### Cube 8 Outputs
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Ledger entries | Cube 9 (Reports), Audit | Append-only token records |
+| Token balances | Frontend, Cube 9 | Per-user ♡/웃/◬ totals |
+| Payment confirmations | Cube 1 (join flow), Frontend | Payment success/failure status |
+| Reward payout confirmation | Cube 5 → Frontend | Reward disbursed notification |
+| Talent profile updates | Cube 9 (Talent dashboard) | Updated skills, CQS averages, availability |
+| Execution separation check | Cube 1, Cube 5 | Block/warn if ideation member attempts to join execution team |
+| Dispute status | Frontend, Moderator dashboard | Dispute resolution updates |
+
+#### Cube 8 Functions
+| Function | Description |
+|----------|-------------|
+| `create_ledger_entry()` | Append-only write to token_ledger with all metadata |
+| `calculate_session_tokens()` | Computes ♡/웃/◬ for all participants in a session |
+| `process_moderator_fee()` | Handles Moderator session fee via Stripe/GPay/ApplePay |
+| `process_cost_split_payment()` | Handles participant cost-split payment |
+| `disburse_reward()` | Pays CQS winner the gamified bonus amount |
+| `get_user_balance()` | Returns total ♡/웃/◬ across all sessions |
+| `file_dispute()` | Creates a dispute on a ledger entry |
+| `resolve_dispute()` | Admin/Lead resolves dispute with notes |
+| `transition_lifecycle_state()` | Moves ledger entry through simulated→pending→approved→finalized |
+| `update_talent_profile()` | Updates user's talent profile from CQS scores, role history, SI earned |
+| `recommend_talent()` | Queries talent_profiles for users matching skill/theme criteria for a project |
+| `check_execution_separation()` | Verifies a user was NOT in the ideation/polling team before allowing them on execution team |
+| `log_execution_separation()` | Records ideation participants list per scoping_id for enforcement |
+| `get_jurisdiction_rate()` | Looks up 웃 rate for a participant's jurisdiction |
+
+#### Cube 8 UI/UX Translation Strings
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube8.tokens.balance` | "Your Tokens" | Token balance header |
+| `cube8.tokens.si_total` | "♡ {count}" | SI total display |
+| `cube8.tokens.hi_total` | "웃 ${amount}" | HI total display |
+| `cube8.tokens.ai_total` | "◬ {count}" | AI total display |
+| `cube8.payment.processing` | "Processing payment..." | Payment loading state |
+| `cube8.payment.success` | "Payment successful" | Payment confirmation |
+| `cube8.payment.failed` | "Payment failed — please try again" | Payment error |
+| `cube8.payment.choose_method` | "Choose payment method" | Payment method selector |
+| `cube8.dispute.file` | "Dispute this entry" | Dispute button |
+| `cube8.dispute.reason` | "Why are you disputing?" | Dispute reason prompt |
+| `cube8.dispute.submitted` | "Dispute submitted for review" | Dispute confirmation |
+| `cube8.dispute.resolved` | "Dispute resolved" | Resolution notice |
+| `cube8.talent.available` | "I'm available for projects" | Opt-in toggle label |
+| `cube8.talent.skills` | "Your skills" | Skills display header |
+| `cube8.talent.recommended` | "Recommended for this project" | Talent recommendation badge |
+| `cube8.separation.blocked` | "You participated in the ideation phase and cannot join the execution team for this project" | Hard block message |
+| `cube8.separation.warning` | "Note: You participated in ideation for this project. Joining execution may pose a conflict of interest." | Soft warning |
+
+#### Cube 8 Traceability
+* `token_ledger` links to `session_id` → inherits scoping context (Project/Specification/Differentiator)
+* `payment_transactions` track all money flow per session with provider reference
+* `talent_profiles` aggregated from all session participation — queryable by scoping context
+* `execution_separation_log` enforces ideation/execution separation per scoping_id — prevents corruption where the team that ideated/polled also executes
+* Every ledger entry references `version_id` (cube version + dependency hash) for full audit lineage
+
+---
+
 ### Cube 9 — Reports, Export & Dashboards (1,1,3)
 
 * Exports CSV MVP1; PDF/XLS/API later
@@ -1018,6 +1173,130 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * **Results distribution:** Only users who opted in AND paid (or are Lead/Developer exempt) receive polling results after session closes. Distribution triggered automatically on session close.
 * **CQS dashboard (Moderator-only):** Moderators see per-response CQS scores (all 6 metrics + composite), CQS distribution across session, reward winner details, and can export CQS data
 * **Reward announcement:** After session closes, reward winner is notified; Moderator sees winner identity + CQS breakdown. Users see only "a participant won the bonus" (no CQS details exposed)
+* **Talent recommendation dashboard:** In project mode, shows recommended talent based on CQS scores, skills, theme expertise. Enforces ideation/execution separation — ideation team members flagged as ineligible for execution roles.
+
+#### Cube 9 Data Tables
+
+**Table: `exports`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Export record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| export_type | ENUM | `csv` / `pdf` / `pixelated_token` / `full_package` |
+| format | VARCHAR(10) | File format (csv, pdf, png, json) |
+| file_url | TEXT | Stored file location |
+| requested_by | UUID (FK→users) | Who requested export |
+| created_at | TIMESTAMP | When generated |
+
+**Table: `pixelated_tokens`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Pixelated token ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| participant_id | UUID (FK→participants) | Token owner |
+| image_data | BYTEA | Generated image binary |
+| top_pixel_data | JSONB | Encoded data in top pixel line |
+| encoding_version | INTEGER | Pixel encoding scheme version |
+| qr_payload | TEXT | QR code embedded data |
+| delivered | BOOLEAN | Whether image has been delivered |
+| delivery_method | ENUM (nullable) | `download` / `sms` / `email` |
+| delivered_at | TIMESTAMP (nullable) | When delivered |
+| data_destroyed | BOOLEAN | Whether token data was purged post-delivery |
+| created_at | TIMESTAMP | When generated |
+
+**Table: `results_distribution`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Distribution record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| participant_id | UUID (FK→participants) | Recipient |
+| distribution_type | ENUM | `polling_results` / `full_package` / `pixelated_token` |
+| delivery_method | ENUM | `in_app` / `email` / `sms` / `download` |
+| delivered | BOOLEAN | Whether delivered |
+| delivered_at | TIMESTAMP (nullable) | When delivered |
+
+**Table: `talent_recommendations`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Recommendation ID |
+| scoping_id | UUID | Project/Differentiator/Specification this recommendation is for |
+| scoping_type | ENUM | `project` / `specification` / `product_differentiator` |
+| recommended_user_id | UUID (FK→users) | Recommended talent |
+| match_reason | TEXT | Why this talent was recommended (skills, CQS, theme expertise) |
+| match_score | FLOAT | Recommendation confidence (0.0–1.0) |
+| is_eligible | BOOLEAN | False if user was on ideation team (execution separation) |
+| created_at | TIMESTAMP | When recommended |
+
+#### Cube 9 Inputs
+| Input | Source | Description |
+|-------|--------|-------------|
+| Session data | All cubes | Complete session: responses, themes, rankings, tokens |
+| Payment status | Cube 8 | Who paid / who is Lead-exempt — for results distribution |
+| CQS scores | Cube 6 | All scores for Moderator CQS dashboard |
+| Token ledger | Cube 8 | Token data for Pixelated Token image generation |
+| Talent profiles | Cube 8 | Talent pool for recommendations |
+| Execution separation log | Cube 8 | Ideation team members to flag as ineligible |
+| Results opt-in flags | Cube 1 (participants) | Who wants results |
+| Export request | User UI / Auto-trigger | Request for CSV/PDF/Pixelated Token |
+
+#### Cube 9 Outputs
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| CSV/PDF export files | User download / email / SMS | Session results in requested format |
+| Pixelated Token images | User download / email / SMS | Self-contained token proof images |
+| Results distribution records | Audit | Who received what and when |
+| CQS dashboard data | Moderator UI | Scores, distribution, winner details |
+| Talent recommendations | Moderator / Project owner UI | Recommended talent with eligibility flags |
+| Analytics dashboard data | Moderator UI | Participation, completion, timing analytics |
+| Data destruction confirmation | Audit | Confirmation that token data was purged post-delivery |
+
+#### Cube 9 Functions
+| Function | Description |
+|----------|-------------|
+| `generate_csv_export()` | Produces CSV matching the 15-column target output schema |
+| `generate_pdf_export()` | Produces formatted PDF report (MVP2+) |
+| `generate_pixelated_token()` | Creates Pixelated Token image with encoded pixel lines + QR center |
+| `encode_pixel_line()` | Encodes data into colored pixel row using versioned scheme |
+| `mirror_pixel_line()` | Creates reversed bottom pixel line from top (DNA integrity check) |
+| `generate_encryption_keys()` | Creates left/right vertical pixel encryption key halves |
+| `distribute_results()` | Delivers results to all eligible participants (paid + Lead-exempt) |
+| `deliver_pixelated_token()` | Sends token image via chosen method (download/SMS/email) |
+| `destroy_token_data()` | Purges token data from system after image delivery |
+| `build_cqs_dashboard()` | Aggregates CQS data for Moderator dashboard |
+| `announce_reward_winner()` | Sends winner notification + generic "a participant won" to others |
+| `recommend_talent_for_project()` | Queries talent profiles, filters by execution separation, returns ranked recommendations |
+| `flag_ideation_members()` | Marks ideation team members as ineligible for execution recommendations |
+| `build_analytics_dashboard()` | Aggregates participation, timing, completion metrics |
+
+#### Cube 9 UI/UX Translation Strings
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube9.export.csv` | "Export CSV" | CSV export button |
+| `cube9.export.pdf` | "Export PDF" | PDF export button |
+| `cube9.export.generating` | "Generating export..." | Export loading state |
+| `cube9.export.ready` | "Your export is ready" | Export complete notification |
+| `cube9.export.download` | "Download" | Download button |
+| `cube9.pixelated.generating` | "Creating your Pixelated Token..." | Token image generation |
+| `cube9.pixelated.ready` | "Your token image is ready" | Token image complete |
+| `cube9.pixelated.delivery_prompt` | "How would you like to receive your token?" | Delivery method prompt |
+| `cube9.pixelated.download` | "Download" | Download option |
+| `cube9.pixelated.sms` | "Send via text" | SMS option |
+| `cube9.pixelated.email` | "Send via email" | Email option |
+| `cube9.pixelated.warning` | "Important: Save this image — your token data will be removed from our system after delivery" | Data destruction warning |
+| `cube9.results.title` | "Session Results" | Results page header |
+| `cube9.results.restricted` | "Pay to access full results" | Non-paying user message |
+| `cube9.reward.winner` | "Congratulations! You won the contribution bonus!" | Winner notification |
+| `cube9.reward.announced` | "A participant won the contribution bonus!" | General announcement |
+| `cube9.cqs.dashboard_title` | "Contribution Quality Scores" | Moderator CQS dashboard header |
+| `cube9.talent.title` | "Recommended Talent" | Talent recommendation header |
+| `cube9.talent.match_score` | "Match: {percent}%" | Talent match confidence |
+| `cube9.talent.ineligible` | "Participated in ideation — not eligible for execution" | Separation flag |
+| `cube9.talent.available` | "Available" | Talent availability badge |
+| `cube9.analytics.title` | "Session Analytics" | Analytics dashboard header |
+| `cube9.feedback.icon_tooltip` | "Help improve this tool" | Persistent feedback icon tooltip |
+| `cube9.feedback.prompt` | "How can we make this better?" | System-prompted feedback |
+| `cube9.feedback.submit` | "Submit Feedback" | Feedback submit button |
+| `cube9.feedback.thanks` | "Thank you for your feedback!" | Feedback confirmation |
 
 #### Pixelated Tokens (Image Export Format)
 
@@ -1040,6 +1319,15 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 * **Implication:** Users are responsible for safekeeping their Pixelated Token image. Lost image = lost token proof.
 
 * **Methods 2 & 3 export:** Full content package per session attached to Project ID — includes meeting purpose, Desired Outcome, time logged, participant roles, results, outcome status, ♡ earned. All participants automatically receive export on completion.
+
+#### Cube 9 Traceability
+* All exports, distributions, and talent recommendations link to `session_id` → inherits scoping context
+* `talent_recommendations` directly reference `scoping_id` and `scoping_type` for project-level talent matching
+* `execution_separation` enforced per scoping_id — ideation team members automatically flagged as ineligible in talent recommendations
+* Pixelated Token images encode scoping context (Project ID) in pixel data for external verifiability
+* Results distribution audited: who received, when, via what method
+
+---
 
 ### Cube 10 — Simulation Orchestrator (2,2,2) — CENTER of full 3x3x3
 
