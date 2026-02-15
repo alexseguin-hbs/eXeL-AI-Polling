@@ -77,9 +77,12 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 ### Cube 1 — Session Join & QR (1,2,2) — CENTER of Level 1
 
+* **All code is modular** — every cube is a self-contained module with clean interfaces; all aspects of each cube must be modular and independently maintainable
 * Session create
 * Session ID generation
 * QR + share link generation
+* **Language selection gate:** When user scans QR, they FIRST see a language dropdown (33 languages) before proceeding to the join flow
+* **Master UI/UX language table:** A centralized, extensible language registry that drives all UI translations and language options. Admins and developers can add new languages to expand the tool without code changes. All cubes reference this single table for language support.
 * Join flow + presence setup
 * Session state: draft/open/closed/archived
 * Basic security checks
@@ -335,6 +338,8 @@ Per session, show:
 * **Landing page** (what it does, how to run session)
 * **Join session page** (QR link opens here)
 
+  * **First screen after QR scan:** Language dropdown (33 languages) — user selects before proceeding
+  * Language preference stored per user/session and used for all subsequent UI rendering
   * states: valid, invalid, expired, closed, already joined
 * **Auth pages** (if enabled): sign-in, role selection (optional)
 

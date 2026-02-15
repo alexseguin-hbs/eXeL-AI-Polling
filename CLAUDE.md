@@ -179,7 +179,7 @@ All clustering and ranking operations must be fully reproducible:
 ## Cube Architecture Overview
 | Cube | Position | Name | MVP | Description |
 |------|----------|------|-----|-------------|
-| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create, ID gen, QR/link, join flow, state management |
+| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create, ID gen, QR/link, **language selection gate (33 langs)**, join flow, state management |
 | 2 | (1,2,3) | Text Submission Handler | 1 | Validate text inputs, limits, anonymization, PII detection |
 | 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT, language selection |
 | 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs, write to storage, caching, presence |
@@ -287,8 +287,11 @@ Track and optimize for:
 ## Implementation Status
 
 ### Cube 1 — Session Join & QR: COMPLETE (CRS-01→CRS-04)
+- **All code is modular** — every cube is self-contained with clean interfaces
 - Session CRUD, state machine (draft→open→polling→ranking→closed→archived)
 - QR code generation, join flow, participant management
+- **Language selection gate:** First screen after QR scan is a 33-language dropdown before join flow
+- **Master UI/UX language table:** Centralized, extensible language registry — admins/devs can add languages without code changes; all cubes reference this table
 - **CRS-01:** Literal type validation on all enum fields (422 on invalid input), session ownership enforcement (403)
 - **CRS-02:** Anonymous join via `get_optional_current_user()` — no Bearer token required
 - **CRS-03:** Short code collision retry (5 attempts with DB uniqueness check)
