@@ -102,8 +102,10 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 * Browser mic capture (Web Audio API)
 * Speech-to-text provider abstraction (future multi-provider)
-* Convert to text and forward into same ingestion pipeline
-* Language selection (stretch)
+* **Voice input in all 33 supported languages** (references Master UI/UX language table from Cube 1)
+* STT engine must accept the user's selected language to optimize transcription accuracy
+* Language tag stored with each voice transcript for downstream AI processing (Cube 6)
+* Convert to text and forward into same ingestion pipeline as Cube 2
 
 ### Cube 4 — Response Collector (1,3,2)
 
