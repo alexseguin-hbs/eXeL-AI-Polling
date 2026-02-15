@@ -102,7 +102,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Session ID generation
 * QR + share link generation
 * **User join flow (sequential screens after QR scan):**
-  1. **Language selection gate:** Dropdown with 33 languages (references Master language table)
+  1. **Language selection gate:** Dropdown with all active languages (33 at launch, extensible via Master language table)
   2. **Results opt-in + payment (click required):** "Would you like to receive a copy of the polling results?" — must actively click Yes or No. If Moderator enabled cost splitting, the per-user fee is displayed (e.g., "$0.50 for results"). Payment processed via Stripe, Google Pay, or Apple Pay if Yes. Paying users flagged for Cube 9 results distribution. (Free tier: no payment screen.)
   3. **Session join** → see question(s)
   * *(Note: Scoping context is set by Moderator at session creation — users do NOT select scoping in the join flow.)*
@@ -190,7 +190,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | session_id | UUID (FK→sessions) | Session reference |
 | user_id | UUID (FK→users, nullable) | Authenticated user or null for anonymous |
 | anon_hash | VARCHAR(64) | Anonymous identifier hash |
-| language_code | VARCHAR(5) | Selected language from 33-language dropdown |
+| language_code | VARCHAR(5) | Selected language from active languages dropdown |
 | results_opt_in | BOOLEAN | Clicked Yes for results copy |
 | payment_status | ENUM | `unpaid` / `paid` / `lead_exempt` |
 | payment_transaction_id | UUID (FK→payment_transactions, nullable) | Stripe/GPay/ApplePay reference |
@@ -237,7 +237,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 |-------|--------|-------------|
 | Moderator config | Moderator UI (PC or Phone) | Session type, polling mode, pricing tier, max participants, fee, cost splitting, reward, CQS weights, anonymity, ranking mode, response/question limits, language default, **scoping context** (Project/Spec/Differentiator) |
 | QR scan | User device | User scans QR code to initiate join flow |
-| Language selection | User UI | User picks from 33-language dropdown |
+| Language selection | User UI | User picks from active languages dropdown |
 | Results opt-in click | User UI | Active Yes/No click for results copy |
 | Payment authorization | Stripe/GPay/ApplePay | Payment confirmation if cost splitting enabled |
 | Moderator device sync | PC / Phone | Both devices connect via WebSocket for real-time session state sync |
@@ -325,12 +325,12 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 ### Cube 2 — Text Submission Handler (1,2,3)
 
-* Validate text inputs **in all 33 supported languages** (references Master UI/UX language table from Cube 1)
+* Validate text inputs **in all active languages** (references Master UI/UX language table from Cube 1)
 * Enforce limits: **question ≤ 500 chars**; response length configurable (default ≤ 500) — character limits must account for multi-byte Unicode (CJK, Arabic, etc.)
 * Language-aware input: user submits in their selected language; language tag stored with each response for downstream AI processing (Cube 6)
 * **Immediate token display:** After text submission, user sees their earned ♡ (SI) and ◬ (AI) tokens on screen (◬ = 5x ♡ minutes). Calculated by Cube 5, displayed inline.
 * Optional anonymization
-* Basic profanity/PII detection (optional) — must support multilingual detection across all 33 languages
+* Basic profanity/PII detection (optional) — must support multilingual detection across all active languages
 * **Live 33-Word Response Feed (Hosting PC):**
   * As users submit text (or voice-to-text from Cube 3), the **Moderator's hosting PC** displays a **scrolling live feed of 33-word summaries** of each response. Summaries appear in real-time as inputs arrive, scrolling down while others are still finishing.
   * **Toggleable:** Moderator can enable/disable the live feed at session creation or during the session.
@@ -402,7 +402,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 |----------|-------------|
 | `validate_text_input()` | Validates length (Unicode-aware), non-empty, within char limit |
 | `detect_language()` | Confirms text matches selected language (optional sanity check) |
-| `detect_pii()` | Scans for PII patterns (email, phone, names) across 33 languages |
+| `detect_pii()` | Scans for PII patterns (email, phone, names) across all active languages |
 | `scrub_pii()` | Redacts detected PII from response text |
 | `detect_profanity()` | Checks against language-specific profanity filters |
 | `anonymize_response()` | Strips identifying info if anonymity mode is on |
@@ -422,16 +422,14 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube2.input.anonymous_badge` | "Anonymous" | Anonymity indicator |
 | `cube2.input.pii_warning` | "Personal information detected and removed" | PII scrub notice |
 | `cube2.input.profanity_warning` | "Please revise — inappropriate language detected" | Profanity rejection |
-| `cube2.tokens.earned` | "You earned" | Token display prefix |
-| `cube2.tokens.si_label` | "♡" | SI token symbol |
-| `cube2.tokens.ai_label` | "◬" | AI token symbol |
+| *(Token display strings use shared globals: `shared.tokens.earned`, `shared.tokens.si_label`, `shared.tokens.ai_label` — see Shared UI Strings below)* |||
 | `cube2.input.empty_error` | "Please enter a response" | Empty submission error |
 | `cube2.feed.title` | "Live Responses" | Live feed header on hosting PC |
 | `cube2.feed.summary_loading` | "Processing response..." | While 33-word summary is being generated |
 | `cube2.feed.responses_count` | "{count} responses received" | Counter on live feed |
 
 #### Cube 2 Traceability
-* All `text_responses` link to `session_id` → inherits scoping context (Project/Specification/Differentiator)
+* Scoping: via `session_id` (see Shared Core — Cross-Cutting Scoping Inheritance)
 * `question_id` traces to cycle_number for deep dive round tracking
 * Responses feed into Cube 6 AI theming and Cube 9 exports, all carrying session scoping
 
@@ -441,7 +439,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 * Browser mic capture (Web Audio API)
 * Speech-to-text provider abstraction (future multi-provider)
-* **Voice input in all 33 supported languages** (references Master UI/UX language table from Cube 1)
+* **Voice input in all active languages** (references Master UI/UX language table from Cube 1)
 * STT engine must accept the user's selected language to optimize transcription accuracy
 * Language tag stored with each voice transcript for downstream AI processing (Cube 6)
 * Convert to text and forward into same ingestion pipeline as Cube 2
@@ -515,18 +513,16 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube3.voice.mic_denied` | "Microphone access denied" | Permission denied error |
 | `cube3.voice.no_speech` | "No speech detected — please try again" | Empty recording error |
 | `cube3.voice.low_confidence` | "We're not confident in the transcription — please review" | Low confidence warning |
-| `cube3.tokens.earned` | "You earned" | Token display prefix |
-| `cube3.tokens.si_label` | "♡" | SI token symbol |
-| `cube3.tokens.ai_label` | "◬" | AI token symbol |
+| *(Token display strings use shared globals: `shared.tokens.earned`, `shared.tokens.si_label`, `shared.tokens.ai_label` — see Shared UI Strings below)* |||
 
 #### Cube 3 Traceability
-* All `voice_responses` link to `session_id` → inherits scoping context (Project/Specification/Differentiator)
+* Scoping: via `session_id` (see Shared Core — Cross-Cutting Scoping Inheritance)
 * Transcript flows into Cube 2 pipeline → Cube 4 → same traceability chain as text responses
 * STT provider and confidence tracked for quality auditing
 
 ### Cube 4 — Response Collector (1,3,2)
 
-* Aggregates inputs from Cubes 2 (text) and 3 (voice) — **all 33 supported languages**
+* Aggregates inputs from Cubes 2 (text) and 3 (voice) — **all active languages**
 * Stores each response with its language tag; preserves original language for AI processing (Cube 6)
 * Writes to storage (MongoDB for raw responses, Redis for live state)
 * Caching for live status
@@ -628,7 +624,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube4.results_log.sign_off` | "I confirm these results" | Sign-off button |
 
 #### Cube 4 Traceability
-* `collected_responses` links to `session_id` → inherits scoping context (Project/Specification/Differentiator)
+* Scoping: via `session_id` (see Shared Core — Cross-Cutting Scoping Inheritance)
 * `desired_outcomes` links to `session_id` → same scoping chain
 * All presence and M2/M3 workflow data tied to session → scoping context
 
@@ -779,7 +775,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube5.tokens.earned_display` | "♡ {si} | ◬ {ai}" | Inline token display format |
 
 #### Cube 5 Traceability
-* `time_entries` link to `session_id` → inherits scoping context (Project/Specification/Differentiator)
+* Scoping: via `session_id` (see Shared Core — Cross-Cutting Scoping Inheritance)
 * `pipeline_triggers` link to `session_id` → scoping chain
 * `desired_outcome_id` on time entries traces to M2/M3 outcomes for direct accountability
 * All orchestration events logged with session context for full audit trail
@@ -954,7 +950,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube6.themes.sampling_note` | "Analyzing representative sample..." | Random sampling of 10 indicator |
 
 #### Cube 6 Traceability
-* All `embeddings`, `clusters`, `themes`, `cqs_scores` link to `session_id` → inherits scoping context
+* Scoping: via `session_id` (see Shared Core — Cross-Cutting Scoping Inheritance)
 * `response_theme_assignments` connects responses to themes with full audit trail
 * `cqs_scores` links back to both `response_id` and `theme_id` for complete lineage
 * Embedding model version + random seed stored for exact reproducibility
@@ -1058,7 +1054,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube7.ranking.voting_opens_soon` | "Voting opens when all themes are ready" | Pre-voting state |
 
 #### Cube 7 Traceability
-* `user_rankings` and `aggregated_rankings` link to `session_id` → inherits scoping context
+* Scoping: via `session_id` (see Shared Core — Cross-Cutting Scoping Inheritance)
 * `governance_overrides` creates audit trail linking override to actor, justification, and original/new rank
 * `is_top_theme2` flag on aggregated rankings directly feeds CQS reward pipeline
 * All ranking data exportable via Cube 9 with full session scoping
@@ -1223,7 +1219,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube8.separation.warning` | "Note: You participated in ideation for this project. Joining execution may pose a conflict of interest." | Soft warning |
 
 #### Cube 8 Traceability
-* `token_ledger` links to `session_id` → inherits scoping context (Project/Specification/Differentiator)
+* Scoping: via `session_id` (see Shared Core — Cross-Cutting Scoping Inheritance)
 * `payment_transactions` track all money flow per session with provider reference
 * `talent_profiles` aggregated from all session participation — queryable by scoping context
 * `execution_separation_log` enforces ideation/execution separation per scoping_id — prevents corruption where the team that ideated/polled also executes
@@ -1360,10 +1356,8 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | `cube9.talent.ineligible` | "Participated in ideation — not eligible for execution" | Separation flag |
 | `cube9.talent.available` | "Available" | Talent availability badge |
 | `cube9.analytics.title` | "Session Analytics" | Analytics dashboard header |
-| `cube9.feedback.icon_tooltip` | "Help improve this tool" | Persistent feedback icon tooltip |
+| *(Feedback icon, submit, thanks use shared globals — see Shared UI Strings. Cube-specific below:)* |||
 | `cube9.feedback.prompt` | "How can we make this better?" | System-prompted feedback |
-| `cube9.feedback.submit` | "Submit Feedback" | Feedback submit button |
-| `cube9.feedback.thanks` | "Thank you for your feedback!" | Feedback confirmation |
 
 #### Pixelated Tokens (Image Export Format)
 
@@ -1388,7 +1382,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 * **Methods 2 & 3 export:** Full content package per session attached to Project ID — includes meeting purpose, Desired Outcome, time logged, participant roles, results, outcome status, ♡ earned. All participants automatically receive export on completion.
 
 #### Cube 9 Traceability
-* All exports, distributions, and talent recommendations link to `session_id` → inherits scoping context
+* Scoping: via `session_id` (see Shared Core — Cross-Cutting Scoping Inheritance)
 * `talent_recommendations` directly reference `scoping_id` and `scoping_type` for project-level talent matching
 * `execution_separation` enforced per scoping_id — ideation team members automatically flagged as ineligible in talent recommendations
 * Pixelated Token images encode scoping context (Project ID) in pixel data for external verifiability
@@ -1524,11 +1518,9 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 | `cube10.sim.reject` | "Reject" | Rejection button |
 | `cube10.sim.rollback` | "Rollback to previous version" | Rollback button |
 | `cube10.sim.dependency_impact` | "Dependency Impact" | Impact summary header |
-| `cube10.feedback.icon_tooltip` | "Help improve this tool" | Persistent feedback icon |
+| *(Feedback icon, submit, thanks use shared globals — see Shared UI Strings. Cube-specific below:)* |||
 | `cube10.feedback.prompt_title` | "Quick feedback" | System-prompted feedback header |
 | `cube10.feedback.prompt_text` | "How can we improve your experience?" | Prompt text |
-| `cube10.feedback.submit` | "Submit" | Submit button |
-| `cube10.feedback.thanks` | "Thanks for helping us improve!" | Confirmation |
 | `cube10.feedback.category` | "What type of feedback?" | Category selector |
 | `cube10.feedback.bug` | "Bug report" | Category option |
 | `cube10.feedback.feature` | "Feature request" | Category option |
@@ -1559,7 +1551,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 * Cubes most frequently simulated
 
 #### Cube 10 Traceability
-* `simulation_runs` link to `session_id` (source replay data) → inherits scoping context
+* Scoping: via `session_id` (see Shared Core — Cross-Cutting Scoping Inheritance)
 * `cube_versions` track full version history per cube with dependency graph hashes
 * `user_feedback` tagged with `cube_id` and `scoping_id/scoping_type` for direct traceability
 * Feedback flows back into the tool's own improvement cycle — the tool uses itself to improve itself
@@ -1588,6 +1580,20 @@ All cubes reference a shared core library for common functionality. The shared c
 **Translation Lookup Function (shared core):**
 `get_translation(string_key, language_code, fallback="en") → str`
 All UI text in every cube calls this function. Adding a new language = adding rows to `languages` + `ui_translations` tables via Admin UI. No code changes required.
+
+**Shared UI Translation Strings (cube_id = 0):**
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `shared.tokens.earned` | "You earned" | Token display prefix (used by Cubes 2, 3, 5) |
+| `shared.tokens.si_label` | "♡" | SI token symbol |
+| `shared.tokens.ai_label` | "◬" | AI token symbol |
+| `shared.tokens.hi_label` | "웃" | HI token symbol |
+| `shared.feedback.icon_tooltip` | "Help improve this tool" | Persistent feedback icon tooltip (Cubes 9, 10) |
+| `shared.feedback.submit` | "Submit Feedback" | Feedback form submit button (Cubes 9, 10) |
+| `shared.feedback.thanks` | "Thanks for your feedback!" | Post-feedback confirmation (Cubes 9, 10) |
+
+**Cross-Cutting Scoping Inheritance:**
+All cubes inherit scoping context from `sessions.scoping_type` + `sessions.scoping_id` via `session_id`. This enables filtering, aggregation, and feedback loops per Project, Specification, or Product Differentiator across the entire system. Individual cube traceability sections document any cube-specific traceability beyond this default.
 
 ---
 
@@ -1825,7 +1831,7 @@ Per session, show:
 * **Landing page** (what it does, how to run session)
 * **Join session page** (QR link opens here)
 
-  * **First screen after QR scan:** Language dropdown (33 languages) — user selects before proceeding
+  * **First screen after QR scan:** Language dropdown (all active languages) — user selects before proceeding
   * Language preference stored per user/session and used for all subsequent UI rendering
   * states: valid, invalid, expired, closed, already joined
 * **Auth pages** (if enabled): sign-in, role selection (optional)
