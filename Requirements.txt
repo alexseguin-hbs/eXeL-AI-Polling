@@ -92,10 +92,11 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 ### Cube 2 — Text Submission Handler (1,2,3)
 
-* Validate text inputs
-* Enforce limits: **question ≤ 500 chars**; response length configurable (default ≤ 500)
+* Validate text inputs **in all 33 supported languages** (references Master UI/UX language table from Cube 1)
+* Enforce limits: **question ≤ 500 chars**; response length configurable (default ≤ 500) — character limits must account for multi-byte Unicode (CJK, Arabic, etc.)
+* Language-aware input: user submits in their selected language; language tag stored with each response for downstream AI processing (Cube 6)
 * Optional anonymization
-* Basic profanity/PII detection (optional)
+* Basic profanity/PII detection (optional) — must support multilingual detection across all 33 languages
 
 ### Cube 3 — Voice-to-Text Engine (1,3,3) (MVP2)
 
