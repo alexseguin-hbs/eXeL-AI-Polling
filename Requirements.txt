@@ -81,14 +81,19 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 * **All code is modular** — every cube is a self-contained module with clean interfaces; all aspects of each cube must be modular and independently maintainable
 * Session create — supports 3 session types: **polling** (Method 1), **peer_volunteer** (Method 2), **team_collaboration** (Method 3)
-* **Polling modes** (set by Moderator at session creation):
+* **Moderator session config (at creation):**
+  * **Polling mode:** Single Round | Multi-Round Deep Dive
+  * **Session fee:** Amount (required, via Stripe)
+  * **Cost splitting:** Enable/disable — if enabled, fee is divided equally among participants dynamically
+  * **Gamified reward:** Enable/disable — if enabled, set bonus amount (e.g., $25) and optionally adjust CQS metric weights
+* **Polling modes:**
   * **Single Round:** One question cycle → responses → AI themes → ranking → results. No follow-up.
   * **Multi-Round Deep Dive:** Iterative cycles (up to 3 configurable). After initial results, Moderator selects top themes → system generates follow-up questions → participants respond again → re-cluster → re-rank. Preserves context across rounds.
 * Session ID generation
 * QR + share link generation
 * **User join flow (sequential screens after QR scan):**
   1. **Language selection gate:** Dropdown with 33 languages (references Master language table)
-  2. **Results opt-in + payment (click required):** "Would you like to receive a copy of the polling results?" — must actively click Yes or No. If Moderator enabled cost splitting, the per-user fee is displayed (e.g., "$0.50 for results"). Payment processed via Stripe if Yes. Paying users flagged for Cube 9 results distribution.
+  2. **Results opt-in + payment (click required):** "Would you like to receive a copy of the polling results?" — must actively click Yes or No. If Moderator enabled cost splitting, the per-user fee is displayed (e.g., "$0.50 for results"). Payment processed via Stripe, Google Pay, or Apple Pay if Yes. Paying users flagged for Cube 9 results distribution.
   3. **Session join** → see question(s)
 * **Master UI/UX language table:** A centralized, extensible language registry that drives all UI translations and language options. Admins and developers can add new languages to expand the tool without code changes. All cubes reference this single table for language support.
 * Join flow + presence setup
@@ -111,6 +116,8 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Time from QR scan to session join (join funnel duration)
 * Language selection abandonment rate
 * Results opt-in rate (% of users requesting results copy)
+* Payment conversion rate (% of users who pay when cost splitting enabled)
+* Payment abandonment rate (started Stripe checkout but didn't complete)
 * Participants per session (average, median, max)
 * Device type distribution (desktop/tablet/phone)
 * Return user rate (users who join multiple sessions)
@@ -121,6 +128,10 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Average rounds per deep dive session
 * Participant retention across deep dive rounds (drop-off per round)
 * Time-to-first-response after join (how quickly users engage)
+* Revenue per session (Moderator fee + participant payments)
+* Cost splitting utilization rate (% of sessions with cost splitting enabled)
+* Gamified reward utilization rate (% of sessions with reward enabled)
+* Average per-user fee (when cost splitting enabled)
 
 ### Cube 2 — Text Submission Handler (1,2,3)
 
@@ -148,6 +159,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Writes to storage (MongoDB for raw responses, Redis for live state)
 * Caching for live status
 * Presence tracking
+* **Payment status per participant:** Stores results opt-in flag and payment confirmation (paid/unpaid/lead-exempt) for downstream results distribution (Cube 9)
 * **Methods 2 & 3:** Collects Desired Outcome docs, role assignments, pre-meeting confirmations, and post-task result logs — all in the participant's selected language
 
 ### Cube 5 — User Input Gateway / Orchestrator (1,3,1)
@@ -162,6 +174,8 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * **Confirmation gates:** Timer cannot start until all required participants confirm presence + Desired Outcome (Methods 2 & 3)
 * **Post-task flow:** Trigger outcome assessment (all participants sign off), log results, calculate ♡ for all participants
 * **Immediate token display:** On every submission (text/voice), Cube 5 calculates current ♡ and ◬ (= 5x ♡ minutes) and returns them to the frontend for instant display
+* **CQS pipeline trigger:** After Cube 6 completes AI theming and Cube 7 completes ranking, Cube 5 triggers the CQS scoring pipeline — scores all responses, identifies the winner within the #1 most-voted Theme2 cluster, and notifies Cube 8 for reward payout
+* **Payment orchestration:** Coordinates Stripe payment flow during join (Cube 1 → Stripe → Cube 4 payment status) and reward disbursement after session close
 
 #### Cube 5 Metrics
 
@@ -194,24 +208,39 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Ranking pipeline success rate
 * Average time from poll close to themes ready
 * Average time from ranking close to aggregated results ready
+* CQS scoring pipeline latency (time from ranking complete to reward winner identified)
+* CQS score distribution per session (avg, spread, outliers)
+* Reward disbursement success rate
 
 ### Cube 6 — AI Theming Clusterer (1,2,1)
 
 * Embeddings + clustering + summarization
 * Returns: themes, subthemes, confidence, counts, exemplars
-* Must support “Theme-01 basic” first; “Theme-02 enhanced” later; deep dives in MVP3
+* Must support "Theme-01 basic" first; "Theme-02 enhanced" later; deep dives in MVP3
+* **Contribution Quality Score (CQS) engine:** After clustering and ranking (Cube 7), Cube 6 scores ONLY eligible responses — those in the #1 most-voted Theme2 cluster with >95% theme confidence — using the 6 CQS metrics:
+  * **Insight Score (0–100):** AI-assessed — non-obvious perspectives, connections, patterns against full response corpus
+  * **Depth Score (0–100):** Specificity, examples, reasoning; detail relative to session average response length
+  * **Future Impact Score (0–100):** AI-assessed — forward-looking implications, trends, risks, strategic relevance
+  * **Originality Score (0–100):** Embedding distance from cluster centroid — further (while in-cluster) = more original
+  * **Actionability Score (0–100):** AI-assessed — concrete next steps, solutions, implementable ideas
+  * **Relevance Score (0–100):** Embedding similarity to question + theme centroid
+  * **CQS Composite:** Weighted average. Default weights: Insight 20%, Depth 15%, Future Impact 25%, Originality 15%, Actionability 15%, Relevance 10%. Moderator-adjustable per session.
+* CQS scores stored per response; hidden from users, visible to Moderators and system
 
 ### Cube 7 — Prioritization & Voting (1,1,1)
 
 * Ranking UI and backend aggregation
 * Non-real-time (MVP1) then real-time websocket (MVP2)
 * Aggregation rules: deterministic + reproducible (median or stable scoring)
+* **CQS winner input:** After ranking completes, Cube 7 provides the #1 most-voted Theme2 cluster ID to Cube 5/6 for CQS reward selection — the winner is the highest-CQS response within that cluster
 
 ### Cube 8 — Token Reward Calculator (1,1,2) + Governance/Audit (MVP3)
 
 * Assign SoI Trinity Tokens via all 3 distribution methods
 * **Method-aware ♡ calculation:** Ledger entries tagged with `distribution_method` and `desired_outcome_id`
 * **Outcome tracking:** Each ledger entry records outcome status (achieved/partial/not achieved)
+* **Gamified reward payout:** Receives CQS winner from Cube 5 → disburses Moderator-funded bonus to winner via Stripe, Google Pay, or Apple Pay. Payout logged in ledger with CQS score, theme cluster, and session reference.
+* **Payment processing:** Handles all Stripe / Google Pay / Apple Pay transactions — Moderator session fees, participant cost-split payments, and reward payouts
 * Track overrides and audit trail
 * Resolve disputes and lifecycle states
 * Optional: on-chain logging later
@@ -222,7 +251,9 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Analytics dashboard (MVP2)
 * Token dashboard (MVP3)
 * Compliance exports (MVP2/3)
-* **Results distribution:** Users who opted in during Cube 1 join flow receive polling results after session closes
+* **Results distribution:** Only users who opted in AND paid (or are Lead/Developer exempt) receive polling results after session closes. Distribution triggered automatically on session close.
+* **CQS dashboard (Moderator-only):** Moderators see per-response CQS scores (all 6 metrics + composite), CQS distribution across session, reward winner details, and can export CQS data
+* **Reward announcement:** After session closes, reward winner is notified; Moderator sees winner identity + CQS breakdown. Users see only "a participant won the bonus" (no CQS details exposed)
 
 #### Pixelated Tokens (Image Export Format)
 
@@ -873,7 +904,11 @@ The following technology choices were confirmed during project setup:
 #### Gamified Contribution Reward
 - **Moderator-funded bonus:** Moderator can set a reward amount (e.g., $25) to be awarded to one participant
 - **Appears random to users** but is determined by the **Contribution Quality Score (CQS)** — a hidden rating system
-- **Winner criteria:** The participant whose response falls within the **#1 most-voted Theme (Theme2 level)** and has the highest CQS
+- **CQS scoring is selective — NOT applied to all responses:**
+  1. Cube 7 determines the #1 most-voted Theme2 cluster
+  2. Only responses assigned to that cluster with **>95% theme confidence** are eligible
+  3. CQS Composite Score is calculated ONLY for eligible responses (saves API calls — no wasted scoring on ineligible responses)
+  4. Highest CQS wins. If tie, **randomize among tied responses** (fair and unpredictable)
 - **CQS Rating Metrics (hidden from users, visible to Moderators and system):**
   * **Insight Score (0–100):** Does the response reveal a non-obvious perspective, connection, or pattern? AI-assessed against the full response corpus
   * **Depth Score (0–100):** Does the response go beyond surface-level commentary? Measures specificity, examples, supporting reasoning, and detail relative to session average response length
@@ -883,11 +918,11 @@ The following technology choices were confirmed during project setup:
   * **Relevance Score (0–100):** How closely does the response align with the question asked and the theme it was clustered into? Embedding similarity to question + theme centroid
 - **CQS Composite:** Weighted average of all 6 metrics. Default weights: Insight 20%, Depth 15%, Future Impact 25%, Originality 15%, Actionability 15%, Relevance 10%. Moderator can adjust weights per session (advanced config).
 - **Visibility:** CQS scores hidden from all users. Moderators see scores in their dashboard. System uses scores for reward selection and analytics.
-- **Tie-breaking:** If CQS tie, earlier submission wins (first-mover advantage)
+- **Tie-breaking:** If CQS tie, **randomize** among tied responses (fair and unpredictable)
 
 #### Access Rules
 - **Lead/Developer exception:** Leads ALWAYS get free access to results (transparency + accountability)
-- Stripe integration set up from MVP1
+- **Payment providers at launch:** Stripe, Google Pay, Apple Pay
 
 ---
 

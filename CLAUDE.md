@@ -192,15 +192,15 @@ All clustering and ranking operations must be fully reproducible:
 ## Cube Architecture Overview
 | Cube | Position | Name | MVP | Description |
 |------|----------|------|-----|-------------|
-| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create (3 types, 2 polling modes: Single Round / Multi-Round Deep Dive), ID gen, QR/link, **join flow: language gate → results opt-in → session**, Desired Outcome setup (M2/M3), state management, **system/user/outcome metrics** |
+| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create (3 types, 2 polling modes, **Moderator config: fee + cost splitting + gamified reward + CQS weights**), ID gen, QR/link, **join flow: language gate → results opt-in + payment (Stripe/GPay/ApplePay) → session**, Desired Outcome setup (M2/M3), state management, **system/user/outcome metrics** |
 | 2 | (1,2,3) | Text Submission Handler | 1 | Validate text inputs **in all 33 languages**, limits (Unicode-aware), language tag per response, **immediate ♡/◬ token display post-submit**, anonymization, PII detection |
 | 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT **in all 33 languages**, language tag per transcript, **immediate ♡/◬ token display post-submit**, forwards to Cube 2 pipeline |
-| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs **in all 33 languages** with language tags, write to storage, caching, presence, **collect Desired Outcomes + result logs (M2/M3)** |
-| 5 | (1,3,1) | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking, **TIME TRACKING (all 3 ♡ methods)**, confirmation gates, post-task outcome flow, **system/user/outcome metrics** |
-| 6 | (1,2,1) | AI Theming Clusterer | 1 | Batch embeddings + streaming clustering + summarization |
-| 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI + deterministic aggregation + governance compression |
-| 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens (3 ♡ methods) + method-tagged ledger + outcome tracking + governance/audit + treasury accounting |
-| 9 | (1,1,3) | Reports, Export & Dashboards | 1 | CSV export (MVP1), PDF/analytics (MVP2+), **Pixelated Tokens (image+QR export with pixel-encoded token data)**, results distribution, **data destruction post-delivery**, M2/M3 export per Project ID |
+| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs **in all 33 languages** with language tags, write to storage, caching, presence, **payment status per participant**, **collect Desired Outcomes + result logs (M2/M3)** |
+| 5 | (1,3,1) | User Input Gateway / Orchestrator | 1 | Central gateway, triggers AI + ranking + **CQS scoring pipeline**, **TIME TRACKING (all 3 ♡ methods)**, confirmation gates, post-task outcome flow, **payment orchestration**, **system/user/outcome metrics** |
+| 6 | (1,2,1) | AI Theming Clusterer | 1 | Batch embeddings + streaming clustering + summarization + **CQS scoring engine (6 metrics per response, hidden from users)** |
+| 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI + deterministic aggregation + governance compression + **#1 Theme2 cluster ID → CQS reward selection** |
+| 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens (3 ♡ methods) + method-tagged ledger + outcome tracking + **gamified reward payout (Stripe/GPay/ApplePay)** + **payment processing** + governance/audit + treasury accounting |
+| 9 | (1,1,3) | Reports, Export & Dashboards | 1 | CSV export (MVP1), PDF/analytics (MVP2+), **Pixelated Tokens**, **results distribution (paying members + Lead exempt)**, **CQS dashboard (Moderator-only)**, **reward announcement**, **data destruction post-delivery**, M2/M3 export per Project ID |
 | 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Sandbox checkout, replay tests, metrics, versioning, reproducibility hash |
 
 ## Target Output Schema
@@ -297,11 +297,12 @@ API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&sta
 - **Cost splitting:** Moderator can split fee equally among participants (e.g., $100 fee / 200 users = $0.50 each). Fee per user calculated dynamically as users join. Paying members automatically receive Polling Results.
 - **Results opt-in:** Step 2 of join flow — user must click to opt in. If cost splitting enabled, per-user fee shown and Stripe payment processed inline.
 - **Gamified contribution reward:** Moderator sets a bonus amount (e.g., $25) awarded to one participant. Appears random to users but determined by hidden **Contribution Quality Score (CQS):**
+  - CQS scored ONLY on responses in #1 most-voted Theme2 cluster with >95% theme confidence (saves API calls)
   - 6 metrics: Insight (20%), Depth (15%), Future Impact (25%), Originality (15%), Actionability (15%), Relevance (10%)
-  - Winner: highest CQS within the #1 most-voted Theme2 cluster
+  - Winner: highest CQS among eligible responses. Ties randomized (fair, unpredictable)
   - CQS hidden from users, visible to Moderators and system
 - **Lead/Developer exception:** Leads ALWAYS get free access to results (transparency + accountability)
-- **Stripe integration:** Set up from MVP1
+- **Payment providers at launch:** Stripe, Google Pay, Apple Pay
 
 ## Observability Plan
 - **Metrics:** Prometheus — request latency, queue depth, embedding throughput, cluster stability, token velocity
@@ -327,9 +328,10 @@ Track and optimize for:
 ### Cube 1 — Session Join & QR: COMPLETE (CRS-01→CRS-04)
 - **All code is modular** — every cube is self-contained with clean interfaces
 - Session CRUD, state machine (draft→open→polling→ranking→closed→archived)
-- **Polling modes** (Moderator sets at creation): **Single Round** (one cycle) | **Multi-Round Deep Dive** (iterative, up to 3 rounds, context preserved)
+- **Moderator session config:** polling mode, session fee (Stripe/GPay/ApplePay), cost splitting toggle, gamified reward amount + CQS weights
+- **Polling modes:** **Single Round** (one cycle) | **Multi-Round Deep Dive** (iterative, up to 3 rounds, context preserved)
 - QR code generation, join flow, participant management
-- **User join flow (sequential):** (1) Language dropdown (33 langs) → (2) Results opt-in + payment (click required; shows per-user fee if cost splitting enabled) → (3) See question
+- **User join flow (sequential):** (1) Language dropdown (33 langs) → (2) Results opt-in + payment via Stripe/Google Pay/Apple Pay (click required; shows per-user fee if cost splitting enabled) → (3) See question
 - **Results opt-in:** Must actively click Yes/No. Paying users flagged for Cube 9 results distribution after session closes
 - **Master UI/UX language table:** Centralized, extensible language registry — admins/devs can add languages without code changes; all cubes reference this table
 - **Metrics:** System (latency, QR gen time, join rate, concurrent sessions) | User (join funnel time, opt-in rate, device distribution) | Outcome (completion rate by mode, deep dive utilization, retention across rounds)
