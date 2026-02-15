@@ -9,6 +9,8 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 **Core promise:** "Turn messy group input into clear priorities in under a minute (at scale), with governance + traceability + contribution value capture."
 
+**Delivery model:** API-first platform with SDK. The entire tool is designed to be embedded into external products, websites, and codebases via API calls and client SDKs — not just a standalone web app. Think embeddable governance infrastructure (like an iframe, but fully modular and API-driven at scale).
+
 **Scale targets:**
 * **Stable:** 100,000 concurrent users
 * **Burst:** 1,000,000 concurrent capacity
@@ -410,6 +412,79 @@ Per session, show:
 
 ---
 
+## 8.5) API-First Platform & SDK (Embeddable Integration)
+
+### 8.5.1 Architecture Principle
+
+The entire SoI Governance Engine is **API-first**. Every feature accessible in the web UI must also be accessible via a public REST API. This enables external companies to run the governance engine inside their own code, websites, or products — without ever visiting the SoI web app.
+
+### 8.5.2 SDK (Client Libraries)
+
+* Provide official SDKs (JavaScript/TypeScript first, Python second) for embedding
+* SDK wraps all REST API endpoints with typed methods
+* SDK handles: authentication (API key + OAuth), session management, webhook callbacks, error handling
+* Embeddable UI components (Web Components / iframe-based) for companies that want drop-in UI
+* Headless mode: companies can use the API/SDK with their own custom UI
+
+### 8.5.3 Scoping Hierarchy: Project → Differentiator → Specification
+
+Every SDK/API interaction is scoped to a three-level hierarchy:
+
+* **Project (Project ID):** Top-level container representing a company's product, initiative, or system. Each project has its own configuration, sessions, token rules, and data isolation.
+* **Differentiator (Differentiator ID):** Within a project, differentiators represent distinct dimensions, features, or hypotheses being evaluated. Example: "UX Approach A vs B", "Pricing Model X", "Feature Priority Set".
+* **Specification (Specification ID):** Within a differentiator, specifications are the concrete parameters, constraints, or configurations to fine-tune and simulate. Example: target audience, pricing tiers, feature toggles, governance rules.
+
+This hierarchy allows companies to:
+* Run multiple polling/governance sessions scoped to specific projects
+* A/B test ideas via differentiators
+* Fine-tune and simulate existing products or new concepts via specifications
+* Compare outcomes across differentiators and specifications within a project
+
+### 8.5.4 API Key & Tenant Management
+
+* API keys issued per organization (tenant)
+* Each API key scoped to one or more projects
+* Rate limiting per API key (separate from web UI rate limits)
+* Usage metering for billing (API calls, sessions, AI processing)
+* Webhook registration for async events (themes ready, ranking complete, etc.)
+
+### 8.5.5 Embeddable Modes
+
+| Mode | Description |
+|------|-------------|
+| **Full embed** | Drop-in UI component (iframe / Web Component) — full session flow rendered inside host app |
+| **Headless API** | No UI — company calls API/SDK endpoints and renders their own UI |
+| **Hybrid** | Company uses some embedded components (e.g., ranking widget) and custom UI for others |
+
+### 8.5.6 Core Entities (additions for SDK scoping)
+
+**Project**
+* id, org_id, name, description, created_at, config (token rules, AI provider, language defaults)
+
+**Differentiator**
+* id, project_id, name, description, hypothesis, created_at
+
+**Specification**
+* id, differentiator_id, parameters (JSON), constraints, version, created_at
+
+**Session** (updated)
+* Now includes: project_id, differentiator_id, specification_id (all optional for standalone web use; required for SDK/API use)
+
+### 8.5.7 SDK API Endpoints (additions)
+
+* POST /projects (create project)
+* GET /projects/{id}
+* POST /projects/{id}/differentiators (create differentiator)
+* GET /projects/{id}/differentiators
+* POST /differentiators/{id}/specifications (create specification)
+* GET /differentiators/{id}/specifications
+* POST /projects/{id}/sessions (create session scoped to project)
+* GET /projects/{id}/results/compare (compare outcomes across differentiators/specs)
+* POST /api-keys (generate API key for org)
+* POST /webhooks (register webhook endpoint)
+
+---
+
 ## 9) Backend Requirements (APIs + Data)
 
 ### 9.1 Core Entities (minimum schema)
@@ -419,6 +494,7 @@ Per session, show:
 * id, created_by, created_at, status (draft/open/closed/archived)
 * config: anonymity_mode, cycle_mode, max_cycles, language, ranking_mode
 * qr_url, join_url
+* project_id (optional — required for SDK/API use), differentiator_id (optional), specification_id (optional)
 
 **Participant**
 

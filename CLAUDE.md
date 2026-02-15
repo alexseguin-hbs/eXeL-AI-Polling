@@ -8,6 +8,7 @@
 - **Local path:** /home/explore/eXeL_AI_Polling
 - **Platform:** Linux (WSL2)
 - **Mission:** Transform monolithic polling script into production-scale, deterministic, horizontally scalable Governance Compression Infrastructure.
+- **Delivery model:** API-first platform with SDK — the entire tool is embeddable into external products, websites, and codebases via API/SDK (not just a standalone web app)
 
 ## GitHub Connection
 - **Repository:** https://github.com/alexseguin-hbs/eXeL-AI-Polling
@@ -103,6 +104,18 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 ### Deployment
 - **Kubernetes:** Horizontal autoscaling blueprint
 - **Observability:** Prometheus/Grafana metrics, structured logging, alerting
+
+### API-First Platform & SDK
+- **Architecture:** Every feature accessible via public REST API — web UI is just one consumer
+- **SDKs:** JavaScript/TypeScript (primary), Python (secondary) — typed client libraries wrapping all endpoints
+- **Embeddable modes:** Full embed (iframe/Web Component), Headless API (custom UI), Hybrid
+- **Scoping hierarchy:** Project ID → Differentiator ID → Specification ID
+  - **Project:** Top-level container (company's product/initiative) — isolated config, sessions, tokens, data
+  - **Differentiator:** Distinct dimensions/features/hypotheses within a project (e.g., "UX Approach A vs B")
+  - **Specification:** Concrete parameters/constraints to fine-tune and simulate within a differentiator
+- **API keys:** Per-organization, scoped to projects, rate-limited, usage-metered for billing
+- **Webhooks:** Async event callbacks (themes ready, ranking complete, etc.)
+- **Use case:** Companies embed governance engine into their own products to poll, prioritize, and simulate ideas or existing products at the Project/Differentiator/Specification level
 
 ## Production Architecture
 
