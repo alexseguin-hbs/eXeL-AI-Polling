@@ -37,6 +37,10 @@ hdbscan>=0.8.40
 transformers>=4.40.0
 torch>=2.2.0
 
+# Real-time STT (Cube 3 — paid feature: Azure primary, AWS fallback)
+azure-cognitiveservices-speech>=1.40.0
+boto3>=1.35.0
+
 # Utilities
 qrcode[pil]>=8.0
 python-dotenv>=1.1.0

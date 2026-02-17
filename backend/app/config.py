@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     default_ai_provider: str = "openai"  # openai | grok | gemini
 
+    # Real-time STT (Cube 3 — paid feature: Azure primary, AWS fallback)
+    azure_speech_key: str = ""
+    azure_speech_region: str = "eastus"
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
+    aws_region: str = "us-east-1"
+
     # Security
     encryption_key: str = ""
     session_secret: str = ""

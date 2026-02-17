@@ -1,18 +1,21 @@
 """Cube 3 — Voice-to-Text Engine: Browser mic → STT → Cube 2 text pipeline.
 
 Endpoints:
-  POST /sessions/{session_id}/voice                — Submit voice (multipart audio upload)
-  GET  /sessions/{session_id}/voice                — List voice responses with pagination
-  GET  /sessions/{session_id}/voice/metrics        — System/User/Outcome metrics for Cube 10
-  GET  /sessions/{session_id}/voice/{response_id}  — Single voice response detail
+  POST /sessions/{session_id}/voice                   — Submit voice (multipart audio upload)
+  WS   /sessions/{session_id}/voice/realtime          — Real-time streaming STT (paid feature)
+  GET  /sessions/{session_id}/voice                   — List voice responses with pagination
+  GET  /sessions/{session_id}/voice/metrics           — System/User/Outcome metrics for Cube 10
+  GET  /sessions/{session_id}/voice/{response_id}     — Single voice response detail
 
-STT providers: OpenAI Whisper, Grok (xAI), Gemini (Google)
+Batch STT providers: OpenAI Whisper, Grok (xAI), Gemini (Google)
+Real-time STT providers: Azure Speech Services (primary), AWS Transcribe (fallback)
 Provider selected from session.ai_provider (Moderator choice at creation).
+Real-time STT is a PAID feature (Moderator + User payment required).
 """
 
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, WebSocket
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -91,6 +94,39 @@ async def submit_voice(
         audio_format=fmt,
     )
     return result
+
+
+@router.websocket("/realtime")
+async def realtime_transcription(
+    ws: WebSocket,
+    session_id: uuid.UUID,
+    question_id: uuid.UUID,
+    participant_id: uuid.UUID,
+    language_code: str = "en",
+    db: AsyncSession = Depends(get_db),
+    mongo: AsyncIOMotorDatabase = Depends(get_mongo),
+    redis: Redis = Depends(get_redis),
+):
+    """Real-time voice-to-text with word-by-word display (PAID FEATURE).
+
+    WebSocket protocol:
+      Client → Server:
+        Binary frames: PCM 16-bit 16kHz mono audio chunks
+        Text frame: {"action": "stop"} to end session
+      Server → Client:
+        {"type": "interim", "text": "partial words...", "words": [...]}
+        {"type": "final", "text": "complete sentence.", "confidence": 0.95}
+        {"type": "result", "response_id": "...", "♡": 1.0, "◬": 5.0}
+
+    Providers: Azure Speech Services (primary) → AWS Transcribe (fallback)
+    Payment gate: Session must have is_paid=True (Moderator paid or cost-split).
+    """
+    from app.cubes.cube3_voice.realtime import handle_realtime_transcription
+
+    await handle_realtime_transcription(
+        ws, session_id, participant_id, question_id,
+        language_code, db, mongo, redis,
+    )
 
 
 @router.get("", response_model=PaginatedVoiceResponseList)

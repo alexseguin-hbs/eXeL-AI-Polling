@@ -2,8 +2,10 @@
 
 Mirrors Cube 6's AI provider pattern (base.py / factory.py / implementation).
 
-Launch providers: OpenAI Whisper, Grok (xAI), Gemini (Google)
-User selects STT provider at session creation (same selector as AI provider).
+Batch providers: OpenAI Whisper, Grok (xAI), Gemini (Google)
+Real-time providers: Azure Speech Services (primary), AWS Transcribe (fallback)
+User selects batch STT provider at session creation (same selector as AI provider).
+Real-time STT is a paid feature (Azure primary, AWS circuit breaker fallback).
 Extensible: add more providers by implementing the STTProvider interface.
 
 Each provider must:

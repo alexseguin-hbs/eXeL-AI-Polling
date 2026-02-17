@@ -137,12 +137,21 @@
 | `get_voice_responses()` | Paginated voice response list | — |
 | `get_voice_response_by_id()` | Single voice response detail | — |
 
-### STT Providers (3 launch)
+### Batch STT Providers (3 launch — user-selectable)
 | Provider | Model | API |
 |----------|-------|-----|
 | OpenAI Whisper | `whisper-1` | OpenAI Audio Transcriptions |
 | Grok (xAI) | `whisper-large-v3` | OpenAI-compatible API |
 | Gemini (Google) | `gemini-2.0-flash` | Multimodal audio input |
+
+### Real-time STT Providers (PAID feature — word-by-word display)
+| Provider | Role | Latency | Languages | API |
+|----------|------|---------|-----------|-----|
+| Azure Speech Services | **Primary** | ~200ms | 100+ | WebSocket push stream |
+| AWS Transcribe Streaming | **Fallback** | ~300ms | 30+ | WebSocket streaming |
+
+Real-time STT WebSocket endpoint: `WS /sessions/{id}/voice/realtime`
+Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 
 ### Outputs
 | Output | Destination | Type |
