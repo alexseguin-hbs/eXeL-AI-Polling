@@ -1,6 +1,6 @@
 # Cube-by-Cube Input / Function / Output Flow Table
 
-> **Last updated:** 2026-02-17
+> **Last updated:** 2026-02-17 (v2 — added STT settings, test coverage)
 > **Status key:** COMPLETE | PARTIAL | STUB | NOT STARTED
 
 ---
@@ -17,9 +17,14 @@
 | language | Moderator config | `str` (ISO 639-1) |
 | max_response_length | Moderator config | `int` (default 500) |
 | ai_provider | Moderator config | `openai \| grok \| gemini` |
+| stt_provider | Moderator config | `openai \| grok \| gemini` (batch STT) |
+| realtime_stt_enabled | Moderator config | `bool` (paid feature) |
+| realtime_stt_provider | Moderator config | `azure \| aws` (streaming STT) |
+| allow_user_stt_choice | Moderator config | `bool` (let users override STT) |
 | seed | Moderator config (optional) | `str \| None` |
 | short_code | Join flow | `str` (8-char) |
 | user_id, display_name, device_type | Participant join | `str` |
+| stt_provider_preference | Participant join (optional) | `openai \| grok \| gemini \| None` |
 
 ### Functions (21)
 | Function | Description | Calls |
@@ -124,6 +129,19 @@
 | participant_id | Form field | `UUID` |
 | language_code | Form field | `str` (default "en") |
 | audio_format | Form field | `str` (webm/wav/mp3/ogg/m4a/flac) |
+| session.stt_provider | **Cube 1** session config | `openai \| grok \| gemini` (Moderator default) |
+| session.allow_user_stt_choice | **Cube 1** session config | `bool` |
+| participant.stt_provider_preference | **Cube 1** participant record | `openai \| grok \| gemini \| None` (User override) |
+
+### STT Provider Resolution
+```
+1. Start with session.stt_provider (Moderator default)
+2. If session.allow_user_stt_choice == True:
+   a. Check participant.stt_provider_preference
+   b. If set → use user preference
+   c. If None → keep Moderator default
+3. Pass resolved provider to transcribe_audio(preferred_provider=...)
+```
 
 ### Functions (8)
 | Function | Description | Calls |
@@ -472,3 +490,148 @@ Cube 7 → Cube 8 (#1 theme → CQS reward)
 Cube 8 → Cube 9 (token data for reports)
 Cube 10 → All cubes (reads metrics for simulation comparison)
 ```
+
+---
+
+## Implementation Status Summary
+
+| Cube | Position | Status | Service Functions | Router Endpoints | Tests |
+|------|----------|--------|-------------------|------------------|-------|
+| 1 Session | (1,2,2) | **COMPLETE** | 21 | 17 | 33 |
+| 2 Text | (1,2,3) | **COMPLETE** | 14 | 4 | 31 |
+| 3 Voice | (1,3,3) | **COMPLETE** | 8 + 3 providers + 2 realtime | 5 + WS | 18 |
+| 4 Collector | (1,3,2) | STUB | 0 | stub | 0 |
+| 5 Gateway | (1,3,1) | **COMPLETE** (time tracking) | 6 | 4 | 17 |
+| 6 AI Theming | (1,2,1) | **COMPLETE** (pipeline) | 11 | 3 | 0 |
+| 7 Ranking | (1,1,1) | STUB | 0 | stub | 0 |
+| 8 Tokens | (1,1,2) | **COMPLETE** (ledger) | 3 | 5 | 21 |
+| 9 Reports | (1,1,3) | PARTIAL (CSV export) | 2 | stub | 0 |
+| 10 Simulation | (2,2,2) | NOT STARTED | 0 | — | 0 |
+| **TOTAL** | | | **65+** | **50** | **120** |
+
+---
+
+## Test Coverage by Cube
+
+| Cube | Test File | Tests | Key Coverage Areas |
+|------|-----------|-------|--------------------|
+| 1 | `tests/cube1/test_session_service.py` | 33 | CRUD, seed/idempotency, short code collision, state machine (6 states), join flow (expired/wrong state), QR (PNG/base64), ownership (owner/admin/403), QR blocking, questions, Redis presence |
+| 2 | `tests/cube2/test_text_service.py` | 31 | Session/question/participant validation, text input (empty/whitespace/Unicode/length), PII regex (email/phone/SSN/CC/IP), PII scrubbing, profanity DB matching, profanity scrubbing, Redis pub/sub, pagination, single lookup |
+| 3 | `tests/cube3/test_voice_service.py` | 18 | TranscriptionResult, STTProviderName enum, STTProviderError, transcript validation (empty/low confidence/truncation), circuit breaker (failover/all fail/skip failed), transcription mock, Moderator→User STT selection, voice queries |
+| 5 | `tests/cube5/test_time_tracking_service.py` | 17 | Token formula (♡=floor(min), 웃=rate×min, ◬=♡×5), zero/sub-min/fractional durations, 웃 disabled/enabled (TX/CA/Nigeria/default), start/stop tracking, stop not found (404), already stopped (409), login auto-entry, time summary aggregation |
+| 8 | `tests/cube8/test_token_service.py` | 21 | Session listing, user balance aggregation, dispute creation/not found, 웃 rates: US states (TX/CA/WA), international (Nigeria/Brazil), unknown/default/case-insensitive, get_all_rates (59 jurisdictions, structure, state presence) |
+
+---
+
+## Database Tables
+
+### Postgres Tables
+| Table | Cube | Status | Key Columns |
+|-------|------|--------|-------------|
+| `sessions` | 1 | COMPLETE | id, short_code, status, title, anonymity_mode, cycle_mode, ai_provider, stt_provider, realtime_stt_enabled, allow_user_stt_choice, is_paid, expires_at |
+| `participants` | 1 | COMPLETE | id, session_id, user_id, anon_hash, display_name, is_active, stt_provider_preference |
+| `questions` | 1 | COMPLETE | id, session_id, cycle_id, question_text, order_index, status |
+| `response_meta` | 2/3 | COMPLETE | id, session_id, question_id, participant_id, source (text/voice), mongo_ref, char_count, is_flagged |
+| `text_responses` | 2 | COMPLETE | id, response_meta_id (1:1), language_code, pii_detected, pii_types (JSONB), pii_scrubbed_text, profanity_detected, clean_text |
+| `voice_responses` | 3 | COMPLETE | id, response_meta_id (1:1), audio_duration_sec, stt_provider, transcript_text, transcript_confidence |
+| `profanity_filters` | 2 | COMPLETE | id, language_code, pattern (regex), severity, replacement, is_active |
+| `stt_providers` | 3 | COMPLETE | id, name, supported_languages (JSONB), is_active, priority |
+| `time_entries` | 5 | COMPLETE | id, session_id, participant_id, action_type, started_at, stopped_at, si/hi/ai_tokens_earned |
+| `token_ledger` | 5/8 | COMPLETE | id, session_id, user_id, delta_si/hi/ai, lifecycle_state, reason (append-only) |
+| `token_disputes` | 8 | COMPLETE | id, ledger_entry_id, flagged_by, reason, status, resolution_notes |
+| `themes` | 6 | COMPLETE | id, session_id, level, label, confidence, parent_theme_id |
+| `theme_samples` | 6 | COMPLETE | id, session_id, theme_id, sample_texts (JSONB) |
+| `rankings` | 7 | STUB | id, session_id, participant_id, theme_id, rank |
+| `audit_logs` | Shared | COMPLETE | id, session_id, action, actor, details |
+
+### MongoDB Collections
+| Collection | Cube | Purpose |
+|------------|------|---------|
+| `responses` | 2/3 | Raw text + voice transcripts + metadata |
+| `audio_files` | 3 | Binary audio data for playback |
+
+### Redis Keys
+| Key Pattern | Cube | Purpose | TTL |
+|-------------|------|---------|-----|
+| `session:{id}:presence` | 1 | Active participant tracking (HSET) | 3600s |
+| `session:{id}:responses` | 2/3 | Pub/sub channel for Cube 6 consumption | — |
+
+---
+
+## API Endpoints (50 routes)
+
+### Cube 1 — Sessions (17 endpoints)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/sessions` | Moderator | Create session |
+| GET | `/sessions/{id}` | Public | Get session by ID |
+| GET | `/sessions/code/{code}` | Public | Get session by short_code |
+| PATCH | `/sessions/{id}` | Moderator | Update (draft only) |
+| POST | `/sessions/{id}/open` | Moderator | draft → open |
+| POST | `/sessions/{id}/poll` | Moderator | open → polling |
+| POST | `/sessions/{id}/rank` | Moderator | polling → ranking |
+| POST | `/sessions/{id}/close` | Moderator | → closed |
+| POST | `/sessions/{id}/archive` | Moderator | → archived |
+| POST | `/sessions/join/{code}` | Optional | Join via short_code (100/min) |
+| GET | `/sessions/{id}/participants` | Moderator/Lead | List participants |
+| GET | `/sessions/{id}/presence` | Public | Redis live count |
+| POST | `/sessions/{id}/questions` | Moderator | Add question |
+| GET | `/sessions/{id}/questions` | Public | List questions |
+| GET | `/sessions/{id}/qr` | Public | QR code PNG |
+| GET | `/sessions/{id}/qr-json` | Public | QR base64 JSON |
+| GET | `/sessions/{id}/verify-determinism` | Public | Replay hash |
+
+### Cube 2 — Text Input (4 endpoints)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/sessions/{id}/responses` | Optional | Submit text (100/min) |
+| GET | `/sessions/{id}/responses` | Optional | Paginated list |
+| GET | `/sessions/{id}/responses/metrics` | Optional | System/User/Outcome metrics |
+| GET | `/sessions/{id}/responses/{rid}` | Optional | Single response detail |
+
+### Cube 3 — Voice (5 endpoints + WebSocket)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/sessions/{id}/voice` | Optional | Submit voice (60/min) |
+| WS | `/sessions/{id}/voice/realtime` | Paid | Real-time word-by-word STT |
+| GET | `/sessions/{id}/voice` | Optional | Paginated voice list |
+| GET | `/sessions/{id}/voice/metrics` | Optional | System/User/Outcome metrics |
+| GET | `/sessions/{id}/voice/{rid}` | Optional | Single voice detail |
+
+### Cube 5 — Gateway (4 endpoints)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/time/start` | Auth | Start time tracking |
+| POST | `/time/stop` | Auth | Stop + calculate tokens |
+| GET | `/time/summary/{sid}/{pid}` | Auth | Participant time summary |
+| GET | `/time/entries/{sid}` | Auth | List time entries |
+
+### Cube 8 — Tokens (5 endpoints)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/tokens/session/{sid}` | Auth | Session token ledger |
+| GET | `/tokens/balance/{sid}/{uid}` | Auth | User token balance |
+| POST | `/tokens/disputes` | Auth | Create dispute |
+| GET | `/tokens/rates` | Public | Full 웃 rate table |
+| GET | `/tokens/rates/lookup` | Public | Jurisdiction rate lookup |
+
+---
+
+## Shared Core Library
+
+| Module | Purpose | Used By |
+|--------|---------|---------|
+| `core/auth.py` | Auth0 JWT validation, CurrentUser, optional auth | All cubes |
+| `core/permissions.py` | RBAC role enforcement (moderator/user/lead/admin) | Cubes 1, 7 |
+| `core/exceptions.py` | Custom HTTP exceptions (404/409/410/422) | All cubes |
+| `core/dependencies.py` | DI: get_db, get_redis, get_mongo | All cubes |
+| `core/hi_rates.py` | 웃 rate table (59 jurisdictions), resolve_hi_rate | Cubes 5, 8 |
+| `core/rate_limit.py` | SlowAPI rate limiter | Cubes 1, 2, 3 |
+| `core/security.py` | anonymize_user_id (SHA-256 hash) | Cube 1 |
+| `core/logging.py` | Structured JSON logging (structlog) | All cubes |
+| `core/middleware.py` | Timing, RequestId, Security Headers, Cloudflare, Cache | Global |
+| `config.py` | Pydantic Settings (env-based config) | All cubes |
+| `db/base.py` | SQLAlchemy Base (UUID PK, created_at, updated_at) | All models |
+| `db/postgres.py` | Async session factory | All cubes |
+| `db/mongo.py` | Motor async MongoDB client | Cubes 2, 3, 6, 9 |
+| `db/redis.py` | Redis async client | Cubes 1, 2, 3 |
