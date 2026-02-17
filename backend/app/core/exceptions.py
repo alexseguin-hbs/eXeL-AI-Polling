@@ -41,6 +41,35 @@ class RateLimitError(HTTPException):
         )
 
 
+class ResponseValidationError(HTTPException):
+    def __init__(self, detail: str = "Invalid response input"):
+        super().__init__(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)
+
+
+class QuestionNotFoundError(HTTPException):
+    def __init__(self, question_id: str):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Question '{question_id}' not found",
+        )
+
+
+class ParticipantNotFoundError(HTTPException):
+    def __init__(self, participant_id: str):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Participant '{participant_id}' not found or inactive",
+        )
+
+
+class SessionNotPollingError(HTTPException):
+    def __init__(self, session_id: str, current_state: str):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Session '{session_id}' is in '{current_state}' state, must be 'polling' to accept responses",
+        )
+
+
 async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
