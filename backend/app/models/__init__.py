@@ -8,7 +8,9 @@ from app.models.ranking import AggregatedRanking, Ranking
 from app.models.response_meta import ResponseMeta
 from app.models.session import Session
 from app.models.simulation_run import SimulationRun
+from app.models.stt_provider import STTProviderConfig
 from app.models.text_response import TextResponse
+from app.models.voice_response import VoiceResponse
 from app.models.theme import Theme
 from app.models.theme_sample import ThemeSample
 from app.models.time_tracking import TimeEntry
@@ -25,7 +27,9 @@ __all__ = [
     "ResponseMeta",
     "Session",
     "SimulationRun",
+    "STTProviderConfig",
     "TextResponse",
+    "VoiceResponse",
     "Theme",
     "ThemeSample",
     "TimeEntry",
