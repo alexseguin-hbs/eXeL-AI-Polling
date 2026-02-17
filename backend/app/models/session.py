@@ -25,6 +25,8 @@ VALID_ANONYMITY_MODES = ("identified", "anonymous", "pseudonymous")
 VALID_CYCLE_MODES = ("single", "multi")
 VALID_RANKING_MODES = ("auto", "manual")
 VALID_AI_PROVIDERS = ("openai", "grok", "gemini")
+VALID_STT_PROVIDERS = ("openai", "grok", "gemini")  # Batch STT (maps to whisper/grok/gemini)
+VALID_REALTIME_STT_PROVIDERS = ("azure", "aws")  # Streaming STT (paid feature)
 SESSION_TRANSITIONS: dict[str, tuple[str, ...]] = {
     "draft": ("open",),
     "open": ("polling", "closed"),
@@ -55,6 +57,20 @@ class Session(Base):
 
     # AI provider for this session (moderator selects at creation)
     ai_provider: Mapped[str] = mapped_column(String(20), default="openai")
+
+    # STT provider settings (Moderator configures at session creation)
+    stt_provider: Mapped[str] = mapped_column(
+        String(20), default="openai"
+    )  # Batch STT: openai | grok | gemini
+    realtime_stt_enabled: Mapped[bool] = mapped_column(
+        default=False
+    )  # Paid feature: real-time word-by-word (Azure/AWS)
+    realtime_stt_provider: Mapped[str] = mapped_column(
+        String(20), default="azure"
+    )  # Streaming STT: azure | aws
+    allow_user_stt_choice: Mapped[bool] = mapped_column(
+        default=False
+    )  # If True, users can override stt_provider with their preference
 
     # Determinism
     seed: Mapped[str | None] = mapped_column(String(255))

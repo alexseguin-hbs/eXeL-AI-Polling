@@ -25,6 +25,8 @@ class Participant(Base):
     joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # User STT preference (if session.allow_user_stt_choice=True)
+    stt_provider_preference: Mapped[str | None] = mapped_column(String(20))
 
     session: Mapped["Session"] = relationship(back_populates="participants")
 

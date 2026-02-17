@@ -16,6 +16,11 @@ class SessionCreate(BaseModel):
     max_response_length: int = Field(500, ge=50, le=5000)
     ai_provider: Literal["openai", "grok", "gemini"] = "openai"
     seed: str | None = None
+    # STT service settings (Moderator)
+    stt_provider: Literal["openai", "grok", "gemini"] = "openai"
+    realtime_stt_enabled: bool = False  # Paid: real-time word-by-word transcription
+    realtime_stt_provider: Literal["azure", "aws"] = "azure"
+    allow_user_stt_choice: bool = False  # Let users override STT provider
 
 
 class SessionUpdate(BaseModel):
@@ -25,6 +30,10 @@ class SessionUpdate(BaseModel):
     ranking_mode: Literal["auto", "manual"] | None = None
     max_response_length: int | None = Field(None, ge=50, le=5000)
     ai_provider: Literal["openai", "grok", "gemini"] | None = None
+    stt_provider: Literal["openai", "grok", "gemini"] | None = None
+    realtime_stt_enabled: bool | None = None
+    realtime_stt_provider: Literal["azure", "aws"] | None = None
+    allow_user_stt_choice: bool | None = None
 
 
 class SessionRead(BaseModel):
@@ -42,6 +51,10 @@ class SessionRead(BaseModel):
     language: str
     max_response_length: int
     ai_provider: str
+    stt_provider: str = "openai"
+    realtime_stt_enabled: bool = False
+    realtime_stt_provider: str = "azure"
+    allow_user_stt_choice: bool = False
     seed: str | None = None
     replay_hash: str | None = None
     qr_url: str | None
@@ -61,6 +74,7 @@ class SessionJoinRequest(BaseModel):
     """Payload when a participant joins via short_code."""
     display_name: str | None = None
     device_type: str | None = None
+    stt_provider_preference: Literal["openai", "grok", "gemini"] | None = None
 
 
 class SessionJoinResponse(BaseModel):

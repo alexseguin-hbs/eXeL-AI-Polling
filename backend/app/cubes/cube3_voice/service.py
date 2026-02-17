@@ -347,10 +347,16 @@ async def submit_voice_response(
         cube_id="cube3",
     )
 
-    # --- 3. Transcribe audio (use session's ai_provider for STT selection) ---
+    # --- 3. Resolve STT provider (Moderator default → User override if allowed) ---
+    stt_provider_name = getattr(session, "stt_provider", None) or session.ai_provider
+    if getattr(session, "allow_user_stt_choice", False):
+        user_pref = getattr(participant, "stt_provider_preference", None)
+        if user_pref:
+            stt_provider_name = user_pref
+
     stt_result = await transcribe_audio(
         db, audio_bytes, language_code, audio_format,
-        preferred_provider=session.ai_provider,
+        preferred_provider=stt_provider_name,
     )
     transcript = validate_transcript(stt_result, session.max_response_length)
 
