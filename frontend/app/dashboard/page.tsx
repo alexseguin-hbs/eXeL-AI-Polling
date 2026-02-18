@@ -50,7 +50,7 @@ function statusColor(status: string): string {
     case "open":
       return "text-green-400";
     case "polling":
-      return "text-blue-400";
+      return "text-cyan-400";
     case "ranking":
       return "text-yellow-400";
     case "draft":
