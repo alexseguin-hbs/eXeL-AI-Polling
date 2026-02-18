@@ -669,6 +669,75 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 - Models, schemas, and route stubs exist
 - Service implementations pending
 
+## Test Report Template (for Cube 3+ to follow)
+
+Each cube implementation MUST produce the following deliverables matching Cube 1 and Cube 2 methodology:
+
+### 1. Test Procedure Section (in CLAUDE.md)
+```
+#### Cube N — Test Procedure (Cube 10 Simulator Reference)
+
+**Test Command:**
+cd backend && source .venv/bin/activate && python -m pytest tests/cubeN/ -v --tb=short
+
+**Test Suite:** M files, K test classes, T tests
+| File | Classes | Tests | Coverage |
+| test_<name>_service.py | N | M | Unit tests (...) |
+| test_e2e_flows.py | N | M | E2E flows (...) |
+
+**<Flow Name> Test Flow (TestClassName):**
+1. step_name — description
+2. step_name — description
+...
+```
+
+### 2. Metrics Baseline (N=5 minimum)
+```
+**Metrics Baseline (N=5, YYYY-MM-DD):**
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Average | Std Dev |
+| Tests Passed | X/X | X/X | X/X | X/X | X/X | **X/X** | **0** |
+| Backend Test Duration | Xms | Xms | Xms | Xms | Xms | **Xms** | **Xms** |
+| Frontend Build Duration | Xms | Xms | Xms | Xms | Xms | **Xms** | **Xms** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+| TSC Check Duration | Xms | Xms | Xms | Xms | Xms | **Xms** | **Xms** |
+| Dashboard Bundle | X kB | ... | ... | ... | ... | **X kB** | **0** |
+| Session Bundle | X kB | ... | ... | ... | ... | **X kB** | **0** |
+| Join Bundle | X kB | ... | ... | ... | ... | **X kB** | **0** |
+```
+
+### 3. Spiral Propagation Verification
+```
+**Spiral Propagation Verification:**
+- Forward (N→10): [list downstream impacts] — PASS/FAIL
+- Backward (10→N): [list upstream impacts] — PASS/FAIL
+  - [list any issues found and fixed]
+```
+
+### 4. CUBE_N_TEST_METHOD dict (in test_e2e_flows.py)
+```python
+CUBEN_TEST_METHOD = {
+    "cube": "cubeN_name",
+    "version": "1.0.0",
+    "test_command": "python -m pytest tests/cubeN/ -v --tb=short",
+    "test_files": [...],
+    "baseline_metrics": { "unit_tests_passed": X, "e2e_tests_passed": X, ... },
+    "flows": { ... },
+    "spiral_propagation": { "forward": { ... }, "backward": { ... } },
+}
+```
+
+### 5. CRS Traceability Table
+```
+| CRS | Input ID | Output ID | Status | DTM Stretch Target |
+| CRS-XX | CRS-XX.IN.xxx | CRS-XX.OUT.xxx | **Complete** | stretch description |
+```
+
+### 6. Unity Verification
+- All tests pass (0 failures)
+- `tsc --noEmit` returns 0 errors
+- All changes committed and pushed to GitHub
+- Local === Remote confirmed
+
 ## Detailed Cube Specs (in Requirements.txt)
 Full detailed specs for all 10 cubes are in `Requirements.txt` Section 3, including:
 - **Data Tables** with all variables, types, and descriptions

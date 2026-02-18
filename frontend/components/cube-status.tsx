@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Box } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type CubeStatus = "deployed" | "in_progress" | "not_started" | "planned";
 
@@ -34,12 +35,12 @@ const STATUS_LABELS: Record<CubeStatus, string> = {
 const CUBE_GRID: CubeInfo[][] = [
   [
     { number: 9, name: "Reports", status: "not_started", completion: 5, description: "CSV/PDF export, Pixelated Tokens, dashboards" },
-    { number: 2, name: "Text", status: "not_started", completion: 10, description: "Text submission handler with 33-language support" },
+    { number: 2, name: "Text", status: "in_progress", completion: 85, description: "Text submission, PII/profanity, anonymization, integrity hash" },
     { number: 3, name: "Voice", status: "not_started", completion: 10, description: "Voice-to-text engine with browser mic" },
   ],
   [
     { number: 8, name: "Tokens", status: "deployed", completion: 85, description: "Token ledger, 59 jurisdiction rates, disputes" },
-    { number: 1, name: "Session", status: "in_progress", completion: 45, description: "Session CRUD, state machine, QR, join flow" },
+    { number: 1, name: "Session", status: "in_progress", completion: 70, description: "Session CRUD, state machine, QR, join flow, capacity" },
     { number: 4, name: "Collector", status: "not_started", completion: 5, description: "Response aggregation, MongoDB writes, caching" },
   ],
   [
@@ -102,25 +103,61 @@ function CubeCell({ cube }: { cube: CubeInfo }) {
 }
 
 export function CubeArchitectureStatus() {
+  const [expanded, setExpanded] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
 
+  // Count deployed cubes for collapsed summary
+  const allCubes = [...CUBE_GRID.flat(), CUBE_10];
+  const deployedCount = allCubes.filter((c) => c.status === "deployed").length;
+  const inProgressCount = allCubes.filter((c) => c.status === "in_progress").length;
+
+  if (!expanded) {
+    return (
+      <section>
+        <button
+          onClick={() => setExpanded(true)}
+          className="flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50"
+        >
+          <div className="flex items-center gap-2">
+            <Box className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">Cube Architecture</span>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {deployedCount} deployed, {inProgressCount} in progress
+          </span>
+        </button>
+      </section>
+    );
+  }
+
   return (
-    <section>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <Box className="h-4 w-4" />
           Cube Architecture
         </h3>
-        <button
-          onClick={() => setShowLegend(!showLegend)}
-          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-        >
-          {showLegend ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          Legend
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowLegend(!showLegend)}
+            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+          >
+            {showLegend ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            Legend
+          </button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs"
+            onClick={() => setExpanded(false)}
+          >
+            Collapse
+          </Button>
+        </div>
       </div>
 
       {showLegend && (
-        <div className="flex flex-wrap gap-3 mb-3 text-xs">
+        <div className="flex flex-wrap gap-3 text-xs">
           {(Object.entries(STATUS_COLORS) as [CubeStatus, string][]).map(([key, color]) => (
             <span key={key} className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
