@@ -5,7 +5,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 ## 0) Product Summary
 
 **Product name:** SoI Governance Engine (eXeL-AI-Polling)
-**Purpose:** Production-scale, deterministic, horizontally scalable Governance Compression Infrastructure that turns free-form responses into **AI themes**, then into **ranked priorities**, then into **exportable reports**, while supporting **SoI Trinity Tokens (♡ SI, 웃 HI, ◬ AI)**, governance compression, and a cube simulation system that enables humans (and eventually AI) to optimize modular code blocks safely.
+**Purpose:** Production-scale, deterministic, horizontally scalable Governance Compression Infrastructure that turns free-form responses into **AI themes**, then into **ranked priorities**, then into **exportable reports**, while supporting **SoI Trinity Tokens (♡ S.I. Shared Intent, 웃 H.I. Human Intelligence, ◬ A.I. Artificial Intelligence)**, governance compression, and a cube simulation system that enables humans (and eventually AI) to optimize modular code blocks safely.
 
 **Core promise:** "Turn messy group input into clear priorities in under a minute (at scale), with governance + traceability + contribution value capture."
 

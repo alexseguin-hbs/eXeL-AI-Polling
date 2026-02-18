@@ -167,6 +167,18 @@ All clustering and ranking operations must be fully reproducible:
 
 ## Build Approach
 - **Scaffold all Cubes 1-9 first,** then implement cube by cube
+- **SoI Trinity — Three Intelligences, One Governance Engine:**
+  ```
+  A.I.                    S.I.                    H.I.
+        ╔═══════╗            ╔═══════╗            ╔═══════╗
+        ║   ◬   ║            ║   ♡   ║            ║   웃   ║
+        ╚═══════╝            ╚═══════╝            ╚═══════╝
+        Artificial            Shared               Human
+        Intelligence          Intent               Intelligence
+            ╲                    │                    ╱
+             ╲                   │                   ╱
+              ╲                  │                  ╱
+  ```
 - **Cube grid (3x3x3):**
   ```
   Level 1 (Base Layer):
