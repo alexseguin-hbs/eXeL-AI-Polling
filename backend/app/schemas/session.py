@@ -27,6 +27,7 @@ class SessionCreate(BaseModel):
     # Gamified reward
     reward_enabled: bool = False
     reward_amount_cents: int = Field(0, ge=0)
+    cqs_weights: dict[str, float] | None = None
     # Theme voting
     theme2_voting_level: Literal["theme2_9", "theme2_6", "theme2_3"] = "theme2_9"
     # Live feed
@@ -89,6 +90,7 @@ class SessionRead(BaseModel):
     # Gamified reward
     reward_enabled: bool = False
     reward_amount_cents: int = 0
+    cqs_weights: dict[str, float] | None = None
     # Theme voting
     theme2_voting_level: str = "theme2_9"
     # Live feed

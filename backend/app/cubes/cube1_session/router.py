@@ -111,6 +111,7 @@ async def create_session(
         cost_splitting_enabled=payload.cost_splitting_enabled,
         reward_enabled=payload.reward_enabled,
         reward_amount_cents=payload.reward_amount_cents,
+        cqs_weights=payload.cqs_weights,
         theme2_voting_level=payload.theme2_voting_level,
         live_feed_enabled=payload.live_feed_enabled,
     )

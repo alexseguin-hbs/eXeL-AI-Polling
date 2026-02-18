@@ -61,17 +61,19 @@ export interface Session {
   participant_count: number;
 }
 
+export type PaymentStatus = "unpaid" | "paid" | "lead_exempt";
+
 export interface Participant {
   id: string;
   session_id: string;
   user_id: string | null;
   display_name: string | null;
-  is_anonymous: boolean;
-  language: string;
+  device_type: string | null;
+  language_code: string;
+  results_opt_in: boolean;
+  payment_status: PaymentStatus;
   joined_at: string;
   is_active: boolean;
-  has_paid: boolean;
-  results_opt_in: boolean;
 }
 
 export interface Question {
@@ -97,6 +99,9 @@ export interface SessionJoinResponse {
   short_code: string;
   title: string;
   status: SessionStatus;
+  display_name: string | null;
+  theme_id: string;
+  custom_accent_color: string | null;
 }
 
 export interface ApiError {

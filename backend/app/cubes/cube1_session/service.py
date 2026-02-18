@@ -152,6 +152,7 @@ async def create_session(
     cost_splitting_enabled: bool = False,
     reward_enabled: bool = False,
     reward_amount_cents: int = 0,
+    cqs_weights: dict | None = None,
     theme2_voting_level: str = "theme2_9",
     live_feed_enabled: bool = False,
 ) -> Session:
@@ -205,6 +206,7 @@ async def create_session(
         cost_splitting_enabled=cost_splitting_enabled,
         reward_enabled=reward_enabled,
         reward_amount_cents=reward_amount_cents,
+        cqs_weights=cqs_weights,
         theme2_voting_level=theme2_voting_level,
         live_feed_enabled=live_feed_enabled,
     )

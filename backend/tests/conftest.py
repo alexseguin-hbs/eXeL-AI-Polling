@@ -180,6 +180,18 @@ def make_session(
     opened_at: datetime | None = None,
     closed_at: datetime | None = None,
     expires_at: datetime | None = None,
+    # New Cube 1 fields
+    session_type: str = "polling",
+    polling_mode: str = "single_round",
+    pricing_tier: str = "free",
+    max_participants: int | None = None,
+    fee_amount_cents: int = 0,
+    cost_splitting_enabled: bool = False,
+    reward_enabled: bool = False,
+    reward_amount_cents: int = 0,
+    cqs_weights: dict | None = None,
+    theme2_voting_level: str = "theme2_9",
+    live_feed_enabled: bool = False,
 ) -> MagicMock:
     """Create a mock Session object."""
     session = MagicMock()
@@ -214,6 +226,20 @@ def make_session(
     session.created_at = datetime.now(timezone.utc)
     session.updated_at = datetime.now(timezone.utc)
     session.can_transition_to = MagicMock(side_effect=lambda s: True)
+    # New Cube 1 fields
+    session.session_type = session_type
+    session.polling_mode = polling_mode
+    session.pricing_tier = pricing_tier
+    session.max_participants = max_participants
+    session.fee_amount_cents = fee_amount_cents
+    session.cost_splitting_enabled = cost_splitting_enabled
+    session.reward_enabled = reward_enabled
+    session.reward_amount_cents = reward_amount_cents
+    session.cqs_weights = cqs_weights
+    session.theme2_voting_level = theme2_voting_level
+    session.live_feed_enabled = live_feed_enabled
+    session.theme_id = "exel-cyan"
+    session.custom_accent_color = None
 
     # Mock __table__.columns for _session_to_read
     columns = []
@@ -225,6 +251,11 @@ def make_session(
         "allow_user_stt_choice", "seed", "replay_hash", "qr_url", "join_url",
         "opened_at", "closed_at", "expires_at", "is_paid",
         "stripe_session_id", "created_at", "updated_at",
+        # New Cube 1 fields
+        "session_type", "polling_mode", "pricing_tier", "max_participants",
+        "fee_amount_cents", "cost_splitting_enabled", "reward_enabled",
+        "reward_amount_cents", "cqs_weights", "theme2_voting_level",
+        "live_feed_enabled", "theme_id", "custom_accent_color",
     ]:
         col = MagicMock()
         col.key = attr
@@ -241,6 +272,9 @@ def make_participant(
     user_id: str | None = "auth0|user_001",
     display_name: str = "TestParticipant",
     is_active: bool = True,
+    language_code: str = "en",
+    results_opt_in: bool = False,
+    payment_status: str = "unpaid",
     stt_provider_preference: str | None = None,
 ) -> MagicMock:
     """Create a mock Participant object."""
@@ -251,6 +285,9 @@ def make_participant(
     p.display_name = display_name
     p.anon_hash = None
     p.device_type = "desktop"
+    p.language_code = language_code
+    p.results_opt_in = results_opt_in
+    p.payment_status = payment_status
     p.joined_at = datetime.now(timezone.utc)
     p.last_seen = None
     p.is_active = is_active
