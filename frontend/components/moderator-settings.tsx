@@ -13,6 +13,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useTheme, THEME_PRESETS } from "@/lib/theme-context";
 import { SUPPORTED_LANGUAGES } from "@/lib/constants";
+import { LanguageLexicon } from "@/components/language-lexicon";
 
 // ─── Theme Customizer Section ───────────────────────────────────
 
@@ -91,9 +92,10 @@ function SettingsLanguageSelector() {
 interface ModeratorSettingsProps {
   open: boolean;
   onClose: () => void;
+  userEmail?: string;
 }
 
-export function ModeratorSettings({ open, onClose }: ModeratorSettingsProps) {
+export function ModeratorSettings({ open, onClose, userEmail }: ModeratorSettingsProps) {
   if (!open) return null;
 
   return (
@@ -119,6 +121,8 @@ export function ModeratorSettings({ open, onClose }: ModeratorSettingsProps) {
           <ThemeCustomizer />
           <Separator />
           <SettingsLanguageSelector />
+          <Separator />
+          <LanguageLexicon userEmail={userEmail} />
         </div>
       </div>
     </>

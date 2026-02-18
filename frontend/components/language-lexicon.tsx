@@ -1,0 +1,611 @@
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+import { ArrowLeft, Plus, ShieldCheck, Globe, Check, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useLexicon } from "@/lib/lexicon-context";
+import {
+  CUBE_GROUPS,
+  DEFAULT_ENGLISH_TRANSLATIONS,
+  type LexiconLanguage,
+} from "@/lib/lexicon-data";
+
+// ─── Sub-view type ───────────────────────────────────────────────
+
+type LexiconView = "list" | "editor" | "propose" | "approvals";
+
+// ─── Props ───────────────────────────────────────────────────────
+
+interface LanguageLexiconProps {
+  userEmail?: string;
+}
+
+// ─── Completeness badge color ────────────────────────────────────
+
+function completenessColor(percent: number): string {
+  if (percent > 80) return "bg-green-500/20 text-green-400";
+  if (percent >= 20) return "bg-yellow-500/20 text-yellow-400";
+  return "bg-muted text-muted-foreground";
+}
+
+// ─── Main component ──────────────────────────────────────────────
+
+export function LanguageLexicon({ userEmail }: LanguageLexiconProps) {
+  const {
+    languages,
+    translations,
+    getLanguageCompleteness,
+    getPendingLanguages,
+    updateTranslation,
+    proposeLanguage,
+    approveLanguage,
+    rejectLanguage,
+    isAdmin,
+  } = useLexicon();
+
+  const [view, setView] = useState<LexiconView>("list");
+  const [editingLang, setEditingLang] = useState<string | null>(null);
+  const [cubeFilter, setCubeFilter] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  const admin = isAdmin(userEmail);
+  const pending = getPendingLanguages();
+
+  // Navigate to language editor
+  const openEditor = useCallback((code: string) => {
+    setEditingLang(code);
+    setCubeFilter(null);
+    setView("editor");
+  }, []);
+
+  if (!expanded) {
+    return (
+      <section>
+        <button
+          onClick={() => setExpanded(true)}
+          className="flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50"
+        >
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">Language Lexicon</span>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {languages.filter((l) => l.status === "approved").length} languages
+          </span>
+        </button>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <Globe className="h-4 w-4" />
+          Language Lexicon
+        </h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs"
+          onClick={() => setExpanded(false)}
+        >
+          Collapse
+        </Button>
+      </div>
+
+      {view === "list" && (
+        <LanguageListView
+          languages={languages}
+          getLanguageCompleteness={getLanguageCompleteness}
+          pendingCount={pending.length}
+          isAdmin={admin}
+          onSelectLanguage={openEditor}
+          onPropose={() => setView("propose")}
+          onApprovals={() => setView("approvals")}
+        />
+      )}
+
+      {view === "editor" && editingLang && (
+        <TranslationEditorView
+          langCode={editingLang}
+          language={languages.find((l) => l.code === editingLang)!}
+          translations={translations}
+          cubeFilter={cubeFilter}
+          setCubeFilter={setCubeFilter}
+          getLanguageCompleteness={getLanguageCompleteness}
+          updateTranslation={updateTranslation}
+          onBack={() => {
+            setView("list");
+            setEditingLang(null);
+          }}
+        />
+      )}
+
+      {view === "propose" && (
+        <ProposeLanguageView
+          proposeLanguage={proposeLanguage}
+          userEmail={userEmail}
+          onBack={() => setView("list")}
+        />
+      )}
+
+      {view === "approvals" && admin && (
+        <PendingApprovalsView
+          pending={pending}
+          approveLanguage={approveLanguage}
+          rejectLanguage={rejectLanguage}
+          userEmail={userEmail!}
+          onBack={() => setView("list")}
+        />
+      )}
+    </section>
+  );
+}
+
+// ─── Language List View ──────────────────────────────────────────
+
+interface LanguageListViewProps {
+  languages: LexiconLanguage[];
+  getLanguageCompleteness: (code: string) => { filled: number; total: number; percent: number };
+  pendingCount: number;
+  isAdmin: boolean;
+  onSelectLanguage: (code: string) => void;
+  onPropose: () => void;
+  onApprovals: () => void;
+}
+
+function LanguageListView({
+  languages,
+  getLanguageCompleteness,
+  pendingCount,
+  isAdmin,
+  onSelectLanguage,
+  onPropose,
+  onApprovals,
+}: LanguageListViewProps) {
+  // Show approved first, then pending
+  const sorted = [...languages].sort((a, b) => {
+    if (a.status === "approved" && b.status !== "approved") return -1;
+    if (a.status !== "approved" && b.status === "approved") return 1;
+    return a.nameEn.localeCompare(b.nameEn);
+  });
+
+  return (
+    <div className="space-y-2">
+      {/* Action buttons */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-xs flex items-center gap-1"
+          onClick={onPropose}
+        >
+          <Plus className="h-3 w-3" />
+          Propose New Language
+        </Button>
+        {isAdmin && pendingCount > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs flex items-center gap-1"
+            onClick={onApprovals}
+          >
+            <ShieldCheck className="h-3 w-3" />
+            Pending Approvals ({pendingCount})
+          </Button>
+        )}
+      </div>
+
+      {/* Language list */}
+      <div className="max-h-64 overflow-y-auto space-y-1 rounded-md border border-border">
+        {sorted
+          .filter((l) => l.status !== "rejected")
+          .map((lang) => {
+            const { percent } = getLanguageCompleteness(lang.code);
+            return (
+              <button
+                key={lang.code}
+                onClick={() => onSelectLanguage(lang.code)}
+                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors hover:bg-accent/50"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-medium truncate">{lang.nameNative}</span>
+                  <span className="text-muted-foreground text-xs truncate">
+                    ({lang.nameEn})
+                  </span>
+                  {lang.status === "pending" && (
+                    <span className="shrink-0 rounded-full bg-yellow-500/20 px-2 py-0.5 text-[10px] text-yellow-400">
+                      Pending
+                    </span>
+                  )}
+                </div>
+                <span
+                  className={`shrink-0 ml-2 rounded-full px-2 py-0.5 text-[10px] font-medium ${completenessColor(
+                    percent
+                  )}`}
+                >
+                  {percent}%
+                </span>
+              </button>
+            );
+          })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Translation Editor View ─────────────────────────────────────
+
+interface TranslationEditorViewProps {
+  langCode: string;
+  language: LexiconLanguage;
+  translations: Record<string, Record<string, string>>;
+  cubeFilter: number | null;
+  setCubeFilter: (cubeId: number | null) => void;
+  getLanguageCompleteness: (
+    code: string,
+    cubeId?: number
+  ) => { filled: number; total: number; percent: number };
+  updateTranslation: (langCode: string, key: string, text: string) => void;
+  onBack: () => void;
+}
+
+function TranslationEditorView({
+  langCode,
+  language,
+  translations,
+  cubeFilter,
+  setCubeFilter,
+  getLanguageCompleteness,
+  updateTranslation,
+  onBack,
+}: TranslationEditorViewProps) {
+  const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const completeness = getLanguageCompleteness(
+    langCode,
+    cubeFilter ?? undefined
+  );
+
+  const groups =
+    cubeFilter !== null
+      ? CUBE_GROUPS.filter((g) => g.cubeId === cubeFilter)
+      : CUBE_GROUPS;
+
+  const handleChange = useCallback(
+    (key: string, value: string) => {
+      // Debounce localStorage writes at 300ms
+      if (debounceTimers.current[key]) {
+        clearTimeout(debounceTimers.current[key]);
+      }
+      debounceTimers.current[key] = setTimeout(() => {
+        updateTranslation(langCode, key, value);
+      }, 300);
+    },
+    [langCode, updateTranslation]
+  );
+
+  return (
+    <div className="space-y-3">
+      {/* Header */}
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="min-w-0">
+          <p className="text-sm font-medium truncate">
+            {language.nameNative}{" "}
+            <span className="text-muted-foreground">({language.nameEn})</span>
+          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${completeness.percent}%` }}
+              />
+            </div>
+            <span className="text-[10px] text-muted-foreground shrink-0">
+              {completeness.filled}/{completeness.total} ({completeness.percent}
+              %)
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Cube filter tabs */}
+      <div className="flex flex-wrap gap-1">
+        <button
+          onClick={() => setCubeFilter(null)}
+          className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
+            cubeFilter === null
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground hover:bg-accent"
+          }`}
+        >
+          All
+        </button>
+        {CUBE_GROUPS.map((g) => (
+          <button
+            key={g.cubeId}
+            onClick={() => setCubeFilter(g.cubeId)}
+            className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
+              cubeFilter === g.cubeId
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-accent"
+            }`}
+          >
+            {g.cubeId === 0 ? "Shared" : `C${g.cubeId}`}
+          </button>
+        ))}
+      </div>
+
+      {/* Translation table */}
+      <div className="max-h-72 overflow-y-auto space-y-px rounded-md border border-border">
+        {groups.map((group) => (
+          <div key={group.cubeId}>
+            <div className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm px-3 py-1.5">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {group.label}
+              </span>
+            </div>
+            {group.keys.map((entry) => {
+              const currentValue =
+                translations[langCode]?.[entry.key] ?? "";
+              return (
+                <div
+                  key={entry.key}
+                  className="grid grid-cols-1 gap-1 px-3 py-2 border-b border-border/50"
+                >
+                  <div className="flex items-baseline gap-2">
+                    <code className="text-[10px] text-muted-foreground font-mono truncate">
+                      {entry.key}
+                    </code>
+                  </div>
+                  <p className="text-xs text-muted-foreground/70 truncate">
+                    {DEFAULT_ENGLISH_TRANSLATIONS[entry.key]?.englishDefault}
+                  </p>
+                  <Input
+                    defaultValue={currentValue}
+                    placeholder={
+                      DEFAULT_ENGLISH_TRANSLATIONS[entry.key]?.englishDefault
+                    }
+                    dir="auto"
+                    className="h-8 text-xs"
+                    onChange={(e) => handleChange(entry.key, e.target.value)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Propose Language View ───────────────────────────────────────
+
+interface ProposeLanguageViewProps {
+  proposeLanguage: (
+    code: string,
+    nameEn: string,
+    nameNative: string,
+    dir: "ltr" | "rtl",
+    proposerEmail: string
+  ) => void;
+  userEmail?: string;
+  onBack: () => void;
+}
+
+function ProposeLanguageView({
+  proposeLanguage,
+  userEmail,
+  onBack,
+}: ProposeLanguageViewProps) {
+  const [code, setCode] = useState("");
+  const [nameEn, setNameEn] = useState("");
+  const [nameNative, setNameNative] = useState("");
+  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
+  const [submitted, setSubmitted] = useState(false);
+
+  const canSubmit = code.trim().length >= 2 && nameEn.trim() && nameNative.trim();
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    proposeLanguage(
+      code.trim().toLowerCase(),
+      nameEn.trim(),
+      nameNative.trim(),
+      dir,
+      userEmail ?? "anonymous"
+    );
+    setSubmitted(true);
+  };
+
+  if (submitted) {
+    return (
+      <div className="space-y-3">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back to Languages
+        </Button>
+        <div className="rounded-md border border-green-500/30 bg-green-500/10 p-4 text-center">
+          <Check className="h-5 w-5 text-green-400 mx-auto mb-2" />
+          <p className="text-sm font-medium">Language proposed!</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            An admin must approve it before it becomes active.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h4 className="text-sm font-medium">Propose New Language</h4>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">
+            ISO Code (e.g. &quot;af&quot; for Afrikaans)
+          </label>
+          <Input
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="xx"
+            maxLength={5}
+            className="h-8 text-xs"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">
+            English Name
+          </label>
+          <Input
+            value={nameEn}
+            onChange={(e) => setNameEn(e.target.value)}
+            placeholder="Afrikaans"
+            className="h-8 text-xs"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">
+            Native Name
+          </label>
+          <Input
+            value={nameNative}
+            onChange={(e) => setNameNative(e.target.value)}
+            placeholder="Afrikaans"
+            dir="auto"
+            className="h-8 text-xs"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-muted-foreground mb-1 block">
+            Text Direction
+          </label>
+          <Select
+            value={dir}
+            onValueChange={(v) => setDir(v as "ltr" | "rtl")}
+          >
+            <SelectTrigger className="h-8 text-xs w-full max-w-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ltr">Left-to-Right (LTR)</SelectItem>
+              <SelectItem value="rtl">Right-to-Left (RTL)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button
+          size="sm"
+          className="w-full text-xs"
+          disabled={!canSubmit}
+          onClick={handleSubmit}
+        >
+          Submit Proposal
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Pending Approvals View (Admin only) ─────────────────────────
+
+interface PendingApprovalsViewProps {
+  pending: LexiconLanguage[];
+  approveLanguage: (code: string, approverEmail: string) => void;
+  rejectLanguage: (code: string) => void;
+  userEmail: string;
+  onBack: () => void;
+}
+
+function PendingApprovalsView({
+  pending,
+  approveLanguage,
+  rejectLanguage,
+  userEmail,
+  onBack,
+}: PendingApprovalsViewProps) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h4 className="text-sm font-medium">Pending Approvals</h4>
+      </div>
+
+      {pending.length === 0 ? (
+        <p className="text-xs text-muted-foreground text-center py-4">
+          No pending language proposals.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {pending.map((lang) => (
+            <div
+              key={lang.code}
+              className="flex items-center justify-between rounded-md border border-border p-3"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">
+                  {lang.nameNative}{" "}
+                  <span className="text-muted-foreground">
+                    ({lang.nameEn})
+                  </span>
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Code: {lang.code} | Dir: {lang.direction.toUpperCase()}
+                </p>
+                {lang.proposerEmail && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Proposed by: {lang.proposerEmail}
+                  </p>
+                )}
+                {lang.proposedAt && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {new Date(lang.proposedAt).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-1 shrink-0 ml-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                  onClick={() => approveLanguage(lang.code, userEmail)}
+                  title="Approve"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  onClick={() => rejectLanguage(lang.code)}
+                  title="Reject"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

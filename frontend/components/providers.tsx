@@ -3,6 +3,7 @@
 import { Auth0Provider } from "@auth0/auth0-react";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/lib/theme-context";
+import { LexiconProvider } from "@/lib/lexicon-context";
 import {
   AUTH0_DOMAIN,
   AUTH0_CLIENT_ID,
@@ -15,8 +16,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   if (!AUTH0_DOMAIN || !AUTH0_CLIENT_ID) {
     return (
       <ThemeProvider>
-        {children}
-        <Toaster />
+        <LexiconProvider>
+          {children}
+          <Toaster />
+        </LexiconProvider>
       </ThemeProvider>
     );
   }
@@ -33,8 +36,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       cacheLocation="localstorage"
     >
       <ThemeProvider>
-        {children}
-        <Toaster />
+        <LexiconProvider>
+          {children}
+          <Toaster />
+        </LexiconProvider>
       </ThemeProvider>
     </Auth0Provider>
   );

@@ -119,6 +119,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
         <ModeratorSettings
           open={settingsOpen}
           onClose={() => setSettingsOpen(false)}
+          userEmail={user?.email}
         />
       )}
     </>
