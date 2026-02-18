@@ -40,6 +40,9 @@ class ResponseRead(BaseModel):
     profanity_detected: bool = False
     clean_text: str | None = None
 
+    # CRS-08: Integrity hash
+    response_hash: str | None = None
+
     # Immediate token display after submission (♡ and ◬)
     heart_tokens_earned: float = Field(default=0.0, serialization_alias="\u2661")
     unity_tokens_earned: float = Field(default=0.0, serialization_alias="\u25ec")

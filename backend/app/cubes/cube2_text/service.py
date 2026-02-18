@@ -440,6 +440,9 @@ async def store_response(
     await db.flush()  # Get ID before creating TextResponse
 
     # --- Postgres: TextResponse (1:1 with ResponseMeta) ---
+    import hashlib as _hashlib
+    response_hash = _hashlib.sha256(raw_text.encode()).hexdigest()
+
     text_response = TextResponse(
         response_meta_id=response_meta.id,
         language_code=language_code,
@@ -450,6 +453,7 @@ async def store_response(
         profanity_detected=profanity_detected,
         profanity_words=profanity_words,
         clean_text=clean_text,
+        response_hash=response_hash,
     )
     db.add(text_response)
     await db.commit()
@@ -617,11 +621,12 @@ async def submit_text_response(
         unity_tokens=unity_earned,
     )
 
+    import hashlib as _hl
     return {
         "id": response_meta.id,
         "session_id": session_id,
         "question_id": question_id,
-        "participant_id": participant_id,
+        "participant_id": effective_pid,
         "source": "text",
         "char_count": len(text),
         "language_code": language_code,
@@ -630,6 +635,7 @@ async def submit_text_response(
         "pii_detected": pii_detected,
         "profanity_detected": profanity_detected,
         "clean_text": clean_text,
+        "response_hash": _hl.sha256(text.encode()).hexdigest(),
         "heart_tokens_earned": heart_earned,
         "unity_tokens_earned": unity_earned,
     }

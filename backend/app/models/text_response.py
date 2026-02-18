@@ -40,6 +40,9 @@ class TextResponse(Base):
     # e.g. [{"word": "***", "severity": "medium", "position": 5}]
     clean_text: Mapped[str | None] = mapped_column(Text)
 
+    # CRS-08: Integrity hash — SHA-256 of raw_text for verification
+    response_hash: Mapped[str | None] = mapped_column(String(64))
+
     __table_args__ = (
         Index("ix_text_responses_response_meta", "response_meta_id"),
         Index("ix_text_responses_language", "language_code"),
