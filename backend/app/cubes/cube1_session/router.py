@@ -1,6 +1,7 @@
 """Cube 1 — Session Join & QR: Full API endpoints.
 
 Endpoints:
+    GET    /sessions                — List moderator's sessions (paginated)
     POST   /sessions               — Create session (Moderator)
     GET    /sessions/{id}           — Get session by ID
     GET    /sessions/code/{code}    — Get session by short_code
@@ -57,6 +58,29 @@ def _session_to_read(session, participant_count: int = 0) -> dict:
 # ---------------------------------------------------------------------------
 # Session CRUD
 # ---------------------------------------------------------------------------
+
+
+@router.get("", response_model=dict)
+async def list_sessions(
+    status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """List sessions created by the current moderator (paginated)."""
+    sessions, total = await service.list_sessions(
+        db,
+        created_by=user.user_id,
+        status_filter=status,
+        limit=min(limit, 100),
+        offset=offset,
+    )
+    items = []
+    for s in sessions:
+        count = await service.get_participant_count(db, s.id)
+        items.append(SessionRead(**_session_to_read(s, count)))
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 
 @router.post("", response_model=SessionRead, status_code=201)

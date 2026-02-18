@@ -1,2 +1,9 @@
-# API proxy handled by wrangler.jsonc or client-side API calls
-# Cloudflare Workers does not support proxy redirects to external URLs
+# SPA fallback rules for client-side routing (Cloudflare Pages)
+# Dynamic routes served by static pages with client-side URL parsing
+/join/*      /join/index.html       200
+/session/*   /session/index.html    200
+/callback/*  /callback/index.html   200
+/dashboard/* /dashboard/index.html  200
+
+# Catch-all SPA fallback
+/*           /index.html            200

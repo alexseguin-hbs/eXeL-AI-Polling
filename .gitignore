@@ -17,12 +17,12 @@ node_modules/
 .env.local
 .env.*.local
 
-# Python venv artifacts (root level)
-bin/
-lib/
-lib64
-include/
-pyvenv.cfg
+# Python venv artifacts (root level only)
+/bin/
+/lib/
+/lib64
+/include/
+/pyvenv.cfg
 
 # Next.js
 .next/

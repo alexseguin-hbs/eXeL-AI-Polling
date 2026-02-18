@@ -243,6 +243,37 @@ async def get_participant_count(db: AsyncSession, session_id: uuid.UUID) -> int:
     return result.scalar_one()
 
 
+async def list_sessions(
+    db: AsyncSession,
+    *,
+    created_by: str | None = None,
+    status_filter: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> tuple[list[Session], int]:
+    """List sessions with optional filters. Returns (sessions, total_count)."""
+    query = select(Session)
+    count_query = select(func.count(Session.id))
+
+    if created_by:
+        query = query.where(Session.created_by == created_by)
+        count_query = count_query.where(Session.created_by == created_by)
+    if status_filter:
+        query = query.where(Session.status == status_filter)
+        count_query = count_query.where(Session.status == status_filter)
+
+    # Get total count
+    total_result = await db.execute(count_query)
+    total = total_result.scalar_one()
+
+    # Get paginated results
+    query = query.order_by(Session.created_at.desc()).offset(offset).limit(limit)
+    result = await db.execute(query)
+    sessions = list(result.scalars().all())
+
+    return sessions, total
+
+
 # ---------------------------------------------------------------------------
 # State Machine
 # ---------------------------------------------------------------------------

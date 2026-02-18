@@ -1,0 +1,296 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Loader2, ArrowRight, ArrowLeft, Globe, UserIcon, FileCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Navbar } from "@/components/navbar";
+import { LanguageSelector } from "@/components/language-selector";
+import { api, ApiClientError } from "@/lib/api";
+import { toast } from "@/components/ui/use-toast";
+import type { Session, SessionJoinResponse } from "@/lib/types";
+
+type JoinStep = "language" | "identity" | "results" | "joining";
+
+export function JoinFlow() {
+  const pathname = usePathname();
+  const router = useRouter();
+  // Extract code from URL path: /join/ABCD1234/ → ABCD1234
+  const code = pathname?.split("/").filter(Boolean)[1]?.toUpperCase() || "";
+
+  const [step, setStep] = useState<JoinStep>("language");
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Form state
+  const [language, setLanguage] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [joinAnonymously, setJoinAnonymously] = useState(false);
+  const [resultsOptIn, setResultsOptIn] = useState(false);
+
+  useEffect(() => {
+    if (!code) return;
+    setLoading(true);
+    api
+      .get<Session>(`/sessions/code/${code}`)
+      .then((data) => {
+        setSession(data);
+        if (data.status === "closed" || data.status === "archived") {
+          setError("This session has ended.");
+        }
+      })
+      .catch((err) => {
+        if (err instanceof ApiClientError) {
+          setError(err.detail);
+        } else {
+          setError("Failed to load session. Please try again.");
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [code]);
+
+  const handleJoin = useCallback(async () => {
+    if (!session) return;
+    setStep("joining");
+    try {
+      const response = await api.post<SessionJoinResponse>(
+        `/sessions/join/${code}`,
+        {
+          language,
+          display_name: joinAnonymously ? null : displayName || null,
+          is_anonymous: joinAnonymously,
+          results_opt_in: resultsOptIn,
+        }
+      );
+      router.push(`/session/${response.session_id}/`);
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        toast({
+          title: "Could not join session",
+          description: err.detail,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Connection error",
+          description: "Check your internet and try again.",
+          variant: "destructive",
+        });
+      }
+      setStep("results");
+    }
+  }, [session, code, language, displayName, joinAnonymously, resultsOptIn, router]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <div className="flex flex-1 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <div className="flex flex-1 items-center justify-center px-4">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <CardTitle>Unable to Join</CardTitle>
+              <CardDescription>{error}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex justify-center">
+              <Button variant="outline" onClick={() => router.push("/")}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to home
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navbar sessionTitle={session?.title} />
+
+      <main className="flex flex-1 items-center justify-center px-4 py-8">
+        <Card className="w-full max-w-md">
+          {/* Step indicator */}
+          <div className="flex justify-center gap-2 pt-6">
+            {(["language", "identity", "results"] as const).map((s, i) => (
+              <div
+                key={s}
+                className={`h-2 w-8 rounded-full transition-colors ${
+                  step === s || (step === "joining" && i === 2)
+                    ? "bg-primary"
+                    : ["language", "identity", "results"].indexOf(step) > i ||
+                      step === "joining"
+                    ? "bg-primary/40"
+                    : "bg-muted"
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Step 1: Language */}
+          {step === "language" && (
+            <>
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-2 rounded-lg bg-primary/10 p-3 w-fit">
+                  <Globe className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>Select Your Language</CardTitle>
+                <CardDescription>
+                  Choose the language you&apos;d like to participate in
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center gap-6">
+                <LanguageSelector value={language} onChange={setLanguage} />
+                <Button
+                  className="w-full"
+                  onClick={() => setStep("identity")}
+                  disabled={!language}
+                >
+                  Continue
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </CardContent>
+            </>
+          )}
+
+          {/* Step 2: Identity */}
+          {step === "identity" && (
+            <>
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-2 rounded-lg bg-primary/10 p-3 w-fit">
+                  <UserIcon className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>How Would You Like to Join?</CardTitle>
+                <CardDescription>
+                  {session?.anonymity_mode === "anonymous"
+                    ? "This session is anonymous"
+                    : "Enter a display name or join anonymously"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                {session?.anonymity_mode !== "anonymous" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="display-name">Display Name</Label>
+                    <Input
+                      id="display-name"
+                      placeholder="Your name"
+                      value={displayName}
+                      onChange={(e) => {
+                        setDisplayName(e.target.value);
+                        setJoinAnonymously(false);
+                      }}
+                      disabled={joinAnonymously}
+                    />
+                  </div>
+                )}
+                <Button
+                  variant={joinAnonymously || session?.anonymity_mode === "anonymous" ? "default" : "outline"}
+                  className="w-full"
+                  onClick={() => {
+                    setJoinAnonymously(true);
+                    setDisplayName("");
+                    setStep("results");
+                  }}
+                >
+                  Join Anonymously
+                </Button>
+                {session?.anonymity_mode !== "anonymous" && (
+                  <Button
+                    className="w-full"
+                    onClick={() => setStep("results")}
+                    disabled={!displayName.trim() && !joinAnonymously}
+                  >
+                    Continue
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep("language")}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+              </CardContent>
+            </>
+          )}
+
+          {/* Step 3: Results Opt-in */}
+          {step === "results" && (
+            <>
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-2 rounded-lg bg-primary/10 p-3 w-fit">
+                  <FileCheck className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>Receive Results?</CardTitle>
+                <CardDescription>
+                  Would you like to receive the session results when they&apos;re
+                  ready?
+                  {session?.is_paid && (
+                    <span className="block mt-1 text-primary font-medium">
+                      Results access requires payment
+                    </span>
+                  )}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3">
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    setResultsOptIn(true);
+                    handleJoin();
+                  }}
+                >
+                  Yes, I want results
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setResultsOptIn(false);
+                    handleJoin();
+                  }}
+                >
+                  No thanks, just participate
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep("identity")}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+              </CardContent>
+            </>
+          )}
+
+          {/* Joining spinner */}
+          {step === "joining" && (
+            <CardContent className="flex flex-col items-center gap-4 py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">
+                Joining session...
+              </p>
+            </CardContent>
+          )}
+        </Card>
+      </main>
+    </div>
+  );
+}
