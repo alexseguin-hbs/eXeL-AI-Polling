@@ -325,25 +325,79 @@ Track and optimize for:
 
 ## Implementation Status
 
-### Cube 1 — Session Join & QR: COMPLETE (CRS-01→CRS-04)
-- **All code is modular** — every cube is self-contained with clean interfaces
-- Session CRUD, state machine (draft→open→polling→ranking→closed→archived)
-- **Moderator session config:** scoping context (Project/Spec/Differentiator), pricing tier, polling mode, session fee (Stripe/GPay/ApplePay), cost splitting toggle, gamified reward amount + CQS weights, ranking mode, response/question char limits
-- **Pricing tiers:** **Free** (≤19 participants) | **Moderator Paid** (Moderator pays full fee) | **Moderator+User Cost Split** (fee divided among participants)
-- **Scoping:** Set by **Moderator at session creation** (not by users in join flow)
-- **`session_config` merged into `sessions`** — ranking_mode, response_char_limit, question_char_limit now live on sessions table
-- **Polling modes:** **Single Round** (one cycle) | **Multi-Round Deep Dive** (iterative, up to 3 rounds, context preserved)
-- QR code generation, join flow, participant management
-- **User join flow (sequential):** (1) Language dropdown (33 langs) → (2) Results opt-in + payment via Stripe/Google Pay/Apple Pay (click required; shows per-user fee if cost splitting enabled; free tier: no payment) → (3) See question
-- **Results opt-in:** Must actively click Yes/No. Paying users flagged for Cube 9 results distribution after session closes
-- **Moderator multi-device:** PC and Phone can manage same session simultaneously — real-time sync via WebSocket/Redis. Phone-optimized UI (status, participant count, open/close poll). PC full dashboard.
-- **Master UI/UX language table:** Centralized, extensible language registry — admins/devs can add languages without code changes; all cubes reference this table
-- **Metrics:** System (latency, QR gen time, join rate, WebSocket sync latency, capacity check time) | User (language distribution, opt-in rate, join-to-question time, payment conversion, Moderator device usage) | Outcome (sessions completed vs abandoned, avg participants by tier, revenue per session, multi-round progression rate)
-- **CRS-01:** Literal type validation on all enum fields (422 on invalid input), session ownership enforcement (403)
-- **CRS-02:** Anonymous join via `get_optional_current_user()` — no Bearer token required
-- **CRS-03:** Short code collision retry (5 attempts with DB uniqueness check)
-- **CRS-04:** `expires_at` field (default 24h), `SessionExpiredError` (410 Gone), QR blocked for expired/closed sessions
-- Files: `config.py`, `models/session.py`, `schemas/session.py`, `core/auth.py`, `core/exceptions.py`, `cubes/cube1_session/service.py`, `cubes/cube1_session/router.py`
+### Cube 1 — Session Join & QR: PARTIAL (CRS-01→CRS-04 done; ~30% of full spec)
+
+**Code location:** `backend/app/cubes/cube1_session/` (modular, self-contained)
+
+#### Cube 1 — Implemented
+- **Session CRUD:** create, get by ID/short_code, update (draft-only), list with pagination + filters
+- **State machine:** draft → open → polling → ranking → closed → archived (with timestamp tracking)
+- **QR code generation:** PNG + base64 JSON endpoints
+- **Short code:** 8-char generation with 5-attempt collision retry + DB uniqueness check
+- **Participant join:** anonymous + identified support, duplicate join detection, Redis presence tracking
+- **Question management:** CRUD with cycle_id for multi-round support
+- **Session expiry:** 24h default, `SessionExpiredError` (410 Gone), QR blocked for expired/closed
+- **Time tracking integration:** Auto-login entry calls Cube 5 `create_login_time_entry()` → awards ♡1 token on join
+- **Determinism:** UUID5 seed, replay hash verification endpoint
+- **Security (CRS-01→CRS-04):**
+  - CRS-01: Literal type validation on all enum fields (422 on invalid input), session ownership enforcement (403)
+  - CRS-02: Anonymous join via `get_optional_current_user()` — no Bearer token required
+  - CRS-03: Short code collision retry (5 attempts with DB uniqueness check)
+  - CRS-04: `expires_at` field (default 24h), `SessionExpiredError` (410 Gone), QR blocked for expired/closed
+- **API endpoints:** 22 routes (session CRUD, state transitions, join, participants, presence, questions, QR, verification)
+- **Rate limiting:** 100/min on join endpoint
+
+#### Cube 1 — Partially Implemented (fields exist but incomplete logic)
+- **Polling mode:** Stored as `cycle_mode: single/multi` but not semantically tied to deep-dive flow
+- **Payment:** `is_paid` + `stripe_session_id` fields exist on session model but no payment flow in join
+- **Language:** Stored on participant but no enforcement gate in join sequence
+
+#### Cube 1 — Not Yet Implemented (specified in Requirements.txt)
+- **Session model missing fields:** `session_type` (polling/peer_volunteer/team_collaboration), `polling_mode` (single_round/multi_round_deep_dive), `scoping_type` + `scoping_id`, `pricing_tier` (free/moderator_paid/moderator_user_split), `max_participants`, `fee_amount_cents`, `cost_splitting_enabled`, `reward_enabled`, `reward_amount_cents`, `cqs_weights` (JSONB), `theme2_voting_level` (theme2_9/6/3), `live_feed_enabled`
+- **Participant model missing fields:** `language_code` (FK→languages), `results_opt_in`, `payment_status` (unpaid/paid/lead_exempt), `payment_transaction_id`, `role_type` (Method 3)
+- **Pricing tiers:** Free ≤19 / Moderator Paid / Cost Split — no tier logic, no capacity enforcement, no fee calculation
+- **Join flow gates:** Results opt-in screen, payment processing (Stripe/GPay/ApplePay), language enforcement
+- **Cost splitting:** Dynamic per-user fee calculation as participants join
+- **Scoping context:** Project/Specification/Differentiator tables + FK linkage
+- **Gamified reward:** CQS weight config, reward amount, enable/disable
+- **Master language table:** `languages` + `ui_translations` backend tables (frontend Language Lexicon implemented)
+- **Desired Outcome setup:** Methods 2 & 3 — outcome input, role assignment, confirmation gates
+- **Moderator multi-device sync:** WebSocket push to all connected moderator devices, device-aware layouts
+- **Live response feed:** 33-word summary feed on hosting PC (Cube 2 integration, paid tiers only)
+- **Metrics collection:** System/User/Outcome metrics (none wired)
+
+#### Cube 1 — Service Functions Status
+| Function | Status | Notes |
+|----------|--------|-------|
+| `create_session()` | Implemented | Missing pricing/scoping/reward params |
+| `generate_qr_code()` | Implemented | PNG + base64 |
+| `validate_join_request()` | Partial | Expiry + state check; no capacity/payment |
+| `select_language()` | Not implemented | No separate gate function |
+| `process_results_optin()` | Not implemented | No opt-in gate |
+| `process_join_payment()` | Not implemented | No Stripe in join |
+| `create_participant()` | Partial | Missing language_code, results_opt_in, payment_status |
+| `transition_session_state()` | Implemented | Full state machine |
+| `calculate_per_user_fee()` | Not implemented | No cost-split logic |
+| `get_session_by_code()` | Implemented | |
+| `check_session_expiry()` | Implemented | `is_expired` property + 410 |
+| `check_capacity()` | Not implemented | No max_participants |
+| `determine_pricing_tier()` | Not implemented | No tier logic |
+| `sync_moderator_state()` | Not implemented | No WebSocket sync |
+| `get_moderator_layout()` | Not implemented | No device-aware layout |
+
+#### Cube 1 — Files
+| File | Lines | Purpose |
+|------|-------|---------|
+| `cubes/cube1_session/service.py` | 477 | Core business logic |
+| `cubes/cube1_session/router.py` | 371 | 22 API endpoints |
+| `models/session.py` | 114 | Session ORM model |
+| `models/participant.py` | 37 | Participant ORM model |
+| `models/question.py` | 33 | Question ORM model |
+| `schemas/session.py` | 103 | Pydantic schemas |
+| `schemas/participant.py` | 22 | Participant schema |
+| `schemas/question.py` | 22 | Question schema |
+| `core/auth.py` | — | Auth middleware |
+| `core/exceptions.py` | — | Custom exceptions |
 
 ### Cube 5 — Time Tracking: IMPLEMENTED
 - `TimeTrackingService`: start/stop tracking, login auto-entry, ♡ 웃 ◬ calculation
@@ -357,6 +411,19 @@ Track and optimize for:
 - 웃 rate table: 59 jurisdictions (9 international + 50 US states)
 - Rate lookup API: `GET /tokens/rates`, `GET /tokens/rates/lookup`
 - Files: `cubes/cube8_tokens/service.py`, `cubes/cube8_tokens/router.py`, `core/hi_rates.py`, `schemas/token.py`, `models/token_ledger.py`
+
+### Frontend — Language Lexicon: IMPLEMENTED
+- **Per-cube translation management** — ~190 UI string keys organized by cube (0–10), modular for parallel dev
+- **Language Lexicon UI** in Moderator Settings panel: language list with completeness %, translation editor with cube filter tabs, propose new language form, admin-only pending approvals
+- **React Context + Provider** (`LexiconProvider`) with localStorage persistence, follows `theme-context.tsx` pattern
+- **Admin approval gate:** Only `explore@eXeL-AI.com` can approve/reject proposed languages
+- **33 initial languages** from `SUPPORTED_LANGUAGES` with RTL support (Arabic, Hebrew)
+- **Data structure maps 1:1** to backend `languages` + `ui_translations` tables for future API swap
+- Files: `frontend/lib/lexicon-data.ts`, `frontend/lib/lexicon-context.tsx`, `frontend/components/language-lexicon.tsx`
+
+### Frontend — Moderator Settings Panel: IMPLEMENTED
+- Slide-over panel with theme customizer (4 presets), interface language selector, Language Lexicon
+- Files: `frontend/components/moderator-settings.tsx`, `frontend/components/providers.tsx`, `frontend/components/navbar.tsx`
 
 ### Cubes 2–4, 6–7, 9–10: SCAFFOLDED (stubs only)
 - Models, schemas, and route stubs exist

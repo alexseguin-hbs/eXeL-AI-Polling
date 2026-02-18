@@ -79,6 +79,8 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 ### Cube 1 — Session Join & QR (1,2,2) — CENTER of Level 1
 
+> **Implementation Status:** PARTIAL (~30% of spec). CRS-01→CRS-04 complete. Core CRUD, state machine, QR, join, presence, questions implemented. Missing: session_type, pricing tiers, scoping, cost splitting, rewards, join flow gates (results opt-in, payment), master language tables, desired outcomes (M2/M3), multi-device sync, live feed, metrics. See CLAUDE.md § "Cube 1" for full breakdown.
+
 * **All code is modular** — every cube is a self-contained module with clean interfaces; all aspects of each cube must be modular and independently maintainable
 * Session create — supports 3 session types: **polling** (Method 1), **peer_volunteer** (Method 2), **team_collaboration** (Method 3)
 * **Moderator session config (at creation):**
@@ -151,84 +153,84 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 #### Cube 1 Data Tables
 
-**Table: `sessions`**
-| Variable | Type | Description |
-|----------|------|-------------|
-| id | UUID (PK) | Session unique identifier |
-| short_code | VARCHAR(8) | Human-readable join code (collision-retry) |
-| created_by | UUID (FK→users) | Moderator user ID |
-| session_type | ENUM | `polling` / `peer_volunteer` / `team_collaboration` |
-| polling_mode | ENUM | `single_round` / `multi_round_deep_dive` |
-| status | ENUM | `draft` / `open` / `polling` / `ranking` / `closed` / `archived` |
-| scoping_type | ENUM | `project` / `specification` / `product_differentiator` — **Moderator sets at session creation** |
-| scoping_id | UUID | FK to projects, specifications, or differentiators table based on scoping_type |
-| pricing_tier | ENUM | `free` / `moderator_paid` / `moderator_user_split` — determines payment behavior |
-| max_participants | INTEGER (nullable) | Capacity cap (null = unlimited for paid tiers; hard cap 19 for free tier) |
-| fee_amount_cents | INTEGER | Moderator session fee in cents (0 for free tier) |
-| cost_splitting_enabled | BOOLEAN | Whether fee is split among participants |
-| reward_enabled | BOOLEAN | Whether gamified reward is active |
-| reward_amount_cents | INTEGER | Bonus reward amount in cents |
-| cqs_weights | JSONB | Custom CQS metric weights (null = defaults) |
-| anonymity_mode | ENUM | `anonymous` / `identified` |
-| ranking_mode | ENUM | `auto` / `manual` / `live` — how rankings are aggregated |
-| theme2_voting_level | ENUM | `theme2_9` / `theme2_6` / `theme2_3` — Moderator selects which Theme2 granularity users vote on |
-| live_feed_enabled | BOOLEAN | Whether live 33-word response feed is shown on hosting PC (paid tiers only) |
-| response_char_limit | INTEGER | Max response character length (default 500) |
-| question_char_limit | INTEGER | Max question character length (default 500) |
-| max_deep_dive_rounds | INTEGER | Max rounds for deep dive (default 3) |
-| language_default | VARCHAR(5) | Default session language code |
-| qr_url | TEXT | Generated QR code URL |
-| join_url | TEXT | Shareable join link |
-| expires_at | TIMESTAMP | Session expiry (default 24h) |
-| created_at | TIMESTAMP | Creation timestamp |
-| updated_at | TIMESTAMP | Last update timestamp |
+**Table: `sessions`** — ⚠️ Model exists but missing ~15 specified fields
+| Variable | Type | Status | Description |
+|----------|------|--------|-------------|
+| id | UUID (PK) | ✅ | Session unique identifier |
+| short_code | VARCHAR(8) | ✅ | Human-readable join code (collision-retry) |
+| created_by | UUID (FK→users) | ✅ | Moderator user ID |
+| session_type | ENUM | ❌ | `polling` / `peer_volunteer` / `team_collaboration` |
+| polling_mode | ENUM | ❌ | `single_round` / `multi_round_deep_dive` — stored as `cycle_mode` (single/multi) but semantics differ |
+| status | ENUM | ✅ | `draft` / `open` / `polling` / `ranking` / `closed` / `archived` |
+| scoping_type | ENUM | ❌ | `project` / `specification` / `product_differentiator` — **Moderator sets at session creation** |
+| scoping_id | UUID | ❌ | FK to projects, specifications, or differentiators table based on scoping_type |
+| pricing_tier | ENUM | ❌ | `free` / `moderator_paid` / `moderator_user_split` — only `is_paid` Boolean exists |
+| max_participants | INTEGER (nullable) | ❌ | Capacity cap (null = unlimited for paid tiers; hard cap 19 for free tier) |
+| fee_amount_cents | INTEGER | ❌ | Moderator session fee in cents (0 for free tier) |
+| cost_splitting_enabled | BOOLEAN | ❌ | Whether fee is split among participants |
+| reward_enabled | BOOLEAN | ❌ | Whether gamified reward is active |
+| reward_amount_cents | INTEGER | ❌ | Bonus reward amount in cents |
+| cqs_weights | JSONB | ❌ | Custom CQS metric weights (null = defaults) |
+| anonymity_mode | ENUM | ✅ | `anonymous` / `identified` |
+| ranking_mode | ENUM | ✅ | `auto` / `manual` / `live` — how rankings are aggregated |
+| theme2_voting_level | ENUM | ❌ | `theme2_9` / `theme2_6` / `theme2_3` — Moderator selects which Theme2 granularity users vote on |
+| live_feed_enabled | BOOLEAN | ❌ | Whether live 33-word response feed is shown on hosting PC (paid tiers only) |
+| response_char_limit | INTEGER | ✅ | Max response character length (default 500) — as `max_response_length` |
+| question_char_limit | INTEGER | ❌ | Max question character length (default 500) |
+| max_deep_dive_rounds | INTEGER | ✅ | Max rounds for deep dive (default 3) — as `max_cycles` |
+| language_default | VARCHAR(5) | ✅ | Default session language code — as `language` |
+| qr_url | TEXT | ✅ | Generated QR code URL |
+| join_url | TEXT | ✅ | Shareable join link |
+| expires_at | TIMESTAMP | ✅ | Session expiry (default 24h) |
+| created_at | TIMESTAMP | ✅ | Creation timestamp |
+| updated_at | TIMESTAMP | ✅ | Last update timestamp |
 
-**Table: `participants`**
-| Variable | Type | Description |
-|----------|------|-------------|
-| id | UUID (PK) | Participant record ID |
-| session_id | UUID (FK→sessions) | Session reference |
-| user_id | UUID (FK→users, nullable) | Authenticated user or null for anonymous |
-| anon_hash | VARCHAR(64) | Anonymous identifier hash |
-| language_code | VARCHAR(5) | Selected language from active languages dropdown |
-| results_opt_in | BOOLEAN | Clicked Yes for results copy |
-| payment_status | ENUM | `unpaid` / `paid` / `lead_exempt` |
-| payment_transaction_id | UUID (FK→payment_transactions, nullable) | Stripe/GPay/ApplePay reference |
-| role_type | ENUM (nullable) | `technology` / `creative` / `business_value` (Method 3 only) |
-| device_type | VARCHAR(20) | `desktop` / `tablet` / `phone` |
-| joined_at | TIMESTAMP | Join timestamp |
-| last_seen | TIMESTAMP | Last activity timestamp |
+**Table: `participants`** — ⚠️ Model exists but missing ~5 specified fields
+| Variable | Type | Status | Description |
+|----------|------|--------|-------------|
+| id | UUID (PK) | ✅ | Participant record ID |
+| session_id | UUID (FK→sessions) | ✅ | Session reference |
+| user_id | UUID (FK→users, nullable) | ✅ | Authenticated user or null for anonymous |
+| anon_hash | VARCHAR(64) | ✅ | Anonymous identifier hash |
+| language_code | VARCHAR(5) | ❌ | Selected language from active languages dropdown |
+| results_opt_in | BOOLEAN | ❌ | Clicked Yes for results copy |
+| payment_status | ENUM | ❌ | `unpaid` / `paid` / `lead_exempt` |
+| payment_transaction_id | UUID (FK→payment_transactions, nullable) | ❌ | Stripe/GPay/ApplePay reference |
+| role_type | ENUM (nullable) | ❌ | `technology` / `creative` / `business_value` (Method 3 only) |
+| device_type | VARCHAR(20) | ✅ | `desktop` / `tablet` / `phone` |
+| joined_at | TIMESTAMP | ✅ | Join timestamp |
+| last_seen | TIMESTAMP | ✅ | Last activity timestamp |
 
-**Table: `languages`** (Master UI/UX Language Table)
-| Variable | Type | Description |
-|----------|------|-------------|
-| id | SERIAL (PK) | Auto-increment ID |
-| code | VARCHAR(5) UNIQUE | ISO 639-1 code (e.g., `en`, `fr`, `zh-CN`) |
-| name_english | VARCHAR(100) | Language name in English |
-| name_native | VARCHAR(100) | Language name in native script (e.g., "Français") |
-| direction | ENUM | `ltr` / `rtl` (for Arabic, Hebrew, etc.) |
-| is_active | BOOLEAN | Whether available in dropdown (soft-disable without deleting) |
-| added_by | UUID (FK→users) | Who added this language |
-| verified_by | UUID (FK→users, nullable) | AI-verified + 1 Team/Lead/Admin who approved |
-| verified_at | TIMESTAMP (nullable) | Approval timestamp |
-| created_at | TIMESTAMP | When added |
+**Table: `languages`** (Master UI/UX Language Table) — ❌ Backend table not created; frontend Language Lexicon implemented with localStorage (maps 1:1 to this schema for future API swap)
+| Variable | Type | Status | Description |
+|----------|------|--------|-------------|
+| id | SERIAL (PK) | ❌ | Auto-increment ID |
+| code | VARCHAR(5) UNIQUE | ❌ | ISO 639-1 code (e.g., `en`, `fr`, `zh-CN`) |
+| name_english | VARCHAR(100) | ❌ | Language name in English |
+| name_native | VARCHAR(100) | ❌ | Language name in native script (e.g., "Français") |
+| direction | ENUM | ❌ | `ltr` / `rtl` (for Arabic, Hebrew, etc.) |
+| is_active | BOOLEAN | ❌ | Whether available in dropdown (soft-disable without deleting) |
+| added_by | UUID (FK→users) | ❌ | Who added this language |
+| verified_by | UUID (FK→users, nullable) | ❌ | AI-verified + 1 Team/Lead/Admin who approved |
+| verified_at | TIMESTAMP (nullable) | ❌ | Approval timestamp |
+| created_at | TIMESTAMP | ❌ | When added |
 
-**Table: `ui_translations`** (Translation Strings Master)
-| Variable | Type | Description |
-|----------|------|-------------|
-| id | SERIAL (PK) | Auto-increment ID |
-| string_key | VARCHAR(255) | Unique key (e.g., `cube1.join.language_prompt`) |
-| cube_id | INTEGER | Which cube this string belongs to (0 = shared/global) |
-| language_code | VARCHAR(5) (FK→languages.code) | Language this translation is for |
-| translated_text | TEXT | The translated string |
-| context_hint | TEXT (nullable) | Context for translators (e.g., "Button label on join screen") |
-| ai_verified | BOOLEAN | Whether AI has verified translation quality |
-| approved_by | UUID (FK→users, nullable) | Team/Lead/Admin who approved |
-| approved_at | TIMESTAMP (nullable) | Approval timestamp |
-| created_at | TIMESTAMP | When added |
-| updated_at | TIMESTAMP | Last edit |
+**Table: `ui_translations`** (Translation Strings Master) — ❌ Backend table not created; frontend Language Lexicon implements per-cube key management with ~190 keys via localStorage
+| Variable | Type | Status | Description |
+|----------|------|--------|-------------|
+| id | SERIAL (PK) | ❌ | Auto-increment ID |
+| string_key | VARCHAR(255) | ❌ | Unique key (e.g., `cube1.join.language_prompt`) |
+| cube_id | INTEGER | ❌ | Which cube this string belongs to (0 = shared/global) |
+| language_code | VARCHAR(5) (FK→languages.code) | ❌ | Language this translation is for |
+| translated_text | TEXT | ❌ | The translated string |
+| context_hint | TEXT (nullable) | ❌ | Context for translators (e.g., "Button label on join screen") |
+| ai_verified | BOOLEAN | ❌ | Whether AI has verified translation quality |
+| approved_by | UUID (FK→users, nullable) | ❌ | Team/Lead/Admin who approved |
+| approved_at | TIMESTAMP (nullable) | ❌ | Approval timestamp |
+| created_at | TIMESTAMP | ❌ | When added |
+| updated_at | TIMESTAMP | ❌ | Last edit |
 
-**Adding new languages:** Admin UI panel accessible to Admins, Leads, and Team members. To add a language: (1) Add row to `languages` table, (2) Add translations for all `string_key` entries, (3) AI verifies translation quality, (4) At least 1 other Team/Lead/Admin user approves. Language becomes active after approval.
+**Adding new languages:** Admin UI panel accessible to Admins, Leads, and Team members. To add a language: (1) Add row to `languages` table, (2) Add translations for all `string_key` entries, (3) AI verifies translation quality, (4) At least 1 other Team/Lead/Admin user approves. Language becomes active after approval. *(Frontend Language Lexicon already implements propose → approve/reject workflow via localStorage; backend API integration pending.)*
 
 *Note: `session_config` has been **merged into `sessions`** table — fields `ranking_mode`, `response_char_limit`, and `question_char_limit` now live directly on `sessions` for simpler queries and fewer JOINs. `cycle_mode` is derived from `polling_mode`, and `max_cycles` is `max_deep_dive_rounds`.*
 
@@ -253,23 +255,23 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | Payment event | Cube 8 | Payment transaction for cost-split or Moderator fee |
 
 #### Cube 1 Functions
-| Function | Description |
-|----------|-------------|
-| `create_session()` | Creates session with Moderator config, generates ID + short code, initializes state machine |
-| `generate_qr_code()` | Generates QR image and join URL from session ID |
-| `validate_join_request()` | Checks session validity (not expired, not closed, not full) |
-| `select_language()` | Stores participant's language selection, sets UI locale |
-| `process_results_optin()` | Records opt-in preference, triggers payment flow if cost splitting enabled |
-| `process_join_payment()` | Handles Stripe/GPay/ApplePay payment for cost-split participants |
-| `create_participant()` | Creates participant record with language, payment status, device, scoping context |
-| `transition_session_state()` | State machine transitions with validation (e.g., can't go from closed→open) |
-| `calculate_per_user_fee()` | Dynamically recalculates fee/participant as users join (fee_amount / participant_count) |
-| `get_session_by_code()` | Lookup session by short code for QR join |
-| `check_session_expiry()` | Validates session hasn't expired (410 Gone if expired) |
-| `check_capacity()` | Validates session hasn't reached max_participants cap (Free tier: hard cap 19; Paid tiers: configurable or unlimited) |
-| `determine_pricing_tier()` | Returns applicable pricing logic based on `pricing_tier` (free / moderator_paid / moderator_user_split) |
-| `sync_moderator_state()` | Pushes session control state to all connected Moderator devices via WebSocket/Redis (PC + Phone sync) |
-| `get_moderator_layout()` | Returns device-aware UI layout: Phone = compact controls; PC = full dashboard |
+| Function | Status | Description |
+|----------|--------|-------------|
+| `create_session()` | ✅ Partial | Creates session with Moderator config, generates ID + short code, initializes state machine — **missing:** pricing/scoping/reward params |
+| `generate_qr_code()` | ✅ Done | Generates QR image (PNG + base64) and join URL from session ID |
+| `validate_join_request()` | ⚠️ Partial | Checks expiry + state — **missing:** capacity + payment validation |
+| `select_language()` | ❌ Pending | Stores participant's language selection, sets UI locale |
+| `process_results_optin()` | ❌ Pending | Records opt-in preference, triggers payment flow if cost splitting enabled |
+| `process_join_payment()` | ❌ Pending | Handles Stripe/GPay/ApplePay payment for cost-split participants |
+| `create_participant()` | ⚠️ Partial | Creates participant record — **missing:** language_code, results_opt_in, payment_status fields |
+| `transition_session_state()` | ✅ Done | State machine transitions with validation (e.g., can't go from closed→open) |
+| `calculate_per_user_fee()` | ❌ Pending | Dynamically recalculates fee/participant as users join (fee_amount / participant_count) |
+| `get_session_by_code()` | ✅ Done | Lookup session by short code for QR join |
+| `check_session_expiry()` | ✅ Done | Validates session hasn't expired (410 Gone if expired) |
+| `check_capacity()` | ❌ Pending | Validates session hasn't reached max_participants cap (Free tier: hard cap 19; Paid tiers: configurable or unlimited) |
+| `determine_pricing_tier()` | ❌ Pending | Returns applicable pricing logic based on `pricing_tier` (free / moderator_paid / moderator_user_split) |
+| `sync_moderator_state()` | ❌ Pending | Pushes session control state to all connected Moderator devices via WebSocket/Redis (PC + Phone sync) |
+| `get_moderator_layout()` | ❌ Pending | Returns device-aware UI layout: Phone = compact controls; PC = full dashboard |
 
 #### Cube 1 UI/UX Translation Strings
 | String Key | English Default | Context |
