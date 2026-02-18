@@ -169,7 +169,7 @@ All clustering and ranking operations must be fully reproducible:
 - **Scaffold all Cubes 1-9 first,** then implement cube by cube
 - **SoI Trinity — Three Intelligences, One Governance Engine:**
   ```
-               A.I.           S.I.         H.I.
+               A.I.          S.I.          H.I.
              ╔═══════╗     ╔═══════╗     ╔═══════╗
              ║   ◬   ║     ║   ♡   ║     ║   웃  ║
              ╚═══════╝     ╚═══════╝     ╚═══════╝
