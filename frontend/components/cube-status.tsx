@@ -35,18 +35,18 @@ const STATUS_LABELS: Record<CubeStatus, string> = {
 const CUBE_GRID: CubeInfo[][] = [
   [
     { number: 9, name: "Reports", status: "not_started", completion: 5, description: "CSV/PDF export, Pixelated Tokens, dashboards" },
-    { number: 2, name: "Text", status: "in_progress", completion: 85, description: "Text submission, PII/profanity, anonymization, integrity hash" },
+    { number: 2, name: "Text", status: "deployed", completion: 85, description: "Text submission, PII/profanity, anonymization, integrity hash" },
     { number: 3, name: "Voice", status: "not_started", completion: 10, description: "Voice-to-text engine with browser mic" },
   ],
   [
-    { number: 8, name: "Tokens", status: "deployed", completion: 85, description: "Token ledger, 59 jurisdiction rates, disputes" },
-    { number: 1, name: "Session", status: "in_progress", completion: 70, description: "Session CRUD, state machine, QR, join flow, capacity" },
+    { number: 8, name: "Tokens", status: "in_progress", completion: 40, description: "Token ledger, 59 jurisdiction rates, disputes" },
+    { number: 1, name: "Session", status: "deployed", completion: 70, description: "Session CRUD, state machine, QR, join flow, capacity" },
     { number: 4, name: "Collector", status: "not_started", completion: 5, description: "Response aggregation, MongoDB writes, caching" },
   ],
   [
     { number: 7, name: "Ranking", status: "not_started", completion: 5, description: "Voting UI, deterministic aggregation, governance" },
     { number: 6, name: "AI", status: "not_started", completion: 10, description: "Batch embeddings, clustering, summarization" },
-    { number: 5, name: "Gateway", status: "deployed", completion: 80, description: "Time tracking, token calc, login auto-entry" },
+    { number: 5, name: "Gateway", status: "in_progress", completion: 40, description: "Time tracking, token calc, login auto-entry" },
   ],
 ];
 
