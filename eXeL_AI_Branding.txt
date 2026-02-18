@@ -1,0 +1,119 @@
+eXeL AI – Living Brand Identity Document
+Version: 1.0
+Created:      Master of Thought
+Last Updated: 2026.02.18
+Brand Owner:  Concensus
+
+============================================================
+
+1. BRAND FOUNDATION
+
+Mission:
+Democratize modular, evolving AI education infrastructure globally.
+
+Vision:
+Empower minds across borders to architect the future of intelligent systems.
+
+Core Pillars:
+- Modular Intelligence
+- Ethical AI Development
+- Global Collaboration
+- Adaptive Learning Ecosystems
+
+============================================================
+
+2. LOGO SPECIFICATIONS
+
+Primary Logo:
+eXeL AI with neural head icon.
+
+Clear Space:
+Minimum clear space equal to the height of the "X" on all sides.
+
+Minimum Size (Digital):
+120px width.
+
+Background Usage:
+Preferred on deep navy or black backgrounds.
+
+============================================================
+
+3. BRAND COLOR SYSTEM
+
+Primary Brand Cyan:
+Hex: #19C8CF
+RGB: 25, 200, 207
+
+Supporting Colors:
+Deep Background Navy: #0B0F14
+Secondary Accent Teal: #0E8F95
+Highlight Glow: #4DE4EA
+Neutral Gray: #9AA4AE
+
+============================================================
+
+4. TYPOGRAPHY
+
+Primary Font: __________________
+Secondary Font: __________________
+
+Headings:
+Bold, clean, modern sans-serif.
+
+Body Text:
+Clear, high-legibility sans-serif.
+
+Avoid:
+Script or ornamental fonts.
+
+============================================================
+
+5. VISUAL LANGUAGE & IMAGERY
+
+Style Direction:
+- Real-world robotics + futuristic evolution contrast
+- Diverse human collaboration
+- Modular hardware detail
+- Blue/cyan lighting accents
+
+============================================================
+
+6. DIGITAL & UI GUIDELINES
+
+Buttons:
+Cyan on dark background.
+
+Hover State:
+Slight brightness increase + soft glow.
+
+Accessibility:
+Maintain high contrast for WCAG AA minimum compliance.
+
+Avoid:
+Placing primary cyan on pure white backgrounds.
+
+============================================================
+
+7. TONE & MESSAGING FRAMEWORK
+
+Voice:
+Visionary, disciplined, forward-thinking.
+
+Avoid:
+Overly mystical or exaggerated claims.
+
+Emphasize:
+Infrastructure, evolution, scalability, ethical impact.
+
+============================================================
+
+8. BRAND EVOLUTION LOG
+
+Update entries below as branding evolves:
+
+Date: __________ | Change: __________________________________________
+Date: __________ | Change: __________________________________________
+Date: __________ | Change: __________________________________________
+
+============================================================
+END OF DOCUMENT
