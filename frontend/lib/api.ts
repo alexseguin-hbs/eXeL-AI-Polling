@@ -1,7 +1,12 @@
 import { API_BASE_URL } from "./constants";
+import { handleMockRequest } from "./mock-data";
 import type { ApiError } from "./types";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+// Mock mode: enabled when backend is not available
+// Set to false once the backend API is running
+const MOCK_MODE = true;
 
 interface RequestOptions {
   body?: unknown;
@@ -47,6 +52,19 @@ async function request<T>(
 ): Promise<T> {
   const { body, headers: customHeaders, params } = options;
 
+  // ── Mock Mode ─────────────────────────────────────────────────
+  if (MOCK_MODE) {
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 200 + Math.random() * 300));
+
+    const result = handleMockRequest<T>(method, path, body);
+    if (result === null) {
+      throw new ApiClientError(404, "Session not found. Check the code and try again.");
+    }
+    return result;
+  }
+
+  // ── Live API Mode ─────────────────────────────────────────────
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...customHeaders,
