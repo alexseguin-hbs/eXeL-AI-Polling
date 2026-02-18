@@ -55,16 +55,16 @@ class Settings(BaseSettings):
     themes_per_sample: int = 3            # Secondary themes generated per sample (matches monolith)
 
     # Token defaults (SoI Trinity: ♡, 웃, ◬)
-    login_si_tokens: float = 1.0          # ♡ awarded on session join (1 min default)
-    ai_si_multiplier: float = 5.0         # ◬ = 5x ♡ as default
+    login_heart_tokens: float = 1.0       # ♡ awarded on session join (1 min default)
+    triangle_heart_multiplier: float = 5.0  # ◬ = 5x ♡ as default
 
     # 웃 — compensated skilled time (global talent at local min wage)
-    # Set hi_enabled=True + hi_hourly_rate to activate. Rate anchored to
+    # Set person_enabled=True + person_hourly_rate to activate. Rate anchored to
     # jurisdiction minimum wage (e.g., Texas $7.25/hr, federal $7.25/hr).
-    # 웃 per minute = hi_hourly_rate / 60. Redeemable against treasury only.
-    hi_enabled: bool = False              # Flip to True when treasury funded
-    hi_hourly_rate: float = 7.25          # USD/hr — default US federal min wage
-    hi_currency: str = "USD"              # Currency for 웃 payouts
+    # 웃 per minute = person_hourly_rate / 60. Redeemable against treasury only.
+    person_enabled: bool = False          # Flip to True when treasury funded
+    person_hourly_rate: float = 7.25      # USD/hr — default US federal min wage
+    person_currency: str = "USD"          # Currency for 웃 payouts
 
     # Cloudflare deployment
     behind_cloudflare: bool = False          # Enable CF-Connecting-IP extraction

@@ -204,9 +204,9 @@ async def get_outcome_metrics(
     Metrics:
       - clean_transcript_ratio_pct: % with no PII and no profanity
       - pii_detection_rate_pct: % of voice transcripts with PII detected
-      - total_si_tokens_distributed: Total ♡ from voice submissions
-      - total_ai_tokens_distributed: Total ◬ from voice submissions
-      - avg_si_per_voice_response: Average ♡ per voice submission
+      - total_heart_tokens_distributed: Total ♡ from voice submissions
+      - total_triangle_tokens_distributed: Total ◬ from voice submissions
+      - avg_heart_per_voice_response: Average ♡ per voice submission
       - stt_provider_success_rates: Success rate per provider
     """
     # Clean vs flagged ratio (from TextResponse linked to voice ResponseMeta)
@@ -238,8 +238,8 @@ async def get_outcome_metrics(
     # Token distribution from Cube 3 time entries
     token_result = await db.execute(
         select(
-            func.sum(TimeEntry.si_tokens_earned).label("total_si"),
-            func.sum(TimeEntry.ai_tokens_earned).label("total_ai"),
+            func.sum(TimeEntry.heart_tokens_earned).label("total_heart"),
+            func.sum(TimeEntry.triangle_tokens_earned).label("total_triangle"),
             func.count(TimeEntry.id).label("entry_count"),
         ).where(
             TimeEntry.session_id == session_id,
@@ -248,17 +248,17 @@ async def get_outcome_metrics(
         )
     )
     t_row = token_result.one()
-    total_si = float(t_row.total_si or 0)
-    total_ai = float(t_row.total_ai or 0)
+    total_heart = float(t_row.total_heart or 0)
+    total_triangle = float(t_row.total_triangle or 0)
     entry_count = t_row.entry_count or 0
-    avg_si = total_si / entry_count if entry_count > 0 else 0.0
+    avg_heart = total_heart / entry_count if entry_count > 0 else 0.0
 
     return {
         "clean_transcript_ratio_pct": round(clean_ratio, 2),
         "pii_detection_rate_pct": round(pii_rate, 2),
-        "total_si_tokens_distributed": round(total_si, 4),
-        "total_ai_tokens_distributed": round(total_ai, 4),
-        "avg_si_per_voice_response": round(avg_si, 4),
+        "total_heart_tokens_distributed": round(total_heart, 4),
+        "total_triangle_tokens_distributed": round(total_triangle, 4),
+        "avg_heart_per_voice_response": round(avg_heart, 4),
     }
 
 

@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user
 from app.core.dependencies import get_db
-from app.core.hi_rates import get_all_rates, resolve_hi_rate
+from app.core.hi_rates import get_all_rates, resolve_person_rate
 from app.core.permissions import require_role
 from app.cubes.cube8_tokens import service
 from app.schemas.token import TokenDisputeCreate, TokenDisputeRead, TokenLedgerRead
@@ -50,22 +50,22 @@ async def create_token_dispute(
 
 
 @router.get("/tokens/rates")
-async def get_hi_rates():
+async def get_person_rates():
     """Get all 웃 rates by country/state ($/hr minimum wage table)."""
     return get_all_rates()
 
 
 @router.get("/tokens/rates/lookup")
-async def lookup_hi_rate(
+async def lookup_person_rate(
     country: str = Query("United States", description="Country name"),
     state: str | None = Query(None, description="State/province (US only)"),
 ):
     """Look up 웃 rate for a specific jurisdiction."""
-    rate = resolve_hi_rate(country, state)
+    rate = resolve_person_rate(country, state)
     return {
         "country": country,
         "state": state,
-        "hi_rate": rate,
+        "person_rate": rate,
         "currency": "USD",
         "per_minute": round(rate / 60.0, 4),
     }

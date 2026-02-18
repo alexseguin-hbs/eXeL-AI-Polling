@@ -370,7 +370,7 @@ async def join_session(
     await db.commit()
     await db.refresh(participant)
 
-    # Auto-create login time entry → awards default ♡ SI + ◬ AI tokens
+    # Auto-create login time entry → awards default ♡ + ◬ tokens
     await create_login_time_entry(
         db,
         session_id=session.id,

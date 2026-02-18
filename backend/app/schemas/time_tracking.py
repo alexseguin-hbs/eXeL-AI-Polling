@@ -23,9 +23,9 @@ class TimeEntryRead(BaseModel):
     started_at: datetime
     stopped_at: datetime | None
     duration_seconds: float | None
-    si_tokens_earned: float = Field(serialization_alias="♡")
-    hi_tokens_earned: float = Field(serialization_alias="웃")
-    ai_tokens_earned: float = Field(serialization_alias="◬")
+    heart_tokens_earned: float = Field(serialization_alias="♡")
+    person_tokens_earned: float = Field(serialization_alias="웃")
+    triangle_tokens_earned: float = Field(serialization_alias="◬")
 
     model_config = {"from_attributes": True, "populate_by_name": True}
 
@@ -34,9 +34,9 @@ class ParticipantTimeSummary(BaseModel):
     participant_id: uuid.UUID
     session_id: uuid.UUID
     total_active_seconds: float
-    total_si_tokens: float = Field(serialization_alias="♡")
-    total_hi_tokens: float = Field(serialization_alias="웃")
-    total_ai_tokens: float = Field(serialization_alias="◬")
+    total_heart_tokens: float = Field(serialization_alias="♡")
+    total_person_tokens: float = Field(serialization_alias="웃")
+    total_triangle_tokens: float = Field(serialization_alias="◬")
     entries: list[TimeEntryRead]
 
     model_config = {"populate_by_name": True}

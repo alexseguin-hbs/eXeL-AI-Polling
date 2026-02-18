@@ -37,9 +37,9 @@ export const ADMIN_EMAIL = "explore@eXeL-AI.com";
 // ─── Translation keys organized per cube ─────────────────────────
 
 const shared: TranslationEntry[] = [
-  { key: "shared.tokens.heart", englishDefault: "♡ (SI Tokens)", context: "SI token label", cubeId: 0 },
-  { key: "shared.tokens.triangle", englishDefault: "◬ (AI Tokens)", context: "AI token label", cubeId: 0 },
-  { key: "shared.tokens.person", englishDefault: "웃 (HI Tokens)", context: "HI token label", cubeId: 0 },
+  { key: "shared.tokens.heart", englishDefault: "♡ Tokens", context: "♡ token label", cubeId: 0 },
+  { key: "shared.tokens.triangle", englishDefault: "◬ Tokens", context: "◬ token label", cubeId: 0 },
+  { key: "shared.tokens.person", englishDefault: "웃 Tokens", context: "웃 token label", cubeId: 0 },
   { key: "shared.feedback.button", englishDefault: "Give Feedback", context: "Persistent feedback button", cubeId: 0 },
   { key: "shared.feedback.placeholder", englishDefault: "Tell us what you think...", context: "Feedback textarea placeholder", cubeId: 0 },
   { key: "shared.feedback.submit", englishDefault: "Submit Feedback", context: "Submit feedback button", cubeId: 0 },
@@ -198,9 +198,9 @@ const cube7: TranslationEntry[] = [
 
 const cube8: TranslationEntry[] = [
   { key: "cube8.tokens.balance", englishDefault: "Token Balance", context: "Balance heading", cubeId: 8 },
-  { key: "cube8.tokens.heart_total", englishDefault: "Total ♡", context: "SI total label", cubeId: 8 },
-  { key: "cube8.tokens.triangle_total", englishDefault: "Total ◬", context: "AI total label", cubeId: 8 },
-  { key: "cube8.tokens.person_total", englishDefault: "Total 웃", context: "HI total label", cubeId: 8 },
+  { key: "cube8.tokens.heart_total", englishDefault: "Total ♡", context: "♡ total label", cubeId: 8 },
+  { key: "cube8.tokens.triangle_total", englishDefault: "Total ◬", context: "◬ total label", cubeId: 8 },
+  { key: "cube8.tokens.person_total", englishDefault: "Total 웃", context: "웃 total label", cubeId: 8 },
   { key: "cube8.tokens.ledger", englishDefault: "Token Ledger", context: "Ledger view heading", cubeId: 8 },
   { key: "cube8.tokens.pending", englishDefault: "Pending", context: "Lifecycle state label", cubeId: 8 },
   { key: "cube8.tokens.approved", englishDefault: "Approved", context: "Lifecycle state label", cubeId: 8 },

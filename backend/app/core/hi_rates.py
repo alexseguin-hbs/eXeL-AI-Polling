@@ -3,12 +3,12 @@
 Default: Austin, Texas = $7.25/hr (US federal minimum wage).
 
 Vision: pay out 웃 globally at local minimum wage to leverage global talent.
-When hi_enabled=True, each participant earns 웃 based on their jurisdiction.
-Rate lookup: resolve_hi_rate(country, state) → $/hr.
+When person_enabled=True, each participant earns 웃 based on their jurisdiction.
+Rate lookup: resolve_person_rate(country, state) → $/hr.
 """
 
 # Default fallback rate (US federal / Texas)
-DEFAULT_HI_RATE = 7.25
+DEFAULT_PERSON_RATE = 7.25
 DEFAULT_COUNTRY = "United States"
 DEFAULT_STATE = "Texas"
 
@@ -86,7 +86,7 @@ _US_STATE_RATES: dict[str, float] = {
 }
 
 
-def resolve_hi_rate(
+def resolve_person_rate(
     country: str | None = None,
     state: str | None = None,
 ) -> float:
@@ -95,12 +95,12 @@ def resolve_hi_rate(
     Lookup order:
       1. US + state → _US_STATE_RATES
       2. Country → _COUNTRY_RATES
-      3. Fallback → DEFAULT_HI_RATE ($7.25)
+      3. Fallback → DEFAULT_PERSON_RATE ($7.25)
     """
     if country and country.lower() in ("us", "usa", "united states"):
         if state and state.title() in _US_STATE_RATES:
             return _US_STATE_RATES[state.title()]
-        return DEFAULT_HI_RATE  # US without recognized state → federal
+        return DEFAULT_PERSON_RATE  # US without recognized state → federal
 
     if country:
         # Try exact match, then title-case match
@@ -108,7 +108,7 @@ def resolve_hi_rate(
         if rate is not None:
             return rate
 
-    return DEFAULT_HI_RATE
+    return DEFAULT_PERSON_RATE
 
 
 def get_all_rates() -> list[dict]:
@@ -119,7 +119,7 @@ def get_all_rates() -> list[dict]:
         rates.append({
             "country": country,
             "state": None,
-            "hi_rate": rate,
+            "person_rate": rate,
             "currency": "USD",
         })
 
@@ -127,7 +127,7 @@ def get_all_rates() -> list[dict]:
         rates.append({
             "country": "United States",
             "state": state,
-            "hi_rate": rate,
+            "person_rate": rate,
             "currency": "USD",
         })
 

@@ -41,8 +41,8 @@ class ResponseRead(BaseModel):
     clean_text: str | None = None
 
     # Immediate token display after submission (♡ and ◬)
-    si_tokens_earned: float = Field(default=0.0, serialization_alias="\u2661")
-    ai_tokens_earned: float = Field(default=0.0, serialization_alias="\u25ec")
+    heart_tokens_earned: float = Field(default=0.0, serialization_alias="\u2661")
+    triangle_tokens_earned: float = Field(default=0.0, serialization_alias="\u25ec")
 
     model_config = {"from_attributes": True, "populate_by_name": True}
 

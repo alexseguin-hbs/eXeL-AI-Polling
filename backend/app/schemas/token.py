@@ -10,9 +10,9 @@ class TokenLedgerRead(BaseModel):
     user_id: str | None
     cube_id: str | None
     action_type: str
-    delta_si: float = Field(serialization_alias="♡")
-    delta_hi: float = Field(serialization_alias="웃")
-    delta_ai: float = Field(serialization_alias="◬")
+    delta_heart: float = Field(serialization_alias="♡")
+    delta_person: float = Field(serialization_alias="웃")
+    delta_triangle: float = Field(serialization_alias="◬")
     lifecycle_state: str
     reason: str | None
     created_at: datetime

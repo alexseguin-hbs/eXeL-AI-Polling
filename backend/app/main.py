@@ -42,7 +42,7 @@ openapi_tags = [
     {"name": "Cube 5 — Gateway", "description": "Time tracking, orchestration, token calculation"},
     {"name": "Cube 6 — AI Theming", "description": "Embeddings, marble sampling, theme clustering"},
     {"name": "Cube 7 — Ranking", "description": "Voting, aggregation, governance compression"},
-    {"name": "Cube 8 — Tokens", "description": "SoI Trinity token ledger, HI rates, disputes"},
+    {"name": "Cube 8 — Tokens", "description": "SoI Trinity token ledger, 웃 rates, disputes"},
     {"name": "Cube 9 — Reports", "description": "CSV/PDF export, analytics, insights"},
 ]
 
