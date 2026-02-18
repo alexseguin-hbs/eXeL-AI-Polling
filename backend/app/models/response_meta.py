@@ -18,8 +18,9 @@ class ResponseMeta(Base):
         UUID(as_uuid=True), ForeignKey("questions.id"), nullable=False
     )
     cycle_id: Mapped[int] = mapped_column(Integer, default=1)
-    participant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("participants.id"), nullable=False
+    # CRS-05: nullable for anonymous mode — anon_hash stored in MongoDB instead
+    participant_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("participants.id"), nullable=True
     )
     source: Mapped[str] = mapped_column(String(20), default="text")
     mongo_ref: Mapped[str] = mapped_column(String(64), nullable=False)

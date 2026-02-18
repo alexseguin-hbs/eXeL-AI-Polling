@@ -30,7 +30,7 @@ class ResponseRead(BaseModel):
     id: uuid.UUID
     session_id: uuid.UUID
     question_id: uuid.UUID
-    participant_id: uuid.UUID
+    participant_id: uuid.UUID | None = None  # CRS-05: None in anonymous mode
     source: str
     char_count: int
     language_code: str
@@ -69,7 +69,7 @@ class ResponseListItem(BaseModel):
     id: uuid.UUID
     session_id: uuid.UUID
     question_id: uuid.UUID
-    participant_id: uuid.UUID
+    participant_id: uuid.UUID | None = None  # CRS-05: None in anonymous mode
     source: str
     char_count: int
     language_code: str

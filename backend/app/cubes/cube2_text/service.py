@@ -302,6 +302,35 @@ def scrub_profanity(text: str, matches: list[dict]) -> str:
 
 
 # ---------------------------------------------------------------------------
+# 3b. Anonymization (CRS-05)
+# ---------------------------------------------------------------------------
+
+
+def anonymize_response(
+    participant_id: uuid.UUID,
+    anonymity_mode: str,
+) -> tuple[uuid.UUID | None, str | None]:
+    """CRS-05: Anonymize participant identity when session is anonymous.
+
+    Returns (effective_participant_id, anon_hash).
+    - identified: (participant_id, None)
+    - anonymous: (None, SHA-256 hash prefix)
+    - pseudonymous: (participant_id, SHA-256 hash prefix)
+    """
+    import hashlib
+
+    if anonymity_mode == "identified":
+        return participant_id, None
+
+    anon_hash = hashlib.sha256(str(participant_id).encode()).hexdigest()[:16]
+
+    if anonymity_mode == "anonymous":
+        return None, anon_hash
+    else:  # pseudonymous
+        return participant_id, anon_hash
+
+
+# ---------------------------------------------------------------------------
 # 4. Storage
 # ---------------------------------------------------------------------------
 
@@ -312,11 +341,12 @@ async def store_response(
     *,
     session_id: uuid.UUID,
     question_id: uuid.UUID,
-    participant_id: uuid.UUID,
+    participant_id: uuid.UUID | None,
     cycle_id: int,
     raw_text: str,
     language_code: str,
     is_anonymous: bool,
+    anon_hash: str | None,
     pii_detected: bool,
     pii_types: list[dict] | None,
     pii_scrubbed_text: str | None,
@@ -326,19 +356,24 @@ async def store_response(
 ) -> ResponseMeta:
     """Store response in MongoDB (raw) + Postgres (ResponseMeta + TextResponse).
 
+    CRS-05: In anonymous mode, participant_id is None and anon_hash is stored.
     Returns the ResponseMeta record with linked TextResponse.
     """
     now = datetime.now(timezone.utc)
 
     # --- MongoDB: raw text storage ---
-    mongo_doc = {
+    mongo_doc: dict[str, Any] = {
         "session_id": str(session_id),
         "question_id": str(question_id),
-        "participant_id": str(participant_id),
         "raw_text": raw_text,
         "language_code": language_code,
         "submitted_at": now,
     }
+    # CRS-05: Store participant_id or anon_hash based on anonymity mode
+    if participant_id is not None:
+        mongo_doc["participant_id"] = str(participant_id)
+    if anon_hash is not None:
+        mongo_doc["anon_hash"] = anon_hash
     mongo_result = await mongo.responses.insert_one(mongo_doc)
     mongo_ref = str(mongo_result.inserted_id)
 
@@ -478,17 +513,19 @@ async def submit_text_response(
         for m in profanity_matches
     ] if profanity_detected else None
 
-    # --- 6. Store ---
+    # --- 6. Anonymize + Store (CRS-05) ---
     is_anonymous = session.anonymity_mode == "anonymous"
+    effective_pid, anon_hash = anonymize_response(participant_id, session.anonymity_mode)
     response_meta = await store_response(
         db, mongo,
         session_id=session_id,
         question_id=question_id,
-        participant_id=participant_id,
+        participant_id=effective_pid,
         cycle_id=session.current_cycle,
         raw_text=text,
         language_code=language_code,
         is_anonymous=is_anonymous,
+        anon_hash=anon_hash,
         pii_detected=pii_detected,
         pii_types=pii_types_safe,
         pii_scrubbed_text=pii_scrubbed if pii_detected else None,
