@@ -56,6 +56,8 @@ function TokenEarnOverlay({ visible }: { visible: boolean }) {
 export function SessionView() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("id") || "";
+  const participantId = searchParams.get("pid") || "";
+  const languageCode = searchParams.get("lang") || "en";
 
   const [session, setSession] = useState<Session | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -150,14 +152,21 @@ export function SessionView() {
 
     setSubmitting(true);
     try {
-      await api.submitTextResponse(sessionId, currentQuestion.id, responseText.trim());
+      const result = await api.submitTextResponse(
+        sessionId,
+        currentQuestion.id,
+        participantId,
+        responseText.trim(),
+        languageCode,
+      );
 
       // Mark question as submitted
       setSubmittedQuestions((prev) => new Set(prev).add(currentQuestion.id));
       setResponseText("");
 
-      // Token earn animation
-      earnTokens(1);
+      // Token earn animation — use server-reported values when available
+      const heartsEarned = result?.heart_tokens_earned ?? 1;
+      earnTokens(heartsEarned);
       setShowTokenEarn(true);
       setTimeout(() => setShowTokenEarn(false), 1200);
 
@@ -180,7 +189,7 @@ export function SessionView() {
     } finally {
       setSubmitting(false);
     }
-  }, [responseText, questions, currentQuestionIndex, sessionId, earnTokens]);
+  }, [responseText, questions, currentQuestionIndex, sessionId, participantId, languageCode, earnTokens]);
 
   if (loading) {
     return (

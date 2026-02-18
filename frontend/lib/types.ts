@@ -104,6 +104,25 @@ export interface SessionJoinResponse {
   custom_accent_color: string | null;
 }
 
+// Cube 2 — Text response returned after submission (matches backend ResponseRead)
+export interface TextResponseRead {
+  id: string;
+  session_id: string;
+  question_id: string;
+  participant_id: string;
+  source: string;
+  char_count: number;
+  language_code: string;
+  submitted_at: string;
+  is_flagged: boolean;
+  pii_detected: boolean;
+  profanity_detected: boolean;
+  clean_text: string | null;
+  heart_tokens_earned: number;
+  unity_tokens_earned: number;
+  response_hash: string | null;
+}
+
 export interface ApiError {
   detail: string;
   status: number;

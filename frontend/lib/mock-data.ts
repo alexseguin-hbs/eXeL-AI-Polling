@@ -301,7 +301,24 @@ export function handleMockRequest<T>(
     /^\/sessions\/([0-9a-f-]{36})\/responses$/
   );
   if (method === "POST" && responseMatch) {
-    return { id: generateId(), status: "submitted" } as T;
+    const payload = body as Record<string, unknown>;
+    return {
+      id: generateId(),
+      session_id: responseMatch[1],
+      question_id: (payload?.question_id as string) || generateId(),
+      participant_id: (payload?.participant_id as string) || generateId(),
+      source: "text",
+      char_count: ((payload?.raw_text as string) || "").length,
+      language_code: (payload?.language_code as string) || "en",
+      submitted_at: new Date().toISOString(),
+      is_flagged: false,
+      pii_detected: false,
+      profanity_detected: false,
+      clean_text: (payload?.raw_text as string) || "",
+      heart_tokens_earned: 1,
+      unity_tokens_earned: 5,
+      response_hash: null,
+    } as T;
   }
 
   // State transitions: open, poll, rank, close, archive

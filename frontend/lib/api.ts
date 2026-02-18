@@ -146,10 +146,25 @@ export const api = {
     request<T>("DELETE", path, options),
 
   // ── Convenience methods ──────────────────────────────────────
-  submitTextResponse: (sessionId: string, questionId: string, text: string) =>
-    request<{ id: string; status: string }>("POST", `/sessions/${sessionId}/responses`, {
-      body: { question_id: questionId, response_text: text },
-    }),
+  submitTextResponse: (
+    sessionId: string,
+    questionId: string,
+    participantId: string,
+    text: string,
+    languageCode: string = "en",
+  ) =>
+    request<import("./types").TextResponseRead>(
+      "POST",
+      `/sessions/${sessionId}/responses`,
+      {
+        body: {
+          question_id: questionId,
+          participant_id: participantId,
+          raw_text: text,
+          language_code: languageCode,
+        },
+      },
+    ),
 
   getSessionQuestions: (sessionId: string) =>
     request<Array<{ id: string; question_text: string; question_number: number; is_active: boolean; created_at: string }>>(
