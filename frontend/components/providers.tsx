@@ -26,7 +26,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       clientId={AUTH0_CLIENT_ID}
       authorizationParams={{
         redirect_uri: AUTH0_REDIRECT_URI,
-        audience: AUTH0_AUDIENCE,
+        ...(AUTH0_AUDIENCE ? { audience: AUTH0_AUDIENCE } : {}),
         scope: "openid profile email",
       }}
       cacheLocation="localstorage"

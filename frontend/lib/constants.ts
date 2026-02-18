@@ -1,7 +1,10 @@
-// Auth0 configuration — reads from environment variables
-export const AUTH0_DOMAIN = process.env.NEXT_PUBLIC_AUTH0_DOMAIN || "";
-export const AUTH0_CLIENT_ID = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || "";
-export const AUTH0_AUDIENCE = process.env.NEXT_PUBLIC_AUTH0_AUDIENCE || "";
+// Auth0 configuration — public values (not secrets, exposed in browser)
+export const AUTH0_DOMAIN =
+  process.env.NEXT_PUBLIC_AUTH0_DOMAIN || "exel-ai-polling.us.auth0.com";
+export const AUTH0_CLIENT_ID =
+  process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || "H8wuT6P2nfm87bvbRjaegoOliLyhPw4K";
+export const AUTH0_AUDIENCE =
+  process.env.NEXT_PUBLIC_AUTH0_AUDIENCE || "";
 export const AUTH0_REDIRECT_URI =
   typeof window !== "undefined"
     ? `${window.location.origin}/callback/`
