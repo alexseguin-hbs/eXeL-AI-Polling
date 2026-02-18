@@ -270,7 +270,7 @@ function DashboardContent() {
                   key={session.id}
                   className="cursor-pointer transition-colors hover:bg-card/80"
                   onClick={() =>
-                    router.push(`/session/${session.id}/`)
+                    router.push(`/session/?id=${session.id}`)
                   }
                 >
                   <CardContent className="flex items-center gap-4 p-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   Loader2,
   Users,
@@ -26,9 +26,9 @@ import { PRESENCE_POLL_INTERVAL } from "@/lib/constants";
 import type { Session, Question } from "@/lib/types";
 
 export function SessionView() {
-  const pathname = usePathname();
-  // Extract session ID from URL path: /session/abc-123/ → abc-123
-  const sessionId = pathname?.split("/").filter(Boolean)[1] || "";
+  const searchParams = useSearchParams();
+  // Read session ID from query param: /session/?id=abc-123
+  const sessionId = searchParams.get("id") || "";
 
   const [session, setSession] = useState<Session | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);

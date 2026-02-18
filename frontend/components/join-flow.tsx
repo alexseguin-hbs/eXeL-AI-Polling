@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, ArrowRight, ArrowLeft, Globe, UserIcon, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,10 +16,10 @@ import type { Session, SessionJoinResponse } from "@/lib/types";
 type JoinStep = "language" | "identity" | "results" | "joining";
 
 export function JoinFlow() {
-  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  // Extract code from URL path: /join/ABCD1234/ → ABCD1234
-  const code = pathname?.split("/").filter(Boolean)[1]?.toUpperCase() || "";
+  // Read code from query param: /join/?code=ABCD1234
+  const code = searchParams.get("code")?.toUpperCase() || "";
 
   const [step, setStep] = useState<JoinStep>("language");
   const [session, setSession] = useState<Session | null>(null);
@@ -66,7 +66,7 @@ export function JoinFlow() {
           results_opt_in: resultsOptIn,
         }
       );
-      router.push(`/session/${response.session_id}/`);
+      router.push(`/session/?id=${response.session_id}`);
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({

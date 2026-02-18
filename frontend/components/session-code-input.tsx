@@ -23,8 +23,8 @@ export function SessionCodeInput() {
       }
       setError("");
       setLoading(true);
-      // Navigate to join flow — the join page will validate the code via API
-      router.push(`/join/${trimmed}/`);
+      // Navigate to join flow — the join page reads code from query param
+      router.push(`/join/?code=${trimmed}`);
     },
     [code, router]
   );
