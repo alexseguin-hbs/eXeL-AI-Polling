@@ -169,24 +169,34 @@ All clustering and ranking operations must be fully reproducible:
 - **Scaffold all Cubes 1-9 first,** then implement cube by cube
 - **Cube grid (3x3x3):**
   ```
-  Level 1 (Base Layer) — positions are (Level, Row, Col):
+  Level 1 (Base Layer):
 
-         Col 1                Col 2                Col 3
-  Row 1: Cube 7 Ranking       Cube 8 Tokens        Cube 9 Reports
-         (1,1,1)              (1,1,2)              (1,1,3)
+  ●─────●─────●─────●
+  │  9  │  2  │  3  │
+  ●─────●─────●─────●
+  │  8  │  1  │  4  │
+  ●─────●─────●─────●
+  │  7  │  6  │  5  │
+  ●─────●─────●─────●
 
-  Row 2: Cube 6 AI            Cube 1 Session       Cube 2 Text
-         (1,2,1)              (1,2,2) ← CENTER     (1,2,3)
+  9=Reports  2=Text      3=Voice
+  8=Tokens   1=Session   4=Collector
+  7=Ranking  6=AI        5=Gateway
 
-  Row 3: Cube 5 Gateway       Cube 4 Collector     Cube 3 Voice
-         (1,3,1)              (1,3,2)              (1,3,3)
+  Level 2 — Cube 10 Simulation at center:
 
-  Level 2 — Cube 10 Simulation at (2,2,2) — center of full 3x3x3
+  ●─────●─────●─────●
+  │ --  │ --  │ --  │
+  ●─────●─────●─────●
+  │ --  │ 10  │ --  │
+  ●─────●─────●─────●
+  │ --  │ --  │ --  │
+  ●─────●─────●─────●
   ```
 - **Implementation order (clockwise spiral from center):**
   1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
-  (center → right → bottom-right → bottom → bottom-left → left → top-left → top → top-right)
-- **Cube 10** (2,2,2) is Level 2, implemented after Layer 1 is complete
+  (center → top → top-right → right → bottom-right → bottom → bottom-left → left → top-left)
+- **Cube 10** is Level 2 center, implemented after Layer 1 is complete
 - **MVP phases:** MVP1 (working prototype) → MVP2 (usability/intelligence) → MVP3 (governance/monetization)
 
 ## Cube Architecture Overview

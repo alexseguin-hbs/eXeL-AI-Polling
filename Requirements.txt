@@ -2130,9 +2130,38 @@ The following technology choices were confirmed during project setup:
 
 ### Build Approach
 - **Scaffold all Cubes 1-9,** then implement cube by cube
-- **Cube 1 (Session) is built FIRST** — center of Level 1 at position (1,2,2)
+- **Cube 1 (Session) is built FIRST** — center of Level 1
+- **Cube grid (3x3x3):**
+
+  ```
+  Level 1 (Base Layer):
+
+  ●─────●─────●─────●
+  │  9  │  2  │  3  │
+  ●─────●─────●─────●
+  │  8  │  1  │  4  │
+  ●─────●─────●─────●
+  │  7  │  6  │  5  │
+  ●─────●─────●─────●
+
+  9=Reports  2=Text      3=Voice
+  8=Tokens   1=Session   4=Collector
+  7=Ranking  6=AI        5=Gateway
+
+  Level 2 — Cube 10 Simulation at center:
+
+  ●─────●─────●─────●
+  │ --  │ --  │ --  │
+  ●─────●─────●─────●
+  │ --  │ 10  │ --  │
+  ●─────●─────●─────●
+  │ --  │ --  │ --  │
+  ●─────●─────●─────●
+  ```
+
 - **Implementation order (clockwise spiral from center):** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
-- **Cube 10** (2,2,2) is Level 2, implemented after Layer 1 is complete
+  (center → top → top-right → right → bottom-right → bottom → bottom-left → left → top-left)
+- **Cube 10** is Level 2 center, implemented after Layer 1 is complete
 
 ### Time Tracking (Built into Cube 5 from Day 1)
 - Track **active participation time** per user per session
