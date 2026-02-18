@@ -104,7 +104,7 @@ export function generateCustomTheme(accentHex: string): ThemePreset {
 export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "exel-cyan",
-    name: "eXeL Cyan",
+    name: "\u25EC Cyan",
     swatch: "#19C8CF",
     colors: {
       background: "213 29% 6%",

@@ -424,7 +424,7 @@ Track and optimize for:
 ### Frontend — Moderator Settings Panel: IMPLEMENTED
 - Slide-over panel with session-cascading theme customizer, interface language selector, Language Lexicon
 - **Session Color Scheme (3x3 grid):** 8 presets + 1 custom accent picker = 9 options
-  - Branded presets: **eXeL Cyan** (brand), **웃 Violet** (H.I. symbol), **♡ Sunset** (S.I. symbol)
+  - Branded presets: **◬ Cyan** (A.I. symbol), **웃 Violet** (H.I. symbol), **♡ Sunset** (S.I. symbol)
   - Additional presets: Ocean Blue, Emerald, Red, Indigo, Coral
   - Custom: Color picker for any accent color (dark background stays fixed)
 - **Session-level cascade:** Moderator's theme choice applies to ALL participants in the session
