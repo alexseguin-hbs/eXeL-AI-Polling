@@ -169,41 +169,38 @@ All clustering and ranking operations must be fully reproducible:
 - **Scaffold all Cubes 1-9 first,** then implement cube by cube
 - **SoI Trinity — Three Intelligences, One Governance Engine:**
   ```
-  A.I.                    S.I.                    H.I.
-        ╔═══════╗            ╔═══════╗            ╔═══════╗
-        ║   ◬   ║            ║   ♡   ║            ║   웃   ║
-        ╚═══════╝            ╚═══════╝            ╚═══════╝
-        Artificial            Shared               Human
-        Intelligence          Intent               Intelligence
-            ╲                    │                    ╱
-             ╲                   │                   ╱
-              ╲                  │                  ╱
-  ```
-- **Cube grid (3x3x3):**
-  ```
-  Level 1 (Base Layer):
+               A.I.           S.I.         H.I.
+             ╔═══════╗     ╔═══════╗     ╔═══════╗
+             ║   ◬   ║     ║   ♡   ║     ║   웃   ║
+             ╚═══════╝     ╚═══════╝     ╚═══════╝
+            Artificial      Shared           Human
+           Intelligence     Intent     Intelligence
+                  ╲            │            ╱
+                    ╲          │          ╱
+                      ╲        │        ╱
+                      ●─────●─────●─────●
+                      │  9  │  2  │  3  │
+                      ●─────●─────●─────●
+                      │  8  │  1  │  4  │
+                      ●─────●─────●─────●
+                      │  7  │  6  │  5  │
+                      ●─────●─────●─────●
 
-  ●─────●─────●─────●
-  │  9  │  2  │  3  │
-  ●─────●─────●─────●
-  │  8  │  1  │  4  │
-  ●─────●─────●─────●
-  │  7  │  6  │  5  │
-  ●─────●─────●─────●
+            9=Reports  2=Text      3=Voice
+            8=Tokens   1=Session   4=Collector
+            7=Ranking  6=AI        5=Gateway
 
-  9=Reports  2=Text      3=Voice
-  8=Tokens   1=Session   4=Collector
-  7=Ranking  6=AI        5=Gateway
+       "Show humanity you can modify your experiences."
 
   Level 2 — Cube 10 Simulation at center:
 
-  ●─────●─────●─────●
-  │ --  │ --  │ --  │
-  ●─────●─────●─────●
-  │ --  │ 10  │ --  │
-  ●─────●─────●─────●
-  │ --  │ --  │ --  │
-  ●─────●─────●─────●
+                      ●─────●─────●─────●
+                      │ --  │ --  │ --  │
+                      ●─────●─────●─────●
+                      │ --  │ 10  │ --  │
+                      ●─────●─────●─────●
+                      │ --  │ --  │ --  │
+                      ●─────●─────●─────●
   ```
 - **Implementation order (clockwise spiral from center):**
   1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
