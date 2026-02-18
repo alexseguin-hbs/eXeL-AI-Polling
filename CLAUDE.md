@@ -190,7 +190,7 @@ All clustering and ranking operations must be fully reproducible:
               8=Tokens   1=Session   4=Collector
               7=Ranking  6=AI        5=Gateway
 
-         "Show humanity you can modify your experiences."
+         "Where Shared Intention moves at the Speed of Thought."
 
   Level 2 — Cube 10 Simulation at center:
 
@@ -212,7 +212,7 @@ All clustering and ranking operations must be fully reproducible:
   - **Backward propagation (10→1):** Trace impact inward from Cube 10 back through all upstream cubes to Cube 1
   - **Every change must enhance metrics and outcomes** for a larger user base — never degrade
   - **Every change must increase modularity** to enhance user experience
-  - Guiding principle: **"Show humanity you can modify your experiences"**
+  - Guiding principle: **"Where Shared Intention moves at the Speed of Thought"**
 - **MVP phases:** MVP1 (working prototype) → MVP2 (usability/intelligence) → MVP3 (governance/monetization)
 
 ## Cube Architecture Overview
@@ -533,7 +533,72 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 - **Custom theme generation:** `generateCustomTheme(hex)` converts any hex accent to full HSL theme with consistent dark base
 - Files: `frontend/components/moderator-settings.tsx`, `frontend/lib/theme-context.tsx`, `frontend/components/providers.tsx`, `frontend/components/navbar.tsx`
 
-### Cubes 2–4, 6–7, 9–10: SCAFFOLDED (stubs only)
+### Cube 2 — Text Submission Handler: IMPLEMENTED (CRS-05→CRS-08 done; ~85% of full spec)
+
+**Code location:** `backend/app/cubes/cube2_text/` (modular, self-contained)
+
+#### Cube 2 — Implemented
+- **Text validation:** Unicode-aware length check, whitespace stripping, max_response_length from session
+- **PII detection:** Transformer NER (Davlan/xlm-roberta-large-ner-hrl) + regex fallback (email, phone, SSN, CC, IP)
+- **PII scrubbing:** [TYPE_REDACTED] placeholder replacement, position-preserving reverse processing
+- **Profanity detection:** DB-driven profanity_filters table by language_code, regex matching
+- **Profanity scrubbing:** Configured replacements, non-blocking (submission proceeds regardless)
+- **Dual storage:** MongoDB (raw text) + Postgres (ResponseMeta + TextResponse)
+- **Redis pub/sub:** Publishes `response_submitted` event for Cube 6 downstream consumption
+- **Time tracking:** Cube 5 integration — start on submit, stop on store, ♡/◬ tokens returned
+- **Anonymization (CRS-05):** `anonymize_response()` — anonymous (None pid + anon_hash), identified (pid preserved), pseudonymous (both)
+- **Language detection:** Unicode script-based sanity check for 13 non-Latin scripts, non-blocking
+- **Response integrity (CRS-08):** SHA-256 hash of raw text stored on TextResponse, returned in API
+- **Metrics:** System/User/Outcome metrics endpoints (submission latency, PII rate, token distribution)
+- **Security (CRS-05→CRS-08):**
+  - CRS-05: Anonymize participant identity based on session anonymity_mode
+  - CRS-06: `validate_session_for_submission()` enforces `status == "polling"`
+  - CRS-07: Full pipeline: validate → PII → profanity → store → publish, up to 5000 chars
+  - CRS-08: SHA-256 response_hash for integrity verification
+- **API endpoints:** 4 routes (submit, list, metrics, detail)
+- **Rate limiting:** 100/min on submit endpoint
+
+#### Cube 2 — CRS Traceability
+| CRS | Input ID | Output ID | Status | DTM Stretch Target |
+|-----|----------|-----------|--------|-------------------|
+| CRS-05 | CRS-05.IN.SRS.005 | CRS-05.OUT.SRS.005 | **Complete** | Post-session reveal opt-in |
+| CRS-06 | CRS-06.IN.SRS.006 | CRS-06.OUT.SRS.006 | **Complete** | Scheduled auto-open/close |
+| CRS-07 | CRS-07.IN.WRS.007 | CRS-07.OUT.WRS.007 | **Complete** | Rich text + autosave drafts |
+| CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Complete** (hash) | AES-256 encryption at rest |
+
+#### Cube 2 — Not Yet Implemented
+- **`push_to_live_feed()`** — WebSocket 33-word summary feed (requires Cube 6)
+- **Profanity seed data** for 33 languages (table ready, needs curated regex)
+- **AES-256 encryption at rest** — CRS-08 stretch target (response_hash covers integrity)
+- **`detect_language()` ML upgrade** — current Unicode heuristic is lightweight
+
+#### Cube 2 — Test Procedure (Cube 10 Simulator Reference)
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb=short
+```
+
+**Test Suite:** 2 files, 16 test classes, 62 tests
+
+| File | Classes | Tests | Coverage |
+|------|---------|-------|----------|
+| `test_text_service.py` | 10 | 32 | Unit tests (validation, PII, profanity, pub/sub, queries) |
+| `test_e2e_flows.py` | 6 | 30 | E2E flows (submission, PII, profanity, anonymization, CRS-08, language) |
+
+#### Cube 2 — Files
+| File | Lines | Purpose |
+|------|-------|---------|
+| `cubes/cube2_text/service.py` | 700+ | Core business logic (7 sections + anonymization + language detect) |
+| `cubes/cube2_text/router.py` | 105 | 4 API endpoints |
+| `cubes/cube2_text/metrics.py` | 262 | System/User/Outcome metrics for Cube 10 |
+| `models/text_response.py` | 50 | TextResponse ORM model (+ response_hash) |
+| `models/response_meta.py` | 35 | ResponseMeta ORM model (nullable participant_id) |
+| `schemas/response.py` | 95 | Pydantic schemas (ResponseCreate, ResponseRead, Detail, List) |
+| `tests/cube2/test_text_service.py` | 499 | 32 unit tests |
+| `tests/cube2/test_e2e_flows.py` | 716 | 30 E2E tests + CUBE2_TEST_METHOD |
+
+### Cubes 3–4, 6–7, 9–10: SCAFFOLDED (stubs only)
 - Models, schemas, and route stubs exist
 - Service implementations pending
 
