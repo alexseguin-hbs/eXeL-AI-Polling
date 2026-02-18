@@ -53,8 +53,8 @@ async def get_user_token_balance(
         "user_id": user_id,
         "session_id": session_id,
         "total_heart": sum(e.delta_heart for e in entries),
-        "total_person": sum(e.delta_person for e in entries),
-        "total_triangle": sum(e.delta_triangle for e in entries),
+        "total_human": sum(e.delta_human for e in entries),
+        "total_unity": sum(e.delta_unity for e in entries),
         "entry_count": len(entries),
     }
 

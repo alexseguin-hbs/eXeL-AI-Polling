@@ -44,8 +44,8 @@ class TimeEntry(Base):
 
     # SoI Trinity token earnings (calculated on stop)
     heart_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
-    person_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
-    triangle_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
+    human_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
+    unity_tokens_earned: Mapped[float] = mapped_column(Float, default=0.0)
 
     session = relationship("Session", back_populates="time_entries")
 

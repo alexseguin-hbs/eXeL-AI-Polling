@@ -42,7 +42,7 @@ class ResponseRead(BaseModel):
 
     # Immediate token display after submission (♡ and ◬)
     heart_tokens_earned: float = Field(default=0.0, serialization_alias="\u2661")
-    triangle_tokens_earned: float = Field(default=0.0, serialization_alias="\u25ec")
+    unity_tokens_earned: float = Field(default=0.0, serialization_alias="\u25ec")
 
     model_config = {"from_attributes": True, "populate_by_name": True}
 

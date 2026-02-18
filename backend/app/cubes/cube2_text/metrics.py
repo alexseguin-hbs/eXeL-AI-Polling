@@ -177,9 +177,9 @@ async def get_outcome_metrics(
       - clean_response_ratio: % of responses with no PII and no profanity
       - flagged_response_count: Responses manually flagged
       - total_heart_tokens_distributed: Total ♡ tokens from Cube 2 submissions
-      - total_triangle_tokens_distributed: Total ◬ tokens from Cube 2 submissions
+      - total_unity_tokens_distributed: Total ◬ tokens from Cube 2 submissions
       - avg_heart_per_response: Average ♡ per submission
-      - avg_triangle_per_response: Average ◬ per submission
+      - avg_unity_per_response: Average ◬ per submission
     """
     # Clean vs flagged ratio
     quality_result = await db.execute(
@@ -217,7 +217,7 @@ async def get_outcome_metrics(
     token_result = await db.execute(
         select(
             func.sum(TimeEntry.heart_tokens_earned).label("total_heart"),
-            func.sum(TimeEntry.triangle_tokens_earned).label("total_triangle"),
+            func.sum(TimeEntry.unity_tokens_earned).label("total_unity"),
             func.count(TimeEntry.id).label("entry_count"),
         ).where(
             TimeEntry.session_id == session_id,
@@ -227,18 +227,18 @@ async def get_outcome_metrics(
     )
     t_row = token_result.one()
     total_heart = float(t_row.total_heart or 0)
-    total_triangle = float(t_row.total_triangle or 0)
+    total_unity = float(t_row.total_unity or 0)
     entry_count = t_row.entry_count or 0
     avg_heart = total_heart / entry_count if entry_count > 0 else 0.0
-    avg_triangle = total_triangle / entry_count if entry_count > 0 else 0.0
+    avg_unity = total_unity / entry_count if entry_count > 0 else 0.0
 
     return {
         "clean_response_ratio_pct": round(clean_ratio, 2),
         "flagged_response_count": flagged_count,
         "total_heart_tokens_distributed": round(total_heart, 4),
-        "total_triangle_tokens_distributed": round(total_triangle, 4),
+        "total_unity_tokens_distributed": round(total_unity, 4),
         "avg_heart_per_response": round(avg_heart, 4),
-        "avg_triangle_per_response": round(avg_triangle, 4),
+        "avg_unity_per_response": round(avg_unity, 4),
     }
 
 

@@ -56,15 +56,15 @@ class Settings(BaseSettings):
 
     # Token defaults (SoI Trinity: ♡, 웃, ◬)
     login_heart_tokens: float = 1.0       # ♡ awarded on session join (1 min default)
-    triangle_heart_multiplier: float = 5.0  # ◬ = 5x ♡ as default
+    unity_heart_multiplier: float = 5.0  # ◬ = 5x ♡ as default
 
     # 웃 — compensated skilled time (global talent at local min wage)
-    # Set person_enabled=True + person_hourly_rate to activate. Rate anchored to
+    # Set human_enabled=True + human_hourly_rate to activate. Rate anchored to
     # jurisdiction minimum wage (e.g., Texas $7.25/hr, federal $7.25/hr).
-    # 웃 per minute = person_hourly_rate / 60. Redeemable against treasury only.
-    person_enabled: bool = False          # Flip to True when treasury funded
-    person_hourly_rate: float = 7.25      # USD/hr — default US federal min wage
-    person_currency: str = "USD"          # Currency for 웃 payouts
+    # 웃 per minute = human_hourly_rate / 60. Redeemable against treasury only.
+    human_enabled: bool = False          # Flip to True when treasury funded
+    human_hourly_rate: float = 7.25      # USD/hr — default US federal min wage
+    human_currency: str = "USD"          # Currency for 웃 payouts
 
     # Cloudflare deployment
     behind_cloudflare: bool = False          # Enable CF-Connecting-IP extraction

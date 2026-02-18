@@ -282,16 +282,16 @@ def make_time_entry(
     *,
     id: uuid.UUID | None = None,
     heart_tokens_earned: float = 0.0,
-    person_tokens_earned: float = 0.0,
-    triangle_tokens_earned: float = 0.0,
+    human_tokens_earned: float = 0.0,
+    unity_tokens_earned: float = 0.0,
     duration_seconds: float | None = None,
 ) -> MagicMock:
     """Create a mock TimeEntry object."""
     entry = MagicMock()
     entry.id = id or uuid.uuid4()
     entry.heart_tokens_earned = heart_tokens_earned
-    entry.person_tokens_earned = person_tokens_earned
-    entry.triangle_tokens_earned = triangle_tokens_earned
+    entry.human_tokens_earned = human_tokens_earned
+    entry.unity_tokens_earned = unity_tokens_earned
     entry.duration_seconds = duration_seconds
     entry.started_at = datetime.now(timezone.utc)
     entry.stopped_at = None
@@ -332,8 +332,8 @@ def make_token_ledger(
     id: uuid.UUID | None = None,
     session_id: uuid.UUID | None = None,
     delta_heart: float = 1.0,
-    delta_person: float = 0.0,
-    delta_triangle: float = 5.0,
+    delta_human: float = 0.0,
+    delta_unity: float = 5.0,
     lifecycle_state: str = "pending",
 ) -> MagicMock:
     """Create a mock TokenLedger object."""
@@ -345,8 +345,8 @@ def make_token_ledger(
     tl.cube_id = "cube5"
     tl.action_type = "responding"
     tl.delta_heart = delta_heart
-    tl.delta_person = delta_person
-    tl.delta_triangle = delta_triangle
+    tl.delta_human = delta_human
+    tl.delta_unity = delta_unity
     tl.lifecycle_state = lifecycle_state
     tl.reason = "test"
     tl.reference_id = None

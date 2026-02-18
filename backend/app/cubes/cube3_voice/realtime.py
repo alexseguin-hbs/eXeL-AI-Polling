@@ -308,7 +308,7 @@ async def handle_realtime_transcription(
             "profanity_detected": profanity_detected,
             "stt_provider": provider_name,
             "\u2661": time_entry.heart_tokens_earned,  # ♡
-            "\u25ec": time_entry.triangle_tokens_earned,  # ◬
+            "\u25ec": time_entry.unity_tokens_earned,  # ◬
         })
 
         logger.info(
@@ -318,7 +318,7 @@ async def handle_realtime_transcription(
             provider=provider_name,
             transcript_length=len(final_transcript),
             heart_tokens=time_entry.heart_tokens_earned,
-            triangle_tokens=time_entry.triangle_tokens_earned,
+            unity_tokens=time_entry.unity_tokens_earned,
         )
 
     except Exception as e:

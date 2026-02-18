@@ -404,7 +404,7 @@ async def submit_voice_response(
         time_entry_id=time_entry.id,
     )
     heart_earned = time_entry.heart_tokens_earned
-    triangle_earned = time_entry.triangle_tokens_earned
+    unity_earned = time_entry.unity_tokens_earned
 
     # --- 7. Publish Redis event ---
     await publish_submission_event(
@@ -425,7 +425,7 @@ async def submit_voice_response(
         pii_detected=pii_detected,
         profanity_detected=profanity_detected,
         heart_tokens=heart_earned,
-        triangle_tokens=triangle_earned,
+        unity_tokens=unity_earned,
     )
 
     return {
@@ -446,7 +446,7 @@ async def submit_voice_response(
         "profanity_detected": profanity_detected,
         "clean_text": clean_text,
         "heart_tokens_earned": heart_earned,
-        "triangle_tokens_earned": triangle_earned,
+        "unity_tokens_earned": unity_earned,
     }
 
 

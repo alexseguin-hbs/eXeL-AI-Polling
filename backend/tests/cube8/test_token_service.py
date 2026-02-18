@@ -5,7 +5,7 @@ Tests:
   - User token balance aggregation
   - Token dispute creation
   - Dispute for non-existent ledger entry
-  - 웃 rate table: resolve_person_rate, get_all_rates
+  - 웃 rate table: resolve_human_rate, get_all_rates
   - Rate lookup for all jurisdictions
 """
 
@@ -60,9 +60,9 @@ class TestGetUserTokenBalance:
     @pytest.mark.asyncio
     async def test_aggregates_balance(self):
         """Should sum ♡/웃/◬ across all qualifying entries."""
-        e1 = make_token_ledger(delta_heart=1.0, delta_person=0.0, delta_triangle=5.0, lifecycle_state="pending")
-        e2 = make_token_ledger(delta_heart=3.0, delta_person=0.5, delta_triangle=15.0, lifecycle_state="approved")
-        e3 = make_token_ledger(delta_heart=2.0, delta_person=0.0, delta_triangle=10.0, lifecycle_state="finalized")
+        e1 = make_token_ledger(delta_heart=1.0, delta_human=0.0, delta_unity=5.0, lifecycle_state="pending")
+        e2 = make_token_ledger(delta_heart=3.0, delta_human=0.5, delta_unity=15.0, lifecycle_state="approved")
+        e3 = make_token_ledger(delta_heart=2.0, delta_human=0.0, delta_unity=10.0, lifecycle_state="finalized")
 
         mock_db = AsyncMock()
         mock_result = MagicMock()
@@ -73,8 +73,8 @@ class TestGetUserTokenBalance:
         result = await get_user_token_balance(mock_db, uuid.uuid4(), "auth0|user_001")
 
         assert result["total_heart"] == 6.0
-        assert result["total_person"] == 0.5
-        assert result["total_triangle"] == 30.0
+        assert result["total_human"] == 0.5
+        assert result["total_unity"] == 30.0
         assert result["entry_count"] == 3
 
     @pytest.mark.asyncio
@@ -89,8 +89,8 @@ class TestGetUserTokenBalance:
         result = await get_user_token_balance(mock_db, uuid.uuid4(), "auth0|user_001")
 
         assert result["total_heart"] == 0
-        assert result["total_person"] == 0
-        assert result["total_triangle"] == 0
+        assert result["total_human"] == 0
+        assert result["total_unity"] == 0
         assert result["entry_count"] == 0
 
 
@@ -149,59 +149,59 @@ class TestCreateDispute:
 # ---------------------------------------------------------------------------
 
 
-class TestResolvePersonRate:
+class TestResolveHumanRate:
     def test_us_texas_default(self):
         """Texas should return $7.25/hr."""
-        from app.core.hi_rates import resolve_person_rate
-        rate = resolve_person_rate("US", "Texas")
+        from app.core.hi_rates import resolve_human_rate
+        rate = resolve_human_rate("US", "Texas")
         assert rate == 7.25
 
     def test_us_california(self):
         """California should return $16.00/hr."""
-        from app.core.hi_rates import resolve_person_rate
-        rate = resolve_person_rate("United States", "California")
+        from app.core.hi_rates import resolve_human_rate
+        rate = resolve_human_rate("United States", "California")
         assert rate == 16.00
 
     def test_us_washington(self):
         """Washington should return $16.28/hr (highest US state)."""
-        from app.core.hi_rates import resolve_person_rate
-        rate = resolve_person_rate("USA", "Washington")
+        from app.core.hi_rates import resolve_human_rate
+        rate = resolve_human_rate("USA", "Washington")
         assert rate == 16.28
 
     def test_nigeria(self):
         """Nigeria should return $0.34/hr."""
-        from app.core.hi_rates import resolve_person_rate
-        rate = resolve_person_rate("Nigeria")
+        from app.core.hi_rates import resolve_human_rate
+        rate = resolve_human_rate("Nigeria")
         assert rate == 0.34
 
     def test_brazil(self):
         """Brazil should return $1.58/hr."""
-        from app.core.hi_rates import resolve_person_rate
-        rate = resolve_person_rate("Brazil")
+        from app.core.hi_rates import resolve_human_rate
+        rate = resolve_human_rate("Brazil")
         assert rate == 1.58
 
     def test_unknown_country_default(self):
         """Unknown country should return default $7.25/hr."""
-        from app.core.hi_rates import resolve_person_rate
-        rate = resolve_person_rate("Atlantis")
+        from app.core.hi_rates import resolve_human_rate
+        rate = resolve_human_rate("Atlantis")
         assert rate == 7.25
 
     def test_none_jurisdiction_default(self):
         """No jurisdiction should return default $7.25/hr."""
-        from app.core.hi_rates import resolve_person_rate
-        rate = resolve_person_rate(None, None)
+        from app.core.hi_rates import resolve_human_rate
+        rate = resolve_human_rate(None, None)
         assert rate == 7.25
 
     def test_us_unknown_state_returns_federal(self):
         """Unknown US state should return federal rate."""
-        from app.core.hi_rates import resolve_person_rate
-        rate = resolve_person_rate("US", "NonExistentState")
+        from app.core.hi_rates import resolve_human_rate
+        rate = resolve_human_rate("US", "NonExistentState")
         assert rate == 7.25
 
     def test_case_insensitive_country(self):
         """Country lookup should be case-insensitive."""
-        from app.core.hi_rates import resolve_person_rate
-        rate = resolve_person_rate("nigeria")
+        from app.core.hi_rates import resolve_human_rate
+        rate = resolve_human_rate("nigeria")
         assert rate == 0.34
 
 
@@ -213,15 +213,15 @@ class TestGetAllRates:
         assert len(rates) == 59
 
     def test_rate_structure(self):
-        """Each rate entry should have country, state, person_rate, currency."""
+        """Each rate entry should have country, state, human_rate, currency."""
         from app.core.hi_rates import get_all_rates
         rates = get_all_rates()
         for rate in rates:
             assert "country" in rate
-            assert "person_rate" in rate
+            assert "human_rate" in rate
             assert "currency" in rate
             assert rate["currency"] == "USD"
-            assert rate["person_rate"] > 0
+            assert rate["human_rate"] > 0
 
     def test_international_have_no_state(self):
         """International entries should have state=None."""

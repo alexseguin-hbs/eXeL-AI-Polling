@@ -3,13 +3,13 @@
 Tracks active participation time and calculates SoI Trinity tokens:
   ♡ = floor(active_minutes) — 1 min default on login
   웃 = jurisdiction min-wage rate per minute when enabled
-      0.0 when person_enabled=False (pre-treasury)
-  ◬ = ♡ * triangle_heart_multiplier (default 5x)
+      0.0 when human_enabled=False (pre-treasury)
+  ◬ = ♡ * unity_heart_multiplier (default 5x)
 
 웃 vision: Pay out globally at local minimum wage to leverage global talent.
           Rate resolved per participant from rate table.
           Default: Austin, Texas = $7.25/hr.
-          Flip person_enabled=True once treasury is funded.
+          Flip human_enabled=True once treasury is funded.
 """
 
 import math
@@ -21,7 +21,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.core.hi_rates import resolve_person_rate
+from app.core.hi_rates import resolve_human_rate
 from app.models.time_tracking import TimeEntry
 from app.models.token_ledger import TokenLedger
 
@@ -31,22 +31,22 @@ from app.models.token_ledger import TokenLedger
 # ---------------------------------------------------------------------------
 
 
-def _calculate_person(
+def _calculate_human(
     duration_minutes: float,
     country: str | None = None,
     state: str | None = None,
 ) -> float:
     """Calculate 웃 tokens from duration using jurisdiction rate.
 
-    When person_enabled=True: 웃 = duration_minutes * (rate / 60)
-    When person_enabled=False: 웃 = 0.0 (pre-treasury, no payouts yet)
+    When human_enabled=True: 웃 = duration_minutes * (rate / 60)
+    When human_enabled=False: 웃 = 0.0 (pre-treasury, no payouts yet)
 
     Rate resolved from rate table by country + state.
     Default: $7.25/hr (Austin, Texas / US federal).
     """
-    if not settings.person_enabled:
+    if not settings.human_enabled:
         return 0.0
-    rate = resolve_person_rate(country, state)
+    rate = resolve_human_rate(country, state)
     rate_per_minute = rate / 60.0
     return round(duration_minutes * rate_per_minute, 4)
 
@@ -65,13 +65,13 @@ def calculate_tokens(
     Rules:
         ♡ = floor(duration_minutes)          — 1 minute = 1 ♡
         웃 = duration_min * (wage/60)        — jurisdiction rate when enabled
-        ◬ = ♡ * triangle_heart_multiplier   — default 5x ♡
+        ◬ = ♡ * unity_heart_multiplier   — default 5x ♡
     """
     duration_minutes = duration_seconds / 60.0
     heart = math.floor(duration_minutes) if duration_minutes >= 1.0 else 0.0
-    person = _calculate_person(duration_minutes, country, state)
-    triangle = heart * settings.triangle_heart_multiplier
-    return float(heart), person, triangle
+    human = _calculate_human(duration_minutes, country, state)
+    unity = heart * settings.unity_heart_multiplier
+    return float(heart), human, unity
 
 
 # ---------------------------------------------------------------------------
@@ -134,25 +134,25 @@ async def stop_time_tracking(
     entry.stopped_at = now
     entry.duration_seconds = (now - entry.started_at).total_seconds()
 
-    heart, person, triangle = calculate_tokens(
+    heart, human, unity = calculate_tokens(
         entry.duration_seconds, entry.action_type, country, state
     )
     entry.heart_tokens_earned = heart
-    entry.person_tokens_earned = person
-    entry.triangle_tokens_earned = triangle
+    entry.human_tokens_earned = human
+    entry.unity_tokens_earned = unity
 
     # Create append-only token ledger entry if any tokens earned
-    if heart > 0 or person > 0 or triangle > 0:
+    if heart > 0 or human > 0 or unity > 0:
         ledger = TokenLedger(
             session_id=entry.session_id,
             user_id=str(entry.participant_id),
             cube_id=entry.cube_id or "cube5",
             action_type=entry.action_type,
             delta_heart=heart,
-            delta_person=person,
-            delta_triangle=triangle,
+            delta_human=human,
+            delta_unity=unity,
             lifecycle_state="pending",
-            reason=f"{entry.action_type} ({entry.duration_seconds:.0f}s) — ♡{heart} 웃{person} ◬{triangle}",
+            reason=f"{entry.action_type} ({entry.duration_seconds:.0f}s) — ♡{heart} 웃{human} ◬{unity}",
             reference_id=str(entry.id),
         )
         db.add(ledger)
@@ -182,12 +182,12 @@ async def create_login_time_entry(
     Awards:
       ♡ = login_heart_tokens (default 1)
       웃 = 1 min at jurisdiction rate when enabled, else 0
-      ◬ = ♡ * triangle_heart_multiplier (default 5)
+      ◬ = ♡ * unity_heart_multiplier (default 5)
     """
     now = datetime.now(timezone.utc)
     login_heart = settings.login_heart_tokens
-    login_person = _calculate_person(1.0, country, state)
-    login_triangle = login_heart * settings.triangle_heart_multiplier
+    login_human = _calculate_human(1.0, country, state)
+    login_unity = login_heart * settings.unity_heart_multiplier
 
     entry = TimeEntry(
         session_id=session_id,
@@ -198,8 +198,8 @@ async def create_login_time_entry(
         stopped_at=now,  # instant — login credit is immediate
         duration_seconds=60.0,  # 1 minute default
         heart_tokens_earned=login_heart,
-        person_tokens_earned=login_person,
-        triangle_tokens_earned=login_triangle,
+        human_tokens_earned=login_human,
+        unity_tokens_earned=login_unity,
     )
     db.add(entry)
 
@@ -210,10 +210,10 @@ async def create_login_time_entry(
         cube_id="cube5",
         action_type="login",
         delta_heart=login_heart,
-        delta_person=login_person,
-        delta_triangle=login_triangle,
+        delta_human=login_human,
+        delta_unity=login_unity,
         lifecycle_state="pending",
-        reason=f"Login — ♡{login_heart} 웃{login_person} ◬{login_triangle}",
+        reason=f"Login — ♡{login_heart} 웃{login_human} ◬{login_unity}",
         reference_id=str(participant_id),
     )
     db.add(ledger)
@@ -245,15 +245,15 @@ async def get_participant_time_summary(
 
     total_seconds = sum(e.duration_seconds or 0.0 for e in entries)
     total_heart = sum(e.heart_tokens_earned for e in entries)
-    total_person = sum(e.person_tokens_earned for e in entries)
-    total_triangle = sum(e.triangle_tokens_earned for e in entries)
+    total_human = sum(e.human_tokens_earned for e in entries)
+    total_unity = sum(e.unity_tokens_earned for e in entries)
 
     return {
         "participant_id": participant_id,
         "session_id": session_id,
         "total_active_seconds": total_seconds,
         "total_heart_tokens": total_heart,
-        "total_person_tokens": total_person,
-        "total_triangle_tokens": total_triangle,
+        "total_human_tokens": total_human,
+        "total_unity_tokens": total_unity,
         "entries": entries,
     }
