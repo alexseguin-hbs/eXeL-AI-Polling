@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Check } from "lucide-react";
+import { useRef, useState } from "react";
+import { X, Check, Pipette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -18,21 +18,44 @@ import { LanguageLexicon } from "@/components/language-lexicon";
 // ─── Theme Customizer Section ───────────────────────────────────
 
 function ThemeCustomizer() {
-  const { currentTheme, setTheme } = useTheme();
+  const {
+    currentTheme,
+    setTheme,
+    setSessionTheme,
+    setCustomAccent,
+    customAccentColor,
+  } = useTheme();
+  const colorInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePresetSelect = (id: string) => {
+    setTheme(id);
+    setSessionTheme(id);
+  };
+
+  const handleCustomColorChange = (hex: string) => {
+    setCustomAccent(hex);
+    setSessionTheme("custom");
+  };
+
+  const isCustomActive = currentTheme.id === "custom";
 
   return (
     <section>
       <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
-        Color Scheme
+        Session Color Scheme
       </h3>
-      <div className="grid grid-cols-2 gap-3">
+      <p className="text-xs text-muted-foreground mb-3">
+        Applies to all participants in this session.
+      </p>
+      <div className="grid grid-cols-3 gap-2">
+        {/* 8 preset themes */}
         {THEME_PRESETS.map((preset) => {
           const isActive = currentTheme.id === preset.id;
           return (
             <button
               key={preset.id}
-              onClick={() => setTheme(preset.id)}
-              className={`relative flex items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-accent/50 ${
+              onClick={() => handlePresetSelect(preset.id)}
+              className={`relative flex flex-col items-center gap-1.5 rounded-lg border p-2.5 transition-colors hover:bg-accent/50 ${
                 isActive
                   ? "border-primary bg-accent/30"
                   : "border-border"
@@ -42,13 +65,52 @@ function ThemeCustomizer() {
                 className="h-8 w-8 shrink-0 rounded-full border border-border"
                 style={{ backgroundColor: preset.swatch }}
               />
-              <span className="text-sm font-medium">{preset.name}</span>
+              <span className="text-xs font-medium text-center leading-tight">
+                {preset.name}
+              </span>
               {isActive && (
-                <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                <Check className="absolute right-1.5 top-1.5 h-3.5 w-3.5 text-primary" />
               )}
             </button>
           );
         })}
+
+        {/* 9th slot: Custom color picker */}
+        <button
+          onClick={() => colorInputRef.current?.click()}
+          className={`relative flex flex-col items-center gap-1.5 rounded-lg border p-2.5 transition-colors hover:bg-accent/50 ${
+            isCustomActive
+              ? "border-primary bg-accent/30"
+              : "border-border"
+          }`}
+        >
+          <span
+            className="h-8 w-8 shrink-0 rounded-full border border-border flex items-center justify-center"
+            style={{
+              backgroundColor: isCustomActive && customAccentColor
+                ? customAccentColor
+                : "transparent",
+            }}
+          >
+            {!(isCustomActive && customAccentColor) && (
+              <Pipette className="h-4 w-4 text-muted-foreground" />
+            )}
+          </span>
+          <span className="text-xs font-medium text-center leading-tight">
+            Custom
+          </span>
+          {isCustomActive && (
+            <Check className="absolute right-1.5 top-1.5 h-3.5 w-3.5 text-primary" />
+          )}
+          <input
+            ref={colorInputRef}
+            type="color"
+            value={customAccentColor ?? "#19C8CF"}
+            onChange={(e) => handleCustomColorChange(e.target.value)}
+            className="sr-only"
+            aria-label="Pick custom accent color"
+          />
+        </button>
       </div>
     </section>
   );

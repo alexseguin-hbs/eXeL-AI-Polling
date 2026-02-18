@@ -21,6 +21,12 @@ class SessionCreate(BaseModel):
     realtime_stt_enabled: bool = False  # Paid: real-time word-by-word transcription
     realtime_stt_provider: Literal["azure", "aws"] = "azure"
     allow_user_stt_choice: bool = False  # Let users override STT provider
+    # Appearance — cascades to all session participants
+    theme_id: Literal[
+        "exel-cyan", "ocean-blue", "emerald", "sunset",
+        "red", "violet", "indigo", "coral", "custom"
+    ] = "exel-cyan"
+    custom_accent_color: str | None = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
 
 
 class SessionUpdate(BaseModel):
@@ -34,6 +40,12 @@ class SessionUpdate(BaseModel):
     realtime_stt_enabled: bool | None = None
     realtime_stt_provider: Literal["azure", "aws"] | None = None
     allow_user_stt_choice: bool | None = None
+    # Appearance — cascades to all session participants
+    theme_id: Literal[
+        "exel-cyan", "ocean-blue", "emerald", "sunset",
+        "red", "violet", "indigo", "coral", "custom"
+    ] | None = None
+    custom_accent_color: str | None = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
 
 
 class SessionRead(BaseModel):
@@ -59,6 +71,8 @@ class SessionRead(BaseModel):
     replay_hash: str | None = None
     qr_url: str | None
     join_url: str | None
+    theme_id: str = "exel-cyan"
+    custom_accent_color: str | None = None
     is_paid: bool
     opened_at: datetime | None
     closed_at: datetime | None
@@ -84,6 +98,8 @@ class SessionJoinResponse(BaseModel):
     title: str
     status: str
     display_name: str | None
+    theme_id: str = "exel-cyan"
+    custom_accent_color: str | None = None
 
 
 class PresenceEntry(BaseModel):

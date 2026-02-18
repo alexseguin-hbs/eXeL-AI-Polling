@@ -422,8 +422,18 @@ Track and optimize for:
 - Files: `frontend/lib/lexicon-data.ts`, `frontend/lib/lexicon-context.tsx`, `frontend/components/language-lexicon.tsx`
 
 ### Frontend — Moderator Settings Panel: IMPLEMENTED
-- Slide-over panel with theme customizer (4 presets), interface language selector, Language Lexicon
-- Files: `frontend/components/moderator-settings.tsx`, `frontend/components/providers.tsx`, `frontend/components/navbar.tsx`
+- Slide-over panel with session-cascading theme customizer, interface language selector, Language Lexicon
+- **Session Color Scheme (3x3 grid):** 8 presets + 1 custom accent picker = 9 options
+  - Branded presets: **eXeL Cyan** (brand), **웃 Violet** (H.I. symbol), **♡ Sunset** (S.I. symbol)
+  - Additional presets: Ocean Blue, Emerald, Red, Indigo, Coral
+  - Custom: Color picker for any accent color (dark background stays fixed)
+- **Session-level cascade:** Moderator's theme choice applies to ALL participants in the session
+  - `setSessionTheme()` overrides local user preference when inside a session
+  - Backend stores `theme_id` + `custom_accent_color` on Session model
+  - Participants receive theme on join via `SessionJoinResponse.theme_id`
+  - Full WebSocket push for live updates planned (post-Cube 1 WebSocket sync)
+- **Custom theme generation:** `generateCustomTheme(hex)` converts any hex accent to full HSL theme with consistent dark base
+- Files: `frontend/components/moderator-settings.tsx`, `frontend/lib/theme-context.tsx`, `frontend/components/providers.tsx`, `frontend/components/navbar.tsx`
 
 ### Cubes 2–4, 6–7, 9–10: SCAFFOLDED (stubs only)
 - Models, schemas, and route stubs exist

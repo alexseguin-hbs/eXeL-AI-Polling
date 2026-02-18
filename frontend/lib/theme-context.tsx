@@ -38,7 +38,68 @@ export interface ThemePreset {
   colors: ThemeColors;
 }
 
-// ─── Preset themes ──────────────────────────────────────────────
+// ─── Color utilities ────────────────────────────────────────────
+
+/** Convert hex (#RRGGBB) to HSL "H S% L%" string */
+function hexToHsl(hex: string): { h: number; s: number; l: number } {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+
+  if (max === min) return { h: 0, s: 0, l: Math.round(l * 100) };
+
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  else if (max === g) h = ((b - r) / d + 2) / 6;
+  else h = ((r - g) / d + 4) / 6;
+
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100),
+  };
+}
+
+/** Generate a full theme from a custom accent hex color (background stays dark neutral) */
+export function generateCustomTheme(accentHex: string): ThemePreset {
+  const { h, s, l } = hexToHsl(accentHex);
+  const hsl = `${h} ${s}% ${l}%`;
+  const hslDim = `${h} 33% 17%`;
+  const hslMutedFg = `${h} 11% 64%`;
+
+  return {
+    id: "custom",
+    name: "Custom",
+    swatch: accentHex,
+    colors: {
+      background: "220 25% 6%",
+      foreground: "210 40% 98%",
+      card: "220 25% 9%",
+      "card-foreground": "210 40% 98%",
+      popover: "220 25% 9%",
+      "popover-foreground": "210 40% 98%",
+      primary: hsl,
+      "primary-foreground": "220 25% 6%",
+      secondary: hslDim,
+      "secondary-foreground": "210 40% 98%",
+      muted: hslDim,
+      "muted-foreground": hslMutedFg,
+      accent: hslDim,
+      "accent-foreground": "210 40% 98%",
+      border: hslDim,
+      input: hslDim,
+      ring: hsl,
+    },
+  };
+}
+
+// ─── 8 Preset themes + Custom ───────────────────────────────────
 
 export const THEME_PRESETS: ThemePreset[] = [
   {
@@ -115,7 +176,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
   {
     id: "sunset",
-    name: "Sunset",
+    name: "\u2661 Sunset",
     swatch: "#F59E0B",
     colors: {
       background: "30 30% 6%",
@@ -137,15 +198,125 @@ export const THEME_PRESETS: ThemePreset[] = [
       ring: "38 92% 50%",
     },
   },
+  {
+    id: "red",
+    name: "Red",
+    swatch: "#EF4444",
+    colors: {
+      background: "0 30% 6%",
+      foreground: "210 40% 98%",
+      card: "0 30% 9%",
+      "card-foreground": "210 40% 98%",
+      popover: "0 30% 9%",
+      "popover-foreground": "210 40% 98%",
+      primary: "0 84% 60%",
+      "primary-foreground": "0 30% 6%",
+      secondary: "0 33% 17%",
+      "secondary-foreground": "210 40% 98%",
+      muted: "0 33% 17%",
+      "muted-foreground": "0 11% 64%",
+      accent: "0 33% 17%",
+      "accent-foreground": "210 40% 98%",
+      border: "0 33% 17%",
+      input: "0 33% 17%",
+      ring: "0 84% 60%",
+    },
+  },
+  {
+    id: "violet",
+    name: "\uc6c3 Violet",
+    swatch: "#8B5CF6",
+    colors: {
+      background: "263 30% 6%",
+      foreground: "210 40% 98%",
+      card: "263 30% 9%",
+      "card-foreground": "210 40% 98%",
+      popover: "263 30% 9%",
+      "popover-foreground": "210 40% 98%",
+      primary: "263 90% 66%",
+      "primary-foreground": "263 30% 6%",
+      secondary: "263 33% 17%",
+      "secondary-foreground": "210 40% 98%",
+      muted: "263 33% 17%",
+      "muted-foreground": "263 11% 64%",
+      accent: "263 33% 17%",
+      "accent-foreground": "210 40% 98%",
+      border: "263 33% 17%",
+      input: "263 33% 17%",
+      ring: "263 90% 66%",
+    },
+  },
+  {
+    id: "indigo",
+    name: "Indigo",
+    swatch: "#6366F1",
+    colors: {
+      background: "239 30% 6%",
+      foreground: "210 40% 98%",
+      card: "239 30% 9%",
+      "card-foreground": "210 40% 98%",
+      popover: "239 30% 9%",
+      "popover-foreground": "210 40% 98%",
+      primary: "239 84% 67%",
+      "primary-foreground": "239 30% 6%",
+      secondary: "239 33% 17%",
+      "secondary-foreground": "210 40% 98%",
+      muted: "239 33% 17%",
+      "muted-foreground": "239 11% 64%",
+      accent: "239 33% 17%",
+      "accent-foreground": "210 40% 98%",
+      border: "239 33% 17%",
+      input: "239 33% 17%",
+      ring: "239 84% 67%",
+    },
+  },
+  {
+    id: "coral",
+    name: "Coral",
+    swatch: "#F97316",
+    colors: {
+      background: "24 30% 6%",
+      foreground: "210 40% 98%",
+      card: "24 30% 9%",
+      "card-foreground": "210 40% 98%",
+      popover: "24 30% 9%",
+      "popover-foreground": "210 40% 98%",
+      primary: "25 95% 53%",
+      "primary-foreground": "24 30% 6%",
+      secondary: "24 33% 17%",
+      "secondary-foreground": "210 40% 98%",
+      muted: "24 33% 17%",
+      "muted-foreground": "24 11% 64%",
+      accent: "24 33% 17%",
+      "accent-foreground": "210 40% 98%",
+      border: "24 33% 17%",
+      input: "24 33% 17%",
+      ring: "25 95% 53%",
+    },
+  },
 ];
 
 const STORAGE_KEY = "exel-theme-id";
+const SESSION_THEME_KEY = "exel-session-theme-id";
+const CUSTOM_ACCENT_KEY = "exel-custom-accent";
+
+/** Valid preset theme IDs */
+export const VALID_THEME_IDS = [...THEME_PRESETS.map((p) => p.id), "custom"];
 
 // ─── Context ────────────────────────────────────────────────────
 
 interface ThemeContextValue {
   currentTheme: ThemePreset;
+  /** Set theme by preset ID (saved to localStorage) */
   setTheme: (id: string) => void;
+  /** Set the session-level theme — cascades to all participants. When set, overrides local preference. */
+  setSessionTheme: (id: string | null) => void;
+  /** The active session theme ID (null if no session context) */
+  sessionThemeId: string | null;
+  /** Set a custom accent hex color (triggers "custom" theme) */
+  setCustomAccent: (hex: string) => void;
+  /** Current custom accent hex (null if not set) */
+  customAccentColor: string | null;
   presets: ThemePreset[];
 }
 
@@ -158,33 +329,84 @@ function applyTheme(theme: ThemePreset) {
   }
 }
 
+function resolveTheme(
+  id: string,
+  customAccent: string | null
+): ThemePreset {
+  if (id === "custom" && customAccent) {
+    return generateCustomTheme(customAccent);
+  }
+  return THEME_PRESETS.find((p) => p.id === id) ?? THEME_PRESETS[0];
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeId, setThemeId] = useState<string>("exel-cyan");
+  const [localThemeId, setLocalThemeId] = useState<string>("exel-cyan");
+  const [sessionThemeId, setSessionThemeIdState] = useState<string | null>(null);
+  const [customAccentColor, setCustomAccentColor] = useState<string | null>(null);
 
   // Hydrate from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored && THEME_PRESETS.find((p) => p.id === stored)) {
-      setThemeId(stored);
+    const storedLocal = localStorage.getItem(STORAGE_KEY);
+    if (storedLocal && VALID_THEME_IDS.includes(storedLocal)) {
+      setLocalThemeId(storedLocal);
+    }
+    const storedSession = localStorage.getItem(SESSION_THEME_KEY);
+    if (storedSession && VALID_THEME_IDS.includes(storedSession)) {
+      setSessionThemeIdState(storedSession);
+    }
+    const storedAccent = localStorage.getItem(CUSTOM_ACCENT_KEY);
+    if (storedAccent && /^#[0-9A-Fa-f]{6}$/.test(storedAccent)) {
+      setCustomAccentColor(storedAccent);
     }
   }, []);
 
-  // Apply CSS variables whenever themeId changes
+  // Session theme overrides local preference
+  const effectiveThemeId = sessionThemeId ?? localThemeId;
+
+  // Apply CSS variables whenever effective theme changes
   useEffect(() => {
-    const preset = THEME_PRESETS.find((p) => p.id === themeId) ?? THEME_PRESETS[0];
-    applyTheme(preset);
-  }, [themeId]);
+    applyTheme(resolveTheme(effectiveThemeId, customAccentColor));
+  }, [effectiveThemeId, customAccentColor]);
 
   const setTheme = useCallback((id: string) => {
-    setThemeId(id);
+    setLocalThemeId(id);
     localStorage.setItem(STORAGE_KEY, id);
   }, []);
 
-  const currentTheme =
-    THEME_PRESETS.find((p) => p.id === themeId) ?? THEME_PRESETS[0];
+  const setSessionTheme = useCallback((id: string | null) => {
+    setSessionThemeIdState(id);
+    if (id) {
+      localStorage.setItem(SESSION_THEME_KEY, id);
+    } else {
+      localStorage.removeItem(SESSION_THEME_KEY);
+    }
+  }, []);
+
+  const setCustomAccent = useCallback(
+    (hex: string) => {
+      setCustomAccentColor(hex);
+      localStorage.setItem(CUSTOM_ACCENT_KEY, hex);
+      // Auto-select "custom" theme when a custom accent is picked
+      setLocalThemeId("custom");
+      localStorage.setItem(STORAGE_KEY, "custom");
+    },
+    []
+  );
+
+  const currentTheme = resolveTheme(effectiveThemeId, customAccentColor);
 
   return (
-    <ThemeContext.Provider value={{ currentTheme, setTheme, presets: THEME_PRESETS }}>
+    <ThemeContext.Provider
+      value={{
+        currentTheme,
+        setTheme,
+        setSessionTheme,
+        sessionThemeId,
+        setCustomAccent,
+        customAccentColor,
+        presets: THEME_PRESETS,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );

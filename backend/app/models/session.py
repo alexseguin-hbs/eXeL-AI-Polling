@@ -85,6 +85,10 @@ class Session(Base):
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
+    # Appearance — Moderator's theme cascades to all session participants
+    theme_id: Mapped[str] = mapped_column(String(50), default="exel-cyan")
+    custom_accent_color: Mapped[str | None] = mapped_column(String(7))  # hex e.g. #FF5733
+
     # Monetization
     is_paid: Mapped[bool] = mapped_column(default=False)
     stripe_session_id: Mapped[str | None] = mapped_column(String(255))
