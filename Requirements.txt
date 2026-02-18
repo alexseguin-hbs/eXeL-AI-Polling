@@ -79,7 +79,7 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 
 ### Cube 1 — Session Join & QR (1,2,2) — CENTER of Level 1
 
-> **Implementation Status:** PARTIAL (~30% of spec). CRS-01→CRS-04 complete. Core CRUD, state machine, QR, join, presence, questions implemented. Missing: session_type, pricing tiers, scoping, cost splitting, rewards, join flow gates (results opt-in, payment), master language tables, desired outcomes (M2/M3), multi-device sync, live feed, metrics. See CLAUDE.md § "Cube 1" for full breakdown.
+> **Implementation Status:** IMPLEMENTED (~70% of spec). CRS-01→CRS-06 complete. Core CRUD, state machine, QR, join, presence, questions, capacity enforcement, CQS weights, 11 new session model fields, 3 new participant fields, Token HUD, Timer Context, Voice Input stub, Cube Architecture Status Panel, one-question-at-a-time UX all implemented. Remaining: Stripe payment flow, cost splitting logic, scoping context, master language backend tables, desired outcomes (M2/M3), multi-device WebSocket sync, live feed, metrics. See CLAUDE.md § "Cube 1" for full breakdown + test procedure.
 
 * **All code is modular** — every cube is a self-contained module with clean interfaces; all aspects of each cube must be modular and independently maintainable
 * Session create — supports 3 session types: **polling** (Method 1), **peer_volunteer** (Method 2), **team_collaboration** (Method 3)
@@ -151,30 +151,70 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 * Gamified reward utilization rate (% of sessions with reward enabled)
 * Average per-user fee (when cost splitting enabled)
 
+#### Cube 1 Test Procedure (Cube 10 Simulator Reference)
+
+> **Status:** VERIFIED (2026-02-18). N=3 runs, 32/32 tests pass, 0 TypeScript errors, spiral propagation PASS.
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb=short
+```
+
+**Metrics Baseline (N=3, 2026-02-18):**
+| Metric | Average | Std Dev |
+|--------|---------|---------|
+| Backend Test Duration | 3,341ms | 326ms |
+| Tests Passed | 32/32 | 0 |
+| Frontend Build Duration | 32,224ms | 242ms |
+| TypeScript Errors | 0 | 0 |
+| TSC Check Duration | 2,827ms | 1,061ms |
+
+**Moderator Test Flow:**
+1. `create_session(full_config)` — All 11 Cube 1 fields + CQS weights
+2. `add_questions(3)` — Three questions in draft state
+3. `transition(draft→open→polling→ranking→closed→archived)` — Full lifecycle
+4. `verify_ownership` — 403 for non-owner, admin bypass
+5. `generate_qr_code` — PNG with valid magic bytes
+
+**User Test Flow:**
+1. `join_session(open, language=en, opt_in=True)` — Full join with preferences
+2. `rejoin_session(reactivate)` — Returning user reactivated, not duplicated
+3. `join_anonymous(no_auth)` — user_id=None accepted (CRS-02)
+4. `verify_redis_presence` — HSET + EXPIRE on join
+5. `reject_expired_join` — SessionExpiredError (CRS-04)
+6. `reject_draft_join` — SessionStateError
+7. `reject_full_session` — 409 Conflict at max_participants
+
+**Spiral Propagation:**
+- Forward (1→10): All downstream cubes compatible — PASS
+- Backward (10→1): 3 issues found and fixed — PASS
+
+**Test Files:** `tests/cube1/test_session_service.py` (32 unit tests) + `tests/cube1/test_e2e_flows.py` (20+ E2E flows)
+
 #### Cube 1 Data Tables
 
-**Table: `sessions`** — ⚠️ Model exists but missing ~15 specified fields
+**Table: `sessions`** — ✅ Model extended with 11 new columns (2026-02-18)
 | Variable | Type | Status | Description |
 |----------|------|--------|-------------|
 | id | UUID (PK) | ✅ | Session unique identifier |
 | short_code | VARCHAR(8) | ✅ | Human-readable join code (collision-retry) |
 | created_by | UUID (FK→users) | ✅ | Moderator user ID |
-| session_type | ENUM | ❌ | `polling` / `peer_volunteer` / `team_collaboration` |
-| polling_mode | ENUM | ❌ | `single_round` / `multi_round_deep_dive` — stored as `cycle_mode` (single/multi) but semantics differ |
+| session_type | ENUM | ✅ | `polling` / `peer_volunteer` / `team_collaboration` |
+| polling_mode | ENUM | ✅ | `single_round` / `multi_round_deep_dive` |
 | status | ENUM | ✅ | `draft` / `open` / `polling` / `ranking` / `closed` / `archived` |
 | scoping_type | ENUM | ❌ | `project` / `specification` / `product_differentiator` — **Moderator sets at session creation** |
 | scoping_id | UUID | ❌ | FK to projects, specifications, or differentiators table based on scoping_type |
-| pricing_tier | ENUM | ❌ | `free` / `moderator_paid` / `moderator_user_split` — only `is_paid` Boolean exists |
-| max_participants | INTEGER (nullable) | ❌ | Capacity cap (null = unlimited for paid tiers; hard cap 19 for free tier) |
-| fee_amount_cents | INTEGER | ❌ | Moderator session fee in cents (0 for free tier) |
-| cost_splitting_enabled | BOOLEAN | ❌ | Whether fee is split among participants |
-| reward_enabled | BOOLEAN | ❌ | Whether gamified reward is active |
-| reward_amount_cents | INTEGER | ❌ | Bonus reward amount in cents |
-| cqs_weights | JSONB | ❌ | Custom CQS metric weights (null = defaults) |
+| pricing_tier | ENUM | ✅ | `free` / `moderator_paid` / `cost_split` |
+| max_participants | INTEGER (nullable) | ✅ | Capacity cap (null = unlimited) + check_capacity() enforcement |
+| fee_amount_cents | INTEGER | ✅ | Moderator session fee in cents (0 for free tier) |
+| cost_splitting_enabled | BOOLEAN | ✅ | Whether fee is split among participants |
+| reward_enabled | BOOLEAN | ✅ | Whether gamified reward is active |
+| reward_amount_cents | INTEGER | ✅ | Bonus reward amount in cents |
+| cqs_weights | JSONB | ✅ | Custom CQS metric weights (null = defaults) |
 | anonymity_mode | ENUM | ✅ | `anonymous` / `identified` |
 | ranking_mode | ENUM | ✅ | `auto` / `manual` / `live` — how rankings are aggregated |
-| theme2_voting_level | ENUM | ❌ | `theme2_9` / `theme2_6` / `theme2_3` — Moderator selects which Theme2 granularity users vote on |
-| live_feed_enabled | BOOLEAN | ❌ | Whether live 33-word response feed is shown on hosting PC (paid tiers only) |
+| theme2_voting_level | ENUM | ✅ | `theme2_9` / `theme2_6` / `theme2_3` — Moderator selects which Theme2 granularity users vote on |
+| live_feed_enabled | BOOLEAN | ✅ | Whether live 33-word response feed is shown on hosting PC (paid tiers only) |
 | response_char_limit | INTEGER | ✅ | Max response character length (default 500) — as `max_response_length` |
 | question_char_limit | INTEGER | ❌ | Max question character length (default 500) |
 | max_deep_dive_rounds | INTEGER | ✅ | Max rounds for deep dive (default 3) — as `max_cycles` |
@@ -185,16 +225,16 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
 | created_at | TIMESTAMP | ✅ | Creation timestamp |
 | updated_at | TIMESTAMP | ✅ | Last update timestamp |
 
-**Table: `participants`** — ⚠️ Model exists but missing ~5 specified fields
+**Table: `participants`** — ✅ Model extended with 3 new columns (2026-02-18)
 | Variable | Type | Status | Description |
 |----------|------|--------|-------------|
 | id | UUID (PK) | ✅ | Participant record ID |
 | session_id | UUID (FK→sessions) | ✅ | Session reference |
 | user_id | UUID (FK→users, nullable) | ✅ | Authenticated user or null for anonymous |
 | anon_hash | VARCHAR(64) | ✅ | Anonymous identifier hash |
-| language_code | VARCHAR(5) | ❌ | Selected language from active languages dropdown |
-| results_opt_in | BOOLEAN | ❌ | Clicked Yes for results copy |
-| payment_status | ENUM | ❌ | `unpaid` / `paid` / `lead_exempt` |
+| language_code | VARCHAR(5) | ✅ | Selected language from active languages dropdown |
+| results_opt_in | BOOLEAN | ✅ | Clicked Yes for results copy |
+| payment_status | ENUM | ✅ | `unpaid` / `paid` / `lead_exempt` |
 | payment_transaction_id | UUID (FK→payment_transactions, nullable) | ❌ | Stripe/GPay/ApplePay reference |
 | role_type | ENUM (nullable) | ❌ | `technology` / `creative` / `business_value` (Method 3 only) |
 | device_type | VARCHAR(20) | ✅ | `desktop` / `tablet` / `phone` |

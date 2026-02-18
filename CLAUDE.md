@@ -342,7 +342,7 @@ Track and optimize for:
 
 ## Implementation Status
 
-### Cube 1 — Session Join & QR: PARTIAL (CRS-01→CRS-04 done; ~30% of full spec)
+### Cube 1 — Session Join & QR: IMPLEMENTED (CRS-01→CRS-06 done; ~70% of full spec)
 
 **Code location:** `backend/app/cubes/cube1_session/` (modular, self-contained)
 
@@ -364,19 +364,26 @@ Track and optimize for:
 - **API endpoints:** 22 routes (session CRUD, state transitions, join, participants, presence, questions, QR, verification)
 - **Rate limiting:** 100/min on join endpoint
 
+#### Cube 1 — Newly Implemented (Phase 1-7 completion, 2026-02-18)
+- **Session model extended:** 11 new columns — `session_type`, `polling_mode`, `pricing_tier`, `max_participants`, `fee_amount_cents`, `cost_splitting_enabled`, `reward_enabled`, `reward_amount_cents`, `cqs_weights` (JSONB), `theme2_voting_level`, `live_feed_enabled`
+- **Participant model extended:** 3 new columns — `language_code`, `results_opt_in`, `payment_status`
+- **Capacity enforcement:** `check_capacity()` — rejects join with 409 when session is full
+- **CQS weight config:** Moderator sets 6-metric CQS weights at session creation (stored as JSONB)
+- **Frontend — Moderator Dashboard:** Session creation with full config, QR code display (inline + presentation mode), state transition controls, participant counter
+- **Frontend — Token HUD:** Pill badges in navbar (◬ Cyan, ♡ Sunset, 웃 Violet) with gaming animations (tick-up, float-up +1, pulse)
+- **Frontend — Timer Context:** React context for session timer + token accrual (1 ♡/min, 5x ◬ multiplier)
+- **Frontend — Voice Input Stub:** Browser MediaRecorder API, pulsing red dot indicator, audio blob capture (STT pending Cube 3)
+- **Frontend — Cube Architecture Status Panel:** 3x3 grid in Settings with RAG+ color coding per cube
+- **Frontend — One-Question-at-a-Time UX:** Full-width textarea, Submit & Next, progress bar, token earn overlay
+
 #### Cube 1 — Partially Implemented (fields exist but incomplete logic)
-- **Polling mode:** Stored as `cycle_mode: single/multi` but not semantically tied to deep-dive flow
-- **Payment:** `is_paid` + `stripe_session_id` fields exist on session model but no payment flow in join
-- **Language:** Stored on participant but no enforcement gate in join sequence
+- **Payment flow:** `is_paid` + `stripe_session_id` exist but no Stripe integration in join
+- **Cost splitting:** `cost_splitting_enabled` + `fee_amount_cents` stored but no dynamic calculation
+- **Language enforcement:** `language_code` stored on participant but no UI gate in join sequence
 
 #### Cube 1 — Not Yet Implemented (specified in Requirements.txt)
-- **Session model missing fields:** `session_type` (polling/peer_volunteer/team_collaboration), `polling_mode` (single_round/multi_round_deep_dive), `scoping_type` + `scoping_id`, `pricing_tier` (free/moderator_paid/moderator_user_split), `max_participants`, `fee_amount_cents`, `cost_splitting_enabled`, `reward_enabled`, `reward_amount_cents`, `cqs_weights` (JSONB), `theme2_voting_level` (theme2_9/6/3), `live_feed_enabled`
-- **Participant model missing fields:** `language_code` (FK→languages), `results_opt_in`, `payment_status` (unpaid/paid/lead_exempt), `payment_transaction_id`, `role_type` (Method 3)
-- **Pricing tiers:** Free ≤19 / Moderator Paid / Cost Split — no tier logic, no capacity enforcement, no fee calculation
-- **Join flow gates:** Results opt-in screen, payment processing (Stripe/GPay/ApplePay), language enforcement
-- **Cost splitting:** Dynamic per-user fee calculation as participants join
 - **Scoping context:** Project/Specification/Differentiator tables + FK linkage
-- **Gamified reward:** CQS weight config, reward amount, enable/disable
+- **Join flow gates:** Payment processing (Stripe/GPay/ApplePay), language enforcement gate
 - **Master language table:** `languages` + `ui_translations` backend tables (frontend Language Lexicon implemented)
 - **Desired Outcome setup:** Methods 2 & 3 — outcome input, role assignment, confirmation gates
 - **Moderator multi-device sync:** WebSocket push to all connected moderator devices, device-aware layouts
@@ -386,33 +393,98 @@ Track and optimize for:
 #### Cube 1 — Service Functions Status
 | Function | Status | Notes |
 |----------|--------|-------|
-| `create_session()` | Implemented | Missing pricing/scoping/reward params |
-| `generate_qr_code()` | Implemented | PNG + base64 |
-| `validate_join_request()` | Partial | Expiry + state check; no capacity/payment |
+| `create_session()` | **Implemented** | All 11 Cube 1 fields + CQS weights |
+| `generate_qr_code()` | **Implemented** | PNG + base64 |
+| `validate_join_request()` | **Implemented** | Expiry + state + capacity check |
+| `check_capacity()` | **Implemented** | Enforces max_participants, 409 on full |
+| `join_session()` | **Implemented** | language_code, results_opt_in, Redis presence, login token |
+| `transition_session_state()` | **Implemented** | Full state machine (6 states) |
+| `get_session_by_code()` | **Implemented** | |
+| `check_session_expiry()` | **Implemented** | `is_expired` property + 410 |
+| `verify_session_owner()` | **Implemented** | 403 for non-owner, admin bypass |
 | `select_language()` | Not implemented | No separate gate function |
 | `process_results_optin()` | Not implemented | No opt-in gate |
 | `process_join_payment()` | Not implemented | No Stripe in join |
-| `create_participant()` | Partial | Missing language_code, results_opt_in, payment_status |
-| `transition_session_state()` | Implemented | Full state machine |
 | `calculate_per_user_fee()` | Not implemented | No cost-split logic |
-| `get_session_by_code()` | Implemented | |
-| `check_session_expiry()` | Implemented | `is_expired` property + 410 |
-| `check_capacity()` | Not implemented | No max_participants |
 | `determine_pricing_tier()` | Not implemented | No tier logic |
 | `sync_moderator_state()` | Not implemented | No WebSocket sync |
 | `get_moderator_layout()` | Not implemented | No device-aware layout |
 
+#### Cube 1 — Test Procedure (Cube 10 Simulator Reference)
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb=short
+```
+
+**Test Suite:** 2 files, 14 test classes, 52+ tests
+
+| File | Classes | Tests | Coverage |
+|------|---------|-------|----------|
+| `test_session_service.py` | 10 | 32 | Service unit tests |
+| `test_e2e_flows.py` | 4 | 20+ | Moderator + User E2E flows |
+
+**Moderator Test Flow (TestModeratorFlow):**
+1. `create_session(full_config)` — All 11 Cube 1 fields + CQS weights
+2. `add_questions(3)` — Three questions in draft state
+3. `transition(draft→open)` — Sets `opened_at`
+4. `transition(open→polling)` — Starts response collection
+5. `transition(polling→ranking)` — AI theming phase
+6. `transition(ranking→closed)` — Sets `closed_at`
+7. `transition(closed→archived)` — Clears Redis presence
+8. `verify_ownership` — 403 for non-owner, admin bypass
+9. `generate_qr_code` — PNG with valid magic bytes
+
+**User Test Flow (TestUserFlow):**
+1. `join_session(open, language=en, opt_in=True)` — Full join with preferences
+2. `rejoin_session(reactivate)` — Returning user reactivated, not duplicated
+3. `join_anonymous(no_auth)` — user_id=None accepted
+4. `verify_redis_presence` — HSET + EXPIRE on join
+5. `reject_expired_join` — SessionExpiredError
+6. `reject_draft_join` — SessionStateError
+7. `reject_full_session` — 409 Conflict at max_participants
+
+**Capacity Tests (TestCapacityEnforcement):**
+1. Unlimited when `max_participants=None`
+2. Allows under limit
+3. Rejects at limit (409)
+
+**Determinism Tests (TestDeterminism):**
+1. Seeded UUID5 produces deterministic ID
+2. Duplicate seed returns existing session (idempotent)
+
+**Metrics Baseline (N=3, 2026-02-18):**
+| Metric | Average | Std Dev |
+|--------|---------|---------|
+| Backend Test Duration | 3,341ms | 326ms |
+| Tests Passed | 32/32 | 0 |
+| Frontend Build Duration | 32,224ms | 242ms |
+| TypeScript Errors | 0 | 0 |
+| TSC Check Duration | 2,827ms | 1,061ms |
+| Dashboard Bundle | 15.3 kB | 0 |
+| Session Bundle | 4.17 kB | 0 |
+| Join Bundle | 3.01 kB | 0 |
+
+**Spiral Propagation Verification:**
+- Forward (1→10): All downstream cubes compatible — PASS
+- Backward (10→1): 3 issues found and fixed — PASS
+  - cqs_weights missing from schema/service/router
+  - Test fixtures missing new Cube 1 fields
+  - Frontend Participant type mismatch (language→language_code)
+
 #### Cube 1 — Files
 | File | Lines | Purpose |
 |------|-------|---------|
-| `cubes/cube1_session/service.py` | 477 | Core business logic |
-| `cubes/cube1_session/router.py` | 371 | 22 API endpoints |
-| `models/session.py` | 114 | Session ORM model |
-| `models/participant.py` | 37 | Participant ORM model |
+| `cubes/cube1_session/service.py` | 520 | Core business logic (11 new params) |
+| `cubes/cube1_session/router.py` | 401 | 23 API endpoints (+ /start) |
+| `models/session.py` | 125 | Session ORM model (11 new columns) |
+| `models/participant.py` | 40 | Participant ORM model (3 new columns) |
 | `models/question.py` | 33 | Question ORM model |
-| `schemas/session.py` | 103 | Pydantic schemas |
-| `schemas/participant.py` | 22 | Participant schema |
+| `schemas/session.py` | 120 | Pydantic schemas (extended) |
+| `schemas/participant.py` | 28 | Participant schema (extended) |
 | `schemas/question.py` | 22 | Question schema |
+| `tests/cube1/test_session_service.py` | 540 | 32 unit tests |
+| `tests/cube1/test_e2e_flows.py` | 400+ | E2E Moderator + User flows |
 | `core/auth.py` | — | Auth middleware |
 | `core/exceptions.py` | — | Custom exceptions |
 
