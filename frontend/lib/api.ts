@@ -144,6 +144,26 @@ export const api = {
 
   delete: <T>(path: string, options?: RequestOptions) =>
     request<T>("DELETE", path, options),
+
+  // ── Convenience methods ──────────────────────────────────────
+  submitTextResponse: (sessionId: string, questionId: string, text: string) =>
+    request<{ id: string; status: string }>("POST", `/sessions/${sessionId}/responses`, {
+      body: { question_id: questionId, response_text: text },
+    }),
+
+  getSessionQuestions: (sessionId: string) =>
+    request<Array<{ id: string; question_text: string; question_number: number; is_active: boolean; created_at: string }>>(
+      "GET",
+      `/sessions/${sessionId}/questions`
+    ),
+
+  startTimeTracking: (sessionId: string, participantId: string) =>
+    request<{ id: string }>("POST", `/time/start`, {
+      body: { session_id: sessionId, participant_id: participantId, action_type: "responding" },
+    }),
+
+  stopTimeTracking: (timeEntryId: string) =>
+    request<{ id: string }>("POST", `/time/${timeEntryId}/stop`),
 };
 
 export { ApiClientError };

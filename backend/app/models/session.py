@@ -2,7 +2,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Index, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Index, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -25,6 +26,10 @@ VALID_ANONYMITY_MODES = ("identified", "anonymous", "pseudonymous")
 VALID_CYCLE_MODES = ("single", "multi")
 VALID_RANKING_MODES = ("auto", "manual")
 VALID_AI_PROVIDERS = ("openai", "grok", "gemini")
+VALID_SESSION_TYPES = ("polling", "peer_volunteer", "team_collaboration")
+VALID_POLLING_MODES = ("single_round", "multi_round_deep_dive")
+VALID_PRICING_TIERS = ("free", "moderator_paid", "cost_split")
+VALID_THEME2_VOTING_LEVELS = ("theme2_9", "theme2_6", "theme2_3")
 VALID_STT_PROVIDERS = ("openai", "grok", "gemini")  # Batch STT (maps to whisper/grok/gemini)
 VALID_REALTIME_STT_PROVIDERS = ("azure", "aws")  # Streaming STT (paid feature)
 SESSION_TRANSITIONS: dict[str, tuple[str, ...]] = {
@@ -88,6 +93,27 @@ class Session(Base):
     # Appearance — Moderator's theme cascades to all session participants
     theme_id: Mapped[str] = mapped_column(String(50), default="exel-cyan")
     custom_accent_color: Mapped[str | None] = mapped_column(String(7))  # hex e.g. #FF5733
+
+    # Session type & polling mode
+    session_type: Mapped[str] = mapped_column(String(30), default="polling")
+    polling_mode: Mapped[str] = mapped_column(String(30), default="single_round")
+
+    # Capacity & pricing
+    pricing_tier: Mapped[str] = mapped_column(String(20), default="free")
+    max_participants: Mapped[int | None] = mapped_column(Integer)
+    fee_amount_cents: Mapped[int] = mapped_column(Integer, default=0)
+    cost_splitting_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Gamified reward
+    reward_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    reward_amount_cents: Mapped[int] = mapped_column(Integer, default=0)
+    cqs_weights: Mapped[dict | None] = mapped_column(JSONB)
+
+    # Theme voting
+    theme2_voting_level: Mapped[str] = mapped_column(String(20), default="theme2_9")
+
+    # Live feed
+    live_feed_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Monetization
     is_paid: Mapped[bool] = mapped_column(default=False)

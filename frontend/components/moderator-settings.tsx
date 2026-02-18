@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { useTheme, THEME_PRESETS } from "@/lib/theme-context";
 import { SUPPORTED_LANGUAGES } from "@/lib/constants";
 import { LanguageLexicon } from "@/components/language-lexicon";
+import { CubeArchitectureStatus } from "@/components/cube-status";
 
 // ─── Theme Customizer Section ───────────────────────────────────
 
@@ -181,6 +182,8 @@ export function ModeratorSettings({ open, onClose, userEmail }: ModeratorSetting
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
           <ThemeCustomizer />
+          <Separator />
+          <CubeArchitectureStatus />
           <Separator />
           <SettingsLanguageSelector />
           <Separator />

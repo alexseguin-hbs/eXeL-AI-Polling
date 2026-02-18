@@ -4,6 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { LogOut, User, Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeratorSettings } from "@/components/moderator-settings";
+import { TokenHUD } from "@/components/token-hud";
 import { useState } from "react";
 
 interface NavbarProps {
@@ -48,6 +49,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
           )}
 
           <div className="ml-auto flex items-center gap-2">
+            <TokenHUD />
             {isAuthenticated && user && (
               <div className="relative">
                 <Button

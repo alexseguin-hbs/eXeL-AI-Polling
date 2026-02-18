@@ -4,6 +4,7 @@ import { Auth0Provider } from "@auth0/auth0-react";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/lib/theme-context";
 import { LexiconProvider } from "@/lib/lexicon-context";
+import { TimerProvider } from "@/lib/timer-context";
 import {
   AUTH0_DOMAIN,
   AUTH0_CLIENT_ID,
@@ -17,8 +18,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return (
       <ThemeProvider>
         <LexiconProvider>
-          {children}
-          <Toaster />
+          <TimerProvider>
+            {children}
+            <Toaster />
+          </TimerProvider>
         </LexiconProvider>
       </ThemeProvider>
     );
@@ -37,8 +40,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     >
       <ThemeProvider>
         <LexiconProvider>
-          {children}
-          <Toaster />
+          <TimerProvider>
+            {children}
+            <Toaster />
+          </TimerProvider>
         </LexiconProvider>
       </ThemeProvider>
     </Auth0Provider>

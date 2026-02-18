@@ -103,6 +103,16 @@ async def create_session(
         max_response_length=payload.max_response_length,
         ai_provider=payload.ai_provider,
         seed=payload.seed,
+        session_type=payload.session_type,
+        polling_mode=payload.polling_mode,
+        pricing_tier=payload.pricing_tier,
+        max_participants=payload.max_participants,
+        fee_amount_cents=payload.fee_amount_cents,
+        cost_splitting_enabled=payload.cost_splitting_enabled,
+        reward_enabled=payload.reward_enabled,
+        reward_amount_cents=payload.reward_amount_cents,
+        theme2_voting_level=payload.theme2_voting_level,
+        live_feed_enabled=payload.live_feed_enabled,
     )
     count = await service.get_participant_count(db, session.id)
     return SessionRead(**_session_to_read(session, count))
@@ -152,6 +162,21 @@ async def update_session(
 # ---------------------------------------------------------------------------
 # State Transitions
 # ---------------------------------------------------------------------------
+
+
+@router.post("/{session_id}/start", response_model=SessionRead)
+async def start_session(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Quick-start: transitions draft→open (then moderator can manually advance to polling)."""
+    session = await service.get_session_by_id(db, session_id)
+    service.verify_session_owner(session, user)
+    if session.status == "draft":
+        session = await service.transition_session(db, session, "open")
+    count = await service.get_participant_count(db, session.id)
+    return SessionRead(**_session_to_read(session, count))
 
 
 @router.post("/{session_id}/open", response_model=SessionRead)
@@ -247,6 +272,8 @@ async def join_session(
         user_id=user.user_id if user else None,
         display_name=payload.display_name,
         device_type=payload.device_type,
+        language_code=payload.language_code,
+        results_opt_in=payload.results_opt_in,
         redis=redis,
     )
     return SessionJoinResponse(
@@ -256,6 +283,8 @@ async def join_session(
         title=session.title,
         status=session.status,
         display_name=participant.display_name,
+        theme_id=session.theme_id,
+        custom_accent_color=session.custom_accent_color,
     )
 
 

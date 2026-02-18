@@ -16,6 +16,21 @@ class SessionCreate(BaseModel):
     max_response_length: int = Field(500, ge=50, le=5000)
     ai_provider: Literal["openai", "grok", "gemini"] = "openai"
     seed: str | None = None
+    # Session type & polling mode
+    session_type: Literal["polling", "peer_volunteer", "team_collaboration"] = "polling"
+    polling_mode: Literal["single_round", "multi_round_deep_dive"] = "single_round"
+    # Capacity & pricing
+    pricing_tier: Literal["free", "moderator_paid", "cost_split"] = "free"
+    max_participants: int | None = Field(None, ge=1, le=1000000)
+    fee_amount_cents: int = Field(0, ge=0)
+    cost_splitting_enabled: bool = False
+    # Gamified reward
+    reward_enabled: bool = False
+    reward_amount_cents: int = Field(0, ge=0)
+    # Theme voting
+    theme2_voting_level: Literal["theme2_9", "theme2_6", "theme2_3"] = "theme2_9"
+    # Live feed
+    live_feed_enabled: bool = False
     # STT service settings (Moderator)
     stt_provider: Literal["openai", "grok", "gemini"] = "openai"
     realtime_stt_enabled: bool = False  # Paid: real-time word-by-word transcription
@@ -63,6 +78,22 @@ class SessionRead(BaseModel):
     language: str
     max_response_length: int
     ai_provider: str
+    # Session type & mode
+    session_type: str = "polling"
+    polling_mode: str = "single_round"
+    # Capacity & pricing
+    pricing_tier: str = "free"
+    max_participants: int | None = None
+    fee_amount_cents: int = 0
+    cost_splitting_enabled: bool = False
+    # Gamified reward
+    reward_enabled: bool = False
+    reward_amount_cents: int = 0
+    # Theme voting
+    theme2_voting_level: str = "theme2_9"
+    # Live feed
+    live_feed_enabled: bool = False
+    # STT
     stt_provider: str = "openai"
     realtime_stt_enabled: bool = False
     realtime_stt_provider: str = "azure"
@@ -88,6 +119,8 @@ class SessionJoinRequest(BaseModel):
     """Payload when a participant joins via short_code."""
     display_name: str | None = None
     device_type: str | None = None
+    language_code: str = Field("en", min_length=2, max_length=10)
+    results_opt_in: bool = False
     stt_provider_preference: Literal["openai", "grok", "gemini"] | None = None
 
 

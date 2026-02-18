@@ -25,6 +25,12 @@ class Participant(Base):
     joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Join flow fields
+    language_code: Mapped[str] = mapped_column(String(10), default="en")
+    results_opt_in: Mapped[bool] = mapped_column(Boolean, default=False)
+    payment_status: Mapped[str] = mapped_column(String(20), default="unpaid")  # unpaid/paid/lead_exempt
+
     # User STT preference (if session.allow_user_stt_choice=True)
     stt_provider_preference: Mapped[str | None] = mapped_column(String(20))
 

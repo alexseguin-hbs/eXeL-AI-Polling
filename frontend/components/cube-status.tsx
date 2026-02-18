@@ -1,0 +1,150 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+
+type CubeStatus = "deployed" | "in_progress" | "not_started" | "planned";
+
+interface CubeInfo {
+  number: number;
+  name: string;
+  status: CubeStatus;
+  completion: number;
+  description: string;
+}
+
+const STATUS_COLORS: Record<CubeStatus, string> = {
+  deployed: "#22C55E",
+  in_progress: "#F59E0B",
+  not_started: "#EF4444",
+  planned: "#3B82F6",
+};
+
+const STATUS_LABELS: Record<CubeStatus, string> = {
+  deployed: "Deployed",
+  in_progress: "In Progress",
+  not_started: "Not Started",
+  planned: "Planned",
+};
+
+// 3x3 grid layout matching the cube architecture diagram
+// Row 0: 9, 2, 3
+// Row 1: 8, 1, 4
+// Row 2: 7, 6, 5
+const CUBE_GRID: CubeInfo[][] = [
+  [
+    { number: 9, name: "Reports", status: "not_started", completion: 5, description: "CSV/PDF export, Pixelated Tokens, dashboards" },
+    { number: 2, name: "Text", status: "not_started", completion: 10, description: "Text submission handler with 33-language support" },
+    { number: 3, name: "Voice", status: "not_started", completion: 10, description: "Voice-to-text engine with browser mic" },
+  ],
+  [
+    { number: 8, name: "Tokens", status: "deployed", completion: 85, description: "Token ledger, 59 jurisdiction rates, disputes" },
+    { number: 1, name: "Session", status: "in_progress", completion: 45, description: "Session CRUD, state machine, QR, join flow" },
+    { number: 4, name: "Collector", status: "not_started", completion: 5, description: "Response aggregation, MongoDB writes, caching" },
+  ],
+  [
+    { number: 7, name: "Ranking", status: "not_started", completion: 5, description: "Voting UI, deterministic aggregation, governance" },
+    { number: 6, name: "AI", status: "not_started", completion: 10, description: "Batch embeddings, clustering, summarization" },
+    { number: 5, name: "Gateway", status: "deployed", completion: 80, description: "Time tracking, token calc, login auto-entry" },
+  ],
+];
+
+const CUBE_10: CubeInfo = {
+  number: 10,
+  name: "Simulation",
+  status: "planned",
+  completion: 0,
+  description: "In-browser editor, replay, compare metrics, version/rollback",
+};
+
+function CubeCell({ cube }: { cube: CubeInfo }) {
+  const [expanded, setExpanded] = useState(false);
+  const color = STATUS_COLORS[cube.status];
+
+  return (
+    <button
+      onClick={() => setExpanded(!expanded)}
+      className="relative flex flex-col items-center gap-1 rounded-lg border border-border p-2 transition-colors hover:bg-accent/50 text-left w-full"
+    >
+      {/* Status dot */}
+      <span
+        className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      {/* Cube number */}
+      <span className="text-lg font-bold" style={{ color }}>
+        {cube.number}
+      </span>
+      {/* Name */}
+      <span className="text-[10px] font-medium text-foreground leading-tight text-center">
+        {cube.name}
+      </span>
+      {/* Completion bar */}
+      <div className="w-full h-1 rounded-full bg-muted mt-0.5">
+        <div
+          className="h-full rounded-full transition-all"
+          style={{ width: `${cube.completion}%`, backgroundColor: color }}
+        />
+      </div>
+      {/* Expanded details */}
+      {expanded && (
+        <div className="w-full mt-1 pt-1 border-t border-border">
+          <p className="text-[9px] text-muted-foreground leading-tight">
+            {cube.description}
+          </p>
+          <p className="text-[9px] mt-0.5" style={{ color }}>
+            {STATUS_LABELS[cube.status]} — {cube.completion}%
+          </p>
+        </div>
+      )}
+    </button>
+  );
+}
+
+export function CubeArchitectureStatus() {
+  const [showLegend, setShowLegend] = useState(false);
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Cube Architecture
+        </h3>
+        <button
+          onClick={() => setShowLegend(!showLegend)}
+          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+        >
+          {showLegend ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          Legend
+        </button>
+      </div>
+
+      {showLegend && (
+        <div className="flex flex-wrap gap-3 mb-3 text-xs">
+          {(Object.entries(STATUS_COLORS) as [CubeStatus, string][]).map(([key, color]) => (
+            <span key={key} className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+              {STATUS_LABELS[key]}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Layer 1: 3x3 Grid */}
+      <p className="text-[10px] text-muted-foreground mb-1.5">Layer 1</p>
+      <div className="grid grid-cols-3 gap-1.5 mb-3">
+        {CUBE_GRID.flat().map((cube) => (
+          <CubeCell key={cube.number} cube={cube} />
+        ))}
+      </div>
+
+      {/* Layer 2: Cube 10 */}
+      <p className="text-[10px] text-muted-foreground mb-1.5">Layer 2 — Center</p>
+      <div className="grid grid-cols-3 gap-1.5">
+        <div />
+        <CubeCell cube={CUBE_10} />
+        <div />
+      </div>
+    </section>
+  );
+}

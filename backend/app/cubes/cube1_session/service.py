@@ -143,6 +143,17 @@ async def create_session(
     max_response_length: int = 500,
     ai_provider: str = "openai",
     seed: str | None = None,
+    # New Cube 1 fields
+    session_type: str = "polling",
+    polling_mode: str = "single_round",
+    pricing_tier: str = "free",
+    max_participants: int | None = None,
+    fee_amount_cents: int = 0,
+    cost_splitting_enabled: bool = False,
+    reward_enabled: bool = False,
+    reward_amount_cents: int = 0,
+    theme2_voting_level: str = "theme2_9",
+    live_feed_enabled: bool = False,
 ) -> Session:
     """Create a new session with short_code, join_url, and QR.
 
@@ -185,6 +196,17 @@ async def create_session(
         expires_at=expires_at,
         status="draft",
         seed=effective_seed,
+        # New Cube 1 fields
+        session_type=session_type,
+        polling_mode=polling_mode,
+        pricing_tier=pricing_tier,
+        max_participants=max_participants,
+        fee_amount_cents=fee_amount_cents,
+        cost_splitting_enabled=cost_splitting_enabled,
+        reward_enabled=reward_enabled,
+        reward_amount_cents=reward_amount_cents,
+        theme2_voting_level=theme2_voting_level,
+        live_feed_enabled=live_feed_enabled,
     )
     if session_id:
         kwargs["id"] = session_id
@@ -313,6 +335,18 @@ async def transition_session(
 # Participant Join
 # ---------------------------------------------------------------------------
 
+async def check_capacity(db: AsyncSession, session: Session) -> None:
+    """Enforce max_participants limit. Raises 409 if session is full."""
+    if session.max_participants is None:
+        return
+    count = await get_participant_count(db, session.id)
+    if count >= session.max_participants:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Session is full ({session.max_participants} participants max)",
+        )
+
+
 async def join_session(
     db: AsyncSession,
     *,
@@ -320,6 +354,8 @@ async def join_session(
     user_id: str | None = None,
     display_name: str | None = None,
     device_type: str | None = None,
+    language_code: str = "en",
+    results_opt_in: bool = False,
     redis: aioredis.Redis | None = None,
 ) -> tuple[Session, Participant]:
     """Join a session via short_code. Returns (session, participant).
@@ -335,6 +371,9 @@ async def join_session(
 
     if session.status not in ("open", "polling"):
         raise SessionStateError(session.status, "join")
+
+    # Check capacity before allowing new joins
+    await check_capacity(db, session)
 
     # Check for existing participant (rejoin)
     if user_id:
@@ -363,6 +402,8 @@ async def join_session(
         anon_hash=anon_hash,
         display_name=display_name or f"Participant-{nanoid(_SHORT_CODE_ALPHABET, 4)}",
         device_type=device_type,
+        language_code=language_code,
+        results_opt_in=results_opt_in,
         joined_at=datetime.now(timezone.utc),
         is_active=True,
     )

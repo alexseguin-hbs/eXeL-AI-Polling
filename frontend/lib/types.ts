@@ -7,8 +7,6 @@ export type SessionStatus =
   | "closed"
   | "archived";
 
-export type SessionType = "project_series" | "task" | "single_question";
-
 export type AnonymityMode = "identified" | "anonymous" | "pseudonymous";
 
 export type CycleMode = "single" | "multi";
@@ -18,6 +16,12 @@ export type RankingMode = "auto" | "manual";
 export type AIProvider = "openai" | "grok" | "gemini";
 
 export type PricingTier = "free" | "moderator_paid" | "cost_split";
+
+export type SessionType = "polling" | "peer_volunteer" | "team_collaboration";
+
+export type PollingMode = "single_round" | "multi_round_deep_dive";
+
+export type Theme2VotingLevel = "theme2_9" | "theme2_6" | "theme2_3";
 
 export interface Session {
   id: string;
@@ -34,6 +38,18 @@ export interface Session {
   language: string;
   max_response_length: number;
   ai_provider: AIProvider;
+  // New Cube 1 fields
+  session_type: SessionType;
+  polling_mode: PollingMode;
+  pricing_tier: PricingTier;
+  max_participants: number | null;
+  fee_amount_cents: number;
+  cost_splitting_enabled: boolean;
+  reward_enabled: boolean;
+  reward_amount_cents: number;
+  theme2_voting_level: Theme2VotingLevel;
+  live_feed_enabled: boolean;
+  // Existing fields
   is_paid: boolean;
   qr_url: string | null;
   join_url: string | null;

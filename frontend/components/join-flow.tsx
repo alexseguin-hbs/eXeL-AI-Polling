@@ -60,9 +60,8 @@ export function JoinFlow() {
       const response = await api.post<SessionJoinResponse>(
         `/sessions/join/${code}`,
         {
-          language,
           display_name: joinAnonymously ? null : displayName || null,
-          is_anonymous: joinAnonymously,
+          language_code: language || "en",
           results_opt_in: resultsOptIn,
         }
       );
