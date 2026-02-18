@@ -171,7 +171,7 @@ All clustering and ranking operations must be fully reproducible:
   ```
                A.I.           S.I.         H.I.
              ╔═══════╗     ╔═══════╗     ╔═══════╗
-             ║   ◬   ║     ║   ♡   ║     ║   웃   ║
+             ║   ◬   ║     ║   ♡   ║     ║   웃  ║
              ╚═══════╝     ╚═══════╝     ╚═══════╝
             Artificial      Shared           Human
            Intelligence     Intent     Intelligence
