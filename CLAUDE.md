@@ -462,17 +462,17 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 1. Seeded UUID5 produces deterministic ID
 2. Duplicate seed returns existing session (idempotent)
 
-**Metrics Baseline (N=3, 2026-02-18):**
-| Metric | Average | Std Dev |
-|--------|---------|---------|
-| Backend Test Duration | 3,341ms | 326ms |
-| Tests Passed | 32/32 | 0 |
-| Frontend Build Duration | 32,224ms | 242ms |
-| TypeScript Errors | 0 | 0 |
-| TSC Check Duration | 2,827ms | 1,061ms |
-| Dashboard Bundle | 15.3 kB | 0 |
-| Session Bundle | 4.17 kB | 0 |
-| Join Bundle | 3.01 kB | 0 |
+**Metrics Baseline (N=5, 2026-02-18):**
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Average | Std Dev |
+|--------|-------|-------|-------|-------|-------|---------|---------|
+| Tests Passed | 55/55 | 55/55 | 55/55 | 55/55 | 55/55 | **55/55** | **0** |
+| Backend Test Duration | 3,021ms | 3,140ms | 2,435ms | 3,206ms | 3,117ms | **2,984ms** | **293ms** |
+| Frontend Build Duration | 25,187ms | 24,353ms | 24,469ms | 25,572ms | 25,153ms | **24,947ms** | **469ms** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+| TSC Check Duration | 2,318ms | 2,562ms | 2,520ms | 2,743ms | 2,666ms | **2,562ms** | **151ms** |
+| Dashboard Bundle | 15.3 kB | 15.3 kB | 15.3 kB | 15.3 kB | 15.3 kB | **15.3 kB** | **0** |
+| Session Bundle | 4.24 kB | 4.24 kB | 4.24 kB | 4.24 kB | 4.24 kB | **4.24 kB** | **0** |
+| Join Bundle | 3.01 kB | 3.01 kB | 3.01 kB | 3.01 kB | 3.01 kB | **3.01 kB** | **0** |
 
 **Spiral Propagation Verification:**
 - Forward (1→10): All downstream cubes compatible — PASS
@@ -585,6 +585,73 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 |------|---------|-------|----------|
 | `test_text_service.py` | 10 | 32 | Unit tests (validation, PII, profanity, pub/sub, queries) |
 | `test_e2e_flows.py` | 6 | 30 | E2E flows (submission, PII, profanity, anonymization, CRS-08, language) |
+
+**Submission Test Flow (TestSubmissionFlow):**
+1. `create_session(polling)` → `submit_text_response()` — Full pipeline E2E
+2. `verify_mongo_write` — Raw text stored in MongoDB
+3. `verify_postgres_write` — ResponseMeta + TextResponse created
+4. `verify_token_display` — ♡ + ◬ returned with correct values
+5. `reject_non_polling` — SessionNotPollingError for non-polling session
+6. `reject_char_limit` — ResponseValidationError for exceeding max
+7. `accept_unicode` — CJK, Arabic, emoji all accepted
+8. `verify_redis_event` — Published to `session:{id}:responses` channel
+
+**PII Test Flow (TestPIIFlow):**
+1. `detect_email` — Email → [EMAIL_REDACTED]
+2. `detect_phone_ssn` — Phone + SSN in same text both caught
+3. `clean_text_no_flag` — No PII → empty detections
+4. `ner_failure_regex_fallback` — NER down → regex still catches PII
+5. `multiple_pii_types` — Email + IP + SSN all detected in one response
+
+**Profanity Test Flow (TestProfanityFlow):**
+1. `profanity_matched` — DB pattern match → flagged + scrubbed
+2. `no_filters_for_language` — No patterns → clean pass-through
+3. `invalid_regex_skipped` — Bad regex → skipped gracefully
+4. `profanity_non_blocking` — Submission proceeds despite profanity
+
+**Anonymization Tests (TestAnonymizationFlow — CRS-05):**
+1. `anonymous_none_pid` — anonymous → participant_id=None + anon_hash
+2. `identified_preserves_pid` — identified → participant_id preserved
+3. `pseudonymous_both` — pseudonymous → both pid + anon_hash stored
+4. `hash_deterministic` — Same pid → same hash every time
+5. `different_pids_different_hashes` — Different pids → different hashes
+
+**Integrity Tests (TestCRS08Integrity — CRS-08):**
+1. `hash_computed` — SHA-256 hex is 64 chars
+2. `hash_changes` — Different text → different hash
+3. `hash_deterministic` — Same text → same hash
+4. `unicode_hash` — Unicode text hashes correctly
+
+**Language Detection Tests (TestLanguageDetection):**
+1. `latin_always_passes` — en, fr, es → True
+2. `cjk_matches_zh` — Chinese characters match zh
+3. `arabic_matches_ar` — Arabic script matches ar
+4. `mismatch_detected` — Latin text declared as Arabic → False
+5. `empty_text_passes` — Whitespace → True
+6. `korean_matches_ko` — Korean hangul matches ko
+
+**Metrics Baseline (N=5, 2026-02-18):**
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Average | Std Dev |
+|--------|-------|-------|-------|-------|-------|---------|---------|
+| Tests Passed | 62/62 | 62/62 | 62/62 | 62/62 | 62/62 | **62/62** | **0** |
+| Backend Test Duration | 2,783ms | 2,995ms | 2,874ms | 2,919ms | 2,946ms | **2,903ms** | **72ms** |
+| Frontend Build Duration | 25,187ms | 24,353ms | 24,469ms | 25,572ms | 25,153ms | **24,947ms** | **469ms** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+| TSC Check Duration | 2,318ms | 2,562ms | 2,520ms | 2,743ms | 2,666ms | **2,562ms** | **151ms** |
+| Dashboard Bundle | 15.3 kB | 15.3 kB | 15.3 kB | 15.3 kB | 15.3 kB | **15.3 kB** | **0** |
+| Session Bundle | 4.24 kB | 4.24 kB | 4.24 kB | 4.24 kB | 4.24 kB | **4.24 kB** | **0** |
+| Join Bundle | 3.01 kB | 3.01 kB | 3.01 kB | 3.01 kB | 3.01 kB | **3.01 kB** | **0** |
+
+**Spiral Propagation Verification:**
+- Forward (2→10): All downstream cubes compatible — PASS
+  - Cube 3 (Voice): Uses same PII/profanity pipeline via Cube 2 imports
+  - Cube 4 (Collector): Aggregates responses stored by Cube 2
+  - Cube 6 (AI): Consumes Redis `response_submitted` events
+  - Cube 8 (Tokens): Ledger entries created via Cube 5 time tracking
+  - Cube 9 (Reports): Exports clean_text + response_hash
+- Backward (10→1): 2 issues found and fixed — PASS
+  - Frontend `api.ts` field name mismatch (`response_text` → `raw_text`)
+  - Frontend `session-view.tsx` missing `participant_id` in API call
 
 #### Cube 2 — Files
 | File | Lines | Purpose |
