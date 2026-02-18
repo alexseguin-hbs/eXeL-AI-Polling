@@ -28,17 +28,8 @@ export default function LandingPage() {
           <SessionCodeInput />
         </div>
 
-        {/* Moderator CTA */}
-        <div className="flex flex-col items-center gap-2">
-          <Separator className="w-24 mb-4" />
-          <p className="text-sm text-muted-foreground">Are you a Moderator?</p>
-          <Button variant="outline" asChild>
-            <a href="/dashboard/">Sign in to manage sessions</a>
-          </Button>
-        </div>
-
         {/* Features */}
-        <div className="mt-16 grid w-full max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3 mb-12">
+        <div className="grid w-full max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3 mb-12">
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="rounded-lg bg-primary/10 p-3">
               <Users className="h-6 w-6 text-primary" />
@@ -66,6 +57,15 @@ export default function LandingPage() {
               Quadratic voting, anti-sybil protection, and full audit trails
             </p>
           </div>
+        </div>
+
+        {/* Moderator CTA */}
+        <div className="flex flex-col items-center gap-2 mb-12">
+          <Separator className="w-24 mb-4" />
+          <p className="text-sm text-muted-foreground">Are you a Moderator?</p>
+          <Button variant="outline" asChild>
+            <a href="/dashboard/">Sign in to manage sessions</a>
+          </Button>
         </div>
       </main>
     </div>

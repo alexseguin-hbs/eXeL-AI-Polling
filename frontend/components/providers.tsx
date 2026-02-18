@@ -2,6 +2,7 @@
 
 import { Auth0Provider } from "@auth0/auth0-react";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/lib/theme-context";
 import {
   AUTH0_DOMAIN,
   AUTH0_CLIENT_ID,
@@ -13,10 +14,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // Skip Auth0 provider if config is missing (dev mode without Auth0)
   if (!AUTH0_DOMAIN || !AUTH0_CLIENT_ID) {
     return (
-      <>
+      <ThemeProvider>
         {children}
         <Toaster />
-      </>
+      </ThemeProvider>
     );
   }
 
@@ -31,8 +32,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
       cacheLocation="localstorage"
     >
-      {children}
-      <Toaster />
+      <ThemeProvider>
+        {children}
+        <Toaster />
+      </ThemeProvider>
     </Auth0Provider>
   );
 }
