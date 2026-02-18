@@ -197,6 +197,13 @@ All clustering and ranking operations must be fully reproducible:
   1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
   (center → top → top-right → right → bottom-right → bottom → bottom-left → left → top-left)
 - **Cube 10** is Level 2 center, implemented after Layer 1 is complete
+- **Spiral Development Protocol:**
+  The grid is a **bidirectional spiral** — not just a build order. When making any change:
+  - **Forward propagation (1→10):** Trace impact outward from the changed cube through all downstream cubes to Cube 10
+  - **Backward propagation (10→1):** Trace impact inward from Cube 10 back through all upstream cubes to Cube 1
+  - **Every change must enhance metrics and outcomes** for a larger user base — never degrade
+  - **Every change must increase modularity** to enhance user experience
+  - Guiding principle: **"Show humanity you can modify your experiences"**
 - **MVP phases:** MVP1 (working prototype) → MVP2 (usability/intelligence) → MVP3 (governance/monetization)
 
 ## Cube Architecture Overview
