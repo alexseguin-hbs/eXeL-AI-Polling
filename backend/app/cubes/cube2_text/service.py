@@ -302,7 +302,54 @@ def scrub_profanity(text: str, matches: list[dict]) -> str:
 
 
 # ---------------------------------------------------------------------------
-# 3b. Anonymization (CRS-05)
+# 3b. Language Detection (sanity check)
+# ---------------------------------------------------------------------------
+
+# Unicode script ranges for language plausibility check
+_SCRIPT_RANGES: dict[str, list[tuple[int, int]]] = {
+    "ar": [(0x0600, 0x06FF), (0x0750, 0x077F), (0xFB50, 0xFDFF), (0xFE70, 0xFEFF)],
+    "he": [(0x0590, 0x05FF), (0xFB1D, 0xFB4F)],
+    "zh": [(0x4E00, 0x9FFF), (0x3400, 0x4DBF), (0x2E80, 0x2EFF)],
+    "ja": [(0x3040, 0x309F), (0x30A0, 0x30FF), (0x4E00, 0x9FFF)],
+    "ko": [(0xAC00, 0xD7AF), (0x1100, 0x11FF), (0x3130, 0x318F)],
+    "hi": [(0x0900, 0x097F)],
+    "bn": [(0x0980, 0x09FF)],
+    "pa": [(0x0A00, 0x0A7F)],
+    "th": [(0x0E00, 0x0E7F)],
+    "ne": [(0x0900, 0x097F)],
+    "ru": [(0x0400, 0x04FF)],
+    "uk": [(0x0400, 0x04FF)],
+    "el": [(0x0370, 0x03FF)],
+}
+
+
+def detect_language(text: str, declared_code: str) -> bool:
+    """Sanity-check that text plausibly matches declared language.
+
+    Uses Unicode script detection for non-Latin scripts.
+    Latin-script languages (en, fr, es, de, etc.) always pass.
+    Returns True if plausible match, False if likely mismatch.
+    Non-blocking: mismatch is logged but doesn't reject submission.
+    """
+    if declared_code not in _SCRIPT_RANGES:
+        # Latin-script languages — always plausible
+        return True
+
+    ranges = _SCRIPT_RANGES[declared_code]
+    script_chars = sum(
+        1 for ch in text
+        if any(lo <= ord(ch) <= hi for lo, hi in ranges)
+    )
+    # Require at least 10% of non-space characters to be in the expected script
+    non_space = sum(1 for ch in text if not ch.isspace())
+    if non_space == 0:
+        return True
+    ratio = script_chars / non_space
+    return ratio >= 0.1
+
+
+# ---------------------------------------------------------------------------
+# 3c. Anonymization (CRS-05)
 # ---------------------------------------------------------------------------
 
 
@@ -481,6 +528,16 @@ async def submit_text_response(
 
     # --- 2. Validate text input ---
     text = validate_text_input(raw_text, session.max_response_length)
+
+    # --- 2b. Language sanity check (non-blocking) ---
+    if not detect_language(text, language_code):
+        logger.warning(
+            "cube2.language_mismatch",
+            declared=language_code,
+            session_id=str(session_id),
+            participant_id=str(participant_id),
+            text_preview=text[:50],
+        )
 
     # --- 3. Start time tracking (Cube 5) ---
     from app.cubes.cube5_gateway.service import start_time_tracking, stop_time_tracking
