@@ -64,7 +64,7 @@ export default function LandingPage() {
           <Separator className="w-24 mb-4" />
           <p className="text-sm text-muted-foreground">Are you a Moderator?</p>
           <Button variant="outline" asChild>
-            <a href="/dashboard/">Sign in to manage sessions</a>
+            <a href="/dashboard/">Session Facilitator Access</a>
           </Button>
         </div>
       </main>
