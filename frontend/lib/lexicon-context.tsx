@@ -17,6 +17,7 @@ import {
   ALL_KEYS,
   CUBE_GROUPS,
 } from "@/lib/lexicon-data";
+import { SEEDED_TRANSLATIONS } from "@/lib/lexicon-translations";
 
 // ─── Storage keys ────────────────────────────────────────────────
 
@@ -91,7 +92,7 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [selectedCube, setSelectedCube] = useState<number | null>(null);
 
-  // Hydrate from localStorage on mount
+  // Hydrate from localStorage on mount, merging seeded translations as base
   useEffect(() => {
     try {
       const storedLangs = localStorage.getItem(LANGUAGES_KEY);
@@ -106,15 +107,25 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      // Start with seeded translations as base
+      const merged: LanguageTranslations = {};
+      for (const [lang, entries] of Object.entries(SEEDED_TRANSLATIONS)) {
+        merged[lang] = { ...entries };
+      }
+      // Overlay localStorage translations (user edits take priority)
       const storedTrans = localStorage.getItem(TRANSLATIONS_KEY);
       if (storedTrans) {
         const parsed = JSON.parse(storedTrans) as LanguageTranslations;
         if (parsed && typeof parsed === "object") {
-          setTranslations(parsed);
+          for (const [lang, entries] of Object.entries(parsed)) {
+            merged[lang] = { ...(merged[lang] ?? {}), ...entries };
+          }
         }
       }
+      setTranslations(merged);
     } catch {
-      // corrupt data — start empty
+      // corrupt data — use seeded only
+      setTranslations({ ...SEEDED_TRANSLATIONS });
     }
   }, []);
 
