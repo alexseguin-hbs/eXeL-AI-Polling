@@ -62,66 +62,62 @@ export function getTheme2_3Positions(): CirclePosition[] {
 }
 
 /**
- * 6 circles: flat-top hexagon
- * Positions: Top-Left, Top-Right, Left, Right, Bottom-Left, Bottom-Right
+ * 6 circles: radial hexagon rotated 30° left → flat-top (2 on top, 2 on bottom).
+ * Circles overlap the hub slightly (Vesica Piscis aesthetic).
  */
 export function getTheme2_6Positions(): CirclePosition[] {
+  const distance = 130;
   const radius = 85;
-  const dx = 110; // horizontal offset from center
-  const dy = 95;  // vertical offset from center
-
-  // TL, TR, L, R, BL, BR
-  return [
-    { cx: CENTER_X - dx / 2, cy: CENTER_Y - dy, r: radius },     // Top-Left
-    { cx: CENTER_X + dx / 2, cy: CENTER_Y - dy, r: radius },     // Top-Right
-    { cx: CENTER_X - dx,     cy: CENTER_Y,      r: radius },     // Left
-    { cx: CENTER_X + dx,     cy: CENTER_Y,      r: radius },     // Right
-    { cx: CENTER_X - dx / 2, cy: CENTER_Y + dy, r: radius },     // Bottom-Left
-    { cx: CENTER_X + dx / 2, cy: CENTER_Y + dy, r: radius },     // Bottom-Right
-  ];
+  const startAngle = -120; // rotated 30° left from -90 → flat-top hex
+  return Array.from({ length: 6 }, (_, i) => {
+    const deg = startAngle + i * 60;
+    const rad = (deg * Math.PI) / 180;
+    return {
+      cx: CENTER_X + distance * Math.cos(rad),
+      cy: CENTER_Y + distance * Math.sin(rad),
+      r: radius,
+    };
+  });
 }
 
 /**
- * 9 circles: triangle outline with 4 per side, hub at center.
- * Corners shared between edges → 9 unique positions.
+ * 9 circles: inner 6 (hex, rotated 30° left) + outer 3 (between inner pairs).
+ * Same rotation as the 6-circle layout so the transition blooms naturally.
  *
- *            O                 (apex)
- *           / \
- *          O   O               (left 1/3, right 1/3)
- *         /     \
- *        O  hub  O             (left 2/3, right 2/3)
- *       /         \
- *      O   O   O   O          (base — 4 circles)
+ *         O              (outer top)
+ *       O   O            (inner TL, TR)
+ *     O  hub  O          (inner L, inner R)
+ *       O   O            (inner BL, BR)
+ *     O       O          (outer lower-left, outer lower-right)
  */
 export function getTheme2_9Positions(): CirclePosition[] {
-  const r = 55;
+  const innerDistance = 130;
+  const innerRadius = 80;
+  const outerDistance = 225;
+  const outerRadius = 75;
+  const startAngle = -120; // rotated 30° left → matches 6-circle layout
 
-  // Triangle vertices (equilateral, centered around hub)
-  const T  = { x: CENTER_X, y: 75 };           // apex
-  const BL = { x: 105, y: 405 };               // bottom-left
-  const BR = { x: 495, y: 405 };               // bottom-right
+  const inner = Array.from({ length: 6 }, (_, i) => {
+    const deg = startAngle + i * 60;
+    const rad = (deg * Math.PI) / 180;
+    return {
+      cx: CENTER_X + innerDistance * Math.cos(rad),
+      cy: CENTER_Y + innerDistance * Math.sin(rad),
+      r: innerRadius,
+    };
+  });
 
-  // Linear interpolation helper
-  const lerp = (
-    a: { x: number; y: number },
-    b: { x: number; y: number },
-    t: number
-  ) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+  const outer = Array.from({ length: 3 }, (_, i) => {
+    const deg = startAngle + 30 + i * 120; // offset 30° between inner pairs
+    const rad = (deg * Math.PI) / 180;
+    return {
+      cx: CENTER_X + outerDistance * Math.cos(rad),
+      cy: CENTER_Y + outerDistance * Math.sin(rad),
+      r: outerRadius,
+    };
+  });
 
-  // 9 positions clockwise from apex (corners shared between edges)
-  const pts = [
-    lerp(T, T, 0),       // 0: apex
-    lerp(T, BR, 1 / 3),  // 1: right side 1/3
-    lerp(T, BR, 2 / 3),  // 2: right side 2/3
-    lerp(BR, BR, 0),     // 3: bottom-right corner
-    lerp(BL, BR, 2 / 3), // 4: bottom 2/3
-    lerp(BL, BR, 1 / 3), // 5: bottom 1/3
-    lerp(BL, BL, 0),     // 6: bottom-left corner
-    lerp(T, BL, 2 / 3),  // 7: left side 2/3
-    lerp(T, BL, 1 / 3),  // 8: left side 1/3
-  ];
-
-  return pts.map((p) => ({ cx: p.x, cy: p.y, r }));
+  return [...inner, ...outer];
 }
 
 /** Get positions for a given theme2 level */
