@@ -244,14 +244,16 @@ export function SessionView() {
               )}
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-6">
-              <div className="flex flex-col items-center rounded-lg bg-primary/10 px-8 py-4">
-                <Users className="h-6 w-6 text-primary mb-1" />
-                <p className="text-3xl font-bold text-primary">
-                  {participantCount}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  participants joined
-                </p>
+              <div className="flex items-center gap-3 rounded-lg bg-primary/10 px-8 py-4">
+                <Users className="h-6 w-6 text-primary shrink-0" />
+                <div className="flex flex-col items-center">
+                  <p className="text-3xl font-bold text-primary">
+                    {participantCount}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    participants joined
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -259,7 +261,7 @@ export function SessionView() {
                 <span>Waiting for moderator to start polling...</span>
               </div>
 
-              <div className="rounded-md bg-muted px-4 py-2">
+              <div className="rounded-md bg-muted px-4 py-2 text-center">
                 <p className="text-xs text-muted-foreground">Session Code</p>
                 <p className="text-lg font-mono font-bold tracking-wider">
                   {session.short_code}
