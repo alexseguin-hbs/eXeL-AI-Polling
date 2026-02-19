@@ -45,7 +45,7 @@ export function SessionCodeInput() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto">
+    <form onSubmit={handleSubmit} className="w-full max-w-xs mx-auto">
       <div className="flex flex-col items-center gap-4">
         <label
           htmlFor="session-code"
@@ -53,7 +53,7 @@ export function SessionCodeInput() {
         >
           Enter session code
         </label>
-        <div className="flex w-full gap-2">
+        <div className="flex w-full gap-1.5 justify-center">
           <input
             ref={inputRef}
             id="session-code"
