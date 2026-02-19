@@ -62,7 +62,7 @@ export default function LandingPage() {
         {/* Moderator CTA */}
         <div className="flex flex-col items-center gap-2 mb-12">
           <Separator className="w-24 mb-4" />
-          <p className="text-sm text-muted-foreground">Are you a Moderator?</p>
+          <p className="text-sm text-muted-foreground">Are you a Session Facilitator?</p>
           <Button variant="outline" asChild>
             <a href="/dashboard/">Session Facilitator Access</a>
           </Button>
