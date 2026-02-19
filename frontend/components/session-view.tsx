@@ -244,16 +244,14 @@ export function SessionView() {
               )}
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-6">
-              <div className="flex items-center gap-3 rounded-lg bg-primary/10 px-6 py-4">
-                <Users className="h-6 w-6 text-primary" />
-                <div>
-                  <p className="text-3xl font-bold text-primary">
-                    {participantCount}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    participants joined
-                  </p>
-                </div>
+              <div className="flex flex-col items-center rounded-lg bg-primary/10 px-8 py-4">
+                <Users className="h-6 w-6 text-primary mb-1" />
+                <p className="text-3xl font-bold text-primary">
+                  {participantCount}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  participants joined
+                </p>
               </div>
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
