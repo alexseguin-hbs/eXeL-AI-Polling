@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { ArrowLeft, Plus, ShieldCheck, Globe, Check, X } from "lucide-react";
+import { ArrowLeft, Plus, ShieldCheck, Globe, Check, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -276,6 +276,34 @@ function TranslationEditorView({
     cubeFilter ?? undefined
   );
 
+  const downloadCSV = useCallback(() => {
+    const rows: string[][] = [["Key", "Cube", "Context", "English", language.nameEn]];
+    const groups = cubeFilter !== null
+      ? CUBE_GROUPS.filter((g) => g.cubeId === cubeFilter)
+      : CUBE_GROUPS;
+    for (const group of groups) {
+      for (const entry of group.keys) {
+        const translated = translations[langCode]?.[entry.key] ?? "";
+        const eng = DEFAULT_ENGLISH_TRANSLATIONS[entry.key]?.englishDefault ?? "";
+        rows.push([
+          entry.key,
+          group.label,
+          entry.context,
+          eng,
+          translated,
+        ]);
+      }
+    }
+    const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lexicon_en_${langCode}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [langCode, language.nameEn, translations, cubeFilter]);
+
   const groups =
     cubeFilter !== null
       ? CUBE_GROUPS.filter((g) => g.cubeId === cubeFilter)
@@ -301,7 +329,7 @@ function TranslationEditorView({
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-medium truncate">
             {language.nameNative}{" "}
             <span className="text-muted-foreground">({language.nameEn})</span>
@@ -319,6 +347,16 @@ function TranslationEditorView({
             </span>
           </div>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0 text-xs flex items-center gap-1"
+          onClick={downloadCSV}
+          title={`Download English + ${language.nameEn} CSV`}
+        >
+          <Download className="h-3 w-3" />
+          CSV
+        </Button>
       </div>
 
       {/* Cube filter tabs */}
