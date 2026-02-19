@@ -82,41 +82,46 @@ export function getTheme2_6Positions(): CirclePosition[] {
 }
 
 /**
- * 9 circles: pyramid with base of 4 along the bottom
- * Row 1 (top):    2 circles
- * Row 2 (middle): 3 circles
- * Row 3 (bottom): 4 circles (base)
+ * 9 circles: triangle outline with 4 per side, hub at center.
+ * Corners shared between edges → 9 unique positions.
+ *
+ *            O                 (apex)
+ *           / \
+ *          O   O               (left 1/3, right 1/3)
+ *         /     \
+ *        O  hub  O             (left 2/3, right 2/3)
+ *       /         \
+ *      O   O   O   O          (base — 4 circles)
  */
 export function getTheme2_9Positions(): CirclePosition[] {
-  const radius = 70;
-  const colSpacing = 100; // horizontal gap between circle centers
-  const rowSpacing = 95;  // vertical gap between rows
-  const topY = CENTER_Y - rowSpacing;
+  const r = 55;
 
-  const positions: CirclePosition[] = [];
+  // Triangle vertices (equilateral, centered around hub)
+  const T  = { x: CENTER_X, y: 75 };           // apex
+  const BL = { x: 105, y: 405 };               // bottom-left
+  const BR = { x: 495, y: 405 };               // bottom-right
 
-  // Row 1: 2 circles centered
-  const row1Count = 2;
-  const row1StartX = CENTER_X - ((row1Count - 1) * colSpacing) / 2;
-  for (let i = 0; i < row1Count; i++) {
-    positions.push({ cx: row1StartX + i * colSpacing, cy: topY, r: radius });
-  }
+  // Linear interpolation helper
+  const lerp = (
+    a: { x: number; y: number },
+    b: { x: number; y: number },
+    t: number
+  ) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
 
-  // Row 2: 3 circles centered
-  const row2Count = 3;
-  const row2StartX = CENTER_X - ((row2Count - 1) * colSpacing) / 2;
-  for (let i = 0; i < row2Count; i++) {
-    positions.push({ cx: row2StartX + i * colSpacing, cy: topY + rowSpacing, r: radius });
-  }
+  // 9 positions clockwise from apex (corners shared between edges)
+  const pts = [
+    lerp(T, T, 0),       // 0: apex
+    lerp(T, BR, 1 / 3),  // 1: right side 1/3
+    lerp(T, BR, 2 / 3),  // 2: right side 2/3
+    lerp(BR, BR, 0),     // 3: bottom-right corner
+    lerp(BL, BR, 2 / 3), // 4: bottom 2/3
+    lerp(BL, BR, 1 / 3), // 5: bottom 1/3
+    lerp(BL, BL, 0),     // 6: bottom-left corner
+    lerp(T, BL, 2 / 3),  // 7: left side 2/3
+    lerp(T, BL, 1 / 3),  // 8: left side 1/3
+  ];
 
-  // Row 3: 4 circles centered (base)
-  const row3Count = 4;
-  const row3StartX = CENTER_X - ((row3Count - 1) * colSpacing) / 2;
-  for (let i = 0; i < row3Count; i++) {
-    positions.push({ cx: row3StartX + i * colSpacing, cy: topY + rowSpacing * 2, r: radius });
-  }
-
-  return positions;
+  return pts.map((p) => ({ cx: p.x, cy: p.y, r }));
 }
 
 /** Get positions for a given theme2 level */
