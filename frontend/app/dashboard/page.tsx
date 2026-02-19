@@ -22,6 +22,7 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { AuthGuard } from "@/components/auth-guard";
 import { Navbar } from "@/components/navbar";
+import { FlowerVisualization } from "@/components/flower-of-life/flower-visualization";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -335,6 +336,15 @@ function SessionDetail({
             </div>
           </CardContent>
         </Card>
+
+        {/* Flower of Life Theme Visualization (closed/archived sessions) */}
+        {["closed", "archived"].includes(session.status) && (
+          <FlowerVisualization
+            sessionId={session.id}
+            sessionTitle={session.title}
+            isPaidTier={session.pricing_tier !== "free"}
+          />
+        )}
       </div>
     </>
   );

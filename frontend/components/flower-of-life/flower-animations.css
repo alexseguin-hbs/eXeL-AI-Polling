@@ -1,0 +1,169 @@
+/* Flower of Life — Keyframes for bloom, pulse, glow, transition effects */
+
+@keyframes flower-bloom {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes flower-contract {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes flower-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px currentColor);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+}
+
+@keyframes flower-glow-ring {
+  0% {
+    stroke-opacity: 0.2;
+    stroke-width: 1;
+  }
+  50% {
+    stroke-opacity: 0.6;
+    stroke-width: 3;
+  }
+  100% {
+    stroke-opacity: 0.2;
+    stroke-width: 1;
+  }
+}
+
+@keyframes flower-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes flower-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes flower-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes flower-slide-down {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes knob-rotate {
+  from {
+    transform: rotate(var(--knob-from));
+  }
+  to {
+    transform: rotate(var(--knob-to));
+  }
+}
+
+.flower-bloom {
+  animation: flower-bloom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.flower-contract {
+  animation: flower-contract 0.25s ease-in forwards;
+}
+
+.flower-pulse {
+  animation: flower-pulse 2s ease-in-out infinite;
+}
+
+.flower-glow {
+  animation: flower-glow-ring 3s ease-in-out infinite;
+}
+
+.flower-fade-in {
+  animation: flower-fade-in 0.3s ease-out forwards;
+}
+
+.flower-fade-out {
+  animation: flower-fade-out 0.3s ease-in forwards;
+}
+
+.flower-slide-up {
+  animation: flower-slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.flower-slide-down {
+  animation: flower-slide-down 0.3s ease-in forwards;
+}
+
+/* Stagger bloom delays for theme2 circles */
+.flower-bloom-delay-1 {
+  animation-delay: 80ms;
+}
+.flower-bloom-delay-2 {
+  animation-delay: 160ms;
+}
+.flower-bloom-delay-3 {
+  animation-delay: 240ms;
+}
+.flower-bloom-delay-4 {
+  animation-delay: 320ms;
+}
+.flower-bloom-delay-5 {
+  animation-delay: 400ms;
+}
+.flower-bloom-delay-6 {
+  animation-delay: 480ms;
+}
+.flower-bloom-delay-7 {
+  animation-delay: 560ms;
+}
+.flower-bloom-delay-8 {
+  animation-delay: 640ms;
+}
+
+/* SVG circle hover effect */
+.flower-circle-interactive {
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.flower-circle-interactive:hover {
+  filter: brightness(1.2) drop-shadow(0 0 8px currentColor);
+}

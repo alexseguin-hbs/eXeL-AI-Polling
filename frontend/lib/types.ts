@@ -123,6 +123,50 @@ export interface TextResponseRead {
   response_hash: string | null;
 }
 
+// ── Flower of Life Theme Visualization Types ────────────────────
+
+export type Theme01Label =
+  | "Risk & Concerns"
+  | "Supporting Comments"
+  | "Neutral Comments";
+
+export interface ThemeInfo {
+  label: string;
+  count: number;
+  avgConfidence: number;
+  summary33: string;
+}
+
+export interface ThemedResponse {
+  id: string;
+  userHash: string;
+  rawText: string;
+  summary33: string;
+  summary111: string;
+  summary333: string;
+  theme1: Theme01Label;
+  theme1Confidence: number;
+  theme2_9: string;
+  theme2_6: string;
+  theme2_3: string;
+  theme2Confidence: number;
+}
+
+export interface SessionThemeData {
+  sessionId: string;
+  totalResponses: number;
+  theme1: Record<Theme01Label, ThemeInfo>;
+  theme2: Record<
+    Theme01Label,
+    {
+      level3: ThemeInfo[];
+      level6: ThemeInfo[];
+      level9: ThemeInfo[];
+    }
+  >;
+  responses: ThemedResponse[];
+}
+
 export interface ApiError {
   detail: string;
   status: number;
