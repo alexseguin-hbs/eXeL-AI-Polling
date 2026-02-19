@@ -61,51 +61,62 @@ export function getTheme2_3Positions(): CirclePosition[] {
   });
 }
 
-/** 6 circles: 60deg apart, hexagon pattern starting from top */
+/**
+ * 6 circles: flat-top hexagon
+ * Positions: Top-Left, Top-Right, Left, Right, Bottom-Left, Bottom-Right
+ */
 export function getTheme2_6Positions(): CirclePosition[] {
-  const distance = 130;
   const radius = 85;
-  const startAngle = -90;
-  return Array.from({ length: 6 }, (_, i) => {
-    const deg = startAngle + i * 60;
-    const rad = (deg * Math.PI) / 180;
-    return {
-      cx: CENTER_X + distance * Math.cos(rad),
-      cy: CENTER_Y + distance * Math.sin(rad),
-      r: radius,
-    };
-  });
+  const dx = 110; // horizontal offset from center
+  const dy = 95;  // vertical offset from center
+
+  // TL, TR, L, R, BL, BR
+  return [
+    { cx: CENTER_X - dx / 2, cy: CENTER_Y - dy, r: radius },     // Top-Left
+    { cx: CENTER_X + dx / 2, cy: CENTER_Y - dy, r: radius },     // Top-Right
+    { cx: CENTER_X - dx,     cy: CENTER_Y,      r: radius },     // Left
+    { cx: CENTER_X + dx,     cy: CENTER_Y,      r: radius },     // Right
+    { cx: CENTER_X - dx / 2, cy: CENTER_Y + dy, r: radius },     // Bottom-Left
+    { cx: CENTER_X + dx / 2, cy: CENTER_Y + dy, r: radius },     // Bottom-Right
+  ];
 }
 
-/** 9 circles: inner 6 at 60deg (130px) + outer 3 at 120deg (225px) */
+/**
+ * 9 circles: pyramid with base of 4 along the bottom
+ * Row 1 (top):    2 circles
+ * Row 2 (middle): 3 circles
+ * Row 3 (bottom): 4 circles (base)
+ */
 export function getTheme2_9Positions(): CirclePosition[] {
-  const innerDistance = 130;
-  const innerRadius = 80;
-  const outerDistance = 225;
-  const outerRadius = 75;
-  const startAngle = -90;
+  const radius = 70;
+  const colSpacing = 100; // horizontal gap between circle centers
+  const rowSpacing = 95;  // vertical gap between rows
+  const topY = CENTER_Y - rowSpacing;
 
-  const inner = Array.from({ length: 6 }, (_, i) => {
-    const deg = startAngle + i * 60;
-    const rad = (deg * Math.PI) / 180;
-    return {
-      cx: CENTER_X + innerDistance * Math.cos(rad),
-      cy: CENTER_Y + innerDistance * Math.sin(rad),
-      r: innerRadius,
-    };
-  });
+  const positions: CirclePosition[] = [];
 
-  const outer = Array.from({ length: 3 }, (_, i) => {
-    const deg = startAngle + 30 + i * 120; // offset by 30deg between inner pairs
-    const rad = (deg * Math.PI) / 180;
-    return {
-      cx: CENTER_X + outerDistance * Math.cos(rad),
-      cy: CENTER_Y + outerDistance * Math.sin(rad),
-      r: outerRadius,
-    };
-  });
+  // Row 1: 2 circles centered
+  const row1Count = 2;
+  const row1StartX = CENTER_X - ((row1Count - 1) * colSpacing) / 2;
+  for (let i = 0; i < row1Count; i++) {
+    positions.push({ cx: row1StartX + i * colSpacing, cy: topY, r: radius });
+  }
 
-  return [...inner, ...outer];
+  // Row 2: 3 circles centered
+  const row2Count = 3;
+  const row2StartX = CENTER_X - ((row2Count - 1) * colSpacing) / 2;
+  for (let i = 0; i < row2Count; i++) {
+    positions.push({ cx: row2StartX + i * colSpacing, cy: topY + rowSpacing, r: radius });
+  }
+
+  // Row 3: 4 circles centered (base)
+  const row3Count = 4;
+  const row3StartX = CENTER_X - ((row3Count - 1) * colSpacing) / 2;
+  for (let i = 0; i < row3Count; i++) {
+    positions.push({ cx: row3StartX + i * colSpacing, cy: topY + rowSpacing * 2, r: radius });
+  }
+
+  return positions;
 }
 
 /** Get positions for a given theme2 level */

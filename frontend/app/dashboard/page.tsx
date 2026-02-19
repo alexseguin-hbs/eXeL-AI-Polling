@@ -298,6 +298,15 @@ function SessionDetail({
           </Card>
         )}
 
+        {/* Flower of Life Theme Visualization (closed/archived sessions) */}
+        {["closed", "archived"].includes(session.status) && (
+          <FlowerVisualization
+            sessionId={session.id}
+            sessionTitle={session.title}
+            isPaidTier={session.pricing_tier !== "free"}
+          />
+        )}
+
         {/* Session Config Summary */}
         <Card>
           <CardHeader>
@@ -336,15 +345,6 @@ function SessionDetail({
             </div>
           </CardContent>
         </Card>
-
-        {/* Flower of Life Theme Visualization (closed/archived sessions) */}
-        {["closed", "archived"].includes(session.status) && (
-          <FlowerVisualization
-            sessionId={session.id}
-            sessionTitle={session.title}
-            isPaidTier={session.pricing_tier !== "free"}
-          />
-        )}
       </div>
     </>
   );
