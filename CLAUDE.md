@@ -665,6 +665,38 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | `tests/cube2/test_text_service.py` | 499 | 32 unit tests |
 | `tests/cube2/test_e2e_flows.py` | 716 | 30 E2E tests + CUBE2_TEST_METHOD |
 
+### Landing Page — Metrics Baseline (N=5, 2026-02-18)
+
+**Landing Page Content Verification:**
+- Feature order: AI Theming → Scale to Millions → Governance Built In — CONFIRMED
+- CTA label: "Are you a Session Facilitator?" → "Session Facilitator Access" button — CONFIRMED
+- Max response length: 3333 chars (supports Cube 6 pipeline: 333→111→33 words at ~4-5 chars/word)
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ tests/cube2/ tests/cube3/ -v --tb=short
+cd frontend && npx tsc --noEmit
+cd frontend && npx next build
+```
+
+**Metrics Baseline (N=5, 2026-02-18):**
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Average | Std Dev |
+|--------|-------|-------|-------|-------|-------|---------|---------|
+| Tests Passed | 135/135 | 135/135 | 135/135 | 135/135 | 135/135 | **135/135** | **0** |
+| Backend Test Duration | 1,090ms | 1,070ms | 1,120ms | 1,090ms | 1,170ms | **1,108ms** | **39ms** |
+| Frontend Build Duration | 33,058ms | 31,780ms | 32,219ms | 33,972ms | 32,767ms | **32,759ms** | **838ms** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+| TSC Check Duration | 3,555ms | 3,559ms | 2,970ms | 3,419ms | 3,480ms | **3,397ms** | **245ms** |
+| Landing Page Bundle | 2.03 kB | 2.03 kB | 2.03 kB | 2.03 kB | 2.03 kB | **2.03 kB** | **0** |
+| Dashboard Bundle | 15.3 kB | 15.3 kB | 15.3 kB | 15.3 kB | 15.3 kB | **15.3 kB** | **0** |
+| Session Bundle | 4.24 kB | 4.24 kB | 4.24 kB | 4.24 kB | 4.24 kB | **4.24 kB** | **0** |
+| Join Bundle | 3.01 kB | 3.01 kB | 3.01 kB | 3.01 kB | 3.01 kB | **3.01 kB** | **0** |
+
+**Spiral Propagation Verification:**
+- Forward (1→9): Landing page labels consistent with dashboard — PASS
+- Backward (9→1): 3333 char limit propagated through schemas, models, services, tests (Cubes 1-3) — PASS
+- All 135 tests pass (Cube 1: 55, Cube 2: 62, Cube 3: 18)
+
 ### Cubes 3–4, 6–7, 9–10: SCAFFOLDED (stubs only)
 - Models, schemas, and route stubs exist
 - Service implementations pending
