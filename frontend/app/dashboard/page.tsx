@@ -355,7 +355,7 @@ function DashboardContent() {
   const [newDescription, setNewDescription] = useState("");
   const [newType, setNewType] = useState<string>("single_question");
   const [newAiProvider, setNewAiProvider] = useState("openai");
-  const [newMaxResponse, setNewMaxResponse] = useState("500");
+  const [newMaxResponse, setNewMaxResponse] = useState("3333");
   const [newPricingTier, setNewPricingTier] = useState("free");
   const [newMaxParticipants, setNewMaxParticipants] = useState("");
   const [newRewardEnabled, setNewRewardEnabled] = useState(false);
@@ -398,7 +398,7 @@ function DashboardContent() {
         description: newDescription.trim() || null,
         cycle_mode: newType === "project_series" ? "multi" : "single",
         ai_provider: newAiProvider,
-        max_response_length: parseInt(newMaxResponse) || 500,
+        max_response_length: parseInt(newMaxResponse) || 3333,
         pricing_tier: newPricingTier,
         max_participants: newMaxParticipants ? parseInt(newMaxParticipants) : null,
         reward_enabled: newRewardEnabled,
@@ -410,7 +410,7 @@ function DashboardContent() {
       setNewDescription("");
       setNewType("single_question");
       setNewAiProvider("openai");
-      setNewMaxResponse("500");
+      setNewMaxResponse("3333");
       setNewPricingTier("free");
       setNewMaxParticipants("");
       setNewRewardEnabled(false);
@@ -550,7 +550,7 @@ function DashboardContent() {
                       value={newMaxResponse}
                       onChange={(e) => setNewMaxResponse(e.target.value)}
                       min={50}
-                      max={5000}
+                      max={3333}
                     />
                   </div>
                 </div>

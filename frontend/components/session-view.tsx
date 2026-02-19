@@ -339,7 +339,7 @@ export function SessionView() {
                       placeholder="Type your response..."
                       value={responseText}
                       onChange={(e) => setResponseText(e.target.value)}
-                      maxLength={session.max_response_length || 500}
+                      maxLength={session.max_response_length || 3333}
                       rows={4}
                       className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
                       onKeyDown={(e) => {
@@ -350,7 +350,7 @@ export function SessionView() {
                       }}
                     />
                     <p className="text-xs text-muted-foreground text-right">
-                      {responseText.length}/{session.max_response_length || 500}
+                      {responseText.length}/{session.max_response_length || 3333}
                     </p>
                   </div>
                   <div className="flex gap-2">

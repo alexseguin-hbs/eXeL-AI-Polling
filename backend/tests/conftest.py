@@ -166,7 +166,7 @@ def make_session(
     current_cycle: int = 1,
     ranking_mode: str = "auto",
     language: str = "en",
-    max_response_length: int = 500,
+    max_response_length: int = 3333,
     ai_provider: str = "openai",
     stt_provider: str = "openai",
     realtime_stt_enabled: bool = False,

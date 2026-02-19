@@ -80,7 +80,7 @@ class TestValidateTranscript:
             provider="whisper",
             audio_duration_sec=2.0,
         )
-        text = validate_transcript(result, 500)
+        text = validate_transcript(result, 3333)
         assert text == "Hello world"
 
     def test_empty_transcript_raises(self):
@@ -95,7 +95,7 @@ class TestValidateTranscript:
             audio_duration_sec=1.0,
         )
         with pytest.raises(ResponseValidationError) as exc_info:
-            validate_transcript(result, 500)
+            validate_transcript(result, 3333)
         assert "No speech detected" in str(exc_info.value.detail)
 
     def test_low_confidence_raises(self):
@@ -110,14 +110,14 @@ class TestValidateTranscript:
             audio_duration_sec=1.0,
         )
         with pytest.raises(ResponseValidationError) as exc_info:
-            validate_transcript(result, 500)
+            validate_transcript(result, 3333)
         assert "confidence too low" in str(exc_info.value.detail)
 
     def test_long_transcript_truncated(self):
         """Transcript exceeding max_length should be truncated (not rejected)."""
         from app.cubes.cube3_voice.service import validate_transcript
 
-        long_text = "A" * 1000
+        long_text = "A" * 5000
         result = TranscriptionResult(
             transcript=long_text,
             confidence=0.9,
@@ -125,8 +125,8 @@ class TestValidateTranscript:
             provider="whisper",
             audio_duration_sec=30.0,
         )
-        text = validate_transcript(result, 500)
-        assert len(text) == 500
+        text = validate_transcript(result, 3333)
+        assert len(text) == 3333
 
     def test_borderline_confidence_passes(self):
         """Confidence exactly at threshold should pass."""
@@ -139,7 +139,7 @@ class TestValidateTranscript:
             provider="whisper",
             audio_duration_sec=1.0,
         )
-        text = validate_transcript(result, 500)
+        text = validate_transcript(result, 3333)
         assert text == "Borderline"
 
 

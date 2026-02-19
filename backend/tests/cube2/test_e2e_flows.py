@@ -221,22 +221,22 @@ class TestSubmissionFlow:
         from app.cubes.cube2_text.service import validate_text_input
 
         with pytest.raises(ResponseValidationError):
-            validate_text_input("A" * 501, 500)
+            validate_text_input("A" * 3334, 3333)
 
     def test_submit_accepts_unicode_text(self):
         """CJK, Arabic, emoji should be accepted."""
         from app.cubes.cube2_text.service import validate_text_input
 
         # CJK
-        result = validate_text_input("これはテストです", 500)
+        result = validate_text_input("これはテストです", 3333)
         assert "これは" in result
 
         # Arabic
-        result = validate_text_input("هذا اختبار", 500)
+        result = validate_text_input("هذا اختبار", 3333)
         assert "اختبار" in result
 
         # Emoji
-        result = validate_text_input("Great idea! 🎉🚀", 500)
+        result = validate_text_input("Great idea! 🎉🚀", 3333)
         assert "🎉" in result
 
     @pytest.mark.asyncio

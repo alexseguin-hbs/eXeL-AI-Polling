@@ -13,7 +13,7 @@ class SessionCreate(BaseModel):
     max_cycles: int = Field(1, ge=1, le=100)
     ranking_mode: Literal["auto", "manual"] = "auto"
     language: str = Field("en", min_length=2, max_length=10)
-    max_response_length: int = Field(500, ge=50, le=5000)
+    max_response_length: int = Field(3333, ge=50, le=3333)
     ai_provider: Literal["openai", "grok", "gemini"] = "openai"
     seed: str | None = None
     # Session type & polling mode
@@ -50,7 +50,7 @@ class SessionUpdate(BaseModel):
     description: str | None = None
     anonymity_mode: Literal["identified", "anonymous", "pseudonymous"] | None = None
     ranking_mode: Literal["auto", "manual"] | None = None
-    max_response_length: int | None = Field(None, ge=50, le=5000)
+    max_response_length: int | None = Field(None, ge=50, le=3333)
     ai_provider: Literal["openai", "grok", "gemini"] | None = None
     stt_provider: Literal["openai", "grok", "gemini"] | None = None
     realtime_stt_enabled: bool | None = None

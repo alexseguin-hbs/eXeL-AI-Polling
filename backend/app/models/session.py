@@ -58,7 +58,7 @@ class Session(Base):
     current_cycle: Mapped[int] = mapped_column(Integer, default=1)
     ranking_mode: Mapped[str] = mapped_column(String(20), default="auto")
     language: Mapped[str] = mapped_column(String(10), default="en")
-    max_response_length: Mapped[int] = mapped_column(Integer, default=500)
+    max_response_length: Mapped[int] = mapped_column(Integer, default=3333)
 
     # AI provider for this session (moderator selects at creation)
     ai_provider: Mapped[str] = mapped_column(String(20), default="openai")

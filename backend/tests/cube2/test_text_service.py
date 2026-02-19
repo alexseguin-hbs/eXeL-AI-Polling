@@ -151,46 +151,46 @@ class TestValidateTextInput:
     def test_valid_text(self):
         """Normal text within limits should pass."""
         from app.cubes.cube2_text.service import validate_text_input
-        result = validate_text_input("Hello world", 500)
+        result = validate_text_input("Hello world", 3333)
         assert result == "Hello world"
 
     def test_strips_whitespace(self):
         """Should strip leading/trailing whitespace."""
         from app.cubes.cube2_text.service import validate_text_input
-        result = validate_text_input("  Hello  ", 500)
+        result = validate_text_input("  Hello  ", 3333)
         assert result == "Hello"
 
     def test_empty_text_raises(self):
         """Empty text should raise ResponseValidationError."""
         from app.cubes.cube2_text.service import validate_text_input
         with pytest.raises(ResponseValidationError):
-            validate_text_input("", 500)
+            validate_text_input("", 3333)
 
     def test_whitespace_only_raises(self):
         """Whitespace-only text should raise ResponseValidationError."""
         from app.cubes.cube2_text.service import validate_text_input
         with pytest.raises(ResponseValidationError):
-            validate_text_input("   \t\n  ", 500)
+            validate_text_input("   \t\n  ", 3333)
 
     def test_exceeds_max_length_raises(self):
         """Text exceeding max length should raise ResponseValidationError."""
         from app.cubes.cube2_text.service import validate_text_input
         with pytest.raises(ResponseValidationError) as exc_info:
-            validate_text_input("A" * 501, 500)
+            validate_text_input("A" * 3334, 3333)
         assert "exceeds maximum length" in str(exc_info.value.detail)
 
     def test_unicode_text_passes(self):
         """Unicode text (CJK, emoji) should be accepted."""
         from app.cubes.cube2_text.service import validate_text_input
-        result = validate_text_input("これはテストです 🎉", 500)
+        result = validate_text_input("これはテストです 🎉", 3333)
         assert "これは" in result
 
     def test_exact_max_length_passes(self):
         """Text at exactly max length should pass."""
         from app.cubes.cube2_text.service import validate_text_input
-        text = "A" * 500
-        result = validate_text_input(text, 500)
-        assert len(result) == 500
+        text = "A" * 3333
+        result = validate_text_input(text, 3333)
+        assert len(result) == 3333
 
 
 # ---------------------------------------------------------------------------

@@ -68,7 +68,7 @@ class TestModeratorFlow:
                     max_cycles=1,
                     ranking_mode="auto",
                     language="en",
-                    max_response_length=500,
+                    max_response_length=3333,
                     ai_provider="openai",
                     # Cube 1 extended fields
                     session_type="polling",

@@ -140,7 +140,7 @@ async def create_session(
     max_cycles: int = 1,
     ranking_mode: str = "auto",
     language: str = "en",
-    max_response_length: int = 500,
+    max_response_length: int = 3333,
     ai_provider: str = "openai",
     seed: str | None = None,
     # New Cube 1 fields
