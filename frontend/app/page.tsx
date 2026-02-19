@@ -32,20 +32,20 @@ export default function LandingPage() {
         <div className="grid w-full max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3 mb-12">
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="rounded-lg bg-primary/10 p-3">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-medium">Scale to Millions</h3>
-            <p className="text-sm text-muted-foreground">
-              Handle 100K+ concurrent participants with real-time results
-            </p>
-          </div>
-          <div className="flex flex-col items-center gap-2 text-center">
-            <div className="rounded-lg bg-primary/10 p-3">
               <Zap className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-medium">AI Theming</h3>
             <p className="text-sm text-muted-foreground">
               Automatic clustering and summarization of responses in seconds
+            </p>
+          </div>
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="rounded-lg bg-primary/10 p-3">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-medium">Scale to Millions</h3>
+            <p className="text-sm text-muted-foreground">
+              Handle 100K+ concurrent participants with real-time results
             </p>
           </div>
           <div className="flex flex-col items-center gap-2 text-center">
