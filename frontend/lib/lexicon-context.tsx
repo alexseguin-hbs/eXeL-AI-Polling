@@ -60,6 +60,7 @@ interface LexiconContextValue {
 
   // Write
   updateTranslation: (langCode: string, key: string, text: string) => void;
+  bulkUpdateTranslations: (langCode: string, entries: Record<string, string>) => void;
   proposeLanguage: (
     code: string,
     nameEn: string,
@@ -168,6 +169,20 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const bulkUpdateTranslations = useCallback(
+    (langCode: string, entries: Record<string, string>) => {
+      setTranslations((prev) => {
+        const next = {
+          ...prev,
+          [langCode]: { ...(prev[langCode] ?? {}), ...entries },
+        };
+        localStorage.setItem(TRANSLATIONS_KEY, JSON.stringify(next));
+        return next;
+      });
+    },
+    []
+  );
+
   const proposeLanguage = useCallback(
     (
       code: string,
@@ -238,6 +253,7 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
         getLanguageCompleteness,
         getPendingLanguages,
         updateTranslation,
+        bulkUpdateTranslations,
         proposeLanguage,
         approveLanguage,
         rejectLanguage,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { ArrowLeft, Plus, ShieldCheck, Globe, Check, X, Download } from "lucide-react";
+import { ArrowLeft, Plus, ShieldCheck, Globe, Check, X, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -46,6 +46,7 @@ export function LanguageLexicon({ userEmail }: LanguageLexiconProps) {
     getLanguageCompleteness,
     getPendingLanguages,
     updateTranslation,
+    bulkUpdateTranslations,
     proposeLanguage,
     approveLanguage,
     rejectLanguage,
@@ -124,6 +125,7 @@ export function LanguageLexicon({ userEmail }: LanguageLexiconProps) {
           setCubeFilter={setCubeFilter}
           getLanguageCompleteness={getLanguageCompleteness}
           updateTranslation={updateTranslation}
+          bulkUpdateTranslations={bulkUpdateTranslations}
           onBack={() => {
             setView("list");
             setEditingLang(null);
@@ -257,6 +259,7 @@ interface TranslationEditorViewProps {
     cubeId?: number
   ) => { filled: number; total: number; percent: number };
   updateTranslation: (langCode: string, key: string, text: string) => void;
+  bulkUpdateTranslations: (langCode: string, entries: Record<string, string>) => void;
   onBack: () => void;
 }
 
@@ -268,9 +271,12 @@ function TranslationEditorView({
   setCubeFilter,
   getLanguageCompleteness,
   updateTranslation,
+  bulkUpdateTranslations,
   onBack,
 }: TranslationEditorViewProps) {
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const completeness = getLanguageCompleteness(
     langCode,
     cubeFilter ?? undefined
@@ -303,6 +309,90 @@ function TranslationEditorView({
     a.click();
     URL.revokeObjectURL(url);
   }, [langCode, language.nameEn, translations, cubeFilter]);
+
+  const handleCSVUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string;
+      if (!text) return;
+      // Strip BOM if present
+      const clean = text.replace(/^\uFEFF/, "");
+      // Parse CSV rows (handle quoted fields with commas/newlines)
+      const rows: string[][] = [];
+      let current: string[] = [];
+      let field = "";
+      let inQuotes = false;
+      for (let i = 0; i < clean.length; i++) {
+        const ch = clean[i];
+        if (inQuotes) {
+          if (ch === '"' && clean[i + 1] === '"') {
+            field += '"';
+            i++;
+          } else if (ch === '"') {
+            inQuotes = false;
+          } else {
+            field += ch;
+          }
+        } else {
+          if (ch === '"') {
+            inQuotes = true;
+          } else if (ch === ",") {
+            current.push(field);
+            field = "";
+          } else if (ch === "\n" || (ch === "\r" && clean[i + 1] === "\n")) {
+            current.push(field);
+            field = "";
+            if (current.length > 1) rows.push(current);
+            current = [];
+            if (ch === "\r") i++;
+          } else {
+            field += ch;
+          }
+        }
+      }
+      // Last row
+      if (field || current.length > 0) {
+        current.push(field);
+        if (current.length > 1) rows.push(current);
+      }
+      if (rows.length < 2) {
+        setUploadStatus("No data rows found in CSV");
+        setTimeout(() => setUploadStatus(null), 3000);
+        return;
+      }
+      // Header row — find Key column (index 0) and translation column (index 4+)
+      const header = rows[0];
+      const keyIdx = header.findIndex((h) => h.trim().toLowerCase() === "key");
+      // Translation is the last column (or column index 4)
+      const transIdx = header.length - 1;
+      if (keyIdx < 0 || transIdx <= keyIdx) {
+        setUploadStatus("Invalid CSV format — Key column not found");
+        setTimeout(() => setUploadStatus(null), 3000);
+        return;
+      }
+      const entries: Record<string, string> = {};
+      let imported = 0;
+      for (let r = 1; r < rows.length; r++) {
+        const row = rows[r];
+        const key = row[keyIdx]?.trim();
+        const val = row[transIdx]?.trim();
+        if (key && val && DEFAULT_ENGLISH_TRANSLATIONS[key]) {
+          entries[key] = val;
+          imported++;
+        }
+      }
+      if (imported > 0) {
+        bulkUpdateTranslations(langCode, entries);
+      }
+      setUploadStatus(`Imported ${imported} translations`);
+      setTimeout(() => setUploadStatus(null), 3000);
+    };
+    reader.readAsText(file, "utf-8");
+    // Reset input so same file can be re-uploaded
+    e.target.value = "";
+  }, [langCode, bulkUpdateTranslations]);
 
   const groups =
     cubeFilter !== null
@@ -347,17 +437,37 @@ function TranslationEditorView({
             </span>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="shrink-0 text-xs flex items-center gap-1"
-          onClick={downloadCSV}
-          title={`Download English + ${language.nameEn} CSV`}
-        >
-          <Download className="h-3 w-3" />
-          CSV
-        </Button>
+        <div className="flex items-center gap-1 shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs flex items-center gap-1"
+            onClick={downloadCSV}
+            title={`Download English + ${language.nameEn} CSV`}
+          >
+            <Download className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs flex items-center gap-1"
+            onClick={() => fileInputRef.current?.click()}
+            title={`Upload ${language.nameEn} translations CSV`}
+          >
+            <Upload className="h-3 w-3" />
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={handleCSVUpload}
+          />
+        </div>
       </div>
+      {uploadStatus && (
+        <p className="text-xs text-green-400 text-center">{uploadStatus}</p>
+      )}
 
       {/* Cube filter tabs */}
       <div className="flex flex-wrap gap-1">
