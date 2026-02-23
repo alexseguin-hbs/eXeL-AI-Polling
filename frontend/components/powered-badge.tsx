@@ -44,7 +44,7 @@ function SimulationOverlay() {
         audioAvailable.current = false;
       });
     }
-  }, [currentSong]);
+  }, [currentSong, playing]);
 
   // Play/pause when state changes
   useEffect(() => {
