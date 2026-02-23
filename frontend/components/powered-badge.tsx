@@ -2,18 +2,17 @@
 
 import { useRef, useEffect, useState } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
-import { Play, Pause, X, Zap, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, X, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
 /**
- * Logo–Song pairings for Cube 10 Simulation Mode.
- * Top:          eXeL H.I. (웃) — "Unity in Diversity" (default)
+ * Logo–Song pairings for Simulation Mode.
+ * Top-center:   eXeL H.I. (웃) — "Unity in Diversity" (default)
  * Bottom-left:  eXeL A.I. (◬) — "Eternal Spark"
  * Bottom-right: eXeL S.I. (♡) — "Master of Thought"
  *
  * Files served from Next.js public/ directory.
- * Actual assets uploaded to UX Files/Audio/ and UX Files/Visual/.
  */
 const SONG_PAIRINGS = [
   {
@@ -42,6 +41,11 @@ const SONG_PAIRINGS = [
   },
 ];
 
+/**
+ * SimulationOverlay — transparent overlay on top of the current screen.
+ * The underlying page remains fully visible and interactive.
+ * Logos float at corners, play/pause at bottom center.
+ */
 function SimulationOverlay() {
   const { currentSong, playing, setSong, togglePlaying, exitSimulationMode } =
     useEasterEgg();
@@ -86,195 +90,94 @@ function SimulationOverlay() {
 
   const current = SONG_PAIRINGS[currentSong];
 
-  return (
-    <div className="fixed inset-0 z-[70] bg-background/95 backdrop-blur-lg flex flex-col items-center justify-center">
-      {/* Exit button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="absolute top-4 right-4"
-        onClick={exitSimulationMode}
+  // Shared logo button renderer
+  const renderLogo = (index: number, alt: string) => {
+    const pairing = SONG_PAIRINGS[index];
+    const isActive = currentSong === index;
+    return (
+      <button
+        onClick={() => setSong(index as 0 | 1 | 2)}
+        className="h-14 w-14 rounded-full border-2 flex items-center justify-center transition-all overflow-hidden"
+        style={{
+          borderColor: isActive ? pairing.color : "hsl(183, 33%, 25%)",
+          boxShadow: isActive ? `0 0 20px ${pairing.color}40` : "none",
+          background: isActive ? `${pairing.color}15` : "hsl(183, 30%, 9% / 0.8)",
+        }}
       >
-        <X className="h-5 w-5" />
-      </Button>
-
-      {/* Title */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
-        <Zap className="h-4 w-4 text-primary" />
-        <span className="text-sm font-semibold text-primary">
-          Cube 10 Simulation
-        </span>
-      </div>
-
-      {/* ── SoI Trinity Logos ── */}
-
-      {/* Top center: Logo 1 — eXeL H.I. (default) */}
-      <div className="absolute top-16 left-1/2 -translate-x-1/2">
-        <button
-          onClick={() => setSong(0)}
-          className={`h-20 w-20 rounded-full border-2 flex flex-col items-center justify-center transition-all overflow-hidden ${
-            currentSong === 0
-              ? `border-[${SONG_PAIRINGS[0].color}] shadow-[0_0_24px_rgba(141,81,111,0.4)]`
-              : "border-border bg-muted/30 hover:bg-muted/50"
-          }`}
-          style={
-            currentSong === 0
-              ? {
-                  borderColor: SONG_PAIRINGS[0].color,
-                  boxShadow: `0 0 24px ${SONG_PAIRINGS[0].color}40`,
-                }
-              : undefined
-          }
-        >
-          {!logoErrors[0] ? (
-            <Image
-              src={SONG_PAIRINGS[0].logo}
-              alt="eXeL H.I."
-              width={80}
-              height={80}
-              className="rounded-full object-cover"
-              onError={() => setLogoErrors((e) => ({ ...e, 0: true }))}
-            />
-          ) : (
-            <>
-              <span className="text-2xl">{SONG_PAIRINGS[0].symbol}</span>
-              <span className="text-[9px] font-mono text-muted-foreground">
-                {SONG_PAIRINGS[0].label}
-              </span>
-            </>
-          )}
-        </button>
-        <p className="text-[9px] text-center text-muted-foreground mt-1 font-mono">
-          {SONG_PAIRINGS[0].songName}
-        </p>
-      </div>
-
-      {/* Bottom-left: Logo 2 — eXeL A.I. */}
-      <div className="absolute bottom-36 left-12">
-        <button
-          onClick={() => setSong(1)}
-          className={`h-20 w-20 rounded-full border-2 flex flex-col items-center justify-center transition-all overflow-hidden ${
-            currentSong === 1 ? "" : "border-border bg-muted/30 hover:bg-muted/50"
-          }`}
-          style={
-            currentSong === 1
-              ? {
-                  borderColor: SONG_PAIRINGS[1].color,
-                  boxShadow: `0 0 24px ${SONG_PAIRINGS[1].color}40`,
-                }
-              : undefined
-          }
-        >
-          {!logoErrors[1] ? (
-            <Image
-              src={SONG_PAIRINGS[1].logo}
-              alt="eXeL A.I."
-              width={80}
-              height={80}
-              className="rounded-full object-cover"
-              onError={() => setLogoErrors((e) => ({ ...e, 1: true }))}
-            />
-          ) : (
-            <>
-              <span className="text-2xl">{SONG_PAIRINGS[1].symbol}</span>
-              <span className="text-[9px] font-mono text-muted-foreground">
-                {SONG_PAIRINGS[1].label}
-              </span>
-            </>
-          )}
-        </button>
-        <p className="text-[9px] text-center text-muted-foreground mt-1 font-mono">
-          {SONG_PAIRINGS[1].songName}
-        </p>
-      </div>
-
-      {/* Bottom-right: Logo 3 — eXeL S.I. */}
-      <div className="absolute bottom-36 right-12">
-        <button
-          onClick={() => setSong(2)}
-          className={`h-20 w-20 rounded-full border-2 flex flex-col items-center justify-center transition-all overflow-hidden ${
-            currentSong === 2 ? "" : "border-border bg-muted/30 hover:bg-muted/50"
-          }`}
-          style={
-            currentSong === 2
-              ? {
-                  borderColor: SONG_PAIRINGS[2].color,
-                  boxShadow: `0 0 24px ${SONG_PAIRINGS[2].color}40`,
-                }
-              : undefined
-          }
-        >
-          {!logoErrors[2] ? (
-            <Image
-              src={SONG_PAIRINGS[2].logo}
-              alt="eXeL S.I."
-              width={80}
-              height={80}
-              className="rounded-full object-cover"
-              onError={() => setLogoErrors((e) => ({ ...e, 2: true }))}
-            />
-          ) : (
-            <>
-              <span className="text-2xl">{SONG_PAIRINGS[2].symbol}</span>
-              <span className="text-[9px] font-mono text-muted-foreground">
-                {SONG_PAIRINGS[2].label}
-              </span>
-            </>
-          )}
-        </button>
-        <p className="text-[9px] text-center text-muted-foreground mt-1 font-mono">
-          {SONG_PAIRINGS[2].songName}
-        </p>
-      </div>
-
-      {/* ── Now Playing indicator ── */}
-      <div className="flex items-center gap-2 mb-2">
-        {playing ? (
-          <Volume2 className="h-4 w-4" style={{ color: current.color }} />
-        ) : (
-          <VolumeX className="h-4 w-4 text-muted-foreground/40" />
-        )}
-        <p className="text-sm font-mono" style={{ color: current.color }}>
-          {current.songName}
-        </p>
-      </div>
-
-      {/* Cube status ring */}
-      <div className="flex gap-1.5 mb-1">
-        {Array.from({ length: 9 }, (_, i) => (
-          <div
-            key={i}
-            className="h-2 w-2 rounded-full"
-            style={{
-              backgroundColor:
-                i < 2 ? "hsl(var(--primary))" : "hsl(183, 33%, 25%)",
-            }}
-            title={`Cube ${i + 1}`}
+        {!logoErrors[index] ? (
+          <Image
+            src={pairing.logo}
+            alt={alt}
+            width={56}
+            height={56}
+            className="rounded-full object-cover"
+            onError={() => setLogoErrors((e) => ({ ...e, [index]: true }))}
           />
-        ))}
-      </div>
-      <p className="text-[10px] text-muted-foreground mb-4">
-        Cubes 1-2 testable &middot; 3-9 scaffolded
-      </p>
+        ) : (
+          <span className="text-xl">{pairing.symbol}</span>
+        )}
+      </button>
+    );
+  };
 
-      {/* ── Play / Pause at bottom center ── */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
-        <button
-          onClick={togglePlaying}
-          className="h-16 w-16 rounded-full border-2 border-primary bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-all hover:shadow-[0_0_30px_rgba(0,215,228,0.2)]"
-        >
-          {playing ? (
-            <Pause className="h-7 w-7 text-primary" />
-          ) : (
-            <Play className="h-7 w-7 text-primary ml-1" />
-          )}
-        </button>
-
-        <span className="text-xs font-mono text-primary uppercase tracking-widest">
+  return (
+    <>
+      {/* ── Top center: "SIMULATION MODE" label + eXeL H.I. logo ── */}
+      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-1 pointer-events-auto">
+        <span className="text-[10px] font-mono text-primary/80 uppercase tracking-[0.25em]">
           Simulation Mode
         </span>
+        {renderLogo(0, "eXeL H.I.")}
+        {/* Exit X */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 mt-0.5"
+          onClick={exitSimulationMode}
+          title="Exit simulation"
+        >
+          <X className="h-3.5 w-3.5 text-muted-foreground" />
+        </Button>
       </div>
-    </div>
+
+      {/* ── Bottom-left: eXeL A.I. logo ── */}
+      <div className="fixed bottom-20 left-4 z-[70] pointer-events-auto">
+        {renderLogo(1, "eXeL A.I.")}
+      </div>
+
+      {/* ── Bottom-right: eXeL S.I. logo ── */}
+      <div className="fixed bottom-20 right-4 z-[70] pointer-events-auto">
+        {renderLogo(2, "eXeL S.I.")}
+      </div>
+
+      {/* ── Play / Pause + song name at bottom center ── */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-1.5 pointer-events-auto">
+        <button
+          onClick={togglePlaying}
+          className="h-12 w-12 rounded-full border-2 border-primary bg-background/90 flex items-center justify-center hover:bg-primary/20 transition-all backdrop-blur"
+        >
+          {playing ? (
+            <Pause className="h-5 w-5 text-primary" />
+          ) : (
+            <Play className="h-5 w-5 text-primary ml-0.5" />
+          )}
+        </button>
+        {/* Song name shown below play/pause */}
+        <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur rounded-full px-3 py-1">
+          {playing ? (
+            <Volume2 className="h-3 w-3" style={{ color: current.color }} />
+          ) : (
+            <VolumeX className="h-3 w-3 text-muted-foreground/40" />
+          )}
+          <span
+            className="text-[10px] font-mono"
+            style={{ color: current.color }}
+          >
+            {current.songName}
+          </span>
+        </div>
+      </div>
+    </>
   );
 }
 
