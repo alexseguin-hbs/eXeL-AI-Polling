@@ -66,7 +66,7 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
       )}
       <div
         className="grid grid-cols-3 gap-2"
-        style={disabled ? { pointerEvents: "none", opacity: 0.4 } : undefined}
+        style={disabled ? { opacity: 0.4 } : undefined}
       >
         {/* 8 preset themes */}
         {THEME_PRESETS.map((preset) => {

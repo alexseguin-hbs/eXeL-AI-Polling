@@ -357,25 +357,30 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [moderatorAuthenticated, setModeratorAuthenticatedState] = useState(false);
 
   // Hydrate stored theme ONLY when moderator logs in — pre-auth always stays exel-cyan
+  // On logout (moderator → not authenticated), reset everything to cyan
   useEffect(() => {
-    if (!moderatorAuthenticated) return;
-    const storedLocal = localStorage.getItem(STORAGE_KEY);
-    if (storedLocal && VALID_THEME_IDS.includes(storedLocal)) {
-      setLocalThemeId(storedLocal);
-    }
-    const storedAccent = localStorage.getItem(CUSTOM_ACCENT_KEY);
-    if (storedAccent && /^#[0-9A-Fa-f]{6}$/.test(storedAccent)) {
-      setCustomAccentColor(storedAccent);
+    if (moderatorAuthenticated) {
+      // Moderator logged in → restore their saved preferences
+      const storedLocal = localStorage.getItem(STORAGE_KEY);
+      if (storedLocal && VALID_THEME_IDS.includes(storedLocal)) {
+        setLocalThemeId(storedLocal);
+      }
+      const storedAccent = localStorage.getItem(CUSTOM_ACCENT_KEY);
+      if (storedAccent && /^#[0-9A-Fa-f]{6}$/.test(storedAccent)) {
+        setCustomAccentColor(storedAccent);
+      }
+      const storedSession = localStorage.getItem(SESSION_THEME_KEY);
+      if (storedSession && VALID_THEME_IDS.includes(storedSession)) {
+        setSessionThemeIdState(storedSession);
+      }
+    } else {
+      // Not authenticated → force AI Cyan, clear session theme
+      setLocalThemeId("exel-cyan");
+      setSessionThemeIdState(null);
+      setCustomAccentColor(null);
+      localStorage.removeItem(SESSION_THEME_KEY);
     }
   }, [moderatorAuthenticated]);
-
-  // Session theme hydration — always allowed (moderator cascade to participants)
-  useEffect(() => {
-    const storedSession = localStorage.getItem(SESSION_THEME_KEY);
-    if (storedSession && VALID_THEME_IDS.includes(storedSession)) {
-      setSessionThemeIdState(storedSession);
-    }
-  }, []);
 
   // Effective theme: session theme cascades to all users,
   // but local preference only applies to authenticated moderators.
