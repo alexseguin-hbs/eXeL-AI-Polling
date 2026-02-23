@@ -106,6 +106,19 @@ export function Navbar({ sessionTitle }: NavbarProps) {
             </div>
 
             <TokenHUD />
+
+            {/* Settings gear — available to ALL users (polling users see view-only theme grid) */}
+            {!isAuthenticated && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSettingsOpen(true)}
+                title={t("shared.nav.settings")}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            )}
+
             {isAuthenticated && user && (
               <div className="relative">
                 <Button
@@ -173,13 +186,12 @@ export function Navbar({ sessionTitle }: NavbarProps) {
         </div>
       </nav>
 
-      {isAuthenticated && (
-        <ModeratorSettings
-          open={settingsOpen}
-          onClose={() => setSettingsOpen(false)}
-          userEmail={user?.email}
-        />
-      )}
+      <ModeratorSettings
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        userEmail={user?.email}
+        isPollingUser={!isAuthenticated}
+      />
     </>
   );
 }
