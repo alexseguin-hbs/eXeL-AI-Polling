@@ -53,32 +53,11 @@ function SimulationOverlay() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [logoErrors, setLogoErrors] = useState<Record<number, boolean>>({});
 
-  // Create/update audio element when song changes
+  // Initialize audio element once, cleanup on unmount
   useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-      audioRef.current.loop = true;
-      audioRef.current.volume = 0.5;
-    }
-    audioRef.current.src = SONG_PAIRINGS[currentSong].audio;
-    audioRef.current.load();
-    if (playing) {
-      audioRef.current.play().catch(() => {});
-    }
-  }, [currentSong, playing]);
-
-  // Play/pause when state changes
-  useEffect(() => {
-    if (!audioRef.current) return;
-    if (playing) {
-      audioRef.current.play().catch(() => {});
-    } else {
-      audioRef.current.pause();
-    }
-  }, [playing]);
-
-  // Cleanup on unmount
-  useEffect(() => {
+    audioRef.current = new Audio();
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.5;
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -87,6 +66,21 @@ function SimulationOverlay() {
       }
     };
   }, []);
+
+  // Update source when song changes, play/pause when state changes
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const src = SONG_PAIRINGS[currentSong].audio;
+    if (audioRef.current.src !== src) {
+      audioRef.current.src = src;
+      audioRef.current.load();
+    }
+    if (playing) {
+      audioRef.current.play().catch(() => {});
+    } else {
+      audioRef.current.pause();
+    }
+  }, [currentSong, playing]);
 
   const current = SONG_PAIRINGS[currentSong];
 

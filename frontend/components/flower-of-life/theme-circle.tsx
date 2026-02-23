@@ -37,7 +37,7 @@ export function ThemeCircle({
   const summarySize = isHub ? 0 : r >= 80 ? Math.max(8, Math.min(10, r / 12)) : 0;
 
   // Text width clamped to fit inside the circle (inscribed rectangle ~r*1.4)
-  const textWidth = Math.min(r * 1.5, r * 1.4);
+  const textWidth = r * 1.4;
 
   // Bloom animation style
   const animStyle: React.CSSProperties = bloom

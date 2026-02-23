@@ -249,18 +249,19 @@ export function SessionView() {
   // Fetch questions when session is in polling state
   useEffect(() => {
     if (!session || session.status !== "polling") return;
+    if (simulationMode) return; // Simulation already has questions
     api
       .getSessionQuestions(sessionId)
       .then((qs) => setQuestions(qs as Question[]))
       .catch(() => {});
-    // Start timer when entering polling
-    startTimer();
-  }, [session, sessionId, startTimer]);
+  }, [session, sessionId, simulationMode]);
 
-  // Poll participant count
+  // Poll participant count — use session.status as dep to avoid stale closure
+  const sessionStatus = session?.status;
   useEffect(() => {
-    if (!sessionId || !session) return;
-    const isActive = ["open", "polling", "ranking"].includes(session.status);
+    if (!sessionId || !sessionStatus) return;
+    if (simulationMode) return;
+    const isActive = ["open", "polling", "ranking"].includes(sessionStatus);
     if (!isActive) return;
 
     const interval = setInterval(async () => {
@@ -275,18 +276,19 @@ export function SessionView() {
     }, PRESENCE_POLL_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [sessionId, session]);
+  }, [sessionId, sessionStatus, simulationMode]);
 
   // Poll session status
   useEffect(() => {
-    if (!sessionId || !session) return;
-    const isActive = ["open", "polling", "ranking"].includes(session.status);
+    if (!sessionId || !sessionStatus) return;
+    if (simulationMode) return;
+    const isActive = ["open", "polling", "ranking"].includes(sessionStatus);
     if (!isActive) return;
 
     const interval = setInterval(async () => {
       try {
         const data = await api.get<Session>(`/sessions/${sessionId}`);
-        if (data.status !== session.status) {
+        if (data.status !== sessionStatus) {
           setSession(data);
         }
       } catch {
@@ -295,7 +297,7 @@ export function SessionView() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [sessionId, session]);
+  }, [sessionId, sessionStatus, simulationMode]);
 
   const handleSubmitResponse = useCallback(async () => {
     if (!responseText.trim() || questions.length === 0) return;
@@ -342,6 +344,16 @@ export function SessionView() {
       setSubmitting(false);
     }
   }, [responseText, questions, currentQuestionIndex, sessionId, participantId, languageCode, earnTokens]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && e.metaKey) {
+        e.preventDefault();
+        handleSubmitResponse();
+      }
+    },
+    [handleSubmitResponse]
+  );
 
   if (loading) {
     return (
@@ -499,12 +511,7 @@ export function SessionView() {
                       maxLength={session.max_response_length || 3333}
                       rows={4}
                       className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && e.metaKey) {
-                          e.preventDefault();
-                          handleSubmitResponse();
-                        }
-                      }}
+                      onKeyDown={handleKeyDown}
                     />
                     <p className="text-xs text-muted-foreground text-right">
                       {responseText.length}/{session.max_response_length || 3333}

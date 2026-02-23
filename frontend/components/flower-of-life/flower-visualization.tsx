@@ -208,6 +208,14 @@ export function FlowerVisualization({
     ? THEME1_COLORS[state.selectedTheme1]
     : null;
 
+  // Memoize hex-to-RGB parsing to avoid recalculating per circle render
+  const theme1Rgb = useMemo(() => {
+    if (!selectedTheme1Color) return null;
+    const hex = selectedTheme1Color.stroke.replace("#", "").match(/.{2}/g);
+    if (!hex) return null;
+    return { r: parseInt(hex[0], 16), g: parseInt(hex[1], 16), b: parseInt(hex[2], 16) };
+  }, [selectedTheme1Color]);
+
   // ── Transition animation helpers ─────────────────────────────
 
   // For the hub moving from its Theme1 triangle position to center
@@ -352,11 +360,8 @@ export function FlowerVisualization({
                   const pos = theme2Positions[i];
                   // Vary saturation based on confidence
                   const alpha = 0.12 + (theme.avgConfidence / 100) * 0.18;
-                  const fill = selectedTheme1Color!.stroke
-                    .replace("#", "")
-                    .match(/.{2}/g);
-                  const fillRgba = fill
-                    ? `rgba(${parseInt(fill[0], 16)}, ${parseInt(fill[1], 16)}, ${parseInt(fill[2], 16)}, ${alpha})`
+                  const fillRgba = theme1Rgb
+                    ? `rgba(${theme1Rgb.r}, ${theme1Rgb.g}, ${theme1Rgb.b}, ${alpha})`
                     : selectedTheme1Color!.fill;
 
                   return (

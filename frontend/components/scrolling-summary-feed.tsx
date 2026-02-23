@@ -38,9 +38,8 @@ export function ScrollingSummaryFeed({
 
       setVisibleItems((prev) => {
         const next = [...prev, newItem];
-        // Keep max 8 items visible
-        if (next.length > 8) return next.slice(next.length - 8);
-        return next;
+        // Keep max 8 items visible — only slice when exceeding limit
+        return next.length > 8 ? next.slice(-8) : next;
       });
     }, 2500);
 

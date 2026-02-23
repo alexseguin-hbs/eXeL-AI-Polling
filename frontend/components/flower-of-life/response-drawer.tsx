@@ -20,6 +20,13 @@ type SummaryLevel = "33" | "111" | "333" | "original";
 
 const PAGE_SIZE = 20;
 
+const SUMMARY_LEVELS: { key: SummaryLevel; label: string; paid: boolean }[] = [
+  { key: "33", label: "33 words", paid: false },
+  { key: "111", label: "111 words", paid: false },
+  { key: "333", label: "333 words", paid: true },
+  { key: "original", label: "Original", paid: true },
+];
+
 export function ResponseDrawer({
   theme,
   responses,
@@ -61,13 +68,6 @@ export function ResponseDrawer({
         return r.summary33;
     }
   };
-
-  const summaryLevels: { key: SummaryLevel; label: string; paid: boolean }[] = [
-    { key: "33", label: "33 words", paid: false },
-    { key: "111", label: "111 words", paid: false },
-    { key: "333", label: "333 words", paid: true },
-    { key: "original", label: "Original", paid: true },
-  ];
 
   return (
     <div
@@ -172,7 +172,7 @@ export function ResponseDrawer({
         >
           View:
         </span>
-        {summaryLevels.map(({ key, label, paid }) => {
+        {SUMMARY_LEVELS.map(({ key, label, paid }) => {
           const isActive = summaryLevel === key;
           const isLocked = paid && !isPaidTier;
 
