@@ -1,19 +1,11 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
-import { Play, Pause, X, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, X, Volume2, VolumeX, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 
-/**
- * Logo–Song pairings for Simulation Mode.
- * Top-center:   eXeL H.I. (웃) — "Unity in Diversity" (default)
- * Bottom-left:  eXeL A.I. (◬) — "Eternal Spark"
- * Bottom-right: eXeL S.I. (♡) — "Master of Thought"
- *
- * Files served from Next.js public/ directory.
- */
 /**
  * Trinity colors — fixed per intelligence, independent of active theme.
  * A.I. (◬) = Cyan, S.I. (♡) = Sunset, H.I. (웃) = Violet
@@ -24,26 +16,34 @@ const TRINITY_COLORS = {
   SI: "#D3B20F", // ♡ Sunset
 } as const;
 
+/**
+ * Logo–Song pairings for Simulation Mode.
+ * Top-center:   eXeL H.I. (웃) — "Unity in Diversity" (default)
+ * Bottom-left:  eXeL A.I. (◬) — "Eternal Spark"
+ * Bottom-right: eXeL S.I. (♡) — "Master of Thought"
+ *
+ * Files served from Next.js public/ directory.
+ */
 const SONG_PAIRINGS = [
   {
     symbol: "웃",
     label: "H.I.",
     songName: "Unity in Diversity",
-    audio: "/audio/Unity in Diversity.mp3",
+    audio: "/audio/Unity in Diversity.wav",
     color: TRINITY_COLORS.HI,
   },
   {
     symbol: "◬",
     label: "A.I.",
     songName: "Eternal Spark",
-    audio: "/audio/Eternal Spark.mp3",
+    audio: "/audio/Eternal Spark.wav",
     color: TRINITY_COLORS.AI,
   },
   {
     symbol: "♡",
     label: "S.I.",
     songName: "Master of Thought",
-    audio: "/audio/Master of Thought.mp3",
+    audio: "/audio/Master of Thought.wav",
     color: TRINITY_COLORS.SI,
   },
 ];
@@ -51,41 +51,44 @@ const SONG_PAIRINGS = [
 /**
  * SimulationOverlay — transparent overlay on top of the current screen.
  * The underlying page remains fully visible and interactive.
- * Logos float at corners, play/pause at bottom center.
+ * Logos float at corners, built-in audio player at bottom center.
  */
 function SimulationOverlay() {
   const { currentSong, playing, setSong, togglePlaying, exitSimulationMode } =
     useEasterEgg();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Initialize audio element once, cleanup on unmount
-  useEffect(() => {
-    audioRef.current = new Audio();
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.5;
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        audioRef.current = null;
-      }
-    };
-  }, []);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [audioError, setAudioError] = useState(false);
+  const currentSrcRef = useRef<number>(-1);
 
-  // Update source when song changes, play/pause when state changes
+  // Load new source when song changes
   useEffect(() => {
-    if (!audioRef.current) return;
-    const src = SONG_PAIRINGS[currentSong].audio;
-    if (audioRef.current.src !== src) {
-      audioRef.current.src = src;
-      audioRef.current.load();
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (currentSrcRef.current !== currentSong) {
+      setAudioError(false);
+      audio.src = SONG_PAIRINGS[currentSong].audio;
+      audio.load();
+      currentSrcRef.current = currentSong;
     }
+  }, [currentSong]);
+
+  // Play/pause when state changes
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
     if (playing) {
-      audioRef.current.play().catch(() => {});
+      audio.play().catch(() => setAudioError(true));
     } else {
-      audioRef.current.pause();
+      audio.pause();
     }
-  }, [currentSong, playing]);
+  }, [playing, currentSong]);
+
+  const handleAudioError = useCallback(() => {
+    setAudioError(true);
+  }, []);
 
   const current = SONG_PAIRINGS[currentSong];
   const activeColor = current.color;
@@ -124,6 +127,15 @@ function SimulationOverlay() {
 
   return (
     <>
+      {/* Built-in HTML5 audio element */}
+      <audio
+        ref={audioRef}
+        loop
+        preload="auto"
+        onError={handleAudioError}
+        style={{ display: "none" }}
+      />
+
       {/* ── Top center: "SIMULATION MODE" label + eXeL H.I. logo ── */}
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-1 pointer-events-auto">
         <span className="text-[10px] font-mono text-primary/80 uppercase tracking-[0.25em]">
@@ -158,6 +170,7 @@ function SimulationOverlay() {
           onClick={togglePlaying}
           className="h-12 w-12 rounded-full border-2 bg-background/90 flex items-center justify-center hover:opacity-80 transition-all backdrop-blur"
           style={{ borderColor: activeColor }}
+          title={playing ? "Pause" : "Play"}
         >
           {playing ? (
             <Pause className="h-5 w-5" style={{ color: activeColor }} />
@@ -165,19 +178,30 @@ function SimulationOverlay() {
             <Play className="h-5 w-5 ml-0.5" style={{ color: activeColor }} />
           )}
         </button>
-        {/* Song name shown below play/pause */}
+        {/* Song name + error state */}
         <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur rounded-full px-3 py-1">
-          {playing ? (
-            <Volume2 className="h-3 w-3" style={{ color: activeColor }} />
+          {audioError ? (
+            <>
+              <AlertCircle className="h-3 w-3 text-red-400" />
+              <span className="text-[10px] font-mono text-red-400">
+                Audio unavailable
+              </span>
+            </>
+          ) : playing ? (
+            <>
+              <Volume2 className="h-3 w-3" style={{ color: activeColor }} />
+              <span className="text-[10px] font-mono" style={{ color: activeColor }}>
+                {current.songName}
+              </span>
+            </>
           ) : (
-            <VolumeX className="h-3 w-3 text-muted-foreground/40" />
+            <>
+              <VolumeX className="h-3 w-3 text-muted-foreground/40" />
+              <span className="text-[10px] font-mono" style={{ color: activeColor }}>
+                {current.songName}
+              </span>
+            </>
           )}
-          <span
-            className="text-[10px] font-mono"
-            style={{ color: activeColor }}
-          >
-            {current.songName}
-          </span>
         </div>
       </div>
     </>
