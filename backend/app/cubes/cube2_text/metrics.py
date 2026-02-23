@@ -21,19 +21,21 @@ from app.models.text_response import TextResponse
 from app.models.time_tracking import TimeEntry
 
 
+def _session_response_ids(session_id: uuid.UUID):
+    """Subquery: ResponseMeta IDs for a given session."""
+    return select(ResponseMeta.id).where(ResponseMeta.session_id == session_id)
+
+
+def _safe_pct(numerator: float, denominator: float) -> float:
+    """Safe percentage: returns 0.0 when denominator is zero."""
+    return (numerator / denominator * 100) if denominator > 0 else 0.0
+
+
 async def get_system_metrics(
     db: AsyncSession,
     session_id: uuid.UUID,
 ) -> dict:
-    """System metrics: latency and throughput indicators.
-
-    Metrics:
-      - avg_submission_latency_s: Avg time between time entry start→stop for responding
-      - max_submission_latency_s: Max submission processing time
-      - total_responses: Total response count for the session
-      - responses_per_minute: Throughput (responses / session active minutes)
-      - ner_pipeline_invocations: Count of responses with PII detection attempted
-    """
+    """System metrics: latency and throughput indicators."""
     # Submission latency from time_entries (cube2, action=responding)
     latency_result = await db.execute(
         select(
@@ -73,9 +75,7 @@ async def get_system_metrics(
     # NER pipeline invocations (responses where PII detection ran)
     ner_count_result = await db.execute(
         select(func.count(TextResponse.id)).where(
-            TextResponse.response_meta_id.in_(
-                select(ResponseMeta.id).where(ResponseMeta.session_id == session_id)
-            )
+            TextResponse.response_meta_id.in_(_session_response_ids(session_id))
         )
     )
     ner_invocations = ner_count_result.scalar() or 0
@@ -93,17 +93,7 @@ async def get_user_metrics(
     db: AsyncSession,
     session_id: uuid.UUID,
 ) -> dict:
-    """User metrics: submission patterns and detection rates.
-
-    Metrics:
-      - language_distribution: Count per language code
-      - avg_response_length: Average char count
-      - max_response_length: Max char count
-      - pii_detection_rate: % of responses with PII detected
-      - profanity_detection_rate: % of responses with profanity detected
-      - unique_participants: Distinct participant count
-      - responses_per_participant: Avg responses per participant
-    """
+    """User metrics: submission patterns and detection rates."""
     # Language distribution
     lang_result = await db.execute(
         select(
@@ -111,9 +101,7 @@ async def get_user_metrics(
             func.count(TextResponse.id).label("count"),
         )
         .where(
-            TextResponse.response_meta_id.in_(
-                select(ResponseMeta.id).where(ResponseMeta.session_id == session_id)
-            )
+            TextResponse.response_meta_id.in_(_session_response_ids(session_id))
         )
         .group_by(TextResponse.language_code)
     )
@@ -135,15 +123,11 @@ async def get_user_metrics(
             func.sum(case((TextResponse.pii_detected.is_(True), 1), else_=0)).label("pii_count"),
             func.sum(case((TextResponse.profanity_detected.is_(True), 1), else_=0)).label("prof_count"),
         ).where(
-            TextResponse.response_meta_id.in_(
-                select(ResponseMeta.id).where(ResponseMeta.session_id == session_id)
-            )
+            TextResponse.response_meta_id.in_(_session_response_ids(session_id))
         )
     )
     det_row = detection_result.one()
     total = det_row.total or 0
-    pii_rate = (det_row.pii_count or 0) / total * 100 if total > 0 else 0.0
-    prof_rate = (det_row.prof_count or 0) / total * 100 if total > 0 else 0.0
 
     # Unique participants and responses per participant
     participant_result = await db.execute(
@@ -154,16 +138,17 @@ async def get_user_metrics(
     )
     part_row = participant_result.one()
     unique_participants = part_row.unique or 0
-    rpp = (part_row.total or 0) / unique_participants if unique_participants > 0 else 0.0
 
     return {
         "language_distribution": language_distribution,
         "avg_response_length": round(float(length_row.avg_len or 0), 1),
         "max_response_length": int(length_row.max_len or 0),
-        "pii_detection_rate_pct": round(pii_rate, 2),
-        "profanity_detection_rate_pct": round(prof_rate, 2),
+        "pii_detection_rate_pct": round(_safe_pct(det_row.pii_count or 0, total), 2),
+        "profanity_detection_rate_pct": round(_safe_pct(det_row.prof_count or 0, total), 2),
         "unique_participants": unique_participants,
-        "responses_per_participant": round(rpp, 2),
+        "responses_per_participant": round(
+            (part_row.total or 0) / unique_participants if unique_participants > 0 else 0.0, 2
+        ),
     }
 
 
@@ -171,16 +156,7 @@ async def get_outcome_metrics(
     db: AsyncSession,
     session_id: uuid.UUID,
 ) -> dict:
-    """Outcome / Business metrics: quality and token indicators.
-
-    Metrics:
-      - clean_response_ratio: % of responses with no PII and no profanity
-      - flagged_response_count: Responses manually flagged
-      - total_heart_tokens_distributed: Total ♡ tokens from Cube 2 submissions
-      - total_unity_tokens_distributed: Total ◬ tokens from Cube 2 submissions
-      - avg_heart_per_response: Average ♡ per submission
-      - avg_unity_per_response: Average ◬ per submission
-    """
+    """Outcome / Business metrics: quality and token indicators."""
     # Clean vs flagged ratio
     quality_result = await db.execute(
         select(
@@ -195,14 +171,11 @@ async def get_outcome_metrics(
                 )
             ).label("clean_count"),
         ).where(
-            TextResponse.response_meta_id.in_(
-                select(ResponseMeta.id).where(ResponseMeta.session_id == session_id)
-            )
+            TextResponse.response_meta_id.in_(_session_response_ids(session_id))
         )
     )
     q_row = quality_result.one()
     total = q_row.total or 0
-    clean_ratio = (q_row.clean_count or 0) / total * 100 if total > 0 else 0.0
 
     # Flagged count
     flagged_result = await db.execute(
@@ -229,16 +202,14 @@ async def get_outcome_metrics(
     total_heart = float(t_row.total_heart or 0)
     total_unity = float(t_row.total_unity or 0)
     entry_count = t_row.entry_count or 0
-    avg_heart = total_heart / entry_count if entry_count > 0 else 0.0
-    avg_unity = total_unity / entry_count if entry_count > 0 else 0.0
 
     return {
-        "clean_response_ratio_pct": round(clean_ratio, 2),
+        "clean_response_ratio_pct": round(_safe_pct(q_row.clean_count or 0, total), 2),
         "flagged_response_count": flagged_count,
         "total_heart_tokens_distributed": round(total_heart, 4),
         "total_unity_tokens_distributed": round(total_unity, 4),
-        "avg_heart_per_response": round(avg_heart, 4),
-        "avg_unity_per_response": round(avg_unity, 4),
+        "avg_heart_per_response": round(total_heart / entry_count if entry_count > 0 else 0.0, 4),
+        "avg_unity_per_response": round(total_unity / entry_count if entry_count > 0 else 0.0, 4),
     }
 
 

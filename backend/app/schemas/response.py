@@ -22,11 +22,11 @@ class ResponseCreate(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Read (returned after submission — includes immediate token display)
+# Shared base for read models
 # ---------------------------------------------------------------------------
 
 
-class ResponseRead(BaseModel):
+class ResponseBase(BaseModel):
     id: uuid.UUID
     session_id: uuid.UUID
     question_id: uuid.UUID
@@ -38,6 +38,16 @@ class ResponseRead(BaseModel):
     is_flagged: bool
     pii_detected: bool = False
     profanity_detected: bool = False
+
+    model_config = {"from_attributes": True}
+
+
+# ---------------------------------------------------------------------------
+# Read (returned after submission — includes immediate token display)
+# ---------------------------------------------------------------------------
+
+
+class ResponseRead(ResponseBase):
     clean_text: str | None = None
 
     # CRS-08: Integrity hash
@@ -68,20 +78,8 @@ class TextResponseDetail(ResponseRead):
 # ---------------------------------------------------------------------------
 
 
-class ResponseListItem(BaseModel):
-    id: uuid.UUID
-    session_id: uuid.UUID
-    question_id: uuid.UUID
-    participant_id: uuid.UUID | None = None  # CRS-05: None in anonymous mode
-    source: str
-    char_count: int
-    language_code: str
-    submitted_at: datetime
-    is_flagged: bool
-    pii_detected: bool = False
-    profanity_detected: bool = False
-
-    model_config = {"from_attributes": True}
+class ResponseListItem(ResponseBase):
+    pass
 
 
 class PaginatedResponseList(BaseModel):

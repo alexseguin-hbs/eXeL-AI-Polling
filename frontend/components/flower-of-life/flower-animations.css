@@ -15,17 +15,6 @@
   }
 }
 
-@keyframes flower-contract {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0);
-    opacity: 0;
-  }
-}
-
 @keyframes flower-pulse {
   0%,
   100% {
@@ -91,21 +80,8 @@
   }
 }
 
-@keyframes knob-rotate {
-  from {
-    transform: rotate(var(--knob-from));
-  }
-  to {
-    transform: rotate(var(--knob-to));
-  }
-}
-
 .flower-bloom {
   animation: flower-bloom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.flower-contract {
-  animation: flower-contract 0.25s ease-in forwards;
 }
 
 .flower-pulse {
@@ -130,32 +106,6 @@
 
 .flower-slide-down {
   animation: flower-slide-down 0.3s ease-in forwards;
-}
-
-/* Stagger bloom delays for theme2 circles */
-.flower-bloom-delay-1 {
-  animation-delay: 80ms;
-}
-.flower-bloom-delay-2 {
-  animation-delay: 160ms;
-}
-.flower-bloom-delay-3 {
-  animation-delay: 240ms;
-}
-.flower-bloom-delay-4 {
-  animation-delay: 320ms;
-}
-.flower-bloom-delay-5 {
-  animation-delay: 400ms;
-}
-.flower-bloom-delay-6 {
-  animation-delay: 480ms;
-}
-.flower-bloom-delay-7 {
-  animation-delay: 560ms;
-}
-.flower-bloom-delay-8 {
-  animation-delay: 640ms;
 }
 
 /* Subtle blink for simulation mode entry hint */

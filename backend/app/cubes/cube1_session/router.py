@@ -47,12 +47,31 @@ from app.schemas.session import (
 router = APIRouter(prefix="/sessions", tags=["Cube 1 — Sessions"])
 
 
-def _session_to_read(session, participant_count: int = 0) -> dict:
-    """Convert Session ORM to dict with participant_count."""
-    return {
-        **{c.key: getattr(session, c.key) for c in session.__table__.columns},
-        "participant_count": participant_count,
-    }
+# ---------------------------------------------------------------------------
+# Shared helpers — eliminate repeated count + serialize boilerplate
+# ---------------------------------------------------------------------------
+
+
+async def _return_session(db: AsyncSession, session) -> SessionRead:
+    """Fetch participant count and serialize a Session ORM to SessionRead."""
+    count = await service.get_participant_count(db, session.id)
+    data = {c.key: getattr(session, c.key) for c in session.__table__.columns}
+    data["participant_count"] = count
+    return SessionRead(**data)
+
+
+async def _transition_and_return(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    target_state: str,
+    user: CurrentUser,
+    redis: aioredis.Redis | None = None,
+) -> SessionRead:
+    """Verify ownership, transition state, and return serialized session."""
+    session = await service.get_session_by_id(db, session_id)
+    service.verify_session_owner(session, user)
+    updated = await service.transition_session(db, session, target_state, redis=redis)
+    return await _return_session(db, updated)
 
 
 # ---------------------------------------------------------------------------
@@ -76,10 +95,7 @@ async def list_sessions(
         limit=min(limit, 100),
         offset=offset,
     )
-    items = []
-    for s in sessions:
-        count = await service.get_participant_count(db, s.id)
-        items.append(SessionRead(**_session_to_read(s, count)))
+    items = [await _return_session(db, s) for s in sessions]
     return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 
@@ -115,8 +131,7 @@ async def create_session(
         theme2_voting_level=payload.theme2_voting_level,
         live_feed_enabled=payload.live_feed_enabled,
     )
-    count = await service.get_participant_count(db, session.id)
-    return SessionRead(**_session_to_read(session, count))
+    return await _return_session(db, session)
 
 
 @router.get("/{session_id}", response_model=SessionRead)
@@ -126,8 +141,7 @@ async def get_session(
 ):
     """Get session details by UUID."""
     session = await service.get_session_by_id(db, session_id)
-    count = await service.get_participant_count(db, session.id)
-    return SessionRead(**_session_to_read(session, count))
+    return await _return_session(db, session)
 
 
 @router.get("/code/{short_code}", response_model=SessionRead)
@@ -137,8 +151,7 @@ async def get_session_by_code(
 ):
     """Get session details by short_code (used by join page)."""
     session = await service.get_session_by_short_code(db, short_code)
-    count = await service.get_participant_count(db, session.id)
-    return SessionRead(**_session_to_read(session, count))
+    return await _return_session(db, session)
 
 
 @router.patch("/{session_id}", response_model=SessionRead)
@@ -156,8 +169,7 @@ async def update_session(
         session,
         **payload.model_dump(exclude_unset=True),
     )
-    count = await service.get_participant_count(db, updated.id)
-    return SessionRead(**_session_to_read(updated, count))
+    return await _return_session(db, updated)
 
 
 # ---------------------------------------------------------------------------
@@ -176,8 +188,7 @@ async def start_session(
     service.verify_session_owner(session, user)
     if session.status == "draft":
         session = await service.transition_session(db, session, "open")
-    count = await service.get_participant_count(db, session.id)
-    return SessionRead(**_session_to_read(session, count))
+    return await _return_session(db, session)
 
 
 @router.post("/{session_id}/open", response_model=SessionRead)
@@ -187,11 +198,7 @@ async def open_session(
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
     """CRS-06: Moderator opens session for participants to join."""
-    session = await service.get_session_by_id(db, session_id)
-    service.verify_session_owner(session, user)
-    updated = await service.transition_session(db, session, "open")
-    count = await service.get_participant_count(db, updated.id)
-    return SessionRead(**_session_to_read(updated, count))
+    return await _transition_and_return(db, session_id, "open", user)
 
 
 @router.post("/{session_id}/poll", response_model=SessionRead)
@@ -201,11 +208,7 @@ async def start_polling(
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
     """Moderator starts polling phase (participants can submit responses)."""
-    session = await service.get_session_by_id(db, session_id)
-    service.verify_session_owner(session, user)
-    updated = await service.transition_session(db, session, "polling")
-    count = await service.get_participant_count(db, updated.id)
-    return SessionRead(**_session_to_read(updated, count))
+    return await _transition_and_return(db, session_id, "polling", user)
 
 
 @router.post("/{session_id}/rank", response_model=SessionRead)
@@ -215,11 +218,7 @@ async def start_ranking(
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
     """Moderator starts ranking phase (after AI theming completes)."""
-    session = await service.get_session_by_id(db, session_id)
-    service.verify_session_owner(session, user)
-    updated = await service.transition_session(db, session, "ranking")
-    count = await service.get_participant_count(db, updated.id)
-    return SessionRead(**_session_to_read(updated, count))
+    return await _transition_and_return(db, session_id, "ranking", user)
 
 
 @router.post("/{session_id}/close", response_model=SessionRead)
@@ -229,11 +228,7 @@ async def close_session(
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
     """CRS-06: Moderator closes the session."""
-    session = await service.get_session_by_id(db, session_id)
-    service.verify_session_owner(session, user)
-    updated = await service.transition_session(db, session, "closed")
-    count = await service.get_participant_count(db, updated.id)
-    return SessionRead(**_session_to_read(updated, count))
+    return await _transition_and_return(db, session_id, "closed", user)
 
 
 @router.post("/{session_id}/archive", response_model=SessionRead)
@@ -244,11 +239,7 @@ async def archive_session(
     redis: aioredis.Redis = Depends(get_redis),
 ):
     """Archive a closed session. Clears Redis presence data."""
-    session = await service.get_session_by_id(db, session_id)
-    service.verify_session_owner(session, user)
-    updated = await service.transition_session(db, session, "archived", redis=redis)
-    count = await service.get_participant_count(db, updated.id)
-    return SessionRead(**_session_to_read(updated, count))
+    return await _transition_and_return(db, session_id, "archived", user, redis=redis)
 
 
 # ---------------------------------------------------------------------------

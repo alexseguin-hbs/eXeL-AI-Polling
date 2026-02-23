@@ -20,7 +20,6 @@ from fastapi import HTTPException, status
 from nanoid import generate as nanoid
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.config import settings
 from app.core.auth import CurrentUser
@@ -58,11 +57,6 @@ async def _generate_unique_short_code(db: AsyncSession) -> str:
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Failed to generate unique session code after multiple attempts",
     )
-
-
-def _build_join_url(short_code: str) -> str:
-    """Build the participant join URL."""
-    return f"{settings.frontend_url}/join/{short_code}"
 
 
 def generate_qr_png(data: str) -> bytes:
@@ -174,7 +168,7 @@ async def create_session(
             return existing
 
     short_code = await _generate_unique_short_code(db)
-    join_url = _build_join_url(short_code)
+    join_url = f"{settings.frontend_url}/join/{short_code}"
     qr_url = join_url  # QR encodes the join URL
     expires_at = datetime.now(timezone.utc) + timedelta(
         hours=settings.default_session_expiry_hours
@@ -514,6 +508,5 @@ async def get_question(
     result = await db.execute(select(Question).where(Question.id == question_id))
     question = result.scalar_one_or_none()
     if question is None:
-        from fastapi import HTTPException, status
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
     return question

@@ -64,8 +64,6 @@ export function ResponseDrawer({
         return isPaidTier ? r.summary333 : r.summary33;
       case "original":
         return isPaidTier ? r.rawText : r.summary33;
-      default:
-        return r.summary33;
     }
   };
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import type { ThemeInfo } from "@/lib/types";
 
 export interface ThemeCircleProps {
@@ -18,7 +19,7 @@ export interface ThemeCircleProps {
   isHub?: boolean;
 }
 
-export function ThemeCircle({
+export const ThemeCircle = memo(function ThemeCircle({
   cx,
   cy,
   r,
@@ -161,4 +162,4 @@ export function ThemeCircle({
       </foreignObject>
     </g>
   );
-}
+});

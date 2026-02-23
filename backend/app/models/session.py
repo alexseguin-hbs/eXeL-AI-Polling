@@ -21,17 +21,6 @@ if TYPE_CHECKING:
 # Valid session state transitions
 SESSION_STATES = ("draft", "open", "polling", "ranking", "closed", "archived")
 
-# Validation constants for enum-like fields
-VALID_ANONYMITY_MODES = ("identified", "anonymous", "pseudonymous")
-VALID_CYCLE_MODES = ("single", "multi")
-VALID_RANKING_MODES = ("auto", "manual")
-VALID_AI_PROVIDERS = ("openai", "grok", "gemini")
-VALID_SESSION_TYPES = ("polling", "peer_volunteer", "team_collaboration")
-VALID_POLLING_MODES = ("single_round", "multi_round_deep_dive")
-VALID_PRICING_TIERS = ("free", "moderator_paid", "cost_split")
-VALID_THEME2_VOTING_LEVELS = ("theme2_9", "theme2_6", "theme2_3")
-VALID_STT_PROVIDERS = ("openai", "grok", "gemini")  # Batch STT (maps to whisper/grok/gemini)
-VALID_REALTIME_STT_PROVIDERS = ("azure", "aws")  # Streaming STT (paid feature)
 SESSION_TRANSITIONS: dict[str, tuple[str, ...]] = {
     "draft": ("open",),
     "open": ("polling", "closed"),

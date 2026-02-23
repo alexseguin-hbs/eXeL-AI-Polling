@@ -23,6 +23,10 @@ import { generateSampleSessionData } from "@/lib/sample-session-data";
 import type { Theme01Label, ThemeInfo } from "@/lib/types";
 import "@/components/flower-of-life/flower-animations.css";
 
+// Module-level constants — pure functions with no deps, computed once
+const THEME1_POSITIONS = getTheme1Positions();
+const HUB_POSITION = getHubPosition();
+
 // ── Theme1 color config ──────────────────────────────────────────
 
 const THEME1_COLORS: Record<
@@ -104,8 +108,8 @@ export function FlowerVisualization({
   }, []);
 
   // Positions
-  const theme1Positions = useMemo(() => getTheme1Positions(), []);
-  const hubPosition = useMemo(() => getHubPosition(), []);
+  const theme1Positions = THEME1_POSITIONS;
+  const hubPosition = HUB_POSITION;
   const theme2Positions = useMemo(
     () => getTheme2Positions(state.theme2Level),
     [state.theme2Level]

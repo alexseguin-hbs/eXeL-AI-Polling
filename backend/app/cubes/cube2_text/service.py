@@ -20,6 +20,7 @@ Profanity Pipeline (non-blocking):
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import math
 import re
@@ -225,20 +226,31 @@ async def detect_pii(text: str) -> list[dict]:
     return detections
 
 
-def scrub_pii(text: str, detections: list[dict]) -> str:
-    """Replace PII spans with [TYPE_REDACTED] placeholders.
-
-    Processes spans in reverse order to preserve character positions.
-    """
-    if not detections:
+def _scrub_spans(
+    text: str,
+    spans: list[dict],
+    *,
+    start_key: str,
+    end_key: str,
+    replacement_fn: callable,
+) -> str:
+    """Replace text spans in reverse order to preserve character positions."""
+    if not spans:
         return text
-
     result = list(text)
-    # Process in reverse to maintain positions
-    for det in reversed(detections):
-        placeholder = f"[{det['type']}_REDACTED]"
-        result[det["start"]:det["end"]] = list(placeholder)
+    for span in sorted(spans, key=lambda x: x[start_key], reverse=True):
+        repl = replacement_fn(span)
+        result[span[start_key]:span[end_key]] = list(repl)
     return "".join(result)
+
+
+def scrub_pii(text: str, detections: list[dict]) -> str:
+    """Replace PII spans with [TYPE_REDACTED] placeholders."""
+    return _scrub_spans(
+        text, detections,
+        start_key="start", end_key="end",
+        replacement_fn=lambda d: f"[{d['type']}_REDACTED]",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -286,19 +298,17 @@ async def detect_profanity(
 
 
 def scrub_profanity(text: str, matches: list[dict]) -> str:
-    """Generate clean_text by replacing profanity with configured replacements.
-
-    Processes in reverse position order to preserve character positions.
-    """
-    if not matches:
-        return text
-
-    result = list(text)
-    for m in sorted(matches, key=lambda x: x["position"], reverse=True):
-        word_len = len(m["word"])
-        replacement = m.get("replacement", "***")
-        result[m["position"]:m["position"] + word_len] = list(replacement)
-    return "".join(result)
+    """Generate clean_text by replacing profanity with configured replacements."""
+    # Convert profanity matches to span format compatible with _scrub_spans
+    spans = [
+        {**m, "end": m["position"] + len(m["word"])}
+        for m in matches
+    ]
+    return _scrub_spans(
+        text, spans,
+        start_key="position", end_key="end",
+        replacement_fn=lambda m: m.get("replacement", "***"),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -364,8 +374,6 @@ def anonymize_response(
     - anonymous: (None, SHA-256 hash prefix)
     - pseudonymous: (participant_id, SHA-256 hash prefix)
     """
-    import hashlib
-
     if anonymity_mode == "identified":
         return participant_id, None
 
@@ -400,11 +408,11 @@ async def store_response(
     profanity_detected: bool,
     profanity_words: list[dict] | None,
     clean_text: str,
-) -> ResponseMeta:
+) -> tuple[ResponseMeta, str]:
     """Store response in MongoDB (raw) + Postgres (ResponseMeta + TextResponse).
 
     CRS-05: In anonymous mode, participant_id is None and anon_hash is stored.
-    Returns the ResponseMeta record with linked TextResponse.
+    Returns (ResponseMeta, response_hash) tuple.
     """
     now = datetime.now(timezone.utc)
 
@@ -440,8 +448,7 @@ async def store_response(
     await db.flush()  # Get ID before creating TextResponse
 
     # --- Postgres: TextResponse (1:1 with ResponseMeta) ---
-    import hashlib as _hashlib
-    response_hash = _hashlib.sha256(raw_text.encode()).hexdigest()
+    response_hash = hashlib.sha256(raw_text.encode()).hexdigest()
 
     text_response = TextResponse(
         response_meta_id=response_meta.id,
@@ -459,7 +466,7 @@ async def store_response(
     await db.commit()
     await db.refresh(response_meta)
 
-    return response_meta
+    return response_meta, response_hash
 
 
 # ---------------------------------------------------------------------------
@@ -577,7 +584,7 @@ async def submit_text_response(
     # --- 6. Anonymize + Store (CRS-05) ---
     is_anonymous = session.anonymity_mode == "anonymous"
     effective_pid, anon_hash = anonymize_response(participant_id, session.anonymity_mode)
-    response_meta = await store_response(
+    response_meta, response_hash = await store_response(
         db, mongo,
         session_id=session_id,
         question_id=question_id,
@@ -621,7 +628,6 @@ async def submit_text_response(
         unity_tokens=unity_earned,
     )
 
-    import hashlib as _hl
     return {
         "id": response_meta.id,
         "session_id": session_id,
@@ -635,7 +641,7 @@ async def submit_text_response(
         "pii_detected": pii_detected,
         "profanity_detected": profanity_detected,
         "clean_text": clean_text,
-        "response_hash": _hl.sha256(text.encode()).hexdigest(),
+        "response_hash": response_hash,
         "heart_tokens_earned": heart_earned,
         "unity_tokens_earned": unity_earned,
     }

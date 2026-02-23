@@ -39,50 +39,59 @@ async def _get_jwks() -> dict:
     return _jwks_cache
 
 
+def _find_rsa_key(jwks: dict, unverified_header: dict) -> dict:
+    """Find the matching RSA signing key from JWKS."""
+    for key in jwks.get("keys", []):
+        if key["kid"] == unverified_header.get("kid"):
+            return {
+                "kty": key["kty"],
+                "kid": key["kid"],
+                "use": key["use"],
+                "n": key["n"],
+                "e": key["e"],
+            }
+    return {}
+
+
+async def _decode_token(token: str) -> CurrentUser:
+    """Decode and validate an Auth0 JWT, returning the authenticated user.
+
+    Raises HTTPException(401) if the token is invalid or the signing key
+    cannot be found.
+    """
+    jwks = await _get_jwks()
+    unverified_header = jwt.get_unverified_header(token)
+    rsa_key = _find_rsa_key(jwks, unverified_header)
+
+    if not rsa_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unable to find signing key",
+        )
+
+    payload = jwt.decode(
+        token,
+        rsa_key,
+        algorithms=["RS256"],
+        audience=settings.auth0_api_audience,
+        issuer=f"https://{settings.auth0_domain}/",
+    )
+
+    namespace = "https://exel-polling.com"
+    return CurrentUser(
+        user_id=payload.get("sub", ""),
+        email=payload.get(f"{namespace}/email"),
+        role=payload.get(f"{namespace}/role", "user"),
+        permissions=payload.get("permissions", []),
+    )
+
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> CurrentUser:
     """Validate Auth0 JWT and extract user info."""
-    token = credentials.credentials
-
     try:
-        jwks = await _get_jwks()
-        unverified_header = jwt.get_unverified_header(token)
-
-        rsa_key = {}
-        for key in jwks.get("keys", []):
-            if key["kid"] == unverified_header.get("kid"):
-                rsa_key = {
-                    "kty": key["kty"],
-                    "kid": key["kid"],
-                    "use": key["use"],
-                    "n": key["n"],
-                    "e": key["e"],
-                }
-                break
-
-        if not rsa_key:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Unable to find signing key",
-            )
-
-        payload = jwt.decode(
-            token,
-            rsa_key,
-            algorithms=["RS256"],
-            audience=settings.auth0_api_audience,
-            issuer=f"https://{settings.auth0_domain}/",
-        )
-
-        namespace = "https://exel-polling.com"
-        return CurrentUser(
-            user_id=payload.get("sub", ""),
-            email=payload.get(f"{namespace}/email"),
-            role=payload.get(f"{namespace}/role", "user"),
-            permissions=payload.get("permissions", []),
-        )
-
+        return await _decode_token(credentials.credentials)
     except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -102,39 +111,6 @@ async def get_optional_current_user(
         return None
 
     try:
-        jwks = await _get_jwks()
-        unverified_header = jwt.get_unverified_header(credentials.credentials)
-
-        rsa_key = {}
-        for key in jwks.get("keys", []):
-            if key["kid"] == unverified_header.get("kid"):
-                rsa_key = {
-                    "kty": key["kty"],
-                    "kid": key["kid"],
-                    "use": key["use"],
-                    "n": key["n"],
-                    "e": key["e"],
-                }
-                break
-
-        if not rsa_key:
-            return None
-
-        payload = jwt.decode(
-            credentials.credentials,
-            rsa_key,
-            algorithms=["RS256"],
-            audience=settings.auth0_api_audience,
-            issuer=f"https://{settings.auth0_domain}/",
-        )
-
-        namespace = "https://exel-polling.com"
-        return CurrentUser(
-            user_id=payload.get("sub", ""),
-            email=payload.get(f"{namespace}/email"),
-            role=payload.get(f"{namespace}/role", "user"),
-            permissions=payload.get("permissions", []),
-        )
-
+        return await _decode_token(credentials.credentials)
     except (JWTError, Exception):
         return None

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useEffect, useState } from "react";
+import { memo, useCallback, useRef, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface RotaryKnobProps {
@@ -20,7 +20,7 @@ const LEVELS: (3 | 6 | 9)[] = [3, 6, 9];
  */
 const LEVEL_DISPLAY_ANGLES: Record<number, number> = { 3: 240, 6: 0, 9: 120 };
 
-export function RotaryKnob({
+export const RotaryKnob = memo(function RotaryKnob({
   level,
   onChange,
   disabled,
@@ -196,4 +196,4 @@ export function RotaryKnob({
       </span>
     </div>
   );
-}
+});

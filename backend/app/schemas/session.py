@@ -4,6 +4,12 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+# Shared Literal type for theme_id (used in Create, Update, Read)
+ThemeIdType = Literal[
+    "exel-cyan", "ocean-blue", "emerald", "sunset",
+    "red", "violet", "indigo", "coral", "custom"
+]
+
 
 class SessionCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=500)
@@ -38,10 +44,7 @@ class SessionCreate(BaseModel):
     realtime_stt_provider: Literal["azure", "aws"] = "azure"
     allow_user_stt_choice: bool = False  # Let users override STT provider
     # Appearance — cascades to all session participants
-    theme_id: Literal[
-        "exel-cyan", "ocean-blue", "emerald", "sunset",
-        "red", "violet", "indigo", "coral", "custom"
-    ] = "exel-cyan"
+    theme_id: ThemeIdType = "exel-cyan"
     custom_accent_color: str | None = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
 
 
@@ -57,10 +60,7 @@ class SessionUpdate(BaseModel):
     realtime_stt_provider: Literal["azure", "aws"] | None = None
     allow_user_stt_choice: bool | None = None
     # Appearance — cascades to all session participants
-    theme_id: Literal[
-        "exel-cyan", "ocean-blue", "emerald", "sunset",
-        "red", "violet", "indigo", "coral", "custom"
-    ] | None = None
+    theme_id: ThemeIdType | None = None
     custom_accent_color: str | None = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
 
 
