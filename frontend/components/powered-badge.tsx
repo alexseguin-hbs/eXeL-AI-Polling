@@ -1,12 +1,71 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
-import { Play, Pause, X, Zap } from "lucide-react";
+import { Play, Pause, X, Zap, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+/**
+ * Audio file paths — placeholder paths in UX Files/Audio/.
+ * When real files are uploaded, update these paths.
+ * Falls back gracefully if files don't exist.
+ */
+const AUDIO_SOURCES = [
+  "/audio/track-1.mp3",
+  "/audio/track-2.mp3",
+  "/audio/track-3.mp3",
+];
 
 function SimulationOverlay() {
   const { currentSong, playing, setSong, togglePlaying, exitSimulationMode } =
     useEasterEgg();
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioAvailable = useRef(true);
+
+  // Create/update audio element when song changes
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.5;
+      // Mark unavailable on error (file not found)
+      audioRef.current.addEventListener("error", () => {
+        audioAvailable.current = false;
+      });
+      audioRef.current.addEventListener("canplay", () => {
+        audioAvailable.current = true;
+      });
+    }
+    audioRef.current.src = AUDIO_SOURCES[currentSong];
+    audioRef.current.load();
+    if (playing) {
+      audioRef.current.play().catch(() => {
+        audioAvailable.current = false;
+      });
+    }
+  }, [currentSong]);
+
+  // Play/pause when state changes
+  useEffect(() => {
+    if (!audioRef.current) return;
+    if (playing) {
+      audioRef.current.play().catch(() => {});
+    } else {
+      audioRef.current.pause();
+    }
+  }, [playing]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   const logos = [
     { label: "◬", subtitle: "A.I.", position: "top" as const },
@@ -85,10 +144,17 @@ function SimulationOverlay() {
         )}
       </button>
 
-      {/* Current song label */}
-      <p className="mt-3 text-xs text-muted-foreground font-mono">
-        Track {currentSong + 1} of 3
-      </p>
+      {/* Current song label + volume indicator */}
+      <div className="mt-3 flex items-center gap-2">
+        {playing ? (
+          <Volume2 className="h-3.5 w-3.5 text-primary/60" />
+        ) : (
+          <VolumeX className="h-3.5 w-3.5 text-muted-foreground/40" />
+        )}
+        <p className="text-xs text-muted-foreground font-mono">
+          Track {currentSong + 1} of 3
+        </p>
+      </div>
 
       {/* Cube status ring */}
       <div className="mt-6 flex gap-1.5">
