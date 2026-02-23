@@ -18,7 +18,8 @@ export default function LandingPage() {
         {/* Hero */}
         <div className="flex flex-col items-center gap-6 text-center mb-12">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            <span className="text-primary">{t("shared.landing.hero_title")}</span>
+            <span className="text-primary">{t("shared.landing.hero_title_primary")}</span>{" "}
+            <span className="text-muted-foreground">{t("shared.landing.hero_title_secondary")}</span>
           </h1>
           <p className="max-w-[600px] text-lg text-muted-foreground">
             {t("shared.landing.hero_subtitle")}

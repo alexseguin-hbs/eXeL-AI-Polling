@@ -59,6 +59,7 @@ import { toast } from "@/components/ui/use-toast";
 import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS } from "@/lib/constants";
 import { ScrollingSummaryFeed } from "@/components/scrolling-summary-feed";
 import { generateSampleSessionData } from "@/lib/sample-session-data";
+import { useLexicon } from "@/lib/lexicon-context";
 import type { Session, PaginatedResponse, PollingModeType } from "@/lib/types";
 
 function statusColor(status: string): string {
@@ -98,6 +99,7 @@ function QRPresentation({
   session: Session;
   onClose: () => void;
 }) {
+  const { t } = useLexicon();
   const joinUrl =
     session.join_url ||
     `${typeof window !== "undefined" ? window.location.origin : ""}/join/?code=${session.short_code}`;
@@ -114,14 +116,14 @@ function QRPresentation({
       </Button>
 
       <h2 className="text-3xl font-bold mb-2">{session.title}</h2>
-      <p className="text-muted-foreground mb-8">Scan to join this session</p>
+      <p className="text-muted-foreground mb-8">{t("cube1.moderator.scan_join")}</p>
 
       <div className="bg-white rounded-2xl p-6">
         <QRCodeSVG value={joinUrl} size={320} level="M" />
       </div>
 
       <div className="mt-8 text-center">
-        <p className="text-sm text-muted-foreground mb-2">Or enter code:</p>
+        <p className="text-sm text-muted-foreground mb-2">{t("cube1.moderator.or_enter_code")}</p>
         <p className="text-5xl font-mono font-bold tracking-[0.3em] text-primary">
           {session.short_code}
         </p>
@@ -143,6 +145,7 @@ function SessionDetail({
   onBack: () => void;
   onUpdate: (s: Session) => void;
 }) {
+  const { t } = useLexicon();
   const [presenting, setPresenting] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
   const [configExpanded, setConfigExpanded] = useState(false);
@@ -191,7 +194,7 @@ function SessionDetail({
 
       <div>
         <Button variant="ghost" size="sm" onClick={onBack} className="mb-4">
-          &larr; Back to sessions
+          &larr; {t("cube1.moderator.back_sessions")}
         </Button>
 
         <div className="flex items-center justify-between mb-6">
@@ -220,7 +223,7 @@ function SessionDetail({
                 ) : (
                   <Play className="mr-2 h-4 w-4" />
                 )}
-                Open Session
+                {t("cube1.moderator.open_session")}
               </Button>
             )}
             {session.status === "open" && (
@@ -233,7 +236,7 @@ function SessionDetail({
                 ) : (
                   <Play className="mr-2 h-4 w-4" />
                 )}
-                Start Polling
+                {t("cube1.moderator.start_polling")}
               </Button>
             )}
             {session.status === "polling" && (
@@ -241,7 +244,7 @@ function SessionDetail({
                 onClick={() => handleTransition("rank")}
                 disabled={!!actionLoading}
               >
-                Start Ranking
+                {t("cube1.moderator.start_ranking")}
               </Button>
             )}
             {["open", "polling", "ranking"].includes(session.status) && (
@@ -255,7 +258,7 @@ function SessionDetail({
                 ) : (
                   <Square className="mr-2 h-4 w-4" />
                 )}
-                Close
+                {t("cube1.moderator.close_label")}
               </Button>
             )}
             {session.status === "closed" && (
@@ -265,7 +268,7 @@ function SessionDetail({
                 disabled={!!actionLoading}
               >
                 <Archive className="mr-2 h-4 w-4" />
-                Archive
+                {t("cube1.moderator.archive_label")}
               </Button>
             )}
           </div>
@@ -280,7 +283,7 @@ function SessionDetail({
               </div>
               <div className="flex-1 space-y-3">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Session Code</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("cube1.session.session_code")}</p>
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-mono font-bold tracking-wider">
                       {session.short_code}
@@ -291,7 +294,7 @@ function SessionDetail({
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Join Link</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("cube1.moderator.join_link")}</p>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-primary truncate max-w-[280px]">
                       {joinUrl}
@@ -303,7 +306,7 @@ function SessionDetail({
                 </div>
                 <Button variant="outline" onClick={() => setPresenting(true)}>
                   <Maximize2 className="mr-2 h-4 w-4" />
-                  Present QR
+                  {t("cube1.moderator.present_qr")}
                 </Button>
               </div>
             </CardContent>
@@ -316,7 +319,7 @@ function SessionDetail({
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Radio className="h-4 w-4 text-primary animate-pulse" />
-                Live Response Feed
+                {t("cube1.moderator.live_feed")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -347,7 +350,7 @@ function SessionDetail({
             className="flex w-full items-center justify-between px-6 py-4 text-left"
           >
             <span className="text-base font-semibold leading-none tracking-tight">
-              Configuration
+              {t("cube1.moderator.configuration")}
             </span>
             <ChevronDown
               className={`h-4 w-4 text-muted-foreground transition-transform ${
@@ -359,35 +362,35 @@ function SessionDetail({
             <CardContent className="pt-0">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">Type</p>
+                  <p className="text-muted-foreground text-xs">{t("cube1.moderator.type_label")}</p>
                   <p className="font-medium capitalize">{session.session_type?.replace("_", " ") || "Polling"}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Polling Mode</p>
+                  <p className="text-muted-foreground text-xs">{t("cube1.moderator.polling_mode")}</p>
                   <p className="font-medium capitalize">{(session.polling_mode_type ?? "live_interactive").replace("_", " ")}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Anonymity</p>
+                  <p className="text-muted-foreground text-xs">{t("cube1.moderator.anonymity_label")}</p>
                   <p className="font-medium capitalize">{session.anonymity_mode}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">AI Provider</p>
+                  <p className="text-muted-foreground text-xs">{t("cube1.moderator.ai_provider")}</p>
                   <p className="font-medium capitalize">{session.ai_provider}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Max Response</p>
-                  <p className="font-medium">{session.max_response_length} chars</p>
+                  <p className="text-muted-foreground text-xs">{t("cube1.moderator.max_response_config")}</p>
+                  <p className="font-medium">{session.max_response_length} {t("shared.nav.chars")}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Pricing</p>
+                  <p className="text-muted-foreground text-xs">{t("cube1.moderator.pricing_config")}</p>
                   <p className="font-medium capitalize">{(session.pricing_tier || "free").replace("_", " ")}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Reward</p>
+                  <p className="text-muted-foreground text-xs">{t("cube1.moderator.reward_config")}</p>
                   <p className="font-medium">
                     {session.reward_enabled
                       ? `$${((session.reward_amount_cents || 0) / 100).toFixed(2)}`
-                      : "Off"}
+                      : t("shared.nav.off")}
                   </p>
                 </div>
               </div>
@@ -402,6 +405,7 @@ function SessionDetail({
 // ── Main Dashboard ───────────────────────────────────────────────
 
 function DashboardContent() {
+  const { t } = useLexicon();
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -527,9 +531,9 @@ function DashboardContent() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <h1 className="text-3xl font-bold">{t("cube1.moderator.dashboard_title")}</h1>
             <p className="text-muted-foreground mt-1">
-              Session Facilitator Access
+              {t("cube1.moderator.facilitator_access")}
             </p>
           </div>
 
@@ -537,20 +541,20 @@ function DashboardContent() {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Session
+                {t("cube1.moderator.create_session")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Create New Session</DialogTitle>
+                <DialogTitle>{t("cube1.moderator.create_new")}</DialogTitle>
                 <DialogDescription>
-                  Set up a new polling session for your participants
+                  {t("cube1.moderator.create_new_desc")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Session Title</Label>
+                  <Label htmlFor="title">{t("cube1.moderator.session_title")}</Label>
                   <Input
                     id="title"
                     placeholder="e.g., Q1 Strategy Feedback"
@@ -560,7 +564,7 @@ function DashboardContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description (optional)</Label>
+                  <Label htmlFor="description">{t("cube1.moderator.description_label")}</Label>
                   <Input
                     id="description"
                     placeholder="Brief description of this session"
@@ -570,7 +574,7 @@ function DashboardContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Session Type</Label>
+                  <Label>{t("cube1.moderator.session_type")}</Label>
                   <Select value={newType} onValueChange={setNewType}>
                     <SelectTrigger>
                       <SelectValue />
@@ -589,7 +593,7 @@ function DashboardContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Polling Mode</Label>
+                  <Label>{t("cube1.moderator.polling_mode")}</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {POLLING_MODES.map((mode) => (
                       <button
@@ -618,7 +622,7 @@ function DashboardContent() {
                   </div>
                   {newPollingModeType === "static_poll" && (
                     <div className="space-y-2 pt-2">
-                      <Label>Poll Duration</Label>
+                      <Label>{t("cube1.moderator.poll_duration")}</Label>
                       <div className="flex gap-2">
                         {STATIC_POLL_DURATIONS.map((d) => {
                           const isLocked = d.locked && newPricingTier === "free";
@@ -650,7 +654,7 @@ function DashboardContent() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>AI Provider</Label>
+                    <Label>{t("cube1.moderator.ai_provider")}</Label>
                     <Select value={newAiProvider} onValueChange={setNewAiProvider}>
                       <SelectTrigger>
                         <SelectValue />
@@ -664,7 +668,7 @@ function DashboardContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="maxResponse">Max Response Length</Label>
+                    <Label htmlFor="maxResponse">{t("cube1.moderator.max_response_label")}</Label>
                     <Input
                       id="maxResponse"
                       type="number"
@@ -678,7 +682,7 @@ function DashboardContent() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Pricing Tier</Label>
+                    <Label>{t("cube1.moderator.pricing_tier")}</Label>
                     <Select value={newPricingTier} onValueChange={setNewPricingTier}>
                       <SelectTrigger>
                         <SelectValue />
@@ -692,7 +696,7 @@ function DashboardContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="maxParticipants">Max Participants</Label>
+                    <Label htmlFor="maxParticipants">{t("cube1.moderator.max_participants_label")}</Label>
                     <Input
                       id="maxParticipants"
                       type="number"
@@ -709,9 +713,9 @@ function DashboardContent() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>Gamified Reward</Label>
+                      <Label>{t("cube1.moderator.gamified_reward")}</Label>
                       <p className="text-xs text-muted-foreground">
-                        Award top contributor by CQS
+                        {t("cube1.moderator.reward_cqs")}
                       </p>
                     </div>
                     <button
@@ -733,7 +737,7 @@ function DashboardContent() {
 
                   {newRewardEnabled && (
                     <div className="space-y-2">
-                      <Label htmlFor="rewardAmount">Reward Amount ($)</Label>
+                      <Label htmlFor="rewardAmount">{t("cube1.moderator.reward_amount_label")}</Label>
                       <Input
                         id="rewardAmount"
                         type="number"
@@ -752,7 +756,7 @@ function DashboardContent() {
                   variant="outline"
                   onClick={() => setCreateOpen(false)}
                 >
-                  Cancel
+                  {t("shared.nav.cancel")}
                 </Button>
                 <Button
                   onClick={handleCreate}
@@ -763,7 +767,7 @@ function DashboardContent() {
                   ) : (
                     <Plus className="mr-2 h-4 w-4" />
                   )}
-                  Create
+                  {t("cube1.moderator.create_session")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -781,13 +785,13 @@ function DashboardContent() {
               <div className="rounded-lg bg-primary/10 p-4">
                 <Plus className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle>No sessions yet</CardTitle>
+              <CardTitle>{t("cube1.moderator.no_sessions")}</CardTitle>
               <CardDescription>
-                Create your first polling session to get started
+                {t("cube1.moderator.create_first")}
               </CardDescription>
               <Button onClick={() => setCreateOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Session
+                {t("cube1.moderator.create_session")}
               </Button>
             </CardContent>
           </Card>

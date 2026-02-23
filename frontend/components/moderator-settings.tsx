@@ -28,6 +28,7 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
     customAccentColor,
   } = useTheme();
   const { registerThemeClick, enterSimulationMode } = useEasterEgg();
+  const { t } = useLexicon();
   const colorInputRef = useRef<HTMLInputElement>(null);
 
   const handlePresetSelect = (id: string) => {
@@ -53,15 +54,15 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
   return (
     <section>
       <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
-        Session Color Scheme
+        {t("cube1.settings.color_scheme")}
       </h3>
       {disabled ? (
         <p className="text-xs text-muted-foreground mb-3">
-          Color scheme is set by your session moderator.
+          {t("cube1.settings.color_set_by_mod")}
         </p>
       ) : (
         <p className="text-xs text-muted-foreground mb-3">
-          Applies to all participants in this session.
+          {t("cube1.settings.color_applies_all")}
         </p>
       )}
       <div
@@ -117,7 +118,7 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
             )}
           </span>
           <span className="text-xs font-medium text-center leading-tight">
-            Custom
+            {t("cube1.settings.custom")}
           </span>
           {isCustomActive && (
             <Check className="absolute right-1.5 top-1.5 h-3.5 w-3.5 text-primary" />
@@ -189,6 +190,8 @@ interface ModeratorSettingsProps {
 }
 
 export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: ModeratorSettingsProps) {
+  const { t } = useLexicon();
+
   if (!open) return null;
 
   return (
@@ -204,7 +207,7 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
         {/* Header */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <h2 className="text-lg font-semibold">
-            {isPollingUser ? "Settings" : "Moderator Settings"}
+            {isPollingUser ? t("cube1.settings.title") : t("cube1.settings.moderator_title")}
           </h2>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="h-5 w-5" />

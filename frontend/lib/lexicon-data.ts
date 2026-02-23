@@ -52,7 +52,9 @@ const shared: TranslationEntry[] = [
   { key: "shared.nav.back", englishDefault: "Back", context: "Back button", cubeId: 0 },
   { key: "shared.nav.back_to_home", englishDefault: "Back to home", context: "Return to landing button", cubeId: 0 },
   // Landing page
-  { key: "shared.landing.hero_title", englishDefault: "Governance at Scale", context: "Landing hero heading", cubeId: 0 },
+  { key: "shared.landing.hero_title", englishDefault: "Governance at Scale", context: "Landing hero heading (full)", cubeId: 0 },
+  { key: "shared.landing.hero_title_primary", englishDefault: "Governance", context: "Landing hero heading — primary color word", cubeId: 0 },
+  { key: "shared.landing.hero_title_secondary", englishDefault: "at Scale", context: "Landing hero heading — muted color words", cubeId: 0 },
   { key: "shared.landing.hero_subtitle", englishDefault: "AI-powered polling, theming, and prioritization for groups of any size. Secure, deterministic, and transparent.", context: "Landing hero description", cubeId: 0 },
   { key: "shared.landing.feature_ai", englishDefault: "AI Theming", context: "Feature card title", cubeId: 0 },
   { key: "shared.landing.feature_ai_desc", englishDefault: "Automatic clustering and summarization of responses in seconds", context: "Feature card description", cubeId: 0 },
@@ -62,6 +64,25 @@ const shared: TranslationEntry[] = [
   { key: "shared.landing.feature_governance_desc", englishDefault: "Quadratic voting, anti-sybil protection, and full audit trails", context: "Feature card description", cubeId: 0 },
   { key: "shared.landing.facilitator_cta", englishDefault: "Are you a Session Facilitator?", context: "CTA question", cubeId: 0 },
   { key: "shared.landing.facilitator_button", englishDefault: "Session Facilitator Access", context: "CTA button", cubeId: 0 },
+  // Error states
+  { key: "shared.error.something_wrong", englishDefault: "Something went wrong", context: "Error boundary heading", cubeId: 0 },
+  { key: "shared.error.unexpected", englishDefault: "An unexpected error occurred. Please try refreshing the page.", context: "Error boundary description", cubeId: 0 },
+  { key: "shared.error.retry", englishDefault: "Retry", context: "Error retry button", cubeId: 0 },
+  // Auth
+  { key: "shared.auth.loading", englishDefault: "Loading...", context: "Auth loading spinner text", cubeId: 0 },
+  { key: "shared.auth.error", englishDefault: "Authentication Error", context: "Auth error heading", cubeId: 0 },
+  { key: "shared.auth.try_again", englishDefault: "Try again", context: "Auth retry link", cubeId: 0 },
+  { key: "shared.auth.login_failed", englishDefault: "Login failed", context: "Login error heading", cubeId: 0 },
+  { key: "shared.auth.signing_in", englishDefault: "Signing you in...", context: "Auth callback loading text", cubeId: 0 },
+  // Simulation overlay
+  { key: "shared.sim.simulation_mode", englishDefault: "Simulation Mode", context: "Simulation overlay label", cubeId: 0 },
+  { key: "shared.sim.exit", englishDefault: "Exit simulation", context: "Exit simulation button title", cubeId: 0 },
+  { key: "shared.sim.audio_unavailable", englishDefault: "Audio unavailable", context: "Simulation audio error", cubeId: 0 },
+  // Common UI
+  { key: "shared.nav.cancel", englishDefault: "Cancel", context: "Cancel button", cubeId: 0 },
+  { key: "shared.nav.participants", englishDefault: "participants", context: "Participant count suffix", cubeId: 0 },
+  { key: "shared.nav.off", englishDefault: "Off", context: "Toggle off label", cubeId: 0 },
+  { key: "shared.nav.chars", englishDefault: "chars", context: "Character count suffix", cubeId: 0 },
 ];
 
 const cube1: TranslationEntry[] = [
@@ -127,6 +148,102 @@ const cube1: TranslationEntry[] = [
   // Multi-device
   { key: "cube1.moderator.phone_mode", englishDefault: "Phone Control", context: "Phone-optimized moderator UI label", cubeId: 1 },
   { key: "cube1.moderator.sync_status", englishDefault: "Synced", context: "Multi-device sync indicator", cubeId: 1 },
+  // Session view — polling steps
+  { key: "cube1.session.step_objectives", englishDefault: "Objectives", context: "Polling step label", cubeId: 1 },
+  { key: "cube1.session.step_feedback", englishDefault: "Feedback", context: "Polling step label", cubeId: 1 },
+  { key: "cube1.session.step_ranking", englishDefault: "Ranking", context: "Polling step label", cubeId: 1 },
+  { key: "cube1.session.step_results", englishDefault: "Results", context: "Polling step label", cubeId: 1 },
+  // Session view — participant lobby
+  { key: "cube1.session.participants_joined", englishDefault: "participants joined", context: "Lobby participant counter suffix", cubeId: 1 },
+  { key: "cube1.session.waiting_polling", englishDefault: "Waiting for moderator to start polling...", context: "Lobby waiting message", cubeId: 1 },
+  { key: "cube1.session.session_code", englishDefault: "Session Code", context: "Session code display label", cubeId: 1 },
+  // Session view — question display
+  { key: "cube1.session.question_prefix", englishDefault: "Question", context: "Question N of M prefix", cubeId: 1 },
+  { key: "cube1.session.question_of", englishDefault: "of", context: "Question N of M connector", cubeId: 1 },
+  { key: "cube1.session.waiting_question", englishDefault: "Waiting for question...", context: "No question loaded yet", cubeId: 1 },
+  // Session view — submission states
+  { key: "cube1.session.all_submitted", englishDefault: "All responses submitted!", context: "All questions answered", cubeId: 1 },
+  { key: "cube1.session.waiting_others", englishDefault: "Waiting for other participants to finish...", context: "Post-submit waiting", cubeId: 1 },
+  { key: "cube1.session.response_submitted", englishDefault: "Response submitted!", context: "Single response confirmed", cubeId: 1 },
+  { key: "cube1.session.next_question", englishDefault: "Next Question", context: "Advance to next question button", cubeId: 1 },
+  { key: "cube1.session.submit_next", englishDefault: "Submit & Next", context: "Submit and advance button", cubeId: 1 },
+  { key: "cube1.session.submit_btn", englishDefault: "Submit", context: "Final submit button", cubeId: 1 },
+  // Session view — theme voting
+  { key: "cube1.session.theme_voting", englishDefault: "Theme Voting", context: "Ranking state heading", cubeId: 1 },
+  { key: "cube1.session.theme_voting_desc", englishDefault: "Vote on the themes that emerged from responses", context: "Ranking state description", cubeId: 1 },
+  { key: "cube1.session.theme_voting_soon", englishDefault: "Theme voting interface coming soon (Cube 7)", context: "Ranking stub placeholder", cubeId: 1 },
+  // Session view — session ended
+  { key: "cube1.session.session_ended", englishDefault: "Session Ended", context: "Closed session heading", cubeId: 1 },
+  { key: "cube1.session.session_closed_msg", englishDefault: "This session has been closed. If you opted in for results, you'll receive them when they're ready.", context: "Closed session description", cubeId: 1 },
+  // Session code input
+  { key: "cube1.session.enter_code_error", englishDefault: "Please enter a session code", context: "Empty code validation error", cubeId: 1 },
+  // Moderator dashboard
+  { key: "cube1.moderator.dashboard_title", englishDefault: "Dashboard", context: "Dashboard page heading", cubeId: 1 },
+  { key: "cube1.moderator.facilitator_access", englishDefault: "Session Facilitator Access", context: "Dashboard subtitle", cubeId: 1 },
+  { key: "cube1.moderator.create_new", englishDefault: "Create New Session", context: "Create dialog title", cubeId: 1 },
+  { key: "cube1.moderator.create_new_desc", englishDefault: "Set up a new polling session for your participants", context: "Create dialog description", cubeId: 1 },
+  { key: "cube1.moderator.session_title", englishDefault: "Session Title", context: "Title input label", cubeId: 1 },
+  { key: "cube1.moderator.description_label", englishDefault: "Description (optional)", context: "Description input label", cubeId: 1 },
+  { key: "cube1.moderator.ai_provider", englishDefault: "AI Provider", context: "Provider selector label", cubeId: 1 },
+  { key: "cube1.moderator.max_response_label", englishDefault: "Max Response Length", context: "Max response input label", cubeId: 1 },
+  { key: "cube1.moderator.max_participants_label", englishDefault: "Max Participants", context: "Max participants input label", cubeId: 1 },
+  { key: "cube1.moderator.gamified_reward", englishDefault: "Gamified Reward", context: "Reward toggle label", cubeId: 1 },
+  { key: "cube1.moderator.reward_cqs", englishDefault: "Award top contributor by CQS", context: "Reward description", cubeId: 1 },
+  { key: "cube1.moderator.reward_amount_label", englishDefault: "Reward Amount ($)", context: "Reward amount input label", cubeId: 1 },
+  { key: "cube1.moderator.start_polling", englishDefault: "Start Polling", context: "Start polling transition button", cubeId: 1 },
+  { key: "cube1.moderator.start_ranking", englishDefault: "Start Ranking", context: "Start ranking transition button", cubeId: 1 },
+  { key: "cube1.moderator.close_label", englishDefault: "Close", context: "Close session button", cubeId: 1 },
+  { key: "cube1.moderator.archive_label", englishDefault: "Archive", context: "Archive session button", cubeId: 1 },
+  { key: "cube1.moderator.join_link", englishDefault: "Join Link", context: "Join link label", cubeId: 1 },
+  { key: "cube1.moderator.present_qr", englishDefault: "Present QR", context: "QR presentation button", cubeId: 1 },
+  { key: "cube1.moderator.scan_join", englishDefault: "Scan to join this session", context: "QR presentation subtitle", cubeId: 1 },
+  { key: "cube1.moderator.or_enter_code", englishDefault: "Or enter code:", context: "QR presentation alt text", cubeId: 1 },
+  { key: "cube1.moderator.configuration", englishDefault: "Configuration", context: "Config section heading", cubeId: 1 },
+  { key: "cube1.moderator.type_label", englishDefault: "Type", context: "Config type label", cubeId: 1 },
+  { key: "cube1.moderator.anonymity_label", englishDefault: "Anonymity", context: "Config anonymity label", cubeId: 1 },
+  { key: "cube1.moderator.max_response_config", englishDefault: "Max Response", context: "Config max response label", cubeId: 1 },
+  { key: "cube1.moderator.pricing_config", englishDefault: "Pricing", context: "Config pricing label", cubeId: 1 },
+  { key: "cube1.moderator.reward_config", englishDefault: "Reward", context: "Config reward label", cubeId: 1 },
+  { key: "cube1.moderator.no_sessions", englishDefault: "No sessions yet", context: "Empty sessions list heading", cubeId: 1 },
+  { key: "cube1.moderator.create_first", englishDefault: "Create your first polling session to get started", context: "Empty sessions list description", cubeId: 1 },
+  { key: "cube1.moderator.back_sessions", englishDefault: "Back to sessions", context: "Back navigation button", cubeId: 1 },
+  { key: "cube1.moderator.live_feed", englishDefault: "Live Response Feed", context: "Live feed heading", cubeId: 1 },
+  { key: "cube1.moderator.poll_duration", englishDefault: "Poll Duration", context: "Static poll duration label", cubeId: 1 },
+  // Settings panel
+  { key: "cube1.settings.color_scheme", englishDefault: "Session Color Scheme", context: "Theme section heading", cubeId: 1 },
+  { key: "cube1.settings.color_set_by_mod", englishDefault: "Color scheme is set by your session moderator.", context: "Disabled theme note", cubeId: 1 },
+  { key: "cube1.settings.color_applies_all", englishDefault: "Applies to all participants in this session.", context: "Moderator theme note", cubeId: 1 },
+  { key: "cube1.settings.custom", englishDefault: "Custom", context: "Custom color picker label", cubeId: 1 },
+  { key: "cube1.settings.title", englishDefault: "Settings", context: "Settings panel title (user)", cubeId: 1 },
+  { key: "cube1.settings.moderator_title", englishDefault: "Moderator Settings", context: "Settings panel title (moderator)", cubeId: 1 },
+  // Cube Architecture Status
+  { key: "cube1.settings.cube_architecture", englishDefault: "Cube Architecture", context: "Cube status section heading", cubeId: 1 },
+  { key: "cube1.settings.deployed", englishDefault: "Deployed", context: "Cube status label", cubeId: 1 },
+  { key: "cube1.settings.in_progress_status", englishDefault: "In Progress", context: "Cube status label", cubeId: 1 },
+  { key: "cube1.settings.not_started", englishDefault: "Not Started", context: "Cube status label", cubeId: 1 },
+  { key: "cube1.settings.planned", englishDefault: "Planned", context: "Cube status label", cubeId: 1 },
+  { key: "cube1.settings.legend", englishDefault: "Legend", context: "Legend toggle label", cubeId: 1 },
+  { key: "cube1.settings.collapse", englishDefault: "Collapse", context: "Collapse section button", cubeId: 1 },
+  { key: "cube1.settings.layer1", englishDefault: "Layer 1", context: "Grid layer 1 label", cubeId: 1 },
+  { key: "cube1.settings.layer2_center", englishDefault: "Layer 2 — Center", context: "Grid layer 2 label", cubeId: 1 },
+  // Language Lexicon panel
+  { key: "cube1.settings.language_lexicon", englishDefault: "Language Lexicon", context: "Language lexicon section heading", cubeId: 1 },
+  { key: "cube1.settings.languages_count", englishDefault: "languages", context: "Language count suffix", cubeId: 1 },
+  { key: "cube1.settings.propose_new", englishDefault: "Propose New Language", context: "Propose language button", cubeId: 1 },
+  { key: "cube1.settings.pending_approvals", englishDefault: "Pending Approvals", context: "Admin approvals button", cubeId: 1 },
+  { key: "cube1.settings.language_proposed", englishDefault: "Language proposed!", context: "Proposal success heading", cubeId: 1 },
+  { key: "cube1.settings.admin_approve", englishDefault: "An admin must approve it before it becomes active.", context: "Proposal success note", cubeId: 1 },
+  { key: "cube1.settings.propose_heading", englishDefault: "Propose New Language", context: "Propose form heading", cubeId: 1 },
+  { key: "cube1.settings.iso_code", englishDefault: "ISO Code", context: "ISO code input label", cubeId: 1 },
+  { key: "cube1.settings.english_name", englishDefault: "English Name", context: "English name input label", cubeId: 1 },
+  { key: "cube1.settings.native_name", englishDefault: "Native Name", context: "Native name input label", cubeId: 1 },
+  { key: "cube1.settings.text_direction", englishDefault: "Text Direction", context: "Direction select label", cubeId: 1 },
+  { key: "cube1.settings.ltr", englishDefault: "Left-to-Right (LTR)", context: "LTR option", cubeId: 1 },
+  { key: "cube1.settings.rtl", englishDefault: "Right-to-Left (RTL)", context: "RTL option", cubeId: 1 },
+  { key: "cube1.settings.submit_proposal", englishDefault: "Submit Proposal", context: "Submit proposal button", cubeId: 1 },
+  { key: "cube1.settings.back_languages", englishDefault: "Back to Languages", context: "Back to language list button", cubeId: 1 },
+  { key: "cube1.settings.no_pending", englishDefault: "No pending language proposals.", context: "Empty approvals state", cubeId: 1 },
+  { key: "cube1.settings.all_tab", englishDefault: "All", context: "All cubes filter tab", cubeId: 1 },
 ];
 
 const cube2: TranslationEntry[] = [
@@ -157,6 +274,14 @@ const cube3: TranslationEntry[] = [
   { key: "cube3.voice.not_supported", englishDefault: "Voice input not supported in this browser", context: "Browser compatibility message", cubeId: 3 },
   { key: "cube3.voice.too_short", englishDefault: "Recording too short — please try again", context: "Minimum duration error", cubeId: 3 },
   { key: "cube3.voice.tokens_earned", englishDefault: "Tokens earned:", context: "Post-submit token display label", cubeId: 3 },
+  // Voice input button states
+  { key: "cube3.voice.captured", englishDefault: "Voice captured", context: "Voice capture success toast title", cubeId: 3 },
+  { key: "cube3.voice.stt_pending", englishDefault: "STT integration pending (Cube 3).", context: "STT stub notice", cubeId: 3 },
+  { key: "cube3.voice.access_denied", englishDefault: "Microphone access denied", context: "Mic denied toast title", cubeId: 3 },
+  { key: "cube3.voice.allow_mic", englishDefault: "Please allow microphone access to use voice input.", context: "Mic denied toast description", cubeId: 3 },
+  { key: "cube3.voice.stop", englishDefault: "Stop recording", context: "Stop recording button title", cubeId: 3 },
+  { key: "cube3.voice.processing_audio", englishDefault: "Processing audio...", context: "Processing state button title", cubeId: 3 },
+  { key: "cube3.voice.record_response", englishDefault: "Record voice response", context: "Record button title", cubeId: 3 },
 ];
 
 const cube4: TranslationEntry[] = [

@@ -26,6 +26,7 @@ import { toast } from "@/components/ui/use-toast";
 import { PRESENCE_POLL_INTERVAL } from "@/lib/constants";
 import { useTimer } from "@/lib/timer-context";
 import { useEasterEgg } from "@/lib/easter-egg-context";
+import { useLexicon } from "@/lib/lexicon-context";
 import { VoiceInput } from "@/components/voice-input";
 import type { Session, Question } from "@/lib/types";
 
@@ -89,11 +90,11 @@ const SIMULATION_QUESTIONS: Question[] = [
 
 // ── Polling Status Bar ───────────────────────────────────────────
 
-const POLLING_STEPS = [
-  { label: "Objectives", key: "objectives" },
-  { label: "Feedback", key: "feedback" },
-  { label: "Ranking", key: "ranking" },
-  { label: "Results", key: "results" },
+const POLLING_STEP_KEYS = [
+  { labelKey: "cube1.session.step_objectives", key: "objectives" },
+  { labelKey: "cube1.session.step_feedback", key: "feedback" },
+  { labelKey: "cube1.session.step_ranking", key: "ranking" },
+  { labelKey: "cube1.session.step_results", key: "results" },
 ] as const;
 
 function getActiveStep(status: string): number {
@@ -115,11 +116,12 @@ function getActiveStep(status: string): number {
 
 function PollingStatusBar({ status }: { status: string }) {
   const activeStep = getActiveStep(status);
+  const { t } = useLexicon();
 
   return (
     <div className="w-full max-w-lg mb-4">
       <div className="flex items-center justify-between">
-        {POLLING_STEPS.map((step, i) => {
+        {POLLING_STEP_KEYS.map((step, i) => {
           const isCompleted = i < activeStep;
           const isActive = i === activeStep;
           return (
@@ -149,10 +151,10 @@ function PollingStatusBar({ status }: { status: string }) {
                       : "text-muted-foreground"
                   }`}
                 >
-                  {step.label}
+                  {t(step.labelKey)}
                 </span>
               </div>
-              {i < POLLING_STEPS.length - 1 && (
+              {i < POLLING_STEP_KEYS.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-1.5 mt-[-14px] rounded-full ${
                     i < activeStep ? "bg-green-500" : "bg-muted"
@@ -217,6 +219,7 @@ export function SessionView() {
 
   // Simulation mode — use sample data instead of API calls
   const { simulationMode } = useEasterEgg();
+  const { t } = useLexicon();
 
   useEffect(() => {
     // In simulation mode, use sample data
@@ -376,7 +379,7 @@ export function SessionView() {
               <AlertCircle className="h-12 w-12 text-destructive" />
               <p className="text-center text-muted-foreground">{error}</p>
               <Button variant="outline" onClick={() => (window.location.href = "/")}>
-                Back to home
+                {t("shared.nav.back_to_home")}
               </Button>
             </CardContent>
           </Card>
@@ -420,18 +423,18 @@ export function SessionView() {
                     {participantCount}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    participants joined
+                    {t("cube1.session.participants_joined")}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span>Waiting for moderator to start polling...</span>
+                <span>{t("cube1.session.waiting_polling")}</span>
               </div>
 
               <div className="rounded-md bg-muted px-4 py-2 text-center">
-                <p className="text-xs text-muted-foreground">Session Code</p>
+                <p className="text-xs text-muted-foreground">{t("cube1.session.session_code")}</p>
                 <p className="text-lg font-mono font-bold tracking-wider">
                   {session.short_code}
                 </p>
@@ -448,13 +451,13 @@ export function SessionView() {
                 <div className="flex-1">
                   {questions.length > 1 && (
                     <p className="text-xs text-muted-foreground mb-1">
-                      Question {currentQuestionIndex + 1} of {questions.length}
+                      {t("cube1.session.question_prefix")} {currentQuestionIndex + 1} {t("cube1.session.question_of")} {questions.length}
                     </p>
                   )}
                   <CardTitle className="text-lg">
                     {currentQuestion
                       ? currentQuestion.question_text
-                      : "Waiting for question..."}
+                      : t("cube1.session.waiting_question")}
                   </CardTitle>
                 </div>
                 <span className="flex items-center gap-1 text-sm text-muted-foreground shrink-0 ml-4">
@@ -485,18 +488,18 @@ export function SessionView() {
               {allSubmitted ? (
                 <div className="flex flex-col items-center gap-4 py-8">
                   <CheckCircle2 className="h-12 w-12 text-green-400" />
-                  <p className="font-medium">All responses submitted!</p>
+                  <p className="font-medium">{t("cube1.session.all_submitted")}</p>
                   <p className="text-sm text-muted-foreground text-center">
-                    Waiting for other participants to finish...
+                    {t("cube1.session.waiting_others")}
                   </p>
                 </div>
               ) : isCurrentSubmitted ? (
                 <div className="flex flex-col items-center gap-4 py-8">
                   <CheckCircle2 className="h-12 w-12 text-green-400" />
-                  <p className="font-medium">Response submitted!</p>
+                  <p className="font-medium">{t("cube1.session.response_submitted")}</p>
                   {currentQuestionIndex < questions.length - 1 && (
                     <Button onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}>
-                      Next Question
+                      {t("cube1.session.next_question")}
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                   )}
@@ -505,7 +508,7 @@ export function SessionView() {
                 <div className="flex flex-col gap-4">
                   <div className="space-y-2">
                     <textarea
-                      placeholder="Type your response..."
+                      placeholder={t("cube2.input.placeholder")}
                       value={responseText}
                       onChange={(e) => setResponseText(e.target.value)}
                       maxLength={session.max_response_length || 3333}
@@ -529,8 +532,8 @@ export function SessionView() {
                         <Send className="mr-2 h-4 w-4" />
                       )}
                       {currentQuestionIndex < questions.length - 1
-                        ? "Submit & Next"
-                        : "Submit"}
+                        ? t("cube1.session.submit_next")
+                        : t("cube1.session.submit_btn")}
                     </Button>
                     {/* Voice input (Cube 3 STT stub) */}
                     <VoiceInput
@@ -547,18 +550,18 @@ export function SessionView() {
         {session?.status === "ranking" && (
           <Card className="w-full max-w-lg">
             <CardHeader className="text-center">
-              <CardTitle>Theme Voting</CardTitle>
+              <CardTitle>{t("cube1.session.theme_voting")}</CardTitle>
               <CardDescription>
-                Vote on the themes that emerged from responses
+                {t("cube1.session.theme_voting_desc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4 py-8">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="h-4 w-4" />
-                <span>{participantCount} participants</span>
+                <span>{participantCount} {t("shared.nav.participants")}</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Theme voting interface coming soon (Cube 7)
+                {t("cube1.session.theme_voting_soon")}
               </p>
             </CardContent>
           </Card>
@@ -569,16 +572,15 @@ export function SessionView() {
           <Card className="w-full max-w-lg">
             <CardContent className="flex flex-col items-center gap-4 py-12">
               <CheckCircle2 className="h-12 w-12 text-muted-foreground" />
-              <CardTitle>Session Ended</CardTitle>
+              <CardTitle>{t("cube1.session.session_ended")}</CardTitle>
               <CardDescription className="text-center">
-                This session has been closed. If you opted in for results,
-                you&apos;ll receive them when they&apos;re ready.
+                {t("cube1.session.session_closed_msg")}
               </CardDescription>
               <Button
                 variant="outline"
                 onClick={() => (window.location.href = "/")}
               >
-                Back to home
+                {t("shared.nav.back_to_home")}
               </Button>
             </CardContent>
           </Card>

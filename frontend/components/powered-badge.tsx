@@ -6,6 +6,7 @@ import { useTheme } from "@/lib/theme-context";
 import { Play, Pause, X, Volume2, VolumeX, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
+import { useLexicon } from "@/lib/lexicon-context";
 
 /**
  * Trinity colors — fixed per intelligence, independent of active theme.
@@ -57,6 +58,7 @@ const SONG_PAIRINGS = [
 function SimulationOverlay() {
   const { currentSong, playing, setSong, togglePlaying, exitSimulationMode } =
     useEasterEgg();
+  const { t } = useLexicon();
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const [audioError, setAudioError] = useState(false);
@@ -140,7 +142,7 @@ function SimulationOverlay() {
       {/* ── Top center: "SIMULATION MODE" label + eXeL H.I. logo ── */}
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-1 pointer-events-auto">
         <span className="text-[10px] font-mono text-primary/80 uppercase tracking-[0.25em]">
-          Simulation Mode
+          {t("shared.sim.simulation_mode")}
         </span>
         {renderLogo(0)}
         {/* Exit X */}
@@ -149,7 +151,7 @@ function SimulationOverlay() {
           size="sm"
           className="h-6 w-6 p-0 mt-0.5"
           onClick={exitSimulationMode}
-          title="Exit simulation"
+          title={t("shared.sim.exit")}
         >
           <X className="h-3.5 w-3.5 text-muted-foreground" />
         </Button>
@@ -185,7 +187,7 @@ function SimulationOverlay() {
             <>
               <AlertCircle className="h-3 w-3 text-red-400" />
               <span className="text-[10px] font-mono text-red-400">
-                Audio unavailable
+                {t("shared.sim.audio_unavailable")}
               </span>
             </>
           ) : playing ? (

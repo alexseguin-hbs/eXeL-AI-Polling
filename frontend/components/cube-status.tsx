@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLexicon } from "@/lib/lexicon-context";
 
 type CubeStatus = "deployed" | "in_progress" | "not_started" | "planned";
 
@@ -105,6 +106,7 @@ function CubeCell({ cube }: { cube: CubeInfo }) {
 export function CubeArchitectureStatus() {
   const [expanded, setExpanded] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
+  const { t } = useLexicon();
 
   // Count deployed cubes for collapsed summary
   const allCubes = [...CUBE_GRID.flat(), CUBE_10];
@@ -120,10 +122,10 @@ export function CubeArchitectureStatus() {
         >
           <div className="flex items-center gap-2">
             <Box className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Cube Architecture</span>
+            <span className="text-sm font-medium">{t("cube1.settings.cube_architecture")}</span>
           </div>
           <span className="text-xs text-muted-foreground">
-            {deployedCount} deployed, {inProgressCount} in progress
+            {deployedCount} {t("cube1.settings.deployed").toLowerCase()}, {inProgressCount} {t("cube1.settings.in_progress_status").toLowerCase()}
           </span>
         </button>
       </section>
@@ -135,7 +137,7 @@ export function CubeArchitectureStatus() {
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
           <Box className="h-4 w-4" />
-          Cube Architecture
+          {t("cube1.settings.cube_architecture")}
         </h3>
         <div className="flex items-center gap-2">
           <button
@@ -143,7 +145,7 @@ export function CubeArchitectureStatus() {
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
           >
             {showLegend ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            Legend
+            {t("cube1.settings.legend")}
           </button>
           <Button
             variant="ghost"
@@ -151,7 +153,7 @@ export function CubeArchitectureStatus() {
             className="text-xs"
             onClick={() => setExpanded(false)}
           >
-            Collapse
+            {t("cube1.settings.collapse")}
           </Button>
         </div>
       </div>
@@ -168,7 +170,7 @@ export function CubeArchitectureStatus() {
       )}
 
       {/* Layer 1: 3x3 Grid */}
-      <p className="text-[10px] text-muted-foreground mb-1.5">Layer 1</p>
+      <p className="text-[10px] text-muted-foreground mb-1.5">{t("cube1.settings.layer1")}</p>
       <div className="grid grid-cols-3 gap-1.5 mb-3">
         {CUBE_GRID.flat().map((cube) => (
           <CubeCell key={cube.number} cube={cube} />
@@ -176,7 +178,7 @@ export function CubeArchitectureStatus() {
       </div>
 
       {/* Layer 2: Cube 10 */}
-      <p className="text-[10px] text-muted-foreground mb-1.5">Layer 2 — Center</p>
+      <p className="text-[10px] text-muted-foreground mb-1.5">{t("cube1.settings.layer2_center")}</p>
       <div className="grid grid-cols-3 gap-1.5">
         <div />
         <CubeCell cube={CUBE_10} />

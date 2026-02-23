@@ -51,6 +51,7 @@ export function LanguageLexicon({ userEmail }: LanguageLexiconProps) {
     approveLanguage,
     rejectLanguage,
     isAdmin,
+    t,
   } = useLexicon();
 
   const [view, setView] = useState<LexiconView>("list");
@@ -77,10 +78,10 @@ export function LanguageLexicon({ userEmail }: LanguageLexiconProps) {
         >
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">Language Lexicon</span>
+            <span className="text-sm font-medium">{t("cube1.settings.language_lexicon")}</span>
           </div>
           <span className="text-xs text-muted-foreground">
-            {languages.filter((l) => l.status === "approved").length} languages
+            {languages.filter((l) => l.status === "approved").length} {t("cube1.settings.languages_count")}
           </span>
         </button>
       </section>
@@ -92,7 +93,7 @@ export function LanguageLexicon({ userEmail }: LanguageLexiconProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
           <Globe className="h-4 w-4" />
-          Language Lexicon
+          {t("cube1.settings.language_lexicon")}
         </h3>
         <Button
           variant="ghost"
@@ -100,7 +101,7 @@ export function LanguageLexicon({ userEmail }: LanguageLexiconProps) {
           className="text-xs"
           onClick={() => setExpanded(false)}
         >
-          Collapse
+          {t("cube1.settings.collapse")}
         </Button>
       </div>
 
@@ -175,6 +176,7 @@ function LanguageListView({
   onPropose,
   onApprovals,
 }: LanguageListViewProps) {
+  const { t } = useLexicon();
   // Show approved first, then pending
   const sorted = [...languages].sort((a, b) => {
     if (a.status === "approved" && b.status !== "approved") return -1;
@@ -193,7 +195,7 @@ function LanguageListView({
           onClick={onPropose}
         >
           <Plus className="h-3 w-3" />
-          Propose New Language
+          {t("cube1.settings.propose_new")}
         </Button>
         {isAdmin && pendingCount > 0 && (
           <Button
@@ -203,7 +205,7 @@ function LanguageListView({
             onClick={onApprovals}
           >
             <ShieldCheck className="h-3 w-3" />
-            Pending Approvals ({pendingCount})
+            {t("cube1.settings.pending_approvals")} ({pendingCount})
           </Button>
         )}
       </div>
@@ -274,6 +276,7 @@ function TranslationEditorView({
   bulkUpdateTranslations,
   onBack,
 }: TranslationEditorViewProps) {
+  const { t } = useLexicon();
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
@@ -479,7 +482,7 @@ function TranslationEditorView({
               : "bg-muted text-muted-foreground hover:bg-accent"
           }`}
         >
-          All
+          {t("cube1.settings.all_tab")}
         </button>
         {CUBE_GROUPS.map((g) => (
           <button
@@ -559,6 +562,7 @@ function ProposeLanguageView({
   userEmail,
   onBack,
 }: ProposeLanguageViewProps) {
+  const { t } = useLexicon();
   const [code, setCode] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [nameNative, setNameNative] = useState("");
@@ -584,13 +588,13 @@ function ProposeLanguageView({
       <div className="space-y-3">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Back to Languages
+          {t("cube1.settings.back_languages")}
         </Button>
         <div className="rounded-md border border-green-500/30 bg-green-500/10 p-4 text-center">
           <Check className="h-5 w-5 text-green-400 mx-auto mb-2" />
-          <p className="text-sm font-medium">Language proposed!</p>
+          <p className="text-sm font-medium">{t("cube1.settings.language_proposed")}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            An admin must approve it before it becomes active.
+            {t("cube1.settings.admin_approve")}
           </p>
         </div>
       </div>
@@ -603,13 +607,13 @@ function ProposeLanguageView({
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h4 className="text-sm font-medium">Propose New Language</h4>
+        <h4 className="text-sm font-medium">{t("cube1.settings.propose_heading")}</h4>
       </div>
 
       <div className="space-y-3">
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">
-            ISO Code (e.g. &quot;af&quot; for Afrikaans)
+            {t("cube1.settings.iso_code")}
           </label>
           <Input
             value={code}
@@ -621,7 +625,7 @@ function ProposeLanguageView({
         </div>
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">
-            English Name
+            {t("cube1.settings.english_name")}
           </label>
           <Input
             value={nameEn}
@@ -632,7 +636,7 @@ function ProposeLanguageView({
         </div>
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">
-            Native Name
+            {t("cube1.settings.native_name")}
           </label>
           <Input
             value={nameNative}
@@ -644,7 +648,7 @@ function ProposeLanguageView({
         </div>
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">
-            Text Direction
+            {t("cube1.settings.text_direction")}
           </label>
           <Select
             value={dir}
@@ -654,8 +658,8 @@ function ProposeLanguageView({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ltr">Left-to-Right (LTR)</SelectItem>
-              <SelectItem value="rtl">Right-to-Left (RTL)</SelectItem>
+              <SelectItem value="ltr">{t("cube1.settings.ltr")}</SelectItem>
+              <SelectItem value="rtl">{t("cube1.settings.rtl")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -665,7 +669,7 @@ function ProposeLanguageView({
           disabled={!canSubmit}
           onClick={handleSubmit}
         >
-          Submit Proposal
+          {t("cube1.settings.submit_proposal")}
         </Button>
       </div>
     </div>
@@ -689,18 +693,19 @@ function PendingApprovalsView({
   userEmail,
   onBack,
 }: PendingApprovalsViewProps) {
+  const { t } = useLexicon();
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h4 className="text-sm font-medium">Pending Approvals</h4>
+        <h4 className="text-sm font-medium">{t("cube1.settings.pending_approvals")}</h4>
       </div>
 
       {pending.length === 0 ? (
         <p className="text-xs text-muted-foreground text-center py-4">
-          No pending language proposals.
+          {t("cube1.settings.no_pending")}
         </p>
       ) : (
         <div className="space-y-2">

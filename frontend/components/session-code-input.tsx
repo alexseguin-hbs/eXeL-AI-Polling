@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SESSION_CODE_MAX_LENGTH } from "@/lib/constants";
+import { useLexicon } from "@/lib/lexicon-context";
 
 export function SessionCodeInput() {
   const [code, setCode] = useState("");
@@ -12,13 +13,14 @@ export function SessionCodeInput() {
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { t } = useLexicon();
 
   const handleSubmit = useCallback(
     async (e?: React.FormEvent) => {
       e?.preventDefault();
       const trimmed = code.trim().toUpperCase();
       if (!trimmed) {
-        setError("Please enter a session code");
+        setError(t("cube1.session.enter_code_error"));
         return;
       }
       setError("");
@@ -51,7 +53,7 @@ export function SessionCodeInput() {
           htmlFor="session-code"
           className="text-lg font-medium text-muted-foreground"
         >
-          Enter session code
+          {t("cube1.join.enter_code")}
         </label>
         <div className="flex w-full gap-1.5 justify-center">
           <input

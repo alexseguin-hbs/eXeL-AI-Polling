@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { Mic, MicOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
+import { useLexicon } from "@/lib/lexicon-context";
 
 interface VoiceInputProps {
   onTranscript?: (text: string) => void;
@@ -16,6 +17,7 @@ export function VoiceInput({ onTranscript, disabled }: VoiceInputProps) {
   const [state, setState] = useState<RecordingState>("idle");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const { t } = useLexicon();
 
   const startRecording = useCallback(async () => {
     setState("requesting");
@@ -40,8 +42,8 @@ export function VoiceInput({ onTranscript, disabled }: VoiceInputProps) {
         // Stub: In production, send audioBlob to Cube 3 STT endpoint
         // For now, show a message that STT is pending
         toast({
-          title: "Voice captured",
-          description: `Audio recorded (${(audioBlob.size / 1024).toFixed(1)}KB). STT integration pending (Cube 3).`,
+          title: t("cube3.voice.captured"),
+          description: `${(audioBlob.size / 1024).toFixed(1)}KB — ${t("cube3.voice.stt_pending")}`,
         });
 
         setState("idle");
@@ -51,8 +53,8 @@ export function VoiceInput({ onTranscript, disabled }: VoiceInputProps) {
       setState("recording");
     } catch {
       toast({
-        title: "Microphone access denied",
-        description: "Please allow microphone access to use voice input.",
+        title: t("cube3.voice.access_denied"),
+        description: t("cube3.voice.allow_mic"),
         variant: "destructive",
       });
       setState("idle");
@@ -81,10 +83,10 @@ export function VoiceInput({ onTranscript, disabled }: VoiceInputProps) {
       disabled={disabled || state === "requesting" || state === "processing"}
       title={
         state === "recording"
-          ? "Stop recording"
+          ? t("cube3.voice.stop")
           : state === "processing"
-          ? "Processing audio..."
-          : "Record voice response"
+          ? t("cube3.voice.processing_audio")
+          : t("cube3.voice.record_response")
       }
       className="relative"
     >
