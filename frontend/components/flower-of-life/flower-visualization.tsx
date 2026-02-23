@@ -7,7 +7,7 @@ import {
   useRef,
   useEffect,
 } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeCircle } from "./theme-circle";
@@ -88,6 +88,7 @@ export function FlowerVisualization({
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPortrait, setIsPortrait] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Responsive: detect narrow containers for portrait mode
   useEffect(() => {
@@ -231,7 +232,13 @@ export function FlowerVisualization({
   // ── Render ───────────────────────────────────────────────────
 
   return (
-    <Card className="mt-6">
+    <Card
+      className={
+        isFullscreen
+          ? "fixed inset-0 z-[60] m-0 rounded-none border-0 flex flex-col overflow-auto"
+          : "mt-6"
+      }
+    >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -253,8 +260,22 @@ export function FlowerVisualization({
                 : `${state.selectedTheme1} — Sub-themes`}
             </CardTitle>
           </div>
-          <div className="text-xs text-muted-foreground">
-            {data.totalResponses.toLocaleString()} responses
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">
+              {data.totalResponses.toLocaleString()} responses
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFullscreen((f) => !f)}
+              title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            >
+              {isFullscreen ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -275,7 +296,10 @@ export function FlowerVisualization({
             }
             preserveAspectRatio="xMidYMid meet"
             className="w-full"
-            style={{ maxHeight: isPortrait ? 440 : 500, overflow: "visible" }}
+            style={{
+              maxHeight: isFullscreen ? "calc(100vh - 160px)" : isPortrait ? 440 : 500,
+              overflow: "visible",
+            }}
           >
             {/* ── Theme1 View ─────────────────────────── */}
             {state.view === "theme1" &&
