@@ -339,6 +339,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Arrêter l'enregistrement",
     "cube3.voice.processing_audio": "Traitement de l'audio...",
     "cube3.voice.record_response": "Enregistrer une réponse vocale",
+    "cube3.settings.v2t_provider": "Fournisseur Voix-en-Texte",
+    "cube3.settings.v2t_desc": "Sélectionnez le moteur de transcription vocale pour les réponses vocales de cette session.",
+    "cube3.settings.v2t_active": "Fournisseur actif",
+    "cube3.settings.v2t_fallback": "Basculement automatique : si le fournisseur principal échoue, le système passe au suivant disponible.",
+    "cube3.settings.v2t_languages": "langues prises en charge",
   },
 
   // ── Spanish (es) ───────────────────────────────────────────────
@@ -671,6 +676,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Detener grabación",
     "cube3.voice.processing_audio": "Procesando audio...",
     "cube3.voice.record_response": "Grabar respuesta de voz",
+    "cube3.settings.v2t_provider": "Proveedor de Voz a Texto",
+    "cube3.settings.v2t_desc": "Seleccione el motor de transcripción de voz para las respuestas vocales de esta sesión.",
+    "cube3.settings.v2t_active": "Proveedor activo",
+    "cube3.settings.v2t_fallback": "Conmutación automática: si el proveedor principal falla, el sistema cambia al siguiente disponible.",
+    "cube3.settings.v2t_languages": "idiomas compatibles",
   },
 
   // ── German (de) ────────────────────────────────────────
@@ -1003,6 +1013,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Aufnahme beenden",
     "cube3.voice.processing_audio": "Audio wird verarbeitet...",
     "cube3.voice.record_response": "Sprachantwort aufnehmen",
+    "cube3.settings.v2t_provider": "Sprache-zu-Text Anbieter",
+    "cube3.settings.v2t_desc": "Wählen Sie die Spracherkennungs-Engine für Sprachantworten in dieser Sitzung.",
+    "cube3.settings.v2t_active": "Aktiver Anbieter",
+    "cube3.settings.v2t_fallback": "Automatischer Wechsel: Bei Ausfall des primären Anbieters wechselt das System zum nächsten verfügbaren.",
+    "cube3.settings.v2t_languages": "unterstützte Sprachen",
   },
 
   // ── Italian (it) ───────────────────────────────────────
@@ -1335,6 +1350,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Interrompi registrazione",
     "cube3.voice.processing_audio": "Elaborazione audio...",
     "cube3.voice.record_response": "Registra risposta vocale",
+    "cube3.settings.v2t_provider": "Provider Voce-a-Testo",
+    "cube3.settings.v2t_desc": "Seleziona il motore di trascrizione vocale per le risposte vocali di questa sessione.",
+    "cube3.settings.v2t_active": "Provider attivo",
+    "cube3.settings.v2t_fallback": "Failover automatico: se il provider principale fallisce, il sistema passa al successivo disponibile.",
+    "cube3.settings.v2t_languages": "lingue supportate",
   },
 
   // ── Portuguese (pt) ────────────────────────────────────
@@ -1667,6 +1687,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Parar gravação",
     "cube3.voice.processing_audio": "Processando áudio...",
     "cube3.voice.record_response": "Gravar resposta por voz",
+    "cube3.settings.v2t_provider": "Provedor de Voz para Texto",
+    "cube3.settings.v2t_desc": "Selecione o mecanismo de transcrição de voz para as respostas vocais desta sessão.",
+    "cube3.settings.v2t_active": "Provedor ativo",
+    "cube3.settings.v2t_fallback": "Failover automático: se o provedor principal falhar, o sistema muda para o próximo disponível.",
+    "cube3.settings.v2t_languages": "idiomas suportados",
   },
 
   // ── Russian (ru) ───────────────────────────────────────
@@ -1999,6 +2024,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Остановить запись",
     "cube3.voice.processing_audio": "Обработка аудио...",
     "cube3.voice.record_response": "Записать голосовой ответ",
+    "cube3.settings.v2t_provider": "Поставщик голоса в текст",
+    "cube3.settings.v2t_desc": "Выберите движок распознавания речи для голосовых ответов в этой сессии.",
+    "cube3.settings.v2t_active": "Активный поставщик",
+    "cube3.settings.v2t_fallback": "Автоматическое переключение: при сбое основного поставщика система переключается на следующий доступный.",
+    "cube3.settings.v2t_languages": "поддерживаемых языков",
   },
 
   // ── Dutch (nl) ─────────────────────────────────────────
@@ -2331,6 +2361,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Opname stoppen",
     "cube3.voice.processing_audio": "Audio verwerken...",
     "cube3.voice.record_response": "Spraakantwoord opnemen",
+    "cube3.settings.v2t_provider": "Spraak-naar-tekst Provider",
+    "cube3.settings.v2t_desc": "Selecteer de spraakherkenningsengine voor spraakreacties in deze sessie.",
+    "cube3.settings.v2t_active": "Actieve provider",
+    "cube3.settings.v2t_fallback": "Automatische overschakeling: als de primaire provider uitvalt, schakelt het systeem over naar de volgende beschikbare.",
+    "cube3.settings.v2t_languages": "ondersteunde talen",
   },
 
   // ── Chinese (zh) ───────────────────────────────────────
@@ -2663,6 +2698,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "停止录音",
     "cube3.voice.processing_audio": "处理音频中...",
     "cube3.voice.record_response": "录制语音回复",
+    "cube3.settings.v2t_provider": "语音转文字提供商",
+    "cube3.settings.v2t_desc": "选择此会话中语音回复的语音转文字引擎。",
+    "cube3.settings.v2t_active": "当前提供商",
+    "cube3.settings.v2t_fallback": "自动故障转移：如果主要提供商失败，系统会自动切换到下一个可用的提供商。",
+    "cube3.settings.v2t_languages": "种支持的语言",
   },
 
   // ── Japanese (ja) ──────────────────────────────────────
@@ -2995,6 +3035,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "録音を停止",
     "cube3.voice.processing_audio": "音声を処理中...",
     "cube3.voice.record_response": "音声で回答を録音",
+    "cube3.settings.v2t_provider": "音声テキスト変換プロバイダー",
+    "cube3.settings.v2t_desc": "このセッションの音声応答に使用する音声認識エンジンを選択してください。",
+    "cube3.settings.v2t_active": "アクティブなプロバイダー",
+    "cube3.settings.v2t_fallback": "自動フェイルオーバー：プライマリプロバイダーが失敗した場合、システムは次の利用可能なプロバイダーに自動的に切り替わります。",
+    "cube3.settings.v2t_languages": "対応言語",
   },
 
   // ── Korean (ko) ────────────────────────────────────────
@@ -3327,6 +3372,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "녹음 중지",
     "cube3.voice.processing_audio": "오디오 처리 중...",
     "cube3.voice.record_response": "음성으로 응답 녹음",
+    "cube3.settings.v2t_provider": "음성-텍스트 변환 제공자",
+    "cube3.settings.v2t_desc": "이 세션의 음성 응답을 위한 음성 인식 엔진을 선택하세요.",
+    "cube3.settings.v2t_active": "활성 제공자",
+    "cube3.settings.v2t_fallback": "자동 장애 조치: 기본 제공자가 실패하면 시스템이 자동으로 다음 사용 가능한 제공자로 전환합니다.",
+    "cube3.settings.v2t_languages": "개 지원 언어",
   },
 
   // ── Arabic (ar) ────────────────────────────────────────
@@ -3659,6 +3709,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "إيقاف التسجيل",
     "cube3.voice.processing_audio": "جارٍ معالجة الصوت...",
     "cube3.voice.record_response": "تسجيل رد صوتي",
+    "cube3.settings.v2t_provider": "مزود تحويل الصوت إلى نص",
+    "cube3.settings.v2t_desc": "اختر محرك تحويل الصوت إلى نص للاستجابات الصوتية في هذه الجلسة.",
+    "cube3.settings.v2t_active": "المزود النشط",
+    "cube3.settings.v2t_fallback": "التبديل التلقائي: إذا فشل المزود الرئيسي، ينتقل النظام تلقائياً إلى المزود التالي المتاح.",
+    "cube3.settings.v2t_languages": "لغة مدعومة",
   },
 
   // ── Hindi (hi) ─────────────────────────────────────────
@@ -3991,6 +4046,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "रिकॉर्डिंग बंद करें",
     "cube3.voice.processing_audio": "ऑडियो प्रोसेस हो रहा है...",
     "cube3.voice.record_response": "आवाज़ से प्रतिक्रिया रिकॉर्ड करें",
+    "cube3.settings.v2t_provider": "वॉयस-टू-टेक्स्ट प्रदाता",
+    "cube3.settings.v2t_desc": "इस सत्र में ध्वनि प्रतिक्रियाओं के लिए स्पीच-टू-टेक्स्ट इंजन चुनें।",
+    "cube3.settings.v2t_active": "सक्रिय प्रदाता",
+    "cube3.settings.v2t_fallback": "स्वचालित स्विचओवर: यदि प्राथमिक प्रदाता विफल होता है, तो सिस्टम स्वचालित रूप से अगले उपलब्ध प्रदाता पर स्विच करता है।",
+    "cube3.settings.v2t_languages": "समर्थित भाषाएँ",
   },
 
   // ── Bengali (bn) ───────────────────────────────────────
@@ -4323,6 +4383,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "রেকর্ডিং বন্ধ করুন",
     "cube3.voice.processing_audio": "অডিও প্রক্রিয়া হচ্ছে...",
     "cube3.voice.record_response": "ভয়েস প্রতিক্রিয়া রেকর্ড করুন",
+    "cube3.settings.v2t_provider": "ভয়েস-টু-টেক্সট প্রদানকারী",
+    "cube3.settings.v2t_desc": "এই সেশনে ভয়েস প্রতিক্রিয়ার জন্য স্পিচ-টু-টেক্সট ইঞ্জিন নির্বাচন করুন।",
+    "cube3.settings.v2t_active": "সক্রিয় প্রদানকারী",
+    "cube3.settings.v2t_fallback": "স্বয়ংক্রিয় ফেইলওভার: প্রাথমিক প্রদানকারী ব্যর্থ হলে, সিস্টেম স্বয়ংক্রিয়ভাবে পরবর্তী উপলব্ধ প্রদানকারীতে স্যুইচ করে।",
+    "cube3.settings.v2t_languages": "টি সমর্থিত ভাষা",
   },
 
   // ── Punjabi (pa) ───────────────────────────────────────
@@ -4655,6 +4720,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "ਰਿਕਾਰਡਿੰਗ ਬੰਦ ਕਰੋ",
     "cube3.voice.processing_audio": "ਆਡੀਓ ਪ੍ਰੋਸੈਸ ਹੋ ਰਿਹਾ ਹੈ...",
     "cube3.voice.record_response": "ਆਵਾਜ਼ ਜਵਾਬ ਰਿਕਾਰਡ ਕਰੋ",
+    "cube3.settings.v2t_provider": "ਵੌਇਸ-ਟੂ-ਟੈਕਸਟ ਪ੍ਰਦਾਤਾ",
+    "cube3.settings.v2t_desc": "ਇਸ ਸੈਸ਼ਨ ਵਿੱਚ ਆਵਾਜ਼ ਜਵਾਬਾਂ ਲਈ ਸਪੀਚ-ਟੂ-ਟੈਕਸਟ ਇੰਜਣ ਚੁਣੋ।",
+    "cube3.settings.v2t_active": "ਸਰਗਰਮ ਪ੍ਰਦਾਤਾ",
+    "cube3.settings.v2t_fallback": "ਆਟੋਮੈਟਿਕ ਫੇਲਓਵਰ: ਜੇ ਮੁੱਖ ਪ੍ਰਦਾਤਾ ਫੇਲ੍ਹ ਹੁੰਦਾ ਹੈ, ਤਾਂ ਸਿਸਟਮ ਆਪਣੇ ਆਪ ਅਗਲੇ ਉਪਲਬਧ ਪ੍ਰਦਾਤਾ 'ਤੇ ਸਵਿੱਚ ਕਰਦਾ ਹੈ।",
+    "cube3.settings.v2t_languages": "ਸਮਰਥਿਤ ਭਾਸ਼ਾਵਾਂ",
   },
 
   // ── Thai (th) ──────────────────────────────────────────
@@ -4987,6 +5057,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "หยุดบันทึก",
     "cube3.voice.processing_audio": "กำลังประมวลผลเสียง...",
     "cube3.voice.record_response": "บันทึกคำตอบด้วยเสียง",
+    "cube3.settings.v2t_provider": "ผู้ให้บริการแปลงเสียงเป็นข้อความ",
+    "cube3.settings.v2t_desc": "เลือกเครื่องมือแปลงเสียงเป็นข้อความสำหรับการตอบด้วยเสียงในเซสชันนี้",
+    "cube3.settings.v2t_active": "ผู้ให้บริการที่ใช้งานอยู่",
+    "cube3.settings.v2t_fallback": "สลับอัตโนมัติ: หากผู้ให้บริการหลักล้มเหลว ระบบจะสลับไปยังผู้ให้บริการถัดไปที่พร้อมใช้งานโดยอัตโนมัติ",
+    "cube3.settings.v2t_languages": "ภาษาที่รองรับ",
   },
 
   // ── Vietnamese (vi) ────────────────────────────────────
@@ -5319,6 +5394,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Dừng ghi âm",
     "cube3.voice.processing_audio": "Đang xử lý âm thanh...",
     "cube3.voice.record_response": "Ghi âm phản hồi bằng giọng nói",
+    "cube3.settings.v2t_provider": "Nhà cung cấp chuyển giọng nói thành văn bản",
+    "cube3.settings.v2t_desc": "Chọn công cụ chuyển đổi giọng nói thành văn bản cho phản hồi bằng giọng nói trong phiên này.",
+    "cube3.settings.v2t_active": "Nhà cung cấp đang hoạt động",
+    "cube3.settings.v2t_fallback": "Chuyển đổi tự động: nếu nhà cung cấp chính gặp sự cố, hệ thống tự động chuyển sang nhà cung cấp tiếp theo có sẵn.",
+    "cube3.settings.v2t_languages": "ngôn ngữ được hỗ trợ",
   },
 
   // ── Indonesian (id) ────────────────────────────────────
@@ -5651,6 +5731,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Hentikan perekaman",
     "cube3.voice.processing_audio": "Memproses audio...",
     "cube3.voice.record_response": "Rekam respons suara",
+    "cube3.settings.v2t_provider": "Penyedia Suara-ke-Teks",
+    "cube3.settings.v2t_desc": "Pilih mesin pengenalan suara untuk respons suara di sesi ini.",
+    "cube3.settings.v2t_active": "Penyedia aktif",
+    "cube3.settings.v2t_fallback": "Failover otomatis: jika penyedia utama gagal, sistem secara otomatis beralih ke penyedia berikutnya yang tersedia.",
+    "cube3.settings.v2t_languages": "bahasa didukung",
   },
 
   // ── Malay (ms) ─────────────────────────────────────────
@@ -5983,6 +6068,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Hentikan rakaman",
     "cube3.voice.processing_audio": "Memproses audio...",
     "cube3.voice.record_response": "Rakam respons suara",
+    "cube3.settings.v2t_provider": "Pembekal Suara-ke-Teks",
+    "cube3.settings.v2t_desc": "Pilih enjin pengecaman suara untuk respons suara dalam sesi ini.",
+    "cube3.settings.v2t_active": "Pembekal aktif",
+    "cube3.settings.v2t_fallback": "Failover automatik: jika pembekal utama gagal, sistem secara automatik bertukar kepada pembekal seterusnya yang tersedia.",
+    "cube3.settings.v2t_languages": "bahasa disokong",
   },
 
   // ── Filipino (tl) ──────────────────────────────────────
@@ -6315,6 +6405,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Itigil ang pag-record",
     "cube3.voice.processing_audio": "Pinoproseso ang audio...",
     "cube3.voice.record_response": "I-record ang voice response",
+    "cube3.settings.v2t_provider": "Voice-to-Text Provider",
+    "cube3.settings.v2t_desc": "Pumili ng speech-to-text engine para sa mga voice response sa session na ito.",
+    "cube3.settings.v2t_active": "Aktibong provider",
+    "cube3.settings.v2t_fallback": "Awtomatikong failover: kung mabigo ang pangunahing provider, awtomatikong lilipat ang system sa susunod na available na provider.",
+    "cube3.settings.v2t_languages": "mga sinusuportahang wika",
   },
 
   // ── Turkish (tr) ───────────────────────────────────────
@@ -6647,6 +6742,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Kaydı durdur",
     "cube3.voice.processing_audio": "Ses işleniyor...",
     "cube3.voice.record_response": "Sesli yanıt kaydet",
+    "cube3.settings.v2t_provider": "Sesten Metne Sağlayıcı",
+    "cube3.settings.v2t_desc": "Bu oturumdaki sesli yanıtlar için konuşma tanıma motorunu seçin.",
+    "cube3.settings.v2t_active": "Aktif sağlayıcı",
+    "cube3.settings.v2t_fallback": "Otomatik geçiş: birincil sağlayıcı başarısız olursa, sistem otomatik olarak bir sonraki kullanılabilir sağlayıcıya geçer.",
+    "cube3.settings.v2t_languages": "desteklenen dil",
   },
 
   // ── Polish (pl) ────────────────────────────────────────
@@ -6979,6 +7079,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Zatrzymaj nagrywanie",
     "cube3.voice.processing_audio": "Przetwarzanie dźwięku...",
     "cube3.voice.record_response": "Nagraj odpowiedź głosową",
+    "cube3.settings.v2t_provider": "Dostawca mowy na tekst",
+    "cube3.settings.v2t_desc": "Wybierz silnik rozpoznawania mowy dla odpowiedzi głosowych w tej sesji.",
+    "cube3.settings.v2t_active": "Aktywny dostawca",
+    "cube3.settings.v2t_fallback": "Automatyczne przełączanie: jeśli główny dostawca zawiedzie, system automatycznie przełączy się na następnego dostępnego dostawcę.",
+    "cube3.settings.v2t_languages": "obsługiwanych języków",
   },
 
   // ── Ukrainian (uk) ─────────────────────────────────────
@@ -7311,6 +7416,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Зупинити запис",
     "cube3.voice.processing_audio": "Обробка аудіо...",
     "cube3.voice.record_response": "Записати голосову відповідь",
+    "cube3.settings.v2t_provider": "Постачальник голосу в текст",
+    "cube3.settings.v2t_desc": "Виберіть механізм розпізнавання мови для голосових відповідей у цій сесії.",
+    "cube3.settings.v2t_active": "Активний постачальник",
+    "cube3.settings.v2t_fallback": "Автоматичне перемикання: якщо основний постачальник виходить з ладу, система автоматично переключається на наступного доступного постачальника.",
+    "cube3.settings.v2t_languages": "підтримуваних мов",
   },
 
   // ── Romanian (ro) ──────────────────────────────────────
@@ -7643,6 +7753,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Oprește înregistrarea",
     "cube3.voice.processing_audio": "Se procesează audio...",
     "cube3.voice.record_response": "Înregistrează răspuns vocal",
+    "cube3.settings.v2t_provider": "Furnizor voce-în-text",
+    "cube3.settings.v2t_desc": "Selectați motorul de recunoaștere vocală pentru răspunsurile vocale din această sesiune.",
+    "cube3.settings.v2t_active": "Furnizor activ",
+    "cube3.settings.v2t_fallback": "Comutare automată: dacă furnizorul principal eșuează, sistemul trece automat la următorul furnizor disponibil.",
+    "cube3.settings.v2t_languages": "limbi acceptate",
   },
 
   // ── Greek (el) ─────────────────────────────────────────
@@ -7975,6 +8090,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Διακοπή εγγραφής",
     "cube3.voice.processing_audio": "Επεξεργασία ήχου...",
     "cube3.voice.record_response": "Εγγραφή φωνητικής απάντησης",
+    "cube3.settings.v2t_provider": "Πάροχος μετατροπής φωνής σε κείμενο",
+    "cube3.settings.v2t_desc": "Επιλέξτε τη μηχανή αναγνώρισης ομιλίας για τις φωνητικές απαντήσεις σε αυτήν τη συνεδρία.",
+    "cube3.settings.v2t_active": "Ενεργός πάροχος",
+    "cube3.settings.v2t_fallback": "Αυτόματη εναλλαγή: εάν ο κύριος πάροχος αποτύχει, το σύστημα μεταβαίνει αυτόματα στον επόμενο διαθέσιμο πάροχο.",
+    "cube3.settings.v2t_languages": "υποστηριζόμενες γλώσσες",
   },
 
   // ── Czech (cs) ─────────────────────────────────────────
@@ -8307,6 +8427,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Zastavit nahrávání",
     "cube3.voice.processing_audio": "Zpracování zvuku...",
     "cube3.voice.record_response": "Nahrát hlasovou odpověď",
+    "cube3.settings.v2t_provider": "Poskytovatel převodu řeči na text",
+    "cube3.settings.v2t_desc": "Vyberte engine pro rozpoznávání řeči pro hlasové odpovědi v této relaci.",
+    "cube3.settings.v2t_active": "Aktivní poskytovatel",
+    "cube3.settings.v2t_fallback": "Automatické přepnutí: pokud primární poskytovatel selže, systém automaticky přepne na dalšího dostupného poskytovatele.",
+    "cube3.settings.v2t_languages": "podporovaných jazyků",
   },
 
   // ── Swedish (sv) ───────────────────────────────────────
@@ -8639,6 +8764,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Stoppa inspelning",
     "cube3.voice.processing_audio": "Bearbetar ljud...",
     "cube3.voice.record_response": "Spela in röstsvar",
+    "cube3.settings.v2t_provider": "Tal-till-text-leverantör",
+    "cube3.settings.v2t_desc": "Välj taligenkänningsmotor för röstrespons i denna session.",
+    "cube3.settings.v2t_active": "Aktiv leverantör",
+    "cube3.settings.v2t_fallback": "Automatisk växling: om den primära leverantören misslyckas byter systemet automatiskt till nästa tillgängliga leverantör.",
+    "cube3.settings.v2t_languages": "språk som stöds",
   },
 
   // ── Danish (da) ────────────────────────────────────────
@@ -8971,6 +9101,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Stop optagelse",
     "cube3.voice.processing_audio": "Behandler lyd...",
     "cube3.voice.record_response": "Optag stemmesvar",
+    "cube3.settings.v2t_provider": "Tale-til-tekst udbyder",
+    "cube3.settings.v2t_desc": "Vælg talegenkendelsesmotor til stemmesvar i denne session.",
+    "cube3.settings.v2t_active": "Aktiv udbyder",
+    "cube3.settings.v2t_fallback": "Automatisk skift: hvis den primære udbyder fejler, skifter systemet automatisk til den næste tilgængelige udbyder.",
+    "cube3.settings.v2t_languages": "understøttede sprog",
   },
 
   // ── Finnish (fi) ───────────────────────────────────────
@@ -9303,6 +9438,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Lopeta tallennus",
     "cube3.voice.processing_audio": "Käsitellään ääntä...",
     "cube3.voice.record_response": "Tallenna äänivastaus",
+    "cube3.settings.v2t_provider": "Puheesta tekstiksi -tarjoaja",
+    "cube3.settings.v2t_desc": "Valitse puheentunnistusmoottori äänivastauksia varten tässä istunnossa.",
+    "cube3.settings.v2t_active": "Aktiivinen tarjoaja",
+    "cube3.settings.v2t_fallback": "Automaattinen vaihto: jos ensisijainen tarjoaja epäonnistuu, järjestelmä vaihtaa automaattisesti seuraavaan saatavilla olevaan tarjoajaan.",
+    "cube3.settings.v2t_languages": "tuettua kieltä",
   },
 
   // ── Norwegian (no) ─────────────────────────────────────
@@ -9635,6 +9775,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Stopp opptak",
     "cube3.voice.processing_audio": "Behandler lyd...",
     "cube3.voice.record_response": "Ta opp talesvar",
+    "cube3.settings.v2t_provider": "Tale-til-tekst leverandør",
+    "cube3.settings.v2t_desc": "Velg talegjenkjenningsmotoren for stemmesvar i denne økten.",
+    "cube3.settings.v2t_active": "Aktiv leverandør",
+    "cube3.settings.v2t_fallback": "Automatisk bytte: hvis den primære leverandøren feiler, bytter systemet automatisk til neste tilgjengelige leverandør.",
+    "cube3.settings.v2t_languages": "støttede språk",
   },
 
   // ── Hebrew (he) ────────────────────────────────────────
@@ -9967,6 +10112,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "הפסק הקלטה",
     "cube3.voice.processing_audio": "מעבד שמע...",
     "cube3.voice.record_response": "הקלט תגובה קולית",
+    "cube3.settings.v2t_provider": "ספק המרת דיבור לטקסט",
+    "cube3.settings.v2t_desc": "בחר את מנוע זיהוי הדיבור לתגובות קוליות בהפעלה זו.",
+    "cube3.settings.v2t_active": "ספק פעיל",
+    "cube3.settings.v2t_fallback": "מעבר אוטומטי: אם הספק הראשי נכשל, המערכת עוברת אוטומטית לספק הבא הזמין.",
+    "cube3.settings.v2t_languages": "שפות נתמכות",
   },
 
   // ── Swahili (sw) ───────────────────────────────────────
@@ -10299,6 +10449,11 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "Simamisha kurekodi",
     "cube3.voice.processing_audio": "Inachakata sauti...",
     "cube3.voice.record_response": "Rekodi jibu la sauti",
+    "cube3.settings.v2t_provider": "Mtoa huduma wa Sauti-kwa-Maandishi",
+    "cube3.settings.v2t_desc": "Chagua injini ya utambuzi wa sauti kwa majibu ya sauti katika kipindi hiki.",
+    "cube3.settings.v2t_active": "Mtoa huduma anayetumika",
+    "cube3.settings.v2t_fallback": "Kubadili kiotomatiki: ikiwa mtoa huduma mkuu atashindwa, mfumo utabadili kiotomatiki hadi mtoa huduma anayefuata aliyepatikana.",
+    "cube3.settings.v2t_languages": "lugha zinazotumika",
   },
 
   // ── Nepali (ne) ────────────────────────────────────────
@@ -10631,5 +10786,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.voice.stop": "रेकर्डिङ रोक्नुहोस्",
     "cube3.voice.processing_audio": "अडियो प्रशोधन हुँदैछ...",
     "cube3.voice.record_response": "भ्वाइस प्रतिक्रिया रेकर्ड गर्नुहोस्",
+    "cube3.settings.v2t_provider": "भ्वाइस-टू-टेक्स्ट प्रदायक",
+    "cube3.settings.v2t_desc": "यस सत्रमा आवाज प्रतिक्रियाहरूको लागि स्पिच-टू-टेक्स्ट इन्जिन चयन गर्नुहोस्।",
+    "cube3.settings.v2t_active": "सक्रिय प्रदायक",
+    "cube3.settings.v2t_fallback": "स्वचालित फेलओभर: यदि प्राथमिक प्रदायक असफल भयो भने, प्रणालीले स्वचालित रूपमा अर्को उपलब्ध प्रदायकमा स्विच गर्छ।",
+    "cube3.settings.v2t_languages": "समर्थित भाषाहरू",
   },
 };
