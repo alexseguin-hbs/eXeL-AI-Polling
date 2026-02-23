@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useTheme, THEME_PRESETS } from "@/lib/theme-context";
+import { useEasterEgg } from "@/lib/easter-egg-context";
 import { SUPPORTED_LANGUAGES } from "@/lib/constants";
 import { LanguageLexicon } from "@/components/language-lexicon";
 import { CubeArchitectureStatus } from "@/components/cube-status";
@@ -26,9 +27,15 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
     setCustomAccent,
     customAccentColor,
   } = useTheme();
+  const { registerThemeClick, enterSimulationMode } = useEasterEgg();
   const colorInputRef = useRef<HTMLInputElement>(null);
 
   const handlePresetSelect = (id: string) => {
+    // Feed every theme click into Easter egg sequence detector
+    const unlocked = registerThemeClick(id);
+    if (unlocked) {
+      enterSimulationMode();
+    }
     if (disabled) return;
     setTheme(id);
     setSessionTheme(id);
