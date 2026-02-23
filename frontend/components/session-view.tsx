@@ -382,7 +382,7 @@ export function SessionView() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar sessionTitle={session?.title} />
+      <Navbar sessionTitle={simulationMode ? `[SIM] ${session?.title ?? ""}` : session?.title} />
       <TokenEarnOverlay visible={showTokenEarn} />
 
       <main className="container flex flex-1 flex-col items-center py-8 px-4">
