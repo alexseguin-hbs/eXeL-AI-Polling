@@ -26,6 +26,7 @@ class STTProviderName(str, Enum):
     WHISPER = "whisper"    # OpenAI Whisper API (openai)
     GROK = "grok"          # xAI Grok — uses OpenAI-compatible Whisper API
     GEMINI = "gemini"      # Google Gemini multimodal (audio input)
+    AWS = "aws"            # AWS Transcribe batch API (boto3)
 
 
 @dataclass

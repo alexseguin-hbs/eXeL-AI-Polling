@@ -768,7 +768,177 @@ cd frontend && npx next build
   - 0 issues found — **BACKWARD: PASS**
 - **RESULT: 9/9 SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
 
-### Cubes 3–4, 6–7, 9–10: SCAFFOLDED (stubs only)
+### Cube 3 — Voice-to-Text Engine: IMPLEMENTED (CRS-08, CRS-15 done; ~85% of full spec)
+
+**Code location:** `backend/app/cubes/cube3_voice/` (modular, self-contained)
+
+#### Cube 3 — Implemented
+- **Browser mic capture:** MediaRecorder API (webm default), audio blob → FormData upload
+- **STT providers (4 batch at launch):** OpenAI Whisper, Grok (xAI), Gemini (Google), AWS Transcribe
+- **Provider abstraction:** `STTProvider` ABC with `transcribe()`, `supports_language()`, `model_id()`
+- **Circuit breaker failover:** whisper → grok → gemini → aws (skips failed provider, retries remaining)
+- **Provider selection:** Moderator default (session.ai_provider) → User override (if allow_user_stt_choice)
+- **Transcript validation:** Non-empty check, confidence threshold (0.3 min), length truncation
+- **Cube 2 pipeline integration:** Voice transcripts → detect_pii → scrub_pii → detect_profanity → scrub_profanity
+- **Dual storage:** MongoDB (raw audio binary + raw transcript) + Postgres (ResponseMeta + VoiceResponse + TextResponse)
+- **Response integrity (CRS-08):** SHA-256 hash of clean_text stored on TextResponse.response_hash, returned in API
+- **Time tracking (Cube 5):** start_time_tracking on submit, stop_time_tracking after store, ♡/◬ tokens returned
+- **Redis pub/sub:** Publishes `response_submitted` event for Cube 6 downstream consumption
+- **Immediate token display:** ♡ and ◬ returned in submission response for instant UI feedback
+- **Real-time STT (paid feature):** WebSocket endpoint with Azure (primary) + AWS (fallback) streaming
+- **Metrics:** System/User/Outcome metrics endpoints for Cube 10 simulation
+- **Security:**
+  - CRS-08: SHA-256 response_hash for integrity verification
+  - CRS-15: Voice submission with audio validation (format, size, empty check)
+- **API endpoints:** 5 routes (submit voice, list voice responses, get detail, metrics, realtime WebSocket)
+- **Rate limiting:** 60/min on submit endpoint
+- **Audio limits:** Max 25 MB upload, accepted formats: webm, wav, mp3, ogg, m4a, flac
+
+#### Cube 3 — STT Providers at Launch
+| Provider | Model ID | Type | Languages | Notes |
+|----------|----------|------|-----------|-------|
+| OpenAI Whisper | whisper-1 | Batch | 33 | Primary default |
+| Grok (xAI) | whisper-large-v3 | Batch | 33 | OpenAI-compatible API |
+| Gemini (Google) | gemini-2.0-flash | Batch | 33 | Multimodal audio input |
+| AWS Transcribe | aws-transcribe | Batch | 23 | S3 upload → batch job |
+| Azure Speech | azure-stt | Real-time | 30+ | Paid feature, WebSocket |
+| AWS Transcribe Streaming | aws-streaming | Real-time | 23 | Fallback for Azure |
+
+#### Cube 3 — CRS Traceability
+| CRS | Input ID | Output ID | Status | DTM Stretch Target |
+|-----|----------|-----------|--------|-------------------|
+| CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Complete** (hash) | AES-256 encryption at rest |
+| CRS-15 | CRS-15.IN.WRS.015 | CRS-15.OUT.WRS.015 | **Complete** | Live word-by-word display |
+
+#### Cube 3 — Not Yet Implemented
+- **`push_to_live_feed()`** — WebSocket 33-word summary feed (requires Cube 6)
+- **Language-specific STT model tuning** — per-language model selection optimization
+- **Audio playback** — MongoDB audio_files retrieval for replay
+- **Voice-specific profanity seed data** — speech patterns differ from text
+
+#### Cube 3 — Test Procedure (Cube 10 Simulator Reference)
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb=short
+```
+
+**Test Suite:** 2 files, 12 test classes, 39 tests
+
+| File | Classes | Tests | Coverage |
+|------|---------|-------|----------|
+| `test_voice_service.py` | 7 | 18 | Unit tests (validation, circuit breaker, provider selection, queries) |
+| `test_e2e_flows.py` | 5 | 21 | E2E flows (submission, PII, CRS-08, circuit breaker, AWS provider) |
+
+**Submission Test Flow (TestSubmissionFlow):**
+1. `voice_submit_full_pipeline` — Full E2E: transcribe → PII → store → tokens → Redis event
+2. `voice_submit_returns_token_display` — ♡ + ◬ returned with correct values
+3. `voice_submit_rejects_non_polling_session` — SessionNotPollingError
+4. `voice_submit_rejects_empty_transcript` — ResponseValidationError
+5. `voice_submit_accepts_all_formats` — webm, wav, mp3, ogg, m4a, flac
+6. `redis_event_published_after_voice_store` — Published to session channel
+
+**PII Test Flow (TestPIIFlow):**
+1. `voice_transcript_email_detected` — Email → [EMAIL_REDACTED]
+2. `clean_voice_transcript_no_pii` — No PII → empty detections
+3. `multiple_pii_in_voice_transcript` — Email + SSN all detected
+
+**CRS-08 Integrity Tests (TestCRS08Integrity):**
+1. `voice_hash_computed` — SHA-256 hex is 64 chars
+2. `voice_hash_changes_with_transcript` — Different text → different hash
+3. `voice_hash_is_deterministic` — Same text → same hash
+4. `unicode_voice_transcript_hash` — Unicode hashes correctly
+5. `response_hash_in_submission_result` — E2E: hash present in submit result
+
+**Circuit Breaker E2E (TestCircuitBreakerE2E):**
+1. `primary_fails_fallback_succeeds` — whisper fail → grok succeeds
+2. `all_providers_fail_returns_422` — All 4 fail → ResponseValidationError
+3. `failover_includes_aws_in_chain` — Fallback order = [whisper, grok, gemini, aws]
+
+**AWS Provider Tests (TestAWSProvider):**
+1. `aws_enum_exists` — STTProviderName.AWS = "aws"
+2. `aws_provider_model_id_pinned` — model_id = "aws-transcribe"
+3. `aws_language_support` — 23 languages supported
+4. `aws_factory_mapping` — _AI_TO_STT_MAP["aws"] = "aws"
+
+#### Cube 3 — Service Functions Status
+| Function | Status | Notes |
+|----------|--------|-------|
+| `select_provider_for_language()` | **Implemented** | DB priority + language check |
+| `transcribe_audio()` | **Implemented** | Circuit breaker failover |
+| `_handle_stt_failure()` | **Implemented** | 4-provider fallback chain |
+| `validate_transcript()` | **Implemented** | Empty, confidence, truncation |
+| `store_voice_response()` | **Implemented** | MongoDB + Postgres + CRS-08 hash |
+| `submit_voice_response()` | **Implemented** | Full orchestrator with token display |
+| `get_voice_responses()` | **Implemented** | Paginated list |
+| `get_voice_response_by_id()` | **Implemented** | Full detail with PII/profanity |
+| `push_to_live_feed()` | Not implemented | Requires Cube 6 WebSocket |
+
+#### Cube 3 — Files
+| File | Lines | Purpose |
+|------|-------|---------|
+| `cubes/cube3_voice/service.py` | 575 | Core orchestrator (transcribe → pipeline → store → tokens) |
+| `cubes/cube3_voice/router.py` | 173 | 5 API endpoints (submit, list, detail, metrics, realtime WS) |
+| `cubes/cube3_voice/metrics.py` | 260+ | System/User/Outcome metrics for Cube 10 |
+| `cubes/cube3_voice/realtime.py` | 200+ | WebSocket real-time STT handler |
+| `cubes/cube3_voice/providers/base.py` | 91 | STTProvider ABC + TranscriptionResult + STTProviderError |
+| `cubes/cube3_voice/providers/factory.py` | 134 | Provider factory + selection logic |
+| `cubes/cube3_voice/providers/whisper_provider.py` | 138 | OpenAI Whisper implementation |
+| `cubes/cube3_voice/providers/grok_provider.py` | 119 | xAI Grok (OpenAI-compatible) |
+| `cubes/cube3_voice/providers/gemini_provider.py` | 135 | Google Gemini multimodal |
+| `cubes/cube3_voice/providers/aws_provider.py` | 190 | AWS Transcribe batch |
+| `cubes/cube3_voice/providers/aws_realtime.py` | 227 | AWS Transcribe streaming |
+| `cubes/cube3_voice/providers/azure_realtime.py` | 250+ | Azure Speech Services streaming |
+| `models/voice_response.py` | 50 | VoiceResponse ORM model |
+| `schemas/voice.py` | 80+ | Pydantic schemas |
+| `tests/cube3/test_voice_service.py` | 372 | 18 unit tests |
+| `tests/cube3/test_e2e_flows.py` | 500+ | 19 E2E tests + CUBE3_TEST_METHOD |
+
+#### Cube 3 — Frontend Files
+| File | Action | Purpose |
+|------|--------|---------|
+| `components/voice-input.tsx` | **Rewritten** | Records audio → sends to backend → shows transcript + tokens |
+| `lib/types.ts` | **Updated** | Added VoiceSubmissionRead interface |
+| `lib/api.ts` | **Updated** | Added submitVoiceResponse (FormData upload, mock + live) |
+| `components/session-view.tsx` | **Updated** | Passes sessionId, questionId, participantId, languageCode to VoiceInput |
+
+### Cube 3 Implementation — 9x Spiral Metrics (N=9, 2026-02-23)
+
+**Change:** Implemented Cube 3 Voice-to-Text Engine: AWS Transcribe batch provider, CRS-08 response_hash fix, frontend voice-input.tsx wired to backend, 21 new E2E tests.
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/ -v --tb=short
+cd frontend && npx tsc --noEmit
+cd frontend && npx next build
+```
+
+**Metrics Baseline (N=9, 2026-02-23):**
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 | Run 7 | Run 8 | Run 9 | Average | Std Dev |
+|--------|-------|-------|-------|-------|-------|-------|-------|-------|-------|---------|---------|
+| Tests Passed | 194/194 | 194/194 | 194/194 | 194/194 | 194/194 | 194/194 | 194/194 | 194/194 | 194/194 | **194/194** | **0** |
+| Backend Test Duration | 840ms | 820ms | 860ms | 1,430ms | 1,360ms | 1,370ms | 2,140ms | 1,400ms | 1,410ms | **1,292ms** | **417ms** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+| TSC Check Duration | 2,361ms | 2,283ms | 2,165ms | 4,425ms | 4,408ms | 5,038ms | 4,513ms | 4,311ms | 4,749ms | **3,806ms** | **1,173ms** |
+| Frontend Build Duration | 21,441ms | 21,318ms | 26,368ms | 47,035ms | 46,552ms | 44,943ms | 50,099ms | 43,739ms | 63,791ms | **40,587ms** | **14,470ms** |
+| Landing Page Bundle | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | **1.91 kB** | **0** |
+| Dashboard Bundle | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | **26.6 kB** | **0** |
+| Session Bundle | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | **6.07 kB** | **0** |
+| Join Bundle | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | **3.78 kB** | **0** |
+
+**Spiral Propagation Verification:**
+- Forward (3→10): All downstream cubes compatible — PASS
+  - Cube 4 (Collector): Aggregates voice responses stored by Cube 3
+  - Cube 5 (Gateway): Time tracking integration (start/stop voice_responding)
+  - Cube 6 (AI): Consumes Redis events for theme pipeline (voice + text)
+  - Cube 8 (Tokens): Ledger entries via Cube 5 time tracking
+  - Cube 9 (Reports): Exports voice transcript data with clean_text + response_hash
+- Backward (10→3): 1 issue found and fixed — PASS
+  - CRS-08: response_hash was missing from store_voice_response() TextResponse creation (fixed)
+  - Frontend voice-input.tsx was stub-only, not wired to backend (fixed)
+- **RESULT: 9/9 SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
+
+### Cubes 4, 6–7, 9–10: SCAFFOLDED (stubs only)
 - Models, schemas, and route stubs exist
 - Service implementations pending
 

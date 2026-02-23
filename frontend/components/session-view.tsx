@@ -535,9 +535,18 @@ export function SessionView() {
                         ? t("cube1.session.submit_next")
                         : t("cube1.session.submit_btn")}
                     </Button>
-                    {/* Voice input (Cube 3 STT stub) */}
+                    {/* Voice input (Cube 3 STT) */}
                     <VoiceInput
+                      sessionId={sessionId}
+                      questionId={currentQuestion?.id ?? ""}
+                      participantId={participantId}
+                      languageCode={languageCode}
                       onTranscript={(text) => setResponseText((prev) => prev + text)}
+                      onTokensEarned={(hearts) => {
+                        earnTokens(hearts);
+                        setShowTokenEarn(true);
+                        setTimeout(() => setShowTokenEarn(false), 1200);
+                      }}
                     />
                   </div>
                 </div>

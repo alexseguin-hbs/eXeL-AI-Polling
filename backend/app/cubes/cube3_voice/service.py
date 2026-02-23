@@ -21,6 +21,7 @@ Circuit breaker: If primary STT fails, failover to next provider by priority.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import uuid
@@ -121,7 +122,7 @@ async def transcribe_audio(
 
 
 # Ordered fallback chain for circuit breaker
-_FALLBACK_ORDER = ["whisper", "grok", "gemini"]
+_FALLBACK_ORDER = ["whisper", "grok", "gemini", "aws"]
 
 
 async def _handle_stt_failure(
@@ -282,6 +283,9 @@ async def store_voice_response(
     db.add(voice_response)
 
     # --- Postgres: TextResponse (PII/profanity from Cube 2 pipeline) ---
+    # CRS-08: SHA-256 integrity hash of clean transcript text
+    response_hash = hashlib.sha256(clean_text.encode()).hexdigest()
+
     text_response = TextResponse(
         response_meta_id=response_meta.id,
         language_code=stt_result.language_detected,
@@ -292,6 +296,7 @@ async def store_voice_response(
         profanity_detected=profanity_detected,
         profanity_words=profanity_words,
         clean_text=clean_text,
+        response_hash=response_hash,
     )
     db.add(text_response)
 
@@ -428,6 +433,9 @@ async def submit_voice_response(
         unity_tokens=unity_earned,
     )
 
+    # CRS-08: compute response_hash for return value
+    response_hash = hashlib.sha256(clean_text.encode()).hexdigest()
+
     return {
         "id": response_meta.id,
         "session_id": session_id,
@@ -447,6 +455,7 @@ async def submit_voice_response(
         "clean_text": clean_text,
         "heart_tokens_earned": heart_earned,
         "unity_tokens_earned": unity_earned,
+        "response_hash": response_hash,
     }
 
 

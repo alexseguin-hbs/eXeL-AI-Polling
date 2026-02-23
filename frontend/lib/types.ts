@@ -127,6 +127,29 @@ export interface TextResponseRead {
   response_hash: string | null;
 }
 
+// Cube 3 — Voice response returned after submission (matches backend VoiceSubmissionRead)
+export interface VoiceSubmissionRead {
+  id: string;
+  session_id: string;
+  question_id: string;
+  participant_id: string;
+  source: "voice";
+  char_count: number;
+  language_code: string;
+  submitted_at: string;
+  is_flagged: boolean;
+  audio_duration_sec: number;
+  stt_provider: string;
+  transcript_text: string;
+  transcript_confidence: number;
+  pii_detected: boolean;
+  profanity_detected: boolean;
+  clean_text: string | null;
+  heart_tokens_earned: number;
+  unity_tokens_earned: number;
+  response_hash: string | null;
+}
+
 // ── Flower of Life Theme Visualization Types ────────────────────
 
 export type Theme01Label =

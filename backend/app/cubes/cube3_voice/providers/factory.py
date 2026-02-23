@@ -16,6 +16,7 @@ from app.cubes.cube3_voice.providers.base import (
     STTProviderName,
     STTProvider,
 )
+from app.cubes.cube3_voice.providers.aws_provider import AWSTranscribeSTT
 from app.cubes.cube3_voice.providers.gemini_provider import GeminiSTT
 from app.cubes.cube3_voice.providers.grok_provider import GrokSTT
 from app.cubes.cube3_voice.providers.whisper_provider import WhisperSTT
@@ -31,6 +32,7 @@ _AI_TO_STT_MAP = {
     "openai": "whisper",
     "grok": "grok",
     "gemini": "gemini",
+    "aws": "aws",
 }
 
 
@@ -44,6 +46,8 @@ def _get_provider_instance(name: str) -> STTProvider:
             _providers[name] = GrokSTT()
         elif provider_name == STTProviderName.GEMINI:
             _providers[name] = GeminiSTT()
+        elif provider_name == STTProviderName.AWS:
+            _providers[name] = AWSTranscribeSTT()
         else:
             raise ValueError(f"STT provider '{name}' not yet implemented")
     return _providers[name]

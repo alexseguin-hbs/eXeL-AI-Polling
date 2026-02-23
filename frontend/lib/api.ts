@@ -1,6 +1,6 @@
 import { API_BASE_URL } from "./constants";
 import { handleMockRequest } from "./mock-data";
-import type { ApiError } from "./types";
+import type { ApiError, VoiceSubmissionRead } from "./types";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -179,6 +179,91 @@ export const api = {
 
   stopTimeTracking: (timeEntryId: string) =>
     request<{ id: string }>("POST", `/time/${timeEntryId}/stop`),
+
+  submitVoiceResponse: async (
+    sessionId: string,
+    questionId: string,
+    participantId: string,
+    audioBlob: Blob,
+    languageCode: string = "en",
+    audioFormat: string = "webm",
+  ): Promise<VoiceSubmissionRead> => {
+    // ── Mock Mode ─────────────────────────────────────────────────
+    if (MOCK_MODE) {
+      await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 500));
+      return {
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        question_id: questionId,
+        participant_id: participantId,
+        source: "voice",
+        char_count: 42,
+        language_code: languageCode,
+        submitted_at: new Date().toISOString(),
+        is_flagged: false,
+        audio_duration_sec: Math.round(audioBlob.size / 2000 * 100) / 100,
+        stt_provider: "whisper",
+        transcript_text: "This is a mock voice transcription for testing purposes.",
+        transcript_confidence: 0.92,
+        pii_detected: false,
+        profanity_detected: false,
+        clean_text: "This is a mock voice transcription for testing purposes.",
+        heart_tokens_earned: 1,
+        unity_tokens_earned: 5,
+        response_hash: null,
+      };
+    }
+
+    // ── Live API Mode ─────────────────────────────────────────────
+    const formData = new FormData();
+    formData.append("audio", audioBlob, `recording.${audioFormat}`);
+    formData.append("question_id", questionId);
+    formData.append("participant_id", participantId);
+    formData.append("language_code", languageCode);
+    formData.append("audio_format", audioFormat);
+
+    const headers: Record<string, string> = {};
+
+    // Attach auth token if available
+    if (getAccessToken) {
+      try {
+        const token = await getAccessToken();
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+      } catch {
+        // Token not available — proceed without auth
+      }
+    }
+
+    const url = buildUrl(`/sessions/${sessionId}/voice`);
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: formData,
+      });
+    } catch {
+      throw new ApiClientError(0, "Connection lost. Check your internet and try again.");
+    }
+
+    if (!response.ok) {
+      let detail = "Voice submission failed. Please try again.";
+      try {
+        const errorData = await response.json();
+        if (typeof errorData.detail === "string") {
+          detail = errorData.detail;
+        }
+      } catch {
+        // Could not parse error response
+      }
+      throw new ApiClientError(response.status, detail);
+    }
+
+    return response.json();
+  },
 };
 
 export { ApiClientError };

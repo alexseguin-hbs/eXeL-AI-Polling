@@ -5,24 +5,88 @@ import { Mic, MicOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useLexicon } from "@/lib/lexicon-context";
+import { api, ApiClientError } from "@/lib/api";
 
 interface VoiceInputProps {
+  sessionId: string;
+  questionId: string;
+  participantId: string;
+  languageCode?: string;
   onTranscript?: (text: string) => void;
+  onTokensEarned?: (hearts: number, unity: number) => void;
   disabled?: boolean;
 }
 
 type RecordingState = "idle" | "requesting" | "recording" | "processing";
 
-export function VoiceInput({ onTranscript, disabled }: VoiceInputProps) {
+export function VoiceInput({
+  sessionId,
+  questionId,
+  participantId,
+  languageCode = "en",
+  onTranscript,
+  onTokensEarned,
+  disabled,
+}: VoiceInputProps) {
   const [state, setState] = useState<RecordingState>("idle");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
   const { t } = useLexicon();
+
+  const processAudio = useCallback(
+    async (audioBlob: Blob) => {
+      setState("processing");
+
+      try {
+        const result = await api.submitVoiceResponse(
+          sessionId,
+          questionId,
+          participantId,
+          audioBlob,
+          languageCode,
+          "webm",
+        );
+
+        // Pass transcript to parent for display in textarea
+        if (onTranscript && result.transcript_text) {
+          onTranscript(result.transcript_text);
+        }
+
+        // Notify parent of tokens earned for animation
+        if (onTokensEarned) {
+          onTokensEarned(
+            result.heart_tokens_earned,
+            result.unity_tokens_earned,
+          );
+        }
+
+        toast({
+          title: t("cube3.voice.captured"),
+          description: `${result.transcript_text.slice(0, 60)}${result.transcript_text.length > 60 ? "..." : ""}`,
+        });
+      } catch (err) {
+        const message =
+          err instanceof ApiClientError
+            ? err.detail
+            : t("cube3.voice.stt_pending");
+        toast({
+          title: t("cube3.voice.processing_audio"),
+          description: message,
+          variant: "destructive",
+        });
+      } finally {
+        setState("idle");
+      }
+    },
+    [sessionId, questionId, participantId, languageCode, onTranscript, onTokensEarned, t],
+  );
 
   const startRecording = useCallback(async () => {
     setState("requesting");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
@@ -35,18 +99,12 @@ export function VoiceInput({ onTranscript, disabled }: VoiceInputProps) {
 
       mediaRecorder.onstop = () => {
         // Stop all tracks
-        stream.getTracks().forEach((t) => t.stop());
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
-        setState("processing");
 
-        // Stub: In production, send audioBlob to Cube 3 STT endpoint
-        // For now, show a message that STT is pending
-        toast({
-          title: t("cube3.voice.captured"),
-          description: `${(audioBlob.size / 1024).toFixed(1)}KB — ${t("cube3.voice.stt_pending")}`,
-        });
-
-        setState("idle");
+        // Send to backend for STT processing
+        processAudio(audioBlob);
       };
 
       mediaRecorder.start();
@@ -59,7 +117,7 @@ export function VoiceInput({ onTranscript, disabled }: VoiceInputProps) {
       });
       setState("idle");
     }
-  }, []);
+  }, [processAudio, t]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && state === "recording") {
