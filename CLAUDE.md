@@ -519,8 +519,11 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 - **Data structure maps 1:1** to backend `languages` + `ui_translations` tables for future API swap
 - Files: `frontend/lib/lexicon-data.ts`, `frontend/lib/lexicon-context.tsx`, `frontend/components/language-lexicon.tsx`
 
-### Frontend — Moderator Settings Panel: IMPLEMENTED
+### Frontend — Settings Panel: IMPLEMENTED
 - Slide-over panel with session-cascading theme customizer, interface language selector, Language Lexicon
+- **Accessible to ALL users** — Settings gear icon in navbar for everyone:
+  - **Polling users (non-authenticated):** See language selector + theme grid (view-only, dimmed at 40% opacity). Theme swatches are clickable for Easter egg sequence but cannot change the color scheme.
+  - **Moderators (Auth0 authenticated):** Full theme control + Cube Architecture Status + Language Lexicon admin
 - **Session Color Scheme (3x3 grid):** 8 presets + 1 custom accent picker = 9 options
   - Branded presets: **◬ Cyan** (A.I. symbol), **웃 Violet** (H.I. symbol), **♡ Sunset** (S.I. symbol)
   - Additional presets: Ocean Blue, Emerald, Red, Indigo, Coral
@@ -532,6 +535,32 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
   - Full WebSocket push for live updates planned (post-Cube 1 WebSocket sync)
 - **Custom theme generation:** `generateCustomTheme(hex)` converts any hex accent to full HSL theme with consistent dark base
 - Files: `frontend/components/moderator-settings.tsx`, `frontend/lib/theme-context.tsx`, `frontend/components/providers.tsx`, `frontend/components/navbar.tsx`
+
+### Frontend — Theme Auth Guard: IMPLEMENTED
+- **Default theme:** AI Cyan (`exel-cyan`) for ALL pre-auth screens — landing, join flow, session view
+- **Auth-gated theme changes:** Only Auth0-authenticated moderators can change the color scheme
+  - `moderatorAuthenticated` flag in ThemeProvider gates `setTheme()` and `setCustomAccent()`
+  - `ThemeAuthSync` bridge component syncs Auth0 `isAuthenticated` → ThemeProvider
+- **Logout reset:** When moderator logs out, theme resets to AI Cyan, session theme cleared from localStorage
+- **Polling users:** See the moderator's session theme (via `sessionThemeId`) but cannot change it
+- Files: `frontend/lib/theme-context.tsx`, `frontend/components/providers.tsx`
+
+### Frontend — Powered Badge (eXeL + Seed of Life): IMPLEMENTED
+- **Bottom-right badge:** Shows "eXeL" text + Seed of Life SVG logo
+- **Theme-reactive:** Badge color follows the active theme's swatch color (not hardcoded)
+  - Pre-auth: AI Cyan (default theme)
+  - In session: Follows moderator's chosen theme
+- **Easter egg gateway:** When unlocked (Cyan → Sunset → Violet click sequence in Settings), badge blinks and becomes clickable to enter Simulation Mode
+- **Simulation overlay:** 3 Seed of Life logos with fixed trinity colors (A.I.=Cyan, S.I.=Sunset, H.I.=Violet), each paired with an audio track
+- Files: `frontend/components/powered-badge.tsx`, `frontend/components/seed-of-life-logo.tsx`
+
+### Frontend — Global Language Selector: IMPLEMENTED
+- **Navbar dropdown:** Globe icon with language dropdown available to ALL users (not just moderators)
+- **33 approved languages** from Language Lexicon with English + Spanish pinned at top
+- **Instant locale switching:** `activeLocale` state in LexiconContext with `t(key)` convenience function
+- **Persisted to localStorage:** Key `exel-active-locale`, hydrated on mount
+- **All UI strings use `t()`:** Landing page, join flow, navbar, settings — all wired to translations
+- Files: `frontend/components/navbar.tsx`, `frontend/lib/lexicon-context.tsx`, `frontend/lib/lexicon-data.ts`
 
 ### Cube 2 — Text Submission Handler: IMPLEMENTED (CRS-05→CRS-08 done; ~85% of full spec)
 

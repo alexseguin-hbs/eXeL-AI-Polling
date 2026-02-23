@@ -109,6 +109,10 @@ Below is a **Claude-ready, detailed requirements package** distilled from your *
   3. **Session join** → see question(s)
   * *(Note: Scoping context is set by Moderator at session creation — users do NOT select scoping in the join flow.)*
 * **Master UI/UX language table:** A centralized, extensible language registry that drives all UI translations and language options. Admins and developers can add new languages to expand the tool without code changes. All cubes reference this single table for language support.
+* **Settings panel access (all users):** All users (polling participants and moderators) can open the Settings panel via a gear icon in the navbar. Polling users see: language selector (fully functional) + theme color grid (view-only, dimmed at 40% opacity, clickable for Easter egg sequence only). Moderators see: full theme control + Cube Architecture Status + Language Lexicon admin.
+* **Theme auth guard:** Default color scheme is always AI Cyan (`exel-cyan`) for pre-auth/non-logged-in screens. Only Auth0-authenticated moderators can change the session color scheme. On logout, theme resets to AI Cyan.
+* **Theme-reactive branding:** Upper-left navbar shows "eXeL" (theme-colored) + "AI Polling" (muted). Bottom-right shows "eXeL" + Seed of Life logo, both colored to match the active theme. Default is AI Cyan when not authenticated.
+* **Easter egg path (all users):** In Settings panel, click Cyan → Sunset → Violet theme swatches in sequence within 5 seconds to unlock Simulation Mode. Works for all users even though theme grid is view-only for polling participants.
 * Join flow + presence setup
 * **Method 2/3 setup flow:** Desired Outcome input, role assignment (Method 3: Tech/Creative/Business), time estimate, all-participant confirmation gate before timer starts
 * Session state: draft/open/closed/archived
