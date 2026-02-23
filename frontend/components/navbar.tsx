@@ -1,15 +1,12 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { LogOut, User, Menu, Settings, Globe } from "lucide-react";
+import { LogOut, User, Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeratorSettings } from "@/components/moderator-settings";
 import { TokenHUD } from "@/components/token-hud";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useState } from "react";
-
-/** Languages pinned to the top of the dropdown for quick access */
-const PINNED_CODES = ["en", "es"];
 
 interface NavbarProps {
   sessionTitle?: string;
@@ -18,8 +15,7 @@ interface NavbarProps {
 export function Navbar({ sessionTitle }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [langOpen, setLangOpen] = useState(false);
-  const { t, activeLocale, setActiveLocale, languages } = useLexicon();
+  const { t } = useLexicon();
 
   let isAuthenticated = false;
   let user: { name?: string; email?: string; picture?: string } | undefined;
@@ -34,13 +30,8 @@ export function Navbar({ sessionTitle }: NavbarProps) {
     // Auth0 provider not available (participant view)
   }
 
-  // Sort languages: pinned first (en, es), then rest alphabetically by native name
-  const approvedLangs = languages.filter((l) => l.status === "approved");
-  const pinned = PINNED_CODES.map((c) => approvedLangs.find((l) => l.code === c)).filter(Boolean) as typeof approvedLangs;
-  const rest = approvedLangs.filter((l) => !PINNED_CODES.includes(l.code)).sort((a, b) => a.nameNative.localeCompare(b.nameNative));
-  const sortedLangs = [...pinned, ...rest];
-
-  const currentLang = approvedLangs.find((l) => l.code === activeLocale);
+  // Settings gear visible when: user is in a session (8-digit code) OR authenticated (Moderator)
+  const showSettings = !!sessionTitle || isAuthenticated;
 
   return (
     <>
@@ -63,52 +54,10 @@ export function Navbar({ sessionTitle }: NavbarProps) {
           )}
 
           <div className="ml-auto flex items-center gap-2">
-            {/* Global language selector — available to ALL users */}
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-1.5 text-xs"
-                onClick={() => setLangOpen(!langOpen)}
-                title={t("cube1.join.select_language")}
-              >
-                <Globe className="h-4 w-4" />
-                <span className="hidden sm:inline">
-                  {currentLang?.nameNative || "English"}
-                </span>
-              </Button>
-
-              {langOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setLangOpen(false)}
-                  />
-                  <div className="absolute right-0 top-full z-50 mt-1 w-56 max-h-80 overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
-                    {sortedLangs.map((lang, i) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => {
-                          setActiveLocale(lang.code);
-                          setLangOpen(false);
-                        }}
-                        className={`flex w-full items-center gap-2 rounded-sm px-3 py-1.5 text-sm hover:bg-accent ${
-                          activeLocale === lang.code ? "bg-accent/50 font-medium text-primary" : ""
-                        } ${i === pinned.length - 1 && rest.length > 0 ? "border-b border-border mb-1 pb-2" : ""}`}
-                      >
-                        <span>{lang.nameNative}</span>
-                        <span className="text-muted-foreground text-xs">({lang.nameEn})</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-
             <TokenHUD />
 
-            {/* Settings gear — available to ALL users (polling users see view-only theme grid) */}
-            {!isAuthenticated && (
+            {/* Settings gear — visible in session (8-digit code users) or for authenticated moderators */}
+            {showSettings && !isAuthenticated && (
               <Button
                 variant="ghost"
                 size="sm"
