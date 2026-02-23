@@ -31,11 +31,12 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
   const colorInputRef = useRef<HTMLInputElement>(null);
 
   const handlePresetSelect = (id: string) => {
-    // Feed every theme click into Easter egg sequence detector
+    // Feed every theme click into Easter egg sequence detector (always active)
     const unlocked = registerThemeClick(id);
     if (unlocked) {
       enterSimulationMode();
     }
+    // Only moderators can change theme — guarded by both disabled prop and theme context
     if (disabled) return;
     setTheme(id);
     setSessionTheme(id);

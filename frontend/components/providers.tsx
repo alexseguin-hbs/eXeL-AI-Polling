@@ -1,8 +1,9 @@
 "use client";
 
-import { Auth0Provider } from "@auth0/auth0-react";
+import { useEffect } from "react";
+import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/lib/theme-context";
+import { ThemeProvider, useTheme } from "@/lib/theme-context";
 import { LexiconProvider } from "@/lib/lexicon-context";
 import { TimerProvider } from "@/lib/timer-context";
 import { EasterEggProvider } from "@/lib/easter-egg-context";
@@ -12,6 +13,22 @@ import {
   AUTH0_AUDIENCE,
   AUTH0_REDIRECT_URI,
 } from "@/lib/constants";
+
+/**
+ * Bridge: syncs Auth0 authentication state into the theme system.
+ * When a moderator logs in, this unlocks theme changes.
+ * When logged out (or not authenticated), theme is locked to AI Cyan.
+ */
+function ThemeAuthSync({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth0();
+  const { setModeratorAuthenticated } = useTheme();
+
+  useEffect(() => {
+    setModeratorAuthenticated(isAuthenticated);
+  }, [isAuthenticated, setModeratorAuthenticated]);
+
+  return <>{children}</>;
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // Skip Auth0 provider if config is missing (dev mode without Auth0)
@@ -42,14 +59,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
       cacheLocation="localstorage"
     >
       <ThemeProvider>
-        <LexiconProvider>
-          <TimerProvider>
-            <EasterEggProvider>
-              {children}
-              <Toaster />
-            </EasterEggProvider>
-          </TimerProvider>
-        </LexiconProvider>
+        <ThemeAuthSync>
+          <LexiconProvider>
+            <TimerProvider>
+              <EasterEggProvider>
+                {children}
+                <Toaster />
+              </EasterEggProvider>
+            </TimerProvider>
+          </LexiconProvider>
+        </ThemeAuthSync>
       </ThemeProvider>
     </Auth0Provider>
   );

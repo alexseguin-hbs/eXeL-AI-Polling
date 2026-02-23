@@ -314,17 +314,21 @@ export const VALID_THEME_IDS = [...THEME_PRESETS.map((p) => p.id), "custom"];
 
 interface ThemeContextValue {
   currentTheme: ThemePreset;
-  /** Set theme by preset ID (saved to localStorage) */
+  /** Set theme by preset ID (saved to localStorage). Only works when moderator is authenticated. */
   setTheme: (id: string) => void;
   /** Set the session-level theme — cascades to all participants. When set, overrides local preference. */
   setSessionTheme: (id: string | null) => void;
   /** The active session theme ID (null if no session context) */
   sessionThemeId: string | null;
-  /** Set a custom accent hex color (triggers "custom" theme) */
+  /** Set a custom accent hex color (triggers "custom" theme). Only works when moderator is authenticated. */
   setCustomAccent: (hex: string) => void;
   /** Current custom accent hex (null if not set) */
   customAccentColor: string | null;
   presets: ThemePreset[];
+  /** Whether a moderator is currently authenticated (controls theme change permission) */
+  moderatorAuthenticated: boolean;
+  /** Called by auth sync to unlock theme changes for logged-in moderators */
+  setModeratorAuthenticated: (value: boolean) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -350,36 +354,47 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [localThemeId, setLocalThemeId] = useState<string>("exel-cyan");
   const [sessionThemeId, setSessionThemeIdState] = useState<string | null>(null);
   const [customAccentColor, setCustomAccentColor] = useState<string | null>(null);
+  const [moderatorAuthenticated, setModeratorAuthenticatedState] = useState(false);
 
-  // Hydrate from localStorage on mount
+  // Hydrate stored theme ONLY when moderator logs in — pre-auth always stays exel-cyan
   useEffect(() => {
+    if (!moderatorAuthenticated) return;
     const storedLocal = localStorage.getItem(STORAGE_KEY);
     if (storedLocal && VALID_THEME_IDS.includes(storedLocal)) {
       setLocalThemeId(storedLocal);
-    }
-    const storedSession = localStorage.getItem(SESSION_THEME_KEY);
-    if (storedSession && VALID_THEME_IDS.includes(storedSession)) {
-      setSessionThemeIdState(storedSession);
     }
     const storedAccent = localStorage.getItem(CUSTOM_ACCENT_KEY);
     if (storedAccent && /^#[0-9A-Fa-f]{6}$/.test(storedAccent)) {
       setCustomAccentColor(storedAccent);
     }
+  }, [moderatorAuthenticated]);
+
+  // Session theme hydration — always allowed (moderator cascade to participants)
+  useEffect(() => {
+    const storedSession = localStorage.getItem(SESSION_THEME_KEY);
+    if (storedSession && VALID_THEME_IDS.includes(storedSession)) {
+      setSessionThemeIdState(storedSession);
+    }
   }, []);
 
-  // Session theme overrides local preference
-  const effectiveThemeId = sessionThemeId ?? localThemeId;
+  // Effective theme: session theme cascades to all users,
+  // but local preference only applies to authenticated moderators.
+  // Pre-auth / participants without session theme always see exel-cyan.
+  const effectiveThemeId = sessionThemeId ?? (moderatorAuthenticated ? localThemeId : "exel-cyan");
 
   // Apply CSS variables whenever effective theme changes
   useEffect(() => {
     applyTheme(resolveTheme(effectiveThemeId, customAccentColor));
   }, [effectiveThemeId, customAccentColor]);
 
+  // Guard: only moderators can change local theme
   const setTheme = useCallback((id: string) => {
+    if (!moderatorAuthenticated) return;
     setLocalThemeId(id);
     localStorage.setItem(STORAGE_KEY, id);
-  }, []);
+  }, [moderatorAuthenticated]);
 
+  // Session theme can be set by moderators (cascades to all participants)
   const setSessionTheme = useCallback((id: string | null) => {
     setSessionThemeIdState(id);
     if (id) {
@@ -389,16 +404,21 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Guard: only moderators can set custom accent
   const setCustomAccent = useCallback(
     (hex: string) => {
+      if (!moderatorAuthenticated) return;
       setCustomAccentColor(hex);
       localStorage.setItem(CUSTOM_ACCENT_KEY, hex);
-      // Auto-select "custom" theme when a custom accent is picked
       setLocalThemeId("custom");
       localStorage.setItem(STORAGE_KEY, "custom");
     },
-    []
+    [moderatorAuthenticated]
   );
+
+  const setModeratorAuthenticated = useCallback((value: boolean) => {
+    setModeratorAuthenticatedState(value);
+  }, []);
 
   const currentTheme = resolveTheme(effectiveThemeId, customAccentColor);
 
@@ -412,6 +432,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setCustomAccent,
         customAccentColor,
         presets: THEME_PRESETS,
+        moderatorAuthenticated,
+        setModeratorAuthenticated,
       }}
     >
       {children}
