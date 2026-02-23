@@ -2,7 +2,6 @@
 
 import { useRef, useEffect } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
-import { useTheme } from "@/lib/theme-context";
 import { Play, Pause, X, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
@@ -15,24 +14,37 @@ import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
  *
  * Files served from Next.js public/ directory.
  */
+/**
+ * Trinity colors — fixed per intelligence, independent of active theme.
+ * A.I. (◬) = Cyan, S.I. (♡) = Sunset, H.I. (웃) = Violet
+ */
+const TRINITY_COLORS = {
+  HI: "#8D516F", // 웃 Violet
+  AI: "#00D7E4", // ◬ Cyan
+  SI: "#D3B20F", // ♡ Sunset
+} as const;
+
 const SONG_PAIRINGS = [
   {
     symbol: "웃",
     label: "H.I.",
     songName: "Unity in Diversity",
     audio: "/audio/Unity in Diversity.mp3",
+    color: TRINITY_COLORS.HI,
   },
   {
     symbol: "◬",
     label: "A.I.",
     songName: "Eternal Spark",
     audio: "/audio/Eternal Spark.mp3",
+    color: TRINITY_COLORS.AI,
   },
   {
     symbol: "♡",
     label: "S.I.",
     songName: "Master of Thought",
     audio: "/audio/Master of Thought.mp3",
+    color: TRINITY_COLORS.SI,
   },
 ];
 
@@ -44,10 +56,7 @@ const SONG_PAIRINGS = [
 function SimulationOverlay() {
   const { currentSong, playing, setSong, togglePlaying, exitSimulationMode } =
     useEasterEgg();
-  const { currentTheme } = useTheme();
-
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const accentColor = currentTheme.swatch;
 
   // Initialize audio element once, cleanup on unmount
   useEffect(() => {
@@ -79,10 +88,12 @@ function SimulationOverlay() {
   }, [currentSong, playing]);
 
   const current = SONG_PAIRINGS[currentSong];
+  const activeColor = current.color;
 
-  // Shared logo button renderer — Seed of Life SVG with theme color
+  // Shared logo button renderer — Seed of Life SVG with fixed trinity color per intelligence
   const renderLogo = (index: number) => {
     const pairing = SONG_PAIRINGS[index];
+    const logoColor = pairing.color;
     const isActive = currentSong === index;
     return (
       <div className="flex flex-col items-center gap-0.5">
@@ -90,20 +101,20 @@ function SimulationOverlay() {
           onClick={() => setSong(index as 0 | 1 | 2)}
           className="h-14 w-14 rounded-full border-2 flex items-center justify-center transition-all"
           style={{
-            borderColor: isActive ? accentColor : "hsl(183, 33%, 25%)",
-            boxShadow: isActive ? `0 0 20px ${accentColor}40` : "none",
-            background: isActive ? `${accentColor}15` : "hsl(183, 30%, 9% / 0.8)",
+            borderColor: isActive ? logoColor : "hsl(183, 33%, 25%)",
+            boxShadow: isActive ? `0 0 20px ${logoColor}40` : "none",
+            background: isActive ? `${logoColor}15` : "hsl(183, 30%, 9% / 0.8)",
           }}
         >
           <SeedOfLifeLogo
             size={44}
-            accentColor={accentColor}
+            accentColor={logoColor}
             className={isActive ? "flower-pulse" : ""}
           />
         </button>
         <span
           className="text-[9px] font-mono"
-          style={{ color: isActive ? accentColor : "hsl(183, 11%, 64%)", opacity: isActive ? 1 : 0.6 }}
+          style={{ color: isActive ? logoColor : "hsl(183, 11%, 64%)", opacity: isActive ? 1 : 0.6 }}
         >
           {pairing.label}
         </span>
@@ -145,24 +156,25 @@ function SimulationOverlay() {
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-1.5 pointer-events-auto">
         <button
           onClick={togglePlaying}
-          className="h-12 w-12 rounded-full border-2 border-primary bg-background/90 flex items-center justify-center hover:bg-primary/20 transition-all backdrop-blur"
+          className="h-12 w-12 rounded-full border-2 bg-background/90 flex items-center justify-center hover:opacity-80 transition-all backdrop-blur"
+          style={{ borderColor: activeColor }}
         >
           {playing ? (
-            <Pause className="h-5 w-5 text-primary" />
+            <Pause className="h-5 w-5" style={{ color: activeColor }} />
           ) : (
-            <Play className="h-5 w-5 text-primary ml-0.5" />
+            <Play className="h-5 w-5 ml-0.5" style={{ color: activeColor }} />
           )}
         </button>
         {/* Song name shown below play/pause */}
         <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur rounded-full px-3 py-1">
           {playing ? (
-            <Volume2 className="h-3 w-3" style={{ color: accentColor }} />
+            <Volume2 className="h-3 w-3" style={{ color: activeColor }} />
           ) : (
             <VolumeX className="h-3 w-3 text-muted-foreground/40" />
           )}
           <span
             className="text-[10px] font-mono"
-            style={{ color: accentColor }}
+            style={{ color: activeColor }}
           >
             {current.songName}
           </span>
