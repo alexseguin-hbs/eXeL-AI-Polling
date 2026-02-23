@@ -4,8 +4,8 @@ This directory contains brand assets used by the eXeL-AI Polling frontend.
 
 ## Structure
 
-- **logos/** — Logo images for simulation mode overlay (3 logos: top-center, bottom-left, bottom-right)
-- **audio/** — Audio files for simulation mode (3 songs, switchable via logo clicks)
+- **Audio/** — Audio files for simulation mode (3 songs, switchable via logo clicks)
+- **Visual/** — Visual assets — logos, images for simulation mode overlay (3 logos: top-center, bottom-left, bottom-right)
 
 ## Usage
 
