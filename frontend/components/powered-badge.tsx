@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
+import { useTheme } from "@/lib/theme-context";
 import { Play, Pause, X, Volume2, VolumeX, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
@@ -211,10 +212,14 @@ function SimulationOverlay() {
 export function PoweredBadge() {
   const { simulationMode, easterEggUnlocked, enterSimulationMode } =
     useEasterEgg();
+  const { currentTheme } = useTheme();
 
   if (simulationMode) {
     return <SimulationOverlay />;
   }
+
+  // Badge color follows the active theme (defaults to AI Cyan when not authenticated)
+  const badgeColor = currentTheme.swatch;
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -226,17 +231,16 @@ export function PoweredBadge() {
             : "cursor-default"
         }`}
         style={{
-          borderColor: easterEggUnlocked ? TRINITY_COLORS.AI : undefined,
-          boxShadow: easterEggUnlocked ? `0 0 12px ${TRINITY_COLORS.AI}30` : undefined,
+          borderColor: easterEggUnlocked ? badgeColor : undefined,
+          boxShadow: easterEggUnlocked ? `0 0 12px ${badgeColor}30` : undefined,
         }}
         title={easterEggUnlocked ? "Enter Simulation Mode" : undefined}
       >
         <SeedOfLifeLogo
           size={18}
-          accentColor={TRINITY_COLORS.AI}
+          accentColor={badgeColor}
         />
-        <span className="font-medium" style={{ color: TRINITY_COLORS.AI }}>eXeL</span>
-        <span style={{ color: TRINITY_COLORS.AI }}>AI</span>
+        <span className="font-medium" style={{ color: badgeColor }}>eXeL</span>
       </button>
     </div>
   );
