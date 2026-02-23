@@ -70,6 +70,26 @@ export const SUPPORTED_LANGUAGES = [
   { code: "ne", name: "Nepali", native: "\u0928\u0947\u092a\u093e\u0932\u0940" },
 ] as const;
 
+// Polling modes for session creation
+export const POLLING_MODES = [
+  {
+    value: "live_interactive" as const,
+    label: "Live Interactive",
+    description: "Real-time synchronous polling with all participants present",
+  },
+  {
+    value: "static_poll" as const,
+    label: "Static Poll",
+    description: "Asynchronous polling over a set duration (1-7 days)",
+  },
+] as const;
+
+export const STATIC_POLL_DURATIONS = [
+  { value: 1, label: "1 Day", locked: false },
+  { value: 3, label: "3 Days", locked: false },
+  { value: 7, label: "7 Days", locked: true },
+] as const;
+
 // Session code constraints
 export const SESSION_CODE_MAX_LENGTH = 8;
 

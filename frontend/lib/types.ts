@@ -21,6 +21,8 @@ export type SessionType = "polling" | "peer_volunteer" | "team_collaboration";
 
 export type PollingMode = "single_round" | "multi_round_deep_dive";
 
+export type PollingModeType = "live_interactive" | "static_poll";
+
 export type Theme2VotingLevel = "theme2_9" | "theme2_6" | "theme2_3";
 
 export interface Session {
@@ -49,6 +51,8 @@ export interface Session {
   reward_amount_cents: number;
   theme2_voting_level: Theme2VotingLevel;
   live_feed_enabled: boolean;
+  polling_mode_type: PollingModeType;
+  static_poll_duration_days: number | null;
   // Existing fields
   is_paid: boolean;
   qr_url: string | null;

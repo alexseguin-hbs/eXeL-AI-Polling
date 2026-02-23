@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/lib/theme-context";
 import { LexiconProvider } from "@/lib/lexicon-context";
 import { TimerProvider } from "@/lib/timer-context";
+import { EasterEggProvider } from "@/lib/easter-egg-context";
 import {
   AUTH0_DOMAIN,
   AUTH0_CLIENT_ID,
@@ -19,8 +20,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider>
         <LexiconProvider>
           <TimerProvider>
-            {children}
-            <Toaster />
+            <EasterEggProvider>
+              {children}
+              <Toaster />
+            </EasterEggProvider>
           </TimerProvider>
         </LexiconProvider>
       </ThemeProvider>
@@ -41,8 +44,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider>
         <LexiconProvider>
           <TimerProvider>
-            {children}
-            <Toaster />
+            <EasterEggProvider>
+              {children}
+              <Toaster />
+            </EasterEggProvider>
           </TimerProvider>
         </LexiconProvider>
       </ThemeProvider>

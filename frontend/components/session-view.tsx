@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   AlertCircle,
   ChevronRight,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +25,147 @@ import { api, ApiClientError } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
 import { PRESENCE_POLL_INTERVAL } from "@/lib/constants";
 import { useTimer } from "@/lib/timer-context";
+import { useEasterEgg } from "@/lib/easter-egg-context";
 import { VoiceInput } from "@/components/voice-input";
 import type { Session, Question } from "@/lib/types";
+
+// Sample session data for simulation mode (F10)
+const SIMULATION_SESSION: Session = {
+  id: "sim-session-001",
+  short_code: "SIM12345",
+  created_by: "sim-moderator",
+  status: "polling",
+  title: "Simulation Mode — Sample Session",
+  description: "This is a sandboxed simulation session for UI/UX testing.",
+  anonymity_mode: "anonymous",
+  cycle_mode: "single",
+  max_cycles: 1,
+  current_cycle: 1,
+  ranking_mode: "auto",
+  language: "en",
+  max_response_length: 3333,
+  ai_provider: "openai",
+  session_type: "polling",
+  polling_mode: "single_round",
+  pricing_tier: "free",
+  max_participants: null,
+  fee_amount_cents: 0,
+  cost_splitting_enabled: false,
+  reward_enabled: false,
+  reward_amount_cents: 0,
+  theme2_voting_level: "theme2_9",
+  live_feed_enabled: false,
+  polling_mode_type: "live_interactive",
+  static_poll_duration_days: null,
+  is_paid: false,
+  qr_url: null,
+  join_url: null,
+  opened_at: new Date().toISOString(),
+  closed_at: null,
+  expires_at: null,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  participant_count: 42,
+};
+
+const SIMULATION_QUESTIONS: Question[] = [
+  {
+    id: "sim-q1",
+    session_id: "sim-session-001",
+    question_text: "What is the biggest opportunity for AI in governance?",
+    question_number: 1,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: "sim-q2",
+    session_id: "sim-session-001",
+    question_text: "What concerns do you have about AI-driven decision making?",
+    question_number: 2,
+    is_active: true,
+    created_at: new Date().toISOString(),
+  },
+];
+
+// ── Polling Status Bar ───────────────────────────────────────────
+
+const POLLING_STEPS = [
+  { label: "Objectives", key: "objectives" },
+  { label: "Feedback", key: "feedback" },
+  { label: "Ranking", key: "ranking" },
+  { label: "Results", key: "results" },
+] as const;
+
+function getActiveStep(status: string): number {
+  switch (status) {
+    case "open":
+    case "draft":
+      return 0;
+    case "polling":
+      return 1;
+    case "ranking":
+      return 2;
+    case "closed":
+    case "archived":
+      return 3;
+    default:
+      return 0;
+  }
+}
+
+function PollingStatusBar({ status }: { status: string }) {
+  const activeStep = getActiveStep(status);
+
+  return (
+    <div className="w-full max-w-lg mb-4">
+      <div className="flex items-center justify-between">
+        {POLLING_STEPS.map((step, i) => {
+          const isCompleted = i < activeStep;
+          const isActive = i === activeStep;
+          return (
+            <div key={step.key} className="flex items-center flex-1 last:flex-none">
+              <div className="flex flex-col items-center">
+                <div
+                  className={`h-7 w-7 rounded-full border-2 flex items-center justify-center text-xs font-medium transition-colors ${
+                    isCompleted
+                      ? "border-green-500 bg-green-500/20 text-green-400"
+                      : isActive
+                      ? "border-primary bg-primary/20 text-primary"
+                      : "border-muted text-muted-foreground"
+                  }`}
+                >
+                  {isCompleted ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <span className={`h-2 w-2 rounded-full ${isActive ? "bg-primary" : "bg-muted-foreground/40"}`} />
+                  )}
+                </div>
+                <span
+                  className={`text-[10px] mt-1 ${
+                    isActive
+                      ? "text-primary font-medium"
+                      : isCompleted
+                      ? "text-green-400"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {step.label}
+                </span>
+              </div>
+              {i < POLLING_STEPS.length - 1 && (
+                <div
+                  className={`flex-1 h-0.5 mx-1.5 mt-[-14px] rounded-full ${
+                    i < activeStep ? "bg-green-500" : "bg-muted"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 // ── Token Earn Animation ─────────────────────────────────────────
 
@@ -75,7 +215,19 @@ export function SessionView() {
   // Timer integration
   const { start: startTimer, earnTokens } = useTimer();
 
+  // Simulation mode — use sample data instead of API calls
+  const { simulationMode } = useEasterEgg();
+
   useEffect(() => {
+    // In simulation mode, use sample data
+    if (simulationMode) {
+      setSession(SIMULATION_SESSION);
+      setQuestions(SIMULATION_QUESTIONS);
+      setParticipantCount(SIMULATION_SESSION.participant_count);
+      setLoading(false);
+      startTimer();
+      return;
+    }
     if (!sessionId) return;
     setLoading(true);
     api
@@ -92,7 +244,7 @@ export function SessionView() {
         }
       })
       .finally(() => setLoading(false));
-  }, [sessionId]);
+  }, [sessionId, simulationMode, startTimer]);
 
   // Fetch questions when session is in polling state
   useEffect(() => {
@@ -234,6 +386,11 @@ export function SessionView() {
       <TokenEarnOverlay visible={showTokenEarn} />
 
       <main className="container flex flex-1 flex-col items-center py-8 px-4">
+        {/* Status bar — visible during active polling states */}
+        {session && ["open", "polling", "ranking"].includes(session.status) && (
+          <PollingStatusBar status={session.status} />
+        )}
+
         {/* Lobby / Open state */}
         {(session?.status === "open" || session?.status === "draft") && (
           <Card className="w-full max-w-lg">

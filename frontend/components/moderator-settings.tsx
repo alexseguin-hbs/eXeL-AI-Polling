@@ -12,13 +12,17 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useTheme, THEME_PRESETS } from "@/lib/theme-context";
+import { useEasterEgg } from "@/lib/easter-egg-context";
 import { SUPPORTED_LANGUAGES } from "@/lib/constants";
 import { LanguageLexicon } from "@/components/language-lexicon";
 import { CubeArchitectureStatus } from "@/components/cube-status";
 
+// Easter egg sequence: exel-cyan → sunset → violet within 3 seconds
+const EASTER_EGG_SEQUENCE = ["exel-cyan", "sunset", "violet"];
+
 // ─── Theme Customizer Section ───────────────────────────────────
 
-function ThemeCustomizer() {
+function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
   const {
     currentTheme,
     setTheme,
@@ -26,14 +30,42 @@ function ThemeCustomizer() {
     setCustomAccent,
     customAccentColor,
   } = useTheme();
+  const { activated: easterEggActivated, activate: activateEasterEgg } = useEasterEgg();
   const colorInputRef = useRef<HTMLInputElement>(null);
 
+  // Track last 3 theme selections with timestamps for easter egg
+  const selectionsRef = useRef<{ id: string; time: number }[]>([]);
+
   const handlePresetSelect = (id: string) => {
+    if (disabled) return;
     setTheme(id);
     setSessionTheme(id);
+
+    // Easter egg detection
+    if (!easterEggActivated) {
+      const now = Date.now();
+      selectionsRef.current.push({ id, time: now });
+      // Keep only last 3
+      if (selectionsRef.current.length > 3) {
+        selectionsRef.current = selectionsRef.current.slice(-3);
+      }
+      // Check sequence
+      if (selectionsRef.current.length === 3) {
+        const [first, second, third] = selectionsRef.current;
+        const withinTime = third.time - first.time < 3000;
+        const correctSequence =
+          first.id === EASTER_EGG_SEQUENCE[0] &&
+          second.id === EASTER_EGG_SEQUENCE[1] &&
+          third.id === EASTER_EGG_SEQUENCE[2];
+        if (withinTime && correctSequence) {
+          activateEasterEgg();
+        }
+      }
+    }
   };
 
   const handleCustomColorChange = (hex: string) => {
+    if (disabled) return;
     setCustomAccent(hex);
     setSessionTheme("custom");
   };
@@ -45,10 +77,19 @@ function ThemeCustomizer() {
       <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
         Session Color Scheme
       </h3>
-      <p className="text-xs text-muted-foreground mb-3">
-        Applies to all participants in this session.
-      </p>
-      <div className="grid grid-cols-3 gap-2">
+      {disabled ? (
+        <p className="text-xs text-muted-foreground mb-3">
+          Color scheme is set by your session moderator.
+        </p>
+      ) : (
+        <p className="text-xs text-muted-foreground mb-3">
+          Applies to all participants in this session.
+        </p>
+      )}
+      <div
+        className="grid grid-cols-3 gap-2"
+        style={disabled ? { pointerEvents: "none", opacity: 0.4 } : undefined}
+      >
         {/* 8 preset themes */}
         {THEME_PRESETS.map((preset) => {
           const isActive = currentTheme.id === preset.id;
@@ -78,7 +119,7 @@ function ThemeCustomizer() {
 
         {/* 9th slot: Custom color picker */}
         <button
-          onClick={() => colorInputRef.current?.click()}
+          onClick={() => !disabled && colorInputRef.current?.click()}
           className={`relative flex flex-col items-center gap-1.5 rounded-lg border p-2.5 transition-colors hover:bg-accent/50 ${
             isCustomActive
               ? "border-primary bg-accent/30"
@@ -156,9 +197,10 @@ interface ModeratorSettingsProps {
   open: boolean;
   onClose: () => void;
   userEmail?: string;
+  isPollingUser?: boolean;
 }
 
-export function ModeratorSettings({ open, onClose, userEmail }: ModeratorSettingsProps) {
+export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: ModeratorSettingsProps) {
   if (!open) return null;
 
   return (
@@ -181,7 +223,7 @@ export function ModeratorSettings({ open, onClose, userEmail }: ModeratorSetting
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-          <ThemeCustomizer />
+          <ThemeCustomizer disabled={isPollingUser} />
           <Separator />
           <CubeArchitectureStatus />
           <Separator />

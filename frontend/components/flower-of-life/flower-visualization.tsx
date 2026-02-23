@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,6 +86,21 @@ export function FlowerVisualization({
   });
 
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isPortrait, setIsPortrait] = useState(false);
+
+  // Responsive: detect narrow containers for portrait mode
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setIsPortrait(entry.contentRect.width < 400);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // Positions
   const theme1Positions = useMemo(() => getTheme1Positions(), []);
@@ -239,13 +260,14 @@ export function FlowerVisualization({
       </CardHeader>
 
       <CardContent>
-        <div style={{ position: "relative" }}>
+        <div ref={containerRef} style={{ position: "relative" }}>
           {/* SVG Canvas */}
           <svg
             ref={svgRef}
-            viewBox="0 0 600 500"
+            viewBox={isPortrait ? "50 0 500 560" : "0 0 600 500"}
+            preserveAspectRatio="xMidYMid meet"
             className="w-full"
-            style={{ maxHeight: 500, overflow: "visible" }}
+            style={{ maxHeight: isPortrait ? 420 : 500, overflow: "visible" }}
           >
             {/* ── Theme1 View ─────────────────────────── */}
             {state.view === "theme1" &&

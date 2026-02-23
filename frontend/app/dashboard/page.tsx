@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -8,6 +8,7 @@ import {
   Users,
   Clock,
   ChevronRight,
+  ChevronDown,
   FileText,
   ListChecks,
   MessageSquare,
@@ -17,6 +18,9 @@ import {
   Archive,
   Copy,
   Maximize2,
+  Lock,
+  Radio,
+  Timer,
   X,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -52,8 +56,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { api, ApiClientError } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
-import { SESSION_TYPES } from "@/lib/constants";
-import type { Session, PaginatedResponse } from "@/lib/types";
+import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS } from "@/lib/constants";
+import { ScrollingSummaryFeed } from "@/components/scrolling-summary-feed";
+import { generateSampleSessionData } from "@/lib/sample-session-data";
+import type { Session, PaginatedResponse, PollingModeType } from "@/lib/types";
 
 function statusColor(status: string): string {
   switch (status) {
@@ -139,6 +145,12 @@ function SessionDetail({
 }) {
   const [presenting, setPresenting] = useState(false);
   const [actionLoading, setActionLoading] = useState("");
+  const [configExpanded, setConfigExpanded] = useState(false);
+  const isLiveInteractive = (session.polling_mode_type ?? "live_interactive") === "live_interactive";
+  const showQR = !["closed", "archived"].includes(session.status) &&
+    (isLiveInteractive ? session.status !== "polling" : true);
+  const showScrollingFeed = isLiveInteractive && session.status === "polling";
+  const sampleData = useMemo(() => generateSampleSessionData(session.id), [session.id]);
 
   const joinUrl =
     session.join_url ||
@@ -259,8 +271,8 @@ function SessionDetail({
           </div>
         </div>
 
-        {/* QR Code + Join Info */}
-        {!["closed", "archived"].includes(session.status) && (
+        {/* QR Code + Join Info (hides during live polling, stays for static) */}
+        {showQR && (
           <Card className="mb-6">
             <CardContent className="flex flex-col sm:flex-row items-center gap-6 p-6">
               <div className="bg-white rounded-xl p-3">
@@ -298,6 +310,27 @@ function SessionDetail({
           </Card>
         )}
 
+        {/* Scrolling 33-word summary feed (replaces QR during live polling) */}
+        {showScrollingFeed && (
+          <Card className="mb-6 overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Radio className="h-4 w-4 text-primary animate-pulse" />
+                Live Response Feed
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollingSummaryFeed
+                responses={sampleData.responses.slice(0, 20).map((r) => ({
+                  summary33: r.summary33,
+                  userHash: r.userHash,
+                }))}
+                height={200}
+              />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Flower of Life Theme Visualization (closed/archived sessions) */}
         {["closed", "archived"].includes(session.status) && (
           <FlowerVisualization
@@ -307,43 +340,59 @@ function SessionDetail({
           />
         )}
 
-        {/* Session Config Summary */}
+        {/* Session Config Summary — Collapsed by default */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Configuration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground text-xs">Type</p>
-                <p className="font-medium capitalize">{session.session_type?.replace("_", " ") || "Polling"}</p>
+          <button
+            onClick={() => setConfigExpanded(!configExpanded)}
+            className="flex w-full items-center justify-between px-6 py-4 text-left"
+          >
+            <span className="text-base font-semibold leading-none tracking-tight">
+              Configuration
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground transition-transform ${
+                configExpanded ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+          {configExpanded && (
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground text-xs">Type</p>
+                  <p className="font-medium capitalize">{session.session_type?.replace("_", " ") || "Polling"}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Polling Mode</p>
+                  <p className="font-medium capitalize">{(session.polling_mode_type ?? "live_interactive").replace("_", " ")}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Anonymity</p>
+                  <p className="font-medium capitalize">{session.anonymity_mode}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">AI Provider</p>
+                  <p className="font-medium capitalize">{session.ai_provider}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Max Response</p>
+                  <p className="font-medium">{session.max_response_length} chars</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Pricing</p>
+                  <p className="font-medium capitalize">{(session.pricing_tier || "free").replace("_", " ")}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Reward</p>
+                  <p className="font-medium">
+                    {session.reward_enabled
+                      ? `$${((session.reward_amount_cents || 0) / 100).toFixed(2)}`
+                      : "Off"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Anonymity</p>
-                <p className="font-medium capitalize">{session.anonymity_mode}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">AI Provider</p>
-                <p className="font-medium capitalize">{session.ai_provider}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Max Response</p>
-                <p className="font-medium">{session.max_response_length} chars</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Pricing</p>
-                <p className="font-medium capitalize">{(session.pricing_tier || "free").replace("_", " ")}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Reward</p>
-                <p className="font-medium">
-                  {session.reward_enabled
-                    ? `$${((session.reward_amount_cents || 0) / 100).toFixed(2)}`
-                    : "Off"}
-                </p>
-              </div>
-            </div>
-          </CardContent>
+            </CardContent>
+          )}
         </Card>
       </div>
     </>
@@ -370,6 +419,8 @@ function DashboardContent() {
   const [newMaxParticipants, setNewMaxParticipants] = useState("");
   const [newRewardEnabled, setNewRewardEnabled] = useState(false);
   const [newRewardAmount, setNewRewardAmount] = useState("25");
+  const [newPollingModeType, setNewPollingModeType] = useState<PollingModeType>("live_interactive");
+  const [newStaticPollDuration, setNewStaticPollDuration] = useState(1);
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -425,6 +476,8 @@ function DashboardContent() {
       setNewMaxParticipants("");
       setNewRewardEnabled(false);
       setNewRewardAmount("25");
+      setNewPollingModeType("live_interactive");
+      setNewStaticPollDuration(1);
       fetchSessions();
       setSelectedSession(session);
     } catch (err) {
@@ -533,6 +586,64 @@ function DashboardContent() {
                   <p className="text-xs text-muted-foreground">
                     {SESSION_TYPES.find((t) => t.value === newType)?.description}
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Polling Mode</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {POLLING_MODES.map((mode) => (
+                      <button
+                        key={mode.value}
+                        type="button"
+                        onClick={() => setNewPollingModeType(mode.value)}
+                        className={`flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors ${
+                          newPollingModeType === mode.value
+                            ? "border-primary bg-accent/30"
+                            : "border-border hover:bg-accent/20"
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5 text-sm font-medium">
+                          {mode.value === "live_interactive" ? (
+                            <Radio className="h-3.5 w-3.5" />
+                          ) : (
+                            <Timer className="h-3.5 w-3.5" />
+                          )}
+                          {mode.label}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {mode.description}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  {newPollingModeType === "static_poll" && (
+                    <div className="space-y-2 pt-2">
+                      <Label>Poll Duration</Label>
+                      <div className="flex gap-2">
+                        {STATIC_POLL_DURATIONS.map((d) => {
+                          const isLocked = d.locked && newPricingTier === "free";
+                          return (
+                            <button
+                              key={d.value}
+                              type="button"
+                              disabled={isLocked}
+                              onClick={() => !isLocked && setNewStaticPollDuration(d.value)}
+                              className={`flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                                newStaticPollDuration === d.value
+                                  ? "border-primary bg-accent/30 font-medium"
+                                  : isLocked
+                                  ? "border-border opacity-40 cursor-not-allowed"
+                                  : "border-border hover:bg-accent/20"
+                              }`}
+                            >
+                              {d.label}
+                              {isLocked && <Lock className="h-3 w-3 ml-1" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <Separator />
