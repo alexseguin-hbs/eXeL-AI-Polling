@@ -139,8 +139,7 @@ function SettingsLanguageSelector() {
         Interface Language
       </h3>
       <p className="text-xs text-muted-foreground mb-2">
-        Sets the display language for the moderator dashboard. Full locale
-        switching coming soon.
+        Sets the display language for your interface.
       </p>
       <Select value={locale} onValueChange={setLocale}>
         <SelectTrigger className="w-full max-w-xs">
@@ -185,7 +184,9 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
       <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md border-l bg-background shadow-xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between border-b px-6 py-4">
-          <h2 className="text-lg font-semibold">Settings</h2>
+          <h2 className="text-lg font-semibold">
+            {isPollingUser ? "Settings" : "Moderator Settings"}
+          </h2>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
@@ -193,13 +194,18 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-          <ThemeCustomizer disabled={isPollingUser} />
-          <Separator />
-          <CubeArchitectureStatus />
-          <Separator />
+          {/* Users see language selection only; moderators see everything */}
           <SettingsLanguageSelector />
-          <Separator />
-          <LanguageLexicon userEmail={userEmail} />
+          {!isPollingUser && (
+            <>
+              <Separator />
+              <ThemeCustomizer />
+              <Separator />
+              <CubeArchitectureStatus />
+              <Separator />
+              <LanguageLexicon userEmail={userEmail} />
+            </>
+          )}
         </div>
       </div>
     </>
