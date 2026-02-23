@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
+import { useTheme } from "@/lib/theme-context";
 import { Play, Pause, X, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 
 /**
  * Logo–Song pairings for Simulation Mode.
@@ -20,24 +21,18 @@ const SONG_PAIRINGS = [
     label: "H.I.",
     songName: "Unity in Diversity",
     audio: "/audio/Unity in Diversity.mp3",
-    logo: "/visual/eXeL HI.jpg",
-    color: "#8D516F",
   },
   {
     symbol: "◬",
     label: "A.I.",
     songName: "Eternal Spark",
     audio: "/audio/Eternal Spark.mp3",
-    logo: "/visual/eXeL AI.jpg",
-    color: "#00D7E4",
   },
   {
     symbol: "♡",
     label: "S.I.",
     songName: "Master of Thought",
     audio: "/audio/Master of Thought.mp3",
-    logo: "/visual/eXeL SI.jpg",
-    color: "#D3B20F",
   },
 ];
 
@@ -49,9 +44,10 @@ const SONG_PAIRINGS = [
 function SimulationOverlay() {
   const { currentSong, playing, setSong, togglePlaying, exitSimulationMode } =
     useEasterEgg();
+  const { currentTheme } = useTheme();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [logoErrors, setLogoErrors] = useState<Record<number, boolean>>({});
+  const accentColor = currentTheme.swatch;
 
   // Initialize audio element once, cleanup on unmount
   useEffect(() => {
@@ -84,33 +80,34 @@ function SimulationOverlay() {
 
   const current = SONG_PAIRINGS[currentSong];
 
-  // Shared logo button renderer
-  const renderLogo = (index: number, alt: string) => {
+  // Shared logo button renderer — Seed of Life SVG with theme color
+  const renderLogo = (index: number) => {
     const pairing = SONG_PAIRINGS[index];
     const isActive = currentSong === index;
     return (
-      <button
-        onClick={() => setSong(index as 0 | 1 | 2)}
-        className="h-14 w-14 rounded-full border-2 flex items-center justify-center transition-all overflow-hidden"
-        style={{
-          borderColor: isActive ? pairing.color : "hsl(183, 33%, 25%)",
-          boxShadow: isActive ? `0 0 20px ${pairing.color}40` : "none",
-          background: isActive ? `${pairing.color}15` : "hsl(183, 30%, 9% / 0.8)",
-        }}
-      >
-        {!logoErrors[index] ? (
-          <Image
-            src={pairing.logo}
-            alt={alt}
-            width={56}
-            height={56}
-            className="rounded-full object-cover"
-            onError={() => setLogoErrors((e) => ({ ...e, [index]: true }))}
+      <div className="flex flex-col items-center gap-0.5">
+        <button
+          onClick={() => setSong(index as 0 | 1 | 2)}
+          className="h-14 w-14 rounded-full border-2 flex items-center justify-center transition-all"
+          style={{
+            borderColor: isActive ? accentColor : "hsl(183, 33%, 25%)",
+            boxShadow: isActive ? `0 0 20px ${accentColor}40` : "none",
+            background: isActive ? `${accentColor}15` : "hsl(183, 30%, 9% / 0.8)",
+          }}
+        >
+          <SeedOfLifeLogo
+            size={44}
+            accentColor={accentColor}
+            className={isActive ? "flower-pulse" : ""}
           />
-        ) : (
-          <span className="text-xl">{pairing.symbol}</span>
-        )}
-      </button>
+        </button>
+        <span
+          className="text-[9px] font-mono"
+          style={{ color: isActive ? accentColor : "hsl(183, 11%, 64%)", opacity: isActive ? 1 : 0.6 }}
+        >
+          {pairing.label}
+        </span>
+      </div>
     );
   };
 
@@ -121,7 +118,7 @@ function SimulationOverlay() {
         <span className="text-[10px] font-mono text-primary/80 uppercase tracking-[0.25em]">
           Simulation Mode
         </span>
-        {renderLogo(0, "eXeL H.I.")}
+        {renderLogo(0)}
         {/* Exit X */}
         <Button
           variant="ghost"
@@ -136,12 +133,12 @@ function SimulationOverlay() {
 
       {/* ── Bottom-left: eXeL A.I. logo ── */}
       <div className="fixed bottom-20 left-4 z-[70] pointer-events-auto">
-        {renderLogo(1, "eXeL A.I.")}
+        {renderLogo(1)}
       </div>
 
       {/* ── Bottom-right: eXeL S.I. logo ── */}
       <div className="fixed bottom-20 right-4 z-[70] pointer-events-auto">
-        {renderLogo(2, "eXeL S.I.")}
+        {renderLogo(2)}
       </div>
 
       {/* ── Play / Pause + song name at bottom center ── */}
@@ -159,13 +156,13 @@ function SimulationOverlay() {
         {/* Song name shown below play/pause */}
         <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur rounded-full px-3 py-1">
           {playing ? (
-            <Volume2 className="h-3 w-3" style={{ color: current.color }} />
+            <Volume2 className="h-3 w-3" style={{ color: accentColor }} />
           ) : (
             <VolumeX className="h-3 w-3 text-muted-foreground/40" />
           )}
           <span
             className="text-[10px] font-mono"
-            style={{ color: current.color }}
+            style={{ color: accentColor }}
           >
             {current.songName}
           </span>
