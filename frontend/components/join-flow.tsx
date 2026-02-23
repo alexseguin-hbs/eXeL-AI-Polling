@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Navbar } from "@/components/navbar";
 import { LanguageSelector } from "@/components/language-selector";
+import { useLexicon } from "@/lib/lexicon-context";
 import { api, ApiClientError } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
 import type { Session, SessionJoinResponse } from "@/lib/types";
@@ -18,6 +19,7 @@ type JoinStep = "language" | "identity" | "results" | "joining";
 export function JoinFlow() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { t, setActiveLocale } = useLexicon();
   // Read code from query param: /join/?code=ABCD1234
   const code = searchParams.get("code")?.toUpperCase() || "";
 
@@ -40,7 +42,7 @@ export function JoinFlow() {
       .then((data) => {
         setSession(data);
         if (data.status === "closed" || data.status === "archived") {
-          setError("This session has ended.");
+          setError(t("cube1.join.session_ended"));
         }
       })
       .catch((err) => {
@@ -51,7 +53,13 @@ export function JoinFlow() {
         }
       })
       .finally(() => setLoading(false));
-  }, [code]);
+  }, [code, t]);
+
+  // When language changes, also set the active UI locale
+  const handleLanguageChange = useCallback((code: string) => {
+    setLanguage(code);
+    if (code) setActiveLocale(code);
+  }, [setActiveLocale]);
 
   const handleJoin = useCallback(async () => {
     if (!session) return;
@@ -69,20 +77,20 @@ export function JoinFlow() {
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({
-          title: "Could not join session",
+          title: t("cube1.join.unable_to_join"),
           description: err.detail,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Connection error",
+          title: t("cube1.join.unable_to_join"),
           description: "Check your internet and try again.",
           variant: "destructive",
         });
       }
       setStep("results");
     }
-  }, [session, code, language, displayName, joinAnonymously, resultsOptIn, router]);
+  }, [session, code, language, displayName, joinAnonymously, resultsOptIn, router, t]);
 
   if (loading) {
     return (
@@ -102,13 +110,13 @@ export function JoinFlow() {
         <div className="flex flex-1 items-center justify-center px-4">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
-              <CardTitle>Unable to Join</CardTitle>
+              <CardTitle>{t("cube1.join.unable_to_join")}</CardTitle>
               <CardDescription>{error}</CardDescription>
             </CardHeader>
             <CardContent className="flex justify-center">
               <Button variant="outline" onClick={() => router.push("/")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to home
+                {t("shared.nav.back_to_home")}
               </Button>
             </CardContent>
           </Card>
@@ -147,19 +155,19 @@ export function JoinFlow() {
                 <div className="mx-auto mb-2 rounded-lg bg-primary/10 p-3 w-fit">
                   <Globe className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>Select Your Language</CardTitle>
+                <CardTitle>{t("cube1.join.select_language")}</CardTitle>
                 <CardDescription>
-                  Choose the language you&apos;d like to participate in
+                  {t("cube1.join.select_language_desc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center gap-6">
-                <LanguageSelector value={language} onChange={setLanguage} />
+                <LanguageSelector value={language} onChange={handleLanguageChange} />
                 <Button
                   className="w-full"
                   onClick={() => setStep("identity")}
                   disabled={!language}
                 >
-                  Continue
+                  {t("shared.nav.continue")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardContent>
@@ -173,20 +181,20 @@ export function JoinFlow() {
                 <div className="mx-auto mb-2 rounded-lg bg-primary/10 p-3 w-fit">
                   <UserIcon className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>How Would You Like to Join?</CardTitle>
+                <CardTitle>{t("cube1.join.identity_title")}</CardTitle>
                 <CardDescription>
                   {session?.anonymity_mode === "anonymous"
-                    ? "This session is anonymous"
-                    : "Enter a display name or join anonymously"}
+                    ? t("cube1.join.identity_anonymous")
+                    : t("cube1.join.identity_prompt")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 {session?.anonymity_mode !== "anonymous" && (
                   <div className="space-y-2">
-                    <Label htmlFor="display-name">Display Name</Label>
+                    <Label htmlFor="display-name">{t("cube1.join.display_name")}</Label>
                     <Input
                       id="display-name"
-                      placeholder="Your name"
+                      placeholder={t("cube1.join.your_name")}
                       value={displayName}
                       onChange={(e) => {
                         setDisplayName(e.target.value);
@@ -205,7 +213,7 @@ export function JoinFlow() {
                     setStep("results");
                   }}
                 >
-                  Join Anonymously
+                  {t("cube1.join.join_anonymously")}
                 </Button>
                 {session?.anonymity_mode !== "anonymous" && (
                   <Button
@@ -213,7 +221,7 @@ export function JoinFlow() {
                     onClick={() => setStep("results")}
                     disabled={!displayName.trim() && !joinAnonymously}
                   >
-                    Continue
+                    {t("shared.nav.continue")}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
@@ -223,7 +231,7 @@ export function JoinFlow() {
                   onClick={() => setStep("language")}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  {t("shared.nav.back")}
                 </Button>
               </CardContent>
             </>
@@ -236,13 +244,12 @@ export function JoinFlow() {
                 <div className="mx-auto mb-2 rounded-lg bg-primary/10 p-3 w-fit">
                   <FileCheck className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>Receive Results?</CardTitle>
+                <CardTitle>{t("cube1.join.receive_results")}</CardTitle>
                 <CardDescription>
-                  Would you like to receive the session results when they&apos;re
-                  ready?
+                  {t("cube1.join.results_question")}
                   {session?.is_paid && (
                     <span className="block mt-1 text-primary font-medium">
-                      Results access requires payment
+                      {t("cube1.join.results_paid")}
                     </span>
                   )}
                 </CardDescription>
@@ -255,7 +262,7 @@ export function JoinFlow() {
                     handleJoin();
                   }}
                 >
-                  Yes, I want results
+                  {t("cube1.join.results_yes_button")}
                 </Button>
                 <Button
                   variant="outline"
@@ -265,7 +272,7 @@ export function JoinFlow() {
                     handleJoin();
                   }}
                 >
-                  No thanks, just participate
+                  {t("cube1.join.results_no_button")}
                 </Button>
                 <Button
                   variant="ghost"
@@ -273,7 +280,7 @@ export function JoinFlow() {
                   onClick={() => setStep("identity")}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  {t("shared.nav.back")}
                 </Button>
               </CardContent>
             </>
@@ -284,7 +291,7 @@ export function JoinFlow() {
             <CardContent className="flex flex-col items-center gap-4 py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">
-                Joining session...
+                {t("cube1.join.joining")}
               </p>
             </CardContent>
           )}

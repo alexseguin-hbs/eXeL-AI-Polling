@@ -23,6 +23,7 @@ import { SEEDED_TRANSLATIONS } from "@/lib/lexicon-translations";
 
 const LANGUAGES_KEY = "exel-lexicon-languages";
 const TRANSLATIONS_KEY = "exel-lexicon-translations";
+const LOCALE_KEY = "exel-active-locale";
 
 // ─── Completeness helper ─────────────────────────────────────────
 
@@ -52,6 +53,12 @@ function calcCompleteness(
 // ─── Context type ────────────────────────────────────────────────
 
 interface LexiconContextValue {
+  // Active interface locale — drives t() translations
+  activeLocale: string;
+  setActiveLocale: (code: string) => void;
+  /** Translate a key using the active locale (falls back to English) */
+  t: (key: string) => string;
+
   // Read
   languages: LexiconLanguage[];
   translations: LanguageTranslations;
@@ -72,7 +79,7 @@ interface LexiconContextValue {
   approveLanguage: (code: string, approverEmail: string) => void;
   rejectLanguage: (code: string) => void;
 
-  // Nav state
+  // Nav state (Lexicon editor)
   selectedLanguage: string | null;
   selectedCube: number | null;
   setSelectedLanguage: (code: string | null) => void;
@@ -91,6 +98,7 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
   const [translations, setTranslations] = useState<LanguageTranslations>({});
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [selectedCube, setSelectedCube] = useState<number | null>(null);
+  const [activeLocale, setActiveLocaleState] = useState<string>("en");
 
   // Hydrate from localStorage on mount, merging seeded translations as base
   useEffect(() => {
@@ -104,6 +112,16 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       // corrupt data — use defaults
+    }
+
+    // Hydrate active locale
+    try {
+      const storedLocale = localStorage.getItem(LOCALE_KEY);
+      if (storedLocale) {
+        setActiveLocaleState(storedLocale);
+      }
+    } catch {
+      // corrupt data — use "en"
     }
 
     try {
@@ -247,6 +265,18 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
     [languages, persistLanguages]
   );
 
+  // ── Active locale ────────────────────────────────────────────
+
+  const setActiveLocale = useCallback((code: string) => {
+    setActiveLocaleState(code);
+    localStorage.setItem(LOCALE_KEY, code);
+  }, []);
+
+  const t = useCallback(
+    (key: string): string => getTranslation(key, activeLocale),
+    [getTranslation, activeLocale]
+  );
+
   // ── Auth ──────────────────────────────────────────────────────
 
   const isAdmin = useCallback(
@@ -258,6 +288,9 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
   return (
     <LexiconContext.Provider
       value={{
+        activeLocale,
+        setActiveLocale,
+        t,
         languages,
         translations,
         getTranslation,

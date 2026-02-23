@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { X, Check, Pipette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useTheme, THEME_PRESETS } from "@/lib/theme-context";
 import { useEasterEgg } from "@/lib/easter-egg-context";
-import { SUPPORTED_LANGUAGES } from "@/lib/constants";
+import { useLexicon } from "@/lib/lexicon-context";
 import { LanguageLexicon } from "@/components/language-lexicon";
 import { CubeArchitectureStatus } from "@/components/cube-status";
 
@@ -136,30 +136,41 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
   );
 }
 
-// ─── Language Selector Section (placeholder for UI locale) ──────
+// ─── Language Selector Section — wired to Language Lexicon ───────
+
+/** Languages pinned to top of dropdown for quick access */
+const PINNED_CODES = ["en", "es"];
 
 function SettingsLanguageSelector() {
-  const [locale, setLocale] = useState("en");
+  const { activeLocale, setActiveLocale, languages, t } = useLexicon();
+
+  const approved = languages.filter((l) => l.status === "approved");
+  const pinned = PINNED_CODES.map((c) => approved.find((l) => l.code === c)).filter(Boolean) as typeof approved;
+  const rest = approved.filter((l) => !PINNED_CODES.includes(l.code)).sort((a, b) => a.nameNative.localeCompare(b.nameNative));
+  const sortedLangs = [...pinned, ...rest];
 
   return (
     <section>
       <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
-        Interface Language
+        {t("cube1.join.select_language")}
       </h3>
       <p className="text-xs text-muted-foreground mb-2">
-        Sets the display language for your interface.
+        {t("cube1.join.select_language_desc")}
       </p>
-      <Select value={locale} onValueChange={setLocale}>
+      <Select value={activeLocale} onValueChange={setActiveLocale}>
         <SelectTrigger className="w-full max-w-xs">
-          <SelectValue placeholder="Select language" />
+          <SelectValue placeholder={t("cube1.join.select_language")} />
         </SelectTrigger>
         <SelectContent>
-          {SUPPORTED_LANGUAGES.map((lang) => (
+          {sortedLangs.map((lang, i) => (
             <SelectItem key={lang.code} value={lang.code}>
               <span className="flex items-center gap-2">
-                <span>{lang.native}</span>
-                <span className="text-muted-foreground">({lang.name})</span>
+                <span>{lang.nameNative}</span>
+                <span className="text-muted-foreground">({lang.nameEn})</span>
               </span>
+              {i === pinned.length - 1 && rest.length > 0 && (
+                <Separator className="mt-1" />
+              )}
             </SelectItem>
           ))}
         </SelectContent>
