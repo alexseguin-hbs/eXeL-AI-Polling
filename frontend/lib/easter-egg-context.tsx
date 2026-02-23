@@ -8,46 +8,39 @@ import {
   type ReactNode,
 } from "react";
 
-interface EasterEggState {
-  activated: boolean;
+interface SimulationState {
   simulationMode: boolean;
   currentSong: 0 | 1 | 2;
   playing: boolean;
 }
 
-interface EasterEggContextValue extends EasterEggState {
-  activate: () => void;
+interface SimulationContextValue extends SimulationState {
   enterSimulationMode: () => void;
   exitSimulationMode: () => void;
   setSong: (song: 0 | 1 | 2) => void;
   togglePlaying: () => void;
+  stop: () => void;
 }
 
-const EasterEggContext = createContext<EasterEggContextValue | null>(null);
+const SimulationContext = createContext<SimulationContextValue | null>(null);
 
 export function EasterEggProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<EasterEggState>({
-    activated: false,
+  const [state, setState] = useState<SimulationState>({
     simulationMode: false,
     currentSong: 0,
     playing: false,
   });
 
-  const activate = useCallback(() => {
-    setState((s) => ({ ...s, activated: true }));
-  }, []);
-
   const enterSimulationMode = useCallback(() => {
-    setState((s) => ({ ...s, simulationMode: true, playing: true }));
+    setState({ simulationMode: true, currentSong: 0, playing: true });
   }, []);
 
   const exitSimulationMode = useCallback(() => {
-    setState((s) => ({
-      ...s,
-      simulationMode: false,
-      activated: false,
-      playing: false,
-    }));
+    setState({ simulationMode: false, currentSong: 0, playing: false });
+  }, []);
+
+  const stop = useCallback(() => {
+    setState({ simulationMode: false, currentSong: 0, playing: false });
   }, []);
 
   const setSong = useCallback((song: 0 | 1 | 2) => {
@@ -59,23 +52,23 @@ export function EasterEggProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <EasterEggContext.Provider
+    <SimulationContext.Provider
       value={{
         ...state,
-        activate,
         enterSimulationMode,
         exitSimulationMode,
         setSong,
         togglePlaying,
+        stop,
       }}
     >
       {children}
-    </EasterEggContext.Provider>
+    </SimulationContext.Provider>
   );
 }
 
 export function useEasterEgg() {
-  const ctx = useContext(EasterEggContext);
+  const ctx = useContext(SimulationContext);
   if (!ctx) {
     throw new Error("useEasterEgg must be used within an EasterEggProvider");
   }

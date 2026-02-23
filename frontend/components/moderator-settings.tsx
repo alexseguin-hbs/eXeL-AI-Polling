@@ -12,13 +12,9 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useTheme, THEME_PRESETS } from "@/lib/theme-context";
-import { useEasterEgg } from "@/lib/easter-egg-context";
 import { SUPPORTED_LANGUAGES } from "@/lib/constants";
 import { LanguageLexicon } from "@/components/language-lexicon";
 import { CubeArchitectureStatus } from "@/components/cube-status";
-
-// Easter egg sequence: exel-cyan → sunset → violet within 3 seconds
-const EASTER_EGG_SEQUENCE = ["exel-cyan", "sunset", "violet"];
 
 // ─── Theme Customizer Section ───────────────────────────────────
 
@@ -30,38 +26,12 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
     setCustomAccent,
     customAccentColor,
   } = useTheme();
-  const { activated: easterEggActivated, activate: activateEasterEgg } = useEasterEgg();
   const colorInputRef = useRef<HTMLInputElement>(null);
-
-  // Track last 3 theme selections with timestamps for easter egg
-  const selectionsRef = useRef<{ id: string; time: number }[]>([]);
 
   const handlePresetSelect = (id: string) => {
     if (disabled) return;
     setTheme(id);
     setSessionTheme(id);
-
-    // Easter egg detection
-    if (!easterEggActivated) {
-      const now = Date.now();
-      selectionsRef.current.push({ id, time: now });
-      // Keep only last 3
-      if (selectionsRef.current.length > 3) {
-        selectionsRef.current = selectionsRef.current.slice(-3);
-      }
-      // Check sequence
-      if (selectionsRef.current.length === 3) {
-        const [first, second, third] = selectionsRef.current;
-        const withinTime = third.time - first.time < 3000;
-        const correctSequence =
-          first.id === EASTER_EGG_SEQUENCE[0] &&
-          second.id === EASTER_EGG_SEQUENCE[1] &&
-          third.id === EASTER_EGG_SEQUENCE[2];
-        if (withinTime && correctSequence) {
-          activateEasterEgg();
-        }
-      }
-    }
   };
 
   const handleCustomColorChange = (hex: string) => {
