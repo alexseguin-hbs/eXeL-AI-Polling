@@ -261,13 +261,21 @@ export function FlowerVisualization({
 
       <CardContent>
         <div ref={containerRef} style={{ position: "relative" }}>
-          {/* SVG Canvas */}
+          {/* SVG Canvas — portrait adjusts viewBox for vertical fit */}
           <svg
             ref={svgRef}
-            viewBox={isPortrait ? "50 0 500 560" : "0 0 600 500"}
+            viewBox={
+              isPortrait
+                ? state.view === "theme2" && state.theme2Level === 9
+                  ? "20 -60 560 620"
+                  : "30 0 540 520"
+                : state.view === "theme2" && state.theme2Level === 9
+                  ? "0 -60 600 580"
+                  : "0 0 600 500"
+            }
             preserveAspectRatio="xMidYMid meet"
             className="w-full"
-            style={{ maxHeight: isPortrait ? 420 : 500, overflow: "visible" }}
+            style={{ maxHeight: isPortrait ? 440 : 500, overflow: "visible" }}
           >
             {/* ── Theme1 View ─────────────────────────── */}
             {state.view === "theme1" &&

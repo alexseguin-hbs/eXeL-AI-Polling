@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface RotaryKnobProps {
@@ -11,8 +11,14 @@ interface RotaryKnobProps {
 }
 
 const LEVELS: (3 | 6 | 9)[] = [3, 6, 9];
-/** Angle positions in degrees for the indicator dot: 3→8 o'clock, 6→12 o'clock, 9→4 o'clock */
-const LEVEL_ANGLES: Record<number, number> = { 3: 240, 6: 0, 9: 120 };
+
+/**
+ * Sequential angle positions for clockwise rotation: 3→6→9.
+ * 3 = 240° (8 o'clock), 6 = 360° (12 o'clock), 9 = 480° (4 o'clock).
+ * Using cumulative angles (not mod 360) ensures CSS rotation always goes clockwise
+ * when stepping forward, and counter-clockwise when stepping back.
+ */
+const LEVEL_DISPLAY_ANGLES: Record<number, number> = { 3: 240, 6: 0, 9: 120 };
 
 export function RotaryKnob({
   level,
@@ -28,8 +34,25 @@ export function RotaryKnob({
   const detentR = 4;
   const detentDistance = outerR + 2;
 
-  const indicatorAngle = LEVEL_ANGLES[level];
   const currentIndex = LEVELS.indexOf(level);
+
+  // Track cumulative rotation to ensure correct direction.
+  // 3→6 should rotate clockwise (240→360), 6→9 clockwise (360→480)
+  // 9→6 should rotate counter-clockwise (480→360), 6→3 counter-clockwise (360→240)
+  const [rotationAngle, setRotationAngle] = useState(240); // start at level 3 = 240°
+  const prevIndexRef = useRef(currentIndex);
+
+  useEffect(() => {
+    const prevIdx = prevIndexRef.current;
+    const newIdx = currentIndex;
+    if (prevIdx === newIdx) return;
+
+    setRotationAngle((prev) => {
+      const step = newIdx - prevIdx; // +1 = clockwise, -1 = counter-clockwise
+      return prev + step * 120;
+    });
+    prevIndexRef.current = newIdx;
+  }, [currentIndex]);
 
   const handleStep = useCallback(
     (direction: 1 | -1) => {
@@ -96,7 +119,7 @@ export function RotaryKnob({
 
           {/* Detent dots (visual indicators, no click-to-jump) */}
           {LEVELS.map((l) => {
-            const deg = LEVEL_ANGLES[l];
+            const deg = LEVEL_DISPLAY_ANGLES[l];
             const rad = (deg * Math.PI) / 180;
             const dx = center + detentDistance * Math.cos(rad - Math.PI / 2);
             const dy = center + detentDistance * Math.sin(rad - Math.PI / 2);
@@ -127,10 +150,10 @@ export function RotaryKnob({
             );
           })}
 
-          {/* Rotating indicator dot */}
+          {/* Rotating indicator dot — uses cumulative angle to ensure correct direction */}
           <g
             style={{
-              transform: `rotate(${indicatorAngle}deg)`,
+              transform: `rotate(${rotationAngle}deg)`,
               transformOrigin: `${center}px ${center}px`,
               transition: "transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}
