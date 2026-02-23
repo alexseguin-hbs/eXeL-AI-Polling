@@ -117,16 +117,23 @@ export function RotaryKnob({
             {level}
           </text>
 
-          {/* Detent dots (visual indicators, no click-to-jump) */}
+          {/* Detent dots — clickable for adjacent levels (sequential only) */}
           {LEVELS.map((l) => {
             const deg = LEVEL_DISPLAY_ANGLES[l];
             const rad = (deg * Math.PI) / 180;
             const dx = center + detentDistance * Math.cos(rad - Math.PI / 2);
             const dy = center + detentDistance * Math.sin(rad - Math.PI / 2);
             const isActive = l === level;
+            const lIdx = LEVELS.indexOf(l);
+            const isAdjacent = Math.abs(lIdx - currentIndex) === 1;
+            const isClickable = !disabled && !isActive && isAdjacent;
 
             return (
-              <g key={l}>
+              <g
+                key={l}
+                onClick={() => isClickable && onChange(l)}
+                style={{ cursor: isClickable ? "pointer" : "default" }}
+              >
                 <circle
                   cx={dx}
                   cy={dy}
@@ -135,12 +142,16 @@ export function RotaryKnob({
                   stroke={isActive ? accentColor : "hsl(183, 33%, 17%)"}
                   strokeWidth={1}
                 />
+                {/* Larger invisible hit area for easier tapping */}
+                {isClickable && (
+                  <circle cx={dx} cy={dy} r={10} fill="transparent" />
+                )}
                 {/* Label next to detent */}
                 <text
                   x={dx + (deg === 0 ? 0 : deg === 240 ? -10 : 10)}
                   y={dy + (deg === 0 ? -10 : 14)}
                   textAnchor="middle"
-                  fill="hsl(183, 11%, 64%)"
+                  fill={isClickable ? accentColor : "hsl(183, 11%, 64%)"}
                   fontSize="9"
                   fontWeight="600"
                 >

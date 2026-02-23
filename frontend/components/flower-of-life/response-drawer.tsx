@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { X, ChevronDown, ChevronUp, Lock } from "lucide-react";
+import { X, ChevronDown, ChevronUp, Lock, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { ThemedResponse, ThemeInfo } from "@/lib/types";
@@ -30,6 +30,7 @@ export function ResponseDrawer({
   const [page, setPage] = useState(0);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [summaryLevel, setSummaryLevel] = useState<SummaryLevel>("33");
+  const [isMaximized, setIsMaximized] = useState(false);
 
   const totalPages = Math.ceil(responses.length / PAGE_SIZE);
   const pageResponses = useMemo(
@@ -72,17 +73,18 @@ export function ResponseDrawer({
     <div
       className="flower-slide-up"
       style={{
-        position: "absolute",
+        position: isMaximized ? "fixed" : "absolute",
         bottom: 0,
         left: 0,
         right: 0,
-        maxHeight: "65%",
+        top: isMaximized ? 0 : undefined,
+        maxHeight: isMaximized ? "100%" : "65%",
         background: "hsl(183, 30%, 7%)",
-        borderTop: `2px solid ${accentColor}`,
-        borderRadius: "12px 12px 0 0",
+        borderTop: isMaximized ? "none" : `2px solid ${accentColor}`,
+        borderRadius: isMaximized ? 0 : "12px 12px 0 0",
         display: "flex",
         flexDirection: "column",
-        zIndex: 20,
+        zIndex: isMaximized ? 70 : 20,
       }}
     >
       {/* Header */}
@@ -130,9 +132,23 @@ export function ResponseDrawer({
             {theme.avgConfidence}% avg confidence
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
+        <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMaximized((m) => !m)}
+            title={isMaximized ? "Minimize" : "Maximize"}
+          >
+            {isMaximized ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Summary level selector */}
