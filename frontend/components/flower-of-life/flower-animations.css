@@ -158,6 +158,20 @@
   animation-delay: 640ms;
 }
 
+/* Subtle blink for simulation mode entry hint */
+@keyframes badge-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.badge-blink {
+  animation: badge-blink 2.5s ease-in-out infinite;
+}
+
 /* SVG circle hover effect */
 .flower-circle-interactive {
   cursor: pointer;

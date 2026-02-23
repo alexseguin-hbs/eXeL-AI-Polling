@@ -194,12 +194,12 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-          {/* Users see language selection only; moderators see everything */}
+          {/* All users see language + theme; moderators also see admin sections */}
           <SettingsLanguageSelector />
+          <Separator />
+          <ThemeCustomizer disabled={isPollingUser} />
           {!isPollingUser && (
             <>
-              <Separator />
-              <ThemeCustomizer />
               <Separator />
               <CubeArchitectureStatus />
               <Separator />

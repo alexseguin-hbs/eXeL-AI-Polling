@@ -183,7 +183,7 @@ export function PoweredBadge() {
     <div className="fixed bottom-4 right-4 z-50">
       <button
         onClick={enterSimulationMode}
-        className="flex items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 text-xs text-muted-foreground backdrop-blur cursor-pointer hover:bg-background/95 transition-colors"
+        className="badge-blink flex items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 text-xs text-muted-foreground backdrop-blur cursor-pointer hover:bg-background/95 transition-colors"
       >
         <span className="font-medium text-primary">eXeL</span>
         <span>AI</span>
