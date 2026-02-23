@@ -29,21 +29,21 @@ const SONG_PAIRINGS = [
     symbol: "웃",
     label: "H.I.",
     songName: "Unity in Diversity",
-    audio: "/audio/Unity in Diversity.wav",
+    audio: "/audio/Unity in Diversity.mp3",
     color: TRINITY_COLORS.HI,
   },
   {
     symbol: "◬",
     label: "A.I.",
     songName: "Eternal Spark",
-    audio: "/audio/Eternal Spark.wav",
+    audio: "/audio/Eternal Spark.mp3",
     color: TRINITY_COLORS.AI,
   },
   {
     symbol: "♡",
     label: "S.I.",
     songName: "Master of Thought",
-    audio: "/audio/Master of Thought.wav",
+    audio: "/audio/Master of Thought.mp3",
     color: TRINITY_COLORS.SI,
   },
 ];
@@ -104,7 +104,7 @@ function SimulationOverlay() {
           onClick={() => setSong(index as 0 | 1 | 2)}
           className="h-14 w-14 rounded-full border-2 flex items-center justify-center transition-all"
           style={{
-            borderColor: isActive ? logoColor : "hsl(183, 33%, 25%)",
+            borderColor: isActive ? logoColor : `${logoColor}60`,
             boxShadow: isActive ? `0 0 20px ${logoColor}40` : "none",
             background: isActive ? `${logoColor}15` : "hsl(183, 30%, 9% / 0.8)",
           }}
@@ -117,7 +117,7 @@ function SimulationOverlay() {
         </button>
         <span
           className="text-[9px] font-mono"
-          style={{ color: isActive ? logoColor : "hsl(183, 11%, 64%)", opacity: isActive ? 1 : 0.6 }}
+          style={{ color: logoColor, opacity: isActive ? 1 : 0.6 }}
         >
           {pairing.label}
         </span>
@@ -220,15 +220,23 @@ export function PoweredBadge() {
     <div className="fixed bottom-4 right-4 z-50">
       <button
         onClick={easterEggUnlocked ? enterSimulationMode : undefined}
-        className={`flex items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 text-xs text-muted-foreground backdrop-blur transition-colors ${
+        className={`flex items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 text-xs backdrop-blur transition-colors ${
           easterEggUnlocked
-            ? "badge-blink cursor-pointer hover:bg-background/95 border-primary/50"
+            ? "badge-blink cursor-pointer hover:bg-background/95"
             : "cursor-default"
         }`}
+        style={{
+          borderColor: easterEggUnlocked ? TRINITY_COLORS.AI : undefined,
+          boxShadow: easterEggUnlocked ? `0 0 12px ${TRINITY_COLORS.AI}30` : undefined,
+        }}
         title={easterEggUnlocked ? "Enter Simulation Mode" : undefined}
       >
-        <span className="font-medium text-primary">eXeL</span>
-        <span>AI</span>
+        <SeedOfLifeLogo
+          size={18}
+          accentColor={TRINITY_COLORS.AI}
+        />
+        <span className="font-medium" style={{ color: TRINITY_COLORS.AI }}>eXeL</span>
+        <span style={{ color: TRINITY_COLORS.AI }}>AI</span>
       </button>
     </div>
   );
