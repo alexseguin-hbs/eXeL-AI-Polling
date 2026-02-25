@@ -90,6 +90,13 @@ export const STATIC_POLL_DURATIONS = [
   { value: 7, label: "7 Days", locked: true },
 ] as const;
 
+// Timer display modes for static poll countdown
+export const TIMER_DISPLAY_MODES = [
+  { value: "day" as const, label: "Day Timer" },
+  { value: "flex" as const, label: "Flex Timer" },
+  { value: "both" as const, label: "Both" },
+] as const;
+
 // Session code constraints
 export const SESSION_CODE_MAX_LENGTH = 8;
 

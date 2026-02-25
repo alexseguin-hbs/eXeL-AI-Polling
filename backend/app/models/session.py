@@ -87,6 +87,12 @@ class Session(Base):
     session_type: Mapped[str] = mapped_column(String(30), default="polling")
     polling_mode: Mapped[str] = mapped_column(String(30), default="single_round")
 
+    # Static poll countdown
+    polling_mode_type: Mapped[str] = mapped_column(String(30), default="live_interactive")
+    static_poll_duration_days: Mapped[int | None] = mapped_column(Integer)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    timer_display_mode: Mapped[str] = mapped_column(String(20), default="flex")
+
     # Capacity & pricing
     pricing_tier: Mapped[str] = mapped_column(String(20), default="free")
     max_participants: Mapped[int | None] = mapped_column(Integer)

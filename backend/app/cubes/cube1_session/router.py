@@ -130,6 +130,9 @@ async def create_session(
         cqs_weights=payload.cqs_weights,
         theme2_voting_level=payload.theme2_voting_level,
         live_feed_enabled=payload.live_feed_enabled,
+        polling_mode_type=payload.polling_mode_type,
+        static_poll_duration_days=payload.static_poll_duration_days,
+        timer_display_mode=payload.timer_display_mode,
     )
     return await _return_session(db, session)
 
@@ -277,6 +280,9 @@ async def join_session(
         display_name=participant.display_name,
         theme_id=session.theme_id,
         custom_accent_color=session.custom_accent_color,
+        polling_mode_type=session.polling_mode_type,
+        ends_at=session.ends_at.isoformat() if session.ends_at else None,
+        timer_display_mode=session.timer_display_mode,
     )
 
 

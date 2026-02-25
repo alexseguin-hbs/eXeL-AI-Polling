@@ -38,6 +38,10 @@ class SessionCreate(BaseModel):
     theme2_voting_level: Literal["theme2_9", "theme2_6", "theme2_3"] = "theme2_9"
     # Live feed
     live_feed_enabled: bool = False
+    # Static poll countdown
+    polling_mode_type: Literal["live_interactive", "static_poll"] = "live_interactive"
+    static_poll_duration_days: int | None = Field(None, ge=1, le=7)
+    timer_display_mode: Literal["day", "flex", "both"] = "flex"
     # STT service settings (Moderator)
     stt_provider: Literal["openai", "grok", "gemini"] = "openai"
     realtime_stt_enabled: bool = False  # Paid: real-time word-by-word transcription
@@ -95,6 +99,11 @@ class SessionRead(BaseModel):
     theme2_voting_level: str = "theme2_9"
     # Live feed
     live_feed_enabled: bool = False
+    # Static poll countdown
+    polling_mode_type: str = "live_interactive"
+    static_poll_duration_days: int | None = None
+    ends_at: datetime | None = None
+    timer_display_mode: str = "flex"
     # STT
     stt_provider: str = "openai"
     realtime_stt_enabled: bool = False
@@ -135,6 +144,9 @@ class SessionJoinResponse(BaseModel):
     display_name: str | None
     theme_id: str = "exel-cyan"
     custom_accent_color: str | None = None
+    polling_mode_type: str = "live_interactive"
+    ends_at: str | None = None
+    timer_display_mode: str = "flex"
 
 
 class PresenceEntry(BaseModel):

@@ -537,3 +537,109 @@ class TestRedisPresence:
         result = await get_presence(mock_redis, uuid.uuid4())
         assert result["active_count"] == 0
         assert result["participants"] == []
+
+
+# ---------------------------------------------------------------------------
+# Static Poll Countdown
+# ---------------------------------------------------------------------------
+
+
+class TestStaticPollCountdown:
+    @pytest.mark.asyncio
+    async def test_create_session_with_static_poll_fields(self):
+        """Static poll fields (polling_mode_type, duration, timer_display) should be persisted."""
+        with patch("app.cubes.cube1_session.service._generate_unique_short_code", new_callable=AsyncMock) as mock_code:
+            mock_code.return_value = "StatC0d3"
+            from app.cubes.cube1_session.service import create_session
+
+            mock_db = AsyncMock()
+            mock_db.commit = AsyncMock()
+            mock_db.refresh = AsyncMock()
+            mock_db.add = MagicMock()
+
+            with patch("app.cubes.cube1_session.service.settings") as mock_settings:
+                mock_settings.frontend_url = "http://localhost:3000"
+                mock_settings.session_seed = None
+                mock_settings.default_session_expiry_hours = 24
+
+                session = await create_session(
+                    mock_db,
+                    title="Static Poll Test",
+                    created_by="auth0|mod_001",
+                    polling_mode_type="static_poll",
+                    static_poll_duration_days=3,
+                    timer_display_mode="both",
+                )
+
+            added_obj = mock_db.add.call_args[0][0]
+            assert added_obj.polling_mode_type == "static_poll"
+            assert added_obj.static_poll_duration_days == 3
+            assert added_obj.timer_display_mode == "both"
+
+    @pytest.mark.asyncio
+    async def test_transition_to_polling_computes_ends_at(self):
+        """Static poll transition to polling should compute ends_at = now + N days."""
+        session = make_session(
+            status="open",
+            polling_mode_type="static_poll",
+            static_poll_duration_days=3,
+        )
+        session.can_transition_to = MagicMock(return_value=True)
+
+        mock_db = AsyncMock()
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+
+        from app.cubes.cube1_session.service import transition_session
+        await transition_session(mock_db, session, "polling")
+
+        assert session.ends_at is not None
+        # ends_at should be roughly 3 days from now
+        delta = session.ends_at - datetime.now(timezone.utc)
+        assert 2.9 < delta.total_seconds() / 86400 < 3.1
+
+    @pytest.mark.asyncio
+    async def test_transition_to_polling_no_ends_at_for_live(self):
+        """Live interactive poll should NOT set ends_at on polling transition."""
+        session = make_session(
+            status="open",
+            polling_mode_type="live_interactive",
+        )
+        session.can_transition_to = MagicMock(return_value=True)
+
+        mock_db = AsyncMock()
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+
+        from app.cubes.cube1_session.service import transition_session
+        await transition_session(mock_db, session, "polling")
+
+        assert session.ends_at is None
+
+    @pytest.mark.asyncio
+    async def test_create_session_default_timer_display_mode(self):
+        """Default timer_display_mode should be 'flex'."""
+        with patch("app.cubes.cube1_session.service._generate_unique_short_code", new_callable=AsyncMock) as mock_code:
+            mock_code.return_value = "DfltC0d3"
+            from app.cubes.cube1_session.service import create_session
+
+            mock_db = AsyncMock()
+            mock_db.commit = AsyncMock()
+            mock_db.refresh = AsyncMock()
+            mock_db.add = MagicMock()
+
+            with patch("app.cubes.cube1_session.service.settings") as mock_settings:
+                mock_settings.frontend_url = "http://localhost:3000"
+                mock_settings.session_seed = None
+                mock_settings.default_session_expiry_hours = 24
+
+                await create_session(
+                    mock_db,
+                    title="Default Timer Test",
+                    created_by="auth0|mod_001",
+                )
+
+            added_obj = mock_db.add.call_args[0][0]
+            assert added_obj.timer_display_mode == "flex"
+            assert added_obj.polling_mode_type == "live_interactive"
+            assert added_obj.static_poll_duration_days is None

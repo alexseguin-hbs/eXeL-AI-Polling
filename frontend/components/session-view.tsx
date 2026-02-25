@@ -28,6 +28,8 @@ import { useTimer } from "@/lib/timer-context";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useLexicon } from "@/lib/lexicon-context";
 import { VoiceInput } from "@/components/voice-input";
+import { PollCountdownTimer } from "@/components/poll-countdown-timer";
+import { useTheme } from "@/lib/theme-context";
 import type { Session, Question } from "@/lib/types";
 
 // Sample session data for simulation mode (F10)
@@ -58,6 +60,8 @@ const SIMULATION_SESSION: Session = {
   live_feed_enabled: false,
   polling_mode_type: "live_interactive",
   static_poll_duration_days: null,
+  ends_at: null,
+  timer_display_mode: "flex",
   is_paid: false,
   qr_url: null,
   join_url: null,
@@ -220,6 +224,7 @@ export function SessionView() {
   // Simulation mode — use sample data instead of API calls
   const { simulationMode } = useEasterEgg();
   const { t } = useLexicon();
+  const { currentTheme } = useTheme();
 
   useEffect(() => {
     // In simulation mode, use sample data
@@ -445,6 +450,15 @@ export function SessionView() {
 
         {/* Polling state — One question at a time */}
         {session?.status === "polling" && (
+          <>
+          {session.polling_mode_type === "static_poll" && session.ends_at && (
+            <PollCountdownTimer
+              endsAt={session.ends_at}
+              totalDays={session.static_poll_duration_days ?? 1}
+              displayMode={session.timer_display_mode ?? "flex"}
+              accentColor={currentTheme.swatch}
+            />
+          )}
           <Card className="w-full max-w-lg">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -553,6 +567,7 @@ export function SessionView() {
               )}
             </CardContent>
           </Card>
+          </>
         )}
 
         {/* Ranking state */}

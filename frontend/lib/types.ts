@@ -23,6 +23,8 @@ export type PollingMode = "single_round" | "multi_round_deep_dive";
 
 export type PollingModeType = "live_interactive" | "static_poll";
 
+export type TimerDisplayMode = "day" | "flex" | "both";
+
 export type Theme2VotingLevel = "theme2_9" | "theme2_6" | "theme2_3";
 
 export interface Session {
@@ -53,6 +55,8 @@ export interface Session {
   live_feed_enabled: boolean;
   polling_mode_type: PollingModeType;
   static_poll_duration_days: number | null;
+  ends_at: string | null;
+  timer_display_mode: TimerDisplayMode;
   // Existing fields
   is_paid: boolean;
   qr_url: string | null;
@@ -106,6 +110,9 @@ export interface SessionJoinResponse {
   display_name: string | null;
   theme_id: string;
   custom_accent_color: string | null;
+  polling_mode_type: PollingModeType;
+  ends_at: string | null;
+  timer_display_mode: TimerDisplayMode;
 }
 
 // Cube 2 — Text response returned after submission (matches backend ResponseRead)

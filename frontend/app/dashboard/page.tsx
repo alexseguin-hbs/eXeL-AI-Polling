@@ -56,11 +56,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { api, ApiClientError } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
-import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS } from "@/lib/constants";
+import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS, TIMER_DISPLAY_MODES } from "@/lib/constants";
 import { ScrollingSummaryFeed } from "@/components/scrolling-summary-feed";
 import { generateSampleSessionData } from "@/lib/sample-session-data";
 import { useLexicon } from "@/lib/lexicon-context";
-import type { Session, PaginatedResponse, PollingModeType } from "@/lib/types";
+import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
 
 function statusColor(status: string): string {
   switch (status) {
@@ -425,6 +425,7 @@ function DashboardContent() {
   const [newRewardAmount, setNewRewardAmount] = useState("25");
   const [newPollingModeType, setNewPollingModeType] = useState<PollingModeType>("live_interactive");
   const [newStaticPollDuration, setNewStaticPollDuration] = useState(1);
+  const [newTimerDisplayMode, setNewTimerDisplayMode] = useState<TimerDisplayMode>("flex");
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -468,6 +469,9 @@ function DashboardContent() {
         max_participants: newMaxParticipants ? parseInt(newMaxParticipants) : null,
         reward_enabled: newRewardEnabled,
         reward_amount_cents: newRewardEnabled ? Math.round(parseFloat(newRewardAmount) * 100) : 0,
+        polling_mode_type: newPollingModeType,
+        static_poll_duration_days: newPollingModeType === "static_poll" ? newStaticPollDuration : null,
+        timer_display_mode: newTimerDisplayMode,
       });
       toast({ title: "Session created", description: `"${session.title}" is ready` });
       setCreateOpen(false);
@@ -482,6 +486,7 @@ function DashboardContent() {
       setNewRewardAmount("25");
       setNewPollingModeType("live_interactive");
       setNewStaticPollDuration(1);
+      setNewTimerDisplayMode("flex");
       fetchSessions();
       setSelectedSession(session);
     } catch (err) {
@@ -645,6 +650,23 @@ function DashboardContent() {
                             </button>
                           );
                         })}
+                      </div>
+                      <Label>{t("cube1.moderator.timer_display")}</Label>
+                      <div className="flex gap-2">
+                        {TIMER_DISPLAY_MODES.map((mode) => (
+                          <button
+                            key={mode.value}
+                            type="button"
+                            onClick={() => setNewTimerDisplayMode(mode.value)}
+                            className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                              newTimerDisplayMode === mode.value
+                                ? "border-primary bg-accent/30 font-medium"
+                                : "border-border hover:bg-accent/20"
+                            }`}
+                          >
+                            {mode.label}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   )}

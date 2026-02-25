@@ -149,6 +149,10 @@ async def create_session(
     cqs_weights: dict | None = None,
     theme2_voting_level: str = "theme2_9",
     live_feed_enabled: bool = False,
+    # Static poll countdown
+    polling_mode_type: str = "live_interactive",
+    static_poll_duration_days: int | None = None,
+    timer_display_mode: str = "flex",
 ) -> Session:
     """Create a new session with short_code, join_url, and QR.
 
@@ -203,6 +207,9 @@ async def create_session(
         cqs_weights=cqs_weights,
         theme2_voting_level=theme2_voting_level,
         live_feed_enabled=live_feed_enabled,
+        polling_mode_type=polling_mode_type,
+        static_poll_duration_days=static_poll_duration_days,
+        timer_display_mode=timer_display_mode,
     )
     if session_id:
         kwargs["id"] = session_id
@@ -314,6 +321,10 @@ async def transition_session(
 
     if new_status == "open" and session.opened_at is None:
         session.opened_at = now
+    elif new_status == "polling":
+        # Compute ends_at for static polls when transitioning to polling
+        if session.polling_mode_type == "static_poll" and session.static_poll_duration_days:
+            session.ends_at = now + timedelta(days=session.static_poll_duration_days)
     elif new_status == "closed":
         session.closed_at = now
 

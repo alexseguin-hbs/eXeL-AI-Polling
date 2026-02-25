@@ -192,6 +192,10 @@ def make_session(
     cqs_weights: dict | None = None,
     theme2_voting_level: str = "theme2_9",
     live_feed_enabled: bool = False,
+    polling_mode_type: str = "live_interactive",
+    static_poll_duration_days: int | None = None,
+    ends_at: datetime | None = None,
+    timer_display_mode: str = "flex",
 ) -> MagicMock:
     """Create a mock Session object."""
     session = MagicMock()
@@ -240,6 +244,10 @@ def make_session(
     session.live_feed_enabled = live_feed_enabled
     session.theme_id = "exel-cyan"
     session.custom_accent_color = None
+    session.polling_mode_type = polling_mode_type
+    session.static_poll_duration_days = static_poll_duration_days
+    session.ends_at = ends_at
+    session.timer_display_mode = timer_display_mode
 
     # Mock __table__.columns for _session_to_read
     columns = []
@@ -256,6 +264,8 @@ def make_session(
         "fee_amount_cents", "cost_splitting_enabled", "reward_enabled",
         "reward_amount_cents", "cqs_weights", "theme2_voting_level",
         "live_feed_enabled", "theme_id", "custom_accent_color",
+        "polling_mode_type", "static_poll_duration_days", "ends_at",
+        "timer_display_mode",
     ]:
         col = MagicMock()
         col.key = attr
