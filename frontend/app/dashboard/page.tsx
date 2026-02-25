@@ -567,7 +567,7 @@ function DashboardContent() {
                   <Label htmlFor="description">{t("cube1.moderator.description_label")}</Label>
                   <Input
                     id="description"
-                    placeholder="Brief description of this session"
+                    placeholder="What outcome do you want from this session?"
                     value={newDescription}
                     onChange={(e) => setNewDescription(e.target.value)}
                   />
