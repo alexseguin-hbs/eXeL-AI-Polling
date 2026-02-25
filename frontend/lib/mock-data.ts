@@ -132,6 +132,45 @@ export const MOCK_SESSIONS: Session[] = [
     updated_at: new Date(Date.now() - 86400000).toISOString(),
     participant_count: 47,
   },
+  {
+    id: "d4e5f6a7-b8c9-0123-defg-444444444444",
+    short_code: "STATIC01",
+    created_by: MOCK_MODERATOR_ID,
+    status: "polling",
+    title: "Team Innovation Challenge",
+    description: "Share your innovative ideas for team collaboration. Static poll — 3 days to respond.",
+    anonymity_mode: "identified",
+    cycle_mode: "single",
+    max_cycles: 1,
+    current_cycle: 1,
+    ranking_mode: "auto",
+    language: "en",
+    max_response_length: 3333,
+    ai_provider: "openai",
+    session_type: "polling",
+    polling_mode: "single_round",
+    pricing_tier: "free",
+    max_participants: null,
+    fee_amount_cents: 0,
+    cost_splitting_enabled: false,
+    reward_enabled: false,
+    reward_amount_cents: 0,
+    theme2_voting_level: "theme2_9",
+    live_feed_enabled: false,
+    polling_mode_type: "static_poll",
+    static_poll_duration_days: 3,
+    ends_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    timer_display_mode: "both",
+    is_paid: false,
+    qr_url: null,
+    join_url: null,
+    opened_at: new Date(Date.now() - 3600000).toISOString(),
+    closed_at: null,
+    expires_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+    updated_at: new Date(Date.now() - 3600000).toISOString(),
+    participant_count: 15,
+  },
 ];
 
 // ── Test Questions ──────────────────────────────────────────────
@@ -147,6 +186,17 @@ export const MOCK_QUESTIONS: Record<string, Question[]> = {
       created_at: now,
     },
   ],
+  "d4e5f6a7-b8c9-0123-defg-444444444444": [
+    {
+      id: "q1-444444",
+      session_id: "d4e5f6a7-b8c9-0123-defg-444444444444",
+      question_text:
+        "What innovative tools or processes could improve our team collaboration?",
+      question_number: 1,
+      is_active: true,
+      created_at: now,
+    },
+  ],
 };
 
 // ── Mock Participant Counter ────────────────────────────────────
@@ -154,6 +204,7 @@ let mockParticipantCount: Record<string, number> = {
   "a1b2c3d4-e5f6-7890-abcd-111111111111": 3,
   "b2c3d4e5-f6a7-8901-bcde-222222222222": 0,
   "c3d4e5f6-a7b8-9012-cdef-333333333333": 47,
+  "d4e5f6a7-b8c9-0123-defg-444444444444": 15,
 };
 
 // ── Session counter for new sessions ────────────────────────────

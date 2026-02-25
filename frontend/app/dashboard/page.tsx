@@ -859,6 +859,17 @@ function DashboardContent() {
                         <span className="font-mono text-xs">
                           {session.short_code}
                         </span>
+                        {(session.polling_mode_type ?? "live_interactive") === "static_poll" ? (
+                          <span className="flex items-center gap-1 text-xs text-yellow-400">
+                            <Timer className="h-3 w-3" />
+                            {t("cube1.moderator.mode_static")}
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-xs text-cyan-400">
+                            <Radio className="h-3 w-3" />
+                            {t("cube1.moderator.mode_live")}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground" />

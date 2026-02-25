@@ -32,17 +32,26 @@ import { PollCountdownTimer } from "@/components/poll-countdown-timer";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, Question } from "@/lib/types";
 
+// ── Simulation Duration Options ──────────────────────────────────
+// User-selectable durations so the countdown timer can be observed at each phase.
+const SIMULATION_DURATIONS = [
+  { label: "2 Day", ms: 2 * 24 * 60 * 60 * 1000, totalDays: 2 },
+  { label: "0.5 Day", ms: 12 * 60 * 60 * 1000, totalDays: 1 },
+  { label: "0.5 Hour", ms: 30 * 60 * 1000, totalDays: 1 },
+  { label: "0.5 Min", ms: 30 * 1000, totalDays: 1 },
+] as const;
+
 // Sample session data for simulation mode (F10)
-// Static poll with 3-day countdown so the timer is always visible
-function makeSimulationSession(): Session {
+// Static poll with user-selectable countdown duration
+function makeSimulationSession(durationMs: number, totalDays: number, label: string): Session {
   const now = new Date();
-  const endsAt = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
+  const endsAt = new Date(now.getTime() + durationMs);
   return {
     id: "sim-session-001",
     short_code: "SIM12345",
     created_by: "sim-moderator",
     status: "polling",
-    title: "Simulation Mode — Static Poll (3 Day)",
+    title: `Simulation Mode — Static Poll (${label})`,
     description: "Sandboxed simulation with countdown timer. Try submitting responses!",
     anonymity_mode: "anonymous",
     cycle_mode: "single",
@@ -63,7 +72,7 @@ function makeSimulationSession(): Session {
     theme2_voting_level: "theme2_9",
     live_feed_enabled: false,
     polling_mode_type: "static_poll",
-    static_poll_duration_days: 3,
+    static_poll_duration_days: totalDays,
     ends_at: endsAt.toISOString(),
     timer_display_mode: "both",
     is_paid: false,
@@ -223,6 +232,9 @@ export function SessionView() {
   const [submittedQuestions, setSubmittedQuestions] = useState<Set<string>>(new Set());
   const [showTokenEarn, setShowTokenEarn] = useState(false);
 
+  // Simulation duration selector (only used in simulation mode)
+  const [simDurationIndex, setSimDurationIndex] = useState(0);
+
   // Timer integration
   const { start: startTimer, earnTokens } = useTimer();
 
@@ -232,9 +244,10 @@ export function SessionView() {
   const { currentTheme } = useTheme();
 
   useEffect(() => {
-    // In simulation mode, use sample data
+    // In simulation mode, use sample data with selectable duration
     if (simulationMode) {
-      const simSession = makeSimulationSession();
+      const dur = SIMULATION_DURATIONS[simDurationIndex];
+      const simSession = makeSimulationSession(dur.ms, dur.totalDays, dur.label);
       setSession(simSession);
       setQuestions(SIMULATION_QUESTIONS);
       setParticipantCount(simSession.participant_count);
@@ -258,7 +271,7 @@ export function SessionView() {
         }
       })
       .finally(() => setLoading(false));
-  }, [sessionId, simulationMode, startTimer]);
+  }, [sessionId, simulationMode, simDurationIndex, startTimer]);
 
   // Fetch questions when session is in polling state
   useEffect(() => {
@@ -457,6 +470,25 @@ export function SessionView() {
         {/* Polling state — One question at a time */}
         {session?.status === "polling" && (
           <>
+          {/* Simulation duration selector — only in simulation mode */}
+          {simulationMode && (
+            <div className="w-full max-w-lg mb-3 flex items-center justify-center gap-2">
+              <span className="text-xs text-muted-foreground">{t("cube1.timer.sim_duration")}:</span>
+              {SIMULATION_DURATIONS.map((dur, i) => (
+                <button
+                  key={dur.label}
+                  onClick={() => setSimDurationIndex(i)}
+                  className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
+                    simDurationIndex === i
+                      ? "border-primary bg-accent/30 font-medium text-foreground"
+                      : "border-border hover:bg-accent/20 text-muted-foreground"
+                  }`}
+                >
+                  {dur.label}
+                </button>
+              ))}
+            </div>
+          )}
           {session.polling_mode_type === "static_poll" && session.ends_at && (
             <PollCountdownTimer
               endsAt={session.ends_at}

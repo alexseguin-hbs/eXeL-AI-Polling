@@ -223,6 +223,9 @@ const cube1: TranslationEntry[] = [
   { key: "cube1.moderator.timer_day", englishDefault: "Day Timer", context: "Timer mode option", cubeId: 1 },
   { key: "cube1.moderator.timer_flex", englishDefault: "Flex Timer", context: "Timer mode option", cubeId: 1 },
   { key: "cube1.moderator.timer_both", englishDefault: "Both", context: "Timer mode option", cubeId: 1 },
+  { key: "cube1.timer.sim_duration", englishDefault: "Sim Duration", context: "Simulation duration selector label", cubeId: 1 },
+  { key: "cube1.moderator.mode_live", englishDefault: "Live", context: "Live Interactive polling mode badge", cubeId: 1 },
+  { key: "cube1.moderator.mode_static", englishDefault: "Static", context: "Static Poll polling mode badge", cubeId: 1 },
   { key: "cube1.moderator.poll_deadline", englishDefault: "Poll Deadline", context: "Poll deadline label", cubeId: 1 },
   // Settings panel
   { key: "cube1.settings.color_scheme", englishDefault: "Session Color Scheme", context: "Theme section heading", cubeId: 1 },
