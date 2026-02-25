@@ -78,6 +78,8 @@ const shared: TranslationEntry[] = [
   { key: "shared.sim.simulation_mode", englishDefault: "Simulation Mode", context: "Simulation overlay label", cubeId: 0 },
   { key: "shared.sim.exit", englishDefault: "Exit simulation", context: "Exit simulation button title", cubeId: 0 },
   { key: "shared.sim.audio_unavailable", englishDefault: "Audio unavailable", context: "Simulation audio error", cubeId: 0 },
+  { key: "shared.sim.loading", englishDefault: "Loading", context: "Simulation audio loading label", cubeId: 0 },
+  { key: "shared.sim.volume", englishDefault: "Volume", context: "Volume slider title", cubeId: 0 },
   // Common UI
   { key: "shared.nav.cancel", englishDefault: "Cancel", context: "Cancel button", cubeId: 0 },
   { key: "shared.nav.participants", englishDefault: "participants", context: "Participant count suffix", cubeId: 0 },

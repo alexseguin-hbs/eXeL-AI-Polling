@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useTheme } from "@/lib/theme-context";
 import { Play, Pause, X, Volume2, VolumeX, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 import { useLexicon } from "@/lib/lexicon-context";
+import { useAudioEngine } from "@/lib/use-audio-engine";
 
 /**
  * Trinity colors — fixed per intelligence, independent of active theme.
@@ -50,65 +51,80 @@ const SONG_PAIRINGS = [
   },
 ];
 
+const TRACK_URLS = SONG_PAIRINGS.map((s) => s.audio);
+
 /**
  * SimulationOverlay — transparent overlay on top of the current screen.
  * The underlying page remains fully visible and interactive.
- * Logos float at corners, built-in audio player at bottom center.
+ * Logos float at corners, Web Audio engine for gapless crossfade playback.
  */
 function SimulationOverlay() {
-  const { currentSong, playing, setSong, togglePlaying, exitSimulationMode } =
-    useEasterEgg();
+  const { exitSimulationMode } = useEasterEgg();
   const { t } = useLexicon();
 
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [audioError, setAudioError] = useState(false);
-  const currentSrcRef = useRef<number>(-1);
+  const {
+    state: {
+      ready,
+      loadProgress,
+      currentTrack,
+      isPlaying,
+      volume,
+      audioIntensity,
+      error: audioError,
+    },
+    initialize,
+    play,
+    pause,
+    switchTrack,
+    setVolume,
+    dispose,
+  } = useAudioEngine(TRACK_URLS);
 
-  // Load new source when song changes
+  // Initialize engine on mount, auto-play when ready
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    initialize();
+  }, [initialize]);
 
-    if (currentSrcRef.current !== currentSong) {
-      setAudioError(false);
-      audio.src = SONG_PAIRINGS[currentSong].audio;
-      audio.load();
-      currentSrcRef.current = currentSong;
+  useEffect(() => {
+    if (ready && !isPlaying) {
+      play();
     }
-  }, [currentSong]);
+    // Only trigger on ready becoming true
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
-  // Play/pause when state changes
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  // Dispose on exit
+  const handleExit = useCallback(() => {
+    dispose();
+    exitSimulationMode();
+  }, [dispose, exitSimulationMode]);
 
-    if (playing) {
-      audio.play().catch(() => setAudioError(true));
+  const handleToggle = useCallback(() => {
+    if (isPlaying) {
+      pause();
     } else {
-      audio.pause();
+      play();
     }
-  }, [playing, currentSong]);
+  }, [isPlaying, pause, play]);
 
-  const handleAudioError = useCallback(() => {
-    setAudioError(true);
-  }, []);
-
-  const current = SONG_PAIRINGS[currentSong];
+  const current = SONG_PAIRINGS[currentTrack];
   const activeColor = current.color;
 
   // Shared logo button renderer — Seed of Life SVG with fixed trinity color per intelligence
   const renderLogo = (index: number) => {
     const pairing = SONG_PAIRINGS[index];
     const logoColor = pairing.color;
-    const isActive = currentSong === index;
+    const isActive = currentTrack === index;
     return (
       <div className="flex flex-col items-center gap-0.5">
         <button
-          onClick={() => setSong(index as 0 | 1 | 2)}
+          onClick={() => switchTrack(index)}
           className="h-14 w-14 rounded-full border-2 flex items-center justify-center transition-all"
           style={{
             borderColor: isActive ? logoColor : `${logoColor}60`,
-            boxShadow: isActive ? `0 0 20px ${logoColor}40` : "none",
+            boxShadow: isActive
+              ? `0 0 ${20 + audioIntensity * 25}px ${logoColor}40`
+              : "none",
             background: isActive ? `${logoColor}15` : "hsl(183, 30%, 9% / 0.8)",
           }}
         >
@@ -116,6 +132,7 @@ function SimulationOverlay() {
             size={44}
             accentColor={logoColor}
             className={isActive ? "flower-pulse" : ""}
+            audioIntensity={isActive && isPlaying ? audioIntensity : 0}
           />
         </button>
         <span
@@ -128,17 +145,50 @@ function SimulationOverlay() {
     );
   };
 
+  // Loading state — circular progress ring
+  if (!ready && !audioError) {
+    return (
+      <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-auto">
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative h-20 w-20">
+            <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+              {/* Background ring */}
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="hsl(183, 30%, 20%)"
+                strokeWidth="6"
+              />
+              {/* Progress ring */}
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke={TRINITY_COLORS.AI}
+                strokeWidth="6"
+                strokeLinecap="round"
+                strokeDasharray={`${2 * Math.PI * 42}`}
+                strokeDashoffset={`${2 * Math.PI * 42 * (1 - loadProgress / 100)}`}
+                style={{ transition: "stroke-dashoffset 0.3s" }}
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-xs font-mono text-primary/80">
+              {loadProgress}%
+            </span>
+          </div>
+          <span className="text-[10px] font-mono text-primary/60">
+            {t("shared.sim.loading")}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Built-in HTML5 audio element */}
-      <audio
-        ref={audioRef}
-        loop
-        preload="auto"
-        onError={handleAudioError}
-        style={{ display: "none" }}
-      />
-
       {/* ── Top center: "SIMULATION MODE" label + eXeL H.I. logo ── */}
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-1 pointer-events-auto">
         <span className="text-[10px] font-mono text-primary/80 uppercase tracking-[0.25em]">
@@ -150,7 +200,7 @@ function SimulationOverlay() {
           variant="ghost"
           size="sm"
           className="h-6 w-6 p-0 mt-0.5"
-          onClick={exitSimulationMode}
+          onClick={handleExit}
           title={t("shared.sim.exit")}
         >
           <X className="h-3.5 w-3.5 text-muted-foreground" />
@@ -167,20 +217,49 @@ function SimulationOverlay() {
         {renderLogo(2)}
       </div>
 
-      {/* ── Play / Pause + song name at bottom center ── */}
+      {/* ── Play / Pause + volume + song name at bottom center ── */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center gap-1.5 pointer-events-auto">
         <button
-          onClick={togglePlaying}
+          onClick={handleToggle}
           className="h-12 w-12 rounded-full border-2 bg-background/90 flex items-center justify-center hover:opacity-80 transition-all backdrop-blur"
           style={{ borderColor: activeColor }}
-          title={playing ? "Pause" : "Play"}
+          title={isPlaying ? "Pause" : "Play"}
         >
-          {playing ? (
+          {isPlaying ? (
             <Pause className="h-5 w-5" style={{ color: activeColor }} />
           ) : (
             <Play className="h-5 w-5 ml-0.5" style={{ color: activeColor }} />
           )}
         </button>
+
+        {/* Volume slider */}
+        <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur rounded-full px-2.5 py-1">
+          <VolumeX
+            className="h-3 w-3 shrink-0 cursor-pointer"
+            style={{ color: volume === 0 ? activeColor : "hsl(183, 10%, 40%)" }}
+            onClick={() => setVolume(0)}
+          />
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            onChange={(e) => setVolume(parseFloat(e.target.value))}
+            className="h-1 w-16 appearance-none rounded-full outline-none cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, ${activeColor} ${volume * 100}%, hsl(183, 10%, 20%) ${volume * 100}%)`,
+              accentColor: activeColor,
+            }}
+            title={t("shared.sim.volume")}
+          />
+          <Volume2
+            className="h-3 w-3 shrink-0 cursor-pointer"
+            style={{ color: volume > 0 ? activeColor : "hsl(183, 10%, 40%)" }}
+            onClick={() => setVolume(1)}
+          />
+        </div>
+
         {/* Song name + error state */}
         <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur rounded-full px-3 py-1">
           {audioError ? (
@@ -190,7 +269,7 @@ function SimulationOverlay() {
                 {t("shared.sim.audio_unavailable")}
               </span>
             </>
-          ) : playing ? (
+          ) : isPlaying ? (
             <>
               <Volume2 className="h-3 w-3" style={{ color: activeColor }} />
               <span className="text-[10px] font-mono" style={{ color: activeColor }}>

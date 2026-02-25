@@ -6,6 +6,8 @@ interface SeedOfLifeLogoProps {
   className?: string;
   onClick?: () => void;
   animate?: boolean;
+  /** Audio intensity 0.0–1.0 from analyser — drives glow/scale/opacity */
+  audioIntensity?: number;
 }
 
 /**
@@ -19,6 +21,7 @@ export function SeedOfLifeLogo({
   className,
   onClick,
   animate = false,
+  audioIntensity = 0,
 }: SeedOfLifeLogoProps) {
   const cx = 50;
   const cy = 50;
@@ -33,6 +36,11 @@ export function SeedOfLifeLogo({
     };
   });
 
+  // Audio-reactive values (only when intensity > 0)
+  const glowRadius = 4 + audioIntensity * 16;
+  const scale = 1.0 + audioIntensity * 0.06;
+  const strokeBoost = audioIntensity * 0.4;
+
   return (
     <svg
       viewBox="0 0 100 100"
@@ -40,7 +48,15 @@ export function SeedOfLifeLogo({
       height={size}
       className={`${animate ? "flower-bloom" : ""} ${className ?? ""}`}
       onClick={onClick}
-      style={{ cursor: onClick ? "pointer" : undefined }}
+      style={{
+        cursor: onClick ? "pointer" : undefined,
+        filter:
+          audioIntensity > 0
+            ? `drop-shadow(0 0 ${glowRadius}px ${accentColor})`
+            : undefined,
+        transform: audioIntensity > 0 ? `scale(${scale})` : undefined,
+        transition: "filter 0.05s, transform 0.05s",
+      }}
     >
       {/* Center circle — filled with low-alpha accent */}
       <circle
@@ -62,7 +78,7 @@ export function SeedOfLifeLogo({
           fill="none"
           stroke={accentColor}
           strokeWidth={1.5}
-          strokeOpacity={0.6 + i * 0.05}
+          strokeOpacity={Math.min(1, 0.6 + i * 0.05 + strokeBoost)}
         />
       ))}
     </svg>
