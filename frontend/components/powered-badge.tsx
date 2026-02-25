@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useTheme } from "@/lib/theme-context";
 import { Play, Pause, X, Volume2, VolumeX, AlertCircle } from "lucide-react";
@@ -294,6 +295,16 @@ export function PoweredBadge() {
   const { simulationMode, easterEggUnlocked, enterSimulationMode } =
     useEasterEgg();
   const { currentTheme } = useTheme();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleEnterSimulation = useCallback(() => {
+    enterSimulationMode();
+    // Navigate to session page so the user sees the poll UI + timer
+    if (pathname !== "/session") {
+      router.push("/session");
+    }
+  }, [enterSimulationMode, router, pathname]);
 
   if (simulationMode) {
     return <SimulationOverlay />;
@@ -305,7 +316,7 @@ export function PoweredBadge() {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <button
-        onClick={easterEggUnlocked ? enterSimulationMode : undefined}
+        onClick={easterEggUnlocked ? handleEnterSimulation : undefined}
         className={`flex items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 text-xs backdrop-blur transition-colors ${
           easterEggUnlocked
             ? "badge-blink cursor-pointer hover:bg-background/95"
