@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import { X, Check, Pipette } from "lucide-react";
+import { useRef, useState } from "react";
+import { X, Check, Pipette, Mic, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -180,6 +180,65 @@ function SettingsLanguageSelector() {
   );
 }
 
+// ─── V2T Provider Selector Section ───────────────────────────────
+
+/** STT providers available at MVP launch with circuit breaker failover */
+const V2T_PROVIDERS = [
+  { id: "whisper", label: "OpenAI Whisper", langCount: 57 },
+  { id: "grok", label: "Grok (xAI)", langCount: 57 },
+  { id: "gemini", label: "Gemini (Google)", langCount: 33 },
+  { id: "aws", label: "AWS Transcribe", langCount: 23 },
+] as const;
+
+function V2TProviderSelector() {
+  const { t } = useLexicon();
+  const [selectedProvider, setSelectedProvider] = useState("whisper");
+
+  return (
+    <section>
+      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+        <Mic className="h-4 w-4" />
+        {t("cube3.settings.v2t_provider")}
+      </h3>
+      <p className="text-xs text-muted-foreground mb-3">
+        {t("cube3.settings.v2t_desc")}
+      </p>
+
+      <div className="space-y-2">
+        {V2T_PROVIDERS.map((provider) => {
+          const isActive = selectedProvider === provider.id;
+          return (
+            <button
+              key={provider.id}
+              onClick={() => setSelectedProvider(provider.id)}
+              className={`w-full flex items-center justify-between rounded-lg border px-3 py-2.5 text-left transition-colors hover:bg-accent/50 ${
+                isActive
+                  ? "border-primary bg-accent/30"
+                  : "border-border"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {isActive && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                <span className="text-sm font-medium">{provider.label}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {provider.langCount} {t("cube3.settings.v2t_languages")}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 flex items-start gap-2 rounded-md border border-border/50 bg-muted/30 px-3 py-2">
+        <Shield className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {t("cube3.settings.v2t_fallback")}
+        </p>
+      </div>
+    </section>
+  );
+}
+
 // ─── Settings Panel ─────────────────────────────────────────────
 
 interface ModeratorSettingsProps {
@@ -222,6 +281,8 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
           <ThemeCustomizer disabled={isPollingUser} />
           {!isPollingUser && (
             <>
+              <Separator />
+              <V2TProviderSelector />
               <Separator />
               <CubeArchitectureStatus />
               <Separator />
