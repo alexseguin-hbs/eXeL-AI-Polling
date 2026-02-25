@@ -358,6 +358,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Minuteur flexible",
     "cube1.moderator.timer_both": "Les deux",
     "cube1.moderator.poll_deadline": "Date limite du sondage",
+    "cube1.timer.sim_duration": "Durée sim.",
+    "cube1.moderator.mode_live": "Direct",
+    "cube1.moderator.mode_static": "Statique",
   },
 
   // ── Spanish (es) ───────────────────────────────────────────────
@@ -709,6 +712,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Temporizador flexible",
     "cube1.moderator.timer_both": "Ambos",
     "cube1.moderator.poll_deadline": "Fecha límite de la encuesta",
+    "cube1.timer.sim_duration": "Duración sim.",
+    "cube1.moderator.mode_live": "En vivo",
+    "cube1.moderator.mode_static": "Estático",
   },
 
   // ── German (de) ────────────────────────────────────────
@@ -1060,6 +1066,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Flex-Timer",
     "cube1.moderator.timer_both": "Beide",
     "cube1.moderator.poll_deadline": "Umfrage-Frist",
+    "cube1.timer.sim_duration": "Sim-Dauer",
+    "cube1.moderator.mode_live": "Live",
+    "cube1.moderator.mode_static": "Statisch",
   },
 
   // ── Italian (it) ───────────────────────────────────────
@@ -1411,6 +1420,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Timer flessibile",
     "cube1.moderator.timer_both": "Entrambi",
     "cube1.moderator.poll_deadline": "Scadenza sondaggio",
+    "cube1.timer.sim_duration": "Durata sim.",
+    "cube1.moderator.mode_live": "Live",
+    "cube1.moderator.mode_static": "Statico",
   },
 
   // ── Portuguese (pt) ────────────────────────────────────
@@ -1762,6 +1774,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Temporizador flexível",
     "cube1.moderator.timer_both": "Ambos",
     "cube1.moderator.poll_deadline": "Prazo da enquete",
+    "cube1.timer.sim_duration": "Duração sim.",
+    "cube1.moderator.mode_live": "Ao vivo",
+    "cube1.moderator.mode_static": "Estático",
   },
 
   // ── Russian (ru) ───────────────────────────────────────
@@ -2113,6 +2128,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Гибкий таймер",
     "cube1.moderator.timer_both": "Оба",
     "cube1.moderator.poll_deadline": "Срок опроса",
+    "cube1.timer.sim_duration": "Длит. сим.",
+    "cube1.moderator.mode_live": "Живой",
+    "cube1.moderator.mode_static": "Статический",
   },
 
   // ── Dutch (nl) ─────────────────────────────────────────
@@ -2464,6 +2482,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Flextimer",
     "cube1.moderator.timer_both": "Beide",
     "cube1.moderator.poll_deadline": "Peilingdeadline",
+    "cube1.timer.sim_duration": "Sim-duur",
+    "cube1.moderator.mode_live": "Live",
+    "cube1.moderator.mode_static": "Statisch",
   },
 
   // ── Chinese (zh) ───────────────────────────────────────
@@ -2815,6 +2836,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "灵活计时器",
     "cube1.moderator.timer_both": "两者",
     "cube1.moderator.poll_deadline": "投票截止",
+    "cube1.timer.sim_duration": "模拟时长",
+    "cube1.moderator.mode_live": "实时",
+    "cube1.moderator.mode_static": "静态",
   },
 
   // ── Japanese (ja) ──────────────────────────────────────
@@ -3166,6 +3190,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "フレックスタイマー",
     "cube1.moderator.timer_both": "両方",
     "cube1.moderator.poll_deadline": "投票締切",
+    "cube1.timer.sim_duration": "シム時間",
+    "cube1.moderator.mode_live": "ライブ",
+    "cube1.moderator.mode_static": "静的",
   },
 
   // ── Korean (ko) ────────────────────────────────────────
@@ -3517,6 +3544,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "유연한 타이머",
     "cube1.moderator.timer_both": "둘 다",
     "cube1.moderator.poll_deadline": "투표 마감",
+    "cube1.timer.sim_duration": "시뮬 시간",
+    "cube1.moderator.mode_live": "라이브",
+    "cube1.moderator.mode_static": "정적",
   },
 
   // ── Arabic (ar) ────────────────────────────────────────
@@ -3868,6 +3898,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "مؤقت مرن",
     "cube1.moderator.timer_both": "كلاهما",
     "cube1.moderator.poll_deadline": "موعد نهاية الاستطلاع",
+    "cube1.timer.sim_duration": "مدة المحاكاة",
+    "cube1.moderator.mode_live": "مباشر",
+    "cube1.moderator.mode_static": "ثابت",
   },
 
   // ── Hindi (hi) ─────────────────────────────────────────
@@ -4219,6 +4252,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "फ्लेक्स टाइमर",
     "cube1.moderator.timer_both": "दोनों",
     "cube1.moderator.poll_deadline": "मतदान की समय सीमा",
+    "cube1.timer.sim_duration": "सिम अवधि",
+    "cube1.moderator.mode_live": "लाइव",
+    "cube1.moderator.mode_static": "स्थिर",
   },
 
   // ── Bengali (bn) ───────────────────────────────────────
@@ -4570,6 +4606,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "ফ্লেক্স টাইমার",
     "cube1.moderator.timer_both": "উভয়",
     "cube1.moderator.poll_deadline": "পোলের সময়সীমা",
+    "cube1.timer.sim_duration": "সিম সময়কাল",
+    "cube1.moderator.mode_live": "লাইভ",
+    "cube1.moderator.mode_static": "স্থির",
   },
 
   // ── Punjabi (pa) ───────────────────────────────────────
@@ -4921,6 +4960,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "ਫਲੈਕਸ ਟਾਈਮਰ",
     "cube1.moderator.timer_both": "ਦੋਵੇਂ",
     "cube1.moderator.poll_deadline": "ਪੋਲ ਦੀ ਆਖ਼ਰੀ ਤਾਰੀਖ਼",
+    "cube1.timer.sim_duration": "ਸਿਮ ਸਮਾਂ",
+    "cube1.moderator.mode_live": "ਲਾਈਵ",
+    "cube1.moderator.mode_static": "ਸਥਿਰ",
   },
 
   // ── Thai (th) ──────────────────────────────────────────
@@ -5272,6 +5314,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "ตัวจับเวลายืดหยุ่น",
     "cube1.moderator.timer_both": "ทั้งสอง",
     "cube1.moderator.poll_deadline": "กำหนดเวลาโพล",
+    "cube1.timer.sim_duration": "ระยะจำลอง",
+    "cube1.moderator.mode_live": "สด",
+    "cube1.moderator.mode_static": "คงที่",
   },
 
   // ── Vietnamese (vi) ────────────────────────────────────
@@ -5623,6 +5668,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Bộ đếm linh hoạt",
     "cube1.moderator.timer_both": "Cả hai",
     "cube1.moderator.poll_deadline": "Hạn chót khảo sát",
+    "cube1.timer.sim_duration": "Thời gian giả lập",
+    "cube1.moderator.mode_live": "Trực tiếp",
+    "cube1.moderator.mode_static": "Tĩnh",
   },
 
   // ── Indonesian (id) ────────────────────────────────────
@@ -5974,6 +6022,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Pengatur waktu fleksibel",
     "cube1.moderator.timer_both": "Keduanya",
     "cube1.moderator.poll_deadline": "Batas waktu jajak pendapat",
+    "cube1.timer.sim_duration": "Durasi sim.",
+    "cube1.moderator.mode_live": "Langsung",
+    "cube1.moderator.mode_static": "Statis",
   },
 
   // ── Malay (ms) ─────────────────────────────────────────
@@ -6325,6 +6376,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Pemasa fleksibel",
     "cube1.moderator.timer_both": "Kedua-dua",
     "cube1.moderator.poll_deadline": "Tarikh akhir undian",
+    "cube1.timer.sim_duration": "Tempoh sim.",
+    "cube1.moderator.mode_live": "Langsung",
+    "cube1.moderator.mode_static": "Statik",
   },
 
   // ── Filipino (tl) ──────────────────────────────────────
@@ -6676,6 +6730,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Flex timer",
     "cube1.moderator.timer_both": "Pareho",
     "cube1.moderator.poll_deadline": "Deadline ng poll",
+    "cube1.timer.sim_duration": "Tagal ng sim.",
+    "cube1.moderator.mode_live": "Live",
+    "cube1.moderator.mode_static": "Statik",
   },
 
   // ── Turkish (tr) ───────────────────────────────────────
@@ -7027,6 +7084,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Esnek zamanlayıcı",
     "cube1.moderator.timer_both": "Her ikisi",
     "cube1.moderator.poll_deadline": "Anket son tarihi",
+    "cube1.timer.sim_duration": "Sim süresi",
+    "cube1.moderator.mode_live": "Canlı",
+    "cube1.moderator.mode_static": "Statik",
   },
 
   // ── Polish (pl) ────────────────────────────────────────
@@ -7378,6 +7438,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Timer elastyczny",
     "cube1.moderator.timer_both": "Oba",
     "cube1.moderator.poll_deadline": "Termin ankiety",
+    "cube1.timer.sim_duration": "Czas sym.",
+    "cube1.moderator.mode_live": "Na żywo",
+    "cube1.moderator.mode_static": "Statyczny",
   },
 
   // ── Ukrainian (uk) ─────────────────────────────────────
@@ -7729,6 +7792,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Гнучкий таймер",
     "cube1.moderator.timer_both": "Обидва",
     "cube1.moderator.poll_deadline": "Термін опитування",
+    "cube1.timer.sim_duration": "Трив. сим.",
+    "cube1.moderator.mode_live": "Наживо",
+    "cube1.moderator.mode_static": "Статичний",
   },
 
   // ── Romanian (ro) ──────────────────────────────────────
@@ -8080,6 +8146,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Cronometru flexibil",
     "cube1.moderator.timer_both": "Ambele",
     "cube1.moderator.poll_deadline": "Termen sondaj",
+    "cube1.timer.sim_duration": "Durată sim.",
+    "cube1.moderator.mode_live": "Live",
+    "cube1.moderator.mode_static": "Static",
   },
 
   // ── Greek (el) ─────────────────────────────────────────
@@ -8431,6 +8500,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Ευέλικτο χρονόμετρο",
     "cube1.moderator.timer_both": "Και τα δύο",
     "cube1.moderator.poll_deadline": "Προθεσμία ψηφοφορίας",
+    "cube1.timer.sim_duration": "Διάρκ. προσ.",
+    "cube1.moderator.mode_live": "Ζωντανά",
+    "cube1.moderator.mode_static": "Στατικό",
   },
 
   // ── Czech (cs) ─────────────────────────────────────────
@@ -8782,6 +8854,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Flexibilní časovač",
     "cube1.moderator.timer_both": "Oba",
     "cube1.moderator.poll_deadline": "Termín ankety",
+    "cube1.timer.sim_duration": "Doba sim.",
+    "cube1.moderator.mode_live": "Živě",
+    "cube1.moderator.mode_static": "Statický",
   },
 
   // ── Swedish (sv) ───────────────────────────────────────
@@ -9133,6 +9208,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Flexibel timer",
     "cube1.moderator.timer_both": "Båda",
     "cube1.moderator.poll_deadline": "Omröstningsdeadline",
+    "cube1.timer.sim_duration": "Sim-längd",
+    "cube1.moderator.mode_live": "Live",
+    "cube1.moderator.mode_static": "Statisk",
   },
 
   // ── Danish (da) ────────────────────────────────────────
@@ -9484,6 +9562,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Fleksibel timer",
     "cube1.moderator.timer_both": "Begge",
     "cube1.moderator.poll_deadline": "Afstemningsfrist",
+    "cube1.timer.sim_duration": "Sim-varighed",
+    "cube1.moderator.mode_live": "Live",
+    "cube1.moderator.mode_static": "Statisk",
   },
 
   // ── Finnish (fi) ───────────────────────────────────────
@@ -9835,6 +9916,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Joustava ajastin",
     "cube1.moderator.timer_both": "Molemmat",
     "cube1.moderator.poll_deadline": "Äänestyksen määräaika",
+    "cube1.timer.sim_duration": "Sim-kesto",
+    "cube1.moderator.mode_live": "Live",
+    "cube1.moderator.mode_static": "Staattinen",
   },
 
   // ── Norwegian (no) ─────────────────────────────────────
@@ -10186,6 +10270,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Fleksibel tidtaker",
     "cube1.moderator.timer_both": "Begge",
     "cube1.moderator.poll_deadline": "Avstemningsfrist",
+    "cube1.timer.sim_duration": "Sim-varighet",
+    "cube1.moderator.mode_live": "Live",
+    "cube1.moderator.mode_static": "Statisk",
   },
 
   // ── Hebrew (he) ────────────────────────────────────────
@@ -10537,6 +10624,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "טיימר גמיש",
     "cube1.moderator.timer_both": "שניהם",
     "cube1.moderator.poll_deadline": "מועד אחרון לסקר",
+    "cube1.timer.sim_duration": "משך סימולציה",
+    "cube1.moderator.mode_live": "שידור חי",
+    "cube1.moderator.mode_static": "סטטי",
   },
 
   // ── Swahili (sw) ───────────────────────────────────────
@@ -10888,6 +10978,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "Kipima muda cha kubadilika",
     "cube1.moderator.timer_both": "Zote mbili",
     "cube1.moderator.poll_deadline": "Mwisho wa kura",
+    "cube1.timer.sim_duration": "Muda ya sim.",
+    "cube1.moderator.mode_live": "Moja kwa moja",
+    "cube1.moderator.mode_static": "Tuli",
   },
 
   // ── Nepali (ne) ────────────────────────────────────────
@@ -11239,5 +11332,8 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.moderator.timer_flex": "फ्लेक्स टाइमर",
     "cube1.moderator.timer_both": "दुवै",
     "cube1.moderator.poll_deadline": "मतदानको समय सीमा",
+    "cube1.timer.sim_duration": "सिम अवधि",
+    "cube1.moderator.mode_live": "लाइभ",
+    "cube1.moderator.mode_static": "स्थिर",
   },
 };
