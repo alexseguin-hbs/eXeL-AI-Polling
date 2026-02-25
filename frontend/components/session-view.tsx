@@ -33,45 +33,50 @@ import { useTheme } from "@/lib/theme-context";
 import type { Session, Question } from "@/lib/types";
 
 // Sample session data for simulation mode (F10)
-const SIMULATION_SESSION: Session = {
-  id: "sim-session-001",
-  short_code: "SIM12345",
-  created_by: "sim-moderator",
-  status: "polling",
-  title: "Simulation Mode — Sample Session",
-  description: "This is a sandboxed simulation session for UI/UX testing.",
-  anonymity_mode: "anonymous",
-  cycle_mode: "single",
-  max_cycles: 1,
-  current_cycle: 1,
-  ranking_mode: "auto",
-  language: "en",
-  max_response_length: 3333,
-  ai_provider: "openai",
-  session_type: "polling",
-  polling_mode: "single_round",
-  pricing_tier: "free",
-  max_participants: null,
-  fee_amount_cents: 0,
-  cost_splitting_enabled: false,
-  reward_enabled: false,
-  reward_amount_cents: 0,
-  theme2_voting_level: "theme2_9",
-  live_feed_enabled: false,
-  polling_mode_type: "live_interactive",
-  static_poll_duration_days: null,
-  ends_at: null,
-  timer_display_mode: "flex",
-  is_paid: false,
-  qr_url: null,
-  join_url: null,
-  opened_at: new Date().toISOString(),
-  closed_at: null,
-  expires_at: null,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-  participant_count: 42,
-};
+// Static poll with 3-day countdown so the timer is always visible
+function makeSimulationSession(): Session {
+  const now = new Date();
+  const endsAt = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days from now
+  return {
+    id: "sim-session-001",
+    short_code: "SIM12345",
+    created_by: "sim-moderator",
+    status: "polling",
+    title: "Simulation Mode — Static Poll (3 Day)",
+    description: "Sandboxed simulation with countdown timer. Try submitting responses!",
+    anonymity_mode: "anonymous",
+    cycle_mode: "single",
+    max_cycles: 1,
+    current_cycle: 1,
+    ranking_mode: "auto",
+    language: "en",
+    max_response_length: 3333,
+    ai_provider: "openai",
+    session_type: "polling",
+    polling_mode: "single_round",
+    pricing_tier: "free",
+    max_participants: null,
+    fee_amount_cents: 0,
+    cost_splitting_enabled: false,
+    reward_enabled: false,
+    reward_amount_cents: 0,
+    theme2_voting_level: "theme2_9",
+    live_feed_enabled: false,
+    polling_mode_type: "static_poll",
+    static_poll_duration_days: 3,
+    ends_at: endsAt.toISOString(),
+    timer_display_mode: "both",
+    is_paid: false,
+    qr_url: null,
+    join_url: null,
+    opened_at: now.toISOString(),
+    closed_at: null,
+    expires_at: null,
+    created_at: now.toISOString(),
+    updated_at: now.toISOString(),
+    participant_count: 42,
+  };
+}
 
 const SIMULATION_QUESTIONS: Question[] = [
   {
@@ -229,9 +234,10 @@ export function SessionView() {
   useEffect(() => {
     // In simulation mode, use sample data
     if (simulationMode) {
-      setSession(SIMULATION_SESSION);
+      const simSession = makeSimulationSession();
+      setSession(simSession);
       setQuestions(SIMULATION_QUESTIONS);
-      setParticipantCount(SIMULATION_SESSION.participant_count);
+      setParticipantCount(simSession.participant_count);
       setLoading(false);
       startTimer();
       return;
