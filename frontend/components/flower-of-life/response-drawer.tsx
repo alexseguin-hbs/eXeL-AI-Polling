@@ -111,6 +111,12 @@ const DRAWER_PALETTES: Record<DrawerColorMode, DrawerPalette> = {
   },
 };
 
+const COLOR_MODE_OPTIONS: { mode: DrawerColorMode; Icon: typeof Moon; title: string }[] = [
+  { mode: "dark", Icon: Moon, title: "Dark mode" },
+  { mode: "inverted", Icon: Sun, title: "Presentation mode" },
+  { mode: "grayscale", Icon: Printer, title: "Print mode" },
+];
+
 /* ─── Component ───────────────────────────────────────────────────── */
 
 export function ResponseDrawer({
@@ -234,11 +240,7 @@ export function ResponseDrawer({
                 marginRight: 4,
               }}
             >
-              {([
-                { mode: "dark" as const, Icon: Moon, title: "Dark mode" },
-                { mode: "inverted" as const, Icon: Sun, title: "Presentation mode" },
-                { mode: "grayscale" as const, Icon: Printer, title: "Print mode" },
-              ]).map(({ mode, Icon, title }) => (
+              {COLOR_MODE_OPTIONS.map(({ mode, Icon, title }) => (
                 <button
                   key={mode}
                   onClick={() => setColorMode(mode)}
