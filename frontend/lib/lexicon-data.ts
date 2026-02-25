@@ -183,7 +183,7 @@ const cube1: TranslationEntry[] = [
   { key: "cube1.moderator.create_new", englishDefault: "Create New Session", context: "Create dialog title", cubeId: 1 },
   { key: "cube1.moderator.create_new_desc", englishDefault: "Set up a new polling session for your participants", context: "Create dialog description", cubeId: 1 },
   { key: "cube1.moderator.session_title", englishDefault: "Session Title", context: "Title input label", cubeId: 1 },
-  { key: "cube1.moderator.description_label", englishDefault: "Description (optional)", context: "Description input label", cubeId: 1 },
+  { key: "cube1.moderator.description_label", englishDefault: "Outcome Desired (optional)", context: "Outcome desired input label", cubeId: 1 },
   { key: "cube1.moderator.ai_provider", englishDefault: "AI Provider", context: "Provider selector label", cubeId: 1 },
   { key: "cube1.moderator.max_response_label", englishDefault: "Max Response Length", context: "Max response input label", cubeId: 1 },
   { key: "cube1.moderator.max_participants_label", englishDefault: "Max Participants", context: "Max participants input label", cubeId: 1 },
@@ -282,6 +282,12 @@ const cube3: TranslationEntry[] = [
   { key: "cube3.voice.stop", englishDefault: "Stop recording", context: "Stop recording button title", cubeId: 3 },
   { key: "cube3.voice.processing_audio", englishDefault: "Processing audio...", context: "Processing state button title", cubeId: 3 },
   { key: "cube3.voice.record_response", englishDefault: "Record voice response", context: "Record button title", cubeId: 3 },
+  // V2T provider settings (Moderator Settings panel)
+  { key: "cube3.settings.v2t_provider", englishDefault: "Voice-to-Text Provider", context: "V2T settings section heading", cubeId: 3 },
+  { key: "cube3.settings.v2t_desc", englishDefault: "Select the speech-to-text engine for voice responses in this session.", context: "V2T settings description", cubeId: 3 },
+  { key: "cube3.settings.v2t_active", englishDefault: "Active Provider", context: "Currently active provider label", cubeId: 3 },
+  { key: "cube3.settings.v2t_fallback", englishDefault: "Circuit breaker failover: if primary fails, system auto-switches to next available provider.", context: "Fallback explanation note", cubeId: 3 },
+  { key: "cube3.settings.v2t_languages", englishDefault: "languages supported", context: "Provider language count suffix", cubeId: 3 },
 ];
 
 const cube4: TranslationEntry[] = [
