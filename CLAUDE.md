@@ -67,6 +67,7 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 - **Framework:** React + Next.js
 - **UI Library:** shadcn/ui (clean, modern default — no existing brand/designs yet)
 - **Hosting:** Cloudflare Pages
+- **Live URL:** https://exel-ai-polling.explore-096.workers.dev
 - **Responsive UI:** Mobile-first design — must work on Desktop, Laptop, Tablet, Phone (Android + iOS)
 - **No native app** — responsive web only, all devices via browser
 - **Browsers:** Chrome, Safari (iOS), Firefox, Edge
@@ -510,7 +511,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 - Rate lookup API: `GET /tokens/rates`, `GET /tokens/rates/lookup`
 - Files: `cubes/cube8_tokens/service.py`, `cubes/cube8_tokens/router.py`, `core/hi_rates.py`, `schemas/token.py`, `models/token_ledger.py`
 
-### Frontend — Language Lexicon: IMPLEMENTED (328/328 keys × 32 languages = 10,496 translations)
+### Frontend — Language Lexicon: IMPLEMENTED (333/333 keys × 32 languages = 10,656 translations)
 - **Per-cube translation management** — 328 UI string keys organized by cube (0–10), modular for parallel dev
 - **Full translation coverage:** 328/328 keys translated across all 32 non-English languages (4,480 new strings added 2026-02-23)
 - **Key groups:** 44 shared + 160 cube1 + 14 cube2 + 20 cube3 + 16 cube4 + 12 cube5 + 15 cube6 + 17 cube7 + 18 cube8 + 20 cube9 + 21 cube10
@@ -902,9 +903,9 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 | `lib/api.ts` | **Updated** | Added submitVoiceResponse (FormData upload, mock + live) |
 | `components/session-view.tsx` | **Updated** | Passes sessionId, questionId, participantId, languageCode to VoiceInput |
 
-### Cube 3 Implementation — 9x Spiral Metrics (N=9, 2026-02-23)
+### Cube 3 Implementation + V2T Settings — 9x Spiral Metrics (N=9, 2026-02-23)
 
-**Change:** Implemented Cube 3 Voice-to-Text Engine: AWS Transcribe batch provider, CRS-08 response_hash fix, frontend voice-input.tsx wired to backend, 21 new E2E tests.
+**Change:** Implemented Cube 3 Voice-to-Text Engine: AWS Transcribe batch provider, CRS-08 response_hash fix, frontend voice-input.tsx wired to backend, 21 new E2E tests. Added V2T Provider Selector to Moderator Settings panel (4 providers: Whisper, Grok, Gemini, AWS with circuit breaker failover note). Added 5 new lexicon keys × 32 languages = 160 translations.
 
 **Test Command:**
 ```bash
@@ -917,25 +918,31 @@ cd frontend && npx next build
 | Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 | Run 7 | Run 8 | Run 9 | Average | Std Dev |
 |--------|-------|-------|-------|-------|-------|-------|-------|-------|-------|---------|---------|
 | Tests Passed | 194/194 | 194/194 | 194/194 | 194/194 | 194/194 | 194/194 | 194/194 | 194/194 | 194/194 | **194/194** | **0** |
-| Backend Test Duration | 840ms | 820ms | 860ms | 1,430ms | 1,360ms | 1,370ms | 2,140ms | 1,400ms | 1,410ms | **1,292ms** | **417ms** |
+| Cube 3 Tests | 39/39 | 39/39 | 39/39 | 39/39 | 39/39 | 39/39 | 39/39 | 39/39 | 39/39 | **39/39** | **0** |
+| Cube 3 Duration | 4,616ms | 4,608ms | 4,583ms | 4,690ms | 4,803ms | 4,614ms | 4,639ms | 4,792ms | 4,564ms | **4,656ms** | **82ms** |
+| Full Backend Duration | 5,559ms | 5,560ms | 5,651ms | 5,627ms | 5,705ms | 5,470ms | 5,635ms | 6,026ms | 5,711ms | **5,660ms** | **147ms** |
 | TypeScript Errors | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
-| TSC Check Duration | 2,361ms | 2,283ms | 2,165ms | 4,425ms | 4,408ms | 5,038ms | 4,513ms | 4,311ms | 4,749ms | **3,806ms** | **1,173ms** |
-| Frontend Build Duration | 21,441ms | 21,318ms | 26,368ms | 47,035ms | 46,552ms | 44,943ms | 50,099ms | 43,739ms | 63,791ms | **40,587ms** | **14,470ms** |
-| Landing Page Bundle | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | 1.91 kB | **1.91 kB** | **0** |
+| TSC Check Duration | 4,186ms | 4,089ms | 4,086ms | 4,084ms | 4,233ms | 3,878ms | 4,152ms | 4,081ms | 4,040ms | **4,092ms** | **94ms** |
+| Landing Page Bundle | 1.8 kB | 1.8 kB | 1.8 kB | 1.8 kB | 1.8 kB | 1.8 kB | 1.8 kB | 1.8 kB | 1.8 kB | **1.8 kB** | **0** |
 | Dashboard Bundle | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | 26.6 kB | **26.6 kB** | **0** |
-| Session Bundle | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | 6.07 kB | **6.07 kB** | **0** |
+| Session Bundle | 6.02 kB | 6.02 kB | 6.02 kB | 6.02 kB | 6.02 kB | 6.02 kB | 6.02 kB | 6.02 kB | 6.02 kB | **6.02 kB** | **0** |
 | Join Bundle | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | 3.78 kB | **3.78 kB** | **0** |
 
-**Spiral Propagation Verification:**
-- Forward (3→10): All downstream cubes compatible — PASS
+**Spiral Propagation Verification (Cube 3 → Cube 1-3 → 3-1):**
+- Forward (1→2→3→10): All downstream cubes compatible — PASS
+  - Cube 1 (Session): Session config stores ai_provider → maps to STT provider via factory
+  - Cube 2 (Text): PII/profanity pipeline reused by Cube 3 voice transcripts
+  - Cube 3 (Voice): V2T provider selector in Moderator Settings wired to 4 providers
   - Cube 4 (Collector): Aggregates voice responses stored by Cube 3
   - Cube 5 (Gateway): Time tracking integration (start/stop voice_responding)
   - Cube 6 (AI): Consumes Redis events for theme pipeline (voice + text)
   - Cube 8 (Tokens): Ledger entries via Cube 5 time tracking
   - Cube 9 (Reports): Exports voice transcript data with clean_text + response_hash
-- Backward (10→3): 1 issue found and fixed — PASS
-  - CRS-08: response_hash was missing from store_voice_response() TextResponse creation (fixed)
-  - Frontend voice-input.tsx was stub-only, not wired to backend (fixed)
+- Backward (10→3→2→1): All verified — PASS
+  - CRS-08: response_hash computed on voice transcripts (matching Cube 2 pattern)
+  - Frontend voice-input.tsx wired to backend API via FormData
+  - V2T provider selector added to Moderator Settings (between Theme Customizer and Cube Architecture)
+  - 5 new lexicon keys (cube3.settings.*) translated across 32 languages
 - **RESULT: 9/9 SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
 
 ### Cubes 4, 6–7, 9–10: SCAFFOLDED (stubs only)

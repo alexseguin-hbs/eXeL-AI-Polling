@@ -2145,6 +2145,7 @@ The following technology choices were confirmed during project setup:
 - **Framework:** React + Next.js
 - **UI Library:** shadcn/ui (clean, professional default)
 - **Hosting:** Cloudflare Pages
+- **Live URL:** https://exel-ai-polling.explore-096.workers.dev
 
 ### Backend
 - **Framework:** FastAPI (Python) — as originally specified
