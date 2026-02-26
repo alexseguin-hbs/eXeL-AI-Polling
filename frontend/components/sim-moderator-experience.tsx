@@ -12,6 +12,8 @@ import {
   Copy,
   Radio,
   Timer,
+  Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
@@ -80,6 +82,23 @@ const NEXT_TRANSITIONS: Record<SimSessionStatus, { action: string; nextStatus: S
   archived: null,
 };
 
+// ── 7 simulated AI participant responses ────────────────────────
+const SIM_RESPONSES = [
+  { user: "Participant 1", text: "AI can democratize decision-making by processing millions of voices simultaneously." },
+  { user: "Participant 2", text: "My biggest concern is algorithmic bias perpetuating historical inequality." },
+  { user: "Participant 3", text: "Transparency is key — every AI decision needs an explainable audit trail." },
+  { user: "Participant 4", text: "We need hybrid systems — AI processes data, humans make final decisions." },
+  { user: "Participant 5", text: "AI governance means policies can adapt to feedback in hours, not years." },
+  { user: "Participant 6", text: "Privacy is #1 — governance AI will access massive citizen data." },
+  { user: "Participant 7", text: "Start with low-stakes decisions before scaling to critical governance areas." },
+];
+
+const SIM_THEMES_MODERATOR = [
+  { name: "Opportunity & Innovation", count: 3, confidence: 92, color: "#22C55E" },
+  { name: "Risk & Concerns", count: 2, confidence: 88, color: "#EF4444" },
+  { name: "Balanced / Hybrid Approach", count: 2, confidence: 85, color: "#3B82F6" },
+];
+
 export function SimModeratorExperience() {
   const { t } = useLexicon();
   const { currentTheme } = useTheme();
@@ -88,6 +107,8 @@ export function SimModeratorExperience() {
   const [simType, setSimType] = useState<"live_interactive" | "static_poll">("live_interactive");
   const [session, setSession] = useState<SimSessionState | null>(null);
   const [autoAdvancing, setAutoAdvancing] = useState(false);
+  const [simResponses, setSimResponses] = useState<typeof SIM_RESPONSES>([]);
+  const [simTheming, setSimTheming] = useState(false);
   const participantIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Create a new simulated session
@@ -151,6 +172,29 @@ export function SimModeratorExperience() {
     }, 1500);
     return () => clearTimeout(timer);
   }, [autoAdvancing, session, handleTransition]);
+
+  // Simulate 7 AI responses arriving during polling
+  useEffect(() => {
+    if (session?.status !== "polling") {
+      setSimResponses([]);
+      return;
+    }
+    const timers = SIM_RESPONSES.map((r, i) =>
+      setTimeout(() => {
+        setSimResponses((prev) => prev.length > i ? prev : [...prev, r]);
+      }, 2000 + i * 2500)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [session?.status]);
+
+  // Auto-theming when transitioning to ranking
+  useEffect(() => {
+    if (session?.status === "ranking") {
+      setSimTheming(true);
+      const timer = setTimeout(() => setSimTheming(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [session?.status]);
 
   // Simulate participants joining when session is open
   useEffect(() => {
@@ -311,18 +355,61 @@ export function SimModeratorExperience() {
               )}
 
               {/* Participant joining indicator */}
-              {(session.status === "open" || session.status === "polling") && (
+              {session.status === "open" && (
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
                   <span>{t("cube10.sim.participants_joining")}</span>
                 </div>
               )}
 
+              {/* Response feed during polling */}
+              {session.status === "polling" && simResponses.length > 0 && (
+                <div className="rounded-lg border border-border">
+                  <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+                    <MessageSquare className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-medium">{simResponses.length}/7 Responses</span>
+                  </div>
+                  <div className="space-y-0 max-h-36 overflow-y-auto">
+                    {simResponses.map((r, i) => (
+                      <div key={i} className="flex items-start gap-2 px-3 py-1.5 text-xs border-b border-border/50 last:border-0">
+                        <span className="font-medium text-primary shrink-0">{r.user}</span>
+                        <span className="text-muted-foreground line-clamp-1">{r.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Theming indicator during ranking transition */}
+              {session.status === "ranking" && simTheming && (
+                <div className="flex flex-col items-center gap-2 py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <p className="text-sm text-primary font-medium">Cube 6 — AI Theming...</p>
+                </div>
+              )}
+
+              {/* Themed results during ranking */}
+              {session.status === "ranking" && !simTheming && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground text-center mb-2">3 themes identified from 7 responses</p>
+                  {SIM_THEMES_MODERATOR.map((theme, i) => (
+                    <div key={i} className="flex items-center gap-3 rounded-md border px-3 py-2" style={{ borderColor: `${theme.color}40` }}>
+                      <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: theme.color }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{theme.name}</p>
+                        <p className="text-[10px] text-muted-foreground">{theme.count} responses · {theme.confidence}% confidence</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Closed/archived state */}
               {(session.status === "closed" || session.status === "archived") && (
                 <div className="flex flex-col items-center gap-2 py-4">
-                  <CheckCircle2 className="h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Session {session.status}</p>
+                  <CheckCircle2 className="h-8 w-8 text-green-400" />
+                  <p className="text-sm font-medium">Session Complete</p>
+                  <p className="text-xs text-muted-foreground text-center">7 responses · 3 themes · Rankings submitted</p>
                 </div>
               )}
 

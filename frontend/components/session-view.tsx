@@ -119,6 +119,157 @@ const SIMULATION_QUESTIONS: Question[] = [
   },
 ];
 
+// ── 7 Canned AI User Responses (Simulation) ─────────────────────
+interface SimAiResponse {
+  user: string;
+  text: string;
+  delayMs: number;
+  theme: "opportunity" | "concern" | "balanced";
+}
+
+const SIM_AI_RESPONSES: SimAiResponse[] = [
+  { user: "AI User 1", text: "AI can democratize decision-making by processing millions of voices simultaneously, something human-only systems can't achieve at scale.", delayMs: 2000, theme: "opportunity" },
+  { user: "AI User 2", text: "My biggest concern is algorithmic bias in AI governance. If the training data reflects historical biases, the AI will perpetuate inequality.", delayMs: 4500, theme: "concern" },
+  { user: "AI User 3", text: "Transparency is key. Every AI governance decision should have an explainable audit trail that citizens can review.", delayMs: 7000, theme: "balanced" },
+  { user: "AI User 4", text: "We need hybrid systems — AI processes data and identifies patterns, but humans make final governance decisions with that intelligence.", delayMs: 9500, theme: "balanced" },
+  { user: "AI User 5", text: "The speed of AI analysis means governance can become truly real-time. Policies can adapt to citizen feedback within hours, not years.", delayMs: 12000, theme: "opportunity" },
+  { user: "AI User 6", text: "Privacy is my #1 concern. Governance AI systems will have access to massive amounts of citizen data. We need iron-clad protections.", delayMs: 14500, theme: "concern" },
+  { user: "AI User 7", text: "AI governance should start with low-stakes decisions like urban planning priorities before scaling to more critical areas.", delayMs: 17000, theme: "opportunity" },
+];
+
+// ── Simulated Themes (Cube 6 Stub) ──────────────────────────────
+interface SimTheme {
+  id: string;
+  name: string;
+  confidence: number;
+  responseCount: number;
+  color: string;
+  icon: string;
+}
+
+const SIM_THEMES: SimTheme[] = [
+  { id: "t1", name: "Opportunity & Innovation", confidence: 0.92, responseCount: 3, color: "#22C55E", icon: "🚀" },
+  { id: "t2", name: "Risk & Concerns", confidence: 0.88, responseCount: 2, color: "#EF4444", icon: "⚠️" },
+  { id: "t3", name: "Balanced / Hybrid Approach", confidence: 0.85, responseCount: 3, color: "#3B82F6", icon: "⚖️" },
+];
+
+// ── AI Response Feed (shows canned responses appearing) ─────────
+function SimAiResponseFeed({ responses }: { responses: SimAiResponse[] }) {
+  if (responses.length === 0) return null;
+  return (
+    <div className="w-full max-w-lg mb-4">
+      <p className="text-xs text-muted-foreground mb-2">
+        {responses.length}/7 AI users responded
+      </p>
+      <div className="space-y-1.5 max-h-32 overflow-y-auto">
+        {responses.map((r, i) => (
+          <div key={i} className="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-1.5 text-xs animate-in fade-in slide-in-from-bottom-2">
+            <span className="font-medium text-primary shrink-0">{r.user}</span>
+            <span className="text-muted-foreground line-clamp-1">{r.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Sim Ranking UI (Cube 7 Stub — click to rank themes) ─────────
+function SimRankingUI({
+  themes,
+  onComplete,
+}: {
+  themes: SimTheme[];
+  onComplete: () => void;
+}) {
+  const [rankings, setRankings] = useState<string[]>([]);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleRank = (themeId: string) => {
+    if (rankings.includes(themeId) || submitted) return;
+    const newRankings = [...rankings, themeId];
+    setRankings(newRankings);
+    if (newRankings.length === themes.length) {
+      setSubmitted(true);
+      setTimeout(onComplete, 1500);
+    }
+  };
+
+  const getRankLabel = (themeId: string) => {
+    const idx = rankings.indexOf(themeId);
+    return idx >= 0 ? `#${idx + 1}` : "";
+  };
+
+  return (
+    <Card className="w-full max-w-lg">
+      <CardHeader className="text-center">
+        <CardTitle className="text-lg">Rank These Themes</CardTitle>
+        <CardDescription>
+          Tap themes in order of priority (1st = most important)
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Theming analysis banner */}
+        <div className="rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-center mb-2">
+          <p className="text-xs text-primary">
+            Cube 6 AI Theming Complete — 8 responses → 3 themes identified
+          </p>
+        </div>
+
+        {themes.map((theme) => {
+          const rank = getRankLabel(theme.id);
+          const isRanked = rank !== "";
+          return (
+            <button
+              key={theme.id}
+              onClick={() => handleRank(theme.id)}
+              disabled={isRanked || submitted}
+              className={`w-full text-left rounded-lg border-2 p-3 transition-all ${
+                isRanked
+                  ? "border-primary bg-primary/5"
+                  : submitted
+                  ? "border-muted opacity-50"
+                  : "border-border hover:border-primary/50 hover:bg-accent/30 cursor-pointer"
+              }`}
+              style={isRanked ? { borderColor: theme.color } : undefined}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{theme.icon}</span>
+                  <div>
+                    <p className="text-sm font-medium">{theme.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {theme.responseCount} responses · {Math.round(theme.confidence * 100)}% confidence
+                    </p>
+                  </div>
+                </div>
+                {isRanked ? (
+                  <span
+                    className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                    style={{ backgroundColor: theme.color }}
+                  >
+                    {rank}
+                  </span>
+                ) : (
+                  <span className="h-7 w-7 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-xs text-muted-foreground">
+                    ?
+                  </span>
+                )}
+              </div>
+            </button>
+          );
+        })}
+
+        {submitted && (
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <CheckCircle2 className="h-8 w-8 text-green-400" />
+            <p className="text-sm text-green-400 font-medium">Rankings submitted!</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Polling Status Bar ───────────────────────────────────────────
 
 const POLLING_STEP_KEYS = [
@@ -251,6 +402,11 @@ export function SessionView() {
   const [simDurationIndex, setSimDurationIndex] = useState(0);
   const [simType, setSimType] = useState<"live_interactive" | "static_poll">("live_interactive");
 
+  // Simulation: 7 AI user responses that appear progressively
+  const [simAiResponses, setSimAiResponses] = useState<SimAiResponse[]>([]);
+  const [simPhase, setSimPhase] = useState<"polling" | "theming" | "ranking" | "results">("polling");
+  const [simUserSubmitted, setSimUserSubmitted] = useState(false);
+
   // Timer integration
   const { start: startTimer, earnTokens } = useTimer();
 
@@ -294,6 +450,39 @@ export function SessionView() {
       })
       .finally(() => setLoading(false));
   }, [sessionId, simulationMode, simulationRole, simType, simDurationIndex, startTimer]);
+
+  // Simulation: Progressive AI responses during moderator sim polling
+  useEffect(() => {
+    if (!simulationMode || simulationRole !== "moderator" || simPhase !== "polling") return;
+    const timers = SIM_AI_RESPONSES.map((response, i) =>
+      setTimeout(() => {
+        setSimAiResponses((prev) => {
+          if (prev.length > i) return prev; // Already added
+          return [...prev, response];
+        });
+      }, response.delayMs)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [simulationMode, simulationRole, simPhase]);
+
+  // Simulation: Auto-transition to theming when all 7 AI + 1 user submit
+  useEffect(() => {
+    if (!simulationMode || simulationRole !== "moderator") return;
+    if (simAiResponses.length >= 7 && simUserSubmitted && simPhase === "polling") {
+      // All 8 responses in — auto-transition to theming
+      const timer = setTimeout(() => {
+        setSimPhase("theming");
+        toast({ title: "All responses received — AI Theming in progress..." });
+        // After 3s "theming", transition to ranking
+        setTimeout(() => {
+          setSimPhase("ranking");
+          setSession((prev) => prev ? { ...prev, status: "ranking" } : prev);
+          toast({ title: "Themes identified — Ranking ready!" });
+        }, 3000);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [simulationMode, simulationRole, simAiResponses.length, simUserSubmitted, simPhase]);
 
   // Fetch questions when session is in polling state
   useEffect(() => {
@@ -374,6 +563,11 @@ export function SessionView() {
       setTimeout(() => setShowTokenEarn(false), 1200);
 
       toast({ title: "Response submitted" });
+
+      // Track sim user submission for auto-transition
+      if (simulationMode && simulationRole === "moderator") {
+        setSimUserSubmitted(true);
+      }
 
       // Auto-advance to next question after brief delay
       if (currentQuestionIndex < questions.length - 1) {
@@ -548,6 +742,20 @@ export function SessionView() {
               )}
             </div>
           )}
+          {/* Sim AI response feed — shows 7 AI users responding progressively */}
+          {simulationMode && simulationRole === "moderator" && simPhase === "polling" && (
+            <SimAiResponseFeed responses={simAiResponses} />
+          )}
+
+          {/* Sim theming indicator */}
+          {simulationMode && simulationRole === "moderator" && simPhase === "theming" && (
+            <div className="w-full max-w-lg mb-4 flex flex-col items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <p className="text-sm text-primary font-medium">Cube 6 — AI Theming in progress...</p>
+              <p className="text-xs text-muted-foreground">Clustering 8 responses into themes</p>
+            </div>
+          )}
+
           {session.polling_mode_type === "static_poll" && session.ends_at && (
             <PollCountdownTimer
               endsAt={session.ends_at}
@@ -671,23 +879,37 @@ export function SessionView() {
 
         {/* Ranking state */}
         {session?.status === "ranking" && (
-          <Card className="w-full max-w-lg">
-            <CardHeader className="text-center">
-              <CardTitle>{t("cube1.session.theme_voting")}</CardTitle>
-              <CardDescription>
-                {t("cube1.session.theme_voting_desc")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center gap-4 py-8">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="h-4 w-4" />
-                <span>{participantCount} {t("shared.nav.participants")}</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {t("cube1.session.theme_voting_soon")}
-              </p>
-            </CardContent>
-          </Card>
+          <>
+            {/* Sim ranking with themed clusters (Cube 7 stub) */}
+            {simulationMode && simulationRole === "moderator" ? (
+              <SimRankingUI
+                themes={SIM_THEMES}
+                onComplete={() => {
+                  setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
+                  setSimPhase("results");
+                  toast({ title: "Session complete — results available!" });
+                }}
+              />
+            ) : (
+              <Card className="w-full max-w-lg">
+                <CardHeader className="text-center">
+                  <CardTitle>{t("cube1.session.theme_voting")}</CardTitle>
+                  <CardDescription>
+                    {t("cube1.session.theme_voting_desc")}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center gap-4 py-8">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    <span>{participantCount} {t("shared.nav.participants")}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {t("cube1.session.theme_voting_soon")}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
 
         {/* Closed state */}
