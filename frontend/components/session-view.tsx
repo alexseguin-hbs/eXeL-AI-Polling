@@ -29,6 +29,7 @@ import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useLexicon } from "@/lib/lexicon-context";
 import { VoiceInput } from "@/components/voice-input";
 import { PollCountdownTimer } from "@/components/poll-countdown-timer";
+import { SimModeratorExperience } from "@/components/sim-moderator-experience";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, Question } from "@/lib/types";
 
@@ -42,17 +43,27 @@ const SIMULATION_DURATIONS = [
 ] as const;
 
 // Sample session data for simulation mode (F10)
-// Static poll with user-selectable countdown duration
-function makeSimulationSession(durationMs: number, totalDays: number, label: string): Session {
+// Supports both live_interactive (default) and static_poll with countdown timer
+function makeSimulationSession(
+  simType: "live_interactive" | "static_poll",
+  durationMs: number,
+  totalDays: number,
+  label: string,
+): Session {
   const now = new Date();
-  const endsAt = new Date(now.getTime() + durationMs);
+  const isStatic = simType === "static_poll";
+  const endsAt = isStatic ? new Date(now.getTime() + durationMs) : null;
   return {
     id: "sim-session-001",
     short_code: "SIM12345",
     created_by: "sim-moderator",
     status: "polling",
-    title: `Simulation Mode — Static Poll (${label})`,
-    description: "Sandboxed simulation with countdown timer. Try submitting responses!",
+    title: isStatic
+      ? `Simulation Mode — Static Poll (${label})`
+      : `Simulation Mode — Live Poll`,
+    description: isStatic
+      ? "Sandboxed simulation with countdown timer. Try submitting responses!"
+      : "Sandboxed simulation of a live interactive poll. Try submitting responses!",
     anonymity_mode: "anonymous",
     cycle_mode: "single",
     max_cycles: 1,
@@ -71,10 +82,10 @@ function makeSimulationSession(durationMs: number, totalDays: number, label: str
     reward_amount_cents: 0,
     theme2_voting_level: "theme2_9",
     live_feed_enabled: false,
-    polling_mode_type: "static_poll",
-    static_poll_duration_days: totalDays,
-    ends_at: endsAt.toISOString(),
-    timer_display_mode: "both",
+    polling_mode_type: simType,
+    static_poll_duration_days: isStatic ? totalDays : null,
+    ends_at: endsAt ? endsAt.toISOString() : null,
+    timer_display_mode: isStatic ? "both" : "flex",
     is_paid: false,
     qr_url: null,
     join_url: null,
@@ -236,22 +247,29 @@ export function SessionView() {
   const [submittedQuestions, setSubmittedQuestions] = useState<Set<string>>(new Set());
   const [showTokenEarn, setShowTokenEarn] = useState(false);
 
-  // Simulation duration selector (only used in simulation mode)
+  // Simulation duration selector + type toggle (only used in simulation mode)
   const [simDurationIndex, setSimDurationIndex] = useState(0);
+  const [simType, setSimType] = useState<"live_interactive" | "static_poll">("live_interactive");
 
   // Timer integration
   const { start: startTimer, earnTokens } = useTimer();
 
   // Simulation mode — use sample data instead of API calls
-  const { simulationMode } = useEasterEgg();
+  const { simulationMode, simulationRole } = useEasterEgg();
   const { t } = useLexicon();
   const { currentTheme } = useTheme();
 
   useEffect(() => {
     // In simulation mode, use sample data with selectable duration
     if (simulationMode) {
+      // Poller sim → SimModeratorExperience handles its own state
+      if (simulationRole === "poller") {
+        setLoading(false);
+        return;
+      }
+      // Moderator sim → show participant polling experience
       const dur = SIMULATION_DURATIONS[simDurationIndex];
-      const simSession = makeSimulationSession(dur.ms, dur.totalDays, dur.label);
+      const simSession = makeSimulationSession(simType, dur.ms, dur.totalDays, dur.label);
       setSession(simSession);
       setQuestions(SIMULATION_QUESTIONS);
       setParticipantCount(simSession.participant_count);
@@ -275,7 +293,7 @@ export function SessionView() {
         }
       })
       .finally(() => setLoading(false));
-  }, [sessionId, simulationMode, simDurationIndex, startTimer]);
+  }, [sessionId, simulationMode, simulationRole, simType, simDurationIndex, startTimer]);
 
   // Fetch questions when session is in polling state
   useEffect(() => {
@@ -425,10 +443,18 @@ export function SessionView() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar sessionTitle={simulationMode ? `[SIM] ${session?.title ?? ""}` : session?.title} />
+      <Navbar sessionTitle={simulationMode ? `[SIM] ${simulationRole === "poller" ? t("cube10.sim.role_poller") : (session?.title ?? "")}` : session?.title} />
       <TokenEarnOverlay visible={showTokenEarn} />
 
       <main className="container flex flex-1 flex-col items-center py-8 px-4">
+        {/* Poller sim → show moderator dashboard experience */}
+        {simulationMode && simulationRole === "poller" && (
+          <SimModeratorExperience />
+        )}
+
+        {/* Normal flow (or moderator sim → participant polling experience) */}
+        {!(simulationMode && simulationRole === "poller") && (
+        <>
         {/* Status bar — visible during active polling states */}
         {session && ["open", "polling", "ranking"].includes(session.status) && (
           <PollingStatusBar status={session.status} />
@@ -474,23 +500,52 @@ export function SessionView() {
         {/* Polling state — One question at a time */}
         {session?.status === "polling" && (
           <>
-          {/* Simulation duration selector — only in simulation mode */}
-          {simulationMode && (
-            <div className="w-full max-w-lg mb-3 flex items-center justify-center gap-2">
-              <span className="text-xs text-muted-foreground">{t("cube1.timer.sim_duration")}:</span>
-              {SIMULATION_DURATIONS.map((dur, i) => (
+          {/* Simulation type + duration selector — only in moderator simulation mode */}
+          {simulationMode && simulationRole === "moderator" && (
+            <div className="w-full max-w-lg mb-3 flex flex-col items-center gap-2">
+              {/* Sim type toggle: Live Poll / Static Poll */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">{t("cube10.sim.sim_type")}:</span>
                 <button
-                  key={dur.label}
-                  onClick={() => setSimDurationIndex(i)}
+                  onClick={() => setSimType("live_interactive")}
                   className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
-                    simDurationIndex === i
+                    simType === "live_interactive"
                       ? "border-primary bg-accent/30 font-medium text-foreground"
                       : "border-border hover:bg-accent/20 text-muted-foreground"
                   }`}
                 >
-                  {dur.label}
+                  {t("cube10.sim.live_poll")}
                 </button>
-              ))}
+                <button
+                  onClick={() => setSimType("static_poll")}
+                  className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
+                    simType === "static_poll"
+                      ? "border-primary bg-accent/30 font-medium text-foreground"
+                      : "border-border hover:bg-accent/20 text-muted-foreground"
+                  }`}
+                >
+                  {t("cube10.sim.static_poll")}
+                </button>
+              </div>
+              {/* Duration selector — only for static poll sim */}
+              {simType === "static_poll" && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">{t("cube1.timer.sim_duration")}:</span>
+                  {SIMULATION_DURATIONS.map((dur, i) => (
+                    <button
+                      key={dur.label}
+                      onClick={() => setSimDurationIndex(i)}
+                      className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
+                        simDurationIndex === i
+                          ? "border-primary bg-accent/30 font-medium text-foreground"
+                          : "border-border hover:bg-accent/20 text-muted-foreground"
+                      }`}
+                    >
+                      {dur.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           {session.polling_mode_type === "static_poll" && session.ends_at && (
@@ -652,6 +707,8 @@ export function SessionView() {
               </Button>
             </CardContent>
           </Card>
+        )}
+        </>
         )}
       </main>
     </div>

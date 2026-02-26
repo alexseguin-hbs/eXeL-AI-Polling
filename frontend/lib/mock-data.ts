@@ -260,9 +260,14 @@ export function handleMockRequest<T>(
   if (method === "POST" && path === "/sessions") {
     const payload = body as Record<string, unknown>;
     sessionCounter++;
+    const shortCode = generateShortCode();
+    const pollingModeType = ((payload?.polling_mode_type as string) || "live_interactive") as Session["polling_mode_type"];
+    const staticPollDays = pollingModeType === "static_poll"
+      ? ((payload?.static_poll_duration_days as number) || 3)
+      : null;
     const newSession: Session = {
       id: generateId(),
-      short_code: generateShortCode(),
+      short_code: shortCode,
       created_by: MOCK_MODERATOR_ID,
       status: "draft",
       title: (payload?.title as string) || `Session #${sessionCounter}`,
@@ -285,13 +290,15 @@ export function handleMockRequest<T>(
       reward_amount_cents: (payload?.reward_amount_cents as number) || 0,
       theme2_voting_level: (payload?.theme2_voting_level as string) || "theme2_9",
       live_feed_enabled: (payload?.live_feed_enabled as boolean) || false,
-      polling_mode_type: "live_interactive",
-      static_poll_duration_days: null,
+      polling_mode_type: pollingModeType,
+      static_poll_duration_days: staticPollDays,
+      timer_display_mode: ((payload?.timer_display_mode as string) || "flex") as Session["timer_display_mode"],
       is_paid: false,
       qr_url: null,
-      join_url: `${typeof window !== "undefined" ? window.location.origin : ""}/join/?code=${generateShortCode()}`,
+      join_url: `${typeof window !== "undefined" ? window.location.origin : ""}/join/?code=${shortCode}`,
       opened_at: null,
       closed_at: null,
+      ends_at: null,
       expires_at: new Date(Date.now() + 86400000).toISOString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -412,6 +419,10 @@ export function handleMockRequest<T>(
     session.updated_at = new Date().toISOString();
     if (transitionMatch[2] === "open") {
       session.opened_at = new Date().toISOString();
+    }
+    if (transitionMatch[2] === "poll" && session.polling_mode_type === "static_poll") {
+      const days = session.static_poll_duration_days ?? 3;
+      session.ends_at = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
     }
     if (transitionMatch[2] === "close") {
       session.closed_at = new Date().toISOString();

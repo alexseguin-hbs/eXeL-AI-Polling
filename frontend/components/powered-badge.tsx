@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useTheme } from "@/lib/theme-context";
 import { Play, Pause, X, Volume2, VolumeX, AlertCircle } from "lucide-react";
@@ -298,13 +299,23 @@ export function PoweredBadge() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Detect auth state for role-aware simulation
+  let isAuthenticated = false;
+  try {
+    const auth0 = useAuth0();
+    isAuthenticated = auth0.isAuthenticated;
+  } catch {
+    // Auth0 provider not available (participant view)
+  }
+
   const handleEnterSimulation = useCallback(() => {
-    enterSimulationMode();
-    // Navigate to session page so the user sees the poll UI + timer
+    // Moderators see participant experience; pollers see moderator experience
+    enterSimulationMode(isAuthenticated ? "moderator" : "poller");
+    // Navigate to session page so the user sees the simulation
     if (pathname !== "/session") {
       router.push("/session");
     }
-  }, [enterSimulationMode, router, pathname]);
+  }, [enterSimulationMode, isAuthenticated, router, pathname]);
 
   if (simulationMode) {
     return <SimulationOverlay />;

@@ -11,13 +11,14 @@ import {
 
 interface SimulationState {
   simulationMode: boolean;
+  simulationRole: "moderator" | "poller";
   currentSong: 0 | 1 | 2;
   playing: boolean;
 }
 
 interface SimulationContextValue extends SimulationState {
   /** Call when user enters simulation mode (only works after Easter egg unlocked) */
-  enterSimulationMode: () => void;
+  enterSimulationMode: (role?: "moderator" | "poller") => void;
   /** Exit simulation mode — resets Easter egg so sequence must be re-entered */
   exitSimulationMode: () => void;
   setSong: (song: 0 | 1 | 2) => void;
@@ -48,6 +49,7 @@ const SEQUENCE_TIMEOUT_MS = 5000;
 export function EasterEggProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<SimulationState>({
     simulationMode: false,
+    simulationRole: "poller",
     currentSong: 0,
     playing: false,
   });
@@ -57,20 +59,20 @@ export function EasterEggProvider({ children }: { children: ReactNode }) {
   const sequenceIndexRef = useRef(0);
   const lastClickTimeRef = useRef(0);
 
-  const enterSimulationMode = useCallback(() => {
+  const enterSimulationMode = useCallback((role: "moderator" | "poller" = "poller") => {
     if (!easterEggUnlocked) return; // Guard: must unlock first
-    setState({ simulationMode: true, currentSong: 0, playing: true });
+    setState({ simulationMode: true, simulationRole: role, currentSong: 0, playing: true });
   }, [easterEggUnlocked]);
 
   const exitSimulationMode = useCallback(() => {
-    setState({ simulationMode: false, currentSong: 0, playing: false });
+    setState({ simulationMode: false, simulationRole: "poller", currentSong: 0, playing: false });
     // Reset Easter egg — must re-enter sequence to unlock again
     setEasterEggUnlocked(false);
     sequenceIndexRef.current = 0;
   }, []);
 
   const stop = useCallback(() => {
-    setState({ simulationMode: false, currentSong: 0, playing: false });
+    setState({ simulationMode: false, simulationRole: "poller", currentSong: 0, playing: false });
     setEasterEggUnlocked(false);
     sequenceIndexRef.current = 0;
   }, []);

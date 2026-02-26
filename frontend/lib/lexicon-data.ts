@@ -442,6 +442,14 @@ const cube10: TranslationEntry[] = [
   { key: "cube10.feedback.system_prompt", englishDefault: "How can we improve this cube?", context: "System-prompted feedback", cubeId: 10 },
   { key: "cube10.feedback.submit", englishDefault: "Submit Improvement", context: "Submit button", cubeId: 10 },
   { key: "cube10.feedback.backlog", englishDefault: "View Backlog", context: "Backlog view link", cubeId: 10 },
+  { key: "cube10.sim.role_moderator", englishDefault: "Moderator Experience", context: "Sim role label for moderator preview", cubeId: 10 },
+  { key: "cube10.sim.role_poller", englishDefault: "Participant Experience", context: "Sim role label for participant preview", cubeId: 10 },
+  { key: "cube10.sim.live_poll", englishDefault: "Live Poll", context: "Live interactive poll type label", cubeId: 10 },
+  { key: "cube10.sim.static_poll", englishDefault: "Static Poll", context: "Static poll type label", cubeId: 10 },
+  { key: "cube10.sim.sim_type", englishDefault: "Simulation Type", context: "Sim type selector heading", cubeId: 10 },
+  { key: "cube10.sim.auto_advancing", englishDefault: "Auto-advancing...", context: "Auto-advance status indicator", cubeId: 10 },
+  { key: "cube10.sim.participants_joining", englishDefault: "Participants joining...", context: "Sim participant counter label", cubeId: 10 },
+  { key: "cube10.sim.create_session", englishDefault: "Create Session", context: "Sim create session button", cubeId: 10 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────
