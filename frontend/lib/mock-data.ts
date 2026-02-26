@@ -330,6 +330,20 @@ export function handleMockRequest<T>(
     } as Session;
     MOCK_SESSIONS.unshift(newSession);
     mockParticipantCount[newSession.id] = 0;
+    // Auto-create a default question so the polling flow works end-to-end
+    MOCK_QUESTIONS[newSession.id] = [
+      {
+        id: generateId(),
+        session_id: newSession.id,
+        question_text: (payload?.title as string)
+          ? `What are your thoughts on: ${(payload.title as string).replace(/[?.]$/, "")}?`
+          : "What are your thoughts?",
+        cycle_id: 1,
+        order_index: 0,
+        status: "active",
+        created_at: new Date().toISOString(),
+      },
+    ];
     return newSession as T;
   }
 
@@ -365,8 +379,9 @@ export function handleMockRequest<T>(
   );
   if (method === "GET" && presenceMatch) {
     const count = mockParticipantCount[presenceMatch[1]] || 0;
-    // Simulate slowly growing participant count
-    if (findSessionById(presenceMatch[1])?.status === "open") {
+    // Simulate slowly growing participant count during active states
+    const presenceSession = findSessionById(presenceMatch[1]);
+    if (presenceSession && ["open", "polling"].includes(presenceSession.status)) {
       mockParticipantCount[presenceMatch[1]] = count + Math.floor(Math.random() * 2);
     }
     return {
@@ -425,14 +440,15 @@ export function handleMockRequest<T>(
     } as T;
   }
 
-  // State transitions: open, poll, rank, close, archive
+  // State transitions: start, open, poll, rank, close, archive
   const transitionMatch = path.match(
-    /^\/sessions\/([0-9a-f-]{36})\/(open|poll|rank|close|archive)$/
+    /^\/sessions\/([0-9a-f-]{36})\/(start|open|poll|rank|close|archive)$/
   );
   if (method === "POST" && transitionMatch) {
     const session = findSessionById(transitionMatch[1]);
     if (!session) return null;
     const stateMap: Record<string, string> = {
+      start: "open",
       open: "open",
       poll: "polling",
       rank: "ranking",
@@ -441,7 +457,7 @@ export function handleMockRequest<T>(
     };
     session.status = stateMap[transitionMatch[2]] as Session["status"];
     session.updated_at = new Date().toISOString();
-    if (transitionMatch[2] === "open") {
+    if (transitionMatch[2] === "open" || transitionMatch[2] === "start") {
       session.opened_at = new Date().toISOString();
     }
     if (transitionMatch[2] === "poll" && session.polling_mode_type === "static_poll") {
@@ -451,7 +467,7 @@ export function handleMockRequest<T>(
     if (transitionMatch[2] === "close") {
       session.closed_at = new Date().toISOString();
     }
-    return session as T;
+    return { ...session } as T;
   }
 
   // GET /sessions/{id}/participants

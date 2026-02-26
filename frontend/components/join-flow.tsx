@@ -46,6 +46,9 @@ export function JoinFlow() {
         if (!simMode && (data.status === "closed" || data.status === "archived")) {
           setError(t("cube1.join.session_ended"));
         }
+        if (!simMode && data.status === "draft") {
+          setError(t("cube1.join.session_not_open") || "This session hasn't started yet. Please wait for the moderator to open it.");
+        }
       })
       .catch((err) => {
         if (err instanceof ApiClientError) {

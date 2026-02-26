@@ -185,7 +185,15 @@ function SessionDetail({
         `/sessions/${session.id}/${action}`
       );
       onUpdate(updated);
-      toast({ title: `Session ${action === "poll" ? "polling started" : action + "ed"}` });
+      const toastMessages: Record<string, string> = {
+        start: "Session opened — share the QR code!",
+        open: "Session opened",
+        poll: "Polling started — participants can now respond",
+        rank: "Ranking started — themes are being analyzed",
+        close: "Session closed",
+        archive: "Session archived",
+      };
+      toast({ title: toastMessages[action] || `Session ${action}ed` });
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({ title: "Action failed", description: err.detail, variant: "destructive" });

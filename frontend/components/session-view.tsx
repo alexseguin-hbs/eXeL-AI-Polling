@@ -576,7 +576,7 @@ export function SessionView() {
   useEffect(() => {
     if (!sessionId || !sessionStatus) return;
     if (simulationMode) return;
-    const isActive = ["open", "polling", "ranking"].includes(sessionStatus);
+    const isActive = ["draft", "open", "polling", "ranking"].includes(sessionStatus);
     if (!isActive) return;
 
     const interval = setInterval(async () => {
@@ -593,11 +593,11 @@ export function SessionView() {
     return () => clearInterval(interval);
   }, [sessionId, sessionStatus, simulationMode]);
 
-  // Poll session status
+  // Poll session status — includes "draft" so users who join early see transitions
   useEffect(() => {
     if (!sessionId || !sessionStatus) return;
     if (simulationMode) return;
-    const isActive = ["open", "polling", "ranking"].includes(sessionStatus);
+    const isActive = ["draft", "open", "polling", "ranking"].includes(sessionStatus);
     if (!isActive) return;
 
     const interval = setInterval(async () => {
