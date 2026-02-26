@@ -21,6 +21,7 @@ import {
   Lock,
   Radio,
   Timer,
+  Trash2,
   X,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -506,6 +507,12 @@ function DashboardContent() {
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [archiveExpanded, setArchiveExpanded] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Split sessions: active (non-archived) and archived
+  const activeSessions = sessions.filter((s) => s.status !== "archived");
+  const archivedSessions = sessions.filter((s) => s.status === "archived");
 
   // Create form state
   const [newTitle, setNewTitle] = useState("");
@@ -601,6 +608,21 @@ function DashboardContent() {
     setSessions((prev) =>
       prev.map((s) => (s.id === updated.id ? updated : s))
     );
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    setDeletingId(sessionId);
+    try {
+      await api.delete(`/sessions/${sessionId}`);
+      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+      toast({ title: "Session deleted permanently" });
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        toast({ title: "Delete failed", description: err.detail, variant: "destructive" });
+      }
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   // Detail view
@@ -890,12 +912,12 @@ function DashboardContent() {
           </Dialog>
         </div>
 
-        {/* Sessions List */}
+        {/* Sessions List — active (non-archived) sessions */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : sessions.length === 0 ? (
+        ) : activeSessions.length === 0 && archivedSessions.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center gap-4 py-12">
               <div className="rounded-lg bg-primary/10 p-4">
@@ -912,65 +934,171 @@ function DashboardContent() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
-            {sessions.map((session) => {
-              const TypeIcon =
-                session.cycle_mode === "multi"
-                  ? SESSION_TYPE_ICONS.project_series
-                  : SESSION_TYPE_ICONS.single_question;
-              return (
-                <Card
-                  key={session.id}
-                  className="cursor-pointer transition-colors hover:bg-card/80"
-                  onClick={() => setSelectedSession(session)}
-                >
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div className="rounded-lg bg-primary/10 p-2.5">
-                      <TypeIcon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium truncate">
-                          {session.title}
-                        </h3>
-                        <span
-                          className={`text-xs font-medium ${statusColor(
-                            session.status
-                          )}`}
+          <div className="space-y-6">
+            {activeSessions.length > 0 && (
+              <div className="grid gap-4">
+                {activeSessions.map((session) => {
+                  const TypeIcon =
+                    session.cycle_mode === "multi"
+                      ? SESSION_TYPE_ICONS.project_series
+                      : SESSION_TYPE_ICONS.single_question;
+                  return (
+                    <Card
+                      key={session.id}
+                      className="cursor-pointer transition-colors hover:bg-card/80"
+                      onClick={() => setSelectedSession(session)}
+                    >
+                      <CardContent className="flex items-center gap-4 p-4">
+                        <div className="rounded-lg bg-primary/10 p-2.5">
+                          <TypeIcon className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium truncate">
+                              {session.title}
+                            </h3>
+                            <span
+                              className={`text-xs font-medium ${statusColor(
+                                session.status
+                              )}`}
+                            >
+                              {statusLabel(session.status)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3.5 w-3.5" />
+                              {session.participant_count ?? 0}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {new Date(session.created_at).toLocaleDateString()}
+                            </span>
+                            <span className="font-mono text-xs">
+                              {session.short_code}
+                            </span>
+                            {(session.polling_mode_type ?? "live_interactive") === "static_poll" ? (
+                              <span className="flex items-center gap-1 text-xs" style={{ color: currentTheme.swatch }}>
+                                <Timer className="h-3 w-3" />
+                                {t("cube1.moderator.mode_static")}
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 text-xs" style={{ color: currentTheme.swatch }}>
+                                <Radio className="h-3 w-3" />
+                                {t("cube1.moderator.mode_live")}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-destructive shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`Permanently delete "${session.title}"? This cannot be undone.`)) {
+                              handleDeleteSession(session.id);
+                            }
+                          }}
+                          disabled={deletingId === session.id}
                         >
-                          {statusLabel(session.status)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3.5 w-3.5" />
-                          {session.participant_count ?? 0}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {new Date(session.created_at).toLocaleDateString()}
-                        </span>
-                        <span className="font-mono text-xs">
-                          {session.short_code}
-                        </span>
-                        {(session.polling_mode_type ?? "live_interactive") === "static_poll" ? (
-                          <span className="flex items-center gap-1 text-xs" style={{ color: currentTheme.swatch }}>
-                            <Timer className="h-3 w-3" />
-                            {t("cube1.moderator.mode_static")}
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1 text-xs" style={{ color: currentTheme.swatch }}>
-                            <Radio className="h-3 w-3" />
-                            {t("cube1.moderator.mode_live")}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  </CardContent>
-                </Card>
-              );
-            })}
+                          {deletingId === session.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {activeSessions.length === 0 && archivedSessions.length > 0 && (
+              <p className="text-center text-muted-foreground py-8">
+                No active sessions. Check the archive below.
+              </p>
+            )}
+
+            {/* Archived sessions — collapsed by default */}
+            {archivedSessions.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setArchiveExpanded(!archiveExpanded)}
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
+                >
+                  <Archive className="h-4 w-4" />
+                  <span>Archived ({archivedSessions.length})</span>
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 transition-transform ${archiveExpanded ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {archiveExpanded && (
+                  <div className="grid gap-3 opacity-60">
+                    {archivedSessions.map((session) => {
+                      const TypeIcon =
+                        session.cycle_mode === "multi"
+                          ? SESSION_TYPE_ICONS.project_series
+                          : SESSION_TYPE_ICONS.single_question;
+                      return (
+                        <Card
+                          key={session.id}
+                          className="cursor-pointer transition-colors hover:bg-card/80"
+                          onClick={() => setSelectedSession(session)}
+                        >
+                          <CardContent className="flex items-center gap-4 p-3">
+                            <div className="rounded-lg bg-muted p-2">
+                              <TypeIcon className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-medium text-sm truncate">
+                                  {session.title}
+                                </h3>
+                                <span className="text-xs font-medium text-red-400">
+                                  Archived
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  {session.participant_count ?? 0}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {new Date(session.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-muted-foreground hover:text-destructive shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Permanently delete "${session.title}"? This cannot be undone.`)) {
+                                  handleDeleteSession(session.id);
+                                }
+                              }}
+                              disabled={deletingId === session.id}
+                            >
+                              {deletingId === session.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>

@@ -635,6 +635,21 @@ export function handleMockRequest<T>(
     return { ...session } as T;
   }
 
+  // DELETE /sessions/{id}
+  const deleteMatch = path.match(
+    /^\/sessions\/([0-9a-f-]{36})$/
+  );
+  if (method === "DELETE" && deleteMatch) {
+    const idx = MOCK_SESSIONS.findIndex((s) => s.id === deleteMatch[1]);
+    if (idx === -1) return null;
+    const [removed] = MOCK_SESSIONS.splice(idx, 1);
+    delete mockParticipantCount[removed.id];
+    delete MOCK_QUESTIONS[removed.id];
+    delete mockResponses[removed.id];
+    saveMockState();
+    return { deleted: true } as T;
+  }
+
   // GET /sessions/{id}/participants
   const participantsMatch = path.match(
     /^\/sessions\/([0-9a-f-]{36})\/participants$/
