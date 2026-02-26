@@ -181,8 +181,9 @@ export const MOCK_QUESTIONS: Record<string, Question[]> = {
       session_id: "a1b2c3d4-e5f6-7890-abcd-111111111111",
       question_text:
         "What is the single most important feature we should build next?",
-      question_number: 1,
-      is_active: true,
+      cycle_id: 1,
+      order_index: 0,
+      status: "active",
       created_at: now,
     },
   ],
@@ -192,8 +193,9 @@ export const MOCK_QUESTIONS: Record<string, Question[]> = {
       session_id: "d4e5f6a7-b8c9-0123-defg-444444444444",
       question_text:
         "What innovative tools or processes could improve our team collaboration?",
-      question_number: 1,
-      is_active: true,
+      cycle_id: 1,
+      order_index: 0,
+      status: "active",
       created_at: now,
     },
   ],
@@ -358,6 +360,12 @@ export function handleMockRequest<T>(
       short_code: session.short_code,
       title: session.title,
       status: session.status,
+      display_name: (body as Record<string, unknown>)?.display_name || null,
+      theme_id: session.polling_mode_type === "static_poll" ? "exel-cyan" : "exel-cyan",
+      custom_accent_color: null,
+      polling_mode_type: session.polling_mode_type,
+      ends_at: session.ends_at,
+      timer_display_mode: session.timer_display_mode,
     } as T;
   }
 

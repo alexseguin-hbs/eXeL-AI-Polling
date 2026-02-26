@@ -54,6 +54,13 @@ async def lifespan(app: FastAPI):
     # Startup
     await init_mongo()
     await init_redis()
+    # Auto-create all tables (safe to run repeatedly — skips existing)
+    from app.db.base import Base
+    from app.db.postgres import engine
+    import app.models  # noqa: F401 — registers all models with Base.metadata
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     yield
     # Shutdown
     await close_postgres()

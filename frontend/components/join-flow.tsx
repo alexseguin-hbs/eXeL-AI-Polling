@@ -73,7 +73,7 @@ export function JoinFlow() {
           results_opt_in: resultsOptIn,
         }
       );
-      router.push(`/session/?id=${response.session_id}`);
+      router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}`);
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({

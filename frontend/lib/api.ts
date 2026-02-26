@@ -4,9 +4,10 @@ import type { ApiError, VoiceSubmissionRead } from "./types";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-// Mock mode: enabled when backend is not available
-// Set to false once the backend API is running
-const MOCK_MODE = true;
+// Mock mode: enabled when backend is not available.
+// Set NEXT_PUBLIC_MOCK_MODE=false in .env.local to connect to live backend.
+// Defaults to true (preserves Cloudflare Pages deployment behavior).
+const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_MODE !== "false";
 
 interface RequestOptions {
   body?: unknown;
@@ -167,7 +168,7 @@ export const api = {
     ),
 
   getSessionQuestions: (sessionId: string) =>
-    request<Array<{ id: string; question_text: string; question_number: number; is_active: boolean; created_at: string }>>(
+    request<Array<import("./types").Question>>(
       "GET",
       `/sessions/${sessionId}/questions`
     ),

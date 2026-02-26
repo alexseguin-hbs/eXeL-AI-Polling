@@ -8,7 +8,10 @@ from jose import JWTError, jwt
 
 from app.config import settings
 
-security = HTTPBearer()
+_dev_mode = not settings.auth0_domain
+
+# In dev mode (no Auth0 configured), don't require Authorization header
+security = HTTPBearer(auto_error=not _dev_mode)
 optional_security = HTTPBearer(auto_error=False)
 
 _jwks_cache: dict | None = None
@@ -87,9 +90,25 @@ async def _decode_token(token: str) -> CurrentUser:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ) -> CurrentUser:
-    """Validate Auth0 JWT and extract user info."""
+    """Validate Auth0 JWT and extract user info.
+
+    In dev mode (AUTH0_DOMAIN empty), returns a mock moderator so that
+    authenticated endpoints work without Auth0.
+    """
+    if _dev_mode:
+        return CurrentUser(
+            user_id="dev-moderator-001",
+            email="dev@exel-ai.com",
+            role="moderator",
+            permissions=["create:sessions", "manage:sessions"],
+        )
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authorization token",
+        )
     try:
         return await _decode_token(credentials.credentials)
     except JWTError as e:

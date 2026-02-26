@@ -37,10 +37,10 @@ class VoiceSubmissionRead(BaseModel):
     clean_text: str | None = None
 
     # Immediate token display after submission (♡ and ◬)
-    heart_tokens_earned: float = Field(default=0.0, serialization_alias="\u2661")
-    unity_tokens_earned: float = Field(default=0.0, serialization_alias="\u25ec")
+    heart_tokens_earned: float = Field(default=0.0)
+    unity_tokens_earned: float = Field(default=0.0)
 
-    model_config = {"from_attributes": True, "populate_by_name": True}
+    model_config = {"from_attributes": True}
 
 
 # ---------------------------------------------------------------------------
@@ -55,7 +55,7 @@ class VoiceResponseDetail(VoiceSubmissionRead):
     pii_scrubbed_text: str | None = None
     profanity_words: list[dict] | None = None
 
-    model_config = {"from_attributes": True, "populate_by_name": True}
+    model_config = {"from_attributes": True}
 
 
 # ---------------------------------------------------------------------------

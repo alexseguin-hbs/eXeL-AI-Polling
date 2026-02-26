@@ -87,9 +87,10 @@ export interface Participant {
 export interface Question {
   id: string;
   session_id: string;
+  cycle_id: number;
   question_text: string;
-  question_number: number;
-  is_active: boolean;
+  order_index: number;
+  status: string;
   created_at: string;
 }
 
