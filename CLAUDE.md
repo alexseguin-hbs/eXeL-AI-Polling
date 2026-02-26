@@ -1026,9 +1026,162 @@ cd frontend && npx next build
   - Bundle sizes stable
 - **RESULT: 18/18 BIDIRECTIONAL SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
 
-### Cubes 4, 6–7, 9–10: SCAFFOLDED (stubs only)
+### Cube 4 — Response Collector: IMPLEMENTED (CRS-09→CRS-10 done; ~80% of full spec)
+
+**Code location:** `backend/app/cubes/cube4_collector/` (modular, self-contained)
+
+#### Cube 4 — Implemented
+- **Response aggregation:** Web_Results.csv-compatible format (q_number, question, user, detailed_results, response_language, native_language)
+- **Dual data source:** Postgres (ResponseMeta + Question + Participant JOINs) + MongoDB (raw text/transcripts)
+- **Summary inclusion:** Optional 333/111/33 word summaries from MongoDB (generated live by Cube 6 Phase A)
+- **Theme inclusion:** Optional Theme01 + Theme2_9/6/3 assignments with confidence (from Cube 6 Phase B)
+- **Response count:** Breakdown by source type (text/voice) and total
+- **Language breakdown:** Response languages grouped by language_code
+- **Redis presence:** Live participant tracking (HSET + EXPIRE pattern from Cube 1)
+- **Summary status:** MongoDB count of responses with summaries and theme assignments
+- **Voice support:** Voice transcripts aggregated via TextResponse clean_text fallback
+- **Anonymous support:** Null participant_id handled gracefully → "Anonymous" user label
+- **Pagination:** Standard page/page_size params with total count
+- **API endpoints:** 6 routes (collected list, single response, count, languages, presence, summary status)
+
+#### Cube 4 — CRS Traceability
+| CRS | Input ID | Output ID | Status | DTM Stretch Target |
+|-----|----------|-----------|--------|-------------------|
+| CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Real-time streaming aggregation |
+| CRS-09.1 | — | — | **Complete** | Web_Results format with native language column |
+| CRS-09.2 | — | — | **Complete** | Live summary status tracking (MongoDB) |
+| CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Partial** | Full desired outcome collection |
+
+#### Cube 4 — Test Procedure (Cube 10 Simulator Reference)
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb=short
+```
+
+**Test Suite:** 2 files, 8 test classes, 27 tests
+
+| File | Classes | Tests | Coverage |
+|------|---------|-------|----------|
+| `test_collector_service.py` | 6 | 17 | Unit tests (count, languages, presence, summaries, collected, single) |
+| `test_e2e_flows.py` | 5 | 10 | E2E flows (collection, multi-language, anonymous, pagination, voice) |
+
+#### Cube 4 — Files
+| File | Lines | Purpose |
+|------|-------|---------|
+| `cubes/cube4_collector/service.py` | 387 | Core business logic (7 functions) |
+| `cubes/cube4_collector/router.py` | 97 | 6 API endpoints |
+| `tests/cube4/test_collector_service.py` | 427 | 17 unit tests |
+| `tests/cube4/test_e2e_flows.py` | 296 | 10 E2E tests + CUBE4_TEST_METHOD |
+
+### Cube 6 — AI Theme Pipeline: IMPLEMENTED (CRS-11→CRS-14; ~85% of full spec)
+
+**Code location:** `backend/app/cubes/cube6_ai/` (modular, self-contained, Cube 10 isolatable)
+
+#### Cube 6 — Two-Phase Architecture
+
+**Phase A — Live Per-Response Summarization (during polling):**
+- Fired async from Cube 2 submit flow (`summarize_single_response()`)
+- Generates 333 → 111 → 33 word English summaries immediately
+- Non-English text auto-translated to English
+- Stored in MongoDB `summaries` collection for instant moderator screen display
+- Fire-and-forget: does NOT block response to the user
+
+**Phase B — Parallel Theme Pipeline (after moderator closes polling):**
+1. Fetch pre-computed 33-word summaries from MongoDB
+2. Classify Theme01 (Risk/Supporting/Neutral) — batch parallel via LLM
+3. Apply <65% confidence → Neutral reclassification rule
+4. Group by Theme01 into 3 partitions
+5. Marble sampling: deterministic shuffle + slice into groups of 10 (monolith match)
+6. Generate 3 themes per group — **10+ concurrent agents** (asyncio.create_task)
+7. After ALL groups complete: merge all candidate themes per partition
+8. Reduce all → 9 (statistically relevant) → 6 → 3 (concurrent per category)
+9. Assign each response to 9/6/3 themes with confidence (LLM or embedding)
+10. Store Theme + ThemeSample in Postgres, update MongoDB, compute replay hash
+- **Target:** Theme01 + Theme2 complete in <30 seconds for 1000 responses
+
+#### Cube 6 — Providers at Launch
+| Provider | Embedding Model | Summarization Model | Status |
+|----------|----------------|---------------------|--------|
+| OpenAI | text-embedding-3-small | gpt-4o-mini | **Implemented** |
+| Grok (xAI) | grok-embedding-beta | grok-2 | **Implemented** |
+| Gemini (Google) | text-embedding-004 | gemini-2.0-flash | **Implemented** |
+
+- **Factory failover:** openai → grok → gemini (skips providers without API keys)
+- **Circuit breaker:** Per-provider key check, automatic failover to next available
+
+#### Cube 6 — CRS Traceability
+| CRS | Input ID | Output ID | Status | DTM Stretch Target |
+|-----|----------|-----------|--------|-------------------|
+| CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Complete** | Real-time theme streaming |
+| CRS-11.1 | — | — | **Complete** | Live 333/111/33 summarization per response |
+| CRS-11.2 | — | — | **Complete** | Parallel marble sampling (10+ concurrent agents) |
+| CRS-12 | CRS-12.IN.SRS.012 | CRS-12.OUT.SRS.012 | **Complete** | Multi-provider embedding comparison |
+| CRS-12.1 | — | — | **Complete** | Grok + Gemini provider implementations |
+| CRS-12.2 | — | — | **Complete** | Factory with circuit breaker failover |
+| CRS-13 | CRS-13.IN.SRS.013 | CRS-13.OUT.SRS.013 | **Complete** | Progressive theme reveal UX |
+| CRS-14 | CRS-14.IN.SRS.014 | CRS-14.OUT.SRS.014 | **Partial** | CQS scoring (deferred to post-Cube 7) |
+
+#### Cube 6 — Test Procedure (Cube 10 Simulator Reference)
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb=short
+```
+
+**Test Suite:** 1 file, 9 test classes, 20 tests
+
+| File | Classes | Tests | Coverage |
+|------|---------|-------|----------|
+| `test_ai_service.py` | 9 | 20 | Unit tests (summarization, classification, grouping, sampling, parsing, factory) |
+
+#### Cube 6 — Files
+| File | Lines | Purpose |
+|------|-------|---------|
+| `cubes/cube6_ai/service.py` | 550+ | Two-phase pipeline (Phase A live + Phase B parallel theming) |
+| `cubes/cube6_ai/providers/base.py` | 85 | EmbeddingProvider + SummarizationProvider ABCs |
+| `cubes/cube6_ai/providers/factory.py` | 112 | Factory with circuit breaker failover |
+| `cubes/cube6_ai/providers/openai_provider.py` | 85 | OpenAI embedding + summarization |
+| `cubes/cube6_ai/providers/grok_provider.py` | 96 | Grok (xAI) embedding + summarization |
+| `cubes/cube6_ai/providers/gemini_provider.py` | 94 | Gemini (Google) embedding + summarization |
+| `models/theme.py` | 38 | Theme ORM (hierarchical with parent_theme_id) |
+| `models/theme_sample.py` | 39 | ThemeSample ORM (marble groups) |
+| `tests/cube6/test_ai_service.py` | 464 | 20 unit tests |
+
+### Cubes 7, 9: SCAFFOLDED (stubs only)
 - Models, schemas, and route stubs exist
 - Service implementations pending
+
+### Cube 4 + 6 Implementation — 9x Spiral Metrics (N=9, 2026-02-26)
+
+**Change:** Implemented Cube 4 Response Collector (Web_Results format + native language + presence + summary status) + Cube 6 AI Pipeline rewrite (two-phase: live summarization + parallel theming). Added Grok + Gemini providers with circuit breaker failover. Hooked live summarization into Cube 2 submit flow. 47 new tests.
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/ -v --tb=short
+cd frontend && npx tsc --noEmit
+```
+
+**Metrics Baseline (N=9, 2026-02-26):**
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 | Run 7 | Run 8 | Run 9 | Average | Std Dev |
+|--------|-------|-------|-------|-------|-------|-------|-------|-------|-------|---------|---------|
+| Tests Passed | 245/245 | 245/245 | 245/245 | 245/245 | 245/245 | 245/245 | 245/245 | 245/245 | 245/245 | **245/245** | **0** |
+| Cube 4 Tests | 27/27 | 27/27 | 27/27 | 27/27 | 27/27 | 27/27 | 27/27 | 27/27 | 27/27 | **27/27** | **0** |
+| Cube 6 Tests | 20/20 | 20/20 | 20/20 | 20/20 | 20/20 | 20/20 | 20/20 | 20/20 | 20/20 | **20/20** | **0** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+
+**Spiral Propagation Verification (Cube 4+6 → Cubes 1→10→1):**
+- Forward (4→10): All downstream cubes compatible — PASS
+  - Cube 6 (AI): Consumes collected responses from Cube 4 format
+  - Cube 7 (Ranking): Theme records ready for ranking aggregation
+  - Cube 8 (Tokens): CQS scoring deferred until post-Cube 7
+  - Cube 9 (Reports): Web_Results export format available
+  - Cube 10 (SIM): Per-cube isolation architecture maintained
+- Backward (10→4): All upstream cubes compatible — PASS
+  - Cube 2 (Text): Live summarization hook fires after submit
+  - Cube 3 (Voice): Voice transcripts aggregated by Cube 4
+  - Cube 1 (Session): Session metadata used for Q_Number formatting
+- **RESULT: 9/9 SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
 
 ### Cube 10 — Simulation Test Methodology (Easter Egg SIM)
 
