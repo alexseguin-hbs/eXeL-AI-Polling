@@ -225,6 +225,10 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 | language_default | VARCHAR(5) | ✅ | Default session language code — as `language` |
 | qr_url | TEXT | ✅ | Generated QR code URL |
 | join_url | TEXT | ✅ | Shareable join link |
+| polling_mode_type | VARCHAR(30) | ✅ | `live_interactive` / `static_poll` — determines countdown behavior |
+| static_poll_duration_days | INTEGER (nullable) | ✅ | 1, 3, or 7 days for static polls |
+| ends_at | TIMESTAMP (nullable) | ✅ | Computed deadline for static polls (now + N days on polling transition) |
+| timer_display_mode | VARCHAR(20) | ✅ | `day` / `flex` / `both` — countdown timer visual mode |
 | expires_at | TIMESTAMP | ✅ | Session expiry (default 24h) |
 | created_at | TIMESTAMP | ✅ | Creation timestamp |
 | updated_at | TIMESTAMP | ✅ | Last update timestamp |

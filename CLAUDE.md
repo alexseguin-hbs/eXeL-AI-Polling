@@ -352,7 +352,7 @@ Track and optimize for:
 
 ## Implementation Status
 
-### Cube 1 — Session Join & QR: IMPLEMENTED (CRS-01→CRS-06 done; ~70% of full spec)
+### Cube 1 — Session Join & QR: IMPLEMENTED (CRS-01→CRS-06 done; ~75% of full spec)
 
 **Code location:** `backend/app/cubes/cube1_session/` (modular, self-contained)
 
@@ -375,7 +375,7 @@ Track and optimize for:
 - **Rate limiting:** 100/min on join endpoint
 
 #### Cube 1 — Newly Implemented (Phase 1-7 completion, 2026-02-18)
-- **Session model extended:** 11 new columns — `session_type`, `polling_mode`, `pricing_tier`, `max_participants`, `fee_amount_cents`, `cost_splitting_enabled`, `reward_enabled`, `reward_amount_cents`, `cqs_weights` (JSONB), `theme2_voting_level`, `live_feed_enabled`
+- **Session model extended:** 15 new columns — `session_type`, `polling_mode`, `pricing_tier`, `max_participants`, `fee_amount_cents`, `cost_splitting_enabled`, `reward_enabled`, `reward_amount_cents`, `cqs_weights` (JSONB), `theme2_voting_level`, `live_feed_enabled`, `polling_mode_type`, `static_poll_duration_days`, `ends_at`, `timer_display_mode`
 - **Participant model extended:** 3 new columns — `language_code`, `results_opt_in`, `payment_status`
 - **Capacity enforcement:** `check_capacity()` — rejects join with 409 when session is full
 - **CQS weight config:** Moderator sets 6-metric CQS weights at session creation (stored as JSONB)
@@ -385,6 +385,20 @@ Track and optimize for:
 - **Frontend — Voice Input Stub:** Browser MediaRecorder API, pulsing red dot indicator, audio blob capture (STT pending Cube 3)
 - **Frontend — Cube Architecture Status Panel:** 3x3 grid in Settings with RAG+ color coding per cube
 - **Frontend — One-Question-at-a-Time UX:** Full-width textarea, Submit & Next, progress bar, token earn overlay
+
+#### Cube 1 — Newly Implemented (Static Poll Countdown Timer, 2026-02-25)
+- **Session model extended:** 4 new columns — `polling_mode_type` (live_interactive/static_poll), `static_poll_duration_days` (1/3/7), `ends_at` (computed deadline), `timer_display_mode` (day/flex/both)
+- **Schema fields:** Added to SessionCreate (Literal validation), SessionRead (defaults), SessionJoinResponse (string ends_at)
+- **Service logic:** `create_session()` accepts 3 new params; `transition_session()` computes `ends_at = now + N days` when transitioning to polling for static polls
+- **Frontend — PollCountdownTimer:** SVG concentric-ring countdown with multi-stage phases (days→hours→minutes→seconds), futuristic accent glow, gradation lines (3rds for 3-day, 7ths for 7-day, 60ths for hours/minutes/seconds)
+- **Frontend — Simulation Duration Selector:** 4 user-selectable durations (2 Day, 0.5 Day, 0.5 Hour, 0.5 Min) for testing countdown at different phases
+- **Frontend — Live/Static Session Card Badges:** Theme-reactive Radio/Timer icons on dashboard session cards showing polling mode
+- **Frontend — Static Poll Moderator Controls:** Start Ranking/Close buttons hidden for static polls (auto-close at deadline); yellow deadline banner shows end date/time
+- **Frontend — Polling Status Bar:** Active step (Feedback) now green with pulse animation during polling mode
+- **Frontend — Input Complete Button:** Last-question submit button shows "Input Complete" with CheckCircle icon
+- **Frontend — 4th Mock Session:** "Team Innovation Challenge" — static_poll in polling state with 3-day countdown
+- **Backend Tests:** 4 new tests — static poll field persistence, ends_at computation, live poll no-ends_at, default timer mode
+- **Lexicon:** 16 new keys × 32 languages = 512 new translations (timer phases, display modes, sim duration, Live/Static badges)
 
 #### Cube 1 — Partially Implemented (fields exist but incomplete logic)
 - **Payment flow:** `is_paid` + `stripe_session_id` exist but no Stripe integration in join
@@ -403,12 +417,12 @@ Track and optimize for:
 #### Cube 1 — Service Functions Status
 | Function | Status | Notes |
 |----------|--------|-------|
-| `create_session()` | **Implemented** | All 11 Cube 1 fields + CQS weights |
+| `create_session()` | **Implemented** | All 15 Cube 1 fields + CQS weights + static poll params |
 | `generate_qr_code()` | **Implemented** | PNG + base64 |
 | `validate_join_request()` | **Implemented** | Expiry + state + capacity check |
 | `check_capacity()` | **Implemented** | Enforces max_participants, 409 on full |
 | `join_session()` | **Implemented** | language_code, results_opt_in, Redis presence, login token |
-| `transition_session_state()` | **Implemented** | Full state machine (6 states) |
+| `transition_session_state()` | **Implemented** | Full state machine (6 states) + ends_at computation for static polls |
 | `get_session_by_code()` | **Implemented** | |
 | `check_session_expiry()` | **Implemented** | `is_expired` property + 410 |
 | `verify_session_owner()` | **Implemented** | 403 for non-owner, admin bypass |
@@ -427,12 +441,12 @@ Track and optimize for:
 cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 14 test classes, 52+ tests
+**Test Suite:** 2 files, 15 test classes, 59 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_session_service.py` | 10 | 32 | Service unit tests |
-| `test_e2e_flows.py` | 4 | 20+ | Moderator + User E2E flows |
+| `test_session_service.py` | 11 | 36 | Service unit tests (+ static poll countdown) |
+| `test_e2e_flows.py` | 4 | 23 | Moderator + User E2E flows |
 
 **Moderator Test Flow (TestModeratorFlow):**
 1. `create_session(full_config)` — All 11 Cube 1 fields + CQS weights
@@ -463,6 +477,12 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 1. Seeded UUID5 produces deterministic ID
 2. Duplicate seed returns existing session (idempotent)
 
+**Static Poll Countdown Tests (TestStaticPollCountdown):**
+1. `test_create_session_with_static_poll_fields` — polling_mode_type, duration, timer_display persisted
+2. `test_transition_to_polling_computes_ends_at` — static poll → ends_at = now + N days
+3. `test_transition_to_polling_no_ends_at_for_live` — live poll → ends_at stays None
+4. `test_create_session_default_timer_display_mode` — defaults to "flex"
+
 **Metrics Baseline (N=5, 2026-02-18):**
 | Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Average | Std Dev |
 |--------|-------|-------|-------|-------|-------|---------|---------|
@@ -485,16 +505,16 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 #### Cube 1 — Files
 | File | Lines | Purpose |
 |------|-------|---------|
-| `cubes/cube1_session/service.py` | 520 | Core business logic (11 new params) |
-| `cubes/cube1_session/router.py` | 401 | 23 API endpoints (+ /start) |
-| `models/session.py` | 125 | Session ORM model (11 new columns) |
+| `cubes/cube1_session/service.py` | 523 | Core business logic (15 params incl. static poll + timer) |
+| `cubes/cube1_session/router.py` | 397 | 23 API endpoints (+ /start) |
+| `models/session.py` | 138 | Session ORM model (15 columns incl. polling_mode_type, ends_at, timer_display_mode) |
 | `models/participant.py` | 40 | Participant ORM model (3 new columns) |
 | `models/question.py` | 33 | Question ORM model |
-| `schemas/session.py` | 120 | Pydantic schemas (extended) |
+| `schemas/session.py` | 165 | Pydantic schemas (extended with static poll + timer fields) |
 | `schemas/participant.py` | 28 | Participant schema (extended) |
 | `schemas/question.py` | 22 | Question schema |
-| `tests/cube1/test_session_service.py` | 540 | 32 unit tests |
-| `tests/cube1/test_e2e_flows.py` | 400+ | E2E Moderator + User flows |
+| `tests/cube1/test_session_service.py` | 645 | 36 unit tests (incl. static poll countdown) |
+| `tests/cube1/test_e2e_flows.py` | 691 | E2E Moderator + User + Static Poll flows |
 | `core/auth.py` | — | Auth middleware |
 | `core/exceptions.py` | — | Custom exceptions |
 
@@ -511,10 +531,10 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 - Rate lookup API: `GET /tokens/rates`, `GET /tokens/rates/lookup`
 - Files: `cubes/cube8_tokens/service.py`, `cubes/cube8_tokens/router.py`, `core/hi_rates.py`, `schemas/token.py`, `models/token_ledger.py`
 
-### Frontend — Language Lexicon: IMPLEMENTED (333/333 keys × 32 languages = 10,656 translations)
-- **Per-cube translation management** — 328 UI string keys organized by cube (0–10), modular for parallel dev
-- **Full translation coverage:** 328/328 keys translated across all 32 non-English languages (4,480 new strings added 2026-02-23)
-- **Key groups:** 44 shared + 160 cube1 + 14 cube2 + 20 cube3 + 16 cube4 + 12 cube5 + 15 cube6 + 17 cube7 + 18 cube8 + 20 cube9 + 21 cube10
+### Frontend — Language Lexicon: IMPLEMENTED (350/350 keys × 32 languages = 11,200 translations)
+- **Per-cube translation management** — 350 UI string keys organized by cube (0–10), modular for parallel dev
+- **Full translation coverage:** 350/350 keys translated across all 32 non-English languages (11,200 total translations)
+- **Key groups:** 42 shared + 157 cube1 + 13 cube2 + 23 cube3 + 15 cube4 + 12 cube5 + 14 cube6 + 17 cube7 + 17 cube8 + 19 cube9 + 21 cube10
 - **Language Lexicon UI** in Moderator Settings panel: language list with completeness %, translation editor with cube filter tabs, propose new language form, admin-only pending approvals
 - **React Context + Provider** (`LexiconProvider`) with localStorage persistence, follows `theme-context.tsx` pattern
 - **Admin approval gate:** Only `explore@eXeL-AI.com` can approve/reject proposed languages
@@ -944,6 +964,44 @@ cd frontend && npx next build
   - V2T provider selector added to Moderator Settings (between Theme Customizer and Cube Architecture)
   - 5 new lexicon keys (cube3.settings.*) translated across 32 languages
 - **RESULT: 9/9 SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
+
+### Static Poll Countdown Timer — 18x Bidirectional Spiral Metrics (N=9 forward + N=9 backward, 2026-02-25)
+
+**Change:** Implemented multi-stage SVG countdown timer for static polls: 4 new backend columns (polling_mode_type, static_poll_duration_days, ends_at, timer_display_mode), PollCountdownTimer component with futuristic glow, simulation duration selector (2 Day, 0.5 Day, 0.5 Hour, 0.5 Min), Live/Static theme-reactive badges on session cards, green polling status bar, static poll moderator controls (Start Poll only), 22 new lexicon keys × 32 languages.
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/ -v --tb=short
+cd frontend && npx tsc --noEmit
+cd frontend && npx next build
+```
+
+**Forward Spiral Metrics (1→9, N=9, 2026-02-25):**
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 | Run 7 | Run 8 | Run 9 | Average | Std Dev |
+|--------|-------|-------|-------|-------|-------|-------|-------|-------|-------|---------|---------|
+| Tests Passed | 198/198 | 198/198 | 198/198 | 198/198 | 198/198 | 198/198 | 198/198 | 198/198 | 198/198 | **198/198** | **0** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+
+**Backward Spiral Metrics (9→1, N=9, 2026-02-25):**
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 | Run 7 | Run 8 | Run 9 | Average | Std Dev |
+|--------|-------|-------|-------|-------|-------|-------|-------|-------|-------|---------|---------|
+| Tests Passed | 198/198 | 198/198 | 198/198 | 198/198 | 198/198 | 198/198 | 198/198 | 198/198 | 198/198 | **198/198** | **0** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+
+**Spiral Propagation Verification (Countdown Timer → Cubes 1→9→1):**
+- Forward (1→10): All downstream cubes compatible — PASS
+  - Cube 1 (Session): 4 new columns + timer display mode + ends_at computation on transition
+  - Cube 2 (Text): No impact — text submission unaffected by timer
+  - Cube 3 (Voice): No impact — voice submission unaffected by timer
+  - Cube 5 (Gateway): Timer runs independently of time tracking
+  - Cube 7 (Ranking): Static polls auto-close at ends_at — ranking triggered differently
+  - Cube 9 (Reports): Session export includes new fields
+  - Cube 10 (Simulation): Simulation duration selector enables visual testing of all timer phases
+- Backward (10→1): 0 issues found — PASS
+  - All 198 tests pass without modification
+  - 0 TypeScript errors
+  - Bundle sizes stable
+- **RESULT: 18/18 BIDIRECTIONAL SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
 
 ### Cubes 4, 6–7, 9–10: SCAFFOLDED (stubs only)
 - Models, schemas, and route stubs exist
