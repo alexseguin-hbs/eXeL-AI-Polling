@@ -615,6 +615,25 @@ async def submit_text_response(
         redis, session_id, response_meta.id, language_code, len(text),
     )
 
+    # --- 8b. Fire-and-forget: live summarization (Cube 6 Phase A) ---
+    # Generates 333 -> 111 -> 33 word English summaries for moderator screen.
+    # Runs as background task — does NOT block the response to the user.
+    try:
+        from app.cubes.cube6_ai.service import summarize_single_response
+        asyncio.create_task(
+            summarize_single_response(
+                mongo,
+                session_id=session_id,
+                response_id=response_meta.id,
+                raw_text=clean_text,
+                language_code=language_code,
+                ai_provider=session.ai_provider or "openai",
+            )
+        )
+    except Exception as e:
+        # Summarization failure is non-fatal — log and continue
+        logger.warning("cube2.live_summarization.error", error=str(e))
+
     # --- 9. Return composite result ---
     logger.info(
         "cube2.response.submitted",

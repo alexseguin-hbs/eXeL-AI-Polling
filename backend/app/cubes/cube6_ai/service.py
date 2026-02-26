@@ -1,24 +1,31 @@
-"""Cube 6 — AI Theme Pipeline: Full 9-step orchestrator.
+"""Cube 6 — AI Theme Pipeline: Live Summarization + Parallel Theming.
 
-Pipeline mirrors the monolith (eXeL-AI_Polling_v04.2.py) but replaces
-row-by-row API calls with batched operations and parallel sampling.
+Two-phase architecture matching the monolith (eXeL-AI_Polling_v04.2.py):
 
-Steps:
-  1. Fetch responses from Postgres + MongoDB
-  2. Batch summarize (333 → 111 → 33 words)
-  3. Primary classify (Theme01: Risk / Supporting / Neutral)
-  4. Group by Theme01 into bins
-  5. Parallel marble sampling (draw groups of 10, repeat 100x per bin)
-  6. Secondary theme generation (3 themes per sample)
-  7. Theme reduction (all → 9 → 6 → 3)
-  8. Assign themes to all responses via embedding similarity
-  9. Store results in Postgres + compute replay hash
+PHASE A — Live Per-Response Summarization (during polling):
+  Called by Cube 2 after each text/voice submission.
+  Generates 333 -> 111 -> 33 word English summaries immediately.
+  Stored in MongoDB for instant moderator screen display.
+
+PHASE B — Parallel Theme Pipeline (after moderator closes polling):
+  1. Fetch all 33-word summaries from MongoDB
+  2. Classify Theme01 (Risk / Supporting / Neutral) — batch parallel
+  3. Group by Theme01 into 3 partitions
+  4. Marble sampling: shuffle each partition, slice into groups of 10
+  5. Generate 3 themes per marble group — 10+ concurrent agents
+  6. After ALL groups complete: merge all themes per partition
+  7. Reduce to final 9 (statistically relevant) -> 6 -> 3
+  8. Assign each response to 9/6/3 themes with confidence
+  9. Store results in Postgres + MongoDB + compute replay hash
+
+Target: Theme01 + Theme2 complete in <30 seconds for 1000 responses.
 """
 
 import asyncio
 import hashlib
 import json
 import logging
+import math
 import re
 import uuid
 from datetime import datetime, timezone
@@ -43,41 +50,12 @@ logger = logging.getLogger(__name__)
 
 # Theme01 categories (matches monolith)
 THEME01_CATEGORIES = ["Risk & Concerns", "Supporting Comments", "Neutral Comments"]
-_CONFIDENCE_THRESHOLD = 65  # <65% → reclassify as Neutral (monolith line 127)
+_CONFIDENCE_THRESHOLD = 65  # <65% -> reclassify as Neutral (monolith line 127)
 
 
-# ---------------------------------------------------------------------------
-# Step 1: Fetch responses
-# ---------------------------------------------------------------------------
-
-async def _fetch_responses(
-    db: AsyncSession, mongo_db: AsyncIOMotorDatabase, session_id: uuid.UUID
-) -> list[dict]:
-    """Query ResponseMeta from Postgres, raw text from MongoDB via mongo_ref."""
-    result = await db.execute(
-        select(ResponseMeta).where(ResponseMeta.session_id == session_id)
-    )
-    metas = list(result.scalars().all())
-
-    responses = []
-    for meta in metas:
-        doc = await mongo_db.responses.find_one({"_id": meta.mongo_ref})
-        raw_text = doc.get("text", "") if doc else ""
-        language = doc.get("language", "English") if doc else "English"
-        responses.append({
-            "id": str(meta.id),
-            "participant_id": str(meta.participant_id),
-            "question_id": str(meta.question_id),
-            "raw_text": raw_text,
-            "language": language,
-        })
-
-    return responses
-
-
-# ---------------------------------------------------------------------------
-# Step 2: Batch summarize (333 → 111 → 33)
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════
+# PHASE A — Live Per-Response Summarization
+# ═══════════════════════════════════════════════════════════════════
 
 _SUMMARIZE_INSTRUCTION = (
     "You are a summarizer. {translate}"
@@ -86,71 +64,145 @@ _SUMMARIZE_INSTRUCTION = (
 )
 
 
-async def _batch_summarize(
-    summarizer: SummarizationProvider, responses: list[dict]
-) -> list[dict]:
-    """Generate 333 → 111 → 33 word summaries for all responses (batched)."""
+async def summarize_single_response(
+    mongo: AsyncIOMotorDatabase,
+    *,
+    session_id: uuid.UUID,
+    response_id: uuid.UUID,
+    raw_text: str,
+    language_code: str = "en",
+    ai_provider: str = "openai",
+) -> dict:
+    """Generate 333 -> 111 -> 33 word summaries for a single response.
 
-    def _count_words(text: str) -> int:
-        return len(text.split())
+    Called by Cube 2 submit flow (fire-and-forget async task).
+    Stores summaries immediately in MongoDB for live display.
 
-    # 333-word summaries
-    items_333 = []
-    for r in responses:
-        translate = (
-            "If the text is not in English, translate it to English first. "
-            if r.get("language", "English") != "English"
-            else ""
+    Returns: {"summary_333": str, "summary_111": str, "summary_33": str}
+    """
+    summarizer = get_summarization_provider(ai_provider)
+
+    translate = (
+        "If the text is not in English, translate it to English first. "
+        if language_code != "en"
+        else ""
+    )
+
+    word_count = len(raw_text.split())
+
+    # 333-word summary (skip if already short enough)
+    if word_count > 333:
+        summary_333 = await summarizer.summarize(
+            [raw_text[:4000]],
+            instruction=_SUMMARIZE_INSTRUCTION.format(translate=translate, target=333),
         )
-        word_count = _count_words(r["raw_text"])
-        if word_count > 333:
-            items_333.append({
-                "text": r["raw_text"][:4000],
-                "instruction": _SUMMARIZE_INSTRUCTION.format(
-                    translate=translate, target=333
-                ),
-            })
-        else:
-            items_333.append({"text": r["raw_text"], "instruction": ""})
+    else:
+        summary_333 = raw_text
 
-    results_333 = await summarizer.batch_summarize(items_333)
+    # 111-word summary (cascade from 333)
+    summary_111 = await summarizer.summarize(
+        [summary_333],
+        instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=111),
+    )
 
-    # For items that were short enough, use the raw text as the 333 summary
-    for i, r in enumerate(responses):
-        if not items_333[i]["instruction"]:
-            results_333[i] = r["raw_text"]
+    # 33-word summary (cascade from 111)
+    summary_33 = await summarizer.summarize(
+        [summary_111],
+        instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=33),
+    )
 
-    # 111-word summaries (from 333)
-    items_111 = [
+    # Store in MongoDB for immediate display
+    await mongo.summaries.update_one(
+        {"response_id": str(response_id), "session_id": str(session_id)},
         {
-            "text": s333,
-            "instruction": _SUMMARIZE_INSTRUCTION.format(translate="", target=111),
-        }
-        for s333 in results_333
-    ]
-    results_111 = await summarizer.batch_summarize(items_111)
+            "$set": {
+                "summary_333": summary_333,
+                "summary_111": summary_111,
+                "summary_33": summary_33,
+                "language_code": language_code,
+                "summarized_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+        upsert=True,
+    )
 
-    # 33-word summaries (from 111)
-    items_33 = [
-        {
-            "text": s111,
-            "instruction": _SUMMARIZE_INSTRUCTION.format(translate="", target=33),
-        }
-        for s111 in results_111
-    ]
-    results_33 = await summarizer.batch_summarize(items_33)
+    logger.info(
+        "cube6.live_summary.completed",
+        response_id=str(response_id),
+        session_id=str(session_id),
+        word_counts=f"333={len(summary_333.split())}, "
+                     f"111={len(summary_111.split())}, "
+                     f"33={len(summary_33.split())}",
+    )
 
-    # Attach summaries to response dicts
-    for i, r in enumerate(responses):
-        r["summary_333"] = results_333[i]
-        r["summary_111"] = results_111[i]
-        r["summary_33"] = results_33[i]
+    return {
+        "summary_333": summary_333,
+        "summary_111": summary_111,
+        "summary_33": summary_33,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════
+# PHASE B — Parallel Theme Pipeline (post-close)
+# ═══════════════════════════════════════════════════════════════════
+
+
+# ---------------------------------------------------------------------------
+# Step 1: Fetch all 33-word summaries
+# ---------------------------------------------------------------------------
+
+async def _fetch_summaries(
+    db: AsyncSession, mongo: AsyncIOMotorDatabase, session_id: uuid.UUID
+) -> list[dict]:
+    """Fetch all response metadata + pre-computed 33-word summaries.
+
+    Summaries were generated live during polling (Phase A).
+    This step just collects them for the theming pipeline.
+    """
+    result = await db.execute(
+        select(ResponseMeta).where(ResponseMeta.session_id == session_id)
+    )
+    metas = list(result.scalars().all())
+
+    responses = []
+    for meta in metas:
+        # Get pre-computed summary from MongoDB
+        summary_doc = await mongo.summaries.find_one({
+            "response_id": str(meta.id),
+            "session_id": str(session_id),
+        })
+
+        summary_33 = ""
+        summary_111 = ""
+        summary_333 = ""
+        if summary_doc:
+            summary_33 = summary_doc.get("summary_33", "")
+            summary_111 = summary_doc.get("summary_111", "")
+            summary_333 = summary_doc.get("summary_333", "")
+
+        # Fallback: if no summary exists, fetch raw text from MongoDB
+        if not summary_33 and meta.mongo_ref:
+            doc = await mongo.responses.find_one({"_id": meta.mongo_ref})
+            if doc:
+                raw_text = doc.get("raw_text", doc.get("text", ""))
+                # Use first 33 words as emergency fallback
+                words = raw_text.split()[:33]
+                summary_33 = " ".join(words)
+
+        responses.append({
+            "id": str(meta.id),
+            "participant_id": str(meta.participant_id) if meta.participant_id else None,
+            "question_id": str(meta.question_id),
+            "summary_33": summary_33,
+            "summary_111": summary_111,
+            "summary_333": summary_333,
+        })
 
     return responses
 
 
 # ---------------------------------------------------------------------------
-# Step 3: Primary classify (Theme01)
+# Step 2: Classify Theme01 (batch parallel)
 # ---------------------------------------------------------------------------
 
 _CLASSIFY_INSTRUCTION = (
@@ -165,7 +217,10 @@ _CLASSIFY_PATTERN = re.compile(r"(.+?)\s*\(Confidence:\s*(\d+)%\)")
 async def _classify_theme01(
     summarizer: SummarizationProvider, responses: list[dict]
 ) -> list[dict]:
-    """Classify 33-word summaries into Theme01 categories."""
+    """Classify 33-word summaries into Theme01 categories (batch)."""
+    if not responses:
+        return responses
+
     items = [
         {"text": f"INPUT: {r['summary_33'][:2500]}", "instruction": _CLASSIFY_INSTRUCTION}
         for r in responses
@@ -181,7 +236,7 @@ async def _classify_theme01(
             theme01 = results[i].strip()
             confidence = 0
 
-        # Apply <65% confidence → Neutral rule (monolith line 127)
+        # Apply <65% confidence -> Neutral rule (monolith line 127)
         if theme01 in ("Risk & Concerns", "Supporting Comments") and confidence < _CONFIDENCE_THRESHOLD:
             theme01 = "Neutral Comments"
 
@@ -192,7 +247,7 @@ async def _classify_theme01(
 
 
 # ---------------------------------------------------------------------------
-# Step 4: Group by Theme01
+# Step 3: Group by Theme01
 # ---------------------------------------------------------------------------
 
 def _group_by_theme01(responses: list[dict]) -> dict[str, list[dict]]:
@@ -207,39 +262,51 @@ def _group_by_theme01(responses: list[dict]) -> dict[str, list[dict]]:
 
 
 # ---------------------------------------------------------------------------
-# Step 5: Parallel marble sampling
+# Step 4: Marble Sampling (shuffle + slice — matches monolith)
 # ---------------------------------------------------------------------------
 
-async def _parallel_sample(
+def _marble_sample(
+    items: list[dict], seed: int
+) -> list[list[dict]]:
+    """Shuffle partition and slice into non-overlapping groups of 10.
+
+    Matches monolith algorithm (eXeL-AI_Polling_v04.2.py lines 141-147):
+      df.sample(frac=1).reset_index(drop=True)  # shuffle
+      groups = [df.iloc[i*10:(i+1)*10] for i in range(ceil(len/10))]
+
+    Each response used exactly once. No replacement sampling.
+    Uses deterministic numpy RandomState for reproducibility.
+    """
+    if not items:
+        return []
+
+    rng = np.random.RandomState(seed)
+    indices = rng.permutation(len(items))  # Deterministic shuffle
+    shuffled = [items[idx] for idx in indices]
+
+    group_size = settings.sample_size  # 10
+    n_groups = math.ceil(len(shuffled) / group_size)
+
+    groups = []
+    for i in range(n_groups):
+        start = i * group_size
+        end = min(start + group_size, len(shuffled))
+        groups.append(shuffled[start:end])
+
+    return groups
+
+
+async def _parallel_marble_sample(
     bins: dict[str, list[dict]], seed: int
 ) -> dict[str, list[list[dict]]]:
-    """Draw marble samples from each bin in parallel.
-
-    Analogy: Pull 10 marbles from bowl, generate 3 themes, put marbles back.
-    Repeat sample_count times per bin. ThreadPoolExecutor runs bins in parallel.
-
-    Uses np.random.RandomState(seed) per bin for full determinism.
-    """
-    sample_count = settings.sample_count
-    sample_size = settings.sample_size
-
-    def _draw_samples(items: list[dict], bin_seed: int) -> list[list[dict]]:
-        if not items:
-            return []
-        rng = np.random.RandomState(bin_seed)
-        samples = []
-        n = len(items)
-        for _ in range(sample_count):
-            indices = rng.choice(n, size=min(sample_size, n), replace=n < sample_size)
-            samples.append([items[idx] for idx in indices])
-        return samples
-
+    """Marble sample all 3 partitions in parallel using thread pool."""
     tasks = []
     bin_labels = sorted(bins.keys())  # Deterministic order
+
     for i, label in enumerate(bin_labels):
         bin_seed = seed + i
         tasks.append(
-            asyncio.to_thread(_draw_samples, bins[label], bin_seed)
+            asyncio.to_thread(_marble_sample, bins[label], bin_seed)
         )
 
     results = await asyncio.gather(*tasks)
@@ -247,58 +314,99 @@ async def _parallel_sample(
 
 
 # ---------------------------------------------------------------------------
-# Step 6: Secondary theme generation (3 per sample)
+# Step 5: Generate 3 themes per marble group (10+ concurrent agents)
 # ---------------------------------------------------------------------------
 
-_SECONDARY_THEME_INSTRUCTION = (
+_THEME_GEN_INSTRUCTION = (
     "You are an AI assistant expert at theming {type_str}-based polling questions. "
     "Generate 3 unique SUMMARY THEMES for the given {type_str} data. "
     "Each theme in 5 words, description 7-12 words without commas/punctuation. "
-    "Themes distinct. Reply in format: T001, Theme Name, Description (one per line)."
+    "Themes distinct.\n\n"
+    "Reply in format:\n"
+    "T001, Theme Name 001, Description of Theme 1\n"
+    "T002, Theme Name 002, Description of Theme 2\n"
+    "T003, Theme Name 003, Description of Theme 3"
 )
 
+_TYPE_MAP = {
+    "Risk & Concerns": "RISK",
+    "Supporting Comments": "SUPPORT",
+    "Neutral Comments": "NEUTRAL",
+}
 
-async def _generate_secondary_themes(
+
+async def _generate_themes_for_group(
+    summarizer: SummarizationProvider,
+    group: list[dict],
+    type_str: str,
+) -> list[str]:
+    """Generate 3 themes for a single marble group of ~10 responses.
+
+    Returns list of theme name strings.
+    """
+    combined = "\n".join(r.get("summary_33", "") for r in group)
+    instruction = _THEME_GEN_INSTRUCTION.format(type_str=type_str)
+
+    result_text = await summarizer.summarize(
+        [f"Generate ONLY 3 THEMES for this data. Theme: 5-words, "
+         f"Description: 7-12 words no commas/punctuation.\n\nINPUT: {combined[:2500]}"],
+        instruction=instruction,
+    )
+
+    # Parse theme names from response
+    themes = []
+    for line in result_text.strip().split("\n"):
+        parts = line.split(",")
+        if len(parts) >= 2:
+            theme_name = parts[1].strip()
+            if theme_name:
+                themes.append(theme_name)
+
+    return themes
+
+
+async def _parallel_generate_themes(
     summarizer: SummarizationProvider,
     bin_samples: dict[str, list[list[dict]]],
 ) -> dict[str, list[str]]:
-    """For each sample of 10 items, generate 3 secondary themes (batched)."""
+    """Generate 3 themes per marble group across all partitions.
+
+    All groups processed concurrently — this is the 10+ agent parallelism.
+    For a partition with 100 responses = 10 groups = 10 concurrent API calls.
+    """
     all_themes: dict[str, list[str]] = {cat: [] for cat in THEME01_CATEGORIES}
 
-    for label, samples in bin_samples.items():
-        if not samples:
+    # Build list of all concurrent tasks
+    tasks: list[tuple[str, asyncio.Task]] = []
+
+    for label, groups in bin_samples.items():
+        if not groups:
             continue
+        type_str = _TYPE_MAP.get(label, "NEUTRAL")
 
-        type_str = {
-            "Risk & Concerns": "RISK",
-            "Supporting Comments": "SUPPORT",
-            "Neutral Comments": "NEUTRAL",
-        }.get(label, "NEUTRAL")
+        for group in groups:
+            task = asyncio.create_task(
+                _generate_themes_for_group(summarizer, group, type_str)
+            )
+            tasks.append((label, task))
 
-        items = []
-        for sample in samples:
-            combined = "\n".join(r.get("summary_33", "") for r in sample)
-            items.append({
-                "text": combined[:2500],
-                "instruction": _SECONDARY_THEME_INSTRUCTION.format(type_str=type_str),
-            })
+    # Execute ALL groups concurrently (10+ agents)
+    if tasks:
+        await asyncio.gather(*(t for _, t in tasks))
 
-        results = await summarizer.batch_summarize(items)
-
-        for result_text in results:
-            # Parse theme names from response lines
-            for line in result_text.strip().split("\n"):
-                parts = line.split(",")
-                if len(parts) >= 2:
-                    theme_name = parts[1].strip()
-                    if theme_name:
-                        all_themes[label].append(theme_name)
+    # Collect results
+    for label, task in tasks:
+        try:
+            themes = task.result()
+            all_themes[label].extend(themes)
+        except Exception as e:
+            logger.warning("cube6.theme_gen.group_failed", label=label, error=str(e))
 
     return all_themes
 
 
 # ---------------------------------------------------------------------------
-# Step 7: Theme reduction (all → 9 → 6 → 3)
+# Step 6: Reduce themes (all -> 9 -> 6 -> 3)
 # ---------------------------------------------------------------------------
 
 _REDUCE_INSTRUCTION = (
@@ -332,21 +440,22 @@ async def _reduce_themes(
     summarizer: SummarizationProvider,
     all_themes: dict[str, list[str]],
 ) -> dict[str, dict[str, list[dict]]]:
-    """Reduce themes: all → 9 → 6 → 3 per Theme01 category."""
-    reduced: dict[str, dict[str, list[dict]]] = {}
+    """Reduce themes: all -> 9 (statistically relevant) -> 6 -> 3 per partition.
 
-    for label, themes in all_themes.items():
+    Reduction runs per Theme01 category (Risk, Supporting, Neutral).
+    Each step feeds ONLY theme names to the next (skip CSV headers).
+    All 3 category reductions run concurrently.
+    """
+
+    async def _reduce_single_category(
+        label: str, themes: list[str]
+    ) -> dict[str, list[dict]]:
         if not themes:
-            reduced[label] = {"9": [], "6": [], "3": []}
-            continue
+            return {"9": [], "6": [], "3": []}
 
-        type_str = {
-            "Risk & Concerns": "RISK",
-            "Supporting Comments": "SUPPORT",
-            "Neutral Comments": "NEUTRAL",
-        }.get(label, "NEUTRAL")
+        type_str = _TYPE_MAP.get(label, "NEUTRAL")
 
-        # All → 9
+        # All -> 9 (statistically relevant consolidation)
         themes_str = "\n".join(themes)
         text_9 = await summarizer.summarize(
             [f"Reduce these themes to 9:\n{themes_str}"],
@@ -354,7 +463,7 @@ async def _reduce_themes(
         )
         parsed_9 = _parse_reduced_themes(text_9)
 
-        # 9 → 6
+        # 9 -> 6
         themes_9_str = "\n".join(t["label"] for t in parsed_9)
         text_6 = await summarizer.summarize(
             [f"Reduce these themes to 6:\n{themes_9_str}"],
@@ -362,7 +471,7 @@ async def _reduce_themes(
         )
         parsed_6 = _parse_reduced_themes(text_6)
 
-        # 6 → 3
+        # 6 -> 3
         themes_6_str = "\n".join(t["label"] for t in parsed_6)
         text_3 = await summarizer.summarize(
             [f"Reduce these themes to 3:\n{themes_6_str}"],
@@ -370,23 +479,106 @@ async def _reduce_themes(
         )
         parsed_3 = _parse_reduced_themes(text_3)
 
-        reduced[label] = {"9": parsed_9, "6": parsed_6, "3": parsed_3}
+        return {"9": parsed_9, "6": parsed_6, "3": parsed_3}
 
-    return reduced
+    # Run all 3 category reductions concurrently
+    labels = sorted(all_themes.keys())
+    tasks = [
+        _reduce_single_category(label, all_themes[label])
+        for label in labels
+    ]
+    results = await asyncio.gather(*tasks)
+
+    return {label: result for label, result in zip(labels, results)}
 
 
 # ---------------------------------------------------------------------------
-# Step 8: Assign themes to all responses
+# Step 7: Assign themes to all responses with confidence
 # ---------------------------------------------------------------------------
 
-async def _assign_themes(
+_ASSIGN_INSTRUCTION = (
+    "Choose the best fitting theme from this list for the input. "
+    "Reply with 'THEME (Confidence: XX%)' where THEME is exactly one "
+    "from the list, XX 70-100."
+)
+
+
+async def _assign_themes_llm(
+    summarizer: SummarizationProvider,
+    responses: list[dict],
+    reduced: dict[str, dict[str, list[dict]]],
+) -> list[dict]:
+    """Assign themes to each response using LLM matching (monolith approach).
+
+    For each response at each level (9/6/3), asks the LLM to pick
+    the best-fitting theme from the response's Theme01 category list.
+    All assignments processed as a batch for speed.
+    """
+    if not responses:
+        return responses
+
+    # Build assignment tasks for all responses at all 3 levels
+    for level in ("9", "6", "3"):
+        items = []
+        for r in responses:
+            category = r.get("theme01", "Neutral Comments")
+            cat_themes = reduced.get(category, {}).get(level, [])
+
+            if not cat_themes:
+                r[f"theme2_{level}"] = ""
+                r[f"theme2_{level}_confidence"] = 0
+                continue
+
+            themes_str = "\n".join(t["label"] for t in cat_themes)
+            items.append({
+                "text": f"List: {themes_str}\nInput: {r['summary_33'][:2500]}",
+                "instruction": _ASSIGN_INSTRUCTION,
+            })
+
+        if not items:
+            continue
+
+        # Batch all assignments at this level
+        results = await summarizer.batch_summarize(items)
+
+        # Parse results back onto responses
+        result_idx = 0
+        for r in responses:
+            category = r.get("theme01", "Neutral Comments")
+            cat_themes = reduced.get(category, {}).get(level, [])
+
+            if not cat_themes:
+                continue
+
+            result_text = results[result_idx]
+            result_idx += 1
+
+            match = _CLASSIFY_PATTERN.match(result_text)
+            if match:
+                theme_name = match.group(1).strip()
+                confidence = int(match.group(2))
+            else:
+                # Fallback: pick first theme if parse fails
+                theme_name = cat_themes[0]["label"] if cat_themes else ""
+                confidence = 70
+
+            r[f"theme2_{level}"] = theme_name
+            r[f"theme2_{level}_confidence"] = confidence
+
+    return responses
+
+
+async def _assign_themes_embedding(
     embedder: EmbeddingProvider,
     responses: list[dict],
     reduced: dict[str, dict[str, list[dict]]],
 ) -> list[dict]:
-    """Assign reduced themes to each response via cosine similarity."""
+    """Assign themes to each response via cosine similarity (fast, no LLM calls).
 
-    # Build theme label → embedding lookup for each level
+    Alternative to LLM assignment — uses embedding similarity for speed.
+    Better for large datasets (>500 responses) where LLM calls would be slow.
+    """
+    # Build theme label -> embedding lookup for each level
     all_theme_labels: list[str] = []
     label_to_info: dict[str, dict] = {}
 
@@ -411,7 +603,7 @@ async def _assign_themes(
     all_embeddings = await embedder.embed(all_texts)
 
     theme_embeddings = np.array(all_embeddings[: len(all_theme_labels)])
-    response_embeddings = np.array(all_embeddings[len(all_theme_labels) :])
+    response_embeddings = np.array(all_embeddings[len(all_theme_labels):])
 
     # For each response, find best match at each level for its Theme01 category
     for i, r in enumerate(responses):
@@ -422,21 +614,19 @@ async def _assign_themes(
             themes = cat_levels.get(level, [])
             if not themes:
                 r[f"theme2_{level}"] = ""
-                r[f"theme2_{level}_confidence"] = 0.0
+                r[f"theme2_{level}_confidence"] = 0
                 continue
 
-            # Get indices of theme embeddings for this category+level
             best_label = ""
             best_confidence = 0.0
             best_sim = -1.0
 
             for j, (tl, info) in enumerate(label_to_info.items()):
                 if info["category"] == category and info["level"] == level:
-                    # Cosine similarity
                     t_emb = theme_embeddings[j]
                     r_emb = response_embeddings[i]
-                    dot = np.dot(t_emb, r_emb)
-                    norm = np.linalg.norm(t_emb) * np.linalg.norm(r_emb)
+                    dot = float(np.dot(t_emb, r_emb))
+                    norm = float(np.linalg.norm(t_emb) * np.linalg.norm(r_emb))
                     sim = dot / norm if norm > 0 else 0.0
                     if sim > best_sim:
                         best_sim = sim
@@ -444,13 +634,13 @@ async def _assign_themes(
                         best_confidence = info["confidence"]
 
             r[f"theme2_{level}"] = best_label
-            r[f"theme2_{level}_confidence"] = best_confidence
+            r[f"theme2_{level}_confidence"] = round(best_confidence * 100)
 
     return responses
 
 
 # ---------------------------------------------------------------------------
-# Step 9: Store results
+# Step 8: Store results
 # ---------------------------------------------------------------------------
 
 async def _store_results(
@@ -459,14 +649,14 @@ async def _store_results(
     responses: list[dict],
     bin_samples: dict[str, list[list[dict]]],
     reduced: dict[str, dict[str, list[dict]]],
-    mongo_db: AsyncIOMotorDatabase,
+    mongo: AsyncIOMotorDatabase,
 ) -> str:
-    """Write Theme + ThemeSample records to Postgres, summaries to MongoDB.
+    """Write Theme + ThemeSample records to Postgres, update MongoDB.
     Returns replay_hash."""
 
-    # Store themes at each reduction level
-    theme_records: dict[str, dict[str, uuid.UUID]] = {}  # "category|level|label" → theme.id
+    provider_name = session.ai_provider or "openai"
 
+    # Store themes at each reduction level
     for category, levels in reduced.items():
         # Create parent Theme01 record
         parent = Theme(
@@ -478,8 +668,8 @@ async def _store_results(
             response_count=sum(
                 1 for r in responses if r.get("theme01") == category
             ),
-            ai_provider=session.ai_provider,
-            ai_model="gpt-4o-mini",
+            ai_provider=provider_name,
+            ai_model="pipeline",
         )
         db.add(parent)
         await db.flush()
@@ -499,18 +689,16 @@ async def _store_results(
                         and r.get("theme01") == category
                     ),
                     parent_theme_id=parent.id,
-                    ai_provider=session.ai_provider,
-                    ai_model="gpt-4o-mini",
+                    ai_provider=provider_name,
+                    ai_model="pipeline",
                     cluster_metadata={"level": level},
                 )
                 db.add(child)
-                await db.flush()
-                theme_records[f"{category}|{level}|{t['label']}"] = child.id
 
-    # Store ThemeSample records
-    for category, samples in bin_samples.items():
-        for idx, sample_group in enumerate(samples):
-            response_ids = [r["id"] for r in sample_group]
+    # Store ThemeSample records (marble groups)
+    for category, groups in bin_samples.items():
+        for idx, group in enumerate(groups):
+            response_ids = [r["id"] for r in group]
             ts = ThemeSample(
                 session_id=session.id,
                 theme01_label=category,
@@ -519,15 +707,12 @@ async def _store_results(
             )
             db.add(ts)
 
-    # Store summaries in MongoDB
+    # Update MongoDB with theme assignments for each response
     for r in responses:
-        await mongo_db.summaries.update_one(
+        await mongo.summaries.update_one(
             {"response_id": r["id"], "session_id": str(session.id)},
             {
                 "$set": {
-                    "summary_333": r.get("summary_333", ""),
-                    "summary_111": r.get("summary_111", ""),
-                    "summary_33": r.get("summary_33", ""),
                     "theme01": r.get("theme01", ""),
                     "theme01_confidence": r.get("theme01_confidence", 0),
                     "theme2_9": r.get("theme2_9", ""),
@@ -536,7 +721,7 @@ async def _store_results(
                     "theme2_6_confidence": r.get("theme2_6_confidence", 0),
                     "theme2_3": r.get("theme2_3", ""),
                     "theme2_3_confidence": r.get("theme2_3_confidence", 0),
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "themed_at": datetime.now(timezone.utc).isoformat(),
                 }
             },
             upsert=True,
@@ -547,8 +732,7 @@ async def _store_results(
         "session_id": str(session.id),
         "seed": session.seed,
         "response_count": len(responses),
-        "ai_provider": session.ai_provider,
-        "sample_count": settings.sample_count,
+        "ai_provider": provider_name,
         "sample_size": settings.sample_size,
         "themes": {
             cat: {level: [t["label"] for t in themes] for level, themes in levels.items()}
@@ -565,17 +749,31 @@ async def _store_results(
     return replay_hash
 
 
-# ---------------------------------------------------------------------------
-# Public API: run_pipeline / get_session_themes
-# ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════
+# Public API
+# ═══════════════════════════════════════════════════════════════════
+
 
 async def run_pipeline(
     db: AsyncSession,
-    mongo_db: AsyncIOMotorDatabase,
+    mongo: AsyncIOMotorDatabase,
     session_id: uuid.UUID,
     seed: str | None = None,
+    *,
+    use_embedding_assignment: bool = False,
 ) -> dict:
-    """Execute the full 9-step AI theme pipeline for a session."""
+    """Execute the full parallel theming pipeline for a session.
+
+    Called after moderator closes polling. Summaries already exist
+    from Phase A (live per-response summarization during polling).
+
+    Args:
+        use_embedding_assignment: If True, use cosine similarity for theme
+            assignment (faster). If False, use LLM matching (monolith approach).
+    """
+    import time
+    start_time = time.monotonic()
+
     # Load session
     result = await db.execute(select(Session).where(Session.id == session_id))
     session = result.scalar_one_or_none()
@@ -583,48 +781,69 @@ async def run_pipeline(
         raise ValueError(f"Session {session_id} not found")
 
     effective_seed = seed or session.seed or str(session_id)
-    # Convert seed string to integer for numpy
     seed_int = int(hashlib.md5(effective_seed.encode()).hexdigest()[:8], 16)
 
     provider_name = session.ai_provider or "openai"
-    embedder = get_embedding_provider(provider_name)
     summarizer = get_summarization_provider(provider_name)
 
-    logger.info("Step 1: Fetching responses for session %s", session_id)
-    responses = await _fetch_responses(db, mongo_db, session_id)
+    logger.info("cube6.pipeline.start", session_id=str(session_id))
+
+    # Step 1: Fetch pre-computed 33-word summaries
+    logger.info("Step 1: Fetching pre-computed summaries")
+    responses = await _fetch_summaries(db, mongo, session_id)
     if not responses:
         return {
             "session_id": str(session_id),
             "status": "completed",
             "total_responses": 0,
             "message": "No responses to process",
+            "duration_sec": round(time.monotonic() - start_time, 2),
         }
 
-    logger.info("Step 2: Batch summarizing %d responses", len(responses))
-    responses = await _batch_summarize(summarizer, responses)
-
-    logger.info("Step 3: Classifying Theme01")
+    # Step 2: Classify Theme01 (batch parallel)
+    logger.info("Step 2: Classifying Theme01 for %d responses", len(responses))
     responses = await _classify_theme01(summarizer, responses)
 
-    logger.info("Step 4: Grouping by Theme01")
+    # Step 3: Group by Theme01
+    logger.info("Step 3: Grouping by Theme01")
     bins = _group_by_theme01(responses)
     bin_counts = {k: len(v) for k, v in bins.items()}
 
-    logger.info("Step 5: Parallel marble sampling (seed=%d)", seed_int)
-    bin_samples = await _parallel_sample(bins, seed_int)
+    # Step 4: Marble sampling (shuffle + slice)
+    logger.info("Step 4: Marble sampling (seed=%d)", seed_int)
+    bin_samples = await _parallel_marble_sample(bins, seed_int)
+    group_counts = {k: len(v) for k, v in bin_samples.items()}
 
-    logger.info("Step 6: Generating secondary themes")
-    all_secondary_themes = await _generate_secondary_themes(summarizer, bin_samples)
+    # Step 5: Generate 3 themes per marble group (10+ concurrent agents)
+    logger.info("Step 5: Generating themes (%s groups total)",
+                sum(group_counts.values()))
+    all_themes = await _parallel_generate_themes(summarizer, bin_samples)
+    theme_counts = {k: len(v) for k, v in all_themes.items()}
 
-    logger.info("Step 7: Reducing themes (9 → 6 → 3)")
-    reduced = await _reduce_themes(summarizer, all_secondary_themes)
+    # Step 6: Reduce all -> 9 -> 6 -> 3 (concurrent per category)
+    logger.info("Step 6: Reducing themes (all->9->6->3)")
+    reduced = await _reduce_themes(summarizer, all_themes)
 
-    logger.info("Step 8: Assigning themes to all responses")
-    responses = await _assign_themes(embedder, responses, reduced)
+    # Step 7: Assign themes to all responses
+    logger.info("Step 7: Assigning themes to all responses")
+    if use_embedding_assignment:
+        embedder = get_embedding_provider(provider_name)
+        responses = await _assign_themes_embedding(embedder, responses, reduced)
+    else:
+        responses = await _assign_themes_llm(summarizer, responses, reduced)
 
-    logger.info("Step 9: Storing results")
+    # Step 8: Store results
+    logger.info("Step 8: Storing results")
     replay_hash = await _store_results(
-        db, session, responses, bin_samples, reduced, mongo_db
+        db, session, responses, bin_samples, reduced, mongo
+    )
+
+    duration = round(time.monotonic() - start_time, 2)
+    logger.info(
+        "cube6.pipeline.completed",
+        session_id=str(session_id),
+        total_responses=len(responses),
+        duration_sec=duration,
     )
 
     return {
@@ -632,6 +851,8 @@ async def run_pipeline(
         "status": "completed",
         "total_responses": len(responses),
         "bins": bin_counts,
+        "marble_groups": group_counts,
+        "candidate_themes": theme_counts,
         "themes_9": {
             cat: [t["label"] for t in levels.get("9", [])]
             for cat, levels in reduced.items()
@@ -645,6 +866,7 @@ async def run_pipeline(
             for cat, levels in reduced.items()
         },
         "replay_hash": replay_hash,
+        "duration_sec": duration,
     }
 
 
