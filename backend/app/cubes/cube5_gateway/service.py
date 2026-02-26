@@ -1,30 +1,43 @@
-"""Cube 5 — Time Tracking Service.
+"""Cube 5 — Gateway / Orchestrator Service.
 
-Tracks active participation time and calculates SoI Trinity tokens:
-  ♡ = ceil(active_minutes) — rounds UP to nearest minute, 1 min default on login
-  웃 = jurisdiction min-wage rate per minute when enabled
-      0.0 when human_enabled=False (pre-treasury)
-      Format: #.### (3 decimal places, no currency symbol)
-  ◬ = ♡ * unity_heart_multiplier (default 5x)
+The CENTER of the 3x3 cube grid. Two responsibilities:
 
-웃 vision: Pay out globally at local minimum wage to leverage global talent.
-          Rate resolved per participant from rate table.
-          Default: Austin, Texas = 7.25/hr.
-          Flip human_enabled=True once treasury is funded.
+1. TIME TRACKING (existing):
+   Tracks active participation time and calculates SoI Trinity tokens:
+     ♡ = ceil(active_minutes) — rounds UP to nearest minute, 1 min default on login
+     웃 = jurisdiction min-wage rate per minute when enabled
+         0.0 when human_enabled=False (pre-treasury)
+     ◬ = ♡ * unity_heart_multiplier (default 5x)
+
+2. PIPELINE ORCHESTRATOR (new):
+   Coordinates downstream pipeline triggers when session state changes:
+     polling → ranking: fires Cube 6 AI theming pipeline as background task
+     ranking → closed: fires ranking aggregation (Cube 7, placeholder)
+     CQS scoring: fires after Cube 7 completes (placeholder)
+   Tracks pipeline status (pending/in_progress/completed/failed) with retry.
+
+Designed for 1M peak: background tasks use fresh DB sessions, non-blocking
+fire-and-forget pattern, status polling for monitoring.
 """
 
+import asyncio
+import logging
 import math
 import uuid
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.hi_rates import resolve_human_rate
+from app.models.pipeline_trigger import PipelineTrigger, VALID_TRIGGER_TYPES
 from app.models.time_tracking import TimeEntry
 from app.models.token_ledger import TokenLedger
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -258,4 +271,225 @@ async def get_participant_time_summary(
         "total_human_tokens": total_human,
         "total_unity_tokens": total_unity,
         "entries": entries,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Pipeline Orchestrator
+# ---------------------------------------------------------------------------
+
+
+async def _create_trigger(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    trigger_type: str,
+    metadata: dict | None = None,
+) -> PipelineTrigger:
+    """Create a PipelineTrigger record in pending state.
+
+    Validates trigger_type against VALID_TRIGGER_TYPES.
+    """
+    if trigger_type not in VALID_TRIGGER_TYPES:
+        raise ValueError(
+            f"Invalid trigger_type '{trigger_type}'. "
+            f"Must be one of: {', '.join(VALID_TRIGGER_TYPES)}"
+        )
+
+    trigger = PipelineTrigger(
+        session_id=session_id,
+        trigger_type=trigger_type,
+        status="pending",
+        triggered_at=datetime.now(timezone.utc),
+        trigger_metadata=metadata,
+    )
+    db.add(trigger)
+    await db.commit()
+    await db.refresh(trigger)
+    return trigger
+
+
+async def update_pipeline_status(
+    db: AsyncSession,
+    trigger_id: uuid.UUID,
+    new_status: str,
+    error_message: str | None = None,
+    result_metadata: dict | None = None,
+) -> PipelineTrigger:
+    """Update the status of a pipeline trigger.
+
+    Called by background tasks on completion or failure.
+    Sets completed_at when status is 'completed' or 'failed'.
+    """
+    result = await db.execute(
+        select(PipelineTrigger).where(PipelineTrigger.id == trigger_id)
+    )
+    trigger = result.scalar_one_or_none()
+    if trigger is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Pipeline trigger '{trigger_id}' not found",
+        )
+
+    trigger.status = new_status
+    if new_status in ("completed", "failed"):
+        trigger.completed_at = datetime.now(timezone.utc)
+    if error_message:
+        trigger.error_message = error_message
+    if result_metadata:
+        trigger.trigger_metadata = {**(trigger.trigger_metadata or {}), **result_metadata}
+
+    await db.commit()
+    await db.refresh(trigger)
+    return trigger
+
+
+async def trigger_ai_pipeline(
+    db: AsyncSession,
+    mongo: AsyncIOMotorDatabase,
+    session_id: uuid.UUID,
+    seed: str | None = None,
+    use_embedding_assignment: bool = False,
+) -> PipelineTrigger:
+    """Create a pipeline trigger and fire the Cube 6 AI theming pipeline.
+
+    The AI pipeline runs as a background asyncio task using a fresh DB session
+    (the request session may close before the pipeline completes). On success,
+    updates trigger to 'completed'. On failure, updates to 'failed'.
+
+    Returns the PipelineTrigger record immediately (202 Accepted pattern).
+    """
+    trigger = await _create_trigger(
+        db,
+        session_id,
+        "ai_theming",
+        metadata={"seed": seed, "use_embedding_assignment": use_embedding_assignment},
+    )
+
+    async def _run_pipeline_background(trigger_id: uuid.UUID) -> None:
+        """Background coroutine — uses fresh DB session."""
+        from app.db.postgres import async_session_factory
+        from app.cubes.cube6_ai.service import run_pipeline
+
+        async with async_session_factory() as bg_db:
+            try:
+                await update_pipeline_status(bg_db, trigger_id, "in_progress")
+                result = await run_pipeline(
+                    bg_db,
+                    mongo,
+                    session_id,
+                    seed=seed,
+                    use_embedding_assignment=use_embedding_assignment,
+                )
+                await update_pipeline_status(
+                    bg_db,
+                    trigger_id,
+                    "completed",
+                    result_metadata={
+                        "total_responses": result.get("total_responses", 0),
+                        "replay_hash": result.get("replay_hash"),
+                        "duration_sec": result.get("duration_sec"),
+                    },
+                )
+                logger.info(
+                    "cube5.pipeline.ai_theming.completed",
+                    extra={"trigger_id": str(trigger_id), "session_id": str(session_id)},
+                )
+            except Exception as exc:
+                logger.error(
+                    "cube5.pipeline.ai_theming.failed",
+                    extra={"trigger_id": str(trigger_id), "error": str(exc)},
+                )
+                try:
+                    await update_pipeline_status(
+                        bg_db, trigger_id, "failed", error_message=str(exc)
+                    )
+                except Exception:
+                    logger.exception("cube5.pipeline.status_update_failed")
+
+    asyncio.create_task(_run_pipeline_background(trigger.id))
+    return trigger
+
+
+async def trigger_ranking_pipeline(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+) -> PipelineTrigger:
+    """Create a pipeline trigger for Cube 7 ranking aggregation (placeholder).
+
+    The actual ranking logic will be implemented in Cube 7.
+    This creates the trigger record so status tracking is ready.
+    """
+    return await _create_trigger(
+        db, session_id, "ranking_aggregation"
+    )
+
+
+async def trigger_cqs_scoring(
+    db: AsyncSession,
+    mongo: AsyncIOMotorDatabase,
+    session_id: uuid.UUID,
+    top_theme2_id: str | None = None,
+) -> PipelineTrigger:
+    """Create a pipeline trigger for CQS scoring (placeholder).
+
+    CQS scoring fires after Cube 7 ranking completes. Scores only
+    responses in the #1 most-voted Theme2 cluster with >95% confidence.
+    """
+    return await _create_trigger(
+        db,
+        session_id,
+        "cqs_scoring",
+        metadata={"top_theme2_id": top_theme2_id},
+    )
+
+
+async def orchestrate_post_polling(
+    db: AsyncSession,
+    mongo: AsyncIOMotorDatabase,
+    session_id: uuid.UUID,
+    seed: str | None = None,
+) -> PipelineTrigger:
+    """Master orchestrator — called on polling → ranking transition.
+
+    Fires the AI theming pipeline as the first step. Subsequent pipelines
+    (ranking aggregation, CQS scoring) will be chained after Cube 7 is
+    implemented.
+    """
+    logger.info(
+        "cube5.orchestrate_post_polling",
+        extra={"session_id": str(session_id)},
+    )
+    return await trigger_ai_pipeline(
+        db, mongo, session_id, seed=seed
+    )
+
+
+async def get_pipeline_status(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+) -> dict:
+    """Return all pipeline triggers for a session with status flags.
+
+    Returns dict with:
+      - triggers: list of PipelineTrigger records
+      - total: count
+      - has_pending: any trigger in pending/in_progress
+      - has_failed: any trigger failed
+      - all_completed: all triggers completed
+    """
+    result = await db.execute(
+        select(PipelineTrigger)
+        .where(PipelineTrigger.session_id == session_id)
+        .order_by(PipelineTrigger.triggered_at)
+    )
+    triggers = list(result.scalars().all())
+
+    statuses = [t.status for t in triggers]
+    return {
+        "session_id": session_id,
+        "triggers": triggers,
+        "total": len(triggers),
+        "has_pending": any(s in ("pending", "in_progress") for s in statuses),
+        "has_failed": any(s == "failed" for s in statuses),
+        "all_completed": len(triggers) > 0 and all(s == "completed" for s in statuses),
     }

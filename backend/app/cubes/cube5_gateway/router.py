@@ -13,9 +13,16 @@ import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import CurrentUser, get_optional_current_user
-from app.core.dependencies import get_db
+from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
+from app.core.dependencies import get_db, get_mongo
+from app.core.permissions import require_role
 from app.cubes.cube5_gateway import service
+from app.schemas.pipeline import (
+    PipelineRetryResponse,
+    PipelineStatusResponse,
+    PipelineTriggerRead,
+    TriggerThemingRequest,
+)
 from app.schemas.time_tracking import (
     ParticipantTimeSummary,
     TimeEntryRead,
@@ -94,6 +101,110 @@ async def get_time_summary(
         participant_id=participant_id,
     )
     return ParticipantTimeSummary(**summary)
+
+
+# --- Pipeline Orchestrator ---
+
+
+@router.post(
+    "/sessions/{session_id}/pipeline/trigger-theming",
+    response_model=PipelineTriggerRead,
+    status_code=202,
+)
+async def trigger_theming(
+    session_id: uuid.UUID,
+    payload: TriggerThemingRequest | None = None,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    mongo=Depends(get_mongo),
+):
+    """Manually trigger the AI theming pipeline (Cube 6) for a session.
+
+    Returns 202 Accepted — pipeline runs asynchronously in the background.
+    Poll /pipeline/status to check progress.
+    """
+    seed = payload.seed if payload else None
+    use_embedding = payload.use_embedding_assignment if payload else False
+    trigger = await service.trigger_ai_pipeline(
+        db, mongo, session_id, seed=seed, use_embedding_assignment=use_embedding
+    )
+    return PipelineTriggerRead.model_validate(trigger)
+
+
+@router.get(
+    "/sessions/{session_id}/pipeline/status",
+    response_model=PipelineStatusResponse,
+)
+async def get_pipeline_status(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get pipeline status for all triggers in a session."""
+    data = await service.get_pipeline_status(db, session_id)
+    return PipelineStatusResponse(
+        session_id=data["session_id"],
+        triggers=[PipelineTriggerRead.model_validate(t) for t in data["triggers"]],
+        total=data["total"],
+        has_pending=data["has_pending"],
+        has_failed=data["has_failed"],
+        all_completed=data["all_completed"],
+    )
+
+
+@router.post(
+    "/sessions/{session_id}/pipeline/retry/{trigger_id}",
+    response_model=PipelineRetryResponse,
+)
+async def retry_pipeline(
+    session_id: uuid.UUID,
+    trigger_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+    mongo=Depends(get_mongo),
+):
+    """Retry a failed pipeline trigger.
+
+    Only triggers in 'failed' status can be retried. Returns 409 if not failed.
+    """
+    from app.models.pipeline_trigger import PipelineTrigger
+    from sqlalchemy import select
+
+    result = await db.execute(
+        select(PipelineTrigger).where(
+            PipelineTrigger.id == trigger_id,
+            PipelineTrigger.session_id == session_id,
+        )
+    )
+    trigger = result.scalar_one_or_none()
+    if trigger is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Pipeline trigger not found")
+    if trigger.status != "failed":
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot retry trigger in '{trigger.status}' status — only 'failed' triggers can be retried",
+        )
+
+    # Reset to pending and re-fire based on trigger type
+    trigger.status = "pending"
+    trigger.error_message = None
+    trigger.completed_at = None
+    await db.commit()
+    await db.refresh(trigger)
+
+    if trigger.trigger_type == "ai_theming":
+        seed = (trigger.trigger_metadata or {}).get("seed")
+        use_embedding = (trigger.trigger_metadata or {}).get("use_embedding_assignment", False)
+        await service.trigger_ai_pipeline(
+            db, mongo, session_id, seed=seed, use_embedding_assignment=use_embedding
+        )
+
+    return PipelineRetryResponse(
+        trigger_id=trigger_id,
+        new_status="pending",
+        message=f"Trigger {trigger_id} reset to pending and re-fired",
+    )
 
 
 # --- Payments / Monetization ---

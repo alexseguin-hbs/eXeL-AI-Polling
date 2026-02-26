@@ -374,6 +374,32 @@ def make_response_meta(
     return rm
 
 
+def make_pipeline_trigger(
+    *,
+    id: uuid.UUID | None = None,
+    session_id: uuid.UUID | None = None,
+    trigger_type: str = "ai_theming",
+    status: str = "pending",
+    triggered_at: datetime | None = None,
+    completed_at: datetime | None = None,
+    error_message: str | None = None,
+    metadata: dict | None = None,
+) -> MagicMock:
+    """Create a mock PipelineTrigger object."""
+    pt = MagicMock()
+    pt.id = id or uuid.uuid4()
+    pt.session_id = session_id or uuid.uuid4()
+    pt.trigger_type = trigger_type
+    pt.status = status
+    pt.triggered_at = triggered_at or datetime.now(timezone.utc)
+    pt.completed_at = completed_at
+    pt.error_message = error_message
+    pt.trigger_metadata = metadata
+    pt.created_at = datetime.now(timezone.utc)
+    pt.updated_at = datetime.now(timezone.utc)
+    return pt
+
+
 def make_token_ledger(
     *,
     id: uuid.UUID | None = None,

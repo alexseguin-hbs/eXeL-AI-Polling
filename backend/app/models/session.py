@@ -11,6 +11,7 @@ from app.db.base import Base
 if TYPE_CHECKING:
     from app.models.audit_log import AuditLog
     from app.models.participant import Participant
+    from app.models.pipeline_trigger import PipelineTrigger
     from app.models.question import Question
     from app.models.ranking import Ranking
     from app.models.theme import Theme
@@ -122,6 +123,7 @@ class Session(Base):
     audit_logs: Mapped[list["AuditLog"]] = relationship(back_populates="session")
     time_entries: Mapped[list["TimeEntry"]] = relationship(back_populates="session")
     theme_samples: Mapped[list["ThemeSample"]] = relationship(back_populates="session")
+    pipeline_triggers: Mapped[list["PipelineTrigger"]] = relationship(back_populates="session")
 
     @property
     def is_expired(self) -> bool:

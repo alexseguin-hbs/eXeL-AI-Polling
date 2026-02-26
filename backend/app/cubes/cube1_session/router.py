@@ -21,6 +21,8 @@ Endpoints:
     GET    /sessions/{id}/verify-determinism — Replay hash verification
 """
 
+import asyncio
+import logging
 import uuid
 
 import redis.asyncio as aioredis
@@ -28,7 +30,9 @@ from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
-from app.core.dependencies import get_db, get_redis
+from app.core.dependencies import get_db, get_mongo, get_redis
+
+logger = logging.getLogger(__name__)
 from app.core.permissions import require_role
 from app.core.rate_limit import limiter
 from app.cubes.cube1_session import service
@@ -66,11 +70,38 @@ async def _transition_and_return(
     target_state: str,
     user: CurrentUser,
     redis: aioredis.Redis | None = None,
+    mongo=None,
 ) -> SessionRead:
-    """Verify ownership, transition state, and return serialized session."""
+    """Verify ownership, transition state, and return serialized session.
+
+    If transitioning to 'ranking', fires Cube 5 orchestrator to start the
+    AI theming pipeline as a non-blocking background task. State transition
+    always succeeds regardless of orchestration outcome.
+    """
     session = await service.get_session_by_id(db, session_id)
     service.verify_session_owner(session, user)
     updated = await service.transition_session(db, session, target_state, redis=redis)
+
+    # Fire Cube 5 orchestrator on polling → ranking transition
+    if target_state == "ranking" and mongo is not None:
+        try:
+            from app.cubes.cube5_gateway.service import orchestrate_post_polling
+
+            asyncio.create_task(
+                orchestrate_post_polling(
+                    db, mongo, session_id, seed=updated.seed
+                )
+            )
+            logger.info(
+                "cube1.orchestrate_post_polling.fired",
+                extra={"session_id": str(session_id)},
+            )
+        except Exception as exc:
+            logger.error(
+                "cube1.orchestrate_post_polling.failed",
+                extra={"session_id": str(session_id), "error": str(exc)},
+            )
+
     return await _return_session(db, updated)
 
 
@@ -219,9 +250,10 @@ async def start_ranking(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
+    mongo=Depends(get_mongo),
 ):
-    """Moderator starts ranking phase (after AI theming completes)."""
-    return await _transition_and_return(db, session_id, "ranking", user)
+    """Moderator starts ranking phase — fires Cube 5 orchestrator for AI theming."""
+    return await _transition_and_return(db, session_id, "ranking", user, mongo=mongo)
 
 
 @router.post("/{session_id}/close", response_model=SessionRead)
