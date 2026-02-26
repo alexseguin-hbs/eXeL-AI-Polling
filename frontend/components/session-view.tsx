@@ -141,6 +141,9 @@ const DEFAULT_SIM_AI_RESPONSES: SimAiResponse[] = [
   { user: "AI User 7", text: "AI governance should start with low-stakes decisions like urban planning priorities before scaling to more critical areas.", delayMs: 17000, theme: "opportunity" },
 ];
 
+// ── Default theme icons for simulation ──────────────────────────
+const DEFAULT_THEME_ICONS = ["🚀", "⚠️", "⚖️", "💡", "🔬"];
+
 // ── Simulated Themes (Cube 6 Stub) ──────────────────────────────
 interface SimTheme {
   id: string;
@@ -167,6 +170,7 @@ function SimRankingUI({
 }) {
   const [rankings, setRankings] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const { t } = useLexicon();
 
   const handleRank = (themeId: string) => {
     if (rankings.includes(themeId) || submitted) return;
@@ -180,22 +184,24 @@ function SimRankingUI({
 
   const getRankLabel = (themeId: string) => {
     const idx = rankings.indexOf(themeId);
-    return idx >= 0 ? `#${idx + 1}` : "";
+    return idx >= 0 ? t("cube10.sim.rank_number").replace("{0}", String(idx + 1)) : "";
   };
+
+  const totalResponses = themes.reduce((sum, th) => sum + th.responseCount, 0);
 
   return (
     <Card className="w-full max-w-lg">
       <CardHeader className="text-center">
-        <CardTitle className="text-lg">Rank These Themes</CardTitle>
+        <CardTitle className="text-lg">{t("cube10.sim.rank_themes")}</CardTitle>
         <CardDescription>
-          Tap themes in order of priority (1st = most important)
+          {t("cube10.sim.rank_instruction")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Theming analysis banner */}
         <div className="rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-center mb-2">
           <p className="text-xs text-primary">
-            Cube 6 AI Theming Complete — 8 responses → 3 themes identified
+            {t("cube10.sim.theming_complete")} — {t("cube10.sim.responses_to_themes").replace("{0}", String(totalResponses)).replace("{1}", String(themes.length))}
           </p>
         </div>
 
@@ -222,7 +228,7 @@ function SimRankingUI({
                   <div>
                     <p className="text-sm font-medium">{theme.name}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      {theme.responseCount} responses · {Math.round(theme.confidence * 100)}% confidence
+                      {theme.responseCount} {t("cube10.sim.responses_count")} · {Math.round(theme.confidence * 100)}% {t("cube10.sim.confidence")}
                     </p>
                   </div>
                 </div>
@@ -246,7 +252,7 @@ function SimRankingUI({
         {submitted && (
           <div className="flex flex-col items-center gap-2 pt-2">
             <CheckCircle2 className="h-8 w-8 text-green-400" />
-            <p className="text-sm text-green-400 font-medium">Rankings submitted!</p>
+            <p className="text-sm text-green-400 font-medium">{t("cube10.sim.rankings_submitted")}</p>
           </div>
         )}
       </CardContent>
@@ -339,7 +345,7 @@ function PollingStatusBar({ status }: { status: string }) {
 
 // ── Token Earn Animation ─────────────────────────────────────────
 
-function TokenEarnOverlay({ visible }: { visible: boolean }) {
+function TokenEarnOverlay({ visible, color }: { visible: boolean; color: string }) {
   if (!visible) return null;
   return (
     <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
@@ -347,7 +353,7 @@ function TokenEarnOverlay({ visible }: { visible: boolean }) {
         className="text-3xl font-bold"
         style={{
           animation: "token-earn 1.2s ease-out forwards",
-          color: "#00D7E4",
+          color,
         }}
       >
         +1 ♡ +5 ◬
@@ -407,7 +413,7 @@ export function SessionView() {
   const simulationMode = ctxSimMode || isQrSim;
   const simulationRole: "moderator" | "poller" = ctxSimMode ? ctxSimRole : "moderator";
   const simulationSessionId = ctxSimMode ? ctxSimSessionId : (isQrSim ? sessionId : null);
-  const { t } = useLexicon();
+  const { t, activeLocale } = useLexicon();
   const { currentTheme } = useTheme();
 
   // Load per-session SIM data if a session ID is set
@@ -427,13 +433,13 @@ export function SessionView() {
 
   // Resolve themes for current sim
   const simThemes: SimTheme[] = simPollData
-    ? simPollData.themes.map((t) => ({
-        id: t.id,
-        name: t.name,
-        confidence: t.confidence,
-        responseCount: t.count,
-        color: t.color,
-        icon: "",
+    ? simPollData.themes.map((th, i) => ({
+        id: th.id,
+        name: th.name,
+        confidence: th.confidence,
+        responseCount: th.count,
+        color: th.color,
+        icon: DEFAULT_THEME_ICONS[i] || "🎯",
       }))
     : SIM_THEMES;
 
@@ -550,10 +556,10 @@ export function SessionView() {
     const timer = setTimeout(() => {
       setSimPhase("ranking");
       setSession((prev) => prev ? { ...prev, status: "ranking" } : prev);
-      toast({ title: "Themes identified — Ranking ready!" });
+      toast({ title: t("cube10.sim.themes_ready") });
     }, 3000);
     return () => clearTimeout(timer);
-  }, [simulationMode, simulationRole, simPhase]);
+  }, [simulationMode, simulationRole, simPhase, t]);
 
   // Fetch questions when session is in polling state
   useEffect(() => {
@@ -633,7 +639,7 @@ export function SessionView() {
       setShowTokenEarn(true);
       setTimeout(() => setShowTokenEarn(false), 1200);
 
-      toast({ title: "Response submitted" });
+      toast({ title: t("cube10.sim.response_submitted") });
 
       // Track sim user submission for auto-transition
       if (simulationMode && simulationRole === "moderator") {
@@ -709,7 +715,7 @@ export function SessionView() {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar sessionTitle={simulationMode ? `[SIM] ${simulationRole === "poller" ? t("cube10.sim.role_poller") : (session?.title ?? "")}` : session?.title} />
-      <TokenEarnOverlay visible={showTokenEarn} />
+      <TokenEarnOverlay visible={showTokenEarn} color={currentTheme.swatch} />
 
       <main className="container flex flex-1 flex-col items-center py-8 px-4">
         {/* Poller sim → show moderator dashboard experience */}
@@ -827,7 +833,7 @@ export function SessionView() {
             <div className="w-full max-w-lg mb-4 flex flex-col items-center gap-2">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
               <p className="text-sm text-primary font-medium">Cube 6 — {t("cube10.sim.state_theming")}</p>
-              <p className="text-xs text-muted-foreground">Clustering {simAiResponses.length || 7} responses into themes</p>
+              <p className="text-xs text-muted-foreground">{t("cube10.sim.clustering_responses").replace("{0}", String(simAiResponses.length || 7))}</p>
             </div>
           )}
 
@@ -839,13 +845,13 @@ export function SessionView() {
                 <p className="text-xs text-primary font-medium">{t("cube10.sim.state_visuals")}</p>
               </div>
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground text-center mb-2">{simThemes.length} themes identified from {simAiResponses.length || 7} responses</p>
+                <p className="text-xs text-muted-foreground text-center mb-2">{t("cube10.sim.responses_to_themes").replace("{0}", String(simAiResponses.length || 7)).replace("{1}", String(simThemes.length))}</p>
                 {simThemes.map((theme) => (
                   <div key={theme.id} className="flex items-center gap-3 rounded-md border px-3 py-2" style={{ borderColor: `${theme.color}40` }}>
                     <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: theme.color }} />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium truncate">{theme.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{theme.responseCount} responses &middot; {Math.round(theme.confidence * 100)}% confidence</p>
+                      <p className="text-[10px] text-muted-foreground">{theme.responseCount} {t("cube10.sim.responses_count")} &middot; {Math.round(theme.confidence * 100)}% {t("cube10.sim.confidence")}</p>
                     </div>
                   </div>
                 ))}
@@ -873,7 +879,9 @@ export function SessionView() {
                   <div className="flex items-start gap-2">
                     <CardTitle className="text-lg flex-1">
                       {currentQuestion
-                        ? currentQuestion.question_text
+                        ? (questionTranslated && activeLocale !== "en"
+                            ? `[${activeLocale.toUpperCase()}] ${currentQuestion.question_text}`
+                            : currentQuestion.question_text)
                         : t("cube1.session.waiting_question")}
                     </CardTitle>
                     {currentQuestion && simulationMode && (
@@ -1004,7 +1012,7 @@ export function SessionView() {
                 onComplete={() => {
                   setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
                   setSimPhase("results");
-                  toast({ title: "Session complete — results available!" });
+                  toast({ title: t("cube10.sim.session_complete") });
                 }}
               />
             ) : (
@@ -1029,8 +1037,65 @@ export function SessionView() {
           </>
         )}
 
+        {/* SIM Results Phase — ranked themes summary after ranking */}
+        {simulationMode && simPhase === "results" && (session?.status === "closed" || session?.status === "archived") && (
+          <Card className="w-full max-w-lg">
+            <CardHeader className="text-center">
+              <CheckCircle2 className="h-10 w-10 text-green-400 mx-auto mb-2" />
+              <CardTitle>{t("cube10.sim.results_summary")}</CardTitle>
+              <CardDescription>{t("cube10.sim.sim_results_desc")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {simThemes.map((theme, i) => (
+                <div
+                  key={theme.id}
+                  className="flex items-center gap-3 rounded-md border-2 px-3 py-2"
+                  style={{ borderColor: theme.color }}
+                >
+                  <span
+                    className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                    style={{ backgroundColor: theme.color }}
+                  >
+                    {t("cube10.sim.rank_number").replace("{0}", String(i + 1))}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm">{theme.icon}</span>
+                      <p className="text-sm font-medium truncate">{theme.name}</p>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      {theme.responseCount} {t("cube10.sim.responses_count")} · {Math.round(theme.confidence * 100)}% {t("cube10.sim.confidence")}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div className="rounded-md bg-muted px-3 py-2 text-center mt-2">
+                <p className="text-xs text-muted-foreground">
+                  {t("cube10.sim.final_stats")
+                    .replace("{0}", String(simThemes.reduce((s, th) => s + th.responseCount, 0)))
+                    .replace("{1}", String(simThemes.length))}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                className="w-full mt-2"
+                onClick={() => {
+                  setSimPhase("polling");
+                  setSimUserSubmitted(false);
+                  setSimAiResponses([]);
+                  setSubmittedQuestions(new Set());
+                  setCurrentQuestionIndex(0);
+                  setSession((prev) => prev ? { ...prev, status: "polling" } : prev);
+                }}
+              >
+                {t("cube10.sim.return_to_polls")}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Closed state */}
-        {(session?.status === "closed" || session?.status === "archived") && (
+        {(session?.status === "closed" || session?.status === "archived") && !(simulationMode && simPhase === "results") && (
           <Card className="w-full max-w-lg">
             <CardContent className="flex flex-col items-center gap-4 py-12">
               <CheckCircle2 className="h-12 w-12 text-muted-foreground" />

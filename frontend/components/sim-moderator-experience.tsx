@@ -121,6 +121,9 @@ export function SimModeratorExperience() {
     { user: string; text: string }[]
   >([]);
 
+  // Auto-scroll ref for response feed
+  const feedEndRef = useRef<HTMLDivElement>(null);
+
   // Participant counter
   const [participantCount, setParticipantCount] = useState(0);
   const participantIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
@@ -220,6 +223,13 @@ export function SimModeratorExperience() {
     );
     return () => timers.forEach(clearTimeout);
   }, [currentStep, selectedPoll]);
+
+  // ── Auto-scroll response feed when new responses arrive ────────
+  useEffect(() => {
+    if (simResponses.length > 0) {
+      feedEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [simResponses.length]);
 
   // ── Simulate participants joining during open/polling ──────────
   useEffect(() => {
@@ -481,7 +491,7 @@ export function SimModeratorExperience() {
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={handleCopyLink}>
                   <Copy className="mr-1.5 h-3 w-3" />
-                  Copy Link
+                  {t("cube1.moderator.share_link")}
                 </Button>
               </div>
             </div>
@@ -536,6 +546,7 @@ export function SimModeratorExperience() {
                     </span>
                   </div>
                 ))}
+                <div ref={feedEndRef} />
               </div>
             </div>
           )}
@@ -561,7 +572,7 @@ export function SimModeratorExperience() {
                 Cube 6 — {t("cube10.sim.state_theming")}
               </p>
               <p className="text-xs text-muted-foreground">
-                Clustering {simResponses.length || 7} responses into themes
+                {t("cube10.sim.clustering_responses").replace("{0}", String(simResponses.length || 7))}
               </p>
             </div>
           )}
@@ -576,7 +587,7 @@ export function SimModeratorExperience() {
                 </p>
               </div>
               <p className="text-xs text-muted-foreground text-center mb-2">
-                {themes.length} themes identified from 7 responses
+                {t("cube10.sim.responses_to_themes").replace("{0}", "7").replace("{1}", String(themes.length))}
               </p>
               {themes.map((theme) => (
                 <div
@@ -591,8 +602,8 @@ export function SimModeratorExperience() {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{theme.name}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      {theme.count} responses &middot;{" "}
-                      {Math.round(theme.confidence * 100)}% confidence
+                      {theme.count} {t("cube10.sim.responses_count")} &middot;{" "}
+                      {Math.round(theme.confidence * 100)}% {t("cube10.sim.confidence")}
                     </p>
                   </div>
                 </div>
@@ -604,7 +615,7 @@ export function SimModeratorExperience() {
           {currentStep === "ranking" && (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground text-center mb-2">
-                {themes.length} themes — tap to rank by priority
+                {themes.length} {t("cube10.sim.themes_identified")} — {t("cube10.sim.ranked_by_priority")}
               </p>
               {themes.map((theme, i) => (
                 <div
@@ -616,13 +627,13 @@ export function SimModeratorExperience() {
                     className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                     style={{ backgroundColor: theme.color }}
                   >
-                    #{i + 1}
+                    {t("cube10.sim.rank_number").replace("{0}", String(i + 1))}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{theme.name}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      {theme.count} responses &middot;{" "}
-                      {Math.round(theme.confidence * 100)}% confidence
+                      {theme.count} {t("cube10.sim.responses_count")} &middot;{" "}
+                      {Math.round(theme.confidence * 100)}% {t("cube10.sim.confidence")}
                     </p>
                   </div>
                 </div>
@@ -634,10 +645,9 @@ export function SimModeratorExperience() {
           {currentStep === "archived" && (
             <div className="flex flex-col items-center gap-2 py-4">
               <CheckCircle2 className="h-8 w-8 text-green-400" />
-              <p className="text-sm font-medium">Session Complete</p>
+              <p className="text-sm font-medium">{t("cube10.sim.session_complete")}</p>
               <p className="text-xs text-muted-foreground text-center">
-                7 responses &middot; {themes.length} themes &middot; Rankings
-                submitted
+                {t("cube10.sim.final_stats").replace("{0}", "7").replace("{1}", String(themes.length))}
               </p>
             </div>
           )}
