@@ -49,27 +49,13 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const [lastEarnAt, setLastEarnAt] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Tick every second when running
+  // Tick every second when running — tracks elapsed time only.
+  // Tokens are NOT auto-awarded per minute; they are earned via earnTokens()
+  // which is called when the user submits a response via the button.
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
-        setElapsed((prev) => {
-          const next = prev + 1;
-          // Award 1 ♡ per full minute of active time
-          if (next > 0 && next % 60 === 0) {
-            setTokens((t) => {
-              const newHearts = t.hearts + 1;
-              return {
-                hearts: newHearts,
-                unity: newHearts * 5,
-                // 웃 stays 0.000 unless Moderator enables money rewards (human_enabled=True on backend)
-                human: 0,
-              };
-            });
-            setLastEarnAt(Date.now());
-          }
-          return next;
-        });
+        setElapsed((prev) => prev + 1);
       }, 1000);
     }
     return () => {

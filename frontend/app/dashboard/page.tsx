@@ -89,6 +89,14 @@ const SESSION_TYPE_ICONS = {
   single_question: MessageSquare,
 } as const;
 
+/** Always derive join URL from current origin + short_code.
+ *  Ignores stored session.join_url to avoid stale-origin mismatches
+ *  between QR code and copy link. */
+function getJoinUrl(session: Session): string {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return `${origin}/join/?code=${session.short_code}`;
+}
+
 // ── QR Presentation Mode ─────────────────────────────────────────
 
 function QRPresentation({
@@ -99,9 +107,7 @@ function QRPresentation({
   onClose: () => void;
 }) {
   const { t } = useLexicon();
-  const joinUrl =
-    session.join_url ||
-    `${typeof window !== "undefined" ? window.location.origin : ""}/join/?code=${session.short_code}`;
+  const joinUrl = getJoinUrl(session);
 
   const copyCode = () => {
     navigator.clipboard.writeText(session.short_code);
@@ -193,9 +199,7 @@ function SessionDetail({
     return () => clearInterval(interval);
   }, [showScrollingFeed, session.id]);
 
-  const joinUrl =
-    session.join_url ||
-    `${typeof window !== "undefined" ? window.location.origin : ""}/join/?code=${session.short_code}`;
+  const joinUrl = getJoinUrl(session);
 
   const handleTransition = async (action: string) => {
     setActionLoading(action);
