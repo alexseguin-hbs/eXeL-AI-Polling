@@ -565,11 +565,11 @@ export function hydrateSessionFromParams(
   return newSession;
 }
 
-export function handleMockRequest<T>(
+export async function handleMockRequest<T>(
   method: string,
   path: string,
   body?: unknown
-): T | null {
+): Promise<T | null> {
   // ── Sync from localStorage (cross-tab state) on every read ────
   loadMockState();
 
@@ -740,6 +740,21 @@ export function handleMockRequest<T>(
     });
     saveMockState();
 
+    // ── Cross-device: also POST to KV-backed /api/responses ──
+    const session = findSessionById(sid);
+    if (session?.short_code) {
+      fetch("/api/responses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          short_code: session.short_code,
+          text: cleanText,
+          participant_id: pid,
+          language_code: langCode,
+        }),
+      }).catch(() => {}); // fire-and-forget
+    }
+
     return {
       id: responseId,
       session_id: sid,
@@ -760,14 +775,43 @@ export function handleMockRequest<T>(
   }
 
   // GET /sessions/{id}/responses (for moderator live feed)
+  // Merges local mock data + cross-device KV data
   const getResponsesMatch = path.match(
     /^\/sessions\/([0-9a-f-]{36})\/responses$/
   );
   if (method === "GET" && getResponsesMatch) {
     const sid = getResponsesMatch[1];
+    const localItems = mockResponses[sid] || [];
+
+    // ── Cross-device: also fetch from KV-backed /api/responses ──
+    const session = findSessionById(sid);
+    if (session?.short_code) {
+      try {
+        const res = await fetch(`/api/responses?session=${session.short_code}`);
+        if (res.ok) {
+          const kvData = await res.json();
+          const kvItems: MockResponse[] = (kvData.items || []).map((r: MockResponse) => ({
+            ...r,
+            session_id: sid, // normalize to session UUID
+          }));
+          // Merge: deduplicate by checking clean_text + participant_id
+          const localSet = new Set(localItems.map((r) => `${r.clean_text}::${r.participant_id}`));
+          for (const kvItem of kvItems) {
+            const key = `${kvItem.clean_text}::${kvItem.participant_id}`;
+            if (!localSet.has(key)) {
+              localItems.push(kvItem);
+              localSet.add(key);
+            }
+          }
+        }
+      } catch {
+        // KV unavailable — use local only
+      }
+    }
+
     return {
-      items: mockResponses[sid] || [],
-      total: (mockResponses[sid] || []).length,
+      items: localItems,
+      total: localItems.length,
     } as T;
   }
 
