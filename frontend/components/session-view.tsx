@@ -401,7 +401,7 @@ export function SessionView() {
   const [questionTranslated, setQuestionTranslated] = useState(false);
 
   // Timer integration
-  const { start: startTimer, earnTokens } = useTimer();
+  const { start: startTimer, stop: stopTimer, restart: restartTimer, earnTokens } = useTimer();
 
   // Simulation mode — use sample data instead of API calls
   // Two entry paths: (1) Easter egg sequence → context, (2) QR scan → ?sim=1 in URL
@@ -484,7 +484,11 @@ export function SessionView() {
       startTimer();
       return;
     }
-    if (!sessionId) return;
+    if (!sessionId) {
+      setError("No session ID provided.");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     api
       .get<Session>(`/sessions/${sessionId}`)
@@ -597,6 +601,13 @@ export function SessionView() {
     return () => clearInterval(interval);
   }, [sessionId, sessionStatus, simulationMode]);
 
+  // Stop timer when session leaves polling state (ranking, closed, archived)
+  useEffect(() => {
+    if (sessionStatus && sessionStatus !== "polling" && sessionStatus !== "open") {
+      stopTimer();
+    }
+  }, [sessionStatus, stopTimer]);
+
   // Poll session status — includes "draft" so users who join early see transitions
   useEffect(() => {
     if (!sessionId || !sessionStatus) return;
@@ -637,6 +648,9 @@ export function SessionView() {
       setSubmittedQuestions((prev) => new Set(prev).add(currentQuestion.id));
       setResponseText("");
 
+      // Stop active-response timer — tokens only accrue while typing/recording
+      stopTimer();
+
       // Token earn animation — use server-reported values when available
       const heartsEarned = result?.heart_tokens_earned ?? 1;
       earnTokens(heartsEarned);
@@ -650,12 +664,7 @@ export function SessionView() {
         setSimUserSubmitted(true);
       }
 
-      // Auto-advance to next question after brief delay
-      if (currentQuestionIndex < questions.length - 1) {
-        setTimeout(() => {
-          setCurrentQuestionIndex((prev) => prev + 1);
-        }, 1500);
-      }
+      // User advances via "Next Question" button (no auto-advance to avoid double-click race)
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({
@@ -667,7 +676,7 @@ export function SessionView() {
     } finally {
       setSubmitting(false);
     }
-  }, [responseText, questions, currentQuestionIndex, sessionId, participantId, languageCode, earnTokens]);
+  }, [responseText, questions, currentQuestionIndex, sessionId, participantId, languageCode, earnTokens, stopTimer]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -730,8 +739,8 @@ export function SessionView() {
         {/* Normal flow (or moderator sim → participant polling experience) */}
         {!(simulationMode && simulationRole === "poller") && (
         <>
-        {/* Status bar — visible during active polling states */}
-        {session && ["open", "polling", "ranking"].includes(session.status) && (
+        {/* Status bar — visible during active polling states + closed/archived (all steps completed) */}
+        {session && ["open", "polling", "ranking", "closed", "archived"].includes(session.status) && (
           <PollingStatusBar status={session.status} />
         )}
 
@@ -933,7 +942,15 @@ export function SessionView() {
               )}
             </CardHeader>
             <CardContent>
-              {allSubmitted ? (
+              {questions.length === 0 ? (
+                <div className="flex flex-col items-center gap-4 py-8">
+                  <Clock className="h-12 w-12 text-muted-foreground" />
+                  <p className="font-medium">{t("cube1.session.waiting_question") || "Waiting for questions..."}</p>
+                  <p className="text-sm text-muted-foreground text-center">
+                    {t("cube1.session.waiting_polling") || "The moderator is preparing questions."}
+                  </p>
+                </div>
+              ) : allSubmitted ? (
                 <div className="flex flex-col items-center gap-4 py-8">
                   <CheckCircle2 className="h-12 w-12 text-green-400" />
                   <p className="font-medium">{t("cube1.session.all_submitted")}</p>
@@ -946,6 +963,7 @@ export function SessionView() {
                       setSubmittedQuestions(new Set());
                       setResponseText("");
                       setCurrentQuestionIndex(0);
+                      restartTimer();
                     }}
                   >
                     <Send className="mr-2 h-4 w-4" />
@@ -957,7 +975,10 @@ export function SessionView() {
                   <CheckCircle2 className="h-12 w-12 text-green-400" />
                   <p className="font-medium">{t("cube1.session.response_submitted")}</p>
                   {currentQuestionIndex < questions.length - 1 ? (
-                    <Button onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}>
+                    <Button onClick={() => {
+                      setCurrentQuestionIndex((prev) => prev + 1);
+                      restartTimer();
+                    }}>
                       {t("cube1.session.next_question")}
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -971,6 +992,7 @@ export function SessionView() {
                           return next;
                         });
                         setResponseText("");
+                        restartTimer();
                       }}
                     >
                       <Send className="mr-2 h-4 w-4" />
@@ -987,7 +1009,8 @@ export function SessionView() {
                       onChange={(e) => setResponseText(e.target.value)}
                       maxLength={session.max_response_length || 3333}
                       rows={4}
-                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                      disabled={simulationMode && simPhase !== "polling"}
+                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 resize-none"
                       onKeyDown={handleKeyDown}
                     />
                     <p className="text-xs text-muted-foreground text-right">
@@ -998,7 +1021,7 @@ export function SessionView() {
                     <Button
                       className="flex-1"
                       onClick={handleSubmitResponse}
-                      disabled={!responseText.trim() || submitting}
+                      disabled={!responseText.trim() || submitting || (simulationMode && simPhase !== "polling")}
                     >
                       {submitting ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1011,18 +1034,13 @@ export function SessionView() {
                         ? t("cube1.session.submit_next")
                         : t("cube1.session.submit_btn")}
                     </Button>
-                    {/* Voice input (Cube 3 STT) */}
+                    {/* Voice input (Cube 3 STT) — dictation mode: fills textarea, tokens earned on Submit */}
                     <VoiceInput
                       sessionId={sessionId}
                       questionId={currentQuestion?.id ?? ""}
                       participantId={participantId}
                       languageCode={languageCode}
                       onTranscript={(text) => setResponseText((prev) => prev + text)}
-                      onTokensEarned={(hearts) => {
-                        earnTokens(hearts);
-                        setShowTokenEarn(true);
-                        setTimeout(() => setShowTokenEarn(false), 1200);
-                      }}
                     />
                   </div>
                 </div>
@@ -1034,41 +1052,29 @@ export function SessionView() {
 
         {/* Ranking state */}
         {session?.status === "ranking" && (
-          <>
-            {/* Sim ranking with themed clusters (Cube 7 stub) */}
-            {simulationMode && simulationRole === "moderator" ? (
-              <SimRankingUI
-                themes={simThemes}
-                onComplete={() => {
+          <SimRankingUI
+            themes={simThemes.length > 0 ? simThemes : SIM_THEMES}
+            onComplete={async () => {
+              if (simulationMode) {
+                setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
+                setSimPhase("results");
+              } else {
+                // Transition session to closed via API (mock or real)
+                try {
+                  const updated = await api.post<Session>(`/sessions/${sessionId}/close`);
+                  setSession(updated);
+                } catch {
                   setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
-                  setSimPhase("results");
-                  toast({ title: t("cube10.sim.session_complete") });
-                }}
-              />
-            ) : (
-              <Card className="w-full max-w-lg">
-                <CardHeader className="text-center">
-                  <CardTitle>{t("cube1.session.theme_voting")}</CardTitle>
-                  <CardDescription>
-                    {t("cube1.session.theme_voting_desc")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center gap-4 py-8">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    <span>{participantCount} {t("shared.nav.participants")}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {t("cube1.session.theme_voting_soon")}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </>
+                }
+                setSimPhase("results");
+              }
+              toast({ title: t("cube10.sim.session_complete") });
+            }}
+          />
         )}
 
-        {/* SIM Results Phase — ranked themes summary after ranking */}
-        {simulationMode && simPhase === "results" && (session?.status === "closed" || session?.status === "archived") && (
+        {/* Results Phase — ranked themes summary after ranking */}
+        {simPhase === "results" && (session?.status === "closed" || session?.status === "archived") && (
           <Card className="w-full max-w-lg">
             <CardHeader className="text-center">
               <CheckCircle2 className="h-10 w-10 text-green-400 mx-auto mb-2" />
@@ -1076,7 +1082,7 @@ export function SessionView() {
               <CardDescription>{t("cube10.sim.sim_results_desc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {simThemes.map((theme, i) => (
+              {(simThemes.length > 0 ? simThemes : SIM_THEMES).map((theme, i) => (
                 <div
                   key={theme.id}
                   className="flex items-center gap-3 rounded-md border-2 px-3 py-2"
@@ -1102,30 +1108,40 @@ export function SessionView() {
               <div className="rounded-md bg-muted px-3 py-2 text-center mt-2">
                 <p className="text-xs text-muted-foreground">
                   {t("cube10.sim.final_stats")
-                    .replace("{0}", String(simThemes.reduce((s, th) => s + th.responseCount, 0)))
-                    .replace("{1}", String(simThemes.length))}
+                    .replace("{0}", String((simThemes.length > 0 ? simThemes : SIM_THEMES).reduce((s, th) => s + th.responseCount, 0)))
+                    .replace("{1}", String((simThemes.length > 0 ? simThemes : SIM_THEMES).length))}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                className="w-full mt-2"
-                onClick={() => {
-                  setSimPhase("polling");
-                  setSimUserSubmitted(false);
-                  setSimAiResponses([]);
-                  setSubmittedQuestions(new Set());
-                  setCurrentQuestionIndex(0);
-                  setSession((prev) => prev ? { ...prev, status: "polling" } : prev);
-                }}
-              >
-                {t("cube10.sim.return_to_polls")}
-              </Button>
+              {simulationMode ? (
+                <Button
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => {
+                    setSimPhase("polling");
+                    setSimUserSubmitted(false);
+                    setSimAiResponses([]);
+                    setSubmittedQuestions(new Set());
+                    setCurrentQuestionIndex(0);
+                    setSession((prev) => prev ? { ...prev, status: "polling" } : prev);
+                  }}
+                >
+                  {t("cube10.sim.return_to_polls")}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={() => (window.location.href = "/")}
+                >
+                  {t("shared.nav.back_to_home")}
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
 
         {/* Closed state */}
-        {(session?.status === "closed" || session?.status === "archived") && !(simulationMode && simPhase === "results") && (
+        {(session?.status === "closed" || session?.status === "archived") && simPhase !== "results" && (
           <Card className="w-full max-w-lg">
             <CardContent className="flex flex-col items-center gap-4 py-12">
               <CheckCircle2 className="h-12 w-12 text-muted-foreground" />

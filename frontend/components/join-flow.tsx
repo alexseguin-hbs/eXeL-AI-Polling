@@ -45,6 +45,8 @@ export function JoinFlow() {
         setSession(data);
         if (!simMode && (data.status === "closed" || data.status === "archived")) {
           setError(t("cube1.join.session_ended"));
+        } else if (!simMode && data.expires_at && new Date(data.expires_at) < new Date()) {
+          setError(t("cube1.join.session_ended"));
         }
         // Draft sessions: allow join — user lands in lobby, polls for status changes
       })

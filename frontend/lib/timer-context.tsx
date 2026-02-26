@@ -27,6 +27,8 @@ interface TimerContextValue {
   stop: () => void;
   /** Reset timer and tokens */
   reset: () => void;
+  /** Reset elapsed to 0, keep accumulated tokens, and restart */
+  restart: () => void;
   /** Current token accumulation */
   tokens: TokenState;
   /** Trigger a token earn animation (returns the new totals) */
@@ -84,21 +86,30 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     setLastEarnAt(0);
   }, []);
 
+  // Reset elapsed to 0 but keep accumulated tokens and restart
+  const restart = useCallback(() => {
+    setElapsed(0);
+    setIsRunning(true);
+  }, []);
+
   const earnTokens = useCallback((hearts: number): TokenState => {
-    const newState: TokenState = {
-      hearts: tokens.hearts + hearts,
-      unity: (tokens.hearts + hearts) * 5,
-      // 웃 stays 0.000 unless Moderator enables money rewards
-      human: 0,
-    };
-    setTokens(newState);
+    let result: TokenState = { hearts: 0, unity: 0, human: 0 };
+    setTokens((prev) => {
+      const newHearts = prev.hearts + hearts;
+      result = {
+        hearts: newHearts,
+        unity: newHearts * 5,
+        human: 0,
+      };
+      return result;
+    });
     setLastEarnAt(Date.now());
-    return newState;
-  }, [tokens.hearts]);
+    return result;
+  }, []);
 
   return (
     <TimerContext.Provider
-      value={{ elapsed, isRunning, start, stop, reset, tokens, earnTokens, lastEarnAt }}
+      value={{ elapsed, isRunning, start, stop, reset, restart, tokens, earnTokens, lastEarnAt }}
     >
       {children}
     </TimerContext.Provider>

@@ -256,7 +256,7 @@ export const MOCK_SESSIONS: Session[] = [
     participant_count: 47,
   },
   {
-    id: "d4e5f6a7-b8c9-0123-defg-444444444444",
+    id: "d4e5f6a7-b8c9-0123-def0-444444444444",
     short_code: "STATIC01",
     created_by: MOCK_MODERATOR_ID,
     status: "polling",
@@ -337,10 +337,10 @@ export const MOCK_QUESTIONS: Record<string, Question[]> = {
       created_at: now,
     },
   ],
-  "d4e5f6a7-b8c9-0123-defg-444444444444": [
+  "d4e5f6a7-b8c9-0123-def0-444444444444": [
     {
       id: "q1-444444",
-      session_id: "d4e5f6a7-b8c9-0123-defg-444444444444",
+      session_id: "d4e5f6a7-b8c9-0123-def0-444444444444",
       question_text:
         "What innovative tools or processes could improve our team collaboration?",
       cycle_id: 1,
@@ -356,7 +356,7 @@ let mockParticipantCount: Record<string, number> = {
   "a1b2c3d4-e5f6-7890-abcd-111111111111": 3,
   "b2c3d4e5-f6a7-8901-bcde-222222222222": 0,
   "c3d4e5f6-a7b8-9012-cdef-333333333333": 47,
-  "d4e5f6a7-b8c9-0123-defg-444444444444": 15,
+  "d4e5f6a7-b8c9-0123-def0-444444444444": 15,
 };
 
 // ── Submitted Responses (cross-tab via localStorage) ─────────────
@@ -387,11 +387,15 @@ function generateId(): string {
 
 function generateShortCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 8; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
+  for (let attempt = 0; attempt < 10; attempt++) {
+    let code = "";
+    for (let i = 0; i < 8; i++) {
+      code += chars[Math.floor(Math.random() * chars.length)];
+    }
+    if (!MOCK_SESSIONS.some((s) => s.short_code === code)) return code;
   }
-  return code;
+  // Fallback: timestamp-based code (guaranteed unique)
+  return `X${Date.now().toString(36).toUpperCase().slice(-7)}`;
 }
 
 export function handleMockRequest<T>(
@@ -434,7 +438,7 @@ export function handleMockRequest<T>(
       current_cycle: 1,
       ranking_mode: "auto",
       language: "en",
-      max_response_length: 3333,
+      max_response_length: (payload?.max_response_length as number) || 3333,
       ai_provider: (payload?.ai_provider as string) || "openai",
       session_type: (payload?.session_type as string) || "polling",
       polling_mode: (payload?.polling_mode as string) || "single_round",

@@ -183,7 +183,7 @@ function SessionDetail({
         const data = await api.get<{ items: Array<{ id: string; clean_text: string; submitted_at: string }> }>(
           `/sessions/${session.id}/responses`
         );
-        setFeedResponses(data.items || []);
+        setFeedResponses((data.items || []).slice().reverse());
       } catch {
         // Silently fail
       }
