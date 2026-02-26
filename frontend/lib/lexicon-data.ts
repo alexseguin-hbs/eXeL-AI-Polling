@@ -384,6 +384,8 @@ const cube7: TranslationEntry[] = [
   { key: "cube7.ranking.progressive_reveal", englishDefault: "Results revealing...", context: "Progressive reveal label (paid tiers)", cubeId: 7 },
   { key: "cube7.ranking.level_9", englishDefault: "9-theme level", context: "Theme2 voting level label", cubeId: 7 },
   { key: "cube7.ranking.level_6", englishDefault: "6-theme level", context: "Theme2 voting level label", cubeId: 7 },
+  { key: "cube7.ranking.drag_hint", englishDefault: "Hold and drag to reorder", context: "DnD ranking instruction hint", cubeId: 7 },
+  { key: "cube7.ranking.confirm_order", englishDefault: "Confirm Rankings", context: "Submit button after drag-to-rank", cubeId: 7 },
 ];
 
 const cube8: TranslationEntry[] = [

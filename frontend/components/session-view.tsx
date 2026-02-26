@@ -33,7 +33,8 @@ import { VoiceInput } from "@/components/voice-input";
 import { PollCountdownTimer } from "@/components/poll-countdown-timer";
 import { SimModeratorExperience } from "@/components/sim-moderator-experience";
 import { useTheme } from "@/lib/theme-context";
-import type { Session, Question } from "@/lib/types";
+import type { Session, Question, SimTheme } from "@/lib/types";
+import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
 import { getSimPollBySessionId } from "@/lib/sim-data";
 
 // ── Simulation Duration Options ──────────────────────────────────
@@ -145,120 +146,11 @@ const DEFAULT_SIM_AI_RESPONSES: SimAiResponse[] = [
 const DEFAULT_THEME_ICONS = ["🚀", "⚠️", "⚖️", "💡", "🔬"];
 
 // ── Simulated Themes (Cube 6 Stub) ──────────────────────────────
-interface SimTheme {
-  id: string;
-  name: string;
-  confidence: number;
-  responseCount: number;
-  color: string;
-  icon: string;
-}
-
 const SIM_THEMES: SimTheme[] = [
   { id: "t1", name: "Opportunity & Innovation", confidence: 0.92, responseCount: 3, color: "#22C55E", icon: "🚀" },
   { id: "t2", name: "Risk & Concerns", confidence: 0.88, responseCount: 2, color: "#EF4444", icon: "⚠️" },
   { id: "t3", name: "Balanced / Hybrid Approach", confidence: 0.85, responseCount: 3, color: "#3B82F6", icon: "⚖️" },
 ];
-
-// ── Sim Ranking UI (Cube 7 Stub — click to rank themes) ─────────
-function SimRankingUI({
-  themes,
-  onComplete,
-}: {
-  themes: SimTheme[];
-  onComplete: () => void;
-}) {
-  const [rankings, setRankings] = useState<string[]>([]);
-  const [submitted, setSubmitted] = useState(false);
-  const { t } = useLexicon();
-
-  const handleRank = (themeId: string) => {
-    if (rankings.includes(themeId) || submitted) return;
-    const newRankings = [...rankings, themeId];
-    setRankings(newRankings);
-    if (newRankings.length === themes.length) {
-      setSubmitted(true);
-      setTimeout(onComplete, 1500);
-    }
-  };
-
-  const getRankLabel = (themeId: string) => {
-    const idx = rankings.indexOf(themeId);
-    return idx >= 0 ? t("cube10.sim.rank_number").replace("{0}", String(idx + 1)) : "";
-  };
-
-  const totalResponses = themes.reduce((sum, th) => sum + th.responseCount, 0);
-
-  return (
-    <Card className="w-full max-w-lg">
-      <CardHeader className="text-center">
-        <CardTitle className="text-lg">{t("cube10.sim.rank_themes")}</CardTitle>
-        <CardDescription>
-          {t("cube10.sim.rank_instruction")}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {/* Theming analysis banner */}
-        <div className="rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-center mb-2">
-          <p className="text-xs text-primary">
-            {t("cube10.sim.theming_complete")} — {t("cube10.sim.responses_to_themes").replace("{0}", String(totalResponses)).replace("{1}", String(themes.length))}
-          </p>
-        </div>
-
-        {themes.map((theme) => {
-          const rank = getRankLabel(theme.id);
-          const isRanked = rank !== "";
-          return (
-            <button
-              key={theme.id}
-              onClick={() => handleRank(theme.id)}
-              disabled={isRanked || submitted}
-              className={`w-full text-left rounded-lg border-2 p-3 transition-all ${
-                isRanked
-                  ? "border-primary bg-primary/5"
-                  : submitted
-                  ? "border-muted opacity-50"
-                  : "border-border hover:border-primary/50 hover:bg-accent/30 cursor-pointer"
-              }`}
-              style={isRanked ? { borderColor: theme.color } : undefined}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">{theme.icon}</span>
-                  <div>
-                    <p className="text-sm font-medium">{theme.name}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {theme.responseCount} {t("cube10.sim.responses_count")} · {Math.round(theme.confidence * 100)}% {t("cube10.sim.confidence")}
-                    </p>
-                  </div>
-                </div>
-                {isRanked ? (
-                  <span
-                    className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                    style={{ backgroundColor: theme.color }}
-                  >
-                    {rank}
-                  </span>
-                ) : (
-                  <span className="h-7 w-7 rounded-full border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-xs text-muted-foreground">
-                    ?
-                  </span>
-                )}
-              </div>
-            </button>
-          );
-        })}
-
-        {submitted && (
-          <div className="flex flex-col items-center gap-2 pt-2">
-            <CheckCircle2 className="h-8 w-8 text-green-400" />
-            <p className="text-sm text-green-400 font-medium">{t("cube10.sim.rankings_submitted")}</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
 
 // ── Polling Status Bar ───────────────────────────────────────────
 
@@ -1052,7 +944,7 @@ export function SessionView() {
 
         {/* Ranking state */}
         {session?.status === "ranking" && (
-          <SimRankingUI
+          <ThemeRankingDnD
             themes={simThemes.length > 0 ? simThemes : SIM_THEMES}
             onComplete={async () => {
               if (simulationMode) {

@@ -202,6 +202,17 @@ export interface SessionThemeData {
   responses: ThemedResponse[];
 }
 
+// ── Simulation Theme Type (used by Cube 7 ranking + Cube 10 SIM) ──
+
+export interface SimTheme {
+  id: string;
+  name: string;
+  confidence: number;
+  responseCount: number;
+  color: string;
+  icon: string;
+}
+
 export interface ApiError {
   detail: string;
   status: number;
