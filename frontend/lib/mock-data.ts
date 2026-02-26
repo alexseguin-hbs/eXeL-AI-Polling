@@ -5,6 +5,7 @@ import type {
   SessionJoinResponse,
   PaginatedResponse,
 } from "./types";
+import { SPIRAL_TEST_WAVES, type SpiralTestWave } from "./sim-data/spiral-test-100-users";
 
 // ── Test Moderator ──────────────────────────────────────────────
 export const MOCK_MODERATOR_ID = "google-oauth2|mock-moderator-001";
@@ -875,4 +876,99 @@ export async function handleMockRequest<T>(
   }
 
   return null;
+}
+
+// ── MoT (Master of Thought) Spiral Test Orchestrator ────────────────
+// Dispatches 100 responses across 12 agent waves with staggered timing.
+// Each response POSTs to /api/responses (Cloudflare) for cross-device
+// visibility AND pushes to local mockResponses[] for immediate feed.
+
+export interface SpiralTestProgress {
+  wave: number;
+  waveName: string;
+  totalWaves: number;
+  responsesDelivered: number;
+  totalResponses: number;
+  isComplete: boolean;
+}
+
+export type SpiralTestProgressCallback = (progress: SpiralTestProgress) => void;
+
+/**
+ * Start the 100-user spiral test for the given session.
+ * Returns a cancel function to abort mid-test.
+ */
+export function startSpiralTest(
+  sessionId: string,
+  onProgress?: SpiralTestProgressCallback,
+): () => void {
+  const session = findSessionById(sessionId);
+  if (!session) return () => {};
+  if (!mockResponses[sessionId]) mockResponses[sessionId] = [];
+
+  let cancelled = false;
+  const timers: ReturnType<typeof setTimeout>[] = [];
+  let delivered = 0;
+  const totalResponses = 100;
+  const totalWaves = 12;
+
+  for (const wave of SPIRAL_TEST_WAVES) {
+    for (const resp of wave.responses) {
+      const timer = setTimeout(() => {
+        if (cancelled) return;
+
+        // Increment participant count
+        mockParticipantCount[sessionId] = (mockParticipantCount[sessionId] || 0) + 1;
+        if (session) session.participant_count = mockParticipantCount[sessionId];
+
+        // Push to local mock store
+        const responseId = generateId();
+        mockResponses[sessionId].push({
+          id: responseId,
+          session_id: sessionId,
+          clean_text: resp.text,
+          submitted_at: new Date().toISOString(),
+          participant_id: resp.participant_id,
+          language_code: resp.language_code,
+        });
+        saveMockState();
+
+        // Cross-device: POST to KV-backed /api/responses
+        if (session?.short_code) {
+          fetch("/api/responses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              short_code: session.short_code,
+              text: resp.text,
+              participant_id: resp.participant_id,
+              language_code: resp.language_code,
+            }),
+          }).catch(() => {}); // fire-and-forget
+        }
+
+        delivered++;
+
+        // Report progress
+        if (onProgress) {
+          onProgress({
+            wave: wave.wave,
+            waveName: wave.agent_name,
+            totalWaves,
+            responsesDelivered: delivered,
+            totalResponses,
+            isComplete: delivered >= totalResponses,
+          });
+        }
+      }, resp.delay_ms);
+
+      timers.push(timer);
+    }
+  }
+
+  // Return cancel function
+  return () => {
+    cancelled = true;
+    for (const t of timers) clearTimeout(t);
+  };
 }

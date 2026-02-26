@@ -100,5 +100,8 @@ export const TIMER_DISPLAY_MODES = [
 // Session code constraints
 export const SESSION_CODE_MAX_LENGTH = 8;
 
+// Spiral test toggle (dev/test only)
+export const SPIRAL_TEST_ENABLED = true;
+
 // Polling intervals (ms)
 export const PRESENCE_POLL_INTERVAL = 3000;

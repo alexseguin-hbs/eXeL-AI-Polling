@@ -23,6 +23,7 @@ import {
   Timer,
   Trash2,
   X,
+  Zap,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { AuthGuard } from "@/components/auth-guard";
@@ -57,7 +58,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { api, ApiClientError } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
-import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS, TIMER_DISPLAY_MODES } from "@/lib/constants";
+import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS, TIMER_DISPLAY_MODES, SPIRAL_TEST_ENABLED } from "@/lib/constants";
+import { startSpiralTest, type SpiralTestProgress } from "@/lib/mock-data";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
@@ -184,6 +186,9 @@ function SessionDetail({
   const showScrollingFeed = isLiveInteractive && session.status === "polling";
   const [feedExpanded, setFeedExpanded] = useState(false);
   const [feedResponses, setFeedResponses] = useState<Array<{ id: string; clean_text: string; submitted_at: string }>>([]);
+  const [spiralRunning, setSpiralRunning] = useState(false);
+  const [spiralProgress, setSpiralProgress] = useState<SpiralTestProgress | null>(null);
+  const [spiralCancel, setSpiralCancel] = useState<(() => void) | null>(null);
 
   // Poll for live responses during polling state
   useEffect(() => {
@@ -391,15 +396,58 @@ function SessionDetail({
               <CardTitle className="text-sm flex items-center gap-2">
                 <Radio className="h-4 w-4 text-primary animate-pulse" />
                 {t("cube1.moderator.live_feed")}
+                {spiralProgress && !spiralProgress.isComplete && (
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">
+                    Wave {spiralProgress.wave}/12 &middot; {spiralProgress.waveName} &middot; {spiralProgress.responsesDelivered}/100
+                  </span>
+                )}
+                {spiralProgress?.isComplete && (
+                  <span className="ml-2 text-xs font-normal text-green-400">
+                    100/100 complete
+                  </span>
+                )}
               </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setFeedExpanded(!feedExpanded)}
-                className="h-7 px-2"
-              >
-                <Maximize2 className="h-3.5 w-3.5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                {SPIRAL_TEST_ENABLED && (
+                  <Button
+                    variant={spiralRunning ? "destructive" : "outline"}
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    disabled={spiralProgress?.isComplete}
+                    onClick={() => {
+                      if (spiralRunning && spiralCancel) {
+                        spiralCancel();
+                        setSpiralRunning(false);
+                        return;
+                      }
+                      setSpiralRunning(true);
+                      setSpiralProgress(null);
+                      const cancel = startSpiralTest(session.id, (progress) => {
+                        setSpiralProgress(progress);
+                        if (progress.isComplete) {
+                          setSpiralRunning(false);
+                        }
+                      });
+                      setSpiralCancel(() => cancel);
+                    }}
+                  >
+                    <Zap className="h-3 w-3 mr-1" />
+                    {spiralProgress?.isComplete
+                      ? "Test Complete"
+                      : spiralRunning
+                        ? "Stop Test"
+                        : "Run 100-User Spiral Test"}
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFeedExpanded(!feedExpanded)}
+                  className="h-7 px-2"
+                >
+                  <Maximize2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               {feedResponses.length === 0 ? (
@@ -409,7 +457,7 @@ function SessionDetail({
                 >
                   <div className="flex flex-col items-center gap-2">
                     <Radio className="h-5 w-5 animate-pulse" />
-                    <span>{t("cube1.moderator.waiting_responses")}</span>
+                    <span>{spiralRunning ? `Waiting for Wave 1 — Catalyst...` : t("cube1.moderator.waiting_responses")}</span>
                   </div>
                 </div>
               ) : (
