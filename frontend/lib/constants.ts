@@ -17,19 +17,19 @@ export const API_BASE_URL =
 // Session types for Moderator dashboard
 export const SESSION_TYPES = [
   {
-    value: "project_series" as const,
-    label: "Project Series",
-    description: "Multi-session series scoped to a Project ID, Cube, or CRS",
+    value: "single_poll" as const,
+    label: "Single Poll",
+    description: "Quick poll with a single question",
   },
   {
-    value: "multi_question" as const,
-    label: "Multi-Question",
+    value: "multi_poll" as const,
+    label: "Multi-Poll",
     description: "Up to 3 back-to-back questions in one session",
   },
   {
-    value: "single_question" as const,
-    label: "Single Question",
-    description: "Quick poll with a single question",
+    value: "project_series" as const,
+    label: "Project Series",
+    description: "Multi-session series scoped to a Project ID, Cube, or CRS",
   },
 ] as const;
 

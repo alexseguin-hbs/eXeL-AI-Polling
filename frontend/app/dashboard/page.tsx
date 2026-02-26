@@ -85,9 +85,9 @@ function statusLabel(status: string): string {
 }
 
 const SESSION_TYPE_ICONS = {
+  single_poll: MessageSquare,
+  multi_poll: ListChecks,
   project_series: FileText,
-  multi_question: ListChecks,
-  single_question: MessageSquare,
 } as const;
 
 /** Always derive join URL from current origin + short_code.
@@ -520,7 +520,7 @@ function DashboardContent() {
   // Create form state
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
-  const [newType, setNewType] = useState<string>("single_question");
+  const [newType, setNewType] = useState<string>("single_poll");
   const [newAiProvider, setNewAiProvider] = useState("openai");
   const [newMaxResponse, setNewMaxResponse] = useState("3333");
   const [newPricingTier, setNewPricingTier] = useState("free");
@@ -581,7 +581,7 @@ function DashboardContent() {
       setCreateOpen(false);
       setNewTitle("");
       setNewDescription("");
-      setNewType("single_question");
+      setNewType("single_poll");
       setNewAiProvider("openai");
       setNewMaxResponse("3333");
       setNewPricingTier("free");
@@ -944,7 +944,7 @@ function DashboardContent() {
                   const TypeIcon =
                     session.cycle_mode === "multi"
                       ? SESSION_TYPE_ICONS.project_series
-                      : SESSION_TYPE_ICONS.single_question;
+                      : SESSION_TYPE_ICONS.single_poll;
                   return (
                     <Card
                       key={session.id}
@@ -1044,7 +1044,7 @@ function DashboardContent() {
                       const TypeIcon =
                         session.cycle_mode === "multi"
                           ? SESSION_TYPE_ICONS.project_series
-                          : SESSION_TYPE_ICONS.single_question;
+                          : SESSION_TYPE_ICONS.single_poll;
                       return (
                         <Card
                           key={session.id}

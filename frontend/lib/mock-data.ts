@@ -362,6 +362,99 @@ let mockParticipantCount: Record<string, number> = {
 // ── Submitted Responses (cross-tab via localStorage) ─────────────
 const mockResponses: Record<string, MockResponse[]> = {};
 
+// ── Per-Session Mock Responses (auto-generated when poll starts) ──
+// Only the 4 default sessions get mock data. New user-created polls (5th+) use only live HI data.
+const MOCK_SESSION_RESPONSES: Record<string, string[]> = {
+  // Poll 1: Product Feedback — "What is the single most important feature we should build next?"
+  "a1b2c3d4-e5f6-7890-abcd-111111111111": [
+    "We need real-time collaboration tools that let distributed teams brainstorm as naturally as in person. Video calls alone aren't cutting it.",
+    "AI-powered summarization of long discussions. Reading through 200 responses manually is not scalable for any moderator.",
+    "The mobile experience needs serious attention. Half our team uses phones and the current UI feels desktop-first.",
+    "Integration with Jira, Asana, and Slack would make adoption 10x easier for enterprise customers.",
+    "Better onboarding flows. New users drop off because the interface is overwhelming at first glance without guidance.",
+    "Accessibility is non-negotiable. Screen reader support, keyboard navigation, and high-contrast modes should be standard.",
+    "Data export in multiple formats — CSV, PDF, and API access. Teams need to feed results into their own analytics.",
+  ],
+  // Poll 2: Q1 Strategy Alignment — "What should be our top strategic priority for Q1?"
+  "b2c3d4e5-f6a7-8901-bcde-222222222222": [
+    "Customer retention should be priority #1. We're acquiring users but churn is too high. Fix the leaky bucket before pouring more in.",
+    "Focus on enterprise sales. Our product-market fit is strongest with teams of 50+ and that's where the revenue growth is.",
+    "Invest in developer experience and API documentation. Our SDK adoption is low because the docs are incomplete.",
+    "Build a self-serve analytics dashboard. Customers keep asking for usage reports they can generate themselves.",
+    "We need to nail the onboarding experience. Time-to-value is too long — users should see results in under 5 minutes.",
+    "International expansion. We have inbound demand from LATAM and EU but no localization or regional pricing.",
+    "Technical debt reduction. Our deployment velocity has slowed 40% in the last quarter due to accumulated shortcuts.",
+  ],
+  // Poll 3: AI Governance — "How should AI shape collective decision-making?"
+  "c3d4e5f6-a7b8-9012-cdef-333333333333": [
+    "AI can democratize decision-making by processing millions of voices simultaneously, something human-only systems can't achieve at scale.",
+    "My biggest concern is algorithmic bias. If the training data reflects historical biases, the AI will perpetuate inequality in governance.",
+    "Transparency is key. Every AI governance decision should have an explainable audit trail that citizens can review and challenge.",
+    "We need hybrid systems — AI processes data and identifies patterns, but humans make final governance decisions with that intelligence.",
+    "The speed of AI analysis means governance can become truly real-time. Policies can adapt to citizen feedback within hours, not years.",
+    "Privacy is my #1 concern. Governance AI systems will have access to massive amounts of citizen data. We need iron-clad protections.",
+    "AI governance should start with low-stakes decisions like urban planning priorities before scaling to critical policy areas.",
+  ],
+  // Poll 4: Team Innovation Challenge — "What innovative tools or processes could improve our team collaboration?"
+  "d4e5f6a7-b8c9-0123-def0-444444444444": [
+    "Async video updates instead of meetings. Record 3-minute Loom-style updates that teammates watch on their own time.",
+    "Shared digital whiteboards that persist between sessions. Our brainstorming dies when the meeting ends and the board is erased.",
+    "Rotating pair programming across teams. Engineers from different squads pair for a day — it spreads knowledge and breaks silos.",
+    "A company-wide 'office hours' system where any employee can book 15 minutes with any leader, no manager approval needed.",
+    "Structured retrospectives with anonymous voting on what to change. People hold back in public retros but speak freely anonymously.",
+    "Cross-functional innovation sprints — 48 hours, mixed teams, real prototypes. Our best ideas came from hackathons, not planning meetings.",
+    "Internal knowledge base with AI search. We waste hours looking for decisions, docs, and context scattered across Slack, Notion, and email.",
+  ],
+};
+
+/** Auto-inject 7 mock participants + progressive responses when polling starts.
+ *  Only fires for the 4 default sessions. New user-created polls get live HI data only. */
+function startMockPollingResponses(sessionId: string): void {
+  if (typeof window === "undefined") return;
+  // Only inject mock data for default sessions
+  const responses = MOCK_SESSION_RESPONSES[sessionId];
+  if (!responses) return; // User-created poll — live HI data only
+  if (!mockResponses[sessionId]) mockResponses[sessionId] = [];
+
+  responses.forEach((text, i) => {
+    setTimeout(() => {
+      const pid = generateId();
+      mockParticipantCount[sessionId] = (mockParticipantCount[sessionId] || 0) + 1;
+      const session = findSessionById(sessionId);
+      if (session) session.participant_count = mockParticipantCount[sessionId];
+      mockResponses[sessionId].push({
+        id: generateId(),
+        session_id: sessionId,
+        clean_text: text,
+        submitted_at: new Date().toISOString(),
+        participant_id: pid,
+        language_code: "en",
+      });
+      saveMockState();
+    }, 2000 + i * 2500); // Staggered: 2s, 4.5s, 7s, 9.5s, 12s, 14.5s, 17s
+  });
+}
+
+// ── Pre-populate responses for sessions already in polling/closed state ──────
+function prePopulateExistingResponses(): void {
+  for (const session of MOCK_SESSIONS) {
+    if (["polling", "ranking", "closed", "archived"].includes(session.status)) {
+      const canned = MOCK_SESSION_RESPONSES[session.id];
+      if (canned && (!mockResponses[session.id] || mockResponses[session.id].length === 0)) {
+        mockResponses[session.id] = canned.map((text) => ({
+          id: generateId(),
+          session_id: session.id,
+          clean_text: text,
+          submitted_at: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+          participant_id: generateId(),
+          language_code: "en",
+        }));
+      }
+    }
+  }
+}
+prePopulateExistingResponses();
+
 // ── Session counter for new sessions ────────────────────────────
 let sessionCounter = MOCK_SESSIONS.length;
 
@@ -698,9 +791,14 @@ export function handleMockRequest<T>(
     if (transitionMatch[2] === "open" || transitionMatch[2] === "start") {
       session.opened_at = new Date().toISOString();
     }
-    if (transitionMatch[2] === "poll" && session.polling_mode_type === "static_poll") {
-      const days = session.static_poll_duration_days ?? 3;
-      session.ends_at = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+    if (transitionMatch[2] === "poll") {
+      // Static polls: compute ends_at deadline
+      if (session.polling_mode_type === "static_poll") {
+        const days = session.static_poll_duration_days ?? 3;
+        session.ends_at = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      }
+      // Auto-inject mock participants + responses for live demo
+      startMockPollingResponses(session.id);
     }
     if (transitionMatch[2] === "close") {
       session.closed_at = new Date().toISOString();
