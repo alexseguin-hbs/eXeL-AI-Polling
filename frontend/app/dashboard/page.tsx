@@ -105,6 +105,16 @@ function QRPresentation({
     session.join_url ||
     `${typeof window !== "undefined" ? window.location.origin : ""}/join/?code=${session.short_code}`;
 
+  const copyCode = () => {
+    navigator.clipboard.writeText(session.short_code);
+    toast({ title: "Code copied" });
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(joinUrl);
+    toast({ title: "Join link copied" });
+  };
+
   return (
     <div className="fixed inset-0 z-[60] bg-background flex flex-col items-center justify-center">
       <Button
@@ -125,12 +135,22 @@ function QRPresentation({
 
       <div className="mt-8 text-center">
         <p className="text-sm text-muted-foreground mb-2">{t("cube1.moderator.or_enter_code")}</p>
-        <p className="text-5xl font-mono font-bold tracking-[0.3em] text-primary">
-          {session.short_code}
-        </p>
+        <div className="flex items-center justify-center gap-3">
+          <p className="text-5xl font-mono font-bold tracking-[0.3em] text-primary">
+            {session.short_code}
+          </p>
+          <Button variant="ghost" size="sm" onClick={copyCode} className="text-muted-foreground hover:text-primary">
+            <Copy className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
-      <p className="mt-6 text-sm text-muted-foreground">{joinUrl}</p>
+      <div className="mt-6 flex items-center gap-2">
+        <p className="text-sm text-muted-foreground">{joinUrl}</p>
+        <Button variant="ghost" size="sm" onClick={copyLink} className="text-muted-foreground hover:text-primary">
+          <Copy className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
