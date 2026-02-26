@@ -309,22 +309,22 @@ export function handleMockRequest<T>(
     return newSession as T;
   }
 
-  // GET /sessions/code/{code}
+  // GET /sessions/code/{code} — shallow copy for React re-render
   const codeMatch = path.match(/^\/sessions\/code\/(.+)$/);
   if (method === "GET" && codeMatch) {
     const session = findSessionByCode(codeMatch[1]);
     if (!session) return null; // will trigger 404
-    return session as T;
+    return { ...session } as T;
   }
 
-  // GET /sessions/{id}
+  // GET /sessions/{id} — return shallow copy to trigger React re-render on state changes
   const idMatch = path.match(
     /^\/sessions\/([0-9a-f-]{36})$/
   );
   if (method === "GET" && idMatch) {
     const session = findSessionById(idMatch[1]);
     if (!session) return null;
-    return session as T;
+    return { ...session } as T;
   }
 
   // GET /sessions/{id}/questions
