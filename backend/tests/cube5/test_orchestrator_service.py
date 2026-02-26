@@ -18,6 +18,9 @@ import pytest
 
 from tests.conftest import make_pipeline_trigger
 
+# Suppress unawaited coroutine warnings from mocked asyncio.create_task
+pytestmark = pytest.mark.filterwarnings("ignore::RuntimeWarning")
+
 
 # ---------------------------------------------------------------------------
 # Create Trigger
