@@ -150,20 +150,22 @@ function PollingStatusBar({ status }: { status: string }) {
                     isCompleted
                       ? "border-green-500 bg-green-500/20 text-green-400"
                       : isActive
-                      ? "border-primary bg-primary/20 text-primary"
+                      ? "border-green-400 bg-green-400/20 text-green-300"
                       : "border-muted text-muted-foreground"
                   }`}
                 >
                   {isCompleted ? (
                     <Check className="h-3.5 w-3.5" />
+                  ) : isActive ? (
+                    <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
                   ) : (
-                    <span className={`h-2 w-2 rounded-full ${isActive ? "bg-primary" : "bg-muted-foreground/40"}`} />
+                    <span className="h-2 w-2 rounded-full bg-muted-foreground/40" />
                   )}
                 </div>
                 <span
                   className={`text-[10px] mt-1 ${
                     isActive
-                      ? "text-primary font-medium"
+                      ? "text-green-300 font-medium"
                       : isCompleted
                       ? "text-green-400"
                       : "text-muted-foreground"
@@ -580,8 +582,10 @@ export function SessionView() {
                     >
                       {submitting ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
+                      ) : currentQuestionIndex < questions.length - 1 ? (
                         <Send className="mr-2 h-4 w-4" />
+                      ) : (
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
                       )}
                       {currentQuestionIndex < questions.length - 1
                         ? t("cube1.session.submit_next")

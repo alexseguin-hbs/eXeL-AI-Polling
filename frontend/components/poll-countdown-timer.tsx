@@ -56,7 +56,7 @@ function useCountdown(endsAt: string, totalDays: number): TimeRemaining {
     return { totalSeconds, phase: "seconds", value: totalSeconds, segments: 60, filled: totalSeconds };
   }
 
-  // Multi-day polls
+  // Multi-day polls: segments = totalDays (3rds for 3-day, 7ths for 7-day)
   if (days >= 1) {
     const daysRemaining = Math.ceil(totalSeconds / 86400);
     return { totalSeconds, phase: "days", value: days, segments: totalDays, filled: Math.min(daysRemaining, totalDays) };
@@ -114,7 +114,7 @@ const PHASE_LABEL_KEYS: Record<Phase, string> = {
   ended: "cube1.timer.poll_ended",
 };
 
-// ── Flex Timer (SVG) ─────────────────────────────────────────────
+// ── Flex Timer (SVG) — Futuristic concentric-ring countdown ──────
 
 function FlexTimer({
   countdown,
@@ -128,16 +128,18 @@ function FlexTimer({
   const cy = 100;
   const outerR = 88;
   const innerR = 62;
-  const borderColor = "hsl(var(--border))";
   const { phase, value, segments, filled } = countdown;
 
   if (phase === "ended") {
     return (
-      <div className="flex flex-col items-center">
-        <svg viewBox="0 0 200 200" width={160} height={160}>
-          <circle cx={cx} cy={cy} r={90} fill="none" stroke={borderColor} strokeWidth={1.5} />
-          <circle cx={cx} cy={cy} r={60} fill="none" stroke={borderColor} strokeWidth={1.5} />
-          <text x={cx} y={cy + 4} textAnchor="middle" fontSize={14} fill="hsl(var(--muted-foreground))">
+      <div
+        className="flex flex-col items-center"
+        style={{ filter: `drop-shadow(0 0 12px ${accentColor}20)` }}
+      >
+        <svg viewBox="0 0 200 200" width={168} height={168}>
+          <circle cx={cx} cy={cy} r={90} fill="none" stroke={`${accentColor}30`} strokeWidth={1.5} />
+          <circle cx={cx} cy={cy} r={60} fill="none" stroke={`${accentColor}30`} strokeWidth={1.5} />
+          <text x={cx} y={cy + 4} textAnchor="middle" fontSize={13} fill="hsl(var(--muted-foreground))">
             {t("cube1.timer.poll_ended")}
           </text>
         </svg>
@@ -147,7 +149,7 @@ function FlexTimer({
 
   if (segments === 0) return null;
 
-  const gapDeg = 1; // 1° gap between segments for gradation lines
+  const gapDeg = segments <= 7 ? 2 : 1; // wider gaps for fewer segments
   const totalGap = gapDeg * segments;
   const availableDeg = 360 - totalGap;
   const segDeg = availableDeg / segments;
@@ -157,56 +159,76 @@ function FlexTimer({
     const startAngle = -90 + i * (segDeg + gapDeg);
     const endAngle = startAngle + segDeg;
     const isFilled = i < filled;
+    // Leading edge segment glows slightly brighter
+    const isLeading = isFilled && i === filled - 1;
 
     segmentPaths.push(
       <path
         key={i}
         d={segmentPath(cx, cy, innerR, outerR, startAngle, endAngle)}
-        fill={isFilled ? accentColor : "transparent"}
-        opacity={isFilled ? 0.85 : 0.1}
+        fill={isFilled ? accentColor : `${accentColor}0A`}
+        opacity={isLeading ? 1 : isFilled ? 0.7 : 1}
       />
     );
   }
 
   return (
-    <div className="flex flex-col items-center">
-      <svg viewBox="0 0 200 200" width={160} height={160}>
-        {/* Outer ring */}
-        <circle cx={cx} cy={cy} r={90} fill="none" stroke={borderColor} strokeWidth={1.5} />
-        {/* Inner ring */}
-        <circle cx={cx} cy={cy} r={60} fill="none" stroke={borderColor} strokeWidth={1.5} />
+    <div
+      className="flex flex-col items-center"
+      style={{ filter: `drop-shadow(0 0 18px ${accentColor}25)` }}
+    >
+      <svg viewBox="0 0 200 200" width={168} height={168}>
+        {/* Ambient center glow */}
+        <radialGradient id="timerCenterGlow">
+          <stop offset="0%" stopColor={accentColor} stopOpacity="0.06" />
+          <stop offset="100%" stopColor={accentColor} stopOpacity="0" />
+        </radialGradient>
+        <circle cx={cx} cy={cy} r={55} fill="url(#timerCenterGlow)" />
+
+        {/* Outer ring — faint accent glow beneath */}
+        <circle cx={cx} cy={cy} r={90} fill="none" stroke={`${accentColor}20`} strokeWidth={3} />
+        <circle cx={cx} cy={cy} r={90} fill="none" stroke={`${accentColor}50`} strokeWidth={1} />
+
+        {/* Inner ring — faint accent glow beneath */}
+        <circle cx={cx} cy={cy} r={60} fill="none" stroke={`${accentColor}20`} strokeWidth={3} />
+        <circle cx={cx} cy={cy} r={60} fill="none" stroke={`${accentColor}50`} strokeWidth={1} />
+
         {/* Segment arcs */}
         {segmentPaths}
-        {/* Center value */}
+
+        {/* Center value — accent colored */}
         <text
           x={cx}
-          y={cy + 2}
+          y={cy - 3}
           textAnchor="middle"
           dominantBaseline="central"
-          fontSize={28}
+          fontSize={34}
           fontWeight="bold"
-          fill="hsl(var(--foreground))"
+          fill={accentColor}
+          style={{ fontFamily: "ui-monospace, monospace" }}
         >
           {value}
         </text>
-        {/* Phase label */}
+        {/* Phase label — uppercase tracking */}
         <text
           x={cx}
           y={cy + 22}
           textAnchor="middle"
           fontSize={10}
           fill="hsl(var(--muted-foreground))"
+          letterSpacing="2"
+          style={{ fontFamily: "ui-monospace, monospace", textTransform: "uppercase" as const }}
         >
-          {t(PHASE_LABEL_KEYS[phase])}
+          {t(PHASE_LABEL_KEYS[phase]).toUpperCase()}
         </text>
       </svg>
     </div>
   );
 }
 
-// ── Day Timer (text) ─────────────────────────────────────────────
+// ── Day Timer (text) — accent-colored deadline display ───────────
 
-function DayTimer({ endsAt }: { endsAt: string }) {
+function DayTimer({ endsAt, accentColor }: { endsAt: string; accentColor: string }) {
   const { t } = useLexicon();
   const endDate = new Date(endsAt);
   const now = Date.now();
@@ -230,9 +252,20 @@ function DayTimer({ endsAt }: { endsAt: string }) {
   });
 
   return (
-    <p className="text-sm text-muted-foreground">
-      {t("cube1.timer.poll_ends")} {dateStr} {t("cube1.timer.at")} {timeStr}
-    </p>
+    <div className="flex flex-col items-center gap-0.5">
+      <span
+        className="text-[11px] uppercase tracking-[0.2em] font-mono"
+        style={{ color: `${accentColor}90` }}
+      >
+        {t("cube1.timer.poll_ends")}
+      </span>
+      <span
+        className="text-base font-semibold font-mono tracking-wide"
+        style={{ color: accentColor, textShadow: `0 0 12px ${accentColor}40` }}
+      >
+        {dateStr} {t("cube1.timer.at")} {timeStr}
+      </span>
+    </div>
   );
 }
 
@@ -249,7 +282,7 @@ export function PollCountdownTimer({
   if (displayMode === "day") {
     return (
       <div className="w-full max-w-lg mb-4 flex justify-center">
-        <DayTimer endsAt={endsAt} />
+        <DayTimer endsAt={endsAt} accentColor={accentColor} />
       </div>
     );
   }
@@ -262,11 +295,11 @@ export function PollCountdownTimer({
     );
   }
 
-  // "both" — side by side
+  // "both" — side by side, centered
   return (
-    <div className="w-full max-w-lg mb-4 flex items-center justify-center gap-4">
+    <div className="w-full max-w-lg mb-4 flex items-center justify-center gap-6">
       <FlexTimer countdown={countdown} accentColor={accentColor} />
-      <DayTimer endsAt={endsAt} />
+      <DayTimer endsAt={endsAt} accentColor={accentColor} />
     </div>
   );
 }

@@ -169,7 +169,7 @@ const cube1: TranslationEntry[] = [
   { key: "cube1.session.response_submitted", englishDefault: "Response submitted!", context: "Single response confirmed", cubeId: 1 },
   { key: "cube1.session.next_question", englishDefault: "Next Question", context: "Advance to next question button", cubeId: 1 },
   { key: "cube1.session.submit_next", englishDefault: "Submit & Next", context: "Submit and advance button", cubeId: 1 },
-  { key: "cube1.session.submit_btn", englishDefault: "Submit", context: "Final submit button", cubeId: 1 },
+  { key: "cube1.session.submit_btn", englishDefault: "Input Complete", context: "Final submit button — last question", cubeId: 1 },
   // Session view — theme voting
   { key: "cube1.session.theme_voting", englishDefault: "Theme Voting", context: "Ranking state heading", cubeId: 1 },
   { key: "cube1.session.theme_voting_desc", englishDefault: "Vote on the themes that emerged from responses", context: "Ranking state description", cubeId: 1 },
