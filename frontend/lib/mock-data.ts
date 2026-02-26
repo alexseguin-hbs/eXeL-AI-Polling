@@ -118,7 +118,7 @@ export const MOCK_SESSIONS: Session[] = [
     id: "a1b2c3d4-e5f6-7890-abcd-111111111111",
     short_code: "12345678",
     created_by: MOCK_MODERATOR_ID,
-    status: "open",
+    status: "polling",
     title: "Test Poll: Product Feedback",
     description:
       "What features should we prioritize for the next quarter? Share your thoughts.",
