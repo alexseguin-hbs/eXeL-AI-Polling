@@ -398,6 +398,80 @@ function generateShortCode(): string {
   return `X${Date.now().toString(36).toUpperCase().slice(-7)}`;
 }
 
+/** Hydrate a session from QR URL params when it doesn't exist locally.
+ *  Enables cross-device QR scanning in mock mode by reconstructing
+ *  the session from the encoded title + status in the URL. */
+export function hydrateSessionFromParams(
+  code: string,
+  title?: string | null,
+  status?: string | null,
+): Session | null {
+  // Already exists locally
+  const existing = findSessionByCode(code);
+  if (existing) return existing;
+
+  // No params to reconstruct from
+  if (!title) return null;
+
+  const now = new Date().toISOString();
+  const resolvedStatus = (status || "polling") as Session["status"];
+  const newSession: Session = {
+    id: generateId(),
+    short_code: code.toUpperCase(),
+    created_by: MOCK_MODERATOR_ID,
+    status: resolvedStatus,
+    title,
+    description: null,
+    anonymity_mode: "identified",
+    cycle_mode: "single",
+    max_cycles: 1,
+    current_cycle: 1,
+    ranking_mode: "auto",
+    language: "en",
+    max_response_length: 3333,
+    ai_provider: "openai",
+    session_type: "polling",
+    polling_mode: "single_round",
+    pricing_tier: "free",
+    max_participants: null,
+    fee_amount_cents: 0,
+    cost_splitting_enabled: false,
+    reward_enabled: false,
+    reward_amount_cents: 0,
+    theme2_voting_level: "theme2_9",
+    live_feed_enabled: false,
+    polling_mode_type: "live_interactive",
+    static_poll_duration_days: null,
+    ends_at: null,
+    timer_display_mode: "flex",
+    is_paid: false,
+    qr_url: null,
+    join_url: null,
+    opened_at: resolvedStatus !== "draft" ? now : null,
+    closed_at: null,
+    expires_at: new Date(Date.now() + 86400000).toISOString(),
+    created_at: now,
+    updated_at: now,
+    participant_count: 0,
+  } as Session;
+
+  MOCK_SESSIONS.push(newSession);
+  mockParticipantCount[newSession.id] = 0;
+  MOCK_QUESTIONS[newSession.id] = [
+    {
+      id: generateId(),
+      session_id: newSession.id,
+      question_text: `What are your thoughts on: ${title.replace(/[?.]$/, "")}?`,
+      cycle_id: 1,
+      order_index: 0,
+      status: "active",
+      created_at: now,
+    },
+  ];
+  saveMockState();
+  return newSession;
+}
+
 export function handleMockRequest<T>(
   method: string,
   path: string,

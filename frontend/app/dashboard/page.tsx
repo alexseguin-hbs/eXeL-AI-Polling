@@ -91,11 +91,14 @@ const SESSION_TYPE_ICONS = {
 } as const;
 
 /** Always derive join URL from current origin + short_code.
- *  Ignores stored session.join_url to avoid stale-origin mismatches
- *  between QR code and copy link. */
+ *  Includes session title as query param so cross-device QR scanning
+ *  works in mock mode (other devices can reconstruct the session). */
 function getJoinUrl(session: Session): string {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  return `${origin}/join/?code=${session.short_code}`;
+  const params = new URLSearchParams({ code: session.short_code });
+  if (session.title) params.set("t", session.title);
+  if (session.status) params.set("s", session.status);
+  return `${origin}/join/?${params.toString()}`;
 }
 
 // ── QR Presentation Mode ─────────────────────────────────────────

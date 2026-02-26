@@ -11,6 +11,7 @@ import { Navbar } from "@/components/navbar";
 import { LanguageSelector } from "@/components/language-selector";
 import { useLexicon } from "@/lib/lexicon-context";
 import { api, ApiClientError } from "@/lib/api";
+import { hydrateSessionFromParams } from "@/lib/mock-data";
 import { toast } from "@/components/ui/use-toast";
 import type { Session, SessionJoinResponse } from "@/lib/types";
 
@@ -22,6 +23,9 @@ export function JoinFlow() {
   const { t, setActiveLocale } = useLexicon();
   // Read code from query param: /join/?code=ABCD1234
   const code = searchParams.get("code")?.toUpperCase() || "";
+  // Cross-device QR params: title + status encoded in URL for mock mode hydration
+  const qrTitle = searchParams.get("t");
+  const qrStatus = searchParams.get("s");
   // SIM mode flag: /join/?code=ABCD1234&sim=1 (from Cube 10 QR scan)
   const simMode = searchParams.get("sim") === "1";
 
@@ -39,6 +43,14 @@ export function JoinFlow() {
   useEffect(() => {
     if (!code) return;
     setLoading(true);
+
+    // Try hydrating from QR URL params first (enables cross-device mock mode).
+    // This creates the session in local mock data if it doesn't exist yet,
+    // using the title + status encoded in the QR URL by the moderator's dashboard.
+    if (qrTitle) {
+      hydrateSessionFromParams(code, qrTitle, qrStatus);
+    }
+
     api
       .get<Session>(`/sessions/code/${code}`)
       .then((data) => {
@@ -58,7 +70,7 @@ export function JoinFlow() {
         }
       })
       .finally(() => setLoading(false));
-  }, [code, t]);
+  }, [code, qrTitle, qrStatus, simMode, t]);
 
   // When language changes, also set the active UI locale
   const handleLanguageChange = useCallback((code: string) => {
