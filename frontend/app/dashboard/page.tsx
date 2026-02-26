@@ -86,7 +86,7 @@ function statusLabel(status: string): string {
 
 const SESSION_TYPE_ICONS = {
   project_series: FileText,
-  task: ListChecks,
+  multi_question: ListChecks,
   single_question: MessageSquare,
 } as const;
 

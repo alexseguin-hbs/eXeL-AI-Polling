@@ -19,12 +19,12 @@ export const SESSION_TYPES = [
   {
     value: "project_series" as const,
     label: "Project Series",
-    description: "Multi-session series linked to a project scope",
+    description: "Multi-session series scoped to a Project ID, Cube, or CRS",
   },
   {
-    value: "task" as const,
-    label: "Task",
-    description: "Focused task with a specific goal and timeframe",
+    value: "multi_question" as const,
+    label: "Multi-Question",
+    description: "Up to 3 back-to-back questions in one session",
   },
   {
     value: "single_question" as const,
