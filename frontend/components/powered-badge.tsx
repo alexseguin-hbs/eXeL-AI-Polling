@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useTheme } from "@/lib/theme-context";
@@ -298,6 +298,7 @@ export function PoweredBadge() {
   const { currentTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // Detect auth state for role-aware simulation
   let isAuthenticated = false;
@@ -309,13 +310,15 @@ export function PoweredBadge() {
   }
 
   const handleEnterSimulation = useCallback(() => {
+    // Detect session ID from URL params if on a session page
+    const sessionId = searchParams.get("id") || undefined;
     // Moderators see participant experience; pollers see moderator experience
-    enterSimulationMode(isAuthenticated ? "moderator" : "poller");
+    enterSimulationMode(isAuthenticated ? "moderator" : "poller", sessionId);
     // Navigate to session page so the user sees the simulation
     if (pathname !== "/session") {
       router.push("/session");
     }
-  }, [enterSimulationMode, isAuthenticated, router, pathname]);
+  }, [enterSimulationMode, isAuthenticated, router, pathname, searchParams]);
 
   if (simulationMode) {
     return <SimulationOverlay />;

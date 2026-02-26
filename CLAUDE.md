@@ -581,14 +581,25 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 
 ### Frontend — Cube 10 SIM (Easter Egg Simulation): IMPLEMENTED
 - **Role-aware simulation:** Moderator SIM shows participant polling experience; Poller SIM shows moderator dashboard lifecycle
-- **7 AI Users:** Canned responses arrive progressively (2-17s delays) during moderator SIM
-- **Cube 6 Theming Stub:** 3 simulated themes (Opportunity/Risk/Balanced) with confidence scores
+- **Per-session SIM data:** 4 poll-specific data files in `frontend/lib/sim-data/` with complete cube I/O (state flows, 7 AI responses, themes, voice transcript)
+  - **POLL_1:** Product Feedback (Live Interactive) — Feature Requests / Performance & Security / Integration Needs
+  - **POLL_2:** Q1 Strategy Alignment (Live Interactive) — Growth Initiatives / Customer Retention / Team Culture
+  - **POLL_3:** AI Governance (Live Interactive) — Opportunity & Innovation / Risk & Concerns / Balanced Approach
+  - **POLL_4:** Team Innovation Challenge (Static Poll, 3-day) — Collaboration Tools / Process Innovation / Culture & Mindset
+- **Transport controls:** `|<` Jump to start / `<<` Step back / `▶/⏸` Play/Pause / `>>` Step forward / `>|` Jump to end + step counter (Step X/Y) + progress dots
+- **State flows corrected:**
+  - **Live Poll (8 steps):** draft → open → polling → closed → theming → visuals → ranking → archived
+  - **Static Poll (7 steps):** draft → open → polling → theming → visuals → ranking → archived
+- **Session picker:** Select from 4 polls with Live/Static badge, question preview, click to simulate
+- **7 AI Users:** Per-poll canned responses arrive progressively (2-17s delays) with topic-specific themes
+- **Cube 6 Theming Stub:** 3 simulated themes per poll with confidence scores + response counts + color coding
 - **Cube 7 Ranking Stub:** Click-to-rank UI — tap themes in priority order (#1, #2, #3)
-- **Auto-transition:** All 8 users complete → theming (3s) → ranking → results
-- **Sim Moderator Experience:** Self-contained component for poller SIM — session lifecycle (draft→archived), QR code, state transitions, progressive response feed, themed results
-- **Sim type toggle:** Live Poll / Static Poll selectable in both SIM modes
+- **Auto-transition:** polling → closed (1.5s) → theming (1.5s) → visuals (3s) → ranking
+- **Question translation:** Globe icon button — toggles between original + translated per active locale
+- **Sim Moderator Experience:** Transport-controlled session lifecycle, session picker, per-poll data, participant counter, auto-play
 - **AI Provider Settings:** Collapsible V2T provider selector with pricing estimates per 1000 users (OpenAI $12, Grok $12, Gemini $4, AWS $48)
-- Files: `frontend/components/session-view.tsx`, `frontend/components/sim-moderator-experience.tsx`, `frontend/lib/easter-egg-context.tsx`, `frontend/lib/mock-data.ts`
+- **12 new lexicon keys × 32 languages = 384 translations:** select_session, select_session_desc, transport_step, state_theming, state_visuals, state_closed, session_closed_msg, translate_question, translated, original, create_new, jump_to_start
+- Files: `frontend/lib/sim-data/index.ts`, `frontend/lib/sim-data/poll-{1-4}-*.ts`, `frontend/components/session-view.tsx`, `frontend/components/sim-moderator-experience.tsx`, `frontend/lib/easter-egg-context.tsx`, `frontend/lib/mock-data.ts`
 
 ### Frontend — Global Language Selector: IMPLEMENTED
 - **Navbar dropdown:** Globe icon with language dropdown available to ALL users (not just moderators)

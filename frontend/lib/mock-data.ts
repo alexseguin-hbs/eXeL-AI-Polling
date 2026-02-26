@@ -187,6 +187,30 @@ export const MOCK_QUESTIONS: Record<string, Question[]> = {
       created_at: now,
     },
   ],
+  "b2c3d4e5-f6a7-8901-bcde-222222222222": [
+    {
+      id: "q1-222222",
+      session_id: "b2c3d4e5-f6a7-8901-bcde-222222222222",
+      question_text:
+        "What should be our top strategic priority for Q1?",
+      cycle_id: 1,
+      order_index: 0,
+      status: "active",
+      created_at: now,
+    },
+  ],
+  "c3d4e5f6-a7b8-9012-cdef-333333333333": [
+    {
+      id: "q1-333333",
+      session_id: "c3d4e5f6-a7b8-9012-cdef-333333333333",
+      question_text:
+        "How should AI shape collective decision-making?",
+      cycle_id: 1,
+      order_index: 0,
+      status: "active",
+      created_at: now,
+    },
+  ],
   "d4e5f6a7-b8c9-0123-defg-444444444444": [
     {
       id: "q1-444444",

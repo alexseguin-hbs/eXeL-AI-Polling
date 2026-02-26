@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Suspense } from "react";
 import { Providers } from "@/components/providers";
 import { PoweredBadge } from "@/components/powered-badge";
 
@@ -18,7 +19,9 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans antialiased">
         <Providers>
           {children}
-          <PoweredBadge />
+          <Suspense>
+            <PoweredBadge />
+          </Suspense>
         </Providers>
       </body>
     </html>

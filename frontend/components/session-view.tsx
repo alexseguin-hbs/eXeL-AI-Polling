@@ -11,6 +11,8 @@ import {
   AlertCircle,
   ChevronRight,
   Check,
+  Globe,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +34,7 @@ import { PollCountdownTimer } from "@/components/poll-countdown-timer";
 import { SimModeratorExperience } from "@/components/sim-moderator-experience";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, Question } from "@/lib/types";
+import { getSimPollBySessionId } from "@/lib/sim-data";
 
 // ── Simulation Duration Options ──────────────────────────────────
 // User-selectable durations so the countdown timer can be observed at each phase.
@@ -124,10 +127,11 @@ interface SimAiResponse {
   user: string;
   text: string;
   delayMs: number;
-  theme: "opportunity" | "concern" | "balanced";
+  theme: string;
 }
 
-const SIM_AI_RESPONSES: SimAiResponse[] = [
+// Default AI responses (fallback when no sim-data poll is loaded)
+const DEFAULT_SIM_AI_RESPONSES: SimAiResponse[] = [
   { user: "AI User 1", text: "AI can democratize decision-making by processing millions of voices simultaneously, something human-only systems can't achieve at scale.", delayMs: 2000, theme: "opportunity" },
   { user: "AI User 2", text: "My biggest concern is algorithmic bias in AI governance. If the training data reflects historical biases, the AI will perpetuate inequality.", delayMs: 4500, theme: "concern" },
   { user: "AI User 3", text: "Transparency is key. Every AI governance decision should have an explainable audit trail that citizens can review.", delayMs: 7000, theme: "balanced" },
@@ -152,26 +156,6 @@ const SIM_THEMES: SimTheme[] = [
   { id: "t2", name: "Risk & Concerns", confidence: 0.88, responseCount: 2, color: "#EF4444", icon: "⚠️" },
   { id: "t3", name: "Balanced / Hybrid Approach", confidence: 0.85, responseCount: 3, color: "#3B82F6", icon: "⚖️" },
 ];
-
-// ── AI Response Feed (shows canned responses appearing) ─────────
-function SimAiResponseFeed({ responses }: { responses: SimAiResponse[] }) {
-  if (responses.length === 0) return null;
-  return (
-    <div className="w-full max-w-lg mb-4">
-      <p className="text-xs text-muted-foreground mb-2">
-        {responses.length}/7 AI users responded
-      </p>
-      <div className="space-y-1.5 max-h-32 overflow-y-auto">
-        {responses.map((r, i) => (
-          <div key={i} className="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-1.5 text-xs animate-in fade-in slide-in-from-bottom-2">
-            <span className="font-medium text-primary shrink-0">{r.user}</span>
-            <span className="text-muted-foreground line-clamp-1">{r.text}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ── Sim Ranking UI (Cube 7 Stub — click to rank themes) ─────────
 function SimRankingUI({
@@ -404,16 +388,46 @@ export function SessionView() {
 
   // Simulation: 7 AI user responses that appear progressively
   const [simAiResponses, setSimAiResponses] = useState<SimAiResponse[]>([]);
-  const [simPhase, setSimPhase] = useState<"polling" | "theming" | "ranking" | "results">("polling");
+  const [simPhase, setSimPhase] = useState<"polling" | "closed" | "theming" | "visuals" | "ranking" | "results">("polling");
   const [simUserSubmitted, setSimUserSubmitted] = useState(false);
+
+  // Question translation toggle
+  const [questionTranslated, setQuestionTranslated] = useState(false);
 
   // Timer integration
   const { start: startTimer, earnTokens } = useTimer();
 
   // Simulation mode — use sample data instead of API calls
-  const { simulationMode, simulationRole } = useEasterEgg();
+  const { simulationMode, simulationRole, simulationSessionId } = useEasterEgg();
   const { t } = useLexicon();
   const { currentTheme } = useTheme();
+
+  // Load per-session SIM data if a session ID is set
+  const simPollData = simulationSessionId
+    ? getSimPollBySessionId(simulationSessionId)
+    : undefined;
+
+  // Resolve AI responses for current sim (per-poll or default)
+  const simAiResponseSource: SimAiResponse[] = simPollData
+    ? simPollData.cube2.aiResponses.map((r) => ({
+        user: r.user,
+        text: r.text,
+        delayMs: r.delayMs,
+        theme: r.theme,
+      }))
+    : DEFAULT_SIM_AI_RESPONSES;
+
+  // Resolve themes for current sim
+  const simThemes: SimTheme[] = simPollData
+    ? simPollData.themes.map((t) => ({
+        id: t.id,
+        name: t.name,
+        confidence: t.confidence,
+        responseCount: t.count,
+        color: t.color,
+        icon: "",
+      }))
+    : SIM_THEMES;
 
   useEffect(() => {
     // In simulation mode, use sample data with selectable duration
@@ -424,10 +438,33 @@ export function SessionView() {
         return;
       }
       // Moderator sim → show participant polling experience
+      // Use per-session SIM data if available
+      const pollMode = simPollData?.pollingMode ?? simType;
       const dur = SIMULATION_DURATIONS[simDurationIndex];
-      const simSession = makeSimulationSession(simType, dur.ms, dur.totalDays, dur.label);
+      const simSession = makeSimulationSession(pollMode, dur.ms, dur.totalDays, dur.label);
+
+      // Override title/questions from sim-data if available
+      if (simPollData) {
+        simSession.title = `[SIM] ${simPollData.title}`;
+        simSession.id = simPollData.sessionId;
+      }
+
       setSession(simSession);
-      setQuestions(SIMULATION_QUESTIONS);
+
+      // Use per-session questions or defaults
+      const simQuestions: Question[] = simPollData
+        ? simPollData.questions.map((q, i) => ({
+            id: q.id,
+            session_id: simPollData.sessionId,
+            question_text: q.text,
+            cycle_id: 1,
+            order_index: i,
+            status: "active" as const,
+            created_at: new Date().toISOString(),
+          }))
+        : SIMULATION_QUESTIONS;
+
+      setQuestions(simQuestions);
       setParticipantCount(simSession.participant_count);
       setLoading(false);
       startTimer();
@@ -449,12 +486,12 @@ export function SessionView() {
         }
       })
       .finally(() => setLoading(false));
-  }, [sessionId, simulationMode, simulationRole, simType, simDurationIndex, startTimer]);
+  }, [sessionId, simulationMode, simulationRole, simType, simDurationIndex, startTimer, simPollData]);
 
   // Simulation: Progressive AI responses during moderator sim polling
   useEffect(() => {
     if (!simulationMode || simulationRole !== "moderator" || simPhase !== "polling") return;
-    const timers = SIM_AI_RESPONSES.map((response, i) =>
+    const timers = simAiResponseSource.map((response, i) =>
       setTimeout(() => {
         setSimAiResponses((prev) => {
           if (prev.length > i) return prev; // Already added
@@ -463,26 +500,52 @@ export function SessionView() {
       }, response.delayMs)
     );
     return () => timers.forEach(clearTimeout);
-  }, [simulationMode, simulationRole, simPhase]);
+  }, [simulationMode, simulationRole, simPhase, simAiResponseSource]);
 
-  // Simulation: Auto-transition to theming when all 7 AI + 1 user submit
+  // Simulation: Auto-transition chain when all 7 AI + 1 user submit
+  // Flow: polling → closed (1.5s) → theming (1.5s) → visuals (3s) → ranking
   useEffect(() => {
     if (!simulationMode || simulationRole !== "moderator") return;
     if (simAiResponses.length >= 7 && simUserSubmitted && simPhase === "polling") {
-      // All 8 responses in — auto-transition to theming
-      const timer = setTimeout(() => {
-        setSimPhase("theming");
-        toast({ title: "All responses received — AI Theming in progress..." });
-        // After 3s "theming", transition to ranking
-        setTimeout(() => {
-          setSimPhase("ranking");
-          setSession((prev) => prev ? { ...prev, status: "ranking" } : prev);
-          toast({ title: "Themes identified — Ranking ready!" });
-        }, 3000);
+      // All 8 responses in — start transition chain
+      const t1 = setTimeout(() => {
+        setSimPhase("closed");
+        toast({ title: t("cube10.sim.state_closed") });
       }, 1500);
-      return () => clearTimeout(timer);
+      return () => clearTimeout(t1);
     }
-  }, [simulationMode, simulationRole, simAiResponses.length, simUserSubmitted, simPhase]);
+  }, [simulationMode, simulationRole, simAiResponses.length, simUserSubmitted, simPhase, t]);
+
+  // Chain: closed → theming
+  useEffect(() => {
+    if (!simulationMode || simulationRole !== "moderator" || simPhase !== "closed") return;
+    const timer = setTimeout(() => {
+      setSimPhase("theming");
+      toast({ title: t("cube10.sim.state_theming") });
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [simulationMode, simulationRole, simPhase, t]);
+
+  // Chain: theming → visuals
+  useEffect(() => {
+    if (!simulationMode || simulationRole !== "moderator" || simPhase !== "theming") return;
+    const timer = setTimeout(() => {
+      setSimPhase("visuals");
+      toast({ title: t("cube10.sim.state_visuals") });
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [simulationMode, simulationRole, simPhase, t]);
+
+  // Chain: visuals → ranking
+  useEffect(() => {
+    if (!simulationMode || simulationRole !== "moderator" || simPhase !== "visuals") return;
+    const timer = setTimeout(() => {
+      setSimPhase("ranking");
+      setSession((prev) => prev ? { ...prev, status: "ranking" } : prev);
+      toast({ title: "Themes identified — Ranking ready!" });
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [simulationMode, simulationRole, simPhase]);
 
   // Fetch questions when session is in polling state
   useEffect(() => {
@@ -742,17 +805,43 @@ export function SessionView() {
               )}
             </div>
           )}
-          {/* Sim AI response feed — shows 7 AI users responding progressively */}
-          {simulationMode && simulationRole === "moderator" && simPhase === "polling" && (
-            <SimAiResponseFeed responses={simAiResponses} />
+          {/* Sim closed state (preparing theming) */}
+          {simulationMode && simulationRole === "moderator" && simPhase === "closed" && (
+            <div className="w-full max-w-lg mb-4 flex flex-col items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground font-medium">{t("cube10.sim.state_closed")}</p>
+              <p className="text-xs text-muted-foreground">{t("cube10.sim.session_closed_msg")}</p>
+            </div>
           )}
 
           {/* Sim theming indicator */}
           {simulationMode && simulationRole === "moderator" && simPhase === "theming" && (
             <div className="w-full max-w-lg mb-4 flex flex-col items-center gap-2">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <p className="text-sm text-primary font-medium">Cube 6 — AI Theming in progress...</p>
-              <p className="text-xs text-muted-foreground">Clustering 8 responses into themes</p>
+              <p className="text-sm text-primary font-medium">Cube 6 — {t("cube10.sim.state_theming")}</p>
+              <p className="text-xs text-muted-foreground">Clustering {simAiResponses.length || 7} responses into themes</p>
+            </div>
+          )}
+
+          {/* Sim visuals (themed clusters preview) */}
+          {simulationMode && simulationRole === "moderator" && simPhase === "visuals" && (
+            <div className="w-full max-w-lg mb-4">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Eye className="h-4 w-4 text-primary" />
+                <p className="text-xs text-primary font-medium">{t("cube10.sim.state_visuals")}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground text-center mb-2">{simThemes.length} themes identified from {simAiResponses.length || 7} responses</p>
+                {simThemes.map((theme) => (
+                  <div key={theme.id} className="flex items-center gap-3 rounded-md border px-3 py-2" style={{ borderColor: `${theme.color}40` }}>
+                    <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: theme.color }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium truncate">{theme.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{theme.responseCount} responses &middot; {Math.round(theme.confidence * 100)}% confidence</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -773,11 +862,31 @@ export function SessionView() {
                       {t("cube1.session.question_prefix")} {currentQuestionIndex + 1} {t("cube1.session.question_of")} {questions.length}
                     </p>
                   )}
-                  <CardTitle className="text-lg">
-                    {currentQuestion
-                      ? currentQuestion.question_text
-                      : t("cube1.session.waiting_question")}
-                  </CardTitle>
+                  <div className="flex items-start gap-2">
+                    <CardTitle className="text-lg flex-1">
+                      {currentQuestion
+                        ? currentQuestion.question_text
+                        : t("cube1.session.waiting_question")}
+                    </CardTitle>
+                    {currentQuestion && simulationMode && (
+                      <button
+                        onClick={() => {
+                          setQuestionTranslated((prev) => !prev);
+                          toast({
+                            title: questionTranslated
+                              ? t("cube10.sim.original")
+                              : t("cube10.sim.translate_question"),
+                          });
+                        }}
+                        className="shrink-0 mt-1 rounded-md border px-1.5 py-1 text-[10px] flex items-center gap-1 transition-colors hover:bg-accent/20"
+                        style={{ borderColor: questionTranslated ? currentTheme.swatch : undefined }}
+                        title={t("cube10.sim.translate_question")}
+                      >
+                        <Globe className="h-3 w-3" />
+                        <span>{questionTranslated ? t("cube10.sim.translated") : t("cube10.sim.original")}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <span className="flex items-center gap-1 text-sm text-muted-foreground shrink-0 ml-4">
                   <Users className="h-4 w-4" />
@@ -883,7 +992,7 @@ export function SessionView() {
             {/* Sim ranking with themed clusters (Cube 7 stub) */}
             {simulationMode && simulationRole === "moderator" ? (
               <SimRankingUI
-                themes={SIM_THEMES}
+                themes={simThemes}
                 onComplete={() => {
                   setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
                   setSimPhase("results");

@@ -453,6 +453,18 @@ const cube10: TranslationEntry[] = [
   { key: "cube10.sim.auto_advancing", englishDefault: "Auto-advancing...", context: "Auto-advance status indicator", cubeId: 10 },
   { key: "cube10.sim.participants_joining", englishDefault: "Participants joining...", context: "Sim participant counter label", cubeId: 10 },
   { key: "cube10.sim.create_session", englishDefault: "Create Session", context: "Sim create session button", cubeId: 10 },
+  { key: "cube10.sim.select_session", englishDefault: "Select a Session", context: "Session picker heading", cubeId: 10 },
+  { key: "cube10.sim.select_session_desc", englishDefault: "Choose a session to simulate", context: "Session picker description", cubeId: 10 },
+  { key: "cube10.sim.transport_step", englishDefault: "Step", context: "Transport step counter label", cubeId: 10 },
+  { key: "cube10.sim.state_theming", englishDefault: "AI Theming", context: "Theming phase label", cubeId: 10 },
+  { key: "cube10.sim.state_visuals", englishDefault: "Theme Visuals", context: "Visuals phase label", cubeId: 10 },
+  { key: "cube10.sim.state_closed", englishDefault: "Session Closed", context: "Closed phase label", cubeId: 10 },
+  { key: "cube10.sim.session_closed_msg", englishDefault: "Preparing AI theming...", context: "Closed state description", cubeId: 10 },
+  { key: "cube10.sim.translate_question", englishDefault: "Translate to my language", context: "Question translate button tooltip", cubeId: 10 },
+  { key: "cube10.sim.translated", englishDefault: "Translated", context: "Translate button label when active", cubeId: 10 },
+  { key: "cube10.sim.original", englishDefault: "Original", context: "Translate button label when inactive", cubeId: 10 },
+  { key: "cube10.sim.create_new", englishDefault: "Create New", context: "Create new session button in picker", cubeId: 10 },
+  { key: "cube10.sim.jump_to_start", englishDefault: "Jump to start", context: "Transport skip-back button tooltip", cubeId: 10 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────
