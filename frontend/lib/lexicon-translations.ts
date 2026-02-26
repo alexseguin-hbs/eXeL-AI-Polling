@@ -402,6 +402,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Durée sim.",
     "cube1.moderator.mode_live": "Direct",
     "cube1.moderator.mode_static": "Statique",
+    "cube1.moderator.expand_feed": "Agrandir le flux",
+    "cube1.moderator.collapse_feed": "Réduire",
+    "cube1.moderator.waiting_responses": "En attente des réponses...",
+    "cube2.input.submission_failed": "Échec de l'envoi",
   },
 
   // ── Spanish (es) ───────────────────────────────────────────────
@@ -797,6 +801,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Duración sim.",
     "cube1.moderator.mode_live": "En vivo",
     "cube1.moderator.mode_static": "Estático",
+    "cube1.moderator.expand_feed": "Expandir feed",
+    "cube1.moderator.collapse_feed": "Contraer",
+    "cube1.moderator.waiting_responses": "Esperando respuestas...",
+    "cube2.input.submission_failed": "Error al enviar",
   },
 
   // ── German (de) ────────────────────────────────────────
@@ -1192,6 +1200,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Sim-Dauer",
     "cube1.moderator.mode_live": "Live",
     "cube1.moderator.mode_static": "Statisch",
+    "cube1.moderator.expand_feed": "Feed erweitern",
+    "cube1.moderator.collapse_feed": "Einklappen",
+    "cube1.moderator.waiting_responses": "Warte auf Antworten...",
+    "cube2.input.submission_failed": "Übermittlung fehlgeschlagen",
   },
 
   // ── Italian (it) ───────────────────────────────────────
@@ -1587,6 +1599,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Durata sim.",
     "cube1.moderator.mode_live": "Live",
     "cube1.moderator.mode_static": "Statico",
+    "cube1.moderator.expand_feed": "Espandi feed",
+    "cube1.moderator.collapse_feed": "Comprimi",
+    "cube1.moderator.waiting_responses": "In attesa delle risposte...",
+    "cube2.input.submission_failed": "Invio non riuscito",
   },
 
   // ── Portuguese (pt) ────────────────────────────────────
@@ -1982,6 +1998,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Duração sim.",
     "cube1.moderator.mode_live": "Ao vivo",
     "cube1.moderator.mode_static": "Estático",
+    "cube1.moderator.expand_feed": "Expandir feed",
+    "cube1.moderator.collapse_feed": "Recolher",
+    "cube1.moderator.waiting_responses": "Aguardando respostas...",
+    "cube2.input.submission_failed": "Falha no envio",
   },
 
   // ── Russian (ru) ───────────────────────────────────────
@@ -2377,6 +2397,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Длит. сим.",
     "cube1.moderator.mode_live": "Живой",
     "cube1.moderator.mode_static": "Статический",
+    "cube1.moderator.expand_feed": "Развернуть ленту",
+    "cube1.moderator.collapse_feed": "Свернуть",
+    "cube1.moderator.waiting_responses": "Ожидание ответов...",
+    "cube2.input.submission_failed": "Ошибка отправки",
   },
 
   // ── Dutch (nl) ─────────────────────────────────────────
@@ -2772,6 +2796,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Sim-duur",
     "cube1.moderator.mode_live": "Live",
     "cube1.moderator.mode_static": "Statisch",
+    "cube1.moderator.expand_feed": "Feed uitvouwen",
+    "cube1.moderator.collapse_feed": "Inklappen",
+    "cube1.moderator.waiting_responses": "Wachten op reacties...",
+    "cube2.input.submission_failed": "Verzending mislukt",
   },
 
   // ── Chinese (zh) ───────────────────────────────────────
@@ -3167,6 +3195,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "模拟时长",
     "cube1.moderator.mode_live": "实时",
     "cube1.moderator.mode_static": "静态",
+    "cube1.moderator.expand_feed": "展开动态",
+    "cube1.moderator.collapse_feed": "收起",
+    "cube1.moderator.waiting_responses": "等待回复中...",
+    "cube2.input.submission_failed": "提交失败",
   },
 
   // ── Japanese (ja) ──────────────────────────────────────
@@ -3562,6 +3594,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "シム時間",
     "cube1.moderator.mode_live": "ライブ",
     "cube1.moderator.mode_static": "静的",
+    "cube1.moderator.expand_feed": "フィードを展開",
+    "cube1.moderator.collapse_feed": "折りたたむ",
+    "cube1.moderator.waiting_responses": "回答を待っています...",
+    "cube2.input.submission_failed": "送信に失敗しました",
   },
 
   // ── Korean (ko) ────────────────────────────────────────
@@ -3957,6 +3993,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "시뮬 시간",
     "cube1.moderator.mode_live": "라이브",
     "cube1.moderator.mode_static": "정적",
+    "cube1.moderator.expand_feed": "피드 펼치기",
+    "cube1.moderator.collapse_feed": "접기",
+    "cube1.moderator.waiting_responses": "응답을 기다리는 중...",
+    "cube2.input.submission_failed": "제출 실패",
   },
 
   // ── Arabic (ar) ────────────────────────────────────────
@@ -4352,6 +4392,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "مدة المحاكاة",
     "cube1.moderator.mode_live": "مباشر",
     "cube1.moderator.mode_static": "ثابت",
+    "cube1.moderator.expand_feed": "توسيع التغذية",
+    "cube1.moderator.collapse_feed": "طي",
+    "cube1.moderator.waiting_responses": "في انتظار الردود...",
+    "cube2.input.submission_failed": "فشل الإرسال",
   },
 
   // ── Hindi (hi) ─────────────────────────────────────────
@@ -4747,6 +4791,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "सिम अवधि",
     "cube1.moderator.mode_live": "लाइव",
     "cube1.moderator.mode_static": "स्थिर",
+    "cube1.moderator.expand_feed": "फ़ीड विस्तारित करें",
+    "cube1.moderator.collapse_feed": "संक्षिप्त करें",
+    "cube1.moderator.waiting_responses": "प्रतिक्रियाओं की प्रतीक्षा...",
+    "cube2.input.submission_failed": "सबमिशन विफल",
   },
 
   // ── Bengali (bn) ───────────────────────────────────────
@@ -5142,6 +5190,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "সিম সময়কাল",
     "cube1.moderator.mode_live": "লাইভ",
     "cube1.moderator.mode_static": "স্থির",
+    "cube1.moderator.expand_feed": "ফিড প্রসারিত করুন",
+    "cube1.moderator.collapse_feed": "সংকুচিত করুন",
+    "cube1.moderator.waiting_responses": "প্রতিক্রিয়ার অপেক্ষায়...",
+    "cube2.input.submission_failed": "জমা দিতে ব্যর্থ",
   },
 
   // ── Punjabi (pa) ───────────────────────────────────────
@@ -5537,6 +5589,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "ਸਿਮ ਸਮਾਂ",
     "cube1.moderator.mode_live": "ਲਾਈਵ",
     "cube1.moderator.mode_static": "ਸਥਿਰ",
+    "cube1.moderator.expand_feed": "ਫੀਡ ਵਿਸਤਾਰ ਕਰੋ",
+    "cube1.moderator.collapse_feed": "ਸੰਖੇਪ ਕਰੋ",
+    "cube1.moderator.waiting_responses": "ਜਵਾਬਾਂ ਦੀ ਉਡੀਕ...",
+    "cube2.input.submission_failed": "ਸਬਮਿਸ਼ਨ ਅਸਫ਼ਲ",
   },
 
   // ── Thai (th) ──────────────────────────────────────────
@@ -5932,6 +5988,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "ระยะจำลอง",
     "cube1.moderator.mode_live": "สด",
     "cube1.moderator.mode_static": "คงที่",
+    "cube1.moderator.expand_feed": "ขยายฟีด",
+    "cube1.moderator.collapse_feed": "ย่อ",
+    "cube1.moderator.waiting_responses": "กำลังรอการตอบกลับ...",
+    "cube2.input.submission_failed": "การส่งล้มเหลว",
   },
 
   // ── Vietnamese (vi) ────────────────────────────────────
@@ -6327,6 +6387,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Thời gian giả lập",
     "cube1.moderator.mode_live": "Trực tiếp",
     "cube1.moderator.mode_static": "Tĩnh",
+    "cube1.moderator.expand_feed": "Mở rộng bảng tin",
+    "cube1.moderator.collapse_feed": "Thu gọn",
+    "cube1.moderator.waiting_responses": "Đang chờ phản hồi...",
+    "cube2.input.submission_failed": "Gửi thất bại",
   },
 
   // ── Indonesian (id) ────────────────────────────────────
@@ -6722,6 +6786,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Durasi sim.",
     "cube1.moderator.mode_live": "Langsung",
     "cube1.moderator.mode_static": "Statis",
+    "cube1.moderator.expand_feed": "Perluas feed",
+    "cube1.moderator.collapse_feed": "Ciutkan",
+    "cube1.moderator.waiting_responses": "Menunggu tanggapan...",
+    "cube2.input.submission_failed": "Pengiriman gagal",
   },
 
   // ── Malay (ms) ─────────────────────────────────────────
@@ -7117,6 +7185,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Tempoh sim.",
     "cube1.moderator.mode_live": "Langsung",
     "cube1.moderator.mode_static": "Statik",
+    "cube1.moderator.expand_feed": "Kembangkan suapan",
+    "cube1.moderator.collapse_feed": "Kuncupkan",
+    "cube1.moderator.waiting_responses": "Menunggu respons...",
+    "cube2.input.submission_failed": "Penghantaran gagal",
   },
 
   // ── Filipino (tl) ──────────────────────────────────────
@@ -7512,6 +7584,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Tagal ng sim.",
     "cube1.moderator.mode_live": "Live",
     "cube1.moderator.mode_static": "Statik",
+    "cube1.moderator.expand_feed": "Palawakin ang feed",
+    "cube1.moderator.collapse_feed": "I-collapse",
+    "cube1.moderator.waiting_responses": "Naghihintay ng mga tugon...",
+    "cube2.input.submission_failed": "Nabigong isumite",
   },
 
   // ── Turkish (tr) ───────────────────────────────────────
@@ -7907,6 +7983,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Sim süresi",
     "cube1.moderator.mode_live": "Canlı",
     "cube1.moderator.mode_static": "Statik",
+    "cube1.moderator.expand_feed": "Akışı genişlet",
+    "cube1.moderator.collapse_feed": "Daralt",
+    "cube1.moderator.waiting_responses": "Yanıtlar bekleniyor...",
+    "cube2.input.submission_failed": "Gönderim başarısız",
   },
 
   // ── Polish (pl) ────────────────────────────────────────
@@ -8302,6 +8382,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Czas sym.",
     "cube1.moderator.mode_live": "Na żywo",
     "cube1.moderator.mode_static": "Statyczny",
+    "cube1.moderator.expand_feed": "Rozwiń kanał",
+    "cube1.moderator.collapse_feed": "Zwiń",
+    "cube1.moderator.waiting_responses": "Oczekiwanie na odpowiedzi...",
+    "cube2.input.submission_failed": "Wysyłanie nie powiodło się",
   },
 
   // ── Ukrainian (uk) ─────────────────────────────────────
@@ -8697,6 +8781,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Трив. сим.",
     "cube1.moderator.mode_live": "Наживо",
     "cube1.moderator.mode_static": "Статичний",
+    "cube1.moderator.expand_feed": "Розгорнути стрічку",
+    "cube1.moderator.collapse_feed": "Згорнути",
+    "cube1.moderator.waiting_responses": "Очікування відповідей...",
+    "cube2.input.submission_failed": "Помилка надсилання",
   },
 
   // ── Romanian (ro) ──────────────────────────────────────
@@ -9092,6 +9180,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Durată sim.",
     "cube1.moderator.mode_live": "Live",
     "cube1.moderator.mode_static": "Static",
+    "cube1.moderator.expand_feed": "Extinde fluxul",
+    "cube1.moderator.collapse_feed": "Restrânge",
+    "cube1.moderator.waiting_responses": "Se așteaptă răspunsuri...",
+    "cube2.input.submission_failed": "Trimiterea a eșuat",
   },
 
   // ── Greek (el) ─────────────────────────────────────────
@@ -9487,6 +9579,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Διάρκ. προσ.",
     "cube1.moderator.mode_live": "Ζωντανά",
     "cube1.moderator.mode_static": "Στατικό",
+    "cube1.moderator.expand_feed": "Ανάπτυξη ροής",
+    "cube1.moderator.collapse_feed": "Σύμπτυξη",
+    "cube1.moderator.waiting_responses": "Αναμονή για απαντήσεις...",
+    "cube2.input.submission_failed": "Αποτυχία υποβολής",
   },
 
   // ── Czech (cs) ─────────────────────────────────────────
@@ -9882,6 +9978,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Doba sim.",
     "cube1.moderator.mode_live": "Živě",
     "cube1.moderator.mode_static": "Statický",
+    "cube1.moderator.expand_feed": "Rozbalit kanál",
+    "cube1.moderator.collapse_feed": "Sbalit",
+    "cube1.moderator.waiting_responses": "Čekání na odpovědi...",
+    "cube2.input.submission_failed": "Odeslání se nezdařilo",
   },
 
   // ── Swedish (sv) ───────────────────────────────────────
@@ -10277,6 +10377,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Sim-längd",
     "cube1.moderator.mode_live": "Live",
     "cube1.moderator.mode_static": "Statisk",
+    "cube1.moderator.expand_feed": "Expandera flöde",
+    "cube1.moderator.collapse_feed": "Minimera",
+    "cube1.moderator.waiting_responses": "Väntar på svar...",
+    "cube2.input.submission_failed": "Inskickning misslyckades",
   },
 
   // ── Danish (da) ────────────────────────────────────────
@@ -10672,6 +10776,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Sim-varighed",
     "cube1.moderator.mode_live": "Live",
     "cube1.moderator.mode_static": "Statisk",
+    "cube1.moderator.expand_feed": "Udvid feed",
+    "cube1.moderator.collapse_feed": "Skjul",
+    "cube1.moderator.waiting_responses": "Venter på svar...",
+    "cube2.input.submission_failed": "Indsendelse mislykkedes",
   },
 
   // ── Finnish (fi) ───────────────────────────────────────
@@ -11067,6 +11175,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Sim-kesto",
     "cube1.moderator.mode_live": "Live",
     "cube1.moderator.mode_static": "Staattinen",
+    "cube1.moderator.expand_feed": "Laajenna syöte",
+    "cube1.moderator.collapse_feed": "Pienennä",
+    "cube1.moderator.waiting_responses": "Odotetaan vastauksia...",
+    "cube2.input.submission_failed": "Lähetys epäonnistui",
   },
 
   // ── Norwegian (no) ─────────────────────────────────────
@@ -11462,6 +11574,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Sim-varighet",
     "cube1.moderator.mode_live": "Live",
     "cube1.moderator.mode_static": "Statisk",
+    "cube1.moderator.expand_feed": "Utvid feed",
+    "cube1.moderator.collapse_feed": "Skjul",
+    "cube1.moderator.waiting_responses": "Venter på svar...",
+    "cube2.input.submission_failed": "Innsending mislyktes",
   },
 
   // ── Hebrew (he) ────────────────────────────────────────
@@ -11857,6 +11973,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "משך סימולציה",
     "cube1.moderator.mode_live": "שידור חי",
     "cube1.moderator.mode_static": "סטטי",
+    "cube1.moderator.expand_feed": "הרחב פיד",
+    "cube1.moderator.collapse_feed": "כווץ",
+    "cube1.moderator.waiting_responses": "ממתין לתגובות...",
+    "cube2.input.submission_failed": "השליחה נכשלה",
   },
 
   // ── Swahili (sw) ───────────────────────────────────────
@@ -12249,6 +12369,10 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "Muda ya sim.",
     "cube1.moderator.mode_live": "Moja kwa moja",
     "cube1.moderator.mode_static": "Tuli",
+    "cube1.moderator.expand_feed": "Panua mlisho",
+    "cube1.moderator.collapse_feed": "Kunja",
+    "cube1.moderator.waiting_responses": "Inasubiri majibu...",
+    "cube2.input.submission_failed": "Uwasilishaji umeshindwa",
   },
 
   // ── Nepali (ne) ────────────────────────────────────────
@@ -12641,5 +12765,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.timer.sim_duration": "सिम अवधि",
     "cube1.moderator.mode_live": "लाइभ",
     "cube1.moderator.mode_static": "स्थिर",
+    "cube1.moderator.expand_feed": "फिड विस्तार गर्नुहोस्",
+    "cube1.moderator.collapse_feed": "संकुचित गर्नुहोस्",
+    "cube1.moderator.waiting_responses": "प्रतिक्रियाहरूको प्रतीक्षामा...",
+    "cube2.input.submission_failed": "पेश गर्न असफल",
   },
 };
