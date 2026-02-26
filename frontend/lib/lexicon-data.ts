@@ -306,6 +306,9 @@ const cube3: TranslationEntry[] = [
   { key: "cube3.settings.v2t_active", englishDefault: "Active Provider", context: "Currently active provider label", cubeId: 3 },
   { key: "cube3.settings.v2t_fallback", englishDefault: "Circuit breaker failover: if primary fails, system auto-switches to next available provider.", context: "Fallback explanation note", cubeId: 3 },
   { key: "cube3.settings.v2t_languages", englishDefault: "languages supported", context: "Provider language count suffix", cubeId: 3 },
+  { key: "cube3.settings.v2t_pricing", englishDefault: "Cost Estimates", context: "Toggle label for pricing section", cubeId: 3 },
+  { key: "cube3.settings.v2t_estimate_title", englishDefault: "Estimated cost per 1,000 users (2 min avg)", context: "Pricing table heading", cubeId: 3 },
+  { key: "cube3.settings.v2t_estimate_note", englishDefault: "Based on ~2 min average voice response per user. Actual costs vary by audio length and provider pricing.", context: "Pricing disclaimer", cubeId: 3 },
 ];
 
 const cube4: TranslationEntry[] = [

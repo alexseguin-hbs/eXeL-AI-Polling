@@ -531,9 +531,9 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 - Rate lookup API: `GET /tokens/rates`, `GET /tokens/rates/lookup`
 - Files: `cubes/cube8_tokens/service.py`, `cubes/cube8_tokens/router.py`, `core/hi_rates.py`, `schemas/token.py`, `models/token_ledger.py`
 
-### Frontend — Language Lexicon: IMPLEMENTED (350/350 keys × 32 languages = 11,200 translations)
+### Frontend — Language Lexicon: IMPLEMENTED (362/362 keys × 32 languages = 11,584 translations)
 - **Per-cube translation management** — 350 UI string keys organized by cube (0–10), modular for parallel dev
-- **Full translation coverage:** 350/350 keys translated across all 32 non-English languages (11,200 total translations)
+- **Full translation coverage:** 362/362 keys translated across all 32 non-English languages (11,584 total translations)
 - **Key groups:** 42 shared + 157 cube1 + 13 cube2 + 23 cube3 + 15 cube4 + 12 cube5 + 14 cube6 + 17 cube7 + 17 cube8 + 19 cube9 + 21 cube10
 - **Language Lexicon UI** in Moderator Settings panel: language list with completeness %, translation editor with cube filter tabs, propose new language form, admin-only pending approvals
 - **React Context + Provider** (`LexiconProvider`) with localStorage persistence, follows `theme-context.tsx` pattern
@@ -576,7 +576,19 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
   - In session: Follows moderator's chosen theme
 - **Easter egg gateway:** When unlocked (Cyan → Sunset → Violet click sequence in Settings), badge blinks and becomes clickable to enter Simulation Mode
 - **Simulation overlay:** 3 Seed of Life logos with fixed trinity colors (A.I.=Cyan, S.I.=Sunset, H.I.=Violet), each paired with an audio track
+- **Role-aware SIM entry:** Auth0 isAuthenticated detection — moderators see participant experience, pollers see moderator dashboard
 - Files: `frontend/components/powered-badge.tsx`, `frontend/components/seed-of-life-logo.tsx`
+
+### Frontend — Cube 10 SIM (Easter Egg Simulation): IMPLEMENTED
+- **Role-aware simulation:** Moderator SIM shows participant polling experience; Poller SIM shows moderator dashboard lifecycle
+- **7 AI Users:** Canned responses arrive progressively (2-17s delays) during moderator SIM
+- **Cube 6 Theming Stub:** 3 simulated themes (Opportunity/Risk/Balanced) with confidence scores
+- **Cube 7 Ranking Stub:** Click-to-rank UI — tap themes in priority order (#1, #2, #3)
+- **Auto-transition:** All 8 users complete → theming (3s) → ranking → results
+- **Sim Moderator Experience:** Self-contained component for poller SIM — session lifecycle (draft→archived), QR code, state transitions, progressive response feed, themed results
+- **Sim type toggle:** Live Poll / Static Poll selectable in both SIM modes
+- **AI Provider Settings:** Collapsible V2T provider selector with pricing estimates per 1000 users (OpenAI $12, Grok $12, Gemini $4, AWS $48)
+- Files: `frontend/components/session-view.tsx`, `frontend/components/sim-moderator-experience.tsx`, `frontend/lib/easter-egg-context.tsx`, `frontend/lib/mock-data.ts`
 
 ### Frontend — Global Language Selector: IMPLEMENTED
 - **Navbar dropdown:** Globe icon with language dropdown available to ALL users (not just moderators)
@@ -1006,6 +1018,117 @@ cd frontend && npx next build
 ### Cubes 4, 6–7, 9–10: SCAFFOLDED (stubs only)
 - Models, schemas, and route stubs exist
 - Service implementations pending
+
+### Cube 10 — Simulation Test Methodology (Easter Egg SIM)
+
+**Entry:** Settings → Theme grid → Cyan → Sunset → Violet click sequence → Powered Badge blinks → click to enter SIM
+
+**Role Detection:** Auth0 `isAuthenticated` determines which experience:
+- **Moderator (Auth0'd):** Sees participant polling experience with 7 AI users
+- **Poller (unauthenticated):** Sees moderator dashboard lifecycle
+
+#### Moderator SIM Flow (Participant Experience Preview)
+
+The moderator enters SIM to preview what pollers experience. 7 AI users auto-submit canned responses while the moderator (as the 8th human user) participates.
+
+**Test Steps:**
+1. Enter SIM as authenticated moderator
+2. Session auto-created in polling state (Live Interactive default)
+3. Sim type toggle available: "Live Poll" / "Static Poll"
+4. **7 AI responses arrive progressively** (staggered 2–17 second delays):
+   - AI User 1: "AI can democratize decision-making..." (Opportunity)
+   - AI User 2: "My biggest concern is algorithmic bias..." (Risk)
+   - AI User 3: "We should consider a hybrid approach..." (Balanced)
+   - AI User 4: "The potential for real-time governance..." (Opportunity)
+   - AI User 5: "Data privacy is non-negotiable..." (Risk)
+   - AI User 6: "AI-assisted polling could bridge..." (Opportunity)
+   - AI User 7: "Historical precedent shows technology..." (Balanced)
+5. Live response feed shows AI submissions as they arrive
+6. Moderator submits their own text responses to questions
+7. **Auto-transition** when all 7 AI + 1 HI user complete: polling → theming (3s Cube 6 stub) → ranking
+8. **Cube 6 Theming Stub:** 3 simulated themes displayed:
+   - Opportunity & Innovation (92% confidence, 3 responses)
+   - Risk & Concerns (88% confidence, 2 responses)
+   - Balanced / Hybrid Approach (85% confidence, 3 responses)
+9. **Cube 7 Ranking Stub:** Click-to-rank UI — user taps themes in priority order (#1, #2, #3)
+10. Ranking submitted → results summary shown
+
+**Cube Coverage per SIM Step:**
+| Step | Cubes Exercised | What's Tested |
+|------|----------------|---------------|
+| SIM entry | Cube 10, Cube 1 | Easter egg → session creation |
+| AI responses arrive | Cube 2, Cube 4 | Text submission, collection |
+| HI user responds | Cube 2, Cube 3, Cube 5 | Text/voice input, time tracking |
+| Token display | Cube 5, Cube 8 | Token calculation, ledger |
+| Auto-theming | Cube 6 | Batch embeddings → clustering (stub) |
+| Ranking | Cube 7 | Prioritization voting (stub) |
+| Results | Cube 9 | Report/summary view (stub) |
+
+#### Poller SIM Flow (Moderator Dashboard Preview)
+
+The poller enters SIM to preview what moderators experience managing a session.
+
+**Test Steps:**
+1. Enter SIM as unauthenticated user
+2. `SimModeratorExperience` component renders
+3. Simulated session card with title, QR code, join URL
+4. Sim type toggle: "Live Interactive" / "Static Poll"
+5. State transition buttons walk through lifecycle:
+   - **Draft** → "Open Session" button
+   - **Open** → Participant count auto-increments, QR visible, "Start Polling" button
+   - **Polling** → 7 simulated responses arrive progressively (2s + i×2.5s delays), live feed visible
+   - **Ranking** → Theming animation (3s), themed results displayed with confidence scores
+   - **Closed** → Completion summary with stats
+   - **Archived** → Final state
+6. Auto-advance button available to step through all states automatically
+
+**Cube Coverage per SIM Step:**
+| Step | Cubes Exercised | What's Tested |
+|------|----------------|---------------|
+| Session card | Cube 1 | Session CRUD, QR generation |
+| Open + participants | Cube 1, Cube 4 | Join flow, presence tracking |
+| Polling + responses | Cube 2, Cube 3, Cube 4 | Text collection, live feed |
+| Theming | Cube 6 | AI clustering (stub) |
+| Ranking results | Cube 7 | Aggregated rankings (stub) |
+| Close + summary | Cube 9 | Reports, export readiness (stub) |
+
+#### Simulation Constants (Canned Data)
+
+**7 AI User Responses** (stored in `session-view.tsx` as `SIM_AI_RESPONSES[]`):
+- Each has: `user`, `text`, `delayMs`, `theme` classification
+- Themes distributed: 3 opportunity, 2 risk, 2 balanced
+
+**3 Simulated Themes** (stored as `SIM_THEMES[]`):
+- Opportunity & Innovation: green, 92% confidence
+- Risk & Concerns: red, 88% confidence
+- Balanced / Hybrid Approach: blue, 85% confidence
+
+#### SIM Test Verification Checklist
+
+| # | Check | Method |
+|---|-------|--------|
+| 1 | Easter egg sequence works | Cyan → Sunset → Violet in Settings |
+| 2 | Role detected correctly | Auth0 isAuthenticated check |
+| 3 | Moderator sees participant experience | SimType toggle + polling card visible |
+| 4 | Poller sees moderator dashboard | SimModeratorExperience renders |
+| 5 | 7 AI responses arrive progressively | Watch live feed, verify staggered timing |
+| 6 | Auto-transition fires | All 8 users complete → theming → ranking |
+| 7 | Themes display correctly | 3 themes with confidence + colors |
+| 8 | Ranking click-to-rank works | Tap themes in order, badges appear |
+| 9 | QR code matches session code | Copy link, verify short_code in URL |
+| 10 | Static poll timer shown | Toggle to Static Poll, verify countdown |
+| 11 | Works on mobile | Test on phone/tablet viewport |
+| 12 | Works on desktop | Test on laptop/desktop viewport |
+
+#### Files Involved in SIM
+
+| File | Purpose |
+|------|---------|
+| `frontend/lib/easter-egg-context.tsx` | SIM state + role management |
+| `frontend/components/powered-badge.tsx` | Auth detection, SIM entry |
+| `frontend/components/session-view.tsx` | Moderator SIM (participant experience) |
+| `frontend/components/sim-moderator-experience.tsx` | Poller SIM (moderator dashboard) |
+| `frontend/lib/mock-data.ts` | Mock API handlers for SIM data |
 
 ## Test Report Template (for Cube 3+ to follow)
 

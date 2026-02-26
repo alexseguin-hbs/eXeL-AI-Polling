@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { X, Check, Pipette, Mic, Shield } from "lucide-react";
+import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -184,23 +184,56 @@ function SettingsLanguageSelector() {
 
 /** STT providers available at MVP launch with circuit breaker failover */
 const V2T_PROVIDERS = [
-  { id: "whisper", label: "OpenAI Whisper", langCount: 57 },
-  { id: "grok", label: "Grok (xAI)", langCount: 57 },
-  { id: "gemini", label: "Gemini (Google)", langCount: 33 },
-  { id: "aws", label: "AWS Transcribe", langCount: 23 },
+  { id: "whisper", label: "OpenAI Whisper", langCount: 57, ratePerMin: 0.006, est1k: "$12.00" },
+  { id: "grok", label: "Grok (xAI)", langCount: 57, ratePerMin: 0.006, est1k: "$12.00" },
+  { id: "gemini", label: "Gemini (Google)", langCount: 33, ratePerMin: 0.002, est1k: "$4.00" },
+  { id: "aws", label: "AWS Transcribe", langCount: 23, ratePerMin: 0.024, est1k: "$48.00" },
 ] as const;
 
 function V2TProviderSelector() {
   const { t } = useLexicon();
   const [selectedProvider, setSelectedProvider] = useState("whisper");
+  const [expanded, setExpanded] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
+
+  const activeProvider = V2T_PROVIDERS.find((p) => p.id === selectedProvider) ?? V2T_PROVIDERS[0];
+
+  if (!expanded) {
+    return (
+      <section>
+        <button
+          onClick={() => setExpanded(true)}
+          className="flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50"
+        >
+          <div className="flex items-center gap-2">
+            <Mic className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">{t("cube3.settings.v2t_provider")}</span>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {activeProvider.label}
+          </span>
+        </button>
+      </section>
+    );
+  }
 
   return (
-    <section>
-      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-        <Mic className="h-4 w-4" />
-        {t("cube3.settings.v2t_provider")}
-      </h3>
-      <p className="text-xs text-muted-foreground mb-3">
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <Mic className="h-4 w-4" />
+          {t("cube3.settings.v2t_provider")}
+        </h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs"
+          onClick={() => setExpanded(false)}
+        >
+          {t("cube1.settings.collapse")}
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
         {t("cube3.settings.v2t_desc")}
       </p>
 
@@ -221,15 +254,51 @@ function V2TProviderSelector() {
                 {isActive && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
                 <span className="text-sm font-medium">{provider.label}</span>
               </div>
-              <span className="text-xs text-muted-foreground">
-                {provider.langCount} {t("cube3.settings.v2t_languages")}
-              </span>
+              <div className="flex items-center gap-3">
+                {showPricing && (
+                  <span className="text-[10px] text-primary font-mono">
+                    {provider.est1k}/1k
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">
+                  {provider.langCount} {t("cube3.settings.v2t_languages")}
+                </span>
+              </div>
             </button>
           );
         })}
       </div>
 
-      <div className="mt-3 flex items-start gap-2 rounded-md border border-border/50 bg-muted/30 px-3 py-2">
+      {/* Pricing toggle */}
+      <button
+        onClick={() => setShowPricing(!showPricing)}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <DollarSign className="h-3 w-3" />
+        {showPricing ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        {t("cube3.settings.v2t_pricing")}
+      </button>
+
+      {showPricing && (
+        <div className="rounded-md border border-border/50 bg-muted/30 px-3 py-2.5 space-y-1.5">
+          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+            {t("cube3.settings.v2t_estimate_title")}
+          </p>
+          <div className="space-y-1">
+            {V2T_PROVIDERS.map((p) => (
+              <div key={p.id} className="flex justify-between text-xs">
+                <span className="text-muted-foreground">{p.label}</span>
+                <span className="font-mono text-foreground">{p.est1k}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[9px] text-muted-foreground pt-1 border-t border-border/50">
+            {t("cube3.settings.v2t_estimate_note")}
+          </p>
+        </div>
+      )}
+
+      <div className="flex items-start gap-2 rounded-md border border-border/50 bg-muted/30 px-3 py-2">
         <Shield className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
         <p className="text-xs text-muted-foreground leading-relaxed">
           {t("cube3.settings.v2t_fallback")}
