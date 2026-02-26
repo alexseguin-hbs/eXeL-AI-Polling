@@ -398,7 +398,15 @@ export function SessionView() {
   const { start: startTimer, earnTokens } = useTimer();
 
   // Simulation mode — use sample data instead of API calls
-  const { simulationMode, simulationRole, simulationSessionId } = useEasterEgg();
+  // Two entry paths: (1) Easter egg sequence → context, (2) QR scan → ?sim=1 in URL
+  const { simulationMode: ctxSimMode, simulationRole: ctxSimRole, simulationSessionId: ctxSimSessionId } = useEasterEgg();
+  const simParam = searchParams.get("sim") === "1";
+  const isQrSim = simParam && !!sessionId;
+  // QR-joined users get participant experience (role="moderator" in SIM terminology)
+  // without the SimulationOverlay (audio/logos) — just the polling UI
+  const simulationMode = ctxSimMode || isQrSim;
+  const simulationRole: "moderator" | "poller" = ctxSimMode ? ctxSimRole : "moderator";
+  const simulationSessionId = ctxSimMode ? ctxSimSessionId : (isQrSim ? sessionId : null);
   const { t } = useLexicon();
   const { currentTheme } = useTheme();
 

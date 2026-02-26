@@ -22,6 +22,8 @@ export function JoinFlow() {
   const { t, setActiveLocale } = useLexicon();
   // Read code from query param: /join/?code=ABCD1234
   const code = searchParams.get("code")?.toUpperCase() || "";
+  // SIM mode flag: /join/?code=ABCD1234&sim=1 (from Cube 10 QR scan)
+  const simMode = searchParams.get("sim") === "1";
 
   const [step, setStep] = useState<JoinStep>("language");
   const [session, setSession] = useState<Session | null>(null);
@@ -41,7 +43,7 @@ export function JoinFlow() {
       .get<Session>(`/sessions/code/${code}`)
       .then((data) => {
         setSession(data);
-        if (data.status === "closed" || data.status === "archived") {
+        if (!simMode && (data.status === "closed" || data.status === "archived")) {
           setError(t("cube1.join.session_ended"));
         }
       })
@@ -73,7 +75,8 @@ export function JoinFlow() {
           results_opt_in: resultsOptIn,
         }
       );
-      router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}`);
+      const simSuffix = simMode ? "&sim=1" : "";
+      router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${simSuffix}`);
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({
@@ -90,7 +93,7 @@ export function JoinFlow() {
       }
       setStep("results");
     }
-  }, [session, code, language, displayName, joinAnonymously, resultsOptIn, router, t]);
+  }, [session, code, language, displayName, joinAnonymously, resultsOptIn, simMode, router, t]);
 
   if (loading) {
     return (

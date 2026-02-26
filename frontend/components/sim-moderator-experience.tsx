@@ -245,7 +245,7 @@ export function SimModeratorExperience() {
   // Derive join URL
   const joinUrl =
     typeof window !== "undefined" && selectedPoll
-      ? `${window.location.origin}/join/?code=${selectedPoll.cube1.user.joinCode}`
+      ? `${window.location.origin}/join/?code=${selectedPoll.cube1.user.joinCode}&sim=1`
       : "";
 
   const handleCopyCode = useCallback(() => {
