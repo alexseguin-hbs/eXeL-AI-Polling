@@ -465,6 +465,25 @@ const cube10: TranslationEntry[] = [
   { key: "cube10.sim.original", englishDefault: "Original", context: "Translate button label when inactive", cubeId: 10 },
   { key: "cube10.sim.create_new", englishDefault: "Create New", context: "Create new session button in picker", cubeId: 10 },
   { key: "cube10.sim.jump_to_start", englishDefault: "Jump to start", context: "Transport skip-back button tooltip", cubeId: 10 },
+  // SIM flow optimization keys (2026-02-25)
+  { key: "cube10.sim.rank_themes", englishDefault: "Rank These Themes", context: "Ranking UI heading", cubeId: 10 },
+  { key: "cube10.sim.rank_instruction", englishDefault: "Tap themes in order of priority (1st = most important)", context: "Ranking UI instruction", cubeId: 10 },
+  { key: "cube10.sim.theming_complete", englishDefault: "Cube 6 AI Theming Complete", context: "Theming analysis banner", cubeId: 10 },
+  { key: "cube10.sim.responses_to_themes", englishDefault: "{0} responses → {1} themes identified", context: "Theming summary with placeholders", cubeId: 10 },
+  { key: "cube10.sim.rankings_submitted", englishDefault: "Rankings submitted!", context: "Ranking confirmation message", cubeId: 10 },
+  { key: "cube10.sim.session_complete", englishDefault: "Session Complete", context: "Session complete heading", cubeId: 10 },
+  { key: "cube10.sim.results_summary", englishDefault: "Session Results", context: "Results phase heading", cubeId: 10 },
+  { key: "cube10.sim.response_submitted", englishDefault: "Response submitted", context: "Toast after response submit", cubeId: 10 },
+  { key: "cube10.sim.themes_ready", englishDefault: "Themes identified — Ranking ready!", context: "Toast when themes are ready", cubeId: 10 },
+  { key: "cube10.sim.ranked_by_priority", englishDefault: "Ranked by priority", context: "Read-only ranking label in poller SIM", cubeId: 10 },
+  { key: "cube10.sim.themes_identified", englishDefault: "themes", context: "Theme count suffix", cubeId: 10 },
+  { key: "cube10.sim.responses_count", englishDefault: "responses", context: "Response count suffix", cubeId: 10 },
+  { key: "cube10.sim.confidence", englishDefault: "confidence", context: "Confidence percentage suffix", cubeId: 10 },
+  { key: "cube10.sim.sim_results_desc", englishDefault: "AI theming and ranking complete", context: "Results phase description", cubeId: 10 },
+  { key: "cube10.sim.clustering_responses", englishDefault: "Clustering {0} responses into themes", context: "Theming progress with placeholder", cubeId: 10 },
+  { key: "cube10.sim.final_stats", englishDefault: "{0} responses · {1} themes · Rankings submitted", context: "Final stats summary with placeholders", cubeId: 10 },
+  { key: "cube10.sim.return_to_polls", englishDefault: "Return to Polls", context: "Back to session picker button", cubeId: 10 },
+  { key: "cube10.sim.rank_number", englishDefault: "#{0}", context: "Rank badge with placeholder", cubeId: 10 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────
