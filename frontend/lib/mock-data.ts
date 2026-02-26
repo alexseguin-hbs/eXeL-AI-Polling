@@ -14,11 +14,21 @@ export const MOCK_MODERATOR_ID = "google-oauth2|mock-moderator-001";
 // Each tab has its own in-memory MOCK_SESSIONS. localStorage bridges them.
 const STORAGE_KEY = "exel_mock_state";
 
+interface MockResponse {
+  id: string;
+  session_id: string;
+  clean_text: string;
+  submitted_at: string;
+  participant_id: string;
+  language_code: string;
+}
+
 interface StoredMockState {
   sessions: Record<string, Partial<Session>>;
   questions: Record<string, Question[]>;
   counts: Record<string, number>;
   newSessions: Session[];
+  responses: Record<string, MockResponse[]>;
 }
 
 function saveMockState(): void {
@@ -29,6 +39,7 @@ function saveMockState(): void {
       questions: {},
       counts: { ...mockParticipantCount },
       newSessions: [],
+      responses: { ...mockResponses },
     };
     for (const s of MOCK_SESSIONS) {
       state.sessions[s.id] = {
@@ -101,6 +112,18 @@ function loadMockState(): void {
       for (const [sid, count] of Object.entries(state.counts)) {
         if (count > (mockParticipantCount[sid] || 0)) {
           mockParticipantCount[sid] = count;
+        }
+      }
+    }
+
+    // Merge responses from other tabs
+    if (state.responses) {
+      for (const [sid, resps] of Object.entries(state.responses)) {
+        if (!mockResponses[sid]) mockResponses[sid] = [];
+        for (const r of resps) {
+          if (!mockResponses[sid].find((e) => e.id === r.id)) {
+            mockResponses[sid].push(r);
+          }
         }
       }
     }
@@ -336,6 +359,9 @@ let mockParticipantCount: Record<string, number> = {
   "d4e5f6a7-b8c9-0123-defg-444444444444": 15,
 };
 
+// ── Submitted Responses (cross-tab via localStorage) ─────────────
+const mockResponses: Record<string, MockResponse[]> = {};
+
 // ── Session counter for new sessions ────────────────────────────
 let sessionCounter = MOCK_SESSIONS.length;
 
@@ -524,22 +550,53 @@ export function handleMockRequest<T>(
   );
   if (method === "POST" && responseMatch) {
     const payload = body as Record<string, unknown>;
+    const sid = responseMatch[1];
+    const responseId = generateId();
+    const cleanText = (payload?.raw_text as string) || "";
+    const submittedAt = new Date().toISOString();
+    const pid = (payload?.participant_id as string) || generateId();
+    const langCode = (payload?.language_code as string) || "en";
+
+    // Store response for cross-tab live feed
+    if (!mockResponses[sid]) mockResponses[sid] = [];
+    mockResponses[sid].push({
+      id: responseId,
+      session_id: sid,
+      clean_text: cleanText,
+      submitted_at: submittedAt,
+      participant_id: pid,
+      language_code: langCode,
+    });
+    saveMockState();
+
     return {
-      id: generateId(),
-      session_id: responseMatch[1],
+      id: responseId,
+      session_id: sid,
       question_id: (payload?.question_id as string) || generateId(),
-      participant_id: (payload?.participant_id as string) || generateId(),
+      participant_id: pid,
       source: "text",
-      char_count: ((payload?.raw_text as string) || "").length,
-      language_code: (payload?.language_code as string) || "en",
-      submitted_at: new Date().toISOString(),
+      char_count: cleanText.length,
+      language_code: langCode,
+      submitted_at: submittedAt,
       is_flagged: false,
       pii_detected: false,
       profanity_detected: false,
-      clean_text: (payload?.raw_text as string) || "",
+      clean_text: cleanText,
       heart_tokens_earned: 1,
       unity_tokens_earned: 5,
       response_hash: null,
+    } as T;
+  }
+
+  // GET /sessions/{id}/responses (for moderator live feed)
+  const getResponsesMatch = path.match(
+    /^\/sessions\/([0-9a-f-]{36})\/responses$/
+  );
+  if (method === "GET" && getResponsesMatch) {
+    const sid = getResponsesMatch[1];
+    return {
+      items: mockResponses[sid] || [],
+      total: (mockResponses[sid] || []).length,
     } as T;
   }
 

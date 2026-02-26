@@ -491,6 +491,10 @@ export function SessionView() {
       .then((data) => {
         setSession(data);
         setParticipantCount(data.participant_count ?? 0);
+        // Start time tracking when session is actively polling
+        if (["open", "polling"].includes(data.status)) {
+          startTimer();
+        }
       })
       .catch((err) => {
         if (err instanceof ApiClientError) {
@@ -936,15 +940,41 @@ export function SessionView() {
                   <p className="text-sm text-muted-foreground text-center">
                     {t("cube1.session.waiting_others")}
                   </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSubmittedQuestions(new Set());
+                      setResponseText("");
+                      setCurrentQuestionIndex(0);
+                    }}
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    {t("cube1.session.respond_again") || "Respond Again"}
+                  </Button>
                 </div>
               ) : isCurrentSubmitted ? (
                 <div className="flex flex-col items-center gap-4 py-8">
                   <CheckCircle2 className="h-12 w-12 text-green-400" />
                   <p className="font-medium">{t("cube1.session.response_submitted")}</p>
-                  {currentQuestionIndex < questions.length - 1 && (
+                  {currentQuestionIndex < questions.length - 1 ? (
                     <Button onClick={() => setCurrentQuestionIndex((prev) => prev + 1)}>
                       {t("cube1.session.next_question")}
                       <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSubmittedQuestions((prev) => {
+                          const next = new Set(prev);
+                          if (currentQuestion) next.delete(currentQuestion.id);
+                          return next;
+                        });
+                        setResponseText("");
+                      }}
+                    >
+                      <Send className="mr-2 h-4 w-4" />
+                      {t("cube1.session.respond_again") || "Respond Again"}
                     </Button>
                   )}
                 </div>

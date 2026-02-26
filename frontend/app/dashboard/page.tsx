@@ -173,6 +173,25 @@ function SessionDetail({
     (isLiveInteractive ? session.status !== "polling" : true);
   const showScrollingFeed = isLiveInteractive && session.status === "polling";
   const [feedExpanded, setFeedExpanded] = useState(false);
+  const [feedResponses, setFeedResponses] = useState<Array<{ id: string; clean_text: string; submitted_at: string }>>([]);
+
+  // Poll for live responses during polling state
+  useEffect(() => {
+    if (!showScrollingFeed) return;
+    const fetchResponses = async () => {
+      try {
+        const data = await api.get<{ items: Array<{ id: string; clean_text: string; submitted_at: string }> }>(
+          `/sessions/${session.id}/responses`
+        );
+        setFeedResponses(data.items || []);
+      } catch {
+        // Silently fail
+      }
+    };
+    fetchResponses();
+    const interval = setInterval(fetchResponses, 3000);
+    return () => clearInterval(interval);
+  }, [showScrollingFeed, session.id]);
 
   const joinUrl =
     session.join_url ||
@@ -375,16 +394,31 @@ function SessionDetail({
               </Button>
             </CardHeader>
             <CardContent className="p-0">
-              {/* Real responses will be fed via WebSocket — empty state for now */}
-              <div
-                className="flex items-center justify-center text-muted-foreground text-sm"
-                style={{ height: feedExpanded ? 500 : 200 }}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <Radio className="h-5 w-5 animate-pulse" />
-                  <span>{t("cube1.moderator.waiting_responses")}</span>
+              {feedResponses.length === 0 ? (
+                <div
+                  className="flex items-center justify-center text-muted-foreground text-sm"
+                  style={{ height: 120 }}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Radio className="h-5 w-5 animate-pulse" />
+                    <span>{t("cube1.moderator.waiting_responses")}</span>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div
+                  className="overflow-y-auto divide-y divide-border"
+                  style={{ maxHeight: feedExpanded ? 500 : 200 }}
+                >
+                  {feedResponses.map((r) => (
+                    <div key={r.id} className="px-4 py-3 text-sm">
+                      <p className="text-foreground leading-relaxed">{r.clean_text}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

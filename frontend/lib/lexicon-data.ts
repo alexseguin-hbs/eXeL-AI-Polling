@@ -167,6 +167,7 @@ const cube1: TranslationEntry[] = [
   { key: "cube1.session.all_submitted", englishDefault: "All responses submitted!", context: "All questions answered", cubeId: 1 },
   { key: "cube1.session.waiting_others", englishDefault: "Waiting for other participants to finish...", context: "Post-submit waiting", cubeId: 1 },
   { key: "cube1.session.response_submitted", englishDefault: "Response submitted!", context: "Single response confirmed", cubeId: 1 },
+  { key: "cube1.session.respond_again", englishDefault: "Respond Again", context: "Button to submit another response", cubeId: 1 },
   { key: "cube1.session.next_question", englishDefault: "Next Question", context: "Advance to next question button", cubeId: 1 },
   { key: "cube1.session.submit_next", englishDefault: "Submit & Next", context: "Submit and advance button", cubeId: 1 },
   { key: "cube1.session.submit_btn", englishDefault: "Input Complete", context: "Final submit button — last question", cubeId: 1 },
