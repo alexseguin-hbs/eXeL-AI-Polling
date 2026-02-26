@@ -35,7 +35,8 @@ import { SimModeratorExperience } from "@/components/sim-moderator-experience";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, Question, SimTheme } from "@/lib/types";
 import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
-import { getSimPollBySessionId } from "@/lib/sim-data";
+import { ThemeResultsChart } from "@/components/theme-results-chart";
+import { getSimPollBySessionId, resolveThemesForLevel } from "@/lib/sim-data";
 
 // ── Simulation Duration Options ──────────────────────────────────
 // User-selectable durations so the countdown timer can be observed at each phase.
@@ -143,13 +144,19 @@ const DEFAULT_SIM_AI_RESPONSES: SimAiResponse[] = [
 ];
 
 // ── Default theme icons for simulation ──────────────────────────
-const DEFAULT_THEME_ICONS = ["🚀", "⚠️", "⚖️", "💡", "🔬"];
+const DEFAULT_THEME_ICONS = ["🚀", "⚠️", "⚖️", "💡", "🔬", "🔒", "🌐", "📊", "🎯"];
 
-// ── Simulated Themes (Cube 6 Stub) ──────────────────────────────
+// ── Simulated Themes (Cube 6 Stub — 9-theme fallback at 5000-response AI Governance scale) ──
 const SIM_THEMES: SimTheme[] = [
-  { id: "t1", name: "Opportunity & Innovation", confidence: 0.92, responseCount: 3, color: "#22C55E", icon: "🚀" },
-  { id: "t2", name: "Risk & Concerns", confidence: 0.88, responseCount: 2, color: "#EF4444", icon: "⚠️" },
-  { id: "t3", name: "Balanced / Hybrid Approach", confidence: 0.85, responseCount: 3, color: "#3B82F6", icon: "⚖️" },
+  { id: "t1", name: "Democratic Scale Innovation", confidence: 0.92, responseCount: 750, color: "#22C55E", icon: "🚀", partition: "Supporting Comments" },
+  { id: "t2", name: "Real-Time Policy Adaptation", confidence: 0.89, responseCount: 620, color: "#16A34A", icon: "💡", partition: "Supporting Comments" },
+  { id: "t3", name: "Participatory Democracy Bridge", confidence: 0.88, responseCount: 580, color: "#15803D", icon: "🌐", partition: "Supporting Comments" },
+  { id: "t4", name: "Algorithmic Bias Risks", confidence: 0.90, responseCount: 680, color: "#EF4444", icon: "⚠️", partition: "Risk & Concerns" },
+  { id: "t5", name: "Privacy Protection Imperatives", confidence: 0.87, responseCount: 610, color: "#DC2626", icon: "🔒", partition: "Risk & Concerns" },
+  { id: "t6", name: "Transparency & Explainability", confidence: 0.86, responseCount: 370, color: "#4ADE80", icon: "🔬", partition: "Supporting Comments" },
+  { id: "t7", name: "Hybrid Governance Models", confidence: 0.85, responseCount: 530, color: "#3B82F6", icon: "⚖️", partition: "Neutral Comments" },
+  { id: "t8", name: "Regulatory Framework Needs", confidence: 0.84, responseCount: 440, color: "#B91C1C", icon: "📊", partition: "Risk & Concerns" },
+  { id: "t9", name: "Incremental Trust Building", confidence: 0.80, responseCount: 420, color: "#2563EB", icon: "🎯", partition: "Neutral Comments" },
 ];
 
 // ── Polling Status Bar ───────────────────────────────────────────
@@ -323,15 +330,17 @@ export function SessionView() {
       }))
     : DEFAULT_SIM_AI_RESPONSES;
 
-  // Resolve themes for current sim
+  // Resolve themes for current sim — dynamic voting level (3/6/9)
+  const votingLevel = session?.theme2_voting_level ?? "theme2_9";
   const simThemes: SimTheme[] = simPollData
-    ? simPollData.themes.map((th, i) => ({
+    ? resolveThemesForLevel(simPollData, votingLevel).map((th, i) => ({
         id: th.id,
         name: th.name,
         confidence: th.confidence,
         responseCount: th.count,
         color: th.color,
         icon: DEFAULT_THEME_ICONS[i] || "🎯",
+        partition: th.partition,
       }))
     : SIM_THEMES;
 
@@ -997,6 +1006,12 @@ export function SessionView() {
                   </div>
                 </div>
               ))}
+              {/* Response Distribution Bar Chart */}
+              <ThemeResultsChart
+                themes={simThemes.length > 0 ? simThemes : SIM_THEMES}
+                totalResponses={(simThemes.length > 0 ? simThemes : SIM_THEMES).reduce((s, th) => s + th.responseCount, 0)}
+              />
+
               <div className="rounded-md bg-muted px-3 py-2 text-center mt-2">
                 <p className="text-xs text-muted-foreground">
                   {t("cube10.sim.final_stats")

@@ -34,7 +34,9 @@ import { useTheme } from "@/lib/theme-context";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { PollCountdownTimer } from "@/components/poll-countdown-timer";
 import { toast } from "@/components/ui/use-toast";
-import { ALL_SIM_POLLS, getSimPollBySessionId, type SimPollData } from "@/lib/sim-data";
+import { ALL_SIM_POLLS, getSimPollBySessionId, resolveThemesForLevel, type SimPollData } from "@/lib/sim-data";
+import { ThemeResultsChart } from "@/components/theme-results-chart";
+import type { SimTheme } from "@/lib/types";
 
 // ── Extended state machine (includes theming/visuals phases) ───
 
@@ -328,8 +330,19 @@ export function SimModeratorExperience() {
     );
   }
 
-  // ── Active simulation view ─────────────────────────────────────
-  const themes = selectedPoll.themes;
+  // ── Active simulation view — resolve themes dynamically ────────
+  const DEFAULT_ICONS = ["🚀", "⚠️", "⚖️", "💡", "🔬", "🔒", "🌐", "📊", "🎯"];
+  const resolvedThemes: SimTheme[] = resolveThemesForLevel(selectedPoll, "theme2_9").map((th, i) => ({
+    id: th.id,
+    name: th.name,
+    confidence: th.confidence,
+    responseCount: th.count,
+    color: th.color,
+    icon: DEFAULT_ICONS[i] || "🎯",
+    partition: th.partition,
+  }));
+  const themes = resolvedThemes;
+  const totalResponseCount = themes.reduce((s, th) => s + th.responseCount, 0);
 
   return (
     <div className="w-full max-w-lg flex flex-col gap-4">
@@ -587,7 +600,7 @@ export function SimModeratorExperience() {
                 </p>
               </div>
               <p className="text-xs text-muted-foreground text-center mb-2">
-                {t("cube10.sim.responses_to_themes").replace("{0}", "7").replace("{1}", String(themes.length))}
+                {t("cube10.sim.responses_to_themes").replace("{0}", String(totalResponseCount)).replace("{1}", String(themes.length))}
               </p>
               {themes.map((theme) => (
                 <div
@@ -602,7 +615,7 @@ export function SimModeratorExperience() {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{theme.name}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      {theme.count} {t("cube10.sim.responses_count")} &middot;{" "}
+                      {theme.responseCount.toLocaleString()} {t("cube10.sim.responses_count")} &middot;{" "}
                       {Math.round(theme.confidence * 100)}% {t("cube10.sim.confidence")}
                     </p>
                   </div>
@@ -632,12 +645,14 @@ export function SimModeratorExperience() {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{theme.name}</p>
                     <p className="text-[10px] text-muted-foreground">
-                      {theme.count} {t("cube10.sim.responses_count")} &middot;{" "}
+                      {theme.responseCount.toLocaleString()} {t("cube10.sim.responses_count")} &middot;{" "}
                       {Math.round(theme.confidence * 100)}% {t("cube10.sim.confidence")}
                     </p>
                   </div>
                 </div>
               ))}
+              {/* Response Distribution Bar Chart */}
+              <ThemeResultsChart themes={themes} totalResponses={totalResponseCount} />
             </div>
           )}
 
@@ -647,8 +662,12 @@ export function SimModeratorExperience() {
               <CheckCircle2 className="h-8 w-8 text-green-400" />
               <p className="text-sm font-medium">{t("cube10.sim.session_complete")}</p>
               <p className="text-xs text-muted-foreground text-center">
-                {t("cube10.sim.final_stats").replace("{0}", "7").replace("{1}", String(themes.length))}
+                {t("cube10.sim.final_stats").replace("{0}", String(totalResponseCount)).replace("{1}", String(themes.length))}
               </p>
+              {/* Response Distribution Bar Chart */}
+              <div className="w-full mt-2">
+                <ThemeResultsChart themes={themes} totalResponses={totalResponseCount} />
+              </div>
             </div>
           )}
         </CardContent>

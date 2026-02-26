@@ -428,6 +428,10 @@ const cube9: TranslationEntry[] = [
   { key: "cube9.results.reward_winner", englishDefault: "Congratulations!", context: "Winner notification", cubeId: 9 },
   { key: "cube9.results.lead_access", englishDefault: "Lead access — results included", context: "Lead/Dev free access notice", cubeId: 9 },
   { key: "cube9.results.feedback_prompt", englishDefault: "How was your experience?", context: "Post-session feedback prompt", cubeId: 9 },
+  { key: "cube9.results.risk_label", englishDefault: "Where people are most concerned", context: "Risk partition legend label in results chart", cubeId: 9 },
+  { key: "cube9.results.support_label", englishDefault: "#1 item to get right", context: "Supporting partition legend label in results chart", cubeId: 9 },
+  { key: "cube9.results.neutral_label", englishDefault: "Balanced perspectives", context: "Neutral partition legend label in results chart", cubeId: 9 },
+  { key: "cube9.results.response_distribution", englishDefault: "Response Distribution", context: "Results bar chart heading", cubeId: 9 },
 ];
 
 const cube10: TranslationEntry[] = [

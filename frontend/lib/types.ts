@@ -211,6 +211,7 @@ export interface SimTheme {
   responseCount: number;
   color: string;
   icon: string;
+  partition?: "Risk & Concerns" | "Supporting Comments" | "Neutral Comments";
 }
 
 export interface ApiError {

@@ -4,7 +4,11 @@
  *
  * Cube 4: Web_Results format with native_language per response
  * Cube 6: Phase A (333/111/33 summaries) + Phase B (Theme01 → Theme2_9/6/3)
+ *
+ * SCALED TO 5000 RESPONSES for large-scale simulation testing.
  */
+
+import type { ThemeLevels } from "./index";
 
 export const POLL_3 = {
   sessionId: "c3d4e5f6-a7b8-9012-cdef-333333333333",
@@ -172,11 +176,13 @@ export const POLL_3 = {
         source: "text",
       },
     ],
-    responseCount: { total: 7, text_count: 7, voice_count: 0 },
+    responseCount: { total: 5000, text_count: 4850, voice_count: 150 },
     languageBreakdown: [
-      { language_code: "en", count: 4 },
-      { language_code: "de", count: 2 },
-      { language_code: "es", count: 1 },
+      { language_code: "en", count: 2800 },
+      { language_code: "de", count: 900 },
+      { language_code: "es", count: 750 },
+      { language_code: "fr", count: 350 },
+      { language_code: "other", count: 200 },
     ],
   },
 
@@ -238,12 +244,21 @@ export const POLL_3 = {
       { user: "AI User 7", theme01: "Neutral Comments", theme01_confidence: 80 },
     ],
     theme01Partitions: {
-      "Supporting Comments": 3,
-      "Risk & Concerns": 2,
-      "Neutral Comments": 2,
+      "Supporting Comments": 1950,
+      "Risk & Concerns": 1660,
+      "Neutral Comments": 1390,
     },
     marbleGroups: [
-      { groupIndex: 0, size: 7, seed: 42 },
+      { groupIndex: 0, size: 500, seed: 42 },
+      { groupIndex: 1, size: 500, seed: 43 },
+      { groupIndex: 2, size: 500, seed: 44 },
+      { groupIndex: 3, size: 500, seed: 45 },
+      { groupIndex: 4, size: 500, seed: 46 },
+      { groupIndex: 5, size: 500, seed: 47 },
+      { groupIndex: 6, size: 500, seed: 48 },
+      { groupIndex: 7, size: 500, seed: 49 },
+      { groupIndex: 8, size: 500, seed: 50 },
+      { groupIndex: 9, size: 500, seed: 51 },
     ],
     theme2Hierarchy: {
       theme2_9: [
@@ -252,7 +267,9 @@ export const POLL_3 = {
         { label: "Participatory Democracy Bridge", confidence: 0.88, partition: "Supporting Comments" },
         { label: "Algorithmic Bias Risks", confidence: 0.90, partition: "Risk & Concerns" },
         { label: "Privacy Protection Imperatives", confidence: 0.87, partition: "Risk & Concerns" },
+        { label: "Transparency & Explainability", confidence: 0.86, partition: "Supporting Comments" },
         { label: "Hybrid Governance Models", confidence: 0.85, partition: "Neutral Comments" },
+        { label: "Regulatory Framework Needs", confidence: 0.84, partition: "Risk & Concerns" },
         { label: "Incremental Trust Building", confidence: 0.80, partition: "Neutral Comments" },
       ],
       theme2_6: [
@@ -280,27 +297,55 @@ export const POLL_3 = {
     ],
   },
 
-  // ── Final themes (consumed by SimTheme UI — Theme2_3 level) ──
+  // ── Theme Levels (dynamic voting: 3/6/9 themes) ────────────
+  themeLevels: {
+    theme2_9: [
+      { id: "t1", name: "Democratic Scale Innovation", confidence: 0.92, count: 750, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t2", name: "Real-Time Policy Adaptation", confidence: 0.89, count: 620, color: "#16A34A", partition: "Supporting Comments" },
+      { id: "t3", name: "Participatory Democracy Bridge", confidence: 0.88, count: 580, color: "#15803D", partition: "Supporting Comments" },
+      { id: "t4", name: "Algorithmic Bias Risks", confidence: 0.90, count: 680, color: "#EF4444", partition: "Risk & Concerns" },
+      { id: "t5", name: "Privacy Protection Imperatives", confidence: 0.87, count: 610, color: "#DC2626", partition: "Risk & Concerns" },
+      { id: "t6", name: "Transparency & Explainability", confidence: 0.86, count: 370, color: "#4ADE80", partition: "Supporting Comments" },
+      { id: "t7", name: "Hybrid Governance Models", confidence: 0.85, count: 530, color: "#3B82F6", partition: "Neutral Comments" },
+      { id: "t8", name: "Regulatory Framework Needs", confidence: 0.84, count: 440, color: "#B91C1C", partition: "Risk & Concerns" },
+      { id: "t9", name: "Incremental Trust Building", confidence: 0.80, count: 420, color: "#2563EB", partition: "Neutral Comments" },
+    ],
+    theme2_6: [
+      { id: "t1", name: "AI Democratization Potential", confidence: 0.91, count: 1100, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t2", name: "Real-Time Governance", confidence: 0.89, count: 850, color: "#16A34A", partition: "Supporting Comments" },
+      { id: "t3", name: "Algorithmic Bias & Privacy", confidence: 0.89, count: 940, color: "#EF4444", partition: "Risk & Concerns" },
+      { id: "t4", name: "Data Protection Standards", confidence: 0.87, count: 720, color: "#DC2626", partition: "Risk & Concerns" },
+      { id: "t5", name: "Human-AI Collaboration", confidence: 0.85, count: 810, color: "#3B82F6", partition: "Neutral Comments" },
+      { id: "t6", name: "Gradual Adoption Strategy", confidence: 0.80, count: 580, color: "#2563EB", partition: "Neutral Comments" },
+    ],
+    theme2_3: [
+      { id: "t1", name: "Opportunity & Innovation", confidence: 0.92, count: 1950, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t2", name: "Risk & Concerns", confidence: 0.88, count: 1660, color: "#EF4444", partition: "Risk & Concerns" },
+      { id: "t3", name: "Balanced / Hybrid Approach", confidence: 0.85, count: 1390, color: "#3B82F6", partition: "Neutral Comments" },
+    ],
+  } satisfies ThemeLevels,
+
+  // ── Legacy themes (backward compat — Theme2_3 level) ────────
   themes: [
     {
       id: "t1",
       name: "Opportunity & Innovation",
       confidence: 0.92,
-      count: 3,
+      count: 1950,
       color: "#22C55E",
     },
     {
       id: "t2",
       name: "Risk & Concerns",
       confidence: 0.88,
-      count: 2,
+      count: 1660,
       color: "#EF4444",
     },
     {
       id: "t3",
       name: "Balanced / Hybrid Approach",
       confidence: 0.85,
-      count: 2,
+      count: 1390,
       color: "#3B82F6",
     },
   ],

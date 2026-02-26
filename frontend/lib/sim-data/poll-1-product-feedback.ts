@@ -4,7 +4,11 @@
  *
  * Cube 4: Web_Results format with native_language per response
  * Cube 6: Phase A (333/111/33 summaries) + Phase B (Theme01 → Theme2_9/6/3)
+ *
+ * SCALED TO 33 RESPONSES.
  */
+
+import type { ThemeLevels } from "./index";
 
 export const POLL_1 = {
   sessionId: "a1b2c3d4-e5f6-7890-abcd-111111111111",
@@ -172,11 +176,11 @@ export const POLL_1 = {
         source: "text",
       },
     ],
-    responseCount: { total: 7, text_count: 7, voice_count: 0 },
+    responseCount: { total: 33, text_count: 30, voice_count: 3 },
     languageBreakdown: [
-      { language_code: "en", count: 4 },
-      { language_code: "de", count: 2 },
-      { language_code: "es", count: 1 },
+      { language_code: "en", count: 20 },
+      { language_code: "de", count: 8 },
+      { language_code: "es", count: 5 },
     ],
   },
 
@@ -239,13 +243,16 @@ export const POLL_1 = {
     ],
     // Theme01 partition counts
     theme01Partitions: {
-      "Supporting Comments": 3,
-      "Risk & Concerns": 2,
-      "Neutral Comments": 2,
+      "Supporting Comments": 14,
+      "Risk & Concerns": 10,
+      "Neutral Comments": 9,
     },
-    // Marble sampling: groups of 10 (here all 7 fit in one group)
+    // Marble sampling: groups of 10
     marbleGroups: [
-      { groupIndex: 0, size: 7, seed: 42 },
+      { groupIndex: 0, size: 10, seed: 42 },
+      { groupIndex: 1, size: 10, seed: 43 },
+      { groupIndex: 2, size: 10, seed: 44 },
+      { groupIndex: 3, size: 3, seed: 45 },
     ],
     // Theme2 hierarchy: 9 → 6 → 3 reduction
     theme2Hierarchy: {
@@ -255,7 +262,9 @@ export const POLL_1 = {
         { label: "Enterprise Integration Needs", confidence: 0.88, partition: "Supporting Comments" },
         { label: "Performance Bottlenecks", confidence: 0.85, partition: "Risk & Concerns" },
         { label: "Compliance & Certification Gaps", confidence: 0.87, partition: "Risk & Concerns" },
+        { label: "Accessibility & Inclusion", confidence: 0.82, partition: "Supporting Comments" },
         { label: "Data Export Requirements", confidence: 0.80, partition: "Neutral Comments" },
+        { label: "Scalability Concerns", confidence: 0.79, partition: "Risk & Concerns" },
         { label: "User Onboarding Friction", confidence: 0.78, partition: "Neutral Comments" },
       ],
       theme2_6: [
@@ -284,27 +293,55 @@ export const POLL_1 = {
     ],
   },
 
-  // ── Final themes (consumed by SimTheme UI — Theme2_3 level) ──
+  // ── Theme Levels (dynamic voting: 3/6/9 themes) ────────────
+  themeLevels: {
+    theme2_9: [
+      { id: "t1", name: "Collaboration & Real-Time Tools", confidence: 0.91, count: 6, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t2", name: "Mobile Experience Gap", confidence: 0.84, count: 4, color: "#16A34A", partition: "Supporting Comments" },
+      { id: "t3", name: "Enterprise Integration Needs", confidence: 0.88, count: 4, color: "#15803D", partition: "Supporting Comments" },
+      { id: "t4", name: "Performance Bottlenecks", confidence: 0.85, count: 4, color: "#EF4444", partition: "Risk & Concerns" },
+      { id: "t5", name: "Compliance & Certification Gaps", confidence: 0.87, count: 3, color: "#DC2626", partition: "Risk & Concerns" },
+      { id: "t6", name: "Accessibility & Inclusion", confidence: 0.82, count: 3, color: "#4ADE80", partition: "Supporting Comments" },
+      { id: "t7", name: "Data Export Requirements", confidence: 0.80, count: 3, color: "#3B82F6", partition: "Neutral Comments" },
+      { id: "t8", name: "Scalability Concerns", confidence: 0.79, count: 3, color: "#B91C1C", partition: "Risk & Concerns" },
+      { id: "t9", name: "User Onboarding Friction", confidence: 0.78, count: 3, color: "#2563EB", partition: "Neutral Comments" },
+    ],
+    theme2_6: [
+      { id: "t1", name: "Collaboration & Integration", confidence: 0.90, count: 8, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t2", name: "Mobile & UX Improvements", confidence: 0.83, count: 6, color: "#16A34A", partition: "Supporting Comments" },
+      { id: "t3", name: "Security & Compliance", confidence: 0.86, count: 5, color: "#EF4444", partition: "Risk & Concerns" },
+      { id: "t4", name: "Performance Optimization", confidence: 0.85, count: 5, color: "#DC2626", partition: "Risk & Concerns" },
+      { id: "t5", name: "Export & Analytics", confidence: 0.80, count: 5, color: "#3B82F6", partition: "Neutral Comments" },
+      { id: "t6", name: "Onboarding Experience", confidence: 0.78, count: 4, color: "#2563EB", partition: "Neutral Comments" },
+    ],
+    theme2_3: [
+      { id: "t1", name: "Feature Requests", confidence: 0.91, count: 14, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t2", name: "Performance & Security", confidence: 0.87, count: 10, color: "#EF4444", partition: "Risk & Concerns" },
+      { id: "t3", name: "Integration Needs", confidence: 0.84, count: 9, color: "#3B82F6", partition: "Neutral Comments" },
+    ],
+  } satisfies ThemeLevels,
+
+  // ── Legacy themes (backward compat — Theme2_3 level) ────────
   themes: [
     {
       id: "t1",
       name: "Feature Requests",
       confidence: 0.91,
-      count: 3,
+      count: 14,
       color: "#22C55E",
     },
     {
       id: "t2",
       name: "Performance & Security",
       confidence: 0.87,
-      count: 2,
+      count: 10,
       color: "#EF4444",
     },
     {
       id: "t3",
       name: "Integration Needs",
       confidence: 0.84,
-      count: 2,
+      count: 9,
       color: "#3B82F6",
     },
   ],

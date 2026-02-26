@@ -4,7 +4,11 @@
  *
  * Cube 4: Web_Results format with native_language per response
  * Cube 6: Phase A (333/111/33 summaries) + Phase B (Theme01 → Theme2_9/6/3)
+ *
+ * SCALED TO 33 RESPONSES.
  */
+
+import type { ThemeLevels } from "./index";
 
 export const POLL_2 = {
   sessionId: "b2c3d4e5-f6a7-8901-bcde-222222222222",
@@ -172,11 +176,11 @@ export const POLL_2 = {
         source: "text",
       },
     ],
-    responseCount: { total: 7, text_count: 7, voice_count: 0 },
+    responseCount: { total: 33, text_count: 31, voice_count: 2 },
     languageBreakdown: [
-      { language_code: "en", count: 3 },
-      { language_code: "es", count: 2 },
-      { language_code: "de", count: 1 },
+      { language_code: "en", count: 18 },
+      { language_code: "es", count: 9 },
+      { language_code: "de", count: 6 },
     ],
   },
 
@@ -238,12 +242,15 @@ export const POLL_2 = {
       { user: "AI User 7", theme01: "Supporting Comments", theme01_confidence: 85 },
     ],
     theme01Partitions: {
-      "Supporting Comments": 4,
-      "Risk & Concerns": 2,
-      "Neutral Comments": 1,
+      "Supporting Comments": 16,
+      "Risk & Concerns": 10,
+      "Neutral Comments": 7,
     },
     marbleGroups: [
-      { groupIndex: 0, size: 7, seed: 42 },
+      { groupIndex: 0, size: 10, seed: 42 },
+      { groupIndex: 1, size: 10, seed: 43 },
+      { groupIndex: 2, size: 10, seed: 44 },
+      { groupIndex: 3, size: 3, seed: 45 },
     ],
     theme2Hierarchy: {
       theme2_9: [
@@ -253,6 +260,8 @@ export const POLL_2 = {
         { label: "Customer Success Investment", confidence: 0.85, partition: "Supporting Comments" },
         { label: "Churn Reduction Urgency", confidence: 0.87, partition: "Risk & Concerns" },
         { label: "Technical Debt Burden", confidence: 0.83, partition: "Risk & Concerns" },
+        { label: "Product Innovation", confidence: 0.81, partition: "Supporting Comments" },
+        { label: "Market Competition Risk", confidence: 0.79, partition: "Risk & Concerns" },
         { label: "Team Wellbeing Culture", confidence: 0.78, partition: "Neutral Comments" },
       ],
       theme2_6: [
@@ -280,28 +289,56 @@ export const POLL_2 = {
     ],
   },
 
-  // ── Final themes (consumed by SimTheme UI — Theme2_3 level) ──
+  // ── Theme Levels (dynamic voting: 3/6/9 themes) ────────────
+  themeLevels: {
+    theme2_9: [
+      { id: "t1", name: "Revenue Growth Strategy", confidence: 0.93, count: 6, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t2", name: "Geographic Expansion", confidence: 0.88, count: 4, color: "#16A34A", partition: "Supporting Comments" },
+      { id: "t3", name: "Strategic Partnerships", confidence: 0.86, count: 3, color: "#15803D", partition: "Supporting Comments" },
+      { id: "t4", name: "Customer Success Investment", confidence: 0.85, count: 3, color: "#4ADE80", partition: "Supporting Comments" },
+      { id: "t5", name: "Churn Reduction Urgency", confidence: 0.87, count: 4, color: "#EF4444", partition: "Risk & Concerns" },
+      { id: "t6", name: "Technical Debt Burden", confidence: 0.83, count: 3, color: "#DC2626", partition: "Risk & Concerns" },
+      { id: "t7", name: "Product Innovation", confidence: 0.81, count: 3, color: "#4ADE80", partition: "Supporting Comments" },
+      { id: "t8", name: "Market Competition Risk", confidence: 0.79, count: 3, color: "#B91C1C", partition: "Risk & Concerns" },
+      { id: "t9", name: "Team Wellbeing Culture", confidence: 0.78, count: 4, color: "#3B82F6", partition: "Neutral Comments" },
+    ],
+    theme2_6: [
+      { id: "t1", name: "Revenue & Market Growth", confidence: 0.92, count: 8, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t2", name: "Partnerships & Expansion", confidence: 0.87, count: 6, color: "#16A34A", partition: "Supporting Comments" },
+      { id: "t3", name: "Customer Retention Focus", confidence: 0.86, count: 5, color: "#EF4444", partition: "Risk & Concerns" },
+      { id: "t4", name: "Technical Sustainability", confidence: 0.83, count: 5, color: "#DC2626", partition: "Risk & Concerns" },
+      { id: "t5", name: "Customer Success", confidence: 0.85, count: 5, color: "#15803D", partition: "Supporting Comments" },
+      { id: "t6", name: "Team & Culture Health", confidence: 0.78, count: 4, color: "#3B82F6", partition: "Neutral Comments" },
+    ],
+    theme2_3: [
+      { id: "t1", name: "Revenue & Growth", confidence: 0.93, count: 16, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t2", name: "Customer Retention", confidence: 0.89, count: 10, color: "#EF4444", partition: "Risk & Concerns" },
+      { id: "t3", name: "Team & Technical Health", confidence: 0.86, count: 7, color: "#3B82F6", partition: "Neutral Comments" },
+    ],
+  } satisfies ThemeLevels,
+
+  // ── Legacy themes (backward compat — Theme2_3 level) ────────
   themes: [
     {
       id: "t1",
       name: "Revenue & Growth",
       confidence: 0.93,
-      count: 3,
+      count: 16,
       color: "#22C55E",
     },
     {
       id: "t2",
       name: "Customer Retention",
       confidence: 0.89,
-      count: 2,
-      color: "#F59E0B",
+      count: 10,
+      color: "#EF4444",
     },
     {
       id: "t3",
       name: "Team & Technical Health",
       confidence: 0.86,
-      count: 2,
-      color: "#8B5CF6",
+      count: 7,
+      color: "#3B82F6",
     },
   ],
 } as const;
