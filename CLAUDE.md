@@ -1320,6 +1320,57 @@ cd frontend && npx next build
   - Cube 4 (Collector): Collected responses aggregated before theming pipeline
 - **RESULT: 18/18 BIDIRECTIONAL SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
 
+### Session Type Reorder + Live Feed Mock Data — 18x Bidirectional Spiral Metrics (N=9 forward + N=9 backward, 2026-02-26)
+
+**Change:** Reordered session types (Single Poll → Multi-Poll → Project Series), renamed labels (Single Question → Single Poll, Multi-Question → Multi-Poll). Added per-session mock responses for all 4 default polls (7 topic-specific responses each). Auto-inject progressive mock participants + responses when polling starts (2s stagger). Pre-populate responses for sessions already in polling/closed state. New user-created polls (5th+) get live HI data only.
+
+**Test Command:**
+```bash
+cd backend && source .venv/bin/activate && python -m pytest tests/ --tb=short -q
+cd frontend && npx tsc --noEmit
+cd frontend && npx next build
+```
+
+**Forward Spiral Metrics (1→9, N=9, 2026-02-26):**
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 | Run 7 | Run 8 | Run 9 | Average | Std Dev |
+|--------|-------|-------|-------|-------|-------|-------|-------|-------|-------|---------|---------|
+| Tests Passed | 287/287 | 287/287 | 287/287 | 287/287 | 287/287 | 287/287 | 287/287 | 287/287 | 287/287 | **287/287** | **0** |
+| Backend Duration | 3,889ms | 3,890ms | 3,959ms | 4,027ms | 6,372ms | 4,244ms | 4,289ms | 4,373ms | 3,876ms | **4,324ms** | **768ms** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+| TSC Duration | 2,121ms | 2,152ms | 2,171ms | 2,270ms | 2,226ms | 2,405ms | 2,315ms | 2,330ms | 2,269ms | **2,251ms** | **86ms** |
+| Landing Page Bundle | 1.8 kB | 1.8 kB | 1.8 kB | — | — | — | — | — | — | **1.8 kB** | **0** |
+| Dashboard Bundle | 22 kB | 22 kB | 22 kB | — | — | — | — | — | — | **22 kB** | **0** |
+| Session Bundle | 41.1 kB | 41.1 kB | 41.1 kB | — | — | — | — | — | — | **41.1 kB** | **0** |
+| Join Bundle | 3.91 kB | 3.91 kB | 3.91 kB | — | — | — | — | — | — | **3.91 kB** | **0** |
+| Build Duration | 26,178ms | 26,172ms | 26,550ms | — | — | — | — | — | — | **26,300ms** | **214ms** |
+
+**Backward Spiral Metrics (9→1, N=9, 2026-02-26):**
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Run 6 | Run 7 | Run 8 | Run 9 | Average | Std Dev |
+|--------|-------|-------|-------|-------|-------|-------|-------|-------|-------|---------|---------|
+| Tests Passed | 287/287 | 287/287 | 287/287 | 287/287 | 287/287 | 287/287 | 287/287 | 287/287 | 287/287 | **287/287** | **0** |
+| Backend Duration | 4,141ms | 6,702ms | 4,149ms | 4,150ms | 4,066ms | 4,095ms | 4,197ms | 4,301ms | 4,302ms | **4,456ms** | **802ms** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+| TSC Duration | 2,169ms | 2,381ms | 2,367ms | 2,369ms | 2,501ms | 2,569ms | 2,361ms | 4,907ms | 2,351ms | **2,664ms** | **795ms** |
+
+**Spiral Propagation Verification (Session Types + Live Feed → Cubes 1→10→1):**
+- Forward (1→10): All downstream cubes compatible — PASS
+  - Cube 1 (Session): SESSION_TYPES reordered, default newType = "single_poll", cycle_mode mapping preserved
+  - Cube 2 (Text): Mock responses pre-populated for sessions in polling state → live feed works
+  - Cube 4 (Collector): Responses aggregated correctly from mockResponses store
+  - Cube 6 (AI): 333→111→33 summarization pipeline fires async from Cube 2 submit (verified)
+  - Cube 9 (Reports): Web_Results format includes summary + theme columns (verified)
+  - Cube 10 (SIM): Per-session SIM data separate from mock data — no conflict
+- Backward (10→1): All upstream cubes compatible — PASS
+  - Frontend constants.ts: Labels renamed, order updated, no backend schema change needed
+  - Frontend mock-data.ts: 4 default sessions get 7 topic-specific responses each
+  - Frontend dashboard: SESSION_TYPE_ICONS keys updated to match new values
+  - Backend: No changes needed — frontend-only session type values map to existing cycle_mode
+- Cross-device QR verification: PASS
+  - Join URL uses `window.location.origin` + short_code query param → works globally
+  - No CORS/origin restrictions on join endpoint
+  - Mock mode hydrates session from URL params for cross-device support
+- **RESULT: 18/18 BIDIRECTIONAL SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
+
 ### Cube 10 — Simulation Test Methodology (Easter Egg SIM)
 
 **Entry:** Settings → Theme grid → Cyan → Sunset → Violet click sequence → Powered Badge blinks → click to enter SIM
