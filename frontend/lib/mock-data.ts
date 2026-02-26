@@ -9,6 +9,106 @@ import type {
 // ── Test Moderator ──────────────────────────────────────────────
 export const MOCK_MODERATOR_ID = "google-oauth2|mock-moderator-001";
 
+// ── Cross-Tab State Sync via localStorage ───────────────────────
+// Enables moderator (Tab 1) state changes to propagate to user (Tab 2).
+// Each tab has its own in-memory MOCK_SESSIONS. localStorage bridges them.
+const STORAGE_KEY = "exel_mock_state";
+
+interface StoredMockState {
+  sessions: Record<string, Partial<Session>>;
+  questions: Record<string, Question[]>;
+  counts: Record<string, number>;
+  newSessions: Session[];
+}
+
+function saveMockState(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const state: StoredMockState = {
+      sessions: {},
+      questions: {},
+      counts: { ...mockParticipantCount },
+      newSessions: [],
+    };
+    for (const s of MOCK_SESSIONS) {
+      state.sessions[s.id] = {
+        status: s.status,
+        opened_at: s.opened_at,
+        closed_at: s.closed_at,
+        ends_at: s.ends_at,
+        updated_at: s.updated_at,
+        participant_count: s.participant_count,
+      };
+    }
+    // Store questions for dynamically created sessions
+    for (const [sid, qs] of Object.entries(MOCK_QUESTIONS)) {
+      if (!DEFAULT_SESSION_IDS.has(sid)) {
+        state.questions[sid] = qs;
+      }
+    }
+    // Store full data for sessions created in this tab (not in defaults)
+    for (const s of MOCK_SESSIONS) {
+      if (!DEFAULT_SESSION_IDS.has(s.id)) {
+        state.newSessions.push(s);
+      }
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // localStorage unavailable (SSR, quota exceeded, etc.)
+  }
+}
+
+function loadMockState(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const state: StoredMockState = JSON.parse(raw);
+
+    // Merge status overrides into existing sessions
+    for (const s of MOCK_SESSIONS) {
+      const stored = state.sessions[s.id];
+      if (stored && stored.updated_at && stored.updated_at > (s.updated_at || "")) {
+        if (stored.status) s.status = stored.status as Session["status"];
+        if (stored.opened_at !== undefined) s.opened_at = stored.opened_at;
+        if (stored.closed_at !== undefined) s.closed_at = stored.closed_at;
+        if (stored.ends_at !== undefined) s.ends_at = stored.ends_at;
+        s.updated_at = stored.updated_at;
+        if (stored.participant_count !== undefined) s.participant_count = stored.participant_count;
+      }
+    }
+
+    // Load sessions created in other tabs
+    if (state.newSessions) {
+      for (const ns of state.newSessions) {
+        if (!MOCK_SESSIONS.find((s) => s.id === ns.id)) {
+          MOCK_SESSIONS.push(ns);
+        }
+      }
+    }
+
+    // Load questions for sessions created in other tabs
+    if (state.questions) {
+      for (const [sid, qs] of Object.entries(state.questions)) {
+        if (!MOCK_QUESTIONS[sid]) {
+          MOCK_QUESTIONS[sid] = qs;
+        }
+      }
+    }
+
+    // Merge participant counts
+    if (state.counts) {
+      for (const [sid, count] of Object.entries(state.counts)) {
+        if (count > (mockParticipantCount[sid] || 0)) {
+          mockParticipantCount[sid] = count;
+        }
+      }
+    }
+  } catch {
+    // localStorage unavailable or corrupt — use in-memory defaults
+  }
+}
+
 // ── Test Sessions ───────────────────────────────────────────────
 const now = new Date().toISOString();
 const oneHourLater = new Date(Date.now() + 3600000).toISOString();
@@ -173,6 +273,9 @@ export const MOCK_SESSIONS: Session[] = [
   },
 ];
 
+// IDs of default sessions (used to distinguish from dynamically created ones)
+const DEFAULT_SESSION_IDS = new Set(MOCK_SESSIONS.map((s) => s.id));
+
 // ── Test Questions ──────────────────────────────────────────────
 export const MOCK_QUESTIONS: Record<string, Question[]> = {
   "a1b2c3d4-e5f6-7890-abcd-111111111111": [
@@ -270,10 +373,13 @@ export function handleMockRequest<T>(
   path: string,
   body?: unknown
 ): T | null {
+  // ── Sync from localStorage (cross-tab state) on every read ────
+  loadMockState();
+
   // GET /sessions (list)
   if (method === "GET" && path === "/sessions") {
     return {
-      items: MOCK_SESSIONS,
+      items: MOCK_SESSIONS.map((s) => ({ ...s })),
       total: MOCK_SESSIONS.length,
       limit: 50,
       offset: 0,
@@ -344,6 +450,7 @@ export function handleMockRequest<T>(
         created_at: new Date().toISOString(),
       },
     ];
+    saveMockState();
     return newSession as T;
   }
 
@@ -379,14 +486,9 @@ export function handleMockRequest<T>(
   );
   if (method === "GET" && presenceMatch) {
     const count = mockParticipantCount[presenceMatch[1]] || 0;
-    // Simulate slowly growing participant count during active states
-    const presenceSession = findSessionById(presenceMatch[1]);
-    if (presenceSession && ["open", "polling"].includes(presenceSession.status)) {
-      mockParticipantCount[presenceMatch[1]] = count + Math.floor(Math.random() * 2);
-    }
     return {
       session_id: presenceMatch[1],
-      active_count: mockParticipantCount[presenceMatch[1]] || count,
+      active_count: count,
       participants: [],
     } as T;
   }
@@ -400,6 +502,7 @@ export function handleMockRequest<T>(
     mockParticipantCount[session.id] =
       (mockParticipantCount[session.id] || 0) + 1;
     session.participant_count = mockParticipantCount[session.id];
+    saveMockState();
     return {
       session_id: session.id,
       participant_id: participantId,
@@ -407,7 +510,7 @@ export function handleMockRequest<T>(
       title: session.title,
       status: session.status,
       display_name: (body as Record<string, unknown>)?.display_name || null,
-      theme_id: session.polling_mode_type === "static_poll" ? "exel-cyan" : "exel-cyan",
+      theme_id: "exel-cyan",
       custom_accent_color: null,
       polling_mode_type: session.polling_mode_type,
       ends_at: session.ends_at,
@@ -467,6 +570,7 @@ export function handleMockRequest<T>(
     if (transitionMatch[2] === "close") {
       session.closed_at = new Date().toISOString();
     }
+    saveMockState();
     return { ...session } as T;
   }
 
