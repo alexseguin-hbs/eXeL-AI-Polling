@@ -60,6 +60,7 @@ import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS, TIMER_DISPLAY_MODE
 import { ScrollingSummaryFeed } from "@/components/scrolling-summary-feed";
 import { generateSampleSessionData } from "@/lib/sample-session-data";
 import { useLexicon } from "@/lib/lexicon-context";
+import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
 
 function statusColor(status: string): string {
@@ -423,6 +424,7 @@ function SessionDetail({
 
 function DashboardContent() {
   const { t } = useLexicon();
+  const { currentTheme } = useTheme();
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -877,12 +879,12 @@ function DashboardContent() {
                           {session.short_code}
                         </span>
                         {(session.polling_mode_type ?? "live_interactive") === "static_poll" ? (
-                          <span className="flex items-center gap-1 text-xs text-yellow-400">
+                          <span className="flex items-center gap-1 text-xs" style={{ color: currentTheme.swatch }}>
                             <Timer className="h-3 w-3" />
                             {t("cube1.moderator.mode_static")}
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-xs text-cyan-400">
+                          <span className="flex items-center gap-1 text-xs" style={{ color: currentTheme.swatch }}>
                             <Radio className="h-3 w-3" />
                             {t("cube1.moderator.mode_live")}
                           </span>

@@ -295,9 +295,9 @@ export function PollCountdownTimer({
     );
   }
 
-  // "both" — side by side, centered
+  // "both" — circle on top, deadline text underneath
   return (
-    <div className="w-full max-w-lg mb-4 flex items-center justify-center gap-6">
+    <div className="w-full max-w-lg mb-4 flex flex-col items-center gap-2">
       <FlexTimer countdown={countdown} accentColor={accentColor} />
       <DayTimer endsAt={endsAt} accentColor={accentColor} />
     </div>
