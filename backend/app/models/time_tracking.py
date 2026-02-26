@@ -4,8 +4,8 @@ Tracks active participation time per user per session.
 Each action (login, responding, ranking) gets a start/stop entry.
 
 Token defaults (SoI Trinity):
-  ♡ = floor(active_minutes) — 1 min default on login
-  웃 = 0 (until treasury funded, then $7.25/hr default)
+  ♡ = ceil(active_minutes) — rounds UP, 1 min default on login
+  웃 = 0 (until treasury funded, then 7.25/hr default)
   ◬ = 5x ♡
 """
 

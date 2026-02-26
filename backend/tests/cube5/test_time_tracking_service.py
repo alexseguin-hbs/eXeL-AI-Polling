@@ -49,8 +49,8 @@ class TestCalculateTokens:
         assert human == 0.0
         assert unity == 25.0
 
-    def test_sub_minute_gets_zero_heart(self):
-        """Less than 1 minute = 0♡ (floor function)."""
+    def test_sub_minute_rounds_up(self):
+        """Less than 1 minute rounds UP to 1♡ (ceil function)."""
         with patch("app.cubes.cube5_gateway.service.settings") as mock_settings:
             mock_settings.human_enabled = False
             mock_settings.unity_heart_multiplier = 5.0
@@ -58,11 +58,11 @@ class TestCalculateTokens:
             from app.cubes.cube5_gateway.service import calculate_tokens
             heart, human, unity = calculate_tokens(30.0, "responding")
 
-        assert heart == 0.0
-        assert unity == 0.0
+        assert heart == 1.0
+        assert unity == 5.0
 
-    def test_fractional_minutes_floor(self):
-        """2 min 30 sec = 2♡ (floor), not 3."""
+    def test_fractional_minutes_ceil(self):
+        """2 min 30 sec = 3♡ (ceil), rounds UP."""
         with patch("app.cubes.cube5_gateway.service.settings") as mock_settings:
             mock_settings.human_enabled = False
             mock_settings.unity_heart_multiplier = 5.0
@@ -70,8 +70,8 @@ class TestCalculateTokens:
             from app.cubes.cube5_gateway.service import calculate_tokens
             heart, human, unity = calculate_tokens(150.0, "responding")
 
-        assert heart == 2.0
-        assert unity == 10.0
+        assert heart == 3.0
+        assert unity == 15.0
 
     def test_zero_duration(self):
         """0 seconds = 0 for all tokens."""
@@ -104,7 +104,7 @@ class TestHumanTokenCalculation:
         assert result == 0.0
 
     def test_human_enabled_texas_rate(self):
-        """웃 for 1 min at Texas rate ($7.25/hr) = 7.25/60 = ~0.1208."""
+        """웃 for 1 min at Texas rate (7.25/hr) = 7.25/60 = ~0.1208."""
         with patch("app.cubes.cube5_gateway.service.settings") as mock_settings:
             mock_settings.human_enabled = True
 
@@ -114,7 +114,7 @@ class TestHumanTokenCalculation:
         assert abs(result - round(7.25 / 60, 4)) < 0.001
 
     def test_human_enabled_california_rate(self):
-        """웃 for 1 min at California rate ($16.00/hr)."""
+        """웃 for 1 min at California rate (16.00/hr)."""
         with patch("app.cubes.cube5_gateway.service.settings") as mock_settings:
             mock_settings.human_enabled = True
 
@@ -124,7 +124,7 @@ class TestHumanTokenCalculation:
         assert abs(result - round(16.00 / 60, 4)) < 0.001
 
     def test_human_international_nigeria(self):
-        """웃 for 1 min at Nigeria rate ($0.34/hr)."""
+        """웃 for 1 min at Nigeria rate (0.34/hr)."""
         with patch("app.cubes.cube5_gateway.service.settings") as mock_settings:
             mock_settings.human_enabled = True
 
@@ -134,7 +134,7 @@ class TestHumanTokenCalculation:
         assert abs(result - round(0.34 / 60, 4)) < 0.001
 
     def test_human_unknown_jurisdiction_uses_default(self):
-        """Unknown jurisdiction should use default rate ($7.25/hr)."""
+        """Unknown jurisdiction should use default rate (7.25/hr)."""
         with patch("app.cubes.cube5_gateway.service.settings") as mock_settings:
             mock_settings.human_enabled = True
 

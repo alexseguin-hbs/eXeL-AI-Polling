@@ -458,7 +458,7 @@ CUBE5_OUTPUTS = {
     "token_calculations": [
         {
             "id": u["id"],
-            # ♡ = floor(active_minutes), +1 for login
+            # ♡ = ceil(active_minutes), +1 for login
             "heart": 1 + int(2.0 + i * 0.5),  # U1=3, U2=3, U3=4, U4=4, U5=5, U6=5, U7=6
             "human": 0.0,  # hi_enabled=False
             # ◬ = ♡ * 5

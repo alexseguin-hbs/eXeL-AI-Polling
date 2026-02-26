@@ -13,7 +13,7 @@ import {
 interface TokenState {
   hearts: number;     // ♡
   unity: number;      // ◬ (5x hearts)
-  human: number;      // 웃 ($)
+  human: number;      // 웃 (#.###)
 }
 
 interface TimerContextValue {
@@ -57,11 +57,11 @@ export function TimerProvider({ children }: { children: ReactNode }) {
           if (next > 0 && next % 60 === 0) {
             setTokens((t) => {
               const newHearts = t.hearts + 1;
-              const minutesActive = newHearts;
               return {
                 hearts: newHearts,
                 unity: newHearts * 5,
-                human: parseFloat(((minutesActive * DEFAULT_RATE_PER_HOUR) / 60).toFixed(2)),
+                // 웃 stays 0.000 unless Moderator enables money rewards (human_enabled=True on backend)
+                human: 0,
               };
             });
             setLastEarnAt(Date.now());
@@ -88,7 +88,8 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     const newState: TokenState = {
       hearts: tokens.hearts + hearts,
       unity: (tokens.hearts + hearts) * 5,
-      human: parseFloat((((tokens.hearts + hearts) * DEFAULT_RATE_PER_HOUR) / 60).toFixed(2)),
+      // 웃 stays 0.000 unless Moderator enables money rewards
+      human: 0,
     };
     setTokens(newState);
     setLastEarnAt(Date.now());

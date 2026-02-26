@@ -1,10 +1,11 @@
-"""웃 rate table — minimum wage by country/state in $/hr.
+"""웃 rate table — minimum wage by country/state (per hour).
 
-Default: Austin, Texas = $7.25/hr (US federal minimum wage).
+Default: Austin, Texas = 7.25/hr (US federal minimum wage).
 
 Vision: pay out 웃 globally at local minimum wage to leverage global talent.
 When human_enabled=True, each participant earns 웃 based on their jurisdiction.
-Rate lookup: resolve_human_rate(country, state) → $/hr.
+Rate lookup: resolve_human_rate(country, state) → rate/hr.
+웃 format: #.### (3 decimal places, no currency symbol).
 """
 
 # Default fallback rate (US federal / Texas)
@@ -90,12 +91,12 @@ def resolve_human_rate(
     country: str | None = None,
     state: str | None = None,
 ) -> float:
-    """Resolve 웃 rate ($/hr) for a given country + state.
+    """Resolve 웃 rate (per hour) for a given country + state.
 
     Lookup order:
       1. US + state → _US_STATE_RATES
       2. Country → _COUNTRY_RATES
-      3. Fallback → DEFAULT_HUMAN_RATE ($7.25)
+      3. Fallback → DEFAULT_HUMAN_RATE (7.25)
     """
     if country and country.lower() in ("us", "usa", "united states"):
         if state and state.title() in _US_STATE_RATES:

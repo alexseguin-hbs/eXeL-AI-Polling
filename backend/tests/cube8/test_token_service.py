@@ -151,43 +151,43 @@ class TestCreateDispute:
 
 class TestResolveHumanRate:
     def test_us_texas_default(self):
-        """Texas should return $7.25/hr."""
+        """Texas should return 7.25/hr."""
         from app.core.hi_rates import resolve_human_rate
         rate = resolve_human_rate("US", "Texas")
         assert rate == 7.25
 
     def test_us_california(self):
-        """California should return $16.00/hr."""
+        """California should return 16.00/hr."""
         from app.core.hi_rates import resolve_human_rate
         rate = resolve_human_rate("United States", "California")
         assert rate == 16.00
 
     def test_us_washington(self):
-        """Washington should return $16.28/hr (highest US state)."""
+        """Washington should return 16.28/hr (highest US state)."""
         from app.core.hi_rates import resolve_human_rate
         rate = resolve_human_rate("USA", "Washington")
         assert rate == 16.28
 
     def test_nigeria(self):
-        """Nigeria should return $0.34/hr."""
+        """Nigeria should return 0.34/hr."""
         from app.core.hi_rates import resolve_human_rate
         rate = resolve_human_rate("Nigeria")
         assert rate == 0.34
 
     def test_brazil(self):
-        """Brazil should return $1.58/hr."""
+        """Brazil should return 1.58/hr."""
         from app.core.hi_rates import resolve_human_rate
         rate = resolve_human_rate("Brazil")
         assert rate == 1.58
 
     def test_unknown_country_default(self):
-        """Unknown country should return default $7.25/hr."""
+        """Unknown country should return default 7.25/hr."""
         from app.core.hi_rates import resolve_human_rate
         rate = resolve_human_rate("Atlantis")
         assert rate == 7.25
 
     def test_none_jurisdiction_default(self):
-        """No jurisdiction should return default $7.25/hr."""
+        """No jurisdiction should return default 7.25/hr."""
         from app.core.hi_rates import resolve_human_rate
         rate = resolve_human_rate(None, None)
         assert rate == 7.25

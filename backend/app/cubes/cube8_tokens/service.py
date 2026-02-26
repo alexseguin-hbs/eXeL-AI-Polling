@@ -1,8 +1,9 @@
 """Cube 8 — Token Reward Calculator Service.
 
 Manages the append-only token ledger for the SoI Trinity:
-  ♡ — time-based participation tokens (1 min = 1 ♡)
-  웃 — compensated skilled time ($7.25/hr when enabled, 0 pre-treasury)
+  ♡ — time-based participation tokens (ceil minutes = tokens, rounds UP)
+  웃 — compensated skilled time (7.25/hr when enabled, 0 pre-treasury)
+      Format: #.### (3 decimal places, no currency symbol)
   ◬ — automation multiplier (5x ♡ default)
 """
 

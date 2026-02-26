@@ -60,11 +60,12 @@ class Settings(BaseSettings):
 
     # 웃 — compensated skilled time (global talent at local min wage)
     # Set human_enabled=True + human_hourly_rate to activate. Rate anchored to
-    # jurisdiction minimum wage (e.g., Texas $7.25/hr, federal $7.25/hr).
+    # jurisdiction minimum wage (e.g., Texas 7.25/hr, federal 7.25/hr).
     # 웃 per minute = human_hourly_rate / 60. Redeemable against treasury only.
+    # 웃 format: #.### (3 decimal places, no currency symbol)
     human_enabled: bool = False          # Flip to True when treasury funded
-    human_hourly_rate: float = 7.25      # USD/hr — default US federal min wage
-    human_currency: str = "USD"          # Currency for 웃 payouts
+    human_hourly_rate: float = 7.25      # Per-hour — default US federal min wage
+    human_currency: str = "USD"          # Reference currency for rate table
 
     # Cloudflare deployment
     behind_cloudflare: bool = False          # Enable CF-Connecting-IP extraction

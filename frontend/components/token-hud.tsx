@@ -104,7 +104,7 @@ export function TokenHUD() {
         {/* 웃 Human pill */}
         <div className="flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1">
           <span className="text-xs font-bold" style={{ color: "#8D516F" }}>웃</span>
-          <AnimatedNumber value={`$${tokens.human.toFixed(2)}`} color="#8D516F" />
+          <AnimatedNumber value={tokens.human.toFixed(3)} color="#8D516F" />
         </div>
       </div>
     </>

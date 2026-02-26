@@ -1,8 +1,9 @@
 """Cube 8 — Token Reward Calculator.
 
 SoI Trinity token ledger:
-  ♡ = time-based participation (1 min = 1 token)
-  웃 = jurisdiction min-wage rate ($7.25/hr default, Austin TX)
+  ♡ = time-based participation (ceil minutes = tokens, rounds UP)
+  웃 = jurisdiction min-wage rate (7.25/hr default, Austin TX)
+      Format: #.### (3 decimal places, no currency symbol)
   ◬ = 5x ♡ default
 """
 
@@ -51,7 +52,7 @@ async def create_token_dispute(
 
 @router.get("/tokens/rates")
 async def get_human_rates():
-    """Get all 웃 rates by country/state ($/hr minimum wage table)."""
+    """Get all 웃 rates by country/state (per-hour minimum wage table)."""
     return get_all_rates()
 
 

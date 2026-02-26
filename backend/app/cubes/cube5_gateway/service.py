@@ -1,14 +1,15 @@
 """Cube 5 — Time Tracking Service.
 
 Tracks active participation time and calculates SoI Trinity tokens:
-  ♡ = floor(active_minutes) — 1 min default on login
+  ♡ = ceil(active_minutes) — rounds UP to nearest minute, 1 min default on login
   웃 = jurisdiction min-wage rate per minute when enabled
       0.0 when human_enabled=False (pre-treasury)
+      Format: #.### (3 decimal places, no currency symbol)
   ◬ = ♡ * unity_heart_multiplier (default 5x)
 
 웃 vision: Pay out globally at local minimum wage to leverage global talent.
           Rate resolved per participant from rate table.
-          Default: Austin, Texas = $7.25/hr.
+          Default: Austin, Texas = 7.25/hr.
           Flip human_enabled=True once treasury is funded.
 """
 
@@ -42,7 +43,8 @@ def _calculate_human(
     When human_enabled=False: 웃 = 0.0 (pre-treasury, no payouts yet)
 
     Rate resolved from rate table by country + state.
-    Default: $7.25/hr (Austin, Texas / US federal).
+    Default: 7.25/hr (Austin, Texas / US federal).
+    Format: #.### (3 decimal places, no currency symbol).
     """
     if not settings.human_enabled:
         return 0.0
@@ -63,12 +65,12 @@ def calculate_tokens(
         (♡, 웃, ◬)
 
     Rules:
-        ♡ = floor(duration_minutes)          — 1 minute = 1 ♡
+        ♡ = ceil(duration_minutes)           — rounds UP to nearest minute
         웃 = duration_min * (wage/60)        — jurisdiction rate when enabled
         ◬ = ♡ * unity_heart_multiplier   — default 5x ♡
     """
     duration_minutes = duration_seconds / 60.0
-    heart = math.floor(duration_minutes) if duration_minutes >= 1.0 else 0.0
+    heart = math.ceil(duration_minutes) if duration_minutes > 0 else 0.0
     human = _calculate_human(duration_minutes, country, state)
     unity = heart * settings.unity_heart_multiplier
     return float(heart), human, unity
