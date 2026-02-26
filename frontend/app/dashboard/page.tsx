@@ -211,7 +211,7 @@ function SessionDetail({
             </div>
           </div>
 
-          {/* Session controls */}
+          {/* Session controls — Static polls auto-close at deadline, no manual rank/close */}
           <div className="flex items-center gap-2">
             {session.status === "draft" && (
               <Button
@@ -239,7 +239,8 @@ function SessionDetail({
                 {t("cube1.moderator.start_polling")}
               </Button>
             )}
-            {session.status === "polling" && (
+            {/* Start Ranking — live polls only (static polls auto-advance) */}
+            {session.status === "polling" && isLiveInteractive && (
               <Button
                 onClick={() => handleTransition("rank")}
                 disabled={!!actionLoading}
@@ -247,7 +248,8 @@ function SessionDetail({
                 {t("cube1.moderator.start_ranking")}
               </Button>
             )}
-            {["open", "polling", "ranking"].includes(session.status) && (
+            {/* Close — live polls only (static polls close at ends_at deadline) */}
+            {["open", "polling", "ranking"].includes(session.status) && isLiveInteractive && (
               <Button
                 variant="destructive"
                 onClick={() => handleTransition("close")}
@@ -273,6 +275,21 @@ function SessionDetail({
             )}
           </div>
         </div>
+
+        {/* Static poll deadline notice — moderator sees when poll auto-closes */}
+        {!isLiveInteractive && session.status === "polling" && session.ends_at && (
+          <div className="flex items-center gap-2 mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/5 px-4 py-2.5">
+            <Timer className="h-4 w-4 text-yellow-400 shrink-0" />
+            <p className="text-sm text-yellow-300">
+              {t("cube1.timer.poll_ends")}{" "}
+              <span className="font-semibold font-mono">
+                {new Date(session.ends_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}{" "}
+                {t("cube1.timer.at")}{" "}
+                {new Date(session.ends_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </p>
+          </div>
+        )}
 
         {/* QR Code + Join Info (hides during live polling, stays for static) */}
         {showQR && (
