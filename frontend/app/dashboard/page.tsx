@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -57,8 +57,6 @@ import { Separator } from "@/components/ui/separator";
 import { api, ApiClientError } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
 import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS, TIMER_DISPLAY_MODES } from "@/lib/constants";
-import { ScrollingSummaryFeed } from "@/components/scrolling-summary-feed";
-import { generateSampleSessionData } from "@/lib/sample-session-data";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
@@ -174,7 +172,7 @@ function SessionDetail({
   const showQR = !["closed", "archived"].includes(session.status) &&
     (isLiveInteractive ? session.status !== "polling" : true);
   const showScrollingFeed = isLiveInteractive && session.status === "polling";
-  const sampleData = useMemo(() => generateSampleSessionData(session.id), [session.id]);
+  const [feedExpanded, setFeedExpanded] = useState(false);
 
   const joinUrl =
     session.join_url ||
@@ -354,20 +352,31 @@ function SessionDetail({
         {/* Scrolling 33-word summary feed (replaces QR during live polling) */}
         {showScrollingFeed && (
           <Card className="mb-6 overflow-hidden">
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Radio className="h-4 w-4 text-primary animate-pulse" />
                 {t("cube1.moderator.live_feed")}
               </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFeedExpanded(!feedExpanded)}
+                className="h-7 px-2"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+              </Button>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollingSummaryFeed
-                responses={sampleData.responses.slice(0, 20).map((r) => ({
-                  summary33: r.summary33,
-                  userHash: r.userHash,
-                }))}
-                height={200}
-              />
+              {/* Real responses will be fed via WebSocket — empty state for now */}
+              <div
+                className="flex items-center justify-center text-muted-foreground text-sm"
+                style={{ height: feedExpanded ? 500 : 200 }}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Radio className="h-5 w-5 animate-pulse" />
+                  <span>{t("cube1.moderator.waiting_responses")}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}

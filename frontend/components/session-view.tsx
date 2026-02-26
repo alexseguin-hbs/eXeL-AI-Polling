@@ -345,7 +345,7 @@ function PollingStatusBar({ status }: { status: string }) {
 
 // ── Token Earn Animation ─────────────────────────────────────────
 
-function TokenEarnOverlay({ visible, color }: { visible: boolean; color: string }) {
+function TokenEarnOverlay({ visible, color, heartCount = 1, unityCount = 5 }: { visible: boolean; color: string; heartCount?: number; unityCount?: number }) {
   if (!visible) return null;
   return (
     <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
@@ -356,7 +356,7 @@ function TokenEarnOverlay({ visible, color }: { visible: boolean; color: string 
           color,
         }}
       >
-        +1 ♡ +5 ◬
+        +{heartCount} ♡ +{unityCount} ◬
       </div>
       <style jsx global>{`
         @keyframes token-earn {
@@ -655,7 +655,7 @@ export function SessionView() {
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({
-          title: "Submission failed",
+          title: t("cube2.input.submission_failed"),
           description: err.detail,
           variant: "destructive",
         });
@@ -832,7 +832,7 @@ export function SessionView() {
           {simulationMode && simulationRole === "moderator" && simPhase === "theming" && (
             <div className="w-full max-w-lg mb-4 flex flex-col items-center gap-2">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <p className="text-sm text-primary font-medium">Cube 6 — {t("cube10.sim.state_theming")}</p>
+              <p className="text-sm text-primary font-medium">{t("cube10.sim.theming_complete")}</p>
               <p className="text-xs text-muted-foreground">{t("cube10.sim.clustering_responses").replace("{0}", String(simAiResponses.length || 7))}</p>
             </div>
           )}

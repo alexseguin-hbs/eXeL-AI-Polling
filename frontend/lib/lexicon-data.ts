@@ -210,6 +210,9 @@ const cube1: TranslationEntry[] = [
   { key: "cube1.moderator.create_first", englishDefault: "Create your first polling session to get started", context: "Empty sessions list description", cubeId: 1 },
   { key: "cube1.moderator.back_sessions", englishDefault: "Back to sessions", context: "Back navigation button", cubeId: 1 },
   { key: "cube1.moderator.live_feed", englishDefault: "Live Response Feed", context: "Live feed heading", cubeId: 1 },
+  { key: "cube1.moderator.expand_feed", englishDefault: "Expand Feed", context: "Maximize live feed button", cubeId: 1 },
+  { key: "cube1.moderator.collapse_feed", englishDefault: "Collapse", context: "Minimize live feed button", cubeId: 1 },
+  { key: "cube1.moderator.waiting_responses", englishDefault: "Waiting for responses...", context: "Empty feed placeholder", cubeId: 1 },
   { key: "cube1.moderator.poll_duration", englishDefault: "Poll Duration", context: "Static poll duration label", cubeId: 1 },
   // Countdown timer
   { key: "cube1.timer.days", englishDefault: "days", context: "Timer phase label — days", cubeId: 1 },
@@ -271,6 +274,7 @@ const cube2: TranslationEntry[] = [
   { key: "cube2.input.too_long", englishDefault: "Response exceeds character limit", context: "Validation error", cubeId: 2 },
   { key: "cube2.input.empty", englishDefault: "Please enter a response", context: "Validation error", cubeId: 2 },
   { key: "cube2.input.profanity_warning", englishDefault: "Please revise — inappropriate content detected", context: "PII/profanity filter notice", cubeId: 2 },
+  { key: "cube2.input.submission_failed", englishDefault: "Submission failed", context: "Error toast title on submission failure", cubeId: 2 },
   { key: "cube2.input.submitted", englishDefault: "Response submitted!", context: "Success confirmation", cubeId: 2 },
   { key: "cube2.input.tokens_earned", englishDefault: "Tokens earned:", context: "Post-submit token display label", cubeId: 2 },
   { key: "cube2.feed.title", englishDefault: "Live Responses", context: "Live feed heading (host PC)", cubeId: 2 },

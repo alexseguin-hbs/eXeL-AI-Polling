@@ -172,7 +172,7 @@ async def create_session(
             return existing
 
     short_code = await _generate_unique_short_code(db)
-    join_url = f"{settings.frontend_url}/join/{short_code}"
+    join_url = f"{settings.frontend_url}/join/?code={short_code}"
     qr_url = join_url  # QR encodes the join URL
     expires_at = datetime.now(timezone.utc) + timedelta(
         hours=settings.default_session_expiry_hours
