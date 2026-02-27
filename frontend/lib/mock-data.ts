@@ -300,6 +300,56 @@ export const MOCK_SESSIONS: Session[] = [
 // IDs of default sessions (used to distinguish from dynamically created ones)
 const DEFAULT_SESSION_IDS = new Set(MOCK_SESSIONS.map((s) => s.id));
 
+// ── Snapshot of original default sessions for demo reset ───────────
+// Deep-copy the 4 hardcoded sessions so we can restore them on every dashboard load.
+const DEFAULT_SESSION_SNAPSHOTS: Record<string, Session> = {};
+const DEFAULT_PARTICIPANT_COUNTS: Record<string, number> = {};
+for (const s of MOCK_SESSIONS) {
+  DEFAULT_SESSION_SNAPSHOTS[s.id] = { ...s };
+  DEFAULT_PARTICIPANT_COUNTS[s.id] = s.participant_count;
+}
+
+/** Reset the 4 default test sessions to their original hardcoded state.
+ *  Called on every dashboard load (GET /sessions) so demos always start fresh.
+ *  User-created sessions (5th+) are preserved via localStorage. */
+function resetDefaultSessions(): void {
+  for (const s of MOCK_SESSIONS) {
+    if (!DEFAULT_SESSION_IDS.has(s.id)) continue;
+    const snap = DEFAULT_SESSION_SNAPSHOTS[s.id];
+    if (!snap) continue;
+    // Restore mutable fields to original values
+    s.status = snap.status;
+    s.opened_at = snap.opened_at;
+    s.closed_at = snap.closed_at;
+    s.ends_at = snap.ends_at;
+    s.updated_at = snap.updated_at;
+    s.participant_count = snap.participant_count;
+  }
+  // Reset participant counts and responses for default sessions
+  const defaultIds = Array.from(DEFAULT_SESSION_IDS);
+  defaultIds.forEach((id) => {
+    mockParticipantCount[id] = DEFAULT_PARTICIPANT_COUNTS[id] ?? 0;
+    delete mockResponses[id];
+  });
+  // Clear localStorage overrides for default sessions so loadMockState() won't re-merge stale state
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const state: StoredMockState = JSON.parse(raw);
+        defaultIds.forEach((id) => {
+          delete state.sessions[id];
+          delete state.counts[id];
+          delete state.responses[id];
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+    } catch { /* localStorage unavailable */ }
+  }
+  // Re-populate canned responses for sessions that start in polling/closed state
+  prePopulateExistingResponses();
+}
+
 // ── Test Questions ──────────────────────────────────────────────
 export const MOCK_QUESTIONS: Record<string, Question[]> = {
   "a1b2c3d4-e5f6-7890-abcd-111111111111": [
@@ -574,8 +624,9 @@ export async function handleMockRequest<T>(
   // ── Sync from localStorage (cross-tab state) on every read ────
   loadMockState();
 
-  // GET /sessions (list)
+  // GET /sessions (list) — reset 4 default test polls on every dashboard load
   if (method === "GET" && path === "/sessions") {
+    resetDefaultSessions();
     return {
       items: MOCK_SESSIONS.map((s) => ({ ...s })),
       total: MOCK_SESSIONS.length,
