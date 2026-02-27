@@ -7,7 +7,7 @@
  * Target session: "Collaborative Thoughts on AI Governance" (session c3d4e5f6-a7b8-9012-cdef-333333333333)
  * but can be aimed at any polling session.
  *
- * Language distribution: 60 EN, 10 ES, 8 DE, 5 FR, 4 PT, 3 JA, 3 ZH, 2 KO, 2 AR, 2 HI, 1 IT
+ * Language distribution: 55 EN, 11 ES, 10 DE, 6 FR, 5 PT, 3 JA, 3 ZH, 2 KO, 2 AR, 2 HI, 1 IT
  */
 
 export interface SpiralTestResponse {
@@ -199,7 +199,7 @@ export const SPIRAL_TEST_RESPONSES: SpiralTestResponse[] = SPIRAL_TEST_WAVES
   .flatMap((w) => w.responses)
   .sort((a, b) => a.delay_ms - b.delay_ms);
 
-/** Language distribution summary */
+/** Language distribution summary (actual counts from 100 responses) */
 export const SPIRAL_LANGUAGE_DISTRIBUTION = {
-  en: 60, es: 10, de: 8, fr: 5, pt: 4, ja: 3, zh: 3, ko: 2, ar: 2, hi: 2, it: 1,
+  en: 55, es: 11, de: 10, fr: 6, pt: 5, ja: 3, zh: 3, ko: 2, ar: 2, hi: 2, it: 1,
 } as const;

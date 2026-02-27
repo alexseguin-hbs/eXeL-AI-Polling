@@ -5,7 +5,7 @@ import type {
   SessionJoinResponse,
   PaginatedResponse,
 } from "./types";
-import { SPIRAL_TEST_WAVES, type SpiralTestWave } from "./sim-data/spiral-test-100-users";
+import { SPIRAL_TEST_WAVES } from "./sim-data/spiral-test-100-users";
 
 // ── Test Moderator ──────────────────────────────────────────────
 export const MOCK_MODERATOR_ID = "google-oauth2|mock-moderator-001";
