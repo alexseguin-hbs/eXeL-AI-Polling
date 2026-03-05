@@ -86,6 +86,84 @@
 | `sync_moderator_state()` | Not implemented | No WebSocket sync |
 | `get_moderator_layout()` | Not implemented | No device-aware layout |
 
+### Cube 1 — Simulation Requirements (Cube 10 Isolation)
+
+When Cube 1 is loaded into the Cube 10 Simulation Orchestrator for isolated testing, the following rules govern which data sources are live vs simulated and how each function behaves.
+
+#### Input/Output Simulation Modes
+
+**Inputs:**
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| moderator_config | Input | Moderator UI | SIMULATED | Canned session configs from `frontend/lib/mock-data.ts` (4 default polls) |
+| qr_scan | Input | User device | SIMULATED | Mock short codes generated in-memory, no camera needed |
+| language_selection | Input | User UI | SIMULATED | Defaults to `en`; 33 languages available via Lexicon context |
+| results_opt_in | Input | User UI | SIMULATED | Hardcoded `true` for all mock participants |
+| payment_authorization | Input | Stripe/GPay/ApplePay | SIMULATED | Skipped entirely; `payment_status` set to `lead_exempt` |
+| moderator_device_sync | Input | PC / Phone | SIMULATED | Single-device only in SIM; no WebSocket sync |
+
+**Outputs:**
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| session_id + short_code | Output | All cubes | SIMULATED | UUID generated in mock-data.ts, short_code via `generateShortCode()` |
+| qr_code_image | Output | Moderator UI | LIVE | QR library generates real PNG from mock short_code (no external API) |
+| participant_record | Output | Cubes 4, 5, 8, 9 | SIMULATED | Mock participant objects with language_code, payment_status, results_opt_in |
+| session_state_events | Output | Cube 5 (Gateway) | SIMULATED | State transitions fired by SIM transport controls or auto-advance |
+| scoping_context | Output | All cubes | SIMULATED | Not yet implemented; null in SIM |
+| payment_event | Output | Cube 8 | SIMULATED | No payment processing; stub returns success |
+
+#### Function Simulation Modes
+
+| Function | Sim Mode | Sim Behavior |
+|----------|----------|--------------|
+| `create_session()` | SIMULATED | Uses canned session config from mock-data.ts; no DB write; returns in-memory session object |
+| `generate_qr_code()` | LIVE | Actually generates QR PNG from short_code (pure local library, no external API) |
+| `validate_join_request()` | SIMULATED | Skips expiry and state checks; always allows join in SIM |
+| `check_capacity()` | SIMULATED | Mock sessions have `max_participants: null` (unlimited) or pre-set cap |
+| `join_session()` | SIMULATED | Creates mock participant in-memory; no DB write; no Redis HSET; auto-awards login token (1 ♡, 5 ◬) |
+| `transition_session_state()` | SIMULATED | State transitions driven by SIM transport controls (`|<`, `<<`, `>>`, `>|`); no DB update; `ends_at` computed in-memory for static polls |
+| `get_session_by_code()` | SIMULATED | Looks up mock session from in-memory `mockSessions` map |
+| `check_session_expiry()` | SIMULATED | Always returns not-expired in SIM; no `SessionExpiredError` thrown |
+| `verify_session_owner()` | SIMULATED | Auth0 `isAuthenticated` used for role detection, but ownership check skipped in SIM |
+| `select_language()` | SIMULATED | Not implemented; language defaults to Lexicon `activeLocale` |
+| `process_results_optin()` | SIMULATED | Not implemented; hardcoded `results_opt_in: true` |
+| `process_join_payment()` | SIMULATED | Not implemented; no Stripe integration in SIM |
+| `calculate_per_user_fee()` | SIMULATED | Not implemented; fee always $0.00 |
+| `determine_pricing_tier()` | SIMULATED | Not implemented; tier defaults to `free` |
+| `sync_moderator_state()` | SIMULATED | Not implemented; single-device only |
+| `get_moderator_layout()` | SIMULATED | Not implemented; default layout used |
+
+#### Canned Test Data
+
+| Data Set | Location | Contents |
+|----------|----------|----------|
+| 4 default mock sessions | `frontend/lib/mock-data.ts` | Product Feedback (live, single_poll), Q1 Strategy (live, multi_poll), AI Governance (live, single_poll), Team Innovation (static_poll, 3-day) |
+| Per-session SIM data (4 polls) | `frontend/lib/sim-data/poll-{1-4}-*.ts` | Complete cube I/O per poll: state flows, 7 AI responses, themes, voice transcript, delays |
+| Mock participants | `frontend/lib/mock-data.ts` | Auto-generated on join; `mockParticipantCount` tracks per-session count |
+| Mock QR codes | `frontend/lib/mock-data.ts` | Real QR PNG generated from mock short_code string |
+| 100-user spiral test data | `frontend/lib/sim-data/spiral-test-100-users.ts` | 100 canned responses, 12 MoT agent waves, 11 languages, 60-second staggered delays |
+| Session state flows | `frontend/lib/sim-data/index.ts` | Live poll: 8 steps (draft->archived), Static poll: 7 steps (draft->archived) |
+
+#### Simulation Pass Criteria
+
+- 100% of existing Cube 1 tests must pass (59/59) with zero regressions
+- No spiral metric degradation: backend test duration, TSC errors, bundle sizes must remain at or below baseline
+- User-submitted replacement code must EXCEED existing metrics on the same canned inputs (latency p50/p95, join flow completion rate, state transition reliability)
+- QR generation time must not exceed 200ms (current baseline: <50ms for mock short_codes)
+- Capacity enforcement must correctly reject joins at `max_participants` limit (409 response)
+
+#### Cube 10 Code Challenge Context
+
+In Cube 10, users can isolate this cube and submit replacement code for specific functions. The simulation runs the user's code against the same canned inputs (4 default sessions, mock participants, state transition sequences) and compares output metrics against the existing implementation baseline. Functions eligible for code challenge: `create_session()`, `validate_join_request()`, `check_capacity()`, `join_session()`, `transition_session_state()`, `check_session_expiry()`. User code must produce identical outputs for identical inputs (determinism requirement) and must not degrade any System, User, or Outcome metric.
+
+#### Spiral Test Reference
+
+See CLAUDE.md spiral metrics sections:
+- **N=5 baseline (2026-02-18):** 55/55 tests, 2,984ms avg backend duration, 0 TS errors
+- **N=9 extended (2026-02-23):** 173/173 tests, 3,507ms avg backend duration, 0 TS errors
+- **N=18 bidirectional (2026-02-25):** 198/198 tests, forward + backward pass, 0 failures, 0 regressions
+- **N=18 bidirectional (2026-02-26):** 287/287 tests (includes Cubes 4-6), 0 failures, 0 regressions
+
 ### Cube 1 — Test Procedure (Cube 10 Simulator Reference)
 
 **Test Command:**
@@ -355,6 +433,81 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 - **AES-256 encryption at rest** — CRS-08 stretch target (response_hash covers integrity)
 - **`detect_language()` ML upgrade** — current Unicode heuristic is lightweight
 
+### Cube 2 — Simulation Requirements (Cube 10 Isolation)
+
+When Cube 2 is loaded into the Cube 10 Simulation Orchestrator for isolated testing, the following rules govern which data sources are live vs simulated and how each function behaves.
+
+#### Input/Output Simulation Modes
+
+**Inputs:**
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| raw_text | Input | User UI | SIMULATED | 7 AI user responses per poll from `frontend/lib/sim-data/poll-{1-4}-*.ts`; 100 responses from spiral test |
+| session_id | Input | Cube 1 | SIMULATED | Mock session UUID from `mock-data.ts` |
+| question_id | Input | Cube 1 | SIMULATED | Mock question UUID from `mock-data.ts` |
+| participant_id | Input | Cube 1 | SIMULATED | Mock participant UUID or null (anonymous); auto-generated per AI user |
+| language_code | Input | Cube 1 (participant) | SIMULATED | Per-response language tag from sim-data (11 languages in spiral test) |
+| response_char_limit | Input | Cube 1 (session) | SIMULATED | Default 3333 chars from mock session config |
+| anonymity_mode | Input | Cube 1 (session) | SIMULATED | Default `anonymous` from mock session config |
+
+**Outputs:**
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| validated_text_response | Output | Cube 4 (Collector) | SIMULATED | Stored in `mockResponses[sessionId]` array in-memory |
+| pii_detection_result | Output | Cube 4, Cube 9 | SIMULATED | PII pipeline runs in test fixtures; mock responses are PII-clean |
+| profanity_flag | Output | Cube 4, Moderator | SIMULATED | Profanity pipeline runs in test fixtures; mock responses are clean |
+| token_display_trigger | Output | Cube 5 (Gateway) | SIMULATED | ♡/◬ calculated in-memory using mock TimerContext; no Cube 5 API call |
+| submission_event | Output | Cube 5 (Gateway) | BOTH | Redis pub/sub event published in production; in SIM, `mockResponses` push + optional Cloudflare Cache API POST |
+| response_hash | Output | Cube 9 (Reports) | SIMULATED | SHA-256 computed on clean_text in test fixtures; mock responses skip hashing |
+
+#### Function Simulation Modes
+
+| Function | Sim Mode | Sim Behavior |
+|----------|----------|--------------|
+| `validate_text_input()` | BOTH | Runs identically in SIM and production; validates length, non-empty, char limit against mock session config |
+| `detect_language()` | SIMULATED | Unicode heuristic runs on mock text; language_code pre-tagged on each sim-data response |
+| `detect_pii()` | SIMULATED | NER model NOT loaded in SIM (heavy dependency); regex fallback runs against test fixture strings |
+| `scrub_pii()` | SIMULATED | Runs on test fixture text with injected PII patterns (email, phone, SSN); mock responses are PII-clean |
+| `detect_profanity()` | SIMULATED | Checks against mock profanity_filters table; no DB query in SIM; test fixtures provide filter patterns |
+| `anonymize_response()` | SIMULATED | Applies anonymity mode from mock session; test fixtures cover anonymous/identified/pseudonymous |
+| `store_text_response()` | SIMULATED | Writes to `mockResponses[sessionId]` in-memory array; no MongoDB or Postgres in SIM |
+| `emit_submission_event()` | BOTH | In SIM: pushes to local `mockResponses[]` + fire-and-forget POST to `/api/responses` (Cloudflare Cache API). In production: Redis pub/sub `response_submitted` |
+| `push_to_live_feed()` | SIMULATED | Not implemented; 33-word summaries shown via mock data in live feed UI |
+
+#### Canned Test Data
+
+| Data Set | Location | Contents |
+|----------|----------|----------|
+| 7 AI user responses per poll (x4 polls) | `frontend/lib/sim-data/poll-{1-4}-*.ts` | Topic-specific text responses with theme tags, delays (2-17s), language codes |
+| 100-user spiral test responses | `frontend/lib/sim-data/spiral-test-100-users.ts` | 100 unique responses across 12 MoT agent waves, 11 languages, staggered 0-60s |
+| PII test fixtures | `backend/tests/cube2/test_text_service.py` | Email, phone, SSN, CC, IP patterns embedded in test strings |
+| Profanity test fixtures | `backend/tests/cube2/test_text_service.py` | Mock profanity filter patterns with severity levels, language codes |
+| Multilingual test inputs | `backend/tests/cube2/test_e2e_flows.py` | CJK, Arabic, Korean, emoji text samples for Unicode validation |
+| Anonymization test cases | `backend/tests/cube2/test_e2e_flows.py` | anonymous/identified/pseudonymous mode scenarios with deterministic hash verification |
+| CRS-08 integrity test vectors | `backend/tests/cube2/test_e2e_flows.py` | SHA-256 hash computation, determinism, and Unicode hash test cases |
+
+#### Simulation Pass Criteria
+
+- 100% of existing Cube 2 tests must pass (62/62) with zero regressions
+- No spiral metric degradation: backend test duration, TSC errors, bundle sizes must remain at or below baseline
+- PII detection accuracy: must catch 100% of regex patterns (email, phone, SSN, CC, IP) in test fixtures
+- PII scrubbing: all detected PII must be replaced with `[TYPE_REDACTED]` placeholders with no data leakage
+- Profanity detection must be non-blocking: submissions proceed regardless of profanity flag
+- Response hash (CRS-08): SHA-256 must be deterministic (same text produces same hash across runs)
+- User-submitted replacement code must EXCEED existing metrics on the same canned inputs (submission latency p50/p95, PII detection rate, false positive rate)
+
+#### Cube 10 Code Challenge Context
+
+In Cube 10, users can isolate this cube and submit replacement code for specific functions. The simulation runs the user's code against the same canned inputs (28 AI responses across 4 polls, 100 spiral test responses, PII/profanity test fixtures) and compares output metrics against the existing implementation baseline. Functions eligible for code challenge: `validate_text_input()`, `detect_pii()`, `scrub_pii()`, `detect_profanity()`, `anonymize_response()`, `detect_language()`. User code must produce identical PII detection results for identical inputs (determinism requirement) and must not degrade any System, User, or Outcome metric.
+
+#### Spiral Test Reference
+
+See CLAUDE.md spiral metrics sections:
+- **N=5 baseline (2026-02-18):** 62/62 tests, 2,903ms avg backend duration, 0 TS errors
+- **N=9 extended (2026-02-23):** 173/173 tests (all cubes), 3,507ms avg, 0 TS errors
+- **N=18 bidirectional (2026-02-25):** 198/198 tests, forward + backward pass, 0 failures, 0 regressions
+- **N=18 bidirectional (2026-02-26):** 287/287 tests (includes Cubes 4-6), 0 failures, 0 regressions
+
 ### Cube 2 — Test Procedure (Cube 10 Simulator Reference)
 
 **Test Command:**
@@ -597,6 +750,79 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 - **Language-specific STT model tuning** — per-language model selection optimization
 - **Audio playback** — MongoDB audio_files retrieval for replay
 - **Voice-specific profanity seed data** — speech patterns differ from text
+
+### Cube 3 — Simulation Requirements (Cube 10 Isolation)
+
+When Cube 3 is loaded into the Cube 10 Simulation Orchestrator for isolated testing, the following rules govern which data sources are live vs simulated and how each function behaves.
+
+#### Input/Output Simulation Modes
+
+**Inputs:**
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| audio_stream | Input | User device mic | SIMULATED | Mock audio blobs (empty `Blob` with correct MIME type); no real mic capture in SIM |
+| session_id | Input | Cube 1 | SIMULATED | Mock session UUID from `mock-data.ts` |
+| question_id | Input | Cube 1 | SIMULATED | Mock question UUID from `mock-data.ts` |
+| participant_id | Input | Cube 1 | SIMULATED | Mock participant UUID; auto-generated per AI user |
+| language_code | Input | Cube 1 (participant) | SIMULATED | Per-response language tag; defaults to `en` in SIM |
+| stt_provider_preference | Input | Moderator settings | SIMULATED | V2T provider selector in Settings panel; default `whisper` |
+
+**Outputs:**
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| transcript_text | Output | Cube 2 pipeline (then Cube 4) | SIMULATED | Pre-written transcript from sim-data; no actual STT API call |
+| stt_confidence_score | Output | Cube 4, Cube 9 | SIMULATED | Hardcoded confidence values (0.85-0.95) in mock provider responses |
+| token_display_trigger | Output | Cube 5 (Gateway) | SIMULATED | ♡/◬ calculated in-memory using mock TimerContext; no Cube 5 API call |
+| submission_event | Output | Cube 5 (Gateway) | SIMULATED | Pushes to `mockResponses[]` in-memory; no Redis pub/sub in SIM |
+| response_hash | Output | Cube 9 (Reports) | SIMULATED | SHA-256 computed on transcript clean_text in test fixtures |
+
+#### Function Simulation Modes
+
+| Function | Sim Mode | Sim Behavior |
+|----------|----------|--------------|
+| `capture_audio()` | SIMULATED | Frontend creates mock `Blob` with correct MIME type (webm); no MediaRecorder in SIM; pulsing red dot animation still renders |
+| `select_stt_provider()` | SIMULATED | Returns moderator-selected provider from V2T Settings panel; no DB priority lookup; provider availability assumed |
+| `transcribe_audio()` | SIMULATED | Returns pre-written transcript text with mock confidence score; NO external API call to any STT provider (OpenAI, Grok, Gemini, AWS) |
+| `validate_transcript()` | BOTH | Runs identically in SIM and production; checks non-empty, confidence threshold (0.3), length truncation |
+| `forward_to_text_pipeline()` | SIMULATED | Passes mock transcript into Cube 2 test fixture pipeline (detect_pii, scrub_pii, detect_profanity, scrub_profanity) |
+| `store_voice_response()` | SIMULATED | Writes to `mockResponses[sessionId]` in-memory; no MongoDB or Postgres write; no audio binary stored |
+| `handle_stt_failure()` | SIMULATED | Circuit breaker logic tested via mock providers that raise `STTProviderError`; failover chain exercised without real API calls |
+| `push_to_live_feed()` | SIMULATED | Not implemented; voice transcripts appear in mock live feed via Cube 2 text pipeline path |
+
+#### Canned Test Data
+
+| Data Set | Location | Contents |
+|----------|----------|----------|
+| Mock audio blobs | `frontend/components/voice-input.tsx` | Empty `Blob` objects with MIME types (audio/webm, audio/wav, etc.); no real audio data |
+| Mock STT transcripts (4 providers) | `backend/tests/cube3/test_voice_service.py` | Pre-written `TranscriptionResult` objects per provider: `text`, `confidence`, `language`, `model_id` |
+| Circuit breaker test fixtures | `backend/tests/cube3/test_e2e_flows.py` | Scenarios: primary fails + fallback succeeds, all providers fail (422), failover chain order verified |
+| Provider language support maps | `backend/app/cubes/cube3_voice/providers/*.py` | Per-provider language lists: Whisper (33), Grok (33), Gemini (33), AWS (23) |
+| CRS-08 voice integrity test vectors | `backend/tests/cube3/test_e2e_flows.py` | SHA-256 hash on transcript clean_text: computation, determinism, Unicode, E2E presence |
+| PII-in-transcript test fixtures | `backend/tests/cube3/test_e2e_flows.py` | Email in voice transcript, clean transcript, multiple PII types (email + SSN) |
+| AWS provider test fixtures | `backend/tests/cube3/test_e2e_flows.py` | Enum existence, model_id pinning, 23-language support, factory mapping |
+| V2T provider pricing data | `frontend/components/moderator-settings.tsx` | Estimated cost per 1,000 users: OpenAI $12, Grok $12, Gemini $4, AWS $48 |
+
+#### Simulation Pass Criteria
+
+- 100% of existing Cube 3 tests must pass (39/39, including 10 skipped STT provider tests requiring API keys) with zero regressions
+- No spiral metric degradation: backend test duration, TSC errors, bundle sizes must remain at or below baseline
+- Circuit breaker failover must correctly traverse the full chain: whisper -> grok -> gemini -> aws
+- All 4 provider failures must return 422 `ResponseValidationError` (not 500)
+- Transcript validation must reject empty transcripts and transcripts below 0.3 confidence threshold
+- Response hash (CRS-08): SHA-256 on transcript clean_text must be deterministic across runs
+- Audio format validation must accept all 6 formats (webm, wav, mp3, ogg, m4a, flac) and reject unknown formats
+- User-submitted replacement code must EXCEED existing metrics on the same canned inputs (transcription latency, failover recovery time, confidence accuracy)
+
+#### Cube 10 Code Challenge Context
+
+In Cube 10, users can isolate this cube and submit replacement code for specific functions. The simulation runs the user's code against the same canned inputs (mock audio blobs, pre-written transcripts, circuit breaker failure scenarios) and compares output metrics against the existing implementation baseline. Functions eligible for code challenge: `select_stt_provider()`, `transcribe_audio()`, `validate_transcript()`, `handle_stt_failure()`, `store_voice_response()`. Because Cube 3 depends on external STT APIs, simulation mode uses mock providers exclusively -- user code is tested for logic correctness and failover behavior, not API connectivity. User code must produce identical transcript validation results for identical inputs (determinism requirement) and must not degrade any System, User, or Outcome metric.
+
+#### Spiral Test Reference
+
+See CLAUDE.md spiral metrics sections:
+- **N=9 baseline (2026-02-23):** 39/39 Cube 3 tests (4,656ms avg), 194/194 total, 0 TS errors
+- **N=18 bidirectional (2026-02-25):** 198/198 tests, forward + backward pass, 0 failures, 0 regressions
+- **N=18 bidirectional (2026-02-26):** 287/287 tests (includes Cubes 4-6), 0 failures, 0 regressions
 
 ### Cube 3 — Test Procedure (Cube 10 Simulator Reference)
 
