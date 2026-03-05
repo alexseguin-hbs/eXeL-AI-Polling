@@ -153,6 +153,83 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 | CRS-09 | Turn chaos into clarity at scale | "We get hundreds of comments — no human can read them all." |
 | CRS-10 | Shared understanding of group sentiment | "Builds alignment and reduces repetitive discussion." |
 
+### Cube 4 — Simulation Requirements (Cube 10 Isolation)
+
+> In Cube 10, users can isolate this cube and submit replacement code for specific functions. The simulation runs the user's code against the same canned inputs and compares output metrics against the existing implementation baseline.
+
+#### Input/Output Simulation Modes
+
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| Validated text response | Input | Cube 2 (Text) | **SIMULATED** | Mock text responses from Cube 2 fixture store (7 per session, 28 total across 4 sessions) |
+| Voice transcript | Input | Cube 3 → Cube 2 | **SIMULATED** | Mock voice transcripts processed through Cube 2 text pipeline fixtures |
+| Payment status | Input | Cube 1 / Cube 8 | **SIMULATED** | Mock payment_status field on participant fixture (paid/unpaid/exempt) |
+| Desired Outcome doc | Input | User UI (Methods 2 & 3) | **SIMULATED** | Mock desired outcome records with description, time estimate, and confirmation status |
+| Participant confirmations | Input | User UI (Methods 2 & 3) | **SIMULATED** | Mock confirmation actions — all participants pre-confirmed in fixture |
+| Post-task results log | Input | User UI (Methods 2 & 3) | **SIMULATED** | Mock results log with outcome_status (achieved/partial/not_achieved) |
+| Heartbeat pings | Input | Frontend | **SIMULATED** | Mock heartbeat events at fixed intervals — no real WebSocket connection |
+| Session metadata | Input | Cube 1 (Session) | **SIMULATED** | Mock session with questions, participants, language codes from fixture store |
+| MongoDB raw text/transcripts | Input | MongoDB | **SIMULATED** | Mock MongoDB collection with raw response documents — no real MongoDB required |
+| Postgres ResponseMeta + Questions + Participants | Input | Postgres | **SIMULATED** | Mock Postgres JOINs returning fixture response metadata |
+| Summary data (333/111/33) | Input | MongoDB (via Cube 6 Phase A) | **SIMULATED** | Mock summaries pre-loaded in fixture MongoDB — optional include |
+| Theme data (Theme01 + Theme2) | Input | Cube 6 Phase B | **SIMULATED** | Mock theme assignments with confidence scores — optional include |
+| Collected response set | Output | Cube 6 (AI Theming) | **SIMULATED** | Web_Results format written to mock store for downstream consumption |
+| Presence state | Output | Cube 1, Cube 5, Frontend | **SIMULATED** | Mock Redis HSET/HGETALL — participant count and status from fixture |
+| Desired Outcome record | Output | Cube 5, Cube 8, Cube 9 | **SIMULATED** | Mock Postgres record with confirmation status |
+| All-confirmed signal | Output | Cube 5 (Gateway) | **SIMULATED** | Mock signal emitted when all fixture participants confirmed |
+| Post-task results | Output | Cube 8, Cube 9 | **SIMULATED** | Mock results log for token calculation and export |
+
+#### Function Simulation Modes
+
+| Function | Sim Mode | Simulation Behavior |
+|----------|----------|---------------------|
+| `aggregate_response()` | **SIMULATED** | Creates unified collected_responses entry from mock Postgres JOINs. Validates Web_Results format (q_number, question, user, detailed_results, response_language, native_language). |
+| `store_to_mongodb()` | **SIMULATED** | Writes to mock MongoDB collection (in-memory dict). Verifies document structure matches raw response schema. |
+| `cache_response_state()` | **SIMULATED** | Updates mock Redis with response count. No real Redis connection required. |
+| `track_presence()` | **SIMULATED** | Processes mock heartbeat pings. Updates mock Redis HSET with participant status (online/idle/disconnected). EXPIRE simulated with mock clock. |
+| `create_desired_outcome()` | **SIMULATED** | Creates mock desired outcome record with fixture description + time estimate. Not yet implemented in production — sim validates schema only. |
+| `record_confirmation()` | **SIMULATED** | Records mock participant confirmation. Not yet implemented in production — sim validates confirmation logic. |
+| `check_all_confirmed()` | **SIMULATED** | Pure logic — checks if all required participants in fixture have confirmed. Returns boolean. |
+| `log_post_task_results()` | **SIMULATED** | Stores mock post-task results with outcome_status. Not yet implemented in production. |
+| `get_response_set()` | **SIMULATED** | Returns full collected response set from mock store. Validates pagination, language breakdown, and optional summary/theme includes. |
+| `get_presence_count()` | **SIMULATED** | Returns current online participant count from mock Redis. |
+
+#### Canned Test Data
+
+| Data Type | Count | Description |
+|-----------|-------|-------------|
+| Mock collected responses | 28 | 7 per session across 4 default sessions, Web_Results format with language tags |
+| Mock text responses | 24 | From Cube 2 fixture store — validated, PII-scrubbed text |
+| Mock voice transcripts | 4 | From Cube 3 fixture store — STT transcripts processed through text pipeline |
+| Mock participants | 32 | 8 per session (1 moderator + 7 users) with language_code and payment_status |
+| Mock questions | 4 | One per session with q_number and question text |
+| Mock presence records | 32 | One per participant — online/idle/disconnected status with last_heartbeat |
+| Mock summaries (MongoDB) | 28 | Pre-computed 333/111/33 word summaries for optional include testing |
+| Mock theme assignments | 28 | Theme01 + Theme2_9/6/3 with confidence for optional include testing |
+| Mock desired outcomes | 2 | One Method 2 (3 participants), one Method 3 (4 participants) |
+| Mock language breakdown | 11 | EN(55%), ES(11%), DE(10%), FR(6%), PT(5%), JA(3%), ZH(3%), KO(2%), AR(2%), HI(2%), IT(1%) |
+
+#### Simulation Pass Criteria
+
+| Criterion | Threshold | Measurement |
+|-----------|-----------|-------------|
+| Test pass rate | 100% (27/27) | All existing Cube 4 unit + E2E tests must pass |
+| Web_Results format | Exact schema match | All 15 columns present and correctly typed (q_number through Theme2_3_Confidence) |
+| Response count accuracy | Exact match | `get_response_count()` must return correct text/voice/total breakdown |
+| Language breakdown | Exact match | Language grouping must match fixture distribution (11 languages) |
+| Presence tracking | Correct state | Online/idle/disconnected status must reflect heartbeat timing |
+| Summary inclusion | Optional pass-through | When include_summaries=True, 333/111/33 fields populated from mock MongoDB |
+| Theme inclusion | Optional pass-through | When include_themes=True, Theme01 + Theme2 fields populated with confidence |
+| Pagination | Correct totals | page/page_size params return correct subset with accurate total count |
+| Anonymous support | Graceful handling | Null participant_id renders as "Anonymous" user label |
+| Aggregation throughput | >= baseline | Response aggregation must not regress beyond current test duration |
+| Spiral regression | 0 failures | All 287 backend tests must continue passing |
+| Bundle size | No regression | Frontend bundle sizes must not increase beyond baseline |
+
+#### Spiral Test Reference
+
+See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 4 tests: 27/27 pass, integrated into full backend suite (245/245 at time of implementation).
+
 ---
 
 ## Cube 5 — Gateway/Orchestrator: IMPLEMENTED (CRS-09→CRS-11 pipeline coordination; ~90% of full spec)
@@ -376,6 +453,83 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube5/ -v --tb
 | CRS-13 | Know that the system is working | "I want to see progress, not wonder if my input disappeared." |
 | CRS-18 | Seamless pipeline orchestration | "When polling ends, theming should just happen — no manual steps." |
 | CRS-19 | Accountability in group tasks | "Everyone should confirm before the clock starts — no free riders." |
+
+### Cube 5 — Simulation Requirements (Cube 10 Isolation)
+
+> In Cube 10, users can isolate this cube and submit replacement code for specific functions. The simulation runs the user's code against the same canned inputs and compares output metrics against the existing implementation baseline.
+
+#### Input/Output Simulation Modes
+
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| Session state transition event | Input | Cube 1 (Session) | **SIMULATED** | Mock state machine transitions (draft→open→polling→ranking→closed→archived) with fixed timestamps |
+| Response submission event | Input | Cube 2, Cube 3 | **SIMULATED** | Mock Redis pub/sub `response_submitted` events — no real Redis required |
+| Collected response set | Input | Cube 4 (Collector) | **SIMULATED** | Mock response count from Cube 4 fixture store (28 responses across 4 sessions) |
+| All-confirmed signal | Input | Cube 4 (Desired Outcomes) | **SIMULATED** | Mock confirmation gate with all participants pre-confirmed |
+| Jurisdiction code | Input | Cube 1 / User profile | **LIVE** | Uses real `hi_rates.py` lookup table — 59 jurisdictions loaded from production data |
+| AI pipeline result | Input | Cube 6 (AI Theming) | **SIMULATED** | Mock pipeline completion status with fixture theme IDs |
+| Ranking result | Input | Cube 7 (Ranking) | **SIMULATED** | Mock ranking aggregation completion status |
+| Payment confirmation | Input | Stripe / GPay / ApplePay | **SIMULATED** | Mock payment webhook — no real Stripe calls |
+| Time entry record | Output | Cube 8 (Token Ledger) | **SIMULATED** | Written to mock Postgres (in-memory); duration + token values verified |
+| ♡ 웃 ◬ token values | Output | Frontend (Token HUD) | **SIMULATED** | Token values returned in mock API response for UI verification |
+| AI pipeline trigger | Output | Cube 6 | **SIMULATED** | Mock asyncio.create_task — fires mock pipeline instead of real Cube 6 |
+| Ranking pipeline trigger | Output | Cube 7 | **SIMULATED** | Mock trigger record created — no real Cube 7 call |
+| CQS scoring trigger | Output | Cube 6 / Cube 8 | **SIMULATED** | Mock trigger with fixture top_theme2_id metadata |
+| Pipeline status | Output | Cube 9, Frontend | **SIMULATED** | Status flags (has_pending, has_failed, all_completed) computed from mock triggers |
+| Gate-opened signal | Output | Cube 5 (self) | **SIMULATED** | Mock signal triggers time tracking start in sim mode |
+
+#### Function Simulation Modes
+
+| Function | Sim Mode | Simulation Behavior |
+|----------|----------|---------------------|
+| `calculate_tokens()` | **BOTH** | Math is identical in sim and production. ♡ = ceil(minutes), ◬ = 5x ♡. 웃 rate lookup is LIVE (uses real `hi_rates.py` with 59 jurisdictions). Duration inputs are SIMULATED (mock clock). |
+| `start_time_tracking()` | **SIMULATED** | Creates TimeEntry in mock Postgres with fixture timestamp as `started_at`. No real clock dependency. |
+| `stop_time_tracking()` | **SIMULATED** | Computes duration from fixture start/stop timestamps. Calls `calculate_tokens()` with mock duration. Creates mock ledger entry. |
+| `create_login_time_entry()` | **SIMULATED** | Awards ♡1 웃0 ◬5 and creates mock ledger entry. Verifies token values match expected. |
+| `get_participant_time_summary()` | **SIMULATED** | Aggregates from mock TimeEntry records. Returns total time + tokens per participant. |
+| `_create_trigger()` | **SIMULATED** | Creates PipelineTrigger in mock Postgres with fixture metadata. |
+| `update_pipeline_status()` | **SIMULATED** | Updates mock trigger status (pending→in_progress→completed/failed). |
+| `trigger_ai_pipeline()` | **SIMULATED** | Creates trigger record + fires mock background task (no real Cube 6 call). Verifies exactly 1 task created. |
+| `trigger_ranking_pipeline()` | **SIMULATED** | Creates mock ranking_aggregation trigger. Placeholder logic verified. |
+| `trigger_cqs_scoring()` | **SIMULATED** | Creates mock cqs_scoring trigger with fixture top_theme2_id. |
+| `orchestrate_post_polling()` | **SIMULATED** | Master coordinator fires mock AI pipeline on transition. Verifies correct trigger type + metadata. |
+| `get_pipeline_status()` | **SIMULATED** | Returns mock triggers with aggregated status flags. |
+| `process_join_payment()` | **SIMULATED** | Stub — returns mock payment success. No Stripe integration. |
+| `create_payment_checkout()` | **SIMULATED** | Stub — returns mock checkout URL. No Stripe integration. |
+
+#### Canned Test Data
+
+| Data Type | Count | Description |
+|-----------|-------|-------------|
+| Mock time entries | 24 | Fixed start/stop timestamps across 4 sessions (login + 2 actions per user, 8 users) |
+| Mock login entries | 8 | One per participant across 4 sessions — each awards ♡1 웃0 ◬5 |
+| Mock pipeline triggers (ai_theming) | 4 | One per session — pending/in_progress/completed/failed states |
+| Mock pipeline triggers (ranking_aggregation) | 4 | One per session — placeholder triggers |
+| Mock pipeline triggers (cqs_scoring) | 2 | With fixture top_theme2_id metadata |
+| Mock pipeline triggers (reward_payout) | 1 | Placeholder trigger for reward disbursement |
+| Jurisdiction rate fixtures | 59 | Full hi_rates.py table — 9 international + 50 US states (LIVE data) |
+| Mock confirmation gates | 2 | One for Method 2 (3 participants), one for Method 3 (4 participants) |
+| Mock payment webhooks | 3 | Stripe success, Stripe failure, cost-split calculation |
+| Mock session state transitions | 6 | draft→open→polling→ranking→closed→archived with fixed timestamps |
+
+#### Simulation Pass Criteria
+
+| Criterion | Threshold | Measurement |
+|-----------|-----------|-------------|
+| Test pass rate | 100% (60/60) | All existing Cube 5 unit + orchestrator + E2E tests must pass |
+| Token calculation accuracy | Exact match | ♡, 웃, ◬ values must match expected for fixture durations |
+| Jurisdiction rate coverage | 59/59 | All jurisdiction lookups must return correct $/hr rate |
+| Pipeline trigger creation | Exact match | Correct trigger_type, status, and metadata for each orchestration |
+| Background task count | Exactly 1 | `orchestrate_post_polling()` must fire exactly 1 asyncio.create_task |
+| Token calculation speed | < 1ms | `calculate_tokens()` per-call latency (pure math + lookup) |
+| Pipeline status aggregation | Correct flags | has_pending, has_failed, all_completed must reflect trigger states accurately |
+| Ledger append-only | Verified | No mutations — only new entries in mock ledger |
+| Spiral regression | 0 failures | All 287 backend tests must continue passing |
+| Warning count | 0 | No RuntimeWarning or coroutine warnings from mock asyncio tasks |
+
+#### Spiral Test Reference
+
+See `SPIRAL_METRICS.md` — N=18 bidirectional (Feb 26). Cube 5 tests: 60/60 pass, average Cube 5 duration 264ms (forward) / 259ms (backward), 0 warnings after optimization.
 
 ---
 
@@ -649,3 +803,85 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 | CRS-10 | Trust the AI's interpretation | "If I can see how confident the system is, I trust it more." |
 | CRS-12 | Provider choice matters | "We use OpenAI internally — but our client prefers Gemini." |
 | CRS-14 | Reward quality contributions | "Gamification motivates better answers — but it must be fair." |
+
+### Cube 6 — Simulation Requirements (Cube 10 Isolation)
+
+> In Cube 10, users can isolate this cube and submit replacement code for specific functions. The simulation runs the user's code against the same canned inputs and compares output metrics against the existing implementation baseline.
+
+#### Input/Output Simulation Modes
+
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| Collected response set | Input | Cube 4 (Collector) | **SIMULATED** | Mock collected responses from Cube 4 fixture store (28 responses across 4 sessions) |
+| Pre-computed 33-word summaries | Input | MongoDB (Phase A) | **SIMULATED** | Fixture summaries pre-loaded — no live Phase A call required |
+| Session config (ai_provider, theme2_voting_level, CQS weights) | Input | Cube 1 (Session) | **SIMULATED** | Fixed session config fixtures with known provider + voting level |
+| Pipeline trigger event | Input | Cube 5 (Orchestrator) | **SIMULATED** | Mock trigger record with `pending` status — no real orchestrator |
+| #1 most-voted Theme2 cluster | Input | Cube 7 (Ranking) | **SIMULATED** | Fixture cluster ID for CQS scoring eligibility |
+| Embedding model config | Input | Provider factory | **BOTH** | LIVE when API keys present (calls real OpenAI/Grok/Gemini); SIMULATED with fixture 384-dim vectors when no keys |
+| Random seed | Input | Cube 1 (session seed) | **SIMULATED** | Fixed seed (e.g., `random_state=42`) for deterministic clustering + marble sampling |
+| Embedding API call | Internal | OpenAI / Grok / Gemini | **BOTH** | LIVE requires actual API key; SIMULATED returns pre-computed fixture vectors |
+| Summarization API call | Internal | OpenAI / Grok / Gemini | **BOTH** | LIVE calls real LLM; SIMULATED returns fixture 333/111/33 summaries |
+| 333/111/33 summaries | Output | MongoDB → Cube 4, Cube 9, Frontend | **SIMULATED** | Written to mock MongoDB collection |
+| Theme01 assignments | Output | Postgres → Cube 7, Cube 9 | **SIMULATED** | Written to mock Postgres (in-memory) |
+| Theme2_9/6/3 assignments | Output | Postgres → Cube 7, Cube 9 | **SIMULATED** | Written to mock Postgres (in-memory) |
+| Theme records | Output | Postgres → Cube 7 (Ranking) | **SIMULATED** | Theme labels + descriptions stored in mock DB |
+| CQS scores | Output | Postgres → Cube 8 (Tokens) | **SIMULATED** | Composite scores written to mock store |
+| Replay hash | Output | Postgres → Cube 10 (Simulation) | **SIMULATED** | SHA-256 computed and compared against expected fixture hash |
+
+#### Function Simulation Modes
+
+| Function | Sim Mode | Simulation Behavior |
+|----------|----------|---------------------|
+| `summarize_single_response()` | **BOTH** | LIVE: calls AI API for 333→111→33 generation. SIMULATED: returns fixture summary from canned data (skips API call, instant return). |
+| `translate_to_english()` | **BOTH** | LIVE: calls AI translation API. SIMULATED: returns pre-translated fixture text. |
+| `classify_theme01()` | **BOTH** | LIVE: LLM classifies Risk/Supporting/Neutral with confidence. SIMULATED: returns fixture classification with known confidence values. |
+| `reclassify_low_confidence()` | **SIMULATED** | Pure logic — identical in sim and production. Applies <65% → Neutral rule on fixture data. |
+| `group_by_theme01()` | **SIMULATED** | Pure logic — identical in sim and production. Groups fixture responses into 3 partitions. |
+| `marble_sample()` | **SIMULATED** | Pure logic with fixed seed — deterministic shuffle + slice. Identical output every run. |
+| `generate_candidate_themes()` | **BOTH** | LIVE: 10+ concurrent LLM agents generate 3 themes per group. SIMULATED: returns fixture theme candidates per marble group. |
+| `merge_candidate_themes()` | **SIMULATED** | Pure logic — combines fixture candidate themes per partition. |
+| `reduce_themes()` | **BOTH** | LIVE: LLM reduces all→9→6→3. SIMULATED: returns fixture reduced theme set. |
+| `assign_responses_to_themes()` | **BOTH** | LIVE: LLM or embedding cosine assignment. SIMULATED: returns fixture assignments with known confidence values. |
+| `compute_replay_hash()` | **SIMULATED** | Pure logic — SHA-256 of inputs + parameters. Must match expected fixture hash for determinism verification. |
+| `run_pipeline()` | **BOTH** | LIVE: full Phase B orchestration with real API calls. SIMULATED: runs full pipeline against fixture data with mock providers. |
+| `batch_embed()` | **BOTH** | LIVE: calls embedding API (requires API key). SIMULATED: returns fixture 384-dim vectors from canned data. |
+| `get_provider()` | **BOTH** | LIVE: factory with circuit breaker checks API key availability. SIMULATED: returns mock provider that serves fixture data. |
+| `score_cqs()` | **BOTH** | LIVE: AI scores 6 metrics on #1 Theme2 cluster responses. SIMULATED: returns fixture CQS scores. |
+| `select_cqs_winner()` | **SIMULATED** | Pure logic — highest composite CQS with random tie-break (seeded for determinism in sim). |
+| `push_to_live_feed()` | **SIMULATED** | Mock WebSocket — no real connection. Logs push events for verification. |
+
+#### Canned Test Data
+
+| Data Type | Count | Description |
+|-----------|-------|-------------|
+| Mock collected responses | 28 | Aggregated from Cube 2/3 mock data across 4 sessions (7 per session) |
+| Fixture embeddings | 28 | Pre-computed 384-dimensional vectors (one per response) |
+| Fixture summaries (333-word) | 28 | English summaries for all mock responses |
+| Fixture summaries (111-word) | 28 | Condensed summaries |
+| Fixture summaries (33-word) | 28 | Ultra-condensed summaries used as embedding input |
+| Fixture Theme01 classifications | 28 | Risk (8), Supporting (12), Neutral (8) with confidence scores |
+| Fixture marble groups | 3 | One per Theme01 partition, deterministically sampled |
+| Fixture candidate themes | 9 | 3 candidate themes per marble group (3 groups) |
+| Fixture reduced themes (9/6/3) | 18 | 9 + 6 + 3 theme records with labels + descriptions |
+| Fixture theme assignments | 84 | 28 responses x 3 levels (theme2_9, theme2_6, theme2_3) with confidence |
+| Fixture CQS scores | 5 | Scores for responses in #1 Theme2 cluster with >95% confidence |
+| Expected replay hash | 1 | SHA-256 hash for determinism verification against fixture inputs |
+
+#### Simulation Pass Criteria
+
+| Criterion | Threshold | Measurement |
+|-----------|-----------|-------------|
+| Test pass rate | 100% (20/20) | All existing Cube 6 unit tests must pass |
+| Theme accuracy | >= baseline | Theme01 classification accuracy against fixture ground truth |
+| Theme determinism | Exact match | Same inputs + same seed must produce identical theme assignments |
+| Replay hash match | Exact match | `compute_replay_hash()` output must match expected fixture hash |
+| Pipeline latency | <= 30 seconds | Full Phase B pipeline for 1000 responses (LIVE mode only) |
+| Summarization quality | >= baseline | 333/111/33 word counts within +/-10% of target |
+| Marble sampling correctness | Exact match | Deterministic groups must match fixture groups for same seed |
+| Confidence distribution | No regression | Average confidence across assignments must not decrease |
+| Spiral regression | 0 failures | All 287 backend tests must continue passing |
+| Bundle size | No regression | Frontend bundle sizes must not increase beyond baseline |
+
+#### Spiral Test Reference
+
+See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average backend duration 5,660ms (full suite including Cubes 1-6).
