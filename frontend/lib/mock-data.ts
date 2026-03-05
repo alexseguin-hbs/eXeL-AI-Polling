@@ -542,13 +542,60 @@ function generateShortCode(): string {
   return `X${Date.now().toString(36).toUpperCase().slice(-7)}`;
 }
 
+/** Fetch session metadata from Cloudflare KV via the /api/sessions CF Function.
+ *  Returns the stored metadata or null if unavailable. */
+export async function fetchSessionFromKV(
+  shortCode: string,
+): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch(`/api/sessions?code=${shortCode.toUpperCase()}`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch {
+    // KV unavailable — fall through
+  }
+  return null;
+}
+
+/** Sync session metadata to Cloudflare KV (fire-and-forget).
+ *  Called on session create and state transitions. */
+function syncSessionToKV(session: Session): void {
+  const questionText = MOCK_QUESTIONS[session.id]?.[0]?.question_text || null;
+  fetch("/api/sessions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: session.id,
+      short_code: session.short_code,
+      title: session.title,
+      description: session.description,
+      status: session.status,
+      polling_mode_type: session.polling_mode_type,
+      static_poll_duration_days: session.static_poll_duration_days,
+      ends_at: session.ends_at,
+      timer_display_mode: session.timer_display_mode,
+      anonymity_mode: session.anonymity_mode,
+      theme2_voting_level: session.theme2_voting_level,
+      ai_provider: session.ai_provider,
+      max_response_length: session.max_response_length,
+      participant_count: session.participant_count,
+      question_text: questionText,
+    }),
+  }).catch(() => {}); // fire-and-forget
+}
+
 /** Hydrate a session from QR URL params when it doesn't exist locally.
  *  Enables cross-device QR scanning in mock mode by reconstructing
- *  the session from the encoded title + status in the URL. */
+ *  the session from the encoded title + status in the URL.
+ *  Extended params: sid (UUID), pm (polling_mode_type), dur (static_poll_duration_days). */
 export function hydrateSessionFromParams(
   code: string,
   title?: string | null,
   status?: string | null,
+  sid?: string | null,
+  pm?: string | null,
+  dur?: string | null,
 ): Session | null {
   // Already exists locally
   const existing = findSessionByCode(code);
@@ -559,8 +606,13 @@ export function hydrateSessionFromParams(
 
   const now = new Date().toISOString();
   const resolvedStatus = (status || "polling") as Session["status"];
+  const pollingModeType = (pm || "live_interactive") as Session["polling_mode_type"];
+  const staticDays = dur ? parseInt(dur, 10) : null;
+  const endsAt = pollingModeType === "static_poll" && staticDays
+    ? new Date(Date.now() + staticDays * 24 * 60 * 60 * 1000).toISOString()
+    : null;
   const newSession: Session = {
-    id: generateId(),
+    id: sid || generateId(),
     short_code: code.toUpperCase(),
     created_by: MOCK_MODERATOR_ID,
     status: resolvedStatus,
@@ -584,10 +636,10 @@ export function hydrateSessionFromParams(
     reward_amount_cents: 0,
     theme2_voting_level: "theme2_9",
     live_feed_enabled: false,
-    polling_mode_type: "live_interactive",
-    static_poll_duration_days: null,
-    ends_at: null,
-    timer_display_mode: "flex",
+    polling_mode_type: pollingModeType,
+    static_poll_duration_days: staticDays,
+    ends_at: endsAt,
+    timer_display_mode: pollingModeType === "static_poll" ? "both" : "flex",
     is_paid: false,
     qr_url: null,
     join_url: null,
@@ -614,6 +666,39 @@ export function hydrateSessionFromParams(
   ];
   saveMockState();
   return newSession;
+}
+
+/** Hydrate session from KV metadata (richer data than URL params).
+ *  Merges KV data into an existing hydrated session or creates a new one. */
+export function hydrateSessionFromKV(
+  code: string,
+  kvData: Record<string, unknown>,
+): Session {
+  const existing = findSessionByCode(code);
+  if (existing) {
+    // Update existing session with KV data (KV is source of truth for status)
+    if (kvData.status) existing.status = kvData.status as Session["status"];
+    if (kvData.title) existing.title = kvData.title as string;
+    if (kvData.description !== undefined) existing.description = kvData.description as string | null;
+    if (kvData.polling_mode_type) existing.polling_mode_type = kvData.polling_mode_type as Session["polling_mode_type"];
+    if (kvData.static_poll_duration_days !== undefined) existing.static_poll_duration_days = kvData.static_poll_duration_days as number | null;
+    if (kvData.ends_at !== undefined) existing.ends_at = kvData.ends_at as string | null;
+    if (kvData.participant_count !== undefined) existing.participant_count = kvData.participant_count as number;
+    if (kvData.id && existing.id !== kvData.id) existing.id = kvData.id as string;
+    existing.updated_at = new Date().toISOString();
+    saveMockState();
+    return existing;
+  }
+
+  // Create from KV data
+  return hydrateSessionFromParams(
+    code,
+    (kvData.title as string) || "Shared Session",
+    (kvData.status as string) || "polling",
+    (kvData.id as string) || null,
+    (kvData.polling_mode_type as string) || null,
+    kvData.static_poll_duration_days ? String(kvData.static_poll_duration_days) : null,
+  )!;
 }
 
 export async function handleMockRequest<T>(
@@ -700,6 +785,8 @@ export async function handleMockRequest<T>(
       },
     ];
     saveMockState();
+    // Cross-device: sync session metadata to KV
+    syncSessionToKV(newSession);
     return newSession as T;
   }
 
@@ -900,6 +987,8 @@ export async function handleMockRequest<T>(
       session.closed_at = new Date().toISOString();
     }
     saveMockState();
+    // Cross-device: sync updated status to KV
+    syncSessionToKV(session);
     return { ...session } as T;
   }
 

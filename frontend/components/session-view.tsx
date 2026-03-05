@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Navbar } from "@/components/navbar";
 import { api, ApiClientError } from "@/lib/api";
+import { fetchSessionFromKV } from "@/lib/mock-data";
 import { toast } from "@/components/ui/use-toast";
 import { PRESENCE_POLL_INTERVAL } from "@/lib/constants";
 import { useTimer } from "@/lib/timer-context";
@@ -509,7 +510,8 @@ export function SessionView() {
     }
   }, [sessionStatus, stopTimer]);
 
-  // Poll session status — includes "draft" so users who join early see transitions
+  // Poll session status — includes "draft" so users who join early see transitions.
+  // Checks both local mock API and cross-device KV for status changes.
   useEffect(() => {
     if (!sessionId || !sessionStatus) return;
     if (simulationMode) return;
@@ -521,6 +523,21 @@ export function SessionView() {
         const data = await api.get<Session>(`/sessions/${sessionId}`);
         if (data.status !== sessionStatus) {
           setSession(data);
+          return; // Local API had the update, no need to check KV
+        }
+
+        // Cross-device: also check KV for status changes from moderator's device
+        if (session?.short_code) {
+          const kvData = await fetchSessionFromKV(session.short_code);
+          if (kvData && !("error" in kvData) && kvData.status && kvData.status !== sessionStatus) {
+            setSession((prev) => prev ? {
+              ...prev,
+              status: kvData.status as Session["status"],
+              ends_at: (kvData.ends_at as string) || prev.ends_at,
+              participant_count: (kvData.participant_count as number) ?? prev.participant_count,
+              updated_at: new Date().toISOString(),
+            } : prev);
+          }
         }
       } catch {
         // Silently fail
@@ -528,7 +545,7 @@ export function SessionView() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [sessionId, sessionStatus, simulationMode]);
+  }, [sessionId, sessionStatus, simulationMode, session?.short_code]);
 
   const handleSubmitResponse = useCallback(async () => {
     if (!responseText.trim() || questions.length === 0) return;

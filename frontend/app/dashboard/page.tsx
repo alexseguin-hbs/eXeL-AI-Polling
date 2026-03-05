@@ -93,13 +93,17 @@ const SESSION_TYPE_ICONS = {
 } as const;
 
 /** Always derive join URL from current origin + short_code.
- *  Includes session title as query param so cross-device QR scanning
- *  works in mock mode (other devices can reconstruct the session). */
+ *  Includes session metadata as query params so cross-device QR scanning
+ *  works in mock mode (other devices can reconstruct the session).
+ *  Params: t=title, s=status, sid=UUID, pm=polling_mode_type, dur=static_poll_duration_days */
 function getJoinUrl(session: Session): string {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const params = new URLSearchParams({ code: session.short_code });
   if (session.title) params.set("t", session.title);
   if (session.status) params.set("s", session.status);
+  if (session.id) params.set("sid", session.id);
+  if (session.polling_mode_type) params.set("pm", session.polling_mode_type);
+  if (session.static_poll_duration_days) params.set("dur", String(session.static_poll_duration_days));
   return `${origin}/join/?${params.toString()}`;
 }
 

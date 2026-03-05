@@ -11,7 +11,7 @@ import { Navbar } from "@/components/navbar";
 import { LanguageSelector } from "@/components/language-selector";
 import { useLexicon } from "@/lib/lexicon-context";
 import { api, ApiClientError } from "@/lib/api";
-import { hydrateSessionFromParams } from "@/lib/mock-data";
+import { hydrateSessionFromParams, fetchSessionFromKV, hydrateSessionFromKV } from "@/lib/mock-data";
 import { toast } from "@/components/ui/use-toast";
 import type { Session, SessionJoinResponse } from "@/lib/types";
 
@@ -23,9 +23,12 @@ export function JoinFlow() {
   const { t, setActiveLocale } = useLexicon();
   // Read code from query param: /join/?code=ABCD1234
   const code = searchParams.get("code")?.toUpperCase() || "";
-  // Cross-device QR params: title + status encoded in URL for mock mode hydration
+  // Cross-device QR params: title + status + extended metadata encoded in URL for mock mode hydration
   const qrTitle = searchParams.get("t");
   const qrStatus = searchParams.get("s");
+  const qrSid = searchParams.get("sid");
+  const qrPm = searchParams.get("pm");
+  const qrDur = searchParams.get("dur");
   // SIM mode flag: /join/?code=ABCD1234&sim=1 (from Cube 10 QR scan)
   const simMode = searchParams.get("sim") === "1";
 
@@ -44,16 +47,22 @@ export function JoinFlow() {
     if (!code) return;
     setLoading(true);
 
-    // Try hydrating from QR URL params first (enables cross-device mock mode).
-    // This creates the session in local mock data if it doesn't exist yet,
-    // using the title + status encoded in the QR URL by the moderator's dashboard.
-    if (qrTitle) {
-      hydrateSessionFromParams(code, qrTitle, qrStatus);
-    }
+    // Cross-device hydration chain:
+    // 1. Try KV fetch (richest data, synced by moderator's device)
+    // 2. Fall back to expanded URL params (sid, pm, dur)
+    // 3. Fall back to basic URL params (title, status)
+    const hydrateAndLoad = async () => {
+      // Try KV fetch first for cross-device session data
+      const kvData = await fetchSessionFromKV(code);
+      if (kvData && !("error" in kvData)) {
+        hydrateSessionFromKV(code, kvData);
+      } else if (qrTitle) {
+        // Fallback: hydrate from URL params (with expanded fields)
+        hydrateSessionFromParams(code, qrTitle, qrStatus, qrSid, qrPm, qrDur);
+      }
 
-    api
-      .get<Session>(`/sessions/code/${code}`)
-      .then((data) => {
+      try {
+        const data = await api.get<Session>(`/sessions/code/${code}`);
         setSession(data);
         if (!simMode && (data.status === "closed" || data.status === "archived")) {
           setError(t("cube1.join.session_ended"));
@@ -61,16 +70,19 @@ export function JoinFlow() {
           setError(t("cube1.join.session_ended"));
         }
         // Draft sessions: allow join — user lands in lobby, polls for status changes
-      })
-      .catch((err) => {
+      } catch (err) {
         if (err instanceof ApiClientError) {
           setError(err.detail);
         } else {
           setError("Failed to load session. Please try again.");
         }
-      })
-      .finally(() => setLoading(false));
-  }, [code, qrTitle, qrStatus, simMode, t]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    hydrateAndLoad();
+  }, [code, qrTitle, qrStatus, qrSid, qrPm, qrDur, simMode, t]);
 
   // When language changes, also set the active UI locale
   const handleLanguageChange = useCallback((code: string) => {
