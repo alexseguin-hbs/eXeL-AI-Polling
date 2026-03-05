@@ -15,3 +15,806 @@
 - 웃 rate table: 59 jurisdictions (9 international + 50 US states)
 - Rate lookup API: `GET /tokens/rates`, `GET /tokens/rates/lookup`
 - Files: `cubes/cube8_tokens/service.py`, `cubes/cube8_tokens/router.py`, `core/hi_rates.py`, `schemas/token.py`, `models/token_ledger.py`
+
+---
+
+## Cube 7 — Prioritization & Voting: SCAFFOLDED (Position 1,1,1 / MVP1-MVP3)
+
+> **Grid position:** (1,1,1) — bottom-left of Level 1 grid
+> **Spiral order:** 7th cube (bottom-left, after Cube 6 AI at bottom-center)
+> **MVP scope:** MVP1 (basic ranking + aggregation), MVP2 (live WebSocket), MVP3 (governance overrides)
+
+### Cube 7 — Overview
+
+Cube 7 provides the ranking UI and backend aggregation engine. After Cube 6 generates AI themes, participants rank those themes by importance. The system deterministically aggregates all rankings into a final prioritized list. The #1 most-voted Theme2 cluster ID feeds into the CQS reward pipeline (Cube 5 -> Cube 6 -> Cube 8).
+
+Key behaviors:
+- **Theme2 voting level:** Users vote on themes at the granularity level the **Moderator selected** (`theme2_9`, `theme2_6`, or `theme2_3`). The ranking UI only shows the chosen level's themes.
+- **Progressive theme reveal (paid tiers):** For paid sessions, themes appear one-by-one on the hosting PC screen as they are generated, creating engagement. Once all themes at the selected level are ready, voting opens.
+- **CQS winner input:** After ranking completes, Cube 7 provides the #1 most-voted Theme2 cluster ID to Cube 5/6 for CQS reward selection -- the winner is the highest-CQS response within that cluster.
+
+### Cube 7 — Current Implementation Status
+
+**Backend stub:** `backend/app/cubes/cube7_ranking/router.py`
+- 3 endpoints defined with `NotImplementedError`:
+  - `POST /sessions/{session_id}/rankings` (CRS-11: submit ranking)
+  - `GET /sessions/{session_id}/rankings/aggregate` (CRS-12: get aggregated rankings)
+  - `POST /sessions/{session_id}/override` (CRS-22: governance override, MVP3)
+
+**Schemas:** `backend/app/schemas/ranking.py`
+- `RankingSubmit`: `ranked_theme_ids: list[uuid.UUID]`
+- `RankingRead`: id, session_id, cycle_id, participant_id, ranked_theme_ids, submitted_at
+- `AggregatedRankingRead`: id, session_id, cycle_id, algorithm, results, participant_count, computed_at, is_final, override_by, override_reason
+
+**Frontend SIM stub:** Cube 7 ranking is simulated in the Easter Egg SIM (click-to-rank UI with #1/#2/#3 badges in `session-view.tsx`).
+
+### Cube 7 — Requirements.txt Specification
+
+#### Data Tables
+
+**Table: `user_rankings`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Ranking record ID |
+| session_id | UUID (FK->sessions) | Session reference |
+| cycle_number | INTEGER | Deep dive round (1 = initial, 2-3 = follow-up) |
+| participant_id | UUID (FK->participants) | Who submitted ranking |
+| ranked_theme_ids | JSONB | Ordered array of theme_ids (1st = most important) |
+| submitted_at | TIMESTAMP | When ranking was submitted |
+
+**Table: `aggregated_rankings`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Aggregation record ID |
+| session_id | UUID (FK->sessions) | Session reference |
+| cycle_number | INTEGER | Deep dive round |
+| theme_id | UUID (FK->themes) | Theme being ranked |
+| rank_position | INTEGER | Final aggregated rank (1 = top) |
+| score | FLOAT | Aggregated score (deterministic algorithm) |
+| vote_count | INTEGER | How many participants ranked this theme |
+| is_top_theme2 | BOOLEAN | Whether this is the #1 most-voted Theme2 |
+| aggregated_at | TIMESTAMP | When aggregation ran |
+
+**Table: `governance_overrides`** (MVP3)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Override record ID |
+| session_id | UUID (FK->sessions) | Session reference |
+| theme_id | UUID (FK->themes) | Theme being overridden |
+| original_rank | INTEGER | Rank before override |
+| new_rank | INTEGER | Rank after override |
+| overridden_by | UUID (FK->users) | Lead/Developer who applied override |
+| justification | TEXT | Required justification text |
+| created_at | TIMESTAMP | When override was applied |
+
+#### Inputs
+| Input | Source | Description |
+|-------|--------|-------------|
+| Theme list | Cube 6 | Themes with labels, confidence, counts for ranking UI |
+| User rankings | User UI | Each participant's ordered ranking of themes |
+| Ranking trigger | Cube 5 | Signal to start aggregation after ranking window closes |
+| Governance override | Lead/Developer UI (MVP3) | Override with justification |
+| Theme2 voting level | Cube 1 (session config) | Moderator-selected granularity: `theme2_9`, `theme2_6`, or `theme2_3` |
+| Session ranking mode | Cube 1 (session config) | `auto` / `manual` / `live` -- determines aggregation behavior |
+
+#### Outputs
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Aggregated rankings | Frontend, Cube 9 | Final ranked theme list with scores |
+| #1 Theme2 cluster ID | Cube 5 -> Cube 6 | Top-voted Theme2 for CQS eligibility |
+| Ranking complete event | Cube 5 | Signal that ranking is finalized |
+| Override audit entry | Cube 8 (audit), Cube 9 | Override record for audit trail |
+| Live ranking updates | Frontend (MVP2 WebSocket) | Real-time ranking state changes pushed to all participants |
+
+#### Functions (8 total)
+| Function | Description | MVP | Status |
+|----------|-------------|-----|--------|
+| `submit_user_ranking()` | Records a participant's theme ranking order. Validates theme IDs exist and belong to the session's selected Theme2 level. | 1 | Stub |
+| `aggregate_rankings()` | Deterministic aggregation algorithm (median-based stable scoring). Must produce identical results for identical inputs. Uses Borda count with tie-breaking by submission order. | 1 | Stub |
+| `identify_top_theme2()` | Finds the #1 most-voted Theme2 cluster from aggregated results. Sets `is_top_theme2=True` on the winning theme's aggregated_ranking record. | 1 | Stub |
+| `apply_governance_override()` | Lead/Developer overrides a theme's rank with mandatory justification. Creates governance_overrides record and updates aggregated_rankings. Triggers audit log entry in Cube 8. | 3 | Not implemented |
+| `validate_override_permission()` | Checks RBAC -- only Lead/Developer role can override. Returns 403 Forbidden for other roles. | 3 | Not implemented |
+| `emit_ranking_complete()` | Notifies Cube 5 that rankings are finalized. Fires `ranking_aggregation` pipeline trigger completion. Sends #1 Theme2 ID for CQS scoring. | 1 | Not implemented |
+| `get_live_rankings()` | Returns current ranking state for real-time display. MVP1: HTTP polling. MVP2: WebSocket push with <500ms latency. | 1/2 | Not implemented |
+| `detect_voting_anomalies()` | Anti-sybil detection: flags suspicious voting patterns (e.g., identical rankings from multiple participants, rapid-fire submissions, coordinated block voting). Anomalies logged to audit trail. | 2 | Not implemented |
+
+#### UI/UX Translation Strings (17 keys)
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube7.ranking.title` | "Rank the Themes" | Ranking page header |
+| `cube7.ranking.instructions` | "Drag themes to rank them by importance (most important first)" | Instructions for desktop/laptop |
+| `cube7.ranking.tap_instructions` | "Tap to select your ranking order" | Mobile touch instructions |
+| `cube7.ranking.submit` | "Submit Ranking" | Submit button |
+| `cube7.ranking.submitted` | "Ranking submitted!" | Success confirmation |
+| `cube7.ranking.waiting` | "Waiting for others to rank..." | Waiting state while other participants complete |
+| `cube7.ranking.results_title` | "Ranked Priorities" | Results header after aggregation |
+| `cube7.ranking.rank_label` | "#{rank}" | Rank position display (e.g., "#1", "#2") |
+| `cube7.ranking.votes` | "{count} votes" | Vote count per theme |
+| `cube7.ranking.score` | "Score: {score}" | Aggregated score display |
+| `cube7.ranking.top_theme` | "Top Priority" | Badge for #1 theme |
+| `cube7.ranking.override_applied` | "Ranking adjusted by Lead" | Override notice (MVP3) |
+| `cube7.ranking.override_justification` | "Reason: {text}" | Override justification display (MVP3) |
+| `cube7.ranking.no_rankings_yet` | "No rankings submitted yet" | Empty state |
+| `cube7.ranking.themes_generating` | "Generating themes..." | Progressive theme reveal loading |
+| `cube7.ranking.theme_revealed` | "New theme discovered!" | Progressive reveal notification (paid tiers) |
+| `cube7.ranking.voting_opens_soon` | "Voting opens when all themes are ready" | Pre-voting state |
+
+### Cube 7 — CRS Traceability
+
+| CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
+|-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
+| CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Stub** | 1 | User ranks themes after poll closes | Ranking interface responds within 200ms; deterministic ordering of themes presented to user | Weighted and multi-criteria ranking with drag-drop reorder |
+| CRS-12 | CRS-12.IN.WRS.012 | CRS-12.OUT.WRS.012 | **Stub** | 1 | System aggregates rankings deterministically | Compute final rankings within 3 seconds for up to 100,000 participants; identical inputs yield identical outputs | AI-assisted consensus scoring with confidence intervals |
+| CRS-13 | CRS-13.IN.SRS.013 | CRS-13.OUT.SRS.013 | **Stub** | 1 | Lead reviews ranked priorities with metadata | Display vote counts, submission timestamps, and confidence scores for each theme | Historical trend comparisons across sessions within same scoping context |
+| CRS-16 | CRS-16.IN.SRS.016 | CRS-16.OUT.SRS.016 | **Not implemented** | 2 | Moderator enables live prioritization during active session | Live ranking sync latency under 500ms via WebSocket; participants see updates without page refresh | Visual consensus alerts, animated transitions, and convergence indicators |
+| CRS-17 | CRS-17.IN.WRS.017 | CRS-17.OUT.WRS.017 | **Not implemented** | 2 | User sees real-time ranking updates as others vote | End-to-end update latency under 1 second from submission to all connected clients | Collaborative ranking tools with participant grouping and delegation |
+| CRS-22 | CRS-22.IN.SRS.022 | CRS-22.OUT.SRS.022 | **Not implemented** | 3 | Lead overrides rankings with documented justification | Justification required and logged for every override; full audit trail with original vs. new rank | Bias detection on overrides, peer review workflow, override impact analysis |
+
+### Cube 7 — DesignMatrix VOC (Voice of Customer)
+
+| CRS | Customer Need | VOC Comment |
+|-----|---------------|-------------|
+| CRS-11 | Ability to influence outcomes, not just comment | "Ranking feels more meaningful than voting yes/no -- I can actually express priorities." |
+| CRS-12 | Confidence that results are objective and consistent | "We need the same inputs to produce the same outputs every time. No randomness in results." |
+| CRS-13 | Context behind decisions, not just final numbers | "Leaders need defensible rationale for choices -- metadata and audit trails are essential." |
+| CRS-16 | Faster decision-making during live meetings | "We want decisions before the meeting ends. Live updates keep momentum going." |
+| CRS-17 | Immediate feedback that my input matters | "Live updates increase engagement and trust -- people stay invested when they see impact." |
+| CRS-22 | Balance between group input and leadership responsibility | "Leaders must own final decisions but group input provides legitimacy and buy-in." |
+
+### Cube 7 — Architectural Constraints
+
+- **Determinism:** Aggregation algorithm must be fully reproducible. Same set of rankings -> same aggregated result. Seeded tie-breaking for identical scores.
+- **Anti-sybil:** Voting anomaly detection must flag coordinated voting patterns without blocking legitimate rapid submissions.
+- **Governance damping:** Quadratic vote normalization applies -- `weight = sqrt(tokens_staked)` -- to prevent manipulation by high-token holders.
+- **Progressive reveal:** Theme2 themes appear one-by-one on the hosting PC (paid tiers only) via WebSocket push from Cube 6. Voting only opens after all themes at the selected level are ready.
+- **Responsive ranking UI:** Must support drag-drop on desktop/laptop AND tap-to-reorder on phone/tablet. Touch targets >= 44px for accessibility.
+
+### Cube 7 — Traceability
+
+- Scoping: via `session_id` (see Shared Core -- Cross-Cutting Scoping Inheritance)
+- `governance_overrides` creates audit trail linking override to actor, justification, and original/new rank
+- `is_top_theme2` flag on aggregated rankings directly feeds CQS reward pipeline (Cube 5 -> Cube 6 -> Cube 8)
+- All ranking data exportable via Cube 9 with full session scoping
+- Override events logged in Cube 8 token ledger for governance accountability
+
+### Cube 7 — Files
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `backend/app/cubes/cube7_ranking/router.py` | 26 | 3 API endpoint stubs (submit, aggregate, override) |
+| `backend/app/cubes/cube7_ranking/__init__.py` | - | Package init |
+| `backend/app/schemas/ranking.py` | 35 | Pydantic schemas (RankingSubmit, RankingRead, AggregatedRankingRead) |
+
+### Cube 7 — Downstream/Upstream Dependencies
+
+| Direction | Cube | Dependency |
+|-----------|------|------------|
+| **Upstream (receives from)** | Cube 6 (AI) | Theme list with labels, confidence, counts, exemplars |
+| **Upstream (receives from)** | Cube 5 (Gateway) | Ranking pipeline trigger signal |
+| **Upstream (receives from)** | Cube 1 (Session) | Session config: ranking_mode, theme2_voting_level |
+| **Downstream (sends to)** | Cube 5 (Gateway) | Ranking complete event + #1 Theme2 cluster ID |
+| **Downstream (sends to)** | Cube 8 (Tokens) | Override audit entries for governance trail |
+| **Downstream (sends to)** | Cube 9 (Reports) | Aggregated rankings for export/analytics |
+| **Downstream (sends to)** | Frontend | Live ranking state for display |
+
+---
+
+## Cube 8 — Token Reward Calculator & Governance/Audit: PARTIALLY IMPLEMENTED (Position 1,1,2 / MVP1-MVP3)
+
+> **Grid position:** (1,1,2) -- left of Level 1 grid
+> **Spiral order:** 8th cube (left, after Cube 7 Ranking at bottom-left)
+> **MVP scope:** MVP1 (basic token calc), MVP3 (full governance, payments, talent, execution separation)
+
+### Cube 8 — Overview
+
+Cube 8 manages the complete SoI Trinity Token lifecycle: the append-only ledger, payment processing, gamified rewards, talent profiles, and ideation/execution separation enforcement. It is the financial and governance backbone of the platform.
+
+Key responsibilities:
+- **SoI Trinity Tokens:** ♡ (Shared Intent -- time-based), 웃 (Human Intelligence -- jurisdiction min-wage), ◬ (Artificial Intelligence -- 5x multiplier)
+- **Method-aware calculation:** Ledger entries tagged with `distribution_method` (polling / peer_volunteer / team_collaboration) and `desired_outcome_id`
+- **Outcome tracking:** Each ledger entry records outcome status (achieved / partial / not achieved)
+- **Gamified reward payout:** Receives CQS winner from Cube 5 -> disburses Moderator-funded bonus via Stripe/GPay/ApplePay
+- **Payment processing:** Moderator session fees, participant cost-split payments, reward payouts
+- **Talent profiles:** Built from CQS scores + participation history for project-level talent recommendations
+- **Execution separation:** Enforces ideation/execution firewall per scoping context
+
+### Cube 8 — Current Implementation Status
+
+**Backend service:** `backend/app/cubes/cube8_tokens/service.py` (99 lines)
+- `get_session_tokens()` -- query all ledger entries for a session
+- `get_user_token_balance()` -- aggregated ♡/웃/◬ balance for user in session
+- `create_dispute()` -- file a dispute against a ledger entry
+
+**Backend router:** `backend/app/cubes/cube8_tokens/router.py` (73 lines)
+- `GET /sessions/{session_id}/tokens` -- session token ledger (CRS-25)
+- `POST /tokens/dispute` -- file dispute (CRS-33)
+- `GET /tokens/rates` -- full 웃 rate table (59 jurisdictions)
+- `GET /tokens/rates/lookup` -- lookup rate by country/state
+
+**Models:** `backend/app/models/token_ledger.py` (53 lines)
+- `TokenLedger` ORM: session_id, user_id, anon_hash, cube_id, action_type, delta_heart, delta_human, delta_unity, lifecycle_state, reason, reference_id, version_id
+- `TokenDispute` ORM: ledger_entry_id, flagged_by, reason, evidence, status, resolution_notes, resolved_by, resolved_at
+
+**Schemas:** `backend/app/schemas/token.py` (38 lines)
+- `TokenLedgerRead`: serializes with `♡`, `웃`, `◬` field aliases
+- `TokenDisputeCreate`, `TokenDisputeRead`
+
+**Core rates:** `backend/app/core/hi_rates.py`
+- 59 jurisdictions: 9 international ($0.34-$3.02/hr) + 50 US states ($7.25-$16.28/hr)
+- `resolve_human_rate(country, state)` and `get_all_rates()`
+
+### Cube 8 — Requirements.txt Specification
+
+#### Data Tables (6 total)
+
+**Table: `token_ledger`** (Append-Only -- no mutations, only new entries)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Ledger entry ID (auto-generated) |
+| session_id | UUID (FK->sessions) | Session reference |
+| participant_id | UUID (FK->participants) | Token recipient |
+| cube_id | INTEGER | Which cube generated this entry (1-10) |
+| action_type | ENUM | `login` / `responding` / `ranking` / `reviewing` / `peer_volunteer` / `team_collaboration` / `reward_payout` |
+| distribution_method | ENUM | `polling` / `peer_volunteer` / `team_collaboration` |
+| delta_si | INTEGER | ♡ tokens awarded (ceil of active minutes) |
+| delta_hi | FLOAT | 웃 tokens awarded (jurisdiction rate * minutes / 60) |
+| delta_ai | INTEGER | ◬ tokens awarded (5x ♡ default multiplier) |
+| desired_outcome_id | UUID (FK->desired_outcomes, nullable) | Linked outcome record (Methods 2 & 3) |
+| outcome_status | ENUM | `achieved` / `partially_achieved` / `not_achieved` / `n_a` |
+| lifecycle_state | ENUM | `simulated` / `pending` / `approved` / `finalized` / `reversed` |
+| reason | TEXT | Rationale for this entry (human-readable) |
+| version_id | VARCHAR(50) | Cube version + dependency graph hash for audit lineage |
+| created_at | TIMESTAMP | Entry creation timestamp (append-only, immutable) |
+
+**Current ORM implementation note:** The existing `TokenLedger` model uses `delta_heart`, `delta_human`, `delta_unity` column names (mapped to ♡, 웃, ◬ via Pydantic serialization aliases). The spec uses `delta_si`, `delta_hi`, `delta_ai`. Both refer to the same tokens. The `user_id`/`anon_hash` fields in the current model correspond to the spec's `participant_id`.
+
+**Table: `payment_transactions`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Transaction ID |
+| session_id | UUID (FK->sessions) | Session reference |
+| participant_id | UUID (FK->participants, nullable) | Participant (null for Moderator fee) |
+| transaction_type | ENUM | `moderator_fee` / `cost_split` / `reward_payout` |
+| provider | ENUM | `stripe` / `google_pay` / `apple_pay` |
+| amount_cents | INTEGER | Amount in cents (USD) |
+| currency | VARCHAR(3) | Currency code (e.g., `USD`) |
+| provider_transaction_id | VARCHAR(255) | Stripe/GPay/ApplePay external reference ID |
+| status | ENUM | `pending` / `completed` / `failed` / `refunded` |
+| created_at | TIMESTAMP | Transaction timestamp |
+
+**Table: `reward_payouts`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Payout record ID |
+| session_id | UUID (FK->sessions) | Session reference |
+| winner_participant_id | UUID (FK->participants) | CQS winner |
+| cqs_score_id | UUID (FK->cqs_scores) | Winning CQS record from Cube 6 |
+| reward_amount_cents | INTEGER | Payout amount in cents |
+| payment_transaction_id | UUID (FK->payment_transactions) | Payment reference for the disbursement |
+| status | ENUM | `pending` / `disbursed` / `failed` |
+| created_at | TIMESTAMP | When payout was initiated |
+
+**Table: `token_disputes`** (Implemented)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Dispute ID |
+| ledger_entry_id | UUID (FK->token_ledger) | Disputed ledger entry |
+| flagged_by | UUID (FK->users) | Who raised dispute |
+| reason | TEXT | Dispute reason (required) |
+| evidence | TEXT (nullable) | Supporting evidence |
+| status | ENUM | `open` / `under_review` / `resolved` / `rejected` |
+| resolution_notes | TEXT (nullable) | Resolution details |
+| resolved_by | UUID (FK->users, nullable) | Who resolved |
+| created_at | TIMESTAMP | When filed |
+| resolved_at | TIMESTAMP (nullable) | When resolved |
+
+**Table: `talent_profiles`** (Project Mode -- Talent Recommendation)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Talent profile ID |
+| user_id | UUID (FK->users) | User reference |
+| skills | JSONB | Array of skill tags (derived from CQS scores, session participation, role history) |
+| avg_cqs_composite | FLOAT | Average CQS composite score across all sessions |
+| total_si_earned | INTEGER | Total ♡ earned lifetime |
+| session_count | INTEGER | Total sessions participated in |
+| top_theme_categories | JSONB | Theme categories the user excels in (from Cube 6 assignments) |
+| role_history | JSONB | Array of roles held across sessions (`technology` / `creative` / `business_value`) |
+| is_available | BOOLEAN | Whether user opts into the talent pool |
+| updated_at | TIMESTAMP | Last profile update |
+
+**Table: `execution_separation_log`** (Anti-Corruption: Ideation != Execution)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Log entry ID |
+| scoping_id | UUID | Project/Differentiator/Specification ID |
+| scoping_type | ENUM | `project` / `specification` / `product_differentiator` |
+| ideation_participant_ids | JSONB | Array of user_ids who participated in ideation/polling |
+| blocked_from_execution | BOOLEAN | True = these users cannot be on execution team |
+| enforcement_level | ENUM | `hard_block` / `soft_warn` -- Hard = system prevents; Soft = system warns but allows |
+| created_at | TIMESTAMP | When rule was established |
+
+#### Inputs
+| Input | Source | Description |
+|-------|--------|-------------|
+| Time entries | Cube 5 | Completed time tracking data with durations and action types |
+| CQS winner | Cube 5 -> Cube 6 | Winner participant_id + CQS score for reward disbursement |
+| Payment events | Cube 1 (join), Moderator | Stripe/GPay/ApplePay payment confirmations |
+| Jurisdiction rate | Shared core (`hi_rates.py`) | 웃 rate per participant's jurisdiction |
+| Token dispute | User UI | Dispute filing on a specific ledger entry |
+| Override event | Cube 7 | Governance override affecting token attribution |
+| Desired outcome result | Cube 4 / Cube 5 | Outcome status for Methods 2 & 3 |
+| Session config | Cube 1 | Pricing tier, fee amount, cost splitting, reward amount, CQS weights |
+
+#### Outputs
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Ledger entries | Cube 9 (Reports), Audit | Append-only token records with full metadata |
+| Token balances | Frontend, Cube 9 | Per-user ♡/웃/◬ totals across sessions |
+| Payment confirmations | Cube 1 (join flow), Frontend | Payment success/failure status |
+| Reward payout confirmation | Cube 5 -> Frontend | Reward disbursed notification |
+| Talent profile updates | Cube 9 (Talent dashboard) | Updated skills, CQS averages, availability |
+| Execution separation check | Cube 1, Cube 5 | Block/warn if ideation member attempts to join execution team |
+| Dispute status | Frontend, Moderator dashboard | Dispute resolution updates |
+
+#### Functions (14 total)
+| Function | Description | MVP | Status |
+|----------|-------------|-----|--------|
+| `create_ledger_entry()` | Append-only write to token_ledger with all metadata (session, participant, cube, action, method, outcome, version). Immutable after creation. | 1 | Partial (via Cube 5 time tracking) |
+| `calculate_session_tokens()` | Computes ♡/웃/◬ for all participants in a session. ♡ = ceil(active_minutes), 웃 = minutes * (jurisdiction_rate / 60), ◬ = ♡ * 5. | 1 | Partial (in Cube 5 service) |
+| `process_moderator_fee()` | Handles Moderator session fee via Stripe/GPay/ApplePay. Creates `moderator_fee` payment_transaction. | 1 | Not implemented |
+| `process_cost_split_payment()` | Handles participant cost-split payment. Dynamically calculates per-user fee = fee_amount / participant_count. Creates `cost_split` payment_transaction. | 1 | Not implemented |
+| `disburse_reward()` | Pays CQS winner the gamified bonus amount via Stripe. Creates `reward_payout` record + payment_transaction. Notifies Cube 9 for announcement. | 1 | Not implemented |
+| `get_user_balance()` | Returns total ♡/웃/◬ across all sessions for a user. Filters by lifecycle_state in (pending, approved, finalized). | 1 | Implemented |
+| `file_dispute()` | Creates a dispute on a ledger entry. Validates entry exists. Sets status = `open`. | 3 | Implemented |
+| `resolve_dispute()` | Admin/Lead resolves dispute with notes. Transitions status to `resolved` or `rejected`. Records resolved_by and resolved_at. | 3 | Not implemented |
+| `transition_lifecycle_state()` | Moves ledger entry through simulated -> pending -> approved -> finalized (+ reversed). Validates legal state transitions. | 3 | Not implemented |
+| `update_talent_profile()` | Updates user's talent profile from CQS scores, role history, SI earned. Called after each session completion. | 3 | Not implemented |
+| `recommend_talent()` | Queries talent_profiles for users matching skill/theme criteria for a project. Returns ranked recommendations with match scores. | 3 | Not implemented |
+| `check_execution_separation()` | Verifies a user was NOT in the ideation/polling team before allowing them on execution team. Returns block/warn based on enforcement_level. | 3 | Not implemented |
+| `log_execution_separation()` | Records ideation participants list per scoping_id for enforcement. Called when session closes. | 3 | Not implemented |
+| `get_jurisdiction_rate()` | Looks up 웃 rate for a participant's jurisdiction from `hi_rates.py`. Returns hourly rate + per-minute rate. | 1 | Implemented |
+
+#### UI/UX Translation Strings (17 keys)
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube8.tokens.balance` | "Your Tokens" | Token balance header |
+| `cube8.tokens.si_total` | "♡ {count}" | SI total display |
+| `cube8.tokens.hi_total` | "웃 ${amount}" | HI total display (with currency) |
+| `cube8.tokens.ai_total` | "◬ {count}" | AI total display |
+| `cube8.payment.processing` | "Processing payment..." | Payment loading state |
+| `cube8.payment.success` | "Payment successful" | Payment confirmation |
+| `cube8.payment.failed` | "Payment failed -- please try again" | Payment error |
+| `cube8.payment.choose_method` | "Choose payment method" | Payment method selector (Stripe/GPay/ApplePay) |
+| `cube8.dispute.file` | "Dispute this entry" | Dispute button on ledger entry |
+| `cube8.dispute.reason` | "Why are you disputing?" | Dispute reason prompt |
+| `cube8.dispute.submitted` | "Dispute submitted for review" | Dispute confirmation |
+| `cube8.dispute.resolved` | "Dispute resolved" | Resolution notice |
+| `cube8.talent.available` | "I'm available for projects" | Opt-in toggle label for talent pool |
+| `cube8.talent.skills` | "Your skills" | Skills display header on talent profile |
+| `cube8.talent.recommended` | "Recommended for this project" | Talent recommendation badge |
+| `cube8.separation.blocked` | "You participated in the ideation phase and cannot join the execution team for this project" | Hard block message (execution separation) |
+| `cube8.separation.warning` | "Note: You participated in ideation for this project. Joining execution may pose a conflict of interest." | Soft warning (execution separation) |
+
+### Cube 8 — CRS Traceability
+
+| CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
+|-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
+| CRS-18 | CRS-18.IN.SRS.018 | CRS-18.OUT.SRS.018 | **Not implemented** | 2 | System supports real-time token updates via WebSockets | Token balance updates pushed within 500ms of earning | Real-time token velocity monitoring and alerts |
+| CRS-19 | CRS-19.IN.SRS.019 | CRS-19.OUT.SRS.019 | **Not implemented** | 2 | System tracks engagement metrics including token distribution | Token distribution per session queryable within 1 second | Cross-session token analytics and trend reporting |
+| CRS-24 | CRS-24.IN.SRS.024 | CRS-24.OUT.SRS.024 | **Partial** | 3 | System enforces governance + audit logging + RBAC on token operations | Every token mutation logged with actor, timestamp, version_id, and justification | Full governance weight damping, quadratic normalization, and velocity caps |
+| CRS-25 | CRS-25.IN.SRS.025 | CRS-25.OUT.SRS.025 | **Partial** | 3 | System calculates and assigns Trinity Tokens (♡, 웃, ◬) accurately | ♡ = ceil(minutes), 웃 = jurisdiction rate, ◬ = 5x ♡; ledger entry per action | Multi-method ledger with outcome tracking, desired_outcome_id linkage |
+| CRS-32 | CRS-32.IN.SRS.032 | CRS-32.OUT.SRS.032 | **Partial** | 3 | System attributes tokens to actions/cubes/timestamps transparently | Every ledger entry includes cube_id, action_type, version_id | Full dependency graph hash per entry for reproducibility |
+| CRS-33 | CRS-33.IN.SRS.033 | CRS-33.OUT.SRS.033 | **Implemented** | 3 | User or Lead/Developer can flag/dispute token calculations | Dispute filed with reason, linked to specific ledger entry, status tracked | Evidence attachment, admin review workflow, SLA for resolution |
+| CRS-34 | CRS-34.IN.SRS.034 | CRS-34.OUT.SRS.034 | **Partial** | 3 | System assigns token lifecycle states correctly | simulated -> pending -> approved -> finalized (+ reversed); valid transitions enforced | Automated approval for routine entries, manual review for anomalies |
+| CRS-35 | CRS-35.IN.SRS.035 | CRS-35.OUT.SRS.035 | **Not implemented** | 3 | Business Owner sees standardized token definitions + valuation rules per session | Per-session token rules displayed: multipliers, methods, jurisdiction rates | Configurable token policies per organization with override audit |
+
+### Cube 8 — DesignMatrix VOC (Voice of Customer)
+
+| CRS | Customer Need | VOC Comment |
+|-----|---------------|-------------|
+| CRS-18 | See token earnings in real time during participation | "Watching my tokens grow as I contribute keeps me engaged and motivated." |
+| CRS-19 | Understand how token distribution works across the session | "I want to see how my contribution compares to the group average." |
+| CRS-24 | Trust that the system is fair and auditable | "If I can't audit the token calculations, I won't trust the system." |
+| CRS-25 | Receive fair compensation for my time and contributions | "1 minute = 1 token makes sense. The jurisdiction-based wage rate is a game changer for global teams." |
+| CRS-32 | Transparency in how tokens are attributed to specific actions | "I want to see exactly which actions earned me which tokens, with timestamps." |
+| CRS-33 | Ability to challenge incorrect token calculations | "Mistakes happen -- I need a dispute process that's fair and responsive." |
+| CRS-34 | Confidence that token states are managed correctly | "Simulated tokens should never be confused with finalized ones. Clear state labels matter." |
+| CRS-35 | Clear rules for what tokens mean in business terms | "Business stakeholders need to understand token economics before approving budgets." |
+
+### Cube 8 — Architectural Constraints
+
+- **Append-only ledger:** No mutations to existing entries. Corrections are made by appending a new `reversed` entry that negates the original.
+- **Lifecycle state machine:** Only valid transitions: simulated -> pending -> approved -> finalized. Reversed can be applied to pending/approved/finalized. No backward transitions otherwise.
+- **Treasury-backed 웃 redemption:** 웃 tokens only redeemable against available treasury balance. `hi_enabled=False` pre-treasury.
+- **Token velocity caps:** Limit transfer/redemption speed to prevent gaming (max N tokens per hour).
+- **Version-locked entries:** Every ledger entry references `version_id` = cube version + dependency graph hash for full audit lineage.
+- **Execution separation enforcement:** Ideation team members blocked from execution roles per `scoping_id`. `hard_block` prevents join; `soft_warn` allows with logged warning.
+
+### Cube 8 — 웃 Rate Table ($/hr)
+
+| Range | Jurisdictions |
+|-------|---------------|
+| $0.34-$1.04 | Nigeria, Nepal, Cambodia |
+| $1.43-$3.02 | Mexico, Thailand, Brazil, Honduras, Colombia, Chile |
+| $7.25 | TX, AL, GA, ID, IN, IA, KS, KY, LA, MS, NH, NC, ND, OK, PA, SC, TN, UT, WI, WY |
+| $8.75-$12.30 | WV, MI, OH, MT, MN, AR, SD, AK, NE, NV, NM, VA, MO |
+| $13.00-$16.28 | FL, VT, HI, RI, ME, CO, AZ, OR, DE, IL, MD, MA, NY, NJ, CT, CA, WA |
+
+API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&state=California`
+
+### Cube 8 — Traceability
+
+- Scoping: via `session_id` (see Shared Core -- Cross-Cutting Scoping Inheritance)
+- `payment_transactions` track all money flow per session with provider reference
+- `talent_profiles` aggregated from all session participation -- queryable by scoping context
+- `execution_separation_log` enforces ideation/execution separation per `scoping_id` -- prevents corruption where the team that ideated/polled also executes
+- Every ledger entry references `version_id` (cube version + dependency hash) for full audit lineage
+- `reward_payouts` links CQS score -> payment transaction -> winner participant for end-to-end reward traceability
+
+### Cube 8 — Files
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `backend/app/cubes/cube8_tokens/service.py` | 99 | Ledger queries + dispute creation |
+| `backend/app/cubes/cube8_tokens/router.py` | 73 | 4 API endpoints (tokens, dispute, rates, rates lookup) |
+| `backend/app/models/token_ledger.py` | 53 | TokenLedger + TokenDispute ORM models |
+| `backend/app/schemas/token.py` | 38 | Pydantic schemas with ♡/웃/◬ serialization aliases |
+| `backend/app/core/hi_rates.py` | - | 59-jurisdiction 웃 rate table + lookup functions |
+
+### Cube 8 — Downstream/Upstream Dependencies
+
+| Direction | Cube | Dependency |
+|-----------|------|------------|
+| **Upstream (receives from)** | Cube 5 (Gateway) | Time entries with durations, token calculation triggers |
+| **Upstream (receives from)** | Cube 5 -> Cube 6 | CQS winner participant_id + score for reward payout |
+| **Upstream (receives from)** | Cube 1 (Session) | Payment events, session config (pricing, fees, reward) |
+| **Upstream (receives from)** | Cube 7 (Ranking) | Governance override events for audit trail |
+| **Upstream (receives from)** | Cube 4 (Collector) | Desired outcome results (Methods 2 & 3) |
+| **Downstream (sends to)** | Cube 9 (Reports) | Ledger entries, token balances, talent profiles |
+| **Downstream (sends to)** | Cube 1 (Session) | Payment confirmation, execution separation check |
+| **Downstream (sends to)** | Frontend | Token balances, payment status, dispute status |
+
+---
+
+## Cube 9 — Reports, Export & Dashboards: PARTIALLY IMPLEMENTED (Position 1,1,3 / MVP1-MVP3)
+
+> **Grid position:** (1,1,3) -- top-left of Level 1 grid
+> **Spiral order:** 9th cube (top-left, final cube in Layer 1 spiral)
+> **MVP scope:** MVP1 (CSV export), MVP2 (PDF, analytics), MVP3 (Pixelated Tokens, CQS dashboard, talent)
+
+### Cube 9 — Overview
+
+Cube 9 is the reporting and export layer. It consumes data from all other cubes and produces exports, dashboards, Pixelated Token images, and talent recommendations. It also handles results distribution (only paying + Lead-exempt users receive results) and data destruction after token image delivery.
+
+Key responsibilities:
+- **CSV/PDF export:** 15-column schema matching the reference output format
+- **Pixelated Tokens:** Self-contained, value-carrying images with encoded pixel borders and center QR
+- **Results distribution:** Only users who opted in AND paid (or are Lead/Developer exempt) receive polling results
+- **CQS dashboard (Moderator-only):** Per-response CQS scores, distribution, reward winner details
+- **Reward announcement:** Winner notified privately; other users see generic "a participant won" message
+- **Talent recommendation:** In project mode, recommends talent based on CQS + skills, with execution separation enforcement
+- **Data destruction:** After Pixelated Token delivery, user token data is purged from the system
+
+### Cube 9 — Current Implementation Status
+
+**Backend service:** `backend/app/cubes/cube9_reports/service.py` (136 lines)
+- `export_session_csv()` -- builds 15-column CSV from Postgres (ResponseMeta, Question) + MongoDB (raw text, summaries, themes)
+- `export_session_csv_to_file()` -- writes CSV to filesystem
+- CSV columns: Q_Number, Question, User, Detailed_Results, 333_Summary, 111_Summary, 33_Summary, Theme01, Theme01_Confidence, Theme2_9, Theme2_9_Confidence, Theme2_6, Theme2_6_Confidence, Theme2_3, Theme2_3_Confidence
+
+**Backend router:** `backend/app/cubes/cube9_reports/router.py` (39 lines)
+- `GET /sessions/{session_id}/export/csv` -- CRS-14: CSV download as StreamingResponse
+- `GET /sessions/{session_id}/analytics` -- CRS-19: stub (`NotImplementedError`)
+
+**Exporters package:** `backend/app/cubes/cube9_reports/exporters/` -- scaffolded (empty `__init__.py`)
+
+### Cube 9 — Requirements.txt Specification
+
+#### Data Tables (4 total)
+
+**Table: `exports`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Export record ID |
+| session_id | UUID (FK->sessions) | Session reference |
+| export_type | ENUM | `csv` / `pdf` / `pixelated_token` / `full_package` |
+| format | VARCHAR(10) | File format (`csv`, `pdf`, `png`, `json`) |
+| file_url | TEXT | Stored file location (S3/local path) |
+| requested_by | UUID (FK->users) | Who requested export |
+| created_at | TIMESTAMP | When generated |
+
+**Table: `pixelated_tokens`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Pixelated token ID |
+| session_id | UUID (FK->sessions) | Session reference |
+| participant_id | UUID (FK->participants) | Token owner |
+| image_data | BYTEA | Generated image binary (PNG) |
+| top_pixel_data | JSONB | Encoded data in top pixel line |
+| encoding_version | INTEGER | Pixel encoding scheme version |
+| qr_payload | TEXT | QR code embedded data (verification URL) |
+| delivered | BOOLEAN | Whether image has been delivered to user |
+| delivery_method | ENUM (nullable) | `download` / `sms` / `email` |
+| delivered_at | TIMESTAMP (nullable) | When delivered |
+| data_destroyed | BOOLEAN | Whether token data was purged post-delivery |
+| created_at | TIMESTAMP | When generated |
+
+**Table: `results_distribution`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Distribution record ID |
+| session_id | UUID (FK->sessions) | Session reference |
+| participant_id | UUID (FK->participants) | Recipient |
+| distribution_type | ENUM | `polling_results` / `full_package` / `pixelated_token` |
+| delivery_method | ENUM | `in_app` / `email` / `sms` / `download` |
+| delivered | BOOLEAN | Whether delivered successfully |
+| delivered_at | TIMESTAMP (nullable) | When delivered |
+
+**Table: `talent_recommendations`**
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | UUID (PK) | Recommendation ID |
+| scoping_id | UUID | Project/Differentiator/Specification this recommendation is for |
+| scoping_type | ENUM | `project` / `specification` / `product_differentiator` |
+| recommended_user_id | UUID (FK->users) | Recommended talent |
+| match_reason | TEXT | Why this talent was recommended (skills, CQS, theme expertise) |
+| match_score | FLOAT | Recommendation confidence (0.0-1.0) |
+| is_eligible | BOOLEAN | False if user was on ideation team (execution separation enforced) |
+| created_at | TIMESTAMP | When recommended |
+
+### Cube 9 — Pixelated Tokens Image Format Specification
+
+A self-contained, value-carrying image that encodes a user's earned tokens. The image is the user's proof of token ownership -- after delivery, the server purges the data.
+
+#### Image Structure (bordered frame around center QR)
+
+```
++---[TOP PIXEL LINE: color-encoded data]---+
+|L|                                       |R|
+|E|                                       |I|
+|F|                                       |G|
+|T|         CENTER: QR CODE              |H|
+| |       (scan for verification)         |T|
+|V|                                       |V|
+|E|                                       |E|
+|R|                                       |R|
+|T|                                       |T|
++--[BOTTOM PIXEL LINE: mirror of top]-----+
+```
+
+- **Top pixel line:** Row of colored pixels. Color and position of each pixel encodes one character. Encoded data includes:
+  - Session Name
+  - Session ID
+  - Date and Time
+  - ♡ (SI) earned
+  - ◬ (AI) earned
+  - 웃 (HI) earned
+  - User hash (anonymized)
+  - Project ID
+  - Encoding version
+
+- **Bottom pixel line:** **Mirror/reverse of top line** -- DNA-style integrity check. Top read forward and bottom read backward must match to confirm authenticity. Mismatch = tampered/invalid image.
+
+- **Left vertical pixels:** Encryption key (first half) -- required to decode the top/bottom pixel data.
+
+- **Right vertical pixels:** Encryption key (second half) -- combined with left vertical to form the full decryption key.
+
+- **Center:** QR code for quick scan/verification and token data retrieval.
+
+- **Pixel encoding scheme:** Versioned color-to-character mapping. Each pixel = one encoded character. Color + position = value. The `encoding_version` field allows the scheme to evolve without breaking old tokens.
+
+#### Delivery & Data Destruction
+
+- **Delivery methods (user chooses one):**
+  - Download directly from app
+  - Send via SMS/text
+  - Send via email
+
+- **Data destruction:** After the Pixelated Token image is delivered to the user, **the user's token data is destroyed from the system**. The token value lives in the image itself, not on the server. Privacy-by-design.
+
+- **Implication:** Users are responsible for safekeeping their Pixelated Token image. Lost image = lost token proof.
+
+- **Token independence:** ♡, ◬, and 웃 track value independently with no dependency on any cryptocurrency. Blockchain integrations can be layered on later.
+
+### Cube 9 — Inputs
+
+| Input | Source | Description |
+|-------|--------|-------------|
+| Session data | All cubes | Complete session: responses, themes, rankings, tokens, time entries |
+| Payment status | Cube 8 | Who paid / who is Lead-exempt -- for results distribution eligibility |
+| CQS scores | Cube 6 | All scores for Moderator CQS dashboard |
+| Token ledger | Cube 8 | Token data for Pixelated Token image generation |
+| Talent profiles | Cube 8 | Talent pool for recommendations |
+| Execution separation log | Cube 8 | Ideation team members to flag as ineligible for execution |
+| Results opt-in flags | Cube 1 (participants) | Who clicked "Yes" for results |
+| Export request | User UI / Auto-trigger | Request for CSV/PDF/Pixelated Token generation |
+| Session config | Cube 1 | Pricing tier, reward settings, live feed settings |
+
+### Cube 9 — Outputs
+
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| CSV/PDF export files | User download / email / SMS | Session results in 15-column format |
+| Pixelated Token images | User download / email / SMS | Self-contained token proof images |
+| Results distribution records | Audit | Who received what, when, via what method |
+| CQS dashboard data | Moderator UI | Scores, distribution, winner details |
+| Talent recommendations | Moderator / Project owner UI | Recommended talent with eligibility flags |
+| Analytics dashboard data | Moderator UI | Participation, completion, timing analytics |
+| Data destruction confirmation | Audit | Confirmation that token data was purged post-delivery |
+| Reward announcement | Frontend | Winner notification + generic announcement to all |
+
+### Cube 9 — Functions (14 total)
+
+| Function | Description | MVP | Status |
+|----------|-------------|-----|--------|
+| `generate_csv_export()` | Produces CSV matching the 15-column target output schema. Queries Postgres (ResponseMeta, Question) + MongoDB (summaries, themes). | 1 | Implemented |
+| `generate_pdf_export()` | Produces formatted PDF report with themes, rankings, and analytics. Includes charts and summaries. | 2 | Not implemented |
+| `generate_pixelated_token()` | Creates Pixelated Token image: encodes token data in pixel borders, generates center QR code, assembles final PNG. | 3 | Not implemented |
+| `encode_pixel_line()` | Encodes data string into a row of colored pixels using versioned color-to-character mapping scheme. | 3 | Not implemented |
+| `mirror_pixel_line()` | Creates reversed bottom pixel line from top pixel line (DNA-style integrity check). | 3 | Not implemented |
+| `generate_encryption_keys()` | Creates left/right vertical pixel encryption key halves. Combined key required to decode top/bottom data. | 3 | Not implemented |
+| `distribute_results()` | Delivers results to all eligible participants (paid + Lead-exempt). Checks results_opt_in + payment_status. Creates results_distribution records. | 1 | Not implemented |
+| `deliver_pixelated_token()` | Sends token image via chosen method (download/SMS/email). Updates delivered flag and timestamp. | 3 | Not implemented |
+| `destroy_token_data()` | Purges token data from system after image delivery. Sets data_destroyed = True. Irreversible. | 3 | Not implemented |
+| `build_cqs_dashboard()` | Aggregates CQS data for Moderator dashboard: per-response scores (all 6 metrics + composite), score distribution, winner details. Hidden from regular users. | 1 | Not implemented |
+| `announce_reward_winner()` | Sends private winner notification (full CQS breakdown) + generic "a participant won the bonus" to all other users. No CQS details exposed to non-winners. | 1 | Not implemented |
+| `recommend_talent_for_project()` | Queries talent profiles, filters by execution separation (ideation members ineligible), returns ranked recommendations with match scores and reasons. | 3 | Not implemented |
+| `flag_ideation_members()` | Marks ideation team members as ineligible for execution recommendations. Reads from execution_separation_log. | 3 | Not implemented |
+| `build_analytics_dashboard()` | Aggregates participation, timing, completion, and engagement metrics for Moderator analytics view. | 2 | Not implemented |
+
+### Cube 9 — UI/UX Translation Strings (26 keys)
+
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube9.export.csv` | "Export CSV" | CSV export button |
+| `cube9.export.pdf` | "Export PDF" | PDF export button |
+| `cube9.export.generating` | "Generating export..." | Export loading state |
+| `cube9.export.ready` | "Your export is ready" | Export complete notification |
+| `cube9.export.download` | "Download" | Download button |
+| `cube9.pixelated.generating` | "Creating your Pixelated Token..." | Token image generation loading |
+| `cube9.pixelated.ready` | "Your token image is ready" | Token image complete |
+| `cube9.pixelated.delivery_prompt` | "How would you like to receive your token?" | Delivery method selection prompt |
+| `cube9.pixelated.download` | "Download" | Download delivery option |
+| `cube9.pixelated.sms` | "Send via text" | SMS delivery option |
+| `cube9.pixelated.email` | "Send via email" | Email delivery option |
+| `cube9.pixelated.warning` | "Important: Save this image -- your token data will be removed from our system after delivery" | Data destruction warning (must be acknowledged) |
+| `cube9.results.title` | "Session Results" | Results page header |
+| `cube9.results.restricted` | "Pay to access full results" | Non-paying user restriction message |
+| `cube9.reward.winner` | "Congratulations! You won the contribution bonus!" | Winner private notification |
+| `cube9.reward.announced` | "A participant won the contribution bonus!" | General announcement (no CQS details) |
+| `cube9.cqs.dashboard_title` | "Contribution Quality Scores" | Moderator CQS dashboard header |
+| `cube9.talent.title` | "Recommended Talent" | Talent recommendation dashboard header |
+| `cube9.talent.match_score` | "Match: {percent}%" | Talent match confidence display |
+| `cube9.talent.ineligible` | "Participated in ideation -- not eligible for execution" | Execution separation flag |
+| `cube9.talent.available` | "Available" | Talent availability badge |
+| `cube9.analytics.title` | "Session Analytics" | Analytics dashboard header |
+| `cube9.feedback.prompt` | "How can we make this better?" | System-prompted feedback (links to Cube 10) |
+| `cube9.export.methods_2_3` | "Full session export" | Methods 2 & 3 full content package export |
+| `cube9.results.lead_exempt` | "Lead/Developer access -- complimentary" | Lead exemption indicator |
+| `cube9.results.paid_access` | "Results included with your payment" | Paid user results access confirmation |
+
+### Cube 9 — CRS Traceability
+
+| CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
+|-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
+| CRS-14 | CRS-14.IN.SRS.014 | CRS-14.OUT.SRS.014 | **Implemented** | 1 | System exports session results to CSV | CSV matches 15-column schema; generated within 5 seconds for 10,000 responses | PDF export with charts, masked vs full export options |
+| CRS-15 | CRS-15.IN.WRS.015 | CRS-15.OUT.WRS.015 | **Not implemented** | 2 | Export includes voice transcripts with STT metadata | Voice responses included in CSV with transcript text and confidence scores | Audio playback links in PDF export |
+| CRS-19 | CRS-19.IN.SRS.019 | CRS-19.OUT.SRS.019 | **Stub** | 2 | System tracks and displays engagement analytics | Participation rate, completion rate, time-to-decision, token distribution | Cross-session trend analytics, cohort analysis, predictive engagement |
+| CRS-20 | CRS-20.IN.SRS.020 | CRS-20.OUT.SRS.020 | **Not implemented** | 3 | Reports include deep dive cycle context | Multi-round reports preserve question lineage and theme evolution | Cycle-over-cycle comparison visualizations |
+| CRS-21 | CRS-21.IN.SRS.021 | CRS-21.OUT.SRS.021 | **Not implemented** | 3 | Export preserves full context across deep dive rounds | Each cycle's responses, themes, and rankings included in export | Interactive deep-dive explorer in analytics dashboard |
+
+### Cube 9 — DesignMatrix VOC (Voice of Customer)
+
+| CRS | Customer Need | VOC Comment |
+|-----|---------------|-------------|
+| CRS-14 | Get results out of the system in a usable format | "I need a CSV I can drop into Excel and share with stakeholders immediately." |
+| CRS-15 | Voice contributions included in final results | "If people spoke their responses, those need to show up in the export too." |
+| CRS-19 | Understand session engagement and participation health | "I want to know if people dropped off, how long they spent, and what drove engagement." |
+| CRS-20 | Deep dive results maintain narrative continuity | "Multi-round sessions need reports that tell the full story, not just the last round." |
+| CRS-21 | Full audit trail for governance and compliance | "Our legal team needs to see every input, every ranking, every override in one package." |
+| (Pixelated Token) | Own my token proof independently from the platform | "I love that my token value lives in my image, not on someone else's server." |
+| (Talent) | Find the right people for execution based on ideation quality | "CQS scores tell us who thinks best about this problem. Let's hire them for the build." |
+| (Results Distribution) | Only paying users get results -- fair value exchange | "If I paid to participate, I expect to receive the results. If I didn't, I don't." |
+
+### Cube 9 — Architectural Constraints
+
+- **15-column CSV schema:** Must match the reference output format exactly (see `Updated_Web_Results_With_Themes_And_Summaries_v03 (1).csv`).
+- **Results distribution gating:** Only participants where `results_opt_in = True AND (payment_status = 'paid' OR payment_status = 'lead_exempt')` receive results.
+- **Pixelated Token data destruction:** After image delivery, `destroy_token_data()` purges token records. This is irreversible. User must acknowledge the warning before delivery.
+- **CQS visibility:** CQS scores visible ONLY to Moderators and system. Never exposed to regular users. Winner notification does not include CQS breakdown for other users.
+- **Execution separation in talent:** `talent_recommendations` with `is_eligible = False` are shown to Moderators with a clear ineligibility flag but not filtered out (Moderator can see who was in ideation for context).
+- **Methods 2 & 3 auto-export:** All participants automatically receive a full content package (meeting purpose, desired outcome, time logged, results, ♡ earned) attached to Project ID on session completion.
+
+### Cube 9 — Target Output Schema (15-Column CSV)
+
+The AI pipeline produces output matching this schema (reference: `Updated_Web_Results_With_Themes_And_Summaries_v03 (1).csv`):
+
+| Column | Type | Description |
+|--------|------|-------------|
+| Q_Number | INTEGER | Question identifier / order index |
+| Question | TEXT | The polling question text |
+| User | VARCHAR | User identifier (participant_id or anon hash) |
+| Detailed_Results | TEXT | Raw response text in original language |
+| 333_Summary | TEXT | ~333-word summary (translated to English if needed) |
+| 111_Summary | TEXT | ~111-word summary |
+| 33_Summary | TEXT | ~33-word summary |
+| Theme01 | TEXT | Primary classification: Risk & Concerns / Supporting Comments / Neutral Comments |
+| Theme01_Confidence | VARCHAR | Confidence % (< 65% -> reclassify as Neutral) |
+| Theme2_9 | TEXT | Sub-theme from 9-theme reduced set |
+| Theme2_9_Confidence | VARCHAR | Confidence % |
+| Theme2_6 | TEXT | Sub-theme from 6-theme reduced set |
+| Theme2_6_Confidence | VARCHAR | Confidence % |
+| Theme2_3 | TEXT | Sub-theme from 3-theme reduced set |
+| Theme2_3_Confidence | VARCHAR | Confidence % |
+
+### Cube 9 — Traceability
+
+- Scoping: via `session_id` (see Shared Core -- Cross-Cutting Scoping Inheritance)
+- `talent_recommendations` directly reference `scoping_id` and `scoping_type` for project-level talent matching
+- `execution_separation` enforced per `scoping_id` -- ideation team members automatically flagged as ineligible in talent recommendations
+- Pixelated Token images encode scoping context (Project ID) in pixel data for external verifiability
+- Results distribution audited: who received, when, via what method -- full chain from opt-in to delivery
+- Export records link to `requested_by` user for accountability
+
+### Cube 9 — Files
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `backend/app/cubes/cube9_reports/service.py` | 136 | CSV export (15-column schema from Postgres + MongoDB) |
+| `backend/app/cubes/cube9_reports/router.py` | 39 | 2 API endpoints (CSV export, analytics stub) |
+| `backend/app/cubes/cube9_reports/exporters/__init__.py` | - | Exporters package (scaffolded) |
+
+### Cube 9 — Downstream/Upstream Dependencies
+
+| Direction | Cube | Dependency |
+|-----------|------|------------|
+| **Upstream (receives from)** | Cube 1 (Session) | Session config, participant records, results opt-in flags |
+| **Upstream (receives from)** | Cube 2 (Text) | Text responses with clean_text and response_hash |
+| **Upstream (receives from)** | Cube 3 (Voice) | Voice transcripts with STT metadata |
+| **Upstream (receives from)** | Cube 4 (Collector) | Aggregated response set with language tags |
+| **Upstream (receives from)** | Cube 5 (Gateway) | Time entries, pipeline status |
+| **Upstream (receives from)** | Cube 6 (AI) | Themes, summaries (333/111/33), CQS scores |
+| **Upstream (receives from)** | Cube 7 (Ranking) | Aggregated rankings, governance overrides |
+| **Upstream (receives from)** | Cube 8 (Tokens) | Token ledger, payment status, talent profiles, execution separation |
+| **Downstream (sends to)** | Frontend | Export files, dashboards, analytics, reward announcements |
+| **Downstream (sends to)** | Cube 10 (Simulation) | Replay datasets, metric baselines for simulation comparison |
+| **Downstream (sends to)** | External (User) | Pixelated Token images (delivered then data destroyed) |
+
+---
+
+## Cross-Cube Integration: Cubes 7-8-9 Pipeline
+
+The three cubes in positions (1,1,1), (1,1,2), and (1,1,3) form the final stage of the Level 1 spiral -- the **Ranking -> Tokens -> Reports** pipeline:
+
+```
+Cube 6 (AI Themes)
+       |
+       v
+Cube 7 (Ranking) ---> #1 Theme2 ID ---> Cube 5 (Gateway)
+       |                                       |
+       |                                       v
+       |                              Cube 6 (CQS Scoring)
+       |                                       |
+       v                                       v
+Cube 8 (Tokens) <--- CQS Winner --- Cube 5 (Gateway)
+       |
+       v
+Cube 9 (Reports) ---> CSV/PDF/Pixelated Tokens ---> User
+```
+
+### Pipeline Flow
+
+1. **Cube 7:** Users rank themes at Moderator-selected level (theme2_9/6/3). System aggregates deterministically. Identifies #1 Theme2.
+2. **Cube 5:** Receives ranking complete event. Fires CQS scoring trigger with #1 Theme2 ID to Cube 6.
+3. **Cube 6:** Scores ONLY responses in #1 Theme2 with >95% confidence. Returns CQS winner to Cube 5.
+4. **Cube 5:** Fires reward payout trigger to Cube 8 with winner participant_id + CQS score.
+5. **Cube 8:** Disburses reward via Stripe. Creates ledger entries. Updates talent profiles.
+6. **Cube 9:** Generates exports (CSV/PDF). Distributes results to eligible participants. Creates Pixelated Tokens. Announces reward winner. Destroys token data post-delivery.
+
+### Shared Scoping
+
+All three cubes inherit scoping context from `sessions.scoping_type` + `sessions.scoping_id` via `session_id`. This enables:
+- Filtering rankings/tokens/reports by Project, Specification, or Product Differentiator
+- Cross-session analytics within the same scoping context
+- Talent recommendations scoped to specific projects
+- Execution separation enforcement per scoping boundary
