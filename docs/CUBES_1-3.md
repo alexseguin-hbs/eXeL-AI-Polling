@@ -151,6 +151,169 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 | `core/auth.py` | — | Auth middleware |
 | `core/exceptions.py` | — | Custom exceptions |
 
+### Cube 1 — Requirements.txt Data Tables
+
+**Table: `sessions`** (30+ columns — see CLAUDE.md for implementation status per column)
+| Variable | Type | Implemented? | Description |
+|----------|------|-------------|-------------|
+| id | UUID (PK) | Yes | Session unique identifier |
+| short_code | VARCHAR(8) | Yes | Human-readable join code |
+| created_by | UUID (FK→users) | Yes | Moderator user ID |
+| session_type | ENUM | Yes | `polling` / `peer_volunteer` / `team_collaboration` |
+| polling_mode | ENUM | Yes | `single_round` / `multi_round_deep_dive` |
+| status | ENUM | Yes | `draft` / `open` / `polling` / `ranking` / `closed` / `archived` |
+| scoping_type | ENUM | No | `project` / `specification` / `product_differentiator` |
+| scoping_id | UUID | No | FK to scoping table based on scoping_type |
+| pricing_tier | ENUM | Yes | `free` / `moderator_paid` / `cost_split` |
+| max_participants | INTEGER (nullable) | Yes | Capacity cap (null = unlimited) |
+| fee_amount_cents | INTEGER | Yes | Session fee in cents |
+| cost_splitting_enabled | BOOLEAN | Yes | Fee split among participants |
+| reward_enabled | BOOLEAN | Yes | Gamified reward active |
+| reward_amount_cents | INTEGER | Yes | Bonus reward in cents |
+| cqs_weights | JSONB | Yes | Custom CQS metric weights |
+| anonymity_mode | ENUM | Yes | `anonymous` / `identified` |
+| ranking_mode | ENUM | Yes | `auto` / `manual` / `live` |
+| theme2_voting_level | ENUM | Yes | `theme2_9` / `theme2_6` / `theme2_3` |
+| live_feed_enabled | BOOLEAN | Yes | Live 33-word response feed (paid tiers) |
+| response_char_limit | INTEGER | Yes | Max response chars (as max_response_length) |
+| question_char_limit | INTEGER | No | Max question chars (default 500) |
+| max_deep_dive_rounds | INTEGER | Yes | Max rounds for deep dive (as max_cycles) |
+| language_default | VARCHAR(5) | Yes | Default session language (as language) |
+| qr_url | TEXT | Yes | Generated QR code URL |
+| join_url | TEXT | Yes | Shareable join link |
+| polling_mode_type | VARCHAR(30) | Yes | `live_interactive` / `static_poll` |
+| static_poll_duration_days | INTEGER (nullable) | Yes | 1, 3, or 7 days |
+| ends_at | TIMESTAMP (nullable) | Yes | Computed deadline for static polls |
+| timer_display_mode | VARCHAR(20) | Yes | `day` / `flex` / `both` |
+| expires_at | TIMESTAMP | Yes | Session expiry (default 24h) |
+
+**Table: `participants`** (11 columns)
+| Variable | Type | Implemented? | Description |
+|----------|------|-------------|-------------|
+| id | UUID (PK) | Yes | Participant record ID |
+| session_id | UUID (FK→sessions) | Yes | Session reference |
+| user_id | UUID (FK→users, nullable) | Yes | Auth user or null for anonymous |
+| anon_hash | VARCHAR(64) | Yes | Anonymous identifier hash |
+| language_code | VARCHAR(5) | Yes | Selected language |
+| results_opt_in | BOOLEAN | Yes | Clicked Yes for results |
+| payment_status | ENUM | Yes | `unpaid` / `paid` / `lead_exempt` |
+| payment_transaction_id | UUID (nullable) | No | Stripe/GPay/ApplePay reference |
+| role_type | ENUM (nullable) | No | `technology` / `creative` / `business_value` (Method 3) |
+| device_type | VARCHAR(20) | Yes | `desktop` / `tablet` / `phone` |
+| joined_at | TIMESTAMP | Yes | Join timestamp |
+
+**Table: `languages`** (Master UI/UX Language Table — backend NOT created, frontend Lexicon maps 1:1)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | SERIAL (PK) | Auto-increment ID |
+| code | VARCHAR(5) UNIQUE | ISO 639-1 code |
+| name_english | VARCHAR(100) | Language name in English |
+| name_native | VARCHAR(100) | Native script name |
+| direction | ENUM | `ltr` / `rtl` |
+| is_active | BOOLEAN | Available in dropdown |
+| added_by | UUID (FK→users) | Who added |
+| verified_by | UUID (nullable) | AI-verified + approval |
+
+**Table: `ui_translations`** (backend NOT created, frontend Lexicon maps 1:1)
+| Variable | Type | Description |
+|----------|------|-------------|
+| id | SERIAL (PK) | Auto-increment ID |
+| string_key | VARCHAR(255) | Unique key (e.g., `cube1.join.language_prompt`) |
+| cube_id | INTEGER | Which cube (0 = shared/global) |
+| language_code | VARCHAR(5) | Language |
+| translated_text | TEXT | The translated string |
+| context_hint | TEXT (nullable) | Context for translators |
+| ai_verified | BOOLEAN | AI verified quality |
+| approved_by | UUID (nullable) | Approver |
+
+### Cube 1 — Inputs / Outputs
+
+**Inputs:**
+| Input | Source | Description |
+|-------|--------|-------------|
+| Moderator config | Moderator UI | Session type, polling mode, pricing tier, max participants, fee, cost splitting, reward, CQS weights, anonymity, ranking mode, response/question limits, language default, scoping context |
+| QR scan | User device | User scans QR code to initiate join flow |
+| Language selection | User UI | User picks from active languages dropdown |
+| Results opt-in click | User UI | Active Yes/No click for results copy |
+| Payment authorization | Stripe/GPay/ApplePay | Payment confirmation if cost splitting enabled |
+| Moderator device sync | PC / Phone | Both devices connect via WebSocket for real-time sync |
+
+**Outputs:**
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Session ID + short code | All cubes | Unique session identifier used across system |
+| QR code image + join URL | Moderator UI / sharing | Scannable QR and link |
+| Participant record | Cube 4, 5, 8, 9 | Language, payment status, results opt-in, scoping context |
+| Session state events | Cube 5 (Gateway) | State transitions (draft→open→polling→ranking→closed→archived) |
+| Scoping context | All cubes | project_id, differentiator_id, or specification_id linked to session |
+| Payment event | Cube 8 | Payment transaction for cost-split or Moderator fee |
+
+### Cube 1 — Metrics (Requirements.txt)
+
+**System Metrics:** Session creation latency (p50/p95), QR generation time, Join flow completion rate, Session state transition success/failure rate, Concurrent active sessions, API endpoint response times per route, WebSocket sync latency (ms), Capacity check response time (ms)
+
+**User Metrics:** Time from QR scan to session join, Join-to-first-question time, Language selection distribution, Language selection abandonment rate, Results opt-in rate (%), Payment conversion rate, Payment abandonment rate, Participants per session (avg/median/max by tier), Device type distribution, Moderator device usage (% PC vs Phone vs both), Return user rate
+
+**Outcome Metrics:** Sessions completed vs abandoned (by polling mode), Deep dive utilization rate, Multi-round progression rate, Average rounds per deep dive, Participant retention across deep dive rounds, Time-to-first-response after join, Revenue per session, Cost splitting utilization rate, Gamified reward utilization rate, Average per-user fee
+
+### Cube 1 — CRS Traceability (Full DesignMatrix)
+| CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
+|-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
+| CRS-01 | CRS-01.IN.SRS.001 | CRS-01.OUT.SRS.001 | **Implemented** | 1 | Moderator creates session + secure link/QR for instant participant access | QR + URL in <2s, 99.5% availability | Branded, expiring QR codes with analytics, 99.9% availability |
+| CRS-02 | CRS-02.IN.WRS.002 | CRS-02.OUT.WRS.002 | **Implemented** | 1 | User joins via QR/link without authentication friction | Join in ≤3 clicks, <5s load | One-tap join with device auto-detection, <2s load |
+| CRS-03 | CRS-03.IN.SRS.003 | CRS-03.OUT.SRS.003 | **Implemented** | 1 | System generates collision-free session IDs bound to QR | Zero-collision UUID generation | Cryptographically signed rotating session identifiers |
+| CRS-04 | CRS-04.IN.SRS.004 | CRS-04.OUT.SRS.004 | **Implemented** | 1 | System validates QR access, blocks expired/invalid sessions | 100% expiry/validity enforcement | Geo-fencing and abuse-detection heuristics |
+
+### Cube 1 — DesignMatrix VOC (Voice of Customer)
+| CRS | Customer Need | VOC Comment |
+|-----|---------------|-------------|
+| CRS-01 | Fast, simple session creation with minimal setup | "I don't want to explain how to join — it should just work instantly." |
+| CRS-02 | Zero-friction access from any device | "If I have to log in, half the room won't participate." |
+| CRS-03 | Trust that sessions are secure and not hijacked | Enterprise buyers expect this as baseline security hygiene. |
+| CRS-04 | Protection against misuse and accidental reuse | "We don't want old links floating around and confusing people." |
+
+### Cube 1 — UI/UX Translation Strings (38 keys per Requirements.txt)
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube1.join.select_language` | "Select your language" | Language dropdown header |
+| `cube1.join.language_prompt` | "Choose your preferred language to continue" | Subtitle |
+| `cube1.join.results_optin` | "Would you like to receive a copy of the polling results?" | Results opt-in prompt |
+| `cube1.join.results_yes` | "Yes, I want results" | Opt-in button |
+| `cube1.join.results_no` | "No, thanks" | Decline button |
+| `cube1.join.fee_display` | "Your share: ${amount}" | Per-user fee |
+| `cube1.join.payment_prompt` | "Pay to receive results" | Payment button label |
+| `cube1.join.joining_session` | "Joining session..." | Loading state |
+| `cube1.join.session_expired` | "This session has expired" | Expired session error |
+| `cube1.join.session_closed` | "This session is closed" | Closed session error |
+| `cube1.join.session_invalid` | "Invalid session link" | Invalid QR/link error |
+| `cube1.join.welcome` | "Welcome to the session" | Post-join greeting |
+| `cube1.join.session_full` | "This session is full" | Capacity limit |
+| `cube1.join.free_session` | "Free session — no payment required" | Free tier indicator |
+| `cube1.moderator.create_session` | "Create New Session" | Creation button |
+| `cube1.moderator.polling_mode` | "Polling Mode" | Config label |
+| `cube1.moderator.single_round` | "Single Round" | Mode option |
+| `cube1.moderator.deep_dive` | "Multi-Round Deep Dive" | Mode option |
+| `cube1.moderator.session_fee` | "Session Fee" | Fee input label |
+| `cube1.moderator.enable_cost_split` | "Split cost with participants" | Toggle label |
+| `cube1.moderator.enable_reward` | "Enable contribution reward" | Toggle label |
+| `cube1.moderator.reward_amount` | "Reward amount" | Reward input |
+| `cube1.moderator.generate_qr` | "Generate QR Code" | QR button |
+| `cube1.moderator.share_link` | "Share Link" | Copy link button |
+| `cube1.moderator.scoping_type` | "Poll Scoping" | Scoping label |
+| `cube1.moderator.scoping_project` | "Project" | Scoping option |
+| `cube1.moderator.scoping_spec` | "Specification" | Scoping option |
+| `cube1.moderator.scoping_differentiator` | "Product Differentiator" | Scoping option |
+| `cube1.moderator.pricing_tier` | "Session Pricing" | Tier selector |
+| `cube1.moderator.tier_free` | "Free (up to 19 participants)" | Free option |
+| `cube1.moderator.tier_paid` | "Moderator Paid" | Paid option |
+| `cube1.moderator.tier_split` | "Cost Split with Participants" | Split option |
+| `cube1.moderator.max_participants` | "Max Participants" | Capacity input |
+| `cube1.moderator.phone_sync` | "Connected on another device" | Multi-device indicator |
+| `cube1.moderator.open_poll` | "Open Poll" | Quick action |
+| `cube1.moderator.close_poll` | "Close Poll" | Quick action |
+| `cube1.moderator.participant_count` | "{count} participants" | Live counter |
+| `cube1.session.status_draft` | "Draft" | Status label |
+
 ---
 
 ## Cube 2 — Text Submission Handler: IMPLEMENTED (CRS-05→CRS-08 done; ~85% of full spec)
@@ -261,6 +424,129 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | `schemas/response.py` | 95 | Pydantic schemas (ResponseCreate, ResponseRead, Detail, List) |
 | `tests/cube2/test_text_service.py` | 499 | 32 unit tests |
 | `tests/cube2/test_e2e_flows.py` | 716 | 30 E2E tests + CUBE2_TEST_METHOD |
+
+### Cube 2 — Requirements.txt Data Tables
+
+**Table: `text_responses`** (12 columns per Requirements.txt spec)
+| Variable | Type | Implemented? | Description |
+|----------|------|-------------|-------------|
+| id | UUID (PK) | Yes | Response unique identifier (via Base model) |
+| response_meta_id | UUID (FK→response_meta) | Yes | 1:1 link to ResponseMeta record |
+| language_code | VARCHAR(10) | Yes | Language of submission (ISO 639-1) |
+| is_anonymous | BOOLEAN | Yes | Whether response is anonymized |
+| pii_detected | BOOLEAN | Yes | Whether PII was flagged |
+| pii_types | JSONB (nullable) | Yes | Array of detected PII entries with type, position, text |
+| pii_scrubbed_text | TEXT (nullable) | Yes | Cleaned text if PII was removed |
+| profanity_detected | BOOLEAN | Yes | Whether profanity was detected |
+| profanity_words | JSONB (nullable) | Yes | Array of matched profanity with word, severity, position |
+| clean_text | TEXT (nullable) | Yes | Final cleaned text after PII + profanity scrubbing |
+| response_hash | VARCHAR(64) | Yes | CRS-08: SHA-256 of raw_text for integrity verification |
+| char_count | INTEGER | Yes | Character count (Unicode-aware, on ResponseMeta) |
+
+**Table: `response_meta`** (Shared base for text + voice responses)
+| Variable | Type | Implemented? | Description |
+|----------|------|-------------|-------------|
+| id | UUID (PK) | Yes | Meta record unique identifier |
+| session_id | UUID (FK→sessions) | Yes | Session reference |
+| question_id | UUID (FK→questions) | Yes | Question being answered |
+| cycle_id | INTEGER | Yes | Deep dive round (1 = initial, 2+ = follow-up) |
+| participant_id | UUID (FK→participants, nullable) | Yes | CRS-05: nullable for anonymous mode |
+| source | VARCHAR(20) | Yes | `text` or `voice` |
+| mongo_ref | VARCHAR(64) | Yes | MongoDB document reference for raw content |
+| char_count | INTEGER | Yes | Character count (Unicode-aware) |
+| submitted_at | TIMESTAMP | Yes | Submission timestamp |
+| is_flagged | BOOLEAN | Yes | Whether response was flagged |
+| flag_reason | VARCHAR(255, nullable) | Yes | Reason for flagging |
+
+**Table: `questions`** (7 columns)
+| Variable | Type | Implemented? | Description |
+|----------|------|-------------|-------------|
+| id | UUID (PK) | Yes | Question unique identifier |
+| session_id | UUID (FK→sessions) | Yes | Session reference |
+| cycle_number | INTEGER | Yes | Deep dive round (1 = initial, 2-3 = follow-up) |
+| question_text | TEXT | Yes | The question in Moderator's language |
+| status | ENUM | Yes | `draft` / `final` |
+| parent_theme_id | UUID (FK→themes, nullable) | No | For deep dive follow-ups: which theme spawned this question |
+| created_at | TIMESTAMP | Yes | Creation timestamp |
+
+**Table: `profanity_filters`** (5 columns)
+| Variable | Type | Implemented? | Description |
+|----------|------|-------------|-------------|
+| id | SERIAL (PK) | Yes | Auto-increment ID |
+| language_code | VARCHAR(5) (FK→languages.code) | Yes | Language this filter applies to |
+| pattern | TEXT | Yes | Regex or keyword pattern |
+| severity | ENUM | Yes | `low` / `medium` / `high` |
+| is_active | BOOLEAN | Yes | Whether filter is active |
+
+### Cube 2 — Inputs / Outputs
+
+**Inputs:**
+| Input | Source | Description |
+|-------|--------|-------------|
+| Raw text input | User UI | Text typed by user in their selected language |
+| session_id | Cube 1 | Current session context |
+| question_id | Cube 1 | Which question is being answered |
+| participant_id | Cube 1 | User identity / anon hash |
+| language_code | Cube 1 (participant record) | User's selected language |
+| response_char_limit | Cube 1 (sessions) | Max character limit for response |
+| anonymity_mode | Cube 1 (session) | Whether to anonymize |
+
+**Outputs:**
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Validated text response | Cube 4 (Collector) | Cleaned, validated response with language tag |
+| PII detection result | Cube 4, Cube 9 | Whether PII was found and scrubbed |
+| Profanity flag | Cube 4, Moderator dashboard | Whether profanity was detected |
+| Token display trigger | Cube 5 (Gateway) | Triggers ♡/◬ calculation for immediate display |
+| Submission event | Cube 5 (Gateway) | Notifies gateway of new response for time tracking |
+
+### Cube 2 — Functions (Requirements.txt)
+| Function | Status | Description |
+|----------|--------|-------------|
+| `validate_text_input()` | **Implemented** | Validates length (Unicode-aware), non-empty, within char limit |
+| `detect_language()` | **Implemented** (heuristic) | Confirms text matches selected language (Unicode script-based sanity check) |
+| `detect_pii()` | **Implemented** | Scans for PII patterns (email, phone, SSN, CC, IP) via NER + regex fallback |
+| `scrub_pii()` | **Implemented** | Redacts detected PII from response text with [TYPE_REDACTED] placeholders |
+| `detect_profanity()` | **Implemented** | Checks against language-specific profanity filters from DB |
+| `anonymize_response()` | **Implemented** | Strips identifying info based on session anonymity_mode (anonymous/identified/pseudonymous) |
+| `store_text_response()` | **Implemented** | Writes validated response to MongoDB (raw) + Postgres (ResponseMeta + TextResponse) |
+| `emit_submission_event()` | **Implemented** | Publishes `response_submitted` to Redis pub/sub for Cube 6 consumption |
+| `push_to_live_feed()` | Not implemented | Sends 33-word summary (from Cube 6) to Moderator hosting PC via WebSocket (if live_feed_enabled + paid tier) |
+
+### Cube 2 — UI/UX Translation Strings (13 keys per Requirements.txt)
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube2.input.placeholder` | "Type your response here..." | Text input placeholder |
+| `cube2.input.char_count` | "{count}/{max} characters" | Live character counter |
+| `cube2.input.char_limit_warning` | "You've reached the character limit" | At-limit warning |
+| `cube2.input.submit` | "Submit Response" | Submit button |
+| `cube2.input.submitting` | "Submitting..." | Loading state |
+| `cube2.input.submitted` | "Response submitted!" | Success confirmation |
+| `cube2.input.anonymous_badge` | "Anonymous" | Anonymity indicator |
+| `cube2.input.pii_warning` | "Personal information detected and removed" | PII scrub notice |
+| `cube2.input.profanity_warning` | "Please revise — inappropriate language detected" | Profanity rejection |
+| `cube2.input.empty_error` | "Please enter a response" | Empty submission error |
+| `cube2.feed.title` | "Live Responses" | Live feed header on hosting PC |
+| `cube2.feed.summary_loading` | "Processing response..." | While 33-word summary is being generated |
+| `cube2.feed.responses_count` | "{count} responses received" | Counter on live feed |
+
+*Token display strings use shared globals: `shared.tokens.earned`, `shared.tokens.si_label`, `shared.tokens.ai_label`*
+
+### Cube 2 — CRS Traceability (Full DesignMatrix)
+| CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
+|-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
+| CRS-05 | CRS-05.IN.SRS.005 | CRS-05.OUT.SRS.005 | **Implemented** | 1 | System supports anonymous vs identified modes configurable by Moderator | 100% anonymity enforcement per session mode | Post-session reveal opt-in for anonymized users |
+| CRS-06 | CRS-06.IN.SRS.006 | CRS-06.OUT.SRS.006 | **Implemented** | 1 | Moderator opens/closes polling window deliberately | Instant state transitions, 100% enforcement | Scheduled auto-open/close with time-based rules |
+| CRS-07 | CRS-07.IN.WRS.007 | CRS-07.OUT.WRS.007 | **Implemented** | 1 | User submits text responses reliably with constraints | Full pipeline (validate → PII → profanity → store → publish), up to 5000 chars, Unicode-aware | Rich text formatting + autosave drafts |
+| CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Implemented** (hash) | 1 | System stores responses securely with timestamps + integrity verification | SHA-256 response_hash on every response, timestamp on submission | AES-256 encryption at rest for all stored response data |
+
+### Cube 2 — DesignMatrix VOC (Voice of Customer)
+| CRS | Customer Need | VOC Comment |
+|-----|---------------|-------------|
+| CRS-05 | Participants need confidence that their identity is protected when promised | "People won't be honest if they think their name is attached — anonymity is critical for real feedback." |
+| CRS-06 | Moderators need clear control over when polling starts and stops | "I need to be able to say 'go' and 'stop' — not have the system decide for me." |
+| CRS-07 | Users need a reliable, fast text submission experience across all devices and languages | "It has to work on my phone in Spanish just as well as on a laptop in English." |
+| CRS-08 | Enterprise customers require data integrity and security guarantees | "We need to prove that responses weren't tampered with after submission — audit trail is non-negotiable." |
 
 ---
 
@@ -397,3 +683,80 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 | `lib/types.ts` | **Updated** | Added VoiceSubmissionRead interface |
 | `lib/api.ts` | **Updated** | Added submitVoiceResponse (FormData upload, mock + live) |
 | `components/session-view.tsx` | **Updated** | Passes sessionId, questionId, participantId, languageCode to VoiceInput |
+
+### Cube 3 — Requirements.txt Data Tables
+
+**Table: `voice_responses`** (11 columns per Requirements.txt spec)
+| Variable | Type | Implemented? | Description |
+|----------|------|-------------|-------------|
+| id | UUID (PK) | Yes | Voice response unique identifier (via Base model) |
+| response_meta_id | UUID (FK→response_meta) | Yes | 1:1 link to ResponseMeta record |
+| language_code | VARCHAR(10) | Yes | Language for STT processing (ISO 639-1) |
+| is_anonymous | BOOLEAN | Yes | Whether response is anonymized |
+| audio_duration_sec | FLOAT | Yes | Duration of audio recording in seconds |
+| audio_format | VARCHAR(20) | Yes | Audio format (webm, wav, mp3, ogg, m4a, flac) |
+| audio_size_bytes | INTEGER | Yes | Size of uploaded audio file in bytes |
+| stt_provider | VARCHAR(50) | Yes | Which STT provider was used (whisper, grok, gemini, aws) |
+| transcript_text | TEXT | Yes | STT-generated transcript |
+| transcript_confidence | FLOAT | Yes | STT confidence score (0.0-1.0) |
+| submitted_at | TIMESTAMP | Yes | Submission timestamp (on ResponseMeta) |
+
+**Table: `stt_providers`** (5 columns — backend NOT created as ORM table, provider config lives in factory.py)
+| Variable | Type | Implemented? | Description |
+|----------|------|-------------|-------------|
+| id | SERIAL (PK) | No (in-code) | Auto-increment ID |
+| name | VARCHAR(50) | Yes (enum) | Provider name: `whisper` / `grok` / `gemini` / `aws` |
+| supported_languages | JSONB | Yes (in-code) | Array of language codes this provider supports |
+| is_active | BOOLEAN | Yes (in-code) | Whether provider is available (API key check) |
+| priority | INTEGER | Yes (in-code) | Failover priority (whisper=1, grok=2, gemini=3, aws=4) |
+
+### Cube 3 — Inputs / Outputs
+
+**Inputs:**
+| Input | Source | Description |
+|-------|--------|-------------|
+| Audio stream | User device mic | Browser-captured audio via MediaRecorder API (webm default) |
+| session_id | Cube 1 | Current session context |
+| question_id | Cube 1 | Which question is being answered |
+| participant_id | Cube 1 | User identity / anon hash |
+| language_code | Cube 1 (participant record) | User's selected language for STT optimization |
+
+**Outputs:**
+| Output | Destination | Description |
+|--------|-------------|-------------|
+| Transcript text | Cube 2 pipeline (then Cube 4) | Converted text forwarded into text ingestion pipeline (PII → profanity → store) |
+| STT confidence score | Cube 4, Cube 9 | Confidence of transcription accuracy for quality auditing |
+| Token display trigger | Cube 5 (Gateway) | Triggers ♡/◬ calculation for immediate display |
+| Submission event | Cube 5 (Gateway) | Notifies gateway of new voice response via Redis pub/sub |
+
+### Cube 3 — UI/UX Translation Strings (11 keys per Requirements.txt)
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube3.voice.start_recording` | "Tap to speak" | Recording start button |
+| `cube3.voice.recording` | "Recording... tap to stop" | Active recording indicator |
+| `cube3.voice.stop_recording` | "Stop" | Stop recording button |
+| `cube3.voice.processing` | "Converting speech to text..." | STT processing state |
+| `cube3.voice.transcript_preview` | "Here's what we heard:" | Transcript preview header |
+| `cube3.voice.confirm_submit` | "Submit this response" | Confirm transcript button |
+| `cube3.voice.retry` | "Try again" | Re-record button |
+| `cube3.voice.mic_permission` | "Please allow microphone access" | Mic permission prompt |
+| `cube3.voice.mic_denied` | "Microphone access denied" | Permission denied error |
+| `cube3.voice.no_speech` | "No speech detected — please try again" | Empty recording error |
+| `cube3.voice.low_confidence` | "We're not confident in the transcription — please review" | Low confidence warning |
+
+*Token display strings use shared globals: `shared.tokens.earned`, `shared.tokens.si_label`, `shared.tokens.ai_label`*
+
+### Cube 3 — CRS Traceability (Full DesignMatrix)
+
+> **Note on CRS-09 mapping:** In the DesignMatrix, CRS-09 ("System clusters responses into meaningful AI themes") maps primarily to Cube 6 (AI Theme Pipeline). However, Cube 3 contributes to CRS-09 by ensuring voice transcripts are properly converted and forwarded into the same pipeline as text responses, so theme clustering covers both input modalities. The traceability below reflects Cube 3's direct CRS ownership.
+
+| CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
+|-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
+| CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Implemented** (hash) | 1 | System stores responses securely with timestamps + integrity verification | SHA-256 response_hash on voice transcript clean_text, matching Cube 2 pattern | AES-256 encryption at rest for stored audio + transcript data |
+| CRS-15 | CRS-15.IN.WRS.015 | CRS-15.OUT.WRS.015 | **Implemented** | 2 | User submits voice responses (STT) instead of typing | 4 batch STT providers with circuit breaker failover, 6 audio formats, 25 MB max, confidence threshold 0.3 | Live word-by-word display via real-time STT (Azure + AWS streaming) |
+
+### Cube 3 — DesignMatrix VOC (Voice of Customer)
+| CRS | Customer Need | VOC Comment |
+|-----|---------------|-------------|
+| CRS-08 | Voice responses need the same integrity guarantees as text | "If we accept voice input, we need to prove the transcript wasn't altered — same audit standard as typed responses." |
+| CRS-15 | Users who cannot or prefer not to type need an equally reliable voice input option | "In a room of 200 people, some will want to speak instead of type — especially on phones. It has to just work." |
