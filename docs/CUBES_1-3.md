@@ -23,7 +23,7 @@
   - CRS-02: Anonymous join via `get_optional_current_user()` — no Bearer token required
   - CRS-03: Short code collision retry (5 attempts with DB uniqueness check)
   - CRS-04: `expires_at` field (default 24h), `SessionExpiredError` (410 Gone), QR blocked for expired/closed
-- **API endpoints:** 22 routes (session CRUD, state transitions, join, participants, presence, questions, QR, verification)
+- **API endpoints:** 21 routes (session CRUD, state transitions, join, participants, presence, questions, QR, verification)
 - **Rate limiting:** 100/min on join endpoint
 
 ### Cube 1 — Newly Implemented (Phase 1-7 completion, 2026-02-18)
@@ -217,7 +217,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 | File | Lines | Purpose |
 |------|-------|---------|
 | `cubes/cube1_session/service.py` | 523 | Core business logic (15 params incl. static poll + timer) |
-| `cubes/cube1_session/router.py` | 397 | 23 API endpoints (+ /start) |
+| `cubes/cube1_session/router.py` | 429 | 21 API endpoints |
 | `models/session.py` | 138 | Session ORM model (15 columns incl. polling_mode_type, ends_at, timer_display_mode) |
 | `models/participant.py` | 40 | Participant ORM model (3 new columns) |
 | `models/question.py` | 33 | Question ORM model |
@@ -569,9 +569,9 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 ### Cube 2 — Files
 | File | Lines | Purpose |
 |------|-------|---------|
-| `cubes/cube2_text/service.py` | 700+ | Core business logic (7 sections + anonymization + language detect) |
-| `cubes/cube2_text/router.py` | 105 | 4 API endpoints |
-| `cubes/cube2_text/metrics.py` | 262 | System/User/Outcome metrics for Cube 10 |
+| `cubes/cube2_text/service.py` | 765 | Core business logic (7 sections + anonymization + language detect) |
+| `cubes/cube2_text/router.py` | 104 | 4 API endpoints |
+| `cubes/cube2_text/metrics.py` | 232 | System/User/Outcome metrics for Cube 10 |
 | `models/text_response.py` | 50 | TextResponse ORM model (+ response_hash) |
 | `models/response_meta.py` | 35 | ResponseMeta ORM model (nullable participant_id) |
 | `schemas/response.py` | 95 | Pydantic schemas (ResponseCreate, ResponseRead, Detail, List) |
@@ -885,18 +885,18 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 ### Cube 3 — Files
 | File | Lines | Purpose |
 |------|-------|---------|
-| `cubes/cube3_voice/service.py` | 575 | Core orchestrator (transcribe → pipeline → store → tokens) |
-| `cubes/cube3_voice/router.py` | 173 | 5 API endpoints (submit, list, detail, metrics, realtime WS) |
-| `cubes/cube3_voice/metrics.py` | 260+ | System/User/Outcome metrics for Cube 10 |
-| `cubes/cube3_voice/realtime.py` | 200+ | WebSocket real-time STT handler |
+| `cubes/cube3_voice/service.py` | 570 | Core orchestrator (transcribe → pipeline → store → tokens) |
+| `cubes/cube3_voice/router.py` | 172 | 5 API endpoints (submit, list, detail, metrics, realtime WS) |
+| `cubes/cube3_voice/metrics.py` | 281 | System/User/Outcome metrics for Cube 10 |
+| `cubes/cube3_voice/realtime.py` | 334 | WebSocket real-time STT handler |
 | `cubes/cube3_voice/providers/base.py` | 91 | STTProvider ABC + TranscriptionResult + STTProviderError |
-| `cubes/cube3_voice/providers/factory.py` | 134 | Provider factory + selection logic |
-| `cubes/cube3_voice/providers/whisper_provider.py` | 138 | OpenAI Whisper implementation |
-| `cubes/cube3_voice/providers/grok_provider.py` | 119 | xAI Grok (OpenAI-compatible) |
-| `cubes/cube3_voice/providers/gemini_provider.py` | 135 | Google Gemini multimodal |
-| `cubes/cube3_voice/providers/aws_provider.py` | 190 | AWS Transcribe batch |
-| `cubes/cube3_voice/providers/aws_realtime.py` | 227 | AWS Transcribe streaming |
-| `cubes/cube3_voice/providers/azure_realtime.py` | 250+ | Azure Speech Services streaming |
+| `cubes/cube3_voice/providers/factory.py` | 137 | Provider factory + selection logic |
+| `cubes/cube3_voice/providers/whisper_provider.py` | 137 | OpenAI Whisper implementation |
+| `cubes/cube3_voice/providers/grok_provider.py` | 118 | xAI Grok (OpenAI-compatible) |
+| `cubes/cube3_voice/providers/gemini_provider.py` | 134 | Google Gemini multimodal |
+| `cubes/cube3_voice/providers/aws_provider.py` | 231 | AWS Transcribe batch |
+| `cubes/cube3_voice/providers/aws_realtime.py` | 226 | AWS Transcribe streaming (WebSocket) |
+| `cubes/cube3_voice/providers/azure_realtime.py` | 271 | Azure Speech Services streaming (WebSocket) |
 | `models/voice_response.py` | 50 | VoiceResponse ORM model |
 | `schemas/voice.py` | 80+ | Pydantic schemas |
 | `tests/cube3/test_voice_service.py` | 372 | 18 unit tests |
