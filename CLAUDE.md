@@ -279,6 +279,47 @@ Track and optimize for:
 - Frontend: Node.js in `frontend/` directory
 - Databases: Docker Compose (PostgreSQL, MongoDB, Redis)
 
+## API, SDK & Embed Architecture — Current State
+
+### REST API (Implemented)
+- **54 endpoints** across 9 cube routers at `/api/v1` (+ 1 health endpoint)
+- **OpenAPI auto-docs:** FastAPI generates interactive docs at `/api/v1/docs` (Swagger UI) and `/api/v1/redoc`
+- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (6), Cube 5 (9), Cube 6 (2), Cube 7 (3 stub), Cube 8 (4), Cube 9 (2 stub)
+
+### Authentication & Security (Implemented)
+- **Auth0 JWT:** Bearer token validation via `core/auth.py` (135 lines)
+- **RBAC:** Moderator, User (Participant), Lead/Developer, Business Owner/Admin
+- **Rate limiting:** Global rate limiter via `core/rate_limit.py`; 100/min on Cube 1 join endpoint
+- **Security headers:** `X-Frame-Options: DENY`, `Permissions-Policy: microphone=(self)` via `core/security.py`
+- **CORS:** Dynamic origin allowlist + `*.pages.dev` regex pattern via `core/middleware.py` (109 lines)
+
+### Cloudflare Pages Function (Implemented)
+- **File:** `frontend/functions/api/responses.js` (113 lines)
+- **Purpose:** Cross-device response sharing for Spiral Test + SIM via Cache API / KV
+- **Endpoints:** `GET /api/responses?sessionId=X` (read), `POST /api/responses` (write)
+- **Storage:** Cloudflare Cache API (primary) with KV fallback
+
+### Embed Readiness (Current Gaps)
+- **X-Frame-Options: DENY** blocks iframe embedding — must be changed to `ALLOW-FROM` or removed per embed domain
+- **No Web Component** (`<exel-polling>`) exists yet — planned for SDK phase
+- **No postMessage API** — planned for iframe communication
+- **No API key management** — currently Auth0 JWT only; per-org API keys planned
+- **No scoping tables** — Project/Differentiator/Specification DB tables not yet created
+- **No webhooks** — async event callbacks planned but not implemented
+- **No usage metering** — billing/usage tracking not yet built
+
+### Embed Roadmap (3 Modes — Planned)
+| Mode | Description | Status |
+|------|-------------|--------|
+| **Full Embed** | iframe with postMessage API or Web Component (`<exel-polling>`) | Not started |
+| **Headless API** | REST endpoints + SDK — company renders own UI | API exists, SDK not packaged |
+| **Hybrid** | Mix of embedded components + custom API calls | Not started |
+
+### Planned SDK Packages
+- `@exel-ai/sdk` (npm) — TypeScript client wrapping all 54+ endpoints
+- `exel-ai-sdk` (PyPI) — Python client for backend integrations
+- OpenAPI spec will be published as versioned artifact for codegen
+
 ## Implementation Status
 
 ### Implementation Summary
@@ -287,12 +328,12 @@ Track and optimize for:
 | 1 Session | ~75% | 59 | CRS-01→06 |
 | 2 Text | ~85% | 62 | CRS-05→08 |
 | 3 Voice | ~85% | 39 | CRS-08, 15 |
-| 4 Collector | ~80% | 27 | CRS-09→10 |
+| 4 Collector | ~80% | 21 | CRS-09→10 |
 | 5 Gateway | ~90% | 60 | CRS-09→11 |
-| 6 AI Pipeline | ~85% | 20 | CRS-11→14 |
+| 6 AI Pipeline | ~85% | 26 | CRS-11→14 |
 | 7 Ranking | Stub | — | — |
-| 8 Tokens | Implemented | 19 | — |
-| 9 Reports | Stub | — | — |
+| 8 Tokens | Partial | 19 | — |
+| 9 Reports | Partial | — | — |
 | 10 Simulation | Easter Egg SIM | — | — |
 | **Total** | | **287** | |
 

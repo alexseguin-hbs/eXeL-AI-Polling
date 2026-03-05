@@ -37,12 +37,12 @@
 cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 8 test classes, 27 tests
+**Test Suite:** 2 files, 8 test classes, 21 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_collector_service.py` | 6 | 17 | Unit tests (count, languages, presence, summaries, collected, single) |
-| `test_e2e_flows.py` | 5 | 10 | E2E flows (collection, multi-language, anonymous, pagination, voice) |
+| `test_collector_service.py` | 6 | 15 | Unit tests (count, languages, presence, summaries, collected, single) |
+| `test_e2e_flows.py` | 5 | 6 | E2E flows (collection, multi-language, anonymous, pagination, voice) |
 
 ### Cube 4 — Files
 | File | Lines | Purpose |
@@ -588,11 +588,11 @@ See `SPIRAL_METRICS.md` — N=18 bidirectional (Feb 26). Cube 5 tests: 60/60 pas
 cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb=short
 ```
 
-**Test Suite:** 1 file, 9 test classes, 20 tests
+**Test Suite:** 1 file, 9 test classes, 26 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_ai_service.py` | 9 | 20 | Unit tests (summarization, classification, grouping, sampling, parsing, factory) |
+| `test_ai_service.py` | 9 | 26 | Unit tests (summarization, classification, grouping, sampling, parsing, factory) |
 
 ### Cube 6 — Files
 | File | Lines | Purpose |

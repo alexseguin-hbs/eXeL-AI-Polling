@@ -23,7 +23,7 @@
   - CRS-02: Anonymous join via `get_optional_current_user()` — no Bearer token required
   - CRS-03: Short code collision retry (5 attempts with DB uniqueness check)
   - CRS-04: `expires_at` field (default 24h), `SessionExpiredError` (410 Gone), QR blocked for expired/closed
-- **API endpoints:** 21 routes (session CRUD, state transitions, join, participants, presence, questions, QR, verification)
+- **API endpoints:** 19 routes (session CRUD, state transitions, join, participants, presence, questions, QR, verification)
 - **Rate limiting:** 100/min on join endpoint
 
 ### Cube 1 — Newly Implemented (Phase 1-7 completion, 2026-02-18)
@@ -158,7 +158,7 @@ In Cube 10, users can isolate this cube and submit replacement code for specific
 
 #### Spiral Test Reference
 
-See CLAUDE.md spiral metrics sections:
+See `docs/SPIRAL_METRICS.md` for full baselines:
 - **N=5 baseline (2026-02-18):** 55/55 tests, 2,984ms avg backend duration, 0 TS errors
 - **N=9 extended (2026-02-23):** 173/173 tests, 3,507ms avg backend duration, 0 TS errors
 - **N=18 bidirectional (2026-02-25):** 198/198 tests, forward + backward pass, 0 failures, 0 regressions
@@ -217,7 +217,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 | File | Lines | Purpose |
 |------|-------|---------|
 | `cubes/cube1_session/service.py` | 523 | Core business logic (15 params incl. static poll + timer) |
-| `cubes/cube1_session/router.py` | 429 | 21 API endpoints |
+| `cubes/cube1_session/router.py` | 429 | 19 API endpoints |
 | `models/session.py` | 138 | Session ORM model (15 columns incl. polling_mode_type, ends_at, timer_display_mode) |
 | `models/participant.py` | 40 | Participant ORM model (3 new columns) |
 | `models/question.py` | 33 | Question ORM model |
@@ -502,7 +502,7 @@ In Cube 10, users can isolate this cube and submit replacement code for specific
 
 #### Spiral Test Reference
 
-See CLAUDE.md spiral metrics sections:
+See `docs/SPIRAL_METRICS.md` for full baselines:
 - **N=5 baseline (2026-02-18):** 62/62 tests, 2,903ms avg backend duration, 0 TS errors
 - **N=9 extended (2026-02-23):** 173/173 tests (all cubes), 3,507ms avg, 0 TS errors
 - **N=18 bidirectional (2026-02-25):** 198/198 tests, forward + backward pass, 0 failures, 0 regressions
@@ -819,7 +819,7 @@ In Cube 10, users can isolate this cube and submit replacement code for specific
 
 #### Spiral Test Reference
 
-See CLAUDE.md spiral metrics sections:
+See `docs/SPIRAL_METRICS.md` for full baselines:
 - **N=9 baseline (2026-02-23):** 39/39 Cube 3 tests (4,656ms avg), 194/194 total, 0 TS errors
 - **N=18 bidirectional (2026-02-25):** 198/198 tests, forward + backward pass, 0 failures, 0 regressions
 - **N=18 bidirectional (2026-02-26):** 287/287 tests (includes Cubes 4-6), 0 failures, 0 regressions
