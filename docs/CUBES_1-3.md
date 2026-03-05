@@ -729,7 +729,19 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 | Token display trigger | Cube 5 (Gateway) | Triggers ♡/◬ calculation for immediate display |
 | Submission event | Cube 5 (Gateway) | Notifies gateway of new voice response via Redis pub/sub |
 
-### Cube 3 — UI/UX Translation Strings (11 keys per Requirements.txt)
+### Cube 3 — Functions (Requirements.txt)
+| Function | Status | Description |
+|----------|--------|-------------|
+| `capture_audio()` | **Implemented** | Initializes browser mic via MediaRecorder API, records audio stream (webm default, 6 formats accepted) |
+| `select_stt_provider()` | **Implemented** | Picks best STT provider for the user's language (DB priority + language check + API key availability) |
+| `transcribe_audio()` | **Implemented** | Sends audio to STT provider with language hint, returns transcript + confidence; circuit breaker failover across 4 providers |
+| `validate_transcript()` | **Implemented** | Checks transcript is non-empty, confidence meets threshold (0.3 min), length truncation |
+| `forward_to_text_pipeline()` | **Implemented** | Passes transcript into Cube 2's text validation pipeline (detect_pii → scrub_pii → detect_profanity → scrub_profanity) |
+| `store_voice_response()` | **Implemented** | Writes voice response record to MongoDB (raw audio binary + raw transcript) + Postgres (ResponseMeta + VoiceResponse + TextResponse with CRS-08 hash) |
+| `handle_stt_failure()` | **Implemented** | Circuit breaker: failover chain whisper → grok → gemini → aws; skips failed provider, retries remaining |
+| `push_to_live_feed()` | Not implemented | Sends 33-word summary (from Cube 6) to Moderator hosting PC via WebSocket (if live_feed_enabled + paid tier) |
+
+### Cube 3 — UI/UX Translation Strings (11 keys per Requirements.txt + 8 V2T Settings keys)
 | String Key | English Default | Context |
 |------------|----------------|---------|
 | `cube3.voice.start_recording` | "Tap to speak" | Recording start button |
@@ -745,6 +757,18 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 | `cube3.voice.low_confidence` | "We're not confident in the transcription — please review" | Low confidence warning |
 
 *Token display strings use shared globals: `shared.tokens.earned`, `shared.tokens.si_label`, `shared.tokens.ai_label`*
+
+**V2T Provider Settings keys (8 additional — implementation-specific, in frontend lexicon):**
+| String Key | English Default | Context |
+|------------|----------------|---------|
+| `cube3.settings.v2t_provider` | "Voice-to-Text Provider" | V2T settings section heading |
+| `cube3.settings.v2t_desc` | "Select the speech-to-text engine for voice responses in this session." | V2T settings description |
+| `cube3.settings.v2t_active` | "Active Provider" | Currently active provider label |
+| `cube3.settings.v2t_fallback` | "Circuit breaker failover: if primary fails, system auto-switches to next available provider." | Fallback explanation note |
+| `cube3.settings.v2t_languages` | "languages supported" | Provider language count suffix |
+| `cube3.settings.v2t_pricing` | "Cost Estimates" | Toggle label for pricing section |
+| `cube3.settings.v2t_estimate_title` | "Estimated cost per 1,000 users (2 min avg)" | Pricing table heading |
+| `cube3.settings.v2t_estimate_note` | "Based on ~2 min average voice response per user. Actual costs vary by audio length and provider pricing." | Pricing disclaimer |
 
 ### Cube 3 — CRS Traceability (Full DesignMatrix)
 
