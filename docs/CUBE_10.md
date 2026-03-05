@@ -34,7 +34,7 @@
 - **Sim Moderator Experience:** Transport-controlled session lifecycle, session picker, per-poll data, participant counter, auto-play
 - **AI Provider Settings:** Collapsible V2T provider selector with pricing estimates per 1000 users (OpenAI $12, Grok $12, Gemini $4, AWS $48)
 - **12 new lexicon keys × 32 languages = 384 translations:** select_session, select_session_desc, transport_step, state_theming, state_visuals, state_closed, session_closed_msg, translate_question, translated, original, create_new, jump_to_start
-- Files: `frontend/lib/sim-data/index.ts`, `frontend/lib/sim-data/poll-{1-4}-*.ts`, `frontend/components/session-view.tsx`, `frontend/components/sim-moderator-experience.tsx`, `frontend/lib/easter-egg-context.tsx`, `frontend/lib/mock-data.ts`
+- Files: `frontend/lib/sim-data/index.ts`, `frontend/lib/sim-data/poll-1-product-feedback.ts`, `frontend/lib/sim-data/poll-2-q1-strategy.ts`, `frontend/lib/sim-data/poll-3-ai-governance.ts`, `frontend/lib/sim-data/poll-4-team-innovation.ts`, `frontend/components/session-view.tsx`, `frontend/components/sim-moderator-experience.tsx`, `frontend/lib/easter-egg-context.tsx`, `frontend/lib/mock-data.ts`
 
 ---
 
@@ -148,6 +148,11 @@ The poller enters SIM to preview what moderators experience managing a session.
 | `frontend/components/session-view.tsx` | Moderator SIM (participant experience) |
 | `frontend/components/sim-moderator-experience.tsx` | Poller SIM (moderator dashboard) |
 | `frontend/lib/mock-data.ts` | Mock API handlers for SIM data |
+| `frontend/lib/sim-data/index.ts` | SIM data index/exports, poll lookup helpers, theme resolution |
+| `frontend/lib/sim-data/poll-1-product-feedback.ts` | POLL_1: Product Feedback (Live Interactive) |
+| `frontend/lib/sim-data/poll-2-q1-strategy.ts` | POLL_2: Q1 Strategy Alignment (Live Interactive) |
+| `frontend/lib/sim-data/poll-3-ai-governance.ts` | POLL_3: AI Governance (Live Interactive) |
+| `frontend/lib/sim-data/poll-4-team-innovation.ts` | POLL_4: Team Innovation Challenge (Static Poll) |
 
 ---
 
@@ -224,14 +229,37 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 3. GET merges local + KV data with deduplication by `clean_text::participant_id`
 4. Known: rapid concurrent POSTs may lose some KV entries (read-modify-write race) — local store is authoritative
 
+### Cloudflare Pages Function (Cross-Device Response Sharing)
+
+**File:** `frontend/functions/api/responses.js` (113 lines)
+
+**Purpose:** Enables cross-device and cross-tab response syncing for the 100-User Spiral Test and SIM mode. Deployed as a Cloudflare Pages Function at `/api/responses`.
+
+**Endpoints:**
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/responses?sessionId=X` | Read responses for a session from Cache API (primary) with KV fallback |
+| `POST` | `/api/responses` | Write a response to Cache API (primary) with KV fallback |
+
+**Storage strategy:**
+- **Primary:** Cloudflare Cache API — fast edge-cached reads/writes, no additional bindings required
+- **Fallback:** Cloudflare KV — used when Cache API is unavailable or for persistent storage
+
+**Used by:**
+- `frontend/lib/mock-data.ts` — `startSpiralTest()` orchestrator fires POST requests to `/api/responses` for each of the 100 simulated user responses, enabling other tabs/devices to pick up the responses via GET
+- The GET endpoint merges with local `mockResponses[]` data and deduplicates by `clean_text::participant_id` to prevent duplicates across local and remote stores
+
+**Known limitation:** Rapid concurrent POSTs (e.g., 100 responses in 60 seconds) may encounter read-modify-write race conditions in KV, causing some entries to be lost. The local `mockResponses[]` store is authoritative for the originating tab.
+
 ### Files
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `frontend/lib/sim-data/spiral-test-100-users.ts` | 305 | 100 canned responses, 12 wave configs, type exports |
-| `frontend/lib/mock-data.ts` | +70 | `startSpiralTest()` MoT orchestrator, progress callback types |
-| `frontend/lib/constants.ts` | +3 | `SPIRAL_TEST_ENABLED` toggle |
-| `frontend/app/dashboard/page.tsx` | +55 | Spiral test button + progress UI in live feed card |
+| `frontend/lib/sim-data/spiral-test-100-users.ts` | 205 | 100 canned responses, 12 wave configs, type exports |
+| `frontend/lib/mock-data.ts` | 1,025 (total) | `startSpiralTest()` MoT orchestrator, progress callback types (+70 for spiral test) |
+| `frontend/lib/constants.ts` | 107 (total) | `SPIRAL_TEST_ENABLED` toggle (+3 for spiral test) |
+| `frontend/app/dashboard/page.tsx` | 1,166 (total) | Spiral test button + progress UI in live feed card (+55 for spiral test) |
+| `frontend/functions/api/responses.js` | 113 | Cloudflare Pages Function — Cache API + KV for cross-device response sharing |
 
 ---
 
