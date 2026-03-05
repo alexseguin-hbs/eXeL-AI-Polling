@@ -169,6 +169,72 @@ Key behaviors:
 - **Progressive reveal:** Theme2 themes appear one-by-one on the hosting PC (paid tiers only) via WebSocket push from Cube 6. Voting only opens after all themes at the selected level are ready.
 - **Responsive ranking UI:** Must support drag-drop on desktop/laptop AND tap-to-reorder on phone/tablet. Touch targets >= 44px for accessibility.
 
+### Cube 7 — Simulation Requirements (Cube 10 Isolation)
+
+> In Cube 10, users can isolate this cube and submit replacement code for specific functions. The simulation runs the user's code against the same canned inputs and compares output metrics against the existing implementation baseline.
+
+#### Input/Output Simulation Modes
+
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| Theme list (labels, confidence, counts) | Input | Cube 6 (AI) | **SIMULATED** | 3 fixture themes per poll from SIM data (Opportunity & Innovation 92%, Risk & Concerns 88%, Balanced/Hybrid 85%) |
+| User rankings (ordered theme IDs) | Input | User UI | **SIMULATED** | 7 AI user rankings + 1 HI user ranking from canned SIM data; deterministic ordering per AI persona |
+| Ranking trigger signal | Input | Cube 5 (Gateway) | **SIMULATED** | Mock pipeline trigger fires immediately (no async wait) |
+| Governance override (justification + new rank) | Input | Lead/Developer UI (MVP3) | **SIMULATED** | Fixture override: Lead moves theme #3 to #1 with canned justification text |
+| Theme2 voting level | Input | Cube 1 (session config) | **SIMULATED** | Mock session config with `theme2_voting_level` set to `theme2_3` (default), `theme2_6`, or `theme2_9` |
+| Session ranking mode | Input | Cube 1 (session config) | **SIMULATED** | Mock session config with `ranking_mode` = `auto` (default) |
+| Aggregated rankings | Output | Frontend, Cube 9 | **SIMULATED** | Written to mock store; verified against expected deterministic output |
+| #1 Theme2 cluster ID | Output | Cube 5 -> Cube 6 | **SIMULATED** | Mock event emitted; verified that correct theme ID is selected |
+| Ranking complete event | Output | Cube 5 | **SIMULATED** | Mock pipeline trigger completion; verified event fires |
+| Override audit entry | Output | Cube 8, Cube 9 | **SIMULATED** | Written to mock audit log; verified fields present |
+| Live ranking updates | Output | Frontend (WebSocket) | **SIMULATED** | Mock WebSocket messages; verified payload shape and latency |
+
+#### Function Simulation Modes
+
+| Function | Sim Mode | Simulation Behavior |
+|----------|----------|---------------------|
+| `submit_user_ranking()` | **SIMULATED** | Stores ranking in mock data store; validates theme IDs against fixture theme list; rejects invalid/duplicate submissions |
+| `aggregate_rankings()` | **BOTH** | Math is identical in sim and production -- Borda count with seeded tie-breaking. Sim uses 8 canned rankings (7 AI + 1 HI); production uses live DB query |
+| `identify_top_theme2()` | **BOTH** | Deterministic selection from aggregated results. Sim verifies correct theme wins given canned ranking distribution |
+| `apply_governance_override()` | **SIMULATED** | Stores override in mock governance_overrides table; validates RBAC from mock user role; creates mock audit entry |
+| `validate_override_permission()` | **SIMULATED** | Checks mock user role (Lead/Developer = allowed, Moderator/User = 403). No real Auth0 call |
+| `emit_ranking_complete()` | **SIMULATED** | Fires mock event to Cube 5; verifies #1 Theme2 ID is included in payload |
+| `get_live_rankings()` | **SIMULATED** | Returns current mock ranking state; simulates WebSocket push with <500ms latency check |
+| `detect_voting_anomalies()` | **SIMULATED** | Runs anomaly detection on canned rankings; fixture includes 1 coordinated-voting pattern for validation |
+
+#### Canned Test Data
+
+- **3 themes per poll:** From SIM data files (`frontend/lib/sim-data/poll-{1-4}-*.ts`):
+  - Poll 1: Feature Requests / Performance & Security / Integration Needs
+  - Poll 2: Growth Initiatives / Customer Retention / Team Culture
+  - Poll 3: Opportunity & Innovation / Risk & Concerns / Balanced Approach
+  - Poll 4: Collaboration Tools / Process Innovation / Culture & Mindset
+- **8 user rankings per poll:** 7 AI users (deterministic preferences per persona) + 1 HI user (manual input or fixture default)
+  - AI User 1 (Opportunity-leaning): ranks Opportunity > Balanced > Risk
+  - AI User 2 (Risk-focused): ranks Risk > Balanced > Opportunity
+  - AI User 3 (Balanced): ranks Balanced > Opportunity > Risk
+  - AI User 4 (Opportunity-leaning): ranks Opportunity > Risk > Balanced
+  - AI User 5 (Risk-focused): ranks Risk > Opportunity > Balanced
+  - AI User 6 (Opportunity-leaning): ranks Opportunity > Balanced > Risk
+  - AI User 7 (Balanced): ranks Balanced > Risk > Opportunity
+  - HI User (fixture default): ranks Opportunity > Risk > Balanced
+- **Governance override fixtures:** 1 override scenario (Lead moves #3 theme to #1 with justification "Strategic priority alignment")
+- **Quadratic vote normalization test cases:** 5 fixtures with varying token stakes (1, 4, 9, 16, 25 tokens) producing weights (1.0, 2.0, 3.0, 4.0, 5.0)
+- **Anomaly detection fixtures:** 1 coordinated voting pattern (3 users submit identical rankings within 2 seconds)
+
+#### Simulation Pass Criteria
+
+- **100% test pass rate:** All existing unit + E2E tests must pass
+- **No spiral metric regressions:** Backend duration, TypeScript errors, bundle sizes must not increase
+- **Ranking determinism:** Identical canned inputs must produce identical aggregated rankings across N=5 runs (std dev = 0)
+- **Governance weight fairness:** Quadratic normalization must produce `weight = sqrt(tokens_staked)` for all test cases
+- **Anti-sybil detection:** Coordinated voting fixture must be flagged; legitimate rapid submissions must NOT be flagged
+- **User code challenge:** Submitted replacement code must EXCEED existing metrics (faster aggregation, better anomaly detection rate, or lower false-positive rate)
+
+#### Spiral Test Reference
+
+No spiral metrics recorded yet -- **PENDING implementation**. Baseline (N=5+) required before Cube 10 isolation testing is enabled. Current status: 3 API endpoint stubs defined, 0 tests. Spiral baseline will be established during Cube 7 full implementation.
+
 ### Cube 7 — Traceability
 
 - Scoping: via `session_id` (see Shared Core -- Cross-Cutting Scoping Inheritance)
@@ -429,6 +495,90 @@ Key responsibilities:
 - **Token velocity caps:** Limit transfer/redemption speed to prevent gaming (max N tokens per hour).
 - **Version-locked entries:** Every ledger entry references `version_id` = cube version + dependency graph hash for full audit lineage.
 - **Execution separation enforcement:** Ideation team members blocked from execution roles per `scoping_id`. `hard_block` prevents join; `soft_warn` allows with logged warning.
+
+### Cube 8 — Simulation Requirements (Cube 10 Isolation)
+
+> In Cube 10, users can isolate this cube and submit replacement code for specific functions. The simulation runs the user's code against the same canned inputs and compares output metrics against the existing implementation baseline.
+
+#### Input/Output Simulation Modes
+
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| Time entries (durations, action types) | Input | Cube 5 (Gateway) | **SIMULATED** | Mock TimeEntry records: 8 users x 3 actions each (login, responding, ranking) with realistic durations (1-15 min) |
+| CQS winner (participant_id + score) | Input | Cube 5 -> Cube 6 | **SIMULATED** | Fixture CQS winner with composite score 0.87 and 6-metric breakdown |
+| Payment events (Stripe/GPay/ApplePay) | Input | Cube 1 (join), Moderator | **SIMULATED** | No real Stripe/GPay/ApplePay calls; mock payment_transactions with `status=completed` |
+| Jurisdiction rate | Input | Shared core (`hi_rates.py`) | **LIVE** | Real `hi_rates.py` lookup -- 59 jurisdictions loaded in sim; `resolve_human_rate()` called with real data |
+| Token dispute | Input | User UI | **SIMULATED** | Mock dispute filing with canned reason + evidence text |
+| Override event | Input | Cube 7 (Ranking) | **SIMULATED** | Mock governance override audit entry from Cube 7 fixture |
+| Desired outcome result | Input | Cube 4 / Cube 5 | **SIMULATED** | Mock outcome records: 2 achieved, 1 partially_achieved, 1 not_achieved |
+| Session config (pricing, fees, reward) | Input | Cube 1 (Session) | **SIMULATED** | Mock session with pricing_tier=paid, fee_amount_cents=10000, reward_amount_cents=2500, cost_splitting_enabled=true |
+| Pipeline completion events | Input | Cube 5 (Gateway) | **SIMULATED** | Mock pipeline triggers: ai_theming=completed, ranking_aggregation=completed, cqs_scoring=completed |
+| Ledger entries | Output | Cube 9, Audit | **SIMULATED** | Written to mock append-only store; verified immutability (no mutations) |
+| Token balances | Output | Frontend, Cube 9 | **SIMULATED** | Computed from mock ledger; verified ♡/웃/◬ totals match expected values |
+| Payment confirmations | Output | Cube 1, Frontend | **SIMULATED** | Mock payment status returned; no real payment provider webhook |
+| Reward payout confirmation | Output | Cube 5 -> Frontend | **SIMULATED** | Mock disbursement event; verified winner ID + amount match CQS fixture |
+| Talent profile updates | Output | Cube 9 | **SIMULATED** | Written to mock talent_profiles store; verified skill aggregation |
+| Execution separation check | Output | Cube 1, Cube 5 | **SIMULATED** | Mock block/warn result based on fixture ideation participant list |
+| Dispute status | Output | Frontend, Moderator | **SIMULATED** | Mock dispute lifecycle: open -> under_review -> resolved |
+
+#### Function Simulation Modes
+
+| Function | Sim Mode | Simulation Behavior |
+|----------|----------|---------------------|
+| `create_ledger_entry()` | **SIMULATED** | Appends to mock in-memory ledger (array); enforces append-only constraint (no updates/deletes); validates all required fields present |
+| `calculate_session_tokens()` | **BOTH** | Math is identical -- ♡ = ceil(active_minutes), 웃 = minutes * (jurisdiction_rate / 60), ◬ = ♡ * 5. Sim uses mock time entries; production uses DB query. Jurisdiction rates are LIVE from `hi_rates.py` |
+| `process_moderator_fee()` | **SIMULATED** | Creates mock payment_transaction with `transaction_type=moderator_fee`, `status=completed`; no real Stripe API call |
+| `process_cost_split_payment()` | **SIMULATED** | Calculates per-user fee = fee_amount / participant_count using mock data; creates mock cost_split transaction; verifies dynamic recalculation as participants change |
+| `disburse_reward()` | **SIMULATED** | Creates mock reward_payout record linked to CQS fixture winner; mock payment_transaction for disbursement; no real Stripe transfer |
+| `get_user_balance()` | **BOTH** | Aggregation logic identical -- sums delta_si/delta_hi/delta_ai filtered by lifecycle_state. Sim reads mock ledger; production reads Postgres |
+| `file_dispute()` | **SIMULATED** | Creates mock dispute with `status=open`; validates ledger entry exists in mock store |
+| `resolve_dispute()` | **SIMULATED** | Transitions mock dispute to resolved/rejected; records resolution_notes + resolved_by; validates legal state transitions |
+| `transition_lifecycle_state()` | **SIMULATED** | Validates state machine (simulated -> pending -> approved -> finalized + reversed); rejects illegal transitions; all on mock data |
+| `update_talent_profile()` | **SIMULATED** | Computes skill tags + avg_cqs_composite from mock session history; writes to mock talent_profiles store |
+| `recommend_talent()` | **SIMULATED** | Queries mock talent_profiles matching skill/theme criteria; returns ranked recommendations with mock match scores |
+| `check_execution_separation()` | **SIMULATED** | Checks mock execution_separation_log for ideation participants; returns block (hard_block) or warn (soft_warn) based on fixture enforcement_level |
+| `log_execution_separation()` | **SIMULATED** | Records ideation participant IDs to mock execution_separation_log per scoping_id |
+| `get_jurisdiction_rate()` | **LIVE** | Real `hi_rates.py` lookup -- no mocking needed. Returns actual hourly rate + per-minute rate for given country/state |
+
+#### Canned Test Data
+
+- **Mock token ledger entries (all lifecycle states):**
+  - 8 `login` entries (1 per user, lifecycle=finalized, ♡=1, 웃=0, ◬=5)
+  - 8 `responding` entries (lifecycle=approved, ♡=3-7 range, 웃=jurisdiction-dependent, ◬=15-35)
+  - 8 `ranking` entries (lifecycle=pending, ♡=1-3 range, 웃=jurisdiction-dependent, ◬=5-15)
+  - 1 `reward_payout` entry (lifecycle=finalized, ♡=0, 웃=$25.00 equivalent, ◬=0)
+  - 1 `reversed` entry (correcting a duplicate login)
+  - 1 `simulated` entry (from Cube 10 preview run)
+- **Mock payment transactions:**
+  - 1 `moderator_fee` (Stripe, $100.00, status=completed)
+  - 6 `cost_split` (Stripe, $12.50 each at 8 users, status=completed)
+  - 1 `cost_split` (status=failed, for error handling test)
+  - 1 `reward_payout` ($25.00, status=disbursed)
+- **Mock reward payouts:**
+  - 1 CQS winner: participant_id=fixture_user_4, cqs_score=0.87, reward_amount_cents=2500, status=disbursed
+- **59 jurisdiction rate fixtures:** Full `hi_rates.py` table (LIVE data, not mocked):
+  - International: Nigeria $0.34, Nepal $0.41, Cambodia $1.04, Mexico $1.43, Thailand $1.61, Brazil $1.68, Honduras $1.78, Colombia $1.81, Chile $3.02
+  - US range: $7.25 (TX, AL, GA...) to $16.28 (WA)
+- **Mock dispute resolution flows:**
+  - Flow 1: open -> under_review -> resolved (valid dispute, correction ledger entry appended)
+  - Flow 2: open -> under_review -> rejected (invalid dispute, no correction)
+  - Flow 3: open -> resolved (fast-track resolution by admin)
+- **Mock talent profiles:** 4 profiles with varying CQS averages (0.45, 0.62, 0.78, 0.87), skill tags, and role history
+- **Mock execution separation:** 1 scoping_id with 3 ideation participants blocked from execution (hard_block)
+
+#### Simulation Pass Criteria
+
+- **100% test pass rate:** All existing 19 unit tests must pass; no regressions
+- **No spiral metric regressions:** Backend duration, TypeScript errors, bundle sizes must not increase
+- **Ledger immutability:** No mutations to existing mock ledger entries allowed; corrections only via new `reversed` entries. Verified by checksumming ledger state before/after operations
+- **Token calculation accuracy:** ♡ = ceil(minutes) exact, 웃 = minutes * (rate/60) within $0.01 precision, ◬ = ♡ * 5 exact. Verified against 8 fixture users across 3 jurisdiction tiers
+- **Lifecycle state integrity:** Only valid transitions accepted (simulated -> pending -> approved -> finalized + reversed). All 5 illegal transitions (e.g., finalized -> pending) must be rejected with appropriate error
+- **Payment simulation safety:** Zero real API calls to Stripe/GPay/ApplePay during simulation. Verified by mock transport layer assertion
+- **User code challenge:** Submitted replacement code must EXCEED existing metrics (faster token calculation, better dispute resolution workflow, or more accurate talent matching)
+
+#### Spiral Test Reference
+
+Partial tests exist -- **19 tests** (Cube 8 token service unit tests). Full spiral baseline (N=5+) **PENDING**. Current test coverage includes: session token query, user balance aggregation, dispute creation, jurisdiction rate lookup. Missing coverage: payment processing, reward disbursement, talent profiles, execution separation, lifecycle transitions. Full spiral baseline will be established when remaining Cube 8 functions are implemented.
 
 ### Cube 8 — 웃 Rate Table ($/hr)
 
@@ -724,6 +874,110 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 - **CQS visibility:** CQS scores visible ONLY to Moderators and system. Never exposed to regular users. Winner notification does not include CQS breakdown for other users.
 - **Execution separation in talent:** `talent_recommendations` with `is_eligible = False` are shown to Moderators with a clear ineligibility flag but not filtered out (Moderator can see who was in ideation for context).
 - **Methods 2 & 3 auto-export:** All participants automatically receive a full content package (meeting purpose, desired outcome, time logged, results, ♡ earned) attached to Project ID on session completion.
+
+### Cube 9 — Simulation Requirements (Cube 10 Isolation)
+
+> In Cube 10, users can isolate this cube and submit replacement code for specific functions. The simulation runs the user's code against the same canned inputs and compares output metrics against the existing implementation baseline.
+
+#### Input/Output Simulation Modes
+
+| Variable | Direction | Source/Dest | Sim Mode | Notes |
+|----------|-----------|-------------|----------|-------|
+| Session data (responses, themes, rankings, tokens) | Input | All cubes | **SIMULATED** | Complete mock session dataset: 8 users, 7 AI responses + 1 HI response, 3 themes, aggregated rankings, token ledger |
+| Payment status (who paid / Lead-exempt) | Input | Cube 8 | **SIMULATED** | Mock payment records: 5 paid, 1 Lead-exempt, 2 unpaid. Used for results distribution gating |
+| CQS scores (all responses) | Input | Cube 6 | **SIMULATED** | Mock CQS data: 8 responses with 6-metric breakdown (Insight, Depth, Future Impact, Originality, Actionability, Relevance) + composite score |
+| Token ledger (for Pixelated Token generation) | Input | Cube 8 | **SIMULATED** | Mock ledger entries per participant: ♡ earned, 웃 earned, ◬ earned, session metadata |
+| Talent profiles | Input | Cube 8 | **SIMULATED** | 4 mock talent profiles with skills, CQS averages, role history, availability |
+| Execution separation log | Input | Cube 8 | **SIMULATED** | Mock log: 3 ideation participants flagged as ineligible for execution team |
+| Results opt-in flags | Input | Cube 1 (participants) | **SIMULATED** | Mock participant records: 6 opted in, 2 opted out |
+| Export request | Input | User UI / Auto-trigger | **SIMULATED** | Mock export request with format type (csv/pdf/pixelated_token) and requester ID |
+| Session config (pricing, reward, live feed) | Input | Cube 1 | **SIMULATED** | Mock session config: pricing_tier=paid, reward_enabled=true, reward_amount_cents=2500 |
+| Aggregated rankings | Input | Cube 7 | **SIMULATED** | Mock ranking results: 3 themes in final order with scores, vote counts, and is_top_theme2 flag |
+| Token balances | Input | Cube 8 | **SIMULATED** | Mock per-user token totals: ♡ range 5-22, 웃 range $0.57-$4.07, ◬ range 25-110 |
+| Export format config | Input | System | **SIMULATED** | Mock export settings: 15-column CSV schema, PDF template selection, Pixelated Token encoding version |
+| Pixelated Token generation params | Input | System | **SIMULATED** | Mock params: session name, session ID, date/time, ♡/◬/웃 values, user hash, project ID, encoding_version=1 |
+| CSV/PDF export files | Output | User download | **BOTH** | Real CSV/PDF generated from mock data; file content verified against 15-column schema |
+| Pixelated Token images | Output | User download | **BOTH** | Real PNG image generated from mock token data; pixel encoding + QR verified |
+| Results distribution records | Output | Audit | **SIMULATED** | Written to mock distribution store; verified gating logic (paid + Lead-exempt only) |
+| CQS dashboard data | Output | Moderator UI | **SIMULATED** | Mock dashboard payload; verified CQS visibility rules (Moderator-only, hidden from users) |
+| Talent recommendations | Output | Moderator UI | **SIMULATED** | Mock recommendations with match scores; verified execution separation enforcement |
+| Analytics dashboard data | Output | Moderator UI | **SIMULATED** | Mock analytics: participation rate, completion rate, time-to-decision |
+| Data destruction confirmation | Output | Audit | **SIMULATED** | Mock destruction record; verified all token data purged from mock store after delivery |
+| Reward announcement | Output | Frontend | **SIMULATED** | Mock winner notification (private) + generic announcement (public); verified CQS details NOT exposed to non-winners |
+
+#### Function Simulation Modes
+
+| Function | Sim Mode | Simulation Behavior |
+|----------|----------|---------------------|
+| `generate_csv_export()` | **BOTH** | Generates real CSV from mock data. Queries mock Postgres (ResponseMeta, Question) + mock MongoDB (summaries, themes). Output file verified against 15-column schema with exact column names and data types |
+| `generate_pdf_export()` | **BOTH** | Generates real PDF from mock data. Layout, charts, and summaries rendered from mock session dataset. File size and page count verified |
+| `generate_pixelated_token()` | **BOTH** | Generates real PNG image from mock token data. Encodes pixel borders (top/bottom/left/right), generates center QR code, assembles final image. Pixel integrity verified |
+| `encode_pixel_line()` | **BOTH** | Real encoding logic -- converts mock data string to colored pixel row using versioned color-to-character mapping. Output pixel count = input character count verified |
+| `mirror_pixel_line()` | **BOTH** | Real mirroring logic -- reverses top pixel line to produce bottom line. DNA-style integrity: forward top must match reversed bottom. Verified with assertion |
+| `generate_encryption_keys()` | **BOTH** | Real key generation -- produces left/right vertical pixel halves. Combined key required to decode top/bottom data. Round-trip encode/decode verified |
+| `distribute_results()` | **SIMULATED** | No real email/SMS delivery. Checks mock participant records for results_opt_in + payment_status. Creates mock results_distribution records. Verifies: 5 paid + 1 Lead-exempt = 6 deliveries; 2 unpaid + opted-out = 0 deliveries |
+| `deliver_pixelated_token()` | **SIMULATED** | No real SMS/email. Records mock delivery with method (download/sms/email) + timestamp. Sets delivered=true on mock pixelated_tokens record |
+| `destroy_token_data()` | **SIMULATED** | Purges token data from mock store (not real DB). Sets data_destroyed=true. Verifies: token data inaccessible after destruction; operation is irreversible; confirmation record created |
+| `build_cqs_dashboard()` | **SIMULATED** | Aggregates mock CQS data for dashboard payload. Verifies: all 6 metrics present per response, composite score computed correctly, winner highlighted, CQS details hidden from non-Moderator roles |
+| `announce_reward_winner()` | **SIMULATED** | Creates 2 mock notifications: private winner message (full CQS breakdown) + generic public message ("a participant won the bonus"). Verifies: CQS details NOT in public message |
+| `recommend_talent_for_project()` | **SIMULATED** | Queries mock talent_profiles, filters by execution separation (3 ideation members marked ineligible), returns ranked recommendations with match scores. Verifies: ineligible members flagged but still visible to Moderator |
+| `flag_ideation_members()` | **SIMULATED** | Reads mock execution_separation_log, marks 3 ideation participants as is_eligible=false in mock talent_recommendations |
+| `build_analytics_dashboard()` | **SIMULATED** | Computes mock analytics: participation rate (8/8 = 100%), completion rate (7/8 = 87.5%), avg time-to-decision, token distribution summary |
+
+#### Canned Test Data
+
+- **Mock export data (15-column CSV format):** 8 response rows matching the reference schema (`Updated_Web_Results_With_Themes_And_Summaries_v03 (1).csv`):
+  - Q_Number: 1 (all same question for single-poll session)
+  - Question: "What are the most important considerations for AI governance in our organization?"
+  - User: 7 AI user hashes + 1 HI user hash
+  - Detailed_Results: Full response text (50-200 words each)
+  - 333_Summary / 111_Summary / 33_Summary: Pre-computed summaries from Cube 6 fixtures
+  - Theme01: Risk & Concerns (2), Supporting Comments (3), Neutral Comments (3)
+  - Theme01_Confidence: Range 67%-95%
+  - Theme2_9 / Theme2_6 / Theme2_3: Assigned themes with confidence scores from Cube 6 fixtures
+- **Mock pixelated token parameters (per user):**
+  - Session Name: "AI Governance Poll"
+  - Session ID: fixture UUID
+  - Date/Time: 2026-03-01T14:30:00Z
+  - ♡ values: [5, 7, 3, 12, 8, 6, 9, 22]
+  - ◬ values: [25, 35, 15, 60, 40, 30, 45, 110]
+  - 웃 values: [$0.60, $0.85, $0.36, $1.45, $0.97, $0.73, $1.09, $2.66] (TX jurisdiction)
+  - User hashes: 8 unique SHA-256 hashes
+  - Project ID: fixture UUID
+  - Encoding version: 1
+- **Mock results distribution lists:**
+  - Eligible (6): 5 paid + 1 Lead-exempt -- receive polling results
+  - Ineligible (2): 1 unpaid + opted out, 1 unpaid + opted in but no payment -- no results
+- **Mock talent profiles with CQS scores:**
+  - Profile 1: avg_cqs=0.87, skills=["strategic_thinking", "risk_analysis"], roles=["business_value"], is_available=true
+  - Profile 2: avg_cqs=0.78, skills=["technical_architecture", "security"], roles=["technology"], is_available=true
+  - Profile 3: avg_cqs=0.62, skills=["communication", "facilitation"], roles=["creative"], is_available=false
+  - Profile 4: avg_cqs=0.45, skills=["data_analysis"], roles=["technology", "creative"], is_available=true, is_eligible=false (ideation participant)
+- **Mock CQS dashboard data:** 8 responses scored across 6 metrics:
+  - Insight (20%): range 0.4-0.95
+  - Depth (15%): range 0.3-0.90
+  - Future Impact (25%): range 0.5-0.92
+  - Originality (15%): range 0.3-0.88
+  - Actionability (15%): range 0.4-0.85
+  - Relevance (10%): range 0.6-0.95
+  - Composite: range 0.45-0.87
+  - Winner: participant_id=fixture_user_4 (composite=0.87)
+- **Mock reward announcement:** Winner (private): "Congratulations! You won the $25.00 contribution bonus! Your CQS score: 0.87." Public: "A participant won the contribution bonus!"
+
+#### Simulation Pass Criteria
+
+- **100% test pass rate:** All existing tests must pass; no regressions in any cube
+- **No spiral metric regressions:** Backend duration, TypeScript errors, bundle sizes must not increase
+- **Export format compliance (15-column schema match):** Generated CSV must have exactly 15 columns in the exact order specified. Column names must match reference file character-for-character. All 8 fixture rows must be present with non-empty values for all columns
+- **Pixelated Token integrity (top/bottom DNA match):** Top pixel line read forward must exactly equal bottom pixel line read backward. Left + right vertical pixels must combine to form a valid decryption key. QR code must scan to valid verification URL. Encoding version must be present and match expected value
+- **Data destruction completeness:** After `destroy_token_data()` runs on mock store: all token ledger entries for the target participant must be inaccessible. `data_destroyed` flag must be `true`. Subsequent `get_user_balance()` must return zeros. Destruction must be irreversible (re-running destroy on already-destroyed data must be a no-op)
+- **Results distribution gating:** Exactly 6 of 8 fixture participants receive results (5 paid + 1 Lead-exempt). Zero results delivered to unpaid/opted-out users. Verified by mock distribution record count
+- **CQS visibility enforcement:** CQS scores must NOT appear in any response payload accessible to non-Moderator roles. Winner notification to non-winners must NOT contain CQS breakdown
+- **User code challenge:** Submitted replacement code must EXCEED existing metrics (faster export generation, better pixel encoding efficiency, more accurate talent matching, or improved data destruction verification)
+
+#### Spiral Test Reference
+
+No spiral metrics recorded yet -- **PENDING implementation**. Baseline (N=5+) required before Cube 10 isolation testing is enabled. Current status: CSV export implemented (136 lines), analytics stub defined, 0 dedicated Cube 9 tests. Spiral baseline will be established during Cube 9 full implementation (PDF export, Pixelated Tokens, results distribution, CQS dashboard, talent recommendations, data destruction).
 
 ### Cube 9 — Target Output Schema (15-Column CSV)
 
