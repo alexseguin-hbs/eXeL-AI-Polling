@@ -4,16 +4,23 @@
 
 ---
 
-## Cubes 7, 9: SCAFFOLDED (stubs only)
+## Cube 7: SCAFFOLDED (stubs only)
 - Models, schemas, and route stubs exist
-- Service implementations pending
+- Service implementation pending
+
+## Cube 9: PARTIALLY IMPLEMENTED
+- CSV export service implemented (135 lines in service.py)
+- 2 API endpoints (CSV export functional, analytics stub)
+- Exporters package scaffolded (ready for CSV/PDF exporters)
 
 ---
 
 ## Cube 8 — Token Ledger: IMPLEMENTED
-- `TokenService`: session tokens query, user balance, disputes
-- 웃 rate table: 59 jurisdictions (9 international + 50 US states)
+- `TokenService` (98 lines): session tokens query, user balance, disputes
+- Router (72 lines): 4 API endpoints — total backend: 170 lines
+- 웃 rate table: `core/hi_rates.py` (135 lines) — 59 jurisdictions (9 international + 50 US states)
 - Rate lookup API: `GET /tokens/rates`, `GET /tokens/rates/lookup`
+- Tests: `test_token_service.py` (241 lines, 19 tests)
 - Files: `cubes/cube8_tokens/service.py`, `cubes/cube8_tokens/router.py`, `core/hi_rates.py`, `schemas/token.py`, `models/token_ledger.py`
 
 ---
@@ -247,7 +254,7 @@ No spiral metrics recorded yet -- **PENDING implementation**. Baseline (N=5+) re
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `backend/app/cubes/cube7_ranking/router.py` | 26 | 3 API endpoint stubs (submit, aggregate, override) |
+| `backend/app/cubes/cube7_ranking/router.py` | 25 | 3 API endpoint stubs (submit, aggregate, override) |
 | `backend/app/cubes/cube7_ranking/__init__.py` | - | Package init |
 | `backend/app/schemas/ranking.py` | 35 | Pydantic schemas (RankingSubmit, RankingRead, AggregatedRankingRead) |
 
@@ -286,16 +293,20 @@ Key responsibilities:
 
 ### Cube 8 — Current Implementation Status
 
-**Backend service:** `backend/app/cubes/cube8_tokens/service.py` (99 lines)
+**Backend service:** `backend/app/cubes/cube8_tokens/service.py` (98 lines)
 - `get_session_tokens()` -- query all ledger entries for a session
 - `get_user_token_balance()` -- aggregated ♡/웃/◬ balance for user in session
 - `create_dispute()` -- file a dispute against a ledger entry
 
-**Backend router:** `backend/app/cubes/cube8_tokens/router.py` (73 lines)
+**Backend router:** `backend/app/cubes/cube8_tokens/router.py` (72 lines)
 - `GET /sessions/{session_id}/tokens` -- session token ledger (CRS-25)
 - `POST /tokens/dispute` -- file dispute (CRS-33)
 - `GET /tokens/rates` -- full 웃 rate table (59 jurisdictions)
 - `GET /tokens/rates/lookup` -- lookup rate by country/state
+
+**Total backend:** 170 lines (service 98 + router 72)
+
+**Tests:** `backend/tests/cube8/test_token_service.py` (241 lines, 19 tests)
 
 **Models:** `backend/app/models/token_ledger.py` (53 lines)
 - `TokenLedger` ORM: session_id, user_id, anon_hash, cube_id, action_type, delta_heart, delta_human, delta_unity, lifecycle_state, reason, reference_id, version_id
@@ -605,11 +616,12 @@ API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&sta
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `backend/app/cubes/cube8_tokens/service.py` | 99 | Ledger queries + dispute creation |
-| `backend/app/cubes/cube8_tokens/router.py` | 73 | 4 API endpoints (tokens, dispute, rates, rates lookup) |
+| `backend/app/cubes/cube8_tokens/service.py` | 98 | Ledger queries + dispute creation |
+| `backend/app/cubes/cube8_tokens/router.py` | 72 | 4 API endpoints (tokens, dispute, rates, rates lookup) |
 | `backend/app/models/token_ledger.py` | 53 | TokenLedger + TokenDispute ORM models |
 | `backend/app/schemas/token.py` | 38 | Pydantic schemas with ♡/웃/◬ serialization aliases |
-| `backend/app/core/hi_rates.py` | - | 59-jurisdiction 웃 rate table + lookup functions |
+| `backend/app/core/hi_rates.py` | 135 | 59-jurisdiction 웃 rate table + lookup functions |
+| `backend/tests/cube8/test_token_service.py` | 241 | 19 unit tests (session tokens, balance, disputes, rates) |
 
 ### Cube 8 — Downstream/Upstream Dependencies
 
@@ -627,6 +639,8 @@ API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&sta
 ---
 
 ## Cube 9 — Reports, Export & Dashboards: PARTIALLY IMPLEMENTED (Position 1,1,3 / MVP1-MVP3)
+
+> **Note:** Cube 9 is NOT a stub -- it has real implementation (135 lines in service.py, 38 lines in router.py, 173 lines total). CSV export is functional.
 
 > **Grid position:** (1,1,3) -- top-left of Level 1 grid
 > **Spiral order:** 9th cube (top-left, final cube in Layer 1 spiral)
@@ -647,16 +661,18 @@ Key responsibilities:
 
 ### Cube 9 — Current Implementation Status
 
-**Backend service:** `backend/app/cubes/cube9_reports/service.py` (136 lines)
+**Backend service:** `backend/app/cubes/cube9_reports/service.py` (135 lines)
 - `export_session_csv()` -- builds 15-column CSV from Postgres (ResponseMeta, Question) + MongoDB (raw text, summaries, themes)
 - `export_session_csv_to_file()` -- writes CSV to filesystem
 - CSV columns: Q_Number, Question, User, Detailed_Results, 333_Summary, 111_Summary, 33_Summary, Theme01, Theme01_Confidence, Theme2_9, Theme2_9_Confidence, Theme2_6, Theme2_6_Confidence, Theme2_3, Theme2_3_Confidence
 
-**Backend router:** `backend/app/cubes/cube9_reports/router.py` (39 lines)
+**Backend router:** `backend/app/cubes/cube9_reports/router.py` (38 lines)
 - `GET /sessions/{session_id}/export/csv` -- CRS-14: CSV download as StreamingResponse
 - `GET /sessions/{session_id}/analytics` -- CRS-19: stub (`NotImplementedError`)
 
-**Exporters package:** `backend/app/cubes/cube9_reports/exporters/` -- scaffolded (empty `__init__.py`)
+**Total backend:** 173 lines (service 135 + router 38)
+
+**Exporters package:** `backend/app/cubes/cube9_reports/exporters/` -- scaffolded (empty `__init__.py`, ready for CSV/PDF exporter modules)
 
 ### Cube 9 — Requirements.txt Specification
 
@@ -977,7 +993,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 #### Spiral Test Reference
 
-No spiral metrics recorded yet -- **PENDING implementation**. Baseline (N=5+) required before Cube 10 isolation testing is enabled. Current status: CSV export implemented (136 lines), analytics stub defined, 0 dedicated Cube 9 tests. Spiral baseline will be established during Cube 9 full implementation (PDF export, Pixelated Tokens, results distribution, CQS dashboard, talent recommendations, data destruction).
+No spiral metrics recorded yet -- **PENDING implementation**. Baseline (N=5+) required before Cube 10 isolation testing is enabled. Current status: CSV export implemented (135 lines in service.py, 38 lines in router.py, 173 lines total), analytics stub defined, 0 dedicated Cube 9 tests. Spiral baseline will be established during Cube 9 full implementation (PDF export, Pixelated Tokens, results distribution, CQS dashboard, talent recommendations, data destruction).
 
 ### Cube 9 — Target Output Schema (15-Column CSV)
 
@@ -1014,9 +1030,9 @@ The AI pipeline produces output matching this schema (reference: `Updated_Web_Re
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `backend/app/cubes/cube9_reports/service.py` | 136 | CSV export (15-column schema from Postgres + MongoDB) |
-| `backend/app/cubes/cube9_reports/router.py` | 39 | 2 API endpoints (CSV export, analytics stub) |
-| `backend/app/cubes/cube9_reports/exporters/__init__.py` | - | Exporters package (scaffolded) |
+| `backend/app/cubes/cube9_reports/service.py` | 135 | CSV export (15-column schema from Postgres + MongoDB) |
+| `backend/app/cubes/cube9_reports/router.py` | 38 | 2 API endpoints (CSV export, analytics stub) |
+| `backend/app/cubes/cube9_reports/exporters/__init__.py` | - | Exporters package (scaffolded, ready for CSV/PDF exporter modules) |
 
 ### Cube 9 — Downstream/Upstream Dependencies
 
