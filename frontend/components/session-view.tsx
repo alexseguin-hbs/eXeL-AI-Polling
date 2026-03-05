@@ -274,6 +274,9 @@ export function SessionView() {
   const sessionId = searchParams.get("id") || "";
   const participantId = searchParams.get("pid") || "";
   const languageCode = searchParams.get("lang") || "en";
+  // Cross-device params: session status + short_code passed from join-flow
+  const statusOverride = searchParams.get("ss") || "";
+  const shortCode = searchParams.get("sc") || "";
 
   const [session, setSession] = useState<Session | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -392,25 +395,58 @@ export function SessionView() {
       return;
     }
     setLoading(true);
-    api
-      .get<Session>(`/sessions/${sessionId}`)
-      .then((data) => {
+
+    const loadSession = async () => {
+      try {
+        const data = await api.get<Session>(`/sessions/${sessionId}`);
+
+        // Cross-device override: if join-flow passed a status (ss param),
+        // apply it when the local mock session has a stale status.
+        // This is critical for phones joining via QR — the moderator's session
+        // may be in "polling" but the phone's local mock data says "draft"/"open".
+        if (statusOverride && data.status !== statusOverride) {
+          const validStatuses = ["draft", "open", "polling", "ranking", "closed", "archived"];
+          if (validStatuses.includes(statusOverride)) {
+            data.status = statusOverride as Session["status"];
+            if (statusOverride === "polling" && !data.opened_at) {
+              data.opened_at = new Date().toISOString();
+            }
+          }
+        }
+
+        // Also try KV for the absolute latest status (async, best-effort)
+        if (shortCode) {
+          try {
+            const kvData = await fetchSessionFromKV(shortCode);
+            if (kvData && !("error" in kvData) && kvData.status) {
+              data.status = kvData.status as Session["status"];
+              if (kvData.ends_at) data.ends_at = kvData.ends_at as string;
+              if (kvData.participant_count != null) data.participant_count = kvData.participant_count as number;
+            }
+          } catch {
+            // KV unavailable — use status override or local data
+          }
+        }
+
         setSession(data);
         setParticipantCount(data.participant_count ?? 0);
         // Start time tracking when session is actively polling
         if (["open", "polling"].includes(data.status)) {
           startTimer();
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         if (err instanceof ApiClientError) {
-          setError(err.detail);
+          setError((err as ApiClientError).detail);
         } else {
           setError("Failed to load session.");
         }
-      })
-      .finally(() => setLoading(false));
-  }, [sessionId, simulationMode, simulationRole, simType, simDurationIndex, startTimer, simPollData]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSession();
+  }, [sessionId, simulationMode, simulationRole, simType, simDurationIndex, startTimer, simPollData, statusOverride, shortCode]);
 
   // Simulation: Progressive AI responses during moderator sim polling
   useEffect(() => {

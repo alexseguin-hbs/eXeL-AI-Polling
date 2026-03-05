@@ -10,9 +10,20 @@ import { SPIRAL_TEST_WAVES } from "./sim-data/spiral-test-100-users";
 // ── Test Moderator ──────────────────────────────────────────────
 export const MOCK_MODERATOR_ID = "google-oauth2|mock-moderator-001";
 
+/** Clear stale localStorage mock state.
+ *  Called on join/session page load for non-moderator (general user) visits
+ *  to ensure phone users always get fresh data from KV/URL params. */
+export function clearStaleMockState(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem("exel_mock_state");
+  } catch {
+    // localStorage unavailable
+  }
+}
+
 // ── Cross-Tab State Sync via localStorage ───────────────────────
 // Enables moderator (Tab 1) state changes to propagate to user (Tab 2).
-// Each tab has its own in-memory MOCK_SESSIONS. localStorage bridges them.
 const STORAGE_KEY = "exel_mock_state";
 
 interface MockResponse {
@@ -839,6 +850,8 @@ export async function handleMockRequest<T>(
       (mockParticipantCount[session.id] || 0) + 1;
     session.participant_count = mockParticipantCount[session.id];
     saveMockState();
+    // Cross-device: sync updated participant count to KV
+    syncSessionToKV(session);
     return {
       session_id: session.id,
       participant_id: participantId,

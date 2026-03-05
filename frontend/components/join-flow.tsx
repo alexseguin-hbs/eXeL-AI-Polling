@@ -11,7 +11,7 @@ import { Navbar } from "@/components/navbar";
 import { LanguageSelector } from "@/components/language-selector";
 import { useLexicon } from "@/lib/lexicon-context";
 import { api, ApiClientError } from "@/lib/api";
-import { hydrateSessionFromParams, fetchSessionFromKV, hydrateSessionFromKV } from "@/lib/mock-data";
+import { hydrateSessionFromParams, fetchSessionFromKV, hydrateSessionFromKV, clearStaleMockState } from "@/lib/mock-data";
 import { toast } from "@/components/ui/use-toast";
 import type { Session, SessionJoinResponse } from "@/lib/types";
 
@@ -46,6 +46,10 @@ export function JoinFlow() {
   useEffect(() => {
     if (!code) return;
     setLoading(true);
+
+    // Clear stale localStorage from previous visits so phone users
+    // always get fresh session data from KV or URL params.
+    clearStaleMockState();
 
     // Cross-device hydration chain:
     // 1. Try KV fetch (richest data, synced by moderator's device)
@@ -103,7 +107,10 @@ export function JoinFlow() {
         }
       );
       const simSuffix = simMode ? "&sim=1" : "";
-      router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${simSuffix}`);
+      // Pass session status + short_code so cross-device session-view enters correct state
+      const statusParam = session.status ? `&ss=${session.status}` : "";
+      const codeParam = session.short_code ? `&sc=${session.short_code}` : "";
+      router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${statusParam}${codeParam}${simSuffix}`);
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({
