@@ -424,3 +424,165 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 | CRS-33 | Fairness and correction mechanisms | "Prevents resentment and loss of trust." |
 | CRS-34 | Controlled financial and governance flow | "Required for audits and payouts." |
 | CRS-35 | Executive clarity and adoption confidence | "If leadership can't explain it, it won't scale." |
+
+---
+
+## Cube 10 — Per-Cube Simulation Architecture
+
+Cube 10 is the center of the Level 2 grid. While the Easter Egg SIM (documented above) provides a walkthrough preview of the full session lifecycle, the production Cube 10 feature enables **per-cube isolation, code challenge competitions, and metric-driven evolution** of the entire cube lattice. This section documents the simulation orchestration architecture that powers those capabilities.
+
+### Cube Isolation Model
+
+Cube 10 treats each cube (1-9) as an independently testable unit by replacing its upstream and downstream dependencies with controlled fixtures.
+
+**Checkout Process:**
+1. A Team/Lead user selects a cube to simulate via the Cube 10 UI (`checkout_cube()`)
+2. The simulation runner loads the cube's current production code into the in-browser editor
+3. Upstream cube outputs are replaced with **canned fixture data** from the `replay_datasets` table — these are frozen snapshots of real production inputs captured from past sessions
+4. The cube-under-test executes against these fixtures, producing outputs
+5. Downstream cube inputs receive the cube-under-test's actual output for validation (not canned data — real propagation)
+6. The simulation runner captures and measures four key dimensions:
+   - **Latency** — p50 and p95 execution time
+   - **Accuracy** — output correctness vs expected production output (from `expected_output_snapshot`)
+   - **Test pass rate** — all existing unit + E2E tests must pass (0 regressions)
+   - **Resource usage** — memory and CPU consumption during execution
+7. Results are compared against the production baseline stored in the `simulation_results` table
+8. A determinism check verifies that identical inputs produce identical outputs (SHA-256 replay hash)
+
+**Isolation Guarantees:**
+- Each simulation runs in a sandboxed environment — no writes to production databases
+- Redis state is mocked with in-memory stores
+- MongoDB reads come from snapshot data, not live collections
+- External API calls (AI providers, STT providers) use recorded responses unless explicitly testing live integration
+- The cube's dependency graph hash is computed and stored with every simulation run for version traceability
+
+**Data Flow Diagram:**
+```
+  [replay_datasets]          [cube-under-test]          [simulation_results]
+        |                          |                          |
+  frozen inputs ──────────> execute code ──────────> measure metrics
+        |                          |                          |
+  upstream fixtures          real outputs              compare vs baseline
+        |                          |                          |
+  (Cubes N-1..1)            downstream validation      pass/fail assessment
+                             (Cubes N+1..9)
+```
+
+### Per-Cube Simulation Map
+
+Each cube has specific upstream inputs that are simulated (fixture data) and downstream outputs that are captured for measurement. The "Live Components" column identifies what runs as real code even during simulation (not mocked).
+
+| Cube | Upstream Inputs (Simulated) | Live Components | Downstream Outputs (Captured) | Baseline Source |
+|------|---------------------------|-----------------|------------------------------|----------------|
+| 1 | Moderator config, QR scan | QR generation, UUID | Session ID, participant record | SPIRAL_METRICS N=18 |
+| 2 | Raw text, session config | PII detection (NER model) | Validated response, hash | SPIRAL_METRICS N=18 |
+| 3 | Audio blob, session config | STT API (provider-dependent) | Transcript, hash | SPIRAL_METRICS N=9 |
+| 4 | Cube 2/3 responses | Redis presence | Collected set, language breakdown | SPIRAL_METRICS N=9 |
+| 5 | Session state events | Rate table lookup | Time entries, pipeline triggers | SPIRAL_METRICS N=18 |
+| 6 | Collected responses, seed | AI embedding + summarization APIs | Themes, summaries, assignments | SPIRAL_METRICS N=9 |
+| 7 | Theme list, user rankings | (all math, no external APIs) | Aggregated rankings, governance | PENDING |
+| 8 | Time entries, CQS scores | Rate table lookup | Token balances, ledger entries | PENDING (19 tests) |
+| 9 | Rankings, tokens, CQS | (export generation, no APIs) | CSV/PDF, pixelated tokens | PENDING |
+
+**Key observations:**
+- Cubes 7 and 9 have **no external API dependencies** — their simulations are fully deterministic and self-contained
+- Cubes 3 and 6 depend on external AI/STT providers — simulations can run in **recorded mode** (cached API responses) or **live mode** (real API calls, useful for provider comparison)
+- Cube 5 bridges time tracking and pipeline orchestration — its simulation must verify that downstream triggers fire correctly without actually executing the downstream pipelines
+- All cubes share the same replay hash verification: `SHA-256(inputs + parameters + seed) == expected_hash`
+
+### Code Challenge Feature (MVP3)
+
+#### Overview
+
+The Code Challenge is a competition model where users with Team/Lead roles can submit replacement code for specific functions within a cube. The goal is to improve the cube's performance metrics beyond the existing production baseline.
+
+The simulation runner executes a strict evaluation pipeline:
+1. Loads the cube's canned inputs from `replay_datasets` (upstream simulated data)
+2. Runs the user's submitted code against those inputs in a sandboxed environment
+3. Measures output metrics across all four dimensions (latency, accuracy, test pass rate, resource usage)
+4. Compares every metric against the existing production implementation baseline
+5. If **ALL** metrics meet or exceed the baseline, the code is flagged for Lead/Admin review
+6. Approved code creates a new `cube_versions` record and can be promoted to production
+
+**The bar is high by design:** a submission that improves latency but regresses accuracy is rejected. Every dimension must hold or improve.
+
+#### Challengeable Functions Per Cube
+
+Not all functions within a cube are open for challenge. Only functions with well-defined inputs, outputs, and measurable metrics are eligible. Internal wiring, auth middleware, and database schema functions are excluded.
+
+| Cube | Challengeable Functions | Key Metric |
+|------|----------------------|------------|
+| 1 | `generate_qr_code()`, `validate_join_request()`, `check_capacity()` | Join latency |
+| 2 | `detect_pii()`, `scrub_pii()`, `detect_profanity()` | PII detection accuracy |
+| 3 | `transcribe_audio()`, `validate_transcript()` | STT accuracy, latency |
+| 4 | `get_collected_responses()`, `get_response_count()` | Aggregation throughput |
+| 5 | `calculate_tokens()`, `orchestrate_post_polling()` | Token calc speed, pipeline reliability |
+| 6 | `classify_theme01()`, `generate_themes()`, `assign_responses_to_themes()` | Theme accuracy, determinism |
+| 7 | `aggregate_rankings()`, `apply_governance_weights()` | Ranking determinism, fairness |
+| 8 | `calculate_session_tokens()`, `process_reward_payout()` | Ledger integrity, calc speed |
+| 9 | `export_csv()`, `generate_pixelated_token()` | Export compliance, token integrity |
+
+#### Pass Criteria
+
+A code challenge submission must satisfy ALL of the following to be eligible for approval:
+
+- **Test integrity:** ALL existing unit + E2E tests must pass with 0 regressions
+- **Spiral metrics:** ALL spiral metrics (forward and backward) must meet or exceed the production baseline
+- **Latency budget:** Execution latency must not increase by more than 10% at p95
+- **Memory budget:** Peak memory usage must not increase by more than 20%
+- **Determinism:** Identical inputs MUST produce identical outputs — the replay hash must match
+- **Downstream compatibility:** The cube's outputs must be consumable by all downstream cubes without modification
+
+A submission that fails any single criterion is automatically rejected with a detailed breakdown showing which metrics regressed and by how much.
+
+#### Version Tracking
+
+Every code submission — whether approved, rejected, or still under review — creates a permanent record in the version tracking system:
+
+- Every submission creates a `cube_versions` record with `code_hash` (SHA-256 of submitted code)
+- The `dependency_graph_hash` captures the exact versions of all upstream and downstream cubes at the time of simulation
+- Approved versions set `is_production = true` and record the `promoted_by` user
+- Previous production versions retain their records but have `is_production = false`
+- Rollback is available via `simulation_runs.rollback_to_version` — reverts to any previous approved version
+- The version history forms an immutable audit trail: who changed what, when, why, and what metrics resulted
+
+#### Feedback Pipeline
+
+The self-improvement feedback system feeds into the Code Challenge ecosystem:
+
+- **System-prompted feedback:** After each simulation run completes, the system prompts the user with contextual questions about their experience and the results
+- **Persistent feedback icon:** Available on every screen — users can submit improvement suggestions at any time
+- **Cube-scoped tagging:** Every feedback item is tagged with the relevant cube ID and scoping context (Project/Differentiator/Specification)
+- **Auto-triage:** AI-assisted categorization assigns category (`bug` / `feature_request` / `improvement` / `usability` / `performance`) and priority (`low` / `medium` / `high`)
+- **Backlog integration:** Triaged feedback items are surfaced to Team/Lead users as a prioritized backlog, filterable by cube and scoping context
+- **Challenge inspiration:** High-priority feedback items on specific cube functions are surfaced as suggested Code Challenge targets — "This function has 3 improvement requests. Can you beat the baseline?"
+
+### Spiral Test Requirements Per Cube
+
+Before a cube can be isolated for Cube 10 simulation, it must have a verified spiral metrics baseline. The minimum requirement is N=5 bidirectional spiral runs with 0 test failures. This ensures the production baseline is statistically reliable for comparison.
+
+| Cube | Required Baseline | Current Status | Gap |
+|------|-------------------|----------------|-----|
+| 1 | N=5+ | N=18 (Feb 25) | READY |
+| 2 | N=5+ | N=18 (Feb 25) | READY |
+| 3 | N=5+ | N=9 (Feb 23) | READY |
+| 4 | N=5+ | N=9 (Feb 26) | READY |
+| 5 | N=5+ | N=18 (Feb 26) | READY |
+| 6 | N=5+ | N=9 (Feb 26) | READY |
+| 7 | N=5+ | NONE | BLOCKED — implement first |
+| 8 | N=5+ | Partial (19 tests) | NEEDS full spiral run |
+| 9 | N=5+ | NONE | BLOCKED — implement first |
+| 10 | N=5+ | N=18 SIM only | NEEDS production feature spiral |
+
+**Readiness summary:**
+- **6 of 9 cubes are READY** for Cube 10 simulation (Cubes 1-6)
+- **Cube 7 (Ranking) and Cube 9 (Reports)** are blocked on implementation — no tests exist yet
+- **Cube 8 (Tokens)** has 19 tests but needs a full N=5+ bidirectional spiral run to establish a reliable baseline
+- **Cube 10 itself** has Easter Egg SIM spiral metrics (N=18) but needs its own production feature spiral once the Code Challenge UI and simulation runner are implemented
+
+**Unblocking sequence:**
+1. Implement Cube 7 (Ranking) → run N=5+ spiral → READY
+2. Complete Cube 8 spiral run → READY
+3. Implement Cube 9 (Reports) → run N=5+ spiral → READY
+4. Build Cube 10 production features (Code Editor, Simulation Runner, Feedback Pipeline)
+5. Run Cube 10 production spiral → ALL CUBES READY for per-cube simulation
