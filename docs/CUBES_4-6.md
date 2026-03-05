@@ -48,7 +48,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 | File | Lines | Purpose |
 |------|-------|---------|
 | `cubes/cube4_collector/service.py` | 387 | Core business logic (7 functions) |
-| `cubes/cube4_collector/router.py` | 97 | 6 API endpoints |
+| `cubes/cube4_collector/router.py` | 94 | 6 API endpoints |
 | `tests/cube4/test_collector_service.py` | 427 | 17 unit tests |
 | `tests/cube4/test_e2e_flows.py` | 296 | 10 E2E tests + CUBE4_TEST_METHOD |
 
@@ -252,7 +252,7 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 4 tests: 27/27 pass, integrated i
 - **Pipeline status query:** Returns all triggers for session with aggregated flags (has_pending, has_failed, all_completed)
 - **Pipeline retry:** Failed triggers can be reset to pending and re-fired
 - **Cube 1 orchestration hook:** `_transition_and_return()` fires `orchestrate_post_polling()` on ranking transition
-- **API endpoints:** 6 time routes + 3 pipeline routes + 3 payment stubs = 12 total
+- **API endpoints:** 3 time routes + 3 pipeline routes + 3 payment stubs = 9 total
 
 ### Cube 5 — Test Procedure (Cube 10 Simulator Reference)
 
@@ -306,8 +306,8 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube5/ -v --tb
 ### Cube 5 — Files
 | File | Lines | Purpose |
 |------|-------|---------|
-| `cubes/cube5_gateway/service.py` | 496 | Time tracking (262 lines) + orchestrator (234 lines) |
-| `cubes/cube5_gateway/router.py` | 233 | 6 time + 3 pipeline + 3 payment stubs = 12 endpoints |
+| `cubes/cube5_gateway/service.py` | 495 | Time tracking + orchestrator |
+| `cubes/cube5_gateway/router.py` | 228 | 3 time + 3 pipeline + 3 payment stubs = 9 endpoints |
 | `models/pipeline_trigger.py` | 57 | PipelineTrigger ORM (session_id, trigger_type, status, trigger_metadata) |
 | `schemas/pipeline.py` | 42 | 4 Pydantic schemas |
 | `schemas/time_tracking.py` | 43 | 3 Pydantic schemas |
@@ -415,7 +415,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube5/ -v --tb
 | `cube5.ranking_pipeline_trigger_latency` | ms | Time from trigger creation to Cube 7 task dispatch |
 | `cube5.gateway_throughput` | events/sec | Total events processed per second across all pipelines |
 | `cube5.pending_trigger_queue_depth` | count | Number of pipeline triggers in `pending` status |
-| `cube5.api_response_time_by_route` | ms | Per-endpoint response time (12 routes) |
+| `cube5.api_response_time_by_route` | ms | Per-endpoint response time (9 routes) |
 | `cube5.error_rate_by_event_type` | ratio | Error rate partitioned by trigger_type |
 
 **User Metrics (7):**
@@ -597,10 +597,11 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 ### Cube 6 — Files
 | File | Lines | Purpose |
 |------|-------|---------|
-| `cubes/cube6_ai/service.py` | 550+ | Two-phase pipeline (Phase A live + Phase B parallel theming) |
-| `cubes/cube6_ai/providers/base.py` | 85 | EmbeddingProvider + SummarizationProvider ABCs |
-| `cubes/cube6_ai/providers/factory.py` | 112 | Factory with circuit breaker failover |
-| `cubes/cube6_ai/providers/openai_provider.py` | 85 | OpenAI embedding + summarization |
+| `cubes/cube6_ai/service.py` | 882 | Two-phase pipeline (Phase A live + Phase B parallel theming) |
+| `cubes/cube6_ai/router.py` | 43 | 2 API endpoints (run pipeline, get themes) |
+| `cubes/cube6_ai/providers/base.py` | 84 | EmbeddingProvider + SummarizationProvider ABCs |
+| `cubes/cube6_ai/providers/factory.py` | 115 | Factory with circuit breaker failover |
+| `cubes/cube6_ai/providers/openai_provider.py` | 84 | OpenAI embedding + summarization |
 | `cubes/cube6_ai/providers/grok_provider.py` | 96 | Grok (xAI) embedding + summarization |
 | `cubes/cube6_ai/providers/gemini_provider.py` | 94 | Gemini (Google) embedding + summarization |
 | `models/theme.py` | 38 | Theme ORM (hierarchical with parent_theme_id) |
