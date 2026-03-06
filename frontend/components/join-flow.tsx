@@ -23,9 +23,8 @@ export function JoinFlow() {
   const { t, setActiveLocale } = useLexicon();
   // Read code from query param: /join/?code=ABCD1234
   const code = searchParams.get("code")?.toUpperCase() || "";
-  // Cross-device QR params: title + status + extended metadata encoded in URL for mock mode hydration
+  // Cross-device QR params: immutable session metadata encoded in URL for mock mode hydration
   const qrTitle = searchParams.get("t");
-  const qrStatus = searchParams.get("s");
   const qrSid = searchParams.get("sid");
   const qrPm = searchParams.get("pm");
   const qrDur = searchParams.get("dur");
@@ -56,13 +55,14 @@ export function JoinFlow() {
     // 2. Fall back to expanded URL params (sid, pm, dur)
     // 3. Fall back to basic URL params (title, status)
     const hydrateAndLoad = async () => {
-      // Try KV fetch first for cross-device session data
+      // Try KV fetch first for cross-device session data (source of truth for status)
       const kvData = await fetchSessionFromKV(code);
       if (kvData && !("error" in kvData)) {
         hydrateSessionFromKV(code, kvData);
       } else if (qrTitle) {
-        // Fallback: hydrate from URL params (with expanded fields)
-        hydrateSessionFromParams(code, qrTitle, qrStatus, qrSid, qrPm, qrDur);
+        // Fallback: hydrate from URL params — status defaults to "polling"
+        // (if QR exists, moderator intends participation)
+        hydrateSessionFromParams(code, qrTitle, "polling", qrSid, qrPm, qrDur);
       }
 
       try {
@@ -86,7 +86,7 @@ export function JoinFlow() {
     };
 
     hydrateAndLoad();
-  }, [code, qrTitle, qrStatus, qrSid, qrPm, qrDur, simMode, t]);
+  }, [code, qrTitle, qrSid, qrPm, qrDur, simMode, t]);
 
   // When language changes, also set the active UI locale
   const handleLanguageChange = useCallback((code: string) => {
@@ -107,10 +107,8 @@ export function JoinFlow() {
         }
       );
       const simSuffix = simMode ? "&sim=1" : "";
-      // Pass session status + short_code so cross-device session-view enters correct state
-      const statusParam = session.status ? `&ss=${session.status}` : "";
-      const codeParam = session.short_code ? `&sc=${session.short_code}` : "";
-      router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${statusParam}${codeParam}${simSuffix}`);
+      // KV is source of truth — no need to pass ss/sc params through URL
+      router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${simSuffix}`);
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({

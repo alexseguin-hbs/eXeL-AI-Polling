@@ -274,9 +274,7 @@ export function SessionView() {
   const sessionId = searchParams.get("id") || "";
   const participantId = searchParams.get("pid") || "";
   const languageCode = searchParams.get("lang") || "en";
-  // Cross-device params: session status + short_code passed from join-flow
-  const statusOverride = searchParams.get("ss") || "";
-  const shortCode = searchParams.get("sc") || "";
+  // Note: ss/sc URL params removed — KV is now the source of truth for cross-device status
 
   const [session, setSession] = useState<Session | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -400,31 +398,21 @@ export function SessionView() {
       try {
         const data = await api.get<Session>(`/sessions/${sessionId}`);
 
-        // Cross-device override: if join-flow passed a status (ss param),
-        // apply it when the local mock session has a stale status.
-        // This is critical for phones joining via QR — the moderator's session
-        // may be in "polling" but the phone's local mock data says "draft"/"open".
-        if (statusOverride && data.status !== statusOverride) {
-          const validStatuses = ["draft", "open", "polling", "ranking", "closed", "archived"];
-          if (validStatuses.includes(statusOverride)) {
-            data.status = statusOverride as Session["status"];
-            if (statusOverride === "polling" && !data.opened_at) {
-              data.opened_at = new Date().toISOString();
-            }
-          }
-        }
-
-        // Also try KV for the absolute latest status (async, best-effort)
-        if (shortCode) {
+        // Cross-device: KV is the source of truth for session status.
+        // The session's own short_code is used (no URL param needed).
+        if (data.short_code) {
           try {
-            const kvData = await fetchSessionFromKV(shortCode);
+            const kvData = await fetchSessionFromKV(data.short_code);
             if (kvData && !("error" in kvData) && kvData.status) {
               data.status = kvData.status as Session["status"];
               if (kvData.ends_at) data.ends_at = kvData.ends_at as string;
               if (kvData.participant_count != null) data.participant_count = kvData.participant_count as number;
+              if (data.status === "polling" && !data.opened_at) {
+                data.opened_at = new Date().toISOString();
+              }
             }
           } catch {
-            // KV unavailable — use status override or local data
+            // KV unavailable — use local data
           }
         }
 
@@ -446,7 +434,7 @@ export function SessionView() {
     };
 
     loadSession();
-  }, [sessionId, simulationMode, simulationRole, simType, simDurationIndex, startTimer, simPollData, statusOverride, shortCode]);
+  }, [sessionId, simulationMode, simulationRole, simType, simDurationIndex, startTimer, simPollData]);
 
   // Simulation: Progressive AI responses during moderator sim polling
   useEffect(() => {
@@ -548,13 +536,14 @@ export function SessionView() {
 
   // Poll session status — includes "draft" so users who join early see transitions.
   // Checks both local mock API and cross-device KV for status changes.
+  // Runs KV check immediately on mount (not waiting for 5s interval).
   useEffect(() => {
     if (!sessionId || !sessionStatus) return;
     if (simulationMode) return;
     const isActive = ["draft", "open", "polling", "ranking"].includes(sessionStatus);
     if (!isActive) return;
 
-    const interval = setInterval(async () => {
+    const checkStatus = async () => {
       try {
         const data = await api.get<Session>(`/sessions/${sessionId}`);
         if (data.status !== sessionStatus) {
@@ -578,7 +567,11 @@ export function SessionView() {
       } catch {
         // Silently fail
       }
-    }, 5000);
+    };
+
+    // Immediate check on mount — don't make phone wait 5s for first status update
+    checkStatus();
+    const interval = setInterval(checkStatus, 5000);
 
     return () => clearInterval(interval);
   }, [sessionId, sessionStatus, simulationMode, session?.short_code]);

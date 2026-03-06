@@ -4,7 +4,9 @@
   "assets": {
     "directory": "./out",
     "not_found_handling": "single-page-application"
-  }
-  // Optional: bind KV for durable storage (Cache API used as fallback)
-  // "kv_namespaces": [{ "binding": "RESPONSES", "id": "<your-kv-id>" }]
+  },
+  // KV binding for cross-device session + response storage.
+  // Manual step: Create KV namespace in CF Dashboard → copy ID here.
+  // Also bind in CF Pages → Settings → Functions → KV namespace bindings → Variable: RESPONSES
+  "kv_namespaces": [{ "binding": "RESPONSES", "id": "<YOUR_KV_NAMESPACE_ID>" }]
 }

@@ -569,31 +569,44 @@ export async function fetchSessionFromKV(
   return null;
 }
 
-/** Sync session metadata to Cloudflare KV (fire-and-forget).
+/** Sync session metadata to Cloudflare KV with 1 retry on failure.
  *  Called on session create and state transitions. */
-function syncSessionToKV(session: Session): void {
+async function syncSessionToKV(session: Session): Promise<void> {
   const questionText = MOCK_QUESTIONS[session.id]?.[0]?.question_text || null;
-  fetch("/api/sessions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      id: session.id,
-      short_code: session.short_code,
-      title: session.title,
-      description: session.description,
-      status: session.status,
-      polling_mode_type: session.polling_mode_type,
-      static_poll_duration_days: session.static_poll_duration_days,
-      ends_at: session.ends_at,
-      timer_display_mode: session.timer_display_mode,
-      anonymity_mode: session.anonymity_mode,
-      theme2_voting_level: session.theme2_voting_level,
-      ai_provider: session.ai_provider,
-      max_response_length: session.max_response_length,
-      participant_count: session.participant_count,
-      question_text: questionText,
-    }),
-  }).catch(() => {}); // fire-and-forget
+  const payload = {
+    id: session.id,
+    short_code: session.short_code,
+    title: session.title,
+    description: session.description,
+    status: session.status,
+    polling_mode_type: session.polling_mode_type,
+    static_poll_duration_days: session.static_poll_duration_days,
+    ends_at: session.ends_at,
+    timer_display_mode: session.timer_display_mode,
+    anonymity_mode: session.anonymity_mode,
+    theme2_voting_level: session.theme2_voting_level,
+    ai_provider: session.ai_provider,
+    max_response_length: session.max_response_length,
+    participant_count: session.participant_count,
+    question_text: questionText,
+  };
+  const doFetch = () =>
+    fetch("/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  try {
+    await doFetch();
+  } catch {
+    // Retry once after 500ms
+    try {
+      await new Promise((r) => setTimeout(r, 500));
+      await doFetch();
+    } catch {
+      // KV unavailable — continue without sync
+    }
+  }
 }
 
 /** Hydrate a session from QR URL params when it doesn't exist locally.
@@ -796,8 +809,8 @@ export async function handleMockRequest<T>(
       },
     ];
     saveMockState();
-    // Cross-device: sync session metadata to KV
-    syncSessionToKV(newSession);
+    // Cross-device: sync session metadata to KV (fire-and-forget for create)
+    syncSessionToKV(newSession).catch(() => {});
     return newSession as T;
   }
 
@@ -827,12 +840,24 @@ export async function handleMockRequest<T>(
     return (MOCK_QUESTIONS[questionsMatch[1]] || []) as T;
   }
 
-  // GET /sessions/{id}/presence
+  // GET /sessions/{id}/presence — merge local count with KV for cross-device accuracy
   const presenceMatch = path.match(
     /^\/sessions\/([0-9a-f-]{36})\/presence$/
   );
   if (method === "GET" && presenceMatch) {
-    const count = mockParticipantCount[presenceMatch[1]] || 0;
+    let count = mockParticipantCount[presenceMatch[1]] || 0;
+    // Cross-device: check KV for a higher participant count
+    const presenceSession = findSessionById(presenceMatch[1]);
+    if (presenceSession?.short_code) {
+      try {
+        const kvData = await fetchSessionFromKV(presenceSession.short_code);
+        if (kvData && !("error" in kvData) && typeof kvData.participant_count === "number") {
+          count = Math.max(count, kvData.participant_count as number);
+        }
+      } catch {
+        // KV unavailable — use local count
+      }
+    }
     return {
       session_id: presenceMatch[1],
       active_count: count,
@@ -850,8 +875,8 @@ export async function handleMockRequest<T>(
       (mockParticipantCount[session.id] || 0) + 1;
     session.participant_count = mockParticipantCount[session.id];
     saveMockState();
-    // Cross-device: sync updated participant count to KV
-    syncSessionToKV(session);
+    // Cross-device: sync updated participant count to KV (fire-and-forget for join)
+    syncSessionToKV(session).catch(() => {});
     return {
       session_id: session.id,
       participant_id: participantId,
@@ -946,10 +971,10 @@ export async function handleMockRequest<T>(
             ...r,
             session_id: sid, // normalize to session UUID
           }));
-          // Merge: deduplicate by checking clean_text + participant_id
-          const localSet = new Set(localItems.map((r) => `${r.clean_text}::${r.participant_id}`));
+          // Merge: deduplicate by participant_id + text prefix (handles different users with identical text)
+          const localSet = new Set(localItems.map((r) => `${r.participant_id}::${r.clean_text.slice(0, 50)}`));
           for (const kvItem of kvItems) {
-            const key = `${kvItem.clean_text}::${kvItem.participant_id}`;
+            const key = `${kvItem.participant_id}::${kvItem.clean_text.slice(0, 50)}`;
             if (!localSet.has(key)) {
               localItems.push(kvItem);
               localSet.add(key);
@@ -1000,8 +1025,8 @@ export async function handleMockRequest<T>(
       session.closed_at = new Date().toISOString();
     }
     saveMockState();
-    // Cross-device: sync updated status to KV
-    syncSessionToKV(session);
+    // Cross-device: await KV sync on transitions (critical path for cross-device)
+    await syncSessionToKV(session);
     return { ...session } as T;
   }
 

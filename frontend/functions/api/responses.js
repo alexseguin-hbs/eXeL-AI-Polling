@@ -45,14 +45,14 @@ async function putResponses(store, code, items) {
     await store.put(`session:${code}`, data, { expirationTtl: 86400 });
     return;
   }
-  // Fallback: Cache API (24h TTL)
+  // Fallback: Cache API (5min TTL — per-datacenter, so keep short to limit staleness)
   const cache = caches.default;
   await cache.put(
     cacheKey(code),
     new Response(data, {
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "public, max-age=86400",
+        "Cache-Control": "public, max-age=300",
       },
     })
   );

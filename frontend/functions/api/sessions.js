@@ -13,6 +13,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
+  "Cache-Control": "no-store",
 };
 
 function json(data, status = 200) {
@@ -93,6 +94,17 @@ export async function onRequest(context) {
     const code = (body.short_code || "").toUpperCase();
     if (!code) return json({ error: "Missing short_code" }, 400);
 
+    // Merge participant_count: take max of existing and incoming to handle concurrent joins
+    let existingCount = 0;
+    try {
+      const existing = await getSession(store, code);
+      if (existing && typeof existing.participant_count === "number") {
+        existingCount = existing.participant_count;
+      }
+    } catch { /* ignore */ }
+
+    const incomingCount = typeof body.participant_count === "number" ? body.participant_count : 0;
+
     // Store session metadata keyed by short_code
     const metadata = {
       id: body.id || null,
@@ -108,7 +120,7 @@ export async function onRequest(context) {
       theme2_voting_level: body.theme2_voting_level || "theme2_9",
       ai_provider: body.ai_provider || "openai",
       max_response_length: body.max_response_length || 3333,
-      participant_count: body.participant_count || 0,
+      participant_count: Math.max(existingCount, incomingCount),
       question_text: body.question_text || null,
       updated_at: new Date().toISOString(),
     };
