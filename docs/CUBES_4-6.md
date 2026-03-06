@@ -545,6 +545,9 @@ See `SPIRAL_METRICS.md` — N=18 bidirectional (Feb 26). Cube 5 tests: 60/60 pas
 - Non-English text auto-translated to English
 - Stored in MongoDB `summaries` collection for instant moderator screen display
 - Fire-and-forget: does NOT block response to the user
+- **Frontend stub (2026-03-05):** `summarizeCascade()` in `mock-data.ts` generates extractive summaries client-side (sentence extraction to target word limits). Will be replaced by real AI summarization when backend pipeline is live.
+- **Moderator live feed:** Displays `summary_33` in real-time as responses arrive (3s polling). Fullscreen mode available.
+- **CSV export:** Web_Results CSV includes Summary_333, Summary_111, Summary_33 columns alongside Detailed_Results.
 
 **Phase B — Parallel Theme Pipeline (after moderator closes polling):**
 1. Fetch pre-computed 33-word summaries from MongoDB

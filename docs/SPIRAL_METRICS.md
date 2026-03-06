@@ -397,3 +397,34 @@ cd frontend && npx next build
   - Dashboard button only renders when `showScrollingFeed && SPIRAL_TEST_ENABLED` — no UI impact otherwise
   - Cross-device KV: fire-and-forget POSTs don't block local feed
 - **RESULT: 18/18 BIDIRECTIONAL SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
+
+---
+
+## Session Flow Gating + Live Feed + Summary Cascade — Metrics Baseline (N=3, 2026-03-05)
+
+**Change:** Fixed session flow so QR/link users land in lobby until moderator clicks "Start Polling". Added Cube 6 Phase A summarization cascade (333→111→33 words). Live feed now shows 33-word summaries with fullscreen mode. Web_Results CSV export includes summary columns. 4 files changed.
+
+| Metric | Run 1 | Run 2 | Run 3 | Average | Std Dev |
+|--------|-------|-------|-------|---------|---------|
+| Tests Passed | 287/287 | 287/287 | 287/287 | **287/287** | **0** |
+| Backend Duration | 2,710ms | 2,600ms | 2,830ms | **2,713ms** | **94ms** |
+| TypeScript Errors | 0 | 0 | 0 | **0** | **0** |
+| Build Status | PASS | PASS | PASS | **PASS** | **—** |
+| Dashboard Bundle | 23.9 kB | 23.9 kB | 23.9 kB | **23.9 kB** | **0** |
+| Session Bundle | 41.3 kB | 41.3 kB | 41.3 kB | **41.3 kB** | **0** |
+| Join Bundle | 3.96 kB | 3.96 kB | 3.96 kB | **3.96 kB** | **0** |
+
+**Spiral Propagation Verification (Session Flow + Summary Cascade → Cubes 1→10→1):**
+- Forward (1→10): All downstream cubes compatible — PASS
+  - Cube 1 (Session): Join flow defaults to "open" status; status polling at 3s interval
+  - Cube 2 (Text): Response submit triggers `summarizeCascade()` → summary_333/111/33 fields
+  - Cube 4 (Collector): Summary fields passed through in response schema
+  - Cube 5 (Gateway): Timer auto-starts on polling state, stops on ranking/closed
+  - Cube 6 (AI): Phase A stub generates extractive summaries client-side (will be replaced by AI)
+  - Cube 9 (Reports): CSV export includes Summary_333, Summary_111, Summary_33 columns
+  - Cube 10 (SIM): Spiral test responses include summary fields
+- Backward (10→1): All upstream cubes compatible — PASS
+  - Moderator live feed: `summary_33` field displayed with `summarizeTo33Words()` fallback
+  - KV responses: summary fields stored/returned in Cloudflare KV function
+  - Cross-device hydration: defaults to "open" status, not "polling"
+- **RESULT: 3/3 BIDIRECTIONAL SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**

@@ -52,6 +52,23 @@
 - **Backend Tests:** 4 new tests — static poll field persistence, ends_at computation, live poll no-ends_at, default timer mode
 - **Lexicon:** 16 new keys × 32 languages = 512 new translations (timer phases, display modes, sim duration, Live/Static badges)
 
+### Cube 1 — Newly Implemented (Session Flow Gating + Live Feed, 2026-03-05)
+- **Session flow gating:** Users who scan QR / use join link now land in **lobby** (waiting state) until moderator clicks "Start Polling"
+  - Join flow hydration defaults to `status: "open"` (not "polling") for cross-device users
+  - Session-view shows lobby card with participant counter + "Waiting for moderator" message for `draft`/`open` states
+  - Status polling every 3s (KV + local) auto-transitions users to input form when moderator starts polling
+- **Live response feed (33-word summaries):** Moderator sees real-time 33-word summaries of all participant inputs during polling
+  - Cube 6 Phase A stub: `summarizeCascade()` generates 333→111→33 word extractive summaries on submit
+  - All response paths generate summaries: user submit, mock polling, spiral test, pre-populated responses
+  - Feed displays `summary_33` field (falls back to sentence-extraction if missing)
+  - **Expand/Collapse:** Inline feed toggles between 200px and 500px height
+  - **Fullscreen mode:** Full-viewport overlay with close button — moderator can project live feed
+- **Cross-device response flow:** Phone/PC user inputs propagate to moderator via Cloudflare KV
+  - POST response → local mockResponses + KV `/api/responses` (fire-and-forget)
+  - GET responses → merges local + KV with deduplication by `participant_id::text_prefix`
+  - Summaries stored in KV (summary_333, summary_111, summary_33 fields)
+- **Web_Results CSV export:** Now includes Summary_333, Summary_111, Summary_33 columns alongside Detailed_Results
+
 ### Cube 1 — Partially Implemented (fields exist but incomplete logic)
 - **Payment flow:** `is_paid` + `stripe_session_id` exist but no Stripe integration in join
 - **Cost splitting:** `cost_splitting_enabled` + `fee_amount_cents` stored but no dynamic calculation
@@ -63,7 +80,6 @@
 - **Master language table:** `languages` + `ui_translations` backend tables (frontend Language Lexicon implemented)
 - **Desired Outcome setup:** Methods 2 & 3 — outcome input, role assignment, confirmation gates
 - **Moderator multi-device sync:** WebSocket push to all connected moderator devices, device-aware layouts
-- **Live response feed:** 33-word summary feed on hosting PC (Cube 2 integration, paid tiers only)
 - **Metrics collection:** System/User/Outcome metrics (none wired)
 
 ### Cube 1 — Service Functions Status
