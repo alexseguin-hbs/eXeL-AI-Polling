@@ -563,6 +563,15 @@ function SessionDetail({
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => setFeedExpanded(!feedExpanded)}
+                  className="h-7 px-2"
+                  title={feedExpanded ? "Collapse" : "Expand"}
+                >
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${feedExpanded ? "rotate-180" : ""}`} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setFeedFullscreen(true)}
                   className="h-7 px-2"
                   title="Fullscreen"
