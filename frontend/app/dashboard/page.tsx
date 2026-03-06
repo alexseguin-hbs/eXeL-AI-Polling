@@ -217,7 +217,7 @@ function SessionDetail({
   const showScrollingFeed = isLiveInteractive && session.status === "polling";
   const [feedExpanded, setFeedExpanded] = useState(false);
   const [feedFullscreen, setFeedFullscreen] = useState(false);
-  const [feedResponses, setFeedResponses] = useState<Array<{ id: string; clean_text: string; submitted_at: string }>>([]);
+  const [feedResponses, setFeedResponses] = useState<Array<{ id: string; clean_text: string; submitted_at: string; summary_33?: string }>>([]);
   const [spiralRunning, setSpiralRunning] = useState(false);
   const [spiralProgress, setSpiralProgress] = useState<SpiralTestProgress | null>(null);
   const [spiralCancel, setSpiralCancel] = useState<(() => void) | null>(null);
@@ -228,7 +228,7 @@ function SessionDetail({
     if (!showScrollingFeed) return;
     const fetchResponses = async () => {
       try {
-        const data = await api.get<{ items: Array<{ id: string; clean_text: string; submitted_at: string }> }>(
+        const data = await api.get<{ items: Array<{ id: string; clean_text: string; submitted_at: string; summary_33?: string }> }>(
           `/sessions/${session.id}/responses`
         );
         setFeedResponses((data.items || []).slice().reverse());
@@ -501,7 +501,7 @@ function SessionDetail({
                   <div className="space-y-3 max-w-4xl mx-auto">
                     {feedResponses.map((r) => (
                       <div key={r.id} className="rounded-lg border px-5 py-4">
-                        <p className="text-base text-foreground leading-relaxed">{summarizeTo33Words(r.clean_text)}</p>
+                        <p className="text-base text-foreground leading-relaxed">{r.summary_33 || summarizeTo33Words(r.clean_text)}</p>
                         <p className="text-xs text-muted-foreground mt-2">
                           {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                         </p>
@@ -589,7 +589,7 @@ function SessionDetail({
                 >
                   {feedResponses.map((r) => (
                     <div key={r.id} className="px-4 py-3 text-sm">
-                      <p className="text-foreground leading-relaxed">{summarizeTo33Words(r.clean_text)}</p>
+                      <p className="text-foreground leading-relaxed">{r.summary_33 || summarizeTo33Words(r.clean_text)}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                       </p>

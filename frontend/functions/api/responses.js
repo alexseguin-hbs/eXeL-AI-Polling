@@ -100,6 +100,9 @@ export async function onRequest(context) {
       submitted_at: new Date().toISOString(),
       participant_id: body.participant_id || crypto.randomUUID(),
       language_code: body.language_code || "en",
+      summary_333: body.summary_333 || null,
+      summary_111: body.summary_111 || null,
+      summary_33: body.summary_33 || null,
     };
 
     const items = await getResponses(store, code);

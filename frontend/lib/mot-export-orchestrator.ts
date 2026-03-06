@@ -29,6 +29,9 @@ interface HarvestedResponse {
   submitted_at: string;
   participant_id: string;
   language_code: string;
+  summary_333?: string;
+  summary_111?: string;
+  summary_33?: string;
 }
 
 interface AnonymizedRow {
@@ -37,6 +40,9 @@ interface AnonymizedRow {
   user: string;
   detailed_results: string;
   response_language: string;
+  summary_333: string;
+  summary_111: string;
+  summary_33: string;
 }
 
 interface ExportResult {
@@ -120,6 +126,9 @@ function anonymizeAgent(
       user: userMap.get(r.participant_id)!,
       detailed_results: r.clean_text,
       response_language: resolveLanguageName(r.language_code),
+      summary_333: r.summary_333 || r.clean_text,
+      summary_111: r.summary_111 || r.clean_text,
+      summary_33: r.summary_33 || r.clean_text,
     };
   });
 
@@ -149,15 +158,15 @@ function exportAgent(
     detail: `Formatting ${rows.length} rows as CSV...`,
   });
 
-  // CSV header
-  const header = "Q_Number,Question,User,Detailed_Results,Response_Language";
+  // CSV header — includes Cube 6 Phase A summary cascade columns
+  const header = "Q_Number,Question,User,Detailed_Results,Response_Language,Summary_333,Summary_111,Summary_33";
 
   // Escape CSV field: wrap in quotes, double any internal quotes
   const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
 
   const csvLines = rows.map(
     (r) =>
-      `${esc(r.q_number)},${esc(r.question)},${esc(r.user)},${esc(r.detailed_results)},${esc(r.response_language)}`
+      `${esc(r.q_number)},${esc(r.question)},${esc(r.user)},${esc(r.detailed_results)},${esc(r.response_language)},${esc(r.summary_333)},${esc(r.summary_111)},${esc(r.summary_33)}`
   );
 
   const csv = [header, ...csvLines].join("\n");

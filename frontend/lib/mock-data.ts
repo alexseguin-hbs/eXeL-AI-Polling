@@ -33,6 +33,40 @@ interface MockResponse {
   submitted_at: string;
   participant_id: string;
   language_code: string;
+  summary_333?: string;
+  summary_111?: string;
+  summary_33?: string;
+}
+
+/** Cube 6 Phase A stub: cascading summarization (333→111→33 words).
+ *  Extracts key sentences to fit target word counts.
+ *  Will be replaced by real AI summarization when pipeline is live. */
+function summarizeCascade(text: string): { summary_333: string; summary_111: string; summary_33: string } {
+  const words = text.split(/\s+/);
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+
+  function extractToWordLimit(limit: number): string {
+    if (words.length <= limit) return text;
+    let result = "";
+    let count = 0;
+    for (const sentence of sentences) {
+      const sWords = sentence.trim().split(/\s+/);
+      if (count + sWords.length > limit && count > 0) break;
+      result += (result ? " " : "") + sentence.trim();
+      count += sWords.length;
+    }
+    // If first sentence exceeds limit, hard-cut
+    if (count > limit || count === 0) {
+      return words.slice(0, limit).join(" ") + "...";
+    }
+    return result;
+  }
+
+  return {
+    summary_333: extractToWordLimit(333),
+    summary_111: extractToWordLimit(111),
+    summary_33: extractToWordLimit(33),
+  };
 }
 
 interface StoredMockState {
@@ -491,6 +525,7 @@ function startMockPollingResponses(sessionId: string): void {
         submitted_at: new Date().toISOString(),
         participant_id: pid,
         language_code: "en",
+        ...summarizeCascade(text),
       });
       saveMockState();
     }, 2000 + i * 2500); // Staggered: 2s, 4.5s, 7s, 9.5s, 12s, 14.5s, 17s
@@ -510,6 +545,7 @@ function prePopulateExistingResponses(): void {
           submitted_at: new Date(Date.now() - Math.random() * 3600000).toISOString(),
           participant_id: generateId(),
           language_code: "en",
+          ...summarizeCascade(text),
         }));
       }
     }
@@ -905,7 +941,10 @@ export async function handleMockRequest<T>(
     const pid = (payload?.participant_id as string) || generateId();
     const langCode = (payload?.language_code as string) || "en";
 
-    // Store response for cross-tab live feed
+    // Cube 6 Phase A: generate cascading summaries (333→111→33 words)
+    const summaries = summarizeCascade(cleanText);
+
+    // Store response with summaries for cross-tab live feed
     if (!mockResponses[sid]) mockResponses[sid] = [];
     mockResponses[sid].push({
       id: responseId,
@@ -914,6 +953,7 @@ export async function handleMockRequest<T>(
       submitted_at: submittedAt,
       participant_id: pid,
       language_code: langCode,
+      ...summaries,
     });
     saveMockState();
 
@@ -928,6 +968,9 @@ export async function handleMockRequest<T>(
           text: cleanText,
           participant_id: pid,
           language_code: langCode,
+          summary_333: summaries.summary_333,
+          summary_111: summaries.summary_111,
+          summary_33: summaries.summary_33,
         }),
       }).catch(() => {}); // fire-and-forget
     }
@@ -1099,6 +1142,9 @@ export function startSpiralTest(
         mockParticipantCount[sessionId] = (mockParticipantCount[sessionId] || 0) + 1;
         if (session) session.participant_count = mockParticipantCount[sessionId];
 
+        // Cube 6 Phase A: generate cascading summaries
+        const respSummaries = summarizeCascade(resp.text);
+
         // Push to local mock store
         const responseId = generateId();
         mockResponses[sessionId].push({
@@ -1108,6 +1154,7 @@ export function startSpiralTest(
           submitted_at: new Date().toISOString(),
           participant_id: resp.participant_id,
           language_code: resp.language_code,
+          ...respSummaries,
         });
         saveMockState();
 
@@ -1121,6 +1168,9 @@ export function startSpiralTest(
               text: resp.text,
               participant_id: resp.participant_id,
               language_code: resp.language_code,
+              summary_333: respSummaries.summary_333,
+              summary_111: respSummaries.summary_111,
+              summary_33: respSummaries.summary_33,
             }),
           }).catch(() => {}); // fire-and-forget
         }
