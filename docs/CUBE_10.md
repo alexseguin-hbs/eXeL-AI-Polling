@@ -170,18 +170,18 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 
 | Wave | Agent Name | Users | Delay Start | Theme Focus |
 |------|-----------|-------|-------------|-------------|
-| 1 | Catalyst | 12 | 0s | Mixed — kicks off diversity |
-| 2 | Sentinel | 10 | 3s | Risk & security concerns |
-| 3 | Nexus | 10 | 7s | Integration & collaboration |
-| 4 | Oracle | 9 | 11s | Future predictions |
-| 5 | Forge | 9 | 16s | Building & implementation |
-| 6 | Compass | 8 | 21s | Direction & strategy |
-| 7 | Prism | 8 | 26s | Multi-perspective analysis |
-| 8 | Echo | 8 | 31s | Reinforcing key themes |
-| 9 | Vanguard | 7 | 37s | Cutting-edge ideas |
-| 10 | Harmony | 7 | 43s | Consensus building |
-| 11 | Cipher | 6 | 49s | Data & analytics |
-| 12 | Zenith | 6 | 55s | Summary & synthesis |
+| 1 | Enki | 12 | 0s | Mixed — kicks off diversity |
+| 2 | Thor | 10 | 3s | Risk & security concerns |
+| 3 | Krishna | 10 | 7s | Integration & collaboration |
+| 4 | Odin | 9 | 11s | Future predictions |
+| 5 | Enlil | 9 | 16s | Building & implementation |
+| 6 | Athena | 8 | 21s | Direction & strategy |
+| 7 | Sofia | 8 | 26s | Multi-perspective analysis |
+| 8 | Aset | 8 | 31s | Reinforcing key themes |
+| 9 | Pangu | 7 | 37s | Cutting-edge ideas |
+| 10 | Christo | 7 | 43s | Consensus building |
+| 11 | Thoth | 6 | 49s | Data & analytics |
+| 12 | Asar | 6 | 55s | Summary & synthesis |
 | **Total** | | **100** | **0–60s** | |
 
 ### Language Distribution (11 languages, 100 responses)
