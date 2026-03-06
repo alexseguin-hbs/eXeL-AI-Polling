@@ -25,7 +25,7 @@ export interface SpiralTestWave {
   agent_name: string;
   user_count: number;
   delay_start_ms: number;
-  theme_focus: string;
+  agent_focus: string;
   responses: SpiralTestResponse[];
 }
 
@@ -180,18 +180,18 @@ const WAVE_12: SpiralTestResponse[] = [
 // ── Assembled Waves ─────────────────────────────────────────────────
 
 export const SPIRAL_TEST_WAVES: SpiralTestWave[] = [
-  { wave: 1, agent_name: "Enki", user_count: 12, delay_start_ms: 0, theme_focus: "Mixed — kicks off diversity", responses: WAVE_1 },
-  { wave: 2, agent_name: "Thor", user_count: 10, delay_start_ms: 3000, theme_focus: "Risk & security concerns", responses: WAVE_2 },
-  { wave: 3, agent_name: "Krishna", user_count: 10, delay_start_ms: 7000, theme_focus: "Integration & collaboration", responses: WAVE_3 },
-  { wave: 4, agent_name: "Odin", user_count: 9, delay_start_ms: 11000, theme_focus: "Future predictions", responses: WAVE_4 },
-  { wave: 5, agent_name: "Enlil", user_count: 9, delay_start_ms: 16000, theme_focus: "Building & implementation", responses: WAVE_5 },
-  { wave: 6, agent_name: "Athena", user_count: 8, delay_start_ms: 21000, theme_focus: "Direction & strategy", responses: WAVE_6 },
-  { wave: 7, agent_name: "Sofia", user_count: 8, delay_start_ms: 26000, theme_focus: "Multi-perspective analysis", responses: WAVE_7 },
-  { wave: 8, agent_name: "Aset", user_count: 8, delay_start_ms: 31000, theme_focus: "Reinforcing key themes", responses: WAVE_8 },
-  { wave: 9, agent_name: "Pangu", user_count: 7, delay_start_ms: 37000, theme_focus: "Cutting-edge ideas", responses: WAVE_9 },
-  { wave: 10, agent_name: "Christo", user_count: 7, delay_start_ms: 43000, theme_focus: "Consensus building", responses: WAVE_10 },
-  { wave: 11, agent_name: "Thoth", user_count: 6, delay_start_ms: 49000, theme_focus: "Data & analytics", responses: WAVE_11 },
-  { wave: 12, agent_name: "Asar", user_count: 6, delay_start_ms: 55000, theme_focus: "Summary & synthesis", responses: WAVE_12 },
+  { wave: 1, agent_name: "Enki", user_count: 12, delay_start_ms: 0, agent_focus: "Mixed — kicks off diversity", responses: WAVE_1 },
+  { wave: 2, agent_name: "Thor", user_count: 10, delay_start_ms: 3000, agent_focus: "Risk & security concerns", responses: WAVE_2 },
+  { wave: 3, agent_name: "Krishna", user_count: 10, delay_start_ms: 7000, agent_focus: "Integration & collaboration", responses: WAVE_3 },
+  { wave: 4, agent_name: "Odin", user_count: 9, delay_start_ms: 11000, agent_focus: "Future predictions", responses: WAVE_4 },
+  { wave: 5, agent_name: "Enlil", user_count: 9, delay_start_ms: 16000, agent_focus: "Building & implementation", responses: WAVE_5 },
+  { wave: 6, agent_name: "Athena", user_count: 8, delay_start_ms: 21000, agent_focus: "Direction & strategy", responses: WAVE_6 },
+  { wave: 7, agent_name: "Sofia", user_count: 8, delay_start_ms: 26000, agent_focus: "Multi-perspective analysis", responses: WAVE_7 },
+  { wave: 8, agent_name: "Aset", user_count: 8, delay_start_ms: 31000, agent_focus: "Reinforcing key themes", responses: WAVE_8 },
+  { wave: 9, agent_name: "Pangu", user_count: 7, delay_start_ms: 37000, agent_focus: "Cutting-edge ideas", responses: WAVE_9 },
+  { wave: 10, agent_name: "Christo", user_count: 7, delay_start_ms: 43000, agent_focus: "Consensus building", responses: WAVE_10 },
+  { wave: 11, agent_name: "Thoth", user_count: 6, delay_start_ms: 49000, agent_focus: "Data & analytics", responses: WAVE_11 },
+  { wave: 12, agent_name: "Asar", user_count: 6, delay_start_ms: 55000, agent_focus: "Summary & synthesis", responses: WAVE_12 },
 ];
 
 /** Flat array of all 100 responses, ordered by delay_ms */
