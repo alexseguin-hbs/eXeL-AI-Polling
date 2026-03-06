@@ -629,7 +629,7 @@ export function hydrateSessionFromParams(
   if (!title) return null;
 
   const now = new Date().toISOString();
-  const resolvedStatus = (status || "polling") as Session["status"];
+  const resolvedStatus = (status || "open") as Session["status"];
   const pollingModeType = (pm || "live_interactive") as Session["polling_mode_type"];
   const staticDays = dur ? parseInt(dur, 10) : null;
   const endsAt = pollingModeType === "static_poll" && staticDays
@@ -718,7 +718,7 @@ export function hydrateSessionFromKV(
   return hydrateSessionFromParams(
     code,
     (kvData.title as string) || "Shared Session",
-    (kvData.status as string) || "polling",
+    (kvData.status as string) || "open",
     (kvData.id as string) || null,
     (kvData.polling_mode_type as string) || null,
     kvData.static_poll_duration_days ? String(kvData.static_poll_duration_days) : null,

@@ -66,6 +66,29 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
 
+/** Generate a ~33-word summary of response text for live feed display.
+ *  Cube 6 Phase A stub: extracts key sentences to fit ~33 words.
+ *  Will be replaced by real AI summarization (333→111→33) when pipeline is live. */
+function summarizeTo33Words(text: string): string {
+  const words = text.split(/\s+/);
+  if (words.length <= 33) return text;
+  // Extract first sentence(s) up to ~33 words
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  let summary = "";
+  let wordCount = 0;
+  for (const sentence of sentences) {
+    const sentenceWords = sentence.trim().split(/\s+/);
+    if (wordCount + sentenceWords.length > 33 && wordCount > 0) break;
+    summary += (summary ? " " : "") + sentence.trim();
+    wordCount += sentenceWords.length;
+  }
+  // If first sentence is still too long, hard-cut at 33 words
+  if (wordCount > 33) {
+    return words.slice(0, 33).join(" ") + "...";
+  }
+  return summary;
+}
+
 function statusColor(status: string): string {
   switch (status) {
     case "open":
@@ -193,6 +216,7 @@ function SessionDetail({
     (isLiveInteractive ? session.status !== "polling" : true);
   const showScrollingFeed = isLiveInteractive && session.status === "polling";
   const [feedExpanded, setFeedExpanded] = useState(false);
+  const [feedFullscreen, setFeedFullscreen] = useState(false);
   const [feedResponses, setFeedResponses] = useState<Array<{ id: string; clean_text: string; submitted_at: string }>>([]);
   const [spiralRunning, setSpiralRunning] = useState(false);
   const [spiralProgress, setSpiralProgress] = useState<SpiralTestProgress | null>(null);
@@ -444,6 +468,50 @@ function SessionDetail({
 
         {/* Scrolling 33-word summary feed (replaces QR during live polling) */}
         {showScrollingFeed && (
+          <>
+          {/* Fullscreen overlay */}
+          {feedFullscreen && (
+            <div className="fixed inset-0 z-50 bg-background flex flex-col">
+              <div className="flex items-center justify-between px-6 py-4 border-b">
+                <div className="flex items-center gap-3">
+                  <Radio className="h-5 w-5 text-primary animate-pulse" />
+                  <h2 className="text-lg font-semibold">{t("cube1.moderator.live_feed")}</h2>
+                  <span className="text-sm text-muted-foreground">
+                    {feedResponses.length} {feedResponses.length === 1 ? "response" : "responses"}
+                  </span>
+                  {spiralProgress && !spiralProgress.isComplete && (
+                    <span className="text-xs text-muted-foreground">
+                      Wave {spiralProgress.wave}/12 &middot; {spiralProgress.waveName} &middot; {spiralProgress.responsesDelivered}/100
+                    </span>
+                  )}
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setFeedFullscreen(false)}>
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6">
+                {feedResponses.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    <div className="flex flex-col items-center gap-3">
+                      <Radio className="h-8 w-8 animate-pulse" />
+                      <span className="text-lg">{t("cube1.moderator.waiting_responses")}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-w-4xl mx-auto">
+                    {feedResponses.map((r) => (
+                      <div key={r.id} className="rounded-lg border px-5 py-4">
+                        <p className="text-base text-foreground leading-relaxed">{summarizeTo33Words(r.clean_text)}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           <Card className="mb-6 overflow-hidden">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -495,8 +563,9 @@ function SessionDetail({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setFeedExpanded(!feedExpanded)}
+                  onClick={() => setFeedFullscreen(true)}
                   className="h-7 px-2"
+                  title="Fullscreen"
                 >
                   <Maximize2 className="h-3.5 w-3.5" />
                 </Button>
@@ -520,7 +589,7 @@ function SessionDetail({
                 >
                   {feedResponses.map((r) => (
                     <div key={r.id} className="px-4 py-3 text-sm">
-                      <p className="text-foreground leading-relaxed">{r.clean_text}</p>
+                      <p className="text-foreground leading-relaxed">{summarizeTo33Words(r.clean_text)}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                       </p>
@@ -530,6 +599,7 @@ function SessionDetail({
               )}
             </CardContent>
           </Card>
+          </>
         )}
 
         {/* Flower of Life Theme Visualization (closed/archived sessions) */}

@@ -527,12 +527,14 @@ export function SessionView() {
     return () => clearInterval(interval);
   }, [sessionId, sessionStatus, simulationMode]);
 
-  // Stop timer when session leaves polling state (ranking, closed, archived)
+  // Start timer when session enters polling, stop when it leaves
   useEffect(() => {
-    if (sessionStatus && sessionStatus !== "polling" && sessionStatus !== "open") {
+    if (sessionStatus === "polling") {
+      startTimer();
+    } else if (sessionStatus && sessionStatus !== "open") {
       stopTimer();
     }
-  }, [sessionStatus, stopTimer]);
+  }, [sessionStatus, startTimer, stopTimer]);
 
   // Poll session status — includes "draft" so users who join early see transitions.
   // Checks both local mock API and cross-device KV for status changes.
@@ -569,9 +571,10 @@ export function SessionView() {
       }
     };
 
-    // Immediate check on mount — don't make phone wait 5s for first status update
+    // Immediate check on mount — don't make phone wait for first status update
     checkStatus();
-    const interval = setInterval(checkStatus, 5000);
+    // Poll every 3s for responsive status transitions (open → polling)
+    const interval = setInterval(checkStatus, 3000);
 
     return () => clearInterval(interval);
   }, [sessionId, sessionStatus, simulationMode, session?.short_code]);

@@ -60,9 +60,9 @@ export function JoinFlow() {
       if (kvData && !("error" in kvData)) {
         hydrateSessionFromKV(code, kvData);
       } else if (qrTitle) {
-        // Fallback: hydrate from URL params — status defaults to "polling"
-        // (if QR exists, moderator intends participation)
-        hydrateSessionFromParams(code, qrTitle, "polling", qrSid, qrPm, qrDur);
+        // Fallback: hydrate from URL params — status defaults to "open" (lobby)
+        // Participants wait in lobby until moderator clicks Start Polling
+        hydrateSessionFromParams(code, qrTitle, "open", qrSid, qrPm, qrDur);
       }
 
       try {
