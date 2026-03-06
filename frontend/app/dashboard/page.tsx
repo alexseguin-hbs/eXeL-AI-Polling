@@ -24,6 +24,7 @@ import {
   Trash2,
   X,
   Zap,
+  Download,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { AuthGuard } from "@/components/auth-guard";
@@ -60,6 +61,7 @@ import { api, ApiClientError } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
 import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS, TIMER_DISPLAY_MODES, SPIRAL_TEST_ENABLED } from "@/lib/constants";
 import { startSpiralTest, type SpiralTestProgress } from "@/lib/mock-data";
+import { runMoTExport, type MoTExportProgress } from "@/lib/mot-export-orchestrator";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
@@ -195,6 +197,7 @@ function SessionDetail({
   const [spiralRunning, setSpiralRunning] = useState(false);
   const [spiralProgress, setSpiralProgress] = useState<SpiralTestProgress | null>(null);
   const [spiralCancel, setSpiralCancel] = useState<(() => void) | null>(null);
+  const [exportProgress, setExportProgress] = useState<MoTExportProgress | null>(null);
 
   // Poll for live responses during polling state
   useEffect(() => {
@@ -216,6 +219,26 @@ function SessionDetail({
 
   const joinUrl = getJoinUrl(session);
 
+  const triggerExport = async () => {
+    setExportProgress({ agent: "harvest", agentLabel: "Collecting", status: "running", detail: "" });
+    const questionText = session.description || session.title;
+    const result = await runMoTExport(
+      session.id,
+      session.title,
+      session.short_code,
+      questionText,
+      (p) => setExportProgress(p)
+    );
+    if (result.success) {
+      toast({ title: `Web Results CSV downloaded (${result.rowCount} rows)` });
+    } else if (result.rowCount === 0) {
+      toast({ title: "No responses found", description: "No data to export", variant: "destructive" });
+    } else {
+      toast({ title: "Export failed", variant: "destructive" });
+    }
+    setTimeout(() => setExportProgress(null), 2000);
+  };
+
   const handleTransition = async (action: string) => {
     setActionLoading(action);
     try {
@@ -232,6 +255,11 @@ function SessionDetail({
         archive: "Session archived",
       };
       toast({ title: toastMessages[action] || `Session ${action}ed` });
+
+      // Auto-export CSV when session is closed
+      if (action === "close") {
+        triggerExport();
+      }
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({ title: "Action failed", description: err.detail, variant: "destructive" });
@@ -326,6 +354,25 @@ function SessionDetail({
                   <Square className="mr-2 h-4 w-4" />
                 )}
                 {t("cube1.moderator.close_label")}
+              </Button>
+            )}
+            {["closed", "archived"].includes(session.status) && (
+              <Button
+                variant="outline"
+                onClick={triggerExport}
+                disabled={exportProgress?.status === "running"}
+              >
+                {exportProgress?.status === "running" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {exportProgress.agentLabel}...
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export CSV
+                  </>
+                )}
               </Button>
             )}
             {session.status === "closed" && (
