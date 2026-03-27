@@ -128,6 +128,23 @@ export function JoinFlow() {
     );
   }, [pollOpen, joinResponse, simMode, language, router]);
 
+  // Fallback API poll — fires every 2s while in the waiting lobby.
+  // Self-heals if Supabase broadcast/postgres_changes fails to reach the phone.
+  useEffect(() => {
+    if (!joinResponse || pollOpen || !code) return;
+    const check = async () => {
+      try {
+        const data = await api.get<{ status: string }>(`/sessions/code/${code}`);
+        if (data.status === "polling" || data.status === "ranking") {
+          setPollOpen(true);
+        }
+      } catch { /* silent — realtime will cover it */ }
+    };
+    check(); // immediate check on entering lobby
+    const interval = setInterval(check, 2000);
+    return () => clearInterval(interval);
+  }, [joinResponse, pollOpen, code]);
+
   // When language changes, also set the active UI locale
   const handleLanguageChange = useCallback((code: string) => {
     setLanguage(code);
@@ -155,12 +172,19 @@ export function JoinFlow() {
 
       const simSuffix = simMode ? "&sim=1" : "";
 
-      // If polling already live, go straight to session — otherwise hold in lobby.
-      // The pollOpen listener (above) will redirect the moment Start Polling fires.
-      if (pollOpen || session.status === "polling") {
+      // Re-fetch live session status — session loaded at page-open may be stale.
+      // If polling already started, go straight to session. Otherwise hold in lobby;
+      // the fallback API poll + realtime listeners fire the redirect automatically.
+      let liveStatus = session.status;
+      try {
+        const live = await api.get<Session>(`/sessions/code/${code}`);
+        liveStatus = live.status;
+      } catch { /* use cached status on failure */ }
+
+      if (pollOpen || liveStatus === "polling" || liveStatus === "ranking") {
         router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${simSuffix}`);
       } else {
-        // Park in waiting lobby — auto-redirect fires via the pollOpen useEffect
+        // Park in waiting lobby — fallback poll + realtime redirect automatically
         setJoinResponse(response);
       }
     } catch (err) {
