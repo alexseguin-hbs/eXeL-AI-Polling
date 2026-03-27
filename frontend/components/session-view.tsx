@@ -631,7 +631,7 @@ export function SessionView() {
     (count: number) => setParticipantCount(count),
     [],
   );
-  useSessionBroadcast(
+  const { broadcast: broadcastToSession } = useSessionBroadcast(
     simulationMode ? null : session?.short_code,
     onBroadcastStatus,
     onBroadcastPresence,
@@ -687,24 +687,17 @@ export function SessionView() {
 
       toast({ title: t("cube10.sim.response_submitted") });
 
-      // Broadcast new_response to host dashboard live ticker
-      if (!simulationMode && session?.short_code && supabase) {
+      // Broadcast new_response to host dashboard live ticker via the subscribed channel
+      if (!simulationMode) {
         const trimmed = responseText.trim();
-        supabase
-          .channel(`session:${session.short_code}`)
-          .send({
-            type: "broadcast",
-            event: "new_response",
-            payload: {
-              id: result?.id ?? `r-${Date.now()}`,
-              text: trimmed.length > 80 ? trimmed.substring(0, 80) + "..." : trimmed,
-              clean_text: trimmed,
-              submitted_at: new Date().toISOString(),
-              summary_33: (result as { summary_33?: string })?.summary_33 ?? undefined,
-              count: submittedQuestions.size + 1,
-            },
-          })
-          .catch(() => {});
+        broadcastToSession("new_response", {
+          id: result?.id ?? `r-${Date.now()}`,
+          text: trimmed.length > 80 ? trimmed.substring(0, 80) + "..." : trimmed,
+          clean_text: trimmed,
+          submitted_at: new Date().toISOString(),
+          summary_33: (result as { summary_33?: string })?.summary_33 ?? undefined,
+          count: submittedQuestions.size + 1,
+        }).catch(() => {});
       }
 
       // Track sim user submission for auto-transition
