@@ -12,6 +12,7 @@ import { LanguageSelector } from "@/components/language-selector";
 import { useLexicon } from "@/lib/lexicon-context";
 import { api, ApiClientError } from "@/lib/api";
 import { hydrateSessionFromParams, fetchSessionFromKV, hydrateSessionFromKV, clearStaleMockState } from "@/lib/mock-data";
+import { fetchStatusFromSupabase } from "@/lib/supabase-session-sync";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import type { Session, SessionJoinResponse } from "@/lib/types";
@@ -61,12 +62,17 @@ export function JoinFlow() {
     // 2. Fall back to expanded URL params (sid, pm, dur)
     // 3. Fall back to basic URL params (title, status)
     const hydrateAndLoad = async () => {
-      // Try KV fetch first for cross-device session data (source of truth for status)
-      const kvData = await fetchSessionFromKV(code);
-      if (kvData && !("error" in kvData)) {
-        hydrateSessionFromKV(code, kvData);
-        // If KV already shows polling, mark pollOpen immediately — bypass waiting room
-        const kvStatus = kvData.status as string | undefined;
+      // Try KV fetch + Supabase DB in parallel for cross-device status (source of truth)
+      const [kvData, sbData] = await Promise.allSettled([
+        fetchSessionFromKV(code),
+        fetchStatusFromSupabase(code),
+      ]);
+      const kv = kvData.status === "fulfilled" ? kvData.value : null;
+      const sb = sbData.status === "fulfilled" ? sbData.value : null;
+
+      if (kv && !("error" in kv)) {
+        hydrateSessionFromKV(code, kv);
+        const kvStatus = kv.status as string | undefined;
         if (kvStatus === "polling" || kvStatus === "ranking") setPollOpen(true);
       } else if (qrTitle) {
         // Fallback: hydrate from URL params — status defaults to "open" (lobby)
@@ -82,7 +88,10 @@ export function JoinFlow() {
           setError(t("cube1.join.session_ended"));
         } else if (!simMode && data.expires_at && new Date(data.expires_at) < new Date()) {
           setError(t("cube1.join.session_ended"));
-        } else if (!simMode && (data.status === "polling" || data.status === "ranking")) {
+        } else if (!simMode && (
+          data.status === "polling" || data.status === "ranking" ||
+          sb?.status === "polling" || sb?.status === "ranking"
+        )) {
           // Polling already live — banner shows, handleJoin will redirect directly
           setPollOpen(true);
         }
@@ -158,23 +167,36 @@ export function JoinFlow() {
     );
   }, [pollOpen, joinResponse, simMode, language, router]);
 
-  // Fallback edge-storage poll — fires every 1s while in the waiting lobby.
-  // Reads directly from Cloudflare KV (bypasses MOCK_MODE / backend requirement).
-  // Self-heals if Supabase broadcast fails to reach the phone for any reason.
+  // 1s fallback poll — dual source: CF KV + Supabase DB (REST API).
+  // CF KV:       requires RESPONSES binding in CF Pages (per-datacenter fallback otherwise)
+  // Supabase DB: globally consistent HTTP REST, no CF KV binding required
+  // Either source returning "polling" fires the redirect.
   useEffect(() => {
     if (!joinResponse || pollOpen || !code) return;
     const check = async () => {
-      try {
-        const kvData = await fetchSessionFromKV(code);
-        if (kvData && !("error" in kvData)) {
-          const s = kvData.status as string | undefined;
-          if (s === "polling" || s === "ranking") setPollOpen(true);
-          // Keep waiting-room count in sync from KV source of truth
-          if (typeof kvData.participant_count === "number") {
-            setParticipantCount((prev) => Math.max(prev, kvData.participant_count as number));
-          }
+      // Run both checks in parallel — first positive result wins
+      const [kvData, sbData] = await Promise.allSettled([
+        fetchSessionFromKV(code),
+        fetchStatusFromSupabase(code),
+      ]);
+
+      // CF KV result
+      if (kvData.status === "fulfilled" && kvData.value && !("error" in kvData.value)) {
+        const s = kvData.value.status as string | undefined;
+        if (s === "polling" || s === "ranking") { setPollOpen(true); return; }
+        if (typeof kvData.value.participant_count === "number") {
+          setParticipantCount((prev) => Math.max(prev, kvData.value!.participant_count as number));
         }
-      } catch { /* silent — Supabase realtime is primary */ }
+      }
+
+      // Supabase DB result (globally consistent, no CF KV needed)
+      if (sbData.status === "fulfilled" && sbData.value) {
+        const s = sbData.value.status;
+        if (s === "polling" || s === "ranking") { setPollOpen(true); return; }
+        if (typeof sbData.value.participant_count === "number") {
+          setParticipantCount((prev) => Math.max(prev, sbData.value!.participant_count));
+        }
+      }
     };
     check(); // immediate check on entering lobby
     const interval = setInterval(check, 1000);

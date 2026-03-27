@@ -68,6 +68,7 @@ import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
 import { useSessionBroadcast } from "@/lib/use-session-broadcast";
 import { supabase } from "@/lib/supabase";
+import { syncStatusToSupabase } from "@/lib/supabase-session-sync";
 
 /** Generate a ~33-word summary of response text for live feed display.
  *  Cube 6 Phase A stub: extracts key sentences to fit ~33 words.
@@ -330,6 +331,13 @@ function SessionDetail({
         `/sessions/${session.id}/${action}`
       );
       onUpdate(updated);
+
+      // Layer 4: write status to Supabase DB (HTTP REST — globally consistent, no CF KV needed)
+      syncStatusToSupabase(
+        updated.short_code,
+        updated.status,
+        updated.participant_count ?? 0,
+      ).catch(() => {});
 
       // Broadcast status change to all participants via Supabase Realtime
       broadcast("status", {
