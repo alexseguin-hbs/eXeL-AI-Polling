@@ -215,8 +215,7 @@ function SessionDetail({
   const [actionLoading, setActionLoading] = useState("");
   const [configExpanded, setConfigExpanded] = useState(false);
   const isLiveInteractive = (session.polling_mode_type ?? "live_interactive") === "live_interactive";
-  const showQR = !["closed", "archived"].includes(session.status) &&
-    (isLiveInteractive ? session.status !== "polling" : true);
+  const showQR = !["closed", "archived"].includes(session.status);
   const showScrollingFeed = isLiveInteractive && session.status === "polling";
   const [feedExpanded, setFeedExpanded] = useState(false);
   const [feedFullscreen, setFeedFullscreen] = useState(false);
