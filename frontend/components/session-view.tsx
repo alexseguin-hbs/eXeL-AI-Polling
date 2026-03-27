@@ -573,8 +573,8 @@ export function SessionView() {
 
     // Immediate check on mount — don't make phone wait for first status update
     checkStatus();
-    // Poll every 3s for responsive status transitions (open → polling)
-    const interval = setInterval(checkStatus, 3000);
+    // Poll every 1.5s for responsive cross-device status transitions (open → polling)
+    const interval = setInterval(checkStatus, 1500);
 
     return () => clearInterval(interval);
   }, [sessionId, sessionStatus, simulationMode, session?.short_code]);

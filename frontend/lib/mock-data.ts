@@ -590,12 +590,17 @@ function generateShortCode(): string {
 }
 
 /** Fetch session metadata from Cloudflare KV via the /api/sessions CF Function.
- *  Returns the stored metadata or null if unavailable. */
+ *  Returns the stored metadata or null if unavailable.
+ *  Uses cache-busting to ensure cross-device status transitions are seen immediately. */
 export async function fetchSessionFromKV(
   shortCode: string,
 ): Promise<Record<string, unknown> | null> {
   try {
-    const res = await fetch(`/api/sessions?code=${shortCode.toUpperCase()}`);
+    // Cache-bust: append timestamp to bypass browser/CDN caching of stale status
+    const cacheBust = `&_t=${Date.now()}`;
+    const res = await fetch(`/api/sessions?code=${shortCode.toUpperCase()}${cacheBust}`, {
+      cache: "no-store",
+    });
     if (res.ok) {
       return await res.json();
     }
@@ -858,13 +863,30 @@ export async function handleMockRequest<T>(
     return { ...session } as T;
   }
 
-  // GET /sessions/{id} — return shallow copy to trigger React re-render on state changes
+  // GET /sessions/{id} — return session with cross-device KV status merge
   const idMatch = path.match(
     /^\/sessions\/([0-9a-f-]{36})$/
   );
   if (method === "GET" && idMatch) {
     const session = findSessionById(idMatch[1]);
     if (!session) return null;
+    // Cross-device: merge KV status so phone sees moderator's transitions
+    if (session.short_code) {
+      try {
+        const kvData = await fetchSessionFromKV(session.short_code);
+        if (kvData && !("error" in kvData) && kvData.status && kvData.status !== session.status) {
+          session.status = kvData.status as Session["status"];
+          if (kvData.ends_at) session.ends_at = kvData.ends_at as string;
+          if (kvData.participant_count != null) {
+            session.participant_count = kvData.participant_count as number;
+          }
+          session.updated_at = new Date().toISOString();
+          saveMockState();
+        }
+      } catch {
+        // KV unavailable — use local data
+      }
+    }
     return { ...session } as T;
   }
 
