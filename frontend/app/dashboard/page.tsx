@@ -250,7 +250,8 @@ function SessionDetail({
   // Supabase Realtime Broadcast — push status changes to all participants instantly
   // Also listen for presence updates so moderator sees live participant count
   const onPresenceUpdate = useCallback((count: number) => {
-    onUpdate({ ...session, participant_count: count });
+    // Take max to guard against out-of-order broadcasts lowering the count
+    onUpdate({ ...session, participant_count: Math.max(session.participant_count ?? 0, count) });
   }, [session, onUpdate]);
   const { broadcast } = useSessionBroadcast(session.short_code, undefined, onPresenceUpdate);
 

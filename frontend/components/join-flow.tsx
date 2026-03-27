@@ -137,7 +137,10 @@ export function JoinFlow() {
       })
       .on("broadcast", { event: "presence" }, ({ payload }) => {
         const p = payload as { participant_count?: number };
-        if (typeof p.participant_count === "number") setParticipantCount(p.participant_count);
+        // Take max to guard against out-of-order broadcasts lowering the count
+        if (typeof p.participant_count === "number") {
+          setParticipantCount((prev) => Math.max(prev, p.participant_count as number));
+        }
       })
       // Presence sync — fires on subscribe with current state, catches moderator's tracked status
       .on("presence", { event: "sync" }, () => { checkPresenceForPolling(); })
