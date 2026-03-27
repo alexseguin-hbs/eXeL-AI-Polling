@@ -25,6 +25,7 @@ import {
 import { Navbar } from "@/components/navbar";
 import { api, ApiClientError } from "@/lib/api";
 import { fetchSessionFromKV } from "@/lib/mock-data";
+import { fetchStatusFromSupabase } from "@/lib/supabase-session-sync";
 import { toast } from "@/components/ui/use-toast";
 import { PRESENCE_POLL_INTERVAL } from "@/lib/constants";
 import { useTimer } from "@/lib/timer-context";
@@ -401,21 +402,27 @@ export function SessionView() {
       try {
         const data = await api.get<Session>(`/sessions/${sessionId}`);
 
-        // Cross-device: KV is the source of truth for session status.
-        // The session's own short_code is used (no URL param needed).
+        // Cross-device: check KV then Supabase DB for live session status.
+        // KV can fail cross-datacenter (CF Cache API is per-PoP); Supabase DB is globally consistent.
         if (data.short_code) {
-          try {
-            const kvData = await fetchSessionFromKV(data.short_code);
-            if (kvData && !("error" in kvData) && kvData.status) {
-              data.status = kvData.status as Session["status"];
-              if (kvData.ends_at) data.ends_at = kvData.ends_at as string;
-              if (kvData.participant_count != null) data.participant_count = kvData.participant_count as number;
-              if (data.status === "polling" && !data.opened_at) {
-                data.opened_at = new Date().toISOString();
-              }
-            }
-          } catch {
-            // KV unavailable — use local data
+          const [kvResult, sbResult] = await Promise.allSettled([
+            fetchSessionFromKV(data.short_code),
+            fetchStatusFromSupabase(data.short_code),
+          ]);
+          const kvData = kvResult.status === "fulfilled" ? kvResult.value : null;
+          const sbData = sbResult.status === "fulfilled" ? sbResult.value : null;
+
+          if (kvData && !("error" in kvData) && kvData.status) {
+            data.status = kvData.status as Session["status"];
+            if (kvData.ends_at) data.ends_at = kvData.ends_at as string;
+            if (kvData.participant_count != null) data.participant_count = kvData.participant_count as number;
+          } else if (sbData?.status) {
+            // KV miss — use Supabase DB (globally consistent HTTP REST)
+            data.status = sbData.status as Session["status"];
+            if (sbData.participant_count != null) data.participant_count = sbData.participant_count;
+          }
+          if (data.status === "polling" && !data.opened_at) {
+            data.opened_at = new Date().toISOString();
           }
         }
 
@@ -556,15 +563,26 @@ export function SessionView() {
           return; // Local API had the update, no need to check KV
         }
 
-        // Cross-device: also check KV for status changes from moderator's device
+        // Cross-device: check KV then Supabase DB for status changes from moderator's device.
+        // KV can fail cross-datacenter; Supabase DB is globally consistent.
         if (session?.short_code) {
-          const kvData = await fetchSessionFromKV(session.short_code);
-          if (kvData && !("error" in kvData) && kvData.status && kvData.status !== sessionStatus) {
+          const [kvResult, sbResult] = await Promise.allSettled([
+            fetchSessionFromKV(session.short_code),
+            fetchStatusFromSupabase(session.short_code),
+          ]);
+          const kvData = kvResult.status === "fulfilled" ? kvResult.value : null;
+          const sbData = sbResult.status === "fulfilled" ? sbResult.value : null;
+
+          const newStatus =
+            (kvData && !("error" in kvData) && kvData.status !== sessionStatus ? kvData.status : null) ||
+            (sbData?.status && sbData.status !== sessionStatus ? sbData.status : null);
+
+          if (newStatus) {
             setSession((prev) => prev ? {
               ...prev,
-              status: kvData.status as Session["status"],
-              ends_at: (kvData.ends_at as string) || prev.ends_at,
-              participant_count: (kvData.participant_count as number) ?? prev.participant_count,
+              status: newStatus as Session["status"],
+              ends_at: (kvData && !("error" in kvData) ? kvData.ends_at as string : null) || prev.ends_at,
+              participant_count: (kvData && !("error" in kvData) ? kvData.participant_count as number : null) ?? sbData?.participant_count ?? prev.participant_count,
               updated_at: new Date().toISOString(),
             } : prev);
           }
