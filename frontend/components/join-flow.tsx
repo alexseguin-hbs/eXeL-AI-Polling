@@ -135,20 +135,22 @@ export function JoinFlow() {
     );
   }, [pollOpen, joinResponse, simMode, language, router]);
 
-  // Fallback API poll — fires every 2s while in the waiting lobby.
-  // Self-heals if Supabase broadcast/postgres_changes fails to reach the phone.
+  // Fallback edge-storage poll — fires every 1s while in the waiting lobby.
+  // Reads directly from Cloudflare KV (bypasses MOCK_MODE / backend requirement).
+  // Self-heals if Supabase broadcast fails to reach the phone for any reason.
   useEffect(() => {
     if (!joinResponse || pollOpen || !code) return;
     const check = async () => {
       try {
-        const data = await api.get<{ status: string }>(`/sessions/code/${code}`);
-        if (data.status === "polling" || data.status === "ranking") {
-          setPollOpen(true);
+        const kvData = await fetchSessionFromKV(code);
+        if (kvData && !("error" in kvData)) {
+          const s = kvData.status as string | undefined;
+          if (s === "polling" || s === "ranking") setPollOpen(true);
         }
-      } catch { /* silent — realtime will cover it */ }
+      } catch { /* silent — Supabase realtime is primary */ }
     };
     check(); // immediate check on entering lobby
-    const interval = setInterval(check, 2000);
+    const interval = setInterval(check, 1000);
     return () => clearInterval(interval);
   }, [joinResponse, pollOpen, code]);
 
