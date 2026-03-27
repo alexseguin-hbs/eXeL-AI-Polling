@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Loader2, ArrowRight, ArrowLeft, Globe, UserIcon, FileCheck } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Globe, UserIcon, FileCheck, Radio, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +37,8 @@ export function JoinFlow() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [pollOpen, setPollOpen] = useState(false);
+  // Store join response so we can redirect when polling starts
+  const [joinResponse, setJoinResponse] = useState<SessionJoinResponse | null>(null);
 
   // Form state
   const [language, setLanguage] = useState("");
@@ -90,19 +92,41 @@ export function JoinFlow() {
     hydrateAndLoad();
   }, [code, qrTitle, qrSid, qrPm, qrDur, simMode, t]);
 
-  // Supabase Realtime Broadcast — instant push when moderator clicks Start Polling
-  // Allows participants still on join page to know polling has started
+  // Dual realtime listener — fires pollOpen the instant moderator clicks Start Polling.
+  // postgres_changes: DB-level truth (catches any status update, survives broadcast gaps).
+  // broadcast: sub-50ms push from moderator's dashboard (fires first when available).
   useEffect(() => {
     if (!code || !supabase) return;
     const channel = supabase.channel(`session:${code}`);
     channel
+      .on(
+        "postgres_changes" as Parameters<typeof channel.on>[0],
+        { event: "UPDATE", schema: "public", table: "sessions", filter: `code=eq.${code}` },
+        (payload: { new: { status?: string } }) => {
+          const s = payload.new.status;
+          if (s === "open" || s === "polling") setPollOpen(true);
+        },
+      )
       .on("broadcast", { event: "session_update" }, ({ payload }) => {
         const p = payload as { status?: string };
-        if (p.status === "open") setPollOpen(true);
+        if (p.status === "open" || p.status === "polling") setPollOpen(true);
+      })
+      .on("broadcast", { event: "status" }, ({ payload }) => {
+        const p = payload as { status?: string };
+        if (p.status === "polling") setPollOpen(true);
       })
       .subscribe();
     return () => { supabase?.removeChannel(channel); };
   }, [code]);
+
+  // Auto-redirect to session when polling goes live AND participant has already joined
+  useEffect(() => {
+    if (!pollOpen || !joinResponse) return;
+    const simSuffix = simMode ? "&sim=1" : "";
+    router.push(
+      `/session/?id=${joinResponse.session_id}&pid=${joinResponse.participant_id}&lang=${language || "en"}${simSuffix}`,
+    );
+  }, [pollOpen, joinResponse, simMode, language, router]);
 
   // When language changes, also set the active UI locale
   const handleLanguageChange = useCallback((code: string) => {
@@ -130,8 +154,15 @@ export function JoinFlow() {
       }
 
       const simSuffix = simMode ? "&sim=1" : "";
-      // KV is source of truth — no need to pass ss/sc params through URL
-      router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${simSuffix}`);
+
+      // If polling already live, go straight to session — otherwise hold in lobby.
+      // The pollOpen listener (above) will redirect the moment Start Polling fires.
+      if (pollOpen || session.status === "polling") {
+        router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${simSuffix}`);
+      } else {
+        // Park in waiting lobby — auto-redirect fires via the pollOpen useEffect
+        setJoinResponse(response);
+      }
     } catch (err) {
       if (err instanceof ApiClientError) {
         toast({
@@ -148,7 +179,7 @@ export function JoinFlow() {
       }
       setStep("results");
     }
-  }, [session, code, language, displayName, joinAnonymously, resultsOptIn, simMode, router, t]);
+  }, [session, code, language, displayName, joinAnonymously, resultsOptIn, simMode, router, pollOpen, t]);
 
   if (loading) {
     return (
@@ -187,9 +218,11 @@ export function JoinFlow() {
     <div className="flex min-h-screen flex-col">
       <Navbar sessionTitle={session?.title} />
 
-      {pollOpen && (
-        <div className="bg-green-900/80 border-b border-green-700 text-green-200 text-sm font-medium px-4 py-2 text-center">
-          Polling has started — complete your details to join!
+      {/* Polling-live banner — visible on join steps so participants know to hurry */}
+      {pollOpen && !joinResponse && (
+        <div className="bg-green-900/80 border-b border-green-700 text-green-200 text-sm font-medium px-4 py-2 text-center flex items-center justify-center gap-2">
+          <Zap className="h-4 w-4 text-green-400 shrink-0" />
+          Polling has started — complete your details to join now!
         </div>
       )}
 
@@ -350,13 +383,49 @@ export function JoinFlow() {
             </>
           )}
 
-          {/* Joining spinner */}
-          {step === "joining" && (
+          {/* Joining — API call in progress */}
+          {step === "joining" && !joinResponse && (
             <CardContent className="flex flex-col items-center gap-4 py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">
                 {t("cube1.join.joining")}
               </p>
+            </CardContent>
+          )}
+
+          {/* Waiting screen — joined, holding in lobby until Start Polling */}
+          {step === "joining" && joinResponse && !pollOpen && (
+            <CardContent className="flex flex-col items-center gap-6 py-12 text-center">
+              <div className="rounded-full bg-primary/10 p-4">
+                <Radio className="h-8 w-8 text-primary animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">You&apos;re in the session</p>
+                <p className="text-sm text-muted-foreground">
+                  Waiting for the moderator to start polling…
+                </p>
+              </div>
+              <div className="flex gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="h-2 w-2 rounded-full bg-primary animate-pulse"
+                    style={{ animationDelay: `${i * 0.3}s` }}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          )}
+
+          {/* Polling-live screen — redirecting now */}
+          {step === "joining" && joinResponse && pollOpen && (
+            <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+              <div className="rounded-full bg-green-500/10 p-4">
+                <Zap className="h-8 w-8 text-green-400" />
+              </div>
+              <p className="font-semibold text-foreground">Polling is live!</p>
+              <p className="text-sm text-muted-foreground">Taking you to the question…</p>
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </CardContent>
           )}
         </Card>
