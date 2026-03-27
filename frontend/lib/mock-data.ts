@@ -343,7 +343,10 @@ export const MOCK_SESSIONS: Session[] = [
 ];
 
 // IDs of default sessions (used to distinguish from dynamically created ones)
-const DEFAULT_SESSION_IDS = new Set(MOCK_SESSIONS.map((s) => s.id));
+export const DEFAULT_SESSION_IDS = new Set(MOCK_SESSIONS.map((s) => s.id));
+
+// Product Feedback session ID — only this session gets the 100-User Spiral Test button
+export const PRODUCT_FEEDBACK_SESSION_ID = "a1b2c3d4-e5f6-7890-abcd-111111111111";
 
 // ── Snapshot of original default sessions for demo reset ───────────
 // Deep-copy the 4 hardcoded sessions so we can restore them on every dashboard load.
@@ -352,6 +355,40 @@ const DEFAULT_PARTICIPANT_COUNTS: Record<string, number> = {};
 for (const s of MOCK_SESSIONS) {
   DEFAULT_SESSION_SNAPSHOTS[s.id] = { ...s };
   DEFAULT_PARTICIPANT_COUNTS[s.id] = s.participant_count;
+}
+
+/** Reset a single default demo session to its original hardcoded state.
+ *  Called from the dashboard "Reset Demo" button. */
+export function resetSingleSession(sessionId: string): Session | null {
+  const session = MOCK_SESSIONS.find((s) => s.id === sessionId);
+  if (!session || !DEFAULT_SESSION_IDS.has(sessionId)) return null;
+  const snap = DEFAULT_SESSION_SNAPSHOTS[sessionId];
+  if (!snap) return null;
+  // Restore mutable fields
+  session.status = snap.status;
+  session.opened_at = snap.opened_at;
+  session.closed_at = snap.closed_at;
+  session.ends_at = snap.ends_at;
+  session.updated_at = snap.updated_at;
+  session.participant_count = snap.participant_count;
+  // Reset participant count and responses
+  mockParticipantCount[sessionId] = DEFAULT_PARTICIPANT_COUNTS[sessionId] ?? 0;
+  delete mockResponses[sessionId];
+  // Clear localStorage overrides for this session
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const state: StoredMockState = JSON.parse(raw);
+        delete state.sessions[sessionId];
+        delete state.counts[sessionId];
+        delete state.responses[sessionId];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+    } catch { /* localStorage unavailable */ }
+  }
+  prePopulateExistingResponses();
+  return { ...session };
 }
 
 /** Reset the 4 default test sessions to their original hardcoded state.
