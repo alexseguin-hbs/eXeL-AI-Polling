@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     aws_secret_access_key: str = ""
     aws_region: str = "us-east-1"
 
+    # Supabase
+    supabase_url: str = ""
+    supabase_key: str = ""
+
     # Security
     encryption_key: str = ""
     session_secret: str = ""

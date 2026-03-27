@@ -1,19 +1,16 @@
 """Real-time WebSocket endpoint for Supabase Realtime relay."""
 
-import os
-
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from supabase import create_client, Client
 
-router = APIRouter(tags=["Realtime"])
+from app.config import settings
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+router = APIRouter(tags=["Realtime"])
 
 
 def get_supabase() -> Client:
     """Create Supabase client."""
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
+    return create_client(settings.supabase_url, settings.supabase_key)
 
 
 @router.websocket("/ws/session/{session_code}")
