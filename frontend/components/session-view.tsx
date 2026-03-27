@@ -555,16 +555,14 @@ export function SessionView() {
     const isActive = ["draft", "open", "polling", "ranking"].includes(sessionStatus);
     if (!isActive) return;
 
+    // Status order — never regress (local mock API returns stale "open" even after polling starts)
+    const STATUS_ORDER = ["draft", "open", "polling", "ranking", "closed", "archived"];
+    const statusRank = (s: string) => { const i = STATUS_ORDER.indexOf(s); return i === -1 ? 0 : i; };
+
     const checkStatus = async () => {
       try {
-        const data = await api.get<Session>(`/sessions/${sessionId}`);
-        if (data.status !== sessionStatus) {
-          setSession(data);
-          return; // Local API had the update, no need to check KV
-        }
-
-        // Cross-device: check KV then Supabase DB for status changes from moderator's device.
-        // KV can fail cross-datacenter; Supabase DB is globally consistent.
+        // Cross-device: check KV + Supabase DB in parallel (globally consistent sources)
+        // Local API is checked only if it shows a *forward* status advance.
         if (session?.short_code) {
           const [kvResult, sbResult] = await Promise.allSettled([
             fetchSessionFromKV(session.short_code),
@@ -573,19 +571,29 @@ export function SessionView() {
           const kvData = kvResult.status === "fulfilled" ? kvResult.value : null;
           const sbData = sbResult.status === "fulfilled" ? sbResult.value : null;
 
-          const newStatus =
-            (kvData && !("error" in kvData) && kvData.status !== sessionStatus ? kvData.status : null) ||
-            (sbData?.status && sbData.status !== sessionStatus ? sbData.status : null);
+          const kvStatus = kvData && !("error" in kvData) ? kvData.status as string : null;
+          const sbStatus = sbData?.status ?? null;
 
-          if (newStatus) {
+          // Pick the most advanced status from all sources
+          const candidates = [sessionStatus, kvStatus, sbStatus].filter(Boolean) as string[];
+          const bestStatus = candidates.reduce((best, s) => statusRank(s) > statusRank(best) ? s : best, sessionStatus);
+
+          if (bestStatus !== sessionStatus) {
             setSession((prev) => prev ? {
               ...prev,
-              status: newStatus as Session["status"],
+              status: bestStatus as Session["status"],
               ends_at: (kvData && !("error" in kvData) ? kvData.ends_at as string : null) || prev.ends_at,
               participant_count: (kvData && !("error" in kvData) ? kvData.participant_count as number : null) ?? sbData?.participant_count ?? prev.participant_count,
               updated_at: new Date().toISOString(),
             } : prev);
+            return;
           }
+        }
+
+        // Local API check — only apply if it advances status forward
+        const data = await api.get<Session>(`/sessions/${sessionId}`);
+        if (statusRank(data.status) > statusRank(sessionStatus)) {
+          setSession(data);
         }
       } catch {
         // Silently fail
