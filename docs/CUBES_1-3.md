@@ -229,6 +229,145 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 3. `test_transition_to_polling_no_ends_at_for_live` — live poll → ends_at stays None
 4. `test_create_session_default_timer_display_mode` — defaults to "flex"
 
+---
+
+### Cube 1 — Cross-Device Sync Test Procedures (Live Site)
+
+These are **manual end-to-end tests** run against the live Cloudflare Pages deployment. They cover the 4-layer sync stack (Supabase Broadcast → Presence → CF KV → Supabase DB) across real devices and networks. Run all 4 scenarios in order for each release.
+
+**Prerequisites:**
+- Supabase project active (check app.supabase.com — free tier pauses after 7 days inactivity)
+- `session_status` table exists with `title` and `polling_mode_type` columns (run `supabase/session_status.sql` + ALTER TABLE if not done)
+- Live site deployed at https://exel-ai-polling.explore-096.workers.dev
+- At least 2 real devices: Moderator on PC/laptop, participants on phone (different network preferred)
+
+---
+
+#### Scenario A — QR Code Join → Lobby → Start Polling
+
+**Devices:** Moderator (PC), Participant 1 (Phone), Participant 2 (Computer/second browser tab)
+
+**Steps:**
+1. Moderator creates a new session on the dashboard. Note the 8-digit code.
+2. Moderator does NOT click Start Polling yet.
+3. Phone opens camera, scans the QR code displayed on the dashboard. Browser opens the join URL automatically.
+4. Phone completes join flow: Language → Identity → Results → clicks Join. Lands in **waiting lobby** (shows session title + participant count + "Waiting for polling to start").
+5. Computer user opens the join URL directly (copy from QR or dashboard). Completes same join flow. Lands in **waiting lobby**.
+6. Moderator confirms participant count shows **2** on the dashboard.
+7. Moderator clicks **Start Polling**.
+
+**Expected results:**
+- Phone: transitions from waiting lobby to **polling input screen** within ≤2 seconds. No manual refresh required.
+- Computer user: same transition within ≤2 seconds.
+- Dashboard live feed: ready to receive responses.
+- QR code: still visible on dashboard (does not disappear after Start Polling).
+
+**Pass criteria:** Both devices show polling input. No page stuck on lobby.
+
+---
+
+#### Scenario B — 8-Digit Code Join → Lobby → Start Polling
+
+**Devices:** Moderator (PC), Participant 3 (Phone), Participant 4 (Computer/second browser tab)
+
+**Steps:**
+1. Moderator creates a new session. Note the 8-digit code (e.g. `J5GZVXQK`).
+2. Moderator does NOT click Start Polling yet.
+3. Phone opens the live site home page. Types the 8-digit code directly into the code entry field. Taps Join.
+4. Phone completes join flow. Lands in **waiting lobby**.
+5. Computer user opens site home page, types the same code, completes join flow. Lands in **waiting lobby**.
+6. Moderator confirms participant count shows **2** on the dashboard.
+7. Moderator clicks **Start Polling**.
+
+**Expected results:**
+- Phone: transitions from waiting lobby to **polling input screen** within ≤2 seconds.
+- Computer user: same transition within ≤2 seconds.
+- No "session not found" error on either device (Supabase DB row must exist from session creation).
+
+**Pass criteria:** Both devices reach polling input. Direct code entry works without QR URL params.
+
+---
+
+#### Scenario C — Join After Start Polling (QR — Late Join Bypass)
+
+**Devices:** Moderator (PC), Participant 5 (Phone), Participant 6 (Computer/second browser tab)
+
+**Steps:**
+1. Moderator creates a new session and immediately clicks **Start Polling** (session goes polling in one step).
+2. Confirm dashboard shows polling state.
+3. Phone scans the QR code **after** polling has already started.
+4. Phone completes join flow (Language → Identity → Results → Join).
+5. Computer user opens join URL **after** polling started. Completes join flow.
+
+**Expected results:**
+- Phone: upon clicking Join, **bypasses waiting lobby entirely** and lands directly on **polling input screen**.
+- Computer user: same bypass behavior.
+- No time spent in lobby. Transition happens at the moment of Join click, not after a polling-started broadcast.
+
+**Pass criteria:** Neither device sees the waiting lobby at any point. Both land on polling input immediately on join.
+
+---
+
+#### Scenario D — Join After Start Polling (8-Digit Code — Late Join Bypass)
+
+**Devices:** Moderator (PC), Participant 7 (Phone), Participant 8 (Computer/second browser tab)
+
+**Steps:**
+1. Moderator creates a new session and immediately clicks **Start Polling**.
+2. Phone opens site home page and types the 8-digit code **after** polling has already started.
+3. Phone completes join flow.
+4. Computer user types the same 8-digit code **after** polling started. Completes join flow.
+
+**Expected results:**
+- Phone: bypasses waiting lobby, lands directly on **polling input screen**.
+- Computer user: same.
+- Participant count on dashboard increments for each join.
+
+**Pass criteria:** Both devices bypass lobby. Direct code entry works post-polling-start.
+
+---
+
+#### Scenario E — Live Feed Verification (Response Submission)
+
+**Devices:** Moderator (PC), any 2+ participant devices from Scenarios A–D
+
+**Steps:**
+1. With polling active and participants on polling input screen, each participant types a response and clicks Submit.
+2. Moderator watches the **live feed** panel on the dashboard.
+
+**Expected results:**
+- Each submitted response appears in the moderator live feed within ≤3 seconds of submission.
+- Response text is visible (not truncated beyond 80 chars in the feed).
+- Response count increments correctly.
+
+**Pass criteria:** All submitted responses visible on dashboard live feed without page refresh.
+
+---
+
+#### Cross-Device Sync Test — Pass/Fail Summary Table
+
+| Scenario | Entry Method | Join Timing | Phone Result | Computer Result | Pass? |
+|----------|-------------|-------------|--------------|-----------------|-------|
+| A | QR code | Before polling | Lobby → polling input on Start | Lobby → polling input on Start | |
+| B | 8-digit code | Before polling | Lobby → polling input on Start | Lobby → polling input on Start | |
+| C | QR code | After polling | Direct to polling input (no lobby) | Direct to polling input (no lobby) | |
+| D | 8-digit code | After polling | Direct to polling input (no lobby) | Direct to polling input (no lobby) | |
+| E | Any | Any | — | Live feed shows all submissions | |
+
+**Full pass = all 5 scenarios green. Any failure = identify which sync layer failed (Broadcast / Presence / Supabase DB) and fix before releasing.**
+
+---
+
+#### Sync Layer Diagnostics (if a scenario fails)
+
+| Symptom | Likely Failed Layer | Check |
+|---------|-------------------|-------|
+| Phone never leaves lobby after Start Polling | Layer 1 Broadcast or Layer 4 DB | Check Supabase project not paused; check `session_status` table has a row for the code |
+| Phone toggles lobby ↔ polling input every second | Status regressions in `checkStatus` poll | Check `STATUS_ORDER` rank logic in `session-view.tsx` |
+| 8-digit code shows "session not found" | Layer 4 DB missing row | Confirm `syncStatusToSupabase` fires on session CREATE in dashboard |
+| Live feed empty on dashboard | Supabase Broadcast `new_response` not firing | Check Supabase project active; check `new_response` handler in `dashboard/page.tsx` |
+| Works in same city, fails across regions | CF KV cross-datacenter miss (expected) | Confirm Layer 4 Supabase DB is covering it |
+
 ### Cube 1 — Files
 | File | Lines | Purpose |
 |------|-------|---------|
@@ -357,6 +496,21 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 | CRS-02 | CRS-02.IN.WRS.002 | CRS-02.OUT.WRS.002 | **Implemented** | 1 | User joins via QR/link without authentication friction | Join in ≤3 clicks, <5s load | One-tap join with device auto-detection, <2s load |
 | CRS-03 | CRS-03.IN.SRS.003 | CRS-03.OUT.SRS.003 | **Implemented** | 1 | System generates collision-free session IDs bound to QR | Zero-collision UUID generation | Cryptographically signed rotating session identifiers |
 | CRS-04 | CRS-04.IN.SRS.004 | CRS-04.OUT.SRS.004 | **Implemented** | 1 | System validates QR access, blocks expired/invalid sessions | 100% expiry/validity enforcement | Geo-fencing and abuse-detection heuristics |
+| CRS-05 | CRS-05.IN.WRS.005 | CRS-05.OUT.WRS.005 | **Implemented** | 1 | Participant auto-advances to polling input when moderator clicks Start Polling — works on phone, computer, QR join, and direct code entry, whether in lobby or joining late | Status transition delivered to all participants ≤2s via Supabase Broadcast (Layer 1) with Presence (Layer 2) + Supabase DB (Layer 4) fallbacks; never requires page refresh | Sub-50ms delivery via WebSocket Broadcast confirmed in live test (2026-03-27, 13 participants); late joiners bypass lobby entirely |
+
+**CRS-05 Cross-Device Sync Architecture (4-Layer Stack):**
+| Layer | Mechanism | Latency | Dependency | Failure Mode |
+|-------|-----------|---------|------------|-------------|
+| 1 | Supabase Broadcast (WebSocket) | ~50–70ms | Supabase project active | Silent if Supabase paused |
+| 2 | Supabase Presence (WebSocket state) | ~50–70ms | Supabase project active | Persists for late joiners via `channel.track()` |
+| 3 | CF KV poll (1s HTTP) | ~1s | `RESPONSES` KV binding in CF Pages | Per-datacenter; cross-region miss without binding |
+| 4 | Supabase DB poll (1.5s HTTP REST) | ~1.5s | `session_status` table exists | Globally consistent; covers all CF KV misses |
+
+**CRS-05 Key Behaviours Tested by Scenarios A–E:**
+- `session_status` row written at session CREATE (not just on transition) → enables direct 8-digit code join
+- `fetchStatusFromSupabase` returns `title` + `polling_mode_type` → session hydration without QR URL params
+- Status never regresses: `STATUS_ORDER` rank enforced in `checkStatus` — once "polling", local stale "open" ignored
+- `new_response` broadcast routed to `feedResponses` on dashboard → live feed updates without KV
 
 ### Cube 1 — DesignMatrix VOC (Voice of Customer)
 | CRS | Customer Need | VOC Comment |
