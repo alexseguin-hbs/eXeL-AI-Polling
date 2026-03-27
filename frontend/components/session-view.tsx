@@ -696,7 +696,11 @@ export function SessionView() {
             type: "broadcast",
             event: "new_response",
             payload: {
+              id: result?.id ?? `r-${Date.now()}`,
               text: trimmed.length > 80 ? trimmed.substring(0, 80) + "..." : trimmed,
+              clean_text: trimmed,
+              submitted_at: new Date().toISOString(),
+              summary_33: (result as { summary_33?: string })?.summary_33 ?? undefined,
               count: submittedQuestions.size + 1,
             },
           })

@@ -240,9 +240,16 @@ function SessionDetail({
         if (p.status === "open") setPollStatus("open");
       })
       .on("broadcast", { event: "new_response" }, ({ payload }) => {
-        const p = payload as { text: string; count: number };
-        setLiveResponseFeed((prev) => [p, ...prev].slice(0, 15));
+        const p = payload as { id?: string; text: string; clean_text?: string; submitted_at?: string; summary_33?: string; count: number };
+        setLiveResponseFeed((prev) => [{ text: p.text, count: p.count }, ...prev].slice(0, 15));
         setResponseCount((prev) => prev + 1);
+        // Also push into feedResponses so the live feed UI updates instantly
+        setFeedResponses((prev) => [{
+          id: p.id ?? `broadcast-${Date.now()}`,
+          clean_text: p.clean_text ?? p.text,
+          submitted_at: p.submitted_at ?? new Date().toISOString(),
+          summary_33: p.summary_33,
+        }, ...prev]);
       })
       .subscribe();
     return () => { supabase?.removeChannel(channel); };
