@@ -427,6 +427,29 @@ function SessionDetail({
           </div>
         )}
 
+        {/* Session expiration warning — SSSES compliance */}
+        {session.expires_at && !["closed", "archived"].includes(session.status) && (() => {
+          const hoursLeft = (new Date(session.expires_at).getTime() - Date.now()) / (1000 * 60 * 60);
+          if (hoursLeft <= 0) return (
+            <div className="flex items-center gap-2 mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5">
+              <Clock className="h-4 w-4 text-red-400 shrink-0" />
+              <p className="text-sm text-red-300 font-semibold">Session expired</p>
+            </div>
+          );
+          if (hoursLeft <= 2) return (
+            <div className="flex items-center gap-2 mb-4 rounded-lg border border-orange-500/30 bg-orange-500/5 px-4 py-2.5">
+              <Clock className="h-4 w-4 text-orange-400 shrink-0" />
+              <p className="text-sm text-orange-300">
+                Session expires in{" "}
+                <span className="font-semibold font-mono">
+                  {hoursLeft < 1 ? `${Math.max(1, Math.round(hoursLeft * 60))}m` : `${Math.round(hoursLeft)}h`}
+                </span>
+              </p>
+            </div>
+          );
+          return null;
+        })()}
+
         {/* QR Code + Join Info (hides during live polling, stays for static) */}
         {showQR && (
           <Card className="mb-6">
