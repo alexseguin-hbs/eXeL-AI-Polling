@@ -65,6 +65,9 @@ export function JoinFlow() {
       const kvData = await fetchSessionFromKV(code);
       if (kvData && !("error" in kvData)) {
         hydrateSessionFromKV(code, kvData);
+        // If KV already shows polling, mark pollOpen immediately — bypass waiting room
+        const kvStatus = kvData.status as string | undefined;
+        if (kvStatus === "polling" || kvStatus === "ranking") setPollOpen(true);
       } else if (qrTitle) {
         // Fallback: hydrate from URL params — status defaults to "open" (lobby)
         // Participants wait in lobby until moderator clicks Start Polling
@@ -79,8 +82,10 @@ export function JoinFlow() {
           setError(t("cube1.join.session_ended"));
         } else if (!simMode && data.expires_at && new Date(data.expires_at) < new Date()) {
           setError(t("cube1.join.session_ended"));
+        } else if (!simMode && (data.status === "polling" || data.status === "ranking")) {
+          // Polling already live — banner shows, handleJoin will redirect directly
+          setPollOpen(true);
         }
-        // Draft sessions: allow join — user lands in lobby, polls for status changes
       } catch (err) {
         if (err instanceof ApiClientError) {
           setError(err.detail);

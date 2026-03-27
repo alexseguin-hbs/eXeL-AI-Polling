@@ -85,7 +85,7 @@ export function useSessionBroadcast(
       channelRef.current = null;
       setConnected(false);
     };
-  }, [shortCode, onStatusChange, onPresenceChange]);
+  }, [shortCode, onStatusChange, onPresenceChange, onNewResponse]);
 
   /**
    * Broadcast a session update to all subscribers on this channel.

@@ -319,7 +319,7 @@ function SessionDetail({
       if (action === "poll") {
         setPollStatus("open");
         broadcast("session_update", {
-          status: "open",
+          status: "polling",
           sessionCode: session.short_code,
         }).catch(() => {});
       }
