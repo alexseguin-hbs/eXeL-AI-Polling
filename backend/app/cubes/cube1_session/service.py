@@ -6,10 +6,14 @@ Handles:
 - Participant join flow (via short_code / QR)
 - Question management within sessions
 - Redis presence tracking for active participants
+- Audit logging on all state transitions (CRS-01)
+- Replay hash computation for determinism verification (CRS-03)
 """
 
 import base64
+import hashlib
 import io
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -23,12 +27,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.auth import CurrentUser
-from app.core.exceptions import SessionExpiredError, SessionNotFoundError, SessionStateError
-from app.cubes.cube5_gateway.service import create_login_time_entry
+from app.core.exceptions import (
+    PaymentRequiredError,
+    SessionExpiredError,
+    SessionNotFoundError,
+    SessionStateError,
+)
 from app.core.security import anonymize_user_id
+from app.models.audit_log import AuditLog
 from app.models.participant import Participant
 from app.models.question import Question
 from app.models.session import SESSION_TRANSITIONS, Session
+
+logger = logging.getLogger(__name__)
 
 
 # Short code alphabet: URL-safe, no ambiguous chars (0/O, 1/l/I)
@@ -117,6 +128,63 @@ async def get_presence(redis: aioredis.Redis, session_id: uuid.UUID) -> dict:
         "active_count": len(participants),
         "participants": participants,
     }
+
+
+# ---------------------------------------------------------------------------
+# Audit Logging (G5 fix — CRS-01)
+# ---------------------------------------------------------------------------
+
+
+async def _log_audit(
+    db: AsyncSession,
+    *,
+    session_id: uuid.UUID,
+    actor_id: str,
+    actor_role: str,
+    action_type: str,
+    before_state: dict | None = None,
+    after_state: dict | None = None,
+) -> None:
+    """Write an audit log entry for session actions."""
+    entry = AuditLog(
+        session_id=session_id,
+        actor_id=actor_id,
+        actor_role=actor_role,
+        action_type=action_type,
+        object_type="session",
+        object_id=str(session_id),
+        before_state=before_state,
+        after_state=after_state,
+    )
+    db.add(entry)
+
+
+# ---------------------------------------------------------------------------
+# Replay Hash (G3 fix — CRS-03 determinism)
+# ---------------------------------------------------------------------------
+
+
+async def _compute_replay_hash(db: AsyncSession, session: Session) -> str:
+    """Compute SHA-256 replay hash from session seed + all response refs.
+
+    Hash = sha256(seed | ai_provider | sorted(mongo_refs))
+    Uses mongo_ref from ResponseMeta as deterministic response identifiers.
+    """
+    from app.models.response_meta import ResponseMeta
+
+    result = await db.execute(
+        select(ResponseMeta.mongo_ref)
+        .where(ResponseMeta.session_id == session.id)
+        .order_by(ResponseMeta.mongo_ref)
+    )
+    response_refs = list(result.scalars().all())
+
+    payload = "|".join([
+        session.seed or "",
+        session.ai_provider or "openai",
+        ",".join(response_refs),
+    ])
+    return hashlib.sha256(payload.encode()).hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -248,7 +316,16 @@ async def update_session(
     if session.status != "draft":
         raise SessionStateError(session.status, "update config")
 
-    allowed = {"title", "description", "anonymity_mode", "ranking_mode", "max_response_length", "ai_provider"}
+    allowed = {
+        "title", "description", "anonymity_mode", "ranking_mode",
+        "max_response_length", "ai_provider", "session_type", "polling_mode",
+        "pricing_tier", "max_participants", "fee_amount_cents",
+        "cost_splitting_enabled", "reward_enabled", "reward_amount_cents",
+        "cqs_weights", "theme2_voting_level", "live_feed_enabled",
+        "polling_mode_type", "static_poll_duration_days", "timer_display_mode",
+        "stt_provider", "realtime_stt_enabled", "realtime_stt_provider",
+        "allow_user_stt_choice", "theme_id", "custom_accent_color",
+    }
     for key, value in updates.items():
         if key in allowed and value is not None:
             setattr(session, key, value)
@@ -308,8 +385,13 @@ async def transition_session(
     session: Session,
     new_status: str,
     redis: aioredis.Redis | None = None,
+    actor_id: str | None = None,
 ) -> Session:
-    """Transition session to a new state. Validates against allowed transitions."""
+    """Transition session to a new state. Validates against allowed transitions.
+
+    Writes audit log entry on every transition (G5 fix).
+    Computes replay_hash on close for determinism verification (G3 fix).
+    """
     if not session.can_transition_to(new_status):
         allowed = SESSION_TRANSITIONS.get(session.status, ())
         raise SessionStateError(
@@ -317,6 +399,7 @@ async def transition_session(
             f"transition to '{new_status}' (allowed: {allowed})",
         )
 
+    old_status = session.status
     now = datetime.now(timezone.utc)
 
     if new_status == "open" and session.opened_at is None:
@@ -327,12 +410,32 @@ async def transition_session(
             session.ends_at = now + timedelta(days=session.static_poll_duration_days)
     elif new_status == "closed":
         session.closed_at = now
+        # G3 fix: compute replay hash for determinism verification
+        try:
+            session.replay_hash = await _compute_replay_hash(db, session)
+        except Exception as exc:
+            logger.warning(
+                "cube1.replay_hash.failed",
+                extra={"session_id": str(session.id), "error": str(exc)},
+            )
 
     # Clear presence data on archive
     if new_status == "archived" and redis:
         await _clear_presence(redis, session.id)
 
     session.status = new_status
+
+    # G5 fix: audit log on every state transition
+    await _log_audit(
+        db,
+        session_id=session.id,
+        actor_id=actor_id or session.created_by,
+        actor_role="moderator",
+        action_type=f"session.transition.{old_status}_to_{new_status}",
+        before_state={"status": old_status},
+        after_state={"status": new_status},
+    )
+
     await db.commit()
     await db.refresh(session)
     return session
@@ -354,6 +457,30 @@ async def check_capacity(db: AsyncSession, session: Session) -> None:
         )
 
 
+async def _check_payment(session: Session, results_opt_in: bool) -> None:
+    """G2 fix: enforce payment for paid sessions (CRS-01 monetization).
+
+    - free tier: always allowed
+    - moderator_paid: moderator pays, participants join free
+    - cost_split: participants must opt in + pay to see results
+    """
+    if session.pricing_tier == "free":
+        return
+    if session.pricing_tier == "moderator_paid":
+        # Moderator pays — participants always join free
+        if not session.is_paid:
+            raise PaymentRequiredError("Session fee has not been paid by moderator")
+        return
+    if session.pricing_tier == "cost_split" and results_opt_in:
+        # Cost-split sessions: results_opt_in triggers payment requirement
+        # Actual payment is handled by Cube 8 / Stripe webhook;
+        # here we just validate the session has a fee configured
+        if session.fee_amount_cents <= 0:
+            return  # No fee configured — allow
+        # Payment check deferred to Cube 8 post-join flow
+        return
+
+
 async def join_session(
     db: AsyncSession,
     *,
@@ -369,7 +496,9 @@ async def join_session(
 
     - Session must be in 'open' or 'polling' state.
     - Duplicate joins (same user_id + session) return existing participant.
-    - Anonymous sessions generate an anon_hash from user_id + session salt.
+    - Anonymous sessions generate an anon_hash from user_id + session salt (CRS-05).
+    - Payment enforcement for paid sessions (G2 fix).
+    - Cube 5 time entry is fire-and-forget — join never fails on token error (G1 fix).
     """
     session = await get_session_by_short_code(db, short_code)
 
@@ -378,6 +507,9 @@ async def join_session(
 
     if session.status not in ("open", "polling"):
         raise SessionStateError(session.status, "join")
+
+    # G2 fix: enforce payment rules before allowing join
+    await _check_payment(session, results_opt_in)
 
     # Check capacity before allowing new joins
     await check_capacity(db, session)
@@ -398,7 +530,7 @@ async def join_session(
             await db.refresh(existing)
             return session, existing
 
-    # Build anon hash if anonymity mode enabled
+    # CRS-05: build anon hash if anonymity mode enabled
     anon_hash = None
     if session.anonymity_mode == "anonymous" and user_id:
         anon_hash = anonymize_user_id(user_id, str(session.id))
@@ -418,13 +550,25 @@ async def join_session(
     await db.commit()
     await db.refresh(participant)
 
-    # Auto-create login time entry → awards default ♡ + ◬ tokens
-    await create_login_time_entry(
-        db,
-        session_id=session.id,
-        participant_id=participant.id,
-        user_id=user_id,
-    )
+    # G1 fix: Cube 5 login time entry is fire-and-forget — join never fails on token error
+    try:
+        from app.cubes.cube5_gateway.service import create_login_time_entry
+
+        await create_login_time_entry(
+            db,
+            session_id=session.id,
+            participant_id=participant.id,
+            user_id=user_id,
+        )
+    except Exception as exc:
+        logger.warning(
+            "cube1.login_time_entry.failed",
+            extra={
+                "session_id": str(session.id),
+                "participant_id": str(participant.id),
+                "error": str(exc),
+            },
+        )
 
     # Record presence in Redis
     if redis:

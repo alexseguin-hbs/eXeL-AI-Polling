@@ -59,6 +59,27 @@ class SessionUpdate(BaseModel):
     ranking_mode: Literal["auto", "manual"] | None = None
     max_response_length: int | None = Field(None, ge=50, le=3333)
     ai_provider: Literal["openai", "grok", "gemini"] | None = None
+    # Session type & mode
+    session_type: Literal["polling", "peer_volunteer", "team_collaboration"] | None = None
+    polling_mode: Literal["single_round", "multi_round_deep_dive"] | None = None
+    # Capacity & pricing
+    pricing_tier: Literal["free", "moderator_paid", "cost_split"] | None = None
+    max_participants: int | None = Field(None, ge=1, le=1000000)
+    fee_amount_cents: int | None = Field(None, ge=0)
+    cost_splitting_enabled: bool | None = None
+    # Gamified reward
+    reward_enabled: bool | None = None
+    reward_amount_cents: int | None = Field(None, ge=0)
+    cqs_weights: dict[str, float] | None = None
+    # Theme voting
+    theme2_voting_level: Literal["theme2_9", "theme2_6", "theme2_3"] | None = None
+    # Live feed
+    live_feed_enabled: bool | None = None
+    # Static poll countdown
+    polling_mode_type: Literal["live_interactive", "static_poll"] | None = None
+    static_poll_duration_days: int | None = Field(None, ge=1, le=7)
+    timer_display_mode: Literal["day", "flex", "both"] | None = None
+    # STT
     stt_provider: Literal["openai", "grok", "gemini"] | None = None
     realtime_stt_enabled: bool | None = None
     realtime_stt_provider: Literal["azure", "aws"] | None = None

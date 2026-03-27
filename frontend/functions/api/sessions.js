@@ -68,8 +68,11 @@ export async function onRequest(context) {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  // Use KV if bound (same binding name as responses.js), otherwise null
+  // Use KV if bound (same binding name as responses.js), otherwise fallback to Cache API
   const store = env.RESPONSES || null;
+  if (!store) {
+    console.warn("[sessions.js] KV binding RESPONSES not found — falling back to Cache API (5min TTL, per-datacenter). Bind KV for reliable cross-device sync.");
+  }
 
   // ── GET /api/sessions?code=<shortCode> ────────────────────────
   if (request.method === "GET") {

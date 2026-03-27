@@ -80,7 +80,9 @@ async def _transition_and_return(
     """
     session = await service.get_session_by_id(db, session_id)
     service.verify_session_owner(session, user)
-    updated = await service.transition_session(db, session, target_state, redis=redis)
+    updated = await service.transition_session(
+        db, session, target_state, redis=redis, actor_id=user.user_id
+    )
 
     # Fire Cube 5 orchestrator on polling → ranking transition
     if target_state == "ranking" and mongo is not None:
@@ -221,7 +223,7 @@ async def start_session(
     session = await service.get_session_by_id(db, session_id)
     service.verify_session_owner(session, user)
     if session.status == "draft":
-        session = await service.transition_session(db, session, "open")
+        session = await service.transition_session(db, session, "open", actor_id=user.user_id)
     return await _return_session(db, session)
 
 
