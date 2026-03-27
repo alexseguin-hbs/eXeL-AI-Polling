@@ -35,6 +35,7 @@ import { PollCountdownTimer } from "@/components/poll-countdown-timer";
 import { SimModeratorExperience } from "@/components/sim-moderator-experience";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, Question, SimTheme } from "@/lib/types";
+import { useRealtimeStatus } from "@/lib/use-realtime-status";
 import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
 import { ThemeResultsChart } from "@/components/theme-results-chart";
 import { getSimPollBySessionId, resolveThemesForLevel } from "@/lib/sim-data";
@@ -578,6 +579,28 @@ export function SessionView() {
 
     return () => clearInterval(interval);
   }, [sessionId, sessionStatus, simulationMode, session?.short_code]);
+
+  // Supabase Realtime: instant status transitions (no polling delay).
+  // Fires when the moderator changes session status (e.g. open → polling).
+  // Falls back gracefully if Supabase is not configured or tables don't exist.
+  const onRealtimeStatus = useCallback(
+    (newStatus: string, payload: Record<string, unknown>) => {
+      setSession((prev) => {
+        if (!prev || prev.status === newStatus) return prev;
+        return {
+          ...prev,
+          status: newStatus as Session["status"],
+          ends_at: (payload.ends_at as string) || prev.ends_at,
+          updated_at: new Date().toISOString(),
+        };
+      });
+    },
+    [],
+  );
+  useRealtimeStatus(
+    simulationMode ? null : session?.short_code,
+    onRealtimeStatus,
+  );
 
   const handleSubmitResponse = useCallback(async () => {
     if (!responseText.trim() || questions.length === 0) return;
