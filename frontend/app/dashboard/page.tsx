@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -61,7 +61,7 @@ import { Separator } from "@/components/ui/separator";
 import { api, ApiClientError } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
 import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS, TIMER_DISPLAY_MODES, SPIRAL_TEST_ENABLED } from "@/lib/constants";
-import { startSpiralTest, resetSingleSession, DEFAULT_SESSION_IDS, PRODUCT_FEEDBACK_SESSION_ID, type SpiralTestProgress } from "@/lib/mock-data";
+import { startSpiralTest, resetSingleSession, DEFAULT_SESSION_IDS, PRODUCT_FEEDBACK_SESSION_ID, fetchSessionFromKV, type SpiralTestProgress } from "@/lib/mock-data";
 import { runMoTExport, type MoTExportProgress } from "@/lib/mot-export-orchestrator";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
@@ -253,6 +253,30 @@ function SessionDetail({
     onUpdate({ ...session, participant_count: count });
   }, [session, onUpdate]);
   const { broadcast } = useSessionBroadcast(session.short_code, undefined, onPresenceUpdate);
+
+  // KV fallback poll — keeps participant count accurate when Supabase broadcast is missed.
+  // Runs every 5s during active sessions. Uses refs to avoid stale closures.
+  const onUpdateRef = useRef(onUpdate);
+  onUpdateRef.current = onUpdate;
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+  useEffect(() => {
+    if (["closed", "archived"].includes(session.status)) return;
+    const poll = async () => {
+      try {
+        const kv = await fetchSessionFromKV(sessionRef.current.short_code);
+        if (kv && !("error" in kv) && typeof kv.participant_count === "number") {
+          const count = kv.participant_count as number;
+          if (count !== sessionRef.current.participant_count) {
+            onUpdateRef.current({ ...sessionRef.current, participant_count: count });
+          }
+        }
+      } catch { /* silent */ }
+    };
+    poll();
+    const id = setInterval(poll, 5000);
+    return () => clearInterval(id);
+  }, [session.id, session.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Poll for live responses during polling state
   useEffect(() => {

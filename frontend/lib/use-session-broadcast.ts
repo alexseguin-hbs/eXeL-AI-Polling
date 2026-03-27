@@ -90,6 +90,8 @@ export function useSessionBroadcast(
   /**
    * Broadcast a session update to all subscribers on this channel.
    * Called by the moderator after a state transition.
+   * When status transitions to "polling" or "ranking", also tracks the state
+   * via Supabase Presence so phones that subscribe later get it immediately.
    */
   const broadcast = useCallback(
     async (event: "status" | "presence" | "session" | "session_update" | "new_response", payload: SessionBroadcastPayload | NewResponsePayload) => {
@@ -100,6 +102,13 @@ export function useSessionBroadcast(
         event,
         payload,
       });
+      // Persist polling/ranking state in Presence so late-joining phones receive it on sync
+      if (event === "status" || event === "session_update") {
+        const p = payload as SessionBroadcastPayload;
+        if (p.status === "polling" || p.status === "ranking") {
+          channel.track({ status: p.status, ts: Date.now() }).catch(() => {});
+        }
+      }
     },
     [],
   );

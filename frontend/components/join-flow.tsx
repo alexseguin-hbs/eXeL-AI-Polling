@@ -100,12 +100,24 @@ export function JoinFlow() {
     hydrateAndLoad();
   }, [code, qrTitle, qrSid, qrPm, qrDur, simMode, t]);
 
-  // Dual realtime listener — fires pollOpen the instant moderator clicks Start Polling.
-  // postgres_changes: DB-level truth (catches any status update, survives broadcast gaps).
-  // broadcast: sub-50ms push from moderator's dashboard (fires first when available).
+  // Triple realtime listener — fires pollOpen the instant moderator clicks Start Polling.
+  // broadcast "status"/"session_update": sub-50ms push (primary).
+  // presence sync/join: persists state so phones subscribing AFTER polling started get it immediately.
+  // postgres_changes: DB-level fallback (requires sessions table in Supabase).
   useEffect(() => {
     if (!code || !supabase) return;
-    const channel = supabase.channel(`session:${code}`);
+    const channel = supabase.channel(`session:${code}`, {
+      config: { presence: { key: `participant-${Math.random().toString(36).slice(2, 8)}` } },
+    });
+
+    const checkPresenceForPolling = () => {
+      const state = channel.presenceState() as Record<string, Array<{ status?: string }>>;
+      const active = Object.values(state).flat();
+      if (active.some((e) => e.status === "polling" || e.status === "ranking")) {
+        setPollOpen(true);
+      }
+    };
+
     channel
       .on(
         "postgres_changes" as Parameters<typeof channel.on>[0],
@@ -127,6 +139,9 @@ export function JoinFlow() {
         const p = payload as { participant_count?: number };
         if (typeof p.participant_count === "number") setParticipantCount(p.participant_count);
       })
+      // Presence sync — fires on subscribe with current state, catches moderator's tracked status
+      .on("presence", { event: "sync" }, () => { checkPresenceForPolling(); })
+      .on("presence", { event: "join" }, () => { checkPresenceForPolling(); })
       .subscribe();
     return () => { supabase?.removeChannel(channel); };
   }, [code]);
@@ -151,6 +166,10 @@ export function JoinFlow() {
         if (kvData && !("error" in kvData)) {
           const s = kvData.status as string | undefined;
           if (s === "polling" || s === "ranking") setPollOpen(true);
+          // Keep waiting-room count in sync from KV source of truth
+          if (typeof kvData.participant_count === "number") {
+            setParticipantCount((prev) => Math.max(prev, kvData.participant_count as number));
+          }
         }
       } catch { /* silent — Supabase realtime is primary */ }
     };
@@ -177,23 +196,25 @@ export function JoinFlow() {
           results_opt_in: resultsOptIn,
         }
       );
-      // Broadcast participant join to all listeners on this session channel
-      if (supabase && code) {
-        supabase.channel(`session:${code.toUpperCase()}`)
-          .send({ type: "broadcast", event: "presence", payload: { participant_count: (session.participant_count ?? 0) + 1 } })
-          .catch(() => {});
-      }
-
       const simSuffix = simMode ? "&sim=1" : "";
 
-      // Re-fetch live session status — session loaded at page-open may be stale.
-      // If polling already started, go straight to session. Otherwise hold in lobby;
-      // the fallback API poll + realtime listeners fire the redirect automatically.
+      // Re-fetch live session — get accurate status AND participant count after join.
+      // Must happen before the presence broadcast so we send the server's true count.
       let liveStatus = session.status;
+      let liveCount = (session.participant_count ?? 0) + 1; // optimistic fallback
       try {
         const live = await api.get<Session>(`/sessions/code/${code}`);
         liveStatus = live.status;
+        if (typeof live.participant_count === "number") liveCount = live.participant_count;
       } catch { /* use cached status on failure */ }
+
+      // Broadcast accurate participant count to moderator dashboard + waiting participants
+      if (supabase && code) {
+        supabase.channel(`session:${code.toUpperCase()}`)
+          .send({ type: "broadcast", event: "presence", payload: { participant_count: liveCount } })
+          .catch(() => {});
+      }
+      setParticipantCount(liveCount);
 
       if (pollOpen || liveStatus === "polling" || liveStatus === "ranking") {
         router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${simSuffix}`);
