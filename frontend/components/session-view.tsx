@@ -37,6 +37,7 @@ import { useTheme } from "@/lib/theme-context";
 import type { Session, Question, SimTheme } from "@/lib/types";
 import { useRealtimeStatus } from "@/lib/use-realtime-status";
 import { useSessionBroadcast, type SessionBroadcastPayload } from "@/lib/use-session-broadcast";
+import { supabase } from "@/lib/supabase";
 import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
 import { ThemeResultsChart } from "@/components/theme-results-chart";
 import { getSimPollBySessionId, resolveThemesForLevel } from "@/lib/sim-data";
@@ -659,6 +660,22 @@ export function SessionView() {
       setTimeout(() => setShowTokenEarn(false), 1200);
 
       toast({ title: t("cube10.sim.response_submitted") });
+
+      // Broadcast new_response to host dashboard live ticker
+      if (!simulationMode && session?.short_code && supabase) {
+        const trimmed = responseText.trim();
+        supabase
+          .channel(`session:${session.short_code}`)
+          .send({
+            type: "broadcast",
+            event: "new_response",
+            payload: {
+              text: trimmed.length > 80 ? trimmed.substring(0, 80) + "..." : trimmed,
+              count: submittedQuestions.size + 1,
+            },
+          })
+          .catch(() => {});
+      }
 
       // Track sim user submission for auto-transition
       if (simulationMode && simulationRole === "moderator") {

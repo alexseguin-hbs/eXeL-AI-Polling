@@ -36,6 +36,7 @@ export function JoinFlow() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pollOpen, setPollOpen] = useState(false);
 
   // Form state
   const [language, setLanguage] = useState("");
@@ -88,6 +89,20 @@ export function JoinFlow() {
 
     hydrateAndLoad();
   }, [code, qrTitle, qrSid, qrPm, qrDur, simMode, t]);
+
+  // Supabase Realtime Broadcast — instant push when moderator clicks Start Polling
+  // Allows participants still on join page to know polling has started
+  useEffect(() => {
+    if (!code || !supabase) return;
+    const channel = supabase.channel(`session:${code}`);
+    channel
+      .on("broadcast", { event: "session_update" }, ({ payload }) => {
+        const p = payload as { status?: string };
+        if (p.status === "open") setPollOpen(true);
+      })
+      .subscribe();
+    return () => { supabase?.removeChannel(channel); };
+  }, [code]);
 
   // When language changes, also set the active UI locale
   const handleLanguageChange = useCallback((code: string) => {
@@ -171,6 +186,12 @@ export function JoinFlow() {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar sessionTitle={session?.title} />
+
+      {pollOpen && (
+        <div className="bg-green-900/80 border-b border-green-700 text-green-200 text-sm font-medium px-4 py-2 text-center">
+          Polling has started — complete your details to join!
+        </div>
+      )}
 
       <main className="flex flex-1 items-center justify-center px-4 py-8">
         <Card className="w-full max-w-md">

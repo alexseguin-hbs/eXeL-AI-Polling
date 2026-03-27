@@ -25,6 +25,7 @@ import {
   X,
   Zap,
   Download,
+  RotateCcw,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { AuthGuard } from "@/components/auth-guard";
@@ -60,12 +61,13 @@ import { Separator } from "@/components/ui/separator";
 import { api, ApiClientError } from "@/lib/api";
 import { toast } from "@/components/ui/use-toast";
 import { SESSION_TYPES, POLLING_MODES, STATIC_POLL_DURATIONS, TIMER_DISPLAY_MODES, SPIRAL_TEST_ENABLED } from "@/lib/constants";
-import { startSpiralTest, type SpiralTestProgress } from "@/lib/mock-data";
+import { startSpiralTest, resetSingleSession, DEFAULT_SESSION_IDS, PRODUCT_FEEDBACK_SESSION_ID, type SpiralTestProgress } from "@/lib/mock-data";
 import { runMoTExport, type MoTExportProgress } from "@/lib/mot-export-orchestrator";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
 import { useSessionBroadcast } from "@/lib/use-session-broadcast";
+import { supabase } from "@/lib/supabase";
 
 /** Generate a ~33-word summary of response text for live feed display.
  *  Cube 6 Phase A stub: extracts key sentences to fit ~33 words.
@@ -224,6 +226,28 @@ function SessionDetail({
   const [spiralCancel, setSpiralCancel] = useState<(() => void) | null>(null);
   const [exportProgress, setExportProgress] = useState<MoTExportProgress | null>(null);
 
+  // Live response ticker — Supabase Broadcast feed for host dashboard
+  const [liveResponseFeed, setLiveResponseFeed] = useState<Array<{ text: string; count: number }>>([]);
+  const [pollStatus, setPollStatus] = useState<string>(session.status);
+  const [, setResponseCount] = useState(0);
+
+  useEffect(() => {
+    if (!supabase || !session.short_code) return;
+    const channel = supabase.channel(`session:${session.short_code}`);
+    channel
+      .on("broadcast", { event: "session_update" }, ({ payload }) => {
+        const p = payload as { status?: string };
+        if (p.status === "open") setPollStatus("open");
+      })
+      .on("broadcast", { event: "new_response" }, ({ payload }) => {
+        const p = payload as { text: string; count: number };
+        setLiveResponseFeed((prev) => [p, ...prev].slice(0, 15));
+        setResponseCount((prev) => prev + 1);
+      })
+      .subscribe();
+    return () => { supabase?.removeChannel(channel); };
+  }, [session.short_code]);
+
   // Supabase Realtime Broadcast — push status changes to all participants instantly
   // Also listen for presence updates so moderator sees live participant count
   const onPresenceUpdate = useCallback((count: number) => {
@@ -285,6 +309,16 @@ function SessionDetail({
         participant_count: updated.participant_count,
         ends_at: updated.ends_at,
       }).catch(() => {});
+
+      // When polling starts, broadcast session_update so participants auto-advance
+      // and set local pollStatus to show the live response ticker
+      if (action === "poll") {
+        setPollStatus("open");
+        broadcast("session_update", {
+          status: "open",
+          sessionCode: session.short_code,
+        }).catch(() => {});
+      }
 
       const toastMessages: Record<string, string> = {
         start: "Session opened — share the QR code!",
@@ -428,6 +462,26 @@ function SessionDetail({
           </div>
         </div>
 
+        {/* Live response ticker — scrolling feed during active polling */}
+        {pollStatus === "open" && (
+          <div className="bg-zinc-900 text-white py-2 px-6 overflow-hidden whitespace-nowrap border-t border-b border-zinc-800 mb-4 -mx-0 rounded-lg">
+            {liveResponseFeed.length === 0 ? (
+              <span className="font-mono text-sm text-zinc-400 flex items-center gap-2">
+                <Radio className="h-3 w-3 animate-pulse inline" /> Waiting for first response...
+              </span>
+            ) : (
+              <div className="flex animate-marquee gap-12 font-mono text-sm">
+                {/* Duplicate for seamless loop */}
+                {[...liveResponseFeed, ...liveResponseFeed].map((item, i) => (
+                  <span key={i} className="inline-flex items-center shrink-0">
+                    &bull; {item.text}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Static poll deadline notice — moderator sees when poll auto-closes */}
         {!isLiveInteractive && session.status === "polling" && session.ends_at && (
           <div className="flex items-center gap-2 mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/5 px-4 py-2.5">
@@ -568,7 +622,7 @@ function SessionDetail({
                 )}
               </CardTitle>
               <div className="flex items-center gap-1">
-                {SPIRAL_TEST_ENABLED && (
+                {SPIRAL_TEST_ENABLED && session.id === PRODUCT_FEEDBACK_SESSION_ID && (
                   <Button
                     variant={spiralRunning ? "destructive" : "outline"}
                     size="sm"
@@ -830,6 +884,15 @@ function DashboardContent() {
     setSessions((prev) =>
       prev.map((s) => (s.id === updated.id ? updated : s))
     );
+  };
+
+  const handleResetDemo = (sessionId: string) => {
+    const restored = resetSingleSession(sessionId);
+    if (restored) {
+      setSessions((prev) => prev.map((s) => (s.id === sessionId ? restored : s)));
+      if (selectedSession?.id === sessionId) setSelectedSession(restored);
+      toast({ title: "Demo reset", description: "Session restored to original state" });
+    }
   };
 
   const handleDeleteSession = async (sessionId: string) => {
@@ -1212,6 +1275,20 @@ function DashboardContent() {
                             )}
                           </div>
                         </div>
+                        {DEFAULT_SESSION_IDS.has(session.id) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-primary shrink-0"
+                            title="Reset Demo"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleResetDemo(session.id);
+                            }}
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -1294,6 +1371,20 @@ function DashboardContent() {
                                 </span>
                               </div>
                             </div>
+                            {DEFAULT_SESSION_IDS.has(session.id) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-muted-foreground hover:text-primary shrink-0"
+                                title="Reset Demo"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleResetDemo(session.id);
+                                }}
+                              >
+                                <RotateCcw className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"

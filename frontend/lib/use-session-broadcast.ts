@@ -26,7 +26,13 @@ export interface SessionBroadcastPayload {
   participant_count?: number;
   ends_at?: string | null;
   question_text?: string | null;
+  sessionCode?: string;
   [key: string]: unknown;
+}
+
+export interface NewResponsePayload {
+  text: string;
+  count: number;
 }
 
 /**
@@ -37,6 +43,7 @@ export function useSessionBroadcast(
   shortCode: string | null | undefined,
   onStatusChange?: (payload: SessionBroadcastPayload) => void,
   onPresenceChange?: (count: number) => void,
+  onNewResponse?: (payload: NewResponsePayload) => void,
 ) {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const [connected, setConnected] = useState(false);
@@ -61,6 +68,12 @@ export function useSessionBroadcast(
       .on("broadcast", { event: "session" }, ({ payload }) => {
         onStatusChange?.(payload as SessionBroadcastPayload);
       })
+      .on("broadcast", { event: "session_update" }, ({ payload }) => {
+        onStatusChange?.(payload as SessionBroadcastPayload);
+      })
+      .on("broadcast", { event: "new_response" }, ({ payload }) => {
+        onNewResponse?.(payload as NewResponsePayload);
+      })
       .subscribe((status) => {
         setConnected(status === "SUBSCRIBED");
       });
@@ -79,7 +92,7 @@ export function useSessionBroadcast(
    * Called by the moderator after a state transition.
    */
   const broadcast = useCallback(
-    async (event: "status" | "presence" | "session", payload: SessionBroadcastPayload) => {
+    async (event: "status" | "presence" | "session" | "session_update" | "new_response", payload: SessionBroadcastPayload | NewResponsePayload) => {
       const channel = channelRef.current;
       if (!channel) return;
       await channel.send({
