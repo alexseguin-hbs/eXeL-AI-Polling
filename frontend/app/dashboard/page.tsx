@@ -337,6 +337,8 @@ function SessionDetail({
         updated.short_code,
         updated.status,
         updated.participant_count ?? 0,
+        updated.title,
+        updated.polling_mode_type,
       ).catch(() => {});
 
       // Broadcast status change to all participants via Supabase Realtime
@@ -874,6 +876,14 @@ function DashboardContent() {
         static_poll_duration_days: newPollingModeType === "static_poll" ? newStaticPollDuration : null,
         timer_display_mode: newTimerDisplayMode,
       });
+      // Layer 4: write to Supabase DB immediately on creation so direct code entry works
+      syncStatusToSupabase(
+        session.short_code,
+        session.status,
+        0,
+        session.title,
+        session.polling_mode_type,
+      ).catch(() => {});
       toast({ title: "Session created", description: `"${session.title}" is ready` });
       setCreateOpen(false);
       setNewTitle("");

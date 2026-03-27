@@ -20,25 +20,27 @@ const TABLE = "session_status";
 
 /**
  * Write session status to Supabase DB.
- * Called by the moderator after every state transition.
+ * Called by the moderator after session creation and every state transition.
  * Fire-and-forget — never throws.
  */
 export async function syncStatusToSupabase(
   code: string,
   status: string,
   participantCount: number,
+  title?: string | null,
+  pollingModeType?: string | null,
 ): Promise<void> {
   if (!supabase) return;
   try {
-    await supabase.from(TABLE).upsert(
-      {
-        code: code.toUpperCase(),
-        status,
-        participant_count: participantCount,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "code" },
-    );
+    const row: Record<string, unknown> = {
+      code: code.toUpperCase(),
+      status,
+      participant_count: participantCount,
+      updated_at: new Date().toISOString(),
+    };
+    if (title != null) row.title = title;
+    if (pollingModeType != null) row.polling_mode_type = pollingModeType;
+    await supabase.from(TABLE).upsert(row, { onConflict: "code" });
   } catch {
     // Table not created yet, or Supabase down — silent, other layers cover it
   }
@@ -51,16 +53,16 @@ export async function syncStatusToSupabase(
  */
 export async function fetchStatusFromSupabase(
   code: string,
-): Promise<{ status: string; participant_count: number } | null> {
+): Promise<{ status: string; participant_count: number; title?: string; polling_mode_type?: string } | null> {
   if (!supabase) return null;
   try {
     const { data, error } = await supabase
       .from(TABLE)
-      .select("status, participant_count")
+      .select("status, participant_count, title, polling_mode_type")
       .eq("code", code.toUpperCase())
       .maybeSingle();
     if (error || !data) return null;
-    return data as { status: string; participant_count: number };
+    return data as { status: string; participant_count: number; title?: string; polling_mode_type?: string };
   } catch {
     return null;
   }

@@ -75,9 +75,12 @@ export function JoinFlow() {
         const kvStatus = kv.status as string | undefined;
         if (kvStatus === "polling" || kvStatus === "ranking") setPollOpen(true);
       } else if (qrTitle) {
-        // Fallback: hydrate from URL params — status defaults to "open" (lobby)
-        // Participants wait in lobby until moderator clicks Start Polling
+        // QR flow: hydrate from URL params — status defaults to "open" (lobby)
         hydrateSessionFromParams(code, qrTitle, "open", qrSid, qrPm, qrDur);
+      } else if (sb?.title) {
+        // Direct code entry (no QR URL params) — hydrate from Supabase DB
+        hydrateSessionFromParams(code, sb.title, sb.status || "open", null, sb.polling_mode_type, null);
+        if (sb.status === "polling" || sb.status === "ranking") setPollOpen(true);
       }
 
       try {
