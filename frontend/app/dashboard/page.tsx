@@ -65,6 +65,7 @@ import { runMoTExport, type MoTExportProgress } from "@/lib/mot-export-orchestra
 import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
+import { useSessionBroadcast } from "@/lib/use-session-broadcast";
 
 /** Generate a ~33-word summary of response text for live feed display.
  *  Cube 6 Phase A stub: extracts key sentences to fit ~33 words.
@@ -223,6 +224,13 @@ function SessionDetail({
   const [spiralCancel, setSpiralCancel] = useState<(() => void) | null>(null);
   const [exportProgress, setExportProgress] = useState<MoTExportProgress | null>(null);
 
+  // Supabase Realtime Broadcast — push status changes to all participants instantly
+  // Also listen for presence updates so moderator sees live participant count
+  const onPresenceUpdate = useCallback((count: number) => {
+    onUpdate({ ...session, participant_count: count });
+  }, [session, onUpdate]);
+  const { broadcast } = useSessionBroadcast(session.short_code, undefined, onPresenceUpdate);
+
   // Poll for live responses during polling state
   useEffect(() => {
     if (!showScrollingFeed) return;
@@ -270,6 +278,14 @@ function SessionDetail({
         `/sessions/${session.id}/${action}`
       );
       onUpdate(updated);
+
+      // Broadcast status change to all participants via Supabase Realtime
+      broadcast("status", {
+        status: updated.status,
+        participant_count: updated.participant_count,
+        ends_at: updated.ends_at,
+      }).catch(() => {});
+
       const toastMessages: Record<string, string> = {
         start: "Session opened — share the QR code!",
         open: "Session opened",

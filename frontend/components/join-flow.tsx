@@ -13,6 +13,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { api, ApiClientError } from "@/lib/api";
 import { hydrateSessionFromParams, fetchSessionFromKV, hydrateSessionFromKV, clearStaleMockState } from "@/lib/mock-data";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/lib/supabase";
 import type { Session, SessionJoinResponse } from "@/lib/types";
 
 type JoinStep = "language" | "identity" | "results" | "joining";
@@ -106,6 +107,13 @@ export function JoinFlow() {
           results_opt_in: resultsOptIn,
         }
       );
+      // Broadcast participant join to all listeners on this session channel
+      if (supabase && code) {
+        supabase.channel(`session:${code.toUpperCase()}`)
+          .send({ type: "broadcast", event: "presence", payload: { participant_count: (session.participant_count ?? 0) + 1 } })
+          .catch(() => {});
+      }
+
       const simSuffix = simMode ? "&sim=1" : "";
       // KV is source of truth — no need to pass ss/sc params through URL
       router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${simSuffix}`);

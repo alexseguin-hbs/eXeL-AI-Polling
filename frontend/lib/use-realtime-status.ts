@@ -39,7 +39,7 @@ export function useRealtimeStatus(
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase?.removeChannel(channel);
     };
   }, [shortCode, onStatusChange]);
 }

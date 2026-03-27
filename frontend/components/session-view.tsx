@@ -36,6 +36,7 @@ import { SimModeratorExperience } from "@/components/sim-moderator-experience";
 import { useTheme } from "@/lib/theme-context";
 import type { Session, Question, SimTheme } from "@/lib/types";
 import { useRealtimeStatus } from "@/lib/use-realtime-status";
+import { useSessionBroadcast, type SessionBroadcastPayload } from "@/lib/use-session-broadcast";
 import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
 import { ThemeResultsChart } from "@/components/theme-results-chart";
 import { getSimPollBySessionId, resolveThemesForLevel } from "@/lib/sim-data";
@@ -580,9 +581,36 @@ export function SessionView() {
     return () => clearInterval(interval);
   }, [sessionId, sessionStatus, simulationMode, session?.short_code]);
 
-  // Supabase Realtime: instant status transitions (no polling delay).
-  // Fires when the moderator changes session status (e.g. open → polling).
-  // Falls back gracefully if Supabase is not configured or tables don't exist.
+  // Supabase Realtime Broadcast: instant push-based status transitions.
+  // Moderator broadcasts status changes → all participants receive instantly (~50ms).
+  // Works without any DB tables — pure pub/sub via Supabase Realtime.
+  const onBroadcastStatus = useCallback(
+    (payload: SessionBroadcastPayload) => {
+      if (!payload.status) return;
+      setSession((prev) => {
+        if (!prev || prev.status === payload.status) return prev;
+        return {
+          ...prev,
+          status: payload.status as Session["status"],
+          ends_at: (payload.ends_at as string) || prev.ends_at,
+          participant_count: (payload.participant_count as number) ?? prev.participant_count,
+          updated_at: new Date().toISOString(),
+        };
+      });
+    },
+    [],
+  );
+  const onBroadcastPresence = useCallback(
+    (count: number) => setParticipantCount(count),
+    [],
+  );
+  useSessionBroadcast(
+    simulationMode ? null : session?.short_code,
+    onBroadcastStatus,
+    onBroadcastPresence,
+  );
+
+  // Supabase Realtime postgres_changes (secondary — activates when DB tables exist).
   const onRealtimeStatus = useCallback(
     (newStatus: string, payload: Record<string, unknown>) => {
       setSession((prev) => {
