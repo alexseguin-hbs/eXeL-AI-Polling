@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Loader2, ArrowRight, ArrowLeft, Globe, UserIcon, FileCheck, Radio, Zap } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Globe, UserIcon, FileCheck, Radio, Zap, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +39,8 @@ export function JoinFlow() {
   const [pollOpen, setPollOpen] = useState(false);
   // Store join response so we can redirect when polling starts
   const [joinResponse, setJoinResponse] = useState<SessionJoinResponse | null>(null);
+  // Live participant count — updated by presence broadcasts
+  const [participantCount, setParticipantCount] = useState<number>(0);
 
   // Form state
   const [language, setLanguage] = useState("");
@@ -72,6 +74,7 @@ export function JoinFlow() {
       try {
         const data = await api.get<Session>(`/sessions/code/${code}`);
         setSession(data);
+        setParticipantCount(data.participant_count ?? 0);
         if (!simMode && (data.status === "closed" || data.status === "archived")) {
           setError(t("cube1.join.session_ended"));
         } else if (!simMode && data.expires_at && new Date(data.expires_at) < new Date()) {
@@ -114,6 +117,10 @@ export function JoinFlow() {
       .on("broadcast", { event: "status" }, ({ payload }) => {
         const p = payload as { status?: string };
         if (p.status === "polling") setPollOpen(true);
+      })
+      .on("broadcast", { event: "presence" }, ({ payload }) => {
+        const p = payload as { participant_count?: number };
+        if (typeof p.participant_count === "number") setParticipantCount(p.participant_count);
       })
       .subscribe();
     return () => { supabase?.removeChannel(channel); };
@@ -428,6 +435,14 @@ export function JoinFlow() {
                 <p className="text-sm text-muted-foreground">
                   Waiting for the moderator to start polling…
                 </p>
+              </div>
+              {/* Live participant count */}
+              <div className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5">
+                <Users className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-primary tabular-nums">
+                  {participantCount}
+                </span>
+                <span className="text-xs text-muted-foreground">in session</span>
               </div>
               <div className="flex gap-1.5">
                 {[0, 1, 2].map((i) => (

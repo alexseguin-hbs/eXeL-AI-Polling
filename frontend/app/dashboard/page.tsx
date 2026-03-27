@@ -298,6 +298,10 @@ function SessionDetail({
   const handleTransition = async (action: string) => {
     setActionLoading(action);
     try {
+      // Single-step launch: if polling requested from draft, open first then poll
+      if (action === "poll" && session.status === "draft") {
+        await api.post(`/sessions/${session.id}/start`);
+      }
       const updated = await api.post<Session>(
         `/sessions/${session.id}/${action}`
       );
@@ -380,20 +384,8 @@ function SessionDetail({
 
           {/* Session controls — Static polls auto-close at deadline, no manual rank/close */}
           <div className="flex items-center gap-2">
-            {session.status === "draft" && (
-              <Button
-                onClick={() => handleTransition("start")}
-                disabled={!!actionLoading}
-              >
-                {actionLoading === "start" ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Play className="mr-2 h-4 w-4" />
-                )}
-                {t("cube1.moderator.open_session")}
-              </Button>
-            )}
-            {session.status === "open" && (
+            {/* Single-step launch: draft OR open → Start Polling fires immediately */}
+            {(session.status === "draft" || session.status === "open") && (
               <Button
                 onClick={() => handleTransition("poll")}
                 disabled={!!actionLoading}
