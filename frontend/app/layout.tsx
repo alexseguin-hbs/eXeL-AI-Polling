@@ -20,7 +20,7 @@ export default function RootLayout({
         <Providers>
           {/* Build info banner — center top of every page */}
           <div className="w-full bg-zinc-900 border-b border-zinc-800 py-1 text-center font-mono text-xs text-zinc-400 tracking-wide">
-            SHA:&nbsp;<span className="text-zinc-200">1bdfe2a</span>
+            SHA:&nbsp;<span className="text-zinc-200">0e973e2</span>
             &nbsp;&nbsp;|&nbsp;&nbsp;
             Date:&nbsp;<span className="text-zinc-200">2026.03.27</span>
             &nbsp;&nbsp;|&nbsp;&nbsp;
