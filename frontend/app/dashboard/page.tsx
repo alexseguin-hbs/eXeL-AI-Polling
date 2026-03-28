@@ -643,6 +643,11 @@ function SessionDetail({
               <CardTitle className="text-sm flex items-center gap-2">
                 <Radio className="h-4 w-4 text-primary animate-pulse" />
                 {t("cube1.moderator.live_feed")}
+                {feedResponses.length > 0 && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {feedResponses.length} {feedResponses.length === 1 ? "response" : "responses"}
+                  </span>
+                )}
                 {spiralProgress && !spiralProgress.isComplete && (
                   <span className="ml-2 text-xs font-normal text-muted-foreground">
                     Wave {spiralProgress.wave}/12 &middot; {spiralProgress.waveName} &middot; {spiralProgress.responsesDelivered}/100

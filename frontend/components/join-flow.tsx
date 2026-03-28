@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, ArrowRight, ArrowLeft, Globe, UserIcon, FileCheck, Radio, Zap, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { LanguageSelector } from "@/components/language-selector";
 import { useLexicon } from "@/lib/lexicon-context";
 import { api, ApiClientError } from "@/lib/api";
 import { hydrateSessionFromParams, fetchSessionFromKV, hydrateSessionFromKV, clearStaleMockState } from "@/lib/mock-data";
-import { fetchStatusFromSupabase } from "@/lib/supabase-session-sync";
+import { fetchStatusFromSupabase, syncStatusToSupabase } from "@/lib/supabase-session-sync";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import type { Session, SessionJoinResponse } from "@/lib/types";
@@ -42,6 +42,8 @@ export function JoinFlow() {
   const [joinResponse, setJoinResponse] = useState<SessionJoinResponse | null>(null);
   // Live participant count — updated by presence broadcasts
   const [participantCount, setParticipantCount] = useState<number>(0);
+  // Ref to the subscribed Supabase channel so handleJoin can broadcast on it
+  const channelRef = useRef<ReturnType<NonNullable<typeof supabase>["channel"]> | null>(null);
 
   // Form state
   const [language, setLanguage] = useState("");
@@ -158,7 +160,11 @@ export function JoinFlow() {
       .on("presence", { event: "sync" }, () => { checkPresenceForPolling(); })
       .on("presence", { event: "join" }, () => { checkPresenceForPolling(); })
       .subscribe();
-    return () => { supabase?.removeChannel(channel); };
+    channelRef.current = channel;
+    return () => {
+      supabase?.removeChannel(channel);
+      channelRef.current = null;
+    };
   }, [code]);
 
   // Auto-redirect to session when polling goes live AND participant has already joined
@@ -236,12 +242,14 @@ export function JoinFlow() {
         if (typeof live.participant_count === "number") liveCount = live.participant_count;
       } catch { /* use cached status on failure */ }
 
-      // Broadcast accurate participant count to moderator dashboard + waiting participants
-      if (supabase && code) {
-        supabase.channel(`session:${code.toUpperCase()}`)
+      // Broadcast accurate participant count via the subscribed channel (unsubscribed channels drop silently)
+      if (channelRef.current) {
+        channelRef.current
           .send({ type: "broadcast", event: "presence", payload: { participant_count: liveCount } })
           .catch(() => {});
       }
+      // Also write to Supabase DB so the 1s poll on all lobby devices sees the updated count
+      syncStatusToSupabase(code, session?.status || "open", liveCount).catch(() => {});
       setParticipantCount(liveCount);
 
       if (pollOpen || liveStatus === "polling" || liveStatus === "ranking") {
