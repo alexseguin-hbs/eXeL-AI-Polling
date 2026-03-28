@@ -346,6 +346,32 @@ These frontend systems span multiple cubes:
 - **Global Language Selector:** Navbar globe dropdown, 33 languages (EN+ES pinned top), instant locale switching, localStorage persistence. Files: `frontend/components/navbar.tsx`, `frontend/lib/lexicon-context.tsx`
 - **Powered Badge:** eXeL + Seed of Life SVG, theme-reactive color. Easter egg gateway: Cyan→Sunset→Violet click sequence in Settings → badge blinks → click to enter Cube 10 SIM. Files: `frontend/components/powered-badge.tsx`, `frontend/components/seed-of-life-logo.tsx`
 
+## SSSES Testing & Audit Framework
+
+**SSSES** is the official quality framework. Every Cube and every code change is audited against five pillars before being marked complete. Full spec in `SSSES.md`.
+
+| Pillar | Definition | Test Signal |
+|--------|------------|-------------|
+| **S**ecurity | Data, session, user protection | RLS policies, rate limiting, PII anonymization, no leaks |
+| **S**tability | Consistent behavior across devices/networks | Phone + desktop, QR + code entry, pre/post-polling join, no regressions |
+| **S**calability | 100+ concurrent users | Supabase Broadcast for push, Supabase DB REST for global consistency |
+| **E**fficiency | Fast, minimal resource use | <100ms auto-advance, no unnecessary polls, correct React deps |
+| **S**uccinctness | Clean, maintainable code | Single-responsibility, no abstractions for one-time use, <300 LOC per function |
+
+**Scoring:** Each pillar 0–100. A Cube is **production-ready only when all five reach 100**.
+
+**Every commit must state SSSES impact.** Example:
+```
+Fix participant count broadcast — use subscribed channel (Stability +20, Efficiency +10)
+```
+
+**Realtime stability checklist (Cube 1 forward):**
+- [ ] Supabase channel used for sending is the same subscribed channel (never ad-hoc `.channel(...).send()`)
+- [ ] Status only moves forward — `STATUS_ORDER` rank enforced, no regressions to stale local data
+- [ ] Supabase DB (`session_status`) written on CREATE and every transition — enables direct code entry
+- [ ] Participant count synced to Supabase DB on every join — all lobby devices see accurate count via 1s poll
+- [ ] `new_response` broadcast routed to rendered feed array — live feed updates without KV
+
 ## Test Report Template
 
 Each cube implementation MUST produce the following deliverables:
