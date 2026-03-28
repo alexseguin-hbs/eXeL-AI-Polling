@@ -73,7 +73,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 
 | Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall |
 |------|----------|-----------|-------------|------------|--------------|---------|
-| 1 Session | 100 | 100 | 100 | 95 | 95 | **98** |
+| 1 Session | 100 | 100 | 100 | 100 | 100 | **100** |
 | 2 Text | — | — | — | — | — | ~85 |
 | 3 Voice | — | — | — | — | — | ~85 |
 | 4 Collector | — | — | — | — | — | ~80 |
@@ -84,11 +84,13 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | 9 Reports | — | — | — | — | — | partial |
 | 10 Simulation | — | — | — | — | — | Easter Egg |
 
-## Known SSSES Gaps (Cube 1, 2026-03-27)
+## Known SSSES Gaps
 
-**Efficiency (−5):** The 1.5s `checkStatus` poll in `session-view.tsx` runs even when Supabase Broadcast is healthy. Could be suspended after first successful Broadcast connection. Low priority — Broadcast covers 99% of cases.
+None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 
-**Succinctness (−5):** `STATUS_ORDER` rank logic in `session-view.tsx` is a local constant. Should be extracted to a shared `@/lib/session-utils.ts` when a second file needs it.
+**Resolved gaps (2026-03-27):**
+- **Efficiency:** 1.5s `checkStatus` poll now suspends while Broadcast is healthy (`broadcastHealthy` ref, 8s window). Poll only fires as fallback when Broadcast goes silent.
+- **Succinctness:** `STATUS_ORDER` + `statusRank` extracted to shared `@/lib/session-utils.ts`.
 
 ## Audit Cadence
 
