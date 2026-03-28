@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Loader2,
@@ -38,6 +38,7 @@ import { useTheme } from "@/lib/theme-context";
 import type { Session, Question, SimTheme } from "@/lib/types";
 import { useRealtimeStatus } from "@/lib/use-realtime-status";
 import { useSessionBroadcast, type SessionBroadcastPayload } from "@/lib/use-session-broadcast";
+import { STATUS_ORDER, statusRank } from "@/lib/session-utils";
 import { supabase } from "@/lib/supabase";
 import { ThemeRankingDnD } from "@/components/theme-ranking-dnd";
 import { ThemeResultsChart } from "@/components/theme-results-chart";
@@ -546,23 +547,30 @@ export function SessionView() {
     }
   }, [sessionStatus, startTimer, stopTimer]);
 
-  // Poll session status — includes "draft" so users who join early see transitions.
-  // Checks both local mock API and cross-device KV for status changes.
-  // Runs KV check immediately on mount (not waiting for 5s interval).
+  // broadcastHealthy: set to true when Broadcast fires, reset after 8s of silence.
+  // When healthy, the 1.5s DB poll is suspended — Broadcast is the primary path.
+  const broadcastHealthy = useRef(false);
+  const broadcastHealthyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const markBroadcastHealthy = useCallback(() => {
+    broadcastHealthy.current = true;
+    if (broadcastHealthyTimer.current) clearTimeout(broadcastHealthyTimer.current);
+    broadcastHealthyTimer.current = setTimeout(() => { broadcastHealthy.current = false; }, 8000);
+  }, []);
+
+  // Poll session status — fallback for when Broadcast is silent or WebSocket is paused.
+  // Suspended while Broadcast is confirmed healthy (avoids redundant DB calls).
+  // Checks KV + Supabase DB in parallel for cross-device, cross-datacenter accuracy.
   useEffect(() => {
     if (!sessionId || !sessionStatus) return;
     if (simulationMode) return;
     const isActive = ["draft", "open", "polling", "ranking"].includes(sessionStatus);
     if (!isActive) return;
 
-    // Status order — never regress (local mock API returns stale "open" even after polling starts)
-    const STATUS_ORDER = ["draft", "open", "polling", "ranking", "closed", "archived"];
-    const statusRank = (s: string) => { const i = STATUS_ORDER.indexOf(s); return i === -1 ? 0 : i; };
-
     const checkStatus = async () => {
+      // Skip DB poll while Broadcast is delivering updates — Broadcast is primary
+      if (broadcastHealthy.current) return;
+
       try {
-        // Cross-device: check KV + Supabase DB in parallel (globally consistent sources)
-        // Local API is checked only if it shows a *forward* status advance.
         if (session?.short_code) {
           const [kvResult, sbResult] = await Promise.allSettled([
             fetchSessionFromKV(session.short_code),
@@ -574,7 +582,6 @@ export function SessionView() {
           const kvStatus = kvData && !("error" in kvData) ? kvData.status as string : null;
           const sbStatus = sbData?.status ?? null;
 
-          // Pick the most advanced status from all sources
           const candidates = [sessionStatus, kvStatus, sbStatus].filter(Boolean) as string[];
           const bestStatus = candidates.reduce((best, s) => statusRank(s) > statusRank(best) ? s : best, sessionStatus);
 
@@ -590,7 +597,7 @@ export function SessionView() {
           }
         }
 
-        // Local API check — only apply if it advances status forward
+        // Local API — only apply if it advances status forward
         const data = await api.get<Session>(`/sessions/${sessionId}`);
         if (statusRank(data.status) > statusRank(sessionStatus)) {
           setSession(data);
@@ -600,19 +607,20 @@ export function SessionView() {
       }
     };
 
-    // Immediate check on mount — don't make phone wait for first status update
     checkStatus();
-    // Poll every 1.5s for responsive cross-device status transitions (open → polling)
     const interval = setInterval(checkStatus, 1500);
-
-    return () => clearInterval(interval);
-  }, [sessionId, sessionStatus, simulationMode, session?.short_code]);
+    return () => {
+      clearInterval(interval);
+      if (broadcastHealthyTimer.current) clearTimeout(broadcastHealthyTimer.current);
+    };
+  }, [sessionId, sessionStatus, simulationMode, session?.short_code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Supabase Realtime Broadcast: instant push-based status transitions.
   // Moderator broadcasts status changes → all participants receive instantly (~50ms).
   // Works without any DB tables — pure pub/sub via Supabase Realtime.
   const onBroadcastStatus = useCallback(
     (payload: SessionBroadcastPayload) => {
+      markBroadcastHealthy();
       if (!payload.status) return;
       setSession((prev) => {
         if (!prev || prev.status === payload.status) return prev;
@@ -625,11 +633,11 @@ export function SessionView() {
         };
       });
     },
-    [],
+    [markBroadcastHealthy],
   );
   const onBroadcastPresence = useCallback(
-    (count: number) => setParticipantCount(count),
-    [],
+    (count: number) => { markBroadcastHealthy(); setParticipantCount(count); },
+    [markBroadcastHealthy],
   );
   const { broadcast: broadcastToSession } = useSessionBroadcast(
     simulationMode ? null : session?.short_code,
