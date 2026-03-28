@@ -228,31 +228,69 @@ function SessionDetail({
 
   // Live response ticker — Supabase Broadcast feed for host dashboard
   const [liveResponseFeed, setLiveResponseFeed] = useState<Array<{ text: string; count: number }>>([]);
-  const [, setResponseCount] = useState(0);
+  const feedScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!supabase || !session.short_code) return;
-    const channel = supabase.channel(`session:${session.short_code}`);
-    channel
-      .on("broadcast", { event: "session_update" }, ({ payload }) => {
-        const p = payload as { status?: string };
-        void p; // session_update handled via onUpdate / status broadcast
-      })
+
+    // Track seen IDs to deduplicate when both Broadcast and postgres_changes fire
+    const seenIds = new Set<string>();
+
+    const addResponse = (id: string, clean_text: string, submitted_at: string, summary_33?: string) => {
+      if (seenIds.has(id)) return;
+      seenIds.add(id);
+      const text = clean_text.length > 80 ? clean_text.substring(0, 80) + "..." : clean_text;
+      setLiveResponseFeed((prev) => [{ text, count: prev.length + 1 }, ...prev].slice(0, 15));
+      setFeedResponses((prev) => [{ id, clean_text, submitted_at, summary_33 }, ...prev]);
+    };
+
+    // Channel A: Supabase Broadcast (instant ~50ms)
+    const broadcastChannel = supabase.channel(`session:${session.short_code}`);
+    broadcastChannel
       .on("broadcast", { event: "new_response" }, ({ payload }) => {
-        const p = payload as { id?: string; text: string; clean_text?: string; submitted_at?: string; summary_33?: string; count: number };
-        setLiveResponseFeed((prev) => [{ text: p.text, count: p.count }, ...prev].slice(0, 15));
-        setResponseCount((prev) => prev + 1);
-        // Also push into feedResponses so the live feed UI updates instantly
-        setFeedResponses((prev) => [{
-          id: p.id ?? `broadcast-${Date.now()}`,
-          clean_text: p.clean_text ?? p.text,
-          submitted_at: p.submitted_at ?? new Date().toISOString(),
-          summary_33: p.summary_33,
-        }, ...prev]);
+        const p = payload as { id?: string; text: string; clean_text?: string; submitted_at?: string; summary_33?: string };
+        addResponse(
+          p.id ?? `b-${Date.now()}`,
+          p.clean_text ?? p.text,
+          p.submitted_at ?? new Date().toISOString(),
+          p.summary_33,
+        );
       })
       .subscribe();
-    return () => { supabase?.removeChannel(channel); };
-  }, [session.short_code]);
+
+    // Channel B: postgres_changes on responses table (reliable HTTP path, works even if Broadcast drops)
+    const dbChannel = supabase.channel(`responses-db:${session.short_code}`);
+    dbChannel
+      .on(
+        "postgres_changes" as Parameters<typeof dbChannel.on>[0],
+        { event: "INSERT", schema: "public", table: "responses", filter: `session_code=eq.${session.short_code}` },
+        (payload: { new: { id: string; content: string; created_at: string } }) => {
+          addResponse(payload.new.id, payload.new.content, payload.new.created_at);
+        },
+      )
+      .subscribe();
+
+    // Channel C: postgres_changes on session_status for live participant count
+    const statusChannel = supabase.channel(`status-db:${session.short_code}`);
+    statusChannel
+      .on(
+        "postgres_changes" as Parameters<typeof statusChannel.on>[0],
+        { event: "UPDATE", schema: "public", table: "session_status", filter: `code=eq.${session.short_code}` },
+        (payload: { new: { participant_count: number } }) => {
+          const count = payload.new.participant_count;
+          if (typeof count === "number" && count > 0) {
+            onUpdateRef.current({ ...sessionRef.current, participant_count: Math.max(sessionRef.current.participant_count ?? 0, count) });
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase?.removeChannel(broadcastChannel);
+      supabase?.removeChannel(dbChannel);
+      supabase?.removeChannel(statusChannel);
+    };
+  }, [session.short_code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Supabase Realtime Broadcast — push status changes to all participants instantly
   // Also listen for presence updates so moderator sees live participant count
@@ -291,23 +329,12 @@ function SessionDetail({
     return () => clearInterval(id);
   }, [session.id, session.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Poll for live responses during polling state
+  // Auto-scroll feed to top when new responses arrive (newest first)
   useEffect(() => {
-    if (!showScrollingFeed) return;
-    const fetchResponses = async () => {
-      try {
-        const data = await api.get<{ items: Array<{ id: string; clean_text: string; submitted_at: string; summary_33?: string }> }>(
-          `/sessions/${session.id}/responses`
-        );
-        setFeedResponses((data.items || []).slice().reverse());
-      } catch {
-        // Silently fail
-      }
-    };
-    fetchResponses();
-    const interval = setInterval(fetchResponses, 3000);
-    return () => clearInterval(interval);
-  }, [showScrollingFeed, session.id]);
+    if (feedScrollRef.current) {
+      feedScrollRef.current.scrollTop = 0;
+    }
+  }, [feedResponses.length]);
 
   const joinUrl = getJoinUrl(session);
 
@@ -601,10 +628,15 @@ function SessionDetail({
           {feedFullscreen && (
             <div className="fixed inset-0 z-50 bg-background flex flex-col">
               <div className="flex items-center justify-between px-6 py-4 border-b">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <Radio className="h-5 w-5 text-primary animate-pulse" />
                   <h2 className="text-lg font-semibold">{t("cube1.moderator.live_feed")}</h2>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-sm font-semibold text-primary">
+                    <Users className="h-3.5 w-3.5" />
+                    {session.participant_count ?? 0} {(session.participant_count ?? 0) === 1 ? "user" : "users"}
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2.5 py-0.5 text-sm font-semibold text-green-400">
+                    <MessageSquare className="h-3.5 w-3.5" />
                     {feedResponses.length} {feedResponses.length === 1 ? "response" : "responses"}
                   </span>
                   {spiralProgress && !spiralProgress.isComplete && (
@@ -731,6 +763,7 @@ function SessionDetail({
                 </div>
               ) : (
                 <div
+                  ref={feedScrollRef}
                   className="overflow-y-auto divide-y divide-border"
                   style={{ maxHeight: feedExpanded ? 500 : 200 }}
                 >

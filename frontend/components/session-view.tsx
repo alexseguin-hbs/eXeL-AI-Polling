@@ -687,17 +687,33 @@ export function SessionView() {
 
       toast({ title: t("cube10.sim.response_submitted") });
 
-      // Broadcast new_response to host dashboard live ticker via the subscribed channel
+      // Push response to dashboard via two parallel paths:
+      // Path A: Supabase Broadcast (instant ~50ms, can fail if mobile WebSocket paused)
+      // Path B: Supabase DB insert to `responses` table → postgres_changes fires on dashboard
       if (!simulationMode) {
         const trimmed = responseText.trim();
+        const responseId = result?.id ?? `r-${Date.now()}`;
+        const submittedAt = new Date().toISOString();
+
+        // Path A — Broadcast (best-effort)
         broadcastToSession("new_response", {
-          id: result?.id ?? `r-${Date.now()}`,
+          id: responseId,
           text: trimmed.length > 80 ? trimmed.substring(0, 80) + "..." : trimmed,
           clean_text: trimmed,
-          submitted_at: new Date().toISOString(),
+          submitted_at: submittedAt,
           summary_33: (result as { summary_33?: string })?.summary_33 ?? undefined,
           count: submittedQuestions.size + 1,
         }).catch(() => {});
+
+        // Path B — Supabase DB insert (reliable: HTTP REST, works even if WebSocket is paused)
+        if (supabase && session?.short_code) {
+          supabase.from("responses").insert({
+            id: responseId,
+            session_code: session.short_code,
+            participant_id: participantId,
+            content: trimmed,
+          }).then(() => {}, () => {});
+        }
       }
 
       // Track sim user submission for auto-transition

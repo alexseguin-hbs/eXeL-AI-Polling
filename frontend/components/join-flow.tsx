@@ -242,15 +242,20 @@ export function JoinFlow() {
         if (typeof live.participant_count === "number") liveCount = live.participant_count;
       } catch { /* use cached status on failure */ }
 
-      // Broadcast accurate participant count via the subscribed channel (unsubscribed channels drop silently)
+      // Read current Supabase DB count before writing — each device's local count is always 1,
+      // so we must increment the global DB count to get the true participant total.
+      const currentSb = await fetchStatusFromSupabase(code).catch(() => null);
+      const trueLiveCount = Math.max(liveCount, (currentSb?.participant_count ?? 0) + 1);
+
+      // Broadcast accurate participant count via the subscribed channel
       if (channelRef.current) {
         channelRef.current
-          .send({ type: "broadcast", event: "presence", payload: { participant_count: liveCount } })
+          .send({ type: "broadcast", event: "presence", payload: { participant_count: trueLiveCount } })
           .catch(() => {});
       }
-      // Also write to Supabase DB so the 1s poll on all lobby devices sees the updated count
-      syncStatusToSupabase(code, session?.status || "open", liveCount).catch(() => {});
-      setParticipantCount(liveCount);
+      // Write incremented count to Supabase DB so all lobby devices and moderator see it
+      syncStatusToSupabase(code, session?.status || "open", trueLiveCount).catch(() => {});
+      setParticipantCount(trueLiveCount);
 
       if (pollOpen || liveStatus === "polling" || liveStatus === "ranking") {
         router.push(`/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${language || "en"}${simSuffix}`);
