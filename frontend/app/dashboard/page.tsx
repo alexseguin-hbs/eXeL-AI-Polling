@@ -68,7 +68,7 @@ import { useTheme } from "@/lib/theme-context";
 import type { Session, PaginatedResponse, PollingModeType, TimerDisplayMode } from "@/lib/types";
 import { useSessionBroadcast } from "@/lib/use-session-broadcast";
 import { supabase } from "@/lib/supabase";
-import { syncStatusToSupabase } from "@/lib/supabase-session-sync";
+import { syncStatusToSupabase, fetchStatusFromSupabase } from "@/lib/supabase-session-sync";
 
 /** Generate a ~33-word summary of response text for live feed display.
  *  Cube 6 Phase A stub: extracts key sentences to fit ~33 words.
@@ -228,7 +228,6 @@ function SessionDetail({
 
   // Live response ticker — Supabase Broadcast feed for host dashboard
   const [liveResponseFeed, setLiveResponseFeed] = useState<Array<{ text: string; count: number }>>([]);
-  const [pollStatus, setPollStatus] = useState<string>(session.status);
   const [, setResponseCount] = useState(0);
 
   useEffect(() => {
@@ -237,7 +236,7 @@ function SessionDetail({
     channel
       .on("broadcast", { event: "session_update" }, ({ payload }) => {
         const p = payload as { status?: string };
-        if (p.status === "open") setPollStatus("open");
+        void p; // session_update handled via onUpdate / status broadcast
       })
       .on("broadcast", { event: "new_response" }, ({ payload }) => {
         const p = payload as { id?: string; text: string; clean_text?: string; submitted_at?: string; summary_33?: string; count: number };
@@ -273,12 +272,17 @@ function SessionDetail({
     if (["closed", "archived"].includes(session.status)) return;
     const poll = async () => {
       try {
-        const kv = await fetchSessionFromKV(sessionRef.current.short_code);
-        if (kv && !("error" in kv) && typeof kv.participant_count === "number") {
-          const count = kv.participant_count as number;
-          if (count !== sessionRef.current.participant_count) {
-            onUpdateRef.current({ ...sessionRef.current, participant_count: count });
-          }
+        const [kvResult, sbResult] = await Promise.allSettled([
+          fetchSessionFromKV(sessionRef.current.short_code),
+          fetchStatusFromSupabase(sessionRef.current.short_code),
+        ]);
+        const kv = kvResult.status === "fulfilled" ? kvResult.value : null;
+        const sb = sbResult.status === "fulfilled" ? sbResult.value : null;
+        const kvCount = kv && !("error" in kv) && typeof kv.participant_count === "number" ? kv.participant_count as number : null;
+        const sbCount = typeof sb?.participant_count === "number" ? sb.participant_count : null;
+        const best = Math.max(kvCount ?? 0, sbCount ?? 0);
+        if (best > 0 && best !== sessionRef.current.participant_count) {
+          onUpdateRef.current({ ...sessionRef.current, participant_count: best });
         }
       } catch { /* silent */ }
     };
@@ -356,9 +360,7 @@ function SessionDetail({
       }).catch(() => {});
 
       // When polling starts, broadcast session_update so participants auto-advance
-      // and set local pollStatus to show the live response ticker
       if (action === "poll") {
-        setPollStatus("open");
         broadcast("session_update", {
           status: "polling",
           sessionCode: session.short_code,
@@ -496,7 +498,7 @@ function SessionDetail({
         </div>
 
         {/* Live response ticker — scrolling feed during active polling */}
-        {pollStatus === "open" && (
+        {session.status === "polling" && (
           <div className="bg-zinc-900 text-white py-2 px-6 overflow-hidden whitespace-nowrap border-t border-b border-zinc-800 mb-4 -mx-0 rounded-lg">
             {liveResponseFeed.length === 0 ? (
               <span className="font-mono text-sm text-zinc-400 flex items-center gap-2">
@@ -640,14 +642,19 @@ function SessionDetail({
           )}
           <Card className="mb-6 overflow-hidden">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm flex items-center gap-2">
+              <CardTitle className="text-sm flex items-center gap-2 flex-wrap">
                 <Radio className="h-4 w-4 text-primary animate-pulse" />
                 {t("cube1.moderator.live_feed")}
-                {feedResponses.length > 0 && (
-                  <span className="text-xs font-normal text-muted-foreground">
-                    {feedResponses.length} {feedResponses.length === 1 ? "response" : "responses"}
-                  </span>
-                )}
+                {/* Participant count badge */}
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                  <Users className="h-3 w-3" />
+                  {session.participant_count ?? 0} {(session.participant_count ?? 0) === 1 ? "user" : "users"}
+                </span>
+                {/* Response count badge */}
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-semibold text-green-400">
+                  <MessageSquare className="h-3 w-3" />
+                  {feedResponses.length} {feedResponses.length === 1 ? "response" : "responses"}
+                </span>
                 {spiralProgress && !spiralProgress.isComplete && (
                   <span className="ml-2 text-xs font-normal text-muted-foreground">
                     Wave {spiralProgress.wave}/12 &middot; {spiralProgress.waveName} &middot; {spiralProgress.responsesDelivered}/100
