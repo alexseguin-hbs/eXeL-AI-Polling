@@ -1387,7 +1387,9 @@ Applies to Cube 1 (dashboard) and Cube 2 (response submit path):
 
 ---
 
-### Execution Order
+### Execution Order — Cubes 2–3 Phase A + Phase B
+
+> **Scope:** Tasks A0–A7 (Phase A) and B1–B5 (Phase B) for Cubes 2 and 3 only. The full 5-phase execution order including Cubes 4–6 spiral audit tasks (C4-1 through C6-8) is in `docs/CUBES_4-6.md`. **Prerequisite:** Task C6-7 (`core/supabase_broadcast.py`) must be completed before A5 and B4 can execute.
 
 ```
 A7 (security baseline) → A0 (short-circuit ≤33 words) → A1 (efficiency) → A2 (retry) → A3 (semaphore) → A4 (schema) → A5 (broadcast) → A6 (dashboard listener)
@@ -1396,7 +1398,24 @@ B2 (parity check) → B1 (e2e verify) → B3 (parallel) → B4 (broadcast) → B
 
 ---
 
+### Dependencies on Cubes 4–6 Spiral Audit
+
+> The spiral code audit (2026-03-30) found 8 additional gaps in Cubes 4–6 that directly affect the Cubes 2–3 pipeline. These are documented in full in `docs/CUBES_4-6.md` under "Spiral Code Audit — New Gaps Found."
+
+| Dependency | Impact on Cubes 2–3 | Task |
+|---|---|---|
+| **C6-7** `core/supabase_broadcast.py` does not exist | **BLOCKER** — Tasks A5 and B4 cannot execute without this file. No backend→frontend push infrastructure. | C6-7 (Phase 1) |
+| **C6-8** `ResponseRead` missing `summary_33` field | **BLOCKER** — Frontend always gets `undefined` for `summary_33`; fallback truncation always used. | C6-8 / A4 (Phase 2) |
+| **C5-3** No pipeline timeout | Phase B can hang forever on AI call, blocking themes_ready broadcast (B4). | C5-3 (Phase 3) |
+| **C6-4** No AI API call timeout | Phase A `summarize_single_response()` can hang forever per response. | C6-4 (Phase 3) |
+| **C5-1** Background task error propagation | Phase B failure not surfaced to `PipelineTrigger.status` — Moderator can't retry. | C5-1 (Phase 3) |
+| **C5-4** Cube 6→7 chain not wired | After Phase B, no automatic trigger to start ranking. | C5-4 (Phase 4) |
+
+---
+
 ### Projected SSSES Scores After All Tasks
+
+> **Conditional:** Projected 100/100 assumes all Phase A+B tasks (A0–A7, B1–B5) AND prerequisite Cube 6 infrastructure (C6-7, C6-8) are complete. See `docs/CUBES_4-6.md` for Cubes 4–6 projected scores (86/93/94).
 
 | Pillar | Before | After | Delta |
 |--------|:---:|:---:|:---:|

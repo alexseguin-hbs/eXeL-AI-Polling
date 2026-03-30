@@ -116,9 +116,10 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 - Pipeline status route (Cube 5) not Moderator-row-scoped — any authenticated user can read any session's pipeline metadata (Task C5-2)
 - Cube 4 anonymous user label uses 8-char UUID prefix (collision risk at scale) instead of SHA-256 `anon_hash` (Task C4-4)
 
-**Efficiency — Cubes 2, 3, 6:**
+**Efficiency / Succinctness — Cubes 2, 3, 6:**
 - `summarize_single_response()` makes 3 sequential AI round-trips; single structured JSON prompt would halve round-trips (Task A1)
 - No short-circuit for ≤33-word responses — AI call wasted on text already at target length (Task A0)
+- `ResponseRead` schema missing `summary_33` field — frontend type-asserts it but always gets `undefined`; must add to schema (Task A4 / C6-8)
 
 **Stability — Cubes 4, 5:**
 - Background task failure on `asyncio.create_task(run_pipeline())` silently absorbed — `PipelineTrigger.status` stuck at `in_progress` forever (Task C5-1 / B5)

@@ -323,19 +323,22 @@ Track and optimize for:
 ## Implementation Status
 
 ### Implementation Summary
-| Cube | Status | Tests | CRS |
-|------|--------|-------|-----|
-| 1 Session | **100% SSSES** | 59 | CRS-01→06 (CRS-01 fully audited) |
-| 2 Text | ~85% | 62 | CRS-05→08 |
-| 3 Voice | ~85% | 39 | CRS-08, 15 |
-| 4 Collector | ~80% | 21 | CRS-09→10 |
-| 5 Gateway | ~90% | 60 | CRS-09→11 |
-| 6 AI Pipeline | ~85% | 26 | CRS-11→14 |
-| 7 Ranking | Stub | — | — |
-| 8 Tokens | Partial | 19 | — |
-| 9 Reports | Partial | — | — |
-| 10 Simulation | Easter Egg SIM | — | — |
-| **Total** | | **287** | |
+
+> **SSSES audit (2026-03-30):** Per-pillar scores for Cubes 2–6 in `SSSES.md`. Spiral code audit found 8 new gaps (C4-3→C6-8) documented in `docs/CUBES_4-6.md`. Full task definitions: A0–A7/B1–B5 in `docs/CUBES_1-3.md`; C4-1→C6-8 in `docs/CUBES_4-6.md`.
+
+| Cube | Status | SSSES | Tests | CRS | Open Tasks |
+|------|--------|:---:|-------|-----|------------|
+| 1 Session | **100% SSSES** | **100** | 59 | CRS-01→06 | None |
+| 2 Text | ~85% | 57 | 62 | CRS-05→08 | A0–A7, B1–B5 |
+| 3 Voice | ~85% | 56 | 39 | CRS-08, 15 | A5.03, A7 |
+| 4 Collector | ~80% | 72 | 21 | CRS-09→10 | C4-1→C4-4 |
+| 5 Gateway | ~90% | 82 | 60 | CRS-09→11 | C5-1→C5-4 |
+| 6 AI Pipeline | ~85% | 58 | 26 | CRS-11→14 | C6-1→C6-8 |
+| 7 Ranking | Stub | — | — | — | — |
+| 8 Tokens | Partial | — | 19 | — | — |
+| 9 Reports | Partial | — | — | — | — |
+| 10 Simulation | Easter Egg SIM | — | — | — | — |
+| **Total** | | | **287** | | **A0–A7, B1–B5, C4–C6** |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
