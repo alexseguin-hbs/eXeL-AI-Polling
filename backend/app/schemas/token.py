@@ -10,9 +10,12 @@ class TokenLedgerRead(BaseModel):
     user_id: str | None
     cube_id: str | None
     action_type: str
+    distribution_method: str | None = None
     delta_heart: float = Field(serialization_alias="♡")
     delta_human: float = Field(serialization_alias="웃")
     delta_unity: float = Field(serialization_alias="◬")
+    desired_outcome_id: uuid.UUID | None = None
+    outcome_status: str | None = None
     lifecycle_state: str
     reason: str | None
     created_at: datetime

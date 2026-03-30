@@ -9,6 +9,15 @@ from app.db.base import Base
 
 
 class TokenLedger(Base):
+    """Append-only token ledger — no UPDATE/DELETE, only INSERT.
+
+    Column naming convention:
+      ORM columns    = delta_heart, delta_human, delta_unity
+      API aliases    = ♡, 웃, ◬  (via Pydantic serialization in schemas/token.py)
+      Spec shorthand = delta_si, delta_hi, delta_ai
+    All three refer to the same Shared Intent / Human Intelligence / AI tokens.
+    """
+
     __tablename__ = "token_ledger"
 
     session_id: Mapped[uuid.UUID] = mapped_column(
@@ -18,9 +27,18 @@ class TokenLedger(Base):
     anon_hash: Mapped[str | None] = mapped_column(String(64))
     cube_id: Mapped[str | None] = mapped_column(String(20))
     action_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    distribution_method: Mapped[str | None] = mapped_column(
+        String(30)  # polling / peer_volunteer / team_collaboration
+    )
     delta_heart: Mapped[float] = mapped_column(Float, default=0.0)
     delta_human: Mapped[float] = mapped_column(Float, default=0.0)
     delta_unity: Mapped[float] = mapped_column(Float, default=0.0)
+    desired_outcome_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True  # FK to desired_outcomes (Cube 4, Methods 2 & 3)
+    )
+    outcome_status: Mapped[str | None] = mapped_column(
+        String(30)  # achieved / partially_achieved / not_achieved / n_a
+    )
     lifecycle_state: Mapped[str] = mapped_column(String(20), default="pending")
     reason: Mapped[str | None] = mapped_column(String(500))
     reference_id: Mapped[str | None] = mapped_column(String(255))

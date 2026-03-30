@@ -23,12 +23,14 @@ class AggregatedRankingRead(BaseModel):
     id: uuid.UUID
     session_id: uuid.UUID
     cycle_id: int
-    algorithm: str
-    results: list | dict | None
+    theme_id: uuid.UUID
+    rank_position: int
+    score: float
+    vote_count: int
+    is_top_theme2: bool
     participant_count: int
-    computed_at: datetime
+    algorithm: str
     is_final: bool
-    override_by: str | None
-    override_reason: str | None
+    aggregated_at: datetime
 
     model_config = {"from_attributes": True}

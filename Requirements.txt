@@ -1019,27 +1019,30 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 
 #### Cube 7 Data Tables
 
-**Table: `user_rankings`**
+**Table: `user_rankings`** (ORM: `Ranking` model, `__tablename__ = "user_rankings"`)
 | Variable | Type | Description |
 |----------|------|-------------|
 | id | UUID (PK) | Ranking record ID |
 | session_id | UUID (FK→sessions) | Session reference |
-| cycle_number | INTEGER | Deep dive round |
+| cycle_id | INTEGER | Deep dive round (standardized as `cycle_id` in ORM) |
 | participant_id | UUID (FK→participants) | Who submitted ranking |
-| ranked_theme_ids | JSONB | Ordered array of theme_ids (1st = most important) |
+| ranked_theme_ids | JSON | Ordered array of theme_ids (1st = most important) |
 | submitted_at | TIMESTAMP | When ranking was submitted |
 
-**Table: `aggregated_rankings`**
+**Table: `aggregated_rankings`** (ORM: `AggregatedRanking` model — one row per theme per cycle)
 | Variable | Type | Description |
 |----------|------|-------------|
 | id | UUID (PK) | Aggregation record ID |
 | session_id | UUID (FK→sessions) | Session reference |
-| cycle_number | INTEGER | Deep dive round |
+| cycle_id | INTEGER | Deep dive round (standardized as `cycle_id` in ORM) |
 | theme_id | UUID (FK→themes) | Theme being ranked |
 | rank_position | INTEGER | Final aggregated rank (1 = top) |
 | score | FLOAT | Aggregated score (deterministic algorithm) |
 | vote_count | INTEGER | How many participants ranked this theme |
 | is_top_theme2 | BOOLEAN | Whether this is the #1 most-voted Theme2 |
+| participant_count | INTEGER | How many participants submitted rankings |
+| algorithm | VARCHAR(50) | Aggregation algorithm (default: `borda_count`) |
+| is_final | BOOLEAN | Whether aggregation is finalized |
 | aggregated_at | TIMESTAMP | When aggregation ran |
 
 **Table: `governance_overrides`** (MVP3)
@@ -1124,24 +1127,27 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 
 #### Cube 8 Data Tables
 
-**Table: `token_ledger`**
+**Table: `token_ledger`** (Append-Only — no UPDATE/DELETE, only INSERT)
 | Variable | Type | Description |
 |----------|------|-------------|
 | id | UUID (PK) | Ledger entry ID |
 | session_id | UUID (FK→sessions) | Session reference |
-| participant_id | UUID (FK→participants) | Token recipient |
-| cube_id | INTEGER | Which cube generated this entry |
-| action_type | ENUM | `login` / `responding` / `ranking` / `reviewing` / `peer_volunteer` / `team_collaboration` / `reward_payout` |
-| distribution_method | ENUM | `polling` / `peer_volunteer` / `team_collaboration` |
-| delta_si | INTEGER | ♡ tokens awarded |
-| delta_hi | FLOAT | 웃 tokens awarded |
-| delta_ai | INTEGER | ◬ tokens awarded |
-| desired_outcome_id | UUID (FK→desired_outcomes, nullable) | Linked outcome (Methods 2 & 3) |
-| outcome_status | ENUM | `achieved` / `partially_achieved` / `not_achieved` / `n_a` |
-| lifecycle_state | ENUM | `simulated` / `pending` / `approved` / `finalized` / `reversed` |
-| reason | TEXT | Rationale for this entry |
-| version_id | VARCHAR(50) | Cube version + dependency graph hash |
+| participant_id | UUID (FK→participants) | Token recipient. ORM: `user_id` (String) + `anon_hash` (String) |
+| cube_id | VARCHAR(20) | Which cube generated this entry |
+| action_type | VARCHAR(100) | `login` / `responding` / `ranking` / `reviewing` / `peer_volunteer` / `team_collaboration` / `reward_payout` |
+| distribution_method | VARCHAR(30) | `polling` / `peer_volunteer` / `team_collaboration` |
+| delta_si | FLOAT | ♡ tokens awarded. ORM column: `delta_heart` |
+| delta_hi | FLOAT | 웃 tokens awarded. ORM column: `delta_human` |
+| delta_ai | FLOAT | ◬ tokens awarded. ORM column: `delta_unity` |
+| desired_outcome_id | UUID (nullable) | Linked outcome (Methods 2 & 3) |
+| outcome_status | VARCHAR(30) | `achieved` / `partially_achieved` / `not_achieved` / `n_a` |
+| lifecycle_state | VARCHAR(20) | `simulated` / `pending` / `approved` / `finalized` / `reversed` |
+| reason | VARCHAR(500) | Rationale for this entry |
+| reference_id | VARCHAR(255) | External reference (e.g., payment transaction ID) |
+| version_id | VARCHAR(255) | Cube version + dependency graph hash |
 | created_at | TIMESTAMP | Entry creation (append-only) |
+
+> **ORM naming convention:** ORM columns = `delta_heart`/`delta_human`/`delta_unity`, API aliases = `♡`/`웃`/`◬` (Pydantic serialization), spec shorthand = `delta_si`/`delta_hi`/`delta_ai`. All three refer to the same Shared Intent / Human Intelligence / AI tokens. The `user_id`/`anon_hash` fields in the ORM correspond to the spec's `participant_id`.
 
 **Table: `payment_transactions`**
 | Variable | Type | Description |

@@ -92,8 +92,8 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 
 ### Active Gaps — Cubes 2–6 (spiral code audit 2026-03-30)
 
-**BLOCKER — Infrastructure (Cube 6):**
-- `backend/core/supabase_broadcast.py` does not exist — all realtime backend→frontend delivery is blocked (Task C6-7). Backend has `SUPABASE_URL` + `SUPABASE_KEY` in `.env` but no code uses them for broadcast.
+**RESOLVED — Infrastructure (Cube 6):**
+- ~~`backend/core/supabase_broadcast.py` does not exist~~ **RESOLVED (2026-03-30):** `backend/app/core/supabase_broadcast.py` exists (97 lines, httpx-based REST broadcast). Availability guard (A5.01) logs warning + continues on failure. **Remaining:** Not yet wired to Phase A (`summary_ready`) or Phase B (`themes_ready`) calls — Tasks A5, B4 still open.
 - `ResponseRead` schema has no `summary_33` field — frontend `session-view.tsx` line 712 type-asserts it but always gets `undefined` (Task C6-8 / A4)
 
 **Critical path (Stability — Cubes 2, 3, 6):**

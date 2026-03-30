@@ -13,9 +13,9 @@ async def submit_ranking(session_id: str, payload: RankingSubmit):
     raise NotImplementedError("Cube 7: submit_ranking — not yet implemented")
 
 
-@router.get("/rankings/aggregate", response_model=AggregatedRankingRead)
+@router.get("/rankings/aggregate", response_model=list[AggregatedRankingRead])
 async def get_aggregated_rankings(session_id: str):
-    """CRS-12: Get deterministic aggregated rankings."""
+    """CRS-12: Get deterministic aggregated rankings (one row per theme, ordered by rank_position)."""
     raise NotImplementedError("Cube 7: get_aggregated_rankings — not yet implemented")
 
 

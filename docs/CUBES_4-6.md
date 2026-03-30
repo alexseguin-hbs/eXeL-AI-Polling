@@ -1081,10 +1081,9 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 **Root cause:** `_assign_themes_llm()` (lines 506-568) manually tracks `result_idx` to match batch summarize outputs to responses. If `batch_summarize()` returns fewer results than expected (provider truncation, rate limit), index skips responses or crashes with IndexError.
 **Fix (Task C6-6):** Replace manual index tracking with `zip(responses, results)`. Log count mismatch as `cube6.assign.count_mismatch` if `len(results) != len(responses)`.
 
-#### GAP C6-7 — `core/supabase_broadcast.py` Does Not Exist *(Stability −20, Infrastructure)*
-**Root cause:** The broadcast helper file referenced by Tasks A5, B4, and all live feed work does not exist at `backend/core/supabase_broadcast.py`. This is the foundational infrastructure gap blocking all realtime delivery from backend to frontend.
-**Evidence:** `ls backend/core/supabase_broadcast.py` returns "No such file". Backend `.env` has `SUPABASE_URL` and `SUPABASE_KEY` — credentials exist but no code uses them for broadcast.
-**Fix (Task C6-7 — prerequisite for A5):** Create `core/supabase_broadcast.py` using `supabase-py` client. Functions: `broadcast_event(channel, event, payload)` with async context, service-role key auth. Guard: log warning + continue on Supabase failure (A5.01 availability pattern).
+#### GAP C6-7 — `core/supabase_broadcast.py` ~~Does Not Exist~~ EXISTS — Not Wired *(Stability +20 infra resolved, wiring pending)*
+**RESOLVED (2026-03-30):** `backend/app/core/supabase_broadcast.py` now exists (97 lines). Uses httpx REST API (not supabase-py) to POST to `{SUPABASE_URL}/realtime/v1/api/broadcast`. Service-role key auth via `settings.supabase_key`. Availability guard (A5.01): logs warning + returns `False` on failure — non-fatal.
+**Remaining:** `broadcast_event()` is not yet called from Cube 6 Phase A (`summary_ready` — Task A5) or Phase B (`themes_ready` — Task B4). Infrastructure exists; wiring is the next step.
 
 #### GAP C6-8 — `ResponseRead` Schema Missing `summary_33` *(Efficiency −10, Succinctness −5)*
 **Root cause:** `backend/app/schemas/response.py` `ResponseRead` (lines 50-60) has no `summary_33` field. Frontend `session-view.tsx` line 712 type-asserts `(result as { summary_33?: string })?.summary_33` — always `undefined`. Dashboard always falls back to client-side `summarizeTo33Words()`.
@@ -1201,7 +1200,7 @@ Cube 4 aggregate_response() → [NO BROADCAST] → Dashboard
 | **C6-4** AI API call timeout | `cube6_ai/service.py` | Wrap all `summarizer.summarize()` and `embedder.embed()` calls in `asyncio.wait_for(timeout=30)`. On timeout: log `cube6.provider.timeout`; Phase A falls back to `"[Summary timed out]"`. | Scalability +15 |
 | **C6-5** Partial failure handling in _store_results() | `cube6_ai/service.py` | Add try/except around MongoDB batch update after Postgres commit. On failure: log `cube6.store.mongo_partial_failure`, mark trigger `"completed_partial"`. | Stability +10 |
 | **C6-6** Fix index mismatch in _assign_themes_llm() | `cube6_ai/service.py` | Replace manual `result_idx` tracking with `zip(responses, results)`. Log count mismatch if `len(results) != len(responses)`. | Stability +5 |
-| **C6-7** Create `core/supabase_broadcast.py` | `backend/core/supabase_broadcast.py` (NEW) | Create broadcast helper using `supabase-py` + service role key. Functions: `broadcast_event(channel, event, payload)`. Guard: log warning + continue on failure. **Prerequisite for Tasks A5, B4.** | Stability +20 (infrastructure) |
+| **C6-7** ~~Create~~ Wire `core/supabase_broadcast.py` | `backend/app/core/supabase_broadcast.py` (**EXISTS** — 97 lines, httpx REST) | File created 2026-03-30. `broadcast_event(channel, event, payload)` with availability guard. **Remaining:** Wire to Phase A (Task A5: `summary_ready`) and Phase B (Task B4: `themes_ready`). | Stability +20 (**infra resolved**) |
 | **C6-8** = Task A4 (schema) | `schemas/response.py` | Add `summary_33: str \| None = None` to `ResponseRead`. Enables frontend to read field from API response (will be `None` at submit; real value via A5 broadcast). | Efficiency +10, Succinctness +5 |
 
 ---
@@ -1237,7 +1236,7 @@ Cube 4 aggregate_response() → [NO BROADCAST] → Dashboard
 
 ```
 PHASE 1 — Infrastructure + Security (unblocks everything else):
-  C6-7 (create supabase_broadcast.py) → C6-1 (PII guard) → A7 (PII log assertion) → C4-4 (anon hash fix)
+  C6-7 ✓ (supabase_broadcast.py EXISTS) → C6-1 (PII guard) → A7 (PII log assertion) → C4-4 (anon hash fix)
 
 PHASE 2 — Live Feed Pipeline (Moderator sees responses + summaries):
   C6-8/A4 (schema: summary_33) → A0 (short-circuit ≤33 words) → A1 (single-prompt) → A2 (retry)

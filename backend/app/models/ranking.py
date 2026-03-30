@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class Ranking(Base):
-    __tablename__ = "rankings"
+    __tablename__ = "user_rankings"
 
     session_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("sessions.id"), nullable=False
@@ -28,7 +28,7 @@ class Ranking(Base):
     session: Mapped["Session"] = relationship(back_populates="rankings")
 
     __table_args__ = (
-        Index("ix_rankings_session_cycle", "session_id", "cycle_id"),
+        Index("ix_user_rankings_session_cycle", "session_id", "cycle_id"),
         UniqueConstraint(
             "session_id", "cycle_id", "participant_id",
             name="uq_ranking_session_cycle_participant",
@@ -37,20 +37,37 @@ class Ranking(Base):
 
 
 class AggregatedRanking(Base):
+    """Per-theme aggregated ranking row.
+
+    One row per theme per cycle — enables indexed queries on rank_position,
+    is_top_theme2, and direct JOINs from Cube 9 CSV export.
+    """
+
     __tablename__ = "aggregated_rankings"
 
     session_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("sessions.id"), nullable=False
     )
     cycle_id: Mapped[int] = mapped_column(Integer, default=1)
-    algorithm: Mapped[str] = mapped_column(String(50), default="borda_count")
-    results: Mapped[dict | None] = mapped_column(JSON)
+    theme_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("themes.id"), nullable=False
+    )
+    rank_position: Mapped[int] = mapped_column(Integer, nullable=False)
+    score: Mapped[float] = mapped_column(Float, default=0.0)
+    vote_count: Mapped[int] = mapped_column(Integer, default=0)
+    is_top_theme2: Mapped[bool] = mapped_column(Boolean, default=False)
     participant_count: Mapped[int] = mapped_column(Integer, default=0)
-    computed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    algorithm: Mapped[str] = mapped_column(String(50), default="borda_count")
     is_final: Mapped[bool] = mapped_column(Boolean, default=False)
-    override_by: Mapped[str | None] = mapped_column(String(255))
-    override_reason: Mapped[str | None] = mapped_column(String(1000))
+    aggregated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
 
     __table_args__ = (
         Index("ix_agg_rankings_session_cycle", "session_id", "cycle_id"),
+        Index("ix_agg_rankings_top_theme2", "session_id", "is_top_theme2"),
+        UniqueConstraint(
+            "session_id", "cycle_id", "theme_id",
+            name="uq_agg_ranking_session_cycle_theme",
+        ),
     )

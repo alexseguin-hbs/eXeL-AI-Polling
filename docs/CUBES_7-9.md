@@ -51,7 +51,7 @@ Key behaviors:
 **Schemas:** `backend/app/schemas/ranking.py`
 - `RankingSubmit`: `ranked_theme_ids: list[uuid.UUID]`
 - `RankingRead`: id, session_id, cycle_id, participant_id, ranked_theme_ids, submitted_at
-- `AggregatedRankingRead`: id, session_id, cycle_id, algorithm, results, participant_count, computed_at, is_final, override_by, override_reason
+- `AggregatedRankingRead`: id, session_id, cycle_id, theme_id, rank_position, score, vote_count, is_top_theme2, participant_count, algorithm, is_final, aggregated_at
 
 **Frontend SIM stub:** Cube 7 ranking is simulated in the Easter Egg SIM (click-to-rank UI with #1/#2/#3 badges in `session-view.tsx`).
 
@@ -64,23 +64,30 @@ Key behaviors:
 |----------|------|-------------|
 | id | UUID (PK) | Ranking record ID |
 | session_id | UUID (FK->sessions) | Session reference |
-| cycle_number | INTEGER | Deep dive round (1 = initial, 2-3 = follow-up) |
+| cycle_id | INTEGER | Deep dive round (1 = initial, 2-3 = follow-up). ORM: `cycle_id` |
 | participant_id | UUID (FK->participants) | Who submitted ranking |
-| ranked_theme_ids | JSONB | Ordered array of theme_ids (1st = most important) |
+| ranked_theme_ids | JSON | Ordered array of theme_ids (1st = most important) |
 | submitted_at | TIMESTAMP | When ranking was submitted |
 
-**Table: `aggregated_rankings`**
+**ORM implementation note:** The `Ranking` model (`models/ranking.py`) uses `__tablename__ = "user_rankings"` and `cycle_id` (not `cycle_number`). Unique constraint: `(session_id, cycle_id, participant_id)`.
+
+**Table: `aggregated_rankings`** (one row per theme per cycle — enables indexed `is_top_theme2` queries)
 | Variable | Type | Description |
 |----------|------|-------------|
 | id | UUID (PK) | Aggregation record ID |
 | session_id | UUID (FK->sessions) | Session reference |
-| cycle_number | INTEGER | Deep dive round |
+| cycle_id | INTEGER | Deep dive round (ORM: `cycle_id`, aligned with `user_rankings`) |
 | theme_id | UUID (FK->themes) | Theme being ranked |
 | rank_position | INTEGER | Final aggregated rank (1 = top) |
 | score | FLOAT | Aggregated score (deterministic algorithm) |
 | vote_count | INTEGER | How many participants ranked this theme |
 | is_top_theme2 | BOOLEAN | Whether this is the #1 most-voted Theme2 |
+| participant_count | INTEGER | How many participants submitted rankings |
+| algorithm | VARCHAR(50) | Aggregation algorithm used (default: `borda_count`) |
+| is_final | BOOLEAN | Whether aggregation is finalized |
 | aggregated_at | TIMESTAMP | When aggregation ran |
+
+**ORM implementation note:** The `AggregatedRanking` model (`models/ranking.py`) now stores per-theme rows matching this spec. Previous JSON-blob schema replaced 2026-03-30. Indexes: `(session_id, cycle_id)`, `(session_id, is_top_theme2)`. Unique constraint: `(session_id, cycle_id, theme_id)`.
 
 **Table: `governance_overrides`** (MVP3)
 | Variable | Type | Description |
@@ -1242,7 +1249,7 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 | **B1** Phase B E2E verification | Cube 6 | Theme records must exist in Postgres for Cube 7 to query | **NOT VERIFIED** |
 | **CQS scores** from Cube 6 | Cube 6 | Cube 8 reward disbursement depends on CQS winner ID | **NOT IMPLEMENTED** (CRS-14.01/14.02 in CUBES_4-6.md) |
 | **Time tracking** from Cube 5 | Cube 5 | Token calculation depends on Cube 5 `stop_time_tracking()` ledger entries | **IMPLEMENTED** |
-| **Core broadcast infra** C6-7 | Cube 6 | Live ranking updates (CRS-16/17) need `supabase_broadcast.py` | **NOT IMPLEMENTED** |
+| **Core broadcast infra** C6-7 | Cube 6 | Live ranking updates (CRS-16/17) need `supabase_broadcast.py` | **EXISTS** (97 lines, httpx) — not wired to A5/B4/Cube 7 |
 
 ---
 
@@ -1307,8 +1314,8 @@ Cube 1 ──[session create + join]──► Cube 2 ──[text submit]──�
   ▼                                    ▼                          ▼
 Cube 4 ──[aggregate responses]──► Cube 5 ──[orchestrate]──► Cube 6 ──[Phase A + B]──►
   │                                    │                          │
-  │ ✓ WIRED: dual storage             │ ✓ WIRED: polling→ranking │ ✗ GAP: supabase_broadcast.py
-  │ ✗ GAP: MongoDB no error           │   triggers Phase B       │   DOES NOT EXIST (C6-7)
+  │ ✓ WIRED: dual storage             │ ✓ WIRED: polling→ranking │ ◐ C6-7: broadcast.py EXISTS
+  │ ✗ GAP: MongoDB no error           │   triggers Phase B       │   not wired to A5/B4 yet
   │   handling (C4-3)                  │ ✗ GAP: no pipeline       │ ✗ GAP: 3 seq AI calls (A1)
   │ ✗ GAP: M2/M3 not implemented      │   timeout (C5-3)         │ ✗ GAP: no concurrency cap
   │                                    │ ✗ GAP: Cube 6→7 chain   │   (A3)
@@ -1464,7 +1471,7 @@ Moderator clicks Stop Polling → Cube 5 fires run_pipeline()
 
 | # | Task | Cube | SSSES Impact | Status |
 |---|------|------|---|---|
-| 1 | **C6-7** Create `core/supabase_broadcast.py` | 6 | Stability +20 | BLOCKER |
+| 1 | **C6-7** ~~Create~~ Wire `core/supabase_broadcast.py` to A5/B4 calls | 6 | Stability +20 | EXISTS — wiring pending |
 | 2 | **C6-8/A4** Add `summary_33` to `ResponseRead` schema | 6 | Efficiency +10 | BLOCKER |
 | 3 | **C6-1** PII guard in `run_pipeline()` | 6 | Security +15 | |
 | 4 | **A7** PII log assertion for text + voice paths | 2, 3 | Security +25 | |
