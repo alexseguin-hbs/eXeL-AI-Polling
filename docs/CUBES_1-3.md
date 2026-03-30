@@ -584,7 +584,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 
 ---
 
-## Cube 2 — Text Submission Handler: IMPLEMENTED (CRS-05→CRS-08 done; ~85% of full spec)
+## Cube 2 — Text Submission Handler: IMPLEMENTED (CRS-05→CRS-08 done; ~85% of full spec; CRS-07.03 live feed toggle in-progress — SSSES Tasks A4/A5/A6)
 
 **Code location:** `backend/app/cubes/cube2_text/` (modular, self-contained)
 
@@ -917,7 +917,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 
 ---
 
-## Cube 3 — Voice-to-Text Engine: IMPLEMENTED (CRS-08, CRS-15 done; ~85% of full spec)
+## Cube 3 — Voice-to-Text Engine: IMPLEMENTED (CRS-08, CRS-15 done; ~85% of full spec; voice live-feed broadcast gap — SSSES Tasks A5.03, A7)
 
 **Code location:** `backend/app/cubes/cube3_voice/` (modular, self-contained)
 
@@ -966,9 +966,10 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | CRS-15.03 | CRS-15.03.IN.WRS | CRS-15.03.OUT.WRS | **Implemented** (paid) | Real-time STT: Azure Speech (primary) + AWS Transcribe Streaming (fallback), WebSocket endpoint |
 
 ### Cube 3 — Not Yet Implemented
-- **`push_to_live_feed()`** — WebSocket 33-word summary feed (requires Cube 6)
+- **`push_to_live_feed()` — voice path** — After Cube 6 Phase A generates `summary_33` from voice transcript, backend must broadcast `summary_ready` via Supabase to Moderator live feed. Same gap as Cube 2 text path. **Covered by SSSES Task A5.03** — broadcast fires for both text (Cube 2) and voice (Cube 3) paths via shared `core/supabase_broadcast.py` helper.
+- **PII gate verification (CRS-08.02)** — Voice transcript `clean_text` forwarded to `summarize_single_response()` must be confirmed (not raw transcript). **SSSES Task A7** explicitly covers Cube 3 path in addition to Cube 2.
 - **Language-specific STT model tuning** — per-language model selection optimization
-- **Audio playback** — MongoDB audio_files retrieval for replay
+- **Audio playback** — MongoDB `audio_files` retrieval for replay
 - **Voice-specific profanity seed data** — speech patterns differ from text
 
 ### Cube 3 — Simulation Requirements (Cube 10 Isolation)
