@@ -57,12 +57,14 @@
   - Join flow hydration defaults to `status: "open"` (not "polling") for cross-device users
   - Session-view shows lobby card with participant counter + "Waiting for moderator" message for `draft`/`open` states
   - Status polling every 3s (KV + local) auto-transitions users to input form when moderator starts polling
-- **Live response feed (33-word summaries):** Moderator sees real-time 33-word summaries of all participant inputs during polling
-  - Cube 6 Phase A stub: `summarizeCascade()` generates 333→111→33 word extractive summaries on submit
-  - All response paths generate summaries: user submit, mock polling, spiral test, pre-populated responses
-  - Feed displays `summary_33` field (falls back to sentence-extraction if missing)
+- **Live response feed:** Moderator sees real-time responses during polling with a **display mode toggle**:
+  - **Toggle options:** "Live Feedback" (raw text, immediate) | "33-Word Summary" (AI-generated via Cube 6 Phase A)
+  - **Default: Live Feedback** — raw response text appears immediately on submit, no AI API dependency. Default until Gemini / ChatGPT / Grok APIs are configured and resourced.
+  - **33-Word Summary mode:** Shows AI-generated `summary_33` when available from Cube 6 Phase A. Falls back to client-side `summarizeTo33Words()` truncation if backend summary not yet ready.
+  - All response paths generate display entries: user submit, mock polling, spiral test, pre-populated responses
   - **Expand/Collapse:** Inline feed toggles between 200px and 500px height
   - **Fullscreen mode:** Full-viewport overlay with close button — moderator can project live feed
+  - **Backend gap (SSSES Task A5):** `summary_33` not currently broadcast from backend after Cube 6 Phase A completes — live feed falls back to client truncation. Fix: backend broadcasts `summary_ready` via Supabase; dashboard updates feed entry in place.
 - **Cross-device response flow:** Phone/PC user inputs propagate to moderator via Cloudflare KV
   - POST response → local mockResponses + KV `/api/responses` (fire-and-forget)
   - GET responses → merges local + KV with deduplication by `participant_id::text_prefix`
@@ -340,7 +342,9 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 - Response text is visible (not truncated beyond 80 chars in the feed).
 - Response count increments correctly.
 
-**Pass criteria:** All submitted responses visible on dashboard live feed without page refresh.
+**Pass criteria:** All submitted responses visible on dashboard live feed **showing AI-generated 33-word summaries** (not client-side truncation). Summary appears within ≤5 seconds of submission.
+
+**Current known gap (SSSES Task A5):** The live feed currently falls back to `summarizeTo33Words(r.clean_text)` — a client-side word-count truncation — because the backend does not yet broadcast `summary_33` after Cube 6 Phase A completes. See § "SSSES Plan — CRS-07→CRS-09 Pipeline" below.
 
 ---
 
@@ -352,7 +356,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | B | 8-digit code | Before polling | Lobby → polling input on Start | Lobby → polling input on Start | |
 | C | QR code | After polling | Direct to polling input (no lobby) | Direct to polling input (no lobby) | |
 | D | 8-digit code | After polling | Direct to polling input (no lobby) | Direct to polling input (no lobby) | |
-| E | Any | Any | — | Live feed shows all submissions | |
+| E | Any | Any | — | Live feed shows AI 33-word summaries (not truncated raw text) | |
 
 **Full pass = all 5 scenarios green. Any failure = identify which sync layer failed (Broadcast / Presence / Supabase DB) and fix before releasing.**
 
@@ -365,6 +369,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | Phone never leaves lobby after Start Polling | Layer 1 Broadcast or Layer 4 DB | Check Supabase project not paused; check `session_status` table has a row for the code |
 | Phone toggles lobby ↔ polling input every second | Status regressions in `checkStatus` poll | Check `STATUS_ORDER` rank logic in `session-view.tsx` |
 | 8-digit code shows "session not found" | Layer 4 DB missing row | Confirm `syncStatusToSupabase` fires on session CREATE in dashboard |
+| Live feed shows raw text, not AI summary | `summary_33` not broadcast from backend after Cube 6 Phase A | See SSSES Task A5 — backend must broadcast `summary_ready` after summarization completes |
 | Live feed empty on dashboard | Supabase Broadcast `new_response` not firing | Check Supabase project active; check `new_response` handler in `dashboard/page.tsx` |
 | Works in same city, fails across regions | CF KV cross-datacenter miss (expected) | Confirm Layer 4 Supabase DB is covering it |
 
@@ -598,7 +603,8 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Complete** (hash) | AES-256 encryption at rest |
 
 ### Cube 2 — Not Yet Implemented
-- **`push_to_live_feed()`** — WebSocket 33-word summary feed (requires Cube 6)
+- **`push_to_live_feed()`** — Backend Supabase broadcast of `summary_33` to Moderator live feed after Cube 6 Phase A completes. **Root cause of live feed gap** — see SSSES Tasks A4, A5.
+- **`summary_33` in `TextResponseRead` schema** — field missing from response schema; frontend cast always returns `undefined`. SSSES Task A4.
 - **Profanity seed data** for 33 languages (table ready, needs curated regex)
 - **AES-256 encryption at rest** — CRS-08 stretch target (response_hash covers integrity)
 - **`detect_language()` ML upgrade** — current Unicode heuristic is lightweight
@@ -821,7 +827,8 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | PII detection result | Cube 4, Cube 9 | Whether PII was found and scrubbed |
 | Profanity flag | Cube 4, Moderator dashboard | Whether profanity was detected |
 | Token display trigger | Cube 5 (Gateway) | Triggers ♡/◬ calculation for immediate display |
-| Submission event | Cube 5 (Gateway) | Notifies gateway of new response for time tracking |
+| Submission event (Redis) | Cube 5 (Gateway), Cube 6 (AI) | Publishes `response_submitted` to Redis; consumed by Cube 6 for Phase A |
+| `summary_33` broadcast | Moderator live feed (dashboard) | **GAP** — AI 33-word summary must be broadcast via Supabase after Cube 6 Phase A completes (SSSES Task A5) |
 
 ### Cube 2 — Functions (Requirements.txt)
 | Function | Status | Description |
@@ -833,8 +840,8 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | `detect_profanity()` | **Implemented** | Checks against language-specific profanity filters from DB |
 | `anonymize_response()` | **Implemented** | Strips identifying info based on session anonymity_mode (anonymous/identified/pseudonymous) |
 | `store_text_response()` | **Implemented** | Writes validated response to MongoDB (raw) + Postgres (ResponseMeta + TextResponse) |
-| `emit_submission_event()` | **Implemented** | Publishes `response_submitted` to Redis pub/sub for Cube 6 consumption |
-| `push_to_live_feed()` | Not implemented | Sends 33-word summary (from Cube 6) to Moderator hosting PC via WebSocket (if live_feed_enabled + paid tier) |
+| `emit_submission_event()` | **Implemented** | Publishes `response_submitted` to Redis pub/sub for Cube 6 consumption. **Does not include `summary_33`** — summary is generated async by Cube 6 Phase A after this event fires. |
+| `push_to_live_feed()` | **Not implemented — SSSES Task A5** | After Cube 6 Phase A generates `summary_33`, backend must broadcast `summary_ready` event via Supabase to Moderator dashboard. Currently missing: live feed shows client-side fallback only. |
 
 ### Cube 2 — UI/UX Translation Strings (13 keys per Requirements.txt)
 | String Key | English Default | Context |
@@ -1180,3 +1187,183 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 |-----|---------------|-------------|
 | CRS-08 | Voice responses need the same integrity guarantees as text | "If we accept voice input, we need to prove the transcript wasn't altered — same audit standard as typed responses." |
 | CRS-15 | Users who cannot or prefer not to type need an equally reliable voice input option | "In a room of 200 people, some will want to speak instead of type — especially on phones. It has to just work." |
+
+---
+
+## SSSES Plan — CRS-07 → CRS-09: Submit → Summarize → Live Feed → Theme
+
+> **Scope:** Full pipeline from user response submission (CRS-07) through real-time summarization, live Moderator feed display, and post-close AI theming (CRS-09). Ranking (Cube 7+) is out of scope for this plan.
+> **Primary driver:** `summary_33` never reaches the Moderator live feed — backend does not broadcast after Cube 6 Phase A completes. Dashboard falls back to client-side word-count truncation instead of real AI output.
+
+### DesignMatrix CRS Alignment Note
+
+> **Discrepancy between DesignMatrix and Requirements.txt CRS numbering:**
+> | CRS | Requirements.txt | DesignMatrix (eXeL-AI_Polling_DesignMatrix.xlsx) |
+> |-----|---|---|
+> | CRS-09 | System clusters responses into meaningful AI themes (Cube 6) | Voice submission (Cube 3) |
+> | CRS-15 | Voice submission (Cube 3) | Export session results / Lead review |
+> | CRS-10 | User views summarized themes | System clusters via AI |
+>
+> **Resolution:** Requirements.txt is the canonical spec used by the codebase. The DesignMatrix xlsx should be updated to align. All code, tests, and this doc reference the Requirements.txt mapping.
+
+---
+
+### Pipeline Overview
+
+```
+CRS-07  User submits text response (any of 33 languages)
+   │
+   ▼
+CRS-08  Cube 2: validate → PII strip (clean_text) → store (MongoDB + Postgres)
+   │         └── Participant broadcasts new_response (raw text) → Moderator dashboard
+   │         └── Redis: publishes response_submitted event (no summary_33)
+   │
+   ▼ [asyncio.create_task() — fire-and-forget background]
+CRS-09a Cube 6 Phase A — LIVE (per-response, during polling):
+        1. Translate to English (if language_code ≠ en)
+        2. Compress to 333_Summary
+        3. Compress 333 → 111_Summary
+        4. Compress 111 → 33_Summary
+        5. Store in MongoDB summaries collection
+        6. *** BROADCAST summary_ready → Moderator dashboard ***  ← GAP
+   │
+   ▼ [Moderator clicks Stop Polling → session transitions polling → ranking]
+CRS-09b Cube 6 Phase B — BATCH (post-close):
+        1. Fetch all 33_Summary from MongoDB
+        2. Classify Theme01 (Risk/Supporting/Neutral) — parallel batch
+        3. Marble sampling → groups of 10
+        4. Generate sub-themes per marble group — concurrent agents
+        5. Reduce → Theme2_9 → Theme2_6 → Theme2_3 + confidence scores
+        6. Assign each response to themes
+        7. Store: Postgres themes + MongoDB summaries per-response
+        8. Broadcast themes_ready → Dashboard
+```
+
+---
+
+### Current SSSES Scores
+
+| Pillar | Current | Target | Primary Gap |
+|--------|:---:|:---:|---|
+| Security | 75 | 100 | Confirm `clean_text` (post-PII) — never raw text — goes to AI in all code paths (text + voice) |
+| Stability | 40 | 100 | `summary_33` never reaches live feed; no retry on AI failure; Phase B unverified end-to-end |
+| Scalability | 50 | 100 | 3 sequential AI calls per response; no concurrency cap; no back-pressure at 100+ users |
+| Efficiency | 55 | 100 | 3 AI round-trips; dashboard shows client-side truncation fallback instead of real AI output |
+| Succinctness | 65 | 100 | `summary_33` missing from `TextResponseRead` schema; no typed `summary_ready` broadcast |
+
+---
+
+### Gap Analysis
+
+#### GAP 1 — `summary_33` Never Reaches the Live Feed *(Stability −30, Efficiency −20)*
+**Root cause (two-stage disconnect):**
+1. Cube 2 `emit_submission_event()` fires immediately — `summary_33` is not yet available (Phase A runs async after)
+2. The participant peer-broadcasts `new_response` with `summary_33: undefined` because `TextResponseRead` schema has no `summary_33` field
+3. After Phase A completes, there is **no Supabase broadcast** to push `summary_33` to dashboard
+4. Dashboard falls back to `summarizeTo33Words(r.clean_text)` — client-side word-count truncation, not AI
+
+**Fix (Tasks A4 + A5 + A6):**
+- A4: Add `summary_33: str | None = None` to `TextResponseRead` schema
+- A5: After `summarize_single_response()` completes, broadcast `summary_ready` event via Supabase to session channel
+- A6: Dashboard listener for `summary_ready` updates existing feed entry in place (by `response_id`)
+
+#### GAP 2 — No Retry on AI Failure *(Stability −20)*
+**Root cause:** `asyncio.create_task()` wraps Phase A in try/except that only logs a warning. No retry, no dead-letter, no fallback storage flag.
+**Fix (Task A2):** Exponential backoff retry (3 attempts: 1s, 2s, 4s). On final failure: store `summary_33: "[Summary unavailable]"` + `flag: true` in MongoDB.
+
+#### GAP 3 — No Concurrency Cap on Phase A *(Scalability −30)*
+**Root cause:** Uncapped `asyncio.create_task()` — 100 concurrent submits spawn 300 instant AI calls, hitting provider rate limits.
+**Fix (Task A3):** Per-session `asyncio.Semaphore(10)` on Phase A. Stored on FastAPI app state. Excess tasks queue in order.
+
+#### GAP 4 — 3 Sequential AI Round-Trips *(Efficiency −20)*
+**Root cause:** `summarize_single_response()` makes 3 sequential API calls (333→111→33). Each waits for prior.
+**Fix (Task A1):** Single structured prompt returning `{ summary_333, summary_111, summary_33 }` as JSON. One round-trip.
+
+#### GAP 5 — Phase B End-to-End Unverified *(Stability −15)*
+**Root cause:** Phase B code exists but has not been run against a live Supabase session with real AI provider calls.
+**Fix (Task B1):** Run Phase B against controlled test session using Web_Results_5000.csv. Confirm 16-column output matches target schema.
+
+---
+
+### Implementation Tasks
+
+#### Phase A — Live Summarization → Broadcast
+
+| Task | File | Change | SSSES Impact |
+|------|------|--------|---|
+| **A1** Single-prompt summarization | `cube6_ai/service.py` | Replace 3 sequential AI calls with one structured prompt returning JSON `{summary_333, summary_111, summary_33}` | Efficiency +20, Stability +5 |
+| **A2** Retry with backoff | `cube6_ai/service.py` | 3 attempts, 1s/2s/4s backoff. On failure: store placeholder + flag | Stability +25 |
+| **A3** Per-session concurrency cap | `cube6_ai/service.py` | `asyncio.Semaphore(10)` per session on Phase A tasks (stored on app state) | Scalability +30 |
+| **A4** Add `summary_33` to schema | `schemas/response.py` | `summary_33: str \| None = None` to `TextResponseRead` | Succinctness +20 |
+| **A5** Backend Supabase broadcast | `cube6_ai/service.py` + new `core/supabase_broadcast.py` | After Phase A completes: broadcast `{"event": "summary_ready", "response_id": "...", "summary_33": "..."}` to Supabase session channel | Stability +20, Efficiency +20 |
+| **A6** Dashboard `summary_ready` listener | `frontend/app/dashboard/page.tsx` | Add listener; on receipt update existing feed entry by `response_id`. Handle out-of-order delivery gracefully. | Stability +10 |
+| **A7** Security audit: PII path | `cube2_text/service.py`, `cube6_ai/service.py` | Verify `clean_text` (not raw) is input to `summarize_single_response()` in both text and voice paths. Add structured log assertion. | Security +25 |
+
+#### Phase B — Stop Polling → Theme01 + Theme2
+
+| Task | File | Change | SSSES Impact |
+|------|------|--------|---|
+| **B1** End-to-end verification | `cube6_ai/service.py` | Run `POST /ai/run` against test session loaded with Web_Results_5000.csv. Confirm Postgres `themes` + MongoDB `summaries` populated. | Stability +20 |
+| **B2** Monolith parity check | `eXeL-AI_Polling_v04.2.py` vs `cube6_ai/service.py` | Cross-check marble sampling, confidence threshold (65%), reduction steps (9→6→3), Theme01 categories | Stability +10 |
+| **B3** Parallel batch classification | `cube6_ai/service.py` | Confirm Theme01 classification uses `asyncio.gather()` across batches, not sequential loop | Scalability +20 |
+| **B4** Broadcast `themes_ready` | `cube6_ai/service.py` | After Phase B stores results, broadcast `{"event": "themes_ready", "session_id": "..."}` via Supabase | Stability +10 |
+| **B5** Phase B failure recovery | `cube6_ai/service.py` + router | Store partial results on failure, mark session `theme_error`, expose `/ai/status` endpoint, allow idempotent re-trigger | Stability +15 |
+
+---
+
+### Live Feed Display Toggle — Specification
+
+Applies to Cube 1 (dashboard) and Cube 2 (response submit path):
+
+| Property | Value |
+|---|---|
+| **Toggle location** | Moderator dashboard live feed header |
+| **Option A** | "Live Feedback" — raw `clean_text` displayed immediately on `new_response` broadcast |
+| **Option B** | "33-Word Summary" — AI `summary_33` displayed when available; falls back to `summarizeTo33Words()` until `summary_ready` arrives |
+| **Default** | **Live Feedback** — no AI API dependency. Active until Gemini / ChatGPT / Grok APIs are configured. |
+| **AI providers** | Gemini (Google), ChatGPT (OpenAI), Grok (xAI) — selected by Moderator at session creation (`session.ai_provider`) |
+| **Persistence** | Toggle state persists for session duration (localStorage key: `feed_display_mode_{session_code}`) |
+| **Lexicon keys** | `cube1.feed.toggle_live` = "Live Feedback", `cube1.feed.toggle_summary` = "33-Word Summary", `cube1.feed.summary_loading` = "Generating summary..." |
+
+---
+
+### Execution Order
+
+```
+A7 (security baseline) → A1 (efficiency) → A2 (retry) → A3 (semaphore) → A4 (schema) → A5 (broadcast) → A6 (dashboard listener)
+B2 (parity check) → B1 (e2e verify) → B3 (parallel) → B4 (broadcast) → B5 (recovery)
+```
+
+---
+
+### Projected SSSES Scores After All Tasks
+
+| Pillar | Before | After | Delta |
+|--------|:---:|:---:|:---:|
+| Security | 75 | 100 | +25 |
+| Stability | 40 | 100 | +60 |
+| Scalability | 50 | 100 | +50 |
+| Efficiency | 55 | 100 | +45 |
+| Succinctness | 65 | 100 | +35 |
+| **Overall** | **57** | **100** | **+43** |
+
+---
+
+### Data Flow — Target State (CRS-07 → CRS-09)
+
+```
+Input (5 cols):        Q_Number | Question | User | Detailed_Results | Response_Language
+                           ▼ CRS-07/08 — Cube 2: validate, PII strip, store
+                           ▼ Live feed: shows raw clean_text immediately (default)
+                           ▼ CRS-09a — Cube 6 Phase A: translate + 333→111→33 summaries
+Live output (+3 cols): + 333_Summary | 111_Summary | 33_Summary → broadcast to live feed (toggle: Summary mode)
+                           ▼ Moderator clicks Stop Polling
+                           ▼ CRS-09b — Cube 6 Phase B: Theme01 + Theme2_9/6/3 pipeline
+Final output (+8 cols):+ Theme01 | Theme01_Confidence
+                       + Theme2_9 | Theme2_9_Confidence
+                       + Theme2_6 | Theme2_6_Confidence
+                       + Theme2_3 | Theme2_3_Confidence
+                           ▼ [Ranking — Cube 7, out of scope for this plan]
+```
+
+**Not in scope:** Ranking (Cube 7), Token ledger (Cube 8), CSV export (Cube 9).
