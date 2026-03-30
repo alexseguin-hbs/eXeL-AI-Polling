@@ -350,10 +350,15 @@ async def list_sessions(
     *,
     created_by: str | None = None,
     status_filter: str | None = None,
+    include_archived: bool = False,
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[Session], int]:
-    """List sessions with optional filters. Returns (sessions, total_count)."""
+    """List sessions with optional filters. Returns (sessions, total_count).
+
+    By default, archived sessions are excluded (kept in a separate "bucket").
+    Pass ``include_archived=True`` or ``status_filter="archived"`` to retrieve them.
+    """
     query = select(Session)
     count_query = select(func.count(Session.id))
 
@@ -363,6 +368,10 @@ async def list_sessions(
     if status_filter:
         query = query.where(Session.status == status_filter)
         count_query = count_query.where(Session.status == status_filter)
+    elif not include_archived:
+        # Default: exclude archived sessions so recent results stay at hand
+        query = query.where(Session.status != "archived")
+        count_query = count_query.where(Session.status != "archived")
 
     # Get total count
     total_result = await db.execute(count_query)

@@ -115,16 +115,23 @@ async def _transition_and_return(
 @router.get("", response_model=dict)
 async def list_sessions(
     status: str | None = None,
+    include_archived: bool = False,
     limit: int = 50,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
-    """List sessions created by the current moderator (paginated)."""
+    """List sessions created by the current moderator (paginated).
+
+    By default, archived sessions are excluded (recent results at hand).
+    Use ``?status=archived`` to list only archived sessions, or
+    ``?include_archived=true`` to include them alongside active sessions.
+    """
     sessions, total = await service.list_sessions(
         db,
         created_by=user.user_id,
         status_filter=status,
+        include_archived=include_archived,
         limit=min(limit, 100),
         offset=offset,
     )
