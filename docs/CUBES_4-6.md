@@ -23,12 +23,21 @@
 - **API endpoints:** 6 routes (collected list, single response, count, languages, presence, summary status)
 
 ### Cube 4 — CRS Traceability
+
+> **CRS Alignment Note:** Cube 4 uses CRS-09 for response collection/aggregation and CRS-10 for desired outcomes — this matches the Requirements.txt canonical spec. See SSSES Plan at end of this doc for full DesignMatrix CRS alignment detail.
+
 | CRS | Input ID | Output ID | Status | DTM Stretch Target |
 |-----|----------|-----------|--------|-------------------|
 | CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Real-time streaming aggregation |
+| CRS-09.01 | — | — | **Complete** | Web_Results 5-column raw format (q_number, question, user, detailed_results, response_language) |
+| CRS-09.02 | — | — | **Complete** | Dual storage: Postgres ResponseMeta + MongoDB raw payload write |
+| CRS-09.03 | — | — | **GAP — Task A5.03** | Supabase broadcast on aggregation completion for live feed push (links to Cube 6 Phase A → Dashboard pipeline) |
 | CRS-09.1 | — | — | **Complete** | Web_Results format with native language column |
 | CRS-09.2 | — | — | **Complete** | Live summary status tracking (MongoDB) |
 | CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Partial** | Full desired outcome collection |
+| CRS-10.01 | — | — | **Not implemented** | Desired outcome creation — `create_desired_outcome()`, `record_confirmation()` (Methods 2 & 3) |
+| CRS-10.02 | — | — | **Not implemented** | All-confirmed gate signal → Cube 5 timer trigger (`check_all_confirmed()` → `gate_opened_at`) |
+| CRS-10.03 | — | — | **Not implemented** | Post-task results log (`log_post_task_results()`, `assessed_by`, `outcome_status`) |
 
 ### Cube 4 — Test Procedure (Cube 10 Simulator Reference)
 
@@ -303,6 +312,30 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube5/ -v --tb
 | `process_join_payment()` | Not implemented | No Stripe in join |
 | `create_payment_checkout()` | Not implemented | Stripe stub |
 
+### Cube 5 — CRS Traceability
+
+> **CRS Alignment Note:** Cube 5 spans coordination across CRS-09 (pipeline trigger on polling close), CRS-10 (confirmation gate / timer start for M2/M3), CRS-11 (AI pipeline trigger), and CRS-12 (time tracking / ♡ 웃 ◬ token calculation). Requirements.txt is the canonical spec. See SSSES Plan at end of this doc for full DesignMatrix alignment.
+
+| CRS | Input ID | Output ID | Status | DTM Stretch Target |
+|-----|----------|-----------|--------|-------------------|
+| CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Pipeline coordination on polling→ranking state transition |
+| CRS-09.01 | — | — | **Complete** | `orchestrate_post_polling()` fires on Cube 1 state machine transition |
+| CRS-09.02 | — | — | **Complete** | Background asyncio task pattern — does not block request lifecycle |
+| CRS-09.03 | — | — | **Partial** | Error recovery on background task failure — no dead-letter queue (SSSES Task B5) |
+| CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Partial** | Confirmation gate timer start (Methods 2 & 3) |
+| CRS-10.01 | — | — | **Not implemented** | `confirmation_gate` record creation on desired outcome all-confirmed signal from Cube 4 |
+| CRS-10.02 | — | — | **Not implemented** | Gate-opened signal → timer auto-start; `gate_opened_at` timestamp written; time tracking begins |
+| CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Complete** | AI pipeline trigger coordination |
+| CRS-11.01 | — | — | **Complete** | `trigger_ai_pipeline()` creates PipelineTrigger record + fires Cube 6 background task |
+| CRS-11.02 | — | — | **Complete** | `trigger_ranking_pipeline()` placeholder trigger created on transition |
+| CRS-11.03 | — | — | **Partial** | `trigger_cqs_scoring()` placeholder — depends on Cube 7 `top_theme2_id` (deferred) |
+| CRS-11.04 | — | — | **Partial** | Pipeline status aggregation — `has_pending`, `has_failed`, `all_completed` flags correct; no retry-after on failure (SSSES Task B5) |
+| CRS-12 | CRS-12.IN.SRS.012 | CRS-12.OUT.SRS.012 | **Complete** | Time tracking (♡ 웃 ◬ token calculation) |
+| CRS-12.01 | — | — | **Complete** | `calculate_tokens()` — ♡ = ceil(min), 웃 = jurisdiction rate/60, ◬ = 5× ♡ |
+| CRS-12.02 | — | — | **Complete** | 59-jurisdiction rate table via `hi_rates.py` (LIVE in production + sim) |
+| CRS-12.03 | — | — | **Complete** | Login auto-entry on session join — Cube 1 hook fires `create_login_time_entry()` |
+| CRS-12.04 | — | — | **Not implemented** | `process_join_payment()` — Stripe / GPay / Apple Pay integration (deferred to MVP2) |
+
 ### Cube 5 — Files
 | File | Lines | Purpose |
 |------|-------|---------|
@@ -573,16 +606,31 @@ See `SPIRAL_METRICS.md` — N=18 bidirectional (Feb 26). Cube 5 tests: 60/60 pas
 - **Circuit breaker:** Per-provider key check, automatic failover to next available
 
 ### Cube 6 — CRS Traceability
+
+> **CRS Alignment Note:** Cube 6 owns CRS-11 (live summarization + Phase B theming), CRS-12 (multi-provider AI + concurrency), CRS-13 (progressive theme reveal), and CRS-14 (CQS scoring). The two numbered broadcast gaps (CRS-11.03, CRS-11.04) are the primary SSSES Stability failures — no `summary_ready` or `themes_ready` event is sent to the dashboard. See SSSES Plan at end of this doc.
+
 | CRS | Input ID | Output ID | Status | DTM Stretch Target |
 |-----|----------|-----------|--------|-------------------|
 | CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Complete** | Real-time theme streaming |
+| CRS-11.01 | — | — | **Complete** | `summarize_single_response()` Phase A — live per-response 333→111→33 word summaries |
+| CRS-11.02 | — | — | **Complete** | Summaries stored in MongoDB `summaries` collection with `response_id` reference |
+| CRS-11.03 | — | — | **GAP — Task A5** | `summary_ready` Supabase broadcast after Phase A completes — not implemented. Dashboard falls back to client-side truncation. |
+| CRS-11.04 | — | — | **GAP — Task B4** | `themes_ready` Supabase broadcast after Phase B completes — not implemented. Dashboard has no signal to transition to results view. |
 | CRS-11.1 | — | — | **Complete** | Live 333/111/33 summarization per response |
 | CRS-11.2 | — | — | **Complete** | Parallel marble sampling (10+ concurrent agents) |
 | CRS-12 | CRS-12.IN.SRS.012 | CRS-12.OUT.SRS.012 | **Complete** | Multi-provider embedding comparison |
+| CRS-12.01 | — | — | **Complete** | Factory failover order: openai → grok → gemini (skips providers without API keys) |
+| CRS-12.02 | — | — | **Complete** | Per-provider pinned model version — `text-embedding-3-small`, `grok-embedding-beta`, `text-embedding-004` |
+| CRS-12.03 | — | — | **Partial** | Per-session `asyncio.Semaphore(10)` concurrency cap on Phase A — not yet implemented (SSSES Task A3) |
 | CRS-12.1 | — | — | **Complete** | Grok + Gemini provider implementations |
 | CRS-12.2 | — | — | **Complete** | Factory with circuit breaker failover |
 | CRS-13 | CRS-13.IN.SRS.013 | CRS-13.OUT.SRS.013 | **Complete** | Progressive theme reveal UX |
+| CRS-13.01 | — | — | **Complete** | Phase B pipeline produces Theme01 + Theme2_9/6/3 with per-response confidence scores |
+| CRS-13.02 | — | — | **Partial** | E2E verification against 5000-response dataset not yet run (SSSES Task B1) |
+| CRS-13.03 | — | — | **Partial** | Monolith parity check (marble sampling, 65% threshold, Theme01 categories) — documented, not verified (SSSES Task B2) |
 | CRS-14 | CRS-14.IN.SRS.014 | CRS-14.OUT.SRS.014 | **Partial** | CQS scoring (deferred to post-Cube 7) |
+| CRS-14.01 | — | — | **Not implemented** | `score_cqs()` — 6-metric AI scoring on responses in #1 Theme2 cluster with >95% confidence |
+| CRS-14.02 | — | — | **Not implemented** | `select_cqs_winner()` — highest composite CQS; random tie-break (seeded for determinism) |
 
 ### Cube 6 — Test Procedure (Cube 10 Simulator Reference)
 
@@ -753,7 +801,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 | `get_provider()` | **Implemented** | Factory with circuit breaker failover |
 | `score_cqs()` | Not implemented | Scores responses in #1 Theme2 cluster (6 metrics) |
 | `select_cqs_winner()` | Not implemented | Highest CQS → winner (random tie-break) |
-| `push_to_live_feed()` | Not implemented | WebSocket 33-word summary feed to moderator screen |
+| `push_to_live_feed()` | **Not implemented — GAP** | Supabase broadcast of `summary_ready` (Phase A) and `themes_ready` (Phase B) to Moderator dashboard. See SSSES Tasks A5 + B4 in CUBES_1-3.md SSSES Plan. |
 
 #### UI/UX Translation Strings (16 keys)
 | String Key | English Default | Context |
@@ -889,3 +937,239 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 #### Spiral Test Reference
 
 See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average backend duration 5,660ms (full suite including Cubes 1-6).
+
+---
+
+## SSSES Plan — Cubes 4–6: Collect → Orchestrate → Summarize → Theme
+
+> **Scope:** Full pipeline from response collection (CRS-09 / Cube 4) through gateway orchestration (CRS-11 / Cube 5) to live summarization and parallel theming (CRS-11→14 / Cube 6). Connects directly to the CRS-07→09 plan in CUBES_1-3.md — this doc covers the Cube 4-6 slice of the same pipeline.
+> **Primary driver:** The broken broadcast chain means `summary_33` and `themes_ready` never reach the Moderator dashboard. The trigger chain (Cube 1 → Cube 5 → Cube 6 Phase B) is wired; the result broadcast chain (Cube 6 → Supabase → Dashboard) is the missing link.
+
+### DesignMatrix CRS Alignment Note (Cubes 4-6)
+
+> **Discrepancy between DesignMatrix and Requirements.txt CRS numbering:**
+> | CRS | Requirements.txt | DesignMatrix (eXeL-AI_Polling_DesignMatrix.xlsx) |
+> |-----|---|---|
+> | CRS-09 | System clusters responses into AI themes (Cube 6) | Voice submission (Cube 3) |
+> | CRS-10 | User views summarized themes | System clusters via AI |
+> | CRS-11 | Response collection + aggregation (Cube 4) | AI theming / theme streaming |
+> | CRS-12 | Time tracking / token calculation (Cube 5) | Multi-provider embedding |
+>
+> **Resolution:** Requirements.txt is canonical. This file's CRS tables use Requirements.txt numbering. The DesignMatrix xlsx should be updated. All code, tests, and CI reference Requirements.txt mapping.
+
+---
+
+### SSSES Scores — Current State (2026-03-30)
+
+| Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall |
+|------|:---:|:---:|:---:|:---:|:---:|:---:|
+| **4 Collector** | 70 | 65 | 75 | 70 | 80 | **72** |
+| **5 Gateway** | 80 | 75 | 80 | 85 | 90 | **82** |
+| **6 AI Pipeline** | 70 | 40 | 55 | 55 | 70 | **58** |
+
+---
+
+### SSSES Audit (2026-03-30) — Per-Cube Findings
+
+#### Cube 4 — Response Collector
+
+| Pillar | Score | Gap | Finding |
+|--------|:---:|---|---|
+| Security | 70 | No RLS verification on `push_to_live_feed()` path | Broadcast path not implemented — no security boundary test. When CRS-09.03 is implemented, must verify only `clean_text` flows to broadcast, never raw. |
+| Stability | 65 | No retry on MongoDB write failure; M2/M3 flow absent | `store_to_mongodb()` is fire-and-forget with no retry. Methods 2 & 3 (`desired_outcome`, `confirmation_gate`) not implemented — partial sessions leave no outcome record. |
+| Scalability | 75 | No backpressure signal to ingestion | Redis presence tracking implemented; pagination correct. No cap on simultaneous MongoDB writes at burst load. No Supabase broadcast from Cube 4 itself. |
+| Efficiency | 70 | Dual write is correct but no batching | Single-document MongoDB writes per response (not batched). At 1000+ responses, 1000 individual writes where batch would reduce overhead. |
+| Succinctness | 80 | 3 unimplemented stubs inflate function table | `create_desired_outcome()`, `record_confirmation()`, `log_post_task_results()` are stubs with no body — clean but inflated LOC count. |
+
+#### Cube 5 — Gateway / Orchestrator
+
+| Pillar | Score | Gap | Finding |
+|--------|:---:|---|---|
+| Security | 80 | Pipeline trigger status not row-level gated | `GET /pipeline/status/{session_id}` endpoint returns trigger details — should verify requesting user is Moderator for that session (not just authenticated). |
+| Stability | 75 | No dead-letter queue; no trigger retry backoff | `asyncio.create_task(run_pipeline())` — if Cube 6 raises, the exception is absorbed. `PipelineTrigger` status can be stuck at `in_progress` forever. No automatic re-trigger. Task B5 covers recovery. |
+| Scalability | 80 | Single `asyncio.create_task()` per session; no queue depth limit | Works at current scale. At 100+ simultaneous sessions closing polling, 100 concurrent Phase B pipelines fire simultaneously. No back-pressure or queue depth guard. |
+| Efficiency | 85 | Token calc is fast; trigger adds minimal overhead | `calculate_tokens()` is pure math + dict lookup — sub-millisecond. Orchestration overhead is a single Postgres insert + one `asyncio.create_task()`. No unnecessary polling. |
+| Succinctness | 90 | Tight, clean separation; `process_join_payment()` stub | Time tracking and orchestrator are cleanly separated services. Only blemish: `process_join_payment()` + `create_payment_checkout()` are empty stubs that should be removed or flagged with TODO. |
+
+#### Cube 6 — AI Theme Pipeline
+
+| Pillar | Score | Gap | Finding |
+|--------|:---:|---|---|
+| Security | 70 | Voice path PII gate unverified | Text path verified (`clean_text` → `summarize_single_response()`). Voice path (Cube 3 → Cube 2 pipeline) uses same `clean_text` field but no structured log confirms PII scrub at entry to Phase A. Task A7 adds assertion. |
+| Stability | 40 | No broadcast; no retry; Phase B unverified E2E | Three compounding gaps: (1) `summary_ready` never broadcast (CRS-11.03); (2) Phase A has no retry on AI failure; (3) Phase B has never been run against a live 5000-response dataset. Lowest Stability score in Cubes 1-6. |
+| Scalability | 55 | No concurrency cap on Phase A; Phase B unverified at scale | 100 concurrent submits → 100 uncapped AI calls via `asyncio.create_task()`. Phase B `asyncio.gather()` exists but batch classification at 5000 responses unconfirmed. Task A3 (Semaphore) + Task B3 (parallel verify) fix this. |
+| Efficiency | 55 | 3 sequential AI round-trips; fallback shown instead of AI output | `summarize_single_response()` makes 3 sequential API calls. Single structured JSON prompt would halve round-trips (Task A1). No broadcast = dashboard always shows client-side truncation fallback. |
+| Succinctness | 70 | `push_to_live_feed()` is an empty stub; `score_cqs()` + `select_cqs_winner()` not implemented | 3 documented functions with no implementation. `push_to_live_feed()` should either be implemented (Task A5) or removed and replaced by the direct `supabase_broadcast.py` call inside `summarize_single_response()`. |
+
+---
+
+### Gap Analysis — Cubes 4–6
+
+#### GAP C4-1 — No Live Broadcast from Cube 4 *(Stability −10, Efficiency −10)*
+**Root cause:** `aggregate_response()` in Cube 4 writes to Postgres + MongoDB but emits no Supabase broadcast. The Cube 2 side (`emit_submission_event()`) is the broadcast origin — Cube 4 is a passive store.
+**Fix:** CRS-09.03 is informational — the broadcast fix is in Cube 6 Phase A (Task A5). Cube 4 does not need its own broadcast, but it must confirm aggregation succeeds before Cube 6 can safely reference `response_id` in its broadcast.
+
+#### GAP C4-2 — Methods 2 & 3 Confirmation Flow Missing *(Stability −20)*
+**Root cause:** `create_desired_outcome()`, `record_confirmation()`, `check_all_confirmed()`, and `log_post_task_results()` are all stubs. The `desired_outcomes` and `presence_tracking` tables exist but the confirmation gate signal to Cube 5 is never sent.
+**Fix (CRS-10.01–10.03):** Implement all four functions. Wire `check_all_confirmed()` result to fire `gate_opened_at` update and send signal to Cube 5 `confirmation_gate` trigger.
+
+#### GAP C5-1 — Pipeline Error Propagation Broken *(Stability −15)*
+**Root cause:** `trigger_ai_pipeline()` calls `asyncio.create_task(run_pipeline(...))`. If `run_pipeline()` raises inside the background task, the exception is swallowed. `PipelineTrigger.status` stays `in_progress` until manually reset.
+**Fix (Task B5 / CRS-09.03):** Wrap `run_pipeline()` in a try/except inside the background task coroutine. On failure: call `update_pipeline_status(session, trigger_id, "failed", error_message=str(e))`. Add `GET /api/v1/sessions/{id}/ai/status` endpoint for Moderator to see stage + error. Allow idempotent re-trigger.
+
+#### GAP C5-2 — Pipeline Status Route Not Moderator-Scoped *(Security −10)*
+**Root cause:** `GET /api/v1/pipeline/{session_id}/status` uses `get_current_user` but does not check that the requesting user is the Moderator for that specific session. Any authenticated user can view any session's pipeline trigger metadata.
+**Fix:** Add `require_moderator_for_session(session_id, current_user)` guard to pipeline status and retry routes.
+
+#### GAP C6-1 — Phase A Broadcast Missing — Primary Pipeline Break *(Stability −30, Efficiency −25)*
+**Root cause:** `summarize_single_response()` completes and stores in MongoDB — then returns silently. No event is broadcast. The dashboard has no `summary_ready` listener. This is the same root cause as GAP 1 in CUBES_1-3.md.
+**Fix (Tasks A5 + A6):** See CUBES_1-3.md SSSES Plan. Short summary: add `core/supabase_broadcast.py` helper, call after Phase A stores, add `summary_ready` listener in `dashboard/page.tsx`.
+
+#### GAP C6-2 — Phase B Broadcast Missing *(Stability −10)*
+**Root cause:** `run_pipeline()` completes and returns results — but no `themes_ready` event is broadcast. The dashboard does not know when to transition from "Processing..." to the results view.
+**Fix (Task B4):** After Phase B stores all theme records + assignments, broadcast `{"event": "themes_ready", "session_id": "...", "theme_count": N}` via `supabase_broadcast.py`. Gate: only fires on full success.
+
+#### GAP C6-3 — Phase B E2E Verification Absent *(Stability −10)*
+**Root cause:** Phase B code is implemented but has never been run against a real 5000-response dataset with live AI providers. No confirmed output schema match against `Updated_Web_Results_With_Themes_And_Summaries_v03.csv`.
+**Fix (Task B1 + B2):** Load `Web_Results_5000.csv` into a test session. Run `POST /ai/run`. Verify Postgres `themes` table, MongoDB per-response theme fields, and `replay_hash` all populate correctly. Cross-check marble sampling and confidence threshold against `eXeL-AI_Polling_v04.2.py` monolith.
+
+---
+
+### Backward Audit — Cube 6 → Cube 1 (2026-03-30)
+
+Tracing each inter-cube link backwards from Cube 6 output to Cube 1 input to find integration gaps and broken wires.
+
+#### Link 6 → 5: Phase B Trigger Chain
+```
+Cube 1 state machine → _transition_and_return() → orchestrate_post_polling() [Cube 5]
+    → trigger_ai_pipeline() → asyncio.create_task(run_pipeline()) [Cube 6 Phase B]
+```
+**Status: WIRED — but fragile.**
+- `_transition_and_return()` in Cube 1's session router directly imports and calls Cube 5 service — tight coupling. Acceptable for MVP; decouple to event bus for production.
+- `asyncio.create_task()` fires and forgets. No error propagates to `PipelineTrigger.status` on failure. See GAP C5-1.
+- `trigger_metadata["total_responses"]` is set by Cube 5 from a count query at transition time — not from Cube 4's authoritative `get_response_count()`. If responses arrive during the transition window (race condition), count may be off by 1–3.
+
+#### Link 6 → 4: Response Fetch for Phase B
+```
+run_pipeline() [Cube 6] → get_response_set() [Cube 4] → Postgres JOIN (ResponseMeta + Questions + Participants)
+```
+**Status: WIRED — with unverified PII assumption.**
+- Cube 6 receives `final_text` from Cube 4's collected response set and passes it directly to embedding + theme classification.
+- No check that `pii_scrubbed = True` on each ResponseMeta record before passing to AI. If a response entered via a path that bypassed Cube 2's PII pipeline (e.g., direct DB insert in dev), raw PII could reach the AI provider.
+- **Recommendation:** Add `assert response.pii_scrubbed is True` guard (or filter) at top of `run_pipeline()`. Log and skip any response where flag is False.
+
+#### Link 6 → 3 / 6 → 2: Phase A Fire-and-Forget Path
+```
+Cube 2 submit_text_response() → asyncio.create_task(summarize_single_response())
+Cube 3 voice transcript → Cube 2 pipeline → same path
+```
+**Status: TEXT PATH — WIRED. VOICE PATH — UNVERIFIED.**
+- Text path: `clean_text` is passed to Phase A after PII scrub in `submit_text_response()`. Confirmed in code review.
+- Voice path: Cube 3 transcripts flow through Cube 2's `submit_text_response()` after being processed through the text pipeline. The `summarize_single_response()` call would fire — but there is no test confirming this end-to-end.
+- **Task A7** adds a log assertion at Phase A entry for both paths and a test fixture with injected PII confirming it never reaches the AI provider.
+
+#### Link 5 → 4: Collected Response Count for Pipeline Metadata
+```
+orchestrate_post_polling() [Cube 5] → session.query(ResponseMeta).count()
+```
+**Status: PARTIALLY WIRED — stale count risk.**
+- Cube 5 queries the DB for `total_responses` at transition time and stores in `trigger_metadata`.
+- This count is used for observability and pipeline metadata — not for actually fetching responses (Cube 6 re-queries via Cube 4).
+- Race window: responses submitted in the ~200ms between `polling → ranking` transition and the `asyncio.create_task()` call may not be included in `total_responses` metadata.
+- **Low risk for MVP** (metadata only). Flag for production: use Cube 4's `get_response_count()` result instead of a separate query.
+
+#### Link 5 → 1: Session State Machine Hook
+```
+Cube 1 _transition_and_return() imports cube5_gateway.service.orchestrate_post_polling
+```
+**Status: WIRED — direct import creates tight coupling.**
+- Works correctly. Direct import means Cube 5 service must be importable from Cube 1 router at startup.
+- **Recommendation for production:** Replace direct import with an event bus (Redis pub/sub) so Cube 1 fires a `session_state_changed` event and Cube 5 subscribes. Decouples the cubes; enables horizontal scaling where Cube 1 and Cube 5 may run in different workers.
+- **For MVP:** Current direct-import pattern is acceptable. Document as tech debt.
+
+#### Link 4 → 2 / 4 → 3: Mixed Text + Voice Collection
+```
+Cube 2 / Cube 3 → ResponseMeta (source_type: text/voice) → Cube 4 aggregate_response()
+```
+**Status: SCHEMA WIRED — combined path untested.**
+- `aggregate_response()` uses `source_type` enum to handle both text and voice. The JOIN logic handles both paths.
+- No test covers a session where both text and voice responses exist (mixed session). Aggregation correctness for mixed sessions is assumed but unverified.
+- **Recommendation:** Add a mixed-session fixture (14 responses: 10 text + 4 voice) to Cube 4 E2E tests.
+
+#### Link 4 → Frontend: Live Feed Push
+```
+Cube 4 aggregate_response() → [NO BROADCAST] → Dashboard
+```
+**Status: BROKEN — no Cube 4 → Dashboard path.**
+- The `new_response` broadcast is fired by the participant client (session-view.tsx) peer-to-peer, not by the backend. This is by design for latency.
+- The `summary_ready` broadcast must come from Cube 6 Phase A via backend (Task A5) — Cube 4 is not responsible for this.
+- **No action required** for Cube 4 specifically. The live feed gap is owned by Cube 6 (Tasks A5, B4).
+
+---
+
+### Backward Audit Summary
+
+| Link | Direction | Status | Action Required |
+|------|-----------|--------|----------------|
+| Cube 6 Phase B → Cube 5 trigger | Backward | WIRED but fragile | GAP C5-1: add error propagation + dead-letter |
+| Cube 6 Phase B → Cube 4 response fetch | Backward | WIRED, PII unverified | Add `pii_scrubbed` guard in `run_pipeline()` |
+| Cube 6 Phase A → Cube 2 text path | Backward | WIRED | Confirmed clean |
+| Cube 6 Phase A → Cube 3 voice path | Backward | UNVERIFIED | Task A7: add log assertion + test |
+| Cube 6 → Dashboard (broadcast) | Backward | **BROKEN** | Tasks A5 (Phase A) + B4 (Phase B) |
+| Cube 5 orchestrator → Cube 1 state hook | Backward | WIRED, tight coupling | Document as tech debt; decouple to event bus post-MVP |
+| Cube 5 pipeline status route | Backward | SECURITY GAP | GAP C5-2: add Moderator-scoped row guard |
+| Cube 4 → Cube 5 all-confirmed signal | Backward | NOT IMPLEMENTED | CRS-10.01–10.03: M2/M3 confirmation gate |
+| Cube 4 → Cube 2/3 mixed session collect | Backward | UNTESTED | Add mixed-session fixture to Cube 4 E2E tests |
+
+---
+
+### Integration Tasks — Cubes 4–6
+
+> Tasks A1–A7 and B1–B5 are defined in CUBES_1-3.md SSSES Plan. The tasks below are Cubes 4–6 specific additions.
+
+| Task | File | Change | SSSES Impact |
+|------|------|--------|---|
+| **C4-1** Mixed-session test fixture | `tests/cube4/test_e2e_flows.py` | Add E2E test with 10 text + 4 voice responses in same session. Verify `aggregate_response()` returns correct `source_type` breakdown and total count. | Stability +10 |
+| **C4-2** Confirm aggregation before Phase A broadcast | `cube4_collector/service.py` | Return aggregated `response_id` from `aggregate_response()` — used by Cube 6 Task A5 to reference the correct Postgres record in the `summary_ready` broadcast payload. | Stability +5 |
+| **C5-1** Phase B error propagation | `cube5_gateway/service.py`, `cube6_ai/service.py` | Wrap `run_pipeline()` in try/except inside background task. On exception: call `update_pipeline_status(session, trigger_id, "failed", error_message=str(e))`. See Task B5 in CUBES_1-3.md. | Stability +15 |
+| **C5-2** Moderator-scoped pipeline status route | `cube5_gateway/router.py` | Add `require_moderator_for_session(session_id, current_user)` guard to `GET /pipeline/{session_id}/status` and `POST /pipeline/{session_id}/retry`. | Security +10 |
+| **C6-1** PII guard in `run_pipeline()` | `cube6_ai/service.py` | At top of `run_pipeline()`, filter `collected_responses` to only include records where `pii_scrubbed = True`. Log count of filtered-out records with `cube6.phase_b.pii_filtered` metric. | Security +15 |
+| **C6-2** `trigger_metadata` count from Cube 4 | `cube5_gateway/service.py` | Replace inline `session.query(ResponseMeta).count()` with call to Cube 4's `get_response_count(session_id)` at transition time. Eliminates race-window stale count. | Stability +5, Succinctness +5 |
+
+---
+
+### Projected SSSES Scores After All Tasks (Cubes 4–6)
+
+| Cube | Pillar | Before | After | Key Tasks |
+|------|--------|:---:|:---:|---|
+| **4 Collector** | Security | 70 | 85 | C4-1, C4-2 |
+| | Stability | 65 | 85 | C4-1, C4-2, CRS-10.01–10.03 |
+| | Scalability | 75 | 85 | C4-2 (aggregation completeness) |
+| | Efficiency | 70 | 80 | C4-2 (reduces redundant queries) |
+| | Succinctness | 80 | 85 | Remove unimplemented stubs once implemented |
+| | **Overall** | **72** | **84** | |
+| **5 Gateway** | Security | 80 | 90 | C5-2 |
+| | Stability | 75 | 90 | C5-1, B5 |
+| | Scalability | 80 | 85 | C6-2 (count accuracy) |
+| | Efficiency | 85 | 90 | C6-2 (remove redundant query) |
+| | Succinctness | 90 | 95 | Remove empty payment stubs |
+| | **Overall** | **82** | **90** | |
+| **6 AI Pipeline** | Security | 70 | 95 | A7, C6-1 |
+| | Stability | 40 | 95 | A2, A5, B1, B2, B4, B5, C5-1 |
+| | Scalability | 55 | 90 | A3, B3 |
+| | Efficiency | 55 | 95 | A1, A5, A6 |
+| | Succinctness | 70 | 90 | A4, implement `push_to_live_feed()` via A5 |
+| | **Overall** | **58** | **93** | |
+
+---
+
+### Execution Order (Cubes 4–6)
+
+```
+C6-1 (PII guard) → A7 (PII log assertion) → A1 (single-prompt) → A2 (retry) → A3 (semaphore)
+→ A4 (schema) → A5 (broadcast) → A6 (dashboard listener)
+→ C4-2 (aggregate response_id) → C5-1 (error propagation) → C5-2 (Moderator route guard)
+→ B2 (parity check) → B1 (E2E verify) → B3 (parallel batch) → B4 (themes_ready broadcast) → B5 (recovery)
+→ C4-1 (mixed session test) → C6-2 (count from Cube 4)
+CRS-10.01–10.03 (M2/M3 confirmation gate): parallel track — independent of broadcast chain
+```

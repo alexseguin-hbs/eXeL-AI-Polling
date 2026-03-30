@@ -74,19 +74,47 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall |
 |------|----------|-----------|-------------|------------|--------------|---------|
 | 1 Session | 100 | 100 | 100 | 100 | 100 | **100** |
-| 2 Text | — | — | — | — | — | ~85 |
-| 3 Voice | — | — | — | — | — | ~85 |
-| 4 Collector | — | — | — | — | — | ~80 |
-| 5 Gateway | — | — | — | — | — | ~90 |
-| 6 AI Pipeline | — | — | — | — | — | ~85 |
+| 2 Text | 75 | 40 | 50 | 55 | 65 | **57** |
+| 3 Voice | 70 | 40 | 50 | 55 | 65 | **56** |
+| 4 Collector | 70 | 65 | 75 | 70 | 80 | **72** |
+| 5 Gateway | 80 | 75 | 80 | 85 | 90 | **82** |
+| 6 AI Pipeline | 70 | 40 | 55 | 55 | 70 | **58** |
 | 7 Ranking | — | — | — | — | — | stub |
 | 8 Tokens | — | — | — | — | — | partial |
 | 9 Reports | — | — | — | — | — | partial |
 | 10 Simulation | — | — | — | — | — | Easter Egg |
 
+> Scores for Cubes 2–6 established in SSSES audit on 2026-03-30. Full per-pillar rationale in `docs/CUBES_1-3.md` (Cubes 2-3) and `docs/CUBES_4-6.md` (Cubes 4-6).
+
 ## Known SSSES Gaps
 
 None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
+
+### Active Gaps — Cubes 2–6 (audited 2026-03-30)
+
+**Critical path (Stability — Cubes 2, 3, 6):**
+- `summary_ready` Supabase broadcast never sent after Cube 6 Phase A — dashboard shows client-side truncation fallback instead of AI summary (Tasks A5 + A6)
+- `themes_ready` Supabase broadcast never sent after Phase B — dashboard has no signal to transition to results view (Task B4)
+- Phase A has no retry on AI failure — silent log warning only (Task A2)
+- Phase B has never been run E2E against a live 5000-response dataset (Task B1)
+
+**Security — Cubes 2, 3, 6:**
+- Voice path (Cube 3 → Cube 2 → Cube 6 Phase A) PII gate not verified with structured log assertion (Task A7)
+- `run_pipeline()` (Cube 6 Phase B) does not filter responses by `pii_scrubbed` flag (Task C6-1)
+- Pipeline status route (Cube 5) not Moderator-row-scoped — any authenticated user can read any session's pipeline metadata (Task C5-2)
+
+**Scalability — Cubes 2, 3, 6:**
+- No `asyncio.Semaphore(10)` concurrency cap on Phase A — 100 concurrent submits spawn 100 uncapped AI calls (Task A3)
+- Phase B parallel batch classification unverified at 5000-response scale (Task B3)
+
+**Efficiency — Cubes 2, 3, 6:**
+- `summarize_single_response()` makes 3 sequential AI round-trips; single structured JSON prompt would halve round-trips (Task A1)
+
+**Stability — Cube 5:**
+- Background task failure on `asyncio.create_task(run_pipeline())` is silently absorbed — `PipelineTrigger.status` can be stuck at `in_progress` forever (Task C5-1 / Task B5)
+
+**Implementation gap — Cube 4:**
+- Methods 2 & 3 confirmation gate not implemented (`create_desired_outcome()`, `record_confirmation()`, `check_all_confirmed()` — CRS-10.01–10.03)
 
 **Resolved gaps (2026-03-27):**
 - **Efficiency:** 1.5s `checkStatus` poll now suspends while Broadcast is healthy (`broadcastHealthy` ref, 8s window). Poll only fires as fallback when Broadcast goes silent.
