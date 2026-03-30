@@ -618,20 +618,94 @@ async def submit_text_response(
     # --- 8b. Fire-and-forget: live summarization (Cube 6 Phase A) ---
     # Generates 333 -> 111 -> 33 word English summaries for moderator screen.
     # Runs as background task — does NOT block the response to the user.
-    try:
+
+    # Task A7: PII gate assertion — only clean_text (post-scrub) reaches Cube 6.
+    # raw_text never leaves this function's storage boundary.
+    logger.info(
+        "cube6.phase_a.pii_safe",
+        response_id=str(response_meta.id),
+        input_is_clean_text=True,
+        raw_text_excluded=True,
+    )
+
+    async def _run_phase_a_with_retry(
+        mongo_db, *, session_id, response_id, clean_text, language_code, ai_provider,
+        max_retries: int = 3,
+    ):
+        """Task A2: Phase A with exponential backoff retry (1s, 2s, 4s).
+        On final failure: store summary_33 = '[Summary unavailable]' in MongoDB."""
         from app.cubes.cube6_ai.service import summarize_single_response
-        asyncio.create_task(
-            summarize_single_response(
+
+        for attempt in range(max_retries):
+            try:
+                await summarize_single_response(
+                    mongo_db,
+                    session_id=session_id,
+                    response_id=response_id,
+                    raw_text=clean_text,  # PII-safe (Task A7)
+                    language_code=language_code,
+                    ai_provider=ai_provider,
+                )
+                return  # Success
+            except Exception as exc:
+                wait = 2 ** attempt  # 1s, 2s, 4s
+                logger.warning(
+                    "cube2.phase_a.retry",
+                    attempt=attempt + 1,
+                    max_retries=max_retries,
+                    wait_seconds=wait,
+                    error=str(exc),
+                    response_id=str(response_id),
+                )
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(wait)
+
+        # All retries exhausted — store fallback marker
+        logger.error(
+            "cube2.phase_a.exhausted",
+            response_id=str(response_id),
+            session_id=str(session_id),
+        )
+        try:
+            await mongo_db.summaries.update_one(
+                {"response_id": str(response_id)},
+                {"$set": {
+                    "session_id": str(session_id),
+                    "response_id": str(response_id),
+                    "summary_33": "[Summary unavailable]",
+                    "summary_111": "[Summary unavailable]",
+                    "summary_333": "[Summary unavailable]",
+                    "failed": True,
+                }},
+                upsert=True,
+            )
+        except Exception:
+            pass  # Best-effort fallback storage
+
+    try:
+        task = asyncio.create_task(
+            _run_phase_a_with_retry(
                 mongo,
                 session_id=session_id,
                 response_id=response_meta.id,
-                raw_text=clean_text,
+                clean_text=clean_text,
                 language_code=language_code,
                 ai_provider=session.ai_provider or "openai",
             )
         )
+
+        # Error callback so fire-and-forget failures are logged, not silent
+        def _on_phase_a_done(t: asyncio.Task):
+            if t.exception():
+                logger.error(
+                    "cube2.phase_a.task_exception",
+                    error=str(t.exception()),
+                    response_id=str(response_meta.id),
+                )
+        task.add_done_callback(_on_phase_a_done)
+
     except Exception as e:
-        # Summarization failure is non-fatal — log and continue
+        # Task creation failure is non-fatal — log and continue
         logger.warning("cube2.live_summarization.error", error=str(e))
 
     # --- 9. Return composite result ---

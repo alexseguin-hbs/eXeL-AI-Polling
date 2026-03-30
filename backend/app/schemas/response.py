@@ -50,6 +50,10 @@ class ResponseBase(BaseModel):
 class ResponseRead(ResponseBase):
     clean_text: str | None = None
 
+    # CRS-09.07 / Task A4: AI-generated 33-word English summary from Cube 6 Phase A.
+    # None at submit time (Phase A is async); real value arrives via summary_ready broadcast.
+    summary_33: str | None = None
+
     # CRS-08: Integrity hash
     response_hash: str | None = None
 
