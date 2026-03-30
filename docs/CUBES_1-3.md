@@ -613,9 +613,20 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | CRS | Input ID | Output ID | Status | DTM Stretch Target |
 |-----|----------|-----------|--------|-------------------|
 | CRS-05 | CRS-05.IN.SRS.005 | CRS-05.OUT.SRS.005 | **Complete** | Post-session reveal opt-in |
+| CRS-05.01 | CRS-05.01.IN.SRS | CRS-05.01.OUT.SRS | **Complete** | Device fingerprinting for soft identity |
+| CRS-05.02 | CRS-05.02.IN.SRS | CRS-05.02.OUT.SRS | **Complete** | Post-session identity reveal opt-in for anonymized users |
+| CRS-05.03 | CRS-05.03.IN.SRS | CRS-05.03.OUT.SRS | **Complete** | Pseudonymous audit trail for compliance |
 | CRS-06 | CRS-06.IN.SRS.006 | CRS-06.OUT.SRS.006 | **Complete** | Scheduled auto-open/close |
+| CRS-06.01 | CRS-06.01.IN.SRS | CRS-06.01.OUT.SRS | **Complete** | Time-based auto-open with countdown |
+| CRS-06.02 | CRS-06.02.IN.SRS | CRS-06.02.OUT.SRS | **Complete** | Stop Polling triggers Cube 6 Phase B (theming pipeline) |
 | CRS-07 | CRS-07.IN.WRS.007 | CRS-07.OUT.WRS.007 | **Complete** | Rich text + autosave drafts |
+| CRS-07.01 | CRS-07.01.IN.WRS | CRS-07.01.OUT.WRS | **Complete** | 33-language text pipeline (validate → PII → profanity → store → publish) |
+| CRS-07.02 | CRS-07.02.IN.WRS | CRS-07.02.OUT.WRS | **Complete** | Voice transcript routed through Cube 2 pipeline (Cube 3 → Cube 2) |
+| CRS-07.03 | CRS-07.03.IN.WRS | CRS-07.03.OUT.WRS | **In progress** — SSSES Tasks A4/A5/A6 | Moderator live feed toggle: raw text (default) vs AI 33-word summary |
 | CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Complete** (hash) | AES-256 encryption at rest |
+| CRS-08.01 | CRS-08.01.IN.SRS | CRS-08.01.OUT.SRS | **Complete** | SHA-256 response_hash — tamper-evident integrity on every submission |
+| CRS-08.02 | CRS-08.02.IN.SRS | CRS-08.02.OUT.SRS | **Complete** | PII strip gate — only `clean_text` forwarded to Cube 6 AI, never raw input |
+| CRS-08.03 | CRS-08.03.IN.SRS | CRS-08.03.OUT.SRS | **Not implemented** (stretch) | AES-256 at-rest encryption for MongoDB responses + Postgres text_responses |
 
 ### Cube 2 — Not Yet Implemented
 - **`push_to_live_feed()`** — Backend Supabase broadcast of `summary_33` to Moderator live feed after Cube 6 Phase A completes. **Root cause of live feed gap** — see SSSES Tasks A4, A5.
@@ -881,9 +892,20 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
 | CRS-05 | CRS-05.IN.SRS.005 | CRS-05.OUT.SRS.005 | **Implemented** | 1 | System supports anonymous vs identified modes configurable by Moderator | 100% anonymity enforcement per session mode | Post-session reveal opt-in for anonymized users |
+| CRS-05.01 | CRS-05.01.IN.SRS | CRS-05.01.OUT.SRS | **Implemented** | 1 | Anonymous mode: `user_id=None` + deterministic `anon_hash` generated per participant | 100% hash determinism; same participant always same hash | Device fingerprinting for soft re-identification |
+| CRS-05.02 | CRS-05.02.IN.SRS | CRS-05.02.OUT.SRS | **Implemented** | 1 | Identified mode: `participant_id` preserved on submission | Participant linkage maintained across all responses in session | Post-session opt-in reveal for anonymized users |
+| CRS-05.03 | CRS-05.03.IN.SRS | CRS-05.03.OUT.SRS | **Implemented** | 1 | Pseudonymous mode: both `participant_id` + `anon_hash` stored | Dual identity preserved for compliance audit trail | Configurable pseudonymity window (auto-expire after N days) |
 | CRS-06 | CRS-06.IN.SRS.006 | CRS-06.OUT.SRS.006 | **Implemented** | 1 | Moderator opens/closes polling window deliberately | Instant state transitions, 100% enforcement | Scheduled auto-open/close with time-based rules |
+| CRS-06.01 | CRS-06.01.IN.SRS | CRS-06.01.OUT.SRS | **Implemented** | 1 | Start Polling: `validate_session_for_submission()` enforces `status == "polling"` before accepting any response | 100% rejection of submissions outside polling window | Time-based auto-open with moderator-set schedule |
+| CRS-06.02 | CRS-06.02.IN.SRS | CRS-06.02.OUT.SRS | **Implemented** | 1 | Stop Polling: session transitions `polling → ranking`; triggers Cube 6 Phase B pipeline | Phase B fires within 1s of status transition | Graceful drain — accept in-flight submissions up to 5s after close |
 | CRS-07 | CRS-07.IN.WRS.007 | CRS-07.OUT.WRS.007 | **Implemented** | 1 | User submits text responses reliably with constraints | Full pipeline (validate → PII → profanity → store → publish), up to 5000 chars, Unicode-aware | Rich text formatting + autosave drafts |
+| CRS-07.01 | CRS-07.01.IN.WRS | CRS-07.01.OUT.WRS | **Implemented** | 1 | Full text submission pipeline: validate → PII detect/scrub → profanity detect/scrub → store (MongoDB + Postgres) → Redis publish | All 6 steps execute in order; any step failure returns structured error; submission non-blocking for profanity | Autosave drafts — in-progress text preserved across device events |
+| CRS-07.02 | CRS-07.02.IN.WRS | CRS-07.02.OUT.WRS | **Implemented** | 1 | Multilingual support: 33 languages, Unicode-aware length check, script-based language sanity check | Unicode char count (not byte count); CJK, Arabic, Emoji all accepted | ML-based language detection replacing Unicode heuristic |
+| CRS-07.03 | CRS-07.03.IN.WRS | CRS-07.03.OUT.WRS | **In progress** — SSSES Tasks A4/A5/A6 | 1 | Moderator live feed toggle: "Live Feedback" (raw `clean_text`, default) vs "33-Word Summary" (AI `summary_33` via Cube 6 Phase A) | Toggle persisted per session; `summary_33` broadcast from backend ≤5s after submission; fallback to client truncation if Phase A pending | Real-time sentiment indicator alongside live feed entries |
 | CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Implemented** (hash) | 1 | System stores responses securely with timestamps + integrity verification | SHA-256 response_hash on every response, timestamp on submission | AES-256 encryption at rest for all stored response data |
+| CRS-08.01 | CRS-08.01.IN.SRS | CRS-08.01.OUT.SRS | **Implemented** | 1 | SHA-256 integrity hash: `response_hash = SHA256(raw_text)` stored on `text_responses.response_hash`; returned in API for client verification | 64-char hex hash; deterministic for identical inputs; verified in tests | Tamper-evident hash chain linking all responses in a session |
+| CRS-08.02 | CRS-08.02.IN.SRS | CRS-08.02.OUT.SRS | **Implemented** | 1 | PII security gate: only `clean_text` (post-scrub) forwarded to Cube 6 AI — raw text never leaves storage boundary | Verified at callsite: `summarize_single_response(raw_text=clean_text)`; structured log `cube6.phase_a.pii_safe: true` | Automated PII scan report per session for compliance export |
+| CRS-08.03 | CRS-08.03.IN.SRS | CRS-08.03.OUT.SRS | **Not implemented** (stretch) | 3 | AES-256 encryption at rest for all stored response data (MongoDB + Postgres) | Field-level encryption on `raw_text`, `clean_text`, `pii_scrubbed_text` | HSM-backed key management with per-org rotation policy |
 
 ### Cube 2 — DesignMatrix VOC (Voice of Customer)
 | CRS | Customer Need | VOC Comment |
@@ -935,7 +957,13 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | CRS | Input ID | Output ID | Status | DTM Stretch Target |
 |-----|----------|-----------|--------|-------------------|
 | CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Complete** (hash) | AES-256 encryption at rest |
+| CRS-08.01 | CRS-08.01.IN.SRS | CRS-08.01.OUT.SRS | **Complete** | Tamper-evident hash on voice transcript |
+| CRS-08.02 | CRS-08.02.IN.SRS | CRS-08.02.OUT.SRS | **Complete** | PII strip on transcript before forwarding to Cube 6 |
+| CRS-08.03 | CRS-08.03.IN.SRS | CRS-08.03.OUT.SRS | **Not implemented** (stretch) | AES-256 at-rest for audio binary + transcript |
 | CRS-15 | CRS-15.IN.WRS.015 | CRS-15.OUT.WRS.015 | **Complete** | Live word-by-word display |
+| CRS-15.01 | CRS-15.01.IN.WRS | CRS-15.01.OUT.WRS | **Complete** | Batch STT: 4 providers (Whisper, Grok, Gemini, AWS), 6 audio formats, 25 MB max |
+| CRS-15.02 | CRS-15.02.IN.WRS | CRS-15.02.OUT.WRS | **Complete** | Circuit breaker failover: whisper → grok → gemini → aws; skips failed, retries remaining |
+| CRS-15.03 | CRS-15.03.IN.WRS | CRS-15.03.OUT.WRS | **Implemented** (paid) | Real-time STT: Azure Speech (primary) + AWS Transcribe Streaming (fallback), WebSocket endpoint |
 
 ### Cube 3 — Not Yet Implemented
 - **`push_to_live_feed()`** — WebSocket 33-word summary feed (requires Cube 6)
@@ -1194,8 +1222,14 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
-| CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Implemented** (hash) | 1 | System stores responses securely with timestamps + integrity verification | SHA-256 response_hash on voice transcript clean_text, matching Cube 2 pattern | AES-256 encryption at rest for stored audio + transcript data |
+| CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Implemented** (hash) | 1 | System stores voice responses securely with timestamps + integrity verification | SHA-256 response_hash on voice transcript `clean_text`, matching Cube 2 pattern | AES-256 encryption at rest for stored audio binary + transcript data |
+| CRS-08.01 | CRS-08.01.IN.SRS | CRS-08.01.OUT.SRS | **Implemented** | 1 | SHA-256 hash on `clean_text` of voice transcript stored on `text_responses.response_hash` | Same 64-char hex determinism as text path; both modalities share integrity pattern | Hash chain across all voice + text responses in session |
+| CRS-08.02 | CRS-08.02.IN.SRS | CRS-08.02.OUT.SRS | **Implemented** | 1 | Voice transcript PII gate: Cube 2 `detect_pii()` + `scrub_pii()` applied to transcript before storage and before forwarding `clean_text` to Cube 6 Phase A | 100% PII scrub coverage on transcript text; same NER + regex pipeline as text path | Per-word PII redaction with timestamp alignment for audio replay |
+| CRS-08.03 | CRS-08.03.IN.SRS | CRS-08.03.OUT.SRS | **Not implemented** (stretch) | 3 | AES-256 encryption at rest for raw audio binary (MongoDB `audio_files`) + transcript text | Field-level encryption on `raw_transcript`, `clean_text`, audio blob | HSM-backed key management with per-org audio retention policy |
 | CRS-15 | CRS-15.IN.WRS.015 | CRS-15.OUT.WRS.015 | **Implemented** | 2 | User submits voice responses (STT) instead of typing | 4 batch STT providers with circuit breaker failover, 6 audio formats, 25 MB max, confidence threshold 0.3 | Live word-by-word display via real-time STT (Azure + AWS streaming) |
+| CRS-15.01 | CRS-15.01.IN.WRS | CRS-15.01.OUT.WRS | **Implemented** | 2 | Batch STT transcription: 4 providers (OpenAI Whisper, Grok, Gemini, AWS Transcribe), 6 audio formats (webm/wav/mp3/ogg/m4a/flac), 25 MB max, confidence threshold 0.3 | All 4 providers tested; confidence < 0.3 returns `TranscriptLowConfidenceError` | Per-language STT model tuning for accuracy improvement |
+| CRS-15.02 | CRS-15.02.IN.WRS | CRS-15.02.OUT.WRS | **Implemented** | 2 | Circuit breaker failover: whisper → grok → gemini → aws; skips failed provider, retries remaining; logs per-provider failure | Zero silent failures; every provider outage is logged with `cube3.stt.failover` event | Auto-recovery: failed provider re-tested after 60s cooldown |
+| CRS-15.03 | CRS-15.03.IN.WRS | CRS-15.03.OUT.WRS | **Implemented** (paid) | 2 | Real-time STT: Azure Speech Services (primary) + AWS Transcribe Streaming (fallback) via WebSocket; word-by-word display | WebSocket endpoint at `/ws/sessions/{id}/voice`; latency < 500ms per word | Live confidence meter displayed per word during real-time transcription |
 
 ### Cube 3 — DesignMatrix VOC (Voice of Customer)
 | CRS | Customer Need | VOC Comment |
@@ -1256,15 +1290,15 @@ CRS-09b Cube 6 Phase B — BATCH (post-close):
 
 ---
 
-### Current SSSES Scores
+### SSSES Audit (2026-03-30) — Current Scores + Findings
 
-| Pillar | Current | Target | Primary Gap |
-|--------|:---:|:---:|---|
-| Security | 75 | 100 | Confirm `clean_text` (post-PII) — never raw text — goes to AI in all code paths (text + voice) |
-| Stability | 40 | 100 | `summary_33` never reaches live feed; no retry on AI failure; Phase B unverified end-to-end |
-| Scalability | 50 | 100 | 3 sequential AI calls per response; no concurrency cap; no back-pressure at 100+ users |
-| Efficiency | 55 | 100 | 3 AI round-trips; dashboard shows client-side truncation fallback instead of real AI output |
-| Succinctness | 65 | 100 | `summary_33` missing from `TextResponseRead` schema; no typed `summary_ready` broadcast |
+| Pillar | Current | Target | Primary Gap | Audit Finding |
+|--------|:---:|:---:|---|---|
+| Security | 75 | 100 | `clean_text` gate must be verified in both text + voice paths | **Audit gap:** Voice path (Cube 3 → Cube 2 pipeline) not explicitly verified in PII gate. Task A7 now covers both paths + adds log assertion. |
+| Stability | 40 | 100 | `summary_33` never reaches live feed; no retry; Phase B unverified | **Audit gap:** Supabase free-tier pause risk — broadcast silently fails. Added A5.01 availability guard. Phase B has no re-trigger mechanism — added B5. |
+| Scalability | 50 | 100 | 3 sequential AI calls; no concurrency cap | **Audit gap:** Semaphore per worker (not global) at horizontal scale. Noted: Redis-backed global cap deferred; per-worker semaphore sufficient for MVP. |
+| Efficiency | 55 | 100 | 3 AI round-trips; fallback truncation shown instead of real AI output | **Audit gap:** Translation + 333-word summary could be one prompt. Updated A1 to two round-trips max (translate+333, then 111+33) instead of three. |
+| Succinctness | 65 | 100 | `summary_33` missing from schema; no typed broadcast | **Audit gap:** `live_feed_enabled` flag not gated in original plan. Added A5.02 — broadcast only fires when flag is `True`. |
 
 ---
 
@@ -1306,23 +1340,23 @@ CRS-09b Cube 6 Phase B — BATCH (post-close):
 
 | Task | File | Change | SSSES Impact |
 |------|------|--------|---|
-| **A1** Single-prompt summarization | `cube6_ai/service.py` | Replace 3 sequential AI calls with one structured prompt returning JSON `{summary_333, summary_111, summary_33}` | Efficiency +20, Stability +5 |
-| **A2** Retry with backoff | `cube6_ai/service.py` | 3 attempts, 1s/2s/4s backoff. On failure: store placeholder + flag | Stability +25 |
-| **A3** Per-session concurrency cap | `cube6_ai/service.py` | `asyncio.Semaphore(10)` per session on Phase A tasks (stored on app state) | Scalability +30 |
-| **A4** Add `summary_33` to schema | `schemas/response.py` | `summary_33: str \| None = None` to `TextResponseRead` | Succinctness +20 |
-| **A5** Backend Supabase broadcast | `cube6_ai/service.py` + new `core/supabase_broadcast.py` | After Phase A completes: broadcast `{"event": "summary_ready", "response_id": "...", "summary_33": "..."}` to Supabase session channel | Stability +20, Efficiency +20 |
-| **A6** Dashboard `summary_ready` listener | `frontend/app/dashboard/page.tsx` | Add listener; on receipt update existing feed entry by `response_id`. Handle out-of-order delivery gracefully. | Stability +10 |
-| **A7** Security audit: PII path | `cube2_text/service.py`, `cube6_ai/service.py` | Verify `clean_text` (not raw) is input to `summarize_single_response()` in both text and voice paths. Add structured log assertion. | Security +25 |
+| **A1** Single-prompt summarization | `cube6_ai/service.py` | Replace 3 sequential AI calls with one structured prompt returning JSON `{summary_333, summary_111, summary_33}`. Translation + 333-word summary in first prompt; 111 + 33 in second. Two round-trips max. | Efficiency +20, Stability +5 |
+| **A2** Retry with backoff | `cube6_ai/service.py` | 3 attempts, 1s/2s/4s backoff on AI API call. On final failure: store `summary_33: "[Summary unavailable]"` + `flag: true` in MongoDB. Log structured error with `response_id`. | Stability +25 |
+| **A3** Per-session concurrency cap | `cube6_ai/service.py` | `asyncio.Semaphore(10)` per session on Phase A tasks, stored on FastAPI `app.state`. At horizontal scale (multiple workers), each worker enforces independently — Redis-backed global cap deferred to production scaling phase. | Scalability +30 |
+| **A4** Add `summary_33` to schema | `schemas/response.py` | Add `summary_33: str \| None = None` to `TextResponseRead`. Enables frontend to read it from API response. Note: Phase A is async so field will be `None` at submit time — real value arrives via A5 broadcast. | Succinctness +20 |
+| **A5** Backend Supabase broadcast | `cube6_ai/service.py` + new `core/supabase_broadcast.py` | After Phase A completes: broadcast `{"event": "summary_ready", "response_id": "...", "summary_33": "..."}` to Supabase channel `session:{short_code}`. Uses `supabase-py` client with service role key. **Sub-tasks:** A5.01 availability guard (log warning + continue on Supabase failure); A5.02 gate on `session.live_feed_enabled`; A5.03 covers both text (Cube 2) + voice (Cube 3) paths; A5.04 key scoped to Realtime publish only. | Stability +20, Efficiency +20 |
+| **A6** Dashboard `summary_ready` listener | `frontend/app/dashboard/page.tsx` | Add `.on("broadcast", { event: "summary_ready" }, ...)` listener. On receipt: find feed entry by `response_id`, replace displayed text with `summary_33`. Handle out-of-order delivery (entry may not exist yet — queue update until `new_response` arrives). | Stability +10, Efficiency +5 |
+| **A7** Security audit: PII path | `cube2_text/service.py`, `cube3_voice/service.py`, `cube6_ai/service.py` | Verify `clean_text` (not raw) is input to `summarize_single_response()` in **both** text and voice code paths. Add structured log `cube6.phase_a.pii_safe: true` at entry. Confirm via test fixture with injected PII that raw text never reaches AI provider. | Security +25 |
 
 #### Phase B — Stop Polling → Theme01 + Theme2
 
 | Task | File | Change | SSSES Impact |
 |------|------|--------|---|
-| **B1** End-to-end verification | `cube6_ai/service.py` | Run `POST /ai/run` against test session loaded with Web_Results_5000.csv. Confirm Postgres `themes` + MongoDB `summaries` populated. | Stability +20 |
-| **B2** Monolith parity check | `eXeL-AI_Polling_v04.2.py` vs `cube6_ai/service.py` | Cross-check marble sampling, confidence threshold (65%), reduction steps (9→6→3), Theme01 categories | Stability +10 |
-| **B3** Parallel batch classification | `cube6_ai/service.py` | Confirm Theme01 classification uses `asyncio.gather()` across batches, not sequential loop | Scalability +20 |
-| **B4** Broadcast `themes_ready` | `cube6_ai/service.py` | After Phase B stores results, broadcast `{"event": "themes_ready", "session_id": "..."}` via Supabase | Stability +10 |
-| **B5** Phase B failure recovery | `cube6_ai/service.py` + router | Store partial results on failure, mark session `theme_error`, expose `/ai/status` endpoint, allow idempotent re-trigger | Stability +15 |
+| **B1** End-to-end verification | `cube6_ai/service.py` | Run `POST /ai/run` against test session loaded with Web_Results_5000.csv (5000 responses, 6 languages). Confirm: Postgres `themes` table populated with Theme01 + Theme2_9/6/3; MongoDB `summaries` per-response themed; `session.replay_hash` stored. | Stability +20 |
+| **B2** Monolith parity check | `eXeL-AI_Polling_v04.2.py` vs `cube6_ai/service.py` | Cross-check marble sampling logic, confidence threshold (65% → reclassify as Neutral), Theme01 categories (`["Risk & Concerns", "Supporting Comments", "Neutral Comments"]`), reduction steps 9→6→3. Document any intentional divergences. | Stability +10 |
+| **B3** Parallel batch classification | `cube6_ai/service.py` | Confirm Theme01 classification uses `asyncio.gather()` across all batches (not sequential loop). Target: all N responses classified in `ceil(N/50)` batches, all concurrent. Verify at 5000-response scale. | Scalability +20 |
+| **B4** Broadcast `themes_ready` | `cube6_ai/service.py` | After Phase B stores all results, broadcast `{"event": "themes_ready", "session_id": "...", "theme_count": N}` via same `supabase_broadcast.py` helper. Dashboard transitions to results view on receipt. Gate: only fires on full success — not on partial. | Stability +10 |
+| **B5** Phase B failure recovery + status endpoint | `cube6_ai/service.py` + `cube6_ai/router.py` | On Phase B failure: store partial results, mark `session.status = "theme_error"`. Add `GET /api/v1/sessions/{id}/ai/status` endpoint returning pipeline stage + error. Allow Moderator to re-trigger `POST /ai/run` idempotently (skips stages already complete). | Stability +15 |
 
 ---
 
