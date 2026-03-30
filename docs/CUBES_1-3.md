@@ -1341,7 +1341,8 @@ CRS-09b Cube 6 Phase B — BATCH (post-close):
 
 | Task | File | Change | SSSES Impact |
 |------|------|--------|---|
-| **A1** Single-prompt summarization | `cube6_ai/service.py` | Replace 3 sequential AI calls with one structured prompt returning JSON `{summary_333, summary_111, summary_33}`. Translation + 333-word summary in first prompt; 111 + 33 in second. Two round-trips max. | Efficiency +20, Stability +5 |
+| **A0** Short-circuit ≤33 words (BR-1) | `cube6_ai/service.py` | At entry of `summarize_single_response()`: if `len(clean_text.split()) <= 33`, set `summary_333 = summary_111 = summary_33 = clean_text`, store in MongoDB, skip all AI calls. Zero latency, zero cost. | Efficiency +5 |
+| **A1** Single-prompt summarization | `cube6_ai/service.py` | Replace 3 sequential AI calls with one structured prompt returning JSON `{summary_333, summary_111, summary_33}`. Translation + 333-word summary in first prompt; 111 + 33 in second. Two round-trips max. Applies only when word count > 33 (BR-1 handles ≤33). | Efficiency +20, Stability +5 |
 | **A2** Retry with backoff | `cube6_ai/service.py` | 3 attempts, 1s/2s/4s backoff on AI API call. On final failure: store `summary_33: "[Summary unavailable]"` + `flag: true` in MongoDB. Log structured error with `response_id`. | Stability +25 |
 | **A3** Per-session concurrency cap | `cube6_ai/service.py` | `asyncio.Semaphore(10)` per session on Phase A tasks, stored on FastAPI `app.state`. At horizontal scale (multiple workers), each worker enforces independently — Redis-backed global cap deferred to production scaling phase. | Scalability +30 |
 | **A4** Add `summary_33` to schema | `schemas/response.py` | Add `summary_33: str \| None = None` to `TextResponseRead`. Enables frontend to read it from API response. Note: Phase A is async so field will be `None` at submit time — real value arrives via A5 broadcast. | Succinctness +20 |
@@ -1375,12 +1376,21 @@ Applies to Cube 1 (dashboard) and Cube 2 (response submit path):
 | **Persistence** | Toggle state persists for session duration (localStorage key: `feed_display_mode_{session_code}`) |
 | **Lexicon keys** | `cube1.feed.toggle_live` = "Live Feedback", `cube1.feed.toggle_summary` = "33-Word Summary", `cube1.feed.summary_loading` = "Generating summary..." |
 
+### Live Feed — Business Rules
+
+| # | Rule | Rationale | Applies To |
+|---|------|-----------|------------|
+| BR-1 | **Short-circuit rule:** If `clean_text` word count ≤ 33, set `summary_33 = clean_text` (exact copy). No AI call is made. | Avoids wasting an AI round-trip on text that is already at or below the target summary length. Reduces API cost and latency to zero for short responses. | Cube 6 Phase A `summarize_single_response()` — check at entry before any provider call. |
+| BR-2 | **Live feed latency target:** Every new user response must appear in the Moderator live feed within **<100ms** of the `new_response` Supabase Broadcast event being received by the dashboard. | Evidence: Cube 1 live test (2026-03-27) confirmed ~50–70ms auto-advance via Supabase Broadcast across 13 participants. The same channel delivers `new_response` — the feed render path must not add >30ms on top of network delivery. | Cube 1 dashboard `new_response` listener — render path only (does not apply to `summary_ready`, which arrives asynchronously after Phase A). |
+| BR-3 | **English default:** If `response_language ≠ "en"`, translate `clean_text` to English before summarization. All `summary_333`, `summary_111`, and `summary_33` values are stored in English regardless of input language. | Ensures consistent theme clustering in Phase B (all embeddings operate on English text). Already implemented in `_SUMMARIZE_INSTRUCTION` template. | Cube 6 Phase A `summarize_single_response()` — translation step fires before 333-word compression. |
+| BR-4 | **Feed content rule:** Live feed displays **only** `clean_text` (Option A) or `summary_33` (Option B) per response — never both simultaneously. No other summary tier (333/111) is shown in the feed. | Keeps the Moderator view uncluttered. 333/111 summaries are available in CSV export (Cube 9) and MongoDB for audit, but the real-time feed is a concise signal, not a data dump. | Cube 1 dashboard feed renderer — toggle controls which field is displayed per entry. |
+
 ---
 
 ### Execution Order
 
 ```
-A7 (security baseline) → A1 (efficiency) → A2 (retry) → A3 (semaphore) → A4 (schema) → A5 (broadcast) → A6 (dashboard listener)
+A7 (security baseline) → A0 (short-circuit ≤33 words) → A1 (efficiency) → A2 (retry) → A3 (semaphore) → A4 (schema) → A5 (broadcast) → A6 (dashboard listener)
 B2 (parity check) → B1 (e2e verify) → B3 (parallel) → B4 (broadcast) → B5 (recovery)
 ```
 

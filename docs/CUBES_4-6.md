@@ -1003,6 +1003,17 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 
 ---
 
+### Business Rules — Cubes 4–6 (shared with Cubes 1–3; canonical definitions in CUBES_1-3.md)
+
+| # | Rule | Enforced In | Cube 4-6 Impact |
+|---|------|-------------|-----------------|
+| BR-1 | **Short-circuit ≤33 words:** If `clean_text` word count ≤ 33, set `summary_33 = clean_text`. No AI call. | Cube 6 `summarize_single_response()` — check at function entry before any provider call | Cube 4: no impact (passthrough). Cube 5: no impact (orchestrator). Cube 6: reduces Phase A AI calls for short responses to zero; Task A0 implements. |
+| BR-2 | **Live feed <100ms:** New responses appear in Moderator feed within 100ms of Supabase Broadcast receipt. | Cube 1 dashboard render path | Cube 6: `summary_ready` broadcast is async — arrives later, does not affect BR-2. Cube 4/5: no impact. |
+| BR-3 | **English default:** Non-English `clean_text` translated to English before summarization. All summaries stored in English. | Cube 6 `summarize_single_response()` — translation step before 333-word compression | Cube 6: already implemented in `_SUMMARIZE_INSTRUCTION` template. Cube 4: `response_language` preserved in collected response for audit trail. |
+| BR-4 | **Feed content:** Live feed shows only `clean_text` OR `summary_33` — never both, never 333/111 tiers. | Cube 1 dashboard toggle | Cube 4: CSV export (Cube 9) includes all tiers. Cube 6: all three summary tiers still generated and stored for downstream use. |
+
+---
+
 ### Gap Analysis — Cubes 4–6
 
 #### GAP C4-1 — No Live Broadcast from Cube 4 *(Stability −10, Efficiency −10)*
@@ -1125,10 +1136,11 @@ Cube 4 aggregate_response() → [NO BROADCAST] → Dashboard
 
 ### Integration Tasks — Cubes 4–6
 
-> Tasks A1–A7 and B1–B5 are defined in CUBES_1-3.md SSSES Plan. The tasks below are Cubes 4–6 specific additions.
+> Tasks A0–A7 and B1–B5 are defined in CUBES_1-3.md SSSES Plan. The tasks below are Cubes 4–6 specific additions. Task A0 is included here because it executes in Cube 6 code.
 
 | Task | File | Change | SSSES Impact |
 |------|------|--------|---|
+| **A0** Short-circuit ≤33 words (BR-1) | `cube6_ai/service.py` | At entry of `summarize_single_response()`: if `len(clean_text.split()) <= 33`, set `summary_333 = summary_111 = summary_33 = clean_text`, store in MongoDB, skip all AI calls. Zero latency, zero cost. | Efficiency +5 |
 | **C4-1** Mixed-session test fixture | `tests/cube4/test_e2e_flows.py` | Add E2E test with 10 text + 4 voice responses in same session. Verify `aggregate_response()` returns correct `source_type` breakdown and total count. | Stability +10 |
 | **C4-2** Confirm aggregation before Phase A broadcast | `cube4_collector/service.py` | Return aggregated `response_id` from `aggregate_response()` — used by Cube 6 Task A5 to reference the correct Postgres record in the `summary_ready` broadcast payload. | Stability +5 |
 | **C5-1** Phase B error propagation | `cube5_gateway/service.py`, `cube6_ai/service.py` | Wrap `run_pipeline()` in try/except inside background task. On exception: call `update_pipeline_status(session, trigger_id, "failed", error_message=str(e))`. See Task B5 in CUBES_1-3.md. | Stability +15 |
@@ -1166,7 +1178,7 @@ Cube 4 aggregate_response() → [NO BROADCAST] → Dashboard
 ### Execution Order (Cubes 4–6)
 
 ```
-C6-1 (PII guard) → A7 (PII log assertion) → A1 (single-prompt) → A2 (retry) → A3 (semaphore)
+C6-1 (PII guard) → A7 (PII log assertion) → A0 (short-circuit ≤33 words) → A1 (single-prompt) → A2 (retry) → A3 (semaphore)
 → A4 (schema) → A5 (broadcast) → A6 (dashboard listener)
 → C4-2 (aggregate response_id) → C5-1 (error propagation) → C5-2 (Moderator route guard)
 → B2 (parity check) → B1 (E2E verify) → B3 (parallel batch) → B4 (themes_ready broadcast) → B5 (recovery)
