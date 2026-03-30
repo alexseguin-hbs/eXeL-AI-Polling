@@ -1689,61 +1689,183 @@ All cubes inherit scoping context from `sessions.scoping_type` + `sessions.scopi
 
 Use these exactly as “build targets” for website + backend.
 
-### MVP1 — QR Code & Session Access (Core)
+> **CRS Canonical Note:** Requirements.txt is the authoritative CRS numbering reference. All CUBES_*.md docs use this numbering. The DesignMatrix.xlsx has a known discrepancy (CRS-09/15 swap) — Requirements.txt takes precedence in all cases.
+
+### MVP1 — QR Code & Session Access (Core) — Cube 1
 
 **CRS-01** Moderator creates session + secure link/QR so participants can join instantly.
-**CRS-02** User joins via QR/link without authentication friction.
-**CRS-03** System generates collision-free session IDs bound to QR to prevent spoofing.
-**CRS-04** System validates QR access; blocks expired/invalid sessions.
+- **CRS-01.01** Moderator configures all session parameters: type, polling mode, pricing tier, capacity, cost-splitting, reward, CQS weights, anonymity, ranking mode, language, response/question limits — all 15+ fields persisted on `sessions` table.
+- **CRS-01.02** System generates unique 8-char short code + QR PNG + shareable join URL — collision-free (5-attempt retry), QR in <50ms.
+- **CRS-01.03** Moderator assigns scoping context (Project / Specification / Product Differentiator) at session creation — all downstream data inherits via `session_id`. *(Not yet implemented — MVP2)*
 
-### MVP1 — Poll Control & Text Input
+**CRS-02** User joins via QR/link without authentication friction.
+- **CRS-02.01** Anonymous join — no Bearer token required; `user_id=None` accepted via `get_optional_current_user()`.
+- **CRS-02.02** Join flow: Language → Identity → Results opt-in → Join (≤3 clicks, <5s load, no page reload).
+- **CRS-02.03** Lobby wait state — participants see waiting screen until Moderator starts polling; auto-advance ≤2s via Supabase Broadcast without page refresh; late joiners bypass lobby if session already polling.
+
+**CRS-03** System generates collision-free session IDs bound to QR to prevent spoofing.
+- **CRS-03.01** UUID5 seeded deterministic session ID — same seed always yields same ID (idempotent create).
+- **CRS-03.02** 8-char alphanumeric short code with DB uniqueness check and 5-attempt collision retry.
+
+**CRS-04** System validates QR access; blocks expired/invalid sessions.
+- **CRS-04.01** Session expiry (default 24h) — returns 410 Gone after `expires_at`; `SessionExpiredError` on all join attempts.
+- **CRS-04.02** Block joins on invalid states: draft joins rejected; closed/archived sessions blocked with `SessionStateError`.
+- **CRS-04.03** State machine with validated transitions only: draft → open → polling → ranking → closed → archived; invalid transitions return 409.
+
+### MVP1 — Poll Control & Text Input — Cubes 1, 2
 
 **CRS-05** System supports anonymous vs identified modes configurable by Moderator.
-**CRS-06** Moderator opens/closes polling window deliberately.
-**CRS-07** User submits text responses reliably with constraints.
-**CRS-08** System stores responses securely (timestamps + encryption).
+- **CRS-05.01** Anonymous mode: `user_id=None` + deterministic `anon_hash` generated per participant; 100% hash determinism.
+- **CRS-05.02** Identified mode: `participant_id` preserved on all submissions; linkage maintained across session.
+- **CRS-05.03** Pseudonymous mode: both `participant_id` + `anon_hash` stored for compliance audit trail.
 
-### MVP1 — AI Theme Generation & Review
+**CRS-06** Moderator opens/closes polling window deliberately.
+- **CRS-06.01** Start Polling: `validate_session_for_submission()` enforces `status == "polling"` before accepting any response; instant 100% enforcement.
+- **CRS-06.02** Stop Polling: session transitions `polling → ranking`; triggers Cube 5 orchestrator → Cube 6 Phase B theming pipeline within 1s.
+
+**CRS-07** User submits text responses reliably with constraints.
+- **CRS-07.01** Full text submission pipeline: validate → PII detect/scrub → profanity detect/scrub → store (MongoDB + Postgres) → Redis publish → Cube 6 Phase A async; all 6 steps ordered; any failure returns structured error.
+- **CRS-07.02** Multilingual support: 33 languages, Unicode-aware char count (not bytes), script-based sanity check; CJK, Arabic, Emoji all accepted.
+- **CRS-07.03** Moderator live feed toggle: "Live Feedback" (raw `clean_text`, default) vs "33-Word Summary" (AI `summary_33` via Cube 6 Phase A broadcast). Default = Live Feedback until AI APIs configured. *(In progress — SSSES Tasks A4/A5/A6)*
+
+**CRS-08** System stores responses securely (timestamps + encryption).
+- **CRS-08.01** SHA-256 integrity hash: `response_hash = SHA256(raw_text)` stored on every submission; 64-char hex, deterministic, tamper-evident.
+- **CRS-08.02** PII security gate: only `clean_text` (post-scrub) forwarded to Cube 6 AI — raw text never leaves storage boundary; applies to both text (Cube 2) and voice (Cube 3) paths.
+- **CRS-08.03** AES-256 encryption at rest for MongoDB responses + Postgres text fields. *(Stretch — MVP3)*
+
+### MVP1 — AI Theme Generation & Review — Cubes 4, 5, 6
 
 **CRS-09** System clusters responses into meaningful AI themes.
-**CRS-10** User views summarized themes to understand collective patterns.
+- **CRS-09.01** Phase A (live, per-response): after each text/voice submission, async 333→111→33 word English summaries generated via AI (OpenAI / Grok / Gemini); stored in MongoDB `summaries` collection.
+- **CRS-09.02** Phase B (batch, after Stop Polling): fetch all 33-word summaries → classify Theme01 (Risk/Supporting/Neutral) → marble sampling → parallel candidate theme generation → reduce to Theme2_9/6/3 → assign each response; target <30s for 1000 responses.
+- **CRS-09.03** `summary_ready` Supabase broadcast sent to Moderator dashboard after Phase A completes per response. *(GAP — Task A5; not yet implemented)*
+- **CRS-09.04** `themes_ready` Supabase broadcast sent to dashboard after Phase B completes. *(GAP — Task B4; not yet implemented)*
+- **CRS-09.05** Response aggregation (Cube 4): Postgres + MongoDB dual storage per response in Web_Results format (q_number, question, user, detailed_results, response_language).
+- **CRS-09.06** Pipeline orchestration (Cube 5): `orchestrate_post_polling()` fires Cube 6 `run_pipeline()` as background asyncio task on polling→ranking transition; `PipelineTrigger` record tracks status.
 
-### MVP1 — Ranking & Export
+**CRS-10** User views summarized themes to understand collective patterns.
+- **CRS-10.01** Theme dashboard shows Theme01 (Risk/Supporting/Neutral) + Theme2_9/6/3 hierarchy with confidence scores per theme and per response.
+- **CRS-10.02** Progressive theme reveal UX — themes appear as they are generated; `themes_ready` event triggers full results view.
+- **CRS-10.03** Desired Outcome collection (Methods 2 & 3): group documents outcome before timer starts; all participants confirm; `check_all_confirmed()` signal triggers Cube 5 time tracking. *(Not yet implemented — CRS-10.01–10.03 in CUBES_4-6.md)*
+
+### MVP1 — Ranking & Export — Cubes 7, 9
 
 **CRS-11** User ranks themes after poll closes.
-**CRS-12** System aggregates rankings deterministically and reproducibly.
-**CRS-13** Lead/Developer reviews ranked priorities with metadata for evidence-based decisions.
-**CRS-14** System exports session results to CSV.
+- **CRS-11.01** Ranking UI displays Theme2 hierarchy (9/6/3) for participant voting after themes_ready event.
+- **CRS-11.02** Vote submission: each participant assigns priority order to themes; submission validated against session voting level (9/6/3).
+- **CRS-11.03** CQS scoring: after ranking closes, `score_cqs()` applied to responses in #1 most-voted Theme2 cluster with >95% confidence. *(Not yet implemented — CRS-14.01 in CUBES_4-6.md)*
 
-### MVP2 — Voice, Live Collaboration & Analytics
+**CRS-12** System aggregates rankings deterministically and reproducibly.
+- **CRS-12.01** Deterministic seed-based aggregation — `random_state` pinned per session; identical inputs + same seed always yield identical rankings.
+- **CRS-12.02** Governance compression: quadratic normalization, weight damping, anti-sybil safeguards on voting.
+- **CRS-12.03** Live ranking updates via Supabase Broadcast as votes arrive.
+
+**CRS-13** Lead/Developer reviews ranked priorities with metadata for evidence-based decisions.
+- **CRS-13.01** Results view shows ranked themes with response counts, confidence averages, and supporting response samples.
+- **CRS-13.02** CQS winner highlighted — top contributor identified by composite score (Insight 20%, Depth 15%, Future Impact 25%, Originality 15%, Actionability 15%, Relevance 10%). Hidden from participants; visible to Moderator.
+- **CRS-13.03** Replay hash displayed — SHA-256 of inputs + parameters; verifiable determinism for governance audit.
+
+**CRS-14** System exports session results to CSV.
+- **CRS-14.01** 15-column Web_Results CSV export: 5 input cols + 333/111/33 summaries + Theme01 + Theme01_Confidence + Theme2_9/6/3 + Theme2_9/6/3_Confidence.
+- **CRS-14.02** PDF export with session analytics, theme visualizations, CQS scores.
+- **CRS-14.03** Data destruction option: Moderator-triggered secure wipe of all session data with audit log entry. *(MVP3)*
+
+### MVP2 — Voice, Live Collaboration & Analytics — Cubes 3, 5, 7
 
 **CRS-15** User submits voice responses (STT) instead of typing.
-**CRS-16** Moderator enables live prioritization during sessions.
-**CRS-17** User sees real-time ranking updates.
-**CRS-18** System supports real-time updates via WebSockets.
-**CRS-19** System tracks engagement metrics (join, response, completion, timing).
+- **CRS-15.01** Batch STT: 4 providers (OpenAI Whisper, Grok, Gemini, AWS Transcribe), 6 audio formats (webm/wav/mp3/ogg/m4a/flac), 25 MB max; confidence threshold 0.3.
+- **CRS-15.02** Circuit breaker failover: whisper → grok → gemini → aws; skips failed provider, retries remaining; logs `cube3.stt.failover` per failure.
+- **CRS-15.03** Real-time STT (paid tier): Azure Speech Services (primary) + AWS Transcribe Streaming (fallback) via WebSocket; word-by-word display < 500ms latency.
 
-### MVP3 — Deep Dives, Governance & Tokens
+**CRS-16** Moderator enables live prioritization during sessions.
+- **CRS-16.01** Live ranking widget visible to Moderator during active polling; updates as responses arrive.
+- **CRS-16.02** Real-time theme confidence indicator shows emerging patterns before polling closes.
+
+**CRS-17** User sees real-time ranking updates.
+- **CRS-17.01** Live ranking leaderboard pushed via Supabase Broadcast as votes are tallied.
+- **CRS-17.02** Participant sees personal rank vs group rank (if enabled by Moderator).
+
+**CRS-18** System supports real-time updates via WebSockets.
+- **CRS-18.01** Supabase Realtime Broadcast — primary push channel for all status transitions, `new_response`, `summary_ready`, `themes_ready`, ranking updates.
+- **CRS-18.02** Presence layer — participant online/idle/disconnected status; late-joiner last-known state delivery.
+- **CRS-18.03** Fallback: Supabase DB REST poll (1.5s interval) as Broadcast health fallback; suspends while Broadcast is healthy.
+
+**CRS-19** System tracks engagement metrics (join, response, completion, timing).
+- **CRS-19.01** Time tracking per participant: `start_time_tracking()` / `stop_time_tracking()` per action type (login, responding, ranking, reviewing, peer_volunteer, team_collaboration).
+- **CRS-19.02** Login auto-entry: ♡1 웃0 ◬5 awarded on join.
+- **CRS-19.03** Prometheus metrics: request latency, queue depth, embedding throughput, token velocity — all exported for Grafana dashboards.
+
+### MVP3 — Deep Dives, Governance & Tokens — Cubes 7, 8
 
 **CRS-20** Moderator initiates deep-dive cycles to explore complex topics iteratively.
-**CRS-21** User participates in deep dives while preserving context.
-**CRS-22** Lead/Developer overrides rankings with documented justification.
-**CRS-23** System supports multi-cycle polling logic (structured phases).
-**CRS-24** System enforces governance + audit logging + RBAC.
-**CRS-25** System calculates and assigns Trinity Tokens (♡, 웃, ◬).
+- **CRS-20.01** Multi-cycle session: Moderator creates linked follow-up session on a ranked theme; context from parent session inherited.
+- **CRS-20.02** Deep-dive triggers on top-ranked theme from prior cycle; parent session_id preserved in scoping chain.
 
-### MVP3 — Simulation, Optimization & Evolution
+**CRS-21** User participates in deep dives while preserving context.
+- **CRS-21.01** Participant sees context summary from parent cycle before submitting; parent theme label shown.
+- **CRS-21.02** Cross-cycle identity preserved for participants who opt into identified mode.
+
+**CRS-22** Lead/Developer overrides rankings with documented justification.
+- **CRS-22.01** Override UI requires mandatory justification text; logged to immutable audit trail.
+- **CRS-22.02** Original ranking preserved; override shown as delta with actor + timestamp.
+
+**CRS-23** System supports multi-cycle polling logic (structured phases).
+- **CRS-23.01** Session can be configured as phase 1 of N; phase N+1 auto-creates after close.
+- **CRS-23.02** Phase results aggregated across cycles for longitudinal analysis.
+
+**CRS-24** System enforces governance + audit logging + RBAC.
+- **CRS-24.01** All state transitions, overrides, token awards, and data access logged to append-only audit table.
+- **CRS-24.02** RBAC: Moderator, Participant, Lead/Developer, Business Owner/Admin — enforced at route level via Auth0 JWT + role claim.
+- **CRS-24.03** Anti-sybil: rate limiting per participant, vote weight damping, anomaly flagging on governance manipulation.
+
+**CRS-25** System calculates and assigns Trinity Tokens (♡, 웃, ◬).
+- **CRS-25.01** ♡ = ceil(active_minutes); 웃 = active_minutes × (jurisdiction_rate / 60); ◬ = 5 × ♡.
+- **CRS-25.02** 59-jurisdiction rate table: 9 international + 50 US states; rate resolved at session join from participant jurisdiction.
+- **CRS-25.03** Append-only token ledger: every entry has action_type, cube_id, participant_id, timestamp; no mutations allowed.
+- **CRS-25.04** Token lifecycle states: simulated → pending → approved → finalized → reversed.
+
+### MVP3 — Simulation, Optimization & Evolution — Cube 10
 
 **CRS-26** Lead/Developer checks out a cube into simulation mode safely.
+- **CRS-26.01** Cube checkout: creates isolated git worktree for the target cube; production code unaffected during sim.
+- **CRS-26.02** Canned input fixtures loaded automatically for the checked-out cube; no real DB or API calls required in sim mode.
+
 **CRS-27** Lead/Developer updates cube code and reruns simulations to validate improvements.
+- **CRS-27.01** Code submission UI: diff view showing changes vs production baseline.
+- **CRS-27.02** Sim runner executes full test suite against canned inputs; real-time progress shown.
+
 **CRS-28** System replays upstream/downstream dependencies for end-to-end validation.
+- **CRS-28.01** Forward propagation (1→10): changed cube's output feeds into mock downstream cubes.
+- **CRS-28.02** Backward propagation (10→1): changed cube receives mock upstream inputs; verifies interface contracts.
+
 **CRS-29** System compares simulation vs production metrics objectively.
+- **CRS-29.01** Metric delta table: every SSSES pillar score compared sim vs baseline; must exceed or match on all pillars to pass.
+- **CRS-29.02** Replay hash comparison: SHA-256 of sim output must match expected fixture hash for determinism verification.
+
 **CRS-30** Lead/Developer approves or rejects simulated cube changes.
+- **CRS-30.01** Approve action: merges sim worktree to main; pipeline_trigger records updated with sim_approved flag.
+- **CRS-30.02** Reject action: worktree deleted; rejection reason logged to audit trail.
+- **CRS-30.03** Humans remain final approvers — no AI self-merge without Lead/Developer sign-off.
+
 **CRS-31** System versions every cube + dependency for rollback, audit, lineage.
+- **CRS-31.01** Every cube has a pinned version tag; upstream/downstream dependency versions stored in `cube_dependency_graph`.
+- **CRS-31.02** Rollback: revert to any prior pinned version with one action; triggers dependency re-validation.
+
 **CRS-32** System attributes tokens to actions/cubes/timestamps transparently.
+- **CRS-32.01** Every token ledger entry includes `cube_id`, `action_type`, `participant_id`, `session_id`, `created_at` — full attribution chain.
+- **CRS-32.02** Token attribution visible to participant (own tokens), Moderator (session tokens), and Admin (all tokens).
+
 **CRS-33** User or Lead/Developer can flag/dispute token calculations.
+- **CRS-33.01** Flag UI: participant selects disputed entry, provides reason; creates `token_dispute` record.
+- **CRS-33.02** Admin review queue: disputed entries paused at `pending` state until resolved; resolution logged to audit.
+
 **CRS-34** System assigns token lifecycle states (simulated, pending, approved, finalized, reversed).
+- **CRS-34.01** State machine: simulated → pending (on session close) → approved (Lead/Admin sign-off) → finalized (treasury funded) → reversed (dispute resolution).
+- **CRS-34.02** Reversed tokens create an equal negative ledger entry — no deletions from ledger.
+
 **CRS-35** Business Owner sees standardized token definitions + valuation rules per session.
+- **CRS-35.01** Session-level token config: `hi_enabled` flag, `hi_rate_override` (optional), `ai_multiplier`, CQS bonus pool amount.
+- **CRS-35.02** Token summary dashboard: total ♡/웃/◬ awarded per session, per participant, per cube action type — exportable to CSV.
 
 ---
 
