@@ -79,12 +79,12 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | 4 Collector | 70 | 65 | 75 | 70 | 80 | **72** |
 | 5 Gateway | 80 | 75 | 80 | 85 | 90 | **82** |
 | 6 AI Pipeline | 70 | 40 | 55 | 55 | 70 | **58** |
-| 7 Ranking | — | — | — | — | — | stub |
-| 8 Tokens | — | — | — | — | — | partial |
-| 9 Reports | — | — | — | — | — | partial |
+| 7 Ranking | 20 | 10 | 15 | 15 | 50 | **22** |
+| 8 Tokens | 45 | 40 | 35 | 45 | 60 | **45** |
+| 9 Reports | 30 | 15 | 20 | 25 | 55 | **29** |
 | 10 Simulation | — | — | — | — | — | Easter Egg |
 
-> Scores for Cubes 2–6 established in SSSES audit on 2026-03-30. Full per-pillar rationale in `docs/CUBES_1-3.md` (Cubes 2-3) and `docs/CUBES_4-6.md` (Cubes 4-6).
+> Scores for Cubes 2–9 established in SSSES audit on 2026-03-30. Full per-pillar rationale in `docs/CUBES_1-3.md` (Cubes 2-3), `docs/CUBES_4-6.md` (Cubes 4-6), and `docs/CUBES_7-9.md` (Cubes 7-9).
 
 ## Known SSSES Gaps
 

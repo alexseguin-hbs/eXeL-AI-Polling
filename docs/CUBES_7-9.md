@@ -148,14 +148,31 @@ Key behaviors:
 
 ### Cube 7 — CRS Traceability
 
+> **CRS Alignment Note:** Cube 7 owns CRS-11 (ranking), CRS-12 (deterministic aggregation), CRS-13 (Lead review), CRS-16/17 (live ranking — MVP2), and CRS-22 (governance override — MVP3). Requirements.txt is canonical. See SSSES Plan at end of this doc.
+
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
 | CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Stub** | 1 | User ranks themes after poll closes | Ranking interface responds within 200ms; deterministic ordering of themes presented to user | Weighted and multi-criteria ranking with drag-drop reorder |
+| CRS-11.01 | — | — | **Stub** | 1 | Ranking UI displays Theme2 hierarchy (9/6/3) for participant voting after `themes_ready` event | Theme cards rendered with label + response count + confidence | Drag-drop reorder on desktop; tap-to-reorder on mobile (44px touch targets) |
+| CRS-11.02 | — | — | **Stub** | 1 | Vote submission validated against session `theme2_voting_level` (9/6/3) | `submit_user_ranking()` validates theme IDs exist and belong to session | Multi-criteria weighted ranking with slider inputs |
+| CRS-11.03 | — | — | **Not implemented** | 1 | `identify_top_theme2()` finds #1 most-voted cluster; sets `is_top_theme2=True` → triggers CQS scoring via Cube 5 | Top theme identified within 1s of final vote | Automatic tie-detection with visual consensus indicator |
+| CRS-11.04 | — | — | **Not implemented** | 1 | `emit_ranking_complete()` notifies Cube 5 with finalized rankings + #1 Theme2 ID for CQS pipeline | Event fires within 500ms of aggregation complete | Ranking summary broadcast to all participants via Supabase |
 | CRS-12 | CRS-12.IN.WRS.012 | CRS-12.OUT.WRS.012 | **Stub** | 1 | System aggregates rankings deterministically | Compute final rankings within 3 seconds for up to 100,000 participants; identical inputs yield identical outputs | AI-assisted consensus scoring with confidence intervals |
+| CRS-12.01 | — | — | **Stub** | 1 | Borda count aggregation with seeded tie-breaking; `random_state` pinned per session | Identical inputs + same seed = identical rankings (verified via replay hash) | Condorcet method comparison report alongside Borda results |
+| CRS-12.02 | — | — | **Not implemented** | 1 | Quadratic vote normalization: `weight = sqrt(tokens_staked)` — prevents high-token manipulation | Weight damping applied before aggregation; audit log records raw vs damped weights | Configurable damping function per session |
+| CRS-12.03 | — | — | **Not implemented** | 2 | Live ranking updates pushed via Supabase Broadcast as votes arrive | <500ms latency from vote to all connected dashboards | Animated rank transitions with convergence indicator |
+| CRS-12.04 | — | — | **Not implemented** | 2 | Anti-sybil detection: `detect_voting_anomalies()` flags identical rankings from multiple participants, rapid-fire submissions, coordinated block voting | Anomalies logged to audit trail; flagged votes excluded from aggregation | ML-based anomaly scoring with configurable sensitivity |
 | CRS-13 | CRS-13.IN.SRS.013 | CRS-13.OUT.SRS.013 | **Stub** | 1 | Lead reviews ranked priorities with metadata | Display vote counts, submission timestamps, and confidence scores for each theme | Historical trend comparisons across sessions within same scoping context |
+| CRS-13.01 | — | — | **Stub** | 1 | Results view shows ranked themes with response counts, confidence averages, supporting response samples | Vote counts + confidence per theme displayed in descending rank order | Historical trend overlay from prior sessions in same scoping context |
+| CRS-13.02 | — | — | **Not implemented** | 1 | CQS winner highlighted for Moderator (hidden from participants); composite score breakdown shown | CQS visible to Moderator + Lead only; 6-metric breakdown in detail view | CQS leaderboard for top N contributors (opt-in visibility) |
+| CRS-13.03 | — | — | **Not implemented** | 1 | Replay hash (SHA-256 of inputs + parameters) displayed for governance audit; verifiable determinism | Hash matches expected value for identical input set | One-click replay verification that re-runs aggregation and compares |
 | CRS-16 | CRS-16.IN.SRS.016 | CRS-16.OUT.SRS.016 | **Not implemented** | 2 | Moderator enables live prioritization during active session | Live ranking sync latency under 500ms via WebSocket; participants see updates without page refresh | Visual consensus alerts, animated transitions, and convergence indicators |
+| CRS-16.01 | — | — | **Not implemented** | 2 | Live ranking widget visible to Moderator during active polling; updates as responses arrive | Emerging theme patterns shown before polling closes | Real-time confidence indicator per emerging theme |
 | CRS-17 | CRS-17.IN.WRS.017 | CRS-17.OUT.WRS.017 | **Not implemented** | 2 | User sees real-time ranking updates as others vote | End-to-end update latency under 1 second from submission to all connected clients | Collaborative ranking tools with participant grouping and delegation |
+| CRS-17.01 | — | — | **Not implemented** | 2 | Live ranking leaderboard pushed via Supabase Broadcast as votes are tallied | Participant sees personal rank vs group rank (if enabled by Moderator) | Animated rank change transitions |
 | CRS-22 | CRS-22.IN.SRS.022 | CRS-22.OUT.SRS.022 | **Not implemented** | 3 | Lead overrides rankings with documented justification | Justification required and logged for every override; full audit trail with original vs. new rank | Bias detection on overrides, peer review workflow, override impact analysis |
+| CRS-22.01 | — | — | **Not implemented** | 3 | Override UI requires mandatory justification text; logged to immutable audit trail | Original ranking preserved; override shown as delta with actor + timestamp | Peer review workflow: override requires second Lead approval |
+| CRS-22.02 | — | — | **Not implemented** | 3 | `validate_override_permission()` checks RBAC — only Lead/Developer can override; returns 403 for other roles | 100% RBAC enforcement on override endpoint | Role escalation request workflow for edge cases |
 
 ### Cube 7 — DesignMatrix VOC (Voice of Customer)
 
@@ -474,16 +491,36 @@ Key responsibilities:
 
 ### Cube 8 — CRS Traceability
 
+> **CRS Alignment Note:** Cube 8 owns CRS-25 (token calculation), CRS-24 (governance/audit), CRS-32–34 (attribution/disputes/lifecycle), CRS-35 (token policy). CRS-18/19 shared with Cube 5. Requirements.txt is canonical.
+
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
 | CRS-18 | CRS-18.IN.SRS.018 | CRS-18.OUT.SRS.018 | **Not implemented** | 2 | System supports real-time token updates via WebSockets | Token balance updates pushed within 500ms of earning | Real-time token velocity monitoring and alerts |
+| CRS-18.01 | — | — | **Not implemented** | 2 | Token HUD updates via Supabase Broadcast after each `create_ledger_entry()` | ♡/웃/◬ values pushed to frontend within 500ms of ledger write | Animated token counter with earning breakdown |
 | CRS-19 | CRS-19.IN.SRS.019 | CRS-19.OUT.SRS.019 | **Not implemented** | 2 | System tracks engagement metrics including token distribution | Token distribution per session queryable within 1 second | Cross-session token analytics and trend reporting |
+| CRS-19.01 | — | — | **Not implemented** | 2 | Token distribution analytics: per-session totals, per-participant breakdown, method breakdown (M1/M2/M3) | Query response <1s for sessions up to 100K participants | Cross-session trend charts in Moderator analytics view |
 | CRS-24 | CRS-24.IN.SRS.024 | CRS-24.OUT.SRS.024 | **Partial** | 3 | System enforces governance + audit logging + RBAC on token operations | Every token mutation logged with actor, timestamp, version_id, and justification | Full governance weight damping, quadratic normalization, and velocity caps |
+| CRS-24.01 | — | — | **Partial** | 3 | Append-only audit trail: every token state transition logged with actor + timestamp | Audit entries immutable after creation; no UPDATE/DELETE on audit table | Tamper-evident hash chain linking all audit entries |
+| CRS-24.02 | — | — | **Not implemented** | 3 | RBAC enforcement on all token endpoints: Moderator (session), Admin (org-wide), Lead (review) | 403 on unauthorized token operations; role checked at route level | Fine-grained permission matrix per token operation type |
+| CRS-24.03 | — | — | **Not implemented** | 3 | Anti-manipulation: governance weight damping, velocity caps on token accumulation | Anomaly detection on token earning rate per participant | Automatic freeze on anomalous accounts pending Admin review |
 | CRS-25 | CRS-25.IN.SRS.025 | CRS-25.OUT.SRS.025 | **Partial** | 3 | System calculates and assigns Trinity Tokens (♡, 웃, ◬) accurately | ♡ = ceil(minutes), 웃 = jurisdiction rate, ◬ = 5x ♡; ledger entry per action | Multi-method ledger with outcome tracking, desired_outcome_id linkage |
+| CRS-25.01 | — | — | **Partial** (in Cube 5) | 1 | ♡ = ceil(active_minutes); 웃 = minutes × (jurisdiction_rate / 60); ◬ = 5 × ♡ | Token values within $0.01 precision; verified against 59 jurisdiction rates | Configurable multiplier per session (Moderator override) |
+| CRS-25.02 | — | — | **Implemented** | 1 | 59-jurisdiction rate table: 9 international + 50 US states; rate resolved at join | `get_jurisdiction_rate()` returns $/hr + $/min for any jurisdiction code | Rate auto-update from external data source |
+| CRS-25.03 | — | — | **Partial** (in Cube 5) | 1 | Append-only token ledger: every entry has action_type, cube_id, participant_id, timestamp | No UPDATE/DELETE on `token_ledger` table; only INSERT | Merkle tree hash per ledger batch for tamper evidence |
+| CRS-25.04 | — | — | **Not implemented** | 3 | Methods 2 & 3: desired_outcome_id linkage on ledger entries; outcome status tracked | Ledger entry references outcome achievement for accountability | Outcome-weighted token bonuses (achieved > partial > not_achieved) |
+| CRS-25.05 | — | — | **Not implemented** | 3 | Execution separation: `check_execution_separation()` blocks ideation participants from execution team per scoping_id | 100% enforcement on execution role assignment | Configurable enforcement level (block/warn/log) |
+| CRS-25.06 | — | — | **Not implemented** | 3 | Talent profile: `update_talent_profile()` builds from CQS scores + role history + ♡ earned per session | Profile updated after each session completion | Talent recommendation engine with match scoring |
 | CRS-32 | CRS-32.IN.SRS.032 | CRS-32.OUT.SRS.032 | **Partial** | 3 | System attributes tokens to actions/cubes/timestamps transparently | Every ledger entry includes cube_id, action_type, version_id | Full dependency graph hash per entry for reproducibility |
+| CRS-32.01 | — | — | **Partial** | 3 | Token attribution: `cube_id`, `action_type`, `participant_id`, `session_id`, `created_at` on every ledger entry | Full attribution chain queryable per participant | Attribution visible in Pixelated Token metadata (Cube 9) |
 | CRS-33 | CRS-33.IN.SRS.033 | CRS-33.OUT.SRS.033 | **Implemented** | 3 | User or Lead/Developer can flag/dispute token calculations | Dispute filed with reason, linked to specific ledger entry, status tracked | Evidence attachment, admin review workflow, SLA for resolution |
+| CRS-33.01 | — | — | **Implemented** | 3 | `file_dispute()` creates dispute record with reason + linked ledger_entry_id; status `open` | Dispute ID returned; status trackable via API | Dispute notification pushed to Admin dashboard |
+| CRS-33.02 | — | — | **Not implemented** | 3 | `resolve_dispute()` Admin/Lead resolves with notes; transitions to `resolved` or `rejected` | Resolution logged with `resolved_by`, `resolved_at`, notes | SLA enforcement: auto-escalate if unresolved after 72h |
 | CRS-34 | CRS-34.IN.SRS.034 | CRS-34.OUT.SRS.034 | **Partial** | 3 | System assigns token lifecycle states correctly | simulated -> pending -> approved -> finalized (+ reversed); valid transitions enforced | Automated approval for routine entries, manual review for anomalies |
+| CRS-34.01 | — | — | **Partial** | 3 | `transition_lifecycle_state()` enforces valid transitions only; invalid transitions return 409 | State machine: simulated → pending → approved → finalized; + reversed at any stage | Batch approval for routine entries matching criteria |
+| CRS-34.02 | — | — | **Not implemented** | 3 | Reversed tokens: equal negative ledger entry created (no deletions from ledger) | Reversal preserves audit trail; net balance reflects reversal | Reversal reason + evidence attached to negative entry |
 | CRS-35 | CRS-35.IN.SRS.035 | CRS-35.OUT.SRS.035 | **Not implemented** | 3 | Business Owner sees standardized token definitions + valuation rules per session | Per-session token rules displayed: multipliers, methods, jurisdiction rates | Configurable token policies per organization with override audit |
+| CRS-35.01 | — | — | **Not implemented** | 3 | Session-level token config: `hi_enabled`, `hi_rate_override`, `ai_multiplier`, CQS bonus pool amount | Token config visible on session detail page for Admin | Org-level default token policy inherited by all sessions |
+| CRS-35.02 | — | — | **Not implemented** | 3 | Token summary dashboard: total ♡/웃/◬ per session, per participant, per action type — exportable | Dashboard loads <2s for sessions up to 100K participants | Cross-session comparison charts with trend lines |
 
 ### Cube 8 — DesignMatrix VOC (Voice of Customer)
 
@@ -861,13 +898,25 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 ### Cube 9 — CRS Traceability
 
+> **CRS Alignment Note:** Cube 9 owns CRS-14 (export), CRS-19 (analytics dashboard, shared with Cube 5/8), CRS-20/21 (deep dive reports — MVP3). CRS-15 (voice export) shared with Cube 3. Requirements.txt is canonical.
+
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
 | CRS-14 | CRS-14.IN.SRS.014 | CRS-14.OUT.SRS.014 | **Implemented** | 1 | System exports session results to CSV | CSV matches 15-column schema; generated within 5 seconds for 10,000 responses | PDF export with charts, masked vs full export options |
+| CRS-14.01 | — | — | **Implemented** | 1 | `generate_csv_export()` produces 15-column Web_Results CSV: 5 input + 3 summaries + 8 theme/confidence fields | Schema matches `Updated_Web_Results_With_Themes_And_Summaries_v03.csv` exactly | Streaming CSV for >100K responses (chunked write) |
+| CRS-14.02 | — | — | **Not implemented** | 2 | `generate_pdf_export()` produces formatted PDF with themes, rankings, charts, CQS scores | PDF generated <10s for 10K responses; includes theme distribution charts | Branded PDF with org logo + custom cover page |
+| CRS-14.03 | — | — | **Not implemented** | 3 | `destroy_token_data()` Moderator-triggered secure wipe of all session data with audit log entry | Irreversible; `data_destroyed = True` on session record; audit entry created | Scheduled auto-destruction after configurable retention period |
+| CRS-14.04 | — | — | **Not implemented** | 3 | Pixelated Token image: `generate_pixelated_token()` encodes token data in pixel borders, QR center | DNA-style integrity: top/bottom pixel lines mirror; left/right keys required to decode | Animated token reveal with Seed of Life branding |
+| CRS-14.05 | — | — | **Not implemented** | 1 | `distribute_results()` delivers to eligible participants (paid + Lead-exempt); checks `results_opt_in` + `payment_status` | Results gating enforced: unpaid non-Lead users excluded | Tiered results: basic (free) vs full (paid) export levels |
 | CRS-15 | CRS-15.IN.WRS.015 | CRS-15.OUT.WRS.015 | **Not implemented** | 2 | Export includes voice transcripts with STT metadata | Voice responses included in CSV with transcript text and confidence scores | Audio playback links in PDF export |
+| CRS-15.01 | — | — | **Not implemented** | 2 | Voice responses included in CSV with `source_type: voice`, transcript text, STT provider, confidence score | All voice responses appear alongside text responses in unified export | Per-provider accuracy comparison report |
 | CRS-19 | CRS-19.IN.SRS.019 | CRS-19.OUT.SRS.019 | **Stub** | 2 | System tracks and displays engagement analytics | Participation rate, completion rate, time-to-decision, token distribution | Cross-session trend analytics, cohort analysis, predictive engagement |
+| CRS-19.01 | — | — | **Stub** | 2 | `build_analytics_dashboard()` aggregates participation, timing, completion, engagement metrics | Moderator analytics view loads <2s; includes response rate chart, completion funnel | Predictive engagement scoring based on historical session patterns |
+| CRS-19.02 | — | — | **Not implemented** | 2 | `build_cqs_dashboard()` shows per-response CQS scores (6 metrics + composite), distribution, winner | CQS visible to Moderator only; score distribution histogram | CQS trend tracking across sessions for talent development |
 | CRS-20 | CRS-20.IN.SRS.020 | CRS-20.OUT.SRS.020 | **Not implemented** | 3 | Reports include deep dive cycle context | Multi-round reports preserve question lineage and theme evolution | Cycle-over-cycle comparison visualizations |
+| CRS-20.01 | — | — | **Not implemented** | 3 | Multi-round export preserves parent→child session chain with question lineage | Each cycle's responses, themes, rankings in separate export sections | Interactive cycle tree navigator in analytics UI |
 | CRS-21 | CRS-21.IN.SRS.021 | CRS-21.OUT.SRS.021 | **Not implemented** | 3 | Export preserves full context across deep dive rounds | Each cycle's responses, themes, and rankings included in export | Interactive deep-dive explorer in analytics dashboard |
+| CRS-21.01 | — | — | **Not implemented** | 3 | Cross-cycle context: parent theme label + confidence shown alongside child cycle data in export | Full lineage chain from root session to deepest cycle in single export | Divergence analysis: how themes evolved across cycles |
 
 ### Cube 9 — DesignMatrix VOC (Voice of Customer)
 
@@ -1088,3 +1137,136 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 - Cross-session analytics within the same scoping context
 - Talent recommendations scoped to specific projects
 - Execution separation enforcement per scoping boundary
+
+---
+
+## SSSES Plan — Cubes 7–9: Rank → Reward → Report
+
+> **Scope:** Full pipeline from ranking (CRS-11→13, 16-17, 22 / Cube 7) through token management (CRS-18-19, 24-25, 32-35 / Cube 8) to export and analytics (CRS-14, 19-21 / Cube 9).
+> **Dependency:** Cubes 7-9 cannot reach 100/100 until Cubes 1-6 pipeline is complete — specifically Task C5-4 (Cube 6→7 trigger chain) and Phase B verification (Task B1).
+
+### SSSES Scores — Current State (2026-03-30)
+
+> Evidence-based assessment from code review. Cube 7 is scaffolded (stubs only). Cube 8 has 3/14 functions + 19 tests. Cube 9 has 1/14 functions + 0 tests.
+
+| Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall |
+|------|:---:|:---:|:---:|:---:|:---:|:---:|
+| **7 Ranking** | 20 | 10 | 15 | 15 | 50 | **22** |
+| **8 Tokens** | 45 | 40 | 35 | 45 | 60 | **45** |
+| **9 Reports** | 30 | 15 | 20 | 25 | 55 | **29** |
+
+---
+
+### SSSES Audit (2026-03-30) — Per-Cube Findings
+
+#### Cube 7 — Prioritization & Voting (SCAFFOLDED)
+
+| Pillar | Score | Evidence |
+|--------|:---:|---|
+| Security | 20 | No auth on ranking endpoints (stubs return `NotImplementedError`). No anti-sybil detection. No RBAC on override endpoint. Governance override endpoint does not exist yet. |
+| Stability | 10 | Zero functions implemented. Zero tests. All 8 functions are stubs. No ranking aggregation logic exists. `emit_ranking_complete()` not wired — Cube 5 never receives ranking result. |
+| Scalability | 15 | Data tables (`user_rankings`, `aggregated_rankings`, `governance_overrides`) are well-defined with correct indexes. No code to test at scale. |
+| Efficiency | 15 | Schema design is correct (Borda count fields, sort_order, replay_hash). No implementation to measure performance. |
+| Succinctness | 50 | Clean stub structure. Router has 3 endpoints with clear `NotImplementedError` responses. Schemas and models are well-typed. Good foundation for implementation. |
+
+#### Cube 8 — Token Reward Calculator (PARTIAL)
+
+| Pillar | Score | Evidence |
+|--------|:---:|---|
+| Security | 45 | `file_dispute()` implemented with validation. `get_jurisdiction_rate()` uses hardcoded `hi_rates.py` (no injection risk). Missing: RBAC on token endpoints, governance weight damping, anti-manipulation detection. |
+| Stability | 40 | 19 tests pass. `get_user_balance()` and `file_dispute()` are stable. Missing: `transition_lifecycle_state()` (partial), `resolve_dispute()`, all payment functions, reward disbursement, talent profiles. 11/14 functions not implemented. |
+| Scalability | 35 | 59-jurisdiction rate table is O(1) lookup. Token ledger is append-only (no UPDATE contention). Missing: batch token operations, WebSocket push for token updates. |
+| Efficiency | 45 | `calculate_session_tokens()` is fast (pure math + dict lookup, in Cube 5). Ledger writes are single inserts. Missing: batch ledger writes for bulk session close. |
+| Succinctness | 60 | 98-line service is clean. 72-line router. 241 lines of tests. Good structure. Missing functions inflate the gap between spec (14 functions) and implementation (3). |
+
+#### Cube 9 — Reports, Export & Dashboards (PARTIAL)
+
+| Pillar | Score | Evidence |
+|--------|:---:|---|
+| Security | 30 | CSV export has no auth gate — any user with session_id can download. No results distribution gating (paid + Lead-exempt). No data destruction. Pixelated Token encoding not implemented. |
+| Stability | 15 | `generate_csv_export()` works but has 0 dedicated tests. No PDF. No Pixelated Tokens. No analytics dashboard. No CQS dashboard. 1/14 functions implemented. |
+| Scalability | 20 | CSV export untested at scale (5000+ responses). No streaming/chunked export. PDF generation not implemented — will be CPU-heavy at scale. |
+| Efficiency | 25 | CSV function queries Postgres + MongoDB per export — no caching. Export re-generates on every request. |
+| Succinctness | 55 | 135-line service. 38-line router. Clean structure. Missing functions create large gap: 13/14 functions not implemented. |
+
+---
+
+### Gap Analysis — Cubes 7–9
+
+#### GAP C7-1 — All Ranking Logic Missing *(Stability −60)*
+**Root cause:** `submit_user_ranking()`, `aggregate_rankings()`, `identify_top_theme2()` are all stubs returning `NotImplementedError`. Zero ranking functionality exists.
+**Impact:** After themes are ready (Cube 6 Phase B), there is no way for participants to rank them. The pipeline stops.
+**Fix:** Implement core ranking: `submit_user_ranking()` (validate + store), `aggregate_rankings()` (Borda count, seeded), `identify_top_theme2()` (top-voted cluster).
+
+#### GAP C7-2 — Ranking Complete Event Not Wired *(Stability −15)*
+**Root cause:** `emit_ranking_complete()` does not exist. After aggregation, Cube 5 is never notified. CQS scoring trigger (Cube 6) never fires.
+**Impact:** The pipeline chain Cube 7 → Cube 5 → Cube 6 (CQS) → Cube 8 (reward) is completely broken.
+**Fix:** Implement `emit_ranking_complete()` → calls Cube 5 `trigger_cqs_scoring()` with `top_theme2_id`.
+
+#### GAP C7-3 — No Anti-Sybil on Voting *(Security −30)*
+**Root cause:** `detect_voting_anomalies()` not implemented. No defense against coordinated block voting, rapid-fire submissions, or identical rankings from multiple accounts.
+**Fix:** Implement anomaly detection: flag identical ranking patterns, enforce minimum time between votes, rate-limit per participant.
+
+#### GAP C8-1 — Payment Processing Not Implemented *(Stability −20)*
+**Root cause:** `process_moderator_fee()`, `process_cost_split_payment()`, `disburse_reward()` are all stubs. No Stripe integration. CQS winner cannot receive reward.
+**Fix:** Implement Stripe checkout flow (Moderator fee → cost split → reward payout). Gate on MVP phase (MVP1 = Moderator pays only).
+
+#### GAP C8-2 — Token Lifecycle Transitions Incomplete *(Stability −15)*
+**Root cause:** `transition_lifecycle_state()` is partial. Valid transitions (simulated→pending→approved→finalized→reversed) not fully enforced. No reversed token negative entry logic.
+**Fix:** Complete state machine with validation. Implement reversed = negative ledger entry (no deletions).
+
+#### GAP C8-3 — Talent Profile + Execution Separation Missing *(Stability −10)*
+**Root cause:** `update_talent_profile()`, `recommend_talent()`, `check_execution_separation()`, `log_execution_separation()` — all 4 not implemented. Ideation/execution separation not enforced.
+**Fix:** Implement all 4 functions. Wire `log_execution_separation()` call from session close. MVP3 scope.
+
+#### GAP C9-1 — CSV Export Has No Auth Gate *(Security −20)*
+**Root cause:** `GET /api/v1/sessions/{id}/export/csv` endpoint does not check if requesting user is Moderator, paid participant, or Lead. Any authenticated user can export.
+**Fix:** Add auth gate: Moderator always; Lead/Developer always; Participant only if `results_opt_in = True` AND (`payment_status = 'paid'` OR `cost_splitting_enabled = False`).
+
+#### GAP C9-2 — Zero Dedicated Tests *(Stability −15)*
+**Root cause:** CSV export function works but has 0 tests verifying 15-column schema, edge cases (empty session, 0 summaries, 0 themes), or performance.
+**Fix:** Add test suite: schema validation, empty session, mixed text+voice, 15-column completeness, >1000 response performance.
+
+#### GAP C9-3 — Results Distribution Not Implemented *(Stability −15)*
+**Root cause:** `distribute_results()` not implemented. Eligible participants never receive results. No notification of session completion.
+**Fix:** Implement results distribution with gating: check `results_opt_in`, `payment_status`, Lead exemption. Create `results_distribution` records.
+
+---
+
+### Upstream Dependencies — What Cubes 7–9 Need from Cubes 1–6
+
+| Dependency | Source | Cube 7-9 Impact | Status |
+|---|---|---|---|
+| **C5-4** Cube 6→7 trigger chain | Cube 5 | Cube 7 cannot start ranking until Phase B trigger fires | **NOT WIRED** |
+| **B4** `themes_ready` broadcast | Cube 6 | Ranking UI cannot display themes until dashboard receives event | **NOT IMPLEMENTED** |
+| **B1** Phase B E2E verification | Cube 6 | Theme records must exist in Postgres for Cube 7 to query | **NOT VERIFIED** |
+| **CQS scores** from Cube 6 | Cube 6 | Cube 8 reward disbursement depends on CQS winner ID | **NOT IMPLEMENTED** (CRS-14.01/14.02 in CUBES_4-6.md) |
+| **Time tracking** from Cube 5 | Cube 5 | Token calculation depends on Cube 5 `stop_time_tracking()` ledger entries | **IMPLEMENTED** |
+| **Core broadcast infra** C6-7 | Cube 6 | Live ranking updates (CRS-16/17) need `supabase_broadcast.py` | **NOT IMPLEMENTED** |
+
+---
+
+### Projected SSSES Scores After All Tasks (Cubes 7–9)
+
+> **Conditional:** Projected scores assume all Cubes 1-6 prerequisites are complete (C5-4, B1, B4, C6-7).
+
+| Cube | Pillar | Before | After | Key Tasks |
+|------|--------|:---:|:---:|---|
+| **7 Ranking** | Security | 20 | 90 | C7-3 (anti-sybil), CRS-22.01–22.02 |
+| | Stability | 10 | 95 | C7-1 (core ranking), C7-2 (emit event), full test suite |
+| | Scalability | 15 | 85 | Borda count optimized for 100K participants |
+| | Efficiency | 15 | 90 | Aggregation <3s for 100K; indexed queries |
+| | Succinctness | 50 | 90 | 8 functions implemented, clean single-responsibility |
+| | **Overall** | **22** | **90** | |
+| **8 Tokens** | Security | 45 | 90 | CRS-24.02 (RBAC), CRS-24.03 (anti-manipulation) |
+| | Stability | 40 | 90 | C8-1 (payments), C8-2 (lifecycle), full test suite |
+| | Scalability | 35 | 85 | Batch ledger writes, WebSocket push (CRS-18.01) |
+| | Efficiency | 45 | 90 | Batch operations, cached balance queries |
+| | Succinctness | 60 | 90 | 14 functions implemented, clean separation |
+| | **Overall** | **45** | **89** | |
+| **9 Reports** | Security | 30 | 90 | C9-1 (auth gate), CRS-14.03 (data destruction) |
+| | Stability | 15 | 90 | C9-2 (tests), C9-3 (distribution), PDF, Pixelated Tokens |
+| | Scalability | 20 | 85 | Streaming CSV, chunked PDF |
+| | Efficiency | 25 | 85 | Cached exports, incremental regeneration |
+| | Succinctness | 55 | 90 | 14 functions implemented, clean separation |
+| | **Overall** | **29** | **88** | |

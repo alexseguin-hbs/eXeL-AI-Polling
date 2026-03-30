@@ -334,9 +334,9 @@ Track and optimize for:
 | 4 Collector | ~80% | 72 | 21 | CRS-09→10 | C4-1→C4-4 |
 | 5 Gateway | ~90% | 82 | 60 | CRS-09→11 | C5-1→C5-4 |
 | 6 AI Pipeline | ~85% | 58 | 26 | CRS-11→14 | C6-1→C6-8 |
-| 7 Ranking | Stub | — | — | — | — |
-| 8 Tokens | Partial | — | 19 | — | — |
-| 9 Reports | Partial | — | — | — | — |
+| 7 Ranking | Stub | 22 | — | CRS-11→13, 16-17, 22 | C7-1→C7-3 |
+| 8 Tokens | Partial | 45 | 19 | CRS-18-19, 24-25, 32-35 | C8-1→C8-3 |
+| 9 Reports | Partial | 29 | — | CRS-14, 19-21 | C9-1→C9-3 |
 | 10 Simulation | Easter Egg SIM | — | — | — | — |
 | **Total** | | | **287** | | **A0–A7, B1–B5, C4–C6** |
 

@@ -1751,15 +1751,17 @@ Use these exactly as “build targets” for website + backend.
 
 ### MVP1 — Ranking & Export — Cubes 7, 9
 
-**CRS-11** User ranks themes after poll closes.
+**CRS-11** User ranks themes after poll closes. *(Cube 7)*
 - **CRS-11.01** Ranking UI displays Theme2 hierarchy (9/6/3) for participant voting after themes_ready event.
 - **CRS-11.02** Vote submission: each participant assigns priority order to themes; submission validated against session voting level (9/6/3).
 - **CRS-11.03** CQS scoring: after ranking closes, `score_cqs()` applied to responses in #1 most-voted Theme2 cluster with >95% confidence. *(Not yet implemented — CRS-14.01 in CUBES_4-6.md)*
+- **CRS-11.04** `identify_top_theme2()` finds #1 most-voted cluster; `emit_ranking_complete()` notifies Cube 5 with top_theme2_id for CQS pipeline.
 
-**CRS-12** System aggregates rankings deterministically and reproducibly.
+**CRS-12** System aggregates rankings deterministically and reproducibly. *(Cube 7)*
 - **CRS-12.01** Deterministic seed-based aggregation — `random_state` pinned per session; identical inputs + same seed always yield identical rankings.
 - **CRS-12.02** Governance compression: quadratic normalization, weight damping, anti-sybil safeguards on voting.
 - **CRS-12.03** Live ranking updates via Supabase Broadcast as votes arrive.
+- **CRS-12.04** Anti-sybil: `detect_voting_anomalies()` flags identical rankings, rapid-fire submissions, coordinated block voting; anomalies logged to audit trail.
 
 **CRS-13** Lead/Developer reviews ranked priorities with metadata for evidence-based decisions.
 - **CRS-13.01** Results view shows ranked themes with response counts, confidence averages, and supporting response samples.
@@ -1778,23 +1780,27 @@ Use these exactly as “build targets” for website + backend.
 - **CRS-15.02** Circuit breaker failover: whisper → grok → gemini → aws; skips failed provider, retries remaining; logs `cube3.stt.failover` per failure.
 - **CRS-15.03** Real-time STT (paid tier): Azure Speech Services (primary) + AWS Transcribe Streaming (fallback) via WebSocket; word-by-word display < 500ms latency.
 
-**CRS-16** Moderator enables live prioritization during sessions.
+**CRS-16** Moderator enables live prioritization during sessions. *(Cube 7)*
 - **CRS-16.01** Live ranking widget visible to Moderator during active polling; updates as responses arrive.
 - **CRS-16.02** Real-time theme confidence indicator shows emerging patterns before polling closes.
+- **CRS-16.03** Consensus convergence detection: system signals when ranking stabilizes (vote delta < threshold). *(Stretch)*
 
-**CRS-17** User sees real-time ranking updates.
+**CRS-17** User sees real-time ranking updates. *(Cube 7)*
 - **CRS-17.01** Live ranking leaderboard pushed via Supabase Broadcast as votes are tallied.
 - **CRS-17.02** Participant sees personal rank vs group rank (if enabled by Moderator).
 
-**CRS-18** System supports real-time updates via WebSockets.
-- **CRS-18.01** Supabase Realtime Broadcast — primary push channel for all status transitions, `new_response`, `summary_ready`, `themes_ready`, ranking updates.
+**CRS-18** System supports real-time updates via WebSockets. *(Cross-cube: Cubes 1, 5, 7, 8)*
+- **CRS-18.01** Supabase Realtime Broadcast — primary push channel for all status transitions, `new_response`, `summary_ready`, `themes_ready`, ranking updates, token balance updates.
 - **CRS-18.02** Presence layer — participant online/idle/disconnected status; late-joiner last-known state delivery.
 - **CRS-18.03** Fallback: Supabase DB REST poll (1.5s interval) as Broadcast health fallback; suspends while Broadcast is healthy.
+- **CRS-18.04** Token HUD push (Cube 8): ♡/웃/◬ balance broadcast to participant frontend within 500ms of ledger write.
 
-**CRS-19** System tracks engagement metrics (join, response, completion, timing).
-- **CRS-19.01** Time tracking per participant: `start_time_tracking()` / `stop_time_tracking()` per action type (login, responding, ranking, reviewing, peer_volunteer, team_collaboration).
-- **CRS-19.02** Login auto-entry: ♡1 웃0 ◬5 awarded on join.
+**CRS-19** System tracks engagement metrics (join, response, completion, timing). *(Cross-cube: Cubes 5, 8, 9)*
+- **CRS-19.01** Time tracking per participant: `start_time_tracking()` / `stop_time_tracking()` per action type (login, responding, ranking, reviewing, peer_volunteer, team_collaboration). *(Cube 5)*
+- **CRS-19.02** Login auto-entry: ♡1 웃0 ◬5 awarded on join. *(Cube 5)*
 - **CRS-19.03** Prometheus metrics: request latency, queue depth, embedding throughput, token velocity — all exported for Grafana dashboards.
+- **CRS-19.04** Token distribution analytics (Cube 8): per-session totals, per-participant breakdown, method breakdown (M1/M2/M3).
+- **CRS-19.05** Engagement analytics dashboard (Cube 9): participation rate, completion rate, time-to-decision, CQS score distribution.
 
 ### MVP3 — Deep Dives, Governance & Tokens — Cubes 7, 8
 
