@@ -90,28 +90,40 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 
 None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 
-### Active Gaps — Cubes 2–6 (audited 2026-03-30)
+### Active Gaps — Cubes 2–6 (spiral code audit 2026-03-30)
+
+**BLOCKER — Infrastructure (Cube 6):**
+- `backend/core/supabase_broadcast.py` does not exist — all realtime backend→frontend delivery is blocked (Task C6-7). Backend has `SUPABASE_URL` + `SUPABASE_KEY` in `.env` but no code uses them for broadcast.
+- `ResponseRead` schema has no `summary_33` field — frontend `session-view.tsx` line 712 type-asserts it but always gets `undefined` (Task C6-8 / A4)
 
 **Critical path (Stability — Cubes 2, 3, 6):**
 - `summary_ready` Supabase broadcast never sent after Cube 6 Phase A — dashboard shows client-side truncation fallback instead of AI summary (Tasks A5 + A6)
 - `themes_ready` Supabase broadcast never sent after Phase B — dashboard has no signal to transition to results view (Task B4)
 - Phase A has no retry on AI failure — silent log warning only (Task A2)
 - Phase B has never been run E2E against a live 5000-response dataset (Task B1)
+- `_store_results()` writes Postgres then MongoDB separately — MongoDB failure after Postgres commit = data inconsistency (Task C6-5)
+- `_assign_themes_llm()` uses manual index tracking — `batch_summarize()` count mismatch causes IndexError (Task C6-6)
 
-**Security — Cubes 2, 3, 6:**
+**Scalability — Cubes 5, 6:**
+- No `asyncio.Semaphore(10)` concurrency cap on Phase A — 100 concurrent submits spawn 100 uncapped AI calls (Task A3)
+- No timeout on AI API calls in Cube 6 — hung provider blocks entire pipeline forever (Task C6-4)
+- No timeout on background pipeline task in Cube 5 — hung `run_pipeline()` leaves trigger `in_progress` permanently (Task C5-3)
+- Phase B parallel batch classification unverified at 5000-response scale (Task B3)
+
+**Security — Cubes 2, 3, 4, 5, 6:**
 - Voice path (Cube 3 → Cube 2 → Cube 6 Phase A) PII gate not verified with structured log assertion (Task A7)
 - `run_pipeline()` (Cube 6 Phase B) does not filter responses by `pii_scrubbed` flag (Task C6-1)
 - Pipeline status route (Cube 5) not Moderator-row-scoped — any authenticated user can read any session's pipeline metadata (Task C5-2)
-
-**Scalability — Cubes 2, 3, 6:**
-- No `asyncio.Semaphore(10)` concurrency cap on Phase A — 100 concurrent submits spawn 100 uncapped AI calls (Task A3)
-- Phase B parallel batch classification unverified at 5000-response scale (Task B3)
+- Cube 4 anonymous user label uses 8-char UUID prefix (collision risk at scale) instead of SHA-256 `anon_hash` (Task C4-4)
 
 **Efficiency — Cubes 2, 3, 6:**
 - `summarize_single_response()` makes 3 sequential AI round-trips; single structured JSON prompt would halve round-trips (Task A1)
+- No short-circuit for ≤33-word responses — AI call wasted on text already at target length (Task A0)
 
-**Stability — Cube 5:**
-- Background task failure on `asyncio.create_task(run_pipeline())` is silently absorbed — `PipelineTrigger.status` can be stuck at `in_progress` forever (Task C5-1 / Task B5)
+**Stability — Cubes 4, 5:**
+- Background task failure on `asyncio.create_task(run_pipeline())` silently absorbed — `PipelineTrigger.status` stuck at `in_progress` forever (Task C5-1 / B5)
+- Cube 6 → Cube 7 trigger chain not wired — `trigger_ranking_pipeline()` exists but is never called after Phase B completes (Task C5-4)
+- Cube 4 MongoDB queries have no error handling — `find_one()` exceptions propagate uncaught (Task C4-3)
 
 **Implementation gap — Cube 4:**
 - Methods 2 & 3 confirmation gate not implemented (`create_desired_outcome()`, `record_confirmation()`, `check_all_confirmed()` — CRS-10.01–10.03)

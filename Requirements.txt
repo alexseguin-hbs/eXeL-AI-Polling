@@ -1738,8 +1738,9 @@ Use these exactly as “build targets” for website + backend.
 **CRS-09** System clusters responses into meaningful AI themes.
 - **CRS-09.01** Phase A (live, per-response): after each text/voice submission, async 333→111→33 word English summaries generated via AI (OpenAI / Grok / Gemini); stored in MongoDB `summaries` collection.
 - **CRS-09.02** Phase B (batch, after Stop Polling): fetch all 33-word summaries → classify Theme01 (Risk/Supporting/Neutral) → marble sampling → parallel candidate theme generation → reduce to Theme2_9/6/3 → assign each response; target <30s for 1000 responses.
-- **CRS-09.03** `summary_ready` Supabase broadcast sent to Moderator dashboard after Phase A completes per response. *(GAP — Task A5; not yet implemented)*
-- **CRS-09.04** `themes_ready` Supabase broadcast sent to dashboard after Phase B completes. *(GAP — Task B4; not yet implemented)*
+- **CRS-09.03** `summary_ready` Supabase broadcast sent to Moderator dashboard after Phase A completes per response. *(BLOCKER — Task C6-7 must create `core/supabase_broadcast.py` first; then Task A5 implements broadcast; not yet implemented)*
+- **CRS-09.04** `themes_ready` Supabase broadcast sent to dashboard after Phase B completes. *(BLOCKER — same C6-7 prerequisite; Task B4; not yet implemented)*
+- **CRS-09.07** `ResponseRead` schema includes `summary_33: str | None` field so frontend can receive it from API response. *(GAP — Task C6-8/A4; field does not exist in schema; frontend always gets `undefined`)*
 - **CRS-09.05** Response aggregation (Cube 4): Postgres + MongoDB dual storage per response in Web_Results format (q_number, question, user, detailed_results, response_language).
 - **CRS-09.06** Pipeline orchestration (Cube 5): `orchestrate_post_polling()` fires Cube 6 `run_pipeline()` as background asyncio task on polling→ranking transition; `PipelineTrigger` record tracks status.
 
