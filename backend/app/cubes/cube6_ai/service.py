@@ -64,6 +64,15 @@ _SUMMARIZE_INSTRUCTION = (
 )
 
 
+_SINGLE_PROMPT_INSTRUCTION = (
+    "You are a summarizer. {translate}"
+    "Given the following text, produce three summaries at different lengths. "
+    "Return ONLY valid JSON with exactly these three keys:\n"
+    '{{"summary_333": "~333 word summary", "summary_111": "~111 word summary", "summary_33": "~33 word summary"}}\n'
+    "All summaries must be in English. Preserve key points and meaning."
+)
+
+
 async def summarize_single_response(
     mongo: AsyncIOMotorDatabase,
     *,
@@ -72,44 +81,91 @@ async def summarize_single_response(
     raw_text: str,
     language_code: str = "en",
     ai_provider: str = "openai",
+    session_short_code: str = "",
 ) -> dict:
     """Generate 333 -> 111 -> 33 word summaries for a single response.
 
-    Called by Cube 2 submit flow (fire-and-forget async task).
-    Stores summaries immediately in MongoDB for live display.
+    Called by Cube 2 submit flow (fire-and-forget async task with retry).
+    Stores summaries in MongoDB, then broadcasts summary_ready via Supabase.
+
+    Task A0: Short-circuit if ≤33 words (BR-1).
+    Task A1: Single structured prompt for all 3 tiers (<0.5s target).
+    Task A5: Broadcast summary_ready after store.
 
     Returns: {"summary_333": str, "summary_111": str, "summary_33": str}
     """
-    summarizer = get_summarization_provider(ai_provider)
-
-    translate = (
-        "If the text is not in English, translate it to English first. "
-        if language_code != "en"
-        else ""
-    )
+    from app.core.supabase_broadcast import broadcast_event
 
     word_count = len(raw_text.split())
 
-    # 333-word summary (skip if already short enough)
-    if word_count > 333:
-        summary_333 = await summarizer.summarize(
-            [raw_text[:4000]],
-            instruction=_SUMMARIZE_INSTRUCTION.format(translate=translate, target=333),
+    # --- Task A0: Short-circuit ≤33 words (BR-1) ---
+    # Text already at or below target summary length — no AI call needed.
+    if word_count <= 33:
+        summary_333 = raw_text
+        summary_111 = raw_text
+        summary_33 = raw_text
+        logger.info(
+            "cube6.phase_a.short_circuit",
+            response_id=str(response_id),
+            word_count=word_count,
         )
     else:
-        summary_333 = raw_text
+        # --- Task A1: Single structured prompt (2 round-trips max) ---
+        summarizer = get_summarization_provider(ai_provider)
 
-    # 111-word summary (cascade from 333)
-    summary_111 = await summarizer.summarize(
-        [summary_333],
-        instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=111),
-    )
+        translate = (
+            "If the text is not in English, translate it to English first. "
+            if language_code != "en"
+            else ""
+        )
 
-    # 33-word summary (cascade from 111)
-    summary_33 = await summarizer.summarize(
-        [summary_111],
-        instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=33),
-    )
+        if word_count > 333:
+            # Long text: first compress to ~333, then single prompt for 111+33
+            summary_333 = await summarizer.summarize(
+                [raw_text[:4000]],
+                instruction=_SUMMARIZE_INSTRUCTION.format(translate=translate, target=333),
+            )
+            # Second call: 111 + 33 from the 333
+            try:
+                combined = await summarizer.summarize(
+                    [summary_333],
+                    instruction=_SINGLE_PROMPT_INSTRUCTION.format(translate=""),
+                )
+                parsed = json.loads(combined)
+                summary_111 = parsed.get("summary_111", summary_333[:500])
+                summary_33 = parsed.get("summary_33", " ".join(summary_333.split()[:33]))
+            except (json.JSONDecodeError, TypeError):
+                # Fallback: cascade if JSON parse fails
+                summary_111 = await summarizer.summarize(
+                    [summary_333],
+                    instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=111),
+                )
+                summary_33 = await summarizer.summarize(
+                    [summary_111],
+                    instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=33),
+                )
+        else:
+            # Medium text (34–333 words): single prompt for all 3 tiers
+            try:
+                combined = await summarizer.summarize(
+                    [raw_text],
+                    instruction=_SINGLE_PROMPT_INSTRUCTION.format(translate=translate),
+                )
+                parsed = json.loads(combined)
+                summary_333 = parsed.get("summary_333", raw_text)
+                summary_111 = parsed.get("summary_111", raw_text)
+                summary_33 = parsed.get("summary_33", " ".join(raw_text.split()[:33]))
+            except (json.JSONDecodeError, TypeError):
+                # Fallback: cascade
+                summary_333 = raw_text
+                summary_111 = await summarizer.summarize(
+                    [raw_text],
+                    instruction=_SUMMARIZE_INSTRUCTION.format(translate=translate, target=111),
+                )
+                summary_33 = await summarizer.summarize(
+                    [summary_111],
+                    instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=33),
+                )
 
     # Store in MongoDB for immediate display
     await mongo.summaries.update_one(
@@ -134,6 +190,17 @@ async def summarize_single_response(
                      f"111={len(summary_111.split())}, "
                      f"33={len(summary_33.split())}",
     )
+
+    # --- Task A5: Broadcast summary_ready via Supabase ---
+    if session_short_code:
+        await broadcast_event(
+            channel=f"session:{session_short_code}",
+            event="summary_ready",
+            payload={
+                "response_id": str(response_id),
+                "summary_33": summary_33,
+            },
+        )
 
     return {
         "summary_333": summary_333,

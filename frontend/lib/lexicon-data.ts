@@ -214,6 +214,12 @@ const cube1: TranslationEntry[] = [
   { key: "cube1.moderator.expand_feed", englishDefault: "Expand Feed", context: "Maximize live feed button", cubeId: 1 },
   { key: "cube1.moderator.collapse_feed", englishDefault: "Collapse", context: "Minimize live feed button", cubeId: 1 },
   { key: "cube1.moderator.waiting_responses", englishDefault: "Waiting for responses...", context: "Empty feed placeholder", cubeId: 1 },
+  // Live feed — summary toggle (Task A6 / BR-4)
+  { key: "cube1.feed.toggle_live", englishDefault: "Live Feedback", context: "Feed toggle option A — raw clean_text (default)", cubeId: 1 },
+  { key: "cube1.feed.toggle_summary", englishDefault: "33-Word Summary", context: "Feed toggle option B — AI summary_33", cubeId: 1 },
+  { key: "cube1.feed.summary_loading", englishDefault: "Generating summary...", context: "Shown while Phase A is processing (before summary_ready broadcast)", cubeId: 1 },
+  { key: "cube1.feed.summary_unavailable", englishDefault: "Summary unavailable", context: "Shown when Phase A retry exhausted", cubeId: 1 },
+  { key: "cube1.feed.summary_short", englishDefault: "Response is already concise", context: "Shown when BR-1 short-circuit applies (≤33 words)", cubeId: 1 },
   { key: "cube1.moderator.poll_duration", englishDefault: "Poll Duration", context: "Static poll duration label", cubeId: 1 },
   // Countdown timer
   { key: "cube1.timer.days", englishDefault: "days", context: "Timer phase label — days", cubeId: 1 },

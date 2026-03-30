@@ -630,6 +630,7 @@ async def submit_text_response(
 
     async def _run_phase_a_with_retry(
         mongo_db, *, session_id, response_id, clean_text, language_code, ai_provider,
+        session_short_code: str = "",
         max_retries: int = 3,
     ):
         """Task A2: Phase A with exponential backoff retry (1s, 2s, 4s).
@@ -645,6 +646,7 @@ async def submit_text_response(
                     raw_text=clean_text,  # PII-safe (Task A7)
                     language_code=language_code,
                     ai_provider=ai_provider,
+                    session_short_code=session_short_code,
                 )
                 return  # Success
             except Exception as exc:
@@ -691,6 +693,7 @@ async def submit_text_response(
                 clean_text=clean_text,
                 language_code=language_code,
                 ai_provider=session.ai_provider or "openai",
+                session_short_code=session.short_code,
             )
         )
 

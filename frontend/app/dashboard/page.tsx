@@ -256,6 +256,18 @@ function SessionDetail({
           p.summary_33,
         );
       })
+      // Task A6: Listen for summary_ready from Cube 6 Phase A backend broadcast.
+      // Updates existing feed entry in-place with AI-generated summary_33.
+      .on("broadcast", { event: "summary_ready" }, ({ payload }) => {
+        const p = payload as { response_id?: string; summary_33?: string };
+        if (p.response_id && p.summary_33) {
+          setFeedResponses((prev) =>
+            prev.map((r) =>
+              r.id === p.response_id ? { ...r, summary_33: p.summary_33 } : r,
+            ),
+          );
+        }
+      })
       .subscribe();
 
     // Channel B: postgres_changes on responses table (reliable HTTP path, works even if Broadcast drops)
