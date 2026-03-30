@@ -1270,3 +1270,307 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 | | Efficiency | 25 | 85 | Cached exports, incremental regeneration |
 | | Succinctness | 55 | 90 | 14 functions implemented, clean separation |
 | | **Overall** | **29** | **88** | |
+
+---
+
+## Final SSSES Gap Analysis + Spiral Test — Cubes 1–9 (2026-03-30)
+
+> **Scope:** Full forward spiral (Cube 1→9) and backward spiral (Cube 9→1) assessing all remaining gaps needed to reach production-ready SSSES 100/100. Includes scale architecture for 1M concurrent users with <2s auto-theming and <0.5s per-response summarization targets.
+
+### Current SSSES Scores — All Cubes
+
+| Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall | Status |
+|------|:---:|:---:|:---:|:---:|:---:|:---:|---|
+| 1 Session | 100 | 100 | 100 | 100 | 100 | **100** | Production-ready |
+| 2 Text | 75 | 40 | 50 | 55 | 65 | **57** | Phase A gaps |
+| 3 Voice | 70 | 40 | 50 | 55 | 65 | **56** | Phase A gaps |
+| 4 Collector | 70 | 65 | 75 | 70 | 80 | **72** | MongoDB error handling |
+| 5 Gateway | 80 | 75 | 80 | 85 | 90 | **82** | Timeout + chain gaps |
+| 6 AI Pipeline | 70 | 40 | 55 | 55 | 70 | **58** | Broadcast + scale gaps |
+| 7 Ranking | 20 | 10 | 15 | 15 | 50 | **22** | Scaffolded only |
+| 8 Tokens | 45 | 40 | 35 | 45 | 60 | **45** | Partial |
+| 9 Reports | 30 | 15 | 20 | 25 | 55 | **29** | Partial |
+| **System** | — | — | — | — | — | **58 avg** | |
+
+---
+
+### Spiral Test — Forward (Cube 1 → 9)
+
+```
+Cube 1 ──[session create + join]──► Cube 2 ──[text submit]──► Cube 3 ──[voice submit]──►
+  │                                    │                          │
+  │ ✓ WIRED: state machine,           │ ✓ WIRED: PII pipeline    │ ✓ WIRED: STT → Cube 2
+  │   QR, join, presence              │ ✗ GAP: summary_33 not    │ ✗ GAP: voice path PII
+  │ ✓ 100/100 SSSES                   │   in broadcast payload   │   gate unverified (A7)
+  │                                    │ ✗ GAP: Phase A fire-     │
+  │                                    │   and-forget silent (A2) │
+  ▼                                    ▼                          ▼
+Cube 4 ──[aggregate responses]──► Cube 5 ──[orchestrate]──► Cube 6 ──[Phase A + B]──►
+  │                                    │                          │
+  │ ✓ WIRED: dual storage             │ ✓ WIRED: polling→ranking │ ✗ GAP: supabase_broadcast.py
+  │ ✗ GAP: MongoDB no error           │   triggers Phase B       │   DOES NOT EXIST (C6-7)
+  │   handling (C4-3)                  │ ✗ GAP: no pipeline       │ ✗ GAP: 3 seq AI calls (A1)
+  │ ✗ GAP: M2/M3 not implemented      │   timeout (C5-3)         │ ✗ GAP: no concurrency cap
+  │                                    │ ✗ GAP: Cube 6→7 chain   │   (A3)
+  │                                    │   NOT WIRED (C5-4)       │ ✗ GAP: no broadcast after
+  │                                    │                          │   Phase A or B (A5, B4)
+  ▼                                    ▼                          ▼
+Cube 7 ──[rank themes]──► Cube 8 ──[tokens + rewards]──► Cube 9 ──[export + report]──►
+  │                          │                               │
+  │ ✗ GAP: ALL ranking       │ ✗ GAP: payment not           │ ✗ GAP: CSV no auth gate
+  │   logic is stubs (C7-1)  │   implemented (C8-1)          │   (C9-1)
+  │ ✗ GAP: ranking_complete  │ ✗ GAP: lifecycle transitions  │ ✗ GAP: 0 tests (C9-2)
+  │   event not wired (C7-2) │   incomplete (C8-2)           │ ✗ GAP: results distribution
+  │ ✗ GAP: no anti-sybil     │ ✗ GAP: talent + execution     │   not implemented (C9-3)
+  │   (C7-3)                 │   separation missing (C8-3)   │
+  │                          │                               │
+  ▼                          ▼                               ▼
+  PIPELINE TERMINATES        PIPELINE TERMINATES             END
+```
+
+**Forward Spiral Verdict:** Pipeline is wired Cube 1→2→3→4→5→6 (with gaps). **Chain breaks at Cube 6→7** (C5-4). Cubes 7→8→9 are isolated stubs with no upstream trigger.
+
+---
+
+### Spiral Test — Backward (Cube 9 → 1)
+
+| Link | Direction | What It Needs | Status | Blocking Gap |
+|------|-----------|---------------|--------|---|
+| 9 → 8 | Reward winner announcement | CQS winner ID + score from Cube 8 | **NOT WIRED** | Cube 8 `disburse_reward()` not implemented |
+| 9 → 7 | Ranked themes for export | Final rankings from `aggregated_rankings` table | **NOT WIRED** | Cube 7 `aggregate_rankings()` is stub |
+| 9 → 6 | Theme data for CSV/PDF | Theme01 + Theme2_9/6/3 from Postgres `themes` table | **SCHEMA READY** | Phase B must complete first (Task B1) |
+| 8 → 7 | CQS trigger with top_theme2_id | Cube 7 `emit_ranking_complete()` → Cube 5 → Cube 6 CQS | **NOT WIRED** | C7-2 + C5-4 |
+| 8 → 5 | Time tracking ledger entries | Cube 5 `stop_time_tracking()` creates entries | **WIRED** | Working |
+| 7 → 6 | Theme records for ranking UI | Cube 6 Phase B stores themes in Postgres | **SCHEMA READY** | Phase B verification (B1) |
+| 7 → 5 | `themes_ready` event to start ranking | Cube 5 should trigger Cube 7 after Phase B | **NOT WIRED** | C5-4 |
+| 6 → 5 | Pipeline status updates | `update_pipeline_status()` called from background task | **LOOSELY WIRED** | Error propagation broken (C5-1) |
+| 6 → 4 | Response fetch for Phase B | `get_response_set()` from Cube 4 | **WIRED** | PII guard missing (C6-1) |
+| 6 → 2/3 | Phase A fire-and-forget | `summarize_single_response()` from Cube 2 submit | **WIRED** | No broadcast (A5), no retry (A2) |
+| 5 → 1 | State machine hook | `_transition_and_return()` calls orchestrator | **WIRED** | Tight coupling (tech debt) |
+
+**Backward Spiral Verdict:** Data schemas are ready for Cubes 7→8→9. The primary blockers are: (1) C5-4 (Cube 6→7 chain), (2) C7-1 (ranking implementation), (3) C6-7 (broadcast infrastructure).
+
+---
+
+### Scale Architecture — 1M Concurrent Users
+
+#### Target Performance Envelope
+
+| Metric | Target | Current | Gap |
+|--------|--------|---------|-----|
+| **Phase A: Summarize** (per response) | **<0.5s** | ~3–5s (3 sequential API calls) | Task A1: single prompt → <0.5s; Task A0: ≤33 words = 0s |
+| **Phase B: Auto-theme** (full pipeline) | **<2s** for 1M inputs | Unknown (never tested >28 responses) | Statistical sampling + parallel batch + streaming |
+| **Concurrent users** | 1,000,000 stable | ~100 tested (Cube 1 live session) | Horizontal scaling architecture |
+| **Vote submission latency** | <200ms | N/A (stubs) | Cube 7 implementation with indexed queries |
+| **Live ranking update** | <500ms | N/A (stubs) | Supabase Broadcast (same infra as Cube 1) |
+
+#### Phase A Scale Strategy — <0.5s Summarization
+
+```
+Response submitted → Cube 2 PII pipeline (~50ms)
+  │
+  ▼ [asyncio.create_task — fire-and-forget]
+  ├── BR-1: if word_count ≤ 33 → summary_33 = clean_text (0ms, 0 API calls)
+  ├── Task A0: short-circuit check
+  │
+  ├── Task A1: single structured prompt → JSON {summary_333, summary_111, summary_33}
+  │     Target: 1 API call, <500ms with gpt-4o-mini / gemini-2.0-flash
+  │
+  ├── Task A3: asyncio.Semaphore(10) per session → max 10 concurrent Phase A
+  │     At 1M users: 100K sessions × 10 concurrent = 1M parallel Phase A tasks
+  │     Worker fleet: horizontal scale via Kubernetes pod autoscaling
+  │
+  └── Task A5: broadcast summary_ready → Moderator dashboard (<100ms after store)
+```
+
+**Key insight:** Phase A is embarrassingly parallel — each response is independent. At 1M concurrent users across ~10K sessions, each session has ~100 responses. With Semaphore(10), each session processes 10 at a time. Across 10K sessions on horizontally scaled workers, effective parallelism is 100K+.
+
+#### Phase B Scale Strategy — <2s Auto-Theming for 1M Inputs
+
+```
+Moderator clicks Stop Polling → Cube 5 fires run_pipeline()
+  │
+  ▼ Step 1: Statistical sampling (NEW — not in current code)
+  │  For N > 10,000 responses: sample K = min(N, 10,000) responses
+  │  Stratified by language_code to preserve distribution
+  │  Remaining N-K responses assigned to themes via embedding cosine (no LLM)
+  │
+  ▼ Step 2: Classify Theme01 — 1 batch API call (~200ms)
+  │  K responses classified as Risk/Supporting/Neutral in single batch
+  │  <65% confidence → reclassify as Neutral (monolith parity)
+  │
+  ▼ Step 3: Marble sample — CPU only (~10ms)
+  │  K/10 groups of 10, deterministic seed, parallel across 3 categories
+  │
+  ▼ Step 4: Generate themes — ceil(K/10) concurrent API calls (~500ms)
+  │  10+ asyncio agents per category, all 3 categories parallel
+  │  For K=10,000: 1,000 groups → 1,000 concurrent calls
+  │  With Semaphore(50): 20 batches × ~25ms each = ~500ms
+  │
+  ▼ Step 5: Reduce themes — 9 API calls (~300ms)
+  │  all→9→6→3 per category, 3 categories parallel = 3 sequential × 3 parallel
+  │
+  ▼ Step 6: Assign themes — embedding cosine (1 API call + math)
+  │  For ALL N responses (not just sample): embed all summary_33 + theme labels
+  │  1 batch embedding call (~300ms for 1M short texts via batch API)
+  │  Cosine similarity is pure NumPy — <100ms for 1M × 27 comparisons
+  │
+  ▼ Step 7: Store results — batch Postgres + MongoDB (~200ms)
+  │
+  Total: ~200 + 10 + 500 + 300 + 300 + 100 + 200 = ~1,610ms ≈ <2s ✓
+```
+
+**Critical scale decisions:**
+1. **Statistical sampling (Step 1):** Theme generation uses a representative sample, not all N. Themes are stable at K=10,000 (law of large numbers). Assignment uses ALL N via fast embedding cosine.
+2. **Embedding assignment over LLM (Step 6):** Embedding cosine is O(N × T) where T=27 themes — pure NumPy, no API latency per response. LLM assignment would be 3N API calls (3 levels × N responses) — infeasible at 1M.
+3. **Batch embedding API:** OpenAI/Gemini batch endpoints accept 2048+ texts per call. 1M summary_33 texts (each ~33 words) = ~500 batch calls at 2000/batch = ~300ms parallel.
+4. **Pre-computed embeddings:** During Phase A, embed each `summary_33` as it's generated and cache in MongoDB. Phase B Step 6 only embeds theme labels (27 texts) and reads cached response embeddings.
+
+#### Voting Architecture — 3/6/9 Theme Selection
+
+**Monolith parity (from eXeL-AI_Polling_v04.2.py):**
+- Themes generated per Theme01 category: Risk, Supporting, Neutral
+- Each category independently reduced: all → 9 → 6 → 3
+- Moderator selects voting level at session creation: `session.theme2_voting_level` (3, 6, or 9)
+
+**Voting specification:**
+
+| Category | Voting Priority | Themes Available | Moderator Action |
+|----------|:---:|:---:|---|
+| **Risk & Concerns** | **Primary** | 3, 6, or 9 (Moderator selects) | Participants rank Risk themes first |
+| **Supporting Comments** | **Secondary** | 3, 6, or 9 (same level as Risk) | Participants rank Supporting themes second |
+| **Neutral Comments** | **Deprioritized** | Available but not ranked by default | Neutral themes shown for context but excluded from ranking unless Moderator explicitly enables. Neutral typically contains random/throwaway comments that don't belong to Risk or Supporting. |
+
+**Voting flow:**
+1. Phase B completes → `themes_ready` broadcast (Task B4) → Dashboard transitions to ranking view
+2. Ranking view shows Theme2 cards grouped by category (Risk first, Supporting second)
+3. Participant assigns priority order within each category (drag-drop desktop / tap-reorder mobile)
+4. `submit_user_ranking()` validates theme IDs against `session.theme2_voting_level`
+5. `aggregate_rankings()` runs Borda count per category independently
+6. `identify_top_theme2()` finds #1 across all categories → triggers CQS
+7. `emit_ranking_complete()` → Cube 5 → Cube 6 CQS → Cube 8 reward
+
+**Neutral deprioritization rule:**
+- Confidence < 65% → reclassified as Neutral (monolith parity, already implemented in Phase B)
+- Neutral themes displayed in "Other Comments" section below Risk + Supporting
+- Neutral themes NOT included in default ranking unless Moderator enables `session.include_neutral_ranking = True`
+- CQS scoring never applies to Neutral-classified responses (only #1 Theme2 from Risk or Supporting)
+
+---
+
+### Remaining Gaps — Priority Order for 100/100
+
+#### PHASE 1 — Infrastructure (unblocks everything)
+
+| # | Task | Cube | SSSES Impact | Status |
+|---|------|------|---|---|
+| 1 | **C6-7** Create `core/supabase_broadcast.py` | 6 | Stability +20 | BLOCKER |
+| 2 | **C6-8/A4** Add `summary_33` to `ResponseRead` schema | 6 | Efficiency +10 | BLOCKER |
+| 3 | **C6-1** PII guard in `run_pipeline()` | 6 | Security +15 | |
+| 4 | **A7** PII log assertion for text + voice paths | 2, 3 | Security +25 | |
+| 5 | **C4-4** Fix anonymization collision | 4 | Security +5 | |
+
+#### PHASE 2 — Live Feed (Moderator sees responses + summaries)
+
+| # | Task | Cube | SSSES Impact | Status |
+|---|------|------|---|---|
+| 6 | **A0** Short-circuit ≤33 words | 6 | Efficiency +5 | |
+| 7 | **A1** Single-prompt summarization (<0.5s target) | 6 | Efficiency +20 | |
+| 8 | **A2** Retry with exponential backoff | 6 | Stability +25 | |
+| 9 | **A5** Backend Supabase broadcast (`summary_ready`) | 6 | Stability +20 | |
+| 10 | **A6** Dashboard `summary_ready` listener | 1 | Stability +10 | |
+
+#### PHASE 3 — Resilience + Scale
+
+| # | Task | Cube | SSSES Impact | Status |
+|---|------|------|---|---|
+| 11 | **A3** Per-session Semaphore(10) | 6 | Scalability +30 | |
+| 12 | **C5-3** Pipeline timeout (300s) | 5 | Scalability +15 | |
+| 13 | **C6-4** AI API call timeout (30s) | 6 | Scalability +15 | |
+| 14 | **C5-1** Pipeline error propagation | 5 | Stability +15 | |
+| 15 | **C5-2** Moderator-scoped route guard | 5 | Security +10 | |
+| 16 | **C4-3** MongoDB error handling | 4 | Stability +10 | |
+
+#### PHASE 4 — Phase B Theming + Downstream Chain
+
+| # | Task | Cube | SSSES Impact | Status |
+|---|------|------|---|---|
+| 17 | **B2** Monolith parity check | 6 | Stability +10 | |
+| 18 | **B1** Phase B E2E verification | 6 | Stability +20 | |
+| 19 | **B3** Parallel batch verify at scale | 6 | Scalability +20 | |
+| 20 | **C6-5** Partial failure handling | 6 | Stability +10 | |
+| 21 | **C6-6** Fix index mismatch | 6 | Stability +5 | |
+| 22 | **B4** `themes_ready` broadcast | 6 | Stability +10 | |
+| 23 | **B5** Phase B recovery + status endpoint | 6 | Stability +15 | |
+| 24 | **C5-4** Wire Cube 6→7 trigger chain | 5 | Stability +10 | |
+
+#### PHASE 5 — Ranking (Cube 7)
+
+| # | Task | Cube | SSSES Impact | Status |
+|---|------|------|---|---|
+| 25 | **C7-1** Implement core ranking (submit + aggregate + identify_top) | 7 | Stability +60 | |
+| 26 | **C7-2** Wire `emit_ranking_complete()` → Cube 5 CQS trigger | 7 | Stability +15 | |
+| 27 | **C7-3** Anti-sybil voting anomaly detection | 7 | Security +30 | |
+| 28 | Ranking UI: 3/6/9 theme cards, Risk first, Supporting second, Neutral deprioritized | 7 | Stability +10 | |
+
+#### PHASE 6 — Tokens + Rewards (Cube 8)
+
+| # | Task | Cube | SSSES Impact | Status |
+|---|------|------|---|---|
+| 29 | **C8-1** Stripe payment integration | 8 | Stability +20 | |
+| 30 | **C8-2** Complete lifecycle state machine | 8 | Stability +15 | |
+| 31 | **C8-3** Talent profiles + execution separation | 8 | Stability +10 | |
+
+#### PHASE 7 — Reports + Export (Cube 9)
+
+| # | Task | Cube | SSSES Impact | Status |
+|---|------|------|---|---|
+| 32 | **C9-1** CSV export auth gate | 9 | Security +20 | |
+| 33 | **C9-2** Test suite (15-column schema, edge cases, performance) | 9 | Stability +15 | |
+| 34 | **C9-3** Results distribution with gating | 9 | Stability +15 | |
+
+#### PHASE 8 — Scale (1M Target)
+
+| # | Task | Cube | SSSES Impact | Status |
+|---|------|------|---|---|
+| 35 | **S1** Statistical sampling in Phase B (K=10,000 cap) | 6 | Scalability +20 | NEW |
+| 36 | **S2** Pre-compute embeddings during Phase A (cache in MongoDB) | 6 | Efficiency +15 | NEW |
+| 37 | **S3** Batch embedding API for Phase B assignment | 6 | Scalability +15 | NEW |
+| 38 | **S4** Streaming CSV export for >100K responses | 9 | Scalability +10 | NEW |
+| 39 | **S5** Kubernetes HPA config for embedding worker fleet | Infra | Scalability +10 | NEW |
+| 40 | **S6** Redis-backed global Semaphore (cross-worker) | 6 | Scalability +10 | NEW |
+
+---
+
+### API Call Budget — At Scale
+
+| Scale | Phase A (per response) | Phase B (total) | Total API Calls |
+|-------|:---:|:---:|:---:|
+| **100 responses** | 100 (1 call each after A1) | ~23 | **123** |
+| **1,000 responses** | 1,000 | ~113 | **1,113** |
+| **10,000 responses** | 10,000 | ~1,013 | **11,013** |
+| **100,000 responses** | 100,000 | ~1,013 (sampled at K=10K) | **101,013** |
+| **1,000,000 responses** | 1,000,000 | ~1,013 (sampled at K=10K) | **1,001,013** |
+
+> Phase A call count = N (1 per response after Task A1 consolidation; minus short-circuit A0 responses).
+> Phase B call count = ceil(K/10) + 9 (reduction) + 1 (batch embed) + 1 (classify) ≈ K/10 + 11.
+> At K=10,000 sample cap: Phase B = 1,000 + 11 + 1 + 1 = **1,013 calls**.
+
+---
+
+### Projected SSSES Scores — All Cubes After All Phases
+
+| Cube | Before | After | Delta |
+|------|:---:|:---:|:---:|
+| 1 Session | 100 | 100 | 0 |
+| 2 Text | 57 | 100 | +43 |
+| 3 Voice | 56 | 100 | +44 |
+| 4 Collector | 72 | 90 | +18 |
+| 5 Gateway | 82 | 95 | +13 |
+| 6 AI Pipeline | 58 | 98 | +40 |
+| 7 Ranking | 22 | 92 | +70 |
+| 8 Tokens | 45 | 90 | +45 |
+| 9 Reports | 29 | 90 | +61 |
+| **System Average** | **58** | **95** | **+37** |
+
+> Full 100/100 across all cubes requires completing all 40 tasks (Phases 1-8). Cubes 4 and 7-9 max at ~90 because some MVP3 features (deep dives, talent profiles, Pixelated Tokens) are deferred.
