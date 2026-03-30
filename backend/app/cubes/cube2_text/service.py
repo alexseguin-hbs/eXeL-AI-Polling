@@ -670,7 +670,7 @@ async def submit_text_response(
         )
         try:
             await mongo_db.summaries.update_one(
-                {"response_id": str(response_id)},
+                {"response_id": str(response_id), "session_id": str(session_id)},
                 {"$set": {
                     "session_id": str(session_id),
                     "response_id": str(response_id),
