@@ -31,6 +31,20 @@ async def run_ai_theming(
     return result
 
 
+@router.get("/ai/status")
+async def get_ai_status(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+):
+    """Task B5: Pipeline status — stage, error info, theme count.
+
+    Returns current pipeline stage for recovery monitoring.
+    Moderator can re-trigger POST /ai/run if status shows error.
+    """
+    return await service.get_pipeline_status(db, session_id)
+
+
 @router.get("/themes", response_model=list[ThemeRead])
 async def get_themes(
     session_id: uuid.UUID,

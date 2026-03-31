@@ -31,7 +31,7 @@ import uuid
 from datetime import datetime, timezone
 
 import numpy as np
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -907,6 +907,9 @@ async def run_pipeline(
     if session is None:
         raise ValueError(f"Session {session_id} not found")
 
+    # Task B5: Track pipeline stage for recovery + status endpoint
+    session.pipeline_stage = "starting"
+
     effective_seed = seed or session.seed or str(session_id)
     seed_int = int(hashlib.md5(effective_seed.encode()).hexdigest()[:8], 16)
 
@@ -927,43 +930,78 @@ async def run_pipeline(
             "duration_sec": round(time.monotonic() - start_time, 2),
         }
 
-    # Step 2: Classify Theme01 (batch parallel)
-    logger.info("Step 2: Classifying Theme01 for %d responses", len(responses))
-    responses = await _classify_theme01(summarizer, responses)
+    # Task B5: Wrap pipeline in try/except for failure recovery.
+    # On failure: store partial results, set pipeline_stage to error stage.
+    # Moderator can re-trigger POST /ai/run which is idempotent.
+    try:
+        # Step 2: Classify Theme01 (batch parallel)
+        session.pipeline_stage = "classifying"
+        logger.info("Step 2: Classifying Theme01 for %d responses", len(responses))
+        responses = await _classify_theme01(summarizer, responses)
 
-    # Step 3: Group by Theme01
-    logger.info("Step 3: Grouping by Theme01")
-    bins = _group_by_theme01(responses)
-    bin_counts = {k: len(v) for k, v in bins.items()}
+        # Step 3: Group by Theme01
+        session.pipeline_stage = "grouping"
+        logger.info("Step 3: Grouping by Theme01")
+        bins = _group_by_theme01(responses)
+        bin_counts = {k: len(v) for k, v in bins.items()}
 
-    # Step 4: Marble sampling (shuffle + slice)
-    logger.info("Step 4: Marble sampling (seed=%d)", seed_int)
-    bin_samples = await _parallel_marble_sample(bins, seed_int)
-    group_counts = {k: len(v) for k, v in bin_samples.items()}
+        # Step 4: Marble sampling (shuffle + slice)
+        session.pipeline_stage = "sampling"
+        logger.info("Step 4: Marble sampling (seed=%d)", seed_int)
+        bin_samples = await _parallel_marble_sample(bins, seed_int)
+        group_counts = {k: len(v) for k, v in bin_samples.items()}
 
-    # Step 5: Generate 3 themes per marble group (10+ concurrent agents)
-    logger.info("Step 5: Generating themes (%s groups total)",
-                sum(group_counts.values()))
-    all_themes = await _parallel_generate_themes(summarizer, bin_samples)
-    theme_counts = {k: len(v) for k, v in all_themes.items()}
+        # Step 5: Generate 3 themes per marble group (10+ concurrent agents)
+        session.pipeline_stage = "generating"
+        logger.info("Step 5: Generating themes (%s groups total)",
+                    sum(group_counts.values()))
+        all_themes = await _parallel_generate_themes(summarizer, bin_samples)
+        theme_counts = {k: len(v) for k, v in all_themes.items()}
 
-    # Step 6: Reduce all -> 9 -> 6 -> 3 (concurrent per category)
-    logger.info("Step 6: Reducing themes (all->9->6->3)")
-    reduced = await _reduce_themes(summarizer, all_themes)
+        # Step 6: Reduce all -> 9 -> 6 -> 3 (concurrent per category)
+        session.pipeline_stage = "reducing"
+        logger.info("Step 6: Reducing themes (all->9->6->3)")
+        reduced = await _reduce_themes(summarizer, all_themes)
 
-    # Step 7: Assign themes to all responses
-    logger.info("Step 7: Assigning themes to all responses")
-    if use_embedding_assignment:
-        embedder = get_embedding_provider(provider_name)
-        responses = await _assign_themes_embedding(embedder, responses, reduced)
-    else:
-        responses = await _assign_themes_llm(summarizer, responses, reduced)
+        # Step 7: Assign themes to all responses
+        session.pipeline_stage = "assigning"
+        logger.info("Step 7: Assigning themes to all responses")
+        if use_embedding_assignment:
+            embedder = get_embedding_provider(provider_name)
+            responses = await _assign_themes_embedding(embedder, responses, reduced)
+        else:
+            responses = await _assign_themes_llm(summarizer, responses, reduced)
 
-    # Step 8: Store results
-    logger.info("Step 8: Storing results")
-    replay_hash = await _store_results(
-        db, session, responses, bin_samples, reduced
-    )
+        # Step 8: Store results
+        session.pipeline_stage = "storing"
+        logger.info("Step 8: Storing results")
+        replay_hash = await _store_results(
+            db, session, responses, bin_samples, reduced
+        )
+
+        session.pipeline_stage = "completed"
+
+    except Exception as exc:
+        # Task B5: On failure, mark session with error stage for status endpoint
+        failed_stage = getattr(session, "pipeline_stage", "unknown")
+        session.pipeline_stage = f"error:{failed_stage}"
+        try:
+            await db.commit()
+        except Exception:
+            pass
+        logger.error(
+            "cube6.pipeline.failed",
+            session_id=str(session_id),
+            stage=failed_stage,
+            error=str(exc),
+        )
+        return {
+            "session_id": str(session_id),
+            "status": "error",
+            "stage": failed_stage,
+            "error": str(exc),
+            "duration_sec": round(time.monotonic() - start_time, 2),
+        }
 
     duration = round(time.monotonic() - start_time, 2)
     logger.info(
@@ -1028,6 +1066,33 @@ async def run_pipeline(
         },
         "replay_hash": replay_hash,
         "duration_sec": duration,
+    }
+
+
+async def get_pipeline_status(
+    db: AsyncSession, session_id: uuid.UUID
+) -> dict:
+    """Task B5: Return current pipeline stage + error info for status endpoint."""
+    result = await db.execute(select(Session).where(Session.id == session_id))
+    session = result.scalar_one_or_none()
+    if session is None:
+        raise ValueError(f"Session {session_id} not found")
+
+    stage = getattr(session, "pipeline_stage", None) or "not_started"
+    is_error = stage.startswith("error:")
+
+    # Count stored themes to show progress
+    theme_result = await db.execute(
+        select(func.count(Theme.id)).where(Theme.session_id == session_id)
+    )
+    theme_count = theme_result.scalar() or 0
+
+    return {
+        "session_id": str(session_id),
+        "stage": stage.replace("error:", "") if is_error else stage,
+        "status": "error" if is_error else ("completed" if stage == "completed" else "running"),
+        "theme_count": theme_count,
+        "replay_hash": session.replay_hash,
     }
 
 
