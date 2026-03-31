@@ -29,20 +29,14 @@ from tests.conftest import make_session
 
 class TestLiveSummarization:
     @pytest.mark.asyncio
-    async def test_short_text_skips_333_summary(self):
-        """Text under 333 words should be passed through as-is for 333 summary."""
+    async def test_short_text_short_circuits_all_summaries(self):
+        """Task A0: Text ≤33 words short-circuits — all 3 summaries = raw text, no AI calls."""
         from app.cubes.cube6_ai.service import summarize_single_response
 
-        short_text = "AI governance is important for society."  # < 333 words
+        short_text = "AI governance is important for society."  # 7 words, ≤33
 
-        # Mock the summarization provider
         mock_summarizer = MagicMock()
-        mock_summarizer.summarize = AsyncMock(side_effect=[
-            # 333 is skipped (pass-through), so first call is 111
-            "AI governance matters for society.",
-            # second call is 33
-            "AI governance matters.",
-        ])
+        mock_summarizer.summarize = AsyncMock()  # Should never be called
 
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock()
@@ -58,22 +52,25 @@ class TestLiveSummarization:
                 ai_provider="openai",
             )
 
-        assert result["summary_333"] == short_text  # Pass-through
-        assert result["summary_111"] == "AI governance matters for society."
-        assert result["summary_33"] == "AI governance matters."
+        # A0: all 3 summaries = raw text (no AI calls)
+        assert result["summary_333"] == short_text
+        assert result["summary_111"] == short_text
+        assert result["summary_33"] == short_text
+        mock_summarizer.summarize.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_long_text_generates_333_summary(self):
-        """Text over 333 words should be summarized to 333."""
+        """Task A1: Text >333 words — call 1 for 333, call 2 for JSON {111, 33}."""
         from app.cubes.cube6_ai.service import summarize_single_response
 
         long_text = " ".join(["word"] * 500)  # 500 words
 
         mock_summarizer = MagicMock()
         mock_summarizer.summarize = AsyncMock(side_effect=[
+            # Call 1: compress to ~333 words
             "333 word summary here",
-            "111 word summary",
-            "33 word summary",
+            # Call 2: single JSON prompt returning 111 + 33
+            '{"summary_333": "333 word summary here", "summary_111": "111 word summary", "summary_33": "33 word summary"}',
         ])
 
         mock_db = AsyncMock()
@@ -90,7 +87,9 @@ class TestLiveSummarization:
             )
 
         assert result["summary_333"] == "333 word summary here"
-        assert mock_summarizer.summarize.call_count == 3  # All 3 levels
+        assert result["summary_111"] == "111 word summary"
+        assert result["summary_33"] == "33 word summary"
+        assert mock_summarizer.summarize.call_count == 2  # A1: 2 calls max
 
     @pytest.mark.asyncio
     async def test_non_english_adds_translation_instruction(self):
@@ -434,6 +433,7 @@ class TestProviderFactory:
             mock_settings.openai_api_key = ""
             mock_settings.xai_api_key = ""
             mock_settings.gemini_api_key = ""
+            mock_settings.anthropic_api_key = ""
 
             from app.cubes.cube6_ai.providers.factory import get_embedding_provider
             with pytest.raises(ValueError, match="No embedding provider available"):

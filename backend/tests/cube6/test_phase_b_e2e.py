@@ -253,7 +253,8 @@ class TestPipelineStructure:
             bin_samples[label] = _marble_sample(partition, seed_int)
 
         total_groups = sum(len(g) for g in bin_samples.values())
-        assert total_groups == math.ceil(5000 / 10)  # ~500 groups
+        # 5000 / 3 categories = 1667+1667+1666 → ceil(1667/10)*2 + ceil(1666/10) = 167+167+167 = 501
+        assert total_groups == sum(math.ceil(len(bins[k]) / 10) for k in bins)
 
         # Verify all responses accounted for
         all_sampled_ids = set()
@@ -317,8 +318,9 @@ class TestParallelBatchClassification:
             for g in groups:
                 assert len(g) <= 10  # Max 10 per group
 
-        # ~500 groups = 500 concurrent generation tasks
-        assert total_groups == math.ceil(5000 / 10)
+        # 5000 / 3 partitions → per-partition ceil → ~501 total groups
+        expected = sum(math.ceil(len(bins[k]) / 10) for k in bins)
+        assert total_groups == expected
 
     def test_reduction_runs_3_categories_concurrently(self):
         """Verify 3 category reductions are independent (can run concurrently)."""

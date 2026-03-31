@@ -292,7 +292,7 @@ class TestUserFlow:
 
         mock_redis = AsyncMock()
 
-        with patch("app.cubes.cube1_session.service.create_login_time_entry", new_callable=AsyncMock):
+        with patch("app.cubes.cube5_gateway.service.create_login_time_entry", new_callable=AsyncMock):
             from app.cubes.cube1_session.service import join_session
 
             result_session, participant = await join_session(
@@ -431,7 +431,7 @@ class TestUserFlow:
         mock_db.refresh = AsyncMock()
         mock_db.add = MagicMock()
 
-        with patch("app.cubes.cube1_session.service.create_login_time_entry", new_callable=AsyncMock):
+        with patch("app.cubes.cube5_gateway.service.create_login_time_entry", new_callable=AsyncMock):
             from app.cubes.cube1_session.service import join_session
 
             _, participant = await join_session(
@@ -468,7 +468,7 @@ class TestUserFlow:
 
         mock_redis = AsyncMock()
 
-        with patch("app.cubes.cube1_session.service.create_login_time_entry", new_callable=AsyncMock):
+        with patch("app.cubes.cube5_gateway.service.create_login_time_entry", new_callable=AsyncMock):
             from app.cubes.cube1_session.service import join_session
 
             await join_session(
@@ -510,8 +510,8 @@ class TestCapacityEnforcement:
 
     @pytest.mark.asyncio
     async def test_capacity_unlimited_when_none(self):
-        """No capacity limit when max_participants is None."""
-        session = make_session(max_participants=None)
+        """No capacity limit when max_participants is None (non-free tier)."""
+        session = make_session(max_participants=None, pricing_tier="moderator_paid")
 
         mock_db = AsyncMock()
 
