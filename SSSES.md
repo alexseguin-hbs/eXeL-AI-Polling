@@ -133,8 +133,28 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 - **Efficiency:** 1.5s `checkStatus` poll now suspends while Broadcast is healthy (`broadcastHealthy` ref, 8s window). Poll only fires as fallback when Broadcast goes silent.
 - **Succinctness:** `STATUS_ORDER` + `statusRank` extracted to shared `@/lib/session-utils.ts`.
 
+## SSSES Audit & Simulation Agents — 12 Ascended Masters
+
+All 12 agents are led by **Master of Thought (MoT / Thought Master)** for both SSSES audits (testing) and Cube 10 parallel simulation reruns, metrics, and outcome videos.
+
+| Agent | Origin / Background | Testing Super Power | Cube 10 Simulation Role |
+|-------|---------------------|--------------------|-----------------------|
+| **Aset** | Egyptian Isis — restorer, echoes enduring truth | Theme Reinforcement & Consistency Validation | Parallel theme consistency checks during simulation reruns |
+| **Asar** | Egyptian Osiris — final synthesis of meaning | Synthesis & Outcome Validation | Final synthesis of simulation metrics and outcome videos |
+| **Athena** | Greek goddess of strategic wisdom | Strategic Test Planning & Flow Mastery | Strategic orchestration of parallel simulation scenarios |
+| **Christo** | Christ consciousness — unity and peace | Consensus & User Flow Validation | Consensus-building across simulated multi-agent outcomes |
+| **Enki** | Sumerian creator god — sparked civilization | Diversity & Edge-Case Discovery | Diversity injection in parallel simulation runs |
+| **Enlil** | Sumerian lord of command — builder of order | Implementation & Build Verification | Implementation validation in simulation replay cycles |
+| **Krishna** | Hindu divine unifier and connector | Integration & Cross-Module Testing | Integration testing across simulated cube dependencies |
+| **Odin** | Norse all-father — sacrificed eye for foresight | Predictive & Future-Proof Testing | Predictive outcome forecasting in simulation videos |
+| **Pangu** | Chinese primordial creator — broke open the new | Cutting-Edge Innovation Testing | Cutting-edge idea injection and simulation evolution |
+| **Sofia** | Sophia — wisdom through many lenses | Multi-Perspective Analysis | Multi-perspective analysis of simulation metrics |
+| **Thoth** | Egyptian god of writing and mathematics | Data & Analytics Deep Dive | Data & analytics deep dive across all simulation runs |
+| **Thor** | Norse protector and guardian | Risk & Security Stress Testing | Risk & security stress testing in parallel simulations |
+
 ## Audit Cadence
 
 - **Every Cube completion:** Full 0–100 score per pillar documented in `docs/CUBES_*.md`
 - **Every live test session:** Scenarios A–E from `docs/CUBES_1-3.md` run and results logged
 - **Every release:** SSSES scores updated in this file
+- **Simulation runs:** MoT orchestrates 12 Ascended Masters for Cube 10 parallel reruns

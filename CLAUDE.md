@@ -374,6 +374,25 @@ Fix participant count broadcast — use subscribed channel (Stability +20, Effic
 - [ ] Participant count synced to Supabase DB on every join — all lobby devices see accurate count via 1s poll
 - [ ] `new_response` broadcast routed to rendered feed array — live feed updates without KV
 
+## SSSES Audit & Simulation Agents — 12 Ascended Masters
+
+All 12 agents are led by **Master of Thought (MoT / Thought Master)** for both SSSES audits (testing) and Cube 10 parallel simulation reruns, metrics, and outcome videos.
+
+| Agent | Origin / Background | Testing Super Power | Cube 10 Simulation Role |
+|-------|---------------------|--------------------|-----------------------|
+| **Aset** | Egyptian Isis — restorer, echoes enduring truth | Theme Reinforcement & Consistency Validation | Parallel theme consistency checks during simulation reruns |
+| **Asar** | Egyptian Osiris — final synthesis of meaning | Synthesis & Outcome Validation | Final synthesis of simulation metrics and outcome videos |
+| **Athena** | Greek goddess of strategic wisdom | Strategic Test Planning & Flow Mastery | Strategic orchestration of parallel simulation scenarios |
+| **Christo** | Christ consciousness — unity and peace | Consensus & User Flow Validation | Consensus-building across simulated multi-agent outcomes |
+| **Enki** | Sumerian creator god — sparked civilization | Diversity & Edge-Case Discovery | Diversity injection in parallel simulation runs |
+| **Enlil** | Sumerian lord of command — builder of order | Implementation & Build Verification | Implementation validation in simulation replay cycles |
+| **Krishna** | Hindu divine unifier and connector | Integration & Cross-Module Testing | Integration testing across simulated cube dependencies |
+| **Odin** | Norse all-father — sacrificed eye for foresight | Predictive & Future-Proof Testing | Predictive outcome forecasting in simulation videos |
+| **Pangu** | Chinese primordial creator — broke open the new | Cutting-Edge Innovation Testing | Cutting-edge idea injection and simulation evolution |
+| **Sofia** | Sophia — wisdom through many lenses | Multi-Perspective Analysis | Multi-perspective analysis of simulation metrics |
+| **Thoth** | Egyptian god of writing and mathematics | Data & Analytics Deep Dive | Data & analytics deep dive across all simulation runs |
+| **Thor** | Norse protector and guardian | Risk & Security Stress Testing | Risk & security stress testing in parallel simulations |
+
 ## Test Report Template
 
 Each cube implementation MUST produce the following deliverables:
