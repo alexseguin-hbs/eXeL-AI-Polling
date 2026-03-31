@@ -455,14 +455,24 @@ async def transition_session(
 # ---------------------------------------------------------------------------
 
 async def check_capacity(db: AsyncSession, session: Session) -> None:
-    """Enforce max_participants limit. Raises 409 if session is full."""
-    if session.max_participants is None:
+    """Enforce max_participants limit. Raises 409 if session is full.
+
+    Free tier: hard cap at 19 even if max_participants not explicitly set.
+    """
+    max_allowed = session.max_participants
+
+    # Free tier: enforce 19-user cap even if not set on session
+    if session.pricing_tier == "free" and max_allowed is None:
+        from app.config import settings
+        max_allowed = settings.free_tier_max_participants  # 19
+
+    if max_allowed is None:
         return
     count = await get_participant_count(db, session.id)
-    if count >= session.max_participants:
+    if count >= max_allowed:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Session is full ({session.max_participants} participants max)",
+            detail=f"Session is full ({max_allowed} participants max)",
         )
 
 

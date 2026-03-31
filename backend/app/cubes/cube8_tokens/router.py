@@ -67,6 +67,7 @@ async def create_moderator_checkout(
     return await payment_service.create_moderator_checkout(
         db,
         session_id=payload.session_id,
+        user_id=user.user_id,
         amount_cents=payload.amount_cents,
         success_url=payload.success_url,
         cancel_url=payload.cancel_url,
@@ -84,6 +85,7 @@ async def create_cost_split_payment(
         db,
         session_id=payload.session_id,
         participant_id=payload.participant_id,
+        user_id=user.user_id,
         is_moderator=payload.is_moderator,
     )
 

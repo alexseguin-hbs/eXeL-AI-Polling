@@ -91,6 +91,7 @@ async def estimate_session_cost(
 async def create_moderator_checkout(
     db: AsyncSession,
     session_id: uuid.UUID,
+    user_id: str,
     amount_cents: int | None = None,
     success_url: str = "",
     cancel_url: str = "",
@@ -98,8 +99,16 @@ async def create_moderator_checkout(
     """Create Stripe Checkout Session for Moderator Paid tier.
 
     Minimum $11.11 (1111 cents). Moderator pays upfront before session opens.
+    Verifies session ownership — only the session creator can pay.
     """
     session = await _get_session(db, session_id)
+
+    # Security: verify session ownership
+    if session.created_by != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the session creator can initiate payment",
+        )
 
     if session.pricing_tier != "moderator_paid":
         raise HTTPException(
@@ -173,11 +182,13 @@ async def create_cost_split_intent(
     db: AsyncSession,
     session_id: uuid.UUID,
     participant_id: uuid.UUID,
+    user_id: str,
     is_moderator: bool = False,
 ) -> dict:
     """Create Stripe Payment Intent for Cost Split tier.
 
     Moderator pays 50% of estimate. Each User pays (50% / N).
+    Verifies participant belongs to session and user owns the participant.
     """
     session = await _get_session(db, session_id)
 
@@ -186,6 +197,27 @@ async def create_cost_split_intent(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Session pricing tier is not 'cost_split'",
         )
+
+    # Security: verify participant belongs to session
+    p_result = await db.execute(
+        select(Participant).where(
+            Participant.id == participant_id,
+            Participant.session_id == session_id,
+        )
+    )
+    participant = p_result.scalar_one_or_none()
+    if not participant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Participant not found in this session",
+        )
+
+    # Security: verify user owns this participant or is moderator
+    if is_moderator:
+        if session.created_by != user_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not session owner")
+    elif participant.user_id and participant.user_id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your participant")
 
     estimate = await estimate_session_cost(db, session_id)
     total_cents = estimate["estimated_cost_cents"]
@@ -316,6 +348,7 @@ async def handle_payment_completed(
     """Handle Stripe webhook for completed payments.
 
     Updates PaymentTransaction status and Session/Participant payment flags.
+    Idempotent: skips already-completed transactions (replay protection).
     """
     event_type = stripe_event["type"]
     obj = stripe_event["data"]["object"]
@@ -328,9 +361,8 @@ async def handle_payment_completed(
             )
         )
         tx = result.scalar_one_or_none()
-        if tx:
+        if tx and tx.status != "completed":  # Idempotency: skip if already processed
             tx.status = "completed"
-            # Mark session as paid
             session = await _get_session(db, tx.session_id)
             session.is_paid = True
             await db.commit()
@@ -338,6 +370,8 @@ async def handle_payment_completed(
                 "cube8.payment.checkout_completed",
                 extra={"checkout_id": checkout_id, "session_id": str(tx.session_id)},
             )
+        elif tx and tx.status == "completed":
+            logger.info("cube8.payment.checkout_already_completed", extra={"checkout_id": checkout_id})
 
     elif event_type == "payment_intent.succeeded":
         pi_id = obj["id"]
@@ -347,9 +381,8 @@ async def handle_payment_completed(
             )
         )
         tx = result.scalar_one_or_none()
-        if tx:
+        if tx and tx.status != "completed":  # Idempotency: skip if already processed
             tx.status = "completed"
-            # Update participant payment_status for cost_split
             if tx.transaction_type == "cost_split" and tx.participant_id:
                 p_result = await db.execute(
                     select(Participant).where(Participant.id == tx.participant_id)
@@ -362,6 +395,8 @@ async def handle_payment_completed(
                 "cube8.payment.intent_succeeded",
                 extra={"pi_id": pi_id, "type": tx.transaction_type},
             )
+        elif tx and tx.status == "completed":
+            logger.info("cube8.payment.intent_already_completed", extra={"pi_id": pi_id})
 
 
 # ---------------------------------------------------------------------------
