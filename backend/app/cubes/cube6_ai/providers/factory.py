@@ -31,10 +31,10 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Failover order: primary -> secondary -> tertiary -> quaternary
+# Failover order: Gemini (cheapest) -> OpenAI -> Grok -> Claude
 _FAILOVER_ORDER = [
-    AIProviderName.OPENAI, AIProviderName.GROK,
-    AIProviderName.GEMINI, AIProviderName.CLAUDE,
+    AIProviderName.GEMINI, AIProviderName.OPENAI,
+    AIProviderName.GROK, AIProviderName.CLAUDE,
 ]
 
 _EMBEDDING_PROVIDERS: dict[AIProviderName, type[EmbeddingProvider]] = {
