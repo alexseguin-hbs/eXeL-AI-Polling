@@ -674,26 +674,50 @@ The polling tool is the **proof of concept** — demonstrating that code can evo
   Stimulus (5000 responses)
          │
          ▼
-  ┌──────────────┐
-  │  Cube 1-9    │ ← Neural pathways (replaceable, mergeable, splittable)
-  │  I/O Nodes   │
-  └──────┬───────┘
-         │
-         ▼
+  ┌──────────────────────────────────────────────────┐
+  │  Cube 1-9                                        │
+  │                                                  │
+  │  Neural Pathways (replaceable, mergeable,        │
+  │    splittable) — edge compute, on-device,        │
+  │    local models, embedded inference              │
+  │                                                  │
+  │  API Pathways (replaceable, mergeable,           │
+  │    splittable) — cloud calls to OpenAI,          │
+  │    Gemini, Grok, Claude, AWS, Azure              │
+  │                                                  │
+  │  I/O Nodes — contracts are the only constant     │
+  └──────────────────┬───────────────────────────────┘
+                     │
+                     ▼
   Response (themes, rankings, tokens)
-         │
-         ▼
+                     │
+                     ▼
   Metrics vs Baseline
-         │
-    ┌────┴────┐
-    │ Better? │──Yes──▶ Promote new pathway
-    └────┬────┘
-         │No
-         ▼
-    Keep existing pathway
+                     │
+               ┌─────┴─────┐
+               │  Better?   │──Yes──▶ Promote new pathway
+               └─────┬──────┘
+                     │No
+                     ▼
+               Keep existing pathway
 ```
 
-The v04.1_5000.csv benchmark is the **stimulus** — the neural network must respond correctly regardless of how its internal pathways are wired. The only thing that matters is: **did the output improve?**
+**Two pathway types, one contract:**
+
+| Pathway Type | Where It Runs | Examples | Evolution |
+|-------------|---------------|----------|-----------|
+| **Neural** | Edge / on-device / local | Embedded NER, local clustering, on-device inference, edge ML models | Replaces cloud calls as models shrink; runs offline; lower latency |
+| **API** | Cloud / remote services | OpenAI, Gemini, Grok, Claude, AWS Transcribe, Azure Speech | Provider-agnostic; failover chain; swap without code change |
+
+Both pathway types are **replaceable, mergeable, and splittable:**
+- A Neural pathway (local NER) can be **replaced** by an API pathway (cloud NER) or vice versa
+- Two API pathways (summarization + classification) can **merge** into one multi-task call
+- One Neural pathway (monolith model) can **split** into specialized micro-models
+- The system doesn't care which type handles the work — only that **I/O contracts hold and metrics improve**
+
+The codebase will eventually include **both edge Neural Networks and cloud API calls**, choosing the optimal pathway per cube based on latency, cost, accuracy, and availability. A cube might use local inference for PII detection (fast, private) and cloud API for theme generation (powerful, scalable) — and swap either at any time.
+
+The v04.1_5000.csv benchmark is the **stimulus** — the network must respond correctly regardless of whether its pathways are neural (edge) or API (cloud). The only thing that matters is: **did the output improve?**
 
 > *"The code will be designed to update itself one day — where Shared Intention moves at the Speed of Thought."*
 
