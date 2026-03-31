@@ -21,7 +21,7 @@ from app.cubes.cube6_ai.providers.base import (
     SummarizationProvider,
 )
 
-_SUMMARIZATION_MODEL = "claude-sonnet-4-6"
+_SUMMARIZATION_MODEL = "claude-sonnet-4-20250514"
 
 
 class ClaudeSummarization(SummarizationProvider):
