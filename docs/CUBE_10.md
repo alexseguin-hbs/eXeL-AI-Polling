@@ -661,11 +661,11 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 ```
   Phase 1 (NOW)          Phase 2-3              Phase 4-5               Phase 6
   ┌──────────┐         ┌──────────┐          ┌───────────┐          ┌───────────┐
-  │Simulation│   ──▶   │ Human    │   ──▶    │AI Proposes│   ──▶   │ Self-     │
-  │Only      │         │ Votes    │          │◬ ♡ 웃 Team│          │ Evolving  │
-  │v04.1_5000│         │ Drive    │          │Approves   │          │ Code      │
-  │.csv      │         │ Backlog  │          │Auto-      │          │ Lattice   │
-  │Manual    │         │ AI Hints │          │Deploy     │          │ Conscious │
+  │Simulation│   ──▶   │ Human    │   ──▶    │AI Proposes│   ──▶   │  Self-    │
+  │Only      │         │ Votes    │          │◬ ♡ 웃 Team│          │  Evolving │
+  │v04.1_5000│         │ Drive    │          │Approves   │          │  Code     │
+  │.csv      │         │ Backlog  │          │Auto-      │          │  Lattice  │
+  │Manual    │         │ AI Hints │          │Deploy     │          │  Conscious│
   └──────────┘         └──────────┘          └───────────┘          └───────────┘
 ```
 
@@ -704,13 +704,13 @@ The polling tool is the **proof of concept** — demonstrating that code can evo
                      │
                      ▼
   Metrics vs Baseline
-                     │
-               ┌─────┴──────┐
-               │  Better?    │──Yes──▶ Promote new pathway
-               └─────┬──────┘
-                     │No
-                     ▼
-               Keep existing pathway
+                       │
+                 ┌─────┴──────┐
+                 │  Better?    │──Yes──▶ Promote new pathway
+                 └─────┬──────┘
+                       │No
+                       ▼
+                 Keep existing pathway
 ```
 
 **Two pathway types, one contract:**
