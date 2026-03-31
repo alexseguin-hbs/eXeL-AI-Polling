@@ -7,6 +7,7 @@ import { ThemeProvider, useTheme } from "@/lib/theme-context";
 import { LexiconProvider } from "@/lib/lexicon-context";
 import { TimerProvider } from "@/lib/timer-context";
 import { EasterEggProvider } from "@/lib/easter-egg-context";
+import { FeedbackWidget } from "@/components/feedback-widget";
 import {
   AUTH0_DOMAIN,
   AUTH0_CLIENT_ID,
@@ -30,6 +31,22 @@ function ThemeAuthSync({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** Detects current screen from URL pathname for feedback context. */
+function GlobalFeedback() {
+  // Use window.location since this runs client-side only
+  const path = typeof window !== "undefined" ? window.location.pathname : "/";
+  const screen = path.startsWith("/dashboard")
+    ? "dashboard"
+    : path.startsWith("/session") || path.startsWith("/poll")
+    ? "polling"
+    : path.startsWith("/join")
+    ? "join"
+    : path === "/"
+    ? "landing"
+    : "other";
+  return <FeedbackWidget screen={screen} />;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   // Skip Auth0 provider if config is missing (dev mode without Auth0)
   if (!AUTH0_DOMAIN || !AUTH0_CLIENT_ID) {
@@ -40,6 +57,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <EasterEggProvider>
               {children}
               <Toaster />
+              <GlobalFeedback />
             </EasterEggProvider>
           </TimerProvider>
         </LexiconProvider>
@@ -65,6 +83,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               <EasterEggProvider>
                 {children}
                 <Toaster />
+              <GlobalFeedback />
               </EasterEggProvider>
             </TimerProvider>
           </LexiconProvider>
