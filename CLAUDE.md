@@ -336,7 +336,7 @@ Track and optimize for:
 | Cube | Status | SSSES | Tests | CRS | Open Tasks |
 |------|--------|:---:|-------|-----|------------|
 | 1 Session | **100% SSSES** | **100** | 59 | CRS-01→06 | None |
-| 2 Text | ~85% | 57 | 62 | CRS-05→08 | A0–A7, B1–B5 |
+| 2 Text | **~98% SSSES** | **98** | 62 | CRS-05→08 | A0–A7 DONE, B1–B5 DONE. 2 optimizations remain (submitted_at index, profanity cache) |
 | 3 Voice | ~85% | 56 | 39 | CRS-08, 15 | A5.03, A7 |
 | 4 Collector | ~80% | 72 | 21 | CRS-09→10 | C4-1→C4-4 |
 | 5 Gateway | ~90% | 82 | 60 | CRS-09→11 | C5-1→C5-4 |
@@ -355,6 +355,22 @@ These frontend systems span multiple cubes:
 - **Theme Auth Guard:** Default AI Cyan pre-auth. Only Auth0 moderators change themes. Session-level cascade to all participants. Logout resets to default. Files: `frontend/lib/theme-context.tsx`, `frontend/components/providers.tsx`
 - **Global Language Selector:** Navbar globe dropdown, 33 languages (EN+ES pinned top), instant locale switching, localStorage persistence. Files: `frontend/components/navbar.tsx`, `frontend/lib/lexicon-context.tsx`
 - **Powered Badge:** eXeL + Seed of Life SVG, theme-reactive color. Easter egg gateway: Cyan→Sunset→Violet click sequence in Settings → badge blinks → click to enter Cube 10 SIM. Files: `frontend/components/powered-badge.tsx`, `frontend/components/seed-of-life-logo.tsx`
+- **Homepage SoI Trinity Alignment:** Three feature cards subconsciously introduce AI/SI/HI before users know the framework:
+
+  | Position | Feature | Subtitle | SoI Link |
+  |:--------:|---------|----------|:--------:|
+  | Left | **AI Theming** | Automatic clustering and summarization in seconds | **A.I.** (Artificial Intelligence) |
+  | Center | **Scale to Millions** | Handle 100K+ concurrent participants with real-time results | **S.I.** (Shared Intent) |
+  | Right | **Human Governance** | Auditable Consensus at the Speed of Thought | **H.I.** (Human Intelligence) |
+
+- **Cost Estimate Table:** Collapsible in Settings panel. Shows 7 provider combos (Summary + V2T + Total) for 1000 users × 1 response × 111 words. OpenAI + Whisper default. Files: `frontend/components/moderator-settings.tsx`
+
+### Demo Sessions (3 default)
+| # | Title | Code | Status | Purpose |
+|---|-------|------|--------|---------|
+| 1 | eXeL AI Polling - Strategy Alignment | `DEMO2026` | Polling (live) | 100-User Spiral Test + Ranking DnD |
+| 2 | Collaborative Thoughts on AI Governance | `PAST0001` | Closed | 5000-user results + theme visualizations |
+| 3 | Team Innovation Challenge | `STATIC01` | Static Poll (3-day) | Countdown timer demo |
 
 ## SSSES Testing & Audit Framework
 
