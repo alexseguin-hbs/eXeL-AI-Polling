@@ -12,7 +12,7 @@ import type { ThemeLevels } from "./index";
 
 export const POLL_2 = {
   sessionId: "b2c3d4e5-f6a7-8901-bcde-222222222222",
-  title: "Q1 Strategy Alignment",
+  title: "eXeL AI Polling - Strategy Alignment",
   pollingMode: "live_interactive" as const,
   questions: [
     {
@@ -35,7 +35,7 @@ export const POLL_2 = {
       ] as const,
     },
     user: {
-      joinCode: "DEMO2024",
+      joinCode: "DEMO2026",
       tokensOnJoin: { si: 1, ai: 5, hi: 0 },
     },
   },

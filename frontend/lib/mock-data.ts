@@ -184,14 +184,13 @@ const oneHourLater = new Date(Date.now() + 3600000).toISOString();
 
 export const MOCK_SESSIONS: Session[] = [
   {
-    id: "a1b2c3d4-e5f6-7890-abcd-111111111111",
-    short_code: "12345678",
+    id: "b2c3d4e5-f6a7-8901-bcde-222222222222",
+    short_code: "DEMO2026",
     created_by: MOCK_MODERATOR_ID,
     status: "polling",
-    title: "Test Poll: Product Feedback",
-    description:
-      "What features should we prioritize for the next quarter? Share your thoughts.",
-    anonymity_mode: "identified",
+    title: "eXeL AI Polling - Strategy Alignment",
+    description: "Gather team input on strategic priorities using AI-powered governance.",
+    anonymity_mode: "anonymous",
     cycle_mode: "single",
     max_cycles: 1,
     current_cycle: 1,
@@ -222,45 +221,6 @@ export const MOCK_SESSIONS: Session[] = [
     created_at: now,
     updated_at: now,
     participant_count: 3,
-  },
-  {
-    id: "b2c3d4e5-f6a7-8901-bcde-222222222222",
-    short_code: "DEMO2024",
-    created_by: MOCK_MODERATOR_ID,
-    status: "draft",
-    title: "Q1 Strategy Alignment",
-    description: "Gather team input on strategic priorities for Q1.",
-    anonymity_mode: "anonymous",
-    cycle_mode: "single",
-    max_cycles: 1,
-    current_cycle: 1,
-    ranking_mode: "auto",
-    language: "en",
-    max_response_length: 3333,
-    ai_provider: "openai",
-    session_type: "polling",
-    polling_mode: "single_round",
-    pricing_tier: "free",
-    max_participants: null,
-    fee_amount_cents: 0,
-    cost_splitting_enabled: false,
-    reward_enabled: false,
-    reward_amount_cents: 0,
-    theme2_voting_level: "theme2_9",
-    live_feed_enabled: false,
-    polling_mode_type: "live_interactive",
-    static_poll_duration_days: null,
-    ends_at: null,
-    timer_display_mode: "flex",
-    is_paid: false,
-    qr_url: null,
-    join_url: null,
-    opened_at: null,
-    closed_at: null,
-    expires_at: oneHourLater,
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    updated_at: new Date(Date.now() - 86400000).toISOString(),
-    participant_count: 0,
   },
   {
     id: "c3d4e5f6-a7b8-9012-cdef-333333333333",
@@ -346,7 +306,8 @@ export const MOCK_SESSIONS: Session[] = [
 export const DEFAULT_SESSION_IDS = new Set(MOCK_SESSIONS.map((s) => s.id));
 
 // Product Feedback session ID — only this session gets the 100-User Spiral Test button
-export const PRODUCT_FEEDBACK_SESSION_ID = "a1b2c3d4-e5f6-7890-abcd-111111111111";
+// Strategy Alignment session — gets 100-User Spiral Test + ranking simulation
+export const PRODUCT_FEEDBACK_SESSION_ID = "b2c3d4e5-f6a7-8901-bcde-222222222222";
 
 // ── Snapshot of original default sessions for demo reset ───────────
 // Deep-copy the 4 hardcoded sessions so we can restore them on every dashboard load.
@@ -434,24 +395,12 @@ function resetDefaultSessions(): void {
 
 // ── Test Questions ──────────────────────────────────────────────
 export const MOCK_QUESTIONS: Record<string, Question[]> = {
-  "a1b2c3d4-e5f6-7890-abcd-111111111111": [
-    {
-      id: "q1-111111",
-      session_id: "a1b2c3d4-e5f6-7890-abcd-111111111111",
-      question_text:
-        "What is the single most important feature we should build next?",
-      cycle_id: 1,
-      order_index: 0,
-      status: "active",
-      created_at: now,
-    },
-  ],
   "b2c3d4e5-f6a7-8901-bcde-222222222222": [
     {
       id: "q1-222222",
       session_id: "b2c3d4e5-f6a7-8901-bcde-222222222222",
       question_text:
-        "What should be our top strategic priority for Q1?",
+        "What should be our top strategic priority?",
       cycle_id: 1,
       order_index: 0,
       status: "active",
@@ -486,8 +435,7 @@ export const MOCK_QUESTIONS: Record<string, Question[]> = {
 
 // ── Mock Participant Counter ────────────────────────────────────
 let mockParticipantCount: Record<string, number> = {
-  "a1b2c3d4-e5f6-7890-abcd-111111111111": 3,
-  "b2c3d4e5-f6a7-8901-bcde-222222222222": 0,
+  "b2c3d4e5-f6a7-8901-bcde-222222222222": 3,
   "c3d4e5f6-a7b8-9012-cdef-333333333333": 47,
   "d4e5f6a7-b8c9-0123-def0-444444444444": 15,
 };
@@ -498,25 +446,15 @@ const mockResponses: Record<string, MockResponse[]> = {};
 // ── Per-Session Mock Responses (auto-generated when poll starts) ──
 // Only the 4 default sessions get mock data. New user-created polls (5th+) use only live HI data.
 const MOCK_SESSION_RESPONSES: Record<string, string[]> = {
-  // Poll 1: Product Feedback — "What is the single most important feature we should build next?"
-  "a1b2c3d4-e5f6-7890-abcd-111111111111": [
-    "We need real-time collaboration tools that let distributed teams brainstorm as naturally as in person. Video calls alone aren't cutting it.",
-    "AI-powered summarization of long discussions. Reading through 200 responses manually is not scalable for any moderator.",
-    "The mobile experience needs serious attention. Half our team uses phones and the current UI feels desktop-first.",
-    "Integration with Jira, Asana, and Slack would make adoption 10x easier for enterprise customers.",
-    "Better onboarding flows. New users drop off because the interface is overwhelming at first glance without guidance.",
-    "Accessibility is non-negotiable. Screen reader support, keyboard navigation, and high-contrast modes should be standard.",
-    "Data export in multiple formats — CSV, PDF, and API access. Teams need to feed results into their own analytics.",
-  ],
-  // Poll 2: Q1 Strategy Alignment — "What should be our top strategic priority for Q1?"
+  // Strategy Alignment — "What should be our top strategic priority?"
   "b2c3d4e5-f6a7-8901-bcde-222222222222": [
-    "Customer retention should be priority #1. We're acquiring users but churn is too high. Fix the leaky bucket before pouring more in.",
-    "Focus on enterprise sales. Our product-market fit is strongest with teams of 50+ and that's where the revenue growth is.",
+    "Customer retention should be priority number one. We are acquiring users but churn is too high. Fix the leaky bucket before pouring more in.",
+    "Focus on enterprise sales. Our product-market fit is strongest with teams of fifty plus and that is where the revenue growth is.",
     "Invest in developer experience and API documentation. Our SDK adoption is low because the docs are incomplete.",
     "Build a self-serve analytics dashboard. Customers keep asking for usage reports they can generate themselves.",
-    "We need to nail the onboarding experience. Time-to-value is too long — users should see results in under 5 minutes.",
+    "We need to nail the onboarding experience. Time-to-value is too long. Users should see results in under five minutes.",
     "International expansion. We have inbound demand from LATAM and EU but no localization or regional pricing.",
-    "Technical debt reduction. Our deployment velocity has slowed 40% in the last quarter due to accumulated shortcuts.",
+    "Technical debt reduction. Our deployment velocity has slowed forty percent in the last quarter due to accumulated shortcuts.",
   ],
   // Poll 3: AI Governance — "How should AI shape collective decision-making?"
   "c3d4e5f6-a7b8-9012-cdef-333333333333": [
