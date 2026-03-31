@@ -24,7 +24,6 @@ from datetime import datetime, timezone
 
 import structlog
 from fastapi import WebSocket, WebSocketDisconnect
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -85,7 +84,6 @@ async def handle_realtime_transcription(
     question_id: uuid.UUID,
     language_code: str,
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     redis: Redis,
 ) -> None:
     """WebSocket handler for real-time voice-to-text transcription.
@@ -271,7 +269,7 @@ async def handle_realtime_transcription(
         # Store voice response
         is_anonymous = session.anonymity_mode == "anonymous"
         response_meta = await store_voice_response(
-            db, mongo,
+            db,
             session_id=session_id,
             question_id=question_id,
             participant_id=participant_id,

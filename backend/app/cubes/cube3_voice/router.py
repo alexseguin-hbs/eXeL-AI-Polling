@@ -16,12 +16,11 @@ Real-time STT is a PAID feature (Moderator + User payment required).
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, WebSocket
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_optional_current_user
-from app.core.dependencies import get_db, get_mongo, get_redis
+from app.core.dependencies import get_db, get_redis
 from app.core.rate_limit import limiter
 from app.cubes.cube3_voice import metrics as cube3_metrics
 from app.cubes.cube3_voice import service
@@ -54,7 +53,6 @@ async def submit_voice(
     language_code: str = Form(default="en"),
     audio_format: str = Form(default="webm"),
     db: AsyncSession = Depends(get_db),
-    mongo: AsyncIOMotorDatabase = Depends(get_mongo),
     redis: Redis = Depends(get_redis),
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
@@ -85,7 +83,7 @@ async def submit_voice(
         )
 
     result = await service.submit_voice_response(
-        db, mongo, redis,
+        db, redis,
         session_id=session_id,
         question_id=question_id,
         participant_id=participant_id,
@@ -104,7 +102,6 @@ async def realtime_transcription(
     participant_id: uuid.UUID,
     language_code: str = "en",
     db: AsyncSession = Depends(get_db),
-    mongo: AsyncIOMotorDatabase = Depends(get_mongo),
     redis: Redis = Depends(get_redis),
 ):
     """Real-time voice-to-text with word-by-word display (PAID FEATURE).
@@ -125,7 +122,7 @@ async def realtime_transcription(
 
     await handle_realtime_transcription(
         ws, session_id, participant_id, question_id,
-        language_code, db, mongo, redis,
+        language_code, db, redis,
     )
 
 

@@ -10,7 +10,7 @@ Flow:
   3. Select best STT provider for language (priority + circuit breaker)
   4. Transcribe audio → text + confidence
   5. Validate transcript (non-empty, confidence threshold)
-  6. Store voice metadata (MongoDB audio + Postgres VoiceResponse)
+  6. Store voice metadata (Postgres VoiceResponse + ResponseMeta.raw_text)
   7. Forward transcript into Cube 2 text pipeline (PII/profanity/storage)
   8. Stop time tracking → calculate ♡/◬ tokens
   9. Publish Redis event for Cube 6
@@ -28,7 +28,6 @@ import uuid
 from datetime import datetime, timezone
 
 import structlog
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from redis.asyncio import Redis
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -194,7 +193,6 @@ def validate_transcript(
 
 async def store_voice_response(
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     *,
     session_id: uuid.UUID,
     question_id: uuid.UUID,
@@ -212,46 +210,19 @@ async def store_voice_response(
     profanity_words: list[dict] | None,
     clean_text: str,
 ) -> ResponseMeta:
-    """Store voice response in MongoDB (audio + raw) + Postgres (ResponseMeta + VoiceResponse + TextResponse).
-
-    MongoDB stores:
-      - Raw audio bytes (GridFS-ready, stored as binary)
-      - Raw transcript text
+    """Store voice response in Postgres (ResponseMeta + VoiceResponse + TextResponse).
 
     Postgres stores:
-      - ResponseMeta (shared response index, source="voice")
+      - ResponseMeta (shared response index, source="voice", raw_text=transcript)
       - VoiceResponse (audio metadata, STT results)
       - TextResponse (PII/profanity results from Cube 2 pipeline)
     """
     now = datetime.now(timezone.utc)
 
-    # --- MongoDB: audio + raw transcript ---
-    mongo_doc = {
-        "session_id": str(session_id),
-        "question_id": str(question_id),
-        "participant_id": str(participant_id),
-        "source": "voice",
-        "raw_transcript": transcript,
-        "audio_format": audio_format,
-        "audio_size_bytes": len(audio_bytes),
-        "audio_duration_sec": stt_result.audio_duration_sec,
-        "stt_provider": stt_result.provider,
-        "stt_confidence": stt_result.confidence,
-        "language_code": stt_result.language_detected,
-        "submitted_at": now,
-    }
-    mongo_result = await mongo.responses.insert_one(mongo_doc)
-
-    # Store audio binary separately for potential playback
-    await mongo.audio_files.insert_one({
-        "response_ref": str(mongo_result.inserted_id),
-        "session_id": str(session_id),
-        "audio_data": audio_bytes,
-        "audio_format": audio_format,
-        "created_at": now,
-    })
-
-    mongo_ref = str(mongo_result.inserted_id)
+    # TODO: Supabase Storage integration for audio binary (deferred).
+    # Audio playback will require uploading audio_bytes to Supabase Storage
+    # and storing the path in VoiceResponse.audio_storage_path.
+    audio_storage_path = ""  # noqa: F841 — placeholder for Supabase Storage
 
     # --- Postgres: ResponseMeta ---
     response_meta = ResponseMeta(
@@ -260,7 +231,7 @@ async def store_voice_response(
         participant_id=participant_id,
         cycle_id=cycle_id,
         source="voice",
-        mongo_ref=mongo_ref,
+        raw_text=transcript,
         char_count=len(transcript),
         submitted_at=now,
         is_flagged=False,
@@ -312,7 +283,6 @@ async def store_voice_response(
 
 async def submit_voice_response(
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     redis: Redis,
     *,
     session_id: uuid.UUID,
@@ -330,7 +300,7 @@ async def submit_voice_response(
       3. Select STT provider + transcribe audio
       4. Validate transcript (non-empty, confidence)
       5. Run Cube 2 PII/profanity pipeline on transcript
-      6. Store: MongoDB (audio + raw) + Postgres (ResponseMeta + VoiceResponse + TextResponse)
+      6. Store: Postgres (ResponseMeta + VoiceResponse + TextResponse)
       7. Stop time tracking → ♡/◬ tokens
       8. Publish Redis event for Cube 6
       9. Return response with immediate token display
@@ -385,7 +355,7 @@ async def submit_voice_response(
     # --- 5. Store ---
     is_anonymous = session.anonymity_mode == "anonymous"
     response_meta = await store_voice_response(
-        db, mongo,
+        db,
         session_id=session_id,
         question_id=question_id,
         participant_id=participant_id,
