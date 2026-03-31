@@ -275,9 +275,9 @@ function SessionDetail({
     dbChannel
       .on(
         "postgres_changes" as Parameters<typeof dbChannel.on>[0],
-        { event: "INSERT", schema: "public", table: "responses", filter: `session_code=eq.${session.short_code}` },
-        (payload: { new: { id: string; content: string; created_at: string } }) => {
-          addResponse(payload.new.id, payload.new.content, payload.new.created_at);
+        { event: "INSERT", schema: "public", table: "responses", filter: `session_id=eq.${session.id}` },
+        (payload: { new: { id: string; raw_text: string; created_at: string } }) => {
+          addResponse(payload.new.id, payload.new.raw_text, payload.new.created_at);
         },
       )
       .subscribe();
