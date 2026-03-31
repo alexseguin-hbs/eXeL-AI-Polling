@@ -39,10 +39,11 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
 
-    # Stripe
+    # Stripe (3 tiers: Free max 19, Moderator Paid, Cost Split)
     stripe_secret_key: str = ""
     stripe_publishable_key: str = ""
-    stripe_webhook_secret: str = ""
+    stripe_restricted_key: str = ""      # For frontend-safe operations
+    stripe_webhook_secret: str = ""      # Set after creating webhook endpoint in Stripe Dashboard
 
     # Session defaults
     default_session_expiry_hours: int = 24
