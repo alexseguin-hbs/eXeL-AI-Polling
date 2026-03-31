@@ -695,7 +695,7 @@ API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&sta
 Cube 9 is the reporting and export layer. It consumes data from all other cubes and produces exports, dashboards, Pixelated Token images, and talent recommendations. It also handles results distribution (only paying + Lead-exempt users receive results) and data destruction after token image delivery.
 
 Key responsibilities:
-- **CSV/PDF export:** 15-column schema matching the reference output format
+- **CSV/PDF export:** 16-column schema matching the reference output format
 - **Pixelated Tokens:** Self-contained, value-carrying images with encoded pixel borders and center QR
 - **Results distribution:** Only users who opted in AND paid (or are Lead/Developer exempt) receive polling results
 - **CQS dashboard (Moderator-only):** Per-response CQS scores, distribution, reward winner details
@@ -706,9 +706,9 @@ Key responsibilities:
 ### Cube 9 — Current Implementation Status
 
 **Backend service:** `backend/app/cubes/cube9_reports/service.py` (135 lines)
-- `export_session_csv()` -- builds 15-column CSV from PostgreSQL (ResponseMeta, ResponseSummary, Question, themes)
+- `export_session_csv()` -- builds 16-column CSV from PostgreSQL (ResponseMeta, ResponseSummary, Question, themes)
 - `export_session_csv_to_file()` -- writes CSV to filesystem
-- CSV columns: Q_Number, Question, User, Detailed_Results, 333_Summary, 111_Summary, 33_Summary, Theme01, Theme01_Confidence, Theme2_9, Theme2_9_Confidence, Theme2_6, Theme2_6_Confidence, Theme2_3, Theme2_3_Confidence
+- CSV columns: Q_Number, Question, User, Detailed_Results, Response_Language, 333_Summary, 111_Summary, 33_Summary, Theme01, Theme01_Confidence, Theme2_9, Theme2_9_Confidence, Theme2_6, Theme2_6_Confidence, Theme2_3, Theme2_3_Confidence
 
 **Backend router:** `backend/app/cubes/cube9_reports/router.py` (38 lines)
 - `GET /sessions/{session_id}/export/csv` -- CRS-14: CSV download as StreamingResponse
@@ -844,7 +844,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 | Output | Destination | Description |
 |--------|-------------|-------------|
-| CSV/PDF export files | User download / email / SMS | Session results in 15-column format |
+| CSV/PDF export files | User download / email / SMS | Session results in 16-column format |
 | Pixelated Token images | User download / email / SMS | Self-contained token proof images |
 | Results distribution records | Audit | Who received what, when, via what method |
 | CQS dashboard data | Moderator UI | Scores, distribution, winner details |
@@ -857,7 +857,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 | Function | Description | MVP | Status |
 |----------|-------------|-----|--------|
-| `generate_csv_export()` | Produces CSV matching the 15-column target output schema. Queries PostgreSQL (ResponseMeta, ResponseSummary, Question, themes). | 1 | Implemented |
+| `generate_csv_export()` | Produces CSV matching the 16-column target output schema. Queries PostgreSQL (ResponseMeta, ResponseSummary, Question, themes). | 1 | Implemented |
 | `generate_pdf_export()` | Produces formatted PDF report with themes, rankings, and analytics. Includes charts and summaries. | 2 | Not implemented |
 | `generate_pixelated_token()` | Creates Pixelated Token image: encodes token data in pixel borders, generates center QR code, assembles final PNG. | 3 | Not implemented |
 | `encode_pixel_line()` | Encodes data string into a row of colored pixels using versioned color-to-character mapping scheme. | 3 | Not implemented |
@@ -909,8 +909,8 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target | Design Output: Definable / Measurable |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|---------------------------------------|
-| CRS-14 | CRS-14.IN.SRS.014 | CRS-14.OUT.SRS.014 | **Implemented** | 1 | System exports session results to CSV | CSV matches 15-column schema; generated within 5 seconds for 10,000 responses | PDF export with charts, masked vs full export options | CSV generated < 5s for 10K responses; exactly 15 columns matching reference schema; file parseable by Excel/pandas without errors |
-| CRS-14.01 | CRS-14.01.IN | CRS-14.01.OUT | **Implemented** | 1 | `generate_csv_export()` produces 15-column Web_Results CSV: 5 input + 3 summaries + 8 theme/confidence fields | Schema matches `Updated_Web_Results_With_Themes_And_Summaries_v03.csv` exactly | Streaming CSV for >100K responses (chunked write) | Column names and data types match reference CSV exactly; diff of header row = 0 differences; all 15 columns non-null for complete responses |
+| CRS-14 | CRS-14.IN.SRS.014 | CRS-14.OUT.SRS.014 | **Implemented** | 1 | System exports session results to CSV | CSV matches 16-column schema; generated within 5 seconds for 10,000 responses | PDF export with charts, masked vs full export options | CSV generated < 5s for 10K responses; exactly 16 columns matching reference schema; file parseable by Excel/pandas without errors |
+| CRS-14.01 | CRS-14.01.IN | CRS-14.01.OUT | **Implemented** | 1 | `generate_csv_export()` produces 16-column Web_Results CSV: 5 input (incl. Response_Language) + 3 summaries + 8 theme/confidence fields | Schema matches `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` exactly | Streaming CSV for >100K responses (chunked write) | Column names and data types match reference CSV exactly; diff of header row = 0 differences; all 16 columns non-null for complete responses |
 | CRS-14.02 | CRS-14.02.IN | CRS-14.02.OUT | **Not implemented** | 2 | `generate_pdf_export()` produces formatted PDF with themes, rankings, charts, CQS scores | PDF generated <10s for 10K responses; includes theme distribution charts | Branded PDF with org logo + custom cover page | PDF generated < 10s for 10K responses; file size < 50MB; contains theme distribution chart, ranking table, and CQS summary |
 | CRS-14.03 | CRS-14.03.IN | CRS-14.03.OUT | **Not implemented** | 3 | `destroy_token_data()` Moderator-triggered secure wipe of all session data with audit log entry | Irreversible; `data_destroyed = True` on session record; audit entry created | Scheduled auto-destruction after configurable retention period | data_destroyed=True set on session; all token data inaccessible post-destruction; audit entry contains actor_id + timestamp; operation irreversible (re-destruction returns 409) |
 | CRS-14.04 | CRS-14.04.IN | CRS-14.04.OUT | **Not implemented** | 3 | Pixelated Token image: `generate_pixelated_token()` encodes token data in pixel borders, QR center | DNA-style integrity: top/bottom pixel lines mirror; left/right keys required to decode | Animated token reveal with Seed of Life branding | PNG generated < 3s; top pixel line reversed = bottom pixel line (DNA mirror verified); QR center scannable and decodes to valid token payload |
@@ -940,7 +940,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 ### Cube 9 — Architectural Constraints
 
-- **15-column CSV schema:** Must match the reference output format exactly (see `Updated_Web_Results_With_Themes_And_Summaries_v03 (1).csv`).
+- **16-column CSV schema:** Must match the reference output format exactly (see `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` — 5,050 simulated responses, all Q-0001).
 - **Results distribution gating:** Only participants where `results_opt_in = True AND (payment_status = 'paid' OR payment_status = 'lead_exempt')` receive results.
 - **Pixelated Token data destruction:** After image delivery, `destroy_token_data()` purges token records. This is irreversible. User must acknowledge the warning before delivery.
 - **CQS visibility:** CQS scores visible ONLY to Moderators and system. Never exposed to regular users. Winner notification does not include CQS breakdown for other users.
@@ -966,9 +966,9 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 | Session config (pricing, reward, live feed) | Input | Cube 1 | **SIMULATED** | Mock session config: pricing_tier=paid, reward_enabled=true, reward_amount_cents=2500 |
 | Aggregated rankings | Input | Cube 7 | **SIMULATED** | Mock ranking results: 3 themes in final order with scores, vote counts, and is_top_theme2 flag |
 | Token balances | Input | Cube 8 | **SIMULATED** | Mock per-user token totals: ♡ range 5-22, 웃 range $0.57-$4.07, ◬ range 25-110 |
-| Export format config | Input | System | **SIMULATED** | Mock export settings: 15-column CSV schema, PDF template selection, Pixelated Token encoding version |
+| Export format config | Input | System | **SIMULATED** | Mock export settings: 16-column CSV schema, PDF template selection, Pixelated Token encoding version |
 | Pixelated Token generation params | Input | System | **SIMULATED** | Mock params: session name, session ID, date/time, ♡/◬/웃 values, user hash, project ID, encoding_version=1 |
-| CSV/PDF export files | Output | User download | **BOTH** | Real CSV/PDF generated from mock data; file content verified against 15-column schema |
+| CSV/PDF export files | Output | User download | **BOTH** | Real CSV/PDF generated from mock data; file content verified against 16-column schema |
 | Pixelated Token images | Output | User download | **BOTH** | Real PNG image generated from mock token data; pixel encoding + QR verified |
 | Results distribution records | Output | Audit | **SIMULATED** | Written to mock distribution store; verified gating logic (paid + Lead-exempt only) |
 | CQS dashboard data | Output | Moderator UI | **SIMULATED** | Mock dashboard payload; verified CQS visibility rules (Moderator-only, hidden from users) |
@@ -981,7 +981,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 | Function | Sim Mode | Simulation Behavior |
 |----------|----------|---------------------|
-| `generate_csv_export()` | **BOTH** | Generates real CSV from mock data. Queries mock PostgreSQL (ResponseMeta, ResponseSummary, Question, themes). Output file verified against 15-column schema with exact column names and data types |
+| `generate_csv_export()` | **BOTH** | Generates real CSV from mock data. Queries mock PostgreSQL (ResponseMeta, ResponseSummary, Question, themes). Output file verified against 16-column schema with exact column names and data types |
 | `generate_pdf_export()` | **BOTH** | Generates real PDF from mock data. Layout, charts, and summaries rendered from mock session dataset. File size and page count verified |
 | `generate_pixelated_token()` | **BOTH** | Generates real PNG image from mock token data. Encodes pixel borders (top/bottom/left/right), generates center QR code, assembles final image. Pixel integrity verified |
 | `encode_pixel_line()` | **BOTH** | Real encoding logic -- converts mock data string to colored pixel row using versioned color-to-character mapping. Output pixel count = input character count verified |
@@ -998,7 +998,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 #### Canned Test Data
 
-- **Mock export data (15-column CSV format):** 8 response rows matching the reference schema (`Updated_Web_Results_With_Themes_And_Summaries_v03 (1).csv`):
+- **Mock export data (16-column CSV format):** 8 response rows matching the reference schema (`Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` — 5,050 simulated responses, all Q-0001):
   - Q_Number: 1 (all same question for single-poll session)
   - Question: "What are the most important considerations for AI governance in our organization?"
   - User: 7 AI user hashes + 1 HI user hash
@@ -1040,7 +1040,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 - **100% test pass rate:** All existing tests must pass; no regressions in any cube
 - **No spiral metric regressions:** Backend duration, TypeScript errors, bundle sizes must not increase
-- **Export format compliance (15-column schema match):** Generated CSV must have exactly 15 columns in the exact order specified. Column names must match reference file character-for-character. All 8 fixture rows must be present with non-empty values for all columns
+- **Export format compliance (16-column schema match):** Generated CSV must have exactly 16 columns in the exact order specified. Column names must match reference file character-for-character. All 8 fixture rows must be present with non-empty values for all columns
 - **Pixelated Token integrity (top/bottom DNA match):** Top pixel line read forward must exactly equal bottom pixel line read backward. Left + right vertical pixels must combine to form a valid decryption key. QR code must scan to valid verification URL. Encoding version must be present and match expected value
 - **Data destruction completeness:** After `destroy_token_data()` runs on mock store: all token ledger entries for the target participant must be inaccessible. `data_destroyed` flag must be `true`. Subsequent `get_user_balance()` must return zeros. Destruction must be irreversible (re-running destroy on already-destroyed data must be a no-op)
 - **Results distribution gating:** Exactly 6 of 8 fixture participants receive results (5 paid + 1 Lead-exempt). Zero results delivered to unpaid/opted-out users. Verified by mock distribution record count
@@ -1051,13 +1051,13 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 No spiral metrics recorded yet -- **PENDING implementation**. Baseline (N=5+) required before Cube 10 isolation testing is enabled. Current status: CSV export implemented (135 lines in service.py, 38 lines in router.py, 173 lines total), analytics stub defined, 0 dedicated Cube 9 tests. Spiral baseline will be established during Cube 9 full implementation (PDF export, Pixelated Tokens, results distribution, CQS dashboard, talent recommendations, data destruction).
 
-### Cube 9 — Target Output Schema (15-Column CSV)
+### Cube 9 — Target Output Schema (16-Column CSV)
 
-The AI pipeline produces output matching this schema (reference: `Updated_Web_Results_With_Themes_And_Summaries_v03 (1).csv`):
+The AI pipeline produces output matching this schema (reference: `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` — 5,050 simulated responses, all Q-0001):
 
 | Column | Type | Description |
 |--------|------|-------------|
-| Q_Number | INTEGER | Question identifier / order index |
+| Q_Number | VARCHAR | Question identifier (e.g. Q-0001) — indexes each unique question for historical recall across sessions |
 | Question | TEXT | The polling question text |
 | User | VARCHAR | User identifier (participant_id or anon hash) |
 | Detailed_Results | TEXT | Raw response text in original language |
@@ -1086,7 +1086,7 @@ The AI pipeline produces output matching this schema (reference: `Updated_Web_Re
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `backend/app/cubes/cube9_reports/service.py` | 135 | CSV export (15-column schema from PostgreSQL: ResponseMeta + ResponseSummary) |
+| `backend/app/cubes/cube9_reports/service.py` | 135 | CSV export (16-column schema from PostgreSQL: ResponseMeta + ResponseSummary) |
 | `backend/app/cubes/cube9_reports/router.py` | 38 | 2 API endpoints (CSV export, analytics stub) |
 | `backend/app/cubes/cube9_reports/exporters/__init__.py` | - | Exporters package (scaffolded, ready for CSV/PDF exporter modules) |
 
@@ -1231,8 +1231,8 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 **Fix:** Add auth gate: Moderator always; Lead/Developer always; Participant only if `results_opt_in = True` AND (`payment_status = 'paid'` OR `cost_splitting_enabled = False`).
 
 #### GAP C9-2 — Zero Dedicated Tests *(Stability −15)*
-**Root cause:** CSV export function works but has 0 tests verifying 15-column schema, edge cases (empty session, 0 summaries, 0 themes), or performance.
-**Fix:** Add test suite: schema validation, empty session, mixed text+voice, 15-column completeness, >1000 response performance.
+**Root cause:** CSV export function works but has 0 tests verifying 16-column schema, edge cases (empty session, 0 summaries, 0 themes), or performance.
+**Fix:** Add test suite: schema validation, empty session, mixed text+voice, 16-column completeness, >1000 response performance.
 
 #### GAP C9-3 — Results Distribution Not Implemented *(Stability −15)*
 **Root cause:** `distribute_results()` not implemented. Eligible participants never receive results. No notification of session completion.
@@ -1533,7 +1533,7 @@ Moderator clicks Stop Polling → Cube 5 fires run_pipeline()
 | # | Task | Cube | SSSES Impact | Status |
 |---|------|------|---|---|
 | 32 | **C9-1** CSV export auth gate | 9 | Security +20 | |
-| 33 | **C9-2** Test suite (15-column schema, edge cases, performance) | 9 | Stability +15 | |
+| 33 | **C9-2** Test suite (16-column schema, edge cases, performance) | 9 | Stability +15 | |
 | 34 | **C9-3** Results distribution with gating | 9 | Stability +15 | |
 
 #### PHASE 8 — Scale (1M Target)

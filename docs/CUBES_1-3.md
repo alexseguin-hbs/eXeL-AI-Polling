@@ -1331,7 +1331,7 @@ CRS-09b Cube 6 Phase B — BATCH (post-close):
 
 #### GAP 5 — Phase B End-to-End Unverified *(Stability −15)*
 **Root cause:** Phase B code exists but has not been run against a live Supabase session with real AI provider calls.
-**Fix (Task B1):** Run Phase B against controlled test session using Web_Results_5000.csv. Confirm 16-column output matches target schema.
+**Fix (Task B1):** Run Phase B against controlled test session using `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,050 simulated responses, all Q-0001). Confirm 16-column output matches target schema.
 
 ---
 
@@ -1354,7 +1354,7 @@ CRS-09b Cube 6 Phase B — BATCH (post-close):
 
 | Task | File | Change | SSSES Impact |
 |------|------|--------|---|
-| **B1** End-to-end verification | `cube6_ai/service.py` | Run `POST /ai/run` against test session loaded with Web_Results_5000.csv (5000 responses, 6 languages). Confirm: PostgreSQL `themes` table populated with Theme01 + Theme2_9/6/3; `response_summaries` per-response themed; `session.replay_hash` stored. | Stability +20 |
+| **B1** End-to-end verification | `cube6_ai/service.py` | Run `POST /ai/run` against test session loaded with `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,050 simulated responses, all Q-0001, 6 languages). Confirm: PostgreSQL `themes` table populated with Theme01 + Theme2_9/6/3; `response_summaries` per-response themed; `session.replay_hash` stored. | Stability +20 |
 | **B2** Monolith parity check | `eXeL-AI_Polling_v04.2.py` vs `cube6_ai/service.py` | Cross-check marble sampling logic, confidence threshold (65% → reclassify as Neutral), Theme01 categories (`["Risk & Concerns", "Supporting Comments", "Neutral Comments"]`), reduction steps 9→6→3. Document any intentional divergences. | Stability +10 |
 | **B3** Parallel batch classification | `cube6_ai/service.py` | Confirm Theme01 classification uses `asyncio.gather()` across all batches (not sequential loop). Target: all N responses classified in `ceil(N/50)` batches, all concurrent. Verify at 5000-response scale. | Scalability +20 |
 | **B4** Broadcast `themes_ready` | `cube6_ai/service.py` | After Phase B stores all results, broadcast `{"event": "themes_ready", "session_id": "...", "theme_count": N}` via same `supabase_broadcast.py` helper. Dashboard transitions to results view on receipt. Gate: only fires on full success — not on partial. | Stability +10 |

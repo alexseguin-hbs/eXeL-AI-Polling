@@ -55,7 +55,7 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 | File | Purpose |
 |------|---------|
 | `eXeL-AI_Polling_v04.2.py` | Original monolithic polling + summarization + clustering pipeline |
-| `Updated_Web_Results_With_Themes_And_Summaries_v03 (1).csv` | Target output format (60-row sample with 15-column schema) |
+| `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` | 5,050-row simulation dataset (all Q-0001) — 16-column schema with themes/summaries. Used to test AI pipeline (Cube 6) and export (Cube 9) without live API calls. Replaces archived v03. |
 | `eXeL-AI_DesignMatrix.xlsx` | Design traceability matrix, user journey, user stories, CRS mapping |
 | `Requirements.txt` | Full CRS 1–35 requirements specification |
 | `Token_Governance_Math.md` | Formal governance + tokenomics math specification |
@@ -241,7 +241,7 @@ All clustering and ranking operations must be fully reproducible:
 The following cross-cube specifications apply across multiple cubes:
 
 ### Target Output Schema
-15-column CSV format — see `docs/CUBES_7-9.md` (Cube 9 Target Output Schema) and reference file `Updated_Web_Results_With_Themes_And_Summaries_v03 (1).csv`.
+16-column CSV format — see `docs/CUBES_7-9.md` (Cube 9 Target Output Schema) and reference file `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,050 simulated responses, all Q-0001, used for offline AI pipeline and export testing).
 
 ### Token System & Governance
 SoI Trinity Tokens (♡ 웃 ◬), 3 distribution methods, 59-jurisdiction rate table, append-only ledger, governance weight damping — see `docs/CUBES_7-9.md` (Cube 8) and `Token_Governance_Math.md`.

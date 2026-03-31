@@ -28,7 +28,7 @@
 
 | CRS | Input ID | Output ID | Status | DTM Stretch Target | Design Output: Definable / Measurable |
 |-----|----------|-----------|--------|-------------------|---------------------------------------|
-| CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Real-time streaming aggregation | Responses aggregated within 500ms; 15-column schema matches reference CSV exactly |
+| CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Real-time streaming aggregation | Responses aggregated within 500ms; 16-column schema matches reference CSV exactly |
 | CRS-09.01 | CRS-09.01.IN | CRS-09.01.OUT | **Complete** | Web_Results 5-column raw format (q_number, question, user, detailed_results, response_language) | 5-column Web_Results output validated: q_number (int), question (str), user (str), detailed_results (str), response_language (str); zero null fields |
 | CRS-09.02 | CRS-09.02.IN | CRS-09.02.OUT | **Complete** | PostgreSQL (single store): ResponseMeta with raw_text column | ResponseMeta row created with non-null raw_text within 200ms of submission; single-store query returns all fields without JOIN to external store |
 | CRS-09.03 | CRS-09.03.IN | CRS-09.03.OUT | **IMPLEMENTED — Task A5.03** | Supabase broadcast on aggregation completion for live feed push (`cube6_ai/service.py` lines 203-213, `broadcast_event("summary_ready")`) | `summary_ready` broadcast received by all subscribed clients within 100ms of Phase A completion; event payload contains session_id + response_id |
@@ -223,7 +223,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 | Criterion | Threshold | Measurement |
 |-----------|-----------|-------------|
 | Test pass rate | 100% (27/27) | All existing Cube 4 unit + E2E tests must pass |
-| Web_Results format | Exact schema match | All 15 columns present and correctly typed (q_number through Theme2_3_Confidence) |
+| Web_Results format | Exact schema match | All 16 columns present and correctly typed (q_number through Theme2_3_Confidence, incl. Response_Language) |
 | Response count accuracy | Exact match | `get_response_count()` must return correct text/voice/total breakdown |
 | Language breakdown | Exact match | Language grouping must match fixture distribution (11 languages) |
 | Presence tracking | Correct state | Online/idle/disconnected status must reflect heartbeat timing |
@@ -1040,8 +1040,8 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 **Fix (Task B4):** After Phase B stores all theme records + assignments, broadcast `{"event": "themes_ready", "session_id": "...", "theme_count": N}` via `supabase_broadcast.py`. Gate: only fires on full success.
 
 #### GAP C6-3 — Phase B E2E Verification Absent *(Stability −10)*
-**Root cause:** Phase B code is implemented but has never been run against a real 5000-response dataset with live AI providers. No confirmed output schema match against `Updated_Web_Results_With_Themes_And_Summaries_v03.csv`.
-**Fix (Task B1 + B2):** Load `Web_Results_5000.csv` into a test session. Run `POST /ai/run`. Verify PostgreSQL `themes` table, `response_summaries` per-response theme fields, and `replay_hash` all populate correctly. Cross-check marble sampling and confidence threshold against `eXeL-AI_Polling_v04.2.py` monolith.
+**Root cause:** Phase B code is implemented but has never been run against a real 5000-response dataset with live AI providers. No confirmed output schema match against `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,050 simulated responses, all Q-0001).
+**Fix (Task B1 + B2):** Load `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,050 rows, all Q-0001) into a test session. Run `POST /ai/run`. Verify PostgreSQL `themes` table, `response_summaries` per-response theme fields, and `replay_hash` all populate correctly. Cross-check marble sampling and confidence threshold against `eXeL-AI_Polling_v04.2.py` monolith.
 
 ---
 

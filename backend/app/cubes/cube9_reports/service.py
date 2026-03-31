@@ -1,7 +1,7 @@
-"""Cube 9 — Reports Service: CSV export matching 15-column schema.
+"""Cube 9 — Reports Service: CSV export matching 16-column schema.
 
-Output columns:
-  Q_Number, Question, User, Detailed_Results,
+Output columns (ref: Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv):
+  Q_Number, Question, User, Detailed_Results, Response_Language,
   333_Summary, 111_Summary, 33_Summary,
   Theme01, Theme01_Confidence,
   Theme2_9, Theme2_9_Confidence,
@@ -20,12 +20,13 @@ from app.models.question import Question
 from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
 
-# Exact 15-column schema matching reference CSV
+# Exact 16-column schema matching reference CSV (v04.1_5000.csv)
 CSV_COLUMNS = [
     "Q_Number",
     "Question",
     "User",
     "Detailed_Results",
+    "Response_Language",
     "333_Summary",
     "111_Summary",
     "33_Summary",

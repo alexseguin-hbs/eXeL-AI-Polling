@@ -29,7 +29,7 @@ async def export_csv(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ):
-    """CRS-14: Export session results to 15-column CSV download.
+    """CRS-14: Export session results to 16-column CSV download.
 
     Auth gating:
       Moderator/Admin/Lead: always allowed

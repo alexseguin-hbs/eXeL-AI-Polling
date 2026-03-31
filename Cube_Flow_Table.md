@@ -388,7 +388,7 @@ Payment gate: `session.is_paid == True` required (Moderator paid or cost-split)
 ### Functions (2 implemented + stubs)
 | Function | Description | Status |
 |----------|-------------|--------|
-| `export_session_csv()` | 15-column CSV matching target schema | COMPLETE |
+| `export_session_csv()` | 16-column CSV matching target schema (ref: v04.1_5000.csv) | COMPLETE |
 | `export_session_csv_to_file()` | CSV to file path | COMPLETE |
 | `generate_pixelated_token()` | Self-contained token image | STUB |
 | `distribute_results()` | Results to paying participants | STUB |

@@ -1372,7 +1372,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 #### Cube 9 Functions
 | Function | Description |
 |----------|-------------|
-| `generate_csv_export()` | Produces CSV matching the 15-column target output schema |
+| `generate_csv_export()` | Produces CSV matching the 16-column target output schema (ref: `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv`) |
 | `generate_pdf_export()` | Produces formatted PDF report (MVP2+) |
 | `generate_pixelated_token()` | Creates Pixelated Token image with encoded pixel lines + QR center |
 | `encode_pixel_line()` | Encodes data into colored pixel row using versioned scheme |
@@ -1775,7 +1775,7 @@ Use these exactly as “build targets” for website + backend.
 - **CRS-13.03** Replay hash displayed — SHA-256 of inputs + parameters; verifiable determinism for governance audit.
 
 **CRS-14** System exports session results to CSV.
-- **CRS-14.01** 15-column Web_Results CSV export: 5 input cols + 333/111/33 summaries + Theme01 + Theme01_Confidence + Theme2_9/6/3 + Theme2_9/6/3_Confidence.
+- **CRS-14.01** 16-column Web_Results CSV export: 5 input cols (Q_Number, Question, User, Detailed_Results, Response_Language) + 3 summaries (333/111/33) + 8 theme/confidence fields (Theme01 + Theme01_Confidence + Theme2_9/6/3 + Theme2_9/6/3_Confidence). Reference: `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,050 simulated responses, all Q-0001).
 - **CRS-14.02** PDF export with session analytics, theme visualizations, CQS scores.
 - **CRS-14.03** Data destruction option: Moderator-triggered secure wipe of all session data with audit log entry. *(MVP3)*
 
