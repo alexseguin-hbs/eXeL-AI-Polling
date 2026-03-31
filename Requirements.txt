@@ -280,6 +280,8 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 
 **Adding new languages:** Admin UI panel accessible to Admins, Leads, and Team members. To add a language: (1) Add row to `languages` table, (2) Add translations for all `string_key` entries, (3) AI verifies translation quality, (4) At least 1 other Team/Lead/Admin user approves. Language becomes active after approval. *(Frontend Language Lexicon already implements propose → approve/reject workflow via localStorage; backend API integration pending.)*
 
+**Language Lexicon SSSES Gate (automated):** Every Cube SSSES review MUST verify Language Lexicon coverage. Zero hardcoded English strings in user-facing JSX. All new UI text must use `t("key")` with keys defined in `frontend/lib/lexicon-data.ts`. Current key count: 467 keys × 33 languages. Fallback chain: translation → English default → raw key. This gate is part of the Spiral Development Protocol — no Cube can pass SSSES without full Lexicon coverage.
+
 *Note: `session_config` has been **merged into `sessions`** table — fields `ranking_mode`, `response_char_limit`, and `question_char_limit` now live directly on `sessions` for simpler queries and fewer JOINs. `cycle_mode` is derived from `polling_mode`, and `max_cycles` is `max_deep_dive_rounds`.*
 
 #### Cube 1 Inputs

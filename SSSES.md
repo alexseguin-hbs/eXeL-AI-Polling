@@ -50,6 +50,12 @@ The overall SSSES score is the average of all five pillars. Partial scores are t
 - Is any new abstraction used more than once?
 - Are there any copy-paste patterns that should be a shared utility?
 
+**Language Lexicon Gate (MANDATORY per Cube review)**
+- Are ALL user-facing strings using `t("key")` — zero hardcoded English in JSX?
+- Were new Lexicon keys added to `frontend/lib/lexicon-data.ts`?
+- Does `tsc --noEmit` pass with 0 errors?
+- Current key count: `grep -c "key:" frontend/lib/lexicon-data.ts` (must not decrease)
+
 ## SSSES in Commit Messages
 
 Every non-trivial commit should include a one-line SSSES impact note:

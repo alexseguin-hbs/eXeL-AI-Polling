@@ -259,7 +259,7 @@ export const MOCK_SESSIONS: Session[] = [
     expires_at: new Date(Date.now() - 86400000).toISOString(),
     created_at: new Date(Date.now() - 172800000).toISOString(),
     updated_at: new Date(Date.now() - 86400000).toISOString(),
-    participant_count: 47,
+    participant_count: 5000,
   },
   {
     id: "d4e5f6a7-b8c9-0123-def0-444444444444",
@@ -436,7 +436,7 @@ export const MOCK_QUESTIONS: Record<string, Question[]> = {
 // ── Mock Participant Counter ────────────────────────────────────
 let mockParticipantCount: Record<string, number> = {
   "b2c3d4e5-f6a7-8901-bcde-222222222222": 3,
-  "c3d4e5f6-a7b8-9012-cdef-333333333333": 47,
+  "c3d4e5f6-a7b8-9012-cdef-333333333333": 5000,
   "d4e5f6a7-b8c9-0123-def0-444444444444": 15,
 };
 

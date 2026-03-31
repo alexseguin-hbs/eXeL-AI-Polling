@@ -212,6 +212,7 @@ All clustering and ranking operations must be fully reproducible:
   - **Backward propagation (10→1):** Trace impact inward from Cube 10 back through all upstream cubes to Cube 1
   - **Every change must enhance metrics and outcomes** for a larger user base — never degrade
   - **Every change must increase modularity** to enhance user experience
+  - **Language Lexicon gate:** Every Cube SSSES review MUST audit `t()` coverage — zero hardcoded English in UI. New keys added to `lexicon-data.ts` with all 33 languages via fallback chain.
   - Guiding principle: **"Where Shared Intention moves at the Speed of Thought"**
 - **MVP phases:** MVP1 (working prototype) → MVP2 (usability/intelligence) → MVP3 (governance/monetization)
 
@@ -366,11 +367,11 @@ These frontend systems span multiple cubes:
 - **Cost Estimate Table:** Collapsible in Settings panel. Shows 7 provider combos (Summary + V2T + Total) for 1000 users × 1 response × 111 words. OpenAI + Whisper default. Files: `frontend/components/moderator-settings.tsx`
 
 ### Demo Sessions (3 default)
-| # | Title | Code | Status | Purpose |
-|---|-------|------|--------|---------|
-| 1 | eXeL AI Polling - Strategy Alignment | `DEMO2026` | Polling (live) | 100-User Spiral Test + Ranking DnD |
-| 2 | Collaborative Thoughts on AI Governance | `PAST0001` | Closed | 5000-user results + theme visualizations |
-| 3 | Team Innovation Challenge | `STATIC01` | Static Poll (3-day) | Countdown timer demo |
+| # | Title | Code | Status | Users | Date | Mode | Purpose |
+|---|-------|------|--------|:-----:|------|------|---------|
+| 1 | eXeL AI Polling - Strategy Alignment | `DEMO2026` | Polling | 3 | 3/31/2026 | Live | 100-User Spiral Test + Ranking DnD |
+| 2 | Collaborative Thoughts on AI Governance | `PAST0001` | Closed | 5,000 | 3/29/2026 | Live | 5000-user results from v04.1_5000.csv + theme visualizations + ranking |
+| 3 | Team Innovation Challenge | `STATIC01` | Polling | 15 | 3/31/2026 | Static | 3-day countdown timer demo |
 
 ## SSSES Testing & Audit Framework
 
@@ -397,6 +398,13 @@ Fix participant count broadcast — use subscribed channel (Stability +20, Effic
 - [ ] Supabase DB (`session_status`) written on CREATE and every transition — enables direct code entry
 - [ ] Participant count synced to Supabase DB on every join — all lobby devices see accurate count via 1s poll
 - [ ] `new_response` broadcast routed to rendered feed array — live feed updates without KV
+
+**Language Lexicon checklist (MANDATORY per Cube SSSES review):**
+- [ ] ALL user-facing strings use `t("key")` — zero hardcoded English in JSX
+- [ ] New Lexicon keys added to `frontend/lib/lexicon-data.ts` with `englishDefault` + `context` + `cubeId`
+- [ ] Key count verified: `grep -c "key:" frontend/lib/lexicon-data.ts` (must increase or stay same, never decrease)
+- [ ] `tsc --noEmit` passes (0 errors)
+- [ ] Fallback chain works: translation → English default → raw key (no blank UI in any language)
 
 ## SSSES Audit & Simulation Agents — 12 Ascended Masters
 
