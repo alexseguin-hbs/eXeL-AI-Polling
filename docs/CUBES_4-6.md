@@ -1073,9 +1073,9 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 **Root cause:** `summarizer.summarize()` and `embedder.embed()` calls in `cube6_ai/service.py` (lines 95-112 Phase A, lines 571-639 Phase B) have no `asyncio.wait_for()`. A single hung API call blocks the entire pipeline.
 **Fix (Task C6-4):** Wrap all provider API calls in `asyncio.wait_for(call, timeout=30)`. On timeout: log `cube6.provider.timeout` with provider name; if Phase A, fall back to `summary_33 = "[Summary timed out]"`; if Phase B, fail the pipeline via C5-1 error propagation.
 
-#### GAP C6-5 — Non-Atomic Cross-DB Write in _store_results() *(Stability −10)*
-**Root cause:** `_store_results()` (lines 646-749) writes Theme records to Postgres (lines 662-696) then updates MongoDB summaries (lines 712-728) separately. If MongoDB update fails after Postgres commit, theme records exist in Postgres but per-response theme fields are missing from MongoDB — data inconsistency.
-**Fix (Task C6-5):** Add try/except around MongoDB batch update. On failure: log `cube6.store.mongo_partial_failure`, mark pipeline trigger with `"completed_partial"` status. Do not roll back Postgres themes — they are still valid for Cube 7 ranking.
+#### GAP C6-5 — Non-Atomic Write in _store_results() *(Stability −10)*
+**Root cause:** `_store_results()` (lines 646-749) writes Theme records to PostgreSQL (lines 662-696) then updates `response_summaries` table (lines 712-728) separately. If the `response_summaries` update fails after themes commit, theme records exist but per-response theme fields are missing from `response_summaries` — data inconsistency.
+**Fix (Task C6-5):** Add try/except around `response_summaries` batch update. On failure: log `cube6.store.summaries_partial_failure`, mark pipeline trigger with `"completed_partial"` status. Do not roll back themes — they are still valid for Cube 7 ranking.
 
 #### GAP C6-6 — _assign_themes_llm() Index Mismatch Risk *(Stability −5)*
 **Root cause:** `_assign_themes_llm()` (lines 506-568) manually tracks `result_idx` to match batch summarize outputs to responses. If `batch_summarize()` returns fewer results than expected (provider truncation, rate limit), index skips responses or crashes with IndexError.
@@ -1186,19 +1186,19 @@ Cube 4 aggregate_response() → [NO BROADCAST] → Dashboard
 
 | Task | File | Change | SSSES Impact |
 |------|------|--------|---|
-| **A0** Short-circuit ≤33 words (BR-1) | `cube6_ai/service.py` | At entry of `summarize_single_response()`: if `len(clean_text.split()) <= 33`, set `summary_333 = summary_111 = summary_33 = clean_text`, store in MongoDB, skip all AI calls. Zero latency, zero cost. | Efficiency +5 |
+| **A0** Short-circuit ≤33 words (BR-1) | `cube6_ai/service.py` | At entry of `summarize_single_response()`: if `len(clean_text.split()) <= 33`, set `summary_333 = summary_111 = summary_33 = clean_text`, store in `response_summaries` table, skip all AI calls. Zero latency, zero cost. | Efficiency +5 |
 | **C4-1** Mixed-session test fixture | `tests/cube4/test_e2e_flows.py` | Add E2E test with 10 text + 4 voice responses in same session. Verify `aggregate_response()` returns correct `source_type` breakdown and total count. | Stability +10 |
 | **C4-2** Confirm aggregation before Phase A broadcast | `cube4_collector/service.py` | Return aggregated `response_id` from `aggregate_response()` — used by Cube 6 Task A5 to reference the correct Postgres record in the `summary_ready` broadcast payload. | Stability +5 |
 | **C5-1** Phase B error propagation | `cube5_gateway/service.py`, `cube6_ai/service.py` | Wrap `run_pipeline()` in try/except inside background task. On exception: call `update_pipeline_status(session, trigger_id, "failed", error_message=str(e))`. See Task B5 in CUBES_1-3.md. | Stability +15 |
 | **C5-2** Moderator-scoped pipeline status route | `cube5_gateway/router.py` | Add `require_moderator_for_session(session_id, current_user)` guard to `GET /pipeline/{session_id}/status` and `POST /pipeline/{session_id}/retry`. | Security +10 |
 | **C6-1** PII guard in `run_pipeline()` | `cube6_ai/service.py` | At top of `run_pipeline()`, filter `collected_responses` to only include records where `pii_scrubbed = True`. Log count of filtered-out records with `cube6.phase_b.pii_filtered` metric. | Security +15 |
 | **C6-2** `trigger_metadata` count from Cube 4 | `cube5_gateway/service.py` | Replace inline `session.query(ResponseMeta).count()` with call to Cube 4's `get_response_count(session_id)` at transition time. Eliminates race-window stale count. | Stability +5, Succinctness +5 |
-| **C4-3** MongoDB error handling | `cube4_collector/service.py` | Wrap `mongo.responses.find_one()` and `mongo.summaries.find_one()` in try/except. On failure: log `cube4.mongo.query_failed`, return partial result with `summary_status: "unavailable"`. | Stability +10 |
+| **C4-3** DB error handling | `cube4_collector/service.py` | Wrap `response_summaries` queries in try/except. On failure: log `cube4.db.query_failed`, return partial result with `summary_status: "unavailable"`. | Stability +10 |
 | **C4-4** Fix anonymization collision | `cube4_collector/service.py` | Replace `str(participant.id)[:8]` truncation with Cube 2's SHA-256 `anon_hash` for anonymous user labels. | Security +5 |
 | **C5-3** Pipeline timeout | `cube5_gateway/service.py` | Wrap `run_pipeline()` in `asyncio.wait_for(timeout=300)`. On `TimeoutError`: update trigger to `"failed"` with timeout message. | Scalability +15 |
 | **C5-4** Wire Cube 6 → Cube 7 chain | `cube5_gateway/service.py` | After successful Phase B in `_run_pipeline_background()`, call `trigger_ranking_pipeline(session)`. Ranking implementation deferred but trigger chain must be wired. | Stability +10 |
 | **C6-4** AI API call timeout | `cube6_ai/service.py` | Wrap all `summarizer.summarize()` and `embedder.embed()` calls in `asyncio.wait_for(timeout=30)`. On timeout: log `cube6.provider.timeout`; Phase A falls back to `"[Summary timed out]"`. | Scalability +15 |
-| **C6-5** Partial failure handling in _store_results() | `cube6_ai/service.py` | Add try/except around MongoDB batch update after Postgres commit. On failure: log `cube6.store.mongo_partial_failure`, mark trigger `"completed_partial"`. | Stability +10 |
+| **C6-5** Partial failure handling in _store_results() | `cube6_ai/service.py` | Add try/except around `response_summaries` batch update after themes commit. On failure: log `cube6.store.summaries_partial_failure`, mark trigger `"completed_partial"`. | Stability +10 |
 | **C6-6** Fix index mismatch in _assign_themes_llm() | `cube6_ai/service.py` | Replace manual `result_idx` tracking with `zip(responses, results)`. Log count mismatch if `len(results) != len(responses)`. | Stability +5 |
 | **C6-7** ~~Create~~ Wire `core/supabase_broadcast.py` | `backend/app/core/supabase_broadcast.py` (**EXISTS** — 97 lines, httpx REST) | File created 2026-03-30. `broadcast_event(channel, event, payload)` with availability guard. **Remaining:** Wire to Phase A (Task A5: `summary_ready`) and Phase B (Task B4: `themes_ready`). | Stability +20 (**infra resolved**) |
 | **C6-8** = Task A4 (schema) | `schemas/response.py` | Add `summary_33: str \| None = None` to `ResponseRead`. Enables frontend to read field from API response (will be `None` at submit; real value via A5 broadcast). | Efficiency +10, Succinctness +5 |
@@ -1244,7 +1244,7 @@ PHASE 2 — Live Feed Pipeline (Moderator sees responses + summaries):
 
 PHASE 3 — Resilience + Scale:
   A3 (semaphore) → C5-3 (pipeline timeout) → C6-4 (AI API timeout) → C5-1 (error propagation)
-  → C5-2 (Moderator route guard) → C4-3 (MongoDB error handling)
+  → C5-2 (Moderator route guard) → C4-3 (DB error handling)
 
 PHASE 4 — Phase B Theming + Downstream Chain:
   B2 (parity check) → B1 (E2E verify) → B3 (parallel batch) → C6-5 (partial failure)
