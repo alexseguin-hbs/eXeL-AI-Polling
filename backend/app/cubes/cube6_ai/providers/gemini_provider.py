@@ -3,7 +3,7 @@
 Uses google-generativeai SDK for the Gemini API.
 Pinned models for deterministic reproducibility:
 - Embedding: text-embedding-004
-- Summarization: gemini-2.0-flash (temperature=0.0)
+- Summarization: gemini-2.5-flash (temperature=0.0)
 """
 
 import asyncio
@@ -17,7 +17,7 @@ from app.cubes.cube6_ai.providers.base import (
 )
 
 _EMBEDDING_MODEL = "text-embedding-004"
-_SUMMARIZATION_MODEL = "gemini-2.0-flash"
+_SUMMARIZATION_MODEL = "gemini-2.5-flash"
 
 
 class GeminiEmbedding(EmbeddingProvider):
@@ -56,7 +56,7 @@ class GeminiEmbedding(EmbeddingProvider):
 
 
 class GeminiSummarization(SummarizationProvider):
-    """Google Gemini summarization/classification using gemini-2.0-flash."""
+    """Google Gemini summarization/classification using gemini-2.5-flash."""
 
     provider_name = AIProviderName.GEMINI
 

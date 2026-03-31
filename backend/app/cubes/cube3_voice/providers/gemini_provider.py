@@ -3,7 +3,7 @@
 Uses Gemini's multimodal capabilities to transcribe audio input.
 Gemini accepts audio directly as input and can produce text transcription.
 
-Pinned to gemini-2.0-flash model for reproducibility and speed.
+Pinned to gemini-2.5-flash model for reproducibility and speed.
 """
 
 import base64
@@ -21,7 +21,7 @@ from app.cubes.cube3_voice.providers.base import (
 
 logger = structlog.get_logger(__name__)
 
-_GEMINI_MODEL = "gemini-2.0-flash"
+_GEMINI_MODEL = "gemini-2.5-flash"
 
 # Gemini supports transcription for all major languages
 _SUPPORTED_LANGUAGES = {
