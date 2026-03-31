@@ -973,6 +973,40 @@ async def run_pipeline(
         duration_sec=duration,
     )
 
+    # --- Task B4: Broadcast themes_ready after full pipeline success ---
+    # Gate: only fires on full success (not partial). Dashboard transitions
+    # to results view on receipt.
+    try:
+        from app.core.supabase_broadcast import broadcast_event
+
+        theme_count = sum(
+            len(levels.get("3", []))
+            for levels in reduced.values()
+        )
+        await broadcast_event(
+            channel=f"session:{session.short_code}",
+            event="themes_ready",
+            payload={
+                "session_id": str(session_id),
+                "theme_count": theme_count,
+                "total_responses": len(responses),
+                "replay_hash": replay_hash,
+                "duration_sec": duration,
+            },
+        )
+        logger.info(
+            "cube6.themes_ready.broadcast",
+            session_id=str(session_id),
+            theme_count=theme_count,
+        )
+    except Exception as exc:
+        # Non-fatal — results are stored even if broadcast fails
+        logger.warning(
+            "cube6.themes_ready.broadcast_failed",
+            session_id=str(session_id),
+            error=str(exc),
+        )
+
     return {
         "session_id": str(session_id),
         "status": "completed",
