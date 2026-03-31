@@ -143,8 +143,41 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 - **Rate limiting** on all public endpoints
 - **Anti-sybil safeguards** on voting and response submission
 - **Governance weight damping** to prevent manipulation
-- **Circuit breaker** pattern for all external AI provider calls (OpenAI, Grok, Gemini)
+- **Circuit breaker** pattern for all external AI provider calls (OpenAI, Grok, Gemini, Claude)
 - **Graceful degradation** — system must serve partial results if AI pipeline is delayed
+
+### Trinity Redundancy — Live Response Delivery (LOCKED, DO NOT REVERT)
+
+The most critical feature: user responses appearing live on the moderator screen.
+Confirmed working 2026-03-31 with real human input + 45 Ascended Master responses across 11 languages.
+
+**USER SENDS (3 parallel paths — any 1 succeeding = response delivered):**
+
+| Path | Transport | Latency | Dependency |
+|------|-----------|:-------:|------------|
+| **A** | Supabase Broadcast | ~50ms | WebSocket connection |
+| **B** | Supabase DB INSERT | ~200ms | HTTP REST (always available) |
+| **C** | CF KV POST | ~100ms | Cloudflare KV binding |
+
+**MODERATOR RECEIVES (4 channels — any 1 succeeding = response displayed):**
+
+| Channel | Source | Latency | Dependency |
+|---------|--------|:-------:|------------|
+| **A** | Supabase Broadcast listener | ~50ms | WebSocket subscription |
+| **B** | postgres_changes listener | ~100ms | Supabase Realtime publication |
+| **C** | CF KV poll | ~1s | Cloudflare KV binding |
+| **D** | HTTP REST poll (2s) | ~2s | Only Supabase REST (bulletproof) |
+
+**DEMO MODE (Spiral Test):** Direct callback (same tab, 0ms, no network)
+
+**Supabase `responses` table schema:** `id` (UUID), `session_code` (string), `participant_id` (UUID), `content` (text), `created_at` (timestamp)
+
+**Deduplication:** `seenIds` Set prevents doubles when multiple channels fire for the same response.
+
+**⚠ SACRED CODE — NEVER MODIFY WITHOUT LIVE VERIFICATION:**
+- `frontend/app/dashboard/page.tsx` — Channels A-D listeners + addResponse + addSpiralResponse
+- `frontend/components/session-view.tsx` — Paths A-C send (text + voice)
+- `frontend/lib/mock-data.ts` — startSpiralTest onResponse callback
 
 ### Determinism Requirements
 All clustering and ranking operations must be fully reproducible:

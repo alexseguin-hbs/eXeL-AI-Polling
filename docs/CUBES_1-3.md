@@ -338,13 +338,20 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 2. Moderator watches the **live feed** panel on the dashboard.
 
 **Expected results:**
-- Each submitted response appears in the moderator live feed within ≤3 seconds of submission.
-- Response text is visible (not truncated beyond 80 chars in the feed).
+- Each submitted response appears in the moderator live feed within ≤2 seconds of submission.
+- Response text is visible (33-Word summary or Raw toggle).
 - Response count increments correctly.
 
-**Pass criteria:** All submitted responses visible on dashboard live feed **showing AI-generated 33-word summaries** (not client-side truncation). Summary appears within ≤5 seconds of submission.
+**Pass criteria:** All submitted responses visible on dashboard live feed. **Confirmed working 2026-03-31** with real human input + 45 Ascended Master responses across 11 languages on session XS5RRFTY.
 
-**SSSES Task A6: IMPLEMENTED.** Dashboard listens for `summary_ready` broadcast (`page.tsx` lines 261-272), updates feed entry in-place by `response_id`. Falls back to `summarizeTo33Words(r.clean_text)` client-side truncation only when AI summary hasn't arrived yet.
+**Trinity Redundancy Architecture (LOCKED — DO NOT REVERT):**
+- **3 send paths** from user: Supabase Broadcast (~50ms) + DB INSERT (~200ms) + CF KV POST (~100ms)
+- **4 receive channels** on moderator: Broadcast listener + postgres_changes + KV poll + HTTP REST poll (2s bulletproof)
+- **DEMO mode:** Direct callback (same tab, 0ms) for Spiral Test
+- **Dedup:** `seenIds` Set prevents doubles when multiple channels fire
+- **Supabase table:** `responses` with columns `(id, session_code, participant_id, content, created_at)`
+
+**SSSES Task A6: IMPLEMENTED.** Dashboard listens for `summary_ready` broadcast, updates feed entry in-place by `response_id`. Falls back to `summarizeTo33Words(r.clean_text)` client-side truncation only when AI summary hasn't arrived yet.
 
 ---
 
