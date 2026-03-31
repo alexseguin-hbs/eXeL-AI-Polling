@@ -3,7 +3,7 @@
 Grok uses an OpenAI-compatible API endpoint at api.x.ai.
 Pinned models for deterministic reproducibility:
 - Embedding: (not available — falls back to OpenAI embedding)
-- Summarization: grok-2 (temperature=0.0)
+- Summarization: grok-3-mini (temperature=0.0, cheapest reasoning model)
 """
 
 import asyncio
@@ -19,7 +19,7 @@ from app.cubes.cube6_ai.providers.base import (
 )
 
 _GROK_BASE_URL = "https://api.x.ai/v1"
-_SUMMARIZATION_MODEL = "grok-2"
+_SUMMARIZATION_MODEL = "grok-3-mini"
 
 
 class GrokEmbedding(EmbeddingProvider):

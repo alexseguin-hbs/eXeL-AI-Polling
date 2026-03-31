@@ -130,7 +130,7 @@ def call_grok(text: str, api_key: str) -> dict:
     """Call xAI Grok-2 via OpenAI-compatible endpoint."""
     url = "https://api.x.ai/v1/chat/completions"
     body = {
-        "model": "grok-2",
+        "model": "grok-3-mini",
         "temperature": 0.0,
         "messages": [
             {"role": "system", "content": INSTRUCTION},
@@ -148,7 +148,7 @@ def call_grok(text: str, api_key: str) -> dict:
     data = json.loads(resp.read())
     usage = data.get("usage", {})
     return {
-        "provider": "Grok (grok-2)",
+        "provider": "Grok (grok-3-mini)",
         "duration_sec": duration,
         "input_tokens": usage.get("prompt_tokens", 0),
         "output_tokens": usage.get("completion_tokens", 0),
@@ -225,7 +225,7 @@ def call_claude(text: str, api_key: str) -> dict:
 
 PRICING = {
     "OpenAI (gpt-4o-mini)": {"input_per_1m": 0.15, "output_per_1m": 0.60},
-    "Grok (grok-2)": {"input_per_1m": 2.00, "output_per_1m": 10.00},
+    "Grok (grok-3-mini)": {"input_per_1m": 2.00, "output_per_1m": 10.00},
     "Gemini (gemini-2.5-flash)": {"input_per_1m": 0.10, "output_per_1m": 0.40},
     "Claude (claude-sonnet-4-6)": {"input_per_1m": 3.00, "output_per_1m": 15.00},
 }
@@ -385,7 +385,7 @@ def main():
     combos = [
         ("Gemini summary + Gemini V2T (cheapest)", "Gemini (gemini-2.5-flash)", gemini_v2t),
         ("OpenAI summary + Whisper V2T", "OpenAI (gpt-4o-mini)", whisper_v2t),
-        ("Grok summary + Whisper V2T", "Grok (grok-2)", whisper_v2t),
+        ("Grok summary + Whisper V2T", "Grok (grok-3-mini)", whisper_v2t),
         ("Claude summary + Whisper V2T", "Claude (claude-sonnet-4-6)", whisper_v2t),
         ("Claude summary + AWS V2T (most expensive)", "Claude (claude-sonnet-4-6)", aws_v2t),
     ]
