@@ -192,15 +192,22 @@ All clustering and ranking operations must be fully reproducible:
 
          "Where Shared Intention moves at the Speed of Thought."
 
-  Level 2 — Cube 10 Simulation at center:
+  Level 2 — Cube 10 with Feedback Loop at center:
 
                         ●─────●─────●─────●
-                        │ --  │ --  │ --  │
-                        ●─────●─────●─────●
-                        │ --  │ 10  │ --  │
-                        ●─────●─────●─────●
-                        │ --  │ --  │ --  │
-                        ●─────●─────●─────●
+                        │ SIM │ RPL │ CHK │   SIM = Simulation Runner
+                        ●─────●─────●─────●   RPL = Replay Dataset
+                        │ MTR │ FB  │ VER │   CHK = Checkout / Checkin
+                        ●─────●─────●─────●   MTR = Metrics Compare
+                        │ BCK │ TRG │ APR │   FB  = Feedback Loop (CENTER)
+                        ●─────●─────●─────●   VER = Version Control
+                                                BCK = Backlog (from FB)
+                        FB = The nervous system  TRG = Triage (AI-assisted)
+                        Collects from EVERY      APR = ◬ ♡ 웃 Approval Gate
+                        screen, auto-tags
+                        Cube + CRS, feeds
+                        backlog → votes →
+                        AI → deploy
   ```
 - **Implementation order (clockwise spiral from center):**
   1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
