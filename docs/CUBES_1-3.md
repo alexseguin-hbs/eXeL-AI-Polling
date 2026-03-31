@@ -64,7 +64,7 @@
   - All response paths generate display entries: user submit, mock polling, spiral test, pre-populated responses
   - **Expand/Collapse:** Inline feed toggles between 200px and 500px height
   - **Fullscreen mode:** Full-viewport overlay with close button — moderator can project live feed
-  - **Backend gap (SSSES Task A5):** `summary_33` not currently broadcast from backend after Cube 6 Phase A completes — live feed falls back to client truncation. Fix: backend broadcasts `summary_ready` via Supabase; dashboard updates feed entry in place.
+  - **Backend broadcast (SSSES Task A5 — IMPLEMENTED):** `summary_33` is broadcast from backend after Cube 6 Phase A completes via `broadcast_event("summary_ready")` in `cube6_ai/service.py` lines 203-213. Dashboard listener (Task A6) still needed to consume event.
 - **Cross-device response flow:** Phone/PC user inputs propagate to moderator via Cloudflare KV
   - POST response → local mockResponses + KV `/api/responses` (fire-and-forget)
   - GET responses → merges local + KV with deduplication by `participant_id::text_prefix`
@@ -344,7 +344,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 
 **Pass criteria:** All submitted responses visible on dashboard live feed **showing AI-generated 33-word summaries** (not client-side truncation). Summary appears within ≤5 seconds of submission.
 
-**Current known gap (SSSES Task A5):** The live feed currently falls back to `summarizeTo33Words(r.clean_text)` — a client-side word-count truncation — because the backend does not yet broadcast `summary_33` after Cube 6 Phase A completes. See § "SSSES Plan — CRS-07→CRS-09 Pipeline" below.
+**Current known gap (SSSES Task A6):** The live feed currently falls back to `summarizeTo33Words(r.clean_text)` — a client-side word-count truncation — because the dashboard does not yet have a `summary_ready` listener. Backend broadcast is IMPLEMENTED (Task A5, `cube6_ai/service.py` lines 203-213). See § "SSSES Plan — CRS-07→CRS-09 Pipeline" below.
 
 ---
 
@@ -369,7 +369,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | Phone never leaves lobby after Start Polling | Layer 1 Broadcast or Layer 4 DB | Check Supabase project not paused; check `session_status` table has a row for the code |
 | Phone toggles lobby ↔ polling input every second | Status regressions in `checkStatus` poll | Check `STATUS_ORDER` rank logic in `session-view.tsx` |
 | 8-digit code shows "session not found" | Layer 4 DB missing row | Confirm `syncStatusToSupabase` fires on session CREATE in dashboard |
-| Live feed shows raw text, not AI summary | `summary_33` not broadcast from backend after Cube 6 Phase A | See SSSES Task A5 — backend must broadcast `summary_ready` after summarization completes |
+| Live feed shows raw text, not AI summary | Dashboard has no `summary_ready` listener (backend broadcast IMPLEMENTED — Task A5) | See SSSES Task A6 — dashboard must add `summary_ready` listener to consume broadcast |
 | Live feed empty on dashboard | Supabase Broadcast `new_response` not firing | Check Supabase project active; check `new_response` handler in `dashboard/page.tsx` |
 | Works in same city, fails across regions | CF KV cross-datacenter miss (expected) | Confirm Layer 4 Supabase DB is covering it |
 
@@ -514,7 +514,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | CRS-04.03 | CRS-04.03.IN.SRS | CRS-04.03.OUT.SRS | **Implemented** | 1 | State machine with validated transitions only (draft→open→polling→ranking→closed→archived) | All 6 transitions enforced; invalid transitions return 409 | Automated state transitions on timer expiry for static polls |
 | CRS-05 | CRS-05.IN.WRS.005 | CRS-05.OUT.WRS.005 | **Implemented** | 1 | Participant auto-advances to polling input when moderator clicks Start Polling — works on phone, computer, QR join, and direct code entry, whether in lobby or joining late | Status transition delivered to all participants ≤2s via Supabase Broadcast (Layer 1) with Presence (Layer 2) + Supabase DB (Layer 4) fallbacks; never requires page refresh | Sub-50ms delivery via WebSocket Broadcast confirmed in live test (2026-03-27, 13 participants); late joiners bypass lobby entirely |
 | CRS-05.01 | CRS-05.01.IN.WRS | CRS-05.01.OUT.WRS | **Implemented** | 1 | Supabase Broadcast (Layer 1) — primary push for all status transitions | ~50–70ms delivery; `session_status` row written on every transition | Dedicated Realtime channel per session with heartbeat monitoring |
-| CRS-05.02 | CRS-05.02.IN.WRS | CRS-05.02.OUT.WRS | **Implemented** | 1 | Supabase Presence (Layer 2) — late joiners receive last-known status via `channel.track()` | Presence state persists for joining participants; no polling required | Presence-based participant count shown to moderator in real time |
+| CRS-05.02 | CRS-05.02.IN.WRS | CRS-05.02.OUT.WRS | **Implemented** | 1 | Presence (Layer 2) — frontend uses Supabase `channel.track()` for late joiners; backend uses Redis HSET pattern for presence tracking | Presence state persists for joining participants; no polling required | Presence-based participant count shown to moderator in real time |
 | CRS-05.03 | CRS-05.03.IN.WRS | CRS-05.03.OUT.WRS | **Implemented** | 1 | Supabase DB REST poll (Layer 4) — globally consistent fallback; covers all CF KV cross-region misses | 1.5s poll interval; `session_status` table read; `STATUS_ORDER` rank prevents regressions | Webhook-triggered DB update to eliminate polling entirely |
 | CRS-05.04 | CRS-05.04.IN.WRS | CRS-05.04.OUT.WRS | **Implemented** | 1 | Late joiner bypass — participants joining after polling starts skip lobby and land directly on polling input | Bypass logic in `join_session()` + `session-view.tsx`; status checked at join time | Server-sent event to remove polling client-side entirely |
 
@@ -522,7 +522,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | Layer | Mechanism | Latency | Dependency | Failure Mode |
 |-------|-----------|---------|------------|-------------|
 | 1 | Supabase Broadcast (WebSocket) | ~50–70ms | Supabase project active | Silent if Supabase paused |
-| 2 | Supabase Presence (WebSocket state) | ~50–70ms | Supabase project active | Persists for late joiners via `channel.track()` |
+| 2 | Presence (frontend: Supabase `channel.track()`; backend: Redis HSET) | ~50–70ms | Supabase project active + Redis available | Persists for late joiners via `channel.track()`; backend presence via Redis HSET pattern |
 | 3 | CF KV poll (1s HTTP) | ~1s | `RESPONSES` KV binding in CF Pages | Per-datacenter; cross-region miss without binding |
 | 4 | Supabase DB poll (1.5s HTTP REST) | ~1.5s | `session_status` table exists | Globally consistent; covers all CF KV misses |
 
@@ -584,7 +584,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 
 ---
 
-## Cube 2 — Text Submission Handler: IMPLEMENTED (CRS-05→CRS-08 done; ~85% of full spec; CRS-07.03 live feed toggle in-progress — SSSES Tasks A4/A5/A6)
+## Cube 2 — Text Submission Handler: IMPLEMENTED (CRS-05→CRS-08 done; ~85% of full spec; CRS-07.03 live feed toggle in-progress — SSSES Tasks A4/A6; A5 IMPLEMENTED)
 
 **Code location:** `backend/app/cubes/cube2_text/` (modular, self-contained)
 
@@ -622,7 +622,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | CRS-07 | CRS-07.IN.WRS.007 | CRS-07.OUT.WRS.007 | **Complete** | Rich text + autosave drafts |
 | CRS-07.01 | CRS-07.01.IN.WRS | CRS-07.01.OUT.WRS | **Complete** | 33-language text pipeline (validate → PII → profanity → store → publish) |
 | CRS-07.02 | CRS-07.02.IN.WRS | CRS-07.02.OUT.WRS | **Complete** | Voice transcript routed through Cube 2 pipeline (Cube 3 → Cube 2) |
-| CRS-07.03 | CRS-07.03.IN.WRS | CRS-07.03.OUT.WRS | **In progress** — SSSES Tasks A4/A5/A6 | Moderator live feed toggle: raw text (default) vs AI 33-word summary |
+| CRS-07.03 | CRS-07.03.IN.WRS | CRS-07.03.OUT.WRS | **In progress** — SSSES Tasks A4/A6 (A5 IMPLEMENTED) | Moderator live feed toggle: raw text (default) vs AI 33-word summary |
 | CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Complete** (hash) | AES-256 encryption at rest |
 | CRS-08.01 | CRS-08.01.IN.SRS | CRS-08.01.OUT.SRS | **Complete** | SHA-256 response_hash — tamper-evident integrity on every submission |
 | CRS-08.02 | CRS-08.02.IN.SRS | CRS-08.02.OUT.SRS | **Complete** | PII strip gate — only `clean_text` forwarded to Cube 6 AI, never raw input |
@@ -854,7 +854,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | Profanity flag | Cube 4, Moderator dashboard | Whether profanity was detected |
 | Token display trigger | Cube 5 (Gateway) | Triggers ♡/◬ calculation for immediate display |
 | Submission event (Redis) | Cube 5 (Gateway), Cube 6 (AI) | Publishes `response_submitted` to Redis; consumed by Cube 6 for Phase A |
-| `summary_33` broadcast | Moderator live feed (dashboard) | **GAP** — AI 33-word summary must be broadcast via Supabase after Cube 6 Phase A completes (SSSES Task A5) |
+| `summary_33` broadcast | Moderator live feed (dashboard) | **IMPLEMENTED** — AI 33-word summary broadcast via Supabase after Cube 6 Phase A completes (`cube6_ai/service.py` lines 203-213, SSSES Task A5). Dashboard listener (Task A6) still needed. |
 
 ### Cube 2 — Functions (Requirements.txt)
 | Function | Status | Description |
@@ -867,7 +867,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | `anonymize_response()` | **Implemented** | Strips identifying info based on session anonymity_mode (anonymous/identified/pseudonymous) |
 | `store_text_response()` | **Implemented** | Writes validated response to PostgreSQL (ResponseMeta + TextResponse) |
 | `emit_submission_event()` | **Implemented** | Publishes `response_submitted` to Redis pub/sub for Cube 6 consumption. **Does not include `summary_33`** — summary is generated async by Cube 6 Phase A after this event fires. |
-| `push_to_live_feed()` | **Not implemented — SSSES Task A5** | After Cube 6 Phase A generates `summary_33`, backend must broadcast `summary_ready` event via Supabase to Moderator dashboard. Currently missing: live feed shows client-side fallback only. |
+| `push_to_live_feed()` | **IMPLEMENTED — SSSES Task A5** | After Cube 6 Phase A generates `summary_33`, backend broadcasts `summary_ready` event via Supabase to Moderator dashboard (`cube6_ai/service.py` lines 203-213). Dashboard listener (Task A6) still needed to consume event. |
 
 ### Cube 2 — UI/UX Translation Strings (13 keys per Requirements.txt)
 | String Key | English Default | Context |
@@ -901,7 +901,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | CRS-07 | CRS-07.IN.WRS.007 | CRS-07.OUT.WRS.007 | **Implemented** | 1 | User submits text responses reliably with constraints | Full pipeline (validate → PII → profanity → store → publish), up to 5000 chars, Unicode-aware | Rich text formatting + autosave drafts |
 | CRS-07.01 | CRS-07.01.IN.WRS | CRS-07.01.OUT.WRS | **Implemented** | 1 | Full text submission pipeline: validate → PII detect/scrub → profanity detect/scrub → store (PostgreSQL) → Redis publish | All 6 steps execute in order; any step failure returns structured error; submission non-blocking for profanity | Autosave drafts — in-progress text preserved across device events |
 | CRS-07.02 | CRS-07.02.IN.WRS | CRS-07.02.OUT.WRS | **Implemented** | 1 | Multilingual support: 33 languages, Unicode-aware length check, script-based language sanity check | Unicode char count (not byte count); CJK, Arabic, Emoji all accepted | ML-based language detection replacing Unicode heuristic |
-| CRS-07.03 | CRS-07.03.IN.WRS | CRS-07.03.OUT.WRS | **In progress** — SSSES Tasks A4/A5/A6 | 1 | Moderator live feed toggle: "Live Feedback" (raw `clean_text`, default) vs "33-Word Summary" (AI `summary_33` via Cube 6 Phase A) | Toggle persisted per session; `summary_33` broadcast from backend ≤5s after submission; fallback to client truncation if Phase A pending | Real-time sentiment indicator alongside live feed entries |
+| CRS-07.03 | CRS-07.03.IN.WRS | CRS-07.03.OUT.WRS | **In progress** — SSSES Tasks A4/A6 (A5 IMPLEMENTED) | 1 | Moderator live feed toggle: "Live Feedback" (raw `clean_text`, default) vs "33-Word Summary" (AI `summary_33` via Cube 6 Phase A) | Toggle persisted per session; `summary_33` broadcast from backend ≤5s after submission; fallback to client truncation if Phase A pending | Real-time sentiment indicator alongside live feed entries |
 | CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Implemented** (hash) | 1 | System stores responses securely with timestamps + integrity verification | SHA-256 response_hash on every response, timestamp on submission | AES-256 encryption at rest for all stored response data |
 | CRS-08.01 | CRS-08.01.IN.SRS | CRS-08.01.OUT.SRS | **Implemented** | 1 | SHA-256 integrity hash: `response_hash = SHA256(raw_text)` stored on `text_responses.response_hash`; returned in API for client verification | 64-char hex hash; deterministic for identical inputs; verified in tests | Tamper-evident hash chain linking all responses in a session |
 | CRS-08.02 | CRS-08.02.IN.SRS | CRS-08.02.OUT.SRS | **Implemented** | 1 | PII security gate: only `clean_text` (post-scrub) forwarded to Cube 6 AI — raw text never leaves storage boundary | Verified at callsite: `summarize_single_response(raw_text=clean_text)`; structured log `cube6.phase_a.pii_safe: true` | Automated PII scan report per session for compliance export |
@@ -917,7 +917,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 
 ---
 
-## Cube 3 — Voice-to-Text Engine: IMPLEMENTED (CRS-08, CRS-15 done; ~85% of full spec; voice live-feed broadcast gap — SSSES Tasks A5.03, A7)
+## Cube 3 — Voice-to-Text Engine: IMPLEMENTED (CRS-08, CRS-15 done; ~85% of full spec; voice live-feed broadcast IMPLEMENTED — SSSES Task A5.03 done; Task A7 pending)
 
 **Code location:** `backend/app/cubes/cube3_voice/` (modular, self-contained)
 
@@ -966,7 +966,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | CRS-15.03 | CRS-15.03.IN.WRS | CRS-15.03.OUT.WRS | **Implemented** (paid) | Real-time STT: Azure Speech (primary) + AWS Transcribe Streaming (fallback), WebSocket endpoint |
 
 ### Cube 3 — Not Yet Implemented
-- **`push_to_live_feed()` — voice path** — After Cube 6 Phase A generates `summary_33` from voice transcript, backend must broadcast `summary_ready` via Supabase to Moderator live feed. Same gap as Cube 2 text path. **Covered by SSSES Task A5.03** — broadcast fires for both text (Cube 2) and voice (Cube 3) paths via shared `core/supabase_broadcast.py` helper.
+- **`push_to_live_feed()` — voice path — IMPLEMENTED** — After Cube 6 Phase A generates `summary_33` from voice transcript, backend broadcasts `summary_ready` via Supabase to Moderator live feed. Same as Cube 2 text path. **Covered by SSSES Task A5.03 (IMPLEMENTED)** — broadcast fires for both text (Cube 2) and voice (Cube 3) paths via shared `core/supabase_broadcast.py` helper.
 - **PII gate verification (CRS-08.02)** — Voice transcript `clean_text` forwarded to `summarize_single_response()` must be confirmed (not raw transcript). **SSSES Task A7** explicitly covers Cube 3 path in addition to Cube 2.
 - **Language-specific STT model tuning** — per-language model selection optimization
 - **Audio playback** — PostgreSQL audio file retrieval for replay
@@ -1275,7 +1275,7 @@ CRS-09a Cube 6 Phase A — LIVE (per-response, during polling):
         3. Compress 333 → 111_Summary
         4. Compress 111 → 33_Summary
         5. Store in response_summaries table (PostgreSQL)
-        6. *** BROADCAST summary_ready → Moderator dashboard ***  ← GAP
+        6. *** BROADCAST summary_ready → Moderator dashboard ***  ← IMPLEMENTED (cube6_ai/service.py lines 203-213)
    │
    ▼ [Moderator clicks Stop Polling → session transitions polling → ranking]
 CRS-09b Cube 6 Phase B — BATCH (post-close):
@@ -1346,7 +1346,7 @@ CRS-09b Cube 6 Phase B — BATCH (post-close):
 | **A2** Retry with backoff | `cube6_ai/service.py` | 3 attempts, 1s/2s/4s backoff on AI API call. On final failure: store `summary_33: "[Summary unavailable]"` + `flag: true` in PostgreSQL response_summaries. Log structured error with `response_id`. | Stability +25 |
 | **A3** Per-session concurrency cap | `cube6_ai/service.py` | `asyncio.Semaphore(10)` per session on Phase A tasks, stored on FastAPI `app.state`. At horizontal scale (multiple workers), each worker enforces independently — Redis-backed global cap deferred to production scaling phase. | Scalability +30 |
 | **A4** Add `summary_33` to schema | `schemas/response.py` | Add `summary_33: str \| None = None` to `TextResponseRead`. Enables frontend to read it from API response. Note: Phase A is async so field will be `None` at submit time — real value arrives via A5 broadcast. | Succinctness +20 |
-| **A5** Backend Supabase broadcast | `cube6_ai/service.py` + new `core/supabase_broadcast.py` | After Phase A completes: broadcast `{"event": "summary_ready", "response_id": "...", "summary_33": "..."}` to Supabase channel `session:{short_code}`. Uses `supabase-py` client with service role key. **Sub-tasks:** A5.01 availability guard (log warning + continue on Supabase failure); A5.02 gate on `session.live_feed_enabled`; A5.03 covers both text (Cube 2) + voice (Cube 3) paths; A5.04 key scoped to Realtime publish only. | Stability +20, Efficiency +20 |
+| **A5** Backend Supabase broadcast | `cube6_ai/service.py` + `core/supabase_broadcast.py` | **IMPLEMENTED** — After Phase A completes: broadcasts `{"event": "summary_ready", "response_id": "...", "summary_33": "..."}` to Supabase channel `session:{short_code}` (`cube6_ai/service.py` lines 203-213). Uses httpx REST with service role key. **Sub-tasks:** A5.01 availability guard (IMPLEMENTED — logs warning + continues on failure); A5.02 gate on `session.live_feed_enabled` (not yet gated); A5.03 covers both text (Cube 2) + voice (Cube 3) paths; A5.04 key scoped to Realtime publish only. | Stability +20, Efficiency +20 |
 | **A6** Dashboard `summary_ready` listener | `frontend/app/dashboard/page.tsx` | Add `.on("broadcast", { event: "summary_ready" }, ...)` listener. On receipt: find feed entry by `response_id`, replace displayed text with `summary_33`. Handle out-of-order delivery (entry may not exist yet — queue update until `new_response` arrives). | Stability +10, Efficiency +5 |
 | **A7** Security audit: PII path | `cube2_text/service.py`, `cube3_voice/service.py`, `cube6_ai/service.py` | Verify `clean_text` (not raw) is input to `summarize_single_response()` in **both** text and voice code paths. Add structured log `cube6.phase_a.pii_safe: true` at entry. Confirm via test fixture with injected PII that raw text never reaches AI provider. | Security +25 |
 
@@ -1389,7 +1389,7 @@ Applies to Cube 1 (dashboard) and Cube 2 (response submit path):
 
 ### Execution Order — Cubes 2–3 Phase A + Phase B
 
-> **Scope:** Tasks A0–A7 (Phase A) and B1–B5 (Phase B) for Cubes 2 and 3 only. The full 5-phase execution order including Cubes 4–6 spiral audit tasks (C4-1 through C6-8) is in `docs/CUBES_4-6.md`. **Prerequisite:** Task C6-7 (`core/supabase_broadcast.py`) must be completed before A5 and B4 can execute.
+> **Scope:** Tasks A0–A7 (Phase A) and B1–B5 (Phase B) for Cubes 2 and 3 only. The full 5-phase execution order including Cubes 4–6 spiral audit tasks (C4-1 through C6-8) is in `docs/CUBES_4-6.md`. **Prerequisite:** Task C6-7 (`core/supabase_broadcast.py`) RESOLVED — file exists. Task A5 (`summary_ready`) IMPLEMENTED. Task B4 (`themes_ready`) still pending.
 
 ```
 A7 (security baseline) → A0 (short-circuit ≤33 words) → A1 (efficiency) → A2 (retry) → A3 (semaphore) → A4 (schema) → A5 (broadcast) → A6 (dashboard listener)
@@ -1404,7 +1404,7 @@ B2 (parity check) → B1 (e2e verify) → B3 (parallel) → B4 (broadcast) → B
 
 | Dependency | Impact on Cubes 2–3 | Task |
 |---|---|---|
-| **C6-7** `core/supabase_broadcast.py` does not exist | **BLOCKER** — Tasks A5 and B4 cannot execute without this file. No backend→frontend push infrastructure. | C6-7 (Phase 1) |
+| **C6-7** `core/supabase_broadcast.py` | **RESOLVED** — File exists (97 lines, httpx REST). Task A5 (`summary_ready`) is IMPLEMENTED. Task B4 (`themes_ready`) still pending. | C6-7 (Phase 1) |
 | **C6-8** `ResponseRead` missing `summary_33` field | **BLOCKER** — Frontend always gets `undefined` for `summary_33`; fallback truncation always used. | C6-8 / A4 (Phase 2) |
 | **C5-3** No pipeline timeout | Phase B can hang forever on AI call, blocking themes_ready broadcast (B4). | C5-3 (Phase 3) |
 | **C6-4** No AI API call timeout | Phase A `summarize_single_response()` can hang forever per response. | C6-4 (Phase 3) |

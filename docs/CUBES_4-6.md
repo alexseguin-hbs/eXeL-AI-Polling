@@ -31,7 +31,7 @@
 | CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Real-time streaming aggregation |
 | CRS-09.01 | — | — | **Complete** | Web_Results 5-column raw format (q_number, question, user, detailed_results, response_language) |
 | CRS-09.02 | — | — | **Complete** | PostgreSQL (single store): ResponseMeta with raw_text column |
-| CRS-09.03 | — | — | **GAP — Task A5.03** | Supabase broadcast on aggregation completion for live feed push (links to Cube 6 Phase A → Dashboard pipeline) |
+| CRS-09.03 | — | — | **IMPLEMENTED — Task A5.03** | Supabase broadcast on aggregation completion for live feed push (`cube6_ai/service.py` lines 203-213, `broadcast_event("summary_ready")`) |
 | CRS-09.1 | — | — | **Complete** | Web_Results format with native language column |
 | CRS-09.2 | — | — | **Complete** | Live summary status tracking (PostgreSQL `response_summaries` table) |
 | CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Partial** | Full desired outcome collection |
@@ -607,14 +607,14 @@ See `SPIRAL_METRICS.md` — N=18 bidirectional (Feb 26). Cube 5 tests: 60/60 pas
 
 ### Cube 6 — CRS Traceability
 
-> **CRS Alignment Note:** Cube 6 owns CRS-11 (live summarization + Phase B theming), CRS-12 (multi-provider AI + concurrency), CRS-13 (progressive theme reveal), and CRS-14 (CQS scoring). The two numbered broadcast gaps (CRS-11.03, CRS-11.04) are the primary SSSES Stability failures — no `summary_ready` or `themes_ready` event is sent to the dashboard. See SSSES Plan at end of this doc.
+> **CRS Alignment Note:** Cube 6 owns CRS-11 (live summarization + Phase B theming), CRS-12 (multi-provider AI + concurrency), CRS-13 (progressive theme reveal), and CRS-14 (CQS scoring). CRS-11.03 (`summary_ready`) is IMPLEMENTED (Task A5). CRS-11.04 (`themes_ready`, Task B4) remains a gap — no `themes_ready` event is sent to the dashboard. See SSSES Plan at end of this doc.
 
 | CRS | Input ID | Output ID | Status | DTM Stretch Target |
 |-----|----------|-----------|--------|-------------------|
 | CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Complete** | Real-time theme streaming |
 | CRS-11.01 | — | — | **Complete** | `summarize_single_response()` Phase A — live per-response 333→111→33 word summaries |
 | CRS-11.02 | — | — | **Complete** | Summaries stored in PostgreSQL `response_summaries` table with `response_id` reference |
-| CRS-11.03 | — | — | **GAP — Task A5** | `summary_ready` Supabase broadcast after Phase A completes — not implemented. Dashboard falls back to client-side truncation. |
+| CRS-11.03 | — | — | **IMPLEMENTED — Task A5** | `summary_ready` Supabase broadcast after Phase A completes — implemented in `cube6_ai/service.py` lines 203-213. Dashboard listener (Task A6) still needed. |
 | CRS-11.04 | — | — | **GAP — Task B4** | `themes_ready` Supabase broadcast after Phase B completes — not implemented. Dashboard has no signal to transition to results view. |
 | CRS-11.1 | — | — | **Complete** | Live 333/111/33 summarization per response |
 | CRS-11.2 | — | — | **Complete** | Parallel marble sampling (10+ concurrent agents) |
@@ -801,7 +801,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 | `get_provider()` | **Implemented** | Factory with circuit breaker failover |
 | `score_cqs()` | Not implemented | Scores responses in #1 Theme2 cluster (6 metrics) |
 | `select_cqs_winner()` | Not implemented | Highest CQS → winner (random tie-break) |
-| `push_to_live_feed()` | **Not implemented — GAP** | Supabase broadcast of `summary_ready` (Phase A) and `themes_ready` (Phase B) to Moderator dashboard. See SSSES Tasks A5 + B4 in CUBES_1-3.md SSSES Plan. |
+| `push_to_live_feed()` | **Partially implemented** | `summary_ready` broadcast (Phase A) IMPLEMENTED in `cube6_ai/service.py` lines 203-213 (Task A5). `themes_ready` broadcast (Phase B, Task B4) NOT IMPLEMENTED. See SSSES Tasks A5 + B4 in CUBES_1-3.md SSSES Plan. |
 
 #### UI/UX Translation Strings (16 keys)
 | String Key | English Default | Context |
@@ -996,10 +996,10 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 | Pillar | Score | Gap | Finding |
 |--------|:---:|---|---|
 | Security | 70 | Voice path PII gate unverified | Text path verified (`clean_text` → `summarize_single_response()`). Voice path (Cube 3 → Cube 2 pipeline) uses same `clean_text` field but no structured log confirms PII scrub at entry to Phase A. Task A7 adds assertion. |
-| Stability | 40 | No broadcast; no retry; Phase B unverified E2E | Three compounding gaps: (1) `summary_ready` never broadcast (CRS-11.03); (2) Phase A has no retry on AI failure; (3) Phase B has never been run against a live 5000-response dataset. Lowest Stability score in Cubes 1-6. |
+| Stability | 40 | No retry; Phase B unverified E2E; themes_ready not broadcast | Three compounding gaps: (1) ~~`summary_ready` never broadcast~~ RESOLVED — Task A5 IMPLEMENTED; (2) Phase A has no retry on AI failure; (3) Phase B has never been run against a live 5000-response dataset. `themes_ready` (Task B4) still not broadcast. |
 | Scalability | 55 | No concurrency cap on Phase A; Phase B unverified at scale | 100 concurrent submits → 100 uncapped AI calls via `asyncio.create_task()`. Phase B `asyncio.gather()` exists but batch classification at 5000 responses unconfirmed. Task A3 (Semaphore) + Task B3 (parallel verify) fix this. |
 | Efficiency | 55 | 3 sequential AI round-trips; fallback shown instead of AI output | `summarize_single_response()` makes 3 sequential API calls. Single structured JSON prompt would halve round-trips (Task A1). No broadcast = dashboard always shows client-side truncation fallback. |
-| Succinctness | 70 | `push_to_live_feed()` is an empty stub; `score_cqs()` + `select_cqs_winner()` not implemented | 3 documented functions with no implementation. `push_to_live_feed()` should either be implemented (Task A5) or removed and replaced by the direct `supabase_broadcast.py` call inside `summarize_single_response()`. |
+| Succinctness | 70 | `score_cqs()` + `select_cqs_winner()` not implemented | `push_to_live_feed()` is now IMPLEMENTED via direct `broadcast_event()` call inside `summarize_single_response()` (Task A5). 2 remaining functions with no implementation: `score_cqs()`, `select_cqs_winner()`. |
 
 ---
 
@@ -1032,9 +1032,8 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 **Root cause:** `GET /api/v1/pipeline/{session_id}/status` uses `get_current_user` but does not check that the requesting user is the Moderator for that specific session. Any authenticated user can view any session's pipeline trigger metadata.
 **Fix:** Add `require_moderator_for_session(session_id, current_user)` guard to pipeline status and retry routes.
 
-#### GAP C6-1 — Phase A Broadcast Missing — Primary Pipeline Break *(Stability −30, Efficiency −25)*
-**Root cause:** `summarize_single_response()` completes and stores in `response_summaries` table — then returns silently. No event is broadcast. The dashboard has no `summary_ready` listener. This is the same root cause as GAP 1 in CUBES_1-3.md.
-**Fix (Tasks A5 + A6):** See CUBES_1-3.md SSSES Plan. Short summary: add `core/supabase_broadcast.py` helper, call after Phase A stores, add `summary_ready` listener in `dashboard/page.tsx`.
+#### ~~GAP~~ RESOLVED C6-1 — Phase A Broadcast ~~Missing~~ IMPLEMENTED *(Stability +20, Efficiency +20)*
+**RESOLVED (2026-03-30):** `summarize_single_response()` now calls `broadcast_event("summary_ready")` after storing in `response_summaries` table (`cube6_ai/service.py` lines 203-213). **Remaining:** Dashboard `summary_ready` listener (Task A6) still needed to consume the broadcast.
 
 #### GAP C6-2 — Phase B Broadcast Missing *(Stability −10)*
 **Root cause:** `run_pipeline()` completes and returns results — but no `themes_ready` event is broadcast. The dashboard does not know when to transition from "Processing..." to the results view.
@@ -1083,7 +1082,7 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 
 #### GAP C6-7 — `core/supabase_broadcast.py` ~~Does Not Exist~~ EXISTS — Not Wired *(Stability +20 infra resolved, wiring pending)*
 **RESOLVED (2026-03-30):** `backend/app/core/supabase_broadcast.py` now exists (97 lines). Uses httpx REST API (not supabase-py) to POST to `{SUPABASE_URL}/realtime/v1/api/broadcast`. Service-role key auth via `settings.supabase_key`. Availability guard (A5.01): logs warning + returns `False` on failure — non-fatal.
-**Remaining:** `broadcast_event()` is not yet called from Cube 6 Phase A (`summary_ready` — Task A5) or Phase B (`themes_ready` — Task B4). Infrastructure exists; wiring is the next step.
+**Remaining:** `broadcast_event()` is now called from Cube 6 Phase A (`summary_ready` — Task A5, IMPLEMENTED in `cube6_ai/service.py` lines 203-213). Phase B (`themes_ready` — Task B4) is NOT YET WIRED.
 
 #### GAP C6-8 — `ResponseRead` Schema Missing `summary_33` *(Efficiency −10, Succinctness −5)*
 **Root cause:** `backend/app/schemas/response.py` `ResponseRead` (lines 50-60) has no `summary_33` field. Frontend `session-view.tsx` line 712 type-asserts `(result as { summary_33?: string })?.summary_33` — always `undefined`. Dashboard always falls back to client-side `summarizeTo33Words()`.
@@ -1159,8 +1158,8 @@ Cube 4 aggregate_response() → [NO BROADCAST] → Dashboard
 ```
 **Status: BROKEN — no Cube 4 → Dashboard path.**
 - The `new_response` broadcast is fired by the participant client (session-view.tsx) peer-to-peer, not by the backend. This is by design for latency.
-- The `summary_ready` broadcast must come from Cube 6 Phase A via backend (Task A5) — Cube 4 is not responsible for this.
-- **No action required** for Cube 4 specifically. The live feed gap is owned by Cube 6 (Tasks A5, B4).
+- The `summary_ready` broadcast comes from Cube 6 Phase A via backend (Task A5 — IMPLEMENTED) — Cube 4 is not responsible for this.
+- **No action required** for Cube 4 specifically. The `summary_ready` broadcast is IMPLEMENTED (Task A5). The `themes_ready` broadcast is still owned by Cube 6 (Task B4, NOT IMPLEMENTED).
 
 ---
 
@@ -1172,7 +1171,7 @@ Cube 4 aggregate_response() → [NO BROADCAST] → Dashboard
 | Cube 6 Phase B → Cube 4 response fetch | Backward | WIRED, PII unverified | Add `pii_scrubbed` guard in `run_pipeline()` |
 | Cube 6 Phase A → Cube 2 text path | Backward | WIRED | Confirmed clean |
 | Cube 6 Phase A → Cube 3 voice path | Backward | UNVERIFIED | Task A7: add log assertion + test |
-| Cube 6 → Dashboard (broadcast) | Backward | **BROKEN** | Tasks A5 (Phase A) + B4 (Phase B) |
+| Cube 6 → Dashboard (broadcast) | Backward | **PARTIAL** — A5 IMPLEMENTED, B4 pending | Task A5 (Phase A) IMPLEMENTED; Task B4 (Phase B) NOT IMPLEMENTED |
 | Cube 5 orchestrator → Cube 1 state hook | Backward | WIRED, tight coupling | Document as tech debt; decouple to event bus post-MVP |
 | Cube 5 pipeline status route | Backward | SECURITY GAP | GAP C5-2: add Moderator-scoped row guard |
 | Cube 4 → Cube 5 all-confirmed signal | Backward | NOT IMPLEMENTED | CRS-10.01–10.03: M2/M3 confirmation gate |
@@ -1200,7 +1199,7 @@ Cube 4 aggregate_response() → [NO BROADCAST] → Dashboard
 | **C6-4** AI API call timeout | `cube6_ai/service.py` | Wrap all `summarizer.summarize()` and `embedder.embed()` calls in `asyncio.wait_for(timeout=30)`. On timeout: log `cube6.provider.timeout`; Phase A falls back to `"[Summary timed out]"`. | Scalability +15 |
 | **C6-5** Partial failure handling in _store_results() | `cube6_ai/service.py` | Add try/except around `response_summaries` batch update after themes commit. On failure: log `cube6.store.summaries_partial_failure`, mark trigger `"completed_partial"`. | Stability +10 |
 | **C6-6** Fix index mismatch in _assign_themes_llm() | `cube6_ai/service.py` | Replace manual `result_idx` tracking with `zip(responses, results)`. Log count mismatch if `len(results) != len(responses)`. | Stability +5 |
-| **C6-7** ~~Create~~ Wire `core/supabase_broadcast.py` | `backend/app/core/supabase_broadcast.py` (**EXISTS** — 97 lines, httpx REST) | File created 2026-03-30. `broadcast_event(channel, event, payload)` with availability guard. **Remaining:** Wire to Phase A (Task A5: `summary_ready`) and Phase B (Task B4: `themes_ready`). | Stability +20 (**infra resolved**) |
+| **C6-7** ~~Create~~ Wire `core/supabase_broadcast.py` | `backend/app/core/supabase_broadcast.py` (**EXISTS** — 97 lines, httpx REST) | File created 2026-03-30. `broadcast_event(channel, event, payload)` with availability guard. **Phase A wired:** Task A5 (`summary_ready`) IMPLEMENTED in `cube6_ai/service.py` lines 203-213. **Remaining:** Phase B (Task B4: `themes_ready`) not yet wired. | Stability +20 (**infra resolved, A5 wired**) |
 | **C6-8** = Task A4 (schema) | `schemas/response.py` | Add `summary_33: str \| None = None` to `ResponseRead`. Enables frontend to read field from API response (will be `None` at submit; real value via A5 broadcast). | Efficiency +10, Succinctness +5 |
 
 ---

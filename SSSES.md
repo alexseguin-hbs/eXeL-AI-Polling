@@ -93,11 +93,11 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 ### Active Gaps — Cubes 2–6 (spiral code audit 2026-03-30)
 
 **RESOLVED — Infrastructure (Cube 6):**
-- ~~`backend/core/supabase_broadcast.py` does not exist~~ **RESOLVED (2026-03-30):** `backend/app/core/supabase_broadcast.py` exists (97 lines, httpx-based REST broadcast). Availability guard (A5.01) logs warning + continues on failure. **Remaining:** Not yet wired to Phase A (`summary_ready`) or Phase B (`themes_ready`) calls — Tasks A5, B4 still open.
+- ~~`backend/core/supabase_broadcast.py` does not exist~~ **RESOLVED (2026-03-30):** `backend/app/core/supabase_broadcast.py` exists (97 lines, httpx-based REST broadcast). Availability guard (A5.01) logs warning + continues on failure. **Phase A wired:** Task A5 (`summary_ready`) IMPLEMENTED in `cube6_ai/service.py` lines 203-213. **Remaining:** Task B4 (`themes_ready`) still open.
 - `ResponseRead` schema has no `summary_33` field — frontend `session-view.tsx` line 712 type-asserts it but always gets `undefined` (Task C6-8 / A4)
 
 **Critical path (Stability — Cubes 2, 3, 6):**
-- `summary_ready` Supabase broadcast never sent after Cube 6 Phase A — dashboard shows client-side truncation fallback instead of AI summary (Tasks A5 + A6)
+- ~~`summary_ready` Supabase broadcast never sent after Cube 6 Phase A~~ **RESOLVED (2026-03-30):** `broadcast_event("summary_ready")` implemented in `cube6_ai/service.py` lines 203-213 (Task A5). **Remaining:** Dashboard `summary_ready` listener (Task A6) still needed.
 - `themes_ready` Supabase broadcast never sent after Phase B — dashboard has no signal to transition to results view (Task B4)
 - Phase A has no retry on AI failure — silent log warning only (Task A2)
 - Phase B has never been run E2E against a live 5000-response dataset (Task B1)

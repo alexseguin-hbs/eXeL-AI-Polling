@@ -1249,7 +1249,7 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 | **B1** Phase B E2E verification | Cube 6 | Theme records must exist in Postgres for Cube 7 to query | **NOT VERIFIED** |
 | **CQS scores** from Cube 6 | Cube 6 | Cube 8 reward disbursement depends on CQS winner ID | **NOT IMPLEMENTED** (CRS-14.01/14.02 in CUBES_4-6.md) |
 | **Time tracking** from Cube 5 | Cube 5 | Token calculation depends on Cube 5 `stop_time_tracking()` ledger entries | **IMPLEMENTED** |
-| **Core broadcast infra** C6-7 | Cube 6 | Live ranking updates (CRS-16/17) need `supabase_broadcast.py` | **EXISTS** (97 lines, httpx) — not wired to A5/B4/Cube 7 |
+| **Core broadcast infra** C6-7 | Cube 6 | Live ranking updates (CRS-16/17) need `supabase_broadcast.py` | **EXISTS** (97 lines, httpx) — A5 (`summary_ready`) WIRED; B4/Cube 7 not wired |
 
 ---
 
@@ -1315,12 +1315,12 @@ Cube 1 ──[session create + join]──► Cube 2 ──[text submit]──�
 Cube 4 ──[aggregate responses]──► Cube 5 ──[orchestrate]──► Cube 6 ──[Phase A + B]──►
   │                                    │                          │
   │ ✓ WIRED: dual storage             │ ✓ WIRED: polling→ranking │ ◐ C6-7: broadcast.py EXISTS
-  │ ✗ GAP: storage no error            │   triggers Phase B       │   not wired to A5/B4 yet
+  │ ✗ GAP: storage no error            │   triggers Phase B       │   A5 WIRED; B4 not yet
   │   handling (C4-3)                  │ ✗ GAP: no pipeline       │ ✗ GAP: 3 seq AI calls (A1)
   │ ✗ GAP: M2/M3 not implemented      │   timeout (C5-3)         │ ✗ GAP: no concurrency cap
   │                                    │ ✗ GAP: Cube 6→7 chain   │   (A3)
-  │                                    │   NOT WIRED (C5-4)       │ ✗ GAP: no broadcast after
-  │                                    │                          │   Phase A or B (A5, B4)
+  │                                    │   NOT WIRED (C5-4)       │ ✓ A5: summary_ready WIRED
+  │                                    │                          │ ✗ GAP: B4 themes_ready
   ▼                                    ▼                          ▼
 Cube 7 ──[rank themes]──► Cube 8 ──[tokens + rewards]──► Cube 9 ──[export + report]──►
   │                          │                               │
@@ -1352,10 +1352,10 @@ Cube 7 ──[rank themes]──► Cube 8 ──[tokens + rewards]──► Cub
 | 7 → 5 | `themes_ready` event to start ranking | Cube 5 should trigger Cube 7 after Phase B | **NOT WIRED** | C5-4 |
 | 6 → 5 | Pipeline status updates | `update_pipeline_status()` called from background task | **LOOSELY WIRED** | Error propagation broken (C5-1) |
 | 6 → 4 | Response fetch for Phase B | `get_response_set()` from Cube 4 | **WIRED** | PII guard missing (C6-1) |
-| 6 → 2/3 | Phase A fire-and-forget | `summarize_single_response()` from Cube 2 submit | **WIRED** | No broadcast (A5), no retry (A2) |
+| 6 → 2/3 | Phase A fire-and-forget | `summarize_single_response()` from Cube 2 submit | **WIRED** | Broadcast IMPLEMENTED (A5), no retry (A2) |
 | 5 → 1 | State machine hook | `_transition_and_return()` calls orchestrator | **WIRED** | Tight coupling (tech debt) |
 
-**Backward Spiral Verdict:** Data schemas are ready for Cubes 7→8→9. The primary blockers are: (1) C5-4 (Cube 6→7 chain), (2) C7-1 (ranking implementation), (3) C6-7 (broadcast infrastructure).
+**Backward Spiral Verdict:** Data schemas are ready for Cubes 7→8→9. The primary blockers are: (1) C5-4 (Cube 6→7 chain), (2) C7-1 (ranking implementation), (3) B4 (`themes_ready` broadcast not wired). C6-7 broadcast infrastructure EXISTS and A5 is WIRED.
 
 ---
 
