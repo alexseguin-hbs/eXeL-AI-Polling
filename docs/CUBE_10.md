@@ -16,16 +16,15 @@
 
 ## Frontend — Cube 10 SIM (Easter Egg Simulation): IMPLEMENTED
 - **Role-aware simulation:** Moderator SIM shows participant polling experience; Poller SIM shows moderator dashboard lifecycle
-- **Per-session SIM data:** 4 poll-specific data files in `frontend/lib/sim-data/` with complete cube I/O (state flows, 7 AI responses, themes, voice transcript)
-  - **POLL_1:** Product Feedback (Live Interactive) — Feature Requests / Performance & Security / Integration Needs
-  - **POLL_2:** Q1 Strategy Alignment (Live Interactive) — Growth Initiatives / Customer Retention / Team Culture
-  - **POLL_3:** AI Governance (Live Interactive) — Opportunity & Innovation / Risk & Concerns / Balanced Approach
-  - **POLL_4:** Team Innovation Challenge (Static Poll, 3-day) — Collaboration Tools / Process Innovation / Culture & Mindset
+- **Per-session SIM data:** 3 demo-specific data files in `frontend/lib/sim-data/` with complete cube I/O (state flows, 7 AI responses, themes, voice transcript)
+  - **DEMO 1:** eXeL AI Polling - Strategy Alignment / DEMO2026 (Live Interactive, polling) — Growth Initiatives / Customer Retention / Team Culture. Has 100-User Spiral Test + Ranking DnD.
+  - **DEMO 2:** Collaborative Thoughts on AI Governance / PAST0001 (Closed) — Opportunity & Innovation / Risk & Concerns / Balanced Approach. 5000-user results + theme visualizations.
+  - **DEMO 3:** Team Innovation Challenge / STATIC01 (Static Poll, 3-day) — Collaboration Tools / Process Innovation / Culture & Mindset. Countdown timer demo.
 - **Transport controls:** `|<` Jump to start / `<<` Step back / `▶/⏸` Play/Pause / `>>` Step forward / `>|` Jump to end + step counter (Step X/Y) + progress dots
 - **State flows corrected:**
   - **Live Poll (8 steps):** draft → open → polling → closed → theming → visuals → ranking → archived
   - **Static Poll (7 steps):** draft → open → polling → theming → visuals → ranking → archived
-- **Session picker:** Select from 4 polls with Live/Static badge, question preview, click to simulate
+- **Session picker:** Select from 3 demos with Live/Static badge, question preview, click to simulate
 - **7 AI Users:** Per-poll canned responses arrive progressively (2-17s delays) with topic-specific themes
 - **Cube 6 Theming Stub:** 3 simulated themes per poll with confidence scores + response counts + color coding
 - **Cube 7 Ranking Stub:** Click-to-rank UI — tap themes in priority order (#1, #2, #3)
@@ -184,10 +183,9 @@ All 12 agents are led by **Master of Thought (MoT / Thought Master)** who orches
 3. **Pass Criteria:** Submitted code must EXCEED existing metrics across all agent evaluations. MoT aggregates all 12 agent verdicts into a final pass/fail decision.
 | `frontend/lib/mock-data.ts` | Mock API handlers for SIM data |
 | `frontend/lib/sim-data/index.ts` | SIM data index/exports, poll lookup helpers, theme resolution |
-| `frontend/lib/sim-data/poll-1-product-feedback.ts` | POLL_1: Product Feedback (Live Interactive) |
-| `frontend/lib/sim-data/poll-2-q1-strategy.ts` | POLL_2: Q1 Strategy Alignment (Live Interactive) |
-| `frontend/lib/sim-data/poll-3-ai-governance.ts` | POLL_3: AI Governance (Live Interactive) |
-| `frontend/lib/sim-data/poll-4-team-innovation.ts` | POLL_4: Team Innovation Challenge (Static Poll) |
+| `frontend/lib/sim-data/poll-2-q1-strategy.ts` | DEMO 1: eXeL AI Polling - Strategy Alignment / DEMO2026 (Live, Spiral Test) |
+| `frontend/lib/sim-data/poll-3-ai-governance.ts` | DEMO 2: AI Governance / PAST0001 (Closed, 5000-user results) |
+| `frontend/lib/sim-data/poll-4-team-innovation.ts` | DEMO 3: Team Innovation / STATIC01 (Static Poll, 3-day) |
 
 ---
 

@@ -301,7 +301,7 @@ cd frontend && npx next build
 
 ## Session Type Reorder + Live Feed Mock Data — 18x Bidirectional Spiral Metrics (N=9 forward + N=9 backward, 2026-02-26)
 
-**Change:** Reordered session types (Single Poll → Multi-Poll → Project Series), renamed labels (Single Question → Single Poll, Multi-Question → Multi-Poll). Added per-session mock responses for all 4 default polls (7 topic-specific responses each). Auto-inject progressive mock participants + responses when polling starts (2s stagger). Pre-populate responses for sessions already in polling/closed state. New user-created polls (5th+) get live HI data only.
+**Change:** Reordered session types (Single Poll → Multi-Poll → Project Series), renamed labels (Single Question → Single Poll, Multi-Question → Multi-Poll). Added per-session mock responses for all 3 default demos (7 topic-specific responses each). Auto-inject progressive mock participants + responses when polling starts (2s stagger). Pre-populate responses for sessions already in polling/closed state. New user-created polls (4th+) get live HI data only.
 
 **Test Command:**
 ```bash
@@ -341,7 +341,7 @@ cd frontend && npx next build
   - Cube 10 (SIM): Per-session SIM data separate from mock data — no conflict
 - Backward (10→1): All upstream cubes compatible — PASS
   - Frontend constants.ts: Labels renamed, order updated, no backend schema change needed
-  - Frontend mock-data.ts: 4 default sessions get 7 topic-specific responses each
+  - Frontend mock-data.ts: 3 default demos get 7 topic-specific responses each
   - Frontend dashboard: SESSION_TYPE_ICONS keys updated to match new values
   - Backend: No changes needed — frontend-only session type values map to existing cycle_mode
 - Cross-device QR verification: PASS

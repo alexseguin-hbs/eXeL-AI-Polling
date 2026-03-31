@@ -207,7 +207,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 
 | Data Type | Count | Description |
 |-----------|-------|-------------|
-| Mock collected responses | 28 | 7 per session across 4 default sessions, Web_Results format with language tags |
+| Mock collected responses | 21 | 7 per session across 3 default demos, Web_Results format with language tags |
 | Mock text responses | 24 | From Cube 2 fixture store — validated, PII-scrubbed text |
 | Mock voice transcripts | 4 | From Cube 3 fixture store — STT transcripts processed through text pipeline |
 | Mock participants | 32 | 8 per session (1 moderator + 7 users) with language_code and payment_status |
@@ -534,9 +534,9 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube5/ -v --tb
 
 | Data Type | Count | Description |
 |-----------|-------|-------------|
-| Mock time entries | 24 | Fixed start/stop timestamps across 4 sessions (login + 2 actions per user, 8 users) |
-| Mock login entries | 8 | One per participant across 4 sessions — each awards ♡1 웃0 ◬5 |
-| Mock pipeline triggers (ai_theming) | 4 | One per session — pending/in_progress/completed/failed states |
+| Mock time entries | 18 | Fixed start/stop timestamps across 3 demos (login + 2 actions per user, 6 users) |
+| Mock login entries | 6 | One per participant across 3 demos — each awards ♡1 웃0 ◬5 |
+| Mock pipeline triggers (ai_theming) | 3 | One per demo — pending/in_progress/completed states |
 | Mock pipeline triggers (ranking_aggregation) | 4 | One per session — placeholder triggers |
 | Mock pipeline triggers (cqs_scoring) | 2 | With fixture top_theme2_id metadata |
 | Mock pipeline triggers (reward_payout) | 1 | Placeholder trigger for reward disbursement |

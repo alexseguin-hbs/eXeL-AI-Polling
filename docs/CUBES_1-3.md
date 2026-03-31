@@ -113,7 +113,7 @@ When Cube 1 is loaded into the Cube 10 Simulation Orchestrator for isolated test
 **Inputs:**
 | Variable | Direction | Source/Dest | Sim Mode | Notes |
 |----------|-----------|-------------|----------|-------|
-| moderator_config | Input | Moderator UI | SIMULATED | Canned session configs from `frontend/lib/mock-data.ts` (4 default polls) |
+| moderator_config | Input | Moderator UI | SIMULATED | Canned session configs from `frontend/lib/mock-data.ts` (3 default demos) |
 | qr_scan | Input | User device | SIMULATED | Mock short codes generated in-memory, no camera needed |
 | language_selection | Input | User UI | SIMULATED | Defaults to `en`; 33 languages available via Lexicon context |
 | results_opt_in | Input | User UI | SIMULATED | Hardcoded `true` for all mock participants |
@@ -155,8 +155,8 @@ When Cube 1 is loaded into the Cube 10 Simulation Orchestrator for isolated test
 
 | Data Set | Location | Contents |
 |----------|----------|----------|
-| 4 default mock sessions | `frontend/lib/mock-data.ts` | Product Feedback (live, single_poll), Q1 Strategy (live, multi_poll), AI Governance (live, single_poll), Team Innovation (static_poll, 3-day) |
-| Per-session SIM data (4 polls) | `frontend/lib/sim-data/poll-{1-4}-*.ts` | Complete cube I/O per poll: state flows, 7 AI responses, themes, voice transcript, delays |
+| 3 default demo sessions | `frontend/lib/mock-data.ts` | (1) eXeL AI Polling - Strategy Alignment / DEMO2026 (live, polling, Spiral Test + Ranking DnD), (2) AI Governance / PAST0001 (closed, 5000-user results + themes), (3) Team Innovation / STATIC01 (static_poll, 3-day countdown) |
+| Per-session SIM data | `frontend/lib/sim-data/poll-{2-4}-*.ts` | Complete cube I/O per poll: state flows, 7 AI responses, themes, voice transcript, delays |
 | Mock participants | `frontend/lib/mock-data.ts` | Auto-generated on join; `mockParticipantCount` tracks per-session count |
 | Mock QR codes | `frontend/lib/mock-data.ts` | Real QR PNG generated from mock short_code string |
 | 100-user spiral test data | `frontend/lib/sim-data/spiral-test-100-users.ts` | 100 canned responses, 12 MoT agent waves, 11 languages, 60-second staggered delays |

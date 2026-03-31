@@ -305,7 +305,7 @@ export const MOCK_SESSIONS: Session[] = [
 // IDs of default sessions (used to distinguish from dynamically created ones)
 export const DEFAULT_SESSION_IDS = new Set(MOCK_SESSIONS.map((s) => s.id));
 
-// Product Feedback session ID — only this session gets the 100-User Spiral Test button
+// Strategy Alignment session ID — gets 100-User Spiral Test + Ranking DnD
 // Strategy Alignment session — gets 100-User Spiral Test + ranking simulation
 export const PRODUCT_FEEDBACK_SESSION_ID = "b2c3d4e5-f6a7-8901-bcde-222222222222";
 
@@ -352,9 +352,9 @@ export function resetSingleSession(sessionId: string): Session | null {
   return { ...session };
 }
 
-/** Reset the 4 default test sessions to their original hardcoded state.
+/** Reset the 3 default test sessions to their original hardcoded state.
  *  Called on every dashboard load (GET /sessions) so demos always start fresh.
- *  User-created sessions (5th+) are preserved via localStorage. */
+ *  User-created sessions (4th+) are preserved via localStorage. */
 function resetDefaultSessions(): void {
   for (const s of MOCK_SESSIONS) {
     if (!DEFAULT_SESSION_IDS.has(s.id)) continue;
@@ -444,7 +444,7 @@ let mockParticipantCount: Record<string, number> = {
 const mockResponses: Record<string, MockResponse[]> = {};
 
 // ── Per-Session Mock Responses (auto-generated when poll starts) ──
-// Only the 4 default sessions get mock data. New user-created polls (5th+) use only live HI data.
+// Only the 3 default sessions get mock data. New user-created polls (4th+) use only live HI data.
 const MOCK_SESSION_RESPONSES: Record<string, string[]> = {
   // Strategy Alignment — "What should be our top strategic priority?"
   "b2c3d4e5-f6a7-8901-bcde-222222222222": [
@@ -479,7 +479,7 @@ const MOCK_SESSION_RESPONSES: Record<string, string[]> = {
 };
 
 /** Auto-inject 7 mock participants + progressive responses when polling starts.
- *  Only fires for the 4 default sessions. New user-created polls get live HI data only. */
+ *  Only fires for the 3 default sessions. New user-created polls get live HI data only. */
 function startMockPollingResponses(sessionId: string): void {
   if (typeof window === "undefined") return;
   // Only inject mock data for default sessions
@@ -749,7 +749,7 @@ export async function handleMockRequest<T>(
   // ── Sync from localStorage (cross-tab state) on every read ────
   loadMockState();
 
-  // GET /sessions (list) — reset 4 default test polls on every dashboard load
+  // GET /sessions (list) — reset 3 default test polls on every dashboard load
   if (method === "GET" && path === "/sessions") {
     resetDefaultSessions();
     return {
