@@ -1,14 +1,16 @@
 /**
  * SIM Data — Per-poll simulation data for Cube 10 Easter Egg.
- * Re-exports all 4 polls + lookup helper + theme resolution.
+ * Re-exports all 3 demos + lookup helper + theme resolution.
+ *
+ * Demo 1: eXeL AI Polling - Strategy Alignment (DEMO2026)
+ * Demo 2: Collaborative Thoughts on AI Governance (PAST0001)
+ * Demo 3: Team Innovation Challenge (STATIC01)
  */
 
-export { POLL_1 } from "./poll-1-product-feedback";
-export { POLL_2 } from "./poll-2-q1-strategy";
-export { POLL_3 } from "./poll-3-ai-governance";
-export { POLL_4 } from "./poll-4-team-innovation";
+export { POLL_2 as DEMO_1 } from "./poll-2-q1-strategy";
+export { POLL_3 as DEMO_2 } from "./poll-3-ai-governance";
+export { POLL_4 as DEMO_3 } from "./poll-4-team-innovation";
 
-import { POLL_1 } from "./poll-1-product-feedback";
 import { POLL_2 } from "./poll-2-q1-strategy";
 import { POLL_3 } from "./poll-3-ai-governance";
 import { POLL_4 } from "./poll-4-team-innovation";
@@ -31,10 +33,10 @@ export interface ThemeLevels {
   theme2_9: ThemeEntry[];
 }
 
-export type SimPollData = typeof POLL_1 | typeof POLL_2 | typeof POLL_3 | typeof POLL_4;
+export type SimPollData = typeof POLL_2 | typeof POLL_3 | typeof POLL_4;
 
-/** All SIM polls in display order */
-export const ALL_SIM_POLLS = [POLL_1, POLL_2, POLL_3, POLL_4] as const;
+/** All SIM polls in display order (3 demos) */
+export const ALL_SIM_POLLS = [POLL_2, POLL_3, POLL_4] as const;
 
 /** Lookup poll data by session ID. Returns undefined if not found. */
 export function getSimPollBySessionId(sessionId: string): SimPollData | undefined {
