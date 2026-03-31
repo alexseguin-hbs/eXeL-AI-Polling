@@ -706,7 +706,7 @@ The polling tool is the **proof of concept** — demonstrating that code can evo
   Metrics vs Baseline
                        │
                  ┌─────┴──────┐
-                 │  Better?     │──Yes──▶ Promote new pathway
+                 │  Better?   │──Yes──▶ Promote new pathway
                  └─────┬──────┘
                        │No
                        ▼
