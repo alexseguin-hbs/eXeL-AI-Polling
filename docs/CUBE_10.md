@@ -468,6 +468,130 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 | CRS-34 | CRS-34.IN.AIML.034 | CRS-34.OUT.AIML.034 | **Not implemented** | 3 | System gradually automates cube evolution under guardrails | Guardrail-constrained autonomy | Fully self-healing architecture |
 | CRS-35 | CRS-35.IN.AIML.035 | CRS-35.OUT.AIML.035 | **Not implemented** | 3 | System evolves entire cube lattice coherently | Coordinated cube evolution | Self-directed system intelligence |
 
+---
+
+## Per-Cube Checkout Contracts (for Simulation & Code Challenge)
+
+> A future developer (human or AI) checks out a cube, enhances it, and re-checks-in.
+> The enhanced version MUST pass all output validations and EXCEED existing metrics.
+> Payment: manually approved at first; automated via Cube 8 token rewards later.
+
+### Cube 1 — Session Join & QR (Checkout Contract)
+
+**Files:** `backend/app/cubes/cube1_session/service.py` (686 LOC), `router.py` (436 LOC)
+
+**INPUT Variables (what the cube receives):**
+
+| Variable | Type | Source | Required |
+|----------|------|--------|:--------:|
+| `title` | str (1-500) | Moderator UI | Yes |
+| `created_by` | str (user_id) | Auth0 JWT | Yes |
+| `anonymity_mode` | "identified" \| "anonymous" \| "pseudonymous" | Moderator config | No (default: identified) |
+| `ai_provider` | "openai" \| "gemini" \| "grok" \| "claude" | Moderator config | No (default: openai) |
+| `pricing_tier` | "free" \| "moderator_paid" \| "cost_split" | Moderator config | No (default: free) |
+| `polling_mode_type` | "live_interactive" \| "static_poll" | Moderator config | No (default: live_interactive) |
+| `seed` | str \| None | Moderator/system | No (enables determinism) |
+| `short_code` | str (join code) | User device | Yes (for join) |
+| `user_id` | str \| None | Auth0 JWT \| anonymous | No |
+
+**OUTPUT Validation Functions (what Cube 10 checks):**
+
+| Output | Validation | Pass Criteria |
+|--------|------------|---------------|
+| `Session.id` | UUID format, unique | Non-null UUID; deterministic if seed provided (UUID5) |
+| `Session.short_code` | 8-char alphanumeric | Length == 8; chars from safe alphabet (no 0/O/1/l/I) |
+| `Session.status` | Valid state | Must be in SESSION_TRANSITIONS keys |
+| `Participant.id` | UUID, session-scoped | Non-null; unique per (session_id, user_id) |
+| `Participant.anon_hash` | SHA-256 hex | Length == 64 when anonymity_mode == "anonymous" |
+| `Session.replay_hash` | SHA-256 hex | Length == 64; deterministic (same inputs = same hash) |
+| State transitions | Acyclic (except ranking↔polling) | `transition_session()` rejects invalid paths |
+| QR PNG | Valid PNG bytes | First 8 bytes match PNG magic number |
+| Audit log | Entry per transition | AuditLog row with before_state/after_state |
+| Capacity enforcement | Free tier ≤ 19 | 20th join raises 409 |
+
+**Downstream Contracts (MUST NOT break):**
+- Cube 5: `create_login_time_entry(db, session_id, participant_id, user_id)` called on join
+- Cube 5: `orchestrate_post_polling(db, session_id, seed)` called on polling→ranking
+- Cube 6: `release_phase_a_semaphore(session_id)` called on polling→ranking
+
+**Metrics Endpoint:** `GET /sessions/{id}/verify-determinism` → `{session_id, seed, replay_hash, is_deterministic}`
+
+**Test Command:** `python -m pytest tests/cube1/ -v --tb=short` (59 tests)
+
+---
+
+### Cube 2 — Text Submission Handler (Checkout Contract)
+
+**Files:** `backend/app/cubes/cube2_text/service.py` (780 LOC), `router.py` (102 LOC), `metrics.py` (232 LOC)
+
+**Shared Interface (core/submission_validators.py — MUST preserve signatures):**
+
+| Function | Signature | Error on Fail |
+|----------|-----------|---------------|
+| `validate_session_for_submission()` | `(db, session_id) → Session` | SessionNotFoundError / SessionNotPollingError |
+| `validate_question()` | `(db, question_id, session_id) → Question` | QuestionNotFoundError |
+| `validate_participant()` | `(db, participant_id, session_id) → Participant` | ParticipantNotFoundError |
+| `validate_text_input()` | `(raw_text, max_length) → str` | ResponseValidationError |
+
+**INPUT Variables (what the cube receives):**
+
+| Variable | Type | Source | Required |
+|----------|------|--------|:--------:|
+| `session_id` | UUID | URL path | Yes |
+| `question_id` | UUID | Request body | Yes |
+| `participant_id` | UUID | Request body | Yes |
+| `raw_text` | str (1-3333) | Request body | Yes |
+| `language_code` | str (2-10) | Request body | No (default: en) |
+
+**OUTPUT Validation Functions (what Cube 10 checks):**
+
+| Output | Validation | Pass Criteria |
+|--------|------------|---------------|
+| `ResponseMeta.id` | UUID | Non-null, unique |
+| `ResponseMeta.raw_text` | Stored verbatim | Matches submitted raw_text exactly |
+| `TextResponse.clean_text` | PII/profanity scrubbed | Contains no PII patterns; [TYPE_REDACTED] placeholders present if PII detected |
+| `TextResponse.response_hash` | SHA-256 of raw_text | Length == 64; deterministic |
+| `TextResponse.pii_detected` | bool | True if NER or regex found entities |
+| `TextResponse.profanity_detected` | bool | True if DB filters matched |
+| `ResponseRead.heart_tokens_earned` | float ≥ 0 | ceil(duration_minutes), min 1 |
+| `ResponseRead.unity_tokens_earned` | float ≥ 0 | heart × unity_multiplier |
+| `ResponseRead.summary_33` | str \| None | Populated async by Cube 6 Phase A |
+| Anonymization | Mode-dependent | anonymous: participant_id=None, anon_hash=64-char; identified: participant_id=UUID, anon_hash=None |
+| Phase A task | Fires async | `summarize_single_response()` called with clean_text (never raw_text) |
+| Redis event | Published | `cube2:response:{session_id}` channel receives submission event |
+
+**Downstream Contracts (MUST NOT break):**
+- Cube 3: Imports `detect_pii`, `scrub_pii`, `detect_profanity`, `scrub_profanity`, `publish_submission_event` from Cube 2
+- Cube 4: Reads `ResponseMeta` + `TextResponse` via session_id FK
+- Cube 5: `start_time_tracking()` / `stop_time_tracking()` called synchronously
+- Cube 6: `summarize_single_response(db, session_id, response_id, raw_text=clean_text, ...)` called async
+- Cube 9: Reads `ResponseMeta.raw_text` for CSV Detailed_Results column
+
+**Metrics Endpoint:** `GET /sessions/{id}/responses/metrics` → `{system: {...}, user: {...}, outcome: {...}}`
+
+| Metric Category | Key Metrics | Source |
+|----------------|-------------|--------|
+| System | avg/max_submission_latency_s, responses_per_minute, ner_pipeline_invocations | TimeEntry + ResponseMeta |
+| User | language_distribution, pii/profanity_detection_rate_pct, responses_per_participant | TextResponse + ResponseMeta |
+| Outcome | clean_response_ratio_pct, total_heart/unity_tokens_distributed | TextResponse + TimeEntry |
+
+**Test Command:** `python -m pytest tests/cube2/ -v --tb=short` (54 tests)
+
+---
+
+### Code Challenge Rules (Applies to ALL Cubes)
+
+1. **Checkout:** Developer downloads current cube code + test suite + metrics baseline
+2. **Enhance:** Modify any function while preserving INPUT/OUTPUT contracts
+3. **Validate:** Run test suite — 100% pass required (0 failures)
+4. **Benchmark:** Run metrics endpoint — ALL metrics must EXCEED baseline (not just match)
+5. **Spiral Check:** Forward + backward propagation verified (downstream cubes unbroken)
+6. **Lexicon Gate:** Zero hardcoded English in UI; all strings use `t()` with Lexicon keys
+7. **Submit:** PR with SSSES impact statement in commit message
+8. **Review:** 12 Ascended Master agents evaluate (MoT leads)
+9. **Approve/Reject:** Lead reviews agent verdicts; approved = new cube version promoted
+10. **Payment:** CQS-based reward (manual at first; Cube 8 automated later)
+
 ### Cube 10 — DesignMatrix VOC (Voice of Customer)
 | CRS | Customer Need | VOC Comment |
 |-----|---------------|-------------|

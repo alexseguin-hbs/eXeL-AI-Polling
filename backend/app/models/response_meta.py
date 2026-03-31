@@ -38,4 +38,5 @@ class ResponseMeta(Base):
     __table_args__ = (
         Index("ix_response_meta_session_question", "session_id", "question_id"),
         Index("ix_response_meta_participant", "participant_id"),
+        Index("ix_response_meta_session_submitted", "session_id", "submitted_at"),
     )

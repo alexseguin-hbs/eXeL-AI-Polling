@@ -34,16 +34,18 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ResponseValidationError
+from app.core.submission_validators import (
+    validate_participant,
+    validate_question,
+    validate_session_for_submission,
+    validate_text_input,
+)
 from app.cubes.cube2_text.service import (
     detect_pii,
     detect_profanity,
     publish_submission_event,
     scrub_pii,
     scrub_profanity,
-    validate_participant,
-    validate_question,
-    validate_session_for_submission,
-    validate_text_input,
 )
 from app.cubes.cube3_voice.providers.base import STTProviderError, TranscriptionResult
 from app.cubes.cube3_voice.providers.factory import get_stt_provider, select_stt_provider

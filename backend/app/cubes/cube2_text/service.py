@@ -103,77 +103,16 @@ _PII_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 
 
 # ---------------------------------------------------------------------------
-# 1. Validation Functions
+# 1. Validation Functions (shared via core/submission_validators.py)
 # ---------------------------------------------------------------------------
+# Re-exported here for backwards compatibility — Cube 3 and tests import from this module.
 
-
-async def validate_session_for_submission(
-    db: AsyncSession,
-    session_id: uuid.UUID,
-) -> Session:
-    """Validate session exists and is in 'polling' state."""
-    result = await db.execute(
-        select(Session).where(Session.id == session_id)
-    )
-    session = result.scalar_one_or_none()
-    if session is None:
-        raise SessionNotFoundError(str(session_id))
-    if session.status != "polling":
-        raise SessionNotPollingError(str(session_id), session.status)
-    return session
-
-
-async def validate_question(
-    db: AsyncSession,
-    question_id: uuid.UUID,
-    session_id: uuid.UUID,
-) -> Question:
-    """Validate question exists and belongs to the session."""
-    result = await db.execute(
-        select(Question).where(
-            Question.id == question_id,
-            Question.session_id == session_id,
-        )
-    )
-    question = result.scalar_one_or_none()
-    if question is None:
-        raise QuestionNotFoundError(str(question_id))
-    return question
-
-
-async def validate_participant(
-    db: AsyncSession,
-    participant_id: uuid.UUID,
-    session_id: uuid.UUID,
-) -> Participant:
-    """Validate participant exists, is active, and belongs to the session."""
-    result = await db.execute(
-        select(Participant).where(
-            Participant.id == participant_id,
-            Participant.session_id == session_id,
-            Participant.is_active.is_(True),
-        )
-    )
-    participant = result.scalar_one_or_none()
-    if participant is None:
-        raise ParticipantNotFoundError(str(participant_id))
-    return participant
-
-
-def validate_text_input(raw_text: str, max_length: int) -> str:
-    """Validate text is non-empty and within Unicode-aware length limit.
-
-    Returns stripped text on success, raises ResponseValidationError otherwise.
-    """
-    text = raw_text.strip()
-    if not text:
-        raise ResponseValidationError("Response text cannot be empty")
-    if len(text) > max_length:
-        raise ResponseValidationError(
-            f"Response exceeds maximum length of {max_length} characters "
-            f"(submitted: {len(text)})"
-        )
-    return text
+from app.core.submission_validators import (  # noqa: F401
+    validate_session_for_submission,
+    validate_question,
+    validate_participant,
+    validate_text_input,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -258,6 +197,9 @@ def scrub_pii(text: str, detections: list[dict]) -> str:
 # 3. Profanity Detection & Scrubbing
 # ---------------------------------------------------------------------------
 
+# Compiled regex cache: {(language_code, filter_id) -> compiled Pattern | None}
+_profanity_pattern_cache: dict[tuple[str, str], re.Pattern | None] = {}
+
 
 async def detect_profanity(
     db: AsyncSession,
@@ -268,6 +210,7 @@ async def detect_profanity(
 
     Non-blocking: profanity is flagged but submission goes through.
     Returns list of matched profanity entries with positions.
+    Compiled patterns cached to avoid re-compilation on every submission.
     """
     result = await db.execute(
         select(ProfanityFilter).where(
@@ -279,22 +222,30 @@ async def detect_profanity(
 
     matches: list[dict] = []
     for pf in filters:
-        try:
-            pattern = re.compile(pf.pattern, re.IGNORECASE)
-            for match in pattern.finditer(text):
-                matches.append({
-                    "word": match.group(),
-                    "severity": pf.severity,
-                    "position": match.start(),
-                    "replacement": pf.replacement,
-                    "filter_id": str(pf.id),
-                })
-        except re.error:
-            logger.warning(
-                "cube2.profanity_filter.invalid_regex",
-                filter_id=str(pf.id),
-                pattern=pf.pattern,
-            )
+        cache_key = (language_code, str(pf.id))
+        if cache_key not in _profanity_pattern_cache:
+            try:
+                _profanity_pattern_cache[cache_key] = re.compile(pf.pattern, re.IGNORECASE)
+            except re.error:
+                _profanity_pattern_cache[cache_key] = None
+                logger.warning(
+                    "cube2.profanity_filter.invalid_regex",
+                    filter_id=str(pf.id),
+                    pattern=pf.pattern,
+                )
+
+        compiled = _profanity_pattern_cache[cache_key]
+        if compiled is None:
+            continue
+
+        for match in compiled.finditer(text):
+            matches.append({
+                "word": match.group(),
+                "severity": pf.severity,
+                "position": match.start(),
+                "replacement": pf.replacement,
+                "filter_id": str(pf.id),
+            })
     return matches
 
 
@@ -672,20 +623,31 @@ async def submit_text_response(
         except Exception:
             pass  # Best-effort fallback storage
 
-    try:
-        task = asyncio.create_task(
-            _run_phase_a_with_retry(
-                db,
-                session_id=session_id,
-                response_id=response_meta.id,
-                clean_text=clean_text,
-                language_code=language_code,
-                ai_provider=session.ai_provider or "openai",
-                session_short_code=session.short_code,
+    async def _phase_a_with_timeout():
+        """Wrap Phase A in a 30s timeout to prevent task accumulation."""
+        try:
+            await asyncio.wait_for(
+                _run_phase_a_with_retry(
+                    db,
+                    session_id=session_id,
+                    response_id=response_meta.id,
+                    clean_text=clean_text,
+                    language_code=language_code,
+                    ai_provider=session.ai_provider or "openai",
+                    session_short_code=session.short_code,
+                ),
+                timeout=30.0,
             )
-        )
+        except asyncio.TimeoutError:
+            logger.error(
+                "cube2.phase_a.timeout",
+                response_id=str(response_meta.id),
+                timeout_sec=30,
+            )
 
-        # Error callback so fire-and-forget failures are logged, not silent
+    try:
+        task = asyncio.create_task(_phase_a_with_timeout())
+
         def _on_phase_a_done(t: asyncio.Task):
             if t.exception():
                 logger.error(
@@ -696,7 +658,6 @@ async def submit_text_response(
         task.add_done_callback(_on_phase_a_done)
 
     except Exception as e:
-        # Task creation failure is non-fatal — log and continue
         logger.warning("cube2.live_summarization.error", error=str(e))
 
     # --- 9. Return composite result ---
