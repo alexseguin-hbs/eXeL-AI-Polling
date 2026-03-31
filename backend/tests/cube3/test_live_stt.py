@@ -22,10 +22,11 @@ from pathlib import Path
 
 import pytest
 
-# Gate: skip entire module unless LIVE_STT=1 is explicitly set
-pytestmark = pytest.mark.skipif(
+# Gate: skip AUDIO tests unless LIVE_STT=1 (they call real APIs with billing)
+# Language support + model ID tests always run (no API calls, no cost)
+_skip_audio = pytest.mark.skipif(
     os.getenv("LIVE_STT", "") != "1",
-    reason="Live STT tests require LIVE_STT=1 env var (calls real APIs with billing)",
+    reason="Audio transcription tests require LIVE_STT=1 env var (calls real APIs with billing)",
 )
 
 # Add backend root to path for imports
@@ -101,6 +102,7 @@ skip_openai = pytest.mark.skipif(not openai_key, reason="OPENAI_API_KEY not set"
 class TestGrokLive:
     """Live integration tests for Grok (xAI) STT provider."""
 
+    @_skip_audio
     @skip_grok
     @pytest.mark.asyncio
     async def test_grok_english_transcription(self, english_audio_mp3: bytes):
@@ -133,6 +135,7 @@ class TestGrokLive:
             "artificial", "intelligence", "governance", "voices", "millions",
         ]), f"Transcript doesn't match expected content: {result.transcript}"
 
+    @_skip_audio
     @skip_grok
     @pytest.mark.asyncio
     async def test_grok_spanish_transcription(self, spanish_audio_mp3: bytes):
@@ -171,6 +174,7 @@ class TestGrokLive:
             assert provider.supports_language(lang), f"Grok should support {lang}"
         assert provider.model_id() == "whisper-large-v3"
 
+    @_skip_audio
     @skip_grok
     @pytest.mark.asyncio
     async def test_grok_empty_audio_handling(self):
@@ -195,6 +199,7 @@ class TestGrokLive:
 class TestGeminiLive:
     """Live integration tests for Google Gemini STT provider."""
 
+    @_skip_audio
     @skip_gemini
     @pytest.mark.asyncio
     async def test_gemini_english_transcription(self, english_audio_mp3: bytes):
@@ -224,6 +229,7 @@ class TestGeminiLive:
             "artificial", "intelligence", "governance", "voices", "millions",
         ]), f"Transcript doesn't match expected content: {result.transcript}"
 
+    @_skip_audio
     @skip_gemini
     @pytest.mark.asyncio
     async def test_gemini_spanish_transcription(self, spanish_audio_mp3: bytes):
@@ -258,7 +264,7 @@ class TestGeminiLive:
         provider = GeminiSTT()
         for lang in ["en", "es", "fr", "ja", "zh", "ar", "hi", "ko", "de"]:
             assert provider.supports_language(lang), f"Gemini should support {lang}"
-        assert provider.model_id() == "gemini-2.0-flash"
+        assert provider.model_id() == "gemini-2.5-flash"
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -268,6 +274,7 @@ class TestGeminiLive:
 class TestWhisperLive:
     """Live integration tests for OpenAI Whisper STT provider."""
 
+    @_skip_audio
     @skip_openai
     @pytest.mark.asyncio
     async def test_whisper_english_transcription(self, english_audio_mp3: bytes):
@@ -298,6 +305,7 @@ class TestWhisperLive:
 class TestCircuitBreakerLive:
     """Live test for circuit breaker failover between providers."""
 
+    @_skip_audio
     @pytest.mark.asyncio
     async def test_failover_chain_with_available_providers(self, english_audio_mp3: bytes):
         """Test that circuit breaker correctly fails over between available providers."""
@@ -340,6 +348,7 @@ class TestCircuitBreakerLive:
 class TestProviderComparison:
     """Compare transcription quality across all available providers."""
 
+    @_skip_audio
     @pytest.mark.asyncio
     async def test_compare_all_providers_english(self, english_audio_mp3: bytes):
         """Side-by-side comparison of all available providers on same audio."""
