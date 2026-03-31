@@ -77,7 +77,7 @@ class Settings(BaseSettings):
     cloudflare_turnstile_site_key: str = ""  # Turnstile site key (sent to frontend)
 
     # Free tier limits
-    free_tier_max_participants: int = 50
+    free_tier_max_participants: int = 19
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
