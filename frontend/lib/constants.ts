@@ -14,6 +14,19 @@ export const AUTH0_REDIRECT_URI =
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
+// Stripe (publishable key — safe for browser, not a secret)
+export const STRIPE_PUBLISHABLE_KEY =
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_51TGqNcAKTYQveN5ogGtsrltn65Fpz9uB14fGKklsSeYbpe6czK7qw0S9GUhIS2MunpIIiK7j6Kq5zYlwRLcgq8f400geBCprUF";
+
+// Pricing tiers
+export const PRICING_TIERS = [
+  { value: "free" as const, label: "Free", description: "Up to 19 participants — donation after results", maxUsers: 19, minFee: 0 },
+  { value: "moderator_paid" as const, label: "Moderator Paid", description: "Moderator pays min $11.11 — unlimited participants", maxUsers: null, minFee: 1111 },
+  { value: "cost_split" as const, label: "Cost Split", description: "50% Moderator + 50% split among users", maxUsers: null, minFee: 0 },
+] as const;
+
+export const MODERATOR_MIN_FEE_CENTS = 1111; // $11.11
+
 // Session types for Moderator dashboard
 export const SESSION_TYPES = [
   {

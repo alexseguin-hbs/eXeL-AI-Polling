@@ -31,6 +31,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { AuthGuard } from "@/components/auth-guard";
 import { Navbar } from "@/components/navbar";
 import { FlowerVisualization } from "@/components/flower-of-life/flower-visualization";
+import { PricingTierSelector, DonationPrompt } from "@/components/stripe-payment";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -225,6 +226,7 @@ function SessionDetail({
   const [spiralProgress, setSpiralProgress] = useState<SpiralTestProgress | null>(null);
   const [spiralCancel, setSpiralCancel] = useState<(() => void) | null>(null);
   const [exportProgress, setExportProgress] = useState<MoTExportProgress | null>(null);
+  const [donationDismissed, setDonationDismissed] = useState(false);
 
   // Live response ticker — Supabase Broadcast feed for host dashboard
   const [liveResponseFeed, setLiveResponseFeed] = useState<Array<{ text: string; count: number }>>([]);
@@ -794,6 +796,17 @@ function SessionDetail({
           </>
         )}
 
+        {/* Donation Prompt — shown after results for all tiers */}
+        {["closed", "archived"].includes(session.status) && !donationDismissed && (
+          <DonationPrompt
+            sessionId={session.id}
+            shortCode={session.short_code}
+            pricingTier={session.pricing_tier as "free" | "moderator_paid" | "cost_split"}
+            onSuccess={() => { setDonationDismissed(true); toast({ title: "Thank you!", description: "Your donation supports the platform." }); }}
+            onDismiss={() => setDonationDismissed(true)}
+          />
+        )}
+
         {/* Flower of Life Theme Visualization (closed/archived sessions) */}
         {["closed", "archived"].includes(session.status) && (
           <FlowerVisualization
@@ -886,7 +899,8 @@ function DashboardContent() {
   const [newType, setNewType] = useState<string>("single_poll");
   const [newAiProvider, setNewAiProvider] = useState("openai");
   const [newMaxResponse, setNewMaxResponse] = useState("3333");
-  const [newPricingTier, setNewPricingTier] = useState("free");
+  const [newPricingTier, setNewPricingTier] = useState<"free" | "moderator_paid" | "cost_split">("free");
+  const [newFeeAmountCents, setNewFeeAmountCents] = useState(1111); // $11.11 default
   const [newMaxParticipants, setNewMaxParticipants] = useState("");
   const [newRewardEnabled, setNewRewardEnabled] = useState(false);
   const [newRewardAmount, setNewRewardAmount] = useState("25");
@@ -933,7 +947,8 @@ function DashboardContent() {
         ai_provider: newAiProvider,
         max_response_length: parseInt(newMaxResponse) || 3333,
         pricing_tier: newPricingTier,
-        max_participants: newMaxParticipants ? parseInt(newMaxParticipants) : null,
+        fee_amount_cents: newPricingTier === "moderator_paid" ? newFeeAmountCents : 0,
+        max_participants: newPricingTier === "free" ? 19 : (newMaxParticipants ? parseInt(newMaxParticipants) : null),
         reward_enabled: newRewardEnabled,
         reward_amount_cents: newRewardEnabled ? Math.round(parseFloat(newRewardAmount) * 100) : 0,
         polling_mode_type: newPollingModeType,
@@ -948,6 +963,22 @@ function DashboardContent() {
         session.title,
         session.polling_mode_type,
       ).catch(() => {});
+      // Moderator Paid: redirect to Stripe Checkout before session is usable
+      if (newPricingTier === "moderator_paid") {
+        try {
+          const checkout = await api.post<{ checkout_url: string }>("/payments/moderator-checkout", {
+            session_id: session.id,
+            amount_cents: newFeeAmountCents,
+          });
+          if (checkout.checkout_url) {
+            window.location.href = checkout.checkout_url;
+            return; // Stripe handles redirect
+          }
+        } catch {
+          toast({ title: "Payment setup failed", description: "Session created but payment pending", variant: "destructive" });
+        }
+      }
+
       toast({ title: "Session created", description: `"${session.title}" is ready` });
       setCreateOpen(false);
       setNewTitle("");
@@ -1201,21 +1232,14 @@ function DashboardContent() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>{t("cube1.moderator.pricing_tier")}</Label>
-                    <Select value={newPricingTier} onValueChange={setNewPricingTier}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="free">Free (max 19)</SelectItem>
-                        <SelectItem value="moderator_paid">Moderator Paid</SelectItem>
-                        <SelectItem value="cost_split">Cost Split</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <PricingTierSelector
+                  value={newPricingTier}
+                  onChange={setNewPricingTier}
+                  feeAmountCents={newFeeAmountCents}
+                  onFeeChange={setNewFeeAmountCents}
+                />
 
+                {newPricingTier !== "free" && (
                   <div className="space-y-2">
                     <Label htmlFor="maxParticipants">{t("cube1.moderator.max_participants_label")}</Label>
                     <Input
@@ -1227,7 +1251,7 @@ function DashboardContent() {
                       min={1}
                     />
                   </div>
-                </div>
+                )}
 
                 <Separator />
 
