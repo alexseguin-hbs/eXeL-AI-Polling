@@ -80,8 +80,7 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 - **Worker Fleet:** Dedicated embedding batch workers for AI pipeline
 
 ### Databases
-- **PostgreSQL:** Primary relational store (sessions, questions, rankings, audit, tokens, governance)
-- **MongoDB:** Raw response storage (flexible schema for text/voice payloads)
+- **PostgreSQL (via Supabase):** Primary relational store — sessions, questions, rankings, audit, tokens, governance. Raw response text stored in `ResponseMeta.raw_text`; AI-generated summaries stored in `ResponseSummary` table (333/111/33-word tiers).
 - **Redis:** Real-time state (presence tracking, live rankings, WebSocket state, caching, rate limiting)
 
 ### Authentication
@@ -126,7 +125,7 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 | API Gateway | Shared / Cube 5 | FastAPI routes, rate limiting, auth, request validation |
 | Session Service | **Cube 1** | Session CRUD, state machine, QR generation |
 | Ingestion Service | **Cubes 2 & 3** | Text/voice input validation, anonymization, PII detection |
-| Collection Service | **Cube 4** | Response aggregation, MongoDB writes, Redis caching |
+| Collection Service | **Cube 4** | Response aggregation, PostgreSQL writes, Redis caching |
 | Orchestrator Service | **Cube 5** | Triggers AI + ranking pipelines, time tracking |
 | Embedding Worker Fleet | **Cube 6** (workers) | Batch embedding generation (async, horizontally scaled) |
 | Clustering Engine | **Cube 6** (clusterer) | MiniBatchKMeans streaming clusterer (deterministic seed) |
@@ -222,7 +221,7 @@ All clustering and ranking operations must be fully reproducible:
 | 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create, state machine, QR/link, join flow, capacity tiers, Moderator config. **SSSES 100%** — Security (Auth0 RBAC, rate limiting, PII anonymization, anti-sybil), Stability (state machine with validated transitions, retry logic, circuit breakers), Scalability (Redis presence, Supabase Realtime, horizontal-ready), Efficiency (indexed queries, batch operations, streaming QR), Succinctness (all functions <300 LOC, no legacy v04.2 comments). CRS-01 fully implemented and audited to 100% SSSES. |
 | 2 | (1,2,3) | Text Submission Handler | 1 | Text validation (33 languages), PII detection, anonymization, token display |
 | 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT (4 providers), circuit breaker failover, Cube 2 pipeline |
-| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs (33 languages), dual storage, presence tracking |
+| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs (33 languages), PostgreSQL storage, presence tracking |
 | 5 | (1,3,1) | Gateway / Orchestrator | 1 | Pipeline triggers, time tracking (3 ♡ methods), token calculation |
 | 6 | (1,2,1) | AI Theming Clusterer | 1 | Two-phase: live summarization + parallel theming, CQS scoring engine |
 | 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI, deterministic aggregation, governance compression |
@@ -277,7 +276,7 @@ Track and optimize for:
 ## Local Environment
 - Backend: Python venv in `backend/` directory
 - Frontend: Node.js in `frontend/` directory
-- Databases: Docker Compose (PostgreSQL, MongoDB, Redis)
+- Databases: Docker Compose (PostgreSQL, Redis)
 
 ## API, SDK & Embed Architecture — Current State
 
@@ -336,9 +335,9 @@ Track and optimize for:
 | 6 AI Pipeline | ~85% | 58 | 26 | CRS-11→14 | C6-1→C6-8 |
 | 7 Ranking | Stub | 22 | — | CRS-11→13, 16-17, 22 | C7-1→C7-3 |
 | 8 Tokens | Partial | 45 | 19 | CRS-18-19, 24-25, 32-35 | C8-1→C8-3 |
-| 9 Reports | Partial | 29 | — | CRS-14, 19-21 | C9-1→C9-3 |
+| 9 Reports | Partial | 29 | — | CRS-14-15, 19-21 | C9-1→C9-3 |
 | 10 Simulation | Easter Egg SIM | — | — | — | — |
-| **Total** | | | **287** | | **A0–A7, B1–B5, C4–C6** |
+| **Total** | | | **286** | | **A0–A7, B1–B5, C4–C6** |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
