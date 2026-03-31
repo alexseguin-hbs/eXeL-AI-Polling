@@ -85,6 +85,13 @@ async def _transition_and_return(
 
     # Fire Cube 5 orchestrator on polling → ranking transition
     if target_state == "ranking":
+        # Task A3: Release Phase A semaphore — no more submissions in this session
+        try:
+            from app.cubes.cube6_ai.service import release_phase_a_semaphore
+            release_phase_a_semaphore(session_id)
+        except Exception:
+            pass  # Non-fatal cleanup
+
         try:
             from app.cubes.cube5_gateway.service import orchestrate_post_polling
 

@@ -52,6 +52,24 @@ logger = logging.getLogger(__name__)
 THEME01_CATEGORIES = ["Risk & Concerns", "Supporting Comments", "Neutral Comments"]
 _CONFIDENCE_THRESHOLD = 65  # <65% -> reclassify as Neutral (monolith line 127)
 
+# --- Task A3: Per-session concurrency cap on Phase A ---
+# Limits concurrent AI calls per session to prevent provider rate-limit cascade.
+# Each worker enforces independently; Redis-backed global cap deferred to production scaling.
+_PHASE_A_MAX_CONCURRENT = 10
+_phase_a_semaphores: dict[uuid.UUID, asyncio.Semaphore] = {}
+
+
+def _get_phase_a_semaphore(session_id: uuid.UUID) -> asyncio.Semaphore:
+    """Return (or create) a per-session semaphore for Phase A concurrency."""
+    if session_id not in _phase_a_semaphores:
+        _phase_a_semaphores[session_id] = asyncio.Semaphore(_PHASE_A_MAX_CONCURRENT)
+    return _phase_a_semaphores[session_id]
+
+
+def release_phase_a_semaphore(session_id: uuid.UUID) -> None:
+    """Clean up semaphore when session leaves polling (e.g. ranking transition)."""
+    _phase_a_semaphores.pop(session_id, None)
+
 
 # ═══════════════════════════════════════════════════════════════════
 # PHASE A — Live Per-Response Summarization
@@ -95,6 +113,33 @@ async def summarize_single_response(
 
     Returns: {"summary_333": str, "summary_111": str, "summary_33": str}
     """
+    from app.core.supabase_broadcast import broadcast_event
+
+    # --- Task A3: Per-session concurrency cap ---
+    semaphore = _get_phase_a_semaphore(session_id)
+    async with semaphore:
+        return await _summarize_single_response_inner(
+            db,
+            session_id=session_id,
+            response_id=response_id,
+            raw_text=raw_text,
+            language_code=language_code,
+            ai_provider=ai_provider,
+            session_short_code=session_short_code,
+        )
+
+
+async def _summarize_single_response_inner(
+    db: AsyncSession,
+    *,
+    session_id: uuid.UUID,
+    response_id: uuid.UUID,
+    raw_text: str,
+    language_code: str = "en",
+    ai_provider: str = "openai",
+    session_short_code: str = "",
+) -> dict:
+    """Inner implementation — runs under per-session semaphore."""
     from app.core.supabase_broadcast import broadcast_event
 
     word_count = len(raw_text.split())
