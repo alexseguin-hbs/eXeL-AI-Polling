@@ -26,18 +26,18 @@
 
 > **CRS Alignment Note:** Cube 4 uses CRS-09 for response collection/aggregation and CRS-10 for desired outcomes — this matches the Requirements.txt canonical spec. See SSSES Plan at end of this doc for full DesignMatrix CRS alignment detail.
 
-| CRS | Input ID | Output ID | Status | DTM Stretch Target |
-|-----|----------|-----------|--------|-------------------|
-| CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Real-time streaming aggregation |
-| CRS-09.01 | — | — | **Complete** | Web_Results 5-column raw format (q_number, question, user, detailed_results, response_language) |
-| CRS-09.02 | — | — | **Complete** | PostgreSQL (single store): ResponseMeta with raw_text column |
-| CRS-09.03 | — | — | **IMPLEMENTED — Task A5.03** | Supabase broadcast on aggregation completion for live feed push (`cube6_ai/service.py` lines 203-213, `broadcast_event("summary_ready")`) |
-| CRS-09.1 | — | — | **Complete** | Web_Results format with native language column |
-| CRS-09.2 | — | — | **Complete** | Live summary status tracking (PostgreSQL `response_summaries` table) |
-| CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Partial** | Full desired outcome collection |
-| CRS-10.01 | — | — | **Not implemented** | Desired outcome creation — `create_desired_outcome()`, `record_confirmation()` (Methods 2 & 3) |
-| CRS-10.02 | — | — | **Not implemented** | All-confirmed gate signal → Cube 5 timer trigger (`check_all_confirmed()` → `gate_opened_at`) |
-| CRS-10.03 | — | — | **Not implemented** | Post-task results log (`log_post_task_results()`, `assessed_by`, `outcome_status`) |
+| CRS | Input ID | Output ID | Status | DTM Stretch Target | Design Output: Definable / Measurable |
+|-----|----------|-----------|--------|-------------------|---------------------------------------|
+| CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Real-time streaming aggregation | Responses aggregated within 500ms; 15-column schema matches reference CSV exactly |
+| CRS-09.01 | CRS-09.01.IN | CRS-09.01.OUT | **Complete** | Web_Results 5-column raw format (q_number, question, user, detailed_results, response_language) | 5-column Web_Results output validated: q_number (int), question (str), user (str), detailed_results (str), response_language (str); zero null fields |
+| CRS-09.02 | CRS-09.02.IN | CRS-09.02.OUT | **Complete** | PostgreSQL (single store): ResponseMeta with raw_text column | ResponseMeta row created with non-null raw_text within 200ms of submission; single-store query returns all fields without JOIN to external store |
+| CRS-09.03 | CRS-09.03.IN | CRS-09.03.OUT | **IMPLEMENTED — Task A5.03** | Supabase broadcast on aggregation completion for live feed push (`cube6_ai/service.py` lines 203-213, `broadcast_event("summary_ready")`) | `summary_ready` broadcast received by all subscribed clients within 100ms of Phase A completion; event payload contains session_id + response_id |
+| CRS-09.1 | CRS-09.1.IN | CRS-09.1.OUT | **Complete** | Web_Results format with native language column | 6-column output includes native_language; language_code validated against 33-language enum; null native_language defaults to response_language |
+| CRS-09.2 | CRS-09.2.IN | CRS-09.2.OUT | **Complete** | Live summary status tracking (PostgreSQL `response_summaries` table) | `response_summaries` row count matches total responses; summary_status endpoint returns {total, summarized, pending} within 50ms |
+| CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Partial** | Full desired outcome collection | Desired outcome created with all required fields (description, time_estimate_minutes, created_by); confirmation gate opens when all_confirmed = true |
+| CRS-10.01 | CRS-10.01.IN | CRS-10.01.OUT | **Not implemented** | Desired outcome creation — `create_desired_outcome()`, `record_confirmation()` (Methods 2 & 3) | `desired_outcomes` row created with non-null description + time_estimate_minutes; `record_confirmation()` appends participant_id to confirmed_by JSONB array idempotently |
+| CRS-10.02 | CRS-10.02.IN | CRS-10.02.OUT | **Not implemented** | All-confirmed gate signal → Cube 5 timer trigger (`check_all_confirmed()` → `gate_opened_at`) | `check_all_confirmed()` returns true when confirmed_by length equals required_participants length; gate_opened_at timestamp written within 100ms of final confirmation |
+| CRS-10.03 | CRS-10.03.IN | CRS-10.03.OUT | **Not implemented** | Post-task results log (`log_post_task_results()`, `assessed_by`, `outcome_status`) | `results_log` non-null text stored; `outcome_status` set to one of 3 valid ENUM values; `assessed_by` contains at least 1 participant_id |
 
 ### Cube 4 — Test Procedure (Cube 10 Simulator Reference)
 
@@ -316,25 +316,25 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube5/ -v --tb
 
 > **CRS Alignment Note:** Cube 5 spans coordination across CRS-09 (pipeline trigger on polling close), CRS-10 (confirmation gate / timer start for M2/M3), CRS-11 (AI pipeline trigger), and CRS-12 (time tracking / ♡ 웃 ◬ token calculation). Requirements.txt is the canonical spec. See SSSES Plan at end of this doc for full DesignMatrix alignment.
 
-| CRS | Input ID | Output ID | Status | DTM Stretch Target |
-|-----|----------|-----------|--------|-------------------|
-| CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Pipeline coordination on polling→ranking state transition |
-| CRS-09.01 | — | — | **Complete** | `orchestrate_post_polling()` fires on Cube 1 state machine transition |
-| CRS-09.02 | — | — | **Complete** | Background asyncio task pattern — does not block request lifecycle |
-| CRS-09.03 | — | — | **Partial** | Error recovery on background task failure — no dead-letter queue (SSSES Task B5) |
-| CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Partial** | Confirmation gate timer start (Methods 2 & 3) |
-| CRS-10.01 | — | — | **Not implemented** | `confirmation_gate` record creation on desired outcome all-confirmed signal from Cube 4 |
-| CRS-10.02 | — | — | **Not implemented** | Gate-opened signal → timer auto-start; `gate_opened_at` timestamp written; time tracking begins |
-| CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Complete** | AI pipeline trigger coordination |
-| CRS-11.01 | — | — | **Complete** | `trigger_ai_pipeline()` creates PipelineTrigger record + fires Cube 6 background task |
-| CRS-11.02 | — | — | **Complete** | `trigger_ranking_pipeline()` placeholder trigger created on transition |
-| CRS-11.03 | — | — | **Partial** | `trigger_cqs_scoring()` placeholder — depends on Cube 7 `top_theme2_id` (deferred) |
-| CRS-11.04 | — | — | **Partial** | Pipeline status aggregation — `has_pending`, `has_failed`, `all_completed` flags correct; no retry-after on failure (SSSES Task B5) |
-| CRS-12 | CRS-12.IN.SRS.012 | CRS-12.OUT.SRS.012 | **Complete** | Time tracking (♡ 웃 ◬ token calculation) |
-| CRS-12.01 | — | — | **Complete** | `calculate_tokens()` — ♡ = ceil(min), 웃 = jurisdiction rate/60, ◬ = 5× ♡ |
-| CRS-12.02 | — | — | **Complete** | 59-jurisdiction rate table via `hi_rates.py` (LIVE in production + sim) |
-| CRS-12.03 | — | — | **Complete** | Login auto-entry on session join — Cube 1 hook fires `create_login_time_entry()` |
-| CRS-12.04 | — | — | **Not implemented** | `process_join_payment()` — Stripe / GPay / Apple Pay integration (deferred to MVP2) |
+| CRS | Input ID | Output ID | Status | DTM Stretch Target | Design Output: Definable / Measurable |
+|-----|----------|-----------|--------|-------------------|---------------------------------------|
+| CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Pipeline coordination on polling→ranking state transition | `orchestrate_post_polling()` invoked within 50ms of state transition; PipelineTrigger records created for all required pipeline types |
+| CRS-09.01 | CRS-09.01.IN | CRS-09.01.OUT | **Complete** | `orchestrate_post_polling()` fires on Cube 1 state machine transition | Orchestrator fires exactly once per polling→ranking transition; duplicate transition events are idempotent (no duplicate triggers) |
+| CRS-09.02 | CRS-09.02.IN | CRS-09.02.OUT | **Complete** | Background asyncio task pattern — does not block request lifecycle | State transition HTTP response returns within 200ms; background task spawned via asyncio.create_task without blocking caller |
+| CRS-09.03 | CRS-09.03.IN | CRS-09.03.OUT | **Partial** | Error recovery on background task failure — no dead-letter queue (SSSES Task B5) | Failed background tasks logged with error_message; PipelineTrigger status set to `failed`; retry_count incremented; dead-letter queue captures after 3 retries |
+| CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Partial** | Confirmation gate timer start (Methods 2 & 3) | `confirmation_gates` row created with all required fields; timer starts within 100ms of all_confirmed = true; gate_opened_at timestamp non-null |
+| CRS-10.01 | CRS-10.01.IN | CRS-10.01.OUT | **Not implemented** | `confirmation_gate` record creation on desired outcome all-confirmed signal from Cube 4 | `confirmation_gates` row created with correct desired_outcome_id FK; required_participants matches session participant list; all_confirmed defaults to false |
+| CRS-10.02 | CRS-10.02.IN | CRS-10.02.OUT | **Not implemented** | Gate-opened signal → timer auto-start; `gate_opened_at` timestamp written; time tracking begins | `gate_opened_at` written within 100ms of final confirmation; Cube 5 time tracking `started_at` equals `gate_opened_at`; no timer start without all_confirmed = true |
+| CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Complete** | AI pipeline trigger coordination | PipelineTrigger record created with status `pending`; Cube 6 background task started; trigger_metadata contains total_responses count |
+| CRS-11.01 | CRS-11.01.IN | CRS-11.01.OUT | **Complete** | `trigger_ai_pipeline()` creates PipelineTrigger record + fires Cube 6 background task | PipelineTrigger with trigger_type=`ai_theming` created; status transitions pending→in_progress→completed; started_at and completed_at timestamps non-null on success |
+| CRS-11.02 | CRS-11.02.IN | CRS-11.02.OUT | **Complete** | `trigger_ranking_pipeline()` placeholder trigger created on transition | PipelineTrigger with trigger_type=`ranking_aggregation` created with status `pending`; placeholder ready for Cube 7 implementation |
+| CRS-11.03 | CRS-11.03.IN | CRS-11.03.OUT | **Partial** | `trigger_cqs_scoring()` placeholder — depends on Cube 7 `top_theme2_id` (deferred) | PipelineTrigger with trigger_type=`cqs_scoring` created; trigger_metadata contains top_theme2_id from Cube 7; blocked until Cube 7 ranking complete |
+| CRS-11.04 | CRS-11.04.IN | CRS-11.04.OUT | **Partial** | Pipeline status aggregation — `has_pending`, `has_failed`, `all_completed` flags correct; no retry-after on failure (SSSES Task B5) | Pipeline status endpoint returns {has_pending, has_failed, all_completed} booleans within 50ms; failed triggers include retry_count and error_message; retry-after header returned on 503 |
+| CRS-12 | CRS-12.IN.SRS.012 | CRS-12.OUT.SRS.012 | **Complete** | Time tracking (♡ 웃 ◬ token calculation) | Token calculation produces all 3 token types: ♡ = ceil(duration_min), 웃 = rate/60 * duration_min, ◬ = 5 * ♡; all values non-negative |
+| CRS-12.01 | CRS-12.01.IN | CRS-12.01.OUT | **Complete** | `calculate_tokens()` — ♡ = ceil(min), 웃 = jurisdiction rate/60, ◬ = 5× ♡ | For 5.5 min session: ♡=6, ◬=30; 웃 varies by jurisdiction; calculation deterministic for same inputs; zero-duration returns all-zero tokens |
+| CRS-12.02 | CRS-12.02.IN | CRS-12.02.OUT | **Complete** | 59-jurisdiction rate table via `hi_rates.py` (LIVE in production + sim) | All 59 jurisdictions return non-null hourly rate; unknown jurisdiction_code raises ValueError; rate lookup < 1ms |
+| CRS-12.03 | CRS-12.03.IN | CRS-12.03.OUT | **Complete** | Login auto-entry on session join — Cube 1 hook fires `create_login_time_entry()` | TimeEntry with action_type=`login` created within 100ms of join; started_at matches join timestamp; exactly one login entry per participant per session |
+| CRS-12.04 | CRS-12.04.IN | CRS-12.04.OUT | **Not implemented** | `process_join_payment()` — Stripe / GPay / Apple Pay integration (deferred to MVP2) | Payment webhook processed within 2s; payment_status updated to `paid`; join flow completes only after payment confirmation; idempotent on duplicate webhooks |
 
 ### Cube 5 — Files
 | File | Lines | Purpose |
@@ -609,28 +609,28 @@ See `SPIRAL_METRICS.md` — N=18 bidirectional (Feb 26). Cube 5 tests: 60/60 pas
 
 > **CRS Alignment Note:** Cube 6 owns CRS-11 (live summarization + Phase B theming), CRS-12 (multi-provider AI + concurrency), CRS-13 (progressive theme reveal), and CRS-14 (CQS scoring). CRS-11.03 (`summary_ready`) is IMPLEMENTED (Task A5). CRS-11.04 (`themes_ready`, Task B4) remains a gap — no `themes_ready` event is sent to the dashboard. See SSSES Plan at end of this doc.
 
-| CRS | Input ID | Output ID | Status | DTM Stretch Target |
-|-----|----------|-----------|--------|-------------------|
-| CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Complete** | Real-time theme streaming |
-| CRS-11.01 | — | — | **Complete** | `summarize_single_response()` Phase A — live per-response 333→111→33 word summaries |
-| CRS-11.02 | — | — | **Complete** | Summaries stored in PostgreSQL `response_summaries` table with `response_id` reference |
-| CRS-11.03 | — | — | **IMPLEMENTED — Task A5** | `summary_ready` Supabase broadcast after Phase A completes — implemented in `cube6_ai/service.py` lines 203-213. Dashboard listener (Task A6) still needed. |
-| CRS-11.04 | — | — | **GAP — Task B4** | `themes_ready` Supabase broadcast after Phase B completes — not implemented. Dashboard has no signal to transition to results view. |
-| CRS-11.1 | — | — | **Complete** | Live 333/111/33 summarization per response |
-| CRS-11.2 | — | — | **Complete** | Parallel marble sampling (10+ concurrent agents) |
-| CRS-12 | CRS-12.IN.SRS.012 | CRS-12.OUT.SRS.012 | **Complete** | Multi-provider embedding comparison |
-| CRS-12.01 | — | — | **Complete** | Factory failover order: openai → grok → gemini (skips providers without API keys) |
-| CRS-12.02 | — | — | **Complete** | Per-provider pinned model version — `text-embedding-3-small`, `grok-embedding-beta`, `text-embedding-004` |
-| CRS-12.03 | — | — | **Partial** | Per-session `asyncio.Semaphore(10)` concurrency cap on Phase A — not yet implemented (SSSES Task A3) |
-| CRS-12.1 | — | — | **Complete** | Grok + Gemini provider implementations |
-| CRS-12.2 | — | — | **Complete** | Factory with circuit breaker failover |
-| CRS-13 | CRS-13.IN.SRS.013 | CRS-13.OUT.SRS.013 | **Complete** | Progressive theme reveal UX |
-| CRS-13.01 | — | — | **Complete** | Phase B pipeline produces Theme01 + Theme2_9/6/3 with per-response confidence scores |
-| CRS-13.02 | — | — | **Partial** | E2E verification against 5000-response dataset not yet run (SSSES Task B1) |
-| CRS-13.03 | — | — | **Partial** | Monolith parity check (marble sampling, 65% threshold, Theme01 categories) — documented, not verified (SSSES Task B2) |
-| CRS-14 | CRS-14.IN.SRS.014 | CRS-14.OUT.SRS.014 | **Partial** | CQS scoring (deferred to post-Cube 7) |
-| CRS-14.01 | — | — | **Not implemented** | `score_cqs()` — 6-metric AI scoring on responses in #1 Theme2 cluster with >95% confidence |
-| CRS-14.02 | — | — | **Not implemented** | `select_cqs_winner()` — highest composite CQS; random tie-break (seeded for determinism) |
+| CRS | Input ID | Output ID | Status | DTM Stretch Target | Design Output: Definable / Measurable |
+|-----|----------|-----------|--------|-------------------|---------------------------------------|
+| CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Complete** | Real-time theme streaming | Phase A + Phase B complete within 60s for 1000 responses; themes stored in PostgreSQL with hierarchical parent_theme_id linkage |
+| CRS-11.01 | CRS-11.01.IN | CRS-11.01.OUT | **Complete** | `summarize_single_response()` Phase A — live per-response 333→111→33 word summaries | 33-word summary stored in `response_summaries` table; word count between 25-40 words; summary_ready broadcast within 100ms of storage |
+| CRS-11.02 | CRS-11.02.IN | CRS-11.02.OUT | **Complete** | Summaries stored in PostgreSQL `response_summaries` table with `response_id` reference | `response_summaries` row created with valid response_id FK; summary_333, summary_111, summary_33 all non-null; no orphaned rows (FK constraint enforced) |
+| CRS-11.03 | CRS-11.03.IN | CRS-11.03.OUT | **IMPLEMENTED — Task A5** | `summary_ready` Supabase broadcast after Phase A completes — implemented in `cube6_ai/service.py` lines 203-213. Dashboard listener (Task A6) still needed. | Supabase broadcast event type = `summary_ready`; payload contains session_id + response_id; delivered to all subscribed clients within 100ms |
+| CRS-11.04 | CRS-11.04.IN | CRS-11.04.OUT | **GAP — Task B4** | `themes_ready` Supabase broadcast after Phase B completes — not implemented. Dashboard has no signal to transition to results view. | Supabase broadcast event type = `themes_ready`; payload contains session_id + theme_count + top_theme_id; dashboard transitions to results view within 200ms of receipt |
+| CRS-11.1 | CRS-11.1.IN | CRS-11.1.OUT | **Complete** | Live 333/111/33 summarization per response | 333-word summary between 280-380 words; 111-word between 90-130 words; 33-word between 25-40 words; all three stored atomically per response |
+| CRS-11.2 | CRS-11.2.IN | CRS-11.2.OUT | **Complete** | Parallel marble sampling (10+ concurrent agents) | Marble sampling selects representative responses per cluster; minimum 10 concurrent summarization agents; all samples processed within 30s for 1000 responses |
+| CRS-12 | CRS-12.IN.SRS.012 | CRS-12.OUT.SRS.012 | **Complete** | Multi-provider embedding comparison | Embedding generated for every collected response; provider failover completes within 5s; embedding vector dimension matches provider spec (1536 for OpenAI) |
+| CRS-12.01 | CRS-12.01.IN | CRS-12.01.OUT | **Complete** | Factory failover order: openai → grok → gemini (skips providers without API keys) | Factory tries providers in order; skips provider if API key missing; circuit breaker opens after 3 consecutive failures; failover < 2s |
+| CRS-12.02 | CRS-12.02.IN | CRS-12.02.OUT | **Complete** | Per-provider pinned model version — `text-embedding-3-small`, `grok-embedding-beta`, `text-embedding-004` | Model ID stored in embeddings.model_id; identical inputs + same provider + same model = identical vector output; no auto-upgrade of model version |
+| CRS-12.03 | CRS-12.03.IN | CRS-12.03.OUT | **Partial** | Per-session `asyncio.Semaphore(10)` concurrency cap on Phase A — not yet implemented (SSSES Task A3) | Maximum 10 concurrent Phase A tasks per session; semaphore acquisition timeout = 30s; excess requests queued, not rejected |
+| CRS-12.1 | CRS-12.1.IN | CRS-12.1.OUT | **Complete** | Grok + Gemini provider implementations | Grok provider returns embeddings via `grok-embedding-beta`; Gemini provider returns embeddings via `text-embedding-004`; both implement EmbeddingProvider + SummarizationProvider ABCs |
+| CRS-12.2 | CRS-12.2.IN | CRS-12.2.OUT | **Complete** | Factory with circuit breaker failover | Circuit breaker tracks per-provider failure count; opens after 3 failures; half-open retry after 60s; factory returns next available provider within 100ms |
+| CRS-13 | CRS-13.IN.SRS.013 | CRS-13.OUT.SRS.013 | **Complete** | Progressive theme reveal UX | Theme hierarchy: Theme01 → Theme2_9 → Theme2_6 → Theme2_3; each level has correct member_count summing to total responses; confidence_avg between 0.0-1.0 |
+| CRS-13.01 | CRS-13.01.IN | CRS-13.01.OUT | **Complete** | Phase B pipeline produces Theme01 + Theme2_9/6/3 with per-response confidence scores | Every response assigned exactly one theme per level; confidence score between 0.0-1.0; Theme01 category is one of: risk/supporting/neutral; sort_order deterministic |
+| CRS-13.02 | CRS-13.02.IN | CRS-13.02.OUT | **Partial** | E2E verification against 5000-response dataset not yet run (SSSES Task B1) | 5000-response E2E test completes within 120s; theme output matches expected baseline within 5% variance; silhouette_score > 0.3 for all clusters |
+| CRS-13.03 | CRS-13.03.IN | CRS-13.03.OUT | **Partial** | Monolith parity check (marble sampling, 65% threshold, Theme01 categories) — documented, not verified (SSSES Task B2) | Theme01 classification < 65% confidence reclassified as Neutral; 9→6→3 reduction verified (Theme2_9 merges to Theme2_6 merges to Theme2_3); marble sampling matches monolith output within 10% |
+| CRS-14 | CRS-14.IN.SRS.014 | CRS-14.OUT.SRS.014 | **Partial** | CQS scoring (deferred to post-Cube 7) | CQS score computed for all responses in #1 Theme2 cluster; score is composite of 6 metrics; only responses with >95% confidence eligible |
+| CRS-14.01 | CRS-14.01.IN | CRS-14.01.OUT | **Not implemented** | `score_cqs()` — 6-metric AI scoring on responses in #1 Theme2 cluster with >95% confidence | 6 individual metric scores (0-100 each) stored per response; composite CQS = weighted average; only responses in top Theme2 cluster with confidence > 0.95 scored |
+| CRS-14.02 | CRS-14.02.IN | CRS-14.02.OUT | **Not implemented** | `select_cqs_winner()` — highest composite CQS; random tie-break (seeded for determinism) | Winner has highest composite CQS; ties broken by seeded random (random_state from session); same inputs + same seed = same winner every time |
 
 ### Cube 6 — Test Procedure (Cube 10 Simulator Reference)
 
