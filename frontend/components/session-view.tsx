@@ -695,15 +695,17 @@ export function SessionView() {
 
       toast({ title: t("cube10.sim.response_submitted") });
 
-      // Push response to dashboard via two parallel paths:
-      // Path A: Supabase Broadcast (instant ~50ms, can fail if mobile WebSocket paused)
-      // Path B: Supabase DB insert to `responses` table → postgres_changes fires on dashboard
+      // Push response to dashboard via THREE parallel paths (Trinity redundancy):
+      // Path A: Supabase Broadcast (WebSocket, ~50ms) → Dashboard Channel A
+      // Path B: Supabase DB INSERT (HTTP REST) → Dashboard Channel B (postgres_changes) + Channel D (poll)
+      // Path C: CF KV POST (HTTP) → Dashboard KV poll fallback
+      // Any ONE path succeeding = response appears on moderator screen
       if (!simulationMode) {
         const trimmed = responseText.trim();
         const responseId = result?.id ?? `r-${Date.now()}`;
         const submittedAt = new Date().toISOString();
 
-        // Path A — Broadcast (best-effort)
+        // Path A — Supabase Broadcast (instant ~50ms, WebSocket push)
         broadcastToSession("new_response", {
           id: responseId,
           text: trimmed.length > 80 ? trimmed.substring(0, 80) + "..." : trimmed,
@@ -713,8 +715,8 @@ export function SessionView() {
           count: submittedQuestions.size + 1,
         }).catch(() => {});
 
-        // Path B — Supabase DB insert (reliable: HTTP REST, works even if WebSocket is paused)
-        // Table schema: id, session_code, participant_id, content, created_at
+        // Path B — Supabase DB INSERT (HTTP REST, globally consistent)
+        // Feeds: postgres_changes (Channel B) + HTTP poll (Channel D)
         if (supabase && session?.short_code) {
           supabase.from("responses").insert({
             id: responseId,
@@ -722,6 +724,20 @@ export function SessionView() {
             participant_id: participantId,
             content: trimmed,
           }).then(() => {}, () => {});
+        }
+
+        // Path C — CF KV POST (HTTP, per-datacenter cache, fast reads)
+        if (session?.short_code) {
+          fetch("/api/responses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              short_code: session.short_code,
+              text: trimmed,
+              participant_id: participantId,
+              language_code: languageCode || "en",
+            }),
+          }).catch(() => {});
         }
       }
 
@@ -1108,17 +1124,36 @@ export function SessionView() {
                       languageCode={languageCode}
                       onTranscript={(text) => setResponseText((prev) => prev + text)}
                       onSubmitted={(result) => {
-                        // Broadcast voice response to moderator dashboard (same as text path)
+                        // Trinity redundancy: 3 paths for voice responses too
                         if (!simulationMode) {
                           const text = result.clean_text || result.transcript_text;
+                          const submittedAt = result.submitted_at || new Date().toISOString();
+                          // Path A — Broadcast
                           broadcastToSession("new_response", {
                             id: result.id,
                             text: text.length > 80 ? text.substring(0, 80) + "..." : text,
                             clean_text: text,
-                            submitted_at: result.submitted_at || new Date().toISOString(),
+                            submitted_at: submittedAt,
                             summary_33: result.summary_33,
                             source: "voice",
                           }).catch(() => {});
+                          // Path B — Supabase DB
+                          if (supabase && session?.short_code) {
+                            supabase.from("responses").insert({
+                              id: result.id,
+                              session_code: session.short_code,
+                              participant_id: participantId,
+                              content: text,
+                            }).then(() => {}, () => {});
+                          }
+                          // Path C — CF KV
+                          if (session?.short_code) {
+                            fetch("/api/responses", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ short_code: session.short_code, text, participant_id: participantId }),
+                            }).catch(() => {});
+                          }
                         }
                       }}
                     />
