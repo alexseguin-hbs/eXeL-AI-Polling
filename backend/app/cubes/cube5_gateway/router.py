@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
-from app.core.dependencies import get_db, get_mongo
+from app.core.dependencies import get_db
 from app.core.permissions import require_role
 from app.cubes.cube5_gateway import service
 from app.schemas.pipeline import (
@@ -116,7 +116,6 @@ async def trigger_theming(
     payload: TriggerThemingRequest | None = None,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
-    mongo=Depends(get_mongo),
 ):
     """Manually trigger the AI theming pipeline (Cube 6) for a session.
 
@@ -126,7 +125,7 @@ async def trigger_theming(
     seed = payload.seed if payload else None
     use_embedding = payload.use_embedding_assignment if payload else False
     trigger = await service.trigger_ai_pipeline(
-        db, mongo, session_id, seed=seed, use_embedding_assignment=use_embedding
+        db, session_id, seed=seed, use_embedding_assignment=use_embedding
     )
     return PipelineTriggerRead.model_validate(trigger)
 
@@ -160,7 +159,6 @@ async def retry_pipeline(
     trigger_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
-    mongo=Depends(get_mongo),
 ):
     """Retry a failed pipeline trigger.
 
@@ -197,7 +195,7 @@ async def retry_pipeline(
         seed = (trigger.trigger_metadata or {}).get("seed")
         use_embedding = (trigger.trigger_metadata or {}).get("use_embedding_assignment", False)
         await service.trigger_ai_pipeline(
-            db, mongo, session_id, seed=seed, use_embedding_assignment=use_embedding
+            db, session_id, seed=seed, use_embedding_assignment=use_embedding
         )
 
     return PipelineRetryResponse(

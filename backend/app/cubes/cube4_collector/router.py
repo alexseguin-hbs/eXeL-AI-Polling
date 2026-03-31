@@ -18,7 +18,7 @@ from app.cubes.cube4_collector.service import (
     get_single_response,
     get_summary_status,
 )
-from app.core.dependencies import get_db, get_mongo, get_redis
+from app.core.dependencies import get_db, get_redis
 
 router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 4 -- Collector"])
 
@@ -31,11 +31,10 @@ async def list_collected_responses(
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
-    mongo=Depends(get_mongo),
 ):
     """List collected responses in Web_Results format with optional summaries/themes."""
     return await get_collected_responses(
-        db, mongo, session_id,
+        db, session_id,
         include_summaries=include_summaries,
         include_themes=include_themes,
         page=page,
@@ -48,10 +47,9 @@ async def get_collected_response(
     session_id: uuid.UUID,
     response_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    mongo=Depends(get_mongo),
 ):
     """Get a single collected response with all data (summaries + themes)."""
-    result = await get_single_response(db, mongo, session_id, response_id)
+    result = await get_single_response(db, session_id, response_id)
     if result is None:
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Response not found")
@@ -88,7 +86,7 @@ async def get_presence(
 @router.get("/summary-status")
 async def summary_status(
     session_id: uuid.UUID,
-    mongo=Depends(get_mongo),
+    db: AsyncSession = Depends(get_db),
 ):
     """Check summary generation progress for a session."""
-    return await get_summary_status(mongo, session_id)
+    return await get_summary_status(db, session_id)

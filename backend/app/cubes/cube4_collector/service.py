@@ -5,10 +5,10 @@ Aggregates text and voice responses into the standardized Web_Results format
 columns for summaries and theme assignments once Cube 6 processes them.
 
 Key responsibilities:
-- Aggregate from ResponseMeta (Postgres) + raw text/transcripts (MongoDB)
+- Aggregate from ResponseMeta (Postgres) + raw text (ResponseMeta.raw_text)
 - Return in Web_Results.csv-compatible format with native language column
 - Redis presence tracking for active participants
-- Summary lookup from MongoDB (populated by live summarization during polling)
+- Summary lookup from ResponseSummary (Postgres, populated by live summarization during polling)
 """
 
 from __future__ import annotations
@@ -17,7 +17,6 @@ import uuid
 from datetime import datetime, timezone
 
 import structlog
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from redis.asyncio import Redis
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.participant import Participant
 from app.models.question import Question
 from app.models.response_meta import ResponseMeta
+from app.models.response_summary import ResponseSummary
 from app.models.session import Session
 from app.models.text_response import TextResponse
 from app.models.voice_response import VoiceResponse
@@ -39,7 +39,6 @@ logger = structlog.get_logger(__name__)
 
 async def get_collected_responses(
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     session_id: uuid.UUID,
     *,
     include_summaries: bool = False,
@@ -101,16 +100,10 @@ async def get_collected_responses(
 
     items = []
     for meta, question, participant in rows:
-        # Get raw text from MongoDB
-        raw_text = ""
+        # Get raw text from ResponseMeta.raw_text (PostgreSQL)
+        raw_text = meta.raw_text or ""
         language = "English"
         native_language = "en"
-        if meta.mongo_ref:
-            doc = await mongo.responses.find_one({"_id": meta.mongo_ref})
-            if doc:
-                raw_text = doc.get("raw_text", doc.get("text", ""))
-                language = doc.get("language", "English")
-                native_language = doc.get("language_code", "en")
 
         # For voice responses, get transcript from TextResponse via join
         if meta.source == "voice" and not raw_text:
@@ -148,36 +141,36 @@ async def get_collected_responses(
             "source": meta.source,
         }
 
-        # Optionally include summaries from MongoDB
+        # Optionally include summaries from PostgreSQL (ResponseSummary)
+        if include_summaries or include_themes:
+            summary_result = await db.execute(
+                select(ResponseSummary).where(
+                    ResponseSummary.response_meta_id == meta.id,
+                )
+            )
+            summary_row = summary_result.scalar_one_or_none()
+
         if include_summaries:
-            summary_doc = await mongo.summaries.find_one({
-                "response_id": str(meta.id),
-                "session_id": str(session_id),
-            })
-            if summary_doc:
-                item["summary_333"] = summary_doc.get("summary_333", "")
-                item["summary_111"] = summary_doc.get("summary_111", "")
-                item["summary_33"] = summary_doc.get("summary_33", "")
+            if summary_row:
+                item["summary_333"] = summary_row.summary_333 or ""
+                item["summary_111"] = summary_row.summary_111 or ""
+                item["summary_33"] = summary_row.summary_33 or ""
             else:
                 item["summary_333"] = ""
                 item["summary_111"] = ""
                 item["summary_33"] = ""
 
-        # Optionally include theme assignments from MongoDB
+        # Optionally include theme assignments from PostgreSQL (ResponseSummary)
         if include_themes:
-            summary_doc = await mongo.summaries.find_one({
-                "response_id": str(meta.id),
-                "session_id": str(session_id),
-            })
-            if summary_doc:
-                item["theme01"] = summary_doc.get("theme01", "")
-                item["theme01_confidence"] = summary_doc.get("theme01_confidence", 0)
-                item["theme2_9"] = summary_doc.get("theme2_9", "")
-                item["theme2_9_confidence"] = summary_doc.get("theme2_9_confidence", 0)
-                item["theme2_6"] = summary_doc.get("theme2_6", "")
-                item["theme2_6_confidence"] = summary_doc.get("theme2_6_confidence", 0)
-                item["theme2_3"] = summary_doc.get("theme2_3", "")
-                item["theme2_3_confidence"] = summary_doc.get("theme2_3_confidence", 0)
+            if summary_row:
+                item["theme01"] = summary_row.theme01 or ""
+                item["theme01_confidence"] = summary_row.theme01_confidence or 0
+                item["theme2_9"] = summary_row.theme2_9 or ""
+                item["theme2_9_confidence"] = summary_row.theme2_9_confidence or 0
+                item["theme2_6"] = summary_row.theme2_6 or ""
+                item["theme2_6_confidence"] = summary_row.theme2_6_confidence or 0
+                item["theme2_3"] = summary_row.theme2_3 or ""
+                item["theme2_3_confidence"] = summary_row.theme2_3_confidence or 0
             else:
                 for field in ("theme01", "theme2_9", "theme2_6", "theme2_3"):
                     item[field] = ""
@@ -195,7 +188,6 @@ async def get_collected_responses(
 
 async def get_single_response(
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     session_id: uuid.UUID,
     response_id: uuid.UUID,
 ) -> dict | None:
@@ -215,20 +207,17 @@ async def get_single_response(
 
     meta, question, participant = row
 
-    # Raw text from MongoDB
-    raw_text = ""
+    # Raw text from PostgreSQL (ResponseMeta.raw_text)
+    raw_text = meta.raw_text or ""
     language = "English"
-    if meta.mongo_ref:
-        doc = await mongo.responses.find_one({"_id": meta.mongo_ref})
-        if doc:
-            raw_text = doc.get("raw_text", doc.get("text", ""))
-            language = doc.get("language", "English")
 
-    # Summaries
-    summary_doc = await mongo.summaries.find_one({
-        "response_id": str(meta.id),
-        "session_id": str(session_id),
-    })
+    # Summaries from PostgreSQL (ResponseSummary)
+    summary_result = await db.execute(
+        select(ResponseSummary).where(
+            ResponseSummary.response_meta_id == meta.id,
+        )
+    )
+    summary_row = summary_result.scalar_one_or_none()
 
     user_id = "Anonymous"
     if participant:
@@ -246,17 +235,17 @@ async def get_single_response(
         "response_id": str(meta.id),
         "submitted_at": meta.submitted_at.isoformat() if meta.submitted_at else None,
         "source": meta.source,
-        "summary_333": summary_doc.get("summary_333", "") if summary_doc else "",
-        "summary_111": summary_doc.get("summary_111", "") if summary_doc else "",
-        "summary_33": summary_doc.get("summary_33", "") if summary_doc else "",
-        "theme01": summary_doc.get("theme01", "") if summary_doc else "",
-        "theme01_confidence": summary_doc.get("theme01_confidence", 0) if summary_doc else 0,
-        "theme2_9": summary_doc.get("theme2_9", "") if summary_doc else "",
-        "theme2_9_confidence": summary_doc.get("theme2_9_confidence", 0) if summary_doc else 0,
-        "theme2_6": summary_doc.get("theme2_6", "") if summary_doc else "",
-        "theme2_6_confidence": summary_doc.get("theme2_6_confidence", 0) if summary_doc else 0,
-        "theme2_3": summary_doc.get("theme2_3", "") if summary_doc else "",
-        "theme2_3_confidence": summary_doc.get("theme2_3_confidence", 0) if summary_doc else 0,
+        "summary_333": summary_row.summary_333 or "" if summary_row else "",
+        "summary_111": summary_row.summary_111 or "" if summary_row else "",
+        "summary_33": summary_row.summary_33 or "" if summary_row else "",
+        "theme01": summary_row.theme01 or "" if summary_row else "",
+        "theme01_confidence": summary_row.theme01_confidence or 0 if summary_row else 0,
+        "theme2_9": summary_row.theme2_9 or "" if summary_row else "",
+        "theme2_9_confidence": summary_row.theme2_9_confidence or 0 if summary_row else 0,
+        "theme2_6": summary_row.theme2_6 or "" if summary_row else "",
+        "theme2_6_confidence": summary_row.theme2_6_confidence or 0 if summary_row else 0,
+        "theme2_3": summary_row.theme2_3 or "" if summary_row else "",
+        "theme2_3_confidence": summary_row.theme2_3_confidence or 0 if summary_row else 0,
     }
 
     return item
@@ -364,21 +353,35 @@ async def update_presence(
 
 
 async def get_summary_status(
-    mongo: AsyncIOMotorDatabase,
+    db: AsyncSession,
     session_id: uuid.UUID,
 ) -> dict:
     """Check how many responses have summaries generated."""
-    total = await mongo.summaries.count_documents({
-        "session_id": str(session_id),
-    })
-    with_33 = await mongo.summaries.count_documents({
-        "session_id": str(session_id),
-        "summary_33": {"$ne": ""},
-    })
-    with_themes = await mongo.summaries.count_documents({
-        "session_id": str(session_id),
-        "theme01": {"$ne": ""},
-    })
+    total_result = await db.execute(
+        select(func.count(ResponseSummary.id)).where(
+            ResponseSummary.session_id == session_id,
+        )
+    )
+    total = total_result.scalar() or 0
+
+    with_33_result = await db.execute(
+        select(func.count(ResponseSummary.id)).where(
+            ResponseSummary.session_id == session_id,
+            ResponseSummary.summary_33 != None,  # noqa: E711
+            ResponseSummary.summary_33 != "",
+        )
+    )
+    with_33 = with_33_result.scalar() or 0
+
+    with_themes_result = await db.execute(
+        select(func.count(ResponseSummary.id)).where(
+            ResponseSummary.session_id == session_id,
+            ResponseSummary.theme01 != None,  # noqa: E711
+            ResponseSummary.theme01 != "",
+        )
+    )
+    with_themes = with_themes_result.scalar() or 0
+
     return {
         "session_id": str(session_id),
         "total_summaries": total,

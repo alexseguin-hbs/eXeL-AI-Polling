@@ -13,12 +13,12 @@ import io
 import uuid
 
 import pandas as pd
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.question import Question
 from app.models.response_meta import ResponseMeta
+from app.models.response_summary import ResponseSummary
 
 # Exact 15-column schema matching reference CSV
 CSV_COLUMNS = [
@@ -42,12 +42,11 @@ CSV_COLUMNS = [
 
 async def export_session_csv(
     db: AsyncSession,
-    mongo_db: AsyncIOMotorDatabase,
     session_id: uuid.UUID,
 ) -> io.BytesIO:
     """Build 15-column CSV export for a session.
 
-    Queries Postgres (ResponseMeta, Question) + MongoDB (raw text, summaries)
+    Queries Postgres (ResponseMeta, Question, ResponseSummary)
     and assembles matching the reference output schema.
     """
     # Fetch all response metadata
@@ -64,15 +63,16 @@ async def export_session_csv(
 
     rows = []
     for meta in metas:
-        # Fetch raw text from MongoDB
-        doc = await mongo_db.responses.find_one({"_id": meta.mongo_ref})
-        raw_text = doc.get("text", "") if doc else ""
+        # Fetch raw text from ResponseMeta.raw_text (PostgreSQL)
+        raw_text = meta.raw_text or ""
 
-        # Fetch summaries from MongoDB
-        summary_doc = await mongo_db.summaries.find_one({
-            "response_id": str(meta.id),
-            "session_id": str(session_id),
-        })
+        # Fetch summaries from PostgreSQL (ResponseSummary)
+        summary_result = await db.execute(
+            select(ResponseSummary).where(
+                ResponseSummary.response_meta_id == meta.id,
+            )
+        )
+        summary_row = summary_result.scalar_one_or_none()
 
         question = questions.get(str(meta.question_id))
         q_number = question.order_index if question else 0
@@ -88,24 +88,24 @@ async def export_session_csv(
             "Question": q_text,
             "User": str(meta.participant_id),
             "Detailed_Results": raw_text,
-            "333_Summary": summary_doc.get("summary_333", "") if summary_doc else "",
-            "111_Summary": summary_doc.get("summary_111", "") if summary_doc else "",
-            "33_Summary": summary_doc.get("summary_33", "") if summary_doc else "",
-            "Theme01": summary_doc.get("theme01", "") if summary_doc else "",
+            "333_Summary": summary_row.summary_333 or "" if summary_row else "",
+            "111_Summary": summary_row.summary_111 or "" if summary_row else "",
+            "33_Summary": summary_row.summary_33 or "" if summary_row else "",
+            "Theme01": summary_row.theme01 or "" if summary_row else "",
             "Theme01_Confidence": _fmt_confidence(
-                summary_doc.get("theme01_confidence") if summary_doc else ""
+                summary_row.theme01_confidence if summary_row else ""
             ),
-            "Theme2_9": summary_doc.get("theme2_9", "") if summary_doc else "",
+            "Theme2_9": summary_row.theme2_9 or "" if summary_row else "",
             "Theme2_9_Confidence": _fmt_confidence(
-                summary_doc.get("theme2_9_confidence") if summary_doc else ""
+                summary_row.theme2_9_confidence if summary_row else ""
             ),
-            "Theme2_6": summary_doc.get("theme2_6", "") if summary_doc else "",
+            "Theme2_6": summary_row.theme2_6 or "" if summary_row else "",
             "Theme2_6_Confidence": _fmt_confidence(
-                summary_doc.get("theme2_6_confidence") if summary_doc else ""
+                summary_row.theme2_6_confidence if summary_row else ""
             ),
-            "Theme2_3": summary_doc.get("theme2_3", "") if summary_doc else "",
+            "Theme2_3": summary_row.theme2_3 or "" if summary_row else "",
             "Theme2_3_Confidence": _fmt_confidence(
-                summary_doc.get("theme2_3_confidence") if summary_doc else ""
+                summary_row.theme2_3_confidence if summary_row else ""
             ),
         }
         rows.append(row)
@@ -120,7 +120,6 @@ async def export_session_csv(
 
 async def export_session_csv_to_file(
     db: AsyncSession,
-    mongo_db: AsyncIOMotorDatabase,
     session_id: uuid.UUID,
     output_dir: str = "/tmp/outputs",
 ) -> str:
@@ -128,7 +127,7 @@ async def export_session_csv_to_file(
     import os
     os.makedirs(output_dir, exist_ok=True)
 
-    buf = await export_session_csv(db, mongo_db, session_id)
+    buf = await export_session_csv(db, session_id)
     output_path = os.path.join(output_dir, f"{session_id}_themes.csv")
     with open(output_path, "wb") as f:
         f.write(buf.getvalue())

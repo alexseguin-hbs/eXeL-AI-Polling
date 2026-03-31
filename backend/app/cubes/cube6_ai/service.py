@@ -5,10 +5,10 @@ Two-phase architecture matching the monolith (eXeL-AI_Polling_v04.2.py):
 PHASE A — Live Per-Response Summarization (during polling):
   Called by Cube 2 after each text/voice submission.
   Generates 333 -> 111 -> 33 word English summaries immediately.
-  Stored in MongoDB for instant moderator screen display.
+  Stored in PostgreSQL (ResponseSummary) for instant moderator screen display.
 
 PHASE B — Parallel Theme Pipeline (after moderator closes polling):
-  1. Fetch all 33-word summaries from MongoDB
+  1. Fetch all 33-word summaries from ResponseSummary (PostgreSQL)
   2. Classify Theme01 (Risk / Supporting / Neutral) — batch parallel
   3. Group by Theme01 into 3 partitions
   4. Marble sampling: shuffle each partition, slice into groups of 10
@@ -16,7 +16,7 @@ PHASE B — Parallel Theme Pipeline (after moderator closes polling):
   6. After ALL groups complete: merge all themes per partition
   7. Reduce to final 9 (statistically relevant) -> 6 -> 3
   8. Assign each response to 9/6/3 themes with confidence
-  9. Store results in Postgres + MongoDB + compute replay hash
+  9. Store results in Postgres + compute replay hash
 
 Target: Theme01 + Theme2 complete in <30 seconds for 1000 responses.
 """
@@ -31,7 +31,6 @@ import uuid
 from datetime import datetime, timezone
 
 import numpy as np
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -42,6 +41,7 @@ from app.cubes.cube6_ai.providers.factory import (
     get_summarization_provider,
 )
 from app.models.response_meta import ResponseMeta
+from app.models.response_summary import ResponseSummary
 from app.models.session import Session
 from app.models.theme import Theme
 from app.models.theme_sample import ThemeSample
@@ -228,7 +228,7 @@ async def summarize_single_response(
 # ---------------------------------------------------------------------------
 
 async def _fetch_summaries(
-    db: AsyncSession, mongo: AsyncIOMotorDatabase, session_id: uuid.UUID
+    db: AsyncSession, session_id: uuid.UUID
 ) -> list[dict]:
     """Fetch all response metadata + pre-computed 33-word summaries.
 
@@ -242,28 +242,26 @@ async def _fetch_summaries(
 
     responses = []
     for meta in metas:
-        # Get pre-computed summary from MongoDB
-        summary_doc = await mongo.summaries.find_one({
-            "response_id": str(meta.id),
-            "session_id": str(session_id),
-        })
+        # Get pre-computed summary from PostgreSQL (ResponseSummary)
+        summary_result = await db.execute(
+            select(ResponseSummary).where(
+                ResponseSummary.response_meta_id == meta.id,
+            )
+        )
+        summary_row = summary_result.scalar_one_or_none()
 
         summary_33 = ""
         summary_111 = ""
         summary_333 = ""
-        if summary_doc:
-            summary_33 = summary_doc.get("summary_33", "")
-            summary_111 = summary_doc.get("summary_111", "")
-            summary_333 = summary_doc.get("summary_333", "")
+        if summary_row:
+            summary_33 = summary_row.summary_33 or ""
+            summary_111 = summary_row.summary_111 or ""
+            summary_333 = summary_row.summary_333 or ""
 
-        # Fallback: if no summary exists, fetch raw text from MongoDB
-        if not summary_33 and meta.mongo_ref:
-            doc = await mongo.responses.find_one({"_id": meta.mongo_ref})
-            if doc:
-                raw_text = doc.get("raw_text", doc.get("text", ""))
-                # Use first 33 words as emergency fallback
-                words = raw_text.split()[:33]
-                summary_33 = " ".join(words)
+        # Fallback: if no summary exists, use raw text from ResponseMeta
+        if not summary_33 and meta.raw_text:
+            words = meta.raw_text.split()[:33]
+            summary_33 = " ".join(words)
 
         responses.append({
             "id": str(meta.id),
@@ -725,10 +723,10 @@ async def _store_results(
     responses: list[dict],
     bin_samples: dict[str, list[list[dict]]],
     reduced: dict[str, dict[str, list[dict]]],
-    mongo: AsyncIOMotorDatabase,
 ) -> str:
-    """Write Theme + ThemeSample records to Postgres, update MongoDB.
+    """Write Theme + ThemeSample records to Postgres, update ResponseSummary.
     Returns replay_hash."""
+    from sqlalchemy.dialects.postgresql import insert as pg_insert
 
     provider_name = session.ai_provider or "openai"
 
@@ -783,25 +781,34 @@ async def _store_results(
             )
             db.add(ts)
 
-    # Update MongoDB with theme assignments for each response
+    # Update ResponseSummary with theme assignments for each response
     for r in responses:
-        await mongo.summaries.update_one(
-            {"response_id": r["id"], "session_id": str(session.id)},
-            {
-                "$set": {
-                    "theme01": r.get("theme01", ""),
-                    "theme01_confidence": r.get("theme01_confidence", 0),
-                    "theme2_9": r.get("theme2_9", ""),
-                    "theme2_9_confidence": r.get("theme2_9_confidence", 0),
-                    "theme2_6": r.get("theme2_6", ""),
-                    "theme2_6_confidence": r.get("theme2_6_confidence", 0),
-                    "theme2_3": r.get("theme2_3", ""),
-                    "theme2_3_confidence": r.get("theme2_3_confidence", 0),
-                    "themed_at": datetime.now(timezone.utc).isoformat(),
-                }
+        stmt = pg_insert(ResponseSummary).values(
+            response_meta_id=uuid.UUID(r["id"]),
+            session_id=session.id,
+            provider=provider_name,
+            theme01=r.get("theme01", ""),
+            theme01_confidence=r.get("theme01_confidence", 0),
+            theme2_9=r.get("theme2_9", ""),
+            theme2_9_confidence=r.get("theme2_9_confidence", 0),
+            theme2_6=r.get("theme2_6", ""),
+            theme2_6_confidence=r.get("theme2_6_confidence", 0),
+            theme2_3=r.get("theme2_3", ""),
+            theme2_3_confidence=r.get("theme2_3_confidence", 0),
+        ).on_conflict_do_update(
+            index_elements=["response_meta_id"],
+            set_={
+                "theme01": r.get("theme01", ""),
+                "theme01_confidence": r.get("theme01_confidence", 0),
+                "theme2_9": r.get("theme2_9", ""),
+                "theme2_9_confidence": r.get("theme2_9_confidence", 0),
+                "theme2_6": r.get("theme2_6", ""),
+                "theme2_6_confidence": r.get("theme2_6_confidence", 0),
+                "theme2_3": r.get("theme2_3", ""),
+                "theme2_3_confidence": r.get("theme2_3_confidence", 0),
             },
-            upsert=True,
         )
+        await db.execute(stmt)
 
     # Compute replay hash
     hash_input = {
@@ -832,7 +839,6 @@ async def _store_results(
 
 async def run_pipeline(
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     session_id: uuid.UUID,
     seed: str | None = None,
     *,
@@ -866,7 +872,7 @@ async def run_pipeline(
 
     # Step 1: Fetch pre-computed 33-word summaries
     logger.info("Step 1: Fetching pre-computed summaries")
-    responses = await _fetch_summaries(db, mongo, session_id)
+    responses = await _fetch_summaries(db, session_id)
     if not responses:
         return {
             "session_id": str(session_id),
@@ -911,7 +917,7 @@ async def run_pipeline(
     # Step 8: Store results
     logger.info("Step 8: Storing results")
     replay_hash = await _store_results(
-        db, session, responses, bin_samples, reduced, mongo
+        db, session, responses, bin_samples, reduced
     )
 
     duration = round(time.monotonic() - start_time, 2)

@@ -3,11 +3,10 @@
 import uuid
 
 from fastapi import APIRouter, Depends
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser
-from app.core.dependencies import get_db, get_mongo
+from app.core.dependencies import get_db
 from app.core.permissions import require_role
 from app.cubes.cube6_ai import service
 from app.schemas.theme import ThemeRead
@@ -21,7 +20,6 @@ async def run_ai_theming(
     session_id: uuid.UUID,
     payload: PipelineRunRequest | None = None,
     db: AsyncSession = Depends(get_db),
-    mongo_db: AsyncIOMotorDatabase = Depends(get_mongo),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
     """CRS-09: Trigger full AI theme pipeline (marble sampling → reduction → assignment).
@@ -29,7 +27,7 @@ async def run_ai_theming(
     Returns 202 with pipeline result summary.
     """
     seed = payload.seed if payload else None
-    result = await service.run_pipeline(db, mongo_db, session_id, seed=seed)
+    result = await service.run_pipeline(db, session_id, seed=seed)
     return result
 
 

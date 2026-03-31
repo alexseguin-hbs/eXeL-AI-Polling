@@ -30,7 +30,7 @@ from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
-from app.core.dependencies import get_db, get_mongo, get_redis
+from app.core.dependencies import get_db, get_redis
 
 logger = logging.getLogger(__name__)
 from app.core.permissions import require_role
@@ -70,7 +70,6 @@ async def _transition_and_return(
     target_state: str,
     user: CurrentUser,
     redis: aioredis.Redis | None = None,
-    mongo=None,
 ) -> SessionRead:
     """Verify ownership, transition state, and return serialized session.
 
@@ -85,13 +84,13 @@ async def _transition_and_return(
     )
 
     # Fire Cube 5 orchestrator on polling → ranking transition
-    if target_state == "ranking" and mongo is not None:
+    if target_state == "ranking":
         try:
             from app.cubes.cube5_gateway.service import orchestrate_post_polling
 
             asyncio.create_task(
                 orchestrate_post_polling(
-                    db, mongo, session_id, seed=updated.seed
+                    db, session_id, seed=updated.seed
                 )
             )
             logger.info(
@@ -259,10 +258,9 @@ async def start_ranking(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
-    mongo=Depends(get_mongo),
 ):
     """Moderator starts ranking phase — fires Cube 5 orchestrator for AI theming."""
-    return await _transition_and_return(db, session_id, "ranking", user, mongo=mongo)
+    return await _transition_and_return(db, session_id, "ranking", user)
 
 
 @router.post("/{session_id}/close", response_model=SessionRead)

@@ -27,7 +27,6 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -345,7 +344,6 @@ async def update_pipeline_status(
 
 async def trigger_ai_pipeline(
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     session_id: uuid.UUID,
     seed: str | None = None,
     use_embedding_assignment: bool = False,
@@ -375,7 +373,6 @@ async def trigger_ai_pipeline(
                 await update_pipeline_status(bg_db, trigger_id, "in_progress")
                 result = await run_pipeline(
                     bg_db,
-                    mongo,
                     session_id,
                     seed=seed,
                     use_embedding_assignment=use_embedding_assignment,
@@ -426,7 +423,6 @@ async def trigger_ranking_pipeline(
 
 async def trigger_cqs_scoring(
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     session_id: uuid.UUID,
     top_theme2_id: str | None = None,
 ) -> PipelineTrigger:
@@ -445,7 +441,6 @@ async def trigger_cqs_scoring(
 
 async def orchestrate_post_polling(
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     session_id: uuid.UUID,
     seed: str | None = None,
 ) -> PipelineTrigger:
@@ -460,7 +455,7 @@ async def orchestrate_post_polling(
         extra={"session_id": str(session_id)},
     )
     return await trigger_ai_pipeline(
-        db, mongo, session_id, seed=seed
+        db, session_id, seed=seed
     )
 
 
