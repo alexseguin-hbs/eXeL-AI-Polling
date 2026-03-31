@@ -27,6 +27,7 @@ from app.cubes.cube6_ai.router import router as ai_router
 from app.cubes.cube7_ranking.router import router as ranking_router
 from app.cubes.cube8_tokens.router import router as tokens_router
 from app.core.realtime_ws import router as realtime_router
+from app.cubes.cube8_tokens.webhook import router as stripe_webhook_router
 from app.cubes.cube9_reports.router import router as reports_router
 from app.db.postgres import close_postgres
 from app.db.redis import close_redis, init_redis
@@ -112,6 +113,7 @@ app.include_router(ai_router, prefix=PREFIX)
 app.include_router(ranking_router, prefix=PREFIX)
 app.include_router(tokens_router, prefix=PREFIX)
 app.include_router(reports_router, prefix=PREFIX)
+app.include_router(stripe_webhook_router, prefix=PREFIX)
 app.include_router(realtime_router)
 
 

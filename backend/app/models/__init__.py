@@ -2,6 +2,7 @@
 
 from app.models.audit_log import AuditLog
 from app.models.participant import Participant
+from app.models.payment import PaymentTransaction
 from app.models.pipeline_trigger import PipelineTrigger
 from app.models.profanity_filter import ProfanityFilter
 from app.models.question import Question
@@ -22,6 +23,7 @@ from app.models.user import User
 __all__ = [
     "AuditLog",
     "Participant",
+    "PaymentTransaction",
     "PipelineTrigger",
     "ProfanityFilter",
     "Question",
