@@ -74,7 +74,7 @@ _SINGLE_PROMPT_INSTRUCTION = (
 
 
 async def summarize_single_response(
-    mongo: AsyncIOMotorDatabase,
+    db: AsyncSession,
     *,
     session_id: uuid.UUID,
     response_id: uuid.UUID,
@@ -86,7 +86,8 @@ async def summarize_single_response(
     """Generate 333 -> 111 -> 33 word summaries for a single response.
 
     Called by Cube 2 submit flow (fire-and-forget async task with retry).
-    Stores summaries in MongoDB, then broadcasts summary_ready via Supabase.
+    Stores summaries in PostgreSQL (response_summaries), then broadcasts
+    summary_ready via Supabase.
 
     Task A0: Short-circuit if ≤33 words (BR-1).
     Task A1: Single structured prompt for all 3 tiers (<0.5s target).
@@ -167,20 +168,28 @@ async def summarize_single_response(
                     instruction=_SUMMARIZE_INSTRUCTION.format(translate="", target=33),
                 )
 
-    # Store in MongoDB for immediate display
-    await mongo.summaries.update_one(
-        {"response_id": str(response_id), "session_id": str(session_id)},
-        {
-            "$set": {
-                "summary_333": summary_333,
-                "summary_111": summary_111,
-                "summary_33": summary_33,
-                "language_code": language_code,
-                "summarized_at": datetime.now(timezone.utc).isoformat(),
-            }
+    # Store in PostgreSQL (response_summaries) for immediate display
+    from sqlalchemy.dialects.postgresql import insert as pg_insert
+    from app.models.response_summary import ResponseSummary
+
+    stmt = pg_insert(ResponseSummary).values(
+        response_meta_id=response_id,
+        session_id=session_id,
+        provider=ai_provider,
+        summary_333=summary_333,
+        summary_111=summary_111,
+        summary_33=summary_33,
+    ).on_conflict_do_update(
+        index_elements=["response_meta_id"],
+        set_={
+            "summary_333": summary_333,
+            "summary_111": summary_111,
+            "summary_33": summary_33,
+            "provider": ai_provider,
         },
-        upsert=True,
     )
+    await db.execute(stmt)
+    await db.commit()
 
     logger.info(
         "cube6.live_summary.completed",

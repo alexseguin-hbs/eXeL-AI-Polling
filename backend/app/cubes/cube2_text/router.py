@@ -10,12 +10,11 @@ Endpoints:
 import uuid
 
 from fastapi import APIRouter, Depends, Query, Request
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_optional_current_user
-from app.core.dependencies import get_db, get_mongo, get_redis
+from app.core.dependencies import get_db, get_redis
 from app.core.rate_limit import limiter
 from app.cubes.cube2_text import metrics as cube2_metrics
 from app.cubes.cube2_text import service
@@ -39,7 +38,6 @@ async def submit_response(
     session_id: uuid.UUID,
     payload: ResponseCreate,
     db: AsyncSession = Depends(get_db),
-    mongo: AsyncIOMotorDatabase = Depends(get_mongo),
     redis: Redis = Depends(get_redis),
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
@@ -47,11 +45,11 @@ async def submit_response(
 
     Validates session (must be polling), question, participant, and text input.
     Runs PII detection (NER + regex) and profanity detection (non-blocking).
-    Stores raw text in MongoDB, metadata in Postgres.
+    Stores raw text and metadata in PostgreSQL.
     Returns immediate token display (♡ and ◬).
     """
     result = await service.submit_text_response(
-        db, mongo, redis,
+        db, redis,
         session_id=session_id,
         question_id=payload.question_id,
         participant_id=payload.participant_id,

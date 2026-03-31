@@ -29,9 +29,9 @@ from datetime import datetime, timezone
 from typing import Any
 
 import structlog
-from motor.motor_asyncio import AsyncIOMotorDatabase
 from redis.asyncio import Redis
 from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
@@ -45,6 +45,7 @@ from app.models.participant import Participant
 from app.models.profanity_filter import ProfanityFilter
 from app.models.question import Question
 from app.models.response_meta import ResponseMeta
+from app.models.response_summary import ResponseSummary
 from app.models.session import Session
 from app.models.text_response import TextResponse
 
@@ -392,7 +393,6 @@ def anonymize_response(
 
 async def store_response(
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     *,
     session_id: uuid.UUID,
     question_id: uuid.UUID,
@@ -409,37 +409,22 @@ async def store_response(
     profanity_words: list[dict] | None,
     clean_text: str,
 ) -> tuple[ResponseMeta, str]:
-    """Store response in MongoDB (raw) + Postgres (ResponseMeta + TextResponse).
+    """Store response in PostgreSQL (ResponseMeta + TextResponse).
 
     CRS-05: In anonymous mode, participant_id is None and anon_hash is stored.
+    Raw text stored on ResponseMeta.raw_text column.
     Returns (ResponseMeta, response_hash) tuple.
     """
     now = datetime.now(timezone.utc)
 
-    # --- MongoDB: raw text storage ---
-    mongo_doc: dict[str, Any] = {
-        "session_id": str(session_id),
-        "question_id": str(question_id),
-        "raw_text": raw_text,
-        "language_code": language_code,
-        "submitted_at": now,
-    }
-    # CRS-05: Store participant_id or anon_hash based on anonymity mode
-    if participant_id is not None:
-        mongo_doc["participant_id"] = str(participant_id)
-    if anon_hash is not None:
-        mongo_doc["anon_hash"] = anon_hash
-    mongo_result = await mongo.responses.insert_one(mongo_doc)
-    mongo_ref = str(mongo_result.inserted_id)
-
-    # --- Postgres: ResponseMeta ---
+    # --- Postgres: ResponseMeta (raw_text stored here) ---
     response_meta = ResponseMeta(
         session_id=session_id,
         question_id=question_id,
         participant_id=participant_id,
         cycle_id=cycle_id,
         source="text",
-        mongo_ref=mongo_ref,
+        raw_text=raw_text,
         char_count=len(raw_text),
         submitted_at=now,
         is_flagged=False,
@@ -510,7 +495,6 @@ async def publish_submission_event(
 
 async def submit_text_response(
     db: AsyncSession,
-    mongo: AsyncIOMotorDatabase,
     redis: Redis,
     *,
     session_id: uuid.UUID,
@@ -527,7 +511,7 @@ async def submit_text_response(
       3. Start time tracking (Cube 5)
       4. Detect + scrub PII (NER + regex)
       5. Detect + scrub profanity (DB patterns)
-      6. Store: MongoDB (raw) + Postgres (ResponseMeta + TextResponse)
+      6. Store: PostgreSQL (ResponseMeta + TextResponse)
       7. Stop time tracking, calculate tokens
       8. Publish Redis event for Cube 6
       9. Return response with immediate token display
@@ -585,7 +569,7 @@ async def submit_text_response(
     is_anonymous = session.anonymity_mode == "anonymous"
     effective_pid, anon_hash = anonymize_response(participant_id, session.anonymity_mode)
     response_meta, response_hash = await store_response(
-        db, mongo,
+        db,
         session_id=session_id,
         question_id=question_id,
         participant_id=effective_pid,
@@ -629,18 +613,18 @@ async def submit_text_response(
     )
 
     async def _run_phase_a_with_retry(
-        mongo_db, *, session_id, response_id, clean_text, language_code, ai_provider,
-        session_short_code: str = "",
+        pg_db: AsyncSession, *, session_id, response_id, clean_text, language_code,
+        ai_provider, session_short_code: str = "",
         max_retries: int = 3,
     ):
         """Task A2: Phase A with exponential backoff retry (1s, 2s, 4s).
-        On final failure: store summary_33 = '[Summary unavailable]' in MongoDB."""
+        On final failure: store summary_33 = '[Summary unavailable]' in PostgreSQL."""
         from app.cubes.cube6_ai.service import summarize_single_response
 
         for attempt in range(max_retries):
             try:
                 await summarize_single_response(
-                    mongo_db,
+                    pg_db,
                     session_id=session_id,
                     response_id=response_id,
                     raw_text=clean_text,  # PII-safe (Task A7)
@@ -662,32 +646,36 @@ async def submit_text_response(
                 if attempt < max_retries - 1:
                     await asyncio.sleep(wait)
 
-        # All retries exhausted — store fallback marker
+        # All retries exhausted — store fallback marker in PostgreSQL
         logger.error(
             "cube2.phase_a.exhausted",
             response_id=str(response_id),
             session_id=str(session_id),
         )
         try:
-            await mongo_db.summaries.update_one(
-                {"response_id": str(response_id), "session_id": str(session_id)},
-                {"$set": {
-                    "session_id": str(session_id),
-                    "response_id": str(response_id),
+            stmt = pg_insert(ResponseSummary).values(
+                response_meta_id=response_id,
+                session_id=session_id,
+                summary_33="[Summary unavailable]",
+                summary_111="[Summary unavailable]",
+                summary_333="[Summary unavailable]",
+            ).on_conflict_do_update(
+                index_elements=["response_meta_id"],
+                set_={
                     "summary_33": "[Summary unavailable]",
                     "summary_111": "[Summary unavailable]",
                     "summary_333": "[Summary unavailable]",
-                    "failed": True,
-                }},
-                upsert=True,
+                },
             )
+            await pg_db.execute(stmt)
+            await pg_db.commit()
         except Exception:
             pass  # Best-effort fallback storage
 
     try:
         task = asyncio.create_task(
             _run_phase_a_with_retry(
-                mongo,
+                db,
                 session_id=session_id,
                 response_id=response_meta.id,
                 clean_text=clean_text,
