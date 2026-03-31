@@ -9,7 +9,7 @@ Tests:
   - PII scrubbing (placeholder replacement)
   - Profanity detection (DB pattern matching)
   - Profanity scrubbing (replacement)
-  - Response storage (MongoDB + Postgres)
+  - Response storage (Postgres)
   - Redis pub/sub event publishing
   - Full orchestrator flow (submit_text_response)
   - Paginated response listing

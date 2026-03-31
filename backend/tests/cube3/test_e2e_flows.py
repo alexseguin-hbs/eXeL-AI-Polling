@@ -61,19 +61,13 @@ class TestSubmissionFlow:
 
     @pytest.mark.asyncio
     async def test_voice_submit_full_pipeline(self):
-        """Voice submission stores in MongoDB (audio) + Postgres (meta + voice + text)."""
+        """Voice submission stores in Postgres (meta + voice + text)."""
         session = make_session(status="polling")
         question = make_question(session_id=session.id)
         participant = make_participant(session_id=session.id)
         time_entry = make_time_entry(heart_tokens_earned=1.0, unity_tokens_earned=5.0)
 
         mock_db = AsyncMock()
-        mock_mongo = MagicMock()
-        mock_mongo.responses.insert_one = AsyncMock(
-            return_value=MagicMock(inserted_id="mongo_voice_001")
-        )
-        mock_mongo.audio_files = MagicMock()
-        mock_mongo.audio_files.insert_one = AsyncMock()
         mock_redis = AsyncMock()
         mock_redis.publish = AsyncMock()
 
@@ -128,7 +122,7 @@ class TestSubmissionFlow:
             from app.cubes.cube3_voice.service import submit_voice_response
 
             result = await submit_voice_response(
-                mock_db, mock_mongo, mock_redis,
+                mock_db, mock_redis,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -136,10 +130,6 @@ class TestSubmissionFlow:
                 language_code="en",
                 audio_format="webm",
             )
-
-        # Verify MongoDB writes (audio + raw transcript)
-        mock_mongo.responses.insert_one.assert_awaited_once()
-        mock_mongo.audio_files.insert_one.assert_awaited_once()
 
         # Verify Postgres writes (ResponseMeta + VoiceResponse + TextResponse)
         assert mock_db.add.call_count == 3
@@ -161,12 +151,6 @@ class TestSubmissionFlow:
         time_entry = make_time_entry(heart_tokens_earned=2.0, unity_tokens_earned=10.0)
 
         mock_db = AsyncMock()
-        mock_mongo = MagicMock()
-        mock_mongo.responses.insert_one = AsyncMock(
-            return_value=MagicMock(inserted_id="mongo_v002")
-        )
-        mock_mongo.audio_files = MagicMock()
-        mock_mongo.audio_files.insert_one = AsyncMock()
         mock_redis = AsyncMock()
         mock_redis.publish = AsyncMock()
 
@@ -217,7 +201,7 @@ class TestSubmissionFlow:
             from app.cubes.cube3_voice.service import submit_voice_response
 
             result = await submit_voice_response(
-                mock_db, mock_mongo, mock_redis,
+                mock_db, mock_redis,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -267,12 +251,6 @@ class TestSubmissionFlow:
         time_entry = make_time_entry()
 
         mock_db = AsyncMock()
-        mock_mongo = MagicMock()
-        mock_mongo.responses.insert_one = AsyncMock(
-            return_value=MagicMock(inserted_id="mongo_v003")
-        )
-        mock_mongo.audio_files = MagicMock()
-        mock_mongo.audio_files.insert_one = AsyncMock()
         mock_redis = AsyncMock()
         mock_redis.publish = AsyncMock()
 
@@ -323,7 +301,7 @@ class TestSubmissionFlow:
             from app.cubes.cube3_voice.service import submit_voice_response
 
             await submit_voice_response(
-                mock_db, mock_mongo, mock_redis,
+                mock_db, mock_redis,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -444,12 +422,6 @@ class TestCRS08Integrity:
         time_entry = make_time_entry(heart_tokens_earned=1.0, unity_tokens_earned=5.0)
 
         mock_db = AsyncMock()
-        mock_mongo = MagicMock()
-        mock_mongo.responses.insert_one = AsyncMock(
-            return_value=MagicMock(inserted_id="mongo_hash_test")
-        )
-        mock_mongo.audio_files = MagicMock()
-        mock_mongo.audio_files.insert_one = AsyncMock()
         mock_redis = AsyncMock()
         mock_redis.publish = AsyncMock()
 
@@ -502,7 +474,7 @@ class TestCRS08Integrity:
             from app.cubes.cube3_voice.service import submit_voice_response
 
             result = await submit_voice_response(
-                mock_db, mock_mongo, mock_redis,
+                mock_db, mock_redis,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -654,7 +626,7 @@ CUBE3_TEST_METHOD = {
                 "scrub_pii (placeholder replacement)",
                 "detect_profanity (DB patterns via Cube 2)",
                 "scrub_profanity (configured replacements)",
-                "store_voice_response (MongoDB audio + Postgres meta/voice/text)",
+                "store_voice_response (Postgres meta/voice/text)",
                 "compute_response_hash (CRS-08: SHA-256 of clean_text)",
                 "stop_time_tracking (token calculation)",
                 "publish_redis_event (Cube 6 downstream)",

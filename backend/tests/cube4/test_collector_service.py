@@ -5,7 +5,7 @@ Tests:
   - Response count by source type
   - Language breakdown
   - Presence tracking (Redis)
-  - Summary status check (MongoDB)
+  - Summary status check
   - Single response lookup
   - Pagination
 """
@@ -17,32 +17,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from tests.conftest import make_participant, make_question, make_response_meta, make_session
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _mock_mongo_with_summaries(summaries: dict | None = None, responses: dict | None = None):
-    """Create a mock MongoDB that returns specified summary/response docs."""
-    mongo = MagicMock()
-
-    # responses collection
-    mongo.responses = MagicMock()
-    mongo.responses.find_one = AsyncMock(return_value=responses or {
-        "raw_text": "Test response text about AI governance",
-        "text": "Test response text about AI governance",
-        "language": "English",
-        "language_code": "en",
-    })
-
-    # summaries collection
-    mongo.summaries = MagicMock()
-    mongo.summaries.find_one = AsyncMock(return_value=summaries)
-    mongo.summaries.count_documents = AsyncMock(return_value=0)
-
-    return mongo
 
 
 # ---------------------------------------------------------------------------
@@ -182,8 +156,12 @@ class TestSummaryStatus:
         """Empty session returns 0 summaries."""
         from app.cubes.cube4_collector.service import get_summary_status
 
-        mongo = _mock_mongo_with_summaries()
-        result = await get_summary_status(mongo, uuid.uuid4())
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar.return_value = 0
+        mock_db.execute = AsyncMock(return_value=mock_result)
+
+        result = await get_summary_status(mock_db, uuid.uuid4())
         assert result["total_summaries"] == 0
         assert result["with_33_word_summary"] == 0
         assert result["with_theme_assignment"] == 0
@@ -193,20 +171,20 @@ class TestSummaryStatus:
         """Should return correct summary/theme counts."""
         from app.cubes.cube4_collector.service import get_summary_status
 
-        mongo = MagicMock()
-        mongo.summaries = MagicMock()
+        mock_db = AsyncMock()
         call_count = 0
         counts = [10, 8, 5]  # total, with_33, with_themes
 
-        async def _count_docs(*args, **kwargs):
+        async def _execute(*args, **kwargs):
             nonlocal call_count
-            val = counts[call_count]
+            mock_result = MagicMock()
+            mock_result.scalar.return_value = counts[call_count]
             call_count += 1
-            return val
+            return mock_result
 
-        mongo.summaries.count_documents = _count_docs
+        mock_db.execute = _execute
 
-        result = await get_summary_status(mongo, uuid.uuid4())
+        result = await get_summary_status(mock_db, uuid.uuid4())
         assert result["total_summaries"] == 10
         assert result["with_33_word_summary"] == 8
         assert result["with_theme_assignment"] == 5
@@ -230,9 +208,8 @@ class TestCollectedResponses:
         query_result.all.return_value = []
 
         mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
-        mongo = _mock_mongo_with_summaries()
 
-        result = await get_collected_responses(mock_db, mongo, uuid.uuid4())
+        result = await get_collected_responses(mock_db, uuid.uuid4())
         assert result["total"] == 0
         assert result["items"] == []
 
@@ -257,9 +234,7 @@ class TestCollectedResponses:
         query_result.all.return_value = [(meta, question, participant)]
         mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
 
-        mongo = _mock_mongo_with_summaries()
-
-        result = await get_collected_responses(mock_db, mongo, session_id)
+        result = await get_collected_responses(mock_db, session_id)
         assert result["total"] == 1
         item = result["items"][0]
 
@@ -291,16 +266,8 @@ class TestCollectedResponses:
         query_result.all.return_value = [(meta, question, participant)]
         mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
 
-        mongo = _mock_mongo_with_summaries(
-            summaries={
-                "summary_333": "Long summary about governance",
-                "summary_111": "Medium summary",
-                "summary_33": "Short summary",
-            }
-        )
-
         result = await get_collected_responses(
-            mock_db, mongo, session_id, include_summaries=True
+            mock_db, session_id, include_summaries=True
         )
         item = result["items"][0]
         assert item["summary_333"] == "Long summary about governance"
@@ -324,21 +291,8 @@ class TestCollectedResponses:
         query_result.all.return_value = [(meta, question, participant)]
         mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
 
-        mongo = _mock_mongo_with_summaries(
-            summaries={
-                "theme01": "Risk & Concerns",
-                "theme01_confidence": 92,
-                "theme2_9": "Privacy Data Concerns Regulation Needed",
-                "theme2_9_confidence": 85,
-                "theme2_6": "Data Privacy Protection",
-                "theme2_6_confidence": 88,
-                "theme2_3": "Regulation Required",
-                "theme2_3_confidence": 90,
-            }
-        )
-
         result = await get_collected_responses(
-            mock_db, mongo, session_id, include_themes=True
+            mock_db, session_id, include_themes=True
         )
         item = result["items"][0]
         assert item["theme01"] == "Risk & Concerns"
@@ -362,9 +316,8 @@ class TestCollectedResponses:
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
         mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
-        mongo = _mock_mongo_with_summaries()
 
-        result = await get_collected_responses(mock_db, mongo, session_id)
+        result = await get_collected_responses(mock_db, session_id)
         item = result["items"][0]
         assert item["native_language"] == "es"
 
@@ -384,9 +337,8 @@ class TestSingleResponse:
         mock_result = MagicMock()
         mock_result.one_or_none.return_value = None
         mock_db.execute = AsyncMock(return_value=mock_result)
-        mongo = _mock_mongo_with_summaries()
 
-        result = await get_single_response(mock_db, mongo, uuid.uuid4(), uuid.uuid4())
+        result = await get_single_response(mock_db, uuid.uuid4(), uuid.uuid4())
         assert result is None
 
     @pytest.mark.asyncio
@@ -404,23 +356,7 @@ class TestSingleResponse:
         mock_result.one_or_none.return_value = (meta, question, participant)
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        mongo = _mock_mongo_with_summaries(
-            summaries={
-                "summary_333": "Long summary",
-                "summary_111": "Medium",
-                "summary_33": "Short",
-                "theme01": "Supporting Comments",
-                "theme01_confidence": 85,
-                "theme2_9": "",
-                "theme2_9_confidence": 0,
-                "theme2_6": "",
-                "theme2_6_confidence": 0,
-                "theme2_3": "",
-                "theme2_3_confidence": 0,
-            }
-        )
-
-        result = await get_single_response(mock_db, mongo, session_id, meta.id)
+        result = await get_single_response(mock_db, session_id, meta.id)
         assert result is not None
         assert result["q_number"].startswith("Q-")
         assert result["summary_333"] == "Long summary"

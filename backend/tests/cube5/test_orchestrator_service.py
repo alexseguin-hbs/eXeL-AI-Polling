@@ -207,7 +207,6 @@ class TestTriggerAiPipeline:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
 
         with patch("app.cubes.cube5_gateway.service.asyncio") as mock_asyncio:
             mock_asyncio.create_task = MagicMock()
@@ -215,7 +214,7 @@ class TestTriggerAiPipeline:
             from app.cubes.cube5_gateway.service import trigger_ai_pipeline
 
             trigger = await trigger_ai_pipeline(
-                mock_db, mock_mongo, uuid.uuid4(), seed="test_seed"
+                mock_db, uuid.uuid4(), seed="test_seed"
             )
 
         mock_db.add.assert_called_once()
@@ -228,7 +227,6 @@ class TestTriggerAiPipeline:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
 
         with patch("app.cubes.cube5_gateway.service.asyncio") as mock_asyncio:
             mock_asyncio.create_task = MagicMock()
@@ -236,7 +234,7 @@ class TestTriggerAiPipeline:
             from app.cubes.cube5_gateway.service import trigger_ai_pipeline
 
             await trigger_ai_pipeline(
-                mock_db, mock_mongo, uuid.uuid4(), seed="my_seed"
+                mock_db, uuid.uuid4(), seed="my_seed"
             )
 
         added_obj = mock_db.add.call_args[0][0]
@@ -249,7 +247,6 @@ class TestTriggerAiPipeline:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
 
         with patch("app.cubes.cube5_gateway.service.asyncio") as mock_asyncio:
             mock_asyncio.create_task = MagicMock()
@@ -257,7 +254,7 @@ class TestTriggerAiPipeline:
             from app.cubes.cube5_gateway.service import trigger_ai_pipeline
 
             await trigger_ai_pipeline(
-                mock_db, mock_mongo, uuid.uuid4(), use_embedding_assignment=True
+                mock_db, uuid.uuid4(), use_embedding_assignment=True
             )
 
         added_obj = mock_db.add.call_args[0][0]
@@ -300,12 +297,11 @@ class TestTriggerCqsScoring:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
 
         from app.cubes.cube5_gateway.service import trigger_cqs_scoring
 
         trigger = await trigger_cqs_scoring(
-            mock_db, mock_mongo, uuid.uuid4(), top_theme2_id="theme_xyz"
+            mock_db, uuid.uuid4(), top_theme2_id="theme_xyz"
         )
 
         added_obj = mock_db.add.call_args[0][0]
@@ -319,11 +315,10 @@ class TestTriggerCqsScoring:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
 
         from app.cubes.cube5_gateway.service import trigger_cqs_scoring
 
-        await trigger_cqs_scoring(mock_db, mock_mongo, uuid.uuid4())
+        await trigger_cqs_scoring(mock_db, uuid.uuid4())
 
         added_obj = mock_db.add.call_args[0][0]
         assert added_obj.trigger_metadata["top_theme2_id"] is None
@@ -342,7 +337,6 @@ class TestOrchestratePostPolling:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
         sid = uuid.uuid4()
 
         with patch("app.cubes.cube5_gateway.service.asyncio") as mock_asyncio:
@@ -351,7 +345,7 @@ class TestOrchestratePostPolling:
             from app.cubes.cube5_gateway.service import orchestrate_post_polling
 
             trigger = await orchestrate_post_polling(
-                mock_db, mock_mongo, sid, seed="test_seed"
+                mock_db, sid, seed="test_seed"
             )
 
         # Should create ai_theming trigger
@@ -366,7 +360,6 @@ class TestOrchestratePostPolling:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
 
         with patch("app.cubes.cube5_gateway.service.asyncio") as mock_asyncio:
             mock_asyncio.create_task = MagicMock()
@@ -374,7 +367,7 @@ class TestOrchestratePostPolling:
             from app.cubes.cube5_gateway.service import orchestrate_post_polling
 
             await orchestrate_post_polling(
-                mock_db, mock_mongo, uuid.uuid4(), seed="abc123"
+                mock_db, uuid.uuid4(), seed="abc123"
             )
 
         added_obj = mock_db.add.call_args[0][0]

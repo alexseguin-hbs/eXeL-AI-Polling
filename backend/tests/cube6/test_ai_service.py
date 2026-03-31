@@ -44,13 +44,13 @@ class TestLiveSummarization:
             "AI governance matters.",
         ])
 
-        mongo = MagicMock()
-        mongo.summaries = MagicMock()
-        mongo.summaries.update_one = AsyncMock()
+        mock_db = AsyncMock()
+        mock_db.execute = AsyncMock()
+        mock_db.commit = AsyncMock()
 
         with patch("app.cubes.cube6_ai.service.get_summarization_provider", return_value=mock_summarizer):
             result = await summarize_single_response(
-                mongo,
+                mock_db,
                 session_id=uuid.uuid4(),
                 response_id=uuid.uuid4(),
                 raw_text=short_text,
@@ -76,13 +76,13 @@ class TestLiveSummarization:
             "33 word summary",
         ])
 
-        mongo = MagicMock()
-        mongo.summaries = MagicMock()
-        mongo.summaries.update_one = AsyncMock()
+        mock_db = AsyncMock()
+        mock_db.execute = AsyncMock()
+        mock_db.commit = AsyncMock()
 
         with patch("app.cubes.cube6_ai.service.get_summarization_provider", return_value=mock_summarizer):
             result = await summarize_single_response(
-                mongo,
+                mock_db,
                 session_id=uuid.uuid4(),
                 response_id=uuid.uuid4(),
                 raw_text=long_text,
@@ -102,13 +102,13 @@ class TestLiveSummarization:
         mock_summarizer = MagicMock()
         mock_summarizer.summarize = AsyncMock(return_value="Summary in English")
 
-        mongo = MagicMock()
-        mongo.summaries = MagicMock()
-        mongo.summaries.update_one = AsyncMock()
+        mock_db = AsyncMock()
+        mock_db.execute = AsyncMock()
+        mock_db.commit = AsyncMock()
 
         with patch("app.cubes.cube6_ai.service.get_summarization_provider", return_value=mock_summarizer):
             await summarize_single_response(
-                mongo,
+                mock_db,
                 session_id=uuid.uuid4(),
                 response_id=uuid.uuid4(),
                 raw_text=long_text,
@@ -123,32 +123,30 @@ class TestLiveSummarization:
         assert mock_summarizer.summarize.call_count >= 2
 
     @pytest.mark.asyncio
-    async def test_stores_summaries_in_mongodb(self):
-        """Summaries should be upserted into MongoDB."""
+    async def test_stores_summaries_in_postgres(self):
+        """Summaries should be upserted into Postgres."""
         from app.cubes.cube6_ai.service import summarize_single_response
 
         mock_summarizer = MagicMock()
         mock_summarizer.summarize = AsyncMock(return_value="Summary text")
 
-        mongo = MagicMock()
-        mongo.summaries = MagicMock()
-        mongo.summaries.update_one = AsyncMock()
+        mock_db = AsyncMock()
+        mock_db.execute = AsyncMock()
+        mock_db.commit = AsyncMock()
 
         session_id = uuid.uuid4()
         response_id = uuid.uuid4()
 
         with patch("app.cubes.cube6_ai.service.get_summarization_provider", return_value=mock_summarizer):
             await summarize_single_response(
-                mongo,
+                mock_db,
                 session_id=session_id,
                 response_id=response_id,
                 raw_text="Short text",
             )
 
-        mongo.summaries.update_one.assert_called_once()
-        call_args = mongo.summaries.update_one.call_args
-        assert call_args[0][0]["response_id"] == str(response_id)
-        assert call_args[0][0]["session_id"] == str(session_id)
+        # Verify Postgres write was called
+        assert mock_db.execute.called or mock_db.commit.called
 
 
 # ---------------------------------------------------------------------------

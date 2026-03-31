@@ -6,7 +6,7 @@ Tests:
   - Circuit breaker failover logic
   - Provider selection (Moderator default → User override)
   - Transcription with mock provider
-  - Voice response storage (MongoDB audio + Postgres)
+  - Voice response storage (Postgres)
   - Full orchestrator flow (submit_voice_response)
 """
 

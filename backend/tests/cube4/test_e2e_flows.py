@@ -4,7 +4,7 @@ Tests the complete flow from response collection through to
 Web_Results format output, matching the monolith CSV structure.
 
 NOT YET IMPLEMENTED:
-  - Live API tests (require running DB + MongoDB + Redis)
+  - Live API tests (require running DB + Redis)
   - Full pipeline integration with Cube 2 + Cube 6
 
 These tests validate the service functions with mocked dependencies.
@@ -37,14 +37,14 @@ CUBE4_TEST_METHOD = {
         "total_tests": 27,
     },
     "flows": {
-        "collection": "Aggregate responses from Postgres+MongoDB -> Web_Results format",
+        "collection": "Aggregate responses from Postgres -> Web_Results format",
         "presence": "Track active participants via Redis HSET+EXPIRE",
-        "summary_status": "Check MongoDB for summary generation progress",
+        "summary_status": "Check Postgres for summary generation progress",
         "languages": "Break down response languages for session stats",
     },
     "spiral_propagation": {
         "forward": {
-            "cube6": "Cube 6 fetches summaries from MongoDB (stored by Cube 4 format)",
+            "cube6": "Cube 6 fetches summaries from Postgres (stored by Cube 4 format)",
             "cube7": "Ranking uses Theme01/Theme2 assignments from collected data",
             "cube9": "Export uses Web_Results format from Cube 4 collector",
         },
@@ -82,15 +82,7 @@ class TestCollectionFlow:
         query_result.all.return_value = [(meta, question, participant)]
         mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
 
-        mongo = MagicMock()
-        mongo.responses = MagicMock()
-        mongo.responses.find_one = AsyncMock(return_value={
-            "raw_text": "I think AI governance is crucial for democracy.",
-            "language": "English",
-            "language_code": "en",
-        })
-
-        result = await get_collected_responses(mock_db, mongo, session_id)
+        result = await get_collected_responses(mock_db, session_id)
         assert result["total"] == 1
         item = result["items"][0]
         assert item["user"] == "Alice"
@@ -115,30 +107,8 @@ class TestCollectionFlow:
         query_result.all.return_value = [(meta, question, participant)]
         mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
 
-        mongo = MagicMock()
-        mongo.responses = MagicMock()
-        mongo.responses.find_one = AsyncMock(return_value={
-            "raw_text": "Detailed text about governance...",
-            "language": "English",
-            "language_code": "en",
-        })
-        mongo.summaries = MagicMock()
-        mongo.summaries.find_one = AsyncMock(return_value={
-            "summary_333": "Three hundred thirty-three word summary",
-            "summary_111": "Hundred eleven word summary",
-            "summary_33": "Thirty-three word summary",
-            "theme01": "Supporting Comments",
-            "theme01_confidence": 88,
-            "theme2_9": "Democratic Innovation Potential",
-            "theme2_9_confidence": 82,
-            "theme2_6": "Innovation Leadership",
-            "theme2_6_confidence": 85,
-            "theme2_3": "Positive Impact",
-            "theme2_3_confidence": 91,
-        })
-
         result = await get_collected_responses(
-            mock_db, mongo, session_id,
+            mock_db, session_id,
             include_summaries=True,
             include_themes=True,
         )
@@ -174,23 +144,7 @@ class TestMultiLanguageCollection:
         query_result.all.return_value = [(meta1, q, p1), (meta2, q, p2)]
         mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
 
-        call_count = 0
-        responses = [
-            {"raw_text": "AI is great for governance", "language": "English", "language_code": "en"},
-            {"raw_text": "La IA es buena para la gobernanza", "language": "Spanish", "language_code": "es"},
-        ]
-
-        async def _find_one(*args, **kwargs):
-            nonlocal call_count
-            doc = responses[call_count] if call_count < len(responses) else responses[0]
-            call_count += 1
-            return doc
-
-        mongo = MagicMock()
-        mongo.responses = MagicMock()
-        mongo.responses.find_one = _find_one
-
-        result = await get_collected_responses(mock_db, mongo, session_id)
+        result = await get_collected_responses(mock_db, session_id)
         assert result["total"] == 2
         assert result["items"][0]["native_language"] == "en"
         assert result["items"][1]["native_language"] == "es"
@@ -216,15 +170,7 @@ class TestAnonymousCollection:
         query_result.all.return_value = [(meta, question, None)]  # No participant
         mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
 
-        mongo = MagicMock()
-        mongo.responses = MagicMock()
-        mongo.responses.find_one = AsyncMock(return_value={
-            "raw_text": "Anonymous response",
-            "language": "English",
-            "language_code": "en",
-        })
-
-        result = await get_collected_responses(mock_db, mongo, session_id)
+        result = await get_collected_responses(mock_db, session_id)
         item = result["items"][0]
         assert item["user"] == "Anonymous"
 
@@ -244,12 +190,8 @@ class TestPagination:
         query_result.all.return_value = []
         mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
 
-        mongo = MagicMock()
-        mongo.responses = MagicMock()
-        mongo.responses.find_one = AsyncMock(return_value=None)
-
         result = await get_collected_responses(
-            mock_db, mongo, uuid.uuid4(), page=3, page_size=25
+            mock_db, uuid.uuid4(), page=3, page_size=25
         )
         assert result["total"] == 100
         assert result["page"] == 3
@@ -286,11 +228,7 @@ class TestVoiceResponseCollection:
             side_effect=[count_result, query_result, text_resp_result]
         )
 
-        mongo = MagicMock()
-        mongo.responses = MagicMock()
-        mongo.responses.find_one = AsyncMock(return_value=None)  # No raw text in MongoDB
-
-        result = await get_collected_responses(mock_db, mongo, session_id)
+        result = await get_collected_responses(mock_db, session_id)
         item = result["items"][0]
         assert item["source"] == "voice"
         assert item["detailed_results"] == "Voice transcript of the response"

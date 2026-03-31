@@ -103,7 +103,6 @@ class TestOrchestratePostPollingFlow:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
         sid = uuid.uuid4()
 
         with patch("app.cubes.cube5_gateway.service.asyncio") as mock_asyncio:
@@ -112,7 +111,7 @@ class TestOrchestratePostPollingFlow:
             from app.cubes.cube5_gateway.service import orchestrate_post_polling
 
             trigger = await orchestrate_post_polling(
-                mock_db, mock_mongo, sid, seed="deterministic_seed"
+                mock_db, sid, seed="deterministic_seed"
             )
 
         # Verify trigger created
@@ -131,14 +130,12 @@ class TestOrchestratePostPollingFlow:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
-
         with patch("app.cubes.cube5_gateway.service.asyncio") as mock_asyncio:
             mock_asyncio.create_task = MagicMock()
 
             from app.cubes.cube5_gateway.service import orchestrate_post_polling
 
-            await orchestrate_post_polling(mock_db, mock_mongo, uuid.uuid4())
+            await orchestrate_post_polling(mock_db, uuid.uuid4())
 
         added = mock_db.add.call_args[0][0]
         assert added.trigger_metadata["seed"] is None
@@ -150,14 +147,12 @@ class TestOrchestratePostPollingFlow:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
-
         with patch("app.cubes.cube5_gateway.service.asyncio") as mock_asyncio:
             mock_asyncio.create_task = MagicMock()
 
             from app.cubes.cube5_gateway.service import orchestrate_post_polling
 
-            await orchestrate_post_polling(mock_db, mock_mongo, uuid.uuid4())
+            await orchestrate_post_polling(mock_db, uuid.uuid4())
 
         assert mock_asyncio.create_task.call_count == 1
 
@@ -404,7 +399,6 @@ class TestModeratorUserOrchestrationFlow:
         mock_db.add = MagicMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_mongo = MagicMock()
         sid = uuid.uuid4()
 
         with patch("app.cubes.cube5_gateway.service.asyncio") as mock_asyncio:
@@ -413,7 +407,7 @@ class TestModeratorUserOrchestrationFlow:
             from app.cubes.cube5_gateway.service import orchestrate_post_polling
 
             trigger = await orchestrate_post_polling(
-                mock_db, mock_mongo, sid, seed="session_seed"
+                mock_db, sid, seed="session_seed"
             )
 
         added = mock_db.add.call_args[0][0]

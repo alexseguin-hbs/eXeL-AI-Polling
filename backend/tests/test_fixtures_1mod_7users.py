@@ -302,7 +302,6 @@ CUBE2_OUTPUTS = {
             "hash_length": 64,  # SHA-256 hex
             "pii_detected": False,
             "profanity_detected": False,
-            "mongo_stored": True,
             "postgres_stored": True,
         },
         {
@@ -311,7 +310,6 @@ CUBE2_OUTPUTS = {
             "hash_length": 64,
             "pii_detected": False,
             "profanity_detected": False,
-            "mongo_stored": True,
             "postgres_stored": True,
         },
         {
@@ -320,7 +318,6 @@ CUBE2_OUTPUTS = {
             "hash_length": 64,
             "pii_detected": False,
             "profanity_detected": False,
-            "mongo_stored": True,
             "postgres_stored": True,
         },
         {
@@ -329,7 +326,6 @@ CUBE2_OUTPUTS = {
             "hash_length": 64,
             "pii_detected": False,
             "profanity_detected": False,
-            "mongo_stored": True,
             "postgres_stored": True,
         },
         {
@@ -338,7 +334,6 @@ CUBE2_OUTPUTS = {
             "hash_length": 64,
             "pii_detected": False,
             "profanity_detected": False,
-            "mongo_stored": True,
             "postgres_stored": True,
         },
         {
@@ -347,7 +342,6 @@ CUBE2_OUTPUTS = {
             "hash_length": 64,
             "pii_detected": False,
             "profanity_detected": False,
-            "mongo_stored": True,
             "postgres_stored": True,
         },
         {
@@ -356,7 +350,6 @@ CUBE2_OUTPUTS = {
             "hash_length": 64,
             "pii_detected": False,
             "profanity_detected": False,
-            "mongo_stored": True,
             "postgres_stored": True,
         },
     ],
@@ -430,7 +423,6 @@ CUBE4_INPUTS = {
 
 CUBE4_OUTPUTS = {
     "collected_count": 7,
-    "mongo_docs_count": 7,
     "postgres_meta_count": 7,
     "presence_tracked": 7,
 }

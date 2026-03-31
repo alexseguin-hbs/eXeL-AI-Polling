@@ -42,18 +42,14 @@ class TestSubmissionFlow:
     """E2E: Moderator creates session → transition to polling → user submits text."""
 
     @pytest.mark.asyncio
-    async def test_submit_stores_in_both_mongo_and_postgres(self):
-        """Response stored in MongoDB (raw) and Postgres (meta + text)."""
+    async def test_submit_stores_in_postgres(self):
+        """Response stored in Postgres (meta + text)."""
         session = make_session(status="polling")
         question = make_question(session_id=session.id)
         participant = make_participant(session_id=session.id)
         time_entry = make_time_entry(heart_tokens_earned=1.0, unity_tokens_earned=5.0)
 
         mock_db = AsyncMock()
-        mock_mongo = MagicMock()
-        mock_mongo.responses.insert_one = AsyncMock(
-            return_value=MagicMock(inserted_id="mongo_abc123")
-        )
         mock_redis = AsyncMock()
         mock_redis.publish = AsyncMock()
 
@@ -109,7 +105,6 @@ class TestSubmissionFlow:
 
             result = await submit_text_response(
                 mock_db,
-                mock_mongo,
                 mock_redis,
                 session_id=session.id,
                 question_id=question.id,
@@ -117,11 +112,6 @@ class TestSubmissionFlow:
                 raw_text="This is a valid test response",
                 language_code="en",
             )
-
-        # Verify MongoDB write
-        mock_mongo.responses.insert_one.assert_awaited_once()
-        mongo_doc = mock_mongo.responses.insert_one.call_args[0][0]
-        assert mongo_doc["raw_text"] == "This is a valid test response"
 
         # Verify Postgres writes (add called for ResponseMeta + TextResponse)
         assert mock_db.add.call_count == 2
@@ -141,10 +131,6 @@ class TestSubmissionFlow:
         time_entry = make_time_entry(heart_tokens_earned=2.0, unity_tokens_earned=10.0)
 
         mock_db = AsyncMock()
-        mock_mongo = MagicMock()
-        mock_mongo.responses.insert_one = AsyncMock(
-            return_value=MagicMock(inserted_id="mongo_def456")
-        )
         mock_redis = AsyncMock()
         mock_redis.publish = AsyncMock()
 
@@ -191,7 +177,7 @@ class TestSubmissionFlow:
             from app.cubes.cube2_text.service import submit_text_response
 
             result = await submit_text_response(
-                mock_db, mock_mongo, mock_redis,
+                mock_db, mock_redis,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -248,10 +234,6 @@ class TestSubmissionFlow:
         time_entry = make_time_entry()
 
         mock_db = AsyncMock()
-        mock_mongo = MagicMock()
-        mock_mongo.responses.insert_one = AsyncMock(
-            return_value=MagicMock(inserted_id="mongo_xyz")
-        )
         mock_redis = AsyncMock()
         mock_redis.publish = AsyncMock()
 
@@ -298,7 +280,7 @@ class TestSubmissionFlow:
             from app.cubes.cube2_text.service import submit_text_response
 
             await submit_text_response(
-                mock_db, mock_mongo, mock_redis,
+                mock_db, mock_redis,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -684,7 +666,7 @@ CUBE2_TEST_METHOD = {
                 "detect_profanity (DB patterns)",
                 "scrub_profanity (configured replacements)",
                 "anonymize_response (CRS-05)",
-                "store_response (MongoDB + Postgres)",
+                "store_response (Postgres)",
                 "stop_time_tracking (token calculation)",
                 "publish_redis_event (Cube 6 downstream)",
                 "return composite result with tokens",

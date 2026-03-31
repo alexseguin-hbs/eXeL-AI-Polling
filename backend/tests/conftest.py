@@ -2,7 +2,7 @@
 
 Provides:
   - Async FastAPI test client
-  - Mock database sessions (Postgres, MongoDB, Redis)
+  - Mock database sessions (Postgres, Redis)
   - Auth/user fixtures (moderator, user, admin, anonymous)
   - Session, participant, question factory fixtures
   - Common mock objects for Cube 5 time tracking
@@ -47,19 +47,6 @@ def mock_db():
     db.execute = AsyncMock()
     db.add = MagicMock()
     return db
-
-
-@pytest.fixture
-def mock_mongo():
-    """Mock MongoDB async database."""
-    mongo = MagicMock()
-    mongo.responses = MagicMock()
-    mongo.responses.insert_one = AsyncMock(
-        return_value=MagicMock(inserted_id="mongo_test_id_123")
-    )
-    mongo.audio_files = MagicMock()
-    mongo.audio_files.insert_one = AsyncMock()
-    return mongo
 
 
 @pytest.fixture
@@ -366,7 +353,6 @@ def make_response_meta(
     rm.participant_id = participant_id or uuid.uuid4()
     rm.cycle_id = 1
     rm.source = source
-    rm.mongo_ref = "mongo_ref_123"
     rm.char_count = char_count
     rm.submitted_at = datetime.now(timezone.utc)
     rm.is_flagged = False

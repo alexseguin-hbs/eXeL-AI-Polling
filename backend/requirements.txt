@@ -8,10 +8,6 @@ sqlalchemy[asyncio]>=2.0.36
 asyncpg>=0.30.0
 alembic>=1.14.0
 
-# Database - MongoDB
-motor>=3.6.0
-pymongo>=4.10.0
-
 # Database - Redis
 redis>=5.2.0
 
