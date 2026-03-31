@@ -579,18 +579,86 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 
 ---
 
+### Cube 1 — CRS Checkout Reference
+
+| CRS | Sub-CRS | Contract | Validation |
+|-----|---------|----------|------------|
+| CRS-01 | 01.01 Config fields | Session created with all config fields persisted | All 30+ fields non-null or default |
+| CRS-01 | 01.02 Short code + QR | 8-char code + QR PNG generated atomically | Code unique; QR valid PNG |
+| CRS-02 | 02.01 Anonymous join | user_id=None accepted without 401 | Participant created with anon_hash |
+| CRS-02 | 02.02 Join flow | Language → Identity → Results → Join | 3-step, no page reload |
+| CRS-02 | 02.03 Lobby auto-advance | Broadcast fires on transition | ≤2s via 4-layer fallback |
+| CRS-02 | 02.04 Late joiner bypass | Skip lobby if status=="polling" | Direct to input screen |
+| CRS-03 | 03.01 UUID5 seeded | Deterministic ID from seed+title | Same seed = same UUID |
+| CRS-03 | 03.02 Collision retry | 5-attempt short code retry | Error on exhaustion, not silent |
+| CRS-04 | 04.01 Expiry → 410 | Expired sessions blocked | SessionExpiredError raised |
+| CRS-04 | 04.02 Invalid state block | Non-open/polling rejects join | SessionStateError raised |
+| CRS-04 | 04.03 State machine | draft→open→polling→ranking→closed→archived | SESSION_TRANSITIONS enforced |
+| CRS-05 | 05.01 Anon hash | SHA-256 deterministic 64-char | Same PID = same hash |
+| CRS-05 | 05.02 Identified mode | participant_id preserved | Linkable across responses |
+| CRS-05 | 05.03 Pseudonymous | Both PID + anon_hash stored | Dual identity for audit |
+| CRS-06 | 06.01 Polling enforcement | Responses only in polling state | 100% rejection outside polling |
+| CRS-06 | 06.02 Stop → ranking | Triggers Cube 5 orchestrator | Non-blocking async task |
+
+### Cube 2 — CRS Checkout Reference
+
+| CRS | Sub-CRS | Contract | Validation |
+|-----|---------|----------|------------|
+| CRS-05 | 05.01-03 | Anonymization modes | anonymous: pid=None+hash; identified: pid+no hash; pseudonymous: both |
+| CRS-06 | 06.01 | Session must be polling | SessionNotPollingError on non-polling |
+| CRS-07 | 07.01 | 6-step pipeline | validate→PII→profanity→store→publish→summarize |
+| CRS-07 | 07.02 | 33 languages, Unicode | CJK/Arabic/emoji accepted; language_code detected |
+| CRS-07 | 07.03 | Live feed toggle | summary_ready broadcast; raw vs 33-word toggle |
+| CRS-08 | 08.01 | SHA-256 integrity | response_hash = 64-char hex of raw_text; deterministic |
+| CRS-08 | 08.02 | PII gate | Only clean_text reaches Cube 6; structured log assertion |
+| CRS-09 | 09.01 | Web_Results 5-column | q_number, question, user, detailed_results, response_language |
+
+---
+
+### Code Challenge — Simulation Mode (Current Phase)
+
+> **Status: SIMULATION ONLY.** No live code replacement yet.
+> Test dataset: `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,000 responses, all Q-0001)
+
+**How simulation works today:**
+1. Load v04.1_5000.csv as input dataset (5,000 simulated user responses)
+2. Run target cube's pipeline against this dataset
+3. Measure metrics (latency, token usage, theme accuracy, PII detection rate)
+4. Compare against current baseline stored in `CUBE_N_TEST_METHOD` dict
+5. Enhanced version must EXCEED all baseline metrics
+
+**The benchmark dataset (v04.1_5000.csv) is the universal test:**
+- 5,000 rows × 16 columns (Q_Number through Theme2_3_Confidence)
+- All Q-0001 (single question: AI Governance)
+- Mixed languages, varied response lengths
+- Pre-computed themes for validation comparison
+
 ### Code Challenge Rules (Applies to ALL Cubes)
 
-1. **Checkout:** Developer downloads current cube code + test suite + metrics baseline
-2. **Enhance:** Modify any function while preserving INPUT/OUTPUT contracts
-3. **Validate:** Run test suite — 100% pass required (0 failures)
-4. **Benchmark:** Run metrics endpoint — ALL metrics must EXCEED baseline (not just match)
-5. **Spiral Check:** Forward + backward propagation verified (downstream cubes unbroken)
-6. **Lexicon Gate:** Zero hardcoded English in UI; all strings use `t()` with Lexicon keys
-7. **Submit:** PR with SSSES impact statement in commit message
-8. **Review:** 12 Ascended Master agents evaluate (MoT leads)
-9. **Approve/Reject:** Lead reviews agent verdicts; approved = new cube version promoted
-10. **Payment:** CQS-based reward (manual at first; Cube 8 automated later)
+1. **Checkout:** Developer downloads current cube code + test suite + metrics baseline + CRS/sub-CRS table
+2. **Simulate:** Run cube against v04.1_5000.csv — measure I/O + metrics
+3. **Enhance:** Modify any function while preserving INPUT/OUTPUT contracts + CRS compliance
+4. **Validate:** Run test suite — 100% pass required (0 failures)
+5. **Benchmark:** Run metrics endpoint — ALL metrics must EXCEED baseline (not just match)
+6. **Spiral Check:** Forward + backward propagation verified (downstream cubes unbroken)
+7. **Lexicon Gate:** Zero hardcoded English in UI; all strings use `t()` with Lexicon keys
+8. **Submit:** PR with SSSES impact statement in commit message
+9. **Review:** 12 Ascended Master agents evaluate (MoT leads)
+10. **Approve/Reject:** ADMIN team reviews agent verdicts; approved = new cube version promoted
+11. **Payment:** CQS-based reward (manual ADMIN payout at first; Cube 8 automated later)
+
+### Evolution Roadmap (Long-Term Vision)
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| **Phase 1** | Simulation only — v04.1_5000.csv benchmark, manual code changes | **Current** |
+| **Phase 2** | Human prioritization (Cube 7 voting) drives improvement backlog | Planned |
+| **Phase 3** | AI proposes code improvements based on voted priorities | Planned |
+| **Phase 4** | ADMIN team approves/rejects AI recommendations | Planned |
+| **Phase 5** | Approved changes auto-deploy (replacing manual GitHub workflow) | Vision |
+| **Phase 6** | Self-evolving cube lattice — AI + human governance co-create code | Vision |
+
+> *"The code will be designed to update itself one day — where Shared Intention moves at the Speed of Thought."*
 
 ### Cube 10 — DesignMatrix VOC (Voice of Customer)
 | CRS | Customer Need | VOC Comment |
