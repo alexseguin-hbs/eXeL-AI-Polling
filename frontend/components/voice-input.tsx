@@ -7,6 +7,16 @@ import { toast } from "@/components/ui/use-toast";
 import { useLexicon } from "@/lib/lexicon-context";
 import { api, ApiClientError } from "@/lib/api";
 
+interface VoiceSubmissionResult {
+  id: string;
+  clean_text: string;
+  submitted_at: string;
+  summary_33?: string;
+  heart_tokens_earned: number;
+  unity_tokens_earned: number;
+  transcript_text: string;
+}
+
 interface VoiceInputProps {
   sessionId: string;
   questionId: string;
@@ -14,6 +24,7 @@ interface VoiceInputProps {
   languageCode?: string;
   onTranscript?: (text: string) => void;
   onTokensEarned?: (hearts: number, unity: number) => void;
+  onSubmitted?: (result: VoiceSubmissionResult) => void;
   disabled?: boolean;
 }
 
@@ -26,6 +37,7 @@ export function VoiceInput({
   languageCode = "en",
   onTranscript,
   onTokensEarned,
+  onSubmitted,
   disabled,
 }: VoiceInputProps) {
   const [state, setState] = useState<RecordingState>("idle");
@@ -61,6 +73,11 @@ export function VoiceInput({
           );
         }
 
+        // Notify parent of full submission result (for broadcast to moderator dashboard)
+        if (onSubmitted) {
+          onSubmitted(result as VoiceSubmissionResult);
+        }
+
         toast({
           title: t("cube3.voice.captured"),
           description: `${result.transcript_text.slice(0, 60)}${result.transcript_text.length > 60 ? "..." : ""}`,
@@ -79,7 +96,7 @@ export function VoiceInput({
         setState("idle");
       }
     },
-    [sessionId, questionId, participantId, languageCode, onTranscript, onTokensEarned, t],
+    [sessionId, questionId, participantId, languageCode, onTranscript, onTokensEarned, onSubmitted, t],
   );
 
   const startRecording = useCallback(async () => {

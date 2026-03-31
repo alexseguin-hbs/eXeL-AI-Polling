@@ -222,6 +222,7 @@ function SessionDetail({
   const [feedExpanded, setFeedExpanded] = useState(false);
   const [feedFullscreen, setFeedFullscreen] = useState(false);
   const [feedResponses, setFeedResponses] = useState<Array<{ id: string; clean_text: string; submitted_at: string; summary_33?: string }>>([]);
+  const [feedDisplayMode, setFeedDisplayMode] = useState<"summary" | "raw">("summary");
   const [spiralRunning, setSpiralRunning] = useState(false);
   const [spiralProgress, setSpiralProgress] = useState<SpiralTestProgress | null>(null);
   const [spiralCancel, setSpiralCancel] = useState<(() => void) | null>(null);
@@ -278,8 +279,8 @@ function SessionDetail({
       .on(
         "postgres_changes" as Parameters<typeof dbChannel.on>[0],
         { event: "INSERT", schema: "public", table: "responses", filter: `session_id=eq.${session.id}` },
-        (payload: { new: { id: string; raw_text: string; created_at: string } }) => {
-          addResponse(payload.new.id, payload.new.raw_text, payload.new.created_at);
+        (payload: { new: { id: string; raw_text?: string; clean_text?: string; created_at: string } }) => {
+          addResponse(payload.new.id, payload.new.clean_text ?? payload.new.raw_text ?? "", payload.new.created_at);
         },
       )
       .subscribe();
@@ -675,7 +676,7 @@ function SessionDetail({
                   <div className="space-y-3 max-w-4xl mx-auto">
                     {feedResponses.map((r) => (
                       <div key={r.id} className="rounded-lg border px-5 py-4">
-                        <p className="text-base text-foreground leading-relaxed">{r.summary_33 || summarizeTo33Words(r.clean_text)}</p>
+                        <p className="text-base text-foreground leading-relaxed">{feedDisplayMode === "raw" ? r.clean_text : (r.summary_33 || summarizeTo33Words(r.clean_text))}</p>
                         <p className="text-xs text-muted-foreground mt-2">
                           {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                         </p>
@@ -745,6 +746,15 @@ function SessionDetail({
                   </Button>
                 )}
                 <Button
+                  variant={feedDisplayMode === "raw" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFeedDisplayMode(feedDisplayMode === "raw" ? "summary" : "raw")}
+                  className="h-7 px-2 text-[10px]"
+                  title={feedDisplayMode === "raw" ? "Switch to 33-word summary" : "Switch to raw feedback"}
+                >
+                  {feedDisplayMode === "raw" ? "Raw" : "Summary"}
+                </Button>
+                <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setFeedExpanded(!feedExpanded)}
@@ -783,7 +793,7 @@ function SessionDetail({
                 >
                   {feedResponses.map((r) => (
                     <div key={r.id} className="px-4 py-3 text-sm">
-                      <p className="text-foreground leading-relaxed">{r.summary_33 || summarizeTo33Words(r.clean_text)}</p>
+                      <p className="text-foreground leading-relaxed">{feedDisplayMode === "raw" ? r.clean_text : (r.summary_33 || summarizeTo33Words(r.clean_text))}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                       </p>

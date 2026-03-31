@@ -429,11 +429,9 @@ export function PricingTierSelector({
                 : "border-input hover:border-primary/50"
             }`}
           >
-            <div className="flex justify-between items-start">
-              <span className="font-medium text-sm">{tier.name}</span>
-              <span className="text-xs font-mono text-primary">{tier.price}</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{tier.desc}</p>
+            <p className="font-semibold text-sm text-foreground">{tier.name}</p>
+            <p className="text-lg font-mono text-primary font-bold mt-0.5">{tier.price}</p>
+            <p className="text-xs text-muted-foreground mt-1.5">{tier.desc}</p>
             <p className="text-xs text-muted-foreground/70 mt-0.5">{tier.detail}</p>
           </button>
         ))}

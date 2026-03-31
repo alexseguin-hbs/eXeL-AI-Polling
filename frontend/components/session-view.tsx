@@ -1101,13 +1101,27 @@ export function SessionView() {
                         ? t("cube1.session.submit_next")
                         : t("cube1.session.submit_btn")}
                     </Button>
-                    {/* Voice input (Cube 3 STT) — dictation mode: fills textarea, tokens earned on Submit */}
+                    {/* Voice input (Cube 3 STT) — dictation + direct submit mode */}
                     <VoiceInput
                       sessionId={sessionId}
                       questionId={currentQuestion?.id ?? ""}
                       participantId={participantId}
                       languageCode={languageCode}
                       onTranscript={(text) => setResponseText((prev) => prev + text)}
+                      onSubmitted={(result) => {
+                        // Broadcast voice response to moderator dashboard (same as text path)
+                        if (!simulationMode) {
+                          const text = result.clean_text || result.transcript_text;
+                          broadcastToSession("new_response", {
+                            id: result.id,
+                            text: text.length > 80 ? text.substring(0, 80) + "..." : text,
+                            clean_text: text,
+                            submitted_at: result.submitted_at || new Date().toISOString(),
+                            summary_33: result.summary_33,
+                            source: "voice",
+                          }).catch(() => {});
+                        }
+                      }}
                     />
                   </div>
                 </div>
