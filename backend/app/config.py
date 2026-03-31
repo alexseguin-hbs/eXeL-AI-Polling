@@ -12,11 +12,12 @@ class Settings(BaseSettings):
     auth0_client_id: str = ""
     auth0_client_secret: str = ""
 
-    # AI Providers (launch: OpenAI, Grok/xAI, Gemini/Google)
+    # AI Providers (launch: OpenAI, Grok/xAI, Gemini/Google, Claude/Anthropic)
     openai_api_key: str = ""
     xai_api_key: str = ""
     gemini_api_key: str = ""
-    default_ai_provider: str = "openai"  # openai | grok | gemini
+    anthropic_api_key: str = ""
+    default_ai_provider: str = "openai"  # openai | grok | gemini | claude
 
     # Real-time STT (Cube 3 — paid feature: Azure primary, AWS fallback)
     azure_speech_key: str = ""

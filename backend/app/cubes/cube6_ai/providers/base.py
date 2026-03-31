@@ -18,6 +18,7 @@ class AIProviderName(str, Enum):
     OPENAI = "openai"
     GROK = "grok"  # xAI — uses OpenAI-compatible API
     GEMINI = "gemini"  # Google
+    CLAUDE = "claude"  # Anthropic
 
 
 class EmbeddingProvider(ABC):

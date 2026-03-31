@@ -23,23 +23,32 @@ from app.cubes.cube6_ai.providers.gemini_provider import (
     GeminiEmbedding,
     GeminiSummarization,
 )
+from app.cubes.cube6_ai.providers.claude_provider import (
+    ClaudeEmbedding,
+    ClaudeSummarization,
+)
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Failover order: primary -> secondary -> tertiary
-_FAILOVER_ORDER = [AIProviderName.OPENAI, AIProviderName.GROK, AIProviderName.GEMINI]
+# Failover order: primary -> secondary -> tertiary -> quaternary
+_FAILOVER_ORDER = [
+    AIProviderName.OPENAI, AIProviderName.GROK,
+    AIProviderName.GEMINI, AIProviderName.CLAUDE,
+]
 
 _EMBEDDING_PROVIDERS: dict[AIProviderName, type[EmbeddingProvider]] = {
     AIProviderName.OPENAI: OpenAIEmbedding,
     AIProviderName.GROK: GrokEmbedding,
     AIProviderName.GEMINI: GeminiEmbedding,
+    AIProviderName.CLAUDE: ClaudeEmbedding,
 }
 
 _SUMMARIZATION_PROVIDERS: dict[AIProviderName, type[SummarizationProvider]] = {
     AIProviderName.OPENAI: OpenAISummarization,
     AIProviderName.GROK: GrokSummarization,
     AIProviderName.GEMINI: GeminiSummarization,
+    AIProviderName.CLAUDE: ClaudeSummarization,
 }
 
 
@@ -49,6 +58,7 @@ def _has_api_key(provider: AIProviderName) -> bool:
         AIProviderName.OPENAI: settings.openai_api_key,
         AIProviderName.GROK: settings.xai_api_key,
         AIProviderName.GEMINI: settings.gemini_api_key,
+        AIProviderName.CLAUDE: settings.anthropic_api_key,
     }
     return bool(keys.get(provider, ""))
 
