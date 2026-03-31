@@ -644,8 +644,8 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 7. **Lexicon Gate:** Zero hardcoded English in UI; all strings use `t()` with Lexicon keys
 8. **Submit:** PR with SSSES impact statement in commit message
 9. **Review:** 12 Ascended Master agents evaluate (MoT leads)
-10. **Approve/Reject:** ADMIN team reviews agent verdicts; approved = new cube version promoted
-11. **Payment:** CQS-based reward (manual ADMIN payout at first; Cube 8 automated later)
+10. **Approve/Reject:** ◬ ♡ 웃 Team reviews agent verdicts; approved = new cube version promoted
+11. **Payment:** CQS-based reward (manual ◬ ♡ 웃 Team payout at first; Cube 8 automated later)
 
 ### Evolution Roadmap (Long-Term Vision)
 
@@ -654,9 +654,20 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 | **Phase 1** | Simulation only — v04.1_5000.csv benchmark, manual code changes | **Current** |
 | **Phase 2** | Human prioritization (Cube 7 voting) drives improvement backlog | Planned |
 | **Phase 3** | AI proposes code improvements based on voted priorities | Planned |
-| **Phase 4** | ADMIN team approves/rejects AI recommendations | Planned |
+| **Phase 4** | ◬ ♡ 웃 Team approves/rejects AI recommendations | Planned |
 | **Phase 5** | Approved changes auto-deploy (replacing manual GitHub workflow) | Vision |
 | **Phase 6** | Self-evolving cube lattice — AI + human governance co-create code | Vision |
+
+```
+  Phase 1 (NOW)          Phase 2-3              Phase 4-5               Phase 6
+  ┌──────────┐         ┌──────────┐          ┌───────────┐          ┌───────────┐
+  │Simulation│   ──▶   │ Human    │   ──▶    │AI Proposes│   ──▶   │ Self-     │
+  │Only      │         │ Votes    │          │◬ ♡ 웃 Team│          │ Evolving  │
+  │v04.1_5000│         │ Drive    │          │Approves   │          │ Code      │
+  │.csv      │         │ Backlog  │          │Auto-      │          │ Lattice   │
+  │Manual    │         │ AI Hints │          │Deploy     │          │ Conscious │
+  └──────────┘         └──────────┘          └───────────┘          └───────────┘
+```
 
 ### Neural Cube Architecture — Design Principle
 
@@ -694,8 +705,8 @@ The polling tool is the **proof of concept** — demonstrating that code can evo
                      ▼
   Metrics vs Baseline
                      │
-               ┌─────┴─────┐
-               │  Better?   │──Yes──▶ Promote new pathway
+               ┌─────┴──────┐
+               │  Better?    │──Yes──▶ Promote new pathway
                └─────┬──────┘
                      │No
                      ▼
