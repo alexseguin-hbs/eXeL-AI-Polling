@@ -6,6 +6,7 @@ import type {
   PaginatedResponse,
 } from "./types";
 import { SPIRAL_TEST_WAVES } from "./sim-data/spiral-test-100-users";
+import { supabase } from "@/lib/supabase";
 
 // ── Test Moderator ──────────────────────────────────────────────
 export const MOCK_MODERATOR_ID = "google-oauth2|mock-moderator-001";
@@ -1155,7 +1156,35 @@ export function startSpiralTest(
         });
         saveMockState();
 
-        // Cross-device: POST to KV-backed /api/responses
+        // Path A: Supabase Broadcast — instant push to moderator dashboard
+        if (supabase && session?.short_code) {
+          const channel = supabase.channel(`session:${session.short_code}`);
+          channel.send({
+            type: "broadcast",
+            event: "new_response",
+            payload: {
+              id: responseId,
+              text: resp.text.length > 80 ? resp.text.substring(0, 80) + "..." : resp.text,
+              clean_text: resp.text,
+              submitted_at: new Date().toISOString(),
+              summary_33: respSummaries.summary_33,
+              source: "spiral_test",
+              count: delivered,
+            },
+          }).catch(() => {});
+        }
+
+        // Path B: Supabase DB insert — reliable fallback (postgres_changes fires on dashboard)
+        if (supabase && session?.short_code) {
+          supabase.from("responses").insert({
+            id: responseId,
+            session_code: session.short_code,
+            participant_id: resp.participant_id,
+            content: resp.text,
+          }).then(() => {}, () => {});
+        }
+
+        // Path C: CF KV backup (cross-device, fire-and-forget)
         if (session?.short_code) {
           fetch("/api/responses", {
             method: "POST",
@@ -1169,7 +1198,7 @@ export function startSpiralTest(
               summary_111: respSummaries.summary_111,
               summary_33: respSummaries.summary_33,
             }),
-          }).catch(() => {}); // fire-and-forget
+          }).catch(() => {});
         }
 
         delivered++;
