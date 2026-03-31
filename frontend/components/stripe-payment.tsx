@@ -9,6 +9,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { api } from "@/lib/api";
+import { useLexicon } from "@/lib/lexicon-context";
 import { STRIPE_PUBLISHABLE_KEY, MODERATOR_MIN_FEE_CENTS } from "@/lib/constants";
 
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
@@ -258,7 +259,8 @@ export function DonationPrompt({
   onSuccess,
   onDismiss,
 }: PaymentProps & { onDismiss?: () => void }) {
-  const [amount, setAmount] = useState(500); // $5.00 default
+  const { t } = useLexicon();
+  const [amount, setAmount] = useState(333); // $3.33 default
   const [clientSecret, setClientSecret] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -273,7 +275,7 @@ export function DonationPrompt({
 
   const handleDonate = async () => {
     if (amount < 50) {
-      setError("Minimum donation is $0.50");
+      setError(t("cube8.donation.minimum"));
       return;
     }
     setLoading(true);
@@ -297,7 +299,7 @@ export function DonationPrompt({
   if (clientSecret) {
     return (
       <div className="space-y-4 p-4 rounded-lg border border-border bg-card">
-        <h3 className="font-semibold text-lg">Complete Your Donation</h3>
+        <h3 className="font-semibold text-lg">{t("cube8.donation.complete")}</h3>
         <Elements
           stripe={stripePromise}
           options={{ clientSecret, appearance: { theme: "night" } }}
@@ -310,20 +312,19 @@ export function DonationPrompt({
 
   return (
     <div className="space-y-4 p-4 rounded-lg border border-border bg-card">
-      <h3 className="font-semibold text-lg">Support This Session</h3>
+      <h3 className="font-semibold text-lg">{t("cube8.donation.support_this_session")}</h3>
       <p className="text-sm text-muted-foreground">
-        Your results are ready! If this session was valuable, consider a
-        donation to support the platform.
+        {t("cube8.donation.results_ready")}
       </p>
 
       {estimate && (
         <p className="text-xs text-muted-foreground">
-          Estimated session cost: ${(estimate.estimated_cost_cents / 100).toFixed(2)}
+          {t("cube8.donation.estimated_cost")}: ${(estimate.estimated_cost_cents / 100).toFixed(2)}
         </p>
       )}
 
       <div className="flex gap-2">
-        {[200, 500, 1111, 2500].map((cents) => (
+        {[1111, 3333, 9999].map((cents) => (
           <button
             key={cents}
             onClick={() => setAmount(cents)}
@@ -358,14 +359,14 @@ export function DonationPrompt({
           disabled={loading || amount < 50}
           className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
         >
-          {loading ? "Loading..." : `Donate $${(amount / 100).toFixed(2)}`}
+          {loading ? "..." : `${t("cube8.donation.donate_button")} $${(amount / 100).toFixed(2)}`}
         </button>
         {onDismiss && (
           <button
             onClick={onDismiss}
             className="px-4 py-2 rounded-md border border-input text-sm hover:bg-accent"
           >
-            Maybe Later
+            {t("cube8.donation.maybe_later")}
           </button>
         )}
       </div>

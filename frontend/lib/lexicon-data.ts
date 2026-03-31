@@ -56,12 +56,12 @@ const shared: TranslationEntry[] = [
   { key: "shared.landing.hero_title_primary", englishDefault: "Governance", context: "Landing hero heading — primary color word", cubeId: 0 },
   { key: "shared.landing.hero_title_secondary", englishDefault: "at Scale", context: "Landing hero heading — muted color words", cubeId: 0 },
   { key: "shared.landing.hero_subtitle", englishDefault: "AI-powered polling, theming, and prioritization for groups of any size. Secure, deterministic, and transparent.", context: "Landing hero description", cubeId: 0 },
-  { key: "shared.landing.feature_ai", englishDefault: "AI Theming", context: "Feature card title", cubeId: 0 },
+  { key: "shared.landing.feature_ai", englishDefault: "AI Theming", context: "Feature card title — maps to A.I. (Artificial Intelligence) in SoI Trinity", cubeId: 0 },
   { key: "shared.landing.feature_ai_desc", englishDefault: "Automatic clustering and summarization of responses in seconds", context: "Feature card description", cubeId: 0 },
-  { key: "shared.landing.feature_scale", englishDefault: "Scale to Millions", context: "Feature card title", cubeId: 0 },
+  { key: "shared.landing.feature_scale", englishDefault: "Scale to Millions", context: "Feature card title — maps to S.I. (Shared Intent) in SoI Trinity", cubeId: 0 },
   { key: "shared.landing.feature_scale_desc", englishDefault: "Handle 100K+ concurrent participants with real-time results", context: "Feature card description", cubeId: 0 },
-  { key: "shared.landing.feature_governance", englishDefault: "Governance Built In", context: "Feature card title", cubeId: 0 },
-  { key: "shared.landing.feature_governance_desc", englishDefault: "Quadratic voting, anti-sybil protection, and full audit trails", context: "Feature card description", cubeId: 0 },
+  { key: "shared.landing.feature_governance", englishDefault: "Human Governance", context: "Feature card title — maps to H.I. (Human Intelligence) in SoI Trinity", cubeId: 0 },
+  { key: "shared.landing.feature_governance_desc", englishDefault: "Auditable Consensus at the Speed of Thought", context: "Feature card description", cubeId: 0 },
   { key: "shared.landing.facilitator_cta", englishDefault: "Are you a Session Facilitator?", context: "CTA question", cubeId: 0 },
   { key: "shared.landing.facilitator_button", englishDefault: "Session Facilitator Access", context: "CTA button", cubeId: 0 },
   // Error states
@@ -412,6 +412,14 @@ const cube8: TranslationEntry[] = [
   { key: "cube8.dispute.title", englishDefault: "Dispute Token", context: "Dispute form heading", cubeId: 8 },
   { key: "cube8.dispute.reason", englishDefault: "Reason for dispute", context: "Dispute reason input label", cubeId: 8 },
   { key: "cube8.dispute.submit", englishDefault: "Submit Dispute", context: "Dispute submit button", cubeId: 8 },
+  // Donation (post-results)
+  { key: "cube8.donation.support_this_session", englishDefault: "Support This Session", context: "Donation prompt heading", cubeId: 8 },
+  { key: "cube8.donation.results_ready", englishDefault: "Your results are ready! If this session was valuable, consider a donation to support the platform.", context: "Donation prompt description", cubeId: 8 },
+  { key: "cube8.donation.donate_button", englishDefault: "Donate", context: "Donation submit button prefix", cubeId: 8 },
+  { key: "cube8.donation.maybe_later", englishDefault: "Maybe Later", context: "Donation dismiss button", cubeId: 8 },
+  { key: "cube8.donation.complete", englishDefault: "Complete Your Donation", context: "Stripe payment form heading", cubeId: 8 },
+  { key: "cube8.donation.minimum", englishDefault: "Minimum donation is $0.50", context: "Validation message", cubeId: 8 },
+  { key: "cube8.donation.estimated_cost", englishDefault: "Estimated session cost", context: "Cost estimate prefix", cubeId: 8 },
 ];
 
 const cube9: TranslationEntry[] = [
