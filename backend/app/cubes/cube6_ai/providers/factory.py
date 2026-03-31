@@ -31,9 +31,9 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Failover order: Gemini (cheapest) -> OpenAI -> Grok -> Claude
+# Failover order: OpenAI (default) -> Gemini (cheapest) -> Grok -> Claude
 _FAILOVER_ORDER = [
-    AIProviderName.GEMINI, AIProviderName.OPENAI,
+    AIProviderName.OPENAI, AIProviderName.GEMINI,
     AIProviderName.GROK, AIProviderName.CLAUDE,
 ]
 

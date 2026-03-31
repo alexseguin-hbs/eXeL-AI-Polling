@@ -180,14 +180,116 @@ function SettingsLanguageSelector() {
   );
 }
 
+// ─── Cost Estimation Table ──────────────────────────────────────
+
+/**
+ * AI cost estimates for 1000 users × 1 response × 111 words.
+ * 500 type / 500 voice (when V2T is enabled by Moderator).
+ * Summary = Phase A (single-prompt JSON) + Phase B (theming ~30% overhead).
+ * V2T = 500 voice users × 0.74 min audio each = 370 min total.
+ */
+const COST_COMBOS = [
+  { summary: "OpenAI",  v2t: "Whisper",   sumCost: 0.33,  v2tCost: 2.22,  isDefault: true },
+  { summary: "Gemini",  v2t: "Gemini",    sumCost: 0.22,  v2tCost: 0.06,  isDefault: false },
+  { summary: "Gemini",  v2t: "Whisper",   sumCost: 0.22,  v2tCost: 2.22,  isDefault: false },
+  { summary: "Grok",    v2t: "Whisper",   sumCost: 5.25,  v2tCost: 2.22,  isDefault: false },
+  { summary: "Claude",  v2t: "Whisper",   sumCost: 7.87,  v2tCost: 2.22,  isDefault: false },
+  { summary: "Claude",  v2t: "Azure",     sumCost: 7.87,  v2tCost: 5.92,  isDefault: false },
+  { summary: "Claude",  v2t: "AWS",       sumCost: 7.87,  v2tCost: 8.88,  isDefault: false },
+] as const;
+
+function CostEstimateTable() {
+  const { t } = useLexicon();
+  const [showCosts, setShowCosts] = useState(false);
+
+  return (
+    <section>
+      <button
+        onClick={() => setShowCosts(!showCosts)}
+        className="flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50"
+      >
+        <div className="flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">Cost Estimate (1,000 users)</span>
+        </div>
+        {showCosts ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+      </button>
+
+      {showCosts && (
+        <div className="mt-3 rounded-lg border border-border overflow-hidden">
+          {/* Header */}
+          <div className="bg-muted/50 px-3 py-2">
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+              1,000 users &times; 1 response &times; 111 words &nbsp;|&nbsp; 500 type / 500 voice
+            </p>
+          </div>
+
+          {/* Table header */}
+          <div className="grid grid-cols-4 gap-0 px-3 py-1.5 border-b border-border bg-muted/30 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+            <span>Combo</span>
+            <span className="text-right">Summary</span>
+            <span className="text-right">V2T</span>
+            <span className="text-right">Total</span>
+          </div>
+
+          {/* Rows */}
+          {COST_COMBOS.map((c, i) => {
+            const total = c.sumCost + c.v2tCost;
+            const label = `${c.summary} + ${c.v2t}`;
+            return (
+              <div
+                key={i}
+                className={`grid grid-cols-4 gap-0 px-3 py-2 border-b border-border/50 last:border-b-0 ${
+                  c.isDefault ? "bg-primary/5" : ""
+                }`}
+              >
+                <span className="text-xs font-medium flex items-center gap-1">
+                  {label}
+                  {c.isDefault && (
+                    <span className="text-[8px] bg-primary/20 text-primary rounded px-1 py-0.5 uppercase font-semibold">
+                      default
+                    </span>
+                  )}
+                </span>
+                <span className="text-xs text-muted-foreground text-right font-mono">
+                  ${c.sumCost.toFixed(2)}
+                </span>
+                <span className="text-xs text-muted-foreground text-right font-mono">
+                  ${c.v2tCost.toFixed(2)}
+                </span>
+                <span className={`text-xs text-right font-mono font-semibold ${
+                  total < 1 ? "text-green-500" : total < 5 ? "text-foreground" : "text-orange-400"
+                }`}>
+                  ${total.toFixed(2)}
+                </span>
+              </div>
+            );
+          })}
+
+          {/* Footer note */}
+          <div className="px-3 py-2 bg-muted/30 space-y-1">
+            <p className="text-[9px] text-muted-foreground">
+              Summary = Phase A summarization + Phase B theming (~30% overhead).
+              V2T = 500 voice users &times; 0.74 min audio each.
+            </p>
+            <p className="text-[9px] text-muted-foreground">
+              Free tier (&le;19 users): effectively $0.00 on any provider.
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ─── V2T Provider Selector Section ───────────────────────────────
 
 /** STT providers available at MVP launch with circuit breaker failover */
 const V2T_PROVIDERS = [
-  { id: "whisper", label: "OpenAI Whisper", langCount: 57, ratePerMin: 0.006, est1k: "$12.00" },
-  { id: "grok", label: "Grok (xAI)", langCount: 57, ratePerMin: 0.006, est1k: "$12.00" },
-  { id: "gemini", label: "Gemini (Google)", langCount: 33, ratePerMin: 0.002, est1k: "$4.00" },
-  { id: "aws", label: "AWS Transcribe", langCount: 23, ratePerMin: 0.024, est1k: "$48.00" },
+  { id: "whisper", label: "OpenAI Whisper", langCount: 57, ratePerMin: 0.006, est1k: "$2.22" },
+  { id: "gemini", label: "Gemini (Google)", langCount: 33, ratePerMin: 0.00015, est1k: "$0.06" },
+  { id: "grok", label: "Grok (xAI)", langCount: 57, ratePerMin: 0.006, est1k: "$2.22" },
+  { id: "aws", label: "AWS Transcribe", langCount: 23, ratePerMin: 0.024, est1k: "$8.88" },
 ] as const;
 
 function V2TProviderSelector() {
@@ -350,6 +452,8 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
           <ThemeCustomizer disabled={isPollingUser} />
           {!isPollingUser && (
             <>
+              <Separator />
+              <CostEstimateTable />
               <Separator />
               <V2TProviderSelector />
               <Separator />

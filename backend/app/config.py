@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     xai_api_key: str = ""
     gemini_api_key: str = ""
     anthropic_api_key: str = ""
-    default_ai_provider: str = "gemini"  # gemini | openai | grok | claude
+    default_ai_provider: str = "openai"  # openai | gemini | grok | claude
 
     # Real-time STT (Cube 3 — paid feature: Azure primary, AWS fallback)
     azure_speech_key: str = ""
