@@ -378,7 +378,7 @@ def anonymize_response(
     if anonymity_mode == "identified":
         return participant_id, None
 
-    anon_hash = hashlib.sha256(str(participant_id).encode()).hexdigest()[:16]
+    anon_hash = hashlib.sha256(str(participant_id).encode()).hexdigest()
 
     if anonymity_mode == "anonymous":
         return None, anon_hash

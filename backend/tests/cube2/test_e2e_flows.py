@@ -505,7 +505,7 @@ class TestAnonymizationFlow:
 
         assert effective_pid is None
         assert anon_hash is not None
-        assert len(anon_hash) == 16  # SHA-256[:16]
+        assert len(anon_hash) == 64  # Full SHA-256 hex
 
     def test_identified_mode_preserves_pid(self):
         """Identified mode should preserve participant_id, no anon_hash."""
@@ -526,7 +526,7 @@ class TestAnonymizationFlow:
 
         assert effective_pid == pid
         assert anon_hash is not None
-        assert len(anon_hash) == 16
+        assert len(anon_hash) == 64  # Full SHA-256 hex
 
     def test_anonymous_hash_is_deterministic(self):
         """Same participant_id should produce same anon_hash."""

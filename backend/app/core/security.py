@@ -32,4 +32,4 @@ def anonymize_user_id(user_id: str, session_salt: str) -> str:
     """Create a session-scoped anonymous hash for a user."""
     return hmac.new(
         session_salt.encode(), user_id.encode(), hashlib.sha256
-    ).hexdigest()[:16]
+    ).hexdigest()
