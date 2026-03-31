@@ -202,22 +202,25 @@ All clustering and ranking operations must be fully reproducible:
                         │ --  │ --  │ --  │
                         ●─────●─────●─────●
 
-  Cube 10 Blow-Up — Feedback Loop (FB) at center:
+  Cube 10 Internal Architecture:
 
-                        ●─────●─────●─────●
-                        │ SIM │ RPL │ CHK │   SIM = Simulation Runner
-                        ●─────●─────●─────●   RPL = Replay Dataset
-                        │ MTR │ FB  │ VER │   CHK = Checkout / Checkin
-                        ●─────●─────●─────●   MTR = Metrics Compare
-                        │ BCK │ TRG │ APR │   FB  = Feedback Loop (CENTER)
-                        ●─────●─────●─────●   VER = Version Control
-                                                BCK = Backlog (from FB)
-                        FB = The nervous system  TRG = Triage (AI-assisted)
-                        Collects from EVERY      APR = ◬ ♡ 웃 Approval Gate
-                        screen, auto-tags
-                        Cube + CRS, feeds
-                        backlog → votes →
-                        AI → deploy
+  ●─────●─────●─────●
+  │ SIM │ RPL │ CHK │   SIM = Simulation Runner
+  ●─────●─────●─────●   RPL = Replay Dataset (v04.1_5000.csv)
+  │ MTR │ FB  │ VER │   CHK = Checkout / Checkin
+  ●─────●─────●─────●   MTR = Metrics Compare
+  │ BCK │ TRG │ APR │   FB  = Feedback Loop (CENTER)
+  ●─────●─────●─────●   VER = Version Control
+                          BCK = Backlog (from FB → Cube 7 votes)
+  FB collects from:       TRG = Triage (AI-assisted sentiment + priority)
+  - Landing (CRS-01)     APR = ◬ ♡ 웃 Team Approval Gate
+  - Join (CRS-02)
+  - Polling (CRS-07)     Supabase table: product_feedback
+  - Dashboard (CRS-06)   API: POST /feedback (any user)
+  - Results (CRS-14)          GET /feedback (admin)
+  - Ranking (CRS-11)          GET /feedback/stats (admin)
+  - Settings (CRS-01)
+  - SIM (CRS-25)
   ```
 - **Implementation order (clockwise spiral from center):**
   1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
