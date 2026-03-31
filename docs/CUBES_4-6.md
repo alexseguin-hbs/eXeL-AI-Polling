@@ -10,13 +10,13 @@
 
 ### Cube 4 — Implemented
 - **Response aggregation:** Web_Results.csv-compatible format (q_number, question, user, detailed_results, response_language, native_language)
-- **Dual data source:** Postgres (ResponseMeta + Question + Participant JOINs) + MongoDB (raw text/transcripts)
-- **Summary inclusion:** Optional 333/111/33 word summaries from MongoDB (generated live by Cube 6 Phase A)
+- **Single data source:** PostgreSQL (ResponseMeta + Question + Participant JOINs, including raw text via ResponseMeta.raw_text)
+- **Summary inclusion:** Optional 333/111/33 word summaries from `response_summaries` table (generated live by Cube 6 Phase A)
 - **Theme inclusion:** Optional Theme01 + Theme2_9/6/3 assignments with confidence (from Cube 6 Phase B)
 - **Response count:** Breakdown by source type (text/voice) and total
 - **Language breakdown:** Response languages grouped by language_code
 - **Redis presence:** Live participant tracking (HSET + EXPIRE pattern from Cube 1)
-- **Summary status:** MongoDB count of responses with summaries and theme assignments
+- **Summary status:** PostgreSQL count of responses with summaries and theme assignments
 - **Voice support:** Voice transcripts aggregated via TextResponse clean_text fallback
 - **Anonymous support:** Null participant_id handled gracefully → "Anonymous" user label
 - **Pagination:** Standard page/page_size params with total count
@@ -30,10 +30,10 @@
 |-----|----------|-----------|--------|-------------------|
 | CRS-09 | CRS-09.IN.SRS.009 | CRS-09.OUT.SRS.009 | **Complete** | Real-time streaming aggregation |
 | CRS-09.01 | — | — | **Complete** | Web_Results 5-column raw format (q_number, question, user, detailed_results, response_language) |
-| CRS-09.02 | — | — | **Complete** | Dual storage: Postgres ResponseMeta + MongoDB raw payload write |
+| CRS-09.02 | — | — | **Complete** | PostgreSQL (single store): ResponseMeta with raw_text column |
 | CRS-09.03 | — | — | **GAP — Task A5.03** | Supabase broadcast on aggregation completion for live feed push (links to Cube 6 Phase A → Dashboard pipeline) |
 | CRS-09.1 | — | — | **Complete** | Web_Results format with native language column |
-| CRS-09.2 | — | — | **Complete** | Live summary status tracking (MongoDB) |
+| CRS-09.2 | — | — | **Complete** | Live summary status tracking (PostgreSQL `response_summaries` table) |
 | CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Partial** | Full desired outcome collection |
 | CRS-10.01 | — | — | **Not implemented** | Desired outcome creation — `create_desired_outcome()`, `record_confirmation()` (Methods 2 & 3) |
 | CRS-10.02 | — | — | **Not implemented** | All-confirmed gate signal → Cube 5 timer trigger (`check_all_confirmed()` → `gate_opened_at`) |
@@ -127,7 +127,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 | Function | Status | Description |
 |----------|--------|-------------|
 | `aggregate_response()` | **Implemented** | Creates unified `collected_responses` entry |
-| `store_to_mongodb()` | **Implemented** | Writes raw response payload to MongoDB |
+| `store_raw_response()` | **Implemented** | Writes raw response payload to ResponseMeta.raw_text (PostgreSQL) |
 | `cache_response_state()` | **Implemented** | Updates Redis with live response count |
 | `track_presence()` | **Implemented** | Processes heartbeat pings, updates presence |
 | `create_desired_outcome()` | Not implemented | Creates desired outcome record (Methods 2 & 3) |
@@ -178,9 +178,9 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 | Post-task results log | Input | User UI (Methods 2 & 3) | **SIMULATED** | Mock results log with outcome_status (achieved/partial/not_achieved) |
 | Heartbeat pings | Input | Frontend | **SIMULATED** | Mock heartbeat events at fixed intervals — no real WebSocket connection |
 | Session metadata | Input | Cube 1 (Session) | **SIMULATED** | Mock session with questions, participants, language codes from fixture store |
-| MongoDB raw text/transcripts | Input | MongoDB | **SIMULATED** | Mock MongoDB collection with raw response documents — no real MongoDB required |
+| Raw text/transcripts | Input | PostgreSQL (ResponseMeta.raw_text) | **SIMULATED** | Mock ResponseMeta rows with raw response text — no external DB required |
 | Postgres ResponseMeta + Questions + Participants | Input | Postgres | **SIMULATED** | Mock Postgres JOINs returning fixture response metadata |
-| Summary data (333/111/33) | Input | MongoDB (via Cube 6 Phase A) | **SIMULATED** | Mock summaries pre-loaded in fixture MongoDB — optional include |
+| Summary data (333/111/33) | Input | PostgreSQL `response_summaries` table (via Cube 6 Phase A) | **SIMULATED** | Mock summaries pre-loaded in fixture DB — optional include |
 | Theme data (Theme01 + Theme2) | Input | Cube 6 Phase B | **SIMULATED** | Mock theme assignments with confidence scores — optional include |
 | Collected response set | Output | Cube 6 (AI Theming) | **SIMULATED** | Web_Results format written to mock store for downstream consumption |
 | Presence state | Output | Cube 1, Cube 5, Frontend | **SIMULATED** | Mock Redis HSET/HGETALL — participant count and status from fixture |
@@ -193,7 +193,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 | Function | Sim Mode | Simulation Behavior |
 |----------|----------|---------------------|
 | `aggregate_response()` | **SIMULATED** | Creates unified collected_responses entry from mock Postgres JOINs. Validates Web_Results format (q_number, question, user, detailed_results, response_language, native_language). |
-| `store_to_mongodb()` | **SIMULATED** | Writes to mock MongoDB collection (in-memory dict). Verifies document structure matches raw response schema. |
+| `store_raw_response()` | **SIMULATED** | Writes to mock PostgreSQL ResponseMeta.raw_text column (in-memory). Verifies record structure matches raw response schema. |
 | `cache_response_state()` | **SIMULATED** | Updates mock Redis with response count. No real Redis connection required. |
 | `track_presence()` | **SIMULATED** | Processes mock heartbeat pings. Updates mock Redis HSET with participant status (online/idle/disconnected). EXPIRE simulated with mock clock. |
 | `create_desired_outcome()` | **SIMULATED** | Creates mock desired outcome record with fixture description + time estimate. Not yet implemented in production — sim validates schema only. |
@@ -213,7 +213,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 | Mock participants | 32 | 8 per session (1 moderator + 7 users) with language_code and payment_status |
 | Mock questions | 4 | One per session with q_number and question text |
 | Mock presence records | 32 | One per participant — online/idle/disconnected status with last_heartbeat |
-| Mock summaries (MongoDB) | 28 | Pre-computed 333/111/33 word summaries for optional include testing |
+| Mock summaries (response_summaries) | 28 | Pre-computed 333/111/33 word summaries for optional include testing |
 | Mock theme assignments | 28 | Theme01 + Theme2_9/6/3 with confidence for optional include testing |
 | Mock desired outcomes | 2 | One Method 2 (3 participants), one Method 3 (4 participants) |
 | Mock language breakdown | 11 | EN(55%), ES(11%), DE(10%), FR(6%), PT(5%), JA(3%), ZH(3%), KO(2%), AR(2%), HI(2%), IT(1%) |
@@ -227,7 +227,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 | Response count accuracy | Exact match | `get_response_count()` must return correct text/voice/total breakdown |
 | Language breakdown | Exact match | Language grouping must match fixture distribution (11 languages) |
 | Presence tracking | Correct state | Online/idle/disconnected status must reflect heartbeat timing |
-| Summary inclusion | Optional pass-through | When include_summaries=True, 333/111/33 fields populated from mock MongoDB |
+| Summary inclusion | Optional pass-through | When include_summaries=True, 333/111/33 fields populated from mock `response_summaries` table |
 | Theme inclusion | Optional pass-through | When include_themes=True, Theme01 + Theme2 fields populated with confidence |
 | Pagination | Correct totals | page/page_size params return correct subset with accurate total count |
 | Anonymous support | Graceful handling | Null participant_id renders as "Anonymous" user label |
@@ -576,14 +576,14 @@ See `SPIRAL_METRICS.md` — N=18 bidirectional (Feb 26). Cube 5 tests: 60/60 pas
 - Fired async from Cube 2 submit flow (`summarize_single_response()`)
 - Generates 333 → 111 → 33 word English summaries immediately
 - Non-English text auto-translated to English
-- Stored in MongoDB `summaries` collection for instant moderator screen display
+- Stored in PostgreSQL `response_summaries` table for instant moderator screen display
 - Fire-and-forget: does NOT block response to the user
 - **Frontend stub (2026-03-05):** `summarizeCascade()` in `mock-data.ts` generates extractive summaries client-side (sentence extraction to target word limits). Will be replaced by real AI summarization when backend pipeline is live.
 - **Moderator live feed:** Displays `summary_33` in real-time as responses arrive (3s polling). Fullscreen mode available.
 - **CSV export:** Web_Results CSV includes Summary_333, Summary_111, Summary_33 columns alongside Detailed_Results.
 
 **Phase B — Parallel Theme Pipeline (after moderator closes polling):**
-1. Fetch pre-computed 33-word summaries from MongoDB
+1. Fetch pre-computed 33-word summaries from `response_summaries` table
 2. Classify Theme01 (Risk/Supporting/Neutral) — batch parallel via LLM
 3. Apply <65% confidence → Neutral reclassification rule
 4. Group by Theme01 into 3 partitions
@@ -592,7 +592,7 @@ See `SPIRAL_METRICS.md` — N=18 bidirectional (Feb 26). Cube 5 tests: 60/60 pas
 7. After ALL groups complete: merge all candidate themes per partition
 8. Reduce all → 9 (statistically relevant) → 6 → 3 (concurrent per category)
 9. Assign each response to 9/6/3 themes with confidence (LLM or embedding)
-10. Store Theme + ThemeSample in Postgres, update MongoDB, compute replay hash
+10. Store Theme + ThemeSample in PostgreSQL, update `response_summaries` table, compute replay hash
 - **Target:** Theme01 + Theme2 complete in <30 seconds for 1000 responses
 
 ### Cube 6 — Providers at Launch
@@ -613,7 +613,7 @@ See `SPIRAL_METRICS.md` — N=18 bidirectional (Feb 26). Cube 5 tests: 60/60 pas
 |-----|----------|-----------|--------|-------------------|
 | CRS-11 | CRS-11.IN.SRS.011 | CRS-11.OUT.SRS.011 | **Complete** | Real-time theme streaming |
 | CRS-11.01 | — | — | **Complete** | `summarize_single_response()` Phase A — live per-response 333→111→33 word summaries |
-| CRS-11.02 | — | — | **Complete** | Summaries stored in MongoDB `summaries` collection with `response_id` reference |
+| CRS-11.02 | — | — | **Complete** | Summaries stored in PostgreSQL `response_summaries` table with `response_id` reference |
 | CRS-11.03 | — | — | **GAP — Task A5** | `summary_ready` Supabase broadcast after Phase A completes — not implemented. Dashboard falls back to client-side truncation. |
 | CRS-11.04 | — | — | **GAP — Task B4** | `themes_ready` Supabase broadcast after Phase B completes — not implemented. Dashboard has no signal to transition to results view. |
 | CRS-11.1 | — | — | **Complete** | Live 333/111/33 summarization per response |
@@ -717,29 +717,29 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 | reclassified | BOOLEAN | True if <65% confidence → moved to Neutral (Theme01 only) |
 | created_at | TIMESTAMP | When assignment was made |
 
-**Table: `summaries`** (MongoDB collection)
+**Table: `response_summaries`** (PostgreSQL)
 | Variable | Type | Description |
 |----------|------|-------------|
-| _id | ObjectId (PK) | MongoDB document ID |
-| session_id | STRING | Session reference |
-| response_id | STRING | Source response reference |
-| original_text | STRING | Original response text (any language) |
-| original_language | STRING | Detected language code |
-| summary_333 | STRING | ~333-word English summary |
-| summary_111 | STRING | ~111-word English summary |
-| summary_33 | STRING | ~33-word English summary |
-| provider | STRING | AI provider used for summarization |
-| model_id | STRING | Pinned model version |
-| theme01 | STRING (nullable) | Theme01 assignment (after Phase B) |
+| id | UUID (PK) | Summary record ID |
+| session_id | UUID (FK→sessions) | Session reference |
+| response_id | UUID (FK→collected_responses) | Source response reference |
+| original_text | TEXT | Original response text (any language) |
+| original_language | VARCHAR(5) | Detected language code |
+| summary_333 | TEXT | ~333-word English summary |
+| summary_111 | TEXT | ~111-word English summary |
+| summary_33 | TEXT | ~33-word English summary |
+| provider | VARCHAR(20) | AI provider used for summarization |
+| model_id | VARCHAR(50) | Pinned model version |
+| theme01 | VARCHAR(200) (nullable) | Theme01 assignment (after Phase B) |
 | theme01_confidence | FLOAT (nullable) | Theme01 confidence |
-| theme2_9 | STRING (nullable) | Theme2_9 assignment |
+| theme2_9 | VARCHAR(200) (nullable) | Theme2_9 assignment |
 | theme2_9_confidence | FLOAT (nullable) | Theme2_9 confidence |
-| theme2_6 | STRING (nullable) | Theme2_6 assignment |
+| theme2_6 | VARCHAR(200) (nullable) | Theme2_6 assignment |
 | theme2_6_confidence | FLOAT (nullable) | Theme2_6 confidence |
-| theme2_3 | STRING (nullable) | Theme2_3 assignment |
+| theme2_3 | VARCHAR(200) (nullable) | Theme2_3 assignment |
 | theme2_3_confidence | FLOAT (nullable) | Theme2_3 confidence |
-| created_at | DATETIME | When summary was generated |
-| updated_at | DATETIME | Last update (theme assignments added in Phase B) |
+| created_at | TIMESTAMP | When summary was generated |
+| updated_at | TIMESTAMP | Last update (theme assignments added in Phase B) |
 
 **Table: `cqs_scores`**
 | Variable | Type | Description |
@@ -765,7 +765,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 | Input | Source | Description |
 |-------|--------|-------------|
 | Collected response set | Cube 4 | Full response list with final_text + language_code |
-| Pre-computed 33-word summaries | MongoDB (Phase A) | Summaries generated live during polling |
+| Pre-computed 33-word summaries | PostgreSQL `response_summaries` table (Phase A) | Summaries generated live during polling |
 | Session config | Cube 1 | ai_provider selection, theme2_voting_level (9/6/3), CQS weights |
 | Pipeline trigger | Cube 5 (Orchestrator) | Background task signal to start Phase B |
 | #1 most-voted Theme2 cluster | Cube 7 (Ranking) | Required for CQS scoring eligibility |
@@ -775,7 +775,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 #### Outputs
 | Output | Destination | Description |
 |--------|-------------|-------------|
-| 333/111/33 summaries | MongoDB → Cube 4, Cube 9, Frontend | Per-response summaries for display + export |
+| 333/111/33 summaries | PostgreSQL `response_summaries` → Cube 4, Cube 9, Frontend | Per-response summaries for display + export |
 | Theme01 assignments | Postgres → Cube 7, Cube 9 | Risk / Supporting / Neutral with confidence |
 | Theme2_9/6/3 assignments | Postgres → Cube 7, Cube 9 | Sub-theme hierarchy with confidence per response |
 | Theme records | Postgres → Cube 7 (Ranking) | Theme labels + descriptions for voting UI |
@@ -865,7 +865,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 | Variable | Direction | Source/Dest | Sim Mode | Notes |
 |----------|-----------|-------------|----------|-------|
 | Collected response set | Input | Cube 4 (Collector) | **SIMULATED** | Mock collected responses from Cube 4 fixture store (28 responses across 4 sessions) |
-| Pre-computed 33-word summaries | Input | MongoDB (Phase A) | **SIMULATED** | Fixture summaries pre-loaded — no live Phase A call required |
+| Pre-computed 33-word summaries | Input | PostgreSQL `response_summaries` (Phase A) | **SIMULATED** | Fixture summaries pre-loaded — no live Phase A call required |
 | Session config (ai_provider, theme2_voting_level, CQS weights) | Input | Cube 1 (Session) | **SIMULATED** | Fixed session config fixtures with known provider + voting level |
 | Pipeline trigger event | Input | Cube 5 (Orchestrator) | **SIMULATED** | Mock trigger record with `pending` status — no real orchestrator |
 | #1 most-voted Theme2 cluster | Input | Cube 7 (Ranking) | **SIMULATED** | Fixture cluster ID for CQS scoring eligibility |
@@ -873,7 +873,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 | Random seed | Input | Cube 1 (session seed) | **SIMULATED** | Fixed seed (e.g., `random_state=42`) for deterministic clustering + marble sampling |
 | Embedding API call | Internal | OpenAI / Grok / Gemini | **BOTH** | LIVE requires actual API key; SIMULATED returns pre-computed fixture vectors |
 | Summarization API call | Internal | OpenAI / Grok / Gemini | **BOTH** | LIVE calls real LLM; SIMULATED returns fixture 333/111/33 summaries |
-| 333/111/33 summaries | Output | MongoDB → Cube 4, Cube 9, Frontend | **SIMULATED** | Written to mock MongoDB collection |
+| 333/111/33 summaries | Output | PostgreSQL `response_summaries` → Cube 4, Cube 9, Frontend | **SIMULATED** | Written to mock `response_summaries` table |
 | Theme01 assignments | Output | Postgres → Cube 7, Cube 9 | **SIMULATED** | Written to mock Postgres (in-memory) |
 | Theme2_9/6/3 assignments | Output | Postgres → Cube 7, Cube 9 | **SIMULATED** | Written to mock Postgres (in-memory) |
 | Theme records | Output | Postgres → Cube 7 (Ranking) | **SIMULATED** | Theme labels + descriptions stored in mock DB |
@@ -976,9 +976,9 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 | Pillar | Score | Gap | Finding |
 |--------|:---:|---|---|
 | Security | 70 | No RLS verification on `push_to_live_feed()` path | Broadcast path not implemented — no security boundary test. When CRS-09.03 is implemented, must verify only `clean_text` flows to broadcast, never raw. |
-| Stability | 65 | No retry on MongoDB write failure; M2/M3 flow absent | `store_to_mongodb()` is fire-and-forget with no retry. Methods 2 & 3 (`desired_outcome`, `confirmation_gate`) not implemented — partial sessions leave no outcome record. |
-| Scalability | 75 | No backpressure signal to ingestion | Redis presence tracking implemented; pagination correct. No cap on simultaneous MongoDB writes at burst load. No Supabase broadcast from Cube 4 itself. |
-| Efficiency | 70 | Dual write is correct but no batching | Single-document MongoDB writes per response (not batched). At 1000+ responses, 1000 individual writes where batch would reduce overhead. |
+| Stability | 65 | No retry on DB write failure; M2/M3 flow absent | `store_raw_response()` is fire-and-forget with no retry. Methods 2 & 3 (`desired_outcome`, `confirmation_gate`) not implemented — partial sessions leave no outcome record. |
+| Scalability | 75 | No backpressure signal to ingestion | Redis presence tracking implemented; pagination correct. No cap on simultaneous DB writes at burst load. No Supabase broadcast from Cube 4 itself. |
+| Efficiency | 70 | Single write is correct but no batching | Single-row PostgreSQL writes per response (not batched). At 1000+ responses, 1000 individual writes where batch would reduce overhead. |
 | Succinctness | 80 | 3 unimplemented stubs inflate function table | `create_desired_outcome()`, `record_confirmation()`, `log_post_task_results()` are stubs with no body — clean but inflated LOC count. |
 
 #### Cube 5 — Gateway / Orchestrator
@@ -1017,7 +1017,7 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 ### Gap Analysis — Cubes 4–6
 
 #### GAP C4-1 — No Live Broadcast from Cube 4 *(Stability −10, Efficiency −10)*
-**Root cause:** `aggregate_response()` in Cube 4 writes to Postgres + MongoDB but emits no Supabase broadcast. The Cube 2 side (`emit_submission_event()`) is the broadcast origin — Cube 4 is a passive store.
+**Root cause:** `aggregate_response()` in Cube 4 writes to PostgreSQL but emits no Supabase broadcast. The Cube 2 side (`emit_submission_event()`) is the broadcast origin — Cube 4 is a passive store.
 **Fix:** CRS-09.03 is informational — the broadcast fix is in Cube 6 Phase A (Task A5). Cube 4 does not need its own broadcast, but it must confirm aggregation succeeds before Cube 6 can safely reference `response_id` in its broadcast.
 
 #### GAP C4-2 — Methods 2 & 3 Confirmation Flow Missing *(Stability −20)*
@@ -1033,7 +1033,7 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 **Fix:** Add `require_moderator_for_session(session_id, current_user)` guard to pipeline status and retry routes.
 
 #### GAP C6-1 — Phase A Broadcast Missing — Primary Pipeline Break *(Stability −30, Efficiency −25)*
-**Root cause:** `summarize_single_response()` completes and stores in MongoDB — then returns silently. No event is broadcast. The dashboard has no `summary_ready` listener. This is the same root cause as GAP 1 in CUBES_1-3.md.
+**Root cause:** `summarize_single_response()` completes and stores in `response_summaries` table — then returns silently. No event is broadcast. The dashboard has no `summary_ready` listener. This is the same root cause as GAP 1 in CUBES_1-3.md.
 **Fix (Tasks A5 + A6):** See CUBES_1-3.md SSSES Plan. Short summary: add `core/supabase_broadcast.py` helper, call after Phase A stores, add `summary_ready` listener in `dashboard/page.tsx`.
 
 #### GAP C6-2 — Phase B Broadcast Missing *(Stability −10)*
@@ -1042,7 +1042,7 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 
 #### GAP C6-3 — Phase B E2E Verification Absent *(Stability −10)*
 **Root cause:** Phase B code is implemented but has never been run against a real 5000-response dataset with live AI providers. No confirmed output schema match against `Updated_Web_Results_With_Themes_And_Summaries_v03.csv`.
-**Fix (Task B1 + B2):** Load `Web_Results_5000.csv` into a test session. Run `POST /ai/run`. Verify Postgres `themes` table, MongoDB per-response theme fields, and `replay_hash` all populate correctly. Cross-check marble sampling and confidence threshold against `eXeL-AI_Polling_v04.2.py` monolith.
+**Fix (Task B1 + B2):** Load `Web_Results_5000.csv` into a test session. Run `POST /ai/run`. Verify PostgreSQL `themes` table, `response_summaries` per-response theme fields, and `replay_hash` all populate correctly. Cross-check marble sampling and confidence threshold against `eXeL-AI_Polling_v04.2.py` monolith.
 
 ---
 
@@ -1050,10 +1050,10 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 
 > Evidence-based findings from forward (Cube 4→5→6) and backward (Cube 6→1) code-level audit. Line numbers reference commit `530c6fb`.
 
-#### GAP C4-3 — No MongoDB Error Handling in Aggregation *(Stability −10)*
-**Root cause:** `get_collected_responses()` in `cube4_collector/service.py` calls `mongo.responses.find_one()` (lines 109, 185) and `mongo.summaries.find_one()` (line 228) with no try/except. If MongoDB is unavailable, exception propagates uncaught — no fallback, no partial results.
+#### GAP C4-3 — No DB Error Handling in Aggregation *(Stability −10)*
+**Root cause:** `get_collected_responses()` in `cube4_collector/service.py` queries `response_summaries` table with no try/except around the summary lookup. If the DB query fails, exception propagates uncaught — no fallback, no partial results.
 **Evidence:** Lines 152-164 fall back to empty strings for missing summaries but log nothing. Moderator has no indication summaries are incomplete.
-**Fix (Task C4-3):** Wrap MongoDB queries in try/except; log `cube4.mongo.query_failed` with response_id; return partial result with `summary_status: "unavailable"` flag.
+**Fix (Task C4-3):** Wrap `response_summaries` queries in try/except; log `cube4.db.query_failed` with response_id; return partial result with `summary_status: "unavailable"` flag.
 
 #### GAP C4-4 — User Anonymization Collision Risk *(Security −5)*
 **Root cause:** `cube4_collector/service.py` line 133: anonymous user label uses `f"User_{str(participant.id)[:8]}"` — only first 8 chars of UUID. At 10,000+ participants, birthday-problem collision probability rises.

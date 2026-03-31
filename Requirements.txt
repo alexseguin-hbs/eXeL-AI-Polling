@@ -574,7 +574,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 
 * Aggregates inputs from Cubes 2 (text) and 3 (voice) — **all active languages**
 * Stores each response with its language tag; preserves original language for AI processing (Cube 6)
-* Writes to storage (MongoDB for raw responses, Redis for live state)
+* Writes to storage (PostgreSQL for responses via ResponseMeta, Redis for live state)
 * Caching for live status
 * Presence tracking
 * **Payment status per participant:** Stores results opt-in flag and payment confirmation (paid/unpaid/lead-exempt) for downstream results distribution (Cube 9)
@@ -644,7 +644,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 | Function | Description |
 |----------|-------------|
 | `aggregate_response()` | Takes validated text/voice response and creates unified `collected_responses` entry |
-| `store_to_mongodb()` | Writes raw response payload to MongoDB for flexible schema storage |
+| `store_response()` | Writes raw response payload to PostgreSQL (ResponseMeta table) |
 | `cache_response_state()` | Updates Redis with live response count and status |
 | `track_presence()` | Processes heartbeat pings, updates presence status |
 | `create_desired_outcome()` | Creates desired outcome record (Methods 2 & 3) |
@@ -1622,7 +1622,7 @@ All cubes reference a shared core library for common functionality. The shared c
 | Module | Description | Used By |
 |--------|-------------|---------|
 | `core/auth.py` | Authentication, RBAC, permission checks, API key validation | All cubes |
-| `core/db.py` | Database connections (PostgreSQL, MongoDB, Redis) | All cubes |
+| `core/db.py` | Database connections (PostgreSQL, Redis) | All cubes |
 | `core/translations.py` | Translation lookup from `ui_translations` table, locale management, fallback chains | All cubes |
 | `core/hi_rates.py` | 웃 jurisdiction rate table (59 jurisdictions) | Cube 5, 8 |
 | `core/payment.py` | Stripe / Google Pay / Apple Pay integration, payment processing | Cube 1, 8 |
@@ -1730,24 +1730,24 @@ Use these exactly as “build targets” for website + backend.
 - **CRS-06.02** Stop Polling: session transitions `polling → ranking`; triggers Cube 5 orchestrator → Cube 6 Phase B theming pipeline within 1s.
 
 **CRS-07** User submits text responses reliably with constraints.
-- **CRS-07.01** Full text submission pipeline: validate → PII detect/scrub → profanity detect/scrub → store (MongoDB + Postgres) → Redis publish → Cube 6 Phase A async; all 6 steps ordered; any failure returns structured error.
+- **CRS-07.01** Full text submission pipeline: validate → PII detect/scrub → profanity detect/scrub → store (PostgreSQL via ResponseMeta) → Redis publish → Cube 6 Phase A async; all 6 steps ordered; any failure returns structured error.
 - **CRS-07.02** Multilingual support: 33 languages, Unicode-aware char count (not bytes), script-based sanity check; CJK, Arabic, Emoji all accepted.
 - **CRS-07.03** Moderator live feed toggle: "Live Feedback" (raw `clean_text`, default) vs "33-Word Summary" (AI `summary_33` via Cube 6 Phase A broadcast). Default = Live Feedback until AI APIs configured. *(In progress — SSSES Tasks A4/A5/A6)*
 
 **CRS-08** System stores responses securely (timestamps + encryption).
 - **CRS-08.01** SHA-256 integrity hash: `response_hash = SHA256(raw_text)` stored on every submission; 64-char hex, deterministic, tamper-evident.
 - **CRS-08.02** PII security gate: only `clean_text` (post-scrub) forwarded to Cube 6 AI — raw text never leaves storage boundary; applies to both text (Cube 2) and voice (Cube 3) paths.
-- **CRS-08.03** AES-256 encryption at rest for MongoDB responses + Postgres text fields. *(Stretch — MVP3)*
+- **CRS-08.03** AES-256 encryption at rest for PostgreSQL response text fields (ResponseMeta.raw_text, ResponseMeta.clean_text). *(Stretch — MVP3)*
 
 ### MVP1 — AI Theme Generation & Review — Cubes 4, 5, 6
 
 **CRS-09** System clusters responses into meaningful AI themes.
-- **CRS-09.01** Phase A (live, per-response): after each text/voice submission, async 333→111→33 word English summaries generated via AI (OpenAI / Grok / Gemini); stored in MongoDB `summaries` collection.
+- **CRS-09.01** Phase A (live, per-response): after each text/voice submission, async 333→111→33 word English summaries generated via AI (OpenAI / Grok / Gemini); stored in `response_summaries` table (PostgreSQL).
 - **CRS-09.02** Phase B (batch, after Stop Polling): fetch all 33-word summaries → classify Theme01 (Risk/Supporting/Neutral) → marble sampling → parallel candidate theme generation → reduce to Theme2_9/6/3 → assign each response; target <30s for 1000 responses.
 - **CRS-09.03** `summary_ready` Supabase broadcast sent to Moderator dashboard after Phase A completes per response. *(BLOCKER — Task C6-7 must create `core/supabase_broadcast.py` first; then Task A5 implements broadcast; not yet implemented)*
 - **CRS-09.04** `themes_ready` Supabase broadcast sent to dashboard after Phase B completes. *(BLOCKER — same C6-7 prerequisite; Task B4; not yet implemented)*
 - **CRS-09.07** `ResponseRead` schema includes `summary_33: str | None` field so frontend can receive it from API response. *(GAP — Task C6-8/A4; field does not exist in schema; frontend always gets `undefined`)*
-- **CRS-09.05** Response aggregation (Cube 4): Postgres + MongoDB dual storage per response in Web_Results format (q_number, question, user, detailed_results, response_language).
+- **CRS-09.05** Response aggregation (Cube 4): PostgreSQL storage per response via ResponseMeta in Web_Results format (q_number, question, user, detailed_results, response_language).
 - **CRS-09.06** Pipeline orchestration (Cube 5): `orchestrate_post_polling()` fires Cube 6 `run_pipeline()` as background asyncio task on polling→ranking transition; `PipelineTrigger` record tracks status.
 
 **CRS-10** User views summarized themes to understand collective patterns.
@@ -2293,7 +2293,7 @@ The following technology choices were confirmed during project setup:
 
 ### Databases (Full Stack)
 - **PostgreSQL:** Sessions, questions, rankings, audit logs, token ledger, users
-- **MongoDB:** Raw responses (flexible schema for text/voice payloads)
+- **PostgreSQL:** Also stores raw responses (ResponseMeta table with raw_text, clean_text, response_hash fields)
 - **Redis:** Real-time state — presence tracking, live rankings, WebSocket pub/sub, caching
 
 ### Authentication & RBAC
@@ -2474,6 +2474,6 @@ See `Token_Governance_Math.md` for full formal specification. Summary:
 
 ## 16) Original Prompt Template (Reference)
 
-> Build a full-stack web app called "SoI Polling Tool" using the following requirements. Implement frontend pages for Moderator, User, and Lead/Developer. Implement backend APIs in FastAPI. Use PostgreSQL for sessions/questions/rankings/audit/tokens, MongoDB for raw responses, Redis for live state, and WebSockets for real-time updates (MVP2). Implement AI theme clustering pipeline with embeddings + clustering + summarization returning themes with confidence and counts. Implement token ledger for ♡ SI, 웃 HI, ◬ AI with lifecycle states and dispute flow. Implement a modular "Cube Simulation Mode" that allows Lead/Developer to check out a cube, run replay tests (including upstream/downstream dependency replays), compare metrics, and approve/reject changes with versioning and rollback. Follow CRS-01 through CRS-35 exactly as functional requirements and implement the workflow steps 1–9. Provide complete code structure, database schema, API routes, and UI screens. Use React + Next.js frontend, FastAPI backend, Auth0 for auth, Cloudflare for hosting/CDN, and a multi-provider AI abstraction layer.
+> Build a full-stack web app called "SoI Polling Tool" using the following requirements. Implement frontend pages for Moderator, User, and Lead/Developer. Implement backend APIs in FastAPI. Use PostgreSQL for sessions/questions/rankings/audit/tokens/raw responses, Redis for live state, and WebSockets for real-time updates (MVP2). Implement AI theme clustering pipeline with embeddings + clustering + summarization returning themes with confidence and counts. Implement token ledger for ♡ SI, 웃 HI, ◬ AI with lifecycle states and dispute flow. Implement a modular "Cube Simulation Mode" that allows Lead/Developer to check out a cube, run replay tests (including upstream/downstream dependency replays), compare metrics, and approve/reject changes with versioning and rollback. Follow CRS-01 through CRS-35 exactly as functional requirements and implement the workflow steps 1–9. Provide complete code structure, database schema, API routes, and UI screens. Use React + Next.js frontend, FastAPI backend, Auth0 for auth, Cloudflare for hosting/CDN, and a multi-provider AI abstraction layer.
 
 ---

@@ -706,7 +706,7 @@ Key responsibilities:
 ### Cube 9 — Current Implementation Status
 
 **Backend service:** `backend/app/cubes/cube9_reports/service.py` (135 lines)
-- `export_session_csv()` -- builds 15-column CSV from Postgres (ResponseMeta, Question) + MongoDB (raw text, summaries, themes)
+- `export_session_csv()` -- builds 15-column CSV from PostgreSQL (ResponseMeta, ResponseSummary, Question, themes)
 - `export_session_csv_to_file()` -- writes CSV to filesystem
 - CSV columns: Q_Number, Question, User, Detailed_Results, 333_Summary, 111_Summary, 33_Summary, Theme01, Theme01_Confidence, Theme2_9, Theme2_9_Confidence, Theme2_6, Theme2_6_Confidence, Theme2_3, Theme2_3_Confidence
 
@@ -857,7 +857,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 | Function | Description | MVP | Status |
 |----------|-------------|-----|--------|
-| `generate_csv_export()` | Produces CSV matching the 15-column target output schema. Queries Postgres (ResponseMeta, Question) + MongoDB (summaries, themes). | 1 | Implemented |
+| `generate_csv_export()` | Produces CSV matching the 15-column target output schema. Queries PostgreSQL (ResponseMeta, ResponseSummary, Question, themes). | 1 | Implemented |
 | `generate_pdf_export()` | Produces formatted PDF report with themes, rankings, and analytics. Includes charts and summaries. | 2 | Not implemented |
 | `generate_pixelated_token()` | Creates Pixelated Token image: encodes token data in pixel borders, generates center QR code, assembles final PNG. | 3 | Not implemented |
 | `encode_pixel_line()` | Encodes data string into a row of colored pixels using versioned color-to-character mapping scheme. | 3 | Not implemented |
@@ -981,7 +981,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 | Function | Sim Mode | Simulation Behavior |
 |----------|----------|---------------------|
-| `generate_csv_export()` | **BOTH** | Generates real CSV from mock data. Queries mock Postgres (ResponseMeta, Question) + mock MongoDB (summaries, themes). Output file verified against 15-column schema with exact column names and data types |
+| `generate_csv_export()` | **BOTH** | Generates real CSV from mock data. Queries mock PostgreSQL (ResponseMeta, ResponseSummary, Question, themes). Output file verified against 15-column schema with exact column names and data types |
 | `generate_pdf_export()` | **BOTH** | Generates real PDF from mock data. Layout, charts, and summaries rendered from mock session dataset. File size and page count verified |
 | `generate_pixelated_token()` | **BOTH** | Generates real PNG image from mock token data. Encodes pixel borders (top/bottom/left/right), generates center QR code, assembles final image. Pixel integrity verified |
 | `encode_pixel_line()` | **BOTH** | Real encoding logic -- converts mock data string to colored pixel row using versioned color-to-character mapping. Output pixel count = input character count verified |
@@ -1086,7 +1086,7 @@ The AI pipeline produces output matching this schema (reference: `Updated_Web_Re
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `backend/app/cubes/cube9_reports/service.py` | 135 | CSV export (15-column schema from Postgres + MongoDB) |
+| `backend/app/cubes/cube9_reports/service.py` | 135 | CSV export (15-column schema from PostgreSQL: ResponseMeta + ResponseSummary) |
 | `backend/app/cubes/cube9_reports/router.py` | 38 | 2 API endpoints (CSV export, analytics stub) |
 | `backend/app/cubes/cube9_reports/exporters/__init__.py` | - | Exporters package (scaffolded, ready for CSV/PDF exporter modules) |
 
@@ -1193,7 +1193,7 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 | Security | 30 | CSV export has no auth gate — any user with session_id can download. No results distribution gating (paid + Lead-exempt). No data destruction. Pixelated Token encoding not implemented. |
 | Stability | 15 | `generate_csv_export()` works but has 0 dedicated tests. No PDF. No Pixelated Tokens. No analytics dashboard. No CQS dashboard. 1/14 functions implemented. |
 | Scalability | 20 | CSV export untested at scale (5000+ responses). No streaming/chunked export. PDF generation not implemented — will be CPU-heavy at scale. |
-| Efficiency | 25 | CSV function queries Postgres + MongoDB per export — no caching. Export re-generates on every request. |
+| Efficiency | 25 | CSV function queries PostgreSQL per export — no caching. Export re-generates on every request. |
 | Succinctness | 55 | 135-line service. 38-line router. Clean structure. Missing functions create large gap: 13/14 functions not implemented. |
 
 ---
@@ -1291,7 +1291,7 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 | 1 Session | 100 | 100 | 100 | 100 | 100 | **100** | Production-ready |
 | 2 Text | 75 | 40 | 50 | 55 | 65 | **57** | Phase A gaps |
 | 3 Voice | 70 | 40 | 50 | 55 | 65 | **56** | Phase A gaps |
-| 4 Collector | 70 | 65 | 75 | 70 | 80 | **72** | MongoDB error handling |
+| 4 Collector | 70 | 65 | 75 | 70 | 80 | **72** | Storage error handling |
 | 5 Gateway | 80 | 75 | 80 | 85 | 90 | **82** | Timeout + chain gaps |
 | 6 AI Pipeline | 70 | 40 | 55 | 55 | 70 | **58** | Broadcast + scale gaps |
 | 7 Ranking | 20 | 10 | 15 | 15 | 50 | **22** | Scaffolded only |
@@ -1315,7 +1315,7 @@ Cube 1 ──[session create + join]──► Cube 2 ──[text submit]──�
 Cube 4 ──[aggregate responses]──► Cube 5 ──[orchestrate]──► Cube 6 ──[Phase A + B]──►
   │                                    │                          │
   │ ✓ WIRED: dual storage             │ ✓ WIRED: polling→ranking │ ◐ C6-7: broadcast.py EXISTS
-  │ ✗ GAP: MongoDB no error           │   triggers Phase B       │   not wired to A5/B4 yet
+  │ ✗ GAP: storage no error            │   triggers Phase B       │   not wired to A5/B4 yet
   │   handling (C4-3)                  │ ✗ GAP: no pipeline       │ ✗ GAP: 3 seq AI calls (A1)
   │ ✗ GAP: M2/M3 not implemented      │   timeout (C5-3)         │ ✗ GAP: no concurrency cap
   │                                    │ ✗ GAP: Cube 6→7 chain   │   (A3)
@@ -1422,7 +1422,7 @@ Moderator clicks Stop Polling → Cube 5 fires run_pipeline()
   │  1 batch embedding call (~300ms for 1M short texts via batch API)
   │  Cosine similarity is pure NumPy — <100ms for 1M × 27 comparisons
   │
-  ▼ Step 7: Store results — batch Postgres + MongoDB (~200ms)
+  ▼ Step 7: Store results — batch PostgreSQL (~200ms)
   │
   Total: ~200 + 10 + 500 + 300 + 300 + 100 + 200 = ~1,610ms ≈ <2s ✓
 ```
@@ -1431,7 +1431,7 @@ Moderator clicks Stop Polling → Cube 5 fires run_pipeline()
 1. **Statistical sampling (Step 1):** Theme generation uses a representative sample, not all N. Themes are stable at K=10,000 (law of large numbers). Assignment uses ALL N via fast embedding cosine.
 2. **Embedding assignment over LLM (Step 6):** Embedding cosine is O(N × T) where T=27 themes — pure NumPy, no API latency per response. LLM assignment would be 3N API calls (3 levels × N responses) — infeasible at 1M.
 3. **Batch embedding API:** OpenAI/Gemini batch endpoints accept 2048+ texts per call. 1M summary_33 texts (each ~33 words) = ~500 batch calls at 2000/batch = ~300ms parallel.
-4. **Pre-computed embeddings:** During Phase A, embed each `summary_33` as it's generated and cache in MongoDB. Phase B Step 6 only embeds theme labels (27 texts) and reads cached response embeddings.
+4. **Pre-computed embeddings:** During Phase A, embed each `summary_33` as it's generated and cache in the `response_summaries` table (PostgreSQL). Phase B Step 6 only embeds theme labels (27 texts) and reads cached response embeddings.
 
 #### Voting Architecture — 3/6/9 Theme Selection
 
@@ -1496,7 +1496,7 @@ Moderator clicks Stop Polling → Cube 5 fires run_pipeline()
 | 13 | **C6-4** AI API call timeout (30s) | 6 | Scalability +15 | |
 | 14 | **C5-1** Pipeline error propagation | 5 | Stability +15 | |
 | 15 | **C5-2** Moderator-scoped route guard | 5 | Security +10 | |
-| 16 | **C4-3** MongoDB error handling | 4 | Stability +10 | |
+| 16 | **C4-3** PostgreSQL storage error handling | 4 | Stability +10 | |
 
 #### PHASE 4 — Phase B Theming + Downstream Chain
 
@@ -1541,7 +1541,7 @@ Moderator clicks Stop Polling → Cube 5 fires run_pipeline()
 | # | Task | Cube | SSSES Impact | Status |
 |---|------|------|---|---|
 | 35 | **S1** Statistical sampling in Phase B (K=10,000 cap) | 6 | Scalability +20 | NEW |
-| 36 | **S2** Pre-compute embeddings during Phase A (cache in MongoDB) | 6 | Efficiency +15 | NEW |
+| 36 | **S2** Pre-compute embeddings during Phase A (cache in response_summaries table) | 6 | Efficiency +15 | NEW |
 | 37 | **S3** Batch embedding API for Phase B assignment | 6 | Scalability +15 | NEW |
 | 38 | **S4** Streaming CSV export for >100K responses | 9 | Scalability +10 | NEW |
 | 39 | **S5** Kubernetes HPA config for embedding worker fleet | Infra | Scalability +10 | NEW |
