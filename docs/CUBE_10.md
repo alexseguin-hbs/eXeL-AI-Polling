@@ -659,7 +659,7 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 | **Phase 6** | Self-evolving cube lattice — AI + human governance co-create code | Vision |
 
 ```
-  Phase 1 (NOW)          Phase 2-3              Phase 4-5                Phase 6
+  Phase 1 (NOW)          Phase 2-3              Phase 4-5               Phase 6
   ┌──────────┐         ┌──────────┐          ┌───────────┐          ┌───────────┐
   │Simulation│   ──▶   │ Human    │   ──▶    │AI Proposes│   ──▶    │  Self-    │
   │Only      │         │ Votes    │          │◬ ♡ 웃 Team│          │  Evolving │
