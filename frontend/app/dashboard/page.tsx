@@ -274,13 +274,14 @@ function SessionDetail({
       .subscribe();
 
     // Channel B: postgres_changes on responses table (reliable HTTP path, works even if Broadcast drops)
+    // Supabase table schema: id, session_code, participant_id, content, created_at
     const dbChannel = supabase.channel(`responses-db:${session.short_code}`);
     dbChannel
       .on(
         "postgres_changes" as Parameters<typeof dbChannel.on>[0],
-        { event: "INSERT", schema: "public", table: "responses", filter: `session_id=eq.${session.id}` },
-        (payload: { new: { id: string; raw_text?: string; clean_text?: string; created_at: string } }) => {
-          addResponse(payload.new.id, payload.new.clean_text ?? payload.new.raw_text ?? "", payload.new.created_at);
+        { event: "INSERT", schema: "public", table: "responses", filter: `session_code=eq.${session.short_code}` },
+        (payload: { new: { id: string; content?: string; created_at: string } }) => {
+          addResponse(payload.new.id, payload.new.content ?? "", payload.new.created_at);
         },
       )
       .subscribe();

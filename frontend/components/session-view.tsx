@@ -714,14 +714,13 @@ export function SessionView() {
         }).catch(() => {});
 
         // Path B — Supabase DB insert (reliable: HTTP REST, works even if WebSocket is paused)
-        if (supabase && session?.id) {
+        // Table schema: id, session_code, participant_id, content, created_at
+        if (supabase && session?.short_code) {
           supabase.from("responses").insert({
             id: responseId,
-            session_id: session.id,
+            session_code: session.short_code,
             participant_id: participantId,
-            raw_text: trimmed,
-            language_code: languageCode || "en",
-            char_count: trimmed.length,
+            content: trimmed,
           }).then(() => {}, () => {});
         }
       }
