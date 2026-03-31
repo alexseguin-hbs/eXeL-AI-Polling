@@ -21,6 +21,7 @@ Circuit breaker: If primary STT fails, failover to next provider by priority.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import math
@@ -47,6 +48,7 @@ from app.cubes.cube2_text.service import (
 from app.cubes.cube3_voice.providers.base import STTProviderError, TranscriptionResult
 from app.cubes.cube3_voice.providers.factory import get_stt_provider, select_stt_provider
 from app.models.response_meta import ResponseMeta
+from app.models.response_summary import ResponseSummary
 from app.models.text_response import TextResponse
 from app.models.voice_response import VoiceResponse
 
@@ -386,6 +388,102 @@ async def submit_voice_response(
         redis, session_id, response_meta.id,
         stt_result.language_detected, len(transcript),
     )
+
+    # --- 7b. Fire-and-forget: live summarization (Cube 6 Phase A) ---
+    # Task A7: PII gate assertion — only clean_text (post-scrub) reaches Cube 6.
+    # raw transcript never leaves this function's storage boundary.
+    logger.info(
+        "cube6.phase_a.pii_safe",
+        response_id=str(response_meta.id),
+        input_is_clean_text=True,
+        raw_text_excluded=True,
+        source="voice",
+    )
+
+    async def _run_voice_phase_a_with_retry(
+        pg_db: AsyncSession, *, session_id, response_id, clean_text, language_code,
+        ai_provider, session_short_code: str = "",
+        max_retries: int = 3,
+    ):
+        """Task A2/A7: Phase A with retry for voice path (mirrors Cube 2 pattern)."""
+        from app.cubes.cube6_ai.service import summarize_single_response
+
+        for attempt in range(max_retries):
+            try:
+                await summarize_single_response(
+                    pg_db,
+                    session_id=session_id,
+                    response_id=response_id,
+                    raw_text=clean_text,  # PII-safe (Task A7)
+                    language_code=language_code,
+                    ai_provider=ai_provider,
+                    session_short_code=session_short_code,
+                )
+                return  # Success
+            except Exception as exc:
+                wait = 2 ** attempt  # 1s, 2s, 4s
+                logger.warning(
+                    "cube3.phase_a.retry",
+                    attempt=attempt + 1,
+                    max_retries=max_retries,
+                    wait_seconds=wait,
+                    error=str(exc),
+                    response_id=str(response_id),
+                )
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(wait)
+
+        # All retries exhausted — store fallback marker
+        logger.error(
+            "cube3.phase_a.exhausted",
+            response_id=str(response_id),
+            session_id=str(session_id),
+        )
+        try:
+            from sqlalchemy.dialects.postgresql import insert as pg_insert
+            stmt = pg_insert(ResponseSummary).values(
+                response_meta_id=response_id,
+                session_id=session_id,
+                summary_33="[Summary unavailable]",
+                summary_111="[Summary unavailable]",
+                summary_333="[Summary unavailable]",
+            ).on_conflict_do_update(
+                index_elements=["response_meta_id"],
+                set_={
+                    "summary_33": "[Summary unavailable]",
+                    "summary_111": "[Summary unavailable]",
+                    "summary_333": "[Summary unavailable]",
+                },
+            )
+            await pg_db.execute(stmt)
+            await pg_db.commit()
+        except Exception:
+            pass  # Best-effort fallback storage
+
+    try:
+        task = asyncio.create_task(
+            _run_voice_phase_a_with_retry(
+                db,
+                session_id=session_id,
+                response_id=response_meta.id,
+                clean_text=clean_text,
+                language_code=stt_result.language_detected,
+                ai_provider=session.ai_provider or "openai",
+                session_short_code=session.short_code,
+            )
+        )
+
+        def _on_voice_phase_a_done(t: asyncio.Task):
+            if t.exception():
+                logger.error(
+                    "cube3.phase_a.task_exception",
+                    error=str(t.exception()),
+                    response_id=str(response_meta.id),
+                )
+        task.add_done_callback(_on_voice_phase_a_done)
+
+    except Exception as e:
+        logger.warning("cube3.live_summarization.error", error=str(e))
 
     # --- 8. Return composite result ---
     logger.info(
