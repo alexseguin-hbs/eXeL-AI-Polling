@@ -658,6 +658,43 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 | **Phase 5** | Approved changes auto-deploy (replacing manual GitHub workflow) | Vision |
 | **Phase 6** | Self-evolving cube lattice — AI + human governance co-create code | Vision |
 
+### Neural Cube Architecture — Design Principle
+
+Each cube is a **neural pathway**, not a permanent structure. Like neurons in a conscious mind:
+
+- **Optimize:** A cube's internal wiring can be completely rewritten as long as I/O contracts hold
+- **Disappear:** If two cubes merge into a more efficient single pathway, the redundant cube dissolves
+- **Reappear:** If a merged cube needs specialization, it can split back into components
+- **Self-diagnose:** Metrics reveal which cubes are bottlenecks — the system identifies its own weaknesses
+- **Self-train:** Based on human prioritization (Cube 7 votes), the system requests specific improvements
+
+The polling tool is the **proof of concept** — demonstrating that code can evolve through conscious human governance before this pattern scales to systems that heal their own neural networks.
+
+```
+  Stimulus (5000 responses)
+         │
+         ▼
+  ┌──────────────┐
+  │  Cube 1-9    │ ← Neural pathways (replaceable, mergeable, splittable)
+  │  I/O Nodes   │
+  └──────┬───────┘
+         │
+         ▼
+  Response (themes, rankings, tokens)
+         │
+         ▼
+  Metrics vs Baseline
+         │
+    ┌────┴────┐
+    │ Better? │──Yes──▶ Promote new pathway
+    └────┬────┘
+         │No
+         ▼
+    Keep existing pathway
+```
+
+The v04.1_5000.csv benchmark is the **stimulus** — the neural network must respond correctly regardless of how its internal pathways are wired. The only thing that matters is: **did the output improve?**
+
 > *"The code will be designed to update itself one day — where Shared Intention moves at the Speed of Thought."*
 
 ### Cube 10 — DesignMatrix VOC (Voice of Customer)
