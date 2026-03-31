@@ -28,7 +28,6 @@ from app.cubes.cube7_ranking.router import router as ranking_router
 from app.cubes.cube8_tokens.router import router as tokens_router
 from app.core.realtime_ws import router as realtime_router
 from app.cubes.cube9_reports.router import router as reports_router
-from app.db.mongo import close_mongo, init_mongo
 from app.db.postgres import close_postgres
 from app.db.redis import close_redis, init_redis
 from app.schemas.common import HealthResponse
@@ -52,8 +51,7 @@ openapi_tags = [
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle for database connections."""
     setup_logging()
-    # Startup
-    await init_mongo()
+    # Startup — Supabase/PostgreSQL + Redis only (no MongoDB)
     await init_redis()
     # Auto-create all tables (safe to run repeatedly — skips existing)
     from app.db.base import Base
@@ -65,7 +63,6 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     await close_postgres()
-    await close_mongo()
     await close_redis()
 
 

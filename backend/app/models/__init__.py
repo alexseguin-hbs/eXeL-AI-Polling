@@ -7,6 +7,7 @@ from app.models.profanity_filter import ProfanityFilter
 from app.models.question import Question
 from app.models.ranking import AggregatedRanking, Ranking
 from app.models.response_meta import ResponseMeta
+from app.models.response_summary import ResponseSummary
 from app.models.session import Session
 from app.models.simulation_run import SimulationRun
 from app.models.stt_provider import STTProviderConfig
@@ -27,6 +28,7 @@ __all__ = [
     "AggregatedRanking",
     "Ranking",
     "ResponseMeta",
+    "ResponseSummary",
     "Session",
     "SimulationRun",
     "STTProviderConfig",

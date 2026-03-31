@@ -4,10 +4,10 @@ Extends ResponseMeta with voice-specific fields: audio duration,
 STT provider used, transcript text, and confidence score.
 
 Stores a 1:1 relationship with ResponseMeta (FK to response_meta.id).
-Raw audio bytes live in MongoDB; this table holds Postgres metadata.
+Audio files stored via Supabase Storage (path in audio_storage_path).
 After transcription, the transcript is forwarded into Cube 2's text
 pipeline for PII/profanity processing — results live on the linked
-TextResponse record.
+TextResponse record. Architecture: Supabase/PostgreSQL only.
 """
 
 import uuid

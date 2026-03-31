@@ -165,24 +165,24 @@ async def _log_audit(
 
 
 async def _compute_replay_hash(db: AsyncSession, session: Session) -> str:
-    """Compute SHA-256 replay hash from session seed + all response refs.
+    """Compute SHA-256 replay hash from session seed + all response IDs.
 
-    Hash = sha256(seed | ai_provider | sorted(mongo_refs))
-    Uses mongo_ref from ResponseMeta as deterministic response identifiers.
+    Hash = sha256(seed | ai_provider | sorted(response_ids))
+    Uses ResponseMeta.id (UUID) as deterministic response identifiers.
     """
     from app.models.response_meta import ResponseMeta
 
     result = await db.execute(
-        select(ResponseMeta.mongo_ref)
+        select(ResponseMeta.id)
         .where(ResponseMeta.session_id == session.id)
-        .order_by(ResponseMeta.mongo_ref)
+        .order_by(ResponseMeta.id)
     )
-    response_refs = list(result.scalars().all())
+    response_ids = [str(rid) for rid in result.scalars().all()]
 
     payload = "|".join([
         session.seed or "",
         session.ai_provider or "openai",
-        ",".join(response_refs),
+        ",".join(response_ids),
     ])
     return hashlib.sha256(payload.encode()).hexdigest()
 

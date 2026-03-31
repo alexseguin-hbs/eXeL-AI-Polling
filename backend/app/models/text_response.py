@@ -4,7 +4,8 @@ Extends ResponseMeta with text-specific fields: language detection,
 PII detection results, profanity detection, and cleaned text versions.
 
 Stores a 1:1 relationship with ResponseMeta (FK to response_meta.id).
-Raw response text lives in MongoDB; this table holds Postgres metadata.
+Raw text stored on ResponseMeta.raw_text; clean text here after PII/profanity scrub.
+Architecture: Supabase/PostgreSQL only.
 """
 
 import uuid
