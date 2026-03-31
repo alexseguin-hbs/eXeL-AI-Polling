@@ -163,16 +163,13 @@ class TestGrokLive:
             "inteligencia", "artificial", "gobernanza", "ayudar",
         ]), f"Spanish transcript doesn't match: {result.transcript}"
 
-    @skip_grok
-    @pytest.mark.asyncio
-    async def test_grok_language_support(self):
-        """Grok should report support for all 33 languages."""
-        from app.cubes.cube3_voice.providers.grok_provider import GrokSTT
+    def test_grok_language_support(self):
+        """Grok should report support for all 33 languages (no SDK init needed)."""
+        from app.cubes.cube3_voice.providers.grok_provider import _SUPPORTED_LANGUAGES, _GROK_MODEL
 
-        provider = GrokSTT()
         for lang in ["en", "es", "fr", "ja", "zh", "ar", "hi", "ko", "de"]:
-            assert provider.supports_language(lang), f"Grok should support {lang}"
-        assert provider.model_id() == "whisper-large-v3"
+            assert lang in _SUPPORTED_LANGUAGES, f"Grok should support {lang}"
+        assert _GROK_MODEL == "whisper-large-v3"
 
     @_skip_audio
     @skip_grok
@@ -255,16 +252,13 @@ class TestGeminiLive:
             "inteligencia", "artificial", "gobernanza", "ayudar",
         ]), f"Spanish transcript doesn't match: {result.transcript}"
 
-    @skip_gemini
-    @pytest.mark.asyncio
-    async def test_gemini_language_support(self):
-        """Gemini should report support for all 33 languages."""
-        from app.cubes.cube3_voice.providers.gemini_provider import GeminiSTT
+    def test_gemini_language_support(self):
+        """Gemini should report support for all 33 languages (no SDK init needed)."""
+        from app.cubes.cube3_voice.providers.gemini_provider import _SUPPORTED_LANGUAGES, _GEMINI_MODEL
 
-        provider = GeminiSTT()
         for lang in ["en", "es", "fr", "ja", "zh", "ar", "hi", "ko", "de"]:
-            assert provider.supports_language(lang), f"Gemini should support {lang}"
-        assert provider.model_id() == "gemini-2.5-flash"
+            assert lang in _SUPPORTED_LANGUAGES, f"Gemini should support {lang}"
+        assert _GEMINI_MODEL == "gemini-2.5-flash"
 
 
 # ══════════════════════════════════════════════════════════════════
