@@ -754,7 +754,31 @@ The v04.1_5000.csv benchmark is the **stimulus** — the network must respond co
 
 ## Cube 10 — Per-Cube Simulation Architecture
 
-Cube 10 is the center of the Level 2 grid. While the Easter Egg SIM (documented above) provides a walkthrough preview of the full session lifecycle, the production Cube 10 feature enables **per-cube isolation, code challenge competitions, and metric-driven evolution** of the entire cube lattice. This section documents the simulation orchestration architecture that powers those capabilities.
+Cube 10 is the center of the Level 2 grid with the **Feedback Loop (FB) at its core**. The Feedback Loop is the nervous system — it collects user and moderator feedback from every screen, auto-tags each submission with the relevant Cube + CRS, and feeds the prioritized backlog that drives all evolution.
+
+```
+  Cube 10 Internal Architecture:
+
+  ●─────●─────●─────●
+  │ SIM │ RPL │ CHK │   SIM = Simulation Runner
+  ●─────●─────●─────●   RPL = Replay Dataset (v04.1_5000.csv)
+  │ MTR │ FB  │ VER │   CHK = Checkout / Checkin
+  ●─────●─────●─────●   MTR = Metrics Compare
+  │ BCK │ TRG │ APR │   FB  = Feedback Loop (CENTER)
+  ●─────●─────●─────●   VER = Version Control
+                          BCK = Backlog (from FB → Cube 7 votes)
+  FB collects from:       TRG = Triage (AI-assisted sentiment + priority)
+  - Landing (CRS-01)     APR = ◬ ♡ 웃 Team Approval Gate
+  - Join (CRS-02)
+  - Polling (CRS-07)     Supabase table: product_feedback
+  - Dashboard (CRS-06)   API: POST /feedback (any user)
+  - Results (CRS-14)          GET /feedback (admin)
+  - Ranking (CRS-11)          GET /feedback/stats (admin)
+  - Settings (CRS-01)
+  - SIM (CRS-25)
+```
+
+While the Easter Egg SIM (documented above) provides a walkthrough preview of the full session lifecycle, the production Cube 10 feature enables **per-cube isolation, code challenge competitions, and metric-driven evolution** of the entire cube lattice. This section documents the simulation orchestration architecture that powers those capabilities.
 
 ### Cube Isolation Model
 

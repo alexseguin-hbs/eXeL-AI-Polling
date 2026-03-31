@@ -192,7 +192,17 @@ All clustering and ranking operations must be fully reproducible:
 
          "Where Shared Intention moves at the Speed of Thought."
 
-  Level 2 — Cube 10 with Feedback Loop at center:
+  Level 2 — Cube 10 at center:
+
+                        ●─────●─────●─────●
+                        │ --  │ --  │ --  │
+                        ●─────●─────●─────●
+                        │ --  │ 10  │ --  │
+                        ●─────●─────●─────●
+                        │ --  │ --  │ --  │
+                        ●─────●─────●─────●
+
+  Cube 10 Blow-Up — Feedback Loop (FB) at center:
 
                         ●─────●─────●─────●
                         │ SIM │ RPL │ CHK │   SIM = Simulation Runner
@@ -235,7 +245,7 @@ All clustering and ranking operations must be fully reproducible:
 | 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI, deterministic aggregation, governance compression |
 | 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens, ledger, payments, talent profiles, execution separation |
 | 9 | (1,1,3) | Reports & Dashboards | 1 | CSV/PDF, Pixelated Tokens, CQS dashboard, data destruction |
-| 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Per-cube isolation, code challenge, replay, metric comparison |
+| 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Per-cube isolation, code challenge, replay, metric comparison. **Feedback Loop (FB) at center** — collects from every screen, auto-tags Cube + CRS, feeds backlog → votes → AI → ◬ ♡ 웃 approval → deploy |
 
 ## Cross-Cube Specifications
 

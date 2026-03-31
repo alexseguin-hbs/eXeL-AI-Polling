@@ -1454,8 +1454,9 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 * All inputs and outputs come from a **past recorded session** — real data replayed in sandbox
 * Compare simulation results against original production results — **simulation must exceed existing System, User, and Business/Outcome metrics to pass**. Metrics baseline is sourced from existing recorded sessions. If any metric category degrades, the simulation fails and cannot be approved.
 * Versioning, rollback, lineage
-* **Self-improvement feedback pipeline:** System-prompted feedback at key moments + persistent feedback icon always visible. Feedback tagged by cube, feature, and scoping context.
-* Prepares for AI self-optimization (future: AI proposes code diffs)
+* **Feedback Loop (FB) — CENTER of Cube 10:** The nervous system of the entire platform. Persistent "Give Feedback" widget on every screen (landing, join, polling, dashboard, results, ranking, settings, SIM). Each submission auto-tagged with Cube + CRS from screen context. Stored in Supabase `product_feedback` table. Feeds into prioritized backlog → Cube 7 human votes → AI proposals → ◬ ♡ 웃 Team approval → deploy. The system knows where it hurts because users tell it at every touchpoint.
+* **API:** `POST /feedback` (any user, rate-limited 10/min), `GET /feedback` (admin/lead filter by screen/category/resolved), `GET /feedback/stats` (aggregated dashboard)
+* Prepares for AI self-optimization (future: AI proposes code diffs based on FB backlog priorities)
 
 #### Cube 10 Data Tables
 
