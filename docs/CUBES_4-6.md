@@ -1040,8 +1040,8 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 **Fix (Task B4):** After Phase B stores all theme records + assignments, broadcast `{"event": "themes_ready", "session_id": "...", "theme_count": N}` via `supabase_broadcast.py`. Gate: only fires on full success.
 
 #### GAP C6-3 — Phase B E2E Verification Absent *(Stability −10)*
-**Root cause:** Phase B code is implemented but has never been run against a real 5000-response dataset with live AI providers. No confirmed output schema match against `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,050 simulated responses, all Q-0001).
-**Fix (Task B1 + B2):** Load `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,050 rows, all Q-0001) into a test session. Run `POST /ai/run`. Verify PostgreSQL `themes` table, `response_summaries` per-response theme fields, and `replay_hash` all populate correctly. Cross-check marble sampling and confidence threshold against `eXeL-AI_Polling_v04.2.py` monolith.
+**Root cause:** Phase B code is implemented but has never been run against a real 5000-response dataset with live AI providers. No confirmed output schema match against `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,000 simulated responses, all Q-0001).
+**Fix (Task B1 + B2):** Load `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,000 rows, all Q-0001) into a test session. Run `POST /ai/run`. Verify PostgreSQL `themes` table, `response_summaries` per-response theme fields, and `replay_hash` all populate correctly. Cross-check marble sampling and confidence threshold against `eXeL-AI_Polling_v04.2.py` monolith.
 
 ---
 

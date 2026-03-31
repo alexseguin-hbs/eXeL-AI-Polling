@@ -940,7 +940,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 ### Cube 9 — Architectural Constraints
 
-- **16-column CSV schema:** Must match the reference output format exactly (see `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` — 5,050 simulated responses, all Q-0001).
+- **16-column CSV schema:** Must match the reference output format exactly (see `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` — 5,000 simulated responses, all Q-0001).
 - **Results distribution gating:** Only participants where `results_opt_in = True AND (payment_status = 'paid' OR payment_status = 'lead_exempt')` receive results.
 - **Pixelated Token data destruction:** After image delivery, `destroy_token_data()` purges token records. This is irreversible. User must acknowledge the warning before delivery.
 - **CQS visibility:** CQS scores visible ONLY to Moderators and system. Never exposed to regular users. Winner notification does not include CQS breakdown for other users.
@@ -998,7 +998,7 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 #### Canned Test Data
 
-- **Mock export data (16-column CSV format):** 8 response rows matching the reference schema (`Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` — 5,050 simulated responses, all Q-0001):
+- **Mock export data (16-column CSV format):** 8 response rows matching the reference schema (`Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` — 5,000 simulated responses, all Q-0001):
   - Q_Number: 1 (all same question for single-poll session)
   - Question: "What are the most important considerations for AI governance in our organization?"
   - User: 7 AI user hashes + 1 HI user hash
@@ -1053,7 +1053,7 @@ No spiral metrics recorded yet -- **PENDING implementation**. Baseline (N=5+) re
 
 ### Cube 9 — Target Output Schema (16-Column CSV)
 
-The AI pipeline produces output matching this schema (reference: `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` — 5,050 simulated responses, all Q-0001):
+The AI pipeline produces output matching this schema (reference: `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` — 5,000 simulated responses, all Q-0001):
 
 | Column | Type | Description |
 |--------|------|-------------|
