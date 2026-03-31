@@ -4,7 +4,7 @@
  * Validates cross-device response sharing via Cloudflare Pages Functions + Cache API
  * at scale, and stress-tests the mock data + live feed pipeline.
  *
- * Target session: "Collaborative Thoughts on AI Governance" (session c3d4e5f6-a7b8-9012-cdef-333333333333)
+ * Target session: "Collaborative Thoughts on AI Governance" (session b2c3d4e5-f6a7-8901-bcde-222222222222)
  * but can be aimed at any polling session.
  *
  * Language distribution: 55 EN, 11 ES, 10 DE, 6 FR, 5 PT, 3 JA, 3 ZH, 2 KO, 2 AR, 2 HI, 1 IT

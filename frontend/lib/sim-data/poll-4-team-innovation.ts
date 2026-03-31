@@ -11,7 +11,7 @@
 import type { ThemeLevels } from "./index";
 
 export const POLL_4 = {
-  sessionId: "d4e5f6a7-b8c9-0123-defg-444444444444",
+  sessionId: "c3d4e5f6-a7b8-9012-cdef-333333333333",
   title: "Team Innovation Challenge",
   pollingMode: "static_poll" as const,
   staticPollDurationDays: 3,

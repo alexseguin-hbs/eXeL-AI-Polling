@@ -11,7 +11,7 @@
 import type { ThemeLevels } from "./index";
 
 export const POLL_3 = {
-  sessionId: "c3d4e5f6-a7b8-9012-cdef-333333333333",
+  sessionId: "b2c3d4e5-f6a7-8901-bcde-222222222222",
   title: "Collaborative Thoughts on AI Governance",
   pollingMode: "live_interactive" as const,
   questions: [

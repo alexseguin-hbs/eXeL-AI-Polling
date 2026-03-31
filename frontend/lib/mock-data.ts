@@ -184,7 +184,7 @@ const oneHourLater = new Date(Date.now() + 3600000).toISOString();
 
 export const MOCK_SESSIONS: Session[] = [
   {
-    id: "b2c3d4e5-f6a7-8901-bcde-222222222222",
+    id: "a1b2c3d4-e5f6-7890-abcd-111111111111",
     short_code: "DEMO2026",
     created_by: MOCK_MODERATOR_ID,
     status: "polling",
@@ -223,7 +223,7 @@ export const MOCK_SESSIONS: Session[] = [
     participant_count: 3,
   },
   {
-    id: "c3d4e5f6-a7b8-9012-cdef-333333333333",
+    id: "b2c3d4e5-f6a7-8901-bcde-222222222222",
     short_code: "PAST0001",
     created_by: MOCK_MODERATOR_ID,
     status: "closed",
@@ -262,7 +262,7 @@ export const MOCK_SESSIONS: Session[] = [
     participant_count: 5000,
   },
   {
-    id: "d4e5f6a7-b8c9-0123-def0-444444444444",
+    id: "c3d4e5f6-a7b8-9012-cdef-333333333333",
     short_code: "STATIC01",
     created_by: MOCK_MODERATOR_ID,
     status: "polling",
@@ -307,7 +307,7 @@ export const DEFAULT_SESSION_IDS = new Set(MOCK_SESSIONS.map((s) => s.id));
 
 // Strategy Alignment session ID — gets 100-User Spiral Test + Ranking DnD
 // Strategy Alignment session — gets 100-User Spiral Test + ranking simulation
-export const PRODUCT_FEEDBACK_SESSION_ID = "b2c3d4e5-f6a7-8901-bcde-222222222222";
+export const PRODUCT_FEEDBACK_SESSION_ID = "a1b2c3d4-e5f6-7890-abcd-111111111111";
 
 // ── Snapshot of original default sessions for demo reset ───────────
 // Deep-copy the 4 hardcoded sessions so we can restore them on every dashboard load.
@@ -395,10 +395,10 @@ function resetDefaultSessions(): void {
 
 // ── Test Questions ──────────────────────────────────────────────
 export const MOCK_QUESTIONS: Record<string, Question[]> = {
-  "b2c3d4e5-f6a7-8901-bcde-222222222222": [
+  "a1b2c3d4-e5f6-7890-abcd-111111111111": [
     {
       id: "q1-222222",
-      session_id: "b2c3d4e5-f6a7-8901-bcde-222222222222",
+      session_id: "a1b2c3d4-e5f6-7890-abcd-111111111111",
       question_text:
         "What should be our top strategic priority?",
       cycle_id: 1,
@@ -407,10 +407,10 @@ export const MOCK_QUESTIONS: Record<string, Question[]> = {
       created_at: now,
     },
   ],
-  "c3d4e5f6-a7b8-9012-cdef-333333333333": [
+  "b2c3d4e5-f6a7-8901-bcde-222222222222": [
     {
       id: "q1-333333",
-      session_id: "c3d4e5f6-a7b8-9012-cdef-333333333333",
+      session_id: "b2c3d4e5-f6a7-8901-bcde-222222222222",
       question_text:
         "How should AI shape collective decision-making?",
       cycle_id: 1,
@@ -419,10 +419,10 @@ export const MOCK_QUESTIONS: Record<string, Question[]> = {
       created_at: now,
     },
   ],
-  "d4e5f6a7-b8c9-0123-def0-444444444444": [
+  "c3d4e5f6-a7b8-9012-cdef-333333333333": [
     {
       id: "q1-444444",
-      session_id: "d4e5f6a7-b8c9-0123-def0-444444444444",
+      session_id: "c3d4e5f6-a7b8-9012-cdef-333333333333",
       question_text:
         "What innovative tools or processes could improve our team collaboration?",
       cycle_id: 1,
@@ -435,9 +435,9 @@ export const MOCK_QUESTIONS: Record<string, Question[]> = {
 
 // ── Mock Participant Counter ────────────────────────────────────
 let mockParticipantCount: Record<string, number> = {
-  "b2c3d4e5-f6a7-8901-bcde-222222222222": 3,
-  "c3d4e5f6-a7b8-9012-cdef-333333333333": 5000,
-  "d4e5f6a7-b8c9-0123-def0-444444444444": 15,
+  "a1b2c3d4-e5f6-7890-abcd-111111111111": 3,
+  "b2c3d4e5-f6a7-8901-bcde-222222222222": 5000,
+  "c3d4e5f6-a7b8-9012-cdef-333333333333": 15,
 };
 
 // ── Submitted Responses (cross-tab via localStorage) ─────────────
@@ -447,7 +447,7 @@ const mockResponses: Record<string, MockResponse[]> = {};
 // Only the 3 default sessions get mock data. New user-created polls (4th+) use only live HI data.
 const MOCK_SESSION_RESPONSES: Record<string, string[]> = {
   // Strategy Alignment — "What should be our top strategic priority?"
-  "b2c3d4e5-f6a7-8901-bcde-222222222222": [
+  "a1b2c3d4-e5f6-7890-abcd-111111111111": [
     "Customer retention should be priority number one. We are acquiring users but churn is too high. Fix the leaky bucket before pouring more in.",
     "Focus on enterprise sales. Our product-market fit is strongest with teams of fifty plus and that is where the revenue growth is.",
     "Invest in developer experience and API documentation. Our SDK adoption is low because the docs are incomplete.",
@@ -457,7 +457,7 @@ const MOCK_SESSION_RESPONSES: Record<string, string[]> = {
     "Technical debt reduction. Our deployment velocity has slowed forty percent in the last quarter due to accumulated shortcuts.",
   ],
   // Poll 3: AI Governance — "How should AI shape collective decision-making?"
-  "c3d4e5f6-a7b8-9012-cdef-333333333333": [
+  "b2c3d4e5-f6a7-8901-bcde-222222222222": [
     "AI can democratize decision-making by processing millions of voices simultaneously, something human-only systems can't achieve at scale.",
     "My biggest concern is algorithmic bias. If the training data reflects historical biases, the AI will perpetuate inequality in governance.",
     "Transparency is key. Every AI governance decision should have an explainable audit trail that citizens can review and challenge.",
@@ -467,7 +467,7 @@ const MOCK_SESSION_RESPONSES: Record<string, string[]> = {
     "AI governance should start with low-stakes decisions like urban planning priorities before scaling to critical policy areas.",
   ],
   // Poll 4: Team Innovation Challenge — "What innovative tools or processes could improve our team collaboration?"
-  "d4e5f6a7-b8c9-0123-def0-444444444444": [
+  "c3d4e5f6-a7b8-9012-cdef-333333333333": [
     "Async video updates instead of meetings. Record 3-minute Loom-style updates that teammates watch on their own time.",
     "Shared digital whiteboards that persist between sessions. Our brainstorming dies when the meeting ends and the board is erased.",
     "Rotating pair programming across teams. Engineers from different squads pair for a day — it spreads knowledge and breaks silos.",
