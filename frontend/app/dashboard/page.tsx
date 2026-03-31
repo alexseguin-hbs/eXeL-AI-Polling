@@ -296,6 +296,31 @@ function SessionDetail({
       )
       .subscribe();
 
+    // Channel D: HTTP poll for new responses (bulletproof fallback — no WebSocket needed)
+    // Polls Supabase REST every 2s for responses newer than last seen.
+    // Works even if Broadcast + postgres_changes both fail.
+    let lastPollTime = new Date().toISOString();
+    const pollInterval = setInterval(async () => {
+      if (!supabase || session.status !== "polling") return;
+      try {
+        const { data } = await supabase
+          .from("responses")
+          .select("id, content, created_at")
+          .eq("session_code", session.short_code)
+          .gt("created_at", lastPollTime)
+          .order("created_at", { ascending: true })
+          .limit(20);
+        if (data && data.length > 0) {
+          for (const row of data) {
+            addResponse(row.id, row.content ?? "", row.created_at);
+          }
+          lastPollTime = data[data.length - 1].created_at;
+        }
+      } catch {
+        // Silent — other channels may still work
+      }
+    }, 2000);
+
     // Channel C: postgres_changes on session_status for live participant count
     const statusChannel = supabase.channel(`status-db:${session.short_code}`);
     statusChannel
@@ -315,6 +340,7 @@ function SessionDetail({
       supabase?.removeChannel(broadcastChannel);
       supabase?.removeChannel(dbChannel);
       supabase?.removeChannel(statusChannel);
+      clearInterval(pollInterval);
     };
   }, [session.short_code]); // eslint-disable-line react-hooks/exhaustive-deps
 
