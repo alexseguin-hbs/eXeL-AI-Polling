@@ -94,11 +94,15 @@ class Session(Base):
     ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     timer_display_mode: Mapped[str] = mapped_column(String(20), default="flex")
 
-    # Capacity & pricing
+    # Capacity & pricing (3 tiers: free / moderator_paid / cost_split)
     pricing_tier: Mapped[str] = mapped_column(String(20), default="free")
     max_participants: Mapped[int | None] = mapped_column(Integer)
     fee_amount_cents: Mapped[int] = mapped_column(Integer, default=0)
+    # moderator_paid: min $11.11 (1111 cents); cost_split: system estimate
+    estimated_cost_cents: Mapped[int] = mapped_column(Integer, default=0)
+    # Estimated cost based on # users + # responses (shown in UX for donation anchoring)
     cost_splitting_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    # cost_split: 50% Moderator, 50% / N users
 
     # Gamified reward
     reward_enabled: Mapped[bool] = mapped_column(Boolean, default=False)

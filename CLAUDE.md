@@ -252,12 +252,20 @@ Per-user active participation time, 3 ♡ methods, confirmation gates, token cal
 ### Pixelated Tokens
 Self-contained value-carrying image with DNA-style integrity — see `docs/CUBES_7-9.md` (Cube 9).
 
-### Monetization Model (MVP1)
-- **Moderator pays** per-session fee (Stripe / Google Pay / Apple Pay)
-- **Cost splitting:** Fee divided among participants dynamically as users join
-- **Results opt-in:** Step 2 of join flow — opt in + payment if cost splitting enabled
-- **Gamified reward:** Moderator-set bonus awarded by CQS — see `docs/CUBES_4-6.md` (Cube 6 CQS Engine)
+### Monetization Model — 3 Tiers + Donation
+
+| Tier | Who Pays | Minimum | Max Users | Donation Prompt |
+|------|----------|:-------:|:---------:|-----------------|
+| **Free** | Nobody | $0 | 19 | After results CSV delivered — Moderator + Users asked to donate (optional) |
+| **Moderator Paid** | Moderator upfront | **$11.11 USD** | Unlimited | After results — both Moderator + Users see cost estimate + donation ask |
+| **Cost Split** | 50% Moderator + 50%/N Users | System estimate | Unlimited | Above estimate — Moderator + Users asked to donate |
+
+- **Cost estimation:** System calculates estimated cost from `# of users × # of responses × AI processing`. Shown in UX to anchor donation amounts.
+- **Cost Split formula:** `Moderator pays = estimate / 2`. Each User pays = `(estimate / 2) / N` where N = number of users.
+- **Donation timing:** Always **after results are delivered** (CSV polling + theming data), never before. Results are not gated by donation.
+- **Gamified reward:** Moderator-set CQS bonus awarded to top contributor — see `docs/CUBES_4-6.md` (Cube 6 CQS Engine)
 - **Lead/Developer exception:** Free access to results (transparency + accountability)
+- **Payment provider:** Stripe (Checkout for Moderator Paid, Payment Intent for Cost Split)
 
 ## Observability Plan
 - **Metrics:** Prometheus — request latency, queue depth, embedding throughput, cluster stability, token velocity
