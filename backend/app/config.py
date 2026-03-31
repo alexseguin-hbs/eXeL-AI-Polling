@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     stripe_publishable_key: str = ""
     stripe_restricted_key: str = ""      # For frontend-safe operations
     stripe_webhook_secret: str = ""      # Set after creating webhook endpoint in Stripe Dashboard
+    stripe_live_secret_key: str = ""     # Production Stripe keys
+    stripe_live_publishable_key: str = ""
+    stripe_live_restricted_key: str = ""
 
     # Session defaults
     default_session_expiry_hours: int = 24
