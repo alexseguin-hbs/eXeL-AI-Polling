@@ -83,7 +83,7 @@ class TextResponseDetail(ResponseRead):
 
 
 class ResponseListItem(ResponseBase):
-    pass
+    summary_33: str | None = None
 
 
 class PaginatedResponseList(BaseModel):

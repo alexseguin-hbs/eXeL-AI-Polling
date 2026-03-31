@@ -743,7 +743,7 @@ async def get_responses(
     page: int = 1,
     page_size: int = 50,
 ) -> dict:
-    """Paginated list of responses for a session (JOIN ResponseMeta + TextResponse)."""
+    """Paginated list of responses for a session (JOIN ResponseMeta + TextResponse + ResponseSummary)."""
     offset = (page - 1) * page_size
 
     # Count total
@@ -755,10 +755,11 @@ async def get_responses(
     total = count_result.scalar() or 0
     pages = math.ceil(total / page_size) if total > 0 else 0
 
-    # Fetch page
+    # Fetch page with summary JOIN for summary_33
     result = await db.execute(
-        select(ResponseMeta, TextResponse)
+        select(ResponseMeta, TextResponse, ResponseSummary)
         .outerjoin(TextResponse, TextResponse.response_meta_id == ResponseMeta.id)
+        .outerjoin(ResponseSummary, ResponseSummary.response_meta_id == ResponseMeta.id)
         .where(ResponseMeta.session_id == session_id)
         .order_by(ResponseMeta.submitted_at.desc())
         .offset(offset)
@@ -767,7 +768,7 @@ async def get_responses(
     rows = result.all()
 
     items = []
-    for meta, text_resp in rows:
+    for meta, text_resp, summary in rows:
         item = {
             "id": meta.id,
             "session_id": meta.session_id,
@@ -780,6 +781,7 @@ async def get_responses(
             "is_flagged": meta.is_flagged,
             "pii_detected": text_resp.pii_detected if text_resp else False,
             "profanity_detected": text_resp.profanity_detected if text_resp else False,
+            "summary_33": summary.summary_33 if summary else None,
         }
         items.append(item)
 
@@ -797,10 +799,11 @@ async def get_response_by_id(
     session_id: uuid.UUID,
     response_id: uuid.UUID,
 ) -> dict | None:
-    """Single response lookup with full text response detail."""
+    """Single response lookup with full text response detail + summary_33."""
     result = await db.execute(
-        select(ResponseMeta, TextResponse)
+        select(ResponseMeta, TextResponse, ResponseSummary)
         .outerjoin(TextResponse, TextResponse.response_meta_id == ResponseMeta.id)
+        .outerjoin(ResponseSummary, ResponseSummary.response_meta_id == ResponseMeta.id)
         .where(
             ResponseMeta.id == response_id,
             ResponseMeta.session_id == session_id,
@@ -810,7 +813,7 @@ async def get_response_by_id(
     if row is None:
         return None
 
-    meta, text_resp = row
+    meta, text_resp, summary = row
     return {
         "id": meta.id,
         "session_id": meta.session_id,
@@ -824,6 +827,7 @@ async def get_response_by_id(
         "pii_detected": text_resp.pii_detected if text_resp else False,
         "profanity_detected": text_resp.profanity_detected if text_resp else False,
         "clean_text": text_resp.clean_text if text_resp else None,
+        "summary_33": summary.summary_33 if summary else None,
         "pii_types": text_resp.pii_types if text_resp else None,
         "pii_scrubbed_text": text_resp.pii_scrubbed_text if text_resp else None,
         "profanity_words": text_resp.profanity_words if text_resp else None,
