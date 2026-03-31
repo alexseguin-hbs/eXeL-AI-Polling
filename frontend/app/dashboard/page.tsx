@@ -745,15 +745,28 @@ function SessionDetail({
                         : "Run 100-User Spiral Test"}
                   </Button>
                 )}
-                <Button
-                  variant={feedDisplayMode === "raw" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFeedDisplayMode(feedDisplayMode === "raw" ? "summary" : "raw")}
-                  className="h-7 px-2 text-[10px]"
-                  title={feedDisplayMode === "raw" ? "Switch to 33-word summary" : "Switch to raw feedback"}
-                >
-                  {feedDisplayMode === "raw" ? "Raw" : "Summary"}
-                </Button>
+                <div className="flex rounded-md border border-input overflow-hidden">
+                  <button
+                    onClick={() => setFeedDisplayMode("summary")}
+                    className={`h-7 px-2 text-[10px] font-medium transition-colors ${
+                      feedDisplayMode === "summary"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    33-Word
+                  </button>
+                  <button
+                    onClick={() => setFeedDisplayMode("raw")}
+                    className={`h-7 px-2 text-[10px] font-medium transition-colors ${
+                      feedDisplayMode === "raw"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    Raw
+                  </button>
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
