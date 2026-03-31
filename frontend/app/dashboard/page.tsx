@@ -223,6 +223,16 @@ function SessionDetail({
   const [feedFullscreen, setFeedFullscreen] = useState(false);
   const [feedResponses, setFeedResponses] = useState<Array<{ id: string; clean_text: string; submitted_at: string; summary_33?: string }>>([]);
   const [feedDisplayMode, setFeedDisplayMode] = useState<"summary" | "raw">("summary");
+  // Spiral Test: add response directly to feed (same-tab, no Supabase needed)
+  const spiralSeenIds = useRef(new Set<string>());
+  const addSpiralResponse = useCallback((resp: { id: string; clean_text: string; submitted_at: string; summary_33?: string }) => {
+    if (spiralSeenIds.current.has(resp.id)) return;
+    spiralSeenIds.current.add(resp.id);
+    const text = resp.clean_text.length > 80 ? resp.clean_text.substring(0, 80) + "..." : resp.clean_text;
+    setLiveResponseFeed((prev) => [{ text, count: prev.length + 1 }, ...prev].slice(0, 15));
+    setFeedResponses((prev) => [{ id: resp.id, clean_text: resp.clean_text, submitted_at: resp.submitted_at, summary_33: resp.summary_33 }, ...prev]);
+  }, []);
+
   const [spiralRunning, setSpiralRunning] = useState(false);
   const [spiralProgress, setSpiralProgress] = useState<SpiralTestProgress | null>(null);
   const [spiralCancel, setSpiralCancel] = useState<(() => void) | null>(null);
@@ -729,12 +739,17 @@ function SessionDetail({
                       }
                       setSpiralRunning(true);
                       setSpiralProgress(null);
-                      const cancel = startSpiralTest(session.id, (progress) => {
-                        setSpiralProgress(progress);
-                        if (progress.isComplete) {
-                          setSpiralRunning(false);
-                        }
-                      });
+                      spiralSeenIds.current.clear();
+                      const cancel = startSpiralTest(
+                        session.id,
+                        (progress) => {
+                          setSpiralProgress(progress);
+                          if (progress.isComplete) {
+                            setSpiralRunning(false);
+                          }
+                        },
+                        addSpiralResponse,
+                      );
                       setSpiralCancel(() => cancel);
                     }}
                   >

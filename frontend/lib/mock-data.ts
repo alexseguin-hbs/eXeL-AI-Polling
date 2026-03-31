@@ -1117,9 +1117,17 @@ export type SpiralTestProgressCallback = (progress: SpiralTestProgress) => void;
  * Start the 100-user spiral test for the given session.
  * Returns a cancel function to abort mid-test.
  */
+export interface SpiralTestResponse {
+  id: string;
+  clean_text: string;
+  submitted_at: string;
+  summary_33: string;
+}
+
 export function startSpiralTest(
   sessionId: string,
   onProgress?: SpiralTestProgressCallback,
+  onResponse?: (resp: SpiralTestResponse) => void,
 ): () => void {
   const session = findSessionById(sessionId);
   if (!session) return () => {};
@@ -1156,25 +1164,17 @@ export function startSpiralTest(
         });
         saveMockState();
 
-        // Path A: Supabase Broadcast — instant push to moderator dashboard
-        if (supabase && session?.short_code) {
-          const channel = supabase.channel(`session:${session.short_code}`);
-          channel.send({
-            type: "broadcast",
-            event: "new_response",
-            payload: {
-              id: responseId,
-              text: resp.text.length > 80 ? resp.text.substring(0, 80) + "..." : resp.text,
-              clean_text: resp.text,
-              submitted_at: new Date().toISOString(),
-              summary_33: respSummaries.summary_33,
-              source: "spiral_test",
-              count: delivered,
-            },
-          }).catch(() => {});
+        // Direct callback to dashboard — same-tab, instant, no network needed
+        if (onResponse) {
+          onResponse({
+            id: responseId,
+            clean_text: resp.text,
+            submitted_at: new Date().toISOString(),
+            summary_33: respSummaries.summary_33,
+          });
         }
 
-        // Path B: Supabase DB insert — reliable fallback (postgres_changes fires on dashboard)
+        // Supabase DB insert — persist for cross-device + postgres_changes backup
         if (supabase && session?.short_code) {
           supabase.from("responses").insert({
             id: responseId,
