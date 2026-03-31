@@ -101,7 +101,7 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 - `themes_ready` Supabase broadcast never sent after Phase B — dashboard has no signal to transition to results view (Task B4)
 - Phase A has no retry on AI failure — silent log warning only (Task A2)
 - Phase B has never been run E2E against a live 5000-response dataset (Task B1)
-- `_store_results()` writes Postgres then MongoDB separately — MongoDB failure after Postgres commit = data inconsistency (Task C6-5)
+- `_store_results()` has no error handling around `response_summaries` table write — partial failure leaves pipeline in inconsistent state (Task C6-5)
 - `_assign_themes_llm()` uses manual index tracking — `batch_summarize()` count mismatch causes IndexError (Task C6-6)
 
 **Scalability — Cubes 5, 6:**
@@ -124,7 +124,7 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 **Stability — Cubes 4, 5:**
 - Background task failure on `asyncio.create_task(run_pipeline())` silently absorbed — `PipelineTrigger.status` stuck at `in_progress` forever (Task C5-1 / B5)
 - Cube 6 → Cube 7 trigger chain not wired — `trigger_ranking_pipeline()` exists but is never called after Phase B completes (Task C5-4)
-- Cube 4 MongoDB queries have no error handling — `find_one()` exceptions propagate uncaught (Task C4-3)
+- Cube 4 DB queries have no error handling — query exceptions propagate uncaught (Task C4-3)
 
 **Implementation gap — Cube 4:**
 - Methods 2 & 3 confirmation gate not implemented (`create_desired_outcome()`, `record_confirmation()`, `check_all_confirmed()` — CRS-10.01–10.03)
