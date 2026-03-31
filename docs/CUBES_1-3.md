@@ -344,7 +344,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 
 **Pass criteria:** All submitted responses visible on dashboard live feed **showing AI-generated 33-word summaries** (not client-side truncation). Summary appears within ≤5 seconds of submission.
 
-**Current known gap (SSSES Task A6):** The live feed currently falls back to `summarizeTo33Words(r.clean_text)` — a client-side word-count truncation — because the dashboard does not yet have a `summary_ready` listener. Backend broadcast is IMPLEMENTED (Task A5, `cube6_ai/service.py` lines 203-213). See § "SSSES Plan — CRS-07→CRS-09 Pipeline" below.
+**SSSES Task A6: IMPLEMENTED.** Dashboard listens for `summary_ready` broadcast (`page.tsx` lines 261-272), updates feed entry in-place by `response_id`. Falls back to `summarizeTo33Words(r.clean_text)` client-side truncation only when AI summary hasn't arrived yet.
 
 ---
 
@@ -369,7 +369,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | Phone never leaves lobby after Start Polling | Layer 1 Broadcast or Layer 4 DB | Check Supabase project not paused; check `session_status` table has a row for the code |
 | Phone toggles lobby ↔ polling input every second | Status regressions in `checkStatus` poll | Check `STATUS_ORDER` rank logic in `session-view.tsx` |
 | 8-digit code shows "session not found" | Layer 4 DB missing row | Confirm `syncStatusToSupabase` fires on session CREATE in dashboard |
-| Live feed shows raw text, not AI summary | Dashboard has no `summary_ready` listener (backend broadcast IMPLEMENTED — Task A5) | See SSSES Task A6 — dashboard must add `summary_ready` listener to consume broadcast |
+| Live feed shows raw text, not AI summary | Phase A not running or Cube 6 AI provider unavailable | Verify Cube 6 Phase A fires on submit; check AI provider API key; dashboard listener is IMPLEMENTED (Task A6) |
 | Live feed empty on dashboard | Supabase Broadcast `new_response` not firing | Check Supabase project active; check `new_response` handler in `dashboard/page.tsx` |
 | Works in same city, fails across regions | CF KV cross-datacenter miss (expected) | Confirm Layer 4 Supabase DB is covering it |
 
@@ -1345,9 +1345,9 @@ CRS-09b Cube 6 Phase B — BATCH (post-close):
 | **A1** Single-prompt summarization | `cube6_ai/service.py` | Replace 3 sequential AI calls with one structured prompt returning JSON `{summary_333, summary_111, summary_33}`. Translation + 333-word summary in first prompt; 111 + 33 in second. Two round-trips max. Applies only when word count > 33 (BR-1 handles ≤33). | Efficiency +20, Stability +5 |
 | **A2** Retry with backoff | `cube6_ai/service.py` | 3 attempts, 1s/2s/4s backoff on AI API call. On final failure: store `summary_33: "[Summary unavailable]"` + `flag: true` in PostgreSQL response_summaries. Log structured error with `response_id`. | Stability +25 |
 | **A3** Per-session concurrency cap | `cube6_ai/service.py` | `asyncio.Semaphore(10)` per session on Phase A tasks, stored on FastAPI `app.state`. At horizontal scale (multiple workers), each worker enforces independently — Redis-backed global cap deferred to production scaling phase. | Scalability +30 |
-| **A4** Add `summary_33` to schema | `schemas/response.py` | Add `summary_33: str \| None = None` to `TextResponseRead`. Enables frontend to read it from API response. Note: Phase A is async so field will be `None` at submit time — real value arrives via A5 broadcast. | Succinctness +20 |
+| **A4** Add `summary_33` to schema | `schemas/response.py` + `cube2_text/service.py` | **IMPLEMENTED** — `summary_33` field in `ResponseRead`, `ResponseListItem`, `TextResponseDetail` schemas. Both `get_responses()` and `get_response_by_id()` JOIN `response_summaries` table via outerjoin. Returns `None` gracefully when Phase A hasn't run. | Succinctness +20 |
 | **A5** Backend Supabase broadcast | `cube6_ai/service.py` + `core/supabase_broadcast.py` | **IMPLEMENTED** — After Phase A completes: broadcasts `{"event": "summary_ready", "response_id": "...", "summary_33": "..."}` to Supabase channel `session:{short_code}` (`cube6_ai/service.py` lines 203-213). Uses httpx REST with service role key. **Sub-tasks:** A5.01 availability guard (IMPLEMENTED — logs warning + continues on failure); A5.02 gate on `session.live_feed_enabled` (not yet gated); A5.03 covers both text (Cube 2) + voice (Cube 3) paths; A5.04 key scoped to Realtime publish only. | Stability +20, Efficiency +20 |
-| **A6** Dashboard `summary_ready` listener | `frontend/app/dashboard/page.tsx` | Add `.on("broadcast", { event: "summary_ready" }, ...)` listener. On receipt: find feed entry by `response_id`, replace displayed text with `summary_33`. Handle out-of-order delivery (entry may not exist yet — queue update until `new_response` arrives). | Stability +10, Efficiency +5 |
+| **A6** Dashboard `summary_ready` listener | `frontend/app/dashboard/page.tsx` | **IMPLEMENTED** — `.on("broadcast", { event: "summary_ready" }, ...)` listener at lines 261-272. Updates existing feed entry in-place by `response_id`. Falls back to `summarizeTo33Words()` client truncation when AI summary not yet available. Renders `r.summary_33 \|\| summarizeTo33Words(r.clean_text)` in both compact and fullscreen feed views. | Stability +10, Efficiency +5 |
 | **A7** Security audit: PII path | `cube2_text/service.py`, `cube3_voice/service.py`, `cube6_ai/service.py` | Verify `clean_text` (not raw) is input to `summarize_single_response()` in **both** text and voice code paths. Add structured log `cube6.phase_a.pii_safe: true` at entry. Confirm via test fixture with injected PII that raw text never reaches AI provider. | Security +25 |
 
 #### Phase B — Stop Polling → Theme01 + Theme2
