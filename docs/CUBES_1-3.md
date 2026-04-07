@@ -995,6 +995,17 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | Azure Speech | azure-stt | Real-time | 30+ | Paid feature, WebSocket |
 | AWS Transcribe Streaming | aws-streaming | Real-time | 23 | Fallback for Azure |
 
+### Cube 3 — Known Gaps (Deferred to Real-time STT Launch)
+
+The following gaps exist ONLY in the **real-time WebSocket STT path** (paid feature, not yet live). Batch voice path is 100% production-ready.
+
+| # | Gap | File | Impact | Deferred Until |
+|---|------|------|--------|---------------|
+| RT-1 | Gemini provider async/sync client mismatch | `gemini_provider.py:52,85` | Gemini not used in realtime | Gemini STT production enablement |
+| RT-2 | Realtime `cost_usd` always 0.0 (duration hardcoded) | `realtime.py:272` | Cost transparency missing | Realtime STT launch |
+| RT-3 | `push_audio()` sync/async mismatch (Azure vs AWS) | `realtime.py:214-217` | AWS fallback may crash | Realtime STT launch |
+| RT-4 | No Phase A task in realtime flow (no summaries) | `realtime.py:331` | No 33-word summaries | Realtime STT launch |
+
 ### Cube 3 — CRS Traceability
 | CRS | Input ID | Output ID | Status | DTM Stretch Target | Design Output: Definable / Measurable |
 |-----|----------|-----------|--------|-------------------|--------------------------------------|

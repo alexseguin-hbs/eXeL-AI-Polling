@@ -49,7 +49,7 @@ async def get_system_metrics(
             TimeEntry.stopped_at.isnot(None),
         )
     )
-    latency_row = latency_result.one()
+    latency_row = latency_result.one_or_none()
 
     # Total voice responses
     count_result = await db.execute(
@@ -70,9 +70,9 @@ async def get_system_metrics(
             ResponseMeta.source == "voice",
         )
     )
-    span_row = span_result.one()
+    span_row = span_result.one_or_none()
     rpm = 0.0
-    if span_row.first and span_row.last and span_row.first != span_row.last:
+    if span_row and span_row.first and span_row.last and span_row.first != span_row.last:
         span_minutes = (span_row.last - span_row.first).total_seconds() / 60.0
         rpm = total / span_minutes if span_minutes > 0 else 0.0
 
@@ -90,15 +90,15 @@ async def get_system_metrics(
             )
         )
     )
-    audio_row = audio_result.one()
+    audio_row = audio_result.one_or_none()
 
     return {
-        "avg_transcription_latency_s": round(float(latency_row.avg_latency or 0), 4),
-        "max_transcription_latency_s": round(float(latency_row.max_latency or 0), 4),
+        "avg_transcription_latency_s": round(float(latency_row.avg_latency or 0), 4) if latency_row else 0.0,
+        "max_transcription_latency_s": round(float(latency_row.max_latency or 0), 4) if latency_row else 0.0,
         "total_voice_responses": total,
         "voice_responses_per_minute": round(rpm, 2),
-        "avg_audio_duration_sec": round(float(audio_row.avg_dur or 0), 2),
-        "total_audio_duration_sec": round(float(audio_row.total_dur or 0), 2),
+        "avg_audio_duration_sec": round(float(audio_row.avg_dur or 0), 2) if audio_row else 0.0,
+        "total_audio_duration_sec": round(float(audio_row.total_dur or 0), 2) if audio_row else 0.0,
     }
 
 
@@ -169,9 +169,9 @@ async def get_user_metrics(
             )
         )
     )
-    conf_row = conf_result.one()
-    total = conf_row.total or 0
-    low_rate = (conf_row.low_conf_count or 0) / total * 100 if total > 0 else 0.0
+    conf_row = conf_result.one_or_none()
+    total = (conf_row.total or 0) if conf_row else 0
+    low_rate = ((conf_row.low_conf_count or 0) / total * 100 if total > 0 else 0.0) if conf_row else 0.0
 
     # Transcript length + unique participants
     participant_result = await db.execute(
@@ -183,15 +183,15 @@ async def get_user_metrics(
             ResponseMeta.source == "voice",
         )
     )
-    part_row = participant_result.one()
+    part_row = participant_result.one_or_none()
 
     return {
         "language_distribution": language_distribution,
         "provider_distribution": provider_distribution,
-        "avg_transcript_confidence": round(float(conf_row.avg_conf or 0), 4),
+        "avg_transcript_confidence": round(float(conf_row.avg_conf or 0), 4) if conf_row else 0.0,
         "low_confidence_rate_pct": round(low_rate, 2),
-        "avg_transcript_length": round(float(part_row.avg_len or 0), 1),
-        "unique_voice_participants": part_row.unique or 0,
+        "avg_transcript_length": round(float(part_row.avg_len or 0), 1) if part_row else 0.0,
+        "unique_voice_participants": (part_row.unique or 0) if part_row else 0,
     }
 
 
@@ -230,10 +230,10 @@ async def get_outcome_metrics(
             func.sum(case((TextResponse.pii_detected.is_(True), 1), else_=0)).label("pii_count"),
         ).where(TextResponse.response_meta_id.in_(voice_meta_ids))
     )
-    q_row = quality_result.one()
-    total = q_row.total or 0
-    clean_ratio = (q_row.clean_count or 0) / total * 100 if total > 0 else 0.0
-    pii_rate = (q_row.pii_count or 0) / total * 100 if total > 0 else 0.0
+    q_row = quality_result.one_or_none()
+    total = (q_row.total or 0) if q_row else 0
+    clean_ratio = ((q_row.clean_count or 0) / total * 100 if total > 0 else 0.0) if q_row else 0.0
+    pii_rate = ((q_row.pii_count or 0) / total * 100 if total > 0 else 0.0) if q_row else 0.0
 
     # Token distribution from Cube 3 time entries
     token_result = await db.execute(
@@ -247,10 +247,10 @@ async def get_outcome_metrics(
             TimeEntry.action_type == "voice_responding",
         )
     )
-    t_row = token_result.one()
-    total_heart = float(t_row.total_heart or 0)
-    total_unity = float(t_row.total_unity or 0)
-    entry_count = t_row.entry_count or 0
+    t_row = token_result.one_or_none()
+    total_heart = float(t_row.total_heart or 0) if t_row else 0.0
+    total_unity = float(t_row.total_unity or 0) if t_row else 0.0
+    entry_count = (t_row.entry_count or 0) if t_row else 0
     avg_heart = total_heart / entry_count if entry_count > 0 else 0.0
 
     # Provider success rates + total cost

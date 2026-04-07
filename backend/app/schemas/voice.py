@@ -39,7 +39,9 @@ class VoiceSubmissionRead(BaseModel):
     # CRS-08: SHA-256 integrity hash of clean_text
     response_hash: str | None = None
 
-    # Cube 6 Phase A: 33-word AI summary (populated async after submission)
+    # Cube 6 Phase A: 33-word AI summary — always None on initial POST response.
+    # Populated asynchronously by background task (core/phase_a_retry.py).
+    # Fetch via GET /{response_id} or listen for "summary_ready" broadcast.
     summary_33: str | None = None
 
     # STT cost transparency

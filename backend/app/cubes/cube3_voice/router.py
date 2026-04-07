@@ -173,6 +173,6 @@ async def get_voice_response(
     await service.validate_session_exists(db, session_id)
     result = await service.get_voice_response_by_id(db, session_id, response_id)
     if result is None:
-        from app.core.exceptions import SessionNotFoundError
-        raise SessionNotFoundError(str(response_id))
+        from app.core.exceptions import ResponseNotFoundError
+        raise ResponseNotFoundError(str(response_id))
     return result

@@ -48,6 +48,16 @@ async def run_phase_a_with_retry(
     """
     from app.cubes.cube6_ai.service import summarize_single_response
 
+    # CRS-08.02: Guard against empty/whitespace text reaching summarization
+    if not clean_text or not clean_text.strip():
+        logger.warning(
+            "core.phase_a.empty_text_skipped",
+            response_id=str(response_id),
+            session_id=str(session_id),
+            source=source,
+        )
+        return
+
     # MoT-2: <33-word auto-fallback — skip AI call if text is already short enough
     word_count = len(clean_text.split())
     if word_count <= 33:

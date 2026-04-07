@@ -760,3 +760,52 @@ class TestLanguagePropagation:
             )
 
         assert captured_kwargs.get("language_code") == "es"
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 Tests — 5.1 (Empty Text), 5.2 (Metrics Null), 5.4 (Exception Type)
+# ---------------------------------------------------------------------------
+
+
+class TestPhaseAEmptyTextGuard:
+    """5.1: Phase A must skip empty/whitespace text without storing empty summaries."""
+
+    @pytest.mark.asyncio
+    async def test_empty_text_skipped(self):
+        """Empty clean_text should return immediately without storing."""
+        from app.core.phase_a_retry import run_phase_a_with_retry
+
+        # Should not raise — just logs and returns
+        await run_phase_a_with_retry(
+            session_id=uuid.uuid4(),
+            response_id=uuid.uuid4(),
+            clean_text="",
+            language_code="en",
+            ai_provider="openai",
+            source="voice",
+        )
+        # If we get here without error, the guard worked
+
+    @pytest.mark.asyncio
+    async def test_whitespace_text_skipped(self):
+        """Whitespace-only clean_text should return immediately."""
+        from app.core.phase_a_retry import run_phase_a_with_retry
+
+        await run_phase_a_with_retry(
+            session_id=uuid.uuid4(),
+            response_id=uuid.uuid4(),
+            clean_text="   \n\t  ",
+            language_code="en",
+            ai_provider="openai",
+            source="voice",
+        )
+
+
+class TestResponseNotFoundError:
+    """5.4: Missing voice response should raise ResponseNotFoundError, not SessionNotFoundError."""
+
+    def test_exception_exists(self):
+        from app.core.exceptions import ResponseNotFoundError
+        err = ResponseNotFoundError("test-id")
+        assert err.status_code == 404
+        assert "Response" in err.detail

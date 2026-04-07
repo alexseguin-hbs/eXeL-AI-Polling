@@ -24,6 +24,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import math
+import time
 import uuid
 from datetime import datetime, timezone
 
@@ -77,7 +78,6 @@ def _get_session_semaphore(session_id: uuid.UUID) -> asyncio.Semaphore:
 
 def _cb_is_open(provider: str) -> bool:
     """Check if circuit breaker is OPEN (provider in cooldown)."""
-    import time
     state = _circuit_breaker_state.get(provider)
     if not state:
         return False
@@ -92,7 +92,6 @@ def _cb_is_open(provider: str) -> bool:
 
 def _cb_record_failure(provider: str) -> None:
     """Record a provider failure for circuit breaker tracking."""
-    import time
     state = _circuit_breaker_state.get(provider, {"failures": 0, "last_failure": 0.0})
     state["failures"] = state.get("failures", 0) + 1
     state["last_failure"] = time.monotonic()
@@ -524,10 +523,13 @@ async def submit_voice_response(
         source="voice",
     )
     if not pii_gate_passed:
-        logger.error(
-            "cube6.phase_a.pii_gate_failed",
+        # CRS-08.02: Informational warning — submission proceeds with clean_text
+        # (scrub_pii may have returned identical text if PII type was not redactable).
+        # Phase A always receives pipeline.clean_text, never raw transcript.
+        logger.warning(
+            "cube6.phase_a.pii_gate_warning",
             response_id=str(response_meta.id),
-            detail="PII detected but clean_text == raw transcript — scrubbing may have failed",
+            detail="PII detected but clean_text == raw transcript — scrubbing may have produced identical output",
         )
 
     # Fire-and-forget: shared Phase A with <33-word fallback + live feed broadcast

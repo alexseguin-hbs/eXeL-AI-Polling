@@ -43,7 +43,7 @@ class RateLimitError(HTTPException):
 
 class ResponseValidationError(HTTPException):
     def __init__(self, detail: str = "Invalid response input"):
-        super().__init__(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)
+        super().__init__(status_code=422, detail=detail)
 
 
 class QuestionNotFoundError(HTTPException):
@@ -51,6 +51,14 @@ class QuestionNotFoundError(HTTPException):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Question '{question_id}' not found",
+        )
+
+
+class ResponseNotFoundError(HTTPException):
+    def __init__(self, response_id: str):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Response '{response_id}' not found",
         )
 
 
