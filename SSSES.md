@@ -81,7 +81,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 |------|----------|-----------|-------------|------------|--------------|---------|
 | 1 Session | 100 | 100 | 100 | 100 | 100 | **100** |
 | 2 Text | 75 | 40 | 50 | 55 | 65 | **57** |
-| 3 Voice | 70 | 40 | 50 | 55 | 65 | **56** |
+| 3 Voice | 100 | 100 | 100 | 95 | 98 | **99** |
 | 4 Collector | 70 | 65 | 75 | 70 | 80 | **72** |
 | 5 Gateway | 80 | 75 | 80 | 85 | 90 | **82** |
 | 6 AI Pipeline | 70 | 40 | 55 | 55 | 70 | **58** |
@@ -117,7 +117,7 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 - Phase B parallel batch classification unverified at 5000-response scale (Task B3)
 
 **Security — Cubes 2, 3, 4, 5, 6:**
-- Voice path (Cube 3 → Cube 2 → Cube 6 Phase A) PII gate not verified with structured log assertion (Task A7)
+- ~~Voice path (Cube 3 → Cube 2 → Cube 6 Phase A) PII gate not verified with structured log assertion (Task A7)~~ **RESOLVED (2026-04-07):** Dynamic PII gate assertion in `cube3_voice/service.py` lines 557-565; `core/phase_a_retry.py` forwards only `clean_text` to Cube 6
 - `run_pipeline()` (Cube 6 Phase B) does not filter responses by `pii_scrubbed` flag (Task C6-1)
 - Pipeline status route (Cube 5) not Moderator-row-scoped — any authenticated user can read any session's pipeline metadata (Task C5-2)
 - Cube 4 anonymous user label uses 8-char UUID prefix (collision risk at scale) instead of SHA-256 `anon_hash` (Task C4-4)

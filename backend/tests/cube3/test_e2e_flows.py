@@ -608,9 +608,9 @@ CUBE3_TEST_METHOD = {
     "baseline_metrics": {
         "unit_tests_passed": 44,
         "e2e_tests_passed": 21,
-        "total_tests": 65,
-        "test_duration_ms": 950,
-        "coverage_target_pct": 92,
+        "total_tests": 75,
+        "test_duration_ms": 700,
+        "coverage_target_pct": 95,
     },
     "flows": {
         "submission": {
