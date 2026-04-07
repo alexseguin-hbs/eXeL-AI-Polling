@@ -36,6 +36,9 @@ class VoiceSubmissionRead(BaseModel):
     profanity_detected: bool = False
     clean_text: str | None = None
 
+    # CRS-08: SHA-256 integrity hash of clean_text
+    response_hash: str | None = None
+
     # Immediate token display after submission (♡ and ◬)
     heart_tokens_earned: float = Field(default=0.0)
     unity_tokens_earned: float = Field(default=0.0)

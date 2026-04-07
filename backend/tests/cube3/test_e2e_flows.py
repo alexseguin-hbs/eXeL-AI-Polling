@@ -606,11 +606,11 @@ CUBE3_TEST_METHOD = {
         "tests/cube3/test_e2e_flows.py",
     ],
     "baseline_metrics": {
-        "unit_tests_passed": 18,
-        "e2e_tests_passed": 19,
-        "total_tests": 37,
-        "test_duration_ms": 500,
-        "coverage_target_pct": 85,
+        "unit_tests_passed": 28,
+        "e2e_tests_passed": 21,
+        "total_tests": 49,
+        "test_duration_ms": 850,
+        "coverage_target_pct": 90,
     },
     "flows": {
         "submission": {

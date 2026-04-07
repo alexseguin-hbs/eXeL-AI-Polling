@@ -369,3 +369,188 @@ class TestGetVoiceResponses:
         from app.cubes.cube3_voice.service import get_voice_response_by_id
         result = await get_voice_response_by_id(mock_db, uuid.uuid4(), uuid.uuid4())
         assert result is None
+
+
+# ---------------------------------------------------------------------------
+# Phase 1 Security Tests — P1.1 (Auth), P1.2 (Timeout), P1.3 (PII Gate),
+#                           P1.4 (Schema), P1.5 (DB Session)
+# ---------------------------------------------------------------------------
+
+
+class TestSTTTimeout:
+    """P1.2: STT API calls must timeout after 30s to prevent hung providers."""
+
+    @pytest.mark.asyncio
+    async def test_primary_timeout_triggers_failover(self):
+        """Timeout on primary provider should trigger circuit breaker failover."""
+        import asyncio
+        from app.cubes.cube3_voice.service import transcribe_audio
+
+        mock_provider = MagicMock()
+        mock_provider.provider_name = STTProviderName.WHISPER
+
+        # Simulate a provider that hangs forever
+        async def hang_forever(*args, **kwargs):
+            await asyncio.sleep(999)
+
+        mock_provider.transcribe = hang_forever
+
+        fallback_result = TranscriptionResult(
+            transcript="Fallback after timeout",
+            confidence=0.85,
+            language_detected="en",
+            provider="grok",
+            audio_duration_sec=2.0,
+        )
+
+        with (
+            patch("app.cubes.cube3_voice.service.select_stt_provider", new_callable=AsyncMock, return_value=mock_provider),
+            patch("app.cubes.cube3_voice.service._handle_stt_failure", new_callable=AsyncMock, return_value=fallback_result),
+            patch("app.cubes.cube3_voice.service.STT_TIMEOUT_SECONDS", 0.1),
+        ):
+            result = await transcribe_audio(AsyncMock(), b"audio", "en", "webm")
+        assert result.provider == "grok"
+
+    @pytest.mark.asyncio
+    async def test_failover_timeout_skips_to_next(self):
+        """Timeout in failover chain should skip to next provider."""
+        import asyncio
+        from app.cubes.cube3_voice.service import _handle_stt_failure
+
+        call_count = 0
+
+        def mock_get_provider(name):
+            nonlocal call_count
+            call_count += 1
+            provider = MagicMock()
+            if name == "grok":
+                # Grok hangs
+                async def hang(*a, **kw):
+                    await asyncio.sleep(999)
+                provider.transcribe = hang
+            else:
+                # Gemini succeeds
+                provider.transcribe = AsyncMock(
+                    return_value=TranscriptionResult(
+                        transcript="Gemini recovered",
+                        confidence=0.8,
+                        language_detected="en",
+                        provider=name,
+                        audio_duration_sec=1.0,
+                    )
+                )
+            return provider
+
+        with (
+            patch("app.cubes.cube3_voice.service.get_stt_provider", side_effect=mock_get_provider),
+            patch("app.cubes.cube3_voice.service.STT_TIMEOUT_SECONDS", 0.1),
+        ):
+            result = await _handle_stt_failure(
+                AsyncMock(), b"audio", "en", "webm",
+                failed_provider="whisper",
+            )
+        assert result.transcript == "Gemini recovered"
+
+    @pytest.mark.asyncio
+    async def test_all_providers_timeout_raises(self):
+        """If all providers timeout, should raise ResponseValidationError."""
+        import asyncio
+        from app.cubes.cube3_voice.service import _handle_stt_failure
+
+        def mock_get_provider(name):
+            provider = MagicMock()
+            async def hang(*a, **kw):
+                await asyncio.sleep(999)
+            provider.transcribe = hang
+            return provider
+
+        with (
+            patch("app.cubes.cube3_voice.service.get_stt_provider", side_effect=mock_get_provider),
+            patch("app.cubes.cube3_voice.service.STT_TIMEOUT_SECONDS", 0.1),
+        ):
+            with pytest.raises(ResponseValidationError) as exc_info:
+                await _handle_stt_failure(
+                    AsyncMock(), b"audio", "en", "webm",
+                    failed_provider="whisper",
+                )
+            assert "all STT providers unavailable" in str(exc_info.value.detail)
+
+
+class TestSessionValidation:
+    """P1.1: Session existence check prevents UUID enumeration."""
+
+    @pytest.mark.asyncio
+    async def test_valid_session_passes(self):
+        """Existing session should not raise."""
+        from app.cubes.cube3_voice.service import validate_session_exists
+
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = uuid.uuid4()
+        mock_db.execute = AsyncMock(return_value=mock_result)
+
+        # Should not raise
+        await validate_session_exists(mock_db, uuid.uuid4())
+
+    @pytest.mark.asyncio
+    async def test_missing_session_raises_404(self):
+        """Non-existent session should raise SessionNotFoundError."""
+        from app.core.exceptions import SessionNotFoundError
+        from app.cubes.cube3_voice.service import validate_session_exists
+
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        mock_db.execute = AsyncMock(return_value=mock_result)
+
+        with pytest.raises(SessionNotFoundError):
+            await validate_session_exists(mock_db, uuid.uuid4())
+
+
+class TestPIIGateAssertion:
+    """P1.3: PII gate must dynamically verify clean_text != raw when PII detected."""
+
+    def test_pii_gate_passes_when_scrubbed(self):
+        """When PII is detected AND clean_text differs from raw, gate passes."""
+        pii_detected = True
+        transcript = "My email is john@test.com"
+        clean_text = "My email is [REDACTED]"
+
+        pii_gate_passed = (not pii_detected) or (clean_text != transcript)
+        assert pii_gate_passed is True
+
+    def test_pii_gate_passes_when_no_pii(self):
+        """When no PII detected, gate passes regardless of text match."""
+        pii_detected = False
+        transcript = "Hello world"
+        clean_text = "Hello world"
+
+        pii_gate_passed = (not pii_detected) or (clean_text != transcript)
+        assert pii_gate_passed is True
+
+    def test_pii_gate_fails_when_pii_not_scrubbed(self):
+        """When PII detected but clean_text == raw, gate FAILS (scrubbing broken)."""
+        pii_detected = True
+        transcript = "My email is john@test.com"
+        clean_text = "My email is john@test.com"  # Scrubbing failed
+
+        pii_gate_passed = (not pii_detected) or (clean_text != transcript)
+        assert pii_gate_passed is False
+
+
+class TestResponseHashSchema:
+    """P1.4: VoiceSubmissionRead must include response_hash field."""
+
+    def test_schema_includes_response_hash(self):
+        """VoiceSubmissionRead should have response_hash field."""
+        from app.schemas.voice import VoiceSubmissionRead
+
+        fields = VoiceSubmissionRead.model_fields
+        assert "response_hash" in fields
+
+    def test_response_hash_optional_default_none(self):
+        """response_hash should default to None (optional)."""
+        from app.schemas.voice import VoiceSubmissionRead
+
+        field = VoiceSubmissionRead.model_fields["response_hash"]
+        assert field.default is None

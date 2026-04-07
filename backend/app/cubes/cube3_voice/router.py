@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, 
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import CurrentUser, get_optional_current_user
+from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.dependencies import get_db, get_redis
 from app.core.rate_limit import limiter
 from app.cubes.cube3_voice import metrics as cube3_metrics
@@ -134,7 +134,11 @@ async def list_voice_responses(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
-    """List paginated voice responses for a session."""
+    """List paginated voice responses for a session.
+
+    CRS-08: Session existence validated to prevent enumeration.
+    """
+    await service.validate_session_exists(db, session_id)
     return await service.get_voice_responses(
         db, session_id, page=page, page_size=page_size,
     )
@@ -144,10 +148,11 @@ async def list_voice_responses(
 async def get_metrics(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
-    """Cube 3 metrics: System / User / Outcome.
+    """Cube 3 metrics: System / User / Outcome (Moderator-only).
 
+    CRS-08: Requires authentication — metrics contain aggregate session data.
     Used by Cube 10 simulation to compare proposed changes against
     production baselines. Returns all three metric categories.
     """
@@ -161,7 +166,11 @@ async def get_voice_response(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
-    """Get a single voice response by ID. Includes full STT + PII/profanity detail."""
+    """Get a single voice response by ID. Includes full STT + PII/profanity detail.
+
+    CRS-08: Session existence validated to prevent enumeration.
+    """
+    await service.validate_session_exists(db, session_id)
     result = await service.get_voice_response_by_id(db, session_id, response_id)
     if result is None:
         from app.core.exceptions import SessionNotFoundError
