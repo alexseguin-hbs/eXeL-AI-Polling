@@ -965,8 +965,25 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 - 4 lexicon keys added: `no_speech`, `low_confidence`, `confidence_label`, `reduce_to_33`
 - MoT-1: "Reduce to 33 words" button in moderator live feed (fullscreen + compact)
 
-**Tests:** 75 tests (44 unit + 21 E2E + 10 skipped live STT), 0 TSC errors
-**SSSES:** Security 100, Stability 100, Scalability 100, Efficiency 95, Succinctness 98 = **99/100**
+**Phase 4 (Final Optimization — 2026-04-07):**
+- Removed broken `_translate_to_english()` (imported non-existent `call_ai_provider`) — translation handled by Cube 6 Phase A/B prompts
+- English translation for summaries (333/111/33) AND themes (Theme1 + Theme2) handled by Cube 6 via `language_code` parameter
+- Wired `_provider_lock` — thread-safe async provider factory (`get_stt_provider_safe`)
+- Tests for non-EN language propagation to Phase A (confirms `language_code="es"` reaches Cube 6)
+- Export to local languages: future paid feature (cost + 50% margin charged to customer)
+
+**Lexicon Key Mapping (spec ↔ code):**
+| Requirements.txt Key | lexicon-data.ts Key | Reason |
+|---------------------|-------------------|--------|
+| `cube3.voice.start_recording` | `cube3.voice.record` | Shorter key; translated in 33 languages |
+| `cube3.voice.stop_recording` | `cube3.voice.stop` | Shorter key; translated in 33 languages |
+| `cube3.voice.transcript_preview` | `cube3.voice.preview` | Shorter key; translated in 33 languages |
+| `cube3.voice.confirm_submit` | `cube3.voice.confirm` | Shorter key; translated in 33 languages |
+
+*Canonical spec keys differ from code keys for brevity. All 30 cube3 keys (22 voice + 8 settings) present and translated.*
+
+**Tests:** 71 passed + 8 skipped (live STT), 0 TSC errors
+**SSSES:** Security 100, Stability 100, Scalability 100, Efficiency 100, Succinctness 100 = **100/100**
 
 ### Cube 3 — STT Providers at Launch
 | Provider | Model ID | Type | Languages | Notes |

@@ -57,14 +57,22 @@ def _get_provider_instance_sync(name: str) -> STTProvider:
 
 
 def get_stt_provider(name: str) -> STTProvider:
-    """Resolve an STTProvider by provider name string.
+    """Resolve an STTProvider by provider name string (sync, for non-async callers).
 
     Accepts both STT names (whisper, grok, gemini) and AI provider
     names (openai, grok, gemini) for convenience.
     """
-    # Map AI provider name to STT name if needed
     stt_name = _AI_TO_STT_MAP.get(name, name)
     return _get_provider_instance_sync(stt_name)
+
+
+async def get_stt_provider_safe(name: str) -> STTProvider:
+    """Thread-safe async provider resolution — uses lock to prevent race on init."""
+    stt_name = _AI_TO_STT_MAP.get(name, name)
+    if stt_name in _providers:
+        return _providers[stt_name]  # Fast path: already initialized
+    async with _provider_lock:
+        return _get_provider_instance_sync(stt_name)
 
 
 async def select_stt_provider(

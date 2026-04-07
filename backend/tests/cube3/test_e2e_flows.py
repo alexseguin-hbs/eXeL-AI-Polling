@@ -511,7 +511,7 @@ class TestCircuitBreakerE2E:
         )
 
         with patch(
-            "app.cubes.cube3_voice.service.get_stt_provider",
+            "app.cubes.cube3_voice.service.get_stt_provider_safe",
             return_value=fallback_provider,
         ):
             result = await _handle_stt_failure(
@@ -532,7 +532,7 @@ class TestCircuitBreakerE2E:
         )
 
         with patch(
-            "app.cubes.cube3_voice.service.get_stt_provider",
+            "app.cubes.cube3_voice.service.get_stt_provider_safe",
             return_value=failing_provider,
         ):
             with pytest.raises(ResponseValidationError) as exc_info:
@@ -606,10 +606,10 @@ CUBE3_TEST_METHOD = {
         "tests/cube3/test_e2e_flows.py",
     ],
     "baseline_metrics": {
-        "unit_tests_passed": 44,
+        "unit_tests_passed": 48,
         "e2e_tests_passed": 21,
-        "total_tests": 75,
-        "test_duration_ms": 700,
+        "total_tests": 79,
+        "test_duration_ms": 1640,
         "coverage_target_pct": 95,
     },
     "flows": {

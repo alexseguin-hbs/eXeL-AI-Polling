@@ -165,7 +165,7 @@ class TestCircuitBreakerFailover:
             )
         )
 
-        with patch("app.cubes.cube3_voice.service.get_stt_provider", return_value=mock_provider):
+        with patch("app.cubes.cube3_voice.service.get_stt_provider_safe", return_value=mock_provider):
             result = await _handle_stt_failure(
                 AsyncMock(),  # db
                 b"audio_bytes",
@@ -185,7 +185,7 @@ class TestCircuitBreakerFailover:
             side_effect=STTProviderError("test", "All failed")
         )
 
-        with patch("app.cubes.cube3_voice.service.get_stt_provider", return_value=mock_provider):
+        with patch("app.cubes.cube3_voice.service.get_stt_provider_safe", return_value=mock_provider):
             with pytest.raises(ResponseValidationError) as exc_info:
                 await _handle_stt_failure(
                     AsyncMock(),
@@ -217,7 +217,7 @@ class TestCircuitBreakerFailover:
             )
             return provider
 
-        with patch("app.cubes.cube3_voice.service.get_stt_provider", side_effect=mock_get_provider):
+        with patch("app.cubes.cube3_voice.service.get_stt_provider_safe", side_effect=mock_get_provider):
             result = await _handle_stt_failure(
                 AsyncMock(),
                 b"audio",
@@ -442,7 +442,7 @@ class TestSTTTimeout:
             return provider
 
         with (
-            patch("app.cubes.cube3_voice.service.get_stt_provider", side_effect=mock_get_provider),
+            patch("app.cubes.cube3_voice.service.get_stt_provider_safe", side_effect=mock_get_provider),
             patch("app.cubes.cube3_voice.service.STT_TIMEOUT_SECONDS", 0.1),
         ):
             result = await _handle_stt_failure(
@@ -465,7 +465,7 @@ class TestSTTTimeout:
             return provider
 
         with (
-            patch("app.cubes.cube3_voice.service.get_stt_provider", side_effect=mock_get_provider),
+            patch("app.cubes.cube3_voice.service.get_stt_provider_safe", side_effect=mock_get_provider),
             patch("app.cubes.cube3_voice.service.STT_TIMEOUT_SECONDS", 0.1),
         ):
             with pytest.raises(ResponseValidationError) as exc_info:
@@ -689,3 +689,74 @@ class TestVoiceResponseCostModel:
         from app.models.voice_response import VoiceResponse
         columns = {c.name for c in VoiceResponse.__table__.columns}
         assert "cost_usd" in columns
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 Tests — P4.2 (Provider Lock), P4.3 (Language Propagation)
+# ---------------------------------------------------------------------------
+
+
+class TestProviderLock:
+    """P4.2: Thread-safe provider factory with async lock."""
+
+    @pytest.mark.asyncio
+    async def test_safe_provider_returns_instance(self):
+        """get_stt_provider_safe should return a valid provider."""
+        from app.cubes.cube3_voice.providers.factory import get_stt_provider_safe
+        from app.cubes.cube3_voice.providers.base import STTProvider
+
+        provider = await get_stt_provider_safe("whisper")
+        assert isinstance(provider, STTProvider)
+
+    @pytest.mark.asyncio
+    async def test_safe_provider_idempotent(self):
+        """Multiple calls should return the same singleton instance."""
+        from app.cubes.cube3_voice.providers.factory import get_stt_provider_safe
+
+        p1 = await get_stt_provider_safe("gemini")
+        p2 = await get_stt_provider_safe("gemini")
+        assert p1 is p2
+
+
+class TestLanguagePropagation:
+    """P4.3: Non-EN language_code must flow to Cube 6 for English translation of summaries + themes."""
+
+    def test_phase_a_retry_accepts_language_code(self):
+        """run_phase_a_with_retry must accept language_code parameter."""
+        import inspect
+        from app.core.phase_a_retry import run_phase_a_with_retry
+
+        sig = inspect.signature(run_phase_a_with_retry)
+        assert "language_code" in sig.parameters
+
+    @pytest.mark.asyncio
+    async def test_non_en_language_passed_through(self):
+        """Non-EN language_code should reach summarize_single_response unchanged."""
+        from app.core.phase_a_retry import run_phase_a_with_retry
+
+        captured_kwargs = {}
+
+        async def mock_summarize(db, **kwargs):
+            captured_kwargs.update(kwargs)
+
+        with (
+            patch("app.cubes.cube6_ai.service.summarize_single_response", side_effect=mock_summarize),
+            patch("app.core.phase_a_retry.async_session_factory") as mock_factory,
+        ):
+            mock_db = AsyncMock()
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_db)
+            mock_factory.return_value.__aexit__ = AsyncMock(return_value=None)
+
+            # Use >33 words so it doesn't short-circuit
+            long_text = " ".join(["word"] * 50)
+            await run_phase_a_with_retry(
+                session_id=uuid.uuid4(),
+                response_id=uuid.uuid4(),
+                clean_text=long_text,
+                language_code="es",
+                ai_provider="openai",
+                session_short_code="TEST0001",
+                source="voice",
+            )
+
+        assert captured_kwargs.get("language_code") == "es"
