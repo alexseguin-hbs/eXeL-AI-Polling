@@ -311,6 +311,10 @@ const cube3: TranslationEntry[] = [
   { key: "cube3.voice.stop", englishDefault: "Stop recording", context: "Stop recording button title", cubeId: 3 },
   { key: "cube3.voice.processing_audio", englishDefault: "Processing audio...", context: "Processing state button title", cubeId: 3 },
   { key: "cube3.voice.record_response", englishDefault: "Record voice response", context: "Record button title", cubeId: 3 },
+  { key: "cube3.voice.no_speech", englishDefault: "No speech detected — please try again", context: "Empty recording error", cubeId: 3 },
+  { key: "cube3.voice.low_confidence", englishDefault: "Low transcription confidence — please review", context: "Low confidence warning toast", cubeId: 3 },
+  { key: "cube3.voice.confidence_label", englishDefault: "confidence", context: "Confidence percentage label", cubeId: 3 },
+  { key: "cube3.voice.reduce_to_33", englishDefault: "Reduce to 33 words", context: "On-demand 33-word summary button in live feed (MoT-1)", cubeId: 3 },
   // V2T provider settings (Moderator Settings panel)
   { key: "cube3.settings.v2t_provider", englishDefault: "Voice-to-Text Provider", context: "V2T settings section heading", cubeId: 3 },
   { key: "cube3.settings.v2t_desc", englishDefault: "Select the speech-to-text engine for voice responses in this session.", context: "V2T settings description", cubeId: 3 },

@@ -253,12 +253,30 @@ async def get_outcome_metrics(
     entry_count = t_row.entry_count or 0
     avg_heart = total_heart / entry_count if entry_count > 0 else 0.0
 
+    # Provider success rates + total cost
+    provider_result = await db.execute(
+        select(
+            VoiceResponse.stt_provider,
+            func.count(VoiceResponse.id).label("count"),
+            func.sum(VoiceResponse.cost_usd).label("total_cost"),
+        ).where(
+            VoiceResponse.response_meta_id.in_(voice_meta_ids)
+        ).group_by(VoiceResponse.stt_provider)
+    )
+    provider_stats = {}
+    total_cost = 0.0
+    for row in provider_result.all():
+        provider_stats[row.stt_provider] = row.count
+        total_cost += float(row.total_cost or 0)
+
     return {
         "clean_transcript_ratio_pct": round(clean_ratio, 2),
         "pii_detection_rate_pct": round(pii_rate, 2),
         "total_heart_tokens_distributed": round(total_heart, 4),
         "total_unity_tokens_distributed": round(total_unity, 4),
         "avg_heart_per_voice_response": round(avg_heart, 4),
+        "stt_provider_success_counts": provider_stats,
+        "total_stt_cost_usd": round(total_cost, 6),
     }
 
 

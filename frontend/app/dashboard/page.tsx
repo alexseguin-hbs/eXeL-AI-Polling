@@ -714,9 +714,28 @@ function SessionDetail({
                     {feedResponses.map((r) => (
                       <div key={r.id} className="rounded-lg border px-5 py-4">
                         <p className="text-base text-foreground leading-relaxed">{feedDisplayMode === "raw" ? r.clean_text : (r.summary_33 || summarizeTo33Words(r.clean_text))}</p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                        </p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                          </span>
+                          {/* MoT-1: On-demand "Reduce to 33 words" button */}
+                          {feedDisplayMode === "raw" && !r.summary_33 && r.clean_text.split(/\s+/).length > 33 && (
+                            <button
+                              onClick={() => {
+                                const summary = summarizeTo33Words(r.clean_text);
+                                setFeedResponses((prev) =>
+                                  prev.map((item) => item.id === r.id ? { ...item, summary_33: summary } : item)
+                                );
+                              }}
+                              className="text-[10px] text-primary/70 hover:text-primary underline"
+                            >
+                              {t("cube3.voice.reduce_to_33")}
+                            </button>
+                          )}
+                          {r.summary_33 && feedDisplayMode === "raw" && (
+                            <span className="text-[10px] text-green-500/70">✓ 33w</span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -849,9 +868,24 @@ function SessionDetail({
                   {feedResponses.map((r) => (
                     <div key={r.id} className="px-4 py-3 text-sm">
                       <p className="text-foreground leading-relaxed">{feedDisplayMode === "raw" ? r.clean_text : (r.summary_33 || summarizeTo33Words(r.clean_text))}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                      </p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(r.submitted_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                        </span>
+                        {feedDisplayMode === "raw" && !r.summary_33 && r.clean_text.split(/\s+/).length > 33 && (
+                          <button
+                            onClick={() => {
+                              const summary = summarizeTo33Words(r.clean_text);
+                              setFeedResponses((prev) =>
+                                prev.map((item) => item.id === r.id ? { ...item, summary_33: summary } : item)
+                              );
+                            }}
+                            className="text-[10px] text-primary/70 hover:text-primary underline"
+                          >
+                            {t("cube3.voice.reduce_to_33")}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -398,6 +398,42 @@ async def store_voice_response(
 
 
 # ---------------------------------------------------------------------------
+# 4b. English-Default Translation
+# ---------------------------------------------------------------------------
+
+
+async def _translate_to_english(
+    text: str,
+    source_language: str,
+    ai_provider: str,
+) -> str:
+    """Translate non-English transcript to English for downstream consistency.
+
+    Uses the same AI provider as summarization. If translation fails,
+    returns original text (graceful degradation).
+    """
+    try:
+        from app.cubes.cube6_ai.service import call_ai_provider
+        prompt = (
+            f"Translate the following {source_language} text to English. "
+            f"Return ONLY the English translation, nothing else:\n\n{text}"
+        )
+        result = await asyncio.wait_for(
+            call_ai_provider(ai_provider, prompt),
+            timeout=15.0,
+        )
+        translated = result.strip() if result else text
+        return translated if translated else text
+    except Exception as e:
+        logger.warning(
+            "cube3.voice.translation_failed",
+            source_language=source_language,
+            error=str(e),
+        )
+        return text  # Graceful degradation: use original transcript
+
+
+# ---------------------------------------------------------------------------
 # 5. Main Orchestrator
 # ---------------------------------------------------------------------------
 
@@ -458,6 +494,18 @@ async def submit_voice_response(
             preferred_provider=stt_provider_name,
         )
     transcript = validate_transcript(stt_result, session.max_response_length)
+
+    # --- 3b. English-default translation (non-EN transcripts auto-translated) ---
+    original_language = stt_result.language_detected
+    if original_language and original_language != "en":
+        transcript = await _translate_to_english(
+            transcript, original_language, session.ai_provider or "openai",
+        )
+        logger.info(
+            "cube3.voice.translated_to_english",
+            original_language=original_language,
+            transcript_length=len(transcript),
+        )
 
     # --- 4. Run Cube 2 PII/profanity pipeline on transcript ---
     pipeline = await run_text_pipeline(db, transcript, stt_result.language_detected)
