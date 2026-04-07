@@ -342,11 +342,8 @@ export function PoweredBadge() {
         }}
         title={easterEggUnlocked ? "Enter Simulation Mode" : undefined}
       >
-        <SeedOfLifeLogo
-          size={18}
-          accentColor={badgeColor}
-        />
-        <span className="font-medium" style={{ color: badgeColor }}>eXeL</span>
+        <span className="font-bold" style={{ color: badgeColor }}>eXeL</span>
+        <span className="font-light text-muted-foreground">AI</span>
       </button>
     </div>
   );

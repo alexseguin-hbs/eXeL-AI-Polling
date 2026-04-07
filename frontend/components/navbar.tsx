@@ -7,6 +7,9 @@ import { ModeratorSettings } from "@/components/moderator-settings";
 import { TokenHUD } from "@/components/token-hud";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useState } from "react";
+import { useEasterEgg } from "@/lib/easter-egg-context";
+import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
+import { useTheme } from "@/lib/theme-context";
 
 interface NavbarProps {
   sessionTitle?: string;
@@ -16,6 +19,15 @@ export function Navbar({ sessionTitle }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { t } = useLexicon();
+  const { currentTheme } = useTheme();
+
+  let simulationMode = false;
+  try {
+    const easterEgg = useEasterEgg();
+    simulationMode = easterEgg.simulationMode;
+  } catch {
+    // Easter egg provider not available
+  }
 
   let isAuthenticated = false;
   let user: { name?: string; email?: string; picture?: string } | undefined;
@@ -39,10 +51,19 @@ export function Navbar({ sessionTitle }: NavbarProps) {
         <div className="container flex h-14 items-center">
           <div className="flex items-center gap-2">
             <a href="/" className="flex items-center gap-2">
-              <span className="text-lg font-bold text-primary">eXeL</span>
-              <span className="text-lg font-light text-muted-foreground">
-                AI Polling
-              </span>
+              {simulationMode ? (
+                <SeedOfLifeLogo
+                  size={28}
+                  accentColor={currentTheme.swatch}
+                />
+              ) : (
+                <>
+                  <span className="text-lg font-bold text-primary">eXeL</span>
+                  <span className="text-lg font-light text-muted-foreground">
+                    AI Polling
+                  </span>
+                </>
+              )}
             </a>
           </div>
 
