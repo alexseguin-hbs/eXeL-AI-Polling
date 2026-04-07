@@ -62,6 +62,61 @@ _MIN_CONFIDENCE = 0.3  # Low threshold — UI warns at 0.65, but we still accept
 # STT API call timeout (seconds) — prevents hung providers blocking circuit breaker
 STT_TIMEOUT_SECONDS = 30
 
+# Circuit breaker cooldown (seconds) — provider skipped after failure until cooldown expires
+_CB_COOLDOWN_SECONDS = 60
+_CB_MAX_FAILURES = 3
+
+# Per-provider circuit breaker state: {provider_name: {"failures": int, "last_failure": float}}
+_circuit_breaker_state: dict[str, dict] = {}
+
+# Per-session concurrency semaphore: limits concurrent STT calls to prevent provider rate exhaustion
+_STT_MAX_CONCURRENT = 20
+_session_semaphores: dict[str, asyncio.Semaphore] = {}
+
+
+def _get_session_semaphore(session_id: uuid.UUID) -> asyncio.Semaphore:
+    """Get or create a per-session concurrency semaphore for STT calls."""
+    key = str(session_id)
+    if key not in _session_semaphores:
+        _session_semaphores[key] = asyncio.Semaphore(_STT_MAX_CONCURRENT)
+    return _session_semaphores[key]
+
+
+def _cb_is_open(provider: str) -> bool:
+    """Check if circuit breaker is OPEN (provider in cooldown)."""
+    import time
+    state = _circuit_breaker_state.get(provider)
+    if not state:
+        return False
+    if state["failures"] >= _CB_MAX_FAILURES:
+        elapsed = time.monotonic() - state["last_failure"]
+        if elapsed < _CB_COOLDOWN_SECONDS:
+            return True  # Still in cooldown
+        # Cooldown expired — half-open: allow one attempt
+        state["failures"] = _CB_MAX_FAILURES - 1
+    return False
+
+
+def _cb_record_failure(provider: str) -> None:
+    """Record a provider failure for circuit breaker tracking."""
+    import time
+    state = _circuit_breaker_state.get(provider, {"failures": 0, "last_failure": 0.0})
+    state["failures"] = state.get("failures", 0) + 1
+    state["last_failure"] = time.monotonic()
+    _circuit_breaker_state[provider] = state
+    logger.warning(
+        "cube3.cb.failure_recorded",
+        provider=provider,
+        total_failures=state["failures"],
+        cooldown_active=state["failures"] >= _CB_MAX_FAILURES,
+    )
+
+
+def _cb_record_success(provider: str) -> None:
+    """Reset circuit breaker state on success."""
+    if provider in _circuit_breaker_state:
+        _circuit_breaker_state[provider] = {"failures": 0, "last_failure": 0.0}
+
 
 # ---------------------------------------------------------------------------
 # 0. Session Validation (CRS-08 anti-enumeration)
@@ -130,39 +185,51 @@ async def transcribe_audio(
     else:
         provider = await select_stt_provider(db, language_code)
 
+    prov_name = provider.provider_name.value
+
+    # Circuit breaker: skip if provider is in cooldown
+    if _cb_is_open(prov_name):
+        logger.info("cube3.stt.cb_skip_primary", provider=prov_name)
+        return await _handle_stt_failure(
+            db, audio_bytes, language_code, audio_format,
+            failed_provider=prov_name,
+        )
+
     try:
         result = await asyncio.wait_for(
             provider.transcribe(audio_bytes, language_code, audio_format),
             timeout=STT_TIMEOUT_SECONDS,
         )
+        _cb_record_success(prov_name)
         return result
     except asyncio.TimeoutError:
+        _cb_record_failure(prov_name)
         logger.warning(
             "cube3.stt.timeout",
-            provider=provider.provider_name.value,
+            provider=prov_name,
             timeout_seconds=STT_TIMEOUT_SECONDS,
             language=language_code,
         )
         return await _handle_stt_failure(
             db, audio_bytes, language_code, audio_format,
-            failed_provider=provider.provider_name.value,
+            failed_provider=prov_name,
         )
     except STTProviderError as e:
+        _cb_record_failure(e.provider)
         logger.warning(
             "cube3.stt.primary_failed",
             provider=e.provider,
             error=e.message,
             language=language_code,
         )
-        # Circuit breaker: try remaining providers
         return await _handle_stt_failure(
             db, audio_bytes, language_code, audio_format,
             failed_provider=e.provider,
         )
 
 
-# Ordered fallback chain for circuit breaker
-_FALLBACK_ORDER = ["whisper", "grok", "gemini", "aws"]
+# Ordered fallback chain for circuit breaker (cost-optimized: Gemini cheapest → AWS most expensive)
+_FALLBACK_ORDER = ["gemini", "whisper", "grok", "aws"]
 
 
 async def _handle_stt_failure(
@@ -174,20 +241,26 @@ async def _handle_stt_failure(
 ) -> TranscriptionResult:
     """Circuit breaker: failover to next STT provider after primary fails.
 
-    Tries all remaining providers in order: whisper → grok → gemini.
-    Skips the failed provider and any that also fail.
+    Tries remaining providers in cost-optimized order (gemini → whisper → grok → aws).
+    Skips the failed provider, any in cooldown, and any that also fail.
     """
     for fallback_name in _FALLBACK_ORDER:
         if fallback_name == failed_provider:
             continue
+        if _cb_is_open(fallback_name):
+            logger.info("cube3.stt.cb_skip_fallback", provider=fallback_name)
+            continue
         try:
             logger.info("cube3.stt.failover", from_provider=failed_provider, to_provider=fallback_name)
             fallback = get_stt_provider(fallback_name)
-            return await asyncio.wait_for(
+            result = await asyncio.wait_for(
                 fallback.transcribe(audio_bytes, language_code, audio_format),
                 timeout=STT_TIMEOUT_SECONDS,
             )
+            _cb_record_success(fallback_name)
+            return result
         except asyncio.TimeoutError:
+            _cb_record_failure(fallback_name)
             logger.warning(
                 "cube3.stt.failover_timeout",
                 provider=fallback_name,
@@ -195,6 +268,7 @@ async def _handle_stt_failure(
             )
             continue
         except (STTProviderError, Exception) as e:
+            _cb_record_failure(fallback_name)
             logger.warning(
                 "cube3.stt.failover_failed",
                 provider=fallback_name,
@@ -302,6 +376,7 @@ async def store_voice_response(
         stt_provider=stt_result.provider,
         transcript_text=transcript,
         transcript_confidence=stt_result.confidence,
+        cost_usd=stt_result.cost_usd,
     )
     db.add(voice_response)
 
@@ -382,10 +457,13 @@ async def submit_voice_response(
         if user_pref:
             stt_provider_name = user_pref
 
-    stt_result = await transcribe_audio(
-        db, audio_bytes, language_code, audio_format,
-        preferred_provider=stt_provider_name,
-    )
+    # Concurrency cap: limit parallel STT calls per session
+    sem = _get_session_semaphore(session_id)
+    async with sem:
+        stt_result = await transcribe_audio(
+            db, audio_bytes, language_code, audio_format,
+            preferred_provider=stt_provider_name,
+        )
     transcript = validate_transcript(stt_result, session.max_response_length)
 
     # --- 4. Run Cube 2 PII/profanity pipeline on transcript ---
@@ -562,6 +640,7 @@ async def submit_voice_response(
         confidence=stt_result.confidence,
         transcript_length=len(transcript),
         audio_duration=stt_result.audio_duration_sec,
+        cost_usd=stt_result.cost_usd,
         pii_detected=pii_detected,
         profanity_detected=profanity_detected,
         heart_tokens=heart_earned,
@@ -585,6 +664,7 @@ async def submit_voice_response(
         "pii_detected": pii_detected,
         "profanity_detected": profanity_detected,
         "clean_text": clean_text,
+        "cost_usd": stt_result.cost_usd,
         "heart_tokens_earned": heart_earned,
         "unity_tokens_earned": unity_earned,
         "response_hash": response_hash,
@@ -661,11 +741,12 @@ async def get_voice_response_by_id(
     session_id: uuid.UUID,
     response_id: uuid.UUID,
 ) -> dict | None:
-    """Single voice response lookup with full detail."""
+    """Single voice response lookup with full detail + summary_33."""
     result = await db.execute(
-        select(ResponseMeta, VoiceResponse, TextResponse)
+        select(ResponseMeta, VoiceResponse, TextResponse, ResponseSummary)
         .outerjoin(VoiceResponse, VoiceResponse.response_meta_id == ResponseMeta.id)
         .outerjoin(TextResponse, TextResponse.response_meta_id == ResponseMeta.id)
+        .outerjoin(ResponseSummary, ResponseSummary.response_meta_id == ResponseMeta.id)
         .where(
             ResponseMeta.id == response_id,
             ResponseMeta.session_id == session_id,
@@ -676,7 +757,7 @@ async def get_voice_response_by_id(
     if row is None:
         return None
 
-    meta, voice, text_resp = row
+    meta, voice, text_resp, summary = row
     return {
         "id": meta.id,
         "session_id": meta.session_id,
@@ -696,7 +777,9 @@ async def get_voice_response_by_id(
         "pii_detected": text_resp.pii_detected if text_resp else False,
         "profanity_detected": text_resp.profanity_detected if text_resp else False,
         "clean_text": text_resp.clean_text if text_resp else None,
+        "response_hash": text_resp.response_hash if text_resp else None,
         "pii_types": text_resp.pii_types if text_resp else None,
         "pii_scrubbed_text": text_resp.pii_scrubbed_text if text_resp else None,
         "profanity_words": text_resp.profanity_words if text_resp else None,
+        "summary_33": summary.summary_33 if summary else None,
     }

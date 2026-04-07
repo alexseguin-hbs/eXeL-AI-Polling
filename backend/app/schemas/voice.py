@@ -39,6 +39,12 @@ class VoiceSubmissionRead(BaseModel):
     # CRS-08: SHA-256 integrity hash of clean_text
     response_hash: str | None = None
 
+    # Cube 6 Phase A: 33-word AI summary (populated async after submission)
+    summary_33: str | None = None
+
+    # STT cost transparency
+    cost_usd: float | None = None
+
     # Immediate token display after submission (♡ and ◬)
     heart_tokens_earned: float = Field(default=0.0)
     unity_tokens_earned: float = Field(default=0.0)

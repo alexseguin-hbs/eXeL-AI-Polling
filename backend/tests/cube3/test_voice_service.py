@@ -554,3 +554,138 @@ class TestResponseHashSchema:
 
         field = VoiceSubmissionRead.model_fields["response_hash"]
         assert field.default is None
+
+
+# ---------------------------------------------------------------------------
+# Phase 2 Tests — P2.1 (Summary), P2.2 (Cost), P2.3 (Registry),
+#                  P2.4 (CB State), P2.5 (Semaphore), P2.6 (WS), P2.7 (Lock)
+# ---------------------------------------------------------------------------
+
+
+class TestSummary33Schema:
+    """P2.1: Voice schemas must include summary_33 field."""
+
+    def test_submission_read_has_summary_33(self):
+        from app.schemas.voice import VoiceSubmissionRead
+        assert "summary_33" in VoiceSubmissionRead.model_fields
+
+    def test_detail_has_summary_33(self):
+        from app.schemas.voice import VoiceResponseDetail
+        assert "summary_33" in VoiceResponseDetail.model_fields
+
+
+class TestCostLogging:
+    """P2.2: STT calls must compute and return cost_usd."""
+
+    def test_transcription_result_has_cost(self):
+        """TranscriptionResult should include cost_usd field."""
+        result = TranscriptionResult(
+            transcript="Hello", confidence=0.9,
+            language_detected="en", provider="whisper",
+            audio_duration_sec=60.0, cost_usd=0.006,
+        )
+        assert result.cost_usd == 0.006
+
+    def test_compute_stt_cost_whisper(self):
+        """Whisper: 60s audio = $0.006."""
+        from app.cubes.cube3_voice.providers.base import compute_stt_cost
+        cost = compute_stt_cost("whisper", 60.0)
+        assert cost == 0.006
+
+    def test_compute_stt_cost_gemini(self):
+        """Gemini: 60s audio = $0.00016 (cheapest)."""
+        from app.cubes.cube3_voice.providers.base import compute_stt_cost
+        cost = compute_stt_cost("gemini", 60.0)
+        assert cost == 0.00016
+
+    def test_compute_stt_cost_aws(self):
+        """AWS: 60s audio = $0.024 (most expensive)."""
+        from app.cubes.cube3_voice.providers.base import compute_stt_cost
+        cost = compute_stt_cost("aws", 60.0)
+        assert cost == 0.024
+
+    def test_schema_has_cost_usd(self):
+        """VoiceSubmissionRead should include cost_usd field."""
+        from app.schemas.voice import VoiceSubmissionRead
+        assert "cost_usd" in VoiceSubmissionRead.model_fields
+
+
+class TestProviderRegistry:
+    """P2.3: STTProviderConfig must have cost_per_minute_usd + is_primary."""
+
+    def test_model_has_cost_field(self):
+        from app.models.stt_provider import STTProviderConfig
+        columns = {c.name for c in STTProviderConfig.__table__.columns}
+        assert "cost_per_minute_usd" in columns
+
+    def test_model_has_is_primary_field(self):
+        from app.models.stt_provider import STTProviderConfig
+        columns = {c.name for c in STTProviderConfig.__table__.columns}
+        assert "is_primary" in columns
+
+    def test_fallback_order_gemini_first(self):
+        """Cost-optimized fallback: Gemini should be first (cheapest)."""
+        from app.cubes.cube3_voice.service import _FALLBACK_ORDER
+        assert _FALLBACK_ORDER[0] == "gemini"
+
+
+class TestCircuitBreakerState:
+    """P2.4: Circuit breaker with per-provider failure tracking + cooldown."""
+
+    def test_cb_initially_closed(self):
+        """Provider with no failures should not be in cooldown."""
+        from app.cubes.cube3_voice.service import _cb_is_open
+        assert _cb_is_open("test_provider_x") is False
+
+    def test_cb_opens_after_max_failures(self):
+        """Provider should enter cooldown after _CB_MAX_FAILURES."""
+        from app.cubes.cube3_voice.service import (
+            _cb_is_open, _cb_record_failure, _CB_MAX_FAILURES,
+            _circuit_breaker_state,
+        )
+        provider = "test_provider_cb"
+        _circuit_breaker_state.pop(provider, None)
+        for _ in range(_CB_MAX_FAILURES):
+            _cb_record_failure(provider)
+        assert _cb_is_open(provider) is True
+        _circuit_breaker_state.pop(provider, None)
+
+    def test_cb_resets_on_success(self):
+        """Success should reset failure count."""
+        from app.cubes.cube3_voice.service import (
+            _cb_is_open, _cb_record_failure, _cb_record_success,
+            _circuit_breaker_state,
+        )
+        provider = "test_provider_reset"
+        _circuit_breaker_state.pop(provider, None)
+        _cb_record_failure(provider)
+        _cb_record_failure(provider)
+        _cb_record_success(provider)
+        assert _cb_is_open(provider) is False
+        _circuit_breaker_state.pop(provider, None)
+
+
+class TestConcurrencySemaphore:
+    """P2.5: Per-session semaphore limits concurrent STT calls."""
+
+    def test_semaphore_created_per_session(self):
+        """Each session_id should get its own semaphore."""
+        from app.cubes.cube3_voice.service import _get_session_semaphore
+        s1 = _get_session_semaphore(uuid.uuid4())
+        s2 = _get_session_semaphore(uuid.uuid4())
+        assert s1 is not s2
+
+    def test_same_session_returns_same_semaphore(self):
+        """Same session_id should return the same semaphore."""
+        from app.cubes.cube3_voice.service import _get_session_semaphore
+        sid = uuid.uuid4()
+        assert _get_session_semaphore(sid) is _get_session_semaphore(sid)
+
+
+class TestVoiceResponseCostModel:
+    """P2.2 + P2.3: VoiceResponse model must have cost_usd column."""
+
+    def test_model_has_cost_column(self):
+        from app.models.voice_response import VoiceResponse
+        columns = {c.name for c in VoiceResponse.__table__.columns}
+        assert "cost_usd" in columns

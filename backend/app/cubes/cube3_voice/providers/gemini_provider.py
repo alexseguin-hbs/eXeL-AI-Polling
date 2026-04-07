@@ -121,12 +121,16 @@ class GeminiSTT(STTProvider):
                 estimated_duration_sec=estimated_duration,
             )
 
+            from app.cubes.cube3_voice.providers.base import compute_stt_cost
+
+            duration = round(estimated_duration, 2)
             return TranscriptionResult(
                 transcript=transcript,
                 confidence=confidence,
                 language_detected=lang_hint,
                 provider="gemini",
-                audio_duration_sec=round(estimated_duration, 2),
+                audio_duration_sec=duration,
+                cost_usd=compute_stt_cost("gemini", duration),
             )
 
         except Exception as e:

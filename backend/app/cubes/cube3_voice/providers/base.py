@@ -38,6 +38,23 @@ class TranscriptionResult:
     language_detected: str  # ISO language code detected/confirmed by provider
     provider: str  # Provider name that produced this result
     audio_duration_sec: float  # Duration of processed audio
+    cost_usd: float = 0.0  # Estimated cost of this transcription call
+
+
+# Per-provider cost rates (USD per minute of audio)
+# Source: provider pricing pages as of 2026-04
+STT_COST_RATES: dict[str, float] = {
+    "whisper": 0.006,    # OpenAI Whisper: $0.006/min
+    "grok": 0.006,       # xAI Grok (Whisper-compatible): $0.006/min
+    "gemini": 0.00016,   # Google Gemini Flash: $0.00016/min
+    "aws": 0.024,        # AWS Transcribe: $0.024/min
+}
+
+
+def compute_stt_cost(provider: str, duration_sec: float) -> float:
+    """Compute estimated cost for an STT call based on provider rate and audio duration."""
+    rate = STT_COST_RATES.get(provider, 0.0)
+    return round(rate * (duration_sec / 60.0), 6)
 
 
 class STTProvider(ABC):

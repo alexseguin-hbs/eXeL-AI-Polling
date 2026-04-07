@@ -8,6 +8,8 @@ Launch providers: OpenAI Whisper, Grok (xAI), Gemini (Google)
 User selects STT provider at session creation (ai_provider field on Session).
 """
 
+import asyncio
+
 import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,8 +26,9 @@ from app.models.stt_provider import STTProviderConfig
 
 logger = structlog.get_logger(__name__)
 
-# In-memory provider instances (singletons)
+# In-memory provider instances (singletons) — protected by lock for thread safety
 _providers: dict[str, STTProvider] = {}
+_provider_lock = asyncio.Lock()
 
 # Map AI provider names (from session.ai_provider) to STT provider names
 _AI_TO_STT_MAP = {
@@ -36,8 +39,8 @@ _AI_TO_STT_MAP = {
 }
 
 
-def _get_provider_instance(name: str) -> STTProvider:
-    """Get or create a provider instance by name."""
+def _get_provider_instance_sync(name: str) -> STTProvider:
+    """Get or create a provider instance by name (non-locked, internal use)."""
     if name not in _providers:
         provider_name = STTProviderName(name)
         if provider_name == STTProviderName.WHISPER:
@@ -61,7 +64,7 @@ def get_stt_provider(name: str) -> STTProvider:
     """
     # Map AI provider name to STT name if needed
     stt_name = _AI_TO_STT_MAP.get(name, name)
-    return _get_provider_instance(stt_name)
+    return _get_provider_instance_sync(stt_name)
 
 
 async def select_stt_provider(
@@ -116,7 +119,7 @@ async def select_stt_provider(
         supported = config.supported_languages or []
         if lang in supported or not supported:
             try:
-                provider = _get_provider_instance(config.name)
+                provider = _get_provider_instance_sync(config.name)
                 if provider.supports_language(lang):
                     logger.debug(
                         "cube3.stt.provider_selected",
@@ -134,4 +137,4 @@ async def select_stt_provider(
 
     # Fallback: Whisper (OpenAI) as universal default
     logger.info("cube3.stt.fallback_to_whisper", language=lang)
-    return _get_provider_instance("whisper")
+    return _get_provider_instance_sync("whisper")

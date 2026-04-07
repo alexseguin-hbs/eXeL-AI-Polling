@@ -172,31 +172,53 @@ async def handle_realtime_transcription(
     )
 
     # --- 5. Stream audio → STT → client (concurrent tasks) ---
+    # Max session duration: 5 minutes (prevents resource exhaustion)
+    _WS_SESSION_TIMEOUT = 300  # seconds
     final_transcript = ""
 
     async def _forward_events():
         """Forward STT events to WebSocket client."""
-        async for event in stt.events():
-            try:
-                await _send_event(ws, event)
-            except Exception:
-                break
+        try:
+            async for event in stt.events():
+                try:
+                    await _send_event(ws, event)
+                except Exception:
+                    break
+        except Exception as e:
+            logger.warning("cube3.realtime.event_forward_error", error=str(e), session_id=sid)
 
     event_task = asyncio.create_task(_forward_events())
 
     try:
+        deadline = asyncio.get_event_loop().time() + _WS_SESSION_TIMEOUT
         while True:
-            message = await ws.receive()
+            # Enforce session timeout
+            remaining = deadline - asyncio.get_event_loop().time()
+            if remaining <= 0:
+                logger.info("cube3.realtime.session_timeout", session_id=sid)
+                await ws.send_json({"type": "error", "text": "Session timeout (5 min max)"})
+                break
+
+            try:
+                message = await asyncio.wait_for(ws.receive(), timeout=min(remaining, 30.0))
+            except asyncio.TimeoutError:
+                # No data for 30s — keep alive, continue
+                continue
 
             if message.get("type") == "websocket.disconnect":
                 break
 
             if "bytes" in message and message["bytes"]:
-                # Binary frame: audio chunk
-                if isinstance(stt, AzureRealtimeSTT):
-                    stt.push_audio(message["bytes"])
-                else:
-                    await stt.push_audio(message["bytes"])
+                # Binary frame: audio chunk — with mid-stream error recovery
+                try:
+                    if isinstance(stt, AzureRealtimeSTT):
+                        stt.push_audio(message["bytes"])
+                    else:
+                        await stt.push_audio(message["bytes"])
+                except Exception as push_err:
+                    logger.warning("cube3.realtime.push_error", error=str(push_err), session_id=sid)
+                    await ws.send_json({"type": "error", "text": "Audio stream interrupted"})
+                    break
 
             elif "text" in message and message["text"]:
                 # Text frame: control message
@@ -213,7 +235,11 @@ async def handle_realtime_transcription(
         logger.error("cube3.realtime.error", error=str(e), session_id=sid)
 
     # --- 6. Stop STT, get final transcript ---
-    final_transcript = await stt.stop()
+    try:
+        final_transcript = await stt.stop()
+    except Exception as stop_err:
+        logger.error("cube3.realtime.stop_error", error=str(stop_err), session_id=sid)
+        final_transcript = ""
     event_task.cancel()
 
     if not final_transcript.strip():

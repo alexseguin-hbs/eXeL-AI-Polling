@@ -211,12 +211,16 @@ class AWSTranscribeSTT(STTProvider):
                 duration_sec=duration,
             )
 
+            from app.cubes.cube3_voice.providers.base import compute_stt_cost
+
+            dur = round(duration, 2)
             return TranscriptionResult(
                 transcript=transcript_text,
                 confidence=round(confidence, 4),
                 language_detected=aws_language.split("-")[0],
                 provider="aws",
-                audio_duration_sec=round(duration, 2),
+                audio_duration_sec=dur,
+                cost_usd=compute_stt_cost("aws", dur),
             )
 
         finally:

@@ -12,7 +12,7 @@ TextResponse record. Architecture: Supabase/PostgreSQL only.
 
 import uuid
 
-from sqlalchemy import Boolean, Float, ForeignKey, Index, String, Text
+from sqlalchemy import Boolean, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -40,6 +40,9 @@ class VoiceResponse(Base):
     stt_provider: Mapped[str] = mapped_column(String(50), nullable=False)
     transcript_text: Mapped[str] = mapped_column(Text, nullable=False)
     transcript_confidence: Mapped[float] = mapped_column(Float, default=0.0)
+
+    # Cost transparency: estimated USD cost of this STT call
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
 
     __table_args__ = (
         Index("ix_voice_responses_response_meta", "response_meta_id"),

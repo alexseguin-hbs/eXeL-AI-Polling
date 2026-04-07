@@ -549,7 +549,7 @@ class TestCircuitBreakerE2E:
 
         assert "aws" in _FALLBACK_ORDER
         assert len(_FALLBACK_ORDER) == 4
-        assert _FALLBACK_ORDER == ["whisper", "grok", "gemini", "aws"]
+        assert _FALLBACK_ORDER == ["gemini", "whisper", "grok", "aws"]
 
 
 # ---------------------------------------------------------------------------
@@ -606,11 +606,11 @@ CUBE3_TEST_METHOD = {
         "tests/cube3/test_e2e_flows.py",
     ],
     "baseline_metrics": {
-        "unit_tests_passed": 28,
+        "unit_tests_passed": 44,
         "e2e_tests_passed": 21,
-        "total_tests": 49,
-        "test_duration_ms": 850,
-        "coverage_target_pct": 90,
+        "total_tests": 65,
+        "test_duration_ms": 950,
+        "coverage_target_pct": 92,
     },
     "flows": {
         "submission": {
@@ -635,7 +635,7 @@ CUBE3_TEST_METHOD = {
             "crs_coverage": ["CRS-08", "CRS-15"],
         },
         "circuit_breaker": {
-            "fallback_order": ["whisper", "grok", "gemini", "aws"],
+            "fallback_order": ["gemini", "whisper", "grok", "aws"],
             "behavior": "Try preferred → failover through chain → 422 if all fail",
         },
         "integrity": {

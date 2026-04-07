@@ -98,12 +98,15 @@ class WhisperSTT(STTProvider):
                 duration_sec=duration,
             )
 
+            from app.cubes.cube3_voice.providers.base import compute_stt_cost
+
             return TranscriptionResult(
                 transcript=transcript,
                 confidence=confidence,
                 language_detected=getattr(response, "language", lang_hint) or lang_hint,
                 provider="whisper",
                 audio_duration_sec=duration,
+                cost_usd=compute_stt_cost("whisper", duration),
             )
 
         except openai.APIError as e:
