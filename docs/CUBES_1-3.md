@@ -1006,24 +1006,44 @@ The following gaps exist ONLY in the **real-time WebSocket STT path** (paid feat
 | RT-3 | `push_audio()` sync/async mismatch (Azure vs AWS) | `realtime.py:214-217` | AWS fallback may crash | Realtime STT launch |
 | RT-4 | No Phase A task in realtime flow (no summaries) | `realtime.py:331` | No 33-word summaries | Realtime STT launch |
 
-### Cube 3 — CRS Traceability
-| CRS | Input ID | Output ID | Status | DTM Stretch Target | Design Output: Definable / Measurable |
-|-----|----------|-----------|--------|-------------------|--------------------------------------|
-| CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Complete** (hash) | AES-256 encryption at rest | SHA-256 integrity hash on voice transcript `clean_text`; 64-char hex; deterministic; matches Cube 2 text pattern |
-| CRS-08.01 | CRS-08.01.IN.SRS | CRS-08.01.OUT.SRS | **Complete** | Tamper-evident hash on voice transcript | `response_hash` computed on transcript `clean_text` via `hashlib.sha256()`; same transcript always same hash; hash present in E2E submission result |
-| CRS-08.02 | CRS-08.02.IN.SRS | CRS-08.02.OUT.SRS | **Complete** | PII strip on transcript before forwarding to Cube 6 | Voice transcript passes through Cube 2 `detect_pii()` + `scrub_pii()`; only `clean_text` forwarded to Cube 6; NER + regex pipeline applied |
-| CRS-08.03 | CRS-08.03.IN.SRS | CRS-08.03.OUT.SRS | **Not implemented** (stretch) | AES-256 at-rest for audio binary + transcript | AES-256 on `raw_transcript`, `clean_text`, and audio blob; encryption key per-org; decryption at read time only |
-| CRS-15 | CRS-15.IN.WRS.015 | CRS-15.OUT.WRS.015 | **Complete** | Live word-by-word display | 4 batch STT providers operational; circuit breaker failover across all 4; 6 audio formats accepted; 25 MB max; confidence >= 0.3 required |
-| CRS-15.01 | CRS-15.01.IN.WRS | CRS-15.01.OUT.WRS | **Complete** | Batch STT: 4 providers (Whisper, Grok, Gemini, AWS), 6 audio formats, 25 MB max | All 4 providers return `TranscriptionResult` with `text`, `confidence`, `language`, `model_id`; confidence < 0.3 rejected; 6 formats (webm/wav/mp3/ogg/m4a/flac) validated; > 25 MB rejected |
-| CRS-15.02 | CRS-15.02.IN.WRS | CRS-15.02.OUT.WRS | **Complete** | Circuit breaker failover: whisper → grok → gemini → aws; skips failed, retries remaining | Failover chain: whisper→grok→gemini→aws; failed provider skipped; next provider tried; all 4 fail returns 422 `ResponseValidationError`; per-provider failure logged with `cube3.stt.failover` |
-| CRS-15.03 | CRS-15.03.IN.WRS | CRS-15.03.OUT.WRS | **Implemented** (paid) | Real-time STT: Azure Speech (primary) + AWS Transcribe Streaming (fallback), WebSocket endpoint | WebSocket at `/ws/sessions/{id}/voice`; Azure primary + AWS fallback; latency < 500ms per word; word-by-word delivery to client |
+### Cube 3 — CRS Traceability (Updated 2026-04-07 — Phases 1-5 Complete)
+| CRS | Sub | Status | Phase | Evidence (file:line) | Design Output |
+|-----|-----|--------|:-----:|---------------------|---------------|
+| **CRS-08** | — | **Complete** | P1.4 | `service.py:477` `hashlib.sha256()` | SHA-256 on `clean_text`; 64-char hex; deterministic; stored + returned in API |
+| | **08.01** | **Complete** | P1.4 | `schemas/voice.py:40` `response_hash` field; `service.py:600` in return dict | Hash in schema, E2E test confirms presence (`test_response_hash_in_submission_result`) |
+| | **08.02** | **Complete** | P1.3+P5.5 | `service.py:516` dynamic `pii_gate_passed` assertion; `core/phase_a_retry.py:82` forwards only `clean_text` | PII gate: `(not pii_detected) or (clean_text != transcript)`; warning log if gate fails; Phase A receives clean_text only |
+| | 08.02b | **Complete** | P5.1 | `core/phase_a_retry.py:52-59` empty text guard | Empty/whitespace text skipped before reaching Cube 6 |
+| | 08.02c | **Complete** | P3.1a | `core/text_pipeline.py:35-75` shared pipeline | PII+profanity pipeline extracted to shared module; both batch + realtime use same path |
+| | **08.03** | Stretch | — | Not implemented | AES-256 at-rest encryption (per-org key); deferred |
+| **CRS-15** | — | **Complete** | Baseline+P2 | 4 batch + 2 realtime providers in `providers/` | 4 batch (Whisper, Grok, Gemini, AWS) + 2 realtime (Azure, AWS Streaming) |
+| | **15.01** | **Complete** | Baseline+P5.4 | `router.py:69-83` format/size validation; `service.py:253` confidence ≥0.3; `exceptions.py` `ResponseNotFoundError` | 6 formats (webm/wav/mp3/ogg/m4a/flac); 25 MB max; confidence threshold; correct 404 on missing response |
+| | 15.01b | **Complete** | P2.2 | `providers/base.py:44-55` `compute_stt_cost()`; all 4 providers compute `cost_usd` | Cost per call: Whisper $0.006/min, Grok $0.006/min, Gemini $0.00016/min, AWS $0.024/min |
+| | 15.01c | **Complete** | P2.3 | `models/stt_provider.py:26-28` `cost_per_minute_usd` + `is_primary` | Provider registry with cost rates + primary flag; Gemini-first fallback (cheapest) |
+| | **15.02** | **Complete** | P1.2+P2.4 | `service.py:56` 30s timeout; `service.py:59-110` CB state (3 failures, 60s cooldown) | `asyncio.wait_for(30s)` on all providers; failover: gemini→whisper→grok→aws; per-provider failure count + cooldown; auto-skip in cooldown; reset on success |
+| | 15.02b | **Complete** | P2.5 | `service.py:66-75` `asyncio.Semaphore(20)` per session | Concurrency cap: max 20 parallel STT calls per session |
+| | 15.02c | **Complete** | P2.7+P4.2 | `factory.py:31,72-77` `_provider_lock` + `get_stt_provider_safe()` | Thread-safe async singleton; prevents race on concurrent provider init |
+| | **15.03** | **Complete** | P2.6 | `realtime.py:176` 5-min timeout; `realtime.py:212-221` mid-stream recovery | WebSocket: 300s max session; `push_audio` error caught; `stt.stop()` error caught; payment gate enforced |
+| | 15.03b | Deferred | RT-1→4 | Documented in Known Gaps section above | 4 realtime gaps deferred to paid feature launch |
 
-### Cube 3 — Not Yet Implemented
-- **`push_to_live_feed()` — voice path — IMPLEMENTED** — After Cube 6 Phase A generates `summary_33` from voice transcript, backend broadcasts `summary_ready` via Supabase to Moderator live feed. Same as Cube 2 text path. **Covered by SSSES Task A5.03 (IMPLEMENTED)** — broadcast fires for both text (Cube 2) and voice (Cube 3) paths via shared `core/supabase_broadcast.py` helper.
-- ~~**PII gate verification (CRS-08.02)**~~ **RESOLVED (2026-04-07):** Dynamic PII gate assertion implemented in `service.py` lines 557-565 + `core/phase_a_retry.py` forwards only `clean_text`. Task A7 COMPLETE.
+### Cube 3 — SSSES Task Traceability (Phases 1-5)
+| Task | CRS Link | Status | Phase | Evidence |
+|------|----------|:------:|:-----:|----------|
+| **A0** | CRS-08.02 | **DONE** | P3.1b+P5.1 | `core/phase_a_retry.py:52-70` <33-word fallback + empty text guard |
+| **A2** | CRS-15.02 | **DONE** | P1.5→P3.1b | `core/phase_a_retry.py:74-108` exponential backoff (1s, 2s, 4s) |
+| **A4** | CRS-08 | **DONE** | P2.1+P5.6 | `schemas/voice.py:42-45` `summary_33` with async docstring |
+| **A5** | CRS-15 | **DONE** | P3.1b | `core/phase_a_retry.py:159-177` `broadcast_event("summary_ready")` |
+| **A6** | CRS-15 | **DONE** | Baseline | `dashboard/page.tsx:274` `.on("broadcast", {event: "summary_ready"})` |
+| **A7** | CRS-08.02 | **DONE** | P1.3+P5.5 | `service.py:515-533` dynamic PII gate + warning log |
+| **MoT-1** | CRS-15 | **DONE** | P3.3c | `dashboard/page.tsx:732,885` "Reduce to 33 words" button |
+| **MoT-2** | CRS-08.02 | **DONE** | P3.1b | `core/phase_a_retry.py:52` `if word_count <= 33` → skip AI |
+| **MoT-3** | CRS-15.01b | **DONE** | P3.3a | `voice-input.tsx:235-240` cost_usd display per submission |
+
+### Cube 3 — Not Yet Implemented (Remaining)
+- **CRS-08.03:** AES-256 at-rest encryption — stretch target, deferred
 - **Language-specific STT model tuning** — per-language model selection optimization
-- **Audio playback** — PostgreSQL audio file retrieval for replay
+- **Audio playback** — Supabase Storage for audio binary retrieval + replay
 - **Voice-specific profanity seed data** — speech patterns differ from text
+- **Local language export** — paid feature (cost + 50% margin to customer/user)
 
 ### Cube 3 — Simulation Requirements (Cube 10 Isolation)
 
