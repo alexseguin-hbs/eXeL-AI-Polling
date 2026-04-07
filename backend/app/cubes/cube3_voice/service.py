@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import json
 import math
 import uuid
 from datetime import datetime, timezone
@@ -38,15 +37,9 @@ from app.core.submission_validators import (
     validate_participant,
     validate_question,
     validate_session_for_submission,
-    validate_text_input,
 )
-from app.cubes.cube2_text.service import (
-    detect_pii,
-    detect_profanity,
-    publish_submission_event,
-    scrub_pii,
-    scrub_profanity,
-)
+from app.core.text_pipeline import run_text_pipeline
+from app.cubes.cube2_text.service import publish_submission_event
 from app.cubes.cube3_voice.providers.base import STTProviderError, TranscriptionResult
 from app.cubes.cube3_voice.providers.factory import get_stt_provider, select_stt_provider
 from app.models.response_meta import ResponseMeta
@@ -467,21 +460,10 @@ async def submit_voice_response(
     transcript = validate_transcript(stt_result, session.max_response_length)
 
     # --- 4. Run Cube 2 PII/profanity pipeline on transcript ---
-    pii_detections = await detect_pii(transcript)
-    pii_detected = len(pii_detections) > 0
-    pii_scrubbed = scrub_pii(transcript, pii_detections) if pii_detected else transcript
-    pii_types_safe = [
-        {"type": d["type"], "start": d["start"], "end": d["end"]}
-        for d in pii_detections
-    ] if pii_detected else None
-
-    profanity_matches = await detect_profanity(db, pii_scrubbed, stt_result.language_detected)
-    profanity_detected = len(profanity_matches) > 0
-    clean_text = scrub_profanity(pii_scrubbed, profanity_matches) if profanity_detected else pii_scrubbed
-    profanity_words_safe = [
-        {"word": m["word"], "severity": m["severity"], "position": m["position"]}
-        for m in profanity_matches
-    ] if profanity_detected else None
+    pipeline = await run_text_pipeline(db, transcript, stt_result.language_detected)
+    pii_detected = pipeline.pii_detected
+    profanity_detected = pipeline.profanity_detected
+    clean_text = pipeline.clean_text
 
     # --- 5. Store ---
     # CRS-08: compute response_hash once (reused in storage + return)
@@ -498,11 +480,11 @@ async def submit_voice_response(
         transcript=transcript,
         stt_result=stt_result,
         is_anonymous=is_anonymous,
-        pii_detected=pii_detected,
-        pii_types=pii_types_safe,
-        pii_scrubbed_text=pii_scrubbed if pii_detected else None,
-        profanity_detected=profanity_detected,
-        profanity_words=profanity_words_safe,
+        pii_detected=pipeline.pii_detected,
+        pii_types=pipeline.pii_types,
+        pii_scrubbed_text=pipeline.pii_scrubbed_text,
+        profanity_detected=pipeline.profanity_detected,
+        profanity_words=pipeline.profanity_words,
         clean_text=clean_text,
         response_hash=response_hash,
     )
@@ -540,92 +522,30 @@ async def submit_voice_response(
             detail="PII detected but clean_text == raw transcript — scrubbing may have failed",
         )
 
-    async def _run_voice_phase_a_with_retry(
-        *, session_id, response_id, clean_text, language_code,
-        ai_provider, session_short_code: str = "",
-        max_retries: int = 3,
-    ):
-        """Task A2/A7: Phase A with retry for voice path (mirrors Cube 2 pattern).
-
-        Creates its own db session to avoid reusing the request-scoped session
-        which may be closed by the time this background task executes.
-        """
-        from app.cubes.cube6_ai.service import summarize_single_response
-        from app.db.postgres import async_session_factory
-
-        async with async_session_factory() as bg_db:
-            for attempt in range(max_retries):
-                try:
-                    await summarize_single_response(
-                        bg_db,
-                        session_id=session_id,
-                        response_id=response_id,
-                        raw_text=clean_text,  # PII-safe (Task A7)
-                        language_code=language_code,
-                        ai_provider=ai_provider,
-                        session_short_code=session_short_code,
-                    )
-                    return  # Success
-                except Exception as exc:
-                    wait = 2 ** attempt  # 1s, 2s, 4s
-                    logger.warning(
-                        "cube3.phase_a.retry",
-                        attempt=attempt + 1,
-                        max_retries=max_retries,
-                        wait_seconds=wait,
-                        error=str(exc),
-                        response_id=str(response_id),
-                    )
-                    if attempt < max_retries - 1:
-                        await asyncio.sleep(wait)
-
-            # All retries exhausted — store fallback marker
-            logger.error(
-                "cube3.phase_a.exhausted",
-                response_id=str(response_id),
-                session_id=str(session_id),
-            )
-            try:
-                from sqlalchemy.dialects.postgresql import insert as pg_insert
-                stmt = pg_insert(ResponseSummary).values(
-                    response_meta_id=response_id,
-                    session_id=session_id,
-                    summary_33="[Summary unavailable]",
-                    summary_111="[Summary unavailable]",
-                    summary_333="[Summary unavailable]",
-                ).on_conflict_do_update(
-                    index_elements=["response_meta_id"],
-                    set_={
-                        "summary_33": "[Summary unavailable]",
-                        "summary_111": "[Summary unavailable]",
-                        "summary_333": "[Summary unavailable]",
-                    },
-                )
-                await bg_db.execute(stmt)
-                await bg_db.commit()
-            except Exception:
-                pass  # Best-effort fallback storage
+    # Fire-and-forget: shared Phase A with <33-word fallback + live feed broadcast
+    from app.core.phase_a_retry import run_phase_a_with_retry
 
     try:
         task = asyncio.create_task(
-            _run_voice_phase_a_with_retry(
+            run_phase_a_with_retry(
                 session_id=session_id,
                 response_id=response_meta.id,
                 clean_text=clean_text,
                 language_code=stt_result.language_detected,
                 ai_provider=session.ai_provider or "openai",
                 session_short_code=session.short_code,
+                source="voice",
             )
         )
 
-        def _on_voice_phase_a_done(t: asyncio.Task):
+        def _on_phase_a_done(t: asyncio.Task):
             if t.exception():
                 logger.error(
                     "cube3.phase_a.task_exception",
                     error=str(t.exception()),
                     response_id=str(response_meta.id),
                 )
-        task.add_done_callback(_on_voice_phase_a_done)
+        task.add_done_callback(_on_phase_a_done)
 
     except Exception as e:
         logger.warning("cube3.live_summarization.error", error=str(e))

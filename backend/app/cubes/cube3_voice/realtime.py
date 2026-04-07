@@ -258,12 +258,9 @@ async def handle_realtime_transcription(
 
     # --- 7. Forward transcript through Cube 2 pipeline + store ---
     try:
+        from app.core.text_pipeline import run_text_pipeline
         from app.cubes.cube3_voice.providers.base import TranscriptionResult
-        from app.cubes.cube2_text.service import (
-            detect_pii, scrub_pii,
-            detect_profanity, scrub_profanity,
-            publish_submission_event,
-        )
+        from app.cubes.cube2_text.service import publish_submission_event
         from app.cubes.cube3_voice.service import store_voice_response
 
         # Create a synthetic TranscriptionResult
@@ -275,22 +272,8 @@ async def handle_realtime_transcription(
             audio_duration_sec=0.0,  # Duration tracked via time_entry
         )
 
-        # PII + profanity pipeline
-        pii_detections = await detect_pii(final_transcript)
-        pii_detected = len(pii_detections) > 0
-        pii_scrubbed = scrub_pii(final_transcript, pii_detections) if pii_detected else final_transcript
-        pii_types_safe = [
-            {"type": d["type"], "start": d["start"], "end": d["end"]}
-            for d in pii_detections
-        ] if pii_detected else None
-
-        profanity_matches = await detect_profanity(db, pii_scrubbed, language_code)
-        profanity_detected = len(profanity_matches) > 0
-        clean_text = scrub_profanity(pii_scrubbed, profanity_matches) if profanity_detected else pii_scrubbed
-        profanity_words_safe = [
-            {"word": m["word"], "severity": m["severity"], "position": m["position"]}
-            for m in profanity_matches
-        ] if profanity_detected else None
+        # Shared PII + profanity pipeline
+        pipeline = await run_text_pipeline(db, final_transcript, language_code)
 
         # Store voice response
         is_anonymous = session.anonymity_mode == "anonymous"
@@ -305,12 +288,12 @@ async def handle_realtime_transcription(
             transcript=final_transcript,
             stt_result=stt_result,
             is_anonymous=is_anonymous,
-            pii_detected=pii_detected,
-            pii_types=pii_types_safe,
-            pii_scrubbed_text=pii_scrubbed if pii_detected else None,
-            profanity_detected=profanity_detected,
-            profanity_words=profanity_words_safe,
-            clean_text=clean_text,
+            pii_detected=pipeline.pii_detected,
+            pii_types=pipeline.pii_types,
+            pii_scrubbed_text=pipeline.pii_scrubbed_text,
+            profanity_detected=pipeline.profanity_detected,
+            profanity_words=pipeline.profanity_words,
+            clean_text=pipeline.clean_text,
         )
 
         # Stop time tracking → tokens
@@ -327,9 +310,9 @@ async def handle_realtime_transcription(
             "type": "result",
             "response_id": str(response_meta.id),
             "transcript": final_transcript,
-            "clean_text": clean_text,
-            "pii_detected": pii_detected,
-            "profanity_detected": profanity_detected,
+            "clean_text": pipeline.clean_text,
+            "pii_detected": pipeline.pii_detected,
+            "profanity_detected": pipeline.profanity_detected,
             "stt_provider": provider_name,
             "\u2661": time_entry.heart_tokens_earned,  # ♡
             "\u25ec": time_entry.unity_tokens_earned,  # ◬
