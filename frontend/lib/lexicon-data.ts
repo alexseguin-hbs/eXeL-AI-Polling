@@ -340,6 +340,13 @@ const cube4: TranslationEntry[] = [
   { key: "cube4.results_log.title", englishDefault: "Results Log", context: "Outcome results heading", cubeId: 4 },
   { key: "cube4.results_log.sign_off", englishDefault: "Sign Off on Results", context: "Confirm results button", cubeId: 4 },
   { key: "cube4.results_log.all_confirmed", englishDefault: "All participants confirmed", context: "Full sign-off indicator", cubeId: 4 },
+  { key: "cube4.presence.you_joined", englishDefault: "You're in the session", context: "Joined confirmation toast", cubeId: 4 },
+  { key: "cube4.desired_outcome.description", englishDefault: "What do you want to achieve?", context: "Outcome description label", cubeId: 4 },
+  { key: "cube4.desired_outcome.time_estimate", englishDefault: "Estimated time (minutes)", context: "Time estimate input label", cubeId: 4 },
+  { key: "cube4.desired_outcome.waiting", englishDefault: "Waiting for all participants to confirm...", context: "Waiting for confirmations state", cubeId: 4 },
+  { key: "cube4.desired_outcome.all_confirmed", englishDefault: "All participants confirmed — ready to start!", context: "Gate opened state", cubeId: 4 },
+  { key: "cube4.results_log.prompt", englishDefault: "What was the outcome?", context: "Results log input label", cubeId: 4 },
+  { key: "cube4.results_log.submit", englishDefault: "Submit results", context: "Submit results button", cubeId: 4 },
   { key: "cube4.collector.saving", englishDefault: "Saving responses...", context: "Write-in-progress indicator", cubeId: 4 },
   { key: "cube4.collector.saved", englishDefault: "All responses saved", context: "Save complete indicator", cubeId: 4 },
 ];

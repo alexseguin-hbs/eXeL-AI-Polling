@@ -477,3 +477,172 @@ class TestResponseCountOptimized:
         assert result["total"] == 10
         assert result["text_count"] == 7
         assert result["voice_count"] == 3
+
+
+# ---------------------------------------------------------------------------
+# Cube 4 Phase 3: CRS-10 Desired Outcomes Tests
+# ---------------------------------------------------------------------------
+
+
+class TestCreateDesiredOutcome:
+    """CRS-10.01: Create desired outcome for a session."""
+
+    @pytest.mark.asyncio
+    async def test_creates_outcome(self):
+        from app.cubes.cube4_collector.service import create_desired_outcome
+
+        mock_db = AsyncMock()
+        mock_db.add = MagicMock()
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+
+        outcome = await create_desired_outcome(
+            mock_db, uuid.uuid4(),
+            description="Achieve consensus on AI governance priorities",
+            time_estimate_minutes=30,
+        )
+        mock_db.add.assert_called_once()
+        mock_db.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_sets_pending_status(self):
+        from app.cubes.cube4_collector.service import create_desired_outcome
+
+        mock_db = AsyncMock()
+        mock_db.add = MagicMock()
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+
+        await create_desired_outcome(mock_db, uuid.uuid4(), description="Test")
+        added_obj = mock_db.add.call_args[0][0]
+        assert added_obj.outcome_status == "pending"
+        assert added_obj.all_confirmed is False
+
+
+class TestRecordConfirmation:
+    """CRS-10.01: Record participant confirmation."""
+
+    @pytest.mark.asyncio
+    async def test_appends_participant(self):
+        from app.cubes.cube4_collector.service import record_confirmation
+
+        outcome_mock = MagicMock()
+        outcome_mock.id = uuid.uuid4()
+        outcome_mock.confirmed_by = []
+        outcome_mock.all_confirmed = False
+
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = outcome_mock
+        mock_db.execute = AsyncMock(return_value=mock_result)
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+
+        pid = uuid.uuid4()
+        result = await record_confirmation(mock_db, uuid.uuid4(), outcome_mock.id, pid)
+        assert str(pid) in result["confirmed_by"]
+
+    @pytest.mark.asyncio
+    async def test_idempotent_confirmation(self):
+        from app.cubes.cube4_collector.service import record_confirmation
+
+        pid = uuid.uuid4()
+        outcome_mock = MagicMock()
+        outcome_mock.id = uuid.uuid4()
+        outcome_mock.confirmed_by = [str(pid)]
+        outcome_mock.all_confirmed = False
+
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = outcome_mock
+        mock_db.execute = AsyncMock(return_value=mock_result)
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+
+        result = await record_confirmation(mock_db, uuid.uuid4(), outcome_mock.id, pid)
+        assert result["confirmed_by"].count(str(pid)) == 1
+
+
+class TestCheckAllConfirmed:
+    """CRS-10.02: Gate opens when all required participants confirm."""
+
+    @pytest.mark.asyncio
+    async def test_returns_true_when_met(self):
+        from app.cubes.cube4_collector.service import check_all_confirmed
+
+        outcome_mock = MagicMock()
+        outcome_mock.confirmed_by = ["a", "b", "c"]
+        outcome_mock.all_confirmed = False
+
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = outcome_mock
+        mock_db.execute = AsyncMock(return_value=mock_result)
+        mock_db.commit = AsyncMock()
+
+        result = await check_all_confirmed(mock_db, uuid.uuid4(), uuid.uuid4(), required_count=3)
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_returns_false_when_insufficient(self):
+        from app.cubes.cube4_collector.service import check_all_confirmed
+
+        outcome_mock = MagicMock()
+        outcome_mock.confirmed_by = ["a"]
+        outcome_mock.all_confirmed = False
+
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = outcome_mock
+        mock_db.execute = AsyncMock(return_value=mock_result)
+
+        result = await check_all_confirmed(mock_db, uuid.uuid4(), uuid.uuid4(), required_count=3)
+        assert result is False
+
+
+class TestLogPostTaskResults:
+    """CRS-10.03: Store post-task results."""
+
+    @pytest.mark.asyncio
+    async def test_stores_results(self):
+        from app.cubes.cube4_collector.service import log_post_task_results
+
+        outcome_mock = MagicMock()
+        outcome_mock.id = uuid.uuid4()
+        outcome_mock.assessed_by = []
+
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = outcome_mock
+        mock_db.execute = AsyncMock(return_value=mock_result)
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+
+        await log_post_task_results(
+            mock_db, uuid.uuid4(), outcome_mock.id,
+            results_log="We achieved 80% consensus.",
+            outcome_status="achieved",
+        )
+        assert outcome_mock.results_log == "We achieved 80% consensus."
+        assert outcome_mock.outcome_status == "achieved"
+
+    @pytest.mark.asyncio
+    async def test_rejects_invalid_status(self):
+        from app.cubes.cube4_collector.service import log_post_task_results
+        from app.core.exceptions import ResponseValidationError
+
+        outcome_mock = MagicMock()
+        outcome_mock.id = uuid.uuid4()
+        outcome_mock.assessed_by = []
+
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = outcome_mock
+        mock_db.execute = AsyncMock(return_value=mock_result)
+
+        with pytest.raises(ResponseValidationError):
+            await log_post_task_results(
+                mock_db, uuid.uuid4(), outcome_mock.id,
+                results_log="Test",
+                outcome_status="invalid_status",
+            )

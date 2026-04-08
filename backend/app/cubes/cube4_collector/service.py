@@ -412,3 +412,184 @@ async def get_summary_status(
         "with_33_word_summary": with_33,
         "with_theme_assignment": with_themes,
     }
+
+
+# ---------------------------------------------------------------------------
+# 5. Desired Outcomes (CRS-10 — Methods 2 & 3)
+# ---------------------------------------------------------------------------
+
+
+async def create_desired_outcome(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    *,
+    description: str,
+    time_estimate_minutes: int = 0,
+    created_by: uuid.UUID | None = None,
+) -> "DesiredOutcome":
+    """CRS-10.01: Create a desired outcome for a session.
+
+    Called by moderator or designated participant to define what the group
+    aims to achieve. Each session can have one active desired outcome.
+    """
+    from app.models.desired_outcome import DesiredOutcome
+
+    outcome = DesiredOutcome(
+        session_id=session_id,
+        description=description,
+        time_estimate_minutes=time_estimate_minutes,
+        created_by=created_by,
+        confirmed_by=[],
+        all_confirmed=False,
+        outcome_status="pending",
+    )
+    db.add(outcome)
+    await db.commit()
+    await db.refresh(outcome)
+
+    logger.info(
+        "cube4.desired_outcome.created",
+        session_id=str(session_id),
+        outcome_id=str(outcome.id),
+        time_estimate=time_estimate_minutes,
+    )
+    return outcome
+
+
+async def record_confirmation(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    outcome_id: uuid.UUID,
+    participant_id: uuid.UUID,
+) -> dict:
+    """CRS-10.01: Record a participant's confirmation of the desired outcome.
+
+    Appends participant_id to confirmed_by JSONB array idempotently.
+    Returns updated confirmation status.
+    """
+    from app.models.desired_outcome import DesiredOutcome
+
+    result = await db.execute(
+        select(DesiredOutcome).where(
+            DesiredOutcome.id == outcome_id,
+            DesiredOutcome.session_id == session_id,
+        )
+    )
+    outcome = result.scalar_one_or_none()
+    if outcome is None:
+        from app.core.exceptions import ResponseNotFoundError
+        raise ResponseNotFoundError(str(outcome_id))
+
+    pid_str = str(participant_id)
+    confirmed = list(outcome.confirmed_by or [])
+    if pid_str not in confirmed:
+        confirmed.append(pid_str)
+        outcome.confirmed_by = confirmed
+
+    await db.commit()
+    await db.refresh(outcome)
+
+    logger.info(
+        "cube4.desired_outcome.confirmed",
+        outcome_id=str(outcome_id),
+        participant_id=pid_str,
+        total_confirmed=len(confirmed),
+    )
+    return {
+        "outcome_id": str(outcome.id),
+        "confirmed_by": outcome.confirmed_by,
+        "total_confirmed": len(outcome.confirmed_by),
+        "all_confirmed": outcome.all_confirmed,
+    }
+
+
+async def check_all_confirmed(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    outcome_id: uuid.UUID,
+    required_count: int,
+) -> bool:
+    """CRS-10.02: Check if all required participants confirmed.
+
+    When confirmed_by length >= required_count, sets all_confirmed=True
+    and returns True (gate signal for Cube 5 timer start).
+    """
+    from app.models.desired_outcome import DesiredOutcome
+
+    result = await db.execute(
+        select(DesiredOutcome).where(
+            DesiredOutcome.id == outcome_id,
+            DesiredOutcome.session_id == session_id,
+        )
+    )
+    outcome = result.scalar_one_or_none()
+    if outcome is None:
+        return False
+
+    confirmed = outcome.confirmed_by or []
+    if len(confirmed) >= required_count and not outcome.all_confirmed:
+        outcome.all_confirmed = True
+        await db.commit()
+        logger.info(
+            "cube4.desired_outcome.all_confirmed",
+            outcome_id=str(outcome_id),
+            confirmed_count=len(confirmed),
+            required=required_count,
+        )
+    return outcome.all_confirmed
+
+
+async def log_post_task_results(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    outcome_id: uuid.UUID,
+    *,
+    results_log: str,
+    outcome_status: str = "achieved",
+    assessed_by: uuid.UUID | None = None,
+) -> "DesiredOutcome":
+    """CRS-10.03: Store post-task results and assessment.
+
+    Called after the group completes their task. Records the outcome,
+    status, and who assessed it.
+    """
+    from datetime import datetime, timezone
+    from app.models.desired_outcome import DesiredOutcome
+
+    result = await db.execute(
+        select(DesiredOutcome).where(
+            DesiredOutcome.id == outcome_id,
+            DesiredOutcome.session_id == session_id,
+        )
+    )
+    outcome = result.scalar_one_or_none()
+    if outcome is None:
+        from app.core.exceptions import ResponseNotFoundError
+        raise ResponseNotFoundError(str(outcome_id))
+
+    valid_statuses = {"pending", "achieved", "partially_achieved", "not_achieved"}
+    if outcome_status not in valid_statuses:
+        from app.core.exceptions import ResponseValidationError
+        raise ResponseValidationError(
+            f"Invalid outcome_status '{outcome_status}'. Must be one of: {', '.join(sorted(valid_statuses))}"
+        )
+
+    outcome.results_log = results_log
+    outcome.outcome_status = outcome_status
+    outcome.completed_at = datetime.now(timezone.utc)
+
+    assessed = list(outcome.assessed_by or [])
+    if assessed_by and str(assessed_by) not in assessed:
+        assessed.append(str(assessed_by))
+    outcome.assessed_by = assessed
+
+    await db.commit()
+    await db.refresh(outcome)
+
+    logger.info(
+        "cube4.desired_outcome.results_logged",
+        outcome_id=str(outcome_id),
+        status=outcome_status,
+        assessed_count=len(assessed),
+    )
+    return outcome

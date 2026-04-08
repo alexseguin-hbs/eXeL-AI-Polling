@@ -42,7 +42,7 @@ const CUBE_GRID: CubeInfo[][] = [
   [
     { number: 8, name: "Tokens", status: "deployed", completion: 60, description: "Token ledger, 59 jurisdiction rates, rate lookup API" },
     { number: 1, name: "Session", status: "deployed", completion: 70, description: "Session CRUD, state machine, QR, join flow, capacity" },
-    { number: 4, name: "Collector", status: "not_started", completion: 5, description: "Response aggregation, MongoDB writes, caching" },
+    { number: 4, name: "Collector", status: "deployed", completion: 90, description: "Web_Results aggregation, SHA-256 anon hash, desired outcomes (CRS-10), auth + session validation, SSSES 88/100" },
   ],
   [
     { number: 7, name: "Ranking", status: "not_started", completion: 5, description: "Voting UI, deterministic aggregation, governance" },
