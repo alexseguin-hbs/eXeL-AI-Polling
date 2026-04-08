@@ -10,6 +10,10 @@ Circuit breaker + failover to next available provider on outage.
 
 from abc import ABC, abstractmethod
 from enum import Enum
+import asyncio
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 class AIProviderName(str, Enum):
@@ -70,16 +74,39 @@ class SummarizationProvider(ABC):
         """
         ...
 
-    @abstractmethod
     async def batch_summarize(
-        self, items: list[dict[str, str]]
+        self, items: list[dict[str, str]], timeout: float = 120.0
     ) -> list[str]:
-        """Batch summarize multiple items.
+        """Batch summarize multiple items with concurrency cap and timeout.
+
+        Default implementation shared across all providers. Override only
+        if provider needs custom batching logic.
 
         Args:
             items: List of dicts with 'text' and 'instruction' keys.
+            timeout: Per-item timeout in seconds.
 
         Returns:
-            List of results, one per input item.
+            List of results, one per input item. Failed items return "".
         """
-        ...
+        from app.config import settings
+
+        semaphore = asyncio.Semaphore(settings.max_sampling_workers)
+
+        async def _single(item: dict[str, str]) -> str:
+            async with semaphore:
+                try:
+                    return await asyncio.wait_for(
+                        self.summarize(
+                            [item["text"]], instruction=item.get("instruction", "")
+                        ),
+                        timeout=timeout,
+                    )
+                except asyncio.TimeoutError:
+                    logger.warning("ai.batch_summarize.timeout", provider=self.provider_name.value)
+                    return ""
+                except Exception as e:
+                    logger.warning("ai.batch_summarize.item_failed", error=str(e), provider=self.provider_name.value)
+                    return ""
+
+        return await asyncio.gather(*[_single(item) for item in items])

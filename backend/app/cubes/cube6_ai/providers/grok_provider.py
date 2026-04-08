@@ -91,14 +91,4 @@ class GrokSummarization(SummarizationProvider):
         )
         return response.choices[0].message.content or ""
 
-    async def batch_summarize(self, items: list[dict[str, str]]) -> list[str]:
-        """Batch summarization using concurrent async calls."""
-        semaphore = asyncio.Semaphore(settings.max_sampling_workers)
-
-        async def _single(item: dict[str, str]) -> str:
-            async with semaphore:
-                return await self.summarize(
-                    [item["text"]], instruction=item.get("instruction", "")
-                )
-
-        return await asyncio.gather(*[_single(item) for item in items])
+    # batch_summarize inherited from SummarizationProvider base class

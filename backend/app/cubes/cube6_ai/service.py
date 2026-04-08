@@ -594,28 +594,40 @@ async def _reduce_themes(
         type_str = _TYPE_MAP.get(label, "NEUTRAL")
 
         # All -> 9 (statistically relevant consolidation)
-        themes_str = "\n".join(themes)
-        text_9 = await summarizer.summarize(
-            [f"Reduce these themes to 9:\n{themes_str}"],
-            instruction=_REDUCE_INSTRUCTION.format(type_str=type_str, count=9),
-        )
-        parsed_9 = _parse_reduced_themes(text_9)
+        try:
+            themes_str = "\n".join(themes)
+            text_9 = await summarizer.summarize(
+                [f"Reduce these themes to 9:\n{themes_str}"],
+                instruction=_REDUCE_INSTRUCTION.format(type_str=type_str, count=9),
+            )
+            parsed_9 = _parse_reduced_themes(text_9)
+        except Exception as e:
+            logger.warning("cube6.reduce.9_failed", label=label, error=str(e))
+            parsed_9 = [{"label": t, "description": "", "confidence": 0.7} for t in themes[:9]]
 
         # 9 -> 6
-        themes_9_str = "\n".join(t["label"] for t in parsed_9)
-        text_6 = await summarizer.summarize(
-            [f"Reduce these themes to 6:\n{themes_9_str}"],
-            instruction=_REDUCE_INSTRUCTION.format(type_str=type_str, count=6),
-        )
-        parsed_6 = _parse_reduced_themes(text_6)
+        try:
+            themes_9_str = "\n".join(t["label"] for t in parsed_9)
+            text_6 = await summarizer.summarize(
+                [f"Reduce these themes to 6:\n{themes_9_str}"],
+                instruction=_REDUCE_INSTRUCTION.format(type_str=type_str, count=6),
+            )
+            parsed_6 = _parse_reduced_themes(text_6)
+        except Exception as e:
+            logger.warning("cube6.reduce.6_failed", label=label, error=str(e))
+            parsed_6 = parsed_9[:6]
 
         # 6 -> 3
-        themes_6_str = "\n".join(t["label"] for t in parsed_6)
-        text_3 = await summarizer.summarize(
-            [f"Reduce these themes to 3:\n{themes_6_str}"],
-            instruction=_REDUCE_INSTRUCTION.format(type_str=type_str, count=3),
-        )
-        parsed_3 = _parse_reduced_themes(text_3)
+        try:
+            themes_6_str = "\n".join(t["label"] for t in parsed_6)
+            text_3 = await summarizer.summarize(
+                [f"Reduce these themes to 3:\n{themes_6_str}"],
+                instruction=_REDUCE_INSTRUCTION.format(type_str=type_str, count=3),
+            )
+            parsed_3 = _parse_reduced_themes(text_3)
+        except Exception as e:
+            logger.warning("cube6.reduce.3_failed", label=label, error=str(e))
+            parsed_3 = parsed_6[:3]
 
         return {"9": parsed_9, "6": parsed_6, "3": parsed_3}
 

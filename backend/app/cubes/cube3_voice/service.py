@@ -293,7 +293,14 @@ async def store_voice_response(
         is_flagged=False,
     )
     db.add(response_meta)
-    await db.flush()
+
+    try:
+        await db.flush()
+    except Exception as e:
+        await db.rollback()
+        logger.error("cube3.store.flush_failed", error=str(e), session_id=str(session_id))
+        from app.core.exceptions import ResponseValidationError
+        raise ResponseValidationError(f"Failed to store voice response: {e}")
 
     # --- Postgres: VoiceResponse (1:1 with ResponseMeta) ---
     voice_response = VoiceResponse(
@@ -329,7 +336,14 @@ async def store_voice_response(
     )
     db.add(text_response)
 
-    await db.commit()
+    try:
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        logger.error("cube3.store.commit_failed", error=str(e), session_id=str(session_id))
+        from app.core.exceptions import ResponseValidationError
+        raise ResponseValidationError(f"Failed to commit voice response: {e}")
+
     await db.refresh(response_meta)
     return response_meta
 
@@ -373,17 +387,21 @@ async def submit_voice_response(
     await validate_question(db, question_id, session_id)
     participant = await validate_participant(db, participant_id, session_id)
 
-    # --- 2. Start time tracking (Cube 5) ---
+    # --- 2. Start time tracking (Cube 5) — non-fatal on failure ---
     from app.cubes.cube5_gateway.service import start_time_tracking, stop_time_tracking
 
-    time_entry = await start_time_tracking(
-        db,
-        session_id=session_id,
-        participant_id=participant_id,
-        action_type="voice_responding",
-        reference_id=str(question_id),
-        cube_id="cube3",
-    )
+    time_entry = None
+    try:
+        time_entry = await start_time_tracking(
+            db,
+            session_id=session_id,
+            participant_id=participant_id,
+            action_type="voice_responding",
+            reference_id=str(question_id),
+            cube_id="cube3",
+        )
+    except Exception as e:
+        logger.warning("cube3.time_tracking.start_failed", error=str(e), session_id=str(session_id))
 
     # --- 3. Resolve STT provider (Moderator default → User override if allowed) ---
     stt_provider_name = getattr(session, "stt_provider", None) or session.ai_provider
@@ -434,13 +452,19 @@ async def submit_voice_response(
         response_hash=response_hash,
     )
 
-    # --- 6. Stop time tracking → tokens ---
-    time_entry = await stop_time_tracking(
-        db,
-        time_entry_id=time_entry.id,
-    )
-    heart_earned = time_entry.heart_tokens_earned
-    unity_earned = time_entry.unity_tokens_earned
+    # --- 6. Stop time tracking → tokens (non-fatal on failure) ---
+    heart_earned = 0.0
+    unity_earned = 0.0
+    if time_entry is not None:
+        try:
+            time_entry = await stop_time_tracking(
+                db,
+                time_entry_id=time_entry.id,
+            )
+            heart_earned = time_entry.heart_tokens_earned
+            unity_earned = time_entry.unity_tokens_earned
+        except Exception as e:
+            logger.warning("cube3.time_tracking.stop_failed", error=str(e), session_id=str(session_id))
 
     # --- 7. Publish Redis event ---
     await publish_submission_event(
