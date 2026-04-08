@@ -131,18 +131,20 @@ async def handle_realtime_transcription(
     stt: AzureRealtimeSTT | AWSRealtimeSTT | None = None
     provider_name = "azure"
 
+    _STT_START_TIMEOUT = 10.0  # seconds — prevent hung provider on start
+
     try:
         stt = AzureRealtimeSTT(language_code=language_code, session_id=sid)
-        await stt.start()
+        await asyncio.wait_for(stt.start(), timeout=_STT_START_TIMEOUT)
         provider_name = "azure"
-    except Exception as e:
+    except (Exception, asyncio.TimeoutError) as e:
         logger.warning("cube3.realtime.azure_failed", error=str(e))
         # Circuit breaker: fallback to AWS
         try:
             stt = AWSRealtimeSTT(language_code=language_code, session_id=sid)
-            await stt.start()
+            await asyncio.wait_for(stt.start(), timeout=_STT_START_TIMEOUT)
             provider_name = "aws"
-        except Exception as e2:
+        except (Exception, asyncio.TimeoutError) as e2:
             logger.error("cube3.realtime.all_providers_failed", error=str(e2))
             await ws.send_json({
                 "type": "error",
@@ -158,17 +160,21 @@ async def handle_realtime_transcription(
         language=language_code,
     )
 
-    # --- 4. Start Cube 5 time tracking ---
+    # --- 4. Start Cube 5 time tracking (non-fatal on failure) ---
     from app.cubes.cube5_gateway.service import start_time_tracking, stop_time_tracking
 
-    time_entry = await start_time_tracking(
-        db,
-        session_id=session_id,
-        participant_id=participant_id,
-        action_type="voice_responding",
-        reference_id=str(question_id),
-        cube_id="cube3",
-    )
+    time_entry = None
+    try:
+        time_entry = await start_time_tracking(
+            db,
+            session_id=session_id,
+            participant_id=participant_id,
+            action_type="voice_responding",
+            reference_id=str(question_id),
+            cube_id="cube3",
+        )
+    except Exception as e:
+        logger.warning("cube3.realtime.time_tracking.start_failed", error=str(e), session_id=sid)
 
     # --- 5. Stream audio → STT → client (concurrent tasks) ---
     # Max session duration: 5 minutes (prevents resource exhaustion)
@@ -235,11 +241,15 @@ async def handle_realtime_transcription(
 
     # --- 6. Stop STT, get final transcript ---
     try:
-        final_transcript = await stt.stop()
-    except Exception as stop_err:
+        final_transcript = await asyncio.wait_for(stt.stop(), timeout=10.0)
+    except (Exception, asyncio.TimeoutError) as stop_err:
         logger.error("cube3.realtime.stop_error", error=str(stop_err), session_id=sid)
         final_transcript = ""
     event_task.cancel()
+    try:
+        await event_task
+    except asyncio.CancelledError:
+        pass
 
     if not final_transcript.strip():
         await ws.send_json({
@@ -248,7 +258,11 @@ async def handle_realtime_transcription(
             "message": "No speech detected",
         })
         # Stop time tracking without storing
-        await stop_time_tracking(db, time_entry_id=time_entry.id)
+        if time_entry is not None:
+            try:
+                await stop_time_tracking(db, time_entry_id=time_entry.id)
+            except Exception:
+                pass
         try:
             await ws.close()
         except Exception:
@@ -274,6 +288,16 @@ async def handle_realtime_transcription(
         # Shared PII + profanity pipeline
         pipeline = await run_text_pipeline(db, final_transcript, language_code)
 
+        # Task A7: PII gate assertion — only clean_text reaches downstream
+        pii_gate_passed = (not pipeline.pii_detected) or (pipeline.clean_text != final_transcript)
+        logger.info(
+            "cube6.phase_a.pii_safe",
+            response_id="realtime",
+            input_is_clean_text=pii_gate_passed,
+            pii_detected=pipeline.pii_detected,
+            source="voice_realtime",
+        )
+
         # Store voice response
         is_anonymous = session.anonymity_mode == "anonymous"
         response_meta = await store_voice_response(
@@ -295,8 +319,16 @@ async def handle_realtime_transcription(
             clean_text=pipeline.clean_text,
         )
 
-        # Stop time tracking → tokens
-        time_entry = await stop_time_tracking(db, time_entry_id=time_entry.id)
+        # Stop time tracking → tokens (non-fatal on failure)
+        heart_earned = 0.0
+        unity_earned = 0.0
+        if time_entry is not None:
+            try:
+                time_entry = await stop_time_tracking(db, time_entry_id=time_entry.id)
+                heart_earned = time_entry.heart_tokens_earned
+                unity_earned = time_entry.unity_tokens_earned
+            except Exception as e:
+                logger.warning("cube3.realtime.time_tracking.stop_failed", error=str(e))
 
         # Publish Redis event
         await publish_submission_event(
@@ -313,8 +345,8 @@ async def handle_realtime_transcription(
             "pii_detected": pipeline.pii_detected,
             "profanity_detected": pipeline.profanity_detected,
             "stt_provider": provider_name,
-            "\u2661": time_entry.heart_tokens_earned,  # ♡
-            "\u25ec": time_entry.unity_tokens_earned,  # ◬
+            "\u2661": heart_earned,  # ♡
+            "\u25ec": unity_earned,  # ◬
         })
 
         logger.info(
@@ -323,8 +355,8 @@ async def handle_realtime_transcription(
             response_id=str(response_meta.id),
             provider=provider_name,
             transcript_length=len(final_transcript),
-            heart_tokens=time_entry.heart_tokens_earned,
-            unity_tokens=time_entry.unity_tokens_earned,
+            heart_tokens=heart_earned,
+            unity_tokens=unity_earned,
         )
 
     except Exception as e:
