@@ -664,20 +664,22 @@ class TestCircuitBreakerState:
 
 
 class TestConcurrencySemaphore:
-    """P2.5: Per-session semaphore limits concurrent STT calls."""
+    """P2.5: Per-session semaphore via shared SessionSemaphorePool."""
 
     def test_semaphore_created_per_session(self):
         """Each session_id should get its own semaphore."""
-        from app.cubes.cube3_voice.service import _get_session_semaphore
-        s1 = _get_session_semaphore(uuid.uuid4())
-        s2 = _get_session_semaphore(uuid.uuid4())
+        from app.core.concurrency import SessionSemaphorePool
+        pool = SessionSemaphorePool(max_concurrent=20, name="test")
+        s1 = pool.get(uuid.uuid4())
+        s2 = pool.get(uuid.uuid4())
         assert s1 is not s2
 
     def test_same_session_returns_same_semaphore(self):
         """Same session_id should return the same semaphore."""
-        from app.cubes.cube3_voice.service import _get_session_semaphore
+        from app.core.concurrency import SessionSemaphorePool
+        pool = SessionSemaphorePool(max_concurrent=20, name="test")
         sid = uuid.uuid4()
-        assert _get_session_semaphore(sid) is _get_session_semaphore(sid)
+        assert pool.get(sid) is pool.get(sid)
 
 
 class TestVoiceResponseCostModel:

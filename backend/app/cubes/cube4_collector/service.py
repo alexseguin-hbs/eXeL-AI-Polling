@@ -13,7 +13,6 @@ Key responsibilities:
 
 from __future__ import annotations
 
-import hashlib
 import uuid
 from datetime import datetime, timezone
 
@@ -22,6 +21,8 @@ from redis.asyncio import Redis
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.crypto_utils import compute_anon_hash
+from app.core.redis_presence import get_presence as _core_get_presence, set_presence as _core_set_presence
 from app.core.submission_validators import validate_session_exists  # noqa: F401 — re-exported for router
 
 from app.models.participant import Participant
@@ -136,8 +137,7 @@ async def get_collected_responses(
         # Build user identifier — CRS-09.01: SHA-256 anon_hash (collision-safe at scale)
         user_id = "Anonymous"
         if participant:
-            anon_hash = hashlib.sha256(f"{participant.id}:{session_id}".encode()).hexdigest()[:12]
-            user_id = participant.display_name or f"User_{anon_hash}"
+            user_id = participant.display_name or f"User_{compute_anon_hash(participant.id, session_id)}"
 
         # Q_Number from question order_index
         q_number = f"Q-{(question.order_index + 1):04d}" if question else "Q-0001"
@@ -239,7 +239,7 @@ async def get_single_response(
 
     user_id = "Anonymous"
     if participant:
-        anon_hash = hashlib.sha256(f"{participant.id}:{session_id}".encode()).hexdigest()[:12]
+        anon_hash = compute_anon_hash(participant.id, session_id)
         user_id = participant.display_name or f"User_{anon_hash}"
 
     q_number = f"Q-{(question.order_index + 1):04d}" if question else "Q-0001"
@@ -332,18 +332,8 @@ async def get_session_presence(
     redis: Redis,
     session_id: uuid.UUID,
 ) -> dict:
-    """Return live presence data for a session from Redis."""
-    key = f"session:{session_id}:presence"
-    data = await redis.hgetall(key)
-    participants = [
-        {"participant_id": pid, "joined_at": ts}
-        for pid, ts in data.items()
-    ]
-    return {
-        "session_id": str(session_id),
-        "active_count": len(participants),
-        "participants": participants,
-    }
+    """Return live presence data — delegates to core/redis_presence."""
+    return await _core_get_presence(redis, session_id)
 
 
 async def update_presence(
@@ -351,10 +341,8 @@ async def update_presence(
     session_id: uuid.UUID,
     participant_id: uuid.UUID,
 ) -> None:
-    """Update participant presence timestamp in Redis."""
-    key = f"session:{session_id}:presence"
-    await redis.hset(key, str(participant_id), datetime.now(timezone.utc).isoformat())
-    await redis.expire(key, 3600)
+    """Update participant presence — delegates to core/redis_presence."""
+    await _core_set_presence(redis, session_id, participant_id)
 
 
 # ---------------------------------------------------------------------------

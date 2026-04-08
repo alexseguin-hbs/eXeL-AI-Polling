@@ -22,7 +22,6 @@ Circuit breaker: If primary STT fails, failover to next provider by priority.
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import math
 import uuid
 from datetime import datetime, timezone
@@ -32,6 +31,8 @@ from redis.asyncio import Redis
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.concurrency import SessionSemaphorePool
+from app.core.crypto_utils import compute_response_hash
 from app.core.exceptions import ResponseValidationError
 from app.core.submission_validators import (
     validate_participant,
@@ -61,17 +62,8 @@ from app.core.circuit_breaker import CircuitBreaker
 
 _stt_cb = CircuitBreaker(max_failures=3, cooldown_seconds=60.0, name="cube3")
 
-# Per-session concurrency semaphore: limits concurrent STT calls to prevent provider rate exhaustion
-_STT_MAX_CONCURRENT = 20
-_session_semaphores: dict[str, asyncio.Semaphore] = {}
-
-
-def _get_session_semaphore(session_id: uuid.UUID) -> asyncio.Semaphore:
-    """Get or create a per-session concurrency semaphore for STT calls."""
-    key = str(session_id)
-    if key not in _session_semaphores:
-        _session_semaphores[key] = asyncio.Semaphore(_STT_MAX_CONCURRENT)
-    return _session_semaphores[key]
+# Per-session concurrency pool: limits concurrent STT calls (shared pattern with Cube 6)
+_stt_semaphore_pool = SessionSemaphorePool(max_concurrent=20, name="cube3_stt")
 
 
 # NOTE: validate_session_exists() now in core/submission_validators.py (shared Cubes 2-4)
@@ -321,7 +313,7 @@ async def store_voice_response(
     # --- Postgres: TextResponse (PII/profanity from Cube 2 pipeline) ---
     # CRS-08: SHA-256 integrity hash of clean transcript text
     if response_hash is None:
-        response_hash = hashlib.sha256(clean_text.encode()).hexdigest()
+        response_hash = compute_response_hash(clean_text)
 
     text_response = TextResponse(
         response_meta_id=response_meta.id,
@@ -401,7 +393,7 @@ async def submit_voice_response(
             stt_provider_name = user_pref
 
     # Concurrency cap: limit parallel STT calls per session
-    sem = _get_session_semaphore(session_id)
+    sem = _stt_semaphore_pool.get(session_id)
     async with sem:
         stt_result = await transcribe_audio(
             db, audio_bytes, language_code, audio_format,
@@ -420,7 +412,7 @@ async def submit_voice_response(
 
     # --- 5. Store ---
     # CRS-08: compute response_hash once (reused in storage + return)
-    response_hash = hashlib.sha256(clean_text.encode()).hexdigest()
+    response_hash = compute_response_hash(clean_text)
     is_anonymous = session.anonymity_mode == "anonymous"
     response_meta = await store_voice_response(
         db,
