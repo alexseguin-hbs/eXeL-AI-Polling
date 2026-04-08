@@ -283,6 +283,21 @@ All clustering and ranking operations must be fully reproducible:
 | 9 | (1,1,3) | Reports & Dashboards | 1 | CSV/PDF, Pixelated Tokens, CQS dashboard, data destruction |
 | 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Per-cube isolation, code challenge, replay, metric comparison. **Feedback Loop (FB) at center** — collects from every screen, auto-tags Cube + CRS, feeds backlog → votes → AI → ◬ ♡ 웃 approval → deploy |
 
+## CRS Naming Convention
+
+**Standard format:** `CRS-##.##` — two-digit parent + two-digit sequential sub-number.
+- Parent: `CRS-01` through `CRS-35` (canonical requirement numbers from Requirements.txt)
+- Sub-CRS: `CRS-##.01`, `CRS-##.02`, `CRS-##.03`, etc. (sequential within each parent)
+- **NEVER use letters** (no `.01a`, `.01b`, `.02c`) — always numerical: `.01`, `.02`, `.03`
+- **NEVER use single-digit** decimals (no `CRS-09.1`) — always two-digit: `CRS-09.01`
+- Input ID: `CRS-##.##.IN` | Output ID: `CRS-##.##.OUT`
+
+**Feedback auto-categorization:** Every feedback submission auto-tags:
+- `cube_id` = 1–10 (which cube the user is interacting with)
+- `crs_id` = `CRS-##` (parent requirement)
+- `sub_crs_id` = `CRS-##.##` (specific sub-requirement, if identifiable)
+- `feedback_type` = `CRS` (maps to existing requirement) or `DI` (Design Idea — new feature not in spec)
+
 ## Cross-Cube Specifications
 
 > **Detailed per-cube specs (data tables, I/O, functions, CRS, simulation requirements) are in:**

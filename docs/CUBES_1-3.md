@@ -1006,37 +1006,43 @@ The following gaps exist ONLY in the **real-time WebSocket STT path** (paid feat
 | RT-3 | `push_audio()` sync/async mismatch (Azure vs AWS) | `realtime.py:214-217` | AWS fallback may crash | Realtime STT launch |
 | RT-4 | No Phase A task in realtime flow (no summaries) | `realtime.py:331` | No 33-word summaries | Realtime STT launch |
 
-### Cube 3 — CRS Traceability (Updated 2026-04-07 — Phases 1-5 Complete)
-| CRS | Sub | Status | Phase | Evidence (file:line) | Design Output |
-|-----|-----|--------|:-----:|---------------------|---------------|
-| **CRS-08** | — | **Complete** | P1.4 | `service.py:477` `hashlib.sha256()` | SHA-256 on `clean_text`; 64-char hex; deterministic; stored + returned in API |
-| | **08.01** | **Complete** | P1.4 | `schemas/voice.py:40` `response_hash` field; `service.py:600` in return dict | Hash in schema, E2E test confirms presence (`test_response_hash_in_submission_result`) |
-| | **08.02** | **Complete** | P1.3+P5.5 | `service.py:516` dynamic `pii_gate_passed` assertion; `core/phase_a_retry.py:82` forwards only `clean_text` | PII gate: `(not pii_detected) or (clean_text != transcript)`; warning log if gate fails; Phase A receives clean_text only |
-| | 08.02b | **Complete** | P5.1 | `core/phase_a_retry.py:52-59` empty text guard | Empty/whitespace text skipped before reaching Cube 6 |
-| | 08.02c | **Complete** | P3.1a | `core/text_pipeline.py:35-75` shared pipeline | PII+profanity pipeline extracted to shared module; both batch + realtime use same path |
-| | **08.03** | Stretch | — | Not implemented | AES-256 at-rest encryption (per-org key); deferred |
-| **CRS-15** | — | **Complete** | Baseline+P2 | 4 batch + 2 realtime providers in `providers/` | 4 batch (Whisper, Grok, Gemini, AWS) + 2 realtime (Azure, AWS Streaming) |
-| | **15.01** | **Complete** | Baseline+P5.4 | `router.py:69-83` format/size validation; `service.py:253` confidence ≥0.3; `exceptions.py` `ResponseNotFoundError` | 6 formats (webm/wav/mp3/ogg/m4a/flac); 25 MB max; confidence threshold; correct 404 on missing response |
-| | 15.01b | **Complete** | P2.2 | `providers/base.py:44-55` `compute_stt_cost()`; all 4 providers compute `cost_usd` | Cost per call: Whisper $0.006/min, Grok $0.006/min, Gemini $0.00016/min, AWS $0.024/min |
-| | 15.01c | **Complete** | P2.3 | `models/stt_provider.py:26-28` `cost_per_minute_usd` + `is_primary` | Provider registry with cost rates + primary flag; Gemini-first fallback (cheapest) |
-| | **15.02** | **Complete** | P1.2+P2.4 | `service.py:56` 30s timeout; `service.py:59-110` CB state (3 failures, 60s cooldown) | `asyncio.wait_for(30s)` on all providers; failover: gemini→whisper→grok→aws; per-provider failure count + cooldown; auto-skip in cooldown; reset on success |
-| | 15.02b | **Complete** | P2.5 | `service.py:66-75` `asyncio.Semaphore(20)` per session | Concurrency cap: max 20 parallel STT calls per session |
-| | 15.02c | **Complete** | P2.7+P4.2 | `factory.py:31,72-77` `_provider_lock` + `get_stt_provider_safe()` | Thread-safe async singleton; prevents race on concurrent provider init |
-| | **15.03** | **Complete** | P2.6 | `realtime.py:176` 5-min timeout; `realtime.py:212-221` mid-stream recovery | WebSocket: 300s max session; `push_audio` error caught; `stt.stop()` error caught; payment gate enforced |
-| | 15.03b | Deferred | RT-1→4 | Documented in Known Gaps section above | 4 realtime gaps deferred to paid feature launch |
+### Cube 3 — CRS Naming Convention
+> **Standard:** `CRS-##.##` (two-digit parent + two-digit sub). Example: `CRS-15.04`.
+> Sub-CRS numbers increment sequentially within each parent CRS.
+> Feedback auto-tags: `cube_id=3` + `crs_id=CRS-##` + `sub_crs_id=CRS-##.##`.
+> Items not mapping to any CRS are tagged `feedback_type=DI` (Design Idea).
+
+### Cube 3 — CRS Traceability (Standardized 2026-04-07 — Phases 1-5 Complete)
+| CRS | Status | Phase | Evidence (file:line) | Design Output |
+|-----|--------|:-----:|---------------------|---------------|
+| **CRS-08** | **Complete** | P1.4 | `service.py:477` `hashlib.sha256()` | SHA-256 on `clean_text`; 64-char hex; deterministic; stored + returned in API |
+| **CRS-08.01** | **Complete** | P1.4 | `schemas/voice.py:40` `response_hash` field; `service.py:600` in return dict | Hash in schema, E2E test confirms presence |
+| **CRS-08.02** | **Complete** | P1.3+P5.5 | `service.py:516` dynamic `pii_gate_passed`; `core/phase_a_retry.py:82` forwards only `clean_text` | PII gate: `(not pii_detected) or (clean_text != transcript)`; warning log; Phase A receives clean_text only |
+| **CRS-08.03** | **Complete** | P5.1 | `core/phase_a_retry.py:52-59` empty text guard | Empty/whitespace text skipped before reaching Cube 6 |
+| **CRS-08.04** | **Complete** | P3.1a | `core/text_pipeline.py:35-75` shared pipeline | PII+profanity pipeline extracted to shared module; batch + realtime use same path |
+| **CRS-08.05** | Stretch | — | Not implemented | AES-256 at-rest encryption (per-org key); deferred |
+| **CRS-15** | **Complete** | Baseline+P2 | 4 batch + 2 realtime providers in `providers/` | 4 batch (Whisper, Grok, Gemini, AWS) + 2 realtime (Azure, AWS Streaming) |
+| **CRS-15.01** | **Complete** | Baseline+P5.4 | `router.py:69-83` format/size; `service.py:253` confidence ≥0.3; `ResponseNotFoundError` | 6 formats; 25 MB max; confidence threshold; correct 404 |
+| **CRS-15.02** | **Complete** | P2.2 | `providers/base.py:44-55` `compute_stt_cost()` | Cost per call: Whisper $0.006, Grok $0.006, Gemini $0.00016, AWS $0.024 /min |
+| **CRS-15.03** | **Complete** | P2.3 | `models/stt_provider.py:26-28` `cost_per_minute_usd` + `is_primary` | Provider registry; Gemini-first fallback (cheapest) |
+| **CRS-15.04** | **Complete** | P1.2+P2.4 | `service.py:56` 30s timeout; `core/circuit_breaker.py` CB class | `asyncio.wait_for(30s)`; gemini→whisper→grok→aws; 3-failure/60s cooldown; auto-skip + reset |
+| **CRS-15.05** | **Complete** | P2.5 | `service.py:66-75` `asyncio.Semaphore(20)` per session | Concurrency cap: max 20 parallel STT calls per session |
+| **CRS-15.06** | **Complete** | P2.7+P4.2 | `factory.py:31,72-77` `get_stt_provider_safe()` | Thread-safe async singleton; prevents race on concurrent init |
+| **CRS-15.07** | **Complete** | P2.6 | `realtime.py:176` 5-min timeout; `realtime.py:212-221` recovery | WebSocket: 300s max; push_audio + stt.stop() error caught; payment gate |
+| **CRS-15.08** | Deferred | RT-1→4 | Documented in Known Gaps section | 4 realtime gaps deferred to paid feature launch |
 
 ### Cube 3 — SSSES Task Traceability (Phases 1-5)
 | Task | CRS Link | Status | Phase | Evidence |
 |------|----------|:------:|:-----:|----------|
-| **A0** | CRS-08.02 | **DONE** | P3.1b+P5.1 | `core/phase_a_retry.py:52-70` <33-word fallback + empty text guard |
-| **A2** | CRS-15.02 | **DONE** | P1.5→P3.1b | `core/phase_a_retry.py:74-108` exponential backoff (1s, 2s, 4s) |
+| **A0** | CRS-08.03 | **DONE** | P3.1b+P5.1 | `core/phase_a_retry.py:52-70` <33-word fallback + empty text guard |
+| **A2** | CRS-15.04 | **DONE** | P1.5→P3.1b | `core/phase_a_retry.py:74-108` exponential backoff (1s, 2s, 4s) |
 | **A4** | CRS-08 | **DONE** | P2.1+P5.6 | `schemas/voice.py:42-45` `summary_33` with async docstring |
 | **A5** | CRS-15 | **DONE** | P3.1b | `core/phase_a_retry.py:159-177` `broadcast_event("summary_ready")` |
 | **A6** | CRS-15 | **DONE** | Baseline | `dashboard/page.tsx:274` `.on("broadcast", {event: "summary_ready"})` |
 | **A7** | CRS-08.02 | **DONE** | P1.3+P5.5 | `service.py:515-533` dynamic PII gate + warning log |
 | **MoT-1** | CRS-15 | **DONE** | P3.3c | `dashboard/page.tsx:732,885` "Reduce to 33 words" button |
-| **MoT-2** | CRS-08.02 | **DONE** | P3.1b | `core/phase_a_retry.py:52` `if word_count <= 33` → skip AI |
-| **MoT-3** | CRS-15.01b | **DONE** | P3.3a | `voice-input.tsx:235-240` cost_usd display per submission |
+| **MoT-2** | CRS-08.03 | **DONE** | P3.1b | `core/phase_a_retry.py:52` `if word_count <= 33` → skip AI |
+| **MoT-3** | CRS-15.02 | **DONE** | P3.3a | `voice-input.tsx:235-240` cost_usd display per submission |
 
 ### Cube 3 — Not Yet Implemented (Remaining)
 - **CRS-08.03:** AES-256 at-rest encryption — stretch target, deferred

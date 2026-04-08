@@ -40,6 +40,9 @@ class ProductFeedback(Base):
 
     # Feedback content
     feedback_text: Mapped[str] = mapped_column(Text, nullable=False)
+    feedback_type: Mapped[str] = mapped_column(
+        String(10), default="CRS"
+    )  # CRS = maps to existing requirement | DI = Design Idea (new feature)
     category: Mapped[str] = mapped_column(
         String(30), default="general"
     )  # bug | feature | usability | improvement | general
