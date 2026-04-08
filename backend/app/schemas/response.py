@@ -18,7 +18,7 @@ class ResponseCreate(BaseModel):
     question_id: uuid.UUID
     participant_id: uuid.UUID
     raw_text: str = Field(..., min_length=1, max_length=3333)
-    language_code: str = Field(default="en", max_length=10)
+    language_code: str = Field(default="en", min_length=2, max_length=10)
 
 
 # ---------------------------------------------------------------------------

@@ -502,3 +502,153 @@ class TestGetResponseById:
         from app.cubes.cube2_text.service import get_response_by_id
         result = await get_response_by_id(mock_db, uuid.uuid4(), uuid.uuid4())
         assert result is None
+
+
+# ---------------------------------------------------------------------------
+# DB Failure Path Tests (SPIRAL Pass 3 — gap coverage)
+# ---------------------------------------------------------------------------
+
+
+class TestStoreResponseFailure:
+    """Verify store_response() handles DB failures with rollback."""
+
+    @pytest.mark.asyncio
+    async def test_flush_failure_rolls_back(self):
+        """db.flush() failure should rollback and raise ResponseValidationError."""
+        from app.cubes.cube2_text.service import store_response
+        from app.core.exceptions import ResponseValidationError
+
+        mock_db = AsyncMock()
+        mock_db.add = MagicMock()
+        mock_db.flush = AsyncMock(side_effect=Exception("Connection lost"))
+        mock_db.rollback = AsyncMock()
+
+        with pytest.raises(ResponseValidationError, match="Failed to store response"):
+            await store_response(
+                mock_db,
+                session_id=uuid.uuid4(),
+                question_id=uuid.uuid4(),
+                participant_id=uuid.uuid4(),
+                cycle_id=1,
+                raw_text="Test text",
+                language_code="en",
+                is_anonymous=False,
+                anon_hash=None,
+                pii_detected=False,
+                pii_types=None,
+                pii_scrubbed_text=None,
+                profanity_detected=False,
+                profanity_words=None,
+                clean_text="Test text",
+            )
+        mock_db.rollback.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_commit_failure_rolls_back(self):
+        """db.commit() failure should rollback and raise ResponseValidationError."""
+        from app.cubes.cube2_text.service import store_response
+        from app.core.exceptions import ResponseValidationError
+
+        mock_db = AsyncMock()
+        mock_db.add = MagicMock()
+        mock_meta = MagicMock()
+        mock_meta.id = uuid.uuid4()
+        mock_db.flush = AsyncMock()
+        mock_db.commit = AsyncMock(side_effect=Exception("Disk full"))
+        mock_db.rollback = AsyncMock()
+
+        # Patch flush to set meta.id via add tracking
+        with pytest.raises(ResponseValidationError, match="Failed to commit response"):
+            await store_response(
+                mock_db,
+                session_id=uuid.uuid4(),
+                question_id=uuid.uuid4(),
+                participant_id=uuid.uuid4(),
+                cycle_id=1,
+                raw_text="Test text",
+                language_code="en",
+                is_anonymous=False,
+                anon_hash=None,
+                pii_detected=False,
+                pii_types=None,
+                pii_scrubbed_text=None,
+                profanity_detected=False,
+                profanity_words=None,
+                clean_text="Test text",
+            )
+        mock_db.rollback.assert_awaited_once()
+
+
+class TestCube5FaultTolerance:
+    """Verify submission succeeds when Cube 5 time tracking is unavailable."""
+
+    @pytest.mark.asyncio
+    async def test_time_tracking_start_failure_non_fatal(self):
+        """Submission should succeed even when start_time_tracking() fails."""
+        from app.cubes.cube2_text.service import _submit_text_inner
+
+        session = MagicMock()
+        session.anonymity_mode = "identified"
+        session.current_cycle = 1
+        session.ai_provider = "openai"
+        session.short_code = "TEST01"
+        session.live_feed_enabled = False
+        session.max_response_length = 3333
+
+        mock_db = AsyncMock()
+        mock_db.add = MagicMock()
+        mock_db.flush = AsyncMock()
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+
+        mock_redis = AsyncMock()
+        mock_redis.publish = AsyncMock()
+
+        sid = uuid.uuid4()
+        qid = uuid.uuid4()
+        pid = uuid.uuid4()
+
+        with patch("app.cubes.cube5_gateway.service.start_time_tracking", side_effect=Exception("Cube 5 down")), \
+             patch("app.core.text_pipeline.run_text_pipeline") as mock_pipeline, \
+             patch("app.core.phase_a_retry.run_phase_a_with_retry"):
+
+            pipeline_result = MagicMock()
+            pipeline_result.pii_detected = False
+            pipeline_result.pii_types = None
+            pipeline_result.pii_scrubbed_text = None
+            pipeline_result.profanity_detected = False
+            pipeline_result.profanity_words = None
+            pipeline_result.clean_text = "Hello world"
+            mock_pipeline.return_value = pipeline_result
+
+            result = await _submit_text_inner(
+                mock_db, mock_redis, session, "Hello world",
+                session_id=sid, question_id=qid,
+                participant_id=pid, language_code="en",
+            )
+
+            # Submission should succeed with 0 tokens
+            assert result["heart_tokens_earned"] == 0.0
+            assert result["unity_tokens_earned"] == 0.0
+            assert result["char_count"] == 11
+
+
+class TestSemaphorePoolBounds:
+    """Verify SessionSemaphorePool evicts when at max capacity."""
+
+    def test_pool_evicts_at_max(self):
+        """Pool should evict oldest session when at max_sessions."""
+        from app.core.concurrency import SessionSemaphorePool
+
+        pool = SessionSemaphorePool(max_concurrent=5, max_sessions=3)
+        s1, s2, s3, s4 = uuid.uuid4(), uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+
+        pool.get(s1)
+        pool.get(s2)
+        pool.get(s3)
+        assert pool.active_sessions == 3
+
+        pool.get(s4)  # Should evict s1
+        assert pool.active_sessions == 3
+        assert str(s1) not in pool._semaphores
+        assert str(s4) in pool._semaphores

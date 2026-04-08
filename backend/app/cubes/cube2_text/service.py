@@ -31,7 +31,6 @@ from typing import Any
 import structlog
 from redis.asyncio import Redis
 from sqlalchemy import func, select
-# pg_insert removed — Phase A retry now in core/phase_a_retry.py
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.concurrency import SessionSemaphorePool
@@ -249,10 +248,10 @@ async def detect_profanity(
     for pf in filters:
         cache_key = (language_code, pf["id"])
         if cache_key not in _profanity_pattern_cache:
-            # Evict oldest patterns if cache exceeds max
+            # Evict oldest pattern if cache exceeds max (FIFO, not nuclear clear)
             if len(_profanity_pattern_cache) >= _PROFANITY_PATTERN_CACHE_MAX:
-                _profanity_pattern_cache.clear()
-                logger.info("cube2.profanity_cache.evicted", reason="maxsize")
+                oldest = next(iter(_profanity_pattern_cache))
+                del _profanity_pattern_cache[oldest]
             try:
                 _profanity_pattern_cache[cache_key] = re.compile(pf["pattern"], re.IGNORECASE)
             except re.error:
