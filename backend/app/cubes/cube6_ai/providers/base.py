@@ -25,6 +25,60 @@ class AIProviderName(str, Enum):
     CLAUDE = "claude"  # Anthropic
 
 
+# Cost per 1K tokens (input) by provider — used for cost logging
+# Prices as of 2026-04: embedding + summarization models
+AI_COST_RATES: dict[str, dict[str, float]] = {
+    "openai": {"embed_per_1k": 0.00002, "summary_per_1k_input": 0.00015, "summary_per_1k_output": 0.0006},
+    "gemini": {"embed_per_1k": 0.000004, "summary_per_1k_input": 0.000075, "summary_per_1k_output": 0.0003},
+    "grok": {"embed_per_1k": 0.00002, "summary_per_1k_input": 0.0005, "summary_per_1k_output": 0.002},
+    "claude": {"embed_per_1k": 0.00002, "summary_per_1k_input": 0.003, "summary_per_1k_output": 0.015},
+}
+
+
+class AICostTracker:
+    """Tracks cumulative AI provider costs per pipeline run."""
+
+    def __init__(self, provider: str):
+        self.provider = provider
+        self.total_calls = 0
+        self.total_input_chars = 0
+        self.total_output_chars = 0
+        self.estimated_cost_usd = 0.0
+
+    def log_call(self, input_chars: int, output_chars: int) -> None:
+        """Log a single AI call for cost tracking."""
+        self.total_calls += 1
+        self.total_input_chars += input_chars
+        self.total_output_chars += output_chars
+
+        rates = AI_COST_RATES.get(self.provider, AI_COST_RATES["openai"])
+        # Rough token estimate: ~4 chars per token
+        input_tokens = input_chars / 4
+        output_tokens = output_chars / 4
+        self.estimated_cost_usd += (
+            (input_tokens / 1000) * rates["summary_per_1k_input"]
+            + (output_tokens / 1000) * rates["summary_per_1k_output"]
+        )
+
+    def log_embed(self, input_chars: int) -> None:
+        """Log an embedding call."""
+        self.total_calls += 1
+        self.total_input_chars += input_chars
+        rates = AI_COST_RATES.get(self.provider, AI_COST_RATES["openai"])
+        input_tokens = input_chars / 4
+        self.estimated_cost_usd += (input_tokens / 1000) * rates["embed_per_1k"]
+
+    def summary(self) -> dict:
+        """Return cost summary for logging."""
+        return {
+            "provider": self.provider,
+            "total_calls": self.total_calls,
+            "total_input_chars": self.total_input_chars,
+            "total_output_chars": self.total_output_chars,
+            "estimated_cost_usd": round(self.estimated_cost_usd, 6),
+        }
+
+
 class EmbeddingProvider(ABC):
     """Abstract interface for batch embedding generation.
 

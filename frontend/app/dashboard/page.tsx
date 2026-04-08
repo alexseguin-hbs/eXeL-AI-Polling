@@ -223,6 +223,10 @@ function SessionDetail({
   const [feedFullscreen, setFeedFullscreen] = useState(false);
   const [feedResponses, setFeedResponses] = useState<Array<{ id: string; clean_text: string; submitted_at: string; summary_33?: string }>>([]);
   const [feedDisplayMode, setFeedDisplayMode] = useState<"summary" | "raw">("summary");
+  // Cube 6 Phase B: theme pipeline state
+  const [themesReady, setThemesReady] = useState(false);
+  const [themeCount, setThemeCount] = useState(0);
+  const [replayHash, setReplayHash] = useState("");
   // Spiral Test: add response directly to feed (same-tab, no Supabase needed)
   const spiralSeenIds = useRef(new Set<string>());
   const addSpiralResponse = useCallback((resp: { id: string; clean_text: string; submitted_at: string; summary_33?: string }) => {
@@ -279,6 +283,23 @@ function SessionDetail({
               r.id === p.response_id ? { ...r, summary_33: p.summary_33 } : r,
             ),
           );
+        }
+      })
+      // Task B4: Listen for themes_ready from Cube 6 Phase B backend broadcast.
+      // Fires when full theming pipeline completes — session can transition to ranking.
+      .on("broadcast", { event: "themes_ready" }, ({ payload }) => {
+        const p = payload as {
+          session_id?: string;
+          theme_count?: number;
+          total_responses?: number;
+          replay_hash?: string;
+          duration_sec?: number;
+        };
+        console.log("[themes_ready]", p);
+        if (p.theme_count && p.theme_count > 0) {
+          setThemesReady(true);
+          setThemeCount(p.theme_count);
+          setReplayHash(p.replay_hash ?? "");
         }
       })
       .subscribe();
@@ -528,6 +549,12 @@ function SessionDetail({
               >
                 {t("cube1.moderator.start_ranking")}
               </Button>
+            )}
+            {/* Cube 6: Theme pipeline status indicator */}
+            {themesReady && (
+              <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
+                {themeCount} themes ready
+              </span>
             )}
             {/* Close — live polls only (static polls close at ends_at deadline) */}
             {["open", "polling", "ranking"].includes(session.status) && isLiveInteractive && (

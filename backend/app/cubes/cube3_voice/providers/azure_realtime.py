@@ -81,7 +81,7 @@ class AzureRealtimeSTT:
     def __init__(self, language_code: str = "en", session_id: str = ""):
         self._language = language_code
         self._session_id = session_id
-        self._event_queue: asyncio.Queue[RealtimeEvent] = asyncio.Queue()
+        self._event_queue: asyncio.Queue[RealtimeEvent] = asyncio.Queue(maxsize=500)
         self._recognizer: Any = None
         self._stream: Any = None
         self._running = False

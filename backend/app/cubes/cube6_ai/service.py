@@ -344,7 +344,8 @@ async def _fetch_summaries(
 # ---------------------------------------------------------------------------
 
 _CLASSIFY_INSTRUCTION = (
-    "You reply with the exact format: 'THEME (Confidence: XX%)' where THEME is "
+    "If the input is not in English, translate it to English first. "
+    "Then reply with the exact format: 'THEME (Confidence: XX%)' where THEME is "
     "ONE of these three exact phrases: 'Risk & Concerns' or 'Supporting Comments' "
     "or 'Neutral Comments', and XX is a number from 0 to 100 indicating your confidence."
 )
@@ -958,7 +959,11 @@ async def run_pipeline(
     provider_name = session.ai_provider or "openai"
     summarizer = get_summarization_provider(provider_name)
 
-    logger.info("cube6.pipeline.start", session_id=str(session_id))
+    # Cost tracking for this pipeline run
+    from app.cubes.cube6_ai.providers.base import AICostTracker
+    cost_tracker = AICostTracker(provider_name)
+
+    logger.info("cube6.pipeline.start", session_id=str(session_id), provider=provider_name)
 
     # Step 1: Fetch pre-computed 33-word summaries
     logger.info("Step 1: Fetching pre-computed summaries")
@@ -1046,11 +1051,20 @@ async def run_pipeline(
         }
 
     duration = round(time.monotonic() - start_time, 2)
+
+    # Estimate cost from response count × AI calls made
+    # Phase B: ~3 calls per category (reduce 9→6→3) × 3 categories = 9
+    # + 1 classify call + N assignment calls
+    total_chars = sum(len(r.get("summary_33", "")) for r in responses)
+    cost_tracker.log_call(total_chars * 3, total_chars)  # classify + assign estimate
+    cost_tracker.log_call(total_chars, total_chars // 3)  # reduction estimate
+
     logger.info(
         "cube6.pipeline.completed",
         session_id=str(session_id),
         total_responses=len(responses),
         duration_sec=duration,
+        **cost_tracker.summary(),
     )
 
     # --- Task B4: Broadcast themes_ready after full pipeline success ---
@@ -1108,6 +1122,7 @@ async def run_pipeline(
         },
         "replay_hash": replay_hash,
         "duration_sec": duration,
+        "cost": cost_tracker.summary(),
     }
 
 
