@@ -109,17 +109,21 @@ async def get_collected_responses(
         return {"items": [], "total": 0, "page": page, "page_size": page_size}
 
     # Fetch paginated response metadata with question + participant info
-    stmt = (
-        select(ResponseMeta, Question, Participant)
-        .outerjoin(Question, Question.id == ResponseMeta.question_id)
-        .outerjoin(Participant, Participant.id == ResponseMeta.participant_id)
-        .where(ResponseMeta.session_id == session_id)
-        .order_by(ResponseMeta.submitted_at.asc())
-        .offset(offset)
-        .limit(page_size)
-    )
-    result = await db.execute(stmt)
-    rows = result.all()
+    try:
+        stmt = (
+            select(ResponseMeta, Question, Participant)
+            .outerjoin(Question, Question.id == ResponseMeta.question_id)
+            .outerjoin(Participant, Participant.id == ResponseMeta.participant_id)
+            .where(ResponseMeta.session_id == session_id)
+            .order_by(ResponseMeta.submitted_at.asc())
+            .offset(offset)
+            .limit(page_size)
+        )
+        result = await db.execute(stmt)
+        rows = result.all()
+    except Exception as e:
+        logger.error("cube4.collected.query_error", session_id=str(session_id), error=str(e))
+        return {"items": [], "total": total, "page": page, "page_size": page_size}
 
     items = []
     for meta, question, participant in rows:
@@ -216,16 +220,20 @@ async def get_single_response(
     response_id: uuid.UUID,
 ) -> dict | None:
     """Get a single collected response with all available data."""
-    result = await db.execute(
-        select(ResponseMeta, Question, Participant)
-        .outerjoin(Question, Question.id == ResponseMeta.question_id)
-        .outerjoin(Participant, Participant.id == ResponseMeta.participant_id)
-        .where(
-            ResponseMeta.id == response_id,
-            ResponseMeta.session_id == session_id,
+    try:
+        result = await db.execute(
+            select(ResponseMeta, Question, Participant)
+            .outerjoin(Question, Question.id == ResponseMeta.question_id)
+            .outerjoin(Participant, Participant.id == ResponseMeta.participant_id)
+            .where(
+                ResponseMeta.id == response_id,
+                ResponseMeta.session_id == session_id,
+            )
         )
-    )
-    row = result.one_or_none()
+        row = result.one_or_none()
+    except Exception as e:
+        logger.error("cube4.single.query_error", response_id=str(response_id), error=str(e))
+        return None
     if row is None:
         return None
 
