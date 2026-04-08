@@ -31,7 +31,7 @@ from typing import Any
 import structlog
 from redis.asyncio import Redis
 from sqlalchemy import func, select
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+# pg_insert removed — Phase A retry now in core/phase_a_retry.py
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
@@ -497,24 +497,10 @@ async def submit_text_response(
         cube_id="cube2",
     )
 
-    # --- 4. PII detection + scrubbing ---
-    pii_detections = await detect_pii(text)
-    pii_detected = len(pii_detections) > 0
-    pii_scrubbed = scrub_pii(text, pii_detections) if pii_detected else text
-    # Strip actual text from PII metadata before storing
-    pii_types_safe = [
-        {"type": d["type"], "start": d["start"], "end": d["end"]}
-        for d in pii_detections
-    ] if pii_detected else None
-
-    # --- 5. Profanity detection + scrubbing ---
-    profanity_matches = await detect_profanity(db, pii_scrubbed, language_code)
-    profanity_detected = len(profanity_matches) > 0
-    clean_text = scrub_profanity(pii_scrubbed, profanity_matches) if profanity_detected else pii_scrubbed
-    profanity_words_safe = [
-        {"word": m["word"], "severity": m["severity"], "position": m["position"]}
-        for m in profanity_matches
-    ] if profanity_detected else None
+    # --- 4+5. PII + Profanity pipeline (shared with Cube 3 via core/text_pipeline) ---
+    from app.core.text_pipeline import run_text_pipeline
+    pipeline = await run_text_pipeline(db, text, language_code)
+    clean_text = pipeline.clean_text
 
     # --- 6. Anonymize + Store (CRS-05) ---
     is_anonymous = session.anonymity_mode == "anonymous"
@@ -529,11 +515,11 @@ async def submit_text_response(
         language_code=language_code,
         is_anonymous=is_anonymous,
         anon_hash=anon_hash,
-        pii_detected=pii_detected,
-        pii_types=pii_types_safe,
-        pii_scrubbed_text=pii_scrubbed if pii_detected else None,
-        profanity_detected=profanity_detected,
-        profanity_words=profanity_words_safe,
+        pii_detected=pipeline.pii_detected,
+        pii_types=pipeline.pii_types,
+        pii_scrubbed_text=pipeline.pii_scrubbed_text,
+        profanity_detected=pipeline.profanity_detected,
+        profanity_words=pipeline.profanity_words,
         clean_text=clean_text,
     )
 
@@ -555,98 +541,30 @@ async def submit_text_response(
     # Runs as background task — does NOT block the response to the user.
 
     # Task A7: PII gate assertion — only clean_text (post-scrub) reaches Cube 6.
-    # raw_text never leaves this function's storage boundary.
+    pii_gate_passed = (not pipeline.pii_detected) or (clean_text != text)
     logger.info(
         "cube6.phase_a.pii_safe",
         response_id=str(response_meta.id),
-        input_is_clean_text=True,
-        raw_text_excluded=True,
+        input_is_clean_text=pii_gate_passed,
+        pii_detected=pipeline.pii_detected,
+        source="text",
     )
 
-    async def _run_phase_a_with_retry(
-        pg_db: AsyncSession, *, session_id, response_id, clean_text, language_code,
-        ai_provider, session_short_code: str = "",
-        max_retries: int = 3,
-    ):
-        """Task A2: Phase A with exponential backoff retry (1s, 2s, 4s).
-        On final failure: store summary_33 = '[Summary unavailable]' in PostgreSQL."""
-        from app.cubes.cube6_ai.service import summarize_single_response
-
-        for attempt in range(max_retries):
-            try:
-                await summarize_single_response(
-                    pg_db,
-                    session_id=session_id,
-                    response_id=response_id,
-                    raw_text=clean_text,  # PII-safe (Task A7)
-                    language_code=language_code,
-                    ai_provider=ai_provider,
-                    session_short_code=session_short_code,
-                )
-                return  # Success
-            except Exception as exc:
-                wait = 2 ** attempt  # 1s, 2s, 4s
-                logger.warning(
-                    "cube2.phase_a.retry",
-                    attempt=attempt + 1,
-                    max_retries=max_retries,
-                    wait_seconds=wait,
-                    error=str(exc),
-                    response_id=str(response_id),
-                )
-                if attempt < max_retries - 1:
-                    await asyncio.sleep(wait)
-
-        # All retries exhausted — store fallback marker in PostgreSQL
-        logger.error(
-            "cube2.phase_a.exhausted",
-            response_id=str(response_id),
-            session_id=str(session_id),
-        )
-        try:
-            stmt = pg_insert(ResponseSummary).values(
-                response_meta_id=response_id,
-                session_id=session_id,
-                summary_33="[Summary unavailable]",
-                summary_111="[Summary unavailable]",
-                summary_333="[Summary unavailable]",
-            ).on_conflict_do_update(
-                index_elements=["response_meta_id"],
-                set_={
-                    "summary_33": "[Summary unavailable]",
-                    "summary_111": "[Summary unavailable]",
-                    "summary_333": "[Summary unavailable]",
-                },
-            )
-            await pg_db.execute(stmt)
-            await pg_db.commit()
-        except Exception:
-            pass  # Best-effort fallback storage
-
-    async def _phase_a_with_timeout():
-        """Wrap Phase A in a 30s timeout to prevent task accumulation."""
-        try:
-            await asyncio.wait_for(
-                _run_phase_a_with_retry(
-                    db,
-                    session_id=session_id,
-                    response_id=response_meta.id,
-                    clean_text=clean_text,
-                    language_code=language_code,
-                    ai_provider=session.ai_provider or "openai",
-                    session_short_code=session.short_code,
-                ),
-                timeout=30.0,
-            )
-        except asyncio.TimeoutError:
-            logger.error(
-                "cube2.phase_a.timeout",
-                response_id=str(response_meta.id),
-                timeout_sec=30,
-            )
+    # Fire-and-forget: shared Phase A with <33-word fallback + live feed broadcast
+    from app.core.phase_a_retry import run_phase_a_with_retry
 
     try:
-        task = asyncio.create_task(_phase_a_with_timeout())
+        task = asyncio.create_task(
+            run_phase_a_with_retry(
+                session_id=session_id,
+                response_id=response_meta.id,
+                clean_text=clean_text,
+                language_code=language_code,
+                ai_provider=session.ai_provider or "openai",
+                session_short_code=session.short_code,
+                source="text",
+            )
+        )
 
         def _on_phase_a_done(t: asyncio.Task):
             if t.exception():
@@ -667,8 +585,8 @@ async def submit_text_response(
         response_id=str(response_meta.id),
         language=language_code,
         char_count=len(text),
-        pii_detected=pii_detected,
-        profanity_detected=profanity_detected,
+        pii_detected=pipeline.pii_detected,
+        profanity_detected=pipeline.profanity_detected,
         heart_tokens=heart_earned,
         unity_tokens=unity_earned,
     )
@@ -683,8 +601,8 @@ async def submit_text_response(
         "language_code": language_code,
         "submitted_at": response_meta.submitted_at,
         "is_flagged": False,
-        "pii_detected": pii_detected,
-        "profanity_detected": profanity_detected,
+        "pii_detected": pipeline.pii_detected,
+        "profanity_detected": pipeline.profanity_detected,
         "clean_text": clean_text,
         "response_hash": response_hash,
         "heart_tokens_earned": heart_earned,
