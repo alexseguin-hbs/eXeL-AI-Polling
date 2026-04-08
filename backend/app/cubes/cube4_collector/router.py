@@ -103,9 +103,11 @@ async def response_languages(
 @router.get("/presence")
 async def get_presence(
     session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
 ):
     """Get live presence count for a session (Redis). No auth — participants need this."""
+    await validate_session_exists(db, session_id)
     return await get_session_presence(redis, session_id)
 
 
@@ -116,6 +118,7 @@ async def summary_status(
     user: CurrentUser = Depends(get_current_user),
 ):
     """Check summary generation progress (Moderator-only). CRS-09.05."""
+    await validate_session_exists(db, session_id)
     return await get_summary_status(db, session_id)
 
 
@@ -152,6 +155,7 @@ async def confirm_outcome(
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """CRS-10.01: Record participant confirmation of desired outcome."""
+    await validate_session_exists(db, session_id)
     return await record_confirmation(db, session_id, outcome_id, body.participant_id)
 
 
@@ -164,6 +168,7 @@ async def check_confirmed(
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """CRS-10.02: Check if all required participants confirmed."""
+    await validate_session_exists(db, session_id)
     is_confirmed = await check_all_confirmed(db, session_id, outcome_id, required)
     return {"outcome_id": str(outcome_id), "all_confirmed": is_confirmed, "required": required}
 
@@ -177,6 +182,7 @@ async def log_results(
     user: CurrentUser = Depends(get_current_user),
 ):
     """CRS-10.03: Log post-task results and assessment. Moderator-only."""
+    await validate_session_exists(db, session_id)
     outcome = await log_post_task_results(
         db, session_id, outcome_id,
         results_log=body.results_log,

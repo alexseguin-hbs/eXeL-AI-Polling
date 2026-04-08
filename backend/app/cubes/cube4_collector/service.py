@@ -297,20 +297,24 @@ async def get_response_languages(
     session_id: uuid.UUID,
 ) -> list[dict]:
     """Return breakdown of response languages for a session."""
-    result = await db.execute(
-        select(
-            TextResponse.language_code,
-            func.count(TextResponse.id).label("count"),
+    try:
+        result = await db.execute(
+            select(
+                TextResponse.language_code,
+                func.count(TextResponse.id).label("count"),
+            )
+            .join(ResponseMeta, ResponseMeta.id == TextResponse.response_meta_id)
+            .where(ResponseMeta.session_id == session_id)
+            .group_by(TextResponse.language_code)
         )
-        .join(ResponseMeta, ResponseMeta.id == TextResponse.response_meta_id)
-        .where(ResponseMeta.session_id == session_id)
-        .group_by(TextResponse.language_code)
-    )
-    rows = result.all()
-    return [
-        {"language_code": row.language_code, "count": row.count}
-        for row in rows
-    ]
+        rows = result.all()
+        return [
+            {"language_code": row.language_code, "count": row.count}
+            for row in rows
+        ]
+    except Exception as e:
+        logger.error("cube4.response_languages.query_failed", error=str(e), session_id=str(session_id))
+        return []
 
 
 # ---------------------------------------------------------------------------
@@ -344,38 +348,48 @@ async def get_summary_status(
     db: AsyncSession,
     session_id: uuid.UUID,
 ) -> dict:
-    """Check how many responses have summaries generated."""
-    total_result = await db.execute(
-        select(func.count(ResponseSummary.id)).where(
-            ResponseSummary.session_id == session_id,
-        )
-    )
-    total = total_result.scalar() or 0
+    """Check how many responses have summaries generated.
 
-    with_33_result = await db.execute(
-        select(func.count(ResponseSummary.id)).where(
-            ResponseSummary.session_id == session_id,
-            ResponseSummary.summary_33 != None,  # noqa: E711
-            ResponseSummary.summary_33 != "",
-        )
-    )
-    with_33 = with_33_result.scalar() or 0
+    Optimized: single query with conditional counting (3→1 DB round-trip).
+    """
+    from sqlalchemy import case
 
-    with_themes_result = await db.execute(
-        select(func.count(ResponseSummary.id)).where(
-            ResponseSummary.session_id == session_id,
-            ResponseSummary.theme01 != None,  # noqa: E711
-            ResponseSummary.theme01 != "",
+    try:
+        result = await db.execute(
+            select(
+                func.count(ResponseSummary.id).label("total"),
+                func.sum(case(
+                    (
+                        (ResponseSummary.summary_33.isnot(None)) & (ResponseSummary.summary_33 != ""),
+                        1,
+                    ),
+                    else_=0,
+                )).label("with_33"),
+                func.sum(case(
+                    (
+                        (ResponseSummary.theme01.isnot(None)) & (ResponseSummary.theme01 != ""),
+                        1,
+                    ),
+                    else_=0,
+                )).label("with_themes"),
+            ).where(ResponseSummary.session_id == session_id)
         )
-    )
-    with_themes = with_themes_result.scalar() or 0
+        row = result.one_or_none()
 
-    return {
-        "session_id": str(session_id),
-        "total_summaries": total,
-        "with_33_word_summary": with_33,
-        "with_theme_assignment": with_themes,
-    }
+        return {
+            "session_id": str(session_id),
+            "total_summaries": (row.total or 0) if row else 0,
+            "with_33_word_summary": int(row.with_33 or 0) if row else 0,
+            "with_theme_assignment": int(row.with_themes or 0) if row else 0,
+        }
+    except Exception as e:
+        logger.error("cube4.summary_status.query_failed", error=str(e), session_id=str(session_id))
+        return {
+            "session_id": str(session_id),
+            "total_summaries": 0,
+            "with_33_word_summary": 0,
+            "with_theme_assignment": 0,
+        }
 
 
 # ---------------------------------------------------------------------------

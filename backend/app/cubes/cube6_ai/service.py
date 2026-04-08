@@ -1229,6 +1229,16 @@ async def score_cqs(
         )
         return []
 
+    # Resolve participant_ids from ResponseMeta BEFORE creating CQSScore objects
+    meta_ids = [s.response_meta_id for s in eligible]
+    meta_result = await db.execute(
+        select(ResponseMeta).where(ResponseMeta.id.in_(meta_ids))
+    )
+    meta_map = {m.id: m.participant_id for m in meta_result.scalars().all()}
+
+    # Sanitize router input
+    safe_theme_label = html.escape(top_theme2_label)
+
     # Score each eligible response via AI — chunked to prevent OOM/timeout
     scored: list[dict] = []
     _CQS_BATCH_SIZE = 100
@@ -1262,8 +1272,8 @@ async def score_cqs(
         cqs = CQSScore(
             session_id=session_id,
             response_id=s.response_meta_id,
-            participant_id=s.response_meta_id,  # Will be resolved from ResponseMeta
-            theme2_cluster_label=top_theme2_label,
+            participant_id=meta_map.get(s.response_meta_id, s.response_meta_id),
+            theme2_cluster_label=safe_theme_label,
             theme_confidence=(getattr(s, conf_field, 0) or 0) / 100.0,
             insight_score=float(scores.get("insight", 50)),
             depth_score=float(scores.get("depth", 50)),
@@ -1281,18 +1291,6 @@ async def score_cqs(
             "composite_cqs": round(composite, 2),
             "scores": {m: scores.get(m, 50) for m in _CQS_METRICS},
         })
-
-    # Resolve participant_ids from ResponseMeta
-    meta_ids = [s.response_meta_id for s in eligible]
-    meta_result = await db.execute(
-        select(ResponseMeta).where(ResponseMeta.id.in_(meta_ids))
-    )
-    meta_map = {m.id: m.participant_id for m in meta_result.scalars().all()}
-
-    # Update participant_id on CQS records before commit
-    for cqs_obj in db.new:
-        if isinstance(cqs_obj, CQSScore) and cqs_obj.response_id in meta_map:
-            cqs_obj.participant_id = meta_map[cqs_obj.response_id]
 
     await db.commit()
 

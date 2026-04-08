@@ -153,12 +153,16 @@ class TestPresenceTracking:
 class TestSummaryStatus:
     @pytest.mark.asyncio
     async def test_no_summaries(self):
-        """Empty session returns 0 summaries."""
+        """Empty session returns 0 summaries (single-query optimization)."""
         from app.cubes.cube4_collector.service import get_summary_status
 
         mock_db = AsyncMock()
+        mock_row = MagicMock()
+        mock_row.total = 0
+        mock_row.with_33 = 0
+        mock_row.with_themes = 0
         mock_result = MagicMock()
-        mock_result.scalar.return_value = 0
+        mock_result.one_or_none.return_value = mock_row
         mock_db.execute = AsyncMock(return_value=mock_result)
 
         result = await get_summary_status(mock_db, uuid.uuid4())
@@ -168,21 +172,17 @@ class TestSummaryStatus:
 
     @pytest.mark.asyncio
     async def test_summary_counts(self):
-        """Should return correct summary/theme counts."""
+        """Should return correct summary/theme counts (single-query optimization)."""
         from app.cubes.cube4_collector.service import get_summary_status
 
         mock_db = AsyncMock()
-        call_count = 0
-        counts = [10, 8, 5]  # total, with_33, with_themes
-
-        async def _execute(*args, **kwargs):
-            nonlocal call_count
-            mock_result = MagicMock()
-            mock_result.scalar.return_value = counts[call_count]
-            call_count += 1
-            return mock_result
-
-        mock_db.execute = _execute
+        mock_row = MagicMock()
+        mock_row.total = 10
+        mock_row.with_33 = 8
+        mock_row.with_themes = 5
+        mock_result = MagicMock()
+        mock_result.one_or_none.return_value = mock_row
+        mock_db.execute = AsyncMock(return_value=mock_result)
 
         result = await get_summary_status(mock_db, uuid.uuid4())
         assert result["total_summaries"] == 10
