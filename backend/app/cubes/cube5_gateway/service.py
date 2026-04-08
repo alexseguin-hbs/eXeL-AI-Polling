@@ -371,11 +371,15 @@ async def trigger_ai_pipeline(
         async with async_session_factory() as bg_db:
             try:
                 await update_pipeline_status(bg_db, trigger_id, "in_progress")
-                result = await run_pipeline(
-                    bg_db,
-                    session_id,
-                    seed=seed,
-                    use_embedding_assignment=use_embedding_assignment,
+                # CRS-09.02: 5-minute timeout prevents hung pipeline blocking trigger forever
+                result = await asyncio.wait_for(
+                    run_pipeline(
+                        bg_db,
+                        session_id,
+                        seed=seed,
+                        use_embedding_assignment=use_embedding_assignment,
+                    ),
+                    timeout=300.0,
                 )
                 await update_pipeline_status(
                     bg_db,
@@ -391,6 +395,17 @@ async def trigger_ai_pipeline(
                     "cube5.pipeline.ai_theming.completed",
                     extra={"trigger_id": str(trigger_id), "session_id": str(session_id)},
                 )
+            except asyncio.TimeoutError:
+                logger.error(
+                    "cube5.pipeline.ai_theming.timeout",
+                    extra={"trigger_id": str(trigger_id), "timeout_sec": 300},
+                )
+                try:
+                    await update_pipeline_status(
+                        bg_db, trigger_id, "failed", error_message="Pipeline timeout (300s)"
+                    )
+                except Exception:
+                    logger.exception("cube5.pipeline.status_update_failed")
             except Exception as exc:
                 logger.error(
                     "cube5.pipeline.ai_theming.failed",

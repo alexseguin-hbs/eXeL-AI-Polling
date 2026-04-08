@@ -137,8 +137,9 @@ async def trigger_theming(
 async def get_pipeline_status(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ):
-    """Get pipeline status for all triggers in a session."""
+    """Get pipeline status for all triggers (Moderator-only — CRS-11.04)."""
     data = await service.get_pipeline_status(db, session_id)
     return PipelineStatusResponse(
         session_id=data["session_id"],
