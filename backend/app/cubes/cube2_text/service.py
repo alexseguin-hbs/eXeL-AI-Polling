@@ -20,7 +20,6 @@ Profanity Pipeline (non-blocking):
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import json
 import math
 import re
@@ -34,6 +33,8 @@ from sqlalchemy import func, select
 # pg_insert removed — Phase A retry now in core/phase_a_retry.py
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.concurrency import SessionSemaphorePool
+from app.core.crypto_utils import compute_anon_hash, compute_response_hash
 from app.core.exceptions import (
     ParticipantNotFoundError,
     QuestionNotFoundError,
@@ -50,6 +51,9 @@ from app.models.session import Session
 from app.models.text_response import TextResponse
 
 logger = structlog.get_logger(__name__)
+
+# Per-session concurrency pool — limits parallel text submissions to prevent DB contention
+_text_semaphore_pool = SessionSemaphorePool(max_concurrent=50, name="cube2_text")
 
 # ---------------------------------------------------------------------------
 # NER Pipeline (lazy-loaded singleton)
@@ -329,7 +333,7 @@ def anonymize_response(
     if anonymity_mode == "identified":
         return participant_id, None
 
-    anon_hash = hashlib.sha256(str(participant_id).encode()).hexdigest()
+    anon_hash = compute_anon_hash(participant_id, truncate=64)
 
     if anonymity_mode == "anonymous":
         return None, anon_hash
@@ -384,7 +388,7 @@ async def store_response(
     await db.flush()  # Get ID before creating TextResponse
 
     # --- Postgres: TextResponse (1:1 with ResponseMeta) ---
-    response_hash = hashlib.sha256(raw_text.encode()).hexdigest()
+    response_hash = compute_response_hash(raw_text)
 
     text_response = TextResponse(
         response_meta_id=response_meta.id,
@@ -472,8 +476,10 @@ async def submit_text_response(
     await validate_question(db, question_id, session_id)
     participant = await validate_participant(db, participant_id, session_id)
 
-    # --- 2. Validate text input ---
+    # --- 2. Validate text input + concurrency cap ---
     text = validate_text_input(raw_text, session.max_response_length)
+    sem = _text_semaphore_pool.get(session_id)
+    await sem.acquire()  # Released after store completes
 
     # --- 2b. Language sanity check (non-blocking) ---
     if not detect_language(text, language_code):
@@ -522,6 +528,8 @@ async def submit_text_response(
         profanity_words=pipeline.profanity_words,
         clean_text=clean_text,
     )
+
+    sem.release()  # Concurrency cap released after store
 
     # --- 7. Stop time tracking, calculate tokens ---
     time_entry = await stop_time_tracking(
