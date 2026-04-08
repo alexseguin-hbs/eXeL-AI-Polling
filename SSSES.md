@@ -81,10 +81,10 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 |------|----------|-----------|-------------|------------|--------------|---------|
 | 1 Session | 100 | 100 | 100 | 100 | 100 | **100** |
 | 2 Text | 98 | 95 | 93 | 92 | 90 | **94** |
-| 3 Voice | 85 | 85 | 88 | 85 | 77 | **84** |
+| 3 Voice | 87 | 87 | 90 | 85 | 77 | **85** |
 | 4 Collector | 92 | 85 | 82 | 88 | 85 | **86** |
 | 5 Gateway | 90 | 85 | 88 | 85 | 90 | **88** |
-| 6 AI Pipeline | 70 | 40 | 55 | 55 | 70 | **58** |
+| 6 AI Pipeline | 82 | 72 | 65 | 60 | 72 | **70** |
 | 7 Ranking | 20 | 10 | 15 | 15 | 50 | **22** |
 | 8 Tokens | 45 | 40 | 35 | 45 | 60 | **45** |
 | 9 Reports | 30 | 15 | 20 | 25 | 55 | **29** |
@@ -107,18 +107,18 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 - `themes_ready` Supabase broadcast never sent after Phase B — dashboard has no signal to transition to results view (Task B4)
 - ~~Phase A has no retry on AI failure — silent log warning only (Task A2)~~ **RESOLVED (2026-04-08):** Exponential backoff retry (3 attempts: 1s/2s/4s) in `core/phase_a_retry.py`; fallback marker `[Summary unavailable]` stored on exhaustion
 - Phase B has never been run E2E against a live 5000-response dataset (Task B1)
-- `_store_results()` has no error handling around `response_summaries` table write — partial failure leaves pipeline in inconsistent state (Task C6-5)
-- `_assign_themes_llm()` uses manual index tracking — `batch_summarize()` count mismatch causes IndexError (Task C6-6)
+- ~~`_store_results()` has no error handling around `response_summaries` table write — partial failure leaves pipeline in inconsistent state (Task C6-5)~~ **RESOLVED (2026-04-08):** try/except + rollback wrapping all ResponseSummary upserts + session.replay_hash commit in `cube6_ai/service.py`
+- ~~`_assign_themes_llm()` uses manual index tracking — `batch_summarize()` count mismatch causes IndexError (Task C6-6)~~ **RESOLVED (2026-04-08):** Replaced manual `result_idx` with `zip(queued_responses, results)` pattern; added count mismatch warning log
 
 **Scalability — Cubes 5, 6:**
 - ~~No `asyncio.Semaphore(10)` concurrency cap on Phase A — 100 concurrent submits spawn 100 uncapped AI calls (Task A3)~~ **RESOLVED (2026-04-08):** `SessionSemaphorePool(50)` in `cube2_text/service.py` + per-session `asyncio.Semaphore(10)` in `cube6_ai/service.py`
-- No timeout on AI API calls in Cube 6 — hung provider blocks entire pipeline forever (Task C6-4)
+- ~~No timeout on AI API calls in Cube 6 — hung provider blocks entire pipeline forever (Task C6-4)~~ **RESOLVED (2026-04-08):** 120s `asyncio.wait_for()` timeout on all 4 providers (OpenAI, Grok, Gemini, Claude) for both `embed()` and `summarize()` calls; client-level timeout also set
 - No timeout on background pipeline task in Cube 5 — hung `run_pipeline()` leaves trigger `in_progress` permanently (Task C5-3)
 - Phase B parallel batch classification unverified at 5000-response scale (Task B3)
 
 **Security — Cubes 2, 3, 4, 5, 6:**
 - ~~Voice path (Cube 3 → Cube 2 → Cube 6 Phase A) PII gate not verified with structured log assertion (Task A7)~~ **RESOLVED (2026-04-07):** Dynamic PII gate assertion in `cube3_voice/service.py` lines 557-565; `core/phase_a_retry.py` forwards only `clean_text` to Cube 6
-- `run_pipeline()` (Cube 6 Phase B) does not filter responses by `pii_scrubbed` flag (Task C6-1)
+- ~~`run_pipeline()` (Cube 6 Phase B) does not filter responses by `pii_scrubbed` flag (Task C6-1)~~ **RESOLVED (2026-04-08):** `_fetch_summaries()` now joins TextResponse and excludes responses where `pii_detected=True AND pii_scrubbed_text IS NULL`; also batch-loads summaries (N+1 fix)
 - ~~Pipeline status route (Cube 5) not Moderator-row-scoped — any authenticated user can read any session's pipeline metadata (Task C5-2)~~ **RESOLVED (2026-04-08):** `get_current_user` (moderator auth) enforced on pipeline status endpoint in `cube5_gateway/router.py`
 - ~~Cube 4 anonymous user label uses 8-char UUID prefix (collision risk at scale) instead of SHA-256 `anon_hash` (Task C4-4)~~ **RESOLVED (2026-04-07):** SHA-256 anon_hash (12-char hex) implemented in `cube4_collector/service.py` lines 127, 225
 

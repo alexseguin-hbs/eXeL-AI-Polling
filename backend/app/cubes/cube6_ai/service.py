@@ -278,22 +278,41 @@ async def _fetch_summaries(
     """Fetch all response metadata + pre-computed 33-word summaries.
 
     Summaries were generated live during polling (Phase A).
-    This step just collects them for the theming pipeline.
+    C6-1: Only fetches responses where PII has been scrubbed (via TextResponse join).
+    Batch-loads summaries to avoid N+1 query pattern.
     """
+    from app.models.text_response import TextResponse
+
+    # Fetch response metas — C6-1: exclude responses with unresolved PII
     result = await db.execute(
-        select(ResponseMeta).where(ResponseMeta.session_id == session_id)
+        select(ResponseMeta)
+        .outerjoin(TextResponse, TextResponse.response_meta_id == ResponseMeta.id)
+        .where(
+            ResponseMeta.session_id == session_id,
+            # C6-1: PII gate — exclude responses where PII was detected but NOT scrubbed
+            ~(
+                (TextResponse.pii_detected.is_(True))
+                & (TextResponse.pii_scrubbed_text.is_(None))
+            ),
+        )
     )
     metas = list(result.scalars().all())
 
+    if not metas:
+        return []
+
+    # Batch-load summaries (1 query instead of N)
+    meta_ids = [m.id for m in metas]
+    summary_result = await db.execute(
+        select(ResponseSummary).where(
+            ResponseSummary.response_meta_id.in_(meta_ids),
+        )
+    )
+    summary_map = {s.response_meta_id: s for s in summary_result.scalars().all()}
+
     responses = []
     for meta in metas:
-        # Get pre-computed summary from PostgreSQL (ResponseSummary)
-        summary_result = await db.execute(
-            select(ResponseSummary).where(
-                ResponseSummary.response_meta_id == meta.id,
-            )
-        )
-        summary_row = summary_result.scalar_one_or_none()
+        summary_row = summary_map.get(meta.id)
 
         summary_33 = ""
         summary_111 = ""
@@ -660,24 +679,29 @@ async def _assign_themes_llm(
         # Batch all assignments at this level
         results = await summarizer.batch_summarize(items)
 
-        # Parse results back onto responses
-        result_idx = 0
-        for r in responses:
+        # C6-5/C6-6 fix: Build list of responses that were actually queued,
+        # then zip with results to avoid index tracking mismatch
+        queued_responses = [
+            r for r in responses
+            if reduced.get(r.get("theme01", "Neutral Comments"), {}).get(level, [])
+        ]
+        if len(results) != len(queued_responses):
+            logger.warning(
+                "cube6.assign.count_mismatch",
+                level=level,
+                expected=len(queued_responses),
+                got=len(results),
+            )
+
+        for r, result_text in zip(queued_responses, results):
             category = r.get("theme01", "Neutral Comments")
             cat_themes = reduced.get(category, {}).get(level, [])
-
-            if not cat_themes:
-                continue
-
-            result_text = results[result_idx]
-            result_idx += 1
 
             match = _CLASSIFY_PATTERN.match(result_text)
             if match:
                 theme_name = match.group(1).strip()
                 confidence = int(match.group(2))
             else:
-                # Fallback: pick first theme if parse fails
                 theme_name = cat_themes[0]["label"] if cat_themes else ""
                 confidence = 70
 
@@ -826,53 +850,59 @@ async def _store_results(
             )
             db.add(ts)
 
-    # Update ResponseSummary with theme assignments for each response
-    for r in responses:
-        stmt = pg_insert(ResponseSummary).values(
-            response_meta_id=uuid.UUID(r["id"]),
-            session_id=session.id,
-            provider=provider_name,
-            theme01=r.get("theme01", ""),
-            theme01_confidence=r.get("theme01_confidence", 0),
-            theme2_9=r.get("theme2_9", ""),
-            theme2_9_confidence=r.get("theme2_9_confidence", 0),
-            theme2_6=r.get("theme2_6", ""),
-            theme2_6_confidence=r.get("theme2_6_confidence", 0),
-            theme2_3=r.get("theme2_3", ""),
-            theme2_3_confidence=r.get("theme2_3_confidence", 0),
-        ).on_conflict_do_update(
-            index_elements=["response_meta_id"],
-            set_={
-                "theme01": r.get("theme01", ""),
-                "theme01_confidence": r.get("theme01_confidence", 0),
-                "theme2_9": r.get("theme2_9", ""),
-                "theme2_9_confidence": r.get("theme2_9_confidence", 0),
-                "theme2_6": r.get("theme2_6", ""),
-                "theme2_6_confidence": r.get("theme2_6_confidence", 0),
-                "theme2_3": r.get("theme2_3", ""),
-                "theme2_3_confidence": r.get("theme2_3_confidence", 0),
+    # C6-4: Update ResponseSummary with theme assignments — error handling + rollback
+    try:
+        for r in responses:
+            stmt = pg_insert(ResponseSummary).values(
+                response_meta_id=uuid.UUID(r["id"]),
+                session_id=session.id,
+                provider=provider_name,
+                theme01=r.get("theme01", ""),
+                theme01_confidence=r.get("theme01_confidence", 0),
+                theme2_9=r.get("theme2_9", ""),
+                theme2_9_confidence=r.get("theme2_9_confidence", 0),
+                theme2_6=r.get("theme2_6", ""),
+                theme2_6_confidence=r.get("theme2_6_confidence", 0),
+                theme2_3=r.get("theme2_3", ""),
+                theme2_3_confidence=r.get("theme2_3_confidence", 0),
+            ).on_conflict_do_update(
+                index_elements=["response_meta_id"],
+                set_={
+                    "theme01": r.get("theme01", ""),
+                    "theme01_confidence": r.get("theme01_confidence", 0),
+                    "theme2_9": r.get("theme2_9", ""),
+                    "theme2_9_confidence": r.get("theme2_9_confidence", 0),
+                    "theme2_6": r.get("theme2_6", ""),
+                    "theme2_6_confidence": r.get("theme2_6_confidence", 0),
+                    "theme2_3": r.get("theme2_3", ""),
+                    "theme2_3_confidence": r.get("theme2_3_confidence", 0),
+                },
+            )
+            await db.execute(stmt)
+
+        # Compute replay hash
+        hash_input = {
+            "session_id": str(session.id),
+            "seed": session.seed,
+            "response_count": len(responses),
+            "ai_provider": provider_name,
+            "sample_size": settings.sample_size,
+            "themes": {
+                cat: {level: [t["label"] for t in themes] for level, themes in levels.items()}
+                for cat, levels in reduced.items()
             },
-        )
-        await db.execute(stmt)
+        }
+        replay_hash = hashlib.sha256(
+            json.dumps(hash_input, sort_keys=True).encode()
+        ).hexdigest()
 
-    # Compute replay hash
-    hash_input = {
-        "session_id": str(session.id),
-        "seed": session.seed,
-        "response_count": len(responses),
-        "ai_provider": provider_name,
-        "sample_size": settings.sample_size,
-        "themes": {
-            cat: {level: [t["label"] for t in themes] for level, themes in levels.items()}
-            for cat, levels in reduced.items()
-        },
-    }
-    replay_hash = hashlib.sha256(
-        json.dumps(hash_input, sort_keys=True).encode()
-    ).hexdigest()
+        session.replay_hash = replay_hash
+        await db.commit()
 
-    session.replay_hash = replay_hash
-    await db.commit()
+    except Exception as e:
+        await db.rollback()
+        logger.error("cube6.store_results.failed", error=str(e), session_id=str(session.id))
+        raise
 
     return replay_hash
 

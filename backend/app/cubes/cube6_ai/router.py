@@ -5,7 +5,7 @@ import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import CurrentUser
+from app.core.auth import CurrentUser, get_optional_current_user
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
 from app.cubes.cube6_ai import service
@@ -49,6 +49,7 @@ async def get_ai_status(
 async def get_themes(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """CRS-10: Get generated themes for a session."""
     themes = await service.get_session_themes(db, session_id)

@@ -40,11 +40,14 @@ class GeminiEmbedding(EmbeddingProvider):
 
         for i in range(0, len(texts), batch_size):
             batch = texts[i : i + batch_size]
-            result = await asyncio.to_thread(
-                self._genai.embed_content,
-                model=f"models/{_EMBEDDING_MODEL}",
-                content=batch,
-                task_type="SEMANTIC_SIMILARITY",
+            result = await asyncio.wait_for(
+                asyncio.to_thread(
+                    self._genai.embed_content,
+                    model=f"models/{_EMBEDDING_MODEL}",
+                    content=batch,
+                    task_type="SEMANTIC_SIMILARITY",
+                ),
+                timeout=120.0,
             )
             # result.embedding is a list of embeddings when given a list input
             if isinstance(result["embedding"][0], list):
@@ -75,9 +78,12 @@ class GeminiSummarization(SummarizationProvider):
         combined = "\n\n".join(texts)
         prompt = f"{instruction}\n\n{combined[:8000]}" if instruction else combined[:8000]
 
-        response = await asyncio.to_thread(
-            self._model.generate_content,
-            prompt,
+        response = await asyncio.wait_for(
+            asyncio.to_thread(
+                self._model.generate_content,
+                prompt,
+            ),
+            timeout=120.0,
         )
         return response.text or ""
 

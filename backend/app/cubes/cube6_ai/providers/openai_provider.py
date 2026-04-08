@@ -27,7 +27,10 @@ class OpenAIEmbedding(EmbeddingProvider):
     provider_name = AIProviderName.OPENAI
 
     def __init__(self) -> None:
-        self._client = openai.AsyncOpenAI(api_key=settings.openai_api_key)
+        self._client = openai.AsyncOpenAI(
+            api_key=settings.openai_api_key,
+            timeout=120.0,
+        )
 
     def model_id(self) -> str:
         return _EMBEDDING_MODEL
@@ -39,9 +42,12 @@ class OpenAIEmbedding(EmbeddingProvider):
 
         for i in range(0, len(texts), batch_size):
             batch = texts[i : i + batch_size]
-            response = await self._client.embeddings.create(
-                model=_EMBEDDING_MODEL,
-                input=batch,
+            response = await asyncio.wait_for(
+                self._client.embeddings.create(
+                    model=_EMBEDDING_MODEL,
+                    input=batch,
+                ),
+                timeout=120.0,
             )
             all_embeddings.extend([item.embedding for item in response.data])
 
@@ -54,7 +60,10 @@ class OpenAISummarization(SummarizationProvider):
     provider_name = AIProviderName.OPENAI
 
     def __init__(self) -> None:
-        self._client = openai.AsyncOpenAI(api_key=settings.openai_api_key)
+        self._client = openai.AsyncOpenAI(
+            api_key=settings.openai_api_key,
+            timeout=120.0,
+        )
 
     async def summarize(self, texts: list[str], instruction: str = "") -> str:
         """Single summarization/classification call."""
@@ -64,10 +73,13 @@ class OpenAISummarization(SummarizationProvider):
             messages.append({"role": "system", "content": instruction})
         messages.append({"role": "user", "content": combined[:8000]})
 
-        response = await self._client.chat.completions.create(
-            model=_SUMMARIZATION_MODEL,
-            messages=messages,
-            temperature=0.0,
+        response = await asyncio.wait_for(
+            self._client.chat.completions.create(
+                model=_SUMMARIZATION_MODEL,
+                messages=messages,
+                temperature=0.0,
+            ),
+            timeout=120.0,
         )
         return response.choices[0].message.content or ""
 

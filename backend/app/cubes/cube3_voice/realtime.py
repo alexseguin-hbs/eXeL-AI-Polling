@@ -234,12 +234,16 @@ async def _handle_realtime_inner(
             async for event in stt.events():
                 try:
                     await _send_event(ws, event)
-                except Exception:
+                except Exception as send_err:
+                    logger.warning("cube3.realtime.event_send_failed", error=str(send_err), session_id=sid)
                     break
         except Exception as e:
             logger.warning("cube3.realtime.event_forward_error", error=str(e), session_id=sid)
 
     event_task = asyncio.create_task(_forward_events())
+
+    _MAX_REALTIME_AUDIO_BYTES = 25 * 1024 * 1024  # 25 MB max per session
+    total_audio_bytes = 0
 
     try:
         deadline = asyncio.get_event_loop().time() + _WS_SESSION_TIMEOUT
@@ -261,12 +265,19 @@ async def _handle_realtime_inner(
                 break
 
             if "bytes" in message and message["bytes"]:
+                chunk = message["bytes"]
+                total_audio_bytes += len(chunk)
+                if total_audio_bytes > _MAX_REALTIME_AUDIO_BYTES:
+                    logger.warning("cube3.realtime.audio_size_exceeded", session_id=sid, bytes=total_audio_bytes)
+                    await ws.send_json({"type": "error", "text": "Audio size limit exceeded (25 MB max)"})
+                    break
+
                 # Binary frame: audio chunk — with mid-stream error recovery
                 try:
                     if isinstance(stt, AzureRealtimeSTT):
-                        stt.push_audio(message["bytes"])
+                        stt.push_audio(chunk)
                     else:
-                        await stt.push_audio(message["bytes"])
+                        await stt.push_audio(chunk)
                 except Exception as push_err:
                     logger.warning("cube3.realtime.push_error", error=str(push_err), session_id=sid)
                     await ws.send_json({"type": "error", "text": "Audio stream interrupted"})

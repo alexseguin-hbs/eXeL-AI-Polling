@@ -30,7 +30,10 @@ class ClaudeSummarization(SummarizationProvider):
     provider_name = AIProviderName.CLAUDE
 
     def __init__(self) -> None:
-        self._client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+        self._client = anthropic.AsyncAnthropic(
+            api_key=settings.anthropic_api_key,
+            timeout=120.0,
+        )
 
     async def summarize(self, texts: list[str], instruction: str = "") -> str:
         """Single summarization/classification call."""
@@ -39,12 +42,15 @@ class ClaudeSummarization(SummarizationProvider):
             {"role": "user", "content": combined[:8000]},
         ]
 
-        response = await self._client.messages.create(
-            model=_SUMMARIZATION_MODEL,
-            max_tokens=1024,
-            system=instruction if instruction else "You are a helpful assistant.",
-            messages=messages,
-            temperature=0.0,
+        response = await asyncio.wait_for(
+            self._client.messages.create(
+                model=_SUMMARIZATION_MODEL,
+                max_tokens=1024,
+                system=instruction if instruction else "You are a helpful assistant.",
+                messages=messages,
+                temperature=0.0,
+            ),
+            timeout=120.0,
         )
         return response.content[0].text if response.content else ""
 
