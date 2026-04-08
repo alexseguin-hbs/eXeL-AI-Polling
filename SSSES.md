@@ -80,7 +80,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall |
 |------|----------|-----------|-------------|------------|--------------|---------|
 | 1 Session | 100 | 100 | 100 | 100 | 100 | **100** |
-| 2 Text | 75 | 40 | 50 | 55 | 65 | **57** |
+| 2 Text | 75 | 45 | 50 | 55 | 75 | **60** |
 | 3 Voice | 100 | 100 | 100 | 100 | 100 | **100** |
 | 4 Collector | 85 | 80 | 80 | 75 | 80 | **80** |
 | 5 Gateway | 80 | 75 | 80 | 85 | 90 | **82** |
