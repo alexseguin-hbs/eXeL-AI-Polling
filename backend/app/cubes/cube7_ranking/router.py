@@ -1,25 +1,178 @@
-"""Cube 7 — Prioritization & Voting: Ranking UI backend, aggregation."""
+"""Cube 7 — Prioritization & Voting: Ranking UI backend, aggregation.
 
-from fastapi import APIRouter
+Endpoints:
+  POST /rankings          — Submit participant ranking (CRS-11)
+  GET  /rankings          — Get live aggregated rankings (CRS-16/17)
+  POST /rankings/aggregate — Trigger aggregation pipeline (CRS-12, moderator)
+  GET  /rankings/anomalies — Check voting anomalies (CRS-12.04, moderator)
+  POST /override          — Governance override (CRS-22, MVP3)
+"""
 
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
+from app.core.dependencies import get_db
+from app.core.permissions import require_role
+from app.cubes.cube7_ranking import service
 from app.schemas.ranking import AggregatedRankingRead, RankingRead, RankingSubmit
 
 router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 7 — Ranking"])
 
 
+# ---------------------------------------------------------------------------
+# CRS-11: Submit Ranking
+# ---------------------------------------------------------------------------
+
+
 @router.post("/rankings", response_model=RankingRead, status_code=201)
-async def submit_ranking(session_id: str, payload: RankingSubmit):
-    """CRS-11: User ranks themes after poll closes."""
-    raise NotImplementedError("Cube 7: submit_ranking — not yet implemented")
+async def submit_ranking(
+    session_id: uuid.UUID,
+    payload: RankingSubmit,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CRS-11: Participant submits ranked theme order after poll closes.
+
+    Validates theme IDs against session's theme2_voting_level.
+    Rejects duplicate submissions for same (session, cycle, participant).
+    """
+    from app.models.participant import Participant
+    from app.models.session import Session
+    from sqlalchemy import select, and_
+
+    # Fetch session for voting level
+    sess_result = await db.execute(
+        select(Session).where(Session.id == session_id)
+    )
+    session = sess_result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if session.status not in ("ranking", "polling"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session is in '{session.status}' — ranking not open",
+        )
+
+    # Resolve participant_id from user
+    part_result = await db.execute(
+        select(Participant).where(
+            and_(
+                Participant.session_id == session_id,
+                Participant.user_id == user.user_id,
+            )
+        )
+    )
+    participant = part_result.scalar_one_or_none()
+    if not participant:
+        raise HTTPException(status_code=403, detail="Not a participant in this session")
+
+    try:
+        ranking = await service.submit_user_ranking(
+            db,
+            session_id=session_id,
+            participant_id=participant.id,
+            ranked_theme_ids=payload.ranked_theme_ids,
+            theme2_voting_level=getattr(session, "theme2_voting_level", "theme2_3"),
+        )
+        await db.commit()
+        return ranking
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/rankings/aggregate", response_model=list[AggregatedRankingRead])
-async def get_aggregated_rankings(session_id: str):
-    """CRS-12: Get deterministic aggregated rankings (one row per theme, ordered by rank_position)."""
-    raise NotImplementedError("Cube 7: get_aggregated_rankings — not yet implemented")
+# ---------------------------------------------------------------------------
+# CRS-16/17: Get Live Rankings
+# ---------------------------------------------------------------------------
+
+
+@router.get("/rankings", response_model=list[AggregatedRankingRead])
+async def get_rankings(
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+):
+    """CRS-16: Get current aggregated rankings for live display."""
+    rankings = await service.get_live_rankings(db, session_id, cycle_id)
+    return [AggregatedRankingRead.model_validate(r) for r in rankings]
+
+
+# ---------------------------------------------------------------------------
+# CRS-12: Trigger Aggregation (Moderator)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/rankings/aggregate", status_code=200)
+async def trigger_aggregation(
+    session_id: uuid.UUID,
+    seed: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """CRS-12: Moderator triggers deterministic ranking aggregation.
+
+    Computes Borda count, identifies top theme, detects anomalies,
+    broadcasts ranking_complete, and triggers CQS scoring pipeline.
+    """
+    from app.models.session import Session
+    from sqlalchemy import select
+
+    sess_result = await db.execute(
+        select(Session).where(Session.id == session_id)
+    )
+    session = sess_result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    try:
+        result = await service.run_ranking_pipeline(
+            db,
+            session_id=session_id,
+            session_short_code=session.short_code,
+            seed=seed or session.seed,
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# CRS-12.04: Anomaly Detection
+# ---------------------------------------------------------------------------
+
+
+@router.get("/rankings/anomalies")
+async def get_anomalies(
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+):
+    """CRS-12.04: Check for voting anomalies (moderator/lead only)."""
+    anomalies = await service.detect_voting_anomalies(db, session_id, cycle_id)
+    return {"session_id": str(session_id), "anomalies": anomalies}
+
+
+# ---------------------------------------------------------------------------
+# CRS-22: Governance Override (MVP3 — stub)
+# ---------------------------------------------------------------------------
 
 
 @router.post("/override", status_code=200)
-async def override_ranking(session_id: str):
-    """CRS-22: Lead/Developer overrides rankings with justification (MVP3)."""
-    raise NotImplementedError("Cube 7: override_ranking — not yet implemented")
+async def override_ranking(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("lead", "admin")),
+):
+    """CRS-22: Lead/Developer overrides rankings with justification (MVP3).
+
+    Requires mandatory justification text. Creates immutable audit entry.
+    """
+    raise HTTPException(
+        status_code=501,
+        detail="Governance override not yet implemented (MVP3)",
+    )

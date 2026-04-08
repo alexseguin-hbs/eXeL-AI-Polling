@@ -459,14 +459,55 @@ async def trigger_ranking_pipeline(
     db: AsyncSession,
     session_id: uuid.UUID,
 ) -> PipelineTrigger:
-    """Create a pipeline trigger for Cube 7 ranking aggregation (placeholder).
+    """Create a pipeline trigger for Cube 7 ranking aggregation.
 
-    The actual ranking logic will be implemented in Cube 7.
-    This creates the trigger record so status tracking is ready.
+    Transitions session status to 'ranking' so frontend displays
+    the ranking UI (ThemeRankingDnD). Actual aggregation happens
+    when moderator triggers POST /rankings/aggregate after all
+    participants submit their rankings.
     """
-    return await _create_trigger(
+    trigger = await _create_trigger(
         db, session_id, "ranking_aggregation"
     )
+
+    # Transition session to 'ranking' status
+    try:
+        from app.models.session import Session
+        from sqlalchemy import select
+
+        result = await db.execute(
+            select(Session).where(Session.id == session_id)
+        )
+        session = result.scalar_one_or_none()
+        if session and session.status != "ranking":
+            session.status = "ranking"
+            await db.commit()
+            logger.info(
+                "cube5.session.status_to_ranking",
+                extra={"session_id": str(session_id)},
+            )
+
+            # Broadcast session status change
+            try:
+                from app.core.supabase_broadcast import broadcast_event
+
+                await broadcast_event(
+                    channel=f"session:{session.short_code}",
+                    event="session_status",
+                    payload={
+                        "session_id": str(session_id),
+                        "status": "ranking",
+                    },
+                )
+            except Exception:
+                pass  # Non-fatal: frontend also polls status
+    except Exception as exc:
+        logger.warning(
+            "cube5.session.ranking_transition_failed",
+            extra={"session_id": str(session_id), "error": str(exc)},
+        )
+
+    return trigger
 
 
 async def trigger_cqs_scoring(
