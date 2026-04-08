@@ -1,6 +1,7 @@
 """Import all models for Alembic discovery."""
 
 from app.models.audit_log import AuditLog
+from app.models.cqs_score import CQSScore
 from app.models.participant import Participant
 from app.models.payment import PaymentTransaction
 from app.models.pipeline_trigger import PipelineTrigger
@@ -22,6 +23,7 @@ from app.models.user import User
 
 __all__ = [
     "AuditLog",
+    "CQSScore",
     "Participant",
     "PaymentTransaction",
     "PipelineTrigger",

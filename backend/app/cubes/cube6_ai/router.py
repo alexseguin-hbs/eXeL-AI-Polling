@@ -45,6 +45,24 @@ async def get_ai_status(
     return await service.get_pipeline_status(db, session_id)
 
 
+@router.post("/ai/cqs", status_code=202)
+async def run_cqs_scoring(
+    session_id: uuid.UUID,
+    top_theme2_label: str,
+    theme_level: str = "3",
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """CRS-11: Run CQS scoring on #1 most-voted Theme2 cluster.
+
+    Scores eligible responses (>95% confidence) on 6 quality metrics.
+    Selects winner with deterministic tie-breaking. Moderator-only.
+    """
+    return await service.run_cqs_pipeline(
+        db, session_id, top_theme2_label, theme_level
+    )
+
+
 @router.get("/themes", response_model=list[ThemeRead])
 async def get_themes(
     session_id: uuid.UUID,

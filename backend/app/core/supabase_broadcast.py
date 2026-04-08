@@ -22,6 +22,17 @@ logger = logging.getLogger(__name__)
 # https://supabase.com/docs/guides/realtime/broadcast#send-messages-using-rest-api
 _REALTIME_URL = f"{settings.supabase_url}/realtime/v1/api/broadcast" if settings.supabase_url else ""
 
+# Singleton httpx client — reuses connection pool across broadcasts
+_http_client: httpx.AsyncClient | None = None
+
+
+def _get_client() -> httpx.AsyncClient:
+    """Get or create a singleton httpx client for broadcast calls."""
+    global _http_client
+    if _http_client is None or _http_client.is_closed:
+        _http_client = httpx.AsyncClient(timeout=5.0)
+    return _http_client
+
 
 async def broadcast_event(
     channel: str,
@@ -64,8 +75,8 @@ async def broadcast_event(
     }
 
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.post(_REALTIME_URL, json=body, headers=headers)
+        client = _get_client()
+        resp = await client.post(_REALTIME_URL, json=body, headers=headers)
 
         if resp.status_code in (200, 202):
             logger.info(

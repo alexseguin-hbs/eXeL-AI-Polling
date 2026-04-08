@@ -67,6 +67,9 @@ class Session(Base):
         default=False
     )  # If True, users can override stt_provider with their preference
 
+    # Pipeline tracking (Cube 6 Phase B)
+    pipeline_stage: Mapped[str | None] = mapped_column(String(50))
+
     # Determinism
     seed: Mapped[str | None] = mapped_column(String(255))
     replay_hash: Mapped[str | None] = mapped_column(String(64))
