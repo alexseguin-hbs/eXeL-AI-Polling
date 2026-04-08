@@ -23,6 +23,7 @@ import asyncio
 import json
 import math
 import re
+import time
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -205,6 +206,8 @@ def scrub_pii(text: str, detections: list[dict]) -> str:
 _profanity_pattern_cache: dict[tuple[str, str], re.Pattern | None] = {}
 _profanity_query_cache: dict[str, tuple[float, list]] = {}  # lang -> (timestamp, filters)
 _PROFANITY_CACHE_TTL = 60.0  # seconds — avoid DB hit on every submission
+_PROFANITY_PATTERN_CACHE_MAX = 10_000  # max compiled patterns before eviction
+_PROFANITY_QUERY_CACHE_MAX = 100  # max language entries before eviction
 
 
 async def detect_profanity(
@@ -218,7 +221,6 @@ async def detect_profanity(
     Returns list of matched profanity entries with positions.
     DB query results cached with 60s TTL; compiled patterns cached indefinitely.
     """
-    import time
     now = time.monotonic()
 
     # Check DB query cache first (60s TTL avoids DB hit per submission)
@@ -237,12 +239,20 @@ async def detect_profanity(
             {"id": str(pf.id), "pattern": pf.pattern, "severity": pf.severity, "replacement": pf.replacement}
             for pf in raw_filters
         ]
+        # Evict oldest entries if query cache exceeds max
+        if len(_profanity_query_cache) >= _PROFANITY_QUERY_CACHE_MAX:
+            oldest_key = min(_profanity_query_cache, key=lambda k: _profanity_query_cache[k][0])
+            del _profanity_query_cache[oldest_key]
         _profanity_query_cache[language_code] = (now, filters)
 
     matches: list[dict] = []
     for pf in filters:
         cache_key = (language_code, pf["id"])
         if cache_key not in _profanity_pattern_cache:
+            # Evict oldest patterns if cache exceeds max
+            if len(_profanity_pattern_cache) >= _PROFANITY_PATTERN_CACHE_MAX:
+                _profanity_pattern_cache.clear()
+                logger.info("cube2.profanity_cache.evicted", reason="maxsize")
             try:
                 _profanity_pattern_cache[cache_key] = re.compile(pf["pattern"], re.IGNORECASE)
             except re.error:
@@ -400,7 +410,13 @@ async def store_response(
         is_flagged=False,
     )
     db.add(response_meta)
-    await db.flush()  # Get ID before creating TextResponse
+
+    try:
+        await db.flush()  # Get ID before creating TextResponse
+    except Exception as e:
+        await db.rollback()
+        logger.error("cube2.store.flush_failed", error=str(e), session_id=str(session_id))
+        raise ResponseValidationError(f"Failed to store response: {e}")
 
     # --- Postgres: TextResponse (1:1 with ResponseMeta) ---
     response_hash = compute_response_hash(raw_text)
@@ -418,9 +434,15 @@ async def store_response(
         response_hash=response_hash,
     )
     db.add(text_response)
-    await db.commit()
-    await db.refresh(response_meta)
 
+    try:
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        logger.error("cube2.store.commit_failed", error=str(e), session_id=str(session_id))
+        raise ResponseValidationError(f"Failed to commit response: {e}")
+
+    await db.refresh(response_meta)
     return response_meta, response_hash
 
 
@@ -531,20 +553,24 @@ async def _submit_text_inner(
             text_preview=text[:50],
         )
 
-    # --- 3. Start time tracking (Cube 5) ---
+    # --- 3. Start time tracking (Cube 5) — non-fatal on failure ---
     from app.cubes.cube5_gateway.service import start_time_tracking, stop_time_tracking
 
-    time_entry = await start_time_tracking(
-        db,
-        session_id=session_id,
-        participant_id=participant_id,
-        action_type="responding",
-        reference_id=str(question_id),
-        cube_id="cube2",
-    )
+    time_entry = None
+    try:
+        time_entry = await start_time_tracking(
+            db,
+            session_id=session_id,
+            participant_id=participant_id,
+            action_type="responding",
+            reference_id=str(question_id),
+            cube_id="cube2",
+        )
+    except Exception as e:
+        logger.warning("cube2.time_tracking.start_failed", error=str(e), session_id=str(session_id))
 
     # --- 4+5. PII + Profanity pipeline (shared with Cube 3 via core/text_pipeline) ---
-    from app.core.text_pipeline import run_text_pipeline
+    from app.core.text_pipeline import run_text_pipeline  # noqa: E402 — circular dep
     pipeline = await run_text_pipeline(db, text, language_code)
     clean_text = pipeline.clean_text
 
@@ -569,13 +595,19 @@ async def _submit_text_inner(
         clean_text=clean_text,
     )
 
-    # --- 7. Stop time tracking, calculate tokens ---
-    time_entry = await stop_time_tracking(
-        db,
-        time_entry_id=time_entry.id,
-    )
-    heart_earned = time_entry.heart_tokens_earned
-    unity_earned = time_entry.unity_tokens_earned
+    # --- 7. Stop time tracking, calculate tokens (non-fatal on failure) ---
+    heart_earned = 0.0
+    unity_earned = 0.0
+    if time_entry is not None:
+        try:
+            time_entry = await stop_time_tracking(
+                db,
+                time_entry_id=time_entry.id,
+            )
+            heart_earned = time_entry.heart_tokens_earned
+            unity_earned = time_entry.unity_tokens_earned
+        except Exception as e:
+            logger.warning("cube2.time_tracking.stop_failed", error=str(e), session_id=str(session_id))
 
     # --- 8. Publish Redis event ---
     await publish_submission_event(
@@ -597,8 +629,7 @@ async def _submit_text_inner(
     )
 
     # Fire-and-forget: shared Phase A with <33-word fallback + live feed broadcast
-    from app.core.phase_a_retry import run_phase_a_with_retry
-
+    from app.core.phase_a_retry import run_phase_a_with_retry  # noqa: E402 — circular dep
     try:
         task = asyncio.create_task(
             run_phase_a_with_retry(

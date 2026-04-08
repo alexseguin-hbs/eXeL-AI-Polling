@@ -405,7 +405,7 @@ Track and optimize for:
 | Cube | Status | SSSES | Tests | CRS | Open Tasks |
 |------|--------|:---:|-------|-----|------------|
 | 1 Session | **100% SSSES** | **100** | 59 | CRS-01→06 | None |
-| 2 Text | **~98% SSSES** | **89** | 62 | CRS-05→08 | A0–A7 DONE, B1–B5 DONE. A5.02 live_feed_enabled gate + profanity query cache DONE. |
+| 2 Text | **~98% SSSES** | **91** | 62 | CRS-05→08 | A0–A7 DONE, B1–B5 DONE. Phase 3: DB error handling, bounded cache, Cube 5 fault tolerance. |
 | 3 Voice | ~85% | 56 | 39 | CRS-08, 15 | A5.03, A7 |
 | 4 Collector | ~80% | 72 | 21 | CRS-09→10 | C4-1→C4-4 |
 | 5 Gateway | ~90% | 82 | 60 | CRS-09→11 | C5-1→C5-4 |
