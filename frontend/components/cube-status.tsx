@@ -35,19 +35,19 @@ const STATUS_LABELS: Record<CubeStatus, string> = {
 // Row 2: 7, 6, 5
 const CUBE_GRID: CubeInfo[][] = [
   [
-    { number: 9, name: "Reports", status: "not_started", completion: 5, description: "CSV/PDF export, Pixelated Tokens, dashboards" },
-    { number: 2, name: "Text", status: "deployed", completion: 85, description: "Text submission, PII/profanity, anonymization, integrity hash" },
-    { number: 3, name: "Voice", status: "deployed", completion: 99, description: "4 STT providers, circuit breaker + cooldown, cost tracking, shared PII pipeline, Phase A broadcast, SSSES 100/100" },
+    { number: 9, name: "Reports", status: "in_progress", completion: 29, description: "CSV/PDF export stub, Pixelated Tokens planned, CQS dashboard planned" },
+    { number: 2, name: "Text", status: "deployed", completion: 98, description: "Text submission, PII/profanity, anonymization, integrity hash, Phase A retry + broadcast. SSSES 91/100" },
+    { number: 3, name: "Voice", status: "deployed", completion: 89, description: "4 batch STT providers, circuit breaker failover, cost tracking, PII gate enforcement, DRY language base. SSSES 89/100" },
   ],
   [
-    { number: 8, name: "Tokens", status: "deployed", completion: 60, description: "Token ledger, 59 jurisdiction rates, rate lookup API" },
-    { number: 1, name: "Session", status: "deployed", completion: 70, description: "Session CRUD, state machine, QR, join flow, capacity" },
-    { number: 4, name: "Collector", status: "deployed", completion: 90, description: "Web_Results aggregation, SHA-256 anon hash, desired outcomes (CRS-10), auth + session validation, SSSES 88/100" },
+    { number: 8, name: "Tokens", status: "in_progress", completion: 45, description: "Token ledger, 59 jurisdiction rates, rate lookup API, Stripe planned" },
+    { number: 1, name: "Session", status: "deployed", completion: 100, description: "Session CRUD, state machine, QR, join flow, capacity tiers, RBAC. SSSES 100/100" },
+    { number: 4, name: "Collector", status: "deployed", completion: 88, description: "Web_Results aggregation, SHA-256 anon hash, desired outcomes (CRS-10), session validation on all endpoints, single-query optimization. SSSES 88/100" },
   ],
   [
-    { number: 7, name: "Ranking", status: "not_started", completion: 5, description: "Voting UI, deterministic aggregation, governance" },
-    { number: 6, name: "AI", status: "not_started", completion: 5, description: "Batch embeddings, clustering, summarization" },
-    { number: 5, name: "Gateway", status: "deployed", completion: 60, description: "Time tracking, token calc, login auto-entry" },
+    { number: 7, name: "Ranking", status: "in_progress", completion: 22, description: "Pipeline trigger ready, Cube 6→7 chain wired, voting UI + aggregation planned" },
+    { number: 6, name: "AI", status: "deployed", completion: 82, description: "Phase A live summarization, Phase B parallel theming (50-cap), CQS scoring engine, 4 providers, cost tracking, XSS sanitization. SSSES 82/100" },
+    { number: 5, name: "Gateway", status: "deployed", completion: 89, description: "Time tracking, token calc, pipeline orchestrator, 5-min timeout, Cube 6→7 auto-chain. SSSES 89/100" },
   ],
 ];
 
@@ -55,8 +55,8 @@ const CUBE_10: CubeInfo = {
   number: 10,
   name: "Simulation",
   status: "planned",
-  completion: 0,
-  description: "In-browser editor, replay, compare metrics, version/rollback",
+  completion: 5,
+  description: "Easter egg SIM entry via Powered Badge, feedback loop planned, per-cube isolation planned",
 };
 
 function CubeCell({ cube }: { cube: CubeInfo }) {
