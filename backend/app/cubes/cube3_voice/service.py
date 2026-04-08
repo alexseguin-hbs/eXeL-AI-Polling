@@ -485,14 +485,20 @@ async def submit_voice_response(
         source="voice",
     )
     if not pii_gate_passed:
-        # CRS-08.02: Informational warning — submission proceeds with clean_text
-        # (scrub_pii may have returned identical text if PII type was not redactable).
-        # Phase A always receives pipeline.clean_text, never raw transcript.
+        # CRS-08.02: PII gate enforcement — flag response for moderation review.
+        # Scrubbing produced identical text when PII was detected, which means
+        # the PII type was not redactable. Flag the response so Moderator can review.
         logger.warning(
-            "cube6.phase_a.pii_gate_warning",
+            "cube6.phase_a.pii_gate_enforced",
             response_id=str(response_meta.id),
-            detail="PII detected but clean_text == raw transcript — scrubbing may have produced identical output",
+            detail="PII detected but clean_text == raw transcript — response flagged for review",
         )
+        # Mark response as flagged in DB for Moderator review
+        response_meta.is_flagged = True
+        try:
+            await db.commit()
+        except Exception:
+            pass  # Non-fatal: response still submitted with clean_text
 
     # Fire-and-forget: shared Phase A with <33-word fallback + live feed broadcast
     from app.core.phase_a_retry import run_phase_a_with_retry

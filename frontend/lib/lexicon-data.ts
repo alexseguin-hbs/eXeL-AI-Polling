@@ -379,6 +379,7 @@ const cube6: TranslationEntry[] = [
   { key: "cube6.themes.summary_111", englishDefault: "111-word summary", context: "Medium summary label", cubeId: 6 },
   { key: "cube6.themes.summary_333", englishDefault: "333-word summary", context: "Long summary label", cubeId: 6 },
   { key: "cube6.themes.cqs_label", englishDefault: "Contribution Quality Score", context: "CQS section heading", cubeId: 6 },
+  { key: "cube6.themes.ready_badge", englishDefault: "{count} themes ready", context: "Badge shown when theming pipeline completes (count is dynamic)", cubeId: 6 },
   { key: "cube6.themes.progressive_reveal", englishDefault: "Revealing themes...", context: "Progressive reveal animation label", cubeId: 6 },
   { key: "cube6.themes.vote_level", englishDefault: "Voting level:", context: "Theme2 voting level label (9/6/3)", cubeId: 6 },
 ];

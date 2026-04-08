@@ -57,6 +57,31 @@ def compute_stt_cost(provider: str, duration_sec: float) -> float:
     return round(rate * (duration_sec / 60.0), 6)
 
 
+# Shared language codes — all 33 system languages (ISO 639-1)
+# Used by Whisper, Grok, Gemini providers. AWS supports a subset (23).
+SUPPORTED_LANGUAGE_CODES = frozenset({
+    "en", "es", "fr", "de", "it", "pt", "nl", "pl", "ru", "uk",
+    "ja", "zh", "ko", "ar", "hi", "bn", "th", "vi", "id", "ms",
+    "tr", "sv", "da", "no", "fi", "el", "cs", "ro", "hu", "he",
+    "tl", "sw", "ne",
+})
+
+# Shared audio format → extension mapping
+AUDIO_FORMAT_EXTENSIONS = {
+    "webm": "webm",
+    "wav": "wav",
+    "mp3": "mp3",
+    "ogg": "ogg",
+    "m4a": "m4a",
+    "flac": "flac",
+}
+
+
+def normalize_language_code(code: str) -> str:
+    """Normalize a language code to base ISO 639-1 (e.g., 'en-US' → 'en')."""
+    return code.lower().split("-")[0]
+
+
 class STTProvider(ABC):
     """Abstract interface for speech-to-text transcription.
 

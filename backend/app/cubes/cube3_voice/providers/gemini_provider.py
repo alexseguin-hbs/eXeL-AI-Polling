@@ -13,23 +13,17 @@ import structlog
 
 from app.config import settings
 from app.cubes.cube3_voice.providers.base import (
+    SUPPORTED_LANGUAGE_CODES,
     STTProviderError,
     STTProviderName,
     STTProvider,
     TranscriptionResult,
+    normalize_language_code,
 )
 
 logger = structlog.get_logger(__name__)
 
 _GEMINI_MODEL = "gemini-2.5-flash"
-
-# Gemini supports transcription for all major languages
-_SUPPORTED_LANGUAGES = {
-    "en", "es", "fr", "de", "it", "pt", "nl", "pl", "ru", "uk",
-    "ja", "zh", "ko", "ar", "hi", "bn", "th", "vi", "id", "ms",
-    "tr", "sv", "da", "no", "fi", "el", "cs", "ro", "hu", "he",
-    "tl", "sw", "ne",
-}
 
 # MIME types for audio formats
 _FORMAT_MIME = {
@@ -55,7 +49,7 @@ class GeminiSTT(STTProvider):
         return _GEMINI_MODEL
 
     def supports_language(self, language_code: str) -> bool:
-        return language_code.lower().split("-")[0] in _SUPPORTED_LANGUAGES
+        return normalize_language_code(language_code) in SUPPORTED_LANGUAGE_CODES
 
     async def transcribe(
         self,
@@ -72,7 +66,7 @@ class GeminiSTT(STTProvider):
         from google.genai import types
 
         mime_type = _FORMAT_MIME.get(audio_format, "audio/webm")
-        lang_hint = language_code.lower().split("-")[0]
+        lang_hint = normalize_language_code(language_code)
 
         try:
             # Build prompt with language context

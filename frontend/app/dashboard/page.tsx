@@ -553,7 +553,7 @@ function SessionDetail({
             {/* Cube 6: Theme pipeline status indicator */}
             {themesReady && (
               <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
-                {themeCount} themes ready
+                {t("cube6.themes.ready_badge").replace("{count}", String(themeCount))}
               </span>
             )}
             {/* Close — live polls only (static polls close at ends_at deadline) */}

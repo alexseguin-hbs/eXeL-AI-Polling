@@ -23,6 +23,7 @@ Target: Theme01 + Theme2 complete in <30 seconds for 1000 responses.
 
 import asyncio
 import hashlib
+import html
 import json
 import logging
 import math
@@ -492,16 +493,19 @@ async def _generate_themes_for_group(
         instruction=instruction,
     )
 
-    # Parse theme names from response
+    # Parse theme names from response — sanitize to prevent XSS
     themes = []
     for line in result_text.strip().split("\n"):
         parts = line.split(",")
         if len(parts) >= 2:
-            theme_name = parts[1].strip()
+            theme_name = html.escape(parts[1].strip())
             if theme_name:
                 themes.append(theme_name)
 
     return themes
+
+
+_PHASE_B_MAX_CONCURRENT = 50  # Global cap on concurrent theme generation API calls
 
 
 async def _parallel_generate_themes(
@@ -510,10 +514,15 @@ async def _parallel_generate_themes(
 ) -> dict[str, list[str]]:
     """Generate 3 themes per marble group across all partitions.
 
-    All groups processed concurrently — this is the 10+ agent parallelism.
-    For a partition with 100 responses = 10 groups = 10 concurrent API calls.
+    Groups processed with capped concurrency (max 50 concurrent API calls)
+    to prevent provider rate-limit exhaustion at scale (500+ groups).
     """
     all_themes: dict[str, list[str]] = {cat: [] for cat in THEME01_CATEGORIES}
+    semaphore = asyncio.Semaphore(_PHASE_B_MAX_CONCURRENT)
+
+    async def _capped_generate(group: list[dict], type_str: str) -> list[str]:
+        async with semaphore:
+            return await _generate_themes_for_group(summarizer, group, type_str)
 
     # Build list of all concurrent tasks
     tasks: list[tuple[str, asyncio.Task]] = []
@@ -525,11 +534,11 @@ async def _parallel_generate_themes(
 
         for group in groups:
             task = asyncio.create_task(
-                _generate_themes_for_group(summarizer, group, type_str)
+                _capped_generate(group, type_str)
             )
             tasks.append((label, task))
 
-    # Execute ALL groups concurrently (10+ agents)
+    # Execute with concurrency cap (50 concurrent max)
     if tasks:
         await asyncio.gather(*(t for _, t in tasks))
 
@@ -568,8 +577,8 @@ def _parse_reduced_themes(text: str) -> list[dict]:
         match = _THEME_LINE_PATTERN.match(line.strip())
         if match:
             themes.append({
-                "label": match.group(1).strip(),
-                "description": match.group(2).strip(),
+                "label": html.escape(match.group(1).strip()),
+                "description": html.escape(match.group(2).strip()),
                 "confidence": int(match.group(3)) / 100.0,
             })
     return themes
@@ -1067,6 +1076,26 @@ async def run_pipeline(
         **cost_tracker.summary(),
     )
 
+    # Persist cost tracking to DB for audit trail
+    try:
+        from app.models.ai_cost_log import AICostLog
+        cost_summary = cost_tracker.summary()
+        cost_log = AICostLog(
+            session_id=session_id,
+            phase="phase_b",
+            provider=provider_name,
+            total_calls=cost_summary["total_calls"],
+            total_input_chars=cost_summary["total_input_chars"],
+            total_output_chars=cost_summary["total_output_chars"],
+            estimated_cost_usd=cost_summary["estimated_cost_usd"],
+            response_count=len(responses),
+            duration_sec=duration,
+        )
+        db.add(cost_log)
+        await db.commit()
+    except Exception as e:
+        logger.warning("cube6.cost_log.persist_failed", error=str(e))
+
     # --- Task B4: Broadcast themes_ready after full pipeline success ---
     # Gate: only fires on full success (not partial). Dashboard transitions
     # to results view on receipt.
@@ -1200,8 +1229,9 @@ async def score_cqs(
         )
         return []
 
-    # Score each eligible response via AI
+    # Score each eligible response via AI — chunked to prevent OOM/timeout
     scored: list[dict] = []
+    _CQS_BATCH_SIZE = 100
     items = []
     for s in eligible:
         text = s.summary_333 or s.summary_111 or s.summary_33 or ""
@@ -1210,7 +1240,12 @@ async def score_cqs(
             "instruction": _CQS_INSTRUCTION,
         })
 
-    results = await summarizer.batch_summarize(items)
+    # Process in chunks of 100 to control memory and API rate
+    results: list[str] = []
+    for chunk_start in range(0, len(items), _CQS_BATCH_SIZE):
+        chunk = items[chunk_start:chunk_start + _CQS_BATCH_SIZE]
+        chunk_results = await summarizer.batch_summarize(chunk)
+        results.extend(chunk_results)
 
     for s, result_text in zip(eligible, results):
         try:

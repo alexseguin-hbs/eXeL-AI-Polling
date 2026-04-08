@@ -266,21 +266,30 @@ async def get_response_count(
     """
     from sqlalchemy import case
 
-    result = await db.execute(
-        select(
-            func.count(ResponseMeta.id).label("total"),
-            func.sum(case((ResponseMeta.source == "text", 1), else_=0)).label("text_count"),
-            func.sum(case((ResponseMeta.source == "voice", 1), else_=0)).label("voice_count"),
-        ).where(ResponseMeta.session_id == session_id)
-    )
-    row = result.one_or_none()
+    try:
+        result = await db.execute(
+            select(
+                func.count(ResponseMeta.id).label("total"),
+                func.sum(case((ResponseMeta.source == "text", 1), else_=0)).label("text_count"),
+                func.sum(case((ResponseMeta.source == "voice", 1), else_=0)).label("voice_count"),
+            ).where(ResponseMeta.session_id == session_id)
+        )
+        row = result.one_or_none()
 
-    return {
-        "session_id": str(session_id),
-        "total": (row.total or 0) if row else 0,
-        "text_count": int(row.text_count or 0) if row else 0,
-        "voice_count": int(row.voice_count or 0) if row else 0,
-    }
+        return {
+            "session_id": str(session_id),
+            "total": (row.total or 0) if row else 0,
+            "text_count": int(row.text_count or 0) if row else 0,
+            "voice_count": int(row.voice_count or 0) if row else 0,
+        }
+    except Exception as e:
+        logger.error("cube4.response_count.query_failed", error=str(e), session_id=str(session_id))
+        return {
+            "session_id": str(session_id),
+            "total": 0,
+            "text_count": 0,
+            "voice_count": 0,
+        }
 
 
 async def get_response_languages(

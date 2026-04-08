@@ -165,10 +165,11 @@ class TestGrokLive:
 
     def test_grok_language_support(self):
         """Grok should report support for all 33 languages (no SDK init needed)."""
-        from app.cubes.cube3_voice.providers.grok_provider import _SUPPORTED_LANGUAGES, _GROK_MODEL
+        from app.cubes.cube3_voice.providers.base import SUPPORTED_LANGUAGE_CODES
+        from app.cubes.cube3_voice.providers.grok_provider import _GROK_MODEL
 
         for lang in ["en", "es", "fr", "ja", "zh", "ar", "hi", "ko", "de"]:
-            assert lang in _SUPPORTED_LANGUAGES, f"Grok should support {lang}"
+            assert lang in SUPPORTED_LANGUAGE_CODES, f"Grok should support {lang}"
         assert _GROK_MODEL == "whisper-large-v3"
 
     @_skip_audio
@@ -254,10 +255,11 @@ class TestGeminiLive:
 
     def test_gemini_language_support(self):
         """Gemini should report support for all 33 languages (no SDK init needed)."""
-        from app.cubes.cube3_voice.providers.gemini_provider import _SUPPORTED_LANGUAGES, _GEMINI_MODEL
+        from app.cubes.cube3_voice.providers.base import SUPPORTED_LANGUAGE_CODES
+        from app.cubes.cube3_voice.providers.gemini_provider import _GEMINI_MODEL
 
         for lang in ["en", "es", "fr", "ja", "zh", "ar", "hi", "ko", "de"]:
-            assert lang in _SUPPORTED_LANGUAGES, f"Gemini should support {lang}"
+            assert lang in SUPPORTED_LANGUAGE_CODES, f"Gemini should support {lang}"
         assert _GEMINI_MODEL == "gemini-2.5-flash"
 
 

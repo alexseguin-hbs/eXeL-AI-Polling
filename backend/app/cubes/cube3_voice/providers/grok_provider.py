@@ -14,29 +14,19 @@ import structlog
 
 from app.config import settings
 from app.cubes.cube3_voice.providers.base import (
+    AUDIO_FORMAT_EXTENSIONS,
+    SUPPORTED_LANGUAGE_CODES,
     STTProviderError,
     STTProviderName,
     STTProvider,
     TranscriptionResult,
+    normalize_language_code,
 )
 
 logger = structlog.get_logger(__name__)
 
 _GROK_MODEL = "whisper-large-v3"
 _GROK_BASE_URL = "https://api.x.ai/v1"
-
-# Grok Whisper supports same languages as OpenAI Whisper
-_SUPPORTED_LANGUAGES = {
-    "en", "es", "fr", "de", "it", "pt", "nl", "pl", "ru", "uk",
-    "ja", "zh", "ko", "ar", "hi", "bn", "th", "vi", "id", "ms",
-    "tr", "sv", "da", "no", "fi", "el", "cs", "ro", "hu", "he",
-    "tl", "sw", "ne",
-}
-
-_FORMAT_EXTENSIONS = {
-    "webm": "webm", "wav": "wav", "mp3": "mp3",
-    "ogg": "ogg", "m4a": "m4a", "flac": "flac",
-}
 
 
 class GrokSTT(STTProvider):
@@ -54,7 +44,7 @@ class GrokSTT(STTProvider):
         return _GROK_MODEL
 
     def supports_language(self, language_code: str) -> bool:
-        return language_code.lower().split("-")[0] in _SUPPORTED_LANGUAGES
+        return normalize_language_code(language_code) in SUPPORTED_LANGUAGE_CODES
 
     async def transcribe(
         self,
@@ -63,8 +53,8 @@ class GrokSTT(STTProvider):
         audio_format: str = "webm",
     ) -> TranscriptionResult:
         """Transcribe audio using xAI Grok's OpenAI-compatible Whisper API."""
-        ext = _FORMAT_EXTENSIONS.get(audio_format, "webm")
-        lang_hint = language_code.lower().split("-")[0]
+        ext = AUDIO_FORMAT_EXTENSIONS.get(audio_format, "webm")
+        lang_hint = normalize_language_code(language_code)
 
         try:
             audio_file = io.BytesIO(audio_bytes)
@@ -73,7 +63,7 @@ class GrokSTT(STTProvider):
             response = await self._client.audio.transcriptions.create(
                 model=_GROK_MODEL,
                 file=audio_file,
-                language=lang_hint if lang_hint in _SUPPORTED_LANGUAGES else None,
+                language=lang_hint if lang_hint in SUPPORTED_LANGUAGE_CODES else None,
                 response_format="verbose_json",
             )
 

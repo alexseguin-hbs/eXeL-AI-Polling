@@ -1,5 +1,6 @@
 """Import all models for Alembic discovery."""
 
+from app.models.ai_cost_log import AICostLog
 from app.models.audit_log import AuditLog
 from app.models.cqs_score import CQSScore
 from app.models.participant import Participant
@@ -22,6 +23,7 @@ from app.models.token_ledger import TokenDispute, TokenLedger
 from app.models.user import User
 
 __all__ = [
+    "AICostLog",
     "AuditLog",
     "CQSScore",
     "Participant",

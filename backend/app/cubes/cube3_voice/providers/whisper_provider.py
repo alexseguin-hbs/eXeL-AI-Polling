@@ -15,34 +15,18 @@ import structlog
 
 from app.config import settings
 from app.cubes.cube3_voice.providers.base import (
+    AUDIO_FORMAT_EXTENSIONS,
+    SUPPORTED_LANGUAGE_CODES,
     STTProviderError,
     STTProviderName,
     STTProvider,
     TranscriptionResult,
+    normalize_language_code,
 )
 
 logger = structlog.get_logger(__name__)
 
 _WHISPER_MODEL = "whisper-1"
-
-# Whisper supports these languages (ISO 639-1 codes)
-# Covers all 33 system languages
-_SUPPORTED_LANGUAGES = {
-    "en", "es", "fr", "de", "it", "pt", "nl", "pl", "ru", "uk",
-    "ja", "zh", "ko", "ar", "hi", "bn", "th", "vi", "id", "ms",
-    "tr", "sv", "da", "no", "fi", "el", "cs", "ro", "hu", "he",
-    "tl", "sw", "ne",
-}
-
-# Map audio format to file extension for OpenAI API
-_FORMAT_EXTENSIONS = {
-    "webm": "webm",
-    "wav": "wav",
-    "mp3": "mp3",
-    "ogg": "ogg",
-    "m4a": "m4a",
-    "flac": "flac",
-}
 
 
 class WhisperSTT(STTProvider):
@@ -57,7 +41,7 @@ class WhisperSTT(STTProvider):
         return _WHISPER_MODEL
 
     def supports_language(self, language_code: str) -> bool:
-        return language_code.lower().split("-")[0] in _SUPPORTED_LANGUAGES
+        return normalize_language_code(language_code) in SUPPORTED_LANGUAGE_CODES
 
     async def transcribe(
         self,
@@ -69,8 +53,8 @@ class WhisperSTT(STTProvider):
 
         Sends audio as file upload, returns verbose JSON for confidence scoring.
         """
-        ext = _FORMAT_EXTENSIONS.get(audio_format, "webm")
-        lang_hint = language_code.lower().split("-")[0]
+        ext = AUDIO_FORMAT_EXTENSIONS.get(audio_format, "webm")
+        lang_hint = normalize_language_code(language_code)
 
         try:
             # Create file-like object for the API
@@ -80,7 +64,7 @@ class WhisperSTT(STTProvider):
             response = await self._client.audio.transcriptions.create(
                 model=_WHISPER_MODEL,
                 file=audio_file,
-                language=lang_hint if lang_hint in _SUPPORTED_LANGUAGES else None,
+                language=lang_hint if lang_hint in SUPPORTED_LANGUAGE_CODES else None,
                 response_format="verbose_json",
             )
 
