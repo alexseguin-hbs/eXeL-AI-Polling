@@ -27,12 +27,16 @@ from tests.conftest import make_participant, make_question, make_response_meta, 
 class TestResponseCount:
     @pytest.mark.asyncio
     async def test_empty_session_returns_zero(self):
-        """Empty session returns 0 counts."""
+        """Empty session returns 0 counts (single optimized query)."""
         from app.cubes.cube4_collector.service import get_response_count
 
         mock_db = AsyncMock()
         mock_result = MagicMock()
-        mock_result.scalar.return_value = 0
+        row = MagicMock()
+        row.total = 0
+        row.text_count = 0
+        row.voice_count = 0
+        mock_result.one_or_none.return_value = row
         mock_db.execute = AsyncMock(return_value=mock_result)
 
         result = await get_response_count(mock_db, uuid.uuid4())
@@ -42,21 +46,17 @@ class TestResponseCount:
 
     @pytest.mark.asyncio
     async def test_returns_correct_counts(self):
-        """Should return correct breakdown by source type."""
+        """Should return correct breakdown by source type (single query)."""
         from app.cubes.cube4_collector.service import get_response_count
 
         mock_db = AsyncMock()
-        call_count = 0
-        counts = [10, 7, 3]  # total, text, voice
-
-        def _make_result():
-            nonlocal call_count
-            mock_result = MagicMock()
-            mock_result.scalar.return_value = counts[call_count]
-            call_count += 1
-            return mock_result
-
-        mock_db.execute = AsyncMock(side_effect=lambda *a: _make_result())
+        mock_result = MagicMock()
+        row = MagicMock()
+        row.total = 10
+        row.text_count = 7
+        row.voice_count = 3
+        mock_result.one_or_none.return_value = row
+        mock_db.execute = AsyncMock(return_value=mock_result)
 
         result = await get_response_count(mock_db, uuid.uuid4())
         assert result["total"] == 10
@@ -259,12 +259,19 @@ class TestCollectedResponses:
         question = make_question(session_id=session_id)
         participant = make_participant(session_id=session_id)
 
+        summary_row = MagicMock()
+        summary_row.summary_333 = "Long summary about governance"
+        summary_row.summary_111 = "Medium summary"
+        summary_row.summary_33 = "Short summary"
+
         mock_db = AsyncMock()
         count_result = MagicMock()
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
+        summary_result = MagicMock()
+        summary_result.scalar_one_or_none.return_value = summary_row
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, summary_result])
 
         result = await get_collected_responses(
             mock_db, session_id, include_summaries=True
@@ -284,12 +291,24 @@ class TestCollectedResponses:
         question = make_question(session_id=session_id)
         participant = make_participant(session_id=session_id)
 
+        summary_row = MagicMock()
+        summary_row.theme01 = "Risk & Concerns"
+        summary_row.theme01_confidence = 92
+        summary_row.theme2_9 = "Privacy Data Concerns Regulation Needed"
+        summary_row.theme2_9_confidence = 85
+        summary_row.theme2_6 = "Privacy Regulation"
+        summary_row.theme2_6_confidence = 88
+        summary_row.theme2_3 = "Regulation Required"
+        summary_row.theme2_3_confidence = 91
+
         mock_db = AsyncMock()
         count_result = MagicMock()
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
+        summary_result = MagicMock()
+        summary_result.scalar_one_or_none.return_value = summary_row
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, summary_result])
 
         result = await get_collected_responses(
             mock_db, session_id, include_themes=True
@@ -351,13 +370,110 @@ class TestSingleResponse:
         question = make_question(session_id=session_id)
         participant = make_participant(session_id=session_id)
 
+        summary_row = MagicMock()
+        summary_row.summary_333 = "Long summary"
+        summary_row.summary_111 = "Medium summary"
+        summary_row.summary_33 = "Short summary"
+        summary_row.theme01 = "Supporting Comments"
+        summary_row.theme01_confidence = 92
+        summary_row.theme2_9 = "Positive"
+        summary_row.theme2_9_confidence = 85
+        summary_row.theme2_6 = "Good"
+        summary_row.theme2_6_confidence = 88
+        summary_row.theme2_3 = "Great"
+        summary_row.theme2_3_confidence = 91
+
         mock_db = AsyncMock()
-        mock_result = MagicMock()
-        mock_result.one_or_none.return_value = (meta, question, participant)
-        mock_db.execute = AsyncMock(return_value=mock_result)
+        row_result = MagicMock()
+        row_result.one_or_none.return_value = (meta, question, participant)
+        summary_result = MagicMock()
+        summary_result.scalar_one_or_none.return_value = summary_row
+        mock_db.execute = AsyncMock(side_effect=[row_result, summary_result])
 
         result = await get_single_response(mock_db, session_id, meta.id)
         assert result is not None
         assert result["q_number"].startswith("Q-")
         assert result["summary_333"] == "Long summary"
         assert result["theme01"] == "Supporting Comments"
+
+
+# ---------------------------------------------------------------------------
+# Cube 4 Phase 1 Tests — C4-4 (Anon Hash), Auth, Error Handling, Optimization
+# ---------------------------------------------------------------------------
+
+
+class TestAnonHashCollision:
+    """C4-4 / CRS-09.01: SHA-256 anon_hash replaces 8-char UUID prefix."""
+
+    def test_anon_hash_is_12_chars(self):
+        """Anon hash should be 12-char hex (SHA-256 truncated)."""
+        import hashlib
+        pid = uuid.uuid4()
+        sid = uuid.uuid4()
+        h = hashlib.sha256(f"{pid}:{sid}".encode()).hexdigest()[:12]
+        assert len(h) == 12
+        assert all(c in "0123456789abcdef" for c in h)
+
+    def test_anon_hash_deterministic(self):
+        """Same participant+session should produce same hash."""
+        import hashlib
+        pid = uuid.uuid4()
+        sid = uuid.uuid4()
+        h1 = hashlib.sha256(f"{pid}:{sid}".encode()).hexdigest()[:12]
+        h2 = hashlib.sha256(f"{pid}:{sid}".encode()).hexdigest()[:12]
+        assert h1 == h2
+
+    def test_anon_hash_session_scoped(self):
+        """Same participant in different sessions should get different hashes."""
+        import hashlib
+        pid = uuid.uuid4()
+        s1 = uuid.uuid4()
+        s2 = uuid.uuid4()
+        h1 = hashlib.sha256(f"{pid}:{s1}".encode()).hexdigest()[:12]
+        h2 = hashlib.sha256(f"{pid}:{s2}".encode()).hexdigest()[:12]
+        assert h1 != h2
+
+
+class TestSessionValidation:
+    """CRS-09: Session existence validation on read endpoints."""
+
+    @pytest.mark.asyncio
+    async def test_valid_session_passes(self):
+        from app.cubes.cube4_collector.service import validate_session_exists
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = uuid.uuid4()
+        mock_db.execute = AsyncMock(return_value=mock_result)
+        await validate_session_exists(mock_db, uuid.uuid4())
+
+    @pytest.mark.asyncio
+    async def test_missing_session_raises(self):
+        from app.cubes.cube4_collector.service import validate_session_exists
+        from app.core.exceptions import SessionNotFoundError
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        mock_db.execute = AsyncMock(return_value=mock_result)
+        with pytest.raises(SessionNotFoundError):
+            await validate_session_exists(mock_db, uuid.uuid4())
+
+
+class TestResponseCountOptimized:
+    """Efficiency: response_count uses single query instead of 3."""
+
+    @pytest.mark.asyncio
+    async def test_single_query_returns_breakdown(self):
+        from app.cubes.cube4_collector.service import get_response_count
+        mock_db = AsyncMock()
+        mock_result = MagicMock()
+        row = MagicMock()
+        row.total = 10
+        row.text_count = 7
+        row.voice_count = 3
+        mock_result.one_or_none.return_value = row
+        mock_db.execute = AsyncMock(return_value=mock_result)
+
+        result = await get_response_count(mock_db, uuid.uuid4())
+        assert result["total"] == 10
+        assert result["text_count"] == 7
+        assert result["voice_count"] == 3

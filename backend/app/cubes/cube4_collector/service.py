@@ -13,6 +13,7 @@ Key responsibilities:
 
 from __future__ import annotations
 
+import hashlib
 import uuid
 from datetime import datetime, timezone
 
@@ -30,6 +31,24 @@ from app.models.text_response import TextResponse
 from app.models.voice_response import VoiceResponse
 
 logger = structlog.get_logger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# 0. Session Validation (CRS-09 anti-enumeration)
+# ---------------------------------------------------------------------------
+
+
+async def validate_session_exists(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+) -> None:
+    """Validate session exists — prevents UUID enumeration on read endpoints."""
+    result = await db.execute(
+        select(Session.id).where(Session.id == session_id)
+    )
+    if result.scalar_one_or_none() is None:
+        from app.core.exceptions import SessionNotFoundError
+        raise SessionNotFoundError(str(session_id))
 
 
 # ---------------------------------------------------------------------------
@@ -78,12 +97,16 @@ async def get_collected_responses(
     offset = (page - 1) * page_size
 
     # Count total responses
-    count_result = await db.execute(
-        select(func.count(ResponseMeta.id)).where(
-            ResponseMeta.session_id == session_id,
+    try:
+        count_result = await db.execute(
+            select(func.count(ResponseMeta.id)).where(
+                ResponseMeta.session_id == session_id,
+            )
         )
-    )
-    total = count_result.scalar() or 0
+        total = count_result.scalar() or 0
+    except Exception as e:
+        logger.error("cube4.collected.count_error", session_id=str(session_id), error=str(e))
+        return {"items": [], "total": 0, "page": page, "page_size": page_size}
 
     # Fetch paginated response metadata with question + participant info
     stmt = (
@@ -120,10 +143,11 @@ async def get_collected_responses(
         if participant and participant.language_code:
             native_language = participant.language_code
 
-        # Build user identifier
+        # Build user identifier — CRS-09.01: SHA-256 anon_hash (collision-safe at scale)
         user_id = "Anonymous"
         if participant:
-            user_id = participant.display_name or f"User_{str(participant.id)[:8]}"
+            anon_hash = hashlib.sha256(f"{participant.id}:{session_id}".encode()).hexdigest()[:12]
+            user_id = participant.display_name or f"User_{anon_hash}"
 
         # Q_Number from question order_index
         q_number = f"Q-{(question.order_index + 1):04d}" if question else "Q-0001"
@@ -221,7 +245,8 @@ async def get_single_response(
 
     user_id = "Anonymous"
     if participant:
-        user_id = participant.display_name or f"User_{str(participant.id)[:8]}"
+        anon_hash = hashlib.sha256(f"{participant.id}:{session_id}".encode()).hexdigest()[:12]
+        user_id = participant.display_name or f"User_{anon_hash}"
 
     q_number = f"Q-{(question.order_index + 1):04d}" if question else "Q-0001"
 
@@ -260,35 +285,26 @@ async def get_response_count(
     db: AsyncSession,
     session_id: uuid.UUID,
 ) -> dict:
-    """Return response counts by source type (text/voice) and total."""
-    total_result = await db.execute(
-        select(func.count(ResponseMeta.id)).where(
-            ResponseMeta.session_id == session_id,
-        )
-    )
-    total = total_result.scalar() or 0
+    """Return response counts by source type (text/voice) and total.
 
-    text_result = await db.execute(
-        select(func.count(ResponseMeta.id)).where(
-            ResponseMeta.session_id == session_id,
-            ResponseMeta.source == "text",
-        )
-    )
-    text_count = text_result.scalar() or 0
+    Optimized: single query with conditional counting (3→1 DB round-trip).
+    """
+    from sqlalchemy import case
 
-    voice_result = await db.execute(
-        select(func.count(ResponseMeta.id)).where(
-            ResponseMeta.session_id == session_id,
-            ResponseMeta.source == "voice",
-        )
+    result = await db.execute(
+        select(
+            func.count(ResponseMeta.id).label("total"),
+            func.sum(case((ResponseMeta.source == "text", 1), else_=0)).label("text_count"),
+            func.sum(case((ResponseMeta.source == "voice", 1), else_=0)).label("voice_count"),
+        ).where(ResponseMeta.session_id == session_id)
     )
-    voice_count = voice_result.scalar() or 0
+    row = result.one_or_none()
 
     return {
         "session_id": str(session_id),
-        "total": total,
-        "text_count": text_count,
-        "voice_count": voice_count,
+        "total": (row.total or 0) if row else 0,
+        "text_count": int(row.text_count or 0) if row else 0,
+        "voice_count": int(row.voice_count or 0) if row else 0,
     }
 
 

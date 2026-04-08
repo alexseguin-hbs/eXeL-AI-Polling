@@ -100,12 +100,28 @@ class TestCollectionFlow:
         question = make_question(session_id=session_id)
         participant = make_participant(session_id=session_id)
 
+        # Mock summary row for include_summaries + include_themes
+        summary_row = MagicMock()
+        summary_row.summary_333 = "Three-hundred-thirty-three word summary"
+        summary_row.summary_111 = "One-hundred-eleven word summary"
+        summary_row.summary_33 = "Thirty-three word summary"
+        summary_row.theme01 = "Supporting Comments"
+        summary_row.theme01_confidence = 92
+        summary_row.theme2_9 = "Positive Outlook"
+        summary_row.theme2_9_confidence = 85
+        summary_row.theme2_6 = "Community Impact"
+        summary_row.theme2_6_confidence = 88
+        summary_row.theme2_3 = "Positive Impact"
+        summary_row.theme2_3_confidence = 91
+
         mock_db = AsyncMock()
         count_result = MagicMock()
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
+        summary_result = MagicMock()
+        summary_result.scalar_one_or_none.return_value = summary_row
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, summary_result])
 
         result = await get_collected_responses(
             mock_db, session_id,
@@ -207,8 +223,7 @@ class TestVoiceResponseCollection:
         from app.cubes.cube4_collector.service import get_collected_responses
 
         session_id = uuid.uuid4()
-        meta = make_response_meta(session_id=session_id, source="voice")
-        meta.source = "voice"
+        meta = make_response_meta(session_id=session_id, source="voice", raw_text="Voice transcript of the response")
         question = make_question(session_id=session_id)
         participant = make_participant(session_id=session_id)
 

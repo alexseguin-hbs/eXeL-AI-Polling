@@ -343,6 +343,7 @@ def make_response_meta(
     question_id: uuid.UUID | None = None,
     participant_id: uuid.UUID | None = None,
     source: str = "text",
+    raw_text: str = "I think AI governance is crucial for democracy.",
     char_count: int = 42,
 ) -> MagicMock:
     """Create a mock ResponseMeta object."""
@@ -353,6 +354,7 @@ def make_response_meta(
     rm.participant_id = participant_id or uuid.uuid4()
     rm.cycle_id = 1
     rm.source = source
+    rm.raw_text = raw_text
     rm.char_count = char_count
     rm.submitted_at = datetime.now(timezone.utc)
     rm.is_flagged = False

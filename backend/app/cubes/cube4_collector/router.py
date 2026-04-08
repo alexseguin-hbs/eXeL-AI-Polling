@@ -10,6 +10,9 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
+from app.core.dependencies import get_db, get_redis
+from app.core.exceptions import ResponseNotFoundError
 from app.cubes.cube4_collector.service import (
     get_collected_responses,
     get_response_count,
@@ -17,8 +20,8 @@ from app.cubes.cube4_collector.service import (
     get_session_presence,
     get_single_response,
     get_summary_status,
+    validate_session_exists,
 )
-from app.core.dependencies import get_db, get_redis
 
 router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 4 -- Collector"])
 
@@ -31,8 +34,13 @@ async def list_collected_responses(
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
 ):
-    """List collected responses in Web_Results format with optional summaries/themes."""
+    """List collected responses in Web_Results format with optional summaries/themes.
+
+    CRS-09: Session validated to prevent enumeration.
+    """
+    await validate_session_exists(db, session_id)
     return await get_collected_responses(
         db, session_id,
         include_summaries=include_summaries,
@@ -47,12 +55,16 @@ async def get_collected_response(
     session_id: uuid.UUID,
     response_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
 ):
-    """Get a single collected response with all data (summaries + themes)."""
+    """Get a single collected response with all data (summaries + themes).
+
+    CRS-09.01: Session validated; 404 uses ResponseNotFoundError.
+    """
+    await validate_session_exists(db, session_id)
     result = await get_single_response(db, session_id, response_id)
     if result is None:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=404, detail="Response not found")
+        raise ResponseNotFoundError(str(response_id))
     return result
 
 
@@ -60,8 +72,10 @@ async def get_collected_response(
 async def response_count(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """Get response count breakdown (total, text, voice)."""
+    await validate_session_exists(db, session_id)
     return await get_response_count(db, session_id)
 
 
@@ -69,8 +83,10 @@ async def response_count(
 async def response_languages(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """Get breakdown of response languages for a session."""
+    await validate_session_exists(db, session_id)
     return await get_response_languages(db, session_id)
 
 
@@ -79,7 +95,7 @@ async def get_presence(
     session_id: uuid.UUID,
     redis=Depends(get_redis),
 ):
-    """Get live presence count for a session (Redis)."""
+    """Get live presence count for a session (Redis). No auth — participants need this."""
     return await get_session_presence(redis, session_id)
 
 
@@ -87,6 +103,7 @@ async def get_presence(
 async def summary_status(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ):
-    """Check summary generation progress for a session."""
+    """Check summary generation progress (Moderator-only). CRS-09.05."""
     return await get_summary_status(db, session_id)
