@@ -27,7 +27,6 @@ from fastapi import WebSocket, WebSocketDisconnect
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
 from app.cubes.cube3_voice.providers.azure_realtime import (
     AzureRealtimeSTT,
     RealtimeEvent,

@@ -87,6 +87,7 @@ class VoiceResponseListItem(BaseModel):
     audio_duration_sec: float
     stt_provider: str
     transcript_confidence: float
+    cost_usd: float = 0.0
 
     model_config = {"from_attributes": True}
 

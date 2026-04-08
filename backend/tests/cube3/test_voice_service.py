@@ -630,39 +630,37 @@ class TestProviderRegistry:
 
 
 class TestCircuitBreakerState:
-    """P2.4: Circuit breaker with per-provider failure tracking + cooldown."""
+    """P2.4 + OPT-3: Shared circuit breaker (core/circuit_breaker.py)."""
 
     def test_cb_initially_closed(self):
         """Provider with no failures should not be in cooldown."""
-        from app.cubes.cube3_voice.service import _cb_is_open
-        assert _cb_is_open("test_provider_x") is False
+        from app.core.circuit_breaker import CircuitBreaker
+        cb = CircuitBreaker(max_failures=3, cooldown_seconds=60, name="test")
+        assert cb.is_open("test_provider_x") is False
 
     def test_cb_opens_after_max_failures(self):
-        """Provider should enter cooldown after _CB_MAX_FAILURES."""
-        from app.cubes.cube3_voice.service import (
-            _cb_is_open, _cb_record_failure, _CB_MAX_FAILURES,
-            _circuit_breaker_state,
-        )
-        provider = "test_provider_cb"
-        _circuit_breaker_state.pop(provider, None)
-        for _ in range(_CB_MAX_FAILURES):
-            _cb_record_failure(provider)
-        assert _cb_is_open(provider) is True
-        _circuit_breaker_state.pop(provider, None)
+        """Provider should enter cooldown after max_failures."""
+        from app.core.circuit_breaker import CircuitBreaker
+        cb = CircuitBreaker(max_failures=3, cooldown_seconds=60, name="test")
+        for _ in range(3):
+            cb.record_failure("test_cb")
+        assert cb.is_open("test_cb") is True
 
     def test_cb_resets_on_success(self):
         """Success should reset failure count."""
-        from app.cubes.cube3_voice.service import (
-            _cb_is_open, _cb_record_failure, _cb_record_success,
-            _circuit_breaker_state,
-        )
-        provider = "test_provider_reset"
-        _circuit_breaker_state.pop(provider, None)
-        _cb_record_failure(provider)
-        _cb_record_failure(provider)
-        _cb_record_success(provider)
-        assert _cb_is_open(provider) is False
-        _circuit_breaker_state.pop(provider, None)
+        from app.core.circuit_breaker import CircuitBreaker
+        cb = CircuitBreaker(max_failures=3, cooldown_seconds=60, name="test")
+        cb.record_failure("test_reset")
+        cb.record_failure("test_reset")
+        cb.record_success("test_reset")
+        assert cb.is_open("test_reset") is False
+
+    def test_service_uses_shared_cb(self):
+        """service._stt_cb should be a CircuitBreaker instance."""
+        from app.cubes.cube3_voice.service import _stt_cb
+        from app.core.circuit_breaker import CircuitBreaker
+        assert isinstance(_stt_cb, CircuitBreaker)
+        assert _stt_cb.name == "cube3"
 
 
 class TestConcurrencySemaphore:

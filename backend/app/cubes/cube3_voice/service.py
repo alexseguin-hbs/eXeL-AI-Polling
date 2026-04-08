@@ -24,7 +24,6 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import math
-import time
 import uuid
 from datetime import datetime, timezone
 
@@ -56,12 +55,10 @@ _MIN_CONFIDENCE = 0.3  # Low threshold — UI warns at 0.65, but we still accept
 # STT API call timeout (seconds) — prevents hung providers blocking circuit breaker
 STT_TIMEOUT_SECONDS = 30
 
-# Circuit breaker cooldown (seconds) — provider skipped after failure until cooldown expires
-_CB_COOLDOWN_SECONDS = 60
-_CB_MAX_FAILURES = 3
+# Shared circuit breaker for STT providers (reusable by Cube 6 for AI providers)
+from app.core.circuit_breaker import CircuitBreaker
 
-# Per-provider circuit breaker state: {provider_name: {"failures": int, "last_failure": float}}
-_circuit_breaker_state: dict[str, dict] = {}
+_stt_cb = CircuitBreaker(max_failures=3, cooldown_seconds=60.0, name="cube3")
 
 # Per-session concurrency semaphore: limits concurrent STT calls to prevent provider rate exhaustion
 _STT_MAX_CONCURRENT = 20
@@ -74,40 +71,6 @@ def _get_session_semaphore(session_id: uuid.UUID) -> asyncio.Semaphore:
     if key not in _session_semaphores:
         _session_semaphores[key] = asyncio.Semaphore(_STT_MAX_CONCURRENT)
     return _session_semaphores[key]
-
-
-def _cb_is_open(provider: str) -> bool:
-    """Check if circuit breaker is OPEN (provider in cooldown)."""
-    state = _circuit_breaker_state.get(provider)
-    if not state:
-        return False
-    if state["failures"] >= _CB_MAX_FAILURES:
-        elapsed = time.monotonic() - state["last_failure"]
-        if elapsed < _CB_COOLDOWN_SECONDS:
-            return True  # Still in cooldown
-        # Cooldown expired — half-open: allow one attempt
-        state["failures"] = _CB_MAX_FAILURES - 1
-    return False
-
-
-def _cb_record_failure(provider: str) -> None:
-    """Record a provider failure for circuit breaker tracking."""
-    state = _circuit_breaker_state.get(provider, {"failures": 0, "last_failure": 0.0})
-    state["failures"] = state.get("failures", 0) + 1
-    state["last_failure"] = time.monotonic()
-    _circuit_breaker_state[provider] = state
-    logger.warning(
-        "cube3.cb.failure_recorded",
-        provider=provider,
-        total_failures=state["failures"],
-        cooldown_active=state["failures"] >= _CB_MAX_FAILURES,
-    )
-
-
-def _cb_record_success(provider: str) -> None:
-    """Reset circuit breaker state on success."""
-    if provider in _circuit_breaker_state:
-        _circuit_breaker_state[provider] = {"failures": 0, "last_failure": 0.0}
 
 
 # ---------------------------------------------------------------------------
@@ -180,7 +143,7 @@ async def transcribe_audio(
     prov_name = provider.provider_name.value
 
     # Circuit breaker: skip if provider is in cooldown
-    if _cb_is_open(prov_name):
+    if _stt_cb.is_open(prov_name):
         logger.info("cube3.stt.cb_skip_primary", provider=prov_name)
         return await _handle_stt_failure(
             db, audio_bytes, language_code, audio_format,
@@ -192,10 +155,10 @@ async def transcribe_audio(
             provider.transcribe(audio_bytes, language_code, audio_format),
             timeout=STT_TIMEOUT_SECONDS,
         )
-        _cb_record_success(prov_name)
+        _stt_cb.record_success(prov_name)
         return result
     except asyncio.TimeoutError:
-        _cb_record_failure(prov_name)
+        _stt_cb.record_failure(prov_name)
         logger.warning(
             "cube3.stt.timeout",
             provider=prov_name,
@@ -207,7 +170,7 @@ async def transcribe_audio(
             failed_provider=prov_name,
         )
     except STTProviderError as e:
-        _cb_record_failure(e.provider)
+        _stt_cb.record_failure(e.provider)
         logger.warning(
             "cube3.stt.primary_failed",
             provider=e.provider,
@@ -239,7 +202,7 @@ async def _handle_stt_failure(
     for fallback_name in _FALLBACK_ORDER:
         if fallback_name == failed_provider:
             continue
-        if _cb_is_open(fallback_name):
+        if _stt_cb.is_open(fallback_name):
             logger.info("cube3.stt.cb_skip_fallback", provider=fallback_name)
             continue
         try:
@@ -249,10 +212,10 @@ async def _handle_stt_failure(
                 fallback.transcribe(audio_bytes, language_code, audio_format),
                 timeout=STT_TIMEOUT_SECONDS,
             )
-            _cb_record_success(fallback_name)
+            _stt_cb.record_success(fallback_name)
             return result
         except asyncio.TimeoutError:
-            _cb_record_failure(fallback_name)
+            _stt_cb.record_failure(fallback_name)
             logger.warning(
                 "cube3.stt.failover_timeout",
                 provider=fallback_name,
@@ -260,7 +223,7 @@ async def _handle_stt_failure(
             )
             continue
         except (STTProviderError, Exception) as e:
-            _cb_record_failure(fallback_name)
+            _stt_cb.record_failure(fallback_name)
             logger.warning(
                 "cube3.stt.failover_failed",
                 provider=fallback_name,
@@ -655,6 +618,7 @@ async def get_voice_responses(
             "audio_duration_sec": voice.audio_duration_sec if voice else 0.0,
             "stt_provider": voice.stt_provider if voice else "unknown",
             "transcript_confidence": voice.transcript_confidence if voice else 0.0,
+            "cost_usd": voice.cost_usd if voice else 0.0,
         })
 
     return {
