@@ -18,7 +18,7 @@ class STTProviderConfig(Base):
     __tablename__ = "stt_providers"
 
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-    supported_languages: Mapped[dict] = mapped_column(JSONB, default=list)
+    supported_languages: Mapped[list] = mapped_column(JSONB, default=list)
     # e.g. ["en", "es", "fr", "de", "ja", "zh", "ar", ...]
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     priority: Mapped[int] = mapped_column(Integer, default=10)

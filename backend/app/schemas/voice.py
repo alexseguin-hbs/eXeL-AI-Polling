@@ -44,8 +44,8 @@ class VoiceSubmissionRead(BaseModel):
     # Fetch via GET /{response_id} or listen for "summary_ready" broadcast.
     summary_33: str | None = None
 
-    # STT cost transparency
-    cost_usd: float | None = None
+    # STT cost transparency (USD per call, computed from provider rate × audio duration)
+    cost_usd: float = 0.0
 
     # Immediate token display after submission (♡ and ◬)
     heart_tokens_earned: float = Field(default=0.0)

@@ -1,13 +1,13 @@
 """Cube 3 — VoiceResponse model.
 
 Extends ResponseMeta with voice-specific fields: audio duration,
-STT provider used, transcript text, and confidence score.
+STT provider used, transcript text, confidence score, and cost_usd.
 
 Stores a 1:1 relationship with ResponseMeta (FK to response_meta.id).
-Audio files stored via Supabase Storage (path in audio_storage_path).
-After transcription, the transcript is forwarded into Cube 2's text
-pipeline for PII/profanity processing — results live on the linked
-TextResponse record. Architecture: Supabase/PostgreSQL only.
+After transcription, the transcript is forwarded into the shared
+text_pipeline (core/text_pipeline.py) for PII/profanity processing —
+results live on the linked TextResponse record.
+Architecture: Supabase/PostgreSQL only.
 """
 
 import uuid

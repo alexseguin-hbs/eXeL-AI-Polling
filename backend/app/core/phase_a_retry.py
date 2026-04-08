@@ -161,8 +161,8 @@ async def _store_summary(
         )
         await db.execute(stmt)
         await db.commit()
-    except Exception:
-        pass  # Best-effort fallback storage
+    except Exception as e:
+        logger.warning("core.phase_a.store_summary_failed", error=str(e))  # Best-effort
 
 
 async def _broadcast_summary(

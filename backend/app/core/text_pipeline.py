@@ -41,10 +41,8 @@ async def run_text_pipeline(
 
     Args:
         db: Database session (needed for profanity word lookup).
-        text: Raw input text.
-        language_code: ISO language code (defaults to "en" if None).
         text: Raw input text (transcript or typed response).
-        language_code: ISO language code for profanity dictionary.
+        language_code: ISO language code for profanity dictionary (defaults to "en" if None).
 
     Returns:
         PipelineResult with clean_text and detection metadata.
