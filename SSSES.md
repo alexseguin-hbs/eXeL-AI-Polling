@@ -80,10 +80,10 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall |
 |------|----------|-----------|-------------|------------|--------------|---------|
 | 1 Session | 100 | 100 | 100 | 100 | 100 | **100** |
-| 2 Text | 95 | 92 | 90 | 90 | 88 | **91** |
-| 3 Voice | 80 | 82 | 85 | 85 | 75 | **81** |
-| 4 Collector | 90 | 85 | 80 | 80 | 80 | **83** |
-| 5 Gateway | 90 | 80 | 85 | 85 | 90 | **86** |
+| 2 Text | 97 | 92 | 90 | 90 | 88 | **91** |
+| 3 Voice | 85 | 85 | 88 | 85 | 77 | **84** |
+| 4 Collector | 92 | 85 | 82 | 88 | 85 | **86** |
+| 5 Gateway | 90 | 85 | 88 | 85 | 90 | **88** |
 | 6 AI Pipeline | 70 | 40 | 55 | 55 | 70 | **58** |
 | 7 Ranking | 20 | 10 | 15 | 15 | 50 | **22** |
 | 8 Tokens | 45 | 40 | 35 | 45 | 60 | **45** |

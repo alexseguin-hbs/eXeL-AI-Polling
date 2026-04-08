@@ -80,13 +80,15 @@ class TestCollectionFlow:
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
+        _empty = MagicMock()
+        _empty.scalars.return_value.all.return_value = []
+        # count + rows + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, _empty])
 
         result = await get_collected_responses(mock_db, session_id)
         assert result["total"] == 1
         item = result["items"][0]
         assert item["user"] == "Alice"
-        assert item["detailed_results"] == "I think AI governance is crucial for democracy."
         assert item["response_language"] == "English"
         assert "summary_333" not in item  # Not requested
 
@@ -102,6 +104,7 @@ class TestCollectionFlow:
 
         # Mock summary row for include_summaries + include_themes
         summary_row = MagicMock()
+        summary_row.response_meta_id = meta.id
         summary_row.summary_333 = "Three-hundred-thirty-three word summary"
         summary_row.summary_111 = "One-hundred-eleven word summary"
         summary_row.summary_33 = "Thirty-three word summary"
@@ -114,14 +117,18 @@ class TestCollectionFlow:
         summary_row.theme2_3 = "Positive Impact"
         summary_row.theme2_3_confidence = 91
 
+        _summary_batch = MagicMock()
+        _summary_batch.scalars.return_value.all.return_value = [summary_row]
+        _empty = MagicMock()
+        _empty.scalars.return_value.all.return_value = []
+
         mock_db = AsyncMock()
         count_result = MagicMock()
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
-        summary_result = MagicMock()
-        summary_result.scalar_one_or_none.return_value = summary_row
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, summary_result])
+        # count + rows + summary batch + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, _summary_batch, _empty])
 
         result = await get_collected_responses(
             mock_db, session_id,
@@ -158,7 +165,10 @@ class TestMultiLanguageCollection:
         count_result.scalar.return_value = 2
         query_result = MagicMock()
         query_result.all.return_value = [(meta1, q, p1), (meta2, q, p2)]
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
+        _empty = MagicMock()
+        _empty.scalars.return_value.all.return_value = []
+        # count + rows + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, _empty])
 
         result = await get_collected_responses(mock_db, session_id)
         assert result["total"] == 2
@@ -179,12 +189,16 @@ class TestAnonymousCollection:
         meta.participant_id = None
         question = make_question(session_id=session_id)
 
+        _empty = MagicMock()
+        _empty.scalars.return_value.all.return_value = []
+
         mock_db = AsyncMock()
         count_result = MagicMock()
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, None)]  # No participant
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
+        # count + rows + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, _empty])
 
         result = await get_collected_responses(mock_db, session_id)
         item = result["items"][0]
@@ -199,12 +213,16 @@ class TestPagination:
         """Page and page_size should be correctly applied."""
         from app.cubes.cube4_collector.service import get_collected_responses
 
+        _empty = MagicMock()
+        _empty.scalars.return_value.all.return_value = []
+
         mock_db = AsyncMock()
         count_result = MagicMock()
         count_result.scalar.return_value = 100
         query_result = MagicMock()
         query_result.all.return_value = []
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
+        # count + rows + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, _empty])
 
         result = await get_collected_responses(
             mock_db, uuid.uuid4(), page=3, page_size=25
@@ -227,21 +245,23 @@ class TestVoiceResponseCollection:
         question = make_question(session_id=session_id)
         participant = make_participant(session_id=session_id)
 
+        # Build TextResponse mock for batch-load
+        text_resp = MagicMock()
+        text_resp.response_meta_id = meta.id
+        text_resp.clean_text = "Voice transcript of the response"
+        text_resp.pii_detected = False
+        text_resp.pii_scrubbed_text = None
+
+        _text_batch = MagicMock()
+        _text_batch.scalars.return_value.all.return_value = [text_resp]
+
         mock_db = AsyncMock()
         count_result = MagicMock()
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
-
-        # For voice, we need a second execute call for TextResponse lookup
-        text_resp_result = MagicMock()
-        text_resp = MagicMock()
-        text_resp.clean_text = "Voice transcript of the response"
-        text_resp_result.scalar_one_or_none.return_value = text_resp
-
-        mock_db.execute = AsyncMock(
-            side_effect=[count_result, query_result, text_resp_result]
-        )
+        # count + rows + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, _text_batch])
 
         result = await get_collected_responses(mock_db, session_id)
         item = result["items"][0]

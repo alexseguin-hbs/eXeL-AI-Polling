@@ -112,85 +112,38 @@ async def get_collected_responses(
         logger.error("cube4.collected.query_error", session_id=str(session_id), error=str(e))
         return {"items": [], "total": total, "page": page, "page_size": page_size}
 
-    items = []
-    for meta, question, participant in rows:
-        # Get raw text from ResponseMeta.raw_text (PostgreSQL)
-        raw_text = meta.raw_text or ""
-        language = "English"
-        native_language = "en"
-
-        # For voice responses, get transcript from TextResponse via join
-        if meta.source == "voice" and not raw_text:
-            text_resp_result = await db.execute(
-                select(TextResponse).where(
-                    TextResponse.response_meta_id == meta.id
-                )
+    # Batch-load summaries to avoid N+1 queries (1 query instead of page_size queries)
+    meta_ids = [row[0].id for row in rows]
+    summary_map: dict[uuid.UUID, ResponseSummary] = {}
+    if (include_summaries or include_themes) and meta_ids:
+        summary_result = await db.execute(
+            select(ResponseSummary).where(
+                ResponseSummary.response_meta_id.in_(meta_ids),
             )
-            text_resp = text_resp_result.scalar_one_or_none()
-            if text_resp:
-                raw_text = text_resp.clean_text or ""
+        )
+        for s in summary_result.scalars().all():
+            summary_map[s.response_meta_id] = s
 
-        # Get participant language from participant record
-        if participant and participant.language_code:
-            native_language = participant.language_code
-
-        # Build user identifier — CRS-09.01: SHA-256 anon_hash (collision-safe at scale)
-        user_id = "Anonymous"
-        if participant:
-            user_id = participant.display_name or f"User_{compute_anon_hash(participant.id, session_id)}"
-
-        # Q_Number from question order_index
-        q_number = f"Q-{(question.order_index + 1):04d}" if question else "Q-0001"
-        question_text = question.question_text if question else ""
-
-        item = {
-            "q_number": q_number,
-            "question": question_text,
-            "user": user_id,
-            "detailed_results": raw_text,
-            "response_language": language,
-            "native_language": native_language,
-            "response_id": str(meta.id),
-            "submitted_at": meta.submitted_at.isoformat() if meta.submitted_at else None,
-            "source": meta.source,
-        }
-
-        # Optionally include summaries from PostgreSQL (ResponseSummary)
-        if include_summaries or include_themes:
-            summary_result = await db.execute(
-                select(ResponseSummary).where(
-                    ResponseSummary.response_meta_id == meta.id,
-                )
+    # Batch-load TextResponses for PII-safe text (prefer clean_text over raw_text)
+    text_resp_map: dict[uuid.UUID, TextResponse] = {}
+    if meta_ids:
+        tr_result = await db.execute(
+            select(TextResponse).where(
+                TextResponse.response_meta_id.in_(meta_ids),
             )
-            summary_row = summary_result.scalar_one_or_none()
+        )
+        for tr in tr_result.scalars().all():
+            text_resp_map[tr.response_meta_id] = tr
 
-        if include_summaries:
-            if summary_row:
-                item["summary_333"] = summary_row.summary_333 or ""
-                item["summary_111"] = summary_row.summary_111 or ""
-                item["summary_33"] = summary_row.summary_33 or ""
-            else:
-                item["summary_333"] = ""
-                item["summary_111"] = ""
-                item["summary_33"] = ""
-
-        # Optionally include theme assignments from PostgreSQL (ResponseSummary)
-        if include_themes:
-            if summary_row:
-                item["theme01"] = summary_row.theme01 or ""
-                item["theme01_confidence"] = summary_row.theme01_confidence or 0
-                item["theme2_9"] = summary_row.theme2_9 or ""
-                item["theme2_9_confidence"] = summary_row.theme2_9_confidence or 0
-                item["theme2_6"] = summary_row.theme2_6 or ""
-                item["theme2_6_confidence"] = summary_row.theme2_6_confidence or 0
-                item["theme2_3"] = summary_row.theme2_3 or ""
-                item["theme2_3_confidence"] = summary_row.theme2_3_confidence or 0
-            else:
-                for field in ("theme01", "theme2_9", "theme2_6", "theme2_3"):
-                    item[field] = ""
-                    item[f"{field}_confidence"] = 0
-
-        items.append(item)
+    items = [
+        _build_response_item(
+            meta, question, participant, session_id,
+            text_resp_map.get(meta.id),
+            summary_map.get(meta.id) if (include_summaries or include_themes) else None,
+            include_summaries, include_themes,
+        )
+        for meta, question, participant in rows
+    ]
 
     return {
         "items": items,
@@ -198,6 +151,61 @@ async def get_collected_responses(
         "page": page,
         "page_size": page_size,
     }
+
+
+def _build_response_item(
+    meta: ResponseMeta,
+    question: Question | None,
+    participant: Participant | None,
+    session_id: uuid.UUID,
+    text_resp: TextResponse | None,
+    summary_row: ResponseSummary | None,
+    include_summaries: bool,
+    include_themes: bool,
+) -> dict:
+    """Build a single Web_Results-format response item.
+
+    PII safety: prefers clean_text (post-scrub) over raw_text when PII was detected.
+    """
+    # PII-safe text: use clean_text when PII was detected, raw_text otherwise
+    if text_resp and text_resp.pii_detected and text_resp.pii_scrubbed_text:
+        display_text = text_resp.pii_scrubbed_text
+    elif text_resp and text_resp.clean_text:
+        display_text = text_resp.clean_text
+    else:
+        display_text = meta.raw_text or ""
+
+    native_language = participant.language_code if participant and participant.language_code else "en"
+
+    user_id = "Anonymous"
+    if participant:
+        user_id = participant.display_name or f"User_{compute_anon_hash(participant.id, session_id)}"
+
+    q_number = f"Q-{(question.order_index + 1):04d}" if question else "Q-0001"
+
+    item: dict = {
+        "q_number": q_number,
+        "question": question.question_text if question else "",
+        "user": user_id,
+        "detailed_results": display_text,
+        "response_language": "English",
+        "native_language": native_language,
+        "response_id": str(meta.id),
+        "submitted_at": meta.submitted_at.isoformat() if meta.submitted_at else None,
+        "source": meta.source,
+    }
+
+    if include_summaries:
+        item["summary_333"] = (summary_row.summary_333 or "") if summary_row else ""
+        item["summary_111"] = (summary_row.summary_111 or "") if summary_row else ""
+        item["summary_33"] = (summary_row.summary_33 or "") if summary_row else ""
+
+    if include_themes:
+        for field in ("theme01", "theme2_9", "theme2_6", "theme2_3"):
+            item[field] = (getattr(summary_row, field, None) or "") if summary_row else ""
+            item[f"{field}_confidence"] = (getattr(summary_row, f"{field}_confidence", None) or 0) if summary_row else 0
+
+    return item
 
 
 async def get_single_response(
@@ -225,49 +233,22 @@ async def get_single_response(
 
     meta, question, participant = row
 
-    # Raw text from PostgreSQL (ResponseMeta.raw_text)
-    raw_text = meta.raw_text or ""
-    language = "English"
+    # Fetch TextResponse for PII-safe text + summary
+    text_resp_result = await db.execute(
+        select(TextResponse).where(TextResponse.response_meta_id == meta.id)
+    )
+    text_resp = text_resp_result.scalar_one_or_none()
 
-    # Summaries from PostgreSQL (ResponseSummary)
     summary_result = await db.execute(
-        select(ResponseSummary).where(
-            ResponseSummary.response_meta_id == meta.id,
-        )
+        select(ResponseSummary).where(ResponseSummary.response_meta_id == meta.id)
     )
     summary_row = summary_result.scalar_one_or_none()
 
-    user_id = "Anonymous"
-    if participant:
-        anon_hash = compute_anon_hash(participant.id, session_id)
-        user_id = participant.display_name or f"User_{anon_hash}"
-
-    q_number = f"Q-{(question.order_index + 1):04d}" if question else "Q-0001"
-
-    item = {
-        "q_number": q_number,
-        "question": question.question_text if question else "",
-        "user": user_id,
-        "detailed_results": raw_text,
-        "response_language": language,
-        "native_language": participant.language_code if participant else "en",
-        "response_id": str(meta.id),
-        "submitted_at": meta.submitted_at.isoformat() if meta.submitted_at else None,
-        "source": meta.source,
-        "summary_333": summary_row.summary_333 or "" if summary_row else "",
-        "summary_111": summary_row.summary_111 or "" if summary_row else "",
-        "summary_33": summary_row.summary_33 or "" if summary_row else "",
-        "theme01": summary_row.theme01 or "" if summary_row else "",
-        "theme01_confidence": summary_row.theme01_confidence or 0 if summary_row else 0,
-        "theme2_9": summary_row.theme2_9 or "" if summary_row else "",
-        "theme2_9_confidence": summary_row.theme2_9_confidence or 0 if summary_row else 0,
-        "theme2_6": summary_row.theme2_6 or "" if summary_row else "",
-        "theme2_6_confidence": summary_row.theme2_6_confidence or 0 if summary_row else 0,
-        "theme2_3": summary_row.theme2_3 or "" if summary_row else "",
-        "theme2_3_confidence": summary_row.theme2_3_confidence or 0 if summary_row else 0,
-    }
-
-    return item
+    return _build_response_item(
+        meta, question, participant, session_id,
+        text_resp, summary_row,
+        include_summaries=True, include_themes=True,
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -32,11 +32,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.hi_rates import resolve_human_rate
+from app.core.concurrency import SessionSemaphorePool
 from app.models.pipeline_trigger import PipelineTrigger, VALID_TRIGGER_TYPES
 from app.models.time_tracking import TimeEntry
 from app.models.token_ledger import TokenLedger
 
 logger = logging.getLogger(__name__)
+
+# Global pipeline concurrency cap — prevents unbounded Cube 6 executions
+_pipeline_semaphore = asyncio.Semaphore(10)
 
 
 # ---------------------------------------------------------------------------
@@ -364,62 +368,83 @@ async def trigger_ai_pipeline(
     )
 
     async def _run_pipeline_background(trigger_id: uuid.UUID) -> None:
-        """Background coroutine — uses fresh DB session."""
+        """Background coroutine — uses fresh DB session + global concurrency cap."""
         from app.db.postgres import async_session_factory
         from app.cubes.cube6_ai.service import run_pipeline
 
-        async with async_session_factory() as bg_db:
-            try:
-                await update_pipeline_status(bg_db, trigger_id, "in_progress")
-                # CRS-09.02: 5-minute timeout prevents hung pipeline blocking trigger forever
-                result = await asyncio.wait_for(
-                    run_pipeline(
+        async with _pipeline_semaphore:
+            async with async_session_factory() as bg_db:
+                try:
+                    await update_pipeline_status(bg_db, trigger_id, "in_progress")
+                    # CRS-09.02: 5-minute timeout prevents hung pipeline blocking trigger forever
+                    result = await asyncio.wait_for(
+                        run_pipeline(
+                            bg_db,
+                            session_id,
+                            seed=seed,
+                            use_embedding_assignment=use_embedding_assignment,
+                        ),
+                        timeout=300.0,
+                    )
+                    await update_pipeline_status(
                         bg_db,
-                        session_id,
-                        seed=seed,
-                        use_embedding_assignment=use_embedding_assignment,
-                    ),
-                    timeout=300.0,
-                )
-                await update_pipeline_status(
-                    bg_db,
-                    trigger_id,
-                    "completed",
-                    result_metadata={
-                        "total_responses": result.get("total_responses", 0),
-                        "replay_hash": result.get("replay_hash"),
-                        "duration_sec": result.get("duration_sec"),
-                    },
-                )
-                logger.info(
-                    "cube5.pipeline.ai_theming.completed",
-                    extra={"trigger_id": str(trigger_id), "session_id": str(session_id)},
-                )
-            except asyncio.TimeoutError:
-                logger.error(
-                    "cube5.pipeline.ai_theming.timeout",
-                    extra={"trigger_id": str(trigger_id), "timeout_sec": 300},
-                )
-                try:
-                    await update_pipeline_status(
-                        bg_db, trigger_id, "failed", error_message="Pipeline timeout (300s)"
+                        trigger_id,
+                        "completed",
+                        result_metadata={
+                            "total_responses": result.get("total_responses", 0),
+                            "replay_hash": result.get("replay_hash"),
+                            "duration_sec": result.get("duration_sec"),
+                        },
                     )
-                except Exception:
-                    logger.exception("cube5.pipeline.status_update_failed")
-            except Exception as exc:
-                logger.error(
-                    "cube5.pipeline.ai_theming.failed",
-                    extra={"trigger_id": str(trigger_id), "error": str(exc)},
-                )
-                try:
-                    await update_pipeline_status(
-                        bg_db, trigger_id, "failed", error_message=str(exc)
+                    logger.info(
+                        "cube5.pipeline.ai_theming.completed",
+                        extra={"trigger_id": str(trigger_id), "session_id": str(session_id)},
                     )
-                except Exception:
-                    logger.exception("cube5.pipeline.status_update_failed")
+                    # Wire Cube 6→7: auto-trigger ranking after AI theming completes
+                    try:
+                        await trigger_ranking_pipeline(bg_db, session_id)
+                        logger.info(
+                            "cube5.pipeline.ranking.auto_triggered",
+                            extra={"session_id": str(session_id)},
+                        )
+                    except Exception as rank_err:
+                        logger.warning(
+                            "cube5.pipeline.ranking.auto_trigger_failed",
+                            extra={"error": str(rank_err)},
+                        )
+                except asyncio.TimeoutError:
+                    logger.error(
+                        "cube5.pipeline.ai_theming.timeout",
+                        extra={"trigger_id": str(trigger_id), "timeout_sec": 300},
+                    )
+                    await _retry_status_update(bg_db, trigger_id, "Pipeline timeout (300s)")
+                except Exception as exc:
+                    logger.error(
+                        "cube5.pipeline.ai_theming.failed",
+                        extra={"trigger_id": str(trigger_id), "error": str(exc)},
+                    )
+                    await _retry_status_update(bg_db, trigger_id, str(exc))
 
     asyncio.create_task(_run_pipeline_background(trigger.id))
     return trigger
+
+
+async def _retry_status_update(
+    db: AsyncSession,
+    trigger_id: uuid.UUID,
+    error_message: str,
+    max_retries: int = 3,
+) -> None:
+    """Retry pipeline status update with exponential backoff."""
+    for attempt in range(max_retries):
+        try:
+            await update_pipeline_status(db, trigger_id, "failed", error_message=error_message)
+            return
+        except Exception:
+            if attempt < max_retries - 1:
+                await asyncio.sleep(2 ** attempt)
+            else:
+                logger.exception("cube5.pipeline.status_update_exhausted")
 
 
 async def trigger_ranking_pipeline(

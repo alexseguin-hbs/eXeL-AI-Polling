@@ -27,6 +27,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.circuit_breaker import CircuitBreaker
 from app.cubes.cube3_voice.providers.azure_realtime import (
     AzureRealtimeSTT,
     RealtimeEvent,
@@ -34,6 +35,12 @@ from app.cubes.cube3_voice.providers.azure_realtime import (
 from app.cubes.cube3_voice.providers.aws_realtime import AWSRealtimeSTT
 
 logger = structlog.get_logger(__name__)
+
+# Circuit breaker for realtime STT providers (shared with batch path naming)
+_realtime_cb = CircuitBreaker(max_failures=3, cooldown_seconds=60.0, name="cube3_realtime")
+
+# WebSocket connection limiter — max concurrent realtime sessions
+_ws_connection_semaphore = asyncio.Semaphore(50)
 
 
 async def _check_payment_gate(
@@ -100,6 +107,35 @@ async def handle_realtime_transcription(
     await ws.accept()
     sid = str(session_id)
 
+    # --- 0. Connection rate limit ---
+    if _ws_connection_semaphore.locked():
+        await ws.send_json({
+            "type": "error",
+            "text": "Too many concurrent voice sessions. Please try again shortly.",
+            "code": "RATE_LIMITED",
+        })
+        await ws.close(code=4029, reason="Rate limited")
+        return
+    await _ws_connection_semaphore.acquire()
+
+    try:
+        await _handle_realtime_inner(ws, session_id, participant_id, question_id, language_code, db, redis)
+    finally:
+        _ws_connection_semaphore.release()
+
+
+async def _handle_realtime_inner(
+    ws: WebSocket,
+    session_id: uuid.UUID,
+    participant_id: uuid.UUID,
+    question_id: uuid.UUID,
+    language_code: str,
+    db,
+    redis,
+) -> None:
+    """Inner handler — runs under WebSocket connection semaphore."""
+    sid = str(session_id)
+
     # --- 1. Payment gate ---
     is_paid = await _check_payment_gate(db, session_id)
     if not is_paid:
@@ -133,18 +169,29 @@ async def handle_realtime_transcription(
 
     _STT_START_TIMEOUT = 10.0  # seconds — prevent hung provider on start
 
+    # Circuit breaker: skip providers in cooldown
     try:
-        stt = AzureRealtimeSTT(language_code=language_code, session_id=sid)
-        await asyncio.wait_for(stt.start(), timeout=_STT_START_TIMEOUT)
-        provider_name = "azure"
-    except (Exception, asyncio.TimeoutError) as e:
-        logger.warning("cube3.realtime.azure_failed", error=str(e))
-        # Circuit breaker: fallback to AWS
-        try:
-            stt = AWSRealtimeSTT(language_code=language_code, session_id=sid)
+        if not _realtime_cb.is_open("azure"):
+            stt = AzureRealtimeSTT(language_code=language_code, session_id=sid)
             await asyncio.wait_for(stt.start(), timeout=_STT_START_TIMEOUT)
-            provider_name = "aws"
+            _realtime_cb.record_success("azure")
+            provider_name = "azure"
+        else:
+            raise ConnectionError("Azure in circuit breaker cooldown")
+    except (Exception, asyncio.TimeoutError) as e:
+        _realtime_cb.record_failure("azure")
+        logger.warning("cube3.realtime.azure_failed", error=str(e))
+        # Fallback to AWS
+        try:
+            if not _realtime_cb.is_open("aws"):
+                stt = AWSRealtimeSTT(language_code=language_code, session_id=sid)
+                await asyncio.wait_for(stt.start(), timeout=_STT_START_TIMEOUT)
+                _realtime_cb.record_success("aws")
+                provider_name = "aws"
+            else:
+                raise ConnectionError("AWS in circuit breaker cooldown")
         except (Exception, asyncio.TimeoutError) as e2:
+            _realtime_cb.record_failure("aws")
             logger.error("cube3.realtime.all_providers_failed", error=str(e2))
             await ws.send_json({
                 "type": "error",

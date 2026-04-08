@@ -195,6 +195,20 @@ class TestSummaryStatus:
 # ---------------------------------------------------------------------------
 
 
+def _empty_scalars():
+    """Mock result with empty scalars().all() for batch-load queries."""
+    r = MagicMock()
+    r.scalars.return_value.all.return_value = []
+    return r
+
+
+def _scalars_with(items):
+    """Mock result with given items in scalars().all()."""
+    r = MagicMock()
+    r.scalars.return_value.all.return_value = items
+    return r
+
+
 class TestCollectedResponses:
     @pytest.mark.asyncio
     async def test_empty_session(self):
@@ -207,7 +221,8 @@ class TestCollectedResponses:
         query_result = MagicMock()
         query_result.all.return_value = []
 
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
+        # count + rows + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, _empty_scalars()])
 
         result = await get_collected_responses(mock_db, uuid.uuid4())
         assert result["total"] == 0
@@ -232,7 +247,8 @@ class TestCollectedResponses:
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
+        # count + rows + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, _empty_scalars()])
 
         result = await get_collected_responses(mock_db, session_id)
         assert result["total"] == 1
@@ -260,6 +276,7 @@ class TestCollectedResponses:
         participant = make_participant(session_id=session_id)
 
         summary_row = MagicMock()
+        summary_row.response_meta_id = meta.id
         summary_row.summary_333 = "Long summary about governance"
         summary_row.summary_111 = "Medium summary"
         summary_row.summary_33 = "Short summary"
@@ -269,9 +286,10 @@ class TestCollectedResponses:
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
-        summary_result = MagicMock()
-        summary_result.scalar_one_or_none.return_value = summary_row
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, summary_result])
+        # count + rows + summary batch + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[
+            count_result, query_result, _scalars_with([summary_row]), _empty_scalars(),
+        ])
 
         result = await get_collected_responses(
             mock_db, session_id, include_summaries=True
@@ -292,6 +310,7 @@ class TestCollectedResponses:
         participant = make_participant(session_id=session_id)
 
         summary_row = MagicMock()
+        summary_row.response_meta_id = meta.id
         summary_row.theme01 = "Risk & Concerns"
         summary_row.theme01_confidence = 92
         summary_row.theme2_9 = "Privacy Data Concerns Regulation Needed"
@@ -306,9 +325,10 @@ class TestCollectedResponses:
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
-        summary_result = MagicMock()
-        summary_result.scalar_one_or_none.return_value = summary_row
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, summary_result])
+        # count + rows + summary batch + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[
+            count_result, query_result, _scalars_with([summary_row]), _empty_scalars(),
+        ])
 
         result = await get_collected_responses(
             mock_db, session_id, include_themes=True
@@ -334,7 +354,8 @@ class TestCollectedResponses:
         count_result.scalar.return_value = 1
         query_result = MagicMock()
         query_result.all.return_value = [(meta, question, participant)]
-        mock_db.execute = AsyncMock(side_effect=[count_result, query_result])
+        # count + rows + text_resp batch
+        mock_db.execute = AsyncMock(side_effect=[count_result, query_result, _empty_scalars()])
 
         result = await get_collected_responses(mock_db, session_id)
         item = result["items"][0]
@@ -371,6 +392,7 @@ class TestSingleResponse:
         participant = make_participant(session_id=session_id)
 
         summary_row = MagicMock()
+        summary_row.response_meta_id = meta.id
         summary_row.summary_333 = "Long summary"
         summary_row.summary_111 = "Medium summary"
         summary_row.summary_33 = "Short summary"
@@ -386,9 +408,12 @@ class TestSingleResponse:
         mock_db = AsyncMock()
         row_result = MagicMock()
         row_result.one_or_none.return_value = (meta, question, participant)
+        text_resp_result = MagicMock()
+        text_resp_result.scalar_one_or_none.return_value = None
         summary_result = MagicMock()
         summary_result.scalar_one_or_none.return_value = summary_row
-        mock_db.execute = AsyncMock(side_effect=[row_result, summary_result])
+        # row + text_resp + summary
+        mock_db.execute = AsyncMock(side_effect=[row_result, text_resp_result, summary_result])
 
         result = await get_single_response(mock_db, session_id, meta.id)
         assert result is not None

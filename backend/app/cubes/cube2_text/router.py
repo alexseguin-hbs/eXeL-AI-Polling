@@ -62,7 +62,9 @@ async def submit_response(
 
 
 @router.get("", response_model=PaginatedResponseList)
+@limiter.limit("200/minute")
 async def list_responses(
+    request: Request,
     session_id: uuid.UUID,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
@@ -77,7 +79,9 @@ async def list_responses(
 
 
 @router.get("/metrics")
+@limiter.limit("60/minute")
 async def get_metrics(
+    request: Request,
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
@@ -87,7 +91,9 @@ async def get_metrics(
 
 
 @router.get("/{response_id}", response_model=TextResponseDetail)
+@limiter.limit("200/minute")
 async def get_response(
+    request: Request,
     session_id: uuid.UUID,
     response_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
