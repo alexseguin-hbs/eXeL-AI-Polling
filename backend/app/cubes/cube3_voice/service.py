@@ -482,6 +482,7 @@ async def submit_voice_response(
                 language_code=stt_result.language_detected,
                 ai_provider=session.ai_provider or "openai",
                 session_short_code=session.short_code,
+                live_feed_enabled=getattr(session, "live_feed_enabled", True),
                 source="voice",
             )
         )

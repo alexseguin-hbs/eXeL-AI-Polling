@@ -345,6 +345,12 @@ class TestPIIScrubbing:
 
 
 class TestProfanityDetection:
+    def setup_method(self):
+        """Clear profanity caches between tests to prevent cross-test pollution."""
+        from app.cubes.cube2_text.service import _profanity_pattern_cache, _profanity_query_cache
+        _profanity_pattern_cache.clear()
+        _profanity_query_cache.clear()
+
     @pytest.mark.asyncio
     async def test_no_profanity_filters(self):
         """Should return empty list when no filters exist."""

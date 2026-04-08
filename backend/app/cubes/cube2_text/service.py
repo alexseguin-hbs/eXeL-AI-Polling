@@ -201,8 +201,10 @@ def scrub_pii(text: str, detections: list[dict]) -> str:
 # 3. Profanity Detection & Scrubbing
 # ---------------------------------------------------------------------------
 
-# Compiled regex cache: {(language_code, filter_id) -> compiled Pattern | None}
+# Profanity cache: compiled patterns + DB query results with TTL
 _profanity_pattern_cache: dict[tuple[str, str], re.Pattern | None] = {}
+_profanity_query_cache: dict[str, tuple[float, list]] = {}  # lang -> (timestamp, filters)
+_PROFANITY_CACHE_TTL = 60.0  # seconds — avoid DB hit on every submission
 
 
 async def detect_profanity(
@@ -214,28 +216,41 @@ async def detect_profanity(
 
     Non-blocking: profanity is flagged but submission goes through.
     Returns list of matched profanity entries with positions.
-    Compiled patterns cached to avoid re-compilation on every submission.
+    DB query results cached with 60s TTL; compiled patterns cached indefinitely.
     """
-    result = await db.execute(
-        select(ProfanityFilter).where(
-            ProfanityFilter.language_code == language_code,
-            ProfanityFilter.is_active.is_(True),
+    import time
+    now = time.monotonic()
+
+    # Check DB query cache first (60s TTL avoids DB hit per submission)
+    cached = _profanity_query_cache.get(language_code)
+    if cached and (now - cached[0]) < _PROFANITY_CACHE_TTL:
+        filters = cached[1]
+    else:
+        result = await db.execute(
+            select(ProfanityFilter).where(
+                ProfanityFilter.language_code == language_code,
+                ProfanityFilter.is_active.is_(True),
+            )
         )
-    )
-    filters = list(result.scalars().all())
+        raw_filters = list(result.scalars().all())
+        filters = [
+            {"id": str(pf.id), "pattern": pf.pattern, "severity": pf.severity, "replacement": pf.replacement}
+            for pf in raw_filters
+        ]
+        _profanity_query_cache[language_code] = (now, filters)
 
     matches: list[dict] = []
     for pf in filters:
-        cache_key = (language_code, str(pf.id))
+        cache_key = (language_code, pf["id"])
         if cache_key not in _profanity_pattern_cache:
             try:
-                _profanity_pattern_cache[cache_key] = re.compile(pf.pattern, re.IGNORECASE)
+                _profanity_pattern_cache[cache_key] = re.compile(pf["pattern"], re.IGNORECASE)
             except re.error:
                 _profanity_pattern_cache[cache_key] = None
                 logger.warning(
                     "cube2.profanity_filter.invalid_regex",
-                    filter_id=str(pf.id),
-                    pattern=pf.pattern,
+                    filter_id=pf["id"],
+                    pattern=pf["pattern"],
                 )
 
         compiled = _profanity_pattern_cache[cache_key]
@@ -245,10 +260,10 @@ async def detect_profanity(
         for match in compiled.finditer(text):
             matches.append({
                 "word": match.group(),
-                "severity": pf.severity,
+                "severity": pf["severity"],
                 "position": match.start(),
-                "replacement": pf.replacement,
-                "filter_id": str(pf.id),
+                "replacement": pf["replacement"],
+                "filter_id": pf["id"],
             })
     return matches
 
@@ -476,11 +491,36 @@ async def submit_text_response(
     await validate_question(db, question_id, session_id)
     participant = await validate_participant(db, participant_id, session_id)
 
-    # --- 2. Validate text input + concurrency cap ---
+    # --- 2. Validate text input ---
     text = validate_text_input(raw_text, session.max_response_length)
-    sem = _text_semaphore_pool.get(session_id)
-    await sem.acquire()  # Released after store completes
 
+    # Concurrency cap: limit parallel submissions per session
+    sem = _text_semaphore_pool.get(session_id)
+    await sem.acquire()
+    try:
+        return await _submit_text_inner(
+            db, redis, session, text,
+            session_id=session_id,
+            question_id=question_id,
+            participant_id=participant_id,
+            language_code=language_code,
+        )
+    finally:
+        sem.release()
+
+
+async def _submit_text_inner(
+    db: AsyncSession,
+    redis: Redis,
+    session,
+    text: str,
+    *,
+    session_id: uuid.UUID,
+    question_id: uuid.UUID,
+    participant_id: uuid.UUID,
+    language_code: str,
+) -> dict:
+    """Inner submission logic — runs under semaphore protection."""
     # --- 2b. Language sanity check (non-blocking) ---
     if not detect_language(text, language_code):
         logger.warning(
@@ -529,8 +569,6 @@ async def submit_text_response(
         clean_text=clean_text,
     )
 
-    sem.release()  # Concurrency cap released after store
-
     # --- 7. Stop time tracking, calculate tokens ---
     time_entry = await stop_time_tracking(
         db,
@@ -570,6 +608,7 @@ async def submit_text_response(
                 language_code=language_code,
                 ai_provider=session.ai_provider or "openai",
                 session_short_code=session.short_code,
+                live_feed_enabled=getattr(session, "live_feed_enabled", True),
                 source="text",
             )
         )

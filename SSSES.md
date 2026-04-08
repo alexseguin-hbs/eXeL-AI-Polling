@@ -80,7 +80,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall |
 |------|----------|-----------|-------------|------------|--------------|---------|
 | 1 Session | 100 | 100 | 100 | 100 | 100 | **100** |
-| 2 Text | 90 | 50 | 60 | 55 | 80 | **67** |
+| 2 Text | 95 | 85 | 85 | 90 | 90 | **89** |
 | 3 Voice | 100 | 100 | 100 | 100 | 100 | **100** |
 | 4 Collector | 85 | 85 | 80 | 80 | 80 | **82** |
 | 5 Gateway | 85 | 80 | 85 | 85 | 90 | **85** |
@@ -105,13 +105,13 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 **Critical path (Stability — Cubes 2, 3, 6):**
 - ~~`summary_ready` Supabase broadcast never sent after Cube 6 Phase A~~ **RESOLVED (2026-03-30):** `broadcast_event("summary_ready")` implemented in `cube6_ai/service.py` lines 203-213 (Task A5). **Remaining:** Dashboard `summary_ready` listener (Task A6) still needed.
 - `themes_ready` Supabase broadcast never sent after Phase B — dashboard has no signal to transition to results view (Task B4)
-- Phase A has no retry on AI failure — silent log warning only (Task A2)
+- ~~Phase A has no retry on AI failure — silent log warning only (Task A2)~~ **RESOLVED (2026-04-08):** Exponential backoff retry (3 attempts: 1s/2s/4s) in `core/phase_a_retry.py`; fallback marker `[Summary unavailable]` stored on exhaustion
 - Phase B has never been run E2E against a live 5000-response dataset (Task B1)
 - `_store_results()` has no error handling around `response_summaries` table write — partial failure leaves pipeline in inconsistent state (Task C6-5)
 - `_assign_themes_llm()` uses manual index tracking — `batch_summarize()` count mismatch causes IndexError (Task C6-6)
 
 **Scalability — Cubes 5, 6:**
-- No `asyncio.Semaphore(10)` concurrency cap on Phase A — 100 concurrent submits spawn 100 uncapped AI calls (Task A3)
+- ~~No `asyncio.Semaphore(10)` concurrency cap on Phase A — 100 concurrent submits spawn 100 uncapped AI calls (Task A3)~~ **RESOLVED (2026-04-08):** `SessionSemaphorePool(50)` in `cube2_text/service.py` + per-session `asyncio.Semaphore(10)` in `cube6_ai/service.py`
 - No timeout on AI API calls in Cube 6 — hung provider blocks entire pipeline forever (Task C6-4)
 - No timeout on background pipeline task in Cube 5 — hung `run_pipeline()` leaves trigger `in_progress` permanently (Task C5-3)
 - Phase B parallel batch classification unverified at 5000-response scale (Task B3)
@@ -123,9 +123,9 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 - ~~Cube 4 anonymous user label uses 8-char UUID prefix (collision risk at scale) instead of SHA-256 `anon_hash` (Task C4-4)~~ **RESOLVED (2026-04-07):** SHA-256 anon_hash (12-char hex) implemented in `cube4_collector/service.py` lines 127, 225
 
 **Efficiency / Succinctness — Cubes 2, 3, 6:**
-- `summarize_single_response()` makes 3 sequential AI round-trips; single structured JSON prompt would halve round-trips (Task A1)
-- No short-circuit for ≤33-word responses — AI call wasted on text already at target length (Task A0)
-- `ResponseRead` schema missing `summary_33` field — frontend type-asserts it but always gets `undefined`; must add to schema (Task A4 / C6-8)
+- ~~`summarize_single_response()` makes 3 sequential AI round-trips; single structured JSON prompt would halve round-trips (Task A1)~~ **RESOLVED (2026-04-08):** Single-prompt summarization in `cube6_ai/service.py`; medium text (34–333 words) = 1 call, long text (>333) = 2 calls max
+- ~~No short-circuit for ≤33-word responses — AI call wasted on text already at target length (Task A0)~~ **RESOLVED (2026-04-08):** Short-circuit in both `core/phase_a_retry.py` and `cube6_ai/service.py`; ≤33-word text copied directly to all summary tiers
+- ~~`ResponseRead` schema missing `summary_33` field — frontend type-asserts it but always gets `undefined`; must add to schema (Task A4 / C6-8)~~ **RESOLVED (2026-04-08):** `summary_33` field added to `ResponseRead`, `ResponseListItem`, `TextResponseDetail` in `schemas/response.py`
 
 **Stability — Cubes 4, 5:**
 - Background task failure on `asyncio.create_task(run_pipeline())` silently absorbed — `PipelineTrigger.status` stuck at `in_progress` forever (Task C5-1 / B5)

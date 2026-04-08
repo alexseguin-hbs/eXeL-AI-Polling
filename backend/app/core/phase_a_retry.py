@@ -29,6 +29,7 @@ async def run_phase_a_with_retry(
     language_code: str,
     ai_provider: str,
     session_short_code: str = "",
+    live_feed_enabled: bool = True,
     source: str = "text",
     max_retries: int = 3,
 ) -> None:
@@ -43,6 +44,7 @@ async def run_phase_a_with_retry(
         language_code: ISO language code.
         ai_provider: AI provider name (openai/grok/gemini).
         session_short_code: Session short code for broadcast channel.
+        live_feed_enabled: A5.02 — only broadcast when moderator enabled live feed.
         source: "text" or "voice" — for log context.
         max_retries: Max retry attempts before fallback.
     """
@@ -76,7 +78,8 @@ async def run_phase_a_with_retry(
                 summary_111=clean_text,
                 summary_333=clean_text,
             )
-        await _broadcast_summary(session_short_code, response_id, clean_text)
+        if live_feed_enabled:
+            await _broadcast_summary(session_short_code, response_id, clean_text)
         return
 
     # Standard path: call Cube 6 AI summarization with retry
@@ -101,7 +104,8 @@ async def run_phase_a_with_retry(
                     )
                 )
                 summary_33 = result.scalar_one_or_none() or ""
-                await _broadcast_summary(session_short_code, response_id, summary_33)
+                if live_feed_enabled:
+                    await _broadcast_summary(session_short_code, response_id, summary_33)
                 return
             except Exception as exc:
                 wait = 2 ** attempt
