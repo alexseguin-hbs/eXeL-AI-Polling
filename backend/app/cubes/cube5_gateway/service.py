@@ -175,7 +175,15 @@ async def stop_time_tracking(
         )
         db.add(ledger)
 
-    await db.commit()
+    try:
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        logger.error("cube5.time_tracking.commit_failed", error=str(e), entry_id=str(time_entry_id))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save time tracking data",
+        )
     await db.refresh(entry)
     return entry
 

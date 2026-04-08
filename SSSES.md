@@ -83,7 +83,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | 2 Text | 98 | 95 | 93 | 92 | 90 | **94** |
 | 3 Voice | 88 | 90 | 90 | 85 | 78 | **86** |
 | 4 Collector | 92 | 85 | 82 | 88 | 85 | **86** |
-| 5 Gateway | 90 | 85 | 88 | 85 | 90 | **88** |
+| 5 Gateway | 90 | 88 | 88 | 85 | 93 | **89** |
 | 6 AI Pipeline | 82 | 78 | 65 | 62 | 80 | **73** |
 | 7 Ranking | 20 | 10 | 15 | 15 | 50 | **22** |
 | 8 Tokens | 45 | 40 | 35 | 45 | 60 | **45** |
