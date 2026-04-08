@@ -52,12 +52,12 @@ async def start_time_tracking(
     Called when user begins responding or ranking.
     ♡ = floor(active_minutes), 웃 = 0, ◬ = 5x ♡.
     """
-    # Use user_id as participant_id fallback for now
-    participant_id_str = user.user_id if user else str(session_id)
+    # Resolve participant_id from authenticated user, fallback to session_id for internal calls
+    participant_id = uuid.UUID(user.user_id) if user else session_id
     entry = await service.start_time_tracking(
         db,
         session_id=session_id,
-        participant_id=session_id,  # Will be resolved by caller with real participant_id
+        participant_id=participant_id,
         action_type=payload.action_type,
         reference_id=payload.reference_id,
     )
@@ -72,6 +72,7 @@ async def stop_time_tracking(
     session_id: uuid.UUID,
     payload: TimeEntryStop,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """Stop tracking active participation time.
 
@@ -93,6 +94,7 @@ async def get_time_summary(
     session_id: uuid.UUID,
     participant_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """Get total active time and ♡ 웃 ◬ tokens for a participant."""
     summary = await service.get_participant_time_summary(
