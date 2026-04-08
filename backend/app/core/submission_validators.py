@@ -1,7 +1,7 @@
-"""Shared submission validators — used by Cube 2 (Text) and Cube 3 (Voice).
+"""Shared submission validators — used by Cubes 2, 3, and 4.
 
-Extracted from cube2_text/service.py for modularity. Both cubes validate
-the same preconditions before accepting a response: session must be polling,
+Extracted for modularity. All cubes validate common preconditions:
+session must exist (anti-enumeration), session must be polling (for submissions),
 question must belong to session, participant must be active.
 
 Cube 10 checkout contract: Any cube replacement must preserve these function
@@ -23,6 +23,22 @@ from app.core.exceptions import (
 from app.models.participant import Participant
 from app.models.question import Question
 from app.models.session import Session
+
+
+async def validate_session_exists(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+) -> None:
+    """Validate session exists — prevents UUID enumeration on read endpoints.
+
+    Used by Cubes 3, 4 (and any future cube) on read endpoints.
+    Lighter than validate_session_for_submission (no status check).
+    """
+    result = await db.execute(
+        select(Session.id).where(Session.id == session_id)
+    )
+    if result.scalar_one_or_none() is None:
+        raise SessionNotFoundError(str(session_id))
 
 
 async def validate_session_for_submission(

@@ -46,10 +46,10 @@
 | CRS-09.03 | CRS-09.03.IN | CRS-09.03.OUT | **IMPLEMENTED — Task A5.03** | Supabase broadcast on aggregation completion for live feed push (`cube6_ai/service.py` lines 203-213, `broadcast_event("summary_ready")`) | `summary_ready` broadcast received by all subscribed clients within 100ms of Phase A completion; event payload contains session_id + response_id |
 | CRS-09.04 | CRS-09.04.IN | CRS-09.04.OUT | **Complete** | Web_Results format with native language column | 6-column output includes native_language; language_code validated against 33-language enum; null native_language defaults to response_language |
 | CRS-09.05 | CRS-09.05.IN | CRS-09.05.OUT | **Complete** | Live summary status tracking (PostgreSQL `response_summaries` table) | `response_summaries` row count matches total responses; summary_status endpoint returns {total, summarized, pending} within 50ms |
-| CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Partial** | Full desired outcome collection | Desired outcome created with all required fields (description, time_estimate_minutes, created_by); confirmation gate opens when all_confirmed = true |
-| CRS-10.01 | CRS-10.01.IN | CRS-10.01.OUT | **Not implemented** | Desired outcome creation — `create_desired_outcome()`, `record_confirmation()` (Methods 2 & 3) | `desired_outcomes` row created with non-null description + time_estimate_minutes; `record_confirmation()` appends participant_id to confirmed_by JSONB array idempotently |
-| CRS-10.02 | CRS-10.02.IN | CRS-10.02.OUT | **Not implemented** | All-confirmed gate signal → Cube 5 timer trigger (`check_all_confirmed()` → `gate_opened_at`) | `check_all_confirmed()` returns true when confirmed_by length equals required_participants length; gate_opened_at timestamp written within 100ms of final confirmation |
-| CRS-10.03 | CRS-10.03.IN | CRS-10.03.OUT | **Not implemented** | Post-task results log (`log_post_task_results()`, `assessed_by`, `outcome_status`) | `results_log` non-null text stored; `outcome_status` set to one of 3 valid ENUM values; `assessed_by` contains at least 1 participant_id |
+| CRS-10 | CRS-10.IN.SRS.010 | CRS-10.OUT.SRS.010 | **Complete** (Phase 3) | Full desired outcome collection | Desired outcome created with all required fields; confirmation gate opens when all_confirmed = true |
+| CRS-10.01 | CRS-10.01.IN | CRS-10.01.OUT | **Complete** (Phase 3) | `create_desired_outcome()` + `record_confirmation()` — Methods 2 & 3 | `desired_outcomes` row created; `record_confirmation()` appends to confirmed_by JSONB idempotently; 4 API endpoints |
+| CRS-10.02 | CRS-10.02.IN | CRS-10.02.OUT | **Complete** (Phase 3) | `check_all_confirmed()` — gate signal → Cube 5 timer | Returns true when confirmed_by length >= required_count; sets all_confirmed=True |
+| CRS-10.03 | CRS-10.03.IN | CRS-10.03.OUT | **Complete** (Phase 3) | `log_post_task_results()` — stores results + assessment | `results_log` text stored; `outcome_status` validated against 4 ENUM values; `assessed_by` JSONB array |
 
 ### Cube 4 — Test Procedure (Cube 10 Simulator Reference)
 
@@ -58,11 +58,11 @@
 cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 14 test classes, 27 tests (21 original + 6 from Phase 1)
+**Test Suite:** 2 files, 18 test classes, 35 tests (21 original + 6 Phase 1 + 8 Phase 3)
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_collector_service.py` | 9 | 21 | Unit tests (count, languages, presence, summaries, collected, single, anon hash, session validation, optimized count) |
+| `test_collector_service.py` | 13 | 29 | Unit tests (count, languages, presence, summaries, collected, single, anon hash, session validation, optimized count, CRS-10: create/confirm/check/results) |
 | `test_e2e_flows.py` | 5 | 6 | E2E flows (collection, multi-language, anonymous, pagination, voice) |
 
 ### Cube 4 — Files
@@ -142,10 +142,10 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 | `store_raw_response()` | **Implemented** | Writes raw response payload to ResponseMeta.raw_text (PostgreSQL) |
 | `cache_response_state()` | **Implemented** | Updates Redis with live response count |
 | `track_presence()` | **Implemented** | Processes heartbeat pings, updates presence |
-| `create_desired_outcome()` | Not implemented | Creates desired outcome record (Methods 2 & 3) |
-| `record_confirmation()` | Not implemented | Records participant's confirmation |
-| `check_all_confirmed()` | Not implemented | Returns true when all confirmed |
-| `log_post_task_results()` | Not implemented | Stores post-task results and assessment |
+| `create_desired_outcome()` | **Implemented** (Phase 3) | Creates desired outcome with description + time estimate (CRS-10.01) |
+| `record_confirmation()` | **Implemented** (Phase 3) | Idempotent JSONB append of participant confirmation (CRS-10.01) |
+| `check_all_confirmed()` | **Implemented** (Phase 3) | Gate signal when confirmed_by >= required_count (CRS-10.02) |
+| `log_post_task_results()` | **Implemented** (Phase 3) | Stores results_log + outcome_status + assessed_by (CRS-10.03) |
 | `get_response_set()` | **Implemented** | Returns full collected response set for Cube 6 |
 | `get_presence_count()` | **Implemented** | Returns current online participant count |
 

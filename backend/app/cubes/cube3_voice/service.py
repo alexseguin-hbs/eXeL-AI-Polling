@@ -36,6 +36,7 @@ from app.core.exceptions import ResponseValidationError
 from app.core.submission_validators import (
     validate_participant,
     validate_question,
+    validate_session_exists,
     validate_session_for_submission,
 )
 from app.core.text_pipeline import run_text_pipeline
@@ -73,25 +74,7 @@ def _get_session_semaphore(session_id: uuid.UUID) -> asyncio.Semaphore:
     return _session_semaphores[key]
 
 
-# ---------------------------------------------------------------------------
-# 0. Session Validation (CRS-08 anti-enumeration)
-# ---------------------------------------------------------------------------
-
-
-async def validate_session_exists(
-    db: AsyncSession,
-    session_id: uuid.UUID,
-) -> None:
-    """Validate session exists — prevents UUID enumeration on read endpoints."""
-    from app.models.session import Session
-
-    result = await db.execute(
-        select(Session.id).where(Session.id == session_id)
-    )
-    if result.scalar_one_or_none() is None:
-        from app.core.exceptions import SessionNotFoundError
-        raise SessionNotFoundError(str(session_id))
-
+# NOTE: validate_session_exists() now in core/submission_validators.py (shared Cubes 2-4)
 
 # ---------------------------------------------------------------------------
 # 1. STT Provider Selection

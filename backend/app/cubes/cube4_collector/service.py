@@ -22,6 +22,8 @@ from redis.asyncio import Redis
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.submission_validators import validate_session_exists  # noqa: F401 — re-exported for router
+
 from app.models.participant import Participant
 from app.models.question import Question
 from app.models.response_meta import ResponseMeta
@@ -33,23 +35,7 @@ from app.models.voice_response import VoiceResponse
 logger = structlog.get_logger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# 0. Session Validation (CRS-09 anti-enumeration)
-# ---------------------------------------------------------------------------
-
-
-async def validate_session_exists(
-    db: AsyncSession,
-    session_id: uuid.UUID,
-) -> None:
-    """Validate session exists — prevents UUID enumeration on read endpoints."""
-    result = await db.execute(
-        select(Session.id).where(Session.id == session_id)
-    )
-    if result.scalar_one_or_none() is None:
-        from app.core.exceptions import SessionNotFoundError
-        raise SessionNotFoundError(str(session_id))
-
+# NOTE: validate_session_exists() now in core/submission_validators.py (shared Cubes 2-4)
 
 # ---------------------------------------------------------------------------
 # 1. Collected Response Format (Web_Results-compatible)
