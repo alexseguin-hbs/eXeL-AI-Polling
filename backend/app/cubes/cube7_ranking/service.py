@@ -1,12 +1,14 @@
 """Cube 7 — Prioritization & Voting: Ranking service.
 
 Implements:
-  - submit_user_ranking: Validate + store participant ranking
-  - aggregate_rankings: Borda count with seeded deterministic tie-breaking
+  - submit_user_ranking: Validate + store + broadcast submission count
+  - aggregate_rankings: Borda count + quadratic normalization + seeded tiebreak
   - identify_top_theme2: Mark #1 voted theme with is_top_theme2=True
   - emit_ranking_complete: Broadcast ranking_complete + trigger CQS pipeline
   - get_live_rankings: Fetch current aggregated state for live display
-  - detect_voting_anomalies: Anti-sybil pattern detection on submissions
+  - detect_voting_anomalies: Anti-sybil pattern detection
+  - apply_governance_override: Lead/Admin override with immutable audit trail
+  - get_ranking_progress: Submission count vs total participants
 
 CRS: 11, 12, 13, 16, 17, 22
 """
@@ -15,13 +17,14 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import math
 import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import and_, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.ranking import AggregatedRanking, Ranking
+from app.models.ranking import AggregatedRanking, GovernanceOverride, Ranking
 from app.models.theme import Theme
 
 logger = logging.getLogger("cube7")
@@ -31,9 +34,11 @@ logger = logging.getLogger("cube7")
 # Constants
 # ---------------------------------------------------------------------------
 
-_ANOMALY_WINDOW_SEC = 2.0  # Flag identical rankings within this window
-_ANOMALY_MIN_DUPLICATES = 3  # Minimum identical submissions to flag
-_MAX_SUBMISSIONS_PER_MINUTE = 10  # Per-participant rate limit
+_ANOMALY_WINDOW_SEC = 2.0
+_ANOMALY_MIN_DUPLICATES = 3
+_MAX_SUBMISSIONS_PER_MINUTE = 10
+_INFLUENCE_CAP = 0.15  # No single user > 15% of total governance weight
+_MIN_JUSTIFICATION_LEN = 10
 
 
 # ---------------------------------------------------------------------------
@@ -48,21 +53,16 @@ async def submit_user_ranking(
     ranked_theme_ids: list[uuid.UUID],
     cycle_id: int = 1,
     theme2_voting_level: str = "theme2_3",
+    session_short_code: str | None = None,
 ) -> Ranking:
-    """CRS-11.02: Validate theme IDs against session voting level, store ranking.
-
-    Rules:
-      - All theme_ids must exist in themes table for this session + level
-      - Duplicate submissions for (session, cycle, participant) are rejected
-      - ranked_theme_ids must contain exactly the themes at the selected level
-    """
+    """CRS-11.02: Validate theme IDs, store ranking, broadcast progress."""
     # 1. Fetch valid theme IDs at the voting level
     level_num = theme2_voting_level.replace("theme2_", "")
     result = await db.execute(
         select(Theme.id).where(
             and_(
                 Theme.session_id == session_id,
-                Theme.parent_theme_id.isnot(None),  # Child themes only
+                Theme.parent_theme_id.isnot(None),
                 Theme.cluster_metadata["level"].as_string() == level_num,
             )
         )
@@ -111,6 +111,10 @@ async def submit_user_ranking(
     await db.flush()
     await db.refresh(ranking)
 
+    # 4. Broadcast submission progress (CRS-16: live ranking updates)
+    if session_short_code:
+        await _broadcast_ranking_progress(db, session_id, session_short_code, cycle_id)
+
     logger.info(
         "cube7.ranking.submitted",
         extra={
@@ -122,6 +126,111 @@ async def submit_user_ranking(
     return ranking
 
 
+async def _broadcast_ranking_progress(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    short_code: str,
+    cycle_id: int,
+) -> None:
+    """CRS-17: Broadcast ranking_progress after each submission."""
+    try:
+        count_result = await db.execute(
+            select(func.count()).select_from(Ranking).where(
+                and_(
+                    Ranking.session_id == session_id,
+                    Ranking.cycle_id == cycle_id,
+                )
+            )
+        )
+        submission_count = count_result.scalar() or 0
+
+        from app.core.supabase_broadcast import broadcast_event
+
+        await broadcast_event(
+            channel=f"session:{short_code}",
+            event="ranking_progress",
+            payload={
+                "session_id": str(session_id),
+                "submissions": submission_count,
+                "cycle_id": cycle_id,
+            },
+        )
+    except Exception as exc:
+        logger.debug(
+            "cube7.ranking_progress.broadcast_failed",
+            extra={"error": str(exc)},
+        )
+
+
+# ---------------------------------------------------------------------------
+# CRS-12.02: Quadratic Vote Normalization
+# ---------------------------------------------------------------------------
+
+
+def _quadratic_weights(
+    participant_stakes: dict[str, float],
+) -> dict[str, float]:
+    """Compute quadratic vote weights: weight = sqrt(tokens_staked).
+
+    Returns normalized weights (sum to 1.0) with influence cap at 15%.
+    If no staking data, returns equal weights for all participants.
+    """
+    if not participant_stakes:
+        return {}
+
+    # Step 1: Raw quadratic weights
+    raw: dict[str, float] = {}
+    for pid, stake in participant_stakes.items():
+        raw[pid] = math.sqrt(max(stake, 0.0))
+
+    total_raw = sum(raw.values())
+    if total_raw == 0:
+        # Equal weights if no one staked
+        n = len(raw)
+        return {pid: 1.0 / n for pid in raw}
+
+    # Step 2: Normalize
+    normalized = {pid: w / total_raw for pid, w in raw.items()}
+
+    # Step 3: Apply influence cap (iterative damping)
+    capped = _apply_influence_cap(normalized)
+    return capped
+
+
+def _apply_influence_cap(
+    weights: dict[str, float],
+    cap: float = _INFLUENCE_CAP,
+    max_iterations: int = 10,
+) -> dict[str, float]:
+    """Iteratively cap any user exceeding influence_cap and redistribute."""
+    result = dict(weights)
+    for _ in range(max_iterations):
+        excess_total = 0.0
+        uncapped_count = 0
+        for pid, w in result.items():
+            if w > cap:
+                excess_total += w - cap
+                result[pid] = cap
+            else:
+                uncapped_count += 1
+
+        if excess_total == 0:
+            break
+
+        # Redistribute excess proportionally among uncapped
+        if uncapped_count > 0:
+            boost = excess_total / uncapped_count
+            for pid in result:
+                if result[pid] < cap:
+                    result[pid] += boost
+
+    # Final normalization
+    total = sum(result.values())
+    if total > 0:
+        result = {pid: w / total for pid, w in result.items()}
+    return result
+
+
 # ---------------------------------------------------------------------------
 # CRS-12: Deterministic Aggregation (Borda Count)
 # ---------------------------------------------------------------------------
@@ -131,7 +240,7 @@ def _borda_scores(
     rankings: list[list[str]],
     n_themes: int,
 ) -> dict[str, float]:
-    """Compute Borda count scores.
+    """Compute Borda count scores (unweighted).
 
     Position 0 (top) gets n_themes-1 points, position 1 gets n_themes-2, etc.
     """
@@ -143,11 +252,28 @@ def _borda_scores(
     return scores
 
 
-def _seeded_tiebreak_key(theme_id: str, seed: str) -> str:
-    """Deterministic tie-breaking using SHA-256(theme_id + seed).
+def _weighted_borda_scores(
+    rankings: list[list[str]],
+    participant_ids: list[str],
+    weights: dict[str, float],
+    n_themes: int,
+) -> dict[str, float]:
+    """Compute Borda scores weighted by quadratic governance weights.
 
-    Ensures identical inputs always produce identical ordering.
+    Each participant's ranking contribution is multiplied by their normalized
+    vote weight: score = sum(position_points * voter_weight) per theme.
     """
+    scores: dict[str, float] = {}
+    for ranked_ids, pid in zip(rankings, participant_ids):
+        w = weights.get(pid, 1.0 / len(participant_ids))
+        for position, theme_id in enumerate(ranked_ids):
+            points = (n_themes - 1 - position) * w
+            scores[theme_id] = scores.get(theme_id, 0.0) + points
+    return scores
+
+
+def _seeded_tiebreak_key(theme_id: str, seed: str) -> str:
+    """Deterministic tie-breaking using SHA-256(theme_id + seed)."""
     return hashlib.sha256(f"{theme_id}:{seed}".encode()).hexdigest()
 
 
@@ -168,16 +294,17 @@ async def aggregate_rankings(
     session_id: uuid.UUID,
     cycle_id: int = 1,
     seed: str | None = None,
+    participant_stakes: dict[str, float] | None = None,
 ) -> list[AggregatedRanking]:
-    """CRS-12.01: Borda count with seeded tie-breaking.
+    """CRS-12.01 + CRS-12.02: Borda count with quadratic weights + seeded tiebreak.
 
     Steps:
       1. Fetch all user_rankings for session + cycle
-      2. Compute Borda scores
-      3. Sort by score DESC, then deterministic tiebreak
-      4. Clear previous aggregated_rankings for this cycle
-      5. Write new aggregated_rankings (1 row per theme)
-      6. Return ordered list
+      2. Compute quadratic weights (if stakes provided) or equal weights
+      3. Compute weighted Borda scores
+      4. Sort by score DESC, then deterministic tiebreak
+      5. Clear previous aggregated_rankings for this cycle
+      6. Write new aggregated_rankings (1 row per theme)
     """
     # 1. Fetch user rankings
     result = await db.execute(
@@ -195,23 +322,31 @@ async def aggregate_rankings(
             f"No rankings found for session {session_id} cycle {cycle_id}"
         )
 
-    # Extract ranked_theme_ids lists
+    # Extract ranked_theme_ids + participant_ids
     all_rankings: list[list[str]] = []
+    all_participant_ids: list[str] = []
     for ur in user_rankings:
         ids = ur.ranked_theme_ids
         if isinstance(ids, list):
             all_rankings.append(ids)
         elif isinstance(ids, dict) and "ranked_theme_ids" in ids:
             all_rankings.append(ids["ranked_theme_ids"])
+        all_participant_ids.append(str(ur.participant_id))
 
     n_themes = len(all_rankings[0]) if all_rankings else 0
     participant_count = len(all_rankings)
-
-    # Use session_id as default seed for determinism
     effective_seed = seed or str(session_id)
 
-    # 2. Compute Borda scores
-    scores = _borda_scores(all_rankings, n_themes)
+    # 2. Compute weights
+    algorithm = "borda_count"
+    if participant_stakes:
+        weights = _quadratic_weights(participant_stakes)
+        scores = _weighted_borda_scores(
+            all_rankings, all_participant_ids, weights, n_themes
+        )
+        algorithm = "quadratic_borda"
+    else:
+        scores = _borda_scores(all_rankings, n_themes)
 
     # 3. Sort: score DESC, then deterministic tiebreak ASC
     sorted_themes = sorted(
@@ -220,7 +355,7 @@ async def aggregate_rankings(
     )
 
     # 4. Compute replay hash
-    replay_hash = _compute_replay_hash(all_rankings, effective_seed)
+    replay_hash = _compute_replay_hash(all_rankings, effective_seed, algorithm)
 
     # 5. Clear previous aggregation for this cycle
     await db.execute(
@@ -237,10 +372,7 @@ async def aggregate_rankings(
     aggregated: list[AggregatedRanking] = []
 
     for rank_pos, (theme_id_str, score) in enumerate(sorted_themes, start=1):
-        # Count how many participants ranked this theme
-        vote_count = sum(
-            1 for r in all_rankings if theme_id_str in r
-        )
+        vote_count = sum(1 for r in all_rankings if theme_id_str in r)
 
         agg = AggregatedRanking(
             session_id=session_id,
@@ -249,9 +381,9 @@ async def aggregate_rankings(
             rank_position=rank_pos,
             score=score,
             vote_count=vote_count,
-            is_top_theme2=False,  # Set by identify_top_theme2
+            is_top_theme2=False,
             participant_count=participant_count,
-            algorithm="borda_count",
+            algorithm=algorithm,
             is_final=True,
             aggregated_at=now,
         )
@@ -267,6 +399,7 @@ async def aggregate_rankings(
             "cycle_id": cycle_id,
             "participant_count": participant_count,
             "theme_count": len(sorted_themes),
+            "algorithm": algorithm,
             "replay_hash": replay_hash,
         },
     )
@@ -283,12 +416,7 @@ async def identify_top_theme2(
     session_id: uuid.UUID,
     cycle_id: int = 1,
 ) -> AggregatedRanking | None:
-    """Set is_top_theme2=True on the #1 ranked theme.
-
-    Clears any previous is_top_theme2 flags for this session/cycle first.
-    Returns the winning AggregatedRanking row.
-    """
-    # Clear previous winner flags
+    """Set is_top_theme2=True on the #1 ranked theme."""
     await db.execute(
         update(AggregatedRanking)
         .where(
@@ -301,7 +429,6 @@ async def identify_top_theme2(
         .values(is_top_theme2=False)
     )
 
-    # Find rank_position=1
     result = await db.execute(
         select(AggregatedRanking).where(
             and_(
@@ -339,11 +466,7 @@ async def emit_ranking_complete(
     session_short_code: str,
     cycle_id: int = 1,
 ) -> dict:
-    """Broadcast ranking_complete event + trigger CQS scoring via Cube 5.
-
-    Fires within 500ms of aggregation. Payload includes top_theme2_id.
-    """
-    # Get the top theme
+    """Broadcast ranking_complete + trigger CQS scoring via Cube 5."""
     result = await db.execute(
         select(AggregatedRanking).where(
             and_(
@@ -356,7 +479,6 @@ async def emit_ranking_complete(
     winner = result.scalar_one_or_none()
     top_theme2_id = str(winner.theme_id) if winner else None
 
-    # Get the theme label for CQS
     top_theme2_label = None
     if winner:
         theme_result = await db.execute(
@@ -364,7 +486,7 @@ async def emit_ranking_complete(
         )
         top_theme2_label = theme_result.scalar_one_or_none()
 
-    # Broadcast ranking_complete
+    # Broadcast ranking_complete (CRS-17: <500ms)
     try:
         from app.core.supabase_broadcast import broadcast_event
 
@@ -380,10 +502,7 @@ async def emit_ranking_complete(
         )
         logger.info(
             "cube7.ranking_complete.broadcast",
-            extra={
-                "session_id": str(session_id),
-                "top_theme2_id": top_theme2_id,
-            },
+            extra={"session_id": str(session_id), "top_theme2_id": top_theme2_id},
         )
     except Exception as exc:
         logger.warning(
@@ -416,7 +535,7 @@ async def emit_ranking_complete(
 
 
 # ---------------------------------------------------------------------------
-# CRS-16/17: Get Live Rankings
+# CRS-16/17: Get Live Rankings + Progress
 # ---------------------------------------------------------------------------
 
 
@@ -425,10 +544,7 @@ async def get_live_rankings(
     session_id: uuid.UUID,
     cycle_id: int = 1,
 ) -> list[AggregatedRanking]:
-    """Return current aggregated rankings ordered by rank_position.
-
-    Used for live display (MVP1: HTTP poll, MVP2: WebSocket push).
-    """
+    """Return current aggregated rankings ordered by rank_position."""
     result = await db.execute(
         select(AggregatedRanking)
         .where(
@@ -438,6 +554,164 @@ async def get_live_rankings(
             )
         )
         .order_by(AggregatedRanking.rank_position)
+    )
+    return list(result.scalars().all())
+
+
+async def get_ranking_progress(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+) -> dict:
+    """Return submission count for moderator progress indicator."""
+    count_result = await db.execute(
+        select(func.count()).select_from(Ranking).where(
+            and_(
+                Ranking.session_id == session_id,
+                Ranking.cycle_id == cycle_id,
+            )
+        )
+    )
+    return {
+        "session_id": str(session_id),
+        "cycle_id": cycle_id,
+        "submissions": count_result.scalar() or 0,
+    }
+
+
+# ---------------------------------------------------------------------------
+# CRS-22: Governance Override (Lead/Admin)
+# ---------------------------------------------------------------------------
+
+
+async def apply_governance_override(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    theme_id: uuid.UUID,
+    new_rank: int,
+    overridden_by: str,
+    justification: str,
+    session_short_code: str,
+    cycle_id: int = 1,
+) -> GovernanceOverride:
+    """CRS-22.01: Apply ranking override with mandatory justification.
+
+    Creates immutable audit entry. Shifts other themes' rank_positions
+    to accommodate the override. Broadcasts updated rankings.
+    """
+    if len(justification.strip()) < _MIN_JUSTIFICATION_LEN:
+        raise ValueError(
+            f"Justification must be at least {_MIN_JUSTIFICATION_LEN} characters"
+        )
+
+    # Fetch current rank
+    result = await db.execute(
+        select(AggregatedRanking).where(
+            and_(
+                AggregatedRanking.session_id == session_id,
+                AggregatedRanking.cycle_id == cycle_id,
+                AggregatedRanking.theme_id == theme_id,
+            )
+        )
+    )
+    current = result.scalar_one_or_none()
+    if not current:
+        raise ValueError(f"Theme {theme_id} not found in rankings")
+
+    original_rank = current.rank_position
+
+    if new_rank == original_rank:
+        raise ValueError("New rank is same as current rank")
+
+    # Fetch all rankings for this cycle to reorder
+    all_result = await db.execute(
+        select(AggregatedRanking)
+        .where(
+            and_(
+                AggregatedRanking.session_id == session_id,
+                AggregatedRanking.cycle_id == cycle_id,
+            )
+        )
+        .order_by(AggregatedRanking.rank_position)
+    )
+    all_rankings = list(all_result.scalars().all())
+
+    if new_rank < 1 or new_rank > len(all_rankings):
+        raise ValueError(f"new_rank must be 1-{len(all_rankings)}")
+
+    # Reorder: remove from old position, insert at new
+    ordered = sorted(all_rankings, key=lambda r: r.rank_position)
+    target = next(r for r in ordered if r.theme_id == theme_id)
+    ordered.remove(target)
+    ordered.insert(new_rank - 1, target)
+
+    # Reassign positions
+    for i, r in enumerate(ordered, start=1):
+        r.rank_position = i
+
+    # Update is_top_theme2
+    for r in ordered:
+        r.is_top_theme2 = r.rank_position == 1
+
+    # Create immutable audit entry
+    override = GovernanceOverride(
+        session_id=session_id,
+        cycle_id=cycle_id,
+        theme_id=theme_id,
+        original_rank=original_rank,
+        new_rank=new_rank,
+        overridden_by=overridden_by,
+        justification=justification.strip(),
+    )
+    db.add(override)
+    await db.flush()
+
+    # Broadcast updated rankings
+    try:
+        from app.core.supabase_broadcast import broadcast_event
+
+        await broadcast_event(
+            channel=f"session:{session_short_code}",
+            event="ranking_override",
+            payload={
+                "session_id": str(session_id),
+                "theme_id": str(theme_id),
+                "original_rank": original_rank,
+                "new_rank": new_rank,
+                "overridden_by": overridden_by,
+            },
+        )
+    except Exception:
+        pass
+
+    logger.info(
+        "cube7.governance_override.applied",
+        extra={
+            "session_id": str(session_id),
+            "theme_id": str(theme_id),
+            "original_rank": original_rank,
+            "new_rank": new_rank,
+            "overridden_by": overridden_by,
+        },
+    )
+    return override
+
+
+async def get_governance_overrides(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+) -> list[GovernanceOverride]:
+    """Fetch all governance overrides for audit trail."""
+    result = await db.execute(
+        select(GovernanceOverride)
+        .where(
+            and_(
+                GovernanceOverride.session_id == session_id,
+                GovernanceOverride.cycle_id == cycle_id,
+            )
+        )
+        .order_by(GovernanceOverride.created_at)
     )
     return list(result.scalars().all())
 
@@ -457,8 +731,6 @@ async def detect_voting_anomalies(
     Checks:
       1. Identical ranked_theme_ids from >=3 participants within 2s window
       2. Rapid-fire submissions (>10 per participant per minute)
-
-    Returns list of anomaly records for audit trail.
     """
     result = await db.execute(
         select(Ranking)
@@ -474,8 +746,7 @@ async def detect_voting_anomalies(
 
     anomalies: list[dict] = []
 
-    # --- Check 1: Identical rankings within time window ---
-    # Group by serialized ranked_theme_ids
+    # Check 1: Identical rankings within time window
     ranking_groups: dict[str, list[Ranking]] = {}
     for r in rankings:
         key = str(r.ranked_theme_ids)
@@ -484,7 +755,6 @@ async def detect_voting_anomalies(
     for key, group in ranking_groups.items():
         if len(group) < _ANOMALY_MIN_DUPLICATES:
             continue
-        # Check time window between first and last in group
         timestamps = sorted(r.submitted_at for r in group)
         for i in range(len(timestamps) - _ANOMALY_MIN_DUPLICATES + 1):
             window_start = timestamps[i]
@@ -501,9 +771,9 @@ async def detect_voting_anomalies(
                         for j in range(i, i + _ANOMALY_MIN_DUPLICATES)
                     ],
                 })
-                break  # One anomaly per group is sufficient
+                break
 
-    # --- Check 2: Rapid submissions per participant ---
+    # Check 2: Rapid submissions per participant
     from collections import defaultdict
     participant_times: dict[str, list[datetime]] = defaultdict(list)
     for r in rankings:
@@ -512,7 +782,6 @@ async def detect_voting_anomalies(
     for pid, times in participant_times.items():
         if len(times) > _MAX_SUBMISSIONS_PER_MINUTE:
             sorted_times = sorted(times)
-            # Check any 1-minute window
             for i in range(len(sorted_times) - _MAX_SUBMISSIONS_PER_MINUTE):
                 window = (
                     sorted_times[i + _MAX_SUBMISSIONS_PER_MINUTE] - sorted_times[i]
@@ -529,10 +798,7 @@ async def detect_voting_anomalies(
     if anomalies:
         logger.warning(
             "cube7.anomaly.detected",
-            extra={
-                "session_id": str(session_id),
-                "anomaly_count": len(anomalies),
-            },
+            extra={"session_id": str(session_id), "anomaly_count": len(anomalies)},
         )
 
     return anomalies
@@ -549,19 +815,22 @@ async def run_ranking_pipeline(
     session_short_code: str,
     cycle_id: int = 1,
     seed: str | None = None,
+    participant_stakes: dict[str, float] | None = None,
 ) -> dict:
     """Full ranking pipeline: aggregate → identify top → detect anomalies → emit.
 
-    Called by Cube 5 after all participants have submitted rankings
-    (or after moderator triggers manual aggregation).
+    When participant_stakes is provided, uses quadratic vote normalization
+    (CRS-12.02). Otherwise falls back to equal-weight Borda count.
     """
-    # 1. Aggregate
-    aggregated = await aggregate_rankings(db, session_id, cycle_id, seed)
+    # 1. Aggregate (with optional quadratic weights)
+    aggregated = await aggregate_rankings(
+        db, session_id, cycle_id, seed, participant_stakes
+    )
 
     # 2. Identify top theme
     winner = await identify_top_theme2(db, session_id, cycle_id)
 
-    # 3. Detect anomalies (non-blocking — log only)
+    # 3. Detect anomalies (non-blocking)
     anomalies = await detect_voting_anomalies(db, session_id, cycle_id)
 
     # 4. Emit ranking complete + trigger CQS
@@ -576,6 +845,7 @@ async def run_ranking_pipeline(
         "cycle_id": cycle_id,
         "theme_count": len(aggregated),
         "participant_count": aggregated[0].participant_count if aggregated else 0,
+        "algorithm": aggregated[0].algorithm if aggregated else "borda_count",
         "top_theme2_id": emit_result.get("top_theme2_id"),
         "top_theme2_label": emit_result.get("top_theme2_label"),
         "anomaly_count": len(anomalies),

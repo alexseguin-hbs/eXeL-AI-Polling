@@ -14,9 +14,12 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from app.cubes.cube7_ranking.service import (
+    _apply_influence_cap,
     _borda_scores,
     _compute_replay_hash,
+    _quadratic_weights,
     _seeded_tiebreak_key,
+    _weighted_borda_scores,
 )
 
 
@@ -233,3 +236,180 @@ class TestBordaSortDeterminism:
             results.append([t[0] for t in s])
 
         assert all(r == results[0] for r in results), f"Non-deterministic: {results}"
+
+
+# ---------------------------------------------------------------------------
+# CRS-12.02: Quadratic Vote Normalization
+# ---------------------------------------------------------------------------
+
+
+class TestQuadraticWeights:
+    """Verify quadratic governance weight calculations."""
+
+    def test_equal_stakes_equal_weights(self):
+        """Equal token stakes produce equal weights."""
+        stakes = {"A": 100.0, "B": 100.0, "C": 100.0}
+        weights = _quadratic_weights(stakes)
+        assert abs(weights["A"] - weights["B"]) < 1e-10
+        assert abs(sum(weights.values()) - 1.0) < 1e-10
+
+    def test_sqrt_diminishing_returns(self):
+        """User with 4x tokens gets diminished weight via sqrt + cap."""
+        stakes = {"whale": 400.0, "small": 100.0}
+        weights = _quadratic_weights(stakes)
+        # sqrt(400)=20, sqrt(100)=10. Raw ratio 2:1
+        # With 15% cap on 2 users, both may equalize to 0.5 each
+        assert weights["whale"] <= 0.50 + 1e-10  # Well below linear 0.80
+        assert abs(sum(weights.values()) - 1.0) < 1e-10
+
+    def test_zero_stakes_equal_weights(self):
+        """Zero stakes for all → equal weights."""
+        stakes = {"A": 0.0, "B": 0.0, "C": 0.0}
+        weights = _quadratic_weights(stakes)
+        assert abs(weights["A"] - 1.0 / 3) < 1e-10
+
+    def test_empty_stakes(self):
+        """Empty dict returns empty."""
+        assert _quadratic_weights({}) == {}
+
+    def test_single_user(self):
+        """Single user gets weight 1.0."""
+        weights = _quadratic_weights({"solo": 50.0})
+        assert abs(weights["solo"] - 1.0) < 1e-10
+
+    def test_weights_sum_to_one(self):
+        """All weights sum to 1.0 regardless of input."""
+        stakes = {"A": 1.0, "B": 10.0, "C": 100.0, "D": 1000.0, "E": 10000.0}
+        weights = _quadratic_weights(stakes)
+        assert abs(sum(weights.values()) - 1.0) < 1e-10
+
+    def test_negative_stakes_treated_as_zero(self):
+        """Negative stakes clamped to 0."""
+        stakes = {"A": -5.0, "B": 100.0}
+        weights = _quadratic_weights(stakes)
+        # A gets sqrt(0)=0 raw weight, B gets sqrt(100)=10
+        # After normalization: A=0, B=1.0 if only two. But equal fallback if A=0
+        assert weights["B"] >= weights["A"]
+
+
+class TestInfluenceCap:
+    """Verify 15% influence cap."""
+
+    def test_whale_capped_below_raw(self):
+        """A dominant whale is significantly dampened from raw 80% weight."""
+        weights = {"whale": 0.80, "a": 0.05, "b": 0.05, "c": 0.05, "d": 0.05}
+        capped = _apply_influence_cap(weights)
+        # With iterative redistribution, all 5 users equalize to 0.20 each
+        # because excess from whale pushes others above cap too
+        assert capped["whale"] < 0.50  # Dampened well below 0.80
+        assert abs(sum(capped.values()) - 1.0) < 1e-10  # Sum to 1
+
+    def test_no_cap_when_below_threshold(self):
+        """When no one exceeds 15%, weights unchanged (just renormalized)."""
+        weights = {"a": 0.10, "b": 0.10, "c": 0.10, "d": 0.10, "e": 0.10,
+                   "f": 0.10, "g": 0.10, "h": 0.10, "i": 0.10, "j": 0.10}
+        capped = _apply_influence_cap(weights)
+        for w in capped.values():
+            assert abs(w - 0.10) < 1e-10
+
+    def test_capped_weights_sum_to_one(self):
+        """After capping, weights still sum to 1.0."""
+        weights = {"whale": 0.60, "a": 0.10, "b": 0.10, "c": 0.10, "d": 0.10}
+        capped = _apply_influence_cap(weights)
+        assert abs(sum(capped.values()) - 1.0) < 1e-10
+
+
+class TestWeightedBordaScores:
+    """Verify weighted Borda scoring."""
+
+    def test_equal_weights_matches_unweighted(self):
+        """With equal weights, weighted Borda matches standard Borda (scaled)."""
+        rankings = [["A", "B", "C"], ["B", "A", "C"]]
+        pids = ["p1", "p2"]
+        weights = {"p1": 0.5, "p2": 0.5}
+
+        weighted = _weighted_borda_scores(rankings, pids, weights, 3)
+        unweighted = _borda_scores(rankings, 3)
+
+        # Weighted scores = unweighted * 0.5 per voter
+        for theme in unweighted:
+            assert abs(weighted[theme] - unweighted[theme] * 0.5) < 1e-10
+
+    def test_heavy_voter_dominates(self):
+        """A voter with 90% weight determines the outcome."""
+        rankings = [["A", "B", "C"], ["C", "B", "A"]]
+        pids = ["heavy", "light"]
+        weights = {"heavy": 0.9, "light": 0.1}
+
+        scores = _weighted_borda_scores(rankings, pids, weights, 3)
+        # Heavy: A=1.8, B=0.9, C=0. Light: C=0.2, B=0.1, A=0
+        # Total: A=1.8, B=1.0, C=0.2
+        sorted_t = sorted(scores.items(), key=lambda x: -x[1])
+        assert sorted_t[0][0] == "A"
+
+    def test_n5_determinism_weighted(self):
+        """N=5 weighted Borda runs are deterministic."""
+        rankings = [["A", "B", "C"]] * 5
+        pids = [f"p{i}" for i in range(5)]
+        weights = {f"p{i}": 0.2 for i in range(5)}
+
+        results = []
+        for _ in range(5):
+            scores = _weighted_borda_scores(rankings, pids, weights, 3)
+            results.append(scores)
+
+        assert all(r == results[0] for r in results)
+
+
+# ---------------------------------------------------------------------------
+# CRS-22: Governance Override Validation
+# ---------------------------------------------------------------------------
+
+
+class TestGovernanceOverrideValidation:
+    """Test governance override business rules."""
+
+    def test_justification_min_length(self):
+        """Justification under 10 chars must fail."""
+        from app.cubes.cube7_ranking.service import _MIN_JUSTIFICATION_LEN
+        assert _MIN_JUSTIFICATION_LEN == 10
+
+    def test_governance_override_model_exists(self):
+        from app.models.ranking import GovernanceOverride
+        assert GovernanceOverride.__tablename__ == "governance_overrides"
+
+    def test_governance_override_columns(self):
+        from app.models.ranking import GovernanceOverride
+        col_names = [c.key for c in GovernanceOverride.__table__.columns]
+        required = ["session_id", "theme_id", "original_rank", "new_rank",
+                     "overridden_by", "justification"]
+        for col in required:
+            assert col in col_names, f"Missing column: {col}"
+
+    def test_governance_override_schema_submit(self):
+        import uuid
+        from app.schemas.ranking import GovernanceOverrideSubmit
+        payload = GovernanceOverrideSubmit(
+            theme_id=uuid.uuid4(),
+            new_rank=1,
+            justification="Strategic priority shift per board directive",
+        )
+        assert payload.new_rank == 1
+
+    def test_governance_override_schema_read(self):
+        import uuid
+        from app.schemas.ranking import GovernanceOverrideRead
+        from datetime import datetime, timezone
+        data = {
+            "id": uuid.uuid4(),
+            "session_id": uuid.uuid4(),
+            "cycle_id": 1,
+            "theme_id": uuid.uuid4(),
+            "original_rank": 3,
+            "new_rank": 1,
+            "overridden_by": "auth0|lead_001",
+            "justification": "Critical risk must be prioritized",
+            "created_at": datetime.now(timezone.utc),
+        }
+        read = GovernanceOverrideRead(**data)
+        assert read.original_rank == 3

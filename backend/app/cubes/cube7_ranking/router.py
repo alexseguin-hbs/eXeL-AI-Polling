@@ -17,7 +17,13 @@ from app.core.auth import CurrentUser, get_current_user, get_optional_current_us
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
 from app.cubes.cube7_ranking import service
-from app.schemas.ranking import AggregatedRankingRead, RankingRead, RankingSubmit
+from app.schemas.ranking import (
+    AggregatedRankingRead,
+    GovernanceOverrideRead,
+    GovernanceOverrideSubmit,
+    RankingRead,
+    RankingSubmit,
+)
 
 router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 7 — Ranking"])
 
@@ -162,17 +168,67 @@ async def get_anomalies(
 # ---------------------------------------------------------------------------
 
 
-@router.post("/override", status_code=200)
+@router.get("/rankings/progress")
+async def get_progress(
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """CRS-16: Get ranking submission progress (moderator only)."""
+    return await service.get_ranking_progress(db, session_id, cycle_id)
+
+
+# ---------------------------------------------------------------------------
+# CRS-22: Governance Override
+# ---------------------------------------------------------------------------
+
+
+@router.post("/override", response_model=GovernanceOverrideRead, status_code=201)
 async def override_ranking(
     session_id: uuid.UUID,
+    payload: GovernanceOverrideSubmit,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("lead", "admin")),
 ):
-    """CRS-22: Lead/Developer overrides rankings with justification (MVP3).
+    """CRS-22: Lead/Developer overrides rankings with justification.
 
-    Requires mandatory justification text. Creates immutable audit entry.
+    Requires mandatory justification (min 10 chars). Creates immutable audit entry.
+    Shifts other themes' rank_positions to accommodate the override.
     """
-    raise HTTPException(
-        status_code=501,
-        detail="Governance override not yet implemented (MVP3)",
+    from app.models.session import Session
+    from sqlalchemy import select
+
+    sess_result = await db.execute(
+        select(Session).where(Session.id == session_id)
     )
+    session = sess_result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    try:
+        override = await service.apply_governance_override(
+            db,
+            session_id=session_id,
+            theme_id=payload.theme_id,
+            new_rank=payload.new_rank,
+            overridden_by=user.user_id,
+            justification=payload.justification,
+            session_short_code=session.short_code,
+        )
+        await db.commit()
+        return override
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/overrides", response_model=list[GovernanceOverrideRead])
+async def get_overrides(
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+):
+    """CRS-22: Get governance override audit trail."""
+    overrides = await service.get_governance_overrides(db, session_id, cycle_id)
+    return [GovernanceOverrideRead.model_validate(o) for o in overrides]

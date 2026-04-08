@@ -291,10 +291,10 @@ class TestRouterStructure:
         assert "Cube 7 — Ranking" in router.tags
 
     def test_endpoint_count(self):
-        """Router has 5 endpoints: POST rankings, GET rankings, POST aggregate, GET anomalies, POST override."""
+        """Router has 7 endpoints after CRS-16/17/22 implementation."""
         from app.cubes.cube7_ranking.router import router
         routes = [r for r in router.routes if hasattr(r, "methods")]
-        assert len(routes) == 5
+        assert len(routes) == 7
 
     def test_post_rankings_exists(self):
         from app.cubes.cube7_ranking.router import router
@@ -390,3 +390,121 @@ class TestBordaFullPipeline:
         )
         assert sorted_t[0][0] == "A"
         assert sorted_t[0][1] == 10.0
+
+
+# ---------------------------------------------------------------------------
+# New Endpoint Structure Tests
+# ---------------------------------------------------------------------------
+
+
+class TestNewEndpoints:
+    """Verify new endpoints from CRS-16/17/22."""
+
+    def test_progress_endpoint_exists(self):
+        from app.cubes.cube7_ranking.router import router
+        found = any(
+            "progress" in r.path and "GET" in r.methods
+            for r in router.routes if hasattr(r, "methods")
+        )
+        assert found
+
+    def test_override_post_exists(self):
+        from app.cubes.cube7_ranking.router import router
+        found = any(
+            "override" in r.path and "POST" in r.methods
+            for r in router.routes if hasattr(r, "methods")
+        )
+        assert found
+
+    def test_overrides_get_exists(self):
+        from app.cubes.cube7_ranking.router import router
+        found = any(
+            "overrides" in r.path and "GET" in r.methods
+            for r in router.routes if hasattr(r, "methods")
+        )
+        assert found
+
+
+# ---------------------------------------------------------------------------
+# Quadratic Pipeline Integration
+# ---------------------------------------------------------------------------
+
+
+class TestQuadraticPipelineIntegration:
+    """Test weighted Borda with quadratic weights end-to-end."""
+
+    def test_whale_dampened_by_quadratic(self):
+        """A user with 100x more tokens only gets 10x weight (sqrt), then capped."""
+        from app.cubes.cube7_ranking.service import (
+            _quadratic_weights,
+            _weighted_borda_scores,
+            _seeded_tiebreak_key,
+        )
+
+        stakes = {"whale": 10000.0, "user1": 100.0, "user2": 100.0, "user3": 100.0}
+        weights = _quadratic_weights(stakes)
+
+        # Whale has sqrt(10000)=100 raw, others sqrt(100)=10 each
+        # Whale is dampened significantly from 0.769 normalized
+        assert weights["whale"] < 0.50  # Well below raw proportion
+
+        # Whale ranks C first, everyone else ranks A first
+        rankings = [["C", "B", "A"], ["A", "B", "C"], ["A", "B", "C"], ["A", "B", "C"]]
+        pids = ["whale", "user1", "user2", "user3"]
+
+        scores = _weighted_borda_scores(rankings, pids, weights, 3)
+        sorted_t = sorted(scores.items(), key=lambda x: -x[1])
+        # A should win because whale is capped
+        assert sorted_t[0][0] == "A"
+
+    def test_equal_stakes_same_as_unweighted_order(self):
+        """Equal stakes produce same ranking order as unweighted."""
+        from app.cubes.cube7_ranking.service import (
+            _quadratic_weights,
+            _weighted_borda_scores,
+        )
+
+        stakes = {"p1": 100.0, "p2": 100.0, "p3": 100.0}
+        weights = _quadratic_weights(stakes)
+
+        rankings = [["A", "B", "C"], ["A", "C", "B"], ["B", "A", "C"]]
+        pids = ["p1", "p2", "p3"]
+
+        weighted = _weighted_borda_scores(rankings, pids, weights, 3)
+        unweighted = _borda_scores(rankings, 3)
+
+        # Same ranking order
+        w_order = sorted(weighted.items(), key=lambda x: -x[1])
+        u_order = sorted(unweighted.items(), key=lambda x: -x[1])
+        assert [t[0] for t in w_order] == [t[0] for t in u_order]
+
+
+# ---------------------------------------------------------------------------
+# Governance Override Audit Trail
+# ---------------------------------------------------------------------------
+
+
+class TestGovernanceOverrideModel:
+    """Verify governance override model and schema."""
+
+    def test_override_model_table(self):
+        from app.models.ranking import GovernanceOverride
+        assert GovernanceOverride.__tablename__ == "governance_overrides"
+
+    def test_override_index_exists(self):
+        from app.models.ranking import GovernanceOverride
+        names = [
+            c.name for c in GovernanceOverride.__table_args__
+            if hasattr(c, "name") and c.name
+        ]
+        assert "ix_gov_overrides_session" in names
+
+    def test_override_schema_roundtrip(self):
+        from app.schemas.ranking import GovernanceOverrideSubmit, GovernanceOverrideRead
+        submit = GovernanceOverrideSubmit(
+            theme_id=uuid.uuid4(),
+            new_rank=2,
+            justification="Market analysis shows higher priority needed",
+        )
+        assert submit.new_rank == 2
+        assert len(submit.justification) >= 10
