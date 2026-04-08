@@ -37,7 +37,7 @@ const CUBE_GRID: CubeInfo[][] = [
   [
     { number: 9, name: "Reports", status: "not_started", completion: 5, description: "CSV/PDF export, Pixelated Tokens, dashboards" },
     { number: 2, name: "Text", status: "deployed", completion: 85, description: "Text submission, PII/profanity, anonymization, integrity hash" },
-    { number: 3, name: "Voice", status: "in_progress", completion: 85, description: "4 STT providers, circuit breaker failover, Cube 2 pipeline integration" },
+    { number: 3, name: "Voice", status: "deployed", completion: 99, description: "4 STT providers, circuit breaker + cooldown, cost tracking, shared PII pipeline, Phase A broadcast, SSSES 100/100" },
   ],
   [
     { number: 8, name: "Tokens", status: "deployed", completion: 60, description: "Token ledger, 59 jurisdiction rates, rate lookup API" },

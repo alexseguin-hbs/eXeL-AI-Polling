@@ -287,7 +287,7 @@ function CostEstimateTable() {
 /** STT providers available at MVP launch with circuit breaker failover */
 const V2T_PROVIDERS = [
   { id: "whisper", label: "OpenAI Whisper", langCount: 57, ratePerMin: 0.006, est1k: "$2.22" },
-  { id: "gemini", label: "Gemini (Google)", langCount: 33, ratePerMin: 0.00015, est1k: "$0.06" },
+  { id: "gemini", label: "Gemini (Google)", langCount: 33, ratePerMin: 0.00016, est1k: "$0.06" },
   { id: "grok", label: "Grok (xAI)", langCount: 57, ratePerMin: 0.006, est1k: "$2.22" },
   { id: "aws", label: "AWS Transcribe", langCount: 23, ratePerMin: 0.024, est1k: "$8.88" },
 ] as const;
