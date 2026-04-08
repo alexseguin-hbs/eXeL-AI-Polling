@@ -4,7 +4,7 @@
 
 ---
 
-## Cube 4 — Response Collector: IMPLEMENTED (CRS-09→CRS-10 done; ~80% of full spec)
+## Cube 4 — Response Collector: IMPLEMENTED (CRS-09 complete, CRS-10 methods 2&3 pending; SSSES 79/100)
 
 **Code location:** `backend/app/cubes/cube4_collector/` (modular, self-contained)
 
@@ -21,6 +21,18 @@
 - **Anonymous support:** Null participant_id handled gracefully → "Anonymous" user label
 - **Pagination:** Standard page/page_size params with total count
 - **API endpoints:** 6 routes (collected list, single response, count, languages, presence, summary status)
+
+### Cube 4 — SSSES Phase 1 Completion (2026-04-07)
+
+**Phase 1 (Security + Stability + Efficiency):**
+- **C4-4 (CRS-09.01):** SHA-256 anon_hash replaces 8-char UUID prefix — `hashlib.sha256(f"{pid}:{sid}")[:12]`, collision-safe at 100M+ users, session-scoped
+- **CRS-09 Auth:** Session validation on all read endpoints; summary-status moderator-only (`get_current_user`)
+- **C4-3 (Stability):** DB error handling on critical count query with structured logging + graceful fallback
+- **Efficiency:** `get_response_count()` optimized from 3 sequential queries to 1 conditional SUM
+- **CRS-09.01:** `ResponseNotFoundError` replaces inline HTTPException(404)
+
+**Tests:** 27 passed (21 original + 6 new), 0 failures
+**SSSES:** Security 85, Stability 75, Scalability 80, Efficiency 75, Succinctness 80 = **79/100**
 
 ### Cube 4 — CRS Traceability
 
@@ -46,11 +58,11 @@
 cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 8 test classes, 21 tests
+**Test Suite:** 2 files, 14 test classes, 27 tests (21 original + 6 from Phase 1)
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_collector_service.py` | 6 | 15 | Unit tests (count, languages, presence, summaries, collected, single) |
+| `test_collector_service.py` | 9 | 21 | Unit tests (count, languages, presence, summaries, collected, single, anon hash, session validation, optimized count) |
 | `test_e2e_flows.py` | 5 | 6 | E2E flows (collection, multi-language, anonymous, pagination, voice) |
 
 ### Cube 4 — Files
