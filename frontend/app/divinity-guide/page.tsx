@@ -293,15 +293,6 @@ export default function DivinityGuidePage() {
                 ))}
               </div>
 
-              {/* SDK Connection */}
-              <div className="rounded-lg border bg-muted/20 p-5">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Connected to the Governance Engine</p>
-                <p className="text-sm text-foreground/70">{selectedChapter.sdkConnection}</p>
-                <Link href="/api" className="inline-block mt-2 text-xs text-primary hover:underline">
-                  → Explore in the API
-                </Link>
-              </div>
-
               {/* Reflection */}
               <div className="rounded-lg border-l-2 pl-5 py-3" style={{ borderColor: activeSection?.color.stroke }}>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Reflection</p>
