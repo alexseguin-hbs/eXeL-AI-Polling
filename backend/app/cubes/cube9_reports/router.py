@@ -71,16 +71,31 @@ async def export_csv(
                     detail="Payment required to access results",
                 )
 
-    buf = await service.export_session_csv(db, session_id)
-    filename = f"{session_id}_themes.csv"
-    return StreamingResponse(
-        buf,
-        media_type="text/csv",
-        headers={
-            "Content-Disposition": f'attachment; filename="{filename}"',
-            "X-Download-Filename": filename,
-        },
+    # Auto-select: streaming for large sessions (>10K responses), pandas for small
+    from sqlalchemy import func
+    from app.models.response_meta import ResponseMeta as RM
+    count_result = await db.execute(
+        select(func.count()).select_from(RM).where(RM.session_id == session_id)
     )
+    response_count = count_result.scalar() or 0
+
+    filename = f"{session_id}_themes.csv"
+    headers = {
+        "Content-Disposition": f'attachment; filename="{filename}"',
+        "X-Download-Filename": filename,
+    }
+
+    if response_count > 10_000:
+        # Scale mode: streaming CSV (no full-memory DataFrame)
+        return StreamingResponse(
+            service.export_session_csv_streaming(db, session_id),
+            media_type="text/csv",
+            headers=headers,
+        )
+    else:
+        # Standard mode: pandas DataFrame (fast for small sessions)
+        buf = await service.export_session_csv(db, session_id)
+        return StreamingResponse(buf, media_type="text/csv", headers=headers)
 
 
 # ---------------------------------------------------------------------------

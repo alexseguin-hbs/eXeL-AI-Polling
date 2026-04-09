@@ -8,10 +8,12 @@ from app.config import settings
 engine = create_async_engine(
     settings.database_url,
     echo=settings.environment == "development",
-    pool_size=20,
-    max_overflow=30,
-    pool_recycle=3600,
-    pool_pre_ping=True,
+    pool_size=20,            # Pre-warmed connections ready for queries
+    max_overflow=30,         # Burst capacity (50 total max)
+    pool_recycle=1800,       # Recycle every 30min (Supabase pgbouncer compat)
+    pool_pre_ping=True,      # Validate connection before use (no stale conns)
+    pool_timeout=10,         # Wait max 10s for a connection from pool
+    pool_reset_on_return="rollback",  # Clean state on connection return
 )
 async_session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

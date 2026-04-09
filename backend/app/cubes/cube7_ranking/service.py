@@ -527,19 +527,38 @@ async def emit_ranking_complete(
         top_theme2_label = theme_result.scalar_one_or_none()
 
     # Broadcast ranking_complete (CRS-17: <500ms)
+    # Auto-select: sharded broadcast for 1M+ scale, standard for <1K
+    payload = {
+        "session_id": str(session_id),
+        "top_theme2_id": top_theme2_id,
+        "top_theme2_label": top_theme2_label,
+        "cycle_id": cycle_id,
+    }
     try:
-        from app.core.supabase_broadcast import broadcast_event
+        # Count participants to decide broadcast strategy
+        participant_count = 0
+        try:
+            count_result = await db.execute(
+                select(func.count()).select_from(Ranking).where(
+                    Ranking.session_id == session_id
+                )
+            )
+            participant_count = count_result.scalar() or 0
+        except Exception:
+            pass
 
-        await broadcast_event(
-            channel=f"session:{session_short_code}",
-            event="ranking_complete",
-            payload={
-                "session_id": str(session_id),
-                "top_theme2_id": top_theme2_id,
-                "top_theme2_label": top_theme2_label,
-                "cycle_id": cycle_id,
-            },
-        )
+        if participant_count > 1000:
+            # Scale mode: sharded broadcast to 100 channels
+            from app.cubes.cube7_ranking.scale_engine import broadcast_to_all_shards
+            await broadcast_to_all_shards(session_short_code, "ranking_complete", payload)
+        else:
+            # Standard mode: single channel broadcast
+            from app.core.supabase_broadcast import broadcast_event
+            await broadcast_event(
+                channel=f"session:{session_short_code}",
+                event="ranking_complete",
+                payload=payload,
+            )
         logger.info(
             "cube7.ranking_complete.broadcast",
             extra={"session_id": str(session_id), "top_theme2_id": top_theme2_id},
