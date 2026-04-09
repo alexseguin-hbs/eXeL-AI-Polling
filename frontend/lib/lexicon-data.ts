@@ -382,6 +382,13 @@ const cube6: TranslationEntry[] = [
   { key: "cube6.themes.ready_badge", englishDefault: "{count} themes ready", context: "Badge shown when theming pipeline completes (count is dynamic)", cubeId: 6 },
   { key: "cube6.themes.progressive_reveal", englishDefault: "Revealing themes...", context: "Progressive reveal animation label", cubeId: 6 },
   { key: "cube6.themes.vote_level", englishDefault: "Voting level:", context: "Theme2 voting level label (9/6/3)", cubeId: 6 },
+  { key: "cube6.themes.marble_sampling", englishDefault: "Sampling responses...", context: "Marble Method sampling phase", cubeId: 6 },
+  { key: "cube6.themes.reducing", englishDefault: "Consolidating themes...", context: "Theme reduction phase (all→9→6→3)", cubeId: 6 },
+  { key: "cube6.themes.assigning", englishDefault: "Assigning themes to responses...", context: "Theme assignment phase", cubeId: 6 },
+  { key: "cube6.themes.pipeline_complete", englishDefault: "Theme analysis complete!", context: "Pipeline success notification", cubeId: 6 },
+  { key: "cube6.themes.pipeline_error", englishDefault: "Theme analysis encountered an error", context: "Pipeline failure notification", cubeId: 6 },
+  { key: "cube6.themes.scale_sampling", englishDefault: "Sampling {count} of {total} responses", context: "Scale pipeline sampling status", cubeId: 6 },
+  { key: "cube6.themes.theme_library", englishDefault: "{count} candidate themes discovered", context: "Theme library size before reduction", cubeId: 6 },
 ];
 
 const cube7: TranslationEntry[] = [
