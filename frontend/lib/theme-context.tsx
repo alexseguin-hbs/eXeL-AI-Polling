@@ -105,7 +105,7 @@ export function generateCustomTheme(accentHex: string): ThemePreset {
 //                  Blue   | Green  | Custom (handled in UI)
 //                  Yellow  | Coral  | Red
 export const THEME_PRESETS: ThemePreset[] = [
-  // Row 1: Violet, Indigo, Cyan
+  // Row 1: Violet, Cyan, Ocean Blue
   {
     id: "violet",
     name: "\uc6c3 Violet",
@@ -128,30 +128,6 @@ export const THEME_PRESETS: ThemePreset[] = [
       border: "300 40% 15%",
       input: "300 40% 15%",
       ring: "300 100% 50%",
-    },
-  },
-  {
-    id: "indigo",
-    name: "Indigo",
-    swatch: "#6366F1",
-    colors: {
-      background: "239 30% 6%",
-      foreground: "210 40% 98%",
-      card: "239 30% 9%",
-      "card-foreground": "210 40% 98%",
-      popover: "239 30% 9%",
-      "popover-foreground": "210 40% 98%",
-      primary: "239 84% 67%",
-      "primary-foreground": "239 30% 6%",
-      secondary: "239 33% 17%",
-      "secondary-foreground": "210 40% 98%",
-      muted: "239 33% 17%",
-      "muted-foreground": "239 11% 64%",
-      accent: "239 33% 17%",
-      "accent-foreground": "210 40% 98%",
-      border: "239 33% 17%",
-      input: "239 33% 17%",
-      ring: "239 84% 67%",
     },
   },
   {
@@ -178,7 +154,6 @@ export const THEME_PRESETS: ThemePreset[] = [
       ring: "180 100% 50%",
     },
   },
-  // Row 2: Blue, Green, Custom (custom is position 6 in UI grid)
   {
     id: "ocean-blue",
     name: "Ocean Blue",
@@ -203,9 +178,10 @@ export const THEME_PRESETS: ThemePreset[] = [
       ring: "217 91% 60%",
     },
   },
+  // Row 2: Green, Emerald (CENTER), Yellow
   {
-    id: "emerald",
-    name: "Emerald",
+    id: "green",
+    name: "Green",
     swatch: "#00FF00",
     colors: {
       background: "120 100% 4%",
@@ -227,8 +203,30 @@ export const THEME_PRESETS: ThemePreset[] = [
       ring: "120 100% 50%",
     },
   },
-  // (Custom color picker is position 6 — handled in moderator-settings.tsx UI)
-  // Row 3: Yellow (♡ Sunset), Coral, Red
+  {
+    id: "emerald",
+    name: "Emerald",
+    swatch: "#10B981",
+    colors: {
+      background: "160 84% 4%",
+      foreground: "210 40% 98%",
+      card: "160 50% 8%",
+      "card-foreground": "210 40% 98%",
+      popover: "160 50% 8%",
+      "popover-foreground": "210 40% 98%",
+      primary: "160 84% 39%",
+      "primary-foreground": "160 84% 4%",
+      secondary: "160 33% 15%",
+      "secondary-foreground": "210 40% 98%",
+      muted: "160 33% 15%",
+      "muted-foreground": "160 15% 64%",
+      accent: "160 33% 15%",
+      "accent-foreground": "210 40% 98%",
+      border: "160 33% 15%",
+      input: "160 33% 15%",
+      ring: "160 84% 39%",
+    },
+  },
   {
     id: "sunset",
     name: "\u2661 Yellow",
@@ -253,27 +251,28 @@ export const THEME_PRESETS: ThemePreset[] = [
       ring: "60 100% 50%",
     },
   },
+  // Row 3: Orange, Red, Custom (color picker position 9 in UI grid)
   {
-    id: "coral",
-    name: "Coral",
+    id: "orange",
+    name: "Orange",
     swatch: "#F97316",
     colors: {
-      background: "24 30% 6%",
+      background: "24 95% 4%",
       foreground: "210 40% 98%",
-      card: "24 30% 9%",
+      card: "24 50% 8%",
       "card-foreground": "210 40% 98%",
-      popover: "24 30% 9%",
+      popover: "24 50% 8%",
       "popover-foreground": "210 40% 98%",
       primary: "25 95% 53%",
-      "primary-foreground": "24 30% 6%",
-      secondary: "24 33% 17%",
+      "primary-foreground": "24 95% 4%",
+      secondary: "24 33% 15%",
       "secondary-foreground": "210 40% 98%",
-      muted: "24 33% 17%",
-      "muted-foreground": "24 11% 64%",
-      accent: "24 33% 17%",
+      muted: "24 33% 15%",
+      "muted-foreground": "24 15% 64%",
+      accent: "24 33% 15%",
       "accent-foreground": "210 40% 98%",
-      border: "24 33% 17%",
-      input: "24 33% 17%",
+      border: "24 33% 15%",
+      input: "24 33% 15%",
       ring: "25 95% 53%",
     },
   },
@@ -301,6 +300,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       ring: "0 100% 50%",
     },
   },
+  // (Custom color picker is position 9 — handled in moderator-settings.tsx UI)
 ];
 
 const STORAGE_KEY = "exel-theme-id";
