@@ -138,15 +138,50 @@ interface SimAiResponse {
   theme: string;
 }
 
-// Default AI responses (fallback when no sim-data poll is loaded)
+// 12 Ascended Master AI Users × 2-3 responses each = 30 responses (multilingual)
+// This simulates a realistic 12-user session the Moderator can watch live
 const DEFAULT_SIM_AI_RESPONSES: SimAiResponse[] = [
-  { user: "AI User 1", text: "AI can democratize decision-making by processing millions of voices simultaneously, something human-only systems can't achieve at scale.", delayMs: 2000, theme: "opportunity" },
-  { user: "AI User 2", text: "My biggest concern is algorithmic bias in AI governance. If the training data reflects historical biases, the AI will perpetuate inequality.", delayMs: 4500, theme: "concern" },
-  { user: "AI User 3", text: "Transparency is key. Every AI governance decision should have an explainable audit trail that citizens can review.", delayMs: 7000, theme: "balanced" },
-  { user: "AI User 4", text: "We need hybrid systems — AI processes data and identifies patterns, but humans make final governance decisions with that intelligence.", delayMs: 9500, theme: "balanced" },
-  { user: "AI User 5", text: "The speed of AI analysis means governance can become truly real-time. Policies can adapt to citizen feedback within hours, not years.", delayMs: 12000, theme: "opportunity" },
-  { user: "AI User 6", text: "Privacy is my #1 concern. Governance AI systems will have access to massive amounts of citizen data. We need iron-clad protections.", delayMs: 14500, theme: "concern" },
-  { user: "AI User 7", text: "AI governance should start with low-stakes decisions like urban planning priorities before scaling to more critical areas.", delayMs: 17000, theme: "opportunity" },
+  // ── Wave 1: Enki (Sumerian creator — diversity & edge-case discovery) ──
+  { user: "Enki", text: "AI can democratize decision-making by processing millions of voices simultaneously, something human-only systems can't achieve at scale.", delayMs: 1000, theme: "opportunity" },
+  { user: "Enki", text: "We must ensure that every voice has equal weight. AI governance without equity safeguards becomes digital tyranny.", delayMs: 3500, theme: "concern" },
+  { user: "Enki", text: "The future of collective intelligence lies in combining AI pattern recognition with human moral reasoning.", delayMs: 6000, theme: "balanced" },
+  // ── Wave 2: Thor (Norse protector — risk & security stress testing) ──
+  { user: "Thor", text: "My biggest concern is algorithmic bias in AI governance. If the training data reflects historical biases, the AI will perpetuate inequality.", delayMs: 2000, theme: "concern" },
+  { user: "Thor", text: "Security vulnerabilities in governance AI could be exploited by adversarial actors to manipulate democratic outcomes.", delayMs: 5000, theme: "concern" },
+  // ── Wave 3: Krishna (Hindu unifier — integration & cross-module) ──
+  { user: "Krishna", text: "La transparencia es clave. Cada decisión de gobernanza con IA debe tener una pista de auditoría explicable que los ciudadanos puedan revisar.", delayMs: 3000, theme: "balanced" },
+  { user: "Krishna", text: "We need hybrid systems — AI processes data and identifies patterns, but humans make final governance decisions with that intelligence.", delayMs: 7500, theme: "balanced" },
+  { user: "Krishna", text: "Integration across departments and nations is the key unlock. AI governance must be interoperable.", delayMs: 11000, theme: "opportunity" },
+  // ── Wave 4: Odin (Norse all-father — predictive & future-proof) ──
+  { user: "Odin", text: "The speed of AI analysis means governance can become truly real-time. Policies can adapt to citizen feedback within hours, not years.", delayMs: 4000, theme: "opportunity" },
+  { user: "Odin", text: "La velocidad del análisis de IA significa que la gobernanza puede ser verdaderamente en tiempo real.", delayMs: 8000, theme: "opportunity" },
+  // ── Wave 5: Athena (Greek wisdom — strategic test planning) ──
+  { user: "Athena", text: "Privacy is my #1 concern. Governance AI systems will have access to massive amounts of citizen data. We need iron-clad protections.", delayMs: 5500, theme: "concern" },
+  { user: "Athena", text: "Die Strategie muss zuerst kommen. KI-Governance braucht einen klaren Fahrplan mit messbaren Meilensteinen.", delayMs: 9500, theme: "balanced" },
+  { user: "Athena", text: "Strategic phased rollouts, starting with local governance before scaling nationally, reduce risk and build public trust.", delayMs: 13500, theme: "balanced" },
+  // ── Wave 6: Thoth (Egyptian mathematician — data & analytics) ──
+  { user: "Thoth", text: "AI governance should start with low-stakes decisions like urban planning priorities before scaling to more critical areas.", delayMs: 6500, theme: "opportunity" },
+  { user: "Thoth", text: "Les données doivent être la base de toute décision. L'IA peut traiter des millions de points de données pour des décisions éclairées.", delayMs: 10500, theme: "opportunity" },
+  // ── Wave 7: Sofia (Sophia — multi-perspective analysis) ──
+  { user: "Sofia", text: "Multiple perspectives must be weighted equally. AI has the unique ability to synthesize diverse viewpoints without human cognitive bias.", delayMs: 7000, theme: "balanced" },
+  { user: "Sofia", text: "A verdadeira inovação na governança é ouvir milhões de vozes e encontrar consenso em tempo real.", delayMs: 12000, theme: "opportunity" },
+  // ── Wave 8: Aset (Egyptian Isis — theme reinforcement & consistency) ──
+  { user: "Aset", text: "The consistent application of governance rules across all citizens is where AI truly excels over human bureaucracy.", delayMs: 8500, theme: "opportunity" },
+  { user: "Aset", text: "しかし、一貫性だけでは不十分です。AIガバナンスには人間の共感も必要です。", delayMs: 14000, theme: "balanced" },
+  // ── Wave 9: Pangu (Chinese primordial — cutting-edge innovation) ──
+  { user: "Pangu", text: "创新的AI治理可以处理数百万声音，创造真正的全球民主。", delayMs: 9000, theme: "opportunity" },
+  { user: "Pangu", text: "Decentralized AI nodes could enable every community to participate in global governance without central authority.", delayMs: 15000, theme: "opportunity" },
+  { user: "Pangu", text: "Edge computing combined with federated learning preserves privacy while enabling collective intelligence at planetary scale.", delayMs: 18000, theme: "balanced" },
+  // ── Wave 10: Christo (Unity consciousness — consensus building) ──
+  { user: "Christo", text: "True governance emerges when every voice is heard and every perspective is honored. AI makes this possible at any scale.", delayMs: 10000, theme: "balanced" },
+  { user: "Christo", text: "الوحدة في التنوع هي مبدأ الحوكمة الحقيقية. الذكاء الاصطناعي يمكنه تحقيق هذا.", delayMs: 16000, theme: "balanced" },
+  // ── Wave 11: Enlil (Sumerian order — implementation & build) ──
+  { user: "Enlil", text: "Implementation must follow rigorous standards. AI governance without audit trails is governance without accountability.", delayMs: 11500, theme: "concern" },
+  { user: "Enlil", text: "Every system must be battle-tested before deployment. Simulation and stress testing are non-negotiable.", delayMs: 17000, theme: "concern" },
+  // ── Wave 12: Asar (Egyptian Osiris — final synthesis) ──
+  { user: "Asar", text: "The synthesis of all perspectives reveals a clear path: AI governance must be transparent, equitable, secure, and human-centered.", delayMs: 13000, theme: "balanced" },
+  { user: "Asar", text: "인공지능 거버넌스의 미래는 기술과 인간 지혜의 조화에 있습니다.", delayMs: 19000, theme: "balanced" },
+  { user: "Asar", text: "We stand at the threshold of a new era where shared intention moves at the speed of thought.", delayMs: 20000, theme: "opportunity" },
 ];
 
 // ── Default theme icons for simulation ──────────────────────────
@@ -465,8 +500,8 @@ export function SessionView() {
   // Flow: polling → closed (1.5s) → theming (1.5s) → visuals (3s) → ranking
   useEffect(() => {
     if (!simulationMode || simulationRole !== "moderator") return;
-    if (simAiResponses.length >= 7 && simUserSubmitted && simPhase === "polling") {
-      // All 8 responses in — start transition chain
+    if (simAiResponses.length >= 30 && simUserSubmitted && simPhase === "polling") {
+      // All 30 Ascended Master responses + 1 user response in — start transition chain
       const t1 = setTimeout(() => {
         setSimPhase("closed");
         toast({ title: t("cube10.sim.state_closed") });
