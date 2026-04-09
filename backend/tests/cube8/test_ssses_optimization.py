@@ -114,6 +114,46 @@ class TestTokenPrecision59Jurisdictions:
         assert unity == 0
 
 
+class TestDollarsToHITokens:
+    """Payment/donation → 웃 conversion at $7.25/hr."""
+
+    def test_minimum_wage_equals_1(self):
+        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
+        assert dollars_to_hi_tokens(7.25) == 1.0
+
+    def test_moderator_fee(self):
+        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
+        result = dollars_to_hi_tokens(11.11)
+        assert abs(result - 1.532) < 0.001
+
+    def test_large_donation(self):
+        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
+        result = dollars_to_hi_tokens(50.0)
+        assert abs(result - 6.897) < 0.001
+
+    def test_hundred_dollars(self):
+        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
+        result = dollars_to_hi_tokens(100.0)
+        assert abs(result - 13.793) < 0.001
+
+    def test_zero_returns_zero(self):
+        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
+        assert dollars_to_hi_tokens(0) == 0.0
+
+    def test_negative_returns_zero(self):
+        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
+        assert dollars_to_hi_tokens(-5.0) == 0.0
+
+    def test_small_donation_50_cents(self):
+        from app.cubes.cube8_tokens.service import dollars_to_hi_tokens
+        result = dollars_to_hi_tokens(0.50)
+        assert result == 0.069  # $0.50 / $7.25 = 0.069
+
+    def test_hi_rate_constant(self):
+        from app.cubes.cube8_tokens.service import HI_RATE_PER_HOUR
+        assert HI_RATE_PER_HOUR == 7.25
+
+
 # ═══════════════════════════════════════════════════════════════════
 # Lifecycle State Machine: Exhaustive Path Testing
 # ═══════════════════════════════════════════════════════════════════

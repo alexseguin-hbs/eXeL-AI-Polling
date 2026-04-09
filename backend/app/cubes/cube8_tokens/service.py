@@ -48,6 +48,27 @@ VALID_TRANSITIONS: dict[str, set[str]] = {
 
 LIFECYCLE_STATES = set(VALID_TRANSITIONS.keys())
 
+# HI token conversion: $ donated ÷ minimum wage = 웃 tokens earned
+# This is the ONLY way to earn 웃 tokens — real money → real value
+HI_RATE_PER_HOUR = 7.25  # US federal minimum wage (USD/hr)
+
+
+def dollars_to_hi_tokens(amount_usd: float) -> float:
+    """Convert USD payment/donation to 웃 (HI) tokens.
+
+    Formula: 웃 = $ ÷ 7.25
+    Examples:
+      $11.11 moderator fee → 1.532 웃
+      $50.00 donation      → 6.897 웃
+      $7.25 (1 hour wage)  → 1.000 웃
+
+    This makes 웃 the universal measure of compensated value.
+    Anyone who pays or donates earns 웃 proportional to their contribution.
+    """
+    if amount_usd <= 0:
+        return 0.0
+    return round(amount_usd / HI_RATE_PER_HOUR, 3)
+
 
 # ---------------------------------------------------------------------------
 # Ledger Queries
@@ -381,6 +402,96 @@ async def disburse_cqs_reward(
     Called by Cube 7→5→6 CQS pipeline after ranking completes.
     Creates a 'reward' action_type entry with reference to CQS score.
     """
+    entry = await create_ledger_entry(
+        db,
+        session_id=session_id,
+        user_id=winner_user_id,
+        cube_id="cube8",
+        action_type="cqs_reward",
+        delta_heart=reward_heart,
+        delta_human=0.0,
+        delta_unity=reward_unity,
+        lifecycle_state="pending",
+        reason="CQS winner reward",
+        reference_id=cqs_score_id,
+    )
+
+    # Broadcast reward notification
+    return entry
+
+
+# ---------------------------------------------------------------------------
+# Payment → 웃 Token Conversion (THE ONLY WAY TO EARN HI TOKENS)
+# ---------------------------------------------------------------------------
+
+
+async def award_hi_tokens_for_payment(
+    db: AsyncSession,
+    *,
+    session_id: uuid.UUID,
+    user_id: str,
+    amount_usd: float,
+    payment_type: str,  # "moderator_fee" | "cost_split" | "donation"
+    reference_id: str | None = None,
+    session_short_code: str | None = None,
+) -> TokenLedger:
+    """Award 웃 (HI) tokens when a user pays or donates.
+
+    Formula: 웃 = $ amount ÷ 7.25 (US federal minimum wage)
+
+    This is the ONLY way to earn 웃 tokens — real money creates real value.
+    Tracks who's investing in the platform and how much.
+
+    Examples:
+      $11.11 moderator fee → 1.532 웃
+      $50.00 donation      → 6.897 웃
+      $100.00 cost split   → 13.793 웃
+    """
+    hi_tokens = dollars_to_hi_tokens(amount_usd)
+
+    if hi_tokens <= 0:
+        raise ValueError("Payment amount must be positive to earn 웃 tokens")
+
+    entry = await create_ledger_entry(
+        db,
+        session_id=session_id,
+        user_id=user_id,
+        cube_id="cube8",
+        action_type=f"payment_{payment_type}",
+        delta_heart=0.0,
+        delta_human=hi_tokens,
+        delta_unity=0.0,
+        lifecycle_state="pending",
+        reason=f"웃 earned: ${amount_usd:.2f} ÷ $7.25/hr = {hi_tokens:.3f} 웃",
+        reference_id=reference_id,
+        session_short_code=session_short_code,
+    )
+
+    logger.info(
+        "cube8.hi_tokens.awarded",
+        extra={
+            "session_id": str(session_id),
+            "user_id": user_id,
+            "amount_usd": amount_usd,
+            "hi_tokens": hi_tokens,
+            "payment_type": payment_type,
+        },
+    )
+
+    return entry
+
+
+async def disburse_cqs_reward(
+    db: AsyncSession,
+    *,
+    session_id: uuid.UUID,
+    winner_user_id: str,
+    reward_heart: float,
+    reward_unity: float,
+    cqs_score_id: str | None = None,
+    session_short_code: str | None = None,
+) -> TokenLedger:
+    """Award CQS winner tokens via ledger entry."""
     entry = await create_ledger_entry(
         db,
         session_id=session_id,
