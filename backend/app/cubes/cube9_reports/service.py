@@ -27,6 +27,7 @@ import pandas as pd
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.participant import Participant
 from app.models.question import Question
 from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
@@ -89,6 +90,14 @@ async def export_session_csv(
         if hasattr(s, "response_meta_id")
     }
 
+    # Batch-load participant language codes
+    part_result = await db.execute(
+        select(Participant).where(Participant.session_id == session_id)
+    )
+    participant_langs = {
+        p.id: p.language_code for p in part_result.scalars().all()
+    }
+
     rows = []
     for meta in metas:
         raw_text = meta.raw_text or ""
@@ -108,7 +117,7 @@ async def export_session_csv(
             "Question": q_text,
             "User": str(meta.participant_id),
             "Detailed_Results": raw_text,
-            "Response_Language": getattr(meta, "language_code", "en"),
+            "Response_Language": participant_langs.get(meta.participant_id, "en"),
             "333_Summary": summary_row.summary_333 or "" if summary_row else "",
             "111_Summary": summary_row.summary_111 or "" if summary_row else "",
             "33_Summary": summary_row.summary_33 or "" if summary_row else "",
