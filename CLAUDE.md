@@ -410,12 +410,12 @@ Track and optimize for:
 | 4 Collector | ~86% | **86** | 21 | CRS-09→10 | C4-1→C4-2 |
 | 5 Gateway | ~89% | **89** | 60 | CRS-09→11 | C5-1, C5-3 |
 | 6 AI Pipeline | ~77% | **77** | 47 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
-| 7 Ranking | **~91%** | **91** | 118 | CRS-11→13, 16-17, 22 | All MVP1+MVP2 done. MVP3: none remaining |
-| 8 Tokens | **~78%** | **78** | 84 | CRS-18-19, 24-25, 32-35 | Velocity caps done. MVP3: execution separation |
-| 9 Reports | **~70%** | **70** | 56 | CRS-14-15, 19-21 | PDF stub, distribution done. MVP3: Pixelated Tokens |
+| 7 Ranking | **~93%** | **93** | 140 | CRS-11→13, 16-17, 22 | All MVP1+MVP2 done. Mathematical proofs. |
+| 8 Tokens | **~82%** | **82** | 106 | CRS-18-19, 24-25, 32-35 | 59-jurisdiction precision. Lifecycle exhaustive. |
+| 9 Reports | **~76%** | **76** | 84 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | Easter Egg SIM | — | — | — | — |
 | **SDK Core** | **Active** | — | 31 | — | Envelope, Events, Scoping, API Keys |
-| **Total** | | | **633** | | |
+| **Total** | | | **705** | | |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
