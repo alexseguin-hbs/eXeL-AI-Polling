@@ -64,7 +64,7 @@ class TestCubeChainImports:
     def test_cube7_scale_engine(self):
         from app.cubes.cube7_ranking.scale_engine import (
             BordaAccumulator,
-            RedisVoteAccumulator,
+            SupabaseVoteAccumulator,
             broadcast_to_all_shards,
             sample_responses,
         )

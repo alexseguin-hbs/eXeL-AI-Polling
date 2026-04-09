@@ -1,15 +1,14 @@
 """FastAPI dependency injection helpers.
 
-Architecture: Supabase/PostgreSQL + Redis only (no MongoDB).
+Architecture: Supabase/PostgreSQL only (no Redis, no MongoDB).
+Presence tracking: in-memory + Supabase DB (app.core.presence).
 """
 
 from collections.abc import AsyncGenerator
 
-import redis.asyncio as aioredis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres import async_session_factory
-from app.db.redis import get_redis_client
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -17,5 +16,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-def get_redis() -> aioredis.Redis:
+def get_redis():
+    """Returns no-op Redis stub. Redis removed from architecture.
+
+    Kept for backward compatibility with existing route signatures.
+    All Redis operations are safe no-ops.
+    """
+    from app.db.redis import get_redis_client
     return get_redis_client()

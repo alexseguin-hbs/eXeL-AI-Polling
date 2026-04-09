@@ -2,9 +2,8 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # Database — Supabase/PostgreSQL + Redis only (no MongoDB)
+    # Database — Supabase/PostgreSQL only (no Redis, no MongoDB)
     database_url: str = "postgresql+asyncpg://polling:polling@localhost:5432/polling_db"
-    redis_url: str = "redis://localhost:6379/0"
 
     # Auth0
     auth0_domain: str = ""

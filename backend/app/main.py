@@ -31,7 +31,6 @@ from app.cubes.cube8_tokens.webhook import router as stripe_webhook_router
 from app.cubes.cube9_reports.router import router as reports_router
 from app.cubes.cube10_simulation.router import router as simulation_router
 from app.db.postgres import close_postgres
-from app.db.redis import close_redis, init_redis
 from app.schemas.common import HealthResponse
 
 # OpenAPI tags for all 9 cubes + health
@@ -54,8 +53,7 @@ openapi_tags = [
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle for database connections."""
     setup_logging()
-    # Startup — Supabase/PostgreSQL + Redis only (no MongoDB)
-    await init_redis()
+    # Startup — Supabase/PostgreSQL only (no Redis, no MongoDB)
     # Auto-create all tables (safe to run repeatedly — skips existing)
     from app.db.base import Base
     from app.db.postgres import engine
@@ -66,7 +64,6 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     await close_postgres()
-    await close_redis()
 
 
 app = FastAPI(
