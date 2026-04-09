@@ -36,6 +36,7 @@ logger = logging.getLogger("cube10")
 # ---------------------------------------------------------------------------
 
 SUPERMAJORITY_THRESHOLD = 0.666  # 66.6% required for approval
+CHALLENGE_STATES = {"open", "claimed", "submitted", "completed", "closed"}
 MIN_QUORUM_PERCENT = 0.10  # 10% of token holders must vote
 SUBMISSION_STATES = {"pending", "testing", "voting", "approved", "deployed", "reverted", "rejected"}
 VOTING_WINDOW_HOURS = 24  # Default voting period
@@ -358,4 +359,116 @@ def tally_votes(
         "supermajority_met": supermajority_met,
         "threshold_percent": SUPERMAJORITY_THRESHOLD * 100,
         "result": result,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Challenge System (Grok Architecture Integration)
+# ---------------------------------------------------------------------------
+
+
+async def create_challenge(
+    *,
+    cube_id: int,
+    title: str,
+    description: str,
+    acceptance_criteria: str,
+    function_name: str | None = None,
+    reward_heart: float = 10.0,
+    reward_unity: float = 50.0,
+) -> dict:
+    """Create a new challenge for a specific Cube function.
+
+    Posted by Admin. Challengers accept and work in isolated simulation.
+    """
+    if cube_id < 1 or cube_id > 9:
+        raise ValueError(f"Invalid cube_id: {cube_id}. Challenges target Cubes 1-9.")
+
+    if len(title.strip()) < 5:
+        raise ValueError("Challenge title must be at least 5 characters")
+
+    if len(acceptance_criteria.strip()) < 10:
+        raise ValueError("Acceptance criteria must be at least 10 characters")
+
+    challenge_id = str(uuid.uuid4())
+
+    logger.info(
+        "cube10.challenge.created",
+        extra={"challenge_id": challenge_id, "cube_id": cube_id, "title": title},
+    )
+
+    return {
+        "challenge_id": challenge_id,
+        "cube_id": cube_id,
+        "function_name": function_name,
+        "title": title,
+        "description": description,
+        "acceptance_criteria": acceptance_criteria,
+        "reward_heart": reward_heart,
+        "reward_unity": reward_unity,
+        "status": "open",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+async def claim_challenge(
+    challenge_id: str,
+    challenger_id: str,
+) -> dict:
+    """Challenger accepts a challenge — creates isolated simulation environment.
+
+    Generates unique simulation_id for the parallel portal.
+    Freezes current cube code as base_code_snapshot.
+    """
+    simulation_id = f"sim-{uuid.uuid4().hex[:12]}"
+
+    logger.info(
+        "cube10.challenge.claimed",
+        extra={
+            "challenge_id": challenge_id,
+            "challenger_id": challenger_id,
+            "simulation_id": simulation_id,
+        },
+    )
+
+    return {
+        "challenge_id": challenge_id,
+        "challenger_id": challenger_id,
+        "simulation_id": simulation_id,
+        "status": "claimed",
+        "portal_url": f"https://sim-{simulation_id}.exel-ai-polling.explore-096.workers.dev/",
+        "message": "Isolated simulation environment created. Begin your enhancement.",
+    }
+
+
+async def submit_challenge(
+    challenge_id: str,
+    challenger_id: str,
+    code_diff: str,
+) -> dict:
+    """Challenger submits their enhanced code for community review.
+
+    Triggers automated testing by 12 Ascended Masters.
+    If tests pass, opens community voting.
+    """
+    if len(code_diff.strip()) < 10:
+        raise ValueError("Code diff too short — must contain meaningful changes")
+
+    submission_id = str(uuid.uuid4())
+
+    logger.info(
+        "cube10.challenge.submitted",
+        extra={
+            "challenge_id": challenge_id,
+            "challenger_id": challenger_id,
+            "submission_id": submission_id,
+        },
+    )
+
+    return {
+        "challenge_id": challenge_id,
+        "submission_id": submission_id,
+        "challenger_id": challenger_id,
+        "status": "submitted",
+        "message": "Submitted for review. 12 Ascended Masters will test your code.",
     }

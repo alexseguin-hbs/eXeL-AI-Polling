@@ -152,6 +152,70 @@ async def verify_access(
         raise HTTPException(status_code=403, detail="Invalid access code")
 
 
+# ---------------------------------------------------------------------------
+# Challenge System (Grok Architecture)
+# ---------------------------------------------------------------------------
+
+
+class ChallengeCreate(BaseModel):
+    cube_id: int
+    title: str
+    description: str
+    acceptance_criteria: str
+    function_name: str | None = None
+    reward_heart: float = 10.0
+    reward_unity: float = 50.0
+
+
+@router.post("/challenges", status_code=201)
+async def create_challenge(
+    payload: ChallengeCreate,
+    user: CurrentUser = Depends(require_role("admin")),
+):
+    """Create a new challenge for a specific Cube (Admin only)."""
+    try:
+        return await service.create_challenge(
+            cube_id=payload.cube_id,
+            title=payload.title,
+            description=payload.description,
+            acceptance_criteria=payload.acceptance_criteria,
+            function_name=payload.function_name,
+            reward_heart=payload.reward_heart,
+            reward_unity=payload.reward_unity,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/challenges/{challenge_id}/claim")
+async def claim_challenge(
+    challenge_id: str,
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Claim a challenge — creates isolated simulation portal."""
+    return await service.claim_challenge(challenge_id, user.user_id)
+
+
+@router.post("/challenges/{challenge_id}/submit")
+async def submit_challenge_code(
+    challenge_id: str,
+    payload: SubmissionCreate,
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Submit enhanced code for community review."""
+    try:
+        return await service.submit_challenge(
+            challenge_id, user.user_id, payload.code_diff,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# Saved Use Cases
+# ---------------------------------------------------------------------------
+
+
 @router.get("/saved-cases")
 async def list_saved_cases(
     user: CurrentUser = Depends(require_role("admin", "lead_developer")),

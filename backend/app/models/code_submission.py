@@ -60,6 +60,34 @@ class SubmissionVote(Base):
     )
 
 
+class Challenge(Base):
+    """A cube improvement challenge posted for Challengers.
+
+    Each challenge targets a specific Cube and function. Challengers
+    accept challenges, check out the cube into isolated simulation,
+    enhance the code, and submit for community review.
+    """
+
+    __tablename__ = "challenges"
+
+    cube_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    function_name: Mapped[str | None] = mapped_column(String(255))
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    acceptance_criteria: Mapped[str] = mapped_column(Text, nullable=False)
+    reward_heart: Mapped[float] = mapped_column(Float, default=10.0)
+    reward_unity: Mapped[float] = mapped_column(Float, default=50.0)
+    status: Mapped[str] = mapped_column(String(20), default="open")  # open/claimed/submitted/completed/closed
+    claimed_by: Mapped[str | None] = mapped_column(String(255))
+    simulation_id: Mapped[str | None] = mapped_column(String(255))  # Unique sim ID for parallel portal
+    base_code_snapshot: Mapped[str | None] = mapped_column(Text)  # Frozen code at challenge creation
+
+    __table_args__ = (
+        Index("ix_challenges_cube", "cube_id"),
+        Index("ix_challenges_status", "status"),
+    )
+
+
 class DeploymentLog(Base):
     """Immutable deployment audit trail."""
 
