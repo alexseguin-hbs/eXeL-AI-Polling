@@ -528,6 +528,12 @@ CUBE_REGISTRY: list[CubeDescriptor] = [
         events=["report.export_ready", "report.dashboard_updated"],
         mvp=1, status="beta",
     ),
+    CubeDescriptor(
+        id=10, name="Simulation", description="Self-evolving platform: feedback, code submissions, voting, deployment",
+        endpoints=["/feedback", "/submissions", "/submissions/{id}/test", "/submissions/{id}/tally"],
+        events=["simulation.submission_created", "simulation.vote_cast", "simulation.deployed", "simulation.reverted"],
+        mvp=3, status="beta",
+    ),
 ]
 
 

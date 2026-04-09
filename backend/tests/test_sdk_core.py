@@ -277,16 +277,16 @@ class TestUsageMetering:
 class TestCubeRegistry:
     """Self-describing cubes for SDK discovery."""
 
-    def test_nine_cubes_registered(self):
-        assert len(CUBE_REGISTRY) == 9
+    def test_ten_cubes_registered(self):
+        assert len(CUBE_REGISTRY) == 10
 
-    def test_all_cubes_have_ids_1_to_9(self):
+    def test_all_cubes_have_ids_1_to_10(self):
         ids = [c.id for c in CUBE_REGISTRY]
-        assert ids == list(range(1, 10))
+        assert ids == list(range(1, 11))
 
     def test_registry_dict_format(self):
         registry = get_cube_registry()
-        assert len(registry) == 9
+        assert len(registry) == 10
         for cube in registry:
             assert "id" in cube
             assert "name" in cube

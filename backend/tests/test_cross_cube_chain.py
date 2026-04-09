@@ -97,7 +97,7 @@ class TestCubeChainImports:
             CUBE_REGISTRY, get_cube_registry,
         )
         assert callable(success)
-        assert len(CUBE_REGISTRY) == 9
+        assert len(CUBE_REGISTRY) == 10
 
     def test_cube6_scale_pipeline(self):
         from app.cubes.cube6_ai.scale_pipeline import (

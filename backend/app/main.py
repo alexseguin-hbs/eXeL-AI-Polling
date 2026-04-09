@@ -29,6 +29,7 @@ from app.cubes.cube8_tokens.router import router as tokens_router
 from app.core.realtime_ws import router as realtime_router
 from app.cubes.cube8_tokens.webhook import router as stripe_webhook_router
 from app.cubes.cube9_reports.router import router as reports_router
+from app.cubes.cube10_simulation.router import router as simulation_router
 from app.db.postgres import close_postgres
 from app.db.redis import close_redis, init_redis
 from app.schemas.common import HealthResponse
@@ -45,6 +46,7 @@ openapi_tags = [
     {"name": "Cube 7 — Ranking", "description": "Voting, aggregation, governance compression"},
     {"name": "Cube 8 — Tokens", "description": "SoI Trinity token ledger, 웃 rates, disputes"},
     {"name": "Cube 9 — Reports", "description": "CSV/PDF export, analytics, insights"},
+    {"name": "Cube 10 — Simulation", "description": "Self-evolving platform: feedback, submissions, voting, deployment"},
 ]
 
 
@@ -113,6 +115,7 @@ app.include_router(ai_router, prefix=PREFIX)
 app.include_router(ranking_router, prefix=PREFIX)
 app.include_router(tokens_router, prefix=PREFIX)
 app.include_router(reports_router, prefix=PREFIX)
+app.include_router(simulation_router, prefix=PREFIX)
 app.include_router(stripe_webhook_router, prefix=PREFIX)
 app.include_router(realtime_router)
 
@@ -127,7 +130,7 @@ async def list_cubes():
     """SDK discovery: list all cubes with endpoints, events, and status."""
     from app.core.sdk import get_cube_registry
 
-    return {"cubes": get_cube_registry(), "total": 9, "version": "0.1.0"}
+    return {"cubes": get_cube_registry(), "total": 10, "version": "0.1.0"}
 
 
 @app.get("/api/v1/functions", tags=["Health"])
