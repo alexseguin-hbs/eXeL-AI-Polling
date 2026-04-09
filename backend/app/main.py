@@ -144,6 +144,20 @@ async def validate_compression(texts: list[str]):
     return validate_compression_request(texts)
 
 
+@app.get("/api/v1/sdk", tags=["Health"])
+async def list_sdk_functions():
+    """SDK registry: 9 paid functions + 3 free internal APIs with pricing."""
+    from app.core.sdk_functions import get_sdk_registry
+    return get_sdk_registry()
+
+
+@app.get("/api/v1/sdk/estimate", tags=["Health"])
+async def estimate_sdk_cost(responses: int = 1000, voters: int = 100, recipients: int = 0):
+    """Estimate ◬ token cost for a complete governance session via SDK."""
+    from app.core.sdk_functions import estimate_session_api_cost
+    return estimate_session_api_cost(responses, voters, recipients)
+
+
 @app.get("/api/v1/functions", tags=["Health"])
 async def list_functions(cube: int | None = None, category: str | None = None):
     """SDK discovery: list all universal functions with I/O contracts.
