@@ -406,7 +406,7 @@ Track and optimize for:
 |------|--------|:---:|-------|-----|------------|
 | 1 Session | **100% SSSES** | **100** | 59 | CRS-01→06 | None |
 | 2 Text | **~98% SSSES** | **94** | 62 | CRS-05→08 | Phase 3: DB error handling, bounded cache |
-| 3 Voice | ~87% | **87** | 39 | CRS-08, 15 | A5.03 |
+| 3 Voice | ~88% | **88** | 91 | CRS-08, 15 | Live STT verified (Gemini+Whisper), cross-cube deps |
 | 4 Collector | ~86% | **86** | 21 | CRS-09→10 | C4-1→C4-2 |
 | 5 Gateway | ~89% | **89** | 60 | CRS-09→11 | C5-1, C5-3 |
 | 6 AI Pipeline | ~77% | **77** | 47 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
@@ -415,7 +415,7 @@ Track and optimize for:
 | 9 Reports | **~76%** | **76** | 84 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | Easter Egg SIM | — | — | — | — |
 | **SDK Core** | **Active** | — | 31 | — | Envelope, Events, Scoping, API Keys |
-| **Total** | | | **792** | | |
+| **Total** | | | **808** | | |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
