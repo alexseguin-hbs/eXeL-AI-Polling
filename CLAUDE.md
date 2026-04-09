@@ -415,7 +415,7 @@ Track and optimize for:
 | 9 Reports | **~76%** | **76** | 84 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | Easter Egg SIM | — | — | — | — |
 | **SDK Core** | **Active** | — | 31 | — | Envelope, Events, Scoping, API Keys |
-| **Total** | | | **705** | | |
+| **Total** | | | **770** | | |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
