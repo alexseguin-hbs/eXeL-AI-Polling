@@ -86,6 +86,36 @@ interface ApiFlowerProps {
 
 export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
   const [level, setLevel] = useState<3 | 6 | 9>(3);
+  const [selectedFamily, setSelectedFamily] = useState<1 | 2 | 3 | null>(null);
+  const [selectedSdk, setSelectedSdk] = useState<string | null>(null);
+
+  // When a circle is clicked at level 3: zoom into that family
+  // When a circle is clicked at level 6/9: show detail card
+  const handleCircleClick = (sdk: SDKEntry) => {
+    if (level === 3) {
+      // Zoom into family: show its 3 members
+      setSelectedFamily(sdk.family);
+      setLevel(9); // Show all so family members are visible
+      setSelectedSdk(null);
+    } else if (selectedFamily && sdk.family === selectedFamily) {
+      // Already in family view — show individual detail
+      setSelectedSdk(selectedSdk === sdk.id ? null : sdk.id);
+      onSelectFunction?.(sdk.id);
+    } else {
+      // Clicked different family — switch
+      setSelectedFamily(sdk.family);
+      setSelectedSdk(null);
+    }
+  };
+
+  const handleBack = () => {
+    if (selectedSdk) {
+      setSelectedSdk(null);
+    } else if (selectedFamily) {
+      setSelectedFamily(null);
+      setLevel(3);
+    }
+  };
 
   const hub = getHubPosition();
   const positions = useMemo(() => getTheme2Positions(level), [level]);
@@ -174,10 +204,11 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
               <ThemeCircle
                 cx={pos.cx} cy={pos.cy} r={pos.r}
                 theme={sdk.theme}
-                fill={sdk.color.fill}
-                stroke={sdk.color.stroke}
+                fill={selectedFamily && sdk.family !== selectedFamily ? "rgba(128,128,128,0.05)" : sdk.color.fill}
+                stroke={selectedFamily && sdk.family !== selectedFamily ? "#555" : sdk.color.stroke}
                 bloom bloomDelay={i * 120}
-                onClick={() => onSelectFunction?.(sdk.id)}
+                onClick={() => handleCircleClick(sdk)}
+                className={selectedSdk === sdk.id ? "ring-2 ring-primary" : ""}
               />
               {/* SDK name below circle */}
               <text
@@ -206,8 +237,39 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
         })}
       </svg>
 
+      {/* Back button */}
+      {(selectedFamily || selectedSdk) && (
+        <div className="flex justify-center mt-2">
+          <button
+            onClick={handleBack}
+            className="text-xs text-muted-foreground hover:text-primary"
+          >
+            ← {selectedSdk ? "Back to family" : "Back to overview"}
+          </button>
+        </div>
+      )}
+
+      {/* Selected SDK detail card */}
+      {selectedSdk && (() => {
+        const sdk = ALL_SDK.find((s) => s.id === selectedSdk);
+        if (!sdk) return null;
+        return (
+          <div className="mt-4 rounded-xl border bg-card p-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-2xl">{sdk.icon}</span>
+              <div>
+                <p className="font-semibold">sdk.{sdk.name}()</p>
+                <p className="text-xs text-muted-foreground">{sdk.tagline}</p>
+              </div>
+              <span className="ml-auto text-xs text-primary font-mono">{sdk.cost}</span>
+            </div>
+            <p className="text-sm text-foreground/70">{sdk.number} — {sdk.theme.summary33}</p>
+          </div>
+        );
+      })()}
+
       {/* Legend */}
-      <div className="flex justify-center gap-6 mt-2 text-[10px] text-muted-foreground">
+      <div className="flex justify-center gap-6 mt-4 text-[10px] text-muted-foreground">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#00FFFF" }} />
           ◬ Understanding
