@@ -38,10 +38,11 @@ interface SDKEntry {
   color: { fill: string; stroke: string };
 }
 
+// Same colors as Theme Analysis: Red (top), Emerald (bottom-left), Ocean Blue (bottom-right)
 const FAMILY_COLORS = {
-  1: { fill: "rgba(0, 255, 255, 0.15)", stroke: "#00FFFF" },      // ◬ Cyan
-  2: { fill: "rgba(255, 255, 0, 0.15)", stroke: "#FFFF00" },      // ♡ Yellow
-  3: { fill: "rgba(255, 0, 255, 0.15)", stroke: "#FF00FF" },      // 웃 Violet
+  1: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },         // Red — top
+  2: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },      // Emerald — bottom-left
+  3: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },      // Ocean Blue — bottom-right
 };
 
 // Ordered for each level: parents first, then children interleaved
@@ -268,19 +269,19 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
         );
       })()}
 
-      {/* Legend */}
+      {/* Legend — matches Theme Analysis colors */}
       <div className="flex justify-center gap-6 mt-4 text-[10px] text-muted-foreground">
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#00FFFF" }} />
-          ◬ Understanding
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#FF0000" }} />
+          Understanding
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#FFFF00" }} />
-          ♡ Governance
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#10B981" }} />
+          Governance
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#FF00FF" }} />
-          웃 Value
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#3B82F6" }} />
+          Value
         </span>
       </div>
     </div>
