@@ -17,6 +17,7 @@
 
 import { useState, useMemo } from "react";
 import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
+import { SDK_DEMO_DATA } from "@/lib/sdk-demos";
 import {
   getTheme2Positions,
   getHubPosition,
@@ -94,18 +95,18 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
   // When a circle is clicked at level 6/9: show detail card
   const handleCircleClick = (sdk: SDKEntry) => {
     if (level === 3) {
-      // Zoom into family: show its 3 members
+      // Zoom into family: expand to 6 to show children
       setSelectedFamily(sdk.family);
-      setLevel(9); // Show all so family members are visible
+      setLevel(6);
       setSelectedSdk(null);
-    } else if (selectedFamily && sdk.family === selectedFamily) {
-      // Already in family view — show individual detail
+    } else if (level === 6) {
+      // At 6: clicking expands to full 9
+      setLevel(9);
+      setSelectedSdk(null);
+    } else {
+      // At 9: clicking shows individual SDK detail with 3 demos
       setSelectedSdk(selectedSdk === sdk.id ? null : sdk.id);
       onSelectFunction?.(sdk.id);
-    } else {
-      // Clicked different family — switch
-      setSelectedFamily(sdk.family);
-      setSelectedSdk(null);
     }
   };
 
@@ -250,21 +251,52 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
         </div>
       )}
 
-      {/* Selected SDK detail card */}
+      {/* Selected SDK detail card with 3 NOSE demos */}
       {selectedSdk && (() => {
         const sdk = ALL_SDK.find((s) => s.id === selectedSdk);
+        const demoData = SDK_DEMO_DATA.find((d) => d.id === selectedSdk);
         if (!sdk) return null;
         return (
-          <div className="mt-4 rounded-xl border bg-card p-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl">{sdk.icon}</span>
-              <div>
-                <p className="font-semibold">sdk.{sdk.name}()</p>
-                <p className="text-xs text-muted-foreground">{sdk.tagline}</p>
+          <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* Header */}
+            <div className="rounded-xl border bg-card p-5">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-2xl">{sdk.icon}</span>
+                <div>
+                  <p className="font-semibold text-lg">sdk.{sdk.name}()</p>
+                  <p className="text-sm text-muted-foreground">{sdk.tagline}</p>
+                </div>
+                <span className="ml-auto px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-mono">{sdk.cost}</span>
               </div>
-              <span className="ml-auto text-xs text-primary font-mono">{sdk.cost}</span>
             </div>
-            <p className="text-sm text-foreground/70">{sdk.number} — {sdk.theme.summary33}</p>
+
+            {/* 3 Demos */}
+            {demoData?.demos.map((demo, di) => (
+              <details key={di} className="rounded-xl border bg-card overflow-hidden">
+                <summary className="px-5 py-3 cursor-pointer hover:bg-accent/30 flex items-center gap-2">
+                  <span className="text-sm font-medium">{demo.master}</span>
+                  <span className="text-xs text-muted-foreground">— {demo.masterTitle}</span>
+                </summary>
+                <div className="px-5 pb-5 pt-2 space-y-3 border-t">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Need</p>
+                    <p className="text-sm text-foreground/80">{demo.need}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Outcome</p>
+                    <p className="text-sm text-foreground/80">{demo.outcome}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Solution</p>
+                    <pre className="text-xs bg-muted/50 rounded-lg p-3 font-mono text-muted-foreground overflow-x-auto">{demo.solution}</pre>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Evidence</p>
+                    <p className="text-xs text-foreground/60 italic">{demo.evidence}</p>
+                  </div>
+                </div>
+              </details>
+            ))}
           </div>
         );
       })()}
