@@ -88,7 +88,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | 7 Ranking | 95 | 97 | 98 | 96 | 95 | **96** | 165 | v16 |
 | 8 Tokens | 85 | 88 | 72 | 82 | 83 | **82** | 106 | v8 |
 | 9 Reports | 78 | 80 | 68 | 75 | 80 | **76** | 84 | v8 |
-| 10 Simulation | — | — | — | — | — | Easter Egg | — | — |
+| 10 Simulation | 60 | 70 | 50 | 65 | 75 | **64** | 38 | v4 | — | — |
 
 > **SPIRAL v2 audit (2026-04-08, MoT Autonomous Mode):**
 > - Cubes 7-9 major implementation push: +62/+25/+33 SSSES points
