@@ -118,3 +118,36 @@ async def get_tally(
     """Get current vote tally for a submission."""
     # Stub — will query submission_votes table
     return service.tally_votes([], total_token_holders=0)
+
+
+# ---------------------------------------------------------------------------
+# Saved Use Cases (Top 3 + DEMO)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/saved-cases")
+async def list_saved_cases(
+    user: CurrentUser = Depends(require_role("admin", "lead_developer")),
+):
+    """List all saved use cases (top 3 largest + DEMO)."""
+    from app.cubes.cube10_simulation.saved_use_cases import SavedUseCaseManager
+    mgr = SavedUseCaseManager()
+    return mgr.to_dict()
+
+
+@router.get("/saved-cases/{case_id}/replay")
+async def replay_case(
+    case_id: str,
+    cube_id: int = 0,
+    function_name: str = "",
+    user: CurrentUser = Depends(require_role("admin", "lead_developer")),
+):
+    """Run simulation replay against a saved dataset."""
+    from app.cubes.cube10_simulation.saved_use_cases import (
+        SavedUseCaseManager, replay_against_dataset,
+    )
+    mgr = SavedUseCaseManager()
+    case = mgr.get_case(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Saved case not found")
+    return await replay_against_dataset(case, cube_id, function_name)
