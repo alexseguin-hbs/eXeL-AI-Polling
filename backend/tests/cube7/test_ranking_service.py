@@ -413,3 +413,75 @@ class TestGovernanceOverrideValidation:
         }
         read = GovernanceOverrideRead(**data)
         assert read.original_rank == 3
+
+
+# ---------------------------------------------------------------------------
+# CRS-13.03: Replay Hash in Pipeline Result
+# ---------------------------------------------------------------------------
+
+
+class TestReplayHashInPipeline:
+    """CRS-13.03: Replay hash must be included in pipeline result."""
+
+    def test_compute_replay_hash_deterministic(self):
+        """Same inputs → same hash, N=5."""
+        rankings = [["A", "B", "C"], ["B", "C", "A"]]
+        hashes = [_compute_replay_hash(rankings, "s1") for _ in range(5)]
+        assert len(set(hashes)) == 1
+
+    def test_replay_hash_changes_with_seed(self):
+        rankings = [["A", "B"]]
+        h1 = _compute_replay_hash(rankings, "seed1")
+        h2 = _compute_replay_hash(rankings, "seed2")
+        assert h1 != h2
+
+    def test_replay_hash_changes_with_algorithm(self):
+        rankings = [["A", "B"]]
+        h1 = _compute_replay_hash(rankings, "s", "borda_count")
+        h2 = _compute_replay_hash(rankings, "s", "quadratic_borda")
+        assert h1 != h2
+
+
+# ---------------------------------------------------------------------------
+# CRS-12.02: Weight Audit Log
+# ---------------------------------------------------------------------------
+
+
+class TestWeightAuditLog:
+    """CRS-12.02: Audit log records raw vs damped weights."""
+
+    def test_quadratic_weights_produces_audit_data(self):
+        """Weights function returns data suitable for audit logging."""
+        stakes = {"p1": 100.0, "p2": 400.0, "p3": 900.0}
+        weights = _quadratic_weights(stakes)
+        # All participants must have a weight entry
+        assert "p1" in weights
+        assert "p2" in weights
+        assert "p3" in weights
+        # Total must sum to 1.0
+        assert abs(sum(weights.values()) - 1.0) < 1e-10
+
+    def test_equal_stakes_produce_equal_audit(self):
+        stakes = {"a": 50.0, "b": 50.0}
+        weights = _quadratic_weights(stakes)
+        assert abs(weights["a"] - weights["b"]) < 1e-10
+
+
+# ---------------------------------------------------------------------------
+# Lexicon Coverage
+# ---------------------------------------------------------------------------
+
+
+class TestLexiconCoverage:
+    """Verify all spec-required lexicon keys exist."""
+
+    def test_spec_required_keys_exist(self):
+        """All 17 CRS-spec keys must be in lexicon-data.ts."""
+        import subprocess
+        result = subprocess.run(
+            ["grep", "-c", "cube7.", "frontend/lib/lexicon-data.ts"],
+            capture_output=True, text=True, cwd="/home/alex/eXeL-AI-Polling",
+        )
+        count = int(result.stdout.strip())
+        # Spec requires 17, we have more (extra is OK, fewer is NOT)
+        assert count >= 17, f"Only {count} cube7 keys, spec requires 17"

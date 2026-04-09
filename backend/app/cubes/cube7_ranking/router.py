@@ -83,6 +83,7 @@ async def submit_ranking(
             participant_id=participant.id,
             ranked_theme_ids=payload.ranked_theme_ids,
             theme2_voting_level=getattr(session, "theme2_voting_level", "theme2_3"),
+            session_short_code=session.short_code,
         )
         await db.commit()
         return ranking

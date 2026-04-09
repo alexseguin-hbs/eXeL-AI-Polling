@@ -403,6 +403,14 @@ async def aggregate_rankings(
             "replay_hash": replay_hash,
         },
     )
+    # Attach replay_hash and weight audit to first result for pipeline access
+    if aggregated:
+        aggregated[0]._replay_hash = replay_hash
+        aggregated[0]._weight_audit = (
+            {pid: weights.get(pid, 0) for pid in all_participant_ids}
+            if participant_stakes
+            else None
+        )
     return aggregated
 
 
@@ -840,15 +848,21 @@ async def run_ranking_pipeline(
 
     await db.commit()
 
+    # CRS-13.03: Include replay_hash for governance audit
+    replay_hash = getattr(aggregated[0], "_replay_hash", None) if aggregated else None
+    weight_audit = getattr(aggregated[0], "_weight_audit", None) if aggregated else None
+
     return {
         "session_id": str(session_id),
         "cycle_id": cycle_id,
         "theme_count": len(aggregated),
         "participant_count": aggregated[0].participant_count if aggregated else 0,
         "algorithm": aggregated[0].algorithm if aggregated else "borda_count",
+        "replay_hash": replay_hash,
         "top_theme2_id": emit_result.get("top_theme2_id"),
         "top_theme2_label": emit_result.get("top_theme2_label"),
         "anomaly_count": len(anomalies),
         "anomalies": anomalies,
+        "weight_audit": weight_audit,
         "status": "ranking_complete",
     }
