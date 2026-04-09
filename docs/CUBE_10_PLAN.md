@@ -1,6 +1,6 @@
 # Cube 10 — Simulation Engine: Self-Evolving Governance Platform
 
-## Plan Version: N=1 (2026-04-09)
+## Plan Version: N=2 (2026-04-09)
 
 > **Vision:** A live production system where AI and humans compete to improve the platform itself. Users submit code updates, the community votes, and winning implementations are hot-swapped into the running system — all governed by the same SoI Trinity token economics that powers polling.
 
@@ -234,6 +234,49 @@ When a Cube has an open improvement task:
 
 ---
 
+## Code Security Pipeline (N=2 Addition)
+
+Before any submission enters testing, it passes through a security scan:
+
+```
+Submission code
+    ↓ Stage 1: Static Analysis
+    - No hardcoded secrets (API keys, passwords, tokens)
+    - No eval()/exec() or dynamic code execution
+    - No network calls outside approved endpoints
+    - No file system access outside sandbox
+    ↓ Stage 2: Dependency Check
+    - No new dependencies added without review
+    - All imports resolve against existing requirements.txt
+    - No version downgrades on security-critical packages
+    ↓ Stage 3: Signature Lock
+    - Function signatures MUST match current contract
+    - Return types MUST match current contract
+    - Universal Function Registry enforces I/O compatibility
+    ↓ Stage 4: Test Isolation
+    - Code runs in sandboxed subprocess (no main process access)
+    - 60-second timeout per test suite
+    - Memory limit: 512MB per submission
+    - Network disabled during test execution
+```
+
+## Hot-Swap Mechanism (N=2 Addition)
+
+The hot-swap works because of the Universal Function Registry:
+
+```python
+# core/universal.py already maps every function:
+UniversalFunction("aggregate_rankings", cube=7, ...)
+
+# Hot-swap replaces the implementation behind the same interface:
+# Before: cube7_ranking.service.aggregate_rankings → v1 code
+# After:  cube7_ranking.service.aggregate_rankings → v2 code
+# Contract (function signature + I/O) NEVER changes
+
+# Rollback: restore v1 code, restart workers
+# Zero downtime: new requests hit new code, in-flight complete on old
+```
+
 ## Lessons from N=1 Forward Sweep (Cubes 1→9)
 
 ### Cube 1 → Cube 10 Lesson: State Machine
@@ -310,4 +353,12 @@ Submission metrics dashboard mirrors session analytics. CSV export of voting res
 
 ---
 
-*Plan v1 generated during SPIRAL N=1 forward sweep. Will be refined in subsequent N cycles.*
+## Changelog
+
+| N | Direction | Additions |
+|---|-----------|-----------|
+| 1 | Forward 1→9 | Initial architecture: 5-phase lifecycle, 4 tables, token economics, feedback loop |
+| 1 | Backward 9→1 | Verified all 9 cubes expose required functions for Cube 10 integration |
+| 2 | Forward 1→9 | Code security pipeline (4-stage static analysis), hot-swap mechanism via Universal Function Registry |
+
+*Plan evolves with each SPIRAL cycle. Refinements accumulate — nothing is deleted, only enhanced.*
