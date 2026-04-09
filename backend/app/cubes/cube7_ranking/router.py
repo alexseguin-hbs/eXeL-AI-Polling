@@ -169,6 +169,36 @@ async def get_anomalies(
 # ---------------------------------------------------------------------------
 
 
+@router.get("/rankings/scale-info")
+async def get_scale_info(
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Scale engine info: voter count, recommended path, shard count."""
+    from app.cubes.cube7_ranking.scale_engine import AutoThemingBudget
+    from app.models.ranking import Ranking
+    from sqlalchemy import func, select as sa_select
+
+    count_result = await db.execute(
+        sa_select(func.count()).select_from(Ranking).where(
+            Ranking.session_id == session_id
+        )
+    )
+    voter_count = count_result.scalar() or 0
+
+    budget = AutoThemingBudget()
+    return {
+        "session_id": str(session_id),
+        "voter_count": voter_count,
+        "recommended_path": "scale" if voter_count > 1000 else "standard",
+        "scale_threshold": 1000,
+        "budget": budget.to_dict(),
+        "shard_count": 100 if voter_count > 1000 else 1,
+    }
+
+
 @router.get("/rankings/emerging")
 async def get_emerging(
     session_id: uuid.UUID,

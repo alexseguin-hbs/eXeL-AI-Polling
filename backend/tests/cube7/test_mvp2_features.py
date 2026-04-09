@@ -178,7 +178,7 @@ class TestMVP2RouterEndpoints:
         assert found
 
     def test_total_endpoint_count(self):
-        """Cube 7 should now have 10 endpoints."""
+        """Cube 7 should now have 11 endpoints."""
         from app.cubes.cube7_ranking.router import router
         routes = [r for r in router.routes if hasattr(r, "methods")]
-        assert len(routes) == 10
+        assert len(routes) == 11
