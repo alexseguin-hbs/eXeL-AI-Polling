@@ -173,6 +173,7 @@ async def _broadcast_summary(
     session_short_code: str,
     response_id: uuid.UUID,
     summary_33: str,
+    cost_usd: float = 0.0,
 ) -> None:
     """Task A5: Broadcast summary_ready via Supabase Realtime for moderator live feed."""
     if not session_short_code:
@@ -185,6 +186,7 @@ async def _broadcast_summary(
             payload={
                 "response_id": str(response_id),
                 "summary_33": summary_33,
+                "cost_usd": round(cost_usd, 6),
             },
         )
     except Exception as e:

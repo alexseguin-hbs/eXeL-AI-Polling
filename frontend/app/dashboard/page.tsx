@@ -221,7 +221,7 @@ function SessionDetail({
   const showScrollingFeed = isLiveInteractive && session.status === "polling";
   const [feedExpanded, setFeedExpanded] = useState(false);
   const [feedFullscreen, setFeedFullscreen] = useState(false);
-  const [feedResponses, setFeedResponses] = useState<Array<{ id: string; clean_text: string; submitted_at: string; summary_33?: string }>>([]);
+  const [feedResponses, setFeedResponses] = useState<Array<{ id: string; clean_text: string; submitted_at: string; summary_33?: string; cost_usd?: number }>>([]);
   const [feedDisplayMode, setFeedDisplayMode] = useState<"summary" | "raw">("summary");
   // Cube 6 Phase B: theme pipeline state
   const [themesReady, setThemesReady] = useState(false);
@@ -276,11 +276,11 @@ function SessionDetail({
       // Task A6: Listen for summary_ready from Cube 6 Phase A backend broadcast.
       // Updates existing feed entry in-place with AI-generated summary_33.
       .on("broadcast", { event: "summary_ready" }, ({ payload }) => {
-        const p = payload as { response_id?: string; summary_33?: string };
+        const p = payload as { response_id?: string; summary_33?: string; cost_usd?: number };
         if (p.response_id && p.summary_33) {
           setFeedResponses((prev) =>
             prev.map((r) =>
-              r.id === p.response_id ? { ...r, summary_33: p.summary_33 } : r,
+              r.id === p.response_id ? { ...r, summary_33: p.summary_33, cost_usd: p.cost_usd } : r,
             ),
           );
         }
@@ -773,6 +773,9 @@ function SessionDetail({
                           )}
                           {r.summary_33 && feedDisplayMode === "raw" && (
                             <span className="text-[10px] text-green-500/70">✓ 33w</span>
+                          )}
+                          {r.cost_usd != null && r.cost_usd > 0 && (
+                            <span className="text-[10px] text-muted-foreground/50">${r.cost_usd.toFixed(4)}</span>
                           )}
                         </div>
                       </div>
