@@ -421,7 +421,7 @@ Track and optimize for:
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
 
-- **Language Lexicon:** 511 keys × 33 languages. Per-cube key groups (Cubes 1-9 + SDK), admin approval gate (`explore@eXeL-AI.com`), `t()` fallback chain (translation → English → raw key). Files: `frontend/lib/lexicon-data.ts`, `frontend/lib/lexicon-context.tsx`, `frontend/lib/lexicon-translations.ts`, `frontend/components/language-lexicon.tsx`
+- **Language Lexicon:** 612 keys × 33 languages. Per-cube key groups (Cubes 1-9 + SDK), admin approval gate (`explore@eXeL-AI.com`), `t()` fallback chain (translation → English → raw key). Files: `frontend/lib/lexicon-data.ts`, `frontend/lib/lexicon-context.tsx`, `frontend/lib/lexicon-translations.ts`, `frontend/components/language-lexicon.tsx`
 - **Settings Panel:** Slide-over with session-cascading theme customizer (8 presets + custom = 9 options), language selector, Lexicon admin. Auth-gated: polling users see view-only at 40% opacity, moderators get full control. Files: `frontend/components/moderator-settings.tsx`, `frontend/lib/theme-context.tsx`
 - **Theme Auth Guard:** Default AI Cyan pre-auth. Only Auth0 moderators change themes. Session-level cascade to all participants. Logout resets to default. Files: `frontend/lib/theme-context.tsx`, `frontend/components/providers.tsx`
 - **Global Language Selector:** Navbar globe dropdown, 33 languages (EN+ES pinned top), instant locale switching, localStorage persistence. Files: `frontend/components/navbar.tsx`, `frontend/lib/lexicon-context.tsx`
