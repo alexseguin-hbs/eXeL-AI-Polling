@@ -98,9 +98,69 @@ const PORTALS = [
   },
 ];
 
+const DONATION_AMOUNT = 3.33;
+const HI_REWARD = 1.0; // Full HI token — surprise reward for donors
+
 export default function DivinityGuidePage() {
   const [level, setLevel] = useState<3 | 6 | 9>(3);
   const [selectedPortal, setSelectedPortal] = useState<number | null>(null);
+  const [unlocked, setUnlocked] = useState(false);
+  const [showReward, setShowReward] = useState(false);
+
+  // Check localStorage for prior unlock
+  useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("divinity-guide-unlocked");
+      if (saved === "true") setUnlocked(true);
+    }
+  });
+
+  const handleDonate = () => {
+    // In production: Stripe payment → on success → unlock + award HI token
+    // For now: simulate donation
+    localStorage.setItem("divinity-guide-unlocked", "true");
+    setUnlocked(true);
+    // Surprise: show HI token reward after 1.5s
+    setTimeout(() => setShowReward(true), 1500);
+    setTimeout(() => setShowReward(false), 6000);
+  };
+
+  if (!unlocked) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="max-w-md mx-auto px-6 text-center space-y-6">
+          <Link href="/" className="text-xs text-muted-foreground hover:text-primary block">
+            ← Back
+          </Link>
+          <div className="text-5xl">✦</div>
+          <h1 className="text-2xl font-bold">The Divinity Guide</h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            The Return to Wholeness and Living Divinity. Nine portals of wisdom
+            connecting ancient truth to the governance engine of the future.
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            &quot;You hold in your hands more than a book — you hold a mirror to your own divine becoming.&quot;
+          </p>
+          <div className="rounded-xl border bg-card p-6 space-y-4">
+            <p className="text-sm font-medium">Unlock the 9 Portals</p>
+            <p className="text-3xl font-bold text-primary">${DONATION_AMOUNT.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">
+              A sacred contribution that supports the platform and the community building it.
+            </p>
+            <button
+              onClick={handleDonate}
+              className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+            >
+              Donate & Enter
+            </button>
+            <p className="text-[10px] text-muted-foreground/50">
+              Powered by the SoI Trinity: ◬ A.I. · ♡ S.I. · 웃 H.I.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const hub = getHubPosition();
   const positions = getTheme2Positions(level);
@@ -215,6 +275,20 @@ export default function DivinityGuidePage() {
                   → Explore this function in the API
                 </Link>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Surprise HI Token Reward */}
+        {showReward && (
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="rounded-xl border bg-card shadow-2xl px-6 py-4 text-center space-y-2">
+              <p className="text-2xl">웃</p>
+              <p className="text-sm font-semibold text-primary">You earned 1.0 웃 token!</p>
+              <p className="text-xs text-muted-foreground">
+                Your ${DONATION_AMOUNT.toFixed(2)} contribution has been converted to a full Human Intelligence token.
+                This recognizes your investment in the community.
+              </p>
             </div>
           </div>
         )}
