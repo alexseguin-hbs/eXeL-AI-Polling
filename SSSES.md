@@ -85,9 +85,9 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | 4 Collector | 92 | 85 | 82 | 88 | 85 | **86** | 21 | v2 |
 | 5 Gateway | 90 | 92 | 88 | 85 | 93 | **90** | 60 | v3 |
 | 6 AI Pipeline | 85 | 78 | 70 | 72 | 82 | **77** | 47 | v2 |
-| 7 Ranking | 92 | 95 | 82 | 90 | 90 | **90** | 104 | v8 |
-| 8 Tokens | 75 | 78 | 62 | 75 | 78 | **74** | 73 | v4 |
-| 9 Reports | 68 | 68 | 58 | 65 | 72 | **66** | 43 | v4 |
+| 7 Ranking | 93 | 95 | 85 | 92 | 92 | **91** | 118 | v10 |
+| 8 Tokens | 80 | 82 | 68 | 78 | 80 | **78** | 84 | v6 |
+| 9 Reports | 72 | 72 | 62 | 70 | 75 | **70** | 56 | v6 |
 | 10 Simulation | — | — | — | — | — | Easter Egg | — | — |
 
 > **SPIRAL v2 audit (2026-04-08, MoT Autonomous Mode):**

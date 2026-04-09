@@ -358,9 +358,9 @@ Track and optimize for:
 ## API, SDK & Embed Architecture — Current State
 
 ### REST API (Implemented)
-- **76 endpoints** across 9 cube routers at `/api/v1` (+ 1 health endpoint)
+- **89 endpoints** across 9 cube routers at `/api/v1` (+ 2 health/discovery)
 - **OpenAPI auto-docs:** FastAPI generates interactive docs at `/api/v1/docs` (Swagger UI) and `/api/v1/redoc`
-- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (6), Cube 5 (9), Cube 6 (4), Cube 7 (7), Cube 8 (15), Cube 9 (5), SDK (2 planned)
+- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (6), Cube 5 (9), Cube 6 (4), Cube 7 (10), Cube 8 (18), Cube 9 (8), SDK (2: health + cubes discovery)
 
 ### Authentication & Security (Implemented)
 - **Auth0 JWT:** Bearer token validation via `core/auth.py` (135 lines)
@@ -410,12 +410,12 @@ Track and optimize for:
 | 4 Collector | ~86% | **86** | 21 | CRS-09→10 | C4-1→C4-2 |
 | 5 Gateway | ~89% | **89** | 60 | CRS-09→11 | C5-1, C5-3 |
 | 6 AI Pipeline | ~77% | **77** | 47 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
-| 7 Ranking | **~84%** | **84** | 75 | CRS-11→13, 16-17, 22 | CRS-16/17 WebSocket (MVP2) |
-| 8 Tokens | **~70%** | **70** | 50 | CRS-18-19, 24-25, 32-35 | CRS-18 WebSocket, CRS-35 policy config |
-| 9 Reports | **~62%** | **62** | 24 | CRS-14-15, 19-21 | PDF export, Pixelated Tokens (MVP3) |
+| 7 Ranking | **~91%** | **91** | 118 | CRS-11→13, 16-17, 22 | All MVP1+MVP2 done. MVP3: none remaining |
+| 8 Tokens | **~78%** | **78** | 84 | CRS-18-19, 24-25, 32-35 | Velocity caps done. MVP3: execution separation |
+| 9 Reports | **~70%** | **70** | 56 | CRS-14-15, 19-21 | PDF stub, distribution done. MVP3: Pixelated Tokens |
 | 10 Simulation | Easter Egg SIM | — | — | — | — |
 | **SDK Core** | **Active** | — | 31 | — | Envelope, Events, Scoping, API Keys |
-| **Total** | | | **523** | | |
+| **Total** | | | **633** | | |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
