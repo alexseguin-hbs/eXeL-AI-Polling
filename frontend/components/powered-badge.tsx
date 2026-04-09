@@ -330,17 +330,23 @@ export function PoweredBadge() {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <button
-        onClick={easterEggUnlocked ? handleEnterSimulation : undefined}
-        className={`flex items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 text-xs backdrop-blur transition-colors ${
-          easterEggUnlocked
-            ? "badge-blink cursor-pointer hover:bg-background/95"
-            : "cursor-default"
+        onClick={() => {
+          if (easterEggUnlocked) {
+            handleEnterSimulation();
+          } else {
+            // Free easter egg: opens Spotify + Divinity Guide for anyone
+            window.open("https://open.spotify.com/playlist/4CqmHFhE2mR7cNN5KpLhxH", "_blank");
+            router.push("/divinity-guide");
+          }
+        }}
+        className={`flex items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 text-xs backdrop-blur transition-colors cursor-pointer hover:bg-background/95 ${
+          easterEggUnlocked ? "badge-blink" : ""
         }`}
         style={{
           borderColor: easterEggUnlocked ? badgeColor : undefined,
           boxShadow: easterEggUnlocked ? `0 0 12px ${badgeColor}30` : undefined,
         }}
-        title={easterEggUnlocked ? "Enter Simulation Mode" : undefined}
+        title={easterEggUnlocked ? "Enter Simulation Mode" : "✦ Discover the Divinity Guide"}
       >
         <span className="font-bold" style={{ color: badgeColor }}>eXeL</span>
         <span className="font-light text-muted-foreground">AI</span>
