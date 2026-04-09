@@ -573,14 +573,23 @@ export function SessionView() {
     return () => clearInterval(interval);
   }, [sessionId, sessionStatus, simulationMode]);
 
-  // Start timer when session enters polling, stop when it leaves
-  useEffect(() => {
-    if (sessionStatus === "polling") {
+  // Timer starts on FIRST KEYSTROKE or FIRST WORD (anti-gaming)
+  // NOT on page load — users can't accrue tokens by just sitting idle
+  const timerStartedRef = useRef(false);
+  const startTimerOnActivity = useCallback(() => {
+    if (!timerStartedRef.current && sessionStatus === "polling") {
+      timerStartedRef.current = true;
       startTimer();
-    } else if (sessionStatus && sessionStatus !== "open") {
-      stopTimer();
     }
-  }, [sessionStatus, startTimer, stopTimer]);
+  }, [sessionStatus, startTimer]);
+
+  // Stop timer when session leaves polling
+  useEffect(() => {
+    if (sessionStatus && sessionStatus !== "polling" && sessionStatus !== "open") {
+      stopTimer();
+      timerStartedRef.current = false;
+    }
+  }, [sessionStatus, stopTimer]);
 
   // broadcastHealthy: set to true when Broadcast fires, reset after 8s of silence.
   // When healthy, the 1.5s DB poll is suspended — Broadcast is the primary path.
@@ -1123,7 +1132,7 @@ export function SessionView() {
                     <textarea
                       placeholder={t("cube2.input.placeholder")}
                       value={responseText}
-                      onChange={(e) => setResponseText(e.target.value)}
+                      onChange={(e) => { startTimerOnActivity(); setResponseText(e.target.value); }}
                       maxLength={session.max_response_length || 3333}
                       rows={4}
                       disabled={simulationMode && simPhase !== "polling"}
@@ -1157,7 +1166,7 @@ export function SessionView() {
                       questionId={currentQuestion?.id ?? ""}
                       participantId={participantId}
                       languageCode={languageCode}
-                      onTranscript={(text) => setResponseText((prev) => prev + text)}
+                      onTranscript={(text) => { startTimerOnActivity(); setResponseText((prev) => prev + text); }}
                       onSubmitted={(result) => {
                         // Trinity redundancy: 3 paths for voice responses too
                         if (!simulationMode) {

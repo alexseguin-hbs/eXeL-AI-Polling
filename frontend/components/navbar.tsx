@@ -211,54 +211,73 @@ export function Navbar({ sessionTitle }: NavbarProps) {
               <button onClick={() => setApiSdkOpen(false)} className="text-muted-foreground hover:text-foreground">✕</button>
             </div>
             <div className="p-5 space-y-5">
-              {/* API Key Section */}
+              {/* Hero — What This Is */}
+              <section className="text-center pb-3 border-b">
+                <p className="text-sm text-primary font-semibold">9 APIs That Change How Decisions Are Made</p>
+                <p className="text-xs text-muted-foreground mt-1">Governance at the speed of thought. From 5 people to 5 million.</p>
+              </section>
+
+              {/* The 9 SDK Functions — Expandable Demos */}
+              <section>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">SDK Functions</h3>
+                <div className="space-y-2">
+                  {[
+                    { num: "1", name: "compress", icon: "🧠", tagline: "Understand anything", desc: "1M voices → 3 truths in 60s", cost: "5◬/1K", demo: "const themes = await sdk.compress(citizenComments);\n// → ['Healthcare', 'Education', 'Economy']" },
+                    { num: "2", name: "vote", icon: "🗳️", tagline: "Govern fairly", desc: "Quadratic voting — no whale domination", cost: "0.01◬", demo: "await sdk.vote(session, ['theme1', 'theme2', 'theme3']);\n// sqrt(stake) weight + anti-sybil" },
+                    { num: "3", name: "convert", icon: "웃", tagline: "Value human time", desc: "$7.25 = 1 hour = 1.0 웃 token", cost: "Free", demo: "const tokens = await sdk.convert(50.00);\n// → 6.897 웃 (tracks who invests)" },
+                    { num: "4", name: "detect", icon: "🛡️", tagline: "Clean before you count", desc: "Exclude bad actors before math", cost: "1◬", demo: "const scan = await sdk.detect(session);\n// → 3 bot accounts excluded" },
+                    { num: "5", name: "consensus", icon: "📊", tagline: "Watch agreement form", desc: "Live convergence score (0→1)", cost: "0.5◬", demo: "const live = await sdk.consensus(session);\n// → 73% converged on 'Theme A'" },
+                    { num: "6", name: "verify", icon: "🔐", tagline: "Prove it's real", desc: "SHA-256 determinism proof", cost: "Free", demo: "const proof = await sdk.verify(session);\n// → { match: true, hash: 'a3f8c2...' }" },
+                    { num: "7", name: "challenge", icon: "⚡", tagline: "Build the future", desc: "Submit code. Community votes. Deploy.", cost: "10◬", demo: "await sdk.challenge(7, myBetterCode);\n// → 88.2% approved → deployed live" },
+                    { num: "8", name: "override", icon: "⚖️", tagline: "Lead transparently", desc: "Authority with public justification", cost: "2◬", demo: 'await sdk.override(session, theme, 1, "Board directive");\n// Immutable. Public. Accountable.' },
+                    { num: "9", name: "broadcast", icon: "📡", tagline: "Reach everyone", desc: "1M recipients in <500ms", cost: "1◬/10K", demo: "await sdk.broadcast(session, results);\n// → 100 shards, 1M devices, instant" },
+                  ].map((fn) => (
+                    <details key={fn.num} className="rounded-lg border bg-muted/20">
+                      <summary className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-accent/50 rounded-lg">
+                        <span className="text-base">{fn.icon}</span>
+                        <span className="text-sm font-medium flex-1">sdk.{fn.name}()</span>
+                        <span className="text-[10px] text-primary/70 font-mono">{fn.cost}</span>
+                      </summary>
+                      <div className="px-3 pb-3 pt-1 border-t">
+                        <p className="text-xs text-primary font-semibold">{fn.tagline}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{fn.desc}</p>
+                        <pre className="mt-2 text-[10px] bg-background rounded p-2 font-mono text-muted-foreground overflow-x-auto">{fn.demo}</pre>
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </section>
+
+              {/* API Key */}
               <section>
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t("sdk.api_key.generate")}</h3>
-                <div className="rounded-lg border bg-muted/30 p-4">
-                  <p className="text-xs text-muted-foreground mb-3">API keys allow external applications to access the eXeL governance engine via REST API or SDK.</p>
+                <div className="rounded-lg border bg-muted/30 p-3">
                   <code className="block text-xs bg-background rounded p-2 font-mono text-primary/80 break-all">
                     exel_pk_●●●●●●●●_●●●●●●●●●●●●●●●●
                   </code>
-                  <div className="flex gap-2 mt-3">
+                  <div className="flex gap-2 mt-2">
                     <button className="text-xs px-3 py-1.5 rounded bg-primary text-primary-foreground hover:bg-primary/90">{t("sdk.api_key.generate")}</button>
                     <button className="text-xs px-3 py-1.5 rounded border hover:bg-accent">{t("sdk.api_key.copy")}</button>
                   </div>
                 </div>
               </section>
 
-              {/* Embed Code Section */}
+              {/* Quick Embed */}
               <section>
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t("sdk.embed.title")}</h3>
-                <div className="rounded-lg border bg-muted/30 p-4">
-                  <div className="flex gap-2 mb-3">
-                    <button className="text-xs px-3 py-1.5 rounded bg-primary/10 text-primary">{t("sdk.embed.iframe")}</button>
-                    <button className="text-xs px-3 py-1.5 rounded border">{t("sdk.embed.headless")}</button>
-                  </div>
+                <div className="rounded-lg border bg-muted/30 p-3">
                   <code className="block text-[10px] bg-background rounded p-2 font-mono text-muted-foreground break-all">
-                    {`<iframe src="https://exel-ai-polling.explore-096.workers.dev/embed?session=DEMO2026" />`}
+                    {`<iframe src="https://exel-ai-polling.explore-096.workers.dev/embed?key=exel_pk_..." />`}
                   </code>
                 </div>
               </section>
 
-              {/* Usage Section */}
+              {/* Usage */}
               <section>
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t("sdk.usage.title")}</h3>
-                <div className="rounded-lg border bg-muted/30 p-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{t("sdk.usage.total_calls")}</span>
-                    <span className="font-mono text-primary">0</span>
-                  </div>
-                </div>
-              </section>
-
-              {/* Discovery Endpoints */}
-              <section>
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Discovery</h3>
-                <div className="space-y-1 text-xs font-mono">
-                  <p className="text-muted-foreground">GET /api/v1/sdk</p>
-                  <p className="text-muted-foreground">GET /api/v1/cubes</p>
-                  <p className="text-muted-foreground">GET /api/v1/functions</p>
-                  <p className="text-muted-foreground">GET /api/v1/compress/estimate</p>
+                <div className="rounded-lg border bg-muted/30 p-3 flex justify-between text-sm">
+                  <span className="text-muted-foreground">{t("sdk.usage.total_calls")}</span>
+                  <span className="font-mono text-primary">0 ◬</span>
                 </div>
               </section>
 
