@@ -1,5 +1,12 @@
 """Cube 9 — Reports, Export & Dashboards.
 
+Endpoints:
+  GET  /export/csv       — 16-column CSV download (CRS-14)
+  GET  /analytics        — Participation + engagement metrics (CRS-19)
+  GET  /cqs-dashboard    — CQS scoring breakdown (CRS-19.02)
+  GET  /ranking-summary  — Aggregated ranking results (CRS-15)
+  POST /destroy-data     — Irreversible data destruction (CRS-14.03)
+
 Results access gating:
   Free: Moderator + Lead always; Users see results (donation prompt after)
   Moderator Paid: All participants (Moderator paid for everyone)
@@ -23,6 +30,11 @@ from app.models.session import Session
 router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 9 — Reports"])
 
 
+# ---------------------------------------------------------------------------
+# CRS-14: CSV Export
+# ---------------------------------------------------------------------------
+
+
 @router.get("/export/csv")
 async def export_csv(
     session_id: uuid.UUID,
@@ -36,18 +48,15 @@ async def export_csv(
       Participant: allowed if payment_status in ('paid', 'lead_exempt')
                    or session pricing_tier is 'free' or 'moderator_paid'
     """
-    # Fetch session
     result = await db.execute(select(Session).where(Session.id == session_id))
     session = result.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
 
-    # Moderator/Admin/Lead: always allowed
     if user.role in ("moderator", "admin", "lead_developer"):
         if user.role == "moderator" and session.created_by != user.user_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your session")
     else:
-        # Participant: check payment gating for cost_split sessions
         if session.pricing_tier == "cost_split":
             p_result = await db.execute(
                 select(Participant).where(
@@ -74,10 +83,69 @@ async def export_csv(
     )
 
 
+# ---------------------------------------------------------------------------
+# CRS-19: Analytics Dashboard
+# ---------------------------------------------------------------------------
+
+
 @router.get("/analytics")
 async def get_analytics(
-    session_id: str,
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
-    """CRS-19: Get engagement metrics and analytics."""
-    raise NotImplementedError("Cube 9: get_analytics — not yet implemented")
+    """CRS-19: Participation, timing, engagement, token, ranking metrics."""
+    return await service.build_analytics_dashboard(db, session_id)
+
+
+# ---------------------------------------------------------------------------
+# CRS-19.02: CQS Dashboard
+# ---------------------------------------------------------------------------
+
+
+@router.get("/cqs-dashboard")
+async def get_cqs_dashboard(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """CRS-19.02: CQS scoring breakdown — composite scores, winner, top 50."""
+    return await service.build_cqs_dashboard(db, session_id)
+
+
+# ---------------------------------------------------------------------------
+# CRS-15: Ranking Summary
+# ---------------------------------------------------------------------------
+
+
+@router.get("/ranking-summary")
+async def get_ranking_summary(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CRS-15: Aggregated ranking results with theme labels."""
+    return await service.build_ranking_summary(db, session_id)
+
+
+# ---------------------------------------------------------------------------
+# CRS-14.03: Data Destruction
+# ---------------------------------------------------------------------------
+
+
+@router.post("/destroy-data", status_code=200)
+async def destroy_data(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("admin")),
+):
+    """CRS-14.03: Irreversible data destruction after results delivery.
+
+    Admin-only. Nullifies raw text and summaries. Preserves session
+    metadata, themes, and rankings for audit trail.
+
+    WARNING: This action is IRREVERSIBLE.
+    """
+    return await service.destroy_session_export_data(
+        db, session_id, destroyed_by=user.user_id
+    )

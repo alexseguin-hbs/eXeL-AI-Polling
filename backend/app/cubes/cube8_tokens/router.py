@@ -152,6 +152,72 @@ async def create_token_dispute(
     return TokenDisputeRead.model_validate(dispute)
 
 
+@router.get("/sessions/{session_id}/tokens/balance")
+async def get_user_balance(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CRS-25: Get authenticated user's token balance for a session."""
+    return await service.get_user_token_balance(db, session_id, user.user_id)
+
+
+@router.get("/sessions/{session_id}/tokens/summary")
+async def get_token_summary(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """CRS-19: Get aggregate token stats for moderator dashboard."""
+    return await service.get_session_token_summary(db, session_id)
+
+
+@router.post("/tokens/{entry_id}/transition")
+async def transition_state(
+    entry_id: uuid.UUID,
+    new_state: str = Query(..., description="Target lifecycle state"),
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("admin")),
+):
+    """CRS-34.01: Transition token lifecycle state (admin only)."""
+    entry = await service.transition_lifecycle_state(
+        db, entry_id, new_state, transitioned_by=user.user_id
+    )
+    await db.commit()
+    return TokenLedgerRead.model_validate(entry)
+
+
+@router.post("/tokens/{entry_id}/reverse")
+async def reverse_token_entry(
+    entry_id: uuid.UUID,
+    reason: str = Query(..., min_length=5),
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("admin", "lead_developer")),
+):
+    """CRS-34.02: Reverse a ledger entry (append offsetting negative entry)."""
+    reversal = await service.reverse_entry(
+        db, entry_id, reason=reason, reversed_by=user.user_id
+    )
+    await db.commit()
+    return TokenLedgerRead.model_validate(reversal)
+
+
+@router.post("/tokens/disputes/{dispute_id}/resolve")
+async def resolve_token_dispute(
+    dispute_id: uuid.UUID,
+    resolution: str = Query(..., description="'resolved' or 'rejected'"),
+    notes: str = Query(..., min_length=5),
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("admin", "lead_developer")),
+):
+    """CRS-33.02: Admin resolves a token dispute."""
+    dispute = await service.resolve_dispute(
+        db, dispute_id, resolution=resolution, notes=notes, resolved_by=user.user_id
+    )
+    await db.commit()
+    return TokenDisputeRead.model_validate(dispute)
+
+
 @router.get("/tokens/rates")
 async def get_human_rates():
     """Get all 웃 rates by country/state (per-hour minimum wage table)."""

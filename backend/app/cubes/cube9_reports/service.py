@@ -1,4 +1,4 @@
-"""Cube 9 — Reports Service: CSV export matching 16-column schema.
+"""Cube 9 — Reports Service: CSV export, analytics, CQS dashboard.
 
 Output columns (ref: Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv):
   Q_Number, Question, User, Detailed_Results, Response_Language,
@@ -7,18 +7,31 @@ Output columns (ref: Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.cs
   Theme2_9, Theme2_9_Confidence,
   Theme2_6, Theme2_6_Confidence,
   Theme2_3, Theme2_3_Confidence
+
+Functions:
+  - export_session_csv: 16-column CSV matching reference schema
+  - build_analytics_dashboard: Participation, timing, engagement metrics
+  - build_cqs_dashboard: CQS scoring breakdown for moderator
+  - build_ranking_summary: Aggregated ranking results for export
+  - destroy_session_data: Irreversible data destruction after delivery
+
+CRS: 14, 15, 19, 20, 21
 """
 
 import io
+import logging
 import uuid
+from datetime import datetime, timezone
 
 import pandas as pd
-from sqlalchemy import select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.question import Question
 from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
+
+logger = logging.getLogger("cube9")
 
 # Exact 16-column schema matching reference CSV (v04.1_5000.csv)
 CSV_COLUMNS = [
@@ -41,11 +54,16 @@ CSV_COLUMNS = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# CRS-14: CSV Export
+# ---------------------------------------------------------------------------
+
+
 async def export_session_csv(
     db: AsyncSession,
     session_id: uuid.UUID,
 ) -> io.BytesIO:
-    """Build 15-column CSV export for a session.
+    """Build 16-column CSV export for a session.
 
     Queries Postgres (ResponseMeta, Question, ResponseSummary)
     and assembles matching the reference output schema.
@@ -62,18 +80,19 @@ async def export_session_csv(
     )
     questions = {str(q.id): q for q in q_result.scalars().all()}
 
+    # Batch-load all summaries for this session
+    summary_result = await db.execute(
+        select(ResponseSummary).where(ResponseSummary.session_id == session_id)
+    )
+    summaries = {
+        s.response_meta_id: s for s in summary_result.scalars().all()
+        if hasattr(s, "response_meta_id")
+    }
+
     rows = []
     for meta in metas:
-        # Fetch raw text from ResponseMeta.raw_text (PostgreSQL)
         raw_text = meta.raw_text or ""
-
-        # Fetch summaries from PostgreSQL (ResponseSummary)
-        summary_result = await db.execute(
-            select(ResponseSummary).where(
-                ResponseSummary.response_meta_id == meta.id,
-            )
-        )
-        summary_row = summary_result.scalar_one_or_none()
+        summary_row = summaries.get(meta.id)
 
         question = questions.get(str(meta.question_id))
         q_number = question.order_index if question else 0
@@ -89,6 +108,7 @@ async def export_session_csv(
             "Question": q_text,
             "User": str(meta.participant_id),
             "Detailed_Results": raw_text,
+            "Response_Language": getattr(meta, "language_code", "en"),
             "333_Summary": summary_row.summary_333 or "" if summary_row else "",
             "111_Summary": summary_row.summary_111 or "" if summary_row else "",
             "33_Summary": summary_row.summary_33 or "" if summary_row else "",
@@ -119,17 +139,323 @@ async def export_session_csv(
     return buf
 
 
-async def export_session_csv_to_file(
+# ---------------------------------------------------------------------------
+# CRS-19: Analytics Dashboard
+# ---------------------------------------------------------------------------
+
+
+async def build_analytics_dashboard(
     db: AsyncSession,
     session_id: uuid.UUID,
-    output_dir: str = "/tmp/outputs",
-) -> str:
-    """Export CSV to filesystem. Returns output file path."""
-    import os
-    os.makedirs(output_dir, exist_ok=True)
+) -> dict:
+    """CRS-19.01: Participation, timing, engagement metrics.
 
-    buf = await export_session_csv(db, session_id)
-    output_path = os.path.join(output_dir, f"{session_id}_themes.csv")
-    with open(output_path, "wb") as f:
-        f.write(buf.getvalue())
-    return output_path
+    Returns:
+      - Response counts (total, by question)
+      - Participation rate (responses / participants)
+      - Theme distribution (by Theme01 category)
+      - Summary coverage (% of responses with summaries)
+      - Ranking participation (if ranking completed)
+    """
+    # Response counts
+    resp_result = await db.execute(
+        select(func.count()).select_from(ResponseMeta).where(
+            ResponseMeta.session_id == session_id
+        )
+    )
+    total_responses = resp_result.scalar() or 0
+
+    # Unique participants
+    part_result = await db.execute(
+        select(func.count(func.distinct(ResponseMeta.participant_id))).where(
+            ResponseMeta.session_id == session_id
+        )
+    )
+    unique_participants = part_result.scalar() or 0
+
+    # Summary coverage
+    summary_result = await db.execute(
+        select(func.count()).select_from(ResponseSummary).where(
+            ResponseSummary.session_id == session_id
+        )
+    )
+    summaries_count = summary_result.scalar() or 0
+
+    # Theme01 distribution
+    theme01_dist: dict[str, int] = {}
+    if summaries_count > 0:
+        theme_result = await db.execute(
+            select(ResponseSummary.theme01, func.count()).where(
+                and_(
+                    ResponseSummary.session_id == session_id,
+                    ResponseSummary.theme01.isnot(None),
+                )
+            ).group_by(ResponseSummary.theme01)
+        )
+        for label, count in theme_result.all():
+            if label:
+                theme01_dist[label] = count
+
+    # Ranking stats
+    ranking_stats = {}
+    try:
+        from app.models.ranking import AggregatedRanking, Ranking
+
+        rank_count_result = await db.execute(
+            select(func.count()).select_from(Ranking).where(
+                Ranking.session_id == session_id
+            )
+        )
+        ranking_submissions = rank_count_result.scalar() or 0
+
+        agg_result = await db.execute(
+            select(AggregatedRanking)
+            .where(
+                and_(
+                    AggregatedRanking.session_id == session_id,
+                    AggregatedRanking.is_top_theme2.is_(True),
+                )
+            )
+        )
+        winner = agg_result.scalar_one_or_none()
+
+        ranking_stats = {
+            "ranking_submissions": ranking_submissions,
+            "top_theme2_id": str(winner.theme_id) if winner else None,
+            "top_theme2_score": winner.score if winner else None,
+        }
+    except Exception:
+        ranking_stats = {"ranking_submissions": 0}
+
+    # Token stats
+    token_stats = {}
+    try:
+        from app.models.token_ledger import TokenLedger
+
+        token_result = await db.execute(
+            select(
+                func.sum(TokenLedger.delta_heart),
+                func.sum(TokenLedger.delta_human),
+                func.sum(TokenLedger.delta_unity),
+            ).where(
+                and_(
+                    TokenLedger.session_id == session_id,
+                    TokenLedger.lifecycle_state.in_(("pending", "approved", "finalized")),
+                )
+            )
+        )
+        heart, human, unity = token_result.one()
+        token_stats = {
+            "total_heart": round(heart or 0, 3),
+            "total_human": round(human or 0, 3),
+            "total_unity": round(unity or 0, 3),
+        }
+    except Exception:
+        token_stats = {"total_heart": 0, "total_human": 0, "total_unity": 0}
+
+    return {
+        "session_id": str(session_id),
+        "total_responses": total_responses,
+        "unique_participants": unique_participants,
+        "avg_responses_per_participant": (
+            round(total_responses / unique_participants, 1)
+            if unique_participants else 0
+        ),
+        "summary_coverage": (
+            round(summaries_count / total_responses * 100, 1)
+            if total_responses else 0
+        ),
+        "theme01_distribution": theme01_dist,
+        "ranking": ranking_stats,
+        "tokens": token_stats,
+    }
+
+
+# ---------------------------------------------------------------------------
+# CRS-19.02: CQS Dashboard
+# ---------------------------------------------------------------------------
+
+
+async def build_cqs_dashboard(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+) -> dict:
+    """CRS-19.02: CQS scoring breakdown for moderator.
+
+    Returns per-response 6-metric scores, composite CQS, winner details.
+    """
+    try:
+        from app.models.cqs_score import CQSScore
+
+        result = await db.execute(
+            select(CQSScore)
+            .where(CQSScore.session_id == session_id)
+            .order_by(CQSScore.composite_cqs.desc())
+        )
+        scores = list(result.scalars().all())
+
+        if not scores:
+            return {
+                "session_id": str(session_id),
+                "cqs_scores": [],
+                "winner": None,
+                "total_scored": 0,
+            }
+
+        winner = next((s for s in scores if s.is_winner), scores[0] if scores else None)
+
+        return {
+            "session_id": str(session_id),
+            "total_scored": len(scores),
+            "winner": {
+                "participant_id": str(winner.participant_id),
+                "composite_cqs": winner.composite_cqs,
+                "theme2_cluster_label": winner.theme2_cluster_label,
+                "is_winner": True,
+            } if winner else None,
+            "cqs_scores": [
+                {
+                    "response_id": str(s.response_id),
+                    "participant_id": str(s.participant_id),
+                    "composite_cqs": s.composite_cqs,
+                    "is_winner": s.is_winner,
+                    "theme2_cluster_label": s.theme2_cluster_label,
+                }
+                for s in scores[:50]  # Top 50 for dashboard
+            ],
+        }
+    except Exception as e:
+        logger.warning("cube9.cqs_dashboard.error", extra={"error": str(e)})
+        return {
+            "session_id": str(session_id),
+            "cqs_scores": [],
+            "winner": None,
+            "total_scored": 0,
+        }
+
+
+# ---------------------------------------------------------------------------
+# Ranking Summary Export
+# ---------------------------------------------------------------------------
+
+
+async def build_ranking_summary(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+) -> dict:
+    """Build ranking summary for report inclusion."""
+    try:
+        from app.models.ranking import AggregatedRanking
+        from app.models.theme import Theme
+
+        result = await db.execute(
+            select(AggregatedRanking)
+            .where(AggregatedRanking.session_id == session_id)
+            .order_by(AggregatedRanking.rank_position)
+        )
+        rankings = list(result.scalars().all())
+
+        if not rankings:
+            return {"session_id": str(session_id), "rankings": []}
+
+        # Fetch theme labels
+        theme_ids = [r.theme_id for r in rankings]
+        theme_result = await db.execute(
+            select(Theme).where(Theme.id.in_(theme_ids))
+        )
+        theme_map = {t.id: t.label for t in theme_result.scalars().all()}
+
+        return {
+            "session_id": str(session_id),
+            "algorithm": rankings[0].algorithm if rankings else "borda_count",
+            "participant_count": rankings[0].participant_count if rankings else 0,
+            "rankings": [
+                {
+                    "rank": r.rank_position,
+                    "theme_id": str(r.theme_id),
+                    "theme_label": theme_map.get(r.theme_id, "Unknown"),
+                    "score": r.score,
+                    "vote_count": r.vote_count,
+                    "is_top_theme2": r.is_top_theme2,
+                }
+                for r in rankings
+            ],
+        }
+    except Exception as e:
+        logger.warning("cube9.ranking_summary.error", extra={"error": str(e)})
+        return {"session_id": str(session_id), "rankings": []}
+
+
+# ---------------------------------------------------------------------------
+# CRS-14.03: Data Destruction
+# ---------------------------------------------------------------------------
+
+
+async def destroy_session_export_data(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    *,
+    destroyed_by: str,
+) -> dict:
+    """CRS-14.03: Irreversible data destruction after delivery.
+
+    Purges response raw text and summaries. Preserves session metadata,
+    themes, and rankings for audit trail. Creates audit entry.
+
+    WARNING: This is irreversible. Call only after results have been delivered.
+    """
+    # Count what we're destroying
+    resp_count = await db.execute(
+        select(func.count()).select_from(ResponseMeta).where(
+            ResponseMeta.session_id == session_id
+        )
+    )
+    total_responses = resp_count.scalar() or 0
+
+    summary_count = await db.execute(
+        select(func.count()).select_from(ResponseSummary).where(
+            ResponseSummary.session_id == session_id
+        )
+    )
+    total_summaries = summary_count.scalar() or 0
+
+    # Nullify raw text in response_meta (preserve structure)
+    from sqlalchemy import update
+    await db.execute(
+        update(ResponseMeta)
+        .where(ResponseMeta.session_id == session_id)
+        .values(raw_text="[DESTROYED]")
+    )
+
+    # Nullify summaries
+    await db.execute(
+        update(ResponseSummary)
+        .where(ResponseSummary.session_id == session_id)
+        .values(
+            summary_333="[DESTROYED]",
+            summary_111="[DESTROYED]",
+            summary_33="[DESTROYED]",
+            original_text="[DESTROYED]",
+        )
+    )
+
+    await db.commit()
+
+    logger.warning(
+        "cube9.data.destroyed",
+        extra={
+            "session_id": str(session_id),
+            "responses_destroyed": total_responses,
+            "summaries_destroyed": total_summaries,
+            "destroyed_by": destroyed_by,
+        },
+    )
+
+    return {
+        "session_id": str(session_id),
+        "responses_destroyed": total_responses,
+        "summaries_destroyed": total_summaries,
+        "destroyed_by": destroyed_by,
+        "destroyed_at": datetime.now(timezone.utc).isoformat(),
+        "irreversible": True,
+    }
