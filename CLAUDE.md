@@ -358,9 +358,9 @@ Track and optimize for:
 ## API, SDK & Embed Architecture — Current State
 
 ### REST API (Implemented)
-- **54 endpoints** across 9 cube routers at `/api/v1` (+ 1 health endpoint)
+- **76 endpoints** across 9 cube routers at `/api/v1` (+ 1 health endpoint)
 - **OpenAPI auto-docs:** FastAPI generates interactive docs at `/api/v1/docs` (Swagger UI) and `/api/v1/redoc`
-- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (6), Cube 5 (9), Cube 6 (2), Cube 7 (3 stub), Cube 8 (4), Cube 9 (2 stub)
+- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (6), Cube 5 (9), Cube 6 (4), Cube 7 (7), Cube 8 (15), Cube 9 (5), SDK (2 planned)
 
 ### Authentication & Security (Implemented)
 - **Auth0 JWT:** Bearer token validation via `core/auth.py` (135 lines)
@@ -400,21 +400,22 @@ Track and optimize for:
 
 ### Implementation Summary
 
-> **SSSES audit (2026-03-30):** Per-pillar scores for Cubes 2–6 in `SSSES.md`. Spiral code audit found 8 new gaps (C4-3→C6-8) documented in `docs/CUBES_4-6.md`. Full task definitions: A0–A7/B1–B5 in `docs/CUBES_1-3.md`; C4-1→C6-8 in `docs/CUBES_4-6.md`.
+> **SPIRAL v2 audit (2026-04-08, MoT Autonomous Mode):** Cubes 7-9 fully implemented. SDK Core layer added. 523 tests, 0 failures. Per-pillar scores updated in `SSSES.md`.
 
 | Cube | Status | SSSES | Tests | CRS | Open Tasks |
 |------|--------|:---:|-------|-----|------------|
 | 1 Session | **100% SSSES** | **100** | 59 | CRS-01→06 | None |
-| 2 Text | **~98% SSSES** | **91** | 62 | CRS-05→08 | A0–A7 DONE, B1–B5 DONE. Phase 3: DB error handling, bounded cache, Cube 5 fault tolerance. |
-| 3 Voice | ~85% | 56 | 39 | CRS-08, 15 | A5.03, A7 |
-| 4 Collector | ~80% | 72 | 21 | CRS-09→10 | C4-1→C4-4 |
-| 5 Gateway | ~90% | 82 | 60 | CRS-09→11 | C5-1→C5-4 |
-| 6 AI Pipeline | ~85% | 58 | 26 | CRS-11→14 | C6-1→C6-8 |
-| 7 Ranking | Stub | 22 | — | CRS-11→13, 16-17, 22 | C7-1→C7-3 |
-| 8 Tokens | Partial | 45 | 19 | CRS-18-19, 24-25, 32-35 | C8-1→C8-3 |
-| 9 Reports | Partial | 29 | — | CRS-14-15, 19-21 | C9-1→C9-3 |
+| 2 Text | **~98% SSSES** | **94** | 62 | CRS-05→08 | Phase 3: DB error handling, bounded cache |
+| 3 Voice | ~87% | **87** | 39 | CRS-08, 15 | A5.03 |
+| 4 Collector | ~86% | **86** | 21 | CRS-09→10 | C4-1→C4-2 |
+| 5 Gateway | ~89% | **89** | 60 | CRS-09→11 | C5-1, C5-3 |
+| 6 AI Pipeline | ~77% | **77** | 47 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
+| 7 Ranking | **~84%** | **84** | 75 | CRS-11→13, 16-17, 22 | CRS-16/17 WebSocket (MVP2) |
+| 8 Tokens | **~70%** | **70** | 50 | CRS-18-19, 24-25, 32-35 | CRS-18 WebSocket, CRS-35 policy config |
+| 9 Reports | **~62%** | **62** | 24 | CRS-14-15, 19-21 | PDF export, Pixelated Tokens (MVP3) |
 | 10 Simulation | Easter Egg SIM | — | — | — | — |
-| **Total** | | | **286** | | **A0–A7, B1–B5, C4–C6** |
+| **SDK Core** | **Active** | — | 31 | — | Envelope, Events, Scoping, API Keys |
+| **Total** | | | **523** | | |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:

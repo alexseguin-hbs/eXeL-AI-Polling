@@ -77,20 +77,27 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 
 ## Current Cube SSSES Status
 
-| Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall |
-|------|----------|-----------|-------------|------------|--------------|---------|
-| 1 Session | 100 | 100 | 100 | 100 | 100 | **100** |
-| 2 Text | 98 | 95 | 93 | 92 | 90 | **94** |
-| 3 Voice | 88 | 90 | 92 | 85 | 78 | **87** |
-| 4 Collector | 92 | 85 | 82 | 88 | 85 | **86** |
-| 5 Gateway | 90 | 88 | 88 | 85 | 93 | **89** |
-| 6 AI Pipeline | 85 | 78 | 65 | 68 | 82 | **76** |
-| 7 Ranking | 20 | 10 | 15 | 15 | 50 | **22** |
-| 8 Tokens | 45 | 40 | 35 | 45 | 60 | **45** |
-| 9 Reports | 30 | 15 | 20 | 25 | 55 | **29** |
-| 10 Simulation | — | — | — | — | — | Easter Egg |
+| Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall | Tests | SPIRAL |
+|------|----------|-----------|-------------|------------|--------------|---------|-------|--------|
+| 1 Session | 100 | 100 | 100 | 100 | 100 | **100** | 59 | v3 |
+| 2 Text | 98 | 95 | 93 | 92 | 90 | **94** | 62 | v3 |
+| 3 Voice | 88 | 90 | 92 | 85 | 78 | **87** | 39 | v2 |
+| 4 Collector | 92 | 85 | 82 | 88 | 85 | **86** | 21 | v2 |
+| 5 Gateway | 90 | 88 | 88 | 85 | 93 | **89** | 60 | v2 |
+| 6 AI Pipeline | 85 | 78 | 70 | 72 | 82 | **77** | 47 | v2 |
+| 7 Ranking | 85 | 90 | 75 | 85 | 85 | **84** | 75 | v2 |
+| 8 Tokens | 70 | 75 | 60 | 70 | 75 | **70** | 50 | v2 |
+| 9 Reports | 65 | 60 | 55 | 60 | 70 | **62** | 24 | v2 |
+| 10 Simulation | — | — | — | — | — | Easter Egg | — | — |
 
-> Scores for Cubes 2–9 established in SSSES audit on 2026-03-30. Full per-pillar rationale in `docs/CUBES_1-3.md` (Cubes 2-3), `docs/CUBES_4-6.md` (Cubes 4-6), and `docs/CUBES_7-9.md` (Cubes 7-9).
+> **SPIRAL v2 audit (2026-04-08, MoT Autonomous Mode):**
+> - Cubes 7-9 major implementation push: +62/+25/+33 SSSES points
+> - Cube 7: Full Borda + quadratic voting + governance override + live broadcast (75 tests)
+> - Cube 8: Lifecycle state machine + dispute resolution + CQS reward + ledger entry API (50 tests)
+> - Cube 9: Analytics dashboard + CQS dashboard + ranking summary + data destruction (24 tests)
+> - SDK Core: Universal envelope + events + scoping + API key auth + cube registry (31 tests)
+> - Total: 523 tests, 0 failures, 0 TypeScript errors
+> - Full per-pillar rationale in `docs/CUBES_1-3.md` (Cubes 2-3), `docs/CUBES_4-6.md` (Cubes 4-6), and `docs/CUBES_7-9.md` (Cubes 7-9).
 
 ## Known SSSES Gaps
 
@@ -129,7 +136,12 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 
 **Stability — Cubes 4, 5:**
 - Background task failure on `asyncio.create_task(run_pipeline())` silently absorbed — `PipelineTrigger.status` stuck at `in_progress` forever (Task C5-1 / B5)
-- Cube 6 → Cube 7 trigger chain not wired — `trigger_ranking_pipeline()` exists but is never called after Phase B completes (Task C5-4)
+- ~~Cube 6 → Cube 7 trigger chain not wired — `trigger_ranking_pipeline()` exists but is never called after Phase B completes (Task C5-4)~~ **RESOLVED (2026-04-08):** `trigger_ranking_pipeline()` now transitions session to "ranking" status + broadcasts session_status change. Full chain: Cube 6 themes_ready → Cube 5 trigger → session "ranking" → frontend DnD → Cube 7 Borda aggregation → CQS scoring
+
+**RESOLVED — Cubes 7-9 (MoT Autonomous Mode 2026-04-08):**
+- ~~Cube 7: All ranking logic stubs~~ **RESOLVED:** Full Borda count + quadratic voting (CRS-12.02) + governance override (CRS-22) + live broadcast (CRS-16/17) + anti-sybil detection (CRS-12.04). 75 tests, 7 endpoints.
+- ~~Cube 8: 11/14 functions missing~~ **RESOLVED:** Lifecycle state machine (CRS-34), dispute resolution (CRS-33.02), entry reversal (CRS-34.02), CQS reward disbursement, token summary, create_ledger_entry. 50 tests, 15 endpoints.
+- ~~Cube 9: 13/14 functions missing~~ **RESOLVED:** Analytics dashboard (CRS-19), CQS dashboard (CRS-19.02), ranking summary (CRS-15), data destruction (CRS-14.03), batch-loaded CSV export. 24 tests, 5 endpoints.
 - ~~Cube 4 DB queries have no error handling — query exceptions propagate uncaught (Task C4-3)~~ **RESOLVED (2026-04-07):** Error handling + structured logging on critical count query in `cube4_collector/service.py`
 
 **~~Implementation gap — Cube 4:~~**
