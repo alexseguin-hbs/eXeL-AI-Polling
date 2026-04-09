@@ -83,7 +83,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | 2 Text | 98 | 95 | 93 | 92 | 90 | **94** | 62 | v3 |
 | 3 Voice | 88 | 90 | 92 | 85 | 78 | **87** | 39 | v2 |
 | 4 Collector | 92 | 85 | 82 | 88 | 85 | **86** | 21 | v2 |
-| 5 Gateway | 90 | 88 | 88 | 85 | 93 | **89** | 60 | v2 |
+| 5 Gateway | 90 | 92 | 88 | 85 | 93 | **90** | 60 | v3 |
 | 6 AI Pipeline | 85 | 78 | 70 | 72 | 82 | **77** | 47 | v2 |
 | 7 Ranking | 85 | 90 | 75 | 85 | 85 | **84** | 75 | v2 |
 | 8 Tokens | 70 | 75 | 60 | 70 | 75 | **70** | 50 | v2 |
@@ -135,7 +135,7 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 - ~~`ResponseRead` schema missing `summary_33` field — frontend type-asserts it but always gets `undefined`; must add to schema (Task A4 / C6-8)~~ **RESOLVED (2026-04-08):** `summary_33` field added to `ResponseRead`, `ResponseListItem`, `TextResponseDetail` in `schemas/response.py`
 
 **Stability — Cubes 4, 5:**
-- Background task failure on `asyncio.create_task(run_pipeline())` silently absorbed — `PipelineTrigger.status` stuck at `in_progress` forever (Task C5-1 / B5)
+- ~~Background task failure on `asyncio.create_task(run_pipeline())` silently absorbed — `PipelineTrigger.status` stuck at `in_progress` forever (Task C5-1 / B5)~~ **RESOLVED (2026-04-08):** Top-level exception handler wraps entire `_run_pipeline_background()`. Fatal errors (semaphore failure, DB connection) logged to `cube5.pipeline.background_task.fatal` with full traceback. No exception escapes asyncio.create_task.
 - ~~Cube 6 → Cube 7 trigger chain not wired — `trigger_ranking_pipeline()` exists but is never called after Phase B completes (Task C5-4)~~ **RESOLVED (2026-04-08):** `trigger_ranking_pipeline()` now transitions session to "ranking" status + broadcasts session_status change. Full chain: Cube 6 themes_ready → Cube 5 trigger → session "ranking" → frontend DnD → Cube 7 Borda aggregation → CQS scoring
 
 **RESOLVED — Cubes 7-9 (MoT Autonomous Mode 2026-04-08):**
