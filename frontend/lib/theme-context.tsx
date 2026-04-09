@@ -105,7 +105,7 @@ export function generateCustomTheme(accentHex: string): ThemePreset {
 //                  Blue   | Green  | Custom (handled in UI)
 //                  Yellow  | Coral  | Red
 export const THEME_PRESETS: ThemePreset[] = [
-  // Row 1: Violet, Cyan, Ocean Blue
+  // Row 1: Violet, Ocean Blue, Cyan
   {
     id: "violet",
     name: "\uc6c3 Violet",
@@ -131,30 +131,6 @@ export const THEME_PRESETS: ThemePreset[] = [
     },
   },
   {
-    id: "exel-cyan",
-    name: "\u25EC Cyan",
-    swatch: "#00FFFF",
-    colors: {
-      background: "180 100% 4%",
-      foreground: "210 40% 98%",
-      card: "180 60% 8%",
-      "card-foreground": "210 40% 98%",
-      popover: "180 60% 8%",
-      "popover-foreground": "210 40% 98%",
-      primary: "180 100% 50%",
-      "primary-foreground": "180 100% 4%",
-      secondary: "180 40% 15%",
-      "secondary-foreground": "210 40% 98%",
-      muted: "180 40% 15%",
-      "muted-foreground": "180 20% 64%",
-      accent: "180 40% 15%",
-      "accent-foreground": "210 40% 98%",
-      border: "180 40% 15%",
-      input: "180 40% 15%",
-      ring: "180 100% 50%",
-    },
-  },
-  {
     id: "ocean-blue",
     name: "Ocean Blue",
     swatch: "#3B82F6",
@@ -176,6 +152,30 @@ export const THEME_PRESETS: ThemePreset[] = [
       border: "217 33% 17%",
       input: "217 33% 17%",
       ring: "217 91% 60%",
+    },
+  },
+  {
+    id: "exel-cyan",
+    name: "\u25EC Cyan",
+    swatch: "#00FFFF",
+    colors: {
+      background: "180 100% 4%",
+      foreground: "210 40% 98%",
+      card: "180 60% 8%",
+      "card-foreground": "210 40% 98%",
+      popover: "180 60% 8%",
+      "popover-foreground": "210 40% 98%",
+      primary: "180 100% 50%",
+      "primary-foreground": "180 100% 4%",
+      secondary: "180 40% 15%",
+      "secondary-foreground": "210 40% 98%",
+      muted: "180 40% 15%",
+      "muted-foreground": "180 20% 64%",
+      accent: "180 40% 15%",
+      "accent-foreground": "210 40% 98%",
+      border: "180 40% 15%",
+      input: "180 40% 15%",
+      ring: "180 100% 50%",
     },
   },
   // Row 2: Green, Emerald (CENTER), Yellow
@@ -229,7 +229,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
   {
     id: "sunset",
-    name: "\u2661 Yellow",
+    name: "\u2661 Sunset",
     swatch: "#FFFF00",
     colors: {
       background: "60 100% 4%",
@@ -254,7 +254,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   // Row 3: Orange, Red, Custom (color picker position 9 in UI grid)
   {
     id: "orange",
-    name: "Orange",
+    name: "Burnt Orange",
     swatch: "#F97316",
     colors: {
       background: "24 95% 4%",
@@ -278,7 +278,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
   {
     id: "red",
-    name: "Red",
+    name: "Crimson Red",
     swatch: "#FF0000",
     colors: {
       background: "0 100% 4%",
