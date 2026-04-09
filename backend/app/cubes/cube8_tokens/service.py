@@ -531,3 +531,167 @@ async def get_user_disputes(
         .order_by(TokenDispute.created_at.desc())
     )
     return list(result.scalars().all())
+
+
+# ---------------------------------------------------------------------------
+# CRS-24.03: Velocity Caps (Anti-Manipulation)
+# ---------------------------------------------------------------------------
+
+_VELOCITY_CAP_PER_HOUR = 60.0  # Max ♡ tokens per hour per participant
+_VELOCITY_ANOMALY_MULTIPLIER = 3.0  # Flag if earning rate > 3x session average
+
+
+async def check_velocity_cap(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    user_id: str,
+) -> dict:
+    """CRS-24.03: Check if user's token earning rate exceeds velocity cap.
+
+    Returns velocity status + whether anomaly flag should be raised.
+    """
+    from datetime import timedelta
+
+    one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
+
+    # User's tokens in last hour
+    user_result = await db.execute(
+        select(func.sum(TokenLedger.delta_heart)).where(
+            and_(
+                TokenLedger.session_id == session_id,
+                TokenLedger.user_id == user_id,
+                TokenLedger.created_at >= one_hour_ago,
+                TokenLedger.lifecycle_state.in_(("pending", "approved", "finalized")),
+            )
+        )
+    )
+    user_hourly = user_result.scalar() or 0.0
+
+    # Session average in last hour
+    avg_result = await db.execute(
+        select(
+            func.sum(TokenLedger.delta_heart),
+            func.count(func.distinct(TokenLedger.user_id)),
+        ).where(
+            and_(
+                TokenLedger.session_id == session_id,
+                TokenLedger.created_at >= one_hour_ago,
+                TokenLedger.lifecycle_state.in_(("pending", "approved", "finalized")),
+            )
+        )
+    )
+    total_heart, user_count = avg_result.one()
+    total_heart = total_heart or 0.0
+    user_count = user_count or 1
+    session_avg = total_heart / user_count
+
+    cap_exceeded = user_hourly > _VELOCITY_CAP_PER_HOUR
+    anomaly_flagged = (
+        session_avg > 0 and user_hourly > session_avg * _VELOCITY_ANOMALY_MULTIPLIER
+    )
+
+    if cap_exceeded or anomaly_flagged:
+        logger.warning(
+            "cube8.velocity.alert",
+            extra={
+                "session_id": str(session_id),
+                "user_id": user_id,
+                "user_hourly": user_hourly,
+                "session_avg": session_avg,
+                "cap_exceeded": cap_exceeded,
+                "anomaly_flagged": anomaly_flagged,
+            },
+        )
+
+    return {
+        "user_id": user_id,
+        "session_id": str(session_id),
+        "user_hourly_heart": round(user_hourly, 3),
+        "session_avg_hourly": round(session_avg, 3),
+        "velocity_cap": _VELOCITY_CAP_PER_HOUR,
+        "cap_exceeded": cap_exceeded,
+        "anomaly_flagged": anomaly_flagged,
+    }
+
+
+# ---------------------------------------------------------------------------
+# CRS-35: Token Policy Config
+# ---------------------------------------------------------------------------
+
+
+async def get_session_token_config(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+) -> dict:
+    """CRS-35.01: Return session-level token configuration.
+
+    Reads from session model and global settings.
+    """
+    from app.config import settings
+    from app.models.session import Session
+
+    result = await db.execute(
+        select(Session).where(Session.id == session_id)
+    )
+    session = result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found",
+        )
+
+    return {
+        "session_id": str(session_id),
+        "hi_enabled": settings.human_enabled,
+        "hi_hourly_rate": settings.human_hourly_rate,
+        "hi_currency": settings.human_currency,
+        "ai_multiplier": settings.unity_heart_multiplier,
+        "login_heart_tokens": settings.login_heart_tokens,
+        "pricing_tier": getattr(session, "pricing_tier", "free"),
+        "reward_enabled": getattr(session, "reward_enabled", False),
+        "reward_amount_cents": getattr(session, "reward_amount_cents", 0),
+        "cqs_weights": getattr(session, "cqs_weights", None),
+        "fee_amount_cents": getattr(session, "fee_amount_cents", 0),
+        "cost_splitting_enabled": getattr(session, "cost_splitting_enabled", False),
+    }
+
+
+# ---------------------------------------------------------------------------
+# CRS-25.06: Talent Profile (MVP3 Stub)
+# ---------------------------------------------------------------------------
+
+
+async def get_talent_profile(
+    db: AsyncSession,
+    user_id: str,
+) -> dict:
+    """CRS-25.06: Get or build talent profile from CQS + participation data.
+
+    MVP3 stub — returns computed profile from ledger data.
+    """
+    # Aggregate across all sessions
+    result = await db.execute(
+        select(
+            func.sum(TokenLedger.delta_heart),
+            func.sum(TokenLedger.delta_human),
+            func.sum(TokenLedger.delta_unity),
+            func.count(func.distinct(TokenLedger.session_id)),
+        ).where(
+            and_(
+                TokenLedger.user_id == user_id,
+                TokenLedger.lifecycle_state.in_(("pending", "approved", "finalized")),
+            )
+        )
+    )
+    heart, human, unity, session_count = result.one()
+
+    return {
+        "user_id": user_id,
+        "total_heart": round(heart or 0, 3),
+        "total_human": round(human or 0, 3),
+        "total_unity": round(unity or 0, 3),
+        "session_count": session_count or 0,
+        "is_available": False,  # Default off until user opts in
+        "skills": [],  # Populated by CQS integration in future
+        "avg_cqs_composite": 0.0,  # Populated by CQS integration
+    }

@@ -218,6 +218,36 @@ async def resolve_token_dispute(
     return TokenDisputeRead.model_validate(dispute)
 
 
+@router.get("/sessions/{session_id}/tokens/velocity")
+async def check_velocity(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CRS-24.03: Check token earning velocity for current user."""
+    return await service.check_velocity_cap(db, session_id, user.user_id)
+
+
+@router.get("/sessions/{session_id}/tokens/config")
+async def get_token_config(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CRS-35.01: Get session token policy configuration."""
+    return await service.get_session_token_config(db, session_id)
+
+
+@router.get("/tokens/talent/{user_id}")
+async def get_talent_profile(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead_developer")),
+):
+    """CRS-25.06: Get talent profile for a user (Moderator/Admin/Lead only)."""
+    return await service.get_talent_profile(db, user_id)
+
+
 @router.get("/tokens/rates")
 async def get_human_rates():
     """Get all 웃 rates by country/state (per-hour minimum wage table)."""
