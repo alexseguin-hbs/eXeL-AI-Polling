@@ -101,13 +101,14 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                         <Settings className="h-4 w-4" />
                         {t("shared.nav.settings")}
                       </button>
-                      <button
-                        onClick={() => { setUserMenuOpen(false); setApiSdkOpen(true); }}
+                      <a
+                        href="/api"
+                        onClick={() => setUserMenuOpen(false)}
                         className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent"
                       >
                         <Code className="h-4 w-4" />
                         {t("sdk.api_key.title")}
-                      </button>
+                      </a>
                     </div>
                   </>
                 )}
@@ -158,16 +159,14 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                         <Settings className="h-4 w-4" />
                         {t("shared.nav.settings")}
                       </button>
-                      <button
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setApiSdkOpen(true);
-                        }}
+                      <a
+                        href="/api"
+                        onClick={() => setMenuOpen(false)}
                         className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent"
                       >
                         <Code className="h-4 w-4" />
                         {t("sdk.api_key.title")}
-                      </button>
+                      </a>
                       <button
                         onClick={() => {
                           setMenuOpen(false);
