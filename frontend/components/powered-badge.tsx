@@ -335,7 +335,7 @@ export function PoweredBadge() {
             handleEnterSimulation();
           } else {
             // Free easter egg: opens Spotify + Divinity Guide for anyone
-            window.open("https://open.spotify.com/playlist/4CqmHFhE2mR7cNN5KpLhxH", "_blank");
+            window.open("https://open.spotify.com/playlist/0Iw7PJtw9e4qhvo4eQnCJP", "_blank");
             router.push("/divinity-guide");
           }
         }}

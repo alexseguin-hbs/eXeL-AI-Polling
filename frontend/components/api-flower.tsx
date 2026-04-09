@@ -46,40 +46,54 @@ const FAMILY_COLORS = {
   3: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },      // Ocean Blue — bottom-right
 };
 
-// Ordered for each level: parents first, then children interleaved
+/**
+ * SDK entries ordered to match Flower of Life geometry positions:
+ *
+ * Level 3: [top=#1, bottom-right=#3, bottom-left=#2]
+ *
+ * Level 6: [top-left=#1, top-right=#1.2, right=#3, bottom-right=#3.2, bottom-left=#2.2, left=#2]
+ *   Red (#1, #1.2) clusters at top
+ *   Ocean Blue (#3, #3.2) clusters at right/bottom-right
+ *   Emerald (#2, #2.2) clusters at left/bottom-left
+ *
+ * Level 9: Inner 6 + [outer-top=#1.3, outer-bottom-right=#3.3, outer-bottom-left=#2.3]
+ *   Red (#1, #1.2, #1.3) at top
+ *   Ocean Blue (#3, #3.2, #3.3) at bottom-right
+ *   Emerald (#2, #2.2, #2.3) at bottom-left
+ */
 const ALL_SDK: SDKEntry[] = [
-  // === Level 3: Parents ===
+  // === Level 3: Top=#1(Red), BottomRight=#3(Blue), BottomLeft=#2(Green) ===
   { id: "compress", family: 1, number: "#1", name: "compress", icon: "🧠", tagline: "Understand anything", cost: "5◬/1K",
     theme: { label: "🧠 compress", count: 5, avgConfidence: 0.95, summary33: "Any text → 9→6→3 themes" },
     color: FAMILY_COLORS[1] },
-  { id: "vote", family: 2, number: "#2", name: "vote", icon: "🗳️", tagline: "Govern fairly", cost: "0.01◬",
-    theme: { label: "🗳️ vote", count: 0.01, avgConfidence: 0.92, summary33: "Quadratic governance" },
-    color: FAMILY_COLORS[2] },
   { id: "convert", family: 3, number: "#3", name: "convert", icon: "웃", tagline: "Value human time", cost: "Free",
     theme: { label: "웃 convert", count: 0, avgConfidence: 0.88, summary33: "$ → 웃 tokens" },
     color: FAMILY_COLORS[3] },
+  { id: "vote", family: 2, number: "#2", name: "vote", icon: "🗳️", tagline: "Govern fairly", cost: "0.01◬",
+    theme: { label: "🗳️ vote", count: 0.01, avgConfidence: 0.92, summary33: "Quadratic governance" },
+    color: FAMILY_COLORS[2] },
 
-  // === Level 6: +Children .2 ===
+  // === Level 6: TopLeft=#1, TopRight=#1.2, Right=#3, BottomRight=#3.2, BottomLeft=#2.2, Left=#2 ===
   { id: "detect", family: 1, number: "#1.2", name: "detect", icon: "🛡️", tagline: "Clean before counting", cost: "1◬",
     theme: { label: "🛡️ detect", count: 1, avgConfidence: 0.90, summary33: "Anomaly exclusion" },
     color: FAMILY_COLORS[1] },
-  { id: "consensus", family: 2, number: "#2.2", name: "consensus", icon: "📊", tagline: "Watch agreement form", cost: "0.5◬",
-    theme: { label: "📊 consensus", count: 0.5, avgConfidence: 0.87, summary33: "Live convergence" },
-    color: FAMILY_COLORS[2] },
   { id: "verify", family: 3, number: "#3.2", name: "verify", icon: "🔐", tagline: "Prove it's real", cost: "Free",
     theme: { label: "🔐 verify", count: 0, avgConfidence: 0.93, summary33: "SHA-256 proof" },
     color: FAMILY_COLORS[3] },
+  { id: "consensus", family: 2, number: "#2.2", name: "consensus", icon: "📊", tagline: "Watch agreement form", cost: "0.5◬",
+    theme: { label: "📊 consensus", count: 0.5, avgConfidence: 0.87, summary33: "Live convergence" },
+    color: FAMILY_COLORS[2] },
 
-  // === Level 9: +Children .3 ===
+  // === Level 9 outer: OuterTop=#1.3, OuterBottomRight=#3.3, OuterBottomLeft=#2.3 ===
   { id: "challenge", family: 1, number: "#1.3", name: "challenge", icon: "⚡", tagline: "Build the future", cost: "10◬",
     theme: { label: "⚡ challenge", count: 10, avgConfidence: 0.85, summary33: "Self-evolving code" },
     color: FAMILY_COLORS[1] },
-  { id: "override", family: 2, number: "#2.3", name: "override", icon: "⚖️", tagline: "Lead transparently", cost: "2◬",
-    theme: { label: "⚖️ override", count: 2, avgConfidence: 0.82, summary33: "Transparent authority" },
-    color: FAMILY_COLORS[2] },
   { id: "broadcast", family: 3, number: "#3.3", name: "broadcast", icon: "📡", tagline: "Reach everyone", cost: "1◬/10K",
     theme: { label: "📡 broadcast", count: 1, avgConfidence: 0.91, summary33: "1M+ instantly" },
     color: FAMILY_COLORS[3] },
+  { id: "override", family: 2, number: "#2.3", name: "override", icon: "⚖️", tagline: "Lead transparently", cost: "2◬",
+    theme: { label: "⚖️ override", count: 2, avgConfidence: 0.82, summary33: "Transparent authority" },
+    color: FAMILY_COLORS[2] },
 ];
 
 interface ApiFlowerProps {
