@@ -358,9 +358,9 @@ Track and optimize for:
 ## API, SDK & Embed Architecture — Current State
 
 ### REST API (Implemented)
-- **89 endpoints** across 9 cube routers at `/api/v1` (+ 2 health/discovery)
+- **90 endpoints** across 9 cube routers at `/api/v1` (+ 2 health/discovery)
 - **OpenAPI auto-docs:** FastAPI generates interactive docs at `/api/v1/docs` (Swagger UI) and `/api/v1/redoc`
-- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (6), Cube 5 (9), Cube 6 (4), Cube 7 (10), Cube 8 (18), Cube 9 (8), SDK (2: health + cubes discovery)
+- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (6), Cube 5 (9), Cube 6 (4), Cube 7 (11), Cube 8 (18), Cube 9 (8), SDK (2: health + cubes discovery)
 
 ### Authentication & Security (Implemented)
 - **Auth0 JWT:** Bearer token validation via `core/auth.py` (135 lines)
@@ -415,7 +415,7 @@ Track and optimize for:
 | 9 Reports | **~76%** | **76** | 84 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | Easter Egg SIM | — | — | — | — |
 | **SDK Core** | **Active** | — | 31 | — | Envelope, Events, Scoping, API Keys |
-| **Total** | | | **770** | | |
+| **Total** | | | **792** | | |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
