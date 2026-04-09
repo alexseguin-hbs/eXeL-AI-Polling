@@ -84,11 +84,11 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | 3 Voice | 88 | 93 | 92 | 86 | 82 | **88** | 97+5 live | v8 |
 | 4 Collector | 92 | 87 | 82 | 88 | 86 | **87** | 43 | v4 |
 | 5 Gateway | 90 | 92 | 88 | 86 | 93 | **90** | 67 | v5 |
-| 6 AI Pipeline | 85 | 80 | 82 | 78 | 83 | **82** | 88 | v6 |
+| 6 AI Pipeline | 85 | 82 | 88 | 85 | 85 | **85** | 136 | v10 |
 | 7 Ranking | 95 | 97 | 98 | 96 | 95 | **96** | 165 | v16 |
 | 8 Tokens | 85 | 88 | 72 | 82 | 83 | **82** | 106 | v8 |
 | 9 Reports | 78 | 80 | 68 | 75 | 80 | **76** | 84 | v8 |
-| 10 Simulation | 78 | 82 | 65 | 75 | 82 | **76** | 108 | v15 | — | — |
+| 10 Simulation | 78 | 82 | 70 | 75 | 82 | **77** | 113 | v16 | — | — |
 
 > **SPIRAL v2 audit (2026-04-08, MoT Autonomous Mode):**
 > - Cubes 7-9 major implementation push: +62/+25/+33 SSSES points
