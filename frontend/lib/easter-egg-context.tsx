@@ -39,8 +39,8 @@ interface SimulationContextValue extends SimulationState {
   cube10Access: Cube10Access;
   /** Register icon click for Cube 10 admin/challenger sequences */
   registerCube10Click: (iconId: "hi" | "ai" | "si") => "admin_pending" | "challenger_pending" | null;
-  /** Verify access code for admin or challenger */
-  verifyCube10Code: (code: string) => boolean;
+  /** Verify access code for admin or challenger (server-side validation) */
+  verifyCube10Code: (code: string) => Promise<boolean>;
 }
 
 const SimulationContext = createContext<SimulationContextValue | null>(null);
@@ -61,8 +61,9 @@ const SEQUENCE_TIMEOUT_MS = 5000;
 // Cube 10 access sequences (inside SIM mode)
 const ADMIN_SEQUENCE = ["hi", "ai", "si"];      // H.I. → A.I. → S.I.
 const CHALLENGER_SEQUENCE = ["si", "ai", "hi"];  // S.I. → A.I. → H.I.
-const ADMIN_CODE = "96541230";
-const CHALLENGER_CODE = "366999";
+// Access codes verified server-side via POST /api/v1/verify-access
+// Frontend NEVER stores or compares codes — only sends to backend
+const VERIFY_ACCESS_ENDPOINT = "/api/v1/verify-access";
 
 export function EasterEggProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<SimulationState>({
@@ -175,16 +176,21 @@ export function EasterEggProvider({ children }: { children: ReactNode }) {
     return null;
   }, [state.simulationMode]);
 
-  const verifyCube10Code = useCallback((code: string): boolean => {
-    if (cube10Access === "admin_pending" && code === ADMIN_CODE) {
-      setCube10Access("admin");
-      return true;
+  const verifyCube10Code = useCallback(async (code: string): Promise<boolean> => {
+    const accessType = cube10Access === "admin_pending" ? "admin" : "challenger";
+    try {
+      const resp = await fetch(VERIFY_ACCESS_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, access_type: accessType }),
+      });
+      if (resp.ok) {
+        setCube10Access(accessType as Cube10Access);
+        return true;
+      }
+    } catch {
+      // Network error — fall through to reset
     }
-    if (cube10Access === "challenger_pending" && code === CHALLENGER_CODE) {
-      setCube10Access("challenger");
-      return true;
-    }
-    // Wrong code — reset to none
     setCube10Access("none");
     return false;
   }, [cube10Access]);

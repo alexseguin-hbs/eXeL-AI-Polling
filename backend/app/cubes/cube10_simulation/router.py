@@ -125,6 +125,33 @@ async def get_tally(
 # ---------------------------------------------------------------------------
 
 
+@router.post("/verify-access")
+async def verify_access(
+    code: str,
+    access_type: str,  # "admin" or "challenger"
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Verify Cube 10 access code — backend validation (codes not exposed to frontend)."""
+    from app.config import settings
+    import hashlib
+
+    if access_type == "admin":
+        expected = settings.cube10_admin_code
+    elif access_type == "challenger":
+        expected = settings.cube10_challenger_code
+    else:
+        raise HTTPException(status_code=400, detail="access_type must be 'admin' or 'challenger'")
+
+    # Constant-time comparison to prevent timing attacks
+    code_hash = hashlib.sha256(code.encode()).hexdigest()
+    expected_hash = hashlib.sha256(expected.encode()).hexdigest()
+
+    if code_hash == expected_hash:
+        return {"access": access_type, "granted": True, "user_id": user.user_id}
+    else:
+        raise HTTPException(status_code=403, detail="Invalid access code")
+
+
 @router.get("/saved-cases")
 async def list_saved_cases(
     user: CurrentUser = Depends(require_role("admin", "lead_developer")),

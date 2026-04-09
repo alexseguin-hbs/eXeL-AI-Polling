@@ -84,6 +84,10 @@ class Settings(BaseSettings):
     # Free tier limits
     free_tier_max_participants: int = 19
 
+    # Cube 10: Simulation Engine access codes (change via .env)
+    cube10_admin_code: str = "96541230"
+    cube10_challenger_code: str = "366999"
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

@@ -408,4 +408,50 @@ Submission metrics dashboard mirrors session analytics. CSV export of voting res
 | CUBE_10_PLAN.md | Architecture document (N=7) | 500+ | — |
 | **Total** | | **604** | **38** |
 
+## SSSES Super Plan: Cube 10 from 73 → 90+
+
+### Security (72 → 90+)
+| Gap | Fix | Impact |
+|-----|-----|:------:|
+| Admin code hardcoded in frontend | Move to Supabase env/config, hash-compare only | +8 |
+| No code sandbox isolation | Add subprocess jail with network disabled, 512MB memory cap | +5 |
+| No submission code scanning | Static analysis: no eval(), no secrets, no unauthorized imports | +5 |
+
+### Stability (78 → 90+)
+| Gap | Fix | Impact |
+|-----|-----|:------:|
+| Sandbox test execution is stub | Implement real subprocess pytest runner with timeout | +5 |
+| No error recovery on failed deployments | Auto-rollback if health check fails within 60s of deploy | +4 |
+| Feedback sentiment is keyword-only | Wire to Cube 6 AI summarizer for real NLP sentiment | +3 |
+
+### Scalability (62 → 85+)
+| Gap | Fix | Impact |
+|-----|-----|:------:|
+| Saved CSVs loaded fully into memory | Use Supabase Storage streaming + chunked reads | +10 |
+| Voting not using BordaAccumulator | Wire tally_votes to Cube 7 scale engine for 1M voter support | +8 |
+| No batch feedback processing | Redis queue for feedback ingestion, batch flush to DB | +5 |
+
+### Efficiency (72 → 88+)
+| Gap | Fix | Impact |
+|-----|-----|:------:|
+| Replay loads entire dataset | Stream replay with chunked processing (same as Cube 9 CSV) | +8 |
+| Metrics comparison is synchronous | Background task with Cube 5 pipeline pattern | +5 |
+| No caching of saved case metadata | Redis cache for case list (invalidate on add/drop) | +3 |
+
+### Succinctness (80 → 92+)
+| Gap | Fix | Impact |
+|-----|-----|:------:|
+| service.py growing (340 lines) | Split into feedback_service.py + submission_service.py + voting_service.py | +5 |
+| Router duplicates DB session logic | Extract common patterns to shared middleware | +4 |
+| Saved use case manager is in-memory only | Persist to Supabase table for cross-instance consistency | +3 |
+
+### Priority Execution Order
+1. **Security**: Move admin codes to backend config (Quick Win, +8)
+2. **Scalability**: Wire voting to BordaAccumulator (+8)
+3. **Efficiency**: Stream replay against saved datasets (+8)
+4. **Stability**: Real sandbox pytest execution (+5)
+5. **Succinctness**: Split service.py into 3 modules (+5)
+
+**Projected SSSES after all fixes: Security 90, Stability 90, Scalability 85, Efficiency 88, Succinctness 92 = 89**
+
 *Plan evolves with each SPIRAL cycle. Refinements accumulate — nothing is deleted, only enhanced.*
