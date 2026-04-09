@@ -130,6 +130,20 @@ async def list_cubes():
     return {"cubes": get_cube_registry(), "total": 10, "version": "0.1.0"}
 
 
+@app.post("/api/v1/compress/estimate", tags=["Health"])
+async def estimate_compression(count: int = 1000):
+    """Theme Compression Engine: estimate cost for N texts."""
+    from app.core.theme_compression import estimate_compression_cost
+    return estimate_compression_cost(count)
+
+
+@app.post("/api/v1/compress/validate", tags=["Health"])
+async def validate_compression(texts: list[str]):
+    """Validate texts before compression — returns issues + cost estimate."""
+    from app.core.theme_compression import validate_compression_request
+    return validate_compression_request(texts)
+
+
 @app.get("/api/v1/functions", tags=["Health"])
 async def list_functions(cube: int | None = None, category: str | None = None):
     """SDK discovery: list all universal functions with I/O contracts.
