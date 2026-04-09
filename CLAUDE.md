@@ -81,7 +81,7 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 
 ### Databases
 - **PostgreSQL (via Supabase):** Primary relational store — sessions, questions, rankings, audit, tokens, governance. Raw response text stored in `ResponseMeta.raw_text`; AI-generated summaries stored in `ResponseSummary` table (333/111/33-word tiers).
-- **Redis:** Real-time state (presence tracking, live rankings, WebSocket state, caching, rate limiting)
+- **~~Redis~~ REMOVED (2026-04-09):** Replaced by Supabase Realtime (broadcasting), Python in-memory (presence, rate limiting, BordaAccumulator), Supabase DB (persistence)
 
 ### Authentication
 - **Provider:** Auth0
@@ -353,7 +353,7 @@ Track and optimize for:
 ## Local Environment
 - Backend: Python venv in `backend/` directory
 - Frontend: Node.js in `frontend/` directory
-- Databases: Docker Compose (PostgreSQL, Redis)
+- Databases: Supabase (PostgreSQL). No Redis — replaced by Python in-memory + Supabase Realtime.
 
 ## API, SDK & Embed Architecture — Current State
 
