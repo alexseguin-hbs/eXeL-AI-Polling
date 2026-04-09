@@ -1,21 +1,22 @@
 "use client";
 
 /**
- * API Flower of Life — The 9 SDK functions visualized as a Flower of Life.
+ * API Flower of Life — 9 SDK functions as 3 families of 3.
  *
- * Reuses the SAME geometry + ThemeCircle components as the Theme Analysis
- * visualization on the dashboard. 3→6→9 progressive discovery:
+ * Grouping:
+ *   Family 1 (◬ Cyan — Understanding):  #1 compress → #1.2 detect → #1.3 challenge
+ *   Family 2 (♡ Yellow — Governance):    #2 vote → #2.2 consensus → #2.3 override
+ *   Family 3 (웃 Violet — Value):        #3 convert → #3.2 verify → #3.3 broadcast
  *
- *   3 Core: compress, vote, convert (the trinity)
- *   6 Expansion: + detect, consensus, verify
- *   9 Full Bloom: + challenge, override, broadcast
+ * Level 3: Shows #1, #2, #3 (parents only)
+ * Level 6: Shows #1, #1.2, #2, #2.2, #3, #3.2
+ * Level 9: Shows all — full bloom
  *
- * Each circle is clickable → navigates to function detail.
+ * SDK name shown below each circle.
  */
 
 import { useState, useMemo } from "react";
 import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
-import { RotaryKnob } from "@/components/flower-of-life/rotary-knob";
 import {
   getTheme2Positions,
   getHubPosition,
@@ -23,49 +24,64 @@ import {
 import type { ThemeInfo } from "@/lib/types";
 import "@/components/flower-of-life/flower-animations.css";
 
-// ── SDK Functions mapped to Flower of Life positions ────────────
+// ── 3 Families of 3 ────────────────────────────────────────────
 
-// Level 3: The Trinity (core — most essential)
-const SDK_3: ThemeInfo[] = [
-  { label: "🧠 compress()", count: 5, avgConfidence: 0.95, summary33: "Any text → 9→6→3 themes" },
-  { label: "🗳️ vote()", count: 0.01, avgConfidence: 0.92, summary33: "Quadratic governance at scale" },
-  { label: "웃 convert()", count: 0, avgConfidence: 0.88, summary33: "$ → 웃 tokens (value time)" },
-];
-
-// Level 6: +3 Intelligence Layer
-const SDK_6: ThemeInfo[] = [
-  ...SDK_3,
-  { label: "🛡️ detect()", count: 1, avgConfidence: 0.90, summary33: "Anomaly exclusion pipeline" },
-  { label: "📊 consensus()", count: 0.5, avgConfidence: 0.87, summary33: "Live convergence score" },
-  { label: "🔐 verify()", count: 0, avgConfidence: 0.93, summary33: "SHA-256 determinism proof" },
-];
-
-// Level 9: Full Bloom — The Complete Engine
-const SDK_9: ThemeInfo[] = [
-  ...SDK_6,
-  { label: "⚡ challenge()", count: 10, avgConfidence: 0.85, summary33: "Self-evolving code system" },
-  { label: "⚖️ override()", count: 2, avgConfidence: 0.82, summary33: "Transparent authority" },
-  { label: "📡 broadcast()", count: 1, avgConfidence: 0.91, summary33: "Reach 1M+ instantly" },
-];
-
-// Colors for each partition (reuse Theme01 pattern)
-const SDK_COLORS = {
-  core: { fill: "rgba(0, 255, 255, 0.15)", stroke: "#00FFFF" },      // Cyan — AI
-  intelligence: { fill: "rgba(255, 255, 0, 0.15)", stroke: "#FFFF00" }, // Yellow — SI
-  evolution: { fill: "rgba(255, 0, 255, 0.15)", stroke: "#FF00FF" },   // Violet — HI
-};
-
-function getColorForIndex(index: number, level: number) {
-  if (level === 3) return SDK_COLORS.core;
-  if (index < 3) return SDK_COLORS.core;
-  if (index < 6) return SDK_COLORS.intelligence;
-  return SDK_COLORS.evolution;
+interface SDKEntry {
+  id: string;
+  family: 1 | 2 | 3;
+  number: string;      // "#1", "#1.2", "#1.3"
+  name: string;        // "compress"
+  icon: string;
+  tagline: string;
+  cost: string;
+  theme: ThemeInfo;
+  color: { fill: string; stroke: string };
 }
 
-// ── Component ───────────────────────────────────────────────────
+const FAMILY_COLORS = {
+  1: { fill: "rgba(0, 255, 255, 0.15)", stroke: "#00FFFF" },      // ◬ Cyan
+  2: { fill: "rgba(255, 255, 0, 0.15)", stroke: "#FFFF00" },      // ♡ Yellow
+  3: { fill: "rgba(255, 0, 255, 0.15)", stroke: "#FF00FF" },      // 웃 Violet
+};
+
+// Ordered for each level: parents first, then children interleaved
+const ALL_SDK: SDKEntry[] = [
+  // === Level 3: Parents ===
+  { id: "compress", family: 1, number: "#1", name: "compress", icon: "🧠", tagline: "Understand anything", cost: "5◬/1K",
+    theme: { label: "🧠 compress", count: 5, avgConfidence: 0.95, summary33: "Any text → 9→6→3 themes" },
+    color: FAMILY_COLORS[1] },
+  { id: "vote", family: 2, number: "#2", name: "vote", icon: "🗳️", tagline: "Govern fairly", cost: "0.01◬",
+    theme: { label: "🗳️ vote", count: 0.01, avgConfidence: 0.92, summary33: "Quadratic governance" },
+    color: FAMILY_COLORS[2] },
+  { id: "convert", family: 3, number: "#3", name: "convert", icon: "웃", tagline: "Value human time", cost: "Free",
+    theme: { label: "웃 convert", count: 0, avgConfidence: 0.88, summary33: "$ → 웃 tokens" },
+    color: FAMILY_COLORS[3] },
+
+  // === Level 6: +Children .2 ===
+  { id: "detect", family: 1, number: "#1.2", name: "detect", icon: "🛡️", tagline: "Clean before counting", cost: "1◬",
+    theme: { label: "🛡️ detect", count: 1, avgConfidence: 0.90, summary33: "Anomaly exclusion" },
+    color: FAMILY_COLORS[1] },
+  { id: "consensus", family: 2, number: "#2.2", name: "consensus", icon: "📊", tagline: "Watch agreement form", cost: "0.5◬",
+    theme: { label: "📊 consensus", count: 0.5, avgConfidence: 0.87, summary33: "Live convergence" },
+    color: FAMILY_COLORS[2] },
+  { id: "verify", family: 3, number: "#3.2", name: "verify", icon: "🔐", tagline: "Prove it's real", cost: "Free",
+    theme: { label: "🔐 verify", count: 0, avgConfidence: 0.93, summary33: "SHA-256 proof" },
+    color: FAMILY_COLORS[3] },
+
+  // === Level 9: +Children .3 ===
+  { id: "challenge", family: 1, number: "#1.3", name: "challenge", icon: "⚡", tagline: "Build the future", cost: "10◬",
+    theme: { label: "⚡ challenge", count: 10, avgConfidence: 0.85, summary33: "Self-evolving code" },
+    color: FAMILY_COLORS[1] },
+  { id: "override", family: 2, number: "#2.3", name: "override", icon: "⚖️", tagline: "Lead transparently", cost: "2◬",
+    theme: { label: "⚖️ override", count: 2, avgConfidence: 0.82, summary33: "Transparent authority" },
+    color: FAMILY_COLORS[2] },
+  { id: "broadcast", family: 3, number: "#3.3", name: "broadcast", icon: "📡", tagline: "Reach everyone", cost: "1◬/10K",
+    theme: { label: "📡 broadcast", count: 1, avgConfidence: 0.91, summary33: "1M+ instantly" },
+    color: FAMILY_COLORS[3] },
+];
 
 interface ApiFlowerProps {
-  onSelectFunction?: (label: string) => void;
+  onSelectFunction?: (id: string) => void;
 }
 
 export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
@@ -73,106 +89,137 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
 
   const hub = getHubPosition();
   const positions = useMemo(() => getTheme2Positions(level), [level]);
-  const sdkFunctions = level === 3 ? SDK_3 : level === 6 ? SDK_6 : SDK_9;
+  const visible = ALL_SDK.slice(0, level);
 
   return (
     <div className="w-full">
-      {/* Level Selector — same RotaryKnob as Theme Analysis */}
-      <div className="flex items-center justify-center gap-4 mb-4">
-        <span className="text-xs text-muted-foreground">Explore:</span>
-        <div className="flex gap-1">
-          {([3, 6, 9] as const).map((l) => (
-            <button
-              key={l}
-              onClick={() => setLevel(l)}
-              className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                level === l
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-accent"
-              }`}
-            >
-              {l === 3 ? "3 Core" : l === 6 ? "6 Intelligence" : "9 Full Bloom"}
-            </button>
-          ))}
-        </div>
+      {/* Level Selector */}
+      <div className="flex items-center justify-center gap-3 mb-4">
+        {([3, 6, 9] as const).map((l) => (
+          <button
+            key={l}
+            onClick={() => setLevel(l)}
+            className={`px-4 py-1.5 text-xs rounded-full transition-all ${
+              level === l
+                ? "bg-primary text-primary-foreground shadow-lg"
+                : "bg-muted text-muted-foreground hover:bg-accent"
+            }`}
+          >
+            {l === 3 ? "3 — Core" : l === 6 ? "6 — Expand" : "9 — Full Bloom"}
+          </button>
+        ))}
       </div>
 
-      {/* SVG Flower of Life */}
+      {/* SVG Flower */}
       <svg
-        viewBox="0 0 600 500"
+        viewBox="0 0 600 540"
         className="w-full max-w-lg mx-auto"
         style={{ overflow: "visible" }}
       >
-        {/* Connecting lines from hub to each circle */}
-        {positions.map((pos, i) => (
-          <line
-            key={`line-${i}`}
-            x1={hub.cx}
-            y1={hub.cy}
-            x2={pos.cx}
-            y2={pos.cy}
-            stroke="currentColor"
-            strokeOpacity={0.1}
-            strokeWidth={1}
-          />
-        ))}
+        {/* Connecting lines */}
+        {positions.map((pos, i) => {
+          if (i >= visible.length) return null;
+          return (
+            <line
+              key={`line-${i}`}
+              x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
+              stroke={visible[i].color.stroke} strokeOpacity={0.15} strokeWidth={1.5}
+            />
+          );
+        })}
 
-        {/* Hub circle — eXeL logo position */}
+        {/* Family connection lines (parent → children) */}
+        {level >= 6 && positions.length >= 6 && (
+          <>
+            {/* Family 1: #1 → #1.2 */}
+            <line x1={positions[0].cx} y1={positions[0].cy} x2={positions[3].cx} y2={positions[3].cy}
+              stroke={FAMILY_COLORS[1].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
+            {/* Family 2: #2 → #2.2 */}
+            <line x1={positions[1].cx} y1={positions[1].cy} x2={positions[4].cx} y2={positions[4].cy}
+              stroke={FAMILY_COLORS[2].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
+            {/* Family 3: #3 → #3.2 */}
+            <line x1={positions[2].cx} y1={positions[2].cy} x2={positions[5].cx} y2={positions[5].cy}
+              stroke={FAMILY_COLORS[3].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
+          </>
+        )}
+        {level >= 9 && positions.length >= 9 && (
+          <>
+            {/* Family 1: #1 → #1.3 */}
+            <line x1={positions[0].cx} y1={positions[0].cy} x2={positions[6].cx} y2={positions[6].cy}
+              stroke={FAMILY_COLORS[1].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
+            {/* Family 2: #2 → #2.3 */}
+            <line x1={positions[1].cx} y1={positions[1].cy} x2={positions[7].cx} y2={positions[7].cy}
+              stroke={FAMILY_COLORS[2].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
+            {/* Family 3: #3 → #3.3 */}
+            <line x1={positions[2].cx} y1={positions[2].cy} x2={positions[8].cx} y2={positions[8].cy}
+              stroke={FAMILY_COLORS[3].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
+          </>
+        )}
+
+        {/* Hub */}
         <ThemeCircle
-          cx={hub.cx}
-          cy={hub.cy}
-          r={hub.r}
-          theme={{
-            label: "eXeL SDK",
-            count: level,
-            avgConfidence: 1.0,
-            summary33: "Governance Engine",
-          }}
+          cx={hub.cx} cy={hub.cy} r={hub.r}
+          theme={{ label: "eXeL", count: level, avgConfidence: 1.0, summary33: "SDK" }}
           fill="rgba(var(--primary), 0.1)"
           stroke="hsl(var(--primary))"
           isHub
         />
 
-        {/* SDK Function circles */}
+        {/* SDK circles + name labels */}
         {positions.map((pos, i) => {
-          if (i >= sdkFunctions.length) return null;
-          const fn = sdkFunctions[i];
-          const colors = getColorForIndex(i, level);
+          if (i >= visible.length) return null;
+          const sdk = visible[i];
           return (
-            <ThemeCircle
-              key={`sdk-${i}`}
-              cx={pos.cx}
-              cy={pos.cy}
-              r={pos.r}
-              theme={fn}
-              fill={colors.fill}
-              stroke={colors.stroke}
-              bloom
-              bloomDelay={i * 100}
-              onClick={() => onSelectFunction?.(fn.label)}
-            />
+            <g key={sdk.id}>
+              <ThemeCircle
+                cx={pos.cx} cy={pos.cy} r={pos.r}
+                theme={sdk.theme}
+                fill={sdk.color.fill}
+                stroke={sdk.color.stroke}
+                bloom bloomDelay={i * 120}
+                onClick={() => onSelectFunction?.(sdk.id)}
+              />
+              {/* SDK name below circle */}
+              <text
+                x={pos.cx}
+                y={pos.cy + pos.r + 14}
+                textAnchor="middle"
+                className="fill-muted-foreground"
+                fontSize={10}
+                fontFamily="monospace"
+              >
+                {sdk.number} {sdk.name}
+              </text>
+              {/* Cost badge */}
+              <text
+                x={pos.cx}
+                y={pos.cy + pos.r + 26}
+                textAnchor="middle"
+                fontSize={8}
+                className="fill-primary"
+                opacity={0.6}
+              >
+                {sdk.cost}
+              </text>
+            </g>
           );
         })}
       </svg>
 
       {/* Legend */}
-      <div className="flex justify-center gap-4 mt-4 text-[10px] text-muted-foreground">
+      <div className="flex justify-center gap-6 mt-2 text-[10px] text-muted-foreground">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#00FFFF" }} />
-          ◬ Core (AI)
+          ◬ Understanding
         </span>
-        {level >= 6 && (
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#FFFF00" }} />
-            ♡ Intelligence (SI)
-          </span>
-        )}
-        {level >= 9 && (
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#FF00FF" }} />
-            웃 Evolution (HI)
-          </span>
-        )}
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#FFFF00" }} />
+          ♡ Governance
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#FF00FF" }} />
+          웃 Value
+        </span>
       </div>
     </div>
   );
