@@ -55,28 +55,60 @@ async def submit_feedback(
     crs_id: str | None = None,
     sub_crs_id: str | None = None,
     feedback_type: str = "CRS",
+    screen: str = "unknown",
+    role: str = "user",
 ) -> dict:
     """Collect feedback from any screen in the app.
 
     Auto-categorizes by cube and CRS. AI-triaged for priority.
     Feeds the backlog → votes → implementation cycle.
+
+    Uses ProductFeedback model (Supabase table: product_feedback).
     """
-    feedback_id = str(uuid.uuid4())
+    # AI sentiment + priority (keyword-based, will use Cube 6 summarizer later)
+    sentiment = 0.0
+    priority = 2  # Medium default
 
-    # AI sentiment + priority (stub — will use Cube 6 summarizer)
-    sentiment = 0.0  # Neutral default
-    priority = 3  # Medium default
-
-    # Simple keyword-based priority boost
     urgent_keywords = ["broken", "crash", "error", "bug", "fail", "wrong"]
     if any(kw in text.lower() for kw in urgent_keywords):
-        priority = 1
+        priority = 3  # High
         sentiment = -0.5
-
-    positive_keywords = ["love", "great", "perfect", "amazing", "excellent"]
-    if any(kw in text.lower() for kw in positive_keywords):
-        priority = 5
+        category = "bug"
+    elif any(kw in text.lower() for kw in ["love", "great", "perfect", "amazing", "excellent"]):
+        priority = 1  # Low (positive = not urgent)
         sentiment = 0.8
+        category = "improvement"
+    elif any(kw in text.lower() for kw in ["add", "feature", "wish", "could", "should"]):
+        priority = 2
+        sentiment = 0.3
+        category = "feature"
+    else:
+        category = "general"
+
+    # Write to DB if available, otherwise return dict
+    feedback_id = str(uuid.uuid4())
+    try:
+        from app.models.product_feedback import ProductFeedback
+
+        fb = ProductFeedback(
+            cube_id=cube_id,
+            crs_id=crs_id,
+            sub_crs_id=sub_crs_id,
+            feedback_text=text,
+            feedback_type=feedback_type,
+            category=category,
+            sentiment=sentiment,
+            priority=priority,
+            user_id=submitted_by,
+            screen=screen,
+            role=role,
+        )
+        db.add(fb)
+        await db.flush()
+        await db.refresh(fb)
+        feedback_id = str(fb.id)
+    except Exception:
+        pass  # Non-fatal: return dict even if DB unavailable
 
     logger.info(
         "cube10.feedback.submitted",
@@ -85,7 +117,7 @@ async def submit_feedback(
             "cube_id": cube_id,
             "crs_id": crs_id,
             "priority": priority,
-            "sentiment": sentiment,
+            "category": category,
         },
     )
 
@@ -98,6 +130,7 @@ async def submit_feedback(
         "text": text,
         "sentiment": sentiment,
         "priority": priority,
+        "category": category,
         "submitted_by": submitted_by,
         "status": "new",
         "created_at": datetime.now(timezone.utc).isoformat(),

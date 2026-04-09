@@ -61,8 +61,9 @@ class TestFeedback:
             None, cube_id=2, text="The app is broken and crashes on submit",
             submitted_by="user2"
         )
-        assert result["priority"] == 1
+        assert result["priority"] == 3  # High priority
         assert result["sentiment"] < 0
+        assert result["category"] == "bug"
 
     @pytest.mark.asyncio
     async def test_positive_keyword_lowers_priority(self):
@@ -70,7 +71,7 @@ class TestFeedback:
             None, cube_id=1, text="I love the ranking experience, it's amazing!",
             submitted_by="user3"
         )
-        assert result["priority"] == 5
+        assert result["priority"] == 1  # Low priority (positive = not urgent)
         assert result["sentiment"] > 0
 
     @pytest.mark.asyncio
@@ -79,8 +80,9 @@ class TestFeedback:
             None, cube_id=4, text="The interface works as expected.",
             submitted_by="user4"
         )
-        assert result["priority"] == 3
+        assert result["priority"] == 2  # Medium default
         assert result["sentiment"] == 0.0
+        assert result["category"] == "general"
 
 
 # ═══════════════════════════════════════════════════════════════════
