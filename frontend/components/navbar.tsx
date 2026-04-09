@@ -19,6 +19,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [apiSdkOpen, setApiSdkOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { t } = useLexicon();
   const { currentTheme } = useTheme();
 
@@ -78,16 +79,39 @@ export function Navbar({ sessionTitle }: NavbarProps) {
           <div className="ml-auto flex items-center gap-2">
             <TokenHUD />
 
-            {/* Settings gear — visible in session (8-digit code users) or for authenticated moderators */}
+            {/* Settings menu — visible for ALL users (polling + moderator) */}
             {showSettings && !isAuthenticated && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSettingsOpen(true)}
-                title={t("shared.nav.settings")}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setUserMenuOpen((p) => !p)}
+                  title={t("shared.nav.settings")}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+                {userMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                    <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-md border bg-popover p-1 shadow-md">
+                      <button
+                        onClick={() => { setUserMenuOpen(false); setSettingsOpen(true); }}
+                        className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent"
+                      >
+                        <Settings className="h-4 w-4" />
+                        {t("shared.nav.settings")}
+                      </button>
+                      <button
+                        onClick={() => { setUserMenuOpen(false); setApiSdkOpen(true); }}
+                        className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent"
+                      >
+                        <Code className="h-4 w-4" />
+                        {t("sdk.api_key.title")}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
 
             {isAuthenticated && user && (
@@ -231,9 +255,52 @@ export function Navbar({ sessionTitle }: NavbarProps) {
               <section>
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Discovery</h3>
                 <div className="space-y-1 text-xs font-mono">
+                  <p className="text-muted-foreground">GET /api/v1/sdk</p>
                   <p className="text-muted-foreground">GET /api/v1/cubes</p>
                   <p className="text-muted-foreground">GET /api/v1/functions</p>
-                  <p className="text-muted-foreground">GET /api/v1/health</p>
+                  <p className="text-muted-foreground">GET /api/v1/compress/estimate</p>
+                </div>
+              </section>
+
+              {/* Share & Send Section */}
+              <section>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Share SDK Docs</h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      const docsUrl = `${window.location.origin}/docs/sdk`;
+                      window.location.href = `mailto:?subject=eXeL AI Polling SDK&body=Check out the eXeL Governance Engine SDK:%0A%0A${encodeURIComponent(docsUrl)}%0A%0A9 APIs that change how decisions are made.`;
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent"
+                  >
+                    <span className="text-base">📧</span>
+                    Email SDK link to myself
+                  </button>
+                  <button
+                    onClick={() => {
+                      const docsUrl = `${window.location.origin}/docs/sdk`;
+                      if (navigator.share) {
+                        navigator.share({ title: "eXeL AI SDK", text: "9 APIs that change how decisions are made", url: docsUrl });
+                      } else {
+                        navigator.clipboard.writeText(docsUrl);
+                        alert("Link copied!");
+                      }
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent"
+                  >
+                    <span className="text-base">📱</span>
+                    Share to phone / copy link
+                  </button>
+                  <button
+                    onClick={() => {
+                      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.origin + "/docs/sdk")}`;
+                      window.open(qrUrl, "_blank");
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent"
+                  >
+                    <span className="text-base">📷</span>
+                    Show QR code
+                  </button>
                 </div>
               </section>
             </div>
