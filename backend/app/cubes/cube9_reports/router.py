@@ -133,6 +133,44 @@ async def get_ranking_summary(
 # ---------------------------------------------------------------------------
 
 
+@router.get("/export/pdf")
+async def export_pdf(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CRS-14.02: PDF export (MVP2 — stub)."""
+    return await service.generate_pdf_stub(db, session_id)
+
+
+@router.get("/results/distribution")
+async def get_results_distribution(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """CRS-14.05: Check who is eligible to receive results."""
+    return await service.distribute_results(db, session_id)
+
+
+@router.get("/results/reward")
+async def get_reward_announcement(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """CRS-14.01: Get CQS reward winner details (Moderator/Admin only)."""
+    from app.models.session import Session as SessionModel
+
+    sess_result = await db.execute(
+        select(SessionModel).where(SessionModel.id == session_id)
+    )
+    session_obj = sess_result.scalar_one_or_none()
+    short_code = session_obj.short_code if session_obj else None
+
+    return await service.announce_reward_winner(db, session_id, short_code)
+
+
 @router.post("/destroy-data", status_code=200)
 async def destroy_data(
     session_id: uuid.UUID,

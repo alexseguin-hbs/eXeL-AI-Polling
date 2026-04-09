@@ -486,3 +486,166 @@ async def destroy_session_export_data(
         "destroyed_at": datetime.now(timezone.utc).isoformat(),
         "irreversible": True,
     }
+
+
+# ---------------------------------------------------------------------------
+# CRS-14.02: PDF Export (MVP2 stub)
+# ---------------------------------------------------------------------------
+
+
+async def generate_pdf_stub(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+) -> dict:
+    """CRS-14.02: PDF export — stub for MVP2 implementation.
+
+    Will use reportlab/pypdf to generate formatted report with:
+    - Session summary header
+    - Theme hierarchy visualization
+    - Ranking results table
+    - CQS winner highlight
+    - Token distribution breakdown
+    - Analytics charts
+    """
+    return {
+        "session_id": str(session_id),
+        "status": "not_implemented",
+        "message": "PDF export will be available in MVP2. Use CSV export for now.",
+        "mvp": 2,
+    }
+
+
+# ---------------------------------------------------------------------------
+# CRS-14.05: Results Distribution
+# ---------------------------------------------------------------------------
+
+
+async def distribute_results(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+) -> dict:
+    """CRS-14.05: Determine who is eligible to receive results.
+
+    Eligibility rules:
+      - Moderator/Admin/Lead: always eligible
+      - Free tier: all participants eligible (donation prompt shown after)
+      - Moderator Paid: all participants eligible (moderator paid for everyone)
+      - Cost Split: only participants with payment_status = 'paid' or 'lead_exempt'
+    """
+    from app.models.participant import Participant
+    from app.models.session import Session
+
+    result = await db.execute(select(Session).where(Session.id == session_id))
+    session = result.scalar_one_or_none()
+    if not session:
+        return {"session_id": str(session_id), "error": "Session not found"}
+
+    part_result = await db.execute(
+        select(Participant).where(Participant.session_id == session_id)
+    )
+    participants = list(part_result.scalars().all())
+
+    eligible = []
+    ineligible = []
+    pricing_tier = getattr(session, "pricing_tier", "free")
+
+    for p in participants:
+        if pricing_tier in ("free", "moderator_paid"):
+            eligible.append({
+                "participant_id": str(p.id),
+                "reason": "tier_allows_all",
+            })
+        elif pricing_tier == "cost_split":
+            if getattr(p, "payment_status", "unpaid") in ("paid", "lead_exempt"):
+                eligible.append({
+                    "participant_id": str(p.id),
+                    "reason": p.payment_status,
+                })
+            else:
+                ineligible.append({
+                    "participant_id": str(p.id),
+                    "reason": "unpaid",
+                })
+
+    return {
+        "session_id": str(session_id),
+        "pricing_tier": pricing_tier,
+        "total_participants": len(participants),
+        "eligible_count": len(eligible),
+        "ineligible_count": len(ineligible),
+        "eligible": eligible,
+        "ineligible": ineligible,
+    }
+
+
+# ---------------------------------------------------------------------------
+# CRS-14.01: Reward Winner Announcement
+# ---------------------------------------------------------------------------
+
+
+async def announce_reward_winner(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    session_short_code: str | None = None,
+) -> dict:
+    """CRS-14.01: Announce CQS reward winner.
+
+    Winner gets private notification with full CQS breakdown.
+    All other participants get generic "a participant won" message.
+    """
+    try:
+        from app.models.cqs_score import CQSScore
+
+        result = await db.execute(
+            select(CQSScore).where(
+                and_(
+                    CQSScore.session_id == session_id,
+                    CQSScore.is_winner.is_(True),
+                )
+            )
+        )
+        winner = result.scalar_one_or_none()
+
+        if not winner:
+            return {
+                "session_id": str(session_id),
+                "has_winner": False,
+                "message": "No CQS winner determined for this session",
+            }
+
+        winner_data = {
+            "participant_id": str(winner.participant_id),
+            "composite_cqs": winner.composite_cqs,
+            "theme2_cluster_label": winner.theme2_cluster_label,
+        }
+
+        # Broadcast generic announcement (no CQS details)
+        if session_short_code:
+            try:
+                from app.core.supabase_broadcast import broadcast_event
+
+                await broadcast_event(
+                    channel=f"session:{session_short_code}",
+                    event="reward_announced",
+                    payload={
+                        "session_id": str(session_id),
+                        "has_winner": True,
+                        # No participant_id or CQS details in public broadcast
+                    },
+                )
+            except Exception:
+                pass
+
+        return {
+            "session_id": str(session_id),
+            "has_winner": True,
+            "winner": winner_data,  # Only returned to Moderator/Admin via auth gate
+        }
+
+    except Exception as e:
+        logger.warning("cube9.reward_announcement.error", extra={"error": str(e)})
+        return {
+            "session_id": str(session_id),
+            "has_winner": False,
+            "error": str(e),
+        }
