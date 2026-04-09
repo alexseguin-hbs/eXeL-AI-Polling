@@ -376,62 +376,74 @@ async def trigger_ai_pipeline(
     )
 
     async def _run_pipeline_background(trigger_id: uuid.UUID) -> None:
-        """Background coroutine — uses fresh DB session + global concurrency cap."""
+        """Background coroutine — uses fresh DB session + global concurrency cap.
+
+        C5-1: All exceptions are caught and propagated to trigger status.
+        No exception escapes this function — asyncio.create_task never orphans.
+        """
         from app.db.postgres import async_session_factory
         from app.cubes.cube6_ai.service import run_pipeline
 
-        async with _pipeline_semaphore:
-            async with async_session_factory() as bg_db:
-                try:
-                    await update_pipeline_status(bg_db, trigger_id, "in_progress")
-                    # CRS-09.02: 5-minute timeout prevents hung pipeline blocking trigger forever
-                    result = await asyncio.wait_for(
-                        run_pipeline(
-                            bg_db,
-                            session_id,
-                            seed=seed,
-                            use_embedding_assignment=use_embedding_assignment,
-                        ),
-                        timeout=300.0,
-                    )
-                    await update_pipeline_status(
-                        bg_db,
-                        trigger_id,
-                        "completed",
-                        result_metadata={
-                            "total_responses": result.get("total_responses", 0),
-                            "replay_hash": result.get("replay_hash"),
-                            "duration_sec": result.get("duration_sec"),
-                        },
-                    )
-                    logger.info(
-                        "cube5.pipeline.ai_theming.completed",
-                        extra={"trigger_id": str(trigger_id), "session_id": str(session_id)},
-                    )
-                    # Wire Cube 6→7: auto-trigger ranking after AI theming completes
+        try:
+            async with _pipeline_semaphore:
+                async with async_session_factory() as bg_db:
                     try:
-                        await trigger_ranking_pipeline(bg_db, session_id)
+                        await update_pipeline_status(bg_db, trigger_id, "in_progress")
+                        # CRS-09.02: 5-minute timeout prevents hung pipeline
+                        result = await asyncio.wait_for(
+                            run_pipeline(
+                                bg_db,
+                                session_id,
+                                seed=seed,
+                                use_embedding_assignment=use_embedding_assignment,
+                            ),
+                            timeout=300.0,
+                        )
+                        await update_pipeline_status(
+                            bg_db,
+                            trigger_id,
+                            "completed",
+                            result_metadata={
+                                "total_responses": result.get("total_responses", 0),
+                                "replay_hash": result.get("replay_hash"),
+                                "duration_sec": result.get("duration_sec"),
+                            },
+                        )
                         logger.info(
-                            "cube5.pipeline.ranking.auto_triggered",
-                            extra={"session_id": str(session_id)},
+                            "cube5.pipeline.ai_theming.completed",
+                            extra={"trigger_id": str(trigger_id), "session_id": str(session_id)},
                         )
-                    except Exception as rank_err:
-                        logger.warning(
-                            "cube5.pipeline.ranking.auto_trigger_failed",
-                            extra={"error": str(rank_err)},
+                        # Wire Cube 6→7: auto-trigger ranking after AI theming
+                        try:
+                            await trigger_ranking_pipeline(bg_db, session_id)
+                            logger.info(
+                                "cube5.pipeline.ranking.auto_triggered",
+                                extra={"session_id": str(session_id)},
+                            )
+                        except Exception as rank_err:
+                            logger.warning(
+                                "cube5.pipeline.ranking.auto_trigger_failed",
+                                extra={"error": str(rank_err)},
+                            )
+                    except asyncio.TimeoutError:
+                        logger.error(
+                            "cube5.pipeline.ai_theming.timeout",
+                            extra={"trigger_id": str(trigger_id), "timeout_sec": 300},
                         )
-                except asyncio.TimeoutError:
-                    logger.error(
-                        "cube5.pipeline.ai_theming.timeout",
-                        extra={"trigger_id": str(trigger_id), "timeout_sec": 300},
-                    )
-                    await _retry_status_update(bg_db, trigger_id, "Pipeline timeout (300s)")
-                except Exception as exc:
-                    logger.error(
-                        "cube5.pipeline.ai_theming.failed",
-                        extra={"trigger_id": str(trigger_id), "error": str(exc)},
-                    )
-                    await _retry_status_update(bg_db, trigger_id, str(exc))
+                        await _retry_status_update(bg_db, trigger_id, "Pipeline timeout (300s)")
+                    except Exception as exc:
+                        logger.error(
+                            "cube5.pipeline.ai_theming.failed",
+                            extra={"trigger_id": str(trigger_id), "error": str(exc)},
+                        )
+                        await _retry_status_update(bg_db, trigger_id, str(exc))
+        except Exception as outer_exc:
+            # C5-1: Catch-all for any exception that escapes inner handlers
+            # (e.g., semaphore acquisition failure, DB connection failure)
+            logger.exception(
+                "cube5.pipeline.background_task.fatal",
+                extra={"trigger_id": str(trigger_id), "error": str(outer_exc)},
+            )
 
     asyncio.create_task(_run_pipeline_background(trigger.id))
     return trigger
