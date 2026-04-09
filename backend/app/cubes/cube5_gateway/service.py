@@ -42,6 +42,11 @@ logger = logging.getLogger(__name__)
 # Global pipeline concurrency cap — prevents unbounded Cube 6 executions
 _pipeline_semaphore = asyncio.Semaphore(10)
 
+# Pipeline timeout: 300s default, 60s for scale mode (>1000 participants use sampling)
+_PIPELINE_TIMEOUT_DEFAULT = 300.0
+_PIPELINE_TIMEOUT_SCALE = 60.0
+_SCALE_THRESHOLD = 1000  # Sessions with >1000 responses use scale pipeline
+
 
 # ---------------------------------------------------------------------------
 # Token Calculation
@@ -389,7 +394,10 @@ async def trigger_ai_pipeline(
                 async with async_session_factory() as bg_db:
                     try:
                         await update_pipeline_status(bg_db, trigger_id, "in_progress")
-                        # CRS-09.02: 5-minute timeout prevents hung pipeline
+                        # CRS-09.02: Configurable timeout — 60s scale mode, 300s default
+                        pipeline_timeout = _PIPELINE_TIMEOUT_DEFAULT
+                        if use_embedding_assignment:
+                            pipeline_timeout = _PIPELINE_TIMEOUT_SCALE
                         result = await asyncio.wait_for(
                             run_pipeline(
                                 bg_db,
@@ -397,7 +405,7 @@ async def trigger_ai_pipeline(
                                 seed=seed,
                                 use_embedding_assignment=use_embedding_assignment,
                             ),
-                            timeout=300.0,
+                            timeout=pipeline_timeout,
                         )
                         await update_pipeline_status(
                             bg_db,

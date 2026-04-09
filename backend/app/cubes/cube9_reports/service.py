@@ -148,6 +148,97 @@ async def export_session_csv(
     return buf
 
 
+async def export_session_csv_streaming(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+):
+    """Scale-optimized CSV export — streaming generator, no full-memory load.
+
+    For 1M+ responses: yields CSV rows as they're built, never holds
+    all rows in memory. Uses csv.writer on a StringIO buffer per chunk.
+
+    Yields bytes chunks suitable for FastAPI StreamingResponse.
+    """
+    import csv
+
+    # Header
+    header_buf = io.StringIO()
+    writer = csv.writer(header_buf)
+    writer.writerow(CSV_COLUMNS)
+    yield header_buf.getvalue().encode("utf-8-sig")
+
+    # Batch-load lookups (these are small: questions + participants)
+    q_result = await db.execute(
+        select(Question).where(Question.session_id == session_id)
+    )
+    questions = {str(q.id): q for q in q_result.scalars().all()}
+
+    part_result = await db.execute(
+        select(Participant).where(Participant.session_id == session_id)
+    )
+    participant_langs = {
+        p.id: p.language_code for p in part_result.scalars().all()
+    }
+
+    summary_result = await db.execute(
+        select(ResponseSummary).where(ResponseSummary.session_id == session_id)
+    )
+    summaries = {
+        s.response_meta_id: s for s in summary_result.scalars().all()
+        if hasattr(s, "response_meta_id")
+    }
+
+    # Stream responses in chunks of 1000
+    chunk_size = 1000
+    offset = 0
+    while True:
+        result = await db.execute(
+            select(ResponseMeta)
+            .where(ResponseMeta.session_id == session_id)
+            .order_by(ResponseMeta.submitted_at)
+            .offset(offset)
+            .limit(chunk_size)
+        )
+        metas = list(result.scalars().all())
+        if not metas:
+            break
+
+        chunk_buf = io.StringIO()
+        writer = csv.writer(chunk_buf)
+
+        for meta in metas:
+            raw_text = meta.raw_text or ""
+            summary_row = summaries.get(meta.id)
+            question = questions.get(str(meta.question_id))
+
+            def _fmt(val):
+                if isinstance(val, (int, float)):
+                    return f"{int(val)}%" if val > 1 else f"{int(val * 100)}%"
+                return str(val) if val else ""
+
+            writer.writerow([
+                question.order_index if question else 0,
+                question.question_text if question else "",
+                str(meta.participant_id),
+                raw_text,
+                participant_langs.get(meta.participant_id, "en"),
+                summary_row.summary_333 or "" if summary_row else "",
+                summary_row.summary_111 or "" if summary_row else "",
+                summary_row.summary_33 or "" if summary_row else "",
+                summary_row.theme01 or "" if summary_row else "",
+                _fmt(summary_row.theme01_confidence if summary_row else ""),
+                summary_row.theme2_9 or "" if summary_row else "",
+                _fmt(summary_row.theme2_9_confidence if summary_row else ""),
+                summary_row.theme2_6 or "" if summary_row else "",
+                _fmt(summary_row.theme2_6_confidence if summary_row else ""),
+                summary_row.theme2_3 or "" if summary_row else "",
+                _fmt(summary_row.theme2_3_confidence if summary_row else ""),
+            ])
+
+        yield chunk_buf.getvalue().encode("utf-8")
+        offset += chunk_size
+
+
 # ---------------------------------------------------------------------------
 # CRS-19: Analytics Dashboard
 # ---------------------------------------------------------------------------
