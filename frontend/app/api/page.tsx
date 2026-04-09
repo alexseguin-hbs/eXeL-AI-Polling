@@ -11,12 +11,13 @@ import { useLexicon } from "@/lib/lexicon-context";
  * Each links to a sub-page with full docs, demos, and Ascended Master examples.
  */
 
-const FREE_APIS = [
+const CORE_APIS = [
   {
     id: "create-session",
     name: "Create Poll",
     icon: "🌐",
-    tagline: "Starting a conversation should never cost anything",
+    cost: "0.75 ◬ per session",
+    tagline: "Launch governance in one call",
     description: "Create a governance session with a single API call. Get a join code, QR code, and real-time dashboard. Your participants join free — on any device, in any of 33 languages.",
     endpoint: "POST /v1/sessions",
     master: "Enki",
@@ -36,7 +37,8 @@ const FREE_APIS = [
     id: "submit-response",
     name: "Submit Voice or Text",
     icon: "💬",
-    tagline: "Every voice deserves to be heard",
+    cost: "0.15 ◬ per response",
+    tagline: "Every voice, any language, instantly processed",
     description: "Submit text in any of 33 languages, or send audio for real-time voice-to-text transcription. Each response is automatically summarized to 333 → 111 → 33 words, translated to English, and checked for PII.",
     endpoint: "POST /v1/sessions/{id}/responses",
     master: "Krishna",
@@ -55,7 +57,8 @@ await fetch('/api/v1/sessions/abc-123/responses', {
     id: "export-results",
     name: "Export Results",
     icon: "📊",
-    tagline: "The truth belongs to everyone",
+    cost: "1.5 ◬ per 1K rows",
+    tagline: "Complete intelligence, ready to act on",
     description: "Download the complete 16-column CSV with themes, confidence scores, and summaries. Auto-streams for large datasets (10K+ rows) — no memory limits. The same format used by the 5,000-response AI Governance demo.",
     endpoint: "GET /v1/sessions/{id}/export/csv",
     master: "Thoth",
@@ -251,7 +254,7 @@ export default function ApiPage() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            3 Free APIs
+            3 Core APIs
           </button>
           <button
             onClick={() => setActiveTab("paid")}
@@ -271,10 +274,10 @@ export default function ApiPage() {
         {activeTab === "free" && (
           <div className="space-y-8">
             <p className="text-sm text-muted-foreground">
-              These three calls power the core governance workflow. They&apos;re free because
-              starting conversations, hearing voices, and sharing truth should never have a price.
+              These three calls power the core governance workflow. Each consumes ◬ tokens
+              proportional to the compute and intelligence your session requires.
             </p>
-            {FREE_APIS.map((api) => (
+            {CORE_APIS.map((api) => (
               <div key={api.id} className="rounded-xl border bg-card overflow-hidden">
                 <div className="px-6 py-5 border-b">
                   <div className="flex items-center gap-3">
@@ -283,8 +286,8 @@ export default function ApiPage() {
                       <h2 className="text-xl font-semibold">{api.name}</h2>
                       <p className="text-sm text-muted-foreground">{api.tagline}</p>
                     </div>
-                    <span className="ml-auto px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-xs font-semibold">
-                      FREE
+                    <span className="ml-auto px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                      {api.cost}
                     </span>
                   </div>
                 </div>

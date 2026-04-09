@@ -174,6 +174,10 @@ SDK_FUNCTIONS: list[SDKFunction] = [
 # THE 3 INTERNAL API CALLS (Free — core platform)
 # ═══════════════════════════════════════════════════════════════════
 
+# External SDK pricing: base cost + 50% markup
+# Internal (our web app): free. External (API key): cost + 50%.
+_EXTERNAL_MARKUP = 1.5  # 50% markup on base cost
+
 INTERNAL_APIS: list[SDKFunction] = [
     SDKFunction(
         number=10,
@@ -181,9 +185,9 @@ INTERNAL_APIS: list[SDKFunction] = [
         method_name="createSession",
         endpoint="/api/v1/sessions",
         http_method="POST",
-        cost_basis=CostBasis.FREE,
-        cost_per_unit_ai_tokens=0.0,
-        description="Create a polling session. Core platform — attracts users.",
+        cost_basis=CostBasis.PER_VOTE,  # Reuse as "per call"
+        cost_per_unit_ai_tokens=round(0.5 * _EXTERNAL_MARKUP, 2),  # 0.75 ◬ per session created
+        description="Create a governance session via API. Free internally, cost+50% via SDK.",
         cube_source="C1 Session",
         is_internal=True,
     ),
@@ -193,9 +197,9 @@ INTERNAL_APIS: list[SDKFunction] = [
         method_name="submitResponse",
         endpoint="/api/v1/sessions/{id}/responses",
         http_method="POST",
-        cost_basis=CostBasis.FREE,
-        cost_per_unit_ai_tokens=0.0,
-        description="Submit text/voice response to a session. Core platform — user input.",
+        cost_basis=CostBasis.PER_VOTE,
+        cost_per_unit_ai_tokens=round(0.1 * _EXTERNAL_MARKUP, 2),  # 0.15 ◬ per response (covers Phase A summarization)
+        description="Submit text/voice response via API. Free internally, cost+50% via SDK.",
         cube_source="C2 Text / C3 Voice",
         is_internal=True,
     ),
@@ -205,9 +209,9 @@ INTERNAL_APIS: list[SDKFunction] = [
         method_name="exportCSV",
         endpoint="/api/v1/sessions/{id}/export/csv",
         http_method="GET",
-        cost_basis=CostBasis.FREE,
-        cost_per_unit_ai_tokens=0.0,
-        description="Download 16-column CSV results. Core platform — delivers value.",
+        cost_basis=CostBasis.PER_1K_TEXTS,
+        cost_per_unit_ai_tokens=round(1.0 * _EXTERNAL_MARKUP, 2),  # 1.5 ◬ per 1K rows exported
+        description="Download 16-column CSV via API. Free internally, cost+50% via SDK.",
         cube_source="C9 Reports",
         is_internal=True,
     ),
@@ -239,13 +243,19 @@ def estimate_session_api_cost(
     voter_count: int,
     broadcast_recipients: int = 0,
 ) -> dict:
-    """Estimate total ◬ cost for a complete governance session via SDK."""
+    """Estimate total ◬ cost for a complete governance session via external SDK.
+
+    Internal (our web app) usage is free. External SDK pays cost + 50%.
+    """
     costs = {
-        "compress": (response_count / 1000) * 5.0,
-        "votes": voter_count * 0.01,
+        "create_session": 0.75,  # 1 session × 0.75◬
+        "submit_responses": round(response_count * 0.15, 2),  # 0.15◬ per response
+        "compress": round((response_count / 1000) * 5.0, 2),
+        "votes": round(voter_count * 0.01, 2),
         "anomaly_scan": 1.0,
-        "consensus_checks": 5 * 0.5,  # ~5 checks during voting
-        "broadcast": (broadcast_recipients / 10000) * 1.0 if broadcast_recipients > 0 else 0,
+        "consensus_checks": round(5 * 0.5, 2),
+        "export_csv": round((response_count / 1000) * 1.5, 2),
+        "broadcast": round((broadcast_recipients / 10000) * 1.0, 2) if broadcast_recipients > 0 else 0,
     }
     total = sum(costs.values())
     return {
@@ -253,5 +263,6 @@ def estimate_session_api_cost(
         "voter_count": voter_count,
         "cost_breakdown_ai_tokens": costs,
         "total_ai_tokens": round(total, 2),
-        "free_included": ["create_session", "submit_response", "export_csv", "verify", "convert"],
+        "pricing_note": "◬ tokens consumed proportional to compute + intelligence required.",
+        "zero_cost_functions": ["verify (trust is free)", "convert (payment IS the product)"],
     }

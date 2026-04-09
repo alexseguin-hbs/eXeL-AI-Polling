@@ -38,9 +38,10 @@ class TestRegistry:
 
 
 class TestPricing:
-    def test_free_functions_exist(self):
+    def test_zero_cost_functions(self):
+        """Only verify + convert are zero cost (trust + payments)."""
         free = [f for f in ALL_SDK_FUNCTIONS if f.cost_per_unit_ai_tokens == 0]
-        assert len(free) >= 5  # convert, verify, create, submit, export
+        assert len(free) == 2  # convert, verify
 
     def test_compress_costs_5_per_1k(self):
         compress = next(f for f in SDK_FUNCTIONS if f.method_name == "compress")
@@ -67,16 +68,16 @@ class TestCostEstimate:
     def test_small_session(self):
         est = estimate_session_api_cost(100, 50)
         assert est["total_ai_tokens"] > 0
-        assert est["total_ai_tokens"] < 10
+        assert est["total_ai_tokens"] < 50  # Small session, reasonable cost
 
     def test_large_session(self):
         est = estimate_session_api_cost(100_000, 50_000, broadcast_recipients=1_000_000)
         assert est["total_ai_tokens"] > 100
 
-    def test_free_included(self):
+    def test_zero_cost_noted(self):
         est = estimate_session_api_cost(100, 10)
-        assert "verify" in est["free_included"]
-        assert "convert" in est["free_included"]
+        assert "verify" in str(est["zero_cost_functions"])
+        assert "convert" in str(est["zero_cost_functions"])
 
     def test_1m_session_cost(self):
         """1M responses, 500K voters, 1M broadcast → estimate."""
