@@ -85,7 +85,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | 4 Collector | 92 | 85 | 82 | 88 | 85 | **86** | 21 | v2 |
 | 5 Gateway | 90 | 92 | 88 | 85 | 93 | **90** | 60 | v3 |
 | 6 AI Pipeline | 85 | 78 | 70 | 72 | 82 | **77** | 47 | v2 |
-| 7 Ranking | 85 | 90 | 75 | 85 | 85 | **84** | 75 | v2 |
+| 7 Ranking | 88 | 93 | 78 | 87 | 88 | **87** | 81 | v5 |
 | 8 Tokens | 70 | 75 | 60 | 70 | 75 | **70** | 50 | v2 |
 | 9 Reports | 65 | 60 | 55 | 60 | 70 | **62** | 24 | v2 |
 | 10 Simulation | — | — | — | — | — | Easter Egg | — | — |
