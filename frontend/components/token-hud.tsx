@@ -90,21 +90,21 @@ export function TokenHUD() {
 
         {/* ◬ Unity pill */}
         <div className="relative flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1">
-          <span className="text-xs font-bold" style={{ color: "#00D7E4" }}>◬</span>
-          <AnimatedNumber value={tokens.unity} color="#00D7E4" />
+          <span className="text-xs font-bold" style={{ color: "#00FFFF" }}>◬</span>
+          <AnimatedNumber value={tokens.unity} color="#00FFFF" />
           <FloatUp visible={showFloat} />
         </div>
 
         {/* ♡ Hearts pill */}
         <div className="relative flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1">
-          <span className="text-xs font-bold" style={{ color: "#D3B20F" }}>♡</span>
-          <AnimatedNumber value={tokens.hearts} color="#D3B20F" />
+          <span className="text-xs font-bold" style={{ color: "#FFFF00" }}>♡</span>
+          <AnimatedNumber value={tokens.hearts} color="#FFFF00" />
         </div>
 
         {/* 웃 Human pill */}
         <div className="flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1">
-          <span className="text-xs font-bold" style={{ color: "#8D516F" }}>웃</span>
-          <AnimatedNumber value={tokens.human.toFixed(3)} color="#8D516F" />
+          <span className="text-xs font-bold" style={{ color: "#FF00FF" }}>웃</span>
+          <AnimatedNumber value={tokens.human.toFixed(3)} color="#FF00FF" />
         </div>
       </div>
     </>

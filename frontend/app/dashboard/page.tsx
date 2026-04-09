@@ -302,6 +302,18 @@ function SessionDetail({
           setReplayHash(p.replay_hash ?? "");
         }
       })
+      // Theme change: Moderator changed the session color scheme — apply instantly
+      .on("broadcast", { event: "theme_change" }, ({ payload }) => {
+        const p = payload as { theme_id?: string };
+        if (p.theme_id) {
+          localStorage.setItem("exel-session-theme-id", p.theme_id);
+          // Force re-render by dispatching storage event
+          window.dispatchEvent(new StorageEvent("storage", {
+            key: "exel-session-theme-id",
+            newValue: p.theme_id,
+          }));
+        }
+      })
       .subscribe();
 
     // Channel B: postgres_changes on responses table (reliable HTTP path, works even if Broadcast drops)

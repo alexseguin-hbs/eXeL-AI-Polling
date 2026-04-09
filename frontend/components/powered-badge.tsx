@@ -16,9 +16,9 @@ import { useAudioEngine } from "@/lib/use-audio-engine";
  * A.I. (◬) = Cyan, S.I. (♡) = Sunset, H.I. (웃) = Violet
  */
 const TRINITY_COLORS = {
-  HI: "#8D516F", // 웃 Violet
-  AI: "#00D7E4", // ◬ Cyan
-  SI: "#D3B20F", // ♡ Sunset
+  HI: "#FF00FF", // 웃 Violet (255,0,255)
+  AI: "#00FFFF", // ◬ Cyan (0,255,255)
+  SI: "#FFFF00", // ♡ Yellow (255,255,0)
 } as const;
 
 /**

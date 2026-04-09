@@ -34,12 +34,12 @@ const THEME1_COLORS: Record<
   { fill: string; stroke: string }
 > = {
   "Risk & Concerns": {
-    fill: "rgba(239, 68, 68, 0.2)",
-    stroke: "#EF4444",
+    fill: "rgba(255, 0, 0, 0.2)",
+    stroke: "#FF0000",
   },
   "Supporting Comments": {
-    fill: "rgba(16, 185, 129, 0.2)",
-    stroke: "#10B981",
+    fill: "rgba(0, 255, 0, 0.2)",
+    stroke: "#00FF00",
   },
   "Neutral Comments": {
     fill: "rgba(59, 130, 246, 0.2)",

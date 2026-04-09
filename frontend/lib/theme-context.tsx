@@ -109,25 +109,25 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "violet",
     name: "\uc6c3 Violet",
-    swatch: "#8D516F",
+    swatch: "#FF00FF",
     colors: {
-      background: "330 27% 6%",
+      background: "300 100% 4%",
       foreground: "210 40% 98%",
-      card: "330 27% 9%",
+      card: "300 60% 8%",
       "card-foreground": "210 40% 98%",
-      popover: "330 27% 9%",
+      popover: "300 60% 8%",
       "popover-foreground": "210 40% 98%",
-      primary: "330 27% 44%",
-      "primary-foreground": "210 40% 98%",
-      secondary: "330 20% 17%",
+      primary: "300 100% 50%",
+      "primary-foreground": "300 100% 4%",
+      secondary: "300 40% 15%",
       "secondary-foreground": "210 40% 98%",
-      muted: "330 20% 17%",
-      "muted-foreground": "330 11% 64%",
-      accent: "330 20% 17%",
+      muted: "300 40% 15%",
+      "muted-foreground": "300 20% 64%",
+      accent: "300 40% 15%",
       "accent-foreground": "210 40% 98%",
-      border: "330 20% 17%",
-      input: "330 20% 17%",
-      ring: "330 27% 44%",
+      border: "300 40% 15%",
+      input: "300 40% 15%",
+      ring: "300 100% 50%",
     },
   },
   {
@@ -157,25 +157,25 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "exel-cyan",
     name: "\u25EC Cyan",
-    swatch: "#00D7E4",
+    swatch: "#00FFFF",
     colors: {
-      background: "183 30% 6%",
+      background: "180 100% 4%",
       foreground: "210 40% 98%",
-      card: "183 30% 9%",
+      card: "180 60% 8%",
       "card-foreground": "210 40% 98%",
-      popover: "183 30% 9%",
+      popover: "180 60% 8%",
       "popover-foreground": "210 40% 98%",
-      primary: "183 100% 45%",
-      "primary-foreground": "183 30% 6%",
-      secondary: "183 33% 17%",
+      primary: "180 100% 50%",
+      "primary-foreground": "180 100% 4%",
+      secondary: "180 40% 15%",
       "secondary-foreground": "210 40% 98%",
-      muted: "183 33% 17%",
-      "muted-foreground": "183 11% 64%",
-      accent: "183 33% 17%",
+      muted: "180 40% 15%",
+      "muted-foreground": "180 20% 64%",
+      accent: "180 40% 15%",
       "accent-foreground": "210 40% 98%",
-      border: "183 33% 17%",
-      input: "183 33% 17%",
-      ring: "183 100% 45%",
+      border: "180 40% 15%",
+      input: "180 40% 15%",
+      ring: "180 100% 50%",
     },
   },
   // Row 2: Blue, Green, Custom (custom is position 6 in UI grid)
@@ -206,51 +206,51 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "emerald",
     name: "Emerald",
-    swatch: "#10B981",
+    swatch: "#00FF00",
     colors: {
-      background: "160 30% 6%",
+      background: "120 100% 4%",
       foreground: "210 40% 98%",
-      card: "160 30% 9%",
+      card: "120 60% 8%",
       "card-foreground": "210 40% 98%",
-      popover: "160 30% 9%",
+      popover: "120 60% 8%",
       "popover-foreground": "210 40% 98%",
-      primary: "160 84% 39%",
-      "primary-foreground": "160 30% 6%",
-      secondary: "160 33% 17%",
+      primary: "120 100% 50%",
+      "primary-foreground": "120 100% 4%",
+      secondary: "120 40% 15%",
       "secondary-foreground": "210 40% 98%",
-      muted: "160 33% 17%",
-      "muted-foreground": "160 11% 64%",
-      accent: "160 33% 17%",
+      muted: "120 40% 15%",
+      "muted-foreground": "120 20% 64%",
+      accent: "120 40% 15%",
       "accent-foreground": "210 40% 98%",
-      border: "160 33% 17%",
-      input: "160 33% 17%",
-      ring: "160 84% 39%",
+      border: "120 40% 15%",
+      input: "120 40% 15%",
+      ring: "120 100% 50%",
     },
   },
   // (Custom color picker is position 6 — handled in moderator-settings.tsx UI)
   // Row 3: Yellow (♡ Sunset), Coral, Red
   {
     id: "sunset",
-    name: "\u2661 Sunset",
-    swatch: "#D3B20F",
+    name: "\u2661 Yellow",
+    swatch: "#FFFF00",
     colors: {
-      background: "50 30% 6%",
+      background: "60 100% 4%",
       foreground: "210 40% 98%",
-      card: "50 30% 9%",
+      card: "60 60% 8%",
       "card-foreground": "210 40% 98%",
-      popover: "50 30% 9%",
+      popover: "60 60% 8%",
       "popover-foreground": "210 40% 98%",
-      primary: "50 87% 44%",
-      "primary-foreground": "50 30% 6%",
-      secondary: "50 33% 17%",
+      primary: "60 100% 50%",
+      "primary-foreground": "60 100% 4%",
+      secondary: "60 40% 15%",
       "secondary-foreground": "210 40% 98%",
-      muted: "50 33% 17%",
-      "muted-foreground": "50 11% 64%",
-      accent: "50 33% 17%",
+      muted: "60 40% 15%",
+      "muted-foreground": "60 20% 64%",
+      accent: "60 40% 15%",
       "accent-foreground": "210 40% 98%",
-      border: "50 33% 17%",
-      input: "50 33% 17%",
-      ring: "50 87% 44%",
+      border: "60 40% 15%",
+      input: "60 40% 15%",
+      ring: "60 100% 50%",
     },
   },
   {
@@ -280,25 +280,25 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "red",
     name: "Red",
-    swatch: "#EF4444",
+    swatch: "#FF0000",
     colors: {
-      background: "0 30% 6%",
+      background: "0 100% 4%",
       foreground: "210 40% 98%",
-      card: "0 30% 9%",
+      card: "0 60% 8%",
       "card-foreground": "210 40% 98%",
-      popover: "0 30% 9%",
+      popover: "0 60% 8%",
       "popover-foreground": "210 40% 98%",
-      primary: "0 84% 60%",
-      "primary-foreground": "0 30% 6%",
-      secondary: "0 33% 17%",
+      primary: "0 100% 50%",
+      "primary-foreground": "210 40% 98%",
+      secondary: "0 40% 15%",
       "secondary-foreground": "210 40% 98%",
-      muted: "0 33% 17%",
-      "muted-foreground": "0 11% 64%",
-      accent: "0 33% 17%",
+      muted: "0 40% 15%",
+      "muted-foreground": "0 20% 64%",
+      accent: "0 40% 15%",
       "accent-foreground": "210 40% 98%",
-      border: "0 33% 17%",
-      input: "0 33% 17%",
-      ring: "0 84% 60%",
+      border: "0 40% 15%",
+      input: "0 40% 15%",
+      ring: "0 100% 50%",
     },
   },
 ];
@@ -387,6 +387,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Pre-auth / participants without session theme always see exel-cyan.
   const effectiveThemeId = sessionThemeId ?? (moderatorAuthenticated ? localThemeId : "exel-cyan");
 
+  // Listen for theme changes from Supabase Broadcast (cross-client sync)
+  // When moderator changes theme, all participants receive instant update
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === SESSION_THEME_KEY && e.newValue) {
+        if (VALID_THEME_IDS.includes(e.newValue)) {
+          setSessionThemeIdState(e.newValue);
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   // Apply CSS variables whenever effective theme changes
   useEffect(() => {
     applyTheme(resolveTheme(effectiveThemeId, customAccentColor));
@@ -399,13 +413,29 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, id);
   }, [moderatorAuthenticated]);
 
-  // Session theme can be set by moderators (cascades to all participants)
+  // Session theme can be set by moderators (cascades to all participants instantly)
   const setSessionTheme = useCallback((id: string | null) => {
     setSessionThemeIdState(id);
     if (id) {
       localStorage.setItem(SESSION_THEME_KEY, id);
     } else {
       localStorage.removeItem(SESSION_THEME_KEY);
+    }
+
+    // Broadcast theme change to ALL participants via Supabase Realtime
+    // This enables instant theme sync across 1M+ connected clients
+    try {
+      const { supabase } = require("@/lib/supabase");
+      const sessionCode = localStorage.getItem("exel-session-code");
+      if (supabase && sessionCode) {
+        supabase.channel(`session:${sessionCode}`).send({
+          type: "broadcast",
+          event: "theme_change",
+          payload: { theme_id: id },
+        });
+      }
+    } catch {
+      // Non-fatal: theme still set locally even if broadcast fails
     }
   }, []);
 
