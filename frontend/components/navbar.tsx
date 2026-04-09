@@ -292,14 +292,27 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                     Share to phone / copy link
                   </button>
                   <button
-                    onClick={() => {
-                      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.origin + "/docs/sdk")}`;
-                      window.open(qrUrl, "_blank");
+                    onClick={async () => {
+                      // Use our own Cube 1 QR generator via backend API
+                      const sdkUrl = `${window.location.origin}/api`;
+                      try {
+                        const resp = await fetch(`/api/v1/sessions/qr-generate?data=${encodeURIComponent(sdkUrl)}`);
+                        if (resp.ok) {
+                          const blob = await resp.blob();
+                          const url = URL.createObjectURL(blob);
+                          window.open(url, "_blank");
+                        } else {
+                          // Fallback: open URL directly for manual QR generation
+                          window.open(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sdkUrl)}`, "_blank");
+                        }
+                      } catch {
+                        window.open(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sdkUrl)}`, "_blank");
+                      }
                     }}
                     className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent"
                   >
                     <span className="text-base">📷</span>
-                    Show QR code
+                    Show QR code (scan to open API docs)
                   </button>
                 </div>
               </section>
