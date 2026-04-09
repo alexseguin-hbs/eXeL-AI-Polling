@@ -128,3 +128,28 @@ async def list_cubes():
     from app.core.sdk import get_cube_registry
 
     return {"cubes": get_cube_registry(), "total": 9, "version": "0.1.0"}
+
+
+@app.get("/api/v1/functions", tags=["Health"])
+async def list_functions(cube: int | None = None, category: str | None = None):
+    """SDK discovery: list all universal functions with I/O contracts.
+
+    Internal functions are identical to external API calls.
+    SDK codegen uses this endpoint to generate typed client methods.
+    """
+    from app.core.universal import (
+        get_registry, get_by_cube, get_by_category, FunctionCategory,
+    )
+
+    if cube is not None:
+        funcs = get_by_cube(cube)
+    elif category is not None:
+        try:
+            cat = FunctionCategory(category)
+            funcs = get_by_category(cat)
+        except ValueError:
+            funcs = get_registry()
+    else:
+        funcs = get_registry()
+
+    return {"functions": funcs, "total": len(funcs)}
