@@ -178,6 +178,7 @@ async def create_ledger_entry(
     reference_id: str | None = None,
     distribution_method: str | None = None,
     anon_hash: str | None = None,
+    session_short_code: str | None = None,
 ) -> TokenLedger:
     """CRS-25: Create a new append-only ledger entry.
 
@@ -204,6 +205,26 @@ async def create_ledger_entry(
     db.add(entry)
     await db.flush()
     await db.refresh(entry)
+
+    # CRS-18: Broadcast token update for real-time HUD
+    if session_short_code:
+        try:
+            from app.core.supabase_broadcast import broadcast_event
+
+            await broadcast_event(
+                channel=f"session:{session_short_code}",
+                event="tokens_awarded",
+                payload={
+                    "session_id": str(session_id),
+                    "user_id": user_id,
+                    "action": action_type,
+                    "heart": delta_heart,
+                    "human": delta_human,
+                    "unity": delta_unity,
+                },
+            )
+        except Exception:
+            pass  # Non-fatal: token is stored even if broadcast fails
 
     logger.info(
         "cube8.ledger.entry_created",

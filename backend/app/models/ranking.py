@@ -56,6 +56,7 @@ class AggregatedRanking(Base):
     score: Mapped[float] = mapped_column(Float, default=0.0)
     vote_count: Mapped[int] = mapped_column(Integer, default=0)
     is_top_theme2: Mapped[bool] = mapped_column(Boolean, default=False)
+    confidence_avg: Mapped[float] = mapped_column(Float, default=0.0)
     participant_count: Mapped[int] = mapped_column(Integer, default=0)
     algorithm: Mapped[str] = mapped_column(String(50), default="borda_count")
     is_final: Mapped[bool] = mapped_column(Boolean, default=False)

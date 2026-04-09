@@ -190,6 +190,23 @@ async def build_analytics_dashboard(
     )
     summaries_count = summary_result.scalar() or 0
 
+    # Per-question response counts
+    question_dist: dict[str, int] = {}
+    try:
+        q_resp_result = await db.execute(
+            select(
+                Question.question_text,
+                func.count(ResponseMeta.id),
+            )
+            .join(ResponseMeta, ResponseMeta.question_id == Question.id)
+            .where(ResponseMeta.session_id == session_id)
+            .group_by(Question.question_text)
+        )
+        for text, count in q_resp_result.all():
+            question_dist[text or "Unknown"] = count
+    except Exception:
+        pass
+
     # Theme01 distribution
     theme01_dist: dict[str, int] = {}
     if summaries_count > 0:
@@ -274,6 +291,7 @@ async def build_analytics_dashboard(
             round(summaries_count / total_responses * 100, 1)
             if total_responses else 0
         ),
+        "responses_by_question": question_dist,
         "theme01_distribution": theme01_dist,
         "ranking": ranking_stats,
         "tokens": token_stats,

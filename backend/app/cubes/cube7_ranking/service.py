@@ -295,17 +295,21 @@ async def aggregate_rankings(
     cycle_id: int = 1,
     seed: str | None = None,
     participant_stakes: dict[str, float] | None = None,
+    excluded_participant_ids: set[str] | None = None,
 ) -> list[AggregatedRanking]:
-    """CRS-12.01 + CRS-12.02: Borda count with quadratic weights + seeded tiebreak.
+    """CRS-12.01 + CRS-12.02 + CRS-12.04: Borda count with quadratic weights + anomaly exclusion.
 
     Steps:
       1. Fetch all user_rankings for session + cycle
+      1b. Exclude flagged participants (CRS-12.04 anti-sybil)
       2. Compute quadratic weights (if stakes provided) or equal weights
       3. Compute weighted Borda scores
       4. Sort by score DESC, then deterministic tiebreak
       5. Clear previous aggregated_rankings for this cycle
       6. Write new aggregated_rankings (1 row per theme)
     """
+    excluded = excluded_participant_ids or set()
+
     # 1. Fetch user rankings
     result = await db.execute(
         select(Ranking).where(
@@ -322,16 +326,32 @@ async def aggregate_rankings(
             f"No rankings found for session {session_id} cycle {cycle_id}"
         )
 
-    # Extract ranked_theme_ids + participant_ids
+    # 1b. Extract ranked_theme_ids + participant_ids, excluding flagged
     all_rankings: list[list[str]] = []
     all_participant_ids: list[str] = []
+    excluded_count = 0
     for ur in user_rankings:
+        pid = str(ur.participant_id)
+        if pid in excluded:
+            excluded_count += 1
+            continue
         ids = ur.ranked_theme_ids
         if isinstance(ids, list):
             all_rankings.append(ids)
         elif isinstance(ids, dict) and "ranked_theme_ids" in ids:
             all_rankings.append(ids["ranked_theme_ids"])
-        all_participant_ids.append(str(ur.participant_id))
+        all_participant_ids.append(pid)
+
+    if excluded_count:
+        logger.info(
+            "cube7.ranking.excluded_anomalous",
+            extra={"session_id": str(session_id), "excluded_count": excluded_count},
+        )
+
+    if not all_rankings:
+        raise ValueError(
+            f"No valid rankings remaining after excluding {excluded_count} flagged participants"
+        )
 
     n_themes = len(all_rankings[0]) if all_rankings else 0
     participant_count = len(all_rankings)
@@ -367,21 +387,33 @@ async def aggregate_rankings(
         )
     )
 
-    # 6. Write new aggregated rankings
+    # 6. Fetch theme confidence for CRS-13.01
+    theme_ids_list = [uuid.UUID(t[0]) for t in sorted_themes]
+    if theme_ids_list:
+        conf_result = await db.execute(
+            select(Theme.id, Theme.confidence).where(Theme.id.in_(theme_ids_list))
+        )
+        theme_confidence = {row[0]: row[1] for row in conf_result.all()}
+    else:
+        theme_confidence = {}
+
+    # 7. Write new aggregated rankings
     now = datetime.now(timezone.utc)
     aggregated: list[AggregatedRanking] = []
 
     for rank_pos, (theme_id_str, score) in enumerate(sorted_themes, start=1):
         vote_count = sum(1 for r in all_rankings if theme_id_str in r)
+        tid = uuid.UUID(theme_id_str)
 
         agg = AggregatedRanking(
             session_id=session_id,
             cycle_id=cycle_id,
-            theme_id=uuid.UUID(theme_id_str),
+            theme_id=tid,
             rank_position=rank_pos,
             score=score,
             vote_count=vote_count,
             is_top_theme2=False,
+            confidence_avg=round(theme_confidence.get(tid, 0.0), 4),
             participant_count=participant_count,
             algorithm=algorithm,
             is_final=True,
@@ -825,21 +857,29 @@ async def run_ranking_pipeline(
     seed: str | None = None,
     participant_stakes: dict[str, float] | None = None,
 ) -> dict:
-    """Full ranking pipeline: aggregate → identify top → detect anomalies → emit.
+    """Full ranking pipeline: detect anomalies → exclude → aggregate → identify → emit.
 
+    CRS-12.04: Anomalous votes are detected FIRST, then excluded from aggregation.
     When participant_stakes is provided, uses quadratic vote normalization
     (CRS-12.02). Otherwise falls back to equal-weight Borda count.
     """
-    # 1. Aggregate (with optional quadratic weights)
+    # 1. Detect anomalies FIRST (before aggregation)
+    anomalies = await detect_voting_anomalies(db, session_id, cycle_id)
+
+    # 2. Collect flagged participant IDs for exclusion
+    excluded_participants: set[str] = set()
+    for a in anomalies:
+        if a["type"] == "identical_ranking_burst":
+            excluded_participants.update(a.get("participant_ids", []))
+
+    # 3. Aggregate (excluding flagged participants)
     aggregated = await aggregate_rankings(
-        db, session_id, cycle_id, seed, participant_stakes
+        db, session_id, cycle_id, seed, participant_stakes,
+        excluded_participant_ids=excluded_participants,
     )
 
-    # 2. Identify top theme
+    # 4. Identify top theme
     winner = await identify_top_theme2(db, session_id, cycle_id)
-
-    # 3. Detect anomalies (non-blocking)
-    anomalies = await detect_voting_anomalies(db, session_id, cycle_id)
 
     # 4. Emit ranking complete + trigger CQS
     emit_result = await emit_ranking_complete(
@@ -863,6 +903,7 @@ async def run_ranking_pipeline(
         "top_theme2_label": emit_result.get("top_theme2_label"),
         "anomaly_count": len(anomalies),
         "anomalies": anomalies,
+        "excluded_participants": len(excluded_participants),
         "weight_audit": weight_audit,
         "status": "ranking_complete",
     }

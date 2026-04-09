@@ -28,6 +28,7 @@ class AggregatedRankingRead(BaseModel):
     score: float
     vote_count: int
     is_top_theme2: bool
+    confidence_avg: float = 0.0
     participant_count: int
     algorithm: str
     is_final: bool
