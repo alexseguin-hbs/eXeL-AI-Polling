@@ -120,3 +120,11 @@ app.include_router(realtime_router)
 @app.get("/api/v1/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():
     return HealthResponse()
+
+
+@app.get("/api/v1/cubes", tags=["Health"])
+async def list_cubes():
+    """SDK discovery: list all cubes with endpoints, events, and status."""
+    from app.core.sdk import get_cube_registry
+
+    return {"cubes": get_cube_registry(), "total": 9, "version": "0.1.0"}

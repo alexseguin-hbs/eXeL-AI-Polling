@@ -4,8 +4,9 @@ Mirrors Cube 6's factory pattern. Selects best available STT provider
 for the given language, respecting priority and active status from
 the stt_providers table.
 
-Launch providers: OpenAI Whisper, Grok (xAI), Gemini (Google)
-User selects STT provider at session creation (ai_provider field on Session).
+Launch providers: OpenAI Whisper, Gemini (Google), AWS Transcribe
+Note: Grok (xAI) removed — no audio transcription permission on xAI API.
+User selects STT provider at session creation (stt_provider field on Session).
 """
 
 import asyncio
@@ -20,7 +21,6 @@ from app.cubes.cube3_voice.providers.base import (
 )
 from app.cubes.cube3_voice.providers.aws_provider import AWSTranscribeSTT
 from app.cubes.cube3_voice.providers.gemini_provider import GeminiSTT
-from app.cubes.cube3_voice.providers.grok_provider import GrokSTT
 from app.cubes.cube3_voice.providers.whisper_provider import WhisperSTT
 from app.models.stt_provider import STTProviderConfig
 
@@ -33,9 +33,9 @@ _provider_lock = asyncio.Lock()
 # Map AI provider names (from session.ai_provider) to STT provider names
 _AI_TO_STT_MAP = {
     "openai": "whisper",
-    "grok": "grok",
     "gemini": "gemini",
     "aws": "aws",
+    # "grok" removed — xAI API lacks audio transcription permission
 }
 
 
@@ -45,8 +45,6 @@ def _get_provider_instance_sync(name: str) -> STTProvider:
         provider_name = STTProviderName(name)
         if provider_name == STTProviderName.WHISPER:
             _providers[name] = WhisperSTT()
-        elif provider_name == STTProviderName.GROK:
-            _providers[name] = GrokSTT()
         elif provider_name == STTProviderName.GEMINI:
             _providers[name] = GeminiSTT()
         elif provider_name == STTProviderName.AWS:

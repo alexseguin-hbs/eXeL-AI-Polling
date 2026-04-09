@@ -104,6 +104,7 @@ class TestGrokLive:
 
     @_skip_audio
     @skip_grok
+    @pytest.mark.xfail(reason="xAI team lacks audio transcription permission (403)")
     @pytest.mark.asyncio
     async def test_grok_english_transcription(self, english_audio_mp3: bytes):
         """Grok should transcribe English speech with recognizable output."""
@@ -137,6 +138,7 @@ class TestGrokLive:
 
     @_skip_audio
     @skip_grok
+    @pytest.mark.xfail(reason="xAI team lacks audio transcription permission (403)")
     @pytest.mark.asyncio
     async def test_grok_spanish_transcription(self, spanish_audio_mp3: bytes):
         """Grok should transcribe Spanish speech correctly."""
