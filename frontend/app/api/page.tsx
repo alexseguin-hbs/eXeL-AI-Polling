@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useLexicon } from "@/lib/lexicon-context";
+import { ApiFlower } from "@/components/api-flower";
 
 /**
  * /api — The Governance Engine Developer Hub
@@ -223,7 +224,7 @@ await sdk.vote(session, ["theme_a", "theme_b", "theme_c"], {
 
 export default function ApiPage() {
   const { t } = useLexicon();
-  const [activeTab, setActiveTab] = useState<"free" | "paid">("free");
+  const [activeTab, setActiveTab] = useState<"explore" | "core" | "paid">("explore");
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -247,9 +248,19 @@ export default function ApiPage() {
       <div className="border-b">
         <div className="max-w-4xl mx-auto px-6 flex gap-0">
           <button
-            onClick={() => setActiveTab("free")}
+            onClick={() => setActiveTab("explore")}
             className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "free"
+              activeTab === "explore"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            🌸 Explore
+          </button>
+          <button
+            onClick={() => setActiveTab("core")}
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "core"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
@@ -271,7 +282,38 @@ export default function ApiPage() {
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
-        {activeTab === "free" && (
+        {activeTab === "explore" && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold">The Flower of Life — API Discovery</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Explore the 9 SDK functions as a living geometry. Start with 3 core functions,
+                expand to 6 with intelligence, bloom into the full 9.
+              </p>
+              <p className="text-xs text-primary/70 mt-2 italic">
+                Like the Flower of Life itself — each circle connects to all others,
+                and the whole is greater than the sum of its parts.
+              </p>
+            </div>
+            <ApiFlower
+              onSelectFunction={(label) => {
+                setActiveTab("paid");
+                // Scroll to the matching function
+                setTimeout(() => {
+                  const id = label.replace(/[^a-z]/gi, "").toLowerCase();
+                  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+                }, 100);
+              }}
+            />
+            <div className="text-center text-xs text-muted-foreground space-y-1">
+              <p><strong>◬ Cyan (Core):</strong> compress · vote · convert — the foundation</p>
+              <p><strong>♡ Yellow (Intelligence):</strong> detect · consensus · verify — the wisdom</p>
+              <p><strong>웃 Violet (Evolution):</strong> challenge · override · broadcast — the future</p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "core" && (
           <div className="space-y-8">
             <p className="text-sm text-muted-foreground">
               These three calls power the core governance workflow. Each consumes ◬ tokens
