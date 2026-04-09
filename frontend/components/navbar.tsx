@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { LogOut, User, Menu, Settings } from "lucide-react";
+import { LogOut, User, Menu, Settings, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeratorSettings } from "@/components/moderator-settings";
 import { TokenHUD } from "@/components/token-hud";
@@ -18,6 +18,7 @@ interface NavbarProps {
 export function Navbar({ sessionTitle }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [apiSdkOpen, setApiSdkOpen] = useState(false);
   const { t } = useLexicon();
   const { currentTheme } = useTheme();
 
@@ -136,6 +137,16 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                       <button
                         onClick={() => {
                           setMenuOpen(false);
+                          setApiSdkOpen(true);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent"
+                      >
+                        <Code className="h-4 w-4" />
+                        {t("sdk.api_key.title")}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
                           logout?.({
                             logoutParams: {
                               returnTo: window.location.origin,
@@ -162,6 +173,73 @@ export function Navbar({ sessionTitle }: NavbarProps) {
         userEmail={user?.email}
         isPollingUser={!isAuthenticated}
       />
+
+      {/* API & SDK Panel — Developer access for Lead/Developer/Admin */}
+      {apiSdkOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-end">
+          <div className="fixed inset-0 bg-black/40" onClick={() => setApiSdkOpen(false)} />
+          <div className="relative z-50 mt-14 mr-4 w-96 max-h-[80vh] overflow-y-auto rounded-xl border bg-card shadow-2xl">
+            <div className="sticky top-0 flex items-center justify-between border-b bg-card px-5 py-4">
+              <div className="flex items-center gap-2">
+                <Code className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">{t("sdk.api_key.title")}</h2>
+              </div>
+              <button onClick={() => setApiSdkOpen(false)} className="text-muted-foreground hover:text-foreground">✕</button>
+            </div>
+            <div className="p-5 space-y-5">
+              {/* API Key Section */}
+              <section>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t("sdk.api_key.generate")}</h3>
+                <div className="rounded-lg border bg-muted/30 p-4">
+                  <p className="text-xs text-muted-foreground mb-3">API keys allow external applications to access the eXeL governance engine via REST API or SDK.</p>
+                  <code className="block text-xs bg-background rounded p-2 font-mono text-primary/80 break-all">
+                    exel_pk_●●●●●●●●_●●●●●●●●●●●●●●●●
+                  </code>
+                  <div className="flex gap-2 mt-3">
+                    <button className="text-xs px-3 py-1.5 rounded bg-primary text-primary-foreground hover:bg-primary/90">{t("sdk.api_key.generate")}</button>
+                    <button className="text-xs px-3 py-1.5 rounded border hover:bg-accent">{t("sdk.api_key.copy")}</button>
+                  </div>
+                </div>
+              </section>
+
+              {/* Embed Code Section */}
+              <section>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t("sdk.embed.title")}</h3>
+                <div className="rounded-lg border bg-muted/30 p-4">
+                  <div className="flex gap-2 mb-3">
+                    <button className="text-xs px-3 py-1.5 rounded bg-primary/10 text-primary">{t("sdk.embed.iframe")}</button>
+                    <button className="text-xs px-3 py-1.5 rounded border">{t("sdk.embed.headless")}</button>
+                  </div>
+                  <code className="block text-[10px] bg-background rounded p-2 font-mono text-muted-foreground break-all">
+                    {`<iframe src="https://exel-ai-polling.explore-096.workers.dev/embed?session=DEMO2026" />`}
+                  </code>
+                </div>
+              </section>
+
+              {/* Usage Section */}
+              <section>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t("sdk.usage.title")}</h3>
+                <div className="rounded-lg border bg-muted/30 p-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{t("sdk.usage.total_calls")}</span>
+                    <span className="font-mono text-primary">0</span>
+                  </div>
+                </div>
+              </section>
+
+              {/* Discovery Endpoints */}
+              <section>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Discovery</h3>
+                <div className="space-y-1 text-xs font-mono">
+                  <p className="text-muted-foreground">GET /api/v1/cubes</p>
+                  <p className="text-muted-foreground">GET /api/v1/functions</p>
+                  <p className="text-muted-foreground">GET /api/v1/health</p>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
