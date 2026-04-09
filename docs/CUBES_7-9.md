@@ -40,20 +40,68 @@ Key behaviors:
 - **Progressive theme reveal (paid tiers):** For paid sessions, themes appear one-by-one on the hosting PC screen as they are generated, creating engagement. Once all themes at the selected level are ready, voting opens.
 - **CQS winner input:** After ranking completes, Cube 7 provides the #1 most-voted Theme2 cluster ID to Cube 5/6 for CQS reward selection -- the winner is the highest-CQS response within that cluster.
 
-### Cube 7 — Current Implementation Status
+### Cube 7 — Current Implementation Status (SPIRAL v14, 2026-04-09)
 
-**Backend stub:** `backend/app/cubes/cube7_ranking/router.py`
-- 3 endpoints defined with `NotImplementedError`:
-  - `POST /sessions/{session_id}/rankings` (CRS-11: submit ranking)
-  - `GET /sessions/{session_id}/rankings/aggregate` (CRS-12: get aggregated rankings)
-  - `POST /sessions/{session_id}/override` (CRS-22: governance override, MVP3)
+**SSSES: 96/100 | 164 tests | 10 endpoints | All MVP1+MVP2 CRS complete**
+
+**Backend service:** `backend/app/cubes/cube7_ranking/service.py` (910 lines)
+- `submit_user_ranking()` — CRS-11: Validate theme IDs, store ranking, broadcast progress
+- `aggregate_rankings()` — CRS-12: Borda count + quadratic weights + anomaly exclusion + seeded tiebreak
+- `identify_top_theme2()` — CRS-11.03: Set is_top_theme2=True on #1 ranked theme
+- `emit_ranking_complete()` — CRS-11.04: Broadcast ranking_complete + trigger CQS via Cube 5
+- `get_live_rankings()` — CRS-16: Current aggregated rankings ordered by rank_position
+- `get_ranking_progress()` — CRS-16: Submission count for moderator dashboard
+- `get_emerging_patterns()` — CRS-16.01: Partial aggregation + convergence score during live voting
+- `get_personal_vs_group_rank()` — CRS-17.01: Kendall tau agreement, per-theme delta comparison
+- `verify_replay()` — CRS-13.03: Read-only re-run, replay hash match verification
+- `apply_governance_override()` — CRS-22: Rank shift with justification + immutable audit trail
+- `get_governance_overrides()` — CRS-22: Audit trail query
+- `detect_voting_anomalies()` — CRS-12.04: Identical ranking burst + rapid submission detection
+- `run_ranking_pipeline()` — Full pipeline: detect→exclude→aggregate→identify→emit
+
+**Scale engine:** `backend/app/cubes/cube7_ranking/scale_engine.py` (420 lines)
+- `BordaAccumulator` — O(1) per vote streaming accumulator (1M in 1.06s proven)
+- `RedisVoteAccumulator` — HINCRBY-based production accumulator
+- `broadcast_to_all_shards()` — 100-shard fan-out for 1M WebSocket connections
+- `sample_responses()` — O(K) Fisher-Yates reservoir sampling
+- `AutoThemingBudget` — 60-second pipeline budget allocation
+
+**Backend router:** `backend/app/cubes/cube7_ranking/router.py` (235 lines, 10 endpoints)
+- `POST /rankings` — Submit participant ranking (CRS-11)
+- `GET /rankings` — Get live aggregated rankings (CRS-16)
+- `POST /rankings/aggregate` — Trigger aggregation pipeline (CRS-12, moderator)
+- `GET /rankings/anomalies` — Voting anomaly check (CRS-12.04, moderator/lead)
+- `GET /rankings/emerging` — Emerging patterns during live voting (CRS-16.01, moderator)
+- `GET /rankings/personal` — Personal vs group rank comparison (CRS-17.01)
+- `GET /rankings/verify` — Replay hash verification (CRS-13.03)
+- `GET /rankings/progress` — Submission progress count (CRS-16, moderator)
+- `POST /override` — Governance override with justification (CRS-22, lead/admin)
+- `GET /overrides` — Override audit trail (CRS-22, moderator/lead)
 
 **Schemas:** `backend/app/schemas/ranking.py`
-- `RankingSubmit`: `ranked_theme_ids: list[uuid.UUID]`
+- `RankingSubmit`: ranked_theme_ids: list[UUID]
 - `RankingRead`: id, session_id, cycle_id, participant_id, ranked_theme_ids, submitted_at
-- `AggregatedRankingRead`: id, session_id, cycle_id, theme_id, rank_position, score, vote_count, is_top_theme2, participant_count, algorithm, is_final, aggregated_at
+- `AggregatedRankingRead`: id, session_id, cycle_id, theme_id, rank_position, score, vote_count, is_top_theme2, confidence_avg, participant_count, algorithm, is_final, aggregated_at
+- `GovernanceOverrideSubmit`: theme_id, new_rank, justification (min 10 chars)
+- `GovernanceOverrideRead`: id, session_id, cycle_id, theme_id, original_rank, new_rank, overridden_by, justification, created_at
 
-**Frontend SIM stub:** Cube 7 ranking is simulated in the Easter Egg SIM (click-to-rank UI with #1/#2/#3 badges in `session-view.tsx`).
+**Models:** `backend/app/models/ranking.py`
+- `Ranking` (user_rankings): session_id, cycle_id, participant_id, ranked_theme_ids (JSON), submitted_at
+- `AggregatedRanking` (aggregated_rankings): session_id, cycle_id, theme_id, rank_position, score, vote_count, is_top_theme2, confidence_avg, participant_count, algorithm, is_final, aggregated_at
+- `GovernanceOverride` (governance_overrides): session_id, cycle_id, theme_id, original_rank, new_rank, overridden_by, justification
+
+**Frontend:** `frontend/components/theme-ranking-dnd.tsx` (328 lines, dnd-kit)
+- Drag-and-drop ranking on desktop, tap-to-reorder on mobile (44px targets)
+- Keyboard navigation, visual feedback, 2-second auto-accept
+- Integrated with session-view.tsx for session status "ranking" phase
+
+**Tests:** 164 total across 5 test files
+- `test_ranking_service.py` — 46 unit tests: Borda math, tiebreak, replay hash, quadratic weights, governance
+- `test_e2e_flows.py` — 40 tests: schemas, anomaly detection, models, router, pipeline integration
+- `test_simulation.py` — 25 tests: 3/6/9 themes, 8-user canned data, quadratic voting, anomaly, override
+- `test_mvp2_features.py` — 12 tests: emerging patterns, personal rank, replay verify, router
+- `test_scale_engine.py` — 24 tests: 1M benchmark (1.06s), streaming equivalence, shard distribution, sampling
+- `test_ssses_optimization.py` — 17 tests: scale stress, sort stability, hash chain, mathematical invariants
 
 ### Cube 7 — Requirements.txt Specification
 
@@ -278,9 +326,12 @@ No spiral metrics recorded yet -- **PENDING implementation**. Baseline (N=5+) re
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `backend/app/cubes/cube7_ranking/router.py` | 25 | 3 API endpoint stubs (submit, aggregate, override) |
-| `backend/app/cubes/cube7_ranking/__init__.py` | - | Package init |
-| `backend/app/schemas/ranking.py` | 35 | Pydantic schemas (RankingSubmit, RankingRead, AggregatedRankingRead) |
+| `backend/app/cubes/cube7_ranking/service.py` | 910 | Full ranking engine: Borda, quadratic, anomaly, override, emerging, personal rank |
+| `backend/app/cubes/cube7_ranking/router.py` | 235 | 10 API endpoints with auth gates |
+| `backend/app/cubes/cube7_ranking/scale_engine.py` | 420 | 1M-scale: streaming accumulator, Redis, sharded broadcast, auto-theming budget |
+| `backend/app/models/ranking.py` | 110 | ORM: Ranking, AggregatedRanking, GovernanceOverride |
+| `backend/app/schemas/ranking.py` | 65 | Pydantic: RankingSubmit/Read, AggregatedRankingRead, GovernanceOverride Submit/Read |
+| `backend/tests/cube7/` | 164 tests | 5 test files: unit, E2E, simulation, MVP2, scale, SSSES optimization |
 
 ### Cube 7 — Downstream/Upstream Dependencies
 

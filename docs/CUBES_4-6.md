@@ -657,19 +657,21 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 |------|---------|-------|----------|
 | `test_ai_service.py` | 9 | 26 | Unit tests (summarization, classification, grouping, sampling, parsing, factory) |
 
-### Cube 6 — Files
+### Cube 6 — Files (Updated 2026-04-09)
 | File | Lines | Purpose |
 |------|-------|---------|
-| `cubes/cube6_ai/service.py` | 882 | Two-phase pipeline (Phase A live + Phase B parallel theming) |
-| `cubes/cube6_ai/router.py` | 43 | 2 API endpoints (run pipeline, get themes) |
-| `cubes/cube6_ai/providers/base.py` | 84 | EmbeddingProvider + SummarizationProvider ABCs |
-| `cubes/cube6_ai/providers/factory.py` | 115 | Factory with circuit breaker failover |
-| `cubes/cube6_ai/providers/openai_provider.py` | 84 | OpenAI embedding + summarization |
-| `cubes/cube6_ai/providers/grok_provider.py` | 96 | Grok (xAI) embedding + summarization |
-| `cubes/cube6_ai/providers/gemini_provider.py` | 94 | Gemini (Google) embedding + summarization |
+| `cubes/cube6_ai/service.py` | 1430 | Two-phase pipeline (Phase A live + Phase B parallel theming + CQS scoring) |
+| `cubes/cube6_ai/scale_pipeline.py` | 250 | 1M-scale: Cochran sampling, ThemeLibrary, PipelineMetrics, 60s budget |
+| `cubes/cube6_ai/router.py` | 75 | 4 API endpoints (run pipeline, status, CQS, themes) |
+| `cubes/cube6_ai/providers/base.py` | 166 | EmbeddingProvider + SummarizationProvider ABCs + AICostTracker |
+| `cubes/cube6_ai/providers/factory.py` | 125 | Factory with circuit breaker failover |
+| `cubes/cube6_ai/providers/openai_provider.py` | 87 | OpenAI text-embedding-3-small + gpt-4o-mini |
+| `cubes/cube6_ai/providers/grok_provider.py` | 94 | Grok (xAI) grok-embedding-beta + grok-2 |
+| `cubes/cube6_ai/providers/gemini_provider.py` | 90 | Gemini text-embedding-004 + gemini-2.0-flash |
+| `cubes/cube6_ai/providers/claude_provider.py` | 78 | Claude Opus + Haiku embeddings |
 | `models/theme.py` | 38 | Theme ORM (hierarchical with parent_theme_id) |
 | `models/theme_sample.py` | 39 | ThemeSample ORM (marble groups) |
-| `tests/cube6/test_ai_service.py` | 464 | 20 unit tests |
+| `tests/cube6/` | 88 tests | test_ai_service.py (47), test_phase_b_e2e.py (21), test_scale_pipeline.py (41) |
 
 ### Cube 6 — Requirements.txt Specification
 
