@@ -169,6 +169,57 @@ async def get_anomalies(
 # ---------------------------------------------------------------------------
 
 
+@router.get("/rankings/emerging")
+async def get_emerging(
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """CRS-16.01: Emerging ranking patterns (moderator live view)."""
+    return await service.get_emerging_patterns(db, session_id, cycle_id)
+
+
+@router.get("/rankings/personal")
+async def get_personal_rank(
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CRS-17.01: Compare your ranking with group consensus."""
+    from app.models.participant import Participant
+    from sqlalchemy import select as sa_select, and_ as sa_and
+
+    part_result = await db.execute(
+        sa_select(Participant).where(
+            sa_and(
+                Participant.session_id == session_id,
+                Participant.user_id == user.user_id,
+            )
+        )
+    )
+    participant = part_result.scalar_one_or_none()
+    if not participant:
+        raise HTTPException(status_code=403, detail="Not a participant")
+
+    return await service.get_personal_vs_group_rank(
+        db, session_id, participant.id, cycle_id
+    )
+
+
+@router.get("/rankings/verify")
+async def verify_ranking_replay(
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+    seed: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CRS-13.03: Re-run aggregation and verify replay hash match."""
+    return await service.verify_replay(db, session_id, cycle_id, seed)
+
+
 @router.get("/rankings/progress")
 async def get_progress(
     session_id: uuid.UUID,

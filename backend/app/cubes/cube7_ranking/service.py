@@ -907,3 +907,250 @@ async def run_ranking_pipeline(
         "weight_audit": weight_audit,
         "status": "ranking_complete",
     }
+
+
+# ---------------------------------------------------------------------------
+# CRS-16.01: Emerging Patterns (MVP2)
+# ---------------------------------------------------------------------------
+
+
+async def get_emerging_patterns(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+) -> dict:
+    """CRS-16.01: Show emerging ranking patterns before voting closes.
+
+    Returns partial aggregation of submissions received so far —
+    moderator sees live trends without waiting for all participants.
+    """
+    result = await db.execute(
+        select(Ranking).where(
+            and_(
+                Ranking.session_id == session_id,
+                Ranking.cycle_id == cycle_id,
+            )
+        )
+    )
+    user_rankings = list(result.scalars().all())
+
+    if not user_rankings:
+        return {
+            "session_id": str(session_id),
+            "submissions_so_far": 0,
+            "emerging_leader": None,
+            "partial_scores": {},
+            "convergence": 0.0,
+        }
+
+    all_rankings: list[list[str]] = []
+    for ur in user_rankings:
+        ids = ur.ranked_theme_ids
+        if isinstance(ids, list):
+            all_rankings.append(ids)
+
+    n_themes = len(all_rankings[0]) if all_rankings else 0
+    scores = _borda_scores(all_rankings, n_themes)
+
+    sorted_t = sorted(scores.items(), key=lambda x: -x[1])
+    leader_id = sorted_t[0][0] if sorted_t else None
+    leader_score = sorted_t[0][1] if sorted_t else 0
+    total_possible = len(all_rankings) * (n_themes - 1) if n_themes > 1 else 1
+
+    # Convergence: how dominant is the leader (0→1 scale)
+    convergence = leader_score / total_possible if total_possible > 0 else 0
+
+    # Fetch theme label for leader
+    leader_label = None
+    if leader_id:
+        try:
+            theme_result = await db.execute(
+                select(Theme.label).where(Theme.id == uuid.UUID(leader_id))
+            )
+            leader_label = theme_result.scalar_one_or_none()
+        except Exception:
+            pass
+
+    return {
+        "session_id": str(session_id),
+        "submissions_so_far": len(all_rankings),
+        "emerging_leader": {
+            "theme_id": leader_id,
+            "label": leader_label,
+            "score": leader_score,
+        } if leader_id else None,
+        "partial_scores": {tid: round(s, 2) for tid, s in sorted_t},
+        "convergence": round(convergence, 3),
+    }
+
+
+# ---------------------------------------------------------------------------
+# CRS-17.01: Personal vs Group Rank (MVP2)
+# ---------------------------------------------------------------------------
+
+
+async def get_personal_vs_group_rank(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    participant_id: uuid.UUID,
+    cycle_id: int = 1,
+) -> dict:
+    """CRS-17.01: Compare participant's ranking with group consensus.
+
+    Shows where the participant agrees/disagrees with the crowd.
+    """
+    # Get participant's ranking
+    result = await db.execute(
+        select(Ranking).where(
+            and_(
+                Ranking.session_id == session_id,
+                Ranking.cycle_id == cycle_id,
+                Ranking.participant_id == participant_id,
+            )
+        )
+    )
+    user_ranking = result.scalar_one_or_none()
+
+    if not user_ranking:
+        return {
+            "session_id": str(session_id),
+            "participant_id": str(participant_id),
+            "personal_rank": [],
+            "group_rank": [],
+            "agreement_score": 0.0,
+        }
+
+    personal_ids = user_ranking.ranked_theme_ids
+    if isinstance(personal_ids, dict):
+        personal_ids = personal_ids.get("ranked_theme_ids", [])
+
+    # Get group aggregated rankings
+    agg_result = await db.execute(
+        select(AggregatedRanking)
+        .where(
+            and_(
+                AggregatedRanking.session_id == session_id,
+                AggregatedRanking.cycle_id == cycle_id,
+            )
+        )
+        .order_by(AggregatedRanking.rank_position)
+    )
+    group_rankings = list(agg_result.scalars().all())
+    group_ids = [str(r.theme_id) for r in group_rankings]
+
+    # Compute agreement score (Kendall tau-like: fraction of pairs in same order)
+    if len(personal_ids) < 2 or not group_ids:
+        agreement = 0.0
+    else:
+        concordant = 0
+        total_pairs = 0
+        for i in range(len(personal_ids)):
+            for j in range(i + 1, len(personal_ids)):
+                pi = personal_ids.index(personal_ids[i]) if personal_ids[i] in personal_ids else i
+                pj = personal_ids.index(personal_ids[j]) if personal_ids[j] in personal_ids else j
+                gi = group_ids.index(personal_ids[i]) if personal_ids[i] in group_ids else i
+                gj = group_ids.index(personal_ids[j]) if personal_ids[j] in group_ids else j
+                if (pi < pj and gi < gj) or (pi > pj and gi > gj):
+                    concordant += 1
+                total_pairs += 1
+        agreement = concordant / total_pairs if total_pairs > 0 else 0.0
+
+    # Build comparison
+    personal_with_pos = []
+    for pos, tid in enumerate(personal_ids, 1):
+        group_pos = next(
+            (r.rank_position for r in group_rankings if str(r.theme_id) == tid),
+            None,
+        )
+        personal_with_pos.append({
+            "theme_id": tid,
+            "personal_rank": pos,
+            "group_rank": group_pos,
+            "delta": (group_pos - pos) if group_pos else None,
+        })
+
+    return {
+        "session_id": str(session_id),
+        "participant_id": str(participant_id),
+        "personal_rank": personal_with_pos,
+        "group_rank": [
+            {
+                "theme_id": str(r.theme_id),
+                "rank": r.rank_position,
+                "score": r.score,
+                "vote_count": r.vote_count,
+            }
+            for r in group_rankings
+        ],
+        "agreement_score": round(agreement, 3),
+    }
+
+
+# ---------------------------------------------------------------------------
+# CRS-13.03: Replay Verification (re-run with same inputs)
+# ---------------------------------------------------------------------------
+
+
+async def verify_replay(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+    seed: str | None = None,
+) -> dict:
+    """CRS-13.03: Re-run aggregation and compare replay hash.
+
+    Does NOT write to DB — read-only verification.
+    Returns match status + both hashes.
+    """
+    # Get existing aggregation
+    existing = await db.execute(
+        select(AggregatedRanking)
+        .where(
+            and_(
+                AggregatedRanking.session_id == session_id,
+                AggregatedRanking.cycle_id == cycle_id,
+            )
+        )
+        .order_by(AggregatedRanking.rank_position)
+    )
+    existing_rankings = list(existing.scalars().all())
+    existing_order = [str(r.theme_id) for r in existing_rankings]
+
+    # Fetch user rankings
+    result = await db.execute(
+        select(Ranking).where(
+            and_(
+                Ranking.session_id == session_id,
+                Ranking.cycle_id == cycle_id,
+            )
+        )
+    )
+    user_rankings = list(result.scalars().all())
+
+    all_rankings: list[list[str]] = []
+    for ur in user_rankings:
+        ids = ur.ranked_theme_ids
+        if isinstance(ids, list):
+            all_rankings.append(ids)
+
+    effective_seed = seed or str(session_id)
+    n_themes = len(all_rankings[0]) if all_rankings else 0
+
+    # Recompute
+    scores = _borda_scores(all_rankings, n_themes)
+    sorted_t = sorted(
+        scores.items(),
+        key=lambda x: (-x[1], _seeded_tiebreak_key(x[0], effective_seed)),
+    )
+    recomputed_order = [t[0] for t in sorted_t]
+    replay_hash = _compute_replay_hash(all_rankings, effective_seed)
+
+    return {
+        "session_id": str(session_id),
+        "cycle_id": cycle_id,
+        "replay_hash": replay_hash,
+        "existing_order": existing_order,
+        "recomputed_order": recomputed_order,
+        "match": existing_order == recomputed_order,
+        "participant_count": len(all_rankings),
+    }

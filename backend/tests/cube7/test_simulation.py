@@ -397,6 +397,30 @@ class TestSimulationFullPipeline:
         # Winner should still be opportunity (majority preference)
         assert sorted_t[0][0] == THEME_3["opportunity"]
 
+    def test_full_pipeline_9_themes(self):
+        """9-theme pipeline produces 9 ranked items."""
+        theme_ids = list(THEME_9.values())
+        rankings = [theme_ids[i:] + theme_ids[:i] for i in range(8)]
+        scores = _borda_scores(rankings, 9)
+        sorted_t = sorted(
+            scores.items(),
+            key=lambda x: (-x[1], _seeded_tiebreak_key(x[0], SEED)),
+        )
+        assert len(sorted_t) == 9
+        # All scores >= 0
+        assert all(s >= 0 for _, s in sorted_t)
+
+    def test_full_pipeline_6_themes(self):
+        """6-theme pipeline produces 6 ranked items."""
+        theme_ids = list(THEME_6.values())
+        rankings = [theme_ids[i:] + theme_ids[:i] for i in range(8)]
+        scores = _borda_scores(rankings, 6)
+        sorted_t = sorted(
+            scores.items(),
+            key=lambda x: (-x[1], _seeded_tiebreak_key(x[0], SEED)),
+        )
+        assert len(sorted_t) == 6
+
     def test_pipeline_n5_full_consistency(self):
         """N=5 full pipeline runs: order + hash + scores all identical."""
         ref_order = None
