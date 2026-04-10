@@ -26,7 +26,10 @@ export default function RootLayout({
             &nbsp;&nbsp;|&nbsp;&nbsp;
             Time:&nbsp;<span className="text-zinc-200">{process.env.NEXT_PUBLIC_BUILD_TIME ?? '—'}</span>
           </div>
-          {children}
+          {/* pb-20 clears the fixed eXeL AI badge (bottom-6 right-6) on all pages */}
+          <div className="pb-20">
+            {children}
+          </div>
           <Suspense>
             <PoweredBadge />
           </Suspense>

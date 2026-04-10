@@ -32,10 +32,11 @@ export const ThemeCircle = memo(function ThemeCircle({
   bloomDelay = 0,
   isHub,
 }: ThemeCircleProps) {
-  const fontSize = isHub ? 10 : Math.max(9, Math.min(14, r / 8));
+  const fontSize = isHub ? 10 : Math.max(9, Math.min(14, r / 7));
   const countSize = isHub ? 12 : Math.max(12, Math.min(22, r / 5));
   const confSize = isHub ? 9 : Math.max(8, Math.min(12, r / 10));
-  const summarySize = isHub ? 0 : r >= 80 ? Math.max(8, Math.min(10, r / 12)) : 0;
+  // Show subtitle in any circle r >= 55 (covers Divinity Guide center + Theme 9-layout)
+  const summarySize = isHub ? 0 : r >= 55 ? Math.max(7, Math.min(11, r / 10)) : 0;
 
   // Text width clamped to fit inside the circle (inscribed rectangle ~r*1.4)
   const textWidth = r * 1.4;

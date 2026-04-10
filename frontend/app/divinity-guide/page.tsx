@@ -284,7 +284,7 @@ export default function DivinityGuidePage() {
             ) : activeSection && (
               <>
                 {/* CENTER = Chapter 1 of this section (clickable!) */}
-                <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r + 20}
+                <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r + 35}
                   theme={{ label: activeSection.chapters[0].title, count: 0, avgConfidence: 0, summary33: activeSection.chapters[0].subtitle }}
                   fill={activeSection.color.fill}
                   stroke={selectedChapter?.id === activeSection.chapters[0].id ? "hsl(var(--primary))" : activeSection.color.stroke}
