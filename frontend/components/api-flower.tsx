@@ -163,7 +163,7 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
                 : "bg-muted text-muted-foreground hover:bg-accent"
             }`}
           >
-            {l === 3 ? "3 — Core" : l === 6 ? "6 — Expand" : "9 — Full Bloom"}
+            {l === 3 ? "Core" : l === 6 ? "Expand" : "Full Bloom"}
           </button>
         ))}
       </div>
