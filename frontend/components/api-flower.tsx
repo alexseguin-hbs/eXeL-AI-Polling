@@ -140,6 +140,21 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
   const positions = useMemo(() => getTheme2Positions(level), [level]);
   const visible = useMemo(() => getSDKsForLevel(level), [level]);
 
+  // Dynamic viewBox per level — tightly fits each layout so all fill the container equally
+  const viewBox = useMemo(() => {
+    const labelPad = 30; // space below circles for name + cost labels
+    const pad = 25;      // general padding
+    const allCircles = [hub, ...positions.slice(0, visible.length)];
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const c of allCircles) {
+      minX = Math.min(minX, c.cx - c.r);
+      maxX = Math.max(maxX, c.cx + c.r);
+      minY = Math.min(minY, c.cy - c.r);
+      maxY = Math.max(maxY, c.cy + c.r + labelPad);
+    }
+    return `${minX - pad} ${minY - pad} ${maxX - minX + pad * 2} ${maxY - minY + pad * 2}`;
+  }, [hub, positions, visible.length]);
+
   return (
     <div className="w-full">
       {/* Level Selector */}
@@ -159,9 +174,9 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
         ))}
       </div>
 
-      {/* SVG Flower — fills available space, proportional scaling */}
+      {/* SVG Flower — dynamic viewBox per level, fills available space */}
       <svg
-        viewBox="0 0 600 500"
+        viewBox={viewBox}
         className="w-full h-full mx-auto"
         preserveAspectRatio="xMidYMid meet"
         style={{ overflow: "visible" }}
