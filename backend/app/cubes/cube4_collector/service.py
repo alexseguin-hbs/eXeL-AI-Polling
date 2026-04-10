@@ -7,7 +7,7 @@ columns for summaries and theme assignments once Cube 6 processes them.
 Key responsibilities:
 - Aggregate from ResponseMeta (Postgres) + raw text (ResponseMeta.raw_text)
 - Return in Web_Results.csv-compatible format with native language column
-- Redis presence tracking for active participants
+- In-memory presence tracking for active participants
 - Summary lookup from ResponseSummary (Postgres, populated by live summarization during polling)
 """
 
@@ -17,12 +17,11 @@ import uuid
 from datetime import datetime, timezone
 
 import structlog
-from redis.asyncio import Redis
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.crypto_utils import compute_anon_hash
-from app.core.redis_presence import get_presence as _core_get_presence, set_presence as _core_set_presence
+from app.core.presence import get_presence as _core_get_presence, set_presence as _core_set_presence
 from app.core.submission_validators import validate_session_exists  # noqa: F401 — re-exported for router
 
 from app.models.participant import Participant
@@ -318,25 +317,25 @@ async def get_response_languages(
 
 
 # ---------------------------------------------------------------------------
-# 3. Presence Tracking (Redis)
+# 3. Presence Tracking (in-memory via app.core.presence)
 # ---------------------------------------------------------------------------
 
 
 async def get_session_presence(
-    redis: Redis,
     session_id: uuid.UUID,
+    **kwargs,
 ) -> dict:
-    """Return live presence data — delegates to core/redis_presence."""
-    return await _core_get_presence(redis, session_id)
+    """Return live presence data — delegates to core/presence."""
+    return await _core_get_presence(session_id)
 
 
 async def update_presence(
-    redis: Redis,
     session_id: uuid.UUID,
     participant_id: uuid.UUID,
+    **kwargs,
 ) -> None:
-    """Update participant presence — delegates to core/redis_presence."""
-    await _core_set_presence(redis, session_id, participant_id)
+    """Update participant presence — delegates to core/presence."""
+    await _core_set_presence(session_id, participant_id)
 
 
 # ---------------------------------------------------------------------------

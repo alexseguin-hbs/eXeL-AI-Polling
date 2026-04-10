@@ -26,8 +26,8 @@ class TestCube4Dependencies:
         from app.models.response_meta import ResponseMeta
         assert ResponseMeta.__tablename__ == "response_meta"
 
-    def test_imports_redis_presence(self):
-        from app.core.redis_presence import set_presence, get_presence
+    def test_imports_presence(self):
+        from app.core.presence import set_presence, get_presence
         assert callable(set_presence)
 
     def test_imports_crypto_utils(self):

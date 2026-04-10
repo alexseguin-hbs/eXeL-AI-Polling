@@ -10,11 +10,10 @@ Endpoints:
 import uuid
 
 from fastapi import APIRouter, Depends, Query, Request
-from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
-from app.core.dependencies import get_db, get_redis
+from app.core.dependencies import get_db
 from app.core.exceptions import ResponseNotFoundError
 from app.core.rate_limit import limiter
 from app.core.submission_validators import validate_session_exists
@@ -40,7 +39,6 @@ async def submit_response(
     session_id: uuid.UUID,
     payload: ResponseCreate,
     db: AsyncSession = Depends(get_db),
-    redis: Redis = Depends(get_redis),
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """CRS-07: User submits text response.
@@ -51,7 +49,7 @@ async def submit_response(
     Returns immediate token display (♡ and ◬).
     """
     result = await service.submit_text_response(
-        db, redis,
+        db,
         session_id=session_id,
         question_id=payload.question_id,
         participant_id=payload.participant_id,

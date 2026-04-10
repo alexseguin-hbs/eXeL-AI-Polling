@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
-from app.core.dependencies import get_db, get_redis
+from app.core.dependencies import get_db
 from app.core.exceptions import ResponseNotFoundError
 from app.cubes.cube4_collector.service import (
     check_all_confirmed,
@@ -104,11 +104,10 @@ async def response_languages(
 async def get_presence(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    redis=Depends(get_redis),
 ):
-    """Get live presence count for a session (Redis). No auth — participants need this."""
+    """Get live presence count for a session (in-memory). No auth — participants need this."""
     await validate_session_exists(db, session_id)
-    return await get_session_presence(redis, session_id)
+    return await get_session_presence(session_id)
 
 
 @router.get("/summary-status")

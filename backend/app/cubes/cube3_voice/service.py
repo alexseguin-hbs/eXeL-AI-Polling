@@ -13,7 +13,7 @@ Flow:
   6. Store voice metadata (Postgres VoiceResponse + ResponseMeta.raw_text)
   7. Forward transcript into Cube 2 text pipeline (PII/profanity/storage)
   8. Stop time tracking → calculate ♡/◬ tokens
-  9. Publish Redis event for Cube 6
+  9. Broadcast event for Cube 6 via Supabase
   10. Return response with immediate token display
 
 Circuit breaker: If primary STT fails, failover to next provider by priority.
@@ -27,7 +27,6 @@ import uuid
 from datetime import datetime, timezone
 
 import structlog
-from redis.asyncio import Redis
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -360,14 +359,14 @@ async def store_voice_response(
 
 async def submit_voice_response(
     db: AsyncSession,
-    redis: Redis,
-    *,
+    *args,
     session_id: uuid.UUID,
     question_id: uuid.UUID,
     participant_id: uuid.UUID,
     audio_bytes: bytes,
     language_code: str = "en",
     audio_format: str = "webm",
+    **kwargs,
 ) -> dict:
     """Main orchestrator: transcribe voice, process through Cube 2 pipeline, store, return with tokens.
 
@@ -379,7 +378,7 @@ async def submit_voice_response(
       5. Run Cube 2 PII/profanity pipeline on transcript
       6. Store: Postgres (ResponseMeta + VoiceResponse + TextResponse)
       7. Stop time tracking → ♡/◬ tokens
-      8. Publish Redis event for Cube 6
+      8. Broadcast event for Cube 6 via Supabase
       9. Return response with immediate token display
     """
     # --- 1. Validate session, question, participant (reuse Cube 2) ---
@@ -466,9 +465,9 @@ async def submit_voice_response(
         except Exception as e:
             logger.warning("cube3.time_tracking.stop_failed", error=str(e), session_id=str(session_id))
 
-    # --- 7. Publish Redis event ---
+    # --- 7. Broadcast event via Supabase ---
     await publish_submission_event(
-        redis, session_id, response_meta.id,
+        session_id, response_meta.id,
         stt_result.language_detected, len(transcript),
     )
 

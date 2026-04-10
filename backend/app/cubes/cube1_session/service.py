@@ -5,7 +5,7 @@ Handles:
 - State machine transitions (draft → open → polling → ranking → closed → archived)
 - Participant join flow (via short_code / QR)
 - Question management within sessions
-- Redis presence tracking for active participants
+- In-memory presence tracking for active participants
 - Audit logging on all state transitions (CRS-01)
 - Replay hash computation for determinism verification (CRS-03)
 """
@@ -19,7 +19,6 @@ from datetime import datetime, timedelta, timezone
 
 import qrcode
 import qrcode.constants
-import redis.asyncio as aioredis
 from fastapi import HTTPException, status
 from nanoid import generate as nanoid
 from sqlalchemy import func, select
@@ -94,40 +93,30 @@ def generate_qr_base64(data: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Redis Presence Tracking
+# Presence Tracking (in-memory via app.core.presence)
 # ---------------------------------------------------------------------------
 
 
 async def _set_presence(
-    redis: aioredis.Redis,
     session_id: uuid.UUID,
     participant_id: uuid.UUID,
+    **kwargs,
 ) -> None:
-    """Record a participant as present in a session (Redis HSET + TTL)."""
-    key = f"session:{session_id}:presence"
-    await redis.hset(key, str(participant_id), datetime.now(timezone.utc).isoformat())
-    await redis.expire(key, 3600)
+    """Record a participant as present via in-memory presence module."""
+    from app.core.presence import set_presence
+    await set_presence(session_id, participant_id)
 
 
-async def _clear_presence(redis: aioredis.Redis, session_id: uuid.UUID) -> None:
+async def _clear_presence(session_id: uuid.UUID, **kwargs) -> None:
     """Clear all presence data for a session (called on archive)."""
-    key = f"session:{session_id}:presence"
-    await redis.delete(key)
+    from app.core.presence import clear_presence
+    await clear_presence(session_id)
 
 
-async def get_presence(redis: aioredis.Redis, session_id: uuid.UUID) -> dict:
+async def get_presence(session_id: uuid.UUID, **kwargs) -> dict:
     """Return presence data: {session_id, active_count, participants}."""
-    key = f"session:{session_id}:presence"
-    data = await redis.hgetall(key)
-    participants = [
-        {"participant_id": pid, "joined_at": ts}
-        for pid, ts in data.items()
-    ]
-    return {
-        "session_id": session_id,
-        "active_count": len(participants),
-        "participants": participants,
-    }
+    from app.core.presence import get_presence as _get
+    return await _get(session_id)
 
 
 # ---------------------------------------------------------------------------
@@ -393,8 +382,8 @@ async def transition_session(
     db: AsyncSession,
     session: Session,
     new_status: str,
-    redis: aioredis.Redis | None = None,
     actor_id: str | None = None,
+    **kwargs,
 ) -> Session:
     """Transition session to a new state. Validates against allowed transitions.
 
@@ -429,8 +418,8 @@ async def transition_session(
             )
 
     # Clear presence data on archive
-    if new_status == "archived" and redis:
-        await _clear_presence(redis, session.id)
+    if new_status == "archived":
+        await _clear_presence(session.id)
 
     session.status = new_status
 
@@ -509,7 +498,7 @@ async def join_session(
     device_type: str | None = None,
     language_code: str = "en",
     results_opt_in: bool = False,
-    redis: aioredis.Redis | None = None,
+    **kwargs,
 ) -> tuple[Session, Participant]:
     """Join a session via short_code. Returns (session, participant).
 
@@ -589,9 +578,8 @@ async def join_session(
             },
         )
 
-    # Record presence in Redis
-    if redis:
-        await _set_presence(redis, session.id, participant.id)
+    # Record presence in memory
+    await _set_presence(session.id, participant.id)
 
     return session, participant
 

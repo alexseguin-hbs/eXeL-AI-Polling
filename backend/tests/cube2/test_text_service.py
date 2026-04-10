@@ -10,7 +10,7 @@ Tests:
   - Profanity detection (DB pattern matching)
   - Profanity scrubbing (replacement)
   - Response storage (Postgres)
-  - Redis pub/sub event publishing
+  - Supabase broadcast event publishing
   - Full orchestrator flow (submit_text_response)
   - Paginated response listing
   - Single response lookup
@@ -428,36 +428,25 @@ class TestProfanityScrubbing:
 
 
 # ---------------------------------------------------------------------------
-# Redis Pub/Sub
+# Supabase Broadcast (replaced Redis pub/sub)
 # ---------------------------------------------------------------------------
 
 
 class TestPublishSubmissionEvent:
     @pytest.mark.asyncio
-    async def test_publishes_to_correct_channel(self):
-        """Should publish to session:{id}:responses channel."""
-        mock_redis = AsyncMock()
-        mock_redis.publish = AsyncMock()
-
+    async def test_publishes_without_error(self):
+        """Broadcast event should complete without error."""
         sid = uuid.uuid4()
         rid = uuid.uuid4()
 
         from app.cubes.cube2_text.service import publish_submission_event
-        await publish_submission_event(mock_redis, sid, rid, "en", 42)
-
-        mock_redis.publish.assert_awaited_once()
-        call_args = mock_redis.publish.call_args
-        assert f"session:{sid}:responses" == call_args[0][0]
+        await publish_submission_event(sid, rid, "en", 42)
 
     @pytest.mark.asyncio
-    async def test_publish_failure_non_fatal(self):
-        """Redis publish failure should not raise."""
-        mock_redis = AsyncMock()
-        mock_redis.publish = AsyncMock(side_effect=Exception("Redis down"))
-
+    async def test_publish_accepts_kwargs(self):
+        """Broadcast should accept extra kwargs for backward compat."""
         from app.cubes.cube2_text.service import publish_submission_event
-        # Should not raise
-        await publish_submission_event(mock_redis, uuid.uuid4(), uuid.uuid4(), "en", 10)
+        await publish_submission_event(uuid.uuid4(), uuid.uuid4(), "en", 10)
 
 
 # ---------------------------------------------------------------------------
@@ -601,9 +590,6 @@ class TestCube5FaultTolerance:
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
 
-        mock_redis = AsyncMock()
-        mock_redis.publish = AsyncMock()
-
         sid = uuid.uuid4()
         qid = uuid.uuid4()
         pid = uuid.uuid4()
@@ -622,7 +608,7 @@ class TestCube5FaultTolerance:
             mock_pipeline.return_value = pipeline_result
 
             result = await _submit_text_inner(
-                mock_db, mock_redis, session, "Hello world",
+                mock_db, session, "Hello world",
                 session_id=sid, question_id=qid,
                 participant_id=pid, language_code="en",
             )

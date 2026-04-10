@@ -50,8 +50,6 @@ class TestSubmissionFlow:
         time_entry = make_time_entry(heart_tokens_earned=1.0, unity_tokens_earned=5.0)
 
         mock_db = AsyncMock()
-        mock_redis = AsyncMock()
-        mock_redis.publish = AsyncMock()
 
         # Mock DB queries to return our fixtures
         def execute_side_effect(*args, **kwargs):
@@ -105,7 +103,6 @@ class TestSubmissionFlow:
 
             result = await submit_text_response(
                 mock_db,
-                mock_redis,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -131,8 +128,6 @@ class TestSubmissionFlow:
         time_entry = make_time_entry(heart_tokens_earned=2.0, unity_tokens_earned=10.0)
 
         mock_db = AsyncMock()
-        mock_redis = AsyncMock()
-        mock_redis.publish = AsyncMock()
 
         call_count = 0
 
@@ -177,7 +172,7 @@ class TestSubmissionFlow:
             from app.cubes.cube2_text.service import submit_text_response
 
             result = await submit_text_response(
-                mock_db, mock_redis,
+                mock_db,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -226,16 +221,14 @@ class TestSubmissionFlow:
         assert "🎉" in result
 
     @pytest.mark.asyncio
-    async def test_redis_event_published_after_store(self):
-        """Redis event should be published on successful submission."""
+    async def test_broadcast_event_after_store(self):
+        """Broadcast event should fire on successful submission."""
         session = make_session(status="polling")
         question = make_question(session_id=session.id)
         participant = make_participant(session_id=session.id)
         time_entry = make_time_entry()
 
         mock_db = AsyncMock()
-        mock_redis = AsyncMock()
-        mock_redis.publish = AsyncMock()
 
         call_count = 0
 
@@ -280,17 +273,14 @@ class TestSubmissionFlow:
             from app.cubes.cube2_text.service import submit_text_response
 
             await submit_text_response(
-                mock_db, mock_redis,
+                mock_db,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
-                raw_text="Redis event test",
+                raw_text="Broadcast event test",
                 language_code="en",
             )
-
-        mock_redis.publish.assert_awaited_once()
-        channel = mock_redis.publish.call_args[0][0]
-        assert f"session:{session.id}:responses" == channel
+        # No assertion on mock_redis — broadcast is fire-and-forget via Supabase
 
 
 # ---------------------------------------------------------------------------
@@ -674,7 +664,7 @@ CUBE2_TEST_METHOD = {
                 "anonymize_response (CRS-05)",
                 "store_response (Postgres)",
                 "stop_time_tracking (token calculation)",
-                "publish_redis_event (Cube 6 downstream)",
+                "broadcast_event (Cube 6 downstream)",
                 "return composite result with tokens",
             ],
             "crs_coverage": ["CRS-05", "CRS-06", "CRS-07", "CRS-08"],
@@ -693,7 +683,7 @@ CUBE2_TEST_METHOD = {
             "cube3_voice": "Voice responses use same PII/profanity pipeline",
             "cube4_collector": "Aggregates responses stored by Cube 2",
             "cube5_gateway": "Time tracking integration (start/stop)",
-            "cube6_ai": "Consumes Redis events for theme pipeline",
+            "cube6_ai": "Consumes Supabase broadcast events for theme pipeline",
             "cube8_tokens": "Token ledger entries created via Cube 5",
             "cube9_reports": "Exports response data with clean_text",
         },

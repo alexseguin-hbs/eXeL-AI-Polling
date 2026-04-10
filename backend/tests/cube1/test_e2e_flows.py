@@ -172,21 +172,22 @@ class TestModeratorFlow:
         assert session.closed_at is not None
 
     @pytest.mark.asyncio
-    async def test_moderator_archives_session_clears_redis(self):
-        """Moderator archives closed session, Redis presence cleared."""
+    async def test_moderator_archives_session_clears_presence(self):
+        """Moderator archives closed session, in-memory presence cleared."""
         session = make_session(status="closed")
         session.can_transition_to = MagicMock(return_value=True)
 
         mock_db = AsyncMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_redis = AsyncMock()
 
+        from app.core.presence import _presence, set_presence
         from app.cubes.cube1_session.service import transition_session
 
-        await transition_session(mock_db, session, "archived", redis=mock_redis)
+        await set_presence(session.id, uuid.uuid4())
+        await transition_session(mock_db, session, "archived")
         assert session.status == "archived"
-        mock_redis.delete.assert_awaited_once()
+        assert str(session.id) not in _presence
 
     def test_moderator_ownership_verified(self):
         """Session owner is correctly verified."""
@@ -240,19 +241,17 @@ class TestModeratorFlow:
 
         from app.cubes.cube1_session.service import transition_session
 
-        states = ["open", "polling", "ranking", "closed", "archived"]
-        mock_redis = AsyncMock()
+        from app.core.presence import _presence, set_presence
+        await set_presence(session.id, uuid.uuid4())
 
+        states = ["open", "polling", "ranking", "closed", "archived"]
         for target_state in states:
-            kwargs = {}
-            if target_state == "archived":
-                kwargs["redis"] = mock_redis
-            await transition_session(mock_db, session, target_state, **kwargs)
+            await transition_session(mock_db, session, target_state)
             assert session.status == target_state
 
         assert session.opened_at is not None
         assert session.closed_at is not None
-        mock_redis.delete.assert_awaited_once()
+        assert str(session.id) not in _presence
 
 
 # ---------------------------------------------------------------------------
@@ -290,8 +289,6 @@ class TestUserFlow:
         mock_db.refresh = AsyncMock()
         mock_db.add = MagicMock()
 
-        mock_redis = AsyncMock()
-
         with patch("app.cubes.cube5_gateway.service.create_login_time_entry", new_callable=AsyncMock):
             from app.cubes.cube1_session.service import join_session
 
@@ -303,7 +300,6 @@ class TestUserFlow:
                 device_type="mobile",
                 language_code="en",
                 results_opt_in=True,
-                redis=mock_redis,
             )
 
         assert result_session == session
@@ -449,8 +445,8 @@ class TestUserFlow:
         assert added.language_code == "fr"
 
     @pytest.mark.asyncio
-    async def test_user_redis_presence_recorded(self):
-        """User presence is recorded in Redis on join."""
+    async def test_user_presence_recorded(self):
+        """User presence is recorded in memory on join."""
         session = make_session(status="open")
         session.is_expired = False
 
@@ -466,7 +462,7 @@ class TestUserFlow:
         mock_db.refresh = AsyncMock()
         mock_db.add = MagicMock()
 
-        mock_redis = AsyncMock()
+        from app.core.presence import _presence
 
         with patch("app.cubes.cube5_gateway.service.create_login_time_entry", new_callable=AsyncMock):
             from app.cubes.cube1_session.service import join_session
@@ -475,29 +471,27 @@ class TestUserFlow:
                 mock_db,
                 short_code="Ab3kQ7xR",
                 user_id=None,
-                redis=mock_redis,
             )
 
-        mock_redis.hset.assert_awaited_once()
-        mock_redis.expire.assert_awaited_once()
+        assert str(session.id) in _presence
+        _presence.pop(str(session.id), None)  # cleanup
 
     @pytest.mark.asyncio
     async def test_user_presence_data_structure(self):
         """Presence endpoint returns correct data structure."""
-        mock_redis = AsyncMock()
-        mock_redis.hgetall = AsyncMock(return_value={
-            "user_1": "2026-02-18T10:00:00",
-            "user_2": "2026-02-18T10:01:00",
-            "user_3": "2026-02-18T10:02:00",
-        })
-
+        from app.core.presence import set_presence, _presence
         from app.cubes.cube1_session.service import get_presence
 
         sid = uuid.uuid4()
-        result = await get_presence(mock_redis, sid)
-        assert result["session_id"] == sid
+        await set_presence(sid, uuid.uuid4())
+        await set_presence(sid, uuid.uuid4())
+        await set_presence(sid, uuid.uuid4())
+
+        result = await get_presence(sid)
+        assert result["session_id"] == str(sid)
         assert result["active_count"] == 3
         assert len(result["participants"]) == 3
+        _presence.pop(str(sid), None)  # cleanup
 
 
 # ---------------------------------------------------------------------------
@@ -674,7 +668,7 @@ CUBE1_TEST_METHOD = {
         "join_session(open, language=en, opt_in=True)",
         "rejoin_session(reactivate)",
         "join_anonymous(no_auth)",
-        "verify_redis_presence",
+        "verify_presence",
         "reject_expired_join",
         "reject_draft_join",
         "reject_full_session",

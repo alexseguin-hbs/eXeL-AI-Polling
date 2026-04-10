@@ -563,7 +563,7 @@ def get_cube_registry() -> list[dict]:
 # │ crypto_utils.py (77)     │ C2,C3,C4 — anonymization hashing         │
 # │ phase_a_retry.py (191)   │ C2,C3 — AI summarization with retry      │
 # │ submission_validators(107)│ C2,C3,C4 — input validation              │
-# │ redis_presence.py (55)   │ C4 — real-time presence tracking          │
+# │ presence.py (69)         │ C1,C4 — in-memory presence tracking       │
 # │ hi_rates.py (135)        │ C5,C8 — jurisdiction wage rates           │
 # │ security.py (35)         │ C1 — anonymize_user_id                    │
 # │ middleware.py (109)       │ ALL — CORS, security headers             │

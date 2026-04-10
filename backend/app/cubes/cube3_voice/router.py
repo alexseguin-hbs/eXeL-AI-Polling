@@ -16,11 +16,10 @@ Real-time STT is a PAID feature (Moderator + User payment required).
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, WebSocket
-from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
-from app.core.dependencies import get_db, get_redis
+from app.core.dependencies import get_db
 from app.core.rate_limit import limiter
 from app.cubes.cube3_voice import metrics as cube3_metrics
 from app.cubes.cube3_voice import service
@@ -53,13 +52,12 @@ async def submit_voice(
     language_code: str = Form(default="en"),
     audio_format: str = Form(default="webm"),
     db: AsyncSession = Depends(get_db),
-    redis: Redis = Depends(get_redis),
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """CRS-15: User submits voice response.
 
     Accepts multipart audio upload from browser MediaRecorder API.
-    Transcribes via STT provider (OpenAI Whisper / Grok / Gemini),
+    Transcribes via STT provider (OpenAI Whisper / Gemini),
     forwards transcript through Cube 2 text pipeline (PII/profanity),
     and returns immediate token display (♡ and ◬).
     """
@@ -83,7 +81,7 @@ async def submit_voice(
         )
 
     result = await service.submit_voice_response(
-        db, redis,
+        db,
         session_id=session_id,
         question_id=question_id,
         participant_id=participant_id,
@@ -102,7 +100,6 @@ async def realtime_transcription(
     participant_id: uuid.UUID,
     language_code: str = "en",
     db: AsyncSession = Depends(get_db),
-    redis: Redis = Depends(get_redis),
 ):
     """Real-time voice-to-text with word-by-word display (PAID FEATURE).
 
@@ -115,14 +112,14 @@ async def realtime_transcription(
         {"type": "final", "text": "complete sentence.", "confidence": 0.95}
         {"type": "result", "response_id": "...", "♡": 1.0, "◬": 5.0}
 
-    Providers: Azure Speech Services (primary) → AWS Transcribe (fallback)
+    Providers: OpenAI Whisper (primary) → Gemini (fallback)
     Payment gate: Session must have is_paid=True (Moderator paid or cost-split).
     """
     from app.cubes.cube3_voice.realtime import handle_realtime_transcription
 
     await handle_realtime_transcription(
         ws, session_id, participant_id, question_id,
-        language_code, db, redis,
+        language_code, db,
     )
 
 

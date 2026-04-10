@@ -12,7 +12,7 @@ Tests:
   - Session ownership verification
   - QR access validation (expired/closed blocking)
   - Question management (add, list, get)
-  - Redis presence tracking
+  - In-memory presence tracking
 """
 
 import uuid
@@ -308,19 +308,24 @@ class TestStateTransitions:
             await transition_session(mock_db, session, "closed")
 
     @pytest.mark.asyncio
-    async def test_archive_clears_redis_presence(self):
-        """Archiving should clear Redis presence data."""
+    async def test_archive_clears_presence(self):
+        """Archiving should clear in-memory presence data."""
         session = make_session(status="closed")
         session.can_transition_to = MagicMock(return_value=True)
 
         mock_db = AsyncMock()
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        mock_redis = AsyncMock()
 
+        from app.core.presence import _presence, set_presence
         from app.cubes.cube1_session.service import transition_session
-        await transition_session(mock_db, session, "archived", redis=mock_redis)
-        mock_redis.delete.assert_awaited_once()
+        # Seed presence data
+        await set_presence(session.id, uuid.uuid4())
+        assert str(session.id) in _presence
+
+        await transition_session(mock_db, session, "archived")
+        # Presence should be cleared
+        assert str(session.id) not in _presence
 
 
 # ---------------------------------------------------------------------------
@@ -506,35 +511,32 @@ class TestQuestionManagement:
 
 
 # ---------------------------------------------------------------------------
-# Redis Presence
+# In-Memory Presence
 # ---------------------------------------------------------------------------
 
 
-class TestRedisPresence:
+class TestPresence:
     @pytest.mark.asyncio
     async def test_get_presence_returns_structure(self):
         """get_presence should return session_id, active_count, participants."""
-        mock_redis = AsyncMock()
-        mock_redis.hgetall = AsyncMock(return_value={
-            "pid1": "2024-01-01T00:00:00",
-            "pid2": "2024-01-01T00:01:00",
-        })
-
+        from app.core.presence import set_presence, _presence
         from app.cubes.cube1_session.service import get_presence
+
         sid = uuid.uuid4()
-        result = await get_presence(mock_redis, sid)
-        assert result["session_id"] == sid
+        await set_presence(sid, uuid.uuid4())
+        await set_presence(sid, uuid.uuid4())
+
+        result = await get_presence(sid)
+        assert result["session_id"] == str(sid)
         assert result["active_count"] == 2
         assert len(result["participants"]) == 2
+        _presence.pop(str(sid), None)  # cleanup
 
     @pytest.mark.asyncio
     async def test_get_presence_empty_session(self):
         """Empty session should return 0 count."""
-        mock_redis = AsyncMock()
-        mock_redis.hgetall = AsyncMock(return_value={})
-
         from app.cubes.cube1_session.service import get_presence
-        result = await get_presence(mock_redis, uuid.uuid4())
+        result = await get_presence(uuid.uuid4())
         assert result["active_count"] == 0
         assert result["participants"] == []
 

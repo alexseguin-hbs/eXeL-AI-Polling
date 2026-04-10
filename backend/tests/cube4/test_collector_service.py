@@ -106,43 +106,37 @@ class TestPresenceTracking:
         """Empty session returns 0 active participants."""
         from app.cubes.cube4_collector.service import get_session_presence
 
-        mock_redis = AsyncMock()
-        mock_redis.hgetall = AsyncMock(return_value={})
-
-        result = await get_session_presence(mock_redis, uuid.uuid4())
+        result = await get_session_presence(uuid.uuid4())
         assert result["active_count"] == 0
         assert result["participants"] == []
 
     @pytest.mark.asyncio
     async def test_presence_with_participants(self):
         """Should return participant list with timestamps."""
+        from app.core.presence import set_presence, _presence
         from app.cubes.cube4_collector.service import get_session_presence
 
-        mock_redis = AsyncMock()
-        mock_redis.hgetall = AsyncMock(return_value={
-            "pid-1": "2026-02-26T10:00:00Z",
-            "pid-2": "2026-02-26T10:01:00Z",
-        })
+        sid = uuid.uuid4()
+        await set_presence(sid, uuid.uuid4())
+        await set_presence(sid, uuid.uuid4())
 
-        result = await get_session_presence(mock_redis, uuid.uuid4())
+        result = await get_session_presence(sid)
         assert result["active_count"] == 2
         assert len(result["participants"]) == 2
+        _presence.pop(str(sid), None)
 
     @pytest.mark.asyncio
     async def test_update_presence(self):
-        """Should set participant presence in Redis."""
+        """Should set participant presence in memory."""
+        from app.core.presence import _presence
         from app.cubes.cube4_collector.service import update_presence
-
-        mock_redis = AsyncMock()
-        mock_redis.hset = AsyncMock()
-        mock_redis.expire = AsyncMock()
 
         sid = uuid.uuid4()
         pid = uuid.uuid4()
-        await update_presence(mock_redis, sid, pid)
+        await update_presence(sid, pid)
 
-        mock_redis.hset.assert_called_once()
-        mock_redis.expire.assert_called_once()
+        assert str(pid) in _presence[str(sid)]
+        _presence.pop(str(sid), None)
 
 
 # ---------------------------------------------------------------------------

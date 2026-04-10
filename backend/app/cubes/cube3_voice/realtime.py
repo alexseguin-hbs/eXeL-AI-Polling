@@ -24,7 +24,6 @@ from datetime import datetime, timezone
 
 import structlog
 from fastapi import WebSocket, WebSocketDisconnect
-from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.circuit_breaker import CircuitBreaker
@@ -90,7 +89,8 @@ async def handle_realtime_transcription(
     question_id: uuid.UUID,
     language_code: str,
     db: AsyncSession,
-    redis: Redis,
+    *args,
+    **kwargs,
 ) -> None:
     """WebSocket handler for real-time voice-to-text transcription.
 
@@ -119,7 +119,7 @@ async def handle_realtime_transcription(
     await _ws_connection_semaphore.acquire()
 
     try:
-        await _handle_realtime_inner(ws, session_id, participant_id, question_id, language_code, db, redis)
+        await _handle_realtime_inner(ws, session_id, participant_id, question_id, language_code, db)
     finally:
         _ws_connection_semaphore.release()
 
@@ -131,7 +131,6 @@ async def _handle_realtime_inner(
     question_id: uuid.UUID,
     language_code: str,
     db,
-    redis,
 ) -> None:
     """Inner handler — runs under WebSocket connection semaphore."""
     sid = str(session_id)
@@ -388,9 +387,9 @@ async def _handle_realtime_inner(
             except Exception as e:
                 logger.warning("cube3.realtime.time_tracking.stop_failed", error=str(e))
 
-        # Publish Redis event
+        # Broadcast event via Supabase
         await publish_submission_event(
-            redis, session_id, response_meta.id,
+            session_id, response_meta.id,
             language_code, len(final_transcript),
         )
 

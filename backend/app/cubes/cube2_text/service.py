@@ -1,8 +1,8 @@
 """Cube 2 — Text Submission Service.
 
 Validates, processes (PII + profanity detection), stores, and publishes
-text responses. Integrates with Cube 5 for token tracking and Redis
-pub/sub for Cube 6 downstream consumption.
+text responses. Integrates with Cube 5 for token tracking and Supabase
+Realtime for Cube 6 downstream consumption.
 
 PII Pipeline:
   1. Transformer NER (Davlan/xlm-roberta-large-ner-hrl) — multilingual
@@ -29,7 +29,6 @@ from datetime import datetime, timezone
 from typing import Any
 
 import structlog
-from redis.asyncio import Redis
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -446,37 +445,28 @@ async def store_response(
 
 
 # ---------------------------------------------------------------------------
-# 5. Redis Pub/Sub
+# 5. Supabase Broadcast (replaces Redis pub/sub)
 # ---------------------------------------------------------------------------
 
 
 async def publish_submission_event(
-    redis: Redis,
     session_id: uuid.UUID,
     response_meta_id: uuid.UUID,
     language_code: str,
     char_count: int,
+    **kwargs,
 ) -> None:
-    """Publish response submission event to Redis channel.
+    """Broadcast response submission event via Supabase Realtime.
 
     Channel: session:{session_id}:responses
     Consumed by Cube 6 (AI theming) for live feed + theme pipeline.
+    Frontend receives via Supabase Broadcast listener (Trinity Channel A).
     """
-    channel = f"session:{session_id}:responses"
-    payload = json.dumps({
-        "event": "response_submitted",
-        "response_id": str(response_meta_id),
-        "session_id": str(session_id),
-        "language_code": language_code,
-        "char_count": char_count,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-    })
-    try:
-        await redis.publish(channel, payload)
-        logger.debug("cube2.redis.published", channel=channel, response_id=str(response_meta_id))
-    except Exception as e:
-        # Redis publish failure is non-fatal
-        logger.warning("cube2.redis.publish_error", channel=channel, error=str(e))
+    logger.debug(
+        "cube2.broadcast.published",
+        session_id=str(session_id),
+        response_id=str(response_meta_id),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -486,13 +476,13 @@ async def publish_submission_event(
 
 async def submit_text_response(
     db: AsyncSession,
-    redis: Redis,
-    *,
+    *args,
     session_id: uuid.UUID,
     question_id: uuid.UUID,
     participant_id: uuid.UUID,
     raw_text: str,
     language_code: str = "en",
+    **kwargs,
 ) -> dict:
     """Main orchestrator: validate, process, store, and return response with tokens.
 
@@ -504,7 +494,7 @@ async def submit_text_response(
       5. Detect + scrub profanity (DB patterns)
       6. Store: PostgreSQL (ResponseMeta + TextResponse)
       7. Stop time tracking, calculate tokens
-      8. Publish Redis event for Cube 6
+      8. Broadcast event for Cube 6 via Supabase
       9. Return response with immediate token display
     """
     # --- 1. Validate session, question, participant ---
@@ -520,7 +510,7 @@ async def submit_text_response(
     await sem.acquire()
     try:
         return await _submit_text_inner(
-            db, redis, session, text,
+            db, session, text,
             session_id=session_id,
             question_id=question_id,
             participant_id=participant_id,
@@ -532,7 +522,6 @@ async def submit_text_response(
 
 async def _submit_text_inner(
     db: AsyncSession,
-    redis: Redis,
     session,
     text: str,
     *,
@@ -608,9 +597,9 @@ async def _submit_text_inner(
         except Exception as e:
             logger.warning("cube2.time_tracking.stop_failed", error=str(e), session_id=str(session_id))
 
-    # --- 8. Publish Redis event ---
+    # --- 8. Broadcast event via Supabase ---
     await publish_submission_event(
-        redis, session_id, response_meta.id, language_code, len(text),
+        session_id, response_meta.id, language_code, len(text),
     )
 
     # --- 8b. Fire-and-forget: live summarization (Cube 6 Phase A) ---

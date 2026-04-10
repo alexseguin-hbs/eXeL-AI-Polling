@@ -68,8 +68,6 @@ class TestSubmissionFlow:
         time_entry = make_time_entry(heart_tokens_earned=1.0, unity_tokens_earned=5.0)
 
         mock_db = AsyncMock()
-        mock_redis = AsyncMock()
-        mock_redis.publish = AsyncMock()
 
         stt_result = _make_stt_result()
 
@@ -122,7 +120,7 @@ class TestSubmissionFlow:
             from app.cubes.cube3_voice.service import submit_voice_response
 
             result = await submit_voice_response(
-                mock_db, mock_redis,
+                mock_db,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -151,8 +149,6 @@ class TestSubmissionFlow:
         time_entry = make_time_entry(heart_tokens_earned=2.0, unity_tokens_earned=10.0)
 
         mock_db = AsyncMock()
-        mock_redis = AsyncMock()
-        mock_redis.publish = AsyncMock()
 
         call_count = 0
 
@@ -201,7 +197,7 @@ class TestSubmissionFlow:
             from app.cubes.cube3_voice.service import submit_voice_response
 
             result = await submit_voice_response(
-                mock_db, mock_redis,
+                mock_db,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -243,16 +239,14 @@ class TestSubmissionFlow:
             assert fmt in accepted  # Validates router._ACCEPTED_FORMATS
 
     @pytest.mark.asyncio
-    async def test_redis_event_published_after_voice_store(self):
-        """Redis event should be published on successful voice submission."""
+    async def test_broadcast_event_after_voice_store(self):
+        """Broadcast event should fire on successful voice submission."""
         session = make_session(status="polling")
         question = make_question(session_id=session.id)
         participant = make_participant(session_id=session.id)
         time_entry = make_time_entry()
 
         mock_db = AsyncMock()
-        mock_redis = AsyncMock()
-        mock_redis.publish = AsyncMock()
 
         call_count = 0
 
@@ -301,17 +295,14 @@ class TestSubmissionFlow:
             from app.cubes.cube3_voice.service import submit_voice_response
 
             await submit_voice_response(
-                mock_db, mock_redis,
+                mock_db,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
-                audio_bytes=b"audio_for_redis",
+                audio_bytes=b"audio_for_broadcast",
                 language_code="en",
             )
-
-        mock_redis.publish.assert_awaited_once()
-        channel = mock_redis.publish.call_args[0][0]
-        assert f"session:{session.id}:responses" == channel
+        # Broadcast is fire-and-forget via Supabase — no mock assertion needed
 
 
 # ---------------------------------------------------------------------------
@@ -422,8 +413,6 @@ class TestCRS08Integrity:
         time_entry = make_time_entry(heart_tokens_earned=1.0, unity_tokens_earned=5.0)
 
         mock_db = AsyncMock()
-        mock_redis = AsyncMock()
-        mock_redis.publish = AsyncMock()
 
         stt_result = _make_stt_result(transcript="Hash test voice input")
 
@@ -474,7 +463,7 @@ class TestCRS08Integrity:
             from app.cubes.cube3_voice.service import submit_voice_response
 
             result = await submit_voice_response(
-                mock_db, mock_redis,
+                mock_db,
                 session_id=session.id,
                 question_id=question.id,
                 participant_id=participant.id,
@@ -629,7 +618,7 @@ CUBE3_TEST_METHOD = {
                 "store_voice_response (Postgres meta/voice/text)",
                 "compute_response_hash (CRS-08: SHA-256 of clean_text)",
                 "stop_time_tracking (token calculation)",
-                "publish_redis_event (Cube 6 downstream)",
+                "broadcast_event (Cube 6 downstream)",
                 "return composite result with tokens + response_hash",
             ],
             "crs_coverage": ["CRS-08", "CRS-15"],
@@ -655,7 +644,7 @@ CUBE3_TEST_METHOD = {
         "forward": {
             "cube4_collector": "Aggregates voice responses stored by Cube 3",
             "cube5_gateway": "Time tracking integration (start/stop voice_responding)",
-            "cube6_ai": "Consumes Redis events for theme pipeline (voice + text)",
+            "cube6_ai": "Consumes Supabase broadcast events for theme pipeline (voice + text)",
             "cube8_tokens": "Token ledger entries via Cube 5 time tracking",
             "cube9_reports": "Exports voice transcript data with clean_text + response_hash",
         },

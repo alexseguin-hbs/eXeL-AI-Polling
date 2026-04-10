@@ -17,7 +17,7 @@ Endpoints:
     GET    /sessions/{id}/questions — List questions
     GET    /sessions/{id}/qr        — Download QR code PNG
     GET    /sessions/{id}/qr-json   — QR code as base64 JSON
-    GET    /sessions/{id}/presence  — Live participant count from Redis
+    GET    /sessions/{id}/presence  — Live participant count (in-memory)
     GET    /sessions/{id}/verify-determinism — Replay hash verification
 """
 
@@ -25,12 +25,12 @@ import asyncio
 import logging
 import uuid
 
-import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
-from app.core.dependencies import get_db, get_redis
+from app.core.dependencies import get_db
+from app.core import presence as mem_presence
 
 logger = logging.getLogger(__name__)
 from app.core.permissions import require_role
@@ -69,7 +69,6 @@ async def _transition_and_return(
     session_id: uuid.UUID,
     target_state: str,
     user: CurrentUser,
-    redis: aioredis.Redis | None = None,
 ) -> SessionRead:
     """Verify ownership, transition state, and return serialized session.
 
@@ -80,7 +79,7 @@ async def _transition_and_return(
     session = await service.get_session_by_id(db, session_id)
     service.verify_session_owner(session, user)
     updated = await service.transition_session(
-        db, session, target_state, redis=redis, actor_id=user.user_id
+        db, session, target_state, actor_id=user.user_id
     )
 
     # Fire Cube 5 orchestrator on polling → ranking transition
@@ -285,10 +284,9 @@ async def archive_session(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
-    redis: aioredis.Redis = Depends(get_redis),
 ):
-    """Archive a closed session. Clears Redis presence data."""
-    return await _transition_and_return(db, session_id, "archived", user, redis=redis)
+    """Archive a closed session. Clears in-memory presence data."""
+    return await _transition_and_return(db, session_id, "archived", user)
 
 
 # ---------------------------------------------------------------------------
@@ -304,7 +302,6 @@ async def join_session(
     payload: SessionJoinRequest,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
-    redis: aioredis.Redis = Depends(get_redis),
 ):
     """CRS-03: Participant joins session via short_code or QR link."""
     session, participant = await service.join_session(
@@ -315,7 +312,6 @@ async def join_session(
         device_type=payload.device_type,
         language_code=payload.language_code,
         results_opt_in=payload.results_opt_in,
-        redis=redis,
     )
     return SessionJoinResponse(
         session_id=session.id,
@@ -344,17 +340,16 @@ async def list_participants(
 
 
 # ---------------------------------------------------------------------------
-# Presence (Redis)
+# Presence (in-memory)
 # ---------------------------------------------------------------------------
 
 
 @router.get("/{session_id}/presence", response_model=SessionPresence)
 async def get_presence(
     session_id: uuid.UUID,
-    redis: aioredis.Redis = Depends(get_redis),
 ):
-    """Live participant count from Redis presence tracking."""
-    data = await service.get_presence(redis, session_id)
+    """Live participant count from in-memory presence tracking."""
+    data = await mem_presence.get_presence(session_id)
     return SessionPresence(**data)
 
 

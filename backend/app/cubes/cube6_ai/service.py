@@ -55,7 +55,7 @@ _CONFIDENCE_THRESHOLD = 65  # <65% -> reclassify as Neutral (monolith line 127)
 
 # --- Task A3: Per-session concurrency cap on Phase A ---
 # Limits concurrent AI calls per session to prevent provider rate-limit cascade.
-# Each worker enforces independently; Redis-backed global cap deferred to production scaling.
+# Each worker enforces independently; Supabase-backed global cap deferred to production scaling.
 _PHASE_A_MAX_CONCURRENT = 10
 _phase_a_semaphores: dict[uuid.UUID, asyncio.Semaphore] = {}
 
