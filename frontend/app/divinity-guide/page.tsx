@@ -149,7 +149,7 @@ function PageReader({
           </div>
         ) : bookPage ? (
           // Real book page — detect primer (last page with ••• marker)
-          bookPage.text.includes("•••") && pageIndex === totalPages - 1 && chapter.id < 12 ? (
+          bookPage.text.includes("•••") && pageIndex === totalPages - 1 ? (
             // Bridge page: primer quote + next chapter link
             <div className="animate-in fade-in duration-300 space-y-8">
               {/* Primer quote */}
@@ -167,7 +167,14 @@ function PageReader({
                 const nextSubtitle = parts[1] || "";
                 return (
                   <button
-                    onClick={() => onNavigateToChapter?.(chapter.id + 1)}
+                    onClick={() => {
+                      if (chapter.id >= 12) {
+                        // Ouroboros — cycle back to Chapter 1
+                        onNavigateToChapter?.(1);
+                      } else {
+                        onNavigateToChapter?.(chapter.id + 1);
+                      }
+                    }}
                     className="w-full rounded-xl border bg-card p-6 text-left hover:bg-accent/30 transition-colors"
                   >
                     <p className="text-lg font-bold">{nextTitle}</p>
@@ -414,6 +421,13 @@ export default function DivinityGuidePage() {
               pageIndex={pageIndex}
               setPageIndex={setPageIndex}
               onNavigateToChapter={(nextId) => {
+                if (nextId === 0) {
+                  // Return to flower home
+                  setSelectedSection(null);
+                  setSelectedChapter(null);
+                  setPageIndex(0);
+                  return;
+                }
                 // Find section + chapter for the target ID
                 for (const sec of SECTIONS) {
                   const ch = sec.chapters.find(c => c.id === nextId);
