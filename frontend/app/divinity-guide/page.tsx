@@ -122,13 +122,10 @@ function PageReader({
 
   return (
     <div className="w-full max-w-lg animate-in fade-in duration-300" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      {/* Chapter title (left) + page counter (right) */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Chapter title */}
+      <div className="mb-6">
         <p className="text-xs text-muted-foreground/60">
           {chapter.title}
-        </p>
-        <p className="text-[10px] text-muted-foreground/30">
-          {pageIndex + 1} / {totalPages}
         </p>
       </div>
 
@@ -196,21 +193,24 @@ function PageReader({
         ) : null}
       </div>
 
-      {/* Navigation: ← → */}
+      {/* Navigation */}
       <div className="flex items-center justify-between pt-4 mt-4 border-t">
         <button
           onClick={() => pageIndex > 0 && setPageIndex(pageIndex - 1)}
           disabled={pageIndex === 0}
-          className="px-3 py-1 text-sm text-muted-foreground hover:text-primary disabled:opacity-20"
+          className="w-12 h-12 rounded-full border flex items-center justify-center text-lg hover:bg-accent/30 disabled:opacity-15 transition-all"
+          style={{ borderColor: pageIndex > 0 ? section.color.stroke : undefined }}
         >
-          ←
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
+        <p className="text-[10px] text-muted-foreground/40">{pageIndex + 1} / {totalPages}</p>
         <button
           onClick={() => pageIndex < totalPages - 1 && setPageIndex(pageIndex + 1)}
           disabled={pageIndex >= totalPages - 1}
-          className="px-3 py-1 text-sm text-muted-foreground hover:text-primary disabled:opacity-20"
+          className="w-12 h-12 rounded-full border flex items-center justify-center text-lg hover:bg-accent/30 disabled:opacity-15 transition-all"
+          style={{ borderColor: pageIndex < totalPages - 1 ? section.color.stroke : undefined }}
         >
-          →
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
         </button>
       </div>
     </div>
