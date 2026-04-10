@@ -245,8 +245,8 @@ export default function DivinityGuidePage() {
       <div className="flex flex-col md:flex-row min-h-screen">
         {/* LEFT (desktop) / TOP (mobile): Flower Navigation */}
         <div className="w-full md:w-1/2 md:border-r flex flex-col items-center justify-center px-6 py-6">
-          <Link href="/" className="text-xs text-muted-foreground hover:text-primary mb-2 self-start">← Home</Link>
-          <Link href="/" className="text-sm font-semibold mb-0.5 hover:text-primary">The Divinity Guide</Link>
+          <Link href="/divinity-guide" className="text-xs text-muted-foreground hover:text-primary mb-2 self-start">← Home</Link>
+          <Link href="/divinity-guide" className="text-sm font-semibold mb-0.5 hover:text-primary">The Divinity Guide</Link>
           <p className="text-[10px] text-muted-foreground mb-3 italic">12 Portals of Wisdom</p>
 
           {/* Flower SVG — same diameter as dashboard Theme Analysis */}
