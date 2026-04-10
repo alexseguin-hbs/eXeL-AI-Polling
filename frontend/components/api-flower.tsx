@@ -16,6 +16,7 @@
  */
 
 import { useState, useMemo } from "react";
+import { useTheme } from "@/lib/theme-context";
 import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
 import { SDK_DEMO_DATA } from "@/lib/sdk-demos";
 import {
@@ -113,6 +114,7 @@ interface ApiFlowerProps {
 }
 
 export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
+  const { currentTheme } = useTheme();
   const [level, setLevel] = useState<3 | 6 | 9>(3);
   const [selectedFamily, setSelectedFamily] = useState<1 | 2 | 3 | null>(null);
   const [selectedSdk, setSelectedSdk] = useState<string | null>(null);
@@ -214,12 +216,12 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
           </>
         )}
 
-        {/* Hub */}
+        {/* Hub — shows level number + theme color */}
         <ThemeCircle
           cx={hub.cx} cy={hub.cy} r={hub.r}
-          theme={{ label: "eXeL", count: 0, avgConfidence: 0, summary33: "SDK" }}
-          fill="rgba(var(--primary), 0.1)"
-          stroke="hsl(var(--primary))"
+          theme={{ label: String(level), count: 0, avgConfidence: 0, summary33: "" }}
+          fill={currentTheme.swatch + "1A"}
+          stroke={currentTheme.swatch}
           isHub
         />
 
