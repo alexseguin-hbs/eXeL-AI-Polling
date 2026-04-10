@@ -246,9 +246,10 @@ export default function DivinityGuidePage() {
 
   const handleDonate = () => {
     localStorage.setItem("divinity-guide-unlocked", "true");
-    setUnlocked(true);
-    setTimeout(() => setShowReward(true), 1500);
-    setTimeout(() => setShowReward(false), 6000);
+    // Show reward toast on the donation screen first, then transition
+    setTimeout(() => setShowReward(true), 800);
+    setTimeout(() => setShowReward(false), 5000);
+    setTimeout(() => setUnlocked(true), 4000);
   };
 
   // Donation gate
