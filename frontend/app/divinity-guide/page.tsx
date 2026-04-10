@@ -21,6 +21,7 @@ import {
   getHubPosition,
 } from "@/lib/flower-geometry";
 import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
+import { useTheme } from "@/lib/theme-context";
 import type { ThemeInfo } from "@/lib/types";
 import "@/components/flower-of-life/flower-animations.css";
 
@@ -193,6 +194,7 @@ export default function DivinityGuidePage() {
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
 
+  const { currentTheme } = useTheme();
   const hub = getHubPosition();
   const outerPositions = getTheme2_3Positions();
 
@@ -245,8 +247,18 @@ export default function DivinityGuidePage() {
       <div className="flex flex-col md:flex-row min-h-screen">
         {/* LEFT (desktop) / TOP (mobile): Flower Navigation */}
         <div className="w-full md:w-1/2 md:border-r flex flex-col items-center justify-center px-6 py-6">
-          <Link href="/divinity-guide" className="text-xs text-muted-foreground hover:text-primary mb-2 self-start">← Home</Link>
-          <Link href="/divinity-guide" className="text-sm font-semibold mb-0.5 hover:text-primary">The Divinity Guide</Link>
+          {/* Top-left: eXeL AI brand → main app home */}
+          <div className="flex items-center justify-between w-full mb-3">
+            <Link href="/" className="flex items-center gap-1.5 hover:opacity-80">
+              <span className="text-sm font-bold text-primary">eXeL</span>
+              <span className="text-sm font-light text-muted-foreground">AI</span>
+            </Link>
+            <Link href="/" className="text-xs text-muted-foreground hover:text-primary">Home</Link>
+          </div>
+          {/* Title in active theme color → resets to /divinity-guide flower home */}
+          <Link href="/divinity-guide" className="text-sm font-semibold mb-0.5 hover:opacity-80" style={{ color: currentTheme.swatch }}>
+            The Divinity Guide
+          </Link>
           <p className="text-[10px] text-muted-foreground mb-3 italic">12 Portals of Wisdom</p>
 
           {/* Flower SVG — same diameter as dashboard Theme Analysis */}
