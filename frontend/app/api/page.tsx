@@ -195,6 +195,7 @@ const ALL_FUNCTIONS = [
 export default function ApiPage() {
   const { currentTheme } = useTheme();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [flowerLevel, setFlowerLevel] = useState<3 | 6 | 9>(3);
   const detailRef = useRef<HTMLDivElement>(null);
 
   // Scroll detail panel into view on mobile when function selected
@@ -221,14 +222,34 @@ export default function ApiPage() {
             </Link>
             <button onClick={() => setSelectedId(null)} className="text-xs text-muted-foreground hover:text-primary">Home</button>
           </div>
-          <button onClick={() => setSelectedId(null)} className="text-2xl font-bold mb-0.5 hover:opacity-80 text-left shrink-0" style={{ color: currentTheme.swatch }}>
+
+          {/* Title */}
+          <button onClick={() => setSelectedId(null)} className="text-2xl font-bold mb-2 hover:opacity-80 text-left shrink-0" style={{ color: currentTheme.swatch }}>
             Governance Engine API
           </button>
-          <p className="text-[10px] text-muted-foreground italic mb-2 shrink-0">3 Core APIs · 9 SDK Functions</p>
 
-          {/* Flower — fills remaining vertical space */}
-          <div className="flex-1 w-full flex items-center justify-center min-h-0">
+          {/* Level Selector — directly below title */}
+          <div className="flex items-center justify-center gap-3 mb-2 shrink-0">
+            {([3, 6, 9] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setFlowerLevel(l)}
+                className={`px-4 py-1.5 text-xs rounded-full transition-all ${
+                  flowerLevel === l
+                    ? "bg-primary text-primary-foreground shadow-lg"
+                    : "bg-muted text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                {l === 3 ? "Core" : l === 6 ? "Expand" : "Full Bloom"}
+              </button>
+            ))}
+          </div>
+
+          {/* Flower — fills remaining vertical space, clipped to bounds */}
+          <div className="flex-1 w-full flex items-center justify-center min-h-0 overflow-hidden">
             <ApiFlower
+              level={flowerLevel}
+              onLevelChange={setFlowerLevel}
               onSelectFunction={(id) => setSelectedId(selectedId === id ? null : id)}
             />
           </div>

@@ -106,11 +106,12 @@ function getSDKsForLevel(level: 3 | 6 | 9): SDKEntry[] {
 
 interface ApiFlowerProps {
   onSelectFunction?: (id: string) => void;
+  level: 3 | 6 | 9;
+  onLevelChange: (level: 3 | 6 | 9) => void;
 }
 
-export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
+export function ApiFlower({ onSelectFunction, level, onLevelChange }: ApiFlowerProps) {
   const { currentTheme } = useTheme();
-  const [level, setLevel] = useState<3 | 6 | 9>(3);
   const [selectedFamily, setSelectedFamily] = useState<1 | 2 | 3 | null>(null);
   const [selectedSdk, setSelectedSdk] = useState<string | null>(null);
 
@@ -121,9 +122,9 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
     setSelectedSdk(selectedSdk === sdk.id ? null : sdk.id);
     if (level === 3) {
       setSelectedFamily(sdk.family);
-      setLevel(6);
+      onLevelChange(6);
     } else if (level === 6) {
-      setLevel(9);
+      onLevelChange(9);
     }
   };
 
@@ -132,7 +133,7 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
       setSelectedSdk(null);
     } else if (selectedFamily) {
       setSelectedFamily(null);
-      setLevel(3);
+      onLevelChange(3);
     }
   };
 
@@ -156,30 +157,12 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
   }, [hub, positions, visible.length]);
 
   return (
-    <div className="w-full">
-      {/* Level Selector */}
-      <div className="flex items-center justify-center gap-3 mb-4">
-        {([3, 6, 9] as const).map((l) => (
-          <button
-            key={l}
-            onClick={() => setLevel(l)}
-            className={`px-4 py-1.5 text-xs rounded-full transition-all ${
-              level === l
-                ? "bg-primary text-primary-foreground shadow-lg"
-                : "bg-muted text-muted-foreground hover:bg-accent"
-            }`}
-          >
-            {l === 3 ? "Core" : l === 6 ? "Expand" : "Full Bloom"}
-          </button>
-        ))}
-      </div>
-
-      {/* SVG Flower — dynamic viewBox per level, fills available space */}
+    <div className="w-full h-full">
+      {/* SVG Flower — dynamic viewBox per level, contained within bounds */}
       <svg
         viewBox={viewBox}
         className="w-full h-full mx-auto"
         preserveAspectRatio="xMidYMid meet"
-        style={{ overflow: "visible" }}
       >
         {/* Connecting lines */}
         {positions.map((pos, i) => {
