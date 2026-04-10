@@ -247,7 +247,7 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
                 fontSize={10}
                 fontFamily="monospace"
               >
-                {sdk.number} {sdk.name}
+                {sdk.name}
               </text>
               {/* Cost badge */}
               <text
