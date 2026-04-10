@@ -332,22 +332,13 @@ export default function DivinityGuidePage() {
             )}
           </svg>
 
-          {/* Section labels */}
+          {/* Back to 12 Wisdom Portals */}
           {selectedSection && (
             <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); }}
-              className="mt-4 text-xs text-muted-foreground hover:text-primary">
-              ← All sections
+              className="mt-4 text-xs text-foreground hover:text-primary">
+              ← 12 Wisdom Portals
             </button>
           )}
-
-          {/* Footer */}
-          <div className="mt-auto pb-6 text-center">
-            <p className="text-[10px] text-muted-foreground/60">12 Wisdom Portals</p>
-            <br />
-            <p className="text-[9px] text-muted-foreground/40">◬ A.I. · ♡ S.I. · 웃 H.I.</p>
-            <br />
-            <p className="text-[9px] text-muted-foreground/40">••• Master of Thought •••</p>
-          </div>
         </div>
 
         {/* RIGHT (desktop) / BOTTOM (mobile): Book Page */}
