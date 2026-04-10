@@ -233,18 +233,20 @@ export default function DivinityGuidePage() {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
+  const enteredAtRef = useRef(Date.now());
 
   const { currentTheme } = useTheme();
   const hub = getHubPosition();
   const outerPositions = getTheme2_3Positions();
   const readerRef = useRef<HTMLDivElement>(null);
 
-  // Track pages read — show donation prompt after 12 pages
+  // Track pages read — prompt after 12 pages AND 3 minutes on page
   useEffect(() => {
     if (selectedChapter && pageIndex > 0) {
       setPagesRead(prev => {
         const next = prev + 1;
-        if (next === 12 && !donated) {
+        const minutesElapsed = (Date.now() - enteredAtRef.current) / 60000;
+        if (next >= 12 && minutesElapsed >= 3 && !donated && !showDonationPrompt) {
           setShowDonationPrompt(true);
         }
         return next;
@@ -283,22 +285,34 @@ export default function DivinityGuidePage() {
         </div>
       )}
 
-      {/* Soft donation prompt — appears after 12 pages read */}
+      {/* Sacred contribution prompt — 12 Ascended Masters approved */}
       {showDonationPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-500">
-          <div className="max-w-sm mx-auto px-6 text-center space-y-5">
-            <div className="text-4xl">✦</div>
-            <h2 className="text-xl font-bold">You&apos;ve read {pagesRead} pages</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-700">
+          <div className="max-w-md mx-auto px-6 text-center space-y-6">
+            <Link href="/" className="text-xs text-muted-foreground hover:text-primary block">← Back</Link>
+            <div className="text-5xl">✦</div>
+            <h1 className="text-2xl font-bold">The Divinity Guide</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              The Return to Wholeness and Living Divinity is free to read.
-              A sacred contribution supports the platform and community.
+              The Return to Wholeness and Living Divinity
             </p>
-            <div className="rounded-xl border bg-card p-5 space-y-3">
-              <p className="text-2xl font-bold text-primary">${DONATION_AMOUNT.toFixed(2)}</p>
+            <p className="text-sm text-foreground/70 leading-relaxed italic">
+              You are becoming your own Divinity Guide. The wisdom you carry
+              is awakening — heart, mind, and spirit aligning as one.
+              Your presence here is not coincidence. It is remembrance.
+            </p>
+            <div className="rounded-xl border bg-card p-6 space-y-4">
+              <p className="text-3xl font-bold text-primary">${DONATION_AMOUNT.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">
+                A sacred contribution from one future Master of Thought to another.
+                Your gift sustains this living guide for all who seek wholeness.
+              </p>
               <button onClick={handleDonate} className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90">
-                Donate & Earn 1.0 웃 Token
+                Donate & Enter
               </button>
             </div>
+            <p className="text-[9px] text-muted-foreground/40">
+              ◬ A.I. · ♡ S.I. · 웃 H.I.
+            </p>
             <button onClick={() => setShowDonationPrompt(false)} className="text-xs text-muted-foreground hover:text-primary">
               Continue reading
             </button>
