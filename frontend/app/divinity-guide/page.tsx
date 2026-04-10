@@ -286,7 +286,7 @@ export default function DivinityGuidePage() {
         </div>
 
         {/* RIGHT (desktop) / BOTTOM (mobile): Book Page */}
-        <div className="flex-1 px-6 md:px-8 py-8 md:py-12 max-w-2xl">
+        <div className="w-full md:w-1/2 px-6 md:px-8 py-8 md:py-12 overflow-y-auto">
           {!selectedChapter ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-4 max-w-md">

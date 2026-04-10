@@ -358,9 +358,10 @@ Track and optimize for:
 ## API, SDK & Embed Architecture — Current State
 
 ### REST API (Implemented)
-- **90 endpoints** across 9 cube routers at `/api/v1` (+ 2 health/discovery)
+- **103+ endpoints** across 10 cube routers at `/api/v1` (+ discovery + SDK + compress)
 - **OpenAPI auto-docs:** FastAPI generates interactive docs at `/api/v1/docs` (Swagger UI) and `/api/v1/redoc`
-- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (6), Cube 5 (9), Cube 6 (4), Cube 7 (11), Cube 8 (18), Cube 9 (8), SDK (2: health + cubes discovery)
+- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (10), Cube 5 (9), Cube 6 (4), Cube 7 (11), Cube 8 (18), Cube 9 (8), Cube 10 (8), SDK/Discovery (7)
+- **Frontend routes:** `/` (home), `/session` (polling), `/dashboard` (moderator), `/api` (developer hub), `/divinity-guide` (reading experience)
 
 ### Authentication & Security (Implemented)
 - **Auth0 JWT:** Bearer token validation via `core/auth.py` (135 lines)

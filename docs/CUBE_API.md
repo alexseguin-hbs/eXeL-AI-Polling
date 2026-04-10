@@ -1,6 +1,6 @@
 # CUBE API — The Governance Engine Interface
 
-> **103 endpoints. 9 SDK functions. 3 free internal APIs. 10 cubes.**
+> **103+ endpoints. 9 SDK functions. 3 core APIs. 10 cubes. 612 lexicon keys.**
 > **"Where Shared Intention moves at the Speed of Thought."**
 
 ---
