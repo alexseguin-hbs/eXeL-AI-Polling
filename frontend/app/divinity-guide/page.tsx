@@ -121,10 +121,10 @@ function PageReader({
 
   return (
     <div className="w-full max-w-lg animate-in fade-in duration-300" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      {/* Page number at top */}
+      {/* Chapter title (left) + page counter (right) */}
       <div className="flex items-center justify-between mb-6">
-        <p className="text-xs text-muted-foreground/40 font-mono">
-          {isIntro ? chapter.title : bookPage?.id}
+        <p className="text-xs text-muted-foreground/60">
+          {chapter.title}
         </p>
         <p className="text-[10px] text-muted-foreground/30">
           {pageIndex + 1} / {totalPages}
@@ -303,28 +303,35 @@ export default function DivinityGuidePage() {
             ) : activeSection && (
               <>
                 {/* CENTER = Chapter 1 of this section (clickable!) */}
-                <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
-                  theme={{ label: activeSection.chapters[0].title, count: 0, avgConfidence: 0, summary33: activeSection.chapters[0].subtitle }}
-                  fill={selectedChapter?.id === activeSection.chapters[0].id ? activeSection.color.stroke + "30" : activeSection.color.fill}
-                  stroke={activeSection.color.stroke}
-                  onClick={() => { setSelectedChapter(activeSection.chapters[0]); setPageIndex(0); }}
-                  className={selectedChapter?.id === activeSection.chapters[0].id ? "flower-pulse" : ""}
-                />
+                {(() => {
+                  const isSel = selectedChapter?.id === activeSection.chapters[0].id;
+                  const hasSelection = !!selectedChapter;
+                  return (
+                    <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
+                      theme={{ label: activeSection.chapters[0].title, count: 0, avgConfidence: 0, summary33: activeSection.chapters[0].subtitle }}
+                      fill={isSel ? activeSection.color.stroke + "30" : activeSection.color.fill}
+                      stroke={activeSection.color.stroke}
+                      onClick={() => { setSelectedChapter(activeSection.chapters[0]); setPageIndex(0); }}
+                      className={`${isSel ? "flower-pulse" : ""} ${hasSelection && !isSel ? "opacity-40" : ""}`}
+                    />
+                  );
+                })()}
 
                 {/* 3 outer chapters (Trinity pattern — same positions as sections) */}
                 {outerPositions.map((pos, i) => {
                   const ch = activeSection.chapters[i + 1]; // chapters 2,3,4
                   if (!ch) return null;
                   const isSelected = selectedChapter?.id === ch.id;
+                  const hasSelection = !!selectedChapter;
                   return (
                     <ThemeCircle key={ch.id}
                       cx={pos.cx} cy={pos.cy} r={pos.r}
                       theme={{ label: ch.title, count: 0, avgConfidence: 0, summary33: ch.subtitle }}
                       fill={isSelected ? activeSection.color.stroke + "30" : activeSection.color.fill}
                       stroke={activeSection.color.stroke}
-                      bloom bloomDelay={i * 150}
+                      bloom={isSelected} bloomDelay={0}
                       onClick={() => { setSelectedChapter(ch); setPageIndex(0); }}
-                      className={isSelected ? "flower-pulse" : ""}
+                      className={`${isSelected ? "flower-pulse" : ""} ${hasSelection && !isSelected ? "opacity-40" : ""}`}
                     />
                   );
                 })}
