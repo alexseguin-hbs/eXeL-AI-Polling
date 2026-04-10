@@ -13,7 +13,7 @@
  *   Section D (Hub):         Ch 10-12 Divinity (appears when any section selected)
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import divinityPages from "@/lib/divinity-pages.json";
 import {
@@ -197,6 +197,14 @@ export default function DivinityGuidePage() {
   const { currentTheme } = useTheme();
   const hub = getHubPosition();
   const outerPositions = getTheme2_3Positions();
+  const readerRef = useRef<HTMLDivElement>(null);
+
+  // On mobile, scroll reader into view when chapter selected (don't jump to top)
+  useEffect(() => {
+    if (selectedChapter && readerRef.current) {
+      readerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedChapter]);
 
   const handleDonate = () => {
     localStorage.setItem("divinity-guide-unlocked", "true");
@@ -341,7 +349,7 @@ export default function DivinityGuidePage() {
         </div>
 
         {/* RIGHT (desktop) / BOTTOM (mobile): Book Page */}
-        <div className="w-full md:w-1/2 px-6 md:px-10 py-8 md:py-12 overflow-y-auto flex flex-col items-center">
+        <div ref={readerRef} className="w-full md:w-1/2 px-6 md:px-10 py-8 md:py-12 overflow-y-auto flex flex-col items-center">
           {!selectedChapter ? (
             <div className="flex items-center justify-center h-full w-full">
               <div className="text-center space-y-4 max-w-lg px-4">
