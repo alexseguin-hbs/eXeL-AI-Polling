@@ -13,7 +13,7 @@
  *   Section D (Hub):         Ch 10-12 Divinity (appears when any section selected)
  */
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { Suspense, useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import divinityPages from "@/lib/divinity-pages.json";
@@ -221,7 +221,15 @@ function PageReader({
 // Donation gate
 const DONATION_AMOUNT = 3.33;
 
-export default function DivinityGuidePage() {
+export default function DivinityGuidePageWrapper() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <DivinityGuidePage />
+    </Suspense>
+  );
+}
+
+function DivinityGuidePage() {
   const searchParams = useSearchParams();
   const [donated, setDonated] = useState(() => {
     if (typeof window !== "undefined") {
