@@ -15,7 +15,7 @@
 - **Theme inclusion:** Optional Theme01 + Theme2_9/6/3 assignments with confidence (from Cube 6 Phase B)
 - **Response count:** Breakdown by source type (text/voice) and total
 - **Language breakdown:** Response languages grouped by language_code
-- **Redis presence:** Live participant tracking (HSET + EXPIRE pattern from Cube 1)
+- **in-memory presence:** Live participant tracking (HSET + EXPIRE pattern from Cube 1)
 - **Summary status:** PostgreSQL count of responses with summaries and theme assignments
 - **Voice support:** Voice transcripts aggregated via TextResponse clean_text fallback
 - **Anonymous support:** Null participant_id handled gracefully → "Anonymous" user label
@@ -140,7 +140,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 |----------|--------|-------------|
 | `aggregate_response()` | **Implemented** | Creates unified `collected_responses` entry |
 | `store_raw_response()` | **Implemented** | Writes raw response payload to ResponseMeta.raw_text (PostgreSQL) |
-| `cache_response_state()` | **Implemented** | Updates Redis with live response count |
+| `cache_response_state()` | **Implemented** | Updates in-memory state with live response count |
 | `track_presence()` | **Implemented** | Processes heartbeat pings, updates presence |
 | `create_desired_outcome()` | **Implemented** (Phase 3) | Creates desired outcome with description + time estimate (CRS-10.01) |
 | `record_confirmation()` | **Implemented** (Phase 3) | Idempotent JSONB append of participant confirmation (CRS-10.01) |
@@ -195,7 +195,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 | Summary data (333/111/33) | Input | PostgreSQL `response_summaries` table (via Cube 6 Phase A) | **SIMULATED** | Mock summaries pre-loaded in fixture DB — optional include |
 | Theme data (Theme01 + Theme2) | Input | Cube 6 Phase B | **SIMULATED** | Mock theme assignments with confidence scores — optional include |
 | Collected response set | Output | Cube 6 (AI Theming) | **SIMULATED** | Web_Results format written to mock store for downstream consumption |
-| Presence state | Output | Cube 1, Cube 5, Frontend | **SIMULATED** | Mock Redis HSET/HGETALL — participant count and status from fixture |
+| Presence state | Output | Cube 1, Cube 5, Frontend | **SIMULATED** | Mock in-memory dict/HGETALL — participant count and status from fixture |
 | Desired Outcome record | Output | Cube 5, Cube 8, Cube 9 | **SIMULATED** | Mock Postgres record with confirmation status |
 | All-confirmed signal | Output | Cube 5 (Gateway) | **SIMULATED** | Mock signal emitted when all fixture participants confirmed |
 | Post-task results | Output | Cube 8, Cube 9 | **SIMULATED** | Mock results log for token calculation and export |
@@ -206,14 +206,14 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb
 |----------|----------|---------------------|
 | `aggregate_response()` | **SIMULATED** | Creates unified collected_responses entry from mock Postgres JOINs. Validates Web_Results format (q_number, question, user, detailed_results, response_language, native_language). |
 | `store_raw_response()` | **SIMULATED** | Writes to mock PostgreSQL ResponseMeta.raw_text column (in-memory). Verifies record structure matches raw response schema. |
-| `cache_response_state()` | **SIMULATED** | Updates mock Redis with response count. No real Redis connection required. |
-| `track_presence()` | **SIMULATED** | Processes mock heartbeat pings. Updates mock Redis HSET with participant status (online/idle/disconnected). EXPIRE simulated with mock clock. |
+| `cache_response_state()` | **SIMULATED** | Updates mock in-memory with response count. No real Supabase connection required. |
+| `track_presence()` | **SIMULATED** | Processes mock heartbeat pings. Updates mock in-memory dict with participant status (online/idle/disconnected). EXPIRE simulated with mock clock. |
 | `create_desired_outcome()` | **SIMULATED** | Creates mock desired outcome record with fixture description + time estimate. Not yet implemented in production — sim validates schema only. |
 | `record_confirmation()` | **SIMULATED** | Records mock participant confirmation. Not yet implemented in production — sim validates confirmation logic. |
 | `check_all_confirmed()` | **SIMULATED** | Pure logic — checks if all required participants in fixture have confirmed. Returns boolean. |
 | `log_post_task_results()` | **SIMULATED** | Stores mock post-task results with outcome_status. Not yet implemented in production. |
 | `get_response_set()` | **SIMULATED** | Returns full collected response set from mock store. Validates pagination, language breakdown, and optional summary/theme includes. |
-| `get_presence_count()` | **SIMULATED** | Returns current online participant count from mock Redis. |
+| `get_presence_count()` | **SIMULATED** | Returns current online participant count from mock in-memory. |
 
 #### Canned Test Data
 
@@ -412,7 +412,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube5/ -v --tb
 | Input | Source | Description |
 |-------|--------|-------------|
 | Session state transition event | Cube 1 | State machine fires transition → orchestrator reacts |
-| Response submission event | Cube 2, Cube 3 | Redis pub/sub `response_submitted` triggers time tracking |
+| Response submission event | Cube 2, Cube 3 | Supabase broadcast `response_submitted` triggers time tracking |
 | Collected response set | Cube 4 | Full response count for pipeline metadata |
 | All-confirmed signal | Cube 4 | Desired Outcome confirmation triggers timer start (M2/M3) |
 | Jurisdiction code | Cube 1 / User profile | Used for 웃 rate lookup |
@@ -508,7 +508,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube5/ -v --tb
 | Variable | Direction | Source/Dest | Sim Mode | Notes |
 |----------|-----------|-------------|----------|-------|
 | Session state transition event | Input | Cube 1 (Session) | **SIMULATED** | Mock state machine transitions (draft→open→polling→ranking→closed→archived) with fixed timestamps |
-| Response submission event | Input | Cube 2, Cube 3 | **SIMULATED** | Mock Redis pub/sub `response_submitted` events — no real Redis required |
+| Response submission event | Input | Cube 2, Cube 3 | **SIMULATED** | Mock Supabase broadcast `response_submitted` events — no external dependency required |
 | Collected response set | Input | Cube 4 (Collector) | **SIMULATED** | Mock response count from Cube 4 fixture store (28 responses across 4 sessions) |
 | All-confirmed signal | Input | Cube 4 (Desired Outcomes) | **SIMULATED** | Mock confirmation gate with all participants pre-confirmed |
 | Jurisdiction code | Input | Cube 1 / User profile | **LIVE** | Uses real `hi_rates.py` lookup table — 59 jurisdictions loaded from production data |
@@ -991,7 +991,7 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 20/20 pass, average back
 |--------|:---:|---|---|
 | Security | 70 | No RLS verification on `push_to_live_feed()` path | Broadcast path not implemented — no security boundary test. When CRS-09.03 is implemented, must verify only `clean_text` flows to broadcast, never raw. |
 | Stability | 65 | No retry on DB write failure; M2/M3 flow absent | `store_raw_response()` is fire-and-forget with no retry. Methods 2 & 3 (`desired_outcome`, `confirmation_gate`) not implemented — partial sessions leave no outcome record. |
-| Scalability | 75 | No backpressure signal to ingestion | Redis presence tracking implemented; pagination correct. No cap on simultaneous DB writes at burst load. No Supabase broadcast from Cube 4 itself. |
+| Scalability | 75 | No backpressure signal to ingestion | in-memory presence tracking implemented; pagination correct. No cap on simultaneous DB writes at burst load. No Supabase broadcast from Cube 4 itself. |
 | Efficiency | 70 | Single write is correct but no batching | Single-row PostgreSQL writes per response (not batched). At 1000+ responses, 1000 individual writes where batch would reduce overhead. |
 | Succinctness | 80 | 3 unimplemented stubs inflate function table | `create_desired_outcome()`, `record_confirmation()`, `log_post_task_results()` are stubs with no body — clean but inflated LOC count. |
 
@@ -1154,7 +1154,7 @@ Cube 1 _transition_and_return() imports cube5_gateway.service.orchestrate_post_p
 ```
 **Status: WIRED — direct import creates tight coupling.**
 - Works correctly. Direct import means Cube 5 service must be importable from Cube 1 router at startup.
-- **Recommendation for production:** Replace direct import with an event bus (Redis pub/sub) so Cube 1 fires a `session_state_changed` event and Cube 5 subscribes. Decouples the cubes; enables horizontal scaling where Cube 1 and Cube 5 may run in different workers.
+- **Recommendation for production:** Replace direct import with an event bus (Supabase broadcast) so Cube 1 fires a `session_state_changed` event and Cube 5 subscribes. Decouples the cubes; enables horizontal scaling where Cube 1 and Cube 5 may run in different workers.
 - **For MVP:** Current direct-import pattern is acceptable. Document as tech debt.
 
 #### Link 4 → 2 / 4 → 3: Mixed Text + Voice Collection

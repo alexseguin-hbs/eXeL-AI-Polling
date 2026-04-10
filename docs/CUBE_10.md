@@ -558,7 +558,7 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 | `ResponseRead.summary_33` | str \| None | Populated async by Cube 6 Phase A |
 | Anonymization | Mode-dependent | anonymous: participant_id=None, anon_hash=64-char; identified: participant_id=UUID, anon_hash=None |
 | Phase A task | Fires async | `summarize_single_response()` called with clean_text (never raw_text) |
-| Redis event | Published | `cube2:response:{session_id}` channel receives submission event |
+| Supabase broadcast event | Published | `cube2:response:{session_id}` channel receives submission event |
 
 **Downstream Contracts (MUST NOT break):**
 - Cube 3: Imports `detect_pii`, `scrub_pii`, `detect_profanity`, `scrub_profanity`, `publish_submission_event` from Cube 2
@@ -800,7 +800,7 @@ Cube 10 treats each cube (1-9) as an independently testable unit by replacing it
 
 **Isolation Guarantees:**
 - Each simulation runs in a sandboxed environment — no writes to production databases
-- Redis state is mocked with in-memory stores
+- In-memory state is mocked with in-memory stores
 - MongoDB reads come from snapshot data, not live collections
 - External API calls (AI providers, STT providers) use recorded responses unless explicitly testing live integration
 - The cube's dependency graph hash is computed and stored with every simulation run for version traceability
@@ -826,7 +826,7 @@ Each cube has specific upstream inputs that are simulated (fixture data) and dow
 | 1 | Moderator config, QR scan | QR generation, UUID | Session ID, participant record | SPIRAL_METRICS N=18 |
 | 2 | Raw text, session config | PII detection (NER model) | Validated response, hash | SPIRAL_METRICS N=18 |
 | 3 | Audio blob, session config | STT API (provider-dependent) | Transcript, hash | SPIRAL_METRICS N=9 |
-| 4 | Cube 2/3 responses | Redis presence | Collected set, language breakdown | SPIRAL_METRICS N=9 |
+| 4 | Cube 2/3 responses | in-memory presence | Collected set, language breakdown | SPIRAL_METRICS N=9 |
 | 5 | Session state events | Rate table lookup | Time entries, pipeline triggers | SPIRAL_METRICS N=18 |
 | 6 | Collected responses, seed | AI embedding + summarization APIs | Themes, summaries, assignments | SPIRAL_METRICS N=9 |
 | 7 | Theme list, user rankings | (all math, no external APIs) | Aggregated rankings, governance | PENDING |

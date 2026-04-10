@@ -81,7 +81,8 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 
 ### Databases
 - **PostgreSQL (via Supabase):** Primary relational store — sessions, questions, rankings, audit, tokens, governance. Raw response text stored in `ResponseMeta.raw_text`; AI-generated summaries stored in `ResponseSummary` table (333/111/33-word tiers).
-- **~~Redis~~ REMOVED (2026-04-09):** Replaced by Supabase Realtime (broadcasting), Python in-memory (presence, rate limiting, BordaAccumulator), Supabase DB (persistence)
+- **Supabase Realtime:** Broadcasting, presence sync, live feed delivery
+- **Python in-memory:** Presence tracking, rate limiting, BordaAccumulator
 
 ### Authentication
 - **Provider:** Auth0
@@ -125,7 +126,7 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 | API Gateway | Shared / Cube 5 | FastAPI routes, rate limiting, auth, request validation |
 | Session Service | **Cube 1** | Session CRUD, state machine, QR generation |
 | Ingestion Service | **Cubes 2 & 3** | Text/voice input validation, anonymization, PII detection |
-| Collection Service | **Cube 4** | Response aggregation, PostgreSQL writes, Redis caching |
+| Collection Service | **Cube 4** | Response aggregation, PostgreSQL writes, in-memory presence |
 | Orchestrator Service | **Cube 5** | Triggers AI + ranking pipelines, time tracking |
 | Embedding Worker Fleet | **Cube 6** (workers) | Batch embedding generation (async, horizontally scaled) |
 | Clustering Engine | **Cube 6** (clusterer) | MiniBatchKMeans streaming clusterer (deterministic seed) |
@@ -139,7 +140,7 @@ git remote set-url origin https://alexseguin-hbs:<NEW_TOKEN>@github.com/alexsegu
 - **No row-by-row API calls** — batch all embedding requests
 - **No disk-heavy CSV intermediates** — stream data through pipeline
 - **No repeated full clustering** — use streaming/incremental updates
-- **Horizontal scaling** — all services must be stateless or use shared state (Redis/Postgres)
+- **Horizontal scaling** — all services must be stateless or use shared state (Supabase/Postgres)
 - **Rate limiting** on all public endpoints
 - **Anti-sybil safeguards** on voting and response submission
 - **Governance weight damping** to prevent manipulation
@@ -193,7 +194,7 @@ All clustering and ranking operations must be fully reproducible:
 | AI provider outage | Circuit breaker → queue requests → retry with exponential backoff → failover to next provider → fallback to cached embeddings |
 | Embedding backlog surge | Back-pressure signal to ingestion → sampling mode → priority queue |
 | Partial cluster update | Atomic batch commits → rollback on failure → serve last stable cluster |
-| Redis failure | Graceful degradation to Postgres for state → reconnect with backoff |
+| Supabase Realtime failure | Graceful degradation to HTTP REST poll → reconnect with backoff |
 | Postgres failover | Read replicas → automatic promotion → connection pool retry |
 | Burst queue overflow | Shed load via sampling → reject with 503 + retry-after header |
 | Governance manipulation | Anti-sybil detection → weight damping → anomaly flagging → audit log |
@@ -272,7 +273,7 @@ All clustering and ranking operations must be fully reproducible:
 ## Cube Architecture Overview
 | Cube | Position | Name | MVP | Description |
 |------|----------|------|-----|-------------|
-| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create, state machine, QR/link, join flow, capacity tiers, Moderator config. **SSSES 100%** — Security (Auth0 RBAC, rate limiting, PII anonymization, anti-sybil), Stability (state machine with validated transitions, retry logic, circuit breakers), Scalability (Redis presence, Supabase Realtime, horizontal-ready), Efficiency (indexed queries, batch operations, streaming QR), Succinctness (all functions <300 LOC, no legacy v04.2 comments). CRS-01 fully implemented and audited to 100% SSSES. |
+| 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create, state machine, QR/link, join flow, capacity tiers, Moderator config. **SSSES 100%** — Security (Auth0 RBAC, rate limiting, PII anonymization, anti-sybil), Stability (state machine with validated transitions, retry logic, circuit breakers), Scalability (in-memory presence, Supabase Realtime, horizontal-ready), Efficiency (indexed queries, batch operations, streaming QR), Succinctness (all functions <300 LOC, no legacy v04.2 comments). CRS-01 fully implemented and audited to 100% SSSES. |
 | 2 | (1,2,3) | Text Submission Handler | 1 | Text validation (33 languages), PII detection, anonymization, token display |
 | 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT (4 providers), circuit breaker failover, Cube 2 pipeline |
 | 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs (33 languages), PostgreSQL storage, presence tracking |
@@ -353,7 +354,7 @@ Track and optimize for:
 ## Local Environment
 - Backend: Python venv in `backend/` directory
 - Frontend: Node.js in `frontend/` directory
-- Databases: Supabase (PostgreSQL). No Redis — replaced by Python in-memory + Supabase Realtime.
+- Databases: Supabase (PostgreSQL + Realtime). Python in-memory for presence + rate limiting.
 
 ## API, SDK & Embed Architecture — Current State
 

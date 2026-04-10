@@ -45,7 +45,7 @@ All metric baselines recorded during bidirectional spiral verification runs.
 - Forward (2→10): All downstream cubes compatible — PASS
   - Cube 3 (Voice): Uses same PII/profanity pipeline via Cube 2 imports
   - Cube 4 (Collector): Aggregates responses stored by Cube 2
-  - Cube 6 (AI): Consumes Redis `response_submitted` events
+  - Cube 6 (AI): Consumes Supabase broadcast `response_submitted` events
   - Cube 8 (Tokens): Ledger entries created via Cube 5 time tracking
   - Cube 9 (Reports): Exports clean_text + response_hash
 - Backward (10→1): 2 issues found and fixed — PASS
@@ -157,7 +157,7 @@ cd frontend && npx next build
   - Cube 3 (Voice): V2T provider selector in Moderator Settings wired to 4 providers
   - Cube 4 (Collector): Aggregates voice responses stored by Cube 3
   - Cube 5 (Gateway): Time tracking integration (start/stop voice_responding)
-  - Cube 6 (AI): Consumes Redis events for theme pipeline (voice + text)
+  - Cube 6 (AI): Consumes Supabase broadcast events for theme pipeline (voice + text)
   - Cube 8 (Tokens): Ledger entries via Cube 5 time tracking
   - Cube 9 (Reports): Exports voice transcript data with clean_text + response_hash
 - Backward (10→3→2→1): All verified — PASS

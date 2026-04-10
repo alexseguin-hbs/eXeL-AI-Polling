@@ -328,7 +328,7 @@ No spiral metrics recorded yet -- **PENDING implementation**. Baseline (N=5+) re
 |------|-------|---------|
 | `backend/app/cubes/cube7_ranking/service.py` | 910 | Full ranking engine: Borda, quadratic, anomaly, override, emerging, personal rank |
 | `backend/app/cubes/cube7_ranking/router.py` | 235 | 10 API endpoints with auth gates |
-| `backend/app/cubes/cube7_ranking/scale_engine.py` | 420 | 1M-scale: streaming accumulator, Redis, sharded broadcast, auto-theming budget |
+| `backend/app/cubes/cube7_ranking/scale_engine.py` | 420 | 1M-scale: streaming accumulator, Supabase, sharded broadcast, auto-theming budget |
 | `backend/app/models/ranking.py` | 110 | ORM: Ranking, AggregatedRanking, GovernanceOverride |
 | `backend/app/schemas/ranking.py` | 65 | Pydantic: RankingSubmit/Read, AggregatedRankingRead, GovernanceOverride Submit/Read |
 | `backend/tests/cube7/` | 164 tests | 5 test files: unit, E2E, simulation, MVP2, scale, SSSES optimization |
@@ -1596,7 +1596,7 @@ Moderator clicks Stop Polling → Cube 5 fires run_pipeline()
 | 37 | **S3** Batch embedding API for Phase B assignment | 6 | Scalability +15 | NEW |
 | 38 | **S4** Streaming CSV export for >100K responses | 9 | Scalability +10 | NEW |
 | 39 | **S5** Kubernetes HPA config for embedding worker fleet | Infra | Scalability +10 | NEW |
-| 40 | **S6** Redis-backed global Semaphore (cross-worker) | 6 | Scalability +10 | NEW |
+| 40 | **S6** Supabase-backed global Semaphore (cross-worker) | 6 | Scalability +10 | NEW |
 
 ---
 

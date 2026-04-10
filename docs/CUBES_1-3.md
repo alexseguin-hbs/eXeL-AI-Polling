@@ -13,7 +13,7 @@
 - **State machine:** draft → open → polling → ranking → closed → archived (with timestamp tracking)
 - **QR code generation:** PNG + base64 JSON endpoints
 - **Short code:** 8-char generation with 5-attempt collision retry + DB uniqueness check
-- **Participant join:** anonymous + identified support, duplicate join detection, Redis presence tracking
+- **Participant join:** anonymous + identified support, duplicate join detection, in-memory presence tracking
 - **Question management:** CRUD with cycle_id for multi-round support
 - **Session expiry:** 24h default, `SessionExpiredError` (410 Gone), QR blocked for expired/closed
 - **Time tracking integration:** Auto-login entry calls Cube 5 `create_login_time_entry()` → awards ♡1 token on join
@@ -91,7 +91,7 @@
 | `generate_qr_code()` | **Implemented** | PNG + base64 |
 | `validate_join_request()` | **Implemented** | Expiry + state + capacity check |
 | `check_capacity()` | **Implemented** | Enforces max_participants, 409 on full |
-| `join_session()` | **Implemented** | language_code, results_opt_in, Redis presence, login token |
+| `join_session()` | **Implemented** | language_code, results_opt_in, in-memory presence, login token |
 | `transition_session_state()` | **Implemented** | Full state machine (6 states) + ends_at computation for static polls |
 | `get_session_by_code()` | **Implemented** | |
 | `check_session_expiry()` | **Implemented** | `is_expired` property + 410 |
@@ -138,7 +138,7 @@ When Cube 1 is loaded into the Cube 10 Simulation Orchestrator for isolated test
 | `generate_qr_code()` | LIVE | Actually generates QR PNG from short_code (pure local library, no external API) |
 | `validate_join_request()` | SIMULATED | Skips expiry and state checks; always allows join in SIM |
 | `check_capacity()` | SIMULATED | Mock sessions have `max_participants: null` (unlimited) or pre-set cap |
-| `join_session()` | SIMULATED | Creates mock participant in-memory; no DB write; no Redis HSET; auto-awards login token (1 ♡, 5 ◬) |
+| `join_session()` | SIMULATED | Creates mock participant in-memory; no DB write; no in-memory dict; auto-awards login token (1 ♡, 5 ◬) |
 | `transition_session_state()` | SIMULATED | State transitions driven by SIM transport controls (`|<`, `<<`, `>>`, `>|`); no DB update; `ends_at` computed in-memory for static polls |
 | `get_session_by_code()` | SIMULATED | Looks up mock session from in-memory `mockSessions` map |
 | `check_session_expiry()` | SIMULATED | Always returns not-expired in SIM; no `SessionExpiredError` thrown |
@@ -203,7 +203,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb
 4. `transition(open→polling)` — Starts response collection
 5. `transition(polling→ranking)` — AI theming phase
 6. `transition(ranking→closed)` — Sets `closed_at`
-7. `transition(closed→archived)` — Clears Redis presence
+7. `transition(closed→archived)` — Clears in-memory presence
 8. `verify_ownership` — 403 for non-owner, admin bypass
 9. `generate_qr_code` — PNG with valid magic bytes
 
@@ -521,7 +521,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | CRS-04.03 | CRS-04.03.IN.SRS | CRS-04.03.OUT.SRS | **Implemented** | 1 | State machine with validated transitions only (draft→open→polling→ranking→closed→archived) | All 6 transitions enforced; invalid transitions return 409 | Automated state transitions on timer expiry for static polls | 6 valid transitions enforced; invalid transition attempts return 409; timestamps (`opened_at`, `closed_at`) set on relevant transitions; `ends_at` computed for static polls on polling transition |
 | CRS-05 | CRS-05.IN.WRS.005 | CRS-05.OUT.WRS.005 | **Implemented** | 1 | Participant auto-advances to polling input when moderator clicks Start Polling — works on phone, computer, QR join, and direct code entry, whether in lobby or joining late | Status transition delivered to all participants ≤2s via Supabase Broadcast (Layer 1) with Presence (Layer 2) + Supabase DB (Layer 4) fallbacks; never requires page refresh | Sub-50ms delivery via WebSocket Broadcast confirmed in live test (2026-03-27, 13 participants); late joiners bypass lobby entirely | All participants receive status transition <= 2s; 4-layer sync stack (Broadcast + Presence + CF KV + Supabase DB); no page refresh required; confirmed ~50-70ms in live test with 13 participants |
 | CRS-05.01 | CRS-05.01.IN.WRS | CRS-05.01.OUT.WRS | **Implemented** | 1 | Supabase Broadcast (Layer 1) — primary push for all status transitions | ~50–70ms delivery; `session_status` row written on every transition | Dedicated Realtime channel per session with heartbeat monitoring | Broadcast delivery ~50-70ms measured; `session_status` DB row written on CREATE and every transition; channel subscribed before send (no ad-hoc `.channel().send()`) |
-| CRS-05.02 | CRS-05.02.IN.WRS | CRS-05.02.OUT.WRS | **Implemented** | 1 | Presence (Layer 2) — frontend uses Supabase `channel.track()` for late joiners; backend uses Redis HSET pattern for presence tracking | Presence state persists for joining participants; no polling required | Presence-based participant count shown to moderator in real time | Frontend `channel.track()` fires on join; backend Redis HSET + EXPIRE on join; presence persists for session duration; participant count accurate within 1s of join |
+| CRS-05.02 | CRS-05.02.IN.WRS | CRS-05.02.OUT.WRS | **Implemented** | 1 | Presence (Layer 2) — frontend uses Supabase `channel.track()` for late joiners; backend uses in-memory dict pattern for presence tracking | Presence state persists for joining participants; no polling required | Presence-based participant count shown to moderator in real time | Frontend `channel.track()` fires on join; backend in-memory dict + EXPIRE on join; presence persists for session duration; participant count accurate within 1s of join |
 | CRS-05.03 | CRS-05.03.IN.WRS | CRS-05.03.OUT.WRS | **Implemented** | 1 | Supabase DB REST poll (Layer 4) — globally consistent fallback; covers all CF KV cross-region misses | 1.5s poll interval; `session_status` table read; `STATUS_ORDER` rank prevents regressions | Webhook-triggered DB update to eliminate polling entirely | 1.5s poll interval on `session_status` table; `STATUS_ORDER` rank enforced (status never regresses); covers cross-region CF KV misses; returns `title` + `polling_mode_type` for hydration |
 | CRS-05.04 | CRS-05.04.IN.WRS | CRS-05.04.OUT.WRS | **Implemented** | 1 | Late joiner bypass — participants joining after polling starts skip lobby and land directly on polling input | Bypass logic in `join_session()` + `session-view.tsx`; status checked at join time | Server-sent event to remove polling client-side entirely | Late joiners (session status = polling) bypass lobby with zero lobby time; bypass logic verified in both `join_session()` backend and `session-view.tsx` frontend; tested in Scenarios C + D |
 
@@ -529,7 +529,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | Layer | Mechanism | Latency | Dependency | Failure Mode |
 |-------|-----------|---------|------------|-------------|
 | 1 | Supabase Broadcast (WebSocket) | ~50–70ms | Supabase project active | Silent if Supabase paused |
-| 2 | Presence (frontend: Supabase `channel.track()`; backend: Redis HSET) | ~50–70ms | Supabase project active + Redis available | Persists for late joiners via `channel.track()`; backend presence via Redis HSET pattern |
+| 2 | Presence (frontend: Supabase `channel.track()`; backend: in-memory dict) | ~50–70ms | Supabase project active + Supabase available | Persists for late joiners via `channel.track()`; backend presence via in-memory dict pattern |
 | 3 | CF KV poll (1s HTTP) | ~1s | `RESPONSES` KV binding in CF Pages | Per-datacenter; cross-region miss without binding |
 | 4 | Supabase DB poll (1.5s HTTP REST) | ~1.5s | `session_status` table exists | Globally consistent; covers all CF KV misses |
 
@@ -602,7 +602,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 - **Profanity detection:** DB-driven profanity_filters table by language_code, regex matching
 - **Profanity scrubbing:** Configured replacements, non-blocking (submission proceeds regardless)
 - **PostgreSQL storage:** ResponseMeta + TextResponse (single store)
-- **Redis pub/sub:** Publishes `response_submitted` event for Cube 6 downstream consumption
+- **Supabase broadcast:** Publishes `response_submitted` event for Cube 6 downstream consumption
 - **Time tracking:** Cube 5 integration — start on submit, stop on store, ♡/◬ tokens returned
 - **Anonymization (CRS-05):** `anonymize_response()` — anonymous (None pid + anon_hash), identified (pid preserved), pseudonymous (both)
 - **Language detection:** Unicode script-based sanity check for 13 non-Latin scripts, non-blocking
@@ -627,7 +627,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | CRS-06.01 | CRS-06.01.IN.SRS | CRS-06.01.OUT.SRS | **Complete** | Time-based auto-open with countdown | `validate_session_for_submission()` returns error for non-polling sessions; 100% rejection rate verified |
 | CRS-06.02 | CRS-06.02.IN.SRS | CRS-06.02.OUT.SRS | **Complete** | Stop Polling triggers Cube 6 Phase B (theming pipeline) | Stop Polling triggers Phase B within 1s of `polling→ranking` transition; pipeline entry logged |
 | CRS-07 | CRS-07.IN.WRS.007 | CRS-07.OUT.WRS.007 | **Complete** | Rich text + autosave drafts | Response stored in PostgreSQL within 200ms; SHA-256 hash computed on `clean_text`; PII scrubbed before storage; up to 5000 chars Unicode-aware |
-| CRS-07.01 | CRS-07.01.IN.WRS | CRS-07.01.OUT.WRS | **Complete** | 33-language text pipeline (validate → PII → profanity → store → publish) | 6-step pipeline executes in order (validate→PII detect→PII scrub→profanity→store→publish); any step failure returns structured error; Redis event published on success |
+| CRS-07.01 | CRS-07.01.IN.WRS | CRS-07.01.OUT.WRS | **Complete** | 33-language text pipeline (validate → PII → profanity → store → publish) | 6-step pipeline executes in order (validate→PII detect→PII scrub→profanity→store→publish); any step failure returns structured error; Supabase broadcast event published on success |
 | CRS-07.02 | CRS-07.02.IN.WRS | CRS-07.02.OUT.WRS | **Complete** | Voice transcript routed through Cube 2 pipeline (Cube 3 → Cube 2) | Voice transcripts pass through identical PII + profanity pipeline as text; `source=voice` on `response_meta`; same `clean_text` output |
 | CRS-07.03 | CRS-07.03.IN.WRS | CRS-07.03.OUT.WRS | **In progress** — SSSES Tasks A4/A6 (A5 IMPLEMENTED) | Moderator live feed toggle: raw text (default) vs AI 33-word summary | Toggle persists per session in localStorage; `summary_33` broadcast <= 5s after submission; fallback to client truncation if Phase A pending |
 | CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Complete** (hash) | AES-256 encryption at rest | SHA-256 integrity hash matches `clean_text`; PII types logged in JSONB; 64-char hex hash on every response |
@@ -666,7 +666,7 @@ When Cube 2 is loaded into the Cube 10 Simulation Orchestrator for isolated test
 | pii_detection_result | Output | Cube 4, Cube 9 | SIMULATED | PII pipeline runs in test fixtures; mock responses are PII-clean |
 | profanity_flag | Output | Cube 4, Moderator | SIMULATED | Profanity pipeline runs in test fixtures; mock responses are clean |
 | token_display_trigger | Output | Cube 5 (Gateway) | SIMULATED | ♡/◬ calculated in-memory using mock TimerContext; no Cube 5 API call |
-| submission_event | Output | Cube 5 (Gateway) | BOTH | Redis pub/sub event published in production; in SIM, `mockResponses` push + optional Cloudflare Cache API POST |
+| submission_event | Output | Cube 5 (Gateway) | BOTH | Supabase broadcast event published in production; in SIM, `mockResponses` push + optional Cloudflare Cache API POST |
 | response_hash | Output | Cube 9 (Reports) | SIMULATED | SHA-256 computed on clean_text in test fixtures; mock responses skip hashing |
 
 #### Function Simulation Modes
@@ -680,7 +680,7 @@ When Cube 2 is loaded into the Cube 10 Simulation Orchestrator for isolated test
 | `detect_profanity()` | SIMULATED | Checks against mock profanity_filters table; no DB query in SIM; test fixtures provide filter patterns |
 | `anonymize_response()` | SIMULATED | Applies anonymity mode from mock session; test fixtures cover anonymous/identified/pseudonymous |
 | `store_text_response()` | SIMULATED | Writes to `mockResponses[sessionId]` in-memory array; no PostgreSQL write in SIM |
-| `emit_submission_event()` | BOTH | In SIM: pushes to local `mockResponses[]` + fire-and-forget POST to `/api/responses` (Cloudflare Cache API). In production: Redis pub/sub `response_submitted` |
+| `emit_submission_event()` | BOTH | In SIM: pushes to local `mockResponses[]` + fire-and-forget POST to `/api/responses` (Cloudflare Cache API). In production: Supabase broadcast `response_submitted` |
 | `push_to_live_feed()` | SIMULATED | Not implemented; 33-word summaries shown via mock data in live feed UI |
 
 #### Canned Test Data
@@ -860,7 +860,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | PII detection result | Cube 4, Cube 9 | Whether PII was found and scrubbed |
 | Profanity flag | Cube 4, Moderator dashboard | Whether profanity was detected |
 | Token display trigger | Cube 5 (Gateway) | Triggers ♡/◬ calculation for immediate display |
-| Submission event (Redis) | Cube 5 (Gateway), Cube 6 (AI) | Publishes `response_submitted` to Redis; consumed by Cube 6 for Phase A |
+| Submission event (Supabase broadcast) | Cube 5 (Gateway), Cube 6 (AI) | Publishes `response_submitted` via Supabase broadcast; consumed by Cube 6 for Phase A |
 | `summary_33` broadcast | Moderator live feed (dashboard) | **IMPLEMENTED** — AI 33-word summary broadcast via Supabase after Cube 6 Phase A completes (`cube6_ai/service.py` lines 203-213, SSSES Task A5). Dashboard listener (Task A6) still needed. |
 
 ### Cube 2 — Functions (Requirements.txt)
@@ -873,7 +873,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | `detect_profanity()` | **Implemented** | Checks against language-specific profanity filters from DB |
 | `anonymize_response()` | **Implemented** | Strips identifying info based on session anonymity_mode (anonymous/identified/pseudonymous) |
 | `store_text_response()` | **Implemented** | Writes validated response to PostgreSQL (ResponseMeta + TextResponse) |
-| `emit_submission_event()` | **Implemented** | Publishes `response_submitted` to Redis pub/sub for Cube 6 consumption. **Does not include `summary_33`** — summary is generated async by Cube 6 Phase A after this event fires. |
+| `emit_submission_event()` | **Implemented** | Publishes `response_submitted` to Supabase broadcast for Cube 6 consumption. **Does not include `summary_33`** — summary is generated async by Cube 6 Phase A after this event fires. |
 | `push_to_live_feed()` | **IMPLEMENTED — SSSES Task A5** | After Cube 6 Phase A generates `summary_33`, backend broadcasts `summary_ready` event via Supabase to Moderator dashboard (`cube6_ai/service.py` lines 203-213). Dashboard listener (Task A6) still needed to consume event. |
 
 ### Cube 2 — UI/UX Translation Strings (13 keys per Requirements.txt)
@@ -905,8 +905,8 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | CRS-06 | CRS-06.IN.SRS.006 | CRS-06.OUT.SRS.006 | **Implemented** | 1 | Moderator opens/closes polling window deliberately | Instant state transitions, 100% enforcement | Scheduled auto-open/close with time-based rules | State transition executes in < 100ms; 100% rejection of submissions outside polling window; `SessionNotPollingError` returned for non-polling sessions |
 | CRS-06.01 | CRS-06.01.IN.SRS | CRS-06.01.OUT.SRS | **Implemented** | 1 | Start Polling: `validate_session_for_submission()` enforces `status == "polling"` before accepting any response | 100% rejection of submissions outside polling window | Time-based auto-open with moderator-set schedule | `validate_session_for_submission()` checks `status == "polling"`; returns structured error for draft/open/ranking/closed/archived; 0% bypass rate |
 | CRS-06.02 | CRS-06.02.IN.SRS | CRS-06.02.OUT.SRS | **Implemented** | 1 | Stop Polling: session transitions `polling → ranking`; triggers Cube 6 Phase B pipeline | Phase B fires within 1s of status transition | Graceful drain — accept in-flight submissions up to 5s after close | `polling→ranking` transition sets `closed_at` timestamp; Phase B pipeline triggered within 1s; subsequent submissions rejected immediately |
-| CRS-07 | CRS-07.IN.WRS.007 | CRS-07.OUT.WRS.007 | **Implemented** | 1 | User submits text responses reliably with constraints | Full pipeline (validate → PII → profanity → store → publish), up to 5000 chars, Unicode-aware | Rich text formatting + autosave drafts | Response stored in PostgreSQL within 200ms; SHA-256 hash computed on `clean_text`; PII scrubbed before storage; Unicode char count (not byte); up to 5000 chars; Redis event published |
-| CRS-07.01 | CRS-07.01.IN.WRS | CRS-07.01.OUT.WRS | **Implemented** | 1 | Full text submission pipeline: validate → PII detect/scrub → profanity detect/scrub → store (PostgreSQL) → Redis publish | All 6 steps execute in order; any step failure returns structured error; submission non-blocking for profanity | Autosave drafts — in-progress text preserved across device events | 6-step pipeline: validate (length + non-empty) → PII detect (NER + regex) → PII scrub ([TYPE_REDACTED]) → profanity detect (DB patterns) → store (ResponseMeta + TextResponse) → publish (Redis `response_submitted`); profanity non-blocking |
+| CRS-07 | CRS-07.IN.WRS.007 | CRS-07.OUT.WRS.007 | **Implemented** | 1 | User submits text responses reliably with constraints | Full pipeline (validate → PII → profanity → store → publish), up to 5000 chars, Unicode-aware | Rich text formatting + autosave drafts | Response stored in PostgreSQL within 200ms; SHA-256 hash computed on `clean_text`; PII scrubbed before storage; Unicode char count (not byte); up to 5000 chars; Supabase broadcast event published |
+| CRS-07.01 | CRS-07.01.IN.WRS | CRS-07.01.OUT.WRS | **Implemented** | 1 | Full text submission pipeline: validate → PII detect/scrub → profanity detect/scrub → store (PostgreSQL) → Supabase broadcast | All 6 steps execute in order; any step failure returns structured error; submission non-blocking for profanity | Autosave drafts — in-progress text preserved across device events | 6-step pipeline: validate (length + non-empty) → PII detect (NER + regex) → PII scrub ([TYPE_REDACTED]) → profanity detect (DB patterns) → store (ResponseMeta + TextResponse) → broadcast (Supabase `response_submitted`); profanity non-blocking |
 | CRS-07.02 | CRS-07.02.IN.WRS | CRS-07.02.OUT.WRS | **Implemented** | 1 | Multilingual support: 33 languages, Unicode-aware length check, script-based language sanity check | Unicode char count (not byte count); CJK, Arabic, Emoji all accepted | ML-based language detection replacing Unicode heuristic | Unicode `len()` used (not `encode()` byte count); CJK, Arabic, Korean, Emoji inputs accepted and stored; language_code validated against 13 non-Latin scripts; mismatch logged but non-blocking |
 | CRS-07.03 | CRS-07.03.IN.WRS | CRS-07.03.OUT.WRS | **In progress** — SSSES Tasks A4/A6 (A5 IMPLEMENTED) | 1 | Moderator live feed toggle: "Live Feedback" (raw `clean_text`, default) vs "33-Word Summary" (AI `summary_33` via Cube 6 Phase A) | Toggle persisted per session; `summary_33` broadcast from backend ≤5s after submission; fallback to client truncation if Phase A pending | Real-time sentiment indicator alongside live feed entries | Toggle stored in localStorage keyed by session_code; `summary_ready` broadcast arrives <= 5s; feed entry updated in-place by `response_id`; fallback `summarizeTo33Words()` fires if broadcast not received within timeout |
 | CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Implemented** (hash) | 1 | System stores responses securely with timestamps + integrity verification | SHA-256 response_hash on every response, timestamp on submission | AES-256 encryption at rest for all stored response data | SHA-256 `response_hash` = 64-char hex on every response; `submitted_at` timestamp on `response_meta`; hash deterministic for identical inputs; integrity verifiable by client via API |
@@ -939,7 +939,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 - **PostgreSQL storage:** ResponseMeta + VoiceResponse + TextResponse (single store)
 - **Response integrity (CRS-08):** SHA-256 hash of clean_text stored on TextResponse.response_hash, returned in API
 - **Time tracking (Cube 5):** start_time_tracking on submit, stop_time_tracking after store, ♡/◬ tokens returned
-- **Redis pub/sub:** Publishes `response_submitted` event for Cube 6 downstream consumption
+- **Supabase broadcast:** Publishes `response_submitted` event for Cube 6 downstream consumption
 - **Immediate token display:** ♡ and ◬ returned in submission response for instant UI feedback
 - **Real-time STT (paid feature):** WebSocket endpoint with Azure (primary) + AWS (fallback) streaming
 - **Metrics:** System/User/Outcome metrics endpoints for Cube 10 simulation
@@ -1073,7 +1073,7 @@ When Cube 3 is loaded into the Cube 10 Simulation Orchestrator for isolated test
 | transcript_text | Output | Cube 2 pipeline (then Cube 4) | SIMULATED | Pre-written transcript from sim-data; no actual STT API call |
 | stt_confidence_score | Output | Cube 4, Cube 9 | SIMULATED | Hardcoded confidence values (0.85-0.95) in mock provider responses |
 | token_display_trigger | Output | Cube 5 (Gateway) | SIMULATED | ♡/◬ calculated in-memory using mock TimerContext; no Cube 5 API call |
-| submission_event | Output | Cube 5 (Gateway) | SIMULATED | Pushes to `mockResponses[]` in-memory; no Redis pub/sub in SIM |
+| submission_event | Output | Cube 5 (Gateway) | SIMULATED | Pushes to `mockResponses[]` in-memory; no Supabase broadcast in SIM |
 | response_hash | Output | Cube 9 (Reports) | SIMULATED | SHA-256 computed on transcript clean_text in test fixtures |
 
 #### Function Simulation Modes
@@ -1139,7 +1139,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 | `test_e2e_flows.py` | 5 | 21 | E2E flows (submission, PII, CRS-08, circuit breaker, AWS provider) |
 
 **Submission Test Flow (TestSubmissionFlow):**
-1. `voice_submit_full_pipeline` — Full E2E: transcribe → PII → store → tokens → Redis event
+1. `voice_submit_full_pipeline` — Full E2E: transcribe → PII → store → tokens → Supabase broadcast event
 2. `voice_submit_returns_token_display` — ♡ + ◬ returned with correct values
 3. `voice_submit_rejects_non_polling_session` — SessionNotPollingError
 4. `voice_submit_rejects_empty_transcript` — ResponseValidationError
@@ -1255,7 +1255,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 | Transcript text | Cube 2 pipeline (then Cube 4) | Converted text forwarded into text ingestion pipeline (PII → profanity → store) |
 | STT confidence score | Cube 4, Cube 9 | Confidence of transcription accuracy for quality auditing |
 | Token display trigger | Cube 5 (Gateway) | Triggers ♡/◬ calculation for immediate display |
-| Submission event | Cube 5 (Gateway) | Notifies gateway of new voice response via Redis pub/sub |
+| Submission event | Cube 5 (Gateway) | Notifies gateway of new voice response via Supabase broadcast |
 
 ### Cube 3 — Functions (Requirements.txt)
 | Function | Status | Description |
@@ -1347,7 +1347,7 @@ CRS-07  User submits text response (any of 33 languages)
    ▼
 CRS-08  Cube 2: validate → PII strip (clean_text) → store (PostgreSQL)
    │         └── Participant broadcasts new_response (raw text) → Moderator dashboard
-   │         └── Redis: publishes response_submitted event (no summary_33)
+   │         └── Supabase: broadcasts response_submitted event (no summary_33)
    │
    ▼ [asyncio.create_task() — fire-and-forget background]
 CRS-09a Cube 6 Phase A — LIVE (per-response, during polling):
@@ -1378,7 +1378,7 @@ CRS-09b Cube 6 Phase B — BATCH (post-close):
 |--------|:---:|:---:|---|---|
 | Security | 75 | 100 | `clean_text` gate must be verified in both text + voice paths | **Audit gap:** Voice path (Cube 3 → Cube 2 pipeline) not explicitly verified in PII gate. Task A7 now covers both paths + adds log assertion. |
 | Stability | 40 | 100 | `summary_33` never reaches live feed; no retry; Phase B unverified | **Audit gap:** Supabase free-tier pause risk — broadcast silently fails. Added A5.01 availability guard. Phase B has no re-trigger mechanism — added B5. |
-| Scalability | 50 | 100 | 3 sequential AI calls; no concurrency cap | **Audit gap:** Semaphore per worker (not global) at horizontal scale. Noted: Redis-backed global cap deferred; per-worker semaphore sufficient for MVP. |
+| Scalability | 50 | 100 | 3 sequential AI calls; no concurrency cap | **Audit gap:** Semaphore per worker (not global) at horizontal scale. Noted: Supabase-backed global cap deferred; per-worker semaphore sufficient for MVP. |
 | Efficiency | 55 | 100 | 3 AI round-trips; fallback truncation shown instead of real AI output | **Audit gap:** Translation + 333-word summary could be one prompt. Updated A1 to two round-trips max (translate+333, then 111+33) instead of three. |
 | Succinctness | 65 | 100 | `summary_33` missing from schema; no typed broadcast | **Audit gap:** `live_feed_enabled` flag not gated in original plan. Added A5.02 — broadcast only fires when flag is `True`. |
 
@@ -1425,7 +1425,7 @@ CRS-09b Cube 6 Phase B — BATCH (post-close):
 | **A0** Short-circuit ≤33 words (BR-1) | `cube6_ai/service.py` | **IMPLEMENTED** — At entry of `_summarize_single_response_inner()`: if `len(raw_text.split()) <= 33`, set all 3 summaries to raw text, store in PostgreSQL, skip all AI calls. Zero latency, zero cost. | Efficiency +5 |
 | **A1** Single-prompt summarization | `cube6_ai/service.py` | **IMPLEMENTED** — Medium text (34-333 words): single structured JSON prompt for all 3 tiers (1 call). Long text (>333): compress to 333 first, then single JSON prompt for 111+33 (2 calls max). Fallback: cascade to individual calls if JSON parse fails. | Efficiency +20, Stability +5 |
 | **A2** Retry with backoff | `cube6_ai/service.py` | 3 attempts, 1s/2s/4s backoff on AI API call. On final failure: store `summary_33: "[Summary unavailable]"` + `flag: true` in PostgreSQL response_summaries. Log structured error with `response_id`. | Stability +25 |
-| **A3** Per-session concurrency cap | `cube6_ai/service.py` + `cube1_session/router.py` | **IMPLEMENTED** — `asyncio.Semaphore(10)` per session in `_phase_a_semaphores` dict. `summarize_single_response()` acquires before AI calls; excess tasks queue in FIFO order. `release_phase_a_semaphore()` called on polling→ranking transition (Cube 1 router) to clean up. Each worker enforces independently — Redis-backed global cap deferred to production scaling phase. | Scalability +30 |
+| **A3** Per-session concurrency cap | `cube6_ai/service.py` + `cube1_session/router.py` | **IMPLEMENTED** — `asyncio.Semaphore(10)` per session in `_phase_a_semaphores` dict. `summarize_single_response()` acquires before AI calls; excess tasks queue in FIFO order. `release_phase_a_semaphore()` called on polling→ranking transition (Cube 1 router) to clean up. Each worker enforces independently — Supabase-backed global cap deferred to production scaling phase. | Scalability +30 |
 | **A4** Add `summary_33` to schema | `schemas/response.py` + `cube2_text/service.py` | **IMPLEMENTED** — `summary_33` field in `ResponseRead`, `ResponseListItem`, `TextResponseDetail` schemas. Both `get_responses()` and `get_response_by_id()` JOIN `response_summaries` table via outerjoin. Returns `None` gracefully when Phase A hasn't run. | Succinctness +20 |
 | **A5** Backend Supabase broadcast | `cube6_ai/service.py` + `core/supabase_broadcast.py` | **IMPLEMENTED** — After Phase A completes: broadcasts `{"event": "summary_ready", "response_id": "...", "summary_33": "..."}` to Supabase channel `session:{short_code}` (`cube6_ai/service.py` lines 203-213). Uses httpx REST with service role key. **Sub-tasks:** A5.01 availability guard (IMPLEMENTED — logs warning + continues on failure); A5.02 gate on `session.live_feed_enabled` (not yet gated); A5.03 covers both text (Cube 2) + voice (Cube 3) paths; A5.04 key scoped to Realtime publish only. | Stability +20, Efficiency +20 |
 | **A6** Dashboard `summary_ready` listener | `frontend/app/dashboard/page.tsx` | **IMPLEMENTED** — `.on("broadcast", { event: "summary_ready" }, ...)` listener at lines 261-272. Updates existing feed entry in-place by `response_id`. Falls back to `summarizeTo33Words()` client truncation when AI summary not yet available. Renders `r.summary_33 \|\| summarizeTo33Words(r.clean_text)` in both compact and fullscreen feed views. | Stability +10, Efficiency +5 |

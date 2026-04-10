@@ -429,14 +429,14 @@ Submission metrics dashboard mirrors session analytics. CSV export of voting res
 |-----|-----|:------:|
 | Saved CSVs loaded fully into memory | Use Supabase Storage streaming + chunked reads | +10 |
 | Voting not using BordaAccumulator | Wire tally_votes to Cube 7 scale engine for 1M voter support | +8 |
-| No batch feedback processing | Redis queue for feedback ingestion, batch flush to DB | +5 |
+| No batch feedback processing | in-memory queue for feedback ingestion, batch flush to DB | +5 |
 
 ### Efficiency (72 → 88+)
 | Gap | Fix | Impact |
 |-----|-----|:------:|
 | Replay loads entire dataset | Stream replay with chunked processing (same as Cube 9 CSV) | +8 |
 | Metrics comparison is synchronous | Background task with Cube 5 pipeline pattern | +5 |
-| No caching of saved case metadata | Redis cache for case list (invalidate on add/drop) | +3 |
+| No caching of saved case metadata | Supabase cache for case list (invalidate on add/drop) | +3 |
 
 ### Succinctness (80 → 92+)
 | Gap | Fix | Impact |
