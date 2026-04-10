@@ -16,7 +16,10 @@
 import React, { Suspense, useState, useMemo, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import divinityPages from "@/lib/divinity-pages.json";
+
+const BilingualReader = dynamic(() => import("@/components/flower-of-life/bilingual-reader"), { ssr: false });
 
 // Language translations — loaded dynamically
 import divinityPagesEs from "@/lib/divinity-pages-es.json";
@@ -352,7 +355,7 @@ function LibraryReader({
 // ── Page Reader Component ────────────────────────────────────────
 
 function PageReader({
-  chapter, section, pageIndex, setPageIndex, onNavigateToChapter, pages, reflectionLabel = "Reflection",
+  chapter, section, pageIndex, setPageIndex, onNavigateToChapter, pages, reflectionLabel = "Reflection", onExpandBilingual,
 }: {
   chapter: Chapter;
   section: Section;
@@ -361,6 +364,7 @@ function PageReader({
   onNavigateToChapter?: (chapterId: number) => void;
   pages: typeof divinityPages;
   reflectionLabel?: string;
+  onExpandBilingual?: () => void;
 }) {
   // Swipe detection for mobile page navigation
   const touchStartX = React.useRef(0);
@@ -392,11 +396,23 @@ function PageReader({
 
   return (
     <div className="w-full max-w-lg animate-in fade-in duration-300" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      {/* Chapter title */}
-      <div className="mb-6">
+      {/* Chapter title + bilingual expand */}
+      <div className="mb-6 flex items-center justify-between">
         <p className="text-xs text-muted-foreground/60">
           {chapter.title}
         </p>
+        {onExpandBilingual && (
+          <button
+            onClick={onExpandBilingual}
+            className="w-7 h-7 rounded-full border flex items-center justify-center hover:bg-accent/30 transition-colors"
+            title="Side-by-side bilingual reader"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="18" rx="2" />
+              <line x1="12" y1="3" x2="12" y2="21" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Content */}
@@ -537,6 +553,12 @@ function DivinityGuidePage() {
   const SECTIONS = SECTIONS_MAP[divinityLang];
   const reflectionLabel = REFLECTION_LABEL[divinityLang];
   const libSubtitles = LIBRARY_SUBTITLE_MAP[divinityLang];
+  // Bilingual reader
+  const [showBilingual, setShowBilingual] = useState(false);
+  const [mirrorLang, setMirrorLang] = useState<DivinityLang>(() => divinityLang !== "en" ? "en" : "es");
+  const mirrorPages = DIVINITY_PAGE_MAP[mirrorLang];
+  const mirrorSections = SECTIONS_MAP[mirrorLang];
+  const mirrorReflectionLabel = REFLECTION_LABEL[mirrorLang];
 
   const { currentTheme } = useTheme();
   const hub = getHubPosition();
@@ -866,6 +888,7 @@ function DivinityGuidePage() {
               setPageIndex={setPageIndex}
               pages={activeDivinityPages}
               reflectionLabel={reflectionLabel}
+              onExpandBilingual={() => setShowBilingual(true)}
               onNavigateToChapter={(nextId) => {
                 if (nextId === 0) {
                   // Return to flower home
@@ -889,6 +912,29 @@ function DivinityGuidePage() {
           )}
         </div>
       </div>
+
+      {/* Bilingual side-by-side overlay */}
+      {showBilingual && selectedChapter && activeSection && (
+        <BilingualReader
+          chapter={selectedChapter}
+          mirrorChapter={(() => {
+            const ms = mirrorSections.find(s => s.id === activeSection.id);
+            return ms?.chapters.find(c => c.id === selectedChapter.id) ?? selectedChapter;
+          })()}
+          section={activeSection}
+          pageIndex={pageIndex}
+          setPageIndex={setPageIndex}
+          primaryLang={divinityLang}
+          mirrorLang={mirrorLang}
+          setMirrorLang={(lang) => setMirrorLang(lang as DivinityLang)}
+          primaryPages={activeDivinityPages}
+          mirrorPages={mirrorPages}
+          onClose={() => setShowBilingual(false)}
+          reflectionLabel={reflectionLabel}
+          mirrorReflectionLabel={mirrorReflectionLabel}
+          availableLanguages={DIVINITY_LANGUAGES}
+        />
+      )}
     </div>
   );
 }
