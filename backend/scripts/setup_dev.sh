@@ -40,7 +40,7 @@ else
     fi
 fi
 
-# (Redis removed — using Supabase + in-memory)
+# Presence: in-memory + Supabase Realtime
 
 # MongoDB
 if mongosh --quiet --eval "db.runCommand({ping:1})" 2>/dev/null | grep -q '"ok" : 1\|"ok":1'; then
@@ -118,7 +118,7 @@ else
     fail "PostgreSQL connection failed (user=polling, db=polling_db)"
 fi
 
-# (Redis removed — presence via in-memory, broadcast via Supabase)
+# Broadcast: Supabase Realtime
 
 # MongoDB
 if mongosh "mongodb://polling:polling@localhost:27017/polling_raw?authSource=admin" --quiet --eval "db.stats()" >/dev/null 2>&1; then
