@@ -327,21 +327,6 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
         );
       })()}
 
-      {/* Legend — Red / Emerald / Ocean Blue */}
-      <div className="flex justify-center gap-6 mt-4 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#FF0000" }} />
-          Understanding
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#10B981" }} />
-          Governance
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#3B82F6" }} />
-          Value
-        </span>
-      </div>
     </div>
   );
 }
