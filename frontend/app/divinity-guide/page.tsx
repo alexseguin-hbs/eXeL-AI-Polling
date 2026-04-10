@@ -183,11 +183,58 @@ function LibraryReader({
       <div className="min-h-[250px]" key={`lib-${section.id}-${pageIndex}`}>
         {bookPage ? (
           <div className="animate-in fade-in slide-in-from-right-2 duration-300">
-            {bookPage.text.split("\n").map((paragraph, i) => (
-              <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: paragraph.startsWith("•") || paragraph.startsWith("—") || paragraph.startsWith("🙏") || paragraph.startsWith("💫") || paragraph.startsWith("💡") || paragraph.startsWith("Chapter") || paragraph.startsWith("*") || paragraph.startsWith("http") ? undefined : "2rem" }}>
-                {paragraph}
-              </p>
-            ))}
+            {bookPage.text.split("\n").map((line, i) => {
+              // URL → styled external link
+              if (line.startsWith("http")) {
+                const label = line.includes("Divinity-Transformation") ? "Sacred Music & Transformation"
+                  : line.includes("Loss-Love-Safety") ? "Love, Loss & Safety"
+                  : line.includes("Divine-Unity") ? "Divine Unity Principles"
+                  : line.includes("Divine-Intelligence") ? "Divine Intelligence Equation"
+                  : "Sacred Resource";
+                return (
+                  <a key={i} href={line.trim()} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 my-4 px-4 py-3 rounded-xl border bg-card hover:bg-accent/30 transition-colors group">
+                    <span className="text-lg">✦</span>
+                    <span className="text-sm font-medium group-hover:underline" style={{ color: section.color.stroke }}>{label}</span>
+                    <svg className="w-3 h-3 ml-auto text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  </a>
+                );
+              }
+              // Chapter heading → styled card (no chapter number shown)
+              if (line.startsWith("Chapter ") && line.includes("•••")) {
+                const withoutPrefix = line.replace(/^Chapter \d+:\s*/, "");
+                const [title, subtitle] = withoutPrefix.split("•••").map(s => s.trim());
+                return (
+                  <div key={i} className="mt-6 mb-1">
+                    <p className="text-base font-bold">{title}</p>
+                    {subtitle && <p className="text-xs italic text-muted-foreground">{subtitle}</p>}
+                  </div>
+                );
+              }
+              // Sub-bullet → indented with dot
+              if (line.startsWith("* ")) {
+                const content = line.slice(2);
+                return (
+                  <p key={i} className="text-sm text-foreground/60 leading-relaxed ml-6 mb-1 flex items-start gap-2">
+                    <span className="text-muted-foreground/40 mt-0.5">·</span>
+                    <span>{content}</span>
+                  </p>
+                );
+              }
+              // "Overview" or "Divine Intelligence Framework" header
+              if (line.trim() === "Overview" || line.startsWith("Divine Intelligence Framework")) {
+                return <h2 key={i} className="text-lg font-bold mb-4 mt-2 text-muted-foreground">{line}</h2>;
+              }
+              // Empty line
+              if (!line.trim()) return <div key={i} className="h-2" />;
+              // Regular paragraph
+              const noIndent = line.startsWith("•") || line.startsWith("—") || line.startsWith("🙏") || line.startsWith("💫") || line.startsWith("💡") || line.startsWith("Reflective") || line.startsWith("Master of Thought") || line.startsWith("AHO") || line.startsWith("AMEN") || line.startsWith("I AM") || line.startsWith("I leave") || line.startsWith("And ");
+              return (
+                <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-3" style={{ textIndent: noIndent ? undefined : "2rem" }}>
+                  {line}
+                </p>
+              );
+            })}
           </div>
         ) : null}
       </div>
