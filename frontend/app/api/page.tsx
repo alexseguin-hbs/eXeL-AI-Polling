@@ -228,18 +228,15 @@ export default function ApiPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
+      {/* Compact Header */}
       <div className="border-b">
-        <div className="max-w-4xl mx-auto px-6 py-8">
-          <Link href="/" className="text-xs text-muted-foreground hover:text-primary mb-4 block">
-            ← Back to eXeL AI Polling
-          </Link>
-          <h1 className="text-3xl font-bold tracking-tight">Governance Engine API</h1>
-          <p className="text-lg text-muted-foreground mt-2">
-            9 functions that change how decisions are made. 3 that are always free.
-          </p>
-          <p className="text-sm text-primary/80 mt-1 italic">
-            &quot;Where Shared Intention moves at the Speed of Thought.&quot;
+        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div>
+            <Link href="/" className="text-xs text-muted-foreground hover:text-primary">← Back</Link>
+            <h1 className="text-xl font-bold tracking-tight mt-1">Governance Engine API</h1>
+          </div>
+          <p className="text-xs text-muted-foreground/60 italic hidden sm:block max-w-[200px] text-right">
+            Where Shared Intention moves at the Speed of Thought
           </p>
         </div>
       </div>
@@ -283,18 +280,7 @@ export default function ApiPage() {
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         {activeTab === "explore" && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold">The Flower of Life — API Discovery</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Explore the 9 SDK functions as a living geometry. Start with 3 core functions,
-                expand to 6 with intelligence, bloom into the full 9.
-              </p>
-              <p className="text-xs text-primary/70 mt-2 italic">
-                Like the Flower of Life itself — each circle connects to all others,
-                and the whole is greater than the sum of its parts.
-              </p>
-            </div>
+          <div className="space-y-4">
             <ApiFlower
               onSelectFunction={(label) => {
                 setActiveTab("paid");
@@ -305,11 +291,7 @@ export default function ApiPage() {
                 }, 100);
               }}
             />
-            <div className="text-center text-xs text-muted-foreground space-y-1">
-              <p><strong>◬ Cyan (Core):</strong> compress · vote · convert — the foundation</p>
-              <p><strong>♡ Yellow (Intelligence):</strong> detect · consensus · verify — the wisdom</p>
-              <p><strong>웃 Violet (Evolution):</strong> challenge · override · broadcast — the future</p>
-            </div>
+            {/* Legend is inside the ApiFlower component */}
           </div>
         )}
 

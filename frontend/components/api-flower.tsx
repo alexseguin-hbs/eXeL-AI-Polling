@@ -170,7 +170,7 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
 
       {/* SVG Flower */}
       <svg
-        viewBox="0 0 600 540"
+        viewBox="-20 -40 640 580"
         className="w-full max-w-lg mx-auto"
         style={{ overflow: "visible" }}
       >
