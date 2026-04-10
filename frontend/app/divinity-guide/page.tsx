@@ -339,6 +339,14 @@ export default function DivinityGuidePage() {
               ← 12 Wisdom Portals
             </button>
           )}
+
+          {/* Footer */}
+          <div className="mt-auto pb-6 text-center">
+            <br />
+            <p className="text-[9px] text-muted-foreground/40">◬ A.I. · ♡ S.I. · 웃 H.I.</p>
+            <br />
+            <p className="text-[9px] text-muted-foreground/40">••• Master of Thought •••</p>
+          </div>
         </div>
 
         {/* RIGHT (desktop) / BOTTOM (mobile): Book Page */}
