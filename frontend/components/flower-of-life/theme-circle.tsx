@@ -116,28 +116,32 @@ export const ThemeCircle = memo(function ThemeCircle({
             {theme.label}
           </div>
 
-          {/* Response count */}
-          <div
-            style={{
-              fontSize: `${countSize}px`,
-              fontWeight: 800,
-              lineHeight: 1.1,
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {theme.count.toLocaleString()}
-          </div>
+          {/* Response count — hidden when 0 (e.g. Divinity Guide) */}
+          {theme.count > 0 && (
+            <div
+              style={{
+                fontSize: `${countSize}px`,
+                fontWeight: 800,
+                lineHeight: 1.1,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {theme.count.toLocaleString()}
+            </div>
+          )}
 
-          {/* Confidence */}
-          <div
-            style={{
-              fontSize: `${confSize}px`,
-              opacity: 0.7,
-              marginTop: "1px",
-            }}
-          >
-            {theme.avgConfidence}% avg
-          </div>
+          {/* Confidence — hidden when 0 */}
+          {theme.avgConfidence > 0 && (
+            <div
+              style={{
+                fontSize: `${confSize}px`,
+                opacity: 0.7,
+                marginTop: "1px",
+              }}
+            >
+              {theme.avgConfidence}% avg
+            </div>
+          )}
 
           {/* 33-word summary (hidden on hub) */}
           {!isHub && summarySize > 0 && (

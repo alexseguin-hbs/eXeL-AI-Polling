@@ -143,6 +143,82 @@ const HUB_SECTION: Section = {
   ],
 };
 
+// ── Page Reader Component ────────────────────────────────────────
+
+function PageReader({
+  chapter, section, pageIndex, setPageIndex, setSelectedChapter,
+}: {
+  chapter: Chapter;
+  section: Section;
+  pageIndex: number;
+  setPageIndex: (n: number) => void;
+  setSelectedChapter: (ch: Chapter) => void;
+}) {
+  const paragraphs = chapter.content.split("\n\n");
+  const pages = [
+    ...paragraphs.map((p) => ({ type: "text" as const, content: p })),
+    { type: "reflection" as const, content: chapter.reflection },
+  ];
+  const currentPage = pages[pageIndex] || pages[0];
+  const totalPages = pages.length;
+  const chapterIdx = section.chapters.findIndex((c) => c.id === chapter.id);
+
+  return (
+    <div className="w-full max-w-lg animate-in fade-in duration-300">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">{chapter.title}</h1>
+        <p className="text-sm text-primary/80 italic mt-1">{chapter.subtitle}</p>
+      </div>
+
+      <div className="min-h-[180px]" key={`${chapter.id}-${pageIndex}`}>
+        {currentPage.type === "reflection" ? (
+          <div className="rounded-lg border-l-2 pl-5 py-3" style={{ borderColor: section.color.stroke }}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Reflection</p>
+            <p className="text-lg text-foreground/70 italic leading-relaxed">{currentPage.content}</p>
+          </div>
+        ) : (
+          <p className="text-sm text-foreground/80 leading-relaxed animate-in fade-in slide-in-from-right-2 duration-300">
+            {currentPage.content}
+          </p>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between pt-6 mt-6 border-t">
+        <button
+          onClick={() => {
+            if (pageIndex > 0) {
+              setPageIndex(pageIndex - 1);
+            } else if (chapterIdx > 0) {
+              const prev = section.chapters[chapterIdx - 1];
+              setSelectedChapter(prev);
+              setPageIndex(prev.content.split("\n\n").length); // last text page (before reflection)
+            }
+          }}
+          disabled={pageIndex === 0 && chapterIdx === 0}
+          className="text-xs text-muted-foreground hover:text-primary disabled:opacity-30"
+        >
+          ←
+        </button>
+        <span className="text-[10px] text-muted-foreground/50">{pageIndex + 1} / {totalPages}</span>
+        <button
+          onClick={() => {
+            if (pageIndex < totalPages - 1) {
+              setPageIndex(pageIndex + 1);
+            } else if (chapterIdx < section.chapters.length - 1) {
+              setSelectedChapter(section.chapters[chapterIdx + 1]);
+              setPageIndex(0);
+            }
+          }}
+          disabled={pageIndex === totalPages - 1 && chapterIdx === section.chapters.length - 1}
+          className="text-xs text-muted-foreground hover:text-primary disabled:opacity-30"
+        >
+          →
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Donation gate
 const DONATION_AMOUNT = 3.33;
 
@@ -156,6 +232,7 @@ export default function DivinityGuidePage() {
   const [showReward, setShowReward] = useState(false);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
+  const [pageIndex, setPageIndex] = useState(0);
 
   const hub = getHubPosition();
   const outerPositions = getTheme2_3Positions();
@@ -227,16 +304,16 @@ export default function DivinityGuidePage() {
               <>
                 {/* Hub — click to access chapters 10-12 (Living Divinity) */}
                 <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
-                  theme={{ label: "✦", count: 12, avgConfidence: 1.0, summary33: "Living Divinity" }}
+                  theme={{ label: "✦", count: 0, avgConfidence: 0, summary33: "Living Divinity" }}
                   fill="rgba(var(--primary), 0.15)" stroke="hsl(var(--primary))" isHub
                   onClick={() => { setSelectedSection("divinity"); setSelectedChapter(null); }}
                 />
 
-                {/* 3 outer sections */}
+                {/* 3 outer sections — no numbers, no confidence, just titles */}
                 {outerPositions.map((pos, i) => (
                   <ThemeCircle key={SECTIONS[i].id}
                     cx={pos.cx} cy={pos.cy} r={pos.r}
-                    theme={{ label: SECTIONS[i].label, count: 3, avgConfidence: 0.9, summary33: SECTIONS[i].subtitle }}
+                    theme={{ label: SECTIONS[i].label, count: 0, avgConfidence: 0, summary33: SECTIONS[i].subtitle }}
                     fill={SECTIONS[i].color.fill} stroke={SECTIONS[i].color.stroke}
                     bloom bloomDelay={i * 200}
                     onClick={() => { setSelectedSection(SECTIONS[i].id); setSelectedChapter(null); }}
@@ -247,23 +324,23 @@ export default function DivinityGuidePage() {
               <>
                 {/* Selected section becomes CENTER hub */}
                 <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r + 10}
-                  theme={{ label: activeSection.label, count: 3, avgConfidence: 1.0, summary33: activeSection.subtitle }}
+                  theme={{ label: activeSection.label, count: 0, avgConfidence: 0, summary33: activeSection.subtitle }}
                   fill={activeSection.color.fill} stroke={activeSection.color.stroke}
                   onClick={() => { setSelectedSection(null); setSelectedChapter(null); }}
                 />
 
-                {/* 3 chapters bloom around — overlapping hub (Vesica Piscis) like Theme Analysis */}
+                {/* 3 chapters bloom — no numbers, no %, just title + subtitle */}
                 {outerPositions.map((pos, i) => {
                   const ch = activeSection.chapters[i];
                   const isSelected = selectedChapter?.id === ch.id;
                   return (
                     <ThemeCircle key={ch.id}
                       cx={pos.cx} cy={pos.cy} r={pos.r}
-                      theme={{ label: ch.title, count: ch.id, avgConfidence: 0.9 - i * 0.03, summary33: ch.subtitle }}
+                      theme={{ label: ch.title, count: 0, avgConfidence: 0, summary33: ch.subtitle }}
                       fill={activeSection.color.fill}
                       stroke={isSelected ? "hsl(var(--primary))" : activeSection.color.stroke}
                       bloom bloomDelay={i * 150}
-                      onClick={() => setSelectedChapter(ch)}
+                      onClick={() => { setSelectedChapter(ch); setPageIndex(0); }}
                       className={isSelected ? "ring-2 ring-primary" : ""}
                     />
                   );
@@ -308,49 +385,13 @@ export default function DivinityGuidePage() {
               </div>
             </div>
           ) : (
-            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 w-full max-w-lg">
-              {/* Chapter header */}
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                  {activeSection?.label} — Portal {selectedChapter.id}
-                </p>
-                <h1 className="text-2xl font-bold">{selectedChapter.title}</h1>
-                <p className="text-sm text-primary/80 italic">{selectedChapter.subtitle}</p>
-              </div>
-
-              {/* Teaching */}
-              <div className="space-y-4">
-                {selectedChapter.content.split("\n\n").map((paragraph, i) => (
-                  <p key={i} className="text-sm text-foreground/80 leading-relaxed">{paragraph}</p>
-                ))}
-              </div>
-
-              {/* Reflection */}
-              <div className="rounded-lg border-l-2 pl-5 py-3" style={{ borderColor: activeSection?.color.stroke }}>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Reflection</p>
-                <p className="text-sm text-foreground/60 italic">{selectedChapter.reflection}</p>
-              </div>
-
-              {/* Navigation */}
-              <div className="flex justify-between pt-4 border-t">
-                {selectedChapter.id > activeSection!.chapters[0].id ? (
-                  <button
-                    onClick={() => setSelectedChapter(activeSection!.chapters[activeSection!.chapters.findIndex((c) => c.id === selectedChapter.id) - 1])}
-                    className="text-xs text-muted-foreground hover:text-primary"
-                  >
-                    ← Previous portal
-                  </button>
-                ) : <span />}
-                {selectedChapter.id < activeSection!.chapters[2].id ? (
-                  <button
-                    onClick={() => setSelectedChapter(activeSection!.chapters[activeSection!.chapters.findIndex((c) => c.id === selectedChapter.id) + 1])}
-                    className="text-xs text-muted-foreground hover:text-primary"
-                  >
-                    Next portal →
-                  </button>
-                ) : <span />}
-              </div>
-            </div>
+            <PageReader
+              chapter={selectedChapter}
+              section={activeSection!}
+              pageIndex={pageIndex}
+              setPageIndex={setPageIndex}
+              setSelectedChapter={(ch) => { setSelectedChapter(ch); setPageIndex(0); }}
+            />
           )}
         </div>
       </div>
