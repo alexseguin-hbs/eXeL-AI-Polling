@@ -189,12 +189,12 @@ const DEFAULT_THEME_ICONS = ["🚀", "⚠️", "⚖️", "💡", "🔬", "🔒",
 
 // ── Simulated Themes (Cube 6 Stub — 9-theme fallback at 5000-response AI Governance scale) ──
 const SIM_THEMES: SimTheme[] = [
-  { id: "t1", name: "Democratic Scale Innovation", confidence: 0.92, responseCount: 750, color: "#22C55E", icon: "🚀", partition: "Supporting Comments" },
-  { id: "t2", name: "Real-Time Policy Adaptation", confidence: 0.89, responseCount: 620, color: "#16A34A", icon: "💡", partition: "Supporting Comments" },
-  { id: "t3", name: "Participatory Democracy Bridge", confidence: 0.88, responseCount: 580, color: "#15803D", icon: "🌐", partition: "Supporting Comments" },
+  { id: "t1", name: "Democratic Scale Innovation", confidence: 0.92, responseCount: 750, color: "#10B981", icon: "🚀", partition: "Supporting Comments" },
+  { id: "t2", name: "Real-Time Policy Adaptation", confidence: 0.89, responseCount: 620, color: "#059669", icon: "💡", partition: "Supporting Comments" },
+  { id: "t3", name: "Participatory Democracy Bridge", confidence: 0.88, responseCount: 580, color: "#047857", icon: "🌐", partition: "Supporting Comments" },
   { id: "t4", name: "Algorithmic Bias Risks", confidence: 0.90, responseCount: 680, color: "#EF4444", icon: "⚠️", partition: "Risk & Concerns" },
   { id: "t5", name: "Privacy Protection Imperatives", confidence: 0.87, responseCount: 610, color: "#DC2626", icon: "🔒", partition: "Risk & Concerns" },
-  { id: "t6", name: "Transparency & Explainability", confidence: 0.86, responseCount: 370, color: "#4ADE80", icon: "🔬", partition: "Supporting Comments" },
+  { id: "t6", name: "Transparency & Explainability", confidence: 0.86, responseCount: 370, color: "#34D399", icon: "🔬", partition: "Supporting Comments" },
   { id: "t7", name: "Hybrid Governance Models", confidence: 0.85, responseCount: 530, color: "#3B82F6", icon: "⚖️", partition: "Neutral Comments" },
   { id: "t8", name: "Regulatory Framework Needs", confidence: 0.84, responseCount: 440, color: "#B91C1C", icon: "📊", partition: "Risk & Concerns" },
   { id: "t9", name: "Incremental Trust Building", confidence: 0.80, responseCount: 420, color: "#2563EB", icon: "🎯", partition: "Neutral Comments" },

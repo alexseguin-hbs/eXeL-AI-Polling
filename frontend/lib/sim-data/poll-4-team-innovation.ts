@@ -292,10 +292,10 @@ export const POLL_4 = {
   // ── Theme Levels (dynamic voting: 3/6/9 themes) ────────────
   themeLevels: {
     theme2_9: [
-      { id: "t1", name: "AI-Enhanced Development Tools", confidence: 0.90, count: 5, color: "#22C55E", partition: "Supporting Comments" },
-      { id: "t2", name: "Visual Collaboration Platforms", confidence: 0.88, count: 5, color: "#16A34A", partition: "Supporting Comments" },
-      { id: "t3", name: "Knowledge Management Systems", confidence: 0.87, count: 4, color: "#15803D", partition: "Supporting Comments" },
-      { id: "t4", name: "Async Communication Methods", confidence: 0.86, count: 3, color: "#4ADE80", partition: "Supporting Comments" },
+      { id: "t1", name: "AI-Enhanced Development Tools", confidence: 0.90, count: 5, color: "#10B981", partition: "Supporting Comments" },
+      { id: "t2", name: "Visual Collaboration Platforms", confidence: 0.88, count: 5, color: "#059669", partition: "Supporting Comments" },
+      { id: "t3", name: "Knowledge Management Systems", confidence: 0.87, count: 4, color: "#047857", partition: "Supporting Comments" },
+      { id: "t4", name: "Async Communication Methods", confidence: 0.86, count: 3, color: "#34D399", partition: "Supporting Comments" },
       { id: "t5", name: "Cross-Team Empathy Building", confidence: 0.82, count: 4, color: "#3B82F6", partition: "Neutral Comments" },
       { id: "t6", name: "Structured Innovation Time", confidence: 0.80, count: 3, color: "#2563EB", partition: "Neutral Comments" },
       { id: "t7", name: "Remote Collaboration Equity", confidence: 0.79, count: 3, color: "#1D4ED2", partition: "Neutral Comments" },
@@ -303,15 +303,15 @@ export const POLL_4 = {
       { id: "t9", name: "Anonymous Feedback Mechanisms", confidence: 0.78, count: 3, color: "#DC2626", partition: "Risk & Concerns" },
     ],
     theme2_6: [
-      { id: "t1", name: "AI-Powered Productivity", confidence: 0.89, count: 8, color: "#22C55E", partition: "Supporting Comments" },
-      { id: "t2", name: "Collaborative Workspaces", confidence: 0.87, count: 7, color: "#16A34A", partition: "Supporting Comments" },
-      { id: "t3", name: "Async & Knowledge Sharing", confidence: 0.86, count: 5, color: "#15803D", partition: "Supporting Comments" },
+      { id: "t1", name: "AI-Powered Productivity", confidence: 0.89, count: 8, color: "#10B981", partition: "Supporting Comments" },
+      { id: "t2", name: "Collaborative Workspaces", confidence: 0.87, count: 7, color: "#059669", partition: "Supporting Comments" },
+      { id: "t3", name: "Async & Knowledge Sharing", confidence: 0.86, count: 5, color: "#047857", partition: "Supporting Comments" },
       { id: "t4", name: "Cross-Functional Rotation", confidence: 0.82, count: 5, color: "#3B82F6", partition: "Neutral Comments" },
       { id: "t5", name: "Innovation Time Allocation", confidence: 0.80, count: 4, color: "#2563EB", partition: "Neutral Comments" },
       { id: "t6", name: "Psychological Safety Tools", confidence: 0.78, count: 4, color: "#EF4444", partition: "Risk & Concerns" },
     ],
     theme2_3: [
-      { id: "t1", name: "AI-Powered Tools", confidence: 0.90, count: 15, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t1", name: "AI-Powered Tools", confidence: 0.90, count: 15, color: "#10B981", partition: "Supporting Comments" },
       { id: "t2", name: "Process Innovation", confidence: 0.87, count: 10, color: "#3B82F6", partition: "Neutral Comments" },
       { id: "t3", name: "Culture & Knowledge", confidence: 0.84, count: 8, color: "#EF4444", partition: "Risk & Concerns" },
     ],
@@ -324,7 +324,7 @@ export const POLL_4 = {
       name: "AI-Powered Tools",
       confidence: 0.90,
       count: 15,
-      color: "#22C55E",
+      color: "#10B981",
     },
     {
       id: "t2",

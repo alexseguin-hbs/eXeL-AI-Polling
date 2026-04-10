@@ -300,26 +300,26 @@ export const POLL_3 = {
   // ── Theme Levels (dynamic voting: 3/6/9 themes) ────────────
   themeLevels: {
     theme2_9: [
-      { id: "t1", name: "Democratic Scale Innovation", confidence: 0.92, count: 750, color: "#22C55E", partition: "Supporting Comments" },
-      { id: "t2", name: "Real-Time Policy Adaptation", confidence: 0.89, count: 620, color: "#16A34A", partition: "Supporting Comments" },
-      { id: "t3", name: "Participatory Democracy Bridge", confidence: 0.88, count: 580, color: "#15803D", partition: "Supporting Comments" },
+      { id: "t1", name: "Democratic Scale Innovation", confidence: 0.92, count: 750, color: "#10B981", partition: "Supporting Comments" },
+      { id: "t2", name: "Real-Time Policy Adaptation", confidence: 0.89, count: 620, color: "#059669", partition: "Supporting Comments" },
+      { id: "t3", name: "Participatory Democracy Bridge", confidence: 0.88, count: 580, color: "#047857", partition: "Supporting Comments" },
       { id: "t4", name: "Algorithmic Bias Risks", confidence: 0.90, count: 680, color: "#EF4444", partition: "Risk & Concerns" },
       { id: "t5", name: "Privacy Protection Imperatives", confidence: 0.87, count: 610, color: "#DC2626", partition: "Risk & Concerns" },
-      { id: "t6", name: "Transparency & Explainability", confidence: 0.86, count: 370, color: "#4ADE80", partition: "Supporting Comments" },
+      { id: "t6", name: "Transparency & Explainability", confidence: 0.86, count: 370, color: "#34D399", partition: "Supporting Comments" },
       { id: "t7", name: "Hybrid Governance Models", confidence: 0.85, count: 530, color: "#3B82F6", partition: "Neutral Comments" },
       { id: "t8", name: "Regulatory Framework Needs", confidence: 0.84, count: 440, color: "#B91C1C", partition: "Risk & Concerns" },
       { id: "t9", name: "Incremental Trust Building", confidence: 0.80, count: 420, color: "#2563EB", partition: "Neutral Comments" },
     ],
     theme2_6: [
-      { id: "t1", name: "AI Democratization Potential", confidence: 0.91, count: 1100, color: "#22C55E", partition: "Supporting Comments" },
-      { id: "t2", name: "Real-Time Governance", confidence: 0.89, count: 850, color: "#16A34A", partition: "Supporting Comments" },
+      { id: "t1", name: "AI Democratization Potential", confidence: 0.91, count: 1100, color: "#10B981", partition: "Supporting Comments" },
+      { id: "t2", name: "Real-Time Governance", confidence: 0.89, count: 850, color: "#059669", partition: "Supporting Comments" },
       { id: "t3", name: "Algorithmic Bias & Privacy", confidence: 0.89, count: 940, color: "#EF4444", partition: "Risk & Concerns" },
       { id: "t4", name: "Data Protection Standards", confidence: 0.87, count: 720, color: "#DC2626", partition: "Risk & Concerns" },
       { id: "t5", name: "Human-AI Collaboration", confidence: 0.85, count: 810, color: "#3B82F6", partition: "Neutral Comments" },
       { id: "t6", name: "Gradual Adoption Strategy", confidence: 0.80, count: 580, color: "#2563EB", partition: "Neutral Comments" },
     ],
     theme2_3: [
-      { id: "t1", name: "Opportunity & Innovation", confidence: 0.92, count: 1950, color: "#22C55E", partition: "Supporting Comments" },
+      { id: "t1", name: "Opportunity & Innovation", confidence: 0.92, count: 1950, color: "#10B981", partition: "Supporting Comments" },
       { id: "t2", name: "Risk & Concerns", confidence: 0.88, count: 1660, color: "#EF4444", partition: "Risk & Concerns" },
       { id: "t3", name: "Balanced / Hybrid Approach", confidence: 0.85, count: 1390, color: "#3B82F6", partition: "Neutral Comments" },
     ],
@@ -332,7 +332,7 @@ export const POLL_3 = {
       name: "Opportunity & Innovation",
       confidence: 0.92,
       count: 1950,
-      color: "#22C55E",
+      color: "#10B981",
     },
     {
       id: "t2",

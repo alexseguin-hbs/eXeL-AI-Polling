@@ -38,8 +38,8 @@ const THEME1_COLORS: Record<
     stroke: "#FF0000",
   },
   "Supporting Comments": {
-    fill: "rgba(0, 255, 0, 0.2)",
-    stroke: "#00FF00",
+    fill: "rgba(16, 185, 129, 0.2)",
+    stroke: "#10B981",
   },
   "Neutral Comments": {
     fill: "rgba(59, 130, 246, 0.2)",
