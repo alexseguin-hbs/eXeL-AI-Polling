@@ -334,7 +334,7 @@ export function PoweredBadge() {
           if (easterEggUnlocked) {
             handleEnterSimulation();
           } else {
-            // Opens Spotify playlist in background — user stays on current page
+            // Opens Spotify playlist in background tab
             const a = document.createElement("a");
             a.href = "https://open.spotify.com/playlist/0Iw7PJtw9e4qhvo4eQnCJP";
             a.target = "_blank";
@@ -342,6 +342,8 @@ export function PoweredBadge() {
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            // Navigate to Divinity Guide reading experience
+            router.push("/divinity-guide");
           }
         }}
         className={`flex items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 text-xs backdrop-blur transition-colors cursor-pointer hover:bg-background/95 ${
