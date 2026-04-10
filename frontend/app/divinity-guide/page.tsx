@@ -270,7 +270,7 @@ export default function DivinityGuidePage() {
             The Divinity Guide
           </Link>
           <p className="text-[10px] text-muted-foreground italic">The Return to Wholeness and Living Divinity</p>
-          <p className="text-[9px] text-muted-foreground/50 mb-3">12 Portals of Wisdom</p>
+          <p className="text-[9px] text-muted-foreground/50 mb-3">The Divinity Guide The Return to Wholeness and Living Divinity</p>
 
           {/* Flower SVG — same diameter as dashboard Theme Analysis */}
           <svg viewBox="0 0 600 500" className="w-full" style={{ overflow: "visible" }}>
