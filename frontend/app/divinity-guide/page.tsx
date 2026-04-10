@@ -269,8 +269,7 @@ export default function DivinityGuidePage() {
           <Link href="/divinity-guide" className="text-sm font-semibold mb-0.5 hover:opacity-80" style={{ color: currentTheme.swatch }}>
             The Divinity Guide
           </Link>
-          <p className="text-[10px] text-muted-foreground italic">The Return to Wholeness and Living Divinity</p>
-          <p className="text-[9px] text-muted-foreground/50 mb-3">The Divinity Guide The Return to Wholeness and Living Divinity</p>
+          <p className="text-[10px] text-muted-foreground italic mb-3">The Return to Wholeness and Living Divinity</p>
 
           {/* Flower SVG — same diameter as dashboard Theme Analysis */}
           <svg viewBox="0 0 600 500" className="w-full" style={{ overflow: "visible" }}>
