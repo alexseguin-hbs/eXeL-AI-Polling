@@ -334,8 +334,16 @@ export function PoweredBadge() {
           if (easterEggUnlocked) {
             handleEnterSimulation();
           } else {
-            // Free easter egg: opens Spotify + Divinity Guide for anyone
-            window.open("https://open.spotify.com/playlist/0Iw7PJtw9e4qhvo4eQnCJP", "_blank");
+            // Free easter egg: opens Spotify in background + navigates to Divinity Guide
+            // Use hidden anchor to open Spotify without stealing focus
+            const a = document.createElement("a");
+            a.href = "https://open.spotify.com/playlist/0Iw7PJtw9e4qhvo4eQnCJP";
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            // Navigate to Divinity Guide (user stays here)
             router.push("/divinity-guide");
           }
         }}
