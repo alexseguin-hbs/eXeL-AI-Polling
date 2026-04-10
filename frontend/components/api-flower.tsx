@@ -18,7 +18,6 @@
 import { useState, useMemo } from "react";
 import { useTheme } from "@/lib/theme-context";
 import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
-import { SDK_DEMO_DATA } from "@/lib/sdk-demos";
 import {
   getTheme2Positions,
   getHubPosition,
@@ -31,7 +30,6 @@ import "@/components/flower-of-life/flower-animations.css";
 interface SDKEntry {
   id: string;
   family: 1 | 2 | 3;
-  number: string;      // "#1", "#1.2", "#1.3"
   name: string;        // "compress"
   icon: string;
   tagline: string;
@@ -56,15 +54,15 @@ const FAMILY_COLORS = {
  * Family 3 (Blue — BR):       convert, verify, broadcast
  */
 const SDK_BY_ID: Record<string, SDKEntry> = {
-  compress:  { id: "compress",  family: 1, number: "#1",   name: "compress",  icon: "🧠", tagline: "Understand anything",     cost: "5◬/1K",  theme: { label: "Understand Anything",      count: 0, avgConfidence: 0, summary33: "sdk.compress()" }, color: FAMILY_COLORS[1] },
-  detect:    { id: "detect",    family: 1, number: "#1.2", name: "detect",    icon: "🛡️", tagline: "Clean before counting",   cost: "1◬",     theme: { label: "Clean The Data",           count: 0, avgConfidence: 0, summary33: "sdk.detect()" },   color: FAMILY_COLORS[1] },
-  challenge: { id: "challenge", family: 1, number: "#1.3", name: "challenge", icon: "⚡",  tagline: "Build the future",        cost: "10◬",    theme: { label: "Build The Future",         count: 0, avgConfidence: 0, summary33: "sdk.challenge()" }, color: FAMILY_COLORS[1] },
-  vote:      { id: "vote",      family: 2, number: "#2",   name: "vote",      icon: "🗳️", tagline: "Govern fairly",           cost: "0.01◬",  theme: { label: "Govern With Fairness",     count: 0, avgConfidence: 0, summary33: "sdk.vote()" },      color: FAMILY_COLORS[2] },
-  consensus: { id: "consensus", family: 2, number: "#2.2", name: "consensus", icon: "📊",  tagline: "Watch agreement form",    cost: "0.5◬",   theme: { label: "See Minds Align",          count: 0, avgConfidence: 0, summary33: "sdk.consensus()" },  color: FAMILY_COLORS[2] },
-  override:  { id: "override",  family: 2, number: "#2.3", name: "override",  icon: "⚖️",  tagline: "Lead transparently",      cost: "2◬",     theme: { label: "Lead With Transparency",   count: 0, avgConfidence: 0, summary33: "sdk.override()" },   color: FAMILY_COLORS[2] },
-  convert:   { id: "convert",   family: 3, number: "#3",   name: "convert",   icon: "웃",   tagline: "Value human time",        cost: "Free",   theme: { label: "Value Human Time",         count: 0, avgConfidence: 0, summary33: "sdk.convert()" },    color: FAMILY_COLORS[3] },
-  verify:    { id: "verify",    family: 3, number: "#3.2", name: "verify",    icon: "🔐",  tagline: "Prove it's real",          cost: "Free",   theme: { label: "Prove It's Real",          count: 0, avgConfidence: 0, summary33: "sdk.verify()" },     color: FAMILY_COLORS[3] },
-  broadcast: { id: "broadcast", family: 3, number: "#3.3", name: "broadcast", icon: "📡",  tagline: "Reach everyone",           cost: "1◬/10K", theme: { label: "Reach Every Soul",         count: 0, avgConfidence: 0, summary33: "sdk.broadcast()" },  color: FAMILY_COLORS[3] },
+  compress:  { id: "compress",  family: 1,name: "compress",  icon: "🧠", tagline: "Understand anything",     cost: "5◬/1K",  theme: { label: "Understand Anything",      count: 0, avgConfidence: 0, summary33: "sdk.compress()" }, color: FAMILY_COLORS[1] },
+  detect:    { id: "detect",    family: 1,name: "detect",    icon: "🛡️", tagline: "Clean before counting",   cost: "1◬",     theme: { label: "Clean The Data",           count: 0, avgConfidence: 0, summary33: "sdk.detect()" },   color: FAMILY_COLORS[1] },
+  challenge: { id: "challenge", family: 1,name: "challenge", icon: "⚡",  tagline: "Build the future",        cost: "10◬",    theme: { label: "Build The Future",         count: 0, avgConfidence: 0, summary33: "sdk.challenge()" }, color: FAMILY_COLORS[1] },
+  vote:      { id: "vote",      family: 2,name: "vote",      icon: "🗳️", tagline: "Govern fairly",           cost: "0.01◬",  theme: { label: "Govern With Fairness",     count: 0, avgConfidence: 0, summary33: "sdk.vote()" },      color: FAMILY_COLORS[2] },
+  consensus: { id: "consensus", family: 2,name: "consensus", icon: "📊",  tagline: "Watch agreement form",    cost: "0.5◬",   theme: { label: "See Minds Align",          count: 0, avgConfidence: 0, summary33: "sdk.consensus()" },  color: FAMILY_COLORS[2] },
+  override:  { id: "override",  family: 2,name: "override",  icon: "⚖️",  tagline: "Lead transparently",      cost: "2◬",     theme: { label: "Lead With Transparency",   count: 0, avgConfidence: 0, summary33: "sdk.override()" },   color: FAMILY_COLORS[2] },
+  convert:   { id: "convert",   family: 3,name: "convert",   icon: "웃",   tagline: "Value human time",        cost: "Free",   theme: { label: "Value Human Time",         count: 0, avgConfidence: 0, summary33: "sdk.convert()" },    color: FAMILY_COLORS[3] },
+  verify:    { id: "verify",    family: 3,name: "verify",    icon: "🔐",  tagline: "Prove it's real",          cost: "Free",   theme: { label: "Prove It's Real",          count: 0, avgConfidence: 0, summary33: "sdk.verify()" },     color: FAMILY_COLORS[3] },
+  broadcast: { id: "broadcast", family: 3,name: "broadcast", icon: "📡",  tagline: "Reach everyone",           cost: "1◬/10K", theme: { label: "Reach Every Soul",         count: 0, avgConfidence: 0, summary33: "sdk.broadcast()" },  color: FAMILY_COLORS[3] },
 };
 
 /**
@@ -106,9 +104,6 @@ function getSDKsForLevel(level: 3 | 6 | 9): SDKEntry[] {
   return POSITION_MAP[level].map((id) => SDK_BY_ID[id]);
 }
 
-// Keep ALL_SDK for detail card lookups
-const ALL_SDK = Object.values(SDK_BY_ID);
-
 interface ApiFlowerProps {
   onSelectFunction?: (id: string) => void;
 }
@@ -119,22 +114,16 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
   const [selectedFamily, setSelectedFamily] = useState<1 | 2 | 3 | null>(null);
   const [selectedSdk, setSelectedSdk] = useState<string | null>(null);
 
-  // When a circle is clicked at level 3: zoom into that family
-  // When a circle is clicked at level 6/9: show detail card
+  // Any click selects the function and fires callback (detail shown in parent page)
+  // Level 3 also expands to 6, level 6 expands to 9
   const handleCircleClick = (sdk: SDKEntry) => {
+    onSelectFunction?.(sdk.id);
+    setSelectedSdk(selectedSdk === sdk.id ? null : sdk.id);
     if (level === 3) {
-      // Zoom into family: expand to 6 to show children
       setSelectedFamily(sdk.family);
       setLevel(6);
-      setSelectedSdk(null);
     } else if (level === 6) {
-      // At 6: clicking expands to full 9
       setLevel(9);
-      setSelectedSdk(null);
-    } else {
-      // At 9: clicking shows individual SDK detail with 3 demos
-      setSelectedSdk(selectedSdk === sdk.id ? null : sdk.id);
-      onSelectFunction?.(sdk.id);
     }
   };
 
@@ -216,10 +205,10 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
           </>
         )}
 
-        {/* Hub — shows level number + theme color */}
+        {/* Hub — eXeL AI with circle count in theme color */}
         <ThemeCircle
           cx={hub.cx} cy={hub.cy} r={hub.r}
-          theme={{ label: String(level), count: 0, avgConfidence: 0, summary33: "" }}
+          theme={{ label: "eXeL AI", count: level, avgConfidence: 0, summary33: "" }}
           fill={currentTheme.swatch + "1A"}
           stroke={currentTheme.swatch}
           isHub
@@ -268,67 +257,16 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
       </svg>
 
       {/* Back button */}
-      {(selectedFamily || selectedSdk) && (
+      {selectedFamily && (
         <div className="flex justify-center mt-2">
           <button
             onClick={handleBack}
             className="text-xs text-muted-foreground hover:text-primary"
           >
-            ← {selectedSdk ? "Back to family" : "Back to overview"}
+            ← Back to overview
           </button>
         </div>
       )}
-
-      {/* Selected SDK detail card with 3 NOSE demos */}
-      {selectedSdk && (() => {
-        const sdk = ALL_SDK.find((s) => s.id === selectedSdk);
-        const demoData = SDK_DEMO_DATA.find((d) => d.id === selectedSdk);
-        if (!sdk) return null;
-        return (
-          <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {/* Header */}
-            <div className="rounded-xl border bg-card p-5">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">{sdk.icon}</span>
-                <div>
-                  <p className="font-semibold text-lg">sdk.{sdk.name}()</p>
-                  <p className="text-sm text-muted-foreground">{sdk.tagline}</p>
-                </div>
-                <span className="ml-auto px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-mono">{sdk.cost}</span>
-              </div>
-            </div>
-
-            {/* 3 Demos */}
-            {demoData?.demos.map((demo, di) => (
-              <details key={di} className="rounded-xl border bg-card overflow-hidden">
-                <summary className="px-5 py-3 cursor-pointer hover:bg-accent/30 flex items-center gap-2">
-                  <span className="text-sm font-medium">{demo.master}</span>
-                  <span className="text-xs text-muted-foreground">— {demo.masterTitle}</span>
-                </summary>
-                <div className="px-5 pb-5 pt-2 space-y-3 border-t">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Need</p>
-                    <p className="text-sm text-foreground/80">{demo.need}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Outcome</p>
-                    <p className="text-sm text-foreground/80">{demo.outcome}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Solution</p>
-                    <pre className="text-xs bg-muted/50 rounded-lg p-3 font-mono text-muted-foreground overflow-x-auto">{demo.solution}</pre>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Evidence</p>
-                    <p className="text-xs text-foreground/60 italic">{demo.evidence}</p>
-                  </div>
-                </div>
-              </details>
-            ))}
-          </div>
-        );
-      })()}
-
     </div>
   );
 }
