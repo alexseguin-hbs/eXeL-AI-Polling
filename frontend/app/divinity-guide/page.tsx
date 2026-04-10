@@ -210,13 +210,13 @@ export default function DivinityGuidePage() {
 
       <div className="flex flex-col md:flex-row min-h-screen">
         {/* LEFT (desktop) / TOP (mobile): Flower Navigation */}
-        <div className="w-full md:w-1/2 md:border-r flex flex-col items-center pt-8 px-4 md:shrink-0">
-          <Link href="/" className="text-xs text-muted-foreground hover:text-primary mb-4">← Back</Link>
-          <h2 className="text-sm font-semibold mb-1">The Divinity Guide</h2>
-          <p className="text-[10px] text-muted-foreground mb-4 italic">12 Portals of Wisdom</p>
+        <div className="w-full md:w-1/2 md:border-r flex flex-col items-center justify-center px-6 py-6">
+          <Link href="/" className="text-xs text-muted-foreground hover:text-primary mb-2 self-start">← Back</Link>
+          <h2 className="text-sm font-semibold mb-0.5">The Divinity Guide</h2>
+          <p className="text-[10px] text-muted-foreground mb-3 italic">12 Portals of Wisdom</p>
 
-          {/* Flower SVG */}
-          <svg viewBox="0 0 600 500" className="w-full max-w-[280px]" style={{ overflow: "visible" }}>
+          {/* Flower SVG — same diameter as dashboard Theme Analysis */}
+          <svg viewBox="0 0 600 500" className="w-full" style={{ overflow: "visible" }}>
             {/* Lines from hub to outer */}
             {outerPositions.map((pos, i) => (
               <line key={`l-${i}`} x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
@@ -286,10 +286,10 @@ export default function DivinityGuidePage() {
         </div>
 
         {/* RIGHT (desktop) / BOTTOM (mobile): Book Page */}
-        <div className="w-full md:w-1/2 px-6 md:px-8 py-8 md:py-12 overflow-y-auto">
+        <div className="w-full md:w-1/2 px-6 md:px-10 py-8 md:py-12 overflow-y-auto flex flex-col items-center">
           {!selectedChapter ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center space-y-4 max-w-md">
+            <div className="flex items-center justify-center h-full w-full">
+              <div className="text-center space-y-4 max-w-lg px-4">
                 <div className="text-4xl">✦</div>
                 <h1 className="text-2xl font-bold">
                   {selectedSection ? activeSection?.subtitle : "The Return to Wholeness"}
@@ -306,7 +306,7 @@ export default function DivinityGuidePage() {
               </div>
             </div>
           ) : (
-            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 w-full max-w-lg">
               {/* Chapter header */}
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
