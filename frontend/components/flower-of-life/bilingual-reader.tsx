@@ -5,6 +5,9 @@
  *
  * Hover a word on either column → sentence highlights on BOTH sides.
  * The hovered word gets extra brightness. Pinyin toggle for Mandarin.
+ *
+ * Sentence alignment: both columns normalize to the same sentence count
+ * per paragraph so indices match 1:1 across languages.
  */
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
@@ -50,23 +53,45 @@ interface BilingualReaderProps {
 
 // ── Sentence Splitting ────────────────────────────────────────────
 
-function splitSentences(text: string, lang: DivinityLang): string[] {
-  if (!text.trim()) return [];
+function splitSentencesRaw(text: string, lang: DivinityLang): string[] {
+  if (!text.trim()) return [text];
   if (lang === "zh") {
     const parts = text.split(/(?<=[。！？])/);
-    return parts.filter(s => s.trim().length > 0);
+    return parts.filter(s => s.length > 0);
   }
-  // Latin/Cyrillic/RTL — split after sentence-ending punctuation + space
-  const parts = text.split(/(?<=[.!?¡¿؟])\s+/);
-  return parts.filter(s => s.trim().length > 0);
+  const parts = text.split(/(?<=[.!?])\s+/);
+  return parts.filter(s => s.length > 0);
+}
+
+/**
+ * Normalize two sentence arrays to the same count.
+ * Uses the MINIMUM count — merges extra trailing sentences into the last slot.
+ * This ensures indices always align 1:1 between languages.
+ */
+function normalizeSentences(
+  primarySentences: string[],
+  mirrorSentences: string[]
+): { primary: string[]; mirror: string[] } {
+  const targetCount = Math.min(primarySentences.length, mirrorSentences.length);
+  if (targetCount <= 0) return { primary: [primarySentences.join(" ")], mirror: [mirrorSentences.join(" ")] };
+
+  const mergeTo = (arr: string[], count: number) => {
+    if (arr.length <= count) return arr;
+    const result = arr.slice(0, count - 1);
+    result.push(arr.slice(count - 1).join(" "));
+    return result;
+  };
+
+  return {
+    primary: mergeTo(primarySentences, targetCount),
+    mirror: mergeTo(mirrorSentences, targetCount),
+  };
 }
 
 function splitWords(sentence: string, lang: DivinityLang): string[] {
   if (lang === "zh") {
-    // Split into individual characters for Chinese
     return Array.from(sentence).filter(c => c.trim().length > 0);
   }
-  // Space-separated for other languages
   return sentence.split(/(\s+)/).filter(w => w.length > 0);
 }
 
@@ -106,21 +131,18 @@ function PinyinText({ text, isHighlighted, isActiveWord }: {
 // ── Synced Paragraph ──────────────────────────────────────────────
 
 function SyncedParagraph({
-  text, lang, paraIdx, activeSentence, activeWord, showPinyin,
-  onHoverWord, onLeave, side,
+  sentences, lang, paraIdx, activeSentence, activeWord, showPinyin,
+  onHoverWord, side,
 }: {
-  text: string;
+  sentences: string[];
   lang: DivinityLang;
   paraIdx: number;
   activeSentence: string | null;
-  activeWord: { paraIdx: number; sentIdx: number; wordIdx: number } | null;
+  activeWord: { paraIdx: number; sentIdx: number; wordIdx: number; side: "left" | "right" } | null;
   showPinyin: boolean;
-  onHoverWord: (paraIdx: number, sentIdx: number, wordIdx: number) => void;
-  onLeave: () => void;
+  onHoverWord: (paraIdx: number, sentIdx: number, wordIdx: number, side: "left" | "right") => void;
   side: "left" | "right";
 }) {
-  const sentences = useMemo(() => splitSentences(text, lang), [text, lang]);
-
   return (
     <p className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: "2rem" }}>
       {sentences.map((sentence, sIdx) => {
@@ -135,15 +157,14 @@ function SyncedParagraph({
                 activeWord?.paraIdx === paraIdx &&
                 activeWord?.sentIdx === sIdx &&
                 activeWord?.wordIdx === wIdx &&
-                ((side === "left" && activeWord !== null) || (side === "right" && activeWord !== null));
+                activeWord?.side === side;
 
-              // For Chinese with pinyin enabled
               if (lang === "zh" && showPinyin) {
                 return (
                   <span
                     key={wIdx}
-                    onMouseEnter={() => onHoverWord(paraIdx, sIdx, wIdx)}
-                    onTouchStart={() => onHoverWord(paraIdx, sIdx, wIdx)}
+                    onMouseEnter={() => onHoverWord(paraIdx, sIdx, wIdx, side)}
+                    onTouchStart={() => onHoverWord(paraIdx, sIdx, wIdx, side)}
                     className="cursor-default"
                   >
                     <PinyinText
@@ -155,15 +176,14 @@ function SyncedParagraph({
                 );
               }
 
-              // Standard text (no pinyin)
               const isSpace = /^\s+$/.test(word);
               if (isSpace) return <React.Fragment key={wIdx}>{word}</React.Fragment>;
 
               return (
                 <span
                   key={wIdx}
-                  onMouseEnter={() => onHoverWord(paraIdx, sIdx, wIdx)}
-                  onTouchStart={() => onHoverWord(paraIdx, sIdx, wIdx)}
+                  onMouseEnter={() => onHoverWord(paraIdx, sIdx, wIdx, side)}
+                  onTouchStart={() => onHoverWord(paraIdx, sIdx, wIdx, side)}
                   className={`cursor-default transition-colors duration-150 ${
                     isWordActive
                       ? "bg-primary/25 font-semibold rounded-sm"
@@ -183,51 +203,6 @@ function SyncedParagraph({
   );
 }
 
-// ── Column Renderer ───────────────────────────────────────────────
-
-function ReaderColumn({
-  paragraphs, lang, activeSentence, activeWord, showPinyin,
-  onHoverWord, onLeave, side,
-}: {
-  paragraphs: string[];
-  lang: DivinityLang;
-  activeSentence: string | null;
-  activeWord: { paraIdx: number; sentIdx: number; wordIdx: number } | null;
-  showPinyin: boolean;
-  onHoverWord: (paraIdx: number, sentIdx: number, wordIdx: number) => void;
-  onLeave: () => void;
-  side: "left" | "right";
-}) {
-  const isRTL = lang === "fa" || lang === "he";
-
-  return (
-    <div
-      className="w-full md:w-1/2 overflow-y-auto p-4 md:p-6"
-      dir={isRTL ? "rtl" : "ltr"}
-      onMouseLeave={onLeave}
-    >
-      {paragraphs.map((para, i) =>
-        para.trim() ? (
-          <SyncedParagraph
-            key={i}
-            text={para}
-            lang={lang}
-            paraIdx={i}
-            activeSentence={activeSentence}
-            activeWord={activeWord}
-            showPinyin={showPinyin && lang === "zh"}
-            onHoverWord={onHoverWord}
-            onLeave={onLeave}
-            side={side}
-          />
-        ) : (
-          <div key={i} className="h-4" />
-        )
-      )}
-    </div>
-  );
-}
-
 // ── Main BilingualReader ──────────────────────────────────────────
 
 export default function BilingualReader({
@@ -238,7 +213,7 @@ export default function BilingualReader({
   availableLanguages,
 }: BilingualReaderProps) {
   const [activeSentence, setActiveSentence] = useState<string | null>(null);
-  const [activeWord, setActiveWord] = useState<{ paraIdx: number; sentIdx: number; wordIdx: number } | null>(null);
+  const [activeWord, setActiveWord] = useState<{ paraIdx: number; sentIdx: number; wordIdx: number; side: "left" | "right" } | null>(null);
   const [showPinyin, setShowPinyin] = useState(false);
 
   // Body scroll lock
@@ -271,19 +246,36 @@ export default function BilingualReader({
     [mirrorPages, chapter.id]
   );
 
-  const totalPages = primaryBookPages.length + 1; // +1 for intro
+  const totalPages = primaryBookPages.length + 1;
   const isIntro = pageIndex === 0;
 
-  // Get current page text
   const primaryText = isIntro ? chapter.content : primaryBookPages[pageIndex - 1]?.text ?? "";
   const mirrorText = isIntro ? mirrorChapter.content : mirrorBookPages[pageIndex - 1]?.text ?? "";
 
   const primaryParagraphs = primaryText.split("\n");
   const mirrorParagraphs = mirrorText.split("\n");
 
-  const handleHoverWord = useCallback((paraIdx: number, sentIdx: number, wordIdx: number) => {
+  // Pre-compute normalized sentence arrays for each paragraph pair
+  const normalizedParagraphs = useMemo(() => {
+    const maxLen = Math.max(primaryParagraphs.length, mirrorParagraphs.length);
+    const result: { primary: string[]; mirror: string[] }[] = [];
+    for (let i = 0; i < maxLen; i++) {
+      const pText = primaryParagraphs[i] ?? "";
+      const mText = mirrorParagraphs[i] ?? "";
+      if (!pText.trim() && !mText.trim()) {
+        result.push({ primary: [], mirror: [] });
+        continue;
+      }
+      const pSentences = splitSentencesRaw(pText, primaryLang);
+      const mSentences = splitSentencesRaw(mText, mirrorLang);
+      result.push(normalizeSentences(pSentences, mSentences));
+    }
+    return result;
+  }, [primaryParagraphs, mirrorParagraphs, primaryLang, mirrorLang]);
+
+  const handleHoverWord = useCallback((paraIdx: number, sentIdx: number, wordIdx: number, side: "left" | "right") => {
     setActiveSentence(`p${paraIdx}_s${sentIdx}`);
-    setActiveWord({ paraIdx, sentIdx, wordIdx });
+    setActiveWord({ paraIdx, sentIdx, wordIdx, side });
   }, []);
 
   const handleLeave = useCallback(() => {
@@ -292,27 +284,23 @@ export default function BilingualReader({
   }, []);
 
   const hasChinese = primaryLang === "zh" || mirrorLang === "zh";
-
-  // Language label lookup
   const langLabel = (code: string) => availableLanguages.find(l => l.code === code);
+  const isRTL = (lang: DivinityLang) => lang === "fa" || lang === "he";
 
   return (
     <div className="fixed inset-0 z-[70] bg-background flex flex-col animate-in fade-in duration-300">
       {/* ── Toolbar ─────────────────────────────────────────── */}
       <div className="h-12 border-b flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-3">
-          {/* Close */}
           <button onClick={onClose} className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-accent/30 transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
-          {/* Chapter title */}
           <span className="text-xs text-muted-foreground hidden sm:inline">{chapter.title}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Pinyin toggle */}
           {hasChinese && (
             <button
               onClick={() => setShowPinyin(!showPinyin)}
@@ -322,7 +310,6 @@ export default function BilingualReader({
             </button>
           )}
 
-          {/* Mirror language selector */}
           <select
             value={mirrorLang}
             onChange={e => setMirrorLang(e.target.value as DivinityLang)}
@@ -335,7 +322,6 @@ export default function BilingualReader({
               ))}
           </select>
 
-          {/* Page navigation */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => pageIndex > 0 && setPageIndex(pageIndex - 1)}
@@ -370,12 +356,11 @@ export default function BilingualReader({
         </div>
       </div>
 
-      {/* ── Content ─────────────────────────────────────────── */}
+      {/* ── Content — 50/50 split ───────────────────────────── */}
       <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
         {isIntro ? (
-          // Intro page: side-by-side chapter summaries
           <>
-            <div className="w-full md:w-1/2 overflow-y-auto p-4 md:p-6 md:border-r" dir={primaryLang === "fa" || primaryLang === "he" ? "rtl" : "ltr"}>
+            <div className="w-full md:w-1/2 overflow-y-auto p-4 md:p-6 md:border-r" dir={isRTL(primaryLang) ? "rtl" : "ltr"}>
               <div className="space-y-4">
                 <div>
                   <h2 className="text-xl font-bold">{chapter.title}</h2>
@@ -388,7 +373,7 @@ export default function BilingualReader({
                 </div>
               </div>
             </div>
-            <div className="w-full md:w-1/2 overflow-y-auto p-4 md:p-6" dir={mirrorLang === "fa" || mirrorLang === "he" ? "rtl" : "ltr"}>
+            <div className="w-full md:w-1/2 overflow-y-auto p-4 md:p-6" dir={isRTL(mirrorLang) ? "rtl" : "ltr"}>
               <div className="space-y-4">
                 <div>
                   <h2 className="text-xl font-bold">{mirrorChapter.title}</h2>
@@ -403,30 +388,56 @@ export default function BilingualReader({
             </div>
           </>
         ) : (
-          // Book pages: synced sentence highlighting
           <>
-            <div className="md:border-r">
-              <ReaderColumn
-                paragraphs={primaryParagraphs}
-                lang={primaryLang}
-                activeSentence={activeSentence}
-                activeWord={activeWord}
-                showPinyin={showPinyin}
-                onHoverWord={handleHoverWord}
-                onLeave={handleLeave}
-                side="left"
-              />
+            {/* Left column — primary language (50%) */}
+            <div
+              className="w-full md:w-1/2 overflow-y-auto p-4 md:p-6 md:border-r"
+              dir={isRTL(primaryLang) ? "rtl" : "ltr"}
+              onMouseLeave={handleLeave}
+            >
+              {normalizedParagraphs.map((np, i) =>
+                np.primary.length > 0 ? (
+                  <SyncedParagraph
+                    key={i}
+                    sentences={np.primary}
+                    lang={primaryLang}
+                    paraIdx={i}
+                    activeSentence={activeSentence}
+                    activeWord={activeWord}
+                    showPinyin={showPinyin && primaryLang === "zh"}
+                    onHoverWord={handleHoverWord}
+                    side="left"
+                  />
+                ) : (
+                  <div key={i} className="h-4" />
+                )
+              )}
             </div>
-            <ReaderColumn
-              paragraphs={mirrorParagraphs}
-              lang={mirrorLang}
-              activeSentence={activeSentence}
-              activeWord={activeWord}
-              showPinyin={showPinyin}
-              onHoverWord={handleHoverWord}
-              onLeave={handleLeave}
-              side="right"
-            />
+
+            {/* Right column — mirror language (50%) */}
+            <div
+              className="w-full md:w-1/2 overflow-y-auto p-4 md:p-6"
+              dir={isRTL(mirrorLang) ? "rtl" : "ltr"}
+              onMouseLeave={handleLeave}
+            >
+              {normalizedParagraphs.map((np, i) =>
+                np.mirror.length > 0 ? (
+                  <SyncedParagraph
+                    key={i}
+                    sentences={np.mirror}
+                    lang={mirrorLang}
+                    paraIdx={i}
+                    activeSentence={activeSentence}
+                    activeWord={activeWord}
+                    showPinyin={showPinyin && mirrorLang === "zh"}
+                    onHoverWord={handleHoverWord}
+                    side="right"
+                  />
+                ) : (
+                  <div key={i} className="h-4" />
+                )
+              )}
+            </div>
           </>
         )}
       </div>
