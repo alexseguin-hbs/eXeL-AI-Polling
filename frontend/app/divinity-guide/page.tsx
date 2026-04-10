@@ -298,12 +298,12 @@ export default function DivinityGuidePage() {
               <span className="text-sm font-bold" style={{ color: currentTheme.swatch }}>eXeL</span>
               <span className="text-sm font-light" style={{ color: currentTheme.swatch, opacity: 0.7 }}>AI</span>
             </Link>
-            <Link href="/divinity-guide" className="text-xs text-muted-foreground hover:text-primary">12 Wisdom Portals</Link>
+            <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); }} className="text-xs text-muted-foreground hover:text-primary">12 Wisdom Portals</button>
           </div>
-          {/* Title — same size as center heading (text-2xl), links to /divinity-guide home */}
-          <Link href="/divinity-guide" className="text-2xl font-bold mb-0.5 hover:opacity-80" style={{ color: currentTheme.swatch }}>
+          {/* Title — same size as center heading (text-2xl), resets to flower home */}
+          <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); }} className="text-2xl font-bold mb-0.5 hover:opacity-80 text-left" style={{ color: currentTheme.swatch }}>
             The Divinity Guide
-          </Link>
+          </button>
           <p className="text-[10px] text-muted-foreground italic mb-3">The Return to Wholeness and Living Divinity</p>
 
           {/* Flower SVG — same diameter as dashboard Theme Analysis */}
