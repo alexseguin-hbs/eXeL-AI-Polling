@@ -7,22 +7,22 @@
     ║   Architecture for 1,000,000 concurrent voters:                  ║
     ║                                                                   ║
     ║   ┌──────────┐     ┌──────────┐     ┌──────────┐                ║
-    ║   │  Vote    │────▶│  Redis   │────▶│ Instant  │                ║
+    ║   │  Vote    │────▶│ In-Mem   │────▶│ Instant  │                ║
     ║   │  Submit  │     │  Accum   │     │ Results  │                ║
     ║   └──────────┘     └──────────┘     └──────────┘                ║
     ║    16,667/sec       O(1)/vote        O(k) read                  ║
     ║                                                                   ║
-    ║   Per-vote: HINCRBY → O(1) atomic                               ║
+    ║   Per-vote: increment → O(1) atomic                             ║
     ║   Aggregation: READ k counters → O(k) where k=3/6/9            ║
     ║   Result: <100ms for ANY number of voters                       ║
     ║                                                                   ║
     ╚═══════════════════════════════════════════════════════════════════╝
 
 This module provides:
-  - StreamingBordaAccumulator: In-memory accumulator for votes
-  - RedisVoteAccumulator: Redis-backed accumulator for production
+  - BordaAccumulator: In-memory O(1)-per-vote streaming accumulator
+  - SupabaseVoteAccumulator: In-memory + batch flush to Supabase DB
   - instant_aggregate: O(k) aggregation from pre-computed counters
-  - sharded_broadcast: Fan-out to 1M clients via channel sharding
+  - sharded_broadcast: Fan-out to 1M clients via Supabase channel sharding
 
 The original service.py functions remain for correctness verification
 and small-scale sessions. This engine activates when participant_count > 1000.
