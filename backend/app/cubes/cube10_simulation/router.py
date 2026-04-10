@@ -2,13 +2,16 @@
 
 Endpoints:
   POST /feedback               — Submit feedback from any screen
-  GET  /feedback                — List feedback (admin)
   GET  /feedback/stats          — Aggregate stats (admin)
   POST /submissions             — Submit code improvement
   GET  /submissions/{id}/test   — Run sandbox tests
-  GET  /submissions/{id}/metrics — Compare metrics vs baseline
-  POST /submissions/{id}/vote   — Cast vote on submission
   GET  /submissions/{id}/tally  — Get vote tally
+  POST /verify-access           — Cube 10 access code verification
+  POST /challenges              — Create challenge (admin)
+  POST /challenges/{id}/claim   — Claim challenge
+  POST /challenges/{id}/submit  — Submit challenge code
+  GET  /saved-cases             — List saved use cases
+  GET  /saved-cases/{id}/replay — Replay against dataset
 """
 
 import uuid
@@ -125,29 +128,30 @@ async def get_tally(
 # ---------------------------------------------------------------------------
 
 
+class VerifyAccessRequest(BaseModel):
+    code: str
+    access_type: str  # "admin" or "challenger"
+
+
 @router.post("/verify-access")
 async def verify_access(
-    code: str,
-    access_type: str,  # "admin" or "challenger"
+    payload: VerifyAccessRequest,
     user: CurrentUser = Depends(get_current_user),
 ):
-    """Verify Cube 10 access code — backend validation (codes not exposed to frontend)."""
+    """Verify Cube 10 access code — POST body (never in URL/logs)."""
+    import hmac
     from app.config import settings
-    import hashlib
 
-    if access_type == "admin":
+    if payload.access_type == "admin":
         expected = settings.cube10_admin_code
-    elif access_type == "challenger":
+    elif payload.access_type == "challenger":
         expected = settings.cube10_challenger_code
     else:
         raise HTTPException(status_code=400, detail="access_type must be 'admin' or 'challenger'")
 
-    # Constant-time comparison to prevent timing attacks
-    code_hash = hashlib.sha256(code.encode()).hexdigest()
-    expected_hash = hashlib.sha256(expected.encode()).hexdigest()
-
-    if code_hash == expected_hash:
-        return {"access": access_type, "granted": True, "user_id": user.user_id}
+    # True constant-time comparison via hmac.compare_digest
+    if hmac.compare_digest(payload.code.encode(), expected.encode()):
+        return {"access": payload.access_type, "granted": True, "user_id": user.user_id}
     else:
         raise HTTPException(status_code=403, detail="Invalid access code")
 

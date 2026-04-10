@@ -66,20 +66,20 @@ async def submit_feedback(
 
     Uses ProductFeedback model (Supabase table: product_feedback).
     """
-    # AI sentiment + priority (keyword-based, will use Cube 6 summarizer later)
+    # AI sentiment + priority (substring match for morphological variants like crash/crashes)
+    lower = text.lower()
     sentiment = 0.0
     priority = 2  # Medium default
 
-    urgent_keywords = ["broken", "crash", "error", "bug", "fail", "wrong"]
-    if any(kw in text.lower() for kw in urgent_keywords):
+    if any(kw in lower for kw in ("broken", "crash", "error", "bug", "fail", "wrong")):
         priority = 3  # High
         sentiment = -0.5
         category = "bug"
-    elif any(kw in text.lower() for kw in ["love", "great", "perfect", "amazing", "excellent"]):
+    elif any(kw in lower for kw in ("love", "great", "perfect", "amazing", "excellent")):
         priority = 1  # Low (positive = not urgent)
         sentiment = 0.8
         category = "improvement"
-    elif any(kw in text.lower() for kw in ["add", "feature", "wish", "could", "should"]):
+    elif any(kw in lower for kw in ("add", "feature", "wish", "could", "should")):
         priority = 2
         sentiment = 0.3
         category = "feature"
@@ -142,15 +142,64 @@ async def get_feedback_stats(
     db,
     cube_id: int | None = None,
 ) -> dict:
-    """Aggregate feedback statistics for triage dashboard."""
-    # Stub — will query product_feedback table
-    return {
+    """Aggregate feedback statistics for triage dashboard.
+
+    Queries product_feedback table. Falls back to empty stats if table
+    doesn't exist yet (graceful degradation).
+    """
+    stats = {
         "cube_id": cube_id,
         "total": 0,
         "by_priority": {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+        "by_category": {"bug": 0, "feature": 0, "improvement": 0, "general": 0},
         "by_type": {"CRS": 0, "DI": 0},
         "avg_sentiment": 0.0,
     }
+    try:
+        from sqlalchemy import text as sql_text
+
+        where = "WHERE cube_id = :cid" if cube_id else ""
+        params = {"cid": cube_id} if cube_id else {}
+
+        result = await db.execute(
+            sql_text(f"SELECT COUNT(*), COALESCE(AVG(sentiment), 0) FROM product_feedback {where}"),
+            params,
+        )
+        row = result.one_or_none()
+        if row:
+            stats["total"] = row[0] or 0
+            stats["avg_sentiment"] = round(float(row[1] or 0), 3)
+
+        # Priority breakdown
+        result = await db.execute(
+            sql_text(f"SELECT priority, COUNT(*) FROM product_feedback {where} GROUP BY priority"),
+            params,
+        )
+        for row in result.fetchall():
+            stats["by_priority"][row[0]] = row[1]
+
+        # Category breakdown
+        result = await db.execute(
+            sql_text(f"SELECT category, COUNT(*) FROM product_feedback {where} GROUP BY category"),
+            params,
+        )
+        for row in result.fetchall():
+            if row[0] in stats["by_category"]:
+                stats["by_category"][row[0]] = row[1]
+
+        # Type breakdown
+        result = await db.execute(
+            sql_text(f"SELECT feedback_type, COUNT(*) FROM product_feedback {where} GROUP BY feedback_type"),
+            params,
+        )
+        for row in result.fetchall():
+            if row[0] in stats["by_type"]:
+                stats["by_type"][row[0]] = row[1]
+
+    except Exception:
+        pass  # Table may not exist yet — return empty stats
+
+    return stats
 
 
 # ---------------------------------------------------------------------------
