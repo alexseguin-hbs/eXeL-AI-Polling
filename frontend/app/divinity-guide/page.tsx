@@ -140,7 +140,7 @@ function PageReader({
           // Real book page
           <div className="animate-in fade-in slide-in-from-right-2 duration-300">
             {bookPage.text.split("\n").map((paragraph, i) => (
-              <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4 indent-8">
+              <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: "2rem" }}>
                 {paragraph}
               </p>
             ))}
