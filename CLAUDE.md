@@ -361,7 +361,7 @@ Track and optimize for:
 - **103+ endpoints** across 10 cube routers at `/api/v1` (+ discovery + SDK + compress)
 - **OpenAPI auto-docs:** FastAPI generates interactive docs at `/api/v1/docs` (Swagger UI) and `/api/v1/redoc`
 - **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (10), Cube 5 (9), Cube 6 (4), Cube 7 (11), Cube 8 (18), Cube 9 (8), Cube 10 (8), SDK/Discovery (7)
-- **Frontend routes:** `/` (home), `/session` (polling), `/dashboard` (moderator), `/api` (developer hub), `/divinity-guide` (reading experience)
+- **Frontend routes:** `/` (home), `/session` (polling), `/dashboard` (moderator), `/api` (Governance Engine API — split layout: Flower of Life left, NOSE documentation right), `/divinity-guide` (The Divinity Guide: The Return to Wholeness and Living Divinity — split layout: Flower of Life left, book reader right)
 
 ### Authentication & Security (Implemented)
 - **Auth0 JWT:** Bearer token validation via `core/auth.py` (135 lines)

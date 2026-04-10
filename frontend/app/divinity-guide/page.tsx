@@ -222,8 +222,10 @@ export default function DivinityGuidePage() {
           <div className="text-5xl">✦</div>
           <h1 className="text-2xl font-bold">The Divinity Guide</h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            The Return to Wholeness and Living Divinity. Twelve portals of wisdom
-            connecting ancient truth to the governance engine of the future.
+            The Return to Wholeness and Living Divinity
+          </p>
+          <p className="text-xs text-muted-foreground/60 leading-relaxed">
+            Twelve portals of wisdom connecting ancient truth to the governance engine of the future.
           </p>
           <div className="rounded-xl border bg-card p-6 space-y-4">
             <p className="text-3xl font-bold text-primary">${DONATION_AMOUNT.toFixed(2)}</p>
@@ -267,7 +269,8 @@ export default function DivinityGuidePage() {
           <Link href="/divinity-guide" className="text-sm font-semibold mb-0.5 hover:opacity-80" style={{ color: currentTheme.swatch }}>
             The Divinity Guide
           </Link>
-          <p className="text-[10px] text-muted-foreground mb-3 italic">12 Portals of Wisdom</p>
+          <p className="text-[10px] text-muted-foreground italic">The Return to Wholeness and Living Divinity</p>
+          <p className="text-[9px] text-muted-foreground/50 mb-3">12 Portals of Wisdom</p>
 
           {/* Flower SVG — same diameter as dashboard Theme Analysis */}
           <svg viewBox="0 0 600 500" className="w-full" style={{ overflow: "visible" }}>
@@ -355,7 +358,7 @@ export default function DivinityGuidePage() {
               <div className="text-center space-y-4 max-w-lg px-4">
                 <div className="text-4xl">✦</div>
                 <h1 className="text-2xl font-bold">
-                  {selectedSection ? activeSection?.subtitle : "The Return to Wholeness"}
+                  {selectedSection ? activeSection?.subtitle : "The Return to Wholeness and Living Divinity"}
                 </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {selectedSection

@@ -353,7 +353,7 @@ export function PoweredBadge() {
           borderColor: easterEggUnlocked ? badgeColor : undefined,
           boxShadow: easterEggUnlocked ? `0 0 12px ${badgeColor}30` : undefined,
         }}
-        title={easterEggUnlocked ? "Enter Simulation Mode" : "✦ Discover the Divinity Guide"}
+        title={easterEggUnlocked ? "Enter Simulation Mode" : "✦ The Divinity Guide — The Return to Wholeness and Living Divinity"}
       >
         <span className="font-bold" style={{ color: badgeColor }}>eXeL</span>
         <span className="font-light text-muted-foreground">AI</span>
