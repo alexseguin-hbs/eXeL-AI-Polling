@@ -124,6 +124,9 @@ export default function ApiPage() {
           {/* Footer */}
           <div className="mt-auto pb-6 text-center">
             <p className="text-[9px] text-muted-foreground/40">103 endpoints · 10 cubes · 33 languages</p>
+            <br />
+            <p className="text-[9px] text-muted-foreground/40">◬ A.I. · ♡ S.I. · 웃 H.I.</p>
+            <br />
             <p className="text-[9px] text-muted-foreground/40 italic">Where Shared Intention moves at the Speed of Thought</p>
           </div>
         </div>
