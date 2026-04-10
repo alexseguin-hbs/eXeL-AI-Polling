@@ -293,15 +293,15 @@ export default function DivinityGuidePage() {
         {/* LEFT (desktop) / TOP (mobile): Flower Navigation */}
         <div className="w-full md:w-1/2 md:border-r flex flex-col items-center justify-center px-6 py-6">
           {/* Top-left: eXeL AI in theme color → main app home */}
-          <div className="flex items-center justify-between w-full mb-3">
+          <div className="flex items-center justify-between w-full mb-1">
             <Link href="/" className="flex items-center gap-1.5 hover:opacity-80">
               <span className="text-sm font-bold" style={{ color: currentTheme.swatch }}>eXeL</span>
               <span className="text-sm font-light" style={{ color: currentTheme.swatch, opacity: 0.7 }}>AI</span>
             </Link>
             <Link href="/divinity-guide" className="text-xs text-muted-foreground hover:text-primary">12 Wisdom Portals</Link>
           </div>
-          {/* Title in active theme color → resets to /divinity-guide flower home */}
-          <Link href="/divinity-guide" className="text-sm font-semibold mb-0.5 hover:opacity-80" style={{ color: currentTheme.swatch }}>
+          {/* Title — same size as center heading (text-2xl), links to /divinity-guide home */}
+          <Link href="/divinity-guide" className="text-2xl font-bold mb-0.5 hover:opacity-80" style={{ color: currentTheme.swatch }}>
             The Divinity Guide
           </Link>
           <p className="text-[10px] text-muted-foreground italic mb-3">The Return to Wholeness and Living Divinity</p>
