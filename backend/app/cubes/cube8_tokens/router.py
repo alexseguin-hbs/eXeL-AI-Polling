@@ -105,6 +105,24 @@ async def create_donation(
     )
 
 
+class DivinityDonationRequest(BaseModel):
+    amount_cents: int = 333
+    success_url: str = ""
+    cancel_url: str = ""
+
+
+@router.post("/payments/divinity-donate")
+async def create_divinity_donation(
+    payload: DivinityDonationRequest,
+):
+    """Create Stripe Checkout for Divinity Guide donation (no auth — anonymous)."""
+    return await payment_service.create_divinity_donation_checkout(
+        amount_cents=payload.amount_cents,
+        success_url=payload.success_url,
+        cancel_url=payload.cancel_url,
+    )
+
+
 @router.get("/sessions/{session_id}/payments")
 async def get_payment_status(
     session_id: uuid.UUID,

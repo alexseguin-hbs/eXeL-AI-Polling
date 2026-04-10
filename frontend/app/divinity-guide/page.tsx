@@ -15,6 +15,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import divinityPages from "@/lib/divinity-pages.json";
 import {
   getTheme2_3Positions,
@@ -221,12 +222,27 @@ function PageReader({
 const DONATION_AMOUNT = 3.33;
 
 export default function DivinityGuidePage() {
+  const searchParams = useSearchParams();
   const [donated, setDonated] = useState(() => {
     if (typeof window !== "undefined") {
+      // Check URL param (returning from Stripe) or localStorage
+      if (new URLSearchParams(window.location.search).get("donated") === "true") {
+        localStorage.setItem("divinity-guide-donated", "true");
+        return true;
+      }
       return localStorage.getItem("divinity-guide-donated") === "true";
     }
     return false;
   });
+
+  // Show reward toast when returning from Stripe
+  useEffect(() => {
+    if (searchParams.get("donated") === "true" && !showReward) {
+      setTimeout(() => setShowReward(true), 500);
+      setTimeout(() => setShowReward(false), 5000);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [showDonationPrompt, setShowDonationPrompt] = useState(false);
   const [showReward, setShowReward] = useState(false);
   const [pagesRead, setPagesRead] = useState(0);
@@ -262,7 +278,25 @@ export default function DivinityGuidePage() {
     }
   }, [selectedChapter]);
 
-  const handleDonate = () => {
+  const [donationAmount, setDonationAmount] = useState(333); // cents
+
+  const handleDonate = async () => {
+    try {
+      const res = await fetch("/api/v1/payments/divinity-donate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount_cents: donationAmount }),
+      });
+      const data = await res.json();
+      if (data.checkout_url) {
+        localStorage.setItem("divinity-guide-donated", "true");
+        window.location.href = data.checkout_url;
+        return;
+      }
+    } catch {
+      // Stripe unavailable — fall back to local acknowledgment
+    }
+    // Fallback: mark as donated locally
     localStorage.setItem("divinity-guide-donated", "true");
     setDonated(true);
     setShowDonationPrompt(false);
@@ -301,13 +335,27 @@ export default function DivinityGuidePage() {
               Your presence here is not coincidence. It is remembrance.
             </p>
             <div className="rounded-xl border bg-card p-6 space-y-4">
-              <p className="text-3xl font-bold text-primary">${DONATION_AMOUNT.toFixed(2)}</p>
+              <div className="flex items-center justify-center gap-3">
+                {[333, 555, 1111].map(cents => (
+                  <button
+                    key={cents}
+                    onClick={() => setDonationAmount(cents)}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                      donationAmount === cents
+                        ? "bg-primary text-primary-foreground shadow-lg"
+                        : "bg-muted text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    ${(cents / 100).toFixed(2)}
+                  </button>
+                ))}
+              </div>
               <p className="text-xs text-muted-foreground">
                 A sacred contribution from one future Master of Thought to another.
                 Your gift sustains this living guide for all who seek wholeness.
               </p>
               <button onClick={handleDonate} className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90">
-                Donate & Enter
+                Donate ${(donationAmount / 100).toFixed(2)} & Enter
               </button>
             </div>
             <p className="text-[9px] text-muted-foreground/40">

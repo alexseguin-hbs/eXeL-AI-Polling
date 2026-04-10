@@ -337,6 +337,61 @@ async def create_donation_intent(
 
 
 # ---------------------------------------------------------------------------
+# Divinity Guide Donation — Stripe Checkout (anonymous, adjustable amount)
+# ---------------------------------------------------------------------------
+
+
+async def create_divinity_donation_checkout(
+    amount_cents: int = 333,
+    success_url: str = "",
+    cancel_url: str = "",
+) -> dict:
+    """Create Stripe Checkout for Divinity Guide donation.
+
+    Anonymous — no auth required. User can adjust amount.
+    Minimum $0.50. Default $3.33.
+    """
+    if amount_cents < 50:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Minimum donation is $0.50",
+        )
+
+    checkout = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "usd",
+                "unit_amount": amount_cents,
+                "product_data": {
+                    "name": "The Divinity Guide — Sacred Contribution",
+                    "description": "The Return to Wholeness and Living Divinity",
+                },
+            },
+            "quantity": 1,
+            "adjustable_quantity": {"enabled": False},
+        }],
+        mode="payment",
+        success_url=success_url or f"{settings.frontend_url}/divinity-guide?donated=true",
+        cancel_url=cancel_url or f"{settings.frontend_url}/divinity-guide",
+        metadata={
+            "transaction_type": "divinity_guide_donation",
+        },
+    )
+
+    logger.info(
+        "cube8.payment.divinity_donation_checkout",
+        extra={"amount_cents": amount_cents, "checkout_id": checkout.id},
+    )
+
+    return {
+        "checkout_url": checkout.url,
+        "checkout_id": checkout.id,
+        "amount_cents": amount_cents,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Webhook — Payment Completion
 # ---------------------------------------------------------------------------
 
