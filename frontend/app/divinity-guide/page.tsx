@@ -330,8 +330,15 @@ function DivinityGuidePage() {
       {/* Sacred contribution prompt — 12 Ascended Masters approved */}
       {showDonationPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-700">
-          <div className="max-w-md mx-auto px-6 text-center space-y-6">
-            <Link href="/" className="text-xs text-muted-foreground hover:text-primary block">← Back</Link>
+          <div className="relative max-w-md mx-auto px-8 py-8 rounded-2xl border bg-card shadow-2xl text-center space-y-6">
+            {/* X close button — top right */}
+            <button
+              onClick={() => setShowDonationPrompt(false)}
+              className="absolute top-3 right-4 text-muted-foreground hover:text-foreground text-xl leading-none"
+              aria-label="Close"
+            >
+              &times;
+            </button>
             <div className="text-5xl">✦</div>
             <h1 className="text-2xl font-bold">The Divinity Guide</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -342,7 +349,7 @@ function DivinityGuidePage() {
               is awakening — heart, mind, and spirit aligning as one.
               Your presence here is not coincidence. It is remembrance.
             </p>
-            <div className="rounded-xl border bg-card p-6 space-y-4">
+            <div className="space-y-4">
               <div className="flex items-center justify-center gap-3">
                 {[333, 555, 1111].map(cents => (
                   <button
@@ -363,15 +370,12 @@ function DivinityGuidePage() {
                 Your gift sustains this living guide for all who seek wholeness.
               </p>
               <button onClick={handleDonate} className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90">
-                Donate ${(donationAmount / 100).toFixed(2)} & Enter
+                Donate ${(donationAmount / 100).toFixed(2)}
               </button>
             </div>
             <p className="text-[9px] text-muted-foreground/40">
               ◬ A.I. · ♡ S.I. · 웃 H.I.
             </p>
-            <button onClick={() => setShowDonationPrompt(false)} className="text-xs text-muted-foreground hover:text-primary">
-              Continue reading
-            </button>
           </div>
         </div>
       )}
