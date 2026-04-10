@@ -296,25 +296,25 @@ export default function ApiPage() {
                     </summary>
                     <div className="px-5 pb-5 pt-2 space-y-3 border-t">
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Need</p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: currentTheme.swatch }}>Need</p>
                         <p className="text-sm text-foreground/80">{demo.need}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Outcome</p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: currentTheme.swatch }}>Outcome</p>
                         <p className="text-sm text-foreground/80">{demo.outcome}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Solution</p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: currentTheme.swatch }}>Solution</p>
                         <p className="text-sm text-foreground/80">{demo.solutionText || ""}</p>
-                        <details className="mt-2">
-                          <summary className="text-xs text-primary cursor-pointer hover:underline">View code example</summary>
-                          <pre className="mt-2 text-xs bg-muted/50 rounded-lg p-3 font-mono text-muted-foreground overflow-x-auto">{demo.solution}</pre>
-                        </details>
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Evidence</p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: currentTheme.swatch }}>Evidence</p>
                         <p className="text-xs text-foreground/60 italic">{demo.evidence}</p>
                       </div>
+                      <details className="mt-1">
+                        <summary className="text-xs cursor-pointer hover:underline" style={{ color: currentTheme.swatch }}>View code example</summary>
+                        <pre className="mt-2 text-xs bg-muted/50 rounded-lg p-3 font-mono text-muted-foreground overflow-x-auto">{demo.solution}</pre>
+                      </details>
                     </div>
                   </details>
                 ))}
@@ -345,25 +345,25 @@ export default function ApiPage() {
                     </summary>
                     <div className="px-5 pb-5 pt-2 space-y-3 border-t">
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Need</p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: currentTheme.swatch }}>Need</p>
                         <p className="text-sm text-foreground/80">{demo.need}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Outcome</p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: currentTheme.swatch }}>Outcome</p>
                         <p className="text-sm text-foreground/80">{demo.outcome}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Solution</p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: currentTheme.swatch }}>Solution</p>
                         <p className="text-sm text-foreground/80">{demo.solutionText || ""}</p>
-                        <details className="mt-2">
-                          <summary className="text-xs text-primary cursor-pointer hover:underline">View code example</summary>
-                          <pre className="mt-2 text-xs bg-muted/50 rounded-lg p-3 font-mono text-muted-foreground overflow-x-auto">{demo.solution}</pre>
-                        </details>
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Evidence</p>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: currentTheme.swatch }}>Evidence</p>
                         <p className="text-xs text-foreground/60 italic">{demo.evidence}</p>
                       </div>
+                      <details className="mt-1">
+                        <summary className="text-xs cursor-pointer hover:underline" style={{ color: currentTheme.swatch }}>View code example</summary>
+                        <pre className="mt-2 text-xs bg-muted/50 rounded-lg p-3 font-mono text-muted-foreground overflow-x-auto">{demo.solution}</pre>
+                      </details>
                     </div>
                   </details>
                 ))}
