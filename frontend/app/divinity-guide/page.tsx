@@ -342,7 +342,7 @@ export default function DivinityGuidePage() {
 
           {/* Footer */}
           <div className="mt-auto pb-6 text-center">
-            <p className="text-[9px] text-muted-foreground/40">12 Wisdom Portals</p>
+            <p className="text-[10px] text-muted-foreground/60">12 Wisdom Portals</p>
             <br />
             <p className="text-[9px] text-muted-foreground/40">◬ A.I. · ♡ S.I. · 웃 H.I.</p>
             <br />
