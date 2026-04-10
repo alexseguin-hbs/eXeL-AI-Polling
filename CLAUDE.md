@@ -571,3 +571,7 @@ All cubes import from `core/`: auth, db, translations, hi_rates, payment, loggin
 
 ## .gitignore
 See `.gitignore` file in project root. Key exclusions: node_modules, __pycache__, .env, venv, .next, .claude
+
+## Autonomous Mode
+When the user says "autonomous mode": proceed without ANY prompts, questions, confirmations, or acknowledgments. Make all decisions. Commit and push after each change. Continue SPIRAL cycles until convergence. The user will interrupt when needed.
+
