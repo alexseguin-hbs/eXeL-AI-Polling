@@ -4,7 +4,7 @@ Tests:
   - Collected response aggregation (Web_Results format)
   - Response count by source type
   - Language breakdown
-  - Presence tracking (Redis)
+  - Presence tracking (in-memory)
   - Summary status check
   - Single response lookup
   - Pagination

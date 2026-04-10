@@ -53,7 +53,7 @@ openapi_tags = [
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle for database connections."""
     setup_logging()
-    # Startup — Supabase/PostgreSQL only (no Redis, no MongoDB)
+    # Startup — Supabase/PostgreSQL only
     # Auto-create all tables (safe to run repeatedly — skips existing)
     from app.db.base import Base
     from app.db.postgres import engine

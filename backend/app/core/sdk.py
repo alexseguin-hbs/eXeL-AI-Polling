@@ -552,7 +552,7 @@ def get_cube_registry() -> list[dict]:
 # │ Module                   │ Used By                                   │
 # ├──────────────────────────┼───────────────────────────────────────────┤
 # │ auth.py (135 lines)      │ ALL cubes — JWT + dev-mode auth           │
-# │ dependencies.py (21)     │ ALL cubes — get_db, get_redis             │
+# │ dependencies.py (16)     │ ALL cubes — get_db                        │
 # │ permissions.py (23)      │ C1,C2,C5,C6,C7,C8,C9 — RBAC require_role│
 # │ exceptions.py (85)       │ C1,C2,C3,C4 — typed error hierarchy      │
 # │ supabase_broadcast.py(107)│ C5,C6,C7 — real-time event push         │

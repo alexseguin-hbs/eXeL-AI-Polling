@@ -161,7 +161,7 @@ class BordaAccumulator:
 
 
 # ═══════════════════════════════════════════════════════════════════
-# REDIS VOTE ACCUMULATOR (Production)
+# SUPABASE VOTE ACCUMULATOR (Production)
 # ═══════════════════════════════════════════════════════════════════
 
 
@@ -172,7 +172,7 @@ class SupabaseVoteAccumulator:
     Persistence: Batch INSERT to Supabase user_rankings table every 1s
     Recovery: On restart, reload from Supabase and rebuild accumulator
 
-    Note: Redis removed from critical path (2026-04-09).
+    Note: Uses in-memory accumulator (Supabase for persistence).
     Supabase Realtime + Python memory handles all scale requirements.
     """
 
@@ -180,7 +180,7 @@ class SupabaseVoteAccumulator:
         self.session_id = session_id
         self.n_themes = n_themes
         self.seed = seed
-        # In-memory accumulator (primary) — no Redis dependency
+        # In-memory accumulator (primary) — Supabase for persistence
         self._accumulator = BordaAccumulator(n_themes=n_themes, seed=seed)
         self._pending_writes: list[dict] = []
         self._batch_size = 1000

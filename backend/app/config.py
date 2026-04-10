@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # Database — Supabase/PostgreSQL only (no Redis, no MongoDB)
+    # Database — Supabase/PostgreSQL only
     database_url: str = "postgresql+asyncpg://polling:polling@localhost:5432/polling_db"
 
     # Auth0

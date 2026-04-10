@@ -428,7 +428,7 @@ class TestProfanityScrubbing:
 
 
 # ---------------------------------------------------------------------------
-# Supabase Broadcast (replaced Redis pub/sub)
+# Supabase Broadcast
 # ---------------------------------------------------------------------------
 
 

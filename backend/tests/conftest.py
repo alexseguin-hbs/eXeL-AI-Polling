@@ -2,7 +2,7 @@
 
 Provides:
   - Async FastAPI test client
-  - Mock database sessions (Postgres, Redis)
+  - Mock database sessions (Postgres)
   - Auth/user fixtures (moderator, user, admin, anonymous)
   - Session, participant, question factory fixtures
   - Common mock objects for Cube 5 time tracking
@@ -49,16 +49,6 @@ def mock_db():
     return db
 
 
-@pytest.fixture
-def mock_redis():
-    """Mock Redis async client."""
-    redis = AsyncMock()
-    redis.publish = AsyncMock()
-    redis.hset = AsyncMock()
-    redis.hgetall = AsyncMock(return_value={})
-    redis.expire = AsyncMock()
-    redis.delete = AsyncMock()
-    return redis
 
 
 # ---------------------------------------------------------------------------

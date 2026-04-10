@@ -1,14 +1,12 @@
 """Shared presence tracking — Supabase DB + Python in-memory.
 
-Replaces Redis-based presence tracking. Uses:
+Uses:
   - In-memory dict for fast reads (active participant count)
   - Supabase participants table for persistence (is_active flag)
   - Supabase Realtime for cross-instance sync (when scaled)
 
 Pattern: In-memory dict[session_id] → set[participant_id]
          Supabase: participants.is_active = True WHERE session_id = X
-
-No Redis dependency. Works single-instance and multi-instance.
 """
 
 from __future__ import annotations
@@ -25,7 +23,7 @@ _presence: dict[str, dict[str, str]] = defaultdict(dict)
 async def set_presence(
     session_id: uuid.UUID,
     participant_id: uuid.UUID,
-    **kwargs,  # Accept and ignore redis parameter for backward compat
+    **kwargs,
 ) -> None:
     """Record participant presence in memory."""
     key = str(session_id)

@@ -40,19 +40,7 @@ else
     fi
 fi
 
-# Redis
-if redis-cli ping 2>/dev/null | grep -q PONG; then
-    ok "Redis is running"
-else
-    warn "Redis not running — attempting to start..."
-    sudo service redis-server start 2>/dev/null || fail "Could not start Redis. Install with: sudo apt install redis-server"
-    sleep 1
-    if redis-cli ping 2>/dev/null | grep -q PONG; then
-        ok "Redis started"
-    else
-        fail "Redis failed to start"
-    fi
-fi
+# (Redis removed — using Supabase + in-memory)
 
 # MongoDB
 if mongosh --quiet --eval "db.runCommand({ping:1})" 2>/dev/null | grep -q '"ok" : 1\|"ok":1'; then
@@ -79,7 +67,6 @@ else
     cat > "$BACKEND_DIR/.env" << 'ENVEOF'
 DATABASE_URL=postgresql+asyncpg://polling:polling@localhost:5432/polling_db
 MONGODB_URI=mongodb://polling:polling@localhost:27017/polling_raw?authSource=admin
-REDIS_URL=redis://localhost:6379/0
 OPENAI_API_KEY=
 DEFAULT_AI_PROVIDER=openai
 BACKEND_URL=http://localhost:8000
@@ -131,12 +118,7 @@ else
     fail "PostgreSQL connection failed (user=polling, db=polling_db)"
 fi
 
-# Redis
-if redis-cli ping 2>/dev/null | grep -q PONG; then
-    ok "Redis connection verified"
-else
-    fail "Redis connection failed"
-fi
+# (Redis removed — presence via in-memory, broadcast via Supabase)
 
 # MongoDB
 if mongosh "mongodb://polling:polling@localhost:27017/polling_raw?authSource=admin" --quiet --eval "db.stats()" >/dev/null 2>&1; then

@@ -4,7 +4,7 @@ Tests the complete flow from response collection through to
 Web_Results format output, matching the monolith CSV structure.
 
 NOT YET IMPLEMENTED:
-  - Live API tests (require running DB + Redis)
+  - Live API tests (require running DB + Supabase)
   - Full pipeline integration with Cube 2 + Cube 6
 
 These tests validate the service functions with mocked dependencies.
@@ -38,7 +38,7 @@ CUBE4_TEST_METHOD = {
     },
     "flows": {
         "collection": "Aggregate responses from Postgres -> Web_Results format",
-        "presence": "Track active participants via Redis HSET+EXPIRE",
+        "presence": "Track active participants via in-memory presence",
         "summary_status": "Check Postgres for summary generation progress",
         "languages": "Break down response languages for session stats",
     },
