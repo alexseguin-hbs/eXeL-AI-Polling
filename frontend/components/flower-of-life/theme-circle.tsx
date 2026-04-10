@@ -144,13 +144,13 @@ export const ThemeCircle = memo(function ThemeCircle({
             </div>
           )}
 
-          {/* Descriptor in theme/stroke color */}
+          {/* Descriptor in gray */}
           {!isHub && summarySize > 0 && (
             <div
               style={{
                 fontSize: `${summarySize}px`,
-                color: stroke,
-                opacity: 0.85,
+                color: "hsl(210, 10%, 60%)",
+                opacity: 1,
                 lineHeight: 1.3,
                 marginTop: "4px",
                 maxWidth: "100%",
