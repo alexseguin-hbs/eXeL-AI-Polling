@@ -186,30 +186,30 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
           );
         })}
 
-        {/* Family connection lines (parent → children) */}
+        {/* Family connection lines — connect same-family circles via POSITION_MAP */}
         {level >= 6 && positions.length >= 6 && (
           <>
-            {/* Family 1: #1 → #1.2 */}
-            <line x1={positions[0].cx} y1={positions[0].cy} x2={positions[3].cx} y2={positions[3].cy}
+            {/* Red family: compress[0] → detect[1] */}
+            <line x1={positions[0].cx} y1={positions[0].cy} x2={positions[1].cx} y2={positions[1].cy}
               stroke={FAMILY_COLORS[1].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
-            {/* Family 2: #2 → #2.2 */}
-            <line x1={positions[1].cx} y1={positions[1].cy} x2={positions[4].cx} y2={positions[4].cy}
+            {/* Emerald family: vote[5] → consensus[4] */}
+            <line x1={positions[5].cx} y1={positions[5].cy} x2={positions[4].cx} y2={positions[4].cy}
               stroke={FAMILY_COLORS[2].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
-            {/* Family 3: #3 → #3.2 */}
-            <line x1={positions[2].cx} y1={positions[2].cy} x2={positions[5].cx} y2={positions[5].cy}
+            {/* Ocean Blue family: convert[2] → verify[3] */}
+            <line x1={positions[2].cx} y1={positions[2].cy} x2={positions[3].cx} y2={positions[3].cy}
               stroke={FAMILY_COLORS[3].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
           </>
         )}
         {level >= 9 && positions.length >= 9 && (
           <>
-            {/* Family 1: #1 → #1.3 */}
+            {/* Red family: compress[0] → challenge[6] */}
             <line x1={positions[0].cx} y1={positions[0].cy} x2={positions[6].cx} y2={positions[6].cy}
               stroke={FAMILY_COLORS[1].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
-            {/* Family 2: #2 → #2.3 */}
-            <line x1={positions[1].cx} y1={positions[1].cy} x2={positions[7].cx} y2={positions[7].cy}
+            {/* Emerald family: vote[5] → override[8] */}
+            <line x1={positions[5].cx} y1={positions[5].cy} x2={positions[8].cx} y2={positions[8].cy}
               stroke={FAMILY_COLORS[2].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
-            {/* Family 3: #3 → #3.3 */}
-            <line x1={positions[2].cx} y1={positions[2].cy} x2={positions[8].cx} y2={positions[8].cy}
+            {/* Ocean Blue family: convert[2] → broadcast[7] */}
+            <line x1={positions[2].cx} y1={positions[2].cy} x2={positions[7].cx} y2={positions[7].cy}
               stroke={FAMILY_COLORS[3].stroke} strokeOpacity={0.2} strokeWidth={1} strokeDasharray="4 4" />
           </>
         )}
@@ -327,19 +327,19 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
         );
       })()}
 
-      {/* Legend — matches Theme Analysis colors */}
+      {/* Legend — Red / Emerald / Ocean Blue */}
       <div className="flex justify-center gap-6 mt-4 text-[10px] text-muted-foreground">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#FF0000" }} />
-          Understanding
+          Red — Understanding
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#10B981" }} />
-          Governance
+          Emerald — Governance
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#3B82F6" }} />
-          Value
+          Ocean Blue — Value
         </span>
       </div>
     </div>
