@@ -208,9 +208,9 @@ export default function DivinityGuidePage() {
         </div>
       )}
 
-      <div className="flex min-h-screen">
-        {/* LEFT: Flower Navigation */}
-        <div className="w-80 border-r flex flex-col items-center pt-8 px-4 shrink-0">
+      <div className="flex flex-col md:flex-row min-h-screen">
+        {/* LEFT (desktop) / TOP (mobile): Flower Navigation */}
+        <div className="w-full md:w-1/2 md:border-r flex flex-col items-center pt-8 px-4 md:shrink-0">
           <Link href="/" className="text-xs text-muted-foreground hover:text-primary mb-4">← Back</Link>
           <h2 className="text-sm font-semibold mb-1">The Divinity Guide</h2>
           <p className="text-[10px] text-muted-foreground mb-4 italic">12 Portals of Wisdom</p>
@@ -285,8 +285,8 @@ export default function DivinityGuidePage() {
           </div>
         </div>
 
-        {/* RIGHT: Book Page */}
-        <div className="flex-1 px-8 py-12 max-w-2xl">
+        {/* RIGHT (desktop) / BOTTOM (mobile): Book Page */}
+        <div className="flex-1 px-6 md:px-8 py-8 md:py-12 max-w-2xl">
           {!selectedChapter ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-4 max-w-md">
