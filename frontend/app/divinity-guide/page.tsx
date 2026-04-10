@@ -80,7 +80,106 @@ const SECTIONS: [Section, Section, Section] = [
   },
 ];
 
-// HUB_SECTION removed — all 12 chapters distributed across 3 sections (4 each)
+// ── Sacred Library (donation-gated content) ─────────────────────
+
+interface LibrarySection {
+  id: string;
+  label: string;
+  subtitle: string;
+  color: { fill: string; stroke: string };
+  chapterFilter: number;  // JSON chapter number (0 for preludes/index, 13 for appendix)
+  filterIds?: string[];   // specific IDs to filter
+}
+
+const LIBRARY_SECTIONS: [LibrarySection, LibrarySection, LibrarySection] = [
+  {
+    id: "prelude", label: "♡ Prelude", subtitle: "Author's Values & Philosophy",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapterFilter: 0,
+    filterIds: ["prelude-01", "prelude-02", "prelude-03", "prelude-04", "prelude-05"],
+  },
+  {
+    id: "framework", label: "◬ Framework", subtitle: "Divine Intelligence Equation",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapterFilter: 13,
+  },
+  {
+    id: "index", label: "웃 Index", subtitle: "The Sacred Map",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapterFilter: 0,
+    filterIds: ["index-01", "index-02"],
+  },
+];
+
+// ── Library Reader Component ────────────────────────────────────
+
+function LibraryReader({
+  section, pageIndex, setPageIndex,
+}: {
+  section: LibrarySection;
+  pageIndex: number;
+  setPageIndex: (n: number) => void;
+}) {
+  const touchStartX = React.useRef(0);
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (delta < -50 && pageIndex < totalPages - 1) setPageIndex(pageIndex + 1);
+    else if (delta > 50 && pageIndex > 0) setPageIndex(pageIndex - 1);
+  };
+
+  const bookPages = useMemo(
+    () => (divinityPages as Array<{ id: string; chapter: number; page: number; text: string; gated: boolean }>)
+      .filter((p) => section.filterIds
+        ? section.filterIds.includes(p.id)
+        : p.chapter === section.chapterFilter
+      ),
+    [section]
+  );
+
+  const totalPages = bookPages.length;
+  const bookPage = bookPages[pageIndex] ?? null;
+
+  return (
+    <div className="w-full max-w-lg animate-in fade-in duration-300" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <div className="mb-6">
+        <p className="text-xs text-muted-foreground/60">{section.label} — {section.subtitle}</p>
+      </div>
+
+      <div className="min-h-[250px]" key={`lib-${section.id}-${pageIndex}`}>
+        {bookPage ? (
+          <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+            {bookPage.text.split("\n").map((paragraph, i) => (
+              <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: paragraph.startsWith("•") || paragraph.startsWith("—") || paragraph.startsWith("🙏") || paragraph.startsWith("💫") || paragraph.startsWith("💡") || paragraph.startsWith("Chapter") || paragraph.startsWith("*") || paragraph.startsWith("http") ? undefined : "2rem" }}>
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="flex items-center justify-between pt-4 mt-4 border-t">
+        <button
+          onClick={() => pageIndex > 0 && setPageIndex(pageIndex - 1)}
+          disabled={pageIndex === 0}
+          className="w-12 h-12 rounded-full border flex items-center justify-center text-lg hover:bg-accent/30 disabled:opacity-15 transition-all"
+          style={{ borderColor: pageIndex > 0 ? section.color.stroke : undefined }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <p className="text-[10px] text-muted-foreground/40">{pageIndex + 1} / {totalPages}</p>
+        <button
+          onClick={() => pageIndex < totalPages - 1 && setPageIndex(pageIndex + 1)}
+          disabled={pageIndex >= totalPages - 1}
+          className="w-12 h-12 rounded-full border flex items-center justify-center text-lg hover:bg-accent/30 disabled:opacity-15 transition-all"
+          style={{ borderColor: pageIndex < totalPages - 1 ? section.color.stroke : undefined }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // ── Page Reader Component ────────────────────────────────────────
 
@@ -258,6 +357,10 @@ function DivinityGuidePage() {
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
   const enteredAtRef = useRef(Date.now());
+  // Sacred Library (gated content)
+  const [viewMode, setViewMode] = useState<"portals" | "library">("portals");
+  const [selectedLibrary, setSelectedLibrary] = useState<LibrarySection | null>(null);
+  const [libraryPageIndex, setLibraryPageIndex] = useState(0);
 
   const { currentTheme } = useTheme();
   const hub = getHubPosition();
@@ -389,78 +492,118 @@ function DivinityGuidePage() {
               <span className="text-sm font-bold" style={{ color: currentTheme.swatch }}>eXeL</span>
               <span className="text-sm font-light" style={{ color: currentTheme.swatch, opacity: 0.7 }}>AI</span>
             </Link>
-            <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); }} className="text-xs text-muted-foreground hover:text-primary">12 Wisdom Portals</button>
+            <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); setViewMode("portals"); setSelectedLibrary(null); }} className="text-xs text-muted-foreground hover:text-primary">
+              {viewMode === "portals" ? "12 Wisdom Portals" : "Sacred Library"}
+            </button>
           </div>
           {/* Title — same size as center heading (text-2xl), resets to flower home */}
           <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); }} className="text-2xl font-bold mb-0.5 hover:opacity-80 text-left" style={{ color: currentTheme.swatch }}>
             The Divinity Guide
           </button>
-          <p className="text-[10px] text-muted-foreground italic mb-3">The Return to Wholeness and Living Divinity</p>
+          <p className="text-[10px] text-muted-foreground italic mb-2">The Return to Wholeness and Living Divinity</p>
 
-          {/* Flower SVG — same diameter as dashboard Theme Analysis */}
+          {/* View toggle — only show Sacred Library option to donors */}
+          {donated && (
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => { setViewMode("portals"); setSelectedLibrary(null); setSelectedSection(null); setSelectedChapter(null); }}
+                className={`px-3 py-1 text-[10px] rounded-full transition-all ${viewMode === "portals" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
+              >12 Wisdom Portals</button>
+              <button
+                onClick={() => { setViewMode("library"); setSelectedSection(null); setSelectedChapter(null); setSelectedLibrary(null); }}
+                className={`px-3 py-1 text-[10px] rounded-full transition-all ${viewMode === "library" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
+              >Sacred Library</button>
+            </div>
+          )}
+
+          {/* Flower SVG */}
           <svg viewBox="0 0 600 500" className="w-full" style={{ overflow: "visible" }}>
             {/* Lines from hub to outer sections */}
-            {!selectedSection && outerPositions.map((pos, i) => (
-              <line key={`l-${i}`} x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
-                stroke={SECTIONS[i].color.stroke} strokeOpacity={0.15} strokeWidth={2} />
-            ))}
-            {/* Lines from center chapter to 3 outer chapters (Trinity) */}
-            {selectedSection && activeSection && outerPositions.map((pos, i) => (
-              <line key={`cl-${i}`} x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
-                stroke={activeSection.color.stroke} strokeOpacity={0.12} strokeWidth={1.5} />
-            ))}
-
-            {!selectedSection ? (
+            {viewMode === "portals" ? (
               <>
-                {/* Hub — decorative center */}
-                <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
-                  theme={{ label: "✦", count: 0, avgConfidence: 0, summary33: "Explore" }}
-                  fill="rgba(var(--primary), 0.15)" stroke="hsl(var(--primary))" isHub
-                />
-
-                {/* 3 outer sections — no numbers, no confidence, just titles */}
-                {outerPositions.map((pos, i) => (
-                  <ThemeCircle key={SECTIONS[i].id}
-                    cx={pos.cx} cy={pos.cy} r={pos.r}
-                    theme={{ label: SECTIONS[i].label, count: 0, avgConfidence: 0, summary33: SECTIONS[i].subtitle }}
-                    fill={SECTIONS[i].color.fill} stroke={SECTIONS[i].color.stroke}
-                    bloom bloomDelay={i * 200}
-                    onClick={() => { setSelectedSection(SECTIONS[i].id); setSelectedChapter(null); }}
-                  />
+                {!selectedSection && outerPositions.map((pos, i) => (
+                  <line key={`l-${i}`} x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
+                    stroke={SECTIONS[i].color.stroke} strokeOpacity={0.15} strokeWidth={2} />
                 ))}
-              </>
-            ) : activeSection && (
-              <>
-                {/* CENTER = Chapter 1 of this section (clickable!) */}
-                {(() => {
-                  const isSel = selectedChapter?.id === activeSection.chapters[0].id;
-                  const hasSelection = !!selectedChapter;
-                  return (
-                    <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
-                      theme={{ label: activeSection.chapters[0].title, count: 0, avgConfidence: 0, summary33: activeSection.chapters[0].subtitle }}
-                      fill={isSel ? activeSection.color.stroke + "30" : activeSection.color.fill}
-                      stroke={activeSection.color.stroke}
-                      onClick={() => { setSelectedChapter(activeSection.chapters[0]); setPageIndex(0); }}
-                      className={`${isSel ? "flower-pulse" : ""} ${hasSelection && !isSel ? "opacity-40" : ""}`}
-                    />
-                  );
-                })()}
+                {selectedSection && activeSection && outerPositions.map((pos, i) => (
+                  <line key={`cl-${i}`} x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
+                    stroke={activeSection.color.stroke} strokeOpacity={0.12} strokeWidth={1.5} />
+                ))}
 
-                {/* 3 outer chapters (Trinity pattern — same positions as sections) */}
+                {!selectedSection ? (
+                  <>
+                    <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
+                      theme={{ label: "✦", count: 0, avgConfidence: 0, summary33: "Explore" }}
+                      fill="rgba(var(--primary), 0.15)" stroke="hsl(var(--primary))" isHub
+                    />
+                    {outerPositions.map((pos, i) => (
+                      <ThemeCircle key={SECTIONS[i].id}
+                        cx={pos.cx} cy={pos.cy} r={pos.r}
+                        theme={{ label: SECTIONS[i].label, count: 0, avgConfidence: 0, summary33: SECTIONS[i].subtitle }}
+                        fill={SECTIONS[i].color.fill} stroke={SECTIONS[i].color.stroke}
+                        bloom bloomDelay={i * 200}
+                        onClick={() => { setSelectedSection(SECTIONS[i].id); setSelectedChapter(null); }}
+                      />
+                    ))}
+                  </>
+                ) : activeSection && (
+                  <>
+                    {(() => {
+                      const isSel = selectedChapter?.id === activeSection.chapters[0].id;
+                      const hasSelection = !!selectedChapter;
+                      return (
+                        <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
+                          theme={{ label: activeSection.chapters[0].title, count: 0, avgConfidence: 0, summary33: activeSection.chapters[0].subtitle }}
+                          fill={isSel ? activeSection.color.stroke + "30" : activeSection.color.fill}
+                          stroke={activeSection.color.stroke}
+                          onClick={() => { setSelectedChapter(activeSection.chapters[0]); setPageIndex(0); }}
+                          className={`${isSel ? "flower-pulse" : ""} ${hasSelection && !isSel ? "opacity-40" : ""}`}
+                        />
+                      );
+                    })()}
+                    {outerPositions.map((pos, i) => {
+                      const ch = activeSection.chapters[i + 1];
+                      if (!ch) return null;
+                      const isSelected = selectedChapter?.id === ch.id;
+                      const hasSelection = !!selectedChapter;
+                      return (
+                        <ThemeCircle key={ch.id}
+                          cx={pos.cx} cy={pos.cy} r={pos.r}
+                          theme={{ label: ch.title, count: 0, avgConfidence: 0, summary33: ch.subtitle }}
+                          fill={isSelected ? activeSection.color.stroke + "30" : activeSection.color.fill}
+                          stroke={activeSection.color.stroke}
+                          bloom={isSelected} bloomDelay={0}
+                          onClick={() => { setSelectedChapter(ch); setPageIndex(0); }}
+                          className={`${isSelected ? "flower-pulse" : ""} ${hasSelection && !isSelected ? "opacity-40" : ""}`}
+                        />
+                      );
+                    })}
+                  </>
+                )}
+              </>
+            ) : (
+              /* Sacred Library flower — 3 circles: Heart (Prelude), Mind (Framework), Spirit (Index) */
+              <>
+                {outerPositions.map((pos, i) => (
+                  <line key={`lib-l-${i}`} x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
+                    stroke={LIBRARY_SECTIONS[i].color.stroke} strokeOpacity={0.15} strokeWidth={2} />
+                ))}
+                <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
+                  theme={{ label: "•••", count: 0, avgConfidence: 0, summary33: "Master of Thought" }}
+                  fill={currentTheme.swatch + "1A"} stroke={currentTheme.swatch} isHub
+                />
                 {outerPositions.map((pos, i) => {
-                  const ch = activeSection.chapters[i + 1]; // chapters 2,3,4
-                  if (!ch) return null;
-                  const isSelected = selectedChapter?.id === ch.id;
-                  const hasSelection = !!selectedChapter;
+                  const lib = LIBRARY_SECTIONS[i];
+                  const isSelected = selectedLibrary?.id === lib.id;
                   return (
-                    <ThemeCircle key={ch.id}
+                    <ThemeCircle key={lib.id}
                       cx={pos.cx} cy={pos.cy} r={pos.r}
-                      theme={{ label: ch.title, count: 0, avgConfidence: 0, summary33: ch.subtitle }}
-                      fill={isSelected ? activeSection.color.stroke + "30" : activeSection.color.fill}
-                      stroke={activeSection.color.stroke}
-                      bloom={isSelected} bloomDelay={0}
-                      onClick={() => { setSelectedChapter(ch); setPageIndex(0); }}
-                      className={`${isSelected ? "flower-pulse" : ""} ${hasSelection && !isSelected ? "opacity-40" : ""}`}
+                      theme={{ label: lib.label, count: 0, avgConfidence: 0, summary33: lib.subtitle }}
+                      fill={isSelected ? lib.color.stroke + "30" : lib.color.fill}
+                      stroke={lib.color.stroke}
+                      bloom bloomDelay={i * 200}
+                      onClick={() => { setSelectedLibrary(lib); setLibraryPageIndex(0); }}
+                      className={isSelected ? "flower-pulse" : ""}
                     />
                   );
                 })}
@@ -468,11 +611,14 @@ function DivinityGuidePage() {
             )}
           </svg>
 
-          {/* Back to 12 Wisdom Portals */}
-          {selectedSection && (
-            <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); }}
+          {/* Back button */}
+          {(selectedSection || selectedLibrary) && (
+            <button onClick={() => {
+              if (viewMode === "portals") { setSelectedSection(null); setSelectedChapter(null); }
+              else { setSelectedLibrary(null); }
+            }}
               className="mt-4 text-xs text-foreground hover:text-primary">
-              ← 12 Wisdom Portals
+              ← {viewMode === "portals" ? "12 Wisdom Portals" : "Sacred Library"}
             </button>
           )}
 
@@ -487,7 +633,27 @@ function DivinityGuidePage() {
 
         {/* RIGHT (desktop) / BOTTOM (mobile): Book Page */}
         <div ref={readerRef} className="w-full md:w-1/2 px-6 md:px-10 py-8 md:py-12 overflow-y-auto flex flex-col items-center">
-          {!selectedChapter ? (
+          {viewMode === "library" && selectedLibrary ? (
+            <LibraryReader
+              section={selectedLibrary}
+              pageIndex={libraryPageIndex}
+              setPageIndex={setLibraryPageIndex}
+            />
+          ) : viewMode === "library" && !selectedLibrary ? (
+            <div className="flex items-center justify-center h-full w-full">
+              <div className="text-center space-y-4 max-w-lg px-4">
+                <div className="text-4xl">•••</div>
+                <h1 className="text-2xl font-bold">Sacred Library</h1>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  The author&apos;s values, the divine intelligence framework, and the sacred map that connects them.
+                  Select a circle on the flower to begin exploring.
+                </p>
+                <p className="text-xs text-muted-foreground/60 italic">
+                  &quot;You are not the end of this work — you are its living continuation.&quot;
+                </p>
+              </div>
+            </div>
+          ) : !selectedChapter ? (
             <div className="flex items-center justify-center h-full w-full">
               <div className="text-center space-y-4 max-w-lg px-4">
                 <div className="text-4xl">✦</div>
