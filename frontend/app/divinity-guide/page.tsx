@@ -247,11 +247,11 @@ export default function DivinityGuidePage() {
       <div className="flex flex-col md:flex-row min-h-screen">
         {/* LEFT (desktop) / TOP (mobile): Flower Navigation */}
         <div className="w-full md:w-1/2 md:border-r flex flex-col items-center justify-center px-6 py-6">
-          {/* Top-left: eXeL AI brand → main app home */}
+          {/* Top-left: eXeL AI in theme color → main app home */}
           <div className="flex items-center justify-between w-full mb-3">
             <Link href="/" className="flex items-center gap-1.5 hover:opacity-80">
-              <span className="text-sm font-bold text-primary">eXeL</span>
-              <span className="text-sm font-light text-muted-foreground">AI</span>
+              <span className="text-sm font-bold" style={{ color: currentTheme.swatch }}>eXeL</span>
+              <span className="text-sm font-light" style={{ color: currentTheme.swatch, opacity: 0.7 }}>AI</span>
             </Link>
             <Link href="/" className="text-xs text-muted-foreground hover:text-primary">Home</Link>
           </div>
@@ -298,9 +298,10 @@ export default function DivinityGuidePage() {
                 {/* CENTER = Chapter 1 of this section (clickable!) */}
                 <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
                   theme={{ label: activeSection.chapters[0].title, count: 0, avgConfidence: 0, summary33: activeSection.chapters[0].subtitle }}
-                  fill={activeSection.color.fill}
-                  stroke={selectedChapter?.id === activeSection.chapters[0].id ? "hsl(var(--primary))" : activeSection.color.stroke}
+                  fill={selectedChapter?.id === activeSection.chapters[0].id ? activeSection.color.stroke + "30" : activeSection.color.fill}
+                  stroke={activeSection.color.stroke}
                   onClick={() => { setSelectedChapter(activeSection.chapters[0]); setPageIndex(0); }}
+                  className={selectedChapter?.id === activeSection.chapters[0].id ? "flower-pulse" : ""}
                 />
 
                 {/* 3 outer chapters (Trinity pattern — same positions as sections) */}
@@ -312,10 +313,11 @@ export default function DivinityGuidePage() {
                     <ThemeCircle key={ch.id}
                       cx={pos.cx} cy={pos.cy} r={pos.r}
                       theme={{ label: ch.title, count: 0, avgConfidence: 0, summary33: ch.subtitle }}
-                      fill={activeSection.color.fill}
-                      stroke={isSelected ? "hsl(var(--primary))" : activeSection.color.stroke}
+                      fill={isSelected ? activeSection.color.stroke + "30" : activeSection.color.fill}
+                      stroke={activeSection.color.stroke}
                       bloom bloomDelay={i * 150}
                       onClick={() => { setSelectedChapter(ch); setPageIndex(0); }}
+                      className={isSelected ? "flower-pulse" : ""}
                     />
                   );
                 })}
