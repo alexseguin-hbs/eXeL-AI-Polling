@@ -13,8 +13,9 @@
  *   Section D (Hub):         Ch 10-12 Divinity (appears when any section selected)
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
+import divinityPages from "@/lib/divinity-pages.json";
 import {
   getTheme2_3Positions,
   getHubPosition,
@@ -146,71 +147,78 @@ const HUB_SECTION: Section = {
 // ── Page Reader Component ────────────────────────────────────────
 
 function PageReader({
-  chapter, section, pageIndex, setPageIndex, setSelectedChapter,
+  chapter, section, pageIndex, setPageIndex,
 }: {
   chapter: Chapter;
   section: Section;
   pageIndex: number;
   setPageIndex: (n: number) => void;
-  setSelectedChapter: (ch: Chapter) => void;
 }) {
-  const paragraphs = chapter.content.split("\n\n");
-  const pages = [
-    ...paragraphs.map((p) => ({ type: "text" as const, content: p })),
-    { type: "reflection" as const, content: chapter.reflection },
-  ];
-  const currentPage = pages[pageIndex] || pages[0];
-  const totalPages = pages.length;
-  const chapterIdx = section.chapters.findIndex((c) => c.id === chapter.id);
+  // Get real book pages for this chapter number
+  const chapterNum = chapter.id;
+  const bookPages = useMemo(
+    () => (divinityPages as Array<{ id: string; chapter: number; page: number; text: string }>)
+      .filter((p) => p.chapter === chapterNum),
+    [chapterNum]
+  );
+
+  // Page 0 = summary/intro (from our chapter data), pages 1+ = real book pages
+  const isIntro = pageIndex === 0;
+  const bookPage = !isIntro ? bookPages[pageIndex - 1] : null;
+  const totalPages = bookPages.length + 1; // +1 for intro
 
   return (
     <div className="w-full max-w-lg animate-in fade-in duration-300">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">{chapter.title}</h1>
-        <p className="text-sm text-primary/80 italic mt-1">{chapter.subtitle}</p>
+      {/* Page number at top */}
+      <div className="flex items-center justify-between mb-6">
+        <p className="text-xs text-muted-foreground/40 font-mono">
+          {isIntro ? chapter.title : bookPage?.id}
+        </p>
+        <p className="text-[10px] text-muted-foreground/30">
+          {pageIndex + 1} / {totalPages}
+        </p>
       </div>
 
-      <div className="min-h-[180px]" key={`${chapter.id}-${pageIndex}`}>
-        {currentPage.type === "reflection" ? (
-          <div className="rounded-lg border-l-2 pl-5 py-3" style={{ borderColor: section.color.stroke }}>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Reflection</p>
-            <p className="text-lg text-foreground/70 italic leading-relaxed">{currentPage.content}</p>
+      {/* Content */}
+      <div className="min-h-[250px]" key={`${chapterNum}-${pageIndex}`}>
+        {isIntro ? (
+          // Intro page: chapter summary + reflection
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-2xl font-bold">{chapter.title}</h1>
+              <p className="text-sm text-primary/80 italic mt-1">{chapter.subtitle}</p>
+            </div>
+            <p className="text-sm text-foreground/80 leading-relaxed">{chapter.content.split("\n\n")[0]}</p>
+            <div className="rounded-lg border-l-2 pl-5 py-3" style={{ borderColor: section.color.stroke }}>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Reflection</p>
+              <p className="text-sm text-foreground/60 italic">{chapter.reflection}</p>
+            </div>
           </div>
-        ) : (
-          <p className="text-sm text-foreground/80 leading-relaxed animate-in fade-in slide-in-from-right-2 duration-300">
-            {currentPage.content}
-          </p>
-        )}
+        ) : bookPage ? (
+          // Real book page
+          <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+            {bookPage.text.split("\n").map((paragraph, i) => (
+              <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4 indent-8 first:indent-0">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        ) : null}
       </div>
 
-      <div className="flex items-center justify-between pt-6 mt-6 border-t">
+      {/* Navigation: ← → */}
+      <div className="flex items-center justify-between pt-4 mt-4 border-t">
         <button
-          onClick={() => {
-            if (pageIndex > 0) {
-              setPageIndex(pageIndex - 1);
-            } else if (chapterIdx > 0) {
-              const prev = section.chapters[chapterIdx - 1];
-              setSelectedChapter(prev);
-              setPageIndex(prev.content.split("\n\n").length); // last text page (before reflection)
-            }
-          }}
-          disabled={pageIndex === 0 && chapterIdx === 0}
-          className="text-xs text-muted-foreground hover:text-primary disabled:opacity-30"
+          onClick={() => pageIndex > 0 && setPageIndex(pageIndex - 1)}
+          disabled={pageIndex === 0}
+          className="px-3 py-1 text-sm text-muted-foreground hover:text-primary disabled:opacity-20"
         >
           ←
         </button>
-        <span className="text-[10px] text-muted-foreground/50">{pageIndex + 1} / {totalPages}</span>
         <button
-          onClick={() => {
-            if (pageIndex < totalPages - 1) {
-              setPageIndex(pageIndex + 1);
-            } else if (chapterIdx < section.chapters.length - 1) {
-              setSelectedChapter(section.chapters[chapterIdx + 1]);
-              setPageIndex(0);
-            }
-          }}
-          disabled={pageIndex === totalPages - 1 && chapterIdx === section.chapters.length - 1}
-          className="text-xs text-muted-foreground hover:text-primary disabled:opacity-30"
+          onClick={() => pageIndex < totalPages - 1 && setPageIndex(pageIndex + 1)}
+          disabled={pageIndex >= totalPages - 1}
+          className="px-3 py-1 text-sm text-muted-foreground hover:text-primary disabled:opacity-20"
         >
           →
         </button>
@@ -390,7 +398,6 @@ export default function DivinityGuidePage() {
               section={activeSection!}
               pageIndex={pageIndex}
               setPageIndex={setPageIndex}
-              setSelectedChapter={(ch) => { setSelectedChapter(ch); setPageIndex(0); }}
             />
           )}
         </div>
