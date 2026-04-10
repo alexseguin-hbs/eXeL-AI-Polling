@@ -138,7 +138,7 @@ function PageReader({
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl font-bold">{chapter.title}</h1>
-              <p className="text-sm text-primary/80 italic mt-1">{chapter.subtitle}</p>
+              <p className="text-sm italic mt-1" style={{ color: section.color.stroke, opacity: 0.8 }}>{chapter.subtitle}</p>
             </div>
             <p className="text-sm text-foreground/80 leading-relaxed">{chapter.content.split("\n\n")[0]}</p>
             <div className="rounded-lg border-l-2 pl-5 py-3" style={{ borderColor: section.color.stroke }}>
