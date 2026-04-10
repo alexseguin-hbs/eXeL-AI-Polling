@@ -13,7 +13,7 @@
  *   Section D (Hub):         Ch 10-12 Divinity (appears when any section selected)
  */
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import divinityPages from "@/lib/divinity-pages.json";
 import {
@@ -42,14 +42,8 @@ interface Section {
   chapters: [Chapter, Chapter, Chapter, Chapter];  // 4 chapters per section
 }
 
-// 4-position layout: cross pattern around center hub
-const CENTER = { cx: 300, cy: 250 };
-const CHAPTER_POSITIONS = [
-  { cx: 300, cy: 120, r: 100 },  // top
-  { cx: 430, cy: 250, r: 100 },  // right
-  { cx: 300, cy: 380, r: 100 },  // bottom
-  { cx: 170, cy: 250, r: 100 },  // left
-];
+// Trinity layout: Center = Chapter 1, then 3 outer = Chapters 2,3,4
+// Uses same getTheme2_3Positions() as the section-level view
 
 const SECTIONS: [Section, Section, Section] = [
   {
@@ -96,6 +90,21 @@ function PageReader({
   pageIndex: number;
   setPageIndex: (n: number) => void;
 }) {
+  // Swipe detection for mobile page navigation
+  const touchStartX = React.useRef(0);
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (delta < -50) {
+      // Swipe left → next page
+      const total = chapter.content.split("\n\n").length + (divinityPages as Array<{ chapter: number }>).filter(p => p.chapter === chapter.id).length + 1;
+      if (pageIndex < total - 1) setPageIndex(pageIndex + 1);
+    } else if (delta > 50) {
+      // Swipe right → previous page
+      if (pageIndex > 0) setPageIndex(pageIndex - 1);
+    }
+  };
+
   // Get real book pages for this chapter number
   const chapterNum = chapter.id;
   const bookPages = useMemo(
@@ -110,7 +119,7 @@ function PageReader({
   const totalPages = bookPages.length + 1; // +1 for intro
 
   return (
-    <div className="w-full max-w-lg animate-in fade-in duration-300">
+    <div className="w-full max-w-lg animate-in fade-in duration-300" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       {/* Page number at top */}
       <div className="flex items-center justify-between mb-6">
         <p className="text-xs text-muted-foreground/40 font-mono">
@@ -236,8 +245,8 @@ export default function DivinityGuidePage() {
       <div className="flex flex-col md:flex-row min-h-screen">
         {/* LEFT (desktop) / TOP (mobile): Flower Navigation */}
         <div className="w-full md:w-1/2 md:border-r flex flex-col items-center justify-center px-6 py-6">
-          <Link href="/" className="text-xs text-muted-foreground hover:text-primary mb-2 self-start">← Back</Link>
-          <h2 className="text-sm font-semibold mb-0.5">The Divinity Guide</h2>
+          <Link href="/" className="text-xs text-muted-foreground hover:text-primary mb-2 self-start">← Home</Link>
+          <Link href="/" className="text-sm font-semibold mb-0.5 hover:text-primary">The Divinity Guide</Link>
           <p className="text-[10px] text-muted-foreground mb-3 italic">12 Portals of Wisdom</p>
 
           {/* Flower SVG — same diameter as dashboard Theme Analysis */}
@@ -247,8 +256,8 @@ export default function DivinityGuidePage() {
               <line key={`l-${i}`} x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
                 stroke={SECTIONS[i].color.stroke} strokeOpacity={0.15} strokeWidth={2} />
             ))}
-            {/* Lines from hub to 4 chapter circles */}
-            {selectedSection && activeSection && CHAPTER_POSITIONS.map((pos, i) => (
+            {/* Lines from center chapter to 3 outer chapters (Trinity) */}
+            {selectedSection && activeSection && outerPositions.map((pos, i) => (
               <line key={`cl-${i}`} x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
                 stroke={activeSection.color.stroke} strokeOpacity={0.12} strokeWidth={1.5} />
             ))}
@@ -274,17 +283,18 @@ export default function DivinityGuidePage() {
               </>
             ) : activeSection && (
               <>
-                {/* Selected section becomes CENTER hub */}
-                <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r + 10}
-                  theme={{ label: activeSection.label, count: 0, avgConfidence: 0, summary33: activeSection.subtitle }}
-                  fill={activeSection.color.fill} stroke={activeSection.color.stroke}
-                  onClick={() => { setSelectedSection(null); setSelectedChapter(null); }}
+                {/* CENTER = Chapter 1 of this section (clickable!) */}
+                <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r + 20}
+                  theme={{ label: activeSection.chapters[0].title, count: 0, avgConfidence: 0, summary33: activeSection.chapters[0].subtitle }}
+                  fill={activeSection.color.fill}
+                  stroke={selectedChapter?.id === activeSection.chapters[0].id ? "hsl(var(--primary))" : activeSection.color.stroke}
+                  onClick={() => { setSelectedChapter(activeSection.chapters[0]); setPageIndex(0); }}
                 />
 
-                {/* 4 chapters bloom in cross pattern — no numbers, no % */}
-                {CHAPTER_POSITIONS.map((pos, i) => {
-                  if (i >= activeSection.chapters.length) return null;
-                  const ch = activeSection.chapters[i];
+                {/* 3 outer chapters (Trinity pattern — same positions as sections) */}
+                {outerPositions.map((pos, i) => {
+                  const ch = activeSection.chapters[i + 1]; // chapters 2,3,4
+                  if (!ch) return null;
                   const isSelected = selectedChapter?.id === ch.id;
                   return (
                     <ThemeCircle key={ch.id}
