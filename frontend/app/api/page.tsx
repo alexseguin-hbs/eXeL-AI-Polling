@@ -219,7 +219,7 @@ export default function ApiPage() {
               <span className="text-sm font-bold" style={{ color: currentTheme.swatch }}>eXeL</span>
               <span className="text-sm font-light" style={{ color: currentTheme.swatch, opacity: 0.7 }}>AI</span>
             </Link>
-            <Link href="/" className="text-xs text-muted-foreground hover:text-primary">Home</Link>
+            <Link href="/api" className="text-xs text-muted-foreground hover:text-primary">Home</Link>
           </div>
           <Link href="/api" className="text-2xl font-bold mb-0.5 hover:opacity-80" style={{ color: currentTheme.swatch }}>
             Governance Engine API
