@@ -260,7 +260,7 @@ export default function DivinityGuidePage() {
               <span className="text-sm font-bold" style={{ color: currentTheme.swatch }}>eXeL</span>
               <span className="text-sm font-light" style={{ color: currentTheme.swatch, opacity: 0.7 }}>AI</span>
             </Link>
-            <Link href="/" className="text-xs text-muted-foreground hover:text-primary">Home</Link>
+            <Link href="/divinity-guide" className="text-xs text-muted-foreground hover:text-primary">12 Wisdom Portals</Link>
           </div>
           {/* Title in active theme color → resets to /divinity-guide flower home */}
           <Link href="/divinity-guide" className="text-sm font-semibold mb-0.5 hover:opacity-80" style={{ color: currentTheme.swatch }}>
