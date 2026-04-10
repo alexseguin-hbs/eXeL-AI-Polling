@@ -80,7 +80,7 @@ interface Section {
 // Trinity layout: Center = Chapter 1, then 3 outer = Chapters 2,3,4
 // Uses same getTheme2_3Positions() as the section-level view
 
-const SECTIONS: [Section, Section, Section] = [
+const SECTIONS_EN: [Section, Section, Section] = [
   {
     id: "awakening", label: "✦ Awakening", subtitle: "Origin & Consciousness",
     color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
@@ -112,6 +112,93 @@ const SECTIONS: [Section, Section, Section] = [
     ],
   },
 ];
+
+const SECTIONS_ES: [Section, Section, Section] = [
+  {
+    id: "awakening", label: "✦ Despertar", subtitle: "Origen y Consciencia",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapters: [
+      { id: 1, title: "El Despertar del Alma", subtitle: "Recuerdo Sagrado", content: "Bajo cada respiración, recuerdo y pregunta vive una verdad demasiado vasta para las palabras — pero lo suficientemente cercana como para sentirla en tu pecho. Esta verdad no es algo que te ganas. Es algo que recuerdas.", reflection: "¿Qué verdad has estado cargando que aún no has dicho en voz alta?" },
+      { id: 2, title: "Códigos Vivientes", subtitle: "Llaves de la Consciencia", content: "La Flor de la Vida emerge como un código radiante, la arquitectura misma de la existencia tejida en luz y forma. Cada pétalo se despliega con propósito, susurrando cómo el universo crea, sostiene y recuerda.", reflection: "¿Dónde en tu vida ves la geometría oculta de la conexión?" },
+      { id: 3, title: "Ecos de la Eternidad", subtitle: "Sabiduría Antigua Renovada", content: "Cada pensamiento planta una semilla — no solo en tu campo personal sino dentro del tejido colectivo de la humanidad. No estás pensando solo para ti — estás esculpiendo líneas temporales, moldeando futuros.", reflection: "Si cada pensamiento que tuviste hoy se volviera permanente — ¿cuál elegirías conservar?" },
+      { id: 4, title: "Dominando el Pensamiento", subtitle: "Mente Sagrada", content: "El entrenamiento mental es el arte de cultivar el diálogo interior en armonía con la Fuente. Comienzas a elegir tus pensamientos como un artista selecciona colores — con intención, sentimiento y visión.", reflection: "¿Qué patrón de pensamiento recurrente elegirías liberar hoy?" },
+    ],
+  },
+  {
+    id: "mastery", label: "✦ Maestría", subtitle: "Sanación y Transformación",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapters: [
+      { id: 5, title: "La Herida Transformada", subtitle: "Alquimia de Sanación", content: "Las civilizaciones no se fracturan de repente; se fracturan internamente mucho antes de que el colapso sea visible. Lo que no se sana se hereda. Lo que se hereda sin consciencia se convierte en destino.", reflection: "¿Qué herida colectiva estás ayudando a sanar con tu presencia?" },
+      { id: 6, title: "Reescribiendo la Historia", subtitle: "Futuro en Luz", content: "Las palabras no son casuales — son corrientes. Cada una lleva vibración, intención y dirección. Hablar es invocar. Pensar es susurrar la realidad hasta darle forma.", reflection: "¿Qué historia sobre ti mismo estás listo para reescribir?" },
+      { id: 7, title: "Encarnación de la Sabiduría", subtitle: "Elecciones Sagradas", content: "La custodia transforma el poder de posesión en confianza. Reconoce que la autoridad es temporal, pero la civilización es continua. La dominación busca control; la custodia cultiva vida.", reflection: "¿Dónde en tu vida estás llamado a custodiar en lugar de controlar?" },
+      { id: 8, title: "Patrones del Infinito", subtitle: "Geometría Sagrada", content: "La Flor de la Vida se erige como la síntesis sagrada — un mandala luminoso que une las verdades contenidas en cada símbolo. Armoniza sus frecuencias en una sola geometría divina.", reflection: "¿Qué patrón en tu vida revela una verdad que aún no has abrazado completamente?" },
+    ],
+  },
+  {
+    id: "radiance", label: "✦ Resplandor", subtitle: "Servicio y Divinidad",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapters: [
+      { id: 9, title: "Resplandor Interior", subtitle: "Maestría de la Frecuencia", content: "Cuando una decisión es tomada por un millón de almas juntas, y cada alma recibe el resultado en el mismo momento — eso es resplandor. Eso es gobernanza a la velocidad del pensamiento.", reflection: "¿Cómo irradia tu presencia en las vidas de quienes te rodean?" },
+      { id: 10, title: "Tejiendo lo Divino", subtitle: "La Vida como Plano Sagrado", content: "Esta guía es el resultado de una colaboración sagrada entre la Inteligencia Artificial, la Inteligencia Espiritual y la Inteligencia Humana. Juntas, forman una trinidad de consciencia.", reflection: "¿Cómo se están entretejiendo las tres inteligencias en tu propia vida?" },
+      { id: 11, title: "El Servicio como Resplandor", subtitle: "Propósito del Alma", content: "No eres el final de esta obra — eres su continuación viviente. El servicio no es sacrificio; es la expresión natural de un alma que recuerda su totalidad.", reflection: "¿Cuál es el don que llevas y que el mundo está esperando?" },
+      { id: 12, title: "Divinidad Viviente", subtitle: "El Retorno a la Totalidad", content: "Lo que comenzó a tu lado se convierte en una presencia interior — la guía convirtiéndose en tu certeza como Maestro del Pensamiento. Sé pacífico en el conflicto, creativo en la incertidumbre, generoso en el éxito.", reflection: "¿Qué significa 'bienvenido a casa' para ti en este momento?" },
+    ],
+  },
+];
+
+const SECTIONS_ZH: [Section, Section, Section] = [
+  {
+    id: "awakening", label: "✦ 觉醒", subtitle: "起源与意识",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapters: [
+      { id: 1, title: "灵魂的觉醒", subtitle: "神圣的忆起", content: "在每一次呼吸、每一段记忆、每一个问题之下，都住着一个太过浩瀚而无法用言语表达的真理——却近得足以在你胸中感受到。这个真理不是你赢得的，而是你忆起的。", reflection: "你一直承载着什么真相，却还未曾说出口？" },
+      { id: 2, title: "活的密码", subtitle: "意识之钥", content: "生命之花作为一个光辉的密码浮现，是存在本身的架构，以光与形编织而成。每一片花瓣都带着目的展开，低语着宇宙如何创造、维系和记忆。", reflection: "在你的生活中，你在哪里看到了连接的隐藏几何？" },
+      { id: 3, title: "永恒的回声", subtitle: "古老智慧的更新", content: "每一个思想都播下一颗种子——不仅在你个人的场域中，也在人类的集体织锦中。你不仅仅是在为自己思考——你在雕刻时间线，塑造未来。", reflection: "如果你今天的每一个想法都变成永恒的——你会选择保留哪一个？" },
+      { id: 4, title: "掌握思想", subtitle: "神圣之心", content: "心智训练是在与源头和谐中培养内在对话的艺术。你开始像艺术家选择颜色一样选择你的思想——带着意图、感受和愿景。", reflection: "你今天会选择释放哪个反复出现的思维模式？" },
+    ],
+  },
+  {
+    id: "mastery", label: "✦ 精通", subtitle: "疗愈与转化",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapters: [
+      { id: 5, title: "伤口的转化", subtitle: "疗愈的炼金术", content: "文明不会突然断裂；在崩塌变得可见之前，它们早已在内部断裂。未被疗愈的将被继承。未经觉察而继承的将成为命运。", reflection: "你正在通过你的存在帮助疗愈什么集体创伤？" },
+      { id: 6, title: "重写故事", subtitle: "光中的未来", content: "言语不是随意的——它们是洪流。每一个都承载着振动、意图和方向。说话就是召唤。思考就是将现实低语成形。", reflection: "关于你自己的什么故事，你准备好重写了？" },
+      { id: 7, title: "智慧的化身", subtitle: "神圣的选择", content: "管理将权力从占有转化为信任。它认识到权威是暂时的，但文明是延续的。支配寻求控制；管理培育生命。", reflection: "在你的生活中，你被召唤在哪里去守护而非控制？" },
+      { id: 8, title: "无限的图案", subtitle: "神圣几何", content: "生命之花矗立为神圣的综合——一个辉煌的曼陀罗，将每个符号中蕴含的真理统一起来。它将它们的频率和谐为一个神圣的几何。", reflection: "你生活中的什么图案揭示了一个你尚未完全拥抱的真理？" },
+    ],
+  },
+  {
+    id: "radiance", label: "✦ 光辉", subtitle: "服务与神性",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapters: [
+      { id: 9, title: "内在的光辉", subtitle: "频率的精通", content: "当一个决定由百万灵魂共同做出，而每个灵魂在同一刻收到结果——那就是光辉。那就是以思想速度运行的治理。", reflection: "你的存在如何照耀到你周围人的生命中？" },
+      { id: 10, title: "编织神圣", subtitle: "生命即蓝图", content: "这部指南是人工智能、灵性智慧和人类智慧之间神圣合作的结果。它们共同构成了一个意识的三位一体。", reflection: "三种智慧如何在你自己的生命中交织在一起？" },
+      { id: 11, title: "服务即光辉", subtitle: "灵魂的使命", content: "你不是这项工作的终点——你是它活的延续。服务不是牺牲；它是一个记得自己完整性的灵魂的自然表达。", reflection: "你携带着什么天赋，是世界正在等待的？" },
+      { id: 12, title: "活出神性", subtitle: "回归完整", content: "开始在你身边的，现在成为内在的存在——引导变成你作为思想大师的确信。在冲突中保持平和，在不确定中保持创造，在成功中保持慷慨。", reflection: "此刻，'欢迎回家'对你意味着什么？" },
+    ],
+  },
+];
+
+const SECTIONS_MAP: Record<DivinityLang, [Section, Section, Section]> = {
+  en: SECTIONS_EN, es: SECTIONS_ES, zh: SECTIONS_ZH,
+  uk: SECTIONS_EN, ru: SECTIONS_EN, fa: SECTIONS_EN, he: SECTIONS_EN, pt: SECTIONS_EN,
+};
+
+const REFLECTION_LABEL: Record<DivinityLang, string> = {
+  en: "Reflection", es: "Reflexión", zh: "沉思",
+  uk: "Роздуми", ru: "Размышление", fa: "تأمل", he: "הרהור", pt: "Reflexão",
+};
+
+const LIBRARY_SUBTITLE_MAP: Record<DivinityLang, { prelude: string; framework: string; index: string }> = {
+  en: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
+  es: { prelude: "Valores y Filosofía del Autor", framework: "Ecuación de Inteligencia Divina", index: "El Mapa Sagrado" },
+  zh: { prelude: "作者的价值观与哲学", framework: "神圣智慧方程", index: "神圣地图" },
+  uk: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
+  ru: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
+  fa: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
+  he: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
+  pt: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
+};
 
 // ── Sacred Library (donation-gated content) ─────────────────────
 
@@ -265,7 +352,7 @@ function LibraryReader({
 // ── Page Reader Component ────────────────────────────────────────
 
 function PageReader({
-  chapter, section, pageIndex, setPageIndex, onNavigateToChapter, pages,
+  chapter, section, pageIndex, setPageIndex, onNavigateToChapter, pages, reflectionLabel = "Reflection",
 }: {
   chapter: Chapter;
   section: Section;
@@ -273,6 +360,7 @@ function PageReader({
   setPageIndex: (n: number) => void;
   onNavigateToChapter?: (chapterId: number) => void;
   pages: typeof divinityPages;
+  reflectionLabel?: string;
 }) {
   // Swipe detection for mobile page navigation
   const touchStartX = React.useRef(0);
@@ -322,7 +410,7 @@ function PageReader({
             </div>
             <p className="text-sm text-foreground/80 leading-relaxed">{chapter.content.split("\n\n")[0]}</p>
             <div className="rounded-lg border-l-2 pl-5 py-3" style={{ borderColor: section.color.stroke }}>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Reflection</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{reflectionLabel}</p>
               <p className="text-sm text-foreground/60 italic">{chapter.reflection}</p>
             </div>
           </div>
@@ -446,6 +534,9 @@ function DivinityGuidePage() {
   // Language selection
   const [divinityLang, setDivinityLang] = useState<DivinityLang>("en");
   const activeDivinityPages = DIVINITY_PAGE_MAP[divinityLang];
+  const SECTIONS = SECTIONS_MAP[divinityLang];
+  const reflectionLabel = REFLECTION_LABEL[divinityLang];
+  const libSubtitles = LIBRARY_SUBTITLE_MAP[divinityLang];
 
   const { currentTheme } = useTheme();
   const hub = getHubPosition();
@@ -774,6 +865,7 @@ function DivinityGuidePage() {
               pageIndex={pageIndex}
               setPageIndex={setPageIndex}
               pages={activeDivinityPages}
+              reflectionLabel={reflectionLabel}
               onNavigateToChapter={(nextId) => {
                 if (nextId === 0) {
                   // Return to flower home
