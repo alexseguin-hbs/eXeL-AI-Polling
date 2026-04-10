@@ -224,9 +224,6 @@ export default function DivinityGuidePage() {
           <p className="text-sm text-muted-foreground leading-relaxed">
             The Return to Wholeness and Living Divinity
           </p>
-          <p className="text-xs text-muted-foreground/60 leading-relaxed">
-            Twelve portals of wisdom connecting ancient truth to the governance engine of the future.
-          </p>
           <div className="rounded-xl border bg-card p-6 space-y-4">
             <p className="text-3xl font-bold text-primary">${DONATION_AMOUNT.toFixed(2)}</p>
             <p className="text-xs text-muted-foreground">A sacred contribution that supports the platform and community.</p>
