@@ -217,7 +217,7 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
         {/* Hub */}
         <ThemeCircle
           cx={hub.cx} cy={hub.cy} r={hub.r}
-          theme={{ label: "eXeL", count: level, avgConfidence: 1.0, summary33: "SDK" }}
+          theme={{ label: "eXeL", count: 0, avgConfidence: 0, summary33: "SDK" }}
           fill="rgba(var(--primary), 0.1)"
           stroke="hsl(var(--primary))"
           isHub
@@ -255,8 +255,8 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
                 y={pos.cy + pos.r + 26}
                 textAnchor="middle"
                 fontSize={8}
-                className="fill-primary"
-                opacity={0.6}
+                className="fill-muted-foreground"
+                opacity={0.5}
               >
                 {sdk.cost}
               </text>
