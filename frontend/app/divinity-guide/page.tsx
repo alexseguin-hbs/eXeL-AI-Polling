@@ -252,17 +252,19 @@ export default function DivinityGuidePage() {
                   onClick={() => { setSelectedSection(null); setSelectedChapter(null); }}
                 />
 
-                {/* 3 chapters bloom around */}
+                {/* 3 chapters bloom around — overlapping hub (Vesica Piscis) like Theme Analysis */}
                 {outerPositions.map((pos, i) => {
                   const ch = activeSection.chapters[i];
+                  const isSelected = selectedChapter?.id === ch.id;
                   return (
                     <ThemeCircle key={ch.id}
-                      cx={pos.cx} cy={pos.cy} r={pos.r - 10}
+                      cx={pos.cx} cy={pos.cy} r={pos.r}
                       theme={{ label: ch.title, count: ch.id, avgConfidence: 0.9 - i * 0.03, summary33: ch.subtitle }}
-                      fill={selectedChapter?.id === ch.id ? activeSection.color.fill : "rgba(var(--muted), 0.3)"}
-                      stroke={selectedChapter?.id === ch.id ? activeSection.color.stroke : "hsl(var(--border))"}
+                      fill={activeSection.color.fill}
+                      stroke={isSelected ? "hsl(var(--primary))" : activeSection.color.stroke}
                       bloom bloomDelay={i * 150}
                       onClick={() => setSelectedChapter(ch)}
+                      className={isSelected ? "ring-2 ring-primary" : ""}
                     />
                   );
                 })}
