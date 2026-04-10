@@ -84,12 +84,13 @@ const SECTIONS: [Section, Section, Section] = [
 // ── Page Reader Component ────────────────────────────────────────
 
 function PageReader({
-  chapter, section, pageIndex, setPageIndex,
+  chapter, section, pageIndex, setPageIndex, onNavigateToChapter,
 }: {
   chapter: Chapter;
   section: Section;
   pageIndex: number;
   setPageIndex: (n: number) => void;
+  onNavigateToChapter?: (chapterId: number) => void;
 }) {
   // Swipe detection for mobile page navigation
   const touchStartX = React.useRef(0);
@@ -147,14 +148,44 @@ function PageReader({
             </div>
           </div>
         ) : bookPage ? (
-          // Real book page
-          <div className="animate-in fade-in slide-in-from-right-2 duration-300">
-            {bookPage.text.split("\n").map((paragraph, i) => (
-              <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: "2rem" }}>
-                {paragraph}
-              </p>
-            ))}
-          </div>
+          // Real book page — detect primer (last page with ••• marker)
+          bookPage.text.includes("•••") && pageIndex === totalPages - 1 && chapter.id < 12 ? (
+            // Bridge page: primer quote + next chapter link
+            <div className="animate-in fade-in duration-300 space-y-8">
+              {/* Primer quote */}
+              {bookPage.text.split("\n").filter(p => !p.includes("•••")).map((paragraph, i) => (
+                <p key={i} className="text-sm text-foreground/60 italic leading-relaxed" style={{ textIndent: "2rem" }}>
+                  {paragraph}
+                </p>
+              ))}
+              {/* Next chapter link */}
+              {(() => {
+                const nextLine = bookPage.text.split("\n").find(l => l.includes("•••"));
+                if (!nextLine) return null;
+                const parts = nextLine.split("•••").map(s => s.trim());
+                const nextTitle = parts[0] || "";
+                const nextSubtitle = parts[1] || "";
+                return (
+                  <button
+                    onClick={() => onNavigateToChapter?.(chapter.id + 1)}
+                    className="w-full rounded-xl border bg-card p-6 text-left hover:bg-accent/30 transition-colors"
+                  >
+                    <p className="text-lg font-bold">{nextTitle}</p>
+                    <p className="text-sm italic mt-1" style={{ color: section.color.stroke, opacity: 0.8 }}>{nextSubtitle}</p>
+                  </button>
+                );
+              })()}
+            </div>
+          ) : (
+            // Standard book page
+            <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+              {bookPage.text.split("\n").map((paragraph, i) => (
+                <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: "2rem" }}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          )
         ) : null}
       </div>
 
@@ -382,6 +413,18 @@ export default function DivinityGuidePage() {
               section={activeSection!}
               pageIndex={pageIndex}
               setPageIndex={setPageIndex}
+              onNavigateToChapter={(nextId) => {
+                // Find section + chapter for the target ID
+                for (const sec of SECTIONS) {
+                  const ch = sec.chapters.find(c => c.id === nextId);
+                  if (ch) {
+                    setSelectedSection(sec.id);
+                    setSelectedChapter(ch);
+                    setPageIndex(0);
+                    break;
+                  }
+                }
+              }}
             />
           )}
         </div>
