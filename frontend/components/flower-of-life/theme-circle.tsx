@@ -84,6 +84,7 @@ export const ThemeCircle = memo(function ThemeCircle({
         y={cy - r * 0.8}
         width={textWidth}
         height={r * 1.6}
+        style={{ color: "initial" }}
       >
         <div
           style={{
