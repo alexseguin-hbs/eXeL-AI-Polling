@@ -221,13 +221,15 @@ function PageReader({
 const DONATION_AMOUNT = 3.33;
 
 export default function DivinityGuidePage() {
-  const [unlocked, setUnlocked] = useState(() => {
+  const [donated, setDonated] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("divinity-guide-unlocked") === "true";
+      return localStorage.getItem("divinity-guide-donated") === "true";
     }
     return false;
   });
+  const [showDonationPrompt, setShowDonationPrompt] = useState(false);
   const [showReward, setShowReward] = useState(false);
+  const [pagesRead, setPagesRead] = useState(0);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
@@ -237,6 +239,20 @@ export default function DivinityGuidePage() {
   const outerPositions = getTheme2_3Positions();
   const readerRef = useRef<HTMLDivElement>(null);
 
+  // Track pages read — show donation prompt after 12 pages
+  useEffect(() => {
+    if (selectedChapter && pageIndex > 0) {
+      setPagesRead(prev => {
+        const next = prev + 1;
+        if (next === 12 && !donated) {
+          setShowDonationPrompt(true);
+        }
+        return next;
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageIndex, selectedChapter]);
+
   // On mobile, scroll reader into view when chapter selected (don't jump to top)
   useEffect(() => {
     if (selectedChapter && readerRef.current) {
@@ -245,35 +261,12 @@ export default function DivinityGuidePage() {
   }, [selectedChapter]);
 
   const handleDonate = () => {
-    localStorage.setItem("divinity-guide-unlocked", "true");
-    // Show reward toast on the donation screen first, then transition
-    setTimeout(() => setShowReward(true), 800);
+    localStorage.setItem("divinity-guide-donated", "true");
+    setDonated(true);
+    setShowDonationPrompt(false);
+    setTimeout(() => setShowReward(true), 500);
     setTimeout(() => setShowReward(false), 5000);
-    setTimeout(() => setUnlocked(true), 4000);
   };
-
-  // Donation gate
-  if (!unlocked) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <div className="max-w-md mx-auto px-6 text-center space-y-6">
-          <Link href="/" className="text-xs text-muted-foreground hover:text-primary block">← Back</Link>
-          <div className="text-5xl">✦</div>
-          <h1 className="text-2xl font-bold">The Divinity Guide</h1>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            The Return to Wholeness and Living Divinity
-          </p>
-          <div className="rounded-xl border bg-card p-6 space-y-4">
-            <p className="text-3xl font-bold text-primary">${DONATION_AMOUNT.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">A sacred contribution that supports the platform and community.</p>
-            <button onClick={handleDonate} className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90">
-              Donate & Enter
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const activeSection = SECTIONS.find((s) => s.id === selectedSection) ?? null;
 
@@ -286,6 +279,29 @@ export default function DivinityGuidePage() {
             <p className="text-2xl">웃</p>
             <p className="text-sm font-semibold text-primary">You earned 1.0 웃 token!</p>
             <p className="text-xs text-muted-foreground">Your contribution converted to a full Human Intelligence token.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Soft donation prompt — appears after 12 pages read */}
+      {showDonationPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-in fade-in duration-500">
+          <div className="max-w-sm mx-auto px-6 text-center space-y-5">
+            <div className="text-4xl">✦</div>
+            <h2 className="text-xl font-bold">You&apos;ve read {pagesRead} pages</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              The Return to Wholeness and Living Divinity is free to read.
+              A sacred contribution supports the platform and community.
+            </p>
+            <div className="rounded-xl border bg-card p-5 space-y-3">
+              <p className="text-2xl font-bold text-primary">${DONATION_AMOUNT.toFixed(2)}</p>
+              <button onClick={handleDonate} className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90">
+                Donate & Earn 1.0 웃 Token
+              </button>
+            </div>
+            <button onClick={() => setShowDonationPrompt(false)} className="text-xs text-muted-foreground hover:text-primary">
+              Continue reading
+            </button>
           </div>
         </div>
       )}
