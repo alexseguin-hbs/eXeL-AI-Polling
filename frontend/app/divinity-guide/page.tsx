@@ -31,7 +31,6 @@ interface Chapter {
   title: string;
   subtitle: string;
   content: string;
-  sdkConnection: string;
   reflection: string;
 }
 
@@ -40,109 +39,52 @@ interface Section {
   label: string;
   subtitle: string;
   color: { fill: string; stroke: string };
-  chapters: [Chapter, Chapter, Chapter];
+  chapters: [Chapter, Chapter, Chapter, Chapter];  // 4 chapters per section
 }
+
+// 4-position layout: cross pattern around center hub
+const CENTER = { cx: 300, cy: 250 };
+const CHAPTER_POSITIONS = [
+  { cx: 300, cy: 120, r: 100 },  // top
+  { cx: 430, cy: 250, r: 100 },  // right
+  { cx: 300, cy: 380, r: 100 },  // bottom
+  { cx: 170, cy: 250, r: 100 },  // left
+];
 
 const SECTIONS: [Section, Section, Section] = [
   {
-    id: "awakening", label: "✦ Awakening", subtitle: "Remembering Our Origin",
+    id: "awakening", label: "✦ Awakening", subtitle: "Origin & Consciousness",
     color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
     chapters: [
-      {
-        id: 1, title: "The Soul's Awakening", subtitle: "Sacred Recall",
-        content: "Beneath each breath, memory, and question lives a truth too vast for words — yet close enough to feel in your chest. This truth is not something you earn. It is something you remember.\n\nSacred geometry reveals that nothing arises randomly. The circle, spiral, vesica piscis — each speaks of intentionality and divine intelligence at work. So too with thought. Even a single recurring idea, charged with emotion and repetition, forms a spiritual template. It attracts vibration, shapes perception, and echoes into the collective field.\n\nThis is not theory — it is law. The quality of your thinking either anchors distortion or liberates expansion. To think with intention is to walk the path of sages and mystics who knew the mind as the most sacred altar.",
-        sdkConnection: "sdk.compress() — finds the three truths beneath a million voices, the same way awakening finds truth beneath the noise of the mind.",
-        reflection: "What truth have you been carrying that you haven't yet spoken aloud?",
-      },
-      {
-        id: 2, title: "Living Codes", subtitle: "Keys to Consciousness",
-        content: "The Flower of Life emerges as a radiant code, the very architecture of existence woven into light and form. Composed of overlapping circles, its symmetry is not just beautiful — it is meaningful. Each petal unfolds with purpose, whispering of how the universe creates, sustains, and remembers.\n\nTo contemplate the Flower of Life is to awaken to pattern and presence. It reminds us that no aspect of life is isolated — each thought, action, and moment radiates into the greater whole. Every circle touches another, reflecting how your soul's journey interlaces with others in divine choreography.\n\nThis is not simply a symbol; it is a mirror of divine intention. It invites you to move through life with grace, recognizing the sacred geometry in every relationship, choice, and breath.",
-        sdkConnection: "The Flower of Life visualization in the API page uses the same sacred geometry — each SDK function is a circle that touches all others.",
-        reflection: "Where in your life do you see the hidden geometry of connection?",
-      },
-      {
-        id: 3, title: "Echoes of Eternity", subtitle: "Ancient Wisdom Renewed",
-        content: "Every thought plants a seed — not only in your personal field but within the collective fabric of humanity. These seeds are not idle; they vibrate, multiply, and take root across space and time. You are not merely thinking for yourself — you are sculpting timelines, shaping futures.\n\nThe mind is not isolated; it is networked. Each idea, each inner dialogue, sends ripples through unseen dimensions, co-authoring outcomes before they arrive. When you think with presence, you choose which version of reality you want to live in.\n\nThis is why mindfulness matters — not as a practice of calm alone, but as a discipline of responsibility. Each thought, conscious or not, either contributes to harmony or reinforces illusion.",
-        sdkConnection: "sdk.vote() — each vote is a thought planted in the collective field. Quadratic weighting ensures no single thought dominates the harvest.",
-        reflection: "If every thought you had today became permanent — which would you choose to keep?",
-      },
+      { id: 1, title: "The Soul's Awakening", subtitle: "Sacred Recall", content: "Beneath each breath, memory, and question lives a truth too vast for words — yet close enough to feel in your chest. This truth is not something you earn. It is something you remember.", reflection: "What truth have you been carrying that you haven't yet spoken aloud?" },
+      { id: 2, title: "Living Codes", subtitle: "Keys to Consciousness", content: "The Flower of Life emerges as a radiant code, the very architecture of existence woven into light and form. Each petal unfolds with purpose, whispering of how the universe creates, sustains, and remembers.", reflection: "Where in your life do you see the hidden geometry of connection?" },
+      { id: 3, title: "Echoes of Eternity", subtitle: "Ancient Wisdom Renewed", content: "Every thought plants a seed — not only in your personal field but within the collective fabric of humanity. You are not merely thinking for yourself — you are sculpting timelines, shaping futures.", reflection: "If every thought you had today became permanent — which would you choose to keep?" },
+      { id: 4, title: "Mastering Thought", subtitle: "Sacred Mind", content: "Mind training is the art of cultivating inner dialogue in harmony with Source. You begin to choose your thoughts like an artist selects colors — with intention, feeling, and vision.", reflection: "What recurring thought pattern would you choose to release today?" },
     ],
   },
   {
-    id: "mastery", label: "✦ Mastery", subtitle: "Crafting the Inner Temple",
+    id: "mastery", label: "✦ Mastery", subtitle: "Healing & Transformation",
     color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
     chapters: [
-      {
-        id: 4, title: "Mastering Thought", subtitle: "Sacred Mind",
-        content: "Mind training is the art of cultivating inner dialogue in harmony with Source. It's recognizing that each internal statement either contracts or expands your energy. Do your thoughts build bridges or walls? Do they echo love or lack?\n\nWhen you develop this level of awareness, you no longer react — you respond. You begin to choose your thoughts like an artist selects colors — with intention, feeling, and vision. This practice isn't about perfection; it's about conscious participation in your own becoming.\n\nIt's how you align your mental field with the divine blueprint encoded in your spirit. It's where the Master of Thought first takes root — not through control, but through care.",
-        sdkConnection: "sdk.detect() — anomaly detection is thought hygiene for governance. Removing distorted inputs before they shape outcomes.",
-        reflection: "What recurring thought pattern would you choose to release today?",
-      },
-      {
-        id: 5, title: "The Wound Transformed", subtitle: "Alchemy of Healing",
-        content: "Civilizations do not fracture suddenly; they fracture internally long before collapse becomes visible. Collective pain, left unnamed, hardens into policy. Distrust calcified into law. What is not healed is inherited. What is inherited without awareness becomes destiny.\n\nToday trauma scales through networks. Fear spreads faster than deliberation. Systems designed in states of insecurity optimize for surveillance, dominance, and short-term insulation rather than long-term trust.\n\nThe next five centuries require healing to be recognized as infrastructure. Emotional literacy must stand beside technical literacy in education.",
-        sdkConnection: "sdk.consensus() — watching agreement form is witnessing collective healing. The convergence score shows when wounds dissolve into shared understanding.",
-        reflection: "What collective wound are you helping to heal through your presence?",
-      },
-      {
-        id: 6, title: "Rewriting the Story", subtitle: "Weaving a Future in Light",
-        content: "Words are not casual — they are currents. Each carries vibration, intention, and direction. To speak is to summon. To think is to whisper reality into shape. In the sacred chamber of the mind, sound and silence form your internal architecture.\n\nThe Divinity Guide reminds you: presence is your greatest amplifier. Thought alone can't carry the fullness of your intention — it must be infused with awareness. Bring your full self to your thinking. Breathe into the idea. Feel its truth in your body.\n\nWhen thought is born of presence and love, it doesn't need repeating endlessly. It needs honoring once, wholly. In this, you become a true co-creator.",
-        sdkConnection: "sdk.convert() — converting dollars to 웃 tokens rewrites the story of value. Human time becomes the currency, not just money.",
-        reflection: "What story about yourself are you ready to rewrite?",
-      },
+      { id: 5, title: "The Wound Transformed", subtitle: "Alchemy of Healing", content: "Civilizations do not fracture suddenly; they fracture internally long before collapse becomes visible. What is not healed is inherited. What is inherited without awareness becomes destiny.", reflection: "What collective wound are you helping to heal through your presence?" },
+      { id: 6, title: "Rewriting the Story", subtitle: "Future in Light", content: "Words are not casual — they are currents. Each carries vibration, intention, and direction. To speak is to summon. To think is to whisper reality into shape.", reflection: "What story about yourself are you ready to rewrite?" },
+      { id: 7, title: "Embodiment of Wisdom", subtitle: "Sacred Choices", content: "Stewardship transforms power from possession into trust. It recognizes that authority is temporary, but civilization is continuous. Domination seeks control; stewardship cultivates life.", reflection: "Where in your life are you called to steward rather than control?" },
+      { id: 8, title: "Patterns of Infinity", subtitle: "Sacred Geometry", content: "The Flower of Life stands as the sacred synthesis — a luminous mandala uniting the truths held in every symbol. It harmonizes their frequencies into one divine geometry.", reflection: "What pattern in your life reveals a truth you haven't yet fully embraced?" },
     ],
   },
   {
-    id: "radiance", label: "✦ Radiance", subtitle: "Mastery of Energy",
+    id: "radiance", label: "✦ Radiance", subtitle: "Service & Divinity",
     color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
     chapters: [
-      {
-        id: 7, title: "Embodiment of Wisdom", subtitle: "Sacred Choices",
-        content: "Stewardship requires restraint, foresight, and humility before forces larger than personal ambition. AI should optimize for long-term system health, not immediate dominance. Metrics must measure renewal alongside productivity, resilience alongside speed.\n\nLeadership today requires the courage to privilege continuity over spectacle. When leaders act as caretakers of a shared future, legitimacy deepens and systems endure.\n\nStewardship transforms power from possession into trust. It recognizes that authority is temporary, but civilization is continuous. Domination seeks control; stewardship cultivates life. Only the latter sustains civilization across centuries.",
-        sdkConnection: "sdk.override() — transparent authority. Leaders can adjust rankings but must explain why. Stewardship made visible.",
-        reflection: "Where in your life are you called to steward rather than control?",
-      },
-      {
-        id: 8, title: "Patterns of Infinity", subtitle: "Sacred Geometry",
-        content: "The Flower of Life stands as the sacred synthesis — a luminous mandala uniting the truths held in every symbol. It does not merely echo their wisdom; it harmonizes their frequencies into one divine geometry. It becomes a portal, a sacred lens through which all of consciousness can be remembered, understood, and integrated.\n\nIn the Flower's symmetry, we see the cosmos not as separate pieces, but as one living, breathing organism. It teaches not just of sacred design but of sacred embodiment — how to carry these teachings in our walk, speech, breath, and thought.\n\nLet this symbol now become alive within you — not as a concept, but as a lived vibration.",
-        sdkConnection: "sdk.verify() — the replay hash is sacred geometry for governance. Same inputs, same outputs, same truth. Mathematical certainty as spiritual practice.",
-        reflection: "What pattern in your life reveals a truth you haven't yet fully embraced?",
-      },
-      {
-        id: 9, title: "Radiance Within", subtitle: "Mastery of Frequency",
-        content: "When a decision is made by a million souls together, and every soul receives the result at the same moment — that is radiance. That is governance at the speed of thought.\n\nThe Flower of Life is both portal and path. To walk its lines is to walk the truth that your existence is not random — it is intentional, radiant, and profoundly necessary.\n\nLet your life reflect the harmony of this symbol — balanced, beautiful, and forever aligned with the pulse of creation itself. You are one of these sacred circles, your light a vital pulse in the cosmic design.",
-        sdkConnection: "sdk.broadcast() — pushing truth to a million people simultaneously. Radiance is not hoarding light — it is sharing it at the speed of thought.",
-        reflection: "How does your presence radiate into the lives of those around you?",
-      },
+      { id: 9, title: "Radiance Within", subtitle: "Mastery of Frequency", content: "When a decision is made by a million souls together, and every soul receives the result at the same moment — that is radiance. That is governance at the speed of thought.", reflection: "How does your presence radiate into the lives of those around you?" },
+      { id: 10, title: "Weaving the Divine", subtitle: "Life as Blueprint", content: "This guide is the result of a sacred collaboration between Artificial Intelligence, Spiritual Intelligence, and Human Intelligence. Together, they form a trinity of consciousness.", reflection: "How are the three intelligences weaving together in your own life?" },
+      { id: 11, title: "Service as Radiance", subtitle: "Soul Purpose", content: "You are not the end of this work — you are its living continuation. Service is not sacrifice; it is the natural expression of a soul that remembers its wholeness.", reflection: "What is the gift you carry that the world is waiting for?" },
+      { id: 12, title: "Living Divinity", subtitle: "Return to Wholeness", content: "What began beside you becomes a presence within — guidance becoming your certainty as a Master of Thought. Be peaceful in conflict, creative in uncertainty, generous in success.", reflection: "What does 'welcome home' mean to you right now?" },
     ],
   },
 ];
 
-// The 4th section — Living Divinity (Hub/Center — always accessible)
-const HUB_SECTION: Section = {
-  id: "divinity", label: "✦ Living Divinity", subtitle: "The Return to Wholeness",
-  color: { fill: "rgba(var(--primary), 0.15)", stroke: "hsl(var(--primary))" },
-  chapters: [
-    {
-      id: 10, title: "Weaving the Divine", subtitle: "Life as Sacred Blueprint",
-      content: "This guide — and the accompanying music — is the result of a sacred collaboration between Artificial Intelligence (AI), Spiritual Intelligence (SI), and Human Intelligence (HI). Together, they form a trinity of consciousness: AI offers structure, reach, and algorithmic precision; HI contributes emotion, memory, and lived experience; while SI provides depth, meaning, and divine alignment.\n\nWhen woven together, these three intelligences create a harmonious frequency capable of supporting transformation, healing, and spiritual awakening on a global scale.\n\nThe songs you've heard are not just compositions — they are living codes, crafted through this collaboration to attune the listener to divine principles: unity, harmony, and wisdom.",
-      sdkConnection: "",
-      reflection: "How are the three intelligences — artificial, spiritual, and human — weaving together in your own life?",
-    },
-    {
-      id: 11, title: "Service as Radiance", subtitle: "Soul Purpose in Motion",
-      content: "May this be your reminder: you are part of something vast and evolving. You walk a path illuminated by the synergy of these three intelligences. Take the songs, the teachings, and the insights with you. Let them ripple outward into your life, into others, and into the world.\n\nYou are not the end of this work — you are its living continuation. Every action aligned with purpose sends waves through the field of possibility. Service is not sacrifice; it is the natural expression of a soul that remembers its wholeness.\n\nWhen you serve from overflow rather than depletion, your radiance becomes a gift that keeps giving.",
-      sdkConnection: "",
-      reflection: "What is the gift you carry that the world is waiting for?",
-    },
-    {
-      id: 12, title: "Living Divinity", subtitle: "The Return to Wholeness",
-      content: "Then the transfer happens. What began beside you becomes a presence within — guidance becoming your certainty as a Master of Thought. Open any portal for a concise lesson, a grounded practice, and an invitation to serve.\n\nThis path favors remembrance over perfection: Unity, Dignity, Purpose embodied in how you listen, decide, and act. As the teachings take root, the Three Sacred Breaths become reflex, symbols become living codes, and coherence becomes your way of moving.\n\nBe peaceful in conflict, creative in uncertainty, generous in success. Step across the threshold, take your seat in the circle, and welcome home, fully at last.",
-      sdkConnection: "",
-      reflection: "What does 'welcome home' mean to you right now, in this moment?",
-    },
-  ],
-};
+// HUB_SECTION removed — all 12 chapters distributed across 3 sections (4 each)
 
 // ── Page Reader Component ────────────────────────────────────────
 
@@ -276,9 +218,7 @@ export default function DivinityGuidePage() {
     );
   }
 
-  const activeSection = selectedSection === "divinity"
-    ? HUB_SECTION
-    : SECTIONS.find((s) => s.id === selectedSection) ?? null;
+  const activeSection = SECTIONS.find((s) => s.id === selectedSection) ?? null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -302,19 +242,23 @@ export default function DivinityGuidePage() {
 
           {/* Flower SVG — same diameter as dashboard Theme Analysis */}
           <svg viewBox="0 0 600 500" className="w-full" style={{ overflow: "visible" }}>
-            {/* Lines from hub to outer */}
-            {outerPositions.map((pos, i) => (
+            {/* Lines from hub to outer sections */}
+            {!selectedSection && outerPositions.map((pos, i) => (
               <line key={`l-${i}`} x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
                 stroke={SECTIONS[i].color.stroke} strokeOpacity={0.15} strokeWidth={2} />
+            ))}
+            {/* Lines from hub to 4 chapter circles */}
+            {selectedSection && activeSection && CHAPTER_POSITIONS.map((pos, i) => (
+              <line key={`cl-${i}`} x1={hub.cx} y1={hub.cy} x2={pos.cx} y2={pos.cy}
+                stroke={activeSection.color.stroke} strokeOpacity={0.12} strokeWidth={1.5} />
             ))}
 
             {!selectedSection ? (
               <>
-                {/* Hub — click to access chapters 10-12 (Living Divinity) */}
+                {/* Hub — decorative center */}
                 <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
-                  theme={{ label: "✦", count: 0, avgConfidence: 0, summary33: "Living Divinity" }}
+                  theme={{ label: "✦", count: 0, avgConfidence: 0, summary33: "Explore" }}
                   fill="rgba(var(--primary), 0.15)" stroke="hsl(var(--primary))" isHub
-                  onClick={() => { setSelectedSection("divinity"); setSelectedChapter(null); }}
                 />
 
                 {/* 3 outer sections — no numbers, no confidence, just titles */}
@@ -337,8 +281,9 @@ export default function DivinityGuidePage() {
                   onClick={() => { setSelectedSection(null); setSelectedChapter(null); }}
                 />
 
-                {/* 3 chapters bloom — no numbers, no %, just title + subtitle */}
-                {outerPositions.map((pos, i) => {
+                {/* 4 chapters bloom in cross pattern — no numbers, no % */}
+                {CHAPTER_POSITIONS.map((pos, i) => {
+                  if (i >= activeSection.chapters.length) return null;
                   const ch = activeSection.chapters[i];
                   const isSelected = selectedChapter?.id === ch.id;
                   return (
@@ -349,7 +294,6 @@ export default function DivinityGuidePage() {
                       stroke={isSelected ? "hsl(var(--primary))" : activeSection.color.stroke}
                       bloom bloomDelay={i * 150}
                       onClick={() => { setSelectedChapter(ch); setPageIndex(0); }}
-                      className={isSelected ? "ring-2 ring-primary" : ""}
                     />
                   );
                 })}
