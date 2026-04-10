@@ -13,10 +13,43 @@
  *   Section D (Hub):         Ch 10-12 Divinity (appears when any section selected)
  */
 
-import React, { Suspense, useState, useMemo, useRef, useEffect } from "react";
+import React, { Suspense, useState, useMemo, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import divinityPages from "@/lib/divinity-pages.json";
+
+// Language translations — loaded dynamically
+import divinityPagesEs from "@/lib/divinity-pages-es.json";
+import divinityPagesUk from "@/lib/divinity-pages-uk.json";
+import divinityPagesRu from "@/lib/divinity-pages-ru.json";
+import divinityPagesZh from "@/lib/divinity-pages-zh.json";
+import divinityPagesFa from "@/lib/divinity-pages-fa.json";
+import divinityPagesHe from "@/lib/divinity-pages-he.json";
+import divinityPagesPt from "@/lib/divinity-pages-pt.json";
+
+const DIVINITY_LANGUAGES = [
+  { code: "en", label: "English", flag: "🇺🇸" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "uk", label: "Українська", flag: "🇺🇦" },
+  { code: "ru", label: "Русский", flag: "🇷🇺" },
+  { code: "zh", label: "中文", flag: "🇨🇳" },
+  { code: "fa", label: "فارسی", flag: "🇮🇷" },
+  { code: "he", label: "עברית", flag: "🇮🇱" },
+  { code: "pt", label: "Português", flag: "🇧🇷" },
+] as const;
+
+type DivinityLang = typeof DIVINITY_LANGUAGES[number]["code"];
+
+const DIVINITY_PAGE_MAP: Record<DivinityLang, typeof divinityPages> = {
+  en: divinityPages,
+  es: divinityPagesEs as typeof divinityPages,
+  uk: divinityPagesUk as typeof divinityPages,
+  ru: divinityPagesRu as typeof divinityPages,
+  zh: divinityPagesZh as typeof divinityPages,
+  fa: divinityPagesFa as typeof divinityPages,
+  he: divinityPagesHe as typeof divinityPages,
+  pt: divinityPagesPt as typeof divinityPages,
+};
 import {
   getTheme2_3Positions,
   getHubPosition,
@@ -114,11 +147,12 @@ const LIBRARY_SECTIONS: [LibrarySection, LibrarySection, LibrarySection] = [
 // ── Library Reader Component ────────────────────────────────────
 
 function LibraryReader({
-  section, pageIndex, setPageIndex,
+  section, pageIndex, setPageIndex, pages,
 }: {
   section: LibrarySection;
   pageIndex: number;
   setPageIndex: (n: number) => void;
+  pages: typeof divinityPages;
 }) {
   const touchStartX = React.useRef(0);
   const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
@@ -129,12 +163,12 @@ function LibraryReader({
   };
 
   const bookPages = useMemo(
-    () => (divinityPages as Array<{ id: string; chapter: number; page: number; text: string; gated: boolean }>)
+    () => (pages as Array<{ id: string; chapter: number; page: number; text: string; gated: boolean }>)
       .filter((p) => section.filterIds
         ? section.filterIds.includes(p.id)
         : p.chapter === section.chapterFilter
       ),
-    [section]
+    [section, pages]
   );
 
   const totalPages = bookPages.length;
@@ -184,13 +218,14 @@ function LibraryReader({
 // ── Page Reader Component ────────────────────────────────────────
 
 function PageReader({
-  chapter, section, pageIndex, setPageIndex, onNavigateToChapter,
+  chapter, section, pageIndex, setPageIndex, onNavigateToChapter, pages,
 }: {
   chapter: Chapter;
   section: Section;
   pageIndex: number;
   setPageIndex: (n: number) => void;
   onNavigateToChapter?: (chapterId: number) => void;
+  pages: typeof divinityPages;
 }) {
   // Swipe detection for mobile page navigation
   const touchStartX = React.useRef(0);
@@ -199,7 +234,7 @@ function PageReader({
     const delta = e.changedTouches[0].clientX - touchStartX.current;
     if (delta < -50) {
       // Swipe left → next page
-      const total = chapter.content.split("\n\n").length + (divinityPages as Array<{ chapter: number }>).filter(p => p.chapter === chapter.id).length + 1;
+      const total = chapter.content.split("\n\n").length + (pages as Array<{ chapter: number }>).filter(p => p.chapter === chapter.id).length + 1;
       if (pageIndex < total - 1) setPageIndex(pageIndex + 1);
     } else if (delta > 50) {
       // Swipe right → previous page
@@ -210,9 +245,9 @@ function PageReader({
   // Get real book pages for this chapter number
   const chapterNum = chapter.id;
   const bookPages = useMemo(
-    () => (divinityPages as Array<{ id: string; chapter: number; page: number; text: string }>)
+    () => (pages as Array<{ id: string; chapter: number; page: number; text: string }>)
       .filter((p) => p.chapter === chapterNum),
-    [chapterNum]
+    [chapterNum, pages]
   );
 
   // Page 0 = summary/intro (from our chapter data), pages 1+ = real book pages
@@ -361,6 +396,9 @@ function DivinityGuidePage() {
   const [viewMode, setViewMode] = useState<"portals" | "library">("portals");
   const [selectedLibrary, setSelectedLibrary] = useState<LibrarySection | null>(null);
   const [libraryPageIndex, setLibraryPageIndex] = useState(0);
+  // Language selection
+  const [divinityLang, setDivinityLang] = useState<DivinityLang>("en");
+  const activeDivinityPages = DIVINITY_PAGE_MAP[divinityLang];
 
   const { currentTheme } = useTheme();
   const hub = getHubPosition();
@@ -632,12 +670,23 @@ function DivinityGuidePage() {
         </div>
 
         {/* RIGHT (desktop) / BOTTOM (mobile): Book Page */}
-        <div ref={readerRef} className="w-full md:w-1/2 px-6 md:px-10 py-8 md:py-12 overflow-y-auto flex flex-col items-center">
+        <div ref={readerRef} className="w-full md:w-1/2 px-6 md:px-10 py-8 md:py-12 overflow-y-auto flex flex-col items-center relative">
+          {/* Language selector — upper right */}
+          <select
+            value={divinityLang}
+            onChange={(e) => setDivinityLang(e.target.value as DivinityLang)}
+            className="absolute top-4 right-4 px-2 py-1 text-[10px] rounded-md bg-muted text-muted-foreground border-none outline-none cursor-pointer z-10"
+          >
+            {DIVINITY_LANGUAGES.map(l => (
+              <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
+            ))}
+          </select>
           {viewMode === "library" && selectedLibrary ? (
             <LibraryReader
               section={selectedLibrary}
               pageIndex={libraryPageIndex}
               setPageIndex={setLibraryPageIndex}
+              pages={activeDivinityPages}
             />
           ) : viewMode === "library" && !selectedLibrary ? (
             <div className="flex items-center justify-center h-full w-full">
@@ -677,6 +726,7 @@ function DivinityGuidePage() {
               section={activeSection!}
               pageIndex={pageIndex}
               setPageIndex={setPageIndex}
+              pages={activeDivinityPages}
               onNavigateToChapter={(nextId) => {
                 if (nextId === 0) {
                   // Return to flower home
