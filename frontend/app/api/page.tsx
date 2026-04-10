@@ -221,10 +221,10 @@ export default function ApiPage() {
             </Link>
             <Link href="/" className="text-xs text-muted-foreground hover:text-primary">Home</Link>
           </div>
-          <Link href="/api" className="text-sm font-semibold mb-0.5 hover:opacity-80" style={{ color: currentTheme.swatch }}>
+          <Link href="/api" className="text-2xl font-bold mb-0.5 hover:opacity-80" style={{ color: currentTheme.swatch }}>
             Governance Engine API
           </Link>
-          <p className="text-[10px] text-muted-foreground mb-3 italic">3 Core APIs · 9 SDK Functions</p>
+          <p className="text-[10px] text-muted-foreground italic mb-3">3 Core APIs · 9 SDK Functions</p>
 
           {/* Flower */}
           <ApiFlower
