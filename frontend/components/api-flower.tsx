@@ -47,54 +47,66 @@ const FAMILY_COLORS = {
 };
 
 /**
- * SDK entries ordered to match Flower of Life geometry positions:
+ * SDK entries stored in logical family order (not position order).
+ * Position mapping handles placement per level.
  *
- * Level 3: [top=#1, bottom-right=#3, bottom-left=#2]
- *
- * Level 6: [top-left=#1, top-right=#1.2, right=#3, bottom-right=#3.2, bottom-left=#2.2, left=#2]
- *   Red (#1, #1.2) clusters at top
- *   Ocean Blue (#3, #3.2) clusters at right/bottom-right
- *   Emerald (#2, #2.2) clusters at left/bottom-left
- *
- * Level 9: Inner 6 + [outer-top=#1.3, outer-bottom-right=#3.3, outer-bottom-left=#2.3]
- *   Red (#1, #1.2, #1.3) at top
- *   Ocean Blue (#3, #3.2, #3.3) at bottom-right
- *   Emerald (#2, #2.2, #2.3) at bottom-left
+ * Family 1 (Red — top):       compress, detect, challenge
+ * Family 2 (Emerald — BL):    vote, consensus, override
+ * Family 3 (Blue — BR):       convert, verify, broadcast
  */
-const ALL_SDK: SDKEntry[] = [
-  // === Level 3: Top=#1(Red), BottomRight=#3(Blue), BottomLeft=#2(Green) ===
-  { id: "compress", family: 1, number: "#1", name: "compress", icon: "🧠", tagline: "Understand anything", cost: "5◬/1K",
-    theme: { label: "🧠 compress", count: 5, avgConfidence: 0.95, summary33: "Any text → 9→6→3 themes" },
-    color: FAMILY_COLORS[1] },
-  { id: "convert", family: 3, number: "#3", name: "convert", icon: "웃", tagline: "Value human time", cost: "Free",
-    theme: { label: "웃 convert", count: 0, avgConfidence: 0.88, summary33: "$ → 웃 tokens" },
-    color: FAMILY_COLORS[3] },
-  { id: "vote", family: 2, number: "#2", name: "vote", icon: "🗳️", tagline: "Govern fairly", cost: "0.01◬",
-    theme: { label: "🗳️ vote", count: 0.01, avgConfidence: 0.92, summary33: "Quadratic governance" },
-    color: FAMILY_COLORS[2] },
+const SDK_BY_ID: Record<string, SDKEntry> = {
+  compress:  { id: "compress",  family: 1, number: "#1",   name: "compress",  icon: "🧠", tagline: "Understand anything",     cost: "5◬/1K",  theme: { label: "Understand Anything",      count: 5,    avgConfidence: 0.95, summary33: "sdk.compress()" }, color: FAMILY_COLORS[1] },
+  detect:    { id: "detect",    family: 1, number: "#1.2", name: "detect",    icon: "🛡️", tagline: "Clean before counting",   cost: "1◬",     theme: { label: "Clean The Data",           count: 1,    avgConfidence: 0.90, summary33: "sdk.detect()" },   color: FAMILY_COLORS[1] },
+  challenge: { id: "challenge", family: 1, number: "#1.3", name: "challenge", icon: "⚡",  tagline: "Build the future",        cost: "10◬",    theme: { label: "Build The Future",         count: 10,   avgConfidence: 0.85, summary33: "sdk.challenge()" }, color: FAMILY_COLORS[1] },
+  vote:      { id: "vote",      family: 2, number: "#2",   name: "vote",      icon: "🗳️", tagline: "Govern fairly",           cost: "0.01◬",  theme: { label: "Govern With Fairness",     count: 0.01, avgConfidence: 0.92, summary33: "sdk.vote()" },      color: FAMILY_COLORS[2] },
+  consensus: { id: "consensus", family: 2, number: "#2.2", name: "consensus", icon: "📊",  tagline: "Watch agreement form",    cost: "0.5◬",   theme: { label: "See Minds Align",          count: 0.5,  avgConfidence: 0.87, summary33: "sdk.consensus()" },  color: FAMILY_COLORS[2] },
+  override:  { id: "override",  family: 2, number: "#2.3", name: "override",  icon: "⚖️",  tagline: "Lead transparently",      cost: "2◬",     theme: { label: "Lead With Transparency",   count: 2,    avgConfidence: 0.82, summary33: "sdk.override()" },   color: FAMILY_COLORS[2] },
+  convert:   { id: "convert",   family: 3, number: "#3",   name: "convert",   icon: "웃",   tagline: "Value human time",        cost: "Free",   theme: { label: "Value Human Time",         count: 0,    avgConfidence: 0.88, summary33: "sdk.convert()" },    color: FAMILY_COLORS[3] },
+  verify:    { id: "verify",    family: 3, number: "#3.2", name: "verify",    icon: "🔐",  tagline: "Prove it's real",          cost: "Free",   theme: { label: "Prove It's Real",          count: 0,    avgConfidence: 0.93, summary33: "sdk.verify()" },     color: FAMILY_COLORS[3] },
+  broadcast: { id: "broadcast", family: 3, number: "#3.3", name: "broadcast", icon: "📡",  tagline: "Reach everyone",           cost: "1◬/10K", theme: { label: "Reach Every Soul",         count: 1,    avgConfidence: 0.91, summary33: "sdk.broadcast()" },  color: FAMILY_COLORS[3] },
+};
 
-  // === Level 6: TopLeft=#1, TopRight=#1.2, Right=#3, BottomRight=#3.2, BottomLeft=#2.2, Left=#2 ===
-  { id: "detect", family: 1, number: "#1.2", name: "detect", icon: "🛡️", tagline: "Clean before counting", cost: "1◬",
-    theme: { label: "🛡️ detect", count: 1, avgConfidence: 0.90, summary33: "Anomaly exclusion" },
-    color: FAMILY_COLORS[1] },
-  { id: "verify", family: 3, number: "#3.2", name: "verify", icon: "🔐", tagline: "Prove it's real", cost: "Free",
-    theme: { label: "🔐 verify", count: 0, avgConfidence: 0.93, summary33: "SHA-256 proof" },
-    color: FAMILY_COLORS[3] },
-  { id: "consensus", family: 2, number: "#2.2", name: "consensus", icon: "📊", tagline: "Watch agreement form", cost: "0.5◬",
-    theme: { label: "📊 consensus", count: 0.5, avgConfidence: 0.87, summary33: "Live convergence" },
-    color: FAMILY_COLORS[2] },
+/**
+ * Position-to-SDK mapping per level.
+ * Ensures families cluster geographically:
+ *   Red at top, Emerald at bottom-left, Blue at bottom-right.
+ *
+ * Geometry (getTheme2_*Positions):
+ *   3: [top, BR, BL]
+ *   6: [TL, TR, R, BR, BL, L]
+ *   9: [TL, TR, R, BR, BL, L, outerTop, outerBR, outerBL]
+ */
+const POSITION_MAP: Record<3 | 6 | 9, string[]> = {
+  3: ["compress", "convert", "vote"],
+  //   top=Red    BR=Blue   BL=Green
+  6: [
+    "compress",  // [0] TL = Red
+    "detect",    // [1] TR = Red
+    "convert",   // [2] R  = Blue
+    "verify",    // [3] BR = Blue
+    "consensus", // [4] BL = Green
+    "vote",      // [5] L  = Green
+  ],
+  9: [
+    "compress",  // [0] TL = Red
+    "detect",    // [1] TR = Red
+    "convert",   // [2] R  = Blue
+    "verify",    // [3] BR = Blue
+    "consensus", // [4] BL = Green
+    "vote",      // [5] L  = Green
+    "challenge", // [6] outer-Top = Red
+    "broadcast", // [7] outer-BR = Blue
+    "override",  // [8] outer-BL = Green
+  ],
+};
 
-  // === Level 9 outer: OuterTop=#1.3, OuterBottomRight=#3.3, OuterBottomLeft=#2.3 ===
-  { id: "challenge", family: 1, number: "#1.3", name: "challenge", icon: "⚡", tagline: "Build the future", cost: "10◬",
-    theme: { label: "⚡ challenge", count: 10, avgConfidence: 0.85, summary33: "Self-evolving code" },
-    color: FAMILY_COLORS[1] },
-  { id: "broadcast", family: 3, number: "#3.3", name: "broadcast", icon: "📡", tagline: "Reach everyone", cost: "1◬/10K",
-    theme: { label: "📡 broadcast", count: 1, avgConfidence: 0.91, summary33: "1M+ instantly" },
-    color: FAMILY_COLORS[3] },
-  { id: "override", family: 2, number: "#2.3", name: "override", icon: "⚖️", tagline: "Lead transparently", cost: "2◬",
-    theme: { label: "⚖️ override", count: 2, avgConfidence: 0.82, summary33: "Transparent authority" },
-    color: FAMILY_COLORS[2] },
-];
+// Build the ordered array for a given level
+function getSDKsForLevel(level: 3 | 6 | 9): SDKEntry[] {
+  return POSITION_MAP[level].map((id) => SDK_BY_ID[id]);
+}
+
+// Keep ALL_SDK for detail card lookups
+const ALL_SDK = Object.values(SDK_BY_ID);
 
 interface ApiFlowerProps {
   onSelectFunction?: (id: string) => void;
@@ -135,7 +147,7 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
 
   const hub = getHubPosition();
   const positions = useMemo(() => getTheme2Positions(level), [level]);
-  const visible = ALL_SDK.slice(0, level);
+  const visible = useMemo(() => getSDKsForLevel(level), [level]);
 
   return (
     <div className="w-full">
