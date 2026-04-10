@@ -4,15 +4,15 @@
  * API Flower of Life — 9 SDK functions as 3 families of 3.
  *
  * Grouping:
- *   Family 1 (◬ Cyan — Understanding):  #1 compress → #1.2 detect → #1.3 challenge
- *   Family 2 (♡ Yellow — Governance):    #2 vote → #2.2 consensus → #2.3 override
- *   Family 3 (웃 Violet — Value):        #3 convert → #3.2 verify → #3.3 broadcast
+ *   Family 1 (Red — Understanding):     compress → detect → challenge
+ *   Family 2 (Emerald — Governance):     vote → consensus → override
+ *   Family 3 (Ocean Blue — Value):       convert → verify → broadcast
  *
- * Level 3: Shows #1, #2, #3 (parents only)
- * Level 6: Shows #1, #1.2, #2, #2.2, #3, #3.2
- * Level 9: Shows all — full bloom
+ * Core (3): compress, vote, convert
+ * Expand (6): + detect, consensus, verify
+ * Full Bloom (9): + challenge, override, broadcast
  *
- * SDK name shown below each circle.
+ * SDK name shown below each circle. Hub shows eXeL AI + level count.
  */
 
 import { useState, useMemo } from "react";
