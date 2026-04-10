@@ -212,27 +212,29 @@ export default function ApiPage() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex flex-col md:flex-row min-h-screen">
         {/* LEFT (desktop) / TOP (mobile): Flower Navigation */}
-        <div className="w-full md:w-1/2 md:border-r flex flex-col items-center justify-center px-6 py-6">
+        <div className="w-full md:w-1/2 md:border-r flex flex-col items-center px-6 py-4 md:h-screen">
           {/* Header */}
-          <div className="flex items-center justify-between w-full mb-3">
+          <div className="flex items-center justify-between w-full mb-2 shrink-0">
             <Link href="/" className="flex items-center gap-1.5 hover:opacity-80">
               <span className="text-sm font-bold" style={{ color: currentTheme.swatch }}>eXeL</span>
               <span className="text-sm font-light" style={{ color: currentTheme.swatch, opacity: 0.7 }}>AI</span>
             </Link>
             <button onClick={() => setSelectedId(null)} className="text-xs text-muted-foreground hover:text-primary">Home</button>
           </div>
-          <button onClick={() => setSelectedId(null)} className="text-2xl font-bold mb-0.5 hover:opacity-80 text-left" style={{ color: currentTheme.swatch }}>
+          <button onClick={() => setSelectedId(null)} className="text-2xl font-bold mb-0.5 hover:opacity-80 text-left shrink-0" style={{ color: currentTheme.swatch }}>
             Governance Engine API
           </button>
-          <p className="text-[10px] text-muted-foreground italic mb-3">3 Core APIs · 9 SDK Functions</p>
+          <p className="text-[10px] text-muted-foreground italic mb-2 shrink-0">3 Core APIs · 9 SDK Functions</p>
 
-          {/* Flower */}
-          <ApiFlower
-            onSelectFunction={(id) => setSelectedId(selectedId === id ? null : id)}
-          />
+          {/* Flower — fills remaining vertical space */}
+          <div className="flex-1 w-full flex items-center justify-center min-h-0">
+            <ApiFlower
+              onSelectFunction={(id) => setSelectedId(selectedId === id ? null : id)}
+            />
+          </div>
 
           {/* Core API quick links */}
-          <div className="flex gap-3 mt-4">
+          <div className="flex gap-3 mt-2 shrink-0">
             {CORE_APIS.map(api => (
               <button
                 key={api.id}
@@ -249,7 +251,7 @@ export default function ApiPage() {
           </div>
 
           {/* Footer */}
-          <div className="mt-auto pb-6 text-center">
+          <div className="shrink-0 pt-3 pb-4 text-center">
             <p className="text-[9px] text-muted-foreground/40">103 endpoints · 10 cubes · 33 languages</p>
             <br />
             <p className="text-[9px] text-muted-foreground/40">◬ A.I. · ♡ S.I. · 웃 H.I.</p>

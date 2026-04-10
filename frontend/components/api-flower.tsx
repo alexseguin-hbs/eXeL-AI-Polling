@@ -159,10 +159,11 @@ export function ApiFlower({ onSelectFunction }: ApiFlowerProps) {
         ))}
       </div>
 
-      {/* SVG Flower — matches Divinity Guide size at Core, smaller at Expand/Full Bloom */}
+      {/* SVG Flower — fills available space, proportional scaling */}
       <svg
         viewBox="0 0 600 500"
-        className={`w-full mx-auto ${level === 3 ? "" : level === 6 ? "max-w-md" : "max-w-sm"}`}
+        className="w-full h-full mx-auto"
+        preserveAspectRatio="xMidYMid meet"
         style={{ overflow: "visible" }}
       >
         {/* Connecting lines */}
