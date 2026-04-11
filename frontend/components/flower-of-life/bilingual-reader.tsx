@@ -492,25 +492,23 @@ export default function BilingualReader({
           <span className="text-xs text-muted-foreground/60 hidden sm:inline">{chapter.title}</span>
         </div>
 
-        {/* ── Highlight color picker (center) ──────────────── */}
+        {/* ── Highlight color picker (center) — Settings style ── */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1">
-          {/* Active swatch — click to toggle palette */}
           <button
             onClick={() => setShowPalette(!showPalette)}
-            className="flex items-center gap-1.5 rounded-full border px-2.5 py-1 hover:bg-accent/30 transition-all"
+            className="flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 hover:bg-accent/30 transition-all"
             style={{ borderColor: highlightPreset.color + "60" }}
           >
-            <span className="w-4 h-4 rounded-full shrink-0 border border-border" style={{ backgroundColor: highlightPreset.color }} />
+            <span className="w-5 h-5 rounded-full shrink-0 border border-border" style={{ backgroundColor: highlightPreset.color }} />
             <span className="text-[10px] text-muted-foreground/60 hidden sm:inline">{highlightPreset.label}</span>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`transition-transform ${showPalette ? "rotate-180" : ""}`}>
               <path d="M6 9l6 6 6-6" />
             </svg>
           </button>
 
-          {/* Palette dropdown */}
           {showPalette && (
-            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-10 rounded-xl border bg-card shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
-              <p className="text-[9px] text-muted-foreground/50 uppercase tracking-wider mb-2 text-center">Highlight</p>
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-10 rounded-xl border bg-card shadow-2xl p-4 animate-in fade-in slide-in-from-top-2 duration-200 min-w-[280px]">
+              <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-3 text-center">Highlight Color</p>
               <div className="grid grid-cols-3 gap-2">
                 {HIGHLIGHT_PRESETS.map(preset => {
                   const isActive = highlightPreset.id === preset.id;
@@ -518,12 +516,13 @@ export default function BilingualReader({
                     <button
                       key={preset.id}
                       onClick={() => { setHighlightPreset(preset); setShowPalette(false); }}
-                      className={`relative flex flex-col items-center gap-1 rounded-lg border p-2 transition-colors hover:bg-accent/50 ${isActive ? "border-primary bg-accent/30" : "border-border"}`}
+                      className={`relative flex flex-col items-center gap-1.5 rounded-lg border p-2.5 transition-colors hover:bg-accent/50 ${isActive ? "border-primary bg-accent/30" : "border-border"}`}
                     >
-                      <span className="h-6 w-6 rounded-full border border-border" style={{ backgroundColor: preset.color }} />
-                      <span className="text-[9px] text-muted-foreground/70 leading-tight text-center">{preset.label.split(" ")[0]}</span>
+                      <span className="h-8 w-8 shrink-0 rounded-full border border-border" style={{ backgroundColor: preset.color }} />
+                      <span className="text-xs font-medium text-center leading-tight">{preset.label.split(" ")[0]}</span>
+                      <span className="text-[9px] text-muted-foreground/50">{preset.label.split(" ")[1]}</span>
                       {isActive && (
-                        <svg className="absolute right-1 top-1 w-3 h-3 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
+                        <svg className="absolute right-1.5 top-1.5 h-3.5 w-3.5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
                       )}
                     </button>
                   );
