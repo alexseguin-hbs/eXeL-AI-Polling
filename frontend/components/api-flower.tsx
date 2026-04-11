@@ -115,26 +115,19 @@ export function ApiFlower({ onSelectFunction, level, onLevelChange }: ApiFlowerP
   const [selectedFamily, setSelectedFamily] = useState<1 | 2 | 3 | null>(null);
   const [selectedSdk, setSelectedSdk] = useState<string | null>(null);
 
-  // Any click selects the function and fires callback (detail shown in parent page)
-  // Level 3 also expands to 6, level 6 expands to 9
+  // One-click direct access: clicking any circle at ANY level immediately shows its NOSE details.
+  // No forced level expansion. User controls level via Core/Expand/Bloom buttons.
   const handleCircleClick = (sdk: SDKEntry) => {
-    onSelectFunction?.(sdk.id);
-    setSelectedSdk(selectedSdk === sdk.id ? null : sdk.id);
-    if (level === 3) {
-      setSelectedFamily(sdk.family);
-      onLevelChange(6);
-    } else if (level === 6) {
-      onLevelChange(9);
-    }
+    const isDeselect = selectedSdk === sdk.id;
+    setSelectedSdk(isDeselect ? null : sdk.id);
+    setSelectedFamily(isDeselect ? null : sdk.family);
+    onSelectFunction?.(isDeselect ? "" : sdk.id);
   };
 
   const handleBack = () => {
-    if (selectedSdk) {
-      setSelectedSdk(null);
-    } else if (selectedFamily) {
-      setSelectedFamily(null);
-      onLevelChange(3);
-    }
+    setSelectedSdk(null);
+    setSelectedFamily(null);
+    onSelectFunction?.("");
   };
 
   const hub = getHubPosition();

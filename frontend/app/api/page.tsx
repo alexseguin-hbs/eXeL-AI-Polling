@@ -1,10 +1,20 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useTheme } from "@/lib/theme-context";
 import { ApiFlower } from "@/components/api-flower";
 import { SDK_DEMO_DATA } from "@/lib/sdk-demos";
+
+/**
+ * SDK functions visible at each level — mirrors api-flower.tsx POSITION_MAP.
+ * Used to check if a selected function is still visible when switching levels.
+ */
+const VISIBLE_AT_LEVEL: Record<3 | 6 | 9, Set<string>> = {
+  3: new Set(["compress", "convert", "vote"]),
+  6: new Set(["compress", "detect", "convert", "verify", "consensus", "vote"]),
+  9: new Set(["compress", "detect", "convert", "verify", "consensus", "vote", "challenge", "broadcast", "override"]),
+};
 
 /**
  * /api — The Governance Engine Developer Hub
@@ -228,19 +238,25 @@ export default function ApiPage() {
             Governance Engine API
           </button>
 
-          {/* Level Selector — directly below title */}
+          {/* Level Selector — Core (3) / Expand (6) / Full Bloom (9) */}
           <div className="flex items-center justify-center gap-3 mb-2 shrink-0">
             {([3, 6, 9] as const).map((l) => (
               <button
                 key={l}
-                onClick={() => setFlowerLevel(l)}
+                onClick={() => {
+                  setFlowerLevel(l);
+                  // Clear selection if it won't be visible at new level
+                  if (selectedId && !VISIBLE_AT_LEVEL[l].has(selectedId) && !CORE_APIS.find(a => a.id === selectedId)) {
+                    setSelectedId(null);
+                  }
+                }}
                 className={`px-4 py-1.5 text-xs rounded-full transition-all ${
                   flowerLevel === l
                     ? "bg-primary text-primary-foreground shadow-lg"
                     : "bg-muted text-muted-foreground hover:bg-accent"
                 }`}
               >
-                {l === 3 ? "Core" : l === 6 ? "Expand" : "Full Bloom"}
+                {l === 3 ? "Core (3)" : l === 6 ? "Expand (6)" : "Full Bloom (9)"}
               </button>
             ))}
           </div>
@@ -250,12 +266,12 @@ export default function ApiPage() {
             <ApiFlower
               level={flowerLevel}
               onLevelChange={setFlowerLevel}
-              onSelectFunction={(id) => setSelectedId(selectedId === id ? null : id)}
+              onSelectFunction={(id) => setSelectedId(id || null)}
             />
           </div>
 
-          {/* Core API quick links */}
-          <div className="flex gap-3 mt-2 shrink-0">
+          {/* Core API quick links — always one click to NOSE details */}
+          <div className="flex gap-3 mt-2 shrink-0 flex-wrap justify-center">
             {CORE_APIS.map(api => (
               <button
                 key={api.id}
