@@ -927,6 +927,101 @@ class TestAmountPrecision:
 
 
 # ===========================================================================
+# SECTION 13: EXPORT CONTENT TIER GATING (Aset — Consistency)
+# ===========================================================================
+
+
+class TestExportContentTiers:
+    """Test donation-gated export content tiers."""
+
+    def test_tier_constants(self):
+        """Aset: Tier constants defined correctly."""
+        from app.cubes.cube9_reports.service import (
+            TIER_FREE, TIER_333, TIER_FULL,
+            THRESHOLD_333_CENTS, THRESHOLD_FULL_CENTS,
+            LOCKED_PLACEHOLDER,
+        )
+        assert TIER_FREE == "free"
+        assert TIER_333 == "tier_333"
+        assert TIER_FULL == "tier_full"
+        assert THRESHOLD_333_CENTS == 999  # $9.99
+        assert THRESHOLD_FULL_CENTS == 1111  # $11.11
+
+    def test_free_tier_locks_333_and_originals(self):
+        """Aset: Free tier locks 333-word summary and original text."""
+        from app.cubes.cube9_reports.service import _apply_tier_filter, TIER_FREE, LOCKED_PLACEHOLDER
+        row = {
+            "Q_Number": 1,
+            "Question": "What do you think?",
+            "User": "user_1",
+            "Detailed_Results": "Original long text here...",
+            "Response_Language": "en",
+            "333_Summary": "A 333-word summary...",
+            "111_Summary": "A 111-word summary...",
+            "33_Summary": "A 33-word summary...",
+            "Theme01": "Innovation",
+            "Theme01_Confidence": "85%",
+            "Theme2_9": "", "Theme2_9_Confidence": "",
+            "Theme2_6": "", "Theme2_6_Confidence": "",
+            "Theme2_3": "", "Theme2_3_Confidence": "",
+        }
+        filtered = _apply_tier_filter(row, TIER_FREE)
+        assert filtered["33_Summary"] == "A 33-word summary..."  # Unlocked
+        assert filtered["111_Summary"] == "A 111-word summary..."  # Unlocked
+        assert filtered["333_Summary"] == LOCKED_PLACEHOLDER  # Locked
+        assert filtered["Detailed_Results"] == LOCKED_PLACEHOLDER  # Locked
+        assert filtered["Theme01"] == "Innovation"  # Themes always visible
+
+    def test_tier_333_unlocks_333_locks_originals(self):
+        """Aset: $9.99 tier unlocks 333 summary but locks originals."""
+        from app.cubes.cube9_reports.service import _apply_tier_filter, TIER_333, LOCKED_PLACEHOLDER
+        row = {
+            "Detailed_Results": "Original text",
+            "333_Summary": "333 summary",
+            "111_Summary": "111 summary",
+            "33_Summary": "33 summary",
+        }
+        filtered = _apply_tier_filter(row, TIER_333)
+        assert filtered["333_Summary"] == "333 summary"  # Unlocked
+        assert filtered["111_Summary"] == "111 summary"  # Unlocked
+        assert filtered["33_Summary"] == "33 summary"  # Unlocked
+        assert filtered["Detailed_Results"] == LOCKED_PLACEHOLDER  # Still locked
+
+    def test_tier_full_unlocks_everything(self):
+        """Aset: $11.11+ tier unlocks all content."""
+        from app.cubes.cube9_reports.service import _apply_tier_filter, TIER_FULL
+        row = {
+            "Detailed_Results": "Full original text",
+            "333_Summary": "333 words",
+            "111_Summary": "111 words",
+            "33_Summary": "33 words",
+        }
+        filtered = _apply_tier_filter(row, TIER_FULL)
+        assert filtered == row  # No changes
+
+    def test_resolve_function_exists(self):
+        """Aset: resolve_export_tier function exists and is async."""
+        from app.cubes.cube9_reports.service import resolve_export_tier
+        assert callable(resolve_export_tier)
+        assert inspect.iscoroutinefunction(resolve_export_tier)
+
+    def test_threshold_math(self):
+        """Thoth: $9.99 = 999 cents, $11.11 = 1111 cents."""
+        assert int(9.99 * 100) == 999
+        assert int(11.11 * 100) == 1111
+
+    def test_hi_token_award_for_999(self):
+        """Krishna: $9.99 donation = 1.378 웃."""
+        hi = 9.99 / 7.25
+        assert f"{hi:.3f}" == "1.378"
+
+    def test_hi_token_award_for_1111(self):
+        """Krishna: $11.11 donation = 1.532 웃."""
+        hi = 11.11 / 7.25
+        assert f"{hi:.3f}" == "1.532"
+
+
+# ===========================================================================
 # TEST METHOD DICT (Cube 10 Simulator Reference)
 # ===========================================================================
 

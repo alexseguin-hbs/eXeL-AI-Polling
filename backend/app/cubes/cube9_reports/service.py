@@ -32,7 +32,89 @@ from app.models.question import Question
 from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
 
+from app.models.payment import PaymentTransaction
+
 logger = logging.getLogger("cube9")
+
+# ---------------------------------------------------------------------------
+# Export Content Tiers (donation-gated)
+# ---------------------------------------------------------------------------
+# FREE:    33-word + 111-word summaries only
+# TIER_1:  + 333-word summary ($9.99 donation)
+# TIER_2:  + original Detailed_Results + all summaries ($11.11+ donation)
+
+TIER_FREE = "free"           # 33 + 111 summaries
+TIER_333 = "tier_333"        # + 333-word ($9.99)
+TIER_FULL = "tier_full"      # + originals + all summaries ($11.11)
+
+# Donation thresholds in cents
+THRESHOLD_333_CENTS = 999    # $9.99
+THRESHOLD_FULL_CENTS = 1111  # $11.11
+
+LOCKED_PLACEHOLDER = "[Donate to unlock]"
+
+
+async def resolve_export_tier(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    user_id: str,
+    user_role: str,
+) -> str:
+    """Determine export content tier based on user's donations.
+
+    Moderator/Admin/Lead always get TIER_FULL.
+    Participants: check total donations for this session.
+    """
+    if user_role in ("moderator", "admin", "lead_developer"):
+        return TIER_FULL
+
+    # Sum all completed donations/payments by this user for this session
+    from app.models.participant import Participant as P
+
+    p_result = await db.execute(
+        select(P.id).where(P.session_id == session_id, P.user_id == user_id)
+    )
+    participant_id = p_result.scalar_one_or_none()
+
+    if not participant_id:
+        return TIER_FREE
+
+    tx_result = await db.execute(
+        select(func.coalesce(func.sum(PaymentTransaction.amount_cents), 0)).where(
+            PaymentTransaction.session_id == session_id,
+            PaymentTransaction.participant_id == participant_id,
+            PaymentTransaction.status == "completed",
+        )
+    )
+    total_donated_cents = tx_result.scalar() or 0
+
+    if total_donated_cents >= THRESHOLD_FULL_CENTS:
+        return TIER_FULL
+    elif total_donated_cents >= THRESHOLD_333_CENTS:
+        return TIER_333
+    return TIER_FREE
+
+
+def _apply_tier_filter(row: dict, tier: str) -> dict:
+    """Filter CSV row fields based on export content tier.
+
+    FREE:   Detailed_Results + 333_Summary locked
+    TIER_333: Detailed_Results locked
+    TIER_FULL: Everything unlocked
+    """
+    if tier == TIER_FULL:
+        return row
+
+    filtered = dict(row)
+
+    if tier == TIER_FREE:
+        filtered["333_Summary"] = LOCKED_PLACEHOLDER
+        filtered["Detailed_Results"] = LOCKED_PLACEHOLDER
+    elif tier == TIER_333:
+        filtered["Detailed_Results"] = LOCKED_PLACEHOLDER
+
+    return filtered
+
 
 # Exact 16-column schema matching reference CSV (v04.1_5000.csv)
 CSV_COLUMNS = [
@@ -63,11 +145,17 @@ CSV_COLUMNS = [
 async def export_session_csv(
     db: AsyncSession,
     session_id: uuid.UUID,
+    content_tier: str = TIER_FULL,
 ) -> io.BytesIO:
     """Build 16-column CSV export for a session.
 
     Queries Postgres (ResponseMeta, Question, ResponseSummary)
     and assembles matching the reference output schema.
+
+    Content tier controls which columns are populated:
+      FREE:    33 + 111 summaries only (333 + originals locked)
+      TIER_333: 33 + 111 + 333 summaries (originals locked)
+      TIER_FULL: all columns unlocked
     """
     # Fetch all response metadata
     result = await db.execute(
@@ -138,7 +226,7 @@ async def export_session_csv(
                 summary_row.theme2_3_confidence if summary_row else ""
             ),
         }
-        rows.append(row)
+        rows.append(_apply_tier_filter(row, content_tier))
 
     df = pd.DataFrame(rows, columns=CSV_COLUMNS)
 
@@ -151,12 +239,14 @@ async def export_session_csv(
 async def export_session_csv_streaming(
     db: AsyncSession,
     session_id: uuid.UUID,
+    content_tier: str = TIER_FULL,
 ):
     """Scale-optimized CSV export — streaming generator, no full-memory load.
 
     For 1M+ responses: yields CSV rows as they're built, never holds
     all rows in memory. Uses csv.writer on a StringIO buffer per chunk.
 
+    Content tier controls which columns are populated (same as export_session_csv).
     Yields bytes chunks suitable for FastAPI StreamingResponse.
     """
     import csv
@@ -216,24 +306,26 @@ async def export_session_csv_streaming(
                     return f"{int(val)}%" if val > 1 else f"{int(val * 100)}%"
                 return str(val) if val else ""
 
-            writer.writerow([
-                question.order_index if question else 0,
-                question.question_text if question else "",
-                str(meta.participant_id),
-                raw_text,
-                participant_langs.get(meta.participant_id, "en"),
-                summary_row.summary_333 or "" if summary_row else "",
-                summary_row.summary_111 or "" if summary_row else "",
-                summary_row.summary_33 or "" if summary_row else "",
-                summary_row.theme01 or "" if summary_row else "",
-                _fmt(summary_row.theme01_confidence if summary_row else ""),
-                summary_row.theme2_9 or "" if summary_row else "",
-                _fmt(summary_row.theme2_9_confidence if summary_row else ""),
-                summary_row.theme2_6 or "" if summary_row else "",
-                _fmt(summary_row.theme2_6_confidence if summary_row else ""),
-                summary_row.theme2_3 or "" if summary_row else "",
-                _fmt(summary_row.theme2_3_confidence if summary_row else ""),
-            ])
+            row_dict = {
+                "Q_Number": question.order_index if question else 0,
+                "Question": question.question_text if question else "",
+                "User": str(meta.participant_id),
+                "Detailed_Results": raw_text,
+                "Response_Language": participant_langs.get(meta.participant_id, "en"),
+                "333_Summary": summary_row.summary_333 or "" if summary_row else "",
+                "111_Summary": summary_row.summary_111 or "" if summary_row else "",
+                "33_Summary": summary_row.summary_33 or "" if summary_row else "",
+                "Theme01": summary_row.theme01 or "" if summary_row else "",
+                "Theme01_Confidence": _fmt(summary_row.theme01_confidence if summary_row else ""),
+                "Theme2_9": summary_row.theme2_9 or "" if summary_row else "",
+                "Theme2_9_Confidence": _fmt(summary_row.theme2_9_confidence if summary_row else ""),
+                "Theme2_6": summary_row.theme2_6 or "" if summary_row else "",
+                "Theme2_6_Confidence": _fmt(summary_row.theme2_6_confidence if summary_row else ""),
+                "Theme2_3": summary_row.theme2_3 or "" if summary_row else "",
+                "Theme2_3_Confidence": _fmt(summary_row.theme2_3_confidence if summary_row else ""),
+            }
+            filtered = _apply_tier_filter(row_dict, content_tier)
+            writer.writerow([filtered[col] for col in CSV_COLUMNS])
 
         yield chunk_buf.getvalue().encode("utf-8")
         offset += chunk_size

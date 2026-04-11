@@ -11,6 +11,11 @@ Results access gating:
   Free: Moderator + Lead always; Users see results (donation prompt after)
   Moderator Paid: All participants (Moderator paid for everyone)
   Cost Split: Only participants with payment_status='paid' or 'lead_exempt'
+
+Export content tiers (donation-gated):
+  FREE:      33-word + 111-word summaries (always available)
+  $9.99:     + 333-word summary unlocked
+  $11.11+:   + original Detailed_Results + all summaries unlocked
 """
 
 import uuid
@@ -71,6 +76,11 @@ async def export_csv(
                     detail="Payment required to access results",
                 )
 
+    # Resolve export content tier based on user's donations
+    content_tier = await service.resolve_export_tier(
+        db, session_id, user.user_id, user.role
+    )
+
     # Auto-select: streaming for large sessions (>10K responses), pandas for small
     from sqlalchemy import func
     from app.models.response_meta import ResponseMeta as RM
@@ -83,18 +93,19 @@ async def export_csv(
     headers = {
         "Content-Disposition": f'attachment; filename="{filename}"',
         "X-Download-Filename": filename,
+        "X-Content-Tier": content_tier,
     }
 
     if response_count > 10_000:
         # Scale mode: streaming CSV (no full-memory DataFrame)
         return StreamingResponse(
-            service.export_session_csv_streaming(db, session_id),
+            service.export_session_csv_streaming(db, session_id, content_tier),
             media_type="text/csv",
             headers=headers,
         )
     else:
         # Standard mode: pandas DataFrame (fast for small sessions)
-        buf = await service.export_session_csv(db, session_id)
+        buf = await service.export_session_csv(db, session_id, content_tier)
         return StreamingResponse(buf, media_type="text/csv", headers=headers)
 
 
