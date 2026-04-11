@@ -197,6 +197,37 @@ async def get_reward_announcement(
     return await service.announce_reward_winner(db, session_id, short_code)
 
 
+@router.get("/export/content-tier")
+async def get_content_tier(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Check user's export content tier based on donations.
+
+    Returns tier and unlock thresholds so frontend can gate content.
+    FREE:    33 + 111 summaries only
+    tier_333: + 333-word summary ($9.99 donated)
+    tier_full: + original text + all summaries ($11.11+ donated)
+    """
+    tier = await service.resolve_export_tier(
+        db, session_id, user.user_id, user.role
+    )
+    return {
+        "content_tier": tier,
+        "unlocked": {
+            "summary_33": True,
+            "summary_111": True,
+            "summary_333": tier in ("tier_333", "tier_full"),
+            "detailed_results": tier == "tier_full",
+        },
+        "thresholds": {
+            "tier_333_cents": 999,
+            "tier_full_cents": 1111,
+        },
+    }
+
+
 @router.post("/destroy-data", status_code=200)
 async def destroy_data(
     session_id: uuid.UUID,

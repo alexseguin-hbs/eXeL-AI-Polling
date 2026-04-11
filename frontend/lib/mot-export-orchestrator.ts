@@ -1,14 +1,22 @@
 /**
  * MoT Export Orchestrator — QR Results → Web_Results CSV
  *
- * Three sequential agents:
+ * Four sequential agents:
+ *   0. Tier Agent — Checks user's donation tier (gates content)
  *   1. Harvest Agent — Fetches responses from local + KV via existing API
  *   2. Anonymize Agent — Sorts by time, maps User_NNNN + language names
  *   3. Export Agent — Formats CSV, triggers browser download
+ *
+ * Content tiers (donation-gated):
+ *   FREE:      33 + 111 summaries only
+ *   $9.99:     + 333-word summary unlocked
+ *   $11.11+:   + original Detailed_Results + all summaries
  */
 
 import { api } from "./api";
 import { SUPPORTED_LANGUAGES } from "./constants";
+
+const LOCKED_PLACEHOLDER = "[Donate to unlock]";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -61,6 +69,39 @@ function resolveLanguageName(code: string): string {
   return LANGUAGE_MAP.get(code) || code;
 }
 
+// ── Content Tier Types ──────────────────────────────────────────
+
+interface ContentTier {
+  content_tier: "free" | "tier_333" | "tier_full";
+  unlocked: {
+    summary_33: boolean;
+    summary_111: boolean;
+    summary_333: boolean;
+    detailed_results: boolean;
+  };
+}
+
+// ── Agent 0: Tier Check ─────────────────────────────────────────
+
+async function tierAgent(sessionId: string): Promise<ContentTier> {
+  try {
+    return await api.get<ContentTier>(
+      `/sessions/${sessionId}/export/content-tier`
+    );
+  } catch {
+    // Default to free tier if check fails (safe default — lock content)
+    return {
+      content_tier: "free",
+      unlocked: {
+        summary_33: true,
+        summary_111: true,
+        summary_333: false,
+        detailed_results: false,
+      },
+    };
+  }
+}
+
 // ── Agent 1: Harvest ─────────────────────────────────────────────
 
 async function harvestAgent(
@@ -96,6 +137,7 @@ async function harvestAgent(
 function anonymizeAgent(
   responses: HarvestedResponse[],
   questionText: string,
+  tier: ContentTier,
   onProgress?: MoTProgressCallback
 ): AnonymizedRow[] {
   onProgress?.({
@@ -124,9 +166,13 @@ function anonymizeAgent(
       q_number: `Q-${String(i + 1).padStart(4, "0")}`,
       question: questionText,
       user: userMap.get(r.participant_id)!,
-      detailed_results: r.clean_text,
+      detailed_results: tier.unlocked.detailed_results
+        ? r.clean_text
+        : LOCKED_PLACEHOLDER,
       response_language: resolveLanguageName(r.language_code),
-      summary_333: r.summary_333 || r.clean_text,
+      summary_333: tier.unlocked.summary_333
+        ? (r.summary_333 || r.clean_text)
+        : LOCKED_PLACEHOLDER,
       summary_111: r.summary_111 || r.clean_text,
       summary_33: r.summary_33 || r.clean_text,
     };
@@ -213,6 +259,9 @@ export async function runMoTExport(
   onProgress?: MoTProgressCallback
 ): Promise<ExportResult> {
   try {
+    // Agent 0: Check donation tier (gates 333-word + originals)
+    const tier = await tierAgent(sessionId);
+
     // Agent 1: Harvest
     const responses = await harvestAgent(sessionId, onProgress);
 
@@ -227,8 +276,8 @@ export async function runMoTExport(
       return { success: false, rowCount: 0, filename: "" };
     }
 
-    // Agent 2: Anonymize
-    const rows = anonymizeAgent(responses, questionText, onProgress);
+    // Agent 2: Anonymize (applies tier content gating)
+    const rows = anonymizeAgent(responses, questionText, tier, onProgress);
 
     // Agent 3: Export
     const { filename } = exportAgent(rows, sessionTitle, shortCode, onProgress);

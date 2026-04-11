@@ -176,12 +176,12 @@ class TestRewardAnnouncement:
 
 
 class TestCube9RouterMVP2:
-    """Verify all 8 endpoints exist."""
+    """Verify all 9 endpoints exist (8 original + content-tier)."""
 
     def test_endpoint_count(self):
         from app.cubes.cube9_reports.router import router
         routes = [r for r in router.routes if hasattr(r, "methods")]
-        assert len(routes) == 8
+        assert len(routes) == 9
 
     def test_pdf_endpoint(self):
         from app.cubes.cube9_reports.router import router
