@@ -213,11 +213,12 @@ function getProportionalMirrorWordIdx(
 
 // ── Pinyin Text Component ─────────────────────────────────────────
 
-function PinyinText({ text, isHighlighted, isActiveWord, sectionColor }: {
+function PinyinText({ text, isHighlighted, isActiveWord, sectionColor, highlight }: {
   text: string;
   isHighlighted: boolean;
   isActiveWord: boolean;
   sectionColor?: string;
+  highlight: HighlightPreset;
 }) {
   const chars = useMemo(() => {
     const arr = Array.from(text);
@@ -230,7 +231,13 @@ function PinyinText({ text, isHighlighted, isActiveWord, sectionColor }: {
   }, [text]);
 
   return (
-    <span className={`${isHighlighted ? "bg-primary/10 rounded-sm" : ""} ${isActiveWord ? "bg-primary/25 font-semibold rounded-sm" : ""}`}>
+    <span
+      className="rounded-sm"
+      style={{
+        backgroundColor: isActiveWord ? highlight.word : isHighlighted ? highlight.sentence : "transparent",
+        fontWeight: isActiveWord ? 600 : "inherit",
+      }}
+    >
       {chars.map((c, i) =>
         c.isChinese ? (
           <ruby key={i} className="leading-loose">
@@ -252,13 +259,25 @@ interface HoverState {
   sentIdx: number;
   wordIdx: number;
   side: "left" | "right";
-  // Mirror word mapping (computed by parent)
   mirrorWordIdx: number | null;
 }
 
+// ── Highlight Presets ─────────────────────────────────────────────
+
+const HIGHLIGHT_PRESETS = [
+  { id: "gold",    label: "Sacred Gold",   color: "#D4A843", sentence: "rgba(212,168,67,0.12)",  word: "rgba(212,168,67,0.30)" },
+  { id: "cyan",    label: "AI Cyan",       color: "#22D3EE", sentence: "rgba(34,211,238,0.12)",  word: "rgba(34,211,238,0.30)" },
+  { id: "violet",  label: "Spirit Violet", color: "#A78BFA", sentence: "rgba(167,139,250,0.12)", word: "rgba(167,139,250,0.30)" },
+  { id: "emerald", label: "Life Emerald",  color: "#10B981", sentence: "rgba(16,185,129,0.12)",  word: "rgba(16,185,129,0.30)" },
+  { id: "rose",    label: "Heart Rose",    color: "#F472B6", sentence: "rgba(244,114,182,0.12)", word: "rgba(244,114,182,0.30)" },
+  { id: "amber",   label: "Sun Amber",     color: "#F59E0B", sentence: "rgba(245,158,11,0.12)",  word: "rgba(245,158,11,0.30)" },
+] as const;
+
+type HighlightPreset = typeof HIGHLIGHT_PRESETS[number];
+
 function SyncedParagraph({
   sentences, lang, paraIdx, activeSentence, hover, showPinyin,
-  onHoverWord, side, sectionColor,
+  onHoverWord, side, sectionColor, highlight,
 }: {
   sentences: string[];
   lang: DivinityLang;
@@ -269,6 +288,7 @@ function SyncedParagraph({
   onHoverWord: (paraIdx: number, sentIdx: number, wordIdx: number, side: "left" | "right") => void;
   side: "left" | "right";
   sectionColor?: string;
+  highlight: HighlightPreset;
 }) {
   return (
     <p className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: "2rem" }}>
@@ -309,6 +329,7 @@ function SyncedParagraph({
                       isHighlighted={isSentenceActive && !isWordActive}
                       isActiveWord={isWordActive}
                       sectionColor={sectionColor}
+                      highlight={highlight}
                     />
                   </span>
                 );
@@ -322,13 +343,11 @@ function SyncedParagraph({
                   key={wIdx}
                   onMouseEnter={() => onHoverWord(paraIdx, sIdx, wIdx, side)}
                   onTouchStart={() => onHoverWord(paraIdx, sIdx, wIdx, side)}
-                  className={`cursor-default transition-colors duration-150 ${
-                    isWordActive
-                      ? "bg-primary/25 font-semibold rounded-sm"
-                      : isSentenceActive
-                        ? "bg-primary/10 rounded-sm"
-                        : ""
-                  }`}
+                  className="cursor-default transition-colors duration-150 rounded-sm"
+                  style={{
+                    backgroundColor: isWordActive ? highlight.word : isSentenceActive ? highlight.sentence : "transparent",
+                    fontWeight: isWordActive ? 600 : "inherit",
+                  }}
                 >
                   {word}
                 </span>
@@ -353,6 +372,8 @@ export default function BilingualReader({
   const [activeSentence, setActiveSentence] = useState<string | null>(null);
   const [hover, setHover] = useState<HoverState | null>(null);
   const [showPinyin, setShowPinyin] = useState(false);
+  const [highlightPreset, setHighlightPreset] = useState<HighlightPreset>(HIGHLIGHT_PRESETS[0]);
+  const [showPalette, setShowPalette] = useState(false);
 
   // Body scroll lock
   useEffect(() => {
@@ -457,9 +478,8 @@ export default function BilingualReader({
   return (
     <div className="fixed inset-0 z-[70] bg-background flex flex-col animate-in fade-in duration-300">
       {/* ── Toolbar ─────────────────────────────────────────── */}
-      <div className="border-b flex items-center justify-between px-4 py-2 shrink-0">
+      <div className="border-b flex items-center justify-between px-4 py-2 shrink-0 relative">
         <div className="flex items-center gap-3">
-          {/* Close — matches PageReader circle style */}
           <button
             onClick={onClose}
             className="w-10 h-10 rounded-full border flex items-center justify-center hover:bg-accent/30 transition-all"
@@ -472,8 +492,48 @@ export default function BilingualReader({
           <span className="text-xs text-muted-foreground/60 hidden sm:inline">{chapter.title}</span>
         </div>
 
+        {/* ── Highlight color picker (center) ──────────────── */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1">
+          {/* Active swatch — click to toggle palette */}
+          <button
+            onClick={() => setShowPalette(!showPalette)}
+            className="flex items-center gap-1.5 rounded-full border px-2.5 py-1 hover:bg-accent/30 transition-all"
+            style={{ borderColor: highlightPreset.color + "60" }}
+          >
+            <span className="w-4 h-4 rounded-full shrink-0 border border-border" style={{ backgroundColor: highlightPreset.color }} />
+            <span className="text-[10px] text-muted-foreground/60 hidden sm:inline">{highlightPreset.label}</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`transition-transform ${showPalette ? "rotate-180" : ""}`}>
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+
+          {/* Palette dropdown */}
+          {showPalette && (
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-10 rounded-xl border bg-card shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+              <p className="text-[9px] text-muted-foreground/50 uppercase tracking-wider mb-2 text-center">Highlight</p>
+              <div className="grid grid-cols-3 gap-2">
+                {HIGHLIGHT_PRESETS.map(preset => {
+                  const isActive = highlightPreset.id === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      onClick={() => { setHighlightPreset(preset); setShowPalette(false); }}
+                      className={`relative flex flex-col items-center gap-1 rounded-lg border p-2 transition-colors hover:bg-accent/50 ${isActive ? "border-primary bg-accent/30" : "border-border"}`}
+                    >
+                      <span className="h-6 w-6 rounded-full border border-border" style={{ backgroundColor: preset.color }} />
+                      <span className="text-[9px] text-muted-foreground/70 leading-tight text-center">{preset.label.split(" ")[0]}</span>
+                      {isActive && (
+                        <svg className="absolute right-1 top-1 w-3 h-3 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="flex items-center gap-3">
-          {/* Pinyin toggle */}
           {hasChinese && (
             <button
               onClick={() => setShowPinyin(!showPinyin)}
@@ -567,6 +627,7 @@ export default function BilingualReader({
                     onHoverWord={handleHoverWord}
                     side="left"
                     sectionColor={sectionStroke}
+                    highlight={highlightPreset}
                   />
                 ) : (
                   <div key={i} className="h-4" />
@@ -591,6 +652,7 @@ export default function BilingualReader({
                     onHoverWord={handleHoverWord}
                     side="right"
                     sectionColor={sectionStroke}
+                    highlight={highlightPreset}
                   />
                 ) : (
                   <div key={i} className="h-4" />
