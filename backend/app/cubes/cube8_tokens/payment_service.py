@@ -342,6 +342,7 @@ async def create_donation_intent(
 
 
 async def create_divinity_donation_checkout(
+    db: AsyncSession | None = None,
     amount_cents: int = 333,
     success_url: str = "",
     cancel_url: str = "",
@@ -350,6 +351,7 @@ async def create_divinity_donation_checkout(
 
     Anonymous — no auth required. User can adjust amount.
     Minimum $0.50. Default $3.33.
+    Records PaymentTransaction so webhook can award HI tokens.
     """
     if amount_cents < 50:
         raise HTTPException(
@@ -376,8 +378,21 @@ async def create_divinity_donation_checkout(
         cancel_url=cancel_url or f"{settings.frontend_url}/divinity-guide",
         metadata={
             "transaction_type": "divinity_guide_donation",
+            "amount_cents": str(amount_cents),
         },
     )
+
+    # Record transaction so webhook can find it and award HI tokens
+    if db:
+        tx = PaymentTransaction(
+            transaction_type="divinity_guide_donation",
+            amount_cents=amount_cents,
+            currency="USD",
+            stripe_checkout_session_id=checkout.id,
+            status="pending",
+        )
+        db.add(tx)
+        await db.commit()
 
     logger.info(
         "cube8.payment.divinity_donation_checkout",
@@ -418,12 +433,26 @@ async def handle_payment_completed(
         tx = result.scalar_one_or_none()
         if tx and tx.status != "completed":  # Idempotency: skip if already processed
             tx.status = "completed"
-            session = await _get_session(db, tx.session_id)
-            session.is_paid = True
+
+            if tx.transaction_type == "divinity_guide_donation":
+                # Award HI tokens for Divinity Guide donation
+                from app.cubes.cube8_tokens.service import award_hi_tokens_for_payment
+                try:
+                    amount_usd = tx.amount_cents / 100.0
+                    await award_hi_tokens_for_payment(
+                        db, session_id=tx.session_id, participant_id=tx.participant_id,
+                        amount_usd=amount_usd, payment_type="donation",
+                    )
+                except Exception as e:
+                    logger.warning("cube8.payment.divinity_hi_award_failed", extra={"error": str(e)})
+            elif tx.session_id:
+                session = await _get_session(db, tx.session_id)
+                session.is_paid = True
+
             await db.commit()
             logger.info(
                 "cube8.payment.checkout_completed",
-                extra={"checkout_id": checkout_id, "session_id": str(tx.session_id)},
+                extra={"checkout_id": checkout_id, "type": tx.transaction_type},
             )
         elif tx and tx.status == "completed":
             logger.info("cube8.payment.checkout_already_completed", extra={"checkout_id": checkout_id})

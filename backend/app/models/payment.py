@@ -19,15 +19,15 @@ from app.db.base import Base
 class PaymentTransaction(Base):
     __tablename__ = "payment_transactions"
 
-    session_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("sessions.id"), nullable=False
+    session_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("sessions.id"), nullable=True
     )
     participant_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("participants.id"), nullable=True
     )
     transaction_type: Mapped[str] = mapped_column(
         String(30), nullable=False
-        # moderator_fee / cost_split / donation / reward_payout
+        # moderator_fee / cost_split / donation / divinity_guide_donation / reward_payout
     )
     amount_cents: Mapped[int] = mapped_column(Integer, nullable=False)
     currency: Mapped[str] = mapped_column(String(3), default="USD")
