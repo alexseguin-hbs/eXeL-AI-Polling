@@ -55,18 +55,16 @@ interface BilingualReaderProps {
 // Key terms that map exactly across languages for word-level alignment
 
 // Full dictionary: 4,436 unique words from the complete Divinity Guide
-// Each entry: "english_word": { "es": "spanish", "zh": "中文" }
+// Each entry: "english_word": { "es": "...", "zh": "...", "fa": "...", "ru": "...", ... }
 import divinityDict from "@/lib/divinity-dictionary.json";
 
-const WORD_DICT = divinityDict as Record<string, { es: string; zh: string }>;
+const WORD_DICT = divinityDict as Record<string, Record<string, string>>;
 
 /** Look up a word in the dictionary, return its translation in the target language */
 function dictLookup(word: string, targetLang: DivinityLang): string | null {
   const entry = WORD_DICT[word.toLowerCase()];
   if (!entry) return null;
-  if (targetLang === "es") return entry.es || null;
-  if (targetLang === "zh") return entry.zh || null;
-  return null;
+  return entry[targetLang] || null;
 }
 
 /** Find the word index in the mirror sentence that best matches the translated word */
@@ -82,8 +80,7 @@ function findMirrorWordIdx(
     // Reverse lookup: find which English word translates to this source word
     const wordLower = word.toLowerCase();
     for (const [enWord, translations] of Object.entries(WORD_DICT)) {
-      const t = sourceLang === "es" ? translations.es : translations.zh;
-      if (t && t.toLowerCase() === wordLower) {
+      if (translations[sourceLang] && translations[sourceLang].toLowerCase() === wordLower) {
         translation = enWord;
         break;
       }
@@ -92,8 +89,7 @@ function findMirrorWordIdx(
     // Neither side is English: source → EN → mirror
     const wordLower = word.toLowerCase();
     for (const [enWord, translations] of Object.entries(WORD_DICT)) {
-      const t = sourceLang === "es" ? translations.es : translations.zh;
-      if (t && t.toLowerCase() === wordLower) {
+      if (translations[sourceLang] && translations[sourceLang].toLowerCase() === wordLower) {
         translation = dictLookup(enWord, mirrorLang);
         break;
       }
@@ -265,12 +261,15 @@ interface HoverState {
 // ── Highlight Presets ─────────────────────────────────────────────
 
 const HIGHLIGHT_PRESETS = [
-  { id: "gold",    label: "Sacred Gold",   color: "#D4A843", sentence: "rgba(212,168,67,0.12)",  word: "rgba(212,168,67,0.30)" },
-  { id: "cyan",    label: "AI Cyan",       color: "#22D3EE", sentence: "rgba(34,211,238,0.12)",  word: "rgba(34,211,238,0.30)" },
-  { id: "violet",  label: "Spirit Violet", color: "#A78BFA", sentence: "rgba(167,139,250,0.12)", word: "rgba(167,139,250,0.30)" },
-  { id: "emerald", label: "Life Emerald",  color: "#10B981", sentence: "rgba(16,185,129,0.12)",  word: "rgba(16,185,129,0.30)" },
-  { id: "rose",    label: "Heart Rose",    color: "#F472B6", sentence: "rgba(244,114,182,0.12)", word: "rgba(244,114,182,0.30)" },
-  { id: "amber",   label: "Sun Amber",     color: "#F59E0B", sentence: "rgba(245,158,11,0.12)",  word: "rgba(245,158,11,0.30)" },
+  { id: "gold",    label: "Sacred Gold",     color: "#D4A843", sentence: "rgba(212,168,67,0.12)",  word: "rgba(212,168,67,0.30)" },
+  { id: "violet",  label: "Spirit Violet",   color: "#A78BFA", sentence: "rgba(167,139,250,0.12)", word: "rgba(167,139,250,0.30)" },
+  { id: "blue",    label: "Ocean Blue",      color: "#3B82F6", sentence: "rgba(59,130,246,0.12)",  word: "rgba(59,130,246,0.30)" },
+  { id: "cyan",    label: "AI Cyan",         color: "#22D3EE", sentence: "rgba(34,211,238,0.12)",  word: "rgba(34,211,238,0.30)" },
+  { id: "emerald", label: "Life Emerald",    color: "#10B981", sentence: "rgba(16,185,129,0.12)",  word: "rgba(16,185,129,0.30)" },
+  { id: "sunset",  label: "Sacred Sunset",   color: "#F97316", sentence: "rgba(249,115,22,0.12)",  word: "rgba(249,115,22,0.30)" },
+  { id: "burnt",   label: "Burnt Orange",    color: "#C2410C", sentence: "rgba(194,65,12,0.12)",   word: "rgba(194,65,12,0.30)" },
+  { id: "red",     label: "Crimson Red",     color: "#EF4444", sentence: "rgba(239,68,68,0.12)",   word: "rgba(239,68,68,0.30)" },
+  { id: "custom",  label: "Custom White",    color: "#E2E8F0", sentence: "rgba(226,232,240,0.12)", word: "rgba(226,232,240,0.30)" },
 ] as const;
 
 type HighlightPreset = typeof HIGHLIGHT_PRESETS[number];
@@ -547,11 +546,12 @@ export default function BilingualReader({
 
       {/* ── Column Headers with language selectors ──────────── */}
       <div className="flex flex-col md:flex-row border-b shrink-0">
-        <div className="w-full md:w-1/2 px-6 py-2 md:border-r">
+        <div className="w-full md:w-1/2 px-6 py-2.5 md:border-r flex items-center gap-2">
           <select
             value={primaryLang}
             onChange={e => setPrimaryLang(e.target.value as DivinityLang)}
-            className="text-[10px] text-muted-foreground/60 uppercase tracking-wider bg-transparent cursor-pointer border-none outline-none"
+            className="text-xs font-medium bg-card border border-border rounded-lg px-3 py-1.5 cursor-pointer hover:bg-accent/30 transition-colors outline-none focus:ring-1 focus:ring-primary/30"
+            style={{ color: sectionStroke }}
           >
             {availableLanguages
               .filter(l => l.code !== mirrorLang)
@@ -559,12 +559,14 @@ export default function BilingualReader({
                 <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
               ))}
           </select>
+          <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider hidden sm:inline">Primary</span>
         </div>
-        <div className="w-full md:w-1/2 px-6 py-2">
+        <div className="w-full md:w-1/2 px-6 py-2.5 flex items-center gap-2">
           <select
             value={mirrorLang}
             onChange={e => setMirrorLang(e.target.value as DivinityLang)}
-            className="text-[10px] text-muted-foreground/60 uppercase tracking-wider bg-transparent cursor-pointer border-none outline-none"
+            className="text-xs font-medium bg-card border border-border rounded-lg px-3 py-1.5 cursor-pointer hover:bg-accent/30 transition-colors outline-none focus:ring-1 focus:ring-primary/30"
+            style={{ color: sectionStroke }}
           >
             {availableLanguages
               .filter(l => l.code !== primaryLang)
@@ -572,6 +574,7 @@ export default function BilingualReader({
                 <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
               ))}
           </select>
+          <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider hidden sm:inline">Mirror</span>
         </div>
       </div>
 
