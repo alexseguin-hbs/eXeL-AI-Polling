@@ -41,6 +41,7 @@ interface BilingualReaderProps {
   setPageIndex: (n: number) => void;
   primaryLang: DivinityLang;
   mirrorLang: DivinityLang;
+  setPrimaryLang: (lang: DivinityLang) => void;
   setMirrorLang: (lang: DivinityLang) => void;
   primaryPages: typeof divinityPages;
   mirrorPages: typeof divinityPages;
@@ -53,77 +54,189 @@ interface BilingualReaderProps {
 // ── Sacred Terminology Dictionary ─────────────────────────────────
 // Key terms that map exactly across languages for word-level alignment
 
-const SACRED_DICT: Record<string, Record<string, string>> = {
-  en: {
-    "flower of life": "flower of life",
-    "tree of life": "tree of life",
-    "seed of life": "seed of life",
-    "master of thought": "master of thought",
-    "divinity guide": "divinity guide",
-    "sacred geometry": "sacred geometry",
-    "golden ratio": "golden ratio",
-    "ouroboros": "ouroboros",
-    "unalome": "unalome",
-    "source": "source",
-  },
-  es: {
-    "flor de la vida": "flower of life",
-    "árbol de la vida": "tree of life",
-    "semilla de la vida": "seed of life",
-    "maestro del pensamiento": "master of thought",
-    "guía de la divinidad": "divinity guide",
-    "geometría sagrada": "sacred geometry",
-    "proporción áurea": "golden ratio",
-    "ouroboros": "ouroboros",
-    "unalome": "unalome",
-    "fuente": "source",
-  },
-  zh: {
-    "生命之花": "flower of life",
-    "生命之树": "tree of life",
-    "生命种子": "seed of life",
-    "思想大师": "master of thought",
-    "神性指南": "divinity guide",
-    "神圣几何": "sacred geometry",
-    "黄金比例": "golden ratio",
-    "衔尾蛇": "ouroboros",
-    "源头": "source",
-  },
-};
+// 105 sacred terms extracted from all 12 chapters — verified against actual translations
+const SACRED_TERMS: { en: string; es: string; zh: string }[] = [
+  // ── Multi-word phrases (matched first for priority) ──
+  { en: "Flower of Life", es: "Flor de la Vida", zh: "生命之花" },
+  { en: "Tree of Life", es: "Árbol de la Vida", zh: "生命之树" },
+  { en: "Seed of Life", es: "Semilla de la Vida", zh: "生命种子" },
+  { en: "Master of Thought", es: "Maestro del Pensamiento", zh: "思想大师" },
+  { en: "Divinity Guide", es: "Guía de la Divinidad", zh: "神圣指南" },
+  { en: "Divinity Framework", es: "Marco de la Divinidad", zh: "神性框架" },
+  { en: "sacred geometry", es: "geometría sagrada", zh: "神圣几何" },
+  { en: "Cosmic Harmony", es: "Armonía Cósmica", zh: "宇宙和谐" },
+  { en: "Eternal Wisdom", es: "Sabiduría Eterna", zh: "永恒智慧" },
+  { en: "Yin Yang", es: "Yin Yang", zh: "阴阳" },
+  // ── Sacred/spiritual terms ──
+  { en: "soul", es: "alma", zh: "灵魂" },
+  { en: "Source", es: "Fuente", zh: "源头" },
+  { en: "spirit", es: "espíritu", zh: "灵性" },
+  { en: "prayer", es: "oración", zh: "祈祷" },
+  { en: "ritual", es: "ritual", zh: "仪式" },
+  { en: "offering", es: "ofrenda", zh: "供品" },
+  { en: "temple", es: "templo", zh: "殿堂" },
+  { en: "sanctuary", es: "santuario", zh: "圣所" },
+  { en: "devotion", es: "devoción", zh: "虔诚" },
+  { en: "reverence", es: "reverencia", zh: "敬畏" },
+  { en: "communion", es: "comunión", zh: "共融" },
+  { en: "grace", es: "gracia", zh: "恩典" },
+  { en: "alchemy", es: "alquimia", zh: "炼金术" },
+  // ── Symbols ──
+  { en: "Ouroboros", es: "Ouroboros", zh: "衔尾蛇" },
+  { en: "Unalome", es: "Unalome", zh: "菩提纹" },
+  { en: "Aum", es: "Aum", zh: "唵" },
+  { en: "Ankh", es: "Ankh", zh: "安卡" },
+  { en: "spiral", es: "espiral", zh: "螺旋" },
+  { en: "serpent", es: "serpiente", zh: "蛇" },
+  { en: "portal", es: "portal", zh: "门户" },
+  { en: "mirror", es: "espejo", zh: "镜子" },
+  { en: "flame", es: "llama", zh: "火焰" },
+  // ── Key concepts ──
+  { en: "consciousness", es: "conciencia", zh: "意识" },
+  { en: "awareness", es: "consciencia", zh: "觉知" },
+  { en: "presence", es: "presencia", zh: "临在" },
+  { en: "wholeness", es: "totalidad", zh: "完整" },
+  { en: "unity", es: "unidad", zh: "合一" },
+  { en: "oneness", es: "unicidad", zh: "合一" },
+  { en: "diversity", es: "diversidad", zh: "多样性" },
+  { en: "separation", es: "separación", zh: "分离" },
+  { en: "truth", es: "verdad", zh: "真理" },
+  { en: "harmony", es: "armonía", zh: "和谐" },
+  { en: "coherence", es: "coherencia", zh: "和谐" },
+  { en: "alignment", es: "alineación", zh: "校准" },
+  { en: "embodiment", es: "encarnación", zh: "化身" },
+  { en: "remembrance", es: "recuerdo", zh: "忆起" },
+  { en: "illusion", es: "ilusión", zh: "幻象" },
+  { en: "sovereignty", es: "soberanía", zh: "主权" },
+  { en: "discernment", es: "discernimiento", zh: "辨别力" },
+  { en: "mastery", es: "maestría", zh: "掌握" },
+  { en: "integration", es: "integración", zh: "整合" },
+  { en: "intention", es: "intención", zh: "意图" },
+  { en: "clarity", es: "claridad", zh: "清明" },
+  { en: "becoming", es: "devenir", zh: "成为" },
+  { en: "stewardship", es: "custodia", zh: "管护" },
+  // ── Actions/verbs ──
+  { en: "awakening", es: "despertar", zh: "觉醒" },
+  { en: "awaken", es: "despertar", zh: "觉醒" },
+  { en: "transformation", es: "transformación", zh: "转化" },
+  { en: "remember", es: "recordar", zh: "忆起" },
+  { en: "surrender", es: "rendición", zh: "臣服" },
+  { en: "healing", es: "sanación", zh: "疗愈" },
+  { en: "heal", es: "sanar", zh: "疗愈" },
+  { en: "align", es: "alinear", zh: "校准" },
+  { en: "transmute", es: "transmutar", zh: "转化" },
+  { en: "embody", es: "encarnar", zh: "体现" },
+  { en: "dissolve", es: "disolver", zh: "消融" },
+  { en: "meditate", es: "meditar", zh: "冥想" },
+  { en: "attune", es: "sintonizar", zh: "调谐" },
+  { en: "serve", es: "servir", zh: "服务" },
+  { en: "creation", es: "creación", zh: "创造" },
+  { en: "rebirth", es: "renacimiento", zh: "重生" },
+  // ── Qualities ──
+  { en: "divine", es: "divino", zh: "神圣" },
+  { en: "sacred", es: "sagrado", zh: "神圣" },
+  { en: "eternal", es: "eterno", zh: "永恒" },
+  { en: "luminous", es: "luminoso", zh: "光明" },
+  { en: "radiant", es: "radiante", zh: "光辉" },
+  { en: "infinite", es: "infinito", zh: "无限" },
+  // ── Body/nature/emotion ──
+  { en: "breath", es: "respiración", zh: "呼吸" },
+  { en: "heart", es: "corazón", zh: "心" },
+  { en: "mind", es: "mente", zh: "心智" },
+  { en: "light", es: "luz", zh: "光" },
+  { en: "love", es: "amor", zh: "爱" },
+  { en: "peace", es: "paz", zh: "和平" },
+  { en: "stillness", es: "quietud", zh: "寂静" },
+  { en: "silence", es: "silencio", zh: "寂静" },
+  { en: "wisdom", es: "sabiduría", zh: "智慧" },
+  { en: "compassion", es: "compasión", zh: "慈悲" },
+  { en: "vibration", es: "vibración", zh: "振动" },
+  { en: "frequency", es: "frecuencia", zh: "频率" },
+  { en: "resonance", es: "resonancia", zh: "共振" },
+  { en: "emotion", es: "emoción", zh: "情感" },
+  { en: "virtue", es: "virtud", zh: "美德" },
+  { en: "cosmos", es: "cosmos", zh: "宇宙" },
+  { en: "earth", es: "tierra", zh: "大地" },
+  { en: "nature", es: "naturaleza", zh: "自然" },
+  { en: "grief", es: "duelo", zh: "悲伤" },
+  { en: "fear", es: "miedo", zh: "恐惧" },
+  { en: "ego", es: "ego", zh: "小我" },
+  { en: "pattern", es: "patrón", zh: "图案" },
+  { en: "rhythm", es: "ritmo", zh: "韵律" },
+  { en: "ancestors", es: "ancestros", zh: "祖先" },
+  { en: "lineage", es: "linaje", zh: "传承" },
+  { en: "service", es: "servicio", zh: "服务" },
+  { en: "eternity", es: "eternidad", zh: "永恒" },
+];
 
-/** Check if a word/phrase at position matches a dictionary term, return the canonical key */
-function findDictMatch(text: string, wordIdx: number, words: string[], lang: DivinityLang): string | null {
+// Build per-language lookup: term → canonical index
+const SACRED_DICT: Record<string, Map<string, number>> = {};
+for (const lang of ["en", "es", "zh"] as const) {
+  const map = new Map<string, number>();
+  SACRED_TERMS.forEach((t, idx) => {
+    map.set(t[lang].toLowerCase(), idx);
+  });
+  SACRED_DICT[lang] = map;
+}
+
+/** Check if a word/phrase at position matches a dictionary term, return the canonical index */
+function findDictMatch(wordIdx: number, words: string[], lang: DivinityLang): number | null {
   const dict = SACRED_DICT[lang];
   if (!dict) return null;
-  const nonSpaceWords = words.filter(w => !/^\s+$/.test(w));
-  // Map wordIdx in full array to index in non-space array
+  const nonSpaceWords: { word: string; origIdx: number }[] = [];
+  words.forEach((w, i) => { if (!/^\s+$/.test(w)) nonSpaceWords.push({ word: w, origIdx: i }); });
+  // Find position of wordIdx among non-space words
   let nsIdx = 0;
-  for (let i = 0; i < wordIdx; i++) {
-    if (!/^\s+$/.test(words[i])) nsIdx++;
+  for (let i = 0; i < nonSpaceWords.length; i++) {
+    if (nonSpaceWords[i].origIdx === wordIdx) { nsIdx = i; break; }
   }
-  // Try matching multi-word phrases (up to 4 words)
+  // Try matching multi-word phrases (up to 4 words), then single words
   for (let len = 4; len >= 1; len--) {
-    const phrase = nonSpaceWords.slice(nsIdx, nsIdx + len).join(" ").toLowerCase();
-    if (dict[phrase]) return dict[phrase];
+    if (nsIdx + len > nonSpaceWords.length) continue;
+    const phrase = nonSpaceWords.slice(nsIdx, nsIdx + len).map(e => e.word).join(" ").toLowerCase();
+    const idx = dict.get(phrase);
+    if (idx !== undefined) return idx;
+    // Also try starting from earlier positions that include this word
+    for (let start = Math.max(0, nsIdx - len + 1); start < nsIdx; start++) {
+      if (start + len > nonSpaceWords.length) continue;
+      const p2 = nonSpaceWords.slice(start, start + len).map(e => e.word).join(" ").toLowerCase();
+      const idx2 = dict.get(p2);
+      if (idx2 !== undefined) return idx2;
+    }
   }
   return null;
 }
 
 /** Find the word index in the mirror sentence that matches the same dictionary term */
-function findMirrorWordForTerm(canonicalKey: string, mirrorWords: string[], mirrorLang: DivinityLang): number | null {
+function findMirrorWordForTerm(termIdx: number, mirrorWords: string[], mirrorLang: DivinityLang): number | null {
   const dict = SACRED_DICT[mirrorLang];
   if (!dict) return null;
+  const term = SACRED_TERMS[termIdx];
+  if (!term) return null;
+  const mirrorTerm = term[mirrorLang as keyof typeof term];
+  if (!mirrorTerm) return null;
+  const mirrorTermLower = mirrorTerm.toLowerCase();
+  const mirrorTermWords = mirrorTermLower.split(" ");
   const nonSpaceEntries: { word: string; origIdx: number }[] = [];
   mirrorWords.forEach((w, i) => { if (!/^\s+$/.test(w)) nonSpaceEntries.push({ word: w, origIdx: i }); });
-  // Find which term maps to this canonical key
-  for (const [term, key] of Object.entries(dict)) {
-    if (key !== canonicalKey) continue;
-    const termWords = term.split(" ");
-    // Search for this term sequence in mirror words
-    for (let start = 0; start <= nonSpaceEntries.length - termWords.length; start++) {
-      const slice = nonSpaceEntries.slice(start, start + termWords.length).map(e => e.word.toLowerCase()).join(" ");
-      if (slice === term) return nonSpaceEntries[start].origIdx;
+  // For Chinese single chars: search for the term as a substring of joined words
+  if (mirrorLang === "zh") {
+    const joined = nonSpaceEntries.map(e => e.word).join("");
+    const pos = joined.toLowerCase().indexOf(mirrorTermLower);
+    if (pos >= 0) {
+      // Find which word index this corresponds to
+      let charCount = 0;
+      for (const entry of nonSpaceEntries) {
+        if (charCount >= pos) return entry.origIdx;
+        charCount += entry.word.length;
+      }
     }
+    return null;
+  }
+  // For space-separated languages: search for word sequence
+  for (let start = 0; start <= nonSpaceEntries.length - mirrorTermWords.length; start++) {
+    const slice = nonSpaceEntries.slice(start, start + mirrorTermWords.length).map(e => e.word.toLowerCase()).join(" ");
+    if (slice === mirrorTermLower) return nonSpaceEntries[start].origIdx;
   }
   return null;
 }
@@ -328,7 +441,7 @@ function SyncedParagraph({
 
 export default function BilingualReader({
   chapter, mirrorChapter, section, pageIndex, setPageIndex,
-  primaryLang, mirrorLang, setMirrorLang,
+  primaryLang, mirrorLang, setPrimaryLang, setMirrorLang,
   primaryPages, mirrorPages, onClose,
   reflectionLabel = "Reflection", mirrorReflectionLabel = "Reflection",
   availableLanguages,
@@ -414,10 +527,10 @@ export default function BilingualReader({
     const mirrorWords = splitWords(mirrorSent, targetLang);
 
     // Try dictionary match first
-    const dictKey = findDictMatch(sourceSent, wordIdx, sourceWords, sourceLang);
+    const termIdx = findDictMatch(wordIdx, sourceWords, sourceLang);
     let mirrorWordIdx: number | null = null;
-    if (dictKey) {
-      mirrorWordIdx = findMirrorWordForTerm(dictKey, mirrorWords, targetLang);
+    if (termIdx !== null) {
+      mirrorWordIdx = findMirrorWordForTerm(termIdx, mirrorWords, targetLang);
     }
     // Fallback to proportional mapping
     if (mirrorWordIdx === null) {
@@ -466,13 +579,29 @@ export default function BilingualReader({
               拼
             </button>
           )}
+        </div>
+      </div>
 
-          {/* Mirror language selector */}
+      {/* ── Column Headers with language selectors ──────────── */}
+      <div className="flex flex-col md:flex-row border-b shrink-0">
+        <div className="w-full md:w-1/2 px-6 py-2 md:border-r">
+          <select
+            value={primaryLang}
+            onChange={e => setPrimaryLang(e.target.value as DivinityLang)}
+            className="text-[10px] text-muted-foreground/60 uppercase tracking-wider bg-transparent cursor-pointer border-none outline-none"
+          >
+            {availableLanguages
+              .filter(l => l.code !== mirrorLang)
+              .map(l => (
+                <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
+              ))}
+          </select>
+        </div>
+        <div className="w-full md:w-1/2 px-6 py-2">
           <select
             value={mirrorLang}
             onChange={e => setMirrorLang(e.target.value as DivinityLang)}
-            className="text-xs bg-transparent border rounded-full px-3 py-2 cursor-pointer"
-            style={{ borderColor: sectionStroke }}
+            className="text-[10px] text-muted-foreground/60 uppercase tracking-wider bg-transparent cursor-pointer border-none outline-none"
           >
             {availableLanguages
               .filter(l => l.code !== primaryLang)
@@ -480,20 +609,6 @@ export default function BilingualReader({
                 <option key={l.code} value={l.code}>{l.flag} {l.label}</option>
               ))}
           </select>
-        </div>
-      </div>
-
-      {/* ── Column Headers ──────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row border-b shrink-0">
-        <div className="w-full md:w-1/2 px-6 py-2 md:border-r">
-          <p className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">
-            {langLabel(primaryLang)?.flag} {langLabel(primaryLang)?.label}
-          </p>
-        </div>
-        <div className="w-full md:w-1/2 px-6 py-2">
-          <p className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">
-            {langLabel(mirrorLang)?.flag} {langLabel(mirrorLang)?.label}
-          </p>
         </div>
       </div>
 

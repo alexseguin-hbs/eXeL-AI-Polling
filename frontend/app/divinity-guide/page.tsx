@@ -926,6 +926,7 @@ function DivinityGuidePage() {
           setPageIndex={setPageIndex}
           primaryLang={divinityLang}
           mirrorLang={mirrorLang}
+          setPrimaryLang={(lang) => setDivinityLang(lang as DivinityLang)}
           setMirrorLang={(lang) => setMirrorLang(lang as DivinityLang)}
           primaryPages={activeDivinityPages}
           mirrorPages={mirrorPages}
