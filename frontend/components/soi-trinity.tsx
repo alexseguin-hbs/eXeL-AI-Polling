@@ -65,7 +65,7 @@ export function SoITrinity({
   const outerR = spread + ringR + gap + outerWidth;
   const ringMidR = ringR - ringWidth / 2;
   const ringInnerR = ringR - ringWidth;
-  const textR = ringMidR;
+  const textR = ringMidR - 2; // 2px inward from band center — sits between inner + outer borders
   const bgColor = "var(--background, #0a1628)";
 
   // Ring centers: Son (top), Mother Aset (BR), Father Asar (BL)
