@@ -289,7 +289,8 @@ function LibraryReader({
                   textColor="white"
                   size={160}
                 />
-                <p className="text-xs text-muted-foreground/60 mt-2">✦ {t("trinity.human.title")}</p>
+                <p className="text-xs text-muted-foreground/60 mt-2">✦</p>
+                <p className="text-sm font-medium text-muted-foreground">Love, Loss &amp; Safety</p>
               </div>
             )}
             {bookPage.id === "prelude-05" && (
@@ -300,7 +301,8 @@ function LibraryReader({
                   textColor="white"
                   size={160}
                 />
-                <p className="text-xs text-muted-foreground/60 mt-2">✦ {t("trinity.consciousness.title")}</p>
+                <p className="text-xs text-muted-foreground/60 mt-2">✦</p>
+                <p className="text-sm font-medium text-muted-foreground">Divine Unity Principles</p>
               </div>
             )}
             {bookPage.text.split("\n").map((line, i) => {
