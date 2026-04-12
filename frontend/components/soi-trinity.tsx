@@ -37,6 +37,12 @@ export interface SoITrinityProps {
   letterSpacing?: number;
   borderWidth?: number;
   textSpan?: number;
+  /** Text radial offset: - inward toward Unity center, + outward toward Unity ring */
+  topTextOffset?: number;
+  /** Text radial offset for bottom-left (CONNECTION) */
+  leftTextOffset?: number;
+  /** Text radial offset for bottom-right (HARMONY) */
+  rightTextOffset?: number;
   className?: string;
   onClick?: () => void;
 }
@@ -55,6 +61,9 @@ export function SoITrinity({
   letterSpacing = 2,
   borderWidth = 1.5,
   textSpan = 90,
+  topTextOffset = -2,     // - inward, + outward
+  leftTextOffset = 2,     // CONNECTION: +2 outward (corrected)
+  rightTextOffset = 2,    // HARMONY: +2 outward (corrected)
   className = "",
   onClick,
 }: SoITrinityProps) {
@@ -65,8 +74,12 @@ export function SoITrinity({
   const outerR = spread + ringR + gap + outerWidth;
   const ringMidR = ringR - ringWidth / 2;
   const ringInnerR = ringR - ringWidth;
-  const topTextR = ringMidR - 2;    // WISDOM: 2px inward (clockwise arc — text extends inward)
-  const bottomTextR = ringMidR - 4; // CONNECTION/HARMONY: 4px inward (counter-clockwise — text extends outward)
+  // Per-ring text radius: ringMidR + offset (- inward toward Unity center, + outward)
+  const textRadii = [
+    ringMidR + topTextOffset,    // [0] WISDOM (top)
+    ringMidR + rightTextOffset,  // [1] HARMONY (bottom-right)
+    ringMidR + leftTextOffset,   // [2] CONNECTION (bottom-left)
+  ];
   const bgColor = "var(--background, #0a1628)";
 
   // Ring centers: Son (top), Mother Aset (BR), Father Asar (BL)
@@ -84,8 +97,7 @@ export function SoITrinity({
   // Bottom rings (i=1,2): counter-clockwise arc — text reads L→R, right-side up at 4/8 o'clock
   // Counter-clockwise flips which side of the arc the text sits on,
   // making letters upright when the arc is on the lower half of a ring.
-  function makeTextArc(rcx: number, rcy: number, angle: number, isBottom: boolean): string {
-    const r = isBottom ? bottomTextR : topTextR;
+  function makeTextArc(rcx: number, rcy: number, angle: number, r: number, isBottom: boolean): string {
     const half = textSpan / 2;
     const a1 = angle - half;
     const a2 = angle + half;
@@ -131,7 +143,7 @@ export function SoITrinity({
       <defs>
         {rings.map((ring, i) => (
           <path key={`p-${i}`} id={`${uid}-t-${i}`}
-            d={makeTextArc(ring.cx, ring.cy, textAngles[i], i !== 0)}
+            d={makeTextArc(ring.cx, ring.cy, textAngles[i], textRadii[i], i !== 0)}
             fill="none" />
         ))}
       </defs>

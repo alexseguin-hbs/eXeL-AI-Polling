@@ -14,23 +14,24 @@ import { SoITrinity } from "@/components/soi-trinity";
 import { useTheme } from "@/lib/theme-context";
 import Link from "next/link";
 
+// Most important word at TOP for each trinity
 const EXAMPLES: {
   labels: [string, string, string];
   color: string;
   title: string;
 }[] = [
   { labels: ["WISDOM", "HARMONY", "CONNECTION"], color: "#10B981", title: "Consciousness" },
-  { labels: ["H.I.", "S.I.", "A.I."], color: "#3B82F6", title: "Core Trinity" },
-  { labels: ["LOVE", "SAFETY", "LOSS"], color: "#EF4444", title: "Human" },
   { labels: ["LEADERSHIP", "ADAPTATION", "INTEGRATION"], color: "#F59E0B", title: "Governance" },
-  { labels: ["MIND", "SPIRIT", "BODY"], color: "#8B5CF6", title: "Wholeness" },
-  { labels: ["CREATE", "SUSTAIN", "TRANSFORM"], color: "#EC4899", title: "Evolution" },
+  { labels: ["LOVE", "SAFETY", "LOSS"], color: "#EF4444", title: "Human" },
+  { labels: ["ACTION", "FEELING", "THOUGHT"], color: "#6366F1", title: "Intelligence" },
+  { labels: ["H.I.", "S.I.", "A.I."], color: "#3B82F6", title: "Core Trinity" },
   { labels: ["TRUTH", "BEAUTY", "GOODNESS"], color: "#14B8A6", title: "Platonic" },
-  { labels: ["PAST", "FUTURE", "PRESENT"], color: "#F97316", title: "Temporal" },
-  { labels: ["THOUGHT", "ACTION", "FEELING"], color: "#6366F1", title: "Intelligence" },
-  { labels: ["FATHER", "SON", "MOTHER"], color: "#A855F7", title: "Sacred Family" },
-  { labels: ["GIVE", "RECEIVE", "SHARE"], color: "#22D3EE", title: "Abundance" },
+  { labels: ["CREATE", "SUSTAIN", "TRANSFORM"], color: "#EC4899", title: "Evolution" },
+  { labels: ["MIND", "SPIRIT", "BODY"], color: "#8B5CF6", title: "Wholeness" },
+  { labels: ["PURPOSE", "IMPACT", "LEGACY"], color: "#F97316", title: "Mission" },
+  { labels: ["SON", "MOTHER", "FATHER"], color: "#A855F7", title: "Sacred Family" },
   { labels: ["OBSERVE", "DECIDE", "ACT"], color: "#84CC16", title: "OODA Loop" },
+  { labels: ["GIVE", "RECEIVE", "SHARE"], color: "#22D3EE", title: "Abundance" },
 ];
 
 export default function TrinityReviewPage() {
