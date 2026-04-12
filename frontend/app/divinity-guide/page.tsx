@@ -726,7 +726,7 @@ function DivinityGuidePage() {
               </button>
             </div>
             <p className="text-[9px] text-muted-foreground/40">
-              ◬ A.I. · ♡ S.I. · 웃 H.I.
+              ◬ · ♡ · 웃
             </p>
           </div>
         </div>
@@ -947,9 +947,8 @@ function DivinityGuidePage() {
           {/* Footer */}
           <div className="mt-auto pb-6 text-center">
             <br />
-            <p className="text-[9px] text-muted-foreground/40">◬ A.I. · ♡ S.I. · 웃 H.I.</p>
-            <br />
             <p className="text-[9px] text-muted-foreground/40">••• Master of Thought •••</p>
+            <p className="text-[9px] text-muted-foreground/40">◬ · ♡ · 웃</p>
           </div>
         </div>
 
