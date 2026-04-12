@@ -127,66 +127,63 @@ function TrinityAttempt({
           ))}
         </defs>
 
-        {/* Outer Unity ring: band + black borders (same structure as inner rings) */}
+        {/*
+          DRAW ORDER:
+            1. Son (top) — first, underneath
+            2. Mother Aset (BR) — over Son
+            3. Father Asar (BL) — over both
+            4. WORDS — on top of all rings
+            5. Unity ring — LAST, drawn over everything with gap=20
+        */}
+
+        {/* 1. SON (ring 0, TOP) */}
+        <RingBand rcx={rings[0].cx} rcy={rings[0].cy} />
+
+        {/* 2. MOTHER ASET (ring 1, BR) — over Son */}
+        <clipPath id={`${uid}-ms`}>
+          <circle cx={rings[1].cx} cy={rings[1].cy} r={ringR + 2} />
+        </clipPath>
+        <circle cx={rings[0].cx} cy={rings[0].cy} r={ringMidR}
+          fill="none" stroke={bgColor} strokeWidth={ringWidth + 4}
+          clipPath={`url(#${uid}-ms)`} />
+        <RingBand rcx={rings[1].cx} rcy={rings[1].cy} clip={`${uid}-ms`} />
+        <RingBand rcx={rings[1].cx} rcy={rings[1].cy} />
+
+        {/* 3. FATHER ASAR (ring 2, BL) — over Mother */}
+        <clipPath id={`${uid}-fm`}>
+          <circle cx={rings[2].cx} cy={rings[2].cy} r={ringR + 2} />
+        </clipPath>
+        <circle cx={rings[1].cx} cy={rings[1].cy} r={ringMidR}
+          fill="none" stroke={bgColor} strokeWidth={ringWidth + 4}
+          clipPath={`url(#${uid}-fm)`} />
+        <RingBand rcx={rings[2].cx} rcy={rings[2].cy} clip={`${uid}-fm`} />
+        {/* Father over Son */}
+        <clipPath id={`${uid}-fs`}>
+          <circle cx={rings[2].cx} cy={rings[2].cy} r={ringR + 2} />
+        </clipPath>
+        <circle cx={rings[0].cx} cy={rings[0].cy} r={ringMidR}
+          fill="none" stroke={bgColor} strokeWidth={ringWidth + 4}
+          clipPath={`url(#${uid}-fs)`} />
+        <RingBand rcx={rings[2].cx} rcy={rings[2].cy} clip={`${uid}-fs`} />
+        <RingBand rcx={rings[2].cx} rcy={rings[2].cy} />
+
+        {/* 4. WORDS — on top of all 3 rings, all letters visible */}
+        {rings.map((ring, i) => (
+          <text key={`t-${i}`} fill="black" fontSize={fontSize} fontWeight="bold"
+            fontFamily="system-ui, sans-serif" letterSpacing={letterSpacing}>
+            <textPath href={`#${uid}-t-${i}`} startOffset="50%" textAnchor="middle">
+              {ring.label}
+            </textPath>
+          </text>
+        ))}
+
+        {/* 5. UNITY ring — drawn LAST, over everything */}
         <circle cx={cx} cy={cy} r={outerR - outerWidth / 2}
           fill="none" stroke={color} strokeWidth={outerWidth - borderWidth * 2} />
         <circle cx={cx} cy={cy} r={outerR}
           fill="none" stroke="black" strokeWidth={borderWidth} />
         <circle cx={cx} cy={cy} r={outerR - outerWidth}
           fill="none" stroke="black" strokeWidth={borderWidth} />
-
-        {/*
-          Z-ORDER (protection narrative):
-            1. Son drawn FIRST — underneath both parents
-            2. Mother Aset drawn SECOND — over Son, under Father
-            3. Father Asar drawn LAST — over both (protects wife + child)
-        */}
-
-        {/* 1. SON (ring 0, TOP) — drawn first, foundation */}
-        <RingBand rcx={rings[0].cx} rcy={rings[0].cy} />
-
-        {/* 2. MOTHER ASET (ring 1, BR) — erase Son, draw Mother over him */}
-        <clipPath id={`${uid}-mom-over-son`}>
-          <circle cx={rings[1].cx} cy={rings[1].cy} r={ringR + 2} />
-        </clipPath>
-        <circle cx={rings[0].cx} cy={rings[0].cy} r={ringMidR}
-          fill="none" stroke={bgColor} strokeWidth={ringWidth + 4}
-          clipPath={`url(#${uid}-mom-over-son)`} />
-        <RingBand rcx={rings[1].cx} rcy={rings[1].cy} clip={`${uid}-mom-over-son`} />
-        <RingBand rcx={rings[1].cx} rcy={rings[1].cy} />
-
-        {/* 3. FATHER ASAR (ring 2, BL) — erase both Son + Mother, draw Father on top */}
-        {/* Father over Mother */}
-        <clipPath id={`${uid}-dad-over-mom`}>
-          <circle cx={rings[2].cx} cy={rings[2].cy} r={ringR + 2} />
-        </clipPath>
-        <circle cx={rings[1].cx} cy={rings[1].cy} r={ringMidR}
-          fill="none" stroke={bgColor} strokeWidth={ringWidth + 4}
-          clipPath={`url(#${uid}-dad-over-mom)`} />
-        <RingBand rcx={rings[2].cx} rcy={rings[2].cy} clip={`${uid}-dad-over-mom`} />
-
-        {/* Father over Son */}
-        <clipPath id={`${uid}-dad-over-son`}>
-          <circle cx={rings[2].cx} cy={rings[2].cy} r={ringR + 2} />
-        </clipPath>
-        <circle cx={rings[0].cx} cy={rings[0].cy} r={ringMidR}
-          fill="none" stroke={bgColor} strokeWidth={ringWidth + 4}
-          clipPath={`url(#${uid}-dad-over-son)`} />
-        <RingBand rcx={rings[2].cx} rcy={rings[2].cy} clip={`${uid}-dad-over-son`} />
-
-        {/* Full Father ring (top of everything) */}
-        <RingBand rcx={rings[2].cx} rcy={rings[2].cy} />
-
-        {/* TEXT LAST — rendered on top of all rings, never clipped */}
-        {rings.map((ring, i) => (
-          <text key={`t-${i}`} fill="black" fontSize={fontSize} fontWeight="bold"
-            fontFamily="system-ui, sans-serif" letterSpacing={letterSpacing}
-            style={{ pointerEvents: "none" }}>
-            <textPath href={`#${uid}-t-${i}`} startOffset="50%" textAnchor="middle">
-              {ring.label}
-            </textPath>
-          </text>
-        ))}
       </svg>
       <p className="text-xs font-semibold mt-1">{label}</p>
       <p className="text-[8px] text-muted-foreground/60">
@@ -203,9 +200,9 @@ function TrinityAttempt({
 // outerR = 39 + 72 + 21 + 21 = 153. This is CORRECT — do not shrink.
 // This round: ONLY iterate text (angles, span, font). Text rendered LAST (not clipped).
 const D: Omit<TrinityConfig, 'spread' | 'ringR' | 'ringWidth'> = {
-  gap: 18, outerWidth: 21,  // gap=18 per Thought Master, outerWidth locked
+  gap: 20, outerWidth: 21,  // gap=20 per Thought Master
   fontSize: 12, letterSpacing: 3, borderWidth: 1.5, textSpan: 60,
-  wisdomAngle: -90, connectionAngle: 160, harmonyAngle: 20,
+  wisdomAngle: -90, connectionAngle: 150, harmonyAngle: 30, // 12, 8, 4 o'clock exact
 };
 
 function c(overrides?: Partial<TrinityConfig>): TrinityConfig {
@@ -213,18 +210,18 @@ function c(overrides?: Partial<TrinityConfig>): TrinityConfig {
 }
 
 const ITERATIONS: { label: string; config: TrinityConfig }[] = [
-  { label: "#1 base",              config: c() },
-  { label: "#2 conn=170 harm=10",  config: c({ connectionAngle: 170, harmonyAngle: 10 }) },
-  { label: "#3 conn=180 harm=0",   config: c({ connectionAngle: 180, harmonyAngle: 0 }) },
-  { label: "#4 conn=150 harm=30",  config: c({ connectionAngle: 150, harmonyAngle: 30 }) },
-  { label: "#5 wisdom=-80",        config: c({ wisdomAngle: -80 }) },
-  { label: "#6 span=75 f=11",      config: c({ textSpan: 75, fontSize: 11 }) },
-  { label: "#7 span=50 f=13",      config: c({ textSpan: 50, fontSize: 13 }) },
-  { label: "#8 span=80 f=10",      config: c({ textSpan: 80, fontSize: 10, letterSpacing: 2 }) },
-  { label: "#9 ls=2 f=12",         config: c({ letterSpacing: 2 }) },
-  { label: "#10 ls=4 f=11",        config: c({ letterSpacing: 4, fontSize: 11 }) },
-  { label: "#11 conn=165 harm=15", config: c({ connectionAngle: 165, harmonyAngle: 15, wisdomAngle: -85 }) },
-  { label: "#12 best guess",       config: c({ connectionAngle: 165, harmonyAngle: 15, textSpan: 65, fontSize: 11, letterSpacing: 3 }) },
+  { label: "#1 base (exact clock)", config: c() },
+  { label: "#2 span=70",            config: c({ textSpan: 70 }) },
+  { label: "#3 span=80 f=10",       config: c({ textSpan: 80, fontSize: 10 }) },
+  { label: "#4 span=50 f=13",       config: c({ textSpan: 50, fontSize: 13 }) },
+  { label: "#5 f=11 ls=2",          config: c({ fontSize: 11, letterSpacing: 2 }) },
+  { label: "#6 f=11 ls=4",          config: c({ fontSize: 11, letterSpacing: 4 }) },
+  { label: "#7 conn=155 harm=25",   config: c({ connectionAngle: 155, harmonyAngle: 25 }) },
+  { label: "#8 conn=165 harm=15",   config: c({ connectionAngle: 165, harmonyAngle: 15 }) },
+  { label: "#9 wisdom=-85",         config: c({ wisdomAngle: -85 }) },
+  { label: "#10 bw=2.5",            config: c({ borderWidth: 2.5 }) },
+  { label: "#11 span=65 f=11 ls=3", config: c({ textSpan: 65, fontSize: 11, letterSpacing: 3 }) },
+  { label: "#12 all adjusted",      config: c({ textSpan: 70, fontSize: 11, letterSpacing: 3, connectionAngle: 155, harmonyAngle: 25, wisdomAngle: -88 }) },
 ];
 
 export default function TrinityReviewPage() {
