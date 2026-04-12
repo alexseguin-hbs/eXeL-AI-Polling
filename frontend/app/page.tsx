@@ -66,7 +66,7 @@ export default function LandingPage() {
 
       <main className="flex flex-1 flex-col items-center justify-center px-4">
         {/* Hero */}
-        <div className="flex flex-col items-center gap-6 text-center mb-12">
+        <div className="flex flex-col items-center gap-6 text-center mb-10">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
             <span className="text-primary">{t("shared.landing.hero_title_primary")}</span>{" "}
             <span className="text-muted-foreground">{t("shared.landing.hero_title_secondary")}</span>
@@ -77,12 +77,12 @@ export default function LandingPage() {
         </div>
 
         {/* Session Code Input */}
-        <div className="w-full max-w-xs mb-8">
+        <div className="w-full max-w-xs mb-10">
           <SessionCodeInput />
         </div>
 
         {/* Features */}
-        <div className="grid w-full max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3 mb-12">
+        <div className="grid w-full max-w-3xl grid-cols-1 gap-6 sm:grid-cols-3 mb-10">
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="rounded-lg bg-primary/10 p-3">
               <Zap className="h-6 w-6 text-primary" />
