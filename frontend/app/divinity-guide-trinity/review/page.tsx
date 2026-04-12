@@ -26,12 +26,12 @@ const EXAMPLES: {
   { labels: ["ACTION", "FEELING", "THOUGHT"], color: "#6366F1", title: "Intelligence" },
   { labels: ["H.I.", "S.I.", "A.I."], color: "#3B82F6", title: "Core Trinity" },
   { labels: ["TRUTH", "BEAUTY", "GOODNESS"], color: "#14B8A6", title: "Platonic" },
-  { labels: ["CREATE", "SUSTAIN", "TRANSFORM"], color: "#EC4899", title: "Evolution" },
+  { labels: ["TRANSFORM", "CREATE", "SUSTAIN"], color: "#EC4899", title: "Evolution" },
   { labels: ["MIND", "SPIRIT", "BODY"], color: "#8B5CF6", title: "Wholeness" },
-  { labels: ["PURPOSE", "IMPACT", "LEGACY"], color: "#F97316", title: "Mission" },
+  { labels: ["PRESENT", "FUTURE", "PAST"], color: "#F97316", title: "Temporal" },
   { labels: ["SON", "MOTHER", "FATHER"], color: "#A855F7", title: "Sacred Family" },
   { labels: ["OBSERVE", "DECIDE", "ACT"], color: "#84CC16", title: "OODA Loop" },
-  { labels: ["GIVE", "RECEIVE", "SHARE"], color: "#22D3EE", title: "Abundance" },
+  { labels: ["SHARE", "GIVE", "RECEIVE"], color: "#22D3EE", title: "Abundance" },
 ];
 
 export default function TrinityReviewPage() {
