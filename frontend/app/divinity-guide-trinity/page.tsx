@@ -17,11 +17,11 @@ const EXAMPLES: {
   title: string;
   master: string;
 }[] = [
-  { labels: ["WISDOM",     "HARMONY",     "CONNECTION"],  color: "#10B981", title: "Consciousness",  master: "Sofia" },
+  { labels: ["WISDOM",     "HARMONY",     "CONNECTION"],  color: "#00FFFF", title: "Consciousness",  master: "Sofia" },
   { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"],  color: "#F59E0B", title: "Governance",     master: "Athena" },
   { labels: ["LOVE",       "SAFETY",      "LOSS"],        color: "#EF4444", title: "Human",          master: "Christo" },
   { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#6366F1", title: "Intelligence",   master: "Thoth" },
-  { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#3B82F6", title: "Core Trinity",   master: "MoT" },
+  { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#3B82F6", title: "Trinity Framework",   master: "MoT" },
   { labels: ["TRUTH",      "BEAUTY",      "GOODNESS"],    color: "#14B8A6", title: "Platonic",       master: "Aset" },
   { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#EC4899", title: "Evolution",      master: "Pangu" },
   { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#8B5CF6", title: "Wholeness",      master: "Krishna" },

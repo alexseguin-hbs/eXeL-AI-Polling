@@ -10,19 +10,19 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { SoITrinity } from "@/components/soi-trinity";
 
 // 12 preset Trinities — cycle through on inner click
-const TRINITY_PRESETS: { labels: [string, string, string]; color: string; title: string }[] = [
-  { labels: ["WISDOM",     "HARMONY",     "CONNECTION"],  color: "#10B981", title: "Consciousness" },
-  { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"],  color: "#F59E0B", title: "Governance" },
-  { labels: ["LOVE",       "SAFETY",      "LOSS"],        color: "#EF4444", title: "Human" },
-  { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#6366F1", title: "Intelligence" },
-  { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#3B82F6", title: "Core Trinity" },
-  { labels: ["TRUTH",      "BEAUTY",      "GOODNESS"],    color: "#14B8A6", title: "Platonic" },
-  { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#EC4899", title: "Evolution" },
-  { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#8B5CF6", title: "Wholeness" },
-  { labels: ["PRESENT",    "FUTURE",      "PAST"],        color: "#F97316", title: "Temporal" },
-  { labels: ["SON",        "MOTHER",      "FATHER"],      color: "#A855F7", title: "Sacred Family" },
-  { labels: ["ACT",        "DECIDE",      "OBSERVE"],     color: "#84CC16", title: "OODA Loop" },
-  { labels: ["SHARE",      "GIVE",        "RECEIVE"],     color: "#22D3EE", title: "Abundance" },
+const TRINITY_PRESETS: { labels: [string, string, string]; color: string; title: string; master: string }[] = [
+  { labels: ["WISDOM",     "HARMONY",     "CONNECTION"],  color: "#00FFFF", title: "Consciousness",  master: "Sofia" },
+  { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"],  color: "#F59E0B", title: "Governance",     master: "Athena" },
+  { labels: ["LOVE",       "SAFETY",      "LOSS"],        color: "#EF4444", title: "Human",          master: "Christo" },
+  { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#6366F1", title: "Intelligence",   master: "Thoth" },
+  { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#3B82F6", title: "Trinity Framework",   master: "MoT" },
+  { labels: ["TRUTH",      "BEAUTY",      "GOODNESS"],    color: "#14B8A6", title: "Platonic",       master: "Aset" },
+  { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#EC4899", title: "Evolution",      master: "Pangu" },
+  { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#8B5CF6", title: "Wholeness",      master: "Krishna" },
+  { labels: ["PRESENT",    "FUTURE",      "PAST"],        color: "#F97316", title: "Temporal",       master: "Odin" },
+  { labels: ["SON",        "MOTHER",      "FATHER"],      color: "#A855F7", title: "Sacred Family",  master: "Asar" },
+  { labels: ["ACT",        "DECIDE",      "OBSERVE"],     color: "#84CC16", title: "OODA Loop",      master: "Thor" },
+  { labels: ["SHARE",      "GIVE",        "RECEIVE"],     color: "#22D3EE", title: "Abundance",      master: "Enki" },
 ];
 
 // Color palette (matches settings panel)
@@ -42,8 +42,7 @@ export default function LandingPage() {
   const [trinityIndex, setTrinityIndex] = useState(0);
   const [customMode, setCustomMode] = useState(false);
   const [customLabels, setCustomLabels] = useState<[string, string, string]>(["YOUR", "WORDS", "HERE"]);
-  const [customColor, setCustomColor] = useState("#10B981");
-  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [customColor, setCustomColor] = useState("#10B981"); // Emerald for custom mode
 
   const currentPreset = TRINITY_PRESETS[trinityIndex];
   const displayLabels = customMode ? customLabels : currentPreset.labels;
@@ -57,7 +56,6 @@ export default function LandingPage() {
 
   const handleUnityClick = () => {
     setCustomMode(!customMode);
-    setShowColorPicker(false);
   };
 
   return (
@@ -122,6 +120,7 @@ export default function LandingPage() {
                 labels={displayLabels}
                 color={displayColor}
                 size={240}
+                className="trinity-export-target"
               />
               {/* Inner click zone — covers the 3 rings area */}
               <button
@@ -139,65 +138,85 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Title + counter */}
+          {/* Title + master + words */}
           <p className="text-sm font-semibold" style={{ color: displayColor }}>
             {displayTitle}
           </p>
-          {!customMode && (
-            <p className="text-[9px] text-muted-foreground/50">
-              {trinityIndex + 1}/12 — tap center to explore
-            </p>
+          {!customMode ? (
+            <>
+              <p className="text-[10px] text-muted-foreground">
+                {currentPreset.master}
+              </p>
+              <p className="text-[9px] text-muted-foreground/50">
+                {currentPreset.labels.join(" · ")}
+              </p>
+            </>
+          ) : (
+            <p className="text-[10px] text-muted-foreground">Edit</p>
           )}
 
-          {/* Custom mode: word inputs + color palette */}
+          {/* Custom mode: word inputs + color palette + download */}
           {customMode && (
             <div className="w-full space-y-3 animate-in fade-in duration-200">
-              {/* Word inputs */}
+              {/* Word inputs: Left, Top, Right (human reading order) */}
+              {/* labels[0]=Top, labels[1]=Right, labels[2]=Left */}
               <div className="grid grid-cols-3 gap-2">
-                {(["Top", "Left", "Right"] as const).map((pos, i) => (
-                  <div key={pos} className="flex flex-col items-center">
-                    <label className="text-[8px] text-muted-foreground mb-1">{pos}</label>
-                    <input
-                      type="text"
-                      value={customLabels[i]}
-                      onChange={(e) => {
-                        const next = [...customLabels] as [string, string, string];
-                        next[i] = e.target.value.toUpperCase();
-                        setCustomLabels(next);
-                      }}
-                      maxLength={12}
-                      className="w-full text-center text-xs px-1 py-1 rounded border bg-background text-foreground"
-                    />
-                  </div>
-                ))}
+                <div className="flex flex-col items-center">
+                  <label className="text-[8px] text-muted-foreground mb-1">Left</label>
+                  <input type="text" value={customLabels[2]} maxLength={12}
+                    onChange={(e) => { const n = [...customLabels] as [string,string,string]; n[2] = e.target.value.toUpperCase(); setCustomLabels(n); }}
+                    className="w-full text-center text-xs px-1 py-1 rounded border bg-background text-foreground" />
+                </div>
+                <div className="flex flex-col items-center">
+                  <label className="text-[8px] text-muted-foreground mb-1">Top</label>
+                  <input type="text" value={customLabels[0]} maxLength={12}
+                    onChange={(e) => { const n = [...customLabels] as [string,string,string]; n[0] = e.target.value.toUpperCase(); setCustomLabels(n); }}
+                    className="w-full text-center text-xs px-1 py-1 rounded border bg-background text-foreground" />
+                </div>
+                <div className="flex flex-col items-center">
+                  <label className="text-[8px] text-muted-foreground mb-1">Right</label>
+                  <input type="text" value={customLabels[1]} maxLength={12}
+                    onChange={(e) => { const n = [...customLabels] as [string,string,string]; n[1] = e.target.value.toUpperCase(); setCustomLabels(n); }}
+                    className="w-full text-center text-xs px-1 py-1 rounded border bg-background text-foreground" />
+                </div>
               </div>
 
               {/* Color palette */}
               <div className="flex flex-wrap justify-center gap-2">
                 {COLOR_PALETTE.map((c) => (
-                  <button
-                    key={c.swatch}
-                    onClick={() => setCustomColor(c.swatch)}
-                    className={`w-6 h-6 rounded-full border-2 transition-all ${
-                      customColor === c.swatch ? "border-white scale-110" : "border-transparent"
-                    }`}
-                    style={{ backgroundColor: c.swatch }}
-                    title={c.name}
-                  />
+                  <button key={c.swatch} onClick={() => setCustomColor(c.swatch)}
+                    className={`w-6 h-6 rounded-full border-2 transition-all ${customColor === c.swatch ? "border-white scale-110" : "border-transparent"}`}
+                    style={{ backgroundColor: c.swatch }} title={c.name} />
                 ))}
-                {/* Custom color input */}
-                <input
-                  type="color"
-                  value={customColor}
-                  onChange={(e) => setCustomColor(e.target.value)}
-                  className="w-6 h-6 rounded-full cursor-pointer border-0 p-0"
-                  title="Custom color"
-                />
+                <input type="color" value={customColor} onChange={(e) => setCustomColor(e.target.value)}
+                  className="w-6 h-6 rounded-full cursor-pointer border-0 p-0" title="Custom color" />
               </div>
 
-              <p className="text-[8px] text-muted-foreground/40 text-center">
-                Click the outer ring to exit custom mode
-              </p>
+              {/* Download PNG (transparent background) */}
+              <button
+                onClick={() => {
+                  const svgEl = document.querySelector(".trinity-export-target");
+                  if (!svgEl) return;
+                  const svgData = new XMLSerializer().serializeToString(svgEl);
+                  const canvas = document.createElement("canvas");
+                  canvas.width = 960; canvas.height = 960;
+                  const ctx = canvas.getContext("2d");
+                  if (!ctx) return;
+                  const img = new Image();
+                  img.onload = () => {
+                    ctx.clearRect(0, 0, 960, 960);
+                    ctx.drawImage(img, 0, 0, 960, 960);
+                    const a = document.createElement("a");
+                    a.download = `trinity-${displayLabels.join("-").toLowerCase()}.png`;
+                    a.href = canvas.toDataURL("image/png");
+                    a.click();
+                  };
+                  img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+                }}
+                className="w-full text-center text-xs py-1.5 rounded border hover:bg-accent transition-colors text-muted-foreground"
+              >
+                Download PNG
+              </button>
             </div>
           )}
         </div>
