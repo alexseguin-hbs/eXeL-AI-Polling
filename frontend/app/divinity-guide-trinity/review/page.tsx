@@ -200,28 +200,29 @@ function TrinityAttempt({
 // outerR = 39 + 72 + 21 + 21 = 153. This is CORRECT — do not shrink.
 // This round: ONLY iterate text (angles, span, font). Text rendered LAST (not clipped).
 const D: Omit<TrinityConfig, 'spread' | 'ringR' | 'ringWidth'> = {
-  gap: 20, outerWidth: 21,  // gap=20 per Thought Master
-  fontSize: 12, letterSpacing: 3, borderWidth: 1.5, textSpan: 60,
-  wisdomAngle: -90, connectionAngle: 150, harmonyAngle: 30, // 12, 8, 4 o'clock exact
+  gap: 21, outerWidth: 21,  // gap=21 per Thought Master
+  fontSize: 11, letterSpacing: 2, borderWidth: 1.5, textSpan: 60,
+  wisdomAngle: -85, connectionAngle: 150, harmonyAngle: 30, // WISDOM shifted ~5px down from 12 o'clock
 };
 
 function c(overrides?: Partial<TrinityConfig>): TrinityConfig {
   return { spread: 39, ringR: 72, ringWidth: 21, ...D, ...overrides };
 }
 
+// All 12 vary WISDOM placement only. Everything else LOCKED.
 const ITERATIONS: { label: string; config: TrinityConfig }[] = [
-  { label: "#1 base (exact clock)", config: c() },
-  { label: "#2 span=70",            config: c({ textSpan: 70 }) },
-  { label: "#3 span=80 f=10",       config: c({ textSpan: 80, fontSize: 10 }) },
-  { label: "#4 span=50 f=13",       config: c({ textSpan: 50, fontSize: 13 }) },
-  { label: "#5 f=11 ls=2",          config: c({ fontSize: 11, letterSpacing: 2 }) },
-  { label: "#6 f=11 ls=4",          config: c({ fontSize: 11, letterSpacing: 4 }) },
-  { label: "#7 conn=155 harm=25",   config: c({ connectionAngle: 155, harmonyAngle: 25 }) },
-  { label: "#8 conn=165 harm=15",   config: c({ connectionAngle: 165, harmonyAngle: 15 }) },
-  { label: "#9 wisdom=-85",         config: c({ wisdomAngle: -85 }) },
-  { label: "#10 bw=2.5",            config: c({ borderWidth: 2.5 }) },
-  { label: "#11 span=65 f=11 ls=3", config: c({ textSpan: 65, fontSize: 11, letterSpacing: 3 }) },
-  { label: "#12 all adjusted",      config: c({ textSpan: 70, fontSize: 11, letterSpacing: 3, connectionAngle: 155, harmonyAngle: 25, wisdomAngle: -88 }) },
+  { label: "#1 W=-85 (base ~5px)",  config: c() },
+  { label: "#2 W=-90 (12 o'clock)", config: c({ wisdomAngle: -90 }) },
+  { label: "#3 W=-88",              config: c({ wisdomAngle: -88 }) },
+  { label: "#4 W=-83",              config: c({ wisdomAngle: -83 }) },
+  { label: "#5 W=-80 (~10px)",      config: c({ wisdomAngle: -80 }) },
+  { label: "#6 W=-78",              config: c({ wisdomAngle: -78 }) },
+  { label: "#7 W=-75 (~15px)",      config: c({ wisdomAngle: -75 }) },
+  { label: "#8 W=-82",              config: c({ wisdomAngle: -82 }) },
+  { label: "#9 W=-86",              config: c({ wisdomAngle: -86 }) },
+  { label: "#10 W=-84",             config: c({ wisdomAngle: -84 }) },
+  { label: "#11 W=-87",             config: c({ wisdomAngle: -87 }) },
+  { label: "#12 W=-81",             config: c({ wisdomAngle: -81 }) },
 ];
 
 export default function TrinityReviewPage() {
