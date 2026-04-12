@@ -22,16 +22,21 @@ import Link from "next/link";
 interface TrinityConfig {
   spread: number;
   ringR: number;
-  ringWidth: number;  // = outerWidth = gap (all three equal)
+  ringWidth: number;
+  gap: number;          // Space between Unity inner edge and Son outer edge
+  outerWidth: number;   // Unity ring band width
   fontSize: number;
   letterSpacing: number;
   borderWidth: number;
   textSpan: number;
+  wisdomAngle: number;     // Top text center angle (SVG degrees)
+  connectionAngle: number; // BL text center angle
+  harmonyAngle: number;    // BR text center angle
 }
 
-// Derived: outerR = spread + ringR + 2 * ringWidth
+// outerR = spread + ringR + gap + outerWidth
 function getOuterR(c: TrinityConfig): number {
-  return c.spread + c.ringR + 2 * c.ringWidth;
+  return c.spread + c.ringR + c.gap + c.outerWidth;
 }
 
 function TrinityAttempt({
@@ -44,20 +49,16 @@ function TrinityAttempt({
   color: string;
 }) {
   const uid = useId().replace(/:/g, "");
-  const { spread, ringR, ringWidth, fontSize, letterSpacing, borderWidth, textSpan } = config;
+  const { spread, ringR, ringWidth, gap: gapSize, outerWidth, fontSize, letterSpacing, borderWidth, textSpan,
+    wisdomAngle, connectionAngle, harmonyAngle } = config;
 
   const cx = 200;
   const cy = 200;
   const outerR = getOuterR(config);
-  const outerWidth = ringWidth; // EQUAL to ring width and gap
   const ringMidR = ringR - ringWidth / 2;
   const ringInnerR = ringR - ringWidth;
   const textR = ringMidR;
   const bgColor = "var(--background, #0a1628)";
-
-  // Verify the constraint
-  const gap = (outerR - outerWidth) - (spread + ringR);
-  // gap should equal ringWidth (and outerWidth)
 
   const labels = ["WISDOM", "HARMONY", "CONNECTION"];
 
@@ -68,8 +69,8 @@ function TrinityAttempt({
     { cx: cx - spread * 0.866, cy: cy + spread * 0.5, label: labels[2] },
   ];
 
-  // Text at 12 o'clock (top), 4 o'clock (BR), 8 o'clock (BL)
-  const textAngles = [-90, 30, 150];
+  // Per-ring text angles (configurable)
+  const textAngles = [wisdomAngle, harmonyAngle, connectionAngle];
   const deg2rad = (d: number) => (d * Math.PI) / 180;
 
   // Build text arc paths
@@ -107,9 +108,17 @@ function TrinityAttempt({
     );
   }
 
+  // Tight viewBox — auto-fit to outer circle with small padding
+  const pad = 8;
+  const vbSize = (outerR + pad) * 2;
+  const vbOffset = cx - outerR - pad;
+  const viewBox = `${vbOffset} ${vbOffset} ${vbSize} ${vbSize}`;
+
+  // Outer container radii (same structure as inner rings)
+
   return (
     <div className="flex flex-col items-center">
-      <svg viewBox="0 0 400 400" className="w-full max-w-[220px]">
+      <svg viewBox={viewBox} className="w-full max-w-[220px]">
         <defs>
           {rings.map((ring, i) => (
             <path key={`p-${i}`} id={`${uid}-t-${i}`}
@@ -118,11 +127,13 @@ function TrinityAttempt({
           ))}
         </defs>
 
-        {/* Outer Unity circle: band + black borders (width = ringWidth = gap) */}
-        <circle cx={cx} cy={cy} r={outerR} fill="none" stroke="black" strokeWidth={borderWidth} />
-        <circle cx={cx} cy={cy} r={outerR - borderWidth / 2}
+        {/* Outer Unity ring: band + black borders (same structure as inner rings) */}
+        <circle cx={cx} cy={cy} r={outerR - outerWidth / 2}
           fill="none" stroke={color} strokeWidth={outerWidth - borderWidth * 2} />
-        <circle cx={cx} cy={cy} r={outerR - outerWidth} fill="none" stroke="black" strokeWidth={borderWidth} />
+        <circle cx={cx} cy={cy} r={outerR}
+          fill="none" stroke="black" strokeWidth={borderWidth} />
+        <circle cx={cx} cy={cy} r={outerR - outerWidth}
+          fill="none" stroke="black" strokeWidth={borderWidth} />
 
         {/*
           Z-ORDER (protection narrative):
@@ -168,7 +179,7 @@ function TrinityAttempt({
 
         {/* Curved text — top normal, bottom two inverted for right-side up */}
         {rings.map((ring, i) => (
-          <text key={`t-${i}`} fill="white" fontSize={fontSize} fontWeight="bold"
+          <text key={`t-${i}`} fill="black" fontSize={fontSize} fontWeight="bold"
             fontFamily="system-ui, sans-serif" letterSpacing={letterSpacing}>
             <textPath href={`#${uid}-t-${i}`} startOffset="50%" textAnchor="middle">
               {ring.label}
@@ -178,7 +189,7 @@ function TrinityAttempt({
       </svg>
       <p className="text-xs font-semibold mt-1">{label}</p>
       <p className="text-[8px] text-muted-foreground/60">
-        s={spread} r={ringR} w={ringWidth} outer={outerR.toFixed(0)} gap={gap.toFixed(0)}
+        s={spread} r={ringR} w={ringWidth} gap={gapSize} oW={outerWidth} oR={outerR}
       </p>
     </div>
   );
@@ -186,31 +197,36 @@ function TrinityAttempt({
 
 // ── 12 Pangu v2 iterations with equal-delta constraint ─────────
 
-function v(spread: number, ringR: number, ringWidth: number, extras?: Partial<TrinityConfig>): TrinityConfig {
-  return {
-    spread, ringR, ringWidth,
-    fontSize: 11, letterSpacing: 2, borderWidth: 1.5, textSpan: 80,
-    ...extras,
-  };
-}
 
 // Base: #11 narrow text on #3 wider band
 // (spread=45, ringR=72, ringWidth=21, textSpan=60, fontSize=12, letterSpacing=3)
 // outerR = 45 + 72 + 2*21 = 159. Son width = gap = Unity width = 21px.
-const B = { textSpan: 60, fontSize: 12, letterSpacing: 3 }; // #11 text settings
+// Base: #3 very tight with smaller outer ring + corrected text positions
+// gap reduced (was = ringWidth, now ~12), outerWidth kept at ~ringWidth
+// Text angles: WISDOM at -90 (12 o'clock), CONNECTION at 170 (8+ o'clock), HARMONY at 10 (4- o'clock)
+const D: Omit<TrinityConfig, 'spread' | 'ringR' | 'ringWidth'> = {
+  gap: 12, outerWidth: 21,
+  fontSize: 12, letterSpacing: 3, borderWidth: 1.5, textSpan: 60,
+  wisdomAngle: -90, connectionAngle: 170, harmonyAngle: 10,
+};
+
+function c(spread: number, ringR: number, ringWidth: number, overrides?: Partial<TrinityConfig>): TrinityConfig {
+  return { spread, ringR, ringWidth, ...D, ...overrides };
+}
+
 const ITERATIONS: { label: string; config: TrinityConfig }[] = [
-  { label: "#1 base (#11)",        config: v(45, 72, 21, B) },
-  { label: "#2 tighter",           config: v(42, 72, 21, B) },
-  { label: "#3 very tight",        config: v(39, 72, 21, B) },
-  { label: "#4 wider band=24",     config: v(45, 72, 24, B) },
-  { label: "#5 slimmer band=18",   config: v(45, 72, 18, B) },
-  { label: "#6 big rings r=76",    config: v(45, 76, 21, B) },
-  { label: "#7 small rings r=68",  config: v(45, 68, 21, B) },
-  { label: "#8 tight+big",         config: v(40, 76, 21, { ...B, borderWidth: 2 }) },
-  { label: "#9 bold border",       config: v(45, 72, 21, { ...B, borderWidth: 2.5 }) },
-  { label: "#10 font=13",          config: v(45, 72, 21, { ...B, fontSize: 13 }) },
-  { label: "#11 font=11 ls=4",     config: v(45, 72, 21, { ...B, fontSize: 11, letterSpacing: 4 }) },
-  { label: "#12 proportional",     config: v(43, 74, 21, { ...B, borderWidth: 1.8 }) },
+  { label: "#1 base",              config: c(39, 72, 21) },
+  { label: "#2 gap=8",             config: c(39, 72, 21, { gap: 8 }) },
+  { label: "#3 gap=15",            config: c(39, 72, 21, { gap: 15 }) },
+  { label: "#4 conn=180 harm=0",   config: c(39, 72, 21, { connectionAngle: 180, harmonyAngle: 0 }) },
+  { label: "#5 conn=160 harm=20",  config: c(39, 72, 21, { connectionAngle: 160, harmonyAngle: 20 }) },
+  { label: "#6 wisdom=-80",        config: c(39, 72, 21, { wisdomAngle: -80 }) },
+  { label: "#7 wider text=75",     config: c(39, 72, 21, { textSpan: 75, fontSize: 11 }) },
+  { label: "#8 outerW=18",         config: c(39, 72, 21, { outerWidth: 18, gap: 10 }) },
+  { label: "#9 bold bw=2.5",       config: c(39, 72, 21, { borderWidth: 2.5 }) },
+  { label: "#10 font=13",          config: c(39, 72, 21, { fontSize: 13 }) },
+  { label: "#11 s=37 gap=10",      config: c(37, 72, 21, { gap: 10 }) },
+  { label: "#12 balanced",         config: c(39, 72, 21, { gap: 10, outerWidth: 19, connectionAngle: 175, harmonyAngle: 5, borderWidth: 2 }) },
 ];
 
 export default function TrinityReviewPage() {
@@ -228,7 +244,7 @@ export default function TrinityReviewPage() {
 
       <div className="text-center pt-6 pb-2 px-6">
         <h1 className="text-2xl font-bold" style={{ color: currentTheme.swatch }}>
-          #11 Narrow Text — 12 Equal-Delta Iterations
+          #3 Very Tight — 12 Equal-Delta Iterations
         </h1>
         <p className="text-xs text-muted-foreground mt-1">
           Son (top) → Mother Aset (BR) → Father Asar (BL)
