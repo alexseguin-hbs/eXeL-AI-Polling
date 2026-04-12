@@ -253,13 +253,13 @@ export function Navbar({ sessionTitle }: NavbarProps) {
             <div className="p-5 space-y-5">
               {/* Hero — What This Is */}
               <section className="text-center pb-3 border-b">
-                <p className="text-sm text-primary font-semibold">9 APIs That Change How Decisions Are Made</p>
-                <p className="text-xs text-muted-foreground mt-1">Governance at the speed of thought. From 5 people to 5 million.</p>
+                <p className="text-sm text-primary font-semibold">{t("sdk.hero.title")}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("sdk.hero.subtitle")}</p>
               </section>
 
               {/* The 9 SDK Functions — Expandable Demos */}
               <section>
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">SDK Functions</h3>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t("sdk.functions.heading")}</h3>
                 <div className="space-y-2">
                   {[
                     { num: "1", name: "compress", icon: "🧠", tagline: "Understand anything", desc: "1M voices → 3 truths in 60s", cost: "5◬/1K", demo: "const themes = await sdk.compress(citizenComments);\n// → ['Healthcare', 'Education', 'Economy']" },
@@ -323,7 +323,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
 
               {/* Share & Send Section */}
               <section>
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Share SDK Docs</h3>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">{t("sdk.share.heading")}</h3>
                 <div className="space-y-2">
                   <button
                     onClick={() => {
@@ -333,7 +333,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                     className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent"
                   >
                     <span className="text-base">📧</span>
-                    Email SDK link to myself
+                    {t("api.share.email")}
                   </button>
                   <button
                     onClick={() => {
@@ -348,7 +348,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                     className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent"
                   >
                     <span className="text-base">📱</span>
-                    Share to phone / copy link
+                    {t("api.share.phone")}
                   </button>
                   <button
                     onClick={async () => {
@@ -371,7 +371,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                     className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-accent"
                   >
                     <span className="text-base">📷</span>
-                    Show QR code (scan to open API docs)
+                    {t("sdk.share.qr_scan")}
                   </button>
                 </div>
               </section>

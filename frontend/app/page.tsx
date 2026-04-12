@@ -140,13 +140,13 @@ export default function LandingPage() {
               <button
                 onClick={handleUnityClick}
                 className="absolute inset-0 rounded-full z-10 cursor-pointer"
-                aria-label={customMode ? "Exit custom mode" : "Create your own Trinity"}
+                aria-label={customMode ? t("trinity.aria.exit_custom") : t("trinity.aria.create_custom")}
               />
               {/* Inner click zone — covers the 3 rings, on top of unity zone */}
               <button
                 onClick={handleInnerClick}
                 className="absolute top-[15%] left-[15%] w-[70%] h-[70%] rounded-full cursor-pointer z-20"
-                aria-label={customMode ? "Custom mode active" : `Next Trinity`}
+                aria-label={customMode ? t("trinity.aria.custom_active") : t("trinity.aria.next")}
               />
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function LandingPage() {
                 <button
                   onClick={() => setPickerOpen((p) => !p)}
                   className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center text-[10px] ${pickerOpen ? "border-white bg-muted" : "border-muted-foreground/30 bg-muted/50 hover:border-muted-foreground"}`}
-                  title="Custom color"
+                  title={t("trinity.custom.custom_color")}
                   style={!COLOR_PALETTE.some((c) => c.swatch === customColor) ? { backgroundColor: customColor, borderColor: "white" } : {}}
                 >
                   {COLOR_PALETTE.some((c) => c.swatch === customColor) ? "+" : ""}

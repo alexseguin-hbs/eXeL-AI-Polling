@@ -130,7 +130,7 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
             value={customAccentColor ?? "#19C8CF"}
             onChange={(e) => handleCustomColorChange(e.target.value)}
             className="sr-only"
-            aria-label="Pick custom accent color"
+            aria-label={t("cube1.settings.pick_custom_color")}
           />
         </button>
       </div>
@@ -205,7 +205,7 @@ function CostEstimateTable() {
       >
         <div className="flex items-center gap-2">
           <DollarSign className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">Cost Estimate (1,000 users)</span>
+          <span className="text-sm font-medium">{t("cube1.settings.cost_estimate_heading")}</span>
         </div>
         {showCosts ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
       </button>

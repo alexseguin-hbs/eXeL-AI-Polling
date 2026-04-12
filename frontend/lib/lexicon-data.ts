@@ -123,6 +123,21 @@ const shared: TranslationEntry[] = [
   { key: "trinity.custom.placeholder_1", englishDefault: "YOUR", context: "Custom mode default word 1", cubeId: 0 },
   { key: "trinity.custom.placeholder_2", englishDefault: "WORDS", context: "Custom mode default word 2", cubeId: 0 },
   { key: "trinity.custom.placeholder_3", englishDefault: "HERE", context: "Custom mode default word 3", cubeId: 0 },
+  // Trinity interaction aria labels
+  { key: "trinity.aria.exit_custom", englishDefault: "Exit custom mode", context: "Unity ring aria-label when in custom mode", cubeId: 0 },
+  { key: "trinity.aria.create_custom", englishDefault: "Create your own Trinity", context: "Unity ring aria-label when not in custom mode", cubeId: 0 },
+  { key: "trinity.aria.custom_active", englishDefault: "Custom mode active", context: "Inner ring aria-label when in custom mode", cubeId: 0 },
+  { key: "trinity.aria.next", englishDefault: "Next Trinity", context: "Inner ring aria-label to cycle presets", cubeId: 0 },
+  { key: "trinity.custom.custom_color", englishDefault: "Custom color", context: "Custom color picker button title", cubeId: 0 },
+  // Navbar SDK panel hardcoded strings
+  { key: "sdk.hero.title", englishDefault: "9 APIs That Change How Decisions Are Made", context: "SDK panel hero heading", cubeId: 0 },
+  { key: "sdk.hero.subtitle", englishDefault: "Governance at the speed of thought. From 5 people to 5 million.", context: "SDK panel hero subtext", cubeId: 0 },
+  { key: "sdk.functions.heading", englishDefault: "SDK Functions", context: "SDK functions section heading", cubeId: 0 },
+  { key: "sdk.share.heading", englishDefault: "Share SDK Docs", context: "Share section heading in SDK panel", cubeId: 0 },
+  { key: "sdk.share.qr_scan", englishDefault: "Show QR code (scan to open API docs)", context: "QR share button in SDK panel", cubeId: 0 },
+  // Settings panel
+  { key: "cube1.settings.pick_custom_color", englishDefault: "Pick custom accent color", context: "Custom color picker aria-label", cubeId: 1 },
+  { key: "cube1.settings.cost_estimate_heading", englishDefault: "Cost Estimate (1,000 users)", context: "Cost estimate section heading", cubeId: 1 },
   // Error states
   { key: "shared.error.something_wrong", englishDefault: "Something went wrong", context: "Error boundary heading", cubeId: 0 },
   { key: "shared.error.unexpected", englishDefault: "An unexpected error occurred. Please try refreshing the page.", context: "Error boundary description", cubeId: 0 },
