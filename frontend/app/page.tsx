@@ -9,6 +9,7 @@ import { Shield, Users, Zap } from "lucide-react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import { SoITrinity } from "@/components/soi-trinity";
+import { TrinityColorPicker } from "@/components/trinity-color-picker";
 
 // 12 preset Trinities — cycle through on inner click
 // Labels use lexicon keys; resolved at render time via t()
@@ -28,7 +29,7 @@ const TRINITY_PRESETS: { keys: [string, string, string]; color: string; titleKey
   { keys: ["trinity.human.top", "trinity.human.right", "trinity.human.left"],                     color: "#FF0000", titleKey: "trinity.human.title",          master: "Thor" },
 ];
 
-// Color palette (matches settings panel)
+// 8 preset color swatches — quick select, then fine-tune via expanded picker
 const COLOR_PALETTE = [
   { name: "Violet",       swatch: "#FF00FF" },
   { name: "Ocean Blue",   swatch: "#3B82F6" },
@@ -47,6 +48,7 @@ export default function LandingPage() {
   const [customMode, setCustomMode] = useState(false);
   const [customLabels, setCustomLabels] = useState<[string, string, string] | null>(null);
   const [customColor, setCustomColor] = useState("#10B981"); // Emerald for custom mode
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const currentPreset = TRINITY_PRESETS[trinityIndex];
   const resolvedLabels: [string, string, string] = [t(currentPreset.keys[0]), t(currentPreset.keys[1]), t(currentPreset.keys[2])];
@@ -64,7 +66,7 @@ export default function LandingPage() {
   };
 
   const handleUnityClick = () => {
-    if (customMode) setCustomLabels(null); // reset so next entry shows translated defaults
+    if (customMode) { setCustomLabels(null); setPickerOpen(false); } // reset on exit
     setCustomMode(!customMode);
   };
 
@@ -183,16 +185,30 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Color palette */}
+              {/* Color swatches — quick select */}
               <div className="flex flex-wrap justify-center gap-2">
                 {COLOR_PALETTE.map((c) => (
-                  <button key={c.swatch} onClick={() => setCustomColor(c.swatch)}
+                  <button key={c.swatch} onClick={() => { setCustomColor(c.swatch); setPickerOpen(false); }}
                     className={`w-6 h-6 rounded-full border-2 transition-all ${customColor === c.swatch ? "border-white scale-110" : "border-transparent"}`}
                     style={{ backgroundColor: c.swatch }} title={c.name} />
                 ))}
-                <input type="color" value={customColor} onChange={(e) => setCustomColor(e.target.value)}
-                  className="w-6 h-6 rounded-full cursor-pointer border-0 p-0" title="Custom color" />
+                {/* Toggle advanced picker */}
+                <button
+                  onClick={() => setPickerOpen((p) => !p)}
+                  className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center text-[10px] ${pickerOpen ? "border-white bg-muted" : "border-muted-foreground/30 bg-muted/50 hover:border-muted-foreground"}`}
+                  title="Custom color"
+                  style={!COLOR_PALETTE.some((c) => c.swatch === customColor) ? { backgroundColor: customColor, borderColor: "white" } : {}}
+                >
+                  {COLOR_PALETTE.some((c) => c.swatch === customColor) ? "+" : ""}
+                </button>
               </div>
+
+              {/* Expanded color picker — Grid / Spectrum / Sliders */}
+              {pickerOpen && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                  <TrinityColorPicker value={customColor} onChange={setCustomColor} />
+                </div>
+              )}
 
               {/* Download PNG (black/background → transparent) */}
               <button
