@@ -14,17 +14,18 @@ import { SoITrinity } from "@/components/soi-trinity";
 const TRINITY_PRESETS: { labels: [string, string, string]; color: string; title: string; master: string }[] = [
   // Rainbow: Violet → Indigo → Blue → Cyan → Teal → Green → Yellow → Orange → Pink → Red
   // Consciousness (Cyan) is default (index 4). Cycle forward through all 12.
-  { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"],  color: "#FF00FF", title: "Governance",        master: "Athena" },
+  // Violet → Purple → Ocean Blue → Indigo → Cyan → Teal → Green → Yellow → Gold → Orange → Pink → Red
+  { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"],  color: "#8B00FF", title: "Governance",        master: "Athena" },
   { labels: ["CHILD",      "MOTHER",      "FATHER"],      color: "#A855F7", title: "Sacred Family",     master: "Aset" },
-  { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#8B5CF6", title: "Wholeness",         master: "Krishna" },
-  { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#3B82F6", title: "Trinity Framework",  master: "Asar" },
+  { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#3B82F6", title: "Wholeness",         master: "Krishna" },
+  { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#4B0082", title: "Trinity Framework",  master: "Asar" },
   { labels: ["WISDOM",     "HARMONY",     "CONNECTION"],  color: "#00FFFF", title: "Consciousness",     master: "Christo" },
   { labels: ["TRUTH",      "BEAUTY",      "GOODNESS"],    color: "#14B8A6", title: "Platonic",          master: "Sofia" },
-  { labels: ["ACT",        "DECIDE",      "OBSERVE"],     color: "#84CC16", title: "OODA Loop",         master: "Enlil" },
-  { labels: ["SHARE",      "GIVE",        "RECEIVE"],     color: "#F59E0B", title: "Abundance",         master: "Pangu" },
-  { labels: ["PRESENT",    "FUTURE",      "PAST"],        color: "#F97316", title: "Temporal",          master: "Odin" },
-  { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#EC4899", title: "Intelligence",      master: "Thoth" },
-  { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#6366F1", title: "Evolution",         master: "Enki" },
+  { labels: ["ACT",        "DECIDE",      "OBSERVE"],     color: "#22C55E", title: "OODA Loop",         master: "Enlil" },
+  { labels: ["SHARE",      "GIVE",        "RECEIVE"],     color: "#FACC15", title: "Abundance",         master: "Pangu" },
+  { labels: ["PRESENT",    "FUTURE",      "PAST"],        color: "#D4A017", title: "Temporal",          master: "Odin" },
+  { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#F97316", title: "Intelligence",      master: "Thoth" },
+  { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#EC4899", title: "Evolution",         master: "Enki" },
   { labels: ["LOVE",       "SAFETY",      "LOSS"],        color: "#EF4444", title: "Human",             master: "Thor" },
 ];
 
