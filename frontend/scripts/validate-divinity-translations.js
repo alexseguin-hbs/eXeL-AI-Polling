@@ -19,19 +19,24 @@ const path = require("path");
 const LIB = path.join(__dirname, "..", "lib");
 const BILINGUAL_READER = path.join(__dirname, "..", "components", "flower-of-life", "bilingual-reader.tsx");
 const PAGE_TSX = path.join(__dirname, "..", "app", "divinity-guide", "page.tsx");
+const LANG_MODULE = path.join(__dirname, "..", "lib", "divinity-languages.ts");
 
-const LANG_FILES = [
-  { code: "en", file: "divinity-pages.json" },
-  { code: "es", file: "divinity-pages-es.json" },
-  { code: "uk", file: "divinity-pages-uk.json" },
-  { code: "ru", file: "divinity-pages-ru.json" },
-  { code: "zh", file: "divinity-pages-zh.json" },
-  { code: "fa", file: "divinity-pages-fa.json" },
-  { code: "he", file: "divinity-pages-he.json" },
-  { code: "pt", file: "divinity-pages-pt.json" },
-  { code: "km", file: "divinity-pages-km.json" },
-  { code: "ne", file: "divinity-pages-ne.json" },
-];
+// Derive language list from the shared divinity-languages.ts module (single source of truth)
+function parseLangCodes() {
+  if (!fs.existsSync(LANG_MODULE)) return null;
+  const src = fs.readFileSync(LANG_MODULE, "utf8");
+  const codes = [];
+  const re = /code:\s*"([a-z]{2})"/g;
+  let m;
+  while ((m = re.exec(src)) !== null) codes.push(m[1]);
+  return codes.length > 0 ? codes : null;
+}
+
+const langCodes = parseLangCodes() || ["en","es","uk","ru","zh","fa","he","pt","km","ne"];
+const LANG_FILES = langCodes.map(code => ({
+  code,
+  file: code === "en" ? "divinity-pages.json" : `divinity-pages-${code}.json`,
+}));
 
 let errors = 0;
 let warnings = 0;
@@ -128,24 +133,27 @@ for (const { code } of LANG_FILES) {
 }
 pass("No empty text fields found");
 
-// ── Test 6: Bilingual reader type sync (Krishna) ──
-console.log("6. Bilingual reader DivinityLang sync");
-if (fs.existsSync(BILINGUAL_READER)) {
-  const brContent = fs.readFileSync(BILINGUAL_READER, "utf8");
-  const typeMatch = brContent.match(/type DivinityLang = ([^;]+);/);
-  if (typeMatch) {
-    const typeDef = typeMatch[1];
-    for (const { code } of LANG_FILES) {
-      if (!typeDef.includes(`"${code}"`)) {
-        fail(`bilingual-reader.tsx DivinityLang missing "${code}"`);
-      }
+// ── Test 6: Shared language module (Krishna: single source of truth) ──
+console.log("6. Shared divinity-languages.ts sync");
+if (fs.existsSync(LANG_MODULE)) {
+  const langSrc = fs.readFileSync(LANG_MODULE, "utf8");
+  for (const { code } of LANG_FILES) {
+    if (!langSrc.includes(`"${code}"`)) {
+      fail(`divinity-languages.ts missing language "${code}"`);
     }
-    pass("Bilingual reader type includes all languages");
-  } else {
-    warn("Could not parse DivinityLang type from bilingual-reader.tsx");
   }
+  // Verify bilingual reader imports from shared module (not hardcoded type)
+  if (fs.existsSync(BILINGUAL_READER)) {
+    const brContent = fs.readFileSync(BILINGUAL_READER, "utf8");
+    if (brContent.includes("from \"@/lib/divinity-languages\"") || brContent.includes("from '@/lib/divinity-languages'")) {
+      pass("Bilingual reader imports DivinityLang from shared module");
+    } else {
+      fail("Bilingual reader does not import from @/lib/divinity-languages");
+    }
+  }
+  pass("Shared language module includes all languages");
 } else {
-  warn("bilingual-reader.tsx not found");
+  warn("divinity-languages.ts not found — falling back to hardcoded list");
 }
 
 // ── Test 7: DIVINITY_TRANSLATIONS completeness (all languages present) ──
@@ -187,19 +195,21 @@ if (fs.existsSync(PAGE_TSX)) {
   }
 }
 
-// ── Test 9: DIVINITY_PAGE_MAP completeness ──
-console.log("9. DIVINITY_PAGE_MAP completeness");
+// ── Test 9: LANG_LOADERS completeness (dynamic imports) ──
+console.log("9. LANG_LOADERS completeness");
 if (fs.existsSync(PAGE_TSX)) {
   const pageContent = fs.readFileSync(PAGE_TSX, "utf8");
-  const mapStart = pageContent.indexOf("const DIVINITY_PAGE_MAP");
+  const mapStart = pageContent.indexOf("const LANG_LOADERS");
   if (mapStart !== -1) {
-    const mapBlock = pageContent.slice(mapStart, mapStart + 500);
+    const mapBlock = pageContent.slice(mapStart, mapStart + 1500);
     for (const { code } of LANG_FILES) {
       if (!mapBlock.includes(`${code}:`)) {
-        fail(`DIVINITY_PAGE_MAP missing entry for "${code}"`);
+        fail(`LANG_LOADERS missing entry for "${code}"`);
       }
     }
-    pass("DIVINITY_PAGE_MAP has entries for all languages");
+    pass("LANG_LOADERS has entries for all languages");
+  } else {
+    warn("LANG_LOADERS not found in page.tsx");
   }
 }
 

@@ -12,10 +12,9 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { pinyin } from "pinyin-pro";
 import type divinityPages from "@/lib/divinity-pages.json";
+import type { DivinityLang } from "@/lib/divinity-languages";
 
 // ── Types ─────────────────────────────────────────────────────────
-
-type DivinityLang = "en" | "es" | "uk" | "ru" | "zh" | "fa" | "he" | "pt" | "km" | "ne";
 
 interface Chapter {
   id: number;

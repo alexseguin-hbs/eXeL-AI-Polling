@@ -18,47 +18,35 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import divinityPages from "@/lib/divinity-pages.json";
+import { DIVINITY_LANGUAGES, type DivinityLang } from "@/lib/divinity-languages";
 
 const BilingualReader = dynamic(() => import("@/components/flower-of-life/bilingual-reader"), { ssr: false });
 
-// Language translations — loaded dynamically
-import divinityPagesEs from "@/lib/divinity-pages-es.json";
-import divinityPagesUk from "@/lib/divinity-pages-uk.json";
-import divinityPagesRu from "@/lib/divinity-pages-ru.json";
-import divinityPagesZh from "@/lib/divinity-pages-zh.json";
-import divinityPagesFa from "@/lib/divinity-pages-fa.json";
-import divinityPagesHe from "@/lib/divinity-pages-he.json";
-import divinityPagesPt from "@/lib/divinity-pages-pt.json";
-import divinityPagesKm from "@/lib/divinity-pages-km.json";
-import divinityPagesNe from "@/lib/divinity-pages-ne.json";
-
-const DIVINITY_LANGUAGES = [
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "uk", label: "Українська", flag: "🇺🇦" },
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
-  { code: "zh", label: "中文", flag: "🇨🇳" },
-  { code: "fa", label: "فارسی", flag: "🇮🇷" },
-  { code: "he", label: "עברית", flag: "🇮🇱" },
-  { code: "pt", label: "Português", flag: "🇧🇷" },
-  { code: "km", label: "ខ្មែរ", flag: "🇰🇭" },
-  { code: "ne", label: "नेपाली", flag: "🇳🇵" },
-] as const;
-
-type DivinityLang = typeof DIVINITY_LANGUAGES[number]["code"];
-
-const DIVINITY_PAGE_MAP: Record<DivinityLang, typeof divinityPages> = {
-  en: divinityPages,
-  es: divinityPagesEs as typeof divinityPages,
-  uk: divinityPagesUk as typeof divinityPages,
-  ru: divinityPagesRu as typeof divinityPages,
-  zh: divinityPagesZh as typeof divinityPages,
-  fa: divinityPagesFa as typeof divinityPages,
-  he: divinityPagesHe as typeof divinityPages,
-  pt: divinityPagesPt as typeof divinityPages,
-  km: divinityPagesKm as typeof divinityPages,
-  ne: divinityPagesNe as typeof divinityPages,
+// Dynamic language loaders — only the selected language is fetched (Odin: scales to 33+)
+type DivinityPageArray = typeof divinityPages;
+const LANG_LOADERS: Record<DivinityLang, () => Promise<{ default: DivinityPageArray }>> = {
+  en: () => Promise.resolve({ default: divinityPages }),
+  es: () => import("@/lib/divinity-pages-es.json") as Promise<{ default: DivinityPageArray }>,
+  uk: () => import("@/lib/divinity-pages-uk.json") as Promise<{ default: DivinityPageArray }>,
+  ru: () => import("@/lib/divinity-pages-ru.json") as Promise<{ default: DivinityPageArray }>,
+  zh: () => import("@/lib/divinity-pages-zh.json") as Promise<{ default: DivinityPageArray }>,
+  fa: () => import("@/lib/divinity-pages-fa.json") as Promise<{ default: DivinityPageArray }>,
+  he: () => import("@/lib/divinity-pages-he.json") as Promise<{ default: DivinityPageArray }>,
+  pt: () => import("@/lib/divinity-pages-pt.json") as Promise<{ default: DivinityPageArray }>,
+  km: () => import("@/lib/divinity-pages-km.json") as Promise<{ default: DivinityPageArray }>,
+  ne: () => import("@/lib/divinity-pages-ne.json") as Promise<{ default: DivinityPageArray }>,
 };
+
+// Hook: lazy-load language pages on demand (Sofia: instant for EN, async for others)
+function useDivinityPages(lang: DivinityLang): DivinityPageArray {
+  const [pages, setPages] = useState<DivinityPageArray>(divinityPages);
+  useEffect(() => {
+    let cancelled = false;
+    LANG_LOADERS[lang]().then((mod) => { if (!cancelled) setPages(mod.default); });
+    return () => { cancelled = true; };
+  }, [lang]);
+  return pages;
+}
 import { SoITrinity } from "@/components/soi-trinity";
 import { useLexicon } from "@/lib/lexicon-context";
 import {
@@ -196,7 +184,7 @@ const SECTIONS_MAP: Record<DivinityLang, [Section, Section, Section]> = {
 };
 
 // ── Consolidated translation map (Thoth: 6x fewer touchpoints per language addition) ──
-// Adding a new language: (1) JSON file, (2) import + DIVINITY_LANGUAGES + DIVINITY_PAGE_MAP, (3) one entry here
+// Adding a new language: (1) JSON file, (2) entry in divinity-languages.ts, (3) loader in LANG_LOADERS, (4) entry here, (5) entry in SECTIONS_MAP
 interface DivinityLangEntry {
   reflection: string;
   librarySubtitles: { prelude: string; framework: string; index: string };
@@ -678,14 +666,14 @@ function DivinityGuidePage() {
   const [libraryPageIndex, setLibraryPageIndex] = useState(0);
   // Language selection
   const [divinityLang, setDivinityLang] = useState<DivinityLang>("en");
-  const activeDivinityPages = DIVINITY_PAGE_MAP[divinityLang];
+  const activeDivinityPages = useDivinityPages(divinityLang);
   const SECTIONS = SECTIONS_MAP[divinityLang];
   const reflectionLabel = DIVINITY_TRANSLATIONS[divinityLang].reflection;
   const libSubtitles = DIVINITY_TRANSLATIONS[divinityLang].librarySubtitles;
   // Bilingual reader
   const [showBilingual, setShowBilingual] = useState(false);
   const [mirrorLang, setMirrorLang] = useState<DivinityLang>(() => divinityLang !== "en" ? "en" : "es");
-  const mirrorPages = DIVINITY_PAGE_MAP[mirrorLang];
+  const mirrorPages = useDivinityPages(mirrorLang);
   const mirrorSections = SECTIONS_MAP[mirrorLang];
   const mirrorReflectionLabel = DIVINITY_TRANSLATIONS[mirrorLang].reflection;
 
