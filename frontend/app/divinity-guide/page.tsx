@@ -189,12 +189,12 @@ const SECTIONS_ZH: [Section, Section, Section] = [
 
 const SECTIONS_MAP: Record<DivinityLang, [Section, Section, Section]> = {
   en: SECTIONS_EN, es: SECTIONS_ES, zh: SECTIONS_ZH,
-  uk: SECTIONS_EN, ru: SECTIONS_EN, fa: SECTIONS_EN, he: SECTIONS_EN, pt: SECTIONS_EN,
+  uk: SECTIONS_EN, ru: SECTIONS_EN, fa: SECTIONS_EN, he: SECTIONS_EN, pt: SECTIONS_EN, km: SECTIONS_EN,
 };
 
 const REFLECTION_LABEL: Record<DivinityLang, string> = {
   en: "Reflection", es: "Reflexión", zh: "沉思",
-  uk: "Роздуми", ru: "Размышление", fa: "تأمل", he: "הרהור", pt: "Reflexão",
+  uk: "Роздуми", ru: "Размышление", fa: "تأمل", he: "הרהור", pt: "Reflexão", km: "ការឆ្លុះបញ្ចាំង",
 };
 
 const LIBRARY_SUBTITLE_MAP: Record<DivinityLang, { prelude: string; framework: string; index: string }> = {
@@ -206,6 +206,7 @@ const LIBRARY_SUBTITLE_MAP: Record<DivinityLang, { prelude: string; framework: s
   fa: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
   he: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
   pt: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
+  km: { prelude: "គុណតម្លៃ និងទស្សនវិជ្ជារបស់អ្នកនិពន្ធ", framework: "សមីការបញ្ញាដ៏ទេវភាព", index: "ផែនទីដ៏ពិសិដ្ឋ" },
 };
 
 // ── Sacred Library (donation-gated content) ─────────────────────
