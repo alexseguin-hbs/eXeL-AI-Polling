@@ -932,28 +932,45 @@ class TestAmountPrecision:
 
 
 class TestExportContentTiers:
-    """Test donation-gated export content tiers."""
+    """Test donation-gated export content tiers (8-tier ladder)."""
 
     def test_tier_constants(self):
-        """Aset: Tier constants defined correctly."""
+        """Aset: All 8 tier constants defined correctly."""
         from app.cubes.cube9_reports.service import (
-            TIER_FREE, TIER_333, TIER_FULL,
-            THRESHOLD_333_CENTS, THRESHOLD_FULL_CENTS,
-            LOCKED_PLACEHOLDER,
+            TIER_FREE, TIER_THEME_111, TIER_THEME_333, TIER_CONF,
+            TIER_CQS, TIER_333, TIER_FULL, TIER_TALENT,
+            THRESHOLD_THEME_111_CENTS, THRESHOLD_THEME_333_CENTS,
+            THRESHOLD_CONF_CENTS, THRESHOLD_CQS_CENTS,
+            THRESHOLD_333_CENTS, THRESHOLD_FULL_CENTS, THRESHOLD_TALENT_CENTS,
         )
         assert TIER_FREE == "free"
+        assert TIER_THEME_111 == "tier_theme_111"
+        assert TIER_THEME_333 == "tier_theme_333"
+        assert TIER_CONF == "tier_conf"
+        assert TIER_CQS == "tier_cqs"
         assert TIER_333 == "tier_333"
         assert TIER_FULL == "tier_full"
-        assert THRESHOLD_333_CENTS == 999  # $9.99
-        assert THRESHOLD_FULL_CENTS == 1111  # $11.11
+        assert TIER_TALENT == "tier_talent"
+        assert THRESHOLD_THEME_111_CENTS == 111
+        assert THRESHOLD_THEME_333_CENTS == 333
+        assert THRESHOLD_CONF_CENTS == 444
+        assert THRESHOLD_CQS_CENTS == 777
+        assert THRESHOLD_333_CENTS == 999
+        assert THRESHOLD_FULL_CENTS == 1111
+        assert THRESHOLD_TALENT_CENTS == 1212
 
-    def test_free_tier_locks_333_and_originals(self):
-        """Aset: Free tier locks 333-word summary and original text."""
+    def test_tier_ordering(self):
+        """Thoth: Tiers are cumulative — each includes all below."""
+        from app.cubes.cube9_reports.service import _tier_at_least, TIER_FULL, TIER_FREE, TIER_333
+        assert _tier_at_least(TIER_FULL, TIER_FREE)
+        assert _tier_at_least(TIER_FULL, TIER_333)
+        assert not _tier_at_least(TIER_FREE, TIER_333)
+
+    def test_free_tier_locks_333_confidence_and_originals(self):
+        """Aset: Free tier locks 333-word summary, confidence, and original text."""
         from app.cubes.cube9_reports.service import _apply_tier_filter, TIER_FREE, LOCKED_PLACEHOLDER
         row = {
-            "Q_Number": 1,
-            "Question": "What do you think?",
-            "User": "user_1",
+            "Q_Number": 1, "Question": "What do you think?", "User": "user_1",
             "Detailed_Results": "Original long text here...",
             "Response_Language": "en",
             "333_Summary": "A 333-word summary...",
@@ -961,43 +978,59 @@ class TestExportContentTiers:
             "33_Summary": "A 33-word summary...",
             "Theme01": "Innovation",
             "Theme01_Confidence": "85%",
-            "Theme2_9": "", "Theme2_9_Confidence": "",
-            "Theme2_6": "", "Theme2_6_Confidence": "",
-            "Theme2_3": "", "Theme2_3_Confidence": "",
+            "Theme2_9": "", "Theme2_9_Confidence": "72%",
+            "Theme2_6": "", "Theme2_6_Confidence": "91%",
+            "Theme2_3": "", "Theme2_3_Confidence": "88%",
         }
         filtered = _apply_tier_filter(row, TIER_FREE)
-        assert filtered["33_Summary"] == "A 33-word summary..."  # Unlocked
-        assert filtered["111_Summary"] == "A 111-word summary..."  # Unlocked
-        assert filtered["333_Summary"] == LOCKED_PLACEHOLDER  # Locked
-        assert filtered["Detailed_Results"] == LOCKED_PLACEHOLDER  # Locked
-        assert filtered["Theme01"] == "Innovation"  # Themes always visible
+        assert filtered["33_Summary"] == "A 33-word summary..."  # FREE
+        assert filtered["111_Summary"] == "A 111-word summary..."  # FREE
+        assert filtered["333_Summary"] == LOCKED_PLACEHOLDER  # $9.99
+        assert filtered["Detailed_Results"] == LOCKED_PLACEHOLDER  # $11.11
+        assert filtered["Theme01"] == "Innovation"  # Theme names always visible
+        assert filtered["Theme01_Confidence"] == LOCKED_PLACEHOLDER  # $4.44
+        assert filtered["Theme2_3_Confidence"] == LOCKED_PLACEHOLDER  # $4.44
+
+    def test_conf_tier_unlocks_confidence_locks_333(self):
+        """Aset: $4.44 tier unlocks confidence scores but not 333 summaries."""
+        from app.cubes.cube9_reports.service import _apply_tier_filter, TIER_CONF, LOCKED_PLACEHOLDER
+        row = {
+            "Detailed_Results": "Original", "333_Summary": "333",
+            "111_Summary": "111", "33_Summary": "33",
+            "Theme01_Confidence": "85%", "Theme2_9_Confidence": "72%",
+            "Theme2_6_Confidence": "91%", "Theme2_3_Confidence": "88%",
+        }
+        filtered = _apply_tier_filter(row, TIER_CONF)
+        assert filtered["Theme01_Confidence"] == "85%"  # Unlocked
+        assert filtered["Theme2_3_Confidence"] == "88%"  # Unlocked
+        assert filtered["333_Summary"] == LOCKED_PLACEHOLDER  # Still locked
+        assert filtered["Detailed_Results"] == LOCKED_PLACEHOLDER  # Still locked
 
     def test_tier_333_unlocks_333_locks_originals(self):
         """Aset: $9.99 tier unlocks 333 summary but locks originals."""
         from app.cubes.cube9_reports.service import _apply_tier_filter, TIER_333, LOCKED_PLACEHOLDER
         row = {
-            "Detailed_Results": "Original text",
-            "333_Summary": "333 summary",
-            "111_Summary": "111 summary",
-            "33_Summary": "33 summary",
+            "Detailed_Results": "Original text", "333_Summary": "333 summary",
+            "111_Summary": "111 summary", "33_Summary": "33 summary",
+            "Theme01_Confidence": "85%", "Theme2_9_Confidence": "",
+            "Theme2_6_Confidence": "", "Theme2_3_Confidence": "",
         }
         filtered = _apply_tier_filter(row, TIER_333)
         assert filtered["333_Summary"] == "333 summary"  # Unlocked
-        assert filtered["111_Summary"] == "111 summary"  # Unlocked
-        assert filtered["33_Summary"] == "33 summary"  # Unlocked
+        assert filtered["Theme01_Confidence"] == "85%"  # Unlocked (included)
         assert filtered["Detailed_Results"] == LOCKED_PLACEHOLDER  # Still locked
 
-    def test_tier_full_unlocks_everything(self):
-        """Aset: $11.11+ tier unlocks all content."""
-        from app.cubes.cube9_reports.service import _apply_tier_filter, TIER_FULL
+    def test_tier_talent_unlocks_everything(self):
+        """Aset: $12.12 tier (Talent) unlocks ALL content."""
+        from app.cubes.cube9_reports.service import _apply_tier_filter, TIER_TALENT
         row = {
-            "Detailed_Results": "Full original text",
-            "333_Summary": "333 words",
-            "111_Summary": "111 words",
-            "33_Summary": "33 words",
+            "Detailed_Results": "Full text", "333_Summary": "333",
+            "111_Summary": "111", "33_Summary": "33",
+            "Theme01_Confidence": "85%", "Theme2_9_Confidence": "72%",
+            "Theme2_6_Confidence": "91%", "Theme2_3_Confidence": "88%",
         }
-        filtered = _apply_tier_filter(row, TIER_FULL)
-        assert filtered == row  # No changes
+        filtered = _apply_tier_filter(row, TIER_TALENT)
+        assert filtered == row  # No changes — full access
 
     def test_resolve_function_exists(self):
         """Aset: resolve_export_tier function exists and is async."""
@@ -1005,20 +1038,100 @@ class TestExportContentTiers:
         assert callable(resolve_export_tier)
         assert inspect.iscoroutinefunction(resolve_export_tier)
 
-    def test_threshold_math(self):
-        """Thoth: $9.99 = 999 cents, $11.11 = 1111 cents."""
-        assert int(9.99 * 100) == 999
-        assert int(11.11 * 100) == 1111
+    def test_all_thresholds_ascending(self):
+        """Thoth: Thresholds are strictly ascending."""
+        from app.cubes.cube9_reports.service import (
+            THRESHOLD_THEME_111_CENTS, THRESHOLD_THEME_333_CENTS,
+            THRESHOLD_CONF_CENTS, THRESHOLD_CQS_CENTS,
+            THRESHOLD_333_CENTS, THRESHOLD_FULL_CENTS, THRESHOLD_TALENT_CENTS,
+        )
+        thresholds = [
+            THRESHOLD_THEME_111_CENTS, THRESHOLD_THEME_333_CENTS,
+            THRESHOLD_CONF_CENTS, THRESHOLD_CQS_CENTS,
+            THRESHOLD_333_CENTS, THRESHOLD_FULL_CENTS, THRESHOLD_TALENT_CENTS,
+        ]
+        assert thresholds == sorted(thresholds)
+        assert len(set(thresholds)) == len(thresholds)  # No duplicates
 
-    def test_hi_token_award_for_999(self):
-        """Krishna: $9.99 donation = 1.378 웃."""
-        hi = 9.99 / 7.25
-        assert f"{hi:.3f}" == "1.378"
+    def test_hi_tokens_for_each_tier(self):
+        """Krishna: HI token awards for each tier threshold (always #.###)."""
+        tiers = {
+            111: "0.153", 333: "0.459", 444: "0.612", 777: "1.072",
+            999: "1.378", 1111: "1.532", 1212: "1.672",
+        }
+        for cents, expected in tiers.items():
+            hi = (cents / 100.0) / 7.25
+            assert f"{hi:.3f}" == expected, f"${cents/100} → {hi:.3f} != {expected}"
 
-    def test_hi_token_award_for_1111(self):
-        """Krishna: $11.11 donation = 1.532 웃."""
-        hi = 11.11 / 7.25
-        assert f"{hi:.3f}" == "1.532"
+    def test_talent_tier_honors_12_masters(self):
+        """Christo: $12.12 = 12 Ascended Masters tribute."""
+        from app.cubes.cube9_reports.service import THRESHOLD_TALENT_CENTS
+        assert THRESHOLD_TALENT_CENTS == 1212
+        # 12 masters × $1.01 per master ≈ $12.12
+        assert THRESHOLD_TALENT_CENTS / 12 == 101  # $1.01 per master
+
+
+# ===========================================================================
+# SECTION 14: THEME SUMMARY CASCADE (Pangu — Innovation)
+# ===========================================================================
+
+
+class TestThemeSummaryCascade:
+    """Test theme-level 333→111→33 summary generation system."""
+
+    def test_theme_model_has_summary_columns(self):
+        """Pangu: Theme model has all 3 cascade columns."""
+        from app.models.theme import Theme
+        cols = Theme.__table__.columns
+        assert "theme_summary_333" in cols
+        assert "theme_summary_111" in cols
+        assert "theme_summary_33" in cols
+
+    def test_sample_function_exists(self):
+        """Pangu: sample_response_summaries exists and is async."""
+        from app.cubes.cube6_ai.theme_summarizer import sample_response_summaries
+        assert callable(sample_response_summaries)
+        assert inspect.iscoroutinefunction(sample_response_summaries)
+
+    def test_prompt_333_structure(self):
+        """Pangu: 333-word prompt includes theme label and sampled summaries."""
+        from app.cubes.cube6_ai.theme_summarizer import build_theme_333_prompt
+        prompt = build_theme_333_prompt("AI Governance", ["Summary 1", "Summary 2"])
+        assert "AI Governance" in prompt
+        assert "Summary 1" in prompt
+        assert "333" in prompt
+        assert "3 paragraphs" in prompt
+
+    def test_prompt_111_compresses_333(self):
+        """Pangu: 111-word prompt takes 333-word input and compresses."""
+        from app.cubes.cube6_ai.theme_summarizer import build_theme_111_prompt
+        prompt = build_theme_111_prompt("Innovation", "Full 333-word text here...")
+        assert "111" in prompt
+        assert "Innovation" in prompt
+        assert "333-WORD VERSION" in prompt
+
+    def test_prompt_33_compresses_111(self):
+        """Pangu: 33-word prompt takes 111-word input and compresses."""
+        from app.cubes.cube6_ai.theme_summarizer import build_theme_33_prompt
+        prompt = build_theme_33_prompt("Scale", "Full 111-word text here...")
+        assert "33" in prompt
+        assert "111-WORD VERSION" in prompt
+
+    def test_max_sample_size(self):
+        """Enki: Max sample size is 50 (prevents O(N) with 1M responses)."""
+        from app.cubes.cube6_ai.theme_summarizer import MAX_SAMPLE_SIZE
+        assert MAX_SAMPLE_SIZE == 50
+
+    def test_deterministic_seed(self):
+        """Thoth: Sampling seed is fixed for reproducibility."""
+        from app.cubes.cube6_ai.theme_summarizer import SAMPLING_SEED
+        assert SAMPLING_SEED == 42
+
+    def test_theme_tier_thresholds(self):
+        """Thoth: Theme summary tiers are $3.33 and $1.11."""
+        from app.cubes.cube6_ai.theme_summarizer import THEME_TIER_333_CENTS, THEME_TIER_111_CENTS
+        assert THEME_TIER_333_CENTS == 333
+        assert THEME_TIER_111_CENTS == 111
 
 
 # ===========================================================================

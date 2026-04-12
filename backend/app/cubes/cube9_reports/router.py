@@ -205,25 +205,35 @@ async def get_content_tier(
 ):
     """Check user's export content tier based on donations.
 
-    Returns tier and unlock thresholds so frontend can gate content.
-    FREE:    33 + 111 summaries only
-    tier_333: + 333-word summary ($9.99 donated)
-    tier_full: + original text + all summaries ($11.11+ donated)
+    Returns tier, unlock flags, and thresholds for frontend gating.
+    Cumulative: each tier includes all features below it.
     """
     tier = await service.resolve_export_tier(
         db, session_id, user.user_id, user.role
     )
+    at_least = service._tier_at_least
     return {
         "content_tier": tier,
         "unlocked": {
-            "summary_33": True,
-            "summary_111": True,
-            "summary_333": tier in ("tier_333", "tier_full"),
-            "detailed_results": tier == "tier_full",
+            "summary_33": True,                                     # FREE
+            "summary_111": True,                                    # FREE
+            "theme_summary_33": True,                               # FREE
+            "theme_summary_111": at_least(tier, "tier_theme_111"),  # $1.11
+            "theme_summary_333": at_least(tier, "tier_theme_333"),  # $3.33
+            "confidence_scores": at_least(tier, "tier_conf"),       # $4.44
+            "cqs_scores": at_least(tier, "tier_cqs"),               # $7.77
+            "summary_333": at_least(tier, "tier_333"),              # $9.99
+            "detailed_results": at_least(tier, "tier_full"),        # $11.11
+            "talent_profiles": at_least(tier, "tier_talent"),       # $12.12
         },
         "thresholds": {
+            "tier_theme_111_cents": 111,
+            "tier_theme_333_cents": 333,
+            "tier_conf_cents": 444,
+            "tier_cqs_cents": 777,
             "tier_333_cents": 999,
             "tier_full_cents": 1111,
+            "tier_talent_cents": 1212,
         },
     }
 

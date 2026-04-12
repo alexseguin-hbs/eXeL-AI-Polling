@@ -39,17 +39,32 @@ logger = logging.getLogger("cube9")
 # ---------------------------------------------------------------------------
 # Export Content Tiers (donation-gated)
 # ---------------------------------------------------------------------------
-# FREE:    33-word + 111-word summaries only
-# TIER_1:  + 333-word summary ($9.99 donation)
-# TIER_2:  + original Detailed_Results + all summaries ($11.11+ donation)
+# FREE:       33 + 111 response summaries + 33-word theme descriptions
+# TIER_THEME_111: + 111-word theme summaries ($1.11)
+# TIER_THEME_333: + 333-word theme summaries ($3.33)
+# TIER_CONF:  + Theme Confidence Scores ($4.44)
+# TIER_CQS:   + CQS Individual Scores ($7.77)
+# TIER_333:   + 333-word response summaries ($9.99)
+# TIER_FULL:  + original Detailed_Results + all summaries ($11.11)
+# TIER_TALENT: + Talent Profiles ($12.12 — honors 12 Ascended Masters)
 
-TIER_FREE = "free"           # 33 + 111 summaries
-TIER_333 = "tier_333"        # + 333-word ($9.99)
-TIER_FULL = "tier_full"      # + originals + all summaries ($11.11)
+TIER_FREE = "free"
+TIER_THEME_111 = "tier_theme_111"
+TIER_THEME_333 = "tier_theme_333"
+TIER_CONF = "tier_conf"
+TIER_CQS = "tier_cqs"
+TIER_333 = "tier_333"
+TIER_FULL = "tier_full"
+TIER_TALENT = "tier_talent"
 
-# Donation thresholds in cents
-THRESHOLD_333_CENTS = 999    # $9.99
-THRESHOLD_FULL_CENTS = 1111  # $11.11
+# Donation thresholds in cents (cumulative — each tier includes all below it)
+THRESHOLD_THEME_111_CENTS = 111   # $1.11
+THRESHOLD_THEME_333_CENTS = 333   # $3.33
+THRESHOLD_CONF_CENTS = 444        # $4.44
+THRESHOLD_CQS_CENTS = 777         # $7.77
+THRESHOLD_333_CENTS = 999         # $9.99
+THRESHOLD_FULL_CENTS = 1111       # $11.11
+THRESHOLD_TALENT_CENTS = 1212     # $12.12
 
 LOCKED_PLACEHOLDER = "[Donate to unlock]"
 
@@ -62,11 +77,21 @@ async def resolve_export_tier(
 ) -> str:
     """Determine export content tier based on user's donations.
 
-    Moderator/Admin/Lead always get TIER_FULL.
-    Participants: check total donations for this session.
+    Moderator/Admin/Lead always get TIER_TALENT (full access).
+    Participants: check total donations — highest qualifying tier returned.
+
+    Tier ladder (cumulative):
+      FREE       ($0):     33 + 111 response summaries + 33-word theme descriptions
+      THEME_111  ($1.11):  + 111-word theme summaries
+      THEME_333  ($3.33):  + 333-word theme summaries
+      CONF       ($4.44):  + Theme Confidence Scores
+      CQS        ($7.77):  + CQS Individual Scores
+      333        ($9.99):  + 333-word response summaries
+      FULL       ($11.11): + original Detailed_Results
+      TALENT     ($12.12): + Talent Profiles (honors 12 Ascended Masters)
     """
     if user_role in ("moderator", "admin", "lead_developer"):
-        return TIER_FULL
+        return TIER_TALENT
 
     # Sum all completed donations/payments by this user for this session
     from app.models.participant import Participant as P
@@ -88,30 +113,74 @@ async def resolve_export_tier(
     )
     total_donated_cents = tx_result.scalar() or 0
 
-    if total_donated_cents >= THRESHOLD_FULL_CENTS:
+    # Return highest qualifying tier
+    if total_donated_cents >= THRESHOLD_TALENT_CENTS:
+        return TIER_TALENT
+    elif total_donated_cents >= THRESHOLD_FULL_CENTS:
         return TIER_FULL
     elif total_donated_cents >= THRESHOLD_333_CENTS:
         return TIER_333
+    elif total_donated_cents >= THRESHOLD_CQS_CENTS:
+        return TIER_CQS
+    elif total_donated_cents >= THRESHOLD_CONF_CENTS:
+        return TIER_CONF
+    elif total_donated_cents >= THRESHOLD_THEME_333_CENTS:
+        return TIER_THEME_333
+    elif total_donated_cents >= THRESHOLD_THEME_111_CENTS:
+        return TIER_THEME_111
     return TIER_FREE
+
+
+# Tier ordering for comparison
+_TIER_ORDER = {
+    TIER_FREE: 0,
+    TIER_THEME_111: 1,
+    TIER_THEME_333: 2,
+    TIER_CONF: 3,
+    TIER_CQS: 4,
+    TIER_333: 5,
+    TIER_FULL: 6,
+    TIER_TALENT: 7,
+}
+
+
+def _tier_at_least(tier: str, minimum: str) -> bool:
+    """Check if user's tier meets or exceeds a minimum tier."""
+    return _TIER_ORDER.get(tier, 0) >= _TIER_ORDER.get(minimum, 0)
 
 
 def _apply_tier_filter(row: dict, tier: str) -> dict:
     """Filter CSV row fields based on export content tier.
 
-    FREE:   Detailed_Results + 333_Summary locked
-    TIER_333: Detailed_Results locked
-    TIER_FULL: Everything unlocked
+    Tier ladder (cumulative — each includes all below):
+      FREE:       33 + 111 response summaries + 33-word theme descriptions
+      THEME_111:  + 111-word theme summaries
+      THEME_333:  + 333-word theme summaries
+      CONF:       + Theme Confidence Scores
+      CQS:        + CQS Individual Scores (future column)
+      333:        + 333-word response summaries
+      FULL:       + original Detailed_Results
+      TALENT:     + Talent Profiles (future column)
     """
-    if tier == TIER_FULL:
+    if _tier_at_least(tier, TIER_TALENT):
         return row
 
     filtered = dict(row)
 
-    if tier == TIER_FREE:
+    # Lock original text unless FULL ($11.11+)
+    if not _tier_at_least(tier, TIER_FULL):
+        filtered["Detailed_Results"] = LOCKED_PLACEHOLDER
+
+    # Lock 333-word response summaries unless TIER_333 ($9.99+)
+    if not _tier_at_least(tier, TIER_333):
         filtered["333_Summary"] = LOCKED_PLACEHOLDER
-        filtered["Detailed_Results"] = LOCKED_PLACEHOLDER
-    elif tier == TIER_333:
-        filtered["Detailed_Results"] = LOCKED_PLACEHOLDER
+
+    # Lock confidence scores unless CONF ($4.44+)
+    if not _tier_at_least(tier, TIER_CONF):
+        for col in ("Theme01_Confidence", "Theme2_9_Confidence",
+                     "Theme2_6_Confidence", "Theme2_3_Confidence"):
+            if col in filtered:
+                filtered[col] = LOCKED_PLACEHOLDER
 
     return filtered
 
