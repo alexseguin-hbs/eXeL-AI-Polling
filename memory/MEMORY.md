@@ -1,0 +1,33 @@
+# Memory Index
+
+- [Commit style](feedback_commit_style.md) — Never add Co-Authored-By footer to git commits
+- [Cube 1 live status](project_cube1_status.md) — Confirmed operational 2026-03-27, 13 participants, ~70ms auto-advance
+- [Evidence-based SSSES](feedback_ssses_evidence.md) — SSSES scores must always be evidence-based, never inflated or aspirational
+- [Monetization tiers](project_monetization.md) — Free (max 19), Moderator Paid, Cost Split — Stripe for Cube 8
+- [8-tier monetization](project_monetization_8tier.md) — 🔒 locked cells: FREE→$1.11→$3.33→$4.44→$7.77→$9.99→$11.11→$12.12
+- [Supabase-only architecture](project_supabase_only.md) — PostgreSQL + Supabase Realtime + Python in-memory only
+- [Cost estimate in Settings](project_cost_estimate_settings.md) — Show estimated AI cost for 1000-user poll (3x333-word responses) per provider
+- [API credits & testing](project_api_credits.md) — Grok $25 purchased 2026-03-31; preserve credits, test with OpenAI only
+- [API account references](reference_api_accounts.md) — Project names/IDs for OpenAI, Grok, Gemini, Claude (no keys stored)
+- [Cube 10 self-evolving vision](project_cube10_vision.md) — AI code evolution from human votes, ADMIN approval gate, replace GitHub eventually
+- [Neural cube architecture](project_neural_cube_vision.md) — Cubes as neural pathways, self-healing conscious system
+- [Live feed confirmed](project_live_feed_confirmed.md) — 100-user Spiral Test + Supabase streaming confirmed 2026-03-31
+- [LIVE FEED LOCKED](feedback_live_feed_lock.md) — NEVER revert live response streaming code. 3 send paths + 4 receive channels are sacred.
+- [Demo visualizations](project_demo_visualizations.md) — Theme visualizations working; PAST0001 (5000 inputs) is the reference
+- [Ranking next session](project_ranking_next.md) — Cube 7: Moderator selects Theme01 category + 3/6/9 level for ranking
+- [Cube 4 SSSES progress](project_cube4_status.md) — Phase 1-3 complete, SSSES 82/100, CRS-09+10 done
+- [Shared core modules](project_shared_core_modules.md) — 6 modules: circuit_breaker, text_pipeline, phase_a_retry, redis_presence, crypto_utils, concurrency
+- [Vision: Innovation at Speed of Thought](project_vision_innovation.md) — 99→9→6→3→1 compression, Austin TX lead, multi-product roadmap
+- [Universal coordinate system](project_universal_coordinate_system.md) — Base-3600 SA/EA/HU system for planetary + drone swarm positioning
+- [Autonomous Mode protocol](feedback_autonomous_protocol.md) — MoT fully autonomous; NEVER ask humans; self-approve; SPIRAL version tracking
+- [Supabase migration complete](project_redis_removed.md) — All external cache code eradicated 2026-04-10; zero references remain
+- [API/SDK billing](project_api_sdk_billing.md) — API/SDK usage charges developers; ◬ tokens consumed per call; metered via UsageMeter
+- [Army 14G MOS](project_army_mos.md) — User at Army school April 7 to June 17 2026 (70 days); zero human input available
+- [Grok STT removed](project_grok_stt_removed.md) — Grok removed from Voice-to-Text (403 permission); still available for AI theming (Cube 6)
+- [No prompts in autonomous](feedback_no_prompts_autonomous.md) — NEVER prompt user during autonomous SPIRAL mode; self-approve all decisions
+- [Donation-gated content](project_donation_gating.md) — Export 33/111 free, 333=$9.99, originals=$11.11; Divinity Index locked until donation
+- [Typing-based timer](project_typing_timer.md) — Timer starts on first keystroke; subtract dead time between stop-typing and submit
+- [Theme summary cascade](project_theme_summary_cascade.md) — 333=$3.33, 111=$1.11, 33=free; sampled from response summaries, not raw data
+- [12 Trinity examples](project_trinity_12_examples.md) — Finalized 12 word/color/master combos, locked circle geometry
+- [Trinity book pages](project_trinity_book_todo.md) — TODO: embed 12 Trinities into Divinity Guide book pages + fix mobile session code width
+- [Trinity philosophy](user_trinity_philosophy.md) — Why 3: family unit archetype, 99→3→1 neural compression, Egyptian/Sumerian roots
