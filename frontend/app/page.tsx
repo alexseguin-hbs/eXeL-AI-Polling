@@ -49,8 +49,8 @@ export default function LandingPage() {
 
   const currentPreset = TRINITY_PRESETS[trinityIndex];
   const displayLabels = customMode ? customLabels : currentPreset.labels;
-  // Preset mode: use moderator's theme color. Custom mode: user-picked color.
-  const displayColor = customMode ? customColor : currentTheme.swatch;
+  // Consciousness (index 0): follows theme color. Others: preset colors. Custom: user-picked.
+  const displayColor = customMode ? customColor : trinityIndex === 0 ? currentTheme.swatch : currentPreset.color;
   const displayTitle = customMode ? "Your Trinity" : currentPreset.title;
 
   const handleInnerClick = () => {
