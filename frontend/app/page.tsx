@@ -12,18 +12,19 @@ import { SoITrinity } from "@/components/soi-trinity";
 
 // 12 preset Trinities — cycle through on inner click
 const TRINITY_PRESETS: { labels: [string, string, string]; color: string; title: string; master: string }[] = [
-  // Consciousness = theme color (index 0). Then Violet → Red rainbow (ROYGBIV reversed).
-  { labels: ["WISDOM",     "HARMONY",     "CONNECTION"],  color: "#00FFFF", title: "Consciousness",     master: "Christo" },
+  // Rainbow: Violet → Indigo → Blue → Cyan → Teal → Green → Yellow → Orange → Pink → Red
+  // Consciousness (Cyan) is default (index 4). Cycle forward through all 12.
+  { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"],  color: "#FF00FF", title: "Governance",        master: "Athena" },
   { labels: ["CHILD",      "MOTHER",      "FATHER"],      color: "#A855F7", title: "Sacred Family",     master: "Aset" },
   { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#8B5CF6", title: "Wholeness",         master: "Krishna" },
-  { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#6366F1", title: "Intelligence",      master: "Thoth" },
   { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#3B82F6", title: "Trinity Framework",  master: "Asar" },
+  { labels: ["WISDOM",     "HARMONY",     "CONNECTION"],  color: "#00FFFF", title: "Consciousness",     master: "Christo" },
   { labels: ["TRUTH",      "BEAUTY",      "GOODNESS"],    color: "#14B8A6", title: "Platonic",          master: "Sofia" },
   { labels: ["ACT",        "DECIDE",      "OBSERVE"],     color: "#84CC16", title: "OODA Loop",         master: "Enlil" },
   { labels: ["SHARE",      "GIVE",        "RECEIVE"],     color: "#F59E0B", title: "Abundance",         master: "Pangu" },
-  { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"],  color: "#F97316", title: "Governance",        master: "Athena" },
   { labels: ["PRESENT",    "FUTURE",      "PAST"],        color: "#F97316", title: "Temporal",          master: "Odin" },
-  { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#EC4899", title: "Evolution",         master: "Enki" },
+  { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#EC4899", title: "Intelligence",      master: "Thoth" },
+  { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#6366F1", title: "Evolution",         master: "Enki" },
   { labels: ["LOVE",       "SAFETY",      "LOSS"],        color: "#EF4444", title: "Human",             master: "Thor" },
 ];
 
@@ -42,15 +43,15 @@ const COLOR_PALETTE = [
 export default function LandingPage() {
   const { t } = useLexicon();
   const { currentTheme } = useTheme();
-  const [trinityIndex, setTrinityIndex] = useState(0);
+  const [trinityIndex, setTrinityIndex] = useState(4); // Start at Consciousness
   const [customMode, setCustomMode] = useState(false);
   const [customLabels, setCustomLabels] = useState<[string, string, string]>(["YOUR", "WORDS", "HERE"]);
   const [customColor, setCustomColor] = useState("#10B981"); // Emerald for custom mode
 
   const currentPreset = TRINITY_PRESETS[trinityIndex];
   const displayLabels = customMode ? customLabels : currentPreset.labels;
-  // Consciousness (index 0): follows theme color. Others: preset colors. Custom: user-picked.
-  const displayColor = customMode ? customColor : trinityIndex === 0 ? currentTheme.swatch : currentPreset.color;
+  // Consciousness (index 4): follows theme color. Others: preset rainbow colors. Custom: user-picked.
+  const displayColor = customMode ? customColor : trinityIndex === 4 ? currentTheme.swatch : currentPreset.color;
   const displayTitle = customMode ? "Your Trinity" : currentPreset.title;
 
   const handleInnerClick = () => {

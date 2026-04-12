@@ -17,18 +17,18 @@ const EXAMPLES: {
   title: string;
   master: string;
 }[] = [
-  { labels: ["WISDOM",     "HARMONY",     "CONNECTION"],  color: "#00FFFF", title: "Consciousness",     master: "Christo" },
-  { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"],  color: "#F59E0B", title: "Governance",        master: "Athena" },
-  { labels: ["LOVE",       "SAFETY",      "LOSS"],        color: "#EF4444", title: "Human",             master: "Thor" },
-  { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#6366F1", title: "Intelligence",      master: "Thoth" },
-  { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#3B82F6", title: "Trinity Framework",  master: "Asar" },
-  { labels: ["TRUTH",      "BEAUTY",      "GOODNESS"],    color: "#14B8A6", title: "Platonic",          master: "Sofia" },
-  { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#EC4899", title: "Evolution",         master: "Enki" },
-  { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#8B5CF6", title: "Wholeness",         master: "Krishna" },
-  { labels: ["PRESENT",    "FUTURE",      "PAST"],        color: "#F97316", title: "Temporal",          master: "Odin" },
+  { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"],  color: "#FF00FF", title: "Governance",        master: "Athena" },
   { labels: ["CHILD",      "MOTHER",      "FATHER"],      color: "#A855F7", title: "Sacred Family",     master: "Aset" },
+  { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#8B5CF6", title: "Wholeness",         master: "Krishna" },
+  { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#3B82F6", title: "Trinity Framework",  master: "Asar" },
+  { labels: ["WISDOM",     "HARMONY",     "CONNECTION"],  color: "#00FFFF", title: "Consciousness",     master: "Christo" },
+  { labels: ["TRUTH",      "BEAUTY",      "GOODNESS"],    color: "#14B8A6", title: "Platonic",          master: "Sofia" },
   { labels: ["ACT",        "DECIDE",      "OBSERVE"],     color: "#84CC16", title: "OODA Loop",         master: "Enlil" },
-  { labels: ["SHARE",      "GIVE",        "RECEIVE"],     color: "#22D3EE", title: "Abundance",         master: "Pangu" },
+  { labels: ["SHARE",      "GIVE",        "RECEIVE"],     color: "#F59E0B", title: "Abundance",         master: "Pangu" },
+  { labels: ["PRESENT",    "FUTURE",      "PAST"],        color: "#F97316", title: "Temporal",          master: "Odin" },
+  { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#EC4899", title: "Intelligence",      master: "Thoth" },
+  { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#6366F1", title: "Evolution",         master: "Enki" },
+  { labels: ["LOVE",       "SAFETY",      "LOSS"],        color: "#EF4444", title: "Human",             master: "Thor" },
 ];
 
 export default function DivinityGuideTrinityPage() {
