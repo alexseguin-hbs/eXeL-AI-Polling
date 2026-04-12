@@ -345,6 +345,22 @@ function LibraryReader({
               if (line.trim() === "Overview" || line.startsWith("Divine Intelligence Framework")) {
                 return <h2 key={i} className="text-lg font-bold mb-4 mt-2 text-muted-foreground">{line}</h2>;
               }
+              // Framework page i16: Trinity between "What is Intelligence?" and "Mastering Intelligence"
+              if (bookPage.id === "i16" && line.trim() === "What is Intelligence?") {
+                return (
+                  <div key={i}>
+                    <p className="text-sm text-foreground/80 leading-relaxed mb-3" style={{ textIndent: "2rem" }}>{line}</p>
+                    <div className="flex justify-center my-4">
+                      <SoITrinity
+                        labels={["H.I.", "S.I.", "A.I."]}
+                        color="#007FFF"
+                        textColor="black"
+                        size={160}
+                      />
+                    </div>
+                  </div>
+                );
+              }
               // Empty line
               if (!line.trim()) return <div key={i} className="h-2" />;
               // Regular paragraph
