@@ -1,7 +1,7 @@
 """Upload Divinity Guide pages + Dictionary to Supabase.
 
 Reads local JSON files and upserts into Supabase tables:
-  - divinity_pages: 185 pages × 9 languages = 1,665 rows
+  - divinity_pages: 185 pages × 10 languages = 1,850 rows
   - divinity_dictionary: 4,436 words × 7 languages = 31,052 rows
 
 Idempotent: uses ON CONFLICT upsert — safe to re-run.
@@ -59,6 +59,7 @@ DIVINITY_LANGUAGES = {
     "he": "divinity-pages-he.json",
     "pt": "divinity-pages-pt.json",
     "ne": "divinity-pages-ne.json",
+    "km": "divinity-pages-km.json",
 }
 
 DICTIONARY_FILE = "divinity-dictionary.json"
