@@ -480,12 +480,12 @@ function SessionDetail({
       }
 
       const toastMessages: Record<string, string> = {
-        start: "Session opened — share the QR code!",
-        open: "Session opened",
-        poll: "Polling started — participants can now respond",
-        rank: "Ranking started — themes are being analyzed",
-        close: "Session closed",
-        archive: "Session archived",
+        start: t("cube1.dashboard.toast_session_opened"),
+        open: t("cube1.dashboard.toast_session_opened_short"),
+        poll: t("cube1.dashboard.toast_polling_started"),
+        rank: t("cube1.dashboard.toast_ranking_started"),
+        close: t("cube1.dashboard.toast_session_closed"),
+        archive: t("cube1.dashboard.toast_session_archived"),
       };
       toast({ title: toastMessages[action] || `Session ${action}ed` });
 
@@ -620,7 +620,7 @@ function SessionDetail({
           <div className="bg-zinc-900 text-white py-2 px-6 overflow-hidden whitespace-nowrap border-t border-b border-zinc-800 mb-4 -mx-0 rounded-lg">
             {liveResponseFeed.length === 0 ? (
               <span className="font-mono text-sm text-zinc-400 flex items-center gap-2">
-                <Radio className="h-3 w-3 animate-pulse inline" /> Waiting for first response...
+                <Radio className="h-3 w-3 animate-pulse inline" /> {t("cube1.dashboard.waiting_first_response")}
               </span>
             ) : (
               <div className="flex animate-marquee gap-12 font-mono text-sm">
@@ -656,14 +656,14 @@ function SessionDetail({
           if (hoursLeft <= 0) return (
             <div className="flex items-center gap-2 mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5">
               <Clock className="h-4 w-4 text-red-400 shrink-0" />
-              <p className="text-sm text-red-300 font-semibold">Session expired</p>
+              <p className="text-sm text-red-300 font-semibold">{t("cube1.dashboard.session_expired")}</p>
             </div>
           );
           if (hoursLeft <= 2) return (
             <div className="flex items-center gap-2 mb-4 rounded-lg border border-orange-500/30 bg-orange-500/5 px-4 py-2.5">
               <Clock className="h-4 w-4 text-orange-400 shrink-0" />
               <p className="text-sm text-orange-300">
-                Session expires in{" "}
+                {t("cube1.dashboard.session_expires_in")}{" "}
                 <span className="font-semibold font-mono">
                   {hoursLeft < 1 ? `${Math.max(1, Math.round(hoursLeft * 60))}m` : `${Math.round(hoursLeft)}h`}
                 </span>
@@ -842,10 +842,10 @@ function SessionDetail({
                   >
                     <Zap className="h-3 w-3 mr-1" />
                     {spiralProgress?.isComplete
-                      ? "Test Complete"
+                      ? t("cube1.dashboard.test_complete")
                       : spiralRunning
-                        ? "Stop Test"
-                        : "Run 100-User Spiral Test"}
+                        ? t("cube1.dashboard.stop_test")
+                        : t("cube1.dashboard.run_spiral_test")}
                   </Button>
                 )}
                 <div className="flex rounded-md border border-input overflow-hidden">
@@ -875,7 +875,7 @@ function SessionDetail({
                   size="sm"
                   onClick={() => setFeedExpanded(!feedExpanded)}
                   className="h-7 px-2"
-                  title={feedExpanded ? "Collapse" : "Expand"}
+                  title={feedExpanded ? t("shared.nav.collapse") : t("shared.nav.expand")}
                 >
                   <ChevronDown className={`h-3.5 w-3.5 transition-transform ${feedExpanded ? "rotate-180" : ""}`} />
                 </Button>
@@ -884,7 +884,7 @@ function SessionDetail({
                   size="sm"
                   onClick={() => setFeedFullscreen(true)}
                   className="h-7 px-2"
-                  title="Fullscreen"
+                  title={t("shared.nav.fullscreen")}
                 >
                   <Maximize2 className="h-3.5 w-3.5" />
                 </Button>
@@ -1386,7 +1386,7 @@ function DashboardContent() {
                     <Input
                       id="maxParticipants"
                       type="number"
-                      placeholder="Unlimited"
+                      placeholder={t("cube1.dashboard.placeholder_unlimited")}
                       value={newMaxParticipants}
                       onChange={(e) => setNewMaxParticipants(e.target.value)}
                       min={1}
@@ -1543,7 +1543,7 @@ function DashboardContent() {
                             variant="ghost"
                             size="sm"
                             className="text-muted-foreground hover:text-primary shrink-0"
-                            title="Reset Demo"
+                            title={t("cube1.dashboard.reset_demo")}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleResetDemo(session.id);
@@ -1639,7 +1639,7 @@ function DashboardContent() {
                                 variant="ghost"
                                 size="sm"
                                 className="text-muted-foreground hover:text-primary shrink-0"
-                                title="Reset Demo"
+                                title={t("cube1.dashboard.reset_demo")}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleResetDemo(session.id);
