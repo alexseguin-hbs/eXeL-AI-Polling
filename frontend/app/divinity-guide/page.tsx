@@ -284,25 +284,21 @@ function LibraryReader({
             {bookPage.id === "prelude-04" && (
               <div className="flex flex-col items-center mb-6">
                 <SoITrinity
-                  labels={[t("trinity.human.top"), t("trinity.human.right"), t("trinity.human.left")]}
+                  labels={["LOVE", "SAFETY", "LOSS"]}
                   color="#FF0000"
-                  textColor="white"
+                  textColor="black"
                   size={160}
                 />
-                <p className="text-xs text-muted-foreground/60 mt-2">✦</p>
-                <p className="text-sm font-medium text-muted-foreground">Love, Loss &amp; Safety</p>
               </div>
             )}
             {bookPage.id === "prelude-05" && (
               <div className="flex flex-col items-center mb-6">
                 <SoITrinity
-                  labels={[t("trinity.consciousness.top"), t("trinity.consciousness.right"), t("trinity.consciousness.left")]}
+                  labels={["WISDOM", "HARMONY", "CONNECTION"]}
                   color="#00FFFF"
-                  textColor="white"
+                  textColor="black"
                   size={160}
                 />
-                <p className="text-xs text-muted-foreground/60 mt-2">✦</p>
-                <p className="text-sm font-medium text-muted-foreground">Divine Unity Principles</p>
               </div>
             )}
             {bookPage.text.split("\n").map((line, i) => {
