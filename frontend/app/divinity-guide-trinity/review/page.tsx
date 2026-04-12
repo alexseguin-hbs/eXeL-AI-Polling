@@ -32,6 +32,8 @@ interface TrinityConfig {
   wisdomAngle: number;     // Top text center angle (SVG degrees)
   connectionAngle: number; // BL text center angle
   harmonyAngle: number;    // BR text center angle
+  wisdomOffset: number;    // +inward (toward Unity center), -outward. Shifts text radius.
+  bottomOffset: number;    // +outward (away from Unity center) for CONNECTION/HARMONY
 }
 
 // outerR = spread + ringR + gap + outerWidth
@@ -73,24 +75,21 @@ function TrinityAttempt({
   const textAngles = [wisdomAngle, harmonyAngle, connectionAngle];
   const deg2rad = (d: number) => (d * Math.PI) / 180;
 
-  // Build text arc paths
-  // Top ring: clockwise arc (text reads naturally)
-  // Bottom rings: REVERSED arc (counter-clockwise) so text reads RIGHT-SIDE UP
-  function makeTextArc(rcx: number, rcy: number, angle: number, invert: boolean): string {
-    const half = textSpan / 2;
+  // WISDOM text radius: shifted INWARD (smaller r = closer to Unity center)
+  const wisdomTextR = textR - config.wisdomOffset;
+  // CONNECTION/HARMONY text radius: shifted OUTWARD (larger r = away from Unity center)
+  const bottomTextR = textR + config.bottomOffset;
+
+  // All text arcs CLOCKWISE. Radius varies per ring position.
+  function makeTextArc(rcx: number, rcy: number, angle: number, r: number, span: number): string {
+    const half = span / 2;
     const a1 = angle - half;
     const a2 = angle + half;
-    const sx = rcx + textR * Math.cos(deg2rad(a1));
-    const sy = rcy + textR * Math.sin(deg2rad(a1));
-    const ex = rcx + textR * Math.cos(deg2rad(a2));
-    const ey = rcy + textR * Math.sin(deg2rad(a2));
-
-    if (invert) {
-      // Reversed: end→start, sweep=0 (counter-clockwise) → text reads right-side up
-      return `M ${ex.toFixed(1)} ${ey.toFixed(1)} A ${textR} ${textR} 0 0 0 ${sx.toFixed(1)} ${sy.toFixed(1)}`;
-    }
-    // Normal: start→end, sweep=1 (clockwise)
-    return `M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${textR} ${textR} 0 0 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+    const sx = rcx + r * Math.cos(deg2rad(a1));
+    const sy = rcy + r * Math.sin(deg2rad(a1));
+    const ex = rcx + r * Math.cos(deg2rad(a2));
+    const ey = rcy + r * Math.sin(deg2rad(a2));
+    return `M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${r} ${r} 0 0 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`;
   }
 
   // Ring helper with solid BLACK borders
@@ -120,11 +119,16 @@ function TrinityAttempt({
     <div className="flex flex-col items-center">
       <svg viewBox={viewBox} className="w-full max-w-[220px]">
         <defs>
-          {rings.map((ring, i) => (
-            <path key={`p-${i}`} id={`${uid}-t-${i}`}
-              d={makeTextArc(ring.cx, ring.cy, textAngles[i], i !== 0)}
-              fill="none" />
-          ))}
+          {/* Text paths: WISDOM inward, CONNECTION/HARMONY outward */}
+          {rings.map((ring, i) => {
+            const r = i === 0 ? wisdomTextR : bottomTextR;
+            const span = i === 2 ? textSpan + 15 : textSpan; // CONNECTION needs wider arc (10 letters)
+            return (
+              <path key={`p-${i}`} id={`${uid}-t-${i}`}
+                d={makeTextArc(ring.cx, ring.cy, textAngles[i], r, span)}
+                fill="none" />
+            );
+          })}
         </defs>
 
         {/*
@@ -200,29 +204,31 @@ function TrinityAttempt({
 // outerR = 39 + 72 + 21 + 21 = 153. This is CORRECT — do not shrink.
 // This round: ONLY iterate text (angles, span, font). Text rendered LAST (not clipped).
 const D: Omit<TrinityConfig, 'spread' | 'ringR' | 'ringWidth'> = {
-  gap: 21, outerWidth: 21,  // gap=21 per Thought Master
+  gap: 21, outerWidth: 21,
   fontSize: 11, letterSpacing: 2, borderWidth: 1.5, textSpan: 60,
-  wisdomAngle: -85, connectionAngle: 150, harmonyAngle: 30, // WISDOM shifted ~5px down from 12 o'clock
+  wisdomAngle: -90, connectionAngle: 150, harmonyAngle: 30,
+  wisdomOffset: 5, bottomOffset: 5,  // WISDOM 5px inward, bottom text 5px outward
 };
 
 function c(overrides?: Partial<TrinityConfig>): TrinityConfig {
   return { spread: 39, ringR: 72, ringWidth: 21, ...D, ...overrides };
 }
 
-// All 12 vary WISDOM placement only. Everything else LOCKED.
+// 12 iterations — matching Trinity_03.jpg reference
+// WISDOM: inward toward Unity center. CONNECTION/HARMONY: outward on exposed ring.
 const ITERATIONS: { label: string; config: TrinityConfig }[] = [
-  { label: "#1 W=-85 (base ~5px)",  config: c() },
-  { label: "#2 W=-90 (12 o'clock)", config: c({ wisdomAngle: -90 }) },
-  { label: "#3 W=-88",              config: c({ wisdomAngle: -88 }) },
-  { label: "#4 W=-83",              config: c({ wisdomAngle: -83 }) },
-  { label: "#5 W=-80 (~10px)",      config: c({ wisdomAngle: -80 }) },
-  { label: "#6 W=-78",              config: c({ wisdomAngle: -78 }) },
-  { label: "#7 W=-75 (~15px)",      config: c({ wisdomAngle: -75 }) },
-  { label: "#8 W=-82",              config: c({ wisdomAngle: -82 }) },
-  { label: "#9 W=-86",              config: c({ wisdomAngle: -86 }) },
-  { label: "#10 W=-84",             config: c({ wisdomAngle: -84 }) },
-  { label: "#11 W=-87",             config: c({ wisdomAngle: -87 }) },
-  { label: "#12 W=-81",             config: c({ wisdomAngle: -81 }) },
+  { label: "#1 base",               config: c() },
+  { label: "#2 Woff=3 Boff=3",      config: c({ wisdomOffset: 3, bottomOffset: 3 }) },
+  { label: "#3 Woff=7 Boff=7",      config: c({ wisdomOffset: 7, bottomOffset: 7 }) },
+  { label: "#4 Woff=8 Boff=8",      config: c({ wisdomOffset: 8, bottomOffset: 8 }) },
+  { label: "#5 Woff=5 Boff=8",      config: c({ wisdomOffset: 5, bottomOffset: 8 }) },
+  { label: "#6 Woff=7 Boff=5",      config: c({ wisdomOffset: 7, bottomOffset: 5 }) },
+  { label: "#7 conn=140",           config: c({ connectionAngle: 140, wisdomOffset: 5, bottomOffset: 7 }) },
+  { label: "#8 conn=160",           config: c({ connectionAngle: 160, wisdomOffset: 5, bottomOffset: 7 }) },
+  { label: "#9 harm=20",            config: c({ harmonyAngle: 20, wisdomOffset: 5, bottomOffset: 7 }) },
+  { label: "#10 harm=40",           config: c({ harmonyAngle: 40, wisdomOffset: 5, bottomOffset: 7 }) },
+  { label: "#11 span=70 Boff=7",    config: c({ textSpan: 70, wisdomOffset: 6, bottomOffset: 7 }) },
+  { label: "#12 best match",        config: c({ wisdomOffset: 6, bottomOffset: 7, connectionAngle: 145, harmonyAngle: 35, textSpan: 65 }) },
 ];
 
 export default function TrinityReviewPage() {
