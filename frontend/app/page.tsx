@@ -24,7 +24,7 @@ const TRINITY_PRESETS: { labels: [string, string, string]; color: string; title:
   { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#6366F1", title: "Intelligence",      master: "Thoth" },
   { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#3B82F6", title: "Trinity Framework",  master: "Asar" },
   { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#8B5CF6", title: "Wholeness",         master: "Krishna" },
-  { labels: ["SON",        "MOTHER",      "FATHER"],      color: "#A855F7", title: "Sacred Family",     master: "Aset" },
+  { labels: ["CHILD",      "MOTHER",      "FATHER"],      color: "#A855F7", title: "Sacred Family",     master: "Aset" },
 ];
 
 // Color palette (matches settings panel)

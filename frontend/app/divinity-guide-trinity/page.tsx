@@ -26,7 +26,7 @@ const EXAMPLES: {
   { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#EC4899", title: "Evolution",         master: "Enki" },
   { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#8B5CF6", title: "Wholeness",         master: "Krishna" },
   { labels: ["PRESENT",    "FUTURE",      "PAST"],        color: "#F97316", title: "Temporal",          master: "Odin" },
-  { labels: ["SON",        "MOTHER",      "FATHER"],      color: "#A855F7", title: "Sacred Family",     master: "Aset" },
+  { labels: ["CHILD",      "MOTHER",      "FATHER"],      color: "#A855F7", title: "Sacred Family",     master: "Aset" },
   { labels: ["ACT",        "DECIDE",      "OBSERVE"],     color: "#84CC16", title: "OODA Loop",         master: "Enlil" },
   { labels: ["SHARE",      "GIVE",        "RECEIVE"],     color: "#22D3EE", title: "Abundance",         master: "Pangu" },
 ];
