@@ -29,6 +29,7 @@ import divinityPagesZh from "@/lib/divinity-pages-zh.json";
 import divinityPagesFa from "@/lib/divinity-pages-fa.json";
 import divinityPagesHe from "@/lib/divinity-pages-he.json";
 import divinityPagesPt from "@/lib/divinity-pages-pt.json";
+import divinityPagesKm from "@/lib/divinity-pages-km.json";
 
 const DIVINITY_LANGUAGES = [
   { code: "en", label: "English", flag: "🇺🇸" },
@@ -39,6 +40,7 @@ const DIVINITY_LANGUAGES = [
   { code: "fa", label: "فارسی", flag: "🇮🇷" },
   { code: "he", label: "עברית", flag: "🇮🇱" },
   { code: "pt", label: "Português", flag: "🇧🇷" },
+  { code: "km", label: "ខ្មែរ", flag: "🇰🇭" },
 ] as const;
 
 type DivinityLang = typeof DIVINITY_LANGUAGES[number]["code"];
@@ -52,7 +54,10 @@ const DIVINITY_PAGE_MAP: Record<DivinityLang, typeof divinityPages> = {
   fa: divinityPagesFa as typeof divinityPages,
   he: divinityPagesHe as typeof divinityPages,
   pt: divinityPagesPt as typeof divinityPages,
+  km: divinityPagesKm as typeof divinityPages,
 };
+import { SoITrinity } from "@/components/soi-trinity";
+import { useLexicon } from "@/lib/lexicon-context";
 import {
   getTheme2_3Positions,
   getHubPosition,
@@ -244,6 +249,7 @@ function LibraryReader({
   setPageIndex: (n: number) => void;
   pages: typeof divinityPages;
 }) {
+  const { t } = useLexicon();
   const touchStartX = React.useRef(0);
   const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -273,8 +279,31 @@ function LibraryReader({
       <div className="min-h-[250px]" key={`lib-${section.id}-${pageIndex}`}>
         {bookPage ? (
           <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+            {/* Trinity above text for prelude pages 4 & 5 */}
+            {bookPage.id === "prelude-04" && (
+              <div className="flex flex-col items-center mb-6">
+                <SoITrinity
+                  labels={[t("trinity.human.top"), t("trinity.human.right"), t("trinity.human.left")]}
+                  color="#FF0000"
+                  textColor="white"
+                  size={160}
+                />
+                <p className="text-xs text-muted-foreground/60 mt-2">✦ {t("trinity.human.title")}</p>
+              </div>
+            )}
+            {bookPage.id === "prelude-05" && (
+              <div className="flex flex-col items-center mb-6">
+                <SoITrinity
+                  labels={[t("trinity.consciousness.top"), t("trinity.consciousness.right"), t("trinity.consciousness.left")]}
+                  color="#00FFFF"
+                  textColor="white"
+                  size={160}
+                />
+                <p className="text-xs text-muted-foreground/60 mt-2">✦ {t("trinity.consciousness.title")}</p>
+              </div>
+            )}
             {bookPage.text.split("\n").map((line, i) => {
-              // URL → styled external link
+              // URL → styled centered external link
               if (line.startsWith("http")) {
                 const label = line.includes("Divinity-Transformation") ? "Sacred Music & Transformation"
                   : line.includes("Loss-Love-Safety") ? "Love, Loss & Safety"
@@ -282,12 +311,14 @@ function LibraryReader({
                   : line.includes("Divine-Intelligence") ? "Divine Intelligence Equation"
                   : "Sacred Resource";
                 return (
-                  <a key={i} href={line.trim()} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-2 my-4 px-4 py-3 rounded-xl border bg-card hover:bg-accent/30 transition-colors group">
-                    <span className="text-lg">✦</span>
-                    <span className="text-sm font-medium group-hover:underline" style={{ color: section.color.stroke }}>{label}</span>
-                    <svg className="w-3 h-3 ml-auto text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                  </a>
+                  <div key={i} className="flex justify-center">
+                    <a href={line.trim()} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 my-4 px-4 py-3 rounded-xl border bg-card hover:bg-accent/30 transition-colors group">
+                      <span className="text-lg">✦</span>
+                      <span className="text-sm font-medium group-hover:underline" style={{ color: section.color.stroke }}>{label}</span>
+                      <svg className="w-3 h-3 ml-auto text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    </a>
+                  </div>
                 );
               }
               // Chapter heading → styled card (no chapter number shown)
