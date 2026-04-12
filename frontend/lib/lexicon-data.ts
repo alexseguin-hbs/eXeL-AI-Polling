@@ -138,6 +138,13 @@ const shared: TranslationEntry[] = [
   // Settings panel
   { key: "cube1.settings.pick_custom_color", englishDefault: "Pick custom accent color", context: "Custom color picker aria-label", cubeId: 1 },
   { key: "cube1.settings.cost_estimate_heading", englishDefault: "Cost Estimate (1,000 users)", context: "Cost estimate section heading", cubeId: 1 },
+  { key: "cube1.settings.cost_combo", englishDefault: "Combo", context: "Cost table column header — provider combo", cubeId: 1 },
+  { key: "cube1.settings.cost_summary", englishDefault: "Summary", context: "Cost table column header — summarization cost", cubeId: 1 },
+  { key: "cube1.settings.cost_v2t", englishDefault: "V2T", context: "Cost table column header — voice-to-text cost", cubeId: 1 },
+  { key: "cube1.settings.cost_total", englishDefault: "Total", context: "Cost table column header — total cost", cubeId: 1 },
+  { key: "cube1.settings.cost_default", englishDefault: "default", context: "Cost table default provider badge", cubeId: 1 },
+  { key: "cube1.settings.cost_note_formula", englishDefault: "Summary = Phase A summarization + Phase B theming (~30% overhead). V2T = 500 voice users × 0.74 min audio each.", context: "Cost table formula explanation", cubeId: 1 },
+  { key: "cube1.settings.cost_note_free", englishDefault: "Free tier (≤19 users): effectively $0.00 on any provider.", context: "Cost table free tier note", cubeId: 1 },
   // Error states
   { key: "shared.error.something_wrong", englishDefault: "Something went wrong", context: "Error boundary heading", cubeId: 0 },
   { key: "shared.error.unexpected", englishDefault: "An unexpected error occurred. Please try refreshing the page.", context: "Error boundary description", cubeId: 0 },

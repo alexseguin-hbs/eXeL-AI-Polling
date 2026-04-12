@@ -221,10 +221,10 @@ function CostEstimateTable() {
 
           {/* Table header */}
           <div className="grid grid-cols-4 gap-0 px-3 py-1.5 border-b border-border bg-muted/30 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-            <span>Combo</span>
-            <span className="text-right">Summary</span>
-            <span className="text-right">V2T</span>
-            <span className="text-right">Total</span>
+            <span>{t("cube1.settings.cost_combo")}</span>
+            <span className="text-right">{t("cube1.settings.cost_summary")}</span>
+            <span className="text-right">{t("cube1.settings.cost_v2t")}</span>
+            <span className="text-right">{t("cube1.settings.cost_total")}</span>
           </div>
 
           {/* Rows */}
@@ -242,7 +242,7 @@ function CostEstimateTable() {
                   {label}
                   {c.isDefault && (
                     <span className="text-[8px] bg-primary/20 text-primary rounded px-1 py-0.5 uppercase font-semibold">
-                      default
+                      {t("cube1.settings.cost_default")}
                     </span>
                   )}
                 </span>
@@ -264,11 +264,10 @@ function CostEstimateTable() {
           {/* Footer note */}
           <div className="px-3 py-2 bg-muted/30 space-y-1">
             <p className="text-[9px] text-muted-foreground">
-              Summary = Phase A summarization + Phase B theming (~30% overhead).
-              V2T = 500 voice users &times; 0.74 min audio each.
+              {t("cube1.settings.cost_note_formula")}
             </p>
             <p className="text-[9px] text-muted-foreground">
-              Free tier (&le;19 users): effectively $0.00 on any provider.
+              {t("cube1.settings.cost_note_free")}
             </p>
           </div>
         </div>
