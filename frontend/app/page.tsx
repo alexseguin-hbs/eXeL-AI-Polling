@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Users, Zap } from "lucide-react";
 import { useLexicon } from "@/lib/lexicon-context";
+import { useTheme } from "@/lib/theme-context";
 import { SoITrinity } from "@/components/soi-trinity";
 
 // 12 preset Trinities — cycle through on inner click
@@ -40,6 +41,7 @@ const COLOR_PALETTE = [
 
 export default function LandingPage() {
   const { t } = useLexicon();
+  const { currentTheme } = useTheme();
   const [trinityIndex, setTrinityIndex] = useState(0);
   const [customMode, setCustomMode] = useState(false);
   const [customLabels, setCustomLabels] = useState<[string, string, string]>(["YOUR", "WORDS", "HERE"]);
@@ -47,7 +49,8 @@ export default function LandingPage() {
 
   const currentPreset = TRINITY_PRESETS[trinityIndex];
   const displayLabels = customMode ? customLabels : currentPreset.labels;
-  const displayColor = customMode ? customColor : currentPreset.color;
+  // Preset mode: use moderator's theme color. Custom mode: user-picked color.
+  const displayColor = customMode ? customColor : currentTheme.swatch;
   const displayTitle = customMode ? "Your Trinity" : currentPreset.title;
 
   const handleInnerClick = () => {
