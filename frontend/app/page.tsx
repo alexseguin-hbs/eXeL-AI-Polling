@@ -120,24 +120,25 @@ export default function LandingPage() {
           <div className="relative w-full flex justify-center">
             {/* Inner rings clickable area (cycles presets) */}
             <div className="relative">
-              <SoITrinity
-                labels={displayLabels}
-                color={displayColor}
-                size={240}
-                className="trinity-export-target"
-              />
-              {/* Inner click zone — covers the 3 rings area */}
-              <button
-                onClick={handleInnerClick}
-                className="absolute top-[15%] left-[15%] w-[70%] h-[70%] rounded-full cursor-pointer z-10"
-                aria-label={customMode ? "Custom mode active" : `Next Trinity (${trinityIndex + 1}/12)`}
-              />
-              {/* Unity ring click zone — outer ring only */}
+              <div className="pointer-events-none">
+                <SoITrinity
+                  labels={displayLabels}
+                  color={displayColor}
+                  size={240}
+                  className="trinity-export-target"
+                />
+              </div>
+              {/* Unity ring click zone — outer area (behind inner) */}
               <button
                 onClick={handleUnityClick}
-                className="absolute inset-0 rounded-full z-0"
-                style={{ clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)" }}
+                className="absolute inset-0 rounded-full z-10 cursor-pointer"
                 aria-label={customMode ? "Exit custom mode" : "Create your own Trinity"}
+              />
+              {/* Inner click zone — covers the 3 rings, on top of unity zone */}
+              <button
+                onClick={handleInnerClick}
+                className="absolute top-[15%] left-[15%] w-[70%] h-[70%] rounded-full cursor-pointer z-20"
+                aria-label={customMode ? "Custom mode active" : `Next Trinity`}
               />
             </div>
           </div>
