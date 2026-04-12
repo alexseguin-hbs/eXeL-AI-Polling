@@ -15,7 +15,7 @@ import type divinityPages from "@/lib/divinity-pages.json";
 
 // ── Types ─────────────────────────────────────────────────────────
 
-type DivinityLang = "en" | "es" | "uk" | "ru" | "zh" | "fa" | "he" | "pt" | "km";
+type DivinityLang = "en" | "es" | "uk" | "ru" | "zh" | "fa" | "he" | "pt" | "km" | "ne";
 
 interface Chapter {
   id: number;
