@@ -20,18 +20,19 @@ const EXAMPLES: {
   color: string;
   title: string;
 }[] = [
-  { labels: ["WISDOM", "HARMONY", "CONNECTION"], color: "#10B981", title: "Consciousness" },
-  { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"], color: "#F59E0B", title: "Governance" },
-  { labels: ["LOVE", "SAFETY", "LOSS"], color: "#EF4444", title: "Human" },
-  { labels: ["ACTION", "FEELING", "THOUGHT"], color: "#6366F1", title: "Intelligence" },
-  { labels: ["H.I.", "S.I.", "A.I."], color: "#3B82F6", title: "Core Trinity" },
-  { labels: ["TRUTH", "BEAUTY", "GOODNESS"], color: "#14B8A6", title: "Platonic" },
-  { labels: ["TRANSFORM", "SUSTAIN", "CREATE"], color: "#EC4899", title: "Evolution" },
-  { labels: ["SPIRIT", "BODY", "MIND"], color: "#8B5CF6", title: "Wholeness" },
-  { labels: ["PRESENT", "FUTURE", "PAST"], color: "#F97316", title: "Temporal" },
-  { labels: ["SON", "MOTHER", "FATHER"], color: "#A855F7", title: "Sacred Family" },
-  { labels: ["ACT", "DECIDE", "OBSERVE"], color: "#84CC16", title: "OODA Loop" },
-  { labels: ["SHARE", "GIVE", "RECEIVE"], color: "#22D3EE", title: "Abundance" },
+  //                     [TOP,          RIGHT,        LEFT]         Table: Top/Left/Right
+  { labels: ["WISDOM",     "HARMONY",    "CONNECTION"],  color: "#10B981", title: "Consciousness" },
+  { labels: ["LEADERSHIP", "INTEGRATION","ADAPTATION"],  color: "#F59E0B", title: "Governance" },
+  { labels: ["LOVE",       "SAFETY",     "LOSS"],        color: "#EF4444", title: "Human" },
+  { labels: ["ACTION",     "FEELING",    "THOUGHT"],     color: "#6366F1", title: "Intelligence" },
+  { labels: ["H.I.",       "S.I.",       "A.I."],        color: "#3B82F6", title: "Core Trinity" },
+  { labels: ["TRUTH",      "BEAUTY",     "GOODNESS"],    color: "#14B8A6", title: "Platonic" },
+  { labels: ["TRANSFORM",  "SUSTAIN",    "CREATE"],      color: "#EC4899", title: "Evolution" },
+  { labels: ["SPIRIT",     "BODY",       "MIND"],        color: "#8B5CF6", title: "Wholeness" },
+  { labels: ["PRESENT",    "FUTURE",     "PAST"],        color: "#F97316", title: "Temporal" },
+  { labels: ["SON",        "MOTHER",     "FATHER"],      color: "#A855F7", title: "Sacred Family" },
+  { labels: ["ACT",        "DECIDE",     "OBSERVE"],     color: "#84CC16", title: "OODA Loop" },
+  { labels: ["SHARE",      "GIVE",       "RECEIVE"],     color: "#22D3EE", title: "Abundance" },
 ];
 
 export default function TrinityReviewPage() {
