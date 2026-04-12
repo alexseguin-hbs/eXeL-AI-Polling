@@ -184,12 +184,31 @@ export default function LandingPage() {
                   className="w-6 h-6 rounded-full cursor-pointer border-0 p-0" title="Custom color" />
               </div>
 
-              {/* Download PNG (transparent background) */}
+              {/* Download PNG (black/background → transparent) */}
               <button
                 onClick={() => {
                   const svgEl = document.querySelector(".trinity-export-target");
                   if (!svgEl) return;
-                  const svgData = new XMLSerializer().serializeToString(svgEl);
+                  // Clone SVG and replace background color with transparent for export
+                  const clone = svgEl.cloneNode(true) as SVGElement;
+                  // Replace all var(--background) and dark bg strokes with transparent
+                  clone.querySelectorAll("circle, rect, path").forEach((el) => {
+                    const stroke = el.getAttribute("stroke") || "";
+                    const fill = el.getAttribute("fill") || "";
+                    if (stroke.includes("var(--background") || stroke.includes("#0a1628")) {
+                      el.setAttribute("stroke", "transparent");
+                    }
+                    if (fill.includes("var(--background") || fill.includes("#0a1628")) {
+                      el.setAttribute("fill", "transparent");
+                    }
+                  });
+                  // Also handle inline styles
+                  clone.querySelectorAll("[style]").forEach((el) => {
+                    const s = (el as HTMLElement).style;
+                    if (s.stroke?.includes("var(--background")) s.stroke = "transparent";
+                    if (s.fill?.includes("var(--background")) s.fill = "transparent";
+                  });
+                  const svgData = new XMLSerializer().serializeToString(clone);
                   const canvas = document.createElement("canvas");
                   canvas.width = 960; canvas.height = 960;
                   const ctx = canvas.getContext("2d");
