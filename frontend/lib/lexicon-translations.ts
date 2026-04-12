@@ -704,6 +704,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Lancer le test Spiral 100 utilisateurs",
     "cube1.dashboard.placeholder_unlimited": "Illimité",
     "cube1.dashboard.reset_demo": "Réinitialiser la démo",
+    "cube1.settings.cost_combo": "Combinaison",
+    "cube1.settings.cost_summary": "Résumé",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Total",
+    "cube1.settings.cost_default": "défaut",
+    "cube1.settings.cost_note_formula": "Résumé = Phase A (résumé) + Phase B (thématisation ~30% surcroît). V2T = 500 utilisateurs vocaux × 0,74 min audio chacun.",
+    "cube1.settings.cost_note_free": "Niveau gratuit (≤19 utilisateurs) : effectivement 0,00 $ sur tout fournisseur.",
   },
 
   // ── Spanish (es) ───────────────────────────────────────────────
@@ -1401,6 +1408,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Ejecutar prueba Spiral de 100 usuarios",
     "cube1.dashboard.placeholder_unlimited": "Ilimitado",
     "cube1.dashboard.reset_demo": "Reiniciar demo",
+    "cube1.settings.cost_combo": "Combinación",
+    "cube1.settings.cost_summary": "Resumen",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Total",
+    "cube1.settings.cost_default": "predeterminado",
+    "cube1.settings.cost_note_formula": "Resumen = Fase A (resumen) + Fase B (tematización ~30% adicional). V2T = 500 usuarios de voz × 0,74 min audio cada uno.",
+    "cube1.settings.cost_note_free": "Nivel gratis (≤19 usuarios): efectivamente $0,00 en cualquier proveedor.",
   },
 
   // ── German (de) ────────────────────────────────────────
@@ -2098,6 +2112,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "100-Benutzer-Spiral-Test starten",
     "cube1.dashboard.placeholder_unlimited": "Unbegrenzt",
     "cube1.dashboard.reset_demo": "Demo zurücksetzen",
+    "cube1.settings.cost_combo": "Kombination",
+    "cube1.settings.cost_summary": "Zusammenfassung",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Gesamt",
+    "cube1.settings.cost_default": "Standard",
+    "cube1.settings.cost_note_formula": "Zusammenfassung = Phase A + Phase B (~30% Overhead). V2T = 500 Sprachnutzer × 0,74 Min Audio.",
+    "cube1.settings.cost_note_free": "Kostenlose Stufe (≤19 Benutzer): effektiv $0,00 bei jedem Anbieter.",
   },
 
   // ── Italian (it) ───────────────────────────────────────
@@ -2795,6 +2816,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Esegui test Spiral 100 utenti",
     "cube1.dashboard.placeholder_unlimited": "Illimitato",
     "cube1.dashboard.reset_demo": "Reimposta demo",
+    "cube1.settings.cost_combo": "Combinazione",
+    "cube1.settings.cost_summary": "Riepilogo",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Totale",
+    "cube1.settings.cost_default": "predefinito",
+    "cube1.settings.cost_note_formula": "Riepilogo = Fase A + Fase B (~30% overhead). V2T = 500 utenti vocali × 0,74 min audio.",
+    "cube1.settings.cost_note_free": "Livello gratuito (≤19 utenti): effettivamente $0,00 con qualsiasi provider.",
   },
 
   // ── Portuguese (pt) ────────────────────────────────────
@@ -3492,6 +3520,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Executar teste Spiral 100 usuários",
     "cube1.dashboard.placeholder_unlimited": "Ilimitado",
     "cube1.dashboard.reset_demo": "Redefinir demo",
+    "cube1.settings.cost_combo": "Combinação",
+    "cube1.settings.cost_summary": "Resumo",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Total",
+    "cube1.settings.cost_default": "padrão",
+    "cube1.settings.cost_note_formula": "Resumo = Fase A + Fase B (~30% overhead). V2T = 500 usuários de voz × 0,74 min áudio.",
+    "cube1.settings.cost_note_free": "Nível grátis (≤19 usuários): efetivamente $0,00 em qualquer provedor.",
   },
 
   // ── Russian (ru) ───────────────────────────────────────
@@ -4189,6 +4224,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Запустить тест Spiral на 100 пользователей",
     "cube1.dashboard.placeholder_unlimited": "Неограниченно",
     "cube1.dashboard.reset_demo": "Сбросить демо",
+    "cube1.settings.cost_combo": "Комбинация",
+    "cube1.settings.cost_summary": "Резюме",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Итого",
+    "cube1.settings.cost_default": "по умолчанию",
+    "cube1.settings.cost_note_formula": "Резюме = Фаза A + Фаза B (~30% наценка). V2T = 500 голосовых пользователей × 0,74 мин аудио.",
+    "cube1.settings.cost_note_free": "Бесплатный тариф (≤19 пользователей): фактически $0,00 у любого провайдера.",
   },
 
   // ── Dutch (nl) ─────────────────────────────────────────
@@ -4886,6 +4928,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "100-gebruiker Spiral-test starten",
     "cube1.dashboard.placeholder_unlimited": "Onbeperkt",
     "cube1.dashboard.reset_demo": "Demo resetten",
+    "cube1.settings.cost_combo": "Combinatie",
+    "cube1.settings.cost_summary": "Samenvatting",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Totaal",
+    "cube1.settings.cost_default": "standaard",
+    "cube1.settings.cost_note_formula": "Samenvatting = Fase A + Fase B (~30% overhead). V2T = 500 spraakgebruikers × 0,74 min audio.",
+    "cube1.settings.cost_note_free": "Gratis niveau (≤19 gebruikers): effectief $0,00 bij elke provider.",
   },
 
   // ── Chinese (zh) ───────────────────────────────────────
@@ -5583,6 +5632,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "运行100用户螺旋测试",
     "cube1.dashboard.placeholder_unlimited": "无限制",
     "cube1.dashboard.reset_demo": "重置演示",
+    "cube1.settings.cost_combo": "组合",
+    "cube1.settings.cost_summary": "摘要",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "合计",
+    "cube1.settings.cost_default": "默认",
+    "cube1.settings.cost_note_formula": "摘要 = 阶段A + 阶段B（~30%开销）。V2T = 500语音用户 × 0.74分钟音频。",
+    "cube1.settings.cost_note_free": "免费层（≤19用户）：所有提供商实际 $0.00。",
   },
 
   // ── Japanese (ja) ──────────────────────────────────────
@@ -6280,6 +6336,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "100ユーザーSpiralテストを実行",
     "cube1.dashboard.placeholder_unlimited": "無制限",
     "cube1.dashboard.reset_demo": "デモをリセット",
+    "cube1.settings.cost_combo": "組合",
+    "cube1.settings.cost_summary": "要約",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "合計",
+    "cube1.settings.cost_default": "デフォルト",
+    "cube1.settings.cost_note_formula": "要約 = フェーズA + フェーズB（~30%オーバーヘッド）。V2T = 500音声ユーザー × 0.74分。",
+    "cube1.settings.cost_note_free": "無料プラン（≤19ユーザー）：どのプロバイダでも実質 $0.00。",
   },
 
   // ── Korean (ko) ────────────────────────────────────────
@@ -6977,6 +7040,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "100명 Spiral 테스트 실행",
     "cube1.dashboard.placeholder_unlimited": "무제한",
     "cube1.dashboard.reset_demo": "데모 초기화",
+    "cube1.settings.cost_combo": "조합",
+    "cube1.settings.cost_summary": "요약",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "합계",
+    "cube1.settings.cost_default": "기본",
+    "cube1.settings.cost_note_formula": "요약 = Phase A + Phase B (~30% 오버헤드). V2T = 500 음성 사용자 × 0.74분 오디오.",
+    "cube1.settings.cost_note_free": "무료 티어(≤19명): 모든 제공업체에서 실질 $0.00.",
   },
 
   // ── Arabic (ar) ────────────────────────────────────────
@@ -7674,6 +7744,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "تشغيل اختبار حلزوني لـ100 مستخدم",
     "cube1.dashboard.placeholder_unlimited": "غير محدود",
     "cube1.dashboard.reset_demo": "إعادة تعيين العرض",
+    "cube1.settings.cost_combo": "مجموعة",
+    "cube1.settings.cost_summary": "ملخص",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "المجموع",
+    "cube1.settings.cost_default": "افتراضي",
+    "cube1.settings.cost_note_formula": "الملخص = المرحلة أ + المرحلة ب (~30% إضافية). V2T = 500 مستخدم صوتي × 0.74 دقيقة.",
+    "cube1.settings.cost_note_free": "المستوى المجاني (≤19 مستخدمًا): $0.00 فعليًا على أي مزود.",
   },
 
   // ── Hindi (hi) ─────────────────────────────────────────
@@ -8371,6 +8448,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "100 यूज़र स्पाइरल टेस्ट चलाएँ",
     "cube1.dashboard.placeholder_unlimited": "असीमित",
     "cube1.dashboard.reset_demo": "डेमो रीसेट करें",
+    "cube1.settings.cost_combo": "संयोजन",
+    "cube1.settings.cost_summary": "सारांश",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "कुल",
+    "cube1.settings.cost_default": "डिफ़ॉल्ट",
+    "cube1.settings.cost_note_formula": "सारांश = चरण A + चरण B (~30% ओवरहेड)। V2T = 500 वॉइस उपयोगकर्ता × 0.74 मिनट ऑडियो।",
+    "cube1.settings.cost_note_free": "मुफ़्त स्तर (≤19 उपयोगकर्ता): किसी भी प्रदाता पर प्रभावी $0.00।",
   },
 
   // ── Bengali (bn) ───────────────────────────────────────
@@ -9068,6 +9152,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "100 ব্যবহারকারী স্পাইরাল টেস্ট চালান",
     "cube1.dashboard.placeholder_unlimited": "সীমাহীন",
     "cube1.dashboard.reset_demo": "ডেমো রিসেট করুন",
+    "cube1.settings.cost_combo": "সংমিশ্রণ",
+    "cube1.settings.cost_summary": "সারাংশ",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "মোট",
+    "cube1.settings.cost_default": "ডিফল্ট",
+    "cube1.settings.cost_note_formula": "সারাংশ = ফেজ A + ফেজ B (~30% ওভারহেড)। V2T = 500 ভয়েস ব্যবহারকারী × 0.74 মিনিট।",
+    "cube1.settings.cost_note_free": "বিনামূল্যে স্তর (≤19): যেকোনো প্রদানকারীতে $0.00।",
   },
 
   // ── Punjabi (pa) ───────────────────────────────────────
@@ -9765,6 +9856,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "100 ਉਪਭੋਗਤਾ ਸਪਾਇਰਲ ਟੈਸਟ ਚਲਾਓ",
     "cube1.dashboard.placeholder_unlimited": "ਅਸੀਮਤ",
     "cube1.dashboard.reset_demo": "ਡੈਮੋ ਰੀਸੈੱਟ ਕਰੋ",
+    "cube1.settings.cost_combo": "ਸੰਯੋਜਨ",
+    "cube1.settings.cost_summary": "ਸਾਰ",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "ਕੁੱਲ",
+    "cube1.settings.cost_default": "ਡਿਫਾਲਟ",
+    "cube1.settings.cost_note_formula": "ਸਾਰ = ਫੇਜ਼ A + ਫੇਜ਼ B (~30% ਓਵਰਹੈੱਡ)। V2T = 500 ਵੌਇਸ × 0.74 ਮਿੰਟ।",
+    "cube1.settings.cost_note_free": "ਮੁਫ਼ਤ ਪੱਧਰ (≤19): ਕਿਸੇ ਵੀ ਪ੍ਰਦਾਤਾ 'ਤੇ $0.00।",
   },
 
   // ── Thai (th) ──────────────────────────────────────────
@@ -10462,6 +10560,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "รัน Spiral Test 100 ผู้ใช้",
     "cube1.dashboard.placeholder_unlimited": "ไม่จำกัด",
     "cube1.dashboard.reset_demo": "รีเซ็ตเดโม",
+    "cube1.settings.cost_combo": "คอมโบ",
+    "cube1.settings.cost_summary": "สรุป",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "รวม",
+    "cube1.settings.cost_default": "ค่าเริ่มต้น",
+    "cube1.settings.cost_note_formula": "สรุป = เฟส A + เฟส B (~30%) V2T = 500 ผู้ใช้เสียง × 0.74 นาที",
+    "cube1.settings.cost_note_free": "ระดับฟรี (≤19 ผู้ใช้): $0.00 ทุกผู้ให้บริการ",
   },
 
   // ── Vietnamese (vi) ────────────────────────────────────
@@ -11159,6 +11264,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Chạy kiểm thử Spiral 100 người",
     "cube1.dashboard.placeholder_unlimited": "Không giới hạn",
     "cube1.dashboard.reset_demo": "Đặt lại demo",
+    "cube1.settings.cost_combo": "Kết hợp",
+    "cube1.settings.cost_summary": "Tóm tắt",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Tổng",
+    "cube1.settings.cost_default": "mặc định",
+    "cube1.settings.cost_note_formula": "Tóm tắt = Pha A + Pha B (~30%). V2T = 500 người dùng giọng nói × 0,74 phút.",
+    "cube1.settings.cost_note_free": "Gói miễn phí (≤19 người): $0.00 trên mọi nhà cung cấp.",
   },
 
   // ── Indonesian (id) ────────────────────────────────────
@@ -11856,6 +11968,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Jalankan Spiral Test 100 pengguna",
     "cube1.dashboard.placeholder_unlimited": "Tak terbatas",
     "cube1.dashboard.reset_demo": "Reset demo",
+    "cube1.settings.cost_combo": "Kombo",
+    "cube1.settings.cost_summary": "Ringkasan",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Total",
+    "cube1.settings.cost_default": "default",
+    "cube1.settings.cost_note_formula": "Ringkasan = Fase A + Fase B (~30%). V2T = 500 pengguna suara × 0,74 menit.",
+    "cube1.settings.cost_note_free": "Tier gratis (≤19): $0,00 di semua penyedia.",
   },
 
   // ── Malay (ms) ─────────────────────────────────────────
@@ -12553,6 +12672,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Jalankan Ujian Spiral 100 pengguna",
     "cube1.dashboard.placeholder_unlimited": "Tanpa had",
     "cube1.dashboard.reset_demo": "Set semula demo",
+    "cube1.settings.cost_combo": "Kombo",
+    "cube1.settings.cost_summary": "Ringkasan",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Jumlah",
+    "cube1.settings.cost_default": "lalai",
+    "cube1.settings.cost_note_formula": "Ringkasan = Fasa A + Fasa B (~30%). V2T = 500 pengguna suara × 0.74 minit.",
+    "cube1.settings.cost_note_free": "Tahap percuma (≤19): $0.00 pada semua pembekal.",
   },
 
   // ── Filipino (tl) ──────────────────────────────────────
@@ -13250,6 +13376,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Patakbuhin ang 100-User Spiral Test",
     "cube1.dashboard.placeholder_unlimited": "Walang limitasyon",
     "cube1.dashboard.reset_demo": "I-reset ang demo",
+    "cube1.settings.cost_combo": "Kombo",
+    "cube1.settings.cost_summary": "Buod",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Kabuuan",
+    "cube1.settings.cost_default": "default",
+    "cube1.settings.cost_note_formula": "Buod = Phase A + Phase B (~30%). V2T = 500 voice users × 0.74 min.",
+    "cube1.settings.cost_note_free": "Free tier (≤19): $0.00 sa lahat ng provider.",
   },
 
   // ── Turkish (tr) ───────────────────────────────────────
@@ -13947,6 +14080,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "100 Kullanıcı Spiral Testi çalıştır",
     "cube1.dashboard.placeholder_unlimited": "Sınırsız",
     "cube1.dashboard.reset_demo": "Demoyu sıfırla",
+    "cube1.settings.cost_combo": "Kombo",
+    "cube1.settings.cost_summary": "Özet",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Toplam",
+    "cube1.settings.cost_default": "varsayılan",
+    "cube1.settings.cost_note_formula": "Özet = Faz A + Faz B (~%30). V2T = 500 ses kullanıcısı × 0,74 dk.",
+    "cube1.settings.cost_note_free": "Ücretsiz katman (≤19): tüm sağlayıcılarda $0,00.",
   },
 
   // ── Polish (pl) ────────────────────────────────────────
@@ -14644,6 +14784,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Uruchom test Spiral 100 użytkowników",
     "cube1.dashboard.placeholder_unlimited": "Nieograniczone",
     "cube1.dashboard.reset_demo": "Zresetuj demo",
+    "cube1.settings.cost_combo": "Kombinacja",
+    "cube1.settings.cost_summary": "Podsumowanie",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Suma",
+    "cube1.settings.cost_default": "domyślny",
+    "cube1.settings.cost_note_formula": "Podsumowanie = Faza A + Faza B (~30%). V2T = 500 użytkowników głosowych × 0,74 min.",
+    "cube1.settings.cost_note_free": "Bezpłatny (≤19): $0,00 u każdego dostawcy.",
   },
 
   // ── Ukrainian (uk) ─────────────────────────────────────
@@ -15341,6 +15488,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Запустити Spiral тест на 100 користувачів",
     "cube1.dashboard.placeholder_unlimited": "Необмежено",
     "cube1.dashboard.reset_demo": "Скинути демо",
+    "cube1.settings.cost_combo": "Комбінація",
+    "cube1.settings.cost_summary": "Резюме",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Всього",
+    "cube1.settings.cost_default": "за замовчуванням",
+    "cube1.settings.cost_note_formula": "Резюме = Фаза A + Фаза B (~30%). V2T = 500 голосових × 0,74 хв.",
+    "cube1.settings.cost_note_free": "Безкоштовний (≤19): $0,00 у будь-якого провайдера.",
   },
 
   // ── Romanian (ro) ──────────────────────────────────────
@@ -16038,6 +16192,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Rulați testul Spiral cu 100 utilizatori",
     "cube1.dashboard.placeholder_unlimited": "Nelimitat",
     "cube1.dashboard.reset_demo": "Resetare demo",
+    "cube1.settings.cost_combo": "Combinație",
+    "cube1.settings.cost_summary": "Rezumat",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Total",
+    "cube1.settings.cost_default": "implicit",
+    "cube1.settings.cost_note_formula": "Rezumat = Faza A + Faza B (~30%). V2T = 500 utilizatori voce × 0,74 min.",
+    "cube1.settings.cost_note_free": "Nivel gratuit (≤19): $0,00 la orice furnizor.",
   },
 
   // ── Greek (el) ─────────────────────────────────────────
@@ -16735,6 +16896,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Εκτέλεση Spiral Test 100 χρηστών",
     "cube1.dashboard.placeholder_unlimited": "Απεριόριστο",
     "cube1.dashboard.reset_demo": "Επαναφορά demo",
+    "cube1.settings.cost_combo": "Συνδυασμός",
+    "cube1.settings.cost_summary": "Περίληψη",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Σύνολο",
+    "cube1.settings.cost_default": "προεπιλογή",
+    "cube1.settings.cost_note_formula": "Περίληψη = Φάση A + Φάση B (~30%). V2T = 500 χρήστες φωνής × 0,74 λεπτά.",
+    "cube1.settings.cost_note_free": "Δωρεάν (≤19): $0,00 σε κάθε πάροχο.",
   },
 
   // ── Czech (cs) ─────────────────────────────────────────
@@ -17432,6 +17600,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Spustit Spiral test 100 uživatelů",
     "cube1.dashboard.placeholder_unlimited": "Neomezeno",
     "cube1.dashboard.reset_demo": "Resetovat demo",
+    "cube1.settings.cost_combo": "Kombinace",
+    "cube1.settings.cost_summary": "Shrnutí",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Celkem",
+    "cube1.settings.cost_default": "výchozí",
+    "cube1.settings.cost_note_formula": "Shrnutí = Fáze A + Fáze B (~30%). V2T = 500 hlasových × 0,74 min.",
+    "cube1.settings.cost_note_free": "Zdarma (≤19): $0,00 u libovolného poskytovatele.",
   },
 
   // ── Swedish (sv) ───────────────────────────────────────
@@ -18129,6 +18304,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Kör 100-användares Spiral-test",
     "cube1.dashboard.placeholder_unlimited": "Obegränsat",
     "cube1.dashboard.reset_demo": "Återställ demo",
+    "cube1.settings.cost_combo": "Kombination",
+    "cube1.settings.cost_summary": "Sammanfattning",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Totalt",
+    "cube1.settings.cost_default": "standard",
+    "cube1.settings.cost_note_formula": "Sammanfattning = Fas A + Fas B (~30%). V2T = 500 röstanvändare × 0,74 min.",
+    "cube1.settings.cost_note_free": "Gratis (≤19): $0,00 hos alla leverantörer.",
   },
 
   // ── Danish (da) ────────────────────────────────────────
@@ -18826,6 +19008,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Kør 100-bruger Spiral-test",
     "cube1.dashboard.placeholder_unlimited": "Ubegrænset",
     "cube1.dashboard.reset_demo": "Nulstil demo",
+    "cube1.settings.cost_combo": "Kombination",
+    "cube1.settings.cost_summary": "Resumé",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Total",
+    "cube1.settings.cost_default": "standard",
+    "cube1.settings.cost_note_formula": "Resumé = Fase A + Fase B (~30%). V2T = 500 stemmebrugere × 0,74 min.",
+    "cube1.settings.cost_note_free": "Gratis (≤19): $0,00 hos alle udbydere.",
   },
 
   // ── Finnish (fi) ───────────────────────────────────────
@@ -19523,6 +19712,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Suorita 100 käyttäjän Spiral-testi",
     "cube1.dashboard.placeholder_unlimited": "Rajoittamaton",
     "cube1.dashboard.reset_demo": "Nollaa demo",
+    "cube1.settings.cost_combo": "Yhdistelmä",
+    "cube1.settings.cost_summary": "Yhteenveto",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Yhteensä",
+    "cube1.settings.cost_default": "oletus",
+    "cube1.settings.cost_note_formula": "Yhteenveto = Vaihe A + Vaihe B (~30%). V2T = 500 äänikäyttäjää × 0,74 min.",
+    "cube1.settings.cost_note_free": "Ilmainen (≤19): $0,00 kaikilla palveluntarjoajilla.",
   },
 
   // ── Norwegian (no) ─────────────────────────────────────
@@ -20220,6 +20416,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "Kjør 100-bruker Spiral-test",
     "cube1.dashboard.placeholder_unlimited": "Ubegrenset",
     "cube1.dashboard.reset_demo": "Tilbakestill demo",
+    "cube1.settings.cost_combo": "Kombinasjon",
+    "cube1.settings.cost_summary": "Sammendrag",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Totalt",
+    "cube1.settings.cost_default": "standard",
+    "cube1.settings.cost_note_formula": "Sammendrag = Fase A + Fase B (~30%). V2T = 500 stemmebrukere × 0,74 min.",
+    "cube1.settings.cost_note_free": "Gratis (≤19): $0,00 hos alle leverandører.",
   },
 
   // ── Hebrew (he) ────────────────────────────────────────
@@ -20917,6 +21120,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube1.dashboard.run_spiral_test": "הרץ מבחן ספירלי של 100 משתמשים",
     "cube1.dashboard.placeholder_unlimited": "ללא הגבלה",
     "cube1.dashboard.reset_demo": "אפס דמו",
+    "cube1.settings.cost_combo": "שילוב",
+    "cube1.settings.cost_summary": "סיכום",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "סה\"כ",
+    "cube1.settings.cost_default": "ברירת מחדל",
+    "cube1.settings.cost_note_formula": "סיכום = שלב A + שלב B (~30%). V2T = 500 משתמשי קול × 0.74 דק'.",
+    "cube1.settings.cost_note_free": "חינם (≤19): $0.00 בכל ספק.",
   },
 
   // ── Swahili (sw) ───────────────────────────────────────
@@ -21614,6 +21824,13 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.settings.v2t_pricing": "Makisio ya Gharama",
     "cube3.settings.v2t_estimate_title": "Gharama inayokadiriwa kwa watumiaji 1,000 (wastani wa dakika 2)",
     "cube3.settings.v2t_estimate_note": "Kulingana na makadirio ya dakika 2 ya sauti kwa mtumiaji. Gharama halisi hutofautiana.",
+    "cube1.settings.cost_combo": "Mchanganyiko",
+    "cube1.settings.cost_summary": "Muhtasari",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "Jumla",
+    "cube1.settings.cost_default": "chaguo-msingi",
+    "cube1.settings.cost_note_formula": "Muhtasari = Awamu A + Awamu B (~30%). V2T = watumiaji 500 wa sauti × dak. 0.74.",
+    "cube1.settings.cost_note_free": "Bure (≤19): $0.00 kwa mtoa huduma yeyote.",
   },
 
   // ── Nepali (ne) ────────────────────────────────────────
@@ -22311,5 +22528,12 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
     "cube3.settings.v2t_pricing": "लागत अनुमान",
     "cube3.settings.v2t_estimate_title": "अनुमानित लागत प्रति 1,000 प्रयोगकर्ता (औसत 2 मिनेट)",
     "cube3.settings.v2t_estimate_note": "प्रति प्रयोगकर्ता ~2 मिनेट आवाज प्रतिक्रियामा आधारित। वास्तविक लागत भिन्न हुन सक्छ।",
+    "cube1.settings.cost_combo": "संयोजन",
+    "cube1.settings.cost_summary": "सारांश",
+    "cube1.settings.cost_v2t": "V2T",
+    "cube1.settings.cost_total": "कुल",
+    "cube1.settings.cost_default": "पूर्वनिर्धारित",
+    "cube1.settings.cost_note_formula": "सारांश = फेज A + फेज B (~30%)। V2T = 500 भ्वाइस प्रयोगकर्ता × 0.74 मिनेट।",
+    "cube1.settings.cost_note_free": "निःशुल्क (≤19): कुनै पनि प्रदायकमा $0.00।",
   },
 };
