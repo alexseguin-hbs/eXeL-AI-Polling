@@ -80,8 +80,9 @@ export function Navbar({ sessionTitle }: NavbarProps) {
           <div className="ml-auto flex items-center gap-2">
             <TokenHUD />
 
-            {/* Language selector — always visible (landing page + session + moderator) */}
-            <div className="relative">
+            {/* Language selector — visible only when NOT authenticated (visitors + pollers) */}
+            {/* Moderators access language via Settings panel — no redundant Globe icon */}
+            {!isAuthenticated && <div className="relative">
               <Button
                 variant="ghost"
                 size="sm"
@@ -120,7 +121,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                   </div>
                 </>
               )}
-            </div>
+            </div>}
 
             {/* Settings menu — visible for ALL users (polling + moderator) */}
             {showSettings && !isAuthenticated && (
