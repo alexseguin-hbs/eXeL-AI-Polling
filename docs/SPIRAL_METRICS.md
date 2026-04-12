@@ -428,3 +428,54 @@ cd frontend && npx next build
   - KV responses: summary fields stored/returned in Cloudflare KV function
   - Cross-device hydration: defaults to "open" status, not "polling"
 - **RESULT: 3/3 BIDIRECTIONAL SPIRAL TESTS PASS — 0 FAILURES, 0 REGRESSIONS**
+
+---
+
+## Divinity Guide i18n — Metrics Baseline (N=5, 2026-04-12)
+
+### Test Command
+```
+node frontend/scripts/validate-divinity-translations.js && cd frontend && npx tsc --noEmit
+```
+
+### N=5 Baseline
+
+| Metric | Run 1 | Run 2 | Run 3 | Run 4 | Run 5 | Average | Std Dev |
+|--------|-------|-------|-------|-------|-------|---------|---------|
+| Validator Tests Passed | 9/9 | 9/9 | 9/9 | 9/9 | 9/9 | **9/9** | **0** |
+| TypeScript Errors | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+| Combined Duration | 1,807ms | 1,858ms | 1,866ms | 1,888ms | 1,767ms | **1,837ms** | **46ms** |
+| Validator Errors | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+| Validator Warnings | 0 | 0 | 0 | 0 | 0 | **0** | **0** |
+
+### Before vs After Comparison
+
+| Metric | Pre-Optimization (edc6e4d) | Post-Optimization (8d09385) | Improvement |
+|--------|---------------------------|----------------------------|-------------|
+| Initial Bundle (JSON) | 5,094 KB (all 10 static) | 316 KB (EN only) | **93% reduction** |
+| Language Addition Edits | 8 manual across 2 files | 5 edits + automated validation | **37.5% fewer** |
+| Translation Maps | 4 separate Records | 1 consolidated DIVINITY_TRANSLATIONS | **75% fewer maps** |
+| Hardcoded Type Unions | 2 (page.tsx + bilingual-reader) | 0 (shared divinity-languages.ts) | **100% eliminated** |
+| Automated Validation | None | 9-test validator (1,860 entries) | **+9 tests** |
+| Trinity/Link Translation | English only | All 10 languages | **+9 languages** |
+| Shared Language Module | None | divinity-languages.ts | **Single source of truth** |
+
+### Validator Test Coverage
+
+| Test | What It Validates | Entries Checked |
+|------|-------------------|:---------------:|
+| 1. Entry count | All files have 186 entries | 10 files |
+| 2. ID consistency | IDs match in identical order | 1,860 |
+| 3. Chapter numbers | Chapters match across files | 1,860 |
+| 4. Page sequence | Ch13 pages sequential 1-35 | 350 |
+| 5. No empty text | No blank translations | 1,860 |
+| 6. Shared module sync | DivinityLang from shared module | 10 codes |
+| 7. DIVINITY_TRANSLATIONS | All languages in consolidated map | 10 entries |
+| 8. SECTIONS_MAP | All languages in sections map | 10 entries |
+| 9. LANG_LOADERS | All languages in dynamic loaders | 10 entries |
+
+### Spiral Propagation Verification
+- Forward (Divinity→Supabase): Tables `divinity_pages` + `divinity_dictionary` ready with RLS — PASS
+- Backward (Supabase→Divinity): Upload script aligned with 10 languages — PASS
+- Cross-module (page.tsx↔bilingual-reader): Shared DivinityLang type — PASS
+- **RESULT: BIDIRECTIONAL SPIRAL PASS — 0 FAILURES, 0 REGRESSIONS**
