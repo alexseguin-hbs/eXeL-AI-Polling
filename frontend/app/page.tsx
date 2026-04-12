@@ -89,8 +89,8 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Session Code Input */}
-        <div className="w-full max-w-3xl mb-10 px-2 sm:px-0">
+        {/* Session Code Input — same width as features grid */}
+        <div className="w-full max-w-3xl mb-10">
           <SessionCodeInput />
         </div>
 

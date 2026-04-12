@@ -47,15 +47,15 @@ export function SessionCodeInput() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto">
+    <form onSubmit={handleSubmit} className="w-full mx-auto">
       <div className="flex flex-col items-center gap-4">
         <label
           htmlFor="session-code"
-          className="text-lg font-medium text-muted-foreground"
+          className="text-lg font-medium text-muted-foreground text-center"
         >
           {t("cube1.join.enter_code")}
         </label>
-        <div className="flex w-full gap-1.5 justify-center">
+        <div className="flex w-full gap-1.5">
           <input
             ref={inputRef}
             id="session-code"
