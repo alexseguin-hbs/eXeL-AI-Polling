@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { LogOut, User, Menu, Settings, Code } from "lucide-react";
+import { LogOut, User, Menu, Settings, Code, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeratorSettings } from "@/components/moderator-settings";
 import { TokenHUD } from "@/components/token-hud";
@@ -20,7 +20,8 @@ export function Navbar({ sessionTitle }: NavbarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [apiSdkOpen, setApiSdkOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const { t } = useLexicon();
+  const [langOpen, setLangOpen] = useState(false);
+  const { t, activeLocale, setActiveLocale, languages } = useLexicon();
   const { currentTheme } = useTheme();
 
   let simulationMode = false;
@@ -78,6 +79,48 @@ export function Navbar({ sessionTitle }: NavbarProps) {
 
           <div className="ml-auto flex items-center gap-2">
             <TokenHUD />
+
+            {/* Language selector — always visible (landing page + session + moderator) */}
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLangOpen((p) => !p)}
+                title={t("cube1.join.select_language")}
+                className="flex items-center gap-1"
+              >
+                <Globe className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs uppercase">{activeLocale}</span>
+              </Button>
+              {langOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
+                  <div className="absolute right-0 top-full z-50 mt-1 w-56 max-h-80 overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
+                    {(() => {
+                      const pinnedCodes = ["en", "es"];
+                      const approved = languages.filter((l) => l.status === "approved");
+                      const pinned = pinnedCodes.map((c) => approved.find((l) => l.code === c)).filter(Boolean) as typeof approved;
+                      const rest = approved.filter((l) => !pinnedCodes.includes(l.code)).sort((a, b) => a.nameNative.localeCompare(b.nameNative));
+                      const sorted = [...pinned, ...rest];
+                      return sorted.map((lang, i) => (
+                        <div key={lang.code}>
+                          <button
+                            onClick={() => { setActiveLocale(lang.code); setLangOpen(false); }}
+                            className={`flex w-full items-center gap-2 rounded-sm px-3 py-1.5 text-sm hover:bg-accent ${activeLocale === lang.code ? "bg-accent font-medium" : ""}`}
+                          >
+                            <span>{lang.nameNative}</span>
+                            <span className="text-muted-foreground text-xs">({lang.nameEn})</span>
+                          </button>
+                          {i === pinned.length - 1 && rest.length > 0 && (
+                            <div className="my-1 border-t" />
+                          )}
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Settings menu — visible for ALL users (polling + moderator) */}
             {showSettings && !isAuthenticated && (

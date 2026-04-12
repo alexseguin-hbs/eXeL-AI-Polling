@@ -11,22 +11,21 @@ import { useTheme } from "@/lib/theme-context";
 import { SoITrinity } from "@/components/soi-trinity";
 
 // 12 preset Trinities — cycle through on inner click
-const TRINITY_PRESETS: { labels: [string, string, string]; color: string; title: string; master: string }[] = [
-  // Rainbow: Violet → Indigo → Blue → Cyan → Teal → Green → Yellow → Orange → Pink → Red
-  // Consciousness (Cyan) is default (index 4). Cycle forward through all 12.
-  // 12 segments: Violet (FF00FF, 300°) → Red (FF0000, 0°). Cyan at #5 = 180°.
-  { labels: ["LEADERSHIP", "INTEGRATION", "ADAPTATION"],  color: "#FF00FF", title: "Governance",        master: "Athena" },   // 300° Violet
-  { labels: ["CHILD",      "MOTHER",      "FATHER"],      color: "#7F00FF", title: "Sacred Family",     master: "Aset" },     // 270° Purple
-  { labels: ["SPIRIT",     "BODY",        "MIND"],        color: "#0000FF", title: "Wholeness",         master: "Krishna" },  // 240° Blue
-  { labels: ["H.I.",       "S.I.",        "A.I."],        color: "#007FFF", title: "Trinity Framework",  master: "Asar" },    // 210° Ocean Blue
-  { labels: ["WISDOM",     "HARMONY",     "CONNECTION"],  color: "#00FFFF", title: "Consciousness",     master: "Christo" },  // 180° Cyan
-  { labels: ["TRUTH",      "BEAUTY",      "GOODNESS"],    color: "#00FF91", title: "Platonic",          master: "Sofia" },    // 154° Teal
-  { labels: ["ACT",        "DECIDE",      "OBSERVE"],     color: "#00FF24", title: "OODA Loop",         master: "Enlil" },    // 129° Green
-  { labels: ["SHARE",      "GIVE",        "RECEIVE"],     color: "#48FF00", title: "Abundance",         master: "Pangu" },    // 103° Chartreuse
-  { labels: ["PRESENT",    "FUTURE",      "PAST"],        color: "#B6FF00", title: "Temporal",          master: "Odin" },     //  77° Yellow-Green
-  { labels: ["ACTION",     "FEELING",     "THOUGHT"],     color: "#FFDA00", title: "Intelligence",      master: "Thoth" },    //  51° Yellow
-  { labels: ["TRANSFORM",  "SUSTAIN",     "CREATE"],      color: "#FF6D00", title: "Evolution",         master: "Enki" },     //  26° Orange
-  { labels: ["LOVE",       "SAFETY",      "LOSS"],        color: "#FF0000", title: "Human",             master: "Thor" },     //   0° Red
+// Labels use lexicon keys; resolved at render time via t()
+const TRINITY_PRESETS: { keys: [string, string, string]; color: string; titleKey: string; master: string }[] = [
+  // Rainbow: Violet (300°) → Red (0°). Consciousness (Cyan) is default (index 4).
+  { keys: ["trinity.governance.top", "trinity.governance.right", "trinity.governance.left"],     color: "#FF00FF", titleKey: "trinity.governance.title",     master: "Athena" },
+  { keys: ["trinity.family.top", "trinity.family.right", "trinity.family.left"],                 color: "#7F00FF", titleKey: "trinity.family.title",         master: "Aset" },
+  { keys: ["trinity.wholeness.top", "trinity.wholeness.right", "trinity.wholeness.left"],        color: "#0000FF", titleKey: "trinity.wholeness.title",      master: "Krishna" },
+  { keys: ["trinity.framework.top", "trinity.framework.right", "trinity.framework.left"],        color: "#007FFF", titleKey: "trinity.framework.title",      master: "Asar" },
+  { keys: ["trinity.consciousness.top", "trinity.consciousness.right", "trinity.consciousness.left"], color: "#00FFFF", titleKey: "trinity.consciousness.title", master: "Christo" },
+  { keys: ["trinity.platonic.top", "trinity.platonic.right", "trinity.platonic.left"],            color: "#00FF91", titleKey: "trinity.platonic.title",       master: "Sofia" },
+  { keys: ["trinity.ooda.top", "trinity.ooda.right", "trinity.ooda.left"],                       color: "#00FF24", titleKey: "trinity.ooda.title",           master: "Enlil" },
+  { keys: ["trinity.abundance.top", "trinity.abundance.right", "trinity.abundance.left"],         color: "#48FF00", titleKey: "trinity.abundance.title",      master: "Pangu" },
+  { keys: ["trinity.temporal.top", "trinity.temporal.right", "trinity.temporal.left"],             color: "#B6FF00", titleKey: "trinity.temporal.title",       master: "Odin" },
+  { keys: ["trinity.intelligence.top", "trinity.intelligence.right", "trinity.intelligence.left"], color: "#FFDA00", titleKey: "trinity.intelligence.title",  master: "Thoth" },
+  { keys: ["trinity.evolution.top", "trinity.evolution.right", "trinity.evolution.left"],          color: "#FF6D00", titleKey: "trinity.evolution.title",      master: "Enki" },
+  { keys: ["trinity.human.top", "trinity.human.right", "trinity.human.left"],                     color: "#FF0000", titleKey: "trinity.human.title",          master: "Thor" },
 ];
 
 // Color palette (matches settings panel)
@@ -46,14 +45,17 @@ export default function LandingPage() {
   const { currentTheme } = useTheme();
   const [trinityIndex, setTrinityIndex] = useState(4); // Start at Consciousness
   const [customMode, setCustomMode] = useState(false);
-  const [customLabels, setCustomLabels] = useState<[string, string, string]>(["YOUR", "WORDS", "HERE"]);
+  const [customLabels, setCustomLabels] = useState<[string, string, string]>([
+    t("trinity.custom.placeholder_1"), t("trinity.custom.placeholder_2"), t("trinity.custom.placeholder_3")
+  ]);
   const [customColor, setCustomColor] = useState("#10B981"); // Emerald for custom mode
 
   const currentPreset = TRINITY_PRESETS[trinityIndex];
-  const displayLabels = customMode ? customLabels : currentPreset.labels;
+  const resolvedLabels: [string, string, string] = [t(currentPreset.keys[0]), t(currentPreset.keys[1]), t(currentPreset.keys[2])];
+  const displayLabels = customMode ? customLabels : resolvedLabels;
   // Consciousness (index 4): follows theme color. Others: preset rainbow colors. Custom: user-picked.
   const displayColor = customMode ? customColor : trinityIndex === 4 ? currentTheme.swatch : currentPreset.color;
-  const displayTitle = customMode ? "Your Trinity" : currentPreset.title;
+  const displayTitle = customMode ? t("trinity.custom.title") : t(currentPreset.titleKey);
 
   const handleInnerClick = () => {
     if (customMode) return;
@@ -150,7 +152,7 @@ export default function LandingPage() {
             {displayTitle}
           </p>
           {customMode && (
-            <p className="text-[10px] text-muted-foreground">Edit</p>
+            <p className="text-[10px] text-muted-foreground">{t("trinity.custom.edit")}</p>
           )}
 
           {/* Custom mode: word inputs + color palette + download */}
@@ -160,19 +162,19 @@ export default function LandingPage() {
               {/* labels[0]=Top, labels[1]=Right, labels[2]=Left */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="flex flex-col items-center">
-                  <label className="text-[8px] text-muted-foreground mb-1">Left</label>
+                  <label className="text-[8px] text-muted-foreground mb-1">{t("trinity.custom.left")}</label>
                   <input type="text" value={customLabels[2]} maxLength={12}
                     onChange={(e) => { const n = [...customLabels] as [string,string,string]; n[2] = e.target.value.toUpperCase(); setCustomLabels(n); }}
                     className="w-full text-center text-xs px-1 py-1 rounded border bg-background text-foreground" />
                 </div>
                 <div className="flex flex-col items-center">
-                  <label className="text-[8px] text-muted-foreground mb-1">Top</label>
+                  <label className="text-[8px] text-muted-foreground mb-1">{t("trinity.custom.top")}</label>
                   <input type="text" value={customLabels[0]} maxLength={12}
                     onChange={(e) => { const n = [...customLabels] as [string,string,string]; n[0] = e.target.value.toUpperCase(); setCustomLabels(n); }}
                     className="w-full text-center text-xs px-1 py-1 rounded border bg-background text-foreground" />
                 </div>
                 <div className="flex flex-col items-center">
-                  <label className="text-[8px] text-muted-foreground mb-1">Right</label>
+                  <label className="text-[8px] text-muted-foreground mb-1">{t("trinity.custom.right")}</label>
                   <input type="text" value={customLabels[1]} maxLength={12}
                     onChange={(e) => { const n = [...customLabels] as [string,string,string]; n[1] = e.target.value.toUpperCase(); setCustomLabels(n); }}
                     className="w-full text-center text-xs px-1 py-1 rounded border bg-background text-foreground" />
@@ -232,7 +234,7 @@ export default function LandingPage() {
                 }}
                 className="w-full text-center text-xs py-1.5 rounded border hover:bg-accent transition-colors text-muted-foreground"
               >
-                Download PNG
+                {t("trinity.custom.download")}
               </button>
             </div>
           )}
