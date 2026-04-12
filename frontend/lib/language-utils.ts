@@ -9,7 +9,7 @@ export const PINNED_LANGUAGE_CODES = ["en", "es", "fr"] as const;
 
 /**
  * Sort approved languages: pinned first (in PINNED order), then
- * remaining alphabetized by native name. Returns the sorted array
+ * remaining alphabetized by English name. Returns the sorted array
  * and the count of pinned entries (for separator placement).
  */
 export function getSortedLanguages(languages: LexiconLanguage[]): {
@@ -23,6 +23,6 @@ export function getSortedLanguages(languages: LexiconLanguage[]): {
   const pinnedSet = new Set(PINNED_LANGUAGE_CODES as readonly string[]);
   const rest = approved
     .filter((l) => !pinnedSet.has(l.code))
-    .sort((a, b) => a.nameNative.localeCompare(b.nameNative));
+    .sort((a, b) => a.nameEn.localeCompare(b.nameEn));
   return { sorted: [...pinned, ...rest], pinnedCount: pinned.length };
 }
