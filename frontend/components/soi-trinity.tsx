@@ -79,7 +79,11 @@ export function SoITrinity({
   const textAngles = [-90, 30, 150];
   const deg2rad = (d: number) => (d * Math.PI) / 180;
 
-  function makeTextArc(rcx: number, rcy: number, angle: number): string {
+  // Top ring (i=0): clockwise arc — text reads L→R, right-side up at 12 o'clock
+  // Bottom rings (i=1,2): counter-clockwise arc — text reads L→R, right-side up at 4/8 o'clock
+  // Counter-clockwise flips which side of the arc the text sits on,
+  // making letters upright when the arc is on the lower half of a ring.
+  function makeTextArc(rcx: number, rcy: number, angle: number, isBottom: boolean): string {
     const half = textSpan / 2;
     const a1 = angle - half;
     const a2 = angle + half;
@@ -87,6 +91,10 @@ export function SoITrinity({
     const sy = rcy + textR * Math.sin(deg2rad(a1));
     const ex = rcx + textR * Math.cos(deg2rad(a2));
     const ey = rcy + textR * Math.sin(deg2rad(a2));
+    if (isBottom) {
+      // Counter-clockwise: swap start/end, sweep=0 — text right-side up on bottom arcs
+      return `M ${ex.toFixed(1)} ${ey.toFixed(1)} A ${textR} ${textR} 0 0 0 ${sx.toFixed(1)} ${sy.toFixed(1)}`;
+    }
     return `M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${textR} ${textR} 0 0 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`;
   }
 
@@ -122,7 +130,7 @@ export function SoITrinity({
       <defs>
         {rings.map((ring, i) => (
           <path key={`p-${i}`} id={`${uid}-t-${i}`}
-            d={makeTextArc(ring.cx, ring.cy, textAngles[i])}
+            d={makeTextArc(ring.cx, ring.cy, textAngles[i], i !== 0)}
             fill="none" />
         ))}
       </defs>
