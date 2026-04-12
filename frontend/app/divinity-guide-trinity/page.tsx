@@ -102,7 +102,7 @@ export default function DivinityGuideTrinityPage() {
               size={280}
               color={currentTheme.swatch}
               textColor="white"
-              strokeWidth={10}
+              ringWidth={14}
             />
             <h2 className="text-lg font-semibold mt-4">{trinity.title}</h2>
             <p className="text-xs text-muted-foreground text-center mt-1 max-w-xs">
