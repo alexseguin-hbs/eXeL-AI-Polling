@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 import { useTheme } from "@/lib/theme-context";
+import { getSortedLanguages } from "@/lib/language-utils";
 
 interface NavbarProps {
   sessionTitle?: string;
@@ -98,11 +99,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                   <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
                   <div className="absolute right-0 top-full z-50 mt-1 w-56 max-h-80 overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
                     {(() => {
-                      const pinnedCodes = ["en", "es"];
-                      const approved = languages.filter((l) => l.status === "approved");
-                      const pinned = pinnedCodes.map((c) => approved.find((l) => l.code === c)).filter(Boolean) as typeof approved;
-                      const rest = approved.filter((l) => !pinnedCodes.includes(l.code)).sort((a, b) => a.nameNative.localeCompare(b.nameNative));
-                      const sorted = [...pinned, ...rest];
+                      const { sorted, pinnedCount } = getSortedLanguages(languages);
                       return sorted.map((lang, i) => (
                         <div key={lang.code}>
                           <button
@@ -112,7 +109,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                             <span>{lang.nameNative}</span>
                             <span className="text-muted-foreground text-xs">({lang.nameEn})</span>
                           </button>
-                          {i === pinned.length - 1 && rest.length > 0 && (
+                          {i === pinnedCount - 1 && sorted.length > pinnedCount && (
                             <div className="my-1 border-t" />
                           )}
                         </div>

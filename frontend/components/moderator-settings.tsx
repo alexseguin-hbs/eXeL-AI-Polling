@@ -16,6 +16,7 @@ import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useLexicon } from "@/lib/lexicon-context";
 import { LanguageLexicon } from "@/components/language-lexicon";
 import { CubeArchitectureStatus } from "@/components/cube-status";
+import { getSortedLanguages } from "@/lib/language-utils";
 
 // ─── Theme Customizer Section ───────────────────────────────────
 
@@ -138,17 +139,11 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
 }
 
 // ─── Language Selector Section — wired to Language Lexicon ───────
-
-/** Languages pinned to top of dropdown for quick access */
-const PINNED_CODES = ["en", "es"];
+// Uses shared getSortedLanguages() from language-utils.ts (same source as navbar Globe)
 
 function SettingsLanguageSelector() {
   const { activeLocale, setActiveLocale, languages, t } = useLexicon();
-
-  const approved = languages.filter((l) => l.status === "approved");
-  const pinned = PINNED_CODES.map((c) => approved.find((l) => l.code === c)).filter(Boolean) as typeof approved;
-  const rest = approved.filter((l) => !PINNED_CODES.includes(l.code)).sort((a, b) => a.nameNative.localeCompare(b.nameNative));
-  const sortedLangs = [...pinned, ...rest];
+  const { sorted, pinnedCount } = getSortedLanguages(languages);
 
   return (
     <section>
@@ -163,13 +158,13 @@ function SettingsLanguageSelector() {
           <SelectValue placeholder={t("cube1.join.select_language")} />
         </SelectTrigger>
         <SelectContent>
-          {sortedLangs.map((lang, i) => (
+          {sorted.map((lang, i) => (
             <SelectItem key={lang.code} value={lang.code}>
               <span className="flex items-center gap-2">
                 <span>{lang.nameNative}</span>
                 <span className="text-muted-foreground">({lang.nameEn})</span>
               </span>
-              {i === pinned.length - 1 && rest.length > 0 && (
+              {i === pinnedCount - 1 && sorted.length > pinnedCount && (
                 <Separator className="mt-1" />
               )}
             </SelectItem>
