@@ -11,6 +11,7 @@ import { useEasterEgg } from "@/lib/easter-egg-context";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 import { useTheme } from "@/lib/theme-context";
 import { getSortedLanguages } from "@/lib/language-utils";
+import { hasRomanization, getRomanizationConfig } from "@/lib/romanization-config";
 
 interface NavbarProps {
   sessionTitle?: string;
@@ -22,7 +23,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
   const [apiSdkOpen, setApiSdkOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
-  const { t, activeLocale, setActiveLocale, languages, pinyinEnabled, setPinyinEnabled } = useLexicon();
+  const { t, activeLocale, setActiveLocale, languages, romanizationEnabled, setRomanizationEnabled } = useLexicon();
   const { currentTheme } = useTheme();
 
   let simulationMode = false;
@@ -120,18 +121,21 @@ export function Navbar({ sessionTitle }: NavbarProps) {
               )}
             </div>}
 
-            {/* Pinyin toggle — only when Mandarin (zh) is active */}
-            {activeLocale === "zh" && (
-              <Button
-                variant={pinyinEnabled ? "default" : "outline"}
-                size="sm"
-                onClick={() => setPinyinEnabled(!pinyinEnabled)}
-                className="text-[10px] px-2 h-7"
-                title={pinyinEnabled ? "Hide Pinyin" : "Show Pinyin"}
-              >
-                拼音
-              </Button>
-            )}
+            {/* Romanization toggle — config-driven, shows for zh (Pinyin), km (UNGEGN), etc. */}
+            {hasRomanization(activeLocale) && (() => {
+              const config = getRomanizationConfig(activeLocale);
+              return config ? (
+                <Button
+                  variant={romanizationEnabled ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setRomanizationEnabled(!romanizationEnabled)}
+                  className="text-[10px] px-2 h-7"
+                  title={romanizationEnabled ? `Hide ${config.system}` : `Show ${config.system}`}
+                >
+                  {config.buttonLabel}
+                </Button>
+              ) : null;
+            })()}
 
             {/* Settings menu — visible for ALL users (polling + moderator) */}
             {showSettings && !isAuthenticated && (

@@ -19,6 +19,8 @@ import {
 } from "@/lib/lexicon-data";
 import { SEEDED_TRANSLATIONS } from "@/lib/lexicon-translations";
 import { PINYIN_MAP } from "@/lib/pinyin-data";
+import { ROMANIZATION_KM_MAP } from "@/lib/romanization-km-data";
+import { hasRomanization } from "@/lib/romanization-config";
 
 // ─── Storage keys ────────────────────────────────────────────────
 
@@ -59,10 +61,14 @@ interface LexiconContextValue {
   setActiveLocale: (code: string) => void;
   /** Translate a key using the active locale (falls back to English) */
   t: (key: string) => string;
-  /** Pinyin toggle — only relevant when activeLocale === "zh" */
+  /** Romanization toggle — relevant when activeLocale supports romanization (zh, km, etc.) */
+  romanizationEnabled: boolean;
+  setRomanizationEnabled: (enabled: boolean) => void;
+  /** Get romanized text for a key (returns empty string if not available or not supported) */
+  romanize: (key: string) => string;
+  /** Legacy alias for backward compatibility */
   pinyinEnabled: boolean;
   setPinyinEnabled: (enabled: boolean) => void;
-  /** Get pinyin for a key (returns empty string if not available or not zh) */
   pinyin: (key: string) => string;
 
   // Read
@@ -105,7 +111,7 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [selectedCube, setSelectedCube] = useState<number | null>(null);
   const [activeLocale, setActiveLocaleState] = useState<string>("en");
-  const [pinyinEnabled, setPinyinEnabled] = useState<boolean>(false);
+  const [romanizationEnabled, setRomanizationEnabled] = useState<boolean>(false);
 
   // Hydrate from localStorage on mount, merging seeded translations as base
   useEffect(() => {
@@ -284,13 +290,24 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
     [getTranslation, activeLocale]
   );
 
-  const pinyin = useCallback(
+  // Modular romanization — checks config for supported locales, picks correct data map
+  const ROMANIZATION_DATA: Record<string, Record<string, string>> = {
+    zh: PINYIN_MAP,
+    km: ROMANIZATION_KM_MAP,
+  };
+
+  const romanize = useCallback(
     (key: string): string => {
-      if (activeLocale !== "zh" || !pinyinEnabled) return "";
-      return PINYIN_MAP[key] ?? "";
+      if (!romanizationEnabled || !hasRomanization(activeLocale)) return "";
+      return ROMANIZATION_DATA[activeLocale]?.[key] ?? "";
     },
-    [activeLocale, pinyinEnabled]
+    [activeLocale, romanizationEnabled]
   );
+
+  // Legacy aliases
+  const pinyinEnabled = romanizationEnabled;
+  const setPinyinEnabled = setRomanizationEnabled;
+  const pinyin = romanize;
 
   // ── Auth ──────────────────────────────────────────────────────
 
@@ -306,6 +323,9 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
         activeLocale,
         setActiveLocale,
         t,
+        romanizationEnabled,
+        setRomanizationEnabled,
+        romanize,
         pinyinEnabled,
         setPinyinEnabled,
         pinyin,
