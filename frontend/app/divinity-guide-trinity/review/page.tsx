@@ -27,7 +27,7 @@ const EXAMPLES: {
   { labels: ["H.I.", "S.I.", "A.I."], color: "#3B82F6", title: "Core Trinity" },
   { labels: ["TRUTH", "BEAUTY", "GOODNESS"], color: "#14B8A6", title: "Platonic" },
   { labels: ["TRANSFORM", "CREATE", "SUSTAIN"], color: "#EC4899", title: "Evolution" },
-  { labels: ["MIND", "SPIRIT", "BODY"], color: "#8B5CF6", title: "Wholeness" },
+  { labels: ["SPIRIT", "MIND", "BODY"], color: "#8B5CF6", title: "Wholeness" },
   { labels: ["PRESENT", "FUTURE", "PAST"], color: "#F97316", title: "Temporal" },
   { labels: ["SON", "MOTHER", "FATHER"], color: "#A855F7", title: "Sacred Family" },
   { labels: ["OBSERVE", "DECIDE", "ACT"], color: "#84CC16", title: "OODA Loop" },
