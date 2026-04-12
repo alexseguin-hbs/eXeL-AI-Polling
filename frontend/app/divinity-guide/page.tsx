@@ -30,6 +30,7 @@ import divinityPagesFa from "@/lib/divinity-pages-fa.json";
 import divinityPagesHe from "@/lib/divinity-pages-he.json";
 import divinityPagesPt from "@/lib/divinity-pages-pt.json";
 import divinityPagesKm from "@/lib/divinity-pages-km.json";
+import divinityPagesNe from "@/lib/divinity-pages-ne.json";
 
 const DIVINITY_LANGUAGES = [
   { code: "en", label: "English", flag: "🇺🇸" },
@@ -41,6 +42,7 @@ const DIVINITY_LANGUAGES = [
   { code: "he", label: "עברית", flag: "🇮🇱" },
   { code: "pt", label: "Português", flag: "🇧🇷" },
   { code: "km", label: "ខ្មែរ", flag: "🇰🇭" },
+  { code: "ne", label: "नेपाली", flag: "🇳🇵" },
 ] as const;
 
 type DivinityLang = typeof DIVINITY_LANGUAGES[number]["code"];
@@ -55,6 +57,7 @@ const DIVINITY_PAGE_MAP: Record<DivinityLang, typeof divinityPages> = {
   he: divinityPagesHe as typeof divinityPages,
   pt: divinityPagesPt as typeof divinityPages,
   km: divinityPagesKm as typeof divinityPages,
+  ne: divinityPagesNe as typeof divinityPages,
 };
 import { SoITrinity } from "@/components/soi-trinity";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -345,8 +348,8 @@ function LibraryReader({
               if (line.trim() === "Overview" || line.startsWith("Divine Intelligence Framework")) {
                 return <h2 key={i} className="text-lg font-bold mb-4 mt-2 text-muted-foreground">{line}</h2>;
               }
-              // Framework page i16: Trinity between "What is Intelligence?" and "Mastering Intelligence"
-              if (bookPage.id === "i16" && line.trim() === "What is Intelligence?") {
+              // Framework page i17: Trinity between first line and second line (all languages)
+              if (bookPage.id === "i17" && i === 0) {
                 return (
                   <div key={i}>
                     <p className="text-sm text-foreground/80 leading-relaxed mb-3" style={{ textIndent: "2rem" }}>{line}</p>
