@@ -119,13 +119,12 @@ function TrinityAttempt({
     <div className="flex flex-col items-center">
       <svg viewBox={viewBox} className="w-full max-w-[220px]">
         <defs>
-          {/* Text paths: WISDOM inward, CONNECTION/HARMONY outward */}
+          {/* Text paths: WISDOM inward, CONNECTION/HARMONY outward. Same span for all. */}
           {rings.map((ring, i) => {
             const r = i === 0 ? wisdomTextR : bottomTextR;
-            const span = i === 2 ? textSpan + 15 : textSpan; // CONNECTION needs wider arc (10 letters)
             return (
               <path key={`p-${i}`} id={`${uid}-t-${i}`}
-                d={makeTextArc(ring.cx, ring.cy, textAngles[i], r, span)}
+                d={makeTextArc(ring.cx, ring.cy, textAngles[i], r, textSpan)}
                 fill="none" />
             );
           })}
