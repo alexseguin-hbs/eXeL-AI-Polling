@@ -238,6 +238,120 @@ async def get_content_tier(
     }
 
 
+@router.get("/compression-ratio")
+async def get_compression_ratio(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """MoT: Governance compression ratio — FREE headline, $2.22 methodology.
+
+    Shows "47,000 voices → 3 priorities" for free.
+    Full methodology (pipeline, determinism, cost-per-input) gated at $2.22.
+    """
+    from app.cubes.cube9_reports.compression import build_compression_ratio
+
+    # Moderator/Admin/Lead get full explanation free
+    include_explanation = user.role in ("moderator", "admin", "lead_developer")
+
+    if not include_explanation:
+        # Check if user donated $2.22+
+        tier = await service.resolve_export_tier(
+            db, session_id, user.user_id, user.role
+        )
+        include_explanation = service._tier_at_least(tier, "tier_theme_333")
+
+    return await build_compression_ratio(db, session_id, include_explanation)
+
+
+@router.get("/replay/options")
+async def get_replay_options(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Pangu: List available simulation replay configurations.
+
+    Shows original config + 5 alternative replay options.
+    Each replay costs $2.22 (222 cents).
+    """
+    from app.cubes.cube10_simulation.replay_service import list_replay_options
+    return await list_replay_options(db, session_id)
+
+
+@router.post("/replay/preview")
+async def preview_replay(
+    session_id: uuid.UUID,
+    theme_count: int = 3,
+    seed: int = 42,
+    sample_rate: float = 1.0,
+    ai_supplement_pct: int = 0,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Pangu: Preview simulation replay before executing.
+
+    Dry run — shows expected output without AI calls.
+    ai_supplement_pct: 0/11/22/33 — % of AI-generated brainstorm inputs to add.
+    """
+    from app.cubes.cube10_simulation.replay_service import ReplayConfig, preview_replay as preview
+    config = ReplayConfig(theme_count=theme_count, seed=seed, sample_rate=sample_rate)
+    result = await preview(db, session_id, config)
+    if ai_supplement_pct > 0:
+        # AI supplement pricing: 11%=$1.11, 22%=$2.22, 33%=$3.33
+        supplement_cost = {11: 111, 22: 222, 33: 333}.get(ai_supplement_pct, ai_supplement_pct * 10)
+        result["ai_supplement"] = {
+            "percent": ai_supplement_pct,
+            "description": f"AI generates {ai_supplement_pct}% additional brainstorm inputs (HI + AI hybrid)",
+            "supplement_cost_cents": supplement_cost,
+            "total_cost_cents": 222 + supplement_cost,
+            "hi_tokens": f"{(222 + supplement_cost) / 100.0 / 7.25:.3f} 웃",
+            "note": "Human + AI collaboration — AI generates novel perspectives to expand the solution space",
+        }
+    return result
+
+
+@router.get("/trends")
+async def get_trends(
+    session_id: uuid.UUID,
+    project_id: str,
+    theme_level: str = "themes_3",
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Odin: Cross-session trend analysis ($11.11/mo subscription).
+
+    Tracks how themes shift across sessions within a project.
+    Requires active trend subscription.
+    """
+    from app.cubes.cube9_reports.trend_service import check_subscription, get_trend_analysis
+
+    has_sub = await check_subscription(db, user.user_id, project_id)
+    if not has_sub and user.role not in ("admin", "lead_developer"):
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=402,
+            detail="Trend forecasting requires $11.11/mo subscription. Contact admin.",
+        )
+
+    return await get_trend_analysis(db, project_id, theme_level)
+
+
+@router.post("/trends/snapshot")
+async def capture_trend_snapshot(
+    session_id: uuid.UUID,
+    project_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Odin: Capture theme snapshot for trend tracking.
+
+    Called when session closes. Records theme state for longitudinal analysis.
+    """
+    from app.cubes.cube9_reports.trend_service import capture_snapshot
+    return await capture_snapshot(db, session_id, project_id)
+
+
 @router.post("/destroy-data", status_code=200)
 async def destroy_data(
     session_id: uuid.UUID,

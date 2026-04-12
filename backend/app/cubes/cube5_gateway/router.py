@@ -11,6 +11,7 @@ The CENTER of the 3x3 cube grid. All flows pass through here:
 import uuid
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
@@ -211,3 +212,53 @@ async def retry_pipeline(
 # --- Payments / Monetization ---
 # Stripe checkout, payment status, and webhook endpoints will be implemented
 # with Cube 8 (Token Reward Calculator). See docs/CUBES_7-9.md for spec.
+
+
+# --- Webhooks (Enlil) ---
+
+
+class WebhookRegisterRequest(BaseModel):
+    url: str
+    event_types: list[str]
+
+
+@router.post("/sessions/{session_id}/webhooks", status_code=201)
+async def register_webhook(
+    session_id: uuid.UUID,
+    payload: WebhookRegisterRequest,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Enlil: Register a webhook subscription ($0.99/event delivery).
+
+    Events: themes_ready, ranking_complete, session_closed, export_ready, payment_received.
+    Returns signing secret (shown ONCE — save it).
+    """
+    from app.cubes.cube5_gateway.webhook_service import register_webhook as reg
+    return await reg(db, session_id, payload.url, payload.event_types, user.user_id)
+
+
+@router.get("/sessions/{session_id}/webhooks")
+async def list_webhooks(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Enlil: List all webhook subscriptions for a session."""
+    from app.cubes.cube5_gateway.webhook_service import list_webhooks as lw
+    return await lw(db, session_id)
+
+
+@router.delete("/webhooks/{subscription_id}")
+async def delete_webhook(
+    subscription_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Enlil: Deactivate a webhook subscription."""
+    from app.cubes.cube5_gateway.webhook_service import delete_webhook as dw
+    success = await dw(db, subscription_id)
+    if not success:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Webhook not found")
+    return {"status": "deactivated"}
