@@ -83,7 +83,7 @@ export default function LandingPage() {
         </div>
 
         {/* Session Code Input */}
-        <div className="w-full max-w-xs mb-10">
+        <div className="w-full max-w-3xl mb-10 px-2 sm:px-0">
           <SessionCodeInput />
         </div>
 

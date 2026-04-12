@@ -47,7 +47,7 @@ export function SessionCodeInput() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-xs mx-auto">
+    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto">
       <div className="flex flex-col items-center gap-4">
         <label
           htmlFor="session-code"
