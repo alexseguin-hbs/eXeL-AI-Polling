@@ -51,7 +51,8 @@ export default function LandingPage() {
   const currentPreset = TRINITY_PRESETS[trinityIndex];
   const resolvedLabels: [string, string, string] = [t(currentPreset.keys[0]), t(currentPreset.keys[1]), t(currentPreset.keys[2])];
   // Custom mode: show user-typed words if edited, otherwise show translated placeholders
-  const customDefaults: [string, string, string] = [t("trinity.custom.placeholder_1"), t("trinity.custom.placeholder_2"), t("trinity.custom.placeholder_3")];
+  // Order: [top, right, left] — YOUR (top), HERE (right), WORDS (left)
+  const customDefaults: [string, string, string] = [t("trinity.custom.placeholder_1"), t("trinity.custom.placeholder_3"), t("trinity.custom.placeholder_2")];
   const displayLabels = customMode ? (customLabels ?? customDefaults) : resolvedLabels;
   // Consciousness (index 4): follows theme color. Others: preset rainbow colors. Custom: user-picked.
   const displayColor = customMode ? customColor : trinityIndex === 4 ? currentTheme.swatch : currentPreset.color;
