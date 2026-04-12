@@ -177,10 +177,11 @@ function TrinityAttempt({
         {/* Full Father ring (top of everything) */}
         <RingBand rcx={rings[2].cx} rcy={rings[2].cy} />
 
-        {/* Curved text — top normal, bottom two inverted for right-side up */}
+        {/* TEXT LAST — rendered on top of all rings, never clipped */}
         {rings.map((ring, i) => (
           <text key={`t-${i}`} fill="black" fontSize={fontSize} fontWeight="bold"
-            fontFamily="system-ui, sans-serif" letterSpacing={letterSpacing}>
+            fontFamily="system-ui, sans-serif" letterSpacing={letterSpacing}
+            style={{ pointerEvents: "none" }}>
             <textPath href={`#${uid}-t-${i}`} startOffset="50%" textAnchor="middle">
               {ring.label}
             </textPath>
@@ -198,35 +199,32 @@ function TrinityAttempt({
 // ── 12 Pangu v2 iterations with equal-delta constraint ─────────
 
 
-// Base: #11 narrow text on #3 wider band
-// (spread=45, ringR=72, ringWidth=21, textSpan=60, fontSize=12, letterSpacing=3)
-// outerR = 45 + 72 + 2*21 = 159. Son width = gap = Unity width = 21px.
-// Base: #3 very tight with smaller outer ring + corrected text positions
-// gap reduced (was = ringWidth, now ~12), outerWidth kept at ~ringWidth
-// Text angles: WISDOM at -90 (12 o'clock), CONNECTION at 170 (8+ o'clock), HARMONY at 10 (4- o'clock)
+// LOCKED: Winner outer ring (gap=21, outerWidth=21, spread=39, ringR=72, ringWidth=21)
+// outerR = 39 + 72 + 21 + 21 = 153. This is CORRECT — do not shrink.
+// This round: ONLY iterate text (angles, span, font). Text rendered LAST (not clipped).
 const D: Omit<TrinityConfig, 'spread' | 'ringR' | 'ringWidth'> = {
-  gap: 12, outerWidth: 21,
+  gap: 18, outerWidth: 21,  // gap=18 per Thought Master, outerWidth locked
   fontSize: 12, letterSpacing: 3, borderWidth: 1.5, textSpan: 60,
-  wisdomAngle: -90, connectionAngle: 170, harmonyAngle: 10,
+  wisdomAngle: -90, connectionAngle: 160, harmonyAngle: 20,
 };
 
-function c(spread: number, ringR: number, ringWidth: number, overrides?: Partial<TrinityConfig>): TrinityConfig {
-  return { spread, ringR, ringWidth, ...D, ...overrides };
+function c(overrides?: Partial<TrinityConfig>): TrinityConfig {
+  return { spread: 39, ringR: 72, ringWidth: 21, ...D, ...overrides };
 }
 
 const ITERATIONS: { label: string; config: TrinityConfig }[] = [
-  { label: "#1 base",              config: c(39, 72, 21) },
-  { label: "#2 gap=8",             config: c(39, 72, 21, { gap: 8 }) },
-  { label: "#3 gap=15",            config: c(39, 72, 21, { gap: 15 }) },
-  { label: "#4 conn=180 harm=0",   config: c(39, 72, 21, { connectionAngle: 180, harmonyAngle: 0 }) },
-  { label: "#5 conn=160 harm=20",  config: c(39, 72, 21, { connectionAngle: 160, harmonyAngle: 20 }) },
-  { label: "#6 wisdom=-80",        config: c(39, 72, 21, { wisdomAngle: -80 }) },
-  { label: "#7 wider text=75",     config: c(39, 72, 21, { textSpan: 75, fontSize: 11 }) },
-  { label: "#8 outerW=18",         config: c(39, 72, 21, { outerWidth: 18, gap: 10 }) },
-  { label: "#9 bold bw=2.5",       config: c(39, 72, 21, { borderWidth: 2.5 }) },
-  { label: "#10 font=13",          config: c(39, 72, 21, { fontSize: 13 }) },
-  { label: "#11 s=37 gap=10",      config: c(37, 72, 21, { gap: 10 }) },
-  { label: "#12 balanced",         config: c(39, 72, 21, { gap: 10, outerWidth: 19, connectionAngle: 175, harmonyAngle: 5, borderWidth: 2 }) },
+  { label: "#1 base",              config: c() },
+  { label: "#2 conn=170 harm=10",  config: c({ connectionAngle: 170, harmonyAngle: 10 }) },
+  { label: "#3 conn=180 harm=0",   config: c({ connectionAngle: 180, harmonyAngle: 0 }) },
+  { label: "#4 conn=150 harm=30",  config: c({ connectionAngle: 150, harmonyAngle: 30 }) },
+  { label: "#5 wisdom=-80",        config: c({ wisdomAngle: -80 }) },
+  { label: "#6 span=75 f=11",      config: c({ textSpan: 75, fontSize: 11 }) },
+  { label: "#7 span=50 f=13",      config: c({ textSpan: 50, fontSize: 13 }) },
+  { label: "#8 span=80 f=10",      config: c({ textSpan: 80, fontSize: 10, letterSpacing: 2 }) },
+  { label: "#9 ls=2 f=12",         config: c({ letterSpacing: 2 }) },
+  { label: "#10 ls=4 f=11",        config: c({ letterSpacing: 4, fontSize: 11 }) },
+  { label: "#11 conn=165 harm=15", config: c({ connectionAngle: 165, harmonyAngle: 15, wisdomAngle: -85 }) },
+  { label: "#12 best guess",       config: c({ connectionAngle: 165, harmonyAngle: 15, textSpan: 65, fontSize: 11, letterSpacing: 3 }) },
 ];
 
 export default function TrinityReviewPage() {
