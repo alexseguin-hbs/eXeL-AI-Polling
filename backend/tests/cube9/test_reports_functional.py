@@ -99,8 +99,12 @@ class TestCSVExportFunctional:
         part_result = MagicMock()
         part_result.scalars.return_value.all.return_value = []
 
+        # Theme descriptions (5th query)
+        theme_result = MagicMock()
+        theme_result.scalars.return_value.all.return_value = []
+
         mock_db.execute = AsyncMock(
-            side_effect=[meta_result, q_result, sum_result, part_result]
+            side_effect=[meta_result, q_result, sum_result, part_result, theme_result]
         )
 
         buf = await export_session_csv(mock_db, SESSION_ID)
@@ -110,11 +114,11 @@ class TestCSVExportFunctional:
         lines = content.strip().split("\n")
         assert len(lines) == 1  # Header only
         assert "Q_Number" in lines[0]
-        assert "Theme2_3_Confidence" in lines[0]
+        assert "Theme2_3_Description" in lines[0]
 
     @pytest.mark.asyncio
-    async def test_csv_single_response_16_columns(self):
-        """Single response produces row with exactly 16 columns."""
+    async def test_csv_single_response_19_columns(self):
+        """Single response produces row with exactly 19 columns."""
         from app.cubes.cube9_reports.service import export_session_csv
 
         meta = _make_response_meta()
@@ -131,9 +135,11 @@ class TestCSVExportFunctional:
         sum_result.scalars.return_value.all.return_value = [summary]
         part_result = MagicMock()
         part_result.scalars.return_value.all.return_value = [participant]
+        theme_result = MagicMock()
+        theme_result.scalars.return_value.all.return_value = []
 
         mock_db.execute = AsyncMock(
-            side_effect=[meta_result, q_result, sum_result, part_result]
+            side_effect=[meta_result, q_result, sum_result, part_result, theme_result]
         )
 
         buf = await export_session_csv(mock_db, SESSION_ID)
@@ -142,7 +148,7 @@ class TestCSVExportFunctional:
 
         assert len(lines) == 2  # Header + 1 data row
         header_cols = lines[0].split(",")
-        assert len(header_cols) == 16
+        assert len(header_cols) == 19
 
     @pytest.mark.asyncio
     async def test_csv_response_language_from_participant(self):
@@ -163,9 +169,11 @@ class TestCSVExportFunctional:
         sum_result.scalars.return_value.all.return_value = [summary]
         part_result = MagicMock()
         part_result.scalars.return_value.all.return_value = [participant]
+        theme_result = MagicMock()
+        theme_result.scalars.return_value.all.return_value = []
 
         mock_db.execute = AsyncMock(
-            side_effect=[meta_result, q_result, sum_result, part_result]
+            side_effect=[meta_result, q_result, sum_result, part_result, theme_result]
         )
 
         buf = await export_session_csv(mock_db, SESSION_ID)

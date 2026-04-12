@@ -277,8 +277,8 @@ class TestRealData5000CSV:
     def test_csv_has_5000_rows(self, csv_data):
         assert len(csv_data) == 5000
 
-    def test_csv_has_16_columns(self, csv_data):
-        assert len(csv_data.columns) == 16
+    def test_csv_has_19_columns(self, csv_data):
+        assert len(csv_data.columns) == 19
 
     def test_all_33_summaries_populated(self, csv_data):
         """Every row has a 33-word summary for theme classification."""

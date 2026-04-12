@@ -1,7 +1,7 @@
 """Cube 9 — Reports Service Tests.
 
 Tests:
-  - CSV column schema (16 columns, correct headers)
+  - CSV column schema (19 columns, correct headers)
   - Analytics dashboard structure
   - CQS dashboard structure
   - Ranking summary structure
@@ -23,27 +23,27 @@ from app.cubes.cube9_reports.service import CSV_COLUMNS
 
 
 class TestCSVSchema:
-    """Verify 16-column CSV schema matches reference file."""
+    """Verify 19-column CSV schema matches reference file."""
 
-    def test_exactly_16_columns(self):
-        assert len(CSV_COLUMNS) == 16
+    def test_exactly_19_columns(self):
+        assert len(CSV_COLUMNS) == 19
 
     def test_column_names(self):
         expected = [
             "Q_Number", "Question", "User", "Detailed_Results", "Response_Language",
             "333_Summary", "111_Summary", "33_Summary",
             "Theme01", "Theme01_Confidence",
-            "Theme2_9", "Theme2_9_Confidence",
-            "Theme2_6", "Theme2_6_Confidence",
-            "Theme2_3", "Theme2_3_Confidence",
+            "Theme2_9", "Theme2_9_Confidence", "Theme2_9_Description",
+            "Theme2_6", "Theme2_6_Confidence", "Theme2_6_Description",
+            "Theme2_3", "Theme2_3_Confidence", "Theme2_3_Description",
         ]
         assert CSV_COLUMNS == expected
 
     def test_q_number_is_first(self):
         assert CSV_COLUMNS[0] == "Q_Number"
 
-    def test_theme2_3_confidence_is_last(self):
-        assert CSV_COLUMNS[-1] == "Theme2_3_Confidence"
+    def test_theme2_3_description_is_last(self):
+        assert CSV_COLUMNS[-1] == "Theme2_3_Description"
 
     def test_summary_columns_in_order(self):
         idx_333 = CSV_COLUMNS.index("333_Summary")

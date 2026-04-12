@@ -9,7 +9,7 @@
 
 Tests:
   - CSV determinism: same data → same bytes N=10
-  - Column ordering invariant: 16 columns, exact sequence
+  - Column ordering invariant: 19 columns, exact sequence
   - Confidence formatting: every edge case covered
   - Analytics aggregation: mathematical proofs
   - Distribution eligibility: all tier × status combinations
@@ -32,10 +32,10 @@ from app.cubes.cube9_reports.service import CSV_COLUMNS
 
 
 class TestCSVColumnInvariants:
-    """The 16-column schema is sacred — immutable contract."""
+    """The 19-column schema is sacred — immutable contract."""
 
-    def test_exactly_16_columns(self):
-        assert len(CSV_COLUMNS) == 16
+    def test_exactly_19_columns(self):
+        assert len(CSV_COLUMNS) == 19
 
     def test_no_duplicate_columns(self):
         assert len(CSV_COLUMNS) == len(set(CSV_COLUMNS))
@@ -43,8 +43,8 @@ class TestCSVColumnInvariants:
     def test_first_column_is_q_number(self):
         assert CSV_COLUMNS[0] == "Q_Number"
 
-    def test_last_column_is_theme2_3_confidence(self):
-        assert CSV_COLUMNS[-1] == "Theme2_3_Confidence"
+    def test_last_column_is_theme2_3_description(self):
+        assert CSV_COLUMNS[-1] == "Theme2_3_Description"
 
     def test_confidence_columns_follow_theme_columns(self):
         """Every Theme column must be immediately followed by its Confidence."""

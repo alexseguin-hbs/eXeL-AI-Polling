@@ -72,3 +72,36 @@ async def get_themes(
     """CRS-10: Get generated themes for a session."""
     themes = await service.get_session_themes(db, session_id)
     return [ThemeRead.model_validate(t) for t in themes]
+
+
+@router.post("/themes/summarize", status_code=202)
+async def generate_theme_summaries(
+    session_id: uuid.UUID,
+    theme_level: str = "theme2_3",
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Generate 333→111→33 word theme-level summaries.
+
+    Samples per-response 33-word summaries from each cluster (max 50),
+    then cascades through AI: 333 words → 111 words → 33 words.
+
+    O(sample_size) not O(N) — safe for 1M+ response sessions.
+
+    Args:
+        theme_level: "theme2_3" (3 themes), "theme2_6" (6), or "theme2_9" (9)
+    """
+    from app.cubes.cube6_ai.theme_summarizer import generate_theme_summaries as gen
+
+    # Dry run without AI provider (returns prompts for review)
+    # To execute with AI, pass the provider function in a future integration
+    results = await gen(db, session_id, theme_level=theme_level, ai_provider_fn=None)
+
+    return {
+        "status": "dry_run",
+        "session_id": str(session_id),
+        "theme_level": theme_level,
+        "themes_found": len(results),
+        "results": results,
+        "note": "AI provider integration pending. Returns prompts for review.",
+    }

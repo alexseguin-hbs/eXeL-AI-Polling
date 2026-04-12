@@ -33,6 +33,7 @@ from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
 
 from app.models.payment import PaymentTransaction
+from app.models.theme import Theme
 
 logger = logging.getLogger("cube9")
 
@@ -66,7 +67,7 @@ THRESHOLD_333_CENTS = 999         # $9.99
 THRESHOLD_FULL_CENTS = 1111       # $11.11
 THRESHOLD_TALENT_CENTS = 1212     # $12.12
 
-LOCKED_PLACEHOLDER = "[Donate to unlock]"
+LOCKED_PLACEHOLDER = "🔒"
 
 
 async def resolve_export_tier(
@@ -185,7 +186,8 @@ def _apply_tier_filter(row: dict, tier: str) -> dict:
     return filtered
 
 
-# Exact 16-column schema matching reference CSV (v04.1_5000.csv)
+# 19-column CSV schema (16 original + 3 theme descriptions)
+# Theme descriptions (33-word) are always FREE — explain what each theme means
 CSV_COLUMNS = [
     "Q_Number",
     "Question",
@@ -199,10 +201,13 @@ CSV_COLUMNS = [
     "Theme01_Confidence",
     "Theme2_9",
     "Theme2_9_Confidence",
+    "Theme2_9_Description",
     "Theme2_6",
     "Theme2_6_Confidence",
+    "Theme2_6_Description",
     "Theme2_3",
     "Theme2_3_Confidence",
+    "Theme2_3_Description",
 ]
 
 
@@ -255,6 +260,14 @@ async def export_session_csv(
         p.id: p.language_code for p in part_result.scalars().all()
     }
 
+    # Batch-load theme descriptions (33-word, always FREE)
+    theme_result = await db.execute(
+        select(Theme).where(Theme.session_id == session_id)
+    )
+    theme_descriptions = {
+        t.label: (t.theme_summary_33 or "") for t in theme_result.scalars().all()
+    }
+
     rows = []
     for meta in metas:
         raw_text = meta.raw_text or ""
@@ -269,6 +282,11 @@ async def export_session_csv(
                 return f"{int(val)}%" if val > 1 else f"{int(val * 100)}%"
             return str(val) if val else ""
 
+        # Look up 33-word theme descriptions (always FREE)
+        t2_9_label = summary_row.theme2_9 if summary_row else ""
+        t2_6_label = summary_row.theme2_6 if summary_row else ""
+        t2_3_label = summary_row.theme2_3 if summary_row else ""
+
         row = {
             "Q_Number": q_number,
             "Question": q_text,
@@ -282,18 +300,21 @@ async def export_session_csv(
             "Theme01_Confidence": _fmt_confidence(
                 summary_row.theme01_confidence if summary_row else ""
             ),
-            "Theme2_9": summary_row.theme2_9 or "" if summary_row else "",
+            "Theme2_9": t2_9_label or "",
             "Theme2_9_Confidence": _fmt_confidence(
                 summary_row.theme2_9_confidence if summary_row else ""
             ),
-            "Theme2_6": summary_row.theme2_6 or "" if summary_row else "",
+            "Theme2_9_Description": theme_descriptions.get(t2_9_label, ""),
+            "Theme2_6": t2_6_label or "",
             "Theme2_6_Confidence": _fmt_confidence(
                 summary_row.theme2_6_confidence if summary_row else ""
             ),
-            "Theme2_3": summary_row.theme2_3 or "" if summary_row else "",
+            "Theme2_6_Description": theme_descriptions.get(t2_6_label, ""),
+            "Theme2_3": t2_3_label or "",
             "Theme2_3_Confidence": _fmt_confidence(
                 summary_row.theme2_3_confidence if summary_row else ""
             ),
+            "Theme2_3_Description": theme_descriptions.get(t2_3_label, ""),
         }
         rows.append(_apply_tier_filter(row, content_tier))
 
@@ -347,6 +368,14 @@ async def export_session_csv_streaming(
         if hasattr(s, "response_meta_id")
     }
 
+    # Batch-load theme descriptions (33-word, always FREE)
+    theme_result = await db.execute(
+        select(Theme).where(Theme.session_id == session_id)
+    )
+    theme_descriptions = {
+        t.label: (t.theme_summary_33 or "") for t in theme_result.scalars().all()
+    }
+
     # Stream responses in chunks of 1000
     chunk_size = 1000
     offset = 0
@@ -375,6 +404,10 @@ async def export_session_csv_streaming(
                     return f"{int(val)}%" if val > 1 else f"{int(val * 100)}%"
                 return str(val) if val else ""
 
+            t2_9_label = summary_row.theme2_9 if summary_row else ""
+            t2_6_label = summary_row.theme2_6 if summary_row else ""
+            t2_3_label = summary_row.theme2_3 if summary_row else ""
+
             row_dict = {
                 "Q_Number": question.order_index if question else 0,
                 "Question": question.question_text if question else "",
@@ -386,12 +419,15 @@ async def export_session_csv_streaming(
                 "33_Summary": summary_row.summary_33 or "" if summary_row else "",
                 "Theme01": summary_row.theme01 or "" if summary_row else "",
                 "Theme01_Confidence": _fmt(summary_row.theme01_confidence if summary_row else ""),
-                "Theme2_9": summary_row.theme2_9 or "" if summary_row else "",
+                "Theme2_9": t2_9_label or "",
                 "Theme2_9_Confidence": _fmt(summary_row.theme2_9_confidence if summary_row else ""),
-                "Theme2_6": summary_row.theme2_6 or "" if summary_row else "",
+                "Theme2_9_Description": theme_descriptions.get(t2_9_label, ""),
+                "Theme2_6": t2_6_label or "",
                 "Theme2_6_Confidence": _fmt(summary_row.theme2_6_confidence if summary_row else ""),
-                "Theme2_3": summary_row.theme2_3 or "" if summary_row else "",
+                "Theme2_6_Description": theme_descriptions.get(t2_6_label, ""),
+                "Theme2_3": t2_3_label or "",
                 "Theme2_3_Confidence": _fmt(summary_row.theme2_3_confidence if summary_row else ""),
+                "Theme2_3_Description": theme_descriptions.get(t2_3_label, ""),
             }
             filtered = _apply_tier_filter(row_dict, content_tier)
             writer.writerow([filtered[col] for col in CSV_COLUMNS])

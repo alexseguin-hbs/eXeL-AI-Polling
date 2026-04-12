@@ -16,7 +16,7 @@
 import { api } from "./api";
 import { SUPPORTED_LANGUAGES } from "./constants";
 
-const LOCKED_PLACEHOLDER = "[Donate to unlock]";
+const LOCKED_PLACEHOLDER = "🔒";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -72,12 +72,18 @@ function resolveLanguageName(code: string): string {
 // ── Content Tier Types ──────────────────────────────────────────
 
 interface ContentTier {
-  content_tier: "free" | "tier_333" | "tier_full";
+  content_tier: string;
   unlocked: {
     summary_33: boolean;
     summary_111: boolean;
+    theme_summary_33: boolean;
+    theme_summary_111: boolean;
+    theme_summary_333: boolean;
+    confidence_scores: boolean;
+    cqs_scores: boolean;
     summary_333: boolean;
     detailed_results: boolean;
+    talent_profiles: boolean;
   };
 }
 
@@ -95,8 +101,14 @@ async function tierAgent(sessionId: string): Promise<ContentTier> {
       unlocked: {
         summary_33: true,
         summary_111: true,
+        theme_summary_33: true,
+        theme_summary_111: false,
+        theme_summary_333: false,
+        confidence_scores: false,
+        cqs_scores: false,
         summary_333: false,
         detailed_results: false,
+        talent_profiles: false,
       },
     };
   }

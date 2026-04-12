@@ -1,6 +1,6 @@
 """Cube 10 — Saved CSV Dataset Verification.
 
-Verifies the 3 simulated use case CSVs + DEMO match the 16-column schema
+Verifies the 3 simulated use case CSVs + DEMO match the 19-column schema
 and integrate with SavedUseCaseManager correctly.
 """
 
@@ -42,12 +42,12 @@ class TestDatasetFilesExist:
 
 
 class TestDatasetSchema:
-    """All datasets must have exactly 16 columns matching CSV_COLUMNS."""
+    """All datasets must have exactly 19 columns matching CSV_COLUMNS."""
 
     @pytest.mark.parametrize("fname,expected_rows,_", DATASETS)
     def test_column_count(self, fname, expected_rows, _):
         df = pd.read_csv(FIXTURES / fname)
-        assert len(df.columns) == 16
+        assert len(df.columns) == 19
 
     @pytest.mark.parametrize("fname,expected_rows,_", DATASETS)
     def test_column_names_match(self, fname, expected_rows, _):
