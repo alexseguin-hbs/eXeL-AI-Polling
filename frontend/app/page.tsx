@@ -42,7 +42,7 @@ const COLOR_PALETTE = [
 ];
 
 export default function LandingPage() {
-  const { t } = useLexicon();
+  const { t, pinyin } = useLexicon();
   const { currentTheme } = useTheme();
   const [trinityIndex, setTrinityIndex] = useState(4); // Start at Consciousness
   const [customMode, setCustomMode] = useState(false);
@@ -78,11 +78,14 @@ export default function LandingPage() {
         {/* Hero */}
         <div className="flex flex-col items-center gap-6 text-center mb-10">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            <span className="text-primary">{t("shared.landing.hero_title_primary")}</span>{" "}
-            <span className="text-muted-foreground">{t("shared.landing.hero_title_secondary")}</span>
+            <ruby className="text-primary">{t("shared.landing.hero_title_primary")}{pinyin("shared.landing.hero_title_primary") && <rp>(</rp>}{pinyin("shared.landing.hero_title_primary") && <rt className="text-xs font-normal">{pinyin("shared.landing.hero_title_primary")}</rt>}{pinyin("shared.landing.hero_title_primary") && <rp>)</rp>}</ruby>{" "}
+            <ruby className="text-muted-foreground">{t("shared.landing.hero_title_secondary")}{pinyin("shared.landing.hero_title_secondary") && <rp>(</rp>}{pinyin("shared.landing.hero_title_secondary") && <rt className="text-xs font-normal">{pinyin("shared.landing.hero_title_secondary")}</rt>}{pinyin("shared.landing.hero_title_secondary") && <rp>)</rp>}</ruby>
           </h1>
           <p className="max-w-[600px] text-lg text-muted-foreground">
             {t("shared.landing.hero_subtitle")}
+            {pinyin("shared.landing.hero_subtitle") && (
+              <span className="block text-sm text-muted-foreground/60 mt-1 italic">{pinyin("shared.landing.hero_subtitle")}</span>
+            )}
           </p>
         </div>
 

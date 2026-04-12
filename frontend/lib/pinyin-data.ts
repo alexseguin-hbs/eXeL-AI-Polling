@@ -1,0 +1,80 @@
+/**
+ * Pinyin romanization for Chinese (zh) lexicon translations.
+ * Maps lexicon keys to their Pinyin pronunciation.
+ * Only includes keys where Pinyin adds value (user-facing UI text).
+ */
+
+export const PINYIN_MAP: Record<string, string> = {
+  // Landing page
+  "shared.landing.hero_title_primary": "Zhìlǐ",
+  "shared.landing.hero_title_secondary": "dà guīmó",
+  "shared.landing.hero_subtitle": "AI qūdòng de tóupiào, zhǔtí fēnxī hé yōuxiān jí páixù",
+  "shared.landing.feature_ai": "AI Zhǔtí",
+  "shared.landing.feature_ai_desc": "Zìdòng jùlèi hé zǒngjié huífù",
+  "shared.landing.feature_scale": "Kuòzhǎn dào bǎi wàn",
+  "shared.landing.feature_scale_desc": "Chǔlǐ 10 wàn+ bìngfā cānyù zhě",
+  "shared.landing.feature_governance": "Rénlèi zhìlǐ",
+  "shared.landing.feature_governance_desc": "Kě shěnjì de gòngshí",
+  "shared.landing.facilitator_cta": "Nín shì huìyì zhǔchí rén ma?",
+  "shared.landing.facilitator_button": "Huìyì zhǔchí rén fǎngwèn",
+
+  // Trinity words
+  "trinity.governance.top": "LǏNGDǍOLÌ",
+  "trinity.governance.right": "ZHĚNGHÉ",
+  "trinity.governance.left": "SHÌYÌNG",
+  "trinity.family.top": "HÁIZI",
+  "trinity.family.right": "MǓQĪN",
+  "trinity.family.left": "FÙQĪN",
+  "trinity.wholeness.top": "LÍNG",
+  "trinity.wholeness.right": "SHĒN",
+  "trinity.wholeness.left": "XĪN",
+  "trinity.consciousness.top": "ZHÌHUÌ",
+  "trinity.consciousness.right": "HÉXIÉ",
+  "trinity.consciousness.left": "LIÁNJIĒ",
+  "trinity.platonic.top": "ZHĒNLǏ",
+  "trinity.platonic.right": "MĚI",
+  "trinity.platonic.left": "SHÀN",
+  "trinity.ooda.top": "XÍNGDÒNG",
+  "trinity.ooda.right": "JUÉCÈ",
+  "trinity.ooda.left": "GUĀNCHÁ",
+  "trinity.abundance.top": "FĒNXIǍNG",
+  "trinity.abundance.right": "JǏYǓ",
+  "trinity.abundance.left": "JIĒSHÒU",
+  "trinity.temporal.top": "XIÀNZÀI",
+  "trinity.temporal.right": "WÈILÁI",
+  "trinity.temporal.left": "GUÒQÙ",
+  "trinity.intelligence.top": "XÍNGDÒNG",
+  "trinity.intelligence.right": "GǍNJUÉ",
+  "trinity.intelligence.left": "SĪXIǍNG",
+  "trinity.evolution.top": "TUÌBIÀN",
+  "trinity.evolution.right": "WÉICHÍ",
+  "trinity.evolution.left": "CHUÀNGZÀO",
+  "trinity.human.top": "ÀI",
+  "trinity.human.right": "ĀNQUÁN",
+  "trinity.human.left": "SHĪQÙ",
+
+  // Trinity titles
+  "trinity.governance.title": "Zhìlǐ",
+  "trinity.family.title": "Shénshèng Jiātíng",
+  "trinity.wholeness.title": "Wánzhěng",
+  "trinity.consciousness.title": "Yìshí",
+  "trinity.platonic.title": "Bólātú",
+  "trinity.abundance.title": "Fēngshèng",
+  "trinity.temporal.title": "Shíjiānxìng",
+  "trinity.intelligence.title": "Zhìnéng",
+  "trinity.evolution.title": "Jìnhuà",
+  "trinity.human.title": "Rénxìng",
+  "trinity.custom.title": "Nǐ de Sānwèiyītǐ",
+  "trinity.custom.edit": "Biānjí",
+  "trinity.custom.download": "Xiàzài PNG",
+  "trinity.custom.placeholder_1": "NǏ DE",
+  "trinity.custom.placeholder_2": "WÉNZÌ",
+  "trinity.custom.placeholder_3": "CǏCHÙ",
+
+  // Navigation
+  "shared.nav.settings": "Shèzhì",
+  "shared.nav.sign_out": "Tuìchū",
+  "cube1.join.title": "Jiārù Huìyì",
+  "cube1.join.enter_code": "Shūrù huìyì dàimǎ",
+  "cube1.join.select_language": "Xuǎnzé nǐ de yǔyán",
+};

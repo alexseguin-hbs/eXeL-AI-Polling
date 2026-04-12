@@ -18,6 +18,7 @@ import {
   CUBE_GROUPS,
 } from "@/lib/lexicon-data";
 import { SEEDED_TRANSLATIONS } from "@/lib/lexicon-translations";
+import { PINYIN_MAP } from "@/lib/pinyin-data";
 
 // ─── Storage keys ────────────────────────────────────────────────
 
@@ -58,6 +59,11 @@ interface LexiconContextValue {
   setActiveLocale: (code: string) => void;
   /** Translate a key using the active locale (falls back to English) */
   t: (key: string) => string;
+  /** Pinyin toggle — only relevant when activeLocale === "zh" */
+  pinyinEnabled: boolean;
+  setPinyinEnabled: (enabled: boolean) => void;
+  /** Get pinyin for a key (returns empty string if not available or not zh) */
+  pinyin: (key: string) => string;
 
   // Read
   languages: LexiconLanguage[];
@@ -99,6 +105,7 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [selectedCube, setSelectedCube] = useState<number | null>(null);
   const [activeLocale, setActiveLocaleState] = useState<string>("en");
+  const [pinyinEnabled, setPinyinEnabled] = useState<boolean>(false);
 
   // Hydrate from localStorage on mount, merging seeded translations as base
   useEffect(() => {
@@ -277,6 +284,14 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
     [getTranslation, activeLocale]
   );
 
+  const pinyin = useCallback(
+    (key: string): string => {
+      if (activeLocale !== "zh" || !pinyinEnabled) return "";
+      return PINYIN_MAP[key] ?? "";
+    },
+    [activeLocale, pinyinEnabled]
+  );
+
   // ── Auth ──────────────────────────────────────────────────────
 
   const isAdmin = useCallback(
@@ -291,6 +306,9 @@ export function LexiconProvider({ children }: { children: ReactNode }) {
         activeLocale,
         setActiveLocale,
         t,
+        pinyinEnabled,
+        setPinyinEnabled,
+        pinyin,
         languages,
         translations,
         getTranslation,
