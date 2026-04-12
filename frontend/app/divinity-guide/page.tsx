@@ -195,22 +195,76 @@ const SECTIONS_MAP: Record<DivinityLang, [Section, Section, Section]> = {
   uk: SECTIONS_EN, ru: SECTIONS_EN, fa: SECTIONS_EN, he: SECTIONS_EN, pt: SECTIONS_EN, km: SECTIONS_EN, ne: SECTIONS_EN,
 };
 
-const REFLECTION_LABEL: Record<DivinityLang, string> = {
-  en: "Reflection", es: "Reflexión", zh: "沉思",
-  uk: "Роздуми", ru: "Размышление", fa: "تأمل", he: "הרהור", pt: "Reflexão", km: "ការឆ្លុះបញ្ចាំង", ne: "प्रतिबिम्ब",
-};
+// ── Consolidated translation map (Thoth: 6x fewer touchpoints per language addition) ──
+// Adding a new language: (1) JSON file, (2) import + DIVINITY_LANGUAGES + DIVINITY_PAGE_MAP, (3) one entry here
+interface DivinityLangEntry {
+  reflection: string;
+  librarySubtitles: { prelude: string; framework: string; index: string };
+  trinity: { prelude04: [string, string, string]; prelude05: [string, string, string] };
+  links: { music: string; loveLossSafety: string; divineUnity: string; divineIntelligence: string; sacredResource: string };
+}
 
-const LIBRARY_SUBTITLE_MAP: Record<DivinityLang, { prelude: string; framework: string; index: string }> = {
-  en: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
-  es: { prelude: "Valores y Filosofía del Autor", framework: "Ecuación de Inteligencia Divina", index: "El Mapa Sagrado" },
-  zh: { prelude: "作者的价值观与哲学", framework: "神圣智慧方程", index: "神圣地图" },
-  uk: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
-  ru: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
-  fa: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
-  he: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
-  pt: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
-  km: { prelude: "គុណតម្លៃ និងទស្សនវិជ្ជារបស់អ្នកនិពន្ធ", framework: "សមីការបញ្ញាដ៏ទេវភាព", index: "ផែនទីដ៏ពិសិដ្ឋ" },
-  ne: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
+const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
+  en: {
+    reflection: "Reflection",
+    librarySubtitles: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
+    trinity: { prelude04: ["LOVE", "SAFETY", "LOSS"], prelude05: ["WISDOM", "HARMONY", "CONNECTION"] },
+    links: { music: "Sacred Music & Transformation", loveLossSafety: "Love, Loss & Safety", divineUnity: "Divine Unity Principles", divineIntelligence: "Divine Intelligence Equation", sacredResource: "Sacred Resource" },
+  },
+  es: {
+    reflection: "Reflexión",
+    librarySubtitles: { prelude: "Valores y Filosofía del Autor", framework: "Ecuación de Inteligencia Divina", index: "El Mapa Sagrado" },
+    trinity: { prelude04: ["AMOR", "SEGURIDAD", "PÉRDIDA"], prelude05: ["SABIDURÍA", "ARMONÍA", "CONEXIÓN"] },
+    links: { music: "Música Sagrada y Transformación", loveLossSafety: "Amor, Pérdida y Seguridad", divineUnity: "Principios de Unidad Divina", divineIntelligence: "Ecuación de Inteligencia Divina", sacredResource: "Recurso Sagrado" },
+  },
+  zh: {
+    reflection: "沉思",
+    librarySubtitles: { prelude: "作者的价值观与哲学", framework: "神圣智慧方程", index: "神圣地图" },
+    trinity: { prelude04: ["爱", "安全", "失去"], prelude05: ["智慧", "和谐", "连接"] },
+    links: { music: "神圣音乐与转化", loveLossSafety: "爱、失去与安全", divineUnity: "神圣统一原则", divineIntelligence: "神圣智慧方程", sacredResource: "神圣资源" },
+  },
+  uk: {
+    reflection: "Роздуми",
+    librarySubtitles: { prelude: "Цінності та філософія автора", framework: "Рівняння божественного інтелекту", index: "Священна карта" },
+    trinity: { prelude04: ["ЛЮБОВ", "БЕЗПЕКА", "ВТРАТА"], prelude05: ["МУДРІСТЬ", "ГАРМОНІЯ", "ЗВ'ЯЗОК"] },
+    links: { music: "Священна музика і трансформація", loveLossSafety: "Любов, втрата і безпека", divineUnity: "Принципи божественної єдності", divineIntelligence: "Рівняння божественного інтелекту", sacredResource: "Священний ресурс" },
+  },
+  ru: {
+    reflection: "Размышление",
+    librarySubtitles: { prelude: "Ценности и философия автора", framework: "Уравнение божественного интеллекта", index: "Священная карта" },
+    trinity: { prelude04: ["ЛЮБОВЬ", "БЕЗОПАСНОСТЬ", "ПОТЕРЯ"], prelude05: ["МУДРОСТЬ", "ГАРМОНИЯ", "СВЯЗЬ"] },
+    links: { music: "Священная музыка и трансформация", loveLossSafety: "Любовь, потеря и безопасность", divineUnity: "Принципы божественного единства", divineIntelligence: "Уравнение божественного интеллекта", sacredResource: "Священный ресурс" },
+  },
+  fa: {
+    reflection: "تأمل",
+    librarySubtitles: { prelude: "ارزش‌ها و فلسفه نویسنده", framework: "معادله هوش الهی", index: "نقشه مقدس" },
+    trinity: { prelude04: ["عشق", "امنیت", "فقدان"], prelude05: ["خرد", "هماهنگی", "اتصال"] },
+    links: { music: "موسیقی مقدس و تحول", loveLossSafety: "عشق، فقدان و امنیت", divineUnity: "اصول وحدت الهی", divineIntelligence: "معادله هوش الهی", sacredResource: "منبع مقدس" },
+  },
+  he: {
+    reflection: "הרהור",
+    librarySubtitles: { prelude: "ערכים ופילוסופיה של המחבר", framework: "משוואת האינטליגנציה האלוהית", index: "המפה הקדושה" },
+    trinity: { prelude04: ["אהבה", "ביטחון", "אובדן"], prelude05: ["חוכמה", "הרמוניה", "חיבור"] },
+    links: { music: "מוזיקה קדושה והתמרה", loveLossSafety: "אהבה, אובדן וביטחון", divineUnity: "עקרונות האחדות האלוהית", divineIntelligence: "משוואת האינטליגנציה האלוהית", sacredResource: "משאב קדוש" },
+  },
+  pt: {
+    reflection: "Reflexão",
+    librarySubtitles: { prelude: "Valores e Filosofia do Autor", framework: "Equação da Inteligência Divina", index: "O Mapa Sagrado" },
+    trinity: { prelude04: ["AMOR", "SEGURANÇA", "PERDA"], prelude05: ["SABEDORIA", "HARMONIA", "CONEXÃO"] },
+    links: { music: "Música Sagrada e Transformação", loveLossSafety: "Amor, Perda e Segurança", divineUnity: "Princípios da Unidade Divina", divineIntelligence: "Equação da Inteligência Divina", sacredResource: "Recurso Sagrado" },
+  },
+  km: {
+    reflection: "ការឆ្លុះបញ្ចាំង",
+    librarySubtitles: { prelude: "គុណតម្លៃ និងទស្សនវិជ្ជារបស់អ្នកនិពន្ធ", framework: "សមីការបញ្ញាដ៏ទេវភាព", index: "ផែនទីដ៏ពិសិដ្ឋ" },
+    trinity: { prelude04: ["សេចក្ដីស្រឡាញ់", "សុវត្ថិភាព", "ការបាត់បង់"], prelude05: ["ប្រាជ្ញា", "សុខដុមរមនា", "ការតភ្ជាប់"] },
+    links: { music: "តន្ត្រីដ៏ពិសិដ្ឋ និងការផ្លាស់ប្តូរ", loveLossSafety: "សេចក្ដីស្រឡាញ់ ការបាត់បង់ និងសុវត្ថិភាព", divineUnity: "គោលការណ៍ឯកភាពដ៏ទេវភាព", divineIntelligence: "សមីការបញ្ញាដ៏ទេវភាព", sacredResource: "ធនធានដ៏ពិសិដ្ឋ" },
+  },
+  ne: {
+    reflection: "प्रतिबिम्ब",
+    librarySubtitles: { prelude: "लेखकका मूल्य र दर्शन", framework: "दिव्य बुद्धिमत्ता समीकरण", index: "पवित्र नक्सा" },
+    trinity: { prelude04: ["प्रेम", "सुरक्षा", "हानि"], prelude05: ["बुद्धि", "सामञ्जस्य", "जडान"] },
+    links: { music: "पवित्र संगीत र रूपान्तरण", loveLossSafety: "प्रेम, हानि र सुरक्षा", divineUnity: "दिव्य एकता सिद्धान्त", divineIntelligence: "दिव्य बुद्धिमत्ता समीकरण", sacredResource: "पवित्र स्रोत" },
+  },
 };
 
 // ── Sacred Library (donation-gated content) ─────────────────────
@@ -247,12 +301,13 @@ const LIBRARY_SECTIONS: [LibrarySection, LibrarySection, LibrarySection] = [
 // ── Library Reader Component ────────────────────────────────────
 
 function LibraryReader({
-  section, pageIndex, setPageIndex, pages,
+  section, pageIndex, setPageIndex, pages, lang = "en",
 }: {
   section: LibrarySection;
   pageIndex: number;
   setPageIndex: (n: number) => void;
   pages: typeof divinityPages;
+  lang?: DivinityLang;
 }) {
   const { t } = useLexicon();
   const touchStartX = React.useRef(0);
@@ -288,7 +343,7 @@ function LibraryReader({
             {bookPage.id === "prelude-04" && (
               <div className="flex flex-col items-center mb-6">
                 <SoITrinity
-                  labels={["LOVE", "SAFETY", "LOSS"]}
+                  labels={DIVINITY_TRANSLATIONS[lang].trinity.prelude04}
                   color="#FF0000"
                   textColor="black"
                   size={160}
@@ -298,7 +353,7 @@ function LibraryReader({
             {bookPage.id === "prelude-05" && (
               <div className="flex flex-col items-center mb-6">
                 <SoITrinity
-                  labels={["WISDOM", "HARMONY", "CONNECTION"]}
+                  labels={DIVINITY_TRANSLATIONS[lang].trinity.prelude05}
                   color="#00FFFF"
                   textColor="black"
                   size={160}
@@ -308,11 +363,12 @@ function LibraryReader({
             {bookPage.text.split("\n").map((line, i) => {
               // URL → styled centered external link
               if (line.startsWith("http")) {
-                const label = line.includes("Divinity-Transformation") ? "Sacred Music & Transformation"
-                  : line.includes("Loss-Love-Safety") ? "Love, Loss & Safety"
-                  : line.includes("Divine-Unity") ? "Divine Unity Principles"
-                  : line.includes("Divine-Intelligence") ? "Divine Intelligence Equation"
-                  : "Sacred Resource";
+                const ll = DIVINITY_TRANSLATIONS[lang].links;
+                const label = line.includes("Divinity-Transformation") ? ll.music
+                  : line.includes("Loss-Love-Safety") ? ll.loveLossSafety
+                  : line.includes("Divine-Unity") ? ll.divineUnity
+                  : line.includes("Divine-Intelligence") ? ll.divineIntelligence
+                  : ll.sacredResource;
                 return (
                   <div key={i} className="flex justify-center">
                     <a href={line.trim()} target="_blank" rel="noopener noreferrer"
@@ -405,7 +461,7 @@ function LibraryReader({
 // ── Page Reader Component ────────────────────────────────────────
 
 function PageReader({
-  chapter, section, pageIndex, setPageIndex, onNavigateToChapter, pages, reflectionLabel = "Reflection", onExpandBilingual,
+  chapter, section, pageIndex, setPageIndex, onNavigateToChapter, pages, reflectionLabel = "Reflection", onExpandBilingual, lang = "en",
 }: {
   chapter: Chapter;
   section: Section;
@@ -415,6 +471,7 @@ function PageReader({
   pages: typeof divinityPages;
   reflectionLabel?: string;
   onExpandBilingual?: () => void;
+  lang?: DivinityLang;
 }) {
   // Swipe detection for mobile page navigation
   const touchStartX = React.useRef(0);
@@ -519,11 +576,31 @@ function PageReader({
           ) : (
             // Standard book page
             <div className="animate-in fade-in slide-in-from-right-2 duration-300">
-              {bookPage.text.split("\n").map((paragraph, i) => (
-                <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: "2rem" }}>
-                  {paragraph}
-                </p>
-              ))}
+              {bookPage.text.split("\n").map((paragraph, i) => {
+                if (paragraph.startsWith("http")) {
+                  const ll = DIVINITY_TRANSLATIONS[lang].links;
+                  const linkLabel = paragraph.includes("Divinity-Transformation") ? ll.music
+                    : paragraph.includes("Loss-Love-Safety") ? ll.loveLossSafety
+                    : paragraph.includes("Divine-Unity") ? ll.divineUnity
+                    : paragraph.includes("Divine-Intelligence") ? ll.divineIntelligence
+                    : ll.sacredResource;
+                  return (
+                    <div key={i} className="flex justify-center">
+                      <a href={paragraph.trim()} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 my-4 px-4 py-3 rounded-xl border bg-card hover:bg-accent/30 transition-colors group">
+                        <span className="text-lg">✦</span>
+                        <span className="text-sm font-medium group-hover:underline" style={{ color: section.color.stroke }}>{linkLabel}</span>
+                        <svg className="w-3 h-3 ml-auto text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      </a>
+                    </div>
+                  );
+                }
+                return (
+                  <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: "2rem" }}>
+                    {paragraph}
+                  </p>
+                );
+              })}
             </div>
           )
         ) : null}
@@ -603,14 +680,14 @@ function DivinityGuidePage() {
   const [divinityLang, setDivinityLang] = useState<DivinityLang>("en");
   const activeDivinityPages = DIVINITY_PAGE_MAP[divinityLang];
   const SECTIONS = SECTIONS_MAP[divinityLang];
-  const reflectionLabel = REFLECTION_LABEL[divinityLang];
-  const libSubtitles = LIBRARY_SUBTITLE_MAP[divinityLang];
+  const reflectionLabel = DIVINITY_TRANSLATIONS[divinityLang].reflection;
+  const libSubtitles = DIVINITY_TRANSLATIONS[divinityLang].librarySubtitles;
   // Bilingual reader
   const [showBilingual, setShowBilingual] = useState(false);
   const [mirrorLang, setMirrorLang] = useState<DivinityLang>(() => divinityLang !== "en" ? "en" : "es");
   const mirrorPages = DIVINITY_PAGE_MAP[mirrorLang];
   const mirrorSections = SECTIONS_MAP[mirrorLang];
-  const mirrorReflectionLabel = REFLECTION_LABEL[mirrorLang];
+  const mirrorReflectionLabel = DIVINITY_TRANSLATIONS[mirrorLang].reflection;
 
   const { currentTheme } = useTheme();
   const hub = getHubPosition();
@@ -971,6 +1048,7 @@ function DivinityGuidePage() {
               pageIndex={libraryPageIndex}
               setPageIndex={setLibraryPageIndex}
               pages={activeDivinityPages}
+              lang={divinityLang}
             />
           ) : viewMode === "library" && !selectedLibrary ? (
             <div className="flex items-center justify-center h-full w-full">
@@ -1012,6 +1090,7 @@ function DivinityGuidePage() {
               setPageIndex={setPageIndex}
               pages={activeDivinityPages}
               reflectionLabel={reflectionLabel}
+              lang={divinityLang}
               onExpandBilingual={() => setShowBilingual(true)}
               onNavigateToChapter={(nextId) => {
                 if (nextId === 0) {
