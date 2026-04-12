@@ -65,7 +65,8 @@ export function SoITrinity({
   const outerR = spread + ringR + gap + outerWidth;
   const ringMidR = ringR - ringWidth / 2;
   const ringInnerR = ringR - ringWidth;
-  const textR = ringMidR - 2; // 2px inward from band center — sits between inner + outer borders
+  const topTextR = ringMidR - 2;    // WISDOM: 2px inward (clockwise arc — text extends inward)
+  const bottomTextR = ringMidR - 4; // CONNECTION/HARMONY: 4px inward (counter-clockwise — text extends outward)
   const bgColor = "var(--background, #0a1628)";
 
   // Ring centers: Son (top), Mother Aset (BR), Father Asar (BL)
@@ -84,18 +85,18 @@ export function SoITrinity({
   // Counter-clockwise flips which side of the arc the text sits on,
   // making letters upright when the arc is on the lower half of a ring.
   function makeTextArc(rcx: number, rcy: number, angle: number, isBottom: boolean): string {
+    const r = isBottom ? bottomTextR : topTextR;
     const half = textSpan / 2;
     const a1 = angle - half;
     const a2 = angle + half;
-    const sx = rcx + textR * Math.cos(deg2rad(a1));
-    const sy = rcy + textR * Math.sin(deg2rad(a1));
-    const ex = rcx + textR * Math.cos(deg2rad(a2));
-    const ey = rcy + textR * Math.sin(deg2rad(a2));
+    const sx = rcx + r * Math.cos(deg2rad(a1));
+    const sy = rcy + r * Math.sin(deg2rad(a1));
+    const ex = rcx + r * Math.cos(deg2rad(a2));
+    const ey = rcy + r * Math.sin(deg2rad(a2));
     if (isBottom) {
-      // Counter-clockwise: swap start/end, sweep=0 — text right-side up on bottom arcs
-      return `M ${ex.toFixed(1)} ${ey.toFixed(1)} A ${textR} ${textR} 0 0 0 ${sx.toFixed(1)} ${sy.toFixed(1)}`;
+      return `M ${ex.toFixed(1)} ${ey.toFixed(1)} A ${r} ${r} 0 0 0 ${sx.toFixed(1)} ${sy.toFixed(1)}`;
     }
-    return `M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${textR} ${textR} 0 0 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+    return `M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${r} ${r} 0 0 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`;
   }
 
   function RingBand({ rcx, rcy, clip }: { rcx: number; rcy: number; clip?: string }) {
