@@ -217,10 +217,10 @@ export default function TrinityReviewPage() {
           Pangu v2 — 11 Iterations
         </h1>
         <p className="text-xs text-muted-foreground mt-1">
-          Sacred draw order: Son (top) → Mother Aset (BR) → Father (BL)
+          Sacred draw order: Son (top) → Mother Aset (BR) → Father Asar (BL)
         </p>
         <p className="text-[9px] text-muted-foreground/50 mt-0.5">
-          Father shields Mother · Mother shields Son · Son&apos;s love shields Father
+          Asar shields Aset · Aset shields Son · Son&apos;s love shields Asar
         </p>
         <p className="text-[9px] text-muted-foreground/50">
           Black solid borders on all rings · WISDOM (12) · HARMONY (4) · CONNECTION (8)
