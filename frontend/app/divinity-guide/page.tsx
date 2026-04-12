@@ -543,6 +543,8 @@ function DivinityGuidePage() {
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
   const enteredAtRef = useRef(Date.now());
+  // QR Code expandable overlay
+  const [showDivinityQR, setShowDivinityQR] = useState(false);
   // Sacred Library (gated content)
   const [viewMode, setViewMode] = useState<"portals" | "library">("portals");
   const [selectedLibrary, setSelectedLibrary] = useState<LibrarySection | null>(null);
@@ -681,6 +683,58 @@ function DivinityGuidePage() {
         </div>
       )}
 
+      {/* Divinity Guide QR Overlay — expandable, same pattern as polling QR */}
+      {showDivinityQR && (
+        <div className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-200">
+          <button
+            onClick={() => setShowDivinityQR(false)}
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-accent transition-colors"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+
+          <h2 className="text-2xl font-bold mb-1" style={{ color: currentTheme.swatch }}>
+            The Divinity Guide
+          </h2>
+          <p className="text-sm text-muted-foreground mb-6 italic">
+            The Return to Wholeness and Living Divinity
+          </p>
+
+          {/* QR Code with Trinity Logo center */}
+          <div className="bg-white rounded-2xl p-6 shadow-2xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/qr-divinity-guide.png"
+              alt="Divinity Guide QR Code"
+              width={280}
+              height={280}
+              className="rounded-lg"
+            />
+          </div>
+
+          <p className="text-xs text-muted-foreground mt-6">
+            Scan to share The Divinity Guide
+          </p>
+          <p className="text-[10px] text-muted-foreground/60 mt-1">
+            {typeof window !== "undefined" ? `${window.location.origin}/divinity-guide` : "/divinity-guide"}
+          </p>
+
+          <button
+            onClick={() => {
+              if (typeof navigator !== "undefined") {
+                navigator.clipboard.writeText(`${window.location.origin}/divinity-guide`);
+              }
+            }}
+            className="mt-4 px-4 py-2 text-xs rounded-full bg-muted hover:bg-accent transition-colors"
+          >
+            Copy Link
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row min-h-screen">
         {/* LEFT (desktop) / TOP (mobile): Flower Navigation */}
         <div className="w-full md:w-1/2 md:border-r flex flex-col items-center justify-center px-6 py-6">
@@ -690,9 +744,30 @@ function DivinityGuidePage() {
               <span className="text-sm font-bold" style={{ color: currentTheme.swatch }}>eXeL</span>
               <span className="text-sm font-light" style={{ color: currentTheme.swatch, opacity: 0.7 }}>AI</span>
             </Link>
-            <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); setViewMode("portals"); setSelectedLibrary(null); }} className="text-xs text-muted-foreground hover:text-primary">
-              {viewMode === "portals" ? "12 Wisdom Portals" : "Sacred Library"}
-            </button>
+            <div className="flex items-center gap-2">
+              {/* QR Code icon — expands to show Divinity Guide QR */}
+              <button
+                onClick={() => setShowDivinityQR(true)}
+                className="p-1 rounded hover:bg-accent transition-colors"
+                title="Share Divinity Guide QR"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-muted-foreground hover:text-primary">
+                  <rect x="1" y="1" width="6" height="6" rx="1" strokeWidth="0" />
+                  <rect x="9" y="1" width="6" height="6" rx="1" strokeWidth="0" />
+                  <rect x="1" y="9" width="6" height="6" rx="1" strokeWidth="0" />
+                  <rect x="10" y="10" width="2" height="2" strokeWidth="0" />
+                  <rect x="13" y="10" width="2" height="2" strokeWidth="0" />
+                  <rect x="10" y="13" width="2" height="2" strokeWidth="0" />
+                  <rect x="13" y="13" width="2" height="2" strokeWidth="0" />
+                  <rect x="3" y="3" width="2" height="2" fill="var(--background, #000)" />
+                  <rect x="11" y="3" width="2" height="2" fill="var(--background, #000)" />
+                  <rect x="3" y="11" width="2" height="2" fill="var(--background, #000)" />
+                </svg>
+              </button>
+              <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); setViewMode("portals"); setSelectedLibrary(null); }} className="text-xs text-muted-foreground hover:text-primary">
+                {viewMode === "portals" ? "12 Wisdom Portals" : "Sacred Library"}
+              </button>
+            </div>
           </div>
           {/* Title — same size as center heading (text-2xl), resets to flower home */}
           <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); }} className="text-2xl font-bold mb-0.5 hover:opacity-80 text-left" style={{ color: currentTheme.swatch }}>
