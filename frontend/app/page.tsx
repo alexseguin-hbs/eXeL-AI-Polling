@@ -45,14 +45,14 @@ export default function LandingPage() {
   const { currentTheme } = useTheme();
   const [trinityIndex, setTrinityIndex] = useState(4); // Start at Consciousness
   const [customMode, setCustomMode] = useState(false);
-  const [customLabels, setCustomLabels] = useState<[string, string, string]>([
-    t("trinity.custom.placeholder_1"), t("trinity.custom.placeholder_2"), t("trinity.custom.placeholder_3")
-  ]);
+  const [customLabels, setCustomLabels] = useState<[string, string, string] | null>(null);
   const [customColor, setCustomColor] = useState("#10B981"); // Emerald for custom mode
 
   const currentPreset = TRINITY_PRESETS[trinityIndex];
   const resolvedLabels: [string, string, string] = [t(currentPreset.keys[0]), t(currentPreset.keys[1]), t(currentPreset.keys[2])];
-  const displayLabels = customMode ? customLabels : resolvedLabels;
+  // Custom mode: show user-typed words if edited, otherwise show translated placeholders
+  const customDefaults: [string, string, string] = [t("trinity.custom.placeholder_1"), t("trinity.custom.placeholder_2"), t("trinity.custom.placeholder_3")];
+  const displayLabels = customMode ? (customLabels ?? customDefaults) : resolvedLabels;
   // Consciousness (index 4): follows theme color. Others: preset rainbow colors. Custom: user-picked.
   const displayColor = customMode ? customColor : trinityIndex === 4 ? currentTheme.swatch : currentPreset.color;
   const displayTitle = customMode ? t("trinity.custom.title") : t(currentPreset.titleKey);
@@ -63,6 +63,7 @@ export default function LandingPage() {
   };
 
   const handleUnityClick = () => {
+    if (customMode) setCustomLabels(null); // reset so next entry shows translated defaults
     setCustomMode(!customMode);
   };
 
@@ -163,20 +164,20 @@ export default function LandingPage() {
               <div className="grid grid-cols-3 gap-2">
                 <div className="flex flex-col items-center">
                   <label className="text-[8px] text-muted-foreground mb-1">{t("trinity.custom.left")}</label>
-                  <input type="text" value={customLabels[2]} maxLength={12}
-                    onChange={(e) => { const n = [...customLabels] as [string,string,string]; n[2] = e.target.value.toUpperCase(); setCustomLabels(n); }}
+                  <input type="text" value={displayLabels[2]} maxLength={12}
+                    onChange={(e) => { const base = customLabels ?? [...customDefaults] as [string,string,string]; const n = [...base] as [string,string,string]; n[2] = e.target.value.toUpperCase(); setCustomLabels(n); }}
                     className="w-full text-center text-xs px-1 py-1 rounded border bg-background text-foreground" />
                 </div>
                 <div className="flex flex-col items-center">
                   <label className="text-[8px] text-muted-foreground mb-1">{t("trinity.custom.top")}</label>
-                  <input type="text" value={customLabels[0]} maxLength={12}
-                    onChange={(e) => { const n = [...customLabels] as [string,string,string]; n[0] = e.target.value.toUpperCase(); setCustomLabels(n); }}
+                  <input type="text" value={displayLabels[0]} maxLength={12}
+                    onChange={(e) => { const base = customLabels ?? [...customDefaults] as [string,string,string]; const n = [...base] as [string,string,string]; n[0] = e.target.value.toUpperCase(); setCustomLabels(n); }}
                     className="w-full text-center text-xs px-1 py-1 rounded border bg-background text-foreground" />
                 </div>
                 <div className="flex flex-col items-center">
                   <label className="text-[8px] text-muted-foreground mb-1">{t("trinity.custom.right")}</label>
-                  <input type="text" value={customLabels[1]} maxLength={12}
-                    onChange={(e) => { const n = [...customLabels] as [string,string,string]; n[1] = e.target.value.toUpperCase(); setCustomLabels(n); }}
+                  <input type="text" value={displayLabels[1]} maxLength={12}
+                    onChange={(e) => { const base = customLabels ?? [...customDefaults] as [string,string,string]; const n = [...base] as [string,string,string]; n[1] = e.target.value.toUpperCase(); setCustomLabels(n); }}
                     className="w-full text-center text-xs px-1 py-1 rounded border bg-background text-foreground" />
                 </div>
               </div>
