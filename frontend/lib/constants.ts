@@ -46,7 +46,7 @@ export const SESSION_TYPES = [
   },
 ] as const;
 
-// Supported languages — 33 languages matching backend master table
+// Supported languages — 34 languages matching backend master table
 export const SUPPORTED_LANGUAGES = [
   { code: "en", name: "English", native: "English" },
   { code: "fr", name: "French", native: "Fran\u00e7ais" },
@@ -81,6 +81,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: "he", name: "Hebrew", native: "\u05e2\u05d1\u05e8\u05d9\u05ea" },
   { code: "sw", name: "Swahili", native: "Kiswahili" },
   { code: "ne", name: "Nepali", native: "\u0928\u0947\u092a\u093e\u0932\u0940" },
+  { code: "km", name: "Khmer", native: "\u1781\u17d2\u1798\u17c2\u179a" },
 ] as const;
 
 // Polling modes for session creation
