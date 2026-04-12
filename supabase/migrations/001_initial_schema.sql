@@ -107,23 +107,10 @@ create table if not exists participants (
 
 create index if not exists idx_participants_session on participants(session_id);
 
--- Responses (anonymous text submissions — Cube 2)
-create table if not exists responses (
-  id uuid primary key default gen_random_uuid(),
-  session_id uuid references sessions(id) on delete cascade,
-  participant_id uuid references participants(id),
-  question_id uuid,
-  raw_text text not null,
-  response_hash text,
-  language_code text default 'en',
-  char_count integer,
-  pii_detected boolean default false,
-  profanity_detected boolean default false,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
-create index if not exists idx_responses_session on responses(session_id);
+-- Responses — NOTE: Table already exists in production with (session_code, participant_id, content, created_at)
+-- Do NOT recreate. The live Trinity redundancy system writes to this table.
+-- Future migration will add columns (question_id, response_hash, etc.) if needed.
+-- create table if not exists responses (...);  -- SKIPPED: already exists with different schema
 
 -- Themes (Cube 6 AI pipeline output)
 create table if not exists themes (

@@ -74,7 +74,7 @@ create policy "divinity_pages_public_read"
 
 create policy "divinity_pages_service_write"
   on divinity_pages for insert
-  using (auth.role() = 'service_role');
+  with check (auth.role() = 'service_role');
 
 create policy "divinity_pages_service_update"
   on divinity_pages for update
@@ -109,7 +109,7 @@ create policy "divinity_dict_public_read"
 
 create policy "divinity_dict_service_write"
   on divinity_dictionary for insert
-  using (auth.role() = 'service_role');
+  with check (auth.role() = 'service_role');
 
 -- ---------------------------------------------------------------------------
 -- 4. Add payment fields to sessions table (if not already present)
