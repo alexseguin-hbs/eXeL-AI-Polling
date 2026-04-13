@@ -1,5 +1,6 @@
 """Cube 6 — AI Theming Clusterer: Embeddings, marble sampling, theme pipeline."""
 
+import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -63,7 +64,6 @@ async def run_cqs_scoring(
     if theme_level not in ("3", "6", "9"):
         raise HTTPException(status_code=400, detail="theme_level must be '3', '6', or '9'")
     # Sanitize top_theme2_label — alphanumeric, spaces, ampersands, and basic punctuation only
-    import re
     if not re.match(r'^[\w\s&\-.,()]+$', top_theme2_label):
         raise HTTPException(status_code=400, detail="Invalid theme label characters")
     return await service.run_cqs_pipeline(
