@@ -533,12 +533,13 @@ class TestCircuitBreakerE2E:
 
     @pytest.mark.asyncio
     async def test_failover_includes_aws_in_chain(self):
-        """Fallback order should include aws as the 4th provider."""
+        """Fallback order: gemini → whisper → aws (grok removed — no STT permission)."""
         from app.cubes.cube3_voice.service import _FALLBACK_ORDER
 
         assert "aws" in _FALLBACK_ORDER
-        assert len(_FALLBACK_ORDER) == 4
-        assert _FALLBACK_ORDER == ["gemini", "whisper", "grok", "aws"]
+        assert "grok" not in _FALLBACK_ORDER, "Grok must NOT be in STT fallback — no audio permission"
+        assert len(_FALLBACK_ORDER) == 3
+        assert _FALLBACK_ORDER == ["gemini", "whisper", "aws"]
 
 
 # ---------------------------------------------------------------------------
