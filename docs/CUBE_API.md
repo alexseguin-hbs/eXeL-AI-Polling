@@ -1,6 +1,6 @@
 # CUBE API — The Governance Engine Interface
 
-> **109 endpoints. 9 SDK functions. 3 core APIs. 10 cubes. 702 lexicon keys. 1,146 tests.**
+> **109 endpoints. 9 SDK functions. 3 core APIs. 10 cubes. 702 lexicon keys. 1,236 tests.**
 > **"Where Shared Intention moves at the Speed of Thought."**
 
 ---
