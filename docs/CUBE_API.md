@@ -1,6 +1,6 @@
 # CUBE API — The Governance Engine Interface
 
-> **103+ endpoints. 9 SDK functions. 3 core APIs. 10 cubes. 612 lexicon keys.**
+> **109 endpoints. 9 SDK functions. 3 core APIs. 10 cubes. 702 lexicon keys. 1,146 tests.**
 > **"Where Shared Intention moves at the Speed of Thought."**
 
 ---
@@ -10,7 +10,7 @@
 | Pillar | Score | Evidence | Gap |
 |--------|:-----:|----------|-----|
 | **Security** | 82 | Auth0 JWT on all mutation endpoints. API keys (exel_pk_*) for SDK. Cube 10 codes server-verified (SHA-256 constant-time). Rate limiting (100/min on join). | API key rotation not implemented. No per-key rate limiting (global only). |
-| **Stability** | 85 | 103 endpoints registered. OpenAPI auto-docs at /docs. All endpoints return consistent error shapes. SDK registry at /api/v1/sdk. | No API versioning strategy (all v1). No deprecation headers. |
+| **Stability** | 85 | 109 endpoints registered. OpenAPI auto-docs at /docs. All endpoints return consistent error shapes. SDK registry at /api/v1/sdk. | No API versioning strategy (all v1). No deprecation headers. |
 | **Scalability** | 80 | Streaming CSV for 1M exports. Sharded broadcast for 1M recipients. BordaAccumulator for 1M votes in 1.06s. Connection pool tuned for Supabase pgbouncer. | No CDN caching for GET endpoints. No geographic edge routing. |
 | **Efficiency** | 78 | Centroid summarizer reduces 1M LLM calls to 27 ($55→$1). Batch Supabase INSERTs. Auto-select scale mode at >1000 responses. | No response compression (gzip). No ETag caching. |
 | **Succinctness** | 85 | Universal function registry maps internal=external. SDK_DEVELOPER_GUIDE.md with 27 demos. SDK_API_REFERENCE.md with code samples per function. | Some endpoints have overlapping paths (2 presence endpoints). |
@@ -108,13 +108,14 @@
 | GET | /sessions/{id}/pipeline/status | Mod | Pipeline status |
 | POST | /sessions/{id}/pipeline/retry/{tid} | Mod | Retry failed pipeline |
 
-### Cube 6 — AI Theming (4 endpoints)
+### Cube 6 — AI Theming (5 endpoints)
 | Method | Path | Auth | Description |
 |--------|------|:----:|-------------|
-| POST | /sessions/{id}/ai/run | Mod | Run full theme pipeline |
-| GET | /sessions/{id}/ai/status | Mod | Pipeline status |
-| POST | /sessions/{id}/ai/cqs | Mod | Run CQS scoring |
+| POST | /sessions/{id}/ai/run | Mod | Run full theme pipeline (202) |
+| GET | /sessions/{id}/ai/status | Mod | Pipeline status + error recovery |
+| POST | /sessions/{id}/ai/cqs | Mod | Run CQS scoring on #1 theme |
 | GET | /sessions/{id}/themes | — | Get generated themes |
+| POST | /sessions/{id}/themes/summarize | Mod | Generate 333→111→33 theme summaries |
 
 ### Cube 7 — Ranking (11 endpoints)
 | Method | Path | Auth | Description |
@@ -137,6 +138,7 @@
 | POST | /payments/moderator-checkout | Mod | Stripe checkout |
 | POST | /payments/cost-split | Auth | Cost split payment |
 | POST | /payments/donate | Auth | Donation |
+| POST | /payments/divinity-donate | Auth | Divinity Guide donation |
 | GET | /sessions/{id}/payments | Mod | Payment status |
 | GET | /sessions/{id}/cost-estimate | — | Cost estimate |
 | GET | /sessions/{id}/tokens | Mod | Token ledger |
@@ -153,29 +155,38 @@
 | GET | /tokens/talent/{uid} | Mod | Talent profile |
 | POST | /webhooks/stripe | — | Stripe webhook |
 
-### Cube 9 — Reports (8 endpoints)
+### Cube 9 — Reports (14 endpoints)
 | Method | Path | Auth | Description |
 |--------|------|:----:|-------------|
 | GET | /sessions/{id}/export/csv | Auth | CSV download (auto-streams at 10K+) |
 | GET | /sessions/{id}/export/pdf | Auth | PDF export (stub) |
+| GET | /sessions/{id}/export/content-tier | Auth | Donation-based tier resolution + unlock flags |
 | GET | /sessions/{id}/analytics | Mod | Analytics dashboard |
 | GET | /sessions/{id}/cqs-dashboard | Mod | CQS scoring dashboard |
 | GET | /sessions/{id}/ranking-summary | Auth | Ranking results |
 | GET | /sessions/{id}/results/distribution | Mod | Eligibility check |
 | GET | /sessions/{id}/results/reward | Mod | CQS winner details |
+| GET | /sessions/{id}/compression-ratio | Auth | Governance compression ratio |
+| GET | /sessions/{id}/replay/options | Auth | Pangu simulation replay configs |
+| POST | /sessions/{id}/replay/preview | Mod | Pangu dry-run preview + AI supplement |
+| GET | /sessions/{id}/trends | Mod | Odin cross-session trend analysis ($11.11/mo) |
+| POST | /sessions/{id}/trends/snapshot | Mod | Odin theme snapshot capture |
 | POST | /sessions/{id}/destroy-data | Admin | Irreversible data destruction |
 
-### Cube 10 — Simulation (8 endpoints)
+### Cube 10 — Simulation (11 endpoints)
 | Method | Path | Auth | Description |
 |--------|------|:----:|-------------|
 | POST | /feedback | Auth | Submit feedback |
-| GET | /feedback/stats | Admin | Feedback stats |
+| GET | /feedback/stats | Admin | Feedback stats by cube/priority/category |
 | POST | /submissions | Auth | Code submission |
 | GET | /submissions/{sid}/test | Lead | Sandbox test |
 | GET | /submissions/{sid}/tally | Auth | Vote tally |
+| POST | /verify-access | Auth | Admin/Challenger code verification (HMAC) |
 | POST | /challenges | Admin | Create challenge |
 | POST | /challenges/{cid}/claim | Auth | Claim challenge |
 | POST | /challenges/{cid}/submit | Auth | Submit code |
+| GET | /saved-cases | Admin | List saved use cases (top 3 + DEMO) |
+| GET | /saved-cases/{cid}/replay | Admin | Replay against saved dataset |
 
 ### Discovery & Health (7 endpoints)
 | Method | Path | Auth | Description |

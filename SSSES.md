@@ -124,7 +124,8 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 > - Sofia: Lexicon keys corrected — 702 keys × 34 languages. Khmer missing from SEEDED_TRANSLATIONS. 7 Divinity section labels English-only
 > - Enlil: Schema drift identified — token_ledger migration vs SQLAlchemy have incompatible columns. rankings vs user_rankings table name mismatch
 > - Thor: Security audit — .env NOT tracked (safe). session_creation_log missing RLS. Encryption key fallback generates random key at runtime
-> - Total: 1,126 tests, 109 endpoints, 702 lexicon keys, 34 languages
+> - Total: 1,146 tests, 109 endpoints, 702 lexicon keys, 34 languages
+> - N=2 round: +22 router endpoint tests (Cube 6: 5, Cube 9: 9, Cube 10: 8) — covers verify_access, content_tier, trends, replay
 > - Shared language module: `divinity-languages.ts` — single source of truth for all Divinity languages (Krishna)
 > - Bundle reduction: 5,094 KB → 316 KB initial load (93% reduction, Odin)
 > - Language addition: 8 manual edits → 5 edits + automated 9-test validation (37.5% fewer touchpoints)

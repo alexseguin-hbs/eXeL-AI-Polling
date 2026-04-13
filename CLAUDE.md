@@ -421,7 +421,7 @@ Track and optimize for:
 | 9 Reports | **~76%** | **76** | 84 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | **~74%** | **74** | 99 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
 | **SDK/Cross-Cube** | **Active** | — | 101 | — | SDK Core (31) + Theme Compression (27) + Cross-Cube Chain (22) + Health (2) + SDK Functions (19) |
-| **Total** | | | **1,126** | | |
+| **Total** | | | **1,146** | | |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
