@@ -813,6 +813,7 @@ function DivinityGuidePage() {
       )}
 
       {/* Divinity Guide QR Overlay — expandable, same pattern as polling QR */}
+      {/* Shows CustomGPT QR in Sacred Library mode, Divinity Guide QR in Portals mode */}
       {showDivinityQR && (
         <div className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-200">
           <button
@@ -825,42 +826,83 @@ function DivinityGuidePage() {
             </svg>
           </button>
 
-          <h2 className="text-2xl font-bold mb-1" style={{ color: currentTheme.swatch }}>
-            The Divinity Guide
-          </h2>
-          <p className="text-sm text-muted-foreground mb-6 italic">
-            The Return to Wholeness and Living Divinity
-          </p>
+          {viewMode === "library" ? (
+            <>
+              <h2 className="text-2xl font-bold mb-1" style={{ color: currentTheme.swatch }}>
+                The Interactive Guide
+              </h2>
+              <p className="text-sm text-muted-foreground mb-6 italic">
+                A CustomGPT Companion for The Divinity Guide
+              </p>
 
-          {/* QR Code with Trinity Logo center */}
-          <div className="bg-white rounded-2xl p-6 shadow-2xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/qr-divinity-guide.png"
-              alt="Divinity Guide QR Code"
-              width={280}
-              height={280}
-              className="rounded-lg"
-            />
-          </div>
+              <div className="bg-white rounded-2xl p-6 shadow-2xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/qr-divinity-customgpt.png"
+                  alt="Divinity Guide CustomGPT QR Code"
+                  width={280}
+                  height={280}
+                  className="rounded-lg"
+                />
+              </div>
 
-          <p className="text-xs text-muted-foreground mt-6">
-            Scan to share The Divinity Guide
-          </p>
-          <p className="text-[10px] text-muted-foreground/60 mt-1">
-            {typeof window !== "undefined" ? `${window.location.origin}/divinity-guide` : "/divinity-guide"}
-          </p>
+              <p className="text-xs text-muted-foreground mt-6">
+                Scan to share The Interactive Guide, a CustomGPT tool
+              </p>
+              <p className="text-[10px] text-muted-foreground/60 mt-1">
+                chatgpt.com/g/g-tZzfdwxYh-divinity-guide
+              </p>
 
-          <button
-            onClick={() => {
-              if (typeof navigator !== "undefined") {
-                navigator.clipboard.writeText(`${window.location.origin}/divinity-guide`);
-              }
-            }}
-            className="mt-4 px-4 py-2 text-xs rounded-full bg-muted hover:bg-accent transition-colors"
-          >
-            Copy Link
-          </button>
+              <button
+                onClick={() => {
+                  if (typeof navigator !== "undefined") {
+                    navigator.clipboard.writeText("https://chatgpt.com/g/g-tZzfdwxYh-divinity-guide");
+                  }
+                }}
+                className="mt-4 px-4 py-2 text-xs rounded-full bg-muted hover:bg-accent transition-colors"
+              >
+                Copy Link
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold mb-1" style={{ color: currentTheme.swatch }}>
+                The Divinity Guide
+              </h2>
+              <p className="text-sm text-muted-foreground mb-6 italic">
+                The Return to Wholeness and Living Divinity
+              </p>
+
+              <div className="bg-white rounded-2xl p-6 shadow-2xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/qr-divinity-guide.png"
+                  alt="Divinity Guide QR Code"
+                  width={280}
+                  height={280}
+                  className="rounded-lg"
+                />
+              </div>
+
+              <p className="text-xs text-muted-foreground mt-6">
+                Scan to share The Divinity Guide
+              </p>
+              <p className="text-[10px] text-muted-foreground/60 mt-1">
+                {typeof window !== "undefined" ? `${window.location.origin}/divinity-guide` : "/divinity-guide"}
+              </p>
+
+              <button
+                onClick={() => {
+                  if (typeof navigator !== "undefined") {
+                    navigator.clipboard.writeText(`${window.location.origin}/divinity-guide`);
+                  }
+                }}
+                className="mt-4 px-4 py-2 text-xs rounded-full bg-muted hover:bg-accent transition-colors"
+              >
+                Copy Link
+              </button>
+            </>
+          )}
         </div>
       )}
 
