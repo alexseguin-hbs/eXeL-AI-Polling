@@ -96,13 +96,13 @@ Key behaviors:
 - Keyboard navigation, visual feedback, 2-second auto-accept
 - Integrated with session-view.tsx for session status "ranking" phase
 
-**Tests:** 164 total across 5 test files
-- `test_ranking_service.py` — 46 unit tests: Borda math, tiebreak, replay hash, quadratic weights, governance
-- `test_e2e_flows.py` — 40 tests: schemas, anomaly detection, models, router, pipeline integration
-- `test_simulation.py` — 25 tests: 3/6/9 themes, 8-user canned data, quadratic voting, anomaly, override
-- `test_mvp2_features.py` — 12 tests: emerging patterns, personal rank, replay verify, router
-- `test_scale_engine.py` — 24 tests: 1M benchmark (1.06s), streaming equivalence, shard distribution, sampling
-- `test_ssses_optimization.py` — 17 tests: scale stress, sort stability, hash chain, mathematical invariants
+**Tests:** 164 total across 6 test files (38 test classes)
+- `test_ranking_service.py` — 44 unit tests (11 classes): Borda math, tiebreak, replay hash, quadratic weights, governance, influence cap, audit log, lexicon
+- `test_e2e_flows.py` — 37 tests (8 classes): schemas, anomaly detection, models, router, pipeline integration, new endpoints, quadratic pipeline, governance override model
+- `test_simulation.py` — 25 tests (7 classes): 3/6/9 themes, 8-user canned data, quadratic voting, anomaly, override, full pipeline
+- `test_mvp2_features.py` — 12 tests (4 classes): emerging patterns, personal rank, replay verify, router
+- `test_scale_engine.py` — 24 tests (8 classes): 1M benchmark (1.06s), streaming equivalence, accumulator merge, shard distribution, sampling, replay hash, scale metrics
+- `test_ssses_optimization.py` — 22 tests (7 classes): scale stress, sort stability, hash chain, quadratic boundaries, anomaly precision, governance atomicity, mathematical invariants
 
 ### Cube 7 — Requirements.txt Specification
 
@@ -313,7 +313,7 @@ Key behaviors:
 
 #### Spiral Test Reference
 
-Cube 7 fully implemented with 164 tests across 5 test files. 10 API endpoints with auth gates. Mathematical proofs for 1M voters. Spiral baseline established during 20-agent audit (2026-04-12).
+Cube 7 fully implemented with 164 tests across 6 test files (38 classes). 10 API endpoints with auth gates. Mathematical proofs for 1M voters. Spiral baseline established during N=99 audit (2026-04-13).
 
 ### Cube 7 — Traceability
 
@@ -332,7 +332,7 @@ Cube 7 fully implemented with 164 tests across 5 test files. 10 API endpoints wi
 | `backend/app/cubes/cube7_ranking/scale_engine.py` | 420 | 1M-scale: streaming accumulator, Supabase, sharded broadcast, auto-theming budget |
 | `backend/app/models/ranking.py` | 110 | ORM: Ranking, AggregatedRanking, GovernanceOverride |
 | `backend/app/schemas/ranking.py` | 65 | Pydantic: RankingSubmit/Read, AggregatedRankingRead, GovernanceOverride Submit/Read |
-| `backend/tests/cube7/` | 164 tests | 5 test files: unit, E2E, simulation, MVP2, scale, SSSES optimization |
+| `backend/tests/cube7/` | 164 tests | 6 test files (38 classes): unit, E2E, simulation, MVP2, scale, SSSES optimization |
 
 ### Cube 7 — Downstream/Upstream Dependencies
 
@@ -382,7 +382,13 @@ Key responsibilities:
 
 **Total backend:** 170 lines (service 98 + router 72)
 
-**Tests:** 194 tests across `backend/tests/cube8/` test suite (59-jurisdiction precision, exhaustive lifecycle transitions)
+**Tests:** 194 tests across 6 test files in `backend/tests/cube8/` (38 test classes, 59-jurisdiction precision, exhaustive lifecycle transitions)
+- `test_payment_stripe.py` — 80 tests (14 classes): moderator checkout, cost split, donation, divinity donation, webhook handler, cost estimation, payment model, webhook router, router endpoints, token conversion, pricing tiers, amount precision, export content tiers, theme summary cascade
+- `test_ssses_optimization.py` — 30 tests (6 classes): 59-jurisdiction token precision, dollars-to-HI tokens, exhaustive lifecycle, velocity boundaries, append-only invariant, balance math proof
+- `test_lifecycle_disputes.py` — 31 tests (5 classes): lifecycle state machine, ledger entry validation, token ledger model, token schemas, router structure
+- `test_token_functional.py` — 23 tests (6 classes): lifecycle transitions, token summary, dispute resolution, CQS reward, payment service contracts, cross-cube integration
+- `test_token_service.py` — 19 tests (5 classes): session tokens, user balance, create dispute, resolve human rate, get all rates
+- `test_mvp2_features.py` — 11 tests (4 classes): velocity caps, token config, talent profile, router MVP2
 
 **Models:** `backend/app/models/token_ledger.py` (53 lines)
 - `TokenLedger` ORM: session_id, user_id, anon_hash, cube_id, action_type, delta_heart, delta_human, delta_unity, lifecycle_state, reason, reference_id, version_id
@@ -675,7 +681,7 @@ Key responsibilities:
 
 #### Simulation Pass Criteria
 
-- **100% test pass rate:** All existing 194 tests must pass; no regressions
+- **100% test pass rate:** All 194 tests (6 files, 38 classes) must pass; no regressions
 - **No spiral metric regressions:** Backend duration, TypeScript errors, bundle sizes must not increase
 - **Ledger immutability:** No mutations to existing mock ledger entries allowed; corrections only via new `reversed` entries. Verified by checksumming ledger state before/after operations
 - **Token calculation accuracy:** ♡ = ceil(minutes) exact, 웃 = minutes * (rate/60) within $0.01 precision, ◬ = ♡ * 5 exact. Verified against 8 fixture users across 3 jurisdiction tiers
@@ -685,7 +691,7 @@ Key responsibilities:
 
 #### Spiral Test Reference
 
-**194 tests** across Cube 8 test suite. Coverage includes: session token query, user balance aggregation, dispute creation, jurisdiction rate lookup (59 jurisdictions), exhaustive lifecycle transitions, token calculation. Remaining coverage gaps: payment processing (Stripe), reward disbursement, talent profiles, execution separation.
+**194 tests** across 6 test files (38 classes) in Cube 8 test suite. Coverage includes: session token query, user balance aggregation, dispute creation, jurisdiction rate lookup (59 jurisdictions), exhaustive lifecycle transitions, token calculation, Stripe payment (checkout, cost split, donation, divinity donation, webhooks). Remaining coverage gaps: reward disbursement, talent profiles, execution separation.
 
 ### Cube 8 — 웃 Rate Table ($/hr)
 
@@ -717,7 +723,7 @@ API: `GET /tokens/rates` (full table) | `GET /tokens/rates/lookup?country=US&sta
 | `backend/app/models/token_ledger.py` | 53 | TokenLedger + TokenDispute ORM models |
 | `backend/app/schemas/token.py` | 38 | Pydantic schemas with ♡/웃/◬ serialization aliases |
 | `backend/app/core/hi_rates.py` | 135 | 59-jurisdiction 웃 rate table + lookup functions |
-| `backend/tests/cube8/` | 194 tests | Full test suite (sessions, balance, disputes, rates, 59-jurisdiction, lifecycle) |
+| `backend/tests/cube8/` | 194 tests | 6 test files (38 classes): sessions, balance, disputes, rates, 59-jurisdiction, lifecycle, payment/Stripe |
 
 ### Cube 8 — Downstream/Upstream Dependencies
 
@@ -1101,7 +1107,14 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 #### Spiral Test Reference
 
-85 tests covering 19-column CSV schema, edge cases, and distribution matrix. Analytics stub still pending full implementation. Remaining: PDF export, Pixelated Tokens, results distribution, CQS dashboard, talent recommendations, data destruction.
+93 tests across 5 test files (26 test classes) covering 19-column CSV schema, edge cases, and distribution matrix.
+- `test_ssses_optimization.py` — 28 tests (5 classes): CSV column invariants, CSV determinism, confidence formatting, distribution eligibility matrix, cross-cube data flow
+- `test_reports_service.py` — 24 tests (6 classes): CSV schema, router structure, service contracts, analytics dashboard, CQS dashboard, ranking summary
+- `test_reports_functional.py` — 19 tests (7 classes): CSV export functional, confidence formatting, analytics dashboard, CQS dashboard, ranking summary, data destruction contract, cross-cube contracts
+- `test_mvp2_features.py` — 13 tests (4 classes): PDF export stub, results distribution, reward announcement, router MVP2
+- `test_router_endpoints.py` — 9 tests (4 classes): content tier, replay options, replay preview, trends, trend snapshot
+
+Analytics stub still pending full implementation. Remaining: PDF export, Pixelated Tokens, results distribution, CQS dashboard, talent recommendations, data destruction.
 
 ### Cube 9 — Target Output Schema (19-Column CSV)
 
@@ -1147,6 +1160,11 @@ The AI pipeline produces output matching this schema (reference: `Updated_Web_Re
 | `backend/app/cubes/cube9_reports/service.py` | 939 | CSV export (19-column schema), analytics, content tiers, trends, distribution matrix, insights |
 | `backend/app/cubes/cube9_reports/router.py` | 370 | 14 API endpoints (CSV export, analytics, content tiers, trends, distribution, insights) |
 | `backend/app/cubes/cube9_reports/exporters/__init__.py` | - | Exporters package (scaffolded, ready for CSV/PDF exporter modules) |
+| `backend/tests/cube9/test_ssses_optimization.py` | — | 28 tests (5 classes) |
+| `backend/tests/cube9/test_reports_service.py` | — | 24 tests (6 classes) |
+| `backend/tests/cube9/test_reports_functional.py` | — | 19 tests (7 classes) |
+| `backend/tests/cube9/test_mvp2_features.py` | — | 13 tests (4 classes) |
+| `backend/tests/cube9/test_router_endpoints.py` | — | 9 tests (4 classes) |
 
 ### Cube 9 — Downstream/Upstream Dependencies
 
@@ -1212,7 +1230,7 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 
 ### SSSES Scores — Current State (2026-04-12, 20-agent audit)
 
-> Evidence-based assessment from 20-agent audit. Cube 7 fully implemented with 164 tests, mathematical proofs, 1M-scale engine. Cube 8 has 194 tests (59-jurisdiction precision, exhaustive lifecycle). Cube 9 has 85 tests (19-column CSV, distribution matrix).
+> Evidence-based assessment from N=99 audit. Cube 7 fully implemented with 164 tests (6 files, 38 classes), mathematical proofs, 1M-scale engine. Cube 8 has 194 tests (6 files, 38 classes, 59-jurisdiction precision, exhaustive lifecycle). Cube 9 has 93 tests (5 files, 26 classes, 19-column CSV, distribution matrix).
 
 | Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall |
 |------|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -1229,7 +1247,7 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 | Pillar | Score | Evidence |
 |--------|:---:|---|
 | Security | 90 | Auth gates on all 10 endpoints. Anti-sybil anomaly detection (`detect_voting_anomalies()`): identical ranking burst + rapid submission flagging. RBAC on governance override (Lead/Admin only). CRS-22.01-22.02 implemented with immutable audit trail. |
-| Stability | 95 | 164 tests across 5 test files (unit, E2E, simulation, MVP2, scale, SSSES optimization). All 12 functions implemented. `submit_user_ranking()` with validation, `aggregate_rankings()` with Borda count + quadratic weights + seeded tiebreak, `emit_ranking_complete()` wired to Cube 5. Mathematical proofs for 1M voters. |
+| Stability | 95 | 164 tests across 6 test files, 38 classes (unit, E2E, simulation, MVP2, scale, SSSES optimization). All 12 functions implemented. `submit_user_ranking()` with validation, `aggregate_rankings()` with Borda count + quadratic weights + seeded tiebreak, `emit_ranking_complete()` wired to Cube 5. Mathematical proofs for 1M voters. |
 | Scalability | 85 | `scale_engine.py` (420 lines): streaming BordaAccumulator for 1M voters, sharded Supabase broadcast, auto-theming budget. Indexed queries on `user_rankings` and `aggregated_rankings` tables. |
 | Efficiency | 90 | Aggregation optimized for 100K participants. Quadratic vote normalization with 15% cap. Seeded tiebreak avoids non-determinism. Indexed queries for live ranking retrieval. |
 | Succinctness | 90 | 910-line service with clean single-responsibility functions. 235-line router with 10 endpoints. 420-line scale engine separated from core logic. All functions <300 LOC. |
@@ -1244,22 +1262,22 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 | Efficiency | 80 | `calculate_session_tokens()` is fast (pure math + dict lookup, in Cube 5). Ledger writes are single inserts. Missing: batch ledger writes for bulk session close. |
 | Succinctness | 85 | Clean service and router structure. 194 tests with good coverage. Missing payment/talent functions are the main gap. |
 
-#### Cube 9 — Reports, Export & Dashboards (IMPLEMENTED — 85 tests)
+#### Cube 9 — Reports, Export & Dashboards (IMPLEMENTED — 93 tests, 5 files, 26 classes)
 
 | Pillar | Score | Evidence |
 |--------|:---:|---|
 | Security | 70 | CSV export auth improvements in progress. No results distribution gating yet (paid + Lead-exempt). No data destruction. Pixelated Token encoding not implemented. |
-| Stability | 75 | 85 tests covering 19-column CSV schema, edge cases. `generate_csv_export()` verified with distribution matrix. No PDF yet. No Pixelated Tokens. No CQS dashboard. |
+| Stability | 75 | 93 tests (5 files, 26 classes) covering 19-column CSV schema, edge cases. `generate_csv_export()` verified with distribution matrix. No PDF yet. No Pixelated Tokens. No CQS dashboard. |
 | Scalability | 70 | CSV export tested with larger datasets. No streaming/chunked export yet. PDF generation not implemented. |
 | Efficiency | 75 | CSV function queries PostgreSQL per export. 19-column schema with 3 Theme_Description columns adds value. |
-| Succinctness | 85 | Clean service and router structure. 85 tests with good coverage. Missing PDF/Pixelated Token functions are the main gap. |
+| Succinctness | 85 | Clean service and router structure. 93 tests with good coverage. Missing PDF/Pixelated Token functions are the main gap. |
 
 ---
 
 ### Gap Analysis — Cubes 7–9
 
 #### ~~GAP C7-1 — All Ranking Logic Missing~~ *(RESOLVED)*
-**Status:** Fully implemented. `submit_user_ranking()` validates theme IDs and stores rankings. `aggregate_rankings()` implements Borda count + quadratic weights + seeded tiebreak. `identify_top_theme2()` sets `is_top_theme2=True` on #1 ranked theme. 164 tests verify correctness.
+**Status:** Fully implemented. `submit_user_ranking()` validates theme IDs and stores rankings. `aggregate_rankings()` implements Borda count + quadratic weights + seeded tiebreak. `identify_top_theme2()` sets `is_top_theme2=True` on #1 ranked theme. 164 tests (6 files, 38 classes) verify correctness.
 
 #### ~~GAP C7-2 — Ranking Complete Event Not Wired~~ *(RESOLVED)*
 **Status:** `emit_ranking_complete()` implemented and wired to Cube 5. Broadcasts `ranking_complete` event with `top_theme2_id` payload for CQS pipeline trigger.
@@ -1284,7 +1302,7 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 **Fix:** Add auth gate: Moderator always; Lead/Developer always; Participant only if `results_opt_in = True` AND (`payment_status = 'paid'` OR `cost_splitting_enabled = False`).
 
 #### ~~GAP C9-2 — Zero Dedicated Tests~~ *(RESOLVED)*
-**Status:** 85 tests now cover 19-column CSV schema validation, edge cases, and distribution matrix. Original gap of 0 tests fully addressed.
+**Status:** 93 tests (5 files, 26 classes) now cover 19-column CSV schema validation, edge cases, and distribution matrix. Original gap of 0 tests fully addressed.
 
 #### GAP C9-3 — Results Distribution Not Implemented *(Stability −15)*
 **Root cause:** `distribute_results()` not implemented. Eligible participants never receive results. No notification of session completion.
@@ -1312,7 +1330,7 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 | Cube | Pillar | Before | After | Key Tasks |
 |------|--------|:---:|:---:|---|
 | **7 Ranking** | Security | 90 | 95 | Remaining: peer review workflow for overrides |
-| | Stability | 95 | 98 | 164 tests; remaining: E2E with live Supabase |
+| | Stability | 95 | 98 | 164 tests (6 files); remaining: E2E with live Supabase |
 | | Scalability | 85 | 95 | scale_engine.py 1M-ready; remaining: load test verification |
 | | Efficiency | 90 | 95 | Indexed queries; remaining: cache hot rankings |
 | | Succinctness | 90 | 95 | Clean separation; remaining: minor refactors |
@@ -1346,9 +1364,9 @@ All three cubes inherit scoping context from `sessions.scoping_type` + `sessions
 | 4 Collector | 70 | 65 | 75 | 70 | 80 | **72** | Storage error handling |
 | 5 Gateway | 80 | 75 | 80 | 85 | 90 | **82** | Timeout + chain gaps |
 | 6 AI Pipeline | 70 | 40 | 55 | 55 | 70 | **58** | Broadcast + scale gaps |
-| 7 Ranking | 90 | 95 | 85 | 90 | 90 | **93** | Fully implemented (164 tests) |
-| 8 Tokens | 80 | 85 | 75 | 80 | 85 | **82** | Implemented (194 tests) |
-| 9 Reports | 70 | 75 | 70 | 75 | 85 | **76** | Implemented (85 tests) |
+| 7 Ranking | 90 | 95 | 85 | 90 | 90 | **93** | Fully implemented (164 tests, 6 files) |
+| 8 Tokens | 80 | 85 | 75 | 80 | 85 | **82** | Implemented (194 tests, 6 files) |
+| 9 Reports | 70 | 75 | 70 | 75 | 85 | **76** | Implemented (93 tests, 5 files) |
 | **System** | — | — | — | — | — | **58 avg** | |
 
 ---
@@ -1380,14 +1398,14 @@ Cube 7 ──[rank themes]──► Cube 8 ──[tokens + rewards]──► Cub
   │   + anti-sybil (C7-1/3)  │   implemented (C8-1)          │   (C9-1)
   │ ✓ DONE: ranking_complete │ ✗ GAP: lifecycle transitions  │ ✗ GAP: results distribution
   │   wired to Cube 5 (C7-2) │   incomplete (C8-2)           │   not implemented (C9-3)
-  │ ✓ 164 tests, 10 endpoints│ ✗ GAP: talent + execution     │ ✓ 85 tests, 19-col CSV
+  │ ✓ 164 tests, 10 endpoints│ ✗ GAP: talent + execution     │ ✓ 93 tests, 19-col CSV
   │                          │   separation missing (C8-3)   │
   │                          │                               │
   ▼                          ▼                               ▼
   RANKING COMPLETE           PIPELINE TERMINATES             END
 ```
 
-**Forward Spiral Verdict:** Pipeline is wired Cube 1→2→3→4→5→6 (with gaps). **Cube 7 fully implemented** (164 tests, Borda + quadratic + anti-sybil + governance override). Chain gap remains at Cube 6→7 trigger (C5-4). Cube 8 payment processing and Cube 9 results distribution still pending.
+**Forward Spiral Verdict:** Pipeline is wired Cube 1→2→3→4→5→6 (with gaps). **Cube 7 fully implemented** (164 tests, 6 files, Borda + quadratic + anti-sybil + governance override). Chain gap remains at Cube 6→7 trigger (C5-4). Cube 8 payment processing and Cube 9 results distribution still pending.
 
 ---
 

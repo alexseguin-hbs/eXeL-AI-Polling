@@ -575,7 +575,7 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 | User | language_distribution, pii/profanity_detection_rate_pct, responses_per_participant | TextResponse + ResponseMeta |
 | Outcome | clean_response_ratio_pct, total_heart/unity_tokens_distributed | TextResponse + TimeEntry |
 
-**Test Command:** `python -m pytest tests/cube2/ -v --tb=short` (54 tests)
+**Test Command:** `python -m pytest tests/cube2/ -v --tb=short` (66 tests)
 
 ---
 

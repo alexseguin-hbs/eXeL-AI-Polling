@@ -58,20 +58,22 @@
 cd backend && source .venv/bin/activate && python -m pytest tests/cube4/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 18 test classes, 43 tests (21 original + 6 Phase 1 + 8 Phase 3 + 8 audit)
+**Test Suite:** 3 files, 19 test classes, 43 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
 | `test_collector_service.py` | 13 | 29 | Unit tests (count, languages, presence, summaries, collected, single, anon hash, session validation, optimized count, CRS-10: create/confirm/check/results) |
 | `test_e2e_flows.py` | 5 | 6 | E2E flows (collection, multi-language, anonymous, pagination, voice) |
+| `test_cross_cube.py` | 1 | 8 | Cross-cube dependency validation (Cube 4 contracts) |
 
 ### Cube 4 — Files
 | File | Lines | Purpose |
 |------|-------|---------|
 | `cubes/cube4_collector/service.py` | 387 | Core business logic (7 functions) |
 | `cubes/cube4_collector/router.py` | 94 | 6 API endpoints |
-| `tests/cube4/test_collector_service.py` | 427 | 17 unit tests |
-| `tests/cube4/test_e2e_flows.py` | 296 | 10 E2E tests + CUBE4_TEST_METHOD |
+| `tests/cube4/test_collector_service.py` | 427 | 29 unit tests (13 classes) |
+| `tests/cube4/test_e2e_flows.py` | 296 | 6 E2E tests (5 classes) + CUBE4_TEST_METHOD |
+| `tests/cube4/test_cross_cube.py` | — | 8 cross-cube tests (1 class) |
 
 ### Cube 4 — Requirements.txt Specification
 
@@ -282,13 +284,14 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 4 tests: 43/43 pass, integrated i
 cd backend && source .venv/bin/activate && python -m pytest tests/cube5/ -v --tb=short
 ```
 
-**Test Suite:** 3 files, 16 test classes, 67 tests
+**Test Suite:** 4 files, 20 test classes, 67 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_time_tracking_service.py` | 5 | 18 | Token calc, start/stop, login, summary |
+| `test_time_tracking_service.py` | 6 | 18 | Token calc, start/stop, login, summary |
 | `test_orchestrator_service.py` | 7 | 22 | Create trigger, update status, AI/ranking/CQS triggers, orchestrate, status query |
-| `test_e2e_flows.py` | 5 | 20 | Pipeline CRUD, post-polling flow, status aggregation, retry, error handling, Moderator+7 users |
+| `test_e2e_flows.py` | 6 | 20 | Pipeline CRUD, post-polling flow, status aggregation, retry, error handling, Moderator+7 users |
+| `test_cross_cube.py` | 1 | 7 | Cross-cube dependency validation (Cube 5 contracts) |
 
 **Pipeline Trigger CRUD Flow (TestPipelineTriggerFlow):**
 1. `create_ai_theming_trigger` — ai_theming trigger created with pending status
@@ -357,9 +360,10 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube5/ -v --tb
 | `schemas/pipeline.py` | 42 | 4 Pydantic schemas |
 | `schemas/time_tracking.py` | 43 | 3 Pydantic schemas |
 | `models/time_tracking.py` | 57 | TimeEntry ORM |
-| `tests/cube5/test_time_tracking_service.py` | 350 | 18 unit tests |
-| `tests/cube5/test_orchestrator_service.py` | 310 | 22 unit tests |
-| `tests/cube5/test_e2e_flows.py` | 420 | 20 E2E tests + CUBE5_TEST_METHOD |
+| `tests/cube5/test_time_tracking_service.py` | 350 | 18 unit tests (6 classes) |
+| `tests/cube5/test_orchestrator_service.py` | 310 | 22 unit tests (7 classes) |
+| `tests/cube5/test_e2e_flows.py` | 420 | 20 E2E tests (6 classes) + CUBE5_TEST_METHOD |
+| `tests/cube5/test_cross_cube.py` | — | 7 cross-cube tests (1 class) |
 
 ### Cube 5 — Requirements.txt Specification
 
@@ -652,14 +656,17 @@ See `SPIRAL_METRICS.md` — N=18 bidirectional (Feb 26). Cube 5 tests: 67/67 pas
 cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb=short
 ```
 
-**Test Suite:** 3 files, 20+ test classes, 139 tests
+**Test Suite:** 7 files, 42 test classes, 144 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_ai_service.py` | 9 | 47 | Unit tests (summarization, classification, grouping, sampling, parsing, factory, providers) |
-| `test_phase_b_e2e.py` | 5 | 21 | Phase B E2E flows (pipeline, theming, assignments, broadcast) |
-| `test_scale_pipeline.py` | 8 | 41 | Scale pipeline (Cochran sampling, ThemeLibrary, PipelineMetrics, centroid summarizer) |
-| Additional audit tests | — | 30 | 20-agent audit coverage (provider failover, broadcast wiring, error propagation, timeout) |
+| `test_ai_service.py` | 7 | 26 | Unit tests (summarization, classification, grouping, sampling, parsing, factory, categories) |
+| `test_phase_b_e2e.py` | 7 | 21 | Phase B E2E flows (classify at scale, grouping, marble sampling, theme reduction, replay hash, pipeline structure, parallel batch) |
+| `test_scale_pipeline.py` | 7 | 41 | Scale pipeline (Cochran sampling, statistical significance, config, ThemeLibrary, PipelineMetrics, scale math, real data 5000 CSV) |
+| `test_cross_cube_integration.py` | 8 | 25 | Cross-cube contracts (Cube 1/2/3/4/5/7/8/9 integration) |
+| `test_centroid_summarizer.py` | 4 | 15 | Centroid summarizer (cost model, truncation, representatives, scale mode decision) |
+| `test_router_endpoints.py` | 3 | 5 | Router endpoints (run AI theming, get status, get themes) |
+| `test_live_pipeline.py` | 5 | 11 | Live pipeline (classification, marble sampling, theme generation, theme reduction, CSV data integrity) |
 
 ### Cube 6 — Files (Updated 2026-04-09)
 | File | Lines | Purpose |
@@ -675,7 +682,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 | `cubes/cube6_ai/providers/claude_provider.py` | 78 | Claude Opus + Haiku embeddings |
 | `models/theme.py` | 38 | Theme ORM (hierarchical with parent_theme_id) |
 | `models/theme_sample.py` | 39 | ThemeSample ORM (marble groups) |
-| `tests/cube6/` | 139 tests | test_ai_service.py (47), test_phase_b_e2e.py (21), test_scale_pipeline.py (41), audit tests (30) |
+| `tests/cube6/` | 144 tests | 7 files: test_ai_service.py (26), test_phase_b_e2e.py (21), test_scale_pipeline.py (41), test_cross_cube_integration.py (25), test_centroid_summarizer.py (15), test_router_endpoints.py (5), test_live_pipeline.py (11) |
 
 ### Cube 6 — Requirements.txt Specification
 
