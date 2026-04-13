@@ -408,7 +408,7 @@ Track and optimize for:
 >
 > **SPIRAL v5 audit (2026-04-12, 12 Ascended Masters Council):** Ground-truth reconciliation — Thoth verified 1,126 tests (51 files), Krishna verified 109 endpoints, Sofia found 702 lexicon keys. Schema drift identified (Enlil), security hardening applied (Thor).
 >
-> **N=99 SPIRAL audit (2026-04-13, 12 Ascended Masters):** 1,236 tests (67 files), 0 failures. +29 tests from N=99 determinism, broadcast payload, and 1M scale additions.
+> **N=99 SPIRAL audit v2 (2026-04-13, 12 Ascended Masters):** 2,212 passed, 0 failed (1,488 test functions, 59 files). WireGuard whitelist on ALL 10 cubes. SSSES Spiral 48/48. Feature Removal Guards 4/4. Trinity Redundancy intact.
 
 | Cube | Status | SSSES | Tests | CRS | Open Tasks |
 |------|--------|:---:|-------|-----|------------|
@@ -422,8 +422,8 @@ Track and optimize for:
 | 8 Tokens | **~82%** | **82** | 194 | CRS-18-19, 24-25, 32-35 | 59-jurisdiction precision. Lifecycle exhaustive. |
 | 9 Reports | **~76%** | **76** | 93 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | **~74%** | **74** | 107 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
-| **SDK/Cross-Cube/Scale** | **Active** | — | 189 | — | 1M All Cubes (53) + SDK Core (31) + Theme Compression (27) + 1M Simulation (24) + Cross-Cube Chain (22) + SDK Functions (19) + Broadcast Payload (13) + Health (2) |
-| **Total** | | | **1,236** | | |
+| **SDK/Cross-Cube/Scale** | **Active** | — | 441 | — | N=99 SSSES Spiral (48) + WireGuard Cubes 1-3 (72) + WireGuard Cubes 4-10 (126) + 1M All Cubes (53) + SDK Core (31) + Theme Compression (27) + 1M Simulation (24) + Cross-Cube Chain (22) + SDK Functions (19) + Broadcast Payload (17) + Health (2) |
+| **Total** | | | **1,488 (2,212 executed)** | | |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
