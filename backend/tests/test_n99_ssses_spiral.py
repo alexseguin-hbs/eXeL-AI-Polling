@@ -691,51 +691,218 @@ class TestTrinityRedundancySSES:
 # ═══════════════════════════════════════════════════════════════════
 
 class TestFeatureRemovalGuard:
-    """Guard against accidental feature removal across all cubes."""
+    """Guard against accidental feature removal across ALL cubes.
 
-    def test_pinyin_never_removed(self):
-        """Pinyin support must exist in both bilingual reader AND book reader."""
+    "Never remove functionality from one version to the next, only add." — MoT
+
+    These guards verify critical features still exist in the codebase.
+    If any guard fails, someone removed a feature that must be reinstated.
+
+    SPIRAL order: Cube 1→10 then cross-cube infrastructure.
+    """
+
+    @staticmethod
+    def _fe(path: str) -> str:
+        """Read a frontend file relative to project root."""
         import os
         base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        # Check bilingual reader has PinyinText
-        bilingual = os.path.join(base, "frontend", "components", "flower-of-life", "bilingual-reader.tsx")
-        assert os.path.exists(bilingual)
-        with open(bilingual) as f:
-            content = f.read()
-        assert "PinyinText" in content, "PinyinText REMOVED from bilingual reader!"
-        # Check book reader has BookPinyinText
-        divinity = os.path.join(base, "frontend", "app", "divinity-guide", "page.tsx")
-        with open(divinity) as f:
-            content = f.read()
-        assert "BookPinyinText" in content, "BookPinyinText REMOVED from book reader!"
-        assert "showPinyin" in content, "showPinyin toggle REMOVED from book reader!"
+        full = os.path.join(base, "frontend", *path.split("/"))
+        assert os.path.exists(full), f"FILE REMOVED: frontend/{path}"
+        with open(full) as f:
+            return f.read()
+
+    @staticmethod
+    def _be(path: str) -> str:
+        """Read a backend file relative to backend root."""
+        import os
+        base = os.path.dirname(os.path.dirname(__file__))
+        full = os.path.join(base, *path.split("/"))
+        assert os.path.exists(full), f"FILE REMOVED: {path}"
+        with open(full) as f:
+            return f.read()
+
+    # ═══ CUBE 1 — Session Join & QR ═══
+    def test_cube1_session_state_machine(self):
+        """Cube 1: Session state machine with forward-only transitions."""
+        c = self._be("app/cubes/cube1_session/service.py")
+        assert "create_session" in c, "create_session REMOVED from Cube 1!"
+        assert "join_session" in c, "join_session REMOVED from Cube 1!"
+        r = self._be("app/cubes/cube1_session/router.py")
+        assert "VALID_SESSION_TYPES" in r or "session_type" in r, "Session type validation REMOVED!"
+        assert "@router." in r, "Cube 1 router endpoints REMOVED!"
+
+    def test_cube1_qr_generation(self):
+        """Cube 1: QR code generation must exist."""
+        c = self._be("app/cubes/cube1_session/service.py")
+        assert "qr" in c.lower() or "QR" in c, "QR generation REMOVED from Cube 1!"
+
+    # ═══ CUBE 2 — Text Submission ═══
+    def test_cube2_text_validation(self):
+        """Cube 2: Text validation + PII scrubbing must exist."""
+        c = self._be("app/cubes/cube2_text/service.py")
+        assert "scrub_pii" in c or "PII" in c, "PII scrubbing REMOVED from Cube 2!"
+        assert "compute_response_hash" in c, "Response hash REMOVED from Cube 2!"
+        r = self._be("app/cubes/cube2_text/router.py")
+        assert "_LANGUAGE_CODE_RE" in r or "language_code" in r, "Language validation REMOVED!"
+
+    # ═══ CUBE 3 — Voice-to-Text ═══
+    def test_cube3_voice_stt_providers(self):
+        """Cube 3: STT provider whitelist must exist."""
+        r = self._be("app/cubes/cube3_voice/router.py")
+        assert "VALID_STT_PROVIDERS" in r or "whisper" in r, "STT providers REMOVED from Cube 3!"
+        s = self._be("app/cubes/cube3_voice/service.py")
+        assert "transcribe" in s or "stt" in s.lower(), "Transcription REMOVED from Cube 3!"
+
+    # ═══ CUBE 4 — Response Collector ═══
+    def test_cube4_collector_aggregation(self):
+        """Cube 4: Response aggregation must exist."""
+        s = self._be("app/cubes/cube4_collector/service.py")
+        assert "collect" in s.lower() or "aggregate" in s.lower() or "response" in s.lower(), \
+            "Collection logic REMOVED from Cube 4!"
+
+    # ═══ CUBE 5 — Gateway / Orchestrator ═══
+    def test_cube5_pipeline_triggers(self):
+        """Cube 5: Pipeline trigger system must exist."""
+        s = self._be("app/cubes/cube5_gateway/service.py")
+        assert "trigger" in s.lower() or "pipeline" in s.lower(), "Pipeline triggers REMOVED from Cube 5!"
+        assert "calculate_tokens" in s, "Token calculation REMOVED from Cube 5!"
+
+    def test_cube5_time_tracking(self):
+        """Cube 5: Time tracking must exist."""
+        s = self._be("app/cubes/cube5_gateway/service.py")
+        assert "time" in s.lower() or "duration" in s.lower(), "Time tracking REMOVED from Cube 5!"
+
+    # ═══ CUBE 6 — AI Theming Clusterer ═══
+    def test_cube6_ai_pipeline(self):
+        """Cube 6: AI pipeline with marble sampling must exist."""
+        s = self._be("app/cubes/cube6_ai/service.py")
+        assert "marble" in s.lower() or "_marble_sample" in s, "Marble sampling REMOVED from Cube 6!"
+        assert "theme" in s.lower(), "Theme processing REMOVED from Cube 6!"
+        r = self._be("app/cubes/cube6_ai/router.py")
+        assert "VALID_PROVIDERS" in r, "Provider whitelist REMOVED from Cube 6!"
+        assert "VALID_THEME_LEVELS" in r, "Theme level whitelist REMOVED from Cube 6!"
+
+    # ═══ CUBE 7 — Ranking & Voting ═══
+    def test_cube7_borda_accumulator(self):
+        """Cube 7: BordaAccumulator with anti-sybil must exist."""
+        s = self._be("app/cubes/cube7_ranking/scale_engine.py")
+        assert "BordaAccumulator" in s, "BordaAccumulator REMOVED from Cube 7!"
+        assert "exclude" in s.lower(), "Anti-sybil exclusion REMOVED from Cube 7!"
+        assert "merge" in s, "Shard merge REMOVED from Cube 7!"
+
+    # ═══ CUBE 8 — Token Ledger ═══
+    def test_cube8_token_system(self):
+        """Cube 8: Token types + lifecycle must exist."""
+        s = self._be("app/cubes/cube8_tokens/service.py")
+        assert "heart" in s.lower() or "human" in s.lower() or "triangle" in s.lower(), \
+            "Token types REMOVED from Cube 8!"
+        r = self._be("app/cubes/cube8_tokens/router.py")
+        assert "VALID_TOKEN_TYPES" in r or "token_type" in r, "Token type validation REMOVED!"
+
+    # ═══ CUBE 9 — Reports & Export ═══
+    def test_cube9_csv_export(self):
+        """Cube 9: CSV export with 19-column schema must exist."""
+        s = self._be("app/cubes/cube9_reports/service.py")
+        assert "CSV_COLUMNS" in s, "CSV_COLUMNS REMOVED from Cube 9!"
+        assert "export" in s.lower(), "Export functionality REMOVED from Cube 9!"
+
+    # ═══ CUBE 10 — Simulation / Feedback ═══
+    def test_cube10_feedback_system(self):
+        """Cube 10: Feedback system with CRS/DI types must exist."""
+        r = self._be("app/cubes/cube10_simulation/router.py")
+        assert "ALLOWED_FEEDBACK_TYPES" in r or "feedback_type" in r, "Feedback types REMOVED from Cube 10!"
+        assert "ALLOWED_CUBE_IDS" in r or "cube_id" in r, "Cube targeting REMOVED from Cube 10!"
+
+    def test_cube10_challenge_system(self):
+        """Cube 10: Challenge/submission system must exist."""
+        s = self._be("app/cubes/cube10_simulation/service.py")
+        assert "challenge" in s.lower() or "submission" in s.lower(), "Challenge system REMOVED from Cube 10!"
+
+    # ═══ CROSS-CUBE: Supabase + Broadcast ═══
+    def test_supabase_client_exists(self):
+        """Supabase client configuration must exist."""
+        c = self._fe("lib/supabase.ts")
+        assert "createClient" in c, "Supabase createClient REMOVED!"
+        assert "NEXT_PUBLIC_SUPABASE" in c, "Supabase env vars REMOVED!"
 
     def test_trinity_redundancy_intact(self):
         """Trinity Redundancy: 3 send paths must exist in session-view."""
-        import os
-        base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        sv = os.path.join(base, "frontend", "components", "session-view.tsx")
-        with open(sv) as f:
-            content = f.read()
-        assert "broadcastToSession" in content, "Path A (Broadcast) REMOVED!"
-        assert 'from("responses").insert' in content, "Path B (DB INSERT) REMOVED!"
-        assert '"/api/responses"' in content, "Path C (CF KV POST) REMOVED!"
+        c = self._fe("components/session-view.tsx")
+        assert "broadcastToSession" in c, "Path A (Broadcast) REMOVED!"
+        assert 'from("responses").insert' in c, "Path B (DB INSERT) REMOVED!"
+        assert '"/api/responses"' in c, "Path C (CF KV POST) REMOVED!"
 
     def test_broadcast_hook_consolidated(self):
         """All broadcast events route through single useSessionBroadcast hook."""
-        import os
-        base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        hook = os.path.join(base, "frontend", "lib", "use-session-broadcast.ts")
-        with open(hook) as f:
-            content = f.read()
+        c = self._fe("lib/use-session-broadcast.ts")
         for event in ("new_response", "summary_ready", "themes_ready", "theme_change", "status", "presence"):
-            assert event in content, f"Event '{event}' REMOVED from broadcast hook!"
+            assert event in c, f"Event '{event}' REMOVED from broadcast hook!"
 
     def test_fast_track_join_exists(self):
         """Fast-track join must exist — skip wizard when polling is live."""
+        c = self._fe("components/join-flow.tsx")
+        assert "fastTrackAttempted" in c, "Fast-track join REMOVED!"
+
+    # ═══ CROSS-CUBE: Translation / i18n ═══
+    def test_lexicon_system_exists(self):
+        """Language Lexicon must exist with t() fallback chain."""
+        c = self._fe("lib/lexicon-context.tsx")
+        assert "useLexicon" in c, "useLexicon hook REMOVED!"
+        d = self._fe("lib/lexicon-data.ts")
+        assert "key:" in d, "Lexicon data keys REMOVED!"
+
+    def test_divinity_10_languages(self):
+        """Divinity Guide must support 10 languages."""
+        c = self._fe("lib/divinity-languages.ts")
+        for lang in ("en", "es", "zh", "uk", "ru", "fa", "he", "pt", "km", "ne"):
+            assert f'"{lang}"' in c, f"Language '{lang}' REMOVED from Divinity Guide!"
+
+    # ═══ CROSS-CUBE: Pinyin (NEVER REMOVE) ═══
+    def test_pinyin_never_removed(self):
+        """Pinyin support must exist in both bilingual reader AND book reader."""
+        b = self._fe("components/flower-of-life/bilingual-reader.tsx")
+        assert "PinyinText" in b, "PinyinText REMOVED from bilingual reader!"
+        d = self._fe("app/divinity-guide/page.tsx")
+        assert "BookPinyinText" in d, "BookPinyinText REMOVED from book reader!"
+        assert "showPinyin" in d, "showPinyin toggle REMOVED from book reader!"
+
+    # ═══ CROSS-CUBE: User + Moderator + Admin ═══
+    def test_user_session_view_exists(self):
+        """User-facing session view must exist."""
+        c = self._fe("components/session-view.tsx")
+        assert "handleSubmitResponse" in c or "responseText" in c, "User text submission REMOVED!"
+        assert "VoiceRecorder" in c or "voice" in c.lower(), "User voice submission REMOVED!"
+
+    def test_moderator_dashboard_exists(self):
+        """Moderator dashboard with live feed must exist."""
+        c = self._fe("app/dashboard/page.tsx")
+        assert "addResponse" in c, "Live feed addResponse REMOVED from dashboard!"
+        assert "seenIds" in c, "Deduplication seenIds REMOVED from dashboard!"
+        assert "useSessionBroadcast" in c, "Broadcast hook REMOVED from dashboard!"
+
+    def test_auth_rbac_exists(self):
+        """Auth0 RBAC with role-based access must exist."""
+        c = self._be("app/core/auth.py")
+        assert "moderator" in c.lower() or "CurrentUser" in c, "Auth RBAC REMOVED!"
+
+    def test_wireguard_on_all_cubes(self):
+        """WireGuard whitelist constants must exist on ALL 10 cube routers."""
+        for cube in ("cube1_session", "cube2_text", "cube3_voice", "cube4_collector",
+                     "cube5_gateway", "cube6_ai", "cube7_ranking", "cube8_tokens",
+                     "cube9_reports", "cube10_simulation"):
+            r = self._be(f"app/cubes/{cube}/router.py")
+            has_whitelist = any(kw in r for kw in ("VALID_", "ALLOWED_", "_RE =", "_RE="))
+            assert has_whitelist, f"WireGuard whitelist REMOVED from {cube}!"
+
+    # ═══ CROSS-CUBE: Feature Removal Detector ═══
+    def test_feature_removal_detector_exists(self):
+        """Feature removal detector script must exist."""
         import os
-        base = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        jf = os.path.join(base, "frontend", "components", "join-flow.tsx")
-        with open(jf) as f:
-            content = f.read()
-        assert "fastTrackAttempted" in content, "Fast-track join REMOVED!"
+        script = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scripts", "check_feature_removal.py")
+        assert os.path.exists(script), "Feature removal detector script REMOVED!"
+
+    # ═══ CROSS-CUBE: Cloudflare Pages Function ═══
+    def test_cf_pages_function_exists(self):
+        """Cloudflare Pages function for KV responses must exist."""
+        c = self._fe("functions/api/responses.js")
+        assert "POST" in c or "GET" in c, "CF Pages response function REMOVED!"
