@@ -7,9 +7,10 @@ Endpoints:
   GET  /sessions/{session_id}/responses/metrics      — System/User/Outcome metrics for Cube 10
 """
 
+import re
 import uuid
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
@@ -31,6 +32,20 @@ router = APIRouter(
     tags=["Cube 2 — Text Input"],
 )
 
+# ---------------------------------------------------------------------------
+# WireGuard-style whitelists — reject anything not explicitly allowed
+# ---------------------------------------------------------------------------
+_LANGUAGE_CODE_RE = re.compile(r"^[a-zA-Z]{2,3}\Z")
+
+
+def _validate_language_code(code: str) -> None:
+    """Whitelist: language_code must be 2-3 alpha characters only."""
+    if not _LANGUAGE_CODE_RE.match(code):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid language_code '{code}'. Must be 2-3 alphabetic characters (e.g., 'en', 'fra').",
+        )
+
 
 @router.post("", response_model=ResponseRead, status_code=201)
 @limiter.limit("100/minute")
@@ -48,6 +63,9 @@ async def submit_response(
     Stores raw text and metadata in PostgreSQL.
     Returns immediate token display (♡ and ◬).
     """
+    # WireGuard whitelist: validate language_code format at router level
+    _validate_language_code(payload.language_code)
+
     result = await service.submit_text_response(
         db,
         session_id=session_id,

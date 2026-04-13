@@ -20,10 +20,18 @@ Export content tiers (donation-gated):
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# ---------------------------------------------------------------------------
+# WireGuard-style whitelist constants — reject anything not in the set
+# ---------------------------------------------------------------------------
+VALID_EXPORT_FORMATS = {"csv", "pdf"}
+VALID_SUMMARY_TIERS = {"33", "111", "333"}
+VALID_THEME_LEVELS = {"themes_3", "themes_6", "themes_9"}
+VALID_DONATION_TIERS = {"free", "tier_theme_111", "tier_theme_333", "tier_conf", "tier_cqs", "tier_333", "tier_full", "tier_talent"}
 
 from app.core.auth import CurrentUser, get_current_user
 from app.core.dependencies import get_db
@@ -43,6 +51,7 @@ router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 9 — Reports"])
 @router.get("/export/csv")
 async def export_csv(
     session_id: uuid.UUID,
+    summary_tier: str = Query("33", description="Summary word-count tier: '33', '111', or '333'"),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ):
@@ -53,6 +62,12 @@ async def export_csv(
       Participant: allowed if payment_status in ('paid', 'lead_exempt')
                    or session pricing_tier is 'free' or 'moderator_paid'
     """
+    # WireGuard: whitelist summary_tier
+    if summary_tier not in VALID_SUMMARY_TIERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid summary_tier '{summary_tier}'. Must be one of: {sorted(VALID_SUMMARY_TIERS)}",
+        )
     result = await db.execute(select(Session).where(Session.id == session_id))
     session = result.scalar_one_or_none()
     if not session:
@@ -162,10 +177,17 @@ async def get_ranking_summary(
 @router.get("/export/pdf")
 async def export_pdf(
     session_id: uuid.UUID,
+    export_format: str = Query("pdf", description="Export format: 'csv' or 'pdf'"),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ):
     """CRS-14.02: PDF export (MVP2 — stub)."""
+    # WireGuard: whitelist export_format
+    if export_format not in VALID_EXPORT_FORMATS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid export_format '{export_format}'. Must be one of: {sorted(VALID_EXPORT_FORMATS)}",
+        )
     return await service.generate_pdf_stub(db, session_id)
 
 
@@ -200,6 +222,7 @@ async def get_reward_announcement(
 @router.get("/export/content-tier")
 async def get_content_tier(
     session_id: uuid.UUID,
+    donation_tier: str | None = Query(None, description="Override donation tier for preview"),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ):
@@ -208,6 +231,12 @@ async def get_content_tier(
     Returns tier, unlock flags, and thresholds for frontend gating.
     Cumulative: each tier includes all features below it.
     """
+    # WireGuard: whitelist donation_tier if provided
+    if donation_tier is not None and donation_tier not in VALID_DONATION_TIERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid donation_tier '{donation_tier}'. Must be one of: {sorted(VALID_DONATION_TIERS)}",
+        )
     tier = await service.resolve_export_tier(
         db, session_id, user.user_id, user.role
     )
@@ -315,7 +344,7 @@ async def preview_replay(
 async def get_trends(
     session_id: uuid.UUID,
     project_id: str,
-    theme_level: str = "themes_3",
+    theme_level: str = Query("themes_3", description="Theme level: 'themes_3', 'themes_6', or 'themes_9'"),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
@@ -324,11 +353,16 @@ async def get_trends(
     Tracks how themes shift across sessions within a project.
     Requires active trend subscription.
     """
+    # WireGuard: whitelist theme_level
+    if theme_level not in VALID_THEME_LEVELS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid theme_level '{theme_level}'. Must be one of: {sorted(VALID_THEME_LEVELS)}",
+        )
     from app.cubes.cube9_reports.trend_service import check_subscription, get_trend_analysis
 
     has_sub = await check_subscription(db, user.user_id, project_id)
     if not has_sub and user.role not in ("admin", "lead_developer"):
-        from fastapi import HTTPException
         raise HTTPException(
             status_code=402,
             detail="Trend forecasting requires $11.11/mo subscription. Contact admin.",

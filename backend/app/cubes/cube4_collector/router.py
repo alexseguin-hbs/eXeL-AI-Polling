@@ -7,7 +7,7 @@ summary/theme status for the moderator dashboard.
 
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
@@ -27,6 +27,7 @@ from app.cubes.cube4_collector.service import (
     validate_session_exists,
 )
 from app.schemas.desired_outcome import (
+    VALID_OUTCOME_STATUSES,
     ConfirmationRequest,
     DesiredOutcomeCreate,
     DesiredOutcomeRead,
@@ -181,6 +182,12 @@ async def log_results(
     user: CurrentUser = Depends(get_current_user),
 ):
     """CRS-10.03: Log post-task results and assessment. Moderator-only."""
+    # WireGuard-inspired: whitelist outcome_status at the gate
+    if body.outcome_status not in VALID_OUTCOME_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"outcome_status must be one of: {', '.join(VALID_OUTCOME_STATUSES)}",
+        )
     await validate_session_exists(db, session_id)
     outcome = await log_post_task_results(
         db, session_id, outcome_id,

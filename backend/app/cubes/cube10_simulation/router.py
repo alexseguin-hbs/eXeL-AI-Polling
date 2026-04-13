@@ -14,10 +14,11 @@ Endpoints:
   GET  /saved-cases/{id}/replay — Replay against dataset
 """
 
+import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user
@@ -27,9 +28,22 @@ from app.cubes.cube10_simulation import service
 
 router = APIRouter(tags=["Cube 10 — Simulation"])
 
+# ---------------------------------------------------------------------------
+# WireGuard-style whitelists — reject everything not explicitly allowed
+# ---------------------------------------------------------------------------
+
+ALLOWED_FEEDBACK_TYPES = {"CRS", "DI"}
+ALLOWED_CUBE_IDS = set(range(1, 11))  # 1-10
+ALLOWED_SUBMITTER_TYPES = {"human", "ai"}
+ALLOWED_ACCESS_TYPES = {"admin", "challenger"}
+ALLOWED_CHALLENGE_STATUSES = {"open", "claimed", "submitted", "completed", "closed"}
+ALLOWED_SENTIMENTS = {"positive", "neutral", "negative"}
+CRS_ID_PATTERN = re.compile(r"^CRS-\d{2}$")
+SUB_CRS_ID_PATTERN = re.compile(r"^CRS-\d{2}\.\d{2}$")
+
 
 # ---------------------------------------------------------------------------
-# Schemas
+# Schemas (with WireGuard whitelist validation)
 # ---------------------------------------------------------------------------
 
 
@@ -40,12 +54,66 @@ class FeedbackSubmit(BaseModel):
     sub_crs_id: str | None = None
     feedback_type: str = "CRS"
 
+    @field_validator("feedback_type")
+    @classmethod
+    def validate_feedback_type(cls, v: str) -> str:
+        if v not in ALLOWED_FEEDBACK_TYPES:
+            raise ValueError(
+                f"feedback_type must be one of {sorted(ALLOWED_FEEDBACK_TYPES)}, got '{v}'"
+            )
+        return v
+
+    @field_validator("cube_id")
+    @classmethod
+    def validate_cube_id(cls, v: int) -> int:
+        if v not in ALLOWED_CUBE_IDS:
+            raise ValueError(
+                f"cube_id must be 1-10, got {v}"
+            )
+        return v
+
+    @field_validator("crs_id")
+    @classmethod
+    def validate_crs_id(cls, v: str | None) -> str | None:
+        if v is not None and not CRS_ID_PATTERN.match(v):
+            raise ValueError(
+                f"crs_id must match pattern CRS-## (e.g. CRS-01), got '{v}'"
+            )
+        return v
+
+    @field_validator("sub_crs_id")
+    @classmethod
+    def validate_sub_crs_id(cls, v: str | None) -> str | None:
+        if v is not None and not SUB_CRS_ID_PATTERN.match(v):
+            raise ValueError(
+                f"sub_crs_id must match pattern CRS-##.## (e.g. CRS-01.02), got '{v}'"
+            )
+        return v
+
 
 class SubmissionCreate(BaseModel):
     cube_id: int
     function_name: str
     submitter_type: str = "human"
     code_diff: str
+
+    @field_validator("submitter_type")
+    @classmethod
+    def validate_submitter_type(cls, v: str) -> str:
+        if v not in ALLOWED_SUBMITTER_TYPES:
+            raise ValueError(
+                f"submitter_type must be one of {sorted(ALLOWED_SUBMITTER_TYPES)}, got '{v}'"
+            )
+        return v
+
+    @field_validator("cube_id")
+    @classmethod
+    def validate_cube_id(cls, v: int) -> int:
+        if v not in ALLOWED_CUBE_IDS:
+            raise ValueError(
+                f"cube_id must be 1-10, got {v}"
+            )
+        return v
 
 
 # ---------------------------------------------------------------------------
@@ -78,6 +146,8 @@ async def get_feedback_stats(
     user: CurrentUser = Depends(require_role("admin")),
 ):
     """Aggregate feedback statistics for admin triage."""
+    if cube_id is not None and cube_id not in ALLOWED_CUBE_IDS:
+        raise HTTPException(status_code=400, detail=f"cube_id must be 1-10, got {cube_id}")
     return await service.get_feedback_stats(db, cube_id)
 
 
@@ -132,6 +202,15 @@ class VerifyAccessRequest(BaseModel):
     code: str
     access_type: str  # "admin" or "challenger"
 
+    @field_validator("access_type")
+    @classmethod
+    def validate_access_type(cls, v: str) -> str:
+        if v not in ALLOWED_ACCESS_TYPES:
+            raise ValueError(
+                f"access_type must be one of {sorted(ALLOWED_ACCESS_TYPES)}, got '{v}'"
+            )
+        return v
+
 
 @router.post("/verify-access")
 async def verify_access(
@@ -169,6 +248,15 @@ class ChallengeCreate(BaseModel):
     function_name: str | None = None
     reward_heart: float = 10.0
     reward_unity: float = 50.0
+
+    @field_validator("cube_id")
+    @classmethod
+    def validate_cube_id(cls, v: int) -> int:
+        if v not in ALLOWED_CUBE_IDS:
+            raise ValueError(
+                f"cube_id must be 1-10, got {v}"
+            )
+        return v
 
 
 @router.post("/challenges", status_code=201)
@@ -238,6 +326,9 @@ async def replay_case(
     user: CurrentUser = Depends(require_role("admin", "lead_developer")),
 ):
     """Run simulation replay against a saved dataset."""
+    # cube_id=0 means "all cubes"; 1-10 targets a specific cube
+    if cube_id not in {0, *ALLOWED_CUBE_IDS}:
+        raise HTTPException(status_code=400, detail=f"cube_id must be 0 (all) or 1-10, got {cube_id}")
     from app.cubes.cube10_simulation.saved_use_cases import (
         SavedUseCaseManager, replay_against_dataset,
     )

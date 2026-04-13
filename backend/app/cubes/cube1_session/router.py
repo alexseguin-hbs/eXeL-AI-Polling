@@ -23,9 +23,10 @@ Endpoints:
 
 import asyncio
 import logging
+import re
 import uuid
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
@@ -49,6 +50,15 @@ from app.schemas.session import (
 )
 
 router = APIRouter(prefix="/sessions", tags=["Cube 1 — Sessions"])
+
+# ---------------------------------------------------------------------------
+# WireGuard-style whitelists — reject anything not explicitly allowed
+# ---------------------------------------------------------------------------
+VALID_SESSION_TYPES = {"polling", "peer_volunteer", "team_collaboration"}
+VALID_POLLING_MODES = {"single_round", "multi_round_deep_dive"}
+VALID_POLLING_MODE_TYPES = {"live_interactive", "static_poll"}
+VALID_STATUSES = {"draft", "open", "polling", "ranking", "closed", "archived"}
+STATUS_ORDER = ["draft", "open", "polling", "ranking", "closed", "archived"]
 
 
 # ---------------------------------------------------------------------------
@@ -132,6 +142,12 @@ async def list_sessions(
     Use ``?status=archived`` to list only archived sessions, or
     ``?include_archived=true`` to include them alongside active sessions.
     """
+    # WireGuard whitelist: reject unknown status values
+    if status is not None and status not in VALID_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status '{status}'. Allowed: {sorted(VALID_STATUSES)}",
+        )
     sessions, total = await service.list_sessions(
         db,
         created_by=user.user_id,

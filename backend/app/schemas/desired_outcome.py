@@ -6,7 +6,7 @@ Covers create, read, confirmation, and post-task results logging.
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class DesiredOutcomeCreate(BaseModel):
@@ -38,8 +38,20 @@ class ConfirmationRequest(BaseModel):
     participant_id: uuid.UUID
 
 
+VALID_OUTCOME_STATUSES = ("achieved", "partially_achieved", "not_achieved")
+
+
 class ResultsLogCreate(BaseModel):
     """Post-task results submission."""
     results_log: str = Field(..., min_length=1, max_length=10000)
     outcome_status: str = Field(default="achieved")  # achieved | partially_achieved | not_achieved
     assessed_by: uuid.UUID | None = None
+
+    @field_validator("outcome_status")
+    @classmethod
+    def validate_outcome_status(cls, v: str) -> str:
+        if v not in VALID_OUTCOME_STATUSES:
+            raise ValueError(
+                f"outcome_status must be one of: {', '.join(VALID_OUTCOME_STATUSES)}"
+            )
+        return v

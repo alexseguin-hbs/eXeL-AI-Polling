@@ -10,7 +10,7 @@ The CENTER of the 3x3 cube grid. All flows pass through here:
 
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -217,6 +217,12 @@ async def retry_pipeline(
 # --- Webhooks (Enlil) ---
 
 
+VALID_WEBHOOK_EVENTS = (
+    "themes_ready", "ranking_complete", "session_closed",
+    "export_ready", "payment_received",
+)
+
+
 class WebhookRegisterRequest(BaseModel):
     url: str
     event_types: list[str]
@@ -234,6 +240,15 @@ async def register_webhook(
     Events: themes_ready, ranking_complete, session_closed, export_ready, payment_received.
     Returns signing secret (shown ONCE — save it).
     """
+    # WireGuard-inspired: whitelist event types at the gate
+    invalid = [e for e in payload.event_types if e not in VALID_WEBHOOK_EVENTS]
+    if invalid:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid event types: {invalid}. Must be one of: {list(VALID_WEBHOOK_EVENTS)}",
+        )
+    if not payload.event_types:
+        raise HTTPException(status_code=400, detail="event_types must not be empty")
     from app.cubes.cube5_gateway.webhook_service import register_webhook as reg
     return await reg(db, session_id, payload.url, payload.event_types, user.user_id)
 

@@ -13,9 +13,10 @@ Provider selected from session.ai_provider (Moderator choice at creation).
 Real-time STT is a PAID feature (Moderator + User payment required).
 """
 
+import re
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, WebSocket
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
@@ -33,6 +34,31 @@ router = APIRouter(
     prefix="/sessions/{session_id}/voice",
     tags=["Cube 3 — Voice"],
 )
+
+# ---------------------------------------------------------------------------
+# WireGuard-style whitelists — reject anything not explicitly allowed
+# ---------------------------------------------------------------------------
+VALID_STT_PROVIDERS = {"whisper", "gemini", "browser"}
+_LANGUAGE_CODE_RE = re.compile(r"^[a-zA-Z]{2,3}$")
+
+
+def _validate_language_code(code: str) -> None:
+    """Whitelist: language_code must be 2-3 alpha characters only."""
+    if not _LANGUAGE_CODE_RE.match(code):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid language_code '{code}'. Must be 2-3 alphabetic characters (e.g., 'en', 'fra').",
+        )
+
+
+def _validate_stt_provider(provider: str) -> None:
+    """Whitelist: STT provider must be an allowed value."""
+    if provider not in VALID_STT_PROVIDERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid STT provider '{provider}'. Allowed: {sorted(VALID_STT_PROVIDERS)}",
+        )
+
 
 # Max audio upload size: 25 MB (Whisper API limit)
 _MAX_AUDIO_SIZE = 25 * 1024 * 1024
@@ -62,6 +88,9 @@ async def submit_voice(
     and returns immediate token display (♡ and ◬).
     """
     from app.core.exceptions import ResponseValidationError
+
+    # WireGuard whitelist: validate language_code format at router level
+    _validate_language_code(language_code)
 
     # Validate audio format
     fmt = audio_format.lower()

@@ -10,8 +10,15 @@ Endpoints:
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# ---------------------------------------------------------------------------
+# WireGuard-style whitelist constants — reject anything not in the set
+# ---------------------------------------------------------------------------
+VALID_THEME_LEVELS = {"3", "6", "9"}
+VALID_SORT_ORDERS = {"asc", "desc"}
+VALID_RANKING_METHODS = {"borda_count", "quadratic_borda"}
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.dependencies import get_db
@@ -100,12 +107,22 @@ async def submit_ranking(
 async def get_rankings(
     session_id: uuid.UUID,
     cycle_id: int = 1,
+    sort_order: str = Query("desc", description="Sort order: 'asc' or 'desc'"),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """CRS-16: Get current aggregated rankings for live display."""
+    # WireGuard: whitelist sort_order
+    if sort_order not in VALID_SORT_ORDERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid sort_order '{sort_order}'. Must be one of: {sorted(VALID_SORT_ORDERS)}",
+        )
     rankings = await service.get_live_rankings(db, session_id, cycle_id)
-    return [AggregatedRankingRead.model_validate(r) for r in rankings]
+    validated = [AggregatedRankingRead.model_validate(r) for r in rankings]
+    if sort_order == "asc":
+        validated.reverse()
+    return validated
 
 
 # ---------------------------------------------------------------------------
@@ -117,6 +134,7 @@ async def get_rankings(
 async def trigger_aggregation(
     session_id: uuid.UUID,
     seed: str | None = None,
+    ranking_method: str = Query("borda_count", description="Ranking algorithm: 'borda_count' or 'quadratic_borda'"),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
@@ -125,6 +143,12 @@ async def trigger_aggregation(
     Computes Borda count, identifies top theme, detects anomalies,
     broadcasts ranking_complete, and triggers CQS scoring pipeline.
     """
+    # WireGuard: whitelist ranking_method
+    if ranking_method not in VALID_RANKING_METHODS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid ranking_method '{ranking_method}'. Must be one of: {sorted(VALID_RANKING_METHODS)}",
+        )
     from app.models.session import Session
     from sqlalchemy import select
 
@@ -203,10 +227,17 @@ async def get_scale_info(
 async def get_emerging(
     session_id: uuid.UUID,
     cycle_id: int = 1,
+    theme_level: str = Query("3", description="Theme level: '3', '6', or '9'"),
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
     """CRS-16.01: Emerging ranking patterns (moderator live view)."""
+    # WireGuard: whitelist theme_level
+    if theme_level not in VALID_THEME_LEVELS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid theme_level '{theme_level}'. Must be one of: {sorted(VALID_THEME_LEVELS)}",
+        )
     return await service.get_emerging_patterns(db, session_id, cycle_id)
 
 

@@ -12,11 +12,29 @@ Payments (3 tiers):
   Cost Split: 50% Moderator + 50%/N Users via Payment Intents
 """
 
+import re
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# ---------------------------------------------------------------------------
+# WireGuard-style whitelist constants — reject anything not in the set
+# ---------------------------------------------------------------------------
+VALID_TOKEN_TYPES = {"heart", "human", "triangle"}
+VALID_LIFECYCLE_STATES = {"simulated", "pending", "approved", "finalized", "reversed"}
+VALID_LIFECYCLE_TRANSITIONS = {
+    "simulated": {"pending"},
+    "pending": {"approved", "reversed"},
+    "approved": {"finalized", "reversed"},
+    "finalized": {"reversed"},
+    "reversed": set(),
+}
+VALID_PAYMENT_PROVIDERS = {"stripe"}
+VALID_DISPUTE_RESOLUTIONS = {"resolved", "rejected"}
+# ISO 3166-1 alpha-2: exactly 2 uppercase ASCII letters
+_JURISDICTION_RE = re.compile(r"^[A-Z]{2}$")
 
 from app.core.auth import CurrentUser, get_current_user
 from app.core.dependencies import get_db
@@ -200,6 +218,12 @@ async def transition_state(
     user: CurrentUser = Depends(require_role("admin")),
 ):
     """CRS-34.01: Transition token lifecycle state (admin only)."""
+    # WireGuard: whitelist lifecycle state
+    if new_state not in VALID_LIFECYCLE_STATES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid lifecycle state '{new_state}'. Must be one of: {sorted(VALID_LIFECYCLE_STATES)}",
+        )
     entry = await service.transition_lifecycle_state(
         db, entry_id, new_state, transitioned_by=user.user_id
     )
@@ -231,6 +255,12 @@ async def resolve_token_dispute(
     user: CurrentUser = Depends(require_role("admin", "lead_developer")),
 ):
     """CRS-33.02: Admin resolves a token dispute."""
+    # WireGuard: whitelist resolution value
+    if resolution not in VALID_DISPUTE_RESOLUTIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid resolution '{resolution}'. Must be one of: {sorted(VALID_DISPUTE_RESOLUTIONS)}",
+        )
     dispute = await service.resolve_dispute(
         db, dispute_id, resolution=resolution, notes=notes, resolved_by=user.user_id
     )
@@ -278,12 +308,20 @@ async def get_human_rates():
 async def lookup_human_rate(
     country: str = Query("United States", description="Country name"),
     state: str | None = Query(None, description="State/province (US only)"),
+    jurisdiction_code: str | None = Query(None, description="ISO 3166-1 alpha-2 code (e.g. 'US', 'CA')"),
 ):
     """Look up 웃 rate for a specific jurisdiction."""
+    # WireGuard: whitelist jurisdiction_code format (2-char uppercase alpha)
+    if jurisdiction_code is not None and not _JURISDICTION_RE.match(jurisdiction_code):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid jurisdiction_code '{jurisdiction_code}'. Must be exactly 2 uppercase letters (ISO 3166-1 alpha-2).",
+        )
     rate = resolve_human_rate(country, state)
     return {
         "country": country,
         "state": state,
+        "jurisdiction_code": jurisdiction_code,
         "human_rate": rate,
         "currency": "USD",
         "per_minute": round(rate / 60.0, 4),

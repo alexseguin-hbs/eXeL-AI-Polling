@@ -13,6 +13,11 @@ from app.cubes.cube6_ai import service
 from app.schemas.theme import ThemeRead
 from app.schemas.theme_pipeline import PipelineRunRequest
 
+# WireGuard-inspired whitelists: only these exact values pass the gate
+VALID_PROVIDERS = ("openai", "grok", "gemini", "claude")
+VALID_THEME_LEVELS = ("3", "6", "9")
+VALID_SUMMARY_LEVELS = ("theme2_3", "theme2_6", "theme2_9")
+
 router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 6 — AI Theming"])
 
 
@@ -20,6 +25,7 @@ router = APIRouter(prefix="/sessions/{session_id}", tags=["Cube 6 — AI Theming
 async def run_ai_theming(
     session_id: uuid.UUID,
     payload: PipelineRunRequest | None = None,
+    provider: str = "openai",
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
@@ -27,6 +33,12 @@ async def run_ai_theming(
 
     Returns 202 with pipeline result summary.
     """
+    # WireGuard-inspired: whitelist provider at the gate
+    if provider not in VALID_PROVIDERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"provider must be one of: {', '.join(VALID_PROVIDERS)}",
+        )
     seed = payload.seed if payload else None
     result = await service.run_pipeline(db, session_id, seed=seed)
     return result
@@ -61,7 +73,7 @@ async def run_cqs_scoring(
     """
     # WireGuard-inspired input validation: whitelist theme_level to prevent
     # arbitrary attribute access via getattr() in downstream code
-    if theme_level not in ("3", "6", "9"):
+    if theme_level not in VALID_THEME_LEVELS:
         raise HTTPException(status_code=400, detail="theme_level must be '3', '6', or '9'")
     # Sanitize top_theme2_label — alphanumeric, spaces, ampersands, and basic punctuation only
     if not re.match(r'^[\w\s&\-.,()]+$', top_theme2_label):
@@ -99,6 +111,12 @@ async def generate_theme_summaries(
     Args:
         theme_level: "theme2_3" (3 themes), "theme2_6" (6), or "theme2_9" (9)
     """
+    # WireGuard-inspired: whitelist theme_level at the gate
+    if theme_level not in VALID_SUMMARY_LEVELS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"theme_level must be one of: {', '.join(VALID_SUMMARY_LEVELS)}",
+        )
     from app.cubes.cube6_ai.theme_summarizer import generate_theme_summaries as gen
 
     # Dry run without AI provider (returns prompts for review)

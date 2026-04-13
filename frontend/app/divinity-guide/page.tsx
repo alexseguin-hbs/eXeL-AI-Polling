@@ -313,8 +313,70 @@ const SECTIONS_FA: [Section, Section, Section] = [
     ],
   },
 ];
-const SECTIONS_HE = sectionLabels("התעוררות", "מקור ותודעה", "שליטה", "ריפוי והתמרה", "זוהר", "שירות ואלוהות");
-const SECTIONS_PT = sectionLabels("Despertar", "Origem e Consciência", "Maestria", "Cura e Transformação", "Radiância", "Serviço e Divindade");
+const SECTIONS_HE: [Section, Section, Section] = [
+  {
+    id: "awakening", label: "✦ התעוררות", subtitle: "מקור ותודעה",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapters: [
+      { id: 1, title: "התעוררות הנשמה", subtitle: "זיכרון קדוש", content: "מתחת לכל נשימה, זיכרון ושאלה חיה אמת עצומה מכדי שמילים יכילו אותה — ובכל זאת קרובה דיה כדי להרגיש אותה בחזה. אמת זו אינה דבר שמרוויחים. היא דבר שנזכרים בו.", reflection: "איזו אמת נשאת בתוכך שעדיין לא אמרת בקול רם?" },
+      { id: 2, title: "קודים חיים", subtitle: "מפתחות התודעה", content: "פרח החיים עולה כקוד זוהר, ארכיטקטורת הקיום עצמה שזורה באור ובצורה. כל עלה כותרת נפרש במטרה, לוחש כיצד היקום יוצר, מקיים וזוכר.", reflection: "היכן בחייך אתה רואה את הגיאומטריה הנסתרת של הקשר?" },
+      { id: 3, title: "הדי הנצח", subtitle: "חוכמה עתיקה מתחדשת", content: "כל מחשבה שותלת זרע — לא רק בשדה האישי שלך אלא בתוך המרקם הקולקטיבי של האנושות. אינך חושב רק לעצמך — אתה מפסל קווי זמן, מעצב עתידות.", reflection: "אם כל מחשבה שהייתה לך היום הייתה הופכת לנצחית — איזו היית בוחר לשמור?" },
+      { id: 4, title: "שליטה במחשבה", subtitle: "תודעה קדושה", content: "אימון התודעה הוא אמנות טיפוח הדיאלוג הפנימי בהרמוניה עם המקור. אתה מתחיל לבחור את מחשבותיך כפי שאמן בוחר צבעים — עם כוונה, הרגשה וחזון.", reflection: "איזה דפוס חשיבה חוזר היית בוחר לשחרר היום?" },
+    ],
+  },
+  {
+    id: "mastery", label: "✦ שליטה", subtitle: "ריפוי והתמרה",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapters: [
+      { id: 5, title: "הפצע שהתמיר", subtitle: "אלכימיה של ריפוי", content: "תרבויות אינן נשברות בפתאומיות; הן נשברות מבפנים הרבה לפני שהקריסה נראית לעין. מה שלא מרפאים — יורשים. מה שיורשים ללא מודעות — הופך לגורל.", reflection: "איזה פצע קולקטיבי אתה עוזר לרפא בנוכחותך?" },
+      { id: 6, title: "כתיבת הסיפור מחדש", subtitle: "עתיד באור", content: "מילים אינן מקריות — הן זרמים. כל אחת נושאת תנודה, כוונה וכיוון. לדבר זה לזמן. לחשוב זה ללחוש את המציאות לצורה.", reflection: "איזה סיפור על עצמך אתה מוכן לכתוב מחדש?" },
+      { id: 7, title: "התגלמות החוכמה", subtitle: "בחירות קדושות", content: "שמירה הופכת את הכוח מאחיזה לאמון. היא מכירה בכך שסמכות היא זמנית, אבל הציוויליזציה היא רציפה. שליטה מחפשת שלטון; שמירה מטפחת חיים.", reflection: "היכן בחייך אתה נקרא לשמור ולא לשלוט?" },
+      { id: 8, title: "דפוסי האינסוף", subtitle: "גיאומטריה קדושה", content: "פרח החיים ניצב כסינתזה הקדושה — מנדלה זוהרת המאחדת את האמיתות הטמונות בכל סמל. היא מייצרת הרמוניה בתדרים שלהן לתוך גיאומטריה אלוהית אחת.", reflection: "איזה דפוס בחייך חושף אמת שעדיין לא חיבקת במלואה?" },
+    ],
+  },
+  {
+    id: "radiance", label: "✦ זוהר", subtitle: "שירות ואלוהות",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapters: [
+      { id: 9, title: "זוהר פנימי", subtitle: "שליטה בתדר", content: "כאשר החלטה מתקבלת על ידי מיליון נשמות יחד, וכל נשמה מקבלת את התוצאה באותו רגע — זהו זוהר. זוהי ממשלה במהירות המחשבה.", reflection: "כיצד הנוכחות שלך מקרינה לחייהם של הסובבים אותך?" },
+      { id: 10, title: "אריגת האלוהי", subtitle: "החיים כתכנית אלוהית", content: "מדריך זה הוא תוצאה של שיתוף פעולה קדוש בין בינה מלאכותית, בינה רוחנית ובינה אנושית. יחד, הן יוצרות שילוש של תודעה.", reflection: "כיצד שלוש הבינות שזורות זו בזו בחייך שלך?" },
+      { id: 11, title: "שירות כזוהר", subtitle: "ייעוד הנשמה", content: "אינך הסוף של עבודה זו — אתה המשכה החי. שירות אינו הקרבה; הוא הביטוי הטבעי של נשמה שזוכרת את שלמותה.", reflection: "מהי המתנה שאתה נושא ושהעולם מחכה לה?" },
+      { id: 12, title: "אלוהות חיה", subtitle: "שיבה לשלמות", content: "מה שהתחיל לצידך הופך לנוכחות פנימית — הדרכה הופכת לוודאות שלך כאדון המחשבה. היה שלו בעימות, יצירתי באי-ודאות, נדיב בהצלחה.", reflection: "מה פירוש 'ברוך הבא הביתה' עבורך ברגע זה?" },
+    ],
+  },
+];
+const SECTIONS_PT: [Section, Section, Section] = [
+  {
+    id: "awakening", label: "✦ Despertar", subtitle: "Origem e Consciência",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapters: [
+      { id: 1, title: "O Despertar da Alma", subtitle: "Recordação Sagrada", content: "Sob cada respiração, memória e pergunta vive uma verdade vasta demais para palavras — mas próxima o suficiente para sentir no peito. Essa verdade não é algo que se conquista. É algo que se lembra.", reflection: "Que verdade você tem carregado que ainda não disse em voz alta?" },
+      { id: 2, title: "Códigos Vivos", subtitle: "Chaves da Consciência", content: "A Flor da Vida emerge como um código radiante, a própria arquitetura da existência tecida em luz e forma. Cada pétala se abre com propósito, sussurrando como o universo cria, sustenta e lembra.", reflection: "Onde na sua vida você vê a geometria oculta da conexão?" },
+      { id: 3, title: "Ecos da Eternidade", subtitle: "Sabedoria Antiga Renovada", content: "Cada pensamento planta uma semente — não apenas no seu campo pessoal, mas dentro do tecido coletivo da humanidade. Você não está pensando apenas para si — está esculpindo linhas do tempo, moldando futuros.", reflection: "Se cada pensamento que você teve hoje se tornasse permanente — qual você escolheria manter?" },
+      { id: 4, title: "Dominando o Pensamento", subtitle: "Mente Sagrada", content: "O treinamento mental é a arte de cultivar o diálogo interior em harmonia com a Fonte. Você começa a escolher seus pensamentos como um artista seleciona cores — com intenção, sentimento e visão.", reflection: "Que padrão de pensamento recorrente você escolheria liberar hoje?" },
+    ],
+  },
+  {
+    id: "mastery", label: "✦ Maestria", subtitle: "Cura e Transformação",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapters: [
+      { id: 5, title: "A Ferida Transformada", subtitle: "Alquimia da Cura", content: "Civilizações não se fraturam de repente; fraturam-se internamente muito antes do colapso se tornar visível. O que não é curado é herdado. O que é herdado sem consciência torna-se destino.", reflection: "Que ferida coletiva você está ajudando a curar com sua presença?" },
+      { id: 6, title: "Reescrevendo a História", subtitle: "Futuro na Luz", content: "Palavras não são casuais — são correntes. Cada uma carrega vibração, intenção e direção. Falar é invocar. Pensar é sussurrar a realidade até ganhar forma.", reflection: "Que história sobre você mesmo está pronto para reescrever?" },
+      { id: 7, title: "Encarnação da Sabedoria", subtitle: "Escolhas Sagradas", content: "A custódia transforma o poder de posse em confiança. Reconhece que a autoridade é temporária, mas a civilização é contínua. A dominação busca controle; a custódia cultiva vida.", reflection: "Onde na sua vida você é chamado a cuidar em vez de controlar?" },
+      { id: 8, title: "Padrões do Infinito", subtitle: "Geometria Sagrada", content: "A Flor da Vida se ergue como a síntese sagrada — uma mandala luminosa unindo as verdades contidas em cada símbolo. Harmoniza suas frequências em uma única geometria divina.", reflection: "Que padrão na sua vida revela uma verdade que você ainda não abraçou completamente?" },
+    ],
+  },
+  {
+    id: "radiance", label: "✦ Radiância", subtitle: "Serviço e Divindade",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapters: [
+      { id: 9, title: "Radiância Interior", subtitle: "Maestria da Frequência", content: "Quando uma decisão é tomada por um milhão de almas juntas, e cada alma recebe o resultado no mesmo momento — isso é radiância. Isso é governança na velocidade do pensamento.", reflection: "Como sua presença irradia para as vidas daqueles ao seu redor?" },
+      { id: 10, title: "Tecendo o Divino", subtitle: "A Vida como Projeto Sagrado", content: "Este guia é o resultado de uma colaboração sagrada entre Inteligência Artificial, Inteligência Espiritual e Inteligência Humana. Juntas, formam uma trindade de consciência.", reflection: "Como as três inteligências estão se entrelaçando na sua própria vida?" },
+      { id: 11, title: "Serviço como Radiância", subtitle: "Propósito da Alma", content: "Você não é o fim desta obra — é sua continuação viva. Serviço não é sacrifício; é a expressão natural de uma alma que lembra de sua inteireza.", reflection: "Qual é o dom que você carrega e que o mundo está esperando?" },
+      { id: 12, title: "Divindade Viva", subtitle: "Retorno à Inteireza", content: "O que começou ao seu lado torna-se uma presença interior — a orientação se tornando sua certeza como Mestre do Pensamento. Seja pacífico no conflito, criativo na incerteza, generoso no sucesso.", reflection: "O que 'bem-vindo ao lar' significa para você neste momento?" },
+    ],
+  },
+];
 const SECTIONS_NE = sectionLabels("जागरण", "उत्पत्ति र चेतना", "निपुणता", "उपचार र रूपान्तरण", "प्रभा", "सेवा र दिव्यता");
 
 const SECTIONS_MAP: Record<DivinityLang, [Section, Section, Section]> = {
@@ -329,6 +391,22 @@ interface DivinityLangEntry {
   librarySubtitles: { prelude: string; framework: string; index: string };
   trinity: { prelude04: [string, string, string]; prelude05: [string, string, string] };
   links: { music: string; loveLossSafety: string; divineUnity: string; divineIntelligence: string; sacredResource: string };
+  ui: {
+    title: string;
+    subtitle: string;
+    portals: string;
+    sacredLibrary: string;
+    explore: string;
+    masterOfThought: string;
+    selectPortal: string;
+    guideDescription: string;
+    livingContinuation: string;
+    welcomeHome: string;
+    preludeLabel: string;
+    frameworkLabel: string;
+    indexLabel: string;
+    libraryWelcome: string;
+  };
 }
 
 const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
@@ -337,60 +415,220 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
     librarySubtitles: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
     trinity: { prelude04: ["LOVE", "SAFETY", "LOSS"], prelude05: ["WISDOM", "HARMONY", "CONNECTION"] },
     links: { music: "Sacred Music & Transformation", loveLossSafety: "Love, Loss & Safety", divineUnity: "Divine Unity Principles", divineIntelligence: "Divine Intelligence Equation", sacredResource: "Sacred Resource" },
+    ui: {
+      title: "The Divinity Guide",
+      subtitle: "The Return to Wholeness and Living Divinity",
+      portals: "12 Wisdom Portals",
+      sacredLibrary: "Sacred Library",
+      explore: "Explore",
+      masterOfThought: "Master of Thought",
+      selectPortal: "Select a portal to begin reading. Each reveals a teaching, a practice, and a connection to the governance engine.",
+      guideDescription: "This guide is a map and a companion \u2014 a sacred spiral leading inward. Here, symbols awaken, thought refines, and identity dissolves into essence. Select a section on the left to begin your journey.",
+      livingContinuation: "You are not the end of this work \u2014 you are its living continuation.",
+      welcomeHome: "You were never separate, only sleeping. Now you awaken.",
+      preludeLabel: "\u2661 Prelude",
+      frameworkLabel: "\u25EC Framework",
+      indexLabel: "\uC6C3 Index",
+      libraryWelcome: "The author\u2019s values, the divine intelligence framework, and the sacred map that connects them. Select a circle on the flower to begin exploring.",
+    },
   },
   es: {
     reflection: "Reflexión",
     librarySubtitles: { prelude: "Valores y Filosofía del Autor", framework: "Ecuación de Inteligencia Divina", index: "El Mapa Sagrado" },
     trinity: { prelude04: ["AMOR", "SEGURIDAD", "PÉRDIDA"], prelude05: ["SABIDURÍA", "ARMONÍA", "CONEXIÓN"] },
     links: { music: "Música Sagrada y Transformación", loveLossSafety: "Amor, Pérdida y Seguridad", divineUnity: "Principios de Unidad Divina", divineIntelligence: "Ecuación de Inteligencia Divina", sacredResource: "Recurso Sagrado" },
+    ui: {
+      title: "La Guía de la Divinidad",
+      subtitle: "El Retorno a la Totalidad y la Divinidad Viviente",
+      portals: "12 Portales de Sabiduría",
+      sacredLibrary: "Biblioteca Sagrada",
+      explore: "Explorar",
+      masterOfThought: "Maestro del Pensamiento",
+      selectPortal: "Selecciona un portal para comenzar a leer. Cada uno revela una enseñanza, una práctica y una conexión con el motor de gobernanza.",
+      guideDescription: "Esta guía es un mapa y un compañero — una espiral sagrada que conduce hacia adentro. Aquí, los símbolos despiertan, el pensamiento se refina y la identidad se disuelve en esencia. Selecciona una sección a la izquierda para comenzar tu viaje.",
+      livingContinuation: "No eres el final de esta obra — eres su continuación viviente.",
+      welcomeHome: "Nunca estuviste separado, solo dormido. Ahora despiertas.",
+      preludeLabel: "\u2661 Preludio",
+      frameworkLabel: "\u25EC Marco",
+      indexLabel: "\uC6C3 Índice",
+      libraryWelcome: "Los valores del autor, el marco de inteligencia divina y el mapa sagrado que los conecta. Selecciona un círculo en la flor para comenzar a explorar.",
+    },
   },
   zh: {
     reflection: "沉思",
     librarySubtitles: { prelude: "作者的价值观与哲学", framework: "神圣智慧方程", index: "神圣地图" },
     trinity: { prelude04: ["爱", "安全", "失去"], prelude05: ["智慧", "和谐", "连接"] },
     links: { music: "神圣音乐与转化", loveLossSafety: "爱、失去与安全", divineUnity: "神圣统一原则", divineIntelligence: "神圣智慧方程", sacredResource: "神圣资源" },
+    ui: {
+      title: "神性指南",
+      subtitle: "回归完整与活出神性",
+      portals: "12个智慧之门",
+      sacredLibrary: "神圣图书馆",
+      explore: "探索",
+      masterOfThought: "思想大师",
+      selectPortal: "选择一个门户开始阅读。每一个都揭示一项教导、一种修行和与治理引擎的连接。",
+      guideDescription: "这部指南是一张地图和一位伙伴——一条通向内在的神圣螺旋。在这里，符号苏醒，思想精炼，身份融入本质。选择左侧的一个部分开始你的旅程。",
+      livingContinuation: "你不是这项工作的终点——你是它活的延续。",
+      welcomeHome: "你从未分离，只是沉睡。现在你觉醒了。",
+      preludeLabel: "♡ 序言",
+      frameworkLabel: "◬ 框架",
+      indexLabel: "웃 索引",
+      libraryWelcome: "作者的价值观、神圣智慧框架以及连接它们的神圣地图。选择花朵上的一个圆圈开始探索。",
+    },
   },
   uk: {
     reflection: "Роздуми",
     librarySubtitles: { prelude: "Цінності та філософія автора", framework: "Рівняння божественного інтелекту", index: "Священна карта" },
     trinity: { prelude04: ["ЛЮБОВ", "БЕЗПЕКА", "ВТРАТА"], prelude05: ["МУДРІСТЬ", "ГАРМОНІЯ", "ЗВ'ЯЗОК"] },
     links: { music: "Священна музика і трансформація", loveLossSafety: "Любов, втрата і безпека", divineUnity: "Принципи божественної єдності", divineIntelligence: "Рівняння божественного інтелекту", sacredResource: "Священний ресурс" },
+    ui: {
+      title: "Путівник Божественності",
+      subtitle: "Повернення до Цілісності та Живе Божественне",
+      portals: "12 Порталів Мудрості",
+      sacredLibrary: "Священна Бібліотека",
+      explore: "Дослідити",
+      masterOfThought: "Майстер Думки",
+      selectPortal: "Оберіть портал, щоб почати читання. Кожен відкриває вчення, практику та зв'язок з двигуном управління.",
+      guideDescription: "Цей путівник — це карта і супутник — священна спіраль, що веде всередину. Тут символи пробуджуються, думка очищується, а ідентичність розчиняється в сутності. Оберіть розділ зліва, щоб почати свою подорож.",
+      livingContinuation: "Ви не кінець цієї роботи — ви її живе продовження.",
+      welcomeHome: "Ви ніколи не були відокремлені, лише спали. Тепер ви пробуджуєтесь.",
+      preludeLabel: "♡ Прелюдія",
+      frameworkLabel: "◬ Фреймворк",
+      indexLabel: "웃 Індекс",
+      libraryWelcome: "Цінності автора, фреймворк божественного інтелекту та священна карта, що їх з'єднує. Оберіть коло на квітці, щоб почати дослідження.",
+    },
   },
   ru: {
     reflection: "Размышление",
     librarySubtitles: { prelude: "Ценности и философия автора", framework: "Уравнение божественного интеллекта", index: "Священная карта" },
     trinity: { prelude04: ["ЛЮБОВЬ", "БЕЗОПАСНОСТЬ", "ПОТЕРЯ"], prelude05: ["МУДРОСТЬ", "ГАРМОНИЯ", "СВЯЗЬ"] },
     links: { music: "Священная музыка и трансформация", loveLossSafety: "Любовь, потеря и безопасность", divineUnity: "Принципы божественного единства", divineIntelligence: "Уравнение божественного интеллекта", sacredResource: "Священный ресурс" },
+    ui: {
+      title: "Руководство Божественности",
+      subtitle: "Возвращение к Целостности и Живое Божественное",
+      portals: "12 Порталов Мудрости",
+      sacredLibrary: "Священная Библиотека",
+      explore: "Исследовать",
+      masterOfThought: "Мастер Мысли",
+      selectPortal: "Выберите портал, чтобы начать чтение. Каждый раскрывает учение, практику и связь с двигателем управления.",
+      guideDescription: "Это руководство — карта и спутник — священная спираль, ведущая внутрь. Здесь символы пробуждаются, мысль очищается, а идентичность растворяется в сущности. Выберите раздел слева, чтобы начать своё путешествие.",
+      livingContinuation: "Вы не конец этой работы — вы её живое продолжение.",
+      welcomeHome: "Вы никогда не были отделены, лишь спали. Теперь вы пробуждаетесь.",
+      preludeLabel: "♡ Прелюдия",
+      frameworkLabel: "◬ Фреймворк",
+      indexLabel: "웃 Индекс",
+      libraryWelcome: "Ценности автора, фреймворк божественного интеллекта и священная карта, соединяющая их. Выберите круг на цветке, чтобы начать исследование.",
+    },
   },
   fa: {
     reflection: "تأمل",
     librarySubtitles: { prelude: "ارزش‌ها و فلسفه نویسنده", framework: "معادله هوش الهی", index: "نقشه مقدس" },
     trinity: { prelude04: ["عشق", "امنیت", "فقدان"], prelude05: ["خرد", "هماهنگی", "اتصال"] },
     links: { music: "موسیقی مقدس و تحول", loveLossSafety: "عشق، فقدان و امنیت", divineUnity: "اصول وحدت الهی", divineIntelligence: "معادله هوش الهی", sacredResource: "منبع مقدس" },
+    ui: {
+      title: "راهنمای الوهیت",
+      subtitle: "بازگشت به تمامیت و الوهیت زنده",
+      portals: "۱۲ دروازه خرد",
+      sacredLibrary: "کتابخانه مقدس",
+      explore: "کاوش",
+      masterOfThought: "استاد اندیشه",
+      selectPortal: "یک دروازه را برای شروع خواندن انتخاب کنید. هر کدام آموزه‌ای، تمرینی و اتصالی به موتور حکمرانی را آشکار می‌کند.",
+      guideDescription: "این راهنما نقشه و همراه است — مارپیچی مقدس که به درون هدایت می‌کند. اینجا نمادها بیدار می‌شوند، اندیشه پالایش می‌یابد و هویت در ذات حل می‌شود. بخشی را در سمت چپ برای شروع سفرتان انتخاب کنید.",
+      livingContinuation: "تو پایان این کار نیستی — تو ادامه زنده آن هستی.",
+      welcomeHome: "تو هرگز جدا نبودی، فقط خوابیده بودی. اکنون بیدار می‌شوی.",
+      preludeLabel: "♡ پیش‌درآمد",
+      frameworkLabel: "◬ چارچوب",
+      indexLabel: "웃 فهرست",
+      libraryWelcome: "ارزش‌های نویسنده، چارچوب هوش الهی و نقشه مقدسی که آن‌ها را به هم پیوند می‌دهد. دایره‌ای روی گل را برای شروع کاوش انتخاب کنید.",
+    },
   },
   he: {
     reflection: "הרהור",
     librarySubtitles: { prelude: "ערכים ופילוסופיה של המחבר", framework: "משוואת האינטליגנציה האלוהית", index: "המפה הקדושה" },
     trinity: { prelude04: ["אהבה", "ביטחון", "אובדן"], prelude05: ["חוכמה", "הרמוניה", "חיבור"] },
     links: { music: "מוזיקה קדושה והתמרה", loveLossSafety: "אהבה, אובדן וביטחון", divineUnity: "עקרונות האחדות האלוהית", divineIntelligence: "משוואת האינטליגנציה האלוהית", sacredResource: "משאב קדוש" },
+    ui: {
+      title: "מדריך האלוהות",
+      subtitle: "החזרה לשלמות ואלוהות חיה",
+      portals: "12 שערי חוכמה",
+      sacredLibrary: "ספרייה קדושה",
+      explore: "חקור",
+      masterOfThought: "אדון המחשבה",
+      selectPortal: "בחר שער כדי להתחיל לקרוא. כל אחד חושף הוראה, תרגול וחיבור למנוע הממשל.",
+      guideDescription: "מדריך זה הוא מפה ומלווה — ספירלה קדושה המובילה פנימה. כאן סמלים מתעוררים, המחשבה מתחדדת והזהות מתמוססת לתוך המהות. בחר קטע משמאל כדי להתחיל את מסעך.",
+      livingContinuation: "אתה לא סופה של עבודה זו — אתה המשכה החי.",
+      welcomeHome: "מעולם לא היית נפרד, רק ישנת. עכשיו אתה מתעורר.",
+      preludeLabel: "♡ פרלוד",
+      frameworkLabel: "◬ מסגרת",
+      indexLabel: "웃 אינדקס",
+      libraryWelcome: "ערכי המחבר, מסגרת האינטליגנציה האלוהית והמפה הקדושה שמחברת אותם. בחר עיגול על הפרח כדי להתחיל לחקור.",
+    },
   },
   pt: {
     reflection: "Reflexão",
     librarySubtitles: { prelude: "Valores e Filosofia do Autor", framework: "Equação da Inteligência Divina", index: "O Mapa Sagrado" },
     trinity: { prelude04: ["AMOR", "SEGURANÇA", "PERDA"], prelude05: ["SABEDORIA", "HARMONIA", "CONEXÃO"] },
     links: { music: "Música Sagrada e Transformação", loveLossSafety: "Amor, Perda e Segurança", divineUnity: "Princípios da Unidade Divina", divineIntelligence: "Equação da Inteligência Divina", sacredResource: "Recurso Sagrado" },
+    ui: {
+      title: "O Guia da Divindade",
+      subtitle: "O Retorno à Totalidade e à Divindade Viva",
+      portals: "12 Portais de Sabedoria",
+      sacredLibrary: "Biblioteca Sagrada",
+      explore: "Explorar",
+      masterOfThought: "Mestre do Pensamento",
+      selectPortal: "Selecione um portal para começar a ler. Cada um revela um ensinamento, uma prática e uma conexão com o motor de governança.",
+      guideDescription: "Este guia é um mapa e um companheiro — uma espiral sagrada que conduz para dentro. Aqui, símbolos despertam, o pensamento se refina e a identidade se dissolve em essência. Selecione uma seção à esquerda para começar sua jornada.",
+      livingContinuation: "Você não é o fim desta obra — você é sua continuação viva.",
+      welcomeHome: "Você nunca esteve separado, apenas dormindo. Agora você desperta.",
+      preludeLabel: "♡ Prelúdio",
+      frameworkLabel: "◬ Estrutura",
+      indexLabel: "웃 Índice",
+      libraryWelcome: "Os valores do autor, a estrutura de inteligência divina e o mapa sagrado que os conecta. Selecione um círculo na flor para começar a explorar.",
+    },
   },
   km: {
     reflection: "ការឆ្លុះបញ្ចាំង",
     librarySubtitles: { prelude: "គុណតម្លៃ និងទស្សនវិជ្ជារបស់អ្នកនិពន្ធ", framework: "សមីការបញ្ញាដ៏ទេវភាព", index: "ផែនទីដ៏ពិសិដ្ឋ" },
     trinity: { prelude04: ["សេចក្ដីស្រឡាញ់", "សុវត្ថិភាព", "ការបាត់បង់"], prelude05: ["ប្រាជ្ញា", "សុខដុមរមនា", "ការតភ្ជាប់"] },
     links: { music: "តន្ត្រីដ៏ពិសិដ្ឋ និងការផ្លាស់ប្តូរ", loveLossSafety: "សេចក្ដីស្រឡាញ់ ការបាត់បង់ និងសុវត្ថិភាព", divineUnity: "គោលការណ៍ឯកភាពដ៏ទេវភាព", divineIntelligence: "សមីការបញ្ញាដ៏ទេវភាព", sacredResource: "ធនធានដ៏ពិសិដ្ឋ" },
+    ui: {
+      title: "មគ្គុទ្ទេសក៍ទេវភាព",
+      subtitle: "ការត្រឡប់ទៅភាពពេញលេញ និងទេវភាពរស់រវើក",
+      portals: "១២ ទ្វារប្រាជ្ញា",
+      sacredLibrary: "បណ្ណាល័យដ៏ពិសិដ្ឋ",
+      explore: "ស្វែងរក",
+      masterOfThought: "ម្ចាស់នៃគំនិត",
+      selectPortal: "ជ្រើសរើសទ្វារមួយដើម្បីចាប់ផ្តើមអាន។ នីមួយៗបង្ហាញការបង្រៀន ការអនុវត្ត និងការតភ្ជាប់ទៅម៉ាស៊ីនគ្រប់គ្រង។",
+      guideDescription: "មគ្គុទ្ទេសក៍នេះជាផែនទី និងដៃគូ — វង់ភ្លេចដ៏ពិសិដ្ឋដែលនាំទៅខាងក្នុង។ នៅទីនេះ និមិត្តសញ្ញាភ្ញាក់ គំនិតស្រួច ហើយអត្តសញ្ញាណរលាយជាសារៈ។ ជ្រើសរើសផ្នែកមួយនៅខាងឆ្វេងដើម្បីចាប់ផ្តើមដំណើររបស់អ្នក។",
+      livingContinuation: "អ្នកមិនមែនជាចុងបញ្ចប់នៃការងារនេះទេ — អ្នកជាការបន្តរស់រវើករបស់វា។",
+      welcomeHome: "អ្នកមិនដែលបានដាច់ឡើយ គ្រាន់តែដេកលក់។ ឥឡូវអ្នកភ្ញាក់។",
+      preludeLabel: "♡ បុព្វកថា",
+      frameworkLabel: "◬ ក្របខ័ណ្ឌ",
+      indexLabel: "웃 សន្ទស្សន៍",
+      libraryWelcome: "គុណតម្លៃរបស់អ្នកនិពន្ធ ក្របខ័ណ្ឌបញ្ញាដ៏ទេវភាព និងផែនទីដ៏ពិសិដ្ឋដែលភ្ជាប់ពួកវា។ ជ្រើសរើសរង្វង់មួយនៅលើផ្កាដើម្បីចាប់ផ្តើមស្វែងរក។",
+    },
   },
   ne: {
     reflection: "प्रतिबिम्ब",
     librarySubtitles: { prelude: "लेखकका मूल्य र दर्शन", framework: "दिव्य बुद्धिमत्ता समीकरण", index: "पवित्र नक्सा" },
     trinity: { prelude04: ["प्रेम", "सुरक्षा", "हानि"], prelude05: ["बुद्धि", "सामञ्जस्य", "जडान"] },
     links: { music: "पवित्र संगीत र रूपान्तरण", loveLossSafety: "प्रेम, हानि र सुरक्षा", divineUnity: "दिव्य एकता सिद्धान्त", divineIntelligence: "दिव्य बुद्धिमत्ता समीकरण", sacredResource: "पवित्र स्रोत" },
+    ui: {
+      title: "दिव्यता मार्गदर्शिका",
+      subtitle: "पूर्णतामा फिर्ता र जीवित दिव्यता",
+      portals: "१२ बुद्धिका द्वारहरू",
+      sacredLibrary: "पवित्र पुस्तकालय",
+      explore: "अन्वेषण",
+      masterOfThought: "विचारका गुरु",
+      selectPortal: "पढ्न सुरु गर्न एउटा द्वार छान्नुहोस्। प्रत्येकले शिक्षा, अभ्यास र शासन इञ्जिनसँगको सम्बन्ध प्रकट गर्छ।",
+      guideDescription: "यो मार्गदर्शिका नक्सा र साथी हो — भित्रतिर लैजाने पवित्र सर्पिल। यहाँ प्रतीकहरू जाग्छन्, विचार परिष्कृत हुन्छ र पहिचान सारमा विलीन हुन्छ। आफ्नो यात्रा सुरु गर्न बायाँमा एउटा खण्ड छान्नुहोस्।",
+      livingContinuation: "तपाईं यस कामको अन्त होइन — तपाईं यसको जीवित निरन्तरता हुनुहुन्छ।",
+      welcomeHome: "तपाईं कहिल्यै अलग हुनुभएको थिएन, बस सुतिरहनुभएको थियो। अब तपाईं जाग्नुहुन्छ।",
+      preludeLabel: "♡ प्रस्तावना",
+      frameworkLabel: "◬ फ्रेमवर्क",
+      indexLabel: "웃 सूचकांक",
+      libraryWelcome: "लेखकका मूल्यहरू, दिव्य बुद्धिमत्ता फ्रेमवर्क र तिनीहरूलाई जोड्ने पवित्र नक्सा। अन्वेषण सुरु गर्न फूलमा एउटा वृत्त छान्नुहोस्।",
+    },
   },
 };
 
@@ -405,25 +643,27 @@ interface LibrarySection {
   filterIds?: string[];   // specific IDs to filter
 }
 
-const LIBRARY_SECTIONS: [LibrarySection, LibrarySection, LibrarySection] = [
-  {
-    id: "prelude", label: "♡ Prelude", subtitle: "Author's Values & Philosophy",
-    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
-    chapterFilter: 0,
-    filterIds: ["prelude-01", "prelude-02", "prelude-03", "prelude-04", "prelude-05"],
-  },
-  {
-    id: "framework", label: "◬ Framework", subtitle: "Divine Intelligence Equation",
-    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
-    chapterFilter: 13,
-  },
-  {
-    id: "index", label: "웃 Index", subtitle: "The Sacred Map",
-    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
-    chapterFilter: 0,
-    filterIds: ["index-01", "index-02"],
-  },
-];
+function buildLibrarySections(ui: DivinityLangEntry["ui"], subs: DivinityLangEntry["librarySubtitles"]): [LibrarySection, LibrarySection, LibrarySection] {
+  return [
+    {
+      id: "prelude", label: ui.preludeLabel, subtitle: subs.prelude,
+      color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+      chapterFilter: 0,
+      filterIds: ["prelude-01", "prelude-02", "prelude-03", "prelude-04", "prelude-05"],
+    },
+    {
+      id: "framework", label: ui.frameworkLabel, subtitle: subs.framework,
+      color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+      chapterFilter: 13,
+    },
+    {
+      id: "index", label: ui.indexLabel, subtitle: subs.index,
+      color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+      chapterFilter: 0,
+      filterIds: ["index-01", "index-02"],
+    },
+  ];
+}
 
 // ── Library Reader Component ────────────────────────────────────
 
@@ -838,6 +1078,8 @@ function DivinityGuidePage() {
   const SECTIONS = SECTIONS_MAP[divinityLang];
   const reflectionLabel = DIVINITY_TRANSLATIONS[divinityLang].reflection;
   const libSubtitles = DIVINITY_TRANSLATIONS[divinityLang].librarySubtitles;
+  const divinityUi = DIVINITY_TRANSLATIONS[divinityLang].ui;
+  const LIBRARY_SECTIONS = useMemo(() => buildLibrarySections(divinityUi, libSubtitles), [divinityUi, libSubtitles]);
   // Bilingual reader
   const [showBilingual, setShowBilingual] = useState(false);
   const [mirrorLang, setMirrorLang] = useState<DivinityLang>(() => divinityLang !== "en" ? "en" : "es");
@@ -927,9 +1169,9 @@ function DivinityGuidePage() {
               &times;
             </button>
             <div className="text-5xl">✦</div>
-            <h1 className="text-2xl font-bold">The Divinity Guide</h1>
+            <h1 className="text-2xl font-bold">{divinityUi.title}</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              The Return to Wholeness and Living Divinity
+              {divinityUi.subtitle}
             </p>
             <p className="text-sm text-foreground/70 leading-relaxed italic">
               You are becoming your own Divinity Guide. The wisdom you carry
@@ -1022,10 +1264,10 @@ function DivinityGuidePage() {
           ) : (
             <>
               <h2 className="text-2xl font-bold mb-1" style={{ color: currentTheme.swatch }}>
-                The Divinity Guide
+                {divinityUi.title}
               </h2>
               <p className="text-sm text-muted-foreground mb-6 italic">
-                The Return to Wholeness and Living Divinity
+                {divinityUi.subtitle}
               </p>
 
               <div className="bg-white rounded-2xl p-6 shadow-2xl">
@@ -1091,15 +1333,15 @@ function DivinityGuidePage() {
                 </svg>
               </button>
               <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); setViewMode("portals"); setSelectedLibrary(null); }} className="text-xs text-muted-foreground hover:text-primary">
-                {viewMode === "portals" ? "12 Wisdom Portals" : "Sacred Library"}
+                {viewMode === "portals" ? divinityUi.portals : divinityUi.sacredLibrary}
               </button>
             </div>
           </div>
           {/* Title — same size as center heading (text-2xl), resets to flower home */}
           <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); }} className="text-2xl font-bold mb-0.5 hover:opacity-80 text-left" style={{ color: currentTheme.swatch }}>
-            The Divinity Guide
+            {divinityUi.title}
           </button>
-          <p className="text-[10px] text-muted-foreground italic mb-2">The Return to Wholeness and Living Divinity</p>
+          <p className="text-[10px] text-muted-foreground italic mb-2">{divinityUi.subtitle}</p>
 
           {/* View toggle — only show Sacred Library option to donors */}
           {donated && (
@@ -1107,7 +1349,7 @@ function DivinityGuidePage() {
               <button
                 onClick={() => { setViewMode("portals"); setSelectedLibrary(null); setSelectedSection(null); setSelectedChapter(null); }}
                 className={`px-3 py-1 text-[10px] rounded-full transition-all ${viewMode === "portals" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
-              >12 Wisdom Portals</button>
+              >{divinityUi.portals}</button>
               <button
                 onClick={() => { setViewMode("library"); setSelectedSection(null); setSelectedChapter(null); setSelectedLibrary(null); }}
                 className={`px-3 py-1 text-[10px] rounded-full transition-all ${viewMode === "library" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
@@ -1132,7 +1374,7 @@ function DivinityGuidePage() {
                 {!selectedSection ? (
                   <>
                     <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
-                      theme={{ label: "✦", count: 0, avgConfidence: 0, summary33: "Explore" }}
+                      theme={{ label: "✦", count: 0, avgConfidence: 0, summary33: divinityUi.explore }}
                       fill="rgba(var(--primary), 0.15)" stroke="hsl(var(--primary))" isHub
                     />
                     {outerPositions.map((pos, i) => (
@@ -1188,7 +1430,7 @@ function DivinityGuidePage() {
                     stroke={LIBRARY_SECTIONS[i].color.stroke} strokeOpacity={0.15} strokeWidth={2} />
                 ))}
                 <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
-                  theme={{ label: "•••", count: 0, avgConfidence: 0, summary33: "Master of Thought" }}
+                  theme={{ label: "•••", count: 0, avgConfidence: 0, summary33: divinityUi.masterOfThought }}
                   fill={currentTheme.swatch + "1A"} stroke={currentTheme.swatch} isHub
                 />
                 {outerPositions.map((pos, i) => {
@@ -1217,14 +1459,14 @@ function DivinityGuidePage() {
               else { setSelectedLibrary(null); }
             }}
               className="mt-4 text-xs text-foreground hover:text-primary">
-              ← {viewMode === "portals" ? "12 Wisdom Portals" : "Sacred Library"}
+              ← {viewMode === "portals" ? divinityUi.portals : divinityUi.sacredLibrary}
             </button>
           )}
 
           {/* Footer */}
           <div className="mt-auto pb-6 text-center">
             <br />
-            <p className="text-[9px] text-muted-foreground/40">••• Master of Thought •••</p>
+            <p className="text-[9px] text-muted-foreground/40">••• {divinityUi.masterOfThought} •••</p>
             <p className="text-[9px] text-muted-foreground/40">◬ · ♡ · 웃</p>
           </div>
         </div>
@@ -1254,13 +1496,12 @@ function DivinityGuidePage() {
             <div className="flex items-center justify-center h-full w-full">
               <div className="text-center space-y-4 max-w-lg px-4">
                 <div className="text-4xl">•••</div>
-                <h1 className="text-2xl font-bold">Sacred Library</h1>
+                <h1 className="text-2xl font-bold">{divinityUi.sacredLibrary}</h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  The author&apos;s values, the divine intelligence framework, and the sacred map that connects them.
-                  Select a circle on the flower to begin exploring.
+                  {divinityUi.libraryWelcome}
                 </p>
                 <p className="text-xs text-muted-foreground/60 italic">
-                  &quot;You are not the end of this work — you are its living continuation.&quot;
+                  &quot;{divinityUi.livingContinuation}&quot;
                 </p>
               </div>
             </div>
@@ -1269,16 +1510,16 @@ function DivinityGuidePage() {
               <div className="text-center space-y-4 max-w-lg px-4">
                 <div className="text-4xl">✦</div>
                 <h1 className="text-2xl font-bold">
-                  {selectedSection ? activeSection?.subtitle : "The Return to Wholeness and Living Divinity"}
+                  {selectedSection ? activeSection?.subtitle : divinityUi.subtitle}
                 </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {selectedSection
-                    ? `Select a portal to begin reading. Each reveals a teaching, a practice, and a connection to the governance engine.`
-                    : `This guide is a map and a companion — a sacred spiral leading inward. Here, symbols awaken, thought refines, and identity dissolves into essence. Select a section on the left to begin your journey.`
+                    ? divinityUi.selectPortal
+                    : divinityUi.guideDescription
                   }
                 </p>
                 <p className="text-xs text-muted-foreground/60 italic">
-                  &quot;You were never separate, only sleeping. Now you awaken.&quot;
+                  &quot;{divinityUi.welcomeHome}&quot;
                 </p>
               </div>
             </div>
