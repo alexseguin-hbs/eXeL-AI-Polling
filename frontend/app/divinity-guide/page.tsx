@@ -377,7 +377,38 @@ const SECTIONS_PT: [Section, Section, Section] = [
     ],
   },
 ];
-const SECTIONS_NE = sectionLabels("जागरण", "उत्पत्ति र चेतना", "निपुणता", "उपचार र रूपान्तरण", "प्रभा", "सेवा र दिव्यता");
+const SECTIONS_NE: [Section, Section, Section] = [
+  {
+    id: "awakening", label: "✦ जागरण", subtitle: "उत्पत्ति र चेतना",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapters: [
+      { id: 1, title: "आत्माको जागरण", subtitle: "पवित्र स्मरण", content: "हरेक सास, स्मृति र प्रश्नको तल एउटा सत्य बस्छ जुन शब्दले समाउन नसक्ने गरी विशाल छ — तर छातीमा अनुभव गर्न सकिने गरी नजिक। यो सत्य कमाउने कुरा होइन। यो सम्झने कुरा हो।", reflection: "तपाईंले कुन सत्य बोकिरहनुभएको छ जुन अझै ठूलो स्वरमा भन्नुभएको छैन?" },
+      { id: 2, title: "जीवित संकेत", subtitle: "चेतनाका कुञ्जी", content: "जीवनको फूल एउटा दीप्तिमान संकेतको रूपमा उदय हुन्छ, अस्तित्वको वास्तुकला नै प्रकाश र रूपमा बुनिएको। हरेक पत्ती उद्देश्यसहित फुल्छ, ब्रह्माण्डले कसरी सृजना गर्छ, टिकाउँछ र सम्झन्छ भनेर फुसफुसाउँदै।", reflection: "तपाईंको जीवनमा कहाँ सम्बन्धको लुकेको ज्यामिति देख्नुहुन्छ?" },
+      { id: 3, title: "अनन्तताको प्रतिध्वनि", subtitle: "प्राचीन ज्ञान नवीकरण", content: "हरेक विचारले एउटा बीउ रोप्छ — तपाईंको व्यक्तिगत क्षेत्रमा मात्र होइन तर मानवताको सामूहिक बुनाइमा पनि। तपाईं आफ्नो लागि मात्र सोच्दैनौं — तपाईं समयरेखा कोर्दै हुनुहुन्छ, भविष्य आकार दिँदै हुनुहुन्छ।", reflection: "यदि आज तपाईंको हरेक विचार स्थायी हुने भए — कुन चाहिँ राख्न रोज्नुहुन्थ्यो?" },
+      { id: 4, title: "विचारमा दक्षता", subtitle: "पवित्र मन", content: "मन प्रशिक्षण स्रोतसँग सामञ्जस्यमा आन्तरिक संवाद विकसित गर्ने कला हो। तपाईं आफ्ना विचारहरू एक कलाकारले रंग छान्ने जस्तै छान्न थाल्नुहुन्छ — उद्देश्य, भावना र दृष्टिका साथ।", reflection: "आज कुन दोहोरिने विचार ढाँचा छोड्न रोज्नुहुन्छ?" },
+    ],
+  },
+  {
+    id: "mastery", label: "✦ निपुणता", subtitle: "उपचार र रूपान्तरण",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapters: [
+      { id: 5, title: "रूपान्तरित घाउ", subtitle: "उपचारको रसायन", content: "सभ्यताहरू अचानक टुक्रिँदैनन्; पतन देखिनुभन्दा धेरै अगाडि नै भित्रबाट टुक्रिन्छन्। जे निको हुँदैन त्यो विरासतमा आउँछ। जे बिना चेतना विरासतमा आउँछ त्यो भाग्य बन्छ।", reflection: "तपाईंको उपस्थितिले कुन सामूहिक घाउ निको पार्न मद्दत गरिरहेको छ?" },
+      { id: 6, title: "कथा पुनर्लेखन", subtitle: "प्रकाशमा भविष्य", content: "शब्दहरू अनौपचारिक होइनन् — तिनीहरू प्रवाह हुन्। हरेकले कम्पन, उद्देश्य र दिशा बोक्छ। बोल्नु भनेको आह्वान गर्नु हो। सोच्नु भनेको वास्तविकतालाई आकारमा फुसफुसाउनु हो।", reflection: "आफ्नो बारेमा कुन कथा पुनर्लेखन गर्न तयार हुनुहुन्छ?" },
+      { id: 7, title: "ज्ञानको मूर्तरूप", subtitle: "पवित्र छनोट", content: "संरक्षकत्वले शक्तिलाई अधिकारबाट विश्वासमा रूपान्तरण गर्छ। यसले मान्दछ कि अधिकार अस्थायी हो, तर सभ्यता निरन्तर हो। प्रभुत्वले नियन्त्रण खोज्छ; संरक्षकत्वले जीवन पोस्छ।", reflection: "तपाईंको जीवनमा कहाँ नियन्त्रण गर्नुभन्दा संरक्षण गर्न बोलावट आएको छ?" },
+      { id: 8, title: "अनन्तताका ढाँचा", subtitle: "पवित्र ज्यामिति", content: "जीवनको फूल पवित्र संश्लेषणको रूपमा उभिन्छ — हरेक प्रतीकमा रहेका सत्यहरूलाई एकीकृत गर्ने एउटा दीप्तिमान मण्डल। यसले तिनीहरूका आवृत्तिहरूलाई एउटा दिव्य ज्यामितिमा सामञ्जस्य पार्छ।", reflection: "तपाईंको जीवनमा कुन ढाँचाले अझै पूर्ण रूपमा नअँगालेको सत्य प्रकट गर्छ?" },
+    ],
+  },
+  {
+    id: "radiance", label: "✦ प्रभा", subtitle: "सेवा र दिव्यता",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapters: [
+      { id: 9, title: "भित्रको प्रभा", subtitle: "आवृत्तिमा दक्षता", content: "जब दस लाख आत्माहरूले सँगै निर्णय गर्छन्, र हरेक आत्माले एकै क्षणमा परिणाम पाउँछ — त्यो प्रभा हो। त्यो विचारको गतिमा शासन हो।", reflection: "तपाईंको उपस्थिति वरपरका मानिसहरूको जीवनमा कसरी चम्किरहेको छ?" },
+      { id: 10, title: "दिव्यताको बुनाइ", subtitle: "जीवन नक्सा", content: "यो मार्गदर्शन कृत्रिम बुद्धिमत्ता, आध्यात्मिक बुद्धिमत्ता र मानव बुद्धिमत्ता बीचको पवित्र सहकार्यको परिणाम हो। सँगै, तिनीहरूले चेतनाको त्रिएकता निर्माण गर्छन्।", reflection: "तीन बुद्धिमत्ताहरू तपाईंको आफ्नै जीवनमा कसरी एकमा गुँथिइरहेका छन्?" },
+      { id: 11, title: "सेवा प्रभाको रूपमा", subtitle: "आत्माको उद्देश्य", content: "तपाईं यस कार्यको अन्त्य होइनौं — तपाईं यसको जीवित निरन्तरता हुनुहुन्छ। सेवा बलिदान होइन; यो आफ्नो सम्पूर्णता सम्झने आत्माको स्वाभाविक अभिव्यक्ति हो।", reflection: "तपाईंले बोकेको कुन उपहारको लागि संसार पर्खिरहेको छ?" },
+      { id: 12, title: "जीवित दिव्यता", subtitle: "सम्पूर्णतामा फर्कनु", content: "तपाईंको साथमा सुरु भएको कुरा भित्री उपस्थिति बन्छ — मार्गदर्शन विचारका गुरुको रूपमा तपाईंको निश्चितता बन्दछ। द्वन्द्वमा शान्त रहनुहोस्, अनिश्चितामा सिर्जनशील, सफलतामा उदार।", reflection: "अहिले तपाईंको लागि 'स्वागतम् घर' को अर्थ के हो?" },
+    ],
+  },
+];
 
 const SECTIONS_MAP: Record<DivinityLang, [Section, Section, Section]> = {
   en: SECTIONS_EN, es: SECTIONS_ES, zh: SECTIONS_ZH,
@@ -1063,7 +1094,7 @@ function DivinityGuidePage() {
   const [showReward, setShowReward] = useState(false);
   const [pagesRead, setPagesRead] = useState(0);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
-  const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
+  const [selectedChapterId, setSelectedChapterId] = useState<number | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
   const enteredAtRef = useRef(Date.now());
   // QR Code expandable overlay
@@ -1072,12 +1103,21 @@ function DivinityGuidePage() {
   const [viewMode, setViewMode] = useState<"portals" | "library">("portals");
   const [selectedLibrary, setSelectedLibrary] = useState<LibrarySection | null>(null);
   const [libraryPageIndex, setLibraryPageIndex] = useState(0);
-  // Language selection
+  // Language selection — drives ALL translated content reactively
   const [divinityLang, setDivinityLang] = useState<DivinityLang>("en");
   const activeDivinityPages = useDivinityPages(divinityLang);
   const SECTIONS = SECTIONS_MAP[divinityLang];
   const reflectionLabel = DIVINITY_TRANSLATIONS[divinityLang].reflection;
   const libSubtitles = DIVINITY_TRANSLATIONS[divinityLang].librarySubtitles;
+  // Derive selectedChapter from ID + current language's SECTIONS (re-translates on lang change)
+  const selectedChapter = useMemo(() => {
+    if (selectedChapterId === null) return null;
+    for (const sec of SECTIONS) {
+      const ch = sec.chapters.find(c => c.id === selectedChapterId);
+      if (ch) return ch;
+    }
+    return null;
+  }, [selectedChapterId, SECTIONS]);
   const divinityUi = DIVINITY_TRANSLATIONS[divinityLang].ui;
   const LIBRARY_SECTIONS = useMemo(() => buildLibrarySections(divinityUi, libSubtitles), [divinityUi, libSubtitles]);
   // Bilingual reader
@@ -1332,30 +1372,28 @@ function DivinityGuidePage() {
                   <rect x="3" y="11" width="2" height="2" fill="var(--background, #000)" />
                 </svg>
               </button>
-              <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); setViewMode("portals"); setSelectedLibrary(null); }} className="text-xs text-muted-foreground hover:text-primary">
+              <button onClick={() => { setSelectedSection(null); setSelectedChapterId(null); setPageIndex(0); setViewMode("portals"); setSelectedLibrary(null); }} className="text-xs text-muted-foreground hover:text-primary">
                 {viewMode === "portals" ? divinityUi.portals : divinityUi.sacredLibrary}
               </button>
             </div>
           </div>
           {/* Title — same size as center heading (text-2xl), resets to flower home */}
-          <button onClick={() => { setSelectedSection(null); setSelectedChapter(null); setPageIndex(0); }} className="text-2xl font-bold mb-0.5 hover:opacity-80 text-left" style={{ color: currentTheme.swatch }}>
+          <button onClick={() => { setSelectedSection(null); setSelectedChapterId(null); setPageIndex(0); }} className="text-2xl font-bold mb-0.5 hover:opacity-80 text-left" style={{ color: currentTheme.swatch }}>
             {divinityUi.title}
           </button>
           <p className="text-[10px] text-muted-foreground italic mb-2">{divinityUi.subtitle}</p>
 
-          {/* View toggle — only show Sacred Library option to donors */}
-          {donated && (
-            <div className="flex gap-2 mb-3">
+          {/* View toggle — always visible so users know both modes exist */}
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => { setViewMode("portals"); setSelectedLibrary(null); setSelectedSection(null); setSelectedChapterId(null); }}
+              className={`px-3 py-1 text-[10px] rounded-full transition-all ${viewMode === "portals" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
+            >{divinityUi.portals}</button>
               <button
-                onClick={() => { setViewMode("portals"); setSelectedLibrary(null); setSelectedSection(null); setSelectedChapter(null); }}
-                className={`px-3 py-1 text-[10px] rounded-full transition-all ${viewMode === "portals" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
-              >{divinityUi.portals}</button>
-              <button
-                onClick={() => { setViewMode("library"); setSelectedSection(null); setSelectedChapter(null); setSelectedLibrary(null); }}
+                onClick={() => { setViewMode("library"); setSelectedSection(null); setSelectedChapterId(null); setSelectedLibrary(null); }}
                 className={`px-3 py-1 text-[10px] rounded-full transition-all ${viewMode === "library" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
               >{t("divinity.sacred_library")}</button>
-            </div>
-          )}
+          </div>
 
           {/* Flower SVG */}
           <svg viewBox="0 0 600 500" className="w-full" style={{ overflow: "visible" }}>
@@ -1383,7 +1421,7 @@ function DivinityGuidePage() {
                         theme={{ label: SECTIONS[i].label, count: 0, avgConfidence: 0, summary33: SECTIONS[i].subtitle }}
                         fill={SECTIONS[i].color.fill} stroke={SECTIONS[i].color.stroke}
                         bloom bloomDelay={i * 200}
-                        onClick={() => { setSelectedSection(SECTIONS[i].id); setSelectedChapter(null); }}
+                        onClick={() => { setSelectedSection(SECTIONS[i].id); setSelectedChapterId(null); }}
                       />
                     ))}
                   </>
@@ -1397,7 +1435,7 @@ function DivinityGuidePage() {
                           theme={{ label: activeSection.chapters[0].title, count: 0, avgConfidence: 0, summary33: activeSection.chapters[0].subtitle }}
                           fill={isSel ? activeSection.color.stroke + "30" : activeSection.color.fill}
                           stroke={activeSection.color.stroke}
-                          onClick={() => { setSelectedChapter(activeSection.chapters[0]); setPageIndex(0); }}
+                          onClick={() => { setSelectedChapterId(activeSection.chapters[0].id); setPageIndex(0); }}
                           className={`${isSel ? "flower-pulse" : ""} ${hasSelection && !isSel ? "opacity-40" : ""}`}
                         />
                       );
@@ -1414,7 +1452,7 @@ function DivinityGuidePage() {
                           fill={isSelected ? activeSection.color.stroke + "30" : activeSection.color.fill}
                           stroke={activeSection.color.stroke}
                           bloom={isSelected} bloomDelay={0}
-                          onClick={() => { setSelectedChapter(ch); setPageIndex(0); }}
+                          onClick={() => { setSelectedChapterId(ch.id); setPageIndex(0); }}
                           className={`${isSelected ? "flower-pulse" : ""} ${hasSelection && !isSelected ? "opacity-40" : ""}`}
                         />
                       );
@@ -1455,7 +1493,7 @@ function DivinityGuidePage() {
           {/* Back button */}
           {(selectedSection || selectedLibrary) && (
             <button onClick={() => {
-              if (viewMode === "portals") { setSelectedSection(null); setSelectedChapter(null); }
+              if (viewMode === "portals") { setSelectedSection(null); setSelectedChapterId(null); }
               else { setSelectedLibrary(null); }
             }}
               className="mt-4 text-xs text-foreground hover:text-primary">
@@ -1537,7 +1575,7 @@ function DivinityGuidePage() {
                 if (nextId === 0) {
                   // Return to flower home
                   setSelectedSection(null);
-                  setSelectedChapter(null);
+                  setSelectedChapterId(null);
                   setPageIndex(0);
                   return;
                 }
@@ -1546,7 +1584,7 @@ function DivinityGuidePage() {
                   const ch = sec.chapters.find(c => c.id === nextId);
                   if (ch) {
                     setSelectedSection(sec.id);
-                    setSelectedChapter(ch);
+                    setSelectedChapterId(ch.id);
                     setPageIndex(0);
                     break;
                   }
