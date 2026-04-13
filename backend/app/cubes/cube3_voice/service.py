@@ -158,7 +158,7 @@ async def transcribe_audio(
 
 
 # Ordered fallback chain for circuit breaker (cost-optimized: Gemini cheapest → AWS most expensive)
-_FALLBACK_ORDER = ["gemini", "whisper", "grok", "aws"]
+_FALLBACK_ORDER = ["gemini", "whisper", "aws"]  # grok removed — no audio transcription permission on xAI API
 
 
 async def _handle_stt_failure(
