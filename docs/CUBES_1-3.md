@@ -64,7 +64,7 @@
   - All response paths generate display entries: user submit, mock polling, spiral test, pre-populated responses
   - **Expand/Collapse:** Inline feed toggles between 200px and 500px height
   - **Fullscreen mode:** Full-viewport overlay with close button — moderator can project live feed
-  - **Backend broadcast (SSSES Task A5 — IMPLEMENTED):** `summary_33` is broadcast from backend after Cube 6 Phase A completes via `broadcast_event("summary_ready")` in `cube6_ai/service.py` lines 203-213. Dashboard listener (Task A6) still needed to consume event.
+  - **Backend broadcast (SSSES Task A5 — RESOLVED 2026-04-12):** `summary_33` is broadcast from backend after Cube 6 Phase A completes via `broadcast_event("summary_ready")` in `cube6_ai/service.py` lines 203-213. Dashboard listener (Task A6) RESOLVED 2026-04-12.
 - **Cross-device response flow:** Phone/PC user inputs propagate to moderator via Cloudflare KV
   - POST response → local mockResponses + KV `/api/responses` (fire-and-forget)
   - GET responses → merges local + KV with deduplication by `participant_id::text_prefix`
@@ -164,7 +164,7 @@ When Cube 1 is loaded into the Cube 10 Simulation Orchestrator for isolated test
 
 #### Simulation Pass Criteria
 
-- 100% of existing Cube 1 tests must pass (59/59) with zero regressions
+- 100% of existing Cube 1 tests must pass (70/70) with zero regressions
 - No spiral metric degradation: backend test duration, TSC errors, bundle sizes must remain at or below baseline
 - User-submitted replacement code must EXCEED existing metrics on the same canned inputs (latency p50/p95, join flow completion rate, state transition reliability)
 - QR generation time must not exceed 200ms (current baseline: <50ms for mock short_codes)
@@ -189,12 +189,12 @@ See `docs/SPIRAL_METRICS.md` for full baselines:
 cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 15 test classes, 59 tests
+**Test Suite:** 2 files, 15 test classes, 70 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_session_service.py` | 11 | 36 | Service unit tests (+ static poll countdown) |
-| `test_e2e_flows.py` | 4 | 23 | Moderator + User E2E flows |
+| `test_session_service.py` | 11 | 42 | Service unit tests (+ static poll countdown) |
+| `test_e2e_flows.py` | 4 | 28 | Moderator + User E2E flows |
 
 **Moderator Test Flow (TestModeratorFlow):**
 1. `create_session(full_config)` — All 11 Cube 1 fields + CQS weights
@@ -591,7 +591,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 
 ---
 
-## Cube 2 — Text Submission Handler: IMPLEMENTED (CRS-05→CRS-08 done; ~85% of full spec; CRS-07.03 live feed toggle in-progress — SSSES Tasks A4/A6; A5 IMPLEMENTED)
+## Cube 2 — Text Submission Handler: IMPLEMENTED (CRS-05→CRS-08 done; ~92% SSSES; CRS-07.03 live feed toggle — SSSES Tasks A4/A5/A6 RESOLVED 2026-04-12)
 
 **Code location:** `backend/app/cubes/cube2_text/` (modular, self-contained)
 
@@ -629,7 +629,7 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | CRS-07 | CRS-07.IN.WRS.007 | CRS-07.OUT.WRS.007 | **Complete** | Rich text + autosave drafts | Response stored in PostgreSQL within 200ms; SHA-256 hash computed on `clean_text`; PII scrubbed before storage; up to 5000 chars Unicode-aware |
 | CRS-07.01 | CRS-07.01.IN.WRS | CRS-07.01.OUT.WRS | **Complete** | 33-language text pipeline (validate → PII → profanity → store → publish) | 6-step pipeline executes in order (validate→PII detect→PII scrub→profanity→store→publish); any step failure returns structured error; Supabase broadcast event published on success |
 | CRS-07.02 | CRS-07.02.IN.WRS | CRS-07.02.OUT.WRS | **Complete** | Voice transcript routed through Cube 2 pipeline (Cube 3 → Cube 2) | Voice transcripts pass through identical PII + profanity pipeline as text; `source=voice` on `response_meta`; same `clean_text` output |
-| CRS-07.03 | CRS-07.03.IN.WRS | CRS-07.03.OUT.WRS | **In progress** — SSSES Tasks A4/A6 (A5 IMPLEMENTED) | Moderator live feed toggle: raw text (default) vs AI 33-word summary | Toggle persists per session in localStorage; `summary_33` broadcast <= 5s after submission; fallback to client truncation if Phase A pending |
+| CRS-07.03 | CRS-07.03.IN.WRS | CRS-07.03.OUT.WRS | **Implemented** — SSSES Tasks A4/A5/A6 RESOLVED 2026-04-12 | Moderator live feed toggle: raw text (default) vs AI 33-word summary | Toggle persists per session in localStorage; `summary_33` broadcast <= 5s after submission; fallback to client truncation if Phase A pending |
 | CRS-08 | CRS-08.IN.SRS.008 | CRS-08.OUT.SRS.008 | **Complete** (hash) | AES-256 encryption at rest | SHA-256 integrity hash matches `clean_text`; PII types logged in JSONB; 64-char hex hash on every response |
 | CRS-08.01 | CRS-08.01.IN.SRS | CRS-08.01.OUT.SRS | **Complete** | SHA-256 response_hash — tamper-evident integrity on every submission | `response_hash` = 64-char hex SHA-256 of `raw_text`; deterministic (same text = same hash); verified across Unicode inputs |
 | CRS-08.02 | CRS-08.02.IN.SRS | CRS-08.02.OUT.SRS | **Complete** | PII strip gate — only `clean_text` forwarded to Cube 6 AI, never raw input | `summarize_single_response()` receives `clean_text` only; structured log `cube6.phase_a.pii_safe: true` at entry; raw text never leaves storage boundary |
@@ -712,7 +712,7 @@ In Cube 10, users can isolate this cube and submit replacement code for specific
 #### Spiral Test Reference
 
 See `docs/SPIRAL_METRICS.md` for full baselines:
-- **N=5 baseline (2026-02-18):** 62/62 tests, 2,903ms avg backend duration, 0 TS errors
+- **N=5 baseline (2026-02-18):** 64/64 tests, 2,903ms avg backend duration, 0 TS errors
 - **N=9 extended (2026-02-23):** 173/173 tests (all cubes), 3,507ms avg, 0 TS errors
 - **N=18 bidirectional (2026-02-25):** 198/198 tests, forward + backward pass, 0 failures, 0 regressions
 - **N=18 bidirectional (2026-02-26):** 287/287 tests (includes Cubes 4-6), 0 failures, 0 regressions
@@ -724,12 +724,12 @@ See `docs/SPIRAL_METRICS.md` for full baselines:
 cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 16 test classes, 62 tests
+**Test Suite:** 2 files, 16 test classes, 64 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_text_service.py` | 10 | 32 | Unit tests (validation, PII, profanity, pub/sub, queries) |
-| `test_e2e_flows.py` | 6 | 30 | E2E flows (submission, PII, profanity, anonymization, CRS-08, language) |
+| `test_text_service.py` | 10 | 33 | Unit tests (validation, PII, profanity, pub/sub, queries) |
+| `test_e2e_flows.py` | 6 | 31 | E2E flows (submission, PII, profanity, anonymization, CRS-08, language) |
 
 **Submission Test Flow (TestSubmissionFlow):**
 1. `create_session(polling)` → `submit_text_response()` — Full pipeline E2E
@@ -840,6 +840,12 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | severity | ENUM | Yes | `low` / `medium` / `high` |
 | is_active | BOOLEAN | Yes | Whether filter is active |
 
+> **Supabase Migration Gap (identified 2026-04-12, 20-agent audit):**
+> The tables `response_meta`, `text_responses`, `voice_responses`, and `profanity_filters` are defined in SQLAlchemy ORM models but are **missing from Supabase migrations**. They auto-create via SQLAlchemy but lack explicit migration files, which means:
+> - No Supabase Realtime subscriptions can be configured (requires table in Supabase schema)
+> - No Row Level Security (RLS) policies are applied
+> - **Recommendation:** Create `supabase/migrations/012_response_tables.sql` with CREATE TABLE + RLS policies for all four tables.
+
 ### Cube 2 — Inputs / Outputs
 
 **Inputs:**
@@ -861,7 +867,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | Profanity flag | Cube 4, Moderator dashboard | Whether profanity was detected |
 | Token display trigger | Cube 5 (Gateway) | Triggers ♡/◬ calculation for immediate display |
 | Submission event (Supabase broadcast) | Cube 5 (Gateway), Cube 6 (AI) | Publishes `response_submitted` via Supabase broadcast; consumed by Cube 6 for Phase A |
-| `summary_33` broadcast | Moderator live feed (dashboard) | **IMPLEMENTED** — AI 33-word summary broadcast via Supabase after Cube 6 Phase A completes (`cube6_ai/service.py` lines 203-213, SSSES Task A5). Dashboard listener (Task A6) still needed. |
+| `summary_33` broadcast | Moderator live feed (dashboard) | **RESOLVED 2026-04-12** — AI 33-word summary broadcast via Supabase after Cube 6 Phase A completes (`cube6_ai/service.py` lines 203-213, SSSES Task A5). Dashboard listener (Task A6) RESOLVED 2026-04-12. |
 
 ### Cube 2 — Functions (Requirements.txt)
 | Function | Status | Description |
@@ -874,7 +880,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | `anonymize_response()` | **Implemented** | Strips identifying info based on session anonymity_mode (anonymous/identified/pseudonymous) |
 | `store_text_response()` | **Implemented** | Writes validated response to PostgreSQL (ResponseMeta + TextResponse) |
 | `emit_submission_event()` | **Implemented** | Publishes `response_submitted` to Supabase broadcast for Cube 6 consumption. **Does not include `summary_33`** — summary is generated async by Cube 6 Phase A after this event fires. |
-| `push_to_live_feed()` | **IMPLEMENTED — SSSES Task A5** | After Cube 6 Phase A generates `summary_33`, backend broadcasts `summary_ready` event via Supabase to Moderator dashboard (`cube6_ai/service.py` lines 203-213). Dashboard listener (Task A6) still needed to consume event. |
+| `push_to_live_feed()` | **RESOLVED — SSSES Task A5 + A6** | After Cube 6 Phase A generates `summary_33`, backend broadcasts `summary_ready` event via Supabase to Moderator dashboard (`cube6_ai/service.py` lines 203-213). Dashboard listener (Task A6) RESOLVED 2026-04-12. |
 
 ### Cube 2 — UI/UX Translation Strings (13 keys per Requirements.txt)
 | String Key | English Default | Context |
@@ -924,15 +930,15 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 
 ---
 
-## Cube 3 — Voice-to-Text Engine: **~99% SSSES** (CRS-08, CRS-15 complete; SSSES Phase 1-3 audit done 2026-04-07; Tasks A0-A7 COMPLETE)
+## Cube 3 — Voice-to-Text Engine: **~87% SSSES** (CRS-08, CRS-15 complete; SSSES Phase 1-3 audit done 2026-04-07; Tasks A0-A7 COMPLETE)
 
 **Code location:** `backend/app/cubes/cube3_voice/` (modular, self-contained)
 
 ### Cube 3 — Implemented
 - **Browser mic capture:** MediaRecorder API (webm default), audio blob → FormData upload
-- **STT providers (4 batch at launch):** OpenAI Whisper, Grok (xAI), Gemini (Google), AWS Transcribe
+- **STT providers (3 batch at launch):** OpenAI Whisper, Gemini (Google), AWS Transcribe. *(Grok removed — 403 permission error; still available for AI theming in Cube 6.)*
 - **Provider abstraction:** `STTProvider` ABC with `transcribe()`, `supports_language()`, `model_id()`
-- **Circuit breaker failover:** whisper → grok → gemini → aws (skips failed provider, retries remaining)
+- **Circuit breaker failover:** whisper → gemini → aws (skips failed provider, retries remaining). *(Grok removed from chain.)*
 - **Provider selection:** Moderator default (session.ai_provider) → User override (if allow_user_stt_choice)
 - **Transcript validation:** Non-empty check, confidence threshold (0.3 min), length truncation
 - **Cube 2 pipeline integration:** Voice transcripts → detect_pii → scrub_pii → detect_profanity → scrub_profanity
@@ -954,7 +960,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 
 **Phase 1 (Security + Stability):** Auth enforcement on metrics (moderator-only), 30s STT API timeout, dynamic PII gate assertion (Task A7), response_hash in schema (CRS-08), background task session isolation.
 
-**Phase 2 (Cost + Scalability):** `summary_33` in voice schemas + JOIN response_summaries, `cost_usd` per STT call (4 providers), provider config with cost rates (Gemini primary), circuit breaker state (3 failures + 60s cooldown), concurrency semaphore (20/session), WebSocket 5-min timeout + mid-stream recovery, thread-safe provider singleton.
+**Phase 2 (Cost + Scalability):** `summary_33` in voice schemas + JOIN response_summaries, `cost_usd` per STT call (3 providers; Grok removed — 403), provider config with cost rates (Gemini primary), circuit breaker state (3 failures + 60s cooldown), concurrency semaphore (20/session), WebSocket 5-min timeout + mid-stream recovery, thread-safe provider singleton.
 
 **Phase 3 (Extraction + Translation + Frontend):**
 - `core/text_pipeline.py` — shared PII+profanity pipeline (eliminates Cube 2/3 duplication)
@@ -982,14 +988,14 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 
 *Canonical spec keys differ from code keys for brevity. All 30 cube3 keys (22 voice + 8 settings) present and translated.*
 
-**Tests:** 71 passed + 8 skipped (live STT), 0 TSC errors
-**SSSES:** Security 100, Stability 100, Scalability 100, Efficiency 100, Succinctness 100 = **100/100**
+**Tests:** 92 passed + 8 skipped (live STT), 0 TSC errors
+**SSSES:** Security 90, Stability 90, Scalability 85, Efficiency 85, Succinctness 85 = **87/100** (evidence-based; see gaps below)
 
 ### Cube 3 — STT Providers at Launch
 | Provider | Model ID | Type | Languages | Notes |
 |----------|----------|------|-----------|-------|
 | OpenAI Whisper | whisper-1 | Batch | 33 | Primary default |
-| Grok (xAI) | whisper-large-v3 | Batch | 33 | OpenAI-compatible API |
+| ~~Grok (xAI)~~ | whisper-large-v3 | Batch | 33 | **REMOVED 2026-04-12** — 403 permission error. Still available for AI theming (Cube 6). |
 | Gemini (Google) | gemini-2.0-flash | Batch | 33 | Multimodal audio input |
 | AWS Transcribe | aws-transcribe | Batch | 23 | S3 upload → batch job |
 | Azure Speech | azure-stt | Real-time | 30+ | Paid feature, WebSocket |
@@ -1021,11 +1027,11 @@ The following gaps exist ONLY in the **real-time WebSocket STT path** (paid feat
 | **CRS-08.03** | **Complete** | P5.1 | `core/phase_a_retry.py:52-59` empty text guard | Empty/whitespace text skipped before reaching Cube 6 |
 | **CRS-08.04** | **Complete** | P3.1a | `core/text_pipeline.py:35-75` shared pipeline | PII+profanity pipeline extracted to shared module; batch + realtime use same path |
 | **CRS-08.05** | Stretch | — | Not implemented | AES-256 at-rest encryption (per-org key); deferred |
-| **CRS-15** | **Complete** | Baseline+P2 | 4 batch + 2 realtime providers in `providers/` | 4 batch (Whisper, Grok, Gemini, AWS) + 2 realtime (Azure, AWS Streaming) |
+| **CRS-15** | **Complete** | Baseline+P2 | 3 batch + 2 realtime providers in `providers/` | 3 batch (Whisper, Gemini, AWS) + 2 realtime (Azure, AWS Streaming). Grok removed (403). |
 | **CRS-15.01** | **Complete** | Baseline+P5.4 | `router.py:69-83` format/size; `service.py:253` confidence ≥0.3; `ResponseNotFoundError` | 6 formats; 25 MB max; confidence threshold; correct 404 |
-| **CRS-15.02** | **Complete** | P2.2 | `providers/base.py:44-55` `compute_stt_cost()` | Cost per call: Whisper $0.006, Grok $0.006, Gemini $0.00016, AWS $0.024 /min |
+| **CRS-15.02** | **Complete** | P2.2 | `providers/base.py:44-55` `compute_stt_cost()` | Cost per call: Whisper $0.006, Gemini $0.00016, AWS $0.024 /min. *(Grok $0.006 removed — 403.)* |
 | **CRS-15.03** | **Complete** | P2.3 | `models/stt_provider.py:26-28` `cost_per_minute_usd` + `is_primary` | Provider registry; Gemini-first fallback (cheapest) |
-| **CRS-15.04** | **Complete** | P1.2+P2.4 | `service.py:56` 30s timeout; `core/circuit_breaker.py` CB class | `asyncio.wait_for(30s)`; gemini→whisper→grok→aws; 3-failure/60s cooldown; auto-skip + reset |
+| **CRS-15.04** | **Complete** | P1.2+P2.4 | `service.py:56` 30s timeout; `core/circuit_breaker.py` CB class | `asyncio.wait_for(30s)`; whisper→gemini→aws; 3-failure/60s cooldown; auto-skip + reset. *(Grok removed from chain.)* |
 | **CRS-15.05** | **Complete** | P2.5 | `service.py:66-75` `asyncio.Semaphore(20)` per session | Concurrency cap: max 20 parallel STT calls per session |
 | **CRS-15.06** | **Complete** | P2.7+P4.2 | `factory.py:31,72-77` `get_stt_provider_safe()` | Thread-safe async singleton; prevents race on concurrent init |
 | **CRS-15.07** | **Complete** | P2.6 | `realtime.py:176` 5-min timeout; `realtime.py:212-221` recovery | WebSocket: 300s max; push_audio + stt.stop() error caught; payment gate |
@@ -1082,7 +1088,7 @@ When Cube 3 is loaded into the Cube 10 Simulation Orchestrator for isolated test
 |----------|----------|--------------|
 | `capture_audio()` | SIMULATED | Frontend creates mock `Blob` with correct MIME type (webm); no MediaRecorder in SIM; pulsing red dot animation still renders |
 | `select_stt_provider()` | SIMULATED | Returns moderator-selected provider from V2T Settings panel; no DB priority lookup; provider availability assumed |
-| `transcribe_audio()` | SIMULATED | Returns pre-written transcript text with mock confidence score; NO external API call to any STT provider (OpenAI, Grok, Gemini, AWS) |
+| `transcribe_audio()` | SIMULATED | Returns pre-written transcript text with mock confidence score; NO external API call to any STT provider (OpenAI, Gemini, AWS) |
 | `validate_transcript()` | BOTH | Runs identically in SIM and production; checks non-empty, confidence threshold (0.3), length truncation |
 | `forward_to_text_pipeline()` | SIMULATED | Passes mock transcript into Cube 2 test fixture pipeline (detect_pii, scrub_pii, detect_profanity, scrub_profanity) |
 | `store_voice_response()` | SIMULATED | Writes to `mockResponses[sessionId]` in-memory; no PostgreSQL write; no audio binary stored |
@@ -1094,9 +1100,9 @@ When Cube 3 is loaded into the Cube 10 Simulation Orchestrator for isolated test
 | Data Set | Location | Contents |
 |----------|----------|----------|
 | Mock audio blobs | `frontend/components/voice-input.tsx` | Empty `Blob` objects with MIME types (audio/webm, audio/wav, etc.); no real audio data |
-| Mock STT transcripts (4 providers) | `backend/tests/cube3/test_voice_service.py` | Pre-written `TranscriptionResult` objects per provider: `text`, `confidence`, `language`, `model_id` |
+| Mock STT transcripts (3 providers) | `backend/tests/cube3/test_voice_service.py` | Pre-written `TranscriptionResult` objects per provider: `text`, `confidence`, `language`, `model_id`. *(Grok removed.)* |
 | Circuit breaker test fixtures | `backend/tests/cube3/test_e2e_flows.py` | Scenarios: primary fails + fallback succeeds, all providers fail (422), failover chain order verified |
-| Provider language support maps | `backend/app/cubes/cube3_voice/providers/*.py` | Per-provider language lists: Whisper (33), Grok (33), Gemini (33), AWS (23) |
+| Provider language support maps | `backend/app/cubes/cube3_voice/providers/*.py` | Per-provider language lists: Whisper (33), Gemini (33), AWS (23). *(Grok removed — 403.)* |
 | CRS-08 voice integrity test vectors | `backend/tests/cube3/test_e2e_flows.py` | SHA-256 hash on transcript clean_text: computation, determinism, Unicode, E2E presence |
 | PII-in-transcript test fixtures | `backend/tests/cube3/test_e2e_flows.py` | Email in voice transcript, clean transcript, multiple PII types (email + SSN) |
 | AWS provider test fixtures | `backend/tests/cube3/test_e2e_flows.py` | Enum existence, model_id pinning, 23-language support, factory mapping |
@@ -1131,12 +1137,12 @@ See `docs/SPIRAL_METRICS.md` for full baselines:
 cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 23 test classes, 75 tests (39 original + 36 from SSSES Phases 1-3)
+**Test Suite:** 2 files, 23 test classes, 92 tests (39 original + 53 from SSSES Phases 1-3 + audit)
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_voice_service.py` | 15 | 44 | Unit tests (validation, circuit breaker, provider selection, queries, timeout, auth, PII gate, schemas, cost, CB state, semaphore) |
-| `test_e2e_flows.py` | 5 | 21 | E2E flows (submission, PII, CRS-08, circuit breaker, AWS provider) |
+| `test_voice_service.py` | 15 | 58 | Unit tests (validation, circuit breaker, provider selection, queries, timeout, auth, PII gate, schemas, cost, CB state, semaphore) |
+| `test_e2e_flows.py` | 8 | 34 | E2E flows (submission, PII, CRS-08, circuit breaker, AWS provider, Grok removal, realtime) |
 
 **Submission Test Flow (TestSubmissionFlow):**
 1. `voice_submit_full_pipeline` — Full E2E: transcribe → PII → store → tokens → Supabase broadcast event
@@ -1224,7 +1230,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 | audio_duration_sec | FLOAT | Yes | Duration of audio recording in seconds |
 | audio_format | VARCHAR(20) | Yes | Audio format (webm, wav, mp3, ogg, m4a, flac) |
 | audio_size_bytes | INTEGER | Yes | Size of uploaded audio file in bytes |
-| stt_provider | VARCHAR(50) | Yes | Which STT provider was used (whisper, grok, gemini, aws) |
+| stt_provider | VARCHAR(50) | Yes | Which STT provider was used (whisper, gemini, aws). *(Grok removed — 403.)* |
 | transcript_text | TEXT | Yes | STT-generated transcript |
 | transcript_confidence | FLOAT | Yes | STT confidence score (0.0-1.0) |
 | submitted_at | TIMESTAMP | Yes | Submission timestamp (on ResponseMeta) |
@@ -1266,7 +1272,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 | `validate_transcript()` | **Implemented** | Checks transcript is non-empty, confidence meets threshold (0.3 min), length truncation |
 | `forward_to_text_pipeline()` | **Implemented** | Passes transcript into Cube 2's text validation pipeline (detect_pii → scrub_pii → detect_profanity → scrub_profanity) |
 | `store_voice_response()` | **Implemented** | Writes voice response record to PostgreSQL (ResponseMeta + VoiceResponse + TextResponse with CRS-08 hash) |
-| `handle_stt_failure()` | **Implemented** | Circuit breaker: failover chain whisper → grok → gemini → aws; skips failed provider, retries remaining |
+| `handle_stt_failure()` | **Implemented** | Circuit breaker: failover chain whisper → gemini → aws; skips failed provider, retries remaining. *(Grok removed from chain — 403.)* |
 | `push_to_live_feed()` | Not implemented | Sends 33-word summary (from Cube 6) to Moderator hosting PC via WebSocket (if live_feed_enabled + paid tier) |
 
 ### Cube 3 — UI/UX Translation Strings (11 keys per Requirements.txt + 8 V2T Settings keys)
@@ -1470,7 +1476,7 @@ Applies to Cube 1 (dashboard) and Cube 2 (response submit path):
 
 ### Execution Order — Cubes 2–3 Phase A + Phase B
 
-> **Scope:** Tasks A0–A7 (Phase A) and B1–B5 (Phase B) for Cubes 2 and 3 only. The full 5-phase execution order including Cubes 4–6 spiral audit tasks (C4-1 through C6-8) is in `docs/CUBES_4-6.md`. **Prerequisite:** Task C6-7 (`core/supabase_broadcast.py`) RESOLVED — file exists. Task A5 (`summary_ready`) IMPLEMENTED. Task B4 (`themes_ready`) still pending.
+> **Scope:** Tasks A0–A7 (Phase A) and B1–B5 (Phase B) for Cubes 2 and 3 only. The full 5-phase execution order including Cubes 4–6 spiral audit tasks (C4-1 through C6-8) is in `docs/CUBES_4-6.md`. **Prerequisite:** Task C6-7 (`core/supabase_broadcast.py`) RESOLVED — file exists. Task A5 (`summary_ready`) RESOLVED 2026-04-12. Task B4 (`themes_ready`) RESOLVED 2026-04-12.
 
 ```
 A7 (security baseline) → A0 (short-circuit ≤33 words) → A1 (efficiency) → A2 (retry) → A3 (semaphore) → A4 (schema) → A5 (broadcast) → A6 (dashboard listener)
@@ -1485,7 +1491,7 @@ B2 (parity check) → B1 (e2e verify) → B3 (parallel) → B4 (broadcast) → B
 
 | Dependency | Impact on Cubes 2–3 | Task |
 |---|---|---|
-| **C6-7** `core/supabase_broadcast.py` | **RESOLVED** — File exists (97 lines, httpx REST). Task A5 (`summary_ready`) is IMPLEMENTED. Task B4 (`themes_ready`) still pending. | C6-7 (Phase 1) |
+| **C6-7** `core/supabase_broadcast.py` | **RESOLVED** — File exists (97 lines, httpx REST). Task A5 (`summary_ready`) RESOLVED 2026-04-12. Task B4 (`themes_ready`) RESOLVED 2026-04-12. | C6-7 (Phase 1) |
 | **C6-8** `ResponseRead` missing `summary_33` field | **BLOCKER** — Frontend always gets `undefined` for `summary_33`; fallback truncation always used. | C6-8 / A4 (Phase 2) |
 | **C5-3** No pipeline timeout | Phase B can hang forever on AI call, blocking themes_ready broadcast (B4). | C5-3 (Phase 3) |
 | **C6-4** No AI API call timeout | Phase A `summarize_single_response()` can hang forever per response. | C6-4 (Phase 3) |
