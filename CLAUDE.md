@@ -415,11 +415,11 @@ Track and optimize for:
 | 3 Voice | ~88% | **88** | 110 | CRS-08, 15 | Live STT verified (Gemini+Whisper), cross-cube deps |
 | 4 Collector | ~87% | **87** | 43 | CRS-09→10 | C4-1→C4-2 (includes cross-cube tests) |
 | 5 Gateway | ~90% | **90** | 67 | CRS-09→11 | C5-1 RESOLVED, C5-3 RESOLVED, C5-4 RESOLVED |
-| 6 AI Pipeline | ~85% | **85** | 139 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
+| 6 AI Pipeline | ~85% | **85** | 144 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
 | 7 Ranking | **~96%** | **96** | 164 | CRS-11→13, 16-17, 22 | All MVP1+MVP2 done. Mathematical proofs. |
 | 8 Tokens | **~82%** | **82** | 194 | CRS-18-19, 24-25, 32-35 | 59-jurisdiction precision. Lifecycle exhaustive. |
-| 9 Reports | **~76%** | **76** | 84 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
-| 10 Simulation | **~74%** | **74** | 99 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
+| 9 Reports | **~76%** | **76** | 93 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
+| 10 Simulation | **~74%** | **74** | 107 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
 | **SDK/Cross-Cube** | **Active** | — | 101 | — | SDK Core (31) + Theme Compression (27) + Cross-Cube Chain (22) + Health (2) + SDK Functions (19) |
 | **Total** | | | **1,146** | | |
 
