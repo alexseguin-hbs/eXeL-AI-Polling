@@ -14,6 +14,12 @@ def _get_fernet() -> Fernet:
     global _fernet
     if _fernet is None:
         if not settings.encryption_key:
+            import logging
+            logging.getLogger(__name__).warning(
+                "ENCRYPTION_KEY not set — using ephemeral key. "
+                "Encrypted data will be lost on restart. "
+                "Set ENCRYPTION_KEY in .env for production."
+            )
             _fernet = Fernet(Fernet.generate_key())
         else:
             _fernet = Fernet(settings.encryption_key.encode())

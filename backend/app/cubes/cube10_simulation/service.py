@@ -158,40 +158,59 @@ async def get_feedback_stats(
     try:
         from sqlalchemy import text as sql_text
 
-        where = "WHERE cube_id = :cid" if cube_id else ""
-        params = {"cid": cube_id} if cube_id else {}
-
-        result = await db.execute(
-            sql_text(f"SELECT COUNT(*), COALESCE(AVG(sentiment), 0) FROM product_feedback {where}"),
-            params,
-        )
+        if cube_id:
+            params = {"cid": cube_id}
+            result = await db.execute(
+                sql_text("SELECT COUNT(*), COALESCE(AVG(sentiment), 0) FROM product_feedback WHERE cube_id = :cid"),
+                params,
+            )
+        else:
+            params = {}
+            result = await db.execute(
+                sql_text("SELECT COUNT(*), COALESCE(AVG(sentiment), 0) FROM product_feedback"),
+            )
         row = result.one_or_none()
         if row:
             stats["total"] = row[0] or 0
             stats["avg_sentiment"] = round(float(row[1] or 0), 3)
 
         # Priority breakdown
-        result = await db.execute(
-            sql_text(f"SELECT priority, COUNT(*) FROM product_feedback {where} GROUP BY priority"),
-            params,
-        )
+        if cube_id:
+            result = await db.execute(
+                sql_text("SELECT priority, COUNT(*) FROM product_feedback WHERE cube_id = :cid GROUP BY priority"),
+                params,
+            )
+        else:
+            result = await db.execute(
+                sql_text("SELECT priority, COUNT(*) FROM product_feedback GROUP BY priority"),
+            )
         for row in result.fetchall():
             stats["by_priority"][row[0]] = row[1]
 
         # Category breakdown
-        result = await db.execute(
-            sql_text(f"SELECT category, COUNT(*) FROM product_feedback {where} GROUP BY category"),
-            params,
-        )
+        if cube_id:
+            result = await db.execute(
+                sql_text("SELECT category, COUNT(*) FROM product_feedback WHERE cube_id = :cid GROUP BY category"),
+                params,
+            )
+        else:
+            result = await db.execute(
+                sql_text("SELECT category, COUNT(*) FROM product_feedback GROUP BY category"),
+            )
         for row in result.fetchall():
             if row[0] in stats["by_category"]:
                 stats["by_category"][row[0]] = row[1]
 
         # Type breakdown
-        result = await db.execute(
-            sql_text(f"SELECT feedback_type, COUNT(*) FROM product_feedback {where} GROUP BY feedback_type"),
-            params,
-        )
+        if cube_id:
+            result = await db.execute(
+                sql_text("SELECT feedback_type, COUNT(*) FROM product_feedback WHERE cube_id = :cid GROUP BY feedback_type"),
+                params,
+            )
+        else:
+            result = await db.execute(
+                sql_text("SELECT feedback_type, COUNT(*) FROM product_feedback GROUP BY feedback_type"),
+            )
         for row in result.fetchall():
             if row[0] in stats["by_type"]:
                 stats["by_type"][row[0]] = row[1]
