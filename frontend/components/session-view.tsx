@@ -1179,7 +1179,7 @@ export function SessionView() {
                             clean_text: text,
                             submitted_at: submittedAt,
                             summary_33: result.summary_33,
-                            source: "voice",
+                            count: submittedQuestions.size + 1,
                           }).catch(() => {});
                           // Path B — Supabase DB
                           if (supabase && session?.short_code) {
