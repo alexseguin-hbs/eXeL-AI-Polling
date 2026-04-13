@@ -9,10 +9,10 @@
 - 10 API endpoints with auth gates, 164 tests, mathematical proofs for 1M voters
 - DnD ranking UI with 3/6/9 theme card levels
 
-## Cube 9: PARTIALLY IMPLEMENTED
-- CSV export service implemented (135 lines in service.py)
-- 2 API endpoints (CSV export functional, analytics stub)
-- Exporters package scaffolded (ready for CSV/PDF exporters)
+## Cube 9: IMPLEMENTED
+- CSV export service implemented (939 lines in service.py)
+- 14 API endpoints (CSV export, analytics, content tiers, trends, distribution matrix, insights)
+- Exporters package scaffolded (ready for CSV/PDF exporter modules)
 
 ---
 
@@ -1144,8 +1144,8 @@ The AI pipeline produces output matching this schema (reference: `Updated_Web_Re
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `backend/app/cubes/cube9_reports/service.py` | 135 | CSV export (19-column schema from PostgreSQL: ResponseMeta + ResponseSummary + Theme_Descriptions) |
-| `backend/app/cubes/cube9_reports/router.py` | 38 | 2 API endpoints (CSV export, analytics stub) |
+| `backend/app/cubes/cube9_reports/service.py` | 939 | CSV export (19-column schema), analytics, content tiers, trends, distribution matrix, insights |
+| `backend/app/cubes/cube9_reports/router.py` | 370 | 14 API endpoints (CSV export, analytics, content tiers, trends, distribution, insights) |
 | `backend/app/cubes/cube9_reports/exporters/__init__.py` | - | Exporters package (scaffolded, ready for CSV/PDF exporter modules) |
 
 ### Cube 9 — Downstream/Upstream Dependencies

@@ -787,7 +787,7 @@ Cube 10 is the center of the Level 2 grid with the **Feedback Loop (FB) at its c
 | Component | Lines | Notes |
 |-----------|------:|-------|
 | service.py | 525 | Feedback + submissions + voting + sandbox stub |
-| router.py | 248 | 8 endpoints registered at /api/v1 |
+| router.py | 248 | 11 endpoints registered at /api/v1 |
 | models/code_submission.py | 108 | CodeSubmission, SubmissionVote, DeploymentLog |
 | models/product_feedback.py | 69 | ProductFeedback (already existed) |
 | replay_service.py | 186 | Pangu clustering replay engine |

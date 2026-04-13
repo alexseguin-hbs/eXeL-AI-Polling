@@ -666,7 +666,7 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube6/ -v --tb
 |------|-------|---------|
 | `cubes/cube6_ai/service.py` | 1430 | Two-phase pipeline (Phase A live + Phase B parallel theming + CQS scoring) |
 | `cubes/cube6_ai/scale_pipeline.py` | 250 | 1M-scale: Cochran sampling, ThemeLibrary, PipelineMetrics, 60s budget |
-| `cubes/cube6_ai/router.py` | 75 | 4 API endpoints (run pipeline, status, CQS, themes) |
+| `cubes/cube6_ai/router.py` | 107 | 5 API endpoints (run pipeline, status, CQS, themes, cost estimate) |
 | `cubes/cube6_ai/providers/base.py` | 166 | EmbeddingProvider + SummarizationProvider ABCs + AICostTracker |
 | `cubes/cube6_ai/providers/factory.py` | 125 | Factory with circuit breaker failover |
 | `cubes/cube6_ai/providers/openai_provider.py` | 87 | OpenAI text-embedding-3-small + gpt-4o-mini |
