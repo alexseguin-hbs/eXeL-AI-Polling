@@ -227,15 +227,21 @@ function SessionDetail({
   const [themesReady, setThemesReady] = useState(false);
   const [themeCount, setThemeCount] = useState(0);
   const [replayHash, setReplayHash] = useState("");
-  // Spiral Test: add response directly to feed (same-tab, no Supabase needed)
-  const spiralSeenIds = useRef(new Set<string>());
-  const addSpiralResponse = useCallback((resp: { id: string; clean_text: string; submitted_at: string; summary_33?: string }) => {
-    if (spiralSeenIds.current.has(resp.id)) return;
-    spiralSeenIds.current.add(resp.id);
-    const text = resp.clean_text.length > 80 ? resp.clean_text.substring(0, 80) + "..." : resp.clean_text;
+  // Deduplicate responses across all 4 receive channels (Broadcast, postgres_changes, KV, HTTP poll)
+  const seenIds = useRef(new Set<string>());
+  const addResponse = useCallback((id: string, clean_text: string, submitted_at: string, summary_33?: string) => {
+    if (seenIds.current.has(id)) return;
+    seenIds.current.add(id);
+    const text = clean_text.length > 80 ? clean_text.substring(0, 80) + "..." : clean_text;
     setLiveResponseFeed((prev) => [{ text, count: prev.length + 1 }, ...prev].slice(0, 15));
-    setFeedResponses((prev) => [{ id: resp.id, clean_text: resp.clean_text, submitted_at: resp.submitted_at, summary_33: resp.summary_33 }, ...prev]);
+    setFeedResponses((prev) => [{ id, clean_text, submitted_at, summary_33 }, ...prev]);
   }, []);
+
+  // Spiral Test: add response directly to feed (same-tab, no Supabase needed)
+  // Reuses the shared addResponse + seenIds for deduplication
+  const addSpiralResponse = useCallback((resp: { id: string; clean_text: string; submitted_at: string; summary_33?: string }) => {
+    addResponse(resp.id, resp.clean_text, resp.submitted_at, resp.summary_33);
+  }, [addResponse]);
 
   const [spiralRunning, setSpiralRunning] = useState(false);
   const [spiralProgress, setSpiralProgress] = useState<SpiralTestProgress | null>(null);
@@ -247,74 +253,72 @@ function SessionDetail({
   const [liveResponseFeed, setLiveResponseFeed] = useState<Array<{ text: string; count: number }>>([]);
   const feedScrollRef = useRef<HTMLDivElement>(null);
 
+  // ── Refs for stable closures (must be declared before useEffect) ──
+  const onUpdateRef = useRef(onUpdate);
+  onUpdateRef.current = onUpdate;
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+
+  // ── Channel A: Supabase Broadcast (instant ~50ms) ──
+  // All broadcast events routed through single useSessionBroadcast hook.
+  // Previous bug: creating TWO channels with same name `session:${shortCode}`
+  // caused Supabase JS v2 to return the same channel object — when hook cleanup
+  // ran (on dep change), it killed both subscriptions. Now consolidated.
+  const onPresenceUpdate = useCallback((count: number) => {
+    onUpdateRef.current({ ...sessionRef.current, participant_count: Math.max(sessionRef.current.participant_count ?? 0, count) });
+  }, []);
+  const onNewResponse = useCallback((payload: { id?: string; text: string; clean_text?: string; submitted_at?: string; summary_33?: string }) => {
+    addResponse(
+      payload.id ?? `b-${Date.now()}`,
+      payload.clean_text ?? payload.text,
+      payload.submitted_at ?? new Date().toISOString(),
+      payload.summary_33,
+    );
+  }, [addResponse]);
+  // Task A6: summary_ready from Cube 6 Phase A — update feed entry with AI summary
+  const onSummaryReady = useCallback((payload: { response_id?: string; summary_33?: string; cost_usd?: number }) => {
+    if (payload.response_id && payload.summary_33) {
+      setFeedResponses((prev) =>
+        prev.map((r) =>
+          r.id === payload.response_id ? { ...r, summary_33: payload.summary_33, cost_usd: payload.cost_usd } : r,
+        ),
+      );
+    }
+  }, []);
+  // Task B4: themes_ready from Cube 6 Phase B — session can transition to ranking
+  const onThemesReady = useCallback((payload: { theme_count?: number; replay_hash?: string }) => {
+    console.log("[themes_ready]", payload);
+    if (payload.theme_count && payload.theme_count > 0) {
+      setThemesReady(true);
+      setThemeCount(payload.theme_count);
+      setReplayHash(payload.replay_hash ?? "");
+    }
+  }, []);
+  // Theme change: moderator changed session color scheme — apply instantly
+  const onThemeChange = useCallback((payload: { theme_id?: string }) => {
+    if (payload.theme_id) {
+      localStorage.setItem("exel-session-theme-id", payload.theme_id);
+      window.dispatchEvent(new StorageEvent("storage", {
+        key: "exel-session-theme-id",
+        newValue: payload.theme_id,
+      }));
+    }
+  }, []);
+
+  const { broadcast } = useSessionBroadcast(
+    session.short_code,
+    undefined,        // onStatusChange — handled by session-view
+    onPresenceUpdate, // participant count
+    onNewResponse,    // Channel A: live responses
+    onSummaryReady,   // Channel A: AI summary updates
+    onThemesReady,    // Channel A: theme pipeline complete
+    onThemeChange,    // Channel A: color scheme change
+  );
+
+  // ── Channels B, C, D: Non-broadcast redundancy paths ──
+  // These use DIFFERENT channel names, so no collision with Channel A above.
   useEffect(() => {
     if (!supabase || !session.short_code) return;
-
-    // Track seen IDs to deduplicate when both Broadcast and postgres_changes fire
-    const seenIds = new Set<string>();
-
-    const addResponse = (id: string, clean_text: string, submitted_at: string, summary_33?: string) => {
-      if (seenIds.has(id)) return;
-      seenIds.add(id);
-      const text = clean_text.length > 80 ? clean_text.substring(0, 80) + "..." : clean_text;
-      setLiveResponseFeed((prev) => [{ text, count: prev.length + 1 }, ...prev].slice(0, 15));
-      setFeedResponses((prev) => [{ id, clean_text, submitted_at, summary_33 }, ...prev]);
-    };
-
-    // Channel A: Supabase Broadcast (instant ~50ms)
-    const broadcastChannel = supabase.channel(`session:${session.short_code}`);
-    broadcastChannel
-      .on("broadcast", { event: "new_response" }, ({ payload }) => {
-        const p = payload as { id?: string; text: string; clean_text?: string; submitted_at?: string; summary_33?: string };
-        addResponse(
-          p.id ?? `b-${Date.now()}`,
-          p.clean_text ?? p.text,
-          p.submitted_at ?? new Date().toISOString(),
-          p.summary_33,
-        );
-      })
-      // Task A6: Listen for summary_ready from Cube 6 Phase A backend broadcast.
-      // Updates existing feed entry in-place with AI-generated summary_33.
-      .on("broadcast", { event: "summary_ready" }, ({ payload }) => {
-        const p = payload as { response_id?: string; summary_33?: string; cost_usd?: number };
-        if (p.response_id && p.summary_33) {
-          setFeedResponses((prev) =>
-            prev.map((r) =>
-              r.id === p.response_id ? { ...r, summary_33: p.summary_33, cost_usd: p.cost_usd } : r,
-            ),
-          );
-        }
-      })
-      // Task B4: Listen for themes_ready from Cube 6 Phase B backend broadcast.
-      // Fires when full theming pipeline completes — session can transition to ranking.
-      .on("broadcast", { event: "themes_ready" }, ({ payload }) => {
-        const p = payload as {
-          session_id?: string;
-          theme_count?: number;
-          total_responses?: number;
-          replay_hash?: string;
-          duration_sec?: number;
-        };
-        console.log("[themes_ready]", p);
-        if (p.theme_count && p.theme_count > 0) {
-          setThemesReady(true);
-          setThemeCount(p.theme_count);
-          setReplayHash(p.replay_hash ?? "");
-        }
-      })
-      // Theme change: Moderator changed the session color scheme — apply instantly
-      .on("broadcast", { event: "theme_change" }, ({ payload }) => {
-        const p = payload as { theme_id?: string };
-        if (p.theme_id) {
-          localStorage.setItem("exel-session-theme-id", p.theme_id);
-          // Force re-render by dispatching storage event
-          window.dispatchEvent(new StorageEvent("storage", {
-            key: "exel-session-theme-id",
-            newValue: p.theme_id,
-          }));
-        }
-      })
-      .subscribe();
 
     // Channel B: postgres_changes on responses table (reliable HTTP path, works even if Broadcast drops)
     // Supabase table schema: id, session_code, participant_id, content, created_at
@@ -332,9 +336,10 @@ function SessionDetail({
     // Channel D: HTTP poll for new responses (bulletproof fallback — no WebSocket needed)
     // Polls Supabase REST every 2s for responses newer than last seen.
     // Works even if Broadcast + postgres_changes both fail.
+    // Uses sessionRef to avoid stale closure on session.status.
     let lastPollTime = new Date().toISOString();
     const pollInterval = setInterval(async () => {
-      if (!supabase || session.status !== "polling") return;
+      if (!supabase || sessionRef.current.status !== "polling") return;
       try {
         const { data } = await supabase
           .from("responses")
@@ -370,27 +375,14 @@ function SessionDetail({
       .subscribe();
 
     return () => {
-      supabase?.removeChannel(broadcastChannel);
       supabase?.removeChannel(dbChannel);
       supabase?.removeChannel(statusChannel);
       clearInterval(pollInterval);
     };
-  }, [session.short_code]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Supabase Realtime Broadcast — push status changes to all participants instantly
-  // Also listen for presence updates so moderator sees live participant count
-  const onPresenceUpdate = useCallback((count: number) => {
-    // Take max to guard against out-of-order broadcasts lowering the count
-    onUpdate({ ...session, participant_count: Math.max(session.participant_count ?? 0, count) });
-  }, [session, onUpdate]);
-  const { broadcast } = useSessionBroadcast(session.short_code, undefined, onPresenceUpdate);
+  }, [session.short_code, addResponse]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // KV fallback poll — keeps participant count accurate when Supabase broadcast is missed.
-  // Runs every 5s during active sessions. Uses refs to avoid stale closures.
-  const onUpdateRef = useRef(onUpdate);
-  onUpdateRef.current = onUpdate;
-  const sessionRef = useRef(session);
-  sessionRef.current = session;
+  // Runs every 5s during active sessions. Uses refs declared above to avoid stale closures.
   useEffect(() => {
     if (["closed", "archived"].includes(session.status)) return;
     const poll = async () => {
@@ -826,7 +818,7 @@ function SessionDetail({
                       }
                       setSpiralRunning(true);
                       setSpiralProgress(null);
-                      spiralSeenIds.current.clear();
+                      seenIds.current.clear();
                       const cancel = startSpiralTest(
                         session.id,
                         (progress) => {
