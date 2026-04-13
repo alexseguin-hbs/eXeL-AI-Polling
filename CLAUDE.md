@@ -359,9 +359,9 @@ Track and optimize for:
 ## API, SDK & Embed Architecture — Current State
 
 ### REST API (Implemented)
-- **106 endpoints** across 10 cube routers at `/api/v1` (+ discovery + SDK + compress)
+- **109 endpoints** across 10 cube routers at `/api/v1` (+ discovery + SDK + compress + feedback)
 - **OpenAPI auto-docs:** FastAPI generates interactive docs at `/api/v1/docs` (Swagger UI) and `/api/v1/redoc`
-- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (4), Cube 4 (10), Cube 5 (9), Cube 6 (5), Cube 7 (11), Cube 8 (18), Cube 9 (14), Cube 10 (11), SDK/Discovery (7)
+- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (10), Cube 5 (9), Cube 6 (5), Cube 7 (11), Cube 8 (18), Cube 9 (14), Cube 10 (11), Feedback (3)
 - **Frontend routes:** `/` (home), `/session` (polling), `/dashboard` (moderator), `/api` (Governance Engine API — split layout: Flower of Life left, NOSE documentation right), `/divinity-guide` (The Divinity Guide: The Return to Wholeness and Living Divinity — split layout: Flower of Life left, book reader right; 10 languages with dynamic imports via LANG_LOADERS, shared divinity-languages.ts module, DIVINITY_TRANSLATIONS consolidated map)
 
 ### Authentication & Security (Implemented)
@@ -405,27 +405,28 @@ Track and optimize for:
 > **SPIRAL v2 audit (2026-04-08, MoT Autonomous Mode):** Cubes 7-9 fully implemented. SDK Core layer added. 523 tests, 0 failures. Per-pillar scores updated in `SSSES.md`.
 >
 > **SPIRAL v4 audit (2026-04-12, 20-agent audit):** Divinity Guide i18n optimized, dynamic imports, 1048 tests verified, 106 endpoints
+>
+> **SPIRAL v5 audit (2026-04-12, 12 Ascended Masters Council):** Ground-truth reconciliation — Thoth verified 1,126 tests (51 files), Krishna verified 109 endpoints, Sofia found 702 lexicon keys. Schema drift identified (Enlil), security hardening applied (Thor).
 
 | Cube | Status | SSSES | Tests | CRS | Open Tasks |
 |------|--------|:---:|-------|-----|------------|
-| 1 Session | **100% SSSES** | **100** | 70 | CRS-01→06 | None |
-| 2 Text | **~98% SSSES** | **94** | 64 | CRS-05→08 | Phase 3: DB error handling, bounded cache |
-| 3 Voice | ~88% | **88** | 92 | CRS-08, 15 | Live STT verified (Gemini+Whisper), cross-cube deps |
-| 4 Collector | ~86% | **86** | 43 | CRS-09→10 | C4-1→C4-2 (includes cross-cube tests) |
-| 5 Gateway | ~87% | **87** | 67 | CRS-09→11 | C5-1 RESOLVED, C5-3 RESOLVED, C5-4 RESOLVED |
-| 6 AI Pipeline | ~80% | **80** | 139 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
-| 7 Ranking | **~93%** | **93** | 164 | CRS-11→13, 16-17, 22 | All MVP1+MVP2 done. Mathematical proofs. |
+| 1 Session | **100% SSSES** | **100** | 59 | CRS-01→06 | None |
+| 2 Text | **~94% SSSES** | **94** | 66 | CRS-05→08 | Phase 3: DB error handling, bounded cache |
+| 3 Voice | ~88% | **88** | 110 | CRS-08, 15 | Live STT verified (Gemini+Whisper), cross-cube deps |
+| 4 Collector | ~87% | **87** | 43 | CRS-09→10 | C4-1→C4-2 (includes cross-cube tests) |
+| 5 Gateway | ~90% | **90** | 67 | CRS-09→11 | C5-1 RESOLVED, C5-3 RESOLVED, C5-4 RESOLVED |
+| 6 AI Pipeline | ~85% | **85** | 139 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
+| 7 Ranking | **~96%** | **96** | 164 | CRS-11→13, 16-17, 22 | All MVP1+MVP2 done. Mathematical proofs. |
 | 8 Tokens | **~82%** | **82** | 194 | CRS-18-19, 24-25, 32-35 | 59-jurisdiction precision. Lifecycle exhaustive. |
-| 9 Reports | **~76%** | **76** | 85 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
-| 10 Simulation | Easter Egg SIM | — | — | — | — |
-| **SDK Core** | **Active** | — | 31 | — | Envelope, Events, Scoping, API Keys |
+| 9 Reports | **~76%** | **76** | 84 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | **~74%** | **74** | 99 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
-| **Total** | | | **1048** | | |
+| **SDK/Cross-Cube** | **Active** | — | 101 | — | SDK Core (31) + Theme Compression (27) + Cross-Cube Chain (22) + Health (2) + SDK Functions (19) |
+| **Total** | | | **1,126** | | |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
 
-- **Language Lexicon:** 612 keys × 33 languages. Per-cube key groups (Cubes 1-9 + SDK), admin approval gate (`explore@eXeL-AI.com`), `t()` fallback chain (translation → English → raw key). Files: `frontend/lib/lexicon-data.ts`, `frontend/lib/lexicon-context.tsx`, `frontend/lib/lexicon-translations.ts`, `frontend/components/language-lexicon.tsx`
+- **Language Lexicon:** 702 keys × 34 languages. Per-cube key groups (Cubes 1-9 + SDK), admin approval gate (`explore@eXeL-AI.com`), `t()` fallback chain (translation → English → raw key). Files: `frontend/lib/lexicon-data.ts`, `frontend/lib/lexicon-context.tsx`, `frontend/lib/lexicon-translations.ts`, `frontend/components/language-lexicon.tsx`
 - **Settings Panel:** Slide-over with session-cascading theme customizer (8 presets + custom = 9 options), language selector, Lexicon admin. Auth-gated: polling users see view-only at 40% opacity, moderators get full control. Files: `frontend/components/moderator-settings.tsx`, `frontend/lib/theme-context.tsx`
 - **Theme Auth Guard:** Default AI Cyan pre-auth. Only Auth0 moderators change themes. Session-level cascade to all participants. Logout resets to default. Files: `frontend/lib/theme-context.tsx`, `frontend/components/providers.tsx`
 - **Global Language Selector:** Navbar globe dropdown, 34 languages (EN+ES pinned top), instant locale switching, localStorage persistence. Files: `frontend/components/navbar.tsx`, `frontend/lib/lexicon-context.tsx`

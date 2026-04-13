@@ -80,15 +80,15 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | Cube | Security | Stability | Scalability | Efficiency | Succinctness | Overall | Tests | SPIRAL |
 |------|----------|-----------|-------------|------------|--------------|---------|-------|--------|
 | 1 Session | 100 | 100 | 100 | 100 | 100 | **100** | 59 | v3 |
-| 2 Text | 98 | 95 | 93 | 92 | 90 | **94** | 62 | v3 |
-| 3 Voice | 88 | 93 | 92 | 86 | 82 | **88** | 97+5 live | v8 |
+| 2 Text | 98 | 95 | 93 | 92 | 90 | **94** | 66 | v3 |
+| 3 Voice | 88 | 93 | 92 | 86 | 82 | **88** | 110 | v8 |
 | 4 Collector | 92 | 87 | 82 | 88 | 86 | **87** | 43 | v4 |
 | 5 Gateway | 90 | 92 | 88 | 86 | 93 | **90** | 67 | v5 |
-| 6 AI Pipeline | 85 | 82 | 88 | 85 | 85 | **85** | 136 | v10 |
-| 7 Ranking | 95 | 97 | 98 | 96 | 95 | **96** | 165 | v16 |
-| 8 Tokens | 85 | 88 | 72 | 82 | 83 | **82** | 106 | v8 |
+| 6 AI Pipeline | 85 | 82 | 88 | 85 | 85 | **85** | 139 | v10 |
+| 7 Ranking | 95 | 97 | 98 | 96 | 95 | **96** | 164 | v16 |
+| 8 Tokens | 85 | 88 | 72 | 82 | 83 | **82** | 194 | v8 |
 | 9 Reports | 78 | 80 | 68 | 75 | 80 | **76** | 84 | v8 |
-| 10 Simulation | 76 | 80 | 68 | 73 | 80 | **74** | 99 | v17 | — | — |
+| 10 Simulation | 76 | 80 | 68 | 73 | 80 | **74** | 99 | v17 |
 
 > **SPIRAL v2 audit (2026-04-08, MoT Autonomous Mode):**
 > - Cubes 7-9 major implementation push: +62/+25/+33 SSSES points
@@ -117,6 +117,14 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 > - Divinity Guide i18n SSSES: Translated Trinities + Sacred links for all 10 languages
 > - Consolidated 4 separate translation maps into single `DIVINITY_TRANSLATIONS` Record (Thoth: 6x fewer touchpoints)
 > - Dynamic imports via `LANG_LOADERS` + `useDivinityPages()` hook (Sofia: EN instant, others lazy-loaded)
+>
+> **SPIRAL v5 audit (2026-04-12, 12 Ascended Masters Council — Ground Truth Reconciliation):**
+> - Thoth: Test counts reconciled — 1,126 tests across 51 files (was 1,048). Per-cube: C2=66, C3=110, C6=139, C8=194, SDK/Root=101
+> - Krishna: Endpoint count corrected — 109 endpoints (was 106). C3=5, C9=14, C10=11, Feedback=3
+> - Sofia: Lexicon keys corrected — 702 keys × 34 languages. Khmer missing from SEEDED_TRANSLATIONS. 7 Divinity section labels English-only
+> - Enlil: Schema drift identified — token_ledger migration vs SQLAlchemy have incompatible columns. rankings vs user_rankings table name mismatch
+> - Thor: Security audit — .env NOT tracked (safe). session_creation_log missing RLS. Encryption key fallback generates random key at runtime
+> - Total: 1,126 tests, 109 endpoints, 702 lexicon keys, 34 languages
 > - Shared language module: `divinity-languages.ts` — single source of truth for all Divinity languages (Krishna)
 > - Bundle reduction: 5,094 KB → 316 KB initial load (93% reduction, Odin)
 > - Language addition: 8 manual edits → 5 edits + automated 9-test validation (37.5% fewer touchpoints)
