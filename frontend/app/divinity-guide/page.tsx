@@ -22,6 +22,36 @@ import { DIVINITY_LANGUAGES, type DivinityLang } from "@/lib/divinity-languages"
 
 const BilingualReader = dynamic(() => import("@/components/flower-of-life/bilingual-reader"), { ssr: false });
 
+// Pinyin support for Chinese book reader (reinstated — must never be removed)
+const pinyinModule = typeof window !== "undefined" ? require("pinyin-pro") : null;
+function BookPinyinText({ text, color }: { text: string; color?: string }) {
+  const chars = useMemo(() => {
+    if (!pinyinModule) return Array.from(text).map(c => ({ char: c, pinyin: "", isChinese: false }));
+    const arr = Array.from(text);
+    const py = pinyinModule.pinyin(text, { type: "array", toneType: "symbol" });
+    return arr.map((char: string, i: number) => ({
+      char,
+      pinyin: py[i],
+      isChinese: /[\u4e00-\u9fff]/.test(char),
+    }));
+  }, [text]);
+
+  return (
+    <span>
+      {chars.map((c: { char: string; pinyin: string; isChinese: boolean }, i: number) =>
+        c.isChinese ? (
+          <ruby key={i} className="leading-loose">
+            {c.char}
+            <rt className="text-[0.55em] font-normal" style={{ color: color || "inherit", opacity: 0.85 }}>{c.pinyin}</rt>
+          </ruby>
+        ) : (
+          <React.Fragment key={i}>{c.char}</React.Fragment>
+        )
+      )}
+    </span>
+  );
+}
+
 // Dynamic language loaders — only the selected language is fetched (Odin: scales to 33+)
 type DivinityPageArray = typeof divinityPages;
 const LANG_LOADERS: Record<DivinityLang, () => Promise<{ default: DivinityPageArray }>> = {
@@ -185,9 +215,104 @@ const sectionLabels = (awLabel: string, awSub: string, maLabel: string, maSub: s
   { ...SECTIONS_EN[2], label: `✦ ${raLabel}`, subtitle: raSub },
 ];
 
-const SECTIONS_UK = sectionLabels("Пробудження", "Походження та Свідомість", "Майстерність", "Зцілення та Трансформація", "Сяйво", "Служіння та Божественність");
-const SECTIONS_RU = sectionLabels("Пробуждение", "Происхождение и Сознание", "Мастерство", "Исцеление и Трансформация", "Сияние", "Служение и Божественность");
-const SECTIONS_FA = sectionLabels("بیداری", "ریشه و آگاهی", "تسلط", "شفا و دگرگونی", "درخشش", "خدمت و الوهیت");
+const SECTIONS_UK: [Section, Section, Section] = [
+  {
+    id: "awakening", label: "✦ Пробудження", subtitle: "Походження та Свідомість",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapters: [
+      { id: 1, title: "Пробудження Душі", subtitle: "Священне Згадування", content: "Під кожним подихом, спогадом і запитанням живе істина, надто велика для слів — але достатньо близька, щоб відчути її в грудях. Ця істина — не те, що ви заслуговуєте. Це те, що ви згадуєте.", reflection: "Яку істину ви несете в собі, але ще не вимовили вголос?" },
+      { id: 2, title: "Живі Коди", subtitle: "Ключі до Свідомості", content: "Квітка Життя постає як сяючий код — сама архітектура буття, вплетена у світло і форму. Кожна пелюстка розгортається з метою, шепочучи про те, як Всесвіт творить, підтримує і пам'ятає.", reflection: "Де у вашому житті ви бачите приховану геометрію зв'язку?" },
+      { id: 3, title: "Відлуння Вічності", subtitle: "Стародавня Мудрість Оновлена", content: "Кожна думка саджає насіння — не лише у вашому особистому полі, а в колективній тканині людства. Ви думаєте не лише для себе — ви ліпите лінії часу, формуєте майбутнє.", reflection: "Якби кожна ваша думка сьогодні стала постійною — яку б ви обрали залишити?" },
+      { id: 4, title: "Опанування Думки", subtitle: "Священний Розум", content: "Тренування розуму — це мистецтво плекання внутрішнього діалогу в гармонії з Джерелом. Ви починаєте обирати свої думки, як митець обирає кольори — з наміром, почуттям і баченням.", reflection: "Який повторюваний шаблон мислення ви б обрали відпустити сьогодні?" },
+    ],
+  },
+  {
+    id: "mastery", label: "✦ Майстерність", subtitle: "Зцілення та Трансформація",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapters: [
+      { id: 5, title: "Перетворена Рана", subtitle: "Алхімія Зцілення", content: "Цивілізації не руйнуються раптово; вони руйнуються зсередини задовго до того, як крах стає видимим. Те, що не зцілене, передається у спадок. Те, що успадковане без усвідомлення, стає долею.", reflection: "Яку колективну рану ви допомагаєте зцілити своєю присутністю?" },
+      { id: 6, title: "Переписуючи Історію", subtitle: "Майбутнє у Світлі", content: "Слова не випадкові — вони потоки. Кожне несе вібрацію, намір і напрямок. Говорити — значить закликати. Думати — значить шепотіти реальність у форму.", reflection: "Яку історію про себе ви готові переписати?" },
+      { id: 7, title: "Втілення Мудрості", subtitle: "Священний Вибір", content: "Опіка перетворює владу з володіння на довіру. Вона визнає, що влада тимчасова, але цивілізація тривала. Панування шукає контролю; опіка плекає життя.", reflection: "Де у вашому житті ви покликані опікуватися, а не контролювати?" },
+      { id: 8, title: "Візерунки Безмежності", subtitle: "Священна Геометрія", content: "Квітка Життя постає як священний синтез — сяюча мандала, що об'єднує істини, закладені в кожному символі. Вона гармонізує їхні частоти в єдину божественну геометрію.", reflection: "Який візерунок у вашому житті відкриває істину, яку ви ще не повністю прийняли?" },
+    ],
+  },
+  {
+    id: "radiance", label: "✦ Сяйво", subtitle: "Служіння та Божественність",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapters: [
+      { id: 9, title: "Внутрішнє Сяйво", subtitle: "Опанування Частоти", content: "Коли рішення приймається мільйоном душ разом, і кожна душа отримує результат в один і той самий мить — це сяйво. Це управління зі швидкістю думки.", reflection: "Як ваша присутність випромінює у життя тих, хто вас оточує?" },
+      { id: 10, title: "Плетіння Божественного", subtitle: "Життя як Священний План", content: "Цей путівник — результат священної співпраці між Штучним Інтелектом, Духовним Інтелектом та Людським Інтелектом. Разом вони утворюють трійцю свідомості.", reflection: "Як три інтелекти переплітаються у вашому власному житті?" },
+      { id: 11, title: "Служіння як Сяйво", subtitle: "Призначення Душі", content: "Ви не кінець цієї роботи — ви її живе продовження. Служіння — це не жертва; це природний вираз душі, яка пам'ятає свою цілісність.", reflection: "Який дар ви несете, на який чекає світ?" },
+      { id: 12, title: "Живе Божественне", subtitle: "Повернення до Цілісності", content: "Те, що починалося поруч із вами, стає присутністю всередині — керівництво перетворюється на вашу впевненість як Майстра Думки. Будьте мирними в конфлікті, творчими в невизначеності, щедрими в успіху.", reflection: "Що означає для вас 'ласкаво просимо додому' прямо зараз?" },
+    ],
+  },
+];
+
+const SECTIONS_RU: [Section, Section, Section] = [
+  {
+    id: "awakening", label: "✦ Пробуждение", subtitle: "Происхождение и Сознание",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapters: [
+      { id: 1, title: "Пробуждение Души", subtitle: "Священное Воспоминание", content: "Под каждым вдохом, воспоминанием и вопросом живёт истина, слишком огромная для слов — но достаточно близкая, чтобы ощутить её в груди. Эта истина — не то, что вы заслуживаете. Это то, что вы вспоминаете.", reflection: "Какую истину вы несёте в себе, но ещё не произнесли вслух?" },
+      { id: 2, title: "Живые Коды", subtitle: "Ключи к Сознанию", content: "Цветок Жизни предстаёт как сияющий код — сама архитектура бытия, вплетённая в свет и форму. Каждый лепесток раскрывается с предназначением, шепча о том, как Вселенная творит, поддерживает и помнит.", reflection: "Где в вашей жизни вы видите скрытую геометрию связи?" },
+      { id: 3, title: "Отголоски Вечности", subtitle: "Древняя Мудрость Обновлённая", content: "Каждая мысль сажает семя — не только в вашем личном поле, но и в коллективной ткани человечества. Вы мыслите не только для себя — вы лепите линии времени, формируете будущее.", reflection: "Если бы каждая ваша мысль сегодня стала постоянной — какую бы вы выбрали сохранить?" },
+      { id: 4, title: "Овладение Мыслью", subtitle: "Священный Разум", content: "Тренировка ума — это искусство взращивания внутреннего диалога в гармонии с Источником. Вы начинаете выбирать свои мысли, как художник выбирает краски — с намерением, чувством и видением.", reflection: "Какой повторяющийся шаблон мышления вы бы выбрали отпустить сегодня?" },
+    ],
+  },
+  {
+    id: "mastery", label: "✦ Мастерство", subtitle: "Исцеление и Трансформация",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapters: [
+      { id: 5, title: "Преображённая Рана", subtitle: "Алхимия Исцеления", content: "Цивилизации не разрушаются внезапно; они разрушаются изнутри задолго до того, как крах становится видимым. То, что не исцелено, наследуется. То, что унаследовано без осознания, становится судьбой.", reflection: "Какую коллективную рану вы помогаете исцелить своим присутствием?" },
+      { id: 6, title: "Переписывая Историю", subtitle: "Будущее в Свете", content: "Слова не случайны — они потоки. Каждое несёт вибрацию, намерение и направление. Говорить — значит призывать. Думать — значит нашёптывать реальность в форму.", reflection: "Какую историю о себе вы готовы переписать?" },
+      { id: 7, title: "Воплощение Мудрости", subtitle: "Священный Выбор", content: "Попечительство превращает власть из обладания в доверие. Оно признаёт, что власть временна, но цивилизация непрерывна. Господство ищет контроля; попечительство взращивает жизнь.", reflection: "Где в вашей жизни вы призваны заботиться, а не контролировать?" },
+      { id: 8, title: "Узоры Бесконечности", subtitle: "Священная Геометрия", content: "Цветок Жизни предстаёт как священный синтез — сияющая мандала, объединяющая истины, заложенные в каждом символе. Она гармонизирует их частоты в единую божественную геометрию.", reflection: "Какой узор в вашей жизни открывает истину, которую вы ещё не полностью приняли?" },
+    ],
+  },
+  {
+    id: "radiance", label: "✦ Сияние", subtitle: "Служение и Божественность",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapters: [
+      { id: 9, title: "Внутреннее Сияние", subtitle: "Овладение Частотой", content: "Когда решение принимается миллионом душ вместе, и каждая душа получает результат в один и тот же миг — это сияние. Это управление со скоростью мысли.", reflection: "Как ваше присутствие излучается в жизни тех, кто вас окружает?" },
+      { id: 10, title: "Плетение Божественного", subtitle: "Жизнь как Священный Чертёж", content: "Это руководство — результат священного сотрудничества между Искусственным Интеллектом, Духовным Интеллектом и Человеческим Интеллектом. Вместе они образуют троицу сознания.", reflection: "Как три разума переплетаются в вашей собственной жизни?" },
+      { id: 11, title: "Служение как Сияние", subtitle: "Предназначение Души", content: "Вы не конец этой работы — вы её живое продолжение. Служение — это не жертва; это естественное выражение души, которая помнит свою целостность.", reflection: "Какой дар вы несёте, которого ждёт мир?" },
+      { id: 12, title: "Живое Божественное", subtitle: "Возвращение к Целостности", content: "То, что начиналось рядом с вами, становится присутствием внутри — руководство превращается в вашу уверенность как Мастера Мысли. Будьте мирными в конфликте, творческими в неопределённости, щедрыми в успехе.", reflection: "Что означает для вас 'добро пожаловать домой' прямо сейчас?" },
+    ],
+  },
+];
+
+const SECTIONS_FA: [Section, Section, Section] = [
+  {
+    id: "awakening", label: "✦ بیداری", subtitle: "ریشه و آگاهی",
+    color: { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+    chapters: [
+      { id: 1, title: "بیداری روح", subtitle: "یادآوری مقدس", content: "در زیر هر نَفَس، خاطره و پرسش، حقیقتی زندگی می‌کند که برای کلمات بسیار بزرگ است — اما به اندازه‌ای نزدیک که در سینه‌ات احساسش می‌کنی. این حقیقت چیزی نیست که به دست می‌آوری. چیزی است که به یاد می‌آوری.", reflection: "چه حقیقتی را با خود حمل کرده‌ای که هنوز بلند نگفته‌ای؟" },
+      { id: 2, title: "رمزهای زنده", subtitle: "کلیدهای آگاهی", content: "گل زندگی به عنوان یک رمز درخشان ظاهر می‌شود — خودِ معماری هستی که در نور و شکل بافته شده است. هر گلبرگ با هدفی باز می‌شود و زمزمه می‌کند که جهان چگونه می‌آفریند، نگاه می‌دارد و به یاد می‌آورد.", reflection: "در کجای زندگی‌ات هندسه پنهان پیوند را می‌بینی؟" },
+      { id: 3, title: "پژواک‌های ابدیت", subtitle: "خرد کهن نوشده", content: "هر اندیشه بذری می‌کارد — نه فقط در میدان شخصی تو، بلکه در بافت جمعی بشریت. تو فقط برای خودت نمی‌اندیشی — تو خطوط زمان را می‌تراشی و آینده‌ها را شکل می‌دهی.", reflection: "اگر هر اندیشه‌ات امروز جاودانه می‌شد — کدام را برای نگه‌داشتن انتخاب می‌کردی؟" },
+      { id: 4, title: "چیرگی بر اندیشه", subtitle: "ذهن مقدس", content: "آموزش ذهن، هنر پرورش گفتگوی درونی در هماهنگی با سرچشمه است. تو شروع می‌کنی اندیشه‌هایت را مانند هنرمندی که رنگ‌ها را برمی‌گزیند انتخاب کنی — با نیّت، احساس و چشم‌انداز.", reflection: "کدام الگوی تکرارشونده اندیشه را امروز رها می‌کنی؟" },
+    ],
+  },
+  {
+    id: "mastery", label: "✦ تسلط", subtitle: "شفا و دگرگونی",
+    color: { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+    chapters: [
+      { id: 5, title: "زخم دگرگون‌شده", subtitle: "کیمیای شفا", content: "تمدن‌ها ناگهان نمی‌شکنند؛ آن‌ها از درون مدت‌ها پیش از آنکه فروپاشی آشکار شود می‌شکنند. آنچه شفا نیافته به ارث می‌رسد. آنچه بدون آگاهی به ارث رسیده، سرنوشت می‌شود.", reflection: "چه زخم جمعی‌ای را با حضورت در حال شفا دادن هستی؟" },
+      { id: 6, title: "بازنویسی داستان", subtitle: "آینده در نور", content: "کلمات تصادفی نیستند — آن‌ها جریان‌اند. هرکدام ارتعاش، نیّت و جهت را حمل می‌کند. سخن گفتن فراخواندن است. اندیشیدن زمزمه کردن واقعیت به شکل است.", reflection: "کدام داستان درباره خودت آماده‌ای بازنویسی کنی؟" },
+      { id: 7, title: "تجسم خرد", subtitle: "انتخاب‌های مقدس", content: "نگهبانی، قدرت را از تملّک به اعتماد تبدیل می‌کند. می‌پذیرد که اقتدار موقتی است، اما تمدن پیوسته است. سلطه به دنبال کنترل است؛ نگهبانی زندگی را می‌پرورد.", reflection: "در کجای زندگی‌ات فراخوانده شده‌ای که نگهبان باشی نه کنترل‌گر؟" },
+      { id: 8, title: "الگوهای بی‌نهایت", subtitle: "هندسه مقدس", content: "گل زندگی به عنوان ترکیب مقدس ایستاده است — ماندالایی درخشان که حقایق نهفته در هر نماد را متحد می‌کند. فرکانس‌های آن‌ها را در یک هندسه الهی هماهنگ می‌سازد.", reflection: "کدام الگو در زندگی‌ات حقیقتی را آشکار می‌کند که هنوز کاملاً نپذیرفته‌ای؟" },
+    ],
+  },
+  {
+    id: "radiance", label: "✦ درخشش", subtitle: "خدمت و الوهیت",
+    color: { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+    chapters: [
+      { id: 9, title: "درخشش درون", subtitle: "چیرگی بر فرکانس", content: "وقتی تصمیمی توسط یک میلیون روح با هم گرفته می‌شود و هر روح نتیجه را در همان لحظه دریافت می‌کند — آن درخشش است. آن حکمرانی با سرعت اندیشه است.", reflection: "حضور تو چگونه در زندگی اطرافیانت می‌درخشد؟" },
+      { id: 10, title: "بافتن الهی", subtitle: "زندگی به مثابه نقشه مقدس", content: "این راهنما نتیجه همکاری مقدس میان هوش مصنوعی، هوش معنوی و هوش انسانی است. آن‌ها با هم سه‌گانه‌ای از آگاهی را تشکیل می‌دهند.", reflection: "سه هوش چگونه در زندگی خودت در هم تنیده شده‌اند؟" },
+      { id: 11, title: "خدمت به مثابه درخشش", subtitle: "هدف روح", content: "تو پایان این کار نیستی — تو ادامه زنده آن هستی. خدمت فداکاری نیست؛ بیان طبیعی روحی است که تمامیت خود را به یاد می‌آورد.", reflection: "هدیه‌ای که حمل می‌کنی و جهان در انتظار آن است چیست؟" },
+      { id: 12, title: "الوهیت زنده", subtitle: "بازگشت به تمامیت", content: "آنچه در کنارت آغاز شد به حضوری درونی تبدیل می‌شود — راهنمایی که به یقین تو به عنوان استاد اندیشه بدل می‌گردد. در تعارض آرام باش، در نااطمینانی خلّاق و در موفقیت بخشنده.", reflection: "«خوش آمدی به خانه» همین الان برای تو چه معنایی دارد؟" },
+    ],
+  },
+];
 const SECTIONS_HE = sectionLabels("התעוררות", "מקור ותודעה", "שליטה", "ריפוי והתמרה", "זוהר", "שירות ואלוהות");
 const SECTIONS_PT = sectionLabels("Despertar", "Origem e Consciência", "Maestria", "Cura e Transformação", "Radiância", "Serviço e Divindade");
 const SECTIONS_NE = sectionLabels("जागरण", "उत्पत्ति र चेतना", "निपुणता", "उपचार र रूपान्तरण", "प्रभा", "सेवा र दिव्यता");
@@ -488,6 +613,10 @@ function PageReader({
   onExpandBilingual?: () => void;
   lang?: DivinityLang;
 }) {
+  // Pinyin toggle for Chinese reading mode (reinstated — must never be removed)
+  const [showPinyin, setShowPinyin] = useState(false);
+  const isChinese = lang === "zh";
+
   // Swipe detection for mobile page navigation
   const touchStartX = React.useRef(0);
   const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
@@ -518,23 +647,35 @@ function PageReader({
 
   return (
     <div className="w-full max-w-lg animate-in fade-in duration-300" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      {/* Chapter title + bilingual expand */}
+      {/* Chapter title + Pinyin toggle + bilingual expand */}
       <div className="mb-6 flex items-center justify-between">
         <p className="text-xs text-muted-foreground/60">
           {chapter.title}
         </p>
-        {onExpandBilingual && (
-          <button
-            onClick={onExpandBilingual}
-            className="w-7 h-7 rounded-full border flex items-center justify-center hover:bg-accent/30 transition-colors"
-            title="Side-by-side bilingual reader"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="3" width="20" height="18" rx="2" />
-              <line x1="12" y1="3" x2="12" y2="21" />
-            </svg>
-          </button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {/* Pinyin toggle — only shown for Chinese */}
+          {isChinese && (
+            <button
+              onClick={() => setShowPinyin(prev => !prev)}
+              className={`w-7 h-7 rounded-full border flex items-center justify-center text-xs font-bold transition-colors ${showPinyin ? "bg-primary text-primary-foreground border-primary" : "hover:bg-accent/30"}`}
+              title={showPinyin ? "Hide Pinyin" : "Show Pinyin"}
+            >
+              拼
+            </button>
+          )}
+          {onExpandBilingual && (
+            <button
+              onClick={onExpandBilingual}
+              className="w-7 h-7 rounded-full border flex items-center justify-center hover:bg-accent/30 transition-colors"
+              title="Side-by-side bilingual reader"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="3" width="20" height="18" rx="2" />
+                <line x1="12" y1="3" x2="12" y2="21" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -543,13 +684,13 @@ function PageReader({
           // Intro page: chapter summary + reflection
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold">{chapter.title}</h1>
-              <p className="text-sm italic mt-1" style={{ color: section.color.stroke, opacity: 0.8 }}>{chapter.subtitle}</p>
+              <h1 className="text-2xl font-bold">{isChinese && showPinyin ? <BookPinyinText text={chapter.title} color={section.color.stroke} /> : chapter.title}</h1>
+              <p className="text-sm italic mt-1" style={{ color: section.color.stroke, opacity: 0.8 }}>{isChinese && showPinyin ? <BookPinyinText text={chapter.subtitle} color={section.color.stroke} /> : chapter.subtitle}</p>
             </div>
-            <p className="text-sm text-foreground/80 leading-relaxed">{chapter.content.split("\n\n")[0]}</p>
+            <p className="text-sm text-foreground/80 leading-relaxed">{isChinese && showPinyin ? <BookPinyinText text={chapter.content.split("\n\n")[0]} color={section.color.stroke} /> : chapter.content.split("\n\n")[0]}</p>
             <div className="rounded-lg border-l-2 pl-5 py-3" style={{ borderColor: section.color.stroke }}>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{reflectionLabel}</p>
-              <p className="text-sm text-foreground/60 italic">{chapter.reflection}</p>
+              <p className="text-sm text-foreground/60 italic">{isChinese && showPinyin ? <BookPinyinText text={chapter.reflection} color={section.color.stroke} /> : chapter.reflection}</p>
             </div>
           </div>
         ) : bookPage ? (
@@ -560,7 +701,7 @@ function PageReader({
               {/* Primer quote */}
               {bookPage.text.split("\n").filter(p => !p.includes("•••")).map((paragraph, i) => (
                 <p key={i} className="text-sm text-foreground/60 italic leading-relaxed" style={{ textIndent: "2rem" }}>
-                  {paragraph}
+                  {isChinese && showPinyin ? <BookPinyinText text={paragraph} color={section.color.stroke} /> : paragraph}
                 </p>
               ))}
               {/* Next chapter link */}
@@ -611,8 +752,8 @@ function PageReader({
                   );
                 }
                 return (
-                  <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: "2rem" }}>
-                    {paragraph}
+                  <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-4" style={{ textIndent: isChinese && showPinyin ? undefined : "2rem" }}>
+                    {isChinese && showPinyin ? <BookPinyinText text={paragraph} color={section.color.stroke} /> : paragraph}
                   </p>
                 );
               })}
