@@ -178,9 +178,23 @@ const SECTIONS_ZH: [Section, Section, Section] = [
   },
 ];
 
+// Section label overrides for languages that share EN chapter structure but need native labels
+const sectionLabels = (awLabel: string, awSub: string, maLabel: string, maSub: string, raLabel: string, raSub: string): [Section, Section, Section] => [
+  { ...SECTIONS_EN[0], label: `✦ ${awLabel}`, subtitle: awSub },
+  { ...SECTIONS_EN[1], label: `✦ ${maLabel}`, subtitle: maSub },
+  { ...SECTIONS_EN[2], label: `✦ ${raLabel}`, subtitle: raSub },
+];
+
+const SECTIONS_UK = sectionLabels("Пробудження", "Походження та Свідомість", "Майстерність", "Зцілення та Трансформація", "Сяйво", "Служіння та Божественність");
+const SECTIONS_RU = sectionLabels("Пробуждение", "Происхождение и Сознание", "Мастерство", "Исцеление и Трансформация", "Сияние", "Служение и Божественность");
+const SECTIONS_FA = sectionLabels("بیداری", "ریشه و آگاهی", "تسلط", "شفا و دگرگونی", "درخشش", "خدمت و الوهیت");
+const SECTIONS_HE = sectionLabels("התעוררות", "מקור ותודעה", "שליטה", "ריפוי והתמרה", "זוהר", "שירות ואלוהות");
+const SECTIONS_PT = sectionLabels("Despertar", "Origem e Consciência", "Maestria", "Cura e Transformação", "Radiância", "Serviço e Divindade");
+const SECTIONS_NE = sectionLabels("जागरण", "उत्पत्ति र चेतना", "निपुणता", "उपचार र रूपान्तरण", "प्रभा", "सेवा र दिव्यता");
+
 const SECTIONS_MAP: Record<DivinityLang, [Section, Section, Section]> = {
   en: SECTIONS_EN, es: SECTIONS_ES, zh: SECTIONS_ZH,
-  uk: SECTIONS_EN, ru: SECTIONS_EN, fa: SECTIONS_EN, he: SECTIONS_EN, pt: SECTIONS_EN, km: SECTIONS_EN, ne: SECTIONS_EN,
+  uk: SECTIONS_UK, ru: SECTIONS_RU, fa: SECTIONS_FA, he: SECTIONS_HE, pt: SECTIONS_PT, km: SECTIONS_EN, ne: SECTIONS_NE,
 };
 
 // ── Consolidated translation map (Thoth: 6x fewer touchpoints per language addition) ──
