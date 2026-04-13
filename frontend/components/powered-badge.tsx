@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
@@ -82,9 +82,14 @@ function SimulationOverlay() {
     dispose,
   } = useAudioEngine(TRACK_URLS);
 
-  // Initialize engine on mount, auto-play when ready
+  // Initialize engine on mount, auto-play when ready.
+  // Some browsers require user gesture — click on overlay triggers resume.
+  const initAttempted = useRef(false);
   useEffect(() => {
-    initialize();
+    if (!initAttempted.current) {
+      initAttempted.current = true;
+      initialize();
+    }
   }, [initialize]);
 
   useEffect(() => {
@@ -94,6 +99,15 @@ function SimulationOverlay() {
     // Only trigger on ready becoming true
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
+
+  // Fallback: if audio failed to autoplay, click anywhere on overlay resumes
+  const handleOverlayClick = useCallback(() => {
+    if (ready && !isPlaying) {
+      play();
+    } else if (!ready && !initAttempted.current) {
+      initialize().then(() => play());
+    }
+  }, [ready, isPlaying, play, initialize]);
 
   // Dispose on exit
   const handleExit = useCallback(() => {

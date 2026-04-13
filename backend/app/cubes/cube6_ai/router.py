@@ -2,7 +2,7 @@
 
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_optional_current_user
@@ -58,6 +58,14 @@ async def run_cqs_scoring(
     Scores eligible responses (>95% confidence) on 6 quality metrics.
     Selects winner with deterministic tie-breaking. Moderator-only.
     """
+    # WireGuard-inspired input validation: whitelist theme_level to prevent
+    # arbitrary attribute access via getattr() in downstream code
+    if theme_level not in ("3", "6", "9"):
+        raise HTTPException(status_code=400, detail="theme_level must be '3', '6', or '9'")
+    # Sanitize top_theme2_label — alphanumeric, spaces, ampersands, and basic punctuation only
+    import re
+    if not re.match(r'^[\w\s&\-.,()]+$', top_theme2_label):
+        raise HTTPException(status_code=400, detail="Invalid theme label characters")
     return await service.run_cqs_pipeline(
         db, session_id, top_theme2_label, theme_level
     )
