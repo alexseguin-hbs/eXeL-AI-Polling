@@ -581,26 +581,62 @@ export default function BilingualReader({
       <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
         {isIntro ? (
           <>
-            <div className="w-full md:w-1/2 overflow-y-auto p-6 md:border-r" dir={isRTL(primaryLang) ? "rtl" : "ltr"}>
+            <div className="w-full md:w-1/2 overflow-y-auto p-6 md:border-r" dir={isRTL(primaryLang) ? "rtl" : "ltr"} onMouseLeave={handleLeave}>
               <div className="space-y-6">
                 <div>
                   <h1 className="text-2xl font-bold">{chapter.title}</h1>
                   <p className="text-sm italic mt-1" style={{ color: sectionStroke, opacity: 0.8 }}>{chapter.subtitle}</p>
                 </div>
-                <p className="text-sm text-foreground/80 leading-relaxed">{chapter.content}</p>
+                {normalizedParagraphs.map((np, i) =>
+                  np.primary.length > 0 ? (
+                    <SyncedParagraph
+                      key={i}
+                      sentences={np.primary}
+                      lang={primaryLang}
+                      paraIdx={i}
+                      activeSentence={activeSentence}
+                      hover={hover}
+                      showPinyin={showPinyin && primaryLang === "zh"}
+                      onHoverWord={handleHoverWord}
+                      side="left"
+                      sectionColor={sectionStroke}
+                      highlight={highlightPreset}
+                    />
+                  ) : (
+                    <div key={i} className="h-4" />
+                  )
+                )}
                 <div className="rounded-lg border-l-2 pl-5 py-3" style={{ borderColor: sectionStroke }}>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{reflectionLabel}</p>
                   <p className="text-sm text-foreground/60 italic">{chapter.reflection}</p>
                 </div>
               </div>
             </div>
-            <div className="w-full md:w-1/2 overflow-y-auto p-6" dir={isRTL(mirrorLang) ? "rtl" : "ltr"}>
+            <div className="w-full md:w-1/2 overflow-y-auto p-6" dir={isRTL(mirrorLang) ? "rtl" : "ltr"} onMouseLeave={handleLeave}>
               <div className="space-y-6">
                 <div>
                   <h1 className="text-2xl font-bold">{mirrorChapter.title}</h1>
                   <p className="text-sm italic mt-1" style={{ color: sectionStroke, opacity: 0.8 }}>{mirrorChapter.subtitle}</p>
                 </div>
-                <p className="text-sm text-foreground/80 leading-relaxed">{mirrorChapter.content}</p>
+                {normalizedParagraphs.map((np, i) =>
+                  np.mirror.length > 0 ? (
+                    <SyncedParagraph
+                      key={i}
+                      sentences={np.mirror}
+                      lang={mirrorLang}
+                      paraIdx={i}
+                      activeSentence={activeSentence}
+                      hover={hover}
+                      showPinyin={showPinyin && mirrorLang === "zh"}
+                      onHoverWord={handleHoverWord}
+                      side="right"
+                      sectionColor={sectionStroke}
+                      highlight={highlightPreset}
+                    />
+                  ) : (
+                    <div key={i} className="h-4" />
+                  )
+                )}
                 <div className="rounded-lg border-l-2 pl-5 py-3" style={{ borderColor: sectionStroke }}>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{mirrorReflectionLabel}</p>
                   <p className="text-sm text-foreground/60 italic">{mirrorChapter.reflection}</p>
