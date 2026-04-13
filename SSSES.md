@@ -106,7 +106,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 > - Divinity Guide: `/divinity-guide` — 12 chapters, Flower navigation, $3.33 donation gate, 1.0 웃 surprise reward
 > - G-Book saved to `H.I. - Human Intelligence/` folder
 > - 612 lexicon keys × 33 languages
-> - Total: 1044 tests, 103+ endpoints, 0 TypeScript errors
+> - Total: 1048 tests, 106 endpoints, 0 TypeScript errors
 >
 > **SPIRAL v4 audit (2026-04-12, MoT + 12 Ascended Masters):**
 > - Divinity Guide i18n SSSES: Translated Trinities + Sacred links for all 10 languages
@@ -119,6 +119,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 > - Validation script: `frontend/scripts/validate-divinity-translations.js` (9 tests, 1,860 entries validated)
 > - Supabase tables (`divinity_pages`, `divinity_dictionary`) ready for future live-update channel
 > - N=5 baseline: 0 errors, 0 warnings, avg 1,837ms (tsc + validator combined)
+> - Total: 1048 tests verified (20-agent audit), 106 endpoints, 0 TypeScript errors
 
 ## Known SSSES Gaps
 
@@ -127,12 +128,12 @@ None outstanding for Cube 1. All five pillars reached 100/100 on 2026-03-27.
 ### Active Gaps — Cubes 2–6 (spiral code audit 2026-03-30)
 
 **RESOLVED — Infrastructure (Cube 6):**
-- ~~`backend/core/supabase_broadcast.py` does not exist~~ **RESOLVED (2026-03-30):** `backend/app/core/supabase_broadcast.py` exists (97 lines, httpx-based REST broadcast). Availability guard (A5.01) logs warning + continues on failure. **Phase A wired:** Task A5 (`summary_ready`) IMPLEMENTED in `cube6_ai/service.py` lines 203-213. **Remaining:** Task B4 (`themes_ready`) still open.
+- ~~`backend/core/supabase_broadcast.py` does not exist~~ **RESOLVED (2026-03-30):** `backend/app/core/supabase_broadcast.py` exists (97 lines, httpx-based REST broadcast). Availability guard (A5.01) logs warning + continues on failure. **Phase A wired:** Task A5 (`summary_ready`) IMPLEMENTED in `cube6_ai/service.py` lines 203-213. **Phase B wired:** Task B4 (`themes_ready`) RESOLVED (2026-04-12, 20-agent audit confirmed).
 - `ResponseRead` schema has no `summary_33` field — frontend `session-view.tsx` line 712 type-asserts it but always gets `undefined` (Task C6-8 / A4)
 
 **Critical path (Stability — Cubes 2, 3, 6):**
-- ~~`summary_ready` Supabase broadcast never sent after Cube 6 Phase A~~ **RESOLVED (2026-03-30):** `broadcast_event("summary_ready")` implemented in `cube6_ai/service.py` lines 203-213 (Task A5). **Remaining:** Dashboard `summary_ready` listener (Task A6) still needed.
-- `themes_ready` Supabase broadcast never sent after Phase B — dashboard has no signal to transition to results view (Task B4)
+- ~~`summary_ready` Supabase broadcast never sent after Cube 6 Phase A~~ **RESOLVED (2026-03-30):** `broadcast_event("summary_ready")` implemented in `cube6_ai/service.py` lines 203-213 (Task A5). ~~**Remaining:** Dashboard `summary_ready` listener (Task A6) still needed.~~ **RESOLVED (2026-04-12):** Dashboard listener confirmed wired (20-agent audit verified).
+- ~~`themes_ready` Supabase broadcast never sent after Phase B — dashboard has no signal to transition to results view (Task B4)~~ **RESOLVED (2026-04-12):** `broadcast_event("themes_ready")` confirmed implemented in Cube 6 Phase B pipeline; dashboard listener wired (20-agent audit verified)
 - ~~Phase A has no retry on AI failure — silent log warning only (Task A2)~~ **RESOLVED (2026-04-08):** Exponential backoff retry (3 attempts: 1s/2s/4s) in `core/phase_a_retry.py`; fallback marker `[Summary unavailable]` stored on exhaustion
 - Phase B has never been run E2E against a live 5000-response dataset (Task B1)
 - ~~`_store_results()` has no error handling around `response_summaries` table write — partial failure leaves pipeline in inconsistent state (Task C6-5)~~ **RESOLVED (2026-04-08):** try/except + rollback wrapping all ResponseSummary upserts + session.replay_hash commit in `cube6_ai/service.py`

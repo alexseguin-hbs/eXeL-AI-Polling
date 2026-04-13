@@ -5,7 +5,7 @@
 
 ## Project
 - **Name:** eXeL-AI-Polling (SoI Governance Engine)
-- **Local path:** /home/explore/eXeL_AI_Polling
+- **Local path:** /home/alex/eXeL-AI-Polling
 - **Platform:** Linux (WSL2)
 - **Mission:** Transform monolithic polling script into production-scale, deterministic, horizontally scalable Governance Compression Infrastructure.
 - **Delivery model:** API-first platform with SDK — the entire tool is embeddable into external products, websites, and codebases via API/SDK (not just a standalone web app)
@@ -274,9 +274,9 @@ All clustering and ranking operations must be fully reproducible:
 | Cube | Position | Name | MVP | Description |
 |------|----------|------|-----|-------------|
 | 1 | (1,2,2) CENTER | Session Join & QR | 1 | Session create, state machine, QR/link, join flow, capacity tiers, Moderator config. **SSSES 100%** — Security (Auth0 RBAC, rate limiting, PII anonymization, anti-sybil), Stability (state machine with validated transitions, retry logic, circuit breakers), Scalability (in-memory presence, Supabase Realtime, horizontal-ready), Efficiency (indexed queries, batch operations, streaming QR), Succinctness (all functions <300 LOC, no legacy v04.2 comments). CRS-01 fully implemented and audited to 100% SSSES. |
-| 2 | (1,2,3) | Text Submission Handler | 1 | Text validation (33 languages), PII detection, anonymization, token display |
+| 2 | (1,2,3) | Text Submission Handler | 1 | Text validation (34 languages), PII detection, anonymization, token display |
 | 3 | (1,3,3) | Voice-to-Text Engine | 2 | Browser mic, STT (4 providers), circuit breaker failover, Cube 2 pipeline |
-| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs (33 languages), PostgreSQL storage, presence tracking |
+| 4 | (1,3,2) | Response Collector | 1 | Aggregate inputs (34 languages), PostgreSQL storage, presence tracking |
 | 5 | (1,3,1) | Gateway / Orchestrator | 1 | Pipeline triggers, time tracking (3 ♡ methods), token calculation |
 | 6 | (1,2,1) | AI Theming Clusterer | 1 | Two-phase: live summarization + parallel theming, CQS scoring engine |
 | 7 | (1,1,1) | Prioritization & Voting | 1 | Ranking UI, deterministic aggregation, governance compression |
@@ -359,20 +359,20 @@ Track and optimize for:
 ## API, SDK & Embed Architecture — Current State
 
 ### REST API (Implemented)
-- **103+ endpoints** across 10 cube routers at `/api/v1` (+ discovery + SDK + compress)
+- **106 endpoints** across 10 cube routers at `/api/v1` (+ discovery + SDK + compress)
 - **OpenAPI auto-docs:** FastAPI generates interactive docs at `/api/v1/docs` (Swagger UI) and `/api/v1/redoc`
-- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (5), Cube 4 (10), Cube 5 (9), Cube 6 (4), Cube 7 (11), Cube 8 (18), Cube 9 (8), Cube 10 (8), SDK/Discovery (7)
-- **Frontend routes:** `/` (home), `/session` (polling), `/dashboard` (moderator), `/api` (Governance Engine API — split layout: Flower of Life left, NOSE documentation right), `/divinity-guide` (The Divinity Guide: The Return to Wholeness and Living Divinity — split layout: Flower of Life left, book reader right)
+- **Endpoint breakdown:** Cube 1 (19), Cube 2 (4), Cube 3 (4), Cube 4 (10), Cube 5 (9), Cube 6 (5), Cube 7 (11), Cube 8 (18), Cube 9 (14), Cube 10 (11), SDK/Discovery (7)
+- **Frontend routes:** `/` (home), `/session` (polling), `/dashboard` (moderator), `/api` (Governance Engine API — split layout: Flower of Life left, NOSE documentation right), `/divinity-guide` (The Divinity Guide: The Return to Wholeness and Living Divinity — split layout: Flower of Life left, book reader right; 10 languages with dynamic imports via LANG_LOADERS, shared divinity-languages.ts module, DIVINITY_TRANSLATIONS consolidated map)
 
 ### Authentication & Security (Implemented)
-- **Auth0 JWT:** Bearer token validation via `core/auth.py` (135 lines)
+- **Auth0 JWT:** Bearer token validation via `core/auth.py` (136 lines)
 - **RBAC:** Moderator, User (Participant), Lead/Developer, Business Owner/Admin
 - **Rate limiting:** Global rate limiter via `core/rate_limit.py`; 100/min on Cube 1 join endpoint
-- **Security headers:** `X-Frame-Options: DENY`, `Permissions-Policy: microphone=(self)` via `core/security.py`
-- **CORS:** Dynamic origin allowlist + `*.pages.dev` regex pattern via `core/middleware.py` (109 lines)
+- **Security headers:** `X-Frame-Options: DENY`, `Permissions-Policy: microphone=(self)` via `core/middleware.py` SecurityHeadersMiddleware (note: `core/security.py` is crypto utilities only)
+- **CORS:** Dynamic origin allowlist + `*.pages.dev` regex pattern via `core/middleware.py` (110 lines)
 
 ### Cloudflare Pages Function (Implemented)
-- **File:** `frontend/functions/api/responses.js` (113 lines)
+- **File:** `frontend/functions/api/responses.js` (116 lines)
 - **Purpose:** Cross-device response sharing for Spiral Test + SIM via Cache API / KV
 - **Endpoints:** `GET /api/responses?sessionId=X` (read), `POST /api/responses` (write)
 - **Storage:** Cloudflare Cache API (primary) with KV fallback
@@ -403,22 +403,24 @@ Track and optimize for:
 ### Implementation Summary
 
 > **SPIRAL v2 audit (2026-04-08, MoT Autonomous Mode):** Cubes 7-9 fully implemented. SDK Core layer added. 523 tests, 0 failures. Per-pillar scores updated in `SSSES.md`.
+>
+> **SPIRAL v4 audit (2026-04-12, 20-agent audit):** Divinity Guide i18n optimized, dynamic imports, 1048 tests verified, 106 endpoints
 
 | Cube | Status | SSSES | Tests | CRS | Open Tasks |
 |------|--------|:---:|-------|-----|------------|
-| 1 Session | **100% SSSES** | **100** | 59 | CRS-01→06 | None |
-| 2 Text | **~98% SSSES** | **94** | 62 | CRS-05→08 | Phase 3: DB error handling, bounded cache |
-| 3 Voice | ~88% | **88** | 91 | CRS-08, 15 | Live STT verified (Gemini+Whisper), cross-cube deps |
-| 4 Collector | ~86% | **86** | 21 | CRS-09→10 | C4-1→C4-2 |
-| 5 Gateway | ~89% | **89** | 60 | CRS-09→11 | C5-1, C5-3 |
-| 6 AI Pipeline | ~77% | **77** | 47 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
-| 7 Ranking | **~93%** | **93** | 140 | CRS-11→13, 16-17, 22 | All MVP1+MVP2 done. Mathematical proofs. |
-| 8 Tokens | **~82%** | **82** | 106 | CRS-18-19, 24-25, 32-35 | 59-jurisdiction precision. Lifecycle exhaustive. |
-| 9 Reports | **~76%** | **76** | 84 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
+| 1 Session | **100% SSSES** | **100** | 70 | CRS-01→06 | None |
+| 2 Text | **~98% SSSES** | **94** | 64 | CRS-05→08 | Phase 3: DB error handling, bounded cache |
+| 3 Voice | ~88% | **88** | 92 | CRS-08, 15 | Live STT verified (Gemini+Whisper), cross-cube deps |
+| 4 Collector | ~86% | **86** | 43 | CRS-09→10 | C4-1→C4-2 (includes cross-cube tests) |
+| 5 Gateway | ~89% | **89** | 67 | CRS-09→11 | C5-1, C5-3 |
+| 6 AI Pipeline | ~77% | **77** | 139 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
+| 7 Ranking | **~93%** | **93** | 164 | CRS-11→13, 16-17, 22 | All MVP1+MVP2 done. Mathematical proofs. |
+| 8 Tokens | **~82%** | **82** | 194 | CRS-18-19, 24-25, 32-35 | 59-jurisdiction precision. Lifecycle exhaustive. |
+| 9 Reports | **~76%** | **76** | 85 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | Easter Egg SIM | — | — | — | — |
 | **SDK Core** | **Active** | — | 31 | — | Envelope, Events, Scoping, API Keys |
-| 10 Simulation | **~76%** | **76** | 108 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
-| **Total** | | | **937** | | |
+| 10 Simulation | **~76%** | **76** | 99 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
+| **Total** | | | **1048** | | |
 
 ### Frontend Cross-Cube Infrastructure
 These frontend systems span multiple cubes:
@@ -426,7 +428,7 @@ These frontend systems span multiple cubes:
 - **Language Lexicon:** 612 keys × 33 languages. Per-cube key groups (Cubes 1-9 + SDK), admin approval gate (`explore@eXeL-AI.com`), `t()` fallback chain (translation → English → raw key). Files: `frontend/lib/lexicon-data.ts`, `frontend/lib/lexicon-context.tsx`, `frontend/lib/lexicon-translations.ts`, `frontend/components/language-lexicon.tsx`
 - **Settings Panel:** Slide-over with session-cascading theme customizer (8 presets + custom = 9 options), language selector, Lexicon admin. Auth-gated: polling users see view-only at 40% opacity, moderators get full control. Files: `frontend/components/moderator-settings.tsx`, `frontend/lib/theme-context.tsx`
 - **Theme Auth Guard:** Default AI Cyan pre-auth. Only Auth0 moderators change themes. Session-level cascade to all participants. Logout resets to default. Files: `frontend/lib/theme-context.tsx`, `frontend/components/providers.tsx`
-- **Global Language Selector:** Navbar globe dropdown, 33 languages (EN+ES pinned top), instant locale switching, localStorage persistence. Files: `frontend/components/navbar.tsx`, `frontend/lib/lexicon-context.tsx`
+- **Global Language Selector:** Navbar globe dropdown, 34 languages (EN+ES pinned top), instant locale switching, localStorage persistence. Files: `frontend/components/navbar.tsx`, `frontend/lib/lexicon-context.tsx`
 - **Powered Badge:** eXeL + Seed of Life SVG, theme-reactive color. Easter egg gateway: Cyan→Sunset→Violet click sequence in Settings → badge blinks → click to enter Cube 10 SIM. Files: `frontend/components/powered-badge.tsx`, `frontend/components/seed-of-life-logo.tsx`
 - **Homepage SoI Trinity Alignment:** Three feature cards subconsciously introduce AI/SI/HI before users know the framework:
 
@@ -560,7 +562,7 @@ CUBEN_TEST_METHOD = {
 - Local === Remote confirmed
 
 ## Shared Core Library
-All cubes import from `core/`: auth, db, translations, hi_rates, payment, logging, exceptions, config, metrics, circuit_breaker, scoping.
+All cubes import from `core/`: auth, db, translations, hi_rates, payment, logging, exceptions, config, metrics, circuit_breaker.
 
 ## Key Architectural Decisions
 - **Translation:** Admin UI panel shared with Team/Leads. AI-verified + 1 Team/Lead/Admin approval for new languages.
