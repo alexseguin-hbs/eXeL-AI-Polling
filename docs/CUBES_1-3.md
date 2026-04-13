@@ -189,12 +189,12 @@ See `docs/SPIRAL_METRICS.md` for full baselines:
 cd backend && source .venv/bin/activate && python -m pytest tests/cube1/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 15 test classes, 70 tests
+**Test Suite:** 2 files, 16 test classes, 59 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_session_service.py` | 11 | 42 | Service unit tests (+ static poll countdown) |
-| `test_e2e_flows.py` | 4 | 28 | Moderator + User E2E flows |
+| `test_session_service.py` | 12 | 36 | Service unit tests (+ static poll countdown) |
+| `test_e2e_flows.py` | 4 | 23 | Moderator + User E2E flows |
 
 **Moderator Test Flow (TestModeratorFlow):**
 1. `create_session(full_config)` — All 11 Cube 1 fields + CQS weights
@@ -345,13 +345,47 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 **Pass criteria:** All submitted responses visible on dashboard live feed. **Confirmed working 2026-03-31** with real human input + 45 Ascended Master responses across 11 languages on session XS5RRFTY.
 
 **Trinity Redundancy Architecture (LOCKED — DO NOT REVERT):**
-- **3 send paths** from user: Supabase Broadcast (~50ms) + DB INSERT (~200ms) + CF KV POST (~100ms)
-- **4 receive channels** on moderator: Broadcast listener + postgres_changes + KV poll + HTTP REST poll (2s bulletproof)
-- **DEMO mode:** Direct callback (same tab, 0ms) for Spiral Test
-- **Dedup:** `seenIds` Set prevents doubles when multiple channels fire
-- **Supabase table:** `responses` with columns `(id, session_code, participant_id, content, created_at)`
 
-**SSSES Task A6: IMPLEMENTED.** Dashboard listens for `summary_ready` broadcast, updates feed entry in-place by `response_id`. Falls back to `summarizeTo33Words(r.clean_text)` client-side truncation only when AI summary hasn't arrived yet.
+**USER SENDS (3 parallel paths — any 1 succeeding = response delivered):**
+
+| Path | Transport | Latency | Code Location | Dependency |
+|------|-----------|:-------:|---------------|------------|
+| **A** | Supabase Broadcast | ~50ms | `session-view.tsx:753` `broadcastToSession("new_response", {...})` | WebSocket |
+| **B** | Supabase DB INSERT | ~200ms | `session-view.tsx:765` `supabase.from("responses").insert({...})` | HTTP REST |
+| **C** | CF KV POST | ~100ms | `session-view.tsx:775` `fetch("/api/responses", {...})` | Cloudflare KV |
+
+**MODERATOR RECEIVES (4 channels — any 1 succeeding = response displayed):**
+
+| Channel | Source | Latency | Code Location | Dependency |
+|---------|--------|:-------:|---------------|------------|
+| **A** | Supabase Broadcast | ~50ms | `use-session-broadcast.ts:131` via `onNewResponse` callback | WebSocket |
+| **B** | postgres_changes INSERT | ~100ms | `dashboard/page.tsx:327-333` on `responses` table | Supabase Realtime |
+| **D** | HTTP REST poll (2s) | ~2s | `dashboard/page.tsx:340-363` polls Supabase REST | HTTP only (bulletproof) |
+
+**DEMO MODE:** Direct callback (same tab, 0ms, no network) via `addSpiralResponse`
+
+**Implementation (updated 2026-04-13):**
+- **Single broadcast channel:** All broadcast events route through ONE `useSessionBroadcast` hook with ref-based callbacks. Prevents duplicate channel collision (Supabase JS v2 returns same object for same name).
+- **Channel names:** `session:${shortCode}` (broadcast), `responses-db:${shortCode}` (postgres_changes), `status-db:${shortCode}` (session_status)
+- **Dedup:** `seenIds` useRef Set prevents doubles when multiple channels fire
+- **Broadcast config:** `{ config: { broadcast: { self: false } } }`
+- **Voice:** Same 3-path Trinity as text, with `count` field (fixed 2026-04-13)
+
+**AI Summary (Task A6: IMPLEMENTED):** `onSummaryReady` callback updates feed entry in-place by `response_id`.
+
+**Theme Pipeline (Task B4: IMPLEMENTED):** `onThemesReady` callback enables ranking transition.
+
+---
+
+#### Participant Count (#Users) — Sync Architecture
+
+| Sync Method | Direction | Latency | Code Location |
+|-------------|-----------|:-------:|---------------|
+| Broadcast `presence` | User → Moderator | ~50ms | `use-session-broadcast.ts` `onPresenceChange` |
+| postgres_changes | DB → Moderator | ~100ms | `dashboard/page.tsx` Channel C on `session_status` |
+| KV + Supabase poll | HTTP → Moderator | ~5s | `dashboard/page.tsx` KV fallback poll (5s) |
+
+**Anti-regression:** `Math.max()` guard ensures count never decreases. Refs prevent stale closures.
 
 ---
 
@@ -391,8 +425,8 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 | `schemas/session.py` | 165 | Pydantic schemas (extended with static poll + timer fields) |
 | `schemas/participant.py` | 28 | Participant schema (extended) |
 | `schemas/question.py` | 22 | Question schema |
-| `tests/cube1/test_session_service.py` | 645 | 36 unit tests (incl. static poll countdown) |
-| `tests/cube1/test_e2e_flows.py` | 691 | E2E Moderator + User + Static Poll flows |
+| `tests/cube1/test_session_service.py` | 645 | 36 unit tests (12 classes, incl. static poll countdown) |
+| `tests/cube1/test_e2e_flows.py` | 691 | 23 E2E tests (4 classes: Moderator + User + Capacity + Determinism) |
 | `core/auth.py` | — | Auth middleware |
 | `core/exceptions.py` | — | Custom exceptions |
 
@@ -724,12 +758,12 @@ See `docs/SPIRAL_METRICS.md` for full baselines:
 cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 16 test classes, 64 tests
+**Test Suite:** 2 files, 20 test classes, 66 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_text_service.py` | 10 | 33 | Unit tests (validation, PII, profanity, pub/sub, queries) |
-| `test_e2e_flows.py` | 6 | 31 | E2E flows (submission, PII, profanity, anonymization, CRS-08, language) |
+| `test_text_service.py` | 14 | 36 | Unit tests (validation, PII, profanity, pub/sub, queries, fault tolerance, semaphore bounds) |
+| `test_e2e_flows.py` | 6 | 30 | E2E flows (submission, PII, profanity, anonymization, CRS-08, language) |
 
 **Submission Test Flow (TestSubmissionFlow):**
 1. `create_session(polling)` → `submit_text_response()` — Full pipeline E2E
@@ -784,8 +818,8 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube2/ -v --tb
 | `models/text_response.py` | 50 | TextResponse ORM model (+ response_hash) |
 | `models/response_meta.py` | 35 | ResponseMeta ORM model (nullable participant_id) |
 | `schemas/response.py` | 95 | Pydantic schemas (ResponseCreate, ResponseRead, Detail, List) |
-| `tests/cube2/test_text_service.py` | 499 | 32 unit tests |
-| `tests/cube2/test_e2e_flows.py` | 716 | 30 E2E tests + CUBE2_TEST_METHOD |
+| `tests/cube2/test_text_service.py` | 499 | 36 unit tests (14 classes) |
+| `tests/cube2/test_e2e_flows.py` | 716 | 30 E2E tests (6 classes) + CUBE2_TEST_METHOD |
 
 ### Cube 2 — Requirements.txt Data Tables
 
@@ -1137,12 +1171,15 @@ See `docs/SPIRAL_METRICS.md` for full baselines:
 cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb=short
 ```
 
-**Test Suite:** 2 files, 23 test classes, 92 tests (39 original + 53 from SSSES Phases 1-3 + audit)
+**Test Suite:** 5 files, 41 test classes, 110 tests
 
 | File | Classes | Tests | Coverage |
 |------|---------|-------|----------|
-| `test_voice_service.py` | 15 | 58 | Unit tests (validation, circuit breaker, provider selection, queries, timeout, auth, PII gate, schemas, cost, CB state, semaphore) |
-| `test_e2e_flows.py` | 8 | 34 | E2E flows (submission, PII, CRS-08, circuit breaker, AWS provider, Grok removal, realtime) |
+| `test_voice_service.py` | 22 | 52 | Unit tests (validation, circuit breaker, provider selection, queries, timeout, auth, PII gate, schemas, cost, CB state, semaphore, language propagation, phase A guard) |
+| `test_e2e_flows.py` | 5 | 21 | E2E flows (submission, PII, CRS-08, circuit breaker, AWS provider) |
+| `test_cross_cube_integration.py` | 4 | 16 | Cross-cube dependencies (Cube 1/2/3/4 contracts, provider factory, service contract) |
+| `test_live_e2e_voice.py` | 3 | 11 | Live E2E voice (Whisper, Gemini, fixture files) |
+| `test_live_stt.py` | 5 | 10 | Live STT providers (Grok, Gemini, Whisper, circuit breaker, provider comparison) |
 
 **Submission Test Flow (TestSubmissionFlow):**
 1. `voice_submit_full_pipeline` — Full E2E: transcribe → PII → store → tokens → Supabase broadcast event
@@ -1207,8 +1244,11 @@ cd backend && source .venv/bin/activate && python -m pytest tests/cube3/ -v --tb
 | `cubes/cube3_voice/providers/azure_realtime.py` | 271 | Azure Speech Services streaming (WebSocket) |
 | `models/voice_response.py` | 50 | VoiceResponse ORM model |
 | `schemas/voice.py` | 80+ | Pydantic schemas |
-| `tests/cube3/test_voice_service.py` | 372 | 18 unit tests |
-| `tests/cube3/test_e2e_flows.py` | 500+ | 19 E2E tests + CUBE3_TEST_METHOD |
+| `tests/cube3/test_voice_service.py` | 372 | 52 unit tests (22 classes) |
+| `tests/cube3/test_e2e_flows.py` | 500+ | 21 E2E tests (5 classes) + CUBE3_TEST_METHOD |
+| `tests/cube3/test_cross_cube_integration.py` | — | 16 cross-cube tests (4 classes) |
+| `tests/cube3/test_live_e2e_voice.py` | — | 11 live E2E voice tests (3 classes) |
+| `tests/cube3/test_live_stt.py` | — | 10 live STT tests (5 classes) |
 
 ### Cube 3 — Frontend Files
 | File | Action | Purpose |

@@ -176,6 +176,36 @@ export function JoinFlow() {
     );
   }, [pollOpen, joinResponse, simMode, language, router]);
 
+  // Fast-track join: When polling is already live and user hasn't joined yet,
+  // auto-join anonymously with browser language and redirect immediately.
+  // This skips the 3-step wizard so late-joining users get in at the speed of thought.
+  const fastTrackAttempted = useRef(false);
+  useEffect(() => {
+    if (!pollOpen || !session || joinResponse || fastTrackAttempted.current || step === "joining") return;
+    fastTrackAttempted.current = true;
+    const browserLang = navigator.language?.split("-")[0] || "en";
+    setLanguage(browserLang);
+    setJoinAnonymously(true);
+    // Trigger handleJoin directly via the API
+    (async () => {
+      setStep("joining");
+      try {
+        const response = await api.post<SessionJoinResponse>(
+          `/sessions/join/${code}`,
+          { display_name: null, language_code: browserLang, results_opt_in: false },
+        );
+        const simSuffix = simMode ? "&sim=1" : "";
+        router.push(
+          `/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${browserLang}${simSuffix}`,
+        );
+      } catch {
+        // Fast-track failed — fall back to normal wizard
+        fastTrackAttempted.current = false;
+        setStep("language");
+      }
+    })();
+  }, [pollOpen, session, joinResponse, step, code, simMode, router]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // 1s fallback poll — dual source: CF KV + Supabase DB (REST API).
   // CF KV:       requires RESPONSES binding in CF Pages (per-datacenter fallback otherwise)
   // Supabase DB: globally consistent HTTP REST, no CF KV binding required
