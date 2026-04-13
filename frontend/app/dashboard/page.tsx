@@ -1584,7 +1584,7 @@ function DashboardContent() {
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
                 >
                   <Archive className="h-4 w-4" />
-                  <span>Archived ({archivedSessions.length})</span>
+                  <span>{t("cube1.moderator.archived_count").replace("{count}", String(archivedSessions.length))}</span>
                   <ChevronDown
                     className={`h-3.5 w-3.5 transition-transform ${archiveExpanded ? "rotate-180" : ""}`}
                   />

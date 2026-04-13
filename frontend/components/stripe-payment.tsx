@@ -174,6 +174,7 @@ export function CostSplitPayment({
   isModerator = false,
   onSuccess,
 }: PaymentProps) {
+  const { t } = useLexicon();
   const [clientSecret, setClientSecret] = useState("");
   const [amountCents, setAmountCents] = useState(0);
   const [estimate, setEstimate] = useState<CostEstimate | null>(null);
@@ -223,15 +224,15 @@ export function CostSplitPayment({
   return (
     <div className="space-y-4 p-4 rounded-lg border border-border bg-card">
       <h3 className="font-semibold text-lg">
-        {isModerator ? "Moderator Share (50%)" : "Your Share"}
+        {isModerator ? t("cube8.payment.moderator_share") : t("cube8.payment.your_share")}
       </h3>
 
       {estimate && (
         <div className="text-sm text-muted-foreground space-y-1">
-          <p>Estimated session cost: ${(estimate.estimated_cost_cents / 100).toFixed(2)}</p>
+          <p>{t("cube8.donation.estimated_cost")}: ${(estimate.estimated_cost_cents / 100).toFixed(2)}</p>
           <p>{estimate.user_count} participants, {estimate.response_count} responses</p>
           {!isModerator && (
-            <p>Your share: 50% / {Math.max(estimate.user_count - 1, 1)} users</p>
+            <p>{t("cube8.payment.participant_share").replace("{count}", String(Math.max(estimate.user_count - 1, 1)))}</p>
           )}
         </div>
       )}

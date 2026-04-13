@@ -647,6 +647,7 @@ const cube8: TranslationEntry[] = [
   { key: "divinity.nav.all_sections", englishDefault: "All sections", context: "Back to sections navigation", cubeId: 0 },
   { key: "divinity.welcome.quote", englishDefault: "You were never separate, only sleeping. Now you awaken.", context: "Welcome page quote", cubeId: 0 },
   { key: "divinity.welcome.return", englishDefault: "The Return to Wholeness", context: "Welcome heading when no section selected", cubeId: 0 },
+  { key: "divinity.sacred_library", englishDefault: "Sacred Library", context: "Sacred Library view toggle button", cubeId: 0 },
   // Dashboard toasts & UI labels
   { key: "cube1.moderator.code_copied", englishDefault: "Code copied", context: "Toast after copying join code", cubeId: 1 },
   { key: "cube1.moderator.link_copied", englishDefault: "Join link copied", context: "Toast after copying join URL", cubeId: 1 },
@@ -656,6 +657,7 @@ const cube8: TranslationEntry[] = [
   { key: "cube1.moderator.demo_reset", englishDefault: "Demo reset", context: "Demo reset success toast", cubeId: 1 },
   { key: "cube1.moderator.session_deleted", englishDefault: "Session deleted permanently", context: "Delete success toast", cubeId: 1 },
   { key: "cube1.moderator.delete_failed", englishDefault: "Delete failed", context: "Delete error toast", cubeId: 1 },
+  { key: "cube1.moderator.archived_count", englishDefault: "Archived ({count})", context: "Archived sessions toggle with count", cubeId: 1 },
   { key: "cube1.moderator.switch_to_summary", englishDefault: "Switch to 33-word summary", context: "Feed toggle tooltip", cubeId: 1 },
   { key: "cube1.moderator.switch_to_raw", englishDefault: "Switch to raw feedback", context: "Feed toggle tooltip", cubeId: 1 },
   { key: "cube1.moderator.raw_mode", englishDefault: "Raw", context: "Feed display mode button", cubeId: 1 },

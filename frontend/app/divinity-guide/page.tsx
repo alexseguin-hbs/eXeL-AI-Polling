@@ -704,6 +704,7 @@ function DivinityGuidePage() {
   const mirrorSections = SECTIONS_MAP[mirrorLang];
   const mirrorReflectionLabel = DIVINITY_TRANSLATIONS[mirrorLang].reflection;
 
+  const { t } = useLexicon();
   const { currentTheme } = useTheme();
   const hub = getHubPosition();
   const outerPositions = getTheme2_3Positions();
@@ -969,7 +970,7 @@ function DivinityGuidePage() {
               <button
                 onClick={() => { setViewMode("library"); setSelectedSection(null); setSelectedChapter(null); setSelectedLibrary(null); }}
                 className={`px-3 py-1 text-[10px] rounded-full transition-all ${viewMode === "library" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
-              >Sacred Library</button>
+              >{t("divinity.sacred_library")}</button>
             </div>
           )}
 
