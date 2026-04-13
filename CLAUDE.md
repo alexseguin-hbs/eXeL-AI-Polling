@@ -412,8 +412,8 @@ Track and optimize for:
 | 2 Text | **~98% SSSES** | **94** | 64 | CRS-05→08 | Phase 3: DB error handling, bounded cache |
 | 3 Voice | ~88% | **88** | 92 | CRS-08, 15 | Live STT verified (Gemini+Whisper), cross-cube deps |
 | 4 Collector | ~86% | **86** | 43 | CRS-09→10 | C4-1→C4-2 (includes cross-cube tests) |
-| 5 Gateway | ~89% | **89** | 67 | CRS-09→11 | C5-1, C5-3 |
-| 6 AI Pipeline | ~77% | **77** | 139 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
+| 5 Gateway | ~87% | **87** | 67 | CRS-09→11 | C5-1 RESOLVED, C5-3 RESOLVED, C5-4 RESOLVED |
+| 6 AI Pipeline | ~80% | **80** | 139 | CRS-11→14 | B1 (5K E2E), B3 (scale verify) |
 | 7 Ranking | **~93%** | **93** | 164 | CRS-11→13, 16-17, 22 | All MVP1+MVP2 done. Mathematical proofs. |
 | 8 Tokens | **~82%** | **82** | 194 | CRS-18-19, 24-25, 32-35 | 59-jurisdiction precision. Lifecycle exhaustive. |
 | 9 Reports | **~76%** | **76** | 85 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
