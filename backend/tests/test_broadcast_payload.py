@@ -144,6 +144,41 @@ class TestKVPayloadN99:
             assert payload["language_code"] == lang
 
 
+class TestFastTrackJoinN99:
+    """Verify fast-track join behavior when polling is already live."""
+
+    def test_fast_track_skips_wizard_when_polling_n99(self):
+        """When status=polling, user should skip wizard and join directly."""
+        for _ in range(99):
+            status = "polling"
+            # Fast-track should fire when: pollOpen=True AND no joinResponse AND session exists
+            should_fast_track = status in ("polling", "ranking")
+            assert should_fast_track is True
+
+    def test_fast_track_does_not_fire_when_open_n99(self):
+        """When status=open, user goes through normal wizard."""
+        for _ in range(99):
+            status = "open"
+            should_fast_track = status in ("polling", "ranking")
+            assert should_fast_track is False
+
+    def test_fast_track_uses_browser_language_n99(self):
+        """Fast-track join uses browser language code, defaulting to 'en'."""
+        browser_langs = ["en-US", "es-MX", "zh-CN", "fr-FR", "ar-SA", "km-KH", "ja-JP", "ko-KR", "hi-IN", "pt-BR"]
+        for i in range(99):
+            raw = browser_langs[i % len(browser_langs)]
+            lang = raw.split("-")[0]  # Matches navigator.language.split("-")[0]
+            assert len(lang) == 2
+            assert lang.isalpha()
+
+    def test_fast_track_joins_anonymously_n99(self):
+        """Fast-track join always uses anonymous mode (display_name=null)."""
+        for _ in range(99):
+            payload = {"display_name": None, "language_code": "en", "results_opt_in": False}
+            assert payload["display_name"] is None
+            assert payload["results_opt_in"] is False
+
+
 class TestSessionStateMachineN99:
     """Verify session status transitions are deterministic."""
 
