@@ -88,7 +88,7 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 | 7 Ranking | 95 | 97 | 98 | 96 | 95 | **96** | 165 | v16 |
 | 8 Tokens | 85 | 88 | 72 | 82 | 83 | **82** | 106 | v8 |
 | 9 Reports | 78 | 80 | 68 | 75 | 80 | **76** | 84 | v8 |
-| 10 Simulation | 78 | 82 | 70 | 75 | 82 | **77** | 113 | v16 | — | — |
+| 10 Simulation | 76 | 80 | 68 | 73 | 80 | **74** | 99 | v17 | — | — |
 
 > **SPIRAL v2 audit (2026-04-08, MoT Autonomous Mode):**
 > - Cubes 7-9 major implementation push: +62/+25/+33 SSSES points
@@ -97,6 +97,11 @@ Succinctness: 95 — status ratchet logic could be extracted to shared util
 > **SPIRAL v3+ audit (2026-04-09, MoT + 12 Ascended Masters):**
 > - Cube 10 Simulation Engine: Challenge system, saved use cases, voting (113 tests)
 > - SDK Core: 9 paid functions + 3 core APIs with ◬ token pricing
+>
+> **20-agent audit (2026-04-12):**
+> - Cube 10 SSSES 77→74 (evidence-based): sandbox execution is stub, sentiment is keyword-only, 4 tables missing from migrations
+> - Test count corrected: 99 tests (7 test files). Line counts verified: service.py=525, router.py=248, code_submission.py=108
+> - Added replay_service.py (186 lines) and saved_use_cases.py (260 lines) to implementation status
 > - Theme Compression Engine: centroid summarizer (55× cost reduction, $55→$1 at 1M)
 > - Redis REMOVED: Supabase Realtime + Python in-memory replaces all Redis functionality
 > - 5 operational optimizations: centroid summarize, batch votes, streaming CSV, sharded broadcast, pool tuning

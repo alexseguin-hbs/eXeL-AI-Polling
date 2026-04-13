@@ -767,7 +767,7 @@ Cube 10 is the center of the Level 2 grid with the **Feedback Loop (FB) at its c
   │ BCK │ TRG │ APR │   FB  = Feedback Loop (CENTER)
   ●─────●─────●─────●   VER = Version Control
                           BCK = Backlog (from FB → Cube 7 votes)
-  FB collects from:       TRG = Triage (AI-assisted sentiment + priority)
+  FB collects from:       TRG = Triage (keyword-based sentiment + priority; AI NLP planned)
   - Landing (CRS-01)     APR = ◬ ♡ 웃 Team Approval Gate
   - Join (CRS-02)
   - Polling (CRS-07)     Supabase table: product_feedback
@@ -777,6 +777,32 @@ Cube 10 is the center of the Level 2 grid with the **Feedback Loop (FB) at its c
   - Settings (CRS-01)
   - SIM (CRS-25)
 ```
+
+### 20-Agent Audit Findings (2026-04-12)
+
+> **SSSES score: 74** (evidence-based, adjusted down from 76).
+
+**Backend implementation (verified line counts):**
+
+| Component | Lines | Notes |
+|-----------|------:|-------|
+| service.py | 525 | Feedback + submissions + voting + sandbox stub |
+| router.py | 248 | 8 endpoints registered at /api/v1 |
+| models/code_submission.py | 108 | CodeSubmission, SubmissionVote, DeploymentLog |
+| models/product_feedback.py | 69 | ProductFeedback (already existed) |
+| replay_service.py | 186 | Pangu clustering replay engine |
+| saved_use_cases.py | 260 | SavedUseCaseManager (in-memory) |
+| **Test files** | **7 files** | **99 tests total** |
+
+**Key gaps identified:**
+
+1. **Supabase migration gap:** 4 tables missing from SQL migrations (`code_submissions`, `submission_votes`, `deployment_log`, `challenges`). Only `product_feedback` exists (migration 005). Backend models exist but no SQL migration. Needs `migrations/012_cube10_submissions.sql`.
+
+2. **Feedback sentiment is keyword-based (not ML/NLP):** Words like "crash/error/broken" map to high priority; "love/great/works" map to low priority. AI NLP triage via Cube 6 summarizer is planned but not implemented.
+
+3. **Sandbox execution is a STUB:** service.py line ~285 says "Sandbox execution not yet implemented". Submissions are accepted and stored but not executed in isolation. Real subprocess pytest runner with timeout + memory cap + network isolation is planned.
+
+---
 
 While the Easter Egg SIM (documented above) provides a walkthrough preview of the full session lifecycle, the production Cube 10 feature enables **per-cube isolation, code challenge competitions, and metric-driven evolution** of the entire cube lattice. This section documents the simulation orchestration architecture that powers those capabilities.
 

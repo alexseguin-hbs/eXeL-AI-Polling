@@ -419,7 +419,7 @@ Track and optimize for:
 | 9 Reports | **~76%** | **76** | 85 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | Easter Egg SIM | — | — | — | — |
 | **SDK Core** | **Active** | — | 31 | — | Envelope, Events, Scoping, API Keys |
-| 10 Simulation | **~76%** | **76** | 99 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
+| 10 Simulation | **~74%** | **74** | 99 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
 | **Total** | | | **1048** | | |
 
 ### Frontend Cross-Cube Infrastructure

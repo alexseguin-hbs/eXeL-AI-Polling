@@ -398,17 +398,43 @@ Submission metrics dashboard mirrors session analytics. CSV export of voting res
 
 ## Current Implementation Status
 
+> **Updated 2026-04-12 — 20-agent audit verified line counts and test totals.**
+
 | Component | Status | Lines | Tests |
 |-----------|--------|------:|------:|
-| service.py | Feedback + submissions + voting logic | 340 | 26 |
-| router.py | 6 endpoints registered at /api/v1 | 115 | — |
-| models/code_submission.py | CodeSubmission, SubmissionVote, DeploymentLog | 80 | — |
+| service.py | Feedback + submissions + voting + sandbox (stub) | 525 | 26 |
+| router.py | 8 endpoints registered at /api/v1 | 248 | — |
+| models/code_submission.py | CodeSubmission, SubmissionVote, DeploymentLog | 108 | — |
 | models/product_feedback.py | ProductFeedback (already existed) | 69 | — |
+| replay_service.py | Pangu clustering replay engine | 186 | — |
+| saved_use_cases.py | SavedUseCaseManager (in-memory) | 260 | — |
 | cross-cube tests | All 10 cube dependencies verified | — | 12 |
-| CUBE_10_PLAN.md | Architecture document (N=7) | 500+ | — |
-| **Total** | | **604** | **38** |
+| test files (7) | Unit + E2E + model + cross-cube | — | 99 |
+| CUBE_10_PLAN.md | Architecture document (N=12) | 500+ | — |
+| **Total** | | **1,396** | **99** |
 
-## SSSES Super Plan: Cube 10 from 73 → 90+
+### Supabase Migration Gap
+
+> **4 tables missing from SQL migrations:** `code_submissions`, `submission_votes`, `deployment_log`, `challenges`.
+> Only `product_feedback` exists as a migration (migration 005).
+> Backend Pydantic/SQLAlchemy models exist for all tables, but no corresponding SQL migration has been created.
+> **Action needed:** Create `migrations/012_cube10_submissions.sql` covering all 4 missing tables.
+
+### Feedback Sentiment — Keyword-Based (Not ML/NLP)
+
+> Sentiment analysis is currently **keyword-based**, not ML/NLP.
+> Words like "crash", "error", "broken" map to high priority; "love", "great", "works" map to low priority.
+> AI-powered NLP triage (wiring to Cube 6 summarizer) is **planned but not implemented**.
+
+### Sandbox Execution — STUB
+
+> Sandbox execution is a **stub** (service.py line ~285: "Sandbox execution not yet implemented").
+> Submissions are accepted and stored but not executed in an isolated environment.
+> Real subprocess pytest runner with timeout, memory cap, and network isolation is planned.
+
+## SSSES Super Plan: Cube 10 from 74 → 90+
+
+> **20-agent audit (2026-04-12):** Evidence-based SSSES score adjusted from 76 to **74**. Key deductions: sandbox execution is stub (-1), sentiment analysis is keyword-only (-1).
 
 ### Security (72 → 90+)
 | Gap | Fix | Impact |
@@ -441,7 +467,7 @@ Submission metrics dashboard mirrors session analytics. CSV export of voting res
 ### Succinctness (80 → 92+)
 | Gap | Fix | Impact |
 |-----|-----|:------:|
-| service.py growing (340 lines) | Split into feedback_service.py + submission_service.py + voting_service.py | +5 |
+| service.py growing (525 lines) | Split into feedback_service.py + submission_service.py + voting_service.py | +5 |
 | Router duplicates DB session logic | Extract common patterns to shared middleware | +4 |
 | Saved use case manager is in-memory only | Persist to Supabase table for cross-instance consistency | +3 |
 
