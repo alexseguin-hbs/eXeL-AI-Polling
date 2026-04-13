@@ -303,13 +303,14 @@ const LIBRARY_SECTIONS: [LibrarySection, LibrarySection, LibrarySection] = [
 // ── Library Reader Component ────────────────────────────────────
 
 function LibraryReader({
-  section, pageIndex, setPageIndex, pages, lang = "en",
+  section, pageIndex, setPageIndex, pages, lang = "en", onExpandBilingual,
 }: {
   section: LibrarySection;
   pageIndex: number;
   setPageIndex: (n: number) => void;
   pages: typeof divinityPages;
   lang?: DivinityLang;
+  onExpandBilingual?: () => void;
 }) {
   const { t } = useLexicon();
   const touchStartX = React.useRef(0);
@@ -334,8 +335,20 @@ function LibraryReader({
 
   return (
     <div className="w-full max-w-lg animate-in fade-in duration-300" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <p className="text-xs text-muted-foreground/60">{section.label} — {section.subtitle}</p>
+        {onExpandBilingual && (
+          <button
+            onClick={onExpandBilingual}
+            className="w-7 h-7 rounded-full border flex items-center justify-center hover:bg-accent/30 transition-colors"
+            title="Side-by-side bilingual reader"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="18" rx="2" />
+              <line x1="12" y1="3" x2="12" y2="21" />
+            </svg>
+          </button>
+        )}
       </div>
 
       <div className="min-h-[250px]" key={`lib-${section.id}-${pageIndex}`}>
@@ -1093,6 +1106,7 @@ function DivinityGuidePage() {
               setPageIndex={setLibraryPageIndex}
               pages={activeDivinityPages}
               lang={divinityLang}
+              onExpandBilingual={() => setShowBilingual(true)}
             />
           ) : viewMode === "library" && !selectedLibrary ? (
             <div className="flex items-center justify-center h-full w-full">
@@ -1160,29 +1174,70 @@ function DivinityGuidePage() {
         </div>
       </div>
 
-      {/* Bilingual side-by-side overlay */}
-      {showBilingual && selectedChapter && activeSection && (
-        <BilingualReader
-          chapter={selectedChapter}
-          mirrorChapter={(() => {
-            const ms = mirrorSections.find(s => s.id === activeSection.id);
-            return ms?.chapters.find(c => c.id === selectedChapter.id) ?? selectedChapter;
-          })()}
-          section={activeSection}
-          pageIndex={pageIndex}
-          setPageIndex={setPageIndex}
-          primaryLang={divinityLang}
-          mirrorLang={mirrorLang}
-          setPrimaryLang={(lang) => setDivinityLang(lang as DivinityLang)}
-          setMirrorLang={(lang) => setMirrorLang(lang as DivinityLang)}
-          primaryPages={activeDivinityPages}
-          mirrorPages={mirrorPages}
-          onClose={() => setShowBilingual(false)}
-          reflectionLabel={reflectionLabel}
-          mirrorReflectionLabel={mirrorReflectionLabel}
-          availableLanguages={DIVINITY_LANGUAGES}
-        />
-      )}
+      {/* Bilingual side-by-side overlay — works for both portals and library mode */}
+      {showBilingual && (() => {
+        // Portals mode: use selectedChapter + activeSection
+        // Library mode: synthesize chapter from library section pages
+        const isLibrary = viewMode === "library" && selectedLibrary;
+        const isPortals = viewMode === "portals" && selectedChapter && activeSection;
+        if (!isLibrary && !isPortals) return null;
+
+        // Build chapter + section for BilingualReader
+        let chapter: Chapter;
+        let mirrorChapter: Chapter;
+        let section: Section;
+        let pIdx: number;
+        let setPIdx: (n: number) => void;
+
+        if (isPortals && selectedChapter && activeSection) {
+          chapter = selectedChapter;
+          const ms = mirrorSections.find(s => s.id === activeSection.id);
+          mirrorChapter = ms?.chapters.find(c => c.id === selectedChapter.id) ?? selectedChapter;
+          section = activeSection;
+          pIdx = pageIndex;
+          setPIdx = setPageIndex;
+        } else if (isLibrary && selectedLibrary) {
+          // Synthesize a chapter from library section filtered pages
+          const libPages = (activeDivinityPages as Array<{ id: string; chapter: number; page: number; text: string; gated: boolean }>)
+            .filter(p => selectedLibrary.filterIds ? selectedLibrary.filterIds.includes(p.id) : p.chapter === selectedLibrary.chapterFilter);
+          const combinedText = libPages.map(p => p.text).join("\n\n");
+          chapter = { id: selectedLibrary.chapterFilter, title: selectedLibrary.label, subtitle: selectedLibrary.subtitle, content: combinedText, reflection: "" };
+
+          // Build mirror chapter from mirror language pages
+          const mirrorLibPages = (mirrorPages as Array<{ id: string; chapter: number; page: number; text: string; gated: boolean }>)
+            .filter(p => selectedLibrary.filterIds ? selectedLibrary.filterIds.includes(p.id) : p.chapter === selectedLibrary.chapterFilter);
+          const mirrorCombinedText = mirrorLibPages.map(p => p.text).join("\n\n");
+          mirrorChapter = { id: selectedLibrary.chapterFilter, title: selectedLibrary.label, subtitle: selectedLibrary.subtitle, content: mirrorCombinedText, reflection: "" };
+
+          // Wrap LibrarySection as Section for BilingualReader (pad to 4-tuple)
+          const emptyChapter: Chapter = { id: 0, title: "", subtitle: "", content: "", reflection: "" };
+          section = { id: selectedLibrary.id, label: selectedLibrary.label, subtitle: selectedLibrary.subtitle, color: selectedLibrary.color, chapters: [chapter, emptyChapter, emptyChapter, emptyChapter] };
+          pIdx = libraryPageIndex;
+          setPIdx = setLibraryPageIndex;
+        } else {
+          return null;
+        }
+
+        return (
+          <BilingualReader
+            chapter={chapter}
+            mirrorChapter={mirrorChapter}
+            section={section}
+            pageIndex={pIdx}
+            setPageIndex={setPIdx}
+            primaryLang={divinityLang}
+            mirrorLang={mirrorLang}
+            setPrimaryLang={(lang) => setDivinityLang(lang as DivinityLang)}
+            setMirrorLang={(lang) => setMirrorLang(lang as DivinityLang)}
+            primaryPages={activeDivinityPages}
+            mirrorPages={mirrorPages}
+            onClose={() => setShowBilingual(false)}
+            reflectionLabel={reflectionLabel}
+            mirrorReflectionLabel={mirrorReflectionLabel}
+            availableLanguages={DIVINITY_LANGUAGES}
+          />
+        );
+      })()}
     </div>
   );
 }
