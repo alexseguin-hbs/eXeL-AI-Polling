@@ -14,7 +14,7 @@
  * Inspired by Divinity Guide aesthetic (Flower of Life, theme colors)
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { Suspense, useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
@@ -45,7 +45,7 @@ interface ArxItem {
 
 type PageMode = "browse" | "register" | "verify" | "scan" | "transfer";
 
-export default function ArxPage() {
+function ArxPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { t } = useLexicon();
@@ -492,5 +492,13 @@ export default function ArxPage() {
         </p>
       </footer>
     </div>
+  );
+}
+
+export default function ArxPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+      <ArxPageInner />
+    </Suspense>
   );
 }
