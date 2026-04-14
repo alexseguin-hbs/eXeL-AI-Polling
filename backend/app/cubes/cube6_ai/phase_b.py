@@ -537,10 +537,23 @@ async def _assign_themes_embedding(
     if not all_theme_labels:
         return responses
 
-    # Embed all theme labels + all response summaries
+    # Embed theme labels + response summaries in batches (O9: 1M-scale support)
+    # Batch size 1000 keeps API calls manageable while allowing parallel processing.
+    _EMBED_BATCH_SIZE = 1000
+
     summary_texts = [r.get("summary_33", "") for r in responses]
     all_texts = all_theme_labels + summary_texts
-    all_embeddings = await embedder.embed(all_texts)
+
+    if len(all_texts) <= _EMBED_BATCH_SIZE:
+        # Small dataset — single API call
+        all_embeddings = await embedder.embed(all_texts)
+    else:
+        # Large dataset — batch into chunks of _EMBED_BATCH_SIZE
+        all_embeddings = []
+        for batch_start in range(0, len(all_texts), _EMBED_BATCH_SIZE):
+            batch = all_texts[batch_start : batch_start + _EMBED_BATCH_SIZE]
+            batch_embeddings = await embedder.embed(batch)
+            all_embeddings.extend(batch_embeddings)
 
     theme_embeddings = np.array(all_embeddings[: len(all_theme_labels)])
     response_embeddings = np.array(all_embeddings[len(all_theme_labels):])
