@@ -554,7 +554,7 @@ async def submit_voice_response(
         "char_count": len(transcript),
         "language_code": stt_result.language_detected,
         "submitted_at": response_meta.submitted_at,
-        "is_flagged": False,
+        "is_flagged": response_meta.is_flagged,
         "audio_duration_sec": stt_result.audio_duration_sec,
         "stt_provider": stt_result.provider,
         "transcript_text": transcript,

@@ -249,6 +249,18 @@ async def register_webhook(
         )
     if not payload.event_types:
         raise HTTPException(status_code=400, detail="event_types must not be empty")
+
+    # G2 fix: SSRF protection — validate webhook URL scheme and block internal addresses
+    from urllib.parse import urlparse
+    parsed = urlparse(payload.url)
+    if parsed.scheme not in ("https",):
+        raise HTTPException(status_code=400, detail="Webhook URL must use HTTPS")
+    if not parsed.hostname:
+        raise HTTPException(status_code=400, detail="Webhook URL must have a valid hostname")
+    _blocked = {"localhost", "127.0.0.1", "0.0.0.0", "::1", "169.254.169.254", "metadata.google.internal"}
+    if parsed.hostname.lower() in _blocked or parsed.hostname.startswith("10.") or parsed.hostname.startswith("192.168."):
+        raise HTTPException(status_code=400, detail="Webhook URL must not target internal/loopback addresses")
+
     from app.cubes.cube5_gateway.webhook_service import register_webhook as reg
     return await reg(db, session_id, payload.url, payload.event_types, user.user_id)
 

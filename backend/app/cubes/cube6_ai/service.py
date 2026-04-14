@@ -56,13 +56,23 @@ _CONFIDENCE_THRESHOLD = 65  # <65% -> reclassify as Neutral (monolith line 127)
 # --- Task A3: Per-session concurrency cap on Phase A ---
 # Limits concurrent AI calls per session to prevent provider rate-limit cascade.
 # Each worker enforces independently; Supabase-backed global cap deferred to production scaling.
+# LRU eviction at 1000 sessions prevents unbounded memory growth (G3 gap fix, Stability +5).
 _PHASE_A_MAX_CONCURRENT = 10
+_PHASE_A_MAX_SESSIONS = 1000
 _phase_a_semaphores: dict[uuid.UUID, asyncio.Semaphore] = {}
 
 
 def _get_phase_a_semaphore(session_id: uuid.UUID) -> asyncio.Semaphore:
-    """Return (or create) a per-session semaphore for Phase A concurrency."""
+    """Return (or create) a per-session semaphore for Phase A concurrency.
+
+    Evicts oldest entries when cache exceeds _PHASE_A_MAX_SESSIONS to prevent
+    unbounded memory growth (N=99 gap G3).
+    """
     if session_id not in _phase_a_semaphores:
+        # Evict oldest entries if at capacity (FIFO — dict preserves insertion order in Python 3.7+)
+        while len(_phase_a_semaphores) >= _PHASE_A_MAX_SESSIONS:
+            oldest_key = next(iter(_phase_a_semaphores))
+            del _phase_a_semaphores[oldest_key]
         _phase_a_semaphores[session_id] = asyncio.Semaphore(_PHASE_A_MAX_CONCURRENT)
     return _phase_a_semaphores[session_id]
 

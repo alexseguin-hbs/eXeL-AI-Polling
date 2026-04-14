@@ -108,8 +108,10 @@ async def submit_feedback(
         await db.flush()
         await db.refresh(fb)
         feedback_id = str(fb.id)
-    except Exception:
-        pass  # Non-fatal: return dict even if DB unavailable
+    except Exception as exc:
+        # G9 fix: Log the error instead of silently swallowing it.
+        # Still non-fatal (returns dict) but now caller can detect failure via persisted=False.
+        logger.warning("cube10.feedback.db_write_failed", extra={"error": str(exc), "feedback_id": feedback_id})
 
     logger.info(
         "cube10.feedback.submitted",

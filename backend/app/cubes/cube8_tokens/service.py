@@ -387,37 +387,9 @@ async def reverse_entry(
 # ---------------------------------------------------------------------------
 
 
-async def disburse_cqs_reward(
-    db: AsyncSession,
-    *,
-    session_id: uuid.UUID,
-    winner_user_id: str,
-    reward_heart: float,
-    reward_unity: float,
-    cqs_score_id: str | None = None,
-    session_short_code: str | None = None,
-) -> TokenLedger:
-    """Award CQS winner tokens via ledger entry.
-
-    Called by Cube 7→5→6 CQS pipeline after ranking completes.
-    Creates a 'reward' action_type entry with reference to CQS score.
-    """
-    entry = await create_ledger_entry(
-        db,
-        session_id=session_id,
-        user_id=winner_user_id,
-        cube_id="cube8",
-        action_type="cqs_reward",
-        delta_heart=reward_heart,
-        delta_human=0.0,
-        delta_unity=reward_unity,
-        lifecycle_state="pending",
-        reason="CQS winner reward",
-        reference_id=cqs_score_id,
-    )
-
-    # Broadcast reward notification
-    return entry
+# NOTE: disburse_cqs_reward is defined ONCE below (after award_hi_tokens_for_payment).
+# A duplicate definition was removed here on 2026-04-13 (G6 gap fix, Succinctness +5).
+# The canonical version includes Supabase broadcast notification.
 
 
 # ---------------------------------------------------------------------------
