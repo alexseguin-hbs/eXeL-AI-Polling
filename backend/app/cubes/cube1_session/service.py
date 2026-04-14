@@ -334,6 +334,32 @@ async def get_participant_count(db: AsyncSession, session_id: uuid.UUID) -> int:
     return result.scalar_one()
 
 
+async def get_participant_counts_batch(
+    db: AsyncSession, session_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, int]:
+    """Batch-fetch active participant counts for multiple sessions (single query).
+
+    Returns a dict mapping session_id → count.  Sessions with zero participants
+    are included with count 0.
+    """
+    if not session_ids:
+        return {}
+    result = await db.execute(
+        select(
+            Participant.session_id,
+            func.count(Participant.id).label("count"),
+        )
+        .where(
+            Participant.session_id.in_(session_ids),
+            Participant.is_active.is_(True),
+        )
+        .group_by(Participant.session_id)
+    )
+    counts = {row.session_id: row.count for row in result}
+    # Ensure every requested session_id is present (default 0)
+    return {sid: counts.get(sid, 0) for sid in session_ids}
+
+
 async def list_sessions(
     db: AsyncSession,
     *,

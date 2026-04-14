@@ -85,7 +85,7 @@ async def list_responses(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """List paginated responses for a session. CRS-07: Session validated."""
     await validate_session_exists(db, session_id)
@@ -113,7 +113,7 @@ async def get_response(
     session_id: uuid.UUID,
     response_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """Get a single response by ID. CRS-08: Session validated, correct 404."""
     await validate_session_exists(db, session_id)

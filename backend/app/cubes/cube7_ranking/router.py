@@ -109,7 +109,7 @@ async def get_rankings(
     cycle_id: int = 1,
     sort_order: str = Query("desc", description="Sort order: 'asc' or 'desc'"),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """CRS-16: Get current aggregated rankings for live display."""
     # WireGuard: whitelist sort_order

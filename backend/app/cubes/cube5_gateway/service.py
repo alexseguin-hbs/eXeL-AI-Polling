@@ -27,7 +27,7 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -265,27 +265,41 @@ async def get_participant_time_summary(
     session_id: uuid.UUID,
     participant_id: uuid.UUID,
 ) -> dict:
-    """Get aggregated time and token summary for a participant in a session."""
-    result = await db.execute(
-        select(TimeEntry).where(
-            TimeEntry.session_id == session_id,
-            TimeEntry.participant_id == participant_id,
-        ).order_by(TimeEntry.started_at)
-    )
-    entries = list(result.scalars().all())
+    """Get aggregated time and token summary for a participant in a session.
 
-    total_seconds = sum(e.duration_seconds or 0.0 for e in entries)
-    total_heart = sum(e.heart_tokens_earned for e in entries)
-    total_human = sum(e.human_tokens_earned for e in entries)
-    total_unity = sum(e.unity_tokens_earned for e in entries)
+    Uses SQL SUM/COUNT for aggregation (G4+O4 optimisation) instead of
+    loading all rows into Python.  A second query fetches the entries list
+    required by the ParticipantTimeSummary response schema.
+    """
+    _where = (
+        TimeEntry.session_id == session_id,
+        TimeEntry.participant_id == participant_id,
+    )
+
+    # SQL aggregate — single row, no Python-side iteration
+    agg_result = await db.execute(
+        select(
+            func.coalesce(func.sum(TimeEntry.duration_seconds), 0.0).label("total_seconds"),
+            func.coalesce(func.sum(TimeEntry.heart_tokens_earned), 0.0).label("total_heart"),
+            func.coalesce(func.sum(TimeEntry.human_tokens_earned), 0.0).label("total_human"),
+            func.coalesce(func.sum(TimeEntry.unity_tokens_earned), 0.0).label("total_unity"),
+        ).where(*_where)
+    )
+    agg = agg_result.one()
+
+    # Fetch entries for the response schema (lightweight — only this participant)
+    entries_result = await db.execute(
+        select(TimeEntry).where(*_where).order_by(TimeEntry.started_at)
+    )
+    entries = list(entries_result.scalars().all())
 
     return {
         "participant_id": participant_id,
         "session_id": session_id,
-        "total_active_seconds": total_seconds,
-        "total_heart_tokens": total_heart,
-        "total_human_tokens": total_human,
-        "total_unity_tokens": total_unity,
+        "total_active_seconds": float(agg.total_seconds),
+        "total_heart_tokens": float(agg.total_heart),
+        "total_human_tokens": float(agg.total_human),
+        "total_unity_tokens": float(agg.total_unity),
         "entries": entries,
     }
 
@@ -492,7 +506,7 @@ async def trigger_ranking_pipeline(
 
     # Transition session to 'ranking' status
     try:
-        from app.models.session import Session
+        from app.models.session import SESSION_TRANSITIONS, Session
         from sqlalchemy import select
 
         result = await db.execute(
@@ -500,6 +514,12 @@ async def trigger_ranking_pipeline(
         )
         session = result.scalar_one_or_none()
         if session and session.status != "ranking":
+            allowed = SESSION_TRANSITIONS.get(session.status, ())
+            if "ranking" not in allowed:
+                raise ValueError(
+                    f"Cannot transition from '{session.status}' to 'ranking' "
+                    f"(allowed: {allowed})"
+                )
             session.status = "ranking"
             await db.commit()
             logger.info(

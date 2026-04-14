@@ -306,7 +306,7 @@ class TestLoginTimeEntry:
 class TestParticipantTimeSummary:
     @pytest.mark.asyncio
     async def test_aggregates_correctly(self):
-        """Should sum all time entries and tokens for a participant."""
+        """Should sum all time entries and tokens for a participant via SQL aggregate."""
         entry1 = MagicMock()
         entry1.duration_seconds = 120.0
         entry1.heart_tokens_earned = 2.0
@@ -319,10 +319,21 @@ class TestParticipantTimeSummary:
         entry2.human_tokens_earned = 0.0
         entry2.unity_tokens_earned = 5.0
 
+        # First call: SQL aggregate row
+        agg_row = MagicMock()
+        agg_row.total_seconds = 180.0
+        agg_row.total_heart = 3.0
+        agg_row.total_human = 0.0
+        agg_row.total_unity = 15.0
+        agg_result = MagicMock()
+        agg_result.one.return_value = agg_row
+
+        # Second call: entries list
+        entries_result = MagicMock()
+        entries_result.scalars.return_value.all.return_value = [entry1, entry2]
+
         mock_db = AsyncMock()
-        mock_result = MagicMock()
-        mock_result.scalars.return_value.all.return_value = [entry1, entry2]
-        mock_db.execute = AsyncMock(return_value=mock_result)
+        mock_db.execute = AsyncMock(side_effect=[agg_result, entries_result])
 
         from app.cubes.cube5_gateway.service import get_participant_time_summary
         sid = uuid.uuid4()
@@ -336,10 +347,21 @@ class TestParticipantTimeSummary:
     @pytest.mark.asyncio
     async def test_empty_entries(self):
         """Should return zeros when no time entries exist."""
+        # First call: SQL aggregate row with zeros
+        agg_row = MagicMock()
+        agg_row.total_seconds = 0.0
+        agg_row.total_heart = 0.0
+        agg_row.total_human = 0.0
+        agg_row.total_unity = 0.0
+        agg_result = MagicMock()
+        agg_result.one.return_value = agg_row
+
+        # Second call: empty entries list
+        entries_result = MagicMock()
+        entries_result.scalars.return_value.all.return_value = []
+
         mock_db = AsyncMock()
-        mock_result = MagicMock()
-        mock_result.scalars.return_value.all.return_value = []
-        mock_db.execute = AsyncMock(return_value=mock_result)
+        mock_db.execute = AsyncMock(side_effect=[agg_result, entries_result])
 
         from app.cubes.cube5_gateway.service import get_participant_time_summary
         result = await get_participant_time_summary(

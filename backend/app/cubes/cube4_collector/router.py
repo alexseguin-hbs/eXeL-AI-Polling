@@ -45,7 +45,7 @@ async def list_collected_responses(
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """List collected responses in Web_Results format with optional summaries/themes.
 
@@ -66,7 +66,7 @@ async def get_collected_response(
     session_id: uuid.UUID,
     response_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """Get a single collected response with all data (summaries + themes).
 
@@ -83,7 +83,7 @@ async def get_collected_response(
 async def response_count(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """Get response count breakdown (total, text, voice)."""
     await validate_session_exists(db, session_id)
@@ -94,7 +94,7 @@ async def response_count(
 async def response_languages(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """Get breakdown of response languages for a session."""
     await validate_session_exists(db, session_id)
@@ -152,7 +152,7 @@ async def confirm_outcome(
     outcome_id: uuid.UUID,
     body: ConfirmationRequest,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """CRS-10.01: Record participant confirmation of desired outcome."""
     await validate_session_exists(db, session_id)

@@ -97,25 +97,33 @@ async def get_user_token_balance(
 
     Only counts entries in active lifecycle states (pending/approved/finalized).
     Reversed entries have already been offset by negative entries.
+
+    Uses SQL SUM/COUNT (G4+O4 optimisation) instead of loading all rows.
     """
+    _active = ("pending", "approved", "finalized")
     result = await db.execute(
-        select(TokenLedger).where(
+        select(
+            func.coalesce(func.sum(TokenLedger.delta_heart), 0.0).label("heart"),
+            func.coalesce(func.sum(TokenLedger.delta_human), 0.0).label("human"),
+            func.coalesce(func.sum(TokenLedger.delta_unity), 0.0).label("unity"),
+            func.count().label("entry_count"),
+        ).where(
             and_(
                 TokenLedger.session_id == session_id,
                 TokenLedger.user_id == user_id,
-                TokenLedger.lifecycle_state.in_(("pending", "approved", "finalized")),
+                TokenLedger.lifecycle_state.in_(_active),
             )
         )
     )
-    entries = list(result.scalars().all())
+    row = result.one()
 
     return {
         "user_id": user_id,
         "session_id": str(session_id),
-        "total_heart": round(sum(e.delta_heart for e in entries), 3),
-        "total_human": round(sum(e.delta_human for e in entries), 3),
-        "total_unity": round(sum(e.delta_unity for e in entries), 3),
-        "entry_count": len(entries),
+        "total_heart": round(float(row.heart), 3),
+        "total_human": round(float(row.human), 3),
+        "total_unity": round(float(row.unity), 3),
+        "entry_count": row.entry_count,
     }
 
 
@@ -126,18 +134,27 @@ async def get_session_token_summary(
     """CRS-19: Aggregate token stats for moderator dashboard.
 
     Returns total tokens awarded, participant count, averages, distribution.
+    Uses SQL SUM/COUNT/GROUP BY (G4+O4 optimisation) instead of loading all rows.
     """
-    result = await db.execute(
-        select(TokenLedger).where(
-            and_(
-                TokenLedger.session_id == session_id,
-                TokenLedger.lifecycle_state.in_(("pending", "approved", "finalized")),
-            )
-        )
+    _active = ("pending", "approved", "finalized")
+    _where = and_(
+        TokenLedger.session_id == session_id,
+        TokenLedger.lifecycle_state.in_(_active),
     )
-    entries = list(result.scalars().all())
 
-    if not entries:
+    # Main aggregates — single row
+    agg_result = await db.execute(
+        select(
+            func.coalesce(func.sum(TokenLedger.delta_heart), 0.0).label("total_heart"),
+            func.coalesce(func.sum(TokenLedger.delta_human), 0.0).label("total_human"),
+            func.coalesce(func.sum(TokenLedger.delta_unity), 0.0).label("total_unity"),
+            func.count(func.distinct(TokenLedger.user_id)).label("unique_users"),
+            func.count().label("entry_count"),
+        ).where(_where)
+    )
+    agg = agg_result.one()
+
+    if agg.entry_count == 0:
         return {
             "session_id": str(session_id),
             "total_entries": 0,
@@ -152,21 +169,35 @@ async def get_session_token_summary(
             "by_action": {},
         }
 
-    unique_users = len({e.user_id for e in entries if e.user_id})
-    total_heart = sum(e.delta_heart for e in entries)
-    total_human = sum(e.delta_human for e in entries)
-    total_unity = sum(e.delta_unity for e in entries)
+    total_heart = float(agg.total_heart)
+    total_human = float(agg.total_human)
+    total_unity = float(agg.total_unity)
+    unique_users = agg.unique_users
 
-    by_lifecycle: dict[str, int] = {}
-    by_action: dict[str, int] = {}
-    for e in entries:
-        by_lifecycle[e.lifecycle_state] = by_lifecycle.get(e.lifecycle_state, 0) + 1
-        if e.action_type:
-            by_action[e.action_type] = by_action.get(e.action_type, 0) + 1
+    # by_lifecycle breakdown — GROUP BY (small result set: max 3 states)
+    lc_result = await db.execute(
+        select(
+            TokenLedger.lifecycle_state,
+            func.count().label("cnt"),
+        ).where(_where).group_by(TokenLedger.lifecycle_state)
+    )
+    by_lifecycle = {row.lifecycle_state: row.cnt for row in lc_result.all()}
+
+    # by_action breakdown — GROUP BY
+    act_result = await db.execute(
+        select(
+            TokenLedger.action_type,
+            func.count().label("cnt"),
+        ).where(
+            _where,
+            TokenLedger.action_type.isnot(None),
+        ).group_by(TokenLedger.action_type)
+    )
+    by_action = {row.action_type: row.cnt for row in act_result.all()}
 
     return {
         "session_id": str(session_id),
-        "total_entries": len(entries),
+        "total_entries": agg.entry_count,
         "unique_users": unique_users,
         "total_heart": round(total_heart, 3),
         "total_human": round(total_human, 3),

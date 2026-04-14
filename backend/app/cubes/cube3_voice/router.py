@@ -158,7 +158,7 @@ async def list_voice_responses(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """List paginated voice responses for a session.
 
@@ -190,7 +190,7 @@ async def get_voice_response(
     session_id: uuid.UUID,
     response_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser | None = Depends(get_optional_current_user),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """Get a single voice response by ID. Includes full STT + PII/profanity detail.
 

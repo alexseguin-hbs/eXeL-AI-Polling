@@ -131,10 +131,18 @@ class TestTokenSummary:
     async def test_empty_session_returns_zeros(self):
         from app.cubes.cube8_tokens.service import get_session_token_summary
 
+        # SQL aggregate returns entry_count=0 → early return
+        agg_row = MagicMock()
+        agg_row.total_heart = 0.0
+        agg_row.total_human = 0.0
+        agg_row.total_unity = 0.0
+        agg_row.unique_users = 0
+        agg_row.entry_count = 0
+        agg_result = MagicMock()
+        agg_result.one.return_value = agg_row
+
         mock_db = AsyncMock()
-        mock_result = MagicMock()
-        mock_result.scalars.return_value.all.return_value = []
-        mock_db.execute = AsyncMock(return_value=mock_result)
+        mock_db.execute = AsyncMock(return_value=agg_result)
 
         result = await get_session_token_summary(mock_db, SESSION_ID)
         assert result["total_entries"] == 0
@@ -147,16 +155,29 @@ class TestTokenSummary:
     async def test_aggregates_multiple_entries(self):
         from app.cubes.cube8_tokens.service import get_session_token_summary
 
-        entries = [
-            _make_ledger_entry(user_id="u1", delta_heart=2.0, delta_unity=10.0),
-            _make_ledger_entry(user_id="u2", delta_heart=3.0, delta_unity=15.0),
-            _make_ledger_entry(user_id="u1", delta_heart=1.0, delta_unity=5.0),
-        ]
+        # First call: main aggregate
+        agg_row = MagicMock()
+        agg_row.total_heart = 6.0
+        agg_row.total_human = 0.0
+        agg_row.total_unity = 30.0
+        agg_row.unique_users = 2
+        agg_row.entry_count = 3
+        agg_result = MagicMock()
+        agg_result.one.return_value = agg_row
+
+        # Second call: by_lifecycle GROUP BY
+        lc_row = MagicMock()
+        lc_row.lifecycle_state = "pending"
+        lc_row.cnt = 3
+        lc_result = MagicMock()
+        lc_result.all.return_value = [lc_row]
+
+        # Third call: by_action GROUP BY
+        act_result = MagicMock()
+        act_result.all.return_value = []
 
         mock_db = AsyncMock()
-        mock_result = MagicMock()
-        mock_result.scalars.return_value.all.return_value = entries
-        mock_db.execute = AsyncMock(return_value=mock_result)
+        mock_db.execute = AsyncMock(side_effect=[agg_result, lc_result, act_result])
 
         result = await get_session_token_summary(mock_db, SESSION_ID)
         assert result["total_entries"] == 3
@@ -169,16 +190,32 @@ class TestTokenSummary:
     async def test_by_action_breakdown(self):
         from app.cubes.cube8_tokens.service import get_session_token_summary
 
-        entries = [
-            _make_ledger_entry(action_type="responding"),
-            _make_ledger_entry(action_type="responding"),
-            _make_ledger_entry(action_type="ranking"),
-        ]
+        # First call: main aggregate
+        agg_row = MagicMock()
+        agg_row.total_heart = 0.0
+        agg_row.total_human = 0.0
+        agg_row.total_unity = 0.0
+        agg_row.unique_users = 2
+        agg_row.entry_count = 3
+        agg_result = MagicMock()
+        agg_result.one.return_value = agg_row
+
+        # Second call: by_lifecycle GROUP BY
+        lc_result = MagicMock()
+        lc_result.all.return_value = []
+
+        # Third call: by_action GROUP BY
+        act_row1 = MagicMock()
+        act_row1.action_type = "responding"
+        act_row1.cnt = 2
+        act_row2 = MagicMock()
+        act_row2.action_type = "ranking"
+        act_row2.cnt = 1
+        act_result = MagicMock()
+        act_result.all.return_value = [act_row1, act_row2]
 
         mock_db = AsyncMock()
-        mock_result = MagicMock()
-        mock_result.scalars.return_value.all.return_value = entries
-        mock_db.execute = AsyncMock(return_value=mock_result)
+        mock_db.execute = AsyncMock(side_effect=[agg_result, lc_result, act_result])
 
         result = await get_session_token_summary(mock_db, SESSION_ID)
         assert result["by_action"]["responding"] == 2

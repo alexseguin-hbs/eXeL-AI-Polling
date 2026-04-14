@@ -59,14 +59,16 @@ class TestGetSessionTokens:
 class TestGetUserTokenBalance:
     @pytest.mark.asyncio
     async def test_aggregates_balance(self):
-        """Should sum ♡/웃/◬ across all qualifying entries."""
-        e1 = make_token_ledger(delta_heart=1.0, delta_human=0.0, delta_unity=5.0, lifecycle_state="pending")
-        e2 = make_token_ledger(delta_heart=3.0, delta_human=0.5, delta_unity=15.0, lifecycle_state="approved")
-        e3 = make_token_ledger(delta_heart=2.0, delta_human=0.0, delta_unity=10.0, lifecycle_state="finalized")
+        """Should sum ♡/웃/◬ via SQL aggregate across all qualifying entries."""
+        agg_row = MagicMock()
+        agg_row.heart = 6.0
+        agg_row.human = 0.5
+        agg_row.unity = 30.0
+        agg_row.entry_count = 3
 
         mock_db = AsyncMock()
         mock_result = MagicMock()
-        mock_result.scalars.return_value.all.return_value = [e1, e2, e3]
+        mock_result.one.return_value = agg_row
         mock_db.execute = AsyncMock(return_value=mock_result)
 
         from app.cubes.cube8_tokens.service import get_user_token_balance
@@ -80,9 +82,15 @@ class TestGetUserTokenBalance:
     @pytest.mark.asyncio
     async def test_zero_balance(self):
         """User with no entries should have zero balance."""
+        agg_row = MagicMock()
+        agg_row.heart = 0.0
+        agg_row.human = 0.0
+        agg_row.unity = 0.0
+        agg_row.entry_count = 0
+
         mock_db = AsyncMock()
         mock_result = MagicMock()
-        mock_result.scalars.return_value.all.return_value = []
+        mock_result.one.return_value = agg_row
         mock_db.execute = AsyncMock(return_value=mock_result)
 
         from app.cubes.cube8_tokens.service import get_user_token_balance

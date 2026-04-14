@@ -66,11 +66,18 @@ STATUS_ORDER = ["draft", "open", "polling", "ranking", "closed", "archived"]
 # ---------------------------------------------------------------------------
 
 
-async def _return_session(db: AsyncSession, session) -> SessionRead:
-    """Fetch participant count and serialize a Session ORM to SessionRead."""
-    count = await service.get_participant_count(db, session.id)
+async def _return_session(
+    db: AsyncSession, session, *, participant_count: int | None = None
+) -> SessionRead:
+    """Fetch participant count and serialize a Session ORM to SessionRead.
+
+    If *participant_count* is provided (e.g. from a batch query), the per-session
+    DB round-trip is skipped — this eliminates N+1 queries on list endpoints.
+    """
+    if participant_count is None:
+        participant_count = await service.get_participant_count(db, session.id)
     data = {c.key: getattr(session, c.key) for c in session.__table__.columns}
-    data["participant_count"] = count
+    data["participant_count"] = participant_count
     return SessionRead(**data)
 
 
@@ -156,7 +163,14 @@ async def list_sessions(
         limit=min(limit, 100),
         offset=offset,
     )
-    items = [await _return_session(db, s) for s in sessions]
+    # G7 fix: batch participant counts in ONE query instead of N+1
+    counts = await service.get_participant_counts_batch(
+        db, [s.id for s in sessions]
+    )
+    items = [
+        await _return_session(db, s, participant_count=counts.get(s.id, 0))
+        for s in sessions
+    ]
     return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 
@@ -202,6 +216,7 @@ async def create_session(
 async def get_session(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """Get session details by UUID."""
     session = await service.get_session_by_id(db, session_id)
@@ -397,6 +412,7 @@ async def create_question(
 async def list_questions(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """List questions for a session, ordered by order_index."""
     questions = await service.list_questions(db, session_id)
@@ -442,6 +458,7 @@ async def get_qr_json(
 async def verify_determinism(
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
 ):
     """Return stored replay_hash, seed, and verification status."""
     session = await service.get_session_by_id(db, session_id)
