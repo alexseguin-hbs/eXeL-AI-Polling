@@ -42,7 +42,7 @@ class TestLiveSummarization:
         mock_db.execute = AsyncMock()
         mock_db.commit = AsyncMock()
 
-        with patch("app.cubes.cube6_ai.service.get_summarization_provider", return_value=mock_summarizer):
+        with patch("app.cubes.cube6_ai.phase_a.get_summarization_provider", return_value=mock_summarizer):
             result = await summarize_single_response(
                 mock_db,
                 session_id=uuid.uuid4(),
@@ -77,7 +77,7 @@ class TestLiveSummarization:
         mock_db.execute = AsyncMock()
         mock_db.commit = AsyncMock()
 
-        with patch("app.cubes.cube6_ai.service.get_summarization_provider", return_value=mock_summarizer):
+        with patch("app.cubes.cube6_ai.phase_a.get_summarization_provider", return_value=mock_summarizer):
             result = await summarize_single_response(
                 mock_db,
                 session_id=uuid.uuid4(),
@@ -105,7 +105,7 @@ class TestLiveSummarization:
         mock_db.execute = AsyncMock()
         mock_db.commit = AsyncMock()
 
-        with patch("app.cubes.cube6_ai.service.get_summarization_provider", return_value=mock_summarizer):
+        with patch("app.cubes.cube6_ai.phase_a.get_summarization_provider", return_value=mock_summarizer):
             await summarize_single_response(
                 mock_db,
                 session_id=uuid.uuid4(),
@@ -136,7 +136,7 @@ class TestLiveSummarization:
         session_id = uuid.uuid4()
         response_id = uuid.uuid4()
 
-        with patch("app.cubes.cube6_ai.service.get_summarization_provider", return_value=mock_summarizer):
+        with patch("app.cubes.cube6_ai.phase_a.get_summarization_provider", return_value=mock_summarizer):
             await summarize_single_response(
                 mock_db,
                 session_id=session_id,
