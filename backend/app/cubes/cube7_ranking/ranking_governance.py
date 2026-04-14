@@ -1,6 +1,21 @@
 """Cube 7 — Ranking Governance: Live rankings, overrides, anomaly detection.
 
+Challenger I/O Specification (checkout boundary):
+  IN:  db (AsyncSession), session_id (UUID), cycle_id (int)
+  OUT: rankings (list[AggregatedRanking]), governance_log (list[GovernanceOverride])
+
+Functions (each standalone with defined I/O):
+  emit_ranking_complete(db, session_id, ...) → broadcast event    (CRS-16)
+  get_live_rankings(db, session_id) → list[AggregatedRanking]     (CRS-11.04)
+  get_ranking_progress(db, session_id) → dict                     (CRS-17)
+  apply_governance_override(db, ...) → GovernanceOverride          (CRS-22)
+  detect_voting_anomalies(db, session_id) → list[dict]            (CRS-22.01)
+  get_emerging_patterns(db, session_id) → dict                    (CRS-12)
+  run_ranking_pipeline(db, session_id) → dict                     (CRS-11)
+  verify_replay(db, session_id) → dict                            (CRS-13)
+
 Split from service.py for Succinctness (G13 gap fix, 2026-04-14).
+G23: I/O boundaries documented for Challenger checkout (2026-04-14).
 """
 from __future__ import annotations
 

@@ -1,15 +1,21 @@
 """Cube 6 Phase B — Parallel Theme Pipeline (after moderator closes polling).
 
-1. Fetch all 33-word summaries from ResponseSummary (PostgreSQL)
-2. Classify Theme01 (Risk / Supporting / Neutral)
-3. Group by Theme01 into 3 partitions
-4. Marble sampling: shuffle each partition, slice into groups of 10
-5. Generate 3 themes per marble group — 10+ concurrent agents
-6. Reduce to final 9 -> 6 -> 3
-7. Assign each response to 9/6/3 themes with confidence
-8. Store results in Postgres + compute replay hash
+Challenger I/O Specification (checkout boundary):
+  IN:  db (AsyncSession), session_id (UUID), summarizer (SummarizationProvider)
+  OUT: responses (list[dict] with theme01/theme2_9/6/3), replay_hash (str)
+
+Pipeline Steps (each is a standalone function with defined I/O):
+  Step 1: _fetch_summaries(db, session_id) → list[dict]           (CRS-11.01)
+  Step 2: _classify_theme01(summarizer, responses) → list[dict]   (CRS-11.02)
+  Step 3: _group_by_theme01(responses) → dict[str, list]          (CRS-11.03)
+  Step 4: _marble_sample(items, seed) → list[list[dict]]          (CRS-11.04)
+  Step 5: _generate_themes_for_group(summarizer, group) → list    (CRS-12.01)
+  Step 6: _reduce_themes(summarizer, themes) → dict hierarchy     (CRS-12.02)
+  Step 7: _assign_themes_llm/embedding(responses, reduced) → list (CRS-13.01)
+  Step 8: _store_results(db, session, responses, ...) → hash      (CRS-13.02)
 
 Split from service.py for Succinctness (O7 gap fix, 2026-04-13).
+G22: I/O boundaries documented for Challenger checkout (2026-04-14).
 """
 import asyncio
 import hashlib
