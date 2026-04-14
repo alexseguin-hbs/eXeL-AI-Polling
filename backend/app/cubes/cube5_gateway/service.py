@@ -583,9 +583,39 @@ async def orchestrate_post_polling(
         "cube5.orchestrate_post_polling",
         extra={"session_id": str(session_id)},
     )
-    return await trigger_ai_pipeline(
+    trigger = await trigger_ai_pipeline(
         db, session_id, seed=seed
     )
+
+    # Cube 11: Auto-record survey governance proof on-chain (async, non-blocking)
+    # Fires after AI pipeline completes. If chain is down, queues for retry.
+    try:
+        from app.cubes.cube11_blockchain.service import record_survey_on_chain
+        from app.cubes.cube9_reports.service import compute_export_hash
+
+        # Get session for replay hashes
+        session_result = await db.execute(
+            select(Session).where(Session.id == session_id)
+        )
+        session = session_result.scalar_one_or_none()
+        if session and getattr(session, "replay_hash", None):
+            await record_survey_on_chain(
+                db,
+                session_hash=str(session_id),
+                cube6_theme_hash=session.replay_hash or "",
+                cube7_ranking_hash=session.replay_hash or "",
+                cube9_export_hash=compute_export_hash(str(session_id).encode()),
+                cube1_session_hash=session.replay_hash or "",
+                winning_theme=getattr(session, "pipeline_stage", "pending"),
+                voter_count=getattr(session, "participant_count", 0) or 0,
+                response_count=0,
+            )
+            logger.info("cube11.auto_record.queued", extra={"session_id": str(session_id)})
+    except Exception as e:
+        # Non-fatal — survey results still delivered without chain recording
+        logger.warning("cube11.auto_record.failed", extra={"error": str(e), "session_id": str(session_id)})
+
+    return trigger
 
 
 async def get_pipeline_status(

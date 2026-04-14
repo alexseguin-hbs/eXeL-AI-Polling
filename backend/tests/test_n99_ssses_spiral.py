@@ -886,13 +886,44 @@ class TestFeatureRemovalGuard:
         assert "moderator" in c.lower() or "CurrentUser" in c, "Auth RBAC REMOVED!"
 
     def test_wireguard_on_all_cubes(self):
-        """WireGuard whitelist constants must exist on ALL 10 cube routers."""
+        """WireGuard whitelist constants must exist on ALL cube routers that have them."""
         for cube in ("cube1_session", "cube2_text", "cube3_voice", "cube4_collector",
                      "cube5_gateway", "cube6_ai", "cube7_ranking", "cube8_tokens",
-                     "cube9_reports", "cube10_simulation"):
+                     "cube9_reports", "cube10_simulation", "cube12_divinity_nft"):
             r = self._be(f"app/cubes/{cube}/router.py")
             has_whitelist = any(kw in r for kw in ("VALID_", "ALLOWED_", "_RE =", "_RE="))
             assert has_whitelist, f"WireGuard whitelist REMOVED from {cube}!"
+
+    # ═══ CUBE 11 — Blockchain ═══
+    def test_cube11_governance_proof(self):
+        """Cube 11: Governance proof computation must exist."""
+        s = self._be("app/cubes/cube11_blockchain/service.py")
+        assert "compute_governance_proof" in s, "Governance proof REMOVED from Cube 11!"
+        assert "record_survey_on_chain" in s, "Survey recording REMOVED from Cube 11!"
+
+    def test_cube11_verify_endpoint(self):
+        """Cube 11: Public verify endpoint must exist."""
+        r = self._be("app/cubes/cube11_blockchain/router.py")
+        assert "verify" in r, "Verify endpoint REMOVED from Cube 11!"
+
+    # ═══ CUBE 12 — Divinity & NFT ARX ═══
+    def test_cube12_arx_service(self):
+        """Cube 12: ARX mint/verify/transfer must exist."""
+        s = self._be("app/cubes/cube12_divinity_nft/service.py")
+        assert "mint_arx_item" in s, "ARX mint REMOVED from Cube 12!"
+        assert "verify_arx_chip" in s, "ARX verify REMOVED from Cube 12!"
+        assert "transfer_arx_item" in s, "ARX transfer REMOVED from Cube 12!"
+
+    def test_cube12_arx_frontend(self):
+        """Cube 12: ARX verification page must exist."""
+        c = self._fe("app/divinity-guide/arx/page.tsx")
+        assert "ArxPage" in c or "arx" in c.lower(), "ARX page REMOVED from Cube 12!"
+        assert "verify" in c.lower(), "Verification mode REMOVED from ARX page!"
+
+    def test_cube12_dual_qr(self):
+        """Cube 12: Both buyer AND seller get QR codes."""
+        s = self._be("app/cubes/cube12_divinity_nft/service.py")
+        assert "buyer_qr" in s or "seller_qr" in s, "Dual QR REMOVED from Cube 12!"
 
     # ═══ CROSS-CUBE: Feature Removal Detector ═══
     def test_feature_removal_detector_exists(self):

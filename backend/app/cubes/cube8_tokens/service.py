@@ -482,6 +482,24 @@ async def award_hi_tokens_for_payment(
         },
     )
 
+    # Cube 12: Auto-mint ARX NFT if payment is for a physical item (donation type)
+    # This hooks the purchase flow: Stripe payment → ♡ tokens + NFT mint
+    if payment_type == "donation" and amount_usd >= 33.33:
+        try:
+            from app.cubes.cube12_divinity_nft.service import mint_arx_item
+            await mint_arx_item(
+                db,
+                item_name=f"Divinity Guide — Donation Edition",
+                purchase_price_usd=amount_usd,
+                buyer_address=user_id,
+                edition=0,
+                language="en",
+            )
+            logger.info("cube12.auto_mint.success", extra={"user_id": user_id, "amount": amount_usd})
+        except Exception as e:
+            # Non-fatal — tokens still awarded even if NFT mint fails
+            logger.warning("cube12.auto_mint.failed", extra={"error": str(e)})
+
     return entry
 
 
