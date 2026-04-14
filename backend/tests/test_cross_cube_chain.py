@@ -128,8 +128,8 @@ class TestCubeChainDependencies:
     def test_cube7_triggers_cube5_cqs(self):
         """Cube 7 emit_ranking_complete triggers CQS via Cube 5."""
         import inspect
-        from app.cubes.cube7_ranking import service
-        src = inspect.getsource(service)
+        from app.cubes.cube7_ranking import ranking_governance
+        src = inspect.getsource(ranking_governance)
         assert "trigger_cqs_scoring" in src
 
     def test_cube8_uses_broadcast(self):

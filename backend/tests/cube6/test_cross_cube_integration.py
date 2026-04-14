@@ -163,8 +163,8 @@ class TestCube6_Cube7:
     def test_cube7_reads_themes(self):
         """Cube 7 submit_user_ranking validates against theme table."""
         import inspect
-        from app.cubes.cube7_ranking import service
-        src = inspect.getsource(service)
+        from app.cubes.cube7_ranking import ranking_submission
+        src = inspect.getsource(ranking_submission)
         assert "Theme.id" in src or "Theme.session_id" in src
 
 
