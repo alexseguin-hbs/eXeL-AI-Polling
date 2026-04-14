@@ -14,7 +14,7 @@ import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
@@ -42,8 +42,10 @@ class MintRequest(BaseModel):
     @field_validator("language")
     @classmethod
     def validate_language(cls, v: str) -> str:
-        if v not in VALID_LANGUAGES:
-            raise ValueError(f"language must be one of {VALID_LANGUAGES}")
+        # Accept any 2-3 char alpha ISO 639-1/639-2 code (34 languages in lexicon)
+        import re
+        if not re.match(r'^[a-z]{2,3}$', v):
+            raise ValueError(f"language must be a 2-3 char lowercase code, got '{v}'")
         return v
 
     @field_validator("purchase_price_usd")
@@ -55,9 +57,9 @@ class MintRequest(BaseModel):
 
 
 class TransferRequest(BaseModel):
-    token_id: int
-    to_address: str
-    sale_price_usd: float | None = None
+    token_id: int = Field(ge=1)
+    to_address: str = Field(min_length=1, max_length=255)
+    sale_price_usd: float | None = Field(default=None, ge=0)
 
 
 # ── Endpoints ────────────────────────────────────────────────────

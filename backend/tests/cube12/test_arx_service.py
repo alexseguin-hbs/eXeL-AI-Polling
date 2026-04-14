@@ -49,7 +49,7 @@ class TestMintArxItem:
         )
 
         assert result["status"] == "minted"
-        assert result["token_id"] == 1
+        assert result["token_id"] > 0  # Timestamp-based, always positive
         assert result["item_name"] == "The Divinity Guide — First Edition"
         assert result["purchase_price_usd"] == 33.33
         assert result["edition"] == 7
@@ -209,12 +209,61 @@ class TestHelpers:
     def test_tx_id_format(self):
         tx_id = _next_tx_id()
         assert tx_id.startswith("ARX-")
-        assert len(tx_id) == 15  # ARX-YYYY-NNNNNN
+        assert len(tx_id) == 17  # ARX-YYYY-XXXXXXXX (UUID hex, 8 chars)
 
-    def test_tx_id_increments(self):
-        id1 = _next_tx_id()
-        id2 = _next_tx_id()
-        # Sequential — second should be higher
-        num1 = int(id1.split("-")[-1])
-        num2 = int(id2.split("-")[-1])
-        assert num2 == num1 + 1
+    def test_tx_ids_are_unique(self):
+        """UUID-based TX IDs are unique (no global counter race condition)."""
+        ids = {_next_tx_id() for _ in range(100)}
+        assert len(ids) == 100  # All unique
+
+
+class TestGetArxItem:
+    """CRS-NEW-12.04: Get item details."""
+
+    @pytest.mark.asyncio
+    async def test_returns_none_for_missing(self):
+        db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        db.execute = AsyncMock(return_value=mock_result)
+
+        result = await get_arx_item(db, token_id=999)
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_self_transfer_rejected(self):
+        db = AsyncMock()
+        item = MagicMock()
+        item.token_id = 1
+        item.current_owner = "same-user"
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = item
+        db.execute = AsyncMock(return_value=mock_result)
+
+        with pytest.raises(ValueError, match="Cannot transfer to yourself"):
+            await transfer_arx_item(
+                db, token_id=1,
+                from_address="same-user", to_address="same-user",
+            )
+
+
+class TestListMarketplace:
+    """CRS-NEW-12.05: List marketplace."""
+
+    @pytest.mark.asyncio
+    async def test_returns_list(self):
+        db = AsyncMock()
+        item = MagicMock()
+        item.token_id = 1
+        item.item_name = "Book"
+        item.edition = 7
+        item.current_owner = "owner"
+        item.purchase_price_usd = 33.33
+        item.qr_code_url = "https://example.com"
+        mock_result = MagicMock()
+        mock_result.scalars.return_value = MagicMock(all=MagicMock(return_value=[item]))
+        db.execute = AsyncMock(return_value=mock_result)
+
+        result = await list_marketplace(db, limit=10)
+        assert len(result) == 1
+        assert result[0]["item_name"] == "Book"

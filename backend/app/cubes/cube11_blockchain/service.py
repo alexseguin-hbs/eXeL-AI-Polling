@@ -10,7 +10,7 @@ Functions:
 Data flow: Cube 9 → Cube 10 → Cube 11
   (survey results → simulation verify → chain record)
 
-CRS: CRS-23 (Audit trail)
+CRS: CRS-20 (Data integrity), CRS-21 (Tamper detection), CRS-23 (Audit trail)
 I/O: db (AsyncSession) + session data → dict (chain record)
 """
 

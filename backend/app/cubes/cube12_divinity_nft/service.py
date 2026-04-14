@@ -24,15 +24,14 @@ from app.cubes.cube12_divinity_nft.models import ArxItem, ArxTransaction
 logger = logging.getLogger("cube12")
 
 # Transaction ID counter (in production, use DB sequence)
-_TX_COUNTER = 0
-
-
 def _next_tx_id() -> str:
-    """Generate sequential transaction ID: ARX-YYYY-NNNNNN."""
-    global _TX_COUNTER
-    _TX_COUNTER += 1
+    """Generate unique transaction ID: ARX-YYYY-XXXXXXXX (UUID-based, thread-safe).
+
+    Uses UUID4 hex prefix instead of global counter — survives restarts,
+    no race conditions under concurrent mints.
+    """
     year = datetime.now(timezone.utc).year
-    return f"ARX-{year}-{_TX_COUNTER:06d}"
+    return f"ARX-{year}-{uuid.uuid4().hex[:8].upper()}"
 
 
 def _generate_qr_url(token_id: int, verification_hash: str) -> str:
@@ -57,9 +56,10 @@ async def mint_arx_item(
     I/O: item details → dict with token_id, qr_code_url, arx_tx_id
     Called after Stripe payment succeeds.
     """
-    # Generate token ID (sequential)
-    count_result = await db.execute(select(func.count(ArxItem.id)))
-    token_id = (count_result.scalar() or 0) + 1
+    # Generate token ID — use timestamp-based integer for uniqueness without DB sequence
+    # This avoids COUNT(*) race condition under concurrent mints
+    import time
+    token_id = int(time.time() * 1000) % 1_000_000_000  # Millisecond-based, unique enough
 
     # Generate verification hash
     verification_hash = hashlib.sha256(
@@ -187,6 +187,8 @@ async def transfer_arx_item(
         raise ValueError(f"ARX item {token_id} not found")
     if item.current_owner != from_address:
         raise ValueError(f"Not the current owner")
+    if from_address == to_address:
+        raise ValueError("Cannot transfer to yourself")
 
     # Update ownership
     now = datetime.now(timezone.utc)

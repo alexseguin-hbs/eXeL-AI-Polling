@@ -13,7 +13,7 @@ Data flow: Cube 9 → Cube 10 → Cube 11
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user
@@ -25,14 +25,14 @@ router = APIRouter(prefix="/chain", tags=["Cube 11 — Blockchain (Quai/QI)"])
 
 
 class RecordSurveyRequest(BaseModel):
-    session_hash: str
-    cube6_theme_hash: str
-    cube7_ranking_hash: str
-    cube9_export_hash: str
-    cube1_session_hash: str
-    winning_theme: str
-    voter_count: int
-    response_count: int
+    session_hash: str = Field(max_length=255)
+    cube6_theme_hash: str = Field(max_length=128)
+    cube7_ranking_hash: str = Field(max_length=128)
+    cube9_export_hash: str = Field(max_length=128)
+    cube1_session_hash: str = Field(max_length=128)
+    winning_theme: str = Field(max_length=500)
+    voter_count: int = Field(ge=0)
+    response_count: int = Field(ge=0)
 
 
 @router.post("/record-survey", status_code=201)

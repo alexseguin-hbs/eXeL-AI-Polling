@@ -148,3 +148,31 @@ class TestPendingRetry:
         result = await retry_pending(db)
         assert result["pending_count"] == 5
         assert result["status"] == "queued_for_retry"
+
+
+class TestGetPendingRecords:
+    """Service: get_pending_records."""
+
+    @pytest.mark.asyncio
+    async def test_returns_list(self):
+        db = AsyncMock()
+        mock_records = [MagicMock(id=uuid.uuid4(), session_hash="s1", governance_proof="gp1",
+                                  winning_theme="T1", chain_status="pending",
+                                  created_at=datetime.now(timezone.utc))]
+        mock_result = MagicMock()
+        mock_result.scalars.return_value = MagicMock(all=MagicMock(return_value=mock_records))
+        db.execute = AsyncMock(return_value=mock_result)
+
+        result = await get_pending_records(db, limit=10)
+        assert len(result) == 1
+        assert result[0]["chain_status"] == "pending"
+
+    @pytest.mark.asyncio
+    async def test_empty_list(self):
+        db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalars.return_value = MagicMock(all=MagicMock(return_value=[]))
+        db.execute = AsyncMock(return_value=mock_result)
+
+        result = await get_pending_records(db, limit=10)
+        assert result == []

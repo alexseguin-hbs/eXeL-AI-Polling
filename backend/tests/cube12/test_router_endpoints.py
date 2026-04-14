@@ -29,8 +29,9 @@ class TestMintEndpoint:
 
     @pytest.mark.asyncio
     async def test_invalid_language_rejected(self, client):
+        """Digits in language code rejected (must be 2-3 alpha)."""
         resp = await client.post("/api/v1/arx/mint", json={
-            "item_name": "Test", "purchase_price_usd": 10, "language": "xx",
+            "item_name": "Test", "purchase_price_usd": 10, "language": "x1",
         })
         assert resp.status_code == 422
 
