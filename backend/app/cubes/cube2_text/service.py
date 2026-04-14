@@ -531,6 +531,21 @@ async def _submit_text_inner(
     participant_id: uuid.UUID,
     language_code: str,
 ) -> dict:
+    """Inner text submission pipeline — 154 lines, 7 sequential steps.
+
+    Challenger I/O Specification (checkout boundary):
+      IN:  db, session, text, session_id, question_id, participant_id, language_code
+      OUT: dict with {id, session_id, clean_text, response_hash, summary_33, ...}
+
+    Steps (each is a testable boundary):
+      1. PII detection via NER + regex           → list[dict] detections  (CRS-09.01)
+      2. PII scrubbing (replace spans)           → str clean_text         (CRS-09.02)
+      3. Profanity detection                     → bool profanity_detected (CRS-07.01)
+      4. Response hash (SHA-256)                 → str hash               (CRS-08.01)
+      5. Store ResponseMeta + TextResponse       → ORM objects            (CRS-09.03)
+      6. Token earning (Cube 5 time tracking)    → float tokens           (CRS-10)
+      7. Fire Phase A summary (Cube 6 async)     → background task        (CRS-11)
+    """
     """Inner submission logic — runs under semaphore protection."""
     # --- 2b. Language sanity check (non-blocking) ---
     if not detect_language(text, language_code):

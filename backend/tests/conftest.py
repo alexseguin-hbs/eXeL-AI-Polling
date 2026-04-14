@@ -25,11 +25,22 @@ from app.main import app
 
 
 @pytest.fixture
-async def client():
-    """Async test client for FastAPI app."""
+async def client(mock_db):
+    """Async test client for FastAPI app with mocked DB.
+
+    Overrides get_db dependency so tests don't need a real PostgreSQL connection.
+    All service-layer mocking happens in individual tests via patch().
+    """
+    from app.core.dependencies import get_db
+
+    async def _override_db():
+        yield mock_db
+
+    app.dependency_overrides[get_db] = _override_db
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+    app.dependency_overrides.pop(get_db, None)
 
 
 # ---------------------------------------------------------------------------
