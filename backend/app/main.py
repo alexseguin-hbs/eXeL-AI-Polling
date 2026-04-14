@@ -30,6 +30,7 @@ from app.core.realtime_ws import router as realtime_router
 from app.cubes.cube8_tokens.webhook import router as stripe_webhook_router
 from app.cubes.cube9_reports.router import router as reports_router
 from app.cubes.cube10_simulation.router import router as simulation_router
+from app.cubes.cube11_blockchain.router import router as blockchain_router
 from app.cubes.cube12_divinity_nft.router import router as arx_router
 from app.db.postgres import close_postgres
 from app.schemas.common import HealthResponse
@@ -114,6 +115,7 @@ app.include_router(ranking_router, prefix=PREFIX)
 app.include_router(tokens_router, prefix=PREFIX)
 app.include_router(reports_router, prefix=PREFIX)
 app.include_router(simulation_router, prefix=PREFIX)
+app.include_router(blockchain_router, prefix=PREFIX)
 app.include_router(arx_router, prefix=PREFIX)
 app.include_router(stripe_webhook_router, prefix=PREFIX)
 app.include_router(realtime_router)
