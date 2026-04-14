@@ -186,6 +186,19 @@ def _apply_tier_filter(row: dict, tier: str) -> dict:
     return filtered
 
 
+def compute_export_hash(csv_bytes: bytes) -> str:
+    """CRS-14: Compute SHA-256 hash of CSV export for governance proof chain.
+
+    This hash is the 4th link in the governance proof:
+    governance_proof = SHA-256(cube6_hash || cube7_hash || cube9_export_hash || cube1_hash)
+
+    Used by Cube 11 (Blockchain) to record survey results on Quai chain.
+    I/O: csv_bytes (bytes) → str (64-char hex SHA-256)
+    """
+    import hashlib
+    return hashlib.sha256(csv_bytes).hexdigest()
+
+
 # 19-column CSV schema (16 original + 3 theme descriptions)
 # Theme descriptions (33-word) are always FREE — explain what each theme means
 CSV_COLUMNS = [
