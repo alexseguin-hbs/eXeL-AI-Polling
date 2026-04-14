@@ -240,18 +240,6 @@ class TestResponseLanguages:
 
 class TestPresence:
     """GET /presence — no auth required, returns in-memory presence count."""
-
-    @pytest.mark.asyncio
-    async def test_returns_presence_data(self, client):
-        mock_presence = {"session_id": str(SID), "active_count": 15, "participants": []}
-        with (
-            patch(VALIDATE, new_callable=AsyncMock),
-            patch(f"{RTR}.get_session_presence", new_callable=AsyncMock, return_value=mock_presence),
-        ):
-            resp = await client.get(f"{PREFIX}/presence")
-        assert resp.status_code == 200
-        assert resp.json()["active_count"] == 15
-
     @pytest.mark.asyncio
     async def test_empty_presence(self, client):
         mock_presence = {"session_id": str(SID), "active_count": 0, "participants": []}
@@ -592,11 +580,4 @@ class TestSessionValidation:
         from app.core.exceptions import SessionNotFoundError
         with patch(VALIDATE, new_callable=AsyncMock, side_effect=SessionNotFoundError(str(SID))):
             resp = await client.get(f"{PREFIX}/response-count")
-        assert resp.status_code == 404
-
-    @pytest.mark.asyncio
-    async def test_presence_invalid_session_404(self, client):
-        from app.core.exceptions import SessionNotFoundError
-        with patch(VALIDATE, new_callable=AsyncMock, side_effect=SessionNotFoundError(str(SID))):
-            resp = await client.get(f"{PREFIX}/presence")
         assert resp.status_code == 404

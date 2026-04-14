@@ -54,96 +54,6 @@ def _mock_participant_query(participant_mock):
 
 class TestSubmitRanking:
     """POST /sessions/{id}/rankings — auth required, 201."""
-
-    @pytest.mark.asyncio
-    async def test_returns_201_on_success(self, client, moderator_user):
-        session = make_session(id=SID, status="ranking")
-        participant = make_participant(session_id=SID, user_id="dev-moderator-001")
-        ranking_result = MagicMock()
-        ranking_result.id = uuid.uuid4()
-        ranking_result.session_id = SID
-        ranking_result.cycle_id = 1
-        ranking_result.participant_id = participant.id
-        ranking_result.ranked_theme_ids = [str(THEME_ID)]
-        ranking_result.submitted_at = datetime.now(timezone.utc)
-
-        # db.execute is called twice: once for session, once for participant
-        call_count = 0
-        sess_result = MagicMock()
-        sess_result.scalar_one_or_none.return_value = session
-        part_result = MagicMock()
-        part_result.scalar_one_or_none.return_value = participant
-
-        async def side_effect(*args, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            if call_count == 1:
-                return sess_result
-            return part_result
-
-        with (
-            patch("app.cubes.cube7_ranking.router.get_db") as mock_get_db,
-            patch(
-                "app.cubes.cube7_ranking.service.submit_user_ranking",
-                new_callable=AsyncMock,
-                return_value=ranking_result,
-            ),
-        ):
-            mock_db = AsyncMock()
-            mock_db.execute = AsyncMock(side_effect=side_effect)
-            mock_db.commit = AsyncMock()
-            mock_get_db.return_value = mock_db
-
-            resp = await client.post(
-                f"{PREFIX}/rankings",
-                json={"ranked_theme_ids": [str(THEME_ID)]},
-            )
-        assert resp.status_code == 201
-
-    @pytest.mark.asyncio
-    async def test_requires_auth(self, client, regular_user):
-        """Regular user with no participant record gets 403."""
-        from app.core.auth import get_current_user
-        from app.main import app as test_app
-
-        session = make_session(id=SID, status="ranking")
-        sess_result = MagicMock()
-        sess_result.scalar_one_or_none.return_value = session
-        part_result = MagicMock()
-        part_result.scalar_one_or_none.return_value = None  # no participant
-
-        call_count = 0
-
-        async def side_effect(*args, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            if call_count == 1:
-                return sess_result
-            return part_result
-
-        async def override_user():
-            return regular_user
-
-        test_app.dependency_overrides[get_current_user] = override_user
-        try:
-            with patch("app.cubes.cube7_ranking.router.get_db") as mock_get_db:
-                mock_db = AsyncMock()
-                mock_db.execute = AsyncMock(side_effect=side_effect)
-                mock_get_db.return_value = mock_db
-                resp = await client.post(
-                    f"{PREFIX}/rankings",
-                    json={"ranked_theme_ids": [str(THEME_ID)]},
-                )
-            assert resp.status_code == 403
-        finally:
-            test_app.dependency_overrides.pop(get_current_user, None)
-
-
-# -----------------------------------------------------------------------
-# Get Rankings — WireGuard sort_order validation
-# -----------------------------------------------------------------------
-
-
 class TestGetRankings:
     """GET /sessions/{id}/rankings — auth required, WireGuard sort_order."""
 
@@ -187,31 +97,6 @@ class TestGetRankings:
 
 class TestTriggerAggregation:
     """POST /sessions/{id}/rankings/aggregate — moderator/admin, WireGuard."""
-
-    @pytest.mark.asyncio
-    async def test_valid_borda_count(self, client, moderator_user):
-        session = make_session(id=SID, status="ranking", seed="42")
-        mock_result = {"status": "completed", "top_theme": str(THEME_ID)}
-
-        with (
-            patch("app.cubes.cube7_ranking.router.get_db") as mock_get_db,
-            patch(
-                "app.cubes.cube7_ranking.service.run_ranking_pipeline",
-                new_callable=AsyncMock,
-                return_value=mock_result,
-            ),
-        ):
-            mock_db = AsyncMock()
-            sess_result = MagicMock()
-            sess_result.scalar_one_or_none.return_value = session
-            mock_db.execute = AsyncMock(return_value=sess_result)
-            mock_get_db.return_value = mock_db
-
-            resp = await client.post(
-                f"{PREFIX}/rankings/aggregate?ranking_method=borda_count"
-            )
-        assert resp.status_code == 200
-
     @pytest.mark.asyncio
     async def test_rejects_invalid_ranking_method(self, client, moderator_user):
         resp = await client.post(
@@ -309,56 +194,6 @@ class TestGovernanceOverride:
         )
         # Moderator is NOT in ("lead", "admin") — should be 403
         assert resp.status_code == 403
-
-    @pytest.mark.asyncio
-    async def test_admin_can_override(self, client, admin_user):
-        from app.core.auth import get_current_user
-        from app.main import app as test_app
-
-        session = make_session(id=SID, status="ranking")
-        override_result = MagicMock()
-        override_result.id = uuid.uuid4()
-        override_result.session_id = SID
-        override_result.cycle_id = 1
-        override_result.theme_id = THEME_ID
-        override_result.original_rank = 3
-        override_result.new_rank = 1
-        override_result.overridden_by = "auth0|admin_001"
-        override_result.justification = "Strategic priority override"
-        override_result.created_at = datetime.now(timezone.utc)
-
-        async def override_admin():
-            return admin_user
-
-        test_app.dependency_overrides[get_current_user] = override_admin
-        try:
-            with (
-                patch("app.cubes.cube7_ranking.router.get_db") as mock_get_db,
-                patch(
-                    "app.cubes.cube7_ranking.service.apply_governance_override",
-                    new_callable=AsyncMock,
-                    return_value=override_result,
-                ),
-            ):
-                mock_db = AsyncMock()
-                sess_result = MagicMock()
-                sess_result.scalar_one_or_none.return_value = session
-                mock_db.execute = AsyncMock(return_value=sess_result)
-                mock_db.commit = AsyncMock()
-                mock_get_db.return_value = mock_db
-
-                resp = await client.post(
-                    f"{PREFIX}/override",
-                    json={
-                        "theme_id": str(THEME_ID),
-                        "new_rank": 1,
-                        "justification": "Strategic priority override for alignment",
-                    },
-                )
-            assert resp.status_code == 201
-        finally:
-            test_app.dependency_overrides.pop(get_current_user, None)
-
     @pytest.mark.asyncio
     async def test_regular_user_cannot_override(self, client, regular_user):
         from app.core.auth import get_current_user

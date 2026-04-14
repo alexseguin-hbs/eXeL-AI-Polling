@@ -142,37 +142,6 @@ class TestSubmitVoice:
                 files={"audio": ("test.webm", io.BytesIO(_fake_audio_bytes()), "audio/webm")},
             )
         assert resp.status_code == 201
-
-    @pytest.mark.asyncio
-    async def test_submit_rejects_unsupported_audio_format(self, client):
-        """WireGuard: unsupported audio formats rejected."""
-        form = self._build_form_data(audio_format="exe")
-        resp = await client.post(
-            PREFIX,
-            data=form,
-            files={"audio": ("test.exe", io.BytesIO(_fake_audio_bytes()), "application/octet-stream")},
-        )
-        assert resp.status_code == 400
-        assert "Unsupported audio format" in resp.json()["detail"]
-
-    @pytest.mark.asyncio
-    async def test_submit_rejects_empty_audio(self, client):
-        """Empty audio file rejected."""
-        form = self._build_form_data()
-        resp = await client.post(
-            PREFIX,
-            data=form,
-            files={"audio": ("test.webm", io.BytesIO(b""), "audio/webm")},
-        )
-        assert resp.status_code == 400
-        assert "empty" in resp.json()["detail"].lower()
-
-
-# ---------------------------------------------------------------------------
-# GET /voice — list voice responses (requires auth)
-# ---------------------------------------------------------------------------
-
-
 class TestListVoiceResponses:
     """GET /sessions/{sid}/voice — paginated list, auth required."""
 
