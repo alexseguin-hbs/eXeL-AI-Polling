@@ -66,7 +66,7 @@ class TestWireGuardCube10CubeId:
 
     def test_valid_cube_id_range_n99(self):
         for _ in range(99):
-            for cid in range(1, 11):
+            for cid in range(1, 13):
                 obj = FeedbackSubmit(cube_id=cid, text="test")
                 assert obj.cube_id == cid
 
@@ -80,10 +80,10 @@ class TestWireGuardCube10CubeId:
             with pytest.raises(ValidationError, match="cube_id"):
                 FeedbackSubmit(cube_id=-1, text="test")
 
-    def test_invalid_cube_id_eleven_rejected_n99(self):
+    def test_invalid_cube_id_thirteen_rejected_n99(self):
         for _ in range(99):
             with pytest.raises(ValidationError, match="cube_id"):
-                FeedbackSubmit(cube_id=11, text="test")
+                FeedbackSubmit(cube_id=13, text="test")
 
     def test_invalid_cube_id_large_rejected_n99(self):
         for _ in range(99):
@@ -91,7 +91,7 @@ class TestWireGuardCube10CubeId:
                 FeedbackSubmit(cube_id=999, text="test")
 
     def test_cube_id_whitelist_exact_set(self):
-        assert ALLOWED_CUBE_IDS == {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+        assert ALLOWED_CUBE_IDS == set(range(1, 13))
 
 
 class TestWireGuardCube10CrsId:
@@ -211,7 +211,7 @@ class TestWireGuardCube10SubmissionCubeId:
 
     def test_valid_submission_cube_id_n99(self):
         for _ in range(99):
-            for cid in range(1, 11):
+            for cid in range(1, 13):
                 obj = SubmissionCreate(
                     cube_id=cid, function_name="f", code_diff="x" * 20,
                 )
@@ -222,10 +222,10 @@ class TestWireGuardCube10SubmissionCubeId:
             with pytest.raises(ValidationError, match="cube_id"):
                 SubmissionCreate(cube_id=0, function_name="f", code_diff="x" * 20)
 
-    def test_invalid_submission_cube_id_eleven_rejected_n99(self):
+    def test_invalid_submission_cube_id_thirteen_rejected_n99(self):
         for _ in range(99):
             with pytest.raises(ValidationError, match="cube_id"):
-                SubmissionCreate(cube_id=11, function_name="f", code_diff="x" * 20)
+                SubmissionCreate(cube_id=13, function_name="f", code_diff="x" * 20)
 
 
 class TestWireGuardCube10AccessType:
@@ -253,7 +253,7 @@ class TestWireGuardCube10ChallengeCubeId:
 
     def test_valid_challenge_cube_id_n99(self):
         for _ in range(99):
-            for cid in range(1, 11):
+            for cid in range(1, 13):
                 obj = ChallengeCreate(
                     cube_id=cid, title="Test Challenge",
                     description="desc", acceptance_criteria="must pass all tests",

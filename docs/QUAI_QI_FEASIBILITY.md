@@ -342,6 +342,379 @@ Gas costs are low enough on Quai (~$0.001/tx) that absorbing them below the ente
 
 ---
 
+### Round 4 — Krishna (Integration) (2026.04.14_v003)
+
+## Per-Cube Blockchain Touchpoints
+
+Each cube that interacts with the blockchain has a single, well-defined function where the on-chain call is injected. The blockchain call is always **post-commit** (after the off-chain operation succeeds) and **fire-and-forget with retry** (failure does not block the user flow).
+
+### Cube 1: `create_session` — Session Hash Anchoring
+
+| Property | Value |
+|----------|-------|
+| **File** | `backend/app/cubes/cube1_session/service.py` line 183 |
+| **Function** | `async def create_session(db, *, title, created_by, description, anonymity_mode, cycle_mode, max_cycles, ranking_mode, language, max_response_length, ai_provider, seed, session_type, polling_mode, pricing_tier, max_participants, fee_amount_cents)` |
+| **Injection point** | After session row is committed to PostgreSQL and `short_code` is generated |
+| **On-chain data** | `session_hash = SHA-256(session_id + title + created_by + seed + created_at)` |
+| **Contract call** | `SoISessionRegistry.recordSession(bytes32 sessionHash, uint256 maxParticipants)` |
+| **Return** | `tx_hash` stored in `Session.blockchain_tx` column (nullable) |
+| **Estimated gas** | ~45,000 gas (~$0.002 at 20 gwei on Quai) |
+| **Failure mode** | Session still valid off-chain; `blockchain_tx = null` signals "not anchored" |
+
+### Cube 6: `run_pipeline` — Replay Hash Anchoring
+
+| Property | Value |
+|----------|-------|
+| **File** | `backend/app/cubes/cube6_ai/pipeline.py` line 48 |
+| **Function** | `async def run_pipeline(db, session_id, seed, *, use_embedding_assignment)` |
+| **Injection point** | After pipeline returns `replay_hash` in the result dict (final step after theme hierarchy 9 -> 6 -> 3 is built) |
+| **On-chain data** | `replay_hash` (SHA-256 of pipeline output: embeddings + clusters + themes), `theme_count`, `response_count` |
+| **Contract call** | `SoIGovernanceProof.recordPipelineHash(bytes32 sessionHash, bytes32 replayHash, uint16 themeCount, uint32 responseCount)` |
+| **Return** | `tx_hash` stored in pipeline result metadata |
+| **Estimated gas** | ~55,000 gas (~$0.003 at 20 gwei on Quai) |
+| **Failure mode** | Themes still valid off-chain; on-chain proof is supplementary verification |
+
+### Cube 7: `aggregate_rankings` — Ranking Proof Anchoring
+
+| Property | Value |
+|----------|-------|
+| **File** | `backend/app/cubes/cube7_ranking/ranking_aggregation.py` line 151 |
+| **Function** | `async def aggregate_rankings(db, session_id, cycle_id, seed, participant_stakes, excluded_participant_ids)` |
+| **Injection point** | After `AggregatedRanking` rows are committed to PostgreSQL and `replay_hash` is computed from the sorted Borda output |
+| **On-chain data** | `ranking_replay_hash` (SHA-256 of sorted Borda scores), `voter_count`, `excluded_count` (from anti-sybil CRS-12.04), `top_theme_id` |
+| **Contract call** | `SoIGovernanceProof.recordRankingProof(bytes32 sessionHash, bytes32 rankingHash, uint32 voterCount, uint16 excludedCount)` |
+| **Return** | `tx_hash` appended to aggregation response |
+| **Estimated gas** | ~60,000 gas (~$0.003 at 20 gwei on Quai) |
+| **Failure mode** | Rankings valid off-chain; proof is additive assurance for auditors |
+
+### Cube 8: `create_ledger_entry` — Token Minting
+
+| Property | Value |
+|----------|-------|
+| **File** | `backend/app/cubes/cube8_tokens/service.py` line 218 |
+| **Function** | `async def create_ledger_entry(db, *, session_id, user_id, cube_id, action_type, delta_heart, delta_human, delta_unity, lifecycle_state, reason, reference_id, distribution_method, anon_hash, session_short_code)` |
+| **Injection point** | After `TokenLedger` row is appended with `lifecycle_state = "confirmed"` |
+| **On-chain data** | `ledger_hash = SHA-256(session_id + user_id + delta_heart + delta_human + delta_unity + timestamp)`, token amounts (heart/human/unity as uint256), `anon_hash` (never raw user_id -- privacy preserved) |
+| **Contract call** | `SoITokenBridge.mintTokens(bytes32 ledgerHash, uint256 heartAmount, uint256 humanAmount, uint256 unityAmount, bytes32 anonUserHash)` |
+| **Return** | `tx_hash` stored in `TokenLedger.blockchain_tx` column (nullable) |
+| **Estimated gas** | ~80,000 gas (~$0.004 at 20 gwei on Quai) -- higher due to ERC-20 state changes |
+| **Failure mode** | Off-chain ledger is source of truth; on-chain mint is the "receipt" for eventual QI conversion |
+| **Batching** | For sessions with >100 participants, ledger entries are batched into a single Merkle root on-chain (1 tx per session, not per user). Individual users claim via Merkle proof later. |
+
+### Cube 9: `export_session_csv` — Export Hash Anchoring
+
+| Property | Value |
+|----------|-------|
+| **File** | `backend/app/cubes/cube9_reports/service.py` line 220 |
+| **Function** | `async def export_session_csv(db, session_id, content_tier)` |
+| **Injection point** | After CSV bytes are assembled into `io.BytesIO` and SHA-256 hash is computed over the final bytes |
+| **On-chain data** | `export_hash` (SHA-256 of final CSV bytes), `content_tier` (FREE/TIER_333/TIER_FULL), `row_count`, `column_count` (19 columns per CUBE_IO_SPEC) |
+| **Contract call** | `SoIGovernanceProof.recordExportHash(bytes32 sessionHash, bytes32 exportHash, string contentTier, uint32 rowCount)` |
+| **Return** | `tx_hash` included in export response headers (`X-Blockchain-Tx`) |
+| **Estimated gas** | ~50,000 gas (~$0.003 at 20 gwei on Quai) |
+| **Failure mode** | CSV download proceeds normally; blockchain receipt is optional verification |
+
+### Gas Cost Summary (per full session lifecycle)
+
+| Step | Gas | USD (20 gwei) |
+|------|----:|------:|
+| Session creation (Cube 1) | 45,000 | $0.002 |
+| Pipeline hash (Cube 6) | 55,000 | $0.003 |
+| Ranking proof (Cube 7) | 60,000 | $0.003 |
+| Token mint -- batched (Cube 8) | 80,000 | $0.004 |
+| Export hash (Cube 9) | 50,000 | $0.003 |
+| **Total per session** | **290,000** | **$0.015** |
+
+> At 20 gwei on Quai, a complete session lifecycle costs approximately $0.015 in gas.
+> For a 1M-user session with Merkle-batched token mints, total on-chain cost remains under $0.05.
+
+### Cubes NOT on-chain (and why)
+
+| Cube | Why Off-Chain |
+|------|--------------|
+| **Cube 2 (Text)** | Raw text contains PII-scrubbed content -- privacy-first. Hash included in Cube 6 replay_hash transitively. |
+| **Cube 3 (Voice)** | Audio metadata -- same PII rationale. Transcript flows through Cube 2 pipeline. |
+| **Cube 4 (Collector)** | Aggregation layer -- no unique proof needed. Individual response hashes covered by Cube 6. |
+| **Cube 5 (Gateway)** | Orchestration triggers -- ephemeral. Token calculations flow to Cube 8 for on-chain recording. |
+| **Cube 10 (Simulation)** | Internal testing/feedback -- no governance value in anchoring simulation results on-chain. |
+
+---
+
+### Round 5 — Enki (Edge Cases) (2026.04.14_v003)
+
+## Edge Cases & Failure Modes
+
+### EC-1: Quai Chain Down During Poll Close
+
+**Scenario:** Moderator closes polling, Cube 6 `run_pipeline` executes successfully, but Quai RPC is unreachable when `recordPipelineHash` is called. Same applies to Cube 7 `aggregate_rankings` and Cube 9 `export_session_csv`.
+
+**Mitigation:**
+1. All on-chain calls use fire-and-forget with `CircuitBreaker` (from `core/circuit_breaker.py`, already implemented for AI providers)
+2. Failed tx enters `blockchain_pending` queue in PostgreSQL: `{cube_id, function_name, payload_json, retry_count, next_retry_at, created_at}`
+3. Background worker retries with exponential backoff: 30s, 60s, 2m, 5m, 15m, 1h (max 6 retries)
+4. After 6 failures, entry moves to `blockchain_failed` state with alert to admin
+5. Session results remain fully valid off-chain -- blockchain anchoring is **supplementary, never blocking**
+6. When chain recovers, worker drains queue in FIFO order
+7. Dashboard shows indicator: "On-chain proof: pending" / "verified" / "unavailable"
+
+**User impact:** Zero. No user-facing flow depends on blockchain confirmation. The off-chain `replay_hash` in PostgreSQL is the primary source of truth.
+
+### EC-2: Gas Price Spike (10x) During 1M-User Poll
+
+**Scenario:** Gas price jumps from 20 gwei to 200 gwei mid-session. Unbatched token minting for 1M users via `create_ledger_entry` would cost $0.04 per mint = $40,000 total.
+
+**Mitigation:**
+1. **Gas price oracle check** before every on-chain call: `if gas_price > MAX_GAS_GWEI (configurable, default 50 gwei): defer`
+2. **Merkle batching** (designed for Cube 8): 1M token mints compress to a single Merkle root tx (~120,000 gas). Users claim individually later via Merkle proof.
+3. **Deferred anchoring mode:** When gas exceeds threshold, all proofs queue locally and anchor during the next low-gas window (checked every 5 minutes via cron)
+4. **Session-level gas budget:** Moderator sets max gas budget at session creation via `pricing_tier` (default: $1.00 USD). System batches/defers to stay within budget.
+5. **Priority tiers for on-chain calls:**
+   - P1 (critical): Ranking proof (Cube 7) -- governance integrity
+   - P2 (important): Pipeline hash (Cube 6) -- determinism proof
+   - P3 (normal): Session hash (Cube 1), Token mint (Cube 8)
+   - P4 (deferrable): Export hash (Cube 9) -- convenience only
+
+**Worst case cost with batching:** Single Merkle root for 1M users at 200 gwei = ~$0.05 (vs $40,000 unbatched). Batching reduces cost by 800,000x.
+
+### EC-3: Exchange Rate Change During ♡ -> QI Conversion
+
+**Scenario:** User initiates heart-to-QI conversion at rate 1000 ♡ = 1 QI. Between rate lock and on-chain execution (2-10 seconds of Quai block time), the admin-set rate changes to 1200 ♡ = 1 QI.
+
+**Mitigation:**
+1. **Rate lock window:** Conversion quote includes a `rate_lock_until` timestamp (30 seconds from quote)
+2. **Quote-then-execute pattern:**
+   - Step 1: `POST /api/v1/tokens/convert/quote` returns `{rate, qi_amount, rate_lock_until, quote_id}`
+   - Step 2: `POST /api/v1/tokens/convert/execute` with `quote_id` -- validates lock hasn't expired
+3. **Slippage tolerance:** User sets max acceptable slippage (default 2%). If rate moves >2% before execution, tx auto-cancels and heart tokens are refunded to off-chain ledger.
+4. **Atomic swap on-chain:** Smart contract holds heart tokens in escrow, mints QI atomically. If rate check fails on-chain, both sides revert (Solidity `require`).
+5. **Admin rate change cooldown:** When admin updates conversion rate, a 60-second grace period honors all existing quotes at the old rate. No surprise rate changes.
+6. **Note:** Unlike DEX trading, the ♡ -> QI rate is admin-controlled (no external oracle), so rate changes are deliberate and infrequent. This edge case is rare but must be handled.
+
+### EC-4: Smart Contract Bug Allows Double Minting
+
+**Scenario:** A reentrancy or logic bug in `SoITokenBridge.mintTokens` allows a malicious actor to call `create_ledger_entry` and trigger on-chain minting twice for the same ledger entry.
+
+**Mitigation (defense in depth, 7 layers):**
+1. **On-chain nonce:** `mintTokens` includes `require(!minted[ledgerHash])` -- each `ledger_hash` can only mint once. Mapping of used hashes is permanent.
+2. **On-chain reentrancy guard:** OpenZeppelin `ReentrancyGuard` on all state-changing functions
+3. **Off-chain pre-check:** Before submitting tx, Cube 8 service checks `TokenLedger.blockchain_tx IS NOT NULL` -- skip if already minted
+4. **Off-chain circuit breaker:** `core/circuit_breaker.py` monitors mint events via Quai event subscription. If minted amount exceeds expected amount for a session by >1%, breaker trips:
+   - Immediately pauses all conversion endpoints
+   - Alerts admin via webhook + email
+   - Logs full tx trace for forensic analysis
+5. **Reconciliation cron:** Every 5 minutes, compare on-chain token supply (from `SoITokenBridge.totalMinted()`) against off-chain `SELECT SUM(delta_heart + delta_human + delta_unity) FROM token_ledger WHERE lifecycle_state = 'confirmed'`. Discrepancy > 0.01% triggers immediate alert.
+6. **Multi-sig contract upgrades:** All contract upgrades require 3-of-5 multi-sig (Master of Thought + 2 additional signers minimum). No single actor can deploy a compromised contract.
+7. **Emergency pause:** Contract includes `pause()` callable by any single multi-sig signer -- freezes all minting immediately. Unpause requires full threshold.
+
+### EC-5: 59 Jurisdictions Have Different Crypto Regulations
+
+**Scenario:** User in jurisdiction X (e.g., New York requires BitLicense, China bans crypto, UAE has VARA) attempts token conversion via `create_ledger_entry` -> `mintTokens`, but local regulations prohibit or restrict the operation.
+
+**Mitigation:**
+1. **Jurisdiction gating extension:** `core/hi_rates.py` already has 59-jurisdiction rate table. Add three fields per jurisdiction:
+   - `crypto_conversion_allowed: bool` -- can this jurisdiction convert ♡ to QI?
+   - `kyc_required_level: int` (0-3) -- what KYC tier is needed before first conversion?
+   - `max_daily_conversion_usd: float` -- daily conversion cap (0 = blocked)
+
+2. **Three tiers of blockchain access:**
+
+   | Tier | Example Jurisdictions | What's Allowed |
+   |------|----------------------|----------------|
+   | **Full** | US (excl. NY), EU (MiCA), Canada, UK, Japan, Singapore, UAE, Australia | Token earning + QI conversion + USDC off-ramp |
+   | **Earn Only** | NY (BitLicense required), India (30% tax), South Korea (VASP reg) | Token earning + on-chain proof viewing, NO conversion to QI |
+   | **Blocked** | China, Russia, Iran, North Korea, Cuba, Syria | No blockchain features visible in UI at all |
+
+3. **Graceful degradation:** Blocked-jurisdiction users see standard SoI Trinity Tokens (♡ 웃 ◬) without any blockchain/QI branding. Governance works identically -- blockchain is invisible. The `create_ledger_entry` function still records tokens off-chain; only the on-chain `mintTokens` call is suppressed.
+
+4. **Pre-conversion jurisdiction check:** `POST /api/v1/tokens/convert/quote` checks `hi_rates[user.jurisdiction].crypto_conversion_allowed` before returning a quote. Blocked users get HTTP 403 with jurisdiction-specific explanation.
+
+5. **Jurisdiction change handling:** If a country's crypto status changes (e.g., India fully bans), pending conversions for affected users are paused (not cancelled) with notification. Config update to `hi_rates.py` -- no code deployment needed.
+
+6. **Legal review cadence:** Jurisdiction table reviewed quarterly by legal counsel. Changes are config-only (no code changes, no redeployment).
+
+---
+
+### Round 6 — Odin (Future-Proofing) (2026.04.14_v003)
+
+## 1B Scale Architecture
+
+### The Spiral Centrifuge at Planetary Scale
+
+The spiral centrifuge model (center -> fling -> reaggregate) is the architectural key to 1B concurrent users. At 1M users, a single Quai zone handles all on-chain operations. At 1B, we shard across Quai's full 9-zone topology, with each zone processing a deterministic subset of the governance workload.
+
+```
+                         1B USERS
+                            |
+                    +-------+-------+
+                    |   INGESTION   |
+                    |   ROUTER      |
+                    | (hash-based   |
+                    |  zone assign) |
+                    +---+---+---+---+
+                        |   |   |
+           +------------+   |   +------------+
+           |                |                |
+    +======+======+  +======+======+  +======+======+
+    |   CYPRUS     |  |   PAXOS     |  |   HYDRA     |
+    |  Zone 1-3   |  |  Zone 4-6   |  |  Zone 7-9   |
+    |  Cubes 1-3  |  |  Cubes 4-6  |  |  Cubes 7-9  |
+    +======+======+  +======+======+  +======+======+
+           |                |                |
+           +--------+-------+--------+-------+
+                    |                |
+             +------+------+  +-----+------+
+             | REAGGREGATE |  | CUBE 10    |
+             | Cross-zone  |  | Merge      |
+             | Merkle root |  | Coordinator|
+             +-------------+  +------------+
+```
+
+### Quai Zone-to-Cube Mapping (9 Zones x 9 Cubes = 81 Parallel Execution Paths)
+
+Quai Network provides 3 regions (Cyprus, Paxos, Hydra) x 3 zones each = 9 execution shards. Our 9-cube architecture maps naturally onto this topology:
+
+| Quai Region | Quai Zone | Cube Assignment | Governance Role | On-Chain Function |
+|-------------|-----------|-----------------|-----------------|-------------------|
+| **Cyprus** (Session Layer) | Cyprus-1 | Cube 1 (Session) | Session creation, state anchoring | `recordSession()` |
+| | Cyprus-2 | Cube 2 (Text) | Text response ingestion (off-chain) | N/A |
+| | Cyprus-3 | Cube 3 (Voice) | Voice transcript ingestion (off-chain) | N/A |
+| **Paxos** (Processing Layer) | Paxos-1 | Cube 4 (Collector) | Response aggregation (off-chain) | N/A |
+| | Paxos-2 | Cube 5 (Gateway) | Pipeline orchestration (off-chain) | N/A |
+| | Paxos-3 | Cube 6 (AI) | Replay hash anchoring | `recordPipelineHash()` |
+| **Hydra** (Governance Layer) | Hydra-1 | Cube 7 (Ranking) | Ranking proofs, Borda verification | `recordRankingProof()` |
+| | Hydra-2 | Cube 8 (Tokens) | Token minting, QI bridge | `mintTokens()` |
+| | Hydra-3 | Cube 9 (Reports) | Export hash anchoring | `recordExportHash()` |
+
+**81 parallel paths:** For a session with 1B users, the ingestion router assigns each user to one of 9 zones based on `SHA-256(user_id) mod 9`. Each zone processes its user shard independently through all 9 cube stages. Total parallel capacity: 9 zones x 9 stages = 81 concurrent execution lanes.
+
+### Cross-Zone Aggregation Protocol
+
+Deterministic reaggregation is the hardest problem at 1B scale. The protocol ensures identical results regardless of how users are distributed across zones:
+
+```
+PHASE 1 -- ZONE-LOCAL AGGREGATION (parallel, 9 zones)
+------------------------------------------------------
+Each zone independently:
+  1. Collects responses from its user shard (Cube 4)
+  2. Runs local Cube 6 pipeline (embeddings + MiniBatchKMeans clustering)
+  3. Runs local Cube 7 Borda aggregation (BordaAccumulator per zone)
+  4. Produces zone_replay_hash = SHA-256(local_pipeline_hash + local_borda_hash)
+  5. Anchors zone_replay_hash on its Quai zone shard
+
+PHASE 2 -- CROSS-ZONE MERGE (sequential, Cube 10 as coordinator)
+-----------------------------------------------------------------
+Cube 10 (Simulation Orchestrator) becomes the merge coordinator:
+  1. Collects 9 zone_replay_hashes from respective zone shards
+  2. Fetches zone-local Borda scores via internal API
+  3. Runs BordaAccumulator.merge(zone_results[0..8])
+     -- Deterministic: same inputs always produce same merged ranking
+     -- Commutative: merge order does not matter (sorted by zone_id)
+     -- Associative: merge(merge(A,B), C) == merge(A, merge(B,C))
+  4. Produces global_replay_hash = SHA-256(sorted(zone_hashes) + merged_scores)
+  5. Anchors global_replay_hash on Quai prime chain (cross-shard tx)
+
+PHASE 3 -- VERIFICATION (any auditor, fully public)
+----------------------------------------------------
+  1. Fetch all 9 zone_replay_hashes from respective zone shards
+  2. Fetch global_replay_hash from prime chain
+  3. Recompute: SHA-256(sorted(zone_hashes) + recomputed_merge)
+  4. Verify: recomputed == global_replay_hash
+  5. PASS = governance result is cryptographically proven deterministic
+     FAIL = trigger dispute resolution (Round 8, Aset)
+```
+
+**Determinism guarantee:** The merge is commutative and associative because Borda scores are additive. A theme ranked #1 in 7 of 9 zones will always be #1 globally, regardless of zone assignment order. The seeded MiniBatchKMeans (`random_state` from Cube 6) ensures identical response text in different zones produces identical theme assignments.
+
+### Base-3600 Coordinate System for Distributed Governance
+
+The universal coordinate system (SA/EA/HU -- see `project_universal_coordinate_system.md`) maps naturally to the distributed governance topology:
+
+```
+BASE-3600 GOVERNANCE COORDINATES
+----------------------------------
+Format: SA.EA.HU (each component 0-3599)
+
+SA (Spatial Address):  Which Quai zone handles this governance artifact
+  SA = session_hash mod 9 -> zone assignment (0-8)
+  SA precision: zone (coarse, 0-8) -> shard (medium, 0-99) -> block (fine, 0-3599)
+  SA maps to physical geography for geo-scoped polls
+
+EA (Entity Address):   Which participant/entity within the zone
+  EA = participant_hash mod zone_capacity
+  EA precision: user (coarse) -> response (medium) -> token (fine)
+  EA uniquely identifies a governance actor across the entire system
+
+HU (Hash Unit):        Which governance artifact type
+  HU = artifact_type enum:
+    0 = session_hash      (Cube 1 create_session)
+    1 = pipeline_hash     (Cube 6 run_pipeline)
+    2 = ranking_hash      (Cube 7 aggregate_rankings)
+    3 = token_hash         (Cube 8 create_ledger_entry)
+    4 = export_hash        (Cube 9 export_session_csv)
+  HU precision: type (coarse) -> version (medium) -> tx_hash (fine)
+
+EXAMPLE: 0007.1842.0002
+  -> Zone 7 (Hydra-1 = Cube 7 Ranking)
+  -> Entity #1842 in that zone
+  -> Ranking proof artifact (HU=2)
+  -> Locatable on Quai Hydra Zone 1 by any verifier
+```
+
+This coordinate system enables any governance artifact to be located across the distributed 1B-user topology with a single 12-digit address. It also enables future geospatial governance -- polls scoped to physical regions can use SA as a literal geographic coordinate, enabling drone-swarm-scale distributed decision making.
+
+### Drone Swarm Analogy: Each Cube as an Autonomous Agent
+
+At 1B scale, each cube operates as an autonomous agent in a drone swarm. The I/O contracts from `CUBE_IO_SPEC.md` are the "flight protocols" -- each agent only needs to know its inputs and outputs, not the full system:
+
+| Drone Property | Cube Equivalent | Implementation |
+|---------------|-----------------|----------------|
+| **Mission** | Cube responsibility (Session, Text, AI, etc.) | Single-purpose service with defined I/O from CUBE_IO_SPEC |
+| **Sensors** | Input interfaces (HTTP, WebSocket, DB read) | Pydantic schemas, validated at service boundary |
+| **Actuators** | Output interfaces (DB write, broadcast, on-chain tx) | ORM commits, Supabase Realtime events, Quai contract calls |
+| **Autonomy** | Standalone operation with local state | Stateless service + shared PostgreSQL (Supabase) |
+| **Communication** | I/O contracts between cubes | `CUBE_IO_SPEC.md` defines exact schemas -- Challengers must preserve |
+| **Formation** | Spiral grid (3x3 Layer 1 + center Layer 2) | Dependency graph determines execution order (1->2->3->4->5->6->7->8->9) |
+| **Swarm intelligence** | Cross-cube aggregation via Cube 10 | Cube 10 merges zone-local results into global governance outcome |
+| **Self-healing** | Circuit breaker + retry + fallback | `core/circuit_breaker.py` per external dependency (AI providers, Quai RPC) |
+| **Redundancy** | Multi-zone deployment | Same cube code runs on all 9 Quai zones simultaneously |
+| **Upgradability** | Cube 10 Challenger system | Any developer can check out a cube, modify internals, prove better metrics |
+
+**Key insight:** Just as a drone swarm achieves complex missions through simple agents following I/O contracts, the cube architecture achieves 1B-scale governance through 9 simple services following strict interface contracts. No cube needs to understand the full system -- it only needs to honor its inputs and outputs as defined in `CUBE_IO_SPEC.md`.
+
+### Scaling Equation
+
+```
+Throughput = zones(Z) x cubes(C) x workers_per_cube(W) x batch_size(B)
+
+At Quai's current topology:
+  Z = 9 (Quai execution shards)
+  C = 9 (SoI cubes)
+  W = variable (horizontal autoscaling via Kubernetes)
+  B = variable (MiniBatchKMeans chunk size, default 1000)
+
+For 1B users:
+  Operations per user = ~5 (submit + theme + rank + token + export)
+  Total operations = 1B x 5 = 5B
+
+  At W=135 workers/cube, B=1000:
+    Throughput = 9 x 9 x 135 x 1000 = 10,935,000 ops/sec
+    Time = 5B / 10.9M = ~458 seconds (~7.6 minutes)
+
+  At W=135 workers/cube, B=10,000 (streaming batches):
+    Throughput = 9 x 9 x 135 x 10,000 = 109,350,000 ops/sec
+    Time = 5B / 109.3M = ~46 seconds
+
+  At W=500 workers/cube (burst mode), B=10,000:
+    Throughput = 9 x 9 x 500 x 10,000 = 405,000,000 ops/sec
+    Time = 5B / 405M = ~12 seconds
+```
+
+**Conclusion:** The spiral centrifuge model can process 1B users within 46 seconds using moderate horizontal scaling (135 workers per cube across 9 Quai zones). Burst mode at 500 workers achieves 12-second processing -- well within the "Speed of Thought" vision.
+
+**Infrastructure cost estimate at 1B scale:** At 135 workers x 9 cubes = 1,215 containers. On Kubernetes with spot instances (~$0.02/hr per container), burst processing for 1 minute costs approximately $0.40 in compute. On-chain gas for 1B users (Merkle-batched): ~$0.50. Total cost per 1B-user governance event: under $1.00.
+
+---
+
 ### Round 7 — Sofia (2026.04.14_v003)
 
 ## Multi-Jurisdiction Token Compliance
@@ -585,13 +958,13 @@ This enables a third party to verify not just a single poll, but an entire gover
 | **Thor** | 1 | Security | Smart contract attack vectors, multi-sig requirements, rate limiting on-chain, audit firm recommendations |
 | **Thoth** | 2 | Data Model | On-chain data structures (PollRecord, TokenEvent, VoteProof), gas cost estimates, storage optimization, indexing strategy |
 | **Athena** | 3 | Strategy | Competitive analysis (vs Snapshot/Aragon/Tally), pricing model, go-to-market segmentation |
-| **Enlil** | 4 | Implementation | Build verification, migration paths, contract deployment checklist |
-| **Krishna** | 5 | Integration | Cross-module dependencies, Cube-to-chain mapping, SDK bridge layer |
-| **Odin** | 6 | Foresight | Predictive risk modeling, future-proofing for Quai protocol upgrades, chain migration strategy |
+| **Krishna** | 4 | Integration | Per-cube blockchain touchpoints, exact function-to-contract mapping, gas cost summary, on-chain vs off-chain rationale |
+| **Enki** | 5 | Edge Cases | 5 failure modes (chain down, gas spike, rate change, double-mint, jurisdiction gating), circuit breaker patterns, Merkle batching |
+| **Odin** | 6 | Future-Proofing | 1B scale architecture, 9x9=81 parallel paths, cross-zone aggregation protocol, Base-3600 coordinates, drone swarm analogy |
 | **Sofia** | 7 | Localization | 59-jurisdiction compliance mapping, KYC/AML tiers, geo-fencing, GDPR-blockchain resolution |
 | **Aset** | 8 | Verification | Governance proof chain, replay verification protocol, dispute resolution, cross-poll consistency |
 | **Christo** | 9 | Consensus | Final assessment, risk matrix, recommended next steps (this section) |
-| **Enki** | — | Diversity | Edge-case injection across all rounds (sanctioned country edge cases, minority language polls, single-participant sessions) |
+| **Enlil** | — | Implementation | Build verification support, migration path advisory across all rounds |
 | **Pangu** | — | Innovation | Spiral centrifuge concept, 1B-scale sharding vision, cross-chain future architecture |
 | **Asar** | — | Synthesis | Final synthesis review of all rounds, outcome coherence validation |
 

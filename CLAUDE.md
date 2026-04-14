@@ -283,6 +283,8 @@ All clustering and ranking operations must be fully reproducible:
 | 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens, ledger, payments, talent profiles, execution separation |
 | 9 | (1,1,3) | Reports & Dashboards | 1 | CSV/PDF, Pixelated Tokens, CQS dashboard, data destruction |
 | 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Per-cube isolation, code challenge, replay, metric comparison. **Feedback Loop (FB) at center** — collects from every screen, auto-tags Cube + CRS, feeds backlog → votes → AI → ◬ ♡ 웃 approval → deploy |
+| 11 | (3,2,2) | Blockchain (Quai/QI) | 3 | On-chain survey governance proofs, AI/SI/HI token conversion to QI/USDC, chain recording. Data flows: Cube 9→10→11 (survey results → simulation verify → chain record) |
+| 12 | (3,2,1) | Divinity Guide & NFT ARX | 3 | Divinity Guide reader (10 languages, Pinyin, bilingual mirror), NFT ARX physically-backed tokens (mint, verify, transfer, marketplace). Separate from Cube 11 — shares Quai chain but independent code path |
 
 ## CRS Naming Convention
 
@@ -422,6 +424,8 @@ Track and optimize for:
 | 8 Tokens | **~82%** | **82** | 194 | CRS-18-19, 24-25, 32-35 | 59-jurisdiction precision. Lifecycle exhaustive. |
 | 9 Reports | **~76%** | **76** | 93 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | **~74%** | **74** | 107 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
+| 11 Blockchain | **Planned** | **0** | 0 | CRS-23 | Quai/QI on-chain survey proofs + AI/SI/HI token conversion. Data: Cube 9→10→11 |
+| 12 Divinity/NFT | **Planned** | **0** | 0 | NEW | Divinity Guide reader + NFT ARX physically-backed tokens (mint/verify/transfer) |
 | **SDK/Cross-Cube/Scale** | **Active** | — | 441 | — | N=99 SSSES Spiral (48) + WireGuard Cubes 1-3 (72) + WireGuard Cubes 4-10 (126) + 1M All Cubes (53) + SDK Core (31) + Theme Compression (27) + 1M Simulation (24) + Cross-Cube Chain (22) + SDK Functions (19) + Broadcast Payload (17) + Health (2) |
 | **Total** | | | **1,488 (2,212 executed)** | | |
 

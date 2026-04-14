@@ -127,7 +127,8 @@ async def list_cubes():
     """SDK discovery: list all cubes with endpoints, events, and status."""
     from app.core.sdk import get_cube_registry
 
-    return {"cubes": get_cube_registry(), "total": 10, "version": "0.1.0"}
+    registry = get_cube_registry()
+    return {"cubes": registry, "total": len(registry), "version": "0.1.0"}
 
 
 @app.post("/api/v1/compress/estimate", tags=["Health"])

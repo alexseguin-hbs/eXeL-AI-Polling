@@ -583,7 +583,7 @@ class TestCube10SSSES:
     """Cube 10: Simulation engine — per-cube isolation, feedback loop."""
 
     VALID_FEEDBACK_TYPES = ("CRS", "DI")
-    VALID_CUBE_IDS = range(1, 11)
+    VALID_CUBE_IDS = range(1, 13)
     VALID_SENTIMENTS = ("positive", "neutral", "negative")
 
     # ── Security: WireGuard feedback type whitelist ──
@@ -600,8 +600,8 @@ class TestCube10SSSES:
         """Cube ID must be integer 1-10."""
         for _ in range(N):
             for cid in self.VALID_CUBE_IDS:
-                assert 1 <= cid <= 10
-            for invalid in (0, 11, -1, 100):
+                assert 1 <= cid <= 12
+            for invalid in (0, 13, -1, 100):
                 assert invalid not in self.VALID_CUBE_IDS
 
     # ── Security: CRS ID format validation ──

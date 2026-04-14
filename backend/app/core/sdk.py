@@ -534,6 +534,18 @@ CUBE_REGISTRY: list[CubeDescriptor] = [
         events=["simulation.submission_created", "simulation.vote_cast", "simulation.deployed", "simulation.reverted"],
         mvp=3, status="beta",
     ),
+    CubeDescriptor(
+        id=11, name="Blockchain", description="Quai/QI on-chain governance: survey proofs, AI/SI/HI token conversion, chain recording",
+        endpoints=["/chain/record-survey", "/chain/verify/{session_hash}", "/chain/convert-tokens"],
+        events=["chain.survey_recorded", "chain.tokens_converted", "chain.verification_requested"],
+        mvp=3, status="planned",
+    ),
+    CubeDescriptor(
+        id=12, name="Divinity & NFT", description="Divinity Guide reader + NFT ARX physically-backed tokens: mint, verify, transfer, marketplace",
+        endpoints=["/divinity-guide", "/arx/mint", "/arx/verify/{token_id}", "/arx/transfer", "/arx/marketplace"],
+        events=["arx.minted", "arx.transferred", "arx.verified", "divinity.chapter_read", "divinity.donation_received"],
+        mvp=3, status="planned",
+    ),
 ]
 
 

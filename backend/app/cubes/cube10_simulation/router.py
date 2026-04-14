@@ -33,7 +33,7 @@ router = APIRouter(tags=["Cube 10 — Simulation"])
 # ---------------------------------------------------------------------------
 
 ALLOWED_FEEDBACK_TYPES = {"CRS", "DI"}
-ALLOWED_CUBE_IDS = set(range(1, 11))  # 1-10
+ALLOWED_CUBE_IDS = set(range(1, 13))  # 1-12 (includes Cube 11 Blockchain + Cube 12 Divinity/NFT)
 ALLOWED_SUBMITTER_TYPES = {"human", "ai"}
 ALLOWED_ACCESS_TYPES = {"admin", "challenger"}
 ALLOWED_CHALLENGE_STATUSES = {"open", "claimed", "submitted", "completed", "closed"}
@@ -68,7 +68,7 @@ class FeedbackSubmit(BaseModel):
     def validate_cube_id(cls, v: int) -> int:
         if v not in ALLOWED_CUBE_IDS:
             raise ValueError(
-                f"cube_id must be 1-10, got {v}"
+                f"cube_id must be 1-12, got {v}"
             )
         return v
 
@@ -111,7 +111,7 @@ class SubmissionCreate(BaseModel):
     def validate_cube_id(cls, v: int) -> int:
         if v not in ALLOWED_CUBE_IDS:
             raise ValueError(
-                f"cube_id must be 1-10, got {v}"
+                f"cube_id must be 1-12, got {v}"
             )
         return v
 
@@ -147,7 +147,7 @@ async def get_feedback_stats(
 ):
     """Aggregate feedback statistics for admin triage."""
     if cube_id is not None and cube_id not in ALLOWED_CUBE_IDS:
-        raise HTTPException(status_code=400, detail=f"cube_id must be 1-10, got {cube_id}")
+        raise HTTPException(status_code=400, detail=f"cube_id must be 1-12, got {cube_id}")
     return await service.get_feedback_stats(db, cube_id)
 
 
@@ -254,7 +254,7 @@ class ChallengeCreate(BaseModel):
     def validate_cube_id(cls, v: int) -> int:
         if v not in ALLOWED_CUBE_IDS:
             raise ValueError(
-                f"cube_id must be 1-10, got {v}"
+                f"cube_id must be 1-12, got {v}"
             )
         return v
 
