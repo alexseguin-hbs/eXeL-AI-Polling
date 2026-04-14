@@ -54,8 +54,22 @@ async def run_pipeline(
 ) -> dict:
     """Execute the full parallel theming pipeline for a session.
 
+    CRS-11: AI Theme generation from user responses.
+    CRS-12: Deterministic theme hierarchy (9 → 6 → 3).
+    CRS-13: Theme assignment with confidence scores.
+
     Called after moderator closes polling. Summaries already exist
     from Phase A (live per-response summarization during polling).
+
+    Pipeline Steps (I/O boundaries for Cube 10 Challengers):
+      Step 1: Fetch summaries       → list[dict] (CRS-11.01)
+      Step 2: Classify Theme01      → responses with theme01 field (CRS-11.02)
+      Step 3: Group by Theme01      → 3 bins (CRS-11.03)
+      Step 4: Marble sampling       → grouped samples (CRS-11.04)
+      Step 5: Generate themes       → theme labels per bin (CRS-12.01)
+      Step 6: Reduce 9 → 6 → 3     → hierarchy dict (CRS-12.02)
+      Step 7: Assign themes         → responses with theme2_9/6/3 (CRS-13.01)
+      Step 8: Store results         → PostgreSQL + replay hash (CRS-13.02)
 
     Args:
         use_embedding_assignment: If True, use cosine similarity for theme

@@ -370,16 +370,21 @@ async def submit_voice_response(
 ) -> dict:
     """Main orchestrator: transcribe voice, process through Cube 2 pipeline, store, return with tokens.
 
-    Flow:
-      1. Validate session (polling?), question, participant
-      2. Start time tracking (Cube 5)
-      3. Select STT provider + transcribe audio
-      4. Validate transcript (non-empty, confidence)
-      5. Run Cube 2 PII/profanity pipeline on transcript
-      6. Store: Postgres (ResponseMeta + VoiceResponse + TextResponse)
-      7. Stop time tracking → ♡/◬ tokens
-      8. Broadcast event for Cube 6 via Supabase
-      9. Return response with immediate token display
+    CRS-08: Voice-to-text transcription with multi-provider support.
+    CRS-15: Provider circuit breaker + failover.
+    CRS-09: Response storage with PII protection.
+    CRS-10: Token reward for voice participation.
+
+    Pipeline Steps (I/O boundaries for Cube 10 Challengers):
+      Step 1: Validate session/question/participant  → Session, Participant (CRS-08.01)
+      Step 2: Start time tracking (Cube 5)           → TimeEntry (CRS-10.01)
+      Step 3: STT provider + transcribe              → STTResult (CRS-08.02, CRS-15)
+      Step 4: Validate transcript quality             → str transcript (CRS-08.03)
+      Step 5: PII/profanity pipeline (Cube 2)        → str clean_text (CRS-09.01)
+      Step 6: Store to PostgreSQL                    → ResponseMeta + VoiceResponse (CRS-09.02)
+      Step 7: Stop time tracking → tokens            → float heart + unity (CRS-10.02)
+      Step 8: Fire Cube 6 Phase A (async)            → background summary task
+      Step 9: Return composite result                → dict response (CRS-08.04)
     """
     # --- 1. Validate session, question, participant (reuse Cube 2) ---
     session = await validate_session_for_submission(db, session_id)

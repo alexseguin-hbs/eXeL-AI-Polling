@@ -1,6 +1,6 @@
 """Cube 3 — Live STT Integration Tests.
 
-These tests call REAL external APIs (Grok, Gemini) with real audio files.
+These tests call REAL external APIs (Gemini, Whisper) with real audio files.
 They verify that the provider implementations actually transcribe speech correctly.
 
 NOT run in CI — run manually with:
@@ -9,7 +9,7 @@ NOT run in CI — run manually with:
 
 Requirements:
     - LIVE_STT=1 environment variable set (opt-in gate)
-    - XAI_API_KEY set in .env (for Grok tests)
+    - (Grok STT removed — xAI has no audio transcription permission)
     - GEMINI_API_KEY set in .env (for Gemini tests)
     - gtts package installed (for generating test audio)
 """
@@ -86,110 +86,14 @@ def spanish_audio_mp3() -> bytes:
 
 # ── Skip Conditions ───────────────────────────────────────────────
 
-xai_key = os.getenv("XAI_API_KEY", "")
 gemini_key = os.getenv("GEMINI_API_KEY", "")
 openai_key = os.getenv("OPENAI_API_KEY", "")
 
-skip_grok = pytest.mark.skipif(not xai_key, reason="XAI_API_KEY not set")
 skip_gemini = pytest.mark.skipif(not gemini_key, reason="GEMINI_API_KEY not set")
 skip_openai = pytest.mark.skipif(not openai_key, reason="OPENAI_API_KEY not set")
 
-
-# ══════════════════════════════════════════════════════════════════
-# Grok (xAI) — Live Tests
-# ══════════════════════════════════════════════════════════════════
-
-class TestGrokLive:
-    """Live integration tests for Grok (xAI) STT provider."""
-
-    @_skip_audio
-    @skip_grok
-    @pytest.mark.xfail(reason="xAI team lacks audio transcription permission (403)")
-    @pytest.mark.asyncio
-    async def test_grok_english_transcription(self, english_audio_mp3: bytes):
-        """Grok should transcribe English speech with recognizable output."""
-        from app.cubes.cube3_voice.providers.grok_provider import GrokSTT
-
-        provider = GrokSTT()
-        result = await provider.transcribe(
-            audio_bytes=english_audio_mp3,
-            language_code="en",
-            audio_format="mp3",
-        )
-
-        print(f"\n  [GROK EN] Transcript: {result.transcript}")
-        print(f"  [GROK EN] Confidence: {result.confidence}")
-        print(f"  [GROK EN] Duration: {result.audio_duration_sec}s")
-        print(f"  [GROK EN] Language: {result.language_detected}")
-        print(f"  [GROK EN] Provider: {result.provider}")
-
-        # Verify result structure
-        assert isinstance(result, TranscriptionResult)
-        assert result.provider == "grok"
-        assert result.confidence > 0.3, f"Confidence too low: {result.confidence}"
-        assert len(result.transcript) > 10, f"Transcript too short: {result.transcript}"
-        assert result.audio_duration_sec > 0
-
-        # Verify key words from the known text appear in transcript
-        transcript_lower = result.transcript.lower()
-        assert any(word in transcript_lower for word in [
-            "artificial", "intelligence", "governance", "voices", "millions",
-        ]), f"Transcript doesn't match expected content: {result.transcript}"
-
-    @_skip_audio
-    @skip_grok
-    @pytest.mark.xfail(reason="xAI team lacks audio transcription permission (403)")
-    @pytest.mark.asyncio
-    async def test_grok_spanish_transcription(self, spanish_audio_mp3: bytes):
-        """Grok should transcribe Spanish speech correctly."""
-        from app.cubes.cube3_voice.providers.grok_provider import GrokSTT
-
-        provider = GrokSTT()
-        result = await provider.transcribe(
-            audio_bytes=spanish_audio_mp3,
-            language_code="es",
-            audio_format="mp3",
-        )
-
-        print(f"\n  [GROK ES] Transcript: {result.transcript}")
-        print(f"  [GROK ES] Confidence: {result.confidence}")
-
-        assert isinstance(result, TranscriptionResult)
-        assert result.provider == "grok"
-        assert result.confidence > 0.3
-        assert len(result.transcript) > 5
-
-        # Check Spanish keywords
-        transcript_lower = result.transcript.lower()
-        assert any(word in transcript_lower for word in [
-            "inteligencia", "artificial", "gobernanza", "ayudar",
-        ]), f"Spanish transcript doesn't match: {result.transcript}"
-
-    def test_grok_language_support(self):
-        """Grok should report support for all 33 languages (no SDK init needed)."""
-        from app.cubes.cube3_voice.providers.base import SUPPORTED_LANGUAGE_CODES
-        from app.cubes.cube3_voice.providers.grok_provider import _GROK_MODEL
-
-        for lang in ["en", "es", "fr", "ja", "zh", "ar", "hi", "ko", "de"]:
-            assert lang in SUPPORTED_LANGUAGE_CODES, f"Grok should support {lang}"
-        assert _GROK_MODEL == "whisper-large-v3"
-
-    @_skip_audio
-    @skip_grok
-    @pytest.mark.asyncio
-    async def test_grok_empty_audio_handling(self):
-        """Grok should handle empty/invalid audio gracefully."""
-        from app.cubes.cube3_voice.providers.grok_provider import GrokSTT
-
-        provider = GrokSTT()
-        with pytest.raises(STTProviderError) as exc_info:
-            await provider.transcribe(
-                audio_bytes=b"not_real_audio",
-                language_code="en",
-                audio_format="mp3",
-            )
-        print(f"\n  [GROK] Error handling works: {exc_info.value}")
-        assert "grok" in str(exc_info.value).lower()
+# NOTE: Grok (xAI) STT tests REMOVED — xAI API has no audio transcription permission.
+# Grok remains available for AI theming (Cube 6) but NOT for Voice-to-Text (Cube 3).
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -309,18 +213,7 @@ class TestCircuitBreakerLive:
         """Test that circuit breaker correctly fails over between available providers."""
         results = {}
 
-        # Test each available provider
-        if xai_key:
-            try:
-                from app.cubes.cube3_voice.providers.grok_provider import GrokSTT
-                provider = GrokSTT()
-                result = await provider.transcribe(english_audio_mp3, "en", "mp3")
-                results["grok"] = result.transcript[:50]
-                print(f"\n  [FAILOVER] Grok OK: {result.transcript[:50]}...")
-            except STTProviderError as e:
-                results["grok"] = f"FAILED: {e}"
-                print(f"\n  [FAILOVER] Grok failed: {e}")
-
+        # Test each available provider (Grok removed — no STT permission)
         if gemini_key:
             try:
                 from app.cubes.cube3_voice.providers.gemini_provider import GeminiSTT
@@ -357,18 +250,7 @@ class TestProviderComparison:
 
         providers_tested = 0
 
-        if xai_key:
-            from app.cubes.cube3_voice.providers.grok_provider import GrokSTT
-            try:
-                result = await GrokSTT().transcribe(english_audio_mp3, "en", "mp3")
-                print(f"\n  GROK (whisper-large-v3):")
-                print(f"    Transcript:  {result.transcript}")
-                print(f"    Confidence:  {result.confidence:.4f}")
-                print(f"    Duration:    {result.audio_duration_sec:.2f}s")
-                providers_tested += 1
-            except STTProviderError as e:
-                print(f"\n  GROK: FAILED — {e}")
-
+        # Grok removed from STT comparison — no audio transcription permission
         if gemini_key:
             from app.cubes.cube3_voice.providers.gemini_provider import GeminiSTT
             try:

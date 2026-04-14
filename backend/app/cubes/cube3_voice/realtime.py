@@ -41,6 +41,46 @@ _realtime_cb = CircuitBreaker(max_failures=3, cooldown_seconds=60.0, name="cube3
 # WebSocket connection limiter — max concurrent realtime sessions
 _ws_connection_semaphore = asyncio.Semaphore(50)
 
+_STT_START_TIMEOUT = 10.0  # seconds — prevent hung provider on start
+
+
+async def _start_stt_provider(
+    language_code: str, session_id: str
+) -> tuple[AzureRealtimeSTT | AWSRealtimeSTT | None, str]:
+    """Start STT provider with circuit breaker fallback (G10 extract).
+
+    Returns (stt_instance, provider_name) or (None, "") if all providers fail.
+    I/O: language_code + session_id → (STT provider, provider name)
+    CRS-15: Voice-to-text provider selection with failover.
+    """
+    # Primary: Azure
+    try:
+        if not _realtime_cb.is_open("azure"):
+            stt = AzureRealtimeSTT(language_code=language_code, session_id=session_id)
+            await asyncio.wait_for(stt.start(), timeout=_STT_START_TIMEOUT)
+            _realtime_cb.record_success("azure")
+            return stt, "azure"
+        else:
+            raise ConnectionError("Azure in circuit breaker cooldown")
+    except (Exception, asyncio.TimeoutError) as e:
+        _realtime_cb.record_failure("azure")
+        logger.warning("cube3.realtime.azure_failed", error=str(e))
+
+    # Fallback: AWS
+    try:
+        if not _realtime_cb.is_open("aws"):
+            stt = AWSRealtimeSTT(language_code=language_code, session_id=session_id)
+            await asyncio.wait_for(stt.start(), timeout=_STT_START_TIMEOUT)
+            _realtime_cb.record_success("aws")
+            return stt, "aws"
+        else:
+            raise ConnectionError("AWS in circuit breaker cooldown")
+    except (Exception, asyncio.TimeoutError) as e2:
+        _realtime_cb.record_failure("aws")
+        logger.error("cube3.realtime.all_providers_failed", error=str(e2))
+
+    return None, ""
+
 
 async def _check_payment_gate(
     db: AsyncSession,
@@ -163,41 +203,15 @@ async def _handle_realtime_inner(
         return
 
     # --- 3. Start STT provider (Azure primary, AWS fallback) ---
-    stt: AzureRealtimeSTT | AWSRealtimeSTT | None = None
-    provider_name = "azure"
-
-    _STT_START_TIMEOUT = 10.0  # seconds — prevent hung provider on start
-
-    # Circuit breaker: skip providers in cooldown
-    try:
-        if not _realtime_cb.is_open("azure"):
-            stt = AzureRealtimeSTT(language_code=language_code, session_id=sid)
-            await asyncio.wait_for(stt.start(), timeout=_STT_START_TIMEOUT)
-            _realtime_cb.record_success("azure")
-            provider_name = "azure"
-        else:
-            raise ConnectionError("Azure in circuit breaker cooldown")
-    except (Exception, asyncio.TimeoutError) as e:
-        _realtime_cb.record_failure("azure")
-        logger.warning("cube3.realtime.azure_failed", error=str(e))
-        # Fallback to AWS
-        try:
-            if not _realtime_cb.is_open("aws"):
-                stt = AWSRealtimeSTT(language_code=language_code, session_id=sid)
-                await asyncio.wait_for(stt.start(), timeout=_STT_START_TIMEOUT)
-                _realtime_cb.record_success("aws")
-                provider_name = "aws"
-            else:
-                raise ConnectionError("AWS in circuit breaker cooldown")
-        except (Exception, asyncio.TimeoutError) as e2:
-            _realtime_cb.record_failure("aws")
-            logger.error("cube3.realtime.all_providers_failed", error=str(e2))
-            await ws.send_json({
-                "type": "error",
-                "text": "Real-time transcription unavailable. Please try standard voice submission.",
-            })
-            await ws.close(code=4003, reason="STT unavailable")
-            return
+    # CRS-15: Provider failover with circuit breaker pattern
+    stt, provider_name = await _start_stt_provider(language_code, sid)
+    if stt is None:
+        await ws.send_json({
+            "type": "error",
+            "text": "Real-time transcription unavailable. Please try standard voice submission.",
+        })
+        await ws.close(code=4003, reason="STT unavailable")
+        return
 
     logger.info(
         "cube3.realtime.session_started",
