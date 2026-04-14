@@ -1,4 +1,7 @@
-"""Custom exceptions and FastAPI exception handlers."""
+"""Custom exceptions and FastAPI exception handlers.
+
+# CRS-28: Error handling UX — all HTTP errors return structured JSON with detail
+"""
 
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse

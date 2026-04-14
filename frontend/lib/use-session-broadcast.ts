@@ -4,6 +4,8 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
+// CRS-29: Offline/degraded mode — 4 receive channels ensure delivery even if WebSocket fails
+
 /**
  * Supabase Realtime Broadcast — instant push-based session sync.
  *

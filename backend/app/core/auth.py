@@ -10,6 +10,7 @@ from app.config import settings
 
 _dev_mode = not settings.auth0_domain
 
+# CRS-31: Admin panel — RBAC roles: moderator, user, lead_developer, admin
 # In dev mode (no Auth0 configured), don't require Authorization header
 security = HTTPBearer(auto_error=not _dev_mode)
 optional_security = HTTPBearer(auto_error=False)

@@ -1,4 +1,6 @@
-"""Task C6-7 — Supabase Realtime Broadcast helper.
+"""CRS-30: Notification system — Supabase Realtime broadcast for all session events.
+
+Task C6-7 — Supabase Realtime Broadcast helper.
 
 Sends broadcast events to Supabase Realtime channels using the REST API.
 Used by Cube 6 Phase A (summary_ready) and Phase B (themes_ready) to push

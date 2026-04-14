@@ -1,4 +1,7 @@
-"""Rate limiting via slowapi — avoids circular imports by isolating the limiter."""
+"""Rate limiting via slowapi — avoids circular imports by isolating the limiter.
+
+# CRS-32: Rate limiting — slowapi with in-memory storage, per-endpoint limits
+"""
 
 from fastapi import Request
 from slowapi import Limiter

@@ -232,7 +232,8 @@ async def create_ledger_entry(
     anon_hash: str | None = None,
     session_short_code: str | None = None,
 ) -> TokenLedger:
-    """CRS-25: Create a new append-only ledger entry.
+    """CRS-23: Audit trail — append-only ledger, no deletes, no updates.
+    CRS-25: Create a new append-only ledger entry.
 
     This is the canonical way to write to the token ledger. All cubes
     should use this function instead of constructing TokenLedger directly.

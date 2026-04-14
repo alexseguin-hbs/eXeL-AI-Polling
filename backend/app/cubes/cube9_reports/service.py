@@ -216,6 +216,7 @@ CSV_COLUMNS = [
 # ---------------------------------------------------------------------------
 
 
+# CRS-20: Results delivery to participants
 async def export_session_csv(
     db: AsyncSession,
     session_id: uuid.UUID,
@@ -706,13 +707,14 @@ async def build_ranking_summary(
 # ---------------------------------------------------------------------------
 
 
+# CRS-21: Data retention and privacy — irreversible data destruction
 async def destroy_session_export_data(
     db: AsyncSession,
     session_id: uuid.UUID,
     *,
     destroyed_by: str,
 ) -> dict:
-    """CRS-14.03: Irreversible data destruction after delivery.
+    """CRS-14.03 / CRS-21: Irreversible data destruction after delivery.
 
     Purges response raw text and summaries. Preserves session metadata,
     themes, and rankings for audit trail. Creates audit entry.
@@ -804,10 +806,11 @@ async def generate_pdf_stub(
 
 
 # ---------------------------------------------------------------------------
-# CRS-14.05: Results Distribution
+# CRS-14.05 / CRS-20: Results Distribution — delivery to participants
 # ---------------------------------------------------------------------------
 
 
+# CRS-20: Results delivery to participants
 async def distribute_results(
     db: AsyncSession,
     session_id: uuid.UUID,

@@ -536,6 +536,7 @@ async def join_session(
     """
     session = await get_session_by_short_code(db, short_code)
 
+    # CRS-04: Session expiry — 24h default, returns 410 Gone for expired/closed sessions
     if session.is_expired:
         raise SessionExpiredError(short_code)
 

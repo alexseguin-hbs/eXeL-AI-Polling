@@ -312,6 +312,7 @@ _SCRIPT_RANGES: dict[str, list[tuple[int, int]]] = {
 }
 
 
+# CRS-27: Localization — 34 language support via script detection + PII patterns
 def detect_language(text: str, declared_code: str) -> bool:
     """Sanity-check that text plausibly matches declared language.
 

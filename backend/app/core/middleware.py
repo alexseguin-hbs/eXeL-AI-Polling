@@ -1,4 +1,7 @@
-"""Application middleware."""
+"""Application middleware.
+
+# CRS-26: Accessibility — WCAG compliance enforced via frontend (semantic HTML, ARIA)
+"""
 
 import re
 import time
