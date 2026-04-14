@@ -28,6 +28,9 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 logger = logging.getLogger("cube10")
 
 
@@ -229,6 +232,7 @@ async def get_feedback_stats(
 
 
 async def create_submission(
+    db: AsyncSession,
     *,
     cube_id: int,
     function_name: str,
@@ -236,7 +240,7 @@ async def create_submission(
     submitter_type: str,  # "human" or "ai"
     code_diff: str,
 ) -> dict:
-    """Accept a code improvement submission.
+    """Accept a code improvement submission — persisted to Supabase (O8 fix).
 
     Creates a pending submission that will be tested in sandbox.
     """
@@ -249,13 +253,26 @@ async def create_submission(
     if len(code_diff.strip()) < 10:
         raise ValueError("Code diff too short — must contain meaningful changes")
 
-    submission_id = str(uuid.uuid4())
-    branch = f"cube{cube_id}/submission/{submitter_id}/{submission_id[:8]}"
+    from app.models.code_submission import CodeSubmission
+
+    branch = f"cube{cube_id}/submission/{submitter_id}/{uuid.uuid4().hex[:8]}"
+    sub = CodeSubmission(
+        cube_id=cube_id,
+        function_name=function_name,
+        submitter_id=submitter_id,
+        submitter_type=submitter_type,
+        code_diff=code_diff,
+        branch_name=branch,
+        status="pending",
+    )
+    db.add(sub)
+    await db.flush()
+    await db.refresh(sub)
 
     logger.info(
         "cube10.submission.created",
         extra={
-            "submission_id": submission_id,
+            "submission_id": str(sub.id),
             "cube_id": cube_id,
             "function": function_name,
             "submitter_type": submitter_type,
@@ -263,14 +280,14 @@ async def create_submission(
     )
 
     return {
-        "submission_id": submission_id,
+        "submission_id": str(sub.id),
         "cube_id": cube_id,
         "function_name": function_name,
         "submitter_id": submitter_id,
         "submitter_type": submitter_type,
         "branch_name": branch,
         "status": "pending",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": sub.created_at.isoformat() if sub.created_at else datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -440,6 +457,7 @@ def tally_votes(
 
 
 async def create_challenge(
+    db: AsyncSession,
     *,
     cube_id: int,
     title: str,
@@ -449,7 +467,7 @@ async def create_challenge(
     reward_heart: float = 10.0,
     reward_unity: float = 50.0,
 ) -> dict:
-    """Create a new challenge for a specific Cube function.
+    """Create a new challenge — persisted to Supabase (O8 fix).
 
     Posted by Admin. Challengers accept and work in isolated simulation.
     """
@@ -462,15 +480,29 @@ async def create_challenge(
     if len(acceptance_criteria.strip()) < 10:
         raise ValueError("Acceptance criteria must be at least 10 characters")
 
-    challenge_id = str(uuid.uuid4())
+    from app.models.code_submission import Challenge
+
+    ch = Challenge(
+        cube_id=cube_id,
+        function_name=function_name,
+        title=title,
+        description=description,
+        acceptance_criteria=acceptance_criteria,
+        reward_heart=reward_heart,
+        reward_unity=reward_unity,
+        status="open",
+    )
+    db.add(ch)
+    await db.flush()
+    await db.refresh(ch)
 
     logger.info(
         "cube10.challenge.created",
-        extra={"challenge_id": challenge_id, "cube_id": cube_id, "title": title},
+        extra={"challenge_id": str(ch.id), "cube_id": cube_id, "title": title},
     )
 
     return {
-        "challenge_id": challenge_id,
+        "challenge_id": str(ch.id),
         "cube_id": cube_id,
         "function_name": function_name,
         "title": title,
@@ -479,20 +511,31 @@ async def create_challenge(
         "reward_heart": reward_heart,
         "reward_unity": reward_unity,
         "status": "open",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": ch.created_at.isoformat() if ch.created_at else datetime.now(timezone.utc).isoformat(),
     }
 
 
 async def claim_challenge(
+    db: AsyncSession,
     challenge_id: str,
     challenger_id: str,
 ) -> dict:
-    """Challenger accepts a challenge — creates isolated simulation environment.
+    """Challenger accepts a challenge — persisted to Supabase (O8 fix).
 
     Generates unique simulation_id for the parallel portal.
-    Freezes current cube code as base_code_snapshot.
     """
+    from app.models.code_submission import Challenge
+
+    result = await db.execute(select(Challenge).where(Challenge.id == uuid.UUID(challenge_id)))
+    ch = result.scalar_one_or_none()
+
     simulation_id = f"sim-{uuid.uuid4().hex[:12]}"
+
+    if ch:
+        ch.status = "claimed"
+        ch.claimed_by = challenger_id
+        ch.simulation_id = simulation_id
+        await db.flush()
 
     logger.info(
         "cube10.challenge.claimed",
@@ -514,11 +557,12 @@ async def claim_challenge(
 
 
 async def submit_challenge(
+    db: AsyncSession,
     challenge_id: str,
     challenger_id: str,
     code_diff: str,
 ) -> dict:
-    """Challenger submits their enhanced code for community review.
+    """Challenger submits enhanced code — persisted to Supabase (O8 fix).
 
     Triggers automated testing by 12 Ascended Masters.
     If tests pass, opens community voting.
@@ -526,20 +570,40 @@ async def submit_challenge(
     if len(code_diff.strip()) < 10:
         raise ValueError("Code diff too short — must contain meaningful changes")
 
-    submission_id = str(uuid.uuid4())
+    from app.models.code_submission import CodeSubmission, Challenge
+
+    # Update challenge status
+    result = await db.execute(select(Challenge).where(Challenge.id == uuid.UUID(challenge_id)))
+    ch = result.scalar_one_or_none()
+    if ch:
+        ch.status = "submitted"
+
+    # Create submission linked to challenge
+    sub = CodeSubmission(
+        cube_id=ch.cube_id if ch else 0,
+        function_name=ch.function_name if ch else "unknown",
+        submitter_id=challenger_id,
+        submitter_type="human",
+        code_diff=code_diff,
+        branch_name=f"challenge/{challenge_id[:8]}",
+        status="submitted",
+    )
+    db.add(sub)
+    await db.flush()
+    await db.refresh(sub)
 
     logger.info(
         "cube10.challenge.submitted",
         extra={
             "challenge_id": challenge_id,
             "challenger_id": challenger_id,
-            "submission_id": submission_id,
+            "submission_id": str(sub.id),
         },
     )
 
     return {
         "challenge_id": challenge_id,
-        "submission_id": submission_id,
+        "submission_id": str(sub.id),
         "challenger_id": challenger_id,
         "status": "submitted",
         "message": "Submitted for review. 12 Ascended Masters will test your code.",

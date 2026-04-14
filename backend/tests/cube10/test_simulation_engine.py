@@ -9,8 +9,26 @@ Tests:
 """
 
 import uuid
+from unittest.mock import AsyncMock, MagicMock
+from datetime import datetime, timezone
 
 import pytest
+
+
+def _mock_db():
+    """Create a mock AsyncSession for Cube 10 persistence tests (O8)."""
+    db = AsyncMock()
+    db.add = MagicMock()
+    db.flush = AsyncMock()
+    db.execute = AsyncMock()
+    # refresh sets created_at on the object
+    async def _refresh(obj):
+        if not hasattr(obj, "created_at") or obj.created_at is None:
+            obj.created_at = datetime.now(timezone.utc)
+        if not hasattr(obj, "id") or obj.id is None:
+            obj.id = uuid.uuid4()
+    db.refresh = AsyncMock(side_effect=_refresh)
+    return db
 
 from app.cubes.cube10_simulation.service import (
     MIN_QUORUM_PERCENT,
@@ -94,6 +112,7 @@ class TestCodeSubmission:
     @pytest.mark.asyncio
     async def test_valid_submission(self):
         result = await create_submission(
+            _mock_db(),
             cube_id=7, function_name="aggregate_rankings",
             submitter_id="dev1", submitter_type="human",
             code_diff="def aggregate_rankings(): # improved version with O(1) lookup"
@@ -105,6 +124,7 @@ class TestCodeSubmission:
     @pytest.mark.asyncio
     async def test_ai_submission(self):
         result = await create_submission(
+            _mock_db(),
             cube_id=6, function_name="run_pipeline",
             submitter_id="ai_agent_1", submitter_type="ai",
             code_diff="async def run_pipeline(): # AI-optimized version"
@@ -115,6 +135,7 @@ class TestCodeSubmission:
     async def test_invalid_cube_id(self):
         with pytest.raises(ValueError, match="Invalid cube_id"):
             await create_submission(
+                _mock_db(),
                 cube_id=0, function_name="test",
                 submitter_id="dev", submitter_type="human",
                 code_diff="x" * 20
@@ -124,6 +145,7 @@ class TestCodeSubmission:
     async def test_invalid_cube_id_too_high(self):
         with pytest.raises(ValueError, match="Invalid cube_id"):
             await create_submission(
+                _mock_db(),
                 cube_id=10, function_name="test",
                 submitter_id="dev", submitter_type="human",
                 code_diff="x" * 20
@@ -133,6 +155,7 @@ class TestCodeSubmission:
     async def test_invalid_submitter_type(self):
         with pytest.raises(ValueError, match="submitter_type"):
             await create_submission(
+                _mock_db(),
                 cube_id=7, function_name="test",
                 submitter_id="dev", submitter_type="robot",
                 code_diff="x" * 20
@@ -142,6 +165,7 @@ class TestCodeSubmission:
     async def test_empty_diff_rejected(self):
         with pytest.raises(ValueError, match="too short"):
             await create_submission(
+                _mock_db(),
                 cube_id=7, function_name="test",
                 submitter_id="dev", submitter_type="human",
                 code_diff="   "

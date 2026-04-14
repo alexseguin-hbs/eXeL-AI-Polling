@@ -4,7 +4,34 @@ Tests the complete lifecycle of a code challenge, simulating
 both Admin and Challenger paths through the system.
 """
 
+import uuid
+from unittest.mock import AsyncMock, MagicMock
+from datetime import datetime, timezone
+
 import pytest
+
+
+def _mock_db():
+    """Mock AsyncSession for Cube 10 persistence (O8)."""
+    db = AsyncMock()
+    db.add = MagicMock()
+    db.flush = AsyncMock()
+    mock_ch = MagicMock()
+    mock_ch.id = uuid.uuid4()
+    mock_ch.cube_id = 7
+    mock_ch.function_name = "test_fn"
+    mock_ch.status = "open"
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = mock_ch
+    db.execute = AsyncMock(return_value=mock_result)
+    async def _refresh(obj):
+        if not hasattr(obj, "created_at") or obj.created_at is None:
+            obj.created_at = datetime.now(timezone.utc)
+        if not hasattr(obj, "id") or obj.id is None:
+            obj.id = uuid.uuid4()
+    db.refresh = AsyncMock(side_effect=_refresh)
+    return db
+
 
 from app.cubes.cube10_simulation.service import (
     SUPERMAJORITY_THRESHOLD,
@@ -26,7 +53,7 @@ class TestFullChallengeLifecycle:
         """Admin creates challenge → Challenger claims → submits → metrics pass → votes approve → deploy."""
 
         # Step 1: Admin creates challenge for Cube 7 Borda optimization
-        challenge = await create_challenge(
+        challenge = await create_challenge(_mock_db(), 
             cube_id=7,
             title="Optimize Borda aggregation for 10M voters",
             description="Current O(N) Borda scoring needs streaming accumulator for 10M+ scale",
@@ -41,14 +68,14 @@ class TestFullChallengeLifecycle:
         print(f"\n  Step 1: Challenge created: {challenge_id}")
 
         # Step 2: Challenger claims the challenge
-        claim = await claim_challenge(challenge_id, "challenger_alice")
+        claim = await claim_challenge(_mock_db(), challenge_id, "challenger_alice")
         assert claim["status"] == "claimed"
         assert "sim-" in claim["simulation_id"]
         assert "workers.dev" in claim["portal_url"]
         print(f"  Step 2: Claimed by alice, portal: {claim['portal_url'][:60]}...")
 
         # Step 3: Challenger submits enhanced code
-        submission = await submit_challenge(
+        submission = await submit_challenge(_mock_db(), 
             challenge_id,
             "challenger_alice",
             """
@@ -144,20 +171,20 @@ class TestAIvsHICompetition:
     @pytest.mark.asyncio
     async def test_dual_submission(self):
         """AI and human both submit — both valid."""
-        challenge = await create_challenge(
+        challenge = await create_challenge(_mock_db(), 
             cube_id=6, title="Optimize marble sampling",
             description="Speed up marble sampling for 1M responses",
             acceptance_criteria="Must complete sampling in <2s for 1M responses",
         )
 
-        ai_sub = await create_submission(
+        ai_sub = await create_submission(_mock_db(), 
             cube_id=6, function_name="_marble_sample",
             submitter_id="ai_agent_opus", submitter_type="ai",
             code_diff="def _marble_sample(items, seed): # AI-optimized vectorized version..."
         )
         assert ai_sub["submitter_type"] == "ai"
 
-        hi_sub = await create_submission(
+        hi_sub = await create_submission(_mock_db(), 
             cube_id=6, function_name="_marble_sample",
             submitter_id="dev_alice", submitter_type="human",
             code_diff="def _marble_sample(items, seed): # Human-crafted parallel version..."
@@ -186,7 +213,7 @@ class TestFeedbackToChallengePipeline:
         assert feedback["category"] == "bug"
 
         # Admin creates challenge from this feedback
-        challenge = await create_challenge(
+        challenge = await create_challenge(_mock_db(), 
             cube_id=7,
             title="Fix ranking crash at 50K+ concurrent voters",
             description=f"Based on feedback: {feedback['text']}",

@@ -7,7 +7,35 @@ Tests the Grok-designed Challenger architecture:
   - Validation rules
 """
 
+import uuid
+from unittest.mock import AsyncMock, MagicMock
+from datetime import datetime, timezone
+
 import pytest
+
+
+def _mock_db():
+    """Mock AsyncSession for Cube 10 persistence (O8)."""
+    db = AsyncMock()
+    db.add = MagicMock()
+    db.flush = AsyncMock()
+    # For claim_challenge/submit_challenge: mock execute to return a challenge object
+    mock_challenge = MagicMock()
+    mock_challenge.id = uuid.uuid4()
+    mock_challenge.cube_id = 7
+    mock_challenge.function_name = "test_fn"
+    mock_challenge.status = "open"
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = mock_challenge
+    db.execute = AsyncMock(return_value=mock_result)
+    async def _refresh(obj):
+        if not hasattr(obj, "created_at") or obj.created_at is None:
+            obj.created_at = datetime.now(timezone.utc)
+        if not hasattr(obj, "id") or obj.id is None:
+            obj.id = uuid.uuid4()
+    db.refresh = AsyncMock(side_effect=_refresh)
+    return db
+
 
 from app.cubes.cube10_simulation.service import (
     CHALLENGE_STATES,
@@ -29,7 +57,7 @@ class TestChallengeConstants:
 class TestCreateChallenge:
     @pytest.mark.asyncio
     async def test_valid_challenge(self):
-        result = await create_challenge(
+        result = await create_challenge(_mock_db(), 
             cube_id=7,
             title="Optimize Borda aggregation",
             description="Improve the Borda count algorithm for 10M voters",
@@ -42,24 +70,24 @@ class TestCreateChallenge:
     @pytest.mark.asyncio
     async def test_invalid_cube_id(self):
         with pytest.raises(ValueError, match="Invalid cube_id"):
-            await create_challenge(cube_id=0, title="Test", description="D",
+            await create_challenge(_mock_db(), cube_id=0, title="Test", description="D",
                                   acceptance_criteria="Must pass tests")
 
     @pytest.mark.asyncio
     async def test_short_title_rejected(self):
         with pytest.raises(ValueError, match="title"):
-            await create_challenge(cube_id=7, title="Hi", description="D",
+            await create_challenge(_mock_db(), cube_id=7, title="Hi", description="D",
                                   acceptance_criteria="Must pass all tests")
 
     @pytest.mark.asyncio
     async def test_short_criteria_rejected(self):
         with pytest.raises(ValueError, match="criteria"):
-            await create_challenge(cube_id=7, title="Valid Title",
+            await create_challenge(_mock_db(), cube_id=7, title="Valid Title",
                                   description="D", acceptance_criteria="short")
 
     @pytest.mark.asyncio
     async def test_custom_rewards(self):
-        result = await create_challenge(
+        result = await create_challenge(_mock_db(), 
             cube_id=6, title="AI Pipeline Speed",
             description="Optimize marble sampling",
             acceptance_criteria="Must complete in <30s for 1M responses",
@@ -72,7 +100,8 @@ class TestCreateChallenge:
 class TestClaimChallenge:
     @pytest.mark.asyncio
     async def test_claim_returns_portal_url(self):
-        result = await claim_challenge("challenge-123", "dev-456")
+        _cid = str(uuid.uuid4())
+        result = await claim_challenge(_mock_db(), _cid, "dev-456")
         assert result["status"] == "claimed"
         assert "portal_url" in result
         assert "sim-" in result["portal_url"]
@@ -80,15 +109,17 @@ class TestClaimChallenge:
 
     @pytest.mark.asyncio
     async def test_claim_returns_simulation_id(self):
-        result = await claim_challenge("c1", "d1")
+        _cid = str(uuid.uuid4())
+        result = await claim_challenge(_mock_db(), _cid, "d1")
         assert len(result["simulation_id"]) > 10
 
 
 class TestSubmitChallenge:
     @pytest.mark.asyncio
     async def test_valid_submission(self):
-        result = await submit_challenge(
-            "challenge-1", "dev-1",
+        _cid = str(uuid.uuid4())
+        result = await submit_challenge(_mock_db(),
+            _cid, "dev-1",
             "def aggregate_rankings(): # optimized O(k) version with streaming"
         )
         assert result["status"] == "submitted"
@@ -96,8 +127,9 @@ class TestSubmitChallenge:
 
     @pytest.mark.asyncio
     async def test_empty_diff_rejected(self):
+        _cid = str(uuid.uuid4())
         with pytest.raises(ValueError, match="too short"):
-            await submit_challenge("c1", "d1", "   ")
+            await submit_challenge(_mock_db(), _cid, "d1", "   ")
 
 
 class TestChallengeModel:
