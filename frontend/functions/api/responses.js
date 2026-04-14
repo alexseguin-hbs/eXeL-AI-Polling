@@ -106,8 +106,23 @@ export async function onRequest(context) {
     };
 
     const items = await getResponses(store, code);
+
+    // G19 fix: Dedup by participant_id + text hash to prevent replay
+    const entryKey = `${entry.participant_id}:${entry.clean_text.slice(0, 50)}`;
+    const isDuplicate = items.some(
+      (it) => `${it.participant_id}:${(it.clean_text || "").slice(0, 50)}` === entryKey
+    );
+    if (isDuplicate) {
+      return json(entry, 201); // Already stored — return success without re-adding
+    }
+
     items.push(entry);
-    await putResponses(store, code, items);
+
+    // G19 fix: Cap at 500 most recent to prevent unbounded growth
+    // Older responses are available via Supabase DB (Channel B/D) — KV is just fast cache
+    const MAX_KV_ENTRIES = 500;
+    const capped = items.length > MAX_KV_ENTRIES ? items.slice(-MAX_KV_ENTRIES) : items;
+    await putResponses(store, code, capped);
 
     return json(entry, 201);
   }
