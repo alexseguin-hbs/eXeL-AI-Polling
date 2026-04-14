@@ -144,7 +144,6 @@ class TestSubmitVoice:
         assert resp.status_code == 201
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Requires live Supabase")
     async def test_submit_rejects_unsupported_audio_format(self, client):
         """WireGuard: unsupported audio formats rejected."""
         form = self._build_form_data(audio_format="exe")
@@ -157,7 +156,6 @@ class TestSubmitVoice:
         assert "Unsupported audio format" in resp.json()["detail"]
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Requires live Supabase")
     async def test_submit_rejects_empty_audio(self, client):
         """Empty audio file rejected."""
         form = self._build_form_data()

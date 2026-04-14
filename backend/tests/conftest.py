@@ -36,10 +36,33 @@ async def client(mock_db):
     async def _override_db():
         yield mock_db
 
+    # Override validate_session_exists across all import locations
+    # so router tests don't need a real DB to validate sessions
+    async def _noop_validate(*args, **kwargs):
+        pass
+
     app.dependency_overrides[get_db] = _override_db
+
+    _patches = [
+        patch("app.core.submission_validators.validate_session_exists", new=_noop_validate),
+        patch("app.cubes.cube2_text.router.validate_session_exists", new=_noop_validate),
+        patch("app.cubes.cube4_collector.router.validate_session_exists", new=_noop_validate),
+    ]
+    for p in _patches:
+        try:
+            p.start()
+        except (AttributeError, ModuleNotFoundError):
+            pass
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+    for p in _patches:
+        try:
+            p.stop()
+        except RuntimeError:
+            pass
     app.dependency_overrides.pop(get_db, None)
 
 
@@ -50,13 +73,28 @@ async def client(mock_db):
 
 @pytest.fixture
 def mock_db():
-    """Mock SQLAlchemy async session."""
+    """Mock SQLAlchemy async session.
+
+    db.execute returns a MagicMock (sync) with .scalar_one_or_none(), .scalars(), .all()
+    so that router code like `result = await db.execute(stmt); session = result.scalar_one_or_none()`
+    works correctly (execute is async, result methods are sync).
+    """
     db = AsyncMock()
     db.commit = AsyncMock()
     db.flush = AsyncMock()
     db.refresh = AsyncMock()
-    db.execute = AsyncMock()
     db.add = MagicMock()
+
+    # execute returns a sync MagicMock result (not AsyncMock)
+    # This matches SQLAlchemy's pattern: await db.execute() returns a Result object with sync methods
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = None
+    mock_result.scalar.return_value = 0
+    mock_result.scalars.return_value = MagicMock(all=MagicMock(return_value=[]))
+    mock_result.all.return_value = []
+    mock_result.one.return_value = MagicMock(heart=0, human=0, unity=0, entry_count=0)
+    db.execute = AsyncMock(return_value=mock_result)
+
     return db
 
 

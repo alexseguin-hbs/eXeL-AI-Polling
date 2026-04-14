@@ -56,7 +56,6 @@ class TestSubmitRanking:
     """POST /sessions/{id}/rankings — auth required, 201."""
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Requires live Supabase")
     async def test_returns_201_on_success(self, client, moderator_user):
         session = make_session(id=SID, status="ranking")
         participant = make_participant(session_id=SID, user_id="dev-moderator-001")
@@ -102,7 +101,6 @@ class TestSubmitRanking:
         assert resp.status_code == 201
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Requires live Supabase")
     async def test_requires_auth(self, client, regular_user):
         """Regular user with no participant record gets 403."""
         from app.core.auth import get_current_user
@@ -191,7 +189,6 @@ class TestTriggerAggregation:
     """POST /sessions/{id}/rankings/aggregate — moderator/admin, WireGuard."""
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Requires live Supabase")
     async def test_valid_borda_count(self, client, moderator_user):
         session = make_session(id=SID, status="ranking", seed="42")
         mock_result = {"status": "completed", "top_theme": str(THEME_ID)}
@@ -314,7 +311,6 @@ class TestGovernanceOverride:
         assert resp.status_code == 403
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Requires live Supabase")
     async def test_admin_can_override(self, client, admin_user):
         from app.core.auth import get_current_user
         from app.main import app as test_app
