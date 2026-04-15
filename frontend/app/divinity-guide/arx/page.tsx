@@ -358,7 +358,7 @@ function ArxPageInner() {
         {
           statusCallback: (s: string) => {
             if (s === "init") {
-              alert("Hold your ARX chip to the top of your phone.\n\nKeep it still until the read completes.");
+              alert(t("cube12.arx.nfc_hold_chip"));
             }
           },
         }
@@ -374,8 +374,42 @@ function ArxPageInner() {
     }
   }, []);
 
-  // NOTE: cfg_ndef removed — it disabled chip NFC broadcast in prior testing.
-  // Only safe operation is "sign" (read). No chip write commands.
+  // --- Hub NFC scan — reads chip, routes to item or offers registration ---
+  const handleHubScan = useCallback(async () => {
+    try {
+      setError("");
+      const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
+      alert(t("cube12.arx.nfc_hold_chip"));
+      const info = await execHaloCmdWeb(
+        { name: "sign", message: "00", keyNo: 1 },
+        { statusCallback: () => {} }
+      );
+      const chipAddr = info.etherAddress || "";
+      if (!chipAddr) { setError(t("cube12.arx.nfc_read_failed")); return; }
+
+      const { supabase } = await import("@/lib/supabase");
+      if (!supabase) return;
+      const { data } = await supabase
+        .from("arx_items")
+        .select("token_id, item_name")
+        .eq("chip_key_hash", chipAddr.toLowerCase())
+        .maybeSingle();
+
+      if (data) {
+        router.push(`/divinity-guide/arx?token=${data.token_id}`);
+      } else {
+        const action = confirm(
+          `${t("cube12.arx.chip_address")}: ${chipAddr}\n\n${t("cube12.arx.chip_not_registered")}`
+        );
+        if (action) {
+          setSelectedFlower("mint");
+          setRegChipAddress(chipAddr);
+        }
+      }
+    } catch (e: any) {
+      setError(t("cube12.arx.nfc_scan_failed") + ": " + (e.message || ""));
+    }
+  }, [router, t, setSelectedFlower, setRegChipAddress]);
 
   // --- Item details card (reusable) ---
   const renderItemCard = () => {
@@ -508,42 +542,7 @@ function ArxPageInner() {
                 fill={selectedFlower && activePortal ? activePortal.color.fill : "rgba(var(--primary), 0.15)"}
                 stroke={selectedFlower && activePortal ? activePortal.color.stroke : "hsl(var(--primary))"}
                 isHub
-                onClick={async () => {
-                  try {
-                    setError("");
-                    const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
-                    alert(t("cube12.arx.nfc_hold_chip"));
-                    const info = await execHaloCmdWeb(
-                      { name: "sign", message: "00", keyNo: 1 },
-                      { statusCallback: () => {} }
-                    );
-                    const chipAddr = info.etherAddress || "";
-                    if (!chipAddr) { setError(t("cube12.arx.nfc_read_failed")); return; }
-
-                    // Look up item by chip address
-                    const { supabase } = await import("@/lib/supabase");
-                    if (!supabase) return;
-                    const { data } = await supabase
-                      .from("arx_items")
-                      .select("token_id, item_name")
-                      .eq("chip_key_hash", chipAddr.toLowerCase())
-                      .maybeSingle();
-
-                    if (data) {
-                      router.push(`/divinity-guide/arx?token=${data.token_id}`);
-                    } else {
-                      const action = confirm(
-                        `${t("cube12.arx.chip_address")}: ${chipAddr}\n\n${t("cube12.arx.chip_not_registered")}`
-                      );
-                      if (action) {
-                        setSelectedFlower("mint");
-                        setRegChipAddress(chipAddr);
-                      }
-                    }
-                  } catch (e: any) {
-                    setError(t("cube12.arx.nfc_scan_failed") + ": " + (e.message || ""));
-                  }
-                }}
+                onClick={handleHubScan}
               />
 
               {/* 3 Outer Portals — Mint, Verify, Transfer */}

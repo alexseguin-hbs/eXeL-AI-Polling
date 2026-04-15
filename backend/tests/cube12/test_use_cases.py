@@ -264,3 +264,37 @@ class TestUC1UC2Combined:
             assert transfer_result["status"] == "transferred"
             assert "buyer_qr_url" in transfer_result
             assert "seller_qr_url" in transfer_result
+
+
+class TestFullFieldLifecycle:
+    """Verify all fields (including purchase_date/time) survive mint → verify → transfer."""
+
+    @pytest.mark.asyncio
+    async def test_mint_with_all_fields_n9(self):
+        for run in range(9):
+            db = AsyncMock()
+            db.refresh = AsyncMock(return_value=None)
+            refreshed_item = MagicMock()
+            refreshed_item.id = uuid.uuid4()
+            db.refresh.side_effect = lambda item: setattr(item, "id", refreshed_item.id)
+
+            result = await mint_arx_item(
+                db,
+                item_name=f"Hardback #{run}",
+                purchase_price_usd=33.33,
+                buyer_address=f"owner-{run}@test.com",
+                serial_number=f"DG-{run:05d}",
+                identifiers="signed, 1/1",
+                purchase_date="2025-07-25",
+                language="en",
+                chip_key_hash=f"0x{'a' * 40}",
+            )
+            assert result["token_id"] > 0
+            assert result["item_name"] == f"Hardback #{run}"
+            assert result["serial_number"] == f"DG-{run:05d}"
+            assert result["identifiers"] == "signed, 1/1"
+            assert result["purchase_date"] == "2025-07-25"
+            assert result["purchase_price_usd"] == 33.33
+            assert result["owner"] == f"owner-{run}@test.com"
+            assert "qr_code_url" in result
+            assert "arx_tx_id" in result

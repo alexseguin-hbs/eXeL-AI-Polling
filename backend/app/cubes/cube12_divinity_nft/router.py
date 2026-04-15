@@ -13,13 +13,14 @@ CRS: CRS-NEW-12.01 through 12.05
 import re
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
+from app.core.rate_limit import limiter
 from app.cubes.cube12_divinity_nft import service
 
 router = APIRouter(prefix="/arx", tags=["Cube 12 — Divinity & NFT ARX"])
@@ -72,7 +73,9 @@ class PairChipRequest(BaseModel):
 # ── Endpoints ────────────────────────────────────────────────────
 
 @router.post("/mint", status_code=201)
+@limiter.limit("10/minute")
 async def mint_item(
+    request: Request,
     payload: MintRequest,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
@@ -97,7 +100,9 @@ async def mint_item(
 
 
 @router.get("/verify/{token_id}")
+@limiter.limit("60/minute")
 async def verify_item(
+    request: Request,
     token_id: int,
     chip_uid: str | None = None,
     db: AsyncSession = Depends(get_db),
@@ -110,7 +115,9 @@ async def verify_item(
 
 
 @router.post("/transfer")
+@limiter.limit("10/minute")
 async def transfer_item(
+    request: Request,
     payload: TransferRequest,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
@@ -135,7 +142,9 @@ async def transfer_item(
 
 
 @router.get("/item/{token_id}")
+@limiter.limit("60/minute")
 async def get_item(
+    request: Request,
     token_id: int,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
@@ -148,7 +157,9 @@ async def get_item(
 
 
 @router.get("/marketplace")
+@limiter.limit("60/minute")
 async def marketplace(
+    request: Request,
     limit: int = 20,
     db: AsyncSession = Depends(get_db),
 ):
@@ -161,7 +172,9 @@ async def marketplace(
 # [Asar] POST /arx/pair-chip — Pair an ARX NFC chip to a registered item after registration.
 # Takes token_id + chip Ethereum address, hashes it, and updates the arx_items record.
 @router.post("/pair-chip")
+@limiter.limit("10/minute")
 async def pair_chip(
+    request: Request,
     payload: PairChipRequest,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
@@ -185,7 +198,9 @@ async def pair_chip(
 # [Enlil] GET /arx/lookup-chip/{address} — Look up an ARX item by its chip Ethereum address.
 # Public, no auth required — anyone can tap a chip and find the associated item.
 @router.get("/lookup-chip/{address}")
+@limiter.limit("60/minute")
 async def lookup_chip(
+    request: Request,
     address: str,
     db: AsyncSession = Depends(get_db),
 ):
