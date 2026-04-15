@@ -13,15 +13,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { useLexicon } from "@/lib/lexicon-context";
-
-/** Format date as YYYY.MM.DD — consistent across all ARX displays */
-function fmtDate(d: string) {
-  const dt = new Date(d + (d.length === 10 ? "T12:00:00" : ""));
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth() + 1).padStart(2, "0");
-  const day = String(dt.getDate()).padStart(2, "0");
-  return `${y}.${m}.${day}`;
-}
+import { fmtDate } from "./arx-utils";
 
 interface ArxTransaction {
   arx_tx_id: string;
@@ -82,7 +74,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
 
       const { data: itemData, error: itemErr } = await supabase
         .from("arx_items")
-        .select("*")
+        .select("token_id, item_name, serial_number, identifiers, language, current_owner, purchase_price_usd, purchase_date, qr_code_url, chip_key_hash, created_at, last_transfer_at")
         .eq("token_id", tid)
         .single();
 
@@ -93,7 +85,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
 
       const { data: txData } = await supabase
         .from("arx_transactions")
-        .select("*")
+        .select("arx_tx_id, from_address, to_address, price_usd, transaction_type, created_at")
         .eq("token_id", tid)
         .order("created_at", { ascending: true });
 
@@ -101,7 +93,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
         token_id: itemData.token_id,
         item_name: itemData.item_name,
         serial_number: itemData.serial_number,
-        identifiers: itemData.identifiers || itemData.edition?.toString() || null,
+        identifiers: itemData.identifiers || null,
         language: itemData.language || "en",
         current_owner: itemData.current_owner || "",
         purchase_price_usd: itemData.purchase_price_usd ? parseFloat(itemData.purchase_price_usd) : null,
@@ -475,12 +467,12 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
         <div className="space-y-3">
           <div>
             <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.new_owner_name")} *</label>
-            <input value={buyerName} onChange={(e) => setBuyerName(e.target.value)} placeholder="Full name"
+            <input value={buyerName} onChange={(e) => setBuyerName(e.target.value)} placeholder="Full name" maxLength={255}
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
           </div>
           <div>
             <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.contact_label")}</label>
-            <input value={buyerContact} onChange={(e) => setBuyerContact(e.target.value)} placeholder="email@example.com"
+            <input value={buyerContact} onChange={(e) => setBuyerContact(e.target.value)} placeholder="email@example.com" maxLength={255}
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
             <p className="text-[10px] text-muted-foreground mt-1">Used as your ownership identifier</p>
           </div>
@@ -491,7 +483,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
           </div>
           <div>
             <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.identifiers_label")}</label>
-            <input value={buyerNotes} onChange={(e) => setBuyerNotes(e.target.value)} placeholder="Condition notes, provenance details..."
+            <input value={buyerNotes} onChange={(e) => setBuyerNotes(e.target.value)} placeholder="Condition notes, provenance details..." maxLength={500}
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
             <p className="text-[10px] text-muted-foreground mt-1">{t("cube12.arx.description_hint")}</p>
           </div>

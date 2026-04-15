@@ -24,15 +24,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
 import ItemView from "./item-view";
 import { getHubPosition, getTheme2_3Positions } from "@/lib/flower-geometry";
-
-/** Format date as YYYY.MM.DD — consistent across all ARX displays */
-function fmtDate(d: string) {
-  const dt = new Date(d + (d.length === 10 ? "T12:00:00" : ""));
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth() + 1).padStart(2, "0");
-  const day = String(dt.getDate()).padStart(2, "0");
-  return `${y}.${m}.${day}`;
-}
+import { fmtDate } from "./arx-utils";
 
 interface ArxItem {
   token_id: number;
@@ -133,6 +125,7 @@ function ArxPageInner() {
   const [browseSearch, setBrowseSearch] = useState("");
   const [browseLoading, setBrowseLoading] = useState(false);
   const [showBrowse, setShowBrowse] = useState(false);
+  const [browseHasMore, setBrowseHasMore] = useState(false);
 
   // --- Transfer — just Token ID input, redirects to /arx/[tokenId] ---
   const [transferTo, setTransferTo] = useState("");
@@ -170,17 +163,18 @@ function ArxPageInner() {
 
         let itemData: any = null;
 
+        const itemCols = "token_id, item_name, serial_number, identifiers, language, current_owner, purchase_price_usd, qr_code_url, chip_key_hash, created_at, last_transfer_at";
         if (chipAddr && chipAddr.startsWith("0x")) {
           const { data } = await supabase
             .from("arx_items")
-            .select("*")
+            .select(itemCols)
             .eq("chip_key_hash", chipAddr.toLowerCase())
             .single();
           itemData = data;
         } else if (tokenId) {
           const { data } = await supabase
             .from("arx_items")
-            .select("*")
+            .select(itemCols)
             .eq("token_id", tokenId)
             .single();
           itemData = data;
@@ -195,7 +189,7 @@ function ArxPageInner() {
         const resolvedTokenId = itemData.token_id;
         const { data: txData } = await supabase
           .from("arx_transactions")
-          .select("*")
+          .select("arx_tx_id, from_address, to_address, price_usd, transaction_type, created_at")
           .eq("token_id", resolvedTokenId)
           .order("created_at", { ascending: true });
 
@@ -203,7 +197,7 @@ function ArxPageInner() {
           token_id: itemData.token_id,
           item_name: itemData.item_name,
           serial_number: itemData.serial_number,
-          identifiers: itemData.identifiers || itemData.edition?.toString() || "",
+          identifiers: itemData.identifiers || "",
           language: itemData.language || "en",
           current_owner: itemData.current_owner || "",
           purchase_price_usd: itemData.purchase_price_usd
@@ -306,29 +300,33 @@ function ArxPageInner() {
 
   // Transfer is now handled on /arx/[tokenId] page
 
-  // --- Browse registered items ---
-  const handleBrowse = useCallback(async () => {
+  // --- Browse registered items (paginated) ---
+  const BROWSE_PAGE = 20;
+  const handleBrowse = useCallback(async (append = false) => {
     setBrowseLoading(true);
     try {
       const { supabase } = await import("@/lib/supabase");
       if (!supabase) return;
+      const offset = append ? browseItems.length : 0;
       let query = supabase
         .from("arx_items")
         .select("token_id, item_name, current_owner, purchase_price_usd, created_at")
         .order("created_at", { ascending: false })
-        .limit(20);
+        .range(offset, offset + BROWSE_PAGE - 1);
       if (browseSearch.trim()) {
         query = query.ilike("item_name", `%${browseSearch.trim()}%`);
       }
       const { data } = await query;
-      setBrowseItems(data || []);
+      const results = data || [];
+      setBrowseItems(append ? [...browseItems, ...results] : results);
+      setBrowseHasMore(results.length === BROWSE_PAGE);
       setShowBrowse(true);
     } catch {
-      setBrowseItems([]);
+      if (!append) setBrowseItems([]);
     } finally {
       setBrowseLoading(false);
     }
-  }, [browseSearch]);
+  }, [browseSearch, browseItems]);
 
   // --- Reset registration form ---
   const resetRegForm = useCallback(() => {
@@ -625,6 +623,7 @@ function ArxPageInner() {
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
                       placeholder="Original artwork, signed book, collectible..."
+                      maxLength={500}
                       className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                     />
                   </div>
@@ -663,6 +662,7 @@ function ArxPageInner() {
                         value={regSerial}
                         onChange={(e) => setRegSerial(e.target.value)}
                         placeholder="DG-2026-001"
+                        maxLength={255}
                         className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                       />
                     </div>
@@ -672,6 +672,7 @@ function ArxPageInner() {
                         value={regIdentifiers}
                         onChange={(e) => setRegIdentifiers(e.target.value)}
                         placeholder="Quote, stamp, or other unique mark"
+                        maxLength={500}
                         className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                       />
                     </div>
@@ -684,6 +685,7 @@ function ArxPageInner() {
                       value={regMarker}
                       onChange={(e) => setRegMarker(e.target.value)}
                       placeholder="Distinguishing details about this item"
+                      maxLength={500}
                       className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                     />
                     <p className="text-[10px] text-muted-foreground mt-1">
@@ -971,7 +973,7 @@ function ArxPageInner() {
                       onKeyDown={(e) => { if (e.key === "Enter") handleBrowse(); }}
                     />
                     <button
-                      onClick={handleBrowse}
+                      onClick={() => handleBrowse()}
                       disabled={browseLoading}
                       className="px-4 py-2 bg-muted text-sm rounded-lg hover:bg-accent transition-colors disabled:opacity-40"
                     >
@@ -997,6 +999,15 @@ function ArxPageInner() {
                           )}
                         </button>
                       ))}
+                      {browseHasMore && (
+                        <button
+                          onClick={() => handleBrowse(true)}
+                          disabled={browseLoading}
+                          className="w-full py-2 text-xs text-primary hover:bg-primary/5 rounded-lg transition-colors disabled:opacity-40"
+                        >
+                          {browseLoading ? "..." : t("cube12.arx.show_more")}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
