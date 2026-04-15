@@ -33,6 +33,7 @@ interface ArxItemFull {
   current_owner: string;
   purchase_price_usd: number | null;
   purchase_date: string | null;
+  purchase_time: string | null;
   qr_code_url: string;
   chip_key_hash: string | null;
   created_at: string;
@@ -80,7 +81,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
 
       const { data: itemData, error: itemErr } = await supabase
         .from("arx_items")
-        .select("token_id, item_name, serial_number, identifiers, language, current_owner, purchase_price_usd, purchase_date, qr_code_url, chip_key_hash, created_at, last_transfer_at")
+        .select("token_id, item_name, serial_number, identifiers, language, current_owner, purchase_price_usd, purchase_date, purchase_time, qr_code_url, chip_key_hash, created_at, last_transfer_at")
         .eq("token_id", tid)
         .single();
 
@@ -104,6 +105,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
         current_owner: itemData.current_owner || "",
         purchase_price_usd: itemData.purchase_price_usd ? parseFloat(itemData.purchase_price_usd) : null,
         purchase_date: itemData.purchase_date || null,
+        purchase_time: itemData.purchase_time || null,
         qr_code_url: itemData.qr_code_url || "",
         chip_key_hash: itemData.chip_key_hash || null,
         created_at: itemData.created_at,
@@ -447,7 +449,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
           {item.purchase_date && (
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.purchased")}</p>
-              <p className="text-xs">{fmtDate(item.purchase_date)}</p>
+              <p className="text-xs">{fmtDate(item.purchase_date)}{item.purchase_time ? ` ${item.purchase_time}` : ""}</p>
             </div>
           )}
           {item.serial_number && (

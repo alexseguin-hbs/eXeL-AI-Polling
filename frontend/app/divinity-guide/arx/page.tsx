@@ -106,6 +106,7 @@ function ArxPageInner() {
   const [regMarker, setRegMarker] = useState("");
   const [regContact, setRegContact] = useState("");
   const [regPurchaseDate, setRegPurchaseDate] = useState("");
+  const [regPurchaseTime, setRegPurchaseTime] = useState("");
   const [regChipAddress, setRegChipAddress] = useState("");
   const [regSuccess, setRegSuccess] = useState<{
     qr_code_url: string;
@@ -163,7 +164,7 @@ function ArxPageInner() {
 
         let itemData: any = null;
 
-        const itemCols = "token_id, item_name, serial_number, identifiers, language, current_owner, purchase_price_usd, qr_code_url, chip_key_hash, created_at, last_transfer_at";
+        const itemCols = "token_id, item_name, serial_number, identifiers, language, current_owner, purchase_price_usd, purchase_date, purchase_time, qr_code_url, chip_key_hash, created_at, last_transfer_at";
         if (chipAddr && chipAddr.startsWith("0x")) {
           const { data } = await supabase
             .from("arx_items")
@@ -273,6 +274,7 @@ function ArxPageInner() {
         item_name: regName.trim(),
         purchase_price_usd: parseFloat(regPrice),
         purchase_date: regPurchaseDate || new Date().toISOString().split("T")[0],
+        purchase_time: regPurchaseTime ? `${regPurchaseTime} CST` : null,
         serial_number: regSerial.trim() || null,
         identifiers: [regIdentifiers.trim(), regMarker.trim()].filter(Boolean).join(" — ") || null,
         language: "en",
@@ -337,6 +339,7 @@ function ArxPageInner() {
     setRegMarker("");
     setRegContact("");
     setRegPurchaseDate("");
+    setRegPurchaseTime("");
     setRegChipAddress("");
     setRegSuccess(null);
     setShowPairChip(false);
@@ -661,19 +664,30 @@ function ArxPageInner() {
                     />
                   </div>
 
-                  {/* Purchase Date */}
-                  <div>
-                    <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.purchase_date_label")}</label>
-                    <input
-                      type="date"
-                      value={regPurchaseDate}
-                      onChange={(e) => setRegPurchaseDate(e.target.value)}
-                      className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
-                    />
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {t("cube12.arx.purchase_date_hint")}
-                    </p>
+                  {/* Purchase Date + Time — side by side */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.purchase_date_label")}</label>
+                      <input
+                        type="date"
+                        value={regPurchaseDate}
+                        onChange={(e) => setRegPurchaseDate(e.target.value)}
+                        className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">Purchase Time</label>
+                      <input
+                        type="time"
+                        value={regPurchaseTime}
+                        onChange={(e) => setRegPurchaseTime(e.target.value)}
+                        className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
+                      />
+                    </div>
                   </div>
+                  <p className="text-[10px] text-muted-foreground -mt-3">
+                    {t("cube12.arx.purchase_date_hint")}
+                  </p>
 
                   {/* Serial + Identifiers — side by side */}
                   <div className="grid grid-cols-2 gap-3">
