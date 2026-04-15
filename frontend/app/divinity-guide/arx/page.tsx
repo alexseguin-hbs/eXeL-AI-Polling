@@ -63,6 +63,7 @@ function ArxPageInner() {
   const [regPrice, setRegPrice] = useState("");
   const [regSerial, setRegSerial] = useState("");
   const [regEdition, setRegEdition] = useState("");
+  const [regMarker, setRegMarker] = useState("");  // Special marker (signed page, inscription, etc.)
   const [regSuccess, setRegSuccess] = useState<{ qr_code_url: string; arx_tx_id: string; token_id: number } | null>(null);
 
   // Transfer form
@@ -79,50 +80,104 @@ function ArxPageInner() {
   // Fetch item data for verify/scan modes
   useEffect(() => {
     if (mode !== "verify" && mode !== "scan") return;
-    const id = tokenId || "0";
+    const id = parseInt(tokenId || "0");
+    if (!id) return;
     setLoading(true);
-    fetch(`/api/v1/arx/verify/${id}${chipUid ? `?chip_uid=${chipUid}` : ""}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.verified) {
-          setItem(data);
-          setVerificationStatus("verified");
-          // Also fetch full item with transaction history
-          fetch(`/api/v1/arx/item/${id}`)
-            .then((r) => r.json())
-            .then((full) => { if (full.transactions) setItem((prev) => prev ? { ...prev, ...full } : full); })
-            .catch(() => {});
-        } else {
+
+    // Read directly from Supabase (no backend API needed)
+    (async () => {
+      try {
+        const { supabase } = await import("@/lib/supabase");
+        if (!supabase) throw new Error("Supabase not available");
+
+        // Fetch item
+        const { data: itemData } = await supabase.from("arx_items")
+          .select("*").eq("token_id", id).single();
+
+        if (!itemData) {
           setVerificationStatus("failed");
-          setError(data.reason || "Item not found");
+          setError("Item not found");
+          return;
         }
-      })
-      .catch(() => { setVerificationStatus("failed"); setError("Service unavailable"); })
-      .finally(() => setLoading(false));
+
+        // Fetch transactions
+        const { data: txData } = await supabase.from("arx_transactions")
+          .select("*").eq("token_id", id).order("created_at", { ascending: true });
+
+        const itemResult: ArxItem = {
+          token_id: itemData.token_id,
+          item_name: itemData.item_name,
+          serial_number: itemData.serial_number,
+          edition: itemData.edition || 0,
+          language: itemData.language || "en",
+          current_owner: itemData.current_owner || "",
+          purchase_price_usd: itemData.purchase_price_usd ? parseFloat(itemData.purchase_price_usd) : null,
+          qr_code_url: itemData.qr_code_url || "",
+          minted_at: itemData.created_at,
+          last_transfer_at: itemData.last_transfer_at,
+          transaction_count: txData?.length || 0,
+          transactions: (txData || []).map((tx: any) => ({
+            arx_tx_id: tx.arx_tx_id,
+            from: tx.from_address,
+            to: tx.to_address,
+            price_usd: tx.price_usd ? parseFloat(tx.price_usd) : null,
+            type: tx.transaction_type,
+            timestamp: tx.created_at,
+          })),
+        };
+
+        setItem(itemResult);
+        setVerificationStatus("verified");
+      } catch {
+        setVerificationStatus("failed");
+        setError("Verification service unavailable");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [mode, tokenId, chipUid]);
 
-  // Register new item
+  // Register new item — writes directly to Supabase (no backend API needed)
   const handleRegister = useCallback(async () => {
     if (!regName.trim() || !regPrice) return;
     setLoading(true);
     setError("");
     try {
-      const resp = await fetch("/api/v1/arx/mint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          item_name: regName.trim(),
-          purchase_price_usd: parseFloat(regPrice),
-          serial_number: regSerial.trim() || undefined,
-          edition: regEdition ? parseInt(regEdition) : 0,
-          language: "en",
-        }),
+      const { supabase } = await import("@/lib/supabase");
+      if (!supabase) throw new Error("Supabase not available");
+
+      const tokenId = Date.now() % 1_000_000_000;
+      const txId = `ARX-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+      const verifyHash = await crypto.subtle.digest("SHA-256",
+        new TextEncoder().encode(`${tokenId}:${regName}:${Date.now()}`)
+      ).then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join(""));
+      const qrUrl = `${window.location.origin}/divinity-guide/arx?token=${tokenId}&verify=${verifyHash.slice(0, 16)}`;
+
+      // Insert item
+      const { error: itemErr } = await supabase.from("arx_items").insert({
+        token_id: tokenId,
+        item_name: regName.trim(),
+        purchase_price_usd: parseFloat(regPrice),
+        serial_number: regSerial.trim() || null,
+        edition: regEdition ? parseInt(regEdition) : 0,
+        language: "en",
+        current_owner: "anonymous",
+        qr_code_url: qrUrl,
       });
-      if (!resp.ok) throw new Error("Registration failed");
-      const data = await resp.json();
-      setRegSuccess(data);
-    } catch (e) {
-      setError("Registration failed — please try again");
+      if (itemErr) throw new Error(itemErr.message);
+
+      // Insert transaction
+      await supabase.from("arx_transactions").insert({
+        arx_tx_id: txId,
+        token_id: tokenId,
+        to_address: "anonymous",
+        price_usd: parseFloat(regPrice),
+        transaction_type: "mint",
+      });
+
+      setRegSuccess({ qr_code_url: qrUrl, arx_tx_id: txId, token_id: tokenId });
+    } catch (e: any) {
+      setError(e.message || "Registration failed — please try again");
     } finally {
       setLoading(false);
     }
@@ -252,6 +307,14 @@ function ArxPageInner() {
                     placeholder="7"
                     className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none" />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">Special Markers</label>
+                <input value={regMarker} onChange={(e) => setRegMarker(e.target.value)}
+                  placeholder="e.g., Signed by author on page 144, Gold leaf cover"
+                  className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none" />
+                <p className="text-[10px] text-muted-foreground mt-1">Describe unique features that make this item one-of-a-kind</p>
               </div>
 
               {error && <p className="text-sm text-red-500">{error}</p>}
