@@ -62,6 +62,12 @@ class TransferRequest(BaseModel):
     sale_price_usd: float | None = Field(default=None, ge=0)
 
 
+# [Asar] Request schema for chip pairing — takes token_id + Ethereum address
+class PairChipRequest(BaseModel):
+    token_id: int = Field(ge=1)
+    chip_address: str = Field(min_length=42, max_length=42, pattern=r"^0x[a-fA-F0-9]{40}$")
+
+
 # ── Endpoints ────────────────────────────────────────────────────
 
 @router.post("/mint", status_code=201)
@@ -149,3 +155,46 @@ async def marketplace(
     if limit < 1 or limit > 100:
         raise HTTPException(status_code=400, detail="limit must be 1-100")
     return await service.list_marketplace(db, limit=limit)
+
+
+# [Asar] POST /arx/pair-chip — Pair an ARX NFC chip to a registered item after registration.
+# Takes token_id + chip Ethereum address, hashes it, and updates the arx_items record.
+@router.post("/pair-chip")
+async def pair_chip(
+    payload: PairChipRequest,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CRS-NEW-12.06: Pair ARX chip to a registered item (post-registration flow).
+
+    Requires authentication — only the item owner should pair chips.
+    """
+    try:
+        result = await service.pair_chip_to_item(
+            db,
+            token_id=payload.token_id,
+            chip_ethereum_address=payload.chip_address,
+        )
+        await db.commit()
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# [Enlil] GET /arx/lookup-chip/{address} — Look up an ARX item by its chip Ethereum address.
+# Public, no auth required — anyone can tap a chip and find the associated item.
+@router.get("/lookup-chip/{address}")
+async def lookup_chip(
+    address: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """CRS-NEW-12.07: Look up ARX item by chip Ethereum address. Public — no auth.
+
+    Anyone can scan/tap an ARX chip to find the associated item and verify authenticity.
+    """
+    if not re.match(r"^0x[a-fA-F0-9]{40}$", address):
+        raise HTTPException(status_code=400, detail="Invalid Ethereum address format")
+    result = await service.lookup_by_chip(db, chip_ethereum_address=address)
+    if result is None:
+        raise HTTPException(status_code=404, detail="No item found for this chip address")
+    return result

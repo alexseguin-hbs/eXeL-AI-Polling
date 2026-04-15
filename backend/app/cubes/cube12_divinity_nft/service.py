@@ -285,6 +285,106 @@ async def get_arx_item(
     }
 
 
+# [Thoth] Pair an ARX chip to an existing item — enables "pair after registration" flow.
+# Takes the raw Ethereum address, hashes it with SHA-256, and stores the hash in arx_items.
+async def pair_chip_to_item(
+    db: AsyncSession,
+    *,
+    token_id: int,
+    chip_ethereum_address: str,
+) -> dict:
+    """CRS-NEW-12.06: Pair an ARX NFC chip to a registered item (post-registration).
+
+    I/O: token_id + chip Ethereum address → dict with pairing status
+    The Ethereum address is SHA-256 hashed before storage — raw address never persisted.
+    """
+    result = await db.execute(
+        select(ArxItem).where(ArxItem.token_id == token_id)
+    )
+    item = result.scalar_one_or_none()
+
+    if item is None:
+        raise ValueError(f"ARX item {token_id} not found")
+
+    if item.chip_key_hash:
+        raise ValueError(f"ARX item {token_id} already has a chip paired")
+
+    # Hash the Ethereum address (lowercase-normalized for consistency)
+    chip_hash = hashlib.sha256(chip_ethereum_address.strip().lower().encode()).hexdigest()
+    item.chip_key_hash = chip_hash
+
+    await db.flush()
+
+    logger.info("cube12.arx.chip_paired", extra={
+        "token_id": token_id,
+        "chip_hash_prefix": chip_hash[:16],
+    })
+
+    return {
+        "token_id": token_id,
+        "chip_paired": True,
+        "chip_hash_prefix": chip_hash[:16],
+        "status": "paired",
+    }
+
+
+# [Odin] Look up an ARX item by chip Ethereum address — hashes the address and finds
+# the matching arx_item record. Returns the full item dict or None.
+async def lookup_by_chip(
+    db: AsyncSession,
+    *,
+    chip_ethereum_address: str,
+) -> dict | None:
+    """CRS-NEW-12.07: Find an ARX item by its paired chip Ethereum address.
+
+    I/O: chip Ethereum address → dict with item details or None
+    Public — anyone can look up an item by tapping/scanning its chip.
+    """
+    chip_hash = hashlib.sha256(chip_ethereum_address.strip().lower().encode()).hexdigest()
+
+    result = await db.execute(
+        select(ArxItem).where(ArxItem.chip_key_hash == chip_hash)
+    )
+    item = result.scalar_one_or_none()
+
+    if item is None:
+        return None
+
+    # Get transaction history
+    tx_result = await db.execute(
+        select(ArxTransaction)
+        .where(ArxTransaction.token_id == item.token_id)
+        .order_by(ArxTransaction.created_at)
+    )
+    transactions = [
+        {
+            "arx_tx_id": tx.arx_tx_id,
+            "from": tx.from_address,
+            "to": tx.to_address,
+            "price_usd": float(tx.price_usd) if tx.price_usd else None,
+            "type": tx.transaction_type,
+            "timestamp": tx.created_at.isoformat() if tx.created_at else None,
+        }
+        for tx in tx_result.scalars().all()
+    ]
+
+    return {
+        "token_id": item.token_id,
+        "item_name": item.item_name,
+        "serial_number": item.serial_number,
+        "edition": item.edition,
+        "language": item.language,
+        "current_owner": item.current_owner,
+        "purchase_price_usd": float(item.purchase_price_usd) if item.purchase_price_usd else None,
+        "qr_code_url": item.qr_code_url,
+        "chip_paired": True,
+        "minted_at": item.created_at.isoformat() if item.created_at else None,
+        "last_transfer_at": item.last_transfer_at.isoformat() if item.last_transfer_at else None,
+        "transactions": transactions,
+        "transaction_count": len(transactions),
+    }
+
+
 async def list_marketplace(
     db: AsyncSession,
     limit: int = 20,

@@ -65,7 +65,12 @@ function ArxPageInner() {
   const [regEdition, setRegEdition] = useState("");
   const [regMarker, setRegMarker] = useState("");
   const [regContact, setRegContact] = useState("");  // Email or phone for ownership receipt
+  // [Thor] ARX chip Ethereum address — user pastes or scans from physical chip (starts with 0x)
+  const [regChipAddress, setRegChipAddress] = useState("");
   const [regSuccess, setRegSuccess] = useState<{ qr_code_url: string; arx_tx_id: string; token_id: number } | null>(null);
+  // [Pangu] Post-registration chip pairing state — allows pairing AFTER item is registered
+  const [showPairChip, setShowPairChip] = useState(false);
+  const [pairChipAddress, setPairChipAddress] = useState("");
 
   // Flower navigation — 3 sections like Divinity Guide
   const [selectedFlower, setSelectedFlower] = useState<"mint" | "verify" | "transfer" | null>(null);
@@ -82,10 +87,13 @@ function ArxPageInner() {
   }, [tokenId, chipUid]);
 
   // Fetch item data for verify/scan modes
+  // [Aset] When ?chip=0x... is in the URL, look up item by chip_key_hash (SHA-256 of the
+  // Ethereum address) instead of token_id. This way tapping the chip directly finds the item.
   useEffect(() => {
     if (mode !== "verify" && mode !== "scan") return;
     const id = parseInt(tokenId || "0");
-    if (!id) return;
+    const chipAddr = chipUid; // chipUid comes from ?chip= URL param
+    if (!id && !chipAddr) return;
     setLoading(true);
 
     // Read directly from Supabase (no backend API needed)
@@ -94,9 +102,23 @@ function ArxPageInner() {
         const { supabase } = await import("@/lib/supabase");
         if (!supabase) throw new Error("Supabase not available");
 
-        // Fetch item
-        const { data: itemData } = await supabase.from("arx_items")
-          .select("*").eq("token_id", id).single();
+        let itemData: any = null;
+
+        // [Aset] If chip address provided (starts with 0x), hash it and look up by chip_key_hash
+        if (chipAddr && chipAddr.startsWith("0x")) {
+          const hashBuf = await crypto.subtle.digest("SHA-256",
+            new TextEncoder().encode(chipAddr.toLowerCase())
+          );
+          const chipHash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, "0")).join("");
+          const { data } = await supabase.from("arx_items")
+            .select("*").eq("chip_key_hash", chipHash).single();
+          itemData = data;
+        } else if (id) {
+          // Fetch by token_id (standard QR-based verify)
+          const { data } = await supabase.from("arx_items")
+            .select("*").eq("token_id", id).single();
+          itemData = data;
+        }
 
         if (!itemData) {
           setVerificationStatus("failed");
@@ -157,6 +179,16 @@ function ArxPageInner() {
       ).then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join(""));
       const qrUrl = `${window.location.origin}/divinity-guide/arx?token=${tokenId}&verify=${verifyHash.slice(0, 16)}`;
 
+      // [Krishna] Hash the Ethereum address with SHA-256 before storing as chip_key_hash.
+      // This is what we compare during chip verification — raw address never stored.
+      let chipKeyHash: string | null = null;
+      if (regChipAddress.trim()) {
+        const hashBuf = await crypto.subtle.digest("SHA-256",
+          new TextEncoder().encode(regChipAddress.trim().toLowerCase())
+        );
+        chipKeyHash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, "0")).join("");
+      }
+
       // Insert item
       const { error: itemErr } = await supabase.from("arx_items").insert({
         token_id: tokenId,
@@ -167,6 +199,7 @@ function ArxPageInner() {
         language: "en",
         current_owner: "anonymous",
         qr_code_url: qrUrl,
+        chip_key_hash: chipKeyHash,
       });
       if (itemErr) throw new Error(itemErr.message);
 
@@ -185,7 +218,7 @@ function ArxPageInner() {
     } finally {
       setLoading(false);
     }
-  }, [regName, regPrice, regSerial, regEdition]);
+  }, [regName, regPrice, regSerial, regEdition, regChipAddress]);
 
   // Transfer item
   const handleTransfer = useCallback(async () => {
@@ -321,6 +354,24 @@ function ArxPageInner() {
                 <p className="text-[10px] text-muted-foreground mt-1">Describe unique features that make this item one-of-a-kind</p>
               </div>
 
+              {/* [Thor] ARX Chip Address field — user pastes Ethereum address from their physical chip */}
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">ARX Chip Address</label>
+                <input value={regChipAddress} onChange={(e) => setRegChipAddress(e.target.value)}
+                  placeholder="0xC3D72cc59B4514fac7057bC9C629b7bC4de9A635"
+                  className="w-full rounded-lg border bg-background px-4 py-3 text-sm font-mono focus:border-primary focus:outline-none" />
+                {/* [Sofia] Helper text explaining how to find the chip's Ethereum address */}
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Find your chip&apos;s Ethereum address by tapping it with your phone. The address starts with 0x...
+                  You can also find it in the ARX app under chip details.
+                </p>
+                {/* [Enki] Fallback: if NFC is not available, show manual paste instruction */}
+                <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                  No NFC? Open the ARX app, tap your chip there, and copy-paste the Ethereum address above.
+                  You can also pair the chip after registration.
+                </p>
+              </div>
+
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Your Email or Phone *</label>
                 <input value={regContact} onChange={(e) => setRegContact(e.target.value)}
@@ -356,8 +407,47 @@ function ArxPageInner() {
               <p className="text-xs text-muted-foreground mt-3">Save this QR code — share with buyers</p>
             </div>
 
+            {/* [Pangu] "Pair Chip Later" option — allows pairing ARX chip AFTER registration */}
+            {!showPairChip ? (
+              <button onClick={() => setShowPairChip(true)}
+                className="w-full py-2 border border-primary/30 rounded-lg text-sm text-primary hover:bg-primary/5 transition-colors">
+                Tap ARX Chip to Pair
+              </button>
+            ) : (
+              <div className="rounded-lg border bg-card/50 p-4 space-y-3">
+                <p className="text-xs text-muted-foreground">Paste your ARX chip&apos;s Ethereum address to pair it with this item:</p>
+                {/* [Enki] NFC fallback in pair-later flow — text field for manual paste */}
+                <input value={pairChipAddress} onChange={(e) => setPairChipAddress(e.target.value)}
+                  placeholder="0xC3D72cc59B4514fac7057bC9C629b7bC4de9A635"
+                  className="w-full rounded-lg border bg-background px-4 py-2 text-sm font-mono focus:border-primary focus:outline-none" />
+                <button
+                  disabled={!pairChipAddress.trim() || loading}
+                  onClick={async () => {
+                    if (!pairChipAddress.trim() || !regSuccess) return;
+                    setLoading(true);
+                    try {
+                      const resp = await fetch("/api/v1/arx/pair-chip", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ token_id: regSuccess.token_id, chip_address: pairChipAddress.trim() }),
+                      });
+                      if (!resp.ok) throw new Error("Pairing failed");
+                      setShowPairChip(false);
+                      setPairChipAddress("");
+                    } catch (e: any) {
+                      setError(e.message || "Chip pairing failed");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 disabled:opacity-40">
+                  {loading ? "Pairing..." : "Pair Chip to Item"}
+                </button>
+              </div>
+            )}
+
             <div className="flex gap-3">
-              <button onClick={() => { setRegSuccess(null); setRegName(""); setRegPrice(""); setRegSerial(""); setRegEdition(""); }}
+              <button onClick={() => { setRegSuccess(null); setRegName(""); setRegPrice(""); setRegSerial(""); setRegEdition(""); setRegChipAddress(""); setShowPairChip(false); }}
                 className="flex-1 py-2 border rounded-lg text-sm hover:bg-accent transition-colors">
                 Register Another
               </button>
