@@ -48,6 +48,7 @@ async def mint_arx_item(
     buyer_address: str,
     serial_number: str | None = None,
     identifiers: str | None = None,
+    purchase_date: str | None = None,
     language: str = "en",
     chip_key_hash: str | None = None,
 ) -> dict:
@@ -56,10 +57,12 @@ async def mint_arx_item(
     I/O: item details → dict with token_id, qr_code_url, arx_tx_id
     Called after Stripe payment succeeds.
     """
-    # Generate token ID — use timestamp-based integer for uniqueness without DB sequence
-    # This avoids COUNT(*) race condition under concurrent mints
+    # Generate token ID — timestamp + random suffix to prevent collision
     import time
-    token_id = int(time.time() * 1000) % 1_000_000_000  # Millisecond-based, unique enough
+    import random
+    ts = int(time.time() * 1000) % 100_000_000  # 8-digit timestamp portion
+    rand = random.randint(0, 9)  # 1-digit random suffix
+    token_id = ts * 10 + rand  # 9-digit unique ID
 
     # Generate verification hash
     verification_hash = hashlib.sha256(
@@ -68,6 +71,15 @@ async def mint_arx_item(
 
     qr_url = _generate_qr_url(token_id, verification_hash)
 
+    # Parse purchase_date if provided (user may register item long after buying)
+    parsed_purchase_date = None
+    if purchase_date:
+        from datetime import date as date_type
+        try:
+            parsed_purchase_date = date_type.fromisoformat(purchase_date)
+        except ValueError:
+            parsed_purchase_date = None
+
     # Create item record
     item = ArxItem(
         token_id=token_id,
@@ -75,6 +87,7 @@ async def mint_arx_item(
         item_name=item_name,
         serial_number=serial_number,
         identifiers=identifiers,
+        purchase_date=parsed_purchase_date,
         language=language,
         current_owner=buyer_address,
         purchase_price_usd=purchase_price_usd,
@@ -108,6 +121,7 @@ async def mint_arx_item(
         "item_name": item_name,
         "serial_number": serial_number,
         "identifiers": identifiers,
+        "purchase_date": purchase_date,
         "owner": buyer_address,
         "purchase_price_usd": purchase_price_usd,
         "qr_code_url": qr_url,
@@ -158,6 +172,7 @@ async def verify_arx_chip(
         "language": item.language,
         "current_owner": item.current_owner,
         "purchase_price_usd": float(item.purchase_price_usd) if item.purchase_price_usd else None,
+        "purchase_date": item.purchase_date.isoformat() if item.purchase_date else None,
         "minted_at": item.created_at.isoformat() if item.created_at else None,
         "last_transfer_at": item.last_transfer_at.isoformat() if item.last_transfer_at else None,
         "transaction_count": tx_count,
@@ -276,6 +291,7 @@ async def get_arx_item(
         "language": item.language,
         "current_owner": item.current_owner,
         "purchase_price_usd": float(item.purchase_price_usd) if item.purchase_price_usd else None,
+        "purchase_date": item.purchase_date.isoformat() if item.purchase_date else None,
         "qr_code_url": item.qr_code_url,
         "chip_key_hash": item.chip_key_hash,
         "minted_at": item.created_at.isoformat() if item.created_at else None,
@@ -292,6 +308,7 @@ async def pair_chip_to_item(
     *,
     token_id: int,
     chip_ethereum_address: str,
+    requester_address: str | None = None,
 ) -> dict:
     """CRS-NEW-12.06: Pair an ARX NFC chip to a registered item (post-registration).
 
@@ -306,6 +323,8 @@ async def pair_chip_to_item(
     if item is None:
         raise ValueError(f"ARX item {token_id} not found")
 
+    if requester_address and item.current_owner != requester_address:
+        raise ValueError("Only the current owner can pair a chip")
     if item.chip_key_hash:
         raise ValueError(f"ARX item {token_id} already has a chip paired")
 
@@ -376,6 +395,7 @@ async def lookup_by_chip(
         "language": item.language,
         "current_owner": item.current_owner,
         "purchase_price_usd": float(item.purchase_price_usd) if item.purchase_price_usd else None,
+        "purchase_date": item.purchase_date.isoformat() if item.purchase_date else None,
         "qr_code_url": item.qr_code_url,
         "chip_paired": True,
         "minted_at": item.created_at.isoformat() if item.created_at else None,

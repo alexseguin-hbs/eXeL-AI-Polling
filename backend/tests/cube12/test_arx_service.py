@@ -18,6 +18,8 @@ from app.cubes.cube12_divinity_nft.service import (
     transfer_arx_item,
     get_arx_item,
     list_marketplace,
+    pair_chip_to_item,
+    lookup_by_chip,
     _generate_qr_url,
     _next_tx_id,
 )
@@ -267,3 +269,158 @@ class TestListMarketplace:
         result = await list_marketplace(db, limit=10)
         assert len(result) == 1
         assert result[0]["item_name"] == "Book"
+
+
+class TestPairChipToItem:
+    """CRS-NEW-12.06: Pair ARX chip to existing item."""
+
+    @pytest.mark.asyncio
+    async def test_pair_chip_success(self):
+        db = AsyncMock()
+        item = MagicMock()
+        item.token_id = 1
+        item.chip_key_hash = None
+        item.current_owner = "owner@test.com"
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = item
+        db.execute = AsyncMock(return_value=mock_result)
+
+        result = await pair_chip_to_item(
+            db, token_id=1,
+            chip_ethereum_address="0xABCDEF1234567890abcdef1234567890ABCDEF12",
+        )
+        assert result["chip_paired"] is True
+        assert item.chip_key_hash is not None
+
+    @pytest.mark.asyncio
+    async def test_pair_chip_already_paired(self):
+        db = AsyncMock()
+        item = MagicMock()
+        item.token_id = 1
+        item.chip_key_hash = "existing_hash"
+        item.current_owner = "owner@test.com"
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = item
+        db.execute = AsyncMock(return_value=mock_result)
+
+        with pytest.raises(ValueError, match="already has a chip"):
+            await pair_chip_to_item(
+                db, token_id=1,
+                chip_ethereum_address="0xABCDEF1234567890abcdef1234567890ABCDEF12",
+            )
+
+    @pytest.mark.asyncio
+    async def test_pair_chip_not_found(self):
+        db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        db.execute = AsyncMock(return_value=mock_result)
+
+        with pytest.raises(ValueError, match="not found"):
+            await pair_chip_to_item(
+                db, token_id=999,
+                chip_ethereum_address="0xABCDEF1234567890abcdef1234567890ABCDEF12",
+            )
+
+    @pytest.mark.asyncio
+    async def test_pair_chip_not_owner_rejected(self):
+        db = AsyncMock()
+        item = MagicMock()
+        item.token_id = 1
+        item.chip_key_hash = None
+        item.current_owner = "real-owner@test.com"
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = item
+        db.execute = AsyncMock(return_value=mock_result)
+
+        with pytest.raises(ValueError, match="Only the current owner"):
+            await pair_chip_to_item(
+                db, token_id=1,
+                chip_ethereum_address="0xABCDEF1234567890abcdef1234567890ABCDEF12",
+                requester_address="attacker@evil.com",
+            )
+
+
+class TestLookupByChip:
+    """CRS-NEW-12.07: Lookup item by chip Ethereum address."""
+
+    @pytest.mark.asyncio
+    async def test_lookup_found(self):
+        import hashlib
+        db = AsyncMock()
+        item = MagicMock()
+        item.token_id = 42
+        item.item_name = "Test Art"
+        item.serial_number = "SN-001"
+        item.identifiers = "signed"
+        item.language = "en"
+        item.current_owner = "owner@test.com"
+        item.purchase_price_usd = 99.99
+        item.purchase_date = None
+        item.qr_code_url = "https://example.com"
+        item.chip_key_hash = hashlib.sha256("0xabc".encode()).hexdigest()
+        item.created_at = MagicMock(isoformat=MagicMock(return_value="2026-01-01T00:00:00"))
+        item.last_transfer_at = None
+
+        mock_item_result = MagicMock()
+        mock_item_result.scalar_one_or_none.return_value = item
+
+        mock_tx_result = MagicMock()
+        mock_tx_result.scalars.return_value = MagicMock(all=MagicMock(return_value=[]))
+
+        db.execute = AsyncMock(side_effect=[mock_item_result, mock_tx_result])
+
+        result = await lookup_by_chip(db, chip_ethereum_address="0xABC")
+        assert result is not None
+        assert result["token_id"] == 42
+        assert result["chip_paired"] is True
+
+    @pytest.mark.asyncio
+    async def test_lookup_not_found(self):
+        db = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        db.execute = AsyncMock(return_value=mock_result)
+
+        result = await lookup_by_chip(db, chip_ethereum_address="0xDEADBEEF")
+        assert result is None
+
+
+class TestMintWithPurchaseDate:
+    """purchase_date field integration."""
+
+    @pytest.mark.asyncio
+    async def test_mint_with_purchase_date(self):
+        db = AsyncMock()
+        db.refresh = AsyncMock(return_value=None)
+
+        refreshed_item = MagicMock()
+        refreshed_item.id = uuid.uuid4()
+        db.refresh.side_effect = lambda item: setattr(item, "id", refreshed_item.id)
+
+        result = await mint_arx_item(
+            db,
+            item_name="Dated Item",
+            purchase_price_usd=50.00,
+            buyer_address="buyer@test.com",
+            purchase_date="2025-12-25",
+        )
+        assert result["purchase_date"] == "2025-12-25"
+        assert result["token_id"] > 0
+
+    @pytest.mark.asyncio
+    async def test_mint_without_purchase_date(self):
+        db = AsyncMock()
+        db.refresh = AsyncMock(return_value=None)
+
+        refreshed_item = MagicMock()
+        refreshed_item.id = uuid.uuid4()
+        db.refresh.side_effect = lambda item: setattr(item, "id", refreshed_item.id)
+
+        result = await mint_arx_item(
+            db,
+            item_name="No Date Item",
+            purchase_price_usd=10.00,
+            buyer_address="buyer@test.com",
+        )
+        assert result["purchase_date"] is None

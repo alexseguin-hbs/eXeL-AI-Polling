@@ -232,16 +232,6 @@ function ArxPageInner() {
 
       const newTokenId = Date.now() % 1_000_000_000;
       const txId = `ARX-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-      const verifyHash = await crypto.subtle
-        .digest(
-          "SHA-256",
-          new TextEncoder().encode(`${newTokenId}:${regName}:${Date.now()}`)
-        )
-        .then((buf) =>
-          Array.from(new Uint8Array(buf))
-            .map((b) => b.toString(16).padStart(2, "0"))
-            .join("")
-        );
       const qrUrl = `${window.location.origin}/divinity-guide/arx/${newTokenId}`;
 
       let chipKeyHash: string | null = null;
@@ -255,7 +245,7 @@ function ArxPageInner() {
         purchase_price_usd: parseFloat(regPrice),
         purchase_date: regPurchaseDate || new Date().toISOString().split("T")[0],
         serial_number: regSerial.trim() || null,
-        identifiers: regIdentifiers.trim() || null,
+        identifiers: [regIdentifiers.trim(), regMarker.trim()].filter(Boolean).join(" — ") || null,
         language: "en",
         current_owner: regContact.trim() || "anonymous",
         qr_code_url: qrUrl,
@@ -741,7 +731,7 @@ function ArxPageInner() {
                         // Program chip URL — tapping will open the item page
                         // Uses set_url_subdomain (NOT cfg_ndef which disables broadcast)
                         const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
-                        const itemUrl = `https://exel-ai-polling.explore-096.workers.dev/divinity-guide/arx/${regSuccess!.token_id}`;
+                        const itemUrl = `${window.location.origin}/divinity-guide/arx/${regSuccess!.token_id}`;
                         alert("Tap chip again to program the item URL.");
                         await execHaloCmdWeb(
                           { name: "set_url_subdomain", url: itemUrl },
@@ -900,6 +890,16 @@ function ArxPageInner() {
                 {verificationStatus === "verified" && item && (
                   <div className="space-y-4">
                     {renderItemCard()}
+
+                    {/* Actions — next steps after verification */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => router.push(`/divinity-guide/arx/${item.token_id}`)}
+                        className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all"
+                      >
+                        View Full Item Page
+                      </button>
+                    </div>
 
                     {/* Transaction History */}
                     {item.transactions && item.transactions.length > 0 && (

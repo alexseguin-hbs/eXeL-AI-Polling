@@ -244,7 +244,7 @@ function ItemPageInner() {
       // The chip base URL stays as-is; we append our path
       const itemPath = `divinity-guide/arx/${item.token_id}`;
       await execHaloCmdWeb(
-        { name: "set_url_subdomain", url: `https://exel-ai-polling.explore-096.workers.dev/${itemPath}` },
+        { name: "set_url_subdomain", url: `${window.location.origin}/${itemPath}` },
         {
           statusCallback: (s: string) => {
             if (s === "init") {
