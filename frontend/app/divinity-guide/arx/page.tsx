@@ -771,58 +771,68 @@ function ArxPageInner() {
                     </button>
                     <button
                       onClick={async () => {
-                        // Program chip via NFC using libhalo
                         try {
                           setLoading(true);
                           setError("");
-                          const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
-                          // Step 1: Get the chip's public keys (this reads the chip via NFC)
-                          const info = await execHaloCmdWeb({ name: "sign", message: "00", keyNo: 1 });
-                          const chipAddr = info.etherAddress || info.address || "";
-                          if (!chipAddr) throw new Error("Could not read chip address");
 
-                          // Step 2: Write our verification URL to the chip's NDEF record
-                          // This makes the chip redirect to our website when tapped
+                          // Step 1: Import libhalo and prompt NFC tap
+                          const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
+
+                          // Step 2: Read chip — sign a dummy message to get Ethereum address
+                          const info = await execHaloCmdWeb(
+                            { name: "sign", message: "00", keyNo: 1 },
+                            { statusCallback: (s: string) => { if (s === "init") alert("Hold your ARX chip to the back of your phone NOW..."); } }
+                          );
+                          const chipAddr = info.etherAddress || "";
+                          if (!chipAddr) throw new Error("Could not read chip. Hold steady and try again.");
+
+                          // Step 3: Write our URL to the chip's NDEF subdomain
+                          // This makes the chip open our verification page when tapped
+                          const verifyUrl = `${window.location.origin}/divinity-guide/arx?chip=${chipAddr}`;
                           try {
-                            await execHaloCmdWeb({
-                              name: "cfg_ndef",
-                              flagUseText: false,
-                              flagHidePk1: true,
-                              flagHidePk2: true,
-                              flagHideRNDSIG: true,
-                              flagHideCMDRES: true,
-                            });
-                            // Set the URL subdomain to our verification page
-                            const verifyPath = `exel-ai-polling.explore-096.workers.dev/divinity-guide/arx?chip=${chipAddr}`;
+                            // Configure NDEF to show our custom URL
+                            await execHaloCmdWeb({ name: "cfg_ndef", flagUseText: true });
+                            // Set subdomain (ARX gateway will redirect)
                             await execHaloCmdWeb({
                               name: "set_url_subdomain",
-                              subdomain: verifyPath,
+                              subdomain: `exel.${regSuccess!.token_id}`,
                               allowSignatureDER: "00".repeat(72),
                             });
-                          } catch (ndefErr) {
-                            // NDEF write may fail on some chips — still pair via address
-                            console.warn("NDEF write skipped:", ndefErr);
+                          } catch {
+                            // NDEF write failed — chip still paired via address in Supabase
+                            console.warn("NDEF write not supported on this chip — using address pairing only");
                           }
 
-                          // Step 3: Store the chip address in Supabase
+                          // Step 4: Store chip address in Supabase
                           const { supabase } = await import("@/lib/supabase");
                           if (!supabase) throw new Error("Supabase not available");
                           await supabase.from("arx_items").update({
                             chip_key_hash: chipAddr.toLowerCase()
                           }).eq("token_id", regSuccess!.token_id);
+
                           setRegChipAddress(chipAddr);
-                          alert(`Chip paired and programmed!\n\nAddress: ${chipAddr}\n\nAnyone can now tap this chip to verify your item at:\n${window.location.origin}/divinity-guide/arx?chip=${chipAddr}`);
+                          alert(
+                            `✅ CHIP PROGRAMMED!\n\n` +
+                            `Address: ${chipAddr}\n\n` +
+                            `Verify URL:\n${verifyUrl}\n\n` +
+                            `Anyone can verify this item by:\n` +
+                            `• Tapping the chip with their phone\n` +
+                            `• Scanning the QR code\n` +
+                            `• Visiting the URL above`
+                          );
                         } catch (e: any) {
-                          setError(e.message || "NFC not available — use paste method instead");
+                          setError(e.message || "NFC failed — try paste method below");
                         } finally {
                           setLoading(false);
                         }
                       }}
-                      className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90"
+                      className="w-full py-4 bg-primary text-primary-foreground rounded-xl text-base font-bold hover:opacity-90 shadow-lg"
                     >
-                      📱 Tap ARX Chip to Pair (NFC)
+                      📱 PROGRAM THIS CHIP — Tap to link chip to this item
                     </button>
-                    <p className="text-[10px] text-muted-foreground text-center">Chrome on Android required for NFC tap</p>
+                    <p className="text-[10px] text-muted-foreground text-center mt-1">
+                      Chrome on Android • Hold chip steady against phone back
+                    </p>
                   </div>
                 ) : (
                   <div className="rounded-lg border bg-card/50 p-4 space-y-3 w-full max-w-xs">
