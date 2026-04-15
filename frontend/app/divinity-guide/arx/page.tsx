@@ -747,21 +747,19 @@ function ArxPageInner() {
                   </p>
                 </div>
 
-                {/* [Pangu] If chip address was provided during registration, show paired status.
-                    Otherwise show pairing option. */}
-                {regChipAddress.trim() ? (
+                {/* Always show the NFC programming button — even if chip was entered during registration */}
+                {regChipAddress.trim() && (
                   <div className="flex items-center gap-2 px-4 py-3 rounded-lg border border-green-500/30 bg-green-500/5 w-full max-w-xs">
                     <span className="text-green-500 text-lg">✓</span>
                     <div>
-                      <p className="text-sm font-bold text-green-600">
-                        Chip paired
-                      </p>
-                      <p className="text-[10px] text-muted-foreground font-mono truncate max-w-[200px]">
-                        {regChipAddress}
-                      </p>
+                      <p className="text-sm font-bold text-green-600">Chip address stored</p>
+                      <p className="text-[10px] text-muted-foreground font-mono truncate max-w-[200px]">{regChipAddress}</p>
                     </div>
                   </div>
-                ) : !showPairChip ? (
+                )}
+
+                {/* NFC PROGRAM button — always visible after registration */}
+                {!showPairChip ? (
                   <div className="w-full max-w-xs space-y-2">
                     <button
                       onClick={() => setShowPairChip(true)}
