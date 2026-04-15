@@ -124,6 +124,10 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
   // Transfer handler
   const handleTransfer = useCallback(async () => {
     if (!item || !buyerName.trim()) return;
+    if (salePrice && (isNaN(parseFloat(salePrice)) || parseFloat(salePrice) < 0)) {
+      setError("Price must be a positive number");
+      return;
+    }
     setTransferring(true);
     setError("");
     try {
@@ -141,14 +145,20 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
       const sellerQr = `${window.location.origin}/divinity-guide/arx?token=${item.token_id}&verify=${sellerHash.slice(0, 16)}`;
 
       const newOwner = buyerContact.trim() || buyerName.trim();
-      await supabase.from("arx_items").update({
+      // Verify ownership hasn't changed since page load (race condition guard)
+      const { data: updateResult, error: updateErr } = await supabase.from("arx_items").update({
         current_owner: newOwner,
         last_transfer_at: now.toISOString(),
         qr_code_url: buyerQr,
         ...(price !== null ? { purchase_price_usd: price } : {}),
-      }).eq("token_id", item.token_id);
+      }).eq("token_id", item.token_id).eq("current_owner", item.current_owner).select();
 
-      await supabase.from("arx_transactions").insert({
+      if (updateErr) throw new Error(updateErr.message);
+      if (!updateResult || updateResult.length === 0) {
+        throw new Error("Ownership has changed — someone else transferred this item. Please reload.");
+      }
+
+      const { error: txErr } = await supabase.from("arx_transactions").insert({
         arx_tx_id: txId,
         token_id: item.token_id,
         from_address: item.current_owner,
@@ -156,6 +166,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
         price_usd: price,
         transaction_type: price ? "sale" : "transfer",
       });
+      if (txErr) throw new Error(txErr.message);
 
       setTransferResult({ arx_tx_id: txId, buyer_qr_url: buyerQr, seller_qr_url: sellerQr });
       await loadItem(item.token_id);
@@ -176,12 +187,12 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
       );
       const chipAddr = info.etherAddress || "";
       if (!chipAddr) { setError("Could not read chip. Hold steady and try again."); return; }
-      if (item?.chip_key_hash && chipAddr.toLowerCase() === item.chip_key_hash.toLowerCase()) {
+      if (!item?.chip_key_hash) {
+        setError("This item has no chip paired yet. Use Program Chip to link one.");
+      } else if (chipAddr.toLowerCase() === item.chip_key_hash.toLowerCase()) {
         setChipVerified(true);
-      } else if (item?.chip_key_hash) {
-        setError("This chip does not match this item.");
       } else {
-        setChipVerified(true);
+        setError("This chip does not match this item.");
       }
     } catch (e: any) { setError(e.message || "NFC read failed"); }
   }, [item]);

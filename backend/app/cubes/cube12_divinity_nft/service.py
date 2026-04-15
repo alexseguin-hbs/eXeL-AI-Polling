@@ -150,11 +150,10 @@ async def verify_arx_chip(
     if item is None:
         return {"verified": False, "reason": "Item not found", "token_id": token_id}
 
-    # If chip_uid provided, verify against stored hash
+    # If chip_uid provided, verify against stored value (raw lowercase)
     chip_verified = True
     if chip_uid and item.chip_key_hash:
-        chip_hash = hashlib.sha256(chip_uid.encode()).hexdigest()
-        chip_verified = chip_hash == item.chip_key_hash
+        chip_verified = chip_uid.strip().lower() == item.chip_key_hash
 
     # Get transaction count
     tx_result = await db.execute(
@@ -328,8 +327,8 @@ async def pair_chip_to_item(
     if item.chip_key_hash:
         raise ValueError(f"ARX item {token_id} already has a chip paired")
 
-    # Hash the Ethereum address (lowercase-normalized for consistency)
-    chip_hash = hashlib.sha256(chip_ethereum_address.strip().lower().encode()).hexdigest()
+    # Store raw lowercase address (matches frontend Supabase direct writes)
+    chip_hash = chip_ethereum_address.strip().lower()
     item.chip_key_hash = chip_hash
 
     await db.flush()
@@ -359,10 +358,10 @@ async def lookup_by_chip(
     I/O: chip Ethereum address → dict with item details or None
     Public — anyone can look up an item by tapping/scanning its chip.
     """
-    chip_hash = hashlib.sha256(chip_ethereum_address.strip().lower().encode()).hexdigest()
+    chip_key = chip_ethereum_address.strip().lower()
 
     result = await db.execute(
-        select(ArxItem).where(ArxItem.chip_key_hash == chip_hash)
+        select(ArxItem).where(ArxItem.chip_key_hash == chip_key)
     )
     item = result.scalar_one_or_none()
 

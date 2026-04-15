@@ -1023,7 +1023,7 @@ function ArxPageInner() {
                                   tx.type === "sale" ? "bg-blue-500/10 text-blue-500" :
                                   "bg-muted text-muted-foreground"
                                 }`}>
-                                  {tx.type}
+                                  {tx.type === "mint" ? t("cube12.arx.tx_registered") : tx.type === "sale" ? t("cube12.arx.tx_sold") : t("cube12.arx.tx_transferred")}
                                 </span>
                               </div>
                               <div className="text-right">
