@@ -63,8 +63,12 @@ function ArxPageInner() {
   const [regPrice, setRegPrice] = useState("");
   const [regSerial, setRegSerial] = useState("");
   const [regEdition, setRegEdition] = useState("");
-  const [regMarker, setRegMarker] = useState("");  // Special marker (signed page, inscription, etc.)
+  const [regMarker, setRegMarker] = useState("");
+  const [regContact, setRegContact] = useState("");  // Email or phone for ownership receipt
   const [regSuccess, setRegSuccess] = useState<{ qr_code_url: string; arx_tx_id: string; token_id: number } | null>(null);
+
+  // Flower navigation — 3 sections like Divinity Guide
+  const [selectedFlower, setSelectedFlower] = useState<"mint" | "verify" | "transfer" | null>(null);
 
   // Transfer form
   const [transferTo, setTransferTo] = useState("");
@@ -312,9 +316,17 @@ function ArxPageInner() {
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Special Markers</label>
                 <input value={regMarker} onChange={(e) => setRegMarker(e.target.value)}
-                  placeholder="e.g., Signed by author on page 144, Gold leaf cover"
+                  placeholder='e.g., "Innovate at the Speed of Thought" on inner cover with signature'
                   className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none" />
                 <p className="text-[10px] text-muted-foreground mt-1">Describe unique features that make this item one-of-a-kind</p>
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">Your Email or Phone *</label>
+                <input value={regContact} onChange={(e) => setRegContact(e.target.value)}
+                  placeholder="email@example.com or +1-555-123-4567"
+                  className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none" />
+                <p className="text-[10px] text-muted-foreground mt-1">We&apos;ll send your ownership receipt + QR code here</p>
               </div>
 
               {error && <p className="text-sm text-red-500">{error}</p>}
@@ -500,101 +512,163 @@ function ArxPageInner() {
           </div>
         )}
 
-        {/* ═══ BROWSE MODE — Editions + marketplace ═══ */}
+        {/* ═══ BROWSE MODE — 3-Flower Layout (like Divinity Guide) ═══ */}
         {mode === "browse" && (
-          <div className="space-y-8">
-            <div className="text-center space-y-3">
-              <h1 className="text-3xl font-bold">Physically Backed Tokens</h1>
-              <p className="text-muted-foreground max-w-lg mx-auto">
-                Authenticate any physical item on the blockchain — books, artwork, signed memorabilia.
-                Tap your phone to verify. Own it forever.
-              </p>
+          <div className="flex flex-col md:flex-row min-h-[600px]">
+            {/* LEFT: 3-Flower Navigation (inspired by Divinity Guide) */}
+            <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-6 py-8 md:border-r">
+              <h1 className="text-2xl font-bold mb-1 text-center">Physically Backed Tokens</h1>
+              <p className="text-[10px] text-muted-foreground italic mb-6 text-center">Authenticate. Own. Transfer. Forever.</p>
+
+              {/* 3-Circle Flower SVG */}
+              <svg viewBox="0 0 400 350" className="w-full max-w-xs" style={{ overflow: "visible" }}>
+                {/* Connection lines from center to circles */}
+                <line x1="200" y1="175" x2="200" y2="60" stroke="currentColor" strokeOpacity={0.1} strokeWidth={2} />
+                <line x1="200" y1="175" x2="100" y2="270" stroke="currentColor" strokeOpacity={0.1} strokeWidth={2} />
+                <line x1="200" y1="175" x2="300" y2="270" stroke="currentColor" strokeOpacity={0.1} strokeWidth={2} />
+
+                {/* Center hub */}
+                <circle cx="200" cy="175" r="30" fill="rgba(var(--primary-rgb, 0,200,200), 0.1)" stroke="currentColor" strokeOpacity={0.3} strokeWidth={1} />
+                <text x="200" y="172" textAnchor="middle" className="text-[9px] fill-muted-foreground">PBT</text>
+                <text x="200" y="184" textAnchor="middle" className="text-[7px] fill-muted-foreground">ARX</text>
+
+                {/* Flower 1: MINT (top) — Red */}
+                <g className="cursor-pointer" onClick={() => { setSelectedFlower("mint"); setMode("register"); }}>
+                  <circle cx="200" cy="60" r="50"
+                    fill={selectedFlower === "mint" ? "rgba(255,0,0,0.15)" : "rgba(255,0,0,0.05)"}
+                    stroke="#FF0000" strokeWidth={selectedFlower === "mint" ? 3 : 1.5} strokeOpacity={0.6} />
+                  <text x="200" y="52" textAnchor="middle" className="text-[11px] font-bold fill-current">✦ Mint</text>
+                  <text x="200" y="66" textAnchor="middle" className="text-[8px] fill-muted-foreground">Register & Pair Chip</text>
+                  <text x="200" y="78" textAnchor="middle" className="text-[7px] fill-muted-foreground">New item → Blockchain</text>
+                </g>
+
+                {/* Flower 2: VERIFY (bottom-left) — Green */}
+                <g className="cursor-pointer" onClick={() => setSelectedFlower("verify")}>
+                  <circle cx="100" cy="270" r="50"
+                    fill={selectedFlower === "verify" ? "rgba(16,185,129,0.15)" : "rgba(16,185,129,0.05)"}
+                    stroke="#10B981" strokeWidth={selectedFlower === "verify" ? 3 : 1.5} strokeOpacity={0.6} />
+                  <text x="100" y="262" textAnchor="middle" className="text-[11px] font-bold fill-current">✓ Verify</text>
+                  <text x="100" y="276" textAnchor="middle" className="text-[8px] fill-muted-foreground">Scan & Authenticate</text>
+                  <text x="100" y="288" textAnchor="middle" className="text-[7px] fill-muted-foreground">QR or NFC tap</text>
+                </g>
+
+                {/* Flower 3: TRANSFER (bottom-right) — Blue */}
+                <g className="cursor-pointer" onClick={() => setSelectedFlower("transfer")}>
+                  <circle cx="300" cy="270" r="50"
+                    fill={selectedFlower === "transfer" ? "rgba(59,130,246,0.15)" : "rgba(59,130,246,0.05)"}
+                    stroke="#3B82F6" strokeWidth={selectedFlower === "transfer" ? 3 : 1.5} strokeOpacity={0.6} />
+                  <text x="300" y="262" textAnchor="middle" className="text-[11px] font-bold fill-current">↔ Transfer</text>
+                  <text x="300" y="276" textAnchor="middle" className="text-[8px] fill-muted-foreground">Sell or Gift</text>
+                  <text x="300" y="288" textAnchor="middle" className="text-[7px] fill-muted-foreground">Dual QR receipts</text>
+                </g>
+              </svg>
+
+              <p className="text-[9px] text-muted-foreground/40 mt-4">••• Select a circle to begin •••</p>
             </div>
 
-            {/* ═══ TWO CORE USE CASES ═══ */}
-            <div className="grid gap-4 md:grid-cols-2 max-w-2xl mx-auto">
-              {/* UC1: Register New Item */}
-              <button onClick={() => setMode("register")}
-                className="rounded-xl border-2 border-primary/30 bg-card p-6 text-left hover:border-primary hover:shadow-lg transition-all group">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">✦</div>
-                  <div>
-                    <h3 className="font-bold">Register New Item</h3>
-                    <p className="text-xs text-muted-foreground">First-time setup</p>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Add a physical collectible to the blockchain. Enter item details, get a QR code for verification. Works with ARX NFC chips.
-                </p>
-              </button>
+            {/* RIGHT: Content based on selected flower */}
+            <div className="w-full md:w-1/2 px-6 py-8 flex flex-col">
+              {!selectedFlower && (
+                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+                  <p className="text-lg font-bold">Own What Matters</p>
+                  <p className="text-sm text-muted-foreground max-w-sm">
+                    Every physical creation deserves a digital soul. Register your book, artwork, or signed
+                    collectible on the blockchain — and prove its authenticity with a simple tap of your phone.
+                  </p>
+                  <p className="text-xs text-muted-foreground italic">
+                    &quot;You were never separate from what you create. Now the world can see it too.&quot;
+                  </p>
 
-              {/* UC2: Verify / Buy Existing */}
-              <div className="rounded-xl border-2 border-muted bg-card p-6 text-left">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-2xl">✓</div>
-                  <div>
-                    <h3 className="font-bold">Verify or Purchase</h3>
-                    <p className="text-xs text-muted-foreground">Scan to authenticate</p>
+                  {/* Quick verify */}
+                  <div className="w-full max-w-xs">
+                    <p className="text-[10px] text-muted-foreground mb-2">Already have a token?</p>
+                    <div className="flex gap-2">
+                      <input placeholder="Token ID..." className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                        onKeyDown={(e) => { if (e.key === "Enter") { const v = (e.target as HTMLInputElement).value.trim(); if (v) router.push(`/divinity-guide/arx?token=${v}`); } }} />
+                      <button onClick={() => { const i = document.querySelector<HTMLInputElement>('input[placeholder="Token ID..."]'); if (i?.value.trim()) router.push(`/divinity-guide/arx?token=${i.value.trim()}`); }}
+                        className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:opacity-90">✓</button>
+                    </div>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Scan a QR code or tap an ARX chip to verify authenticity. Buy from the current owner with dual QR receipts for both parties.
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    placeholder="Enter token ID..."
-                    className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        const val = (e.target as HTMLInputElement).value.trim();
-                        if (val) router.push(`/divinity-guide/arx?token=${val}`);
-                      }
-                    }}
-                  />
-                  <button onClick={() => {
-                    const input = document.querySelector<HTMLInputElement>('input[placeholder="Enter token ID..."]');
-                    if (input?.value.trim()) router.push(`/divinity-guide/arx?token=${input.value.trim()}`);
-                  }} className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:opacity-90">
-                    Verify
+              )}
+
+              {selectedFlower === "mint" && (
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h2 className="text-xl font-bold">✦ Mint — Register & Pair Chip</h2>
+                    <p className="text-xs text-muted-foreground mt-1">Create a blockchain record for your physical item. Pair an ARX NFC chip for tap-to-verify.</p>
+                  </div>
+                  <div className="rounded-lg border bg-card/50 p-4 space-y-3">
+                    <h3 className="text-xs font-bold text-muted-foreground">HOW TO PAIR YOUR ARX CHIP</h3>
+                    <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                      <li>Register your item using the form (click &quot;Register Item&quot; tab above)</li>
+                      <li>You&apos;ll receive a QR code and token ID</li>
+                      <li>Hold your ARX chip near your phone&apos;s NFC reader</li>
+                      <li>The chip&apos;s unique ID is automatically recorded on-chain</li>
+                      <li>Attach the chip to your item (inside cover, on frame, etc.)</li>
+                      <li>Anyone can now tap to verify authenticity instantly</li>
+                    </ol>
+                  </div>
+                  <button onClick={() => setMode("register")}
+                    className="w-full py-3 bg-red-500/90 text-white rounded-lg text-sm font-bold hover:opacity-90">
+                    Register New Item →
                   </button>
                 </div>
-              </div>
-            </div>
+              )}
 
-            {/* How it works */}
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-sm font-bold text-center text-muted-foreground mb-4">HOW IT WORKS</h2>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="space-y-2">
-                  <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-lg">1</div>
-                  <p className="text-xs font-bold">Register</p>
-                  <p className="text-[10px] text-muted-foreground">Name, price, serial number. Get a QR code instantly.</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-lg">2</div>
-                  <p className="text-xs font-bold">Verify</p>
-                  <p className="text-[10px] text-muted-foreground">Scan QR or tap ARX chip. See owner, price, history.</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-lg">3</div>
-                  <p className="text-xs font-bold">Transfer</p>
-                  <p className="text-[10px] text-muted-foreground">Sell or gift. Both parties get timestamped QR receipts.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 12 Ascended Master editions */}
-            <div>
-              <h2 className="text-lg font-bold mb-4 text-center">Divinity Guide Editions</h2>
-              <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-                {Array.from({ length: 12 }, (_, i) => (
-                  <div key={i} className="rounded-xl border bg-card p-4 hover:border-primary transition-colors text-center">
-                    <div className="text-3xl mb-2">✦</div>
-                    <h3 className="font-bold text-sm">Edition {i + 1}</h3>
-                    <p className="text-[10px] text-muted-foreground">Ascended Master</p>
-                    <p className="text-primary font-bold mt-2">$33.33</p>
+              {selectedFlower === "verify" && (
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h2 className="text-xl font-bold">✓ Verify — Scan & Authenticate</h2>
+                    <p className="text-xs text-muted-foreground mt-1">Confirm any item is genuine. See its full ownership history on the blockchain.</p>
                   </div>
-                ))}
+                  <div className="space-y-3">
+                    <input placeholder="Enter token ID to verify..."
+                      className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-green-500 focus:outline-none"
+                      onKeyDown={(e) => { if (e.key === "Enter") { const v = (e.target as HTMLInputElement).value.trim(); if (v) router.push(`/divinity-guide/arx?token=${v}`); } }} />
+                    <button onClick={() => { const i = document.querySelector<HTMLInputElement>('input[placeholder="Enter token ID to verify..."]'); if (i?.value.trim()) router.push(`/divinity-guide/arx?token=${i.value.trim()}`); }}
+                      className="w-full py-3 bg-green-600 text-white rounded-lg text-sm font-bold hover:opacity-90">
+                      Verify Item ✓
+                    </button>
+                    <p className="text-[10px] text-muted-foreground text-center">Or tap your phone to an ARX chip — verification is automatic</p>
+                  </div>
+                </div>
+              )}
+
+              {selectedFlower === "transfer" && (
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h2 className="text-xl font-bold">↔ Transfer — Sell or Gift</h2>
+                    <p className="text-xs text-muted-foreground mt-1">Change ownership of a registered item. Both parties receive timestamped QR receipts.</p>
+                  </div>
+                  <div className="rounded-lg border bg-card/50 p-4 space-y-3">
+                    <h3 className="text-xs font-bold text-muted-foreground">HOW TRANSFERS WORK</h3>
+                    <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                      <li>Verify the item first (enter token ID above)</li>
+                      <li>On the item page, click &quot;Sell or Gift&quot;</li>
+                      <li>Enter the buyer&apos;s email or wallet address</li>
+                      <li>Set a sale price (or leave empty for a gift)</li>
+                      <li>Both buyer AND seller receive QR code receipts</li>
+                      <li>Ownership updates on the blockchain instantly</li>
+                    </ol>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center italic">Every transfer is recorded forever — traceability through the year 2525 and beyond.</p>
+                </div>
+              )}
+
+              {/* 12 Divinity Guide editions (always visible at bottom of right panel) */}
+              <div className="mt-8 pt-6 border-t">
+                <h3 className="text-xs font-bold text-muted-foreground mb-3 text-center">DIVINITY GUIDE EDITIONS</h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <div key={i} className="rounded-lg border bg-card p-2 text-center hover:border-primary transition-colors cursor-pointer"
+                      onClick={() => { setMode("register"); setRegName(`The Divinity Guide — Edition ${i + 1}`); setRegPrice("33.33"); setRegEdition(String(i + 1)); }}>
+                      <div className="text-lg">✦</div>
+                      <p className="text-[9px] font-bold">Ed. {i + 1}</p>
+                      <p className="text-[8px] text-primary">$33.33</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
