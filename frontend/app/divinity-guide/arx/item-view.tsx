@@ -65,6 +65,12 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
   // Transaction pagination
   const [txLimit, setTxLimit] = useState(10);
 
+  // OTP verification — 6-digit code sent to buyer contact
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [generatedOtp, setGeneratedOtp] = useState("");
+
   const loadItem = useCallback(async (tid: number) => {
     setLoading(true);
     setError("");
@@ -122,6 +128,37 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
   useEffect(() => {
     if (tokenId) loadItem(parseInt(tokenId));
   }, [tokenId]);
+
+  // Send 6-digit verification code to buyer contact
+  const handleSendOtp = useCallback(() => {
+    const contact = buyerContact.trim();
+    if (!contact) { setError("Enter email or phone to receive verification code"); return; }
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    setGeneratedOtp(code);
+    setOtpSent(true);
+    setOtpCode("");
+    // Send via mailto: or sms: URI scheme (MVP — upgradeable to Supabase Edge Function)
+    const isEmail = contact.includes("@");
+    const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${item?.token_id || ""}`;
+    if (isEmail) {
+      const subject = encodeURIComponent("ARX Verification Code");
+      const body = encodeURIComponent(`Your ARX verification code is: ${code}\n\nItem: ${item?.item_name || ""}\nLink: ${itemUrl}`);
+      window.open(`mailto:${contact}?subject=${subject}&body=${body}`, "_blank");
+    } else {
+      const body = encodeURIComponent(`ARX code: ${code} — ${item?.item_name || ""} ${itemUrl}`);
+      window.open(`sms:${contact}?body=${body}`, "_blank");
+    }
+  }, [buyerContact, item]);
+
+  // Verify the 6-digit code
+  const handleVerifyOtp = useCallback(() => {
+    if (otpCode === generatedOtp) {
+      setOtpVerified(true);
+      setError("");
+    } else {
+      setError("Invalid code. Check your email or phone and try again.");
+    }
+  }, [otpCode, generatedOtp]);
 
   // Transfer handler
   const handleTransfer = useCallback(async () => {
@@ -488,17 +525,62 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
             <p className="text-[10px] text-muted-foreground mt-1">{t("cube12.arx.description_hint")}</p>
           </div>
         </div>
+        {/* OTP Verification — must verify before transfer */}
+        {!otpVerified && buyerContact.trim() && (
+          <div className="rounded-lg border bg-card/50 p-4 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Verify your contact to complete the transfer. A 6-digit code will be sent.
+            </p>
+            {!otpSent ? (
+              <button
+                onClick={handleSendOtp}
+                disabled={!buyerContact.trim()}
+                className="w-full py-2.5 border border-blue-400/50 text-blue-500 rounded-lg text-sm font-medium hover:bg-blue-500/5 disabled:opacity-40 transition-colors"
+              >
+                Send Verification Code
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-green-600 font-medium">Code sent — check your email or phone</p>
+                <input
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
+                  className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm text-center font-mono tracking-widest focus:border-blue-400 focus:outline-none transition-colors"
+                  onKeyDown={(e) => { if (e.key === "Enter" && otpCode.length === 6) handleVerifyOtp(); }}
+                />
+                <button
+                  onClick={handleVerifyOtp}
+                  disabled={otpCode.length !== 6}
+                  className="w-full py-2.5 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 disabled:opacity-40 transition-all"
+                >
+                  Verify Code
+                </button>
+                <button onClick={handleSendOtp} className="w-full py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
+                  Resend Code
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {error && <p className="text-sm text-red-500 bg-red-500/5 rounded-lg px-3 py-2">{error}</p>}
+
+        {/* Transfer button — only enabled after OTP verification */}
         <button
           onClick={() => {
             const priceLabel = salePrice ? `$${parseFloat(salePrice).toFixed(2)}` : "gift";
             if (window.confirm(`Transfer "${item.item_name}" to ${buyerName.trim()}?\n\nType: ${priceLabel}\nThis cannot be undone.`)) handleTransfer();
           }}
-          disabled={!buyerName.trim() || transferring}
+          disabled={!buyerName.trim() || !otpVerified || transferring}
           className="w-full py-3 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 disabled:opacity-40 transition-all"
         >
           {transferring ? "Processing..." : salePrice ? `Complete Purchase — $${parseFloat(salePrice).toFixed(2)}` : "Accept as Gift"}
         </button>
+        {!otpVerified && buyerContact.trim() && (
+          <p className="text-[10px] text-muted-foreground text-center">Verify your contact above to enable transfer</p>
+        )}
       </div>
 
       <div className="text-center pb-6">
