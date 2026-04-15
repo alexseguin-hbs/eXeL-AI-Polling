@@ -512,13 +512,13 @@ function ArxPageInner() {
                   try {
                     setError("");
                     const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
-                    alert("Hold ARX chip to the back of your phone.");
+                    alert(t("cube12.arx.nfc_hold_chip"));
                     const info = await execHaloCmdWeb(
                       { name: "sign", message: "00", keyNo: 1 },
                       { statusCallback: () => {} }
                     );
                     const chipAddr = info.etherAddress || "";
-                    if (!chipAddr) { setError("Could not read chip. Hold steady and try again."); return; }
+                    if (!chipAddr) { setError(t("cube12.arx.nfc_read_failed")); return; }
 
                     // Look up item by chip address
                     const { supabase } = await import("@/lib/supabase");
@@ -530,12 +530,10 @@ function ArxPageInner() {
                       .maybeSingle();
 
                     if (data) {
-                      // Chip is registered — navigate to item page
                       router.push(`/divinity-guide/arx?token=${data.token_id}`);
                     } else {
-                      // Chip not registered — show address, offer to register
                       const action = confirm(
-                        `Chip Address:\n${chipAddr}\n\nThis chip is not registered yet.\nWould you like to register it now?`
+                        `${t("cube12.arx.chip_address")}: ${chipAddr}\n\n${t("cube12.arx.chip_not_registered")}`
                       );
                       if (action) {
                         setSelectedFlower("mint");
@@ -543,7 +541,7 @@ function ArxPageInner() {
                       }
                     }
                   } catch (e: any) {
-                    setError("NFC scan failed: " + (e.message || ""));
+                    setError(t("cube12.arx.nfc_scan_failed") + ": " + (e.message || ""));
                   }
                 }}
               />
@@ -693,7 +691,7 @@ function ArxPageInner() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground block mb-1">Purchase Time</label>
+                      <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.purchase_time_label")}</label>
                       <input
                         type="time"
                         value={regPurchaseTime}
@@ -860,12 +858,12 @@ function ArxPageInner() {
                         // Uses set_url_subdomain (NOT cfg_ndef which disables broadcast)
                         const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
                         const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${regSuccess!.token_id}`;
-                        alert("Tap chip again to program the item URL.");
+                        alert(t("cube12.arx.nfc_tap_confirm"));
                         await execHaloCmdWeb(
                           { name: "set_url_subdomain", url: itemUrl },
                           { statusCallback: () => {} }
                         );
-                        alert(`Chip paired and programmed!\n\nAddress: ${addr}\nTapping chip will open the item page.`);
+                        alert(`${t("cube12.arx.chip_programmed_success")}\n\n${t("cube12.arx.chip_address")}: ${addr}`);
                       } catch (e: any) {
                         setError(e.message || "Failed to pair chip");
                       } finally {

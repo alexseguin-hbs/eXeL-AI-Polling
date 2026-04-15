@@ -135,7 +135,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
   // WireGuard: code generated in DB, hashed with SHA-256, never exposed to browser
   const handleSendOtp = useCallback(async () => {
     const contact = buyerContact.trim();
-    if (!contact) { setError("Enter email or phone to receive verification code"); return; }
+    if (!contact) { setError(t("cube12.arx.otp_contact_required")); return; }
     setOtpSending(true);
     setError("");
     try {
@@ -305,10 +305,13 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
             .eq("chip_key_hash", chipAddr.toLowerCase())
             .maybeSingle();
           if (existingChip && existingChip.token_id !== item.token_id) {
-            setError(`This chip is already paired to another item (Token #${existingChip.token_id}).`);
+            setError(`${t("cube12.arx.chip_already_paired")} (Token #${existingChip.token_id})`);
             return;
           }
-          await supabase.from("arx_items").update({ chip_key_hash: chipAddr.toLowerCase() }).eq("token_id", item.token_id);
+          // Only current owner can pair a chip
+          await supabase.from("arx_items").update({ chip_key_hash: chipAddr.toLowerCase() })
+            .eq("token_id", item.token_id)
+            .eq("current_owner", item.current_owner);
         }
       }
       setChipProgrammed(true);
@@ -323,7 +326,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
     try {
       setError("");
       const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
-      alert("Hold ARX chip to the back of your phone to restore tap-to-open.");
+      alert(t("cube12.arx.nfc_hold_restore"));
       const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${item.token_id}`;
       await execHaloCmdWeb({
         name: "cfg_ndef",
@@ -334,9 +337,9 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
         ndef_records: [{ type: "url", value: itemUrl }],
       }, { statusCallback: () => {} });
       setChipProgrammed(true);
-      alert("Chip restored! Tapping it will now open this item page.");
+      alert(t("cube12.arx.chip_restored"));
     } catch (e: any) {
-      setError("Chip restore failed: " + (e.message || "Try again."));
+      setError(t("cube12.arx.restore_failed") + " " + (e.message || ""));
     }
   }, [item]);
 
@@ -502,7 +505,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
               {t("cube12.arx.program_chip")}
             </button>
             <button onClick={handleRestoreChip} className="w-full py-2 border border-muted rounded-lg text-xs text-muted-foreground hover:bg-accent/50 transition-colors">
-              Restore Chip (if tap stopped working)
+              {t("cube12.arx.restore_chip")}
             </button>
           </div>
         )}
@@ -563,7 +566,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
         <div>
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("cube12.arx.transfer_to_new_owner")}</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            The new owner fills in their details below. The ARX chip stays linked — only ownership changes.
+            {t("cube12.arx.transfer_form_note")}
           </p>
         </div>
         <div className="space-y-3">
@@ -594,7 +597,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
         {!otpVerified && buyerContact.trim() && (
           <div className="rounded-lg border bg-card/50 p-4 space-y-3">
             <p className="text-xs text-muted-foreground">
-              Verify your contact to complete the transfer. A 6-digit code will be sent.
+              {t("cube12.arx.otp_verify_hint")}
             </p>
             {!otpSent ? (
               <button
@@ -602,15 +605,15 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
                 disabled={!buyerContact.trim() || otpSending}
                 className="w-full py-2.5 border border-blue-400/50 text-blue-500 rounded-lg text-sm font-medium hover:bg-blue-500/5 disabled:opacity-40 transition-colors"
               >
-                {otpSending ? "Sending..." : "Send Verification Code"}
+                {otpSending ? t("cube12.arx.otp_sending") : t("cube12.arx.otp_send")}
               </button>
             ) : (
               <div className="space-y-2">
-                <p className="text-xs text-green-600 font-medium">Code sent — check your email or phone</p>
+                <p className="text-xs text-green-600 font-medium">{t("cube12.arx.otp_sent")}</p>
                 <input
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  placeholder="Enter 6-digit code"
+                  placeholder={t("cube12.arx.otp_enter_code")}
                   maxLength={6}
                   className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm text-center font-mono tracking-widest focus:border-blue-400 focus:outline-none transition-colors"
                   onKeyDown={(e) => { if (e.key === "Enter" && otpCode.length === 6) handleVerifyOtp(); }}
@@ -620,10 +623,10 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
                   disabled={otpCode.length !== 6}
                   className="w-full py-2.5 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 disabled:opacity-40 transition-all"
                 >
-                  Verify Code
+                  {t("cube12.arx.otp_verify")}
                 </button>
                 <button onClick={handleSendOtp} className="w-full py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
-                  Resend Code
+                  {t("cube12.arx.otp_resend")}
                 </button>
               </div>
             )}
@@ -644,7 +647,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
           {transferring ? "Processing..." : salePrice ? `Complete Purchase — $${parseFloat(salePrice).toFixed(2)}` : "Accept as Gift"}
         </button>
         {!otpVerified && buyerContact.trim() && (
-          <p className="text-[10px] text-muted-foreground text-center">Verify your contact above to enable transfer</p>
+          <p className="text-[10px] text-muted-foreground text-center">{t("cube12.arx.otp_verify_required")}</p>
         )}
       </div>
 
