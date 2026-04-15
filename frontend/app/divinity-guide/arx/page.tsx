@@ -823,6 +823,42 @@ function ArxPageInner() {
                     <p className="text-[10px] text-muted-foreground text-center mt-1">
                       Chrome on Android • Hold chip steady against phone back
                     </p>
+
+                    {/* RESET CHIP — restore default NFC broadcast */}
+                    <button
+                      onClick={async () => {
+                        try {
+                          setLoading(true);
+                          setError("");
+                          const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
+                          alert("Hold your ARX chip to the back of your phone to RESET it...");
+                          // Reset NDEF to default mode — restores chip's original NFC behavior
+                          await execHaloCmdWeb({ name: "cfg_ndef" });
+                          alert("✅ Chip NDEF reset to default! Try tapping it normally now.");
+                        } catch (e: any) {
+                          // Try alternative reset with all flags off
+                          try {
+                            const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
+                            await execHaloCmdWeb({
+                              name: "cfg_ndef",
+                              flagUseText: false,
+                              flagHidePk1: false,
+                              flagHidePk2: false,
+                              flagHideRNDSIG: false,
+                              flagHideCMDRES: false,
+                            });
+                            alert("✅ Chip reset with default flags! Try tapping normally now.");
+                          } catch (e2: any) {
+                            setError("Reset failed: " + (e2.message || e.message));
+                          }
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      className="w-full py-2 border border-red-300 text-red-500 rounded-lg text-xs hover:bg-red-500/5 transition-colors"
+                    >
+                      🔧 Reset Chip (restore default NFC)
+                    </button>
                   </div>
                 ) : (
                   <div className="rounded-lg border bg-card/50 p-4 space-y-3 w-full max-w-xs">
