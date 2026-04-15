@@ -44,7 +44,7 @@ class TestMintArxItem:
             purchase_price_usd=33.33,
             buyer_address="user-001",
             serial_number="DG-2026-001",
-            edition=7,
+            identifiers="limited, proof",
             language="en",
         )
 
@@ -52,7 +52,7 @@ class TestMintArxItem:
         assert result["token_id"] > 0  # Timestamp-based, always positive
         assert result["item_name"] == "The Divinity Guide — First Edition"
         assert result["purchase_price_usd"] == 33.33
-        assert result["edition"] == 7
+        assert result["identifiers"] == "limited, proof"
         assert "qr_code_url" in result
         assert "arx_tx_id" in result
         assert result["arx_tx_id"].startswith("ARX-")
@@ -87,7 +87,7 @@ class TestVerifyArxChip:
         item.token_id = 1
         item.item_name = "Test Book"
         item.serial_number = "SN-001"
-        item.edition = 3
+        item.identifiers = "original, signed"
         item.language = "en"
         item.current_owner = "owner-001"
         item.purchase_price_usd = 33.33
@@ -256,7 +256,7 @@ class TestListMarketplace:
         item = MagicMock()
         item.token_id = 1
         item.item_name = "Book"
-        item.edition = 7
+        item.identifiers = "limited, proof"
         item.current_owner = "owner"
         item.purchase_price_usd = 33.33
         item.qr_code_url = "https://example.com"

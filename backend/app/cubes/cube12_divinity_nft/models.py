@@ -23,7 +23,7 @@ class ArxItem(Base):
     chip_key_hash: Mapped[str | None] = mapped_column(String(255))
     item_name: Mapped[str] = mapped_column(String(500), nullable=False)
     serial_number: Mapped[str | None] = mapped_column(String(255))
-    edition: Mapped[int] = mapped_column(Integer, default=0)
+    identifiers: Mapped[str | None] = mapped_column(Text)
     language: Mapped[str] = mapped_column(String(10), default="en")
     current_owner: Mapped[str | None] = mapped_column(String(255))
     purchase_price_usd: Mapped[float | None] = mapped_column(Numeric(10, 2))

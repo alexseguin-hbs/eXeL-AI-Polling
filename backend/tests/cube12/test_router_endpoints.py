@@ -21,7 +21,7 @@ class TestMintEndpoint:
             resp = await client.post("/api/v1/arx/mint", json={
                 "item_name": "Divinity Guide Edition 7",
                 "purchase_price_usd": 33.33,
-                "edition": 7,
+                "identifiers": "limited, proof",
                 "language": "en",
             })
         assert resp.status_code == 201
@@ -97,7 +97,7 @@ class TestMarketplace:
 
     @pytest.mark.asyncio
     async def test_returns_list(self, client):
-        mock_result = [{"token_id": 1, "item_name": "Book", "edition": 7}]
+        mock_result = [{"token_id": 1, "item_name": "Book", "identifiers": "limited, proof"}]
         with patch(f"{SVC}.list_marketplace", new_callable=AsyncMock, return_value=mock_result):
             resp = await client.get("/api/v1/arx/marketplace")
         assert resp.status_code == 200

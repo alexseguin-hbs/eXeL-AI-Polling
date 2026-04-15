@@ -194,7 +194,7 @@ function ArxPageInner() {
           token_id: itemData.token_id,
           item_name: itemData.item_name,
           serial_number: itemData.serial_number,
-          identifiers: itemData.edition || "",
+          identifiers: itemData.identifiers || itemData.edition?.toString() || "",
           language: itemData.language || "en",
           current_owner: itemData.current_owner || "",
           purchase_price_usd: itemData.purchase_price_usd
@@ -259,7 +259,7 @@ function ArxPageInner() {
         item_name: regName.trim(),
         purchase_price_usd: parseFloat(regPrice),
         serial_number: regSerial.trim() || null,
-        edition: regIdentifiers.trim() || null,
+        identifiers: regIdentifiers.trim() || null,
         language: "en",
         current_owner: regContact.trim() || "anonymous",
         qr_code_url: qrUrl,

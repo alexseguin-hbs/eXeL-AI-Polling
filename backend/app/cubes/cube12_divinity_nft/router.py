@@ -35,7 +35,7 @@ class MintRequest(BaseModel):
     item_name: str
     purchase_price_usd: float
     serial_number: str | None = None
-    edition: int = 0
+    identifiers: str | None = None
     language: str = "en"
     chip_key_hash: str | None = None
 
@@ -87,7 +87,7 @@ async def mint_item(
         purchase_price_usd=payload.purchase_price_usd,
         buyer_address=user.user_id,
         serial_number=payload.serial_number,
-        edition=payload.edition,
+        identifiers=payload.identifiers,
         language=payload.language,
         chip_key_hash=payload.chip_key_hash,
     )

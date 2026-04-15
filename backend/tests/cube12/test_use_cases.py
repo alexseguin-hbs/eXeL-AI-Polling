@@ -47,7 +47,7 @@ class TestUC1FirstTimeSetup:
                 purchase_price_usd=77.77,
                 buyer_address=f"seller-{run}",
                 serial_number=f"DG-{run:05d}",
-                edition=1,
+                identifiers="1/1, signed",
                 language="en",
             )
 
@@ -56,7 +56,7 @@ class TestUC1FirstTimeSetup:
             assert result["item_name"] == "The Divinity Guide — Signed First Edition"
             assert result["purchase_price_usd"] == 77.77
             assert result["serial_number"] == f"DG-{run:05d}"
-            assert result["edition"] == 1
+            assert result["identifiers"] == "1/1, signed"
             assert "qr_code_url" in result
             assert "divinity-guide/arx" in result["qr_code_url"]
             assert result["arx_tx_id"].startswith("ARX-")
@@ -81,7 +81,7 @@ class TestUC1FirstTimeSetup:
             purchase_price_usd=111.11,
             buyer_address="collector-001",
             serial_number="DG-LEATHER-001",
-            edition=7,
+            identifiers="limited, proof",
             language="en",
         )
 
@@ -96,7 +96,7 @@ class TestUC1FirstTimeSetup:
         mock_item.token_id = 42
         mock_item.item_name = "Signed Book"
         mock_item.serial_number = "SB-001"
-        mock_item.edition = 3
+        mock_item.identifiers = "original, signed"
         mock_item.language = "en"
         mock_item.current_owner = "seller-001"
         mock_item.purchase_price_usd = 77.77
