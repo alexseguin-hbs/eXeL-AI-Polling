@@ -913,6 +913,21 @@ const cube12: TranslationEntry[] = [
   { key: "cube12.arx.search_placeholder", englishDefault: "Search by item name...", context: "Browse search input placeholder", cubeId: 12 },
   { key: "cube12.arx.no_items_found", englishDefault: "No items found", context: "Empty browse results", cubeId: 12 },
   { key: "cube12.arx.show_more", englishDefault: "Show more", context: "Load more transactions button", cubeId: 12 },
+  { key: "cube12.arx.nfc_hold_chip", englishDefault: "Hold ARX chip to the back of your phone.", context: "NFC read instruction alert", cubeId: 12 },
+  { key: "cube12.arx.nfc_hold_program", englishDefault: "Hold ARX chip to the back of your phone (2 taps needed).", context: "NFC program instruction alert", cubeId: 12 },
+  { key: "cube12.arx.nfc_tap_confirm", englishDefault: "Tap chip again to confirm.", context: "NFC second tap confirmation", cubeId: 12 },
+  { key: "cube12.arx.nfc_read_failed", englishDefault: "Could not read chip. Hold steady and try again.", context: "NFC read failure message", cubeId: 12 },
+  { key: "cube12.arx.nfc_no_chip", englishDefault: "This item has no chip paired yet. Use Program Chip to link one.", context: "No chip paired message", cubeId: 12 },
+  { key: "cube12.arx.nfc_mismatch", englishDefault: "This chip does not match this item.", context: "Chip mismatch error", cubeId: 12 },
+  { key: "cube12.arx.nfc_program_failed", englishDefault: "Chip programming failed", context: "NFC program failure prefix", cubeId: 12 },
+  { key: "cube12.arx.transfer_failed", englishDefault: "Transfer failed. Please try again.", context: "Transfer error message", cubeId: 12 },
+  { key: "cube12.arx.load_failed", englishDefault: "Could not load item. Please try again.", context: "Item load error", cubeId: 12 },
+  { key: "cube12.arx.receipt_copied", englishDefault: "Receipt copied to clipboard", context: "Clipboard copy confirmation", cubeId: 12 },
+  { key: "cube12.arx.scan_item", englishDefault: "Scan to view item", context: "QR receipt instruction", cubeId: 12 },
+  { key: "cube12.arx.transfer_receipt_label", englishDefault: "Transfer receipt", context: "Seller QR label", cubeId: 12 },
+  { key: "cube12.arx.buyer_notes_placeholder", englishDefault: "Condition notes, provenance details...", context: "Transfer identifiers placeholder", cubeId: 12 },
+  { key: "cube12.arx.ownership_changed", englishDefault: "Ownership has changed — someone else transferred this item. Please reload.", context: "Race condition error", cubeId: 12 },
+  { key: "cube12.arx.chip_already_paired", englishDefault: "This chip is already paired to another item", context: "Duplicate chip error prefix", cubeId: 12 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────

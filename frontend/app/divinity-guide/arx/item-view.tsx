@@ -14,6 +14,15 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { useLexicon } from "@/lib/lexicon-context";
 
+/** Format date as YYYY.MM.DD — consistent across all ARX displays */
+function fmtDate(d: string) {
+  const dt = new Date(d + (d.length === 10 ? "T12:00:00" : ""));
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const day = String(dt.getDate()).padStart(2, "0");
+  return `${y}.${m}.${day}`;
+}
+
 interface ArxTransaction {
   arx_tx_id: string;
   from_address: string | null;
@@ -49,6 +58,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
   const [buyerName, setBuyerName] = useState("");
   const [buyerContact, setBuyerContact] = useState("");
   const [salePrice, setSalePrice] = useState("");
+  const [buyerNotes, setBuyerNotes] = useState("");
   const [transferring, setTransferring] = useState(false);
   const [transferResult, setTransferResult] = useState<{
     arx_tx_id: string;
@@ -110,7 +120,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
         })),
       });
     } catch {
-      setError("Could not load item. Please try again.");
+      setError(t("cube12.arx.load_failed"));
     } finally {
       setLoading(false);
     }
@@ -146,16 +156,22 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
 
       const newOwner = buyerContact.trim() || buyerName.trim();
       // Verify ownership hasn't changed since page load (race condition guard)
+      // Append buyer notes to identifiers if provided
+      const updatedIdentifiers = buyerNotes.trim()
+        ? [item.identifiers, buyerNotes.trim()].filter(Boolean).join(" — ")
+        : undefined;
+
       const { data: updateResult, error: updateErr } = await supabase.from("arx_items").update({
         current_owner: newOwner,
         last_transfer_at: now.toISOString(),
         qr_code_url: buyerQr,
         ...(price !== null ? { purchase_price_usd: price } : {}),
+        ...(updatedIdentifiers ? { identifiers: updatedIdentifiers } : {}),
       }).eq("token_id", item.token_id).eq("current_owner", item.current_owner).select();
 
       if (updateErr) throw new Error(updateErr.message);
       if (!updateResult || updateResult.length === 0) {
-        throw new Error("Ownership has changed — someone else transferred this item. Please reload.");
+        throw new Error(t("cube12.arx.ownership_changed"));
       }
 
       const { error: txErr } = await supabase.from("arx_transactions").insert({
@@ -171,7 +187,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
       setTransferResult({ arx_tx_id: txId, buyer_qr_url: buyerQr, seller_qr_url: sellerQr });
       await loadItem(item.token_id);
     } catch (e: any) {
-      setError(e.message || "Transfer failed. Please try again.");
+      setError(e.message || t("cube12.arx.transfer_failed"));
     } finally {
       setTransferring(false);
     }
@@ -183,16 +199,16 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
       const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
       const info = await execHaloCmdWeb(
         { name: "sign", message: "00", keyNo: 1 },
-        { statusCallback: (s: string) => { if (s === "init") alert("Hold ARX chip to the back of your phone."); } }
+        { statusCallback: (s: string) => { if (s === "init") alert(t("cube12.arx.nfc_hold_chip")); } }
       );
       const chipAddr = info.etherAddress || "";
-      if (!chipAddr) { setError("Could not read chip. Hold steady and try again."); return; }
+      if (!chipAddr) { setError(t("cube12.arx.nfc_read_failed")); return; }
       if (!item?.chip_key_hash) {
-        setError("This item has no chip paired yet. Use Program Chip to link one.");
+        setError(t("cube12.arx.nfc_no_chip"));
       } else if (chipAddr.toLowerCase() === item.chip_key_hash.toLowerCase()) {
         setChipVerified(true);
       } else {
-        setError("This chip does not match this item.");
+        setError(t("cube12.arx.nfc_mismatch"));
       }
     } catch (e: any) { setError(e.message || "NFC read failed"); }
   }, [item]);
@@ -203,15 +219,15 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
     try {
       setError("");
       const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
-      alert("Hold ARX chip to the back of your phone (2 taps needed).");
+      alert(t("cube12.arx.nfc_hold_program"));
       const info = await execHaloCmdWeb({ name: "sign", message: "00", keyNo: 1 }, { statusCallback: () => {} });
       const chipAddr = info.etherAddress || "";
-      if (!chipAddr) { setError("Could not read chip."); return; }
+      if (!chipAddr) { setError(t("cube12.arx.nfc_read_failed")); return; }
 
       const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${item.token_id}`;
       await execHaloCmdWeb(
         { name: "set_url_subdomain", url: itemUrl },
-        { statusCallback: (s: string) => { if (s === "init") alert("Tap chip again to confirm."); } }
+        { statusCallback: (s: string) => { if (s === "init") alert(t("cube12.arx.nfc_tap_confirm")); } }
       );
 
       if (!item.chip_key_hash) {
@@ -232,7 +248,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
       }
       setChipProgrammed(true);
       setChipVerified(true);
-    } catch (e: any) { setError("Chip programming failed: " + (e.message || "Unknown error.")); }
+    } catch (e: any) { setError(t("cube12.arx.nfc_program_failed") + ": " + (e.message || "")); }
   }, [item]);
 
   // Loading
@@ -281,12 +297,12 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
           <div className="p-5 border rounded-xl bg-card/80 text-center space-y-3">
             <p className="text-xs font-medium text-muted-foreground">{t("cube12.arx.new_owner_receipt")}</p>
             <div className="flex justify-center"><QRCodeSVG value={transferResult.buyer_qr_url} size={140} /></div>
-            <p className="text-[10px] text-muted-foreground">Scan to view item</p>
+            <p className="text-[10px] text-muted-foreground">{t("cube12.arx.scan_item")}</p>
           </div>
           <div className="p-5 border rounded-xl bg-card/80 text-center space-y-3">
             <p className="text-xs font-medium text-muted-foreground">{t("cube12.arx.previous_owner_receipt")}</p>
             <div className="flex justify-center"><QRCodeSVG value={transferResult.seller_qr_url} size={140} /></div>
-            <p className="text-[10px] text-muted-foreground">Transfer receipt</p>
+            <p className="text-[10px] text-muted-foreground">{t("cube12.arx.transfer_receipt_label")}</p>
           </div>
         </div>
         {/* Share receipt — Web Share API on mobile, copy link on desktop */}
@@ -298,12 +314,12 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
                 try { await navigator.share({ title: "ARX Transfer Receipt", text, url: transferResult.buyer_qr_url }); } catch {}
               } else {
                 await navigator.clipboard.writeText(text);
-                alert("Receipt copied to clipboard");
+                alert(t("cube12.arx.receipt_copied"));
               }
             }}
             className="w-full py-2.5 border rounded-lg text-sm hover:bg-accent transition-colors"
           >
-            Share Receipt
+            {t("cube12.arx.share_receipt")}
           </button>
           <button onClick={() => setTransferResult(null)} className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all">
             {t("cube12.arx.view_updated_item")}
@@ -344,7 +360,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
           {item.purchase_date && (
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.purchased")}</p>
-              <p className="text-xs">{item.purchase_date.replace(/-/g, ".")} CST</p>
+              <p className="text-xs">{fmtDate(item.purchase_date)}</p>
             </div>
           )}
           {item.serial_number && (
@@ -361,7 +377,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
           )}
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.registered_date")}</p>
-            <p className="text-xs">{new Date(item.created_at).toLocaleDateString()}</p>
+            <p className="text-xs">{fmtDate(item.created_at)}</p>
           </div>
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.transfers")}</p>
@@ -430,7 +446,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
                       )}
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {new Date(tx.created_at).toLocaleDateString()} at {new Date(tx.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {fmtDate(tx.created_at)} {new Date(tx.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
                 </div>
@@ -472,6 +488,12 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
             <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.purchase_price")}</label>
             <input type="number" step="0.01" min="0" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} placeholder="Leave empty if gift"
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.identifiers_label")}</label>
+            <input value={buyerNotes} onChange={(e) => setBuyerNotes(e.target.value)} placeholder="Condition notes, provenance details..."
+              className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
+            <p className="text-[10px] text-muted-foreground mt-1">{t("cube12.arx.description_hint")}</p>
           </div>
         </div>
         {error && <p className="text-sm text-red-500 bg-red-500/5 rounded-lg px-3 py-2">{error}</p>}

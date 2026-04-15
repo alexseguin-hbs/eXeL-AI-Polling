@@ -25,6 +25,15 @@ import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
 import ItemView from "./item-view";
 import { getHubPosition, getTheme2_3Positions } from "@/lib/flower-geometry";
 
+/** Format date as YYYY.MM.DD — consistent across all ARX displays */
+function fmtDate(d: string) {
+  const dt = new Date(d + (d.length === 10 ? "T12:00:00" : ""));
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const day = String(dt.getDate()).padStart(2, "0");
+  return `${y}.${m}.${day}`;
+}
+
 interface ArxItem {
   token_id: number;
   item_name: string;
@@ -406,7 +415,7 @@ function ArxPageInner() {
           {item.minted_at && (
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("cube12.arx.registered_date")}</p>
-              <p className="text-xs">{new Date(item.minted_at).toLocaleDateString()}</p>
+              <p className="text-xs">{fmtDate(item.minted_at)}</p>
             </div>
           )}
           <div>
@@ -981,7 +990,7 @@ function ArxPageInner() {
                         >
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium truncate">{bi.item_name}</p>
-                            <p className="text-[10px] text-muted-foreground truncate">{bi.current_owner} &middot; {new Date(bi.created_at).toLocaleDateString()}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{bi.current_owner} &middot; {fmtDate(bi.created_at)}</p>
                           </div>
                           {bi.purchase_price_usd !== null && (
                             <span className="text-xs font-bold ml-2">${Number(bi.purchase_price_usd).toFixed(2)}</span>
@@ -1029,7 +1038,7 @@ function ArxPageInner() {
                               <div className="text-right">
                                 {tx.price_usd != null && <span className="font-bold">${tx.price_usd.toFixed(2)}</span>}
                                 <span className="ml-2 text-xs text-muted-foreground">
-                                  {tx.timestamp ? new Date(tx.timestamp).toLocaleDateString() : ""}
+                                  {tx.timestamp ? fmtDate(tx.timestamp) : ""}
                                 </span>
                               </div>
                             </div>
