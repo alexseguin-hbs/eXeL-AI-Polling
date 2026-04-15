@@ -1405,6 +1405,9 @@ function DivinityGuidePage() {
                   <rect x="3" y="11" width="2" height="2" fill="var(--background, #000)" />
                 </svg>
               </button>
+              <Link href="/divinity-guide/arx" className="text-xs text-muted-foreground hover:text-primary">
+                ARX
+              </Link>
               <button onClick={() => { setSelectedSection(null); setSelectedChapterId(null); setPageIndex(0); setViewMode("portals"); setSelectedLibrary(null); }} className="text-xs text-muted-foreground hover:text-primary">
                 {viewMode === "portals" ? divinityUi.portals : divinityUi.sacredLibrary}
               </button>
@@ -1538,7 +1541,9 @@ function DivinityGuidePage() {
           <div className="mt-auto pb-6 text-center">
             <br />
             <p className="text-[9px] text-muted-foreground/40">••• {divinityUi.masterOfThought} •••</p>
-            <p className="text-[9px] text-muted-foreground/40">◬ · ♡ · 웃</p>
+            <Link href="/divinity-guide/arx" className="text-[9px] text-muted-foreground/40 hover:text-primary transition-colors">
+              ◬ · ♡ · 웃
+            </Link>
           </div>
         </div>
 
