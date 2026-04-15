@@ -12,6 +12,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
+import { useLexicon } from "@/lib/lexicon-context";
 
 interface ArxTransaction {
   arx_tx_id: string;
@@ -39,6 +40,7 @@ interface ArxItemFull {
 }
 
 export default function ItemView({ tokenId }: { tokenId: string }) {
+  const { t } = useLexicon();
   const [item, setItem] = useState<ArxItemFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -57,6 +59,9 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
   // NFC chip
   const [chipVerified, setChipVerified] = useState(false);
   const [chipProgrammed, setChipProgrammed] = useState(false);
+
+  // Transaction pagination
+  const [txLimit, setTxLimit] = useState(10);
 
   const loadItem = useCallback(async (tid: number) => {
     setLoading(true);
@@ -239,7 +244,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
           <div className="w-16 h-16 mx-auto rounded-full bg-red-500/10 border-2 border-red-500 flex items-center justify-center">
             <span className="text-2xl text-red-400">?</span>
           </div>
-          <h1 className="text-xl font-bold">Item Not Found</h1>
+          <h1 className="text-xl font-bold">{t("cube12.arx.not_found")}</h1>
           <p className="text-sm text-muted-foreground">{error || "This item does not exist in the registry."}</p>
           <Link href="/divinity-guide/arx" className="inline-block px-4 py-2 border rounded-lg text-sm hover:bg-accent transition-colors">
             ← Back to ARX
@@ -257,25 +262,25 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
           <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 border-2 border-green-500 flex items-center justify-center">
             <span className="text-2xl text-green-500">✓</span>
           </div>
-          <h1 className="text-2xl font-bold text-green-500">Transfer Complete</h1>
+          <h1 className="text-2xl font-bold text-green-500">{t("cube12.arx.transfer_complete")}</h1>
           <p className="text-sm text-muted-foreground">{item.item_name}</p>
           <p className="text-xs text-muted-foreground font-mono">{transferResult.arx_tx_id}</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="p-5 border rounded-xl bg-card/80 text-center space-y-3">
-            <p className="text-xs font-medium text-muted-foreground">New Owner</p>
+            <p className="text-xs font-medium text-muted-foreground">{t("cube12.arx.new_owner_receipt")}</p>
             <div className="flex justify-center"><QRCodeSVG value={transferResult.buyer_qr_url} size={140} /></div>
             <p className="text-[10px] text-muted-foreground">Scan to view item</p>
           </div>
           <div className="p-5 border rounded-xl bg-card/80 text-center space-y-3">
-            <p className="text-xs font-medium text-muted-foreground">Previous Owner</p>
+            <p className="text-xs font-medium text-muted-foreground">{t("cube12.arx.previous_owner_receipt")}</p>
             <div className="flex justify-center"><QRCodeSVG value={transferResult.seller_qr_url} size={140} /></div>
             <p className="text-[10px] text-muted-foreground">Transfer receipt</p>
           </div>
         </div>
         <div className="text-center">
           <button onClick={() => setTransferResult(null)} className="px-6 py-3 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all">
-            View Updated Item
+            {t("cube12.arx.view_updated_item")}
           </button>
         </div>
       </div>
@@ -301,39 +306,39 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Current Owner</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.current_owner")}</p>
             <p className="font-medium truncate">{item.current_owner}</p>
           </div>
           {item.purchase_price_usd !== null && (
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Last Price</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.last_price")}</p>
               <p className="font-bold">${item.purchase_price_usd.toFixed(2)}</p>
             </div>
           )}
           {item.purchase_date && (
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Purchased</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.purchased")}</p>
               <p className="text-xs">{new Date(item.purchase_date).toLocaleDateString()}</p>
             </div>
           )}
           {item.serial_number && (
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Serial</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.serial_label")}</p>
               <p className="font-mono text-xs">{item.serial_number}</p>
             </div>
           )}
           {item.identifiers && (
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Identifiers</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.identifiers_label")}</p>
               <p className="text-xs">{item.identifiers}</p>
             </div>
           )}
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Registered</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.registered_date")}</p>
             <p className="text-xs">{new Date(item.created_at).toLocaleDateString()}</p>
           </div>
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Transfers</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.transfers")}</p>
             <p className="font-bold">{item.transactions.length}</p>
           </div>
         </div>
@@ -345,24 +350,24 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
         {/* NFC actions */}
         {item.chip_key_hash && !chipVerified && (
           <button onClick={handleNfcRead} className="w-full py-2.5 border border-primary/30 rounded-lg text-sm text-primary hover:bg-primary/5 transition-colors">
-            Tap NFC Chip to Verify
+            {t("cube12.arx.tap_verify")}
           </button>
         )}
         {chipVerified && !chipProgrammed && (
           <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-green-500/30 bg-green-500/5">
             <span className="text-green-500">✓</span>
-            <p className="text-sm font-medium text-green-600">NFC chip verified</p>
+            <p className="text-sm font-medium text-green-600">{t("cube12.arx.chip_verified")}</p>
           </div>
         )}
         {chipProgrammed && (
           <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-green-500/30 bg-green-500/5">
             <span className="text-green-500">✓</span>
-            <p className="text-sm font-medium text-green-600">Chip programmed — tapping opens this page</p>
+            <p className="text-sm font-medium text-green-600">{t("cube12.arx.chip_programmed")}</p>
           </div>
         )}
         {!chipProgrammed && (
           <button onClick={handleProgramChip} className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all">
-            Program Chip — Link to This Item
+            {t("cube12.arx.program_chip")}
           </button>
         )}
       </div>
@@ -370,10 +375,10 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
       {/* Ownership History */}
       {item.transactions.length > 0 && (
         <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-6 space-y-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Ownership History</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("cube12.arx.ownership_history")}</h2>
           <div className="space-y-0">
-            {item.transactions.map((tx, i) => {
-              const isLast = i === item.transactions.length - 1;
+            {item.transactions.slice(0, txLimit).map((tx, i) => {
+              const isLast = i === Math.min(txLimit, item.transactions.length) - 1;
               return (
                 <div key={tx.arx_tx_id} className="flex gap-3">
                   <div className="flex flex-col items-center">
@@ -387,13 +392,13 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
                         tx.transaction_type === "sale" ? "bg-blue-500/10 text-blue-600" :
                         "bg-muted text-muted-foreground"
                       }`}>
-                        {tx.transaction_type === "mint" ? "Registered" : tx.transaction_type === "sale" ? "Sold" : "Transferred"}
+                        {tx.transaction_type === "mint" ? t("cube12.arx.tx_registered") : tx.transaction_type === "sale" ? t("cube12.arx.tx_sold") : t("cube12.arx.tx_transferred")}
                       </span>
                       {tx.price_usd !== null && <span className="text-sm font-bold">${tx.price_usd.toFixed(2)}</span>}
                     </div>
                     <p className="text-xs mt-1">
                       {i === 0 ? (
-                        <span>Registered by <span className="font-medium">{tx.to_address}</span></span>
+                        <span>{t("cube12.arx.registered_by")} <span className="font-medium">{tx.to_address}</span></span>
                       ) : (
                         <span><span className="text-muted-foreground">{tx.from_address}</span>{" → "}<span className="font-medium">{tx.to_address}</span></span>
                       )}
@@ -406,31 +411,39 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
               );
             })}
           </div>
+          {item.transactions.length > txLimit && (
+            <button
+              onClick={() => setTxLimit((prev) => prev + 10)}
+              className="w-full py-2 text-xs text-primary hover:bg-primary/5 rounded-lg transition-colors"
+            >
+              Show more ({item.transactions.length - txLimit} remaining)
+            </button>
+          )}
         </div>
       )}
 
       {/* Transfer Form */}
       <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-6 space-y-4">
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Transfer to New Owner</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t("cube12.arx.transfer_to_new_owner")}</h2>
           <p className="text-xs text-muted-foreground mt-1">
             The new owner fills in their details below. The ARX chip stays linked — only ownership changes.
           </p>
         </div>
         <div className="space-y-3">
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">New Owner Name *</label>
+            <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.new_owner_name")} *</label>
             <input value={buyerName} onChange={(e) => setBuyerName(e.target.value)} placeholder="Full name"
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">Contact (email or phone)</label>
+            <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.contact_label")}</label>
             <input value={buyerContact} onChange={(e) => setBuyerContact(e.target.value)} placeholder="email@example.com"
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
             <p className="text-[10px] text-muted-foreground mt-1">Used as your ownership identifier</p>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">Purchase Price (USD)</label>
+            <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.purchase_price")}</label>
             <input type="number" step="0.01" min="0" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} placeholder="Leave empty if gift"
               className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors" />
           </div>

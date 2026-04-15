@@ -347,40 +347,40 @@ function ArxPageInner() {
             <span className="text-green-500 text-lg">✓</span>
           </div>
           <div>
-            <p className="text-green-600 font-semibold text-sm">Verified</p>
-            <p className="text-[10px] text-muted-foreground">Item found in registry</p>
+            <p className="text-green-600 font-semibold text-sm">{t("cube12.arx.verified")}</p>
+            <p className="text-[10px] text-muted-foreground">{t("cube12.arx.item_found")}</p>
           </div>
         </div>
         <h3 className="text-lg font-bold">{item.item_name}</h3>
         <div className="grid grid-cols-2 gap-3 text-sm">
           {item.serial_number && (
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Serial</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("cube12.arx.serial_label")}</p>
               <p className="font-mono text-xs">{item.serial_number}</p>
             </div>
           )}
           {item.identifiers && (
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Identifiers</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("cube12.arx.identifiers_label")}</p>
               <p className="text-xs">{item.identifiers}</p>
             </div>
           )}
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Owner</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("cube12.arx.current_owner")}</p>
             <p className="font-mono text-xs truncate">{item.current_owner}</p>
           </div>
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Price</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("cube12.arx.last_price")}</p>
             <p className="font-bold">${item.purchase_price_usd?.toFixed(2)}</p>
           </div>
           {item.minted_at && (
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Registered</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("cube12.arx.registered_date")}</p>
               <p className="text-xs">{new Date(item.minted_at).toLocaleDateString()}</p>
             </div>
           )}
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Transactions</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("cube12.arx.transfers")}</p>
             <p className="font-bold">{item.transaction_count}</p>
           </div>
         </div>
@@ -409,7 +409,7 @@ function ArxPageInner() {
             <span className="text-sm font-light text-primary/70">AI</span>
           </Link>
           <Link href="/divinity-guide/arx" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-            ← ARX Registry
+            ← {t("cube12.arx.back_to_arx")}
           </Link>
         </div>
         <ItemView tokenId={tokenParam} />
@@ -430,7 +430,7 @@ function ArxPageInner() {
                 <span className="text-sm font-light text-primary/70">AI</span>
               </Link>
               <Link href="/divinity-guide" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                Divinity Guide
+                {t("cube12.arx.divinity_guide")}
               </Link>
             </div>
 
@@ -439,10 +439,10 @@ function ArxPageInner() {
               onClick={() => { setSelectedFlower(null); setError(""); }}
               className="text-2xl font-bold mb-0.5 hover:opacity-80 text-primary"
             >
-              Physically Backed Tokens
+              {t("cube12.arx.title")}
             </button>
             <p className="text-[10px] text-muted-foreground italic mb-2">
-              Authenticate. Own. Transfer. Forever.
+              {t("cube12.arx.subtitle")}
             </p>
 
             {/* Flower of Life SVG — using shared ThemeCircle + geometry */}
@@ -501,20 +501,20 @@ function ArxPageInner() {
                 onClick={() => { setSelectedFlower(null); setError(""); }}
                 className="mt-4 text-xs text-foreground hover:text-primary transition-colors"
               >
-                ← All Portals
+                ← {t("cube12.arx.all_portals")}
               </button>
             )}
 
             {!selectedFlower && (
               <p className="text-[9px] text-muted-foreground/40 mt-4">
-                Select a circle to begin
+                {t("cube12.arx.select_portal")}
               </p>
             )}
 
             {/* Footer — matches Divinity Guide exactly */}
             <div className="mt-auto pb-6 text-center">
               <br />
-              <p className="text-[9px] text-muted-foreground/40">••• Physically Backed Tokens •••</p>
+              <p className="text-[9px] text-muted-foreground/40">••• {t("cube12.arx.title")} •••</p>
               <p className="text-[9px] text-muted-foreground/40">◬ · ♡ · 웃</p>
             </div>
           </div>
@@ -554,15 +554,12 @@ function ArxPageInner() {
             {/* No flower selected — welcome */}
             {!selectedFlower && (
               <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 px-4">
-                <p className="text-lg font-bold">Digital Provenance for Physical Items</p>
+                <p className="text-lg font-bold">{t("cube12.arx.welcome_title")}</p>
                 <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
-                  Register artwork, signed books, or collectibles with a
-                  permanent digital record. Pair an ARX NFC chip for
-                  tap-to-verify authenticity. Transfer ownership with
-                  timestamped QR receipts for both parties.
+                  {t("cube12.arx.welcome_desc")}
                 </p>
                 <p className="text-xs text-muted-foreground/60 italic max-w-xs">
-                  Select a portal on the left to get started.
+                  {t("cube12.arx.welcome_hint")}
                 </p>
               </div>
             )}
@@ -574,17 +571,17 @@ function ArxPageInner() {
               <div className="flex-1 space-y-5 overflow-y-auto pr-1">
                 <div>
                   <h2 className="text-xl font-bold" style={{ color: "#EF4444" }}>
-                    Register Item
+                    {t("cube12.arx.register_item")}
                   </h2>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Create a digital record for your physical item
+                    {t("cube12.arx.register_desc")}
                   </p>
                 </div>
 
                 <div className="space-y-3">
                   {/* Item Name */}
                   <div>
-                    <label className="text-xs text-muted-foreground block mb-1">Item Name *</label>
+                    <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.item_name")} *</label>
                     <input
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
@@ -595,7 +592,7 @@ function ArxPageInner() {
 
                   {/* Price */}
                   <div>
-                    <label className="text-xs text-muted-foreground block mb-1">Price (USD) *</label>
+                    <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.price_label")} *</label>
                     <input
                       type="number" step="0.01" min="0"
                       value={regPrice}
@@ -607,7 +604,7 @@ function ArxPageInner() {
 
                   {/* Purchase Date */}
                   <div>
-                    <label className="text-xs text-muted-foreground block mb-1">Purchase Date</label>
+                    <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.purchase_date_label")}</label>
                     <input
                       type="date"
                       value={regPurchaseDate}
@@ -615,14 +612,14 @@ function ArxPageInner() {
                       className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                     />
                     <p className="text-[10px] text-muted-foreground mt-1">
-                      When you acquired this item (defaults to today if empty)
+                      {t("cube12.arx.purchase_date_hint")}
                     </p>
                   </div>
 
                   {/* Serial + Identifiers — side by side */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-muted-foreground block mb-1">Serial Number</label>
+                      <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.serial_label")}</label>
                       <input
                         value={regSerial}
                         onChange={(e) => setRegSerial(e.target.value)}
@@ -631,7 +628,7 @@ function ArxPageInner() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground block mb-1">Identifiers</label>
+                      <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.identifiers_label")}</label>
                       <input
                         value={regIdentifiers}
                         onChange={(e) => setRegIdentifiers(e.target.value)}
@@ -643,7 +640,7 @@ function ArxPageInner() {
 
                   {/* Description */}
                   <div>
-                    <label className="text-xs text-muted-foreground block mb-1">Description</label>
+                    <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.description_label")}</label>
                     <input
                       value={regMarker}
                       onChange={(e) => setRegMarker(e.target.value)}
@@ -651,13 +648,13 @@ function ArxPageInner() {
                       className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                     />
                     <p className="text-[10px] text-muted-foreground mt-1">
-                      Details that make this item unique
+                      {t("cube12.arx.description_hint")}
                     </p>
                   </div>
 
                   {/* Contact */}
                   <div>
-                    <label className="text-xs text-muted-foreground block mb-1">Owner Contact</label>
+                    <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.owner_contact")}</label>
                     <input
                       value={regContact}
                       onChange={(e) => setRegContact(e.target.value)}
@@ -674,9 +671,9 @@ function ArxPageInner() {
                     >
                       <span className="flex items-center gap-2">
                         <span style={{ color: "#EF4444" }}>◆</span>
-                        Link ARX NFC Chip
+                        {t("cube12.arx.link_nfc_chip")}
                         {regChipAddress && (
-                          <span className="text-[10px] text-green-500 font-normal">(linked)</span>
+                          <span className="text-[10px] text-green-500 font-normal">({t("cube12.arx.chip_linked")})</span>
                         )}
                       </span>
                       <span className="text-muted-foreground text-xs">{regExpanded ? "▲" : "▼"}</span>
@@ -692,7 +689,7 @@ function ArxPageInner() {
                           Paste the chip Ethereum address below, or tap &quot;Read NFC Chip&quot; after registration to auto-detect it.
                         </p>
                         <div>
-                          <label className="text-xs text-muted-foreground block mb-1">Chip Address</label>
+                          <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.chip_address")}</label>
                           <input
                             value={regChipAddress}
                             onChange={(e) => setRegChipAddress(e.target.value)}
@@ -711,7 +708,7 @@ function ArxPageInner() {
                     disabled={!regName.trim() || !regPrice || loading}
                     className="w-full py-3 bg-red-500 text-white rounded-lg text-sm font-bold hover:bg-red-600 disabled:opacity-40 transition-all"
                   >
-                    {loading ? "Registering..." : "Register Item"}
+                    {loading ? t("cube12.arx.registering") : t("cube12.arx.register_button")}
                   </button>
                 </div>
               </div>
@@ -725,16 +722,16 @@ function ArxPageInner() {
                 <div className="w-16 h-16 rounded-full bg-green-500/10 border-2 border-green-500 flex items-center justify-center">
                   <span className="text-2xl text-green-500">✓</span>
                 </div>
-                <h2 className="text-xl font-bold text-green-500">Registration Complete</h2>
+                <h2 className="text-xl font-bold text-green-500">{t("cube12.arx.registration_complete")}</h2>
                 <p className="text-sm text-muted-foreground font-mono">{regSuccess.arx_tx_id}</p>
 
                 {/* QR code */}
                 <div className="p-6 border rounded-xl bg-card/80 backdrop-blur-sm w-full max-w-xs">
-                  <p className="text-xs text-muted-foreground mb-3 text-center">Scan to verify ownership</p>
+                  <p className="text-xs text-muted-foreground mb-3 text-center">{t("cube12.arx.scan_to_verify")}</p>
                   <div className="flex justify-center">
                     <QRCodeSVG value={regSuccess.qr_code_url} size={180} />
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-3 text-center">Save and share with buyers</p>
+                  <p className="text-[10px] text-muted-foreground mt-3 text-center">{t("cube12.arx.save_and_share")}</p>
                 </div>
 
                 {/* Chip status */}
@@ -742,7 +739,7 @@ function ArxPageInner() {
                   <div className="flex items-center gap-2 px-4 py-3 rounded-lg border border-green-500/30 bg-green-500/5 w-full max-w-xs">
                     <span className="text-green-500">✓</span>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-green-600">NFC chip paired</p>
+                      <p className="text-sm font-semibold text-green-600">{t("cube12.arx.nfc_paired")}</p>
                       <p className="text-[10px] text-muted-foreground font-mono truncate">{regChipAddress}</p>
                     </div>
                   </div>
@@ -784,10 +781,10 @@ function ArxPageInner() {
                     }}
                     className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-40 transition-all"
                   >
-                    {loading ? "Reading..." : "Read + Program NFC Chip"}
+                    {loading ? t("cube12.arx.verifying") : t("cube12.arx.read_program_chip")}
                   </button>
                   <p className="text-[10px] text-muted-foreground text-center">
-                    Reads the chip address, then programs it to open this item page when tapped
+                    {t("cube12.arx.chip_program_desc")}
                   </p>
 
                   {/* Manual paste toggle */}
@@ -796,7 +793,7 @@ function ArxPageInner() {
                       onClick={() => setShowPairChip(true)}
                       className="w-full py-2 border border-muted rounded-lg text-xs text-muted-foreground hover:bg-accent/50 transition-colors"
                     >
-                      Or paste address manually
+                      {t("cube12.arx.paste_manually")}
                     </button>
                   ) : (
                     <div className="rounded-lg border bg-card/50 p-3 space-y-2">
@@ -828,7 +825,7 @@ function ArxPageInner() {
                         }}
                         className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 disabled:opacity-40"
                       >
-                        {loading ? "Linking..." : "Link Chip"}
+                        {loading ? t("cube12.arx.verifying") : t("cube12.arx.link_chip_button")}
                       </button>
                     </div>
                   )}
@@ -842,13 +839,13 @@ function ArxPageInner() {
                     onClick={resetRegForm}
                     className="flex-1 py-2.5 border rounded-lg text-sm hover:bg-accent transition-colors"
                   >
-                    Register Another
+                    {t("cube12.arx.register_another")}
                   </button>
                   <button
                     onClick={() => router.push(`/divinity-guide/arx?token=${regSuccess.token_id}`)}
                     className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90"
                   >
-                    View Item
+                    {t("cube12.arx.view_item")}
                   </button>
                 </div>
               </div>
@@ -860,16 +857,16 @@ function ArxPageInner() {
             {selectedFlower === "verify" && (
               <div className="flex-1 space-y-5 overflow-y-auto pr-1">
                 <div>
-                  <h2 className="text-xl font-bold" style={{ color: "#10B981" }}>Verify Item</h2>
+                  <h2 className="text-xl font-bold" style={{ color: "#10B981" }}>{t("cube12.arx.verify_item")}</h2>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Look up an item by Token ID or NFC chip address
+                    {t("cube12.arx.verify_desc")}
                   </p>
                 </div>
 
                 {/* [Athena] Two inputs side by side */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-muted-foreground block mb-1">Token ID</label>
+                    <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.token_id")}</label>
                     <input
                       value={verifyTokenId}
                       onChange={(e) => setVerifyTokenId(e.target.value)}
@@ -881,7 +878,7 @@ function ArxPageInner() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground block mb-1">Chip Address</label>
+                    <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.chip_address")}</label>
                     <input
                       value={verifyChipAddress}
                       onChange={(e) => setVerifyChipAddress(e.target.value)}
@@ -903,7 +900,7 @@ function ArxPageInner() {
                     disabled={(!verifyTokenId.trim() && !verifyChipAddress.trim()) || loading}
                     className="flex-1 py-2.5 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 disabled:opacity-40 transition-all"
                   >
-                    {loading ? "Verifying..." : "Verify"}
+                    {loading ? t("cube12.arx.verifying") : t("cube12.arx.verify_button")}
                   </button>
                   {/* NFC scan button */}
                   <button
@@ -935,7 +932,7 @@ function ArxPageInner() {
                         onClick={() => router.push(`/divinity-guide/arx?token=${item.token_id}`)}
                         className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all"
                       >
-                        View Full Item Page
+                        {t("cube12.arx.view_item")}
                       </button>
                     </div>
 
@@ -943,7 +940,7 @@ function ArxPageInner() {
                     {item.transactions && item.transactions.length > 0 && (
                       <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5">
                         <h3 className="font-bold text-sm mb-3">
-                          Transaction History ({item.transactions.length})
+                          {t("cube12.arx.transaction_history")} ({item.transactions.length})
                         </h3>
                         <div className="space-y-2">
                           {item.transactions.map((tx) => (
@@ -977,7 +974,7 @@ function ArxPageInner() {
                     <div className="w-16 h-16 mx-auto rounded-full bg-red-500/10 border-2 border-red-500 flex items-center justify-center mb-3">
                       <span className="text-2xl text-red-400">✗</span>
                     </div>
-                    <p className="text-red-500 font-bold">Not Found</p>
+                    <p className="text-red-500 font-bold">{t("cube12.arx.not_found")}</p>
                     <p className="text-xs text-muted-foreground mt-1">{error || "No matching item"}</p>
                   </div>
                 )}
@@ -990,15 +987,15 @@ function ArxPageInner() {
             {selectedFlower === "transfer" && (
               <div className="flex-1 space-y-5 overflow-y-auto pr-1">
                 <div>
-                  <h2 className="text-xl font-bold" style={{ color: "#3B82F6" }}>Transfer Ownership</h2>
+                  <h2 className="text-xl font-bold" style={{ color: "#3B82F6" }}>{t("cube12.arx.transfer_ownership")}</h2>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Enter the item Token ID to open its page, where the new owner can fill in their details.
+                    {t("cube12.arx.transfer_desc")}
                   </p>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs text-muted-foreground block mb-1">Token ID *</label>
+                    <label className="text-xs text-muted-foreground block mb-1">{t("cube12.arx.token_id")} *</label>
                     <input
                       value={transferTo}
                       onChange={(e) => setTransferTo(e.target.value)}
@@ -1021,7 +1018,7 @@ function ArxPageInner() {
                     disabled={!transferTo.trim()}
                     className="w-full py-2.5 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 disabled:opacity-40 transition-all"
                   >
-                    Open Item Page
+                    {t("cube12.arx.open_item_page")}
                   </button>
                 </div>
 
