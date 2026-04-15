@@ -501,32 +501,49 @@ function ArxPageInner() {
                 />
               ))}
 
-              {/* Hub circle — Restore NFC (center of 3 portals) */}
+              {/* Hub circle — Scan NFC (center of 3 portals) */}
               <ThemeCircle
                 cx={hub.cx} cy={hub.cy} r={hub.r}
-                theme={{ label: "Restore", count: 0, avgConfidence: 0, summary33: "NFC" }}
+                theme={{ label: "Scan", count: 0, avgConfidence: 0, summary33: "NFC" }}
                 fill={selectedFlower && activePortal ? activePortal.color.fill : "rgba(var(--primary), 0.15)"}
                 stroke={selectedFlower && activePortal ? activePortal.color.stroke : "hsl(var(--primary))"}
                 isHub
                 onClick={async () => {
                   try {
                     setError("");
-                    const tokenId = prompt("Enter Token ID to restore chip:");
-                    if (!tokenId) return;
                     const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
-                    alert("Hold ARX chip to the back of your phone to restore tap-to-open.");
-                    const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${tokenId}`;
-                    await execHaloCmdWeb({
-                      name: "cfg_ndef",
-                      flagUseText: false,
-                      flagHidePk2: false,
-                      flagHideEthAddress: false,
-                      flagShowPk1Attest: false,
-                      ndef_records: [{ type: "url", value: itemUrl }],
-                    }, { statusCallback: () => {} });
-                    alert("Chip restored! Tapping it will now open the item page.");
+                    alert("Hold ARX chip to the back of your phone.");
+                    const info = await execHaloCmdWeb(
+                      { name: "sign", message: "00", keyNo: 1 },
+                      { statusCallback: () => {} }
+                    );
+                    const chipAddr = info.etherAddress || "";
+                    if (!chipAddr) { setError("Could not read chip. Hold steady and try again."); return; }
+
+                    // Look up item by chip address
+                    const { supabase } = await import("@/lib/supabase");
+                    if (!supabase) return;
+                    const { data } = await supabase
+                      .from("arx_items")
+                      .select("token_id, item_name")
+                      .eq("chip_key_hash", chipAddr.toLowerCase())
+                      .maybeSingle();
+
+                    if (data) {
+                      // Chip is registered — navigate to item page
+                      router.push(`/divinity-guide/arx?token=${data.token_id}`);
+                    } else {
+                      // Chip not registered — show address, offer to register
+                      const action = confirm(
+                        `Chip Address:\n${chipAddr}\n\nThis chip is not registered yet.\nWould you like to register it now?`
+                      );
+                      if (action) {
+                        setSelectedFlower("mint");
+                        setRegChipAddress(chipAddr);
+                      }
+                    }
                   } catch (e: any) {
-                    setError("Restore failed: " + (e.message || ""));
+                    setError("NFC scan failed: " + (e.message || ""));
                   }
                 }}
               />
