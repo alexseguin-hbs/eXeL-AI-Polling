@@ -762,12 +762,44 @@ function ArxPageInner() {
                     </div>
                   </div>
                 ) : !showPairChip ? (
-                  <button
-                    onClick={() => setShowPairChip(true)}
-                    className="w-full max-w-xs py-2.5 border border-primary/30 rounded-lg text-sm text-primary hover:bg-primary/5 transition-colors"
-                  >
-                    Pair ARX Chip
-                  </button>
+                  <div className="w-full max-w-xs space-y-2">
+                    <button
+                      onClick={() => setShowPairChip(true)}
+                      className="w-full py-2.5 border border-primary/30 rounded-lg text-sm text-primary hover:bg-primary/5 transition-colors"
+                    >
+                      Pair ARX Chip (paste address)
+                    </button>
+                    <button
+                      onClick={async () => {
+                        // Program chip via NFC using libhalo
+                        try {
+                          setLoading(true);
+                          setError("");
+                          const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
+                          // Step 1: Get the chip's public keys (this reads the chip via NFC)
+                          const info = await execHaloCmdWeb({ name: "sign", message: "00", keyNo: 1 });
+                          const chipAddr = info.etherAddress || info.address || "";
+                          if (!chipAddr) throw new Error("Could not read chip address");
+                          // Step 2: Store the chip address in Supabase
+                          const { supabase } = await import("@/lib/supabase");
+                          if (!supabase) throw new Error("Supabase not available");
+                          await supabase.from("arx_items").update({
+                            chip_key_hash: chipAddr.toLowerCase()
+                          }).eq("token_id", regSuccess!.token_id);
+                          setRegChipAddress(chipAddr);
+                          alert(`Chip paired! Address: ${chipAddr}\n\nAnyone can now tap this chip to verify your item.`);
+                        } catch (e: any) {
+                          setError(e.message || "NFC not available — use paste method instead");
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90"
+                    >
+                      📱 Tap ARX Chip to Pair (NFC)
+                    </button>
+                    <p className="text-[10px] text-muted-foreground text-center">Chrome on Android required for NFC tap</p>
+                  </div>
                 ) : (
                   <div className="rounded-lg border bg-card/50 p-4 space-y-3 w-full max-w-xs">
                     <p className="text-xs text-muted-foreground">
@@ -776,7 +808,7 @@ function ArxPageInner() {
                     <input
                       value={pairChipAddress}
                       onChange={(e) => setPairChipAddress(e.target.value)}
-                      placeholder="0xC3D72cc59..."
+                      placeholder="0xC3D72cc59B4514fac7057bC9C629b7bC4de9A635"
                       className="w-full rounded-lg border bg-background px-4 py-2 text-sm font-mono focus:border-primary focus:outline-none"
                     />
                     <button
@@ -785,15 +817,12 @@ function ArxPageInner() {
                         if (!pairChipAddress.trim() || !regSuccess) return;
                         setLoading(true);
                         try {
-                          const resp = await fetch("/api/v1/arx/pair-chip", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              token_id: regSuccess.token_id,
-                              chip_address: pairChipAddress.trim(),
-                            }),
-                          });
-                          if (!resp.ok) throw new Error("Pairing failed");
+                          // Pair via Supabase directly (no backend API needed)
+                          const { supabase } = await import("@/lib/supabase");
+                          if (!supabase) throw new Error("Supabase not available");
+                          await supabase.from("arx_items").update({
+                            chip_key_hash: pairChipAddress.trim().toLowerCase()
+                          }).eq("token_id", regSuccess.token_id);
                           setRegChipAddress(pairChipAddress.trim());
                           setShowPairChip(false);
                           setPairChipAddress("");
