@@ -787,19 +787,11 @@ function ArxPageInner() {
                           // Step 3: Write our URL to the chip's NDEF subdomain
                           // This makes the chip open our verification page when tapped
                           const verifyUrl = `${window.location.origin}/divinity-guide/arx?chip=${chipAddr}`;
-                          try {
-                            // Configure NDEF to show our custom URL
-                            await execHaloCmdWeb({ name: "cfg_ndef", flagUseText: true });
-                            // Set subdomain (ARX gateway will redirect)
-                            await execHaloCmdWeb({
-                              name: "set_url_subdomain",
-                              subdomain: `exel.${regSuccess!.token_id}`,
-                              allowSignatureDER: "00".repeat(72),
-                            });
-                          } catch {
-                            // NDEF write failed — chip still paired via address in Supabase
-                            console.warn("NDEF write not supported on this chip — using address pairing only");
-                          }
+                          // SAFETY: Do NOT write cfg_ndef or set_url_subdomain to the chip.
+                          // Writing these commands can disable the chip's default NFC broadcast.
+                          // Instead, we only READ the address and store it in Supabase.
+                          // The chip continues to work as before — users verify via QR code or
+                          // by visiting the verify URL with the chip's Ethereum address.
 
                           // Step 4: Store chip address in Supabase
                           const { supabase } = await import("@/lib/supabase");
