@@ -503,30 +503,83 @@ function ArxPageInner() {
         {/* ═══ BROWSE MODE — Editions + marketplace ═══ */}
         {mode === "browse" && (
           <div className="space-y-8">
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-3">
               <h1 className="text-3xl font-bold">Physically Backed Tokens</h1>
               <p className="text-muted-foreground max-w-lg mx-auto">
-                Own a physical copy of The Divinity Guide or register any collectible with blockchain-verified authenticity. Tap your phone to an ARX chip to verify instantly.
+                Authenticate any physical item on the blockchain — books, artwork, signed memorabilia.
+                Tap your phone to verify. Own it forever.
               </p>
             </div>
 
-            {/* Quick verify */}
-            <div className="max-w-md mx-auto">
-              <div className="flex gap-2">
-                <input
-                  placeholder="Enter token ID to verify..."
-                  className="flex-1 rounded-lg border bg-background px-4 py-2 text-sm focus:border-primary focus:outline-none"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const val = (e.target as HTMLInputElement).value.trim();
-                      if (val) router.push(`/divinity-guide/arx?token=${val}`);
-                    }
-                  }}
-                />
-                <button onClick={() => setMode("register")}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 whitespace-nowrap">
-                  + Register Item
-                </button>
+            {/* ═══ TWO CORE USE CASES ═══ */}
+            <div className="grid gap-4 md:grid-cols-2 max-w-2xl mx-auto">
+              {/* UC1: Register New Item */}
+              <button onClick={() => setMode("register")}
+                className="rounded-xl border-2 border-primary/30 bg-card p-6 text-left hover:border-primary hover:shadow-lg transition-all group">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">✦</div>
+                  <div>
+                    <h3 className="font-bold">Register New Item</h3>
+                    <p className="text-xs text-muted-foreground">First-time setup</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Add a physical collectible to the blockchain. Enter item details, get a QR code for verification. Works with ARX NFC chips.
+                </p>
+              </button>
+
+              {/* UC2: Verify / Buy Existing */}
+              <div className="rounded-xl border-2 border-muted bg-card p-6 text-left">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-2xl">✓</div>
+                  <div>
+                    <h3 className="font-bold">Verify or Purchase</h3>
+                    <p className="text-xs text-muted-foreground">Scan to authenticate</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Scan a QR code or tap an ARX chip to verify authenticity. Buy from the current owner with dual QR receipts for both parties.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    placeholder="Enter token ID..."
+                    className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const val = (e.target as HTMLInputElement).value.trim();
+                        if (val) router.push(`/divinity-guide/arx?token=${val}`);
+                      }
+                    }}
+                  />
+                  <button onClick={() => {
+                    const input = document.querySelector<HTMLInputElement>('input[placeholder="Enter token ID..."]');
+                    if (input?.value.trim()) router.push(`/divinity-guide/arx?token=${input.value.trim()}`);
+                  }} className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:opacity-90">
+                    Verify
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* How it works */}
+            <div className="max-w-2xl mx-auto">
+              <h2 className="text-sm font-bold text-center text-muted-foreground mb-4">HOW IT WORKS</h2>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="space-y-2">
+                  <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-lg">1</div>
+                  <p className="text-xs font-bold">Register</p>
+                  <p className="text-[10px] text-muted-foreground">Name, price, serial number. Get a QR code instantly.</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-lg">2</div>
+                  <p className="text-xs font-bold">Verify</p>
+                  <p className="text-[10px] text-muted-foreground">Scan QR or tap ARX chip. See owner, price, history.</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-lg">3</div>
+                  <p className="text-xs font-bold">Transfer</p>
+                  <p className="text-[10px] text-muted-foreground">Sell or gift. Both parties get timestamped QR receipts.</p>
+                </div>
               </div>
             </div>
 
