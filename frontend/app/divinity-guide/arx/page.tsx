@@ -117,14 +117,8 @@ function ArxPageInner() {
   const [verifyTokenId, setVerifyTokenId] = useState("");
   const [verifyChipAddress, setVerifyChipAddress] = useState("");
 
-  // --- Transfer form ---
+  // --- Transfer — just Token ID input, redirects to /arx/[tokenId] ---
   const [transferTo, setTransferTo] = useState("");
-  const [transferPrice, setTransferPrice] = useState("");
-  const [transferSuccess, setTransferSuccess] = useState<{
-    buyer_qr_url: string;
-    seller_qr_url: string;
-    arx_tx_id: string;
-  } | null>(null);
 
   // Chip reset removed (cfg_ndef disabled broadcast in prior testing)
 
@@ -247,7 +241,7 @@ function ArxPageInner() {
             .map((b) => b.toString(16).padStart(2, "0"))
             .join("")
         );
-      const qrUrl = `${window.location.origin}/divinity-guide/arx?token=${newTokenId}&verify=${verifyHash.slice(0, 16)}`;
+      const qrUrl = `${window.location.origin}/divinity-guide/arx/${newTokenId}`;
 
       let chipKeyHash: string | null = null;
       if (regChipAddress.trim()) {
@@ -283,53 +277,7 @@ function ArxPageInner() {
     }
   }, [regName, regPrice, regSerial, regIdentifiers, regChipAddress, regContact]);
 
-  // --- Transfer item ---
-  const handleTransfer = useCallback(async () => {
-    if (!item || !transferTo.trim()) return;
-    setLoading(true);
-    setError("");
-    try {
-      // Transfer via Supabase directly
-      const { supabase } = await import("@/lib/supabase");
-      if (!supabase) throw new Error("Supabase not available");
-
-      const now = new Date();
-      const txId = `ARX-${now.getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-      const verifyHash = await crypto.subtle
-        .digest("SHA-256", new TextEncoder().encode(`${item.token_id}:${transferTo}:${now.toISOString()}`))
-        .then((buf) => Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join(""));
-      const buyerQr = `${window.location.origin}/divinity-guide/arx?token=${item.token_id}&verify=${verifyHash.slice(0, 16)}`;
-      const sellerHash = await crypto.subtle
-        .digest("SHA-256", new TextEncoder().encode(`${item.token_id}:${item.current_owner}:sold:${now.toISOString()}`))
-        .then((buf) => Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join(""));
-      const sellerQr = `${window.location.origin}/divinity-guide/arx?token=${item.token_id}&verify=${sellerHash.slice(0, 16)}`;
-
-      // Update item ownership
-      const price = transferPrice ? parseFloat(transferPrice) : null;
-      await supabase.from("arx_items").update({
-        current_owner: transferTo.trim(),
-        last_transfer_at: now.toISOString(),
-        qr_code_url: buyerQr,
-        ...(price !== null ? { purchase_price_usd: price } : {}),
-      }).eq("token_id", item.token_id);
-
-      // Log transaction
-      await supabase.from("arx_transactions").insert({
-        arx_tx_id: txId,
-        token_id: item.token_id,
-        from_address: item.current_owner,
-        to_address: transferTo.trim(),
-        price_usd: price,
-        transaction_type: price ? "sale" : "transfer",
-      });
-
-      setTransferSuccess({ buyer_qr_url: buyerQr, seller_qr_url: sellerQr, arx_tx_id: txId });
-    } catch (e: any) {
-      setError(e.message || "Transfer failed");
-    } finally {
-      setLoading(false);
-    }
-  }, [item, transferTo, transferPrice]);
+  // Transfer is now handled on /arx/[tokenId] page
 
   // --- Reset registration form ---
   const resetRegForm = useCallback(() => {
@@ -609,7 +557,7 @@ function ArxPageInner() {
                     <input
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
-                      placeholder="The Divinity Guide — Signed First Edition"
+                      placeholder="Original artwork, signed book, collectible..."
                       className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                     />
                   </div>
@@ -757,7 +705,7 @@ function ArxPageInner() {
 
                 {/* NFC actions */}
                 <div className="w-full max-w-xs space-y-2">
-                  {/* Read chip via NFC */}
+                  {/* Read + Program chip via NFC */}
                   <button
                     disabled={loading}
                     onClick={async () => {
@@ -767,23 +715,34 @@ function ArxPageInner() {
                         setLoading(true);
                         const { supabase } = await import("@/lib/supabase");
                         if (!supabase) throw new Error("Supabase not available");
+                        // Store chip address
                         await supabase.from("arx_items").update({
                           chip_key_hash: addr.toLowerCase()
                         }).eq("token_id", regSuccess!.token_id);
                         setRegChipAddress(addr);
-                        alert(`Chip paired!\n\nAddress: ${addr}`);
+
+                        // Program chip URL — tapping will open the item page
+                        // Uses set_url_subdomain (NOT cfg_ndef which disables broadcast)
+                        const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
+                        const itemUrl = `https://exel-ai-polling.explore-096.workers.dev/divinity-guide/arx/${regSuccess!.token_id}`;
+                        alert("Tap chip again to program the item URL.");
+                        await execHaloCmdWeb(
+                          { name: "set_url_subdomain", url: itemUrl },
+                          { statusCallback: () => {} }
+                        );
+                        alert(`Chip paired and programmed!\n\nAddress: ${addr}\nTapping chip will open the item page.`);
                       } catch (e: any) {
-                        setError(e.message || "Failed to store chip address");
+                        setError(e.message || "Failed to pair chip");
                       } finally {
                         setLoading(false);
                       }
                     }}
                     className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-40 transition-all"
                   >
-                    {loading ? "Reading..." : "Read NFC Chip"}
+                    {loading ? "Reading..." : "Read + Program NFC Chip"}
                   </button>
                   <p className="text-[10px] text-muted-foreground text-center">
-                    Hold ARX chip to the back of your phone to read its address
+                    Reads the chip address, then programs it to open this item page when tapped
                   </p>
 
                   {/* Manual paste toggle */}
@@ -841,7 +800,7 @@ function ArxPageInner() {
                     Register Another
                   </button>
                   <button
-                    onClick={() => router.push(`/divinity-guide/arx?token=${regSuccess.token_id}`)}
+                    onClick={() => router.push(`/divinity-guide/arx/${regSuccess.token_id}`)}
                     className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90"
                   >
                     View Item
@@ -971,92 +930,55 @@ function ArxPageInner() {
             )}
 
             {/* ═══════════════════════════════════════════ */}
-            {/* TRANSFER PORTAL                            */}
+            {/* TRANSFER PORTAL — redirects to item page   */}
             {/* ═══════════════════════════════════════════ */}
             {selectedFlower === "transfer" && (
               <div className="flex-1 space-y-5 overflow-y-auto pr-1">
                 <div>
                   <h2 className="text-xl font-bold" style={{ color: "#3B82F6" }}>Transfer Ownership</h2>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Change owner — both parties receive timestamped QR receipts
+                    Enter the item Token ID to open its page, where the new owner can fill in their details.
                   </p>
                 </div>
 
-                {!item ? (
-                  <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
-                    <div className="w-16 h-16 rounded-full bg-blue-500/10 border-2 border-blue-500/30 flex items-center justify-center">
-                      <span className="text-2xl text-blue-400">↔</span>
-                    </div>
-                    <p className="text-sm font-medium text-muted-foreground">Look up an item first</p>
-                    <p className="text-xs text-muted-foreground max-w-xs">
-                      Use the Verify portal to find an item by Token ID or Chip Address, then return here to transfer ownership.
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">Token ID *</label>
+                    <input
+                      value={transferTo}
+                      onChange={(e) => setTransferTo(e.target.value)}
+                      placeholder="e.g. 123456789"
+                      className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && transferTo.trim()) {
+                          router.push(`/divinity-guide/arx/${transferTo.trim()}`);
+                        }
+                      }}
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Found on the item QR code or registration receipt
                     </p>
-                    <button
-                      onClick={() => setSelectedFlower("verify")}
-                      className="px-4 py-2 border border-green-500/30 rounded-lg text-sm text-green-600 hover:bg-green-500/5 transition-colors"
-                    >
-                      Go to Verify
-                    </button>
                   </div>
-                ) : !transferSuccess ? (
-                  <div className="space-y-4">
-                    {renderItemCard()}
+                  <button
+                    onClick={() => {
+                      if (transferTo.trim()) router.push(`/divinity-guide/arx/${transferTo.trim()}`);
+                    }}
+                    disabled={!transferTo.trim()}
+                    className="w-full py-2.5 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 disabled:opacity-40 transition-all"
+                  >
+                    Open Item Page
+                  </button>
+                </div>
 
-                    <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5 space-y-3">
-                      <h3 className="font-bold text-sm">Transfer Ownership</h3>
-                      <div>
-                        <label className="text-xs text-muted-foreground block mb-1">Recipient *</label>
-                        <input
-                          value={transferTo}
-                          onChange={(e) => setTransferTo(e.target.value)}
-                          placeholder="buyer@example.com or wallet address"
-                          className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground block mb-1">Sale Price (USD)</label>
-                        <input
-                          type="number" step="0.01" min="0"
-                          value={transferPrice}
-                          onChange={(e) => setTransferPrice(e.target.value)}
-                          placeholder="Leave empty for gift"
-                          className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors"
-                        />
-                      </div>
-                      {error && <p className="text-sm text-red-500 bg-red-500/5 rounded-lg px-3 py-2">{error}</p>}
-                      <button
-                        onClick={handleTransfer}
-                        disabled={!transferTo.trim() || loading}
-                        className="w-full py-2.5 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 disabled:opacity-40 transition-all"
-                      >
-                        {loading ? "Processing..." : transferPrice ? `Sell for $${parseFloat(transferPrice).toFixed(2)}` : "Gift This Item"}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="rounded-xl border bg-green-500/5 border-green-500/30 p-6 text-center space-y-4">
-                    <div className="w-12 h-12 mx-auto rounded-full bg-green-500/10 border-2 border-green-500 flex items-center justify-center">
-                      <span className="text-xl text-green-500">✓</span>
-                    </div>
-                    <p className="text-green-500 font-bold text-lg">Transfer Complete</p>
-                    <p className="text-xs text-muted-foreground font-mono">{transferSuccess.arx_tx_id}</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 border rounded-xl bg-card/80">
-                        <p className="text-xs text-muted-foreground mb-2 font-medium">Buyer Receipt</p>
-                        <div className="flex justify-center">
-                          <QRCodeSVG value={transferSuccess.buyer_qr_url} size={120} />
-                        </div>
-                      </div>
-                      <div className="p-4 border rounded-xl bg-card/80">
-                        <p className="text-xs text-muted-foreground mb-2 font-medium">Seller Receipt</p>
-                        <div className="flex justify-center">
-                          <QRCodeSVG value={transferSuccess.seller_qr_url} size={120} />
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">Both parties receive timestamped QR codes</p>
-                  </div>
-                )}
+                <div className="pt-4 border-t text-center space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    The item page shows full ownership history and lets the new
+                    owner fill in their details to complete the transfer.
+                  </p>
+                  <p className="text-[10px] text-muted-foreground/60">
+                    Or share the item URL directly: /divinity-guide/arx/TOKEN_ID
+                  </p>
+                </div>
               </div>
             )}
           </div>
