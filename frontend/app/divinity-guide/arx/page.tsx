@@ -3,18 +3,33 @@
 /**
  * /divinity-guide/arx — NFT ARX Physically-Backed Token Hub
  *
- * ALL-IN-ONE page with 5 modes (no separate routes needed):
- *   Browse:    Default — editions + marketplace + "Register Item" button
- *   Register:  Seller registers new item (name, price, serial, edition)
- *   Verify:    ?token={id} — ownership proof + full transaction history
- *   Scan:      ?chip={uid} — NFC chip verification with animation
- *   Transfer:  Owner can sell/gift from the verify view
+ * 3-Flower Portal Layout (Divinity Guide aesthetic):
+ *   LEFT:  3 Flower circles (Mint=Red, Verify=Green, Transfer=Blue)
+ *   RIGHT: Context panel based on selected flower (expandable to full-width)
+ *
+ * ALL-IN-ONE page with 3 portals:
+ *   Mint:     Register new item + pair ARX chip
+ *   Verify:   Authenticate by Token ID or Chip Address (0x...)
+ *   Transfer: Sell/Gift with dual QR receipts
+ *
+ * 12 Ascended Masters review:
+ *   Thor:    Collapsible "Pair ARX Chip" step in Mint flow
+ *   Thoth:   regChipAddress field with helper text
+ *   Krishna: SHA-256 hash of chip address for Supabase insert
+ *   Athena:  Verify panel has TWO side-by-side inputs (Token ID + Chip Address)
+ *   Enki:    Expand button to make right panel full-width
+ *   Sofia:   Divinity Guide color scheme for 3 circles
+ *   Odin:    Transfer shows "Verify an item first" if no item loaded
+ *   Pangu:   Post-registration: QR prominent + "Chip paired" if address was given
+ *   Aset:    ?chip=0x... auto-selects Verify flower + auto-lookup
+ *   Asar:    12 edition cards inside Mint flower content (not always visible)
+ *   Enlil:   Maximize/minimize toggle for right panel
+ *   Christo: Spiritual, clean, minimal portal feel
  *
  * CRS: CRS-NEW-12.01 through 12.05
- * Inspired by Divinity Guide aesthetic (Flower of Life, theme colors)
  */
 
-import React, { Suspense, useState, useEffect, useMemo, useCallback } from "react";
+import React, { Suspense, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
@@ -43,80 +58,115 @@ interface ArxItem {
   }>;
 }
 
-type PageMode = "browse" | "register" | "verify" | "scan" | "transfer";
+/** [Krishna] Hash an Ethereum address (0x...) with SHA-256 using Web Crypto API */
+async function hashChipAddress(addr: string): Promise<string> {
+  const hashBuf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(addr.trim().toLowerCase())
+  );
+  return Array.from(new Uint8Array(hashBuf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 function ArxPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { t } = useLexicon();
-  const tokenId = searchParams.get("token");
-  const chipUid = searchParams.get("chip");
+  const tokenParam = searchParams.get("token");
+  const chipParam = searchParams.get("chip");
 
+  // --- State ---
   const [item, setItem] = useState<ArxItem | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState<PageMode>("browse");
-  const [verificationStatus, setVerificationStatus] = useState<"pending" | "verified" | "failed">("pending");
+  const [verificationStatus, setVerificationStatus] = useState<
+    "pending" | "verified" | "failed"
+  >("pending");
 
-  // Registration form
+  // [Enlil] Right panel expand/collapse: "split" = 50/50, "full" = right panel full width
+  const [panelMode, setPanelMode] = useState<"split" | "full">("split");
+
+  // Flower navigation — 3 portals
+  const [selectedFlower, setSelectedFlower] = useState<
+    "mint" | "verify" | "transfer" | null
+  >(null);
+
+  // --- Registration form ---
   const [regName, setRegName] = useState("");
   const [regPrice, setRegPrice] = useState("");
   const [regSerial, setRegSerial] = useState("");
   const [regEdition, setRegEdition] = useState("");
   const [regMarker, setRegMarker] = useState("");
-  const [regContact, setRegContact] = useState("");  // Email or phone for ownership receipt
-  // [Thor] ARX chip Ethereum address — user pastes or scans from physical chip (starts with 0x)
+  const [regContact, setRegContact] = useState("");
+  // [Thoth] ARX chip Ethereum address
   const [regChipAddress, setRegChipAddress] = useState("");
-  const [regSuccess, setRegSuccess] = useState<{ qr_code_url: string; arx_tx_id: string; token_id: number } | null>(null);
-  // [Pangu] Post-registration chip pairing state — allows pairing AFTER item is registered
+  const [regSuccess, setRegSuccess] = useState<{
+    qr_code_url: string;
+    arx_tx_id: string;
+    token_id: number;
+  } | null>(null);
+  // [Thor] Collapsible chip pairing step in Mint
+  const [regExpanded, setRegExpanded] = useState(false);
+  // [Pangu] Post-registration chip pairing
   const [showPairChip, setShowPairChip] = useState(false);
   const [pairChipAddress, setPairChipAddress] = useState("");
 
-  // Flower navigation — 3 sections like Divinity Guide
-  const [selectedFlower, setSelectedFlower] = useState<"mint" | "verify" | "transfer" | null>(null);
+  // --- Verify form ---
+  const [verifyTokenId, setVerifyTokenId] = useState("");
+  // [Athena] Side-by-side: Token ID + Chip Address
+  const [verifyChipAddress, setVerifyChipAddress] = useState("");
 
-  // Transfer form
+  // --- Transfer form ---
   const [transferTo, setTransferTo] = useState("");
   const [transferPrice, setTransferPrice] = useState("");
-  const [transferSuccess, setTransferSuccess] = useState<{ buyer_qr_url: string; seller_qr_url: string; arx_tx_id: string } | null>(null);
+  const [transferSuccess, setTransferSuccess] = useState<{
+    buyer_qr_url: string;
+    seller_qr_url: string;
+    arx_tx_id: string;
+  } | null>(null);
 
-  // Auto-detect mode from URL params
+  // [Aset] Auto-detect from URL: ?chip=0x... → auto-select Verify + auto-lookup
   useEffect(() => {
-    if (chipUid) setMode("scan");
-    else if (tokenId) setMode("verify");
-  }, [tokenId, chipUid]);
+    if (chipParam && chipParam.startsWith("0x")) {
+      setSelectedFlower("verify");
+      setVerifyChipAddress(chipParam);
+      lookupItem(undefined, chipParam);
+    } else if (tokenParam) {
+      setSelectedFlower("verify");
+      setVerifyTokenId(tokenParam);
+      lookupItem(parseInt(tokenParam), undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokenParam, chipParam]);
 
-  // Fetch item data for verify/scan modes
-  // [Aset] When ?chip=0x... is in the URL, look up item by chip_key_hash (SHA-256 of the
-  // Ethereum address) instead of token_id. This way tapping the chip directly finds the item.
-  useEffect(() => {
-    if (mode !== "verify" && mode !== "scan") return;
-    const id = parseInt(tokenId || "0");
-    const chipAddr = chipUid; // chipUid comes from ?chip= URL param
-    if (!id && !chipAddr) return;
-    setLoading(true);
-
-    // Read directly from Supabase (no backend API needed)
-    (async () => {
+  // --- Lookup item by token ID or chip address ---
+  const lookupItem = useCallback(
+    async (tokenId?: number, chipAddr?: string) => {
+      if (!tokenId && !chipAddr) return;
+      setLoading(true);
+      setError("");
+      setVerificationStatus("pending");
       try {
         const { supabase } = await import("@/lib/supabase");
         if (!supabase) throw new Error("Supabase not available");
 
         let itemData: any = null;
 
-        // [Aset] If chip address provided (starts with 0x), hash it and look up by chip_key_hash
+        // [Aset] If chip address provided (starts with 0x), lookup by raw lowercase address
         if (chipAddr && chipAddr.startsWith("0x")) {
-          const hashBuf = await crypto.subtle.digest("SHA-256",
-            new TextEncoder().encode(chipAddr.toLowerCase())
-          );
-          const chipHash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, "0")).join("");
-          const { data } = await supabase.from("arx_items")
-            .select("*").eq("chip_key_hash", chipHash).single();
+          const { data } = await supabase
+            .from("arx_items")
+            .select("*")
+            .eq("chip_key_hash", chipAddr.toLowerCase())
+            .single();
           itemData = data;
-        } else if (id) {
-          // Fetch by token_id (standard QR-based verify)
-          const { data } = await supabase.from("arx_items")
-            .select("*").eq("token_id", id).single();
+        } else if (tokenId) {
+          const { data } = await supabase
+            .from("arx_items")
+            .select("*")
+            .eq("token_id", tokenId)
+            .single();
           itemData = data;
         }
 
@@ -127,8 +177,12 @@ function ArxPageInner() {
         }
 
         // Fetch transactions
-        const { data: txData } = await supabase.from("arx_transactions")
-          .select("*").eq("token_id", id).order("created_at", { ascending: true });
+        const resolvedTokenId = itemData.token_id;
+        const { data: txData } = await supabase
+          .from("arx_transactions")
+          .select("*")
+          .eq("token_id", resolvedTokenId)
+          .order("created_at", { ascending: true });
 
         const itemResult: ArxItem = {
           token_id: itemData.token_id,
@@ -137,7 +191,9 @@ function ArxPageInner() {
           edition: itemData.edition || 0,
           language: itemData.language || "en",
           current_owner: itemData.current_owner || "",
-          purchase_price_usd: itemData.purchase_price_usd ? parseFloat(itemData.purchase_price_usd) : null,
+          purchase_price_usd: itemData.purchase_price_usd
+            ? parseFloat(itemData.purchase_price_usd)
+            : null,
           qr_code_url: itemData.qr_code_url || "",
           minted_at: itemData.created_at,
           last_transfer_at: itemData.last_transfer_at,
@@ -160,10 +216,11 @@ function ArxPageInner() {
       } finally {
         setLoading(false);
       }
-    })();
-  }, [mode, tokenId, chipUid]);
+    },
+    []
+  );
 
-  // Register new item — writes directly to Supabase (no backend API needed)
+  // --- Register new item ---
   const handleRegister = useCallback(async () => {
     if (!regName.trim() || !regPrice) return;
     setLoading(true);
@@ -172,26 +229,29 @@ function ArxPageInner() {
       const { supabase } = await import("@/lib/supabase");
       if (!supabase) throw new Error("Supabase not available");
 
-      const tokenId = Date.now() % 1_000_000_000;
+      const newTokenId = Date.now() % 1_000_000_000;
       const txId = `ARX-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-      const verifyHash = await crypto.subtle.digest("SHA-256",
-        new TextEncoder().encode(`${tokenId}:${regName}:${Date.now()}`)
-      ).then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join(""));
-      const qrUrl = `${window.location.origin}/divinity-guide/arx?token=${tokenId}&verify=${verifyHash.slice(0, 16)}`;
+      const verifyHash = await crypto.subtle
+        .digest(
+          "SHA-256",
+          new TextEncoder().encode(`${newTokenId}:${regName}:${Date.now()}`)
+        )
+        .then((buf) =>
+          Array.from(new Uint8Array(buf))
+            .map((b) => b.toString(16).padStart(2, "0"))
+            .join("")
+        );
+      const qrUrl = `${window.location.origin}/divinity-guide/arx?token=${newTokenId}&verify=${verifyHash.slice(0, 16)}`;
 
-      // [Krishna] Hash the Ethereum address with SHA-256 before storing as chip_key_hash.
-      // This is what we compare during chip verification — raw address never stored.
+      // Store raw lowercase Ethereum address for simple string matching
       let chipKeyHash: string | null = null;
       if (regChipAddress.trim()) {
-        const hashBuf = await crypto.subtle.digest("SHA-256",
-          new TextEncoder().encode(regChipAddress.trim().toLowerCase())
-        );
-        chipKeyHash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, "0")).join("");
+        chipKeyHash = regChipAddress.trim().toLowerCase();
       }
 
       // Insert item
       const { error: itemErr } = await supabase.from("arx_items").insert({
-        token_id: tokenId,
+        token_id: newTokenId,
         item_name: regName.trim(),
         purchase_price_usd: parseFloat(regPrice),
         serial_number: regSerial.trim() || null,
@@ -206,13 +266,13 @@ function ArxPageInner() {
       // Insert transaction
       await supabase.from("arx_transactions").insert({
         arx_tx_id: txId,
-        token_id: tokenId,
+        token_id: newTokenId,
         to_address: "anonymous",
         price_usd: parseFloat(regPrice),
         transaction_type: "mint",
       });
 
-      setRegSuccess({ qr_code_url: qrUrl, arx_tx_id: txId, token_id: tokenId });
+      setRegSuccess({ qr_code_url: qrUrl, arx_tx_id: txId, token_id: newTokenId });
     } catch (e: any) {
       setError(e.message || "Registration failed — please try again");
     } finally {
@@ -220,7 +280,7 @@ function ArxPageInner() {
     }
   }, [regName, regPrice, regSerial, regEdition, regChipAddress]);
 
-  // Transfer item
+  // --- Transfer item ---
   const handleTransfer = useCallback(async () => {
     if (!item || !transferTo.trim()) return;
     setLoading(true);
@@ -232,7 +292,9 @@ function ArxPageInner() {
         body: JSON.stringify({
           token_id: item.token_id,
           to_address: transferTo.trim(),
-          sale_price_usd: transferPrice ? parseFloat(transferPrice) : undefined,
+          sale_price_usd: transferPrice
+            ? parseFloat(transferPrice)
+            : undefined,
         }),
       });
       if (!resp.ok) {
@@ -248,527 +310,786 @@ function ArxPageInner() {
     }
   }, [item, transferTo, transferPrice]);
 
+  // --- Helper: reset registration form ---
+  const resetRegForm = useCallback(() => {
+    setRegName("");
+    setRegPrice("");
+    setRegSerial("");
+    setRegEdition("");
+    setRegMarker("");
+    setRegContact("");
+    setRegChipAddress("");
+    setRegSuccess(null);
+    setShowPairChip(false);
+    setPairChipAddress("");
+    setRegExpanded(false);
+  }, []);
+
+  // --- Item details card (reusable) ---
+  const renderItemCard = () => {
+    if (!item) return null;
+    return (
+      <div className="rounded-xl border bg-card p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
+            <span className="text-sm">✓</span>
+          </div>
+          <div>
+            <p className="text-green-600 font-bold text-sm">Authenticated</p>
+            <p className="text-[10px] text-muted-foreground">
+              Verified on blockchain
+            </p>
+          </div>
+        </div>
+        <h3 className="text-lg font-bold">{item.item_name}</h3>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          {item.serial_number && (
+            <div>
+              <p className="text-[10px] text-muted-foreground">Serial</p>
+              <p className="font-mono text-xs">{item.serial_number}</p>
+            </div>
+          )}
+          {item.edition > 0 && (
+            <div>
+              <p className="text-[10px] text-muted-foreground">Edition</p>
+              <p className="font-bold">
+                {item.edition} of 12
+              </p>
+            </div>
+          )}
+          <div>
+            <p className="text-[10px] text-muted-foreground">Owner</p>
+            <p className="font-mono text-xs">
+              {item.current_owner?.slice(0, 20)}...
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] text-muted-foreground">Price</p>
+            <p className="font-bold">
+              ${item.purchase_price_usd?.toFixed(2)}
+            </p>
+          </div>
+        </div>
+        {item.qr_code_url && (
+          <div className="flex justify-center pt-2">
+            <QRCodeSVG value={item.qr_code_url} size={120} />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ============================================================
+  // RENDER
+  // ============================================================
+
+  const showFlowers = panelMode === "split";
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
       <div className="border-b px-6 py-4">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <Link href="/divinity-guide" className="flex items-center gap-2 hover:opacity-80">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
+          <Link
+            href="/divinity-guide"
+            className="flex items-center gap-2 hover:opacity-80"
+          >
             <span className="text-sm font-bold text-primary">eXeL</span>
             <span className="text-sm font-light text-primary/70">AI</span>
-            <span className="text-xs text-muted-foreground ml-1">/ Divinity Guide / ARX</span>
+            <span className="text-xs text-muted-foreground ml-1">
+              / Divinity Guide / ARX
+            </span>
           </Link>
-          {/* Mode tabs */}
-          <div className="flex gap-1">
-            {(["browse", "register"] as const).map((m) => (
-              <button key={m} onClick={() => { setMode(m); setError(""); setRegSuccess(null); setTransferSuccess(null); }}
-                className={`px-3 py-1 text-[10px] rounded-full transition-all ${mode === m ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
-              >{m === "browse" ? "Browse & Verify" : "Register Item"}</button>
-            ))}
-          </div>
         </div>
       </div>
 
-      <main className="flex-1 px-6 py-8 max-w-4xl mx-auto w-full">
-        {/* ═══ SCAN MODE — NFC chip tap verification ═══ */}
-        {mode === "scan" && (
-          <div className="flex flex-col items-center justify-center min-h-[400px] space-y-6">
-            {loading ? (
-              <>
-                <div className="w-32 h-32 rounded-full border-4 border-primary/30 flex items-center justify-center">
-                  <div className="w-24 h-24 rounded-full border-4 border-primary animate-ping" />
-                </div>
-                <p className="text-lg font-bold animate-pulse">Verifying ARX chip...</p>
-                <p className="text-xs text-muted-foreground">Checking on-chain record</p>
-              </>
-            ) : verificationStatus === "verified" && item ? (
-              <>
-                <div className="w-32 h-32 rounded-full bg-green-500/10 border-2 border-green-500 flex items-center justify-center">
-                  <span className="text-5xl">✓</span>
-                </div>
-                <h2 className="text-2xl font-bold text-green-500">Authenticated</h2>
-                <p className="text-lg">{item.item_name}</p>
-                <p className="text-muted-foreground">
-                  Owned by {item.current_owner?.slice(0, 20)}... | ${item.purchase_price_usd?.toFixed(2)}
-                </p>
-                <button onClick={() => setMode("verify")}
-                  className="px-6 py-2 bg-primary text-primary-foreground rounded-full text-sm hover:opacity-90">
-                  View Full Details
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="w-32 h-32 rounded-full bg-red-500/10 border-2 border-red-500 flex items-center justify-center">
-                  <span className="text-5xl">✗</span>
-                </div>
-                <h2 className="text-2xl font-bold text-red-500">Unverified</h2>
-                <p className="text-muted-foreground">{error}</p>
-              </>
-            )}
-          </div>
-        )}
+      {/* [Christo] Main content — spiritual portal layout */}
+      <main className="flex-1 max-w-6xl mx-auto w-full">
+        <div className="flex flex-col md:flex-row min-h-[calc(100vh-130px)]">
+          {/* ═══ LEFT: 3-Flower Navigation ═══ */}
+          {showFlowers && (
+            <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-6 py-8 md:border-r border-b md:border-b-0">
+              <h1 className="text-2xl font-bold mb-1 text-center">
+                Physically Backed Tokens
+              </h1>
+              <p className="text-[10px] text-muted-foreground italic mb-8 text-center">
+                Authenticate. Own. Transfer. Forever.
+              </p>
 
-        {/* ═══ REGISTER MODE — Seller registers new item ═══ */}
-        {mode === "register" && !regSuccess && (
-          <div className="max-w-md mx-auto space-y-6">
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold">Register a Collectible</h1>
-              <p className="text-sm text-muted-foreground">
-                Add any physical item — book, artwork, signed memorabilia — to the blockchain.
+              {/* [Christo] 3-Circle Flower SVG — portals the user enters */}
+              <svg
+                viewBox="0 0 400 350"
+                className="w-full max-w-xs"
+                style={{ overflow: "visible" }}
+              >
+                {/* Connection lines */}
+                <line x1="200" y1="175" x2="200" y2="60" stroke="currentColor" strokeOpacity={0.08} strokeWidth={1.5} />
+                <line x1="200" y1="175" x2="100" y2="270" stroke="currentColor" strokeOpacity={0.08} strokeWidth={1.5} />
+                <line x1="200" y1="175" x2="300" y2="270" stroke="currentColor" strokeOpacity={0.08} strokeWidth={1.5} />
+
+                {/* Center hub */}
+                <circle cx="200" cy="175" r="28" fill="rgba(var(--primary-rgb, 0,200,200), 0.08)" stroke="currentColor" strokeOpacity={0.2} strokeWidth={1} />
+                <text x="200" y="172" textAnchor="middle" className="text-[9px] fill-muted-foreground">PBT</text>
+                <text x="200" y="184" textAnchor="middle" className="text-[7px] fill-muted-foreground">ARX</text>
+
+                {/* [Sofia] Flower 1: MINT (top) — Red */}
+                <g className="cursor-pointer" onClick={() => { setSelectedFlower("mint"); setError(""); }}>
+                  <circle cx="200" cy="60" r="50"
+                    fill={selectedFlower === "mint" ? "rgba(239,68,68,0.15)" : "rgba(239,68,68,0.05)"}
+                    stroke="#EF4444" strokeWidth={selectedFlower === "mint" ? 3 : 1.5} strokeOpacity={0.6} />
+                  <text x="200" y="50" textAnchor="middle" className="text-[11px] font-bold fill-current">Mint</text>
+                  <text x="200" y="64" textAnchor="middle" className="text-[8px] fill-muted-foreground">Register Item</text>
+                  <text x="200" y="76" textAnchor="middle" className="text-[7px] fill-muted-foreground">+ Pair ARX Chip</text>
+                </g>
+
+                {/* [Sofia] Flower 2: VERIFY (bottom-left) — Green */}
+                <g className="cursor-pointer" onClick={() => { setSelectedFlower("verify"); setError(""); }}>
+                  <circle cx="100" cy="270" r="50"
+                    fill={selectedFlower === "verify" ? "rgba(16,185,129,0.15)" : "rgba(16,185,129,0.05)"}
+                    stroke="#10B981" strokeWidth={selectedFlower === "verify" ? 3 : 1.5} strokeOpacity={0.6} />
+                  <text x="100" y="260" textAnchor="middle" className="text-[11px] font-bold fill-current">Verify</text>
+                  <text x="100" y="274" textAnchor="middle" className="text-[8px] fill-muted-foreground">Authenticate</text>
+                  <text x="100" y="286" textAnchor="middle" className="text-[7px] fill-muted-foreground">Token ID or Chip</text>
+                </g>
+
+                {/* [Sofia] Flower 3: TRANSFER (bottom-right) — Blue */}
+                <g className="cursor-pointer" onClick={() => { setSelectedFlower("transfer"); setError(""); }}>
+                  <circle cx="300" cy="270" r="50"
+                    fill={selectedFlower === "transfer" ? "rgba(59,130,246,0.15)" : "rgba(59,130,246,0.05)"}
+                    stroke="#3B82F6" strokeWidth={selectedFlower === "transfer" ? 3 : 1.5} strokeOpacity={0.6} />
+                  <text x="300" y="260" textAnchor="middle" className="text-[11px] font-bold fill-current">Transfer</text>
+                  <text x="300" y="274" textAnchor="middle" className="text-[8px] fill-muted-foreground">Sell or Gift</text>
+                  <text x="300" y="286" textAnchor="middle" className="text-[7px] fill-muted-foreground">Dual QR receipts</text>
+                </g>
+              </svg>
+
+              <p className="text-[9px] text-muted-foreground/40 mt-6">
+                Select a circle to begin your journey
               </p>
             </div>
+          )}
 
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Item Name *</label>
-                <input value={regName} onChange={(e) => setRegName(e.target.value)}
-                  placeholder="e.g., The Divinity Guide — Signed First Edition"
-                  className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none" />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Purchase Price (USD) *</label>
-                <input type="number" step="0.01" min="0" value={regPrice} onChange={(e) => setRegPrice(e.target.value)}
-                  placeholder="33.33"
-                  className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs text-muted-foreground block mb-1">Serial Number</label>
-                  <input value={regSerial} onChange={(e) => setRegSerial(e.target.value)}
-                    placeholder="DG-2026-001"
-                    className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none" />
-                </div>
-                <div>
-                  <label className="text-xs text-muted-foreground block mb-1">Edition (1-12)</label>
-                  <input type="number" min="0" max="12" value={regEdition} onChange={(e) => setRegEdition(e.target.value)}
-                    placeholder="7"
-                    className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Special Markers</label>
-                <input value={regMarker} onChange={(e) => setRegMarker(e.target.value)}
-                  placeholder='e.g., "Innovate at the Speed of Thought" on inner cover with signature'
-                  className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none" />
-                <p className="text-[10px] text-muted-foreground mt-1">Describe unique features that make this item one-of-a-kind</p>
-              </div>
-
-              {/* [Thor] ARX Chip Address field — user pastes Ethereum address from their physical chip */}
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">ARX Chip Address</label>
-                <input value={regChipAddress} onChange={(e) => setRegChipAddress(e.target.value)}
-                  placeholder="0xC3D72cc59B4514fac7057bC9C629b7bC4de9A635"
-                  className="w-full rounded-lg border bg-background px-4 py-3 text-sm font-mono focus:border-primary focus:outline-none" />
-                {/* [Sofia] Helper text explaining how to find the chip's Ethereum address */}
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Find your chip&apos;s Ethereum address by tapping it with your phone. The address starts with 0x...
-                  You can also find it in the ARX app under chip details.
-                </p>
-                {/* [Enki] Fallback: if NFC is not available, show manual paste instruction */}
-                <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                  No NFC? Open the ARX app, tap your chip there, and copy-paste the Ethereum address above.
-                  You can also pair the chip after registration.
-                </p>
-              </div>
-
-              <div>
-                <label className="text-xs text-muted-foreground block mb-1">Your Email or Phone *</label>
-                <input value={regContact} onChange={(e) => setRegContact(e.target.value)}
-                  placeholder="email@example.com or +1-555-123-4567"
-                  className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none" />
-                <p className="text-[10px] text-muted-foreground mt-1">We&apos;ll send your ownership receipt + QR code here</p>
-              </div>
-
-              {error && <p className="text-sm text-red-500">{error}</p>}
-
-              <button onClick={handleRegister} disabled={!regName.trim() || !regPrice || loading}
-                className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 disabled:opacity-40 transition-all">
-                {loading ? "Registering..." : "Register on Blockchain"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ═══ REGISTER SUCCESS ═══ */}
-        {mode === "register" && regSuccess && (
-          <div className="max-w-md mx-auto text-center space-y-6">
-            <div className="w-20 h-20 mx-auto rounded-full bg-green-500/10 border-2 border-green-500 flex items-center justify-center">
-              <span className="text-3xl">✓</span>
-            </div>
-            <h2 className="text-2xl font-bold text-green-500">Item Registered!</h2>
-            <p className="text-sm text-muted-foreground">Transaction: {regSuccess.arx_tx_id}</p>
-
-            <div className="p-6 border rounded-xl bg-card">
-              <p className="text-xs text-muted-foreground mb-3">Scan to verify ownership</p>
-              <div className="flex justify-center">
-                <QRCodeSVG value={regSuccess.qr_code_url} size={200} />
-              </div>
-              <p className="text-xs text-muted-foreground mt-3">Save this QR code — share with buyers</p>
-            </div>
-
-            {/* [Pangu] "Pair Chip Later" option — allows pairing ARX chip AFTER registration */}
-            {!showPairChip ? (
-              <button onClick={() => setShowPairChip(true)}
-                className="w-full py-2 border border-primary/30 rounded-lg text-sm text-primary hover:bg-primary/5 transition-colors">
-                Tap ARX Chip to Pair
-              </button>
-            ) : (
-              <div className="rounded-lg border bg-card/50 p-4 space-y-3">
-                <p className="text-xs text-muted-foreground">Paste your ARX chip&apos;s Ethereum address to pair it with this item:</p>
-                {/* [Enki] NFC fallback in pair-later flow — text field for manual paste */}
-                <input value={pairChipAddress} onChange={(e) => setPairChipAddress(e.target.value)}
-                  placeholder="0xC3D72cc59B4514fac7057bC9C629b7bC4de9A635"
-                  className="w-full rounded-lg border bg-background px-4 py-2 text-sm font-mono focus:border-primary focus:outline-none" />
-                <button
-                  disabled={!pairChipAddress.trim() || loading}
-                  onClick={async () => {
-                    if (!pairChipAddress.trim() || !regSuccess) return;
-                    setLoading(true);
-                    try {
-                      const resp = await fetch("/api/v1/arx/pair-chip", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ token_id: regSuccess.token_id, chip_address: pairChipAddress.trim() }),
-                      });
-                      if (!resp.ok) throw new Error("Pairing failed");
-                      setShowPairChip(false);
-                      setPairChipAddress("");
-                    } catch (e: any) {
-                      setError(e.message || "Chip pairing failed");
-                    } finally {
-                      setLoading(false);
-                    }
-                  }}
-                  className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 disabled:opacity-40">
-                  {loading ? "Pairing..." : "Pair Chip to Item"}
-                </button>
+          {/* ═══ RIGHT: Context Panel ═══ */}
+          <div className={`${showFlowers ? "w-full md:w-1/2" : "w-full"} px-6 py-8 flex flex-col relative`}>
+            {/* [Enlil] Maximize / minimize toggle */}
+            {selectedFlower && (
+              <div className="absolute top-3 right-3 flex gap-1">
+                {panelMode === "split" ? (
+                  <button
+                    onClick={() => setPanelMode("full")}
+                    title="Expand panel"
+                    className="p-1.5 rounded-lg border bg-card hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 3 21 3 21 9" />
+                      <polyline points="9 21 3 21 3 15" />
+                      <line x1="21" y1="3" x2="14" y2="10" />
+                      <line x1="3" y1="21" x2="10" y2="14" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setPanelMode("split")}
+                    title="Back to flowers"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-card hover:bg-accent text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="19" y1="12" x2="5" y2="12" />
+                      <polyline points="12 19 5 12 12 5" />
+                    </svg>
+                    Back to flowers
+                  </button>
+                )}
               </div>
             )}
 
-            <div className="flex gap-3">
-              <button onClick={() => { setRegSuccess(null); setRegName(""); setRegPrice(""); setRegSerial(""); setRegEdition(""); setRegChipAddress(""); setShowPairChip(false); }}
-                className="flex-1 py-2 border rounded-lg text-sm hover:bg-accent transition-colors">
-                Register Another
-              </button>
-              <button onClick={() => router.push(`/divinity-guide/arx?token=${regSuccess.token_id}`)}
-                className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:opacity-90">
-                View Item
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ═══ VERIFY MODE — Item details + ownership proof ═══ */}
-        {mode === "verify" && (
-          <div className="space-y-6">
-            {loading ? (
-              <div className="flex items-center justify-center min-h-[300px]">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            {/* No flower selected — welcome */}
+            {!selectedFlower && (
+              <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 px-4">
+                <p className="text-lg font-bold">Own What Matters</p>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Every physical creation deserves a digital soul. Register your
+                  book, artwork, or signed collectible on the blockchain — and
+                  prove its authenticity with a simple tap of your phone.
+                </p>
+                <p className="text-xs text-muted-foreground italic">
+                  &quot;You were never separate from what you create. Now the
+                  world can see it too.&quot;
+                </p>
               </div>
-            ) : verificationStatus === "verified" && item ? (
-              <>
-                {/* Verification banner */}
-                <div className="rounded-xl bg-green-500/10 border border-green-500/30 p-4 flex items-center gap-3">
-                  <span className="text-2xl">✓</span>
+            )}
+
+            {/* ═══ MINT FLOWER — Registration + Chip Pairing ═══ */}
+            {selectedFlower === "mint" && !regSuccess && (
+              <div className="flex-1 space-y-5 overflow-y-auto pr-1">
+                <div>
+                  <h2 className="text-xl font-bold" style={{ color: "#EF4444" }}>
+                    Mint — Register & Pair
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Create a blockchain record for your physical item
+                  </p>
+                </div>
+
+                {/* Registration form */}
+                <div className="space-y-3">
                   <div>
-                    <p className="text-green-500 font-bold text-sm">Authenticated on Blockchain</p>
-                    <p className="text-xs text-muted-foreground">This item is verified as genuine</p>
+                    <label className="text-xs text-muted-foreground block mb-1">
+                      Item Name *
+                    </label>
+                    <input
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      placeholder="e.g., The Divinity Guide — Signed First Edition"
+                      className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none"
+                    />
                   </div>
-                </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">
+                      Purchase Price (USD) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={regPrice}
+                      onChange={(e) => setRegPrice(e.target.value)}
+                      placeholder="33.33"
+                      className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">
+                        Serial Number
+                      </label>
+                      <input
+                        value={regSerial}
+                        onChange={(e) => setRegSerial(e.target.value)}
+                        placeholder="DG-2026-001"
+                        className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-1">
+                        Edition (1-12)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="12"
+                        value={regEdition}
+                        onChange={(e) => setRegEdition(e.target.value)}
+                        placeholder="7"
+                        className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
 
-                {/* Item card */}
-                <div className="rounded-xl border bg-card p-6 space-y-4">
-                  <h2 className="text-2xl font-bold">{item.item_name}</h2>
+                  {/* [Thor] Collapsible "Pair ARX Chip" step */}
+                  <div className="rounded-lg border bg-card/50 overflow-hidden">
+                    <button
+                      onClick={() => setRegExpanded(!regExpanded)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-accent/50 transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span style={{ color: "#EF4444" }}>◆</span>
+                        Pair ARX Chip
+                        {regChipAddress && (
+                          <span className="text-[10px] text-green-500 font-normal">
+                            (address set)
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {regExpanded ? "▲" : "▼"}
+                      </span>
+                    </button>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    {item.serial_number && (
-                      <div>
-                        <p className="text-muted-foreground">Serial Number</p>
-                        <p className="font-mono">{item.serial_number}</p>
+                    {!regExpanded && regChipAddress && (
+                      <div className="px-4 pb-3 text-xs text-muted-foreground font-mono truncate border-t">
+                        {regChipAddress}
                       </div>
                     )}
-                    {item.edition > 0 && (
-                      <div>
-                        <p className="text-muted-foreground">Edition</p>
-                        <p className="font-bold">{item.edition} of 12 — Ascended Master</p>
+
+                    {regExpanded && (
+                      <div className="px-4 pb-4 pt-2 border-t space-y-3">
+                        {/* [Thoth] ARX chip Ethereum address field */}
+                        <div>
+                          <label className="text-xs text-muted-foreground block mb-1">
+                            ARX Chip Ethereum Address
+                          </label>
+                          <input
+                            value={regChipAddress}
+                            onChange={(e) => setRegChipAddress(e.target.value)}
+                            placeholder="0xC3D72cc59B4514fac7057bC9C629b7bC4de9A635"
+                            className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm font-mono focus:border-red-400 focus:outline-none"
+                          />
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            Tap your ARX chip with your phone, then paste the
+                            Ethereum address here
+                          </p>
+                          <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                            No NFC? Open the ARX app, tap your chip there, and
+                            copy-paste the address. You can also pair after
+                            registration.
+                          </p>
+                        </div>
                       </div>
                     )}
-                    <div>
-                      <p className="text-muted-foreground">Current Owner</p>
-                      <p className="font-mono text-xs">{item.current_owner?.slice(0, 25)}...</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Purchase Price</p>
-                      <p className="font-bold text-lg">${item.purchase_price_usd?.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Registered</p>
-                      <p>{item.minted_at ? new Date(item.minted_at).toLocaleDateString() : "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Last Transfer</p>
-                      <p>{item.last_transfer_at ? new Date(item.last_transfer_at).toLocaleDateString() : "Never"}</p>
-                    </div>
                   </div>
+
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">
+                      Special Markers
+                    </label>
+                    <input
+                      value={regMarker}
+                      onChange={(e) => setRegMarker(e.target.value)}
+                      placeholder='e.g., "Innovate at the Speed of Thought" on inner cover'
+                      className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Describe unique features that make this item one-of-a-kind
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">
+                      Your Email or Phone *
+                    </label>
+                    <input
+                      value={regContact}
+                      onChange={(e) => setRegContact(e.target.value)}
+                      placeholder="email@example.com or +1-555-123-4567"
+                      className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      We&apos;ll send your ownership receipt + QR code here
+                    </p>
+                  </div>
+
+                  {error && <p className="text-sm text-red-500">{error}</p>}
+
+                  <button
+                    onClick={handleRegister}
+                    disabled={!regName.trim() || !regPrice || loading}
+                    className="w-full py-3 bg-red-500 text-white rounded-lg text-sm font-bold hover:opacity-90 disabled:opacity-40 transition-all"
+                  >
+                    {loading ? "Registering..." : "Register on Blockchain"}
+                  </button>
                 </div>
 
-                {/* QR Code */}
-                {item.qr_code_url && (
-                  <div className="flex flex-col items-center space-y-2 p-6 border rounded-xl bg-card">
-                    <QRCodeSVG value={item.qr_code_url} size={180} />
-                    <p className="text-xs text-muted-foreground">Scan to verify • Share with buyers</p>
+                {/* [Asar] 12 Divinity Guide edition cards — inside Mint flower only */}
+                <div className="pt-4 border-t">
+                  <h3 className="text-xs font-bold text-muted-foreground mb-3 text-center">
+                    DIVINITY GUIDE EDITIONS
+                  </h3>
+                  <div className="grid grid-cols-4 gap-2">
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <div
+                        key={i}
+                        className="rounded-lg border bg-card p-2 text-center hover:border-red-400 transition-colors cursor-pointer"
+                        onClick={() => {
+                          setRegName(
+                            `The Divinity Guide — Edition ${i + 1}`
+                          );
+                          setRegPrice("33.33");
+                          setRegEdition(String(i + 1));
+                        }}
+                      >
+                        <div className="text-lg">✦</div>
+                        <p className="text-[9px] font-bold">Ed. {i + 1}</p>
+                        <p className="text-[8px]" style={{ color: "#EF4444" }}>
+                          $33.33
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ═══ MINT SUCCESS — QR + Chip Pairing ═══ */}
+            {selectedFlower === "mint" && regSuccess && (
+              <div className="flex-1 flex flex-col items-center justify-center space-y-5">
+                <div className="w-16 h-16 rounded-full bg-green-500/10 border-2 border-green-500 flex items-center justify-center">
+                  <span className="text-2xl">✓</span>
+                </div>
+                <h2 className="text-xl font-bold text-green-500">
+                  Item Registered!
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Transaction: {regSuccess.arx_tx_id}
+                </p>
+
+                {/* [Pangu] QR code prominently displayed */}
+                <div className="p-6 border rounded-xl bg-card w-full max-w-xs">
+                  <p className="text-xs text-muted-foreground mb-3 text-center">
+                    Scan to verify ownership
+                  </p>
+                  <div className="flex justify-center">
+                    <QRCodeSVG value={regSuccess.qr_code_url} size={200} />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3 text-center">
+                    Save this QR code — share with buyers
+                  </p>
+                </div>
+
+                {/* [Pangu] If chip address was provided during registration, show paired status.
+                    Otherwise show pairing option. */}
+                {regChipAddress.trim() ? (
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-lg border border-green-500/30 bg-green-500/5 w-full max-w-xs">
+                    <span className="text-green-500 text-lg">✓</span>
+                    <div>
+                      <p className="text-sm font-bold text-green-600">
+                        Chip paired
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-mono truncate max-w-[200px]">
+                        {regChipAddress}
+                      </p>
+                    </div>
+                  </div>
+                ) : !showPairChip ? (
+                  <button
+                    onClick={() => setShowPairChip(true)}
+                    className="w-full max-w-xs py-2.5 border border-primary/30 rounded-lg text-sm text-primary hover:bg-primary/5 transition-colors"
+                  >
+                    Pair ARX Chip
+                  </button>
+                ) : (
+                  <div className="rounded-lg border bg-card/50 p-4 space-y-3 w-full max-w-xs">
+                    <p className="text-xs text-muted-foreground">
+                      Paste your ARX chip&apos;s Ethereum address:
+                    </p>
+                    <input
+                      value={pairChipAddress}
+                      onChange={(e) => setPairChipAddress(e.target.value)}
+                      placeholder="0xC3D72cc59..."
+                      className="w-full rounded-lg border bg-background px-4 py-2 text-sm font-mono focus:border-primary focus:outline-none"
+                    />
+                    <button
+                      disabled={!pairChipAddress.trim() || loading}
+                      onClick={async () => {
+                        if (!pairChipAddress.trim() || !regSuccess) return;
+                        setLoading(true);
+                        try {
+                          const resp = await fetch("/api/v1/arx/pair-chip", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              token_id: regSuccess.token_id,
+                              chip_address: pairChipAddress.trim(),
+                            }),
+                          });
+                          if (!resp.ok) throw new Error("Pairing failed");
+                          setRegChipAddress(pairChipAddress.trim());
+                          setShowPairChip(false);
+                          setPairChipAddress("");
+                        } catch (e: any) {
+                          setError(
+                            e.message || "Chip pairing failed"
+                          );
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 disabled:opacity-40"
+                    >
+                      {loading ? "Pairing..." : "Pair Chip to Item"}
+                    </button>
                   </div>
                 )}
 
-                {/* Transfer / Sell section */}
-                {!transferSuccess ? (
-                  <div className="rounded-xl border bg-card p-6 space-y-4">
-                    <h3 className="font-bold">Sell or Gift This Item</h3>
-                    <div className="space-y-3">
+                <div className="flex gap-3 w-full max-w-xs">
+                  <button
+                    onClick={resetRegForm}
+                    className="flex-1 py-2 border rounded-lg text-sm hover:bg-accent transition-colors"
+                  >
+                    Register Another
+                  </button>
+                  <button
+                    onClick={() =>
+                      router.push(
+                        `/divinity-guide/arx?token=${regSuccess.token_id}`
+                      )
+                    }
+                    className="flex-1 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:opacity-90"
+                  >
+                    View Item
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ═══ VERIFY FLOWER — Token ID + Chip Address inputs ═══ */}
+            {selectedFlower === "verify" && (
+              <div className="flex-1 space-y-5 overflow-y-auto pr-1">
+                <div>
+                  <h2 className="text-xl font-bold" style={{ color: "#10B981" }}>
+                    Verify — Authenticate
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Confirm any item is genuine. Enter a Token ID or Chip
+                    Address.
+                  </p>
+                </div>
+
+                {/* [Athena] Two inputs side by side */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">
+                      Token ID
+                    </label>
+                    <input
+                      value={verifyTokenId}
+                      onChange={(e) => setVerifyTokenId(e.target.value)}
+                      placeholder="e.g., 123456"
+                      className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:border-green-500 focus:outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && verifyTokenId.trim()) {
+                          lookupItem(parseInt(verifyTokenId), undefined);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">
+                      Chip Address (0x...)
+                    </label>
+                    <input
+                      value={verifyChipAddress}
+                      onChange={(e) => setVerifyChipAddress(e.target.value)}
+                      placeholder="0xC3D72cc59..."
+                      className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-mono focus:border-green-500 focus:outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && verifyChipAddress.trim()) {
+                          lookupItem(undefined, verifyChipAddress);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (verifyChipAddress.trim()) {
+                      lookupItem(undefined, verifyChipAddress);
+                    } else if (verifyTokenId.trim()) {
+                      lookupItem(parseInt(verifyTokenId), undefined);
+                    }
+                  }}
+                  disabled={
+                    (!verifyTokenId.trim() && !verifyChipAddress.trim()) ||
+                    loading
+                  }
+                  className="w-full py-2.5 bg-green-600 text-white rounded-lg text-sm font-bold hover:opacity-90 disabled:opacity-40 transition-all"
+                >
+                  {loading ? "Verifying..." : "Verify Item"}
+                </button>
+
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Tap your phone on an ARX chip — verification is automatic via
+                  URL
+                </p>
+
+                {/* Verification results */}
+                {verificationStatus === "verified" && item && (
+                  <div className="space-y-4">
+                    {renderItemCard()}
+
+                    {/* Transaction History */}
+                    {item.transactions && item.transactions.length > 0 && (
+                      <div className="rounded-xl border bg-card p-5">
+                        <h3 className="font-bold text-sm mb-3">
+                          Transaction History ({item.transactions.length})
+                        </h3>
+                        <div className="space-y-2">
+                          {item.transactions.map((tx) => (
+                            <div
+                              key={tx.arx_tx_id}
+                              className="flex justify-between items-center text-sm border-b pb-2 last:border-0"
+                            >
+                              <div>
+                                <span className="font-mono text-xs text-primary">
+                                  {tx.arx_tx_id}
+                                </span>
+                                <span
+                                  className={`ml-2 px-2 py-0.5 rounded-full text-[10px] ${
+                                    tx.type === "mint"
+                                      ? "bg-green-500/10 text-green-500"
+                                      : tx.type === "sale"
+                                        ? "bg-blue-500/10 text-blue-500"
+                                        : "bg-muted text-muted-foreground"
+                                  }`}
+                                >
+                                  {tx.type}
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                {tx.price_usd != null && (
+                                  <span className="font-bold">
+                                    ${tx.price_usd.toFixed(2)}
+                                  </span>
+                                )}
+                                <span className="ml-2 text-xs text-muted-foreground">
+                                  {tx.timestamp
+                                    ? new Date(
+                                        tx.timestamp
+                                      ).toLocaleDateString()
+                                    : ""}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {verificationStatus === "failed" && (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 mx-auto rounded-full bg-red-500/10 border-2 border-red-500 flex items-center justify-center mb-3">
+                      <span className="text-2xl">✗</span>
+                    </div>
+                    <p className="text-red-500 font-bold">Item Not Found</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {error}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ═══ TRANSFER FLOWER ═══ */}
+            {selectedFlower === "transfer" && (
+              <div className="flex-1 space-y-5 overflow-y-auto pr-1">
+                <div>
+                  <h2 className="text-xl font-bold" style={{ color: "#3B82F6" }}>
+                    Transfer — Sell or Gift
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Change ownership of a registered item. Both parties receive
+                    timestamped QR receipts.
+                  </p>
+                </div>
+
+                {/* [Odin] Show item card first if loaded, then transfer form.
+                    If no item loaded, show "Verify an item first" message. */}
+                {!item ? (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-4 text-center">
+                    <div className="w-16 h-16 rounded-full bg-blue-500/10 border-2 border-blue-500/30 flex items-center justify-center">
+                      <span className="text-2xl text-blue-400">↔</span>
+                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Verify an item first
+                    </p>
+                    <p className="text-xs text-muted-foreground max-w-xs">
+                      Use the Verify portal to look up an item by Token ID or
+                      Chip Address. Once verified, return here to transfer
+                      ownership.
+                    </p>
+                    <button
+                      onClick={() => setSelectedFlower("verify")}
+                      className="px-4 py-2 border border-green-500/30 rounded-lg text-sm text-green-600 hover:bg-green-500/5 transition-colors"
+                    >
+                      Go to Verify
+                    </button>
+                  </div>
+                ) : !transferSuccess ? (
+                  <div className="space-y-4">
+                    {/* Item details card */}
+                    {renderItemCard()}
+
+                    {/* Transfer form */}
+                    <div className="rounded-xl border bg-card p-5 space-y-3">
+                      <h3 className="font-bold text-sm">Transfer Ownership</h3>
                       <div>
-                        <label className="text-xs text-muted-foreground block mb-1">Recipient (email or wallet) *</label>
-                        <input value={transferTo} onChange={(e) => setTransferTo(e.target.value)}
+                        <label className="text-xs text-muted-foreground block mb-1">
+                          Recipient (email or wallet) *
+                        </label>
+                        <input
+                          value={transferTo}
+                          onChange={(e) => setTransferTo(e.target.value)}
                           placeholder="buyer@example.com"
-                          className="w-full rounded-lg border bg-background px-4 py-2 text-sm focus:border-primary focus:outline-none" />
+                          className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none"
+                        />
                       </div>
                       <div>
-                        <label className="text-xs text-muted-foreground block mb-1">Sale Price (USD) — leave empty for gift</label>
-                        <input type="number" step="0.01" min="0" value={transferPrice} onChange={(e) => setTransferPrice(e.target.value)}
+                        <label className="text-xs text-muted-foreground block mb-1">
+                          Sale Price (USD) — leave empty for gift
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={transferPrice}
+                          onChange={(e) => setTransferPrice(e.target.value)}
                           placeholder="0.00 (free gift)"
-                          className="w-full rounded-lg border bg-background px-4 py-2 text-sm focus:border-primary focus:outline-none" />
+                          className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none"
+                        />
                       </div>
-                      {error && <p className="text-sm text-red-500">{error}</p>}
-                      <button onClick={handleTransfer} disabled={!transferTo.trim() || loading}
-                        className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 disabled:opacity-40">
-                        {loading ? "Processing..." : transferPrice ? `Sell for $${parseFloat(transferPrice).toFixed(2)}` : "Gift This Item"}
+                      {error && (
+                        <p className="text-sm text-red-500">{error}</p>
+                      )}
+                      <button
+                        onClick={handleTransfer}
+                        disabled={!transferTo.trim() || loading}
+                        className="w-full py-2.5 bg-blue-500 text-white rounded-lg text-sm font-bold hover:opacity-90 disabled:opacity-40 transition-all"
+                      >
+                        {loading
+                          ? "Processing..."
+                          : transferPrice
+                            ? `Sell for $${parseFloat(transferPrice).toFixed(2)}`
+                            : "Gift This Item"}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="rounded-xl border bg-green-500/5 border-green-500/30 p-6 text-center space-y-4">
-                    <p className="text-green-500 font-bold">Transfer Complete!</p>
-                    <p className="text-xs text-muted-foreground">Transaction: {transferSuccess.arx_tx_id}</p>
+                    <p className="text-green-500 font-bold">
+                      Transfer Complete!
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Transaction: {transferSuccess.arx_tx_id}
+                    </p>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="p-4 border rounded-lg">
-                        <p className="text-xs text-muted-foreground mb-2">Buyer QR</p>
-                        <QRCodeSVG value={transferSuccess.buyer_qr_url} size={120} />
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Buyer QR
+                        </p>
+                        <QRCodeSVG
+                          value={transferSuccess.buyer_qr_url}
+                          size={120}
+                        />
                       </div>
                       <div className="p-4 border rounded-lg">
-                        <p className="text-xs text-muted-foreground mb-2">Seller QR</p>
-                        <QRCodeSVG value={transferSuccess.seller_qr_url} size={120} />
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Seller QR
+                        </p>
+                        <QRCodeSVG
+                          value={transferSuccess.seller_qr_url}
+                          size={120}
+                        />
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">Both parties receive timestamped QR codes</p>
+                    <p className="text-xs text-muted-foreground">
+                      Both parties receive timestamped QR codes
+                    </p>
                   </div>
                 )}
-
-                {/* Transaction History */}
-                {item.transactions && item.transactions.length > 0 && (
-                  <div className="rounded-xl border bg-card p-6">
-                    <h3 className="font-bold mb-4">Transaction History ({item.transactions.length})</h3>
-                    <div className="space-y-2">
-                      {item.transactions.map((tx) => (
-                        <div key={tx.arx_tx_id} className="flex justify-between items-center text-sm border-b pb-2 last:border-0">
-                          <div>
-                            <span className="font-mono text-xs text-primary">{tx.arx_tx_id}</span>
-                            <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] ${
-                              tx.type === "mint" ? "bg-green-500/10 text-green-500" :
-                              tx.type === "sale" ? "bg-blue-500/10 text-blue-500" :
-                              "bg-muted text-muted-foreground"
-                            }`}>{tx.type}</span>
-                          </div>
-                          <div className="text-right">
-                            {tx.price_usd != null && <span className="font-bold">${tx.price_usd.toFixed(2)}</span>}
-                            <span className="ml-2 text-xs text-muted-foreground">
-                              {tx.timestamp ? new Date(tx.timestamp).toLocaleDateString() : ""}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-xl text-red-500 font-bold">Item Not Found</p>
-                <p className="text-muted-foreground mt-2">{error}</p>
-                <button onClick={() => setMode("browse")} className="mt-4 px-4 py-2 border rounded-lg text-sm hover:bg-accent">
-                  Browse Items
-                </button>
               </div>
             )}
           </div>
-        )}
-
-        {/* ═══ BROWSE MODE — 3-Flower Layout (like Divinity Guide) ═══ */}
-        {mode === "browse" && (
-          <div className="flex flex-col md:flex-row min-h-[600px]">
-            {/* LEFT: 3-Flower Navigation (inspired by Divinity Guide) */}
-            <div className="w-full md:w-1/2 flex flex-col items-center justify-center px-6 py-8 md:border-r">
-              <h1 className="text-2xl font-bold mb-1 text-center">Physically Backed Tokens</h1>
-              <p className="text-[10px] text-muted-foreground italic mb-6 text-center">Authenticate. Own. Transfer. Forever.</p>
-
-              {/* 3-Circle Flower SVG */}
-              <svg viewBox="0 0 400 350" className="w-full max-w-xs" style={{ overflow: "visible" }}>
-                {/* Connection lines from center to circles */}
-                <line x1="200" y1="175" x2="200" y2="60" stroke="currentColor" strokeOpacity={0.1} strokeWidth={2} />
-                <line x1="200" y1="175" x2="100" y2="270" stroke="currentColor" strokeOpacity={0.1} strokeWidth={2} />
-                <line x1="200" y1="175" x2="300" y2="270" stroke="currentColor" strokeOpacity={0.1} strokeWidth={2} />
-
-                {/* Center hub */}
-                <circle cx="200" cy="175" r="30" fill="rgba(var(--primary-rgb, 0,200,200), 0.1)" stroke="currentColor" strokeOpacity={0.3} strokeWidth={1} />
-                <text x="200" y="172" textAnchor="middle" className="text-[9px] fill-muted-foreground">PBT</text>
-                <text x="200" y="184" textAnchor="middle" className="text-[7px] fill-muted-foreground">ARX</text>
-
-                {/* Flower 1: MINT (top) — Red */}
-                <g className="cursor-pointer" onClick={() => { setSelectedFlower("mint"); setMode("register"); }}>
-                  <circle cx="200" cy="60" r="50"
-                    fill={selectedFlower === "mint" ? "rgba(255,0,0,0.15)" : "rgba(255,0,0,0.05)"}
-                    stroke="#FF0000" strokeWidth={selectedFlower === "mint" ? 3 : 1.5} strokeOpacity={0.6} />
-                  <text x="200" y="52" textAnchor="middle" className="text-[11px] font-bold fill-current">✦ Mint</text>
-                  <text x="200" y="66" textAnchor="middle" className="text-[8px] fill-muted-foreground">Register & Pair Chip</text>
-                  <text x="200" y="78" textAnchor="middle" className="text-[7px] fill-muted-foreground">New item → Blockchain</text>
-                </g>
-
-                {/* Flower 2: VERIFY (bottom-left) — Green */}
-                <g className="cursor-pointer" onClick={() => setSelectedFlower("verify")}>
-                  <circle cx="100" cy="270" r="50"
-                    fill={selectedFlower === "verify" ? "rgba(16,185,129,0.15)" : "rgba(16,185,129,0.05)"}
-                    stroke="#10B981" strokeWidth={selectedFlower === "verify" ? 3 : 1.5} strokeOpacity={0.6} />
-                  <text x="100" y="262" textAnchor="middle" className="text-[11px] font-bold fill-current">✓ Verify</text>
-                  <text x="100" y="276" textAnchor="middle" className="text-[8px] fill-muted-foreground">Scan & Authenticate</text>
-                  <text x="100" y="288" textAnchor="middle" className="text-[7px] fill-muted-foreground">QR or NFC tap</text>
-                </g>
-
-                {/* Flower 3: TRANSFER (bottom-right) — Blue */}
-                <g className="cursor-pointer" onClick={() => setSelectedFlower("transfer")}>
-                  <circle cx="300" cy="270" r="50"
-                    fill={selectedFlower === "transfer" ? "rgba(59,130,246,0.15)" : "rgba(59,130,246,0.05)"}
-                    stroke="#3B82F6" strokeWidth={selectedFlower === "transfer" ? 3 : 1.5} strokeOpacity={0.6} />
-                  <text x="300" y="262" textAnchor="middle" className="text-[11px] font-bold fill-current">↔ Transfer</text>
-                  <text x="300" y="276" textAnchor="middle" className="text-[8px] fill-muted-foreground">Sell or Gift</text>
-                  <text x="300" y="288" textAnchor="middle" className="text-[7px] fill-muted-foreground">Dual QR receipts</text>
-                </g>
-              </svg>
-
-              <p className="text-[9px] text-muted-foreground/40 mt-4">••• Select a circle to begin •••</p>
-            </div>
-
-            {/* RIGHT: Content based on selected flower */}
-            <div className="w-full md:w-1/2 px-6 py-8 flex flex-col">
-              {!selectedFlower && (
-                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-                  <p className="text-lg font-bold">Own What Matters</p>
-                  <p className="text-sm text-muted-foreground max-w-sm">
-                    Every physical creation deserves a digital soul. Register your book, artwork, or signed
-                    collectible on the blockchain — and prove its authenticity with a simple tap of your phone.
-                  </p>
-                  <p className="text-xs text-muted-foreground italic">
-                    &quot;You were never separate from what you create. Now the world can see it too.&quot;
-                  </p>
-
-                  {/* Quick verify */}
-                  <div className="w-full max-w-xs">
-                    <p className="text-[10px] text-muted-foreground mb-2">Already have a token?</p>
-                    <div className="flex gap-2">
-                      <input placeholder="Token ID..." className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                        onKeyDown={(e) => { if (e.key === "Enter") { const v = (e.target as HTMLInputElement).value.trim(); if (v) router.push(`/divinity-guide/arx?token=${v}`); } }} />
-                      <button onClick={() => { const i = document.querySelector<HTMLInputElement>('input[placeholder="Token ID..."]'); if (i?.value.trim()) router.push(`/divinity-guide/arx?token=${i.value.trim()}`); }}
-                        className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:opacity-90">✓</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {selectedFlower === "mint" && (
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <h2 className="text-xl font-bold">✦ Mint — Register & Pair Chip</h2>
-                    <p className="text-xs text-muted-foreground mt-1">Create a blockchain record for your physical item. Pair an ARX NFC chip for tap-to-verify.</p>
-                  </div>
-                  <div className="rounded-lg border bg-card/50 p-4 space-y-3">
-                    <h3 className="text-xs font-bold text-muted-foreground">HOW TO PAIR YOUR ARX CHIP</h3>
-                    <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                      <li>Register your item using the form (click &quot;Register Item&quot; tab above)</li>
-                      <li>You&apos;ll receive a QR code and token ID</li>
-                      <li>Hold your ARX chip near your phone&apos;s NFC reader</li>
-                      <li>The chip&apos;s unique ID is automatically recorded on-chain</li>
-                      <li>Attach the chip to your item (inside cover, on frame, etc.)</li>
-                      <li>Anyone can now tap to verify authenticity instantly</li>
-                    </ol>
-                  </div>
-                  <button onClick={() => setMode("register")}
-                    className="w-full py-3 bg-red-500/90 text-white rounded-lg text-sm font-bold hover:opacity-90">
-                    Register New Item →
-                  </button>
-                </div>
-              )}
-
-              {selectedFlower === "verify" && (
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <h2 className="text-xl font-bold">✓ Verify — Scan & Authenticate</h2>
-                    <p className="text-xs text-muted-foreground mt-1">Confirm any item is genuine. See its full ownership history on the blockchain.</p>
-                  </div>
-                  <div className="space-y-3">
-                    <input placeholder="Enter token ID to verify..."
-                      className="w-full rounded-lg border bg-background px-4 py-3 text-sm focus:border-green-500 focus:outline-none"
-                      onKeyDown={(e) => { if (e.key === "Enter") { const v = (e.target as HTMLInputElement).value.trim(); if (v) router.push(`/divinity-guide/arx?token=${v}`); } }} />
-                    <button onClick={() => { const i = document.querySelector<HTMLInputElement>('input[placeholder="Enter token ID to verify..."]'); if (i?.value.trim()) router.push(`/divinity-guide/arx?token=${i.value.trim()}`); }}
-                      className="w-full py-3 bg-green-600 text-white rounded-lg text-sm font-bold hover:opacity-90">
-                      Verify Item ✓
-                    </button>
-                    <p className="text-[10px] text-muted-foreground text-center">Or tap your phone to an ARX chip — verification is automatic</p>
-                  </div>
-                </div>
-              )}
-
-              {selectedFlower === "transfer" && (
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <h2 className="text-xl font-bold">↔ Transfer — Sell or Gift</h2>
-                    <p className="text-xs text-muted-foreground mt-1">Change ownership of a registered item. Both parties receive timestamped QR receipts.</p>
-                  </div>
-                  <div className="rounded-lg border bg-card/50 p-4 space-y-3">
-                    <h3 className="text-xs font-bold text-muted-foreground">HOW TRANSFERS WORK</h3>
-                    <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                      <li>Verify the item first (enter token ID above)</li>
-                      <li>On the item page, click &quot;Sell or Gift&quot;</li>
-                      <li>Enter the buyer&apos;s email or wallet address</li>
-                      <li>Set a sale price (or leave empty for a gift)</li>
-                      <li>Both buyer AND seller receive QR code receipts</li>
-                      <li>Ownership updates on the blockchain instantly</li>
-                    </ol>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground text-center italic">Every transfer is recorded forever — traceability through the year 2525 and beyond.</p>
-                </div>
-              )}
-
-              {/* 12 Divinity Guide editions (always visible at bottom of right panel) */}
-              <div className="mt-8 pt-6 border-t">
-                <h3 className="text-xs font-bold text-muted-foreground mb-3 text-center">DIVINITY GUIDE EDITIONS</h3>
-                <div className="grid grid-cols-4 gap-2">
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <div key={i} className="rounded-lg border bg-card p-2 text-center hover:border-primary transition-colors cursor-pointer"
-                      onClick={() => { setMode("register"); setRegName(`The Divinity Guide — Edition ${i + 1}`); setRegPrice("33.33"); setRegEdition(String(i + 1)); }}>
-                      <div className="text-lg">✦</div>
-                      <p className="text-[9px] font-bold">Ed. {i + 1}</p>
-                      <p className="text-[8px] text-primary">$33.33</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </main>
 
       {/* Footer */}
       <footer className="border-t px-6 py-4 text-center">
         <p className="text-xs text-muted-foreground">
-          Powered by eXeL AI • Physically Backed Tokens on Quai Network • ARX NFC Verified
+          Powered by eXeL AI &bull; Physically Backed Tokens on Quai Network
+          &bull; ARX NFC Verified
         </p>
       </footer>
     </div>
@@ -777,7 +1098,13 @@ function ArxPageInner() {
 
 export default function ArxPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
       <ArxPageInner />
     </Suspense>
   );
