@@ -14,3 +14,6 @@ END;
 
 -- Step 3: Drop the old integer column
 ALTER TABLE arx_items DROP COLUMN IF EXISTS edition;
+
+-- Step 4: Add purchase_date column (user may register item long after buying it)
+ALTER TABLE arx_items ADD COLUMN IF NOT EXISTS purchase_date DATE;

@@ -37,6 +37,7 @@ interface ArxItemFull {
   language: string;
   current_owner: string;
   purchase_price_usd: number | null;
+  purchase_date: string | null;
   qr_code_url: string;
   chip_key_hash: string | null;
   created_at: string;
@@ -107,6 +108,7 @@ function ItemPageInner() {
         purchase_price_usd: itemData.purchase_price_usd
           ? parseFloat(itemData.purchase_price_usd)
           : null,
+        purchase_date: itemData.purchase_date || null,
         qr_code_url: itemData.qr_code_url || "",
         chip_key_hash: itemData.chip_key_hash || null,
         created_at: itemData.created_at,
@@ -400,6 +402,12 @@ function ItemPageInner() {
               <div>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Last Price</p>
                 <p className="font-bold">${item.purchase_price_usd.toFixed(2)}</p>
+              </div>
+            )}
+            {item.purchase_date && (
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Purchased</p>
+                <p className="text-xs">{new Date(item.purchase_date).toLocaleDateString()}</p>
               </div>
             )}
             {item.serial_number && (

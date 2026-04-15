@@ -7,7 +7,7 @@ CRS: CRS-NEW-12.01 through 12.05
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, Index, Integer, Numeric, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Float, Index, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -27,6 +27,7 @@ class ArxItem(Base):
     language: Mapped[str] = mapped_column(String(10), default="en")
     current_owner: Mapped[str | None] = mapped_column(String(255))
     purchase_price_usd: Mapped[float | None] = mapped_column(Numeric(10, 2))
+    purchase_date: Mapped[datetime | None] = mapped_column(Date)
     quai_tx_hash: Mapped[str | None] = mapped_column(String(255))
     qr_code_url: Mapped[str | None] = mapped_column(Text)
     last_transfer_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

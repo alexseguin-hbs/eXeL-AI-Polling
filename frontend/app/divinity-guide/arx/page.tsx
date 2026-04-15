@@ -103,6 +103,7 @@ function ArxPageInner() {
   const [regIdentifiers, setRegIdentifiers] = useState("");
   const [regMarker, setRegMarker] = useState("");
   const [regContact, setRegContact] = useState("");
+  const [regPurchaseDate, setRegPurchaseDate] = useState("");
   const [regChipAddress, setRegChipAddress] = useState("");
   const [regSuccess, setRegSuccess] = useState<{
     qr_code_url: string;
@@ -252,6 +253,7 @@ function ArxPageInner() {
         token_id: newTokenId,
         item_name: regName.trim(),
         purchase_price_usd: parseFloat(regPrice),
+        purchase_date: regPurchaseDate || new Date().toISOString().split("T")[0],
         serial_number: regSerial.trim() || null,
         identifiers: regIdentifiers.trim() || null,
         language: "en",
@@ -275,7 +277,7 @@ function ArxPageInner() {
     } finally {
       setLoading(false);
     }
-  }, [regName, regPrice, regSerial, regIdentifiers, regChipAddress, regContact]);
+  }, [regName, regPrice, regSerial, regIdentifiers, regChipAddress, regContact, regPurchaseDate]);
 
   // Transfer is now handled on /arx/[tokenId] page
 
@@ -287,6 +289,7 @@ function ArxPageInner() {
     setRegIdentifiers("");
     setRegMarker("");
     setRegContact("");
+    setRegPurchaseDate("");
     setRegChipAddress("");
     setRegSuccess(null);
     setShowPairChip(false);
@@ -572,6 +575,20 @@ function ArxPageInner() {
                       placeholder="33.33"
                       className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                     />
+                  </div>
+
+                  {/* Purchase Date */}
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">Purchase Date</label>
+                    <input
+                      type="date"
+                      value={regPurchaseDate}
+                      onChange={(e) => setRegPurchaseDate(e.target.value)}
+                      className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      When you acquired this item (defaults to today if empty)
+                    </p>
                   </div>
 
                   {/* Serial + Identifiers — side by side */}
