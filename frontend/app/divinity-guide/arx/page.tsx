@@ -22,6 +22,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useLexicon } from "@/lib/lexicon-context";
 import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
+import ItemView from "./item-view";
 import { getHubPosition, getTheme2_3Positions } from "@/lib/flower-geometry";
 
 interface ArxItem {
@@ -129,19 +130,17 @@ function ArxPageInner() {
     [selectedFlower]
   );
 
-  // [Aset] Auto-detect from URL: ?chip=0x... or ?token=
+  // [Aset] Auto-detect from URL: ?chip=0x... auto-verifies
   useEffect(() => {
     if (chipParam && chipParam.startsWith("0x")) {
       setSelectedFlower("verify");
       setVerifyChipAddress(chipParam);
       lookupItem(undefined, chipParam);
-    } else if (tokenParam) {
-      setSelectedFlower("verify");
-      setVerifyTokenId(tokenParam);
-      lookupItem(parseInt(tokenParam), undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenParam, chipParam]);
+  }, [chipParam]);
+
+  // tokenParam handled in render below (after all hooks)
 
   // --- Lookup item by token ID or chip address ---
   const lookupItem = useCallback(
@@ -232,7 +231,7 @@ function ArxPageInner() {
 
       const newTokenId = Date.now() % 1_000_000_000;
       const txId = `ARX-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-      const qrUrl = `${window.location.origin}/divinity-guide/arx/${newTokenId}`;
+      const qrUrl = `${window.location.origin}/divinity-guide/arx?token=${newTokenId}`;
 
       let chipKeyHash: string | null = null;
       if (regChipAddress.trim()) {
@@ -267,7 +266,7 @@ function ArxPageInner() {
     } finally {
       setLoading(false);
     }
-  }, [regName, regPrice, regSerial, regIdentifiers, regChipAddress, regContact, regPurchaseDate]);
+  }, [regName, regPrice, regSerial, regIdentifiers, regMarker, regChipAddress, regContact, regPurchaseDate]);
 
   // Transfer is now handled on /arx/[tokenId] page
 
@@ -378,6 +377,24 @@ function ArxPageInner() {
   // ============================================================
 
   const showFlowers = panelMode === "split";
+
+  // If ?token=XXX is present, show standalone item view (provenance + transfer)
+  if (tokenParam) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <div className="flex items-center justify-between max-w-lg mx-auto px-6 pt-6">
+          <Link href="/divinity-guide/arx" className="flex items-center gap-1.5 hover:opacity-80">
+            <span className="text-sm font-bold text-primary">eXeL</span>
+            <span className="text-sm font-light text-primary/70">AI</span>
+          </Link>
+          <Link href="/divinity-guide/arx" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            ← ARX Registry
+          </Link>
+        </div>
+        <ItemView tokenId={tokenParam} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -731,7 +748,7 @@ function ArxPageInner() {
                         // Program chip URL — tapping will open the item page
                         // Uses set_url_subdomain (NOT cfg_ndef which disables broadcast)
                         const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
-                        const itemUrl = `${window.location.origin}/divinity-guide/arx/${regSuccess!.token_id}`;
+                        const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${regSuccess!.token_id}`;
                         alert("Tap chip again to program the item URL.");
                         await execHaloCmdWeb(
                           { name: "set_url_subdomain", url: itemUrl },
@@ -807,7 +824,7 @@ function ArxPageInner() {
                     Register Another
                   </button>
                   <button
-                    onClick={() => router.push(`/divinity-guide/arx/${regSuccess.token_id}`)}
+                    onClick={() => router.push(`/divinity-guide/arx?token=${regSuccess.token_id}`)}
                     className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90"
                   >
                     View Item
@@ -894,7 +911,7 @@ function ArxPageInner() {
                     {/* Actions — next steps after verification */}
                     <div className="flex gap-2">
                       <button
-                        onClick={() => router.push(`/divinity-guide/arx/${item.token_id}`)}
+                        onClick={() => router.push(`/divinity-guide/arx?token=${item.token_id}`)}
                         className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all"
                       >
                         View Full Item Page
@@ -968,7 +985,7 @@ function ArxPageInner() {
                       className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none transition-colors"
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && transferTo.trim()) {
-                          router.push(`/divinity-guide/arx/${transferTo.trim()}`);
+                          router.push(`/divinity-guide/arx?token=${transferTo.trim()}`);
                         }
                       }}
                     />
@@ -978,7 +995,7 @@ function ArxPageInner() {
                   </div>
                   <button
                     onClick={() => {
-                      if (transferTo.trim()) router.push(`/divinity-guide/arx/${transferTo.trim()}`);
+                      if (transferTo.trim()) router.push(`/divinity-guide/arx?token=${transferTo.trim()}`);
                     }}
                     disabled={!transferTo.trim()}
                     className="w-full py-2.5 bg-blue-500 text-white rounded-lg text-sm font-bold hover:bg-blue-600 disabled:opacity-40 transition-all"
