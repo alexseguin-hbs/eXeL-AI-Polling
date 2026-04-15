@@ -590,7 +590,7 @@ function ArxPageInner() {
                       <input
                         value={regIdentifiers}
                         onChange={(e) => setRegIdentifiers(e.target.value)}
-                        placeholder="1/1, signed, proof"
+                        placeholder="Quote, stamp, or other unique mark"
                         className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                       />
                     </div>
@@ -602,7 +602,7 @@ function ArxPageInner() {
                     <input
                       value={regMarker}
                       onChange={(e) => setRegMarker(e.target.value)}
-                      placeholder="Hand-signed, inscribed to Alex"
+                      placeholder="Distinguishing details about this item"
                       className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm focus:border-red-400 focus:outline-none transition-colors"
                     />
                     <p className="text-[10px] text-muted-foreground mt-1">
