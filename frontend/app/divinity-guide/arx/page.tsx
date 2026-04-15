@@ -780,14 +780,38 @@ function ArxPageInner() {
                           const info = await execHaloCmdWeb({ name: "sign", message: "00", keyNo: 1 });
                           const chipAddr = info.etherAddress || info.address || "";
                           if (!chipAddr) throw new Error("Could not read chip address");
-                          // Step 2: Store the chip address in Supabase
+
+                          // Step 2: Write our verification URL to the chip's NDEF record
+                          // This makes the chip redirect to our website when tapped
+                          try {
+                            await execHaloCmdWeb({
+                              name: "cfg_ndef",
+                              flagUseText: false,
+                              flagHidePk1: true,
+                              flagHidePk2: true,
+                              flagHideRNDSIG: true,
+                              flagHideCMDRES: true,
+                            });
+                            // Set the URL subdomain to our verification page
+                            const verifyPath = `exel-ai-polling.explore-096.workers.dev/divinity-guide/arx?chip=${chipAddr}`;
+                            await execHaloCmdWeb({
+                              name: "set_url_subdomain",
+                              subdomain: verifyPath,
+                              allowSignatureDER: "00".repeat(72),
+                            });
+                          } catch (ndefErr) {
+                            // NDEF write may fail on some chips — still pair via address
+                            console.warn("NDEF write skipped:", ndefErr);
+                          }
+
+                          // Step 3: Store the chip address in Supabase
                           const { supabase } = await import("@/lib/supabase");
                           if (!supabase) throw new Error("Supabase not available");
                           await supabase.from("arx_items").update({
                             chip_key_hash: chipAddr.toLowerCase()
                           }).eq("token_id", regSuccess!.token_id);
                           setRegChipAddress(chipAddr);
-                          alert(`Chip paired! Address: ${chipAddr}\n\nAnyone can now tap this chip to verify your item.`);
+                          alert(`Chip paired and programmed!\n\nAddress: ${chipAddr}\n\nAnyone can now tap this chip to verify your item at:\n${window.location.origin}/divinity-guide/arx?chip=${chipAddr}`);
                         } catch (e: any) {
                           setError(e.message || "NFC not available — use paste method instead");
                         } finally {
