@@ -201,6 +201,16 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
       if (!item.chip_key_hash) {
         const { supabase } = await import("@/lib/supabase");
         if (supabase) {
+          // Check chip isn't already paired to another item
+          const { data: existingChip } = await supabase
+            .from("arx_items")
+            .select("token_id")
+            .eq("chip_key_hash", chipAddr.toLowerCase())
+            .maybeSingle();
+          if (existingChip && existingChip.token_id !== item.token_id) {
+            setError(`This chip is already paired to another item (Token #${existingChip.token_id}).`);
+            return;
+          }
           await supabase.from("arx_items").update({ chip_key_hash: chipAddr.toLowerCase() }).eq("token_id", item.token_id);
         }
       }

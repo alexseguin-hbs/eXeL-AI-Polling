@@ -229,14 +229,35 @@ function ArxPageInner() {
       const { supabase } = await import("@/lib/supabase");
       if (!supabase) throw new Error("Supabase not available");
 
-      const newTokenId = Date.now() % 1_000_000_000;
-      const txId = `ARX-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-      const qrUrl = `${window.location.origin}/divinity-guide/arx?token=${newTokenId}`;
+      // Check for duplicate serial number before registration
+      if (regSerial.trim()) {
+        const { data: existing } = await supabase
+          .from("arx_items")
+          .select("token_id")
+          .eq("serial_number", regSerial.trim())
+          .maybeSingle();
+        if (existing) {
+          throw new Error(`Serial number "${regSerial.trim()}" is already registered (Token #${existing.token_id}). Each item must have a unique serial.`);
+        }
+      }
 
+      // Check for duplicate chip address before registration
       let chipKeyHash: string | null = null;
       if (regChipAddress.trim()) {
         chipKeyHash = regChipAddress.trim().toLowerCase();
+        const { data: existingChip } = await supabase
+          .from("arx_items")
+          .select("token_id")
+          .eq("chip_key_hash", chipKeyHash)
+          .maybeSingle();
+        if (existingChip) {
+          throw new Error(`This chip is already paired to another item (Token #${existingChip.token_id}). Each chip can only be linked to one item.`);
+        }
       }
+
+      const newTokenId = Date.now() % 1_000_000_000;
+      const txId = `ARX-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+      const qrUrl = `${window.location.origin}/divinity-guide/arx?token=${newTokenId}`;
 
       const { error: itemErr } = await supabase.from("arx_items").insert({
         token_id: newTokenId,
