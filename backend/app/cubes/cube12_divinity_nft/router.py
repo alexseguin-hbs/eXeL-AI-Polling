@@ -32,7 +32,7 @@ VALID_TX_TYPES = ("mint", "transfer", "sale")
 # ── Request Schemas ──────────────────────────────────────────────
 
 class MintRequest(BaseModel):
-    item_name: str = Field(..., max_length=500)
+    item_name: str = Field(..., min_length=1, max_length=500)
     purchase_price_usd: float
     purchase_date: str | None = None
     serial_number: str | None = Field(None, max_length=255)

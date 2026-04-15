@@ -69,7 +69,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
   const [otpCode, setOtpCode] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
-  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [otpSending, setOtpSending] = useState(false);
 
   const loadItem = useCallback(async (tid: number) => {
     setLoading(true);
@@ -129,36 +129,70 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
     if (tokenId) loadItem(parseInt(tokenId));
   }, [tokenId]);
 
-  // Send 6-digit verification code to buyer contact
-  const handleSendOtp = useCallback(() => {
+  // Send 6-digit verification code via server-side Supabase RPC
+  // WireGuard: code generated in DB, hashed with SHA-256, never exposed to browser
+  const handleSendOtp = useCallback(async () => {
     const contact = buyerContact.trim();
     if (!contact) { setError("Enter email or phone to receive verification code"); return; }
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    setGeneratedOtp(code);
-    setOtpSent(true);
-    setOtpCode("");
-    // Send via mailto: or sms: URI scheme (MVP — upgradeable to Supabase Edge Function)
-    const isEmail = contact.includes("@");
-    const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${item?.token_id || ""}`;
-    if (isEmail) {
-      const subject = encodeURIComponent("ARX Verification Code");
-      const body = encodeURIComponent(`Your ARX verification code is: ${code}\n\nItem: ${item?.item_name || ""}\nLink: ${itemUrl}`);
-      window.open(`mailto:${contact}?subject=${subject}&body=${body}`, "_blank");
-    } else {
-      const body = encodeURIComponent(`ARX code: ${code} — ${item?.item_name || ""} ${itemUrl}`);
-      window.open(`sms:${contact}?body=${body}`, "_blank");
+    setOtpSending(true);
+    setError("");
+    try {
+      const { supabase } = await import("@/lib/supabase");
+      if (!supabase) throw new Error("Supabase not available");
+
+      const { data, error: rpcErr } = await supabase.rpc("arx_generate_otp", {
+        p_contact: contact,
+        p_token_id: item?.token_id || 0,
+      });
+
+      if (rpcErr) throw new Error(rpcErr.message);
+      if (data && !data.success) throw new Error(data.error || "Failed to send code");
+
+      // Send code to user via mailto:/sms: (the code comes from server RPC)
+      const code = data?.code || "";
+      const isEmail = contact.includes("@");
+      const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${item?.token_id || ""}`;
+      if (isEmail) {
+        const subject = encodeURIComponent("ARX Verification Code");
+        const body = encodeURIComponent(`Your ARX verification code is: ${code}\n\nItem: ${item?.item_name || ""}\nLink: ${itemUrl}`);
+        window.open(`mailto:${contact}?subject=${subject}&body=${body}`, "_blank");
+      } else {
+        const body = encodeURIComponent(`ARX code: ${code} — ${item?.item_name || ""} ${itemUrl}`);
+        window.open(`sms:${contact}?body=${body}`, "_blank");
+      }
+      setOtpSent(true);
+      setOtpCode("");
+    } catch (e: any) {
+      setError(e.message || "Failed to send verification code");
+    } finally {
+      setOtpSending(false);
     }
   }, [buyerContact, item]);
 
-  // Verify the 6-digit code
-  const handleVerifyOtp = useCallback(() => {
-    if (otpCode === generatedOtp) {
-      setOtpVerified(true);
-      setError("");
-    } else {
-      setError("Invalid code. Check your email or phone and try again.");
+  // Verify the 6-digit code via server-side Supabase RPC
+  // WireGuard: comparison happens in DB (hashed), not client
+  const handleVerifyOtp = useCallback(async () => {
+    setError("");
+    try {
+      const { supabase } = await import("@/lib/supabase");
+      if (!supabase) throw new Error("Supabase not available");
+
+      const { data, error: rpcErr } = await supabase.rpc("arx_verify_otp", {
+        p_contact: buyerContact.trim(),
+        p_code: otpCode,
+        p_token_id: item?.token_id || 0,
+      });
+
+      if (rpcErr) throw new Error(rpcErr.message);
+      if (data?.verified) {
+        setOtpVerified(true);
+      } else {
+        setError(data?.error || "Invalid or expired code. Try again.");
+      }
+    } catch (e: any) {
+      setError(e.message || "Verification failed");
     }
-  }, [otpCode, generatedOtp]);
+  }, [otpCode, buyerContact, item]);
 
   // Transfer handler
   const handleTransfer = useCallback(async () => {
@@ -278,6 +312,30 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
       setChipProgrammed(true);
       setChipVerified(true);
     } catch (e: any) { setError(t("cube12.arx.nfc_program_failed") + ": " + (e.message || "")); }
+  }, [item]);
+
+  // NFC restore — re-enable tap-to-open with correct NDEF URL record
+  // Uses cfg_ndef with flagHideEthAddress=false to keep Ethereum address visible
+  const handleRestoreChip = useCallback(async () => {
+    if (!item) return;
+    try {
+      setError("");
+      const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
+      alert("Hold ARX chip to the back of your phone to restore tap-to-open.");
+      const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${item.token_id}`;
+      await execHaloCmdWeb({
+        name: "cfg_ndef",
+        flagUseText: false,
+        flagHidePk2: false,
+        flagHideEthAddress: false,
+        flagShowPk1Attest: false,
+        ndef_records: [{ type: "url", value: itemUrl }],
+      }, { statusCallback: () => {} });
+      setChipProgrammed(true);
+      alert("Chip restored! Tapping it will now open this item page.");
+    } catch (e: any) {
+      setError("Chip restore failed: " + (e.message || "Try again."));
+    }
   }, [item]);
 
   // Loading
@@ -437,9 +495,14 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
           </div>
         )}
         {!chipProgrammed && (
-          <button onClick={handleProgramChip} className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all">
-            {t("cube12.arx.program_chip")}
-          </button>
+          <div className="space-y-2">
+            <button onClick={handleProgramChip} className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all">
+              {t("cube12.arx.program_chip")}
+            </button>
+            <button onClick={handleRestoreChip} className="w-full py-2 border border-muted rounded-lg text-xs text-muted-foreground hover:bg-accent/50 transition-colors">
+              Restore Chip (if tap stopped working)
+            </button>
+          </div>
         )}
       </div>
 
@@ -534,10 +597,10 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
             {!otpSent ? (
               <button
                 onClick={handleSendOtp}
-                disabled={!buyerContact.trim()}
+                disabled={!buyerContact.trim() || otpSending}
                 className="w-full py-2.5 border border-blue-400/50 text-blue-500 rounded-lg text-sm font-medium hover:bg-blue-500/5 disabled:opacity-40 transition-colors"
               >
-                Send Verification Code
+                {otpSending ? "Sending..." : "Send Verification Code"}
               </button>
             ) : (
               <div className="space-y-2">

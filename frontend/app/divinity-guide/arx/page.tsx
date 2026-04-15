@@ -498,13 +498,34 @@ function ArxPageInner() {
                 />
               ))}
 
-              {/* Hub circle — PBT ARX */}
+              {/* Hub circle — Restore NFC (center of 3 portals) */}
               <ThemeCircle
                 cx={hub.cx} cy={hub.cy} r={hub.r}
-                theme={{ label: "PBT", count: 0, avgConfidence: 0, summary33: "ARX" }}
+                theme={{ label: "Restore", count: 0, avgConfidence: 0, summary33: "NFC" }}
                 fill={selectedFlower && activePortal ? activePortal.color.fill : "rgba(var(--primary), 0.15)"}
                 stroke={selectedFlower && activePortal ? activePortal.color.stroke : "hsl(var(--primary))"}
                 isHub
+                onClick={async () => {
+                  try {
+                    setError("");
+                    const tokenId = prompt("Enter Token ID to restore chip:");
+                    if (!tokenId) return;
+                    const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
+                    alert("Hold ARX chip to the back of your phone to restore tap-to-open.");
+                    const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${tokenId}`;
+                    await execHaloCmdWeb({
+                      name: "cfg_ndef",
+                      flagUseText: false,
+                      flagHidePk2: false,
+                      flagHideEthAddress: false,
+                      flagShowPk1Attest: false,
+                      ndef_records: [{ type: "url", value: itemUrl }],
+                    }, { statusCallback: () => {} });
+                    alert("Chip restored! Tapping it will now open the item page.");
+                  } catch (e: any) {
+                    setError("Restore failed: " + (e.message || ""));
+                  }
+                }}
               />
 
               {/* 3 Outer Portals — Mint, Verify, Transfer */}
