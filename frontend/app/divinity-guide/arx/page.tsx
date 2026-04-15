@@ -31,6 +31,7 @@
 
 import React, { Suspense, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import "@/components/flower-of-life/flower-animations.css";
 import { useSearchParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -416,55 +417,65 @@ function ArxPageInner() {
                 Authenticate. Own. Transfer. Forever.
               </p>
 
-              {/* [Christo] 3-Circle Flower SVG — portals the user enters */}
+              {/* [Christo] 3-Circle Flower SVG — portals matching Divinity Guide style */}
               <svg
-                viewBox="0 0 400 350"
-                className="w-full max-w-xs"
+                viewBox="0 0 600 500"
+                className="w-full"
                 style={{ overflow: "visible" }}
               >
-                {/* Connection lines */}
-                <line x1="200" y1="175" x2="200" y2="60" stroke="currentColor" strokeOpacity={0.08} strokeWidth={1.5} />
-                <line x1="200" y1="175" x2="100" y2="270" stroke="currentColor" strokeOpacity={0.08} strokeWidth={1.5} />
-                <line x1="200" y1="175" x2="300" y2="270" stroke="currentColor" strokeOpacity={0.08} strokeWidth={1.5} />
+                {/* Connection lines from hub to outer circles */}
+                <line x1="300" y1="250" x2="300" y2="90" stroke="currentColor" strokeOpacity={0.12} strokeWidth={2} />
+                <line x1="300" y1="250" x2="120" y2="390" stroke="currentColor" strokeOpacity={0.12} strokeWidth={2} />
+                <line x1="300" y1="250" x2="480" y2="390" stroke="currentColor" strokeOpacity={0.12} strokeWidth={2} />
 
-                {/* Center hub */}
-                <circle cx="200" cy="175" r="28" fill="rgba(var(--primary-rgb, 0,200,200), 0.08)" stroke="currentColor" strokeOpacity={0.2} strokeWidth={1} />
-                <text x="200" y="172" textAnchor="middle" className="text-[9px] fill-muted-foreground">PBT</text>
-                <text x="200" y="184" textAnchor="middle" className="text-[7px] fill-muted-foreground">ARX</text>
+                {/* Center hub — PBT ARX */}
+                <circle cx="300" cy="250" r="45" fill="rgba(var(--primary-rgb, 0,200,200), 0.08)" stroke="currentColor" strokeOpacity={0.25} strokeWidth={1.5}
+                  className={!selectedFlower ? "flower-pulse" : ""} style={{ color: "var(--primary)" }} />
+                <text x="300" y="244" textAnchor="middle" className="text-[13px] font-bold fill-current">PBT</text>
+                <text x="300" y="262" textAnchor="middle" className="text-[10px] fill-muted-foreground">ARX</text>
 
-                {/* [Sofia] Flower 1: MINT (top) — Red */}
-                <g className="cursor-pointer" onClick={() => { setSelectedFlower("mint"); setError(""); }}>
-                  <circle cx="200" cy="60" r="50"
+                {/* Flower 1: MINT (top) — Red — full-size with pulse */}
+                <g className={`flower-circle-interactive ${selectedFlower && selectedFlower !== "mint" ? "opacity-40" : ""}`}
+                   onClick={() => { setSelectedFlower("mint"); setError(""); }}>
+                  <circle cx="300" cy="90" r="75"
                     fill={selectedFlower === "mint" ? "rgba(239,68,68,0.15)" : "rgba(239,68,68,0.05)"}
-                    stroke="#EF4444" strokeWidth={selectedFlower === "mint" ? 3 : 1.5} strokeOpacity={0.6} />
-                  <text x="200" y="50" textAnchor="middle" className="text-[11px] font-bold fill-current">Mint</text>
-                  <text x="200" y="64" textAnchor="middle" className="text-[8px] fill-muted-foreground">Register Item</text>
-                  <text x="200" y="76" textAnchor="middle" className="text-[7px] fill-muted-foreground">+ Pair ARX Chip</text>
+                    stroke="#EF4444" strokeWidth={selectedFlower === "mint" ? 3 : 1.5} strokeOpacity={0.6}
+                    className={selectedFlower === "mint" ? "flower-pulse" : ""}
+                    style={{ color: "#EF4444" }} />
+                  <text x="300" y="78" textAnchor="middle" className="text-[14px] font-bold fill-current">✦ Mint</text>
+                  <text x="300" y="96" textAnchor="middle" className="text-[10px] fill-muted-foreground">Register Item</text>
+                  <text x="300" y="112" textAnchor="middle" className="text-[9px] fill-muted-foreground">+ Pair ARX Chip</text>
                 </g>
 
-                {/* [Sofia] Flower 2: VERIFY (bottom-left) — Green */}
-                <g className="cursor-pointer" onClick={() => { setSelectedFlower("verify"); setError(""); }}>
-                  <circle cx="100" cy="270" r="50"
+                {/* Flower 2: VERIFY (bottom-left) — Green — full-size with pulse */}
+                <g className={`flower-circle-interactive ${selectedFlower && selectedFlower !== "verify" ? "opacity-40" : ""}`}
+                   onClick={() => { setSelectedFlower("verify"); setError(""); }}>
+                  <circle cx="120" cy="390" r="75"
                     fill={selectedFlower === "verify" ? "rgba(16,185,129,0.15)" : "rgba(16,185,129,0.05)"}
-                    stroke="#10B981" strokeWidth={selectedFlower === "verify" ? 3 : 1.5} strokeOpacity={0.6} />
-                  <text x="100" y="260" textAnchor="middle" className="text-[11px] font-bold fill-current">Verify</text>
-                  <text x="100" y="274" textAnchor="middle" className="text-[8px] fill-muted-foreground">Authenticate</text>
-                  <text x="100" y="286" textAnchor="middle" className="text-[7px] fill-muted-foreground">Token ID or Chip</text>
+                    stroke="#10B981" strokeWidth={selectedFlower === "verify" ? 3 : 1.5} strokeOpacity={0.6}
+                    className={selectedFlower === "verify" ? "flower-pulse" : ""}
+                    style={{ color: "#10B981" }} />
+                  <text x="120" y="378" textAnchor="middle" className="text-[14px] font-bold fill-current">✓ Verify</text>
+                  <text x="120" y="396" textAnchor="middle" className="text-[10px] fill-muted-foreground">Authenticate</text>
+                  <text x="120" y="412" textAnchor="middle" className="text-[9px] fill-muted-foreground">Token ID or Chip</text>
                 </g>
 
-                {/* [Sofia] Flower 3: TRANSFER (bottom-right) — Blue */}
-                <g className="cursor-pointer" onClick={() => { setSelectedFlower("transfer"); setError(""); }}>
-                  <circle cx="300" cy="270" r="50"
+                {/* Flower 3: TRANSFER (bottom-right) — Blue — full-size with pulse */}
+                <g className={`flower-circle-interactive ${selectedFlower && selectedFlower !== "transfer" ? "opacity-40" : ""}`}
+                   onClick={() => { setSelectedFlower("transfer"); setError(""); }}>
+                  <circle cx="480" cy="390" r="75"
                     fill={selectedFlower === "transfer" ? "rgba(59,130,246,0.15)" : "rgba(59,130,246,0.05)"}
-                    stroke="#3B82F6" strokeWidth={selectedFlower === "transfer" ? 3 : 1.5} strokeOpacity={0.6} />
-                  <text x="300" y="260" textAnchor="middle" className="text-[11px] font-bold fill-current">Transfer</text>
-                  <text x="300" y="274" textAnchor="middle" className="text-[8px] fill-muted-foreground">Sell or Gift</text>
-                  <text x="300" y="286" textAnchor="middle" className="text-[7px] fill-muted-foreground">Dual QR receipts</text>
+                    stroke="#3B82F6" strokeWidth={selectedFlower === "transfer" ? 3 : 1.5} strokeOpacity={0.6}
+                    className={selectedFlower === "transfer" ? "flower-pulse" : ""}
+                    style={{ color: "#3B82F6" }} />
+                  <text x="480" y="378" textAnchor="middle" className="text-[14px] font-bold fill-current">↔ Transfer</text>
+                  <text x="480" y="396" textAnchor="middle" className="text-[10px] fill-muted-foreground">Sell or Gift</text>
+                  <text x="480" y="412" textAnchor="middle" className="text-[9px] fill-muted-foreground">Dual QR receipts</text>
                 </g>
               </svg>
 
-              <p className="text-[9px] text-muted-foreground/40 mt-6">
-                Select a circle to begin your journey
+              <p className="text-[9px] text-muted-foreground/40 mt-4">
+                ••• Select a circle to begin •••
               </p>
             </div>
           )}
