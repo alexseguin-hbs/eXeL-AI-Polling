@@ -119,6 +119,12 @@ function ArxPageInner() {
   const [verifyTokenId, setVerifyTokenId] = useState("");
   const [verifyChipAddress, setVerifyChipAddress] = useState("");
 
+  // --- Browse / Marketplace ---
+  const [browseItems, setBrowseItems] = useState<Array<{ token_id: number; item_name: string; current_owner: string; purchase_price_usd: number | null; created_at: string }>>([]);
+  const [browseSearch, setBrowseSearch] = useState("");
+  const [browseLoading, setBrowseLoading] = useState(false);
+  const [showBrowse, setShowBrowse] = useState(false);
+
   // --- Transfer — just Token ID input, redirects to /arx/[tokenId] ---
   const [transferTo, setTransferTo] = useState("");
 
@@ -290,6 +296,30 @@ function ArxPageInner() {
   }, [regName, regPrice, regSerial, regIdentifiers, regMarker, regChipAddress, regContact, regPurchaseDate]);
 
   // Transfer is now handled on /arx/[tokenId] page
+
+  // --- Browse registered items ---
+  const handleBrowse = useCallback(async () => {
+    setBrowseLoading(true);
+    try {
+      const { supabase } = await import("@/lib/supabase");
+      if (!supabase) return;
+      let query = supabase
+        .from("arx_items")
+        .select("token_id, item_name, current_owner, purchase_price_usd, created_at")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (browseSearch.trim()) {
+        query = query.ilike("item_name", `%${browseSearch.trim()}%`);
+      }
+      const { data } = await query;
+      setBrowseItems(data || []);
+      setShowBrowse(true);
+    } catch {
+      setBrowseItems([]);
+    } finally {
+      setBrowseLoading(false);
+    }
+  }, [browseSearch]);
 
   // --- Reset registration form ---
   const resetRegForm = useCallback(() => {
@@ -919,6 +949,47 @@ function ArxPageInner() {
                       <rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/>
                     </svg>
                   </button>
+                </div>
+
+                {/* Browse registered items */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={browseSearch}
+                      onChange={(e) => setBrowseSearch(e.target.value)}
+                      placeholder="Search by item name..."
+                      className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm focus:border-green-500 focus:outline-none transition-colors"
+                      onKeyDown={(e) => { if (e.key === "Enter") handleBrowse(); }}
+                    />
+                    <button
+                      onClick={handleBrowse}
+                      disabled={browseLoading}
+                      className="px-4 py-2 bg-muted text-sm rounded-lg hover:bg-accent transition-colors disabled:opacity-40"
+                    >
+                      {browseLoading ? "..." : "Browse"}
+                    </button>
+                  </div>
+                  {showBrowse && (
+                    <div className="mt-3 space-y-1.5 max-h-[300px] overflow-y-auto">
+                      {browseItems.length === 0 ? (
+                        <p className="text-xs text-muted-foreground text-center py-4">No items found</p>
+                      ) : browseItems.map((bi) => (
+                        <button
+                          key={bi.token_id}
+                          onClick={() => router.push(`/divinity-guide/arx?token=${bi.token_id}`)}
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border bg-card hover:bg-accent/50 transition-colors text-left"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium truncate">{bi.item_name}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{bi.current_owner} &middot; {new Date(bi.created_at).toLocaleDateString()}</p>
+                          </div>
+                          {bi.purchase_price_usd !== null && (
+                            <span className="text-xs font-bold ml-2">${Number(bi.purchase_price_usd).toFixed(2)}</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Verification results */}

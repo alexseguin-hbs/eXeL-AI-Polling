@@ -908,6 +908,11 @@ const cube12: TranslationEntry[] = [
   { key: "cube12.arx.tx_sold", englishDefault: "Sold", context: "Sale transaction type label", cubeId: 12 },
   { key: "cube12.arx.tx_transferred", englishDefault: "Transferred", context: "Gift transfer type label", cubeId: 12 },
   { key: "cube12.arx.registered_by", englishDefault: "Registered by", context: "First transaction prefix", cubeId: 12 },
+  { key: "cube12.arx.share_receipt", englishDefault: "Share Receipt", context: "Share transfer receipt button", cubeId: 12 },
+  { key: "cube12.arx.browse_items", englishDefault: "Browse", context: "Browse registered items button", cubeId: 12 },
+  { key: "cube12.arx.search_placeholder", englishDefault: "Search by item name...", context: "Browse search input placeholder", cubeId: 12 },
+  { key: "cube12.arx.no_items_found", englishDefault: "No items found", context: "Empty browse results", cubeId: 12 },
+  { key: "cube12.arx.show_more", englishDefault: "Show more", context: "Load more transactions button", cubeId: 12 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────

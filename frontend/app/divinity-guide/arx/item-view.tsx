@@ -278,8 +278,23 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
             <p className="text-[10px] text-muted-foreground">Transfer receipt</p>
           </div>
         </div>
-        <div className="text-center">
-          <button onClick={() => setTransferResult(null)} className="px-6 py-3 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all">
+        {/* Share receipt — Web Share API on mobile, copy link on desktop */}
+        <div className="space-y-2">
+          <button
+            onClick={async () => {
+              const text = `ARX Transfer Receipt\n\nItem: ${item.item_name}\nToken: #${item.token_id}\nTransaction: ${transferResult.arx_tx_id}\n\nNew owner: ${transferResult.buyer_qr_url}\nSeller receipt: ${transferResult.seller_qr_url}`;
+              if (navigator.share) {
+                try { await navigator.share({ title: "ARX Transfer Receipt", text, url: transferResult.buyer_qr_url }); } catch {}
+              } else {
+                await navigator.clipboard.writeText(text);
+                alert("Receipt copied to clipboard");
+              }
+            }}
+            className="w-full py-2.5 border rounded-lg text-sm hover:bg-accent transition-colors"
+          >
+            Share Receipt
+          </button>
+          <button onClick={() => setTransferResult(null)} className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all">
             {t("cube12.arx.view_updated_item")}
           </button>
         </div>
