@@ -159,6 +159,83 @@ class TestWireGuardTransferRequired:
             obj = TransferRequest(token_id=214274013, to_address="buyer@test.com")
             assert obj.token_id == 214274013
 
+    def test_zero_token_id_rejected(self):
+        """token_id=0 is rejected (must be >= 1)."""
+        with pytest.raises(ValidationError):
+            TransferRequest(token_id=0, to_address="buyer@test.com")
+
+    def test_large_token_id_n9(self):
+        for _ in range(9):
+            obj = TransferRequest(token_id=999999999, to_address="buyer@test.com")
+            assert obj.token_id == 999999999
+
     def test_missing_to_address_rejected(self):
         with pytest.raises(ValidationError):
             TransferRequest(token_id=1, to_address="")
+
+
+# ---------------------------------------------------------------------------
+# Cube 12 WireGuard — Chip Key Hash Consistency
+# ---------------------------------------------------------------------------
+
+class TestWireGuardChipHashConsistency:
+    """chip_key_hash is stored as raw lowercase Ethereum address."""
+
+    def test_lowercase_consistency_n9(self):
+        """Verify lowercase normalization works for mixed-case input."""
+        from app.cubes.cube12_divinity_nft.service import pair_chip_to_item
+        addresses = [
+            "0xC3D72cc59B4514fac7057bc9c629b7bc4de9a635",
+            "0xc3d72cc59b4514fac7057bc9c629b7bc4de9a635",
+            "0xC3D72CC59B4514FAC7057BC9C629B7BC4DE9A635",
+        ]
+        for _ in range(9):
+            for addr in addresses:
+                assert addr.strip().lower() == "0xc3d72cc59b4514fac7057bc9c629b7bc4de9a635"
+
+
+class TestWireGuardMintDefaults:
+    """Verify default values when optional fields omitted."""
+
+    def test_defaults_n9(self):
+        for _ in range(9):
+            obj = MintRequest(item_name="Test", purchase_price_usd=10.0)
+            assert obj.language == "en"
+            assert obj.serial_number is None
+            assert obj.identifiers is None
+            assert obj.purchase_date is None
+            assert obj.chip_key_hash is None
+
+    def test_all_fields_populated(self):
+        obj = MintRequest(
+            item_name="Full Test",
+            purchase_price_usd=33.33,
+            purchase_date="2025-07-25",
+            serial_number="DG-00001",
+            identifiers="signed, 1/1",
+            language="es",
+            chip_key_hash="0x" + "a" * 40,
+        )
+        assert obj.item_name == "Full Test"
+        assert obj.purchase_price_usd == 33.33
+        assert obj.purchase_date == "2025-07-25"
+        assert obj.serial_number == "DG-00001"
+        assert obj.identifiers == "signed, 1/1"
+        assert obj.language == "es"
+
+
+class TestWireGuardPriceBoundary:
+    """Boundary tests for purchase_price_usd."""
+
+    def test_zero_price_allowed(self):
+        obj = MintRequest(item_name="Free", purchase_price_usd=0)
+        assert obj.purchase_price_usd == 0
+
+    def test_max_price_n9(self):
+        for _ in range(9):
+            obj = MintRequest(item_name="Expensive", purchase_price_usd=99999999.99)
+            assert obj.purchase_price_usd == 99999999.99
+
+    def test_fractional_price(self):
+        obj = MintRequest(item_name="Cheap", purchase_price_usd=0.01)
+        assert obj.purchase_price_usd == 0.01

@@ -319,9 +319,28 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
     } catch (e: any) { setError(t("cube12.arx.nfc_program_failed") + ": " + (e.message || "")); }
   }, [item]);
 
-  // NFC restore — re-enable tap-to-open with correct NDEF URL record
-  // Uses cfg_ndef with flagHideEthAddress=false to keep Ethereum address visible
-  const handleRestoreChip = useCallback(async () => {
+  // NFC Restore Level 1: set_url_subdomain — lightweight URL update (tries first)
+  const handleRestoreLevel1 = useCallback(async () => {
+    if (!item) return;
+    try {
+      setError("");
+      const { execHaloCmdWeb } = await import("@arx-research/libhalo/api/web");
+      alert(t("cube12.arx.nfc_hold_restore"));
+      const itemUrl = `${window.location.origin}/divinity-guide/arx?token=${item.token_id}`;
+      await execHaloCmdWeb(
+        { name: "set_url_subdomain", url: itemUrl },
+        { statusCallback: () => {} }
+      );
+      setChipProgrammed(true);
+      alert(t("cube12.arx.chip_restored"));
+    } catch (e: any) {
+      setError(t("cube12.arx.restore_failed") + " " + (e.message || ""));
+    }
+  }, [item]);
+
+  // NFC Restore Level 2: cfg_ndef — full NDEF rewrite (when Level 1 fails)
+  // Rewrites the entire NDEF record, keeps Ethereum address visible
+  const handleRestoreLevel2 = useCallback(async () => {
     if (!item) return;
     try {
       setError("");
@@ -504,9 +523,17 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
             <button onClick={handleProgramChip} className="w-full py-3 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:opacity-90 transition-all">
               {t("cube12.arx.program_chip")}
             </button>
-            <button onClick={handleRestoreChip} className="w-full py-2 border border-muted rounded-lg text-xs text-muted-foreground hover:bg-accent/50 transition-colors">
-              {t("cube12.arx.restore_chip")}
-            </button>
+            <div className="flex gap-2">
+              <button onClick={handleRestoreLevel1} className="flex-1 py-2 border border-muted rounded-lg text-[10px] text-muted-foreground hover:bg-accent/50 transition-colors">
+                Restore (Level 1)
+              </button>
+              <button onClick={handleRestoreLevel2} className="flex-1 py-2 border border-red-300/50 rounded-lg text-[10px] text-red-400 hover:bg-red-500/5 transition-colors">
+                Restore (Level 2 — Full NDEF)
+              </button>
+            </div>
+            <p className="text-[9px] text-muted-foreground/60 text-center">
+              Level 1: URL update. Level 2: full NDEF rewrite if tap stopped working.
+            </p>
           </div>
         )}
       </div>
