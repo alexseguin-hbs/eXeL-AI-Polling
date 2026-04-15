@@ -344,7 +344,7 @@ export default function ItemView({ tokenId }: { tokenId: string }) {
           {item.purchase_date && (
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">{t("cube12.arx.purchased")}</p>
-              <p className="text-xs">{new Date(item.purchase_date + "T12:00:00").toLocaleDateString()}</p>
+              <p className="text-xs">{item.purchase_date.replace(/-/g, ".")} CST</p>
             </div>
           )}
           {item.serial_number && (
