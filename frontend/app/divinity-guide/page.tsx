@@ -1669,41 +1669,46 @@ function DivinityGuidePage() {
                 </p>
               </div>
             </div>
-          ) : !selectedChapter ? (
-            <div className="flex items-center justify-center h-full w-full">
-              <div className="text-center space-y-4 w-full px-4 flex flex-col items-center">
-                {!selectedSection && (
-                  <div className="w-full flex justify-center mb-2">
-                    {/* Width matches the 3-circle trefoil's bounding box on the left flower
-                        (viewBox 600×500, 3 outer circles span ~426 units wide → 71%). */}
-                    <MasterOfThought
-                      className="w-[71%] h-auto cursor-pointer"
-                      color={currentLogoColor}
-                    />
-                  </div>
-                )}
-                <div className="max-w-lg w-full space-y-4">
+          ) : !selectedChapter && !selectedSection ? (
+            // Front-cover layout: emblem vertically centered to align with the
+            // left column's cyan-hub center; text block pinned to the bottom.
+            <div className="flex items-center justify-center h-full w-full relative">
+              <div className="w-full flex justify-center cursor-pointer" onClick={cycleLogoColor}>
+                {/* Width matches the 3-circle trefoil's bounding box on the left flower
+                    (viewBox 600×500, 3 outer circles span ~426 units wide → 71%). */}
+                <MasterOfThought
+                  className="w-[71%] h-auto"
+                  color={currentLogoColor}
+                />
+              </div>
+              <div className="absolute bottom-6 left-0 right-0 max-w-lg mx-auto px-4 text-center space-y-4">
                 <div className="text-4xl">✦</div>
-                {selectedSection ? (
-                  <h1 className="text-2xl font-bold">{activeSection?.subtitle}</h1>
-                ) : (
-                  <div>
-                    <h1 className="text-2xl font-bold">{divinityUi.title}</h1>
-                    <p className="text-sm italic mt-1" style={{ color: currentSubtitleColor, opacity: 0.9 }}>
-                      {divinityUi.subtitle}
-                    </p>
-                  </div>
-                )}
+                <div>
+                  <h1 className="text-2xl font-bold">{divinityUi.title}</h1>
+                  <p className="text-sm italic mt-1" style={{ color: currentSubtitleColor, opacity: 0.9 }}>
+                    {divinityUi.subtitle}
+                  </p>
+                </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {selectedSection
-                    ? divinityUi.selectPortal
-                    : divinityUi.guideDescription
-                  }
+                  {divinityUi.guideDescription}
                 </p>
                 <p className="text-xs text-muted-foreground/60 italic">
                   &quot;{divinityUi.welcomeHome}&quot;
                 </p>
-                </div>
+              </div>
+            </div>
+          ) : !selectedChapter ? (
+            // Section-selected (no chapter) layout — no emblem, just the prompt text centered.
+            <div className="flex items-center justify-center h-full w-full">
+              <div className="text-center space-y-4 max-w-lg px-4">
+                <div className="text-4xl">✦</div>
+                <h1 className="text-2xl font-bold">{activeSection?.subtitle}</h1>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {divinityUi.selectPortal}
+                </p>
+                <p className="text-xs text-muted-foreground/60 italic">
+                  &quot;{divinityUi.welcomeHome}&quot;
+                </p>
               </div>
             </div>
           ) : (
