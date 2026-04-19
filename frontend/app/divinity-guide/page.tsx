@@ -759,7 +759,6 @@ function LibraryReader({
   const LIBRARY_INSERTS: Record<string, InjectedPage[]> = {
     prelude: [
       { afterIndex: 0, type: "image", src: "/book-images/Prelude.png", alt: "Flower of Life — Prelude" },
-      { afterIndex: 2, type: "component", component: "master-of-thought" },
     ],
     framework: [
       { afterIndex: -1, type: "image", src: "/book-images/Framework.png", alt: "Flower of Life — Framework" },
@@ -1643,9 +1642,16 @@ function DivinityGuidePage() {
           ) : !selectedChapter ? (
             <div className="flex items-center justify-center h-full w-full">
               <div className="text-center space-y-4 max-w-lg px-4">
+                {!selectedSection && (
+                  <div className="flex justify-center mb-2">
+                    <MasterOfThought size={260} />
+                  </div>
+                )}
                 <div className="text-4xl">✦</div>
                 <h1 className="text-2xl font-bold">
-                  {selectedSection ? activeSection?.subtitle : divinityUi.subtitle}
+                  {selectedSection
+                    ? activeSection?.subtitle
+                    : `${divinityUi.title}: ${divinityUi.subtitle}`}
                 </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {selectedSection

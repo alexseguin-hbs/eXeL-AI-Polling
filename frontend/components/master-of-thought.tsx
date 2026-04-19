@@ -37,17 +37,18 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
   const cx = 200;
   const cy = 200;
 
-  // Radii calibrated to the eagle emblem PNG (400×400 viewBox):
-  // Outer rope border edge: ~188    Inner rope edge: ~172
-  // Inner smooth circle:    ~152    Eagle head top: ~115
-  // Gap midpoint for outer cuneiform: ~162
-  const textR = 162;       // outer cuneiform — centered in gap between circles
-  const innerTextR = 118;  // inner cuneiform — above eagle head, below inner circle
+  // Radii calibrated via radial pixel scan of master-of-thought-bw.png
+  // (measured distance from center of coin, normalized to 400×400 viewBox):
+  //   Outer rope border edge: ~152   Rope inner edge: ~115
+  //   Inner smooth circle edge: ~85  Eagle head top: ~50
+  //   Gap midpoint (rope inner ↔ inner circle): ~100
+  const textR = 100;       // outer cuneiform — centered in gap inside rope border
+  const innerTextR = 68;   // inner cuneiform — above eagle head, inside smooth circle
 
   const outerArcs: CuneiformArc[] = [
     {
       label: "Humanity's Universal Challenge",
-      cuneiform: "𒇽  𒈨 𒅗  𒋧  𒍠",
+      cuneiform: "𒇽  𒈨 𒅗   𒋧  𒍠",
       startAngle: -90,    // 12 o'clock — top center
       span: 60,
       clockwise: true,
@@ -81,9 +82,9 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
     {
       label: "Emerald Tablets",
       cuneiform: "𒁾  𒄀  𒈾 𒈾",
-      startAngle: 128,    // ~4–5 o'clock — bottom right between bullets
-      span: 42,
-      clockwise: false,
+      startAngle: 48,     // ~4–5 o'clock — bottom right between bullets
+      span: 52,
+      clockwise: true,
       radius: textR,
     },
   ];
