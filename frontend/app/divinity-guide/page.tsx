@@ -1670,10 +1670,11 @@ function DivinityGuidePage() {
               </div>
             </div>
           ) : !selectedChapter && !selectedSection ? (
-            // Front-cover layout: emblem vertically centered to align with the
-            // left column's cyan-hub center; text block pinned to the bottom.
-            <div className="flex items-center justify-center h-full w-full relative">
-              <div className="w-full flex justify-center cursor-pointer" onClick={cycleLogoColor}>
+            // Front-cover layout: emblem on top, text below — flex-col so they
+            // never overlap. Both centered together so the emblem sits near the
+            // left hub height while the text flows cleanly below.
+            <div className="h-full w-full flex flex-col items-center justify-center gap-8 py-8 overflow-y-auto">
+              <div className="w-full flex justify-center cursor-pointer flex-shrink-0" onClick={cycleLogoColor}>
                 {/* Width matches the 3-circle trefoil's bounding box on the left flower
                     (viewBox 600×500, 3 outer circles span ~426 units wide → 71%). */}
                 <MasterOfThought
@@ -1681,7 +1682,7 @@ function DivinityGuidePage() {
                   color={currentLogoColor}
                 />
               </div>
-              <div className="absolute bottom-6 left-0 right-0 max-w-lg mx-auto px-4 text-center space-y-4">
+              <div className="max-w-lg w-full px-4 text-center space-y-4 flex-shrink-0">
                 <div className="text-4xl">✦</div>
                 <div>
                   <h1 className="text-2xl font-bold">{divinityUi.title}</h1>

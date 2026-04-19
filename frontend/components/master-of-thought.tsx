@@ -55,7 +55,7 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
   //   clockwise: true  → glyphs extend OUTWARD (visual center = baseline + fontSize/2)
   //   clockwise: false → glyphs extend INWARD  (visual center = baseline − fontSize/2)
   // Baseline radius is calculated so the glyph visual center lands at r≈123 on every arc.
-  const innerTextR = 65;   // inner cuneiform — tighter arc, sits in the gap between wing tips (~y=125) and top of head (~y=150); text center lands at y=135
+  const innerTextR = 68;   // inner cuneiform — 3px higher (was 65); sits in the gap between wing tips and top of eagle head
 
   // Divinity Guide + Book of Thoth are LOCKED at r=130 (user-confirmed).
   // The other 3 outer arcs + inner arc use per-arc radii per user iterations.
@@ -81,10 +81,10 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
     {
       label: "Book of Thoth",
       cuneiform: "𒁾  𒅗  𒋾",
-      startAngle: -17,    // user 73° = SVG -17° (-2° CCW toward 12 o'clock; mirrors Divinity Guide)
-      span: 40,
+      startAngle: -17,    // user 73° = SVG -17° (mirrors Divinity Guide across vertical axis)
+      span: 32,           // matches Divinity Guide's sweep
       clockwise: true,
-      radius: 123,        // -4px (127 → 123) per user
+      radius: 116,        // smaller r per user; CW-outward visual center (116+7=123) matches Divinity Guide's visual depth
       fontSize: 14,
     },
     {
@@ -101,9 +101,9 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       label: "Emerald Tablets",
       cuneiform: "𒁾  𒄀  𒈾 𒈾",
       startAngle: 46,     // user 136° (unchanged — 'same position')
-      span: 60,
+      span: 48,           // 60 → 48 to match Flower of Life's tighter sweep
       clockwise: false,
-      radius: 113,        // mirror of Flower of Life (was 118, pulled back 5px off rope inner edge)
+      radius: 117,        // +4px (113 → 117) — flattens arc so 4th glyph (𒈾) no longer reaches the inner circle
       fontSize: 14,
     },
   ];
@@ -112,10 +112,10 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
     label: "Master of Thought",
     cuneiform: "𒂗 𒊕  𒆠",
     startAngle: -90,     // top of inner area — centered above eagle head
-    span: 50,            // slightly wider to fit 3 glyphs at the tighter r=65
+    span: 50,
     clockwise: true,
     radius: innerTextR,
-    fontSize: 14,
+    fontSize: 13,        // slightly smaller per user (was 14)
   };
 
   const deg2rad = (d: number) => (d * Math.PI) / 180;
