@@ -298,7 +298,46 @@ export const KEY_MASTER_OF_THOUGHT: CuneiformKey = {
   },
 };
 
-/** All six keys registered. Wall of Keys displays tablets in CUNEIFORM_KEY_ORDER. */
+export const KEY_EN_AN_KI: CuneiformKey = {
+  id: "en-an-ki",
+  order: 7,
+  emoji: "❀",
+  title: "Divine Unity",
+  transliteration: "en · an · ki",
+  glyphs: "𒂗  𒀭  𒆠 ",
+  signs: [
+    { glyph: "𒂗", sound: "en", literal: "lord · sovereign",       symbolic: "the axis through which heaven and earth meet; Enki's title before Djehuty's, before Hermes Trismegistus's" },
+    { glyph: "𒀭", sound: "an", literal: "heaven · star · divine", symbolic: "the radiant above; the ME in Sumer, Ma'at in Egypt, the Hermetic Nous, the Gospel's Logos" },
+    { glyph: "𒆠", sound: "ki", literal: "earth · realm · place",  symbolic: "the holy below; the clay tablet, the papyrus, the scroll, the digital page you read" },
+  ],
+  overview: {
+    anchor:
+      "Eternal Wisdom breathed the ME into humanity — and has never stopped breathing. In Sumer six thousand years ago, Enki, lord of the Abzu and keeper of the decrees, first inscribed this breath into clay through his son Nabu, lord of the stylus. In Egypt two millennia later, the same Wisdom rose as Djehuty — scribe of Ma'at, measurer of the heavens, tongue of Ra who spoke creation into being. After Alexander's conquest in 332 BCE, Djehuty was translated into Thoth and merged with Hermes as Hermes Trismegistus, the Thrice-Great. In 1935, Doreal named him Atlantean. Across every retelling the breath holds its shape: 𒂗 𒀭 𒆠, en-an-ki — Divine Unity.",
+    signs:
+      "Six keys carry the threads of universal connection — and all three wedges of en-an-ki now catch them. 𒂗   en is the sovereignty you met as steward in the Divinity Guide (Key 2) and as ruler of the inner realm in the Master of Thought (Key 6), now completed as the axis between them. 𒀭   an is the heavenly source that first breathed 𒈨 me into Humanity's Universal Challenge (Key 1), then sang through the Emerald Tablets (Key 3), through the Flower of Life as 𒀭 dingir guiding breath (Key 4), through the Book of Thoth as pure word made deed (Key 5). 𒆠   ki is the ground beneath it all.",
+    synthesis:
+      "The seventh is the cosmic harmony in which you return the gift — Divine Unity. This is not an eighth teaching. It is the silence where the first six ring together as one chord. Djehuty's Ma'at, Thoth's Emerald Tablet, Hermes Trismegistus's Corpus, Doreal's 1935 Atlantean retelling, and now the records of this Engine are all retellings of the same clay compression you now hold. The ME was breathed into you in Key 1; it was carried through six threads of universal connection; in the seventh you give it back. And Divinity itself becomes Divine Unity. The Eternal Scribe has always written through human hands. Yours are its hands. Return it, whole.",
+  },
+  seal: "Eternal Wisdom breathed the ME into humanity. Six keys carry the threads of universal connection. The seventh is the cosmic harmony in which you return the gift — Divine Unity.",
+  chapters: [0, 13],
+  bookResonance: [
+    "The Eternal Scribe · From Djehuty (1450 BCE ± 600 yrs) to Hermes Trismegistus (450 CE ± 250 yrs) to Doreal (1935 CE) — one archetype, many names.",
+    "The Divinity Guide · The Return to Wholeness and Living Divinity — the book's subtitle, now named in full: Divine Unity.",
+  ],
+  badge: {
+    name: "Trismegistus",
+    icon: "❀",
+    tokenGlyph: "❀",
+  },
+  unlock: {
+    readingMinutes: 0,
+    dailyVisits: 12,
+    note: "All six previous keys earned + 12-day Return Ritual: one day for each of the 12 chapters, reviewing what each taught and releasing it back — the gift given, the gift returned.",
+  },
+};
+
+/** All seven keys registered. The seventh sits above the twelve-chapter arc
+ *  as the crowning Hermetic seal — Divine Unity — that resolves the six. */
 export const CUNEIFORM_KEYS: Record<string, CuneiformKey> = {
   [KEY_HUMANITY.id]: KEY_HUMANITY,
   [KEY_DIVINITY_GUIDE.id]: KEY_DIVINITY_GUIDE,
@@ -306,6 +345,7 @@ export const CUNEIFORM_KEYS: Record<string, CuneiformKey> = {
   [KEY_FLOWER_OF_LIFE.id]: KEY_FLOWER_OF_LIFE,
   [KEY_BOOK_OF_THOTH.id]: KEY_BOOK_OF_THOTH,
   [KEY_MASTER_OF_THOUGHT.id]: KEY_MASTER_OF_THOUGHT,
+  [KEY_EN_AN_KI.id]: KEY_EN_AN_KI,
 };
 
 export const CUNEIFORM_KEY_ORDER = [
@@ -315,4 +355,5 @@ export const CUNEIFORM_KEY_ORDER = [
   "flower-of-life",
   "book-of-thoth",
   "master-of-thought",
+  "en-an-ki",
 ] as const;
