@@ -1648,11 +1648,16 @@ function DivinityGuidePage() {
                   </div>
                 )}
                 <div className="text-4xl">✦</div>
-                <h1 className="text-2xl font-bold">
-                  {selectedSection
-                    ? activeSection?.subtitle
-                    : `${divinityUi.title}: ${divinityUi.subtitle}`}
-                </h1>
+                {selectedSection ? (
+                  <h1 className="text-2xl font-bold">{activeSection?.subtitle}</h1>
+                ) : (
+                  <div>
+                    <h1 className="text-2xl font-bold">{divinityUi.title}</h1>
+                    <p className="text-sm italic mt-1" style={{ color: "#D4AF37", opacity: 0.85 }}>
+                      {divinityUi.subtitle}
+                    </p>
+                  </div>
+                )}
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {selectedSection
                     ? divinityUi.selectPortal
