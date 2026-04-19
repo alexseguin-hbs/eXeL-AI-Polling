@@ -1222,6 +1222,18 @@ function DivinityGuidePage() {
   const { currentTheme } = useTheme();
   const hub = getHubPosition();
   const outerPositions = getTheme2_3Positions();
+
+  // Master of Thought logo color cycle — clicking the left hub star cycles through
+  // 12 evenly-spaced hues from RED to VIOLET. Initial state (-1) renders the default
+  // white emblem + gold cuneiform; first click → RED, then wraps through the spectrum.
+  const LOGO_COLORS = [
+    "#FF0000", "#FF6A00", "#FFB300", "#F4E400",
+    "#9BFF00", "#00FF2E", "#00FFC2", "#00B8FF",
+    "#0031FF", "#7000FF", "#C800FF", "#FF00A8",
+  ];
+  const [logoColorIndex, setLogoColorIndex] = useState(-1);
+  const currentLogoColor = logoColorIndex === -1 ? undefined : LOGO_COLORS[logoColorIndex];
+  const cycleLogoColor = () => setLogoColorIndex((prev) => (prev + 1) % LOGO_COLORS.length);
   const readerRef = useRef<HTMLDivElement>(null);
 
   // Track pages read — prompt after 12 pages AND 3 minutes on page
@@ -1508,6 +1520,7 @@ function DivinityGuidePage() {
                     <ThemeCircle cx={hub.cx} cy={hub.cy} r={hub.r}
                       theme={{ label: "✦", count: 0, avgConfidence: 0, summary33: divinityUi.explore }}
                       fill="rgba(var(--primary), 0.15)" stroke="hsl(var(--primary))" isHub
+                      onClick={cycleLogoColor}
                     />
                     {outerPositions.map((pos, i) => (
                       <ThemeCircle key={SECTIONS[i].id}
@@ -1641,12 +1654,18 @@ function DivinityGuidePage() {
             </div>
           ) : !selectedChapter ? (
             <div className="flex items-center justify-center h-full w-full">
-              <div className="text-center space-y-4 max-w-lg px-4">
+              <div className="text-center space-y-4 w-full px-4 flex flex-col items-center">
                 {!selectedSection && (
-                  <div className="flex justify-center mb-2">
-                    <MasterOfThought size={260} />
+                  <div className="w-full flex justify-center mb-2">
+                    {/* Width matches the 3-circle trefoil's bounding box on the left flower
+                        (viewBox 600×500, 3 outer circles span ~426 units wide → 71%). */}
+                    <MasterOfThought
+                      className="w-[71%] h-auto cursor-pointer"
+                      color={currentLogoColor}
+                    />
                   </div>
                 )}
+                <div className="max-w-lg w-full space-y-4">
                 <div className="text-4xl">✦</div>
                 {selectedSection ? (
                   <h1 className="text-2xl font-bold">{activeSection?.subtitle}</h1>
@@ -1667,6 +1686,7 @@ function DivinityGuidePage() {
                 <p className="text-xs text-muted-foreground/60 italic">
                   &quot;{divinityUi.welcomeHome}&quot;
                 </p>
+                </div>
               </div>
             </div>
           ) : (

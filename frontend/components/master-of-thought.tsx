@@ -29,10 +29,15 @@ interface CuneiformArc {
 export interface MasterOfThoughtProps {
   size?: number;
   className?: string;
+  /** Tint color applied to both the eagle emblem and the cuneiform glyphs.
+   *  When undefined, renders with default palette (white emblem + gold cuneiform). */
+  color?: string;
 }
 
-export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtProps) {
+export function MasterOfThought({ size = 320, className = "", color }: MasterOfThoughtProps) {
   const uid = useId().replace(/:/g, "");
+  const tintId = `${uid}-tint`;
+  const textFill = color ?? "gold";
 
   const cx = 200;
   const cy = 200;
@@ -74,7 +79,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
     {
       label: "Flower of Life",
       cuneiform: "𒄑 𒌑 𒀭 𒍣",
-      startAngle: 212,    // ~7–8 o'clock — bottom left between bullets
+      startAngle: 135,    // ~7–8 o'clock — bottom left between bullets (SVG 135° = user 225°)
       span: 42,
       clockwise: false,
       radius: textR,
@@ -82,9 +87,9 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
     {
       label: "Emerald Tablets",
       cuneiform: "𒁾  𒄀  𒈾 𒈾",
-      startAngle: 48,     // ~4–5 o'clock — bottom right between bullets
-      span: 52,
-      clockwise: true,
+      startAngle: 45,     // ~4–5 o'clock — bottom right between bullets (SVG 45° = user 135°)
+      span: 42,
+      clockwise: false,
       radius: textR,
     },
   ];
@@ -130,6 +135,12 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
       aria-label="Master of Thought — Eagle emblem with Sumerian cuneiform"
     >
       <defs>
+        {color && (
+          <filter id={tintId}>
+            <feFlood floodColor={color} result="flood" />
+            <feComposite in="flood" in2="SourceGraphic" operator="in" />
+          </filter>
+        )}
         {allArcs.map((arc, i) => (
           <path key={`def-${i}`} id={`${uid}-arc-${i}`} d={makeArc(arc)} fill="none" />
         ))}
@@ -140,11 +151,12 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
         href="/book-images/master-of-thought.png"
         x="0" y="0" width="400" height="400"
         preserveAspectRatio="xMidYMid meet"
+        filter={color ? `url(#${tintId})` : undefined}
       />
 
       {/* Outer cuneiform text — between bullet dots */}
       {outerArcs.map((arc, i) => (
-        <text key={`t-${i}`} fill="gold" fontSize={arc.fontSize ?? defaultFontSize} fontWeight="bold"
+        <text key={`t-${i}`} fill={textFill} fontSize={arc.fontSize ?? defaultFontSize} fontWeight="bold"
           fontFamily="serif" letterSpacing={4} opacity={0.9}>
           <title>{arc.label}</title>
           <textPath href={`#${uid}-arc-${i}`} startOffset="50%" textAnchor="middle">
@@ -154,7 +166,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
       ))}
 
       {/* Inner cuneiform — "Master of Thought" above eagle head */}
-      <text fill="gold" fontSize={innerArc.fontSize ?? defaultFontSize} fontWeight="bold"
+      <text fill={textFill} fontSize={innerArc.fontSize ?? defaultFontSize} fontWeight="bold"
         fontFamily="serif" letterSpacing={6} opacity={0.85}>
         <title>{innerArc.label}</title>
         <textPath href={`#${uid}-arc-${allArcs.length - 1}`} startOffset="50%" textAnchor="middle">
