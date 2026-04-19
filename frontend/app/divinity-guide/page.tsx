@@ -838,9 +838,14 @@ function LibraryReader({
   const totalPages = bookPages.length;
   const bookPage = bookPages[pageIndex] ?? null;
 
+  const isInjectPage = bookPage?._inject?.type === "image" || bookPage?._inject?.type === "component";
   return (
-    <div className="w-full max-w-lg animate-in fade-in duration-300" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      <div className="mb-6 flex items-center justify-between">
+    <div
+      className={`w-full animate-in fade-in duration-300 ${isInjectPage ? "" : "max-w-lg"}`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className={`mb-6 flex items-center justify-between ${isInjectPage ? "max-w-lg mx-auto" : ""}`}>
         <p className="text-xs text-muted-foreground/60">{section.label} — {section.subtitle}</p>
         {onExpandBilingual && (
           <button
@@ -973,7 +978,7 @@ function LibraryReader({
         ) : null}
       </div>
 
-      <div className="flex items-center justify-between pt-4 mt-4 border-t">
+      <div className={`flex items-center justify-between pt-4 mt-4 border-t ${isInjectPage ? "max-w-lg mx-auto" : ""}`}>
         <button
           onClick={() => pageIndex > 0 && setPageIndex(pageIndex - 1)}
           disabled={pageIndex === 0}
