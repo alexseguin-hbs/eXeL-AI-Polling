@@ -2041,7 +2041,7 @@ function DivinityGuidePage() {
           >
             <div className="flex items-center justify-between">
               <h2 className="text-sm tracking-[0.3em] font-bold" style={{ color: "#00ff88" }}>
-                ◆ CAPTURED · COPY TO CLAUDE
+                ◆ INSCRIBED · DELIVER TO THE SCRIBE
               </h2>
               <button
                 onClick={() => navigator.clipboard?.writeText(capturedConfig)}
@@ -2060,7 +2060,10 @@ function DivinityGuidePage() {
               }}
             >{capturedConfig}</pre>
             <p className="text-[10px] italic" style={{ color: "rgba(200, 240, 255, 0.55)" }}>
-              arcs reset to defaults — continue iterating, or close this to exit.
+              the arcs return to origin · continue the refinement, or close the loom.
+            </p>
+            <p className="text-[9px] tracking-[0.3em] text-center pt-1" style={{ color: "rgba(0, 255, 136, 0.55)" }}>
+              ◬ · ♡ · 웃
             </p>
             <div className="flex justify-end">
               <button
@@ -2102,30 +2105,32 @@ function DivinityGuidePage() {
           >
             <div>
               <h3 className="text-xs font-bold tracking-[0.3em]" style={{ color: "#00dcff" }}>
-                ◆ MoT
+                ◆ MoT · GLYPH LOOM
               </h3>
-              <p className="text-[9px] text-cyan-200/50 mt-0.5 tracking-wider">ANGLE: 0° = TOP · CW</p>
+              <p className="text-[9px] text-cyan-200/50 mt-0.5 tracking-wider">
+                ZENITH = 0° · CLOCKWISE FLOW
+              </p>
             </div>
             <div className="flex gap-1">
               <button
                 onClick={openSaveCode}
-                title="Save + capture config"
+                title="Inscribe the cipher"
                 className="px-2 py-1 text-[9px] tracking-wider rounded border transition-all"
                 style={{ borderColor: "rgba(0, 255, 136, 0.4)", color: "#00ff88" }}
               >
-                SAVE
+                INSCRIBE
               </button>
               <button
                 onClick={resetEditArcs}
-                title="Reset to defaults"
+                title="Return to origin"
                 className="px-2 py-1 text-[9px] tracking-wider rounded border transition-all"
                 style={{ borderColor: "rgba(0, 220, 255, 0.3)", color: "#00dcff" }}
               >
-                RESET
+                ORIGIN
               </button>
               <button
                 onClick={() => { setEditMode(false); setSelectedArcIndex(null); }}
-                title="Exit edit mode"
+                title="Close the loom"
                 className="w-7 h-7 text-sm rounded border transition-all"
                 style={{ borderColor: "rgba(0, 220, 255, 0.3)", color: "#00dcff" }}
               >
@@ -2135,32 +2140,32 @@ function DivinityGuidePage() {
           </div>
 
           <div className="p-3 space-y-3 max-h-[70vh] overflow-y-auto" style={{ color: "#c8f0ff" }}>
-            {/* Center controls — adjust cx/cy of the emblem origin */}
+            {/* Center controls — the axis of the eagle */}
             <div
               className="p-2 rounded space-y-1.5"
               style={{ background: "rgba(0, 30, 45, 0.5)", border: "1px solid rgba(0, 220, 255, 0.2)" }}
             >
               <p className="text-[9px] tracking-wider" style={{ color: "#00dcff" }}>
-                ◢ CENTER (X + crosshair across eagle)
+                ◢ AXIS · EAGLE'S ORIGIN
               </p>
               <ArcNumberField
-                label="CX (viewBox)"
+                label="X · across"
                 value={editCenter.cx}
                 step={1}
                 onChange={(v) => setEditCenter(prev => ({ ...prev, cx: v }))}
               />
               <ArcNumberField
-                label="CY (viewBox)"
+                label="Y · down"
                 value={editCenter.cy}
                 step={1}
                 onChange={(v) => setEditCenter(prev => ({ ...prev, cy: v }))}
               />
             </div>
 
-            {/* Arc selector */}
+            {/* Phrase selector */}
             <div>
               <label className="block text-[9px] tracking-wider text-cyan-300/70 mb-1">
-                ◢ SELECT ARC
+                ◢ ATTUNE A PHRASE
               </label>
               <select
                 value={selectedArcIndex ?? ""}
@@ -2172,11 +2177,11 @@ function DivinityGuidePage() {
                   color: "#c8f0ff",
                 }}
               >
-                <option value="">— click a phrase on the emblem —</option>
+                <option value="">— touch a phrase on the emblem to awaken it —</option>
                 {editOuterArcs.map((a, i) => (
                   <option key={i} value={i}>{i + 1}. {a.label}</option>
                 ))}
-                <option value={editOuterArcs.length}>{editOuterArcs.length + 1}. {editInnerArc.label} (inner)</option>
+                <option value={editOuterArcs.length}>{editOuterArcs.length + 1}. {editInnerArc.label} · inner</option>
               </select>
             </div>
 
@@ -2187,35 +2192,35 @@ function DivinityGuidePage() {
                 </p>
 
                 <ArcNumberField
-                  label="RADIUS (px from center)"
+                  label="RADIUS · steps from axis"
                   value={selectedArc.radius}
                   step={1}
                   onChange={(v) => patchSelected({ radius: v })}
                 />
 
                 <ArcNumberField
-                  label="ANGLE (°, 0=top CW)"
+                  label="ANGLE · ° from zenith"
                   value={svgToUserAngle(selectedArc.startAngle)}
                   step={1}
                   onChange={(v) => patchSelected({ startAngle: userToSvgAngle(v) })}
                 />
 
                 <ArcNumberField
-                  label="SPAN (°, bullet-to-bullet)"
+                  label="SPAN · arc between seals"
                   value={selectedArc.span}
                   step={1}
                   onChange={(v) => patchSelected({ span: Math.max(1, v) })}
                 />
 
                 <ArcNumberField
-                  label="FONT SIZE"
+                  label="GLYPH · height"
                   value={selectedArc.fontSize ?? 14}
                   step={1}
                   onChange={(v) => patchSelected({ fontSize: Math.max(6, v) })}
                 />
 
                 <div className="flex items-center gap-2 pt-1">
-                  <label className="text-[9px] tracking-wider text-cyan-300/70 flex-1">DIRECTION</label>
+                  <label className="text-[9px] tracking-wider text-cyan-300/70 flex-1">FLOW</label>
                   <button
                     onClick={() => patchSelected({ clockwise: !selectedArc.clockwise })}
                     className="px-2 py-1 text-[10px] rounded border transition-all"
@@ -2224,7 +2229,7 @@ function DivinityGuidePage() {
                       color: selectedArc.clockwise ? "#ffd24a" : "#00ff88",
                     }}
                   >
-                    {selectedArc.clockwise ? "CW · outward" : "CCW · inward"}
+                    {selectedArc.clockwise ? "CW · outward radiance" : "CCW · inward contemplation"}
                   </button>
                 </div>
 
@@ -2232,19 +2237,19 @@ function DivinityGuidePage() {
                   className="text-[9px] tracking-wider pt-2 mt-2 italic"
                   style={{ color: "rgba(200, 240, 255, 0.55)", borderTop: "1px dashed rgba(0, 220, 255, 0.2)" }}
                 >
-                  visual glyph center ≈ r {selectedArc.clockwise ? "+" : "−"} {(selectedArc.fontSize ?? 14) / 2} = {(selectedArc.radius + (selectedArc.clockwise ? 1 : -1) * (selectedArc.fontSize ?? 14) / 2).toFixed(1)}
+                  resonance center ≈ r {selectedArc.clockwise ? "+" : "−"} {(selectedArc.fontSize ?? 14) / 2} = {(selectedArc.radius + (selectedArc.clockwise ? 1 : -1) * (selectedArc.fontSize ?? 14) / 2).toFixed(1)}
                 </div>
               </div>
             ) : (
               <p className="text-[10px] italic" style={{ color: "rgba(200, 240, 255, 0.5)" }}>
-                click a cuneiform phrase on the emblem, or pick one above
+                awaken a phrase · touch a cuneiform on the emblem, or choose from above
               </p>
             )}
 
-            {/* Summary of all values — collapsible, copy-paste back into DEFAULT_OUTER_ARCS */}
+            {/* Living cipher — full config, collapsible, copy back to source */}
             <details className="pt-2" style={{ borderTop: "1px solid rgba(0, 220, 255, 0.15)" }}>
               <summary className="text-[9px] tracking-widest cursor-pointer" style={{ color: "#00dcff" }}>
-                ◢ FULL CONFIG (copy back to source)
+                ◢ LIVING CIPHER · copy for the scribe
               </summary>
               <pre
                 className="text-[8px] p-2 rounded mt-1 overflow-x-auto"
@@ -2281,7 +2286,18 @@ function DivinityGuidePage() {
               </pre>
             </details>
           </div>
-          {/* Bottom grid/scanline accent */}
+          {/* Bottom footer — H×AI co-inscription, closing the creative loop */}
+          <div
+            className="px-4 py-2 text-[9px] tracking-[0.2em] text-center"
+            style={{
+              color: "rgba(0, 220, 255, 0.55)",
+              borderTop: "1px solid rgba(0, 220, 255, 0.15)",
+              background: "rgba(0, 10, 20, 0.6)",
+            }}
+          >
+            H × AI · CLOSING THE CREATIVE LOOP · 2525
+          </div>
+          {/* Bottom scanline accent */}
           <div
             className="absolute inset-x-0 bottom-0 h-[1px]"
             style={{ background: "linear-gradient(90deg, transparent 0%, #00dcff 50%, transparent 100%)" }}
