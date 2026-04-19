@@ -37,7 +37,10 @@ export interface MasterOfThoughtProps {
 export function MasterOfThought({ size = 320, className = "", color }: MasterOfThoughtProps) {
   const uid = useId().replace(/:/g, "");
   const tintId = `${uid}-tint`;
-  const textFill = color ?? "gold";
+  // When emblem is white (initial state), cuneiform stays gold for readability
+  // + aesthetic. All other tint colors propagate through to the cuneiform.
+  const isWhiteTint = color === "#FFFFFF" || color?.toLowerCase?.() === "white";
+  const textFill = !color || isWhiteTint ? "gold" : color;
 
   const cx = 200;
   const cy = 200;
@@ -61,9 +64,9 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       label: "Humanity's Universal Challenge",
       cuneiform: "𒇽  𒈨 𒅗   𒋧  𒍠",
       startAngle: -90,    // 12 o'clock — top center
-      span: 60,
+      span: 72,           // widened 60 → 72 so all 5 glyphs are visible
       clockwise: true,
-      radius: 113,        // pushed up 8px (was 105 → y=95, now y=87)
+      radius: 120,        // pushed up 7px (113 → 120) per user
       fontSize: 14,
     },
     {
@@ -79,27 +82,27 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       label: "Book of Thoth",
       cuneiform: "𒁾  𒅗  𒋾",
       startAngle: -15,    // user 75° = SVG -15° (between 2 & 3 o'clock)
-      span: 32,
+      span: 40,           // widened 32 → 40 to fit all 3 glyphs
       clockwise: true,
-      radius: 130,        // LOCKED — user confirmed "almost the right radius"
+      radius: 127,        // -3px (130 → 127) per user
       fontSize: 14,
     },
     {
       label: "Flower of Life",
       cuneiform: "𒄑 𒌑 𒀭 𒍣",
-      startAngle: 130,    // user 220° = SVG 130° (moved 5° closer to 6 o'clock)
+      startAngle: 132,    // user 222° = SVG 132° (+2° away from 180 so glyphs lift off inner circle)
       span: 48,
       clockwise: false,
-      radius: 110,        // +5px (was 105)
+      radius: 112,        // +2px (110 → 112) so glyphs don't touch inner smooth circle
       fontSize: 14,
     },
     {
       label: "Emerald Tablets",
       cuneiform: "𒁾  𒄀  𒈾 𒈾",
-      startAngle: 51,     // user 141° = SVG 51° (mirror of Flower of Life's move, 6° toward 6 o'clock)
-      span: 48,
+      startAngle: 46,     // user 136° = SVG 46° (−5° → closer to 4-5 o'clock position)
+      span: 60,           // widened 48 → 60 so glyphs center between the two bullets
       clockwise: false,
-      radius: 110,        // +5px (was 105)
+      radius: 110,
       fontSize: 14,
     },
   ];

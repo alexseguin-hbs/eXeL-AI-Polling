@@ -1245,6 +1245,11 @@ function DivinityGuidePage() {
   ];
   const [logoColorIndex, setLogoColorIndex] = useState(0);
   const currentLogoColor = LOGO_COLORS[logoColorIndex];
+  // Subtitle + cuneiform show gold on the WHITE emblem state (initial landing)
+  // so the text is readable on the dark background. All other states propagate
+  // the emblem color to the subtitle so it cycles in sync.
+  const GOLD = "#D4AF37";
+  const currentSubtitleColor = currentLogoColor === "#FFFFFF" ? GOLD : currentLogoColor;
   const cycleLogoColor = () => setLogoColorIndex((prev) => (prev + 1) % LOGO_COLORS.length);
   const readerRef = useRef<HTMLDivElement>(null);
 
@@ -1684,7 +1689,7 @@ function DivinityGuidePage() {
                 ) : (
                   <div>
                     <h1 className="text-2xl font-bold">{divinityUi.title}</h1>
-                    <p className="text-sm italic mt-1" style={{ color: currentLogoColor, opacity: 0.85 }}>
+                    <p className="text-sm italic mt-1" style={{ color: currentSubtitleColor, opacity: 0.9 }}>
                       {divinityUi.subtitle}
                     </p>
                   </div>
