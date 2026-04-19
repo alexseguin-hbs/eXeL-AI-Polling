@@ -99,8 +99,10 @@ export interface MasterOfThoughtProps {
   selectedIndex?: number | null;
   /** Invoked when an arc is clicked in edit mode. */
   onSelectArc?: (index: number | null) => void;
-  /** Render a small center crosshair + alignment rings (for edit mode). */
+  /** Render a crosshair X + alignment rings (for edit mode). */
   showGuides?: boolean;
+  /** Optional center override in viewBox coords. Defaults to (200, 200). */
+  center?: { cx: number; cy: number };
 }
 
 export function MasterOfThought({
@@ -112,6 +114,7 @@ export function MasterOfThought({
   selectedIndex = null,
   onSelectArc,
   showGuides = false,
+  center,
 }: MasterOfThoughtProps) {
   const uid = useId().replace(/:/g, "");
   const tintId = `${uid}-tint`;
@@ -120,8 +123,8 @@ export function MasterOfThought({
   const isWhiteTint = color === "#FFFFFF" || color?.toLowerCase?.() === "white";
   const textFill = !color || isWhiteTint ? "gold" : color;
 
-  const cx = 200;
-  const cy = 200;
+  const cx = center?.cx ?? 200;
+  const cy = center?.cy ?? 200;
 
   const outerArcs = outerArcsProp ?? DEFAULT_OUTER_ARCS;
   const innerArc = innerArcProp ?? DEFAULT_INNER_ARC;
@@ -177,16 +180,26 @@ export function MasterOfThought({
         filter={color ? `url(#${tintId})` : undefined}
       />
 
-      {/* Edit-mode guides: center crosshair + reference rings (inner circle + rope) */}
+      {/* Edit-mode guides: crosshair X spanning inner radius → outer radius,
+          reference rings, and dashed baseline paths for each arc. */}
       {showGuides && (
         <g pointerEvents="none">
-          <circle cx={cx} cy={cy} r={85} fill="none" stroke="#00e0ff" strokeWidth={0.5} strokeDasharray="2 3" opacity={0.55} />
-          <circle cx={cx} cy={cy} r={115} fill="none" stroke="#ff7a00" strokeWidth={0.5} strokeDasharray="2 3" opacity={0.55} />
-          <circle cx={cx} cy={cy} r={152} fill="none" stroke="#ff7a00" strokeWidth={0.5} strokeDasharray="2 3" opacity={0.55} />
-          <line x1={cx - 10} y1={cy} x2={cx + 10} y2={cy} stroke="#00e0ff" strokeWidth={0.8} />
-          <line x1={cx} y1={cy - 10} x2={cx} y2={cy + 10} stroke="#00e0ff" strokeWidth={0.8} />
-          <circle cx={cx} cy={cy} r={2} fill="#00e0ff" />
-          {/* Visualize the arc baselines in edit mode */}
+          {/* Reference rings: inner smooth circle, rope inner edge, rope outer edge */}
+          <circle cx={cx} cy={cy} r={85} fill="none" stroke="#00e0ff" strokeWidth={0.6} strokeDasharray="2 3" opacity={0.55} />
+          <circle cx={cx} cy={cy} r={115} fill="none" stroke="#ff7a00" strokeWidth={0.6} strokeDasharray="2 3" opacity={0.55} />
+          <circle cx={cx} cy={cy} r={152} fill="none" stroke="#ff7a00" strokeWidth={0.6} strokeDasharray="2 3" opacity={0.55} />
+          {/* X crosshair spanning inner radius to outer radius (plus short inner segments) */}
+          {/* Horizontal arms */}
+          <line x1={cx - 152} y1={cy} x2={cx - 85} y2={cy} stroke="#00e0ff" strokeWidth={0.8} opacity={0.8} />
+          <line x1={cx + 85} y1={cy} x2={cx + 152} y2={cy} stroke="#00e0ff" strokeWidth={0.8} opacity={0.8} />
+          {/* Vertical arms */}
+          <line x1={cx} y1={cy - 152} x2={cx} y2={cy - 85} stroke="#00e0ff" strokeWidth={0.8} opacity={0.8} />
+          <line x1={cx} y1={cy + 85} x2={cx} y2={cy + 152} stroke="#00e0ff" strokeWidth={0.8} opacity={0.8} />
+          {/* Inner short crosshair at center so user can verify alignment */}
+          <line x1={cx - 14} y1={cy} x2={cx + 14} y2={cy} stroke="#00ff88" strokeWidth={1} />
+          <line x1={cx} y1={cy - 14} x2={cx} y2={cy + 14} stroke="#00ff88" strokeWidth={1} />
+          <circle cx={cx} cy={cy} r={2.5} fill="#00ff88" />
+          {/* Visualize each arc baseline */}
           {allArcs.map((arc, i) => {
             const isSel = i === selectedIndex;
             return (

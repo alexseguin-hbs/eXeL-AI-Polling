@@ -1303,7 +1303,14 @@ function DivinityGuidePage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [editOuterArcs, setEditOuterArcs] = useState<CuneiformArc[]>(() => DEFAULT_OUTER_ARCS.map(a => ({ ...a })));
   const [editInnerArc, setEditInnerArc] = useState<CuneiformArc>(() => ({ ...DEFAULT_INNER_ARC }));
+  const [editCenter, setEditCenter] = useState<{ cx: number; cy: number }>({ cx: 200, cy: 200 });
   const [selectedArcIndex, setSelectedArcIndex] = useState<number | null>(null);
+  // Save/capture flow — code 963369 captures the current config for copy-paste
+  // then resets arcs to defaults so you can continue iterating.
+  const [saveCodeOpen, setSaveCodeOpen] = useState(false);
+  const [saveCode, setSaveCode] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [capturedConfig, setCapturedConfig] = useState<string | null>(null);
 
   const openEditAuth = () => {
     if (editMode) { setEditMode(false); setSelectedArcIndex(null); return; }
@@ -1324,7 +1331,50 @@ function DivinityGuidePage() {
   const resetEditArcs = () => {
     setEditOuterArcs(DEFAULT_OUTER_ARCS.map(a => ({ ...a })));
     setEditInnerArc({ ...DEFAULT_INNER_ARC });
+    setEditCenter({ cx: 200, cy: 200 });
     setSelectedArcIndex(null);
+  };
+
+  const buildConfigSnapshot = () => JSON.stringify(
+    {
+      center: editCenter,
+      outer: editOuterArcs.map(a => ({
+        label: a.label,
+        r: a.radius,
+        angleUser: Math.round(svgToUserAngle(a.startAngle)),
+        angleSvg: a.startAngle,
+        span: a.span,
+        cw: a.clockwise,
+        fs: a.fontSize,
+      })),
+      inner: {
+        label: editInnerArc.label,
+        r: editInnerArc.radius,
+        angleUser: Math.round(svgToUserAngle(editInnerArc.startAngle)),
+        angleSvg: editInnerArc.startAngle,
+        span: editInnerArc.span,
+        cw: editInnerArc.clockwise,
+        fs: editInnerArc.fontSize,
+      },
+    },
+    null,
+    2,
+  );
+
+  const openSaveCode = () => {
+    setSaveCode("");
+    setSaveError(null);
+    setSaveCodeOpen(true);
+  };
+  const trySaveCapture = () => {
+    if (saveCode.trim() === "963369") {
+      setCapturedConfig(buildConfigSnapshot());
+      resetEditArcs();
+      setSaveCodeOpen(false);
+      setSaveError(null);
+    } else {
+      setSaveError("Invalid code.");
+    }
   };
 
   // Selected arc helpers (index 0-4 = outer, 5 = inner)
@@ -1789,6 +1839,7 @@ function DivinityGuidePage() {
                   selectedIndex={editMode ? selectedArcIndex : null}
                   onSelectArc={editMode ? setSelectedArcIndex : undefined}
                   showGuides={editMode}
+                  center={editMode ? editCenter : undefined}
                 />
               </div>
               <div className="max-w-lg w-full text-center space-y-4 flex-shrink-0">
@@ -1861,64 +1912,178 @@ function DivinityGuidePage() {
         </div>
       </div>
 
-      {/* Thought Master — edit auth dialog */}
+      {/* Edit-mode auth dialog — no placeholder text or visible labels (SECRET) */}
       {editAuthOpen && (
         <div
           className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
           onClick={() => setEditAuthOpen(false)}
         >
           <div
-            className="bg-card border rounded-xl p-6 max-w-sm w-full space-y-4 shadow-2xl"
+            className="rounded-xl p-6 max-w-sm w-full space-y-3 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "linear-gradient(135deg, rgba(0, 8, 20, 0.95) 0%, rgba(0, 20, 30, 0.95) 100%)",
+              border: "1px solid rgba(0, 220, 255, 0.4)",
+              boxShadow: "0 0 24px rgba(0, 220, 255, 0.25)",
+            }}
           >
-            <h2 className="text-lg font-bold">Are you Authorized to Edit?</h2>
-            <div className="space-y-2">
-              <label className="block text-xs text-muted-foreground">Who is this:</label>
-              <input
-                autoFocus
-                value={authName}
-                onChange={(e) => setAuthName(e.target.value)}
-                placeholder="Thought Master"
-                className="w-full px-3 py-2 rounded-md bg-muted text-foreground border border-border outline-none focus:border-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-xs text-muted-foreground">Code:</label>
-              <input
-                type="password"
-                value={authCode}
-                onChange={(e) => setAuthCode(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") tryUnlockEdit(); }}
-                className="w-full px-3 py-2 rounded-md bg-muted text-foreground border border-border outline-none focus:border-primary"
-              />
-            </div>
-            {authError && <p className="text-xs text-red-500">{authError}</p>}
-            <div className="flex gap-2 justify-end pt-2">
+            <h2 className="text-sm tracking-[0.3em] font-bold" style={{ color: "#00dcff" }}>◆ MoT</h2>
+            <input
+              autoFocus
+              type="password"
+              value={authName}
+              onChange={(e) => setAuthName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") tryUnlockEdit(); }}
+              className="w-full px-3 py-2 text-sm rounded-md outline-none"
+              style={{
+                background: "rgba(0, 30, 45, 0.8)",
+                color: "#c8f0ff",
+                border: "1px solid rgba(0, 220, 255, 0.3)",
+              }}
+            />
+            <input
+              type="password"
+              value={authCode}
+              onChange={(e) => setAuthCode(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") tryUnlockEdit(); }}
+              className="w-full px-3 py-2 text-sm rounded-md outline-none"
+              style={{
+                background: "rgba(0, 30, 45, 0.8)",
+                color: "#c8f0ff",
+                border: "1px solid rgba(0, 220, 255, 0.3)",
+              }}
+            />
+            {authError && <p className="text-xs" style={{ color: "#ff6b6b" }}>✕</p>}
+            <div className="flex gap-2 justify-end pt-1">
               <button
                 onClick={() => setEditAuthOpen(false)}
-                className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-muted transition-colors"
+                className="px-3 py-1.5 text-xs tracking-wider rounded"
+                style={{ border: "1px solid rgba(0, 220, 255, 0.3)", color: "#c8f0ff" }}
               >
-                Cancel
+                CANCEL
               </button>
               <button
                 onClick={tryUnlockEdit}
-                className="px-3 py-1.5 text-sm rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                className="px-3 py-1.5 text-xs tracking-wider rounded"
+                style={{ background: "#00dcff", color: "#001828" }}
               >
-                Unlock
+                UNLOCK
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Thought Master — edit controls panel (futuristic design tool, anchored
-          to the MoT emblem on the right column when editMode = true). */}
+      {/* Save-capture code dialog — SECRET, no labels */}
+      {saveCodeOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+          onClick={() => setSaveCodeOpen(false)}
+        >
+          <div
+            className="rounded-xl p-6 max-w-sm w-full space-y-3 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "linear-gradient(135deg, rgba(0, 8, 20, 0.95) 0%, rgba(0, 20, 30, 0.95) 100%)",
+              border: "1px solid rgba(0, 220, 255, 0.4)",
+              boxShadow: "0 0 24px rgba(0, 220, 255, 0.25)",
+            }}
+          >
+            <h2 className="text-sm tracking-[0.3em] font-bold" style={{ color: "#00dcff" }}>◆ MoT · SAVE</h2>
+            <input
+              autoFocus
+              type="password"
+              value={saveCode}
+              onChange={(e) => setSaveCode(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") trySaveCapture(); }}
+              className="w-full px-3 py-2 text-sm rounded-md outline-none"
+              style={{
+                background: "rgba(0, 30, 45, 0.8)",
+                color: "#c8f0ff",
+                border: "1px solid rgba(0, 220, 255, 0.3)",
+              }}
+            />
+            {saveError && <p className="text-xs" style={{ color: "#ff6b6b" }}>✕</p>}
+            <div className="flex gap-2 justify-end pt-1">
+              <button
+                onClick={() => setSaveCodeOpen(false)}
+                className="px-3 py-1.5 text-xs tracking-wider rounded"
+                style={{ border: "1px solid rgba(0, 220, 255, 0.3)", color: "#c8f0ff" }}
+              >
+                CANCEL
+              </button>
+              <button
+                onClick={trySaveCapture}
+                className="px-3 py-1.5 text-xs tracking-wider rounded"
+                style={{ background: "#00ff88", color: "#001828" }}
+              >
+                SAVE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Captured config modal — displayed after a successful save */}
+      {capturedConfig && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setCapturedConfig(null)}
+        >
+          <div
+            className="rounded-xl p-5 max-w-2xl w-full space-y-3 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "linear-gradient(135deg, rgba(0, 8, 20, 0.95) 0%, rgba(0, 20, 30, 0.95) 100%)",
+              border: "1px solid rgba(0, 255, 136, 0.5)",
+              boxShadow: "0 0 30px rgba(0, 255, 136, 0.3)",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm tracking-[0.3em] font-bold" style={{ color: "#00ff88" }}>
+                ◆ CAPTURED · COPY TO CLAUDE
+              </h2>
+              <button
+                onClick={() => navigator.clipboard?.writeText(capturedConfig)}
+                className="px-2 py-1 text-[10px] tracking-wider rounded"
+                style={{ border: "1px solid rgba(0, 255, 136, 0.4)", color: "#00ff88" }}
+              >
+                COPY
+              </button>
+            </div>
+            <pre
+              className="text-[10px] p-3 rounded max-h-[60vh] overflow-auto"
+              style={{
+                background: "rgba(0, 30, 45, 0.8)",
+                color: "#c8f0ff",
+                border: "1px solid rgba(0, 255, 136, 0.2)",
+              }}
+            >{capturedConfig}</pre>
+            <p className="text-[10px] italic" style={{ color: "rgba(200, 240, 255, 0.55)" }}>
+              arcs reset to defaults — continue iterating, or close this to exit.
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setCapturedConfig(null)}
+                className="px-3 py-1.5 text-xs tracking-wider rounded"
+                style={{ background: "#00ff88", color: "#001828" }}
+              >
+                CLOSE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MoT — edit controls panel. Anchored on the LEFT side of the viewport,
+          overlaying the 3-circle flower navigation. Futuristic cyan-neon design
+          tool. */}
       {editMode && (
         <div
           className="fixed z-40 w-[22rem] rounded-xl overflow-hidden select-none"
           style={{
             top: "50%",
-            right: "calc(50vw - 22rem - 1rem)",
+            left: "1rem",
             transform: "translateY(-50%)",
             background: "linear-gradient(135deg, rgba(0, 8, 20, 0.92) 0%, rgba(0, 20, 30, 0.92) 100%)",
             border: "1px solid rgba(0, 220, 255, 0.4)",
@@ -1936,12 +2101,20 @@ function DivinityGuidePage() {
             style={{ borderBottom: "1px solid rgba(0, 220, 255, 0.25)" }}
           >
             <div>
-              <h3 className="text-xs font-bold tracking-[0.25em]" style={{ color: "#00dcff" }}>
-                THOUGHT MASTER · EDIT
+              <h3 className="text-xs font-bold tracking-[0.3em]" style={{ color: "#00dcff" }}>
+                ◆ MoT
               </h3>
-              <p className="text-[9px] text-cyan-200/50 mt-0.5 tracking-wider">ANGLE: 0° = TOP, CW</p>
+              <p className="text-[9px] text-cyan-200/50 mt-0.5 tracking-wider">ANGLE: 0° = TOP · CW</p>
             </div>
             <div className="flex gap-1">
+              <button
+                onClick={openSaveCode}
+                title="Save + capture config"
+                className="px-2 py-1 text-[9px] tracking-wider rounded border transition-all"
+                style={{ borderColor: "rgba(0, 255, 136, 0.4)", color: "#00ff88" }}
+              >
+                SAVE
+              </button>
               <button
                 onClick={resetEditArcs}
                 title="Reset to defaults"
@@ -1962,6 +2135,28 @@ function DivinityGuidePage() {
           </div>
 
           <div className="p-3 space-y-3 max-h-[70vh] overflow-y-auto" style={{ color: "#c8f0ff" }}>
+            {/* Center controls — adjust cx/cy of the emblem origin */}
+            <div
+              className="p-2 rounded space-y-1.5"
+              style={{ background: "rgba(0, 30, 45, 0.5)", border: "1px solid rgba(0, 220, 255, 0.2)" }}
+            >
+              <p className="text-[9px] tracking-wider" style={{ color: "#00dcff" }}>
+                ◢ CENTER (X + crosshair across eagle)
+              </p>
+              <ArcNumberField
+                label="CX (viewBox)"
+                value={editCenter.cx}
+                step={1}
+                onChange={(v) => setEditCenter(prev => ({ ...prev, cx: v }))}
+              />
+              <ArcNumberField
+                label="CY (viewBox)"
+                value={editCenter.cy}
+                step={1}
+                onChange={(v) => setEditCenter(prev => ({ ...prev, cy: v }))}
+              />
+            </div>
+
             {/* Arc selector */}
             <div>
               <label className="block text-[9px] tracking-wider text-cyan-300/70 mb-1">
