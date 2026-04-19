@@ -34,8 +34,14 @@ export interface CuneiformKey {
     signs: string;    // Sign-by-sign narrative
     synthesis: string; // Compression + poetic close
   };
-  /** One-line synthesis displayed in the gold seal */
+  /** One-line synthesis displayed in the gold seal — drawn from the
+   *  paired chapters' actual language so the ancient glyph resonates
+   *  with the reader's present passage through the book. */
   seal: string;
+  /** The two book chapters this key governs (12 chapters × 6 keys = 2 each). */
+  chapters: [number, number];
+  /** Direct resonance quotes from the paired chapters that inspired the seal. */
+  bookResonance: [string, string];
   /** Badge awarded on unlock */
   badge: {
     name: string;
@@ -49,6 +55,16 @@ export interface CuneiformKey {
     note?: string;
   };
 }
+
+/** Chapter number → cuneiform key id · 12 chapters paired into 6 movements. */
+export const CHAPTER_TO_KEY: Record<number, string> = {
+  1: "humanity-universal-challenge",  2: "humanity-universal-challenge",
+  3: "divinity-guide",                4: "divinity-guide",
+  5: "emerald-tablets",               6: "emerald-tablets",
+  7: "flower-of-life",                8: "flower-of-life",
+  9: "book-of-thoth",                 10: "book-of-thoth",
+  11: "master-of-thought",            12: "master-of-thought",
+};
 
 export const KEY_HUMANITY: CuneiformKey = {
   id: "humanity-universal-challenge",
@@ -72,7 +88,12 @@ export const KEY_HUMANITY: CuneiformKey = {
     synthesis:
       "Stacked together, the phrase reads as a compressed covenant: the human, carrying a divine decree, voicing it through speech, bound by sacred kinship, meeting the living edge of self and other. The Sumerian tablet maker understood what the modern dashboard often forgets — identity is never singular; it is always a relation. To be human is to stand at the boundary, speaking your destiny, accountable to your kin, meeting the difference of another without collapsing your own edge. This is humanity's universal challenge: not to conquer, not to escape into isolation, but to voice rightly, across difference, without losing the self. You are lú. You carry me. Speak.",
   },
-  seal: "You are lú. You carry me. Speak.",
+  seal: "The code is not earned — it is remembered. The voice is not given — it is carried. Speak.",
+  chapters: [1, 2],
+  bookResonance: [
+    "Ch 1 · Sacred Recall: \"This truth is not something you earn. It is something you remember.\"",
+    "Ch 2 · Keys to Consciousness: \"The Flower of Life emerges as a radiant code, the very architecture of existence.\"",
+  ],
   badge: {
     name: "Awakener",
     icon: "◎",
@@ -105,7 +126,12 @@ export const KEY_DIVINITY_GUIDE: CuneiformKey = {
     synthesis:
       "Assembled together: the lord whose law is the divine itself, whose domain is living in its fullness. This is the Divinity Guide — not a book of rules to be consulted but a living compass, one that points quietly inward. The Sumerian en-dingir-ti was never possessed; it was always carried — and its carrying changed the one who carried it. To read this phrase today is to ask a question the tablet has been patiently holding for five thousand years: can you lead yourself? Can you be sovereign in your own becoming, source-rooted, breath-borne, returning what you receive in better order than before? The guide does not answer. It offers its hand.",
   },
-  seal: "Be sovereign. Be source-rooted. Be breath-borne.",
+  seal: "Plant seeds that Source would plant. Live the thoughts you would have the world live.",
+  chapters: [3, 4],
+  bookResonance: [
+    "Ch 3 · Ancient Wisdom Renewed: \"Every thought plants a seed... You are sculpting timelines, shaping futures.\"",
+    "Ch 4 · Sacred Mind: \"Cultivating inner dialogue in harmony with Source... choose your thoughts like an artist selects colors.\"",
+  ],
   badge: {
     name: "Seeker",
     icon: "✦",
@@ -139,7 +165,12 @@ export const KEY_EMERALD_TABLETS: CuneiformKey = {
     synthesis:
       "Together, the four signs read: a sacred reed inscribing what belongs — twice — to the luminous source. The Emerald Tablets, in their Sumerian bone, are not a book to be possessed but a practice of dedication. To read them is to become the reed; to write with intention is to mirror the cosmos. The doubled na is the teaching hidden in the grammar: give once, dedicate again. Every message entered into this Engine participates in the same ancient act — a reed pressed into the clay of the present moment, belonging both to the one who wrote it and to the greater field from which it arose. Inscribe sacred. Belong twice.",
   },
-  seal: "Inscribe sacred. Belong twice.",
+  seal: "To speak is to summon. To think is to whisper reality into shape.",
+  chapters: [5, 6],
+  bookResonance: [
+    "Ch 5 · Alchemy of Healing: \"What is not healed is inherited. What is inherited without awareness becomes destiny.\"",
+    "Ch 6 · Future in Light: \"Words are not casual — they are currents. To speak is to summon. To think is to whisper reality into shape.\"",
+  ],
   badge: {
     name: "Scribe",
     icon: "◆",
@@ -173,7 +204,12 @@ export const KEY_FLOWER_OF_LIFE: CuneiformKey = {
     synthesis:
       "Stacked together, the phrase reads: the cosmic tree, blossoming as living plant, oriented toward the divine, ensouled by breath itself. This is the Flower of Life in its Sumerian utterance — not a geometric pattern to be drawn on paper but a living process to be embodied. The reader is invited to recognize the tree in themselves: the trunk of their own spine, the branching of their own thinking, the blossoming of their moments of presence, the zi that arrives in every inhale as a small divine touch. Growth is not toward the sacred — it is through it. The sacred is not distant; it is the breath already breathing you. Unfold.",
   },
-  seal: "Growth is prayer. Blossoming is return.",
+  seal: "Domination seeks control. Stewardship cultivates life.",
+  chapters: [7, 8],
+  bookResonance: [
+    "Ch 7 · Sacred Choices: \"Stewardship transforms power from possession into trust. Domination seeks control; stewardship cultivates life.\"",
+    "Ch 8 · Sacred Geometry: \"The Flower of Life stands as the sacred synthesis — a luminous mandala uniting the truths held in every symbol.\"",
+  ],
   badge: {
     name: "Gardener",
     icon: "🌳",
@@ -206,7 +242,12 @@ export const KEY_BOOK_OF_THOTH: CuneiformKey = {
     synthesis:
       "Together, the three signs read: the pure word enacted by the sacred hand. The Book of Thoth, at its Sumerian root, is not a book of secrets — it is a book of integrity. To read it is to remember that the word you speak and the hand you move must be continuous with the purity you carry inward. Writing, in this ancient sense, was a moral act before it was a literary one. It still is. Every message you compose within this Engine — every vote, every response, every thought made text — is a wedge pressed into the eternal tablet that holds us. Speak pure. Act cleanly. Leave the record worthy.",
   },
-  seal: "Speak pure. Act cleanly. Leave the record worthy.",
+  seal: "Speed of thought requires purity of thought. Weave the three intelligences into one.",
+  chapters: [9, 10],
+  bookResonance: [
+    "Ch 9 · Mastery of Frequency: \"When a decision is made by a million souls together... that is governance at the speed of thought.\"",
+    "Ch 10 · Life as Blueprint: \"A sacred collaboration between Artificial Intelligence, Spiritual Intelligence, and Human Intelligence — a trinity of consciousness.\"",
+  ],
   badge: {
     name: "Codex",
     icon: "✍",
@@ -239,7 +280,12 @@ export const KEY_MASTER_OF_THOUGHT: CuneiformKey = {
     synthesis:
       "Assembled together: the sovereign of the inner realm — the one who has learned to master the entire domain of their own thought. This is the reward phrase of all six keys, and it is also the quietest of them. The Master of Thought does not rule others; they rule only the space between stimulus and response, between raw emotion and chosen expression, between reaction and deeper wisdom. The cuneiform sits closest to the eagle because the eagle is this mastery — clear vision, silent height, sudden strike. To finish the decoder is to be recognized by the Engine as one who has truly walked with the tablet. You are en-sag-ki. Rule well.",
   },
-  seal: "Rule the inner realm. The throne is interior.",
+  seal: "The guide becomes a presence within. The Master has always been you.",
+  chapters: [11, 12],
+  bookResonance: [
+    "Ch 11 · Soul Purpose: \"You are not the end of this work — you are its living continuation. Service is the natural expression of a soul that remembers its wholeness.\"",
+    "Ch 12 · Return to Wholeness: \"What began beside you becomes a presence within — guidance becoming your certainty as a Master of Thought.\"",
+  ],
   badge: {
     name: "Sovereign",
     icon: "👑",
