@@ -84,6 +84,7 @@ import {
   DEFAULT_INNER_ARC,
   type CuneiformArc,
 } from "@/components/master-of-thought";
+import { loadMotConfig, saveMotConfig, subscribeMotConfig } from "@/lib/mot-config";
 import { useLexicon } from "@/lib/lexicon-context";
 import {
   getTheme2_3Positions,
@@ -1315,6 +1316,34 @@ function DivinityGuidePage() {
   useEffect(() => { editOuterArcsRef.current = editOuterArcs; }, [editOuterArcs]);
   useEffect(() => { editInnerArcRef.current = editInnerArc; }, [editInnerArc]);
   useEffect(() => { editCenterRef.current = editCenter; }, [editCenter]);
+
+  // Live Master of Thought config from Supabase. On mount we fetch the current
+  // row (if any) and adopt it as the live config — both for rendering on the
+  // cover AND as the starting point for edit mode. We also subscribe to
+  // Realtime changes so everyone sees an inscription the moment it lands.
+  const [liveOuterArcs, setLiveOuterArcs] = useState<CuneiformArc[]>(() => DEFAULT_OUTER_ARCS.map(a => ({ ...a })));
+  const [liveInnerArc, setLiveInnerArc] = useState<CuneiformArc>(() => ({ ...DEFAULT_INNER_ARC }));
+  const [liveCenter, setLiveCenter] = useState<{ cx: number; cy: number }>({ cx: 200, cy: 200 });
+
+  useEffect(() => {
+    let cancelled = false;
+    loadMotConfig().then(cfg => {
+      if (cancelled || !cfg) return;
+      setLiveOuterArcs(cfg.outerArcs);
+      setLiveInnerArc(cfg.innerArc);
+      setLiveCenter(cfg.center);
+      // Seed edit state with whatever's live so edits layer on top of it
+      setEditOuterArcs(cfg.outerArcs.map(a => ({ ...a })));
+      setEditInnerArc({ ...cfg.innerArc });
+      setEditCenter(cfg.center);
+    });
+    const unsub = subscribeMotConfig(cfg => {
+      setLiveOuterArcs(cfg.outerArcs);
+      setLiveInnerArc(cfg.innerArc);
+      setLiveCenter(cfg.center);
+    });
+    return () => { cancelled = true; unsub(); };
+  }, []);
   // Save/capture flow — code 963369 captures the current config for copy-paste
   // then resets arcs to defaults so you can continue iterating.
   const [saveCodeOpen, setSaveCodeOpen] = useState(false);
@@ -1338,10 +1367,13 @@ function DivinityGuidePage() {
       setAuthError("Not authorized.");
     }
   };
+  // ORIGIN: reset edit state back to the LIVE config (what's in Supabase) —
+  // i.e. the last inscribed values. If no live config has been saved yet,
+  // this falls back to the hardcoded defaults via the live state initializers.
   const resetEditArcs = () => {
-    setEditOuterArcs(DEFAULT_OUTER_ARCS.map(a => ({ ...a })));
-    setEditInnerArc({ ...DEFAULT_INNER_ARC });
-    setEditCenter({ cx: 200, cy: 200 });
+    setEditOuterArcs(liveOuterArcs.map(a => ({ ...a })));
+    setEditInnerArc({ ...liveInnerArc });
+    setEditCenter({ ...liveCenter });
     setSelectedArcIndex(null);
   };
 
@@ -1377,11 +1409,13 @@ function DivinityGuidePage() {
     );
   };
 
-  // Compute a human-readable list of edits vs DEFAULT_*. Used for the
-  // CHANGES review section so the human can verify edits before exiting.
+  // Compute a human-readable list of edits vs LIVE state (the last inscribed
+  // / Supabase-backed config). Shown in the CHANGES review block so the human
+  // can verify what INSCRIBE will persist before closing the edit loom.
   const editChanges = useMemo(() => {
     const changes: Array<{ label: string; field: string; from: string | number | boolean; to: string | number | boolean }> = [];
-    const compare = (label: string, now: CuneiformArc, base: CuneiformArc) => {
+    const compare = (label: string, now: CuneiformArc, base: CuneiformArc | undefined) => {
+      if (!base) return;
       const fields: Array<keyof CuneiformArc> = ["radius", "startAngle", "span", "clockwise", "fontSize"];
       for (const k of fields) {
         const a = now[k] as string | number | boolean | undefined;
@@ -1396,26 +1430,41 @@ function DivinityGuidePage() {
         }
       }
     };
-    editOuterArcs.forEach((a, i) => compare(a.label, a, DEFAULT_OUTER_ARCS[i]));
-    compare(editInnerArc.label, editInnerArc, DEFAULT_INNER_ARC);
-    if (editCenter.cx !== 200) changes.push({ label: "center", field: "cx", from: 200, to: editCenter.cx });
-    if (editCenter.cy !== 200) changes.push({ label: "center", field: "cy", from: 200, to: editCenter.cy });
+    editOuterArcs.forEach((a, i) => compare(a.label, a, liveOuterArcs[i]));
+    compare(editInnerArc.label, editInnerArc, liveInnerArc);
+    if (editCenter.cx !== liveCenter.cx) changes.push({ label: "center", field: "cx", from: liveCenter.cx, to: editCenter.cx });
+    if (editCenter.cy !== liveCenter.cy) changes.push({ label: "center", field: "cy", from: liveCenter.cy, to: editCenter.cy });
     return changes;
-  }, [editOuterArcs, editInnerArc, editCenter]);
+  }, [editOuterArcs, editInnerArc, editCenter, liveOuterArcs, liveInnerArc, liveCenter]);
 
   const openSaveCode = () => {
     setSaveCode("");
     setSaveError(null);
     setSaveCodeOpen(true);
   };
-  const trySaveCapture = () => {
-    if (saveCode.trim() === "963369") {
-      setCapturedConfig(buildConfigSnapshot());
-      resetEditArcs();
-      setSaveCodeOpen(false);
-      setSaveError(null);
-    } else {
+  const trySaveCapture = async () => {
+    if (saveCode.trim() !== "963369") {
       setSaveError("Invalid code.");
+      return;
+    }
+    // Capture from refs so the snapshot is guaranteed fresh.
+    const snapshot = buildConfigSnapshot();
+    setCapturedConfig(snapshot);
+    // Persist to Supabase so the new arc config propagates to every client.
+    const saved = await saveMotConfig({
+      center: editCenterRef.current,
+      outerArcs: editOuterArcsRef.current,
+      innerArc: editInnerArcRef.current,
+    });
+    // Promote edits to the live state immediately (Realtime will also push
+    // them to other tabs/users, but doing it here keeps this tab snappy).
+    setLiveOuterArcs(editOuterArcsRef.current.map(a => ({ ...a })));
+    setLiveInnerArc({ ...editInnerArcRef.current });
+    setLiveCenter({ ...editCenterRef.current });
+    setSaveCodeOpen(false);
+    setSaveError(null);
+    if (!saved) {
+      console.warn("MoT config: Supabase save failed (persisted only in this session)");
     }
   };
 
@@ -1876,12 +1925,12 @@ function DivinityGuidePage() {
                 <MasterOfThought
                   className="w-[71%] h-auto"
                   color={currentLogoColor}
-                  outerArcs={editMode ? editOuterArcs : undefined}
-                  innerArc={editMode ? editInnerArc : undefined}
+                  outerArcs={editMode ? editOuterArcs : liveOuterArcs}
+                  innerArc={editMode ? editInnerArc : liveInnerArc}
                   selectedIndex={editMode ? selectedArcIndex : null}
                   onSelectArc={editMode ? setSelectedArcIndex : undefined}
                   showGuides={editMode}
-                  center={editMode ? editCenter : undefined}
+                  center={editMode ? editCenter : liveCenter}
                 />
               </div>
               <div className="max-w-lg w-full text-center space-y-4 flex-shrink-0">
