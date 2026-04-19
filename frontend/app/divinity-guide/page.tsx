@@ -2275,7 +2275,7 @@ function DivinityGuidePage() {
               style={{ background: "rgba(0, 30, 45, 0.5)", border: "1px solid rgba(0, 220, 255, 0.2)" }}
             >
               <p className="text-[9px] tracking-wider" style={{ color: "#00dcff" }}>
-                ◢ AXIS · EAGLE'S ORIGIN
+                ◢ AXIS · EAGLE&apos;S ORIGIN
               </p>
               <ArcNumberField
                 label="X · across"
