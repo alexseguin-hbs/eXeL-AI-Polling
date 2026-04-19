@@ -2286,7 +2286,7 @@ function DivinityGuidePage() {
               </pre>
             </details>
           </div>
-          {/* Bottom footer — H×AI co-inscription, closing the creative loop */}
+          {/* Bottom footer — SoI Trinity: Human × Artificial × Shared Intent */}
           <div
             className="px-4 py-2 text-[9px] tracking-[0.2em] text-center"
             style={{
@@ -2295,7 +2295,7 @@ function DivinityGuidePage() {
               background: "rgba(0, 10, 20, 0.6)",
             }}
           >
-            H × AI · CLOSING THE CREATIVE LOOP · 2525
+            웃 HI × ◬ AI × ♡ SI · CLOSING THE CREATIVE LOOP · 2525
           </div>
           {/* Bottom scanline accent */}
           <div
