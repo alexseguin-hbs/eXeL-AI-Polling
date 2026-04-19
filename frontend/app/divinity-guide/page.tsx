@@ -83,6 +83,7 @@ import {
   DEFAULT_OUTER_ARCS,
   DEFAULT_INNER_ARC,
   DEFAULT_CENTER,
+  DEFAULT_VERTICAL_STRETCH,
   type CuneiformArc,
 } from "@/components/master-of-thought";
 import { loadMotConfig, saveMotConfig, subscribeMotConfig } from "@/lib/mot-config";
@@ -1306,6 +1307,7 @@ function DivinityGuidePage() {
   const [editOuterArcs, setEditOuterArcs] = useState<CuneiformArc[]>(() => DEFAULT_OUTER_ARCS.map(a => ({ ...a })));
   const [editInnerArc, setEditInnerArc] = useState<CuneiformArc>(() => ({ ...DEFAULT_INNER_ARC }));
   const [editCenter, setEditCenter] = useState<{ cx: number; cy: number }>({ ...DEFAULT_CENTER });
+  const [editVerticalStretch, setEditVerticalStretch] = useState<number>(DEFAULT_VERTICAL_STRETCH);
   const [selectedArcIndex, setSelectedArcIndex] = useState<number | null>(null);
   // Refs mirror the edit state so the INSCRIBE handler always reads the latest
   // values synchronously at click-time, even if React hasn't flushed a pending
@@ -1314,9 +1316,11 @@ function DivinityGuidePage() {
   const editOuterArcsRef = useRef(editOuterArcs);
   const editInnerArcRef = useRef(editInnerArc);
   const editCenterRef = useRef(editCenter);
+  const editVerticalStretchRef = useRef(editVerticalStretch);
   useEffect(() => { editOuterArcsRef.current = editOuterArcs; }, [editOuterArcs]);
   useEffect(() => { editInnerArcRef.current = editInnerArc; }, [editInnerArc]);
   useEffect(() => { editCenterRef.current = editCenter; }, [editCenter]);
+  useEffect(() => { editVerticalStretchRef.current = editVerticalStretch; }, [editVerticalStretch]);
 
   // Live Master of Thought config from Supabase. On mount we fetch the current
   // row (if any) and adopt it as the live config — both for rendering on the
@@ -1375,7 +1379,42 @@ function DivinityGuidePage() {
     setEditOuterArcs(liveOuterArcs.map(a => ({ ...a })));
     setEditInnerArc({ ...liveInnerArc });
     setEditCenter({ ...liveCenter });
+    setEditVerticalStretch(DEFAULT_VERTICAL_STRETCH);
     setSelectedArcIndex(null);
+  };
+
+  // Download a new 1024×1024 PNG with the current vertical stretch baked in.
+  // The original master-of-thought.png stays untouched on disk; this lets the
+  // Thought Master grab a pre-stretched asset once they're happy with the ratio.
+  const downloadStretchedPng = () => {
+    if (typeof window === "undefined") return;
+    const stretch = editVerticalStretchRef.current;
+    const size = 1024;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.clearRect(0, 0, size, size);
+      const stretchedH = size * stretch;
+      const yOffset = (size - stretchedH) / 2;  // negative if stretch > 1 → content clips top/bottom
+      ctx.drawImage(img, 0, yOffset, size, stretchedH);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `master-of-thought-stretch-${stretch.toFixed(3)}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    };
+    img.src = "/book-images/master-of-thought.png";
   };
 
   // Build snapshot from REFS (guaranteed fresh) rather than closed-over state.
@@ -1383,9 +1422,11 @@ function DivinityGuidePage() {
     const outer = editOuterArcsRef.current;
     const inner = editInnerArcRef.current;
     const center = editCenterRef.current;
+    const stretch = editVerticalStretchRef.current;
     return JSON.stringify(
       {
         center,
+        verticalStretch: stretch,
         outer: outer.map(a => ({
           label: a.label,
           r: a.radius,
@@ -1435,8 +1476,11 @@ function DivinityGuidePage() {
     compare(editInnerArc.label, editInnerArc, liveInnerArc);
     if (editCenter.cx !== liveCenter.cx) changes.push({ label: "center", field: "cx", from: liveCenter.cx, to: editCenter.cx });
     if (editCenter.cy !== liveCenter.cy) changes.push({ label: "center", field: "cy", from: liveCenter.cy, to: editCenter.cy });
+    if (Math.abs(editVerticalStretch - DEFAULT_VERTICAL_STRETCH) > 0.0005) {
+      changes.push({ label: "emblem", field: "stretchY", from: DEFAULT_VERTICAL_STRETCH, to: editVerticalStretch });
+    }
     return changes;
-  }, [editOuterArcs, editInnerArc, editCenter, liveOuterArcs, liveInnerArc, liveCenter]);
+  }, [editOuterArcs, editInnerArc, editCenter, editVerticalStretch, liveOuterArcs, liveInnerArc, liveCenter]);
 
   const openSaveCode = () => {
     setSaveCode("");
@@ -1932,6 +1976,7 @@ function DivinityGuidePage() {
                   onSelectArc={editMode ? setSelectedArcIndex : undefined}
                   showGuides={editMode}
                   center={editMode ? editCenter : liveCenter}
+                  verticalStretch={editMode ? editVerticalStretch : undefined}
                 />
               </div>
               <div className="max-w-lg w-full text-center space-y-4 flex-shrink-0">
@@ -2206,7 +2251,15 @@ function DivinityGuidePage() {
                 ZENITH = 0° · CLOCKWISE FLOW
               </p>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-wrap justify-end">
+              <button
+                onClick={downloadStretchedPng}
+                title="Download the stretched emblem as a 1024×1024 PNG"
+                className="px-2 py-1 text-[9px] tracking-wider rounded border transition-all"
+                style={{ borderColor: "rgba(196, 132, 252, 0.5)", color: "#c084fc" }}
+              >
+                ⇩ PNG
+              </button>
               <button
                 onClick={openSaveCode}
                 title="Inscribe the cipher"
@@ -2289,6 +2342,15 @@ function DivinityGuidePage() {
                 step={1}
                 onChange={(v) => setEditCenter(prev => ({ ...prev, cy: v }))}
               />
+              <ArcNumberField
+                label="STRETCH · Y (× scale)"
+                value={Number(editVerticalStretch.toFixed(3))}
+                step={0.005}
+                onChange={(v) => setEditVerticalStretch(Math.max(0.8, Math.min(1.3, v)))}
+              />
+              <p className="text-[9px] italic" style={{ color: "rgba(200, 240, 255, 0.5)" }}>
+                1.000 = no stretch · 1.050 = 5% taller (2.5% up / 2.5% down)
+              </p>
             </div>
 
             {/* Phrase selector */}

@@ -29,6 +29,11 @@ export interface CuneiformArc {
 
 export const DEFAULT_CENTER = { cx: 201, cy: 190 };
 
+/** Vertical-stretch factor for the eagle emblem PNG. 1.0 = no stretch;
+ *  1.05 = 5% taller. Content extends 2.5% above and 2.5% below the 400×400
+ *  viewBox and is clipped at both edges. The PNG file itself stays 1024×1024. */
+export const DEFAULT_VERTICAL_STRETCH = 1.05;
+
 export const DEFAULT_OUTER_ARCS: CuneiformArc[] = [
   {
     label: "Humanity's Universal Challenge",
@@ -105,6 +110,10 @@ export interface MasterOfThoughtProps {
   showGuides?: boolean;
   /** Optional center override in viewBox coords. Defaults to DEFAULT_CENTER. */
   center?: { cx: number; cy: number };
+  /** Vertical stretch factor for the eagle emblem. Defaults to
+   *  DEFAULT_VERTICAL_STRETCH. Non-uniform scale so content can stretch
+   *  without affecting horizontal layout. */
+  verticalStretch?: number;
 }
 
 export function MasterOfThought({
@@ -117,6 +126,7 @@ export function MasterOfThought({
   onSelectArc,
   showGuides = false,
   center,
+  verticalStretch,
 }: MasterOfThoughtProps) {
   const uid = useId().replace(/:/g, "");
   const tintId = `${uid}-tint`;
@@ -174,13 +184,25 @@ export function MasterOfThought({
         ))}
       </defs>
 
-      {/* Eagle emblem image */}
-      <image
-        href="/book-images/master-of-thought.png"
-        x="0" y="0" width="400" height="400"
-        preserveAspectRatio="xMidYMid meet"
-        filter={color ? `url(#${tintId})` : undefined}
-      />
+      {/* Eagle emblem image — stretched vertically by verticalStretch (default
+          5% taller). PNG file itself stays 1024×1024; the stretch is applied
+          only during SVG render via a non-uniform scale. */}
+      {(() => {
+        const stretch = verticalStretch ?? DEFAULT_VERTICAL_STRETCH;
+        const h = 400 * stretch;
+        const yOffset = (400 - h) / 2;  // negative when stretch > 1
+        return (
+          <image
+            href="/book-images/master-of-thought.png"
+            x={0}
+            y={yOffset}
+            width={400}
+            height={h}
+            preserveAspectRatio="none"
+            filter={color ? `url(#${tintId})` : undefined}
+          />
+        );
+      })()}
 
       {/* Edit-mode guides: crosshair X spanning inner radius → outer radius,
           reference rings, and dashed baseline paths for each arc. */}
