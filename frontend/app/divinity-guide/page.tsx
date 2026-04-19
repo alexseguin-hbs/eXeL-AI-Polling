@@ -858,18 +858,22 @@ function LibraryReader({
 
       <div className="min-h-[250px]" key={`lib-${section.id}-${pageIndex}`}>
         {bookPage?._inject?.type === "image" ? (
-          <div className="animate-in fade-in duration-300 flex justify-center items-center min-h-[300px]">
+          // Injected Flower of Life images (Prelude moon / Framework sunlight)
+          // render at the same vertical position + size as the MoT emblem on
+          // the front cover (w-full, pt-[8%]) so the book's visual rhythm stays
+          // consistent page to page.
+          <div className="animate-in fade-in duration-300 flex justify-center w-full pt-[8%]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={bookPage._inject.src}
               alt={bookPage._inject.alt}
-              className="rounded-xl max-w-full shadow-lg"
-              style={{ maxHeight: "280px", objectFit: "contain" }}
+              className="rounded-xl w-full shadow-lg"
+              style={{ objectFit: "contain" }}
             />
           </div>
         ) : bookPage?._inject?.type === "component" ? (
-          <div className="animate-in fade-in duration-300 flex justify-center items-center min-h-[300px]">
-            {bookPage._inject.component === "master-of-thought" && <MasterOfThought size={280} />}
+          <div className="animate-in fade-in duration-300 flex justify-center w-full pt-[8%]">
+            {bookPage._inject.component === "master-of-thought" && <MasterOfThought className="w-full h-auto" />}
           </div>
         ) : bookPage ? (
           <div className="animate-in fade-in slide-in-from-right-2 duration-300">
