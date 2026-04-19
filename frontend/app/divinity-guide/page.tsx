@@ -1960,7 +1960,7 @@ function DivinityGuidePage() {
             // so the emblem center lands near the left cyan hub center
             // (~50% of column height) and the title/subtitle/description flow
             // cleanly below without overlap.
-            <div className="h-full w-full flex flex-col items-center gap-8 px-4 overflow-y-auto pt-[2%] pb-8">
+            <div className="h-full w-full flex flex-col items-center gap-8 px-4 overflow-y-auto pt-[5%] pb-8">
               {/* Emblem stays centered in the RIGHT column (no horizontal shift).
                   Size bumped to w-[82%] so the visible rope-vertical extent
                   (80% of SVG height after 5% stretch = 0.8 × 0.82 × W_col ≈ 66% of
