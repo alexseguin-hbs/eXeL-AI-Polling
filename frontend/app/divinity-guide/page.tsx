@@ -1960,21 +1960,20 @@ function DivinityGuidePage() {
             // so the emblem center lands near the left cyan hub center
             // (~50% of column height) and the title/subtitle/description flow
             // cleanly below without overlap.
-            <div className="h-full w-full flex flex-col items-center gap-8 px-4 overflow-y-auto pt-[17%] pb-8">
-              {/* Emblem wrapper shifted −50% of its own width so the eagle's
-                  horizontal center lands at the page's horizontal center
-                  (previously it sat at the right-column center). Matches the
-                  size of the 3-circle trefoil on the left (both 71% of column
-                  width = 35.5vw). */}
+            <div className="h-full w-full flex flex-col items-center gap-8 px-4 overflow-y-auto pt-[2%] pb-8">
+              {/* Emblem stays centered in the RIGHT column (no horizontal shift).
+                  Size bumped to w-[82%] so the visible rope-vertical extent
+                  (80% of SVG height after 5% stretch = 0.8 × 0.82 × W_col ≈ 66% of
+                  W_col) matches the 3-circle trefoil's vertical span on the left
+                  (20→415 in viewBox 500 = 79% of 0.833 × W_col ≈ 66% of W_col).
+                  → rope TOP aligns with red circle TOP, rope BOTTOM aligns with
+                    blue/green circle BOTTOM. */}
               <div
                 className={`w-full flex justify-center flex-shrink-0 ${editMode ? "" : "cursor-pointer"}`}
                 onClick={editMode ? undefined : cycleLogoColor}
-                style={{ transform: "translateX(-50%)" }}
               >
-                {/* Width matches the 3-circle trefoil's bounding box on the left flower
-                    (viewBox 600×500, 3 outer circles span ~426 units wide → 71%). */}
                 <MasterOfThought
-                  className="w-[71%] h-auto"
+                  className="w-[82%] h-auto"
                   color={currentLogoColor}
                   outerArcs={editMode ? editOuterArcs : liveOuterArcs}
                   innerArc={editMode ? editInnerArc : liveInnerArc}
