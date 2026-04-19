@@ -750,7 +750,13 @@ function LibraryReader({
     else if (delta > 50 && pageIndex > 0) setPageIndex(pageIndex - 1);
   };
 
-  const bookPages = useMemo(
+  // Image-only pages injected into specific library sections
+  const LIBRARY_IMAGE_PAGES: Record<string, { afterIndex: number; src: string; alt: string }> = {
+    prelude: { afterIndex: 0, src: "/book-images/Prelude.png", alt: "Flower of Life — Prelude" },
+    framework: { afterIndex: -1, src: "/book-images/Framework.png", alt: "Flower of Life — Framework" },
+  };
+
+  const rawPages = useMemo(
     () => (pages as Array<{ id: string; chapter: number; page: number; text: string; gated: boolean }>)
       .filter((p) => section.filterIds
         ? section.filterIds.includes(p.id)
@@ -758,6 +764,22 @@ function LibraryReader({
       ),
     [section, pages]
   );
+
+  // Build page list with injected image pages
+  const imageInsert = LIBRARY_IMAGE_PAGES[section.id];
+  const bookPages = useMemo(() => {
+    if (!imageInsert) return rawPages.map(p => ({ ...p, _image: false }));
+    const mapped = rawPages.map(p => ({ ...p, _image: false }));
+    const imgPage = { id: `${section.id}-img`, chapter: 0, page: 0, text: "", gated: false, _image: true };
+    if (imageInsert.afterIndex === -1) {
+      // Insert at beginning
+      return [imgPage, ...mapped];
+    }
+    // Insert after specified index
+    const result = [...mapped];
+    result.splice(imageInsert.afterIndex + 1, 0, imgPage);
+    return result;
+  }, [rawPages, imageInsert, section.id]);
 
   const totalPages = bookPages.length;
   const bookPage = bookPages[pageIndex] ?? null;
@@ -781,7 +803,17 @@ function LibraryReader({
       </div>
 
       <div className="min-h-[250px]" key={`lib-${section.id}-${pageIndex}`}>
-        {bookPage ? (
+        {bookPage?._image && imageInsert ? (
+          <div className="animate-in fade-in duration-300 flex justify-center items-center min-h-[300px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageInsert.src}
+              alt={imageInsert.alt}
+              className="rounded-xl max-w-full shadow-lg"
+              style={{ maxHeight: "280px", objectFit: "contain" }}
+            />
+          </div>
+        ) : bookPage ? (
           <div className="animate-in fade-in slide-in-from-right-2 duration-300">
             {/* Trinity above text for prelude pages 4 & 5 */}
             {bookPage.id === "prelude-04" && (
