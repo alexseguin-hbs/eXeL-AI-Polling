@@ -27,7 +27,7 @@ export interface CuneiformArc {
   fontSize?: number;
 }
 
-export const DEFAULT_CENTER = { cx: 201, cy: 190 };
+export const DEFAULT_CENTER = { cx: 201, cy: 189 };
 
 /** Vertical-stretch factor for the eagle emblem PNG. 1.0 = no stretch;
  *  1.05 = 5% taller. Content extends 2.5% above and 2.5% below the 400×400
@@ -39,28 +39,28 @@ export const DEFAULT_OUTER_ARCS: CuneiformArc[] = [
     label: "Humanity's Universal Challenge",
     cuneiform: "𒇽  𒈨 𒅗   𒋧  𒍠",
     startAngle: -90,    // user 0° — 12 o'clock, top center
-    span: 72,
+    span: 91,
     clockwise: true,
-    radius: 114,
-    fontSize: 15,
+    radius: 120,
+    fontSize: 16,
   },
   {
     label: "Divinity Guide",
     cuneiform: "𒂗 𒀭 𒁺",
-    startAngle: 194,    // user 284°
-    span: 32,
+    startAngle: 194,    // user 284° (≡ SVG -166)
+    span: 54,
     clockwise: true,
-    radius: 116,
-    fontSize: 15,
+    radius: 118,
+    fontSize: 16,
   },
   {
     label: "Book of Thoth",
     cuneiform: "𒁾  𒅗  𒋾",
     startAngle: -13,    // user 77°
-    span: 40,
+    span: 54,
     clockwise: true,
-    radius: 115,
-    fontSize: 15,
+    radius: 116,
+    fontSize: 16,
   },
   {
     label: "Flower of Life",
@@ -68,8 +68,8 @@ export const DEFAULT_OUTER_ARCS: CuneiformArc[] = [
     startAngle: 128,    // user 218°
     span: 72,
     clockwise: false,
-    radius: 123,
-    fontSize: 15,
+    radius: 127,
+    fontSize: 16,
   },
   {
     label: "Emerald Tablets",
@@ -77,8 +77,8 @@ export const DEFAULT_OUTER_ARCS: CuneiformArc[] = [
     startAngle: 53,     // user 143°
     span: 72,
     clockwise: false,
-    radius: 124,
-    fontSize: 15,
+    radius: 129,
+    fontSize: 16,
   },
 ];
 
@@ -89,7 +89,7 @@ export const DEFAULT_INNER_ARC: CuneiformArc = {
   span: 79,
   clockwise: true,
   radius: 58,
-  fontSize: 13,
+  fontSize: 14,
 };
 
 export interface MasterOfThoughtProps {
