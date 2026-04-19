@@ -43,7 +43,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
   const outerArcs: CuneiformArc[] = [
     {
       label: "Humanity's Universal Challenge",
-      cuneiform: "𒇽 𒈨 𒅗 𒋧 𒍠",
+      cuneiform: "𒇽  𒈨  𒅗  𒋧  𒍠",
       startAngle: -90,   // 12 o'clock — top center
       span: 55,
       clockwise: true,
