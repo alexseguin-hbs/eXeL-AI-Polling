@@ -81,10 +81,10 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
     {
       label: "Book of Thoth",
       cuneiform: "𒁾  𒅗  𒋾",
-      startAngle: -17,    // user 73° = SVG -17° (mirrors Divinity Guide across vertical axis)
-      span: 32,           // matches Divinity Guide's sweep
+      startAngle: -17,    // user 73° = SVG -17°
+      span: 40,           // bullet-to-bullet sweep (reverted from 32 — was too tight)
       clockwise: true,
-      radius: 116,        // smaller r per user; CW-outward visual center (116+7=123) matches Divinity Guide's visual depth
+      radius: 116,
       fontSize: 14,
     },
     {
@@ -100,10 +100,10 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
     {
       label: "Emerald Tablets",
       cuneiform: "𒁾  𒄀  𒈾 𒈾",
-      startAngle: 46,     // user 136° (unchanged — 'same position')
-      span: 48,           // 60 → 48 to match Flower of Life's tighter sweep
+      startAngle: 46,     // user 136°
+      span: 60,           // bullet-to-bullet sweep (reverted from 48 — was too tight)
       clockwise: false,
-      radius: 117,        // +4px (113 → 117) — flattens arc so 4th glyph (𒈾) no longer reaches the inner circle
+      radius: 117,        // flattens arc so 4th glyph (𒈾) clears the inner circle
       fontSize: 14,
     },
   ];
