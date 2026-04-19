@@ -996,6 +996,16 @@ function PageReader({
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{reflectionLabel}</p>
               <p className="text-sm text-foreground/60 italic">{isChinese && showPinyin ? <BookPinyinText text={chapter.reflection} color={section.color.stroke} /> : chapter.reflection}</p>
             </div>
+            {/* Chapter image */}
+            <div className="flex justify-center pt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/book-images/${String(chapter.id).padStart(2, "0")}.00.png`}
+                alt={chapter.title}
+                className="rounded-xl max-w-full shadow-lg"
+                style={{ maxHeight: "280px", objectFit: "contain" }}
+              />
+            </div>
           </div>
         ) : bookPage ? (
           // Real book page — detect primer (last page with ••• marker)
