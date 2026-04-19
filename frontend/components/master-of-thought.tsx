@@ -85,7 +85,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
 
   const innerArc: CuneiformArc = {
     label: "Master of Thought",
-    cuneiform: "𒂗 𒊕 𒆠",
+    cuneiform: "𒂗  𒊕  𒆠",
     startAngle: -90,    // top of inner circle — above eagle head
     span: 50,
     clockwise: true,
