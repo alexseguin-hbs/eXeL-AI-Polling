@@ -75,7 +75,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
     },
     {
       label: "Emerald Tablets",
-      cuneiform: "𒁾 𒄀 𒈾 𒈾",
+      cuneiform: "𒁾  𒄀  𒈾  𒈾",
       startAngle: 125,    // ~4–5 o'clock — bottom right between bullets
       span: 45,
       clockwise: false,
