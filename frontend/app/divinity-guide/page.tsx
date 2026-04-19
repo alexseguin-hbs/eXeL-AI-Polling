@@ -485,9 +485,9 @@ interface DivinityLangEntry {
 const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
   en: {
     reflection: "Reflection",
-    librarySubtitles: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence Equation", index: "The Sacred Map" },
+    librarySubtitles: { prelude: "Author's Values & Philosophy", framework: "Divine Intelligence", index: "The Sacred Map" },
     trinity: { prelude04: ["LOVE", "SAFETY", "LOSS"], prelude05: ["WISDOM", "HARMONY", "CONNECTION"] },
-    links: { music: "Sacred Music & Transformation", loveLossSafety: "Love, Loss & Safety", divineUnity: "Divine Unity Principles", divineIntelligence: "Divine Intelligence Equation", sacredResource: "Sacred Resource" },
+    links: { music: "Sacred Music & Transformation", loveLossSafety: "Love, Loss & Safety", divineUnity: "Divine Unity Principles", divineIntelligence: "Divine Intelligence", sacredResource: "Sacred Resource" },
     ui: {
       title: "The Divinity Guide",
       subtitle: "The Return to Wholeness and Living Divinity",
@@ -507,9 +507,9 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
   },
   es: {
     reflection: "Reflexión",
-    librarySubtitles: { prelude: "Valores y Filosofía del Autor", framework: "Ecuación de Inteligencia Divina", index: "El Mapa Sagrado" },
+    librarySubtitles: { prelude: "Valores y Filosofía del Autor", framework: "Inteligencia Divina", index: "El Mapa Sagrado" },
     trinity: { prelude04: ["AMOR", "SEGURIDAD", "PÉRDIDA"], prelude05: ["SABIDURÍA", "ARMONÍA", "CONEXIÓN"] },
-    links: { music: "Música Sagrada y Transformación", loveLossSafety: "Amor, Pérdida y Seguridad", divineUnity: "Principios de Unidad Divina", divineIntelligence: "Ecuación de Inteligencia Divina", sacredResource: "Recurso Sagrado" },
+    links: { music: "Música Sagrada y Transformación", loveLossSafety: "Amor, Pérdida y Seguridad", divineUnity: "Principios de Unidad Divina", divineIntelligence: "Inteligencia Divina", sacredResource: "Recurso Sagrado" },
     ui: {
       title: "La Guía de la Divinidad",
       subtitle: "El Retorno a la Totalidad y la Divinidad Viviente",
@@ -529,9 +529,9 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
   },
   zh: {
     reflection: "沉思",
-    librarySubtitles: { prelude: "作者的价值观与哲学", framework: "神圣智慧方程", index: "神圣地图" },
+    librarySubtitles: { prelude: "作者的价值观与哲学", framework: "神圣智慧", index: "神圣地图" },
     trinity: { prelude04: ["爱", "安全", "失去"], prelude05: ["智慧", "和谐", "连接"] },
-    links: { music: "神圣音乐与转化", loveLossSafety: "爱、失去与安全", divineUnity: "神圣统一原则", divineIntelligence: "神圣智慧方程", sacredResource: "神圣资源" },
+    links: { music: "神圣音乐与转化", loveLossSafety: "爱、失去与安全", divineUnity: "神圣统一原则", divineIntelligence: "神圣智慧", sacredResource: "神圣资源" },
     ui: {
       title: "神性指南",
       subtitle: "回归完整与活出神性",
@@ -551,9 +551,9 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
   },
   uk: {
     reflection: "Роздуми",
-    librarySubtitles: { prelude: "Цінності та філософія автора", framework: "Рівняння божественного інтелекту", index: "Священна карта" },
+    librarySubtitles: { prelude: "Цінності та філософія автора", framework: "Божественний інтелект", index: "Священна карта" },
     trinity: { prelude04: ["ЛЮБОВ", "БЕЗПЕКА", "ВТРАТА"], prelude05: ["МУДРІСТЬ", "ГАРМОНІЯ", "ЗВ'ЯЗОК"] },
-    links: { music: "Священна музика і трансформація", loveLossSafety: "Любов, втрата і безпека", divineUnity: "Принципи божественної єдності", divineIntelligence: "Рівняння божественного інтелекту", sacredResource: "Священний ресурс" },
+    links: { music: "Священна музика і трансформація", loveLossSafety: "Любов, втрата і безпека", divineUnity: "Принципи божественної єдності", divineIntelligence: "Божественний інтелект", sacredResource: "Священний ресурс" },
     ui: {
       title: "Путівник Божественності",
       subtitle: "Повернення до Цілісності та Живе Божественне",
@@ -573,9 +573,9 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
   },
   ru: {
     reflection: "Размышление",
-    librarySubtitles: { prelude: "Ценности и философия автора", framework: "Уравнение божественного интеллекта", index: "Священная карта" },
+    librarySubtitles: { prelude: "Ценности и философия автора", framework: "Божественный интеллект", index: "Священная карта" },
     trinity: { prelude04: ["ЛЮБОВЬ", "БЕЗОПАСНОСТЬ", "ПОТЕРЯ"], prelude05: ["МУДРОСТЬ", "ГАРМОНИЯ", "СВЯЗЬ"] },
-    links: { music: "Священная музыка и трансформация", loveLossSafety: "Любовь, потеря и безопасность", divineUnity: "Принципы божественного единства", divineIntelligence: "Уравнение божественного интеллекта", sacredResource: "Священный ресурс" },
+    links: { music: "Священная музыка и трансформация", loveLossSafety: "Любовь, потеря и безопасность", divineUnity: "Принципы божественного единства", divineIntelligence: "Божественный интеллект", sacredResource: "Священный ресурс" },
     ui: {
       title: "Руководство Божественности",
       subtitle: "Возвращение к Целостности и Живое Божественное",
@@ -595,9 +595,9 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
   },
   fa: {
     reflection: "تأمل",
-    librarySubtitles: { prelude: "ارزش‌ها و فلسفه نویسنده", framework: "معادله هوش الهی", index: "نقشه مقدس" },
+    librarySubtitles: { prelude: "ارزش‌ها و فلسفه نویسنده", framework: "هوش الهی", index: "نقشه مقدس" },
     trinity: { prelude04: ["عشق", "امنیت", "فقدان"], prelude05: ["خرد", "هماهنگی", "اتصال"] },
-    links: { music: "موسیقی مقدس و تحول", loveLossSafety: "عشق، فقدان و امنیت", divineUnity: "اصول وحدت الهی", divineIntelligence: "معادله هوش الهی", sacredResource: "منبع مقدس" },
+    links: { music: "موسیقی مقدس و تحول", loveLossSafety: "عشق، فقدان و امنیت", divineUnity: "اصول وحدت الهی", divineIntelligence: "هوش الهی", sacredResource: "منبع مقدس" },
     ui: {
       title: "راهنمای الوهیت",
       subtitle: "بازگشت به تمامیت و الوهیت زنده",
@@ -617,9 +617,9 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
   },
   he: {
     reflection: "הרהור",
-    librarySubtitles: { prelude: "ערכים ופילוסופיה של המחבר", framework: "משוואת האינטליגנציה האלוהית", index: "המפה הקדושה" },
+    librarySubtitles: { prelude: "ערכים ופילוסופיה של המחבר", framework: "אינטליגנציה אלוהית", index: "המפה הקדושה" },
     trinity: { prelude04: ["אהבה", "ביטחון", "אובדן"], prelude05: ["חוכמה", "הרמוניה", "חיבור"] },
-    links: { music: "מוזיקה קדושה והתמרה", loveLossSafety: "אהבה, אובדן וביטחון", divineUnity: "עקרונות האחדות האלוהית", divineIntelligence: "משוואת האינטליגנציה האלוהית", sacredResource: "משאב קדוש" },
+    links: { music: "מוזיקה קדושה והתמרה", loveLossSafety: "אהבה, אובדן וביטחון", divineUnity: "עקרונות האחדות האלוהית", divineIntelligence: "אינטליגנציה אלוהית", sacredResource: "משאב קדוש" },
     ui: {
       title: "מדריך האלוהות",
       subtitle: "החזרה לשלמות ואלוהות חיה",
@@ -639,9 +639,9 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
   },
   pt: {
     reflection: "Reflexão",
-    librarySubtitles: { prelude: "Valores e Filosofia do Autor", framework: "Equação da Inteligência Divina", index: "O Mapa Sagrado" },
+    librarySubtitles: { prelude: "Valores e Filosofia do Autor", framework: "Inteligência Divina", index: "O Mapa Sagrado" },
     trinity: { prelude04: ["AMOR", "SEGURANÇA", "PERDA"], prelude05: ["SABEDORIA", "HARMONIA", "CONEXÃO"] },
-    links: { music: "Música Sagrada e Transformação", loveLossSafety: "Amor, Perda e Segurança", divineUnity: "Princípios da Unidade Divina", divineIntelligence: "Equação da Inteligência Divina", sacredResource: "Recurso Sagrado" },
+    links: { music: "Música Sagrada e Transformação", loveLossSafety: "Amor, Perda e Segurança", divineUnity: "Princípios da Unidade Divina", divineIntelligence: "Inteligência Divina", sacredResource: "Recurso Sagrado" },
     ui: {
       title: "O Guia da Divindade",
       subtitle: "O Retorno à Totalidade e à Divindade Viva",
@@ -661,9 +661,9 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
   },
   km: {
     reflection: "ការឆ្លុះបញ្ចាំង",
-    librarySubtitles: { prelude: "គុណតម្លៃ និងទស្សនវិជ្ជារបស់អ្នកនិពន្ធ", framework: "សមីការបញ្ញាដ៏ទេវភាព", index: "ផែនទីដ៏ពិសិដ្ឋ" },
+    librarySubtitles: { prelude: "គុណតម្លៃ និងទស្សនវិជ្ជារបស់អ្នកនិពន្ធ", framework: "បញ្ញាដ៏ទេវភាព", index: "ផែនទីដ៏ពិសិដ្ឋ" },
     trinity: { prelude04: ["សេចក្ដីស្រឡាញ់", "សុវត្ថិភាព", "ការបាត់បង់"], prelude05: ["ប្រាជ្ញា", "សុខដុមរមនា", "ការតភ្ជាប់"] },
-    links: { music: "តន្ត្រីដ៏ពិសិដ្ឋ និងការផ្លាស់ប្តូរ", loveLossSafety: "សេចក្ដីស្រឡាញ់ ការបាត់បង់ និងសុវត្ថិភាព", divineUnity: "គោលការណ៍ឯកភាពដ៏ទេវភាព", divineIntelligence: "សមីការបញ្ញាដ៏ទេវភាព", sacredResource: "ធនធានដ៏ពិសិដ្ឋ" },
+    links: { music: "តន្ត្រីដ៏ពិសិដ្ឋ និងការផ្លាស់ប្តូរ", loveLossSafety: "សេចក្ដីស្រឡាញ់ ការបាត់បង់ និងសុវត្ថិភាព", divineUnity: "គោលការណ៍ឯកភាពដ៏ទេវភាព", divineIntelligence: "បញ្ញាដ៏ទេវភាព", sacredResource: "ធនធានដ៏ពិសិដ្ឋ" },
     ui: {
       title: "មគ្គុទ្ទេសក៍ទេវភាព",
       subtitle: "ការត្រឡប់ទៅភាពពេញលេញ និងទេវភាពរស់រវើក",
@@ -683,9 +683,9 @@ const DIVINITY_TRANSLATIONS: Record<DivinityLang, DivinityLangEntry> = {
   },
   ne: {
     reflection: "प्रतिबिम्ब",
-    librarySubtitles: { prelude: "लेखकका मूल्य र दर्शन", framework: "दिव्य बुद्धिमत्ता समीकरण", index: "पवित्र नक्सा" },
+    librarySubtitles: { prelude: "लेखकका मूल्य र दर्शन", framework: "दिव्य बुद्धिमत्ता", index: "पवित्र नक्सा" },
     trinity: { prelude04: ["प्रेम", "सुरक्षा", "हानि"], prelude05: ["बुद्धि", "सामञ्जस्य", "जडान"] },
-    links: { music: "पवित्र संगीत र रूपान्तरण", loveLossSafety: "प्रेम, हानि र सुरक्षा", divineUnity: "दिव्य एकता सिद्धान्त", divineIntelligence: "दिव्य बुद्धिमत्ता समीकरण", sacredResource: "पवित्र स्रोत" },
+    links: { music: "पवित्र संगीत र रूपान्तरण", loveLossSafety: "प्रेम, हानि र सुरक्षा", divineUnity: "दिव्य एकता सिद्धान्त", divineIntelligence: "दिव्य बुद्धिमत्ता", sacredResource: "पवित्र स्रोत" },
     ui: {
       title: "दिव्यता मार्गदर्शिका",
       subtitle: "पूर्णतामा फिर्ता र जीवित दिव्यता",
