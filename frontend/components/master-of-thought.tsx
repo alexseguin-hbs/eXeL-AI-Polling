@@ -54,10 +54,9 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
   // Baseline radius is calculated so the glyph visual center lands at r≈123 on every arc.
   const innerTextR = 90;   // inner cuneiform — above eagle head
 
-  // All 5 outer arcs at radius 85 from the center of the coin (on the inner
-  // smooth-circle ring). Spans scaled to arc length so glyph density stays
-  // readable at the smaller circumference.
-  const outerR = 85;
+  // Humanity's, Flower of Life, and Emerald Tablets sit on the r=105 ring
+  // (between the inner smooth circle at ~85 and the rope inner edge at ~115).
+  // Divinity Guide + Book of Thoth are locked at r=130 (user-confirmed).
   const outerArcs: CuneiformArc[] = [
     {
       label: "Humanity's Universal Challenge",
@@ -65,7 +64,7 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       startAngle: -90,    // 12 o'clock — top center
       span: 60,
       clockwise: true,
-      radius: outerR,
+      radius: 105,
       fontSize: 11,
     },
     {
@@ -90,7 +89,7 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       startAngle: 135,    // ~7–8 o'clock — bottom left (SVG 135° = user 225°)
       span: 48,
       clockwise: false,
-      radius: outerR,
+      radius: 105,
       fontSize: 11,
     },
     {
@@ -99,7 +98,7 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       startAngle: 45,     // ~4–5 o'clock — bottom right (SVG 45° = user 135°)
       span: 48,
       clockwise: false,
-      radius: outerR,
+      radius: 105,
       fontSize: 11,
     },
   ];
