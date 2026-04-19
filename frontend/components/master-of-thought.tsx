@@ -47,8 +47,8 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
   //   Outer rope border edge: ~152   Rope inner edge: ~115
   //   Inner smooth circle edge: ~85  Eagle head top: ~50
   //   Gap midpoint (rope inner ↔ inner circle): ~100
-  const textR = 150;       // outer cuneiform — along the rope border (rope outer edge ~152)
-  const innerTextR = 68;   // inner cuneiform — above eagle head, inside smooth circle
+  const textR = 150;       // outer cuneiform default — along the rope border (top + upper arcs)
+  const innerTextR = 90;   // inner cuneiform — above eagle head
 
   const outerArcs: CuneiformArc[] = [
     {
@@ -63,34 +63,34 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
     {
       label: "Divinity Guide",
       cuneiform: "𒂗 𒀭 𒁺",
-      startAngle: -148,   // ~10–11 o'clock — top left between bullets
+      startAngle: 195,    // user 285° = SVG 195° (between 9 & 10 o'clock)
       span: 32,
       clockwise: false,
-      radius: textR,
+      radius: 130,
     },
     {
       label: "Book of Thoth",
       cuneiform: "𒁾  𒅗  𒋾",
-      startAngle: -32,    // ~1–2 o'clock — upper right between bullets
+      startAngle: -15,    // user 75° = SVG -15° (between 2 & 3 o'clock)
       span: 32,
       clockwise: true,
-      radius: textR,
+      radius: 130,
     },
     {
       label: "Flower of Life",
       cuneiform: "𒄑 𒌑 𒀭 𒍣",
-      startAngle: 135,    // ~7–8 o'clock — bottom left between bullets (SVG 135° = user 225°)
+      startAngle: 135,    // ~7–8 o'clock — bottom left (SVG 135° = user 225°)
       span: 42,
       clockwise: false,
-      radius: textR,
+      radius: 85,         // pulled toward center per user spec
     },
     {
       label: "Emerald Tablets",
       cuneiform: "𒁾  𒄀  𒈾 𒈾",
-      startAngle: 45,     // ~4–5 o'clock — bottom right between bullets (SVG 45° = user 135°)
+      startAngle: 45,     // ~4–5 o'clock — bottom right (SVG 45° = user 135°)
       span: 42,
       clockwise: false,
-      radius: textR,
+      radius: 85,         // pulled toward center per user spec
     },
   ];
 
@@ -98,10 +98,10 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
     label: "Master of Thought",
     cuneiform: "𒂗 𒊕  𒆠",
     startAngle: -90,     // top of inner area — above eagle head
-    span: 45,
+    span: 30,            // tighter wrap above the head (was 45°)
     clockwise: true,
     radius: innerTextR,
-    fontSize: 9,         // smaller so all 3 glyphs fit at r=68
+    fontSize: 9,         // smaller so all 3 glyphs fit at inner radius
   };
 
   const deg2rad = (d: number) => (d * Math.PI) / 180;
