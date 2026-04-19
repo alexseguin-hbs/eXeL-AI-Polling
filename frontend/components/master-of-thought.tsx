@@ -47,7 +47,7 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
   //   Outer rope border edge: ~152   Rope inner edge: ~115
   //   Inner smooth circle edge: ~85  Eagle head top: ~50
   //   Gap midpoint (rope inner ↔ inner circle): ~100
-  const textR = 100;       // outer cuneiform — centered in gap inside rope border
+  const textR = 150;       // outer cuneiform — along the rope border (rope outer edge ~152)
   const innerTextR = 68;   // inner cuneiform — above eagle head, inside smooth circle
 
   const outerArcs: CuneiformArc[] = [
@@ -101,7 +101,7 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
     span: 45,
     clockwise: true,
     radius: innerTextR,
-    fontSize: 13,
+    fontSize: 9,         // smaller so all 3 glyphs fit at r=68
   };
 
   const deg2rad = (d: number) => (d * Math.PI) / 180;
@@ -167,7 +167,7 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
 
       {/* Inner cuneiform — "Master of Thought" above eagle head */}
       <text fill={textFill} fontSize={innerArc.fontSize ?? defaultFontSize} fontWeight="bold"
-        fontFamily="serif" letterSpacing={6} opacity={0.85}>
+        fontFamily="serif" letterSpacing={2} opacity={0.85}>
         <title>{innerArc.label}</title>
         <textPath href={`#${uid}-arc-${allArcs.length - 1}`} startOffset="50%" textAnchor="middle">
           {innerArc.cuneiform}
