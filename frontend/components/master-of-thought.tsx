@@ -72,19 +72,17 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       label: "Divinity Guide",
       cuneiform: "𒂗 𒀭 𒁺",
       startAngle: 195,    // user 285° = SVG 195° (between 9 & 10 o'clock)
-      span: 36,
+      span: 32,
       clockwise: false,
-      radius: outerR,
-      fontSize: 11,
+      radius: 130,        // LOCKED — user confirmed "near perfect"
     },
     {
       label: "Book of Thoth",
       cuneiform: "𒁾  𒅗  𒋾",
       startAngle: -15,    // user 75° = SVG -15° (between 2 & 3 o'clock)
-      span: 36,
+      span: 32,
       clockwise: true,
-      radius: outerR,
-      fontSize: 11,
+      radius: 130,        // LOCKED — user confirmed "almost the right radius"
     },
     {
       label: "Flower of Life",
