@@ -1224,15 +1224,27 @@ function DivinityGuidePage() {
   const outerPositions = getTheme2_3Positions();
 
   // Master of Thought logo color cycle — clicking the left hub star cycles through
-  // 12 evenly-spaced hues from RED to VIOLET. Initial state (-1) renders the default
-  // white emblem + gold cuneiform; first click → RED, then wraps through the spectrum.
+  // 13 states: WHITE + 12 evenly-spaced hues from RED to VIOLET. Sequence is
+  // White → Red → (spectrum) → Violet → White → Red → ...
+  // The same color is applied to the subtitle ("The Return to Wholeness...") so
+  // the cover's accent color stays coordinated with the emblem.
   const LOGO_COLORS = [
-    "#FF0000", "#FF6A00", "#FFB300", "#F4E400",
-    "#9BFF00", "#00FF2E", "#00FFC2", "#00B8FF",
-    "#0031FF", "#7000FF", "#C800FF", "#FF00A8",
+    "#FFFFFF",  // 0  WHITE (initial)
+    "#FF0000",  // 1  RED
+    "#FF4F00",  // 2
+    "#FF9800",  // 3
+    "#FFD600",  // 4
+    "#A9FF00",  // 5
+    "#00FF3C",  // 6
+    "#00FFB2",  // 7
+    "#00DCFF",  // 8
+    "#0080FF",  // 9
+    "#1F00FF",  // 10
+    "#8200FF",  // 11
+    "#D400FF",  // 12 VIOLET
   ];
-  const [logoColorIndex, setLogoColorIndex] = useState(-1);
-  const currentLogoColor = logoColorIndex === -1 ? undefined : LOGO_COLORS[logoColorIndex];
+  const [logoColorIndex, setLogoColorIndex] = useState(0);
+  const currentLogoColor = LOGO_COLORS[logoColorIndex];
   const cycleLogoColor = () => setLogoColorIndex((prev) => (prev + 1) % LOGO_COLORS.length);
   const readerRef = useRef<HTMLDivElement>(null);
 
@@ -1672,7 +1684,7 @@ function DivinityGuidePage() {
                 ) : (
                   <div>
                     <h1 className="text-2xl font-bold">{divinityUi.title}</h1>
-                    <p className="text-sm italic mt-1" style={{ color: "#D4AF37", opacity: 0.85 }}>
+                    <p className="text-sm italic mt-1" style={{ color: currentLogoColor, opacity: 0.85 }}>
                       {divinityUi.subtitle}
                     </p>
                   </div>
