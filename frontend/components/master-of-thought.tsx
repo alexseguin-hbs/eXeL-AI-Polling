@@ -1,28 +1,28 @@
 "use client";
 
 /**
- * Master of Thought — Eagle emblem with cuneiform text arcing
- * between the inner and outer circle radii.
+ * Master of Thought — Eagle emblem with Sumerian cuneiform text
+ * arcing between the inner and outer circle radii.
  *
- * Clock-face cuneiform positions (outer ring):
- *   12 o'clock:  Humanity's Universal Challenge — 𒇽𒈨𒅗𒋧𒍠
- *   2–3 o'clock: Emerald Tablets — 𒁾𒄀𒈾𒈾
- *   4–5 o'clock: Book of Thoth — 𒁾𒅗𒋾
- *   6–8 o'clock: Flower of Life — 𒄑𒌑𒀭𒍣
- *   9–10 o'clock: Divinity Guide — 𒂗𒀭𒁺
+ * Clock-face positions (between bullet dots on the emblem):
+ *   12 o'clock (top center):       Humanity's Universal Challenge — 𒇽 𒈨 𒅗 𒋧 𒍠
+ *   10–11 o'clock (top left):      Divinity Guide — 𒂗 𒀭 𒁺
+ *   1–2 o'clock (upper right):     Book of Thoth — 𒁾 𒅗 𒋾
+ *   7–8 o'clock (bottom left):     Flower of Life — 𒄑 𒌑 𒀭 𒍣
+ *   4–5 o'clock (bottom right):    Emerald Tablets — 𒁾 𒄀 𒈾 𒈾
  *
- * Inner (above eagle): Master of Thought — 𒂗𒊕𒆠
+ * Inner (above eagle head): Master of Thought — 𒂗 𒊕 𒆠
  */
 
 import { useId } from "react";
 
 interface CuneiformArc {
-  label: string;       // English tooltip
-  cuneiform: string;   // Cuneiform glyphs
+  label: string;
+  cuneiform: string;
   startAngle: number;  // degrees (0 = 3 o'clock, -90 = 12 o'clock)
-  span: number;        // arc span in degrees
-  clockwise: boolean;  // text direction
-  radius: number;      // radius for text path (between inner & outer circle)
+  span: number;
+  clockwise: boolean;
+  radius: number;
 }
 
 export interface MasterOfThoughtProps {
@@ -36,50 +36,48 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
   const cx = 200;
   const cy = 200;
 
-  // Radii matching the eagle emblem's circle structure
-  const outerR = 175;  // outer rope border
-  const innerR = 140;  // inner circle
-  const textR = 157;   // midpoint of the gap for outer cuneiform
+  // Radii matching the eagle emblem's circle gaps
+  const textR = 157;     // midpoint between inner circle and outer rope border
   const innerTextR = 105; // inside, above the eagle head
 
   const outerArcs: CuneiformArc[] = [
     {
       label: "Humanity's Universal Challenge",
       cuneiform: "𒇽 𒈨 𒅗 𒋧 𒍠",
-      startAngle: -90,  // 12 o'clock
-      span: 50,
+      startAngle: -90,   // 12 o'clock — top center
+      span: 55,
       clockwise: true,
-      radius: textR,
-    },
-    {
-      label: "Emerald Tablets",
-      cuneiform: "𒁾 𒄀 𒈾 𒈾",
-      startAngle: 30,   // 2–3 o'clock
-      span: 40,
-      clockwise: true,
-      radius: textR,
-    },
-    {
-      label: "Book of Thoth",
-      cuneiform: "𒁾 𒅗 𒋾",
-      startAngle: 105,  // 4–5 o'clock
-      span: 40,
-      clockwise: false,
-      radius: textR,
-    },
-    {
-      label: "Flower of Life",
-      cuneiform: "𒄑 𒌑 𒀭 𒍣",
-      startAngle: 190,  // 6–8 o'clock
-      span: 50,
-      clockwise: false,
       radius: textR,
     },
     {
       label: "Divinity Guide",
       cuneiform: "𒂗 𒀭 𒁺",
-      startAngle: 260,  // 9–10 o'clock
-      span: 40,
+      startAngle: -145,   // ~10–11 o'clock — top left between bullets
+      span: 35,
+      clockwise: false,
+      radius: textR,
+    },
+    {
+      label: "Book of Thoth",
+      cuneiform: "𒁾 𒅗 𒋾",
+      startAngle: -35,    // ~1–2 o'clock — upper right between bullets
+      span: 35,
+      clockwise: true,
+      radius: textR,
+    },
+    {
+      label: "Flower of Life",
+      cuneiform: "𒄑 𒌑 𒀭 𒍣",
+      startAngle: 215,    // ~7–8 o'clock — bottom left between bullets
+      span: 45,
+      clockwise: false,
+      radius: textR,
+    },
+    {
+      label: "Emerald Tablets",
+      cuneiform: "𒁾 𒄀 𒈾 𒈾",
+      startAngle: 125,    // ~4–5 o'clock — bottom right between bullets
+      span: 45,
       clockwise: false,
       radius: textR,
     },
@@ -88,8 +86,8 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
   const innerArc: CuneiformArc = {
     label: "Master of Thought",
     cuneiform: "𒂗 𒊕 𒆠",
-    startAngle: -90,  // top of inner circle
-    span: 60,
+    startAngle: -90,    // top of inner circle — above eagle head
+    span: 50,
     clockwise: true,
     radius: innerTextR,
   };
@@ -109,7 +107,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
     if (arc.clockwise) {
       return `M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${r} ${r} 0 0 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`;
     }
-    // Counter-clockwise: swap start/end so text reads correctly
+    // Counter-clockwise: swap start/end so text reads L→R upright
     return `M ${ex.toFixed(1)} ${ey.toFixed(1)} A ${r} ${r} 0 0 0 ${sx.toFixed(1)} ${sy.toFixed(1)}`;
   }
 
@@ -137,7 +135,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
         preserveAspectRatio="xMidYMid meet"
       />
 
-      {/* Outer cuneiform text */}
+      {/* Outer cuneiform text — between bullet dots */}
       {outerArcs.map((arc, i) => (
         <text key={`t-${i}`} fill="gold" fontSize={18} fontWeight="bold"
           fontFamily="serif" letterSpacing={6} opacity={0.9}>
@@ -148,7 +146,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
         </text>
       ))}
 
-      {/* Inner cuneiform — "Master of Thought" above eagle */}
+      {/* Inner cuneiform — "Master of Thought" above eagle head */}
       <text fill="gold" fontSize={16} fontWeight="bold"
         fontFamily="serif" letterSpacing={8} opacity={0.85}>
         <title>{innerArc.label}</title>
