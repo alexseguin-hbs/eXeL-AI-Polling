@@ -16,15 +16,74 @@
 
 import { useId } from "react";
 
-interface CuneiformArc {
+export interface CuneiformArc {
   label: string;
   cuneiform: string;
-  startAngle: number;  // degrees (0 = 3 o'clock, -90 = 12 o'clock)
+  /** SVG angle convention: 0° = 3 o'clock, -90° = 12 o'clock (top). */
+  startAngle: number;
   span: number;
   clockwise: boolean;
   radius: number;
   fontSize?: number;
 }
+
+export const DEFAULT_OUTER_ARCS: CuneiformArc[] = [
+  {
+    label: "Humanity's Universal Challenge",
+    cuneiform: "𒇽  𒈨 𒅗   𒋧  𒍠",
+    startAngle: -90,    // 12 o'clock — top center
+    span: 72,
+    clockwise: true,
+    radius: 123,
+    fontSize: 14,
+  },
+  {
+    label: "Divinity Guide",
+    cuneiform: "𒂗 𒀭 𒁺",
+    startAngle: 197,    // user 287°
+    span: 32,
+    clockwise: true,    // CW so text flows CCW→CW around coin (left-center → top → right-top) reading L→R upright
+    radius: 116,        // 130 → 116 to match Book of Thoth; CW-outward now puts visual center at r+7=123 (was r-7=123 under CCW)
+    fontSize: 14,
+  },
+  {
+    label: "Book of Thoth",
+    cuneiform: "𒁾  𒅗  𒋾",
+    startAngle: -17,    // user 73°
+    span: 40,
+    clockwise: true,
+    radius: 116,
+    fontSize: 14,
+  },
+  {
+    label: "Flower of Life",
+    cuneiform: "𒄑 𒌑 𒀭 𒍣",
+    startAngle: 132,    // user 222°
+    span: 48,
+    clockwise: false,
+    radius: 113,
+    fontSize: 14,
+  },
+  {
+    label: "Emerald Tablets",
+    cuneiform: "𒁾  𒄀  𒈾 𒈾",
+    startAngle: 46,     // user 136°
+    span: 60,
+    clockwise: false,
+    radius: 117,
+    fontSize: 14,
+  },
+];
+
+export const DEFAULT_INNER_ARC: CuneiformArc = {
+  label: "Master of Thought",
+  cuneiform: "𒂗 𒊕  𒆠",
+  startAngle: -90,
+  span: 50,
+  clockwise: true,
+  radius: 68,
+  fontSize: 13,
+};
 
 export interface MasterOfThoughtProps {
   size?: number;
@@ -32,9 +91,28 @@ export interface MasterOfThoughtProps {
   /** Tint color applied to both the eagle emblem and the cuneiform glyphs.
    *  When undefined, renders with default palette (white emblem + gold cuneiform). */
   color?: string;
+  /** Optional override for the 5 outer arcs (used by the edit panel). */
+  outerArcs?: CuneiformArc[];
+  /** Optional override for the inner "Master of Thought" arc. */
+  innerArc?: CuneiformArc;
+  /** Index of the selected arc (0–4 for outer, 5 for inner). null = none. */
+  selectedIndex?: number | null;
+  /** Invoked when an arc is clicked in edit mode. */
+  onSelectArc?: (index: number | null) => void;
+  /** Render a small center crosshair + alignment rings (for edit mode). */
+  showGuides?: boolean;
 }
 
-export function MasterOfThought({ size = 320, className = "", color }: MasterOfThoughtProps) {
+export function MasterOfThought({
+  size = 320,
+  className = "",
+  color,
+  outerArcs: outerArcsProp,
+  innerArc: innerArcProp,
+  selectedIndex = null,
+  onSelectArc,
+  showGuides = false,
+}: MasterOfThoughtProps) {
   const uid = useId().replace(/:/g, "");
   const tintId = `${uid}-tint`;
   // When emblem is white (initial state), cuneiform stays gold for readability
@@ -45,78 +123,8 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
   const cx = 200;
   const cy = 200;
 
-  // Radii calibrated via radial pixel scan of master-of-thought-bw.png
-  // (measured distance from center of coin, normalized to 400×400 viewBox):
-  //   Outer rope border edge: ~152   Rope inner edge: ~115
-  //   Inner smooth circle edge: ~85  Eagle head top: ~50
-  //   Rope mid-line (target visual center for all 5 outer arcs): ~123
-  //
-  // textPath glyph extension direction:
-  //   clockwise: true  → glyphs extend OUTWARD (visual center = baseline + fontSize/2)
-  //   clockwise: false → glyphs extend INWARD  (visual center = baseline − fontSize/2)
-  // Baseline radius is calculated so the glyph visual center lands at r≈123 on every arc.
-  const innerTextR = 68;   // inner cuneiform — 3px higher (was 65); sits in the gap between wing tips and top of eagle head
-
-  // Divinity Guide + Book of Thoth are LOCKED at r=130 (user-confirmed).
-  // The other 3 outer arcs + inner arc use per-arc radii per user iterations.
-  const outerArcs: CuneiformArc[] = [
-    {
-      label: "Humanity's Universal Challenge",
-      cuneiform: "𒇽  𒈨 𒅗   𒋧  𒍠",
-      startAngle: -90,    // 12 o'clock — top center
-      span: 72,
-      clockwise: true,
-      radius: 123,        // +3px (120 → 123) to center glyphs between rope inner + outer edges
-      fontSize: 14,
-    },
-    {
-      label: "Divinity Guide",
-      cuneiform: "𒂗 𒀭 𒁺",
-      startAngle: 197,    // user 287° = SVG 197° (+2° CW toward 12 o'clock; mirrors Book of Thoth)
-      span: 32,
-      clockwise: false,
-      radius: 130,
-      fontSize: 14,
-    },
-    {
-      label: "Book of Thoth",
-      cuneiform: "𒁾  𒅗  𒋾",
-      startAngle: -17,    // user 73° = SVG -17°
-      span: 40,           // bullet-to-bullet sweep (reverted from 32 — was too tight)
-      clockwise: true,
-      radius: 116,
-      fontSize: 14,
-    },
-    {
-      label: "Flower of Life",
-      cuneiform: "𒄑 𒌑 𒀭 𒍣",
-      startAngle: 132,    // user 222° (unchanged — 'start position is good')
-      span: 48,
-      clockwise: false,
-      radius: 113,        // pulled back from 120: baseline now 2px inside rope inner edge (115);
-                          // glyph tops at r=99 → 14px clear of inner smooth circle (85). Sits on bullet ring.
-      fontSize: 14,
-    },
-    {
-      label: "Emerald Tablets",
-      cuneiform: "𒁾  𒄀  𒈾 𒈾",
-      startAngle: 46,     // user 136°
-      span: 60,           // bullet-to-bullet sweep (reverted from 48 — was too tight)
-      clockwise: false,
-      radius: 117,        // flattens arc so 4th glyph (𒈾) clears the inner circle
-      fontSize: 14,
-    },
-  ];
-
-  const innerArc: CuneiformArc = {
-    label: "Master of Thought",
-    cuneiform: "𒂗 𒊕  𒆠",
-    startAngle: -90,     // top of inner area — centered above eagle head
-    span: 50,
-    clockwise: true,
-    radius: innerTextR,
-    fontSize: 13,        // slightly smaller per user (was 14)
-  };
+  const outerArcs = outerArcsProp ?? DEFAULT_OUTER_ARCS;
+  const innerArc = innerArcProp ?? DEFAULT_INNER_ARC;
 
   const deg2rad = (d: number) => (d * Math.PI) / 180;
 
@@ -138,6 +146,7 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
 
   const allArcs = [...outerArcs, innerArc];
   const defaultFontSize = 14;
+  const interactive = typeof onSelectArc === "function";
 
   return (
     <svg
@@ -168,20 +177,67 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
         filter={color ? `url(#${tintId})` : undefined}
       />
 
+      {/* Edit-mode guides: center crosshair + reference rings (inner circle + rope) */}
+      {showGuides && (
+        <g pointerEvents="none">
+          <circle cx={cx} cy={cy} r={85} fill="none" stroke="#00e0ff" strokeWidth={0.5} strokeDasharray="2 3" opacity={0.55} />
+          <circle cx={cx} cy={cy} r={115} fill="none" stroke="#ff7a00" strokeWidth={0.5} strokeDasharray="2 3" opacity={0.55} />
+          <circle cx={cx} cy={cy} r={152} fill="none" stroke="#ff7a00" strokeWidth={0.5} strokeDasharray="2 3" opacity={0.55} />
+          <line x1={cx - 10} y1={cy} x2={cx + 10} y2={cy} stroke="#00e0ff" strokeWidth={0.8} />
+          <line x1={cx} y1={cy - 10} x2={cx} y2={cy + 10} stroke="#00e0ff" strokeWidth={0.8} />
+          <circle cx={cx} cy={cy} r={2} fill="#00e0ff" />
+          {/* Visualize the arc baselines in edit mode */}
+          {allArcs.map((arc, i) => {
+            const isSel = i === selectedIndex;
+            return (
+              <path
+                key={`guide-${i}`}
+                d={makeArc(arc)}
+                fill="none"
+                stroke={isSel ? "#00ff88" : "#00e0ff"}
+                strokeWidth={isSel ? 1.2 : 0.6}
+                strokeDasharray="3 2"
+                opacity={isSel ? 0.95 : 0.5}
+              />
+            );
+          })}
+        </g>
+      )}
+
       {/* Outer cuneiform text — between bullet dots */}
-      {outerArcs.map((arc, i) => (
-        <text key={`t-${i}`} fill={textFill} fontSize={arc.fontSize ?? defaultFontSize} fontWeight="bold"
-          fontFamily="serif" letterSpacing={4} opacity={0.9}>
-          <title>{arc.label}</title>
-          <textPath href={`#${uid}-arc-${i}`} startOffset="50%" textAnchor="middle">
-            {arc.cuneiform}
-          </textPath>
-        </text>
-      ))}
+      {outerArcs.map((arc, i) => {
+        const isSel = selectedIndex === i;
+        return (
+          <text
+            key={`t-${i}`}
+            fill={isSel && interactive ? "#00ff88" : textFill}
+            fontSize={arc.fontSize ?? defaultFontSize}
+            fontWeight="bold"
+            fontFamily="serif"
+            letterSpacing={4}
+            opacity={0.9}
+            onClick={interactive ? () => onSelectArc!(i) : undefined}
+            style={interactive ? { cursor: "pointer" } : undefined}
+          >
+            <title>{arc.label}</title>
+            <textPath href={`#${uid}-arc-${i}`} startOffset="50%" textAnchor="middle">
+              {arc.cuneiform}
+            </textPath>
+          </text>
+        );
+      })}
 
       {/* Inner cuneiform — "Master of Thought" above eagle head */}
-      <text fill={textFill} fontSize={innerArc.fontSize ?? defaultFontSize} fontWeight="bold"
-        fontFamily="serif" letterSpacing={2} opacity={0.85}>
+      <text
+        fill={selectedIndex === outerArcs.length && interactive ? "#00ff88" : textFill}
+        fontSize={innerArc.fontSize ?? defaultFontSize}
+        fontWeight="bold"
+        fontFamily="serif"
+        letterSpacing={2}
+        opacity={0.85}
+        onClick={interactive ? () => onSelectArc!(outerArcs.length) : undefined}
+        style={interactive ? { cursor: "pointer" } : undefined}
+      >
         <title>{innerArc.label}</title>
         <textPath href={`#${uid}-arc-${allArcs.length - 1}`} startOffset="50%" textAnchor="middle">
           {innerArc.cuneiform}

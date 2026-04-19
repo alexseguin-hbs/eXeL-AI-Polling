@@ -78,7 +78,12 @@ function useDivinityPages(lang: DivinityLang): DivinityPageArray {
   return pages;
 }
 import { SoITrinity } from "@/components/soi-trinity";
-import { MasterOfThought } from "@/components/master-of-thought";
+import {
+  MasterOfThought,
+  DEFAULT_OUTER_ARCS,
+  DEFAULT_INNER_ARC,
+  type CuneiformArc,
+} from "@/components/master-of-thought";
 import { useLexicon } from "@/lib/lexicon-context";
 import {
   getTheme2_3Positions,
@@ -732,6 +737,40 @@ function buildLibrarySections(ui: DivinityLangEntry["ui"], subs: DivinityLangEnt
 
 // ── Library Reader Component ────────────────────────────────────
 
+// Small numeric-field with +/- buttons used by the Thought Master edit panel.
+function ArcNumberField({
+  label,
+  value,
+  step = 1,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  step?: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <label className="text-[10px] text-muted-foreground flex-1">{label}</label>
+      <button
+        onClick={() => onChange(Number((value - step).toFixed(2)))}
+        className="w-6 h-6 text-xs rounded border border-border hover:bg-muted"
+      >−</button>
+      <input
+        type="number"
+        value={value}
+        step={step}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-16 px-1 py-0.5 text-[11px] text-center rounded bg-muted border border-border outline-none"
+      />
+      <button
+        onClick={() => onChange(Number((value + step).toFixed(2)))}
+        className="w-6 h-6 text-xs rounded border border-border hover:bg-muted"
+      >+</button>
+    </div>
+  );
+}
+
 function LibraryReader({
   section, pageIndex, setPageIndex, pages, lang = "en", onExpandBilingual,
 }: {
@@ -1251,6 +1290,67 @@ function DivinityGuidePage() {
   const GOLD = "#D4AF37";
   const currentSubtitleColor = currentLogoColor === "#FFFFFF" ? GOLD : currentLogoColor;
   const cycleLogoColor = () => setLogoColorIndex((prev) => (prev + 1) % LOGO_COLORS.length);
+
+  // ── Thought Master edit mode ────────────────────────────────────
+  // Click ✦ above the cover title → auth prompt ("Thought Master" + code 369963)
+  // → unlocks an ephemeral visual editor for the Master of Thought cuneiform arcs.
+  // Values displayed in user-convention (0° = top, CW); final numbers are copied
+  // back into DEFAULT_OUTER_ARCS / DEFAULT_INNER_ARC after the session.
+  const [editAuthOpen, setEditAuthOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [authName, setAuthName] = useState("");
+  const [authCode, setAuthCode] = useState("");
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [editOuterArcs, setEditOuterArcs] = useState<CuneiformArc[]>(() => DEFAULT_OUTER_ARCS.map(a => ({ ...a })));
+  const [editInnerArc, setEditInnerArc] = useState<CuneiformArc>(() => ({ ...DEFAULT_INNER_ARC }));
+  const [selectedArcIndex, setSelectedArcIndex] = useState<number | null>(null);
+
+  const openEditAuth = () => {
+    if (editMode) { setEditMode(false); setSelectedArcIndex(null); return; }
+    setAuthName("");
+    setAuthCode("");
+    setAuthError(null);
+    setEditAuthOpen(true);
+  };
+  const tryUnlockEdit = () => {
+    if (authName.trim() === "Thought Master" && authCode.trim() === "369963") {
+      setEditMode(true);
+      setEditAuthOpen(false);
+      setAuthError(null);
+    } else {
+      setAuthError("Not authorized.");
+    }
+  };
+  const resetEditArcs = () => {
+    setEditOuterArcs(DEFAULT_OUTER_ARCS.map(a => ({ ...a })));
+    setEditInnerArc({ ...DEFAULT_INNER_ARC });
+    setSelectedArcIndex(null);
+  };
+
+  // Selected arc helpers (index 0-4 = outer, 5 = inner)
+  const selectedArc: CuneiformArc | null =
+    selectedArcIndex === null
+      ? null
+      : selectedArcIndex < editOuterArcs.length
+      ? editOuterArcs[selectedArcIndex]
+      : editInnerArc;
+
+  const patchSelected = (patch: Partial<CuneiformArc>) => {
+    if (selectedArcIndex === null) return;
+    if (selectedArcIndex < editOuterArcs.length) {
+      setEditOuterArcs(prev => prev.map((a, i) => i === selectedArcIndex ? { ...a, ...patch } : a));
+    } else {
+      setEditInnerArc(prev => ({ ...prev, ...patch }));
+    }
+  };
+
+  // Angle conversion helpers (internal SVG ↔ user-facing 0°=top CW)
+  const svgToUserAngle = (svg: number) => ((svg + 90) % 360 + 360) % 360;
+  const userToSvgAngle = (user: number) => {
+    const a = ((user - 90) % 360 + 360) % 360;
+    return a > 180 ? a - 360 : a;  // keep SVG angle in (-180, 180] for readability
+  };
+
   const readerRef = useRef<HTMLDivElement>(null);
 
   // Track pages read — prompt after 12 pages AND 3 minutes on page
@@ -1670,20 +1770,35 @@ function DivinityGuidePage() {
               </div>
             </div>
           ) : !selectedChapter && !selectedSection ? (
-            // Front-cover layout: emblem on top, text below — flex-col so they
-            // never overlap. Both centered together so the emblem sits near the
-            // left hub height while the text flows cleanly below.
-            <div className="h-full w-full flex flex-col items-center justify-center gap-8 py-8 overflow-y-auto">
-              <div className="w-full flex justify-center cursor-pointer flex-shrink-0" onClick={cycleLogoColor}>
+            // Front-cover layout: emblem + text block pushed DOWN via pt-[17%]
+            // so the emblem center lands near the left cyan hub center
+            // (~50% of column height) and the title/subtitle/description flow
+            // cleanly below without overlap.
+            <div className="h-full w-full flex flex-col items-center gap-8 px-4 overflow-y-auto pt-[17%] pb-8">
+              <div
+                className={`w-full flex justify-center flex-shrink-0 ${editMode ? "" : "cursor-pointer"}`}
+                onClick={editMode ? undefined : cycleLogoColor}
+              >
                 {/* Width matches the 3-circle trefoil's bounding box on the left flower
                     (viewBox 600×500, 3 outer circles span ~426 units wide → 71%). */}
                 <MasterOfThought
                   className="w-[71%] h-auto"
                   color={currentLogoColor}
+                  outerArcs={editMode ? editOuterArcs : undefined}
+                  innerArc={editMode ? editInnerArc : undefined}
+                  selectedIndex={editMode ? selectedArcIndex : null}
+                  onSelectArc={editMode ? setSelectedArcIndex : undefined}
+                  showGuides={editMode}
                 />
               </div>
-              <div className="max-w-lg w-full px-4 text-center space-y-4 flex-shrink-0">
-                <div className="text-4xl">✦</div>
+              <div className="max-w-lg w-full text-center space-y-4 flex-shrink-0">
+                <div
+                  className="text-4xl cursor-pointer select-none hover:text-primary transition-colors"
+                  onClick={openEditAuth}
+                  title={editMode ? "Exit edit mode" : "Thought Master — edit"}
+                >
+                  {editMode ? "⚙" : "✦"}
+                </div>
                 <div>
                   <h1 className="text-2xl font-bold">{divinityUi.title}</h1>
                   <p className="text-sm italic mt-1" style={{ color: currentSubtitleColor, opacity: 0.9 }}>
@@ -1745,6 +1860,239 @@ function DivinityGuidePage() {
           )}
         </div>
       </div>
+
+      {/* Thought Master — edit auth dialog */}
+      {editAuthOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+          onClick={() => setEditAuthOpen(false)}
+        >
+          <div
+            className="bg-card border rounded-xl p-6 max-w-sm w-full space-y-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-bold">Are you Authorized to Edit?</h2>
+            <div className="space-y-2">
+              <label className="block text-xs text-muted-foreground">Who is this:</label>
+              <input
+                autoFocus
+                value={authName}
+                onChange={(e) => setAuthName(e.target.value)}
+                placeholder="Thought Master"
+                className="w-full px-3 py-2 rounded-md bg-muted text-foreground border border-border outline-none focus:border-primary"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-xs text-muted-foreground">Code:</label>
+              <input
+                type="password"
+                value={authCode}
+                onChange={(e) => setAuthCode(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") tryUnlockEdit(); }}
+                className="w-full px-3 py-2 rounded-md bg-muted text-foreground border border-border outline-none focus:border-primary"
+              />
+            </div>
+            {authError && <p className="text-xs text-red-500">{authError}</p>}
+            <div className="flex gap-2 justify-end pt-2">
+              <button
+                onClick={() => setEditAuthOpen(false)}
+                className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={tryUnlockEdit}
+                className="px-3 py-1.5 text-sm rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+              >
+                Unlock
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Thought Master — edit controls panel (futuristic design tool, anchored
+          to the MoT emblem on the right column when editMode = true). */}
+      {editMode && (
+        <div
+          className="fixed z-40 w-[22rem] rounded-xl overflow-hidden select-none"
+          style={{
+            top: "50%",
+            right: "calc(50vw - 22rem - 1rem)",
+            transform: "translateY(-50%)",
+            background: "linear-gradient(135deg, rgba(0, 8, 20, 0.92) 0%, rgba(0, 20, 30, 0.92) 100%)",
+            border: "1px solid rgba(0, 220, 255, 0.4)",
+            boxShadow: "0 0 20px rgba(0, 220, 255, 0.25), inset 0 0 40px rgba(0, 220, 255, 0.05)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          {/* Top grid/scanline accent */}
+          <div
+            className="absolute inset-x-0 top-0 h-[1px]"
+            style={{ background: "linear-gradient(90deg, transparent 0%, #00dcff 50%, transparent 100%)" }}
+          />
+          <div
+            className="px-4 py-3 flex items-center justify-between"
+            style={{ borderBottom: "1px solid rgba(0, 220, 255, 0.25)" }}
+          >
+            <div>
+              <h3 className="text-xs font-bold tracking-[0.25em]" style={{ color: "#00dcff" }}>
+                THOUGHT MASTER · EDIT
+              </h3>
+              <p className="text-[9px] text-cyan-200/50 mt-0.5 tracking-wider">ANGLE: 0° = TOP, CW</p>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={resetEditArcs}
+                title="Reset to defaults"
+                className="px-2 py-1 text-[9px] tracking-wider rounded border transition-all"
+                style={{ borderColor: "rgba(0, 220, 255, 0.3)", color: "#00dcff" }}
+              >
+                RESET
+              </button>
+              <button
+                onClick={() => { setEditMode(false); setSelectedArcIndex(null); }}
+                title="Exit edit mode"
+                className="w-7 h-7 text-sm rounded border transition-all"
+                style={{ borderColor: "rgba(0, 220, 255, 0.3)", color: "#00dcff" }}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          <div className="p-3 space-y-3 max-h-[70vh] overflow-y-auto" style={{ color: "#c8f0ff" }}>
+            {/* Arc selector */}
+            <div>
+              <label className="block text-[9px] tracking-wider text-cyan-300/70 mb-1">
+                ◢ SELECT ARC
+              </label>
+              <select
+                value={selectedArcIndex ?? ""}
+                onChange={(e) => setSelectedArcIndex(e.target.value === "" ? null : Number(e.target.value))}
+                className="w-full px-2 py-1.5 text-[11px] rounded border outline-none"
+                style={{
+                  background: "rgba(0, 30, 45, 0.8)",
+                  borderColor: "rgba(0, 220, 255, 0.3)",
+                  color: "#c8f0ff",
+                }}
+              >
+                <option value="">— click a phrase on the emblem —</option>
+                {editOuterArcs.map((a, i) => (
+                  <option key={i} value={i}>{i + 1}. {a.label}</option>
+                ))}
+                <option value={editOuterArcs.length}>{editOuterArcs.length + 1}. {editInnerArc.label} (inner)</option>
+              </select>
+            </div>
+
+            {selectedArc ? (
+              <div className="space-y-2.5">
+                <p className="text-[11px] font-bold tracking-wide" style={{ color: "#ffd24a" }}>
+                  ◆ {selectedArc.label}
+                </p>
+
+                <ArcNumberField
+                  label="RADIUS (px from center)"
+                  value={selectedArc.radius}
+                  step={1}
+                  onChange={(v) => patchSelected({ radius: v })}
+                />
+
+                <ArcNumberField
+                  label="ANGLE (°, 0=top CW)"
+                  value={svgToUserAngle(selectedArc.startAngle)}
+                  step={1}
+                  onChange={(v) => patchSelected({ startAngle: userToSvgAngle(v) })}
+                />
+
+                <ArcNumberField
+                  label="SPAN (°, bullet-to-bullet)"
+                  value={selectedArc.span}
+                  step={1}
+                  onChange={(v) => patchSelected({ span: Math.max(1, v) })}
+                />
+
+                <ArcNumberField
+                  label="FONT SIZE"
+                  value={selectedArc.fontSize ?? 14}
+                  step={1}
+                  onChange={(v) => patchSelected({ fontSize: Math.max(6, v) })}
+                />
+
+                <div className="flex items-center gap-2 pt-1">
+                  <label className="text-[9px] tracking-wider text-cyan-300/70 flex-1">DIRECTION</label>
+                  <button
+                    onClick={() => patchSelected({ clockwise: !selectedArc.clockwise })}
+                    className="px-2 py-1 text-[10px] rounded border transition-all"
+                    style={{
+                      borderColor: "rgba(0, 220, 255, 0.3)",
+                      color: selectedArc.clockwise ? "#ffd24a" : "#00ff88",
+                    }}
+                  >
+                    {selectedArc.clockwise ? "CW · outward" : "CCW · inward"}
+                  </button>
+                </div>
+
+                <div
+                  className="text-[9px] tracking-wider pt-2 mt-2 italic"
+                  style={{ color: "rgba(200, 240, 255, 0.55)", borderTop: "1px dashed rgba(0, 220, 255, 0.2)" }}
+                >
+                  visual glyph center ≈ r {selectedArc.clockwise ? "+" : "−"} {(selectedArc.fontSize ?? 14) / 2} = {(selectedArc.radius + (selectedArc.clockwise ? 1 : -1) * (selectedArc.fontSize ?? 14) / 2).toFixed(1)}
+                </div>
+              </div>
+            ) : (
+              <p className="text-[10px] italic" style={{ color: "rgba(200, 240, 255, 0.5)" }}>
+                click a cuneiform phrase on the emblem, or pick one above
+              </p>
+            )}
+
+            {/* Summary of all values — collapsible, copy-paste back into DEFAULT_OUTER_ARCS */}
+            <details className="pt-2" style={{ borderTop: "1px solid rgba(0, 220, 255, 0.15)" }}>
+              <summary className="text-[9px] tracking-widest cursor-pointer" style={{ color: "#00dcff" }}>
+                ◢ FULL CONFIG (copy back to source)
+              </summary>
+              <pre
+                className="text-[8px] p-2 rounded mt-1 overflow-x-auto"
+                style={{
+                  background: "rgba(0, 30, 45, 0.8)",
+                  color: "#c8f0ff",
+                  border: "1px solid rgba(0, 220, 255, 0.15)",
+                }}
+              >
+{JSON.stringify(
+  {
+    outer: editOuterArcs.map(a => ({
+      label: a.label,
+      r: a.radius,
+      angleUser: Math.round(svgToUserAngle(a.startAngle)),
+      angleSvg: a.startAngle,
+      span: a.span,
+      cw: a.clockwise,
+      fs: a.fontSize,
+    })),
+    inner: {
+      label: editInnerArc.label,
+      r: editInnerArc.radius,
+      angleUser: Math.round(svgToUserAngle(editInnerArc.startAngle)),
+      angleSvg: editInnerArc.startAngle,
+      span: editInnerArc.span,
+      cw: editInnerArc.clockwise,
+      fs: editInnerArc.fontSize,
+    },
+  },
+  null,
+  2,
+)}
+              </pre>
+            </details>
+          </div>
+          {/* Bottom grid/scanline accent */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-[1px]"
+            style={{ background: "linear-gradient(90deg, transparent 0%, #00dcff 50%, transparent 100%)" }}
+          />
+        </div>
+      )}
 
       {/* Bilingual side-by-side overlay — works for both portals and library mode */}
       {showBilingual && (() => {
