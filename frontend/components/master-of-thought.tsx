@@ -55,7 +55,7 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
   //   clockwise: true  → glyphs extend OUTWARD (visual center = baseline + fontSize/2)
   //   clockwise: false → glyphs extend INWARD  (visual center = baseline − fontSize/2)
   // Baseline radius is calculated so the glyph visual center lands at r≈123 on every arc.
-  const innerTextR = 80;   // inner cuneiform — lowered 10px closer to eagle head
+  const innerTextR = 65;   // inner cuneiform — tighter arc, sits in the gap between wing tips (~y=125) and top of head (~y=150); text center lands at y=135
 
   // Divinity Guide + Book of Thoth are LOCKED at r=130 (user-confirmed).
   // The other 3 outer arcs + inner arc use per-arc radii per user iterations.
@@ -64,45 +64,45 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       label: "Humanity's Universal Challenge",
       cuneiform: "𒇽  𒈨 𒅗   𒋧  𒍠",
       startAngle: -90,    // 12 o'clock — top center
-      span: 72,           // widened 60 → 72 so all 5 glyphs are visible
+      span: 72,
       clockwise: true,
-      radius: 120,        // pushed up 7px (113 → 120) per user
+      radius: 123,        // +3px (120 → 123) to center glyphs between rope inner + outer edges
       fontSize: 14,
     },
     {
       label: "Divinity Guide",
       cuneiform: "𒂗 𒀭 𒁺",
-      startAngle: 195,    // user 285° = SVG 195° (between 9 & 10 o'clock)
+      startAngle: 197,    // user 287° = SVG 197° (+2° CW toward 12 o'clock; mirrors Book of Thoth)
       span: 32,
       clockwise: false,
-      radius: 130,        // LOCKED — user confirmed "near perfect"
+      radius: 130,
       fontSize: 14,
     },
     {
       label: "Book of Thoth",
       cuneiform: "𒁾  𒅗  𒋾",
-      startAngle: -15,    // user 75° = SVG -15° (between 2 & 3 o'clock)
-      span: 40,           // widened 32 → 40 to fit all 3 glyphs
+      startAngle: -17,    // user 73° = SVG -17° (-2° CCW toward 12 o'clock; mirrors Divinity Guide)
+      span: 40,
       clockwise: true,
-      radius: 127,        // -3px (130 → 127) per user
+      radius: 123,        // -4px (127 → 123) per user
       fontSize: 14,
     },
     {
       label: "Flower of Life",
       cuneiform: "𒄑 𒌑 𒀭 𒍣",
-      startAngle: 132,    // user 222° = SVG 132° (+2° away from 180 so glyphs lift off inner circle)
+      startAngle: 132,    // user 222° (unchanged — 'start position is good')
       span: 48,
       clockwise: false,
-      radius: 112,        // +2px (110 → 112) so glyphs don't touch inner smooth circle
+      radius: 120,        // +8px (112 → 120) → flatter arc, glyphs reach bullet-dot ring
       fontSize: 14,
     },
     {
       label: "Emerald Tablets",
       cuneiform: "𒁾  𒄀  𒈾 𒈾",
-      startAngle: 46,     // user 136° = SVG 46° (−5° → closer to 4-5 o'clock position)
-      span: 60,           // widened 48 → 60 so glyphs center between the two bullets
+      startAngle: 46,     // user 136° (unchanged — 'same position')
+      span: 60,
       clockwise: false,
-      radius: 110,
+      radius: 118,        // +8px (110 → 118) → flatter arc, glyphs reach bullet-dot ring
       fontSize: 14,
     },
   ];
@@ -110,8 +110,8 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
   const innerArc: CuneiformArc = {
     label: "Master of Thought",
     cuneiform: "𒂗 𒊕  𒆠",
-    startAngle: -90,     // top of inner area — above eagle head
-    span: 45,            // widened to fit 3 glyphs at fontSize 14
+    startAngle: -90,     // top of inner area — centered above eagle head
+    span: 50,            // slightly wider to fit 3 glyphs at the tighter r=65
     clockwise: true,
     radius: innerTextR,
     fontSize: 14,
