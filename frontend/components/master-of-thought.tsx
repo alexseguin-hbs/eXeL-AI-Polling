@@ -27,61 +27,63 @@ export interface CuneiformArc {
   fontSize?: number;
 }
 
+export const DEFAULT_CENTER = { cx: 201, cy: 190 };
+
 export const DEFAULT_OUTER_ARCS: CuneiformArc[] = [
   {
     label: "Humanity's Universal Challenge",
     cuneiform: "𒇽  𒈨 𒅗   𒋧  𒍠",
-    startAngle: -90,    // 12 o'clock — top center
+    startAngle: -90,    // user 0° — 12 o'clock, top center
     span: 72,
     clockwise: true,
-    radius: 123,
-    fontSize: 14,
+    radius: 114,
+    fontSize: 15,
   },
   {
     label: "Divinity Guide",
     cuneiform: "𒂗 𒀭 𒁺",
-    startAngle: 197,    // user 287°
+    startAngle: 194,    // user 284°
     span: 32,
-    clockwise: true,    // CW so text flows CCW→CW around coin (left-center → top → right-top) reading L→R upright
-    radius: 116,        // 130 → 116 to match Book of Thoth; CW-outward now puts visual center at r+7=123 (was r-7=123 under CCW)
-    fontSize: 14,
+    clockwise: true,
+    radius: 116,
+    fontSize: 15,
   },
   {
     label: "Book of Thoth",
     cuneiform: "𒁾  𒅗  𒋾",
-    startAngle: -17,    // user 73°
+    startAngle: -13,    // user 77°
     span: 40,
     clockwise: true,
-    radius: 116,
-    fontSize: 14,
+    radius: 115,
+    fontSize: 15,
   },
   {
     label: "Flower of Life",
     cuneiform: "𒄑 𒌑 𒀭 𒍣",
-    startAngle: 132,    // user 222°
-    span: 48,
+    startAngle: 128,    // user 218°
+    span: 72,
     clockwise: false,
-    radius: 113,
-    fontSize: 14,
+    radius: 123,
+    fontSize: 15,
   },
   {
     label: "Emerald Tablets",
     cuneiform: "𒁾  𒄀  𒈾 𒈾",
-    startAngle: 46,     // user 136°
-    span: 60,
+    startAngle: 53,     // user 143°
+    span: 72,
     clockwise: false,
-    radius: 117,
-    fontSize: 14,
+    radius: 124,
+    fontSize: 15,
   },
 ];
 
 export const DEFAULT_INNER_ARC: CuneiformArc = {
   label: "Master of Thought",
   cuneiform: "𒂗 𒊕  𒆠",
-  startAngle: -90,
-  span: 50,
+  startAngle: -90,    // user 0°
+  span: 79,
   clockwise: true,
-  radius: 68,
+  radius: 58,
   fontSize: 13,
 };
 
@@ -101,7 +103,7 @@ export interface MasterOfThoughtProps {
   onSelectArc?: (index: number | null) => void;
   /** Render a crosshair X + alignment rings (for edit mode). */
   showGuides?: boolean;
-  /** Optional center override in viewBox coords. Defaults to (200, 200). */
+  /** Optional center override in viewBox coords. Defaults to DEFAULT_CENTER. */
   center?: { cx: number; cy: number };
 }
 
@@ -123,8 +125,8 @@ export function MasterOfThought({
   const isWhiteTint = color === "#FFFFFF" || color?.toLowerCase?.() === "white";
   const textFill = !color || isWhiteTint ? "gold" : color;
 
-  const cx = center?.cx ?? 200;
-  const cy = center?.cy ?? 200;
+  const cx = center?.cx ?? DEFAULT_CENTER.cx;
+  const cy = center?.cy ?? DEFAULT_CENTER.cy;
 
   const outerArcs = outerArcsProp ?? DEFAULT_OUTER_ARCS;
   const innerArc = innerArcProp ?? DEFAULT_INNER_ARC;

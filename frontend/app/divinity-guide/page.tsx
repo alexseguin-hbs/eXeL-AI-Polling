@@ -82,6 +82,7 @@ import {
   MasterOfThought,
   DEFAULT_OUTER_ARCS,
   DEFAULT_INNER_ARC,
+  DEFAULT_CENTER,
   type CuneiformArc,
 } from "@/components/master-of-thought";
 import { loadMotConfig, saveMotConfig, subscribeMotConfig } from "@/lib/mot-config";
@@ -1304,7 +1305,7 @@ function DivinityGuidePage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [editOuterArcs, setEditOuterArcs] = useState<CuneiformArc[]>(() => DEFAULT_OUTER_ARCS.map(a => ({ ...a })));
   const [editInnerArc, setEditInnerArc] = useState<CuneiformArc>(() => ({ ...DEFAULT_INNER_ARC }));
-  const [editCenter, setEditCenter] = useState<{ cx: number; cy: number }>({ cx: 200, cy: 200 });
+  const [editCenter, setEditCenter] = useState<{ cx: number; cy: number }>({ ...DEFAULT_CENTER });
   const [selectedArcIndex, setSelectedArcIndex] = useState<number | null>(null);
   // Refs mirror the edit state so the INSCRIBE handler always reads the latest
   // values synchronously at click-time, even if React hasn't flushed a pending
@@ -1323,7 +1324,7 @@ function DivinityGuidePage() {
   // Realtime changes so everyone sees an inscription the moment it lands.
   const [liveOuterArcs, setLiveOuterArcs] = useState<CuneiformArc[]>(() => DEFAULT_OUTER_ARCS.map(a => ({ ...a })));
   const [liveInnerArc, setLiveInnerArc] = useState<CuneiformArc>(() => ({ ...DEFAULT_INNER_ARC }));
-  const [liveCenter, setLiveCenter] = useState<{ cx: number; cy: number }>({ cx: 200, cy: 200 });
+  const [liveCenter, setLiveCenter] = useState<{ cx: number; cy: number }>({ ...DEFAULT_CENTER });
 
   useEffect(() => {
     let cancelled = false;
