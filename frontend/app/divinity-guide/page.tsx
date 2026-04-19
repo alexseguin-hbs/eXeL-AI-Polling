@@ -1305,6 +1305,16 @@ function DivinityGuidePage() {
   const [editInnerArc, setEditInnerArc] = useState<CuneiformArc>(() => ({ ...DEFAULT_INNER_ARC }));
   const [editCenter, setEditCenter] = useState<{ cx: number; cy: number }>({ cx: 200, cy: 200 });
   const [selectedArcIndex, setSelectedArcIndex] = useState<number | null>(null);
+  // Refs mirror the edit state so the INSCRIBE handler always reads the latest
+  // values synchronously at click-time, even if React hasn't flushed a pending
+  // input update yet. Prior versions used closure-captured state which could
+  // yield stale snapshots when the user typed + clicked SAVE in rapid succession.
+  const editOuterArcsRef = useRef(editOuterArcs);
+  const editInnerArcRef = useRef(editInnerArc);
+  const editCenterRef = useRef(editCenter);
+  useEffect(() => { editOuterArcsRef.current = editOuterArcs; }, [editOuterArcs]);
+  useEffect(() => { editInnerArcRef.current = editInnerArc; }, [editInnerArc]);
+  useEffect(() => { editCenterRef.current = editCenter; }, [editCenter]);
   // Save/capture flow — code 963369 captures the current config for copy-paste
   // then resets arcs to defaults so you can continue iterating.
   const [saveCodeOpen, setSaveCodeOpen] = useState(false);
@@ -1335,31 +1345,63 @@ function DivinityGuidePage() {
     setSelectedArcIndex(null);
   };
 
-  const buildConfigSnapshot = () => JSON.stringify(
-    {
-      center: editCenter,
-      outer: editOuterArcs.map(a => ({
-        label: a.label,
-        r: a.radius,
-        angleUser: Math.round(svgToUserAngle(a.startAngle)),
-        angleSvg: a.startAngle,
-        span: a.span,
-        cw: a.clockwise,
-        fs: a.fontSize,
-      })),
-      inner: {
-        label: editInnerArc.label,
-        r: editInnerArc.radius,
-        angleUser: Math.round(svgToUserAngle(editInnerArc.startAngle)),
-        angleSvg: editInnerArc.startAngle,
-        span: editInnerArc.span,
-        cw: editInnerArc.clockwise,
-        fs: editInnerArc.fontSize,
+  // Build snapshot from REFS (guaranteed fresh) rather than closed-over state.
+  const buildConfigSnapshot = () => {
+    const outer = editOuterArcsRef.current;
+    const inner = editInnerArcRef.current;
+    const center = editCenterRef.current;
+    return JSON.stringify(
+      {
+        center,
+        outer: outer.map(a => ({
+          label: a.label,
+          r: a.radius,
+          angleUser: Math.round(svgToUserAngle(a.startAngle)),
+          angleSvg: a.startAngle,
+          span: a.span,
+          cw: a.clockwise,
+          fs: a.fontSize,
+        })),
+        inner: {
+          label: inner.label,
+          r: inner.radius,
+          angleUser: Math.round(svgToUserAngle(inner.startAngle)),
+          angleSvg: inner.startAngle,
+          span: inner.span,
+          cw: inner.clockwise,
+          fs: inner.fontSize,
+        },
       },
-    },
-    null,
-    2,
-  );
+      null,
+      2,
+    );
+  };
+
+  // Compute a human-readable list of edits vs DEFAULT_*. Used for the
+  // CHANGES review section so the human can verify edits before exiting.
+  const editChanges = useMemo(() => {
+    const changes: Array<{ label: string; field: string; from: string | number | boolean; to: string | number | boolean }> = [];
+    const compare = (label: string, now: CuneiformArc, base: CuneiformArc) => {
+      const fields: Array<keyof CuneiformArc> = ["radius", "startAngle", "span", "clockwise", "fontSize"];
+      for (const k of fields) {
+        const a = now[k] as string | number | boolean | undefined;
+        const b = base[k] as string | number | boolean | undefined;
+        if (a !== b) {
+          changes.push({
+            label,
+            field: k === "startAngle" ? "angle(svg)" : k === "fontSize" ? "fontSize" : k,
+            from: (b ?? "—") as string | number | boolean,
+            to: (a ?? "—") as string | number | boolean,
+          });
+        }
+      }
+    };
+    editOuterArcs.forEach((a, i) => compare(a.label, a, DEFAULT_OUTER_ARCS[i]));
+    compare(editInnerArc.label, editInnerArc, DEFAULT_INNER_ARC);
+    if (editCenter.cx !== 200) changes.push({ label: "center", field: "cx", from: 200, to: editCenter.cx });
+    if (editCenter.cy !== 200) changes.push({ label: "center", field: "cy", from: 200, to: editCenter.cy });
+    return changes;
+  }, [editOuterArcs, editInnerArc, editCenter]);
 
   const openSaveCode = () => {
     setSaveCode("");
@@ -1927,10 +1969,11 @@ function DivinityGuidePage() {
               boxShadow: "0 0 24px rgba(0, 220, 255, 0.25)",
             }}
           >
-            <h2 className="text-sm tracking-[0.3em] font-bold" style={{ color: "#00dcff" }}>◆ MoT</h2>
+            <h2 className="text-sm tracking-[0.3em] font-bold text-center" style={{ color: "#00dcff" }}>MoT</h2>
             <input
               autoFocus
               type="password"
+              autoComplete="off"
               value={authName}
               onChange={(e) => setAuthName(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") tryUnlockEdit(); }}
@@ -1943,6 +1986,7 @@ function DivinityGuidePage() {
             />
             <input
               type="password"
+              autoComplete="off"
               value={authCode}
               onChange={(e) => setAuthCode(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") tryUnlockEdit(); }}
@@ -1989,10 +2033,11 @@ function DivinityGuidePage() {
               boxShadow: "0 0 24px rgba(0, 220, 255, 0.25)",
             }}
           >
-            <h2 className="text-sm tracking-[0.3em] font-bold" style={{ color: "#00dcff" }}>◆ MoT · SAVE</h2>
+            <h2 className="text-sm tracking-[0.3em] font-bold text-center" style={{ color: "#00dcff" }}>MoT</h2>
             <input
               autoFocus
               type="password"
+              autoComplete="off"
               value={saveCode}
               onChange={(e) => setSaveCode(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") trySaveCapture(); }}
@@ -2140,6 +2185,40 @@ function DivinityGuidePage() {
           </div>
 
           <div className="p-3 space-y-3 max-h-[70vh] overflow-y-auto" style={{ color: "#c8f0ff" }}>
+            {/* CHANGES — human-readable diff vs defaults. Appears whenever there
+                are unsaved edits so the scribe can verify before closing. */}
+            {editChanges.length > 0 && (
+              <div
+                className="p-2 rounded space-y-1"
+                style={{
+                  background: "rgba(255, 210, 74, 0.06)",
+                  border: "1px solid rgba(255, 210, 74, 0.35)",
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-[9px] tracking-wider" style={{ color: "#ffd24a" }}>
+                    ◢ CHANGES · {editChanges.length} edit{editChanges.length === 1 ? "" : "s"}
+                  </p>
+                  <span
+                    className="text-[9px] tracking-wider px-1.5 py-0.5 rounded"
+                    style={{ background: "rgba(255, 210, 74, 0.2)", color: "#ffd24a" }}
+                  >
+                    UNINSCRIBED
+                  </span>
+                </div>
+                <ul className="text-[10px] space-y-0.5 pt-1" style={{ color: "#ffe9a8" }}>
+                  {editChanges.map((c, i) => (
+                    <li key={i} className="tracking-wide">
+                      · {c.label} · {c.field}: <span style={{ color: "rgba(200, 240, 255, 0.6)" }}>{String(c.from)}</span> → <span style={{ color: "#ffd24a" }}>{String(c.to)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[9px] italic pt-1" style={{ color: "rgba(255, 233, 168, 0.55)" }}>
+                  press INSCRIBE to seal these edits · ORIGIN to discard
+                </p>
+              </div>
+            )}
+
             {/* Center controls — the axis of the eagle */}
             <div
               className="p-2 rounded space-y-1.5"
