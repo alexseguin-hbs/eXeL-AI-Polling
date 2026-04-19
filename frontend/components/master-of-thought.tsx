@@ -93,7 +93,8 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       startAngle: 132,    // user 222° (unchanged — 'start position is good')
       span: 48,
       clockwise: false,
-      radius: 120,        // +8px (112 → 120) → flatter arc, glyphs reach bullet-dot ring
+      radius: 113,        // pulled back from 120: baseline now 2px inside rope inner edge (115);
+                          // glyph tops at r=99 → 14px clear of inner smooth circle (85). Sits on bullet ring.
       fontSize: 14,
     },
     {
@@ -102,7 +103,7 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       startAngle: 46,     // user 136° (unchanged — 'same position')
       span: 60,
       clockwise: false,
-      radius: 118,        // +8px (110 → 118) → flatter arc, glyphs reach bullet-dot ring
+      radius: 113,        // mirror of Flower of Life (was 118, pulled back 5px off rope inner edge)
       fontSize: 14,
     },
   ];
