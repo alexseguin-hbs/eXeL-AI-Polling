@@ -5,13 +5,13 @@
  * arcing in the gap between the inner circle and outer rope border.
  *
  * Clock-face positions (between bullet dots on the emblem):
- *   12 o'clock (top center):       Humanity's Universal Challenge — 𒇽  𒈨  𒅗  𒋧  𒍠
- *   10–11 o'clock (top left):      Divinity Guide — 𒂗  𒀭  𒁺
+ *   12 o'clock (top center):       Humanity's Universal Challenge — 𒇽  𒈨 𒅗  𒋧  𒍠
+ *   10–11 o'clock (top left):      Divinity Guide — 𒂗 𒀭 𒁺
  *   1–2 o'clock (upper right):     Book of Thoth — 𒁾  𒅗  𒋾
- *   7–8 o'clock (bottom left):     Flower of Life — 𒄑  𒌑  𒀭  𒍣
- *   4–5 o'clock (bottom right):    Emerald Tablets — 𒁾  𒄀  𒈾  𒈾
+ *   7–8 o'clock (bottom left):     Flower of Life — 𒄑 𒌑 𒀭 𒍣
+ *   4–5 o'clock (bottom right):    Emerald Tablets — 𒁾  𒄀  𒈾 𒈾
  *
- * Inner (above eagle head): Master of Thought — 𒂗  𒊕  𒆠
+ * Inner (above eagle head): Master of Thought — 𒂗 𒊕  𒆠
  */
 
 import { useId } from "react";
@@ -47,7 +47,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
   const outerArcs: CuneiformArc[] = [
     {
       label: "Humanity's Universal Challenge",
-      cuneiform: "𒇽  𒈨  𒅗  𒋧  𒍠",
+      cuneiform: "𒇽  𒈨 𒅗  𒋧  𒍠",
       startAngle: -90,    // 12 o'clock — top center
       span: 60,
       clockwise: true,
@@ -56,7 +56,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
     },
     {
       label: "Divinity Guide",
-      cuneiform: "𒂗  𒀭  𒁺",
+      cuneiform: "𒂗 𒀭 𒁺",
       startAngle: -148,   // ~10–11 o'clock — top left between bullets
       span: 32,
       clockwise: false,
@@ -72,7 +72,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
     },
     {
       label: "Flower of Life",
-      cuneiform: "𒄑  𒌑  𒀭  𒍣",
+      cuneiform: "𒄑 𒌑 𒀭 𒍣",
       startAngle: 212,    // ~7–8 o'clock — bottom left between bullets
       span: 42,
       clockwise: false,
@@ -80,7 +80,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
     },
     {
       label: "Emerald Tablets",
-      cuneiform: "𒁾  𒄀  𒈾  𒈾",
+      cuneiform: "𒁾  𒄀  𒈾 𒈾",
       startAngle: 128,    // ~4–5 o'clock — bottom right between bullets
       span: 42,
       clockwise: false,
@@ -90,7 +90,7 @@ export function MasterOfThought({ size = 320, className = "" }: MasterOfThoughtP
 
   const innerArc: CuneiformArc = {
     label: "Master of Thought",
-    cuneiform: "𒂗  𒊕  𒆠",
+    cuneiform: "𒂗 𒊕  𒆠",
     startAngle: -90,     // top of inner area — above eagle head
     span: 45,
     clockwise: true,
