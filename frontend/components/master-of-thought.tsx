@@ -46,10 +46,18 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
   // (measured distance from center of coin, normalized to 400×400 viewBox):
   //   Outer rope border edge: ~152   Rope inner edge: ~115
   //   Inner smooth circle edge: ~85  Eagle head top: ~50
-  //   Gap midpoint (rope inner ↔ inner circle): ~100
-  const textR = 150;       // outer cuneiform default — along the rope border (top + upper arcs)
+  //   Rope mid-line (target visual center for all 5 outer arcs): ~123
+  //
+  // textPath glyph extension direction:
+  //   clockwise: true  → glyphs extend OUTWARD (visual center = baseline + fontSize/2)
+  //   clockwise: false → glyphs extend INWARD  (visual center = baseline − fontSize/2)
+  // Baseline radius is calculated so the glyph visual center lands at r≈123 on every arc.
   const innerTextR = 90;   // inner cuneiform — above eagle head
 
+  // All 5 outer arcs at radius 85 from the center of the coin (on the inner
+  // smooth-circle ring). Spans scaled to arc length so glyph density stays
+  // readable at the smaller circumference.
+  const outerR = 85;
   const outerArcs: CuneiformArc[] = [
     {
       label: "Humanity's Universal Challenge",
@@ -57,40 +65,44 @@ export function MasterOfThought({ size = 320, className = "", color }: MasterOfT
       startAngle: -90,    // 12 o'clock — top center
       span: 60,
       clockwise: true,
-      radius: textR,
-      fontSize: 13,
+      radius: outerR,
+      fontSize: 11,
     },
     {
       label: "Divinity Guide",
       cuneiform: "𒂗 𒀭 𒁺",
       startAngle: 195,    // user 285° = SVG 195° (between 9 & 10 o'clock)
-      span: 32,
+      span: 36,
       clockwise: false,
-      radius: 130,
+      radius: outerR,
+      fontSize: 11,
     },
     {
       label: "Book of Thoth",
       cuneiform: "𒁾  𒅗  𒋾",
       startAngle: -15,    // user 75° = SVG -15° (between 2 & 3 o'clock)
-      span: 32,
+      span: 36,
       clockwise: true,
-      radius: 130,
+      radius: outerR,
+      fontSize: 11,
     },
     {
       label: "Flower of Life",
       cuneiform: "𒄑 𒌑 𒀭 𒍣",
       startAngle: 135,    // ~7–8 o'clock — bottom left (SVG 135° = user 225°)
-      span: 42,
+      span: 48,
       clockwise: false,
-      radius: 85,         // pulled toward center per user spec
+      radius: outerR,
+      fontSize: 11,
     },
     {
       label: "Emerald Tablets",
       cuneiform: "𒁾  𒄀  𒈾 𒈾",
       startAngle: 45,     // ~4–5 o'clock — bottom right (SVG 45° = user 135°)
-      span: 42,
+      span: 48,
       clockwise: false,
-      radius: 85,         // pulled toward center per user spec
+      radius: outerR,
+      fontSize: 11,
     },
   ];
 
