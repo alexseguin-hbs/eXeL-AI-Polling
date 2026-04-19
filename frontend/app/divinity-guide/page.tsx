@@ -1960,20 +1960,15 @@ function DivinityGuidePage() {
             // so the emblem center lands near the left cyan hub center
             // (~50% of column height) and the title/subtitle/description flow
             // cleanly below without overlap.
-            <div className="h-full w-full flex flex-col items-center gap-8 px-4 overflow-y-auto pt-[5%] pb-8">
-              {/* Emblem stays centered in the RIGHT column (no horizontal shift).
-                  Size bumped to w-[82%] so the visible rope-vertical extent
-                  (80% of SVG height after 5% stretch = 0.8 × 0.82 × W_col ≈ 66% of
-                  W_col) matches the 3-circle trefoil's vertical span on the left
-                  (20→415 in viewBox 500 = 79% of 0.833 × W_col ≈ 66% of W_col).
-                  → rope TOP aligns with red circle TOP, rope BOTTOM aligns with
-                    blue/green circle BOTTOM. */}
+            <div className="h-full w-full flex flex-col items-center gap-8 px-2 overflow-y-auto pt-[8%] pb-8">
+              {/* Emblem fills the right column (w-full). pt-[8%] drops it
+                  further so its vertical position sits lower than before. */}
               <div
                 className={`w-full flex justify-center flex-shrink-0 ${editMode ? "" : "cursor-pointer"}`}
                 onClick={editMode ? undefined : cycleLogoColor}
               >
                 <MasterOfThought
-                  className="w-[82%] h-auto"
+                  className="w-full h-auto"
                   color={currentLogoColor}
                   outerArcs={editMode ? editOuterArcs : liveOuterArcs}
                   innerArc={editMode ? editInnerArc : liveInnerArc}
