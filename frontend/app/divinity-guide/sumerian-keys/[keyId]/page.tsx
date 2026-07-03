@@ -194,7 +194,7 @@ export default function SumerianKeyPage({ params }: { params: { keyId: string } 
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-3">
                     <span className="text-3xl" style={{ color: GOLD, fontFamily: "serif" }}>{key.badge.tokenGlyph} </span>
-                    <p className="text-sm text-muted-foreground">Minted into the reader&apos;s wallet upon unlock.</p>
+                    <p className="text-sm text-muted-foreground">{"Minted into the reader's wallet upon unlock."}</p>
                   </div>
                 </td>
               </tr>
