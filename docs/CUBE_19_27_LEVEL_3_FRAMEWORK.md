@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-03.6`
+**Contract version:** `L3-2026-07-03.7`
 
 ---
 
@@ -483,6 +483,87 @@ hal_profile:
     screen: [4k, 8k]              # auto-calibrate mission replay FPS
 ```
 
+### Security-2525 Play (Shield in the Sky — Air Defense)
+
+Source: *Shield in the Sky · Air Defense Leadership and Troops AI & Technology Briefing*. Runs on the same 9-cube substrate — no new primitives required. Adversarial partner for Drone-2525.
+
+```yaml
+domain: security_2525
+spec_slug_convention: "{system_class}-{unit_num}"   # e.g. IBCS-000842, Sentinel-042
+composition_graph:
+  root: tactical_operations_center       # TOC — mind of the battlefield
+  hosts:
+    - ibcs                                # Integrated Battle Command System
+    - sentinel_radar
+    - avenger_battery
+    - patriot_battery
+    - stinger_teams
+coordinate_frame:
+  A: bearing        # 0000-3600 (azimuth)
+  B: elevation      # 0000-3600 (angle)
+  C: range_m        # 0-max_engagement_range
+arena:
+  shape: hemispheric_sector
+  defended_priority_map: true
+  no_engage_zones: [friendly_asset, civilian, hospital]
+axes:
+  - track_quality                # sensor confidence
+  - id_confidence                # hostile vs friendly vs unknown
+  - engagement_discipline        # geometry + priority compliance
+  - defended_asset_survival      # primary outcome
+  - electronic_warfare_resilience
+  - reload_readiness
+modes:
+  - standby
+  - detection
+  - classification
+  - engagement
+  - restoration               # rebuild the line after action
+operational_protocol:            # the 12-commander sequence
+  - enki_spark                   # initial signal
+  - thor_shield                  # classification (assume hostile until disproven)
+  - krishna_thread               # sensor fusion
+  - odin_eye                     # engagement decision
+  - enlil_order                  # execution discipline
+  - athena_direction             # sector geometry
+  - sofia_lens                   # priority rotation
+  - aset_echo                    # restoration
+  - pangu_pattern                # future prediction
+  - christo_consensus            # alignment
+  - thoth_data                   # track refinement
+  - asar_synthesis               # summary
+multi_agent:
+  council_of_twelve: true        # 12 commanders + Thought Master orchestrator
+  human_in_loop_required: true   # every engagement authority is human-signed
+time_scales:                     # Security-2525 spans EVERY time-scale
+  engagement: milliseconds
+  mission: minutes
+  training: weeks
+  procurement: years
+adversarial_partner: drone_2525  # inverse domain — attackers to defend against
+hal_profile:
+  baseline:
+    cpu: arm_cortex_a72
+    gpu: broadcom_videocore_vi
+    inference: tflite
+    screen: 1080p                # field-deployable TOC console
+    sensors: [radar_baseline, camera, imu]
+    mobility: static_or_towed
+  upgrades:
+    sensors: [sentinel_radar, ibcs_fusion, ew_receiver, ir_thermal]
+    inference: [onnx, cuda, edge_tpu]
+    mobility: [avenger_mobile, patriot_hitl]
+principles:
+  humanity_at_center: true
+  trust_through_transparency: true
+  quality_before_scale: true
+  one_earth_one_future: true
+```
+
+**Substrate validation:** Security-2525 fits all 10 primitives without introducing new ones. The 12-commander operational protocol maps 1:1 to substrate primitive #9 (Multi-agent Coordination) — the Council of Twelve pattern is the same one already documented for the SSSES audit agents. This is the first evidence that the substrate's multi-agent primitive **generalizes beyond swarm coordination** to human command hierarchies under pressure.
+
+**New observation (not a new primitive):** Security-2525 exposes a *time-scale span* (milliseconds → years) wider than any prior domain. This is handled by Cube 24's Mode Matrix + the phased-gate calendar of Cube 23 — no new primitive needed, but the framework should verify Cube 24 estimators remain deterministic across 12 orders of magnitude in the time axis.
+
 ---
 
 ## 7 · Canonical L3 API verbs
@@ -548,23 +629,23 @@ Every project makes the substrate smarter for the next project.
 
 ---
 
-## 9 · Validation matrix — all 3 prime examples
+## 9 · Validation matrix — all 4 prime examples
 
 Every substrate cube must have a legitimate role in every prime example. Anything less means the substrate is over-specialized to one domain.
 
-| Cube | Architect-2525 | Manta-2525 | Drone-2525 |
-|---|---|---|---|
-| **19** Life Cycle | 20-33 iterations before build | Design fleet (Mini + Ark + Sentinel) | Mission plan → deploy → replay → improve |
-| **20** Concept Ingest | Owner goals + priorities | Mission spec (`99-66`, `800 BE`) | Mission ID + team + arena config |
-| **21** Model Ingest | 6 APIs (CAD/Zoning/Materials/Cost/Energy/Timeline) | CAD + hydrodynamics + battery specs | Waypoints + coordinate frame + swarm formation |
-| **22** Proposal Collector | Review Board (4 expert roles) | Fleet composition graph | Team roster + leader/follower assignments |
-| **23** De-Risk Gateway | Compliance + zoning + permits | Pilot → Refine → Qualify → Adopt | Safety boundary + geofence + no-fly zones |
-| **24** Estimator AI | Cost/timeline/energy/safety (11 axes) | Battery kWh + range + depth + endurance | Trajectory 96% / Formation 98% / Safety 100% |
-| **25** Governance & Quote | Timestamped approval + hash | Cost estimate + Vision 2525 anchor | Verified mission record + hash |
-| **26** Execution Marketplace | Global Architect Network + permits | SERVE/SHELTER/SUSTAIN/SUCCEED locales | 325+ arenas · 2,140+ schools · 90+ countries |
-| **27** Delivery & Actuals | Actuals vs quote + reusable learning | Deployment sequence verification | Replay · Learn · Evolve loop |
+| Cube | Architect-2525 | Manta-2525 | Drone-2525 | Security-2525 |
+|---|---|---|---|---|
+| **19** Life Cycle | 20-33 iterations before build | Design fleet (Mini + Ark + Sentinel) | Mission plan → deploy → replay → improve | Procurement → training → deployment → engagement → after-action |
+| **20** Concept Ingest | Owner goals + priorities | Mission spec (`99-66`, `800 BE`) | Mission ID + team + arena config | Threat profile + defended assets + ROE |
+| **21** Model Ingest | 6 APIs (CAD/Zoning/Materials/Cost/Energy/Timeline) | CAD + hydrodynamics + battery specs | Waypoints + coordinate frame + swarm formation | Sentinel radar + IBCS fusion + track feeds |
+| **22** Proposal Collector | Review Board (4 expert roles) | Fleet composition graph | Team roster + leader/follower assignments | 12-commander Council + Thought Master orchestrator |
+| **23** De-Risk Gateway | Compliance + zoning + permits | Pilot → Refine → Qualify → Adopt | Safety boundary + geofence + no-fly zones | ROE + ID confidence + no-engage zones |
+| **24** Estimator AI | Cost/timeline/energy/safety (11 axes) | Battery kWh + range + depth + endurance | Trajectory 96% / Formation 98% / Safety 100% | Track quality + engagement discipline + asset survival |
+| **25** Governance & Quote | Timestamped approval + hash | Cost estimate + Vision 2525 anchor | Verified mission record + hash | Engagement authority (human-signed) + after-action record |
+| **26** Execution Marketplace | Global Architect Network + permits | SERVE/SHELTER/SUSTAIN/SUCCEED locales | 325+ arenas · 2,140+ schools · 90+ countries | Deployed batteries + adjacent-sector coordination |
+| **27** Delivery & Actuals | Actuals vs quote + reusable learning | Deployment sequence verification | Replay · Learn · Evolve loop | Asar's synthesis + after-action review + doctrine update |
 
-**Substrate holds across all three domains.**
+**Substrate holds across all four domains — zero new primitives introduced by Security-2525.** The Council of Twelve pattern (SSSES audit agents + Shield's 12 commanders + future domains) is fully captured by primitive #9 (Multi-agent Coordination).
 
 ---
 
@@ -703,3 +784,4 @@ Two or more `X-2525` domains can be **pitted against each other** in the same si
 | `L3-2026-07-03.4` | 2026-07-03 | Cross-domain adversarial scenarios documented (e.g. Drone-2525 vs Security-2525). Security-2525 pending ingest from *Shield in The Sky* PDF. |
 | `L3-2026-07-03.5` | 2026-07-03 | Formal Low/Medium/High compute tiers + monthly hardware refresh cadence + stereoscopic 3D wireframe as substrate-default sensing method (2+ cameras). Cube 21 must accept stereoscopic wireframe as a valid model source — no domain can require pre-modeled CAD. |
 | `L3-2026-07-03.6` | 2026-07-03 | Vision 2525 first-pass ingest complete. R-CORE (Recursive Continuous Operational Reality Ecosystem) added as the foundational architecture; 5 X-2525 infrastructure layers documented (COMM/LINK/EDGE/SYNC/UCRS-2525) with per-cube mapping. UCRS-2525 formalizes/supersedes substrate primitive #8. 6 Vision 2525 operational principles (Dignity/Truth/Wisdom/Accountability/Resilience/Stewardship) extend the 4 hard-gate principles. 13 diagram cross-reference table added. |
+| `L3-2026-07-03.7` | 2026-07-03 | Security-2525 (Shield in the Sky · Air Defense) added as 4th Domain Play — zero new primitives required. 12-commander Council of Twelve operational protocol maps 1:1 to primitive #9 (Multi-agent Coordination), same pattern as the SSSES audit agents. Validation matrix expanded to 4 domains. First observation of a domain spanning milliseconds → years (Security-2525 time-scale span). Security-2525 named as adversarial partner for Drone-2525 (Drone attacks, Security defends). |
