@@ -112,8 +112,10 @@ class Session(Base):
     reward_amount_cents: Mapped[int] = mapped_column(Integer, default=0)
     cqs_weights: Mapped[dict | None] = mapped_column(JSONB)
 
-    # Theme voting
+    # Theme voting — theme2_voting_level: theme2_3 / theme2_6 / theme2_9
+    # theme01_category: risk / support / neutral (which Cube 6 category to rank)
     theme2_voting_level: Mapped[str] = mapped_column(String(20), default="theme2_9")
+    theme01_category: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     # Live feed
     live_feed_enabled: Mapped[bool] = mapped_column(Boolean, default=False)

@@ -328,3 +328,73 @@ async def get_session_themes(
         .order_by(Theme.created_at)
     )
     return list(result.scalars().all())
+
+
+# Category canonical keys — stable across languages, safe for filters/hashes.
+_CATEGORY_KEYS = {
+    "Risk & Concerns": "risk",
+    "Supporting Comments": "support",
+    "Neutral Comments": "neutral",
+}
+
+
+def _category_key(label: str | None) -> str | None:
+    """Map a Theme 01 label (English canonical) to a stable filter key."""
+    if not label:
+        return None
+    if label in _CATEGORY_KEYS:
+        return _CATEGORY_KEYS[label]
+    lower = label.lower()
+    if "risk" in lower:
+        return "risk"
+    if "support" in lower:
+        return "support"
+    if "neutral" in lower:
+        return "neutral"
+    return None
+
+
+async def get_session_themes_enriched(
+    db: AsyncSession, session_id: uuid.UUID
+) -> list[dict]:
+    """Return session themes with theme01_category + theme_level resolved.
+
+    Single batched query for parents avoids N+1. Theme 01 parent rows carry
+    their own category (self-lookup) and theme_level=None.
+    """
+    themes = await get_session_themes(db, session_id)
+    parent_ids = {t.parent_theme_id for t in themes if t.parent_theme_id}
+    parent_label_map: dict[uuid.UUID, str] = {}
+    if parent_ids:
+        parent_rows = await db.execute(
+            select(Theme.id, Theme.label).where(Theme.id.in_(parent_ids))
+        )
+        parent_label_map = {row.id: row.label for row in parent_rows}
+
+    enriched: list[dict] = []
+    for t in themes:
+        if t.parent_theme_id and t.parent_theme_id in parent_label_map:
+            category = _category_key(parent_label_map[t.parent_theme_id])
+        else:
+            category = _category_key(t.label)
+        level = None
+        if isinstance(t.cluster_metadata, dict):
+            raw_level = t.cluster_metadata.get("level")
+            if raw_level is not None:
+                level = str(raw_level)
+        enriched.append({
+            "id": t.id,
+            "session_id": t.session_id,
+            "cycle_id": t.cycle_id,
+            "label": t.label,
+            "summary": t.summary,
+            "confidence": t.confidence,
+            "response_count": t.response_count,
+            "ai_provider": t.ai_provider,
+            "ai_model": t.ai_model,
+            "created_at": t.created_at,
+            "theme01_category": category,
+            "theme_level": level,
+            "parent_theme_id": t.parent_theme_id,
+        })
+    return enriched

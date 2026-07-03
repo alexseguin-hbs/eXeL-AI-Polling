@@ -645,3 +645,191 @@ class TestStaticPollCountdown:
             assert added_obj.timer_display_mode == "flex"
             assert added_obj.polling_mode_type == "live_interactive"
             assert added_obj.static_poll_duration_days is None
+
+
+# ---------------------------------------------------------------------------
+# Ranking Config (theme01_category + theme2_voting_level)
+# ---------------------------------------------------------------------------
+
+
+class TestRankingConfig:
+    """Cube 7 gate — moderator picks which Theme 01 category (risk/support/neutral)
+    to rank + which level (3/6/9). Flower-of-Life geometry always renders 9 slots;
+    unselected slots dim. Persisted on the Session row and read by Cube 7."""
+
+    @pytest.mark.asyncio
+    async def test_create_session_persists_theme01_category(self):
+        """theme01_category should be persisted at creation time."""
+        with patch(
+            "app.cubes.cube1_session.service._generate_unique_short_code",
+            new_callable=AsyncMock,
+        ) as mock_code:
+            mock_code.return_value = "RnkCode1"
+            from app.cubes.cube1_session.service import create_session
+
+            mock_db = AsyncMock()
+            mock_db.commit = AsyncMock()
+            mock_db.refresh = AsyncMock()
+            mock_db.add = MagicMock()
+
+            with patch("app.cubes.cube1_session.service.settings") as mock_settings:
+                mock_settings.frontend_url = "http://localhost:3000"
+                mock_settings.session_seed = None
+                mock_settings.default_session_expiry_hours = 24
+
+                await create_session(
+                    mock_db,
+                    title="Ranking Config Test",
+                    created_by="auth0|mod_001",
+                    theme01_category="risk",
+                    theme2_voting_level="theme2_3",
+                )
+
+            added_obj = mock_db.add.call_args[0][0]
+            assert added_obj.theme01_category == "risk"
+            assert added_obj.theme2_voting_level == "theme2_3"
+
+    @pytest.mark.asyncio
+    async def test_create_session_default_theme01_category_is_none(self):
+        """Default theme01_category is None — moderator picks after Cube 6 themes exist."""
+        with patch(
+            "app.cubes.cube1_session.service._generate_unique_short_code",
+            new_callable=AsyncMock,
+        ) as mock_code:
+            mock_code.return_value = "NoneCode"
+            from app.cubes.cube1_session.service import create_session
+
+            mock_db = AsyncMock()
+            mock_db.commit = AsyncMock()
+            mock_db.refresh = AsyncMock()
+            mock_db.add = MagicMock()
+
+            with patch("app.cubes.cube1_session.service.settings") as mock_settings:
+                mock_settings.frontend_url = "http://localhost:3000"
+                mock_settings.session_seed = None
+                mock_settings.default_session_expiry_hours = 24
+
+                await create_session(
+                    mock_db,
+                    title="Default Category Test",
+                    created_by="auth0|mod_001",
+                )
+
+            added_obj = mock_db.add.call_args[0][0]
+            assert added_obj.theme01_category is None
+            assert added_obj.theme2_voting_level == "theme2_9"
+
+    @pytest.mark.asyncio
+    async def test_update_session_draft_accepts_theme01_category(self):
+        """Draft PATCH should accept theme01_category (support/neutral/risk)."""
+        session = make_session(status="draft", theme01_category=None)
+
+        mock_db = AsyncMock()
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+
+        from app.cubes.cube1_session.service import update_session
+
+        await update_session(mock_db, session, theme01_category="support")
+        assert session.theme01_category == "support"
+
+    @pytest.mark.asyncio
+    async def test_update_session_theme01_category_all_three_valid(self):
+        """All three canonical category keys are persisted verbatim."""
+        for category in ("risk", "support", "neutral"):
+            session = make_session(status="draft", theme01_category=None)
+            mock_db = AsyncMock()
+            mock_db.commit = AsyncMock()
+            mock_db.refresh = AsyncMock()
+
+            from app.cubes.cube1_session.service import update_session
+
+            await update_session(mock_db, session, theme01_category=category)
+            assert session.theme01_category == category
+
+    @pytest.mark.asyncio
+    async def test_patch_ranking_config_updates_both_fields(self):
+        """PATCH /{id}/ranking-config sets category + level after draft."""
+        from fastapi import HTTPException as _HE  # noqa: F401 — assertion aid
+        session = make_session(status="polling", theme01_category=None)
+        session.created_by = "auth0|mod_owner"
+
+        mock_db = AsyncMock()
+        mock_db.commit = AsyncMock()
+        mock_db.refresh = AsyncMock()
+
+        user = CurrentUser(
+            user_id="auth0|mod_owner",
+            email="m@x.io",
+            role="moderator",
+            permissions=[],
+        )
+
+        with (
+            patch(
+                "app.cubes.cube1_session.router.service.get_session_by_id",
+                new_callable=AsyncMock,
+                return_value=session,
+            ),
+            patch(
+                "app.cubes.cube1_session.router.service.verify_session_owner"
+            ),
+            patch(
+                "app.cubes.cube1_session.router.service.get_participant_count",
+                new_callable=AsyncMock,
+                return_value=0,
+            ),
+        ):
+            from app.cubes.cube1_session.router import update_ranking_config
+
+            result = await update_ranking_config(
+                session_id=session.id,
+                theme01_category="neutral",
+                theme2_voting_level="theme2_6",
+                db=mock_db,
+                user=user,
+            )
+
+        assert session.theme01_category == "neutral"
+        assert session.theme2_voting_level == "theme2_6"
+        mock_db.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_patch_ranking_config_rejects_bad_category(self):
+        """Category outside {risk, support, neutral} → 400."""
+        from fastapi import HTTPException
+        mock_db = AsyncMock()
+        user = CurrentUser(user_id="m", email="m@x.io", role="moderator", permissions=[])
+
+        from app.cubes.cube1_session.router import update_ranking_config
+
+        with pytest.raises(HTTPException) as exc:
+            await update_ranking_config(
+                session_id=uuid.uuid4(),
+                theme01_category="bogus",
+                theme2_voting_level="theme2_9",
+                db=mock_db,
+                user=user,
+            )
+        assert exc.value.status_code == 400
+        assert "theme01_category" in exc.value.detail
+
+    @pytest.mark.asyncio
+    async def test_patch_ranking_config_rejects_bad_level(self):
+        """Level outside {theme2_3, theme2_6, theme2_9} → 400."""
+        from fastapi import HTTPException
+        mock_db = AsyncMock()
+        user = CurrentUser(user_id="m", email="m@x.io", role="moderator", permissions=[])
+
+        from app.cubes.cube1_session.router import update_ranking_config
+
+        with pytest.raises(HTTPException) as exc:
+            await update_ranking_config(
+                session_id=uuid.uuid4(),
+                theme01_category="risk",
+                theme2_voting_level="theme2_12",
+                db=mock_db,
+                user=user,
+            )
+        assert exc.value.status_code == 400
+        assert "theme2_voting_level" in exc.value.detail

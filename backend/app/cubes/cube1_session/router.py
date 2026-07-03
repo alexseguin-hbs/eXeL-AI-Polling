@@ -204,6 +204,7 @@ async def create_session(
         reward_amount_cents=payload.reward_amount_cents,
         cqs_weights=payload.cqs_weights,
         theme2_voting_level=payload.theme2_voting_level,
+        theme01_category=payload.theme01_category,
         live_feed_enabled=payload.live_feed_enabled,
         polling_mode_type=payload.polling_mode_type,
         static_poll_duration_days=payload.static_poll_duration_days,
@@ -249,6 +250,39 @@ async def update_session(
         **payload.model_dump(exclude_unset=True),
     )
     return await _return_session(db, updated)
+
+
+@router.patch("/{session_id}/ranking-config", response_model=SessionRead)
+async def update_ranking_config(
+    session_id: uuid.UUID,
+    theme01_category: str,
+    theme2_voting_level: str,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Moderator selects which Cube 6 category to rank + level (3/6/9).
+
+    Unlike PATCH /{session_id}, this endpoint accepts updates after `draft`
+    so the moderator can pick a category once Cube 6 has produced themes.
+    Whitelist-validated at the gate.
+    """
+    if theme01_category not in ("risk", "support", "neutral"):
+        raise HTTPException(
+            status_code=400,
+            detail="theme01_category must be one of: risk, support, neutral",
+        )
+    if theme2_voting_level not in ("theme2_3", "theme2_6", "theme2_9"):
+        raise HTTPException(
+            status_code=400,
+            detail="theme2_voting_level must be one of: theme2_3, theme2_6, theme2_9",
+        )
+    session = await service.get_session_by_id(db, session_id)
+    service.verify_session_owner(session, user)
+    session.theme01_category = theme01_category
+    session.theme2_voting_level = theme2_voting_level
+    await db.commit()
+    await db.refresh(session)
+    return await _return_session(db, session)
 
 
 # ---------------------------------------------------------------------------

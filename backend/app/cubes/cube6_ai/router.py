@@ -86,12 +86,33 @@ async def run_cqs_scoring(
 @router.get("/themes", response_model=list[ThemeRead])
 async def get_themes(
     session_id: uuid.UUID,
+    category: str | None = None,
+    level: str | None = None,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
-    """CRS-10: Get generated themes for a session."""
-    themes = await service.get_session_themes(db, session_id)
-    return [ThemeRead.model_validate(t) for t in themes]
+    """CRS-10: Get generated themes for a session.
+
+    Enriched with theme01_category (risk|support|neutral) + theme_level (3|6|9)
+    so Cube 7 can filter without re-joining. Optional query params filter
+    server-side; whitelist-validated for safety.
+    """
+    if category is not None and category not in ("risk", "support", "neutral"):
+        raise HTTPException(
+            status_code=400,
+            detail="category must be one of: risk, support, neutral",
+        )
+    if level is not None and level not in VALID_THEME_LEVELS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"level must be one of: {', '.join(VALID_THEME_LEVELS)}",
+        )
+    enriched = await service.get_session_themes_enriched(db, session_id)
+    if category is not None:
+        enriched = [e for e in enriched if e["theme01_category"] == category]
+    if level is not None:
+        enriched = [e for e in enriched if e["theme_level"] == level]
+    return [ThemeRead.model_validate(e) for e in enriched]
 
 
 @router.post("/themes/summarize", status_code=202)

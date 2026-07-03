@@ -34,8 +34,9 @@ class SessionCreate(BaseModel):
     reward_enabled: bool = False
     reward_amount_cents: int = Field(0, ge=0)
     cqs_weights: dict[str, float] | None = None
-    # Theme voting
+    # Theme voting — level (3/6/9) + moderator-selected category (risk/support/neutral)
     theme2_voting_level: Literal["theme2_9", "theme2_6", "theme2_3"] = "theme2_9"
+    theme01_category: Literal["risk", "support", "neutral"] | None = None
     # Live feed
     live_feed_enabled: bool = False
     # Static poll countdown
@@ -71,8 +72,9 @@ class SessionUpdate(BaseModel):
     reward_enabled: bool | None = None
     reward_amount_cents: int | None = Field(None, ge=0)
     cqs_weights: dict[str, float] | None = None
-    # Theme voting
+    # Theme voting — level (3/6/9) + moderator-selected category (risk/support/neutral)
     theme2_voting_level: Literal["theme2_9", "theme2_6", "theme2_3"] | None = None
+    theme01_category: Literal["risk", "support", "neutral"] | None = None
     # Live feed
     live_feed_enabled: bool | None = None
     # Static poll countdown
@@ -116,8 +118,9 @@ class SessionRead(BaseModel):
     reward_enabled: bool = False
     reward_amount_cents: int = 0
     cqs_weights: dict[str, float] | None = None
-    # Theme voting
+    # Theme voting — level (3/6/9) + moderator-selected category (risk/support/neutral)
     theme2_voting_level: str = "theme2_9"
+    theme01_category: str | None = None
     # Live feed
     live_feed_enabled: bool = False
     # Static poll countdown

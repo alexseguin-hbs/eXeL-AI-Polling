@@ -217,6 +217,7 @@ def make_session(
     reward_amount_cents: int = 0,
     cqs_weights: dict | None = None,
     theme2_voting_level: str = "theme2_9",
+    theme01_category: str | None = None,
     live_feed_enabled: bool = False,
     polling_mode_type: str = "live_interactive",
     static_poll_duration_days: int | None = None,
@@ -425,6 +426,162 @@ def make_pipeline_trigger(
     pt.created_at = datetime.now(timezone.utc)
     pt.updated_at = datetime.now(timezone.utc)
     return pt
+
+
+def make_theme(
+    *,
+    id: uuid.UUID | None = None,
+    session_id: uuid.UUID | None = None,
+    cycle_id: int = 1,
+    label: str = "Test Theme",
+    summary: str = "A theme for testing.",
+    confidence: float = 0.9,
+    response_count: int = 10,
+    parent: MagicMock | None = None,
+    level: str | None = None,
+    ai_provider: str = "openai",
+    ai_model: str = "text-embedding-3-small",
+    theme_summary_333: str | None = None,
+    theme_summary_111: str | None = None,
+    theme_summary_33: str | None = None,
+) -> MagicMock:
+    """Create a mock Theme object.
+
+    Pass `parent=make_theme(...)` for Theme 02 rows; omit for Theme 01 parents.
+    `level` populates cluster_metadata["level"] — use "3" / "6" / "9".
+    """
+    t = MagicMock()
+    t.id = id or uuid.uuid4()
+    t.session_id = session_id or uuid.uuid4()
+    t.cycle_id = cycle_id
+    t.label = label
+    t.summary = summary
+    t.confidence = confidence
+    t.response_count = response_count
+    t.exemplar_response_ids = None
+    t.parent_theme_id = parent.id if parent else None
+    t.cluster_metadata = {"level": level} if level else None
+    t.ai_provider = ai_provider
+    t.ai_model = ai_model
+    t.theme_summary_333 = theme_summary_333
+    t.theme_summary_111 = theme_summary_111
+    t.theme_summary_33 = theme_summary_33
+    t.created_at = datetime.now(timezone.utc)
+    return t
+
+
+def seed_theme02_hierarchy(
+    session_id: uuid.UUID,
+    *,
+    level: str = "9",
+    category: str = "risk",
+) -> tuple[MagicMock, list[MagicMock]]:
+    """Build a Theme 01 parent + N Theme 02 children for solo ranking tests.
+
+    Returns (parent, children). Children count matches `level` (3, 6, or 9).
+    Category maps to canonical parent label so `theme01_category` resolves correctly.
+    """
+    category_labels = {
+        "risk": "Risk & Concerns",
+        "support": "Supporting Comments",
+        "neutral": "Neutral Comments",
+    }
+    if category not in category_labels:
+        raise ValueError(f"category must be one of {list(category_labels)}")
+    if level not in ("3", "6", "9"):
+        raise ValueError("level must be '3', '6', or '9'")
+    parent = make_theme(
+        session_id=session_id,
+        label=category_labels[category],
+        summary=f"Theme 01 parent for {category}",
+        parent=None,
+        level=None,
+    )
+    n = int(level)
+    children = [
+        make_theme(
+            session_id=session_id,
+            label=f"{category.title()} Theme {i + 1}",
+            summary=f"Child theme {i + 1} under {category_labels[category]}",
+            parent=parent,
+            level=level,
+        )
+        for i in range(n)
+    ]
+    return parent, children
+
+
+def load_theme02_from_csv(
+    session_id: uuid.UUID,
+    *,
+    csv_path: str | None = None,
+    level: str = "9",
+    limit: int = 50,
+) -> tuple[list[MagicMock], list[MagicMock]]:
+    """Seed Theme 01 parents + Theme 02 children from the v04.1_5000 replay CSV.
+
+    Deterministic (sorted by label). Used to test ranking + aggregation against
+    the same fixture the simulation uses. Returns (parents, children).
+    """
+    import csv
+    from pathlib import Path
+
+    if csv_path is None:
+        csv_path = str(
+            Path(__file__).resolve().parents[2]
+            / "Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv"
+        )
+    if level not in ("3", "6", "9"):
+        raise ValueError("level must be '3', '6', or '9'")
+    label_col = f"Theme2_{level}"
+    desc_col = f"Theme2_{level}_Description"
+    conf_col = f"Theme2_{level}_Confidence"
+
+    parents_by_label: dict[str, MagicMock] = {}
+    child_pairs: dict[tuple[str, str], dict] = {}
+
+    with open(csv_path, encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+        for i, row in enumerate(reader):
+            if i >= limit:
+                break
+            theme01 = (row.get("Theme01") or "").strip()
+            theme02 = (row.get(label_col) or "").strip()
+            if not theme01 or not theme02:
+                continue
+            if theme01 not in parents_by_label:
+                parents_by_label[theme01] = make_theme(
+                    session_id=session_id, label=theme01, parent=None, level=None
+                )
+            key = (theme01, theme02)
+            if key not in child_pairs:
+                raw_conf = (row.get(conf_col) or "").strip().rstrip("%")
+                try:
+                    conf_val = float(raw_conf) / 100.0 if raw_conf else 0.9
+                    if conf_val > 1.0:
+                        conf_val = conf_val / 100.0
+                except ValueError:
+                    conf_val = 0.9
+                child_pairs[key] = {
+                    "label": theme02,
+                    "summary": (row.get(desc_col) or theme02)[:500],
+                    "confidence": conf_val,
+                    "parent": parents_by_label[theme01],
+                }
+
+    children = [
+        make_theme(
+            session_id=session_id,
+            label=pair["label"],
+            summary=pair["summary"],
+            confidence=pair["confidence"],
+            parent=pair["parent"],
+            level=level,
+        )
+        for _, pair in sorted(child_pairs.items())
+    ]
+    parents = [parents_by_label[k] for k in sorted(parents_by_label)]
+    return parents, children
 
 
 def make_token_ledger(

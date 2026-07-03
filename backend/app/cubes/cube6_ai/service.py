@@ -54,6 +54,7 @@ from app.cubes.cube6_ai.phase_b import (  # noqa: F401
 from app.cubes.cube6_ai.pipeline import (  # noqa: F401
     get_pipeline_status,
     get_session_themes,
+    get_session_themes_enriched,
     run_pipeline,
 )
 
