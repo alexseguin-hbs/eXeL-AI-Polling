@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-03.5`
+**Contract version:** `L3-2026-07-03.6`
 
 ---
 
@@ -619,6 +619,62 @@ Every Level 3 domain uses the suffix `-2525` to signal it belongs to the Vision 
 
 **Rule:** the domain name is a proper noun. The `-2525` suffix is fixed. Do not translate or localize (the year 2525 is the framework's target horizon and stays constant across languages).
 
+### The 5 Vision 2525 infrastructure layers
+
+Every Level 3 domain runs on top of a shared civilization-scale nervous system called **R-CORE** (Recursive Continuous Operational Reality Ecosystem). R-CORE is not a platform; it is a coordination architecture that runs beneath Vision 2525.
+
+R-CORE has **five operational layers**, each a distinct `X-2525` runtime infrastructure that every L3 cube consumes:
+
+| Layer | Purpose | Where it plugs into the 9 cubes |
+|---|---|---|
+| **COMM-2525** — Communication as Survivability Infrastructure | The first operational layer built on R-CORE. Adaptive communications fabric (RF · mesh · relay · orbital · optical · distributed sync). Turns communication from convenience into survivability. | All cubes — every event (proposal, quote, delivery) rides COMM-2525. |
+| **LINK-2525** — Coordination Continuity Across Scale | Recursive coordination architecture. Mission inheritance ensures purpose is not lost as scale grows. Bridge between human purpose and civilization-scale execution. | Cube 19 (Life Cycle) uses LINK-2525 to inherit mission across years; Cube 26 (Marketplace) uses it to route missions to locales without losing intent. |
+| **EDGE-2525** — Intelligence at the Point of Need | Distributed intelligence ecosystem. Builds on COMM-2525 + LINK-2525. Makes human-system teaming practical. De-risking layer for field innovation. | Cube 24 (Estimator AI) is the substrate expression of EDGE-2525. Cube 27 (Delivery) verifies edge intelligence works before completion. |
+| **SYNC-2525** — Operational Truth as Civilization Memory | Memory + replay layer. Captures live operational inputs (communications, sensors, human actions). Bridge between action and wisdom. | Cube 10 SIM playback is the substrate expression of SYNC-2525. Cube 27 (Delivery) writes to SYNC-2525 as its permanent record. |
+| **UCRS-2525** — Spatial Truth as Shared Reality | Universal Coordinate Reference System. One spatial language for every mission, asset, system, and environment. Translates existing maps/standards into a shared frame. | Formalizes and supersedes substrate primitive #8 (Spatial Coordinate Frame). Every domain's coordinate frame is a UCRS-2525 projection. |
+
+### R-CORE — the foundational architecture beneath the 5 layers
+
+**Full name:** Recursive Continuous Operational Reality Ecosystem.
+
+R-CORE's essence: *every event can strengthen the next event*. Missions, emergencies, infrastructure failures, classroom exercises, robotics trials, sensor networks — every signal deserves to become usable knowledge. R-CORE captures context, routes awareness, preserves replay memory, supports simulation, and returns verified lessons into improved readiness.
+
+**R-CORE separates coordination from domination.** It gives institutions a shared operating language without demanding surrender of authority. The distinction is **awareness sharing**, not ownership transfer.
+
+**Vision 2525 Guiding Principles** operational inside R-CORE:
+- **Dignity** — who is protected?
+- **Truth** — what can be replayed?
+- **Wisdom** — what consequence has been considered?
+- **Accountability** — who acted, under what authority?
+- **Resilience** — can the system continue under pressure?
+- **Stewardship** — does the next generation inherit better than we received?
+
+These extend the 4 principles already documented in §3 into 6 operational questions R-CORE forces every decision to answer.
+
+### Cross-reference to the 13 Vision 2525 diagrams
+
+The framework doc `VISION•2525.pdf` presents 13 diagrams. Layers directly relevant to Level 3:
+
+| Diagram | Subject | Level 3 relevance |
+|:-:|---|---|
+| 01 | Thought Mastery | Substrate constraint (governance discipline) |
+| 02 | R-CORE Foundation Architecture | § above |
+| 03 | COMM-2525 | Layer 1 (Communications) |
+| 04 | LINK-2525 | Layer 2 (Coordination) |
+| 05 | EDGE-2525 | Layer 3 (Intelligence) |
+| 06 | SYNC-2525 | Layer 4 (Memory / Replay) |
+| 07 | UCRS-2525 | Layer 5 (Spatial reference) |
+| 08 | Reality + Simulation Learning System | Cube 24 + Cube 10 SIM (feedback loop) |
+| 09 | Collective Intelligence | Cube 22 (Proposal Collector + Review Board) |
+| 10 | HI / AI / SI Governance | Cube 25 (Governance & Quote Board) |
+| 11 | SSSES Qualification + Readiness | Success criteria §11 |
+| 12 | Adoption Ecosystem | Cube 26 (Execution Marketplace) |
+| 13 | Convergence | The full 27-cube grid running as one |
+
+**Note:** The PDF is a first-pass ingest. Diagram *illustrations* (as opposed to captions) are image-based and could not be extracted textually. A future refinement pass should replace this section with the diagram content once vectorized or re-drawn.
+
+---
+
 ### Cross-domain adversarial scenarios
 
 Two or more `X-2525` domains can be **pitted against each other** in the same simulation. This is a first-class Level 3 use case, not a special mode.
@@ -646,3 +702,4 @@ Two or more `X-2525` domains can be **pitted against each other** in the same si
 | `L3-2026-07-03.3` | 2026-07-03 | Added 10th substrate primitive: Hardware Abstraction Layer (HAL) with 6 hot-swappable slots + auto-calibration + Raspberry-Pi baseline. New §4 dedicated. All 3 Domain Plays updated with `hal_profile` block. Success criterion #7 added. |
 | `L3-2026-07-03.4` | 2026-07-03 | Cross-domain adversarial scenarios documented (e.g. Drone-2525 vs Security-2525). Security-2525 pending ingest from *Shield in The Sky* PDF. |
 | `L3-2026-07-03.5` | 2026-07-03 | Formal Low/Medium/High compute tiers + monthly hardware refresh cadence + stereoscopic 3D wireframe as substrate-default sensing method (2+ cameras). Cube 21 must accept stereoscopic wireframe as a valid model source — no domain can require pre-modeled CAD. |
+| `L3-2026-07-03.6` | 2026-07-03 | Vision 2525 first-pass ingest complete. R-CORE (Recursive Continuous Operational Reality Ecosystem) added as the foundational architecture; 5 X-2525 infrastructure layers documented (COMM/LINK/EDGE/SYNC/UCRS-2525) with per-cube mapping. UCRS-2525 formalizes/supersedes substrate primitive #8. 6 Vision 2525 operational principles (Dignity/Truth/Wisdom/Accountability/Resilience/Stewardship) extend the 4 hard-gate principles. 13 diagram cross-reference table added. |

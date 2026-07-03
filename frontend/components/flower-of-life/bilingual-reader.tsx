@@ -294,9 +294,14 @@ function SyncedParagraph({
         const sid = `p${paraIdx}_s${sIdx}`;
         const isSentenceActive = activeSentence === sid;
         const words = splitWords(sentence, lang);
+        // Inter-sentence space: split() consumed the '\s+' between sentences,
+        // so re-render an explicit space before every sentence except the first.
+        // CJK (zh) sentences share terminators like 。！？ that don't need a space.
+        const needsLeadingSpace = sIdx > 0 && lang !== "zh";
 
         return (
           <React.Fragment key={sIdx}>
+            {needsLeadingSpace && " "}
             {words.map((word, wIdx) => {
               // Determine if THIS word is the active one
               const isDirectHover = isSentenceActive &&
