@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-03.3`
+**Contract version:** `L3-2026-07-03.5`
 
 ---
 
@@ -84,6 +84,35 @@ Vision 2525 must reach **phones, computers, and Raspberry-Pi-class devices world
 1. **Baseline must run everywhere.** If a domain can't run on the baseline HAL through a phone browser, the domain is not Level 3-ready. Higher fidelity is a bonus, never a gate.
 2. **Auto-calibration on any slot upgrade.** Swap camera 1080p → 4K → 8K → system auto-adjusts frame rate, inference cadence, network bandwidth, storage, and UI resolution. No manual tuning.
 3. **Python edge mockups first, native renderers second.** Cube 21 accepts a Python edge visualization as the *baseline* deliverable. Revit / Unity / Unreal / Blender exports come after the Python mockup validates on Pi + browser.
+
+### Compute tiers (Low / Medium / High)
+
+Every HAL profile declares a formal tier. The substrate auto-scales frame rate, inference cadence, and visualization fidelity per tier — the *behavior* is identical, only the *fidelity* changes.
+
+| Tier | Target | Baseline sensors | Baseline FPS | Visualization |
+|:-:|---|---|:-:|---|
+| **Low** | Raspberry Pi + phone browser | 2× cameras (stereoscopic pair) + IMU | 15-30 | Python edge wireframe |
+| **Medium** | Laptop / mid-tier phone | + depth / thermal / lidar-lite | 30-60 | Python edge + textured shading |
+| **High** | Workstation / server / edge box | Multi-modal (radar / lidar / bio) | 60-120 | Unity / Unreal 5 photorealistic |
+
+**Auto-calibration rule (formalized):** the system detects available compute tier at session start and stays within its budget for the entire session. Runtime tier upgrades trigger a recalibration checkpoint before applying.
+
+### Monthly hardware refresh
+
+Interchangeable **compute, sensors, and batteries** must be upgradeable **monthly** as new options become available in the market. The HAL profile is a versioned config — a new hardware option flips a flag in the profile without touching substrate code.
+
+**Refresh cadence contract:**
+- New HAL slot options may be added monthly.
+- The substrate MUST accept new options without a code change (declaratively, via HAL profile YAML).
+- Removed options are marked deprecated for ≥6 months before eviction (existing sessions using them keep working during deprecation window).
+
+### Stereoscopic 3D wireframe generation
+
+**Primary sensing method at Low tier:** 2+ cameras as a stereoscopic pair → dimensioned 3D wireframe. This is the cheapest reliable path to spatial understanding on Pi-class hardware, and it's the substrate default.
+
+**Upgrade path:** next-gen wireframe edge-generation devices (structured light, event cameras, neuromorphic sensors) plug into the same sensor slot as they mature. The Python edge visualization engine consumes their output identically.
+
+**Rule:** every domain's Cube 21 (Model Ingest) must accept stereoscopic wireframe output as a valid model source — no domain can require pre-modeled CAD. The camera pair alone is enough to seed a Domain Play.
 
 ### Where the HAL touches each cube
 
@@ -616,3 +645,4 @@ Two or more `X-2525` domains can be **pitted against each other** in the same si
 | `L3-2026-07-03.2` | 2026-07-03 | Naming convention formalized: all Level 3 domains use `<Domain>-2525` suffix. |
 | `L3-2026-07-03.3` | 2026-07-03 | Added 10th substrate primitive: Hardware Abstraction Layer (HAL) with 6 hot-swappable slots + auto-calibration + Raspberry-Pi baseline. New §4 dedicated. All 3 Domain Plays updated with `hal_profile` block. Success criterion #7 added. |
 | `L3-2026-07-03.4` | 2026-07-03 | Cross-domain adversarial scenarios documented (e.g. Drone-2525 vs Security-2525). Security-2525 pending ingest from *Shield in The Sky* PDF. |
+| `L3-2026-07-03.5` | 2026-07-03 | Formal Low/Medium/High compute tiers + monthly hardware refresh cadence + stereoscopic 3D wireframe as substrate-default sensing method (2+ cameras). Cube 21 must accept stereoscopic wireframe as a valid model source — no domain can require pre-modeled CAD. |
