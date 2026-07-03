@@ -1,7 +1,7 @@
 """Cube 9 — Reports Service Tests.
 
 Tests:
-  - CSV column schema (19 columns, correct headers)
+  - CSV column schema (20 columns, correct headers — Theme01_Category added 2026-07-03)
   - Analytics dashboard structure
   - CQS dashboard structure
   - Ranking summary structure
@@ -23,16 +23,16 @@ from app.cubes.cube9_reports.service import CSV_COLUMNS
 
 
 class TestCSVSchema:
-    """Verify 19-column CSV schema matches reference file."""
+    """Verify 20-column CSV schema matches reference file (+ Theme01_Category)."""
 
-    def test_exactly_19_columns(self):
-        assert len(CSV_COLUMNS) == 19
+    def test_exactly_20_columns(self):
+        assert len(CSV_COLUMNS) == 20
 
     def test_column_names(self):
         expected = [
             "Q_Number", "Question", "User", "Detailed_Results", "Response_Language",
             "333_Summary", "111_Summary", "33_Summary",
-            "Theme01", "Theme01_Confidence",
+            "Theme01", "Theme01_Category", "Theme01_Confidence",
             "Theme2_9", "Theme2_9_Confidence", "Theme2_9_Description",
             "Theme2_6", "Theme2_6_Confidence", "Theme2_6_Description",
             "Theme2_3", "Theme2_3_Confidence", "Theme2_3_Description",

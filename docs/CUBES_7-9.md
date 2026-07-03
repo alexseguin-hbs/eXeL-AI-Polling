@@ -1116,9 +1116,9 @@ A self-contained, value-carrying image that encodes a user's earned tokens. The 
 
 Analytics stub still pending full implementation. Remaining: PDF export, Pixelated Tokens, results distribution, CQS dashboard, talent recommendations, data destruction.
 
-### Cube 9 — Target Output Schema (19-Column CSV)
+### Cube 9 — Target Output Schema (20-Column CSV)
 
-> **Note:** The original reference schema was 16 columns. The production schema is 19 columns — an intentional enhancement adding `Response_Language` (already present in the original 16-column spec as column 5) plus 3 `Theme_Description` columns that provide human-readable descriptions alongside each Theme2 level. The 3 extra columns are: `Theme2_9_Description`, `Theme2_6_Description`, `Theme2_3_Description`.
+> **Note:** The original reference schema was 16 columns. The production schema is now **20 columns** — enhancements: `Response_Language` (col 5), 3 `Theme_Description` columns (human-readable descriptions per Theme2 level), and **`Theme01_Category`** (2026-07-03) — normalized `risk|support|neutral` slice key derived from Theme01 via Cube 6's canonical resolver. Always FREE; enables programmatic filtering by category downstream.
 
 The AI pipeline produces output matching this schema (reference: `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` — 5,000 simulated responses, all Q-0001):
 
@@ -1133,6 +1133,7 @@ The AI pipeline produces output matching this schema (reference: `Updated_Web_Re
 | 111_Summary | TEXT | ~111-word summary |
 | 33_Summary | TEXT | ~33-word summary |
 | Theme01 | TEXT | Primary classification: Risk & Concerns / Supporting Comments / Neutral Comments |
+| Theme01_Category | TEXT | Normalized slice key: `risk` / `support` / `neutral` (2026-07-03; feeds slice-pinned replay hash) |
 | Theme01_Confidence | VARCHAR | Confidence % (< 65% -> reclassify as Neutral) |
 | Theme2_9 | TEXT | Sub-theme from 9-theme reduced set |
 | Theme2_9_Confidence | VARCHAR | Confidence % |

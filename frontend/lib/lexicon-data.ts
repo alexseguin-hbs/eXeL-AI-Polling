@@ -819,6 +819,11 @@ const cube10: TranslationEntry[] = [
   { key: "cube10.sim.final_stats", englishDefault: "{0} responses · {1} themes · Rankings submitted", context: "Final stats summary with placeholders", cubeId: 10 },
   { key: "cube10.sim.return_to_polls", englishDefault: "Return to Polls", context: "Back to session picker button", cubeId: 10 },
   { key: "cube10.sim.rank_number", englishDefault: "#{0}", context: "Rank badge with placeholder", cubeId: 10 },
+  { key: "cube10.sim.link_copied", englishDefault: "Phone link copied", context: "Toast when SIM split-screen phone link is copied to clipboard", cubeId: 10 },
+  { key: "cube10.sim.split_moderator", englishDefault: "Moderator", context: "SIM split-screen LEFT pane header", cubeId: 10 },
+  { key: "cube10.sim.split_user1", englishDefault: "User 1", context: "SIM split-screen RIGHT pane header", cubeId: 10 },
+  { key: "cube10.sim.split_user2_phone", englishDefault: "User 2 · Phone", context: "SIM split-screen bottom bar (second device)", cubeId: 10 },
+  { key: "cube10.sim.split_exit", englishDefault: "Exit SIM", context: "SIM split-screen exit button", cubeId: 10 },
 ];
 
 // ─── Cube 12 — ARX Physically Backed Tokens ────────────────────

@@ -117,8 +117,8 @@ class TestCSVExportFunctional:
         assert "Theme2_3_Description" in lines[0]
 
     @pytest.mark.asyncio
-    async def test_csv_single_response_19_columns(self):
-        """Single response produces row with exactly 19 columns."""
+    async def test_csv_single_response_20_columns(self):
+        """Single response produces row with exactly 20 columns (Theme01_Category added 2026-07-03)."""
         from app.cubes.cube9_reports.service import export_session_csv
 
         meta = _make_response_meta()
@@ -148,7 +148,7 @@ class TestCSVExportFunctional:
 
         assert len(lines) == 2  # Header + 1 data row
         header_cols = lines[0].split(",")
-        assert len(header_cols) == 19
+        assert len(header_cols) == 20
 
     @pytest.mark.asyncio
     async def test_csv_response_language_from_participant(self):

@@ -313,7 +313,7 @@ All clustering and ranking operations must be fully reproducible:
 The following cross-cube specifications apply across multiple cubes:
 
 ### Target Output Schema
-16-column CSV format — see `docs/CUBES_7-9.md` (Cube 9 Target Output Schema) and reference file `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,000 simulated responses, all Q-0001, used for offline AI pipeline and export testing).
+20-column CSV format (was 16 in reference, now includes `Response_Language`, 3 `Theme_Description` cols, and `Theme01_Category` slice key) — see `docs/CUBES_7-9.md` (Cube 9 Target Output Schema) and reference file `Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv` (5,000 simulated responses, all Q-0001, used for offline AI pipeline and export testing).
 
 ### Token System & Governance
 SoI Trinity Tokens (♡ 웃 ◬), 3 distribution methods, 59-jurisdiction rate table, append-only ledger, governance weight damping — see `docs/CUBES_7-9.md` (Cube 8) and `Token_Governance_Math.md`.

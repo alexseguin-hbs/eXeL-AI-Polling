@@ -150,20 +150,22 @@ const res = await fetch('/api/v1/sessions/abc-123/voice', {
     icon: "📊",
     cost: "1.5 ◬ / 1K rows",
     tagline: "Complete intelligence, ready to act on",
-    description: "Download the complete 16-column CSV with themes, confidence scores, and summaries. Auto-streams for large datasets (10K+ rows). The same format used by the 5,000-response AI Governance demo.",
+    description: "Download the complete 20-column CSV with themes, confidence scores, category slice, and summaries. Auto-streams for large datasets (10K+ rows). The same format used by the 5,000-response AI Governance demo.",
     endpoint: "GET /v1/sessions/{id}/export/csv",
     demos: [
-      { need: "Data science team needs raw themed data for custom analysis in Python.", outcome: "16-column CSV streaming download — themes, confidence, summaries, all languages.", solutionText: "Fetch the complete 16-column CSV with themes, confidence scores, and three-tier summaries for data analysis.", solution: `const response = await fetch('/api/v1/sessions/abc-123/export/csv', {
+      { need: "Data science team needs raw themed data for custom analysis in Python.", outcome: "20-column CSV streaming download — themes, category slice, confidence, summaries, all languages.", solutionText: "Fetch the complete 20-column CSV with themes, Theme01 category slice, confidence scores, and three-tier summaries for data analysis.", solution: `const response = await fetch('/api/v1/sessions/abc-123/export/csv', {
   headers: { 'Authorization': 'Bearer exel_pk_...' }
 });
 
 const blob = await response.blob();
-// CSV columns: Q_Number, Question, User, Detailed_Results,
+// CSV columns (v2026-07-03): Q_Number, Question, User, Detailed_Results,
 //   Response_Language, 333_Summary, 111_Summary, 33_Summary,
-//   Theme01, Theme01_Confidence,
+//   Theme01, Theme01_Category (risk|support|neutral),
+//   Theme01_Confidence,
 //   Theme2_9, Theme2_9_Confidence,
 //   Theme2_6, Theme2_6_Confidence,
-//   Theme2_3, Theme2_3_Confidence
+//   Theme2_3, Theme2_3_Confidence,
+//   Theme2_9_Description, Theme2_6_Description, Theme2_3_Description
 
 // Auto-streams for 10K+ rows — flat memory usage`, evidence: "Thoth tested: 50K rows streamed in 2.3 seconds. Memory usage flat at 12MB regardless of size." },
       { need: "Board presentation needs a summary of 5,000 employee responses by tomorrow.", outcome: "CSV with 3-tier summaries (333/111/33 words) imported directly into presentation tool.", solutionText: "Export session results as CSV with cascading summaries — import directly into presentation or analytics tools.", solution: `const response = await fetch('/api/v1/sessions/abc-123/export/csv', {

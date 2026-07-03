@@ -32,10 +32,10 @@ from app.cubes.cube9_reports.service import CSV_COLUMNS
 
 
 class TestCSVColumnInvariants:
-    """The 19-column schema is sacred — immutable contract."""
+    """The 20-column schema is sacred — immutable contract (Theme01_Category added 2026-07-03)."""
 
-    def test_exactly_19_columns(self):
-        assert len(CSV_COLUMNS) == 19
+    def test_exactly_20_columns(self):
+        assert len(CSV_COLUMNS) == 20
 
     def test_no_duplicate_columns(self):
         assert len(CSV_COLUMNS) == len(set(CSV_COLUMNS))
@@ -47,9 +47,18 @@ class TestCSVColumnInvariants:
         assert CSV_COLUMNS[-1] == "Theme2_3_Description"
 
     def test_confidence_columns_follow_theme_columns(self):
-        """Every Theme column must be immediately followed by its Confidence."""
-        theme_cols = ["Theme01", "Theme2_9", "Theme2_6", "Theme2_3"]
-        for theme in theme_cols:
+        """Every Theme column must be followed by its Confidence.
+
+        Exception: Theme01 has Theme01_Category between Theme01 and
+        Theme01_Confidence (added 2026-07-03 for slice-pinned aggregation).
+        """
+        # Theme01: Category slot sits between label and confidence
+        idx_01 = CSV_COLUMNS.index("Theme01")
+        assert CSV_COLUMNS[idx_01 + 1] == "Theme01_Category"
+        assert CSV_COLUMNS[idx_01 + 2] == "Theme01_Confidence"
+
+        # Theme2_9/6/3 keep the tight (label → confidence) adjacency
+        for theme in ("Theme2_9", "Theme2_6", "Theme2_3"):
             idx = CSV_COLUMNS.index(theme)
             assert CSV_COLUMNS[idx + 1] == f"{theme}_Confidence"
 

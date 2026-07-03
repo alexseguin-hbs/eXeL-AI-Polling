@@ -26,6 +26,8 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
  *   "summary_ready"  — AI summary for a response (Cube 6 Phase A)
  *   "themes_ready"   — full theming pipeline complete (Cube 6 Phase B)
  *   "theme_change"   — moderator changed session color scheme
+ *   "ranking_progress" — participant submitted a ranking (Cube 7 CRS-17)
+ *   "ranking_complete" — aggregation done + top theme picked (Cube 7)
  */
 
 export interface SessionBroadcastPayload {
@@ -64,6 +66,28 @@ export interface ThemeChangePayload {
   theme_id?: string;
 }
 
+// Cube 7 · ranking events — see docs/CUBE_6_7_8_SIM_PLAYBACK_CONTRACT.md
+export interface RankingProgressPayload {
+  session_id?: string;
+  cycle_id?: number;
+  submissions: number;
+  expected?: number;
+}
+
+export interface RankingCompletePayload {
+  session_id?: string;
+  short_code?: string;
+  cycle_id?: number;
+  algorithm?: "borda_count" | "quadratic_borda";
+  participant_count?: number;
+  theme01_category?: string | null;
+  theme_level?: "3" | "6" | "9";
+  top_theme2_id?: string;
+  top_theme2_label?: string;
+  replay_hash?: string;
+  anomaly_count?: number;
+}
+
 export interface SessionBroadcastCallbacks {
   onStatusChange?: (payload: SessionBroadcastPayload) => void;
   onPresenceChange?: (count: number) => void;
@@ -71,6 +95,8 @@ export interface SessionBroadcastCallbacks {
   onSummaryReady?: (payload: SummaryReadyPayload) => void;
   onThemesReady?: (payload: ThemesReadyPayload) => void;
   onThemeChange?: (payload: ThemeChangePayload) => void;
+  onRankingProgress?: (payload: RankingProgressPayload) => void;
+  onRankingComplete?: (payload: RankingCompletePayload) => void;
 }
 
 /**
@@ -88,6 +114,8 @@ export function useSessionBroadcast(
   onSummaryReady?: (payload: SummaryReadyPayload) => void,
   onThemesReady?: (payload: ThemesReadyPayload) => void,
   onThemeChange?: (payload: ThemeChangePayload) => void,
+  onRankingProgress?: (payload: RankingProgressPayload) => void,
+  onRankingComplete?: (payload: RankingCompletePayload) => void,
 ) {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const [connected, setConnected] = useState(false);
@@ -106,6 +134,10 @@ export function useSessionBroadcast(
   onThemesReadyRef.current = onThemesReady;
   const onThemeChangeRef = useRef(onThemeChange);
   onThemeChangeRef.current = onThemeChange;
+  const onRankingProgressRef = useRef(onRankingProgress);
+  onRankingProgressRef.current = onRankingProgress;
+  const onRankingCompleteRef = useRef(onRankingComplete);
+  onRankingCompleteRef.current = onRankingComplete;
 
   useEffect(() => {
     if (!shortCode || !supabase) return;
@@ -141,6 +173,12 @@ export function useSessionBroadcast(
       })
       .on("broadcast", { event: "theme_change" }, ({ payload }) => {
         onThemeChangeRef.current?.(payload as ThemeChangePayload);
+      })
+      .on("broadcast", { event: "ranking_progress" }, ({ payload }) => {
+        onRankingProgressRef.current?.(payload as RankingProgressPayload);
+      })
+      .on("broadcast", { event: "ranking_complete" }, ({ payload }) => {
+        onRankingCompleteRef.current?.(payload as RankingCompletePayload);
       })
       .subscribe((status) => {
         setConnected(status === "SUBSCRIBED");
