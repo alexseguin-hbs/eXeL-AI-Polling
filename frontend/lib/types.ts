@@ -170,6 +170,8 @@ export interface ThemeInfo {
   count: number;
   avgConfidence: number;
   summary33: string;
+  /** Padded placeholder slot (no responses yet). Flower-of-Life dims + greys these. */
+  isEmpty?: boolean;
 }
 
 export interface ThemedResponse {

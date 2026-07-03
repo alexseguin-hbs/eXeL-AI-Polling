@@ -20,6 +20,12 @@ VALID_THEME_LEVELS = {"3", "6", "9"}
 VALID_SORT_ORDERS = {"asc", "desc"}
 VALID_RANKING_METHODS = {"borda_count", "quadratic_borda"}
 
+# SIM (Cube 10 checkout) — split-screen + playback whitelists.
+# SIM is easter-egg-gated on the frontend (Cyan→Sunset→Violet + password);
+# these whitelists are the backend truth for any SIM-scoped mutation.
+VALID_SIM_MODES = {"playback", "live", "dual_view"}
+VALID_SIM_ROLES = {"moderator", "user1", "user2"}
+
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.dependencies import get_db
 from app.core.permissions import require_role

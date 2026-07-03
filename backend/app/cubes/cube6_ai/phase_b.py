@@ -365,6 +365,32 @@ def _parse_reduced_themes(text: str) -> list[dict]:
     return themes
 
 
+def _pad_themes_to_target(themes: list[dict], target: int) -> list[dict]:
+    """Pad theme list to exactly `target` entries with dim/empty placeholders.
+
+    Flower-of-Life UI needs a stable N-petal geometry (3, 6, or 9). When a
+    category has fewer responses than can produce N distinct themes, we
+    fill the remaining slots with `is_empty=True` placeholders so the
+    frontend renders greyed/dimmed petals — geometry intact, semantics honest.
+
+    Empty placeholders carry stable synthetic labels (`__empty_1`, `__empty_2`, ...)
+    so the replay hash still hashes to a deterministic value across runs.
+    """
+    if len(themes) >= target:
+        return themes[:target]
+
+    padded = list(themes)
+    for i in range(len(themes), target):
+        padded.append({
+            "label": f"__empty_{i + 1}",
+            "description": "",
+            "confidence": 0.0,
+            "is_empty": True,
+            "response_count": 0,
+        })
+    return padded
+
+
 async def _reduce_themes(
     summarizer: SummarizationProvider,
     all_themes: dict[str, list[str]],
@@ -379,8 +405,14 @@ async def _reduce_themes(
     async def _reduce_single_category(
         label: str, themes: list[str]
     ) -> dict[str, list[dict]]:
+        # Empty category → return dim/empty placeholders at every level so the
+        # Flower-of-Life UI still gets full 9/6/3 petal geometry.
         if not themes:
-            return {"9": [], "6": [], "3": []}
+            return {
+                "9": _pad_themes_to_target([], 9),
+                "6": _pad_themes_to_target([], 6),
+                "3": _pad_themes_to_target([], 3),
+            }
 
         type_str = _TYPE_MAP.get(label, "NEUTRAL")
 
@@ -420,7 +452,13 @@ async def _reduce_themes(
             logger.warning("cube6.reduce.3_failed", label=label, error=str(e))
             parsed_3 = parsed_6[:3]
 
-        return {"9": parsed_9, "6": parsed_6, "3": parsed_3}
+        # Pad every level to exact target so Flower-of-Life geometry (9/6/3)
+        # is stable even when the summarizer returned fewer themes than asked.
+        return {
+            "9": _pad_themes_to_target(parsed_9, 9),
+            "6": _pad_themes_to_target(parsed_6, 6),
+            "3": _pad_themes_to_target(parsed_3, 3),
+        }
 
     # Run all 3 category reductions concurrently
     labels = sorted(all_themes.keys())
@@ -634,23 +672,33 @@ async def _store_results(
         await db.flush()
 
         for level, themes in levels.items():
-            for t in themes:
+            for slot_idx, t in enumerate(themes):
+                is_empty = bool(t.get("is_empty", False))
+                # Empty placeholders keep synthetic label out of the DB but
+                # occupy a real row so Flower-of-Life geometry (9/6/3) stays
+                # stable across sessions and replay hashes stay deterministic.
+                label = "" if is_empty else t["label"]
+                response_count = 0 if is_empty else sum(
+                    1
+                    for r in responses
+                    if r.get(f"theme2_{level}") == t["label"]
+                    and r.get("theme01") == category
+                )
                 child = Theme(
                     session_id=session.id,
                     cycle_id=session.current_cycle,
-                    label=t["label"],
+                    label=label,
                     summary=t.get("description", ""),
                     confidence=t["confidence"],
-                    response_count=sum(
-                        1
-                        for r in responses
-                        if r.get(f"theme2_{level}") == t["label"]
-                        and r.get("theme01") == category
-                    ),
+                    response_count=response_count,
                     parent_theme_id=parent.id,
                     ai_provider=provider_name,
                     ai_model="pipeline",
-                    cluster_metadata={"level": level},
+                    cluster_metadata={
+                        "level": level,
+                        "slot_index": slot_idx,
+                        "is_empty": is_empty,
+                    },
                 )
                 db.add(child)
 

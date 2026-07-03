@@ -41,6 +41,10 @@ export const ThemeCircle = memo(function ThemeCircle({
   // Text width clamped to fit inside the circle (inscribed rectangle ~r*1.4)
   const textWidth = r * 1.4;
 
+  // Empty placeholder → dim + greyscale so 9/6/3 petal geometry stays intact
+  // when a category has no responses yet (small-crowd polls, warm-up phase).
+  const isEmpty = theme.isEmpty === true;
+
   // Bloom animation style
   const animStyle: React.CSSProperties = bloom
     ? {
@@ -50,11 +54,15 @@ export const ThemeCircle = memo(function ThemeCircle({
       }
     : {};
 
+  const emptyStyle: React.CSSProperties = isEmpty
+    ? { opacity: 0.25, filter: "grayscale(1)" }
+    : {};
+
   return (
     <g
-      onClick={onClick}
-      className={`${onClick ? "flower-circle-interactive" : ""} ${className}`}
-      style={{ color: stroke, ...animStyle }}
+      onClick={isEmpty ? undefined : onClick}
+      className={`${onClick && !isEmpty ? "flower-circle-interactive" : ""} ${className}`}
+      style={{ color: stroke, ...animStyle, ...emptyStyle }}
     >
       {/* Glow ring */}
       <circle
@@ -100,7 +108,7 @@ export const ThemeCircle = memo(function ThemeCircle({
             color: "hsl(210, 40%, 98%)",
           }}
         >
-          {/* Theme label */}
+          {/* Theme label — empty slots show a subtle placeholder */}
           <div
             style={{
               fontSize: `${fontSize}px`,
@@ -113,9 +121,10 @@ export const ThemeCircle = memo(function ThemeCircle({
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
+              fontStyle: isEmpty ? "italic" : "normal",
             }}
           >
-            {theme.label}
+            {isEmpty ? "—" : theme.label}
           </div>
 
           {/* Response count — hidden when 0 (e.g. Divinity Guide) */}

@@ -22,6 +22,7 @@ from unittest.mock import AsyncMock, MagicMock
 import numpy as np
 import pytest
 
+from app.cubes.cube6_ai.phase_b import _pad_themes_to_target
 from app.cubes.cube6_ai.service import (
     THEME01_CATEGORIES,
     _CLASSIFY_PATTERN,
@@ -195,6 +196,70 @@ class TestThemeReductionParsing:
         )
         themes = _parse_reduced_themes(text)
         assert len(themes) == 2
+
+
+class TestPadThemesToTarget:
+    """Flower-of-Life demands stable 9/6/3 petal geometry.
+
+    Even when a small-crowd poll produces fewer themes than the target,
+    _pad_themes_to_target fills empty slots with dim placeholders so the
+    frontend renders full geometry with greyed petals.
+    """
+
+    def test_empty_input_pads_to_9(self):
+        padded = _pad_themes_to_target([], 9)
+        assert len(padded) == 9
+        assert all(t["is_empty"] is True for t in padded)
+        assert all(t["confidence"] == 0.0 for t in padded)
+        assert all(t["response_count"] == 0 for t in padded)
+
+    def test_empty_input_pads_to_6(self):
+        padded = _pad_themes_to_target([], 6)
+        assert len(padded) == 6
+        assert all(t["is_empty"] for t in padded)
+
+    def test_empty_input_pads_to_3(self):
+        padded = _pad_themes_to_target([], 3)
+        assert len(padded) == 3
+        assert all(t["is_empty"] for t in padded)
+
+    def test_partial_input_padded(self):
+        real = [
+            {"label": "Data Privacy", "description": "d1", "confidence": 0.85},
+            {"label": "Accountability", "description": "d2", "confidence": 0.80},
+        ]
+        padded = _pad_themes_to_target(real, 9)
+        assert len(padded) == 9
+        assert padded[0]["label"] == "Data Privacy"
+        assert padded[1]["label"] == "Accountability"
+        assert padded[0].get("is_empty", False) is False
+        # Slots 2..8 are empties
+        for i in range(2, 9):
+            assert padded[i]["is_empty"] is True
+
+    def test_full_input_not_padded(self):
+        real = [
+            {"label": f"T{i}", "description": "", "confidence": 0.7}
+            for i in range(9)
+        ]
+        padded = _pad_themes_to_target(real, 9)
+        assert len(padded) == 9
+        assert all("is_empty" not in t or not t["is_empty"] for t in padded)
+
+    def test_overflow_input_trimmed(self):
+        real = [
+            {"label": f"T{i}", "description": "", "confidence": 0.7}
+            for i in range(12)
+        ]
+        padded = _pad_themes_to_target(real, 9)
+        assert len(padded) == 9
+        assert padded[-1]["label"] == "T8"
+
+    def test_empty_placeholder_labels_stable_for_replay_hash(self):
+        """Deterministic placeholder labels → deterministic replay hash."""
+        p1 = _pad_themes_to_target([], 9)
+        p2 = _pad_themes_to_target([], 9)
+        assert [t["label"] for t in p1] == [t["label"] for t in p2]
 
 
 # ---------------------------------------------------------------------------

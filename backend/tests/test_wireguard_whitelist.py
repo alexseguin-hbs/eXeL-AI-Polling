@@ -714,6 +714,8 @@ class TestWireGuardCube6ThemeLabelN99:
 
 from app.cubes.cube7_ranking.router import (
     VALID_RANKING_METHODS,
+    VALID_SIM_MODES,
+    VALID_SIM_ROLES,
     VALID_SORT_ORDERS,
     VALID_THEME_LEVELS as CUBE7_VALID_THEME_LEVELS,
 )
@@ -791,6 +793,55 @@ class TestWireGuardCube7RankingMethodN99:
 
     def test_ranking_method_set_is_exact(self):
         assert VALID_RANKING_METHODS == {"borda_count", "quadratic_borda"}
+
+
+class TestWireGuardCube7SimModeN99:
+    """WireGuard whitelist: SIM mode must be 'playback', 'live', or 'dual_view'."""
+
+    def test_valid_sim_mode_n99(self):
+        for _ in range(99):
+            for mode in ("playback", "live", "dual_view"):
+                assert mode in VALID_SIM_MODES
+
+    def test_invalid_sim_mode_rejected_n99(self):
+        invalid_values = [
+            "single", "split", "solo", "PLAYBACK", "Playback",
+            "live_mode", "dual", "dualview", "dual-view", "dualView",
+            "record", "replay_all", "", " ", "null", "None",
+            "playback ", " live", "sim", "SIM", "test",
+            "playback;DROP TABLE", "<script>", "\x00", "\n",
+        ]
+        for _ in range(99):
+            for val in invalid_values:
+                assert val not in VALID_SIM_MODES, f"'{val}' should be rejected"
+
+    def test_sim_mode_set_is_exact(self):
+        assert VALID_SIM_MODES == {"playback", "live", "dual_view"}
+
+
+class TestWireGuardCube7SimRoleN99:
+    """WireGuard whitelist: SIM role must be 'moderator', 'user1', or 'user2'."""
+
+    def test_valid_sim_role_n99(self):
+        for _ in range(99):
+            for role in ("moderator", "user1", "user2"):
+                assert role in VALID_SIM_ROLES
+
+    def test_invalid_sim_role_rejected_n99(self):
+        invalid_values = [
+            "admin", "user", "USER1", "User1", "user_1", "user 1",
+            "user3", "user4", "moderators", "mod", "MODERATOR",
+            "participant", "guest", "observer", "spectator",
+            "", " ", "null", "None", "undefined",
+            "user1;DROP", "<script>alert('user1')</script>",
+            "moderator\n", "\x00user1", "\t",
+        ]
+        for _ in range(99):
+            for val in invalid_values:
+                assert val not in VALID_SIM_ROLES, f"'{val}' should be rejected"
+
+    def test_sim_role_set_is_exact(self):
+        assert VALID_SIM_ROLES == {"moderator", "user1", "user2"}
 
 
 # ===========================================================================
@@ -1120,6 +1171,7 @@ class TestWireGuardCube7to9ConsistencyN99:
         """All whitelist constants must be sets (O(1) lookup, no duplicates)."""
         whitelists = [
             CUBE7_VALID_THEME_LEVELS, VALID_SORT_ORDERS, VALID_RANKING_METHODS,
+            VALID_SIM_MODES, VALID_SIM_ROLES,
             VALID_TOKEN_TYPES, CUBE8_VALID_LIFECYCLE_STATES, VALID_PAYMENT_PROVIDERS,
             VALID_DISPUTE_RESOLUTIONS,
             VALID_EXPORT_FORMATS, VALID_SUMMARY_TIERS,
@@ -1133,6 +1185,7 @@ class TestWireGuardCube7to9ConsistencyN99:
         """No whitelist should ever be empty."""
         whitelists = [
             CUBE7_VALID_THEME_LEVELS, VALID_SORT_ORDERS, VALID_RANKING_METHODS,
+            VALID_SIM_MODES, VALID_SIM_ROLES,
             VALID_TOKEN_TYPES, CUBE8_VALID_LIFECYCLE_STATES, VALID_PAYMENT_PROVIDERS,
             VALID_DISPUTE_RESOLUTIONS,
             VALID_EXPORT_FORMATS, VALID_SUMMARY_TIERS,
@@ -1148,6 +1201,8 @@ class TestWireGuardCube7to9ConsistencyN99:
             CUBE7_VALID_THEME_LEVELS
             | VALID_SORT_ORDERS
             | VALID_RANKING_METHODS
+            | VALID_SIM_MODES
+            | VALID_SIM_ROLES
             | VALID_TOKEN_TYPES
             | CUBE8_VALID_LIFECYCLE_STATES
             | VALID_PAYMENT_PROVIDERS
