@@ -140,9 +140,21 @@ def _compute_replay_hash(
     rankings: list[list[str]],
     seed: str,
     algorithm: str = "borda_count",
+    theme01_category: str | None = None,
+    theme_level: str | None = None,
 ) -> str:
-    """SHA-256 replay hash over inputs + parameters for determinism verification."""
-    payload = f"{algorithm}:{seed}:" + "|".join(
+    """SHA-256 replay hash over inputs + parameters for determinism verification.
+
+    Step 5 (2026-07-03): `theme01_category` + `theme_level` are folded into
+    the hash so replays are pinned to the (category, level) slice they were
+    run against. Backwards-compatible — omitting both keeps the pre-Step-5
+    hash format.
+    """
+    parts = [algorithm, seed]
+    if theme01_category or theme_level:
+        parts.append(f"cat={theme01_category or ''}")
+        parts.append(f"lvl={theme_level or ''}")
+    payload = ":".join(parts) + ":" + "|".join(
         ",".join(r) for r in sorted(rankings)
     )
     return hashlib.sha256(payload.encode()).hexdigest()
@@ -155,6 +167,8 @@ async def aggregate_rankings(
     seed: str | None = None,
     participant_stakes: dict[str, float] | None = None,
     excluded_participant_ids: set[str] | None = None,
+    theme01_category: str | None = None,
+    theme_level: str | None = None,
 ) -> list[AggregatedRanking]:
     """CRS-12.01 + CRS-12.02 + CRS-12.04: Borda count with quadratic weights + anomaly exclusion.
 
@@ -233,8 +247,14 @@ async def aggregate_rankings(
         key=lambda item: (-item[1], _seeded_tiebreak_key(item[0], effective_seed)),
     )
 
-    # 4. Compute replay hash
-    replay_hash = _compute_replay_hash(all_rankings, effective_seed, algorithm)
+    # 4. Compute replay hash (Step 5: category+level pinned into hash)
+    replay_hash = _compute_replay_hash(
+        all_rankings,
+        effective_seed,
+        algorithm,
+        theme01_category=theme01_category,
+        theme_level=theme_level,
+    )
 
     # 5. Clear previous aggregation for this cycle
     await db.execute(
@@ -294,9 +314,12 @@ async def aggregate_rankings(
             "replay_hash": replay_hash,
         },
     )
-    # Attach replay_hash and weight audit to first result for pipeline access
+    # Attach replay_hash, weight audit, and category/level slice metadata
+    # to first result so the pipeline can surface them without a re-query.
     if aggregated:
         aggregated[0]._replay_hash = replay_hash
+        aggregated[0]._theme01_category = theme01_category
+        aggregated[0]._theme_level = theme_level
         aggregated[0]._weight_audit = (
             {pid: weights.get(pid, 0) for pid in all_participant_ids}
             if participant_stakes

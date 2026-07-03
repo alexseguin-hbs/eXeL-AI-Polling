@@ -199,8 +199,11 @@ def compute_export_hash(csv_bytes: bytes) -> str:
     return hashlib.sha256(csv_bytes).hexdigest()
 
 
-# 19-column CSV schema (16 original + 3 theme descriptions)
+# 20-column CSV schema (19 previous + Theme01_Category)
 # Theme descriptions (33-word) are always FREE — explain what each theme means
+# Theme01_Category (Step 5, 2026-07-03) is the normalized "risk|support|neutral"
+# key derived from Theme01 via Cube 6's canonical resolver. Always FREE — it's a
+# programmatic filter aid, not paid content.
 CSV_COLUMNS = [
     "Q_Number",
     "Question",
@@ -211,6 +214,7 @@ CSV_COLUMNS = [
     "111_Summary",
     "33_Summary",
     "Theme01",
+    "Theme01_Category",
     "Theme01_Confidence",
     "Theme2_9",
     "Theme2_9_Confidence",
@@ -301,6 +305,13 @@ async def export_session_csv(
         t2_6_label = summary_row.theme2_6 if summary_row else ""
         t2_3_label = summary_row.theme2_3 if summary_row else ""
 
+        # Step 5: normalize Theme01 → risk|support|neutral for programmatic filters.
+        # Uses Cube 6's canonical resolver so ranking + CSV stay in lock-step.
+        from app.cubes.cube6_ai.pipeline import _category_key
+
+        theme01_label = summary_row.theme01 if summary_row else ""
+        theme01_category = _category_key(theme01_label) or ""
+
         row = {
             "Q_Number": q_number,
             "Question": q_text,
@@ -310,7 +321,8 @@ async def export_session_csv(
             "333_Summary": summary_row.summary_333 or "" if summary_row else "",
             "111_Summary": summary_row.summary_111 or "" if summary_row else "",
             "33_Summary": summary_row.summary_33 or "" if summary_row else "",
-            "Theme01": summary_row.theme01 or "" if summary_row else "",
+            "Theme01": theme01_label or "",
+            "Theme01_Category": theme01_category,
             "Theme01_Confidence": _fmt_confidence(
                 summary_row.theme01_confidence if summary_row else ""
             ),

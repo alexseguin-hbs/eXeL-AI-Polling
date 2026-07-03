@@ -428,13 +428,35 @@ async def run_ranking_pipeline(
     cycle_id: int = 1,
     seed: str | None = None,
     participant_stakes: dict[str, float] | None = None,
+    theme01_category: str | None = None,
+    theme_level: str | None = None,
 ) -> dict:
     """Full ranking pipeline: detect anomalies → exclude → aggregate → identify → emit.
 
     CRS-12.04: Anomalous votes are detected FIRST, then excluded from aggregation.
     When participant_stakes is provided, uses quadratic vote normalization
     (CRS-12.02). Otherwise falls back to equal-weight Borda count.
+
+    Step 5 (2026-07-03): `theme01_category` + `theme_level` come from the
+    Session config (moderator's Step-3 ranking-config pick). They are
+    folded into the replay hash so replays are pinned to the exact
+    (category, level) slice the aggregation ran against.
     """
+    # 0. Auto-fill category/level from Session if the caller omitted them.
+    # This is the normal path — router callers just pass session_id.
+    if theme01_category is None or theme_level is None:
+        from app.models.session import Session
+
+        s_res = await db.execute(select(Session).where(Session.id == session_id))
+        s = s_res.scalar_one_or_none()
+        if s is not None:
+            if theme01_category is None:
+                theme01_category = getattr(s, "theme01_category", None)
+            if theme_level is None:
+                raw = getattr(s, "theme2_voting_level", None)
+                if raw and raw.startswith("theme2_"):
+                    theme_level = raw.replace("theme2_", "")
+
     # 1. Detect anomalies FIRST (before aggregation)
     anomalies = await detect_voting_anomalies(db, session_id, cycle_id)
 
@@ -444,10 +466,12 @@ async def run_ranking_pipeline(
         if a["type"] == "identical_ranking_burst":
             excluded_participants.update(a.get("participant_ids", []))
 
-    # 3. Aggregate (excluding flagged participants)
+    # 3. Aggregate (excluding flagged participants, pinned to category/level)
     aggregated = await aggregate_rankings(
         db, session_id, cycle_id, seed, participant_stakes,
         excluded_participant_ids=excluded_participants,
+        theme01_category=theme01_category,
+        theme_level=theme_level,
     )
 
     # 4. Identify top theme
@@ -471,6 +495,8 @@ async def run_ranking_pipeline(
         "participant_count": aggregated[0].participant_count if aggregated else 0,
         "algorithm": aggregated[0].algorithm if aggregated else "borda_count",
         "replay_hash": replay_hash,
+        "theme01_category": theme01_category,
+        "theme_level": theme_level,
         "top_theme2_id": emit_result.get("top_theme2_id"),
         "top_theme2_label": emit_result.get("top_theme2_label"),
         "anomaly_count": len(anomalies),
@@ -668,12 +694,31 @@ async def verify_replay(
     session_id: uuid.UUID,
     cycle_id: int = 1,
     seed: str | None = None,
+    theme01_category: str | None = None,
+    theme_level: str | None = None,
 ) -> dict:
     """CRS-13.03: Re-run aggregation and compare replay hash.
 
     Does NOT write to DB — read-only verification.
     Returns match status + both hashes.
+
+    Step 5 (2026-07-03): auto-fills category/level from the Session so the
+    verifier hashes the same slice-pinned payload the aggregator did.
     """
+    # 0. Auto-fill category/level from Session if omitted (matches pipeline).
+    if theme01_category is None or theme_level is None:
+        from app.models.session import Session
+
+        s_res = await db.execute(select(Session).where(Session.id == session_id))
+        s = s_res.scalar_one_or_none()
+        if s is not None:
+            if theme01_category is None:
+                theme01_category = getattr(s, "theme01_category", None)
+            if theme_level is None:
+                raw = getattr(s, "theme2_voting_level", None)
+                if raw and raw.startswith("theme2_"):
+                    theme_level = raw.replace("theme2_", "")
+
     # Get existing aggregation
     existing = await db.execute(
         select(AggregatedRanking)
@@ -715,12 +760,19 @@ async def verify_replay(
         key=lambda x: (-x[1], _seeded_tiebreak_key(x[0], effective_seed)),
     )
     recomputed_order = [t[0] for t in sorted_t]
-    replay_hash = _compute_replay_hash(all_rankings, effective_seed)
+    replay_hash = _compute_replay_hash(
+        all_rankings,
+        effective_seed,
+        theme01_category=theme01_category,
+        theme_level=theme_level,
+    )
 
     return {
         "session_id": str(session_id),
         "cycle_id": cycle_id,
         "replay_hash": replay_hash,
+        "theme01_category": theme01_category,
+        "theme_level": theme_level,
         "existing_order": existing_order,
         "recomputed_order": recomputed_order,
         "match": existing_order == recomputed_order,
