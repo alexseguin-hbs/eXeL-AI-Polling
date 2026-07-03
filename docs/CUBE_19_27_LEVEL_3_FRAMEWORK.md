@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-03.2`
+**Contract version:** `L3-2026-07-03.3`
 
 ---
 
@@ -32,9 +32,9 @@ Level 3 mirrors Level 1's spiral (Session → Text → Voice → Collector → G
 
 ---
 
-## 2 · The 9 substrate primitives
+## 2 · The 10 substrate primitives
 
-Locked from analysis of Architect-2525, Manta-2525, and Drone-2525. Any future domain must fit within these primitives; if not, the substrate is extended (never forked).
+Locked from analysis of Architect-2525, Manta-2525, and Drone-2525, plus the low-compute-first delivery requirement. Any future domain must fit within these primitives; if not, the substrate is extended (never forked).
 
 | # | Primitive | Contract | First surfaced by |
 |:-:|---|---|---|
@@ -47,6 +47,7 @@ Locked from analysis of Architect-2525, Manta-2525, and Drone-2525. Any future d
 | 7 | **Domain-declared axes** | Per-domain estimation dimensions plugged into Cube 24's interface | Architect-2525 11 axes / Manta-2525 specs / Drone-2525 KPIs |
 | 8 | **Spatial Coordinate Frame** | 3D coordinate spec (A/B/C or equivalent) — every waypoint / spec / delta expressed in the frame | Drone-2525 Azimuth/Elevation/Radius |
 | 9 | **Multi-agent Coordination** | Leader / follower or pilot / targeter runtime hierarchies | Drone-2525 D01 + D02-D12 swarm |
+| 10 | **Hardware Abstraction Layer (HAL)** | 6 hot-swappable slots (CPU/GPU/Inference/Screen/Sensors/Mobility) with auto-calibration; Raspberry-Pi + phone-browser baseline (see §4) | Vision 2525 low-compute-first requirement |
 
 ---
 
@@ -63,7 +64,53 @@ Every L3 cube must satisfy all four. They are not aspirations — they are hard 
 
 ---
 
-## 4 · The 9 Level 3 cubes
+## 4 · Hardware Abstraction Layer (HAL) — low-compute-first delivery
+
+Vision 2525 must reach **phones, computers, and Raspberry-Pi-class devices worldwide via the browser** — inspired by Blizzard Games' universal delivery model. The visualization + gameplay layer runs on Python edge mockups as the baseline; higher-fidelity Unity / Unreal 5 renders are opt-in upgrades.
+
+### The 6 hot-swappable slots
+
+| # | Slot | Baseline (Raspberry Pi + phone) | Upgrade path |
+|:-:|---|---|---|
+| 1 | **CPU** | ARM Cortex-A72 (Pi 4-class) | x86_64 workstation, server-grade |
+| 2 | **GPU** | Broadcom VideoCore VI | Discrete NVIDIA / AMD / integrated laptop |
+| 3 | **Inference** | TensorFlow Lite | ONNX Runtime, CUDA, Edge TPU, Coral |
+| 4 | **Screen** | 1080p (browser canvas) | 4K / 8K (auto-calibrated frame rate) |
+| 5 | **Sensors** | Camera + IMU | Radar / Lidar / Sonar / environmental / bio |
+| 6 | **Mobility** | Static or manual | Wheels / drones / propulsion / hydrofoil / manipulator |
+
+### The 3 hard rules
+
+1. **Baseline must run everywhere.** If a domain can't run on the baseline HAL through a phone browser, the domain is not Level 3-ready. Higher fidelity is a bonus, never a gate.
+2. **Auto-calibration on any slot upgrade.** Swap camera 1080p → 4K → 8K → system auto-adjusts frame rate, inference cadence, network bandwidth, storage, and UI resolution. No manual tuning.
+3. **Python edge mockups first, native renderers second.** Cube 21 accepts a Python edge visualization as the *baseline* deliverable. Revit / Unity / Unreal / Blender exports come after the Python mockup validates on Pi + browser.
+
+### Where the HAL touches each cube
+
+| Cube | HAL responsibility |
+|---|---|
+| **21** Model Ingest | Accepts Python edge mockup as the baseline visualization; validates the mockup runs at baseline HAL FPS before advancing |
+| **24** Estimator AI | Estimates all costs at baseline HAL first; upgrade tiers are separate estimator passes with delta-to-baseline |
+| **26** Execution Marketplace | Routes execution based on requester's HAL profile — same simulation delivered at different fidelity per client |
+| **27** Delivery & Actuals | Verifies the artifact executes on baseline HAL through a phone browser BEFORE marking delivery complete |
+
+### Cross-domain applicability
+
+The HAL is the **universal glue** that lets one substrate power radically different physical products:
+
+- Prison security · surveillance grids
+- Home security · residential IoT
+- Drones (Drone-2525)
+- Robotics (eXeL AI robot, MASS-AI robot)
+- House design (Architect-2525)
+- Submarine (Manta-2525)
+- Any Vision 2525 domain yet to be declared
+
+Every domain declares its baseline HAL profile in its Domain Play YAML. The substrate never assumes hardware beyond the baseline.
+
+---
+
+## 5 · The 9 Level 3 cubes
 
 ### Cube 19 · Innovation Life Cycle (CENTER)
 
@@ -237,7 +284,7 @@ Every L3 cube must satisfy all four. They are not aspirations — they are hard 
 
 ---
 
-## 5 · Domain Play reference configs
+## 6 · Domain Play reference configs
 
 Each Domain Play is a JSON artifact that plugs into the substrate. Below are the three prime examples.
 
@@ -278,6 +325,18 @@ kpi_targets:
   lower_risk: 30-50%
   faster_approvals: 20-40%
   build_ready_confidence: 100%
+hal_profile:
+  baseline:
+    cpu: arm_cortex_a72
+    gpu: broadcom_videocore_vi
+    inference: tflite
+    screen: 1080p
+    sensors: [camera, imu]
+    mobility: static
+  upgrades:
+    screen: [4k, 8k]                    # auto-calibrate FPS
+    inference: [onnx, cuda, edge_tpu]
+    sensors: [radar, lidar, environmental]
 ```
 
 ### Manta-2525 Play
@@ -327,6 +386,18 @@ principles:
   trust_through_transparency: true
   quality_before_scale: true
   one_earth_one_future: true
+hal_profile:
+  baseline:
+    cpu: arm_cortex_a72
+    gpu: broadcom_videocore_vi
+    inference: tflite
+    screen: 1080p
+    sensors: [camera, imu, sonar_baseline]
+    mobility: hydrofoil_manual
+  upgrades:
+    sensors: [radar, lidar_bathymetric, environmental]
+    inference: [onnx, edge_tpu]
+    mobility: [twin_electric_pods, sail_wing_automated]
 ```
 
 ### Drone-2525 Play (laser-tag mission platform)
@@ -369,11 +440,23 @@ multi_agent:
   leader_follower: true
   team_vs_team: true              # Team Alpha vs Team Omega
 simulate_first_required: true     # cannot execute a mission without prior sim run
+hal_profile:
+  baseline:
+    cpu: arm_cortex_a72
+    gpu: broadcom_videocore_vi
+    inference: tflite             # low-compute swarm coordination
+    screen: 1080p                 # phone browser sufficient
+    sensors: [camera, imu]        # per drone
+    mobility: quadcopter
+  upgrades:
+    inference: [onnx, edge_tpu, cuda]
+    sensors: [lidar, thermal, radar]
+    screen: [4k, 8k]              # auto-calibrate mission replay FPS
 ```
 
 ---
 
-## 6 · Canonical L3 API verbs
+## 7 · Canonical L3 API verbs
 
 The three examples all use the same active verbs. These become the L3 API's canonical operations, exposed via the SDK the same way Polling's are.
 
@@ -395,7 +478,7 @@ Equivalences across the examples:
 
 ---
 
-## 7 · Cross-level data flows (Vision 2525 self-update loop)
+## 8 · Cross-level data flows (Vision 2525 self-update loop)
 
 The 27-cube grid closes the loop from Level 3 back into Level 1.
 
@@ -436,7 +519,7 @@ Every project makes the substrate smarter for the next project.
 
 ---
 
-## 8 · Validation matrix — all 3 prime examples
+## 9 · Validation matrix — all 3 prime examples
 
 Every substrate cube must have a legitimate role in every prime example. Anything less means the substrate is over-specialized to one domain.
 
@@ -456,7 +539,7 @@ Every substrate cube must have a legitimate role in every prime example. Anythin
 
 ---
 
-## 9 · What Level 3 does NOT own
+## 10 · What Level 3 does NOT own
 
 Explicit non-scope so future contributors don't blur boundaries:
 
@@ -468,7 +551,7 @@ Explicit non-scope so future contributors don't blur boundaries:
 
 ---
 
-## 10 · Success criteria for the framework
+## 11 · Success criteria for the framework
 
 An implementation of Cubes 19-27 succeeds when:
 
@@ -478,16 +561,17 @@ An implementation of Cubes 19-27 succeeds when:
 4. Every quote (Cube 25) is on-chain and re-verifiable years later.
 5. Every delivered artifact (Cube 27) can execute its declared Operational Protocol on demand.
 6. The four Vision 2525 Principles are testably enforced at every phase gate.
+7. **Every domain's baseline visualization runs on Raspberry-Pi-class hardware through a phone browser** — no gaming rig required for the core loop.
 
 ---
 
-## 11 · Portability outside Polling
+## 12 · Portability outside Polling
 
 Level 3 is designed so that any product built on the 3×3×3 substrate — R2D2 MASS-AI, eXeL AI robot, robotic + drone laser tag, 3D home design, or any innovation not yet named — reuses Cubes 19-27 **verbatim**. Only the Domain Play changes. This is the "27-cube framework is the reusable substrate" promise made in memory.
 
 ---
 
-## 12 · Naming convention for Level 3 domains
+## 13 · Naming convention for Level 3 domains
 
 Every Level 3 domain uses the suffix `-2525` to signal it belongs to the Vision 2525 innovation substrate.
 
@@ -497,14 +581,30 @@ Every Level 3 domain uses the suffix `-2525` to signal it belongs to the Vision 
 - `Architect-2525` — home / architecture / renovation
 - `Manta-2525` — modular submarine + surface carrier + mothership fleet
 - `Drone-2525` — laser-tag drone missions + swarm coordination
-- `Security-2525` — pending ingest
+- `Security-2525` — static cameras · semi-mobile systems · mobility security robotics · deterrence robotics · radar + air defense (source: *Shield in The Sky* — ingest in progress)
 
 **Future candidates (from memory / prior conversations):**
-- `MASSAI-2525` — R2D2 modular autonomous sensor system
+- `MASS-2525` — Modular Autonomous Sensor System (R2-D2 inspired)
 - `Robot-2525` — eXeL AI physical robot (XL / R2-D2 lineage)
 - `LaserTag-2525` — arena-scale robotic laser tag (possibly merges into Drone-2525)
 
 **Rule:** the domain name is a proper noun. The `-2525` suffix is fixed. Do not translate or localize (the year 2525 is the framework's target horizon and stays constant across languages).
+
+### Cross-domain adversarial scenarios
+
+Two or more `X-2525` domains can be **pitted against each other** in the same simulation. This is a first-class Level 3 use case, not a special mode.
+
+**Example:** Drone-2525 (attacking swarm) vs Security-2525 (defensive shield) → both domains run in the same Cube 19 Life Cycle, both share the same Spatial Coordinate Frame (primitive #8), and each side's Multi-agent Coordination (primitive #9) plays against the other's.
+
+**Substrate rules for adversarial scenarios:**
+
+1. Both domains must share a compatible Spatial Coordinate Frame — either identical, or with a declared transform between them.
+2. Both domains submit their Domain Play; the L3 substrate merges them into a single simulation.
+3. Cube 10 SIM replays capture BOTH sides — replay is the shared source of truth.
+4. Cube 25 Governance evaluates outcomes per side (defender KPIs + attacker KPIs are independent).
+5. Cube 27 Delivery & Actuals feeds learnings back to BOTH domains' estimators — each side sharpens its world model from every match.
+
+**Why this matters:** you cannot truly de-risk a defensive system without a competent adversary in the loop. Drone-2525 becomes Security-2525's stress tester, and vice versa. Both domains improve faster together than either could alone.
 
 ---
 
@@ -514,3 +614,5 @@ Every Level 3 domain uses the suffix `-2525` to signal it belongs to the Vision 
 |---|---|---|
 | `L3-2026-07-03.1` | 2026-07-03 | Initial framework. Locks 9 substrate primitives, canonical verbs, 3-example validation matrix, and cross-level data flow. |
 | `L3-2026-07-03.2` | 2026-07-03 | Naming convention formalized: all Level 3 domains use `<Domain>-2525` suffix. |
+| `L3-2026-07-03.3` | 2026-07-03 | Added 10th substrate primitive: Hardware Abstraction Layer (HAL) with 6 hot-swappable slots + auto-calibration + Raspberry-Pi baseline. New §4 dedicated. All 3 Domain Plays updated with `hal_profile` block. Success criterion #7 added. |
+| `L3-2026-07-03.4` | 2026-07-03 | Cross-domain adversarial scenarios documented (e.g. Drone-2525 vs Security-2525). Security-2525 pending ingest from *Shield in The Sky* PDF. |
