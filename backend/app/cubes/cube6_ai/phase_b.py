@@ -352,29 +352,61 @@ _THEME_LINE_PATTERN = re.compile(
 
 
 def _parse_reduced_themes(text: str) -> list[dict]:
-    """Parse reduced theme output into list of {label, description, confidence}."""
-    themes = []
+    """Parse reduced theme output into list of {label, description, confidence}.
+
+    Dedupes by label (case-insensitive). LLM providers occasionally emit the
+    same reduced theme twice — the duplicate would inflate theme counts AND
+    corrupt the replay hash (Enki edge-case, 2026-07-03).
+    """
+    themes: list[dict] = []
+    seen_labels: set[str] = set()
     for line in text.strip().split("\n"):
         match = _THEME_LINE_PATTERN.match(line.strip())
-        if match:
-            themes.append({
-                "label": html.escape(match.group(1).strip()),
-                "description": html.escape(match.group(2).strip()),
-                "confidence": int(match.group(3)) / 100.0,
-            })
+        if not match:
+            continue
+        label = html.escape(match.group(1).strip())
+        norm = label.lower()
+        if norm in seen_labels:
+            continue
+        seen_labels.add(norm)
+        themes.append({
+            "label": label,
+            "description": html.escape(match.group(2).strip()),
+            "confidence": int(match.group(3)) / 100.0,
+        })
     return themes
 
 
 def _pad_themes_to_target(themes: list[dict], target: int) -> list[dict]:
     """Pad theme list to exactly `target` entries with dim/empty placeholders.
 
-    Flower-of-Life UI needs a stable N-petal geometry (3, 6, or 9). When a
-    category has fewer responses than can produce N distinct themes, we
-    fill the remaining slots with `is_empty=True` placeholders so the
-    frontend renders greyed/dimmed petals — geometry intact, semantics honest.
+    **WHY WE ALWAYS EMIT EXACTLY 3 / 6 / 9 THEMES (even with zero results):**
 
-    Empty placeholders carry stable synthetic labels (`__empty_1`, `__empty_2`, ...)
-    so the replay hash still hashes to a deterministic value across runs.
+    The Flower of Life visualization is the load-bearing UX metaphor of eXeL
+    Polling. Its geometry — 3 → 6 → 9 sub-themes fanning around a Theme01
+    parent — carries the entire "Innovation at the Speed of Thought" message
+    from the homepage down through every session. That geometry must exist
+    at every level regardless of participation volume. A partial flower
+    (2 petals of 3, 5 of 6, 7 of 9) breaks the visual promise.
+
+    So Cube 6 always produces the FULL 3/6/9 hierarchy per Theme01 category.
+    When a category has too few responses to seed enough distinct themes,
+    the remaining slots are filled with `is_empty=True` placeholder rows
+    (empty label, zero confidence, zero response_count). The frontend
+    Flower of Life dims those petals to 25% opacity + greyscale so the user
+    sees an honest signal ("there are 9 possible themes; 4 have real support,
+    5 are still empty") without losing the geometric shape.
+
+    **CRITICAL DOWNSTREAM CONTRACT:** empty placeholders are IGNORED by
+    Cube 7 ranking. Only themes with `label != ""` (i.e. real feedback
+    attached) enter the Borda count. Participants can never vote on an
+    empty slot; the dim petals are display-only. This split lets the visual
+    promise stay whole while governance stays honest.
+
+    Empty placeholders carry stable synthetic labels (`__empty_1`, `__empty_2`,
+    ...) INTERNALLY during reduction, then get their label stripped to `""`
+    when written to the DB (see `_store_results`). The synthetic labels
+    are only used to keep the replay hash deterministic across runs.
     """
     if len(themes) >= target:
         return themes[:target]

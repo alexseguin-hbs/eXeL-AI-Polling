@@ -80,11 +80,20 @@ async def submit_user_ranking(
                 f"for session {session_id}"
             )
 
-    # 1b. Fetch valid Theme 02 IDs at the voting level (optionally category-scoped)
+    # 1b. Fetch valid Theme 02 IDs at the voting level (optionally category-scoped).
+    #
+    # Empty placeholder slots (from Cube 6's always-9 padding when a category
+    # has too few real themes) are EXCLUDED from ranking — participants can
+    # only rank themes that carry actual feedback. Cube 6 still emits the full
+    # 9/6/3 geometry to the frontend Flower of Life (dimmed petals), but Cube 7
+    # ranking sees only the non-empty slice.
+    #
+    # Enki + Council of Twelve · 2026-07-03.
     conditions = [
         Theme.session_id == session_id,
         Theme.parent_theme_id.isnot(None),
         Theme.cluster_metadata["level"].as_string() == level_num,
+        Theme.label != "",  # empty slot label is ""
     ]
     if parent_allowlist is not None:
         conditions.append(Theme.parent_theme_id.in_(parent_allowlist))

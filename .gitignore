@@ -12,8 +12,18 @@ venv/
 # Node
 node_modules/
 
-# Environment
+# Environment — comprehensive coverage (Thor security audit 2026-07-03)
+.env
+.env.local
+.env.*
 .env.*.local
+**/.env
+**/.env.local
+**/.env.*
+
+# WSL/Windows metadata junk
+*:Zone.Identifier
+**/*:Zone.Identifier
 
 # Python venv artifacts (root level only)
 /bin/

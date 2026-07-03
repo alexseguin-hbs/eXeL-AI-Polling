@@ -554,17 +554,35 @@ async def trigger_cqs_scoring(
     db: AsyncSession,
     session_id: uuid.UUID,
     top_theme2_id: str | None = None,
+    *,
+    cycle_id: int | None = None,
+    algorithm: str | None = None,
+    participant_count: int | None = None,
+    replay_hash: str | None = None,
 ) -> PipelineTrigger:
     """Create a pipeline trigger for CQS scoring (placeholder).
 
     CQS scoring fires after Cube 7 ranking completes. Scores only
     responses in the #1 most-voted Theme2 cluster with >95% confidence.
+
+    Krishna contract (2026-07-03): accepts the full Cube 7 → Cube 8 handoff
+    fields so downstream Cube 8 token disbursement can attribute rewards
+    against the exact aggregation slice (algorithm, replay hash, cycle).
     """
+    metadata = {"top_theme2_id": top_theme2_id}
+    if cycle_id is not None:
+        metadata["cycle_id"] = cycle_id
+    if algorithm is not None:
+        metadata["algorithm"] = algorithm
+    if participant_count is not None:
+        metadata["participant_count"] = participant_count
+    if replay_hash is not None:
+        metadata["replay_hash"] = replay_hash
     return await _create_trigger(
         db,
         session_id,
         "cqs_scoring",
-        metadata={"top_theme2_id": top_theme2_id},
+        metadata=metadata,
     )
 
 

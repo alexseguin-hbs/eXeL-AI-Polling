@@ -236,10 +236,13 @@ async def run_pipeline(
             event="themes_ready",
             payload={
                 "session_id": str(session_id),
+                "short_code": session.short_code,          # Krishna contract fix
+                "cycle_id": session.current_cycle,          # Krishna contract fix
                 "theme_count": theme_count,
                 "total_responses": len(responses),
                 "replay_hash": replay_hash,
                 "duration_sec": duration,
+                "contract_version": "2026-07-03.1",         # Krishna contract fix
             },
         )
         logger.info(

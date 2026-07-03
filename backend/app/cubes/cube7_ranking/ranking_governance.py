@@ -58,8 +58,21 @@ async def emit_ranking_complete(
     session_id: uuid.UUID,
     session_short_code: str,
     cycle_id: int = 1,
+    *,
+    algorithm: str | None = None,
+    theme01_category: str | None = None,
+    theme_level: str | None = None,
+    replay_hash: str | None = None,
+    anomaly_count: int = 0,
+    excluded_participants: int = 0,
 ) -> dict:
-    """Broadcast ranking_complete + trigger CQS scoring via Cube 5."""
+    """Broadcast ranking_complete + trigger CQS scoring via Cube 5.
+
+    Contract fields (Krishna audit, 2026-07-03): algorithm, theme01_category,
+    theme_level, replay_hash, anomaly_count, excluded_participants,
+    contract_version are all included in the broadcast payload so downstream
+    consumers (Cube 8, SIM playback) receive the complete slice-pinned record.
+    """
     result = await db.execute(
         select(AggregatedRanking).where(
             and_(
@@ -79,33 +92,43 @@ async def emit_ranking_complete(
         )
         top_theme2_label = theme_result.scalar_one_or_none()
 
-    # Broadcast ranking_complete (CRS-17: <500ms)
-    # Auto-select: sharded broadcast for 1M+ scale, standard for <1K
+    # Fall back to values on the winner row if callers didn't supply them.
+    if algorithm is None and winner is not None:
+        algorithm = getattr(winner, "algorithm", None)
+
+    # Count participants to decide broadcast strategy AND for payload metadata
+    participant_count = 0
+    try:
+        count_result = await db.execute(
+            select(func.count()).select_from(Ranking).where(
+                Ranking.session_id == session_id
+            )
+        )
+        participant_count = count_result.scalar() or 0
+    except Exception:
+        pass
+
+    # Broadcast ranking_complete (CRS-17: <500ms). Full contract payload.
     payload = {
         "session_id": str(session_id),
+        "short_code": session_short_code,
+        "cycle_id": cycle_id,
+        "algorithm": algorithm,
+        "participant_count": participant_count,
+        "theme01_category": theme01_category,
+        "theme_level": theme_level,
         "top_theme2_id": top_theme2_id,
         "top_theme2_label": top_theme2_label,
-        "cycle_id": cycle_id,
+        "replay_hash": replay_hash,
+        "anomaly_count": anomaly_count,
+        "excluded_participants": excluded_participants,
+        "contract_version": "2026-07-03.1",
     }
     try:
-        # Count participants to decide broadcast strategy
-        participant_count = 0
-        try:
-            count_result = await db.execute(
-                select(func.count()).select_from(Ranking).where(
-                    Ranking.session_id == session_id
-                )
-            )
-            participant_count = count_result.scalar() or 0
-        except Exception:
-            pass
-
         if participant_count > 1000:
-            # Scale mode: sharded broadcast to 100 channels
             from app.cubes.cube7_ranking.scale_engine import broadcast_to_all_shards
             await broadcast_to_all_shards(session_short_code, "ranking_complete", payload)
         else:
-            # Standard mode: single channel broadcast
             from app.core.supabase_broadcast import broadcast_event
             await broadcast_event(
                 channel=f"session:{session_short_code}",
@@ -122,15 +145,32 @@ async def emit_ranking_complete(
             extra={"session_id": str(session_id), "error": str(exc)},
         )
 
-    # Trigger CQS scoring via Cube 5
+    # Trigger CQS scoring via Cube 5 — pass the full handoff payload
     try:
         from app.cubes.cube5_gateway.service import trigger_cqs_scoring
 
-        await trigger_cqs_scoring(db, session_id, top_theme2_id=top_theme2_id)
+        await trigger_cqs_scoring(
+            db,
+            session_id,
+            top_theme2_id=top_theme2_id,
+            cycle_id=cycle_id,
+            algorithm=algorithm,
+            participant_count=participant_count,
+            replay_hash=replay_hash,
+        )
         logger.info(
             "cube7.cqs.triggered",
             extra={"session_id": str(session_id), "top_theme2_id": top_theme2_id},
         )
+    except TypeError:
+        # Cube 5 may not yet accept the extended kwargs — fall back to legacy
+        try:
+            await trigger_cqs_scoring(db, session_id, top_theme2_id=top_theme2_id)
+        except Exception as exc:
+            logger.warning(
+                "cube7.cqs.trigger_failed_fallback",
+                extra={"session_id": str(session_id), "error": str(exc)},
+            )
     except Exception as exc:
         logger.warning(
             "cube7.cqs.trigger_failed",
@@ -142,6 +182,13 @@ async def emit_ranking_complete(
         "top_theme2_id": top_theme2_id,
         "top_theme2_label": top_theme2_label,
         "cycle_id": cycle_id,
+        "algorithm": algorithm,
+        "participant_count": participant_count,
+        "theme01_category": theme01_category,
+        "theme_level": theme_level,
+        "replay_hash": replay_hash,
+        "anomaly_count": anomaly_count,
+        "excluded_participants": excluded_participants,
         "status": "ranking_complete",
     }
 
@@ -477,16 +524,27 @@ async def run_ranking_pipeline(
     # 4. Identify top theme
     winner = await identify_top_theme2(db, session_id, cycle_id)
 
-    # 4. Emit ranking complete + trigger CQS
+    # CRS-13.03: Pull replay_hash + weight_audit from aggregation output
+    replay_hash = getattr(aggregated[0], "_replay_hash", None) if aggregated else None
+    weight_audit = getattr(aggregated[0], "_weight_audit", None) if aggregated else None
+    algorithm = aggregated[0].algorithm if aggregated else "borda_count"
+
+    # 5. Emit ranking complete + trigger CQS with the full contract payload
+    #    (Krishna audit — 2026-07-03: no more broadcast field drift)
     emit_result = await emit_ranking_complete(
-        db, session_id, session_short_code, cycle_id
+        db,
+        session_id,
+        session_short_code,
+        cycle_id,
+        algorithm=algorithm,
+        theme01_category=theme01_category,
+        theme_level=theme_level,
+        replay_hash=replay_hash,
+        anomaly_count=len(anomalies),
+        excluded_participants=len(excluded_participants),
     )
 
     await db.commit()
-
-    # CRS-13.03: Include replay_hash for governance audit
-    replay_hash = getattr(aggregated[0], "_replay_hash", None) if aggregated else None
-    weight_audit = getattr(aggregated[0], "_weight_audit", None) if aggregated else None
 
     return {
         "session_id": str(session_id),

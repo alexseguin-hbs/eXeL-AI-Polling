@@ -305,14 +305,30 @@ function SessionDetail({
     }
   }, []);
 
+  // Cube 7 ranking listeners — Christo audit fix (2026-07-03).
+  // The backend broadcasts ranking_progress on every submission and
+  // ranking_complete when aggregation lands. Wired here so the events
+  // reach the dashboard tree (UI state binding is a follow-up refinement).
+  const onRankingProgress = useCallback((payload: { submissions?: number; cycle_id?: number }) => {
+    if (typeof payload?.submissions === "number") {
+      console.info("[dashboard] ranking_progress:", payload.submissions, "cycle", payload.cycle_id);
+    }
+  }, []);
+
+  const onRankingComplete = useCallback((payload: { top_theme2_id?: string; top_theme2_label?: string; replay_hash?: string }) => {
+    console.info("[dashboard] ranking_complete:", payload?.top_theme2_label, "hash", payload?.replay_hash);
+  }, []);
+
   const { broadcast } = useSessionBroadcast(
     session.short_code,
-    undefined,        // onStatusChange — handled by session-view
-    onPresenceUpdate, // participant count
-    onNewResponse,    // Channel A: live responses
-    onSummaryReady,   // Channel A: AI summary updates
-    onThemesReady,    // Channel A: theme pipeline complete
-    onThemeChange,    // Channel A: color scheme change
+    undefined,          // onStatusChange — handled by session-view
+    onPresenceUpdate,   // participant count
+    onNewResponse,      // Channel A: live responses
+    onSummaryReady,     // Channel A: AI summary updates
+    onThemesReady,      // Channel A: theme pipeline complete
+    onThemeChange,      // Channel A: color scheme change
+    onRankingProgress,  // Cube 7: ranking submissions counter
+    onRankingComplete,  // Cube 7: aggregation done + winning theme
   );
 
   // ── Channels B, C, D: Non-broadcast redundancy paths ──
