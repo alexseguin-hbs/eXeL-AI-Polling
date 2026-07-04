@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-04.1` · Master of Thought approved · hardware-approval gate + SWAP + slow-mode calibration + power-draw impact + compute self-assessment
+**Contract version:** `L3-2026-07-04.2` · Master of Thought approved · Onboard Adversarial Test Harness (OATH) + weekly re-attestation + multi-root-of-trust update verification
 
 ---
 
@@ -32,9 +32,9 @@ Level 3 mirrors Level 1's spiral (Session → Text → Voice → Collector → G
 
 ---
 
-## 2 · The 17 substrate primitives
+## 2 · The 18 substrate primitives
 
-Locked from Council of Twelve audit (2026-07-03) plus Master of Thought hardware-safety additions (2026-07-04). The original 10 primitives held; 5 came from the Council; 2 more from MoT to formalize hardware-approval + compute self-assessment. Any future domain must fit within these; if not, the substrate is extended (never forked).
+Locked from Council of Twelve audit (2026-07-03) plus Master of Thought safety additions (2026-07-04). Original 10 + 5 (Council) + 2 (MoT hardware-safety) + 1 (MoT onboard-security) = 18. Any future domain must fit within these; if not, the substrate is extended (never forked).
 
 | # | Primitive | Contract | First surfaced by |
 |:-:|---|---|---|
@@ -55,6 +55,7 @@ Locked from Council of Twelve audit (2026-07-03) plus Master of Thought hardware
 | 15 | **Cryptographic Governance State Binding** | Every Cube 25 quote is cryptographically bound to a **Principle Compliance Manifest**: (a) HAL profile hash, (b) risk register hash, (c) estimator uncertainty bands hash, (d) human signer identity + role, (e) jurisdiction rules hash, (f) 4-principle attestation bitmap, (g) education artifact pointer, (h) hardware-approval attestation (see #16). Any upstream input drift invalidates the quote's validity hash, forcing human re-approval instead of silent drift | Thor + Sofia + Aset merged (post-audit critical) — closes the 100-year audit-trail timebomb |
 | 16 | **Hardware Approval Gate + SWAP Compliance** | Every hardware change (compute · sensor · component swap) requires **human signature within a defined window** — either **pre-approval** (owner authorizes the swap before physical install) OR **post-approval** (owner signs within N days after install, otherwise the component enters Degraded Mode). SWAP (Size · Weight · And · Power) envelope declared per HAL slot; any component matching SWAP envelope may auto-install pending post-approval; any non-SWAP component (higher power, larger footprint, incompatible pinout) MUST use pre-approval AND surface a projected operating-time reduction based on the owner's historical monthly + annual power usage. Human is always in the loop for physical changes; the system operates but cannot silently reshape itself | Master of Thought hardware-safety decision (2026-07-04) — humans stay in the loop for physical world changes |
 | 17 | **Compute Capacity Self-Assessment** | Every new component broadcasts its compute requirements at install: CPU cycles, GPU flops, neural-inference budget, memory footprint, bandwidth, thermal envelope. Substrate compares against currently-available capacity across CPU / GPU / NN-processor slots. If capacity insufficient, the system: (a) enters Degraded Mode (per #10) or Slow-Mode Calibration (per §4), (b) surfaces upgrade options to the owner, (c) logs a Risk Register (Primitive #13) row with projected impact. Example: an 8K camera installs on a Pi baseline; substrate detects the NN processor will drop from 60fps target → 22fps actual, tells the owner, offers upgrade paths, and clamps to safe slow-mode until owner decides | Master of Thought decision (2026-07-04) — component enumeration must be honest about capacity impact, not silent |
+| 18 | **Onboard Adversarial Test Harness (OATH)** | Every hardware OR software update — whether system-initiated or human-installed — triggers a **fully onboard cybersecurity + calibration test suite** BEFORE the update is accepted. Verifies: (a) multi-root-of-trust signature (vendor + Cube 11 blockchain anchor + local hardware TPM + Quorum Consensus per Primitive #9), (b) crypto self-attestation of the update payload, (c) fuzz + injection + side-channel + timing-attack probes against the new surface, (d) rollback capability demonstrated on a shadow partition, (e) domain-declared post-update tests from the Domain Play YAML. **Weekly cadence:** OATH re-runs against ALL installed components every 7 days for continuous re-attestation — regressions trigger Risk Register rows + Slow-Mode + human review. Max test duration: 9 minutes (rhymes with the substrate's other 9-constants). Failure → automatic rollback to prior known-good state. Tesla and other OTA vendors verify signatures; the eXeL substrate ADDITIONALLY runs onboard adversarial testing before accepting any update to Manta-2525, MASS-2525, eXeL AI Robot, Drone-2525, or any future domain | Master of Thought decision (2026-07-04) — "more secure than Tesla" mandate; humans + substrate co-verify every update against multiple roots of trust |
 
 ---
 
@@ -1022,6 +1023,150 @@ Cube 23 De-Risk Gateway runs at **regional UCRS-2525 nodes**, not centrally. Eac
 
 ---
 
+## 15 · Onboard Adversarial Test Harness (OATH) — more secure than OTA
+
+Tesla and other OTA vendors verify update signatures with a single root of trust and push. That is not enough for physical products where a compromised update becomes a compromised submarine, drone, robot, or air-defense unit. The eXeL substrate runs a full onboard cybersecurity + calibration test suite **before** any update — system-initiated OR human-installed — is accepted.
+
+### 15.1 · The OATH pipeline
+
+```
+NEW UPDATE ARRIVES
+    │
+    ▼
+┌──────────────────────────────────────────────────────────────────┐
+│ Stage 1 · Multi-Root-of-Trust Verification                       │
+│   ✓ Vendor signature (traditional)                                │
+│   ✓ Cube 11 blockchain anchor of update package                   │
+│   ✓ Local hardware TPM / secure enclave                           │
+│   ✓ Quorum Consensus attestation (Primitive #9) — N peers concur  │
+│   Any single failure → REJECT + Risk Register row + notify owner  │
+└──────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+┌──────────────────────────────────────────────────────────────────┐
+│ Stage 2 · Onboard Adversarial Test Suite                         │
+│   ✓ Crypto self-attestation of payload                            │
+│   ✓ Fuzz input channels                                           │
+│   ✓ Injection resistance probe                                    │
+│   ✓ Side-channel leak scan                                        │
+│   ✓ Timing-attack sweep                                           │
+│   ✓ Rollback capability demonstrated on shadow partition          │
+│   Max duration: 9 minutes                                          │
+│   Any failure → AUTOMATIC ROLLBACK to prior known-good state      │
+└──────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+┌──────────────────────────────────────────────────────────────────┐
+│ Stage 3 · Domain-Declared Post-Update Tests (from Domain Play)   │
+│   Manta-2525:   pressure sensor cross-check · thruster torque     │
+│                 · sonar noise-floor calibration                    │
+│   Drone-2525:   coordinate frame handshake · geofence probe       │
+│                 · leader/follower reacquisition                    │
+│   MASS-2525:    sensor fusion sanity · IMU drift baseline         │
+│   eXeL AI Robot: safety envelope · motion damping · torque cap    │
+│   Architect-2525: CAD API integrity · zoning DB sync              │
+└──────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+┌──────────────────────────────────────────────────────────────────┐
+│ Stage 4 · Slow-Mode Calibration (per §4)                         │
+│   9 FPS floor · reduced motion · Risk Register cleared            │
+│   Humanity-at-Center Audit signature required                     │
+└──────────────────────────────────────────────────────────────────┘
+    │
+    ▼
+FULL OPERATION RESUMES
+```
+
+### 15.2 · Weekly re-attestation loop
+
+Every 7 days, OATH re-runs against **every installed component** — not just newly-updated ones. This catches:
+- Silent supply-chain compromise that surfaces days after install
+- Adversarial drift in cached components (memory bit-flip, thermal degradation)
+- Cryptographic algorithm weakening (compliance with post-quantum migration timeline)
+- Cascading configuration drift from unrelated changes
+
+Any weekly regression → Risk Register row + Slow-Mode + human review at the next Cube 23 gate.
+
+**Cadence rationale:** Tesla pushes weekly OTA updates; the substrate matches the cadence but adds full onboard adversarial testing so the citizen never has to trust the vendor alone. Public-key infrastructure alone cannot survive a 500-year adversarial horizon — continuous re-attestation must.
+
+### 15.3 · Domain Play declaration
+
+Every Domain Play YAML declares its onboard testing plan:
+
+```yaml
+onboard_testing_plan:
+  post_update_test_suite:
+    - crypto_self_attestation
+    - fuzz_input_channels
+    - side_channel_leak_scan
+    - timing_attack_probe
+    - injection_resistance_check
+    - rollback_capability_verified
+    - domain_specific_probes    # see Domain Play for the list
+  weekly_regression_suite: same
+  test_duration_max_minutes: 9   # aligns with substrate's 9-constant
+  multi_root_of_trust:
+    - vendor_signature
+    - cube_11_blockchain_anchor
+    - local_tpm_attestation
+    - quorum_consensus_peers: 3   # min N peer attestations
+  failure_action: rollback_and_slow_mode
+  human_approval_required_for_safety_critical: true
+```
+
+### 15.4 · Cube 25 Manifest — `security_attestation` field
+
+Every Cube 25 quote-lock now binds an OATH attestation:
+
+```yaml
+security_attestation:
+  latest_oath_pass_timestamp_utc: "iso8601"
+  weekly_streak_days: 84                          # 12 weeks green
+  multi_root_verification:
+    vendor_signature: verified
+    cube_11_blockchain_anchor: verified
+    local_tpm_attestation: verified
+    quorum_consensus_peers_signed: 3
+  adversarial_test_suite_hash: "sha256:..."       # what tests were run
+  test_results_hash: "sha256:..."                 # what results were recorded
+  rollback_partition_verified: true
+  last_regression: null                            # or iso8601 of last regression
+  post_regression_recovery: null                   # or iso8601 of resolution
+  human_safety_signer:                             # required for safety-critical domains
+    role: "safety_officer"
+    id_hash: "sha256:..."
+    signed_at_utc: "iso8601"
+```
+
+### 15.5 · Why "more secure than Tesla"
+
+| Layer | Tesla OTA | eXeL OATH |
+|---|:-:|:-:|
+| Vendor signature check | ✓ | ✓ |
+| Blockchain anchor of update package | — | ✓ (Cube 11) |
+| Local hardware TPM attestation | limited | ✓ |
+| Quorum Consensus peer attestation | — | ✓ (Primitive #9) |
+| Onboard adversarial test suite | — | ✓ (Stage 2) |
+| Domain-declared post-update tests | — | ✓ (Stage 3) |
+| Slow-Mode calibration before full operation | — | ✓ (Stage 4) |
+| Weekly re-attestation of ALL components | — | ✓ (§15.2) |
+| Human safety signer for critical domains | — | ✓ (§15.4) |
+| Full rollback partition demonstrated per update | limited | ✓ (Stage 2) |
+
+The substrate does not trust any single root — vendor, blockchain, TPM, or peer quorum. All four must agree AND the onboard tests must pass. Failure at any layer rolls the update back before it reaches Slow-Mode calibration, let alone full operation.
+
+### 15.6 · Applies across all domains
+
+- **Manta-2525** — a compromised sonar update at 120m depth would be catastrophic; OATH runs Stage 3 pressure + thruster + sonar checks before accepting
+- **MASS-2525** — modular sensor swaps trigger full OATH; weekly re-attestation catches supply-chain rot
+- **eXeL AI Robot** — safety envelope + motion damping + torque cap re-verified per update AND weekly
+- **Drone-2525** — coordinate frame + geofence + leader/follower reacquisition tested onboard before mission
+- **Architect-2525** — CAD API integrity + zoning DB sync verified after any update to prevent quote corruption
+- **Security-2525** — engagement rules + ROE + no-engage zones re-verified per update AND before every mission
+
+---
+
 ## Change log
 
 | Version | Date | Change |
@@ -1037,3 +1182,4 @@ Cube 23 De-Risk Gateway runs at **regional UCRS-2525 nodes**, not centrally. Eac
 | `L3-2026-07-03.9` | 2026-07-03 | HAL 4th hard rule: **≤ 9 minutes** from any component swap to fully-operational auto-calibrated system. Applies to CPU, GPU, inference, screen, resolution, FPS, transmission rate, sensors, mobility, any subsystem. Framing: Atlantean protocol of innovation best practices — max transparency, education tied to real-world innovation. Evolution 2026 → 2525; no perfection required, but modular flexibility must compound monthly. |
 | `L3-2026-07-04.0` | 2026-07-03 | **Council of Twelve future-proofing audit landed.** Primitives grew 10 → 15: added #11 Temporal Decoupling Envelope (Odin), #12 Scenario Library, #13 Risk Register, #14 Portfolio View, #15 Cryptographic Governance State Binding (Thor + Sofia + Aset). Primitive #8 formalized as UCRS-2525 versioned contract. Primitive #9 extended to Quorum Consensus. HAL grew Degraded Mode fallback clause (Enki). New §14 documents post-Council substrate machinery: Humanity-at-Center Audit (Athena), Cube 25 Principle Compliance Manifest (Sofia), Cube 27 Operational Language Archive (Christo), PJSON universal record format (Thoth), Cube 11 Anchor Contract requirement (Krishna), regional consensus federation + dual-chain adversarial governance (Christo). |
 | `L3-2026-07-04.1` | 2026-07-04 | **Master of Thought hardware-safety authority exercised.** Primitives grew 15 → 17: **#16 Hardware Approval Gate + SWAP Compliance** (human pre/post signature required for physical changes; SWAP envelope declares Size · Weight · Power ceiling; non-SWAP components trigger operating-time impact projection) and **#17 Compute Capacity Self-Assessment** (every new component broadcasts CPU/GPU/NN/memory/bandwidth/thermal requirements at install; substrate detects capacity gaps and offers upgrade paths). HAL §4 grew the **Slow-Mode Calibration Protocol** — 9 FPS + reduced motion floor while risks are unresolved (distinct from Degraded Mode: Slow-Mode means "success but proceeding cautiously"). Cube 24 got a new axis: **`power_draw_delta`** with owner-facing Monte Carlo operating-time impact. Cube 25 Principle Compliance Manifest grew `hardware_approval` and `compute_capacity_assessment` fields. Rationale: humans stay in the loop for physical world changes; the 9-FPS floor rhymes with the 9-minute HAL SLA and the 9-cube layer geometry — the substrate has three constants at 9 for a reason. |
+| `L3-2026-07-04.2` | 2026-07-04 | **Master of Thought "more secure than Tesla" mandate.** Primitives grew 17 → 18: **#18 Onboard Adversarial Test Harness (OATH)** — every hardware or software update, system-initiated or human-installed, triggers full onboard cybersecurity + calibration testing BEFORE acceptance. New §15 documents the 4-stage OATH pipeline: (1) Multi-Root-of-Trust Verification (vendor sig + Cube 11 blockchain anchor + local TPM + Quorum Consensus peers), (2) Onboard Adversarial Test Suite (fuzz + injection + side-channel + timing-attack + rollback demonstrated), (3) Domain-Declared Post-Update Tests, (4) Slow-Mode Calibration + human safety signature. **Weekly re-attestation** re-runs OATH against ALL installed components every 7 days for continuous re-verification. Test duration max: 9 minutes (fourth 9-constant of the substrate). Cube 25 Manifest grew `security_attestation` field. Applies across all domains (Manta / MASS / eXeL AI Robot / Drone / Architect / Security). |
