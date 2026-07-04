@@ -226,7 +226,7 @@ function FullscreenViewer({
 
       {/* Body: two columns. Extra bottom padding keeps the pager clear of the
           floating eXeL badge (fixed bottom-6 right-6) when scrolled to the bottom. */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6 px-6 pt-6 pb-20 overflow-hidden">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6 px-6 pt-10 pb-20 overflow-hidden">
         {/* LEFT — mode tabs (pinned top) + flower (fills remaining space) */}
         <div className="flex flex-col items-center min-h-0 gap-3">
           <div className="flex flex-wrap justify-center gap-2 shrink-0">
