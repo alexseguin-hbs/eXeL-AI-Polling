@@ -10,6 +10,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import { SoITrinity } from "@/components/soi-trinity";
 import { TrinityColorPicker } from "@/components/trinity-color-picker";
+import { HomeLauncher } from "@/components/home-launcher";
 
 // 12 preset Trinities — cycle through on inner click
 // Labels use lexicon keys; resolved at render time via t()
@@ -72,6 +73,9 @@ export default function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Post-login workspace interstitial (Moderators). Same look/feel as the
+          Vision 2525 launcher; self-gates on auth + once-per-session. */}
+      <HomeLauncher />
       <Navbar />
 
       <main className="flex flex-1 flex-col items-center justify-center px-4">
