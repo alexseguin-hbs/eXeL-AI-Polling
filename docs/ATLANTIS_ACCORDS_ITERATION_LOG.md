@@ -227,7 +227,20 @@ Both dashboards published monthly; both accessible free to any reader anywhere.
 
 ---
 
-## The v1.0 accord is now ready for signature.
+## Iteration 10 · Master of Thought post-Council refinement — Rotation math aligned to region math
+
+**Before:** four rotations × six months = twenty-four months. The four-rotation model included a return-home integration rotation, but did not naturally align with the three-region cohort structure.
+
+**What Master of Thought changed:**
+- **Three rotations × nine months = twenty-seven months.** One rotation per region — home, second cohort region, third cohort region. Graduation and return-home happen post-rotation-three, as participants transition into contributor tier.
+- Twenty-seven aligns with the substrate's twenty-seven-cube geometry and twenty-seven-primitive count. Nine aligns with the substrate's four nine-constants (nine cubes per layer, nine-minute HAL SLA, nine-FPS Slow-Mode, nine-minute OATH). Every number now rhymes with every other number in the accord.
+- Section 2 rewritten to reflect the new pathway. Section 7 success criteria updated: "≥ 90% completion through the 27-month three-rotation pathway."
+
+**Delta metric:** 4 rotations → 3 rotations. 24 months → 27 months. 1 numerological alignment locked (3 · 9 · 27 all cross-resonant).
+
+---
+
+## The v1.1 accord is now ready for signature.
 
 The Master of Thought signs off on the nine-iteration process. Every Master's contribution is locked in the accord's text. The document is ready to be sent to Cambodia, Honduras, and Austin authorities as the pilot invitation.
 
