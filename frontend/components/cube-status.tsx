@@ -51,23 +51,26 @@ const CUBE_GRID: CubeInfo[][] = [
   ],
 ];
 
-// Level 2 — Prove · Value · Govern. SIM (10) at center; the ring (11–18) in
-// three concern-groups: Validation (11–13), Value (14–15), Governance (16–18).
+// Level 2 — Prove · Value · Govern. SIM (10) at center; ring 11–18 spirals
+// clockwise from top (top → top-right → right → … → top-left), matching the
+// Level 1 / Level 3 numbering convention. The three concern-groups fall on
+// contiguous arcs: Validation 11–13 (top→right), Value 14–15 (bottom),
+// Governance 16–18 (bottom-left→top-left).
 const LEVEL_2: CubeInfo[][] = [
   [
-    { number: 11, name: "Replay / Metrics", status: "planned", completion: 0, description: "Deterministic replay + metric-vs-baseline comparison for Cubes 1–9. Validation group." },
-    { number: 14, name: "Payments", status: "planned", completion: 0, description: "Stripe monetization tiers + cost estimation, layered on Cube 8's operational ledger. Value group." },
-    { number: 16, name: "Atlantis Accords", status: "in_progress", completion: 40, description: "Governance charter — accord sections, proposed approvals (Government/Education/Innovation), target countries, 33-language viewer. Governance group." },
-  ],
-  [
-    { number: 12, name: "Verify", status: "planned", completion: 0, description: "SHA-256 determinism proofs, checkout/checkin, CI gating. Validation group." },
-    { number: 10, name: "SIM", status: "in_progress", completion: 76, description: "Simulation Orchestrator — replays and validates Cubes 1–9. Center of Level 2. 108 tests. SSSES 76/100." },
-    { number: 17, name: "Blockchain", status: "planned", completion: 0, description: "Quai/QI on-chain governance proofs; AI/SI/HI token conversion to QI/USDC. Governance group." },
-  ],
-  [
-    { number: 13, name: "Baseline Compare", status: "planned", completion: 0, description: "Simulation pass criteria — must exceed existing System, User, and Business metrics. Validation group." },
-    { number: 15, name: "Tokenization", status: "planned", completion: 0, description: "SoI Trinity tokens (♡ ◬ 웃) minting + cross-chain conversion. Value group." },
     { number: 18, name: "ARX · S.I.", status: "planned", completion: 0, description: "ARX physically-backed NFT tokens anchored to Shared Intent (S.I.). Governance group." },
+    { number: 11, name: "Replay / Metrics", status: "planned", completion: 0, description: "Deterministic replay + metric-vs-baseline comparison for Cubes 1–9. Validation group." },
+    { number: 12, name: "Verify", status: "planned", completion: 0, description: "SHA-256 determinism proofs, checkout/checkin, CI gating. Validation group." },
+  ],
+  [
+    { number: 17, name: "Blockchain", status: "planned", completion: 0, description: "Quai/QI on-chain governance proofs; AI/SI/HI token conversion to QI/USDC. Governance group." },
+    { number: 10, name: "Simulation", status: "in_progress", completion: 76, description: "Simulation Orchestrator — replays and validates Cubes 1–9. Center of Level 2. 108 tests. SSSES 76/100." },
+    { number: 13, name: "Baseline Compare", status: "planned", completion: 0, description: "Simulation pass criteria — must exceed existing System, User, and Business metrics. Validation group." },
+  ],
+  [
+    { number: 16, name: "Atlantis Accords", status: "in_progress", completion: 40, description: "Governance charter — accord sections, proposed approvals (Government/Education/Innovation), target countries, 33-language viewer. Governance group." },
+    { number: 15, name: "Tokenization", status: "planned", completion: 0, description: "SoI Trinity tokens (♡ ◬ 웃) minting + cross-chain conversion. Value group." },
+    { number: 14, name: "Payments", status: "planned", completion: 0, description: "Stripe monetization tiers + cost estimation, layered on Cube 8's operational ledger. Value group." },
   ],
 ];
 
