@@ -71,23 +71,25 @@ const LEVEL_2: CubeInfo[][] = [
   ],
 ];
 
-// Level 3 — Substrate primitives (X-2525). Placeholders for the portable
-// 3×3×3 layer future products (robotics, drones, home design) build upon.
+// Level 3 — Vision 2525 innovation substrate (Cubes 19–27), Cube 19 at center.
+// Canonical names + layout from docs/CUBE_19_27_LEVEL_3_FRAMEWORK.md. Domains
+// (Architect-2525 / Manta-2525 / Drone-2525) plug in as Domain Play configs;
+// the 9 cubes are the substrate and never fork per domain.
 const LEVEL_3: CubeInfo[][] = [
   [
-    { number: 19, name: "Architect-2525", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
-    { number: 20, name: "Manta-2525", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
-    { number: 21, name: "Drone-2525", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+    { number: 27, name: "Delivery & Actuals", status: "planned", completion: 0, description: "Actuals vs quote delta; feeds the Cube 24 world model. Vision 2525 substrate." },
+    { number: 20, name: "Concept Ingest", status: "planned", completion: 0, description: "Concept intake + Spec Slug validation per Domain Play. Vision 2525 substrate." },
+    { number: 21, name: "Model Ingest", status: "planned", completion: 0, description: "CAD / Python edge / 3D model intake; validates on baseline HAL. Vision 2525 substrate." },
   ],
   [
-    { number: 22, name: "Security-2525", status: "planned", completion: 0, description: "Level 3 substrate primitive — pending placeholder." },
-    { number: 23, name: "TBD", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
-    { number: 24, name: "TBD", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+    { number: 26, name: "Execution Marketplace", status: "planned", completion: 0, description: "Trust-weighted, multi-country contractors; routes execution by HAL profile. Vision 2525 substrate." },
+    { number: 19, name: "Innovation Life Cycle", status: "planned", completion: 0, description: "CENTER — project life cycle across the 9 Level-3 cubes; Domain Play reference. Vision 2525 substrate." },
+    { number: 22, name: "Proposal Collector", status: "planned", completion: 0, description: "Reviews/proposals (distinct from L1 votes); feeds Cube 25. Vision 2525 substrate." },
   ],
   [
-    { number: 25, name: "TBD", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
-    { number: 26, name: "TBD", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
-    { number: 27, name: "TBD", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+    { number: 25, name: "Governance & Quote Board", status: "planned", completion: 0, description: "Quote-lock bound to the Principle Compliance Manifest; ≥1 human signer. Vision 2525 substrate." },
+    { number: 24, name: "Estimator AI", status: "planned", completion: 0, description: "Cost / timeline / domain-declared axes; Monte Carlo P10/P50/P90. Vision 2525 substrate." },
+    { number: 23, name: "De-Risk Gateway", status: "planned", completion: 0, description: "Phased polling gates — Pilot→Refine→Qualify→Adopt; Risk Register. Vision 2525 substrate." },
   ],
 ];
 
