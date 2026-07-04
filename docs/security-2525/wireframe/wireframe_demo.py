@@ -33,17 +33,25 @@ VEXAG = 28.0               # vertical exaggeration (Florida terrain is subtle)
 BATHY_EXAG = 28.0
 WATER_LEVEL_M = 8.0        # nominal river/wetland surface elevation
 
+# Locked color law (R-CORE Consolidation 1 §7 — HYBRID red):
+#   green land · dim blue water · cyan dashed subsurface · red = borders/warnings
+#   AGL + elevation emphasis = GOLD by default, → RED only on a risk trigger.
 COL = {
     "land": "#00ff9f", "water": "#00bfff", "bathy": "#00ffff",
     "border_state": "#ff8c00", "border_country": "#ff4444",
-    "ao": "#ff4444", "grid": "#2b3b47", "red": "#ff3b3b",
+    "ao": "#ff4444", "grid": "#2b3b47",
+    "gold": "#ffd400", "risk": "#ff3b3b",
     "bg": "#0a0a0f",
 }
+# "Where we are looking" focus outline — user-identified, ORANGE by default.
+# User can change both the color and the outline method (edge silhouette / AO box / contour).
+OUTLINE_COLOR = "#ff8c00"
+OUTLINE_METHOD = "edges"   # "edges" (perimeter silhouette) | "ao_box" | "contour"
 MARKERS = [
-    # name, lat, lon, color, agl_m (structure/asset height above ground)
-    ("Camp Blanding (SSG AO)", 29.9519, -81.9799, "#ffd400", 45.0),   # sensor tower
-    ("Gainesville (SW)",       29.6516, -82.3248, "#ff00ff", 0.0),
-    ("Jacksonville (NE)",      30.3322, -81.6557, "#00ffff", 0.0),
+    # name, lat, lon, color, agl_m, risk (True → AGL box turns red)
+    ("Camp Blanding (SSG AO)", 29.9519, -81.9799, "#ffd400", 45.0, False),  # sensor tower
+    ("Gainesville (SW)",       29.6516, -82.3248, "#ff00ff", 0.0, False),
+    ("Jacksonville (NE)",      30.3322, -81.6557, "#00ffff", 0.0, False),
 ]
 
 
@@ -110,18 +118,20 @@ def render(view: str, elev: float, azim: float, path: str):
                       color=COL["bathy"], linewidth=0.6, alpha=0.8,
                       linestyle=(0, (4, 3)))
 
-    # RED ELEVATION OUTLINE — terrain profile around all 4 AO edges ("profile all the way around")
-    for edge in ("top", "bottom", "left", "right"):
-        if edge == "top":    xs, ys = np.arange(n), np.zeros(n, int)
-        elif edge == "bottom": xs, ys = np.arange(n), np.full(n, n - 1)
-        elif edge == "left":  xs, ys = np.zeros(n, int), np.arange(n)
-        else:                 xs, ys = np.full(n, n - 1), np.arange(n)
-        zs = Zex[ys, xs]
-        ax.plot(xs, ys, zs, color=COL["red"], linewidth=2.2, alpha=0.95)
-        # drop "curtain" verticals every 12 cells to read the profile
-        for i in range(0, n, 12):
-            ax.plot([xs[i], xs[i]], [ys[i], ys[i]], [0, zs[i]],
-                    color=COL["red"], linewidth=0.5, alpha=0.35)
+    # FOCUS OUTLINE — "where we are looking" elevation profile. User-identified
+    # color (ORANGE default) + selectable method (edges silhouette / AO box / contour).
+    if OUTLINE_METHOD in ("edges",):
+        for edge in ("top", "bottom", "left", "right"):
+            if edge == "top":    xs, ys = np.arange(n), np.zeros(n, int)
+            elif edge == "bottom": xs, ys = np.arange(n), np.full(n, n - 1)
+            elif edge == "left":  xs, ys = np.zeros(n, int), np.arange(n)
+            else:                 xs, ys = np.full(n, n - 1), np.arange(n)
+            zs = Zex[ys, xs]
+            ax.plot(xs, ys, zs, color=OUTLINE_COLOR, linewidth=2.2, alpha=0.95)
+            # drop "curtain" verticals every 12 cells to read the profile
+            for i in range(0, n, 12):
+                ax.plot([xs[i], xs[i]], [ys[i], ys[i]], [0, zs[i]],
+                        color=OUTLINE_COLOR, linewidth=0.5, alpha=0.35)
 
     # BORDERS draped (state=orange, country=red)
     borders = load_borders(BBOX)
@@ -137,37 +147,39 @@ def render(view: str, elev: float, azim: float, path: str):
     ax.plot([0, n - 1, n - 1, 0, 0], [0, 0, n - 1, n - 1, 0],
             [ao_z] * 5, color=COL["ao"], linewidth=2.5, alpha=0.8)
 
-    # MARKERS + red AGL profile boxes
-    for name, lat, lon, mcol, agl in MARKERS:
+    # MARKERS + AGL profile boxes (GOLD default, RED only on risk trigger)
+    for name, lat, lon, mcol, agl, risk in MARKERS:
         row, col = latlon_to_grid(lat, lon, BBOX, n, n)
         gz = _drape_z(row, col, Z, n)
         ax.scatter([col], [row], [gz + 4], color=mcol, s=90,
                    marker="*", edgecolors="white", linewidths=0.6, depthshade=False)
         ax.text(col, row, gz + 30, name, color=mcol, fontsize=8)
         if agl > 0:
-            _agl_box(ax, col, row, gz, agl * VEXAG)
+            _agl_box(ax, col, row, gz, agl * VEXAG,
+                     color=COL["risk"] if risk else COL["gold"])
 
     _style(ax, view, elev, azim, n, Zex)
-    fig.suptitle("SECURITY-2525  ·  MGRS WIREFRAME v0.3  —  Camp Blanding AO",
+    fig.suptitle("SECURITY-2525  ·  MGRS WIREFRAME v0.4  —  Camp Blanding AO",
                  color=COL["land"], fontsize=15, y=0.955)
-    ax.set_title(f"Green=Land  Blue=Water  Cyan=Subsurface  Red=Elevation/AGL/Borders   [{view.upper()} VIEW]",
+    ax.set_title(f"Green=Land  Blue=Water  Cyan=Subsurface  Gold=AGL(→Red on risk)  Orange=Focus  Red=Borders   [{view.upper()} VIEW]",
                  color="#9fb3c8", fontsize=10, pad=2)
     fig.savefig(path, dpi=115, facecolor=COL["bg"], bbox_inches="tight")
     plt.close(fig)
     print(f"  wrote {path}")
 
 
-def _agl_box(ax, col, row, z0, h, d=3.0):
-    """Red wireframe column: base box on ground + top box at AGL height."""
+def _agl_box(ax, col, row, z0, h, color, d=3.0):
+    """AGL wireframe column: base box on ground + top box at AGL height.
+    color = gold (default) or red (risk trigger) per the hybrid color law."""
     z1 = z0 + h
     corners = [(-d, -d), (d, -d), (d, d), (-d, d)]
     for z in (z0, z1):  # top + bottom boxes
         loop = corners + [corners[0]]
         ax.plot([col + cx for cx, _ in loop], [row + cy for _, cy in loop],
-                [z] * 5, color=COL["red"], linewidth=1.6, alpha=0.95)
+                [z] * 5, color=color, linewidth=1.6, alpha=0.95)
     for cx, cy in corners:  # verticals
         ax.plot([col + cx, col + cx], [row + cy, row + cy], [z0, z1],
-                color=COL["red"], linewidth=1.2, alpha=0.85)
+                color=color, linewidth=1.2, alpha=0.85)
 
 
 def _style(ax, view, elev, azim, n, Zex):
@@ -194,7 +206,7 @@ if __name__ == "__main__":
     # coordinate packets for the record
     import json
     packets = [coord_packet(n_, la, lo, BBOX, GRID, GRID, agl_m=agl)
-               for (n_, la, lo, _, agl) in MARKERS]
+               for (n_, la, lo, _, agl, _risk) in MARKERS]
     with open("out/coord_packets.json", "w") as f:
         json.dump([p.to_dict() for p in packets], f, indent=2, ensure_ascii=False)
     print("  wrote out/coord_packets.json")

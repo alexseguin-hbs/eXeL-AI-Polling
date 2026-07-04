@@ -93,8 +93,20 @@ Both AIs independently say **red is overloaded** and recommend **red = legal/pol
 
 Replayable **evidence product** not just a viz · surface/bathymetry **data separation** · UTM-internal grids · MGRS overlay · vertical-datum normalizer · licensing/classification manifests · low/med/high **mesh budgets** · public/training/internal/restricted modes · **no-data confidence shading** · **legend discipline** (one color = one meaning).
 
-## 7. OPEN DECISION for the operator
+## 7. RESOLVED DECISION — RED channel = HYBRID (risk-triggered)
 
-**RED channel (§3):** adopt the SSSES standard (red = boundaries/warnings only; move AGL/elevation emphasis to gold/amber), keep the current red-AGL look, or a hybrid (red **only** when AGL/elevation crosses a risk threshold)? This gates the next renderer iteration.
+**Operator decision (2026-07-04):** AGL/elevation renders **gold/amber by default**
+and turns **RED only when it crosses a risk threshold** (terrain masks LOS, water
+too deep to ford, AGL enters a threat envelope). This satisfies both the SSSES
+"red = warning" rule *and* keeps bold red for what matters. Locked color law:
+
+- **Land/water/subsurface:** green solid / dim blue / cyan dashed
+- **AGL box + elevation outline:** gold/amber — **→ red only on risk trigger**
+- **Political borders:** red solid · **Warnings:** orange / pulsing red
+- **MGRS/UTM grid:** dim white · **Selected point/asset/AO center:** yellow/gold
+
+Renderer updated to this scheme (v0.4). A `risk` flag per marker/cell drives the
+gold→red switch; risk rules (LOS-mask, fording depth, threat envelope) formalize
+in the mesh-split backlog item.
 
 *Consolidated by Master of Thought via R-CORE · 2026-07-04. Simulate before deployment · replay before expansion · qualify before certification · scale only what earns trust.*

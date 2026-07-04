@@ -76,3 +76,7 @@ config.bat
 docs/security-2525/wireframe/.venv/
 docs/security-2525/wireframe/cache/
 docs/security-2525/wireframe/__pycache__/
+
+# keep SECURITY-2525 demo renders (deliverables), despite any out/ ignore
+!docs/security-2525/wireframe/out/
+!docs/security-2525/wireframe/out/**
