@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-04.0` · post-Council-of-Twelve audit — first true post-audit contract
+**Contract version:** `L3-2026-07-04.1` · Master of Thought approved · hardware-approval gate + SWAP + slow-mode calibration + power-draw impact + compute self-assessment
 
 ---
 
@@ -32,9 +32,9 @@ Level 3 mirrors Level 1's spiral (Session → Text → Voice → Collector → G
 
 ---
 
-## 2 · The 15 substrate primitives
+## 2 · The 17 substrate primitives
 
-Locked from Council of Twelve audit (2026-07-03). The original 10 primitives held; 5 new primitives were added post-audit to close future-proofing gaps. Any future domain must fit within these; if not, the substrate is extended (never forked).
+Locked from Council of Twelve audit (2026-07-03) plus Master of Thought hardware-safety additions (2026-07-04). The original 10 primitives held; 5 came from the Council; 2 more from MoT to formalize hardware-approval + compute self-assessment. Any future domain must fit within these; if not, the substrate is extended (never forked).
 
 | # | Primitive | Contract | First surfaced by |
 |:-:|---|---|---|
@@ -52,7 +52,9 @@ Locked from Council of Twelve audit (2026-07-03). The original 10 primitives hel
 | 12 | **Scenario Library** | Monte Carlo parametric variant grid for uncertainty quantification. Distinct from Primitive #4 (Mode Matrix — discrete states); this is parametric sweeps that produce P10/P50/P90 cost, schedule, approval probability curves | Architect-2525 (archetypes × jurisdictions), Drone-2525 (swarm × complexity × environment), Manta-2525 (sea state × visibility × failure modes) |
 | 13 | **Risk Register** | Append-only per-project ledger with (probability × impact × mitigation × owner). ISO 31000 / PMI / COSO-aligned. Rows created by Cube 23 (gates) + Cube 27 (incidents), retired on mitigation. Blockchain-anchored via Cube 11. Every Cube 25 quote-lock carries current register hash | Preliminary SSSES + Thor (500-year threat vectors) |
 | 14 | **Portfolio View** | Cross-project rollup as virtual Cube 27+. Every Cube 19 Life Cycle's estimator + quote + actuals + risk register rolls up. Enables Markowitz risk-adjusted return, Cooper Stage-Gate kill-and-scale signals, portfolio-wide de-risking velocity | Preliminary SSSES — turns substrate into executive layer |
-| 15 | **Cryptographic Governance State Binding** | Every Cube 25 quote is cryptographically bound to a **Principle Compliance Manifest**: (a) HAL profile hash, (b) risk register hash, (c) estimator uncertainty bands hash, (d) human signer identity + role, (e) jurisdiction rules hash, (f) 4-principle attestation bitmap, (g) education artifact pointer. Any upstream input drift invalidates the quote's validity hash, forcing human re-approval instead of silent drift | Thor + Sofia + Aset merged (post-audit critical) — closes the 100-year audit-trail timebomb |
+| 15 | **Cryptographic Governance State Binding** | Every Cube 25 quote is cryptographically bound to a **Principle Compliance Manifest**: (a) HAL profile hash, (b) risk register hash, (c) estimator uncertainty bands hash, (d) human signer identity + role, (e) jurisdiction rules hash, (f) 4-principle attestation bitmap, (g) education artifact pointer, (h) hardware-approval attestation (see #16). Any upstream input drift invalidates the quote's validity hash, forcing human re-approval instead of silent drift | Thor + Sofia + Aset merged (post-audit critical) — closes the 100-year audit-trail timebomb |
+| 16 | **Hardware Approval Gate + SWAP Compliance** | Every hardware change (compute · sensor · component swap) requires **human signature within a defined window** — either **pre-approval** (owner authorizes the swap before physical install) OR **post-approval** (owner signs within N days after install, otherwise the component enters Degraded Mode). SWAP (Size · Weight · And · Power) envelope declared per HAL slot; any component matching SWAP envelope may auto-install pending post-approval; any non-SWAP component (higher power, larger footprint, incompatible pinout) MUST use pre-approval AND surface a projected operating-time reduction based on the owner's historical monthly + annual power usage. Human is always in the loop for physical changes; the system operates but cannot silently reshape itself | Master of Thought hardware-safety decision (2026-07-04) — humans stay in the loop for physical world changes |
+| 17 | **Compute Capacity Self-Assessment** | Every new component broadcasts its compute requirements at install: CPU cycles, GPU flops, neural-inference budget, memory footprint, bandwidth, thermal envelope. Substrate compares against currently-available capacity across CPU / GPU / NN-processor slots. If capacity insufficient, the system: (a) enters Degraded Mode (per #10) or Slow-Mode Calibration (per §4), (b) surfaces upgrade options to the owner, (c) logs a Risk Register (Primitive #13) row with projected impact. Example: an 8K camera installs on a Pi baseline; substrate detects the NN processor will drop from 60fps target → 22fps actual, tells the owner, offers upgrade paths, and clamps to safe slow-mode until owner decides | Master of Thought decision (2026-07-04) — component enumeration must be honest about capacity impact, not silent |
 
 ---
 
@@ -117,6 +119,33 @@ hal_recalibration_sla:
 ```
 
 **Priority ordering during recalibration** (Enki's Atomic Recalibration Barrier): CPU → GPU → Inference → Sensors → Mobility. Each subsystem must report success or enter standby before the next begins. No cascading retries. Thermal Headroom Monitor aborts to degraded mode if retry count ≥ 3 OR temperature ≥ 70°C.
+
+### Slow-Mode Calibration Protocol — 9 FPS floor while risks are unresolved
+
+**Rule:** any post-swap system operates at **maximum 9 FPS + reduced motion speed** until:
+1. All auto-calibration checks pass, AND
+2. All identified risks are logged to the Risk Register (Primitive #13) AND either mitigated OR explicitly accepted by the human signer, AND
+3. Hardware Approval Gate (Primitive #16) fires — pre-approval satisfied OR post-approval window still open, AND
+4. Humanity-at-Center Audit (§14.1) confirms a fresh human signature covers this HAL profile
+
+**Slow-Mode is NOT Degraded Mode.** Degraded Mode means "we accepted a failure and kept going at baseline." Slow-Mode means "we succeeded, but we're proceeding slowly on purpose until humans and audits catch up." The system moves cautiously — 9 FPS, reduced actuation speed, extra safety margin on every motion — precisely because it *can* move fast but the risk register isn't clear yet.
+
+**Why 9?** The 9-frame-per-second floor rhymes with the substrate's other 9s (9-minute recalibration SLA, 9-cube layer geometry). It is fast enough that a human observer sees fluid motion and can meaningfully review, slow enough that a runaway control loop cannot cause harm before a human veto lands. Empirically, 9 FPS is the boundary between "video" and "slideshow" — the substrate operates in that liminal band while risks are open.
+
+**Exit from Slow-Mode:** the Humanity-at-Center Audit signs off, Risk Register rows are closed, Cube 25 quote-lock reflects the new HAL profile hash, and the substrate's frame-rate ceiling lifts to the HAL's declared upper bound.
+
+### Power-Draw Impact Projection (Cube 24 axis)
+
+Every HAL swap surfaces a new Cube 24 estimator axis: **`power_draw_delta`**. The owner sees, before pre-approval and after post-approval:
+
+- Component draws +XX watts over the outgoing slot value
+- Projected impact on operating time, based on the owner's historical **monthly + annual** power usage patterns (Cube 27 delivery actuals feed this)
+- Non-SWAP components (higher power, non-standard SWAP envelope) MUST show the projection before pre-approval can proceed
+- Projection is a Cube 24 Monte Carlo output (Primitive #12): P10/P50/P90 hours-per-cycle impact
+
+Example message the owner sees: *"This 8K camera adds +45W over the 1080p baseline. Based on your average daily 6-hour usage, expect operating-time reduction of 42-58 minutes per full charge cycle. Monte Carlo P90 worst-case: 71 minutes."*
+
+This is what makes power a first-class governance concern, not a surprise at 3AM when the battery quits.
 
 ### Compute tiers (Low / Medium / High)
 
@@ -904,6 +933,26 @@ principle_compliance_manifest:
   education_artifact_pointer: "ipfs://Qm..."  # citizen-readable explanation
   ucrs_2525_version: "1.0.0"                  # coordinate frame locked
   temporal_model: "synchronous | asynchronous | hybrid"
+  hardware_approval:                          # Primitive #16 attestation
+    mode: "pre_approval | post_approval"
+    swap_compliant: true                       # did component match SWAP envelope
+    power_draw_delta_watts: 45
+    projected_operating_time_impact_min:
+      p10: 42
+      p50: 55
+      p90: 71
+    signer_id_hash: "sha256:..."              # who authorized the hardware change
+    signed_at_utc: "iso8601"
+    post_approval_deadline_utc: "iso8601"     # required if mode=post_approval
+  compute_capacity_assessment:                 # Primitive #17 attestation
+    fits_within_current_hal: true
+    cpu_headroom_pct: 32
+    gpu_headroom_pct: 8
+    nn_processor_headroom_pct: 0                # this triggers Slow-Mode
+    fps_target: 60
+    fps_actual: 22
+    upgrade_options_offered: ["edge_tpu_v2", "coral_accelerator", "nvidia_jetson_orin"]
+    slow_mode_active: true
 ```
 
 **If any upstream input drifts** (HAL swap, risk mitigation, estimator retrain, jurisdiction change), the manifest's validity hash becomes unverifiable → forces human re-approval → prevents silent drift.
@@ -987,3 +1036,4 @@ Cube 23 De-Risk Gateway runs at **regional UCRS-2525 nodes**, not centrally. Eac
 | `L3-2026-07-03.8` | 2026-07-03 | New §9.5 · Concrete pre-build validation estimates. Cube 24 (Estimator AI) draft outputs for Architect-2525, Drone-2525, Manta-2525 with actual dollars ($570k-$1.05M pre-build, $3.85M-$7M full MVP), team sizes (3-4 per domain), phase durations (3-7 mo pre-build, 9-20 mo MVP), validation stacks (Unreal 5 + digital twin, CFD, ROS/Gazebo, Monte Carlo). Substrate now produces concrete outputs — not just design abstractions. |
 | `L3-2026-07-03.9` | 2026-07-03 | HAL 4th hard rule: **≤ 9 minutes** from any component swap to fully-operational auto-calibrated system. Applies to CPU, GPU, inference, screen, resolution, FPS, transmission rate, sensors, mobility, any subsystem. Framing: Atlantean protocol of innovation best practices — max transparency, education tied to real-world innovation. Evolution 2026 → 2525; no perfection required, but modular flexibility must compound monthly. |
 | `L3-2026-07-04.0` | 2026-07-03 | **Council of Twelve future-proofing audit landed.** Primitives grew 10 → 15: added #11 Temporal Decoupling Envelope (Odin), #12 Scenario Library, #13 Risk Register, #14 Portfolio View, #15 Cryptographic Governance State Binding (Thor + Sofia + Aset). Primitive #8 formalized as UCRS-2525 versioned contract. Primitive #9 extended to Quorum Consensus. HAL grew Degraded Mode fallback clause (Enki). New §14 documents post-Council substrate machinery: Humanity-at-Center Audit (Athena), Cube 25 Principle Compliance Manifest (Sofia), Cube 27 Operational Language Archive (Christo), PJSON universal record format (Thoth), Cube 11 Anchor Contract requirement (Krishna), regional consensus federation + dual-chain adversarial governance (Christo). |
+| `L3-2026-07-04.1` | 2026-07-04 | **Master of Thought hardware-safety authority exercised.** Primitives grew 15 → 17: **#16 Hardware Approval Gate + SWAP Compliance** (human pre/post signature required for physical changes; SWAP envelope declares Size · Weight · Power ceiling; non-SWAP components trigger operating-time impact projection) and **#17 Compute Capacity Self-Assessment** (every new component broadcasts CPU/GPU/NN/memory/bandwidth/thermal requirements at install; substrate detects capacity gaps and offers upgrade paths). HAL §4 grew the **Slow-Mode Calibration Protocol** — 9 FPS + reduced motion floor while risks are unresolved (distinct from Degraded Mode: Slow-Mode means "success but proceeding cautiously"). Cube 24 got a new axis: **`power_draw_delta`** with owner-facing Monte Carlo operating-time impact. Cube 25 Principle Compliance Manifest grew `hardware_approval` and `compute_capacity_assessment` fields. Rationale: humans stay in the loop for physical world changes; the 9-FPS floor rhymes with the 9-minute HAL SLA and the 9-cube layer geometry — the substrate has three constants at 9 for a reason. |
