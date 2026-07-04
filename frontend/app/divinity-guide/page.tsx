@@ -19,6 +19,14 @@ import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import divinityPages from "@/lib/divinity-pages.json";
 import { DIVINITY_LANGUAGES, type DivinityLang } from "@/lib/divinity-languages";
+import { QRCodeSVG } from "qrcode.react";
+
+// Canonical public URL for The Divinity Guide. The QR encodes this directly
+// (a self-generated STATIC code — no third-party dynamic-QR subscription that
+// can lapse and break the link), so it stays shareable forever on social media.
+// Matches the deployed Live URL (same host as API_BASE in lib/sdk-demos.ts).
+const DIVINITY_GUIDE_URL =
+  "https://exel-ai-polling.explore-096.workers.dev/divinity-guide";
 
 const BilingualReader = dynamic(() => import("@/components/flower-of-life/bilingual-reader"), { ssr: false });
 
@@ -1726,12 +1734,15 @@ function DivinityGuidePage() {
               </p>
 
               <div className="bg-white rounded-2xl p-6 shadow-2xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/qr-divinity-guide.png"
-                  alt="Divinity Guide QR Code"
-                  width={280}
-                  height={280}
+                {/* Self-generated static QR (qrcode.react) encoding the canonical
+                    URL directly — no subscription-tied dynamic redirect. High
+                    contrast + level-Q error correction for reliable phone scans. */}
+                <QRCodeSVG
+                  value={DIVINITY_GUIDE_URL}
+                  size={280}
+                  level="Q"
+                  fgColor="#000000"
+                  bgColor="#ffffff"
                   className="rounded-lg"
                 />
               </div>
@@ -1740,13 +1751,13 @@ function DivinityGuidePage() {
                 Scan to share The Divinity Guide
               </p>
               <p className="text-[10px] text-muted-foreground/60 mt-1">
-                {typeof window !== "undefined" ? `${window.location.origin}/divinity-guide` : "/divinity-guide"}
+                {DIVINITY_GUIDE_URL}
               </p>
 
               <button
                 onClick={() => {
                   if (typeof navigator !== "undefined") {
-                    navigator.clipboard.writeText(`${window.location.origin}/divinity-guide`);
+                    navigator.clipboard.writeText(DIVINITY_GUIDE_URL);
                   }
                 }}
                 className="mt-4 px-4 py-2 text-xs rounded-full bg-muted hover:bg-accent transition-colors"
