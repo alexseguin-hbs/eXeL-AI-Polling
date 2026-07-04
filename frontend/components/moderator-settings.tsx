@@ -15,6 +15,7 @@ import { useTheme, THEME_PRESETS } from "@/lib/theme-context";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useLexicon } from "@/lib/lexicon-context";
 import { LanguageLexicon } from "@/components/language-lexicon";
+import { AtlantisAccordViewer } from "@/components/atlantis-accord-viewer";
 import { CubeArchitectureStatus } from "@/components/cube-status";
 import { getSortedLanguages } from "@/lib/language-utils";
 
@@ -454,6 +455,8 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
               <CubeArchitectureStatus />
               <Separator />
               <LanguageLexicon userEmail={userEmail} />
+              <Separator />
+              <AtlantisAccordViewer />
             </>
           )}
         </div>
