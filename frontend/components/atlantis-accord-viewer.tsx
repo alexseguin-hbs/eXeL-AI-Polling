@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, type TouchEvent } from "react";
 import { createPortal } from "react-dom";
 import { X, ScrollText, ChevronDown, Globe, Download } from "lucide-react";
 import {
-  buildAtlantisPackageHtml, generate4DigitCode,
+  buildAtlantisPackageHtml, generateSealCode, formatSealCode, SEAL_STRENGTHS,
   CLEARANCE_COLORS, CLEARANCE_NAMES, MAX_CLEARANCE,
 } from "@/lib/atlantis-package";
 import { Button } from "@/components/ui/button";
@@ -225,17 +225,18 @@ function FullscreenViewer({
     t(`shared.atlantis.seven.${s.id}`)
   );
 
-  // ── Downloadable clearance package (offline HTML, 4-digit gated) ──
+  // ── Downloadable clearance package (offline HTML, code-gated) ──
   const [pkgOpen, setPkgOpen] = useState(false);
   const [pkgClearance, setPkgClearance] = useState(1); // 1 = Red (default)
   const [pkgSender, setPkgSender] = useState("");
   const [pkgCode, setPkgCode] = useState<string | null>(null);
   const [pkgBusy, setPkgBusy] = useState(false);
+  const [pkgStrength, setPkgStrength] = useState(0); // index into SEAL_STRENGTHS
 
-  const generatePackage = async (level: number) => {
+  const generatePackage = async (level: number, strengthIdx = pkgStrength) => {
     setPkgBusy(true);
     try {
-      const gen = generate4DigitCode();
+      const gen = generateSealCode(SEAL_STRENGTHS[strengthIdx]);
       const html = await buildAtlantisPackageHtml(ACCORD_SECTIONS_EN, gen, level, pkgSender);
       const blob = new Blob([html], { type: "text/html" });
       const url = URL.createObjectURL(blob);
@@ -254,12 +255,14 @@ function FullscreenViewer({
     }
   };
 
-  // Scroll icon → instant Red single-circle (Level-1) package with a random code.
+  // Scroll icon → instant Red single-circle (Level-1) package, Standard seal
+  // (4-digit, verbally shareable).
   const handleQuickPackage = () => {
     setPkgCode(null);
     setPkgSender((s) => s);
+    setPkgStrength(0);
     setPkgOpen(true);
-    void generatePackage(1);
+    void generatePackage(1, 0);
   };
 
   return (
@@ -587,20 +590,49 @@ function FullscreenViewer({
                 <p className="mb-3 text-[11px]" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
                   Clearance {pkgClearance} · {CLEARANCE_NAMES[pkgClearance]} — {pkgClearance} of {MAX_CLEARANCE} sections
                 </p>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  Select a <b>seal strength</b> — how hard the code is to break.
+                </p>
+                <div className="mb-2 grid grid-cols-3 gap-1.5">
+                  {SEAL_STRENGTHS.map((s, i) => {
+                    const active = pkgStrength === i;
+                    const c = CLEARANCE_COLORS[pkgClearance];
+                    return (
+                      <button key={s.id} onClick={() => setPkgStrength(i)}
+                        title={`${s.label} — ${s.len} ${s.numeric ? "digits" : "glyphs"} (~${s.bits} bits)`}
+                        className="flex flex-col items-center gap-0.5 rounded-md border p-1.5 transition-all"
+                        style={{ borderColor: active ? c : "hsl(215 15% 25%)", background: active ? `${c}18` : "transparent" }}>
+                        <span className="text-[11px] font-semibold" style={{ color: active ? c : "hsl(215 12% 65%)" }}>
+                          {s.numeral} · {s.label}
+                        </span>
+                        <span className="text-[9px] font-mono text-muted-foreground">
+                          {s.len} {s.numeric ? "digits" : "glyphs"} · {s.share}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mb-3 text-[10px] leading-snug text-muted-foreground/80">
+                  {SEAL_STRENGTHS[pkgStrength].honest}
+                </p>
                 <button onClick={() => generatePackage(pkgClearance)} disabled={pkgBusy}
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
                   <Download className="h-4 w-4" />
                   {pkgBusy ? "Sealing…" : "Generate & Download .html"}
                 </button>
                 <p className="mt-3 text-[10px] leading-snug text-muted-foreground/70">
-                  Best-effort exclusivity: a 4-digit code is weak against a determined actor, and the one-time-view is soft (a saved file can be reopened after clearing browser storage). Hides in plain sight; not certified secrecy.
+                  Best-effort exclusivity: the one-time-view seal is soft (a saved copy can be reopened after clearing browser storage). Hides in plain sight; not certified secrecy.
                 </p>
               </>
             ) : (
               <div className="text-center">
-                <p className="mb-1 text-xs text-muted-foreground">Downloaded. Share this code privately (text / email / verbal):</p>
-                <div className="my-3 text-4xl font-bold tracking-[0.3em]" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
-                  {pkgCode}
+                <p className="mb-1 text-xs text-muted-foreground">
+                  Downloaded. Share this code privately ({SEAL_STRENGTHS[pkgStrength].share}):
+                </p>
+                <div
+                  className={`my-3 font-bold ${pkgCode.length <= 4 ? "text-4xl tracking-[0.3em]" : pkgCode.length <= 8 ? "font-mono text-2xl tracking-[0.12em]" : "font-mono text-lg tracking-[0.08em]"}`}
+                  style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
+                  {formatSealCode(pkgCode)}
                 </div>
                 <p className="mb-2 text-[11px] font-semibold" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
                   Clearance Level {pkgClearance}

@@ -10,13 +10,18 @@
 // Clearance 1–7 → rainbow (Red..Violet) = circles drawn = accord sections
 // embedded. Only unlocked sections are written into the file.
 //
-// ⚠ Best-effort exclusivity (moderator-facing): 4-digit = 10k combos, ciphertext
-// ships in the file; one-time lock is soft (localStorage). Hides in plain sight;
-// not certified secrecy.
+// ⚠ Best-effort exclusivity (moderator-facing): the ciphertext ships in the
+// file and the one-time lock is soft (multi-vector storage flags — copies can
+// still be reopened). Seal strength is selectable: STANDARD 4-digit (~13 bits,
+// verbal share, casual deterrent) · FORTIFIED 7-glyph (~35 bits) · ABYSSAL
+// 12-glyph (~60 bits, beyond practical brute force). Hides in plain sight;
+// true consume-once revocation requires the server-gated path (key held behind
+// a WireGuard-whitelisted cube endpoint, burned on close) — planned upgrade.
 
 import type { AccordSection } from "@/lib/atlantis-accord-data";
 
-const PBKDF2_ITERATIONS = 310_000;
+// OWASP-recommended PBKDF2-SHA256 work factor (2023): 600k iterations.
+const PBKDF2_ITERATIONS = 600_000;
 
 export const CLEARANCE_COLORS = [
   "", "#ef4444", "#f59e0b", "#eab308", "#22c55e", "#3b82f6", "#06b6d4", "#8b5cf6",
@@ -70,9 +75,61 @@ function b64(bytes: ArrayBuffer | Uint8Array): string {
   return btoa(s);
 }
 
-export function generate4DigitCode(): string {
-  const n = crypto.getRandomValues(new Uint32Array(1))[0] % 10000;
-  return n.toString().padStart(4, "0");
+// ── Seal strength tiers (Council of Twelve hardening) ────────────────────────
+// Glyph alphabet excludes ambiguous characters (0/O, 1/I/L) for verbal + visual
+// clarity. 31 symbols ≈ 4.95 bits/glyph.
+const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+
+export interface SealStrength {
+  id: string;
+  numeral: string;   // roman numeral shown on the selector
+  label: string;
+  len: number;       // code length
+  numeric: boolean;  // digits-only (verbal share) vs glyph alphabet
+  bits: number;      // approx entropy, honest
+  share: string;     // recommended share channel
+  honest: string;    // moderator-facing truth about resistance
+}
+
+export const SEAL_STRENGTHS: SealStrength[] = [
+  {
+    id: "standard", numeral: "I", label: "Standard", len: 4, numeric: true, bits: 13,
+    share: "verbal · text",
+    honest: "Deters casual readers. Falls in seconds to a determined offline attack.",
+  },
+  {
+    id: "fortified", numeral: "II", label: "Fortified", len: 7, numeric: false, bits: 35,
+    share: "text · email",
+    honest: "Weeks of dedicated GPU work to break — strong against most real-world actors.",
+  },
+  {
+    id: "abyssal", numeral: "III", label: "Abyssal", len: 12, numeric: false, bits: 60,
+    share: "copy-paste",
+    honest: "Centuries at current compute — beyond practical brute force. The copy-seal itself remains soft.",
+  },
+];
+
+/** Unbiased random index in [0, max) via rejection sampling (no modulo bias). */
+function randomIndex(max: number): number {
+  const limit = Math.floor(0x1_0000_0000 / max) * max;
+  const buf = new Uint32Array(1);
+  let v: number;
+  do { v = crypto.getRandomValues(buf)[0]; } while (v >= limit);
+  return v % max;
+}
+
+/** Cryptographically random seal code for the given strength tier. */
+export function generateSealCode(s: SealStrength): string {
+  let out = "";
+  for (let i = 0; i < s.len; i++) {
+    out += s.numeric ? String(randomIndex(10)) : CODE_ALPHABET[randomIndex(CODE_ALPHABET.length)];
+  }
+  return out;
+}
+
+/** Display grouping — 4-glyph clusters read like a sigil: XXXX-XXXX-XXXX. */
+export function formatSealCode(code: string): string {
+  return code.length <= 4 ? code : (code.match(/.{1,4}/g) ?? [code]).join("-");
 }
 
 async function deriveKey(code: string, salt: Uint8Array): Promise<CryptoKey> {
@@ -136,7 +193,11 @@ export async function buildAtlantisPackageHtml(
   );
 
   const pkg = {
-    v: 3, id: crypto.randomUUID(), it: PBKDF2_ITERATIONS,
+    v: 4, id: crypto.randomUUID(), it: PBKDF2_ITERATIONS,
+    // Code shape (length + digits-vs-glyphs) drives the reader's input UX.
+    // Knowing the shape does not weaken the key — the file's holder can read
+    // the ciphertext anyway; entropy is what defends it.
+    cl: code.length, num: /^[0-9]+$/.test(code),
     salt: b64(salt), iv: b64(iv), ct: b64(cipher),
     // Unencrypted cover meta (vague on purpose — the CONTENT stays sealed):
     lvl, color: CLEARANCE_COLORS[lvl], sender: snd, codexDate: date, cstTime: time,
@@ -165,7 +226,8 @@ body{background:var(--bg);color:var(--tx);font:15px/1.6 -apple-system,Segoe UI,R
 .sealview{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;cursor:pointer}
 .sealview .hint{animation:pulse 2.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.35}50%{opacity:.9}}
-input[type=tel]{width:150px;text-align:center;font-size:26px;letter-spacing:.4em;padding:9px;border-radius:10px;border:1px solid var(--bd);background:#0b1119;color:var(--tx)}
+#code{width:150px;text-align:center;font-size:26px;letter-spacing:.4em;padding:9px;border-radius:10px;border:1px solid var(--bd);background:#0b1119;color:var(--tx)}
+#code.glyph{width:min(340px,86vw);font:600 17px/1.5 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.18em;text-transform:uppercase}
 button{cursor:pointer;border:1px solid var(--bd);background:#152238;color:var(--tx);border-radius:8px;padding:9px 16px;font-weight:600}
 button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16px}
 .reader{flex:1;display:none;flex-direction:column}
@@ -194,7 +256,7 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
       <div class="wonder">This document is sealed under the Atlantis Accords. Access is granted to the intended recipient alone, by the key entrusted to them.</div>
       <div class="hint">Confidential · Please read privately</div>
       <div>
-        <input id="code" type="tel" inputmode="numeric" maxlength="4" placeholder="&#8226;&#8226;&#8226;&#8226;" autocomplete="off"><br>
+        <input id="code" type="text" placeholder="&#8226;&#8226;&#8226;&#8226;" autocomplete="off" spellcheck="false" autocapitalize="characters"><br>
         <div class="err" id="err"></div>
         <button id="unlock">Enter</button>
       </div>
@@ -224,8 +286,34 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
   var VKEY='atlantis_viewed_'+PKG.id;
   var frame=document.getElementById('frame'),cover=document.getElementById('cover'),reader=document.getElementById('reader'),done=document.getElementById('done');
   frame.style.setProperty('--clr',PKG.color);document.body.style.background=PKG.color;
-  function seen(){try{return localStorage.getItem(VKEY)==='1'}catch(e){return false}}
-  function mark(){try{localStorage.setItem(VKEY,'1')}catch(e){}}
+  // Code input adapts to the seal strength baked into this copy (digits vs glyphs).
+  var codeEl=document.getElementById('code');
+  if(PKG.num){codeEl.setAttribute('inputmode','numeric');codeEl.maxLength=PKG.cl;}
+  else{codeEl.classList.add('glyph');codeEl.maxLength=PKG.cl+3;codeEl.placeholder='••••-••••';}
+  // Multi-vector one-time seal: localStorage + sessionStorage + cookie + IndexedDB.
+  // Best-effort — a copied file can still be reopened; this hardens the casual path.
+  var CK='atl_'+String(PKG.id).replace(/-/g,'');
+  function seen(){
+    try{if(localStorage.getItem(VKEY)==='1')return true}catch(e){}
+    try{if(sessionStorage.getItem(VKEY)==='1')return true}catch(e){}
+    try{if(document.cookie.indexOf(CK+'=1')>-1)return true}catch(e){}
+    return false}
+  function mark(){
+    try{localStorage.setItem(VKEY,'1')}catch(e){}
+    try{sessionStorage.setItem(VKEY,'1')}catch(e){}
+    try{document.cookie=CK+'=1;max-age=63072000;path=/'}catch(e){}
+    try{var r=indexedDB.open(CK,1);r.onupgradeneeded=function(){r.result.createObjectStore('s')};
+      r.onsuccess=function(){try{r.result.transaction('s','readwrite').objectStore('s').put(1,'v')}catch(e){}}}catch(e){}}
+  function sealScreen(){DATA=null;cover.style.display='none';document.getElementById('sealview').style.display='none';reader.style.display='none';done.style.display='flex';}
+  // IndexedDB survives some storage clears — async check seals reopened copies.
+  try{var rq=indexedDB.open(CK,1);rq.onupgradeneeded=function(){rq.result.createObjectStore('s')};
+    rq.onsuccess=function(){try{var g=rq.result.transaction('s').objectStore('s').get('v');
+      g.onsuccess=function(){if(g.result===1){mark();sealScreen();}}}catch(e){}}}catch(e){}
+  // Wrong-attempt backoff (soft, deters casual guessing): 3 free tries, then
+  // escalating lockout 10s -> 20s -> 40s ... capped at 300s.
+  var AKEY='atlantis_att_'+PKG.id;
+  function att(){try{return JSON.parse(localStorage.getItem(AKEY))||{n:0,u:0}}catch(e){return{n:0,u:0}}}
+  function setAtt(a){try{localStorage.setItem(AKEY,JSON.stringify(a))}catch(e){}}
   // Growing Seed of Life: N same-size circles (1 = small … 7 = full flower).
   function drawSeal(el,r){var pos=[[0,0]];for(var i=0;i<6;i++){var a=i*Math.PI/3-Math.PI/2;pos.push([r*Math.cos(a),r*Math.sin(a)]);}
     var use=pos.slice(0,PKG.lvl),minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
@@ -272,15 +360,31 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
       document.getElementById('rtag').innerHTML='<span>'+esc(nv.tag)+'</span>';
       document.getElementById('rcontent').innerHTML='<div style="opacity:.75;font-style:italic">'+esc(nv.seven||'')+'</div><div style="margin-top:16px;color:'+COL+'">Sealed at Clearance Level '+DATA.clearance+'. A higher clearance is required to open this section.</div>';ti.style.display='none';}
     document.getElementById('pos').textContent=(sec+1)+' / 7';drawTiers();drawLeft();}
-  document.getElementById('unlock').onclick=async function(){var c=document.getElementById('code').value.trim();var e=document.getElementById('err');
-    if(!/^[0-9]{4}$/.test(c)){e.textContent='Enter the 4-digit code.';return;}e.textContent='…';
-    try{DATA=await decrypt(c);COL=DATA.color;LVL=DATA.clearance;var bd=document.getElementById('badge');bd.textContent='Clearance: Level '+DATA.clearance;bd.style.color=COL;bd.style.borderColor=COL;
-      cover.style.display='none';drawSeal(document.getElementById('sealBig'),46);document.getElementById('sealview').style.display='flex';}catch(err){e.textContent='Incorrect code.';}};
+  document.getElementById('unlock').onclick=async function(){
+    var e=document.getElementById('err');
+    var a=att(),now=Date.now();
+    if(a.u>now){e.textContent='Sealed against attempts. Try again in '+Math.ceil((a.u-now)/1000)+'s.';return;}
+    // Accept pasted grouped codes (dashes/spaces stripped); glyphs are case-insensitive.
+    var c=codeEl.value.trim().toUpperCase().replace(/[\\s-]/g,'');
+    var re=new RegExp('^'+(PKG.num?'[0-9]':'[2-9A-HJ-KM-NP-Z]')+'{'+PKG.cl+'}$');
+    if(!re.test(c)){e.textContent='Enter the '+PKG.cl+'-'+(PKG.num?'digit':'character')+' code.';return;}
+    e.textContent='…';
+    try{DATA=await decrypt(c);
+      try{localStorage.removeItem(AKEY)}catch(x){}
+      COL=DATA.color;LVL=DATA.clearance;var bd=document.getElementById('badge');bd.textContent='Clearance: Level '+DATA.clearance;bd.style.color=COL;bd.style.borderColor=COL;
+      cover.style.display='none';drawSeal(document.getElementById('sealBig'),46);document.getElementById('sealview').style.display='flex';}
+    catch(err){a=att();a.n++;
+      if(a.n>=3)a.u=Date.now()+Math.min(300,10*Math.pow(2,a.n-3))*1000;
+      setAtt(a);e.textContent='Incorrect code.';}};
   document.getElementById('sealview').onclick=function(){this.style.display='none';reader.style.display='flex';render();};
   document.getElementById('code').addEventListener('keydown',function(ev){if(ev.key==='Enter')document.getElementById('unlock').click();});
   document.getElementById('prev').onclick=function(){if(sec>0){sec--;render();}};
   document.getElementById('next').onclick=function(){if(sec<6){sec++;render();}};
-  function seal(){mark();DATA=null;reader.style.display='none';cover.style.display='none';done.style.display='flex';}
+  // Close & Seal — mark all vectors, then scrub decrypted content from the DOM
+  // and drop the plaintext reference so nothing readable remains in memory.
+  function seal(){mark();DATA=null;
+    try{codeEl.value='';document.getElementById('rcontent').textContent='';document.getElementById('rtag').textContent='';document.getElementById('left').innerHTML='';}catch(e){}
+    reader.style.display='none';cover.style.display='none';done.style.display='flex';}
   document.getElementById('seal2').onclick=seal;
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'&&DATA)mark();});
   window.addEventListener('pagehide',function(){if(DATA)mark();});
