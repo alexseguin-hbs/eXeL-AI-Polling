@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-04.5` · Master of Thought approved · Primitives = Cubes = 27. Multi-country subsystem marketplace + 3-region parallel builds + multi-language substrate + artifact lifecycle governance + cross-generational continuity. Innovation at the Speed of Thought is now enforceable across every jurisdiction, every language, every generation.
+**Contract version:** `L3-2026-07-04.6` · Master of Thought approved · Testing Loop Pyramid (SIL → PIL → HIL → HITL → Live) + 7-day sensor-integration SLA + 3-exercise-minimum-before-live. The competitive differentiator: vendors integrate into Vision 2525 in one week using eXeL's simulation layers, then step through four hardware/software/human loops before touching real hardware. Tesla ships weekly updates; eXeL onboards a new sensor family weekly.
 
 ---
 
@@ -45,7 +45,7 @@ Locked from Council of Twelve audit (2026-07-03) plus Master of Thought future-p
 | 5 | **Operational Protocol** | Runtime sequence the finished artifact must execute — verified before delivery | Manta-2525 6-step launch |
 | 6 | **Vision 2525 Principles** | 4 hard constraints all L3 cubes satisfy (see §3) | Sail Ark principles panel |
 | 7 | **Domain-declared axes** | Per-domain estimation dimensions plugged into Cube 24's interface | Architect-2525 11 axes / Manta-2525 specs / Drone-2525 KPIs |
-| 8 | **UCRS-2525 · Spatial Coordinate Frame** | Universal Coordinate Reference System. **Hierarchical base-3600 fixed-point notation** — `3600.3600.3600` per axis. Each digit is an integer in `[0000-3599]`: the first 3600 splits the 360° circle into 3600 coarse units (0.1° each — like minutes on a clock face), the second 3600 splits each coarse unit into 3600 sub-units (~0.1 arc-second each), the third 3600 splits each sub-unit into 3600 sub-sub-units (~0.1 milli-arc-second each). **Total resolution per axis: 46,656,000,000 discrete positions.** No decimals anywhere — every position is a deterministic integer tuple, cryptographically hashable, blockchain-anchor-friendly. At Earth-equator scale that resolves to ~0.86 mm per position; at Sun-Jupiter scale it resolves to ~17 km per position; the same math works from a component mounting point to a star in a solar system. C-axis spans NEGATIVE (underwater/subsurface) through zero (sea-level/terrain origin) to POSITIVE (aerial → orbital → interplanetary). Versioned on project Day 1 via Cube 11 blockchain. Cross-domain scenarios declare a shared frame OR an explicit declarative transform. **Scales:** subatomic · component · vehicle · arena · terrestrial · orbital · interplanetary — all in one coordinate contract | Drone-2525 arena + Manta-2525 depth + planetary + solar-system positioning; the frame was generated from the 360-degree circle refined into a hierarchical base-3600 system so a star's position OR a vehicle's position anywhere between subsurface and orbit stays representable in pure integers without decimals |
+| 8 | **UCRS-2525 · Spatial Coordinate Frame** | Universal Coordinate Reference System. **Hierarchical base-3600 fixed-point notation** — `A.B..C` per axis (single dot between coarse and sub, DOUBLE dot before sub-sub — users always type `..` at the finest grain, so the deepest resolution is visually unmistakable). Each digit is an integer in `[0000-3599]`: A splits the 360° circle into 3600 coarse units (0.1° each — like minutes on a clock face), B splits each coarse unit into 3600 sub-units (~0.1 arc-second each), C splits each sub-unit into 3600 sub-sub-units (~0.1 milli-arc-second each). **Total resolution per axis: 46,656,000,000 discrete positions.** No decimals anywhere — every position is a deterministic integer tuple written as `AAAA.BBBB..CCCC`, cryptographically hashable, blockchain-anchor-friendly. At Earth-equator scale that resolves to ~0.86 mm per position; at Sun-Jupiter scale it resolves to ~17 km per position; the same math works from a component mounting point to a star in a solar system. C-axis spans NEGATIVE (underwater/subsurface) through zero (sea-level/terrain origin) to POSITIVE (aerial → orbital → interplanetary). Versioned on project Day 1 via Cube 11 blockchain. Cross-domain scenarios declare a shared frame OR an explicit declarative transform. **Scales:** subatomic · component · vehicle · arena · terrestrial · orbital · interplanetary — all in one coordinate contract | Drone-2525 arena + Manta-2525 depth + planetary + solar-system positioning; the frame was generated from the 360-degree circle refined into a hierarchical base-3600 system so a star's position OR a vehicle's position anywhere between subsurface and orbit stays representable in pure integers without decimals |
 | 9 | **Multi-agent Coordination** | Leader / follower or pilot / targeter runtime hierarchies; extended to **Quorum Consensus** patterns (≥66% distributed agreement from N autonomous agents) for post-individual coordination | Drone-2525 D01 + D02-D12 swarm |
 | 10 | **Hardware Abstraction Layer (HAL)** | 6 hot-swappable slots (CPU/GPU/Inference/Screen/Sensors/Mobility) with auto-calibration; Raspberry-Pi + phone-browser baseline; **Degraded Mode fallback** if 9-min SLA impossible (see §4) | Vision 2525 low-compute-first requirement |
 | 11 | **Temporal Decoupling Envelope** | Async event-ordered causality vs wall-clock synchrony. Cube 19 state transitions + Cube 23 gates inherit event order, not timestamp. Domain Play declares `timing_model: [synchronous \| asynchronous \| hybrid]`. Cube 27 verifies protocols by causal chain, not time budget. | Odin (500-year predictive audit) — buys transition from silicon → neuromorphic → photonic → biological |
@@ -1193,8 +1193,8 @@ The single hardest scenario the Level 3 substrate must handle: **multiple underw
 **Hierarchical base-3600 fixed-point notation** — every position is an integer tuple, no decimals:
 
 ```
-axis A · azimuth        AAAA.BBBB.CCCC    each digit 0000-3599
-axis B · elevation      AAAA.BBBB.CCCC    each digit 0000-3599
+axis A · azimuth        AAAA.BBBB..CCCC   coarse.sub..sub-sub, each 0000-3599
+axis B · elevation      AAAA.BBBB..CCCC   coarse.sub..sub-sub, each 0000-3599
 axis C · signed depth/altitude
         integer metres, signed:
           negative = underwater metres
@@ -1210,11 +1210,11 @@ axis C · signed depth/altitude
 
 | Entity | UCRS-2525 A (azimuth) | UCRS-2525 B (elevation) | UCRS-2525 C (depth/alt m) |
 |---|---|---|---|
-| Manta Sentinel 800 BE | `0450.1800.0000` | `2700.0000.0000` (nadir) | `-800` |
-| Manta Mini pod #A | `0455.2400.1200` | `2705.3600.0000` | `-42` |
-| Drone-2525 leader D01 | `0451.0900.3000` | `0900.1800.0000` (mid-elevation) | `+50` |
-| Drone-2525 follower D07 | `0452.2700.0000` | `0912.0000.0000` | `+52` |
-| Recon satellite pass | `1800.0000.0000` | `1800.0000.0000` (zenith) | `+400000` |
+| Manta Sentinel 800 BE | `0450.1800..0000` | `2700.0000..0000` (nadir) | `-800` |
+| Manta Mini pod #A | `0455.2400..1200` | `2705.3599..0000` | `-42` |
+| Drone-2525 leader D01 | `0451.0900..3000` | `0900.1800..0000` (mid-elevation) | `+50` |
+| Drone-2525 follower D07 | `0452.2700..0000` | `0912.0000..0000` | `+52` |
+| Recon satellite pass | `1800.0000..0000` | `1800.0000..0000` (zenith) | `+400000` |
 
 The **same axis definitions scale** from a Manta at C=−800 m through Drones at C=+50 m to a satellite at C=+400,000 m to interplanetary distances via base-3600 multiplier chaining. Every hop is integer-representable.
 
@@ -1282,6 +1282,123 @@ If Level 3 can orchestrate multiple undersea Mantas AND multiple aerial Drones A
 
 ---
 
+## 17 · Testing Loop Pyramid + 7-day Sensor Integration SLA
+
+The competitive differentiator against Tesla, drone-swarm vendors, and any other prototype-to-production shop: **Vision 2525 vendors integrate a new sensor into a target domain (Manta / Drone / MASS / eXeL Robot / Architect / Security) in 7 days maximum**, using eXeL's simulation layers to complete a mandatory four-loop test pyramid plus three prescribed exercises **before any live hardware run**.
+
+### 17.1 · The four testing loops (pyramid, fastest to slowest)
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│ Loop 1 · SIL (Software In the Loop)                            │
+│   Pure simulation. Vendor firmware runs in software emulator.   │
+│   Env, sensors, actuators all simulated. Highest iteration      │
+│   rate — thousands of scenarios per hour. Cost: near zero.     │
+└────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌────────────────────────────────────────────────────────────────┐
+│ Loop 2 · PIL (Processor In the Loop)                           │
+│   Target processor runs actual compiled firmware while I/O is   │
+│   simulated. Catches ISA-specific bugs, timing anomalies,      │
+│   compiler quirks. ~100× slower than SIL, ~1000× than live.    │
+└────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌────────────────────────────────────────────────────────────────┐
+│ Loop 3 · HIL (Hardware In the Loop)                            │
+│   Actual physical component wired to simulated environment.    │
+│   Sensor sees real photons/pressure/sound; actuators drive     │
+│   real loads; env still simulated. Catches driver bugs,        │
+│   thermal effects, EMI, real-world signal noise.               │
+└────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌────────────────────────────────────────────────────────────────┐
+│ Loop 4 · HITL (Human In The Loop) + Edge Processor In Loop    │
+│   Human operator interacts with the loop via edge-processor    │
+│   console. Fatigue, judgment, cognitive load surface. Edge     │
+│   processor runs at deployed HAL profile — no cloud shortcuts. │
+└────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+    LIVE HARDWARE DEPLOYMENT
+    (only after Loops 1-4 all pass AND 3 mandatory exercises pass)
+```
+
+### 17.2 · The 7-day integration SLA — what a vendor commits to
+
+From vendor arrival with a new sensor to live hardware deployment: **7 days maximum**, structured as:
+
+| Day | Loop | Deliverable |
+|:-:|---|---|
+| 1 | Onboarding + SIL kickoff | Vendor receives eXeL's simulation layer for target domain. Their firmware compiles into the SIL harness. |
+| 2 | SIL sweep | Thousands of scenarios auto-run. Fuzz + edge-case + adversarial. Pass criteria: domain-declared. |
+| 3 | PIL bring-up | Compiled firmware on target processor. Timing + ISA + compiler regressions caught. |
+| 4 | HIL bench | Physical sensor on the bench. Photons real; env still simulated. Driver bugs + thermal effects surface. |
+| 5 | HITL + Edge PIL | Human operator + edge processor in-loop. Fatigue + judgment + edge-hardware constraints in play. |
+| 6 | 3 mandatory exercises | Domain-declared scenarios (e.g. Manta emergency ascent; Drone leader/follower re-formation under jamming; MASS sensor-fusion under partial-vision). Each exercise passes with recorded outcome. |
+| 7 | Live hardware | OATH final pass (Primitive #18) + Hardware Chip Interlock pairing (Primitive #19) + Component Serialization ledger entry (Primitive #22) + Cube 25 human signature. Deploy. |
+
+**Any single-loop failure resets the clock to that loop.** No skipping loops. The 7-day SLA is a promise to vendors that if their sensor is truly ready, they ship in a week; if it isn't, the loop fails fast and the ledger records where.
+
+### 17.3 · Three-exercise minimum before live
+
+Every domain declares three exercises in its Domain Play YAML. Passing all three is a hard gate before Cube 25 signs off on live deployment. Examples:
+
+**Manta-2525** exercises:
+1. Emergency ascent from max declared depth to periscope depth in ≤ target seconds
+2. Failed-thruster hover-and-return under half-power
+3. Life-support redundancy — one O2 tank offline, 4-passenger endurance drops to declared minimum
+
+**Drone-2525** exercises:
+1. Leader/follower reacquisition after RF jamming
+2. Geofence enforcement — deliberate approach to no-fly-zone → automatic hold + retreat
+3. Swarm formation degradation — 3 of 12 drones simulated-fail → remaining 9 reform without collision
+
+**MASS-2525** exercises:
+1. Sensor-fusion cross-check under one sensor degraded
+2. Autonomous return-to-base under lost primary comms
+3. Hot-swap sensor module during operation → recalibration within HAL 9-min SLA
+
+**eXeL AI Robot** exercises:
+1. Emergency motion damping — external human pushes robot → torque cap enforced, safety envelope held
+2. Vision fail-over — primary camera blinded → secondary + IMU + tactile compensate
+3. Battery-critical safe-park sequence
+
+**Architect-2525** exercises:
+1. Zoning conflict detection — proposed geometry violates local rule → surfaces conflict + alternates
+2. Cost variance stress — Cube 24 estimator run under P90 material-price surge → owner sees revised quote
+3. Permit-package end-to-end — CAD → structural → MEP → energy → compliance → timestamped hash
+
+**Security-2525** exercises:
+1. Coordinated multi-vector inbound — drone swarm + cruise missile + jamming — 12-commander council coordinates correct engagement priorities
+2. Friendly-track ID confusion resolved without engagement
+3. Sector control handoff mid-engagement
+
+### 17.4 · What Tesla + drone-swarm vendors can't match
+
+| Capability | Tesla / Existing OTA | eXeL Vision 2525 |
+|---|:-:|:-:|
+| Weekly software updates | ✓ | ✓ |
+| Onboard adversarial testing before update accepted | — | ✓ (OATH) |
+| Multi-root-of-trust update verification | — | ✓ (Vendor + Blockchain + TPM + Quorum) |
+| **Vendor sensor integration in 7 days** | — | ✓ |
+| **SIL → PIL → HIL → HITL pyramid mandatory** | partial | ✓ |
+| **3 domain-declared exercises before live** | — | ✓ |
+| Hardware Chip Interlock (Fluke-precedent + more) | — | ✓ |
+| Component-level serialization ledger | — | ✓ |
+| ITAR-precedent no-repurpose enforcement | limited | ✓ |
+| Multi-country subsystem quote assembly | — | ✓ |
+| 3-region parallel build transparency | — | ✓ |
+| Cross-generational governance (25-year cycles) | — | ✓ |
+| 500-year audit horizon | — | ✓ |
+| AI ✧ HI ✧ SI teaming at every decision loop | — | ✓ |
+
+Innovation at the Speed of Thought means: prototype v1 to v2 to v3 doesn't take years — it takes weeks. Vendors that master the pyramid ship weekly. Domains that integrate the pyramid absorb new sensors weekly. **The differentiator is not software velocity; it is the substrate that lets hardware move at software velocity while staying safer than any regulated system on the market.**
+
+---
+
 ## Change log
 
 | Version | Date | Change |
@@ -1300,4 +1417,5 @@ If Level 3 can orchestrate multiple undersea Mantas AND multiple aerial Drones A
 | `L3-2026-07-04.2` | 2026-07-04 | **Master of Thought "more secure than Tesla" mandate.** Primitives grew 17 → 18: **#18 Onboard Adversarial Test Harness (OATH)** — every hardware or software update, system-initiated or human-installed, triggers full onboard cybersecurity + calibration testing BEFORE acceptance. New §15 documents the 4-stage OATH pipeline: (1) Multi-Root-of-Trust Verification (vendor sig + Cube 11 blockchain anchor + local TPM + Quorum Consensus peers), (2) Onboard Adversarial Test Suite (fuzz + injection + side-channel + timing-attack + rollback demonstrated), (3) Domain-Declared Post-Update Tests, (4) Slow-Mode Calibration + human safety signature. **Weekly re-attestation** re-runs OATH against ALL installed components every 7 days for continuous re-verification. Test duration max: 9 minutes (fourth 9-constant of the substrate). Cube 25 Manifest grew `security_attestation` field. Applies across all domains (Manta / MASS / eXeL AI Robot / Drone / Architect / Security). |
 | `L3-2026-07-04.3` | 2026-07-04 | **Master of Thought unhackable-by-design + more-secure-than-ITAR mandate.** Primitives grew 18 → 22: **#19 Hardware Chip Interlock** (embedded secure element per SWAP component, cryptographic pairing to host at first install recorded in Cube 11, Safe-Brick state on physical removal; **ITAR-compliant thermal imager precedent** — the same standard-or-higher applies to every Vision 2525 component from the first Manta sonar to the last robot manipulator; no component can be repurposed for weapon-systems integration that could kill American troops or civilians in any theatre), **#20 Atlantis Accord Compliance** (governance overlay for federated Atlantis Sites; freedom of movement of humans + tech within accord conditional on traceability + non-operability-on-removal + non-repurposability; more secure than ITAR by design), **#21 Substrate Assumption Registry** (every axiom is a first-class registry entry with 5-year default expiry; approved via Q4 user consent), **#22 Component Serialization & Calibration Ledger** (globally-unique serial per component, append-only blockchain-anchored history of manufacture + OATH passes + calibrations + incidents; cascading recalibration on any dependency change; every physical thing has a story remembered for 500 years). **Principle #1 (Humanity at the Center) upgraded** to explicit AI ✧ HI ✧ SI teaming requirement — Artificial Intelligence proposes, Human Intelligence decides on safety/ethics, Shared Intent (collective) validates alignment; all three present at every decision loop, no exceptions. |
 | `L3-2026-07-04.4` | 2026-07-04 | **UCRS-2525 formalized as multi-scale + multi-medium coordinate system.** Primitive #8 upgraded: 3600-arc-radian resolution chosen instead of 360° for finer angular precision. C-axis spans negative (underwater), zero (sea level), positive (aerial → orbital → interplanetary). New §16 documents **the joint Manta + Drone cross-medium swarm scenario** as the substrate's most-complex validation test. |
-| `L3-2026-07-04.5` | 2026-07-04 | **Master of Thought future-proof mandate: primitives = cubes = 27.** Five new primitives close the globalization + generational-continuity gaps: **#23 Multi-Country Subsystem Marketplace** (country-of-origin declaration; auto-normalization of currency + units + standards + language + timezone + tariff/export legality; Manta pod with Norwegian propeller + Japanese battery + American sonar + South African hull gets one unified quote), **#24 Parallel Regional Build Federation** (every Vision 2525 project runs in ≥3 regions simultaneously — default: Americas + Europe/Africa + Asia-Pacific — with real-time public transparency dashboard; regions compete on excellence, not exclusivity), **#25 Multi-Language Substrate Operation** (34+ languages minimum across every artifact — not just UI but quotes, audits, education, ledger entries; AI ✧ HI ✧ SI teaming preserves technical + legal + safety meaning), **#26 Artifact Lifecycle Governance** (manufacture → deploy → operate → refit → retire → decommission → recycle; every transition gated by human signature + OATH re-cert + Cube 11 anchor; a 2028-built Manta refit in 2058 retired in 2078 recycled in 2085 stays traceable), **#27 Cross-Generational Governance Continuity** (500-year horizon = 15-20 generations; every signer role has a designated successor protocol; 25-year default review cycle; substrate never depends on a single 2026 human being alive in 2126 for a project to remain valid). **UCRS-2525 notation clarified** as hierarchical base-3600 fixed-point `AAAA.BBBB.CCCC` — 46.6B discrete positions per axis, integer everywhere, no decimals; resolves to ~0.86mm at Earth-equator scale, ~17km at Sun-Jupiter distance, same math from subatomic to interplanetary. |
+| `L3-2026-07-04.5` | 2026-07-04 | **Master of Thought future-proof mandate: primitives = cubes = 27.** Five new primitives close the globalization + generational-continuity gaps: **#23 Multi-Country Subsystem Marketplace**, **#24 Parallel Regional Build Federation** (≥3 regions simultaneously), **#25 Multi-Language Substrate Operation** (34+ languages across every artifact), **#26 Artifact Lifecycle Governance** (manufacture → recycle), **#27 Cross-Generational Governance Continuity** (25-year successor cycles). UCRS-2525 notation clarified. |
+| `L3-2026-07-04.6` | 2026-07-04 | **Testing Loop Pyramid + 7-day sensor SLA locked as the competitive differentiator.** New §17: SIL → PIL → HIL → HITL → Live pyramid mandatory before any hardware run. **Any new sensor integrates into a target domain (Manta / Drone / MASS / eXeL Robot / Architect / Security) in 7 days maximum** using eXeL's simulation layers, day-by-day: Day 1 SIL kickoff, Day 2 SIL sweep, Day 3 PIL bring-up, Day 4 HIL bench, Day 5 HITL + Edge PIL, Day 6 three domain-declared exercises, Day 7 live hardware deployment with OATH final pass + chip interlock pairing + component serialization + Cube 25 human signature. Domain Plays declare their 3 mandatory exercises. Any single-loop failure resets the clock; no loop can be skipped. Competitive matrix vs Tesla + drone-swarm OTA vendors: OATH + Multi-Root Trust + Chip Interlock + Serialization Ledger + ITAR-precedent + Cross-Border Quote + Regional Federation + Generational Continuity + AI/HI/SI Teaming = 13 capabilities they cannot match. **UCRS notation refined** to `A.B..C` (single dot between coarse and sub, DOUBLE dot before sub-sub) so users always type `..` at the finest grain — the deepest resolution is visually unmistakable. |
