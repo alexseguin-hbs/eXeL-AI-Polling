@@ -11,7 +11,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── French (fr) ────────────────────────────────────────────────
   fr: {
-    "shared.atlantis.tagline": "Une promesse signée par des visionnaires",
+    "shared.atlantis.tagline": "Une promesse signée par des visionnaires pour les générations à venir",
     "shared.atlantis.tab_accords": "Les Accords",
     "shared.atlantis.tab_countries": "Pays ciblés",
     "shared.atlantis.tab_approvals": "Approbations proposées",
@@ -731,7 +731,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Spanish (es) ───────────────────────────────────────────────
   es: {
-    "shared.atlantis.tagline": "Una promesa firmada por visionarios",
+    "shared.atlantis.tagline": "Una promesa firmada por visionarios para las generaciones",
     "shared.atlantis.tab_accords": "Los Acuerdos",
     "shared.atlantis.tab_countries": "Países objetivo",
     "shared.atlantis.tab_approvals": "Aprobaciones propuestas",
@@ -1451,7 +1451,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── German (de) ────────────────────────────────────────
   de: {
-    "shared.atlantis.tagline": "Ein Versprechen, von Visionären unterzeichnet",
+    "shared.atlantis.tagline": "Ein Versprechen, von Visionären für Generationen unterzeichnet",
     "shared.atlantis.tab_accords": "Die Abkommen",
     "shared.atlantis.tab_countries": "Zielländer",
     "shared.atlantis.tab_approvals": "Vorgeschlagene Genehmigungen",
@@ -2171,7 +2171,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Italian (it) ───────────────────────────────────────
   it: {
-    "shared.atlantis.tagline": "Una promessa firmata da visionari",
+    "shared.atlantis.tagline": "Una promessa firmata da visionari per le generazioni",
     "shared.atlantis.tab_accords": "Gli Accordi",
     "shared.atlantis.tab_countries": "Paesi target",
     "shared.atlantis.tab_approvals": "Approvazioni proposte",
@@ -2891,7 +2891,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Portuguese (pt) ────────────────────────────────────
   pt: {
-    "shared.atlantis.tagline": "Uma promessa assinada por visionários",
+    "shared.atlantis.tagline": "Uma promessa assinada por visionários para as gerações",
     "shared.atlantis.tab_accords": "Os Acordos",
     "shared.atlantis.tab_countries": "Países-alvo",
     "shared.atlantis.tab_approvals": "Aprovações propostas",
@@ -3611,7 +3611,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Russian (ru) ───────────────────────────────────────
   ru: {
-    "shared.atlantis.tagline": "Обещание, подписанное провидцами",
+    "shared.atlantis.tagline": "Обещание, подписанное провидцами на поколения",
     "shared.atlantis.tab_accords": "Соглашения",
     "shared.atlantis.tab_countries": "Целевые страны",
     "shared.atlantis.tab_approvals": "Предлагаемые одобрения",
@@ -4331,7 +4331,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Dutch (nl) ─────────────────────────────────────────
   nl: {
-    "shared.atlantis.tagline": "Een belofte ondertekend door visionairs",
+    "shared.atlantis.tagline": "Een belofte, ondertekend door visionairs voor generaties",
     "shared.atlantis.tab_accords": "De Akkoorden",
     "shared.atlantis.tab_countries": "Doellanden",
     "shared.atlantis.tab_approvals": "Voorgestelde goedkeuringen",
@@ -5051,7 +5051,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Chinese (zh) ───────────────────────────────────────
   zh: {
-    "shared.atlantis.tagline": "由远见者签署的承诺",
+    "shared.atlantis.tagline": "远见者为世代签下的承诺",
     "shared.atlantis.tab_accords": "协议",
     "shared.atlantis.tab_countries": "目标国家",
     "shared.atlantis.tab_approvals": "拟议批准",
@@ -5771,7 +5771,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Japanese (ja) ──────────────────────────────────────
   ja: {
-    "shared.atlantis.tagline": "先見者たちが署名した約束",
+    "shared.atlantis.tagline": "先見者たちが世代のために交わした約束",
     "shared.atlantis.tab_accords": "協定",
     "shared.atlantis.tab_countries": "対象国",
     "shared.atlantis.tab_approvals": "承認案",
@@ -6491,7 +6491,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Korean (ko) ────────────────────────────────────────
   ko: {
-    "shared.atlantis.tagline": "선구자들이 서명한 약속",
+    "shared.atlantis.tagline": "선각자들이 세대를 위해 서명한 약속",
     "shared.atlantis.tab_accords": "협정",
     "shared.atlantis.tab_countries": "대상 국가",
     "shared.atlantis.tab_approvals": "제안된 승인",
@@ -7211,7 +7211,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Arabic (ar) ────────────────────────────────────────
   ar: {
-    "shared.atlantis.tagline": "وعد وقّعه أصحاب الرؤى",
+    "shared.atlantis.tagline": "وعد وقّعه أصحاب الرؤى للأجيال القادمة",
     "shared.atlantis.tab_accords": "الاتفاقيات",
     "shared.atlantis.tab_countries": "الدول المستهدفة",
     "shared.atlantis.tab_approvals": "الموافقات المقترحة",
@@ -7931,7 +7931,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Hindi (hi) ─────────────────────────────────────────
   hi: {
-    "shared.atlantis.tagline": "दूरदर्शियों द्वारा हस्ताक्षरित एक वादा",
+    "shared.atlantis.tagline": "पीढ़ियों के लिए दूरदर्शियों द्वारा किया गया एक वादा",
     "shared.atlantis.tab_accords": "समझौते",
     "shared.atlantis.tab_countries": "लक्षित देश",
     "shared.atlantis.tab_approvals": "प्रस्तावित अनुमोदन",
@@ -8651,7 +8651,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Bengali (bn) ───────────────────────────────────────
   bn: {
-    "shared.atlantis.tagline": "স্বপ্নদ্রষ্টাদের স্বাক্ষরিত একটি প্রতিশ্রুতি",
+    "shared.atlantis.tagline": "প্রজন্মের জন্য স্বপ্নদর্শীদের স্বাক্ষরিত এক প্রতিশ্রুতি",
     "shared.atlantis.tab_accords": "চুক্তিসমূহ",
     "shared.atlantis.tab_countries": "লক্ষ্য দেশ",
     "shared.atlantis.tab_approvals": "প্রস্তাবিত অনুমোদন",
@@ -9371,7 +9371,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Punjabi (pa) ───────────────────────────────────────
   pa: {
-    "shared.atlantis.tagline": "ਦੂਰਦਰਸ਼ੀਆਂ ਦੁਆਰਾ ਦਸਤਖਤ ਕੀਤਾ ਇੱਕ ਵਾਅਦਾ",
+    "shared.atlantis.tagline": "ਪੀੜ੍ਹੀਆਂ ਲਈ ਦੂਰਦਰਸ਼ੀਆਂ ਵੱਲੋਂ ਕੀਤਾ ਇੱਕ ਵਾਅਦਾ",
     "shared.atlantis.tab_accords": "ਸਮਝੌਤੇ",
     "shared.atlantis.tab_countries": "ਨਿਸ਼ਾਨਾ ਦੇਸ਼",
     "shared.atlantis.tab_approvals": "ਪ੍ਰਸਤਾਵਿਤ ਮਨਜ਼ੂਰੀਆਂ",
@@ -10091,7 +10091,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Thai (th) ──────────────────────────────────────────
   th: {
-    "shared.atlantis.tagline": "คำมั่นสัญญาที่ลงนามโดยผู้มีวิสัยทัศน์",
+    "shared.atlantis.tagline": "คำมั่นสัญญาที่ผู้มีวิสัยทัศน์ลงนามไว้เพื่อคนรุ่นต่อไป",
     "shared.atlantis.tab_accords": "ข้อตกลง",
     "shared.atlantis.tab_countries": "ประเทศเป้าหมาย",
     "shared.atlantis.tab_approvals": "การอนุมัติที่เสนอ",
@@ -10811,7 +10811,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Vietnamese (vi) ────────────────────────────────────
   vi: {
-    "shared.atlantis.tagline": "Một lời hứa được ký bởi những nhà tiên phong",
+    "shared.atlantis.tagline": "Một lời hứa được những người có tầm nhìn ký kết cho muôn đời sau",
     "shared.atlantis.tab_accords": "Các Hiệp định",
     "shared.atlantis.tab_countries": "Quốc gia mục tiêu",
     "shared.atlantis.tab_approvals": "Phê duyệt đề xuất",
@@ -11531,7 +11531,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Indonesian (id) ────────────────────────────────────
   id: {
-    "shared.atlantis.tagline": "Sebuah janji yang ditandatangani oleh para visioner",
+    "shared.atlantis.tagline": "Sebuah janji yang ditandatangani para visioner untuk generasi mendatang",
     "shared.atlantis.tab_accords": "Kesepakatan",
     "shared.atlantis.tab_countries": "Negara Sasaran",
     "shared.atlantis.tab_approvals": "Persetujuan yang Diusulkan",
@@ -12251,7 +12251,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Malay (ms) ─────────────────────────────────────────
   ms: {
-    "shared.atlantis.tagline": "Satu janji yang ditandatangani oleh para pemimpi",
+    "shared.atlantis.tagline": "Satu janji yang ditandatangani oleh para visioner untuk generasi akan datang",
     "shared.atlantis.tab_accords": "Perjanjian",
     "shared.atlantis.tab_countries": "Negara Sasaran",
     "shared.atlantis.tab_approvals": "Kelulusan yang Dicadangkan",
@@ -12971,7 +12971,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Filipino (tl) ──────────────────────────────────────
   tl: {
-    "shared.atlantis.tagline": "Isang pangakong nilagdaan ng mga visionaryo",
+    "shared.atlantis.tagline": "Isang pangakong nilagdaan ng mga visionaryo para sa mga henerasyon",
     "shared.atlantis.tab_accords": "Ang mga Kasunduan",
     "shared.atlantis.tab_countries": "Mga Target na Bansa",
     "shared.atlantis.tab_approvals": "Mga Iminungkahing Pag-apruba",
@@ -13691,7 +13691,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Turkish (tr) ───────────────────────────────────────
   tr: {
-    "shared.atlantis.tagline": "Vizyonerler tarafından imzalanan bir söz",
+    "shared.atlantis.tagline": "Nesiller için vizyonerlerce imzalanmış bir söz",
     "shared.atlantis.tab_accords": "Anlaşmalar",
     "shared.atlantis.tab_countries": "Hedef Ülkeler",
     "shared.atlantis.tab_approvals": "Önerilen Onaylar",
@@ -14411,7 +14411,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Polish (pl) ────────────────────────────────────────
   pl: {
-    "shared.atlantis.tagline": "Obietnica podpisana przez wizjonerów",
+    "shared.atlantis.tagline": "Obietnica podpisana przez wizjonerów dla pokoleń",
     "shared.atlantis.tab_accords": "Porozumienia",
     "shared.atlantis.tab_countries": "Kraje docelowe",
     "shared.atlantis.tab_approvals": "Proponowane zatwierdzenia",
@@ -15131,7 +15131,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Ukrainian (uk) ─────────────────────────────────────
   uk: {
-    "shared.atlantis.tagline": "Обіцянка, підписана провидцями",
+    "shared.atlantis.tagline": "Обіцянка, підписана провидцями на покоління",
     "shared.atlantis.tab_accords": "Угоди",
     "shared.atlantis.tab_countries": "Цільові країни",
     "shared.atlantis.tab_approvals": "Запропоновані схвалення",
@@ -15851,7 +15851,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Romanian (ro) ──────────────────────────────────────
   ro: {
-    "shared.atlantis.tagline": "O promisiune semnată de vizionari",
+    "shared.atlantis.tagline": "O promisiune semnată de vizionari pentru generații",
     "shared.atlantis.tab_accords": "Acordurile",
     "shared.atlantis.tab_countries": "Țări țintă",
     "shared.atlantis.tab_approvals": "Aprobări propuse",
@@ -16571,7 +16571,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Greek (el) ─────────────────────────────────────────
   el: {
-    "shared.atlantis.tagline": "Μια υπόσχεση υπογεγραμμένη από οραματιστές",
+    "shared.atlantis.tagline": "Μια υπόσχεση υπογεγραμμένη από οραματιστές για τις γενιές",
     "shared.atlantis.tab_accords": "Οι Συμφωνίες",
     "shared.atlantis.tab_countries": "Χώρες-στόχοι",
     "shared.atlantis.tab_approvals": "Προτεινόμενες εγκρίσεις",
@@ -17291,7 +17291,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Czech (cs) ─────────────────────────────────────────
   cs: {
-    "shared.atlantis.tagline": "Slib podepsaný vizionáři",
+    "shared.atlantis.tagline": "Slib podepsaný vizionáři pro generace",
     "shared.atlantis.tab_accords": "Dohody",
     "shared.atlantis.tab_countries": "Cílové země",
     "shared.atlantis.tab_approvals": "Navrhovaná schválení",
@@ -18011,7 +18011,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Swedish (sv) ───────────────────────────────────────
   sv: {
-    "shared.atlantis.tagline": "Ett löfte undertecknat av visionärer",
+    "shared.atlantis.tagline": "Ett löfte undertecknat av visionärer för generationer",
     "shared.atlantis.tab_accords": "Avtalen",
     "shared.atlantis.tab_countries": "Målländer",
     "shared.atlantis.tab_approvals": "Föreslagna godkännanden",
@@ -18731,7 +18731,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Danish (da) ────────────────────────────────────────
   da: {
-    "shared.atlantis.tagline": "Et løfte underskrevet af visionære",
+    "shared.atlantis.tagline": "Et løfte underskrevet af visionære for generationer",
     "shared.atlantis.tab_accords": "Aftalerne",
     "shared.atlantis.tab_countries": "Mållande",
     "shared.atlantis.tab_approvals": "Foreslåede godkendelser",
@@ -19451,7 +19451,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Finnish (fi) ───────────────────────────────────────
   fi: {
-    "shared.atlantis.tagline": "Visionäärien allekirjoittama lupaus",
+    "shared.atlantis.tagline": "Visionäärien allekirjoittama lupaus sukupolville",
     "shared.atlantis.tab_accords": "Sopimukset",
     "shared.atlantis.tab_countries": "Kohdemaat",
     "shared.atlantis.tab_approvals": "Ehdotetut hyväksynnät",
@@ -20171,7 +20171,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Norwegian (no) ─────────────────────────────────────
   no: {
-    "shared.atlantis.tagline": "Et løfte signert av visjonære",
+    "shared.atlantis.tagline": "Et løfte signert av visjonære for generasjoner",
     "shared.atlantis.tab_accords": "Avtalene",
     "shared.atlantis.tab_countries": "Målland",
     "shared.atlantis.tab_approvals": "Foreslåtte godkjenninger",
@@ -20891,7 +20891,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Hebrew (he) ────────────────────────────────────────
   he: {
-    "shared.atlantis.tagline": "הבטחה שנחתמה בידי בעלי חזון",
+    "shared.atlantis.tagline": "הבטחה שנחתמה בידי בעלי חזון לדורות",
     "shared.atlantis.tab_accords": "ההסכמים",
     "shared.atlantis.tab_countries": "מדינות יעד",
     "shared.atlantis.tab_approvals": "אישורים מוצעים",
@@ -21611,7 +21611,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Swahili (sw) ───────────────────────────────────────
   sw: {
-    "shared.atlantis.tagline": "Ahadi iliyotiwa saini na wenye maono",
+    "shared.atlantis.tagline": "Ahadi iliyotiwa saini na wenye maono kwa vizazi",
     "shared.atlantis.tab_accords": "Mikataba",
     "shared.atlantis.tab_countries": "Nchi Lengwa",
     "shared.atlantis.tab_approvals": "Idhini Zilizopendekezwa",
@@ -22331,7 +22331,7 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Nepali (ne) ────────────────────────────────────────
   ne: {
-    "shared.atlantis.tagline": "दूरदर्शीहरूद्वारा हस्ताक्षरित एक वाचा",
+    "shared.atlantis.tagline": "पुस्तौंका लागि दूरदर्शीहरूद्वारा हस्ताक्षरित एक प्रतिज्ञा",
     "shared.atlantis.tab_accords": "सम्झौताहरू",
     "shared.atlantis.tab_countries": "लक्षित देशहरू",
     "shared.atlantis.tab_approvals": "प्रस्तावित स्वीकृतिहरू",

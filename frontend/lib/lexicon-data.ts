@@ -167,7 +167,7 @@ const shared: TranslationEntry[] = [
   { key: "shared.nav.off", englishDefault: "Off", context: "Toggle off label", cubeId: 0 },
   { key: "shared.nav.chars", englishDefault: "chars", context: "Character count suffix", cubeId: 0 },
   // The Atlantis Accords viewer (Settings)
-  { key: "shared.atlantis.tagline", englishDefault: "A promise signed by visionaries", context: "Atlantis Accords subtitle tagline", cubeId: 0 },
+  { key: "shared.atlantis.tagline", englishDefault: "A promise signed by visionaries for generations", context: "Atlantis Accords subtitle tagline (exactly 7 words)", cubeId: 0 },
   { key: "shared.atlantis.tab_accords", englishDefault: "The Accords", context: "Atlantis viewer tab — accord sections", cubeId: 0 },
   { key: "shared.atlantis.tab_countries", englishDefault: "Target Countries", context: "Atlantis viewer tab — target countries", cubeId: 0 },
   { key: "shared.atlantis.tab_approvals", englishDefault: "Proposed Approvals", context: "Atlantis viewer tab — proposed approvals/signatories", cubeId: 0 },
