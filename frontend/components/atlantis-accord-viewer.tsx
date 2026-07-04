@@ -2,7 +2,11 @@
 
 import { useState, useMemo, useRef, type TouchEvent } from "react";
 import { createPortal } from "react-dom";
-import { X, ScrollText, ChevronDown, Globe } from "lucide-react";
+import { X, ScrollText, ChevronDown, Globe, Download } from "lucide-react";
+import {
+  buildAtlantisPackageHtml, generate4DigitCode,
+  CLEARANCE_COLORS, CLEARANCE_NAMES, MAX_CLEARANCE,
+} from "@/lib/atlantis-package";
 import { Button } from "@/components/ui/button";
 import { useLexicon } from "@/lib/lexicon-context";
 import { getSortedLanguages } from "@/lib/language-utils";
@@ -221,15 +225,52 @@ function FullscreenViewer({
     t(`shared.atlantis.seven.${s.id}`)
   );
 
+  // ── Downloadable clearance package (offline HTML, 4-digit gated) ──
+  const [pkgOpen, setPkgOpen] = useState(false);
+  const [pkgClearance, setPkgClearance] = useState(1); // 1 = Red (default)
+  const [pkgCode, setPkgCode] = useState<string | null>(null);
+  const [pkgBusy, setPkgBusy] = useState(false);
+
+  const handleGeneratePackage = async () => {
+    setPkgBusy(true);
+    try {
+      const gen = generate4DigitCode();
+      const html = await buildAtlantisPackageHtml(ACCORD_SECTIONS_EN, gen, pkgClearance);
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Atlantis-Accords-Clearance-${pkgClearance}-${CLEARANCE_NAMES[pkgClearance]}.html`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      setPkgCode(gen);
+    } finally {
+      setPkgBusy(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[70] bg-background/98 backdrop-blur-md flex flex-col">
       {/* Top bar */}
       <div className="flex items-center justify-between border-b px-6 py-4">
-        <div>
-          <h2 className="text-lg font-semibold">The Atlantis Accords</h2>
-          <p className="text-[11px] text-muted-foreground">
-            {t("shared.atlantis.tagline")}
-          </p>
+        <div className="flex items-center gap-3">
+          {/* Scroll icon — download a shareable, 4-digit-gated offline package */}
+          <button
+            onClick={() => { setPkgOpen(true); setPkgCode(null); }}
+            title="Download shareable package (clearance + 4-digit code)"
+            aria-label="Download shareable package"
+            className="rounded-md border border-border p-2 text-primary hover:bg-accent/50 transition-colors"
+          >
+            <ScrollText className="h-4 w-4" />
+          </button>
+          <div>
+            <h2 className="text-lg font-semibold">The Atlantis Accords</h2>
+            <p className="text-[11px] text-muted-foreground">
+              {t("shared.atlantis.tagline")}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-1">
           {/* Language selector — globe + 2-letter code, same as the home navbar */}
@@ -493,6 +534,66 @@ function FullscreenViewer({
           </div>
         </div>
       </div>
+
+      {/* ── Shareable clearance package dialog ── */}
+      {pkgOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+             onClick={() => setPkgOpen(false)}>
+          <div className="w-full max-w-md rounded-xl border border-border bg-background p-5 shadow-2xl"
+               onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-base font-semibold">Shareable Package</h3>
+              <button onClick={() => setPkgOpen(false)} aria-label="Close"><X className="h-4 w-4 text-muted-foreground" /></button>
+            </div>
+
+            {pkgCode === null ? (
+              <>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  Select a <b>clearance level</b> — that many Seed-of-Life circles + accord sections are revealed. Only the unlocked content is written into the file.
+                </p>
+                <div className="mb-4 grid grid-cols-7 gap-1.5">
+                  {Array.from({ length: MAX_CLEARANCE }, (_, i) => i + 1).map((lvl) => {
+                    const c = CLEARANCE_COLORS[lvl];
+                    const active = pkgClearance === lvl;
+                    return (
+                      <button key={lvl} onClick={() => setPkgClearance(lvl)}
+                        title={`Clearance ${lvl} · ${CLEARANCE_NAMES[lvl]}`}
+                        className="flex flex-col items-center gap-1 rounded-md border p-1.5 transition-all"
+                        style={{ borderColor: active ? c : "hsl(215 15% 25%)", background: active ? `${c}22` : "transparent" }}>
+                        <span className="h-4 w-4 rounded-full" style={{ background: c }} />
+                        <span className="text-[9px] font-mono" style={{ color: active ? c : "hsl(215 12% 55%)" }}>{lvl}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mb-3 text-[11px]" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
+                  Clearance {pkgClearance} · {CLEARANCE_NAMES[pkgClearance]} — {pkgClearance} of {MAX_CLEARANCE} sections
+                </p>
+                <button onClick={handleGeneratePackage} disabled={pkgBusy}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
+                  <Download className="h-4 w-4" />
+                  {pkgBusy ? "Sealing…" : "Generate & Download .html"}
+                </button>
+                <p className="mt-3 text-[10px] leading-snug text-muted-foreground/70">
+                  Best-effort exclusivity: a 4-digit code is weak against a determined actor, and the one-time-view is soft (a saved file can be reopened after clearing browser storage). Hides in plain sight; not certified secrecy.
+                </p>
+              </>
+            ) : (
+              <div className="text-center">
+                <p className="mb-1 text-xs text-muted-foreground">Downloaded. Share this code privately (text / email / verbal):</p>
+                <div className="my-3 text-4xl font-bold tracking-[0.3em]" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
+                  {pkgCode}
+                </div>
+                <p className="mb-4 text-[11px] text-muted-foreground">
+                  Clearance {pkgClearance} · {CLEARANCE_NAMES[pkgClearance]}. The reader enters this code to open. The copy <b>seals after it is closed</b> and cannot be reopened — send a fresh copy to share again.
+                </p>
+                <button onClick={() => setPkgOpen(false)}
+                  className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-accent/50">Done</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
