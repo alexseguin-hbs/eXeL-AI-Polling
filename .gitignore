@@ -71,3 +71,8 @@ GitHub_Token_Claude.txt
 backend/tests/fixtures/sim_use_case_40000.csv
 backend/tests/fixtures/sim_use_case_1111111.csv
 config.bat
+
+# SECURITY-2525 wireframe tooling
+docs/security-2525/wireframe/.venv/
+docs/security-2525/wireframe/cache/
+docs/security-2525/wireframe/__pycache__/
