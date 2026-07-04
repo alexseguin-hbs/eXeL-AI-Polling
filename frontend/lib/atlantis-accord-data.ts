@@ -181,11 +181,11 @@ function proposedRegion(region: string): ProposedSignatory {
 }
 
 // English source. Region order matches the triangle flower positions:
-// Austin (top) / Honduras (bottom-left) / Cambodia (bottom-right).
+// Austin (top) / Cambodia (bottom-left, first rotation) / Honduras (bottom-right).
 export const SIGNATORIES_EN: ProposedSignatory[] = [
   proposedRegion("Austin, Texas"),
-  proposedRegion("Honduras"),
   proposedRegion("Cambodia"),
+  proposedRegion("Honduras"),
 ];
 
 // Translations land here as approved; any missing language falls back to English.
@@ -220,15 +220,6 @@ export const TARGET_COUNTRIES_EN: TargetCountry[] = [
       "Technology, verification, and delivery — where work is finished and proven.",
   },
   {
-    region: "Honduras",
-    overview:
-      "Honduras is the integrating heart of the rotation, where learning from every region is reconciled and tested against real constraints. A Spanish-language cohort and a culture of community resilience give the accord its middle passage — the place where ideas are pressure-tested before completion.",
-    language: "Spanish",
-    rotationStage: "Integration",
-    contribution:
-      "Reconciliation and real-world testing — where ideas meet constraint.",
-  },
-  {
     region: "Cambodia",
     overview:
       "Cambodia opens each rotation, grounding the accord in one of humanity's oldest living traditions of learning. A Khmer-language cohort and a heritage of monastic dialectic and patient craft give participants their first, formative stage — where the right questions matter more than speed.",
@@ -236,6 +227,15 @@ export const TARGET_COUNTRIES_EN: TargetCountry[] = [
     rotationStage: "Opening",
     contribution:
       "Foundational inquiry and patient craft — where every rotation begins.",
+  },
+  {
+    region: "Honduras",
+    overview:
+      "Honduras is the integrating heart of the rotation, where learning from every region is reconciled and tested against real constraints. A Spanish-language cohort and a culture of community resilience give the accord its middle passage — the place where ideas are pressure-tested before completion.",
+    language: "Spanish",
+    rotationStage: "Integration",
+    contribution:
+      "Reconciliation and real-world testing — where ideas meet constraint.",
   },
 ];
 
