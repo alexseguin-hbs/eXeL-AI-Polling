@@ -11,6 +11,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── French (fr) ────────────────────────────────────────────────
   fr: {
+    "cube1.settings.level1_caption": "Exploiter",
+    "cube1.settings.level2_caption": "Prouver · Valoriser · Gouverner",
+    "cube1.settings.level3_caption": "Vision 2525 · Substrat portable",
     "shared.atlantis.tagline": "Une promesse signée par des visionnaires pour les générations à venir",
     "shared.atlantis.tab_accords": "Les Accords",
     "shared.atlantis.tab_countries": "Pays ciblés",
@@ -731,6 +734,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Spanish (es) ───────────────────────────────────────────────
   es: {
+    "cube1.settings.level1_caption": "Operar",
+    "cube1.settings.level2_caption": "Probar · Valorar · Gobernar",
+    "cube1.settings.level3_caption": "Vision 2525 · Sustrato portátil",
     "shared.atlantis.tagline": "Una promesa firmada por visionarios para las generaciones",
     "shared.atlantis.tab_accords": "Los Acuerdos",
     "shared.atlantis.tab_countries": "Países objetivo",
@@ -1451,6 +1457,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── German (de) ────────────────────────────────────────
   de: {
+    "cube1.settings.level1_caption": "Betreiben",
+    "cube1.settings.level2_caption": "Beweisen · Bewerten · Steuern",
+    "cube1.settings.level3_caption": "Vision 2525 · Portables Substrat",
     "shared.atlantis.tagline": "Ein Versprechen, von Visionären für Generationen unterzeichnet",
     "shared.atlantis.tab_accords": "Die Abkommen",
     "shared.atlantis.tab_countries": "Zielländer",
@@ -2171,6 +2180,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Italian (it) ───────────────────────────────────────
   it: {
+    "cube1.settings.level1_caption": "Operare",
+    "cube1.settings.level2_caption": "Provare · Valutare · Governare",
+    "cube1.settings.level3_caption": "Vision 2525 · Substrato portatile",
     "shared.atlantis.tagline": "Una promessa firmata da visionari per le generazioni",
     "shared.atlantis.tab_accords": "Gli Accordi",
     "shared.atlantis.tab_countries": "Paesi target",
@@ -2891,6 +2903,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Portuguese (pt) ────────────────────────────────────
   pt: {
+    "cube1.settings.level1_caption": "Operar",
+    "cube1.settings.level2_caption": "Provar · Valorizar · Governar",
+    "cube1.settings.level3_caption": "Vision 2525 · Substrato portátil",
     "shared.atlantis.tagline": "Uma promessa assinada por visionários para as gerações",
     "shared.atlantis.tab_accords": "Os Acordos",
     "shared.atlantis.tab_countries": "Países-alvo",
@@ -3611,6 +3626,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Russian (ru) ───────────────────────────────────────
   ru: {
+    "cube1.settings.level1_caption": "Управлять",
+    "cube1.settings.level2_caption": "Доказать · Оценить · Регулировать",
+    "cube1.settings.level3_caption": "Vision 2525 · Портативная основа",
     "shared.atlantis.tagline": "Обещание, подписанное провидцами на поколения",
     "shared.atlantis.tab_accords": "Соглашения",
     "shared.atlantis.tab_countries": "Целевые страны",
@@ -4331,6 +4349,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Dutch (nl) ─────────────────────────────────────────
   nl: {
+    "cube1.settings.level1_caption": "Bedienen",
+    "cube1.settings.level2_caption": "Bewijzen · Waarderen · Besturen",
+    "cube1.settings.level3_caption": "Vision 2525 · Draagbaar substraat",
     "shared.atlantis.tagline": "Een belofte, ondertekend door visionairs voor generaties",
     "shared.atlantis.tab_accords": "De Akkoorden",
     "shared.atlantis.tab_countries": "Doellanden",
@@ -5051,6 +5072,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Chinese (zh) ───────────────────────────────────────
   zh: {
+    "cube1.settings.level1_caption": "运行",
+    "cube1.settings.level2_caption": "验证 · 评估 · 治理",
+    "cube1.settings.level3_caption": "Vision 2525 · 便携基座",
     "shared.atlantis.tagline": "远见者为世代签下的承诺",
     "shared.atlantis.tab_accords": "协议",
     "shared.atlantis.tab_countries": "目标国家",
@@ -5771,6 +5795,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Japanese (ja) ──────────────────────────────────────
   ja: {
+    "cube1.settings.level1_caption": "運用",
+    "cube1.settings.level2_caption": "実証 · 評価 · 統治",
+    "cube1.settings.level3_caption": "Vision 2525 · ポータブル基盤",
     "shared.atlantis.tagline": "先見者たちが世代のために交わした約束",
     "shared.atlantis.tab_accords": "協定",
     "shared.atlantis.tab_countries": "対象国",
@@ -6491,6 +6518,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Korean (ko) ────────────────────────────────────────
   ko: {
+    "cube1.settings.level1_caption": "운영",
+    "cube1.settings.level2_caption": "검증 · 평가 · 관리",
+    "cube1.settings.level3_caption": "Vision 2525 · 이식형 기반",
     "shared.atlantis.tagline": "선각자들이 세대를 위해 서명한 약속",
     "shared.atlantis.tab_accords": "협정",
     "shared.atlantis.tab_countries": "대상 국가",
@@ -7211,6 +7241,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Arabic (ar) ────────────────────────────────────────
   ar: {
+    "cube1.settings.level1_caption": "تشغيل",
+    "cube1.settings.level2_caption": "إثبات · تقييم · حوكمة",
+    "cube1.settings.level3_caption": "Vision 2525 · ركيزة محمولة",
     "shared.atlantis.tagline": "وعد وقّعه أصحاب الرؤى للأجيال القادمة",
     "shared.atlantis.tab_accords": "الاتفاقيات",
     "shared.atlantis.tab_countries": "الدول المستهدفة",
@@ -7931,6 +7964,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Hindi (hi) ─────────────────────────────────────────
   hi: {
+    "cube1.settings.level1_caption": "संचालन",
+    "cube1.settings.level2_caption": "सिद्ध करें · मूल्यांकन · शासन",
+    "cube1.settings.level3_caption": "Vision 2525 · पोर्टेबल आधार",
     "shared.atlantis.tagline": "पीढ़ियों के लिए दूरदर्शियों द्वारा किया गया एक वादा",
     "shared.atlantis.tab_accords": "समझौते",
     "shared.atlantis.tab_countries": "लक्षित देश",
@@ -8651,6 +8687,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Bengali (bn) ───────────────────────────────────────
   bn: {
+    "cube1.settings.level1_caption": "পরিচালনা",
+    "cube1.settings.level2_caption": "প্রমাণ · মূল্যায়ন · পরিচালন",
+    "cube1.settings.level3_caption": "Vision 2525 · বহনযোগ্য ভিত্তি",
     "shared.atlantis.tagline": "প্রজন্মের জন্য স্বপ্নদর্শীদের স্বাক্ষরিত এক প্রতিশ্রুতি",
     "shared.atlantis.tab_accords": "চুক্তিসমূহ",
     "shared.atlantis.tab_countries": "লক্ষ্য দেশ",
@@ -9371,6 +9410,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Punjabi (pa) ───────────────────────────────────────
   pa: {
+    "cube1.settings.level1_caption": "ਚਲਾਓ",
+    "cube1.settings.level2_caption": "ਸਾਬਤ · ਮੁੱਲ · ਸ਼ਾਸਨ",
+    "cube1.settings.level3_caption": "Vision 2525 · ਪੋਰਟੇਬਲ ਆਧਾਰ",
     "shared.atlantis.tagline": "ਪੀੜ੍ਹੀਆਂ ਲਈ ਦੂਰਦਰਸ਼ੀਆਂ ਵੱਲੋਂ ਕੀਤਾ ਇੱਕ ਵਾਅਦਾ",
     "shared.atlantis.tab_accords": "ਸਮਝੌਤੇ",
     "shared.atlantis.tab_countries": "ਨਿਸ਼ਾਨਾ ਦੇਸ਼",
@@ -10091,6 +10133,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Thai (th) ──────────────────────────────────────────
   th: {
+    "cube1.settings.level1_caption": "ดำเนินการ",
+    "cube1.settings.level2_caption": "พิสูจน์ · ประเมิน · กำกับดูแล",
+    "cube1.settings.level3_caption": "Vision 2525 · ฐานพกพา",
     "shared.atlantis.tagline": "คำมั่นสัญญาที่ผู้มีวิสัยทัศน์ลงนามไว้เพื่อคนรุ่นต่อไป",
     "shared.atlantis.tab_accords": "ข้อตกลง",
     "shared.atlantis.tab_countries": "ประเทศเป้าหมาย",
@@ -10811,6 +10856,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Vietnamese (vi) ────────────────────────────────────
   vi: {
+    "cube1.settings.level1_caption": "Vận hành",
+    "cube1.settings.level2_caption": "Chứng minh · Định giá · Quản trị",
+    "cube1.settings.level3_caption": "Vision 2525 · Nền tảng di động",
     "shared.atlantis.tagline": "Một lời hứa được những người có tầm nhìn ký kết cho muôn đời sau",
     "shared.atlantis.tab_accords": "Các Hiệp định",
     "shared.atlantis.tab_countries": "Quốc gia mục tiêu",
@@ -11531,6 +11579,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Indonesian (id) ────────────────────────────────────
   id: {
+    "cube1.settings.level1_caption": "Operasikan",
+    "cube1.settings.level2_caption": "Buktikan · Nilai · Kelola",
+    "cube1.settings.level3_caption": "Vision 2525 · Substrat portabel",
     "shared.atlantis.tagline": "Sebuah janji yang ditandatangani para visioner untuk generasi mendatang",
     "shared.atlantis.tab_accords": "Kesepakatan",
     "shared.atlantis.tab_countries": "Negara Sasaran",
@@ -12251,6 +12302,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Malay (ms) ─────────────────────────────────────────
   ms: {
+    "cube1.settings.level1_caption": "Kendalikan",
+    "cube1.settings.level2_caption": "Buktikan · Nilai · Tadbir",
+    "cube1.settings.level3_caption": "Vision 2525 · Substrat mudah alih",
     "shared.atlantis.tagline": "Satu janji yang ditandatangani oleh para visioner untuk generasi akan datang",
     "shared.atlantis.tab_accords": "Perjanjian",
     "shared.atlantis.tab_countries": "Negara Sasaran",
@@ -12971,6 +13025,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Filipino (tl) ──────────────────────────────────────
   tl: {
+    "cube1.settings.level1_caption": "Patakbuhin",
+    "cube1.settings.level2_caption": "Patunayan · Halagahan · Pamahalaan",
+    "cube1.settings.level3_caption": "Vision 2525 · Portableng Substrato",
     "shared.atlantis.tagline": "Isang pangakong nilagdaan ng mga visionaryo para sa mga henerasyon",
     "shared.atlantis.tab_accords": "Ang mga Kasunduan",
     "shared.atlantis.tab_countries": "Mga Target na Bansa",
@@ -13691,6 +13748,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Turkish (tr) ───────────────────────────────────────
   tr: {
+    "cube1.settings.level1_caption": "Çalıştır",
+    "cube1.settings.level2_caption": "Kanıtla · Değerle · Yönet",
+    "cube1.settings.level3_caption": "Vision 2525 · Taşınabilir Altyapı",
     "shared.atlantis.tagline": "Nesiller için vizyonerlerce imzalanmış bir söz",
     "shared.atlantis.tab_accords": "Anlaşmalar",
     "shared.atlantis.tab_countries": "Hedef Ülkeler",
@@ -14411,6 +14471,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Polish (pl) ────────────────────────────────────────
   pl: {
+    "cube1.settings.level1_caption": "Obsługuj",
+    "cube1.settings.level2_caption": "Udowodnij · Wyceń · Zarządzaj",
+    "cube1.settings.level3_caption": "Vision 2525 · Przenośne podłoże",
     "shared.atlantis.tagline": "Obietnica podpisana przez wizjonerów dla pokoleń",
     "shared.atlantis.tab_accords": "Porozumienia",
     "shared.atlantis.tab_countries": "Kraje docelowe",
@@ -15131,6 +15194,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Ukrainian (uk) ─────────────────────────────────────
   uk: {
+    "cube1.settings.level1_caption": "Керувати",
+    "cube1.settings.level2_caption": "Довести · Оцінити · Керувати",
+    "cube1.settings.level3_caption": "Vision 2525 · Портативна основа",
     "shared.atlantis.tagline": "Обіцянка, підписана провидцями на покоління",
     "shared.atlantis.tab_accords": "Угоди",
     "shared.atlantis.tab_countries": "Цільові країни",
@@ -15851,6 +15917,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Romanian (ro) ──────────────────────────────────────
   ro: {
+    "cube1.settings.level1_caption": "Operează",
+    "cube1.settings.level2_caption": "Dovedește · Evaluează · Guvernează",
+    "cube1.settings.level3_caption": "Vision 2525 · Substrat portabil",
     "shared.atlantis.tagline": "O promisiune semnată de vizionari pentru generații",
     "shared.atlantis.tab_accords": "Acordurile",
     "shared.atlantis.tab_countries": "Țări țintă",
@@ -16571,6 +16640,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Greek (el) ─────────────────────────────────────────
   el: {
+    "cube1.settings.level1_caption": "Λειτουργία",
+    "cube1.settings.level2_caption": "Απόδειξη · Αξία · Διακυβέρνηση",
+    "cube1.settings.level3_caption": "Vision 2525 · Φορητό υπόβαθρο",
     "shared.atlantis.tagline": "Μια υπόσχεση υπογεγραμμένη από οραματιστές για τις γενιές",
     "shared.atlantis.tab_accords": "Οι Συμφωνίες",
     "shared.atlantis.tab_countries": "Χώρες-στόχοι",
@@ -17291,6 +17363,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Czech (cs) ─────────────────────────────────────────
   cs: {
+    "cube1.settings.level1_caption": "Provozovat",
+    "cube1.settings.level2_caption": "Dokázat · Ocenit · Řídit",
+    "cube1.settings.level3_caption": "Vision 2525 · Přenosný základ",
     "shared.atlantis.tagline": "Slib podepsaný vizionáři pro generace",
     "shared.atlantis.tab_accords": "Dohody",
     "shared.atlantis.tab_countries": "Cílové země",
@@ -18011,6 +18086,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Swedish (sv) ───────────────────────────────────────
   sv: {
+    "cube1.settings.level1_caption": "Driv",
+    "cube1.settings.level2_caption": "Bevisa · Värdera · Styr",
+    "cube1.settings.level3_caption": "Vision 2525 · Portabel grund",
     "shared.atlantis.tagline": "Ett löfte undertecknat av visionärer för generationer",
     "shared.atlantis.tab_accords": "Avtalen",
     "shared.atlantis.tab_countries": "Målländer",
@@ -18731,6 +18809,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Danish (da) ────────────────────────────────────────
   da: {
+    "cube1.settings.level1_caption": "Betjen",
+    "cube1.settings.level2_caption": "Bevis · Vurder · Styr",
+    "cube1.settings.level3_caption": "Vision 2525 · Bærbart substrat",
     "shared.atlantis.tagline": "Et løfte underskrevet af visionære for generationer",
     "shared.atlantis.tab_accords": "Aftalerne",
     "shared.atlantis.tab_countries": "Mållande",
@@ -19451,6 +19532,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Finnish (fi) ───────────────────────────────────────
   fi: {
+    "cube1.settings.level1_caption": "Käytä",
+    "cube1.settings.level2_caption": "Todista · Arvota · Hallitse",
+    "cube1.settings.level3_caption": "Vision 2525 · Siirrettävä perusta",
     "shared.atlantis.tagline": "Visionäärien allekirjoittama lupaus sukupolville",
     "shared.atlantis.tab_accords": "Sopimukset",
     "shared.atlantis.tab_countries": "Kohdemaat",
@@ -20171,6 +20255,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Norwegian (no) ─────────────────────────────────────
   no: {
+    "cube1.settings.level1_caption": "Drift",
+    "cube1.settings.level2_caption": "Bevis · Verdsett · Styr",
+    "cube1.settings.level3_caption": "Vision 2525 · Bærbart underlag",
     "shared.atlantis.tagline": "Et løfte signert av visjonære for generasjoner",
     "shared.atlantis.tab_accords": "Avtalene",
     "shared.atlantis.tab_countries": "Målland",
@@ -20891,6 +20978,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Hebrew (he) ────────────────────────────────────────
   he: {
+    "cube1.settings.level1_caption": "הפעלה",
+    "cube1.settings.level2_caption": "להוכיח · להעריך · לנהל",
+    "cube1.settings.level3_caption": "Vision 2525 · תשתית ניידת",
     "shared.atlantis.tagline": "הבטחה שנחתמה בידי בעלי חזון לדורות",
     "shared.atlantis.tab_accords": "ההסכמים",
     "shared.atlantis.tab_countries": "מדינות יעד",
@@ -21611,6 +21701,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Swahili (sw) ───────────────────────────────────────
   sw: {
+    "cube1.settings.level1_caption": "Endesha",
+    "cube1.settings.level2_caption": "Thibitisha · Thamini · Tawala",
+    "cube1.settings.level3_caption": "Vision 2525 · Msingi Unaobebeka",
     "shared.atlantis.tagline": "Ahadi iliyotiwa saini na wenye maono kwa vizazi",
     "shared.atlantis.tab_accords": "Mikataba",
     "shared.atlantis.tab_countries": "Nchi Lengwa",
@@ -22331,6 +22424,9 @@ export const SEEDED_TRANSLATIONS: LanguageTranslations = {
 
   // ── Nepali (ne) ────────────────────────────────────────
   ne: {
+    "cube1.settings.level1_caption": "सञ्चालन",
+    "cube1.settings.level2_caption": "प्रमाणित · मूल्यांकन · शासन",
+    "cube1.settings.level3_caption": "Vision 2525 · बहनयोग्य आधार",
     "shared.atlantis.tagline": "पुस्तौंका लागि दूरदर्शीहरूद्वारा हस्ताक्षरित एक प्रतिज्ञा",
     "shared.atlantis.tab_accords": "सम्झौताहरू",
     "shared.atlantis.tab_countries": "लक्षित देशहरू",
