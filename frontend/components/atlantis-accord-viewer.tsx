@@ -2,10 +2,11 @@
 
 import { useState, useMemo, useRef, type TouchEvent } from "react";
 import { createPortal } from "react-dom";
-import { X, ScrollText, ChevronDown, Globe, Download } from "lucide-react";
+import { X, ScrollText, ChevronDown, Globe, Download, Link2, Check, Copy } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import {
-  buildAtlantisPackageHtml, generateSealCode, formatSealCode, SEAL_STRENGTHS,
-  CLEARANCE_COLORS, CLEARANCE_NAMES, MAX_CLEARANCE,
+  buildAtlantisPackageHtml, buildAtlantisLink, generateSealCode, formatSealCode, SEAL_STRENGTHS,
+  CLEARANCE_COLORS, CLEARANCE_NAMES, MAX_CLEARANCE, SITE_URL,
 } from "@/lib/atlantis-package";
 import { Button } from "@/components/ui/button";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -232,22 +233,42 @@ function FullscreenViewer({
   const [pkgCode, setPkgCode] = useState<string | null>(null);
   const [pkgBusy, setPkgBusy] = useState(false);
   const [pkgStrength, setPkgStrength] = useState(0); // index into SEAL_STRENGTHS
+  const [pkgMode, setPkgMode] = useState<"file" | "link">("file");
+  const [pkgLink, setPkgLink] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
 
-  const generatePackage = async (level: number, strengthIdx = pkgStrength) => {
+  // mode 'file' = self-contained offline .html (Android/PC). mode 'link' =
+  // universal link that opens the hosted reader on ANY device incl. iPhone.
+  const generatePackage = async (level: number, mode: "file" | "link", strengthIdx = pkgStrength) => {
     setPkgBusy(true);
+    setLinkCopied(false);
     try {
       const gen = generateSealCode(SEAL_STRENGTHS[strengthIdx]);
-      const html = await buildAtlantisPackageHtml(ACCORD_SECTIONS_EN, gen, level, pkgSender);
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      // Filename carries only the level number — never the color-name (e.g. "RED").
-      a.download = `Atlantis-Accords-Clearance-${level}.html`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      if (mode === "file") {
+        const html = await buildAtlantisPackageHtml(ACCORD_SECTIONS_EN, gen, level, pkgSender);
+        const blob = new Blob([html], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        // Filename carries only the level number — never the color-name (e.g. "RED").
+        a.download = `Atlantis-Accords-Clearance-${level}.html`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        setPkgLink(null);
+      } else {
+        const link = await buildAtlantisLink(ACCORD_SECTIONS_EN, gen, level, pkgSender);
+        setPkgLink(link);
+        try {
+          await navigator.clipboard.writeText(link);
+          setLinkCopied(true);
+        } catch {
+          /* clipboard blocked — link still shown for manual copy */
+        }
+      }
+      setPkgMode(mode);
       setPkgClearance(level);
       setPkgCode(gen);
     } finally {
@@ -255,14 +276,13 @@ function FullscreenViewer({
     }
   };
 
-  // Scroll icon → instant Red single-circle (Level-1) package, Standard seal
-  // (4-digit, verbally shareable).
+  // Scroll icon → open the share panel where the sender picks File or Link.
   const handleQuickPackage = () => {
     setPkgCode(null);
-    setPkgSender((s) => s);
+    setPkgLink(null);
+    setLinkCopied(false);
     setPkgStrength(0);
     setPkgOpen(true);
-    void generatePackage(1, 0);
   };
 
   return (
@@ -287,6 +307,27 @@ function FullscreenViewer({
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {/* QR to the website — same icon + QRCodeSVG method as the Divinity
+              Guide ARX. Sits between the scroll share icon and the language selector. */}
+          <button
+            onClick={() => setShowQr(true)}
+            className="p-2 rounded-md hover:bg-accent/50 transition-colors"
+            title="Scan / share the website QR"
+            aria-label="Website QR code"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-primary">
+              <rect x="1" y="1" width="6" height="6" rx="1" strokeWidth="0" />
+              <rect x="9" y="1" width="6" height="6" rx="1" strokeWidth="0" />
+              <rect x="1" y="9" width="6" height="6" rx="1" strokeWidth="0" />
+              <rect x="10" y="10" width="2" height="2" strokeWidth="0" />
+              <rect x="13" y="10" width="2" height="2" strokeWidth="0" />
+              <rect x="10" y="13" width="2" height="2" strokeWidth="0" />
+              <rect x="13" y="13" width="2" height="2" strokeWidth="0" />
+              <rect x="3" y="3" width="2" height="2" fill="var(--background, #000)" />
+              <rect x="11" y="3" width="2" height="2" fill="var(--background, #000)" />
+              <rect x="3" y="11" width="2" height="2" fill="var(--background, #000)" />
+            </svg>
+          </button>
           {/* Language selector — globe + 2-letter code, same as the home navbar */}
           <div className="relative">
             <Button
@@ -615,11 +656,24 @@ function FullscreenViewer({
                 <p className="mb-3 text-[10px] leading-snug text-muted-foreground/80">
                   {SEAL_STRENGTHS[pkgStrength].honest}
                 </p>
-                <button onClick={() => generatePackage(pkgClearance)} disabled={pkgBusy}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
-                  <Download className="h-4 w-4" />
-                  {pkgBusy ? "Sealing…" : "Generate & Download .html"}
-                </button>
+                <p className="mb-2 text-xs text-muted-foreground">Choose how to share:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={() => generatePackage(pkgClearance, "file")} disabled={pkgBusy}
+                    title="Self-contained .html — opens directly on Android & computers"
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg border border-border px-3 py-3 text-sm font-semibold hover:bg-accent/50 disabled:opacity-50">
+                    <Download className="h-5 w-5 text-primary" />
+                    <span>{pkgBusy ? "Sealing…" : "Download File"}</span>
+                    <span className="text-[9px] font-normal text-muted-foreground">Android · Computer</span>
+                  </button>
+                  <button onClick={() => generatePackage(pkgClearance, "link")} disabled={pkgBusy}
+                    title="Universal link — opens on any device, including iPhone & iPad"
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg border px-3 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                    style={{ background: CLEARANCE_COLORS[pkgClearance], borderColor: CLEARANCE_COLORS[pkgClearance] }}>
+                    <Link2 className="h-5 w-5" />
+                    <span>{pkgBusy ? "Sealing…" : "Copy Link"}</span>
+                    <span className="text-[9px] font-normal opacity-90">Any device · iPhone</span>
+                  </button>
+                </div>
                 <p className="mt-3 text-[10px] leading-snug text-muted-foreground/70">
                   Best-effort exclusivity: the one-time-view seal is soft (a saved copy can be reopened after clearing browser storage). Hides in plain sight; not certified secrecy.
                 </p>
@@ -627,7 +681,7 @@ function FullscreenViewer({
             ) : (
               <div className="text-center">
                 <p className="mb-1 text-xs text-muted-foreground">
-                  Downloaded. Share this code privately ({SEAL_STRENGTHS[pkgStrength].share}):
+                  {pkgMode === "link" ? "Link copied. Share it privately, then share this code separately" : "Downloaded. Share this code privately"} ({SEAL_STRENGTHS[pkgStrength].share}):
                 </p>
                 <div
                   className={`my-3 font-bold ${pkgCode.length <= 4 ? "text-4xl tracking-[0.3em]" : pkgCode.length <= 8 ? "font-mono text-2xl tracking-[0.12em]" : "font-mono text-lg tracking-[0.08em]"}`}
@@ -637,16 +691,53 @@ function FullscreenViewer({
                 <p className="mb-2 text-[11px] font-semibold" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
                   Clearance Level {pkgClearance}
                 </p>
-                <p className="mb-3 text-[11px] text-muted-foreground">
-                  The reader enters this code to open. The copy <b>seals after it is closed</b> and cannot be reopened — send a fresh copy to share again.
-                </p>
-                <p className="mb-4 text-[10px] leading-snug text-muted-foreground/70">
-                  This document is sealed under the Atlantis Accords. Access is granted to the intended recipient alone, by the key entrusted to them.
-                </p>
+                {pkgMode === "link" && pkgLink ? (
+                  <>
+                    <div className="mb-2 flex items-stretch gap-1.5">
+                      <input readOnly value={pkgLink} onFocus={(e) => e.currentTarget.select()}
+                        className="flex-1 min-w-0 rounded-md border border-border bg-background px-2 py-1.5 text-[10px] text-muted-foreground" />
+                      <button
+                        onClick={async () => { try { await navigator.clipboard.writeText(pkgLink); setLinkCopied(true); } catch { /* blocked */ } }}
+                        title="Copy link"
+                        className="flex items-center gap-1 rounded-md border border-border px-2 text-xs hover:bg-accent/50">
+                        {linkCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
+                    <p className="mb-4 text-[10px] leading-snug text-muted-foreground/80">
+                      Opens on <b>any device — including iPhone &amp; iPad</b>. The sealed content rides inside the link; no server ever sees it. The recipient taps the link, then enters the code.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="mb-3 text-[11px] text-muted-foreground">
+                      The reader enters this code to open. The copy <b>seals after it is closed</b> and cannot be reopened — send a fresh copy to share again.
+                    </p>
+                    <p className="mb-4 text-[10px] leading-snug text-muted-foreground/70">
+                      This document is sealed under the Atlantis Accords. Access is granted to the intended recipient alone, by the key entrusted to them.
+                    </p>
+                  </>
+                )}
                 <button onClick={() => setPkgOpen(false)}
                   className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-accent/50">Done</button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Website QR — QRCodeSVG (same method as Divinity Guide ARX) */}
+      {showQr && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4" onClick={() => setShowQr(false)}>
+          <div className="w-full max-w-xs rounded-xl border border-border bg-background p-5 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-base font-semibold">Visit eXeL AI</h3>
+              <button onClick={() => setShowQr(false)} aria-label="Close"><X className="h-4 w-4 text-muted-foreground" /></button>
+            </div>
+            <div className="mx-auto mb-3 w-fit rounded-2xl bg-white p-4 shadow-inner">
+              <QRCodeSVG value={SITE_URL} size={220} level="Q" fgColor="#000000" bgColor="#ffffff" className="rounded-lg" />
+            </div>
+            <p className="text-xs text-muted-foreground">Scan to open the website</p>
+            <p className="mt-1 break-all text-[10px] text-muted-foreground/60">{SITE_URL}</p>
           </div>
         </div>
       )}

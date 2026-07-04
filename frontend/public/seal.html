@@ -1,264 +1,4 @@
-// Atlantis Accords — offline standalone HTML package (clearance + Light Codex cover).
-//
-// Self-contained .html the moderator emails. The COVER is deliberately vague —
-// no title text; a clearance-colored border; the clearance level shown only as
-// circles (Seed of Life, not words); a single center circle seal; universal
-// wonder words; and a Light Codex double-helix band encoding a signed message
-// (date · CST time · sender). The full accord content unlocks with a 4-digit PIN
-// transferred out-of-band by the sender. One-time view + self-destruct on close.
-//
-// Clearance 1–7 → rainbow (Red..Violet) = circles drawn = accord sections
-// embedded. Only unlocked sections are written into the file.
-//
-// ⚠ Best-effort exclusivity (moderator-facing): the ciphertext ships in the
-// file and the one-time lock is soft (multi-vector storage flags — copies can
-// still be reopened). Seal strength is selectable: STANDARD 4-digit (~13 bits,
-// verbal share, casual deterrent) · FORTIFIED 7-glyph (~35 bits) · ABYSSAL
-// 12-glyph (~60 bits, beyond practical brute force). Hides in plain sight.
-// Burn-on-close: on PC Chrome/Edge the sealed screen offers to overwrite the
-// original file with a dead shell (ciphertext destroyed); phones/Safari rely
-// on the multi-vector seal. True consume-once revocation requires the
-// server-gated path (WireGuard-whitelisted cube key endpoint) — Level-7 tier.
-//
-// Cross-platform decrypt: iOS/Android often open local files in a NON-secure
-// context where window.crypto.subtle is unavailable. The reader carries a
-// pure-JS AES-256-GCM + PBKDF2 fallback (verified byte-compatible with
-// WebCrypto) so the SAME ciphertext opens on every device.
-
-import type { AccordSection } from "@/lib/atlantis-accord-data";
-
-// PBKDF2-SHA256 work factor. Deliberately 100k (not the OWASP 600k) because the
-// reader falls back to a PURE-JS KDF on devices without WebCrypto (iOS/Android
-// local files) — 600k there costs ~20-40s. At 100k the fallback is ~2-3s, and
-// for Level-1's threat model the CODE ENTROPY is the wall, not the KDF depth.
-const PBKDF2_ITERATIONS = 100_000;
-
-export const CLEARANCE_COLORS = [
-  "", "#ef4444", "#f59e0b", "#eab308", "#22c55e", "#3b82f6", "#06b6d4", "#8b5cf6",
-];
-export const CLEARANCE_NAMES = [
-  "", "RED", "ORANGE", "YELLOW", "GREEN", "BLUE", "INDIGO", "VIOLET",
-];
-export const MAX_CLEARANCE = 7;
-
-// ── Light Codex (double-helix encode) — ported from the reference python ─────
-const ALPHA: Record<string, string> = {
-  A: "WWCC", B: "RRRR", C: "CWRC", D: "YCCY", E: "CCRR", F: "WRRW", G: "YCYC",
-  H: "WWRR", I: "YBBY", J: "CWWC", K: "YYCC", L: "YBYB", M: "WCWC", N: "CWCW",
-  O: "RRYY", P: "CCCW", Q: "YYYY", R: "RWWR", S: "WWWC", T: "RWCC", U: "RWRW",
-  V: "WRWR", W: "CCRW", X: "WCCW", Y: "YRYR", Z: "YCRB", " ": "BBBB", ".": "BBBW",
-};
-const NUMBERS: Record<string, string> = {
-  "0": "BBBB", "1": "WBBB", "2": "WWBB", "3": "WWWB", "4": "WWWW",
-  "5": "VBBB", "6": "VWBB", "7": "VWWB", "8": "VWWW", "9": "VVVV",
-};
-const TRANSMISSION: Record<string, string> = { "4": "GGGG", "3": "GGGR", "2": "GGRR", "1": "GRRR" };
-
-function encodeChar(ch: string): string {
-  if (ch >= "0" && ch <= "9") return NUMBERS[ch];
-  const u = ch.toUpperCase();
-  return ALPHA[u] ?? ALPHA[" "]; // unsupported → space (BBBB)
-}
-function encodeMessage(text: string): string {
-  let out = "";
-  for (const ch of text) out += encodeChar(ch);
-  return out;
-}
-function frame(seq: string): string {
-  let out = "";
-  for (const c of seq) out += TRANSMISSION[c];
-  return out;
-}
-/** Returns { fwd, rev } token strings (B/R/Y/G/C/V/W) for the double helix. */
-function doubleHelix(message: string): { fwd: string; rev: string } {
-  const rev = message.split("").reverse().join("");
-  return {
-    fwd: frame("4321") + encodeMessage(message) + frame("1234"),
-    rev: frame("1234") + encodeMessage(rev) + frame("4321"),
-  };
-}
-
-function b64(bytes: ArrayBuffer | Uint8Array): string {
-  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-  let s = "";
-  for (let i = 0; i < arr.length; i++) s += String.fromCharCode(arr[i]);
-  return btoa(s);
-}
-
-// ── Seal strength tiers (Council of Twelve hardening) ────────────────────────
-// Glyph alphabet excludes ambiguous characters (0/O, 1/I/L) for verbal + visual
-// clarity. 31 symbols ≈ 4.95 bits/glyph.
-const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
-
-export interface SealStrength {
-  id: string;
-  numeral: string;   // roman numeral shown on the selector
-  label: string;
-  len: number;       // code length
-  numeric: boolean;  // digits-only (verbal share) vs glyph alphabet
-  bits: number;      // approx entropy, honest
-  share: string;     // recommended share channel
-  honest: string;    // moderator-facing truth about resistance
-}
-
-export const SEAL_STRENGTHS: SealStrength[] = [
-  {
-    id: "standard", numeral: "I", label: "Standard", len: 4, numeric: true, bits: 13,
-    share: "verbal · text",
-    honest: "Deters casual readers. Falls in seconds to a determined offline attack.",
-  },
-  {
-    id: "fortified", numeral: "II", label: "Fortified", len: 7, numeric: false, bits: 35,
-    share: "text · email",
-    honest: "Weeks of dedicated GPU work to break — strong against most real-world actors.",
-  },
-  {
-    id: "abyssal", numeral: "III", label: "Abyssal", len: 12, numeric: false, bits: 60,
-    share: "copy-paste",
-    honest: "Centuries at current compute — beyond practical brute force. The copy-seal itself remains soft.",
-  },
-];
-
-/** Unbiased random index in [0, max) via rejection sampling (no modulo bias). */
-function randomIndex(max: number): number {
-  const limit = Math.floor(0x1_0000_0000 / max) * max;
-  const buf = new Uint32Array(1);
-  let v: number;
-  do { v = crypto.getRandomValues(buf)[0]; } while (v >= limit);
-  return v % max;
-}
-
-/** Cryptographically random seal code for the given strength tier. */
-export function generateSealCode(s: SealStrength): string {
-  let out = "";
-  for (let i = 0; i < s.len; i++) {
-    out += s.numeric ? String(randomIndex(10)) : CODE_ALPHABET[randomIndex(CODE_ALPHABET.length)];
-  }
-  return out;
-}
-
-/** Display grouping — 4-glyph clusters read like a sigil: XXXX-XXXX-XXXX. */
-export function formatSealCode(code: string): string {
-  return code.length <= 4 ? code : (code.match(/.{1,4}/g) ?? [code]).join("-");
-}
-
-async function deriveKey(code: string, salt: Uint8Array): Promise<CryptoKey> {
-  const base = await crypto.subtle.importKey(
-    "raw", new TextEncoder().encode(code) as BufferSource, "PBKDF2", false, ["deriveKey"],
-  );
-  return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: salt as BufferSource, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
-    base, { name: "AES-GCM", length: 256 }, false, ["encrypt"],
-  );
-}
-
-/** Austin (Central) date + time-of-day, codex-safe (digits/letters/space/period). */
-function centralStamp(now: Date): { date: string; time: string } {
-  const parts = (opts: Intl.DateTimeFormatOptions) =>
-    new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", ...opts }).formatToParts(now);
-  const d = parts({ year: "numeric", month: "2-digit", day: "2-digit" });
-  const g = (t: string) => d.find((p) => p.type === t)?.value ?? "";
-  const date = `${g("year")}.${g("month")}.${g("day")}`;
-  const t = parts({ hour: "2-digit", minute: "2-digit", hour12: false, timeZoneName: "short" });
-  const gt = (t2: string) => t.find((p) => p.type === t2)?.value ?? "";
-  const tz = gt("timeZoneName").replace(/[^A-Z]/g, "");
-  const time = `${gt("hour")}.${gt("minute")} ${tz}`;
-  return { date, time };
-}
-
-// Live site + hosted reader. The reader is a STATIC, portable file
-// (public/seal.html): copy it to ANY domain and point ATLANTIS_READER_URL at
-// it — the sealed payload rides in the link's #fragment and is never sent to
-// the host, so it stays zero-knowledge. Default = current deploy (works today).
-export const SITE_URL = "https://exel-ai-polling.explore-096.workers.dev";
-export const ATLANTIS_READER_URL = SITE_URL + "/seal.html";
-
-/** Build the sealed package object (encryption + cover meta), as a JSON string.
- *  Shared by the offline file and the universal link — identical payload. */
-async function buildAtlantisPayloadJson(
-  sections: AccordSection[],
-  code: string,
-  clearance: number,
-  sender: string,
-): Promise<string> {
-  const lvl = Math.max(1, Math.min(MAX_CLEARANCE, Math.round(clearance)));
-  const snd = (sender || "eXeL AI").trim();
-
-  const { date, time } = centralStamp(new Date());
-  // Signed message encoded into the cover's Light Codex (hides in plain sight).
-  const codexMsg =
-    `THE ATLANTIS ACCORDS . WRITTEN 2026.07.04 . SENT ${date} ${time} AUSTIN TX . ${snd}`
-      .toUpperCase().replace(/[^A-Z0-9 .]/g, " ");
-  const helix = doubleHelix(codexMsg);
-
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveKey(code, salt);
-  const payload = JSON.stringify({
-    title: "The Atlantis Accords",
-    // Color-NAME (e.g. "RED") is deliberately NOT embedded — the level is
-    // conveyed only by border/accent color, never the spelled-out name.
-    clearance: lvl, color: CLEARANCE_COLORS[lvl],
-    sender: snd, codexDate: date, cstTime: time,
-    // nav = all 7 petal labels (tag + seven-word) so the flower matches the
-    // original; full content only for the unlocked (<= clearance) sections.
-    nav: sections.map((s) => ({ tag: s.tag, seven: s.content[7] })),
-    // Level-1 = the whole transmission: all 7 sections included and readable.
-    sections: sections.map((s) => ({ tag: s.tag, title: s.title, content: s.content })),
-  });
-  const cipher = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: iv as BufferSource }, key,
-    new TextEncoder().encode(payload) as BufferSource,
-  );
-
-  const pkg = {
-    v: 4, id: crypto.randomUUID(), it: PBKDF2_ITERATIONS,
-    // Code shape (length + digits-vs-glyphs) drives the reader's input UX.
-    // Knowing the shape does not weaken the key — the file's holder can read
-    // the ciphertext anyway; entropy is what defends it.
-    cl: code.length, num: /^[0-9]+$/.test(code),
-    salt: b64(salt), iv: b64(iv), ct: b64(cipher),
-    // Unencrypted cover meta (vague on purpose — the CONTENT stays sealed):
-    lvl, color: CLEARANCE_COLORS[lvl], sender: snd, codexDate: date, cstTime: time,
-    fwd: helix.fwd, rev: helix.rev,
-  };
-  return JSON.stringify(pkg);
-}
-
-/** Self-contained offline .html (Android / PC — opens directly). */
-export async function buildAtlantisPackageHtml(
-  sections: AccordSection[],
-  code: string,
-  clearance: number,
-  sender: string,
-): Promise<string> {
-  return htmlTemplate(await buildAtlantisPayloadJson(sections, code, clearance, sender));
-}
-
-/** base64url (UTF-8 safe) — for carrying the payload in the link #fragment. */
-function b64urlFromJson(json: string): string {
-  const bytes = new TextEncoder().encode(json);
-  let bin = "";
-  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-/** Universal link — opens the hosted reader in a real browser on ANY device
- *  (including iPhone/iPad, where local files can't run JS). The sealed payload
- *  is in the #fragment, never transmitted to the host. */
-export async function buildAtlantisLink(
-  sections: AccordSection[],
-  code: string,
-  clearance: number,
-  sender: string,
-): Promise<string> {
-  const json = await buildAtlantisPayloadJson(sections, code, clearance, sender);
-  return ATLANTIS_READER_URL + "#" + b64urlFromJson(json);
-}
-
-// ── The standalone document ──────────────────────────────────────────────────
-function htmlTemplate(pkgJson: string): string {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>◬ · ♡ · 웃</title>
 <style>
 :root{--bg:#0a0e14;--bd:#1e2b3a;--tx:#c8d6e5;--dim:#5f7186}
@@ -338,7 +78,8 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
       <div class="mini" id="burnHint"></div></div>
   </div>
 </div>
-<script id="pkg" type="application/json">${pkgJson}</script>
+<script id="pkg" type="application/json"></script>
+<script>(function(){var h=(location.hash||'').replace(/^#/,'');if(!h){document.body.innerHTML='<div style=\'min-height:100vh;display:flex;align-items:center;justify-content:center;color:#5f7186;font:14px -apple-system,Segoe UI,sans-serif;text-align:center;padding:24px\'>This reader opens a sealed Atlantis Accords link.<br>Please open the secure link you were sent.</div>';return;}try{h=h.replace(/-/g,'+').replace(/_/g,'/');while(h.length%4)h+='=';var bin=atob(h),by=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)by[i]=bin.charCodeAt(i);document.getElementById('pkg').textContent=new TextDecoder().decode(by);}catch(e){}})();</script>
 <script>
 (function(){
   var _pk=document.getElementById('pkg');
@@ -499,7 +240,7 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
     var a=att(),now=Date.now();
     if(a.u>now){e.textContent='Sealed against attempts. Try again in '+Math.ceil((a.u-now)/1000)+'s.';return;}
     // Accept pasted grouped codes (dashes/spaces stripped); glyphs are case-insensitive.
-    var c=codeEl.value.trim().toUpperCase().replace(/[\\s-]/g,'');
+    var c=codeEl.value.trim().toUpperCase().replace(/[\s-]/g,'');
     var re=new RegExp('^'+(PKG.num?'[0-9]':'[2-9A-HJ-KM-NP-Z]')+'{'+PKG.cl+'}$');
     if(!re.test(c)){e.textContent='Enter the '+PKG.cl+'-'+(PKG.num?'digit':'character')+' code.';return;}
     // On devices without native crypto the pure-JS KDF takes a couple seconds.
@@ -535,7 +276,7 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
   // save-picker API: the button stays hidden and the multi-vector seal governs.
   function sealedShell(){
     return '<!doctype html><html lang="en"><head><meta charset="utf-8">'
-      +'<meta name="viewport" content="width=device-width,initial-scale=1"><title>\\u25EC \\u00B7 \\u2661 \\u00B7 \\uC6C3</title></head>'
+      +'<meta name="viewport" content="width=device-width,initial-scale=1"><title>\u25EC \u00B7 \u2661 \u00B7 \uC6C3</title></head>'
       +'<body style="margin:0;background:'+PKG.color+'">'
       +'<div style="min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;'
       +'background:#0a0e14;margin:16px;border-radius:8px;color:#5f7186;font:14px -apple-system,Segoe UI,Roboto,sans-serif;text-align:center;padding:24px">'
@@ -556,5 +297,4 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
       }catch(e){/* picker dismissed — leave the soft seal in place */}};})();
 })();
 </script>
-</body></html>`;
-}
+</body></html>
