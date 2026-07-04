@@ -149,6 +149,26 @@ export function useAudioEngine(trackUrls: string[]) {
       await ctx.resume();
     }
 
+    // Mobile Chrome / iOS Safari unlock: register a one-time user-gesture
+    // listener on document that resumes the context. Mobile browsers only
+    // honour resume() inside a real gesture callback — a useEffect-driven
+    // resume from mount is silently ignored (2026-07-03 fix).
+    if (typeof document !== "undefined") {
+      const unlock = () => {
+        if (ctx.state === "suspended") {
+          void ctx.resume();
+        }
+        document.removeEventListener("touchstart", unlock);
+        document.removeEventListener("pointerdown", unlock);
+        document.removeEventListener("click", unlock);
+        document.removeEventListener("keydown", unlock);
+      };
+      document.addEventListener("touchstart", unlock, { once: false, passive: true });
+      document.addEventListener("pointerdown", unlock, { once: false, passive: true });
+      document.addEventListener("click", unlock, { once: false });
+      document.addEventListener("keydown", unlock, { once: false });
+    }
+
     ctxRef.current = ctx;
 
     // Build audio graph: master gain → analyser → destination
@@ -364,13 +384,26 @@ export function useAudioEngine(trackUrls: string[]) {
 
   // ── Play ────────────────────────────────────────────────────
 
-  const play = useCallback(() => {
+  const play = useCallback(async () => {
     const ctx = ctxRef.current;
     if (!ctx) return;
 
-    // Resume context if suspended (autoplay policy)
+    // Await resume BEFORE starting the source — mobile Chrome silently
+    // no-ops sources connected to a suspended context, so we can't fire
+    // startSource until resume() has actually resolved (2026-07-03 fix).
     if (ctx.state === "suspended") {
-      ctx.resume();
+      try {
+        await ctx.resume();
+      } catch {
+        // If resume rejects (no user gesture yet), the document-level
+        // unlock listener registered in initialize() will retry on tap.
+      }
+    }
+
+    if (ctx.state !== "running") {
+      // Still suspended — defer. The unlock listener will resume on gesture;
+      // the caller (or useEffect) will re-invoke play() when isPlaying flips.
+      return;
     }
 
     const idx = currentTrackRef.current;
