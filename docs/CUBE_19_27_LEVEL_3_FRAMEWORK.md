@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-04.7` · Master of Thought approved · `A.B..C` notation formalized in THREE modes: absolute positioning, swarm-relative positioning (Drone azimuth/elevation/radius from swarm center), and UCRS-2525 known-body surface positioning (Earth, Mars, Moon, any charted body). One notation, three semantic frames — Domain Play declares which mode applies. The substrate becomes the universal spatial language.
+**Contract version:** `L3-2026-07-04.8` · Master of Thought approved · Notation refined: 3-tuple `A.B..C` for absolute + known-body-surface modes, 4-tuple `A.B..C...D` for swarm-only mode (Drones-only or Mantas-only) where D = altitude/depth in metres (positive AGL up to 3333, negative subsurface from MSL). The number of dot separators (`.`, `..`, `...`) visually encodes hierarchy depth; user always knows they are at the finest altitude term when they see `...`.
 
 ---
 
@@ -45,7 +45,7 @@ Locked from Council of Twelve audit (2026-07-03) plus Master of Thought future-p
 | 5 | **Operational Protocol** | Runtime sequence the finished artifact must execute — verified before delivery | Manta-2525 6-step launch |
 | 6 | **Vision 2525 Principles** | 4 hard constraints all L3 cubes satisfy (see §3) | Sail Ark principles panel |
 | 7 | **Domain-declared axes** | Per-domain estimation dimensions plugged into Cube 24's interface | Architect-2525 11 axes / Manta-2525 specs / Drone-2525 KPIs |
-| 8 | **UCRS-2525 · Spatial Coordinate Frame** | Universal Coordinate Reference System. **Hierarchical base-3600 fixed-point notation** — `A.B..C` per axis (single dot between coarse and sub, DOUBLE dot before sub-sub — users always type `..` at the finest grain, so the deepest resolution is visually unmistakable). Each digit is an integer in `[0000-3599]`: A splits the 360° circle into 3600 coarse units (0.1° each — like minutes on a clock face), B splits each coarse unit into 3600 sub-units (~0.1 arc-second each), C splits each sub-unit into 3600 sub-sub-units (~0.1 milli-arc-second each). **Total resolution per axis: 46,656,000,000 discrete positions.** No decimals anywhere — every position is a deterministic integer tuple written as `AAAA.BBBB..CCCC`, cryptographically hashable, blockchain-anchor-friendly. At Earth-equator scale that resolves to ~0.86 mm per position; at Sun-Jupiter scale it resolves to ~17 km per position; the same math works from a component mounting point to a star in a solar system. C-axis spans NEGATIVE (underwater/subsurface) through zero (sea-level/terrain origin) to POSITIVE (aerial → orbital → interplanetary). Versioned on project Day 1 via Cube 11 blockchain. Cross-domain scenarios declare a shared frame OR an explicit declarative transform. **Every Domain Play declares which of three semantic modes the notation carries: (M1) Absolute Positioning** — fixed frame relative to a declared origin (barycenter, planetary core, docked reference station); **(M2) Swarm-Relative Positioning** — Drone-style azimuth/elevation/radius from the CENTER of the swarm (leader D01 or centroid), so a follower drone is located relative to its own team without recomputing absolute coordinates; **(M3) Known-Body Surface Positioning** — location ON the surface of a charted body (Earth, Mars, Moon, any body with a published UCRS-2525 mapping) using A as longitude-equivalent, B as latitude-equivalent, C as altitude/depth from mean surface. Cross-mode transforms are declarative (published in the Domain Play or Cube 19 config) and blockchain-anchored via Cube 11. **Scales:** subatomic · component · vehicle · swarm · arena · terrestrial · orbital · interplanetary — all in one coordinate contract, three semantic modes | Drone-2525 arena + Manta-2525 depth + planetary + solar-system positioning; the frame was generated from the 360-degree circle refined into a hierarchical base-3600 system with three semantic modes so one notation handles absolute positioning in the solar system AND swarm-relative positioning during flight AND surface positioning on any charted body — no notation change required |
+| 8 | **UCRS-2525 · Spatial Coordinate Frame** | Universal Coordinate Reference System. **Hierarchical base-3600 fixed-point notation** — `A.B..C` per axis (single dot between coarse and sub, DOUBLE dot before sub-sub — users always type `..` at the finest grain, so the deepest resolution is visually unmistakable). Each digit is an integer in `[0000-3599]`: A splits the 360° circle into 3600 coarse units (0.1° each — like minutes on a clock face), B splits each coarse unit into 3600 sub-units (~0.1 arc-second each), C splits each sub-unit into 3600 sub-sub-units (~0.1 milli-arc-second each). **Total resolution per axis: 46,656,000,000 discrete positions.** No decimals anywhere — every position is a deterministic integer tuple written as `AAAA.BBBB..CCCC`, cryptographically hashable, blockchain-anchor-friendly. At Earth-equator scale that resolves to ~0.86 mm per position; at Sun-Jupiter scale it resolves to ~17 km per position; the same math works from a component mounting point to a star in a solar system. C-axis spans NEGATIVE (underwater/subsurface) through zero (sea-level/terrain origin) to POSITIVE (aerial → orbital → interplanetary). Versioned on project Day 1 via Cube 11 blockchain. Cross-domain scenarios declare a shared frame OR an explicit declarative transform. **Every Domain Play declares which of three semantic modes the notation carries: (M1) Absolute Positioning** — `A.B..C` 3-tuple, fixed frame relative to a declared origin (barycenter, planetary core, docked reference station); **(M2) Swarm-Relative Positioning · 4-tuple `A.B..C...D`** — Drones-only OR Mantas-only swarm; A/B/C are azimuth/sub/sub-sub from the swarm CENTER (leader D01 for drones, mothership Sentinel or centroid for Mantas), and D is altitude/depth in metres — POSITIVE up to `3333` metres AGL (Above Ground Level), NEGATIVE below MSL (Mean Sea Level) for subsurface; **(M3) Known-Body Surface Positioning** — `A.B..C` 3-tuple, location ON the surface of a charted body (Earth, Mars, Moon, any body with a published UCRS-2525 mapping) using A as longitude-equivalent, B as latitude-equivalent, C as altitude/depth from mean surface. Cross-mode transforms are declarative (published in the Domain Play or Cube 19 config) and blockchain-anchored via Cube 11. **The dot-count encodes hierarchy depth**: `.` = sub, `..` = sub-sub, `...` = altitude/depth. Users always know they are at the finest term by counting dots. **Scales:** subatomic · component · vehicle · swarm · arena · terrestrial · orbital · interplanetary — all in one coordinate contract | Drone-2525 arena + Manta-2525 depth + planetary + solar-system positioning; the frame is a hierarchical base-3600 system with three semantic modes so one notation handles absolute solar-system positioning AND swarm-relative positioning during flight/dive AND surface positioning on any charted body — with the 4-tuple swarm mode carrying explicit AGL/MSL altitude so drones and Mantas know their own vertical position relative to Earth without needing an absolute-mode conversion |
 | 9 | **Multi-agent Coordination** | Leader / follower or pilot / targeter runtime hierarchies; extended to **Quorum Consensus** patterns (≥66% distributed agreement from N autonomous agents) for post-individual coordination | Drone-2525 D01 + D02-D12 swarm |
 | 10 | **Hardware Abstraction Layer (HAL)** | 6 hot-swappable slots (CPU/GPU/Inference/Screen/Sensors/Mobility) with auto-calibration; Raspberry-Pi + phone-browser baseline; **Degraded Mode fallback** if 9-min SLA impossible (see §4) | Vision 2525 low-compute-first requirement |
 | 11 | **Temporal Decoupling Envelope** | Async event-ordered causality vs wall-clock synchrony. Cube 19 state transitions + Cube 23 gates inherit event order, not timestamp. Domain Play declares `timing_model: [synchronous \| asynchronous \| hybrid]`. Cube 27 verifies protocols by causal chain, not time budget. | Odin (500-year predictive audit) — buys transition from silicon → neuromorphic → photonic → biological |
@@ -1193,30 +1193,38 @@ The single hardest scenario the Level 3 substrate must handle: **multiple underw
 **Hierarchical base-3600 fixed-point notation** — every position is an integer tuple, no decimals:
 
 ```
-axis A · azimuth        AAAA.BBBB..CCCC   coarse.sub..sub-sub, each 0000-3599
-axis B · elevation      AAAA.BBBB..CCCC   coarse.sub..sub-sub, each 0000-3599
-axis C · signed depth/altitude
-        integer metres, signed:
-          negative = underwater metres
-          zero     = sea-level / terrain origin
-          positive = altitude metres above surface
-          far      = orbital / interplanetary — extends into 3600.3600.3600
-                     multiplier at solar-system scale
+Absolute mode (M1) · 3-tuple    A.B..C            solar-system-wide
+Swarm mode (M2)   · 4-tuple    A.B..C...D        Drones-only OR Mantas-only
+Surface mode (M3) · 3-tuple    A.B..C            surface of charted body
+
+axis A · azimuth        0000-3599 (each digit)   base-3600
+axis B · sub-azimuth    0000-3599 (each digit)   base-3600
+axis C · sub-sub        0000-3599 (each digit)   base-3600
+axis D · altitude/depth (SWARM MODE ONLY):
+          positive = metres AGL (Above Ground Level), max 3333
+          negative = metres MSL (below Mean Sea Level, subsurface)
 ```
 
-**Resolution:** 3600 × 3600 × 3600 = 46,656,000,000 discrete positions per axis. At Earth-equator scale that's ~0.86 mm per position; at Sun-Jupiter distance ~17 km per position. Cryptographically hashable everywhere because everything stays integer.
+**Resolution (A/B/C):** 3600 × 3600 × 3600 = 46,656,000,000 discrete positions per axis. At Earth-equator scale that's ~0.86 mm per position; at Sun-Jupiter distance ~17 km per position. Cryptographically hashable everywhere because everything stays integer.
 
-**Example positions in one shared frame:**
+**Dot-count encodes hierarchy depth:** `.` = sub, `..` = sub-sub, `...` = altitude/depth. Reader visually locates the finest term by counting dots.
 
-| Entity | UCRS-2525 A (azimuth) | UCRS-2525 B (elevation) | UCRS-2525 C (depth/alt m) |
-|---|---|---|---|
-| Manta Sentinel 800 BE | `0450.1800..0000` | `2700.0000..0000` (nadir) | `-800` |
-| Manta Mini pod #A | `0455.2400..1200` | `2705.3599..0000` | `-42` |
-| Drone-2525 leader D01 | `0451.0900..3000` | `0900.1800..0000` (mid-elevation) | `+50` |
-| Drone-2525 follower D07 | `0452.2700..0000` | `0912.0000..0000` | `+52` |
-| Recon satellite pass | `1800.0000..0000` | `1800.0000..0000` (zenith) | `+400000` |
+**Example positions in one joint scenario (Manta swarm underwater + Drone swarm above):**
 
-The **same axis definitions scale** from a Manta at C=−800 m through Drones at C=+50 m to a satellite at C=+400,000 m to interplanetary distances via base-3600 multiplier chaining. Every hop is integer-representable.
+| Entity | Mode | A · B · C | D (m, AGL+ / MSL−) |
+|---|:-:|---|:-:|
+| Manta Sentinel 800 BE (Manta swarm centre reference) | M2 | `0000.0000..0000` | `-800` |
+| Manta Mini pod #A | M2 | `0450.1800..1200` | `-42` |
+| Manta Mini pod #B | M2 | `1200.2700..0000` | `-50` |
+| Drone leader D01 (Drone swarm centre reference) | M2 | `0000.0000..0000` | `+50` |
+| Drone follower D02 | M2 | `0451.0900..3000` | `+52` |
+| Drone follower D07 | M2 | `2700.1800..0000` | `+48` |
+| Recon satellite (absolute mode) | M1 | `1800.0000..0000` × 3 axes | (no D; use M1 3-tuple) |
+| Home construction site (surface mode) | M3 | `US-TX-Austin@1234.5600..7800` | (no D; C carries altitude in M3) |
+
+The Manta swarm has its own centre at `0000.0000..0000...-800`; the Drone swarm has its own centre at `0000.0000..0000...+50`. Each follower is located relative to its own swarm centre in a 4-tuple. Absolute-mode conversion (to interplanetary or solar-system frame) is a declarative transform published in the Domain Play, blockchain-anchored via Cube 11.
+
+**Why the 4-tuple for swarm mode:** a drone or Manta always knows its own altitude/depth relative to Earth (AGL or MSL) at every instant, encoded as a single explicit integer D, without needing to compute a coordinate transform. This makes safety-critical decisions (avoid ground, maintain minimum altitude, avoid surfacing under an ice sheet) fast and deterministic.
 
 ### 16.3 · Joint mission Domain Play — reference declaration
 
@@ -1419,4 +1427,5 @@ Innovation at the Speed of Thought means: prototype v1 to v2 to v3 doesn't take 
 | `L3-2026-07-04.4` | 2026-07-04 | **UCRS-2525 formalized as multi-scale + multi-medium coordinate system.** Primitive #8 upgraded: 3600-arc-radian resolution chosen instead of 360° for finer angular precision. C-axis spans negative (underwater), zero (sea level), positive (aerial → orbital → interplanetary). New §16 documents **the joint Manta + Drone cross-medium swarm scenario** as the substrate's most-complex validation test. |
 | `L3-2026-07-04.5` | 2026-07-04 | **Master of Thought future-proof mandate: primitives = cubes = 27.** Five new primitives close the globalization + generational-continuity gaps: **#23 Multi-Country Subsystem Marketplace**, **#24 Parallel Regional Build Federation** (≥3 regions simultaneously), **#25 Multi-Language Substrate Operation** (34+ languages across every artifact), **#26 Artifact Lifecycle Governance** (manufacture → recycle), **#27 Cross-Generational Governance Continuity** (25-year successor cycles). UCRS-2525 notation clarified. |
 | `L3-2026-07-04.6` | 2026-07-04 | **Testing Loop Pyramid + 7-day sensor SLA locked as the competitive differentiator.** New §17: SIL → PIL → HIL → HITL → Live pyramid mandatory before any hardware run. Any new sensor integrates in 7 days maximum. 3 domain-declared exercises before live. 13-capability competitive matrix vs Tesla + drone-swarm OTA. UCRS notation refined to `A.B..C`. |
-| `L3-2026-07-04.7` | 2026-07-04 | **`A.B..C` notation formalized in three semantic modes.** Primitive #8 upgraded: **(M1) Absolute Positioning** (fixed frame relative to declared origin — barycenter, planetary core, docked reference station), **(M2) Swarm-Relative Positioning** (Drone-style azimuth/elevation/radius from CENTER of the swarm — leader D01 or centroid; follower drone located relative to its own team without recomputing absolute coordinates), **(M3) Known-Body Surface Positioning** (location on Earth / Mars / Moon / any charted body using A as longitude-equivalent, B as latitude-equivalent, C as altitude/depth from mean surface). Every Domain Play declares which mode is in use; cross-mode transforms are declarative and blockchain-anchored. One notation, three semantic frames — the substrate becomes the universal spatial language across positioning contexts. |
+| `L3-2026-07-04.7` | 2026-07-04 | **`A.B..C` notation formalized in three semantic modes.** M1 Absolute (3-tuple) · M2 Swarm-Relative · M3 Known-Body Surface (3-tuple). |
+| `L3-2026-07-04.8` | 2026-07-04 | **Swarm-mode upgraded to 4-tuple `A.B..C...D`.** Drones-only OR Mantas-only swarms use `A.B..C...D` where A/B/C are base-3600 azimuth/sub/sub-sub from swarm centre and D is altitude/depth in metres — POSITIVE up to 3333 m AGL (Above Ground Level), NEGATIVE below MSL (Mean Sea Level) for subsurface. The dot-count now encodes hierarchy depth: `.` = sub · `..` = sub-sub · `...` = altitude/depth. Every drone and every Manta always knows its own AGL/MSL altitude explicitly as a signed integer without needing a coordinate transform — safety-critical vertical decisions (avoid ground, maintain minimum altitude, don't surface under ice) become fast and deterministic. Absolute (M1) + Known-Body Surface (M3) stay 3-tuple. Joint scenario example table in §16 updated with 4-tuple positions per Manta / Drone. |
