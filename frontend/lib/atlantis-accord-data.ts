@@ -114,3 +114,32 @@ export function getSection(sectionIdx: number, langCode: string): AccordSection 
 }
 
 export const WORD_LEVELS: WordLevel[] = [7, 33, 111, 333];
+
+// ─── Proposed Signatories ──────────────────────────────────────
+// Each founding region requires three visionary signatures — Government,
+// Education, Innovation — per the PILOT section. These are placeholder slots
+// ("pending") until real signers are ratified; the viewer renders them as a
+// 3-region Flower navigator (Cambodia / Honduras / Austin, Texas).
+export interface SignatureSlot {
+  role: "Government" | "Education" | "Innovation";
+  name: string; // "Pending signature" until ratified
+  title: string;
+  verified: boolean;
+}
+
+export interface ProposedSignatory {
+  region: string;
+  slots: SignatureSlot[];
+}
+
+const PENDING_SLOTS: SignatureSlot[] = [
+  { role: "Government", name: "Pending signature", title: "", verified: false },
+  { role: "Education", name: "Pending signature", title: "", verified: false },
+  { role: "Innovation", name: "Pending signature", title: "", verified: false },
+];
+
+export const PROPOSED_SIGNATORIES: ProposedSignatory[] = [
+  { region: "Cambodia", slots: PENDING_SLOTS.map((s) => ({ ...s })) },
+  { region: "Honduras", slots: PENDING_SLOTS.map((s) => ({ ...s })) },
+  { region: "Austin, Texas", slots: PENDING_SLOTS.map((s) => ({ ...s })) },
+];
