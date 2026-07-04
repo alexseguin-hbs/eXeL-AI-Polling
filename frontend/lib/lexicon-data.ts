@@ -367,6 +367,9 @@ const cube1: TranslationEntry[] = [
   { key: "cube1.settings.collapse", englishDefault: "Collapse", context: "Collapse section button", cubeId: 1 },
   { key: "cube1.settings.layer1", englishDefault: "Layer 1", context: "Grid layer 1 label", cubeId: 1 },
   { key: "cube1.settings.layer2_center", englishDefault: "Layer 2 — Center", context: "Grid layer 2 label", cubeId: 1 },
+  { key: "cube1.settings.level1", englishDefault: "Level 1", context: "Cube architecture level switcher — level 1", cubeId: 1 },
+  { key: "cube1.settings.level2", englishDefault: "Level 2", context: "Cube architecture level switcher — level 2", cubeId: 1 },
+  { key: "cube1.settings.level3", englishDefault: "Level 3", context: "Cube architecture level switcher — level 3", cubeId: 1 },
   // Language Lexicon panel
   { key: "cube1.settings.language_lexicon", englishDefault: "Language Lexicon", context: "Language lexicon section heading", cubeId: 1 },
   { key: "cube1.settings.languages_count", englishDefault: "languages", context: "Language count suffix", cubeId: 1 },
