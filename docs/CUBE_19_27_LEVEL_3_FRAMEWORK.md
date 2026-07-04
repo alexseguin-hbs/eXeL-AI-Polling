@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-03.9`
+**Contract version:** `L3-2026-07-04.0` · post-Council-of-Twelve audit — first true post-audit contract
 
 ---
 
@@ -32,9 +32,9 @@ Level 3 mirrors Level 1's spiral (Session → Text → Voice → Collector → G
 
 ---
 
-## 2 · The 10 substrate primitives
+## 2 · The 15 substrate primitives
 
-Locked from analysis of Architect-2525, Manta-2525, and Drone-2525, plus the low-compute-first delivery requirement. Any future domain must fit within these primitives; if not, the substrate is extended (never forked).
+Locked from Council of Twelve audit (2026-07-03). The original 10 primitives held; 5 new primitives were added post-audit to close future-proofing gaps. Any future domain must fit within these; if not, the substrate is extended (never forked).
 
 | # | Primitive | Contract | First surfaced by |
 |:-:|---|---|---|
@@ -45,9 +45,14 @@ Locked from analysis of Architect-2525, Manta-2525, and Drone-2525, plus the low
 | 5 | **Operational Protocol** | Runtime sequence the finished artifact must execute — verified before delivery | Manta-2525 6-step launch |
 | 6 | **Vision 2525 Principles** | 4 hard constraints all L3 cubes satisfy (see §3) | Sail Ark principles panel |
 | 7 | **Domain-declared axes** | Per-domain estimation dimensions plugged into Cube 24's interface | Architect-2525 11 axes / Manta-2525 specs / Drone-2525 KPIs |
-| 8 | **Spatial Coordinate Frame** | 3D coordinate spec (A/B/C or equivalent) — every waypoint / spec / delta expressed in the frame | Drone-2525 Azimuth/Elevation/Radius |
-| 9 | **Multi-agent Coordination** | Leader / follower or pilot / targeter runtime hierarchies | Drone-2525 D01 + D02-D12 swarm |
-| 10 | **Hardware Abstraction Layer (HAL)** | 6 hot-swappable slots (CPU/GPU/Inference/Screen/Sensors/Mobility) with auto-calibration; Raspberry-Pi + phone-browser baseline (see §4) | Vision 2525 low-compute-first requirement |
+| 8 | **UCRS-2525 · Spatial Coordinate Frame** | Universal Coordinate Reference System — 3D coord spec (A/B/C or equivalent) versioned on project Day 1 via Cube 11 blockchain; no late frame changes; cross-domain adversarial scenarios declare shared frame or explicit transform | Drone-2525 Azimuth/Elevation/Radius |
+| 9 | **Multi-agent Coordination** | Leader / follower or pilot / targeter runtime hierarchies; extended to **Quorum Consensus** patterns (≥66% distributed agreement from N autonomous agents) for post-individual coordination | Drone-2525 D01 + D02-D12 swarm |
+| 10 | **Hardware Abstraction Layer (HAL)** | 6 hot-swappable slots (CPU/GPU/Inference/Screen/Sensors/Mobility) with auto-calibration; Raspberry-Pi + phone-browser baseline; **Degraded Mode fallback** if 9-min SLA impossible (see §4) | Vision 2525 low-compute-first requirement |
+| 11 | **Temporal Decoupling Envelope** | Async event-ordered causality vs wall-clock synchrony. Cube 19 state transitions + Cube 23 gates inherit event order, not timestamp. Domain Play declares `timing_model: [synchronous \| asynchronous \| hybrid]`. Cube 27 verifies protocols by causal chain, not time budget. | Odin (500-year predictive audit) — buys transition from silicon → neuromorphic → photonic → biological |
+| 12 | **Scenario Library** | Monte Carlo parametric variant grid for uncertainty quantification. Distinct from Primitive #4 (Mode Matrix — discrete states); this is parametric sweeps that produce P10/P50/P90 cost, schedule, approval probability curves | Architect-2525 (archetypes × jurisdictions), Drone-2525 (swarm × complexity × environment), Manta-2525 (sea state × visibility × failure modes) |
+| 13 | **Risk Register** | Append-only per-project ledger with (probability × impact × mitigation × owner). ISO 31000 / PMI / COSO-aligned. Rows created by Cube 23 (gates) + Cube 27 (incidents), retired on mitigation. Blockchain-anchored via Cube 11. Every Cube 25 quote-lock carries current register hash | Preliminary SSSES + Thor (500-year threat vectors) |
+| 14 | **Portfolio View** | Cross-project rollup as virtual Cube 27+. Every Cube 19 Life Cycle's estimator + quote + actuals + risk register rolls up. Enables Markowitz risk-adjusted return, Cooper Stage-Gate kill-and-scale signals, portfolio-wide de-risking velocity | Preliminary SSSES — turns substrate into executive layer |
+| 15 | **Cryptographic Governance State Binding** | Every Cube 25 quote is cryptographically bound to a **Principle Compliance Manifest**: (a) HAL profile hash, (b) risk register hash, (c) estimator uncertainty bands hash, (d) human signer identity + role, (e) jurisdiction rules hash, (f) 4-principle attestation bitmap, (g) education artifact pointer. Any upstream input drift invalidates the quote's validity hash, forcing human re-approval instead of silent drift | Thor + Sofia + Aset merged (post-audit critical) — closes the 100-year audit-trail timebomb |
 
 ---
 
@@ -85,6 +90,33 @@ Vision 2525 must reach **phones, computers, and Raspberry-Pi-class devices world
 2. **Auto-calibration on any slot upgrade.** Swap camera 1080p → 4K → 8K → system auto-adjusts frame rate, inference cadence, network bandwidth, storage, and UI resolution. No manual tuning.
 3. **Python edge mockups first, native renderers second.** Cube 21 accepts a Python edge visualization as the *baseline* deliverable. Revit / Unity / Unreal / Blender exports come after the Python mockup validates on Pi + browser.
 4. **≤ 9 MINUTES from swap to operational.** Any component swap — CPU, GPU, edge neural-net inference module, screen, resolution, frame rate, transmission rate, sensor, mobility solution, any subsystem — completes full auto-calibration in **9 minutes or less**. This is the "Innovation at Speed of Thought" HAL SLA. The mechanism: standardized declarative slot interfaces (bus enumeration + capability negotiation) · pre-loaded baseline recalibration routines · hot-swap for batteries + sensors · cold-swap with 9-min reboot budget for CPU/GPU · configuration always in HAL profile YAML, never in code. **Anti-pattern to design against:** silent partial-init bugs like the mobile-Chrome AudioContext gesture requirement (fixed 2026-07-03) — every component MUST announce its capabilities and be auto-tuned by the substrate, no hidden manual step should EVER be required.
+
+### Degraded Mode fallback clause (post-Enki audit)
+
+The 9-minute rule is a **target**, not a physical law. Real-world edge cases (unknown-vendor component with no capability negotiation protocol, low-bandwidth firmware download > 9 min, cold-swap CPU with mismatched OS driver, mid-mission safety-critical swap underwater, cascading component failures triggering re-enumeration loops) require a graceful fallback.
+
+**Rule:** if recalibration exceeds 9 min OR a safety-critical subsystem times out, the substrate enters **Degraded Mode** — the affected component operates at baseline fidelity only, non-critical features suspended, the incident logged to the Risk Register (Primitive #13), and a human-review checkpoint fires at the next Cube 23 gate. Manta-2525 continues at reduced sonar fidelity rather than halting and venting at 120m depth. Drone-2525 flies at 30 FPS instead of 60 if GPU recalibration stalls.
+
+**HAL YAML schema addition:**
+
+```yaml
+hal_recalibration_sla:
+  ideal_case: 540             # seconds (9 minutes)
+  degraded_mode:
+    trigger:
+      - recalibration_exceeds_ideal_case
+      - safety_critical_subsystem_timeout
+      - cascading_re_enumeration_loop_detected
+    behavior:
+      - component_operates_at_baseline_fidelity_only
+      - non_critical_features_suspended
+      - risk_register_incident_logged
+    exit:
+      - human_approval_at_next_gate
+      - or_return_to_depot_for_maintenance
+```
+
+**Priority ordering during recalibration** (Enki's Atomic Recalibration Barrier): CPU → GPU → Inference → Sensors → Mobility. Each subsystem must report success or enter standby before the next begins. No cascading retries. Thermal Headroom Monitor aborts to degraded mode if retry count ≥ 3 OR temperature ≥ 70°C.
 
 ### Compute tiers (Low / Medium / High)
 
@@ -834,6 +866,113 @@ Two or more `X-2525` domains can be **pitted against each other** in the same si
 
 ---
 
+## 14 · Post-Council substrate machinery (Master of Thought → Council synthesis)
+
+The Council of Twelve audit (2026-07-03) surfaced that the substrate declares principles but does not yet mechanize them. This section documents the substrate-native machinery that turns declarations into enforceable contracts.
+
+### 14.1 · Humanity-at-Center Audit (Athena) — the ONE test that must never regress
+
+Every 90 days across the entire substrate, the following invariants MUST hold for every active project:
+
+| Invariant | Threshold | Enforcement |
+|---|:-:|---|
+| Human veto authority | ≥ 1 named human role holds veto at Cube 25 | Cube 25 approval must include `human_signer` field in Principle Compliance Manifest |
+| Veto exercise rate | ≥ 0.1% of quotes rejected or modified before execution | Cube 27 audit sweeps the Portfolio View every 90 days; alerts if rate drops |
+| Signature freshness | Human signer signed within past 90 days | Stale signatures → project auto-flagged for re-approval |
+
+This test survives 500 years because it is technology-independent — it measures that humans remain in the loop, not any particular authentication mechanism. It will migrate from blockchain-verified veto (2026) to quantum-resistant signature (~2070) to post-silicon neural audit trail (~2300) without changing meaning.
+
+### 14.2 · Cube 25 · Principle Compliance Manifest (Sofia + Thor + Aset)
+
+Every Cube 25 approval binds a manifest — cryptographically hashed into the quote-lock. This is Primitive #15 (Cryptographic Governance State Binding) made concrete.
+
+```yaml
+principle_compliance_manifest:
+  hal_profile_hash: "sha256:..."          # which HAL was actually active
+  risk_register_hash: "sha256:..."         # Primitive #13 snapshot at approval
+  estimator_uncertainty_hash: "sha256:..." # Primitive #12 scenario library slice
+  human_signer:
+    role: "architect | commander | biologist | homeowner | ..."
+    id_hash: "sha256:..."                  # privacy-preserving identity
+    signed_at: "iso8601"
+  jurisdiction_rules_hash: "sha256:..."    # regulatory context locked in
+  principle_attestations:                  # 4-bit bitmap
+    humanity_at_center: true
+    trust_through_transparency: true
+    quality_before_scale: true
+    one_earth_one_future: true
+  education_artifact_pointer: "ipfs://Qm..."  # citizen-readable explanation
+  ucrs_2525_version: "1.0.0"                  # coordinate frame locked
+  temporal_model: "synchronous | asynchronous | hybrid"
+```
+
+**If any upstream input drifts** (HAL swap, risk mitigation, estimator retrain, jurisdiction change), the manifest's validity hash becomes unverifiable → forces human re-approval → prevents silent drift.
+
+### 14.3 · Cube 27 · Operational Language Archive (Christo)
+
+Cube 27 does not sanitize. The Delivery & Actuals archive stores the **unedited operational language** of every project: radio-net transcripts, decision-moment records, hesitations, regrets, timing pressures. Written in the vocabulary of the domain — architect's back-and-forth with structural engineer; drone commander's engagement dialogue; naval architect's tank-test call-outs.
+
+**Substrate rule:** every project's Cube 27 archive is queryable by any citizen under Vision 2525 Principle #2 (Trust Through Transparency). If a decision was made under pressure, a future citizen can hear how the decision was made, not just what was decided.
+
+**This is what makes "Atlantean transparency" real.** Sanitized reports are trust-theater. Operational language is trust itself.
+
+### 14.4 · PJSON — Provenance JSON Lines universal record format (Thoth)
+
+Every Cube 24 / 25 / 27 / Portfolio record serializes as **one UTF-8 JSON object per line** in an append-only file. Self-describing, blockchain-anchored, principle-attested, and readable by any tool that speaks JSON — for the next 500 years.
+
+**Baseline PJSON record:**
+
+```json
+{
+  "record_type": "cube_25_quote_lock",
+  "schema_version": "1.0",
+  "project_id": "V2525-TinyHome-042",
+  "phase_gate": 3,
+  "timestamp_utc": "2026-07-03T14:22:18Z",
+  "data": { "cost_usd_p50": 220000, "duration_months_p50": 14 },
+  "provenance": {
+    "hal_profile_hash": "sha256:...",
+    "risk_register_hash": "sha256:...",
+    "estimator_uncertainty_hash": "sha256:...",
+    "human_signer": { "role": "architect", "id_hash": "sha256:...", "signed_at": "..." },
+    "jurisdiction": "US-TX-Austin",
+    "cube_11_chain_id": "quai:mainnet",
+    "cube_11_tx_hash": "0x..."
+  },
+  "vision_2525_principles": {
+    "humanity_at_center": true, "trust_through_transparency": true,
+    "quality_before_scale": true, "one_earth_one_future": true
+  },
+  "education_artifact_pointer": "ipfs://Qm..../V2525-TinyHome-042-education.md"
+}
+```
+
+Indexed by `(project_id, phase_gate, timestamp_utc)`. CSV fallback = flatten each PJSON to a row.
+
+### 14.5 · Cube 11 Anchor Contract (Krishna) — required BEFORE Phase A code
+
+The Council flagged Cube 11 as **the one contract that must never break**. Before any Level 3 code ships, `docs/CUBE_11_ANCHOR_CONTRACT.md` MUST land, locking:
+
+- Payload schemas for Cube 25 quote records + Cube 27 delivery records + Cube 13 risk register rows
+- Versioning rules (when and how the blockchain interface bumps)
+- Cryptographic algorithm migration policy for the 500-year horizon (SHA-256 → post-quantum lattice by ~2070 → whatever comes next)
+- Fallback handling for retired anchor formats — every historical proof must remain re-verifiable
+- Multi-chain policy (if Quai/QI is superseded, migration is designed-in from Day 1)
+
+**This is the 100-year timebomb the Council specifically named. Draft it first.**
+
+### 14.6 · UCRS-2525 versioning (Aset)
+
+Every project locks its UCRS-2525 version on Day 1 via Cube 11 blockchain anchor. No late frame changes. Cross-domain adversarial scenarios (Drone-2525 vs Security-2525) declare either a shared frame OR an explicit declarative transform between frames. Version history is queryable via PJSON.
+
+### 14.7 · Regional consensus federation (Christo)
+
+Cube 23 De-Risk Gateway runs at **regional UCRS-2525 nodes**, not centrally. Each locale (300K-5M citizen pop) runs its own De-Risk cron. Results syndicate upward via LINK-2525 without gate-blocking. Cube 27 delivery is global; approval is regional. This is how consensus scales from 3 → 3 billion participants without SIM-queue saturation.
+
+**Also (Christo):** Cube 25 forks into **dual-chain governance** for adversarial domains — attacker-approved quotes (path A) and defender-approved quotes (path B) both anchor separately on Cube 11. Cube 23 surfaces both; citizen chooses their principle alignment.
+
+---
+
 ## Change log
 
 | Version | Date | Change |
@@ -847,3 +986,4 @@ Two or more `X-2525` domains can be **pitted against each other** in the same si
 | `L3-2026-07-03.7` | 2026-07-03 | Security-2525 (Shield in the Sky · Air Defense) added as 4th Domain Play — zero new primitives required. 12-commander Council of Twelve operational protocol maps 1:1 to primitive #9 (Multi-agent Coordination), same pattern as the SSSES audit agents. Validation matrix expanded to 4 domains. First observation of a domain spanning milliseconds → years (Security-2525 time-scale span). Security-2525 named as adversarial partner for Drone-2525 (Drone attacks, Security defends). |
 | `L3-2026-07-03.8` | 2026-07-03 | New §9.5 · Concrete pre-build validation estimates. Cube 24 (Estimator AI) draft outputs for Architect-2525, Drone-2525, Manta-2525 with actual dollars ($570k-$1.05M pre-build, $3.85M-$7M full MVP), team sizes (3-4 per domain), phase durations (3-7 mo pre-build, 9-20 mo MVP), validation stacks (Unreal 5 + digital twin, CFD, ROS/Gazebo, Monte Carlo). Substrate now produces concrete outputs — not just design abstractions. |
 | `L3-2026-07-03.9` | 2026-07-03 | HAL 4th hard rule: **≤ 9 minutes** from any component swap to fully-operational auto-calibrated system. Applies to CPU, GPU, inference, screen, resolution, FPS, transmission rate, sensors, mobility, any subsystem. Framing: Atlantean protocol of innovation best practices — max transparency, education tied to real-world innovation. Evolution 2026 → 2525; no perfection required, but modular flexibility must compound monthly. |
+| `L3-2026-07-04.0` | 2026-07-03 | **Council of Twelve future-proofing audit landed.** Primitives grew 10 → 15: added #11 Temporal Decoupling Envelope (Odin), #12 Scenario Library, #13 Risk Register, #14 Portfolio View, #15 Cryptographic Governance State Binding (Thor + Sofia + Aset). Primitive #8 formalized as UCRS-2525 versioned contract. Primitive #9 extended to Quorum Consensus. HAL grew Degraded Mode fallback clause (Enki). New §14 documents post-Council substrate machinery: Humanity-at-Center Audit (Athena), Cube 25 Principle Compliance Manifest (Sofia), Cube 27 Operational Language Archive (Christo), PJSON universal record format (Thoth), Cube 11 Anchor Contract requirement (Krishna), regional consensus federation + dual-chain adversarial governance (Christo). |
