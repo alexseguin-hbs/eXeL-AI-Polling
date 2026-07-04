@@ -142,10 +142,10 @@ function TriangleFlower({
 
 type View = "accord" | "approvals" | "countries";
 
-const TABS: { id: View; label: string }[] = [
-  { id: "accord", label: "The Accords" },
-  { id: "countries", label: "Target Countries" },
-  { id: "approvals", label: "Proposed Approvals" },
+const TABS: { id: View; tKey: string }[] = [
+  { id: "accord", tKey: "shared.atlantis.tab_accords" },
+  { id: "countries", tKey: "shared.atlantis.tab_countries" },
+  { id: "approvals", tKey: "shared.atlantis.tab_approvals" },
 ];
 
 function FullscreenViewer({
@@ -155,6 +155,8 @@ function FullscreenViewer({
   onClose: () => void;
   langCode: string;
 }) {
+  const { t } = useLexicon();
+  const roleLabel = (role: string) => t(`shared.atlantis.role_${role.toLowerCase()}`);
   const [view, setView] = useState<View>("accord");
   const [activeIdx, setActiveIdx] = useState(0);
   const [tier, setTier] = useState<Tier>(33);
@@ -202,7 +204,7 @@ function FullscreenViewer({
   // Triangle-flower subtitles per view
   const approvalItems = SIGNATORIES_EN.map((s) => ({
     label: s.region,
-    subtitle: `${s.slots.filter((x) => x.verified).length} / ${s.slots.length} signatures`,
+    subtitle: `${s.slots.filter((x) => x.verified).length} / ${s.slots.length}`,
   }));
   const countryItems = TARGET_COUNTRIES_EN.map((c) => ({
     label: c.region,
@@ -216,7 +218,7 @@ function FullscreenViewer({
         <div>
           <h2 className="text-lg font-semibold">The Atlantis Accords</h2>
           <p className="text-[11px] text-muted-foreground">
-            Cambodia · Honduras · Austin, Texas — A promise signed by visionaries
+            {t("shared.atlantis.tagline")}
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
@@ -230,17 +232,17 @@ function FullscreenViewer({
         {/* LEFT — mode tabs (pinned top) + flower (fills remaining space) */}
         <div className="flex flex-col items-center min-h-0 gap-3">
           <div className="flex flex-wrap justify-center gap-2 shrink-0">
-            {TABS.map((t) => (
+            {TABS.map((tab) => (
               <button
-                key={t.id}
-                onClick={() => switchView(t.id)}
+                key={tab.id}
+                onClick={() => switchView(tab.id)}
                 className={`px-3 py-1 text-[11px] rounded-full transition-all ${
-                  view === t.id
+                  view === tab.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground hover:bg-accent"
                 }`}
               >
-                {t.label}
+                {t(tab.tKey)}
               </button>
             ))}
           </div>
@@ -288,7 +290,7 @@ function FullscreenViewer({
                         color: active ? "#fff" : c.stroke,
                       }}
                     >
-                      {c.label}
+                      {n} {t("shared.atlantis.words")}
                     </button>
                   );
                 })}
@@ -305,7 +307,7 @@ function FullscreenViewer({
             <>
               <h3 className="text-2xl font-bold tracking-tight mb-2">
                 <span className="text-foreground">{region.region}</span>{" "}
-                <span className="font-normal text-muted-foreground">· Proposed Approvals</span>
+                <span className="font-normal text-muted-foreground">· {t("shared.atlantis.tab_approvals")}</span>
               </h3>
               {/* 33-word overview: why all three signatures are required */}
               <p className="mb-4 text-sm text-muted-foreground leading-relaxed">
@@ -332,7 +334,7 @@ function FullscreenViewer({
                       >
                         <div>
                           <div className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                            {slot.role}
+                            {roleLabel(slot.role)}
                           </div>
                           <div className="text-[11px] text-muted-foreground">
                             {slot.representative}
@@ -343,7 +345,7 @@ function FullscreenViewer({
                             className="text-xs"
                             style={{ color: slot.verified ? color.stroke : undefined }}
                           >
-                            {slot.verified ? "✓ Signed" : "○ Pending"}
+                            {slot.verified ? `✓ ${t("shared.atlantis.signed")}` : `○ ${t("shared.atlantis.pending")}`}
                           </span>
                           <ChevronDown
                             className={`h-4 w-4 text-muted-foreground transition-transform ${
@@ -360,7 +362,7 @@ function FullscreenViewer({
                             {slot.attestation}
                           </p>
                           <div className="mt-2 pt-2 border-t border-border/40 text-[11px] text-muted-foreground italic">
-                            Signature: {slot.name}
+                            {t("shared.atlantis.signature")}: {slot.name}
                           </div>
                         </div>
                       )}
@@ -373,7 +375,7 @@ function FullscreenViewer({
             <>
               <h3 className="text-2xl font-bold tracking-tight mb-2">
                 <span className="text-foreground">{country.region}</span>{" "}
-                <span className="font-normal text-muted-foreground">· Target Country</span>
+                <span className="font-normal text-muted-foreground">· {t("shared.atlantis.country_suffix")}</span>
               </h3>
 
               <div
@@ -386,9 +388,9 @@ function FullscreenViewer({
                 </p>
                 <div className="space-y-2">
                   {[
-                    { label: "Primary Language", value: country.language },
-                    { label: "Rotation Stage", value: country.rotationStage },
-                    { label: "Unique Contribution", value: country.contribution },
+                    { label: t("shared.atlantis.field_language"), value: country.language },
+                    { label: t("shared.atlantis.field_stage"), value: country.rotationStage },
+                    { label: t("shared.atlantis.field_contribution"), value: country.contribution },
                   ].map((f) => (
                     <div key={f.label} className="rounded-lg border border-border p-3">
                       <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -439,7 +441,7 @@ function FullscreenViewer({
 // ─── Public component (Settings row) ────────────────────────────
 
 export function AtlantisAccordViewer() {
-  const { activeLocale } = useLexicon();
+  const { activeLocale, t } = useLexicon();
   const [open, setOpen] = useState(false);
 
   return (
@@ -454,7 +456,9 @@ export function AtlantisAccordViewer() {
             The Atlantis Accords
           </div>
         </div>
-        <span className="text-xs text-muted-foreground">7 sections</span>
+        <span className="text-xs text-muted-foreground">
+          {ACCORD_SECTIONS_EN.length} {t("shared.atlantis.sections")}
+        </span>
       </button>
 
       {open && (

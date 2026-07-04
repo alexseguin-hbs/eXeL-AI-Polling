@@ -166,6 +166,23 @@ const shared: TranslationEntry[] = [
   { key: "shared.nav.participants", englishDefault: "participants", context: "Participant count suffix", cubeId: 0 },
   { key: "shared.nav.off", englishDefault: "Off", context: "Toggle off label", cubeId: 0 },
   { key: "shared.nav.chars", englishDefault: "chars", context: "Character count suffix", cubeId: 0 },
+  // The Atlantis Accords viewer (Settings)
+  { key: "shared.atlantis.tagline", englishDefault: "A promise signed by visionaries", context: "Atlantis Accords subtitle tagline", cubeId: 0 },
+  { key: "shared.atlantis.tab_accords", englishDefault: "The Accords", context: "Atlantis viewer tab — accord sections", cubeId: 0 },
+  { key: "shared.atlantis.tab_countries", englishDefault: "Target Countries", context: "Atlantis viewer tab — target countries", cubeId: 0 },
+  { key: "shared.atlantis.tab_approvals", englishDefault: "Proposed Approvals", context: "Atlantis viewer tab — proposed approvals/signatories", cubeId: 0 },
+  { key: "shared.atlantis.words", englishDefault: "words", context: "Word-count tier suffix, e.g. '33 words'", cubeId: 0 },
+  { key: "shared.atlantis.sections", englishDefault: "sections", context: "Section count suffix, e.g. '7 sections'", cubeId: 0 },
+  { key: "shared.atlantis.signed", englishDefault: "Signed", context: "Signature status — signed", cubeId: 0 },
+  { key: "shared.atlantis.pending", englishDefault: "Pending", context: "Signature status — pending ratification", cubeId: 0 },
+  { key: "shared.atlantis.signature", englishDefault: "Signature", context: "Signature line label", cubeId: 0 },
+  { key: "shared.atlantis.field_language", englishDefault: "Primary Language", context: "Target country field label", cubeId: 0 },
+  { key: "shared.atlantis.field_stage", englishDefault: "Rotation Stage", context: "Target country field label", cubeId: 0 },
+  { key: "shared.atlantis.field_contribution", englishDefault: "Unique Contribution", context: "Target country field label", cubeId: 0 },
+  { key: "shared.atlantis.role_government", englishDefault: "Government", context: "Signatory role — government office", cubeId: 0 },
+  { key: "shared.atlantis.role_education", englishDefault: "Education", context: "Signatory role — education office", cubeId: 0 },
+  { key: "shared.atlantis.role_innovation", englishDefault: "Innovation", context: "Signatory role — innovation office", cubeId: 0 },
+  { key: "shared.atlantis.country_suffix", englishDefault: "Target Country", context: "Target country page header suffix", cubeId: 0 },
 ];
 
 const cube1: TranslationEntry[] = [
