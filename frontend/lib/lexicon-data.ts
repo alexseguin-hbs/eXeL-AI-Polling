@@ -370,6 +370,9 @@ const cube1: TranslationEntry[] = [
   { key: "cube1.settings.level1", englishDefault: "Level 1", context: "Cube architecture level switcher — level 1", cubeId: 1 },
   { key: "cube1.settings.level2", englishDefault: "Level 2", context: "Cube architecture level switcher — level 2", cubeId: 1 },
   { key: "cube1.settings.level3", englishDefault: "Level 3", context: "Cube architecture level switcher — level 3", cubeId: 1 },
+  { key: "cube1.settings.level1_caption", englishDefault: "Operate", context: "Cube level 1 caption — the operating engine", cubeId: 1 },
+  { key: "cube1.settings.level2_caption", englishDefault: "Prove · Value · Govern", context: "Cube level 2 caption — meta layer", cubeId: 1 },
+  { key: "cube1.settings.level3_caption", englishDefault: "Vision 2525 · Portable Substrate", context: "Cube level 3 caption — future substrate primitives (keep 'Vision 2525' as-is)", cubeId: 1 },
   // Language Lexicon panel
   { key: "cube1.settings.language_lexicon", englishDefault: "Language Lexicon", context: "Language lexicon section heading", cubeId: 1 },
   { key: "cube1.settings.languages_count", englishDefault: "languages", context: "Language count suffix", cubeId: 1 },

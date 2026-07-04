@@ -222,6 +222,11 @@ export function CubeArchitectureStatus() {
         ))}
       </div>
 
+      {/* Caption for the current level */}
+      <p className="text-[10px] text-muted-foreground -mt-1">
+        {t(`cube1.settings.level${level}_caption`)}
+      </p>
+
       {/* Selected level — 3×3 grid */}
       <div className="grid grid-cols-3 gap-1.5">
         {LEVELS[level - 1].flat().map((cube) => (
