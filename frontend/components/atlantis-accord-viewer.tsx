@@ -1,166 +1,87 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { X, Expand } from "lucide-react";
+import { X, Expand, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLexicon } from "@/lib/lexicon-context";
-import {
-  ACCORD_SECTIONS_EN,
-  MOOD_PALETTE,
-  getSection,
-  type MoodTheme,
-  type WordLevel,
-} from "@/lib/atlantis-accord-data";
+import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
+import { getTheme2_6Positions, getHubPosition } from "@/lib/flower-geometry";
+import type { ThemeInfo } from "@/lib/types";
+import "@/components/flower-of-life/flower-animations.css";
+import { ACCORD_SECTIONS_EN, getSection } from "@/lib/atlantis-accord-data";
 
-// ─── Flower of Life · 6-outer + 1-center visualization ─────────
-// Mirrors the Cube 7 / Divinity Guide flower: hex arrangement, one hub.
-// Sections 1–6 (PILOT..EDUCATE) sit on the outer ring; section 7 (EXPAND)
-// sits at the center as the "Humanity" core — the 7th theme that
-// sustains and expands the accord across generations.
+// ─── Word tier → color ─────────────────────────────────────────
+// The tier selector doubles as the flower's color theme, reusing the
+// dashboard Theme1 palette: 33 = Red, 111 = Blue, 333 = Green.
+type Tier = 33 | 111 | 333;
+const TIER_COLORS: Record<Tier, { label: string; fill: string; stroke: string }> = {
+  33: { label: "33 words", fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
+  111: { label: "111 words", fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
+  333: { label: "333 words", fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+};
 
-const FLOWER_LAYOUT = [
-  { idx: 0, angle: -Math.PI / 2 },            // PILOT top
-  { idx: 1, angle: -Math.PI / 2 + Math.PI / 3 },   // REPLAY upper-right
-  { idx: 2, angle: -Math.PI / 2 + 2 * Math.PI / 3 }, // QUALIFY lower-right
-  { idx: 3, angle: -Math.PI / 2 + 3 * Math.PI / 3 }, // CERTIFY bottom
-  { idx: 4, angle: -Math.PI / 2 + 4 * Math.PI / 3 }, // ADOPT lower-left
-  { idx: 5, angle: -Math.PI / 2 + 5 * Math.PI / 3 }, // EDUCATE upper-left
-];
-const CENTER_IDX = 6; // EXPAND = center = "Humanity"
+// ─── Flower of Life · 6 petals + 1 hub ─────────────────────────
+// Reuses the dashboard theme-results visualization (Theme 01 → 6 sub-themes):
+// same overlapping-petal geometry, same ThemeCircle renderer. Sections 1–6
+// (PILOT..EDUCATE) fill the six petals; section 7 (EXPAND) is the center hub.
+
+const HEX_POSITIONS = getTheme2_6Positions();
+const HUB_POSITION = getHubPosition();
+const CENTER_IDX = 6; // EXPAND = center hub
+
+// Adapt an accord section into the ThemeInfo shape ThemeCircle expects.
+// No counts/confidence for the accords — the 7-word overview is the descriptor.
+function sectionTheme(idx: number): ThemeInfo {
+  const s = ACCORD_SECTIONS_EN[idx];
+  return { label: s.tag, count: 0, avgConfidence: 0, summary33: s.content[7] };
+}
 
 function AccordFlower({
   activeIdx,
   onSelect,
-  mood,
+  color,
 }: {
   activeIdx: number;
   onSelect: (i: number) => void;
-  mood: MoodTheme;
+  color: { fill: string; stroke: string };
 }) {
-  const palette = MOOD_PALETTE[mood];
-  const cx = 200;
-  const cy = 200;
-  const r = 42;
-  const orbit = 110;
+  const fillFor = (idx: number) =>
+    idx === activeIdx ? color.stroke + "44" : color.fill;
 
   return (
     <svg
-      viewBox="0 0 400 400"
-      className="w-full h-full"
-      style={{ overflow: "visible" }}
+      viewBox="0 0 600 500"
+      preserveAspectRatio="xMidYMid meet"
+      className="w-full"
+      style={{ overflow: "visible", maxHeight: 520 }}
     >
-      {/* connecting lines hub → outer petals */}
-      {FLOWER_LAYOUT.map((p) => {
-        const x = cx + orbit * Math.cos(p.angle);
-        const y = cy + orbit * Math.sin(p.angle);
-        const isActive = p.idx === activeIdx;
-        return (
-          <line
-            key={`l-${p.idx}`}
-            x1={cx}
-            y1={cy}
-            x2={x}
-            y2={y}
-            stroke={palette.stroke}
-            strokeOpacity={isActive ? 0.5 : 0.15}
-            strokeWidth={isActive ? 2 : 1.5}
-          />
-        );
-      })}
+      {/* Center hub — EXPAND (drawn first so petals overlap its edges) */}
+      <ThemeCircle
+        cx={HUB_POSITION.cx}
+        cy={HUB_POSITION.cy}
+        r={HUB_POSITION.r}
+        theme={sectionTheme(CENTER_IDX)}
+        fill={fillFor(CENTER_IDX)}
+        stroke={color.stroke}
+        onClick={() => onSelect(CENTER_IDX)}
+        isHub
+      />
 
-      {/* Center petal = EXPAND / Humanity (7th core theme) */}
-      {(() => {
-        const section = ACCORD_SECTIONS_EN[CENTER_IDX];
-        const isActive = activeIdx === CENTER_IDX;
-        return (
-          <g onClick={() => onSelect(CENTER_IDX)} style={{ cursor: "pointer" }}>
-            <circle
-              cx={cx}
-              cy={cy}
-              r={r}
-              fill={isActive ? palette.stroke + "40" : palette.fill}
-              stroke={palette.hub}
-              strokeWidth={isActive ? 3 : 2}
-              style={{
-                transition: "all 300ms ease",
-                filter: isActive ? `drop-shadow(0 0 10px ${palette.stroke})` : undefined,
-              }}
-            />
-            <text
-              x={cx}
-              y={cy - 4}
-              textAnchor="middle"
-              fontSize={13}
-              fill={palette.hub}
-              fontWeight={700}
-              style={{ pointerEvents: "none" }}
-            >
-              {section.tag}
-            </text>
-            <text
-              x={cx}
-              y={cy + 12}
-              textAnchor="middle"
-              fontSize={9}
-              fill="#9CA3AF"
-              fontWeight={500}
-              style={{ pointerEvents: "none" }}
-            >
-              Humanity
-            </text>
-          </g>
-        );
-      })()}
-
-      {/* 6 outer petals */}
-      {FLOWER_LAYOUT.map((p) => {
-        const section = ACCORD_SECTIONS_EN[p.idx];
-        const x = cx + orbit * Math.cos(p.angle);
-        const y = cy + orbit * Math.sin(p.angle);
-        const isActive = p.idx === activeIdx;
-        return (
-          <g
-            key={`p-${p.idx}`}
-            onClick={() => onSelect(p.idx)}
-            style={{ cursor: "pointer" }}
-          >
-            <circle
-              cx={x}
-              cy={y}
-              r={r}
-              fill={isActive ? palette.stroke + "40" : palette.fill}
-              stroke={palette.stroke}
-              strokeWidth={isActive ? 3 : 1.5}
-              style={{
-                transition: "all 300ms ease",
-                filter: isActive ? `drop-shadow(0 0 10px ${palette.stroke})` : undefined,
-              }}
-            />
-            <text
-              x={x}
-              y={y - 2}
-              textAnchor="middle"
-              fontSize={12}
-              fill={palette.stroke}
-              fontWeight={isActive ? 700 : 600}
-              style={{ pointerEvents: "none" }}
-            >
-              {section.tag}
-            </text>
-            <text
-              x={x}
-              y={y + 12}
-              textAnchor="middle"
-              fontSize={8}
-              fill="#9CA3AF"
-              fontWeight={500}
-              style={{ pointerEvents: "none" }}
-            >
-              {section.page}
-            </text>
-          </g>
-        );
-      })}
+      {/* 6 outer petals — PILOT..EDUCATE */}
+      {HEX_POSITIONS.map((pos, i) => (
+        <ThemeCircle
+          key={i}
+          cx={pos.cx}
+          cy={pos.cy}
+          r={pos.r}
+          theme={sectionTheme(i)}
+          fill={fillFor(i)}
+          stroke={color.stroke}
+          onClick={() => onSelect(i)}
+          bloom
+          bloomDelay={i * 80}
+        />
+      ))}
     </svg>
   );
 }
@@ -175,10 +96,10 @@ function FullscreenViewer({
   langCode: string;
 }) {
   const [activeIdx, setActiveIdx] = useState(0);
-  const [level, setLevel] = useState<Exclude<WordLevel, 7>>(33); // default 33
-  const [mood, setMood] = useState<MoodTheme>("neutral");
+  const [tier, setTier] = useState<Tier>(33);
 
   const section = useMemo(() => getSection(activeIdx, langCode), [activeIdx, langCode]);
+  const color = TIER_COLORS[tier];
 
   return (
     <div className="fixed inset-0 z-[70] bg-background/98 backdrop-blur-md flex flex-col">
@@ -197,71 +118,52 @@ function FullscreenViewer({
 
       {/* Body: two columns */}
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6 px-6 py-6 overflow-hidden">
-        {/* LEFT — Flower */}
-        <div className="flex flex-col items-center justify-center min-h-0">
-          <div className="w-full max-w-[520px] aspect-square">
-            <AccordFlower activeIdx={activeIdx} onSelect={setActiveIdx} mood={mood} />
-          </div>
-
-          {/* Mood palette */}
-          <div className="mt-4 flex gap-2">
-            {(Object.keys(MOOD_PALETTE) as MoodTheme[]).map((m) => {
-              const p = MOOD_PALETTE[m];
-              const isActive = m === mood;
-              return (
-                <button
-                  key={m}
-                  onClick={() => setMood(m)}
-                  className={`text-[11px] px-3 py-1.5 rounded-full border transition-colors ${
-                    isActive ? "text-white" : "text-muted-foreground hover:bg-accent/50"
-                  }`}
-                  style={{
-                    borderColor: p.stroke,
-                    backgroundColor: isActive ? p.stroke : "transparent",
-                  }}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
+        {/* LEFT — Flower (reuses dashboard theme visualization) */}
+        <div className="flex items-center justify-center min-h-0">
+          <div className="w-full max-w-[560px]">
+            <AccordFlower activeIdx={activeIdx} onSelect={setActiveIdx} color={color} />
           </div>
         </div>
 
         {/* RIGHT — Text */}
         <div className="flex flex-col min-w-0 min-h-0 overflow-hidden">
-          {/* Section tag (large) + 7-word summary (grey, secondary) */}
-          <div className="mb-3">
-            <div className="text-[11px] text-muted-foreground">
-              Page {section.page} of 7 · {section.title}
-            </div>
-            <h3 className="text-3xl font-bold tracking-tight text-foreground">
-              {section.tag}
-            </h3>
-            <p className="mt-2 text-sm text-muted-foreground italic">
-              {section.content[7]}
-            </p>
-          </div>
+          {/* Header: "Page 1 PILOT · Where Innovation Begins"
+              — "Page 1 PILOT" white, everything after the bullet grey. */}
+          <h3 className="text-2xl font-bold tracking-tight mb-1">
+            <span className="text-foreground">
+              Page {section.page} {section.tag}
+            </span>{" "}
+            <span className="font-normal text-muted-foreground">· {section.title}</span>
+          </h3>
+          <p className="mb-3 text-sm text-muted-foreground italic">
+            {section.content[7]}
+          </p>
 
-          {/* Tier selector: 33 / 111 / 333 (7 is now the grey subtitle) */}
-          <div className="flex gap-1 mb-3">
-            {([33, 111, 333] as const).map((n) => (
-              <button
-                key={n}
-                onClick={() => setLevel(n)}
-                className={`text-xs px-3 py-1.5 rounded border transition-colors ${
-                  level === n
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border text-muted-foreground hover:bg-accent/50"
-                }`}
-              >
-                {n === 33 ? "33 words" : n === 111 ? "111 · 1 paragraph" : "333 · 3 paragraphs"}
-              </button>
-            ))}
+          {/* Tier selector — colors the overview AND the flower (33 R / 111 B / 333 G) */}
+          <div className="flex gap-2 mb-3">
+            {([33, 111, 333] as Tier[]).map((n) => {
+              const c = TIER_COLORS[n];
+              const isActive = tier === n;
+              return (
+                <button
+                  key={n}
+                  onClick={() => setTier(n)}
+                  className="text-xs px-3 py-1.5 rounded-full border font-medium transition-colors"
+                  style={{
+                    borderColor: c.stroke,
+                    backgroundColor: isActive ? c.stroke : "transparent",
+                    color: isActive ? "#fff" : c.stroke,
+                  }}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Body */}
           <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line overflow-y-auto pr-2 flex-1 min-h-0">
-            {section.content[level]}
+            {section.content[tier]}
           </div>
         </div>
       </div>
@@ -277,29 +179,30 @@ export function AtlantisAccordViewer() {
 
   return (
     <section>
+      {/* Bordered card row — matches the sibling settings rows (icon + title + action) */}
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center justify-between w-full text-left group"
+        className="group flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50"
       >
-        <div>
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-            The Atlantis Accords{" "}
-            <span className="text-[10px] text-muted-foreground/70 normal-case tracking-normal">
-              Viewer
-            </span>
-          </h3>
-          <p className="text-xs text-muted-foreground/80 mt-1">
-            Cambodia · Honduras · Austin, Texas — 7 sections · 33 languages
-          </p>
+        <div className="flex items-center gap-3">
+          <ScrollText className="h-5 w-5 shrink-0 text-primary" />
+          <div>
+            <div className="text-sm font-semibold text-foreground">
+              The Atlantis Accords
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Cambodia · Honduras · Austin, Texas
+            </div>
+          </div>
         </div>
-        <Expand className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="text-xs text-muted-foreground">7 sections</span>
+          <Expand className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+        </div>
       </button>
 
       {open && (
-        <FullscreenViewer
-          onClose={() => setOpen(false)}
-          langCode={activeLocale}
-        />
+        <FullscreenViewer onClose={() => setOpen(false)} langCode={activeLocale} />
       )}
     </section>
   );
