@@ -14,9 +14,11 @@
 // file and the one-time lock is soft (multi-vector storage flags — copies can
 // still be reopened). Seal strength is selectable: STANDARD 4-digit (~13 bits,
 // verbal share, casual deterrent) · FORTIFIED 7-glyph (~35 bits) · ABYSSAL
-// 12-glyph (~60 bits, beyond practical brute force). Hides in plain sight;
-// true consume-once revocation requires the server-gated path (key held behind
-// a WireGuard-whitelisted cube endpoint, burned on close) — planned upgrade.
+// 12-glyph (~60 bits, beyond practical brute force). Hides in plain sight.
+// Burn-on-close: on PC Chrome/Edge the sealed screen offers to overwrite the
+// original file with a dead shell (ciphertext destroyed); phones/Safari rely
+// on the multi-vector seal. True consume-once revocation requires the
+// server-gated path (WireGuard-whitelisted cube key endpoint) — Level-7 tier.
 
 import type { AccordSection } from "@/lib/atlantis-accord-data";
 
@@ -276,7 +278,9 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
     <!-- SEALED -->
     <div class="done" id="done" style="display:none"><div style="font-size:26px">&#9679;</div>
       <div class="hint">This copy has been closed and cannot be reopened</div>
-      <div class="mini">Request a fresh copy from the sender.</div></div>
+      <div class="mini">Request a fresh copy from the sender.</div>
+      <button id="burn" style="display:none;margin-top:10px">Burn this file</button>
+      <div class="mini" id="burnHint"></div></div>
   </div>
 </div>
 <script id="pkg" type="application/json">${pkgJson}</script>
@@ -388,6 +392,31 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
   document.getElementById('seal2').onclick=seal;
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'&&DATA)mark();});
   window.addEventListener('pagehide',function(){if(DATA)mark();});
+  // ── Burn-on-close (PC: Chrome/Edge File System Access API) ─────────────────
+  // Overwrites the original .html on disk with a dead sealed shell — the
+  // ciphertext is destroyed, not just flagged. Phones + Safari/Firefox have no
+  // save-picker API: the button stays hidden and the multi-vector seal governs.
+  function sealedShell(){
+    return '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+      +'<meta name="viewport" content="width=device-width,initial-scale=1"><title>\\u25EC \\u00B7 \\u2661 \\u00B7 \\uC6C3</title></head>'
+      +'<body style="margin:0;background:'+PKG.color+'">'
+      +'<div style="min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;'
+      +'background:#0a0e14;margin:16px;border-radius:8px;color:#5f7186;font:14px -apple-system,Segoe UI,Roboto,sans-serif;text-align:center;padding:24px">'
+      +'<div style="font-size:26px;color:'+PKG.color+'">&#9679;</div>'
+      +'<div style="letter-spacing:.12em;text-transform:uppercase;font-size:11px">This copy has been closed and cannot be reopened</div>'
+      +'<div style="font-size:11px">Request a fresh copy from the sender.</div></div></body></html>';}
+  (function(){var b=document.getElementById('burn');if(!window.showSaveFilePicker)return;
+    b.style.display='inline-block';
+    b.onclick=async function(){
+      var hint=document.getElementById('burnHint');
+      try{
+        var name=location.pathname.split('/').pop()||'Atlantis-Accords.html';
+        try{name=decodeURIComponent(name)}catch(e){}
+        var h=await window.showSaveFilePicker({suggestedName:name,types:[{description:'HTML document',accept:{'text/html':['.html']}}]});
+        var w=await h.createWritable();await w.write(sealedShell());await w.close();
+        b.textContent='Burned';b.disabled=true;
+        hint.textContent='The file has been overwritten with a sealed shell. The content is gone.';
+      }catch(e){/* picker dismissed — leave the soft seal in place */}};})();
 })();
 </script>
 </body></html>`;
