@@ -53,7 +53,12 @@ const SONG_PAIRINGS = [
   },
 ];
 
-const TRACK_URLS = SONG_PAIRINGS.map((s) => s.audio);
+// Cache-buster: the MP3 file *paths* never change across releases, so a phone
+// that fetched an earlier take (or the original WAV-era track) keeps serving the
+// stale bytes from HTTP/CDN cache — heard as a "hum like the old file". Bump
+// AUDIO_VERSION whenever the audio content changes to force a fresh fetch.
+const AUDIO_VERSION = "20260704";
+const TRACK_URLS = SONG_PAIRINGS.map((s) => `${s.audio}?v=${AUDIO_VERSION}`);
 
 /**
  * SimulationOverlay — transparent overlay on top of the current screen.

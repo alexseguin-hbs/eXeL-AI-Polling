@@ -279,11 +279,14 @@ function FullscreenViewer({
         </div>
       </div>
 
-      {/* Body: two columns. Extra bottom padding keeps the pager clear of the
+      {/* Body: responsive split — SAME engine as the Divinity Guide book reader.
+          Phone portrait (<md): flex-col, the whole body scrolls vertically.
+          Phone landscape + desktop (>=md): flex-row two-pane split, each pane
+          scrolls internally. Extra bottom padding keeps the pager clear of the
           floating eXeL badge (fixed bottom-6 right-6) when scrolled to the bottom. */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6 px-6 pt-10 pb-20 overflow-hidden">
-        {/* LEFT — mode tabs (pinned top) + flower (fills remaining space) */}
-        <div className="flex flex-col items-center min-h-0 gap-3">
+      <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-6 px-6 pt-10 pb-20 overflow-y-auto md:overflow-hidden">
+        {/* LEFT (md+) / TOP (mobile) — mode tabs (pinned top) + flower */}
+        <div className="w-full md:w-1/2 shrink-0 flex flex-col items-center gap-3 md:min-h-0">
           <div className="flex flex-wrap justify-center gap-2 shrink-0">
             {TABS.map((tab) => (
               <button
@@ -299,7 +302,7 @@ function FullscreenViewer({
               </button>
             ))}
           </div>
-          <div className="flex-1 min-h-0 w-full max-w-[560px] flex items-center justify-center">
+          <div className="w-full max-w-[560px] aspect-square md:aspect-auto md:flex-1 md:min-h-0 flex items-center justify-center">
             {view === "accord" ? (
               <AccordFlower activeIdx={activeIdx} onSelect={setActiveIdx} color={color} sevenLabels={sevenLabels} />
             ) : view === "approvals" ? (
@@ -310,9 +313,9 @@ function FullscreenViewer({
           </div>
         </div>
 
-        {/* RIGHT — reader */}
+        {/* RIGHT (md+) / BOTTOM (mobile) — reader */}
         <div
-          className="flex flex-col min-w-0 min-h-0 overflow-hidden"
+          className="w-full md:w-1/2 flex flex-col min-w-0 md:min-h-0 md:overflow-hidden"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
@@ -353,7 +356,7 @@ function FullscreenViewer({
 
               <div
                 key={`${activeIdx}-${tier}`}
-                className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line overflow-y-auto pr-2 flex-1 min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
+                className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line md:overflow-y-auto pr-2 md:flex-1 md:min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
               >
                 {section.content[tier]}
               </div>
@@ -371,7 +374,7 @@ function FullscreenViewer({
 
               <div
                 key={activeIdx}
-                className="space-y-3 overflow-y-auto pr-2 flex-1 min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
+                className="space-y-3 md:overflow-y-auto pr-2 md:flex-1 md:min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
               >
                 {region.slots.map((slot) => {
                   const key = `${activeIdx}:${slot.role}`;
@@ -435,7 +438,7 @@ function FullscreenViewer({
 
               <div
                 key={activeIdx}
-                className="space-y-4 overflow-y-auto pr-2 flex-1 min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
+                className="space-y-4 md:overflow-y-auto pr-2 md:flex-1 md:min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
               >
                 {/* Professional overview at top */}
                 <p className="text-sm text-foreground/90 leading-relaxed">
