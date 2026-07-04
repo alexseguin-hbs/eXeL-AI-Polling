@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, type TouchEvent } from "react";
-import { X, ScrollText } from "lucide-react";
+import { X, ScrollText, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLexicon } from "@/lib/lexicon-context";
 import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
@@ -158,6 +158,9 @@ function FullscreenViewer({
   const [view, setView] = useState<View>("accord");
   const [activeIdx, setActiveIdx] = useState(0);
   const [tier, setTier] = useState<Tier>(33);
+  // Which approval block is expanded — keyed by page + role so it auto-collapses
+  // when you turn to another country.
+  const [openKey, setOpenKey] = useState<string | null>(null);
 
   const section = useMemo(() => getSection(activeIdx, langCode), [activeIdx, langCode]);
   const region = getSignatory(activeIdx, langCode);
@@ -304,41 +307,66 @@ function FullscreenViewer({
                 <span className="text-foreground">{region.region}</span>{" "}
                 <span className="font-normal text-muted-foreground">· Proposed Approvals</span>
               </h3>
-              {/* Professional overview at top */}
+              {/* 33-word overview: why all three signatures are required */}
               <p className="mb-4 text-sm text-muted-foreground leading-relaxed">
-                {region.preamble}
+                {region.rationale}
               </p>
 
               <div
                 key={activeIdx}
                 className="space-y-3 overflow-y-auto pr-2 flex-1 min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
               >
-                {region.slots.map((slot) => (
-                  <div key={slot.role} className="rounded-lg border border-border p-3">
-                    <div className="flex items-start justify-between gap-3 mb-1.5">
-                      <div>
-                        <div className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                          {slot.role}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground">
-                          {slot.representative}
-                        </div>
-                      </div>
-                      <span
-                        className="text-xs shrink-0"
-                        style={{ color: slot.verified ? color.stroke : undefined }}
+                {region.slots.map((slot) => {
+                  const key = `${activeIdx}:${slot.role}`;
+                  const isOpen = openKey === key;
+                  return (
+                    <div
+                      key={slot.role}
+                      className="rounded-lg border border-border overflow-hidden"
+                    >
+                      {/* Header row — click to expand the office's description */}
+                      <button
+                        onClick={() => setOpenKey(isOpen ? null : key)}
+                        aria-expanded={isOpen}
+                        className="flex w-full items-start justify-between gap-3 p-3 text-left transition-colors hover:bg-accent/40"
                       >
-                        {slot.verified ? "✓ Signed" : "○ Pending"}
-                      </span>
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                            {slot.role}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {slot.representative}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span
+                            className="text-xs"
+                            style={{ color: slot.verified ? color.stroke : undefined }}
+                          >
+                            {slot.verified ? "✓ Signed" : "○ Pending"}
+                          </span>
+                          <ChevronDown
+                            className={`h-4 w-4 text-muted-foreground transition-transform ${
+                              isOpen ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
+                      </button>
+
+                      {/* Expanded description */}
+                      {isOpen && (
+                        <div className="px-3 pb-3 border-t border-border/50">
+                          <p className="pt-2 text-xs text-foreground/80 leading-relaxed">
+                            {slot.attestation}
+                          </p>
+                          <div className="mt-2 pt-2 border-t border-border/40 text-[11px] text-muted-foreground italic">
+                            Signature: {slot.name}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-xs text-foreground/80 leading-relaxed">
-                      {slot.attestation}
-                    </p>
-                    <div className="mt-2 pt-2 border-t border-border/50 text-[11px] text-muted-foreground italic">
-                      Signature: {slot.name}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           ) : (

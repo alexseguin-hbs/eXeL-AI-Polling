@@ -133,9 +133,13 @@ export interface SignatureSlot {
 
 export interface ProposedSignatory {
   region: string;
-  preamble: string; // official opening for this region's signature page
+  rationale: string; // 33-word overview: why all three signatures are required
   slots: SignatureSlot[];
 }
+
+// Shared 33-word rationale — why every region needs all three signatures.
+const WHY_THREE_SIGNATURES =
+  "These three signatures bind a region as one: Government to protect its people, Education to teach across cultures, and Innovation to build what is safe. No single office can promise the accord alone.";
 
 // Role attestations are shared across regions — each region signs the same
 // three commitments, drawn from the accord's PILOT/QUALIFY/EDUCATE sections.
@@ -149,7 +153,7 @@ const INNOVATION_ATTESTATION =
 function proposedRegion(region: string): ProposedSignatory {
   return {
     region,
-    preamble: `The founding region of ${region} enters The Atlantis Accords through three visionary offices — Government, Education, and Innovation. No single office binds the region alone; ratification requires all three signatures below.`,
+    rationale: WHY_THREE_SIGNATURES,
     slots: [
       {
         role: "Government",
