@@ -8,8 +8,15 @@
  * only; live data-fusion wiring comes later. Self-contained tactical dark theme.
  * See docs/SECURITY_2525_FRAMEWORK.md §7.
  */
-import { ArrowLeft, X, Cpu } from "lucide-react";
+import { useState } from "react";
+import {
+  ArrowLeft, X, Cpu, LayoutDashboard, Radar, Crosshair, Swords,
+  Package, Activity, Gamepad2, ClipboardList,
+} from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
+import {
+  AssetIcon, ASSET_ORDER, ASSET_LABELS, type IconStyle,
+} from "@/components/security-2525/asset-icons";
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -17,7 +24,16 @@ const C = {
   green: "#22c55e", amber: "#f59e0b", red: "#ef4444", magenta: "#d946ef",
 };
 
-const NAV = ["OVERVIEW", "SENSORS", "THREAT VIEW", "ENGAGEMENT", "LOGISTICS", "MISSION HEALTH", "TRAINING & VR", "AFTER ACTION"];
+const NAV: [string, React.ComponentType<{ className?: string }>][] = [
+  ["OVERVIEW", LayoutDashboard],
+  ["SENSORS", Radar],
+  ["THREAT VIEW", Crosshair],
+  ["ENGAGEMENT", Swords],
+  ["LOGISTICS", Package],
+  ["MISSION HEALTH", Activity],
+  ["TRAINING & VR", Gamepad2],
+  ["AFTER ACTION", ClipboardList],
+];
 
 const COMPOSITION = [
   { k: "Cruise Missile", n: 2, c: C.red },
@@ -69,6 +85,7 @@ function Bar({ label, pct }: { label: string; pct: number }) {
 
 export function SecurityCommandUX1() {
   const { setVisionView, exitSimulationMode } = useEasterEgg();
+  const [iconStyle, setIconStyle] = useState<IconStyle>("mil");
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
@@ -83,6 +100,23 @@ export function SecurityCommandUX1() {
           <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: "#1a2436", color: C.amber }}>PRELIMINARY</span>
         </div>
         <div className="flex items-center gap-3">
+          {/* Iconology toggle: MIL-STD-2525 ⇄ eXeL-STD-2525 */}
+          <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+            {(["mil", "exel"] as IconStyle[]).map((s) => (
+              <button
+                key={s}
+                onClick={() => setIconStyle(s)}
+                className="px-2 py-1 transition-colors"
+                style={{
+                  background: iconStyle === s ? "#152238" : "transparent",
+                  color: iconStyle === s ? C.cyan : C.dim,
+                }}
+                title={s === "mil" ? "MIL-STD-2525 iconology" : "eXeL-STD-2525 iconology"}
+              >
+                {s === "mil" ? "MIL-STD-2525" : "eXeL-STD-2525"}
+              </button>
+            ))}
+          </div>
           <span className="hidden md:inline text-[10px]" style={{ color: C.dim }}>OPERATOR: ALPHA-1</span>
           <span className="text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
           <button onClick={exitSimulationMode} className="p-1.5 rounded hover:bg-white/5" title="Exit">
@@ -93,9 +127,10 @@ export function SecurityCommandUX1() {
 
       {/* Nav tabs */}
       <div className="flex gap-1 overflow-x-auto border-b px-4 py-1.5" style={{ borderColor: C.border }}>
-        {NAV.map((tab, i) => (
-          <button key={tab} className="whitespace-nowrap rounded px-2.5 py-1 text-[10px] tracking-wide transition-colors"
+        {NAV.map(([tab, Icon], i) => (
+          <button key={tab} className="flex items-center gap-1.5 whitespace-nowrap rounded px-2.5 py-1 text-[10px] tracking-wide transition-colors"
             style={{ background: i === 0 ? "#152238" : "transparent", color: i === 0 ? C.cyan : C.dim }}>
+            <Icon className="h-3.5 w-3.5" />
             {tab}
           </button>
         ))}
@@ -131,6 +166,21 @@ export function SecurityCommandUX1() {
             <div className="grid grid-cols-2 gap-1 text-[10px]" style={{ color: C.dim }}>
               <span>Wind 12 kts</span><span>Temp 18°C</span>
               <span>Vis 8 km</span><span>Rain 10%</span>
+            </div>
+          </Panel>
+          <Panel title={`Air Defense Assets · ${iconStyle === "mil" ? "MIL-STD-2525" : "eXeL-STD-2525"}`} accent={C.cyan}>
+            <div className="mb-2 flex items-center gap-3 text-[9px]" style={{ color: C.dim }}>
+              <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm" style={{ background: "#38bdf8" }} /> FRIENDLY</span>
+              <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm" style={{ background: "#ef4444" }} /> ENEMY</span>
+            </div>
+            <div className="space-y-1.5">
+              {ASSET_ORDER.map((asset) => (
+                <div key={asset} className="flex items-center gap-2">
+                  <AssetIcon asset={asset} style={iconStyle} affiliation="friendly" size={26} />
+                  <AssetIcon asset={asset} style={iconStyle} affiliation="hostile" size={26} />
+                  <span className="text-[11px]" style={{ color: C.text }}>{ASSET_LABELS[asset]}</span>
+                </div>
+              ))}
             </div>
           </Panel>
         </div>

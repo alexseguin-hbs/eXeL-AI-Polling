@@ -1,0 +1,160 @@
+"use client";
+
+/**
+ * SECURITY-2525 · Air-Defense Asset Icons
+ * =======================================
+ * Two switchable iconologies for the four reference assets (Avenger / Patriot /
+ * THAAD / Sentinel), derived from the operator's reference infographics:
+ *
+ *   • "mil"  — MIL-STD-2525-inspired: affiliation FRAME (hostile = red diamond,
+ *              friendly = blue rectangle) + an air-defense glyph per asset.
+ *   • "exel" — eXeL-STD-2525: stylized platform silhouette in affiliation color.
+ *
+ * Affiliation drives color — HOSTILE (enemy) = red. Self-contained inline SVG
+ * (no external assets — CSP-safe, works offline / slow links).
+ */
+export type IconStyle = "mil" | "exel";
+export type Affiliation = "friendly" | "hostile";
+export type AssetKind = "avenger" | "patriot" | "thaad" | "sentinel";
+
+const HOSTILE = "#ef4444";       // red — enemy
+const FRIENDLY = "#38bdf8";      // cyan-blue — friendly
+
+export const ASSET_LABELS: Record<AssetKind, string> = {
+  avenger: "AVENGER",
+  patriot: "PATRIOT",
+  thaad: "THAAD",
+  sentinel: "SENTINEL",
+};
+
+export const ASSET_ORDER: AssetKind[] = ["avenger", "patriot", "thaad", "sentinel"];
+
+function affColor(aff: Affiliation) {
+  return aff === "hostile" ? HOSTILE : FRIENDLY;
+}
+
+// ── MIL-STD-2525-inspired: affiliation frame + per-asset AD glyph ────────────
+function MilFrame({ aff, children }: { aff: Affiliation; children: React.ReactNode }) {
+  const c = affColor(aff);
+  const fill = aff === "hostile" ? "#ef444422" : "#38bdf822";
+  return (
+    <>
+      {aff === "hostile" ? (
+        // hostile land = diamond
+        <polygon points="16,3 29,16 16,29 3,16" fill={fill} stroke={c} strokeWidth="1.6" />
+      ) : (
+        // friendly land = rectangle
+        <rect x="4" y="7" width="24" height="18" rx="1" fill={fill} stroke={c} strokeWidth="1.6" />
+      )}
+      {children}
+    </>
+  );
+}
+
+function milGlyph(asset: AssetKind, c: string) {
+  switch (asset) {
+    case "sentinel": // radar arcs
+      return (
+        <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
+          <path d="M11 20a6 6 0 0 1 10 0" />
+          <path d="M13.5 20a3 3 0 0 1 5 0" />
+          <line x1="16" y1="20" x2="16" y2="12" />
+        </g>
+      );
+    case "thaad": // tall vertical missiles
+      return (
+        <g stroke={c} strokeWidth="1.4" strokeLinecap="round">
+          <line x1="13" y1="21" x2="13" y2="11" />
+          <line x1="16" y1="21" x2="16" y2="10" />
+          <line x1="19" y1="21" x2="19" y2="11" />
+        </g>
+      );
+    case "patriot": // angled launcher box + missile
+      return (
+        <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
+          <rect x="11" y="15" width="10" height="6" transform="rotate(-24 16 18)" />
+          <line x1="20" y1="12" x2="24" y2="9" />
+        </g>
+      );
+    case "avenger": // dome + stinger
+    default:
+      return (
+        <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
+          <path d="M11 20a5 5 0 0 1 10 0" />
+          <line x1="16" y1="16" x2="16" y2="10" />
+          <path d="M16 10l-2 3M16 10l2 3" />
+        </g>
+      );
+  }
+}
+
+// ── eXeL-STD-2525: stylized platform silhouettes ─────────────────────────────
+function exelSilhouette(asset: AssetKind, c: string) {
+  const s = { stroke: c, strokeWidth: 1.5, fill: "none", strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
+  switch (asset) {
+    case "avenger": // HMMWV chassis + twin launcher pods
+      return (
+        <g {...s}>
+          <path d="M4 21h20l-2-5H8l-2 2H4z" />
+          <circle cx="9" cy="23" r="2" />
+          <circle cx="20" cy="23" r="2" />
+          <rect x="8" y="9" width="5" height="5" />
+          <rect x="17" y="9" width="5" height="5" />
+        </g>
+      );
+    case "patriot": // trailer + tilted 4-pack launcher box
+      return (
+        <g {...s}>
+          <path d="M4 22h22" />
+          <circle cx="9" cy="24" r="1.8" />
+          <circle cx="19" cy="24" r="1.8" />
+          <rect x="9" y="9" width="13" height="8" rx="1" transform="rotate(-22 15 13)" />
+          <line x1="7" y1="22" x2="9" y2="16" />
+        </g>
+      );
+    case "thaad": // truck + vertical canister cluster
+      return (
+        <g {...s}>
+          <path d="M3 22h22l-2-4H5z" />
+          <circle cx="8" cy="24" r="1.8" />
+          <circle cx="20" cy="24" r="1.8" />
+          <path d="M11 18V7M15 18V6M19 18V7" />
+          <path d="M11 7l1.5-2M15 6l1.5-2M19 7l1.5-2" />
+        </g>
+      );
+    case "sentinel": // radar mast + rotating panel + signal
+    default:
+      return (
+        <g {...s}>
+          <line x1="14" y1="22" x2="14" y2="12" />
+          <path d="M6 22h16" />
+          <rect x="7" y="7" width="14" height="6" rx="1" transform="rotate(-16 14 10)" />
+          <path d="M22 8a5 5 0 0 1 0 7" />
+        </g>
+      );
+  }
+}
+
+export function AssetIcon({
+  asset,
+  style,
+  affiliation = "friendly",
+  size = 30,
+}: {
+  asset: AssetKind;
+  style: IconStyle;
+  affiliation?: Affiliation;
+  size?: number;
+}) {
+  const c = affColor(affiliation);
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" role="img"
+      aria-label={`${ASSET_LABELS[asset]} (${affiliation}, ${style})`}>
+      {style === "mil" ? (
+        <MilFrame aff={affiliation}>{milGlyph(asset, c)}</MilFrame>
+      ) : (
+        exelSilhouette(asset, c)
+      )}
+    </svg>
+  );
+}
