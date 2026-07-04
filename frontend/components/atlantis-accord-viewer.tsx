@@ -28,8 +28,8 @@ import {
 type Tier = 33 | 111 | 333;
 const TIER_COLORS: Record<Tier, { label: string; fill: string; stroke: string }> = {
   33: { label: "33 words", fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" },
-  111: { label: "111 words", fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
-  333: { label: "333 words", fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+  111: { label: "111 words", fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
+  333: { label: "333 words", fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" },
 };
 
 // Region palette for the triangle flower (mirrors the Theme1 Risk/Neutral/Support

@@ -51,13 +51,48 @@ const CUBE_GRID: CubeInfo[][] = [
   ],
 ];
 
-const CUBE_10: CubeInfo = {
-  number: 10,
-  name: "Simulation",
-  status: "in_progress",
-  completion: 76,
-  description: "Code challenge system, saved use cases, feedback loop, voting, dual access gates, 108 tests. SSSES 76/100",
-};
+// Level 2 — Prove · Value · Govern. SIM (10) at center; the ring (11–18) in
+// three concern-groups: Validation (11–13), Value (14–15), Governance (16–18).
+const LEVEL_2: CubeInfo[][] = [
+  [
+    { number: 11, name: "Replay / Metrics", status: "planned", completion: 0, description: "Deterministic replay + metric-vs-baseline comparison for Cubes 1–9. Validation group." },
+    { number: 14, name: "Payments", status: "planned", completion: 0, description: "Stripe monetization tiers + cost estimation, layered on Cube 8's operational ledger. Value group." },
+    { number: 16, name: "Atlantis Accords", status: "in_progress", completion: 40, description: "Governance charter — accord sections, proposed approvals (Government/Education/Innovation), target countries, 33-language viewer. Governance group." },
+  ],
+  [
+    { number: 12, name: "Verify", status: "planned", completion: 0, description: "SHA-256 determinism proofs, checkout/checkin, CI gating. Validation group." },
+    { number: 10, name: "SIM", status: "in_progress", completion: 76, description: "Simulation Orchestrator — replays and validates Cubes 1–9. Center of Level 2. 108 tests. SSSES 76/100." },
+    { number: 17, name: "Blockchain", status: "planned", completion: 0, description: "Quai/QI on-chain governance proofs; AI/SI/HI token conversion to QI/USDC. Governance group." },
+  ],
+  [
+    { number: 13, name: "Baseline Compare", status: "planned", completion: 0, description: "Simulation pass criteria — must exceed existing System, User, and Business metrics. Validation group." },
+    { number: 15, name: "Tokenization", status: "planned", completion: 0, description: "SoI Trinity tokens (♡ ◬ 웃) minting + cross-chain conversion. Value group." },
+    { number: 18, name: "ARX · S.I.", status: "planned", completion: 0, description: "ARX physically-backed NFT tokens anchored to Shared Intent (S.I.). Governance group." },
+  ],
+];
+
+// Level 3 — Substrate primitives (X-2525). Placeholders for the portable
+// 3×3×3 layer future products (robotics, drones, home design) build upon.
+const LEVEL_3: CubeInfo[][] = [
+  [
+    { number: 19, name: "Architect-2525", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+    { number: 20, name: "Manta-2525", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+    { number: 21, name: "Drone-2525", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+  ],
+  [
+    { number: 22, name: "Security-2525", status: "planned", completion: 0, description: "Level 3 substrate primitive — pending placeholder." },
+    { number: 23, name: "TBD", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+    { number: 24, name: "TBD", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+  ],
+  [
+    { number: 25, name: "TBD", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+    { number: 26, name: "TBD", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+    { number: 27, name: "TBD", status: "planned", completion: 0, description: "Level 3 substrate primitive — placeholder." },
+  ],
+];
+
+// One level visible at a time.
+const LEVELS: CubeInfo[][][] = [CUBE_GRID, LEVEL_2, LEVEL_3];
 
 function CubeCell({ cube }: { cube: CubeInfo }) {
   const [expanded, setExpanded] = useState(false);
@@ -106,10 +141,11 @@ function CubeCell({ cube }: { cube: CubeInfo }) {
 export function CubeArchitectureStatus() {
   const [expanded, setExpanded] = useState(false);
   const [showLegend, setShowLegend] = useState(false);
+  const [level, setLevel] = useState<1 | 2 | 3>(1);
   const { t } = useLexicon();
 
-  // Count deployed cubes for collapsed summary
-  const allCubes = [...CUBE_GRID.flat(), CUBE_10];
+  // Count deployed cubes for collapsed summary (across all three levels)
+  const allCubes = LEVELS.flat(2);
   const deployedCount = allCubes.filter((c) => c.status === "deployed").length;
   const inProgressCount = allCubes.filter((c) => c.status === "in_progress").length;
 
@@ -169,20 +205,28 @@ export function CubeArchitectureStatus() {
         </div>
       )}
 
-      {/* Layer 1: 3x3 Grid */}
-      <p className="text-[10px] text-muted-foreground mb-1.5">{t("cube1.settings.layer1")}</p>
-      <div className="grid grid-cols-3 gap-1.5 mb-3">
-        {CUBE_GRID.flat().map((cube) => (
-          <CubeCell key={cube.number} cube={cube} />
+      {/* Level switcher — one level visible at a time */}
+      <div className="flex gap-1.5">
+        {([1, 2, 3] as const).map((lv) => (
+          <button
+            key={lv}
+            onClick={() => setLevel(lv)}
+            className={`px-3 py-1 text-[11px] rounded-full transition-all ${
+              level === lv
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-accent"
+            }`}
+          >
+            {t(`cube1.settings.level${lv}`)}
+          </button>
         ))}
       </div>
 
-      {/* Layer 2: Cube 10 */}
-      <p className="text-[10px] text-muted-foreground mb-1.5">{t("cube1.settings.layer2_center")}</p>
+      {/* Selected level — 3×3 grid */}
       <div className="grid grid-cols-3 gap-1.5">
-        <div />
-        <CubeCell cube={CUBE_10} />
-        <div />
+        {LEVELS[level - 1].flat().map((cube) => (
+          <CubeCell key={cube.number} cube={cube} />
+        ))}
       </div>
     </section>
   );
