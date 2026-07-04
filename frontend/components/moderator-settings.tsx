@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { X, Check, Pipette, Mic, Shield, ChevronDown, ChevronUp, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,9 +17,13 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { LanguageLexicon } from "@/components/language-lexicon";
 import { AtlantisAccordViewer } from "@/components/atlantis-accord-viewer";
 import { CubeArchitectureStatus } from "@/components/cube-status";
+import { TrinityColorPicker } from "@/components/trinity-color-picker";
 import { getSortedLanguages } from "@/lib/language-utils";
 
 // ─── Theme Customizer Section ───────────────────────────────────
+
+// Default accent seeded when Custom is first activated (AI Cyan — the pre-auth default).
+const DEFAULT_CUSTOM_ACCENT = "#19C8CF";
 
 function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
   const {
@@ -31,7 +35,6 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
   } = useTheme();
   const { registerThemeClick, enterSimulationMode } = useEasterEgg();
   const { t } = useLexicon();
-  const colorInputRef = useRef<HTMLInputElement>(null);
 
   const handlePresetSelect = (id: string) => {
     // Feed every theme click into Easter egg sequence detector (always active)
@@ -49,6 +52,13 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
     if (disabled) return;
     setCustomAccent(hex);
     setSessionTheme("custom");
+  };
+
+  // Clicking the Custom tile activates custom mode (seeding a default accent if
+  // none is set yet) and reveals the Trinity color picker below the grid.
+  const handleCustomTileClick = () => {
+    if (disabled) return;
+    handleCustomColorChange(customAccentColor ?? DEFAULT_CUSTOM_ACCENT);
   };
 
   const isCustomActive = currentTheme.id === "custom";
@@ -98,9 +108,9 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
           );
         })}
 
-        {/* 9th slot: Custom color picker */}
+        {/* 9th slot: Custom — activates the Trinity color picker below the grid */}
         <button
-          onClick={() => !disabled && colorInputRef.current?.click()}
+          onClick={handleCustomTileClick}
           className={`relative flex flex-col items-center gap-1.5 rounded-lg border p-2.5 transition-colors hover:bg-accent/50 ${
             isCustomActive
               ? "border-primary bg-accent/30"
@@ -125,16 +135,20 @@ function ThemeCustomizer({ disabled }: { disabled?: boolean }) {
           {isCustomActive && (
             <Check className="absolute right-1.5 top-1.5 h-3.5 w-3.5 text-primary" />
           )}
-          <input
-            ref={colorInputRef}
-            type="color"
-            value={customAccentColor ?? "#19C8CF"}
-            onChange={(e) => handleCustomColorChange(e.target.value)}
-            className="sr-only"
-            aria-label={t("cube1.settings.pick_custom_color")}
-          />
         </button>
       </div>
+
+      {/* Trinity color picker — the same Grid / Spectrum / Sliders tool used by
+          the home-page Trinity logo creator. Shown once Custom is active so the
+          moderator can dial in any hex; onChange applies to the live session. */}
+      {isCustomActive && !disabled && (
+        <div className="mt-3 rounded-lg border border-border p-3">
+          <TrinityColorPicker
+            value={customAccentColor ?? DEFAULT_CUSTOM_ACCENT}
+            onChange={handleCustomColorChange}
+          />
+        </div>
+      )}
     </section>
   );
 }
