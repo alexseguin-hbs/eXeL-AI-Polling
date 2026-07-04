@@ -284,7 +284,7 @@ function FullscreenViewer({
           Phone landscape + desktop (>=md): flex-row two-pane split, each pane
           scrolls internally. Extra bottom padding keeps the pager clear of the
           floating eXeL badge (fixed bottom-6 right-6) when scrolled to the bottom. */}
-      <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-6 px-6 pt-10 pb-20 overflow-y-auto md:overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-4 md:gap-6 px-4 md:px-6 pt-6 md:pt-8 pb-16 md:pb-16 [@media(max-height:600px)]:pt-2 [@media(max-height:600px)]:pb-2 [@media(max-height:600px)]:gap-3 overflow-y-auto md:overflow-hidden">
         {/* LEFT (md+) / TOP (mobile) — mode tabs (pinned top) + flower */}
         <div className="w-full md:w-1/2 shrink-0 flex flex-col items-center gap-3 md:min-h-0">
           <div className="flex flex-wrap justify-center gap-2 shrink-0">
@@ -322,18 +322,18 @@ function FullscreenViewer({
           {view === "accord" ? (
             <>
               {/* "PILOT · Where Innovation Begins" — tag white, title grey */}
-              <h3 className="text-2xl font-bold tracking-tight mb-1">
+              <h3 className="shrink-0 text-xl md:text-2xl font-bold tracking-tight mb-1 [@media(max-height:600px)]:text-base [@media(max-height:600px)]:mb-0.5">
                 <span className="text-foreground">{section.tag}</span>{" "}
                 <span className="font-normal text-muted-foreground">
                   · {t(`shared.atlantis.title.${section.id}`)}
                 </span>
               </h3>
-              <p className="mb-3 text-sm text-muted-foreground italic">
+              <p className="shrink-0 mb-3 text-sm text-muted-foreground italic [@media(max-height:600px)]:mb-1.5 [@media(max-height:600px)]:text-xs">
                 {t(`shared.atlantis.seven.${section.id}`)}
               </p>
 
               {/* Tier selector — colors the overview AND the flower */}
-              <div className="flex gap-2 mb-3">
+              <div className="shrink-0 flex gap-2 mb-3 [@media(max-height:600px)]:mb-1.5">
                 {([33, 111, 333] as Tier[]).map((n) => {
                   const c = TIER_COLORS[n];
                   const active = tier === n;
@@ -363,12 +363,12 @@ function FullscreenViewer({
             </>
           ) : view === "approvals" ? (
             <>
-              <h3 className="text-2xl font-bold tracking-tight mb-2">
+              <h3 className="shrink-0 text-xl md:text-2xl font-bold tracking-tight mb-2 [@media(max-height:600px)]:text-base [@media(max-height:600px)]:mb-0.5">
                 <span className="text-foreground">{region.region}</span>{" "}
                 <span className="font-normal text-muted-foreground">· {t("shared.atlantis.tab_approvals")}</span>
               </h3>
               {/* 33-word overview: why all three signatures are required */}
-              <p className="mb-4 text-sm text-muted-foreground leading-relaxed">
+              <p className="shrink-0 mb-4 text-sm text-muted-foreground leading-relaxed [@media(max-height:600px)]:mb-2 [@media(max-height:600px)]:text-xs">
                 {region.rationale}
               </p>
 
@@ -431,7 +431,7 @@ function FullscreenViewer({
             </>
           ) : (
             <>
-              <h3 className="text-2xl font-bold tracking-tight mb-2">
+              <h3 className="shrink-0 text-xl md:text-2xl font-bold tracking-tight mb-2 [@media(max-height:600px)]:text-base [@media(max-height:600px)]:mb-0.5">
                 <span className="text-foreground">{country.region}</span>{" "}
                 <span className="font-normal text-muted-foreground">· {t("shared.atlantis.country_suffix")}</span>
               </h3>
@@ -463,7 +463,7 @@ function FullscreenViewer({
           )}
 
           {/* Bottom pager — reused from the Divinity Guide book reader */}
-          <div className="flex items-center justify-between pt-4 mt-4 border-t">
+          <div className="shrink-0 flex items-center justify-between pt-4 mt-4 border-t [@media(max-height:600px)]:pt-2 [@media(max-height:600px)]:mt-2">
             <button
               onClick={goPrev}
               disabled={activeIdx === 0}
