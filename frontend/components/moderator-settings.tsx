@@ -440,7 +440,7 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
         </div>
 
         {/* Content — extra bottom padding so the last row clears the floating eXeL badge */}
-        <div className="flex-1 overflow-y-auto px-6 pt-6 pb-28 space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 pt-6 pb-20 space-y-6">
           {/* All users see language + theme; moderators also see admin sections */}
           <SettingsLanguageSelector />
           <Separator />

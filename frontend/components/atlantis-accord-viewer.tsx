@@ -67,8 +67,8 @@ function AccordFlower({
     <svg
       viewBox="0 0 600 500"
       preserveAspectRatio="xMidYMid meet"
-      className="w-full"
-      style={{ overflow: "visible", maxHeight: 520 }}
+      className="w-full h-full"
+      style={{ overflow: "visible", maxHeight: "100%" }}
     >
       <ThemeCircle
         cx={HUB_POSITION.cx}
@@ -113,8 +113,8 @@ function TriangleFlower({
     <svg
       viewBox="0 0 600 500"
       preserveAspectRatio="xMidYMid meet"
-      className="w-full"
-      style={{ overflow: "visible", maxHeight: 520 }}
+      className="w-full h-full"
+      style={{ overflow: "visible", maxHeight: "100%" }}
     >
       {items.map((it, i) => {
         const pos = TRIAD_POSITIONS[i];
@@ -226,10 +226,10 @@ function FullscreenViewer({
 
       {/* Body: two columns. Extra bottom padding keeps the pager clear of the
           floating eXeL badge (fixed bottom-6 right-6) when scrolled to the bottom. */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6 px-6 pt-6 pb-28 overflow-hidden">
-        {/* LEFT — mode tabs + flower (Sacred Library idiom) */}
-        <div className="flex flex-col items-center justify-center min-h-0 gap-4">
-          <div className="flex flex-wrap justify-center gap-2">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6 px-6 pt-6 pb-20 overflow-hidden">
+        {/* LEFT — mode tabs (pinned top) + flower (fills remaining space) */}
+        <div className="flex flex-col items-center min-h-0 gap-3">
+          <div className="flex flex-wrap justify-center gap-2 shrink-0">
             {TABS.map((t) => (
               <button
                 key={t.id}
@@ -244,7 +244,7 @@ function FullscreenViewer({
               </button>
             ))}
           </div>
-          <div className="w-full max-w-[560px]">
+          <div className="flex-1 min-h-0 w-full max-w-[560px] flex items-center justify-center">
             {view === "accord" ? (
               <AccordFlower activeIdx={activeIdx} onSelect={setActiveIdx} color={color} />
             ) : view === "approvals" ? (
