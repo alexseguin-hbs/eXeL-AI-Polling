@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo, useRef, type TouchEvent } from "react";
-import { X, ScrollText, ChevronDown } from "lucide-react";
+import { X, ScrollText, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLexicon } from "@/lib/lexicon-context";
+import { getSortedLanguages } from "@/lib/language-utils";
 import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
 import {
   getTheme2_6Positions,
@@ -155,8 +156,9 @@ function FullscreenViewer({
   onClose: () => void;
   langCode: string;
 }) {
-  const { t } = useLexicon();
+  const { t, activeLocale, setActiveLocale, languages } = useLexicon();
   const roleLabel = (role: string) => t(`shared.atlantis.role_${role.toLowerCase()}`);
+  const [langOpen, setLangOpen] = useState(false);
   const [view, setView] = useState<View>("accord");
   const [activeIdx, setActiveIdx] = useState(0);
   const [tier, setTier] = useState<Tier>(33);
@@ -221,9 +223,53 @@ function FullscreenViewer({
             {t("shared.atlantis.tagline")}
           </p>
         </div>
-        <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
-          <X className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {/* Language selector — globe + 2-letter code, same as the home navbar */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLangOpen((p) => !p)}
+              title={t("cube1.join.select_language")}
+              className="flex items-center gap-1"
+            >
+              <Globe className="h-4 w-4" />
+              <span className="text-xs uppercase">{activeLocale}</span>
+            </Button>
+            {langOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
+                <div className="absolute right-0 top-full z-50 mt-1 w-56 max-h-80 overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
+                  {(() => {
+                    const { sorted, pinnedCount } = getSortedLanguages(languages);
+                    return sorted.map((lang, i) => (
+                      <div key={lang.code}>
+                        <button
+                          onClick={() => {
+                            setActiveLocale(lang.code);
+                            setLangOpen(false);
+                          }}
+                          className={`flex w-full items-center gap-2 rounded-sm px-3 py-1.5 text-sm hover:bg-accent ${
+                            activeLocale === lang.code ? "bg-accent font-medium" : ""
+                          }`}
+                        >
+                          <span>{lang.nameNative}</span>
+                          <span className="text-muted-foreground text-xs">({lang.nameEn})</span>
+                        </button>
+                        {i === pinnedCount - 1 && sorted.length > pinnedCount && (
+                          <div className="my-1 border-t" />
+                        )}
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </>
+            )}
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Body: two columns. Extra bottom padding keeps the pager clear of the
