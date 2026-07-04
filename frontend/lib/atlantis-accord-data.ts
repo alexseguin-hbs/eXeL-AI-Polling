@@ -115,31 +115,131 @@ export function getSection(sectionIdx: number, langCode: string): AccordSection 
 
 export const WORD_LEVELS: WordLevel[] = [7, 33, 111, 333];
 
-// ─── Proposed Signatories ──────────────────────────────────────
-// Each founding region requires three visionary signatures — Government,
-// Education, Innovation — per the PILOT section. These are placeholder slots
-// ("pending") until real signers are ratified; the viewer renders them as a
-// 3-region Flower navigator (Cambodia / Honduras / Austin, Texas).
+// ─── Proposed Approvals (Signatories) ──────────────────────────
+// Each founding region ratifies The Atlantis Accords through three visionary
+// offices — Government, Education, Innovation. No single office binds a region
+// alone; all three signatures are required. Signer names remain "Pending
+// ratification" until the accord is executed. Written as the official document
+// and structured for later translation via SIGNATORY_TRANSLATIONS + getSignatory.
+export type SignatureRole = "Government" | "Education" | "Innovation";
+
 export interface SignatureSlot {
-  role: "Government" | "Education" | "Innovation";
-  name: string; // "Pending signature" until ratified
-  title: string;
+  role: SignatureRole;
+  representative: string; // official designation of the signing office
+  attestation: string; // what this office approves and commits to
+  name: string; // the actual signer — "Pending ratification" until executed
   verified: boolean;
 }
 
 export interface ProposedSignatory {
   region: string;
+  preamble: string; // official opening for this region's signature page
   slots: SignatureSlot[];
 }
 
-const PENDING_SLOTS: SignatureSlot[] = [
-  { role: "Government", name: "Pending signature", title: "", verified: false },
-  { role: "Education", name: "Pending signature", title: "", verified: false },
-  { role: "Innovation", name: "Pending signature", title: "", verified: false },
+// Role attestations are shared across regions — each region signs the same
+// three commitments, drawn from the accord's PILOT/QUALIFY/EDUCATE sections.
+const GOVERNMENT_ATTESTATION =
+  "The undersigned public authority commits this region to host young learners across cultures, to protect every participant within a documented safety envelope, and to hold itself to a standard higher than current regulation requires — publicly and transparently, in view of every citizen it serves.";
+const EDUCATION_ATTESTATION =
+  "The undersigned educational authority commits this region to deliver every activity in the participant's own language, to honor the rotation of learners through all founding regions, and to publish curricula and outcomes under open license so that what one region learns, all regions inherit.";
+const INNOVATION_ATTESTATION =
+  "The undersigned innovation authority commits this region to equip participants with the tools of the future, to teach through simulation before any live practice, and to ensure every device is bound at the hardware layer to refuse weaponization.";
+
+function proposedRegion(region: string): ProposedSignatory {
+  return {
+    region,
+    preamble: `The founding region of ${region} enters The Atlantis Accords through three visionary offices — Government, Education, and Innovation. No single office binds the region alone; ratification requires all three signatures below.`,
+    slots: [
+      {
+        role: "Government",
+        representative: "Office of the Regional Government",
+        attestation: GOVERNMENT_ATTESTATION,
+        name: "Pending ratification",
+        verified: false,
+      },
+      {
+        role: "Education",
+        representative: "Office of Education & Learning",
+        attestation: EDUCATION_ATTESTATION,
+        name: "Pending ratification",
+        verified: false,
+      },
+      {
+        role: "Innovation",
+        representative: "Office of Innovation & Technology",
+        attestation: INNOVATION_ATTESTATION,
+        name: "Pending ratification",
+        verified: false,
+      },
+    ],
+  };
+}
+
+// English source. Region order matches the triangle flower positions:
+// Austin (top) / Honduras (bottom-left) / Cambodia (bottom-right).
+export const SIGNATORIES_EN: ProposedSignatory[] = [
+  proposedRegion("Austin, Texas"),
+  proposedRegion("Honduras"),
+  proposedRegion("Cambodia"),
 ];
 
-export const PROPOSED_SIGNATORIES: ProposedSignatory[] = [
-  { region: "Cambodia", slots: PENDING_SLOTS.map((s) => ({ ...s })) },
-  { region: "Honduras", slots: PENDING_SLOTS.map((s) => ({ ...s })) },
-  { region: "Austin, Texas", slots: PENDING_SLOTS.map((s) => ({ ...s })) },
+// Translations land here as approved; any missing language falls back to English.
+export const SIGNATORY_TRANSLATIONS: Record<string, ProposedSignatory[]> = {
+  en: SIGNATORIES_EN,
+};
+
+export function getSignatory(idx: number, langCode: string): ProposedSignatory {
+  const list = SIGNATORY_TRANSLATIONS[langCode] ?? SIGNATORIES_EN;
+  return list[idx] ?? SIGNATORIES_EN[idx];
+}
+
+// ─── Target Countries ──────────────────────────────────────────
+// The three founding regions, each a page with a professional overview.
+// Same triangle order/colors as the signatory flower. Translation-ready.
+export interface TargetCountry {
+  region: string;
+  overview: string; // professional, simple overview
+  language: string; // primary participant language
+  rotationStage: string; // Opening / Integration / Completion
+  contribution: string; // what this region uniquely offers
+}
+
+export const TARGET_COUNTRIES_EN: TargetCountry[] = [
+  {
+    region: "Austin, Texas",
+    overview:
+      "Austin anchors the accord in North America as its innovation and convening hub. Home to eXeL — the accord's organizing convener — the region contributes deep technical capacity, a mature builder ecosystem, and English-language mentorship. Austin hosts the completion stage of each rotation, where discovery is refined into shipped, verifiable work.",
+    language: "English",
+    rotationStage: "Completion",
+    contribution:
+      "Technology, verification, and delivery — where work is finished and proven.",
+  },
+  {
+    region: "Honduras",
+    overview:
+      "Honduras is the integrating heart of the rotation, where learning from every region is reconciled and tested against real constraints. A Spanish-language cohort and a culture of community resilience give the accord its middle passage — the place where ideas are pressure-tested before completion.",
+    language: "Spanish",
+    rotationStage: "Integration",
+    contribution:
+      "Reconciliation and real-world testing — where ideas meet constraint.",
+  },
+  {
+    region: "Cambodia",
+    overview:
+      "Cambodia opens each rotation, grounding the accord in one of humanity's oldest living traditions of learning. A Khmer-language cohort and a heritage of monastic dialectic and patient craft give participants their first, formative stage — where the right questions matter more than speed.",
+    language: "Khmer",
+    rotationStage: "Opening",
+    contribution:
+      "Foundational inquiry and patient craft — where every rotation begins.",
+  },
 ];
+
+export const TARGET_COUNTRY_TRANSLATIONS: Record<string, TargetCountry[]> = {
+  en: TARGET_COUNTRIES_EN,
+};
+
+export function getTargetCountry(idx: number, langCode: string): TargetCountry {
+  const list = TARGET_COUNTRY_TRANSLATIONS[langCode] ?? TARGET_COUNTRIES_EN;
+  return list[idx] ?? TARGET_COUNTRIES_EN[idx];
+}

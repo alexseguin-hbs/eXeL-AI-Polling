@@ -14,8 +14,11 @@ import type { ThemeInfo } from "@/lib/types";
 import "@/components/flower-of-life/flower-animations.css";
 import {
   ACCORD_SECTIONS_EN,
-  PROPOSED_SIGNATORIES,
+  SIGNATORIES_EN,
+  TARGET_COUNTRIES_EN,
   getSection,
+  getSignatory,
+  getTargetCountry,
 } from "@/lib/atlantis-accord-data";
 
 // ─── Word tier → color ─────────────────────────────────────────
@@ -28,11 +31,12 @@ const TIER_COLORS: Record<Tier, { label: string; fill: string; stroke: string }>
   333: { label: "333 words", fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" },
 };
 
-// Region palette for the Proposed Signatories flower (mirrors Theme1 triangle).
+// Region palette for the triangle flower (mirrors the Theme1 Risk/Neutral/Support
+// UX by position: top = Red, bottom-left = Blue, bottom-right = Green).
 const REGION_COLORS = [
-  { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" }, // Cambodia — top
+  { fill: "rgba(255, 0, 0, 0.2)", stroke: "#FF0000" }, // Austin — top
   { fill: "rgba(59, 130, 246, 0.2)", stroke: "#3B82F6" }, // Honduras — bottom-left
-  { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" }, // Austin — bottom-right
+  { fill: "rgba(16, 185, 129, 0.2)", stroke: "#10B981" }, // Cambodia — bottom-right
 ];
 
 // ─── Flower geometry (reused dashboard theme-viz primitives) ────
@@ -41,7 +45,6 @@ const HUB_POSITION = getHubPosition();
 const TRIAD_POSITIONS = getTheme1Positions();
 const CENTER_IDX = 6; // EXPAND = center hub
 
-// Adapt an accord section into the ThemeInfo shape ThemeCircle expects.
 function sectionTheme(idx: number): ThemeInfo {
   const s = ACCORD_SECTIONS_EN[idx];
   return { label: s.tag, count: 0, avgConfidence: 0, summary33: s.content[7] };
@@ -67,7 +70,6 @@ function AccordFlower({
       className="w-full"
       style={{ overflow: "visible", maxHeight: 520 }}
     >
-      {/* Center hub — EXPAND (drawn first so petals overlap its edges) */}
       <ThemeCircle
         cx={HUB_POSITION.cx}
         cy={HUB_POSITION.cy}
@@ -78,8 +80,6 @@ function AccordFlower({
         onClick={() => onSelect(CENTER_IDX)}
         isHub
       />
-
-      {/* 6 outer petals — PILOT..EDUCATE */}
       {HEX_POSITIONS.map((pos, i) => (
         <ThemeCircle
           key={i}
@@ -98,11 +98,14 @@ function AccordFlower({
   );
 }
 
-// ── Signatory flower: 3 regions on the Theme1 triangle ───────────
-function SignatoryFlower({
+// ── Triangle flower: 3 regions (Austin top / Honduras BL / Cambodia BR) ──
+// Shared by Proposed Approvals and Target Countries.
+function TriangleFlower({
+  items,
   activeIdx,
   onSelect,
 }: {
+  items: { label: string; subtitle: string }[];
   activeIdx: number;
   onSelect: (i: number) => void;
 }) {
@@ -113,22 +116,16 @@ function SignatoryFlower({
       className="w-full"
       style={{ overflow: "visible", maxHeight: 520 }}
     >
-      {PROPOSED_SIGNATORIES.map((sig, i) => {
+      {items.map((it, i) => {
         const pos = TRIAD_POSITIONS[i];
         const c = REGION_COLORS[i] ?? REGION_COLORS[0];
-        const signed = sig.slots.filter((s) => s.verified).length;
         return (
           <ThemeCircle
-            key={sig.region}
+            key={it.label}
             cx={pos.cx}
             cy={pos.cy}
             r={pos.r}
-            theme={{
-              label: sig.region,
-              count: 0,
-              avgConfidence: 0,
-              summary33: `${signed} / ${sig.slots.length} signatures`,
-            }}
+            theme={{ label: it.label, count: 0, avgConfidence: 0, summary33: it.subtitle }}
             fill={i === activeIdx ? c.stroke + "44" : c.fill}
             stroke={c.stroke}
             onClick={() => onSelect(i)}
@@ -143,7 +140,13 @@ function SignatoryFlower({
 
 // ─── Full-screen viewer ────────────────────────────────────────
 
-type View = "accord" | "signatories";
+type View = "accord" | "approvals" | "countries";
+
+const TABS: { id: View; label: string }[] = [
+  { id: "accord", label: "The Accords" },
+  { id: "approvals", label: "Proposed Approvals" },
+  { id: "countries", label: "Target Countries" },
+];
 
 function FullscreenViewer({
   onClose,
@@ -156,16 +159,20 @@ function FullscreenViewer({
   const [activeIdx, setActiveIdx] = useState(0);
   const [tier, setTier] = useState<Tier>(33);
 
-  const isAccord = view === "accord";
   const section = useMemo(() => getSection(activeIdx, langCode), [activeIdx, langCode]);
-  const region = PROPOSED_SIGNATORIES[activeIdx] ?? PROPOSED_SIGNATORIES[0];
+  const region = getSignatory(activeIdx, langCode);
+  const country = getTargetCountry(activeIdx, langCode);
 
-  const totalPages = isAccord
-    ? ACCORD_SECTIONS_EN.length
-    : PROPOSED_SIGNATORIES.length;
-  const color = isAccord
-    ? TIER_COLORS[tier]
-    : REGION_COLORS[Math.min(activeIdx, REGION_COLORS.length - 1)];
+  const totalPages =
+    view === "accord"
+      ? ACCORD_SECTIONS_EN.length
+      : view === "approvals"
+        ? SIGNATORIES_EN.length
+        : TARGET_COUNTRIES_EN.length;
+  const color =
+    view === "accord"
+      ? TIER_COLORS[tier]
+      : REGION_COLORS[Math.min(activeIdx, REGION_COLORS.length - 1)];
 
   const switchView = (v: View) => {
     setView(v);
@@ -189,6 +196,16 @@ function FullscreenViewer({
     else if (delta > 50) goPrev();
   };
 
+  // Triangle-flower subtitles per view
+  const approvalItems = SIGNATORIES_EN.map((s) => ({
+    label: s.region,
+    subtitle: `${s.slots.filter((x) => x.verified).length} / ${s.slots.length} signatures`,
+  }));
+  const countryItems = TARGET_COUNTRIES_EN.map((c) => ({
+    label: c.region,
+    subtitle: c.rotationStage,
+  }));
+
   return (
     <div className="fixed inset-0 z-[70] bg-background/98 backdrop-blur-md flex flex-col">
       {/* Top bar */}
@@ -208,33 +225,28 @@ function FullscreenViewer({
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6 px-6 py-6 overflow-hidden">
         {/* LEFT — mode tabs + flower (Sacred Library idiom) */}
         <div className="flex flex-col items-center justify-center min-h-0 gap-4">
-          <div className="flex gap-2">
-            <button
-              onClick={() => switchView("accord")}
-              className={`px-3 py-1 text-[11px] rounded-full transition-all ${
-                isAccord
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-accent"
-              }`}
-            >
-              The Accords
-            </button>
-            <button
-              onClick={() => switchView("signatories")}
-              className={`px-3 py-1 text-[11px] rounded-full transition-all ${
-                !isAccord
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-accent"
-              }`}
-            >
-              Proposed Signatories
-            </button>
+          <div className="flex flex-wrap justify-center gap-2">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => switchView(t.id)}
+                className={`px-3 py-1 text-[11px] rounded-full transition-all ${
+                  view === t.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
           <div className="w-full max-w-[560px]">
-            {isAccord ? (
+            {view === "accord" ? (
               <AccordFlower activeIdx={activeIdx} onSelect={setActiveIdx} color={color} />
+            ) : view === "approvals" ? (
+              <TriangleFlower items={approvalItems} activeIdx={activeIdx} onSelect={setActiveIdx} />
             ) : (
-              <SignatoryFlower activeIdx={activeIdx} onSelect={setActiveIdx} />
+              <TriangleFlower items={countryItems} activeIdx={activeIdx} onSelect={setActiveIdx} />
             )}
           </div>
         </div>
@@ -245,21 +257,18 @@ function FullscreenViewer({
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
-          {isAccord ? (
+          {view === "accord" ? (
             <>
-              {/* Header: "PILOT · Where Innovation Begins" — tag white, title grey.
-                  The page number lives in the bottom pager, not here. */}
+              {/* "PILOT · Where Innovation Begins" — tag white, title grey */}
               <h3 className="text-2xl font-bold tracking-tight mb-1">
                 <span className="text-foreground">{section.tag}</span>{" "}
-                <span className="font-normal text-muted-foreground">
-                  · {section.title}
-                </span>
+                <span className="font-normal text-muted-foreground">· {section.title}</span>
               </h3>
               <p className="mb-3 text-sm text-muted-foreground italic">
                 {section.content[7]}
               </p>
 
-              {/* Tier selector — colors the overview AND the flower (33 R / 111 B / 333 G) */}
+              {/* Tier selector — colors the overview AND the flower */}
               <div className="flex gap-2 mb-3">
                 {([33, 111, 333] as Tier[]).map((n) => {
                   const c = TIER_COLORS[n];
@@ -281,7 +290,6 @@ function FullscreenViewer({
                 })}
               </div>
 
-              {/* Body */}
               <div
                 key={`${activeIdx}-${tier}`}
                 className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line overflow-y-auto pr-2 flex-1 min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
@@ -289,56 +297,83 @@ function FullscreenViewer({
                 {section.content[tier]}
               </div>
             </>
-          ) : (
+          ) : view === "approvals" ? (
             <>
-              {/* Header: "Cambodia · Proposed Signatories" */}
-              <h3 className="text-2xl font-bold tracking-tight mb-1">
+              <h3 className="text-2xl font-bold tracking-tight mb-2">
                 <span className="text-foreground">{region.region}</span>{" "}
-                <span className="font-normal text-muted-foreground">
-                  · Proposed Signatories
-                </span>
+                <span className="font-normal text-muted-foreground">· Proposed Approvals</span>
               </h3>
-              <p className="mb-3 text-sm text-muted-foreground italic">
-                Three visionary signatures — Government, Education, Innovation.
+              {/* Professional overview at top */}
+              <p className="mb-4 text-sm text-muted-foreground leading-relaxed">
+                {region.preamble}
               </p>
 
-              {/* Signature slots */}
               <div
                 key={activeIdx}
                 className="space-y-3 overflow-y-auto pr-2 flex-1 min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
               >
                 {region.slots.map((slot) => (
-                  <div
-                    key={slot.role}
-                    className="rounded-lg border border-border p-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        {slot.role}
-                      </span>
+                  <div key={slot.role} className="rounded-lg border border-border p-3">
+                    <div className="flex items-start justify-between gap-3 mb-1.5">
+                      <div>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                          {slot.role}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {slot.representative}
+                        </div>
+                      </div>
                       <span
-                        className="text-xs"
+                        className="text-xs shrink-0"
                         style={{ color: slot.verified ? color.stroke : undefined }}
                       >
                         {slot.verified ? "✓ Signed" : "○ Pending"}
                       </span>
                     </div>
-                    <div className="mt-1 text-sm text-foreground/90">
-                      {slot.name}
+                    <p className="text-xs text-foreground/80 leading-relaxed">
+                      {slot.attestation}
+                    </p>
+                    <div className="mt-2 pt-2 border-t border-border/50 text-[11px] text-muted-foreground italic">
+                      Signature: {slot.name}
                     </div>
-                    {slot.title && (
-                      <div className="text-xs text-muted-foreground">
-                        {slot.title}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
             </>
+          ) : (
+            <>
+              <h3 className="text-2xl font-bold tracking-tight mb-2">
+                <span className="text-foreground">{country.region}</span>{" "}
+                <span className="font-normal text-muted-foreground">· Target Country</span>
+              </h3>
+
+              <div
+                key={activeIdx}
+                className="space-y-4 overflow-y-auto pr-2 flex-1 min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
+              >
+                {/* Professional overview at top */}
+                <p className="text-sm text-foreground/90 leading-relaxed">
+                  {country.overview}
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { label: "Primary Language", value: country.language },
+                    { label: "Rotation Stage", value: country.rotationStage },
+                    { label: "Unique Contribution", value: country.contribution },
+                  ].map((f) => (
+                    <div key={f.label} className="rounded-lg border border-border p-3">
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {f.label}
+                      </div>
+                      <div className="mt-0.5 text-sm text-foreground/90">{f.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
 
-          {/* Bottom pager — reused from the Divinity Guide book reader.
-              Arrows page through the current view and stay in sync with the flower. */}
+          {/* Bottom pager — reused from the Divinity Guide book reader */}
           <div className="flex items-center justify-between pt-4 mt-4 border-t">
             <button
               onClick={goPrev}
@@ -380,8 +415,6 @@ export function AtlantisAccordViewer() {
 
   return (
     <section>
-      {/* Bordered card row — matches the sibling settings rows. No subtitle /
-          expand icon: users click through by intuition. */}
       <button
         onClick={() => setOpen(true)}
         className="flex w-full items-center justify-between rounded-lg border border-border p-3 text-left transition-colors hover:bg-accent/50"
