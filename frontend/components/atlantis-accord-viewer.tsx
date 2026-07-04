@@ -228,6 +228,7 @@ function FullscreenViewer({
   // ── Downloadable clearance package (offline HTML, 4-digit gated) ──
   const [pkgOpen, setPkgOpen] = useState(false);
   const [pkgClearance, setPkgClearance] = useState(1); // 1 = Red (default)
+  const [pkgSender, setPkgSender] = useState("");
   const [pkgCode, setPkgCode] = useState<string | null>(null);
   const [pkgBusy, setPkgBusy] = useState(false);
 
@@ -235,7 +236,7 @@ function FullscreenViewer({
     setPkgBusy(true);
     try {
       const gen = generate4DigitCode();
-      const html = await buildAtlantisPackageHtml(ACCORD_SECTIONS_EN, gen, pkgClearance);
+      const html = await buildAtlantisPackageHtml(ACCORD_SECTIONS_EN, gen, pkgClearance, pkgSender);
       const blob = new Blob([html], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -548,6 +549,13 @@ function FullscreenViewer({
 
             {pkgCode === null ? (
               <>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Sender <span className="opacity-60">(signed into the Light Codex cover)</span></label>
+                <input
+                  value={pkgSender}
+                  onChange={(e) => setPkgSender(e.target.value)}
+                  placeholder="eXeL AI"
+                  className="mb-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                />
                 <p className="mb-2 text-xs text-muted-foreground">
                   Select a <b>clearance level</b> — that many Seed-of-Life circles + accord sections are revealed. Only the unlocked content is written into the file.
                 </p>
