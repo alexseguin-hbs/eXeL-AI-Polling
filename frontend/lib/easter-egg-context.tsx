@@ -27,9 +27,21 @@ interface SimulationState {
  */
 type Cube10Access = "none" | "admin_pending" | "admin" | "challenger_pending" | "challenger";
 
+/**
+ * Vision 2525 launcher sub-view. On Easter-egg unlock the overlay opens on the
+ * `launcher` (cube grid of X-2525 domains). From there:
+ *   • SIM-2525      → `sim`      (original SIM mode + music)
+ *   • SECURITY-2525 → `security` (preliminary Command UX1)
+ * ARCHITECT / MANTA / DRONE remain locked.
+ */
+export type VisionView = "launcher" | "sim" | "security";
+
 interface SimulationContextValue extends SimulationState {
   enterSimulationMode: (role?: "moderator" | "poller", sessionId?: string) => void;
   exitSimulationMode: () => void;
+  /** Which Vision 2525 domain view is active inside the overlay */
+  visionView: VisionView;
+  setVisionView: (view: VisionView) => void;
   setSong: (song: 0 | 1 | 2) => void;
   togglePlaying: () => void;
   stop: () => void;
@@ -75,6 +87,7 @@ export function EasterEggProvider({ children }: { children: ReactNode }) {
   });
   const [easterEggUnlocked, setEasterEggUnlocked] = useState(false);
   const [cube10Access, setCube10Access] = useState<Cube10Access>("none");
+  const [visionView, setVisionView] = useState<VisionView>("launcher");
 
   // Track the Easter egg click sequence progress
   const sequenceIndexRef = useRef(0);
@@ -82,6 +95,7 @@ export function EasterEggProvider({ children }: { children: ReactNode }) {
 
   const enterSimulationMode = useCallback((role: "moderator" | "poller" = "poller", sessionId?: string) => {
     if (!easterEggUnlocked) return; // Guard: must unlock first
+    setVisionView("launcher"); // always land on the Vision 2525 cube grid first
     setState({ simulationMode: true, simulationRole: role, simulationSessionId: sessionId ?? null, currentSong: 0, playing: true });
   }, [easterEggUnlocked]);
 
@@ -95,6 +109,7 @@ export function EasterEggProvider({ children }: { children: ReactNode }) {
   const stop = useCallback(() => {
     setState({ simulationMode: false, simulationRole: "poller", simulationSessionId: null, currentSong: 0, playing: false });
     setEasterEggUnlocked(false);
+    setVisionView("launcher");
     sequenceIndexRef.current = 0;
   }, []);
 
@@ -201,6 +216,8 @@ export function EasterEggProvider({ children }: { children: ReactNode }) {
         ...state,
         enterSimulationMode,
         exitSimulationMode,
+        visionView,
+        setVisionView,
         setSong,
         togglePlaying,
         stop,

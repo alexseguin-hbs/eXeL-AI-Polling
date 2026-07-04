@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { SeedOfLifeLogo } from "@/components/seed-of-life-logo";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useAudioEngine } from "@/lib/use-audio-engine";
+import { Vision2525Launcher } from "@/components/vision-2525-launcher";
+import { SecurityCommandUX1 } from "@/components/security-2525/command-ux1";
 
 /**
  * Trinity colors — fixed per intelligence, independent of active theme.
@@ -66,7 +68,7 @@ const TRACK_URLS = SONG_PAIRINGS.map((s) => `${s.audio}?v=${AUDIO_VERSION}`);
  * Logos float at corners, Web Audio engine for gapless crossfade playback.
  */
 function SimulationOverlay() {
-  const { exitSimulationMode } = useEasterEgg();
+  const { setVisionView } = useEasterEgg();
   const { t } = useLexicon();
 
   const {
@@ -114,11 +116,11 @@ function SimulationOverlay() {
     }
   }, [ready, isPlaying, play, initialize]);
 
-  // Dispose on exit
+  // Dispose music + return to the Vision 2525 launcher (hub), not a full exit.
   const handleExit = useCallback(() => {
     dispose();
-    exitSimulationMode();
-  }, [dispose, exitSimulationMode]);
+    setVisionView("launcher");
+  }, [dispose, setVisionView]);
 
   const handleToggle = useCallback(() => {
     if (isPlaying) {
@@ -312,7 +314,7 @@ function SimulationOverlay() {
 }
 
 export function PoweredBadge() {
-  const { simulationMode, easterEggUnlocked, enterSimulationMode } =
+  const { simulationMode, easterEggUnlocked, enterSimulationMode, visionView } =
     useEasterEgg();
   const { currentTheme } = useTheme();
   const router = useRouter();
@@ -340,7 +342,10 @@ export function PoweredBadge() {
   }, [enterSimulationMode, isAuthenticated, router, pathname, searchParams]);
 
   if (simulationMode) {
-    return <SimulationOverlay />;
+    // Vision 2525 hub: land on the launcher, spoke into SIM (music) or Security UX1.
+    if (visionView === "sim") return <SimulationOverlay />;
+    if (visionView === "security") return <SecurityCommandUX1 />;
+    return <Vision2525Launcher />;
   }
 
   // Badge color follows the active theme (defaults to AI Cyan when not authenticated)

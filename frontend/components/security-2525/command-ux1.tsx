@@ -1,0 +1,250 @@
+"use client";
+
+/**
+ * SECURITY-2525 · Command UX1 (preliminary build)
+ * ===============================================
+ * Static preliminary of the "eXeL AI — Autonomous Command Network" dashboard
+ * (ref: docs/security-2525/reference/Security-UX1.png). Layout + reference data
+ * only; live data-fusion wiring comes later. Self-contained tactical dark theme.
+ * See docs/SECURITY_2525_FRAMEWORK.md §7.
+ */
+import { ArrowLeft, X, Cpu } from "lucide-react";
+import { useEasterEgg } from "@/lib/easter-egg-context";
+
+const C = {
+  bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
+  text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf",
+  green: "#22c55e", amber: "#f59e0b", red: "#ef4444", magenta: "#d946ef",
+};
+
+const NAV = ["OVERVIEW", "SENSORS", "THREAT VIEW", "ENGAGEMENT", "LOGISTICS", "MISSION HEALTH", "TRAINING & VR", "AFTER ACTION"];
+
+const COMPOSITION = [
+  { k: "Cruise Missile", n: 2, c: C.red },
+  { k: "X-Bat Swarm (UAS)", n: 14, c: C.red },
+  { k: "Loitering Munition", n: 6, c: C.amber },
+  { k: "Jamming / EW", n: 3, c: C.cyan },
+];
+const FUSION = [
+  ["Radar", 98], ["EO/IR", 96], ["RF Detection", 94],
+  ["Acoustic", 85], ["SIGINT", 91], ["LiDAR", 89],
+] as const;
+const KILL_CHAIN = [
+  ["DETECT", "complete"], ["CLASSIFY", "complete"], ["TRACK", "active"],
+  ["DECIDE", "pending"], ["ENGAGE", "pending"], ["ASSESS", "pending"],
+] as const;
+const DISTRIBUTION = [
+  ["AIR", 61, C.red], ["GROUND", 26, C.amber], ["MARITIME", 9, C.cyan], ["CYBER / EW", 4, C.magenta],
+] as const;
+const WEAPONS = ["RF Jammer (Area)", "HPM System (Sweep)", "C-UAS Missile (Leader)", "Avenger (Sect 2)"];
+const PRIORITY = [
+  ["1", "X-Bat Swarm Group 1", "HIGH", C.red],
+  ["2", "Cruise Missile", "HIGH", C.red],
+  ["3", "Loitering Munitions", "MED", C.amber],
+  ["4", "Jamming Source", "LOW", C.magenta],
+] as const;
+
+function Panel({ title, children, accent }: { title: string; children: React.ReactNode; accent?: string }) {
+  return (
+    <div className="rounded-lg border p-3" style={{ background: C.panel, borderColor: C.border }}>
+      <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent ?? C.dim }}>
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Bar({ label, pct }: { label: string; pct: number }) {
+  return (
+    <div className="flex items-center gap-2 mb-1.5">
+      <span className="w-20 text-[10px]" style={{ color: C.dim }}>{label}</span>
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "#0b1119" }}>
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: C.green }} />
+      </div>
+      <span className="w-8 text-right text-[10px]" style={{ color: C.text }}>{pct}%</span>
+    </div>
+  );
+}
+
+export function SecurityCommandUX1() {
+  const { setVisionView, exitSimulationMode } = useEasterEgg();
+
+  return (
+    <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
+      {/* Top bar */}
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b px-4 py-2" style={{ background: C.bg, borderColor: C.border }}>
+        <div className="flex items-center gap-3 min-w-0">
+          <button onClick={() => setVisionView("launcher")} className="p-1.5 rounded hover:bg-white/5" title="Back to Vision 2525">
+            <ArrowLeft className="h-4 w-4" style={{ color: C.dim }} />
+          </button>
+          <span className="font-bold tracking-wider" style={{ color: C.cyan }}>eXeL AI</span>
+          <span className="hidden sm:inline text-[10px] tracking-widest" style={{ color: C.dim }}>AUTONOMOUS COMMAND NETWORK</span>
+          <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: "#1a2436", color: C.amber }}>PRELIMINARY</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="hidden md:inline text-[10px]" style={{ color: C.dim }}>OPERATOR: ALPHA-1</span>
+          <span className="text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
+          <button onClick={exitSimulationMode} className="p-1.5 rounded hover:bg-white/5" title="Exit">
+            <X className="h-4 w-4" style={{ color: C.dim }} />
+          </button>
+        </div>
+      </div>
+
+      {/* Nav tabs */}
+      <div className="flex gap-1 overflow-x-auto border-b px-4 py-1.5" style={{ borderColor: C.border }}>
+        {NAV.map((tab, i) => (
+          <button key={tab} className="whitespace-nowrap rounded px-2.5 py-1 text-[10px] tracking-wide transition-colors"
+            style={{ background: i === 0 ? "#152238" : "transparent", color: i === 0 ? C.cyan : C.dim }}>
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Body grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-3 p-3">
+        {/* LEFT */}
+        <div className="space-y-3">
+          <Panel title="Threat Summary">
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold" style={{ color: C.text }}>23</span>
+              <span className="text-[10px]" style={{ color: C.dim }}>TOTAL THREATS</span>
+            </div>
+            <div className="mt-2 flex gap-3 text-[11px]">
+              <span style={{ color: C.red }}>14 HIGH</span>
+              <span style={{ color: C.amber }}>6 MED</span>
+              <span style={{ color: C.green }}>3 LOW</span>
+            </div>
+          </Panel>
+          <Panel title="Threat Composition">
+            {COMPOSITION.map((c) => (
+              <div key={c.k} className="flex items-center justify-between py-0.5">
+                <span className="text-[11px]" style={{ color: c.c }}>{c.k}</span>
+                <span className="text-[11px] font-mono" style={{ color: C.text }}>{c.n}</span>
+              </div>
+            ))}
+          </Panel>
+          <Panel title="Sensor Fusion Status">
+            {FUSION.map(([l, p]) => <Bar key={l} label={l} pct={p} />)}
+          </Panel>
+          <Panel title="Environmental Conditions">
+            <div className="grid grid-cols-2 gap-1 text-[10px]" style={{ color: C.dim }}>
+              <span>Wind 12 kts</span><span>Temp 18°C</span>
+              <span>Vis 8 km</span><span>Rain 10%</span>
+            </div>
+          </Panel>
+        </div>
+
+        {/* CENTER — 3D situational awareness placeholder */}
+        <Panel title="3D Situational Awareness — Real-Time Multi-Domain Fusion" accent={C.cyan}>
+          <div className="relative flex h-[300px] lg:h-[420px] items-center justify-center rounded-md overflow-hidden"
+            style={{ background: "radial-gradient(ellipse at 50% 60%, #0f2033 0%, #070b12 70%)", border: `1px solid ${C.border}` }}>
+            {/* stylized globe/grid */}
+            <div className="absolute inset-0 opacity-30"
+              style={{ backgroundImage: `linear-gradient(${C.border} 1px, transparent 1px), linear-gradient(90deg, ${C.border} 1px, transparent 1px)`, backgroundSize: "32px 32px" }} />
+            <div className="text-center z-10">
+              <div className="mx-auto mb-3 h-24 w-24 rounded-full border-2" style={{ borderColor: `${C.cyan}55`, boxShadow: `0 0 40px ${C.cyan}33` }} />
+              <p className="text-[11px]" style={{ color: C.dim }}>AIR · SEA · LAND · SPACE · CYBER · EW</p>
+              <p className="mt-1 text-[10px]" style={{ color: C.dim }}>live fusion view — wiring pending</p>
+            </div>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {[["Patriot Battery A", "6 msl · 360°", C.green], ["Avenger Section", "4 sys · low corridor", C.amber], ["M-SHORAD", "30mm / Stinger", C.green]].map(([n, s, c]) => (
+              <div key={n} className="rounded border px-2 py-1" style={{ borderColor: C.border }}>
+                <div className="text-[10px] font-semibold" style={{ color: c as string }}>{n}</div>
+                <div className="text-[9px]" style={{ color: C.dim }}>{s}</div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        {/* RIGHT */}
+        <div className="space-y-3">
+          <Panel title="Kill Chain Status" accent={C.cyan}>
+            <div className="flex flex-wrap gap-1">
+              {KILL_CHAIN.map(([stage, st]) => (
+                <span key={stage} className="rounded px-1.5 py-0.5 text-[9px]"
+                  style={{
+                    background: st === "complete" ? "#0f2a1a" : st === "active" ? "#2a230f" : "#161d28",
+                    color: st === "complete" ? C.green : st === "active" ? C.amber : C.dim,
+                  }}>
+                  {stage}
+                </span>
+              ))}
+            </div>
+          </Panel>
+          <Panel title="Threat Distribution">
+            {DISTRIBUTION.map(([l, p, c]) => (
+              <div key={l as string} className="flex items-center gap-2 mb-1.5">
+                <span className="w-20 text-[10px]" style={{ color: C.dim }}>{l}</span>
+                <div className="flex-1 h-1.5 rounded-full" style={{ background: "#0b1119" }}>
+                  <div className="h-full rounded-full" style={{ width: `${p}%`, background: c as string }} />
+                </div>
+                <span className="w-8 text-right text-[10px]" style={{ color: C.text }}>{p}%</span>
+              </div>
+            ))}
+          </Panel>
+          <Panel title="Risk + Effect Assessment">
+            <div className="flex justify-between">
+              <div><div className="text-[9px]" style={{ color: C.dim }}>RISK</div><div className="text-lg font-bold" style={{ color: C.green }}>15%</div></div>
+              <div><div className="text-[9px]" style={{ color: C.dim }}>EFFECT</div><div className="text-lg font-bold" style={{ color: C.amber }}>85%</div></div>
+            </div>
+          </Panel>
+        </div>
+      </div>
+
+      {/* Bottom row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 px-3 pb-3">
+        <Panel title="AI Recommendation" accent={C.cyan}>
+          <div className="flex items-start gap-2">
+            <Cpu className="h-5 w-5 mt-0.5" style={{ color: C.cyan }} />
+            <div>
+              <div className="text-sm font-bold" style={{ color: C.text }}>NEUTRALIZE X-BAT SWARM</div>
+              <p className="mt-1 text-[10px] leading-snug" style={{ color: C.dim }}>
+                Disrupt swarm coordination with EW and precision engagements. Protect assets with layered defense.
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-[10px]" style={{ color: C.green }}>CONFIDENCE: HIGH</span>
+                <div className="flex-1 h-1.5 rounded-full" style={{ background: "#0b1119" }}>
+                  <div className="h-full rounded-full" style={{ width: "86%", background: C.green }} />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="mb-1 text-[9px] uppercase tracking-wider" style={{ color: C.dim }}>Recommended Weapons</div>
+            {WEAPONS.map((w, i) => (
+              <div key={w} className="text-[10px] py-0.5" style={{ color: C.dim }}>{i + 1}. {w}</div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="Engagement Priority">
+          {PRIORITY.map(([r, name, lvl, c]) => (
+            <div key={r as string} className="flex items-center gap-2 py-1 border-b" style={{ borderColor: C.border }}>
+              <span className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold" style={{ background: `${c as string}22`, color: c as string }}>{r}</span>
+              <span className="flex-1 text-[11px]" style={{ color: C.text }}>{name}</span>
+              <span className="text-[9px]" style={{ color: c as string }}>{lvl}</span>
+            </div>
+          ))}
+        </Panel>
+
+        <Panel title="Decision Support">
+          {[["APPROVE PLAN", C.green], ["REVISE PLAN", C.dim], ["SIMULATE OUTCOME", C.cyan], ["REQUEST HUMAN REVIEW", C.amber], ["ABORT MISSION", C.red]].map(([label, c]) => (
+            <button key={label as string} className="mb-1.5 w-full rounded border px-3 py-2 text-left text-[11px] font-semibold tracking-wide transition-colors hover:bg-white/5"
+              style={{ borderColor: `${c as string}44`, color: c as string }}>
+              {label}
+            </button>
+          ))}
+        </Panel>
+      </div>
+
+      {/* Footer */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
+        <span><span style={{ color: C.green }}>●</span> SYSTEM HEALTH — ALL SYSTEMS NOMINAL</span>
+        <span>CLASSIFICATION: SECRET // REL TO USA, FVEY</span>
+        <span>DATA FUSION ENGINE: eXeL v2.4</span>
+      </div>
+    </div>
+  );
+}
