@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, type TouchEvent } from "react";
+import { createPortal } from "react-dom";
 import { X, ScrollText, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -519,9 +520,16 @@ export function AtlantisAccordViewer() {
         </span>
       </button>
 
-      {open && (
-        <FullscreenViewer onClose={() => setOpen(false)} langCode={activeLocale} />
-      )}
+      {/* Portal to <body> so the z-[70] fullscreen overlay escapes the Settings
+          panel's z-50 stacking context and paints ABOVE the root PoweredBadge
+          (fixed bottom-6 right-6 z-50) — otherwise the eXeL badge covers the
+          pager's > arrow in landscape. */}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <FullscreenViewer onClose={() => setOpen(false)} langCode={activeLocale} />,
+          document.body,
+        )}
     </section>
   );
 }
