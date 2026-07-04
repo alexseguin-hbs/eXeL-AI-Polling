@@ -191,7 +191,7 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
     <!-- COVER — professional / confidential. Clearance shown only as a growing Seed of Life. -->
     <div class="cover" id="cover">
       <div class="seal" id="seal"></div>
-      <div class="wonder">This document is sealed under the seven-circle encryption method. Access is limited to the intended recipient who holds the key.</div>
+      <div class="wonder">This document is sealed under the Atlantis Accords. Access is granted to the intended recipient alone, by the key entrusted to them.</div>
       <div class="hint">Confidential · Please read privately</div>
       <div>
         <input id="code" type="tel" inputmode="numeric" maxlength="4" placeholder="&#8226;&#8226;&#8226;&#8226;" autocomplete="off"><br>
