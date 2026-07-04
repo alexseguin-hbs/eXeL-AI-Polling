@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-03.8`
+**Contract version:** `L3-2026-07-03.9`
 
 ---
 
@@ -79,11 +79,12 @@ Vision 2525 must reach **phones, computers, and Raspberry-Pi-class devices world
 | 5 | **Sensors** | Camera + IMU | Radar / Lidar / Sonar / environmental / bio |
 | 6 | **Mobility** | Static or manual | Wheels / drones / propulsion / hydrofoil / manipulator |
 
-### The 3 hard rules
+### The 4 hard rules
 
 1. **Baseline must run everywhere.** If a domain can't run on the baseline HAL through a phone browser, the domain is not Level 3-ready. Higher fidelity is a bonus, never a gate.
 2. **Auto-calibration on any slot upgrade.** Swap camera 1080p → 4K → 8K → system auto-adjusts frame rate, inference cadence, network bandwidth, storage, and UI resolution. No manual tuning.
 3. **Python edge mockups first, native renderers second.** Cube 21 accepts a Python edge visualization as the *baseline* deliverable. Revit / Unity / Unreal / Blender exports come after the Python mockup validates on Pi + browser.
+4. **≤ 9 MINUTES from swap to operational.** Any component swap — CPU, GPU, edge neural-net inference module, screen, resolution, frame rate, transmission rate, sensor, mobility solution, any subsystem — completes full auto-calibration in **9 minutes or less**. This is the "Innovation at Speed of Thought" HAL SLA. The mechanism: standardized declarative slot interfaces (bus enumeration + capability negotiation) · pre-loaded baseline recalibration routines · hot-swap for batteries + sensors · cold-swap with 9-min reboot budget for CPU/GPU · configuration always in HAL profile YAML, never in code. **Anti-pattern to design against:** silent partial-init bugs like the mobile-Chrome AudioContext gesture requirement (fixed 2026-07-03) — every component MUST announce its capabilities and be auto-tuned by the substrate, no hidden manual step should EVER be required.
 
 ### Compute tiers (Low / Medium / High)
 
@@ -845,3 +846,4 @@ Two or more `X-2525` domains can be **pitted against each other** in the same si
 | `L3-2026-07-03.6` | 2026-07-03 | Vision 2525 first-pass ingest complete. R-CORE (Recursive Continuous Operational Reality Ecosystem) added as the foundational architecture; 5 X-2525 infrastructure layers documented (COMM/LINK/EDGE/SYNC/UCRS-2525) with per-cube mapping. UCRS-2525 formalizes/supersedes substrate primitive #8. 6 Vision 2525 operational principles (Dignity/Truth/Wisdom/Accountability/Resilience/Stewardship) extend the 4 hard-gate principles. 13 diagram cross-reference table added. |
 | `L3-2026-07-03.7` | 2026-07-03 | Security-2525 (Shield in the Sky · Air Defense) added as 4th Domain Play — zero new primitives required. 12-commander Council of Twelve operational protocol maps 1:1 to primitive #9 (Multi-agent Coordination), same pattern as the SSSES audit agents. Validation matrix expanded to 4 domains. First observation of a domain spanning milliseconds → years (Security-2525 time-scale span). Security-2525 named as adversarial partner for Drone-2525 (Drone attacks, Security defends). |
 | `L3-2026-07-03.8` | 2026-07-03 | New §9.5 · Concrete pre-build validation estimates. Cube 24 (Estimator AI) draft outputs for Architect-2525, Drone-2525, Manta-2525 with actual dollars ($570k-$1.05M pre-build, $3.85M-$7M full MVP), team sizes (3-4 per domain), phase durations (3-7 mo pre-build, 9-20 mo MVP), validation stacks (Unreal 5 + digital twin, CFD, ROS/Gazebo, Monte Carlo). Substrate now produces concrete outputs — not just design abstractions. |
+| `L3-2026-07-03.9` | 2026-07-03 | HAL 4th hard rule: **≤ 9 minutes** from any component swap to fully-operational auto-calibrated system. Applies to CPU, GPU, inference, screen, resolution, FPS, transmission rate, sensors, mobility, any subsystem. Framing: Atlantean protocol of innovation best practices — max transparency, education tied to real-world innovation. Evolution 2026 → 2525; no perfection required, but modular flexibility must compound monthly. |
