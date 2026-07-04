@@ -19,11 +19,19 @@
 // original file with a dead shell (ciphertext destroyed); phones/Safari rely
 // on the multi-vector seal. True consume-once revocation requires the
 // server-gated path (WireGuard-whitelisted cube key endpoint) — Level-7 tier.
+//
+// Cross-platform decrypt: iOS/Android often open local files in a NON-secure
+// context where window.crypto.subtle is unavailable. The reader carries a
+// pure-JS AES-256-GCM + PBKDF2 fallback (verified byte-compatible with
+// WebCrypto) so the SAME ciphertext opens on every device.
 
 import type { AccordSection } from "@/lib/atlantis-accord-data";
 
-// OWASP-recommended PBKDF2-SHA256 work factor (2023): 600k iterations.
-const PBKDF2_ITERATIONS = 600_000;
+// PBKDF2-SHA256 work factor. Deliberately 100k (not the OWASP 600k) because the
+// reader falls back to a PURE-JS KDF on devices without WebCrypto (iOS/Android
+// local files) — 600k there costs ~20-40s. At 100k the fallback is ~2-3s, and
+// for Level-1's threat model the CODE ENTROPY is the wall, not the KDF depth.
+const PBKDF2_ITERATIONS = 100_000;
 
 export const CLEARANCE_COLORS = [
   "", "#ef4444", "#f59e0b", "#eab308", "#22c55e", "#3b82f6", "#06b6d4", "#8b5cf6",
@@ -333,20 +341,93 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
     draw('cxTL',PKG.fwd);draw('cxBR',PKG.rev);})();
   if(seen()){cover.style.display='none';done.style.display='flex';return;}
   function d64(s){var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+  // ── Pure-JS AES-256-GCM + PBKDF2-HMAC-SHA256 (byte-compatible with WebCrypto) ─
+  // Used when window.crypto.subtle is absent — iOS/Android local files run in a
+  // non-secure context. Verified against WebCrypto ciphertext in Node.
+  function _u8(s){return typeof s==='string'?new TextEncoder().encode(s):new Uint8Array(s);}
+  var _K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  function _sha256(msg){msg=_u8(msg);var l=msg.length,bl=l*8,withOne=l+1,k=(56-withOne%64+64)%64,total=withOne+k+8;
+    var m=new Uint8Array(total);m.set(msg);m[l]=0x80;var dv=new DataView(m.buffer);
+    dv.setUint32(total-4,bl>>>0,false);dv.setUint32(total-8,Math.floor(bl/0x100000000)>>>0,false);
+    var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19],w=new Uint32Array(64);
+    for(var off=0;off<total;off+=64){for(var i=0;i<16;i++)w[i]=dv.getUint32(off+i*4,false);
+      for(i=16;i<64;i++){var s0=((w[i-15]>>>7)|(w[i-15]<<25))^((w[i-15]>>>18)|(w[i-15]<<14))^(w[i-15]>>>3);
+        var s1=((w[i-2]>>>17)|(w[i-2]<<15))^((w[i-2]>>>19)|(w[i-2]<<13))^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0;}
+      var a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+      for(i=0;i<64;i++){var S1=((e>>>6)|(e<<26))^((e>>>11)|(e<<21))^((e>>>25)|(e<<7)),ch=(e&f)^(~e&g),t1=(h+S1+ch+_K[i]+w[i])|0;
+        var S0=((a>>>2)|(a<<30))^((a>>>13)|(a<<19))^((a>>>22)|(a<<10)),maj=(a&b)^(a&c)^(b&c),t2=(S0+maj)|0;
+        h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;}
+      H[0]=(H[0]+a)|0;H[1]=(H[1]+b)|0;H[2]=(H[2]+c)|0;H[3]=(H[3]+d)|0;H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0;}
+    var out=new Uint8Array(32),odv=new DataView(out.buffer);for(i=0;i<8;i++)odv.setUint32(i*4,H[i]>>>0,false);return out;}
+  function _hmac(key,msg){key=_u8(key);msg=_u8(msg);if(key.length>64)key=_sha256(key);
+    var ik=new Uint8Array(64),ok=new Uint8Array(64);ik.set(key);ok.set(key);
+    for(var i=0;i<64;i++){ik[i]^=0x36;ok[i]^=0x5c;}
+    var inner=new Uint8Array(64+msg.length);inner.set(ik);inner.set(msg,64);var ih=_sha256(inner);
+    var outer=new Uint8Array(96);outer.set(ok);outer.set(ih,64);return _sha256(outer);}
+  function _pbkdf2(pw,salt,iters,dkLen){pw=_u8(pw);salt=_u8(salt);var out=new Uint8Array(dkLen),blocks=Math.ceil(dkLen/32),pos=0;
+    for(var b=1;b<=blocks;b++){var si=new Uint8Array(salt.length+4);si.set(salt);
+      si[salt.length]=(b>>>24)&255;si[salt.length+1]=(b>>>16)&255;si[salt.length+2]=(b>>>8)&255;si[salt.length+3]=b&255;
+      var u=_hmac(pw,si),t=u.slice();for(var i=1;i<iters;i++){u=_hmac(pw,u);for(var j=0;j<32;j++)t[j]^=u[j];}
+      var n=Math.min(32,dkLen-pos);out.set(t.slice(0,n),pos);pos+=n;}return out;}
+  var _SBOX=(function(){var p=1,q=1,sb=new Uint8Array(256);
+    do{p=p^(p<<1)^(p&0x80?0x11b:0);p&=0xff;q^=q<<1;q^=q<<2;q^=q<<4;q&=0xff;if(q&0x80)q^=0x09;
+      var x=q^((q<<1)|(q>>>7))^((q<<2)|(q>>>6))^((q<<3)|(q>>>5))^((q<<4)|(q>>>4));sb[p]=(x^0x63)&0xff;}while(p!==1);
+    sb[0]=0x63;return sb;})();
+  function _xt(a){return((a<<1)^((a&0x80)?0x1b:0))&0xff;}
+  function _aesKey(key){var Nk=key.length/4,Nr=Nk+6,w=new Array(4*(Nr+1));
+    for(var i=0;i<Nk;i++)w[i]=[key[4*i],key[4*i+1],key[4*i+2],key[4*i+3]];var rc=1;
+    for(i=Nk;i<4*(Nr+1);i++){var t=w[i-1].slice();
+      if(i%Nk===0){t=[t[1],t[2],t[3],t[0]];for(var k=0;k<4;k++)t[k]=_SBOX[t[k]];t[0]^=rc;rc=_xt(rc);}
+      else if(Nk>6&&i%Nk===4){for(k=0;k<4;k++)t[k]=_SBOX[t[k]];}
+      w[i]=[w[i-Nk][0]^t[0],w[i-Nk][1]^t[1],w[i-Nk][2]^t[2],w[i-Nk][3]^t[3]];}return{w:w,Nr:Nr};}
+  function _aesEnc(ks,inp){var Nr=ks.Nr,w=ks.w,s=new Array(16);for(var i=0;i<16;i++)s[i]=inp[i];
+    function ark(r){for(var c=0;c<4;c++)for(var row=0;row<4;row++)s[c*4+row]^=w[r*4+c][row];}
+    ark(0);for(var round=1;round<Nr;round++){for(i=0;i<16;i++)s[i]=_SBOX[s[i]];
+      var t=s.slice();for(var row=0;row<4;row++)for(var col=0;col<4;col++)s[col*4+row]=t[((col+row)%4)*4+row];
+      for(col=0;col<4;col++){var a0=s[col*4],a1=s[col*4+1],a2=s[col*4+2],a3=s[col*4+3];
+        s[col*4]=_xt(a0)^(_xt(a1)^a1)^a2^a3;s[col*4+1]=a0^_xt(a1)^(_xt(a2)^a2)^a3;
+        s[col*4+2]=a0^a1^_xt(a2)^(_xt(a3)^a3);s[col*4+3]=(_xt(a0)^a0)^a1^a2^_xt(a3);}ark(round);}
+    for(i=0;i<16;i++)s[i]=_SBOX[s[i]];var t2=s.slice();
+    for(row=0;row<4;row++)for(col=0;col<4;col++)s[col*4+row]=t2[((col+row)%4)*4+row];ark(Nr);return new Uint8Array(s);}
+  function _gfmul(X,Y){var Z=new Uint8Array(16),V=Y.slice();
+    for(var i=0;i<128;i++){if((X[i>>>3]>>>(7-(i&7)))&1)for(var j=0;j<16;j++)Z[j]^=V[j];
+      var lsb=V[15]&1;for(j=15;j>0;j--)V[j]=((V[j]>>>1)|((V[j-1]&1)<<7))&0xff;V[0]=V[0]>>>1;if(lsb)V[0]^=0xe1;}return Z;}
+  function _ghash(H,data){var Y=new Uint8Array(16);for(var off=0;off<data.length;off+=16){for(var j=0;j<16;j++)Y[j]^=(data[off+j]||0);Y=_gfmul(Y,H);}return Y;}
+  function _inc32(cb){var c=cb.slice(),n=(((c[12]<<24)|(c[13]<<16)|(c[14]<<8)|c[15])>>>0);n=(n+1)>>>0;
+    c[12]=(n>>>24)&255;c[13]=(n>>>16)&255;c[14]=(n>>>8)&255;c[15]=n&255;return c;}
+  function _gcmDecrypt(kb,iv,ctTag){var ks=_aesKey(kb),H=_aesEnc(ks,new Uint8Array(16));
+    var J0=new Uint8Array(16);J0.set(iv.slice(0,12));J0[15]=1;
+    var tag=ctTag.slice(ctTag.length-16),ct=ctTag.slice(0,ctTag.length-16),padC=(16-ct.length%16)%16;
+    var buf=new Uint8Array(ct.length+padC+16),p=0;buf.set(ct,0);p=ct.length+padC;var dv=new DataView(buf.buffer);
+    dv.setUint32(p,0,false);dv.setUint32(p+4,0,false);
+    dv.setUint32(p+8,Math.floor(ct.length*8/0x100000000)>>>0,false);dv.setUint32(p+12,(ct.length*8)>>>0,false);
+    var S=_ghash(H,buf),EJ0=_aesEnc(ks,J0),ok=1;for(var i=0;i<16;i++)if((S[i]^EJ0[i])!==tag[i])ok=0;
+    if(!ok)throw new Error('auth');
+    var out=new Uint8Array(ct.length),ctr=_inc32(J0);
+    for(var off=0;off<ct.length;off+=16){var ek=_aesEnc(ks,ctr),n=Math.min(16,ct.length-off);
+      for(i=0;i<n;i++)out[off+i]=ct[off+i]^ek[i];ctr=_inc32(ctr);}return out;}
+  var hasSubtle=!!(window.crypto&&window.crypto.subtle&&window.crypto.subtle.decrypt);
   async function decrypt(code){var salt=d64(PKG.salt),iv=d64(PKG.iv),ct=d64(PKG.ct);
-    var base=await crypto.subtle.importKey('raw',new TextEncoder().encode(code),'PBKDF2',false,['deriveKey']);
-    var key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:PKG.it,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
-    var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,ct);return JSON.parse(new TextDecoder().decode(pt));}
-  var DATA=null,sec=0,tier=7,COL=PKG.color,LVL=PKG.lvl;
+    if(hasSubtle){try{
+      var base=await crypto.subtle.importKey('raw',new TextEncoder().encode(code),'PBKDF2',false,['deriveKey']);
+      var key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:PKG.it,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+      var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,ct);return JSON.parse(new TextDecoder().decode(pt));
+    }catch(e){if(e&&e.name==='OperationError')throw e;/* subtle broken → fall through to pure-JS */}}
+    // Pure-JS path (no secure context needed). Yield first so the "Deciphering…" paint lands.
+    await new Promise(function(r){setTimeout(r,30);});
+    var dk=_pbkdf2(code,salt,PKG.it,32);
+    var pt2=_gcmDecrypt(dk,iv,ct);return JSON.parse(new TextDecoder().decode(pt2));}
+  var DATA=null,sec=0,tier=33,COL=PKG.color,LVL=PKG.lvl;
   var TC={7:'#c084fc',33:'#ef4444',111:'#22c55e',333:'#3b82f6'};
   // Original AccordFlower geometry: 6 petals (idx 0-5) + EXPAND hub (idx 6).
   var POS=(function(){var CX=300,CY=250,a=[];for(var i=0;i<6;i++){var d=(-120+i*60)*Math.PI/180;a.push({cx:CX+130*Math.cos(d),cy:CY+130*Math.sin(d),r:85});}a.push({cx:CX,cy:CY,r:50});return a;})();
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function wrap(str,per){var w=String(str).split(' '),o=[],c=[];w.forEach(function(x){c.push(x);if(c.join(' ').length>=per){o.push(c.join(' '));c=[];}});if(c.length)o.push(c.join(' '));return o;}
   function drawLeft(){
-    var g='',n=DATA.sections.length;
+    // Flower color follows the selected word-tier: 33=red, 111=green, 333=blue.
+    var FC=TC[tier]||COL,g='',n=DATA.sections.length;
     for(var i=0;i<7;i++){var p=POS[i],on=i<n,act=(i===sec),nv=DATA.nav[i],hub=(i===6);
-      var fill=on?COL:'#3a2530',fo=act?(on?0.42:0.20):(on?0.16:0.05),st=act?'#fff':(on?COL:'#3a2530');
+      var fill=on?FC:'#3a2530',fo=act?(on?0.42:0.20):(on?0.16:0.05),st=act?'#fff':(on?FC:'#3a2530');
       g+='<circle data-i="'+i+'" style="cursor:pointer" cx="'+p.cx.toFixed(1)+'" cy="'+p.cy.toFixed(1)+'" r="'+p.r+'" fill="'+fill+'" fill-opacity="'+fo+'" stroke="'+st+'" stroke-width="'+(act?3:2)+'" '+(on?'':'opacity="0.6"')+'/>';
       var tcol=on?'#fff':'#7a6470';
       g+='<text x="'+p.cx.toFixed(1)+'" y="'+(p.cy-(hub?0:12)).toFixed(1)+'" text-anchor="middle" fill="'+tcol+'" font-size="'+(hub?12:15)+'" font-weight="700" pointer-events="none">'+esc(nv.tag)+'</text>';
@@ -372,14 +453,21 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
     var c=codeEl.value.trim().toUpperCase().replace(/[\\s-]/g,'');
     var re=new RegExp('^'+(PKG.num?'[0-9]':'[2-9A-HJ-KM-NP-Z]')+'{'+PKG.cl+'}$');
     if(!re.test(c)){e.textContent='Enter the '+PKG.cl+'-'+(PKG.num?'digit':'character')+' code.';return;}
-    e.textContent='…';
+    // On devices without native crypto the pure-JS KDF takes a couple seconds.
+    e.textContent=hasSubtle?'…':'Deciphering… a moment on this device.';
+    document.getElementById('unlock').disabled=true;
     try{DATA=await decrypt(c);
       try{localStorage.removeItem(AKEY)}catch(x){}
+      e.textContent='';
       COL=DATA.color;LVL=DATA.clearance;var bd=document.getElementById('badge');bd.textContent='Clearance: Level '+DATA.clearance;bd.style.color=COL;bd.style.borderColor=COL;
       cover.style.display='none';drawSeal(document.getElementById('sealBig'),46);document.getElementById('sealview').style.display='flex';}
-    catch(err){a=att();a.n++;
-      if(a.n>=3)a.u=Date.now()+Math.min(300,10*Math.pow(2,a.n-3))*1000;
-      setAtt(a);e.textContent='Incorrect code.';}};
+    catch(err){
+      // 'auth' (pure-JS) or OperationError (native) = wrong code. Anything else
+      // is an environment fault — surface it so failures are never silent.
+      var wrong=!err||err.message==='auth'||err.name==='OperationError';
+      if(wrong){a=att();a.n++;if(a.n>=3)a.u=Date.now()+Math.min(300,10*Math.pow(2,a.n-3))*1000;setAtt(a);e.textContent='Incorrect code.';}
+      else{e.textContent='Could not open on this device: '+(err.message||err.name||'error');}}
+    finally{document.getElementById('unlock').disabled=false;}};
   document.getElementById('sealview').onclick=function(){this.style.display='none';reader.style.display='flex';render();};
   document.getElementById('code').addEventListener('keydown',function(ev){if(ev.key==='Enter')document.getElementById('unlock').click();});
   document.getElementById('prev').onclick=function(){if(sec>0){sec--;render();}};
