@@ -253,6 +253,13 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
 .pager button{width:44px;height:44px;border-radius:50%}.mini{color:var(--dim);font-size:11px}
 .done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px}
 </style></head><body>
+<!-- No-JS notice: visible ONLY where scripting is disabled (iOS Quick Look /
+     Mail & Files previews). The inline script below hides it the instant JS
+     runs, so real browsers never see it (no flash). -->
+<div id="nojs" style="padding:14px 18px;margin:16px 16px 0;border:1px solid #7f1d1d;border-radius:8px;background:#1a0e12;color:#fca5a5;font:13px/1.6 -apple-system,Segoe UI,Roboto,sans-serif;text-align:center">
+  <b>Code doesn't open it on iPhone/iPad?</b><br>You're viewing a file <i>preview</i>, where Apple disables the unlock. Ask the sender for the secure browser link, or open on Android / a computer. This copy opens directly there.
+</div>
+<script>try{document.getElementById('nojs').style.display='none'}catch(e){}</script>
 <div class="wrap">
   <div class="frame" id="frame">
     <!-- Light Codex double helix (2x2 px), forward upper-left + reverse bottom-right.
