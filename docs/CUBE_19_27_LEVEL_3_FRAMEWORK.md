@@ -4,7 +4,7 @@
 >
 > **Rule.** The 9 cubes are the substrate. Domains (Architect-2525, Manta-2525, Drone-2525, …) plug in as **Domain Play** configs. The substrate never forks per domain.
 
-**Contract version:** `L3-2026-07-04.3` · Master of Thought approved · Hardware Chip Interlock (Fluke pattern) + Atlantis Accord governance overlay + Substrate Assumption Registry + Component Serialization & Calibration Ledger · unhackable-by-design + more-secure-than-ITAR + built to evolve 2026 → 2525
+**Contract version:** `L3-2026-07-04.4` · Master of Thought approved · UCRS-2525 formalized as multi-scale (subatomic → interplanetary) + multi-medium (underwater → aerial → orbital) using 3600-arc-radian angular resolution · joint Manta+Drone cross-medium swarm scenario locked as the substrate's most-complex validation test
 
 ---
 
@@ -45,7 +45,7 @@ Locked from Council of Twelve audit (2026-07-03) plus Master of Thought safety +
 | 5 | **Operational Protocol** | Runtime sequence the finished artifact must execute — verified before delivery | Manta-2525 6-step launch |
 | 6 | **Vision 2525 Principles** | 4 hard constraints all L3 cubes satisfy (see §3) | Sail Ark principles panel |
 | 7 | **Domain-declared axes** | Per-domain estimation dimensions plugged into Cube 24's interface | Architect-2525 11 axes / Manta-2525 specs / Drone-2525 KPIs |
-| 8 | **UCRS-2525 · Spatial Coordinate Frame** | Universal Coordinate Reference System — 3D coord spec (A/B/C or equivalent) versioned on project Day 1 via Cube 11 blockchain; no late frame changes; cross-domain adversarial scenarios declare shared frame or explicit transform | Drone-2525 Azimuth/Elevation/Radius |
+| 8 | **UCRS-2525 · Spatial Coordinate Frame** | Universal Coordinate Reference System. **3600-arc-radian resolution** (not 360°) across azimuth + elevation for finer positioning — the same math locates a star in a solar system, a vehicle in orbit, a drone in a hemispheric arena, and a Manta at 120m depth. C-axis spans NEGATIVE (underwater / subsurface) through zero (sea-level or terrain-follow origin) to POSITIVE (aerial / orbital / interplanetary). Versioned on project Day 1 via Cube 11 blockchain. No late frame changes. Cross-domain scenarios declare a shared frame OR an explicit declarative transform between frames. **Scales:** subatomic · component-level · vehicle · arena · terrestrial · orbital · interplanetary — all in one coordinate contract | Drone-2525 arena + Manta-2525 depth + planetary + solar-system positioning; the frame was generated from the 360-degree circle refined to 3600 arc-radians so a star's position in a solar system OR a vehicle's position anywhere between subsurface and orbit stays representable with 0.1° angular precision |
 | 9 | **Multi-agent Coordination** | Leader / follower or pilot / targeter runtime hierarchies; extended to **Quorum Consensus** patterns (≥66% distributed agreement from N autonomous agents) for post-individual coordination | Drone-2525 D01 + D02-D12 swarm |
 | 10 | **Hardware Abstraction Layer (HAL)** | 6 hot-swappable slots (CPU/GPU/Inference/Screen/Sensors/Mobility) with auto-calibration; Raspberry-Pi + phone-browser baseline; **Degraded Mode fallback** if 9-min SLA impossible (see §4) | Vision 2525 low-compute-first requirement |
 | 11 | **Temporal Decoupling Envelope** | Async event-ordered causality vs wall-clock synchrony. Cube 19 state transitions + Cube 23 gates inherit event order, not timestamp. Domain Play declares `timing_model: [synchronous \| asynchronous \| hybrid]`. Cube 27 verifies protocols by causal chain, not time budget. | Odin (500-year predictive audit) — buys transition from silicon → neuromorphic → photonic → biological |
@@ -1171,6 +1171,95 @@ The substrate does not trust any single root — vendor, blockchain, TPM, or pee
 
 ---
 
+## 16 · Joint Manta + Drone Cross-Medium Swarm — the substrate's most-complex validation
+
+The single hardest scenario the Level 3 substrate must handle: **multiple underwater Manta-2525 units AND multiple aerial Drone-2525 units operating simultaneously in one UCRS-2525 frame, coordinating a joint mission across the water-air interface.** If the substrate handles this cleanly, every simpler scenario is safe.
+
+### 16.1 · Why this is the load-bearing test
+
+- **Two mediums, one frame** — same azimuth/elevation/depth-altitude math for a Manta at C=−80m and a Drone at C=+250m
+- **Two swarm topologies** — Manta fleet may run tight-formation escort; Drone swarm may run distributed sensor grid
+- **Two threat models** — sonar detection vs radar detection; distinct evasion physics
+- **One combined mission** — search + rescue, area denial, distributed environmental sensing, defense
+- **Handoff protocol** — Manta surfaces to deploy a Drone; Drone descends to hand off sensor data to a Manta; both re-submerge and re-launch autonomously
+
+### 16.2 · UCRS-2525 axes at joint swarm scale
+
+```
+axis A · azimuth        0000-3600 arc-radians  (0.1° resolution)
+axis B · elevation      0000-3600 arc-radians
+axis C · signed depth   negative = underwater metres
+                        zero     = sea-level / terrain origin
+                        positive = altitude metres above surface
+                        far      = orbital / interplanetary kilometres
+```
+
+The **same axis definitions scale** from a Manta at C=−800m (Sentinel mothership) up through a Drone at C=+100m (arena max altitude) out to a satellite pass at C=+400,000m (orbital) and beyond to interplanetary via a logarithmic extension of C.
+
+### 16.3 · Joint mission Domain Play — reference declaration
+
+```yaml
+domain: joint_manta_drone_2525
+parent_domains: [manta_2525, drone_2525]
+spec_slug_convention: "JOINT-{mission_num}"
+composition_graph:
+  root: mission_command
+  swarm:
+    aerial:
+      leader: D01
+      followers: [D02..D12]
+    aquatic:
+      mothership: sentinel_800_be
+      mini_pods: [manta_mini_99_66_a, manta_mini_99_66_b, manta_mini_99_66_c]
+coordinate_frame:
+  spec: ucrs_2525_v1
+  A: azimuth               # 0000-3600
+  B: elevation             # 0000-3600
+  C: signed_depth_altitude # NEGATIVE underwater m, ZERO sea level, POSITIVE altitude m
+handoff_protocol:
+  - drone_launch_from_manta_surface_bay
+  - drone_descent_to_water_surface_data_relay
+  - manta_ascent_to_periscope_depth_for_ack
+  - joint_re_submerge_re_launch_autonomous
+axes:
+  - trajectory_efficiency        # target ≥ 96%
+  - formation_integrity_aerial   # target ≥ 98%
+  - formation_integrity_aquatic  # target ≥ 96%
+  - cross_medium_handoff_latency # target ≤ 9 seconds
+  - joint_situational_awareness  # composite of sensor fusion across mediums
+  - safety_envelope_compliance   # target 100%
+modes:
+  - preposition                  # both fleets align before mission start
+  - active_joint_operation
+  - handoff_active
+  - degraded_medium_a            # aerial degraded; aquatic carries load
+  - degraded_medium_b            # aquatic degraded; aerial carries load
+  - recall_and_dock
+adversarial_partner: security_2525
+temporal_model: hybrid           # aerial sync + aquatic async under acoustic latency
+principles:
+  humanity_at_center: true       # AI/HI/SI teaming in the command loop
+  trust_through_transparency: true
+  quality_before_scale: true
+  one_earth_one_future: true
+```
+
+### 16.4 · What the substrate must prove on this scenario
+
+1. **Coordinate consistency** — one Manta at C=−80m and one Drone at C=+250m must be able to compute their relative bearing + range without either side translating into a local frame
+2. **Latency asymmetry** — aerial RF ~1ms, acoustic underwater ~1s/km → Temporal Decoupling Envelope (Primitive #11) proves out under real physics
+3. **Hardware Chip Interlock (Primitive #19)** enforces that a Manta sonar cannot be repurposed as a drone target-designator; a drone radar cannot be repurposed as a submarine detection array — cross-medium repurposing REFUSED
+4. **OATH weekly re-attestation (Primitive #18)** runs across both fleets in one 9-minute window
+5. **Component Serialization Ledger (Primitive #22)** tracks every hand-off — which serial-numbered drone was launched from which serial-numbered Manta, when, and under whose signature
+6. **Atlantis Accord (Primitive #20)** — cross-site movement of the joint fleet remains within accord constraints; every relocation records to Cube 11
+7. **AI ✧ HI ✧ SI teaming** — AI plans the joint patrol, Human decides on any engagement authority, Shared Intent validates alignment with mission ROE
+
+### 16.5 · Why this scenario justifies the whole substrate
+
+If Level 3 can orchestrate multiple undersea Mantas AND multiple aerial Drones AND multiple potential Security-2525 adversarial defenders simultaneously in **one coordinate frame** with **one governance model** and **one substrate**, then it can also orchestrate a single home renovation (Architect-2525), a single new-material discovery loop (Physics domain via #21), or any innovation project not yet named. This is the geometric proof: the framework generalizes to arbitrary innovation by generalizing to the hardest known case first.
+
+---
+
 ## Change log
 
 | Version | Date | Change |
@@ -1188,3 +1277,4 @@ The substrate does not trust any single root — vendor, blockchain, TPM, or pee
 | `L3-2026-07-04.1` | 2026-07-04 | **Master of Thought hardware-safety authority exercised.** Primitives grew 15 → 17: **#16 Hardware Approval Gate + SWAP Compliance** (human pre/post signature required for physical changes; SWAP envelope declares Size · Weight · Power ceiling; non-SWAP components trigger operating-time impact projection) and **#17 Compute Capacity Self-Assessment** (every new component broadcasts CPU/GPU/NN/memory/bandwidth/thermal requirements at install; substrate detects capacity gaps and offers upgrade paths). HAL §4 grew the **Slow-Mode Calibration Protocol** — 9 FPS + reduced motion floor while risks are unresolved (distinct from Degraded Mode: Slow-Mode means "success but proceeding cautiously"). Cube 24 got a new axis: **`power_draw_delta`** with owner-facing Monte Carlo operating-time impact. Cube 25 Principle Compliance Manifest grew `hardware_approval` and `compute_capacity_assessment` fields. Rationale: humans stay in the loop for physical world changes; the 9-FPS floor rhymes with the 9-minute HAL SLA and the 9-cube layer geometry — the substrate has three constants at 9 for a reason. |
 | `L3-2026-07-04.2` | 2026-07-04 | **Master of Thought "more secure than Tesla" mandate.** Primitives grew 17 → 18: **#18 Onboard Adversarial Test Harness (OATH)** — every hardware or software update, system-initiated or human-installed, triggers full onboard cybersecurity + calibration testing BEFORE acceptance. New §15 documents the 4-stage OATH pipeline: (1) Multi-Root-of-Trust Verification (vendor sig + Cube 11 blockchain anchor + local TPM + Quorum Consensus peers), (2) Onboard Adversarial Test Suite (fuzz + injection + side-channel + timing-attack + rollback demonstrated), (3) Domain-Declared Post-Update Tests, (4) Slow-Mode Calibration + human safety signature. **Weekly re-attestation** re-runs OATH against ALL installed components every 7 days for continuous re-verification. Test duration max: 9 minutes (fourth 9-constant of the substrate). Cube 25 Manifest grew `security_attestation` field. Applies across all domains (Manta / MASS / eXeL AI Robot / Drone / Architect / Security). |
 | `L3-2026-07-04.3` | 2026-07-04 | **Master of Thought unhackable-by-design + more-secure-than-ITAR mandate.** Primitives grew 18 → 22: **#19 Hardware Chip Interlock** (embedded secure element per SWAP component, cryptographic pairing to host at first install recorded in Cube 11, Safe-Brick state on physical removal; **ITAR-compliant thermal imager precedent** — the same standard-or-higher applies to every Vision 2525 component from the first Manta sonar to the last robot manipulator; no component can be repurposed for weapon-systems integration that could kill American troops or civilians in any theatre), **#20 Atlantis Accord Compliance** (governance overlay for federated Atlantis Sites; freedom of movement of humans + tech within accord conditional on traceability + non-operability-on-removal + non-repurposability; more secure than ITAR by design), **#21 Substrate Assumption Registry** (every axiom is a first-class registry entry with 5-year default expiry; approved via Q4 user consent), **#22 Component Serialization & Calibration Ledger** (globally-unique serial per component, append-only blockchain-anchored history of manufacture + OATH passes + calibrations + incidents; cascading recalibration on any dependency change; every physical thing has a story remembered for 500 years). **Principle #1 (Humanity at the Center) upgraded** to explicit AI ✧ HI ✧ SI teaming requirement — Artificial Intelligence proposes, Human Intelligence decides on safety/ethics, Shared Intent (collective) validates alignment; all three present at every decision loop, no exceptions. |
+| `L3-2026-07-04.4` | 2026-07-04 | **UCRS-2525 formalized as multi-scale + multi-medium coordinate system.** Primitive #8 upgraded: 3600-arc-radian resolution (chosen instead of 360° for 10× finer angular precision — the same math represents a Drone at hemispheric-arena scale, a Manta at −800m depth, a satellite in orbit, and a star in a solar system). C-axis spans negative (underwater), zero (sea level), positive (aerial → orbital → interplanetary). New §16 documents **the joint Manta + Drone cross-medium swarm scenario** as the substrate's most-complex validation test: multiple Manta-2525 units + multiple Drone-2525 units + potential Security-2525 adversaries all operating in one UCRS-2525 frame with hybrid temporal model (aerial RF ~1ms + acoustic underwater ~1s/km), water-air handoff protocol (drone launch from Manta surface bay, drone descent to periscope-depth data relay), and cross-medium Hardware Chip Interlock (sonars refuse to negotiate as target-designators; radars refuse to negotiate as submarine detectors). If the substrate handles this cleanly, every simpler innovation project — including an Architect-2525 home renovation — is safe. |
