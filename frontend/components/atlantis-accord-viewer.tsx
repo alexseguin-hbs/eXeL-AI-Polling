@@ -232,24 +232,33 @@ function FullscreenViewer({
   const [pkgCode, setPkgCode] = useState<string | null>(null);
   const [pkgBusy, setPkgBusy] = useState(false);
 
-  const handleGeneratePackage = async () => {
+  const generatePackage = async (level: number) => {
     setPkgBusy(true);
     try {
       const gen = generate4DigitCode();
-      const html = await buildAtlantisPackageHtml(ACCORD_SECTIONS_EN, gen, pkgClearance, pkgSender);
+      const html = await buildAtlantisPackageHtml(ACCORD_SECTIONS_EN, gen, level, pkgSender);
       const blob = new Blob([html], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Atlantis-Accords-Clearance-${pkgClearance}-${CLEARANCE_NAMES[pkgClearance]}.html`;
+      a.download = `Atlantis-Accords-Clearance-${level}-${CLEARANCE_NAMES[level]}.html`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1500);
+      setPkgClearance(level);
       setPkgCode(gen);
     } finally {
       setPkgBusy(false);
     }
+  };
+
+  // Scroll icon → instant Red single-circle (Level-1) package with a random code.
+  const handleQuickPackage = () => {
+    setPkgCode(null);
+    setPkgSender((s) => s);
+    setPkgOpen(true);
+    void generatePackage(1);
   };
 
   return (
@@ -259,9 +268,9 @@ function FullscreenViewer({
         <div className="flex items-center gap-3">
           {/* Scroll icon — download a shareable, 4-digit-gated offline package */}
           <button
-            onClick={() => { setPkgOpen(true); setPkgCode(null); }}
-            title="Download shareable package (clearance + 4-digit code)"
-            aria-label="Download shareable package"
+            onClick={handleQuickPackage}
+            title="Download sealed package — Red single-circle (Level 1), random 4-digit code"
+            aria-label="Download sealed package"
             className="rounded-md border border-border p-2 text-primary hover:bg-accent/50 transition-colors"
           >
             <ScrollText className="h-4 w-4" />
@@ -577,7 +586,7 @@ function FullscreenViewer({
                 <p className="mb-3 text-[11px]" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
                   Clearance {pkgClearance} · {CLEARANCE_NAMES[pkgClearance]} — {pkgClearance} of {MAX_CLEARANCE} sections
                 </p>
-                <button onClick={handleGeneratePackage} disabled={pkgBusy}
+                <button onClick={() => generatePackage(pkgClearance)} disabled={pkgBusy}
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
                   <Download className="h-4 w-4" />
                   {pkgBusy ? "Sealing…" : "Generate & Download .html"}
