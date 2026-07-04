@@ -241,7 +241,8 @@ function FullscreenViewer({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Atlantis-Accords-Clearance-${level}-${CLEARANCE_NAMES[level]}.html`;
+      // Filename carries only the level number — never the color-name (e.g. "RED").
+      a.download = `Atlantis-Accords-Clearance-${level}.html`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -601,8 +602,14 @@ function FullscreenViewer({
                 <div className="my-3 text-4xl font-bold tracking-[0.3em]" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
                   {pkgCode}
                 </div>
-                <p className="mb-4 text-[11px] text-muted-foreground">
-                  Clearance {pkgClearance} · {CLEARANCE_NAMES[pkgClearance]}. The reader enters this code to open. The copy <b>seals after it is closed</b> and cannot be reopened — send a fresh copy to share again.
+                <p className="mb-2 text-[11px] font-semibold" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
+                  Clearance Level {pkgClearance}
+                </p>
+                <p className="mb-3 text-[11px] text-muted-foreground">
+                  The reader enters this code to open. The copy <b>seals after it is closed</b> and cannot be reopened — send a fresh copy to share again.
+                </p>
+                <p className="mb-4 text-[10px] leading-snug text-muted-foreground/70">
+                  This document is sealed under the seven-circle encryption method. Access is limited to the intended recipient who holds the key.
                 </p>
                 <button onClick={() => setPkgOpen(false)}
                   className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-accent/50">Done</button>

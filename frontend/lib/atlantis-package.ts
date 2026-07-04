@@ -106,7 +106,6 @@ export async function buildAtlantisPackageHtml(
   sender: string,
 ): Promise<string> {
   const lvl = Math.max(1, Math.min(MAX_CLEARANCE, Math.round(clearance)));
-  const unlocked = sections.slice(0, lvl);
   const snd = (sender || "eXeL AI").trim();
 
   const { date, time } = centralStamp(new Date());
@@ -121,12 +120,15 @@ export async function buildAtlantisPackageHtml(
   const key = await deriveKey(code, salt);
   const payload = JSON.stringify({
     title: "The Atlantis Accords",
-    clearance: lvl, color: CLEARANCE_COLORS[lvl], name: CLEARANCE_NAMES[lvl],
+    // Color-NAME (e.g. "RED") is deliberately NOT embedded — the level is
+    // conveyed only by border/accent color, never the spelled-out name.
+    clearance: lvl, color: CLEARANCE_COLORS[lvl],
     sender: snd, codexDate: date, cstTime: time,
     // nav = all 7 petal labels (tag + seven-word) so the flower matches the
     // original; full content only for the unlocked (<= clearance) sections.
     nav: sections.map((s) => ({ tag: s.tag, seven: s.content[7] })),
-    sections: unlocked.map((s) => ({ tag: s.tag, title: s.title, content: s.content })),
+    // Level-1 = the whole transmission: all 7 sections included and readable.
+    sections: sections.map((s) => ({ tag: s.tag, title: s.title, content: s.content })),
   });
   const cipher = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: iv as BufferSource }, key,
@@ -153,7 +155,6 @@ function htmlTemplate(pkgJson: string): string {
 body{background:var(--bg);color:var(--tx);font:15px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
 .wrap{min-height:100%;display:flex;flex-direction:column}
 .frame{position:relative;overflow:hidden;flex:1;margin:16px;border:2px solid #0a0e14;border-radius:8px;display:flex;flex-direction:column;background:var(--bg)}
-.clevel{position:absolute;top:9px;right:14px;font-size:11px;font-weight:700;letter-spacing:.14em;z-index:3}
 .cover{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px 20px;gap:18px}
 .seal{display:flex;align-items:center;justify-content:center}
 .wonder{max-width:360px;color:var(--tx);font-size:15px;line-height:1.7}
@@ -187,7 +188,6 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
          the SIM Light Codex decoder. -->
     <canvas class="codexTL" id="cxTL"></canvas>
     <canvas class="codexBR" id="cxBR"></canvas>
-    <div class="clevel" id="clevel"></div>
     <!-- COVER — professional / confidential. Clearance shown only as a growing Seed of Life. -->
     <div class="cover" id="cover">
       <div class="seal" id="seal"></div>
@@ -224,7 +224,6 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
   var VKEY='atlantis_viewed_'+PKG.id;
   var frame=document.getElementById('frame'),cover=document.getElementById('cover'),reader=document.getElementById('reader'),done=document.getElementById('done');
   frame.style.setProperty('--clr',PKG.color);document.body.style.background=PKG.color;
-  (function(){var cl=document.getElementById('clevel');cl.textContent='CLEARANCE LEVEL: '+PKG.lvl;cl.style.color=PKG.color;})();
   function seen(){try{return localStorage.getItem(VKEY)==='1'}catch(e){return false}}
   function mark(){try{localStorage.setItem(VKEY,'1')}catch(e){}}
   // Growing Seed of Life: N same-size circles (1 = small … 7 = full flower).
@@ -246,7 +245,7 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
     var base=await crypto.subtle.importKey('raw',new TextEncoder().encode(code),'PBKDF2',false,['deriveKey']);
     var key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:PKG.it,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
     var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:iv},key,ct);return JSON.parse(new TextDecoder().decode(pt));}
-  var DATA=null,sec=0,tier=333,COL=PKG.color,LVL=PKG.lvl;
+  var DATA=null,sec=0,tier=7,COL=PKG.color,LVL=PKG.lvl;
   var TC={7:'#c084fc',33:'#ef4444',111:'#22c55e',333:'#3b82f6'};
   // Original AccordFlower geometry: 6 petals (idx 0-5) + EXPAND hub (idx 6).
   var POS=(function(){var CX=300,CY=250,a=[];for(var i=0;i<6;i++){var d=(-120+i*60)*Math.PI/180;a.push({cx:CX+130*Math.cos(d),cy:CY+130*Math.sin(d),r:85});}a.push({cx:CX,cy:CY,r:50});return a;})();
@@ -264,7 +263,7 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
     document.getElementById('left').innerHTML='<svg viewBox="0 0 600 500" width="100%" style="max-height:74vh;overflow:visible">'+g+'</svg>';
     Array.prototype.forEach.call(document.querySelectorAll('#left circle[data-i]'),function(c){c.onclick=function(){sec=+c.dataset.i;render();};});
   }
-  function drawTiers(){var t=document.getElementById('tiers');t.innerHTML='';[7,33,111,333].forEach(function(n){var b=document.createElement('button');b.className='tier';b.textContent=n+' words';b.style.borderColor=TC[n];b.style.color=n===tier?'#fff':TC[n];b.style.background=n===tier?TC[n]:'transparent';b.onclick=function(){tier=n;render();};t.appendChild(b);});}
+  function drawTiers(){var t=document.getElementById('tiers');t.innerHTML='';[33,111,333].forEach(function(n){var b=document.createElement('button');b.className='tier';b.textContent=n+' words';b.style.borderColor=TC[n];b.style.color=n===tier?'#fff':TC[n];b.style.background=n===tier?TC[n]:'transparent';b.onclick=function(){tier=n;render();};t.appendChild(b);});}
   function render(){var n=DATA.sections.length,ti=document.getElementById('tiers');
     if(sec<n){var s=DATA.sections[sec];
       document.getElementById('rtag').innerHTML='<span>'+esc(s.tag)+'</span> <span class="title">· '+esc(s.title)+'</span>';
@@ -275,7 +274,7 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
     document.getElementById('pos').textContent=(sec+1)+' / 7';drawTiers();drawLeft();}
   document.getElementById('unlock').onclick=async function(){var c=document.getElementById('code').value.trim();var e=document.getElementById('err');
     if(!/^[0-9]{4}$/.test(c)){e.textContent='Enter the 4-digit code.';return;}e.textContent='…';
-    try{DATA=await decrypt(c);COL=DATA.color;LVL=DATA.clearance;var bd=document.getElementById('badge');bd.textContent='CLEARANCE '+DATA.clearance+' · '+DATA.name;bd.style.color=COL;bd.style.borderColor=COL;
+    try{DATA=await decrypt(c);COL=DATA.color;LVL=DATA.clearance;var bd=document.getElementById('badge');bd.textContent='Clearance: Level '+DATA.clearance;bd.style.color=COL;bd.style.borderColor=COL;
       cover.style.display='none';drawSeal(document.getElementById('sealBig'),46);document.getElementById('sealview').style.display='flex';}catch(err){e.textContent='Incorrect code.';}};
   document.getElementById('sealview').onclick=function(){this.style.display='none';reader.style.display='flex';render();};
   document.getElementById('code').addEventListener('keydown',function(ev){if(ev.key==='Enter')document.getElementById('unlock').click();});
