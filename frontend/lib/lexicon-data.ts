@@ -183,6 +183,22 @@ const shared: TranslationEntry[] = [
   { key: "shared.atlantis.role_education", englishDefault: "Education", context: "Signatory role — education office", cubeId: 0 },
   { key: "shared.atlantis.role_innovation", englishDefault: "Innovation", context: "Signatory role — innovation office", cubeId: 0 },
   { key: "shared.atlantis.country_suffix", englishDefault: "Target Country", context: "Target country page header suffix", cubeId: 0 },
+  // Accord page titles (7)
+  { key: "shared.atlantis.title.pilot", englishDefault: "Where Innovation Begins", context: "Accord page title — PILOT", cubeId: 0 },
+  { key: "shared.atlantis.title.replay", englishDefault: "Learning Through Simulation", context: "Accord page title — REPLAY", cubeId: 0 },
+  { key: "shared.atlantis.title.qualify", englishDefault: "Safety Verified Before Trust Extended", context: "Accord page title — QUALIFY", cubeId: 0 },
+  { key: "shared.atlantis.title.certify", englishDefault: "Compensation, Well-Being, and Human Dignity", context: "Accord page title — CERTIFY", cubeId: 0 },
+  { key: "shared.atlantis.title.adopt", englishDefault: "Funding and Governance", context: "Accord page title — ADOPT", cubeId: 0 },
+  { key: "shared.atlantis.title.educate", englishDefault: "Cross-Cultural Exchange and Global Contribution", context: "Accord page title — EDUCATE", cubeId: 0 },
+  { key: "shared.atlantis.title.expand", englishDefault: "Sustainable Growth of the Network", context: "Accord page title — EXPAND", cubeId: 0 },
+  // Accord 7-word overviews (grey subtitle + flower petal text) (7)
+  { key: "shared.atlantis.seven.pilot", englishDefault: "Leaders begin what no century has begun.", context: "Accord 7-word overview — PILOT", cubeId: 0 },
+  { key: "shared.atlantis.seven.replay", englishDefault: "Practice a thousand times before touching.", context: "Accord 7-word overview — REPLAY", cubeId: 0 },
+  { key: "shared.atlantis.seven.qualify", englishDefault: "Safety proven first, then trust extended.", context: "Accord 7-word overview — QUALIFY", cubeId: 0 },
+  { key: "shared.atlantis.seven.certify", englishDefault: "A stipend, a mentor, a home.", context: "Accord 7-word overview — CERTIFY", cubeId: 0 },
+  { key: "shared.atlantis.seven.adopt", englishDefault: "Citizens fund the next generation directly.", context: "Accord 7-word overview — ADOPT", cubeId: 0 },
+  { key: "shared.atlantis.seven.educate", englishDefault: "Every learner in their own language.", context: "Accord 7-word overview — EDUCATE", cubeId: 0 },
+  { key: "shared.atlantis.seven.expand", englishDefault: "Never faster than dignity can travel.", context: "Accord 7-word overview — EXPAND", cubeId: 0 },
 ];
 
 const cube1: TranslationEntry[] = [

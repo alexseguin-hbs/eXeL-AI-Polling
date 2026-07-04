@@ -131,6 +131,10 @@ export function useAudioEngine(trackUrls: string[]) {
   const disposedRef = useRef(false);
   const currentTrackRef = useRef(0);
   const isPlayingRef = useRef(false);
+  // Mobile unlock: the user intends playback, but the context may still be
+  // suspended until a real gesture. These drive the gesture-retry in play().
+  const wantsPlayRef = useRef(false);
+  const retryBoundRef = useRef(false);
 
   // ── Initialize ──────────────────────────────────────────────
 
@@ -157,6 +161,18 @@ export function useAudioEngine(trackUrls: string[]) {
       const unlock = () => {
         if (ctx.state === "suspended") {
           void ctx.resume();
+        }
+        // iOS Safari full-unlock: playing a 1-sample silent buffer INSIDE the
+        // gesture flips the "user-activated audio" bit that resume() alone does
+        // not set on iOS. Harmless on Android.
+        try {
+          const b = ctx.createBuffer(1, 1, 22050);
+          const s = ctx.createBufferSource();
+          s.buffer = b;
+          s.connect(ctx.destination);
+          s.start(0);
+        } catch {
+          // best-effort
         }
         document.removeEventListener("touchstart", unlock);
         document.removeEventListener("pointerdown", unlock);
@@ -384,37 +400,62 @@ export function useAudioEngine(trackUrls: string[]) {
 
   // ── Play ────────────────────────────────────────────────────
 
-  const play = useCallback(async () => {
+  // Start the real buffer source. Guarded so a double-tap can't double-start.
+  const doStart = useCallback(() => {
     const ctx = ctxRef.current;
-    if (!ctx) return;
-
-    // Await resume BEFORE starting the source — mobile Chrome silently
-    // no-ops sources connected to a suspended context, so we can't fire
-    // startSource until resume() has actually resolved (2026-07-03 fix).
-    if (ctx.state === "suspended") {
-      try {
-        await ctx.resume();
-      } catch {
-        // If resume rejects (no user gesture yet), the document-level
-        // unlock listener registered in initialize() will retry on tap.
-      }
-    }
-
-    if (ctx.state !== "running") {
-      // Still suspended — defer. The unlock listener will resume on gesture;
-      // the caller (or useEffect) will re-invoke play() when isPlaying flips.
-      return;
-    }
-
+    if (!ctx || isPlayingRef.current) return;
     const idx = currentTrackRef.current;
     startSource(idx, FADE_IN_DURATION);
     isPlayingRef.current = true;
     setState((s) => ({ ...s, isPlaying: true }));
   }, [startSource]);
 
+  const play = useCallback(() => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    wantsPlayRef.current = true;
+
+    // Desktop / already-unlocked: context is running → start immediately.
+    if (ctx.state === "running") {
+      doStart();
+      return;
+    }
+
+    // Suspended: try to resume; if it flips to running, start.
+    ctx
+      .resume()
+      .then(() => {
+        if (wantsPlayRef.current && ctx.state === "running") doStart();
+      })
+      .catch(() => {});
+
+    // Android + iOS reliable path: bind a ONE-TIME gesture that resumes AND
+    // calls source.start() *inside* the gesture. Starting a real buffer source
+    // within a user gesture is the only unlock iOS Safari honours; mobile
+    // Chrome needs the same resume-in-gesture. Auto-play on `ready` (no gesture)
+    // arms this so the very next tap starts the music.
+    if (!retryBoundRef.current && typeof document !== "undefined") {
+      retryBoundRef.current = true;
+      const retry = () => {
+        retryBoundRef.current = false;
+        document.removeEventListener("touchend", retry);
+        document.removeEventListener("pointerup", retry);
+        document.removeEventListener("click", retry);
+        const c = ctxRef.current;
+        if (!c || !wantsPlayRef.current || isPlayingRef.current) return;
+        if (c.state === "suspended") c.resume().catch(() => {});
+        doStart();
+      };
+      document.addEventListener("touchend", retry, { passive: true });
+      document.addEventListener("pointerup", retry, { passive: true });
+      document.addEventListener("click", retry);
+    }
+  }, [doStart]);
+
   // ── Pause ───────────────────────────────────────────────────
 
   const pause = useCallback(() => {
+    wantsPlayRef.current = false;
     const idx = currentTrackRef.current;
     stopSource(idx, FADE_OUT_DURATION);
     isPlayingRef.current = false;
@@ -505,6 +546,7 @@ export function useAudioEngine(trackUrls: string[]) {
   const dispose = useCallback(() => {
     disposedRef.current = true;
     isPlayingRef.current = false;
+    wantsPlayRef.current = false;
 
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);

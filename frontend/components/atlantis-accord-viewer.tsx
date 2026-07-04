@@ -46,9 +46,10 @@ const HUB_POSITION = getHubPosition();
 const TRIAD_POSITIONS = getTheme1Positions();
 const CENTER_IDX = 6; // EXPAND = center hub
 
-function sectionTheme(idx: number): ThemeInfo {
+// The 7-word petal descriptor is passed in (localized via the Lexicon).
+function sectionTheme(idx: number, seven: string): ThemeInfo {
   const s = ACCORD_SECTIONS_EN[idx];
-  return { label: s.tag, count: 0, avgConfidence: 0, summary33: s.content[7] };
+  return { label: s.tag, count: 0, avgConfidence: 0, summary33: seven };
 }
 
 // ── Accord flower: 6 petals (PILOT..EDUCATE) + EXPAND hub ────────
@@ -56,10 +57,12 @@ function AccordFlower({
   activeIdx,
   onSelect,
   color,
+  sevenLabels,
 }: {
   activeIdx: number;
   onSelect: (i: number) => void;
   color: { fill: string; stroke: string };
+  sevenLabels: string[];
 }) {
   const fillFor = (idx: number) =>
     idx === activeIdx ? color.stroke + "44" : color.fill;
@@ -75,7 +78,7 @@ function AccordFlower({
         cx={HUB_POSITION.cx}
         cy={HUB_POSITION.cy}
         r={HUB_POSITION.r}
-        theme={sectionTheme(CENTER_IDX)}
+        theme={sectionTheme(CENTER_IDX, sevenLabels[CENTER_IDX])}
         fill={fillFor(CENTER_IDX)}
         stroke={color.stroke}
         onClick={() => onSelect(CENTER_IDX)}
@@ -87,7 +90,7 @@ function AccordFlower({
           cx={pos.cx}
           cy={pos.cy}
           r={pos.r}
-          theme={sectionTheme(i)}
+          theme={sectionTheme(i, sevenLabels[i])}
           fill={fillFor(i)}
           stroke={color.stroke}
           onClick={() => onSelect(i)}
@@ -212,6 +215,10 @@ function FullscreenViewer({
     label: c.region,
     subtitle: c.rotationStage,
   }));
+  // 7-word overviews, localized — used by the flower petals + grey subtitle.
+  const sevenLabels = ACCORD_SECTIONS_EN.map((s) =>
+    t(`shared.atlantis.seven.${s.id}`)
+  );
 
   return (
     <div className="fixed inset-0 z-[70] bg-background/98 backdrop-blur-md flex flex-col">
@@ -294,7 +301,7 @@ function FullscreenViewer({
           </div>
           <div className="flex-1 min-h-0 w-full max-w-[560px] flex items-center justify-center">
             {view === "accord" ? (
-              <AccordFlower activeIdx={activeIdx} onSelect={setActiveIdx} color={color} />
+              <AccordFlower activeIdx={activeIdx} onSelect={setActiveIdx} color={color} sevenLabels={sevenLabels} />
             ) : view === "approvals" ? (
               <TriangleFlower items={approvalItems} activeIdx={activeIdx} onSelect={setActiveIdx} />
             ) : (
@@ -314,10 +321,12 @@ function FullscreenViewer({
               {/* "PILOT · Where Innovation Begins" — tag white, title grey */}
               <h3 className="text-2xl font-bold tracking-tight mb-1">
                 <span className="text-foreground">{section.tag}</span>{" "}
-                <span className="font-normal text-muted-foreground">· {section.title}</span>
+                <span className="font-normal text-muted-foreground">
+                  · {t(`shared.atlantis.title.${section.id}`)}
+                </span>
               </h3>
               <p className="mb-3 text-sm text-muted-foreground italic">
-                {section.content[7]}
+                {t(`shared.atlantis.seven.${section.id}`)}
               </p>
 
               {/* Tier selector — colors the overview AND the flower */}
