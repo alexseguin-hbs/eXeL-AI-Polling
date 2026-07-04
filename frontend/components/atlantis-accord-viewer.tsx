@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, type TouchEvent } from "react";
 import { X, Expand, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -101,6 +101,25 @@ function FullscreenViewer({
   const section = useMemo(() => getSection(activeIdx, langCode), [activeIdx, langCode]);
   const color = TIER_COLORS[tier];
 
+  const totalPages = ACCORD_SECTIONS_EN.length;
+  const goPrev = () => {
+    if (activeIdx > 0) setActiveIdx(activeIdx - 1);
+  };
+  const goNext = () => {
+    if (activeIdx < totalPages - 1) setActiveIdx(activeIdx + 1);
+  };
+
+  // Touch-swipe paging — same 50px threshold as the Divinity Guide reader
+  const touchStartX = useRef(0);
+  const onTouchStart = (e: TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const onTouchEnd = (e: TouchEvent) => {
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (delta < -50) goNext();
+    else if (delta > 50) goPrev();
+  };
+
   return (
     <div className="fixed inset-0 z-[70] bg-background/98 backdrop-blur-md flex flex-col">
       {/* Top bar */}
@@ -126,13 +145,15 @@ function FullscreenViewer({
         </div>
 
         {/* RIGHT — Text */}
-        <div className="flex flex-col min-w-0 min-h-0 overflow-hidden">
-          {/* Header: "Page 1 PILOT · Where Innovation Begins"
-              — "Page 1 PILOT" white, everything after the bullet grey. */}
+        <div
+          className="flex flex-col min-w-0 min-h-0 overflow-hidden"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
+          {/* Header: "PILOT · Where Innovation Begins" — tag white, title grey.
+              The page number lives in the bottom pager, not here. */}
           <h3 className="text-2xl font-bold tracking-tight mb-1">
-            <span className="text-foreground">
-              Page {section.page} {section.tag}
-            </span>{" "}
+            <span className="text-foreground">{section.tag}</span>{" "}
             <span className="font-normal text-muted-foreground">· {section.title}</span>
           </h3>
           <p className="mb-3 text-sm text-muted-foreground italic">
@@ -162,8 +183,41 @@ function FullscreenViewer({
           </div>
 
           {/* Body */}
-          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line overflow-y-auto pr-2 flex-1 min-h-0">
+          <div
+            key={`${activeIdx}-${tier}`}
+            className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line overflow-y-auto pr-2 flex-1 min-h-0 animate-in fade-in slide-in-from-right-2 duration-300"
+          >
             {section.content[tier]}
+          </div>
+
+          {/* Bottom pager — reused from the Divinity Guide book reader.
+              Arrows page through the 7 sections and stay in sync with the flower. */}
+          <div className="flex items-center justify-between pt-4 mt-4 border-t">
+            <button
+              onClick={goPrev}
+              disabled={activeIdx === 0}
+              aria-label="Previous section"
+              className="w-12 h-12 rounded-full border flex items-center justify-center text-lg hover:bg-accent/30 disabled:opacity-15 transition-all"
+              style={{ borderColor: activeIdx > 0 ? color.stroke : undefined }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <p className="text-[10px] text-muted-foreground/40">
+              {activeIdx + 1} / {totalPages}
+            </p>
+            <button
+              onClick={goNext}
+              disabled={activeIdx >= totalPages - 1}
+              aria-label="Next section"
+              className="w-12 h-12 rounded-full border flex items-center justify-center text-lg hover:bg-accent/30 disabled:opacity-15 transition-all"
+              style={{ borderColor: activeIdx < totalPages - 1 ? color.stroke : undefined }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
