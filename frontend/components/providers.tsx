@@ -8,6 +8,7 @@ import { LexiconProvider } from "@/lib/lexicon-context";
 import { TimerProvider } from "@/lib/timer-context";
 import { EasterEggProvider } from "@/lib/easter-egg-context";
 import { FeedbackWidget } from "@/components/feedback-widget";
+import { HomeLauncher } from "@/components/home-launcher";
 import {
   AUTH0_DOMAIN,
   AUTH0_CLIENT_ID,
@@ -82,6 +83,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <TimerProvider>
               <EasterEggProvider>
                 {children}
+                <HomeLauncher />
                 <Toaster />
               <GlobalFeedback />
               </EasterEggProvider>
