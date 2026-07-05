@@ -207,6 +207,13 @@ function newSealHash(): string {
  *  available lang codes + display names. The reader's language selector switches
  *  the whole document (petals, headers, all word tiers) in-memory after unlock.
  *  Tags stay as English step-codes (localized display labels are a later layer). */
+export interface SealOptions {
+  /** Content rendering: "plain" = textContent (default), "html" = innerHTML (pre-sanitized markdown/HTML message). */
+  fmt?: "plain" | "html";
+  /** Single-message mode: hide word-tier buttons, use the section's own tag/title (not Accord step codes). */
+  msg?: boolean;
+}
+
 async function buildAtlantisPayloadJson(
   translations: Record<string, AccordSection[]>,
   langNames: Record<string, string>,
@@ -214,6 +221,7 @@ async function buildAtlantisPayloadJson(
   code: string,
   clearance: number,
   sender: string,
+  opts?: SealOptions,
 ): Promise<string> {
   const lvl = Math.max(1, Math.min(MAX_CLEARANCE, Math.round(clearance)));
   const snd = (sender || "eXeL AI").trim();
@@ -252,6 +260,8 @@ async function buildAtlantisPayloadJson(
     sender: snd, codexDate: date, cstTime: time,
     // Multilingual: all languages embedded; selector switches in-memory.
     defaultLang: dl, langs, langNames,
+    // Message-mode flags: fmt drives plain vs html rendering; msg = single-message layout.
+    fmt: opts?.fmt === "html" ? "html" : "plain", msg: !!opts?.msg,
     i18n,
     // Back-compat: default-language nav/sections at top level for older readers.
     nav: i18n[dl].nav,
@@ -285,8 +295,9 @@ export async function buildAtlantisPackageHtml(
   code: string,
   clearance: number,
   sender: string,
+  opts?: SealOptions,
 ): Promise<string> {
-  return htmlTemplate(await buildAtlantisPayloadJson(translations, langNames, defaultLang, code, clearance, sender));
+  return htmlTemplate(await buildAtlantisPayloadJson(translations, langNames, defaultLang, code, clearance, sender, opts));
 }
 
 /** base64url (UTF-8 safe) — for carrying the payload in the link #fragment. */
@@ -313,8 +324,9 @@ export async function buildAtlantisLink(
   code: string,
   clearance: number,
   sender: string,
+  opts?: SealOptions,
 ): Promise<string> {
-  const json = await buildAtlantisPayloadJson(translations, langNames, defaultLang, code, clearance, sender);
+  const json = await buildAtlantisPayloadJson(translations, langNames, defaultLang, code, clearance, sender, opts);
   if (supabase) {
     // Store the ciphertext under a fresh 7-char hash; retry on the (rare)
     // primary-key collision. The unlock code never touches the server.
@@ -575,21 +587,23 @@ function __initSeal(){
       var fill=on?FC:'#3a2530',fo=act?(on?0.42:0.20):(on?0.16:0.05),st=act?'#fff':(on?FC:'#3a2530');
       g+='<circle data-i="'+i+'" style="cursor:pointer" cx="'+p.cx.toFixed(1)+'" cy="'+p.cy.toFixed(1)+'" r="'+p.r+'" fill="'+fill+'" fill-opacity="'+fo+'" stroke="'+st+'" stroke-width="'+(act?3:2)+'" '+(on?'':'opacity="0.6"')+'/>';
       var tcol=on?'#fff':'#7a6470';
-      g+='<text x="'+p.cx.toFixed(1)+'" y="'+(p.cy-(hub?0:12)).toFixed(1)+'" text-anchor="middle" fill="'+tcol+'" font-size="'+(hub?12:15)+'" font-weight="700" pointer-events="none">'+esc((UIc||FB_UI).steps[i]||nv.tag)+'</text>';
+      g+='<text x="'+p.cx.toFixed(1)+'" y="'+(p.cy-(hub?0:12)).toFixed(1)+'" text-anchor="middle" fill="'+tcol+'" font-size="'+(hub?12:15)+'" font-weight="700" pointer-events="none">'+esc((DATA&&DATA.msg)?(nv.tag||''):((UIc||FB_UI).steps[i]||nv.tag))+'</text>';
       if(!hub){var L=wrap(nv.seven||'',18);L.slice(0,3).forEach(function(ln,li){g+='<text x="'+p.cx.toFixed(1)+'" y="'+(p.cy+6+li*12).toFixed(1)+'" text-anchor="middle" fill="'+(on?'#e6cccc':'#7a6470')+'" font-size="9" pointer-events="none">'+esc(ln)+'</text>';});}
     }
     document.getElementById('left').innerHTML='<svg viewBox="0 0 600 500" width="100%" style="max-height:74vh;overflow:visible">'+g+'</svg>';
-    Array.prototype.forEach.call(document.querySelectorAll('#left circle[data-i]'),function(c){c.onclick=function(){sec=+c.dataset.i;render();};});
+    Array.prototype.forEach.call(document.querySelectorAll('#left circle[data-i]'),function(c){c.onclick=function(){var t=+c.dataset.i;if(DATA&&DATA.msg&&t>=CT.sections.length)return;sec=t;render();};});
   }
   function drawTiers(){var t=document.getElementById('tiers');t.innerHTML='';[33,111,333].forEach(function(n){var b=document.createElement('button');b.className='tier';b.textContent=n+' '+(UIc||FB_UI).words;b.style.borderColor=TC[n];b.style.color=n===tier?'#fff':TC[n];b.style.background=n===tier?TC[n]:'transparent';b.onclick=function(){tier=n;render();};t.appendChild(b);});}
   function render(){var n=CT.sections.length,ti=document.getElementById('tiers');
     if(sec<n){var s=CT.sections[sec];
-      document.getElementById('rtag').innerHTML='<span>'+esc((UIc||FB_UI).steps[sec]||s.tag)+'</span> <span class="title">· '+esc(s.title)+'</span>';
-      document.getElementById('rcontent').textContent=s.content[tier]||s.content[333];ti.style.display='flex';}
+      document.getElementById('rtag').innerHTML='<span>'+esc((DATA&&DATA.msg)?s.tag:((UIc||FB_UI).steps[sec]||s.tag))+'</span> <span class="title">· '+esc(s.title)+'</span>';
+      var body=(DATA&&DATA.msg)?(s.content[333]||s.content[tier]||''):(s.content[tier]||s.content[333]||'');
+      if(DATA&&DATA.fmt==='html')document.getElementById('rcontent').innerHTML=body;else document.getElementById('rcontent').textContent=body;
+      ti.style.display=(DATA&&DATA.msg)?'none':'flex';}
     else{var nv=CT.nav[sec];
-      document.getElementById('rtag').innerHTML='<span>'+esc((UIc||FB_UI).steps[sec]||nv.tag)+'</span>';
+      document.getElementById('rtag').innerHTML='<span>'+esc((DATA&&DATA.msg)?(nv.tag||''):((UIc||FB_UI).steps[sec]||nv.tag))+'</span>';
       document.getElementById('rcontent').innerHTML='<div style="opacity:.75;font-style:italic">'+esc(nv.seven||'')+'</div><div style="margin-top:16px;color:'+COL+'">'+esc((UIc||FB_UI).sealedSection.replace('{n}',LVL))+'</div>';ti.style.display='none';}
-    document.getElementById('pos').textContent=(sec+1)+' / 7';drawTiers();drawLeft();}
+    document.getElementById('pos').textContent=(sec+1)+' / '+((DATA&&DATA.msg)?1:7);var _pg=document.querySelector('.pager');if(_pg)_pg.style.display=(DATA&&DATA.msg)?'none':'flex';drawTiers();drawLeft();}
   document.getElementById('unlock').onclick=async function(){
     var e=document.getElementById('err');
     var a=att(),now=Date.now();
