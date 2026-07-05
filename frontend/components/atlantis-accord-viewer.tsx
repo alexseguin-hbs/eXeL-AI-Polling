@@ -826,9 +826,10 @@ export function AtlantisAccordViewer() {
   );
 }
 
-// ─── Standalone page (the /atlantis deep-link the in-viewer QR points to) ──────
-// Opens the Accords reader full-screen, already unlocked (the same view a
-// moderator sees after the Easter-egg unlock). Closing returns to the homepage.
+// ─── Standalone page (/atlantis) ──────────────────────────────────────────────
+// EXACT copy of the Settings → The Atlantis Accords master: same FullscreenViewer,
+// same scroll-share, same public Level-1 default (advanced Clearance Levels still
+// appear only after the Easter-egg unlock). The QR points here. Closing → home.
 export function AtlantisAccordsStandalone() {
   const { activeLocale } = useLexicon();
   return (
@@ -837,7 +838,6 @@ export function AtlantisAccordsStandalone() {
         if (typeof window !== "undefined") window.location.href = "/";
       }}
       langCode={activeLocale}
-      forceUnlocked
     />
   );
 }
