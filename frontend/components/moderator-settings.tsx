@@ -16,6 +16,7 @@ import { useEasterEgg } from "@/lib/easter-egg-context";
 import { useLexicon } from "@/lib/lexicon-context";
 import { LanguageLexicon } from "@/components/language-lexicon";
 import { AtlantisAccordViewer } from "@/components/atlantis-accord-viewer";
+import { LightCodexSettingsRow } from "@/components/light-codex-cube";
 import { CubeArchitectureStatus } from "@/components/cube-status";
 import { TrinityColorPicker } from "@/components/trinity-color-picker";
 import { getSortedLanguages } from "@/lib/language-utils";
@@ -471,6 +472,9 @@ export function ModeratorSettings({ open, onClose, userEmail, isPollingUser }: M
               <LanguageLexicon userEmail={userEmail} />
               <Separator />
               <AtlantisAccordViewer />
+              {/* Light Codex — hidden until the Easter-egg unlock; the row
+                  renders null otherwise, so no Separator artifact when locked. */}
+              <LightCodexSettingsRow />
             </>
           )}
         </div>
