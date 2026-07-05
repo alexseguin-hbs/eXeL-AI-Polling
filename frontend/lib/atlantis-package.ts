@@ -590,20 +590,36 @@ function __initSeal(){
       +'<div style="font-size:26px;color:'+PKG.color+'">&#9679;</div>'
       +'<div style="letter-spacing:.12em;text-transform:uppercase;font-size:11px">This copy has been closed and cannot be reopened</div>'
       +'<div style="font-size:11px">Request a fresh copy from the sender.</div></div></body></html>';}
-  // Burn (downloaded FILE only): auto-save a dead shell with the SAME filename to
-  // Downloads — no save picker. The browser writes it beside/over the original.
+  // Burn (downloaded FILE only). PC Chrome/Edge: File System Access save picker
+  // pre-filled with the SAME filename — choosing the original file makes the
+  // browser itself ask "Replace?", and we overwrite the real bytes on disk
+  // (ciphertext destroyed, not renamed around). Anchor downloads can NEVER
+  // overwrite — browsers auto-rename to "name (1).html" — so other browsers
+  // fall back to that with an honest hint.
   (function(){var b=document.getElementById('burn');if(location.protocol!=='file:')return;
     b.style.display='inline-block';
-    b.onclick=function(){
+    b.onclick=async function(){
       var hint=document.getElementById('burnHint');
+      var name=location.pathname.split('/').pop()||'Atlantis-Accords.html';
+      try{name=decodeURIComponent(name)}catch(e){}
+      if(window.showSaveFilePicker){
+        try{
+          var h=await window.showSaveFilePicker({suggestedName:name,types:[{description:'HTML document',accept:{'text/html':['.html']}}]});
+          var w=await h.createWritable();await w.write(sealedShell());await w.close();
+          b.textContent='Burned';b.disabled=true;
+          hint.textContent='Overwritten in place — this file is now a dead shell.';
+          return;
+        }catch(e){
+          if(e&&e.name==='AbortError'){hint.textContent='Burn canceled — the file was not changed.';return;}
+          /* picker unavailable or blocked on this device -> fall back to auto-download */
+        }
+      }
       try{
-        var name=location.pathname.split('/').pop()||'Atlantis-Accords.html';
-        try{name=decodeURIComponent(name)}catch(e){}
         var blob=new Blob([sealedShell()],{type:'text/html'});var url=URL.createObjectURL(blob);
         var a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
         setTimeout(function(){URL.revokeObjectURL(url)},1500);
         b.textContent='Burned';b.disabled=true;
-        hint.textContent='A sealed shell was saved to Downloads under the same name. Replace the original to finish the burn.';
+        hint.textContent='A sealed shell was saved to Downloads — your browser may have added "(1)" to the name. Delete the original and keep the shell to finish the burn.';
       }catch(e){}};})();
 }
 </script>
