@@ -104,8 +104,34 @@ export const ACCORD_SECTIONS_EN: AccordSection[] = [
 // Per-language content. English is the source. Any language not in this map
 // falls back to English via getSection() below. Translations land here as they
 // are approved through the Lexicon admin flow — same pattern as lexicon-data.ts.
+// Reuse (R-CORE): each file is a plain AccordSection[]; registering it here is
+// all that's needed to light it up in the live viewer AND the sealed package.
+import { ACCORD_AR } from "@/lib/atlantis-accord-translations/ar";
+import { ACCORD_DA } from "@/lib/atlantis-accord-translations/da";
+import { ACCORD_DE } from "@/lib/atlantis-accord-translations/de";
+import { ACCORD_EL } from "@/lib/atlantis-accord-translations/el";
+import { ACCORD_ES } from "@/lib/atlantis-accord-translations/es";
+import { ACCORD_FR } from "@/lib/atlantis-accord-translations/fr";
+import { ACCORD_HI } from "@/lib/atlantis-accord-translations/hi";
+import { ACCORD_ID } from "@/lib/atlantis-accord-translations/id";
+import { ACCORD_IT } from "@/lib/atlantis-accord-translations/it";
+import { ACCORD_JA } from "@/lib/atlantis-accord-translations/ja";
+import { ACCORD_MS } from "@/lib/atlantis-accord-translations/ms";
+import { ACCORD_NL } from "@/lib/atlantis-accord-translations/nl";
+import { ACCORD_PL } from "@/lib/atlantis-accord-translations/pl";
+import { ACCORD_PT } from "@/lib/atlantis-accord-translations/pt";
+import { ACCORD_RU } from "@/lib/atlantis-accord-translations/ru";
+import { ACCORD_SV } from "@/lib/atlantis-accord-translations/sv";
+import { ACCORD_TH } from "@/lib/atlantis-accord-translations/th";
+import { ACCORD_UK } from "@/lib/atlantis-accord-translations/uk";
+import { ACCORD_ZH } from "@/lib/atlantis-accord-translations/zh";
+
 export const ACCORD_TRANSLATIONS: Record<string, AccordSection[]> = {
   en: ACCORD_SECTIONS_EN,
+  ar: ACCORD_AR, da: ACCORD_DA, de: ACCORD_DE, el: ACCORD_EL, es: ACCORD_ES,
+  fr: ACCORD_FR, hi: ACCORD_HI, id: ACCORD_ID, it: ACCORD_IT, ja: ACCORD_JA,
+  ms: ACCORD_MS, nl: ACCORD_NL, pl: ACCORD_PL, pt: ACCORD_PT, ru: ACCORD_RU,
+  sv: ACCORD_SV, th: ACCORD_TH, uk: ACCORD_UK, zh: ACCORD_ZH,
 };
 
 export function getSection(sectionIdx: number, langCode: string): AccordSection {

@@ -59,7 +59,7 @@ export function SoITrinity({
   outerWidth = 21,
   fontSize = 11,
   letterSpacing = 2,
-  borderWidth = 1.5,
+  borderWidth = 0,
   textSpan = 90,
   topTextOffset = -2,     // - inward, + outward
   leftTextOffset = 2,     // CONNECTION: +2 outward (corrected)
@@ -115,8 +115,10 @@ export function SoITrinity({
     const p = clip ? { clipPath: `url(#${clip})` } : {};
     return (
       <>
+        {/* Color spans the full band [ringInnerR, ringR] and runs UNDER the black
+            borders drawn after it — zero background seam between color and border. */}
         <circle cx={rcx} cy={rcy} r={ringMidR}
-          fill="none" stroke={color} strokeWidth={ringWidth - borderWidth * 2} {...p} />
+          fill="none" stroke={color} strokeWidth={ringWidth} {...p} />
         <circle cx={rcx} cy={rcy} r={ringR}
           fill="none" stroke="black" strokeWidth={borderWidth} {...p} />
         <circle cx={rcx} cy={rcy} r={ringInnerR}
@@ -178,9 +180,9 @@ export function SoITrinity({
       <RingBand rcx={rings[2].cx} rcy={rings[2].cy} clip={`${uid}-fs`} />
       <RingBand rcx={rings[2].cx} rcy={rings[2].cy} />
 
-      {/* 4. UNITY ring */}
+      {/* 4. UNITY ring — color at full width under the black borders (no seam) */}
       <circle cx={cx} cy={cy} r={outerR - outerWidth / 2}
-        fill="none" stroke={color} strokeWidth={outerWidth - borderWidth * 2} />
+        fill="none" stroke={color} strokeWidth={outerWidth} />
       <circle cx={cx} cy={cy} r={outerR}
         fill="none" stroke="black" strokeWidth={borderWidth} />
       <circle cx={cx} cy={cy} r={outerR - outerWidth}

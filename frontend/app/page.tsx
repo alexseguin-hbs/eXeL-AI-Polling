@@ -30,15 +30,16 @@ const TRINITY_PRESETS: { keys: [string, string, string]; color: string; titleKey
 ];
 
 // 8 preset color swatches — quick select, then fine-tune via expanded picker
+// Order: red on the left → violet on the right
 const COLOR_PALETTE = [
-  { name: "Violet",       swatch: "#FF00FF" },
-  { name: "Ocean Blue",   swatch: "#3B82F6" },
-  { name: "Cyan",         swatch: "#00FFFF" },
-  { name: "Green",        swatch: "#00FF00" },
-  { name: "Emerald",      swatch: "#10B981" },
-  { name: "Sunset",       swatch: "#FFFF00" },
-  { name: "Burnt Orange", swatch: "#F97316" },
   { name: "Crimson Red",  swatch: "#FF0000" },
+  { name: "Burnt Orange", swatch: "#F97316" },
+  { name: "Sunset",       swatch: "#FFFF00" },
+  { name: "Emerald",      swatch: "#10B981" },
+  { name: "Green",        swatch: "#00FF00" },
+  { name: "Cyan",         swatch: "#00FFFF" },
+  { name: "Ocean Blue",   swatch: "#3B82F6" },
+  { name: "Violet",       swatch: "#FF00FF" },
 ];
 
 export default function LandingPage() {
