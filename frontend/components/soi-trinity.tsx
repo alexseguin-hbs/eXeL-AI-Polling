@@ -59,7 +59,7 @@ export function SoITrinity({
   outerWidth = 21,
   fontSize = 11,
   letterSpacing = 2,
-  borderWidth = 0,
+  borderWidth = 1.5,
   textSpan = 90,
   topTextOffset = -2,     // - inward, + outward
   leftTextOffset = 2,     // CONNECTION: +2 outward (corrected)
@@ -73,7 +73,6 @@ export function SoITrinity({
   const cy = 200;
   const outerR = spread + ringR + gap + outerWidth;
   const ringMidR = ringR - ringWidth / 2;
-  const ringInnerR = ringR - ringWidth;
   // Per-ring text radius: ringMidR + offset (- inward toward Unity center, + outward)
   const textRadii = [
     ringMidR + topTextOffset,    // [0] WISDOM (top)
@@ -115,14 +114,14 @@ export function SoITrinity({
     const p = clip ? { clipPath: `url(#${clip})` } : {};
     return (
       <>
-        {/* Color spans the full band [ringInnerR, ringR] and runs UNDER the black
-            borders drawn after it — zero background seam between color and border. */}
+        {/* Black band underneath at FULL width; color drawn narrower on top of it.
+            The color sits directly on the black, so the black shows as an edge of
+            exactly borderWidth on each side with ZERO background pixels between the
+            color and its border (verified via resvg render harness). */}
         <circle cx={rcx} cy={rcy} r={ringMidR}
-          fill="none" stroke={color} strokeWidth={ringWidth} {...p} />
-        <circle cx={rcx} cy={rcy} r={ringR}
-          fill="none" stroke="black" strokeWidth={borderWidth} {...p} />
-        <circle cx={rcx} cy={rcy} r={ringInnerR}
-          fill="none" stroke="black" strokeWidth={borderWidth} {...p} />
+          fill="none" stroke="black" strokeWidth={ringWidth} {...p} />
+        <circle cx={rcx} cy={rcy} r={ringMidR}
+          fill="none" stroke={color} strokeWidth={ringWidth - borderWidth * 2} {...p} />
       </>
     );
   }
@@ -180,13 +179,11 @@ export function SoITrinity({
       <RingBand rcx={rings[2].cx} rcy={rings[2].cy} clip={`${uid}-fs`} />
       <RingBand rcx={rings[2].cx} rcy={rings[2].cy} />
 
-      {/* 4. UNITY ring — color at full width under the black borders (no seam) */}
+      {/* 4. UNITY ring — black band underneath, color narrower on top (zero seam) */}
       <circle cx={cx} cy={cy} r={outerR - outerWidth / 2}
-        fill="none" stroke={color} strokeWidth={outerWidth} />
-      <circle cx={cx} cy={cy} r={outerR}
-        fill="none" stroke="black" strokeWidth={borderWidth} />
-      <circle cx={cx} cy={cy} r={outerR - outerWidth}
-        fill="none" stroke="black" strokeWidth={borderWidth} />
+        fill="none" stroke="black" strokeWidth={outerWidth} />
+      <circle cx={cx} cy={cy} r={outerR - outerWidth / 2}
+        fill="none" stroke={color} strokeWidth={outerWidth - borderWidth * 2} />
 
       {/* 5. WORDS — ABSOLUTE LAST */}
       {rings.map((ring, i) => (
