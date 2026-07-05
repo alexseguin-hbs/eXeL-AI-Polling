@@ -125,6 +125,19 @@ import { ACCORD_SV } from "@/lib/atlantis-accord-translations/sv";
 import { ACCORD_TH } from "@/lib/atlantis-accord-translations/th";
 import { ACCORD_UK } from "@/lib/atlantis-accord-translations/uk";
 import { ACCORD_ZH } from "@/lib/atlantis-accord-translations/zh";
+import { ACCORD_KO } from "@/lib/atlantis-accord-translations/ko";
+import { ACCORD_BN } from "@/lib/atlantis-accord-translations/bn";
+import { ACCORD_PA } from "@/lib/atlantis-accord-translations/pa";
+import { ACCORD_VI } from "@/lib/atlantis-accord-translations/vi";
+import { ACCORD_TL } from "@/lib/atlantis-accord-translations/tl";
+import { ACCORD_TR } from "@/lib/atlantis-accord-translations/tr";
+import { ACCORD_RO } from "@/lib/atlantis-accord-translations/ro";
+import { ACCORD_CS } from "@/lib/atlantis-accord-translations/cs";
+import { ACCORD_FI } from "@/lib/atlantis-accord-translations/fi";
+import { ACCORD_NO } from "@/lib/atlantis-accord-translations/no";
+import { ACCORD_HE } from "@/lib/atlantis-accord-translations/he";
+import { ACCORD_SW } from "@/lib/atlantis-accord-translations/sw";
+import { ACCORD_NE } from "@/lib/atlantis-accord-translations/ne";
 
 export const ACCORD_TRANSLATIONS: Record<string, AccordSection[]> = {
   en: ACCORD_SECTIONS_EN,
@@ -132,6 +145,9 @@ export const ACCORD_TRANSLATIONS: Record<string, AccordSection[]> = {
   fr: ACCORD_FR, hi: ACCORD_HI, id: ACCORD_ID, it: ACCORD_IT, ja: ACCORD_JA,
   ms: ACCORD_MS, nl: ACCORD_NL, pl: ACCORD_PL, pt: ACCORD_PT, ru: ACCORD_RU,
   sv: ACCORD_SV, th: ACCORD_TH, uk: ACCORD_UK, zh: ACCORD_ZH,
+  ko: ACCORD_KO, bn: ACCORD_BN, pa: ACCORD_PA, vi: ACCORD_VI, tl: ACCORD_TL,
+  tr: ACCORD_TR, ro: ACCORD_RO, cs: ACCORD_CS, fi: ACCORD_FI, no: ACCORD_NO,
+  he: ACCORD_HE, sw: ACCORD_SW, ne: ACCORD_NE,
 };
 
 // Endonym display names for the reader's language selector (only langs present
