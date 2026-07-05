@@ -86,6 +86,7 @@ function useDivinityPages(lang: DivinityLang): DivinityPageArray {
   return pages;
 }
 import { SoITrinity } from "@/components/soi-trinity";
+import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import {
   MasterOfThought,
   DEFAULT_OUTER_ARCS,
@@ -895,7 +896,7 @@ function LibraryReader({
               <div className="flex flex-col items-center mb-6">
                 <SoITrinity
                   labels={DIVINITY_TRANSLATIONS[lang].trinity.prelude04}
-                  color="#FF0000"
+                  color={TRINITY_COLORS.human}
                   textColor="black"
                   size={160}
                 />
@@ -905,7 +906,7 @@ function LibraryReader({
               <div className="flex flex-col items-center mb-6">
                 <SoITrinity
                   labels={DIVINITY_TRANSLATIONS[lang].trinity.prelude05}
-                  color="#00FFFF"
+                  color={TRINITY_COLORS.consciousness}
                   textColor="black"
                   size={160}
                 />
@@ -964,7 +965,7 @@ function LibraryReader({
                     <div className="flex justify-center my-4">
                       <SoITrinity
                         labels={["H.I.", "S.I.", "A.I."]}
-                        color="#007FFF"
+                        color={TRINITY_COLORS.framework}
                         textColor="black"
                         size={160}
                       />

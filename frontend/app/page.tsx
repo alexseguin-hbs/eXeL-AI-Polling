@@ -10,6 +10,7 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useTheme } from "@/lib/theme-context";
 import { SoITrinity } from "@/components/soi-trinity";
 import { TrinityColorPicker } from "@/components/trinity-color-picker";
+import { TRINITY_COLORS } from "@/lib/trinity-palette";
 
 // 12 preset Trinities — cycle through on inner click
 // Labels use lexicon keys; resolved at render time via t()
@@ -17,19 +18,19 @@ const TRINITY_PRESETS: { keys: [string, string, string]; color: string; titleKey
   // Spectrum cycle: Infrared → ROYGBIV → Ultraviolet → White (even hue steps,
   // Settings palette anchored). Default start is Consciousness (Cyan) at index 7;
   // center-click advances forward and wraps.
-  { keys: ["trinity.human.top", "trinity.human.right", "trinity.human.left"],                     color: "#8B0000", titleKey: "trinity.human.title",          master: "Thor" },
-  { keys: ["trinity.evolution.top", "trinity.evolution.right", "trinity.evolution.left"],          color: "#FF0000", titleKey: "trinity.evolution.title",      master: "Enki" },
-  { keys: ["trinity.intelligence.top", "trinity.intelligence.right", "trinity.intelligence.left"], color: "#F97316", titleKey: "trinity.intelligence.title",  master: "Thoth" },
-  { keys: ["trinity.temporal.top", "trinity.temporal.right", "trinity.temporal.left"],             color: "#FFFF00", titleKey: "trinity.temporal.title",       master: "Odin" },
-  { keys: ["trinity.abundance.top", "trinity.abundance.right", "trinity.abundance.left"],         color: "#80FF00", titleKey: "trinity.abundance.title",      master: "Pangu" },
-  { keys: ["trinity.ooda.top", "trinity.ooda.right", "trinity.ooda.left"],                       color: "#00FF00", titleKey: "trinity.ooda.title",           master: "Enlil" },
-  { keys: ["trinity.platonic.top", "trinity.platonic.right", "trinity.platonic.left"],            color: "#10B981", titleKey: "trinity.platonic.title",       master: "Sofia" },
-  { keys: ["trinity.consciousness.top", "trinity.consciousness.right", "trinity.consciousness.left"], color: "#00FFFF", titleKey: "trinity.consciousness.title", master: "Christo" },
-  { keys: ["trinity.framework.top", "trinity.framework.right", "trinity.framework.left"],        color: "#3B82F6", titleKey: "trinity.framework.title",      master: "Asar" },
-  { keys: ["trinity.wholeness.top", "trinity.wholeness.right", "trinity.wholeness.left"],        color: "#0000FF", titleKey: "trinity.wholeness.title",      master: "Krishna" },
-  { keys: ["trinity.family.top", "trinity.family.right", "trinity.family.left"],                 color: "#8B00FF", titleKey: "trinity.family.title",         master: "Aset" },
-  { keys: ["trinity.governance.top", "trinity.governance.right", "trinity.governance.left"],     color: "#6A00D4", titleKey: "trinity.governance.title",     master: "Athena" },
-  { keys: ["trinity.blank.top", "trinity.blank.right", "trinity.blank.left"],                    color: "#FFFFFF", titleKey: "trinity.blank.title",          master: "" },
+  { keys: ["trinity.human.top", "trinity.human.right", "trinity.human.left"],                     color: TRINITY_COLORS.human, titleKey: "trinity.human.title",          master: "Thor" },
+  { keys: ["trinity.evolution.top", "trinity.evolution.right", "trinity.evolution.left"],          color: TRINITY_COLORS.evolution, titleKey: "trinity.evolution.title",      master: "Enki" },
+  { keys: ["trinity.intelligence.top", "trinity.intelligence.right", "trinity.intelligence.left"], color: TRINITY_COLORS.intelligence, titleKey: "trinity.intelligence.title",  master: "Thoth" },
+  { keys: ["trinity.temporal.top", "trinity.temporal.right", "trinity.temporal.left"],             color: TRINITY_COLORS.temporal, titleKey: "trinity.temporal.title",       master: "Odin" },
+  { keys: ["trinity.abundance.top", "trinity.abundance.right", "trinity.abundance.left"],         color: TRINITY_COLORS.abundance, titleKey: "trinity.abundance.title",      master: "Pangu" },
+  { keys: ["trinity.ooda.top", "trinity.ooda.right", "trinity.ooda.left"],                       color: TRINITY_COLORS.ooda, titleKey: "trinity.ooda.title",           master: "Enlil" },
+  { keys: ["trinity.platonic.top", "trinity.platonic.right", "trinity.platonic.left"],            color: TRINITY_COLORS.platonic, titleKey: "trinity.platonic.title",       master: "Sofia" },
+  { keys: ["trinity.consciousness.top", "trinity.consciousness.right", "trinity.consciousness.left"], color: TRINITY_COLORS.consciousness, titleKey: "trinity.consciousness.title", master: "Christo" },
+  { keys: ["trinity.framework.top", "trinity.framework.right", "trinity.framework.left"],        color: TRINITY_COLORS.framework, titleKey: "trinity.framework.title",      master: "Asar" },
+  { keys: ["trinity.wholeness.top", "trinity.wholeness.right", "trinity.wholeness.left"],        color: TRINITY_COLORS.wholeness, titleKey: "trinity.wholeness.title",      master: "Krishna" },
+  { keys: ["trinity.family.top", "trinity.family.right", "trinity.family.left"],                 color: TRINITY_COLORS.family, titleKey: "trinity.family.title",         master: "Aset" },
+  { keys: ["trinity.governance.top", "trinity.governance.right", "trinity.governance.left"],     color: TRINITY_COLORS.governance, titleKey: "trinity.governance.title",     master: "Athena" },
+  { keys: ["trinity.blank.top", "trinity.blank.right", "trinity.blank.left"],                    color: TRINITY_COLORS.blank, titleKey: "trinity.blank.title",          master: "" },
 ];
 
 // 8 preset color swatches — quick select, then fine-tune via expanded picker
