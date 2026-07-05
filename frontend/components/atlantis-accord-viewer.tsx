@@ -177,19 +177,6 @@ function FullscreenViewer({
   const unlocked = easterEggUnlocked || forceUnlocked;
   const roleLabel = (role: string) => t(`shared.atlantis.role_${role.toLowerCase()}`);
 
-  // Maximize → true browser full screen (hides the address bar/chrome) so the
-  // Accords + QR fill the phone or PC screen for easy sharing. Same idea as the
-  // Divinity Guide reader's maximize.
-  const [isFs, setIsFs] = useState(false);
-  useEffect(() => {
-    const onFs = () => setIsFs(!!document.fullscreenElement);
-    document.addEventListener("fullscreenchange", onFs);
-    return () => document.removeEventListener("fullscreenchange", onFs);
-  }, []);
-  const toggleFs = () => {
-    if (document.fullscreenElement) document.exitFullscreen?.();
-    else document.documentElement.requestFullscreen?.().catch(() => {});
-  };
   const [langOpen, setLangOpen] = useState(false);
   const [view, setView] = useState<View>("accord");
   const [activeIdx, setActiveIdx] = useState(0);
@@ -348,15 +335,6 @@ function FullscreenViewer({
           </div>
         </div>
         <div className="flex items-center gap-1">
-          {/* Maximize → full screen for easy sharing (phone + PC) */}
-          <button
-            onClick={toggleFs}
-            className="p-2 rounded-md hover:bg-accent/50 transition-colors text-primary"
-            title={isFs ? "Exit full screen" : "Full screen"}
-            aria-label="Toggle full screen"
-          >
-            {isFs ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          </button>
           {/* QR to the website — same icon + QRCodeSVG method as the Divinity
               Guide ARX. Sits between the scroll share icon and the language selector. */}
           <button

@@ -12,7 +12,11 @@
     "not_found_handling": "single-page-application"
   },
   // KV binding for cross-device session + response storage.
-  // Manual step: Create KV namespace in CF Dashboard → copy ID here.
-  // Also bind in CF Pages → Settings → Functions → KV namespace bindings → Variable: RESPONSES
-  "kv_namespaces": [{ "binding": "RESPONSES", "id": "<YOUR_KV_NAMESPACE_ID>" }]
+  // DISABLED: worker.js (the only code that runs in this Workers Static Assets
+  // deploy) never touches env.RESPONSES — the short-link route uses Supabase,
+  // and functions/api/responses.js never executes here. A placeholder id makes
+  // `wrangler deploy` fail with error 10042, blocking ALL deploys. To re-enable
+  // KV: create a namespace in the CF Dashboard, paste its real 32-hex id below,
+  // and uncomment. Until then, leave this off so deploys succeed.
+  // "kv_namespaces": [{ "binding": "RESPONSES", "id": "<paste-real-32-hex-kv-id>" }]
 }
