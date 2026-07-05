@@ -104,7 +104,7 @@ const shared: TranslationEntry[] = [
   { key: "trinity.intelligence.top", englishDefault: "ACTION", context: "Trinity preset 10 — top word", cubeId: 0 },
   { key: "trinity.intelligence.right", englishDefault: "FEELING", context: "Trinity preset 10 — bottom-right word", cubeId: 0 },
   { key: "trinity.intelligence.left", englishDefault: "THOUGHT", context: "Trinity preset 10 — bottom-left word", cubeId: 0 },
-  { key: "trinity.intelligence.title", englishDefault: "Intelligence", context: "Trinity preset 10 — title", cubeId: 0 },
+  { key: "trinity.intelligence.title", englishDefault: "Agency Framework", context: "Trinity preset 10 — title", cubeId: 0 },
   { key: "trinity.evolution.top", englishDefault: "TRANSFORM", context: "Trinity preset 11 — top word", cubeId: 0 },
   { key: "trinity.evolution.right", englishDefault: "SUSTAIN", context: "Trinity preset 11 — bottom-right word", cubeId: 0 },
   { key: "trinity.evolution.left", englishDefault: "CREATE", context: "Trinity preset 11 — bottom-left word", cubeId: 0 },
