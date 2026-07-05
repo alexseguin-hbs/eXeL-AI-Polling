@@ -1,11 +1,13 @@
 "use client";
 
 /**
- * Encrypted Messaging (ATLANTIS-2525) — compose your own message and seal it
- * into a 4-digit HTML download OR shareable link, reusing the Atlantis Accords
- * single-layer (Level 1) engine. Message type (plain / markdown / html) is
- * converted at compose time so the standalone reader stays parser-free.
- * Level 7 (Light Codex PNG keyfile as a second factor) layers in later.
+ * Encoded Messaging (ATLANTIS-2525) — compose your own message and seal it into
+ * a 4-digit HTML download OR shareable link, reusing the Atlantis Accords
+ * single-layer (Level 1) engine. "Encoded" not "encrypted" by design: real
+ * crypto primitives are used, but a 4-digit code + soft one-time-view is
+ * best-effort exclusivity, not certified secrecy. Message type (plain / markdown
+ * / html) is converted at compose time so the standalone reader stays
+ * parser-free. Level 7 (Light Codex PNG keyfile 2nd factor) layers in later.
  */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -72,8 +74,8 @@ export function EncryptedMessagingComposer() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold" style={{ color: ACCENT }}>Encrypted Messaging</h1>
-            <p className="text-xs text-slate-500">Compose · Seal · Send — 4-digit sealed HTML</p>
+            <h1 className="text-xl font-bold" style={{ color: ACCENT }}>Encoded Messaging</h1>
+            <p className="text-xs text-slate-500">Compose · Encode · Send — 4-digit sealed HTML</p>
           </div>
           <button
             onClick={() => router.push("/")}
