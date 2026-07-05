@@ -172,6 +172,10 @@ function centralStamp(now: Date): { date: string; time: string } {
 // the host, so it stays zero-knowledge. Default = current deploy (works today).
 export const SITE_URL = "https://exel-ai-polling.explore-096.workers.dev";
 export const ATLANTIS_READER_URL = SITE_URL + "/seal.html";
+// Deep-link to the Atlantis Accords viewer itself (opens the reader directly,
+// as if the user opened Settings → The Atlantis Accords). The in-viewer QR
+// encodes this so a scan lands straight on the Accords, not the homepage.
+export const ATLANTIS_PAGE_URL = SITE_URL + "/atlantis";
 // Short-link store — POST the sealed payload, get back a 7-char hash so the
 // shared link is short instead of an 8 KB #fragment.
 export const ATLANTIS_SEAL_ENDPOINT = SITE_URL + "/api/seal";

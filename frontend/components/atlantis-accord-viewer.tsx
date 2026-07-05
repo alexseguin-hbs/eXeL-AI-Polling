@@ -6,7 +6,7 @@ import { X, ScrollText, ChevronDown, Globe, Download, Link2, Check, Copy } from 
 import { QRCodeSVG } from "qrcode.react";
 import {
   buildAtlantisPackageHtml, buildAtlantisLink, generateSealCode, formatSealCode, SEAL_STRENGTHS,
-  CLEARANCE_COLORS, MAX_CLEARANCE, SITE_URL,
+  CLEARANCE_COLORS, MAX_CLEARANCE, ATLANTIS_PAGE_URL,
 } from "@/lib/atlantis-package";
 import { Button } from "@/components/ui/button";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -162,15 +162,19 @@ const TABS: { id: View; tKey: string }[] = [
 function FullscreenViewer({
   onClose,
   langCode,
+  forceUnlocked = false,
 }: {
   onClose: () => void;
   langCode: string;
+  forceUnlocked?: boolean;
 }) {
   const { t, activeLocale, setActiveLocale, languages } = useLexicon();
   // The 7-level "Clearance Levels" picker + seal-strength tiers are an unlocked
   // (Easter-egg) power feature. The default public share is a single-circle
-  // Level 1 seal with a standard code — File or Link.
+  // Level 1 seal with a standard code — File or Link. Deep-linking in via the
+  // /atlantis QR forces the unlocked view (forceUnlocked).
   const { easterEggUnlocked } = useEasterEgg();
+  const unlocked = easterEggUnlocked || forceUnlocked;
   const roleLabel = (role: string) => t(`shared.atlantis.role_${role.toLowerCase()}`);
   const [langOpen, setLangOpen] = useState(false);
   const [view, setView] = useState<View>("accord");
@@ -289,7 +293,7 @@ function FullscreenViewer({
     setPkgLink(null);
     setLinkCopied(false);
     setPkgStrength(0);
-    if (!easterEggUnlocked) setPkgClearance(1);
+    if (!unlocked) setPkgClearance(1);
     setPkgOpen(true);
   };
 
@@ -618,7 +622,7 @@ function FullscreenViewer({
                   placeholder="eXeL AI"
                   className="mb-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                 />
-                {easterEggUnlocked ? (
+                {unlocked ? (
                   <>
                     {/* ── Unlocked feature: Clearance Levels (1–7) ── */}
                     <p className="mb-2 text-xs text-muted-foreground">
@@ -751,10 +755,10 @@ function FullscreenViewer({
               <button onClick={() => setShowQr(false)} aria-label="Close"><X className="h-4 w-4 text-muted-foreground" /></button>
             </div>
             <div className="mx-auto mb-3 w-fit rounded-2xl bg-white p-4 shadow-inner">
-              <QRCodeSVG value={SITE_URL} size={220} level="Q" fgColor="#000000" bgColor="#ffffff" className="rounded-lg" />
+              <QRCodeSVG value={ATLANTIS_PAGE_URL} size={220} level="Q" fgColor="#000000" bgColor="#ffffff" className="rounded-lg" />
             </div>
-            <p className="text-xs text-muted-foreground">Scan to open the website</p>
-            <p className="mt-1 break-all text-[10px] text-muted-foreground/60">{SITE_URL}</p>
+            <p className="text-xs text-muted-foreground">Scan to open The Atlantis Accords</p>
+            <p className="mt-1 break-all text-[10px] text-muted-foreground/60">{ATLANTIS_PAGE_URL}</p>
           </div>
         </div>
       )}
@@ -796,5 +800,21 @@ export function AtlantisAccordViewer() {
           document.body,
         )}
     </section>
+  );
+}
+
+// ─── Standalone page (the /atlantis deep-link the in-viewer QR points to) ──────
+// Opens the Accords reader full-screen, already unlocked (the same view a
+// moderator sees after the Easter-egg unlock). Closing returns to the homepage.
+export function AtlantisAccordsStandalone() {
+  const { activeLocale } = useLexicon();
+  return (
+    <FullscreenViewer
+      onClose={() => {
+        if (typeof window !== "undefined") window.location.href = "/";
+      }}
+      langCode={activeLocale}
+      forceUnlocked
+    />
   );
 }
