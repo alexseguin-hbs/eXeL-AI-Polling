@@ -73,7 +73,6 @@ export function SoITrinity({
   const cy = 200;
   const outerR = spread + ringR + gap + outerWidth;
   const ringMidR = ringR - ringWidth / 2;
-  const ringInnerR = ringR - ringWidth;
   // Per-ring text radius: ringMidR + offset (- inward toward Unity center, + outward)
   const textRadii = [
     ringMidR + topTextOffset,    // [0] WISDOM (top)
@@ -115,12 +114,14 @@ export function SoITrinity({
     const p = clip ? { clipPath: `url(#${clip})` } : {};
     return (
       <>
+        {/* Black band underneath at FULL width; color drawn narrower on top of it.
+            The color sits directly on the black, so the black shows as an edge of
+            exactly borderWidth on each side with ZERO background pixels between the
+            color and its border (verified via resvg render harness). */}
+        <circle cx={rcx} cy={rcy} r={ringMidR}
+          fill="none" stroke="black" strokeWidth={ringWidth} {...p} />
         <circle cx={rcx} cy={rcy} r={ringMidR}
           fill="none" stroke={color} strokeWidth={ringWidth - borderWidth * 2} {...p} />
-        <circle cx={rcx} cy={rcy} r={ringR}
-          fill="none" stroke="black" strokeWidth={borderWidth} {...p} />
-        <circle cx={rcx} cy={rcy} r={ringInnerR}
-          fill="none" stroke="black" strokeWidth={borderWidth} {...p} />
       </>
     );
   }
@@ -146,45 +147,37 @@ export function SoITrinity({
             d={makeTextArc(ring.cx, ring.cy, textAngles[i], textRadii[i], i !== 0)}
             fill="none" />
         ))}
+        {/* Each ring's band as a mask (annulus) — used to lay one ring over
+            another ONLY across the crossing, with the mask edges on the ring's
+            own band edges so the weave transition is clean. */}
+        {rings.map((ring, i) => (
+          <mask key={`m-${i}`} id={`${uid}-band-${i}`} maskUnits="userSpaceOnUse">
+            <circle cx={ring.cx} cy={ring.cy} r={ringR} fill="white" />
+            <circle cx={ring.cx} cy={ring.cy} r={ringR - ringWidth} fill="black" />
+          </mask>
+        ))}
       </defs>
 
-      {/* 1. SON (top) */}
+      {/* Borromean weave (mask-based, per ChatGPT/reference: NOT z-index stacking).
+          Layer 1 lays all three rings flat. Layer 2 redraws each OVER ring masked to
+          the UNDER ring's band, so the over ring shows on top ONLY across the
+          crossing — no erasing (no gaps), and the mask edges fall on the under
+          ring's own band edges (no false seam). Cycle 0>1, 1>2, 2>0: every ring
+          passes over exactly one neighbor and under the other. */}
       <RingBand rcx={rings[0].cx} rcy={rings[0].cy} />
-
-      {/* 2. MOTHER ASET (BR) — over Son */}
-      <clipPath id={`${uid}-ms`}>
-        <circle cx={rings[1].cx} cy={rings[1].cy} r={ringR + 2} />
-      </clipPath>
-      <circle cx={rings[0].cx} cy={rings[0].cy} r={ringMidR}
-        fill="none" stroke={bgColor} strokeWidth={ringWidth + 4}
-        clipPath={`url(#${uid}-ms)`} />
-      <RingBand rcx={rings[1].cx} rcy={rings[1].cy} clip={`${uid}-ms`} />
       <RingBand rcx={rings[1].cx} rcy={rings[1].cy} />
-
-      {/* 3. FATHER ASAR (BL) — over both */}
-      <clipPath id={`${uid}-fm`}>
-        <circle cx={rings[2].cx} cy={rings[2].cy} r={ringR + 2} />
-      </clipPath>
-      <circle cx={rings[1].cx} cy={rings[1].cy} r={ringMidR}
-        fill="none" stroke={bgColor} strokeWidth={ringWidth + 4}
-        clipPath={`url(#${uid}-fm)`} />
-      <RingBand rcx={rings[2].cx} rcy={rings[2].cy} clip={`${uid}-fm`} />
-      <clipPath id={`${uid}-fs`}>
-        <circle cx={rings[2].cx} cy={rings[2].cy} r={ringR + 2} />
-      </clipPath>
-      <circle cx={rings[0].cx} cy={rings[0].cy} r={ringMidR}
-        fill="none" stroke={bgColor} strokeWidth={ringWidth + 4}
-        clipPath={`url(#${uid}-fs)`} />
-      <RingBand rcx={rings[2].cx} rcy={rings[2].cy} clip={`${uid}-fs`} />
       <RingBand rcx={rings[2].cx} rcy={rings[2].cy} />
+      {([[0, 1], [1, 2], [2, 0]] as const).map(([over, under]) => (
+        <g key={`weave-${over}-${under}`} mask={`url(#${uid}-band-${under})`}>
+          <RingBand rcx={rings[over].cx} rcy={rings[over].cy} />
+        </g>
+      ))}
 
-      {/* 4. UNITY ring */}
+      {/* 4. UNITY ring — black band underneath, color narrower on top (zero seam) */}
+      <circle cx={cx} cy={cy} r={outerR - outerWidth / 2}
+        fill="none" stroke="black" strokeWidth={outerWidth} />
       <circle cx={cx} cy={cy} r={outerR - outerWidth / 2}
         fill="none" stroke={color} strokeWidth={outerWidth - borderWidth * 2} />
-      <circle cx={cx} cy={cy} r={outerR}
-        fill="none" stroke="black" strokeWidth={borderWidth} />
-      <circle cx={cx} cy={cy} r={outerR - outerWidth}
-        fill="none" stroke="black" strokeWidth={borderWidth} />
 
       {/* 5. WORDS — ABSOLUTE LAST */}
       {rings.map((ring, i) => (
