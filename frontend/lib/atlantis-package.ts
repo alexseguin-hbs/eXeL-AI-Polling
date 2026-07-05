@@ -26,6 +26,7 @@
 // WebCrypto) so the SAME ciphertext opens on every device.
 
 import type { AccordSection } from "@/lib/atlantis-accord-data";
+import { supabase } from "@/lib/supabase";
 
 // PBKDF2-SHA256 work factor. Deliberately 100k (not the OWASP 600k) because the
 // reader falls back to a PURE-JS KDF on devices without WebCrypto (iOS/Android
@@ -176,12 +177,16 @@ export const ATLANTIS_READER_URL = SITE_URL + "/seal.html";
 // as if the user opened Settings → The Atlantis Accords). The in-viewer QR
 // encodes this so a scan lands straight on the Accords, not the homepage.
 export const ATLANTIS_PAGE_URL = SITE_URL + "/atlantis";
-// Short-link store — POST the sealed payload, get back a 7-char hash so the
-// shared link is short instead of an 8 KB #fragment.
-export const ATLANTIS_SEAL_ENDPOINT = SITE_URL + "/api/seal";
-// Pretty, on-brand share URL: /Atlantis-Accords/<7-char-hash> (a throwback to
-// the 7 clearance levels). Served by functions/Atlantis-Accords/[hash].js.
-export const ATLANTIS_LINK_BASE = SITE_URL + "/Atlantis-Accords/";
+// Short-link store lives in Supabase (secure backend, ciphertext only) — the
+// shared link becomes /seal.html#<7-char-hash> instead of an 8 KB #fragment.
+const SEAL_TABLE = "atlantis_seals";
+const SEAL_HASH_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
+function newSealHash(): string {
+  const b = crypto.getRandomValues(new Uint8Array(7));
+  let s = "";
+  for (let i = 0; i < 7; i++) s += SEAL_HASH_ALPHABET[b[i] % SEAL_HASH_ALPHABET.length];
+  return s;
+}
 
 /** Build the sealed package object (encryption + cover meta), as a JSON string.
  *  Shared by the offline file and the universal link — identical payload. */
@@ -269,21 +274,17 @@ export async function buildAtlantisLink(
   sender: string,
 ): Promise<string> {
   const json = await buildAtlantisPayloadJson(sections, code, clearance, sender);
-  try {
-    const resp = await fetch(ATLANTIS_SEAL_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: json,
-    });
-    if (resp.ok) {
-      const { hash } = await resp.json();
-      if (hash && /^[A-Za-z0-9]{4,16}$/.test(hash)) {
-        return ATLANTIS_LINK_BASE + hash;
-      }
+  if (supabase) {
+    // Store the ciphertext under a fresh 7-char hash; retry on the (rare)
+    // primary-key collision. The unlock code never touches the server.
+    for (let tries = 0; tries < 3; tries++) {
+      const hash = newSealHash();
+      const { error } = await supabase.from(SEAL_TABLE).insert({ hash, payload: json });
+      if (!error) return ATLANTIS_READER_URL + "#" + hash;
+      if (error.code !== "23505") break; // not a duplicate key → stop, use fallback
     }
-  } catch {
-    /* store unreachable — fall through to the self-contained long link */
   }
+  // Supabase absent/unreachable → self-contained long link (payload in #fragment).
   return ATLANTIS_READER_URL + "#" + b64urlFromJson(json);
 }
 
@@ -301,8 +302,8 @@ body{background:var(--bg);color:var(--tx);font:15px/1.6 -apple-system,Segoe UI,R
 .seal{display:flex;align-items:center;justify-content:center}
 .wonder{max-width:360px;color:var(--tx);font-size:15px;line-height:1.7}
 .hint{color:var(--dim);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
-.codexTL{position:fixed;top:2px;left:3px;image-rendering:pixelated;opacity:.95;z-index:5}
-.codexBR{position:fixed;bottom:2px;right:3px;image-rendering:pixelated;opacity:.95;z-index:5}
+.codexTL{position:fixed;top:0;left:0;image-rendering:pixelated;opacity:.95;z-index:5}
+.codexBR{position:fixed;bottom:0;right:0;image-rendering:pixelated;opacity:.95;z-index:5}
 .meta{color:var(--dim);font-size:10px;letter-spacing:.08em;margin-top:6px}
 .sealview{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;cursor:pointer}
 .sealview .hint{animation:pulse 2.4s ease-in-out infinite}
@@ -371,9 +372,9 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
 </div>
 <script id="pkg" type="application/json">${pkgJson}</script>
 <script>
-(function(){
+function __initSeal(){
   var _pk=document.getElementById('pkg');
-  if(!_pk||!_pk.textContent.trim())return; // hosted reader with no #payload
+  if(!_pk||!_pk.textContent.trim())return; // no payload yet
   var PKG=JSON.parse(_pk.textContent);
   var VKEY='atlantis_viewed_'+PKG.id;
   var frame=document.getElementById('frame'),cover=document.getElementById('cover'),reader=document.getElementById('reader'),done=document.getElementById('done');
@@ -414,8 +415,9 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
     use.forEach(function(p){g+='<circle cx="'+(p[0]-minx+pad).toFixed(1)+'" cy="'+(p[1]-miny+pad).toFixed(1)+'" r="'+r+'" fill="'+PKG.color+'" fill-opacity="0.10" stroke="'+PKG.color+'" stroke-width="2"/>';});
     el.innerHTML='<svg width="'+w.toFixed(0)+'" height="'+h.toFixed(0)+'" viewBox="0 0 '+w.toFixed(1)+' '+h.toFixed(1)+'">'+g+'</svg>';}
   drawSeal(document.getElementById('seal'),26);
-  // Light Codex double helix — 4x4 px blocks, forward upper-left, reverse bottom-right.
-  (function(){var CM={B:[0,0,0],R:[255,0,0],Y:[255,255,0],G:[0,255,0],C:[0,255,255],V:[255,0,255],W:[255,255,255]},BLK=2;
+  // Light Codex double helix — 1x1 px blocks (fits a full date/time/sender line
+  // across a phone-portrait top edge), flush in the frame's far corners.
+  (function(){var CM={B:[0,0,0],R:[255,0,0],Y:[255,255,0],G:[0,255,0],C:[0,255,255],V:[255,0,255],W:[255,255,255]},BLK=1;
     function draw(id,str){var cv=document.getElementById(id);cv.width=str.length*BLK;cv.height=BLK;var ctx=cv.getContext('2d');
       for(var i=0;i<str.length;i++){var c=CM[str[i]];if(!c)continue;ctx.fillStyle='rgb('+c[0]+','+c[1]+','+c[2]+')';ctx.fillRect(i*BLK,0,BLK,BLK);}}
     draw('cxTL',PKG.fwd);draw('cxBR',PKG.rev);})();
@@ -523,7 +525,7 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
       document.getElementById('rcontent').textContent=s.content[tier]||s.content[333];ti.style.display='flex';}
     else{var nv=DATA.nav[sec];
       document.getElementById('rtag').innerHTML='<span>'+esc(nv.tag)+'</span>';
-      document.getElementById('rcontent').innerHTML='<div style="opacity:.75;font-style:italic">'+esc(nv.seven||'')+'</div><div style="margin-top:16px;color:'+COL+'">Sealed at Clearance Level '+DATA.clearance+'. A higher clearance is required to open this section.</div>';ti.style.display='none';}
+      document.getElementById('rcontent').innerHTML='<div style="opacity:.75;font-style:italic">'+esc(nv.seven||'')+'</div><div style="margin-top:16px;color:'+COL+'">Sealed at Clearance: Level '+DATA.clearance+'. A higher clearance is required to open this section.</div>';ti.style.display='none';}
     document.getElementById('pos').textContent=(sec+1)+' / 7';drawTiers();drawLeft();}
   document.getElementById('unlock').onclick=async function(){
     var e=document.getElementById('err');
@@ -554,7 +556,7 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
   document.getElementById('next').onclick=function(){if(sec<6){sec++;render();}};
   // Close & Seal — mark all vectors, then scrub decrypted content from the DOM
   // and drop the plaintext reference so nothing readable remains in memory.
-  function seal(){mark();DATA=null;
+  function seal(){mark();try{if(window.__atlDelete)window.__atlDelete();}catch(e){}DATA=null;
     try{codeEl.value='';document.getElementById('rcontent').textContent='';document.getElementById('rtag').textContent='';document.getElementById('left').innerHTML='';}catch(e){}
     reader.style.display='none';cover.style.display='none';done.style.display='flex';}
   document.getElementById('seal2').onclick=seal;
@@ -573,18 +575,45 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
       +'<div style="font-size:26px;color:'+PKG.color+'">&#9679;</div>'
       +'<div style="letter-spacing:.12em;text-transform:uppercase;font-size:11px">This copy has been closed and cannot be reopened</div>'
       +'<div style="font-size:11px">Request a fresh copy from the sender.</div></div></body></html>';}
-  (function(){var b=document.getElementById('burn');if(!window.showSaveFilePicker)return;
+  // Burn (downloaded FILE only): auto-save a dead shell with the SAME filename to
+  // Downloads — no save picker. The browser writes it beside/over the original.
+  (function(){var b=document.getElementById('burn');if(location.protocol!=='file:')return;
     b.style.display='inline-block';
-    b.onclick=async function(){
+    b.onclick=function(){
       var hint=document.getElementById('burnHint');
       try{
         var name=location.pathname.split('/').pop()||'Atlantis-Accords.html';
         try{name=decodeURIComponent(name)}catch(e){}
-        var h=await window.showSaveFilePicker({suggestedName:name,types:[{description:'HTML document',accept:{'text/html':['.html']}}]});
-        var w=await h.createWritable();await w.write(sealedShell());await w.close();
+        var blob=new Blob([sealedShell()],{type:'text/html'});var url=URL.createObjectURL(blob);
+        var a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+        setTimeout(function(){URL.revokeObjectURL(url)},1500);
         b.textContent='Burned';b.disabled=true;
-        hint.textContent='The file has been overwritten with a sealed shell. The content is gone.';
-      }catch(e){/* picker dismissed — leave the soft seal in place */}};})();
+        hint.textContent='A sealed shell was saved to Downloads under the same name. Replace the original to finish the burn.';
+      }catch(e){}};})();
+}
+<script>
+// Universal launcher — runs for the offline file (payload embedded) AND the
+// hosted reader (payload fetched from Supabase by a short #hash). The unlock
+// code is never sent; only ciphertext is stored, and it is DELETED on close/burn.
+var ATL_SB_URL="__ATL_SB_URL__",ATL_SB_KEY="__ATL_SB_KEY__",ATL_HASH=null;
+window.__atlDelete=function(){try{if(ATL_HASH&&ATL_SB_URL.indexOf('__')!==0){fetch(ATL_SB_URL+'/rest/v1/atlantis_seals?hash=eq.'+encodeURIComponent(ATL_HASH),{method:'DELETE',headers:{apikey:ATL_SB_KEY,Authorization:'Bearer '+ATL_SB_KEY}});}}catch(e){}};
+(function(){
+  function fail(m){document.body.innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;color:#5f7186;font:14px -apple-system,Segoe UI,sans-serif;text-align:center;padding:24px">'+m+'</div>';}
+  var pk=document.getElementById('pkg');
+  if(pk&&pk.textContent.trim()){__initSeal();return;} // offline file: payload embedded
+  var h=(location.hash||'').replace(/^#/,'');
+  if(!h){fail('This reader opens a sealed Atlantis Accords link.<br>Please open the secure link you were sent.');return;}
+  if(/^[A-Za-z0-9]{4,16}$/.test(h)){
+    ATL_HASH=h;
+    if(ATL_SB_URL.indexOf('__')===0){fail('This sealed link needs the secure reader.<br>Open it on the eXeL AI site, or ask the sender for the file.');return;}
+    fetch(ATL_SB_URL+'/rest/v1/atlantis_seals?hash=eq.'+encodeURIComponent(h)+'&select=payload',{headers:{apikey:ATL_SB_KEY,Authorization:'Bearer '+ATL_SB_KEY}})
+      .then(function(r){return r.json();})
+      .then(function(rows){if(!rows||!rows.length||!rows[0].payload)throw 0;document.getElementById('pkg').textContent=rows[0].payload;__initSeal();})
+      .catch(function(){fail('This sealed link has expired or was already opened.<br>Ask the sender for a fresh link.');});
+  }else{
+    try{var s=h.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var bin=atob(s),by=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)by[i]=bin.charCodeAt(i);document.getElementById('pkg').textContent=new TextDecoder().decode(by);__initSeal();}
+    catch(e){fail('This sealed link could not be read.<br>Ask the sender for a fresh link.');}
+  }
 })();
 </script>
 </body></html>`;

@@ -21,15 +21,19 @@ let tpl = src.slice(start + 1, end);
 // Resolve template-literal escapes to their runtime values (\\ -> \, etc.).
 tpl = tpl.replace(/\\`/g, "`").replace(/\\\$/g, "$").replace(/\\\\/g, "\\");
 
-// Swap the embedded payload script for the fragment-decoder bootstrap.
+// Empty the payload slot — the in-template universal launcher fetches the sealed
+// ciphertext from Supabase by the short #hash (or decodes an inline #fragment).
 const EMBED = '<script id="pkg" type="application/json">${pkgJson}</script>';
 if (!tpl.includes(EMBED)) throw new Error("embedded pkg script tag not found");
-const BOOTSTRAP =
-  '<script id="pkg" type="application/json"></script>\n' +
-  "<script>(function(){var h=(location.hash||'').replace(/^#/,'');" +
-  "if(!h){document.body.innerHTML='<div style=\\'min-height:100vh;display:flex;align-items:center;justify-content:center;color:#5f7186;font:14px -apple-system,Segoe UI,sans-serif;text-align:center;padding:24px\\'>This reader opens a sealed Atlantis Accords link.<br>Please open the secure link you were sent.</div>';return;}" +
-  "try{h=h.replace(/-/g,'+').replace(/_/g,'/');while(h.length%4)h+='=';var bin=atob(h),by=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)by[i]=bin.charCodeAt(i);document.getElementById('pkg').textContent=new TextDecoder().decode(by);}catch(e){}})();</script>";
-tpl = tpl.replace(EMBED, BOOTSTRAP);
+tpl = tpl.replace(EMBED, '<script id="pkg" type="application/json"></script>');
+
+// Bake the PUBLIC Supabase creds into the hosted reader so it can fetch the
+// stored ciphertext. Left as tokens when env is absent (local dev) — the CF
+// build injects the real values; the long-link fallback works either way.
+if (process.env.NEXT_PUBLIC_SUPABASE_URL)
+  tpl = tpl.replaceAll("__ATL_SB_URL__", process.env.NEXT_PUBLIC_SUPABASE_URL);
+if (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  tpl = tpl.replaceAll("__ATL_SB_KEY__", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 if (tpl.includes("${")) throw new Error("unresolved interpolation remains: " + tpl.slice(tpl.indexOf("${"), tpl.indexOf("${") + 40));
 

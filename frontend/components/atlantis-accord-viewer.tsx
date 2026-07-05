@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useRef, type TouchEvent } from "react";
+import { useState, useMemo, useRef, useEffect, type TouchEvent } from "react";
 import { createPortal } from "react-dom";
-import { X, ScrollText, ChevronDown, Globe, Download, Link2, Check, Copy } from "lucide-react";
+import { X, ScrollText, ChevronDown, Globe, Download, Link2, Check, Copy, Maximize2, Minimize2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import {
   buildAtlantisPackageHtml, buildAtlantisLink, generateSealCode, formatSealCode, SEAL_STRENGTHS,
@@ -176,6 +176,20 @@ function FullscreenViewer({
   const { easterEggUnlocked } = useEasterEgg();
   const unlocked = easterEggUnlocked || forceUnlocked;
   const roleLabel = (role: string) => t(`shared.atlantis.role_${role.toLowerCase()}`);
+
+  // Maximize → true browser full screen (hides the address bar/chrome) so the
+  // Accords + QR fill the phone or PC screen for easy sharing. Same idea as the
+  // Divinity Guide reader's maximize.
+  const [isFs, setIsFs] = useState(false);
+  useEffect(() => {
+    const onFs = () => setIsFs(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => document.removeEventListener("fullscreenchange", onFs);
+  }, []);
+  const toggleFs = () => {
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else document.documentElement.requestFullscreen?.().catch(() => {});
+  };
   const [langOpen, setLangOpen] = useState(false);
   const [view, setView] = useState<View>("accord");
   const [activeIdx, setActiveIdx] = useState(0);
@@ -305,7 +319,7 @@ function FullscreenViewer({
           {/* Scroll icon — download a shareable, 4-digit-gated offline package */}
           <button
             onClick={handleQuickPackage}
-            title="Download sealed package — Clearance Level 1, random 4-digit code"
+            title="Download sealed package — Clearance: Level 1, random 4-digit code"
             aria-label="Download sealed package"
             className="rounded-md border border-border p-2 text-primary hover:bg-accent/50 transition-colors"
           >
@@ -319,6 +333,15 @@ function FullscreenViewer({
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {/* Maximize → full screen for easy sharing (phone + PC) */}
+          <button
+            onClick={toggleFs}
+            className="p-2 rounded-md hover:bg-accent/50 transition-colors text-primary"
+            title={isFs ? "Exit full screen" : "Full screen"}
+            aria-label="Toggle full screen"
+          >
+            {isFs ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </button>
           {/* QR to the website — same icon + QRCodeSVG method as the Divinity
               Guide ARX. Sits between the scroll share icon and the language selector. */}
           <button
@@ -634,7 +657,7 @@ function FullscreenViewer({
                         const active = pkgClearance === lvl;
                         return (
                           <button key={lvl} onClick={() => setPkgClearance(lvl)}
-                            title={`Clearance Level ${lvl}`}
+                            title={`Clearance: Level ${lvl}`}
                             className="flex flex-col items-center gap-1 rounded-md border p-1.5 transition-all"
                             style={{ borderColor: active ? c : "hsl(215 15% 25%)", background: active ? `${c}22` : "transparent" }}>
                             <span className="h-4 w-4 rounded-full" style={{ background: c }} />
@@ -644,7 +667,7 @@ function FullscreenViewer({
                       })}
                     </div>
                     <p className="mb-3 text-[11px]" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
-                      Clearance Level {pkgClearance} — {pkgClearance} of {MAX_CLEARANCE} circles
+                      Clearance: Level {pkgClearance} — {pkgClearance} of {MAX_CLEARANCE} circles
                     </p>
                     <p className="mb-2 text-xs text-muted-foreground">
                       Select a <b>seal strength</b> — how hard the code is to break.
@@ -674,7 +697,7 @@ function FullscreenViewer({
                   </>
                 ) : (
                   <p className="mb-3 text-xs text-muted-foreground">
-                    Sealed at <b style={{ color: CLEARANCE_COLORS[1] }}>Clearance Level 1</b> with a random 4-digit code you share separately.
+                    Sealed at <b style={{ color: CLEARANCE_COLORS[1] }}>Clearance: Level 1</b> with a random 4-digit code you share separately.
                   </p>
                 )}
                 <p className="mb-2 text-xs text-muted-foreground">Choose how to share:</p>
@@ -710,7 +733,7 @@ function FullscreenViewer({
                   {formatSealCode(pkgCode)}
                 </div>
                 <p className="mb-2 text-[11px] font-semibold" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
-                  Clearance Level {pkgClearance}
+                  Clearance: Level {pkgClearance}
                 </p>
                 {pkgMode === "link" && pkgLink ? (
                   <>
@@ -725,7 +748,7 @@ function FullscreenViewer({
                       </button>
                     </div>
                     <p className="mb-4 text-[10px] leading-snug text-muted-foreground/80">
-                      Opens on <b>any device — including iPhone &amp; iPad</b>. The sealed content rides inside the link; no server ever sees it. The recipient taps the link, then enters the code.
+                      Opens on <b>any device — including iPhone &amp; iPad</b>. Only the encrypted message is stored (never the 4-digit code). It <b>opens once</b>, then the link seals itself. The recipient taps the link, then enters the code.
                     </p>
                   </>
                 ) : (
