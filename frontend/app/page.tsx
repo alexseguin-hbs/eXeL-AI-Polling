@@ -14,19 +14,22 @@ import { TrinityColorPicker } from "@/components/trinity-color-picker";
 // 12 preset Trinities — cycle through on inner click
 // Labels use lexicon keys; resolved at render time via t()
 const TRINITY_PRESETS: { keys: [string, string, string]; color: string; titleKey: string; master: string }[] = [
-  // Rainbow: Violet (300°) → Red (0°). Consciousness (Cyan) is default (index 4).
-  { keys: ["trinity.governance.top", "trinity.governance.right", "trinity.governance.left"],     color: "#FF00FF", titleKey: "trinity.governance.title",     master: "Athena" },
-  { keys: ["trinity.family.top", "trinity.family.right", "trinity.family.left"],                 color: "#7F00FF", titleKey: "trinity.family.title",         master: "Aset" },
-  { keys: ["trinity.wholeness.top", "trinity.wholeness.right", "trinity.wholeness.left"],        color: "#0000FF", titleKey: "trinity.wholeness.title",      master: "Krishna" },
-  { keys: ["trinity.framework.top", "trinity.framework.right", "trinity.framework.left"],        color: "#007FFF", titleKey: "trinity.framework.title",      master: "Asar" },
+  // Spectrum cycle: Infrared → ROYGBIV → Ultraviolet → White (even hue steps,
+  // Settings palette anchored). Default start is Consciousness (Cyan) at index 7;
+  // center-click advances forward and wraps.
+  { keys: ["trinity.human.top", "trinity.human.right", "trinity.human.left"],                     color: "#8B0000", titleKey: "trinity.human.title",          master: "Thor" },
+  { keys: ["trinity.evolution.top", "trinity.evolution.right", "trinity.evolution.left"],          color: "#FF0000", titleKey: "trinity.evolution.title",      master: "Enki" },
+  { keys: ["trinity.intelligence.top", "trinity.intelligence.right", "trinity.intelligence.left"], color: "#F97316", titleKey: "trinity.intelligence.title",  master: "Thoth" },
+  { keys: ["trinity.temporal.top", "trinity.temporal.right", "trinity.temporal.left"],             color: "#FFFF00", titleKey: "trinity.temporal.title",       master: "Odin" },
+  { keys: ["trinity.abundance.top", "trinity.abundance.right", "trinity.abundance.left"],         color: "#80FF00", titleKey: "trinity.abundance.title",      master: "Pangu" },
+  { keys: ["trinity.ooda.top", "trinity.ooda.right", "trinity.ooda.left"],                       color: "#00FF00", titleKey: "trinity.ooda.title",           master: "Enlil" },
+  { keys: ["trinity.platonic.top", "trinity.platonic.right", "trinity.platonic.left"],            color: "#10B981", titleKey: "trinity.platonic.title",       master: "Sofia" },
   { keys: ["trinity.consciousness.top", "trinity.consciousness.right", "trinity.consciousness.left"], color: "#00FFFF", titleKey: "trinity.consciousness.title", master: "Christo" },
-  { keys: ["trinity.platonic.top", "trinity.platonic.right", "trinity.platonic.left"],            color: "#00FF91", titleKey: "trinity.platonic.title",       master: "Sofia" },
-  { keys: ["trinity.ooda.top", "trinity.ooda.right", "trinity.ooda.left"],                       color: "#00FF24", titleKey: "trinity.ooda.title",           master: "Enlil" },
-  { keys: ["trinity.abundance.top", "trinity.abundance.right", "trinity.abundance.left"],         color: "#48FF00", titleKey: "trinity.abundance.title",      master: "Pangu" },
-  { keys: ["trinity.temporal.top", "trinity.temporal.right", "trinity.temporal.left"],             color: "#B6FF00", titleKey: "trinity.temporal.title",       master: "Odin" },
-  { keys: ["trinity.intelligence.top", "trinity.intelligence.right", "trinity.intelligence.left"], color: "#FFDA00", titleKey: "trinity.intelligence.title",  master: "Thoth" },
-  { keys: ["trinity.evolution.top", "trinity.evolution.right", "trinity.evolution.left"],          color: "#FF6D00", titleKey: "trinity.evolution.title",      master: "Enki" },
-  { keys: ["trinity.human.top", "trinity.human.right", "trinity.human.left"],                     color: "#FF0000", titleKey: "trinity.human.title",          master: "Thor" },
+  { keys: ["trinity.framework.top", "trinity.framework.right", "trinity.framework.left"],        color: "#3B82F6", titleKey: "trinity.framework.title",      master: "Asar" },
+  { keys: ["trinity.wholeness.top", "trinity.wholeness.right", "trinity.wholeness.left"],        color: "#0000FF", titleKey: "trinity.wholeness.title",      master: "Krishna" },
+  { keys: ["trinity.family.top", "trinity.family.right", "trinity.family.left"],                 color: "#8B00FF", titleKey: "trinity.family.title",         master: "Aset" },
+  { keys: ["trinity.governance.top", "trinity.governance.right", "trinity.governance.left"],     color: "#6A00D4", titleKey: "trinity.governance.title",     master: "Athena" },
+  { keys: ["trinity.blank.top", "trinity.blank.right", "trinity.blank.left"],                    color: "#FFFFFF", titleKey: "trinity.blank.title",          master: "" },
 ];
 
 // 8 preset color swatches — quick select, then fine-tune via expanded picker
@@ -45,7 +48,7 @@ const COLOR_PALETTE = [
 export default function LandingPage() {
   const { t, pinyin } = useLexicon();
   const { currentTheme } = useTheme();
-  const [trinityIndex, setTrinityIndex] = useState(4); // Start at Consciousness
+  const [trinityIndex, setTrinityIndex] = useState(7); // Start at Consciousness (Cyan, index 7 in ROYGBIV order)
   const [customMode, setCustomMode] = useState(false);
   const [customLabels, setCustomLabels] = useState<[string, string, string] | null>(null);
   const [customColor, setCustomColor] = useState("#10B981"); // Emerald for custom mode
@@ -57,8 +60,8 @@ export default function LandingPage() {
   // Order: [top, right, left] — YOUR (top), WORDS (left), HERE (right)
   const customDefaults: [string, string, string] = [t("trinity.custom.placeholder_1"), t("trinity.custom.placeholder_3"), t("trinity.custom.placeholder_2")];
   const displayLabels = customMode ? (customLabels ?? customDefaults) : resolvedLabels;
-  // Consciousness (index 4): follows theme color. Others: preset rainbow colors. Custom: user-picked.
-  const displayColor = customMode ? customColor : trinityIndex === 4 ? currentTheme.swatch : currentPreset.color;
+  // Consciousness (index 7): follows theme color. Others: preset rainbow colors. Custom: user-picked.
+  const displayColor = customMode ? customColor : trinityIndex === 7 ? currentTheme.swatch : currentPreset.color;
   const displayTitle = customMode ? t("trinity.custom.title") : t(currentPreset.titleKey);
 
   const handleInnerClick = () => {
