@@ -176,7 +176,13 @@ export const ATLANTIS_READER_URL = SITE_URL + "/seal.html";
 // Deep-link to the Atlantis Accords viewer itself (opens the reader directly,
 // as if the user opened Settings → The Atlantis Accords). The in-viewer QR
 // encodes this so a scan lands straight on the Accords, not the homepage.
-export const ATLANTIS_PAGE_URL = SITE_URL + "/atlantis";
+// Canonical Accords page (replaces /atlantis — the old path redirects here).
+// Trailing slash matches the static-export asset directly (no 307 hop on scan).
+export const ATLANTIS_PAGE_URL = SITE_URL + "/Atlantis-Accords/";
+// Pretty, on-brand share URL: /Atlantis-Accords/<7-char-hash> (a throwback to
+// the 7 clearance levels). Served by functions/Atlantis-Accords/[hash].js,
+// which 302-redirects to /seal.html#<hash> for the hosted reader.
+export const ATLANTIS_LINK_BASE = SITE_URL + "/Atlantis-Accords/";
 // Short-link store lives in Supabase (secure backend, ciphertext only) — the
 // shared link becomes /seal.html#<7-char-hash> instead of an 8 KB #fragment.
 const SEAL_TABLE = "atlantis_seals";
@@ -280,9 +286,18 @@ export async function buildAtlantisLink(
     for (let tries = 0; tries < 3; tries++) {
       const hash = newSealHash();
       const { error } = await supabase.from(SEAL_TABLE).insert({ hash, payload: json });
-      if (!error) return ATLANTIS_READER_URL + "#" + hash;
-      if (error.code !== "23505") break; // not a duplicate key → stop, use fallback
+      if (!error) return ATLANTIS_LINK_BASE + hash;
+      if (error.code !== "23505") {
+        // Council mandate: no silent degradation of a security feature.
+        console.error(
+          `[Atlantis] seal store insert failed (${error.code}): ${error.message} — ` +
+            "falling back to the long #fragment link. If the table is missing, run supabase/atlantis_seals.sql.",
+        );
+        break;
+      }
     }
+  } else {
+    console.error("[Atlantis] Supabase client not configured — falling back to the long #fragment link.");
   }
   // Supabase absent/unreachable → self-contained long link (payload in #fragment).
   return ATLANTIS_READER_URL + "#" + b64urlFromJson(json);
@@ -591,6 +606,7 @@ function __initSeal(){
         hint.textContent='A sealed shell was saved to Downloads under the same name. Replace the original to finish the burn.';
       }catch(e){}};})();
 }
+</script>
 <script>
 // Universal launcher — runs for the offline file (payload embedded) AND the
 // hosted reader (payload fetched from Supabase by a short #hash). The unlock

@@ -260,6 +260,21 @@ function FullscreenViewer({
   const [pkgLink, setPkgLink] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [qrMax, setQrMax] = useState(false); // QR blown up to full screen
+  const [qrCopied, setQrCopied] = useState(false);
+  const copyAtlantisUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(ATLANTIS_PAGE_URL);
+      setQrCopied(true);
+      setTimeout(() => setQrCopied(false), 2000);
+    } catch {
+      /* clipboard blocked — URL stays visible for manual copy */
+    }
+  };
+  const closeQr = () => {
+    setShowQr(false);
+    setQrMax(false);
+  };
 
   // mode 'file' = self-contained offline .html (Android/PC). mode 'link' =
   // universal link that opens the hosted reader on ANY device incl. iPhone.
@@ -638,7 +653,8 @@ function FullscreenViewer({
 
             {pkgCode === null ? (
               <>
-                <label className="mb-1 block text-[11px] text-muted-foreground">Sender <span className="opacity-60">(signed into the cover)</span></label>
+                {/* Sender is signed into the Light Codex (audit: sent when / by whom) — not shown on the cover. */}
+                <label className="mb-1 block text-[11px] text-muted-foreground">Sender</label>
                 <input
                   value={pkgSender}
                   onChange={(e) => setPkgSender(e.target.value)}
@@ -769,20 +785,68 @@ function FullscreenViewer({
         </div>
       )}
 
-      {/* Website QR — QRCodeSVG (same method as Divinity Guide ARX) */}
+      {/* Website QR — QRCodeSVG (same method as Divinity Guide ARX).
+          Direct deep-link to /atlantis (the Accords), shown with a Copy button;
+          the Maximize icon blows the QR up to full screen for room-scale scans. */}
       {showQr && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4" onClick={() => setShowQr(false)}>
-          <div className="w-full max-w-xs rounded-xl border border-border bg-background p-5 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-base font-semibold">Visit eXeL AI</h3>
-              <button onClick={() => setShowQr(false)} aria-label="Close"><X className="h-4 w-4 text-muted-foreground" /></button>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4" onClick={closeQr}>
+          {qrMax ? (
+            <div className="flex flex-col items-center gap-4" onClick={(e) => e.stopPropagation()}>
+              <div className="rounded-2xl bg-white p-4 shadow-2xl">
+                <QRCodeSVG
+                  value={ATLANTIS_PAGE_URL}
+                  size={512}
+                  level="Q"
+                  fgColor="#000000"
+                  bgColor="#ffffff"
+                  className="rounded-lg"
+                  style={{ width: "min(86vw, 72vh)", height: "min(86vw, 72vh)" }}
+                />
+              </div>
+              <p className="text-sm text-white/90">Scan to open The Atlantis Accords</p>
+              <button
+                onClick={() => setQrMax(false)}
+                className="flex items-center gap-2 rounded-lg border border-white/30 px-4 py-2 text-sm text-white hover:bg-white/10"
+                aria-label="Exit full screen QR"
+              >
+                <Minimize2 className="h-4 w-4" /> Exit full screen
+              </button>
             </div>
-            <div className="mx-auto mb-3 w-fit rounded-2xl bg-white p-4 shadow-inner">
-              <QRCodeSVG value={ATLANTIS_PAGE_URL} size={220} level="Q" fgColor="#000000" bgColor="#ffffff" className="rounded-lg" />
+          ) : (
+            <div className="w-full max-w-xs rounded-xl border border-border bg-background p-5 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-base font-semibold">The Atlantis Accords</h3>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setQrMax(true)}
+                    title="Full screen QR"
+                    aria-label="Full screen QR"
+                    className="rounded-md p-1 hover:bg-accent/50"
+                  >
+                    <Maximize2 className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                  <button onClick={closeQr} aria-label="Close" className="rounded-md p-1 hover:bg-accent/50">
+                    <X className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                </div>
+              </div>
+              <div className="mx-auto mb-3 w-fit rounded-2xl bg-white p-4 shadow-inner">
+                <QRCodeSVG value={ATLANTIS_PAGE_URL} size={220} level="Q" fgColor="#000000" bgColor="#ffffff" className="rounded-lg" />
+              </div>
+              <p className="text-xs text-muted-foreground">Scan to open The Atlantis Accords</p>
+              <div className="mt-2 flex items-center justify-center gap-2">
+                <span className="break-all text-[10px] text-muted-foreground/60">{ATLANTIS_PAGE_URL}</span>
+                <button
+                  onClick={copyAtlantisUrl}
+                  title="Copy link"
+                  aria-label="Copy Atlantis Accords link"
+                  className="shrink-0 rounded-md border border-border p-1.5 hover:bg-accent/50"
+                >
+                  {qrCopied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                </button>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">Scan to open The Atlantis Accords</p>
-            <p className="mt-1 break-all text-[10px] text-muted-foreground/60">{ATLANTIS_PAGE_URL}</p>
-          </div>
+          )}
         </div>
       )}
     </div>

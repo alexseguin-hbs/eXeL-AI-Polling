@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import vm from "node:vm";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(join(here, "..", "lib", "atlantis-package.ts"), "utf8");
@@ -37,5 +38,39 @@ if (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
 if (tpl.includes("${")) throw new Error("unresolved interpolation remains: " + tpl.slice(tpl.indexOf("${"), tpl.indexOf("${") + 40));
 
+// ── SSSES parse gate (Council of Twelve, 2026-07-05) ─────────────────────────
+// A missing </script> once collapsed the entire reader into one SyntaxError'd
+// block: tsc saw nothing, the build exited 0, and production shipped a dead
+// unlock. This gate validates the artifact through its true consumer's eyes —
+// the browser's HTML tokenizer (a script block ends at the FIRST </script>) —
+// and hard-fails the build on any imbalance or unparseable block.
+function validateScripts(html) {
+  const opens = (html.match(/<script\b[^>]*>/g) ?? []).length;
+  const closes = (html.match(/<\/script>/g) ?? []).length;
+  if (opens !== closes)
+    throw new Error(`SSSES gate: ${opens} <script> openers vs ${closes} </script> closers — unbalanced`);
+  let pos = 0, n = 0;
+  for (;;) {
+    const m = /<script\b([^>]*)>/.exec(html.slice(pos));
+    if (!m) break;
+    const start = pos + m.index + m[0].length;
+    const end = html.indexOf("</script>", start);
+    if (end < 0) throw new Error("SSSES gate: unterminated <script> block");
+    const body = html.slice(start, end);
+    n++;
+    // JSON payload slots are data, not JS; empty slots are fine.
+    if (!/application\/json/.test(m[1]) && body.trim()) {
+      try {
+        new vm.Script(body);
+      } catch (err) {
+        throw new Error(`SSSES gate: script block ${n} does not parse — ${err.message}`);
+      }
+    }
+    pos = end + "</script>".length;
+  }
+  return { blocks: n, opens, closes };
+}
+const gate = validateScripts(tpl);
+
 writeFileSync(join(here, "..", "public", "seal.html"), tpl, "utf8");
-console.log("wrote public/seal.html (" + tpl.length + " bytes)");
+console.log("wrote public/seal.html (" + tpl.length + " bytes) — SSSES gate: " + gate.blocks + " script blocks parsed, " + gate.opens + "/" + gate.closes + " tags balanced");

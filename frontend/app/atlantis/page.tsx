@@ -1,16 +1,16 @@
 "use client";
 
 /**
- * /atlantis — direct deep-link to The Atlantis Accords reader.
- *
- * The QR inside the Accords viewer encodes this URL, so a scan lands straight
- * on the Accords (unlocked view) instead of the homepage — exactly as if the
- * user opened Settings → The Atlantis Accords. Global providers (lexicon,
- * theme, Easter-egg) come from the root layout.
+ * /atlantis — legacy alias. The canonical page is /Atlantis-Accords; QRs and
+ * links printed before the rename land here and are forwarded so no issued
+ * link ever dies (Council of Twelve mandate).
  */
 
-import { AtlantisAccordsStandalone } from "@/components/atlantis-accord-viewer";
+import { useEffect } from "react";
 
-export default function AtlantisPage() {
-  return <AtlantisAccordsStandalone />;
+export default function AtlantisLegacyRedirect() {
+  useEffect(() => {
+    window.location.replace("/Atlantis-Accords/");
+  }, []);
+  return null;
 }
