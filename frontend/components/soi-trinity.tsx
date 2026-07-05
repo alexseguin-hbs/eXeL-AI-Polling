@@ -147,31 +147,16 @@ export function SoITrinity({
             d={makeTextArc(ring.cx, ring.cy, textAngles[i], textRadii[i], i !== 0)}
             fill="none" />
         ))}
-        {/* Each ring's band as a mask (annulus) — used to lay one ring over
-            another ONLY across the crossing, with the mask edges on the ring's
-            own band edges so the weave transition is clean. */}
-        {rings.map((ring, i) => (
-          <mask key={`m-${i}`} id={`${uid}-band-${i}`} maskUnits="userSpaceOnUse">
-            <circle cx={ring.cx} cy={ring.cy} r={ringR} fill="white" />
-            <circle cx={ring.cx} cy={ring.cy} r={ringR - ringWidth} fill="black" />
-          </mask>
-        ))}
       </defs>
 
-      {/* Borromean weave (mask-based, per ChatGPT/reference: NOT z-index stacking).
-          Layer 1 lays all three rings flat. Layer 2 redraws each OVER ring masked to
-          the UNDER ring's band, so the over ring shows on top ONLY across the
-          crossing — no erasing (no gaps), and the mask edges fall on the under
-          ring's own band edges (no false seam). Cycle 0>1, 1>2, 2>0: every ring
-          passes over exactly one neighbor and under the other. */}
+      {/* Solid stacked draw order (how a human draws it): top circle first, then
+          bottom-right, then bottom-left LAST so it reads as on top. Each band is
+          opaque (black border + cyan), so a later ring cleanly covers earlier ones
+          at the overlaps and its black border separates them. No masks, no clips
+          through the cyan → NO trace lines behind the solid fill. */}
       <RingBand rcx={rings[0].cx} rcy={rings[0].cy} />
       <RingBand rcx={rings[1].cx} rcy={rings[1].cy} />
       <RingBand rcx={rings[2].cx} rcy={rings[2].cy} />
-      {([[0, 1], [1, 2], [2, 0]] as const).map(([over, under]) => (
-        <g key={`weave-${over}-${under}`} mask={`url(#${uid}-band-${under})`}>
-          <RingBand rcx={rings[over].cx} rcy={rings[over].cy} />
-        </g>
-      ))}
 
       {/* 4. UNITY ring — black band underneath, color narrower on top (zero seam) */}
       <circle cx={cx} cy={cy} r={outerR - outerWidth / 2}
