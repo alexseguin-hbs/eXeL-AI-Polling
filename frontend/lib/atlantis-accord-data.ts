@@ -134,6 +134,18 @@ export const ACCORD_TRANSLATIONS: Record<string, AccordSection[]> = {
   sv: ACCORD_SV, th: ACCORD_TH, uk: ACCORD_UK, zh: ACCORD_ZH,
 };
 
+// Endonym display names for the reader's language selector (only langs present
+// in ACCORD_TRANSLATIONS are ever shown; extras are harmless).
+export const ACCORD_LANG_NAMES: Record<string, string> = {
+  en: "English", ar: "العربية", da: "Dansk", de: "Deutsch", el: "Ελληνικά",
+  es: "Español", fr: "Français", hi: "हिन्दी", id: "Bahasa Indonesia", it: "Italiano",
+  ja: "日本語", ms: "Bahasa Melayu", nl: "Nederlands", pl: "Polski", pt: "Português",
+  ru: "Русский", sv: "Svenska", th: "ไทย", uk: "Українська", zh: "中文",
+  ko: "한국어", bn: "বাংলা", pa: "ਪੰਜਾਬੀ", vi: "Tiếng Việt", tl: "Tagalog",
+  tr: "Türkçe", ro: "Română", cs: "Čeština", fi: "Suomi", no: "Norsk",
+  he: "עברית", sw: "Kiswahili", ne: "नेपाली",
+};
+
 export function getSection(sectionIdx: number, langCode: string): AccordSection {
   const langSections = ACCORD_TRANSLATIONS[langCode] ?? ACCORD_SECTIONS_EN;
   return langSections[sectionIdx] ?? ACCORD_SECTIONS_EN[sectionIdx];

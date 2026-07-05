@@ -199,9 +199,17 @@ function newSealHash(): string {
 }
 
 /** Build the sealed package object (encryption + cover meta), as a JSON string.
- *  Shared by the offline file and the universal link — identical payload. */
+ *  Shared by the offline file and the universal link — identical payload.
+ *
+ *  MULTILINGUAL / REUSABLE "1x read" format: the encrypted payload embeds an
+ *  i18n map { <lang>: { nav, sections } } for every provided language, plus the
+ *  available lang codes + display names. The reader's language selector switches
+ *  the whole document (petals, headers, all word tiers) in-memory after unlock.
+ *  Tags stay as English step-codes (localized display labels are a later layer). */
 async function buildAtlantisPayloadJson(
-  sections: AccordSection[],
+  translations: Record<string, AccordSection[]>,
+  langNames: Record<string, string>,
+  defaultLang: string,
   code: string,
   clearance: number,
   sender: string,
@@ -216,6 +224,20 @@ async function buildAtlantisPayloadJson(
       .toUpperCase().replace(/[^A-Z0-9 .]/g, " ");
   const helix = doubleHelix(codexMsg);
 
+  // English is the canonical structure (tag codes + fallback source).
+  const EN = translations.en ?? Object.values(translations)[0];
+  const langs = Object.keys(translations);
+  const i18n: Record<string, { nav: { tag: string; seven: string }[]; sections: { tag: string; title: string; content: AccordSection["content"] }[] }> = {};
+  for (const lang of langs) {
+    const secs = translations[lang];
+    i18n[lang] = {
+      // Tag stays the English step-code; the 7-word overview + title + tiers localize (English fallback per field).
+      nav: EN.map((en, i) => ({ tag: en.tag, seven: secs[i]?.content?.[7] ?? en.content[7] })),
+      sections: EN.map((en, i) => ({ tag: en.tag, title: secs[i]?.title ?? en.title, content: secs[i]?.content ?? en.content })),
+    };
+  }
+  const dl = i18n[defaultLang] ? defaultLang : "en";
+
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const key = await deriveKey(code, salt);
@@ -225,11 +247,12 @@ async function buildAtlantisPayloadJson(
     // conveyed only by border/accent color, never the spelled-out name.
     clearance: lvl, color: CLEARANCE_COLORS[lvl],
     sender: snd, codexDate: date, cstTime: time,
-    // nav = all 7 petal labels (tag + seven-word) so the flower matches the
-    // original; full content only for the unlocked (<= clearance) sections.
-    nav: sections.map((s) => ({ tag: s.tag, seven: s.content[7] })),
-    // Level-1 = the whole transmission: all 7 sections included and readable.
-    sections: sections.map((s) => ({ tag: s.tag, title: s.title, content: s.content })),
+    // Multilingual: all languages embedded; selector switches in-memory.
+    defaultLang: dl, langs, langNames,
+    i18n,
+    // Back-compat: default-language nav/sections at top level for older readers.
+    nav: i18n[dl].nav,
+    sections: i18n[dl].sections,
   });
   const cipher = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: iv as BufferSource }, key,
@@ -250,14 +273,17 @@ async function buildAtlantisPayloadJson(
   return JSON.stringify(pkg);
 }
 
-/** Self-contained offline .html (Android / PC — opens directly). */
+/** Self-contained offline .html (Android / PC — opens directly). Multilingual:
+ *  pass the full { <lang>: AccordSection[] } map; the reader gets a selector. */
 export async function buildAtlantisPackageHtml(
-  sections: AccordSection[],
+  translations: Record<string, AccordSection[]>,
+  langNames: Record<string, string>,
+  defaultLang: string,
   code: string,
   clearance: number,
   sender: string,
 ): Promise<string> {
-  return htmlTemplate(await buildAtlantisPayloadJson(sections, code, clearance, sender));
+  return htmlTemplate(await buildAtlantisPayloadJson(translations, langNames, defaultLang, code, clearance, sender));
 }
 
 /** base64url (UTF-8 safe) — for carrying the payload in the link #fragment. */
@@ -278,12 +304,14 @@ function b64urlFromJson(json: string): string {
  *  back to the self-contained long link (full payload in the #fragment) so the
  *  link ALWAYS works. */
 export async function buildAtlantisLink(
-  sections: AccordSection[],
+  translations: Record<string, AccordSection[]>,
+  langNames: Record<string, string>,
+  defaultLang: string,
   code: string,
   clearance: number,
   sender: string,
 ): Promise<string> {
-  const json = await buildAtlantisPayloadJson(sections, code, clearance, sender);
+  const json = await buildAtlantisPayloadJson(translations, langNames, defaultLang, code, clearance, sender);
   if (supabase) {
     // Store the ciphertext under a fresh 7-char hash; retry on the (rare)
     // primary-key collision. The unlock code never touches the server.
@@ -374,7 +402,7 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
     <!-- READER (unlocked) -->
     <div class="reader" id="reader">
       <div class="top"><h2>The Atlantis Accords</h2>
-        <div style="display:flex;gap:8px;align-items:center"><span class="badge" id="badge"></span><button id="seal2">Close &amp; Seal</button></div></div>
+        <div style="display:flex;gap:8px;align-items:center"><select id="lang" style="display:none;background:#0b1119;color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:5px 8px;font-size:12px;cursor:pointer"></select><span class="badge" id="badge"></span><button id="seal2">Close &amp; Seal</button></div></div>
       <div class="rbody">
         <div class="left" id="left"></div>
         <div class="right"><div class="tag" id="rtag"></div><div class="tiers" id="tiers"></div><div class="content" id="rcontent"></div></div>
@@ -416,7 +444,7 @@ function __initSeal(){
     try{document.cookie=CK+'=1;max-age=63072000;path=/'}catch(e){}
     try{var r=indexedDB.open(CK,1);r.onupgradeneeded=function(){r.result.createObjectStore('s')};
       r.onsuccess=function(){try{r.result.transaction('s','readwrite').objectStore('s').put(1,'v')}catch(e){}}}catch(e){}}
-  function sealScreen(){DATA=null;cover.style.display='none';document.getElementById('sealview').style.display='none';reader.style.display='none';done.style.display='flex';}
+  function sealScreen(){DATA=null;I18N=null;CT=null;cover.style.display='none';document.getElementById('sealview').style.display='none';reader.style.display='none';done.style.display='flex';}
   // IndexedDB survives some storage clears — async check seals reopened copies.
   try{var rq=indexedDB.open(CK,1);rq.onupgradeneeded=function(){rq.result.createObjectStore('s')};
     rq.onsuccess=function(){try{var g=rq.result.transaction('s').objectStore('s').get('v');
@@ -518,7 +546,7 @@ function __initSeal(){
     await new Promise(function(r){setTimeout(r,30);});
     var dk=_pbkdf2(code,salt,PKG.it,32);
     var pt2=_gcmDecrypt(dk,iv,ct);return JSON.parse(new TextDecoder().decode(pt2));}
-  var DATA=null,sec=0,tier=33,COL=PKG.color,LVL=PKG.lvl;
+  var DATA=null,I18N=null,LANGS=[],LNAMES={},curLang='en',CT=null,RTL={ar:1,he:1,fa:1,ur:1},sec=0,tier=33,COL=PKG.color,LVL=PKG.lvl;
   var TC={7:'#c084fc',33:'#ef4444',111:'#22c55e',333:'#3b82f6'};
   // Original AccordFlower geometry: 6 petals (idx 0-5) + EXPAND hub (idx 6).
   var POS=(function(){var CX=300,CY=250,a=[];for(var i=0;i<6;i++){var d=(-120+i*60)*Math.PI/180;a.push({cx:CX+130*Math.cos(d),cy:CY+130*Math.sin(d),r:85});}a.push({cx:CX,cy:CY,r:50});return a;})();
@@ -526,8 +554,8 @@ function __initSeal(){
   function wrap(str,per){var w=String(str).split(' '),o=[],c=[];w.forEach(function(x){c.push(x);if(c.join(' ').length>=per){o.push(c.join(' '));c=[];}});if(c.length)o.push(c.join(' '));return o;}
   function drawLeft(){
     // Flower color follows the selected word-tier: 33=red, 111=green, 333=blue.
-    var FC=TC[tier]||COL,g='',n=DATA.sections.length;
-    for(var i=0;i<7;i++){var p=POS[i],on=i<n,act=(i===sec),nv=DATA.nav[i],hub=(i===6);
+    var FC=TC[tier]||COL,g='',n=CT.sections.length;
+    for(var i=0;i<7;i++){var p=POS[i],on=i<n,act=(i===sec),nv=CT.nav[i],hub=(i===6);
       var fill=on?FC:'#3a2530',fo=act?(on?0.42:0.20):(on?0.16:0.05),st=act?'#fff':(on?FC:'#3a2530');
       g+='<circle data-i="'+i+'" style="cursor:pointer" cx="'+p.cx.toFixed(1)+'" cy="'+p.cy.toFixed(1)+'" r="'+p.r+'" fill="'+fill+'" fill-opacity="'+fo+'" stroke="'+st+'" stroke-width="'+(act?3:2)+'" '+(on?'':'opacity="0.6"')+'/>';
       var tcol=on?'#fff':'#7a6470';
@@ -538,13 +566,13 @@ function __initSeal(){
     Array.prototype.forEach.call(document.querySelectorAll('#left circle[data-i]'),function(c){c.onclick=function(){sec=+c.dataset.i;render();};});
   }
   function drawTiers(){var t=document.getElementById('tiers');t.innerHTML='';[33,111,333].forEach(function(n){var b=document.createElement('button');b.className='tier';b.textContent=n+' words';b.style.borderColor=TC[n];b.style.color=n===tier?'#fff':TC[n];b.style.background=n===tier?TC[n]:'transparent';b.onclick=function(){tier=n;render();};t.appendChild(b);});}
-  function render(){var n=DATA.sections.length,ti=document.getElementById('tiers');
-    if(sec<n){var s=DATA.sections[sec];
+  function render(){var n=CT.sections.length,ti=document.getElementById('tiers');
+    if(sec<n){var s=CT.sections[sec];
       document.getElementById('rtag').innerHTML='<span>'+esc(s.tag)+'</span> <span class="title">· '+esc(s.title)+'</span>';
       document.getElementById('rcontent').textContent=s.content[tier]||s.content[333];ti.style.display='flex';}
-    else{var nv=DATA.nav[sec];
+    else{var nv=CT.nav[sec];
       document.getElementById('rtag').innerHTML='<span>'+esc(nv.tag)+'</span>';
-      document.getElementById('rcontent').innerHTML='<div style="opacity:.75;font-style:italic">'+esc(nv.seven||'')+'</div><div style="margin-top:16px;color:'+COL+'">Sealed at Clearance: Level '+DATA.clearance+'. A higher clearance is required to open this section.</div>';ti.style.display='none';}
+      document.getElementById('rcontent').innerHTML='<div style="opacity:.75;font-style:italic">'+esc(nv.seven||'')+'</div><div style="margin-top:16px;color:'+COL+'">Sealed at Clearance: Level '+LVL+'. A higher clearance is required to open this section.</div>';ti.style.display='none';}
     document.getElementById('pos').textContent=(sec+1)+' / 7';drawTiers();drawLeft();}
   document.getElementById('unlock').onclick=async function(){
     var e=document.getElementById('err');
@@ -558,6 +586,14 @@ function __initSeal(){
     e.textContent=hasSubtle?'…':'Deciphering… a moment on this device.';
     document.getElementById('unlock').disabled=true;
     try{DATA=await decrypt(c);
+      // Multilingual: build the language map + selector (back-compat: single-lang payloads).
+      I18N=DATA.i18n||{en:{nav:DATA.nav,sections:DATA.sections}};
+      LANGS=DATA.langs||Object.keys(I18N);LNAMES=DATA.langNames||{};
+      curLang=(DATA.defaultLang&&I18N[DATA.defaultLang])?DATA.defaultLang:(LANGS[0]||'en');
+      CT=I18N[curLang]||I18N[Object.keys(I18N)[0]];
+      var lsel=document.getElementById('lang');
+      if(lsel&&LANGS.length>1){lsel.innerHTML='';LANGS.forEach(function(lc){var o=document.createElement('option');o.value=lc;o.textContent=LNAMES[lc]||lc.toUpperCase();if(lc===curLang)o.selected=true;lsel.appendChild(o);});lsel.style.display='';lsel.onchange=function(){curLang=this.value;CT=I18N[curLang]||CT;document.body.dir=RTL[curLang]?'rtl':'ltr';render();};}
+      document.body.dir=RTL[curLang]?'rtl':'ltr';
       try{localStorage.removeItem(AKEY)}catch(x){}
       e.textContent='';
       COL=DATA.color;LVL=DATA.clearance;var bd=document.getElementById('badge');bd.textContent='Clearance: Level '+DATA.clearance;bd.style.color=COL;bd.style.borderColor=COL;
@@ -575,7 +611,7 @@ function __initSeal(){
   document.getElementById('next').onclick=function(){if(sec<6){sec++;render();}};
   // Close & Seal — mark all vectors, then scrub decrypted content from the DOM
   // and drop the plaintext reference so nothing readable remains in memory.
-  function seal(){mark();try{if(window.__atlDelete)window.__atlDelete();}catch(e){}DATA=null;
+  function seal(){mark();try{if(window.__atlDelete)window.__atlDelete();}catch(e){}DATA=null;I18N=null;CT=null;
     try{codeEl.value='';document.getElementById('rcontent').textContent='';document.getElementById('rtag').textContent='';document.getElementById('left').innerHTML='';}catch(e){}
     reader.style.display='none';cover.style.display='none';done.style.display='flex';}
   document.getElementById('seal2').onclick=seal;

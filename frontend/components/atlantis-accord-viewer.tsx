@@ -22,6 +22,8 @@ import type { ThemeInfo } from "@/lib/types";
 import "@/components/flower-of-life/flower-animations.css";
 import {
   ACCORD_SECTIONS_EN,
+  ACCORD_TRANSLATIONS,
+  ACCORD_LANG_NAMES,
   SIGNATORIES_EN,
   TARGET_COUNTRIES_EN,
   getSection,
@@ -271,7 +273,7 @@ function FullscreenViewer({
     try {
       const gen = generateSealCode(SEAL_STRENGTHS[strengthIdx]);
       if (mode === "file") {
-        const html = await buildAtlantisPackageHtml(ACCORD_SECTIONS_EN, gen, level, pkgSender);
+        const html = await buildAtlantisPackageHtml(ACCORD_TRANSLATIONS, ACCORD_LANG_NAMES, activeLocale, gen, level, pkgSender);
         const blob = new Blob([html], { type: "text/html" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -284,7 +286,7 @@ function FullscreenViewer({
         setTimeout(() => URL.revokeObjectURL(url), 1500);
         setPkgLink(null);
       } else {
-        const link = await buildAtlantisLink(ACCORD_SECTIONS_EN, gen, level, pkgSender);
+        const link = await buildAtlantisLink(ACCORD_TRANSLATIONS, ACCORD_LANG_NAMES, activeLocale, gen, level, pkgSender);
         setPkgLink(link);
         try {
           await navigator.clipboard.writeText(link);
