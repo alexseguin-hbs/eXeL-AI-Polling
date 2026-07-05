@@ -172,7 +172,11 @@ function centralStamp(now: Date): { date: string; time: string } {
 // it — the sealed payload rides in the link's #fragment and is never sent to
 // the host, so it stays zero-knowledge. Default = current deploy (works today).
 export const SITE_URL = "https://exel-ai-polling.explore-096.workers.dev";
-export const ATLANTIS_READER_URL = SITE_URL + "/seal.html";
+// Extensionless /seal (NOT /seal.html): Workers Static Assets 307-redirects the
+// .html URL to the clean path, and that hop drops the #fragment the reader needs.
+// /seal is a terminal 200, so the fragment survives — used for both the worker
+// redirect target and the long-link fallback below.
+export const ATLANTIS_READER_URL = SITE_URL + "/seal";
 // Deep-link to the Atlantis Accords viewer itself (opens the reader directly,
 // as if the user opened Settings → The Atlantis Accords). The in-viewer QR
 // encodes this so a scan lands straight on the Accords, not the homepage.
@@ -180,11 +184,11 @@ export const ATLANTIS_READER_URL = SITE_URL + "/seal.html";
 // Trailing slash matches the static-export asset directly (no 307 hop on scan).
 export const ATLANTIS_PAGE_URL = SITE_URL + "/Atlantis-Accords/";
 // Pretty, on-brand share URL: /Atlantis-Accords/<7-char-hash> (a throwback to
-// the 7 clearance levels). Served by functions/Atlantis-Accords/[hash].js,
-// which 302-redirects to /seal.html#<hash> for the hosted reader.
+// the 7 clearance levels). Served by worker.js, which 302-redirects to
+// /seal#<hash> for the hosted reader.
 export const ATLANTIS_LINK_BASE = SITE_URL + "/Atlantis-Accords/";
 // Short-link store lives in Supabase (secure backend, ciphertext only) — the
-// shared link becomes /seal.html#<7-char-hash> instead of an 8 KB #fragment.
+// shared link becomes /seal#<7-char-hash> instead of an 8 KB #fragment.
 const SEAL_TABLE = "atlantis_seals";
 const SEAL_HASH_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
 function newSealHash(): string {
