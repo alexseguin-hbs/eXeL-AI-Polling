@@ -305,7 +305,7 @@ function FullscreenViewer({
           {/* Scroll icon — download a shareable, 4-digit-gated offline package */}
           <button
             onClick={handleQuickPackage}
-            title="Download sealed package — Red single-circle (Level 1), random 4-digit code"
+            title="Download sealed package — Clearance Level 1, random 4-digit code"
             aria-label="Download sealed package"
             className="rounded-md border border-border p-2 text-primary hover:bg-accent/50 transition-colors"
           >
@@ -615,7 +615,7 @@ function FullscreenViewer({
 
             {pkgCode === null ? (
               <>
-                <label className="mb-1 block text-[11px] text-muted-foreground">Sender <span className="opacity-60">(signed into the Light Codex cover)</span></label>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Sender <span className="opacity-60">(signed into the cover)</span></label>
                 <input
                   value={pkgSender}
                   onChange={(e) => setPkgSender(e.target.value)}
@@ -674,7 +674,7 @@ function FullscreenViewer({
                   </>
                 ) : (
                   <p className="mb-3 text-xs text-muted-foreground">
-                    Sealed with a single-circle <b style={{ color: CLEARANCE_COLORS[1] }}>Level 1</b> clearance and a random 4-digit code you share separately.
+                    Sealed at <b style={{ color: CLEARANCE_COLORS[1] }}>Clearance Level 1</b> with a random 4-digit code you share separately.
                   </p>
                 )}
                 <p className="mb-2 text-xs text-muted-foreground">Choose how to share:</p>
