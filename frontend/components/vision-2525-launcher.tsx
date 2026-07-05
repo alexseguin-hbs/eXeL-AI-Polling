@@ -21,8 +21,8 @@ export function Vision2525Launcher() {
 
   return (
     <CubeLauncher
-      title="VISION 2525"
-      subtitle="One Origin · One Frame · Total Coordinate Control"
+      title="VISION • 2525"
+      subtitle="One Civilization • One Framework • Limitless Possibilities • Humanity's Future"
       footer="◬ · ♡ · 웃  —  Where Shared Intention moves at the Speed of Thought"
       domains={domains}
       onExit={exitSimulationMode}
