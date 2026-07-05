@@ -79,9 +79,24 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
   </div>
 </div>
 <script id="pkg" type="application/json"></script>
-<script>(function(){var h=(location.hash||'').replace(/^#/,'');if(!h){document.body.innerHTML='<div style=\'min-height:100vh;display:flex;align-items:center;justify-content:center;color:#5f7186;font:14px -apple-system,Segoe UI,sans-serif;text-align:center;padding:24px\'>This reader opens a sealed Atlantis Accords link.<br>Please open the secure link you were sent.</div>';return;}try{h=h.replace(/-/g,'+').replace(/_/g,'/');while(h.length%4)h+='=';var bin=atob(h),by=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)by[i]=bin.charCodeAt(i);document.getElementById('pkg').textContent=new TextDecoder().decode(by);}catch(e){}})();</script>
+<script>(function(){
+  function fail(msg){document.body.innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;color:#5f7186;font:14px -apple-system,Segoe UI,sans-serif;text-align:center;padding:24px">'+msg+'</div>';}
+  var h=(location.hash||'').replace(/^#/,'');
+  // Pretty path form: /Atlantis-Accords/<hash> → take the hash from the path.
+  if(!h){var m=location.pathname.match(/\/Atlantis-Accords\/([A-Za-z0-9]{4,16})\/?$/);if(m)h=m[1];}
+  if(!h){fail('This reader opens a sealed Atlantis Accords link.<br>Please open the secure link you were sent.');return;}
+  // __initSeal is defined in a later <script>; defer so it exists when we call it.
+  function boot(){setTimeout(function(){__initSeal();},0);}
+  function inline(){try{var s=h.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var bin=atob(s),by=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)by[i]=bin.charCodeAt(i);document.getElementById('pkg').textContent=new TextDecoder().decode(by);boot();}catch(e){fail('This sealed link could not be read.<br>Ask the sender for a fresh link.');}}
+  // Short 7-char hash → fetch the stored ciphertext. Long fragment → decode inline.
+  if(/^[A-Za-z0-9]{4,16}$/.test(h)){
+    fetch('/api/seal?h='+encodeURIComponent(h)).then(function(r){if(!r.ok)throw 0;return r.text();})
+      .then(function(txt){document.getElementById('pkg').textContent=txt;boot();})
+      .catch(function(){fail('This sealed link has expired or was not found.<br>Ask the sender for a fresh link.');});
+  }else{inline();}
+})();</script>
 <script>
-(function(){
+function __initSeal(){
   var _pk=document.getElementById('pkg');
   if(!_pk||!_pk.textContent.trim())return; // hosted reader with no #payload
   var PKG=JSON.parse(_pk.textContent);
@@ -295,6 +310,6 @@ button:hover{background:#1b2c46}.err{color:#ef4444;font-size:12px;min-height:16p
         b.textContent='Burned';b.disabled=true;
         hint.textContent='The file has been overwritten with a sealed shell. The content is gone.';
       }catch(e){/* picker dismissed — leave the soft seal in place */}};})();
-})();
+}
 </script>
 </body></html>

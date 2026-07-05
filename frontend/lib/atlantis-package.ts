@@ -172,6 +172,12 @@ function centralStamp(now: Date): { date: string; time: string } {
 // the host, so it stays zero-knowledge. Default = current deploy (works today).
 export const SITE_URL = "https://exel-ai-polling.explore-096.workers.dev";
 export const ATLANTIS_READER_URL = SITE_URL + "/seal.html";
+// Short-link store — POST the sealed payload, get back a 7-char hash so the
+// shared link is short instead of an 8 KB #fragment.
+export const ATLANTIS_SEAL_ENDPOINT = SITE_URL + "/api/seal";
+// Pretty, on-brand share URL: /Atlantis-Accords/<7-char-hash> (a throwback to
+// the 7 clearance levels). Served by functions/Atlantis-Accords/[hash].js.
+export const ATLANTIS_LINK_BASE = SITE_URL + "/Atlantis-Accords/";
 
 /** Build the sealed package object (encryption + cover meta), as a JSON string.
  *  Shared by the offline file and the universal link — identical payload. */
@@ -244,8 +250,14 @@ function b64urlFromJson(json: string): string {
 }
 
 /** Universal link — opens the hosted reader in a real browser on ANY device
- *  (including iPhone/iPad, where local files can't run JS). The sealed payload
- *  is in the #fragment, never transmitted to the host. */
+ *  (including iPhone/iPad, where local files can't run JS).
+ *
+ *  Short by default: the sealed payload is POSTed to the seal store, which
+ *  returns a 7-char hash, so the shared link is tiny — `/seal.html#<hash>`.
+ *  Only the CIPHERTEXT + cover meta are stored; the unlock code never touches
+ *  the server, so it stays zero-knowledge. If the store is unreachable we fall
+ *  back to the self-contained long link (full payload in the #fragment) so the
+ *  link ALWAYS works. */
 export async function buildAtlantisLink(
   sections: AccordSection[],
   code: string,
@@ -253,6 +265,21 @@ export async function buildAtlantisLink(
   sender: string,
 ): Promise<string> {
   const json = await buildAtlantisPayloadJson(sections, code, clearance, sender);
+  try {
+    const resp = await fetch(ATLANTIS_SEAL_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: json,
+    });
+    if (resp.ok) {
+      const { hash } = await resp.json();
+      if (hash && /^[A-Za-z0-9]{4,16}$/.test(hash)) {
+        return ATLANTIS_LINK_BASE + hash;
+      }
+    }
+  } catch {
+    /* store unreachable — fall through to the self-contained long link */
+  }
   return ATLANTIS_READER_URL + "#" + b64urlFromJson(json);
 }
 

@@ -6,10 +6,11 @@ import { X, ScrollText, ChevronDown, Globe, Download, Link2, Check, Copy } from 
 import { QRCodeSVG } from "qrcode.react";
 import {
   buildAtlantisPackageHtml, buildAtlantisLink, generateSealCode, formatSealCode, SEAL_STRENGTHS,
-  CLEARANCE_COLORS, CLEARANCE_NAMES, MAX_CLEARANCE, SITE_URL,
+  CLEARANCE_COLORS, MAX_CLEARANCE, SITE_URL,
 } from "@/lib/atlantis-package";
 import { Button } from "@/components/ui/button";
 import { useLexicon } from "@/lib/lexicon-context";
+import { useEasterEgg } from "@/lib/easter-egg-context";
 import { getSortedLanguages } from "@/lib/language-utils";
 import { ThemeCircle } from "@/components/flower-of-life/theme-circle";
 import {
@@ -166,6 +167,10 @@ function FullscreenViewer({
   langCode: string;
 }) {
   const { t, activeLocale, setActiveLocale, languages } = useLexicon();
+  // The 7-level "Clearance Levels" picker + seal-strength tiers are an unlocked
+  // (Easter-egg) power feature. The default public share is a single-circle
+  // Level 1 seal with a standard code — File or Link.
+  const { easterEggUnlocked } = useEasterEgg();
   const roleLabel = (role: string) => t(`shared.atlantis.role_${role.toLowerCase()}`);
   const [langOpen, setLangOpen] = useState(false);
   const [view, setView] = useState<View>("accord");
@@ -277,11 +282,14 @@ function FullscreenViewer({
   };
 
   // Scroll icon → open the share panel where the sender picks File or Link.
+  // Public default is always Level 1 + Standard strength; the Clearance Levels
+  // and seal-strength pickers only appear once the Easter-egg feature is unlocked.
   const handleQuickPackage = () => {
     setPkgCode(null);
     setPkgLink(null);
     setLinkCopied(false);
     setPkgStrength(0);
+    if (!easterEggUnlocked) setPkgClearance(1);
     setPkgOpen(true);
   };
 
@@ -610,60 +618,69 @@ function FullscreenViewer({
                   placeholder="eXeL AI"
                   className="mb-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                 />
-                <p className="mb-2 text-xs text-muted-foreground">
-                  Select a <b>clearance level</b> — that many Seed-of-Life circles + accord sections are revealed. Only the unlocked content is written into the file.
-                </p>
-                <div className="mb-4 grid grid-cols-7 gap-1.5">
-                  {Array.from({ length: MAX_CLEARANCE }, (_, i) => i + 1).map((lvl) => {
-                    const c = CLEARANCE_COLORS[lvl];
-                    const active = pkgClearance === lvl;
-                    return (
-                      <button key={lvl} onClick={() => setPkgClearance(lvl)}
-                        title={`Clearance ${lvl} · ${CLEARANCE_NAMES[lvl]}`}
-                        className="flex flex-col items-center gap-1 rounded-md border p-1.5 transition-all"
-                        style={{ borderColor: active ? c : "hsl(215 15% 25%)", background: active ? `${c}22` : "transparent" }}>
-                        <span className="h-4 w-4 rounded-full" style={{ background: c }} />
-                        <span className="text-[9px] font-mono" style={{ color: active ? c : "hsl(215 12% 55%)" }}>{lvl}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mb-3 text-[11px]" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
-                  Clearance {pkgClearance} · {CLEARANCE_NAMES[pkgClearance]} — {pkgClearance} of {MAX_CLEARANCE} sections
-                </p>
-                <p className="mb-2 text-xs text-muted-foreground">
-                  Select a <b>seal strength</b> — how hard the code is to break.
-                </p>
-                <div className="mb-2 grid grid-cols-3 gap-1.5">
-                  {SEAL_STRENGTHS.map((s, i) => {
-                    const active = pkgStrength === i;
-                    const c = CLEARANCE_COLORS[pkgClearance];
-                    return (
-                      <button key={s.id} onClick={() => setPkgStrength(i)}
-                        title={`${s.label} — ${s.len} ${s.numeric ? "digits" : "glyphs"} (~${s.bits} bits)`}
-                        className="flex flex-col items-center gap-0.5 rounded-md border p-1.5 transition-all"
-                        style={{ borderColor: active ? c : "hsl(215 15% 25%)", background: active ? `${c}18` : "transparent" }}>
-                        <span className="text-[11px] font-semibold" style={{ color: active ? c : "hsl(215 12% 65%)" }}>
-                          {s.numeral} · {s.label}
-                        </span>
-                        <span className="text-[9px] font-mono text-muted-foreground">
-                          {s.len} {s.numeric ? "digits" : "glyphs"} · {s.share}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mb-3 text-[10px] leading-snug text-muted-foreground/80">
-                  {SEAL_STRENGTHS[pkgStrength].honest}
-                </p>
+                {easterEggUnlocked ? (
+                  <>
+                    {/* ── Unlocked feature: Clearance Levels (1–7) ── */}
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      <b>Clearance Levels</b> — pick how many Seed-of-Life circles the seal shows. Only the unlocked content is written into the file.
+                    </p>
+                    <div className="mb-4 grid grid-cols-7 gap-1.5">
+                      {Array.from({ length: MAX_CLEARANCE }, (_, i) => i + 1).map((lvl) => {
+                        const c = CLEARANCE_COLORS[lvl];
+                        const active = pkgClearance === lvl;
+                        return (
+                          <button key={lvl} onClick={() => setPkgClearance(lvl)}
+                            title={`Clearance Level ${lvl}`}
+                            className="flex flex-col items-center gap-1 rounded-md border p-1.5 transition-all"
+                            style={{ borderColor: active ? c : "hsl(215 15% 25%)", background: active ? `${c}22` : "transparent" }}>
+                            <span className="h-4 w-4 rounded-full" style={{ background: c }} />
+                            <span className="text-[9px] font-mono" style={{ color: active ? c : "hsl(215 12% 55%)" }}>{lvl}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mb-3 text-[11px]" style={{ color: CLEARANCE_COLORS[pkgClearance] }}>
+                      Clearance Level {pkgClearance} — {pkgClearance} of {MAX_CLEARANCE} circles
+                    </p>
+                    <p className="mb-2 text-xs text-muted-foreground">
+                      Select a <b>seal strength</b> — how hard the code is to break.
+                    </p>
+                    <div className="mb-2 grid grid-cols-3 gap-1.5">
+                      {SEAL_STRENGTHS.map((s, i) => {
+                        const active = pkgStrength === i;
+                        const c = CLEARANCE_COLORS[pkgClearance];
+                        return (
+                          <button key={s.id} onClick={() => setPkgStrength(i)}
+                            title={`${s.label} — ${s.len} ${s.numeric ? "digits" : "glyphs"} (~${s.bits} bits)`}
+                            className="flex flex-col items-center gap-0.5 rounded-md border p-1.5 transition-all"
+                            style={{ borderColor: active ? c : "hsl(215 15% 25%)", background: active ? `${c}18` : "transparent" }}>
+                            <span className="text-[11px] font-semibold" style={{ color: active ? c : "hsl(215 12% 65%)" }}>
+                              {s.numeral} · {s.label}
+                            </span>
+                            <span className="text-[9px] font-mono text-muted-foreground">
+                              {s.len} {s.numeric ? "digits" : "glyphs"} · {s.share}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mb-3 text-[10px] leading-snug text-muted-foreground/80">
+                      {SEAL_STRENGTHS[pkgStrength].honest}
+                    </p>
+                  </>
+                ) : (
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    Sealed with a single-circle <b style={{ color: CLEARANCE_COLORS[1] }}>Level 1</b> clearance and a random 4-digit code you share separately.
+                  </p>
+                )}
                 <p className="mb-2 text-xs text-muted-foreground">Choose how to share:</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={() => generatePackage(pkgClearance, "file")} disabled={pkgBusy}
-                    title="Self-contained .html — opens directly on Android & computers"
+                    title="Self-contained .html — opens directly on Android, Edge & computers"
                     className="flex flex-col items-center justify-center gap-1 rounded-lg border border-border px-3 py-3 text-sm font-semibold hover:bg-accent/50 disabled:opacity-50">
                     <Download className="h-5 w-5 text-primary" />
                     <span>{pkgBusy ? "Sealing…" : "Download File"}</span>
-                    <span className="text-[9px] font-normal text-muted-foreground">Android · Computer</span>
+                    <span className="text-[9px] font-normal text-muted-foreground">Android · Edge · Computer</span>
                   </button>
                   <button onClick={() => generatePackage(pkgClearance, "link")} disabled={pkgBusy}
                     title="Universal link — opens on any device, including iPhone & iPad"
