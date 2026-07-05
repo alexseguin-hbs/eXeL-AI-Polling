@@ -2,14 +2,19 @@
   "name": "exel-ai-polling",
   "compatibility_date": "2026-02-14",
   // Worker entry: dynamic routes (e.g. /Atlantis-Accords/<hash> short links).
-  // With `main` + `assets`, asset-matching requests are served directly and
-  // only non-matching requests invoke the worker (which falls back to
-  // env.ASSETS.fetch, preserving the SPA behavior below).
   "main": "worker.js",
   "assets": {
     "directory": "./out",
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    // run_worker_first: the worker MUST run before the asset layer. Without this,
+    // `not_found_handling: single-page-application` serves index.html for browser
+    // NAVIGATION requests (Sec-Fetch-Mode: navigate) BEFORE the worker — so
+    // /Atlantis-Accords/<hash> showed the SPA workspace gate instead of redirecting
+    // to /seal#<hash>. (curl never reproduced it: no Sec-Fetch-Mode header.) With
+    // the worker first, it 302s the short link, then falls back to env.ASSETS.fetch
+    // for everything else, preserving the SPA behavior.
+    "run_worker_first": true
   },
   // KV binding for cross-device session + response storage.
   // DISABLED: worker.js (the only code that runs in this Workers Static Assets
