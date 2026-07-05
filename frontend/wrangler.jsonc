@@ -1,8 +1,14 @@
 {
   "name": "exel-ai-polling",
   "compatibility_date": "2026-02-14",
+  // Worker entry: dynamic routes (e.g. /Atlantis-Accords/<hash> short links).
+  // With `main` + `assets`, asset-matching requests are served directly and
+  // only non-matching requests invoke the worker (which falls back to
+  // env.ASSETS.fetch, preserving the SPA behavior below).
+  "main": "worker.js",
   "assets": {
     "directory": "./out",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   },
   // KV binding for cross-device session + response storage.
