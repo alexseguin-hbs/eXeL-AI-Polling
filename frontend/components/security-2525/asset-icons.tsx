@@ -110,12 +110,15 @@ function milGlyph(asset: AssetKind, c: string, count = 1) {
           {count > 1 ? <XbatSwarm c={c} /> : <XbatWireframe c={c} detail={false} />}
         </g>
       );
-    case "sentinel": // radar arcs
+    case "sentinel": // vertical dish tilted upper-right + radiating waves
       return (
         <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
-          <path d="M11 20a6 6 0 0 1 10 0" />
-          <path d="M13.5 20a3 3 0 0 1 5 0" />
-          <line x1="16" y1="20" x2="16" y2="12" />
+          <line x1="14" y1="18" x2="14" y2="21" />
+          <path d="M11.5 21h5" />
+          <rect x="12.5" y="10.5" width="3" height="8" transform="rotate(20 14 14.5)" />
+          <path d="M15.6 10.9a2.2 2.2 0 0 1 1.5 1.5" />
+          <path d="M16 9.1a4 4 0 0 1 2.9 2.9" />
+          <path d="M16.5 7.4a5.8 5.8 0 0 1 4.1 4.1" />
         </g>
       );
     case "thaad": // tall vertical missiles
@@ -181,14 +184,15 @@ function exelSilhouette(asset: AssetKind, c: string, count = 1) {
           <path d="M11 7l1.5-2M15 6l1.5-2M19 7l1.5-2" />
         </g>
       );
-    case "sentinel": // radar mast + rotating panel + signal
+    case "sentinel": // towed platform + vertical dish tilted upper-right + radiating waves
     default:
       return (
         <g {...s}>
-          <line x1="14" y1="22" x2="14" y2="12" />
           <path d="M6 22h16" />
-          <rect x="7" y="7" width="14" height="6" rx="1" transform="rotate(-16 14 10)" />
-          <path d="M22 8a5 5 0 0 1 0 7" />
+          <line x1="13" y1="22" x2="13" y2="14" />
+          <rect x="10.5" y="6.5" width="4" height="9" transform="rotate(20 12.5 11)" />
+          <path d="M17.3 6.6a3 3 0 0 1 2.1 2.1" />
+          <path d="M17.9 4.2a5.5 5.5 0 0 1 3.9 3.9" />
         </g>
       );
   }
