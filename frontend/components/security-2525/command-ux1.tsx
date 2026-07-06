@@ -25,6 +25,10 @@ const C = {
   green: "#22c55e", amber: "#f59e0b", red: "#ef4444", magenta: "#d946ef",
 };
 
+// eXeL version stamp — `v#.###.YYYY.MM.DD.HH.MM` with date/time ALWAYS in CST.
+// Bump +0.001 per release and re-stamp the CST timestamp at release time.
+const EXEL_VERSION = "v0.001.2026.07.06.12.33";
+
 const NAV: [string, React.ComponentType<{ className?: string }>][] = [
   ["OVERVIEW", LayoutDashboard],
   ["SENSORS", Radar],
@@ -340,7 +344,7 @@ export function SecurityCommandUX1() {
       <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
         <span><span style={{ color: C.green }}>●</span> SYSTEM HEALTH — ALL SYSTEMS NOMINAL</span>
         <span>CLASSIFICATION: SECRET // REL TO USA, FVEY</span>
-        <span>DATA FUSION ENGINE: eXeL v2.4</span>
+        <span>DATA FUSION ENGINE: eXeL {EXEL_VERSION} CST</span>
       </div>
     </div>
   );
