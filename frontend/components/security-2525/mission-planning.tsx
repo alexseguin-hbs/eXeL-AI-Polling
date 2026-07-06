@@ -31,6 +31,7 @@ import {
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
 } from "@/components/security-2525/mission-support";
 import { PfieldVenue } from "@/components/security-2525/pfield-venue";
+import { RCORE_LANES } from "@/components/security-2525/rcore";
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -237,31 +238,55 @@ function ringPath(ring: [number, number][], w: number, h: number): string {
  * Coordinate ladder: lat/lon graticule at globe level → click an AO marker →
  * MGRS 1 km grid at AO level. Drag-rotate comes later.
  */
-function GlobeView({ data, center, onSelect, onDrill }: {
-  data: BorderData | null; center: [number, number];
+function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
+  data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void;
 }) {
   const CX = 170, CY = 170, RING = 150;
   const D = Math.PI / 180;
-  const DRILL_R = 900; // zoom past this radius → hand off to the full-screen flat map
-  // 3-D orbit camera: lat0/lon0 = sub-viewer point (LEFT-drag pan/tilt), tilt/roll =
-  // view angle over the globe (RIGHT-drag → 3-dimensionality), R = zoom (mouse scroll).
+  const DRILL_R = 520; // zoom past this radius → hand off to the full-screen flat map
+  // 3-D orbit camera: lat0/lon0 = sub-viewer point (pan/tilt drag), tilt/roll = view
+  // angle (right-drag / 2-finger), R = zoom (scroll / pinch). Silhouette stays circular.
   const [cam, setCam] = useState({ lat0: center[0], lon0: center[1], tilt: 0.32, roll: 0, R: 150 });
   const drag = useRef<{ x: number; y: number; btn: number } | null>(null);
+  const touch = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinch = useRef<{ dist: number; cx: number; cy: number } | null>(null);
   const gsvg = useRef<SVGSVGElement>(null);
   // Recenter on the selected AO (or a returning flat handoff) when `center` changes.
   useEffect(() => { setCam((c) => ({ ...c, lat0: center[0], lon0: center[1] })); }, [center[0], center[1]]);
-  // Plain mouse-scroll zooms (map-like); non-passive so the page never scrolls.
-  useWheel(gsvg, (e) => {
-    e.preventDefault();
-    setCam((c) => {
-      const R = c.R * (e.deltaY > 0 ? 1 / 1.12 : 1.12);
-      if (R > DRILL_R && e.deltaY < 0) { onDrill(c.lat0, c.lon0); return c; } // drill in → flat map
-      return { ...c, R: Math.min(DRILL_R, Math.max(70, R)) };
-    });
-  });
   const { lat0: LAT0, lon0: LON0, tilt, roll, R } = cam;
   const cr = Math.cos(roll), sr = Math.sin(roll), ct = Math.cos(tilt), st = Math.sin(tilt);
+  // client px → svg viewBox coords (340×340, preserveAspectRatio meet)
+  const toVB = (clientX: number, clientY: number): [number, number] | null => {
+    const r = gsvg.current?.getBoundingClientRect(); if (!r) return null;
+    const s = Math.min(r.width, r.height) / 340;
+    return [(clientX - r.left - (r.width - 340 * s) / 2) / s, (clientY - r.top - (r.height - 340 * s) / 2) / s];
+  };
+  // inverse orthographic (incl. tilt+roll): screen point → {lat,lon} on the front face
+  const unproject = (vx: number, vy: number): { lat: number; lon: number } | null => {
+    const xr = (vx - CX) / R, yr = (CY - vy) / R;
+    const q = xr * xr + yr * yr; if (q > 1) return null; // outside the disk
+    const zr = Math.sqrt(1 - q);
+    const y0 = yr * ct + zr * st, Z = -yr * st + zr * ct;      // undo tilt (about X)
+    const X = xr * cr + y0 * sr, Yc = -xr * sr + y0 * cr;      // undo roll (about Z)
+    const p0 = LAT0 * D;
+    const lat = Math.asin(Math.max(-1, Math.min(1, Z * Math.sin(p0) + Yc * Math.cos(p0)))) / D;
+    const lon = LON0 + Math.atan2(X, Z * Math.cos(p0) - Yc * Math.sin(p0)) / D;
+    return { lat, lon };
+  };
+  // Scroll zoom — anchored on the cursor (ease that point toward centre as we zoom in).
+  useWheel(gsvg, (e) => {
+    e.preventDefault();
+    const zin = e.deltaY < 0, factor = zin ? 1.12 : 1 / 1.12;
+    const vb = toVB(e.clientX, e.clientY); const t = vb && unproject(vb[0], vb[1]);
+    if (cam.R * factor > DRILL_R && zin) { onDrill(t ? t.lat : cam.lat0, t ? t.lon : cam.lon0); return; }
+    setCam((c) => {
+      const R2 = Math.min(DRILL_R, Math.max(70, c.R * factor));
+      return t && zin
+        ? { ...c, R: R2, lat0: Math.max(-85, Math.min(85, c.lat0 + (t.lat - c.lat0) * 0.25)), lon0: c.lon0 + (t.lon - c.lon0) * 0.25 }
+        : { ...c, R: R2 };
+    });
+  });
   const proj = (lat: number, lon: number): [number, number, boolean] => {
     const p = lat * D, l = (lon - LON0) * D, p0 = LAT0 * D;
     const X = Math.cos(p) * Math.sin(l);
@@ -327,11 +352,37 @@ function GlobeView({ data, center, onSelect, onDrill }: {
   return (
     <svg ref={gsvg} viewBox="0 0 340 340" preserveAspectRatio="xMidYMid meet"
       className="block h-full w-full touch-none select-none" role="img"
-      aria-label="Wireframe globe — orbit camera; scroll to zoom, right-drag to angle the view, left-drag to pan"
-      style={{ cursor: drag.current ? "grabbing" : "grab" }}
+      aria-label="Wireframe globe — orbit camera; scroll/pinch to zoom, right-drag to angle the view, drag to pan"
+      style={{ cursor: drag.current ? "grabbing" : "crosshair" }}
       onContextMenu={(e) => e.preventDefault()}
-      onPointerDown={(e) => { drag.current = { x: e.clientX, y: e.clientY, btn: e.button }; (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); }}
+      onPointerDown={(e) => {
+        if (e.pointerType === "touch") {
+          touch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId);
+          if (touch.current.size === 2) { const [a, b] = Array.from(touch.current.values()); pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 }; }
+          return;
+        }
+        drag.current = { x: e.clientX, y: e.clientY, btn: e.button };
+        (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId);
+      }}
       onPointerMove={(e) => {
+        if (e.pointerType === "touch") {
+          const prev = touch.current.get(e.pointerId); if (!prev) return;
+          touch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          if (touch.current.size >= 2 && pinch.current) {
+            // 2-finger = pinch-zoom + orbit the view angle (drag the pinch centre)
+            const [a, b] = Array.from(touch.current.values());
+            const dist = Math.hypot(a.x - b.x, a.y - b.y), ccx = (a.x + b.x) / 2, ccy = (a.y + b.y) / 2;
+            const factor = dist / Math.max(1, pinch.current.dist), dcx = ccx - pinch.current.cx, dcy = ccy - pinch.current.cy;
+            pinch.current = { dist, cx: ccx, cy: ccy };
+            if (cam.R * factor > DRILL_R) { onDrill(cam.lat0, cam.lon0); return; }
+            setCam((c) => ({ ...c, R: Math.min(DRILL_R, Math.max(70, c.R * factor)), roll: c.roll - dcx * 0.004, tilt: Math.max(-1.4, Math.min(1.4, c.tilt + dcy * 0.004)) }));
+          } else if (touch.current.size === 1) {
+            const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+            setCam((c) => ({ ...c, lon0: c.lon0 - dx * 0.5, lat0: Math.min(85, Math.max(-85, c.lat0 + dy * 0.5)) }));
+          }
+          return;
+        }
         const d = drag.current;
         if (!d) return;
         const dx = e.clientX - d.x, dy = e.clientY - d.y;
@@ -344,7 +395,10 @@ function GlobeView({ data, center, onSelect, onDrill }: {
           setCam((c) => ({ ...c, lon0: c.lon0 - dx * 0.5, lat0: Math.min(85, Math.max(-85, c.lat0 + dy * 0.5)) }));
         }
       }}
-      onPointerUp={() => { drag.current = null; }}>
+      onPointerUp={(e) => {
+        if (e.pointerType === "touch") { touch.current.delete(e.pointerId); if (touch.current.size < 2) pinch.current = null; return; }
+        drag.current = null;
+      }}>
       {/* bearing ring 000–350 */}
       <circle cx={CX} cy={CY} r={RING} fill="none" stroke={C.cyan} strokeWidth="0.6" opacity="0.7" />
       {ticks}
@@ -360,9 +414,11 @@ function GlobeView({ data, center, onSelect, onDrill }: {
       {AOS.map((ao) => {
         const [x, y, v] = proj(ao.center[0], ao.center[1]);
         if (!v) return null;
+        const active = ao.key === activeKey;
         return (
           <g key={ao.key} onClick={() => onSelect(ao.key)} onDoubleClick={() => onDrill(ao.center[0], ao.center[1])} style={{ cursor: "pointer" }}>
-            <circle cx={x} cy={y} r={6} fill="none" stroke={C.gold} strokeWidth="1" opacity={0.85} />
+            <circle cx={x} cy={y} r={active ? 7 : 5} fill="none" stroke={C.gold} strokeWidth="1" opacity={active ? 1 : 0.7} />
+            {active && <circle cx={x} cy={y} r="10" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.5" />}
             <circle cx={x} cy={y} r="1.5" fill={C.gold} />
           </g>
         );
@@ -412,18 +468,18 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
     const p = vbAt(e.clientX, e.clientY);
     if (!p) return;
     const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
+    if (flat.w * k >= W * 0.98 && e.deltaY > 0) { setMode("globe"); return; } // zoomed fully out → globe
     setFlat((f) => {
-      if (f.w * k >= W * 0.98 && e.deltaY > 0) { setMode("globe"); return f; } // zoomed fully out → globe
-      const w = Math.min(W, Math.max(0.004, f.w * k)), h = w * (f.h / f.w); // 0.004° ≈ 400 m → street level
+      const w = Math.min(W, Math.max(0.02, f.w * k)), h = w * (f.h / f.w); // ~2 km floor (street data pending)
       return { w, h, x: p.x - ((p.x - f.x) / f.w) * w, y: p.y - ((p.y - f.y) / f.h) * h };
     });
   });
   return (
     <div className="relative h-full w-full overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
-        <GlobeView data={data} center={center} onSelect={onSelect} onDrill={drillToFlat} />
+        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} />
       ) : (
-        <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
+        <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid meet"
           className="block h-full w-full touch-none" role="img"
           style={{ cursor: flatDrag.current ? "grabbing" : "grab" }}
           aria-label="World context map — country + US state borders (Natural Earth 50m); scroll to zoom, drag to pan"
@@ -570,10 +626,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [routeDraft, setRouteDraft] = useState<{ lat: number; lon: number }[]>([]);
   const [topOpen, setTopOpen] = useState(true);   // 3-dot collapse: top world map
   const [leftOpen, setLeftOpen] = useState(true); // 3-dot collapse: left palette
-  const [zoomMode, setZoomMode] = useState(false); // click-armed zoom on the AO map
   const [insetMode, setInsetMode] = useState<"corner" | "max" | "min">("corner"); // AO map PiP state
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null); // list ⇄ map cross-highlight
-  const zoomTimer = useRef<number | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null); // roads/water for the active AO
   const bottomRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -671,26 +725,14 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     return { fx, fy };
   };
 
-  // Wheel zoom toward the cursor (video-game / AMDWS style). spanKm clamps to a
-  // ~300 m minimum (city-block detail) and 200 km maximum (regional).
-  // Modal zoom: left-click an empty spot to ARM zoom (1 s to start scrolling);
-  // scrolling zooms and holds the mode; click again to exit. Otherwise the wheel
-  // scrolls the page normally, so up/down navigation stays easy.
-  const armZoom = () => {
-    if (zoomMode) { setZoomMode(false); if (zoomTimer.current) window.clearTimeout(zoomTimer.current); return; }
-    setZoomMode(true);
-    if (zoomTimer.current) window.clearTimeout(zoomTimer.current);
-    zoomTimer.current = window.setTimeout(() => { setZoomMode(false); zoomTimer.current = null; }, 1200);
-  };
+  // Wheel/trackpad zoom toward the cursor — plain scroll now that the viewer is a
+  // standalone full-screen surface (no page scroll to preserve). ~20 m min, 200 km max.
   const onWheel = (e: WheelEvent | React.WheelEvent) => {
-    if (!zoomMode) return; // let the page scroll
     e.preventDefault();
-    if (zoomTimer.current) { window.clearTimeout(zoomTimer.current); zoomTimer.current = null; } // scrolling started → stay armed
     const f = fracFromEvent(e);
     if (!f) return;
     const cur = containerToLatLon(f.fx, f.fy);
     setView((v) => {
-      // min 0.02 km (20 m box → 10 m grid, 8-digit MGRS resolution); max 200 km
       const span = Math.min(200, Math.max(0.02, v.spanKm * (e.deltaY > 0 ? 1.15 : 1 / 1.15)));
       const ratio = span / v.spanKm;
       return { ...v, spanKm: span, lat: cur.lat + (v.lat - cur.lat) * ratio, lon: cur.lon + (v.lon - cur.lon) * ratio };
@@ -790,8 +832,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     }
     if (selectedAsset) place(selectedAsset, f.fx, f.fy);
     else if (selectedSupport) placeSupport(selectedSupport, f.fx, f.fy);
-    else if (selected) setSelected(null); // first empty click clears a selection
-    else armZoom();                        // else toggle click-armed zoom mode
+    else if (selected) setSelected(null); // empty click clears a selection
   };
 
   const place = (asset: AssetKind, fx: number, fy: number) => {
@@ -1016,7 +1057,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       {/* AO TACTICAL MAP — picture-in-picture inset, bottom-right ⅓ of screen (min/corner/max) */}
       <div className="flex flex-col rounded-lg border shadow-2xl"
         style={insetMode === "max"
-          ? { position: "fixed", inset: "0.75rem", zIndex: 50, background: C.panel, borderColor: C.cyan }
+          ? { position: "fixed", top: "5rem", left: "0.75rem", right: "0.75rem", bottom: "0.75rem", zIndex: 40, background: C.panel, borderColor: C.cyan }
           : insetMode === "min"
           ? { position: "fixed", right: "0.75rem", bottom: "0.75rem", zIndex: 45, background: C.panel, borderColor: C.border }
           : { position: "fixed", right: "0.75rem", bottom: "0.75rem", width: "34vw", height: "34vh", minWidth: 320, minHeight: 240, zIndex: 45, background: C.panel, borderColor: C.border }}>
@@ -1033,6 +1074,14 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             <Dots3 horizontal onClick={() => setInsetMode((m) => (m === "min" ? "corner" : "min"))} title={insetMode === "min" ? "Expand" : "Collapse"} />
           </div>
         </div>
+        {insetMode !== "min" && (
+          <div className="flex flex-wrap items-center gap-1 border-b px-2 py-0.5" style={{ borderColor: C.border }}>
+            <span className="text-[7px] font-bold tracking-wider" style={{ color: C.dim }}>R-CORE</span>
+            {RCORE_LANES.map((l) => (
+              <span key={l.key} title={l.def} className="rounded px-1 text-[7px] font-bold" style={{ color: l.color, background: `${l.color}18` }}>{l.label}</span>
+            ))}
+          </div>
+        )}
         {insetMode !== "min" && (
         <div className="grid min-h-0 flex-1 gap-3 overflow-auto p-2"
           style={{ gridTemplateColumns: insetMode === "max" ? `${leftOpen ? "260px" : "40px"} minmax(0,1fr)` : "minmax(0,1fr)" }}>
@@ -1328,8 +1377,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           </div>
           <div className="flex min-h-0 flex-1 gap-1">
           <div ref={mapRef}
-            className={insetMode === "max" ? "relative aspect-square w-full flex-1 overflow-hidden rounded-md touch-none" : "relative mx-auto aspect-square h-full max-w-full overflow-hidden rounded-md touch-none"}
-            style={{ background: "radial-gradient(ellipse at 50% 55%, #0f2033 0%, #070b12 75%)", border: `1px solid ${zoomMode ? C.cyan : C.border}`, boxShadow: zoomMode ? `inset 0 0 30px ${C.cyan}44, 0 0 12px ${C.cyan}55` : undefined, cursor: cursorMode === "target" ? "none" : armed ? "crosshair" : zoomMode ? "zoom-in" : dragRef.current ? "grabbing" : "grab" }}
+            className={insetMode === "max" ? "relative aspect-square w-full flex-1 overflow-hidden rounded-md touch-none" : "relative h-full w-full overflow-hidden rounded-md touch-none"}
+            style={{ background: "radial-gradient(ellipse at 50% 55%, #0f2033 0%, #070b12 75%)", border: `1px solid ${C.border}`, cursor: cursorMode === "target" ? "none" : armed ? "crosshair" : dragRef.current ? "grabbing" : "grab" }}
             onContextMenu={(e) => e.preventDefault()}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
@@ -1578,18 +1627,6 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 <line x1="2" y1="22" x2="9" y2="22" stroke={C.cyan} strokeWidth="1" />
                 <line x1="35" y1="22" x2="42" y2="22" stroke={C.cyan} strokeWidth="1" />
               </svg>
-            )}
-            {/* ZOOM MODE effect — tactical scan rings at cursor + hint */}
-            {zoomMode && cursorPx && (
-              <>
-                <span className="pointer-events-none absolute h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border animate-ping" style={{ left: cursorPx.x, top: cursorPx.y, borderColor: C.cyan }} />
-                <span className="pointer-events-none absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border" style={{ left: cursorPx.x, top: cursorPx.y, borderColor: C.cyan, opacity: 0.7 }} />
-              </>
-            )}
-            {zoomMode && (
-              <span className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded px-2 py-0.5 text-[9px] font-bold tracking-wider" style={{ background: "#0a0f16cc", color: C.cyan }}>
-                ⊙ ZOOM MODE — SCROLL TO ZOOM · CLICK TO EXIT
-              </span>
             )}
             {/* SCALE BAR (bottom-right) — one grid-step wide, map-proportional */}
             <div className="pointer-events-none absolute bottom-1.5 left-2 right-2 flex flex-col items-end gap-0.5">

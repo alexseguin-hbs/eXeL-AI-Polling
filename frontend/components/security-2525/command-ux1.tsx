@@ -212,7 +212,10 @@ export function SecurityCommandUX1() {
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
       {/* Top bar */}
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b px-4 py-2" style={{ background: C.bg, borderColor: C.border }}>
+      <div className="sticky top-0 z-10 relative flex items-center justify-between border-b px-4 py-2" style={{ background: C.bg, borderColor: C.border }}>
+        <span className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 text-[10px] font-semibold tracking-wide md:flex" style={{ color: CLEARANCE_COLORS[3] }}>
+          CLEARANCE: LEVEL 3 <ClearanceSeal level={3} />
+        </span>
         <div className="flex items-center gap-3 min-w-0">
           <button onClick={() => setVisionView("launcher")} className="p-1.5 rounded hover:bg-white/5" title="Back to Vision 2525">
             <ArrowLeft className="h-4 w-4" style={{ color: C.dim }} />
@@ -239,9 +242,6 @@ export function SecurityCommandUX1() {
               </button>
             ))}
           </div>
-          <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-wide" style={{ color: CLEARANCE_COLORS[3] }}>
-            <span className="hidden sm:inline">CLEARANCE: LEVEL 3</span><ClearanceSeal level={3} />
-          </span>
           <span className="hidden md:inline text-[10px]" style={{ color: C.dim }}>OPERATOR: ALPHA-1</span>
           <span className="text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
           <button onClick={exitSimulationMode} className="p-1.5 rounded hover:bg-white/5" title="Exit">
