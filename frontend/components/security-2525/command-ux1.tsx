@@ -79,9 +79,9 @@ function Panel({ title, children, accent }: { title: string; children: React.Rea
 }
 
 // 3-circle collapse toggle — hides the larger menus so the center goes full-screen.
-function Toggle3({ onClick, title }: { onClick: () => void; title: string }) {
+function Toggle3({ onClick, title, horizontal }: { onClick: () => void; title: string; horizontal?: boolean }) {
   return (
-    <button onClick={onClick} title={title} className="flex flex-col items-center gap-[3px] rounded p-1 hover:bg-white/5">
+    <button onClick={onClick} title={title} className={`flex ${horizontal ? "flex-row" : "flex-col"} items-center gap-[3px] rounded p-1 hover:bg-white/5`}>
       {[0, 1, 2].map((i) => (
         <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />
       ))}
@@ -116,6 +116,7 @@ export function SecurityCommandUX1() {
   const [iconStyle, setIconStyle] = useState<IconStyle>("mil");
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
+  const [bottomOpen, setBottomOpen] = useState(true);
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
@@ -294,8 +295,12 @@ export function SecurityCommandUX1() {
         )}
       </div>
 
-      {/* Bottom row */}
+      {/* Bottom row — collapses (3-circle toggle) to a critical-info strip */}
+      {bottomOpen ? (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 px-3 pb-3">
+        <div className="md:col-span-3 -mb-2 flex justify-center">
+          <Toggle3 horizontal onClick={() => setBottomOpen(false)} title="Collapse — show only critical info" />
+        </div>
         <Panel title="AI Recommendation" accent={C.cyan}>
           <div className="flex items-start gap-2">
             <Cpu className="h-5 w-5 mt-0.5" style={{ color: C.cyan }} />
@@ -339,6 +344,22 @@ export function SecurityCommandUX1() {
           ))}
         </Panel>
       </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 px-3 pb-3">
+          <Toggle3 horizontal onClick={() => setBottomOpen(true)} title="Expand bottom panels" />
+          <span className="flex items-center gap-1.5 text-[10px] font-bold" style={{ color: C.text }}>
+            <Cpu className="h-4 w-4" style={{ color: C.cyan }} /> NEUTRALIZE X-BAT SWARM
+          </span>
+          <span className="text-[10px] font-bold" style={{ color: C.green }}>86%</span>
+          <span className="flex items-center gap-1.5 text-[10px] font-bold" style={{ color: C.red }}>
+            <Target className="h-4 w-4" style={{ color: C.red }} /> P1 X-BAT SWARM GRP 1
+          </span>
+          <button className="rounded border px-2 py-0.5 text-[10px] font-semibold tracking-wide hover:bg-white/5"
+            style={{ borderColor: `${C.red}44`, color: C.red }}>
+            ABORT
+          </button>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
