@@ -19,6 +19,7 @@ import { CLEARANCE_COLORS } from "@/lib/atlantis-package";
 import {
   AssetIcon, ASSET_ORDER, ASSET_LABELS, type IconStyle,
 } from "@/components/security-2525/asset-icons";
+import { MissionPlanning } from "@/components/security-2525/mission-planning";
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -188,10 +189,25 @@ function Bar({ label, pct }: { label: string; pct: number }) {
 export function SecurityCommandUX1() {
   const { setVisionView, exitSimulationMode } = useEasterEgg();
   const [iconStyle, setIconStyle] = useState<IconStyle>("mil");
+  const [activeTab, setActiveTab] = useState("OVERVIEW");
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [bottomOpen, setBottomOpen] = useState(true);
   const [mapMax, setMapMax] = useState(false);
+  const [fsDetail, setFsDetail] = useState(false);
+
+  // Maximize = fill the ENTIRE physical screen (browser Fullscreen API — same
+  // as F11: Chrome's tabs/URL bar disappear). Falls back to in-page overlay
+  // where the API is unavailable (e.g. iframe without allowfullscreen).
+  const toggleMapMax = () => {
+    const next = !mapMax;
+    setMapMax(next);
+    setFsDetail(false);
+    try {
+      if (next) document.documentElement.requestFullscreen?.()?.catch(() => {});
+      else if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    } catch { /* in-page overlay still applies */ }
+  };
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
@@ -233,15 +249,25 @@ export function SecurityCommandUX1() {
 
       {/* Nav tabs */}
       <div className="flex gap-1 overflow-x-auto border-b px-4 py-1.5" style={{ borderColor: C.border }}>
-        {NAV.map(([tab, Icon], i) => (
-          <button key={tab} className="flex items-center gap-1.5 whitespace-nowrap rounded px-2.5 py-1 text-[10px] tracking-wide transition-colors"
-            style={{ background: i === 0 ? "#152238" : "transparent", color: i === 0 ? C.cyan : C.dim }}>
+        {NAV.map(([tab, Icon]) => (
+          <button key={tab} onClick={() => setActiveTab(tab)}
+            className="flex items-center gap-1.5 whitespace-nowrap rounded px-2.5 py-1 text-[10px] tracking-wide transition-colors"
+            style={{ background: tab === activeTab ? "#152238" : "transparent", color: tab === activeTab ? C.cyan : C.dim }}>
             <Icon className="h-3.5 w-3.5" />
             {tab}
           </button>
         ))}
       </div>
 
+      {/* PLANNING — mission planning: equipment inventory + MGRS drag-and-drop */}
+      {activeTab === "PLANNING" && <MissionPlanning iconStyle={iconStyle} />}
+      {activeTab !== "OVERVIEW" && activeTab !== "PLANNING" && (
+        <div className="p-6 text-center text-[11px]" style={{ color: C.dim }}>
+          {activeTab} — wiring pending
+        </div>
+      )}
+
+      {activeTab === "OVERVIEW" && (<>
       {/* Body grid — side rails collapse (3-circle toggle) so the center fills the screen */}
       <div className="grid gap-3 p-3" style={{ gridTemplateColumns: `${leftOpen ? "260px" : "56px"} minmax(0,1fr) ${rightOpen ? "260px" : "56px"}` }}>
         {/* LEFT */}
@@ -282,19 +308,16 @@ export function SecurityCommandUX1() {
               <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm" style={{ background: "#ef4444" }} /> ENEMY</span>
             </div>
             <div className="space-y-1.5">
+              {/* X-BAT is inherently a swarm — 3-ship echelon (MIL: quantity 3) */}
               {ASSET_ORDER.map((asset) => (
                 <div key={asset} className="flex items-center gap-2">
-                  <AssetIcon asset={asset} style={iconStyle} affiliation="friendly" size={26} />
-                  <AssetIcon asset={asset} style={iconStyle} affiliation="hostile" size={26} />
-                  <span className="text-[11px]" style={{ color: C.text }}>{ASSET_LABELS[asset]}</span>
+                  <AssetIcon asset={asset} style={iconStyle} affiliation="friendly" size={26} count={asset === "xbat" ? 3 : 1} />
+                  <AssetIcon asset={asset} style={iconStyle} affiliation="hostile" size={26} count={asset === "xbat" ? 3 : 1} />
+                  <span className="text-[11px]" style={{ color: C.text }}>
+                    {asset === "xbat" ? "X-BAT SWARM ×3" : ASSET_LABELS[asset]}
+                  </span>
                 </div>
               ))}
-              {/* group/swarm variant — count > 1 reads differently at a glance */}
-              <div className="flex items-center gap-2">
-                <AssetIcon asset="xbat" style={iconStyle} affiliation="friendly" size={26} count={3} />
-                <AssetIcon asset="xbat" style={iconStyle} affiliation="hostile" size={26} count={3} />
-                <span className="text-[11px]" style={{ color: C.text }}>X-BAT SWARM ×3</span>
-              </div>
             </div>
           </Panel>
         </div>
@@ -312,8 +335,8 @@ export function SecurityCommandUX1() {
             <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
               3D Situational Awareness — Real-Time Multi-Domain Fusion
             </span>
-            <button onClick={() => setMapMax(!mapMax)} className="rounded p-1 hover:bg-white/5"
-              title={mapMax ? "Minimize" : "Maximize — full screen"}>
+            <button onClick={toggleMapMax} className="rounded p-1 hover:bg-white/5"
+              title={mapMax ? "Minimize" : "Maximize — fills the entire screen (browser fullscreen)"}>
               {mapMax
                 ? <Minimize2 className="h-4 w-4" style={{ color: C.cyan }} />
                 : <Maximize2 className="h-4 w-4" style={{ color: C.dim }} />}
@@ -332,6 +355,44 @@ export function SecurityCommandUX1() {
             {/* full-screen keeps the critical-info messaging — rails + bottom strip overlay the map */}
             {mapMax && (
               <>
+                {/* 3-dot expandable detail — FULL SCREEN MODE only */}
+                <div className="absolute left-2 top-2 z-30 rounded-md px-1.5 py-1" style={{ background: "#0a0f16cc" }}>
+                  <Toggle3 horizontal onClick={() => setFsDetail(!fsDetail)} title={fsDetail ? "Hide detail" : "Expand detail"} />
+                  {fsDetail && (
+                    <div className="mt-2 w-60 space-y-2 pb-1">
+                      <div>
+                        <div className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Threat Summary</div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-bold" style={{ color: C.text }}>23</span>
+                          <span className="text-[10px]" style={{ color: C.red }}>14 HIGH</span>
+                          <span className="text-[10px]" style={{ color: C.amber }}>6 MED</span>
+                          <span className="text-[10px]" style={{ color: C.green }}>3 LOW</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Kill Chain</div>
+                        <div className="flex flex-wrap gap-1">
+                          {KILL_CHAIN.map(([stage, st]) => (
+                            <span key={stage} className="rounded px-1.5 py-0.5 text-[8px]"
+                              style={{
+                                background: st === "complete" ? "#0f2a1a" : st === "active" ? "#2a230f" : "#161d28",
+                                color: st === "complete" ? C.green : st === "active" ? C.amber : C.dim,
+                              }}>
+                              {stage}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>AI Recommendation · 86%</div>
+                        <div className="text-[10px] font-bold" style={{ color: C.text }}>NEUTRALIZE X-BAT SWARM</div>
+                        {WEAPONS.map((w, i) => (
+                          <div key={w} className="text-[9px] py-0.5" style={{ color: C.dim }}>{i + 1}. {w}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div className="absolute left-2 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-3 rounded-md px-1.5 py-2" style={{ background: "#0a0f16cc" }}>
                   <LeftRailChips />
                 </div>
@@ -452,6 +513,7 @@ export function SecurityCommandUX1() {
           <CriticalStrip />
         </div>
       )}
+      </>)}
 
       {/* Footer */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
