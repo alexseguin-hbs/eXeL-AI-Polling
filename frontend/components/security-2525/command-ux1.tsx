@@ -12,7 +12,7 @@ import { useState } from "react";
 import {
   ArrowLeft, X, Cpu, LayoutDashboard, Radar, Crosshair, Swords,
   Package, Activity, Gamepad2, ClipboardList, AlertTriangle, Gauge, Target,
-  Map, FlaskConical, Maximize2, Minimize2,
+  Map, Boxes, Maximize2, Minimize2,
 } from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { CLEARANCE_COLORS } from "@/lib/atlantis-package";
@@ -40,7 +40,7 @@ const NAV: [string, React.ComponentType<{ className?: string }>][] = [
   ["SENSORS", Radar],
   ["THREAT VIEW", Crosshair],
   ["PLANNING", Map],
-  ["SIMULATION", FlaskConical],
+  ["SIMULATION", Boxes],
   ["ENGAGEMENT", Swords],
   ["LOGISTICS", Package],
   ["MISSION HEALTH", Activity],
