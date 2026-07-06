@@ -178,79 +178,102 @@ export interface DecodeResult {
   verified: boolean;
 }
 
-function detectSingle(d: ImageData, bs: number): DecodeResult | null {
-  const gap = bs === 1 ? 0 : 1;
-  const y = d.height - bs;
-  const scan = Math.max(1, Math.min(16, d.width));
-  for (let sx = 0; sx < scan; sx++) {
-    const g = parseLine(d, sx, y, bs, gap);
-    if (startsWith(g, REV_FRAME_PREFIX) && endsWith(g, REV_FRAME_SUFFIX)) {
-      const reversed = groupsToText(g.slice(4, -4));
-      const forward = reverse(reversed);
-      return {
-        style: "Single Helix", blockSize: bs, lineHeight: bs,
-        bottomDecoded: groupsToText(g), messageForward: forward, messageReverseVerify: reversed, verified: true,
-      };
+// Match a frame sequence at position `at`.
+function matchAt(groups: string[], at: number, seq: string[]): boolean {
+  if (at + seq.length > groups.length) return false;
+  for (let j = 0; j < seq.length; j++) if (groups[at + j] !== seq[j]) return false;
+  return true;
+}
+// Extract the message groups sandwiched between a prefix and suffix frame,
+// tolerating background bleed on EITHER side (solid backgrounds decode to valid
+// color-groups, so the message is delimited by its green frames, not the line ends).
+function extractBetweenFrames(groups: string[], prefix: string[], suffix: string[]): string[] | null {
+  for (let p = 0; p + prefix.length <= groups.length; p++) {
+    if (!matchAt(groups, p, prefix)) continue;
+    for (let s = p + prefix.length; s + suffix.length <= groups.length; s++) {
+      if (matchAt(groups, s, suffix)) return groups.slice(p + prefix.length, s);
     }
   }
   return null;
 }
-function detectDouble(d: ImageData, bs: number): DecodeResult | null {
-  const gap = bs === 1 ? 0 : 1;
-  const bottomY = d.height - bs;
-  const top = parseLine(d, 0, 0, bs, gap);
-  if (!(startsWith(top, FWD_FRAME_PREFIX) && endsWith(top, FWD_FRAME_SUFFIX))) return null;
-  const forward = groupsToText(top.slice(4, -4));
-  const scan = Math.max(1, Math.min(16, d.width));
-  for (let sx = 0; sx < scan; sx++) {
-    const bottom = parseLine(d, sx, bottomY, bs, gap);
-    if (startsWith(bottom, REV_FRAME_PREFIX) && endsWith(bottom, REV_FRAME_SUFFIX)) {
-      const rev = groupsToText(bottom.slice(4, -4));
-      if (rev === reverse(forward)) {
-        return {
-          style: "Double Helix", blockSize: bs, lineHeight: bs,
-          topDecoded: groupsToText(top), bottomDecoded: groupsToText(bottom),
-          messageForward: forward, messageReverseVerify: rev, verified: true,
-        };
-      }
-    }
+// Read a RIGHT-aligned line: groups stepping leftward from the right edge,
+// returned left-to-right. The bottom (reversed) line and the Hidden top line are
+// right-aligned, so they must be read from the right, not scanned from x=0.
+function readRightAligned(d: ImageData, y: number, bs: number, gap: number): string[] {
+  const step = 4 * bs + gap;
+  const groups: string[] = [];
+  for (let x = d.width - 4 * bs; x >= 0; x -= step) {
+    const grp = sampleGroup(d, x, y, bs);
+    if (grp === null) break;
+    if (!(grp in GROUP_TO_CHAR) && !TRANSMISSION_GROUPS.has(grp)) break;
+    groups.push(grp);
   }
-  return null;
+  groups.reverse();
+  return groups;
 }
-function detectHiddenDouble(d: ImageData): DecodeResult | null {
-  const collect = (y: number) => {
-    const cands: { g: string[]; text: string }[] = [];
-    for (let sx = Math.max(0, d.width - 500); sx < d.width; sx++) {
-      const g = parseLine(d, sx, y, 1, 0);
-      if (g.length) { const text = groupsToText(g); if (!text.includes("?") && text.trim()) cands.push({ g, text }); }
-    }
-    return cands;
+
+// Framed styles: probe the corners at a given block size. Bottom-right reversed
+// line is present in BOTH Single and Double; the top-left forward line marks Double.
+function detectFramed(d: ImageData, bs: number): DecodeResult | null {
+  const gap = bs === 1 ? 0 : 1;
+  const revGroups = extractBetweenFrames(readRightAligned(d, d.height - bs, bs, gap), REV_FRAME_PREFIX, REV_FRAME_SUFFIX);
+  if (!revGroups) return null;
+  const rev = groupsToText(revGroups);
+  // Top-left forward line → Double Helix.
+  const fwdGroups = extractBetweenFrames(parseLine(d, 0, 0, bs, gap), FWD_FRAME_PREFIX, FWD_FRAME_SUFFIX);
+  if (fwdGroups) {
+    const fwd = groupsToText(fwdGroups);
+    return {
+      style: "Double Helix", blockSize: bs, lineHeight: bs,
+      topDecoded: fwd, bottomDecoded: rev,
+      messageForward: fwd, messageReverseVerify: rev, verified: rev === reverse(fwd),
+    };
+  }
+  // No forward line → Single Helix (bottom-right reversed only).
+  return {
+    style: "Single Helix", blockSize: bs, lineHeight: bs,
+    bottomDecoded: rev, messageForward: reverse(rev), messageReverseVerify: rev, verified: true,
   };
-  const top = collect(0), bottom = collect(d.height - 1);
-  if (!top.length || !bottom.length) return null;
-  const topBest = top.reduce((a, b) => (b.g.length > a.g.length ? b : a));
-  const sorted = bottom.slice().sort((a, b) => b.g.length - a.g.length);
-  for (const bt of sorted) {
-    if (bt.text === reverse(topBest.text)) {
-      return {
-        style: "Hidden Helix", blockSize: 1, lineHeight: 1,
-        topDecoded: topBest.text, bottomDecoded: bt.text,
-        messageForward: topBest.text, messageReverseVerify: bt.text, verified: true,
-      };
+}
+
+// Hidden Helix: 1px, no framing, both lines right-aligned (top = forward, bottom
+// = reversed). Read each row right-to-left and find the largest suffix length K
+// where bottom is the exact reverse of top — the two DNA strands verify each other.
+function detectHidden(d: ImageData): DecodeResult | null {
+  const readRTL = (y: number): string[] => {
+    const chars: string[] = [];
+    for (let x = d.width - 4; x >= 0; x -= 4) {
+      const grp = sampleGroup(d, x, y, 1);
+      if (grp === null || !(grp in GROUP_TO_CHAR)) break;
+      chars.push(GROUP_TO_CHAR[grp]);
     }
+    return chars;
+  };
+  const topR = readRTL(0), botR = readRTL(d.height - 1);
+  const maxK = Math.min(topR.length, botR.length);
+  for (let K = maxK; K >= 1; K--) {
+    let ok = true;
+    for (let i = 0; i < K; i++) if (botR[i] !== topR[K - 1 - i]) { ok = false; break; }
+    if (!ok) continue;
+    const fwd = topR.slice(0, K).reverse().join("");
+    const rev = botR.slice(0, K).reverse().join("");
+    if (!fwd.trim()) continue;
+    if (K > 3 && new Set(fwd.replace(/\s/g, "")).size < 2) continue; // long uniform run = background
+    return {
+      style: "Hidden Helix", blockSize: 1, lineHeight: 1,
+      topDecoded: fwd, bottomDecoded: rev, messageForward: fwd, messageReverseVerify: rev, verified: true,
+    };
   }
   return null;
 }
 
-/** Auto-detect block size (1/2/4) and style, then read the message(s). */
+/** Auto-detect block size (1/2/4) and style, then read the message(s). Framed
+ *  styles are unambiguous (green transmission markers) so they win first; the
+ *  markerless Hidden Helix runs last as a fallback. */
 export function decodeImage(d: ImageData): DecodeResult | null {
-  const hidden = detectHiddenDouble(d);
-  if (hidden) return hidden;
   for (const bs of [1, 2, 4]) {
-    const dbl = detectDouble(d, bs);
-    if (dbl) return dbl;
-    const sgl = detectSingle(d, bs);
-    if (sgl) return sgl;
+    const framed = detectFramed(d, bs);
+    if (framed) return framed;
   }
-  return null;
+  return detectHidden(d);
 }
