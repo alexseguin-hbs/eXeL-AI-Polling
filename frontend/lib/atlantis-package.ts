@@ -27,6 +27,7 @@
 
 import type { AccordSection } from "@/lib/atlantis-accord-data";
 import { getReaderUI, type ReaderUI } from "@/lib/atlantis-reader-ui";
+import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { supabase } from "@/lib/supabase";
 
 // PBKDF2-SHA256 work factor. Deliberately 100k (not the OWASP 600k) because the
@@ -35,8 +36,18 @@ import { supabase } from "@/lib/supabase";
 // for Level-1's threat model the CODE ENTROPY is the wall, not the KDF depth.
 const PBKDF2_ITERATIONS = 100_000;
 
+// The 7 clearance colors are 7 of the 13 SoI Trinity master colors (single source
+// of truth: lib/trinity-palette.ts) — change a master color and every 7-color use
+// across the platform follows. Level 3 = Sunset Yellow (temporal). Index 0 unused.
 export const CLEARANCE_COLORS = [
-  "", "#ef4444", "#f59e0b", "#eab308", "#22c55e", "#3b82f6", "#06b6d4", "#8b5cf6",
+  "",
+  TRINITY_COLORS.evolution,    // 1 RED
+  TRINITY_COLORS.intelligence, // 2 ORANGE
+  TRINITY_COLORS.temporal,     // 3 YELLOW (Sunset)
+  TRINITY_COLORS.ooda,         // 4 GREEN
+  TRINITY_COLORS.wholeness,    // 5 BLUE
+  TRINITY_COLORS.family,       // 6 INDIGO
+  TRINITY_COLORS.governance,   // 7 VIOLET
 ];
 export const CLEARANCE_NAMES = [
   "", "RED", "ORANGE", "YELLOW", "GREEN", "BLUE", "INDIGO", "VIOLET",
