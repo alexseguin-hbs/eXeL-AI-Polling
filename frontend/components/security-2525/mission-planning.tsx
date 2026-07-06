@@ -610,6 +610,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean; btn: number } | null>(null);
   const bottomDrag = useRef<number | null>(null);
+  const bearingMemo = useRef<number | null>(null); // compass toggle: remembers pre-north bearing
   const touchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ dist: number; cx: number; cy: number } | null>(null);
 
@@ -956,58 +957,80 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   return (
     <div className="space-y-2 p-3">
-      {/* Zoom ladder breadcrumb — NORTH AMERICA › TEXAS/WASHINGTON › AO */}
-      <div className="flex items-center gap-1 text-[10px] font-semibold tracking-wide" style={{ color: C.dim }}>
-        {["NORTH AMERICA", ao.key === "jblm" ? "WASHINGTON" : "TEXAS", ao.name.split(" · ")[0]].map((crumb, i, a) => (
-          <span key={crumb} className="flex items-center gap-1">
-            <span style={{ color: i === a.length - 1 ? C.cyan : C.dim }}>{crumb}</span>
-            {i < a.length - 1 && <ChevronRight className="h-3 w-3" style={{ color: C.border }} />}
-          </span>
-        ))}
-      </div>
-
-      {/* AO location toggle — scrolls left↔right */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        {AOS.map((a) => (
-          <button key={a.key} onClick={() => { setAoKey(a.key); clearAo(); }}
-            className="shrink-0 whitespace-nowrap rounded border px-2 py-1 text-[10px] font-semibold tracking-wide"
-            style={{ borderColor: a.key === aoKey ? C.cyan : C.border, color: a.key === aoKey ? C.cyan : C.dim, background: a.key === aoKey ? "#152238" : "transparent" }}>
-            {a.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Controls: grid · MGRS/LLV-DMS format · precision · live readout */}
-      <div className="flex flex-wrap items-center gap-2">
-        <button onClick={() => setGridOn(!gridOn)}
-          className="flex items-center gap-1.5 rounded border px-2 py-1 text-[10px] font-semibold"
-          style={{ borderColor: gridOn ? C.green : C.border, color: gridOn ? C.green : C.dim }}>
-          <Grid3x3 className="h-3 w-3" /> GRID {gridOn ? "ON" : "OFF"}
-        </button>
-        <div className="flex overflow-hidden rounded border text-[10px] font-semibold" style={{ borderColor: C.border }}>
-          {([["mgrs", "MGRS"], ["dms", "LLV-DMS"]] as const).map(([f, label]) => (
-            <button key={f} onClick={() => setCoordFmt(f)} className="px-2 py-1"
-              style={{ background: coordFmt === f ? "#152238" : "transparent", color: coordFmt === f ? C.cyan : C.dim }}>{label}</button>
+      {/* Minimal command bar — LEFT current location · MIDDLE selector · RIGHT readout + settings */}
+      <div className="relative flex items-center gap-2">
+        {/* LEFT — current location */}
+        <div className="flex shrink-0 items-center gap-1 text-[10px] font-semibold tracking-wide">
+          <span style={{ color: C.dim }}>{ao.key === "jblm" ? "WA" : "TX"}</span>
+          <ChevronRight className="h-3 w-3" style={{ color: C.border }} />
+          <span style={{ color: C.cyan }}>{ao.name.split(" · ")[0]}</span>
+        </div>
+        {/* MIDDLE — location selector */}
+        <div className="flex flex-1 items-center justify-center gap-1.5 overflow-x-auto">
+          {AOS.map((a) => (
+            <button key={a.key} onClick={() => { setAoKey(a.key); clearAo(); }}
+              className="shrink-0 whitespace-nowrap rounded border px-2 py-1 text-[10px] font-semibold tracking-wide"
+              style={{ borderColor: a.key === aoKey ? C.cyan : C.border, color: a.key === aoKey ? C.cyan : C.dim, background: a.key === aoKey ? "#152238" : "transparent" }}>
+              {a.name.split(" · ")[0]}
+            </button>
           ))}
         </div>
-        {PRECISIONS.map((p) => (
-          <button key={p.d} onClick={() => setDigits(p.d)} title={p.hint}
-            className="rounded border px-2 py-1 text-[10px] font-semibold"
-            style={{ borderColor: digits === p.d ? C.amber : C.border, color: digits === p.d ? C.amber : C.dim, background: digits === p.d ? "#2a230f" : "transparent" }}>
-            {p.label}
+        {/* RIGHT — live readout + settings + world-map collapse */}
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="hidden whitespace-nowrap font-mono text-[10px] md:inline" style={{ color: cursorLL ? C.gold : C.dim }}>
+            {cursorLL ? coordAt(cursorLL.lat, cursorLL.lon) : coordAt(ao.center[0], ao.center[1])}
+          </span>
+          <button onClick={() => setShowSettings((s) => !s)} title="Settings"
+            className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
+            style={{ borderColor: showSettings ? C.cyan : C.border, color: showSettings ? C.cyan : C.dim }}>
+            <Settings className="h-3.5 w-3.5" /> SETTINGS
           </button>
-        ))}
-        <span className="ml-auto whitespace-nowrap font-mono text-[11px]" style={{ color: cursorLL ? C.gold : C.dim }}>
-          {cursorLL ? coordAt(cursorLL.lat, cursorLL.lon) : `${coordAt(ao.center[0], ao.center[1])} · CENTER`}
-        </span>
-      </div>
-
-      {/* MAIN VIEWER — globe fills the screen; scroll drills into a full-screen map */}
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
-          {topOpen ? "World / Globe → Map · SCROLL=ZOOM · R-DRAG=ANGLE · L-DRAG=PAN" : "World map collapsed"}
-        </span>
-        <Dots3 horizontal onClick={() => setTopOpen((v) => !v)} title={topOpen ? "Collapse world map" : "Expand world map"} />
+          <Dots3 horizontal onClick={() => setTopOpen((v) => !v)} title={topOpen ? "Collapse world map" : "Expand world map"} />
+        </div>
+        {/* SETTINGS popover — grid · format · precision · units · elevation · pointer */}
+        {showSettings && (
+          <div className="absolute right-0 top-9 z-40 w-60 rounded-lg border p-3 shadow-xl" style={{ background: C.panel, borderColor: C.cyan }}>
+            <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Mission Planning Settings</div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[10px]" style={{ color: C.text }}>1 km UTM grid</span>
+              <button onClick={() => setGridOn(!gridOn)} className="flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                style={{ borderColor: gridOn ? C.green : C.border, color: gridOn ? C.green : C.dim }}><Grid3x3 className="h-3 w-3" />{gridOn ? "ON" : "OFF"}</button>
+            </div>
+            <div className="mb-1 text-[10px]" style={{ color: C.text }}>Coordinate format</div>
+            <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+              {([["mgrs", "MGRS"], ["dms", "LLV-DMS"]] as const).map(([f, label]) => (
+                <button key={f} onClick={() => setCoordFmt(f)} className="flex-1 px-2 py-1"
+                  style={{ background: coordFmt === f ? "#152238" : "transparent", color: coordFmt === f ? C.cyan : C.dim }}>{label}</button>
+              ))}
+            </div>
+            <div className="mb-1 text-[10px]" style={{ color: C.text }}>Precision</div>
+            <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+              {PRECISIONS.map((p) => (
+                <button key={p.d} onClick={() => setDigits(p.d)} title={p.hint} className="flex-1 px-1.5 py-1"
+                  style={{ background: digits === p.d ? "#2a230f" : "transparent", color: digits === p.d ? C.amber : C.dim }}>{p.label}</button>
+              ))}
+            </div>
+            <div className="mb-1 text-[10px]" style={{ color: C.text }}>Units</div>
+            <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+              {([["metric", "KM / M"], ["imperial", "MI / FT"]] as const).map(([u, label]) => (
+                <button key={u} onClick={() => setUnits(u)} className="flex-1 px-2 py-1"
+                  style={{ background: units === u ? "#152238" : "transparent", color: units === u ? C.cyan : C.dim }}>{label}</button>
+              ))}
+            </div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[10px]" style={{ color: C.text }}>Elevation profiles</span>
+              <button onClick={() => setElevOn(!elevOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                style={{ borderColor: elevOn ? C.gold : C.border, color: elevOn ? C.gold : C.dim }}>{elevOn ? "ON" : "OFF"}</button>
+            </div>
+            <div className="mb-1 text-[10px]" style={{ color: C.text }}>Pointer</div>
+            <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+              {([["pointer", "DEFAULT"], ["target", "MINI-TARGET"]] as const).map(([m, label]) => (
+                <button key={m} onClick={() => setCursor(m)} className="flex-1 px-2 py-1"
+                  style={{ background: cursorMode === m ? "#152238" : "transparent", color: cursorMode === m ? C.cyan : C.dim }}>{label}</button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       {topOpen && (
         <div className="relative w-full" style={{ height: "min(80vh, 960px)", minHeight: 400 }}>
@@ -1302,39 +1325,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 RESET VIEW
               </button>
               <span className="hidden lg:inline">WHEEL=ZOOM · DRAG=PAN · CLICK=SELECT/PLACE</span>
-              <button onClick={() => setShowSettings((s) => !s)} className="flex items-center gap-1 rounded border px-1.5 py-0.5 font-semibold"
-                style={{ borderColor: showSettings ? C.cyan : C.border, color: showSettings ? C.cyan : C.dim }}>
-                <Settings className="h-3 w-3" /> SETTINGS
-              </button>
             </div>
-            {showSettings && (
-              <div className="absolute right-0 top-6 z-30 w-56 rounded-lg border p-3 shadow-xl" style={{ background: C.panel, borderColor: C.cyan }}>
-                <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Mission Planning Settings</div>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-[10px]" style={{ color: C.text }}>Elevation profiles</span>
-                  <button onClick={() => setElevOn(!elevOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
-                    style={{ borderColor: elevOn ? C.gold : C.border, color: elevOn ? C.gold : C.dim }}>{elevOn ? "ON" : "OFF"}</button>
-                </div>
-                <div className="mb-1 text-[10px]" style={{ color: C.text }}>Units</div>
-                <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
-                  {([["metric", "KM / M"], ["imperial", "MI / FT"]] as const).map(([u, label]) => (
-                    <button key={u} onClick={() => setUnits(u)} className="flex-1 px-2 py-1"
-                      style={{ background: units === u ? "#152238" : "transparent", color: units === u ? C.cyan : C.dim }}>{label}</button>
-                  ))}
-                </div>
-                <div className="mb-1 text-[10px]" style={{ color: C.text }}>Pointer</div>
-                <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
-                  {([["pointer", "DEFAULT"], ["target", "MINI-TARGET"]] as const).map(([m, label]) => (
-                    <button key={m} onClick={() => setCursor(m)} className="flex-1 px-2 py-1"
-                      style={{ background: cursorMode === m ? "#152238" : "transparent", color: cursorMode === m ? C.cyan : C.dim }}>{label}</button>
-                  ))}
-                </div>
-                <p className="text-[8px] leading-snug" style={{ color: C.dim }}>
-                  Pointer choice is saved and <span style={{ color: C.text }}>carries across sections</span> (localStorage
-                  <span className="font-mono"> sec2525.cursorMode</span>). Grid &amp; MGRS precision live on the toolbar above the map.
-                </p>
-              </div>
-            )}
           </div>
           <div className="flex min-h-0 flex-1 gap-1">
           <div ref={mapRef}
@@ -1523,7 +1514,15 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             })}
             {/* Rotating COMPASS rose — right-drag rotates the map; click resets north.
                 N tracks true north; heading-up bearing shown below. */}
-            <button onClick={() => setView((v) => ({ ...v, bearing: 0 }))} title="Reset north"
+            <button
+              onClick={() => {
+                if (Math.abs(view.bearing) < 1e-4 && bearingMemo.current != null) {
+                  const b = bearingMemo.current; bearingMemo.current = null; setView((v) => ({ ...v, bearing: b })); // restore
+                } else {
+                  bearingMemo.current = view.bearing; setView((v) => ({ ...v, bearing: 0 })); // snap north-up
+                }
+              }}
+              title={Math.abs(view.bearing) < 1e-4 && bearingMemo.current != null ? "Restore previous heading" : "Snap north-up"}
               className="absolute left-2 top-2 z-20 rounded-full" style={{ background: "#0a0f16cc" }}>
               <svg width="46" height="46" viewBox="-23 -23 46 46" aria-label="Compass">
                 <circle r="21" fill="none" stroke={C.border} strokeWidth="1" />
