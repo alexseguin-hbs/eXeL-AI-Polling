@@ -21,15 +21,16 @@
  * Buildings: exterior corners + domes only for now (edge wireframe later).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Grid3x3, MapPin, Trash2, ChevronRight, Settings } from "lucide-react";
+import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw } from "lucide-react";
 import {
-  AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle,
+  AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
 import { latLonToMgrs, utmKmGrid, chooseGridStep } from "@/components/security-2525/mgrs";
 import {
   SUPPORT_CATALOG, GROUP_META, REALITY_MODES,
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
 } from "@/components/security-2525/mission-support";
+import { PfieldVenue } from "@/components/security-2525/pfield-venue";
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -118,11 +119,11 @@ const AOS: Ao[] = [
     // Real turf corners (operator-surveyed via Google Maps). Long-axis ≈ N-S.
     // Small AO for 12-digit precision + A→B→C object-movement testing.
     key: "pfield",
-    name: "THE PFIELD · PFLUGERVILLE TX",
+    name: "THE PfIELD · PFLUGERVILLE TX",
     center: [30.4485425, -97.6344145], // mean of the 4 corners
     halfKm: 0.09,
     precision: 6, // 12-digit (0.1 m)
-    landmarks: [{ name: "The Pfield", lat: 30.4485425, lon: -97.6344145 }],
+    landmarks: [{ name: "The PfIELD", lat: 30.4485425, lon: -97.6344145 }],
     buildings: [],
     field: {
       nw: [30.449105, -97.634743],
@@ -164,11 +165,26 @@ interface Placed {
   mgrs10: string; // stored at max precision; displayed per current setting
   lat: number;
   lon: number;
+  aff: Affiliation;
 }
 
 // ── World border context strip (Natural Earth 50m, self-hosted) ──────────────
 interface BorderData { countries: [number, number][][]; usStates: [number, number][][] }
 let borderCache: BorderData | null = null;
+
+/** Attach a NON-passive wheel listener so preventDefault() stops the page from
+ *  scrolling — zoom stays on the map/globe under the cursor. */
+function useWheel<T extends Element>(ref: React.RefObject<T | null>, handler: (e: WheelEvent) => void) {
+  const h = useRef(handler);
+  h.current = handler;
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fn = (e: Event) => h.current(e as WheelEvent);
+    el.addEventListener("wheel", fn, { passive: false });
+    return () => el.removeEventListener("wheel", fn);
+  }, [ref]);
+}
 
 function ringPath(ring: [number, number][], w: number, h: number): string {
   return ring
@@ -188,11 +204,17 @@ function GlobeView({ data, aoKey, onSelect }: { data: BorderData | null; aoKey: 
   // Drag-rotate (lat0/lon0) + wheel-zoom (R) — video-game orbit navigation.
   const [rot, setRot] = useState({ lat0: 38, lon0: -97, R: 128 });
   const dref = useRef<{ x: number; y: number } | null>(null);
+  const gsvg = useRef<SVGSVGElement>(null);
   // Recenter the globe on the selected AO when a tab is clicked.
   useEffect(() => {
     const sel = AOS.find((a) => a.key === aoKey);
     if (sel) setRot((r) => ({ ...r, lat0: sel.center[0], lon0: sel.center[1] }));
   }, [aoKey]);
+  // wheel-zoom (non-passive → no page scroll); deep zoom-in to region level
+  useWheel(gsvg, (e) => {
+    e.preventDefault();
+    setRot((r) => ({ ...r, R: Math.min(1600, Math.max(100, r.R * (e.deltaY > 0 ? 1 / 1.15 : 1.15))) }));
+  });
   const { lat0: LAT0, lon0: LON0, R } = rot;
   const proj = (lat: number, lon: number): [number, number, boolean] => {
     const p = lat * D, l = (lon - LON0) * D, p0 = LAT0 * D;
@@ -256,10 +278,9 @@ function GlobeView({ data, aoKey, onSelect }: { data: BorderData | null; aoKey: 
     return t;
   }, [D]);
   return (
-    <svg viewBox="0 0 340 340" className="mx-auto block h-[300px] w-[300px] touch-none select-none sm:h-[340px] sm:w-[340px]" role="img"
+    <svg ref={gsvg} viewBox="0 0 340 340" className="mx-auto block h-[300px] w-[300px] touch-none select-none sm:h-[340px] sm:w-[340px]" role="img"
       aria-label="Wireframe globe — North America centered, bearing ring, lat/lon graticule"
       style={{ cursor: dref.current ? "grabbing" : "grab" }}
-      onWheel={(e) => setRot((r) => ({ ...r, R: Math.min(320, Math.max(90, r.R * (e.deltaY > 0 ? 1 / 1.12 : 1.12))) }))}
       onPointerDown={(e) => { dref.current = { x: e.clientX, y: e.clientY }; }}
       onPointerMove={(e) => {
         const d = dref.current;
@@ -323,6 +344,16 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
     if (!r) return null;
     return { x: flat.x + ((clientX - r.left) / r.width) * flat.w, y: flat.y + ((clientY - r.top) / r.height) * flat.h };
   };
+  useWheel(flatSvg, (e) => {
+    e.preventDefault();
+    const p = vbAt(e.clientX, e.clientY);
+    if (!p) return;
+    const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
+    setFlat((f) => {
+      const w = Math.min(W, Math.max(20, f.w * k)), h = w * (f.h / f.w);
+      return { w, h, x: p.x - ((p.x - f.x) / f.w) * w, y: p.y - ((p.y - f.y) / f.h) * h };
+    });
+  });
   return (
     <div className="relative overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
@@ -331,16 +362,6 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
         <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} className="block w-full touch-none" role="img"
           style={{ cursor: flatDrag.current ? "grabbing" : "grab" }}
           aria-label="World context — country borders + US state borders (Natural Earth 50m)"
-          onWheel={(e) => {
-            e.preventDefault();
-            const p = vbAt(e.clientX, e.clientY);
-            if (!p) return;
-            const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
-            setFlat((f) => {
-              const w = Math.min(W, Math.max(20, f.w * k)), h = w * (f.h / f.w);
-              return { w, h, x: p.x - ((p.x - f.x) / f.w) * w, y: p.y - ((p.y - f.y) / f.h) * h };
-            });
-          }}
           onPointerDown={(e) => { flatDrag.current = { x: e.clientX, y: e.clientY }; }}
           onPointerMove={(e) => {
             const d = flatDrag.current; if (!d) return;
@@ -412,6 +433,11 @@ function SupportGlyph({ glyph, color, size = 20 }: { glyph: MarkerGlyph; color: 
       case "shore": return <><path d="M4 15h16" {...s} /><path d="M4 18q4-2 8 0t8 0" {...s} /></>;
       case "port": return <><path d="M12 5v11M8 9l4-4 4 4" {...s} /><path d="M6 13a6 6 0 0 0 12 0" {...s} /></>;
       case "terrain": return <path d="M3 18l5-8 4 5 3-4 6 7z" {...s} />;
+      case "guard": return <><circle cx="12" cy="7" r="2.5" {...s} /><path d="M7 19v-3a5 5 0 0 1 10 0v3" {...s} /></>;
+      case "squad": return <><circle cx="8" cy="8" r="2" {...s} /><circle cx="16" cy="8" r="2" {...s} /><path d="M4 18v-2a4 4 0 0 1 8 0M12 18v-2a4 4 0 0 1 8 0" {...s} /></>;
+      case "k9": return <><path d="M4 16v-4l3-2 2 2h5l3 3v3M4 16h13" {...s} /><path d="M4 12l-1-3 2 1" {...s} /></>;
+      case "sniper": return <><circle cx="12" cy="12" r="6" {...s} /><path d="M12 3v4M12 17v4M3 12h4M17 12h4M12 12v.5" {...s} /></>;
+      case "personnel": return <><circle cx="12" cy="7" r="2.5" {...s} /><path d="M6 19v-2a6 6 0 0 1 12 0v2" {...s} /></>;
       case "infra": default: return <><rect x="6" y="8" width="12" height="11" {...s} /><path d="M9 8V5h6v3M9 12h2M13 12h2M9 15h2M13 15h2" {...s} /></>;
     }
   })();
@@ -419,7 +445,18 @@ function SupportGlyph({ glyph, color, size = 20 }: { glyph: MarkerGlyph; color: 
 }
 
 interface PlacedSupport {
-  id: number; def: SupportObjectDef; fx: number; fy: number; lat: number; lon: number; reality: RealityMode;
+  id: number; def: SupportObjectDef; fx: number; fy: number; lat: number; lon: number; reality: RealityMode; aff: Affiliation;
+  /** multi-point route (line/corridor): right-click vertices, left-click finishes */
+  path?: { lat: number; lon: number }[];
+}
+
+// 3-dot expand/collapse toggle (matches the command-UX rail toggles).
+function Dots3({ onClick, title, horizontal }: { onClick: () => void; title: string; horizontal?: boolean }) {
+  return (
+    <button onClick={onClick} title={title} className={`flex ${horizontal ? "flex-row" : "flex-col"} items-center gap-[3px] rounded p-1 hover:bg-white/10`}>
+      {[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: "#19c8cf" }} />)}
+    </button>
+  );
 }
 
 /**
@@ -461,6 +498,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
   const [showSettings, setShowSettings] = useState(false);
   const [cursorPx, setCursorPx] = useState<{ x: number; y: number } | null>(null);
+  const [venue3d, setVenue3d] = useState(false); // PfIELD 2D ⇄ 3D oblique
+  const [routeDraft, setRouteDraft] = useState<{ lat: number; lon: number }[]>([]);
+  const [topOpen, setTopOpen] = useState(true);   // 3-dot collapse: top world map
+  const [leftOpen, setLeftOpen] = useState(true); // 3-dot collapse: left palette
+  const bottomRef = useRef<HTMLDivElement>(null);
+  useWheel(bottomRef, (e) => e.preventDefault()); // no page-scroll over the elevation panel
   useEffect(() => {
     try { const v = localStorage.getItem("sec2525.cursorMode"); if (v === "target" || v === "pointer") setCursorMode(v); } catch { /* no storage */ }
   }, []);
@@ -530,7 +573,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   // Wheel zoom toward the cursor (video-game / AMDWS style). spanKm clamps to a
   // ~300 m minimum (city-block detail) and 200 km maximum (regional).
-  const onWheel = (e: React.WheelEvent) => {
+  const onWheel = (e: WheelEvent | React.WheelEvent) => {
     e.preventDefault();
     const f = fracFromEvent(e);
     if (!f) return;
@@ -542,10 +585,15 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       return { spanKm: span, lat: cur.lat + (v.lat - cur.lat) * ratio, lon: cur.lon + (v.lon - cur.lon) * ratio };
     });
   };
+  useWheel(mapRef, onWheel); // non-passive: wheel over the map zooms, never scrolls the page
 
-  // Grab-drag pan (left OR right button — right also suppresses the context menu).
+  // Is a multi-point route tool armed? (line/corridor support object)
+  const routeMode = !!selectedSupport && (selectedSupport.geometry === "line" || selectedSupport.geometry === "corridor");
+
+  // Grab-drag pan. In route mode, right-button never pans (it drops a vertex).
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0 && e.button !== 2) return;
+    if (routeMode && e.button === 2) return; // reserve right-click for route vertices
     dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
@@ -571,6 +619,17 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (d?.moved) return; // a pan, not a click — don't place/deselect
     const f = fracFromEvent(e);
     if (!f) return;
+    const { lat, lon } = toLatLon(f.fx, f.fy);
+    if (routeMode && selectedSupport) {
+      if (e.button === 2) {
+        setRouteDraft((p) => [...p, { lat, lon }]); // right-click = add a via-point
+      } else {
+        const pts = [...routeDraft, { lat, lon }]; // left-click = final point → commit
+        if (pts.length >= 2) commitRoute(selectedSupport, pts);
+        setRouteDraft([]);
+      }
+      return;
+    }
     if (selectedAsset) place(selectedAsset, f.fx, f.fy);
     else if (selectedSupport) placeSupport(selectedSupport, f.fx, f.fy);
     else setSelected(null); // empty click clears selection
@@ -582,7 +641,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     const { lat, lon } = toLatLon(fx, fy);
     setInventory((inv) => inv.map((i) => (i.asset === asset ? { ...i, stock: i.stock - i.group } : i)));
     setPlaced((p) => [...p, {
-      id: idRef.current++, asset, count: item.group, fx, fy, lat, lon, mgrs10: latLonToMgrs(lat, lon, 5),
+      id: idRef.current++, asset, count: item.group, fx, fy, lat, lon, mgrs10: latLonToMgrs(lat, lon, 5), aff: "friendly",
     }]);
   };
 
@@ -593,8 +652,52 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   const placeSupport = (def: SupportObjectDef, fx: number, fy: number) => {
     const { lat, lon } = toLatLon(fx, fy);
-    setPlacedSupport((p) => [...p, { id: idRef.current++, def, fx, fy, lat, lon, reality }]);
+    setPlacedSupport((p) => [...p, { id: idRef.current++, def, fx, fy, lat, lon, reality, aff: "friendly" }]);
   };
+
+  const commitRoute = (def: SupportObjectDef, path: { lat: number; lon: number }[]) => {
+    const f = toFrac(path[0].lat, path[0].lon);
+    setPlacedSupport((p) => [...p, { id: idRef.current++, def, fx: f.fx, fy: f.fy, lat: path[0].lat, lon: path[0].lon, reality, aff: "friendly", path }]);
+  };
+
+  // Inspector edits — flip affiliation, retag reality, nudge coordinates, remove.
+  const setAff = (sel: { kind: "asset" | "support"; id: number }, aff: Affiliation) => {
+    if (sel.kind === "asset") setPlaced((p) => p.map((u) => (u.id === sel.id ? { ...u, aff } : u)));
+    else setPlacedSupport((p) => p.map((u) => (u.id === sel.id ? { ...u, aff } : u)));
+  };
+  const setPlacedReality = (id: number, r: RealityMode) =>
+    setPlacedSupport((p) => p.map((u) => (u.id === id ? { ...u, reality: r } : u)));
+  const nudge = (sel: { kind: "asset" | "support"; id: number }, dLat: number, dLon: number) => {
+    const upd = <T extends { id: number; lat: number; lon: number }>(u: T): T =>
+      u.id === sel.id ? { ...u, lat: u.lat + dLat, lon: u.lon + dLon } : u;
+    if (sel.kind === "asset") setPlaced((p) => p.map(upd));
+    else setPlacedSupport((p) => p.map(upd));
+  };
+  const removeSelected = () => {
+    if (!selected) return;
+    if (selected.kind === "asset") { const u = placed.find((x) => x.id === selected.id); if (u) remove(u); }
+    else setPlacedSupport((p) => p.filter((x) => x.id !== selected.id));
+    setSelected(null);
+  };
+  const selectedObj = selected
+    ? (selected.kind === "asset" ? placed.find((u) => u.id === selected.id) : placedSupport.find((u) => u.id === selected.id))
+    : undefined;
+
+  // Undo — remove last route vertex if drawing, else the most recent placement.
+  const undo = () => {
+    if (routeDraft.length) { setRouteDraft((d) => d.slice(0, -1)); return; }
+    const la = placed[placed.length - 1], ls = placedSupport[placedSupport.length - 1];
+    if (ls && (!la || ls.id > la.id)) setPlacedSupport((p) => p.slice(0, -1));
+    else if (la) remove(la);
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); }
+      if (e.key === "Escape") setRouteDraft([]);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }); // no deps → always sees latest state
 
   const clearAo = () => {
     setPlaced([]);
@@ -652,7 +755,13 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   return (
     <div className="space-y-3 p-3">
-      <WorldStrip aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }} />
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
+          {topOpen ? "World / Globe" : "World map collapsed"}
+        </span>
+        <Dots3 horizontal onClick={() => setTopOpen((v) => !v)} title={topOpen ? "Collapse world map" : "Expand world map"} />
+      </div>
+      {topOpen && <WorldStrip aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }} />}
 
       {/* Zoom ladder breadcrumb — NORTH AMERICA › TEXAS/WASHINGTON › AO */}
       <div className="flex items-center gap-1 text-[10px] font-semibold tracking-wide" style={{ color: C.dim }}>
@@ -700,16 +809,25 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
         </span>
       </div>
 
-      <div className="grid gap-3" style={{ gridTemplateColumns: "260px minmax(0,1fr)" }}>
-        {/* LEFT PALETTE — ASSETS (equipment) · SUPPORT (GROK mission-support ontology) */}
+      <div className="grid gap-3" style={{ gridTemplateColumns: `${leftOpen ? "260px" : "40px"} minmax(0,1fr)` }}>
+        {!leftOpen ? (
+          <div className="flex flex-col items-center gap-2 rounded-lg border p-2" style={{ background: C.panel, borderColor: C.border }}>
+            <Dots3 onClick={() => setLeftOpen(true)} title="Expand palette" />
+            <span className="text-[8px] font-semibold" style={{ color: C.dim, writingMode: "vertical-rl" }}>PALETTE</span>
+          </div>
+        ) : (
+        /* LEFT PALETTE — ASSETS (equipment) · SUPPORT (GROK mission-support ontology) */
         <div className="rounded-lg border p-3" style={{ background: C.panel, borderColor: C.border }}>
-          <div className="mb-2 flex overflow-hidden rounded border text-[10px] font-semibold" style={{ borderColor: C.border }}>
-            {([["assets", "ASSETS"], ["support", "SUPPORT"]] as const).map(([t, label]) => (
-              <button key={t} onClick={() => setTab(t)} className="flex-1 px-2 py-1"
-                style={{ background: tab === t ? "#152238" : "transparent", color: tab === t ? C.cyan : C.dim }}>
-                {label}
-              </button>
-            ))}
+          <div className="mb-2 flex items-center gap-2">
+            <div className="flex flex-1 overflow-hidden rounded border text-[10px] font-semibold" style={{ borderColor: C.border }}>
+              {([["assets", "ASSETS"], ["support", "SUPPORT"]] as const).map(([t, label]) => (
+                <button key={t} onClick={() => setTab(t)} className="flex-1 px-2 py-1"
+                  style={{ background: tab === t ? "#152238" : "transparent", color: tab === t ? C.cyan : C.dim }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <Dots3 onClick={() => setLeftOpen(false)} title="Collapse palette" />
           </div>
           <div className="mb-2 text-[9px]" style={{ color: C.dim }}>DRAG ONTO MAP · OR TAP THEN TAP MAP</div>
 
@@ -782,27 +900,83 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             </select>
           </div>
 
-          <button onClick={clearAo}
-            className="mt-2 flex w-full items-center justify-center gap-1.5 rounded border px-2 py-1.5 text-[10px] font-semibold hover:bg-white/5"
-            style={{ borderColor: `${C.red}44`, color: C.red }}>
-            <Trash2 className="h-3 w-3" /> CLEAR PLACEMENTS
-          </button>
+          {routeMode && (
+            <div className="mt-2 rounded border px-2 py-1 text-[9px]" style={{ borderColor: `${C.cyan}55`, color: C.cyan }}>
+              ROUTE: right-click each via-point · left-click to finish{routeDraft.length ? ` · ${routeDraft.length} pt` : ""}
+            </div>
+          )}
+          <div className="mt-2 flex gap-2">
+            <button onClick={undo} title="Undo (Ctrl+Z)"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded border px-2 py-1.5 text-[10px] font-semibold hover:bg-white/5"
+              style={{ borderColor: C.border, color: C.text }}>
+              <RotateCcw className="h-3 w-3" /> UNDO
+            </button>
+            <button onClick={clearAo}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded border px-2 py-1.5 text-[10px] font-semibold hover:bg-white/5"
+              style={{ borderColor: `${C.red}44`, color: C.red }}>
+              <Trash2 className="h-3 w-3" /> CLEAR
+            </button>
+          </div>
 
-          {/* Placed manifest with live-precision MGRS */}
+          {/* INSPECTOR — click a placed object (map or list) to edit it */}
+          {selectedObj && selected && (
+            <div className="mt-3 rounded border p-2" style={{ borderColor: C.cyan, background: "#0d1826" }}>
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-[10px] font-semibold" style={{ color: C.cyan }}>
+                  {selected.kind === "asset" ? ASSET_LABELS[(selectedObj as Placed).asset] : (selectedObj as PlacedSupport).def.term}
+                </span>
+                <button onClick={removeSelected} className="text-[9px] font-semibold" style={{ color: C.red }}>REMOVE</button>
+              </div>
+              <div className="mb-1 font-mono text-[9px]" style={{ color: C.gold }}>{coordAt(selectedObj.lat, selectedObj.lon)}</div>
+              <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Affiliation</div>
+              <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+                {(["friendly", "hostile"] as Affiliation[]).map((a) => (
+                  <button key={a} onClick={() => setAff(selected, a)} className="flex-1 px-2 py-1"
+                    style={{ background: selectedObj.aff === a ? "#152238" : "transparent", color: selectedObj.aff === a ? (a === "hostile" ? C.red : C.cyan) : C.dim }}>
+                    {a.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+              {selected.kind === "support" && (
+                <>
+                  <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Reality mode</div>
+                  <select value={(selectedObj as PlacedSupport).reality} onChange={(e) => setPlacedReality(selected.id, e.target.value as RealityMode)}
+                    className="mb-2 w-full rounded border bg-transparent px-2 py-1 text-[9px]" style={{ borderColor: C.border, color: C.text }}>
+                    {REALITY_MODES.map((m) => <option key={m} value={m} style={{ background: C.panel }}>{m}</option>)}
+                  </select>
+                </>
+              )}
+              <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Nudge position (1 m)</div>
+              <div className="grid grid-cols-3 gap-1">
+                <span />
+                <button onClick={() => nudge(selected, 1 / 111320, 0)} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
+                <span />
+                <button onClick={() => nudge(selected, 0, -1 / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>◀ W</button>
+                <button onClick={() => nudge(selected, -1 / 111320, 0)} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
+                <button onClick={() => nudge(selected, 0, 1 / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
+              </div>
+            </div>
+          )}
+
+          {/* Placed manifest — click a row to inspect/edit */}
           {(placed.length > 0 || placedSupport.length > 0) && (
-            <div className="mt-3 space-y-1">
+            <div className="mt-3 space-y-0.5">
               <div className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Placed — {placed.length + placedSupport.length}</div>
               {placed.map((u) => (
-                <div key={`a${u.id}`} className="flex items-center justify-between gap-1 text-[9px]">
-                  <span style={{ color: C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
+                <button key={`a${u.id}`} onClick={() => setSelected({ kind: "asset", id: u.id })}
+                  className="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-left text-[9px] hover:bg-white/5"
+                  style={{ background: selected?.kind === "asset" && selected.id === u.id ? "#152238" : "transparent" }}>
+                  <span style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
                   <span className="font-mono" style={{ color: C.gold }}>{coordAt(u.lat, u.lon)}</span>
-                </div>
+                </button>
               ))}
               {placedSupport.map((u) => (
-                <div key={`s${u.id}`} className="flex items-center justify-between gap-1 text-[9px]">
-                  <span className="truncate" style={{ color: u.def.color }}>{u.def.term}</span>
+                <button key={`s${u.id}`} onClick={() => setSelected({ kind: "support", id: u.id })}
+                  className="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-left text-[9px] hover:bg-white/5"
+                  style={{ background: selected?.kind === "support" && selected.id === u.id ? "#152238" : "transparent" }}>
+                  <span className="truncate" style={{ color: u.aff === "hostile" ? C.red : u.def.color }}>{u.def.term}{u.path ? ` (${u.path.length}pt)` : ""}</span>
                   <span className="font-mono" style={{ color: C.gold }}>{coordAt(u.lat, u.lon)}</span>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -820,6 +994,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             </p>
           </div>
         </div>
+        )}
 
         {/* AO MAP — adaptive MGRS grid · wheel-zoom · drag-pan · elevation profiles */}
         <div className="rounded-lg border p-3" style={{ background: C.panel, borderColor: C.border }}>
@@ -829,6 +1004,14 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <span style={{ color: C.dim }}> · GRID {gridLabel}</span>
             </span>
             <div className="flex items-center gap-2 text-[9px]" style={{ color: C.dim }}>
+              {ao.field && (
+                <div className="flex overflow-hidden rounded border font-semibold" style={{ borderColor: C.border }}>
+                  {([[false, "2D"], [true, "3D"]] as const).map(([v, label]) => (
+                    <button key={label} onClick={() => setVenue3d(v)} className="px-1.5 py-0.5"
+                      style={{ background: venue3d === v ? "#152238" : "transparent", color: venue3d === v ? C.cyan : C.dim }}>{label}</button>
+                  ))}
+                </div>
+              )}
               <button onClick={() => setView({ lat: ao.center[0], lon: ao.center[1], spanKm: ao.halfKm * 2 })}
                 className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.border }}>
                 RESET VIEW
@@ -865,7 +1048,6 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           <div ref={mapRef}
             className="relative aspect-square w-full flex-1 overflow-hidden rounded-md touch-none"
             style={{ background: "radial-gradient(ellipse at 50% 55%, #0f2033 0%, #070b12 75%)", border: `1px solid ${C.border}`, cursor: cursorMode === "target" ? "none" : armed ? "crosshair" : dragRef.current ? "grabbing" : "grab" }}
-            onWheel={onWheel}
             onContextMenu={(e) => e.preventDefault()}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
@@ -914,38 +1096,32 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   </g>
                 );
               })}
-              {/* Football field wireframe — overlaid on the REAL turf via 4 corners.
-                  Bilinear: u=0→N end line, u=1→S; v=0→W sideline, v=1→E. */}
-              {ao.field && (() => {
-                const { nw, ne, sw, se } = ao.field;
-                const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-                // point at (u along N→S, v along W→E) → screen fraction
-                const pt = (u: number, v: number) => {
-                  const lat = lerp(lerp(nw[0], ne[0], v), lerp(sw[0], se[0], v), u);
-                  const lon = lerp(lerp(nw[1], ne[1], v), lerp(sw[1], se[1], v), u);
-                  return toFrac(lat, lon);
-                };
-                const XY = (u: number, v: number) => { const f = pt(u, v); return `${(f.fx * 100).toFixed(2)},${(f.fy * 100).toFixed(2)}`; };
-                const line = (u: number, color: string, w: number, op: number) => {
-                  const a = pt(u, 0), b = pt(u, 1);
-                  return <line key={`u${u.toFixed(3)}`} x1={a.fx * 100} y1={a.fy * 100} x2={b.fx * 100} y2={b.fy * 100} stroke={color} strokeWidth={w} opacity={op} />;
-                };
-                // 120 yd end-to-end; yard lines every 5 yd (24 intervals); goals at 10/110 yd.
-                const yardUs = Array.from({ length: 23 }, (_, i) => (i + 1) / 24);
-                const goalN = 10 / 120, goalS = 110 / 120;
+              {/* THE PfIELD — detailed stadium wireframe (field markings, numbers,
+                  field goals, seats, concourse) overlaid on the real turf. */}
+              {ao.field && <PfieldVenue corners={ao.field} toFrac={toFrac} mode={venue3d ? "3d" : "2d"} />}
+
+              {/* committed routes (line/corridor) — polylines through their vertices */}
+              {placedSupport.filter((u) => u.path).map((u) => {
+                const pts = u.path!.map((p) => toFrac(p.lat, p.lon));
+                const d = pts.map((f, i) => `${i ? "L" : "M"}${(f.fx * 100).toFixed(2)} ${(f.fy * 100).toFixed(2)}`).join(" ");
+                const dash = u.def.key === "restricted_route" || u.def.color === "#ef4444";
+                return (
+                  <g key={`rt${u.id}`}>
+                    <path d={d} fill="none" stroke={u.def.color} strokeWidth="0.45" strokeDasharray={dash ? "1.5 1" : undefined} strokeLinejoin="round" strokeLinecap="round" opacity="0.9" />
+                    {pts.map((f, i) => <circle key={i} cx={f.fx * 100} cy={f.fy * 100} r="0.55" fill={u.def.color} />)}
+                  </g>
+                );
+              })}
+              {/* in-progress route draft (right-click vertices, left-click to finish) */}
+              {routeMode && routeDraft.length > 0 && (() => {
+                const pts = routeDraft.map((p) => toFrac(p.lat, p.lon));
+                const cur = cursorLL ? toFrac(cursorLL.lat, cursorLL.lon) : null;
+                const chain = cur ? [...pts, cur] : pts;
+                const d = chain.map((f, i) => `${i ? "L" : "M"}${(f.fx * 100).toFixed(2)} ${(f.fy * 100).toFixed(2)}`).join(" ");
                 return (
                   <g>
-                    {/* outer turf boundary */}
-                    <polygon points={[XY(0, 0), XY(0, 1), XY(1, 1), XY(1, 0)].join(" ")} fill={`${C.land}12`} stroke={C.land} strokeWidth="0.4" strokeLinejoin="round" />
-                    {/* end zones (N + S) */}
-                    <polygon points={[XY(0, 0), XY(0, 1), XY(goalN, 1), XY(goalN, 0)].join(" ")} fill={`${C.cyan}16`} stroke={C.cyan} strokeWidth="0.3" />
-                    <polygon points={[XY(goalS, 0), XY(goalS, 1), XY(1, 1), XY(1, 0)].join(" ")} fill={`${C.cyan}16`} stroke={C.cyan} strokeWidth="0.3" />
-                    {/* yard lines */}
-                    {yardUs.map((u) => line(u, C.land, 0.22, 0.65))}
-                    {/* goal lines + 50 */}
-                    {line(goalN, C.cyan, 0.35, 0.9)}
-                    {line(goalS, C.cyan, 0.35, 0.9)}
-                    {line(0.5, C.gold, 0.4, 0.9)}
+                    <path d={d} fill="none" stroke={selectedSupport!.color} strokeWidth="0.4" strokeDasharray="1 1" opacity="0.8" />
+                    {pts.map((f, i) => <circle key={i} cx={f.fx * 100} cy={f.fy * 100} r="0.6" fill={selectedSupport!.color} />)}
                   </g>
                 );
               })()}
@@ -987,7 +1163,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
                   style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%` }}>
                   {sel && <span className="absolute h-8 w-8 rounded-full" style={{ boxShadow: `0 0 0 2px ${C.gold}`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
-                  <AssetIcon asset={u.asset} style={iconStyle} affiliation="friendly" size={28} count={u.count} />
+                  <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28} count={u.count} />
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>
                     {mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}
                   </span>
@@ -1006,13 +1182,31 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
                   style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%` }}>
                   {sel && <span className="absolute h-7 w-7 rounded-full" style={{ boxShadow: `0 0 0 2px ${C.gold}`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
-                  <SupportGlyph glyph={u.def.glyph} color={u.def.color} size={22} />
+                  <SupportGlyph glyph={u.def.glyph} color={u.aff === "hostile" ? "#ef4444" : u.def.color} size={22} />
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>
                     {mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}
                   </span>
                 </button>
               );
             })}
+            {/* NSEW cardinal reference (LLV-DMS orientation) — north up */}
+            {[["N", "left-1/2 top-0.5 -translate-x-1/2"], ["S", "left-1/2 bottom-0.5 -translate-x-1/2"],
+              ["E", "right-1 top-1/2 -translate-y-1/2"], ["W", "left-1 top-1/2 -translate-y-1/2"]].map(([d, cls]) => (
+              <span key={d} className={`pointer-events-none absolute font-mono text-[9px] font-bold ${cls}`} style={{ color: C.cyan, opacity: 0.7 }}>{d}</span>
+            ))}
+            {/* faint center cross axes */}
+            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2" style={{ background: C.border, opacity: 0.4 }} />
+            <div className="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2" style={{ background: C.border, opacity: 0.4 }} />
+            {/* armed tool ghost — the icon rides the CENTER of the cursor for
+                precise placement (click drops it exactly there) */}
+            {armed && cursorPx && !routeMode && (
+              <div className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 opacity-75"
+                style={{ left: cursorPx.x, top: cursorPx.y }}>
+                {selectedAsset
+                  ? <AssetIcon asset={selectedAsset} style={iconStyle} affiliation="friendly" size={30} count={inventory.find((i) => i.asset === selectedAsset)?.group ?? 1} />
+                  : selectedSupport ? <SupportGlyph glyph={selectedSupport.glyph} color={selectedSupport.color} size={26} /> : null}
+              </div>
+            )}
             {/* 3-layer mini-target cursor (center dot + circle 1 + circle 2) */}
             {cursorMode === "target" && cursorPx && (
               <svg className="pointer-events-none absolute" width="44" height="44"
@@ -1050,14 +1244,15 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   if (bottomDrag.current == null) return;
                   const dy = e.clientY - bottomDrag.current;
                   bottomDrag.current = e.clientY;
-                  setBottomH((h) => Math.max(40, Math.min(430, h - dy)));
+                  const max = typeof window !== "undefined" ? Math.round(window.innerHeight * 0.55) : 500;
+                  setBottomH((h) => Math.max(36, Math.min(max, h - dy)));
                 }}
                 onPointerUp={() => { bottomDrag.current = null; }}
                 className="mt-1 flex h-3 cursor-row-resize items-center justify-center rounded"
                 style={{ background: "transparent" }} title="Drag to resize the elevation panel">
                 <span className="h-0.5 w-10 rounded-full" style={{ background: C.border }} />
               </div>
-              <div className="relative overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12", height: bottomH }}>
+              <div ref={bottomRef} className="relative overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12", height: bottomH }}>
                 <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="h-full w-full">
                   {/* contour reference lines (nice elevation step) */}
                   {elevProfile.contours.map((lv) => {

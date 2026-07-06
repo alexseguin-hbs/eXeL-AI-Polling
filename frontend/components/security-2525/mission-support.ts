@@ -21,7 +21,7 @@
 
 export type Geometry = "point" | "line" | "area" | "corridor";
 export type LegendGroup =
-  | "sustainment" | "medical" | "aviation" | "route" | "entity"
+  | "personnel" | "sustainment" | "medical" | "aviation" | "route" | "entity"
   | "risk" | "littoral" | "terrain" | "infra" | "sensor";
 
 export interface SupportObjectDef {
@@ -42,10 +42,12 @@ export type MarkerGlyph =
   | "supply" | "fuel" | "ammo" | "water" | "medical" | "medevac"
   | "aviation" | "lz" | "drop" | "route" | "waypoint" | "checkpoint"
   | "enemy" | "neutral" | "unknown" | "sof" | "sensor" | "observation"
-  | "restricted" | "caution" | "shore" | "port" | "terrain" | "infra";
+  | "restricted" | "caution" | "shore" | "port" | "terrain" | "infra"
+  | "personnel" | "guard" | "squad" | "k9" | "sniper";
 
 // Legend-group palette (per visual law). Entities/risk override per-item.
 export const GROUP_META: Record<LegendGroup, { label: string; color: string }> = {
+  personnel: { label: "Personnel / Forces", color: "#38bdf8" },
   sustainment: { label: "Sustainment / Supply", color: "#9fb0c0" },
   medical: { label: "Medical / Casualty", color: "#34d399" },
   aviation: { label: "Aviation Support", color: "#19c8cf" },
@@ -68,6 +70,18 @@ const BLUE = "#38bdf8", LAND = "#00ff9f", SUP = "#9fb0c0";
  * areas place as anchor points for now (full geometry drawing is a later CRS).
  */
 export const SUPPORT_CATALOG: SupportObjectDef[] = [
+  // ── Personnel / Forces (friendly by default; flip in the inspector) ────
+  { key: "security_guard", term: "Security Guard", aliases: ["static guard"], group: "personnel", geometry: "point", color: BLUE, glyph: "guard" },
+  { key: "sentry_post", term: "Sentry Post / OP", group: "personnel", geometry: "point", color: BLUE, glyph: "guard" },
+  { key: "infantry_squad", term: "Infantry Squad", group: "personnel", geometry: "point", color: BLUE, glyph: "squad" },
+  { key: "fire_team", term: "Fire Team", group: "personnel", geometry: "point", color: BLUE, glyph: "squad" },
+  { key: "qrf", term: "Quick Reaction Force", aliases: ["QRF"], group: "personnel", geometry: "point", color: BLUE, glyph: "squad" },
+  { key: "sniper", term: "Sniper / Overwatch", group: "personnel", geometry: "point", color: BLUE, glyph: "sniper" },
+  { key: "k9", term: "K9 Unit", group: "personnel", geometry: "point", color: BLUE, glyph: "k9" },
+  { key: "eod", term: "EOD Team", group: "personnel", geometry: "point", color: BLUE, glyph: "personnel", sensitive: true },
+  { key: "le_police", term: "Police / Law Enforcement", group: "personnel", geometry: "point", color: BLUE, glyph: "personnel" },
+  { key: "medic_person", term: "Medic (dismounted)", group: "personnel", geometry: "point", color: GREEN, glyph: "medical" },
+
   // ── Sustainment / Supply ──────────────────────────────────────────────
   { key: "supply_point", term: "Supply Point", aliases: ["supply support activity"], group: "sustainment", geometry: "point", color: SUP, glyph: "supply" },
   { key: "supply_depot", term: "Supply Depot", aliases: ["depot"], group: "sustainment", geometry: "area", color: SUP, glyph: "supply", sensitive: true },
