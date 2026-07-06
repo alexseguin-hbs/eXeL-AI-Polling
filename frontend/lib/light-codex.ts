@@ -18,7 +18,10 @@ export const ALPHA: Record<string, string> = {
   G: "YCYC", H: "WWRR", I: "YBBY", J: "CWWC", K: "YYCC", L: "YBYB",
   M: "WCWC", N: "CWCW", O: "RRYY", P: "CCCW", Q: "YYYY", R: "RWWR",
   S: "WWWC", T: "RWCC", U: "RWRW", V: "WRWR", W: "CCRW", X: "WCCW",
-  Y: "YRYR", Z: "YCRB", " ": "BBBB", ".": "BBBW",
+  // Space gets its OWN group (was "BBBB", which collides with the digit 0 →
+  // spaces decoded as "0"). "WBWB" is unused by any letter/number/frame and
+  // has no green (G), so it never trips frame detection.
+  Y: "YRYR", Z: "YCRB", " ": "WBWB", ".": "BBBW",
 };
 export const NUMBERS: Record<string, string> = {
   "0": "BBBB", "1": "WBBB", "2": "WWBB", "3": "WWWB", "4": "WWWW",
