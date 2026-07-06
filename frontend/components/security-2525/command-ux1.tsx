@@ -11,7 +11,8 @@
 import { useState } from "react";
 import {
   ArrowLeft, X, Cpu, LayoutDashboard, Radar, Crosshair, Swords,
-  Package, Activity, Gamepad2, ClipboardList,
+  Package, Activity, Gamepad2, ClipboardList, AlertTriangle, Gauge, Target,
+  Map, FlaskConical,
 } from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import {
@@ -28,6 +29,8 @@ const NAV: [string, React.ComponentType<{ className?: string }>][] = [
   ["OVERVIEW", LayoutDashboard],
   ["SENSORS", Radar],
   ["THREAT VIEW", Crosshair],
+  ["PLANNING", Map],
+  ["SIMULATION", FlaskConical],
   ["ENGAGEMENT", Swords],
   ["LOGISTICS", Package],
   ["MISSION HEALTH", Activity],
@@ -71,6 +74,27 @@ function Panel({ title, children, accent }: { title: string; children: React.Rea
   );
 }
 
+// 3-circle collapse toggle — hides the larger menus so the center goes full-screen.
+function Toggle3({ onClick, title }: { onClick: () => void; title: string }) {
+  return (
+    <button onClick={onClick} title={title} className="flex flex-col items-center gap-[3px] rounded p-1 hover:bg-white/5">
+      {[0, 1, 2].map((i) => (
+        <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />
+      ))}
+    </button>
+  );
+}
+
+// Collapsed-rail chip: high-priority icon + number only (no full text).
+function RailChip({ Icon, value, color }: { Icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; value: string; color: string }) {
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <Icon className="h-4 w-4" style={{ color }} />
+      <span className="text-[10px] font-bold" style={{ color: C.text }}>{value}</span>
+    </div>
+  );
+}
+
 function Bar({ label, pct }: { label: string; pct: number }) {
   return (
     <div className="flex items-center gap-2 mb-1.5">
@@ -86,6 +110,8 @@ function Bar({ label, pct }: { label: string; pct: number }) {
 export function SecurityCommandUX1() {
   const { setVisionView, exitSimulationMode } = useEasterEgg();
   const [iconStyle, setIconStyle] = useState<IconStyle>("mil");
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
@@ -136,10 +162,12 @@ export function SecurityCommandUX1() {
         ))}
       </div>
 
-      {/* Body grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-3 p-3">
+      {/* Body grid — side rails collapse (3-circle toggle) so the center fills the screen */}
+      <div className="grid gap-3 p-3" style={{ gridTemplateColumns: `${leftOpen ? "260px" : "56px"} minmax(0,1fr) ${rightOpen ? "260px" : "56px"}` }}>
         {/* LEFT */}
+        {leftOpen ? (
         <div className="space-y-3">
+          <div className="flex justify-end"><Toggle3 onClick={() => setLeftOpen(false)} title="Collapse — show only critical info" /></div>
           <Panel title="Threat Summary">
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold" style={{ color: C.text }}>23</span>
@@ -184,6 +212,15 @@ export function SecurityCommandUX1() {
             </div>
           </Panel>
         </div>
+        ) : (
+          <div className="flex flex-col items-center gap-3 pt-1">
+            <Toggle3 onClick={() => setLeftOpen(true)} title="Expand left panel" />
+            <RailChip Icon={AlertTriangle} value="23" color={C.red} />
+            <RailChip Icon={Swords} value="14" color={C.red} />
+            <RailChip Icon={Radar} value="94%" color={C.green} />
+            <RailChip Icon={Activity} value="18°" color={C.dim} />
+          </div>
+        )}
 
         {/* CENTER — 3D situational awareness placeholder */}
         <Panel title="3D Situational Awareness — Real-Time Multi-Domain Fusion" accent={C.cyan}>
@@ -209,7 +246,9 @@ export function SecurityCommandUX1() {
         </Panel>
 
         {/* RIGHT */}
+        {rightOpen ? (
         <div className="space-y-3">
+          <div className="flex justify-start"><Toggle3 onClick={() => setRightOpen(false)} title="Collapse — show only critical info" /></div>
           <Panel title="Kill Chain Status" accent={C.cyan}>
             <div className="flex flex-wrap gap-1">
               {KILL_CHAIN.map(([stage, st]) => (
@@ -241,6 +280,14 @@ export function SecurityCommandUX1() {
             </div>
           </Panel>
         </div>
+        ) : (
+          <div className="flex flex-col items-center gap-3 pt-1">
+            <Toggle3 onClick={() => setRightOpen(true)} title="Expand right panel" />
+            <RailChip Icon={Crosshair} value="ENGAGE" color={C.amber} />
+            <RailChip Icon={Gauge} value="15%" color={C.green} />
+            <RailChip Icon={Target} value="85%" color={C.amber} />
+          </div>
+        )}
       </div>
 
       {/* Bottom row */}
