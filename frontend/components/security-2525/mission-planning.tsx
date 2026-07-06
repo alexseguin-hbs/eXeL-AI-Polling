@@ -102,6 +102,7 @@ const AOS: Ao[] = [
     name: "CAMP MABRY · AUSTIN TX",
     center: [30.316, -97.7639],
     halfKm: 6,
+    osm: "mabry", // roads + waterways, 10 km radius, OSM
     landmarks: [
       { name: "CAMP MABRY", lat: 30.316, lon: -97.7639 },
       { name: "TX CAPITOL", lat: 30.27467, lon: -97.74035 },
@@ -140,6 +141,7 @@ const AOS: Ao[] = [
     name: "JBLM LEWIS-McCHORD · SEATTLE/TACOMA WA",
     center: [47.0855, -122.5821],
     halfKm: 6,
+    osm: "jblm", // roads + waterways, 10 km radius, OSM
     landmarks: [
       { name: "JBLM LEWIS MAIN", lat: 47.0855, lon: -122.5821 },
       { name: "GRAY AAF", lat: 47.079, lon: -122.5806 },
@@ -523,24 +525,29 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const setCursor = (m: "pointer" | "target") => { setCursorMode(m); try { localStorage.setItem("sec2525.cursorMode", m); } catch { /* no storage */ } };
   const idRef = useRef(1);
   const mapRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const dragRef = useRef<{ x: number; y: number; moved: boolean; btn: number } | null>(null);
   const bottomDrag = useRef<number | null>(null);
+  const touchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<{ dist: number; cx: number; cy: number } | null>(null);
 
   const ao = AOS.find((a) => a.key === aoKey) ?? AOS[0];
-  // Live view — wheel zooms spanKm, right-drag pans lat/lon. AO buttons reset it.
-  const [view, setView] = useState(() => ({ lat: ao.center[0], lon: ao.center[1], spanKm: ao.halfKm * 2 }));
+  // Live view — spanKm = VISIBLE edge; bearing rotates the map (right-drag).
+  const [view, setView] = useState(() => ({ lat: ao.center[0], lon: ao.center[1], spanKm: ao.halfKm * 2, bearing: 0 }));
   useEffect(() => {
-    setView({ lat: ao.center[0], lon: ao.center[1], spanKm: ao.halfKm * 2 });
+    setView({ lat: ao.center[0], lon: ao.center[1], spanKm: ao.halfKm * 2, bearing: 0 });
     if (ao.precision) setDigits(ao.precision); // e.g. Pfield → 12-digit
   }, [aoKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  const panRef = useRef<{ x: number; y: number } | null>(null);
 
+  // The inner canvas covers RENDER× the visible span so rotation never reveals
+  // empty corners (RENDER > √2). `box` is that circumscribed extent.
+  const RENDER = 1.5;
+  const OFF = (RENDER - 1) / 2; // 0.25 — inner-canvas overhang each side
   const box = useMemo(() => {
-    const halfKm = view.spanKm / 2;
+    const halfKm = (view.spanKm * RENDER) / 2;
     const dLat = halfKm / 110.574;
     const dLon = halfKm / (111.32 * Math.cos((view.lat * Math.PI) / 180));
     return { latMin: view.lat - dLat, latMax: view.lat + dLat, lonMin: view.lon - dLon, lonMax: view.lon + dLon };
-  }, [view]);
+  }, [view.lat, view.lon, view.spanKm]);
   const grid = useMemo(
     () => utmKmGrid(box.latMin, box.latMax, box.lonMin, box.lonMax, chooseGridStep(view.spanKm * 1000)),
     [box, view.spanKm]
@@ -548,6 +555,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   // AO box width in meters — scales building-overlay radii (dome) to screen %
   const boxW = (box.lonMax - box.lonMin) * 111320 * Math.cos((ao.center[0] * Math.PI) / 180);
 
+  // Inner-canvas frac ↔ lat/lon (north-up; the CSS rotation is applied to the canvas).
   const toLatLon = (fx: number, fy: number) => ({
     lat: box.latMax - fy * (box.latMax - box.latMin),
     lon: box.lonMin + fx * (box.lonMax - box.lonMin),
@@ -556,6 +564,23 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     fx: (lon - box.lonMin) / (box.lonMax - box.lonMin),
     fy: (box.latMax - lat) / (box.latMax - box.latMin),
   });
+  // Rotate (x,y) around (0.5,0.5) by bearing (s=sin,c=cos).
+  const rotC = (b: number, inv = false) => { const a = inv ? -b : b; return [Math.sin(a), Math.cos(a)] as const; };
+  const rotAround = (x: number, y: number, s: number, c: number) => [0.5 + (x - 0.5) * c - (y - 0.5) * s, 0.5 + (x - 0.5) * s + (y - 0.5) * c] as const;
+  // lat/lon → VISIBLE container frac (for upright HTML overlays: icons, labels).
+  const project = (lat: number, lon: number) => {
+    const f = toFrac(lat, lon);
+    const px = f.fx * RENDER - OFF, py = f.fy * RENDER - OFF; // inner → container (pre-rotation)
+    const [s, c] = rotC(view.bearing);
+    const [fx, fy] = rotAround(px, py, s, c);
+    return { fx, fy };
+  };
+  // VISIBLE container frac → lat/lon (inverse of project).
+  const containerToLatLon = (cfx: number, cfy: number) => {
+    const [s, c] = rotC(view.bearing, true);
+    const [px, py] = rotAround(cfx, cfy, s, c);
+    return toLatLon((px + OFF) / RENDER, (py + OFF) / RENDER);
+  };
   const mFrac = (refLat: number, refLon: number, east: number, north: number) => {
     const lat = refLat + north / 110574;
     const lon = refLon + east / (111320 * Math.cos((refLat * Math.PI) / 180));
@@ -606,12 +631,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (zoomTimer.current) { window.clearTimeout(zoomTimer.current); zoomTimer.current = null; } // scrolling started → stay armed
     const f = fracFromEvent(e);
     if (!f) return;
-    const cur = toLatLon(f.fx, f.fy);
+    const cur = containerToLatLon(f.fx, f.fy);
     setView((v) => {
       // min 0.02 km (20 m box → 10 m grid, 8-digit MGRS resolution); max 200 km
       const span = Math.min(200, Math.max(0.02, v.spanKm * (e.deltaY > 0 ? 1.15 : 1 / 1.15)));
       const ratio = span / v.spanKm;
-      return { spanKm: span, lat: cur.lat + (v.lat - cur.lat) * ratio, lon: cur.lon + (v.lon - cur.lon) * ratio };
+      return { ...v, spanKm: span, lat: cur.lat + (v.lat - cur.lat) * ratio, lon: cur.lon + (v.lon - cur.lon) * ratio };
     });
   };
   useWheel(mapRef, onWheel);
@@ -619,36 +644,83 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   // Is a multi-point route tool armed? (line/corridor support object)
   const routeMode = !!selectedSupport && (selectedSupport.geometry === "line" || selectedSupport.geometry === "corridor");
 
-  // Grab-drag pan. In route mode, right-button never pans (it drops a vertex).
+  // Pan the map by a screen-space delta, rotating it into world axes by -bearing.
+  const panBy = (sdx: number, sdy: number) => setView((v) => {
+    const [s, c] = [Math.sin(-v.bearing), Math.cos(-v.bearing)];
+    const wdx = sdx * c - sdy * s, wdy = sdx * s + sdy * c;
+    const halfKm = v.spanKm / 2;
+    const dLat = halfKm / 110.574, dLon = halfKm / (111.32 * Math.cos((v.lat * Math.PI) / 180));
+    return { ...v, lat: v.lat + wdy * (2 * dLat), lon: v.lon - wdx * (2 * dLon) };
+  });
+
+  // Grab-drag: LEFT = pan, RIGHT = rotate (bearing). Route mode reserves right-click.
   const onPointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === "touch") { touchDown(e); return; }
     if (e.button !== 0 && e.button !== 2) return;
     if (routeMode && e.button === 2) return; // reserve right-click for route vertices
-    dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
+    dragRef.current = { x: e.clientX, y: e.clientY, moved: false, btn: e.button };
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
+    if (e.pointerType === "touch") { touchMove(e); return; }
     const r = mapRef.current?.getBoundingClientRect();
     if (r) setCursorPx({ x: e.clientX - r.left, y: e.clientY - r.top });
     const f = fracFromEvent(e);
-    if (f) setCursorLL(toLatLon(f.fx, f.fy));
+    if (f) setCursorLL(containerToLatLon(f.fx, f.fy));
     const d = dragRef.current;
     if (!d || !r) return;
     const dx = e.clientX - d.x, dy = e.clientY - d.y;
     if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
     d.x = e.clientX; d.y = e.clientY;
-    setView((v) => {
-      const halfKm = v.spanKm / 2;
-      const dLat = halfKm / 110.574, dLon = halfKm / (111.32 * Math.cos((v.lat * Math.PI) / 180));
-      return { ...v, lat: v.lat + (dy / r.height) * (2 * dLat), lon: v.lon - (dx / r.width) * (2 * dLon) };
-    });
+    if (d.btn === 2) {
+      setView((v) => ({ ...v, bearing: v.bearing - (dx / r.width) * Math.PI })); // right-drag rotates
+    } else {
+      panBy(dx / r.width, dy / r.height);
+    }
   };
+  // ── Touch: 1 finger = pan, 2 fingers = pinch-zoom (mobile UI/UX) ────────────
+  const touchDown = (e: React.PointerEvent) => {
+    touchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    if (touchRef.current.size === 2) {
+      const [a, b] = Array.from(touchRef.current.values());
+      pinchRef.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+    }
+  };
+  const touchMove = (e: React.PointerEvent) => {
+    const prev = touchRef.current.get(e.pointerId);
+    if (!prev) return;
+    const r = mapRef.current?.getBoundingClientRect();
+    touchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touchRef.current.size >= 2 && pinchRef.current && r) {
+      const [a, b] = Array.from(touchRef.current.values());
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const cf = { fx: ((a.x + b.x) / 2 - r.left) / r.width, fy: ((a.y + b.y) / 2 - r.top) / r.height };
+      const cur = containerToLatLon(cf.fx, cf.fy);
+      const factor = pinchRef.current.dist / Math.max(1, dist);
+      pinchRef.current.dist = dist;
+      setView((v) => {
+        const span = Math.min(200, Math.max(0.02, v.spanKm * factor));
+        const ratio = span / v.spanKm;
+        return { ...v, spanKm: span, lat: cur.lat + (v.lat - cur.lat) * ratio, lon: cur.lon + (v.lon - cur.lon) * ratio };
+      });
+    } else if (touchRef.current.size === 1 && r) {
+      panBy((e.clientX - prev.x) / r.width, (e.clientY - prev.y) / r.height);
+    }
+  };
+  const touchEnd = (e: React.PointerEvent) => {
+    touchRef.current.delete(e.pointerId);
+    if (touchRef.current.size < 2) pinchRef.current = null;
+  };
+
   const onPointerUp = (e: React.PointerEvent) => {
+    if (e.pointerType === "touch") { touchEnd(e); return; }
     const d = dragRef.current;
     dragRef.current = null;
-    if (d?.moved) return; // a pan, not a click — don't place/deselect
+    if (d?.moved) return; // a pan/rotate, not a click — don't place/deselect
     const f = fracFromEvent(e);
     if (!f) return;
-    const { lat, lon } = toLatLon(f.fx, f.fy);
+    const { lat, lon } = containerToLatLon(f.fx, f.fy);
     if (routeMode && selectedSupport) {
       if (e.button === 2) {
         setRouteDraft((p) => [...p, { lat, lon }]); // right-click = add a via-point
@@ -668,7 +740,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const place = (asset: AssetKind, fx: number, fy: number) => {
     const item = inventory.find((i) => i.asset === asset);
     if (!item || item.stock < item.group) return;
-    const { lat, lon } = toLatLon(fx, fy);
+    const { lat, lon } = containerToLatLon(fx, fy);
     setInventory((inv) => inv.map((i) => (i.asset === asset ? { ...i, stock: i.stock - i.group } : i)));
     setPlaced((p) => [...p, {
       id: idRef.current++, asset, count: item.group, fx, fy, lat, lon, mgrs10: latLonToMgrs(lat, lon, 5), aff: "friendly",
@@ -681,7 +753,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   };
 
   const placeSupport = (def: SupportObjectDef, fx: number, fy: number) => {
-    const { lat, lon } = toLatLon(fx, fy);
+    const { lat, lon } = containerToLatLon(fx, fy);
     setPlacedSupport((p) => [...p, { id: idRef.current++, def, fx, fy, lat, lon, reality, aff: "friendly" }]);
   };
 
@@ -1080,7 +1152,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   ))}
                 </div>
               )}
-              <button onClick={() => setView({ lat: ao.center[0], lon: ao.center[1], spanKm: ao.halfKm * 2 })}
+              <button onClick={() => setView({ lat: ao.center[0], lon: ao.center[1], spanKm: ao.halfKm * 2, bearing: 0 })}
                 className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.border }}>
                 RESET VIEW
               </button>
@@ -1134,6 +1206,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               if (f) dropAt(e.dataTransfer.getData("text/plain"), f.fx, f.fy);
             }}
             onMouseLeave={() => { setCursorLL(null); setCursorPx(null); }}>
+            {/* rotated inner canvas (RENDER× size) — CSS bearing rotation; content via toFrac */}
+            <div className="pointer-events-none absolute" style={{ inset: `${-OFF * 100}%`, transform: `rotate(${view.bearing}rad)`, transformOrigin: "center" }}>
             <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               {/* OSM roads (grey + lighter-grey casing) + waterways (blue) — bottom layer */}
               {osmPaths && (
@@ -1215,23 +1289,18 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   </g>
                 );
               })()}
+              {/* grid km labels — rotate with the canvas */}
+              {gridOn && grid.vertical.map((l) => (
+                <text key={`vl${l.km}${l.frac}`} x={l.frac * 100 + 0.3} y="99.3" fontSize="1.5" fontFamily="monospace" fill={C.dim} textAnchor="start">{String(l.km).padStart(2, "0")}</text>
+              ))}
+              {gridOn && grid.horizontal.map((l) => (
+                <text key={`hl${l.km}${l.frac}`} x="0.4" y={l.frac * 100 - 0.4} fontSize="1.5" fontFamily="monospace" fill={C.dim}>{String(l.km).padStart(2, "0")}</text>
+              ))}
             </svg>
-            {/* grid km edge labels */}
-            {gridOn && grid.vertical.map((l) => (
-              <span key={`vl${l.km}${l.frac}`} className="absolute font-mono text-[8px]"
-                style={{ left: `${l.frac * 100}%`, bottom: 2, transform: "translateX(2px)", color: C.dim }}>
-                {String(l.km).padStart(2, "0")}
-              </span>
-            ))}
-            {gridOn && grid.horizontal.map((l) => (
-              <span key={`hl${l.km}${l.frac}`} className="absolute font-mono text-[8px]"
-                style={{ top: `${l.frac * 100}%`, left: 2, color: C.dim }}>
-                {String(l.km).padStart(2, "0")}
-              </span>
-            ))}
+            </div>
             {/* landmarks */}
             {ao.landmarks.map((lm) => {
-              const f = toFrac(lm.lat, lm.lon);
+              const f = project(lm.lat, lm.lon);
               if (f.fx < 0 || f.fx > 1 || f.fy < 0 || f.fy > 1) return null;
               return (
                 <div key={lm.name} className="pointer-events-none absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
@@ -1243,7 +1312,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             })}
             {/* placed assets — left-click SELECTS (video-game / AMDWS designate) */}
             {placed.map((u) => {
-              const f = toFrac(u.lat, u.lon);
+              const f = project(u.lat, u.lon);
               if (f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05) return null;
               const sel = selected?.kind === "asset" && selected.id === u.id;
               return (
@@ -1262,7 +1331,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             })}
             {/* placed mission-support objects — left-click SELECTS */}
             {placedSupport.map((u) => {
-              const f = toFrac(u.lat, u.lon);
+              const f = project(u.lat, u.lon);
               if (f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05) return null;
               const sel = selected?.kind === "support" && selected.id === u.id;
               return (
@@ -1279,14 +1348,51 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 </button>
               );
             })}
-            {/* NSEW cardinal reference (LLV-DMS orientation) — north up */}
-            {[["N", "left-1/2 top-0.5 -translate-x-1/2"], ["S", "left-1/2 bottom-0.5 -translate-x-1/2"],
-              ["E", "right-1 top-1/2 -translate-y-1/2"], ["W", "left-1 top-1/2 -translate-y-1/2"]].map(([d, cls]) => (
-              <span key={d} className={`pointer-events-none absolute font-mono text-[9px] font-bold ${cls}`} style={{ color: C.cyan, opacity: 0.7 }}>{d}</span>
-            ))}
-            {/* faint center cross axes */}
-            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2" style={{ background: C.border, opacity: 0.4 }} />
-            <div className="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2" style={{ background: C.border, opacity: 0.4 }} />
+            {/* Rotating COMPASS rose — right-drag rotates the map; click resets north.
+                N tracks true north; heading-up bearing shown below. */}
+            <button onClick={() => setView((v) => ({ ...v, bearing: 0 }))} title="Reset north"
+              className="absolute left-2 top-2 z-20 rounded-full" style={{ background: "#0a0f16cc" }}>
+              <svg width="46" height="46" viewBox="-23 -23 46 46" aria-label="Compass">
+                <circle r="21" fill="none" stroke={C.border} strokeWidth="1" />
+                <g transform={`rotate(${(view.bearing * 180 / Math.PI).toFixed(1)})`}>
+                  <path d="M0 -18 L4.5 -4 L0 -7 L-4.5 -4 Z" fill={C.red} />
+                  <path d="M0 18 L3 6 L0 8 L-3 6 Z" fill={C.dim} />
+                  <text x="0" y="-9" fontSize="6" fill={C.red} textAnchor="middle" fontWeight="bold">N</text>
+                  <text x="14.5" y="2" fontSize="5" fill={C.dim} textAnchor="middle">E</text>
+                  <text x="0" y="15" fontSize="5" fill={C.dim} textAnchor="middle">S</text>
+                  <text x="-14.5" y="2" fontSize="5" fill={C.dim} textAnchor="middle">W</text>
+                </g>
+              </svg>
+              <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 font-mono text-[8px]" style={{ color: C.cyan }}>
+                {String(Math.round(((-view.bearing * 180 / Math.PI) % 360 + 360) % 360)).padStart(3, "0")}°
+              </span>
+            </button>
+            {/* faint fixed center crosshair (view center) */}
+            <div className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2" style={{ borderLeft: `1px solid ${C.dim}`, borderTop: `1px solid ${C.dim}`, opacity: 0.5 }} />
+            {/* 360° bearing scale around the map edges — rotates with the map */}
+            {(() => {
+              const topHeading = ((-view.bearing * 180 / Math.PI) % 360 + 360) % 360;
+              const marks: React.ReactNode[] = [];
+              for (let deg = 0; deg < 360; deg += 10) {
+                const th = (deg - topHeading) * Math.PI / 180;
+                const dx = Math.sin(th), dy = -Math.cos(th);
+                const t = Math.min(0.5 / Math.max(Math.abs(dx), 1e-9), 0.5 / Math.max(Math.abs(dy), 1e-9));
+                const bx = 0.5 + dx * t, by = 0.5 + dy * t; // border point (0..1)
+                const major = deg % 30 === 0;
+                if (major) {
+                  const lx = 0.5 + (bx - 0.5) * 0.9, ly = 0.5 + (by - 0.5) * 0.9;
+                  marks.push(
+                    <span key={deg} className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[7px] font-bold"
+                      style={{ left: `${lx * 100}%`, top: `${ly * 100}%`, color: deg === 0 ? C.red : C.cyan, opacity: 0.8 }}>
+                      {String(deg).padStart(3, "0")}
+                    </span>
+                  );
+                } else {
+                  marks.push(<span key={deg} className="pointer-events-none absolute h-0.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: `${bx * 100}%`, top: `${by * 100}%`, background: C.cyan, opacity: 0.5 }} />);
+                }
+              }
+              return marks;
+            })()}
             {/* armed tool ghost — the icon rides the CENTER of the cursor for
                 precise placement (click drops it exactly there) */}
             {armed && cursorPx && !routeMode && (
