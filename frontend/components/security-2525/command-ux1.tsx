@@ -104,6 +104,47 @@ function RailChip({ Icon, value, color }: { Icon: React.ComponentType<{ classNam
   );
 }
 
+// Critical-info chip sets — shared by the collapsed side rails AND the maximized map overlay.
+function LeftRailChips() {
+  return (
+    <>
+      <RailChip Icon={AlertTriangle} value="23" color={C.red} />
+      <RailChip Icon={Swords} value="14" color={C.red} />
+      <RailChip Icon={Radar} value="94%" color={C.green} />
+      <RailChip Icon={Activity} value="18°" color={C.dim} />
+    </>
+  );
+}
+
+function RightRailChips() {
+  return (
+    <>
+      <RailChip Icon={Crosshair} value="ENGAGE" color={C.amber} />
+      <RailChip Icon={Gauge} value="15%" color={C.green} />
+      <RailChip Icon={Target} value="85%" color={C.amber} />
+    </>
+  );
+}
+
+// Bottom critical strip — AI recommendation + confidence + P1 target + abort authority.
+function CriticalStrip() {
+  return (
+    <>
+      <span className="flex items-center gap-1.5 text-[10px] font-bold" style={{ color: C.text }}>
+        <Cpu className="h-4 w-4" style={{ color: C.cyan }} /> NEUTRALIZE X-BAT SWARM
+      </span>
+      <span className="text-[10px] font-bold" style={{ color: C.green }}>86%</span>
+      <span className="flex items-center gap-1.5 text-[10px] font-bold" style={{ color: C.red }}>
+        <Target className="h-4 w-4" style={{ color: C.red }} /> P1 X-BAT SWARM GRP 1
+      </span>
+      <button className="rounded border px-2 py-0.5 text-[10px] font-semibold tracking-wide hover:bg-white/5"
+        style={{ borderColor: `${C.red}44`, color: C.red }}>
+        ABORT
+      </button>
+    </>
+  );
+}
+
 function Bar({ label, pct }: { label: string; pct: number }) {
   return (
     <div className="flex items-center gap-2 mb-1.5">
@@ -232,10 +273,7 @@ export function SecurityCommandUX1() {
         ) : (
           <div className="flex flex-col items-center gap-3 pt-1">
             <Toggle3 onClick={() => setLeftOpen(true)} title="Expand left panel" />
-            <RailChip Icon={AlertTriangle} value="23" color={C.red} />
-            <RailChip Icon={Swords} value="14" color={C.red} />
-            <RailChip Icon={Radar} value="94%" color={C.green} />
-            <RailChip Icon={Activity} value="18°" color={C.dim} />
+            <LeftRailChips />
           </div>
         )}
 
@@ -263,6 +301,20 @@ export function SecurityCommandUX1() {
               <p className="text-[11px]" style={{ color: C.dim }}>AIR · SEA · LAND · SPACE · CYBER · EW</p>
               <p className="mt-1 text-[10px]" style={{ color: C.dim }}>live fusion view — wiring pending</p>
             </div>
+            {/* full-screen keeps the critical-info messaging — rails + bottom strip overlay the map */}
+            {mapMax && (
+              <>
+                <div className="absolute left-2 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-3 rounded-md px-1.5 py-2" style={{ background: "#0a0f16cc" }}>
+                  <LeftRailChips />
+                </div>
+                <div className="absolute right-2 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-3 rounded-md px-1.5 py-2" style={{ background: "#0a0f16cc" }}>
+                  <RightRailChips />
+                </div>
+                <div className="absolute bottom-2 left-1/2 z-20 flex -translate-x-1/2 flex-wrap items-center justify-center gap-x-5 gap-y-1 rounded-md px-4 py-1.5" style={{ background: "#0a0f16cc" }}>
+                  <CriticalStrip />
+                </div>
+              </>
+            )}
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {[["Patriot Battery A", "6 msl · 360°", C.green], ["Avenger Section", "4 sys · low corridor", C.amber], ["M-SHORAD", "30mm / Stinger", C.green]].map(([n, s, c]) => (
@@ -312,9 +364,7 @@ export function SecurityCommandUX1() {
         ) : (
           <div className="flex flex-col items-center gap-3 pt-1">
             <Toggle3 onClick={() => setRightOpen(true)} title="Expand right panel" />
-            <RailChip Icon={Crosshair} value="ENGAGE" color={C.amber} />
-            <RailChip Icon={Gauge} value="15%" color={C.green} />
-            <RailChip Icon={Target} value="85%" color={C.amber} />
+            <RightRailChips />
           </div>
         )}
       </div>
@@ -371,17 +421,7 @@ export function SecurityCommandUX1() {
       ) : (
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 px-3 pb-3">
           <Toggle3 horizontal onClick={() => setBottomOpen(true)} title="Expand bottom panels" />
-          <span className="flex items-center gap-1.5 text-[10px] font-bold" style={{ color: C.text }}>
-            <Cpu className="h-4 w-4" style={{ color: C.cyan }} /> NEUTRALIZE X-BAT SWARM
-          </span>
-          <span className="text-[10px] font-bold" style={{ color: C.green }}>86%</span>
-          <span className="flex items-center gap-1.5 text-[10px] font-bold" style={{ color: C.red }}>
-            <Target className="h-4 w-4" style={{ color: C.red }} /> P1 X-BAT SWARM GRP 1
-          </span>
-          <button className="rounded border px-2 py-0.5 text-[10px] font-semibold tracking-wide hover:bg-white/5"
-            style={{ borderColor: `${C.red}44`, color: C.red }}>
-            ABORT
-          </button>
+          <CriticalStrip />
         </div>
       )}
 
