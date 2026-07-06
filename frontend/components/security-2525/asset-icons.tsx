@@ -110,30 +110,41 @@ function milGlyph(asset: AssetKind, c: string, count = 1) {
           {count > 1 ? <XbatSwarm c={c} /> : <XbatWireframe c={c} detail={false} />}
         </g>
       );
-    case "sentinel": // vertical dish tilted upper-right + radiating waves
+    case "sentinel": // curved dish opening RIGHT, tilted slightly upper-right, waves out
       return (
         <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
-          <line x1="14" y1="18" x2="14" y2="21" />
-          <path d="M11.5 21h5" />
-          <rect x="12.5" y="10.5" width="3" height="8" transform="rotate(20 14 14.5)" />
-          <path d="M15.6 10.9a2.2 2.2 0 0 1 1.5 1.5" />
-          <path d="M16 9.1a4 4 0 0 1 2.9 2.9" />
-          <path d="M16.5 7.4a5.8 5.8 0 0 1 4.1 4.1" />
+          <line x1="13" y1="18.5" x2="13" y2="21" />
+          <path d="M10.5 21h5" />
+          <g transform="rotate(-12 13 13)">
+            <path d="M13 7.5A6 6 0 0 0 13 18.5" />
+            <line x1="10" y1="13" x2="15" y2="13" />
+            <path d="M16.9 11.4A2.5 2.5 0 0 1 16.9 14.6" />
+            <path d="M18.4 10.1A4.5 4.5 0 0 1 18.4 15.9" />
+            <path d="M20 8.8A6.5 6.5 0 0 1 20 17.2" />
+          </g>
         </g>
       );
-    case "thaad": // tall vertical missiles
+    case "thaad": // 4x2 cylindrical canister cluster, slanted skyward
       return (
-        <g stroke={c} strokeWidth="1.4" strokeLinecap="round">
-          <line x1="13" y1="21" x2="13" y2="11" />
-          <line x1="16" y1="21" x2="16" y2="10" />
-          <line x1="19" y1="21" x2="19" y2="11" />
+        <g stroke={c} strokeWidth="1.6" strokeLinecap="round">
+          <g transform="rotate(15 16 16)">
+            <line x1="12" y1="20.5" x2="12" y2="11" />
+            <line x1="14.7" y1="20.5" x2="14.7" y2="10.5" />
+            <line x1="17.3" y1="20.5" x2="17.3" y2="10.5" />
+            <line x1="20" y1="20.5" x2="20" y2="11" />
+          </g>
+          <line x1="11" y1="22" x2="19" y2="22" />
         </g>
       );
-    case "patriot": // angled launcher box + missile
+    case "patriot": // slant-raised canister box — 2 pods of 4 (2x2 face)
       return (
         <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
-          <rect x="11" y="15" width="10" height="6" transform="rotate(-24 16 18)" />
-          <line x1="20" y1="12" x2="24" y2="9" />
+          <g transform="rotate(35 16 15)">
+            <rect x="13.5" y="8" width="5" height="12" rx="0.5" />
+            <line x1="16" y1="8" x2="16" y2="20" />
+            <line x1="13.5" y1="11" x2="18.5" y2="11" />
+          </g>
+          <line x1="10" y1="21.5" x2="21" y2="21.5" />
         </g>
       );
     case "avenger": // dome + stinger
@@ -154,45 +165,68 @@ function exelSilhouette(asset: AssetKind, c: string, count = 1) {
   switch (asset) {
     case "xbat": // full 3rd-pass wireframe projection; echelon formation when count > 1
       return count > 1 ? <XbatSwarm c={c} /> : <XbatWireframe c={c} detail />;
-    case "avenger": // HMMWV chassis + twin launcher pods
+    case "avenger": // HMMWV profile + twin elevated Stinger pods in a V + gunner glass
       return (
         <g {...s}>
-          <path d="M4 21h20l-2-5H8l-2 2H4z" />
-          <circle cx="9" cy="23" r="2" />
-          <circle cx="20" cy="23" r="2" />
-          <rect x="8" y="9" width="5" height="5" />
-          <rect x="17" y="9" width="5" height="5" />
+          <circle cx="8" cy="23" r="2" />
+          <circle cx="24" cy="23" r="2" />
+          {/* rear deck + cab + hood (front right) */}
+          <path d="M3 21v-3h13v-5h4l3 3h1v2h5v3z" />
+          <line x1="12" y1="18" x2="12" y2="11" />
+          {/* twin pods angled outward-up, glass panel between */}
+          <rect x="5" y="7.5" width="6" height="3" rx="0.5" transform="rotate(-12 8 9)" />
+          <rect x="13" y="7.5" width="6" height="3" rx="0.5" transform="rotate(12 16 9)" />
+          <path d="M10.5 6.5h3v4h-3z" />
         </g>
       );
-    case "patriot": // trailer + tilted 4-pack launcher box
+    case "patriot": // HEMTT cab + equipment box + slant-raised launcher (2 pods of 4) + erector
       return (
         <g {...s}>
-          <path d="M4 22h22" />
-          <circle cx="9" cy="24" r="1.8" />
-          <circle cx="19" cy="24" r="1.8" />
-          <rect x="9" y="9" width="13" height="8" rx="1" transform="rotate(-22 15 13)" />
-          <line x1="7" y1="22" x2="9" y2="16" />
+          <path d="M3 22h26" />
+          <circle cx="6.5" cy="24" r="1.6" />
+          <circle cx="11" cy="24" r="1.6" />
+          <circle cx="17" cy="24" r="1.6" />
+          <circle cx="22" cy="24" r="1.6" />
+          <path d="M3 22v-5h5l2 3v2" />
+          <rect x="11.5" y="17.5" width="4" height="4.5" />
+          <g transform="rotate(38 21 12)">
+            <rect x="18" y="5" width="6" height="14" rx="0.5" />
+            <line x1="21" y1="5" x2="21" y2="19" />
+            <line x1="18" y1="8.5" x2="24" y2="8.5" />
+          </g>
+          <line x1="16" y1="21" x2="20" y2="15" />
         </g>
       );
-    case "thaad": // truck + vertical canister cluster
+    case "thaad": // truck + 4x2 cylindrical canister cluster pointed at sky (slant-raised)
       return (
         <g {...s}>
           <path d="M3 22h22l-2-4H5z" />
           <circle cx="8" cy="24" r="1.8" />
           <circle cx="20" cy="24" r="1.8" />
-          <path d="M11 18V7M15 18V6M19 18V7" />
-          <path d="M11 7l1.5-2M15 6l1.5-2M19 7l1.5-2" />
+          <g transform="rotate(18 14 12)">
+            {/* front row — 4 round-top canisters */}
+            <rect x="9.5" y="3.5" width="9.6" height="14.5" rx="1" />
+            <line x1="11.9" y1="4" x2="11.9" y2="17.5" />
+            <line x1="14.3" y1="4" x2="14.3" y2="17.5" />
+            <line x1="16.7" y1="4" x2="16.7" y2="17.5" />
+            {/* back-row canister mouths peeking above */}
+            <path d="M10.7 3.5a1.2 1.2 0 0 1 2.4 0M13.1 3.5a1.2 1.2 0 0 1 2.4 0M15.5 3.5a1.2 1.2 0 0 1 2.4 0" />
+          </g>
+          <line x1="8" y1="18" x2="11" y2="13" />
         </g>
       );
-    case "sentinel": // towed platform + vertical dish tilted upper-right + radiating waves
+    case "sentinel": // towed platform + curved dish opening RIGHT + radiating waves
     default:
       return (
         <g {...s}>
           <path d="M6 22h16" />
-          <line x1="13" y1="22" x2="13" y2="14" />
-          <rect x="10.5" y="6.5" width="4" height="9" transform="rotate(20 12.5 11)" />
-          <path d="M17.3 6.6a3 3 0 0 1 2.1 2.1" />
-          <path d="M17.9 4.2a5.5 5.5 0 0 1 3.9 3.9" />
+          <line x1="12" y1="22" x2="12" y2="15" />
+          <g transform="rotate(-12 12 11)">
+            <path d="M12.5 5.5A5.5 5.5 0 0 0 12.5 16.5" />
+            <line x1="9.8" y1="11" x2="14.5" y2="11" />
+            <path d="M18.1 8.9A3 3 0 0 1 18.1 13.1" />
+            <path d="M19.7 7.3A5.2 5.2 0 0 1 19.7 14.7" />
+          </g>
         </g>
       );
   }
