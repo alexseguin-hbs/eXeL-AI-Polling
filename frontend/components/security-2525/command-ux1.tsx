@@ -15,6 +15,7 @@ import {
   Map, FlaskConical, Maximize2, Minimize2,
 } from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
+import { CLEARANCE_COLORS } from "@/lib/atlantis-package";
 import {
   AssetIcon, ASSET_ORDER, ASSET_LABELS, type IconStyle,
 } from "@/components/security-2525/asset-icons";
@@ -123,6 +124,33 @@ function RightRailChips() {
       <RailChip Icon={Gauge} value="15%" color={C.green} />
       <RailChip Icon={Target} value="85%" color={C.amber} />
     </>
+  );
+}
+
+// Growing Seed-of-Life clearance seal — same geometry as the Atlantis sealed-message
+// cover (drawSeal): N same-size circles (center + hex-ring positions), clearance color.
+function ClearanceSeal({ level, r = 5 }: { level: number; r?: number }) {
+  const pos: [number, number][] = [[0, 0]];
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3 - Math.PI / 2;
+    pos.push([r * Math.cos(a), r * Math.sin(a)]);
+  }
+  const use = pos.slice(0, level);
+  const pad = 1.5;
+  const minx = Math.min(...use.map((p) => p[0] - r));
+  const maxx = Math.max(...use.map((p) => p[0] + r));
+  const miny = Math.min(...use.map((p) => p[1] - r));
+  const maxy = Math.max(...use.map((p) => p[1] + r));
+  const w = maxx - minx + 2 * pad;
+  const h = maxy - miny + 2 * pad;
+  const c = CLEARANCE_COLORS[level];
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`Clearance Level ${level}`}>
+      {use.map(([x, y], i) => (
+        <circle key={i} cx={x - minx + pad} cy={y - miny + pad} r={r}
+          fill={c} fillOpacity={0.1} stroke={c} strokeWidth={1.2} />
+      ))}
+    </svg>
   );
 }
 
@@ -428,7 +456,9 @@ export function SecurityCommandUX1() {
       {/* Footer */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
         <span><span style={{ color: C.green }}>●</span> SYSTEM HEALTH — ALL SYSTEMS NOMINAL</span>
-        <span>CLASSIFICATION: SECRET // REL TO USA, FVEY</span>
+        <span className="flex items-center gap-1.5">
+          CLEARANCE: LEVEL 3 <ClearanceSeal level={3} />
+        </span>
         <span>DATA FUSION ENGINE: eXeL {EXEL_VERSION} · {GIT_SHA}</span>
       </div>
     </div>
