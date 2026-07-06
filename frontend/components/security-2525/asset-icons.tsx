@@ -61,6 +61,25 @@ function XbatWireframe({ c, detail }: { c: string; detail: boolean }) {
   );
 }
 
+// 3-ship echelon — lead high, two wingmen trailing. Distinguishes a swarm/group
+// (count > 1) from a single X-BAT at a glance.
+function XbatSwarm({ c }: { c: string }) {
+  const ships: [number, number, number, number][] = [
+    [0, -6, 0.5, 1],        // lead
+    [-7, 4.5, 0.42, 0.7],   // left wingman
+    [7, 4.5, 0.42, 0.7],    // right wingman
+  ];
+  return (
+    <g fill="none" strokeLinejoin="round" strokeLinecap="round">
+      {ships.map(([dx, dy, s, o], i) => (
+        <g key={i} transform={`translate(${16 + dx} ${16 + dy}) scale(${s}) translate(-16 -16)`} opacity={o}>
+          <path d={XBAT_OUTLINE} stroke={c} strokeWidth={1.5 / s} />
+        </g>
+      ))}
+    </g>
+  );
+}
+
 function affColor(aff: Affiliation) {
   return aff === "hostile" ? HOSTILE : FRIENDLY;
 }
@@ -83,12 +102,12 @@ function MilFrame({ aff, children }: { aff: Affiliation; children: React.ReactNo
   );
 }
 
-function milGlyph(asset: AssetKind, c: string) {
+function milGlyph(asset: AssetKind, c: string, count = 1) {
   switch (asset) {
     case "xbat": // UCAV silhouette, scaled to sit inside the affiliation frame
       return (
         <g transform="translate(16 16) scale(0.45) translate(-16 -16)">
-          <XbatWireframe c={c} detail={false} />
+          {count > 1 ? <XbatSwarm c={c} /> : <XbatWireframe c={c} detail={false} />}
         </g>
       );
     case "sentinel": // radar arcs
@@ -127,11 +146,11 @@ function milGlyph(asset: AssetKind, c: string) {
 }
 
 // ── eXeL-STD-2525: stylized platform silhouettes ─────────────────────────────
-function exelSilhouette(asset: AssetKind, c: string) {
+function exelSilhouette(asset: AssetKind, c: string, count = 1) {
   const s = { stroke: c, strokeWidth: 1.5, fill: "none", strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
   switch (asset) {
-    case "xbat": // full 3rd-pass wireframe projection
-      return <XbatWireframe c={c} detail />;
+    case "xbat": // full 3rd-pass wireframe projection; echelon formation when count > 1
+      return count > 1 ? <XbatSwarm c={c} /> : <XbatWireframe c={c} detail />;
     case "avenger": // HMMWV chassis + twin launcher pods
       return (
         <g {...s}>
@@ -180,20 +199,22 @@ export function AssetIcon({
   style,
   affiliation = "friendly",
   size = 30,
+  count = 1,
 }: {
   asset: AssetKind;
   style: IconStyle;
   affiliation?: Affiliation;
   size?: number;
+  count?: number; // > 1 renders the group/swarm variant (X-BAT: 3-ship echelon)
 }) {
   const c = affColor(affiliation);
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" role="img"
-      aria-label={`${ASSET_LABELS[asset]} (${affiliation}, ${style})`}>
+      aria-label={`${ASSET_LABELS[asset]}${count > 1 ? " ×" + count : ""} (${affiliation}, ${style})`}>
       {style === "mil" ? (
-        <MilFrame aff={affiliation}>{milGlyph(asset, c)}</MilFrame>
+        <MilFrame aff={affiliation}>{milGlyph(asset, c, count)}</MilFrame>
       ) : (
-        exelSilhouette(asset, c)
+        exelSilhouette(asset, c, count)
       )}
     </svg>
   );

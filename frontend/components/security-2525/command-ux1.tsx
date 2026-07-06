@@ -215,6 +215,12 @@ export function SecurityCommandUX1() {
                   <span className="text-[11px]" style={{ color: C.text }}>{ASSET_LABELS[asset]}</span>
                 </div>
               ))}
+              {/* group/swarm variant — count > 1 reads differently at a glance */}
+              <div className="flex items-center gap-2">
+                <AssetIcon asset="xbat" style={iconStyle} affiliation="friendly" size={26} count={3} />
+                <AssetIcon asset="xbat" style={iconStyle} affiliation="hostile" size={26} count={3} />
+                <span className="text-[11px]" style={{ color: C.text }}>X-BAT SWARM ×3</span>
+              </div>
             </div>
           </Panel>
         </div>
