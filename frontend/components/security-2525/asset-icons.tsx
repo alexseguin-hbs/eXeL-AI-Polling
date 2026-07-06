@@ -84,78 +84,71 @@ function affColor(aff: Affiliation) {
   return aff === "hostile" ? HOSTILE : FRIENDLY;
 }
 
-// ── MIL-STD-2525-inspired: affiliation frame + per-asset AD glyph ────────────
-function MilFrame({ aff, children }: { aff: Affiliation; children: React.ReactNode }) {
+// ── MIL-STD-2525E (doctrine-exact — see docs/security-2525/MIL-STD-2525.pdf) ─
+// Frames per 2525E: land EQUIPMENT friendly = circle (rectangle is for UNITS);
+// hostile land = diamond; AIR friendly = arc open at bottom; hostile air =
+// top-half diamond open at bottom. Never mix eXeL-STD glyphs into MIL style.
+const AIR_ASSETS: ReadonlySet<AssetKind> = new Set<AssetKind>(["xbat"]);
+
+function MilFrame({ aff, air, children }: { aff: Affiliation; air?: boolean; children: React.ReactNode }) {
   const c = affColor(aff);
-  const fill = aff === "hostile" ? "#ef444422" : "#38bdf822";
+  const fill = `${c}22`;
+  const frame = air ? (
+    aff === "hostile" ? (
+      // hostile air = open-bottom half diamond ("peaked hat")
+      <path d="M5 25L16 4l11 21" fill={fill} stroke={c} strokeWidth="1.6" />
+    ) : (
+      // friendly air = open-bottom arc (dome)
+      <path d="M5 25V15a11 11 0 0 1 22 0v10" fill={fill} stroke={c} strokeWidth="1.6" />
+    )
+  ) : aff === "hostile" ? (
+    // hostile land = diamond
+    <polygon points="16,3 29,16 16,29 3,16" fill={fill} stroke={c} strokeWidth="1.6" />
+  ) : (
+    // friendly land EQUIPMENT = circle (2525E)
+    <circle cx="16" cy="16" r="11.5" fill={fill} stroke={c} strokeWidth="1.6" />
+  );
   return (
     <>
-      {aff === "hostile" ? (
-        // hostile land = diamond
-        <polygon points="16,3 29,16 16,29 3,16" fill={fill} stroke={c} strokeWidth="1.6" />
-      ) : (
-        // friendly land = rectangle
-        <rect x="4" y="7" width="24" height="18" rx="1" fill={fill} stroke={c} strokeWidth="1.6" />
-      )}
+      {frame}
       {children}
     </>
   );
 }
 
-function milGlyph(asset: AssetKind, c: string, count = 1) {
+// 2525E land-equipment "Missile Launcher" icon family: round-top canister,
+// weight bars below (light = 1, medium = 2, heavy = 3). Table E-X, 1111xx.
+function MilCanister({ c, bars }: { c: string; bars: number }) {
+  return (
+    <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
+      <path d="M13.5 19.5v-8a2.5 2.5 0 0 1 5 0v8z" />
+      {Array.from({ length: bars }, (_, i) => (
+        <line key={i} x1="13.5" y1={21 + i * 1.8} x2="18.5" y2={21 + i * 1.8} />
+      ))}
+    </g>
+  );
+}
+
+// MIL glyphs are DOCTRINE-EXACT per MIL-STD-2525E Change 1 (Table E-X / D-III).
+// Platform likeness lives in the eXeL-STD silhouettes only — never here.
+function milGlyph(asset: AssetKind, c: string) {
   switch (asset) {
-    case "xbat": // UCAV silhouette, scaled to sit inside the affiliation frame
+    case "xbat": // 2525E air fixed-wing drone icon — swept flying wing
+      return <path d="M8.5 19.5l7.5-5.5 7.5 5.5h-3.6l-3.9-2.8-3.9 2.8z" stroke={c} strokeWidth="1.4" fill="none" strokeLinejoin="round" />;
+    case "sentinel": // 2525E Radar (220300): zig-zag EM arrow with arrowhead
       return (
-        <g transform="translate(16 16) scale(0.45) translate(-16 -16)">
-          {count > 1 ? <XbatSwarm c={c} /> : <XbatWireframe c={c} detail={false} />}
+        <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 21l6-6 3 3 6-6" />
+          <path d="M24 16v-4h-4" />
         </g>
       );
-    case "sentinel": // curved dish opening RIGHT, tilted slightly upper-right, waves out
-      return (
-        <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
-          <line x1="13" y1="18.5" x2="13" y2="21" />
-          <path d="M10.5 21h5" />
-          <g transform="rotate(-12 13 13)">
-            <path d="M13 7.5A6 6 0 0 0 13 18.5" />
-            <line x1="10" y1="13" x2="15" y2="13" />
-            <path d="M16.9 11.4A2.5 2.5 0 0 1 16.9 14.6" />
-            <path d="M18.4 10.1A4.5 4.5 0 0 1 18.4 15.9" />
-            <path d="M20 8.8A6.5 6.5 0 0 1 20 17.2" />
-          </g>
-        </g>
-      );
-    case "thaad": // 4x2 cylindrical canister cluster, slanted skyward
-      return (
-        <g stroke={c} strokeWidth="1.6" strokeLinecap="round">
-          <g transform="rotate(15 16 16)">
-            <line x1="12" y1="20.5" x2="12" y2="11" />
-            <line x1="14.7" y1="20.5" x2="14.7" y2="10.5" />
-            <line x1="17.3" y1="20.5" x2="17.3" y2="10.5" />
-            <line x1="20" y1="20.5" x2="20" y2="11" />
-          </g>
-          <line x1="11" y1="22" x2="19" y2="22" />
-        </g>
-      );
-    case "patriot": // slant-raised canister box — 2 pods of 4 (2x2 face)
-      return (
-        <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
-          <g transform="rotate(35 16 15)">
-            <rect x="13.5" y="8" width="5" height="12" rx="0.5" />
-            <line x1="16" y1="8" x2="16" y2="20" />
-            <line x1="13.5" y1="11" x2="18.5" y2="11" />
-          </g>
-          <line x1="10" y1="21.5" x2="21" y2="21.5" />
-        </g>
-      );
-    case "avenger": // dome + stinger
+    case "thaad": // AD Missile Launcher — heavy (3 bars)
+      return <MilCanister c={c} bars={3} />;
+    case "patriot": // AD Missile Launcher — medium (2 bars)
+      return <MilCanister c={c} bars={2} />;
+    case "avenger": // AD Missile Launcher — light (1 bar)
     default:
-      return (
-        <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
-          <path d="M11 20a5 5 0 0 1 10 0" />
-          <line x1="16" y1="16" x2="16" y2="10" />
-          <path d="M16 10l-2 3M16 10l2 3" />
-        </g>
-      );
+      return <MilCanister c={c} bars={1} />;
   }
 }
 
@@ -165,18 +158,24 @@ function exelSilhouette(asset: AssetKind, c: string, count = 1) {
   switch (asset) {
     case "xbat": // full 3rd-pass wireframe projection; echelon formation when count > 1
       return count > 1 ? <XbatSwarm c={c} /> : <XbatWireframe c={c} detail />;
-    case "avenger": // HMMWV profile + twin elevated Stinger pods in a V + gunner glass
+    case "avenger": // HMMWV (hood right, big wheels) + pod each side of gunner glass, raised
       return (
         <g {...s}>
-          <circle cx="8" cy="23" r="2" />
-          <circle cx="24" cy="23" r="2" />
-          {/* rear deck + cab + hood (front right) */}
-          <path d="M3 21v-3h13v-5h4l3 3h1v2h5v3z" />
-          <line x1="12" y1="18" x2="12" y2="11" />
-          {/* twin pods angled outward-up, glass panel between */}
-          <rect x="5" y="7.5" width="6" height="3" rx="0.5" transform="rotate(-12 8 9)" />
-          <rect x="13" y="7.5" width="6" height="3" rx="0.5" transform="rotate(12 16 9)" />
-          <path d="M10.5 6.5h3v4h-3z" />
+          <circle cx="8" cy="22.5" r="2.5" />
+          <circle cx="24" cy="22.5" r="2.5" />
+          {/* HMMWV profile: rear bed low, cab roof, windshield slant, flat hood */}
+          <path d="M3 21v-6h10v-3h5l3 4h8v5z" />
+          {/* turret pedestal + gunner glass, pods raised outward on each side */}
+          <line x1="11" y1="15" x2="11" y2="10.5" />
+          <rect x="9.5" y="5.5" width="3" height="4.5" />
+          <g transform="rotate(-20 5.75 7.75)">
+            <rect x="3" y="6" width="5.5" height="3.5" rx="0.5" />
+            <line x1="3" y1="7.75" x2="8.5" y2="7.75" />
+          </g>
+          <g transform="rotate(20 16.25 7.75)">
+            <rect x="13.5" y="6" width="5.5" height="3.5" rx="0.5" />
+            <line x1="13.5" y1="7.75" x2="19" y2="7.75" />
+          </g>
         </g>
       );
     case "patriot": // HEMTT cab + equipment box + slant-raised launcher (2 pods of 4) + erector
@@ -197,22 +196,22 @@ function exelSilhouette(asset: AssetKind, c: string, count = 1) {
           <line x1="16" y1="21" x2="20" y2="15" />
         </g>
       );
-    case "thaad": // truck + 4x2 cylindrical canister cluster pointed at sky (slant-raised)
+    case "thaad": // 4 individual round-top cylinders raised steep (top-left) + truck at right
       return (
         <g {...s}>
-          <path d="M3 22h22l-2-4H5z" />
-          <circle cx="8" cy="24" r="1.8" />
-          <circle cx="20" cy="24" r="1.8" />
-          <g transform="rotate(18 14 12)">
-            {/* front row — 4 round-top canisters */}
-            <rect x="9.5" y="3.5" width="9.6" height="14.5" rx="1" />
-            <line x1="11.9" y1="4" x2="11.9" y2="17.5" />
-            <line x1="14.3" y1="4" x2="14.3" y2="17.5" />
-            <line x1="16.7" y1="4" x2="16.7" y2="17.5" />
-            {/* back-row canister mouths peeking above */}
-            <path d="M10.7 3.5a1.2 1.2 0 0 1 2.4 0M13.1 3.5a1.2 1.2 0 0 1 2.4 0M15.5 3.5a1.2 1.2 0 0 1 2.4 0" />
+          <path d="M6 22h23" />
+          <circle cx="17" cy="24" r="1.7" />
+          <circle cx="21.5" cy="24" r="1.7" />
+          <circle cx="26" cy="24" r="1.7" />
+          <path d="M24 22v-4h4l1 2v2" />
+          <g transform="rotate(-18 13 19)">
+            <rect x="8" y="4" width="2.2" height="15" rx="1.1" />
+            <rect x="10.6" y="4" width="2.2" height="15" rx="1.1" />
+            <rect x="13.2" y="4" width="2.2" height="15" rx="1.1" />
+            <rect x="15.8" y="4" width="2.2" height="15" rx="1.1" />
+            <line x1="7.5" y1="20.5" x2="18.5" y2="20.5" />
           </g>
-          <line x1="8" y1="18" x2="11" y2="13" />
+          <line x1="20" y1="21" x2="15.5" y2="14" />
         </g>
       );
     case "sentinel": // towed platform + curved dish opening RIGHT + radiating waves
@@ -250,7 +249,15 @@ export function AssetIcon({
     <svg width={size} height={size} viewBox="0 0 32 32" role="img"
       aria-label={`${ASSET_LABELS[asset]}${count > 1 ? " ×" + count : ""} (${affiliation}, ${style})`}>
       {style === "mil" ? (
-        <MilFrame aff={affiliation}>{milGlyph(asset, c, count)}</MilFrame>
+        <>
+          <MilFrame aff={affiliation} air={AIR_ASSETS.has(asset)}>{milGlyph(asset, c)}</MilFrame>
+          {/* 2525E quantity amplifier — count above the equipment symbol */}
+          {count > 1 && (
+            <text x="26.5" y="8" fontSize="8" fontWeight="bold" fill={c} textAnchor="middle" fontFamily="monospace">
+              {count}
+            </text>
+          )}
+        </>
       ) : (
         exelSilhouette(asset, c, count)
       )}
