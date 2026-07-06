@@ -256,36 +256,13 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
   useEffect(() => { setCam((c) => ({ ...c, lat0: center[0], lon0: center[1] })); }, [center[0], center[1]]);
   const { lat0: LAT0, lon0: LON0, tilt, roll, R } = cam;
   const cr = Math.cos(roll), sr = Math.sin(roll), ct = Math.cos(tilt), st = Math.sin(tilt);
-  // client px → svg viewBox coords (340×340, preserveAspectRatio meet)
-  const toVB = (clientX: number, clientY: number): [number, number] | null => {
-    const r = gsvg.current?.getBoundingClientRect(); if (!r) return null;
-    const s = Math.min(r.width, r.height) / 340;
-    return [(clientX - r.left - (r.width - 340 * s) / 2) / s, (clientY - r.top - (r.height - 340 * s) / 2) / s];
-  };
-  // inverse orthographic (incl. tilt+roll): screen point → {lat,lon} on the front face
-  const unproject = (vx: number, vy: number): { lat: number; lon: number } | null => {
-    const xr = (vx - CX) / R, yr = (CY - vy) / R;
-    const q = xr * xr + yr * yr; if (q > 1) return null; // outside the disk
-    const zr = Math.sqrt(1 - q);
-    const y0 = yr * ct + zr * st, Z = -yr * st + zr * ct;      // undo tilt (about X)
-    const X = xr * cr + y0 * sr, Yc = -xr * sr + y0 * cr;      // undo roll (about Z)
-    const p0 = LAT0 * D;
-    const lat = Math.asin(Math.max(-1, Math.min(1, Z * Math.sin(p0) + Yc * Math.cos(p0)))) / D;
-    const lon = LON0 + Math.atan2(X, Z * Math.cos(p0) - Yc * Math.sin(p0)) / D;
-    return { lat, lon };
-  };
-  // Scroll zoom — anchored on the cursor (ease that point toward centre as we zoom in).
+  // Scroll / pinch zoom — anchored on the CENTRE reticle (scale only, no recenter).
+  // Past DRILL_R we hand the current centre off to the full-screen flat map.
   useWheel(gsvg, (e) => {
     e.preventDefault();
     const zin = e.deltaY < 0, factor = zin ? 1.12 : 1 / 1.12;
-    const vb = toVB(e.clientX, e.clientY); const t = vb && unproject(vb[0], vb[1]);
-    if (cam.R * factor > DRILL_R && zin) { onDrill(t ? t.lat : cam.lat0, t ? t.lon : cam.lon0); return; }
-    setCam((c) => {
-      const R2 = Math.min(DRILL_R, Math.max(70, c.R * factor));
-      return t && zin
-        ? { ...c, R: R2, lat0: Math.max(-85, Math.min(85, c.lat0 + (t.lat - c.lat0) * 0.25)), lon0: c.lon0 + (t.lon - c.lon0) * 0.25 }
-        : { ...c, R: R2 };
-    });
+    if (cam.R * factor > DRILL_R && zin) { onDrill(cam.lat0, cam.lon0); return; }
+    setCam((c) => ({ ...c, R: Math.min(DRILL_R, Math.max(70, c.R * factor)) }));
   });
   const proj = (lat: number, lon: number): [number, number, boolean] => {
     const p = lat * D, l = (lon - LON0) * D, p0 = LAT0 * D;
@@ -370,14 +347,15 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
           const prev = touch.current.get(e.pointerId); if (!prev) return;
           touch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
           if (touch.current.size >= 2 && pinch.current) {
-            // 2-finger = pinch-zoom + orbit the view angle (drag the pinch centre)
+            // 2-finger = pinch-zoom (centre-anchored). Past DRILL_R → drill to the flat map.
             const [a, b] = Array.from(touch.current.values());
-            const dist = Math.hypot(a.x - b.x, a.y - b.y), ccx = (a.x + b.x) / 2, ccy = (a.y + b.y) / 2;
-            const factor = dist / Math.max(1, pinch.current.dist), dcx = ccx - pinch.current.cx, dcy = ccy - pinch.current.cy;
-            pinch.current = { dist, cx: ccx, cy: ccy };
+            const dist = Math.hypot(a.x - b.x, a.y - b.y);
+            const factor = dist / Math.max(1, pinch.current.dist);
+            pinch.current = { dist, cx: pinch.current.cx, cy: pinch.current.cy };
             if (cam.R * factor > DRILL_R) { onDrill(cam.lat0, cam.lon0); return; }
-            setCam((c) => ({ ...c, R: Math.min(DRILL_R, Math.max(70, c.R * factor)), roll: c.roll - dcx * 0.004, tilt: Math.max(-1.4, Math.min(1.4, c.tilt + dcy * 0.004)) }));
+            setCam((c) => ({ ...c, R: Math.min(DRILL_R, Math.max(70, c.R * factor)) }));
           } else if (touch.current.size === 1) {
+            // 1-finger = rotate/pan the globe
             const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
             setCam((c) => ({ ...c, lon0: c.lon0 - dx * 0.5, lat0: Math.min(85, Math.max(-85, c.lat0 + dy * 0.5)) }));
           }
@@ -458,20 +436,14 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
     setFlat({ x: cx - w / 2, y: cy - h / 2, w, h });
     setCenter([lat, lon]); setMode("flat");
   };
-  const vbAt = (clientX: number, clientY: number) => {
-    const r = flatSvg.current?.getBoundingClientRect();
-    if (!r) return null;
-    return { x: flat.x + ((clientX - r.left) / r.width) * flat.w, y: flat.y + ((clientY - r.top) / r.height) * flat.h };
-  };
   useWheel(flatSvg, (e) => {
     e.preventDefault();
-    const p = vbAt(e.clientX, e.clientY);
-    if (!p) return;
     const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
     if (flat.w * k >= W * 0.98 && e.deltaY > 0) { setMode("globe"); return; } // zoomed fully out → globe
     setFlat((f) => {
       const w = Math.min(W, Math.max(0.02, f.w * k)), h = w * (f.h / f.w); // ~2 km floor (street data pending)
-      return { w, h, x: p.x - ((p.x - f.x) / f.w) * w, y: p.y - ((p.y - f.y) / f.h) * h };
+      const mx = f.x + f.w / 2, my = f.y + f.h / 2; // keep the centre reticle fixed
+      return { w, h, x: mx - w / 2, y: my - h / 2 };
     });
   });
   return (
@@ -729,14 +701,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   // standalone full-screen surface (no page scroll to preserve). ~20 m min, 200 km max.
   const onWheel = (e: WheelEvent | React.WheelEvent) => {
     e.preventDefault();
-    const f = fracFromEvent(e);
-    if (!f) return;
-    const cur = containerToLatLon(f.fx, f.fy);
-    setView((v) => {
-      const span = Math.min(200, Math.max(0.02, v.spanKm * (e.deltaY > 0 ? 1.15 : 1 / 1.15)));
-      const ratio = span / v.spanKm;
-      return { ...v, spanKm: span, lat: cur.lat + (v.lat - cur.lat) * ratio, lon: cur.lon + (v.lon - cur.lon) * ratio };
-    });
+    // centre-anchored (reticle) zoom — keep the view centre fixed, scale the span
+    setView((v) => ({ ...v, spanKm: Math.min(200, Math.max(0.02, v.spanKm * (e.deltaY > 0 ? 1.15 : 1 / 1.15))) }));
   };
   useWheel(mapRef, onWheel);
 
@@ -792,17 +758,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     const r = mapRef.current?.getBoundingClientRect();
     touchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (touchRef.current.size >= 2 && pinchRef.current && r) {
+      // 2-finger = centre-anchored pinch-zoom (works in the corner mini-map too)
       const [a, b] = Array.from(touchRef.current.values());
       const dist = Math.hypot(a.x - b.x, a.y - b.y);
-      const cf = { fx: ((a.x + b.x) / 2 - r.left) / r.width, fy: ((a.y + b.y) / 2 - r.top) / r.height };
-      const cur = containerToLatLon(cf.fx, cf.fy);
       const factor = pinchRef.current.dist / Math.max(1, dist);
       pinchRef.current.dist = dist;
-      setView((v) => {
-        const span = Math.min(200, Math.max(0.02, v.spanKm * factor));
-        const ratio = span / v.spanKm;
-        return { ...v, spanKm: span, lat: cur.lat + (v.lat - cur.lat) * ratio, lon: cur.lon + (v.lon - cur.lon) * ratio };
-      });
+      setView((v) => ({ ...v, spanKm: Math.min(200, Math.max(0.02, v.spanKm * factor)) }));
     } else if (touchRef.current.size === 1 && r) {
       panBy((e.clientX - prev.x) / r.width, (e.clientY - prev.y) / r.height);
     }
