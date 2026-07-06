@@ -86,6 +86,28 @@ function EchelonGroup({ render }: { render: (sw: number) => React.ReactNode }) {
   );
 }
 
+// ── AUTO-FOIL — the operator's "A"-arrow logo: delta triangle + inner mountain ──
+// (ref: red "A" mark with a chevron mountain-range inside). This is the single
+// AUTO-FOIL icon. X-BAT = 3× the chevron peak below (echoes the A apex).
+function AutofoilMark({ c, sw = 1.5 }: { c: string; sw?: number }) {
+  return (
+    <g strokeLinejoin="round" strokeLinecap="round">
+      <path d="M16 3.5L28.5 27.5L3.5 27.5Z" stroke={c} strokeWidth={sw} fill="none" />
+      <path d="M6.5 25.7L12.6 16.4L16 20.4L20.1 14L25.5 25.7Z" stroke={c} strokeWidth={sw * 0.9} fill={`${c}33`} />
+    </g>
+  );
+}
+
+// X-BAT single-ship = a chevron "V" peak echoing the AUTO-FOIL apex.
+function ChevronMark({ c, sw = 1.5 }: { c: string; sw?: number }) {
+  return (
+    <g strokeLinejoin="round" strokeLinecap="round">
+      <path d="M4.5 23L16 8L27.5 23" stroke={c} strokeWidth={sw} fill="none" />
+      <path d="M9.5 23L16 14.5L22.5 23" stroke={c} strokeWidth={sw * 0.85} fill={`${c}2a`} />
+    </g>
+  );
+}
+
 function affColor(aff: Affiliation) {
   return aff === "hostile" ? HOSTILE : FRIENDLY;
 }
@@ -163,12 +185,12 @@ function milGlyph(asset: AssetKind, c: string) {
 function exelSilhouette(asset: AssetKind, c: string, count = 1) {
   const s = { stroke: c, strokeWidth: 1.5, fill: "none", strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
   switch (asset) {
-    case "xbat": // ALWAYS a 3-ship echelon of foils — X-BAT deploys as a swarm
-      return <EchelonGroup render={(sw) => <path d={FOIL_OUTLINE} stroke={c} strokeWidth={sw} fill="none" />} />;
-    case "autofoil": // single autonomous foil — full 3rd-pass wireframe detail
+    case "xbat": // ALWAYS a 3-ship echelon of chevron peaks — X-BAT deploys as a swarm
+      return <EchelonGroup render={(sw) => <ChevronMark c={c} sw={sw} />} />;
+    case "autofoil": // the "A"-arrow logo mark; echelon of chevrons when grouped
       return count > 1
-        ? <EchelonGroup render={(sw) => <path d={FOIL_OUTLINE} stroke={c} strokeWidth={sw} fill="none" />} />
-        : <FoilWireframe c={c} detail />;
+        ? <EchelonGroup render={(sw) => <ChevronMark c={c} sw={sw} />} />
+        : <AutofoilMark c={c} />;
     case "avenger": // HMMWV (hood right, big wheels) + pod each side of gunner glass, raised
       return (
         <g {...s}>

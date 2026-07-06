@@ -85,30 +85,43 @@ export interface GridLine {
 }
 
 /**
- * 1 km UTM grid lines for a lat/lon bounding box, as screen fractions.
- * Vertical lines from eastings at center latitude; horizontal from northings
- * at center longitude (linear across a ~12 km AO — visually exact at this scale).
+ * Pick a UTM grid step (m) so ~6–14 lines span the box — 1 km at AO scale,
+ * stepping down to 10 m (8-digit MGRS resolution) as you zoom in.
+ */
+export function chooseGridStep(spanMeters: number): number {
+  const steps = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
+  const target = spanMeters / 9;
+  for (const s of steps) if (s >= target) return s;
+  return 10000;
+}
+
+/**
+ * UTM grid lines for a lat/lon bounding box, as screen fractions, at a chosen
+ * step in meters. `km` carries the grid ordinate: value/1000 when step≥1 km,
+ * else metres-within-km — the map header states the active step.
  */
 export function utmKmGrid(
   latMin: number,
   latMax: number,
   lonMin: number,
-  lonMax: number
-): { vertical: GridLine[]; horizontal: GridLine[] } {
+  lonMax: number,
+  stepM = 1000
+): { vertical: GridLine[]; horizontal: GridLine[]; stepM: number } {
   const latC = (latMin + latMax) / 2;
   const lonC = (lonMin + lonMax) / 2;
   const w = latLonToUtm(latC, lonMin).easting;
   const e = latLonToUtm(latC, lonMax).easting;
   const s = latLonToUtm(latMin, lonC).northing;
   const n = latLonToUtm(latMax, lonC).northing;
+  // Label: km number (00–99) when step ≥ 1 km, else metres-within-km (0–900).
+  const ord = (v: number) => (stepM >= 1000 ? Math.floor(v / 1000) % 100 : Math.round(v % 1000));
   const vertical: GridLine[] = [];
-  for (let E = Math.ceil(w / 1000) * 1000; E < e; E += 1000) {
-    vertical.push({ frac: (E - w) / (e - w), km: Math.floor(E / 1000) % 100 });
+  for (let E = Math.ceil(w / stepM) * stepM; E < e; E += stepM) {
+    vertical.push({ frac: (E - w) / (e - w), km: ord(E) });
   }
   const horizontal: GridLine[] = [];
-  for (let N = Math.ceil(s / 1000) * 1000; N < n; N += 1000) {
-    // frac measured from TOP of the box (screen y)
-    horizontal.push({ frac: (n - N) / (n - s), km: Math.floor(N / 1000) % 100 });
+  for (let N = Math.ceil(s / stepM) * stepM; N < n; N += stepM) {
+    horizontal.push({ frac: (n - N) / (n - s), km: ord(N) });
   }
-  return { vertical, horizontal };
+  return { vertical, horizontal, stepM };
 }

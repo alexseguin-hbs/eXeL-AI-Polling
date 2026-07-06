@@ -21,11 +21,11 @@
  * Buildings: exterior corners + domes only for now (edge wireframe later).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Grid3x3, MapPin, Trash2, ChevronRight } from "lucide-react";
+import { Grid3x3, MapPin, Trash2, ChevronRight, Settings } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle,
 } from "@/components/security-2525/asset-icons";
-import { latLonToMgrs, utmKmGrid } from "@/components/security-2525/mgrs";
+import { latLonToMgrs, utmKmGrid, chooseGridStep } from "@/components/security-2525/mgrs";
 import {
   SUPPORT_CATALOG, GROUP_META, REALITY_MODES,
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
@@ -85,8 +85,12 @@ interface Ao {
   halfKm: number;
   landmarks: { name: string; lat: number; lon: number }[];
   buildings: Building[];
-  /** A gridiron test venue — drone-play sandbox (offsets in meters from ref). */
-  field?: { ref: [number, number] };
+  /** A gridiron test venue — drone-play sandbox. Defined by its 4 real corners
+   *  (lat,lon) so the wireframe overlays the actual turf. Yard lines are
+   *  bilinearly interpolated N→S between the end lines. */
+  field?: { nw: [number, number]; ne: [number, number]; sw: [number, number]; se: [number, number] };
+  /** Default MGRS precision for this AO (4/5/6 = 8/10/12-digit). */
+  precision?: Digits;
 }
 
 const AOS: Ao[] = [
@@ -110,15 +114,22 @@ const AOS: Ao[] = [
     buildings: [TX_CAPITOL],
   },
   {
-    // The concrete test venue: drone play on an Austin gridiron — asset sim in a
-    // real field environment (House Park, illustrative coords).
-    key: "field",
-    name: "HOUSE PARK FIELD · AUSTIN TX",
-    center: [30.28066, -97.75345],
-    halfKm: 0.12,
-    landmarks: [],
+    // Drone-play test venue: THE PFIELD (Pflugerville ISD stadium, opened 2017).
+    // Real turf corners (operator-surveyed via Google Maps). Long-axis ≈ N-S.
+    // Small AO for 12-digit precision + A→B→C object-movement testing.
+    key: "pfield",
+    name: "THE PFIELD · PFLUGERVILLE TX",
+    center: [30.4485425, -97.6344145], // mean of the 4 corners
+    halfKm: 0.09,
+    precision: 6, // 12-digit (0.1 m)
+    landmarks: [{ name: "The Pfield", lat: 30.4485425, lon: -97.6344145 }],
     buildings: [],
-    field: { ref: [30.28066, -97.75345] },
+    field: {
+      nw: [30.449105, -97.634743],
+      ne: [30.449104, -97.634061],
+      sw: [30.447996, -97.634772],
+      se: [30.447980, -97.634081],
+    },
   },
   {
     key: "jblm",
@@ -132,14 +143,6 @@ const AOS: Ao[] = [
     buildings: [],
   },
 ];
-
-// Football field wireframe in meters from center (120 yd × 53.3 yd; 1 yd=0.9144 m).
-// Length axis = E-W. Yard lines every 5 yd, goal lines at ±45.72, end lines ±54.86.
-const YD = 0.9144;
-const FIELD = {
-  halfLen: 60 * YD, halfWid: 26.65 * YD, goal: 45 * YD,
-  yardLines: Array.from({ length: 19 }, (_, i) => (i - 9) * 5 * YD), // -45..45 every 5yd
-};
 
 // ── Equipment inventory (machinery on hand for the mission) ──────────────────
 interface InvItem { asset: AssetKind; stock: number; note: string; group: number }
@@ -185,6 +188,11 @@ function GlobeView({ data, aoKey, onSelect }: { data: BorderData | null; aoKey: 
   // Drag-rotate (lat0/lon0) + wheel-zoom (R) — video-game orbit navigation.
   const [rot, setRot] = useState({ lat0: 38, lon0: -97, R: 128 });
   const dref = useRef<{ x: number; y: number } | null>(null);
+  // Recenter the globe on the selected AO when a tab is clicked.
+  useEffect(() => {
+    const sel = AOS.find((a) => a.key === aoKey);
+    if (sel) setRot((r) => ({ ...r, lat0: sel.center[0], lon0: sel.center[1] }));
+  }, [aoKey]);
   const { lat0: LAT0, lon0: LON0, R } = rot;
   const proj = (lat: number, lon: number): [number, number, boolean] => {
     const p = lat * D, l = (lon - LON0) * D, p0 = LAT0 * D;
@@ -306,13 +314,42 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
       states: data.usStates.map((r) => ringPath(r, W, H)).join(""),
     };
   }, [data]);
+  // Flat map: pan (drag) + zoom (wheel) via a live viewBox, same as the AO map.
+  const [flat, setFlat] = useState({ x: 0, y: H * 0.08, w: W, h: H * 0.62 });
+  const flatDrag = useRef<{ x: number; y: number } | null>(null);
+  const flatSvg = useRef<SVGSVGElement>(null);
+  const vbAt = (clientX: number, clientY: number) => {
+    const r = flatSvg.current?.getBoundingClientRect();
+    if (!r) return null;
+    return { x: flat.x + ((clientX - r.left) / r.width) * flat.w, y: flat.y + ((clientY - r.top) / r.height) * flat.h };
+  };
   return (
     <div className="relative overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
         <GlobeView data={data} aoKey={aoKey} onSelect={onSelect} />
       ) : (
-        <svg viewBox={`0 ${H * 0.08} ${W} ${H * 0.62}`} className="block w-full" role="img"
-          aria-label="World context — country borders + US state borders (Natural Earth 50m)">
+        <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} className="block w-full touch-none" role="img"
+          style={{ cursor: flatDrag.current ? "grabbing" : "grab" }}
+          aria-label="World context — country borders + US state borders (Natural Earth 50m)"
+          onWheel={(e) => {
+            e.preventDefault();
+            const p = vbAt(e.clientX, e.clientY);
+            if (!p) return;
+            const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
+            setFlat((f) => {
+              const w = Math.min(W, Math.max(20, f.w * k)), h = w * (f.h / f.w);
+              return { w, h, x: p.x - ((p.x - f.x) / f.w) * w, y: p.y - ((p.y - f.y) / f.h) * h };
+            });
+          }}
+          onPointerDown={(e) => { flatDrag.current = { x: e.clientX, y: e.clientY }; }}
+          onPointerMove={(e) => {
+            const d = flatDrag.current; if (!d) return;
+            const r = flatSvg.current?.getBoundingClientRect(); if (!r) return;
+            const dx = (e.clientX - d.x) / r.width * flat.w, dy = (e.clientY - d.y) / r.height * flat.h;
+            d.x = e.clientX; d.y = e.clientY;
+            setFlat((f) => ({ ...f, x: f.x - dx, y: f.y - dy }));
+          }}
+          onPointerUp={() => { flatDrag.current = null; }}>
           {paths && (
             <>
               <path d={paths.countries} fill="none" stroke={C.borderCountry} strokeWidth="0.45" opacity="0.55" />
@@ -406,10 +443,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [aoKey, setAoKey] = useState("capitol");
   const [gridOn, setGridOn] = useState(true);
   const [digits, setDigits] = useState<Digits>(4);
+  const [coordFmt, setCoordFmt] = useState<"mgrs" | "dms">("mgrs");
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [placed, setPlaced] = useState<Placed[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<AssetKind | null>(null);
-  const [cursorMgrs, setCursorMgrs] = useState<string | null>(null);
+  const [cursorLL, setCursorLL] = useState<{ lat: number; lon: number } | null>(null);
   // mission-support palette state
   const [tab, setTab] = useState<"assets" | "support">("assets");
   const [selectedSupport, setSelectedSupport] = useState<SupportObjectDef | null>(null);
@@ -419,6 +457,14 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [selected, setSelected] = useState<{ kind: "asset" | "support"; id: number } | null>(null);
   const [elevOn, setElevOn] = useState(true);
   const [bottomH, setBottomH] = useState(150); // resizable elevation band (~1/3 default)
+  // Session-wide UX prefs (persist to localStorage → carry across sections).
+  const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
+  const [showSettings, setShowSettings] = useState(false);
+  const [cursorPx, setCursorPx] = useState<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    try { const v = localStorage.getItem("sec2525.cursorMode"); if (v === "target" || v === "pointer") setCursorMode(v); } catch { /* no storage */ }
+  }, []);
+  const setCursor = (m: "pointer" | "target") => { setCursorMode(m); try { localStorage.setItem("sec2525.cursorMode", m); } catch { /* no storage */ } };
   const idRef = useRef(1);
   const mapRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
@@ -429,6 +475,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [view, setView] = useState(() => ({ lat: ao.center[0], lon: ao.center[1], spanKm: ao.halfKm * 2 }));
   useEffect(() => {
     setView({ lat: ao.center[0], lon: ao.center[1], spanKm: ao.halfKm * 2 });
+    if (ao.precision) setDigits(ao.precision); // e.g. Pfield → 12-digit
   }, [aoKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const panRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -438,7 +485,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     const dLon = halfKm / (111.32 * Math.cos((view.lat * Math.PI) / 180));
     return { latMin: view.lat - dLat, latMax: view.lat + dLat, lonMin: view.lon - dLon, lonMax: view.lon + dLon };
   }, [view]);
-  const grid = useMemo(() => utmKmGrid(box.latMin, box.latMax, box.lonMin, box.lonMax), [box]);
+  const grid = useMemo(
+    () => utmKmGrid(box.latMin, box.latMax, box.lonMin, box.lonMax, chooseGridStep(view.spanKm * 1000)),
+    [box, view.spanKm]
+  );
+  const gridLabel = grid.stepM >= 1000 ? `${grid.stepM / 1000} KM` : `${grid.stepM} M`;
   // AO box width in meters — scales building-overlay radii (dome) to screen %
   const boxW = (box.lonMax - box.lonMin) * 111320 * Math.cos((ao.center[0] * Math.PI) / 180);
 
@@ -457,6 +508,16 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   };
   const bldFrac = (b: Building, east: number, north: number) => mFrac(b.ref[0], b.ref[1], east, north);
   const mgrsAt = (lat: number, lon: number, d: Digits = digits) => latLonToMgrs(lat, lon, d);
+  // LLV-DMS (lat/lon in degrees-minutes-seconds). Precision scales seconds decimals.
+  const dms1 = (v: number, pos: string, neg: string) => {
+    const h = v >= 0 ? pos : neg, a = Math.abs(v);
+    const d = Math.floor(a), m = Math.floor((a - d) * 60);
+    const s = ((a - d) * 60 - m) * 60;
+    const dec = digits >= 6 ? 3 : digits === 5 ? 2 : 1;
+    return `${d}°${String(m).padStart(2, "0")}'${s.toFixed(dec).padStart(dec + 3, "0")}"${h}`;
+  };
+  const coordAt = (lat: number, lon: number) =>
+    coordFmt === "dms" ? `${dms1(lat, "N", "S")} ${dms1(lon, "E", "W")}` : mgrsAt(lat, lon);
 
   const fracFromEvent = (e: { clientX: number; clientY: number }) => {
     const r = mapRef.current?.getBoundingClientRect();
@@ -475,7 +536,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (!f) return;
     const cur = toLatLon(f.fx, f.fy);
     setView((v) => {
-      const span = Math.min(200, Math.max(0.3, v.spanKm * (e.deltaY > 0 ? 1.15 : 1 / 1.15)));
+      // min 0.08 km (80 m box → 10 m grid, 8-digit MGRS resolution); max 200 km
+      const span = Math.min(200, Math.max(0.08, v.spanKm * (e.deltaY > 0 ? 1.15 : 1 / 1.15)));
       const ratio = span / v.spanKm;
       return { spanKm: span, lat: cur.lat + (v.lat - cur.lat) * ratio, lon: cur.lon + (v.lon - cur.lon) * ratio };
     });
@@ -488,12 +550,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
-    const f = fracFromEvent(e);
-    if (f) { const { lat, lon } = toLatLon(f.fx, f.fy); setCursorMgrs(mgrsAt(lat, lon)); }
-    const d = dragRef.current;
-    if (!d) return;
     const r = mapRef.current?.getBoundingClientRect();
-    if (!r) return;
+    if (r) setCursorPx({ x: e.clientX - r.left, y: e.clientY - r.top });
+    const f = fracFromEvent(e);
+    if (f) setCursorLL(toLatLon(f.fx, f.fy));
+    const d = dragRef.current;
+    if (!d || !r) return;
     const dx = e.clientX - d.x, dy = e.clientY - d.y;
     if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
     d.x = e.clientX; d.y = e.clientY;
@@ -557,10 +619,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   // current view box. Bottom = W→E ridge (multi-row pseudo-3D). Right = N→S column.
   const elevProfile = useMemo(() => {
     const N = 64;
-    const sampleRow = (lat: number) =>
-      Array.from({ length: N }, (_, i) => synthElevation(lat, box.lonMin + (i / (N - 1)) * (box.lonMax - box.lonMin)));
-    const sampleCol = (lon: number) =>
-      Array.from({ length: N }, (_, i) => synthElevation(box.latMax - (i / (N - 1)) * (box.latMax - box.latMin), lon));
+    const lonAt = (i: number) => box.lonMin + (i / (N - 1)) * (box.lonMax - box.lonMin);
+    const latAt = (i: number) => box.latMax - (i / (N - 1)) * (box.latMax - box.latMin);
+    const sampleRow = (lat: number) => Array.from({ length: N }, (_, i) => synthElevation(lat, lonAt(i)));
+    const sampleCol = (lon: number) => Array.from({ length: N }, (_, i) => synthElevation(latAt(i), lon));
     const front = sampleRow((box.latMin + box.latMax) / 2);
     const col = sampleCol((box.lonMin + box.lonMax) / 2);
     const all = [...front, ...col];
@@ -568,18 +630,24 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     const y = (e: number) => 38 - ((e - min) / rng) * 34; // bottom band viewBox 0..40
     const line = (arr: number[], yShift = 0) =>
       arr.map((e, i) => `${i ? "L" : "M"}${((i / (N - 1)) * 100).toFixed(2)} ${(y(e) + yShift).toFixed(2)}`).join("");
-    // 4 back-rows offset upward = pseudo-3D relief
     const ROWS = 4;
     const rows = Array.from({ length: ROWS }, (_, r) =>
       line(sampleRow(box.latMin + ((r + 1) / (ROWS + 1)) * (box.latMax - box.latMin)), -r * 1.4)
     );
     const frontFill = `${line(front)} L100 40 L0 40 Z`;
-    // right band viewBox 0..40 wide, 0..100 tall
     const rx = (e: number) => 4 + ((e - min) / rng) * 32;
     const rightPath =
       col.map((e, i) => `${i ? "L" : "M"}${rx(e).toFixed(2)} ${((i / (N - 1)) * 100).toFixed(2)}`).join("") +
       " L4 100 L4 0 Z";
-    return { min, max, rows, frontFill, rightPath };
+    // HIGH / LOW within the FRONT profile (drawn W→E center row)
+    let hi = 0, lo = 0;
+    front.forEach((e, i) => { if (e > front[hi]) hi = i; if (e < front[lo]) lo = i; });
+    const mark = (i: number) => ({ x: (i / (N - 1)) * 100, yy: y(front[i]), e: front[i], lat: (box.latMin + box.latMax) / 2, lon: lonAt(i) });
+    // Contour reference levels (nice step) → contour-like banding
+    const step = [5, 10, 25, 50, 100, 250].find((s) => rng / s <= 6) ?? 500;
+    const contours: number[] = [];
+    for (let lv = Math.ceil(min / step) * step; lv < max; lv += step) contours.push(lv);
+    return { min, max, rng, rows, frontFill, rightPath, y, high: mark(hi), low: mark(lo), contours, step };
   }, [box]);
 
   return (
@@ -596,21 +664,30 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
         ))}
       </div>
 
-      {/* Controls: AO · grid toggle · MGRS precision */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* AO location toggle — scrolls left↔right */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {AOS.map((a) => (
           <button key={a.key} onClick={() => { setAoKey(a.key); clearAo(); }}
-            className="rounded border px-2 py-1 text-[10px] font-semibold tracking-wide"
+            className="shrink-0 whitespace-nowrap rounded border px-2 py-1 text-[10px] font-semibold tracking-wide"
             style={{ borderColor: a.key === aoKey ? C.cyan : C.border, color: a.key === aoKey ? C.cyan : C.dim, background: a.key === aoKey ? "#152238" : "transparent" }}>
             {a.name}
           </button>
         ))}
-        <span className="mx-1 h-4 w-px" style={{ background: C.border }} />
+      </div>
+
+      {/* Controls: grid · MGRS/LLV-DMS format · precision · live readout */}
+      <div className="flex flex-wrap items-center gap-2">
         <button onClick={() => setGridOn(!gridOn)}
           className="flex items-center gap-1.5 rounded border px-2 py-1 text-[10px] font-semibold"
           style={{ borderColor: gridOn ? C.green : C.border, color: gridOn ? C.green : C.dim }}>
           <Grid3x3 className="h-3 w-3" /> GRID {gridOn ? "ON" : "OFF"}
         </button>
+        <div className="flex overflow-hidden rounded border text-[10px] font-semibold" style={{ borderColor: C.border }}>
+          {([["mgrs", "MGRS"], ["dms", "LLV-DMS"]] as const).map(([f, label]) => (
+            <button key={f} onClick={() => setCoordFmt(f)} className="px-2 py-1"
+              style={{ background: coordFmt === f ? "#152238" : "transparent", color: coordFmt === f ? C.cyan : C.dim }}>{label}</button>
+          ))}
+        </div>
         {PRECISIONS.map((p) => (
           <button key={p.d} onClick={() => setDigits(p.d)} title={p.hint}
             className="rounded border px-2 py-1 text-[10px] font-semibold"
@@ -618,8 +695,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             {p.label}
           </button>
         ))}
-        <span className="ml-auto font-mono text-[11px]" style={{ color: cursorMgrs ? C.gold : C.dim }}>
-          {cursorMgrs ?? `${mgrsAt(ao.center[0], ao.center[1])} · CENTER`}
+        <span className="ml-auto whitespace-nowrap font-mono text-[11px]" style={{ color: cursorLL ? C.gold : C.dim }}>
+          {cursorLL ? coordAt(cursorLL.lat, cursorLL.lon) : `${coordAt(ao.center[0], ao.center[1])} · CENTER`}
         </span>
       </div>
 
@@ -718,13 +795,13 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               {placed.map((u) => (
                 <div key={`a${u.id}`} className="flex items-center justify-between gap-1 text-[9px]">
                   <span style={{ color: C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
-                  <span className="font-mono" style={{ color: C.gold }}>{mgrsAt(u.lat, u.lon)}</span>
+                  <span className="font-mono" style={{ color: C.gold }}>{coordAt(u.lat, u.lon)}</span>
                 </div>
               ))}
               {placedSupport.map((u) => (
                 <div key={`s${u.id}`} className="flex items-center justify-between gap-1 text-[9px]">
                   <span className="truncate" style={{ color: u.def.color }}>{u.def.term}</span>
-                  <span className="font-mono" style={{ color: C.gold }}>{mgrsAt(u.lat, u.lon)}</span>
+                  <span className="font-mono" style={{ color: C.gold }}>{coordAt(u.lat, u.lon)}</span>
                 </div>
               ))}
             </div>
@@ -744,28 +821,50 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           </div>
         </div>
 
-        {/* AO MAP — MGRS 1 km grid · wheel-zoom · drag-pan · elevation profiles */}
+        {/* AO MAP — adaptive MGRS grid · wheel-zoom · drag-pan · elevation profiles */}
         <div className="rounded-lg border p-3" style={{ background: C.panel, borderColor: C.border }}>
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="relative mb-2 flex flex-wrap items-center justify-between gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
               {ao.name} — {view.spanKm < 1 ? `${Math.round(view.spanKm * 1000)} m` : `${view.spanKm.toFixed(1)} km`} AO
+              <span style={{ color: C.dim }}> · GRID {gridLabel}</span>
             </span>
             <div className="flex items-center gap-2 text-[9px]" style={{ color: C.dim }}>
-              <button onClick={() => setElevOn(!elevOn)} className="rounded border px-1.5 py-0.5 font-semibold"
-                style={{ borderColor: elevOn ? C.gold : C.border, color: elevOn ? C.gold : C.dim }}>
-                ELEV {elevOn ? "ON" : "OFF"}
-              </button>
               <button onClick={() => setView({ lat: ao.center[0], lon: ao.center[1], spanKm: ao.halfKm * 2 })}
                 className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.border }}>
                 RESET VIEW
               </button>
-              <span>WHEEL=ZOOM · DRAG=PAN · CLICK=SELECT/PLACE</span>
+              <span className="hidden lg:inline">WHEEL=ZOOM · DRAG=PAN · CLICK=SELECT/PLACE</span>
+              <button onClick={() => setShowSettings((s) => !s)} className="flex items-center gap-1 rounded border px-1.5 py-0.5 font-semibold"
+                style={{ borderColor: showSettings ? C.cyan : C.border, color: showSettings ? C.cyan : C.dim }}>
+                <Settings className="h-3 w-3" /> SETTINGS
+              </button>
             </div>
+            {showSettings && (
+              <div className="absolute right-0 top-6 z-30 w-56 rounded-lg border p-3 shadow-xl" style={{ background: C.panel, borderColor: C.cyan }}>
+                <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Mission Planning Settings</div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[10px]" style={{ color: C.text }}>Elevation profiles</span>
+                  <button onClick={() => setElevOn(!elevOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                    style={{ borderColor: elevOn ? C.gold : C.border, color: elevOn ? C.gold : C.dim }}>{elevOn ? "ON" : "OFF"}</button>
+                </div>
+                <div className="mb-1 text-[10px]" style={{ color: C.text }}>Pointer</div>
+                <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+                  {([["pointer", "DEFAULT"], ["target", "MINI-TARGET"]] as const).map(([m, label]) => (
+                    <button key={m} onClick={() => setCursor(m)} className="flex-1 px-2 py-1"
+                      style={{ background: cursorMode === m ? "#152238" : "transparent", color: cursorMode === m ? C.cyan : C.dim }}>{label}</button>
+                  ))}
+                </div>
+                <p className="text-[8px] leading-snug" style={{ color: C.dim }}>
+                  Pointer choice is saved and <span style={{ color: C.text }}>carries across sections</span> (localStorage
+                  <span className="font-mono"> sec2525.cursorMode</span>). Grid &amp; MGRS precision live on the toolbar above the map.
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex gap-1">
           <div ref={mapRef}
-            className="relative aspect-square w-full max-w-[620px] overflow-hidden rounded-md touch-none"
-            style={{ background: "radial-gradient(ellipse at 50% 55%, #0f2033 0%, #070b12 75%)", border: `1px solid ${C.border}`, cursor: armed ? "crosshair" : dragRef.current ? "grabbing" : "grab" }}
+            className="relative aspect-square w-full flex-1 overflow-hidden rounded-md touch-none"
+            style={{ background: "radial-gradient(ellipse at 50% 55%, #0f2033 0%, #070b12 75%)", border: `1px solid ${C.border}`, cursor: cursorMode === "target" ? "none" : armed ? "crosshair" : dragRef.current ? "grabbing" : "grab" }}
             onWheel={onWheel}
             onContextMenu={(e) => e.preventDefault()}
             onPointerDown={onPointerDown}
@@ -777,7 +876,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               const f = fracFromEvent(e);
               if (f) dropAt(e.dataTransfer.getData("text/plain"), f.fx, f.fy);
             }}
-            onMouseLeave={() => setCursorMgrs(null)}>
+            onMouseLeave={() => { setCursorLL(null); setCursorPx(null); }}>
             <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               {/* 1 km UTM grid — toggleable */}
               {gridOn && grid.vertical.map((l) => (
@@ -815,27 +914,38 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   </g>
                 );
               })}
-              {/* Football field wireframe — drone-play test venue */}
+              {/* Football field wireframe — overlaid on the REAL turf via 4 corners.
+                  Bilinear: u=0→N end line, u=1→S; v=0→W sideline, v=1→E. */}
               {ao.field && (() => {
-                const [rl, ro] = ao.field.ref;
-                const P = (e: number, n: number) => { const f = mFrac(rl, ro, e, n); return `${(f.fx * 100).toFixed(2)},${(f.fy * 100).toFixed(2)}`; };
-                const L = (e: number, n1: number, n2: number) => {
-                  const a = mFrac(rl, ro, e, n1), b = mFrac(rl, ro, e, n2);
-                  return <line key={`yl${e.toFixed(1)}`} x1={a.fx * 100} y1={a.fy * 100} x2={b.fx * 100} y2={b.fy * 100} stroke={C.land} strokeWidth="0.25" opacity="0.7" />;
+                const { nw, ne, sw, se } = ao.field;
+                const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+                // point at (u along N→S, v along W→E) → screen fraction
+                const pt = (u: number, v: number) => {
+                  const lat = lerp(lerp(nw[0], ne[0], v), lerp(sw[0], se[0], v), u);
+                  const lon = lerp(lerp(nw[1], ne[1], v), lerp(sw[1], se[1], v), u);
+                  return toFrac(lat, lon);
                 };
+                const XY = (u: number, v: number) => { const f = pt(u, v); return `${(f.fx * 100).toFixed(2)},${(f.fy * 100).toFixed(2)}`; };
+                const line = (u: number, color: string, w: number, op: number) => {
+                  const a = pt(u, 0), b = pt(u, 1);
+                  return <line key={`u${u.toFixed(3)}`} x1={a.fx * 100} y1={a.fy * 100} x2={b.fx * 100} y2={b.fy * 100} stroke={color} strokeWidth={w} opacity={op} />;
+                };
+                // 120 yd end-to-end; yard lines every 5 yd (24 intervals); goals at 10/110 yd.
+                const yardUs = Array.from({ length: 23 }, (_, i) => (i + 1) / 24);
+                const goalN = 10 / 120, goalS = 110 / 120;
                 return (
                   <g>
-                    <polygon points={[P(-FIELD.halfLen, -FIELD.halfWid), P(FIELD.halfLen, -FIELD.halfWid), P(FIELD.halfLen, FIELD.halfWid), P(-FIELD.halfLen, FIELD.halfWid)].join(" ")}
-                      fill={`${C.land}0e`} stroke={C.land} strokeWidth="0.4" strokeLinejoin="round" />
-                    {/* end zones */}
-                    <polygon points={[P(-FIELD.halfLen, -FIELD.halfWid), P(-FIELD.goal, -FIELD.halfWid), P(-FIELD.goal, FIELD.halfWid), P(-FIELD.halfLen, FIELD.halfWid)].join(" ")} fill={`${C.cyan}14`} stroke={C.cyan} strokeWidth="0.3" />
-                    <polygon points={[P(FIELD.goal, -FIELD.halfWid), P(FIELD.halfLen, -FIELD.halfWid), P(FIELD.halfLen, FIELD.halfWid), P(FIELD.goal, FIELD.halfWid)].join(" ")} fill={`${C.cyan}14`} stroke={C.cyan} strokeWidth="0.3" />
-                    {/* yard lines every 5 yd */}
-                    {FIELD.yardLines.map((e) => L(e, -FIELD.halfWid, FIELD.halfWid))}
-                    {/* 50-yard line emphasis */}
-                    <line x1={mFrac(rl, ro, 0, -FIELD.halfWid).fx * 100} y1={mFrac(rl, ro, 0, -FIELD.halfWid).fy * 100}
-                      x2={mFrac(rl, ro, 0, FIELD.halfWid).fx * 100} y2={mFrac(rl, ro, 0, FIELD.halfWid).fy * 100}
-                      stroke={C.gold} strokeWidth="0.4" opacity="0.8" />
+                    {/* outer turf boundary */}
+                    <polygon points={[XY(0, 0), XY(0, 1), XY(1, 1), XY(1, 0)].join(" ")} fill={`${C.land}12`} stroke={C.land} strokeWidth="0.4" strokeLinejoin="round" />
+                    {/* end zones (N + S) */}
+                    <polygon points={[XY(0, 0), XY(0, 1), XY(goalN, 1), XY(goalN, 0)].join(" ")} fill={`${C.cyan}16`} stroke={C.cyan} strokeWidth="0.3" />
+                    <polygon points={[XY(goalS, 0), XY(goalS, 1), XY(1, 1), XY(1, 0)].join(" ")} fill={`${C.cyan}16`} stroke={C.cyan} strokeWidth="0.3" />
+                    {/* yard lines */}
+                    {yardUs.map((u) => line(u, C.land, 0.22, 0.65))}
+                    {/* goal lines + 50 */}
+                    {line(goalN, C.cyan, 0.35, 0.9)}
+                    {line(goalS, C.cyan, 0.35, 0.9)}
+                    {line(0.5, C.gold, 0.4, 0.9)}
                   </g>
                 );
               })()}
@@ -873,7 +983,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               return (
                 <button key={u.id}
                   onPointerUp={(e) => { if (!dragRef.current?.moved) { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); } }}
-                  title={`${ASSET_LABELS[u.asset]} — ${mgrsAt(u.lat, u.lon)}`}
+                  title={`${ASSET_LABELS[u.asset]} — ${coordAt(u.lat, u.lon)}`}
                   className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
                   style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%` }}>
                   {sel && <span className="absolute h-8 w-8 rounded-full" style={{ boxShadow: `0 0 0 2px ${C.gold}`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
@@ -892,7 +1002,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               return (
                 <button key={u.id}
                   onPointerUp={(e) => { if (!dragRef.current?.moved) { e.stopPropagation(); setSelected({ kind: "support", id: u.id }); } }}
-                  title={`${u.def.term} · ${u.reality} — ${mgrsAt(u.lat, u.lon)}`}
+                  title={`${u.def.term} · ${u.reality} — ${coordAt(u.lat, u.lon)}`}
                   className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
                   style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%` }}>
                   {sel && <span className="absolute h-7 w-7 rounded-full" style={{ boxShadow: `0 0 0 2px ${C.gold}`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
@@ -903,6 +1013,19 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 </button>
               );
             })}
+            {/* 3-layer mini-target cursor (center dot + circle 1 + circle 2) */}
+            {cursorMode === "target" && cursorPx && (
+              <svg className="pointer-events-none absolute" width="44" height="44"
+                style={{ left: cursorPx.x - 22, top: cursorPx.y - 22 }}>
+                <circle cx="22" cy="22" r="20" fill="none" stroke={C.cyan} strokeWidth="1" opacity="0.5" />
+                <circle cx="22" cy="22" r="11" fill="none" stroke={C.cyan} strokeWidth="1" opacity="0.8" />
+                <circle cx="22" cy="22" r="1.6" fill={C.gold} />
+                <line x1="22" y1="2" x2="22" y2="9" stroke={C.cyan} strokeWidth="1" />
+                <line x1="22" y1="35" x2="22" y2="42" stroke={C.cyan} strokeWidth="1" />
+                <line x1="2" y1="22" x2="9" y2="22" stroke={C.cyan} strokeWidth="1" />
+                <line x1="35" y1="22" x2="42" y2="22" stroke={C.cyan} strokeWidth="1" />
+              </svg>
+            )}
           </div>
 
           {/* RIGHT ELEVATION SCALE — vertical profile across the AO center column */}
@@ -931,19 +1054,43 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 }}
                 onPointerUp={() => { bottomDrag.current = null; }}
                 className="mt-1 flex h-3 cursor-row-resize items-center justify-center rounded"
-                style={{ maxWidth: 620, background: "transparent" }} title="Drag to resize the elevation panel">
+                style={{ background: "transparent" }} title="Drag to resize the elevation panel">
                 <span className="h-0.5 w-10 rounded-full" style={{ background: C.border }} />
               </div>
-              <div className="relative overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12", maxWidth: 620, height: bottomH }}>
+              <div className="relative overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12", height: bottomH }}>
                 <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="h-full w-full">
+                  {/* contour reference lines (nice elevation step) */}
+                  {elevProfile.contours.map((lv) => {
+                    const yy = elevProfile.y(lv);
+                    return <line key={lv} x1="0" y1={yy} x2="100" y2={yy} stroke={C.land} strokeWidth="0.15" opacity="0.25" />;
+                  })}
+                  {/* pseudo-3D back rows */}
                   {elevProfile.rows.map((d, i) => (
-                    <path key={i} d={d} fill="none" stroke={C.gold} strokeWidth="0.4" opacity={0.25 + 0.6 * (i / (elevProfile.rows.length - 1))} />
+                    <path key={i} d={d} fill="none" stroke={C.land} strokeWidth="0.35" opacity={0.2 + 0.5 * (i / (elevProfile.rows.length - 1))} />
                   ))}
-                  <path d={elevProfile.frontFill} fill={`${C.gold}18`} stroke={C.gold} strokeWidth="0.6" />
+                  {/* green LAND fill (blue baseline = water datum reference) */}
+                  <path d={elevProfile.frontFill} fill={`${C.land}18`} stroke={C.land} strokeWidth="0.6" />
+                  <line x1="0" y1="39.5" x2="100" y2="39.5" stroke="#38bdf8" strokeWidth="0.5" opacity="0.5" />
+                  {/* HIGH ▲ / LOW ▼ within view */}
+                  <g>
+                    <circle cx={elevProfile.high.x} cy={elevProfile.high.yy} r="0.9" fill={C.gold} />
+                    <circle cx={elevProfile.low.x} cy={elevProfile.low.yy} r="0.9" fill="#38bdf8" />
+                  </g>
                 </svg>
-                <span className="absolute left-1 top-0.5 text-[7px] font-semibold tracking-wider" style={{ color: C.dim }}>ELEVATION PROFILE · W→E · SYNTHETIC (DEM PENDING)</span>
-                <span className="absolute bottom-0.5 left-1 font-mono text-[7px]" style={{ color: C.dim }}>{Math.round(elevProfile.min)}m</span>
-                <span className="absolute right-1 top-0.5 font-mono text-[7px]" style={{ color: C.gold }}>{Math.round(elevProfile.max)}m</span>
+                <span className="absolute left-1 top-0.5 text-[7px] font-semibold tracking-wider" style={{ color: C.dim }}>
+                  ELEVATION · W→E · GREEN=LAND · CONTOUR {elevProfile.step}m · SYNTHETIC (DEM PENDING)
+                </span>
+                {/* HIGH / LOW callouts within current view */}
+                <span className="absolute flex -translate-x-1/2 flex-col items-center" style={{ left: `${elevProfile.high.x}%`, top: 10 }}>
+                  <span className="whitespace-nowrap rounded px-1 text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.gold }}>
+                    ▲ HIGH {Math.round(elevProfile.high.e)}m · {coordAt(elevProfile.high.lat, elevProfile.high.lon)}
+                  </span>
+                </span>
+                <span className="absolute flex -translate-x-1/2 flex-col items-center" style={{ left: `${elevProfile.low.x}%`, bottom: 10 }}>
+                  <span className="whitespace-nowrap rounded px-1 text-[7px] font-bold" style={{ background: "#0a0f16cc", color: "#38bdf8" }}>
+                    ▼ LOW {Math.round(elevProfile.low.e)}m · {coordAt(elevProfile.low.lat, elevProfile.low.lon)}
+                  </span>
+                </span>
               </div>
             </>
           )}
