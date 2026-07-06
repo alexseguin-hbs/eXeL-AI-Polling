@@ -15,7 +15,7 @@
  */
 export type IconStyle = "mil" | "exel";
 export type Affiliation = "friendly" | "hostile";
-export type AssetKind = "avenger" | "patriot" | "thaad" | "sentinel";
+export type AssetKind = "avenger" | "patriot" | "thaad" | "sentinel" | "xbat";
 
 const HOSTILE = "#ef4444";       // red — enemy
 const FRIENDLY = "#38bdf8";      // cyan-blue — friendly
@@ -25,9 +25,41 @@ export const ASSET_LABELS: Record<AssetKind, string> = {
   patriot: "PATRIOT",
   thaad: "THAAD",
   sentinel: "SENTINEL",
+  xbat: "X-BAT",
 };
 
-export const ASSET_ORDER: AssetKind[] = ["avenger", "patriot", "thaad", "sentinel"];
+export const ASSET_ORDER: AssetKind[] = ["avenger", "patriot", "thaad", "sentinel", "xbat"];
+
+// ── X-BAT 3rd-pass wireframe (nose-up front view) ────────────────────────────
+// Projected from docs/security-2525/xbat-wireframe/xbat_3rdpass_wireframe.py
+// (X span → svg-x, Z vertical → svg-y, 32×32 viewBox). Conceptual visual
+// approximation only — no engineering/flight/weapon data.
+const XBAT_OUTLINE =
+  "M16 6.58L16.97 7.54L17.72 8.51L18.72 9.96L19.39 10.93L20.07 11.89L21.29 13.34L22.29 14.31L24.09 15.76L25.23 16.72L26.36 17.69L28.08 19.14L29.43 20.11L29.86 21.56L28.83 22.52L26.61 23.49L20.8 24.94L14.04 25.42L7.09 23.97L4.19 23.01L2.58 22.04L2.07 20.59L3.22 19.62L5.1 18.17L6.19 17.21L7.34 16.24L9.11 14.79L10.26 13.83L11.58 12.38L12.27 11.41L12.95 10.44L13.95 8.99L14.63 8.03L16 6.58Z";
+const XBAT_DETAIL = [
+  "M16 6.87L16 25.13",                                                              // center spine
+  "M16.3 7.74L17.7 10.78L19.7 13.54L22.67 16.58L27.31 19.41L29.19 20.64",           // crease R
+  "M15.7 7.74L14.3 10.78L12.3 13.54L9.33 16.58L4.69 19.41L2.81 20.64",              // crease L
+  "M29.3 20.02L29.95 20.82L29.73 21.76L28.57 22.7",                                 // clipped tip R
+  "M2.7 20.02L2.05 20.82L2.27 21.76L3.43 22.7",                                     // clipped tip L
+  "M24.08 20.53L28.54 21.22L27.99 22.85L25.82 23.77L22.85 22.83L23.21 21.11Z",      // rear panel R
+  "M7.92 20.53L3.46 21.22L4.01 22.85L6.18 23.77L9.15 22.83L8.79 21.11Z",            // rear panel L
+  "M20.93 23.18L23.07 24.23L20.13 24.95L18.1 24.15",                                // notch R
+  "M11.07 23.18L8.93 24.23L11.87 24.95L13.9 24.15",                                 // notch L
+  "M14.44 15.53L17.56 15.53L17.56 17.78L14.44 17.78Z",                              // engine/inlet bay
+  "M15.65 6.98L16 6.67L16.35 6.98L16.51 7.61L16 8.06L15.49 7.61Z",                  // nose facet
+];
+
+function XbatWireframe({ c, detail }: { c: string; detail: boolean }) {
+  return (
+    <g fill="none" strokeLinejoin="round" strokeLinecap="round">
+      <path d={XBAT_OUTLINE} stroke={c} strokeWidth={detail ? 1.2 : 1.5} />
+      {detail && XBAT_DETAIL.map((d) => (
+        <path key={d} d={d} stroke={c} strokeWidth="0.7" opacity="0.85" />
+      ))}
+    </g>
+  );
+}
 
 function affColor(aff: Affiliation) {
   return aff === "hostile" ? HOSTILE : FRIENDLY;
@@ -53,6 +85,12 @@ function MilFrame({ aff, children }: { aff: Affiliation; children: React.ReactNo
 
 function milGlyph(asset: AssetKind, c: string) {
   switch (asset) {
+    case "xbat": // UCAV silhouette, scaled to sit inside the affiliation frame
+      return (
+        <g transform="translate(16 16) scale(0.45) translate(-16 -16)">
+          <XbatWireframe c={c} detail={false} />
+        </g>
+      );
     case "sentinel": // radar arcs
       return (
         <g stroke={c} strokeWidth="1.4" fill="none" strokeLinecap="round">
@@ -92,6 +130,8 @@ function milGlyph(asset: AssetKind, c: string) {
 function exelSilhouette(asset: AssetKind, c: string) {
   const s = { stroke: c, strokeWidth: 1.5, fill: "none", strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
   switch (asset) {
+    case "xbat": // full 3rd-pass wireframe projection
+      return <XbatWireframe c={c} detail />;
     case "avenger": // HMMWV chassis + twin launcher pods
       return (
         <g {...s}>

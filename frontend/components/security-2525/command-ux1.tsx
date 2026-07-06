@@ -25,9 +25,9 @@ const C = {
   green: "#22c55e", amber: "#f59e0b", red: "#ef4444", magenta: "#d946ef",
 };
 
-// eXeL version stamp — `v#.###.YYYY.MM.DD.HH.MM` with date/time ALWAYS in CST.
+// eXeL version stamp — `v#.###-YYYY.MM.DD-HH.MM` with date/time ALWAYS in CST.
 // Bump +0.001 per release and re-stamp the CST timestamp at release time.
-const EXEL_VERSION = "v0.001.2026.07.06.12.33";
+const EXEL_VERSION = "v0.001-2026.07.06-12.34";
 
 const NAV: [string, React.ComponentType<{ className?: string }>][] = [
   ["OVERVIEW", LayoutDashboard],
