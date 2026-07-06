@@ -16,6 +16,9 @@ import {
   buildAtlantisLink,
   generateSealCode,
   SEAL_STRENGTHS,
+  CLEARANCE_COLORS,
+  CLEARANCE_NAMES,
+  MAX_CLEARANCE,
 } from "@/lib/atlantis-package";
 import { buildMessageSeal, type MessageType } from "@/lib/encrypted-message";
 
@@ -33,6 +36,7 @@ export function EncryptedMessagingComposer() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [sender, setSender] = useState("");
+  const [level, setLevel] = useState(1);
   const [pin, setPin] = useState(() => generateSealCode(SEAL_STRENGTHS[0]));
   const [link, setLink] = useState("");
   const [copied, setCopied] = useState(false);
@@ -49,7 +53,7 @@ export function EncryptedMessagingComposer() {
       const { translations, langNames, defaultLang, opts } = buildMessageSeal(title, body, type);
       const snd = sender.trim() || "Anonymous";
       if (mode === "file") {
-        const html = await buildAtlantisPackageHtml(translations, langNames, defaultLang, pin, 1, snd, opts);
+        const html = await buildAtlantisPackageHtml(translations, langNames, defaultLang, pin, level, snd, opts);
         const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
         const a = document.createElement("a");
         a.href = url;
@@ -57,7 +61,7 @@ export function EncryptedMessagingComposer() {
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 1500);
       } else {
-        const l = await buildAtlantisLink(translations, langNames, defaultLang, pin, 1, snd, opts);
+        const l = await buildAtlantisLink(translations, langNames, defaultLang, pin, level, snd, opts);
         setLink(l);
         try { await navigator.clipboard.writeText(l); setCopied(true); } catch { /* clipboard blocked */ }
       }
@@ -149,6 +153,32 @@ export function EncryptedMessagingComposer() {
               >⟳</button>
             </div>
           </label>
+        </div>
+
+        {/* Clearance level — 7 Seed-of-Life colors (Level 1 RED → Level 7 VIOLET) */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Clearance level</span>
+          <div className="flex gap-2">
+            {Array.from({ length: MAX_CLEARANCE }, (_, i) => i + 1).map((lv) => {
+              const c = CLEARANCE_COLORS[lv];
+              const active = level === lv;
+              return (
+                <button
+                  key={lv}
+                  onClick={() => setLevel(lv)}
+                  title={`Level ${lv} · ${CLEARANCE_NAMES[lv]}`}
+                  className="flex h-11 flex-1 flex-col items-center justify-center gap-1 rounded-lg border transition"
+                  style={{ borderColor: active ? c : "#334155", background: active ? `${c}22` : "transparent" }}
+                >
+                  <span className="h-4 w-4 rounded-full" style={{ background: c, boxShadow: active ? `0 0 0 2px ${c}66` : "none" }} />
+                  <span className="text-[10px]" style={{ color: active ? c : "#64748b" }}>{lv}</span>
+                </button>
+              );
+            })}
+          </div>
+          <span className="text-xs" style={{ color: CLEARANCE_COLORS[level] }}>
+            Clearance: Level {level} · {CLEARANCE_NAMES[level]} — {level} Seed-of-Life {level === 1 ? "circle" : "circles"}
+          </span>
         </div>
 
         {/* Generate */}
