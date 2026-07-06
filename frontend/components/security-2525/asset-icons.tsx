@@ -187,10 +187,10 @@ function exelSilhouette(asset: AssetKind, c: string, count = 1) {
   switch (asset) {
     case "xbat": // ALWAYS a 3-ship echelon of chevron peaks — X-BAT deploys as a swarm
       return <EchelonGroup render={(sw) => <ChevronMark c={c} sw={sw} />} />;
-    case "autofoil": // the "A"-arrow logo mark; echelon of chevrons when grouped
+    case "autofoil": // 3rd-pass wireframe projection (single); chevron echelon when grouped
       return count > 1
-        ? <EchelonGroup render={(sw) => <ChevronMark c={c} sw={sw} />} />
-        : <AutofoilMark c={c} />;
+        ? <EchelonGroup render={(sw) => <path d={FOIL_OUTLINE} stroke={c} strokeWidth={sw} fill="none" />} />
+        : <FoilWireframe c={c} detail />;
     case "avenger": // HMMWV (hood right, big wheels) + pod each side of gunner glass, raised
       return (
         <g {...s}>

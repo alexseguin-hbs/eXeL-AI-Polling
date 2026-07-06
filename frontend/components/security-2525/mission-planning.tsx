@@ -92,6 +92,8 @@ interface Ao {
   field?: { nw: [number, number]; ne: [number, number]; sw: [number, number]; se: [number, number] };
   /** Default MGRS precision for this AO (4/5/6 = 8/10/12-digit). */
   precision?: Digits;
+  /** Self-hosted OSM roads/water layer key → /security-2525/osm-<key>.json */
+  osm?: string;
 }
 
 const AOS: Ao[] = [
@@ -111,6 +113,7 @@ const AOS: Ao[] = [
     name: "TEXAS CAPITOL · AUSTIN TX",
     center: [30.27467, -97.74035],
     halfKm: 1.2,
+    osm: "capitol", // roads (grey) + waterways (blue), 10 km radius, OSM
     landmarks: [{ name: "GOVERNOR'S MANSION", lat: 30.2724, lon: -97.7443 }],
     buildings: [TX_CAPITOL],
   },
@@ -172,6 +175,11 @@ interface Placed {
 interface BorderData { countries: [number, number][][]; usStates: [number, number][][] }
 let borderCache: BorderData | null = null;
 
+// ── OSM roads + waterways layer (OpenStreetMap, Python-preprocessed) ─────────
+interface OsmWay { t: number; p: [number, number][]; bb?: [number, number, number, number] }
+interface OsmData { roads: OsmWay[]; water: [number, number][][]; waterPolys: [number, number][][] }
+const osmCache: Record<string, OsmData> = {};
+
 /** Attach a NON-passive wheel listener so preventDefault() stops the page from
  *  scrolling — zoom stays on the map/globe under the cursor. */
 function useWheel<T extends Element>(ref: React.RefObject<T | null>, handler: (e: WheelEvent) => void) {
@@ -212,8 +220,9 @@ function GlobeView({ data, aoKey, onSelect }: { data: BorderData | null; aoKey: 
   }, [aoKey]);
   // wheel-zoom (non-passive → no page scroll); deep zoom-in to region level
   useWheel(gsvg, (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return; // plain wheel scrolls the page; Ctrl+wheel zooms
     e.preventDefault();
-    setRot((r) => ({ ...r, R: Math.min(1600, Math.max(100, r.R * (e.deltaY > 0 ? 1 / 1.15 : 1.15))) }));
+    setRot((r) => ({ ...r, R: Math.min(4000, Math.max(100, r.R * (e.deltaY > 0 ? 1 / 1.15 : 1.15))) }));
   });
   const { lat0: LAT0, lon0: LON0, R } = rot;
   const proj = (lat: number, lon: number): [number, number, boolean] => {
@@ -345,12 +354,13 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
     return { x: flat.x + ((clientX - r.left) / r.width) * flat.w, y: flat.y + ((clientY - r.top) / r.height) * flat.h };
   };
   useWheel(flatSvg, (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return; // plain wheel scrolls the page; Ctrl+wheel zooms
     e.preventDefault();
     const p = vbAt(e.clientX, e.clientY);
     if (!p) return;
     const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
     setFlat((f) => {
-      const w = Math.min(W, Math.max(20, f.w * k)), h = w * (f.h / f.w);
+      const w = Math.min(W, Math.max(0.2, f.w * k)), h = w * (f.h / f.w); // 0.2° min → deep city zoom
       return { w, h, x: p.x - ((p.x - f.x) / f.w) * w, y: p.y - ((p.y - f.y) / f.h) * h };
     });
   });
@@ -481,6 +491,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [gridOn, setGridOn] = useState(true);
   const [digits, setDigits] = useState<Digits>(4);
   const [coordFmt, setCoordFmt] = useState<"mgrs" | "dms">("mgrs");
+  const [units, setUnits] = useState<"metric" | "imperial">("metric");
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [placed, setPlaced] = useState<Placed[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<AssetKind | null>(null);
@@ -502,8 +513,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [routeDraft, setRouteDraft] = useState<{ lat: number; lon: number }[]>([]);
   const [topOpen, setTopOpen] = useState(true);   // 3-dot collapse: top world map
   const [leftOpen, setLeftOpen] = useState(true); // 3-dot collapse: left palette
+  const [zoomMode, setZoomMode] = useState(false); // click-armed zoom on the AO map
+  const zoomTimer = useRef<number | null>(null);
+  const [osm, setOsm] = useState<OsmData | null>(null); // roads/water for the active AO
   const bottomRef = useRef<HTMLDivElement>(null);
-  useWheel(bottomRef, (e) => e.preventDefault()); // no page-scroll over the elevation panel
   useEffect(() => {
     try { const v = localStorage.getItem("sec2525.cursorMode"); if (v === "target" || v === "pointer") setCursorMode(v); } catch { /* no storage */ }
   }, []);
@@ -532,7 +545,6 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     () => utmKmGrid(box.latMin, box.latMax, box.lonMin, box.lonMax, chooseGridStep(view.spanKm * 1000)),
     [box, view.spanKm]
   );
-  const gridLabel = grid.stepM >= 1000 ? `${grid.stepM / 1000} KM` : `${grid.stepM} M`;
   // AO box width in meters — scales building-overlay radii (dome) to screen %
   const boxW = (box.lonMax - box.lonMin) * 111320 * Math.cos((ao.center[0] * Math.PI) / 180);
 
@@ -561,6 +573,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   };
   const coordAt = (lat: number, lon: number) =>
     coordFmt === "dms" ? `${dms1(lat, "N", "S")} ${dms1(lon, "E", "W")}` : mgrsAt(lat, lon);
+  // Units — metric default (km/m); imperial option (mi/ft). Grid systems unaffected.
+  const fmtDist = (m: number) =>
+    units === "imperial"
+      ? (m >= 1609.34 ? `${(m / 1609.34).toFixed(m >= 16093 ? 1 : 2)} mi` : `${Math.round(m * 3.28084)} ft`)
+      : (m >= 1000 ? `${(m / 1000).toFixed(m >= 10000 ? 0 : 1)} km` : `${Math.round(m)} m`);
+  const fmtElev = (m: number) => (units === "imperial" ? `${Math.round(m * 3.28084)} ft` : `${Math.round(m)} m`);
 
   const fracFromEvent = (e: { clientX: number; clientY: number }) => {
     const r = mapRef.current?.getBoundingClientRect();
@@ -573,19 +591,30 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   // Wheel zoom toward the cursor (video-game / AMDWS style). spanKm clamps to a
   // ~300 m minimum (city-block detail) and 200 km maximum (regional).
+  // Modal zoom: left-click an empty spot to ARM zoom (1 s to start scrolling);
+  // scrolling zooms and holds the mode; click again to exit. Otherwise the wheel
+  // scrolls the page normally, so up/down navigation stays easy.
+  const armZoom = () => {
+    if (zoomMode) { setZoomMode(false); if (zoomTimer.current) window.clearTimeout(zoomTimer.current); return; }
+    setZoomMode(true);
+    if (zoomTimer.current) window.clearTimeout(zoomTimer.current);
+    zoomTimer.current = window.setTimeout(() => { setZoomMode(false); zoomTimer.current = null; }, 1200);
+  };
   const onWheel = (e: WheelEvent | React.WheelEvent) => {
+    if (!zoomMode) return; // let the page scroll
     e.preventDefault();
+    if (zoomTimer.current) { window.clearTimeout(zoomTimer.current); zoomTimer.current = null; } // scrolling started → stay armed
     const f = fracFromEvent(e);
     if (!f) return;
     const cur = toLatLon(f.fx, f.fy);
     setView((v) => {
-      // min 0.08 km (80 m box → 10 m grid, 8-digit MGRS resolution); max 200 km
-      const span = Math.min(200, Math.max(0.08, v.spanKm * (e.deltaY > 0 ? 1.15 : 1 / 1.15)));
+      // min 0.02 km (20 m box → 10 m grid, 8-digit MGRS resolution); max 200 km
+      const span = Math.min(200, Math.max(0.02, v.spanKm * (e.deltaY > 0 ? 1.15 : 1 / 1.15)));
       const ratio = span / v.spanKm;
       return { spanKm: span, lat: cur.lat + (v.lat - cur.lat) * ratio, lon: cur.lon + (v.lon - cur.lon) * ratio };
     });
   };
-  useWheel(mapRef, onWheel); // non-passive: wheel over the map zooms, never scrolls the page
+  useWheel(mapRef, onWheel);
 
   // Is a multi-point route tool armed? (line/corridor support object)
   const routeMode = !!selectedSupport && (selectedSupport.geometry === "line" || selectedSupport.geometry === "corridor");
@@ -632,7 +661,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     }
     if (selectedAsset) place(selectedAsset, f.fx, f.fy);
     else if (selectedSupport) placeSupport(selectedSupport, f.fx, f.fy);
-    else setSelected(null); // empty click clears selection
+    else if (selected) setSelected(null); // first empty click clears a selection
+    else armZoom();                        // else toggle click-armed zoom mode
   };
 
   const place = (asset: AssetKind, fx: number, fy: number) => {
@@ -718,6 +748,38 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   const windows = useMemo(capitolWindows, []);
 
+  // Load the OSM roads/water layer for the active AO (Python-preprocessed JSON).
+  useEffect(() => {
+    const key = ao.osm;
+    if (!key) { setOsm(null); return; }
+    if (osmCache[key]) { setOsm(osmCache[key]); return; }
+    fetch(`/security-2525/osm-${key}.json`)
+      .then((r) => r.json())
+      .then((d: OsmData) => {
+        d.roads.forEach((w) => {
+          let x0 = w.p[0][0], x1 = x0, y0 = w.p[0][1], y1 = y0;
+          for (const [x, y] of w.p) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+          w.bb = [x0, y0, x1, y1];
+        });
+        osmCache[key] = d; setOsm(d);
+      })
+      .catch(() => setOsm(null));
+  }, [ao.osm]);
+
+  // Build per-tier road paths + water paths, culled to the current view.
+  const osmPaths = useMemo(() => {
+    if (!osm) return null;
+    const inView = (bb: [number, number, number, number]) =>
+      !(bb[2] < box.lonMin || bb[0] > box.lonMax || bb[3] < box.latMin || bb[1] > box.latMax);
+    const wayD = (pts: [number, number][]) =>
+      pts.map(([lon, lat], i) => { const f = toFrac(lat, lon); return `${i ? "L" : "M"}${(f.fx * 100).toFixed(2)} ${(f.fy * 100).toFixed(2)}`; }).join(" ");
+    const tiers: Record<number, string> = { 2: "", 3: "", 4: "" };
+    for (const w of osm.roads) { if (w.bb && !inView(w.bb)) continue; tiers[w.t] += " " + wayD(w.p); }
+    let waterD = ""; for (const l of osm.water) waterD += " " + wayD(l);
+    let polyD = ""; for (const p of osm.waterPolys) polyD += " " + wayD(p) + "Z";
+    return { tiers, waterD, polyD };
+  }, [osm, box]);
+
   // Elevation profiles for the edge bars — sampled from synthElevation across the
   // current view box. Bottom = W→E ridge (multi-row pseudo-3D). Right = N→S column.
   const elevProfile = useMemo(() => {
@@ -771,6 +833,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             {i < a.length - 1 && <ChevronRight className="h-3 w-3" style={{ color: C.border }} />}
           </span>
         ))}
+        <span className="ml-auto flex items-center gap-1.5" style={{ color: C.gold }}>
+          CLEARANCE: LEVEL 3
+          <svg width="26" height="10" viewBox="0 0 26 10" aria-label="Clearance Level 3">
+            {[5, 13, 21].map((cx) => <circle key={cx} cx={cx} cy="5" r="4" fill={`${C.gold}22`} stroke={C.gold} strokeWidth="1" />)}
+          </svg>
+        </span>
       </div>
 
       {/* AO location toggle — scrolls left↔right */}
@@ -1000,8 +1068,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
         <div className="rounded-lg border p-3" style={{ background: C.panel, borderColor: C.border }}>
           <div className="relative mb-2 flex flex-wrap items-center justify-between gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
-              {ao.name} — {view.spanKm < 1 ? `${Math.round(view.spanKm * 1000)} m` : `${view.spanKm.toFixed(1)} km`} AO
-              <span style={{ color: C.dim }}> · GRID {gridLabel}</span>
+              {ao.name} — {fmtDist(view.spanKm * 1000)} AO
+              <span style={{ color: C.dim }}> · GRID {fmtDist(grid.stepM)}</span>
             </span>
             <div className="flex items-center gap-2 text-[9px]" style={{ color: C.dim }}>
               {ao.field && (
@@ -1030,6 +1098,13 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   <button onClick={() => setElevOn(!elevOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
                     style={{ borderColor: elevOn ? C.gold : C.border, color: elevOn ? C.gold : C.dim }}>{elevOn ? "ON" : "OFF"}</button>
                 </div>
+                <div className="mb-1 text-[10px]" style={{ color: C.text }}>Units</div>
+                <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+                  {([["metric", "KM / M"], ["imperial", "MI / FT"]] as const).map(([u, label]) => (
+                    <button key={u} onClick={() => setUnits(u)} className="flex-1 px-2 py-1"
+                      style={{ background: units === u ? "#152238" : "transparent", color: units === u ? C.cyan : C.dim }}>{label}</button>
+                  ))}
+                </div>
                 <div className="mb-1 text-[10px]" style={{ color: C.text }}>Pointer</div>
                 <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
                   {([["pointer", "DEFAULT"], ["target", "MINI-TARGET"]] as const).map(([m, label]) => (
@@ -1047,7 +1122,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           <div className="flex gap-1">
           <div ref={mapRef}
             className="relative aspect-square w-full flex-1 overflow-hidden rounded-md touch-none"
-            style={{ background: "radial-gradient(ellipse at 50% 55%, #0f2033 0%, #070b12 75%)", border: `1px solid ${C.border}`, cursor: cursorMode === "target" ? "none" : armed ? "crosshair" : dragRef.current ? "grabbing" : "grab" }}
+            style={{ background: "radial-gradient(ellipse at 50% 55%, #0f2033 0%, #070b12 75%)", border: `1px solid ${zoomMode ? C.cyan : C.border}`, boxShadow: zoomMode ? `inset 0 0 30px ${C.cyan}44, 0 0 12px ${C.cyan}55` : undefined, cursor: cursorMode === "target" ? "none" : armed ? "crosshair" : zoomMode ? "zoom-in" : dragRef.current ? "grabbing" : "grab" }}
             onContextMenu={(e) => e.preventDefault()}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
@@ -1060,6 +1135,21 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             }}
             onMouseLeave={() => { setCursorLL(null); setCursorPx(null); }}>
             <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {/* OSM roads (grey + lighter-grey casing) + waterways (blue) — bottom layer */}
+              {osmPaths && (
+                <g>
+                  <path d={osmPaths.polyD} fill="#38bdf822" stroke="#38bdf8" strokeWidth="0.15" />
+                  <path d={osmPaths.waterD} fill="none" stroke="#38bdf8" strokeWidth="0.35" opacity="0.85" strokeLinecap="round" />
+                  {/* casing (lighter grey filler) */}
+                  <path d={osmPaths.tiers[2]} fill="none" stroke="#cbd5e1" strokeWidth="0.55" opacity="0.16" strokeLinecap="round" />
+                  <path d={osmPaths.tiers[3]} fill="none" stroke="#cbd5e1" strokeWidth="1.0" opacity="0.2" strokeLinecap="round" />
+                  <path d={osmPaths.tiers[4]} fill="none" stroke="#cbd5e1" strokeWidth="1.6" opacity="0.22" strokeLinecap="round" />
+                  {/* road fill (grey; arterials brighter) */}
+                  <path d={osmPaths.tiers[2]} fill="none" stroke="#94a3b8" strokeWidth="0.22" opacity="0.5" strokeLinecap="round" />
+                  <path d={osmPaths.tiers[3]} fill="none" stroke="#b6c2d1" strokeWidth="0.5" opacity="0.7" strokeLinecap="round" />
+                  <path d={osmPaths.tiers[4]} fill="none" stroke="#e5e7eb" strokeWidth="0.85" opacity="0.8" strokeLinecap="round" />
+                </g>
+              )}
               {/* 1 km UTM grid — toggleable */}
               {gridOn && grid.vertical.map((l) => (
                 <line key={`v${l.km}${l.frac}`} x1={l.frac * 100} y1="0" x2={l.frac * 100} y2="100"
@@ -1220,6 +1310,23 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 <line x1="35" y1="22" x2="42" y2="22" stroke={C.cyan} strokeWidth="1" />
               </svg>
             )}
+            {/* ZOOM MODE effect — tactical scan rings at cursor + hint */}
+            {zoomMode && cursorPx && (
+              <>
+                <span className="pointer-events-none absolute h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border animate-ping" style={{ left: cursorPx.x, top: cursorPx.y, borderColor: C.cyan }} />
+                <span className="pointer-events-none absolute h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border" style={{ left: cursorPx.x, top: cursorPx.y, borderColor: C.cyan, opacity: 0.7 }} />
+              </>
+            )}
+            {zoomMode && (
+              <span className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded px-2 py-0.5 text-[9px] font-bold tracking-wider" style={{ background: "#0a0f16cc", color: C.cyan }}>
+                ⊙ ZOOM MODE — SCROLL TO ZOOM · CLICK TO EXIT
+              </span>
+            )}
+            {/* SCALE BAR (bottom-right) — one grid-step wide, map-proportional */}
+            <div className="pointer-events-none absolute bottom-1.5 left-2 right-2 flex flex-col items-end gap-0.5">
+              <span className="font-mono text-[8px]" style={{ color: C.text }}>{fmtDist(grid.stepM)}</span>
+              <div style={{ width: `${(grid.stepM / (view.spanKm * 1000)) * 100}%`, height: 4, borderLeft: `1px solid ${C.text}`, borderRight: `1px solid ${C.text}`, borderBottom: `2px solid ${C.text}` }} />
+            </div>
           </div>
 
           {/* RIGHT ELEVATION SCALE — vertical profile across the AO center column */}
@@ -1228,8 +1335,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <svg viewBox="0 0 40 100" preserveAspectRatio="none" className="h-full w-full">
                 <path d={elevProfile.rightPath} fill={`${C.gold}22`} stroke={C.gold} strokeWidth="0.6" />
               </svg>
-              <span className="absolute right-0.5 top-0.5 font-mono text-[7px]" style={{ color: C.gold }}>{Math.round(elevProfile.max)}m</span>
-              <span className="absolute bottom-0.5 right-0.5 font-mono text-[7px]" style={{ color: C.dim }}>{Math.round(elevProfile.min)}m</span>
+              <span className="absolute right-0.5 top-0.5 font-mono text-[7px]" style={{ color: C.gold }}>{fmtElev(elevProfile.max)}</span>
+              <span className="absolute bottom-0.5 right-0.5 font-mono text-[7px]" style={{ color: C.dim }}>{fmtElev(elevProfile.min)}</span>
               <span className="absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 whitespace-nowrap text-[7px] font-semibold tracking-wider" style={{ color: C.dim }}>ELEV N→S</span>
             </div>
           )}
@@ -1273,17 +1380,17 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   </g>
                 </svg>
                 <span className="absolute left-1 top-0.5 text-[7px] font-semibold tracking-wider" style={{ color: C.dim }}>
-                  ELEVATION · W→E · GREEN=LAND · CONTOUR {elevProfile.step}m · SYNTHETIC (DEM PENDING)
+                  ELEVATION · W→E · GREEN=LAND · CONTOUR {fmtElev(elevProfile.step)} · SYNTHETIC (DEM PENDING)
                 </span>
                 {/* HIGH / LOW callouts within current view */}
                 <span className="absolute flex -translate-x-1/2 flex-col items-center" style={{ left: `${elevProfile.high.x}%`, top: 10 }}>
                   <span className="whitespace-nowrap rounded px-1 text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.gold }}>
-                    ▲ HIGH {Math.round(elevProfile.high.e)}m · {coordAt(elevProfile.high.lat, elevProfile.high.lon)}
+                    ▲ HIGH {fmtElev(elevProfile.high.e)} · {coordAt(elevProfile.high.lat, elevProfile.high.lon)}
                   </span>
                 </span>
                 <span className="absolute flex -translate-x-1/2 flex-col items-center" style={{ left: `${elevProfile.low.x}%`, bottom: 10 }}>
                   <span className="whitespace-nowrap rounded px-1 text-[7px] font-bold" style={{ background: "#0a0f16cc", color: "#38bdf8" }}>
-                    ▼ LOW {Math.round(elevProfile.low.e)}m · {coordAt(elevProfile.low.lat, elevProfile.low.lon)}
+                    ▼ LOW {fmtElev(elevProfile.low.e)} · {coordAt(elevProfile.low.lat, elevProfile.low.lon)}
                   </span>
                 </span>
               </div>
