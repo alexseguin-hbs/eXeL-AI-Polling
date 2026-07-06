@@ -12,7 +12,7 @@ import { useState } from "react";
 import {
   ArrowLeft, X, Cpu, LayoutDashboard, Radar, Crosshair, Swords,
   Package, Activity, Gamepad2, ClipboardList, AlertTriangle, Gauge, Target,
-  Map, FlaskConical,
+  Map, FlaskConical, Maximize2, Minimize2,
 } from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import {
@@ -117,6 +117,7 @@ export function SecurityCommandUX1() {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [bottomOpen, setBottomOpen] = useState(true);
+  const [mapMax, setMapMax] = useState(false);
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
@@ -227,9 +228,21 @@ export function SecurityCommandUX1() {
           </div>
         )}
 
-        {/* CENTER — 3D situational awareness placeholder */}
-        <Panel title="3D Situational Awareness — Real-Time Multi-Domain Fusion" accent={C.cyan}>
-          <div className="relative flex h-[300px] lg:h-[420px] items-center justify-center rounded-md overflow-hidden"
+        {/* CENTER — 3D situational awareness placeholder (maximizes to full screen) */}
+        <div className={mapMax ? "fixed inset-0 z-[80] flex flex-col p-3" : "rounded-lg border p-3"}
+          style={mapMax ? { background: C.bg } : { background: C.panel, borderColor: C.border }}>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+              3D Situational Awareness — Real-Time Multi-Domain Fusion
+            </span>
+            <button onClick={() => setMapMax(!mapMax)} className="rounded p-1 hover:bg-white/5"
+              title={mapMax ? "Minimize" : "Maximize — full screen"}>
+              {mapMax
+                ? <Minimize2 className="h-4 w-4" style={{ color: C.cyan }} />
+                : <Maximize2 className="h-4 w-4" style={{ color: C.dim }} />}
+            </button>
+          </div>
+          <div className={`relative flex items-center justify-center rounded-md overflow-hidden ${mapMax ? "flex-1" : "h-[300px] lg:h-[420px]"}`}
             style={{ background: "radial-gradient(ellipse at 50% 60%, #0f2033 0%, #070b12 70%)", border: `1px solid ${C.border}` }}>
             {/* stylized globe/grid */}
             <div className="absolute inset-0 opacity-30"
@@ -248,7 +261,7 @@ export function SecurityCommandUX1() {
               </div>
             ))}
           </div>
-        </Panel>
+        </div>
 
         {/* RIGHT */}
         {rightOpen ? (
