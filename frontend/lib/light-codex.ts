@@ -51,7 +51,7 @@ export const STYLE_NAME: Record<Style, string> = {
   "1": "single_helix", "2": "double_helix", "3": "hidden_double_helix",
 };
 export const STYLE_LABEL: Record<Style, string> = {
-  "1": "Single Helix", "2": "Double Helix", "3": "Hidden Double Helix",
+  "1": "Single Helix", "2": "Double Helix", "3": "Hidden Helix",
 };
 
 // Supported message characters — A–Z, digits, space, period (case-insensitive).
@@ -233,7 +233,7 @@ function detectHiddenDouble(d: ImageData): DecodeResult | null {
   for (const bt of sorted) {
     if (bt.text === reverse(topBest.text)) {
       return {
-        style: "Hidden Double Helix", blockSize: 1, lineHeight: 1,
+        style: "Hidden Helix", blockSize: 1, lineHeight: 1,
         topDecoded: topBest.text, bottomDecoded: bt.text,
         messageForward: topBest.text, messageReverseVerify: bt.text, verified: true,
       };

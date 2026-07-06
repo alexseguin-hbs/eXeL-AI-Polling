@@ -88,6 +88,32 @@ export function EncryptedMessagingComposer() {
           >✕</button>
         </div>
 
+        {/* Clearance level — 7 Seed-of-Life colors (Level 1 RED → Level 7 VIOLET) */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Clearance level</span>
+          <div className="flex gap-2">
+            {Array.from({ length: MAX_CLEARANCE }, (_, i) => i + 1).map((lv) => {
+              const c = CLEARANCE_COLORS[lv];
+              const active = level === lv;
+              return (
+                <button
+                  key={lv}
+                  onClick={() => setLevel(lv)}
+                  title={`Level ${lv} · ${CLEARANCE_NAMES[lv]}`}
+                  className="flex h-11 flex-1 flex-col items-center justify-center gap-1 rounded-lg border transition"
+                  style={{ borderColor: active ? c : "#334155", background: active ? `${c}22` : "transparent" }}
+                >
+                  <span className="h-4 w-4 rounded-full" style={{ background: c, boxShadow: active ? `0 0 0 2px ${c}66` : "none" }} />
+                  <span className="text-[10px]" style={{ color: active ? c : "#64748b" }}>{lv}</span>
+                </button>
+              );
+            })}
+          </div>
+          <span className="text-xs" style={{ color: CLEARANCE_COLORS[level] }}>
+            Clearance: Level {level} · {CLEARANCE_NAMES[level]} — {level} Seed-of-Life {level === 1 ? "circle" : "circles"}
+          </span>
+        </div>
+
         {/* Message type */}
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Message type</span>
@@ -155,32 +181,6 @@ export function EncryptedMessagingComposer() {
           </label>
         </div>
 
-        {/* Clearance level — 7 Seed-of-Life colors (Level 1 RED → Level 7 VIOLET) */}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Clearance level</span>
-          <div className="flex gap-2">
-            {Array.from({ length: MAX_CLEARANCE }, (_, i) => i + 1).map((lv) => {
-              const c = CLEARANCE_COLORS[lv];
-              const active = level === lv;
-              return (
-                <button
-                  key={lv}
-                  onClick={() => setLevel(lv)}
-                  title={`Level ${lv} · ${CLEARANCE_NAMES[lv]}`}
-                  className="flex h-11 flex-1 flex-col items-center justify-center gap-1 rounded-lg border transition"
-                  style={{ borderColor: active ? c : "#334155", background: active ? `${c}22` : "transparent" }}
-                >
-                  <span className="h-4 w-4 rounded-full" style={{ background: c, boxShadow: active ? `0 0 0 2px ${c}66` : "none" }} />
-                  <span className="text-[10px]" style={{ color: active ? c : "#64748b" }}>{lv}</span>
-                </button>
-              );
-            })}
-          </div>
-          <span className="text-xs" style={{ color: CLEARANCE_COLORS[level] }}>
-            Clearance: Level {level} · {CLEARANCE_NAMES[level]} — {level} Seed-of-Life {level === 1 ? "circle" : "circles"}
-          </span>
-        </div>
-
         {/* Generate */}
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
@@ -212,10 +212,15 @@ export function EncryptedMessagingComposer() {
         )}
 
         {/* Share reminder */}
-        <div className="mt-auto rounded-lg border border-amber-900/40 bg-amber-950/20 p-3 text-xs text-slate-400">
-          Share the <b className="text-amber-300">PIN {pin || "····"}</b> with your recipient <b>separately</b> from the file/link
-          (it is never stored on the server). Best-effort exclusivity: a 4-digit code deters casual readers but is weak against a
-          determined offline attack, and the one-time-view is soft. Level 7 (Light Codex PNG keyfile second factor) is coming.
+        <div className="mt-auto rounded-lg border border-amber-900/40 bg-amber-950/20 p-3 text-xs leading-relaxed text-slate-400">
+          <span className="text-amber-300">🔑 Give your recipient PIN <b>{pin || "····"}</b> a different way</span> than the file or
+          link — a text, a call, in person. The PIN is never stored anywhere; without it the message stays sealed.
+          <br />
+          <span className="text-slate-500">
+            This is <b>encoding</b>, not certified encryption. A 4-digit PIN keeps out casual eyes, but someone determined who has
+            the file can crack it offline, and the one-time-view is best-effort. Stronger protection — Level 7 pairs the PIN with a
+            Light Codex image keyfile as a second factor — is coming.
+          </span>
         </div>
       </div>
     </div>

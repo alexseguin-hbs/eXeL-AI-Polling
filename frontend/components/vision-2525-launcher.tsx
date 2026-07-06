@@ -18,7 +18,7 @@ export function Vision2525Launcher() {
   const domains: CubeDomain[] = [
     { id: "sim", code: "SIM-2525", name: "SIMULATION", tagline: "Play · Train · Replay", color: "#19C8CF", unlocked: true, onEnter: () => setVisionView("sim") },
     { id: "security", code: "SECURITY-2525", name: "SECURITY", tagline: "Air & Missile Defense C2", color: "#ff4444", unlocked: true, onEnter: () => setVisionView("security") },
-    { id: "atlantis", code: "ATLANTIS-2525", name: "MESSAGING", tagline: "Compose · Encode · Send", color: "#eab308", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/encrypted-messaging"); } },
+    { id: "atlantis", code: "ATLANTIS-2525", name: "ENCODED MESSAGING", tagline: "Compose · Encode · Send", color: "#eab308", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/encrypted-messaging"); } },
     { id: "codex", code: "CODEX-2525", name: "LIGHT CODEX", tagline: "Encode · Image · Key", color: "#e879f9", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/light-codex"); } },
     { id: "architect", code: "ARCHITECT-2525", name: "ARCHITECT", tagline: "Design · Build · Model", color: "#c084fc", unlocked: false },
     { id: "manta", code: "MANTA-2525", name: "MANTA", tagline: "Maritime · Subsurface", color: "#38bdf8", unlocked: false },
