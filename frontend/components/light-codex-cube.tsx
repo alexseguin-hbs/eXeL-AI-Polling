@@ -164,7 +164,7 @@ export function LightCodexCube({ onClose }: { onClose: () => void }) {
             <div>
               <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Digital signature / message</label>
               <input value={signature} onChange={(e) => setSignature(e.target.value)}
-                placeholder="HELLO WORLD 2026.07.05"
+                placeholder="Enter message here"
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
               <p className="mt-1 text-[10px] text-muted-foreground">A–Z, digits, space, period. {signature.length} chars.</p>
               {bad.length > 0 && (
