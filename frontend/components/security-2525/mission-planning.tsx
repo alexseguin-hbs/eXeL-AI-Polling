@@ -21,7 +21,7 @@
  * Buildings: exterior corners + domes only for now (edge wireframe later).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw } from "lucide-react";
+import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2 } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
@@ -161,6 +161,10 @@ const INITIAL_INVENTORY: InvItem[] = [
   { asset: "autofoil", stock: 4, note: "autonomous foil · single-ship", group: 1 },
 ];
 
+/** A target line — brg = Primary Target Line (direction the asset points); left/right
+ *  = degrees of coverage to each side of the PTL (asymmetric sector). All DEGREES. */
+interface TL { brg: number; left: number; right: number }
+
 interface Placed {
   id: number;
   asset: AssetKind;
@@ -171,7 +175,32 @@ interface Placed {
   lat: number;
   lon: number;
   aff: Affiliation;
+  tls?: { p?: TL; s?: TL; t?: TL }; // PTL / 2TL / 3TL (Avenger/Patriot/THAAD)
+  fov?: TL;                          // sensor/radar field-of-view sector (Sentinel)
+  unit?: AngleUnit;                  // per-asset angle unit (inspector-selectable)
 }
+
+// Angle unit systems. deg = 360° · ucrs = UCRS-2525 base-3600 · mil = 6400 (Sentinel).
+type AngleUnit = "deg" | "ucrs" | "mil";
+const ANGLE_FULL: Record<AngleUnit, number> = { deg: 360, ucrs: 3600, mil: 6400 };
+const ANGLE_LABEL: Record<AngleUnit, string> = { deg: "DEG", ucrs: "UCRS-2525", mil: "6400 MIL" };
+const toUnit = (deg: number, u: AngleUnit) => (deg * ANGLE_FULL[u]) / 360;
+const fromUnit = (v: number, u: AngleUnit) => (v * 360) / ANGLE_FULL[u];
+const fmtAngle = (deg: number, u: AngleUnit) => {
+  const v = Math.round(toUnit(((deg % 360) + 360) % 360, u));
+  return u === "deg" ? `${v}°` : u === "mil" ? `${v}mil` : `${v}`;
+};
+// SVG sector path (canvas units): from (brg-left) to (brg+right), 0=N=up.
+function sectorPath(cx: number, cy: number, R: number, tl: TL) {
+  const span = tl.left + tl.right;
+  if (span >= 359.5) return `M${cx - R} ${cy} A ${R} ${R} 0 1 1 ${cx + R} ${cy} A ${R} ${R} 0 1 1 ${cx - R} ${cy} Z`;
+  const a0 = ((tl.brg - tl.left) * Math.PI) / 180, a1 = ((tl.brg + tl.right) * Math.PI) / 180;
+  const p0x = cx + R * Math.sin(a0), p0y = cy - R * Math.cos(a0);
+  const p1x = cx + R * Math.sin(a1), p1y = cy - R * Math.cos(a1);
+  return `M${cx} ${cy} L${p0x.toFixed(2)} ${p0y.toFixed(2)} A ${R} ${R} 0 ${span > 180 ? 1 : 0} 1 ${p1x.toFixed(2)} ${p1y.toFixed(2)} Z`;
+}
+// Default PTL half-coverage per AD asset (degrees each side).
+const AD_HALF: Partial<Record<AssetKind, number>> = { avenger: 45, patriot: 60, thaad: 90 };
 
 // ── World border context strip (Natural Earth 50m, self-hosted) ──────────────
 interface BorderData { countries: [number, number][][]; usStates: [number, number][][] }
@@ -208,33 +237,40 @@ function ringPath(ring: [number, number][], w: number, h: number): string {
  * Coordinate ladder: lat/lon graticule at globe level → click an AO marker →
  * MGRS 1 km grid at AO level. Drag-rotate comes later.
  */
-function GlobeView({ data, aoKey, onSelect }: { data: BorderData | null; aoKey: string; onSelect: (k: string) => void }) {
-  const CX = 170, CY = 170, RING = 148;
+function GlobeView({ data, center, onSelect, onDrill }: {
+  data: BorderData | null; center: [number, number];
+  onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void;
+}) {
+  const CX = 170, CY = 170, RING = 150;
   const D = Math.PI / 180;
-  // Drag-rotate (lat0/lon0) + wheel-zoom (R) — video-game orbit navigation.
-  const [rot, setRot] = useState({ lat0: 38, lon0: -97, R: 128 });
-  const dref = useRef<{ x: number; y: number } | null>(null);
+  const DRILL_R = 900; // zoom past this radius → hand off to the full-screen flat map
+  // 3-D orbit camera: lat0/lon0 = sub-viewer point (LEFT-drag pan/tilt), tilt/roll =
+  // view angle over the globe (RIGHT-drag → 3-dimensionality), R = zoom (mouse scroll).
+  const [cam, setCam] = useState({ lat0: center[0], lon0: center[1], tilt: 0.32, roll: 0, R: 150 });
+  const drag = useRef<{ x: number; y: number; btn: number } | null>(null);
   const gsvg = useRef<SVGSVGElement>(null);
-  // Recenter the globe on the selected AO when a tab is clicked.
-  useEffect(() => {
-    const sel = AOS.find((a) => a.key === aoKey);
-    if (sel) setRot((r) => ({ ...r, lat0: sel.center[0], lon0: sel.center[1] }));
-  }, [aoKey]);
-  // wheel-zoom (non-passive → no page scroll); deep zoom-in to region level
+  // Recenter on the selected AO (or a returning flat handoff) when `center` changes.
+  useEffect(() => { setCam((c) => ({ ...c, lat0: center[0], lon0: center[1] })); }, [center[0], center[1]]);
+  // Plain mouse-scroll zooms (map-like); non-passive so the page never scrolls.
   useWheel(gsvg, (e) => {
-    if (!(e.ctrlKey || e.metaKey)) return; // plain wheel scrolls the page; Ctrl+wheel zooms
     e.preventDefault();
-    setRot((r) => ({ ...r, R: Math.min(4000, Math.max(100, r.R * (e.deltaY > 0 ? 1 / 1.15 : 1.15))) }));
+    setCam((c) => {
+      const R = c.R * (e.deltaY > 0 ? 1 / 1.12 : 1.12);
+      if (R > DRILL_R && e.deltaY < 0) { onDrill(c.lat0, c.lon0); return c; } // drill in → flat map
+      return { ...c, R: Math.min(DRILL_R, Math.max(70, R)) };
+    });
   });
-  const { lat0: LAT0, lon0: LON0, R } = rot;
+  const { lat0: LAT0, lon0: LON0, tilt, roll, R } = cam;
+  const cr = Math.cos(roll), sr = Math.sin(roll), ct = Math.cos(tilt), st = Math.sin(tilt);
   const proj = (lat: number, lon: number): [number, number, boolean] => {
     const p = lat * D, l = (lon - LON0) * D, p0 = LAT0 * D;
-    const cosc = Math.sin(p0) * Math.sin(p) + Math.cos(p0) * Math.cos(p) * Math.cos(l);
-    return [
-      CX + R * Math.cos(p) * Math.sin(l),
-      CY - R * (Math.cos(p0) * Math.sin(p) - Math.sin(p0) * Math.cos(p) * Math.cos(l)),
-      cosc > 0,
-    ];
+    const X = Math.cos(p) * Math.sin(l);
+    const Yc = Math.cos(p0) * Math.sin(p) - Math.sin(p0) * Math.cos(p) * Math.cos(l);
+    const Z = Math.sin(p0) * Math.sin(p) + Math.cos(p0) * Math.cos(p) * Math.cos(l);
+    // roll about screen-Z, then tilt about screen-X → true 3-D view angle
+    const x = X * cr - Yc * sr, y0 = X * sr + Yc * cr;
+    const y = y0 * ct - Z * st, z = y0 * st + Z * ct;
+    return [CX + R * x, CY - R * y, z > 0];
   };
   const pathOf = (pts: [number, number][]) => {
     let s = "", pen = false;
@@ -260,12 +296,12 @@ function GlobeView({ data, aoKey, onSelect }: { data: BorderData | null; aoKey: 
     }
     return rings.map(pathOf).join("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rot]);
+  }, [cam]);
   const borders = useMemo(() => (data ? {
     countries: data.countries.map(pathOf).join(""),
     states: data.usStates.map(pathOf).join(""),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  } : null), [data, rot]);
+  } : null), [data, cam]);
   const ticks = useMemo(() => {
     const t: React.ReactNode[] = [];
     for (let deg = 0; deg < 360; deg += 5) {
@@ -289,22 +325,30 @@ function GlobeView({ data, aoKey, onSelect }: { data: BorderData | null; aoKey: 
     return t;
   }, [D]);
   return (
-    <svg ref={gsvg} viewBox="0 0 340 340" className="mx-auto block h-[300px] w-[300px] touch-none select-none sm:h-[340px] sm:w-[340px]" role="img"
-      aria-label="Wireframe globe — North America centered, bearing ring, lat/lon graticule"
-      style={{ cursor: dref.current ? "grabbing" : "grab" }}
-      onPointerDown={(e) => { dref.current = { x: e.clientX, y: e.clientY }; }}
+    <svg ref={gsvg} viewBox="0 0 340 340" preserveAspectRatio="xMidYMid meet"
+      className="block h-full w-full touch-none select-none" role="img"
+      aria-label="Wireframe globe — orbit camera; scroll to zoom, right-drag to angle the view, left-drag to pan"
+      style={{ cursor: drag.current ? "grabbing" : "grab" }}
+      onContextMenu={(e) => e.preventDefault()}
+      onPointerDown={(e) => { drag.current = { x: e.clientX, y: e.clientY, btn: e.button }; (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); }}
       onPointerMove={(e) => {
-        const d = dref.current;
+        const d = drag.current;
         if (!d) return;
         const dx = e.clientX - d.x, dy = e.clientY - d.y;
         d.x = e.clientX; d.y = e.clientY;
-        setRot((r) => ({ ...r, lon0: r.lon0 - dx * 0.5, lat0: Math.min(85, Math.max(-85, r.lat0 + dy * 0.5)) }));
+        if (d.btn === 2) {
+          // RIGHT-drag = reposition the angle of view over the globe (3-dimensionality)
+          setCam((c) => ({ ...c, roll: c.roll - dx * 0.005, tilt: Math.max(-1.4, Math.min(1.4, c.tilt + dy * 0.005)) }));
+        } else {
+          // LEFT-drag = pan/tilt across the surface
+          setCam((c) => ({ ...c, lon0: c.lon0 - dx * 0.5, lat0: Math.min(85, Math.max(-85, c.lat0 + dy * 0.5)) }));
+        }
       }}
-      onPointerUp={() => { dref.current = null; }}>
+      onPointerUp={() => { drag.current = null; }}>
       {/* bearing ring 000–350 */}
       <circle cx={CX} cy={CY} r={RING} fill="none" stroke={C.cyan} strokeWidth="0.6" opacity="0.7" />
       {ticks}
-      {/* globe */}
+      {/* globe (orthographic silhouette stays a circle at any view angle) */}
       <circle cx={CX} cy={CY} r={R} fill="#0c141f" stroke={C.cyan} strokeWidth="1.2" />
       <path d={graticule} fill="none" stroke={C.cyan} strokeWidth="0.35" opacity="0.55" />
       {borders && (
@@ -316,10 +360,9 @@ function GlobeView({ data, aoKey, onSelect }: { data: BorderData | null; aoKey: 
       {AOS.map((ao) => {
         const [x, y, v] = proj(ao.center[0], ao.center[1]);
         if (!v) return null;
-        const active = ao.key === aoKey;
         return (
-          <g key={ao.key} onClick={() => onSelect(ao.key)} style={{ cursor: "pointer" }}>
-            <circle cx={x} cy={y} r={active ? 6 : 4} fill="none" stroke={C.gold} strokeWidth="1" opacity={active ? 1 : 0.7} />
+          <g key={ao.key} onClick={() => onSelect(ao.key)} onDoubleClick={() => onDrill(ao.center[0], ao.center[1])} style={{ cursor: "pointer" }}>
+            <circle cx={x} cy={y} r={6} fill="none" stroke={C.gold} strokeWidth="1" opacity={0.85} />
             <circle cx={x} cy={y} r="1.5" fill={C.gold} />
           </g>
         );
@@ -331,6 +374,7 @@ function GlobeView({ data, aoKey, onSelect }: { data: BorderData | null; aoKey: 
 function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) => void }) {
   const [data, setData] = useState<BorderData | null>(borderCache);
   const [mode, setMode] = useState<"globe" | "flat">("globe");
+  const [center, setCenter] = useState<[number, number]>(() => (AOS.find((a) => a.key === aoKey)?.center ?? [38, -97]));
   useEffect(() => {
     if (borderCache) return;
     fetch("/security-2525/borders-ne50m.json")
@@ -338,6 +382,7 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
       .then((d: BorderData) => { borderCache = d; setData(d); })
       .catch(() => {}); // context view — AO map works without it
   }, []);
+  useEffect(() => { const a = AOS.find((x) => x.key === aoKey); if (a) setCenter(a.center); }, [aoKey]);
   const W = 720, H = 360;
   const paths = useMemo(() => {
     if (!data) return null;
@@ -346,35 +391,44 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
       states: data.usStates.map((r) => ringPath(r, W, H)).join(""),
     };
   }, [data]);
-  // Flat map: pan (drag) + zoom (wheel) via a live viewBox, same as the AO map.
+  // Flat map: pan (drag) + zoom (wheel) via a live viewBox. Continuous with the globe —
+  // drilling in on the globe hands off here; zooming fully out returns to the globe.
   const [flat, setFlat] = useState({ x: 0, y: H * 0.08, w: W, h: H * 0.62 });
   const flatDrag = useRef<{ x: number; y: number } | null>(null);
   const flatSvg = useRef<SVGSVGElement>(null);
+  const drillToFlat = (lat: number, lon: number) => {
+    const cx = ((lon + 180) / 360) * W, cy = ((90 - lat) / 180) * H;
+    const w = 0.12 * (W / 360), h = w; // ~13 km across → city scale
+    setFlat({ x: cx - w / 2, y: cy - h / 2, w, h });
+    setCenter([lat, lon]); setMode("flat");
+  };
   const vbAt = (clientX: number, clientY: number) => {
     const r = flatSvg.current?.getBoundingClientRect();
     if (!r) return null;
     return { x: flat.x + ((clientX - r.left) / r.width) * flat.w, y: flat.y + ((clientY - r.top) / r.height) * flat.h };
   };
   useWheel(flatSvg, (e) => {
-    if (!(e.ctrlKey || e.metaKey)) return; // plain wheel scrolls the page; Ctrl+wheel zooms
     e.preventDefault();
     const p = vbAt(e.clientX, e.clientY);
     if (!p) return;
     const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
     setFlat((f) => {
-      const w = Math.min(W, Math.max(0.2, f.w * k)), h = w * (f.h / f.w); // 0.2° min → deep city zoom
+      if (f.w * k >= W * 0.98 && e.deltaY > 0) { setMode("globe"); return f; } // zoomed fully out → globe
+      const w = Math.min(W, Math.max(0.004, f.w * k)), h = w * (f.h / f.w); // 0.004° ≈ 400 m → street level
       return { w, h, x: p.x - ((p.x - f.x) / f.w) * w, y: p.y - ((p.y - f.y) / f.h) * h };
     });
   });
   return (
-    <div className="relative overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
+    <div className="relative h-full w-full overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
-        <GlobeView data={data} aoKey={aoKey} onSelect={onSelect} />
+        <GlobeView data={data} center={center} onSelect={onSelect} onDrill={drillToFlat} />
       ) : (
-        <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} className="block w-full touch-none" role="img"
+        <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
+          className="block h-full w-full touch-none" role="img"
           style={{ cursor: flatDrag.current ? "grabbing" : "grab" }}
-          aria-label="World context — country borders + US state borders (Natural Earth 50m)"
-          onPointerDown={(e) => { flatDrag.current = { x: e.clientX, y: e.clientY }; }}
+          aria-label="World context map — country + US state borders (Natural Earth 50m); scroll to zoom, drag to pan"
+          onContextMenu={(e) => e.preventDefault()}
+          onPointerDown={(e) => { flatDrag.current = { x: e.clientX, y: e.clientY }; (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); }}
           onPointerMove={(e) => {
             const d = flatDrag.current; if (!d) return;
             const r = flatSvg.current?.getBoundingClientRect(); if (!r) return;
@@ -385,8 +439,8 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
           onPointerUp={() => { flatDrag.current = null; }}>
           {paths && (
             <>
-              <path d={paths.countries} fill="none" stroke={C.borderCountry} strokeWidth="0.45" opacity="0.55" />
-              <path d={paths.states} fill="none" stroke={C.borderState} strokeWidth="0.35" opacity="0.5" />
+              <path d={paths.countries} fill="none" stroke={C.borderCountry} strokeWidth="0.45" opacity="0.55" vectorEffect="non-scaling-stroke" />
+              <path d={paths.states} fill="none" stroke={C.borderState} strokeWidth="0.35" opacity="0.5" vectorEffect="non-scaling-stroke" />
             </>
           )}
           {AOS.map((ao) => {
@@ -395,23 +449,24 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
             const active = ao.key === aoKey;
             return (
               <g key={ao.key} onClick={() => onSelect(ao.key)} style={{ cursor: "pointer" }}>
-                <circle cx={x} cy={y} r={active ? 5 : 3.5} fill="none" stroke={C.cyan} strokeWidth="1" opacity={active ? 1 : 0.6} />
-                <circle cx={x} cy={y} r="1.4" fill={C.cyan} />
+                <circle cx={x} cy={y} r={active ? 5 : 3.5} fill="none" stroke={C.cyan} strokeWidth="1" opacity={active ? 1 : 0.6} vectorEffect="non-scaling-stroke" />
+                <circle cx={x} cy={y} r="1.4" fill={C.cyan} vectorEffect="non-scaling-stroke" />
+                <text x={x + 2} y={y - 2} fontSize="4" fill={C.gold} vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{ao.name.split(" · ")[0]}</text>
               </g>
             );
           })}
         </svg>
       )}
-      <div className="absolute right-2 top-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+      <div className="absolute right-2 top-2 z-10 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
         {(["globe", "flat"] as const).map((m) => (
-          <button key={m} onClick={() => setMode(m)} className="px-2 py-0.5"
+          <button key={m} onClick={() => (m === "flat" ? drillToFlat(center[0], center[1]) : (setCenter([90 - ((flat.y + flat.h / 2) / H) * 180, ((flat.x + flat.w / 2) / W) * 360 - 180]), setMode("globe")))} className="px-2 py-0.5"
             style={{ background: mode === m ? "#152238" : "transparent", color: mode === m ? C.cyan : C.dim }}>
             {m.toUpperCase()}
           </button>
         ))}
       </div>
-      <span className="absolute bottom-1 right-2 text-[8px]" style={{ color: C.dim }}>
-        NATURAL EARTH 50m · COUNTRIES + US STATES · ELEVATION/SUBSURFACE LAYERS PENDING
+      <span className="absolute bottom-1 right-2 z-10 text-[8px]" style={{ color: C.dim }}>
+        NATURAL EARTH 50m · SCROLL=ZOOM · R-DRAG=ANGLE · L-DRAG=PAN · DRILL IN → MAP
       </span>
     </div>
   );
@@ -516,6 +571,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [topOpen, setTopOpen] = useState(true);   // 3-dot collapse: top world map
   const [leftOpen, setLeftOpen] = useState(true); // 3-dot collapse: left palette
   const [zoomMode, setZoomMode] = useState(false); // click-armed zoom on the AO map
+  const [insetMode, setInsetMode] = useState<"corner" | "max" | "min">("corner"); // AO map PiP state
+  const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null); // list ⇄ map cross-highlight
   const zoomTimer = useRef<number | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null); // roads/water for the active AO
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -742,8 +799,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (!item || item.stock < item.group) return;
     const { lat, lon } = containerToLatLon(fx, fy);
     setInventory((inv) => inv.map((i) => (i.asset === asset ? { ...i, stock: i.stock - i.group } : i)));
+    const half = AD_HALF[asset];
+    const tls = half ? { p: { brg: 0, left: half, right: half } } : undefined; // default PTL north
+    const fov = asset === "sentinel" ? { brg: 0, left: 45, right: 45 } : undefined; // radar FOV sector
+    const unit: AngleUnit = asset === "sentinel" ? "mil" : "deg";
     setPlaced((p) => [...p, {
-      id: idRef.current++, asset, count: item.group, fx, fy, lat, lon, mgrs10: latLonToMgrs(lat, lon, 5), aff: "friendly",
+      id: idRef.current++, asset, count: item.group, fx, fy, lat, lon, mgrs10: latLonToMgrs(lat, lon, 5), aff: "friendly", tls, fov, unit,
     }]);
   };
 
@@ -769,6 +830,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   };
   const setPlacedReality = (id: number, r: RealityMode) =>
     setPlacedSupport((p) => p.map((u) => (u.id === id ? { ...u, reality: r } : u)));
+  const updAsset = (id: number, patch: Partial<Placed>) =>
+    setPlaced((p) => p.map((u) => (u.id === id ? { ...u, ...patch } : u)));
+  const setTL = (id: number, key: "p" | "s" | "t", tl: TL | null) =>
+    setPlaced((p) => p.map((u) => (u.id === id ? { ...u, tls: { ...u.tls, [key]: tl ?? undefined } } : u)));
   const nudge = (sel: { kind: "asset" | "support"; id: number }, dLat: number, dLon: number) => {
     const upd = <T extends { id: number; lat: number; lon: number }>(u: T): T =>
       u.id === sel.id ? { ...u, lat: u.lat + dLat, lon: u.lon + dLon } : u;
@@ -888,15 +953,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   }, [box]);
 
   return (
-    <div className="space-y-3 p-3">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
-          {topOpen ? "World / Globe" : "World map collapsed"}
-        </span>
-        <Dots3 horizontal onClick={() => setTopOpen((v) => !v)} title={topOpen ? "Collapse world map" : "Expand world map"} />
-      </div>
-      {topOpen && <WorldStrip aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }} />}
-
+    <div className="space-y-2 p-3">
       {/* Zoom ladder breadcrumb — NORTH AMERICA › TEXAS/WASHINGTON › AO */}
       <div className="flex items-center gap-1 text-[10px] font-semibold tracking-wide" style={{ color: C.dim }}>
         {["NORTH AMERICA", ao.key === "jblm" ? "WASHINGTON" : "TEXAS", ao.name.split(" · ")[0]].map((crumb, i, a) => (
@@ -905,12 +962,6 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             {i < a.length - 1 && <ChevronRight className="h-3 w-3" style={{ color: C.border }} />}
           </span>
         ))}
-        <span className="ml-auto flex items-center gap-1.5" style={{ color: C.gold }}>
-          CLEARANCE: LEVEL 3
-          <svg width="26" height="10" viewBox="0 0 26 10" aria-label="Clearance Level 3">
-            {[5, 13, 21].map((cx) => <circle key={cx} cx={cx} cy="5" r="4" fill={`${C.gold}22`} stroke={C.gold} strokeWidth="1" />)}
-          </svg>
-        </span>
       </div>
 
       {/* AO location toggle — scrolls left↔right */}
@@ -949,8 +1000,43 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
         </span>
       </div>
 
-      <div className="grid gap-3" style={{ gridTemplateColumns: `${leftOpen ? "260px" : "40px"} minmax(0,1fr)` }}>
-        {!leftOpen ? (
+      {/* MAIN VIEWER — globe fills the screen; scroll drills into a full-screen map */}
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
+          {topOpen ? "World / Globe → Map · SCROLL=ZOOM · R-DRAG=ANGLE · L-DRAG=PAN" : "World map collapsed"}
+        </span>
+        <Dots3 horizontal onClick={() => setTopOpen((v) => !v)} title={topOpen ? "Collapse world map" : "Expand world map"} />
+      </div>
+      {topOpen && (
+        <div className="relative w-full" style={{ height: "min(80vh, 960px)", minHeight: 400 }}>
+          <WorldStrip aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }} />
+        </div>
+      )}
+
+      {/* AO TACTICAL MAP — picture-in-picture inset, bottom-right ⅓ of screen (min/corner/max) */}
+      <div className="flex flex-col rounded-lg border shadow-2xl"
+        style={insetMode === "max"
+          ? { position: "fixed", inset: "0.75rem", zIndex: 50, background: C.panel, borderColor: C.cyan }
+          : insetMode === "min"
+          ? { position: "fixed", right: "0.75rem", bottom: "0.75rem", zIndex: 45, background: C.panel, borderColor: C.border }
+          : { position: "fixed", right: "0.75rem", bottom: "0.75rem", width: "34vw", height: "34vh", minWidth: 320, minHeight: 240, zIndex: 45, background: C.panel, borderColor: C.border }}>
+        {/* inset header — collapse (3-bullet) + maximize/restore */}
+        <div className="flex items-center justify-between gap-2 border-b px-2 py-1" style={{ borderColor: C.border }}>
+          <span className="truncate text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+            AO · {ao.name.split(" · ")[0]}{insetMode === "min" ? " (collapsed)" : ""}
+          </span>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setInsetMode((m) => (m === "max" ? "corner" : "max"))} title={insetMode === "max" ? "Restore" : "Maximize"}
+              className="rounded p-1 hover:bg-white/10" style={{ color: C.dim }}>
+              {insetMode === "max" ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+            </button>
+            <Dots3 horizontal onClick={() => setInsetMode((m) => (m === "min" ? "corner" : "min"))} title={insetMode === "min" ? "Expand" : "Collapse"} />
+          </div>
+        </div>
+        {insetMode !== "min" && (
+        <div className="grid min-h-0 flex-1 gap-3 overflow-auto p-2"
+          style={{ gridTemplateColumns: insetMode === "max" ? `${leftOpen ? "260px" : "40px"} minmax(0,1fr)` : "minmax(0,1fr)" }}>
+        {insetMode === "max" && (!leftOpen ? (
           <div className="flex flex-col items-center gap-2 rounded-lg border p-2" style={{ background: C.panel, borderColor: C.border }}>
             <Dots3 onClick={() => setLeftOpen(true)} title="Expand palette" />
             <span className="text-[8px] font-semibold" style={{ color: C.dim, writingMode: "vertical-rl" }}>PALETTE</span>
@@ -981,8 +1067,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                     draggable={!empty}
                     onDragStart={(e) => e.dataTransfer.setData("text/plain", i.asset)}
                     onClick={() => !empty && (setSelectedSupport(null), setSelectedAsset(isArmed ? null : i.asset))}
-                    className="flex cursor-grab items-center gap-2 rounded border px-2 py-1.5 select-none"
-                    style={{ borderColor: isArmed ? C.cyan : C.border, background: isArmed ? "#152238" : "transparent", opacity: empty ? 0.35 : 1 }}>
+                    onMouseEnter={() => setHoverAsset(i.asset)}
+                    onMouseLeave={() => setHoverAsset((h) => (h === i.asset ? null : h))}
+                    className="flex cursor-grab items-center gap-2 rounded border px-2 py-1.5 select-none transition-shadow"
+                    style={{ borderColor: isArmed || hoverAsset === i.asset ? C.cyan : C.border, background: isArmed || hoverAsset === i.asset ? "#152238" : "transparent", boxShadow: hoverAsset === i.asset ? `0 0 0 1px ${C.cyan}, 0 0 12px ${C.cyan}66` : undefined, opacity: empty ? 0.35 : 1 }}>
                     <AssetIcon asset={i.asset} style={iconStyle} affiliation="friendly" size={26} count={i.group > 1 ? i.group : 1} />
                     <div className="min-w-0 flex-1">
                       <div className="text-[11px] font-semibold" style={{ color: C.text }}>{ASSET_LABELS[i.asset]}</div>
@@ -1086,6 +1174,51 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   </select>
                 </>
               )}
+              {/* PTL/2TL/3TL + sensor/radar FOV — unlocks for AD assets & radar */}
+              {selected.kind === "asset" && ((selectedObj as Placed).tls || (selectedObj as Placed).fov) && (() => {
+                const a = selectedObj as Placed;
+                const u = a.unit ?? "deg";
+                const unitOpts: AngleUnit[] = a.asset === "sentinel" ? ["deg", "ucrs", "mil"] : ["deg", "ucrs"];
+                const upd = (key: "fov" | "p" | "s" | "t", tl: TL | null) => (key === "fov" ? updAsset(a.id, { fov: tl ?? undefined }) : setTL(a.id, key, tl));
+                const numIn = (val: number, on: (deg: number) => void) => (
+                  <input type="number" value={Math.round(toUnit(val, u))} onChange={(e) => on(fromUnit(parseFloat(e.target.value || "0"), u))}
+                    className="w-full rounded border bg-transparent px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.text }} />
+                );
+                const tlRow = (key: "fov" | "p" | "s" | "t", label: string, tl: TL | null | undefined, col: string) => (
+                  <div className="mb-1.5 rounded border p-1" style={{ borderColor: `${col}55` }}>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[9px] font-bold" style={{ color: col }}>{label}</span>
+                      {(key === "s" || key === "t") && (
+                        <button onClick={() => upd(key, tl ? null : { brg: 0, left: 45, right: 45 })} className="text-[8px] font-semibold" style={{ color: tl ? C.red : C.green }}>{tl ? "REMOVE" : "ADD"}</button>
+                      )}
+                    </div>
+                    {tl && (
+                      <div className="grid grid-cols-3 gap-1">
+                        <div><div className="text-[7px]" style={{ color: C.dim }}>BRG</div>{numIn(tl.brg, (v) => upd(key, { ...tl, brg: ((v % 360) + 360) % 360 }))}</div>
+                        <div><div className="text-[7px]" style={{ color: C.dim }}>◀ LEFT</div>{numIn(tl.left, (v) => upd(key, { ...tl, left: Math.max(0, Math.min(180, v)) }))}</div>
+                        <div><div className="text-[7px]" style={{ color: C.dim }}>RIGHT ▶</div>{numIn(tl.right, (v) => upd(key, { ...tl, right: Math.max(0, Math.min(180, v)) }))}</div>
+                      </div>
+                    )}
+                  </div>
+                );
+                return (
+                  <>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[9px]" style={{ color: C.dim }}>Angle unit</span>
+                      <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                        {unitOpts.map((un) => (
+                          <button key={un} onClick={() => updAsset(a.id, { unit: un })} className="px-1.5 py-0.5"
+                            style={{ background: u === un ? "#152238" : "transparent", color: u === un ? C.cyan : C.dim }}>{ANGLE_LABEL[un]}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {a.fov && tlRow("fov", "SENSOR / RADAR FOV", a.fov, "#a78bfa")}
+                    {a.tls && tlRow("p", "PTL / 1TL — points", a.tls.p, C.gold)}
+                    {a.tls && tlRow("s", "2TL — secondary", a.tls.s, C.amber)}
+                    {a.tls && tlRow("t", "3TL — tertiary", a.tls.t, C.cyan)}
+                  </>
+                );
+              })()}
               <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Nudge position (1 m)</div>
               <div className="grid grid-cols-3 gap-1">
                 <span />
@@ -1104,8 +1237,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <div className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Placed — {placed.length + placedSupport.length}</div>
               {placed.map((u) => (
                 <button key={`a${u.id}`} onClick={() => setSelected({ kind: "asset", id: u.id })}
+                  onMouseEnter={() => setHoverAsset(u.asset)}
+                  onMouseLeave={() => setHoverAsset((h) => (h === u.asset ? null : h))}
                   className="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-left text-[9px] hover:bg-white/5"
-                  style={{ background: selected?.kind === "asset" && selected.id === u.id ? "#152238" : "transparent" }}>
+                  style={{ background: (selected?.kind === "asset" && selected.id === u.id) || hoverAsset === u.asset ? "#152238" : "transparent", boxShadow: hoverAsset === u.asset ? `inset 0 0 0 1px ${C.cyan}` : undefined }}>
                   <span style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
                   <span className="font-mono" style={{ color: C.gold }}>{coordAt(u.lat, u.lon)}</span>
                 </button>
@@ -1134,10 +1269,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             </p>
           </div>
         </div>
-        )}
+        ))}
 
         {/* AO MAP — adaptive MGRS grid · wheel-zoom · drag-pan · elevation profiles */}
-        <div className="rounded-lg border p-3" style={{ background: C.panel, borderColor: C.border }}>
+        <div className="flex min-h-0 flex-col rounded-lg border p-3" style={{ background: C.panel, borderColor: C.border }}>
           <div className="relative mb-2 flex flex-wrap items-center justify-between gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
               {ao.name} — {fmtDist(view.spanKm * 1000)} AO
@@ -1191,9 +1326,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               </div>
             )}
           </div>
-          <div className="flex gap-1">
+          <div className="flex min-h-0 flex-1 gap-1">
           <div ref={mapRef}
-            className="relative aspect-square w-full flex-1 overflow-hidden rounded-md touch-none"
+            className={insetMode === "max" ? "relative aspect-square w-full flex-1 overflow-hidden rounded-md touch-none" : "relative mx-auto aspect-square h-full max-w-full overflow-hidden rounded-md touch-none"}
             style={{ background: "radial-gradient(ellipse at 50% 55%, #0f2033 0%, #070b12 75%)", border: `1px solid ${zoomMode ? C.cyan : C.border}`, boxShadow: zoomMode ? `inset 0 0 30px ${C.cyan}44, 0 0 12px ${C.cyan}55` : undefined, cursor: cursorMode === "target" ? "none" : armed ? "crosshair" : zoomMode ? "zoom-in" : dragRef.current ? "grabbing" : "grab" }}
             onContextMenu={(e) => e.preventDefault()}
             onPointerDown={onPointerDown}
@@ -1264,6 +1399,30 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   field goals, seats, concourse) overlaid on the real turf. */}
               {ao.field && <PfieldVenue corners={ao.field} toFrac={toFrac} mode={venue3d ? "3d" : "2d"} />}
 
+              {/* Sensor/radar FOV + PTL/2TL/3TL target-line sectors (geographic bearing) */}
+              {placed.map((u) => {
+                if (!u.tls && !u.fov) return null;
+                const c = toFrac(u.lat, u.lon); const cx = c.fx * 100, cy = c.fy * 100;
+                const line = (R: number, brg: number, col: string) =>
+                  <line x1={cx} y1={cy} x2={cx + R * Math.sin((brg * Math.PI) / 180)} y2={cy - R * Math.cos((brg * Math.PI) / 180)} stroke={col} strokeWidth="0.45" />;
+                const TLS: [TL | undefined, string, number, string][] = [
+                  [u.fov, "#a78bfa", 30, "FOV"],
+                  [u.tls?.p, C.gold, 22, "PTL"],
+                  [u.tls?.s, C.amber, 20, "2TL"],
+                  [u.tls?.t, C.cyan, 18, "3TL"],
+                ];
+                return (
+                  <g key={`tl${u.id}`}>
+                    {TLS.map(([tl, col, R], i) => tl && (
+                      <g key={i}>
+                        <path d={sectorPath(cx, cy, R, tl)} fill={`${col}1f`} stroke={`${col}66`} strokeWidth="0.25" />
+                        {line(R, tl.brg, col)}
+                      </g>
+                    ))}
+                  </g>
+                );
+              })}
+
               {/* committed routes (line/corridor) — polylines through their vertices */}
               {placedSupport.filter((u) => u.path).map((u) => {
                 const pts = u.path!.map((p) => toFrac(p.lat, p.lon));
@@ -1315,12 +1474,16 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               const f = project(u.lat, u.lon);
               if (f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05) return null;
               const sel = selected?.kind === "asset" && selected.id === u.id;
+              const hot = hoverAsset === u.asset;
               return (
                 <button key={u.id}
                   onPointerUp={(e) => { if (!dragRef.current?.moved) { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); } }}
+                  onMouseEnter={() => setHoverAsset(u.asset)}
+                  onMouseLeave={() => setHoverAsset((h) => (h === u.asset ? null : h))}
                   title={`${ASSET_LABELS[u.asset]} — ${coordAt(u.lat, u.lon)}`}
                   className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-                  style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%` }}>
+                  style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: hot ? 15 : undefined }}>
+                  {hot && <span className="absolute h-10 w-10 animate-ping rounded-full" style={{ boxShadow: `0 0 0 2px ${C.cyan}`, background: `${C.cyan}22`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
                   {sel && <span className="absolute h-8 w-8 rounded-full" style={{ boxShadow: `0 0 0 2px ${C.gold}`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
                   <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28} count={u.count} />
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>
@@ -1436,7 +1599,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           </div>
 
           {/* RIGHT ELEVATION SCALE — vertical profile across the AO center column */}
-          {elevOn && (
+          {elevOn && insetMode === "max" && (
             <div className="relative w-12 shrink-0 self-stretch overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
               <svg viewBox="0 0 40 100" preserveAspectRatio="none" className="h-full w-full">
                 <path d={elevProfile.rightPath} fill={`${C.gold}22`} stroke={C.gold} strokeWidth="0.6" />
@@ -1449,7 +1612,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           </div>
 
           {/* BOTTOM ELEVATION PROFILE — user-resizable (drag the handle: ~1/3 → 2/3) */}
-          {elevOn && (
+          {elevOn && insetMode === "max" && (
             <>
               <div
                 onPointerDown={(e) => { bottomDrag.current = e.clientY; e.currentTarget.setPointerCapture?.(e.pointerId); }}
@@ -1503,6 +1666,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             </>
           )}
         </div>
+        </div>
+        )}
       </div>
     </div>
   );

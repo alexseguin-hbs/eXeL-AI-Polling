@@ -239,6 +239,9 @@ export function SecurityCommandUX1() {
               </button>
             ))}
           </div>
+          <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-wide" style={{ color: CLEARANCE_COLORS[3] }}>
+            <span className="hidden sm:inline">CLEARANCE: LEVEL 3</span><ClearanceSeal level={3} />
+          </span>
           <span className="hidden md:inline text-[10px]" style={{ color: C.dim }}>OPERATOR: ALPHA-1</span>
           <span className="text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
           <button onClick={exitSimulationMode} className="p-1.5 rounded hover:bg-white/5" title="Exit">
