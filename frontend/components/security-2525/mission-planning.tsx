@@ -1564,31 +1564,21 @@ function AoMapPane(p: PaneProps) {
 // ── Shared placement rail (ASSET / SUPPORT menu + inspector) ──────────────────
 // Lives OUTSIDE the maps (left column), so one menu drives both MAP and MINI MAP.
 interface RailProps {
-  iconStyle: IconStyle; fmt: Fmt;
+  iconStyle: IconStyle;
   inventory: InvItem[]; tab: "assets" | "support"; setTab: (t: "assets" | "support") => void;
   selectedAsset: AssetKind | null; setSelectedAsset: (a: AssetKind | null) => void;
   selectedSupport: SupportObjectDef | null; setSelectedSupport: (d: SupportObjectDef | null) => void;
   hoverAsset: AssetKind | null; setHoverAsset: React.Dispatch<React.SetStateAction<AssetKind | null>>;
   openGroups: Set<LegendGroup>; setOpenGroups: React.Dispatch<React.SetStateAction<Set<LegendGroup>>>;
   reality: RealityMode; setReality: (r: RealityMode) => void;
-  selected: { kind: "asset" | "support"; id: number } | null; selectedObj: Placed | PlacedSupport | undefined;
-  onSetAff: (sel: { kind: "asset" | "support"; id: number }, aff: Affiliation) => void;
-  onSetPlacedReality: (id: number, r: RealityMode) => void;
-  onUpdAsset: (id: number, patch: Partial<Placed>) => void;
-  onSetTL: (id: number, key: "p" | "s" | "t", tl: TL | null) => void;
-  onNudge: (sel: { kind: "asset" | "support"; id: number }, dLat: number, dLon: number) => void;
-  onSetCoord: (sel: { kind: "asset" | "support"; id: number }, lat: number, lon: number) => void;
-  onRemoveSelected: () => void; onUndoLastPlacement: () => void; clearAo: () => void;
-  nudgeM: number; setNudgeM: (m: number) => void;
-  coordText: string; setCoordText: (s: string) => void; coordFmt: "mgrs" | "dms"; digits: Digits;
+  onUndoLastPlacement: () => void; clearAo: () => void;
   routeMode: boolean; onHide: () => void;
 }
 function PlacementRail(r: RailProps) {
   const {
-    iconStyle, fmt, inventory, tab, setTab, selectedAsset, setSelectedAsset, selectedSupport, setSelectedSupport,
-    hoverAsset, setHoverAsset, openGroups, setOpenGroups, reality, setReality, selected, selectedObj,
-    onSetAff, onSetPlacedReality, onUpdAsset, onSetTL, onNudge, onSetCoord, onRemoveSelected,
-    onUndoLastPlacement, clearAo, nudgeM, setNudgeM, coordText, setCoordText, coordFmt, digits, routeMode, onHide,
+    iconStyle, inventory, tab, setTab, selectedAsset, setSelectedAsset, selectedSupport, setSelectedSupport,
+    hoverAsset, setHoverAsset, openGroups, setOpenGroups, reality, setReality,
+    onUndoLastPlacement, clearAo, routeMode, onHide,
   } = r;
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -2326,19 +2316,14 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           <div className="flex min-h-0 shrink-0 flex-col gap-2 landscape:w-64">
           <div className="min-h-0 flex-1 overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
             <PlacementRail
-              iconStyle={iconStyle} fmt={fmt}
+              iconStyle={iconStyle}
               inventory={inventory} tab={tab} setTab={setTab}
               selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset}
               selectedSupport={selectedSupport} setSelectedSupport={setSelectedSupport}
               hoverAsset={hoverAsset} setHoverAsset={setHoverAsset}
               openGroups={openGroups} setOpenGroups={setOpenGroups}
               reality={reality} setReality={setReality}
-              selected={selected} selectedObj={selectedObj}
-              onSetAff={setAff} onSetPlacedReality={setPlacedReality} onUpdAsset={updAsset} onSetTL={setTL}
-              onNudge={nudge} onSetCoord={setCoord} onRemoveSelected={removeSelected}
               onUndoLastPlacement={undoLastPlacement} clearAo={clearAo}
-              nudgeM={nudgeM} setNudgeM={setNudgeM}
-              coordText={coordText} setCoordText={setCoordText} coordFmt={coordFmt} digits={digits}
               routeMode={routeMode} onHide={() => setRailOpen(false)} />
           </div>
           {/* BOTTOM-LEFT — Tracks & movement (heading · speed · altitude + activation) */}
