@@ -250,6 +250,14 @@ function sectorPath(cx: number, cy: number, R: number, tl: TL) {
 }
 const AD_HALF: Partial<Record<AssetKind, number>> = { avenger: 45, patriot: 60, thaad: 90 };
 
+// Published engagement / detection ranges (km, approximate open-source figures) —
+// a weapons-planning coverage aid, NOT a targeting authority. Sources: manufacturer
+// & defense-press public data (Stinger ~8 km; PAC-3/MSE ~35 km; THAAD ~200 km;
+// AN/MPQ-64 Sentinel detection ~75 km). X-BAT/AUTO-FOIL are program-nominal.
+const ASSET_RANGE_KM: Partial<Record<AssetKind, number>> = {
+  avenger: 8, patriot: 35, thaad: 200, sentinel: 75, xbat: 15, autofoil: 10,
+};
+
 // ── World border context strip (Natural Earth 50m, self-hosted) ──────────────
 interface BorderData { countries: [number, number][][]; usStates: [number, number][][] }
 let borderCache: BorderData | null = null;
@@ -780,6 +788,7 @@ interface PaneProps {
   gridOn: boolean;
   elevOn: boolean;
   contourCfg: ContourSettings;
+  rangeOn: boolean;
   showElevation: boolean;
   cursorMode: "pointer" | "target";
   is3d: boolean;
@@ -814,7 +823,7 @@ interface PaneProps {
 
 function AoMapPane(p: PaneProps) {
   const {
-    label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, showElevation, cursorMode, is3d, onToggle3d,
+    label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, osm, borders, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld,
@@ -1207,6 +1216,17 @@ function AoMapPane(p: PaneProps) {
                   );
                 })}
                 {ao.field && <PfieldVenue corners={ao.field} toFrac={toFrac} mode={is3d ? "3d" : "2d"} />}
+
+                {/* weapon-range coverage rings (public-source ranges) — planning aid */}
+                {rangeOn && placed.map((u) => {
+                  const rk = ASSET_RANGE_KM[u.asset];
+                  if (!rk) return null;
+                  const c = toFrac(u.lat, u.lon);
+                  const rr = (rk / (view.spanKm * RENDER)) * 100;
+                  if (rr < 0.4 || rr > 400) return null;
+                  const col = u.aff === "hostile" ? C.red : C.cyan;
+                  return <circle key={`rng${u.id}`} cx={c.fx * 100} cy={c.fy * 100} r={rr} fill={`${col}0a`} stroke={col} strokeWidth="0.18" strokeDasharray="1.2 0.8" opacity="0.5" />;
+                })}
 
                 {placed.map((u) => {
                   if (!u.tls && !u.fov) return null;
@@ -1778,6 +1798,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [selected, setSelected] = useState<{ kind: "asset" | "support"; id: number } | null>(null);
   const [elevOn, setElevOn] = useState(true);
   const [contourCfg, setContourCfg] = useState<ContourSettings>(DEFAULT_CONTOURS);
+  const [rangeOn, setRangeOn] = useState(true);            // weapon-range coverage rings
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
   const [showSettings, setShowSettings] = useState(false);
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
@@ -1921,7 +1942,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   }); // no deps → always latest state
 
   const paneCommon = {
-    ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, cursorMode,
+    ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
   };
@@ -2064,6 +2085,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 <div className="text-[7px]" style={{ color: C.dim }}>SYNTHETIC (DEM pending: USGS 3DEP · Copernicus GLO-30 · GEBCO)</div>
               </div>
             )}
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[10px]" style={{ color: C.text }}>Weapon range rings</span>
+              <button onClick={() => setRangeOn(!rangeOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                style={{ borderColor: rangeOn ? C.cyan : C.border, color: rangeOn ? C.cyan : C.dim }}>{rangeOn ? "ON" : "OFF"}</button>
+            </div>
             <div className="mb-1 text-[10px]" style={{ color: C.text }}>Pointer</div>
             <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
               {([["pointer", "DEFAULT"], ["target", "MINI-TARGET"]] as const).map(([m, label]) => (
