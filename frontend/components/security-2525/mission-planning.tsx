@@ -438,7 +438,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
   );
 }
 
-function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) => void }) {
+function WorldStrip({ aoKey, onSelect, onEnterAo, label }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; label?: string }) {
   const [data, setData] = useState<BorderData | null>(borderCache);
   const [mode, setMode] = useState<"globe" | "flat">("globe");
   const [center, setCenter] = useState<[number, number]>(() => (AOS.find((a) => a.key === aoKey)?.center ?? [38, -97]));
@@ -566,16 +566,29 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
           </>
         );
       })()}
-      <div className="absolute right-2 top-2 z-10 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
-        {(["globe", "flat"] as const).map((m) => (
-          <button key={m} onClick={() => (m === "flat" ? drillToFlat(center[0], center[1]) : (setCenter([90 - ((flat.y + flat.h / 2) / H) * 180, ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180]), setMode("globe")))} className="px-2 py-0.5"
-            style={{ background: mode === m ? "#152238" : "transparent", color: mode === m ? C.cyan : C.dim }}>
-            {m.toUpperCase()}
+      {label && (
+        <span className="pointer-events-none absolute left-2 top-2 z-10 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+          {label} · EARTH
+        </span>
+      )}
+      <div className="absolute right-2 top-2 z-10 flex items-center gap-1">
+        {onEnterAo && (
+          <button onClick={() => onEnterAo(aoKey)} title="Enter the tactical Area of Operations (zoom to detail)"
+            className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.gold, color: C.gold, background: "#0a0f16cc" }}>
+            {AOS.find((a) => a.key === aoKey)?.name.split(" · ")[0] ?? "AO"} ▶
           </button>
-        ))}
+        )}
+        <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+          {(["globe", "flat"] as const).map((m) => (
+            <button key={m} onClick={() => (m === "flat" ? drillToFlat(center[0], center[1]) : (setCenter([90 - ((flat.y + flat.h / 2) / H) * 180, ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180]), setMode("globe")))} className="px-2 py-0.5"
+              style={{ background: mode === m ? "#152238" : "transparent", color: mode === m ? C.cyan : C.dim }}>
+              {m === "globe" ? "3D" : "2D"}
+            </button>
+          ))}
+        </div>
       </div>
       <span className="absolute bottom-1 right-2 z-10 text-[8px]" style={{ color: C.dim }}>
-        NATURAL EARTH 50m · SCROLL=ZOOM · R-DRAG=ANGLE · L-DRAG=PAN · DRILL IN → MAP
+        NATURAL EARTH 50m · SCROLL=ZOOM · 3D-GLOBE ⇄ 2D-FLAT · DRILL → AO
       </span>
     </div>
   );
@@ -713,6 +726,7 @@ interface PaneProps {
   maximized: boolean;
   onToggleMax: () => void;
   onHidePane?: () => void;
+  onWorld?: () => void; // zoom out past AO scale → Earth/world view
 }
 
 function AoMapPane(p: PaneProps) {
@@ -720,7 +734,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, osm, borders, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
-    setHoverAsset, allocId, maximized, onToggleMax, onHidePane,
+    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld,
   } = p;
 
   const [cursorLL, setCursorLL] = useState<{ lat: number; lon: number } | null>(null);
@@ -786,6 +800,8 @@ function AoMapPane(p: PaneProps) {
   };
   useWheel(mapRef, (e) => {
     e.preventDefault();
+    // zoom out past AO scale → hand off to the Earth/world view (continuous zoom continuum)
+    if (e.deltaY > 0 && view.spanKm >= 199 && onWorld) { onWorld(); return; }
     setView((v) => ({ ...v, spanKm: Math.min(200, Math.max(0.02, v.spanKm * (e.deltaY > 0 ? 1.15 : 1 / 1.15))) }));
   });
 
@@ -1008,6 +1024,9 @@ function AoMapPane(p: PaneProps) {
                 style={{ background: is3d === v ? "#152238" : "transparent", color: is3d === v ? C.cyan : C.dim }}>{lb}</button>
             ))}
           </div>
+          {onWorld && (
+            <button onClick={onWorld} title="Zoom out to Earth / world view" className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.gold, color: C.gold }}>🌍 EARTH</button>
+          )}
           <button onClick={resetView} className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.border }}>RESET</button>
           <button onClick={onToggleMax} title={maximized ? "Restore" : "Maximize"} className="rounded border p-0.5" style={{ borderColor: maximized ? C.cyan : C.border, color: maximized ? C.cyan : C.dim }}>
             {maximized ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
@@ -1053,7 +1072,9 @@ function AoMapPane(p: PaneProps) {
                 {osmPaths && (
                   <g>
                     <path d={osmPaths.polyD} fill="#38bdf822" stroke="#38bdf8" strokeWidth="0.15" />
-                    <path d={osmPaths.waterD} fill="none" stroke="#38bdf8" strokeWidth="0.35" opacity="0.85" strokeLinecap="round" />
+                    {/* rivers rendered at true ground width (~60 m), scaling with zoom, not hairlines */}
+                    <path d={osmPaths.waterD} fill="none" stroke="#38bdf8" strokeWidth={Math.min(4, Math.max(0.4, (60 / (view.spanKm * 1000)) * 100))} opacity="0.8" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.2, Math.max(0.12, (12 / (view.spanKm * 1000)) * 100))} opacity="0.9" strokeLinecap="round" />
                     <path d={osmPaths.tiers[2]} fill="none" stroke="#cbd5e1" strokeWidth="0.55" opacity="0.16" strokeLinecap="round" />
                     <path d={osmPaths.tiers[3]} fill="none" stroke="#cbd5e1" strokeWidth="1.0" opacity="0.2" strokeLinecap="round" />
                     <path d={osmPaths.tiers[4]} fill="none" stroke="#cbd5e1" strokeWidth="1.6" opacity="0.22" strokeLinecap="round" />
@@ -1664,9 +1685,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [rightOpen, setRightOpen] = useState(true);        // right deployed-items rail (collapsible)
   const [miniOpen, setMiniOpen] = useState(true);          // bottom-right mini-map inset (hideable)
   const [mapMax, setMapMax] = useState(false);             // maximize the big MAP (collapse both rails)
-  const [mirror, setMirror] = useState(true);              // MIRROR couples MAP⇄MINI; SPLIT decouples
+  const [mirror, setMirror] = useState(false);             // MIRROR couples MAP⇄MINI; SPLIT decouples
   const [is3dA, setIs3dA] = useState(false);               // MAP 2D/3D (perspective terrain)
   const [is3dB, setIs3dB] = useState(false);               // MINI MAP 2D/3D
+  const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
+  const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
   const [coordText, setCoordText] = useState("");          // exact-coordinate entry (Settings format)
 
@@ -1694,6 +1717,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const setViewB_ = (u: (v: ViewState) => ViewState) => { setViewB(u); if (mirror) setViewA(u); };
   const toggle3dA = () => { setIs3dA((v) => { const n = !v; if (mirror) setIs3dB(n); return n; }); };
   const toggle3dB = () => { setIs3dB((v) => { const n = !v; if (mirror) setIs3dA(n); return n; }); };
+  const setModeA_ = (m: "world" | "ao") => { setModeA(m); if (mirror) setModeB(m); };
+  const setModeB_ = (m: "world" | "ao") => { setModeB(m); if (mirror) setModeA(m); };
 
   const fmt = useMemo(() => makeFormatters(coordFmt, digits, unit), [coordFmt, digits, unit]);
 
@@ -1825,6 +1850,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             style={{ borderColor: mirror ? C.cyan : C.border, color: mirror ? C.cyan : C.dim }}>
             <Columns2 className="h-3.5 w-3.5" /> {mirror ? "MIRROR" : "SPLIT"}
           </button>
+          <button onClick={() => setMiniOpen((m) => !m)} title={miniOpen ? "Hide mini-map" : "Show mini-map"}
+            className="rounded border px-1.5 py-1 text-[10px] font-semibold"
+            style={{ borderColor: miniOpen ? C.cyan : C.border, color: miniOpen ? C.cyan : C.dim }}>MINI</button>
           <button onClick={toggleFs} title={isFs ? "Exit fullscreen" : "Fullscreen"}
             className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
             style={{ borderColor: isFs ? C.cyan : C.border, color: isFs ? C.cyan : C.dim }}>
@@ -1919,17 +1947,31 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           </button>
         ))}
 
-        {/* CENTER — the big MAP; the mini-map (SAME format) insets its bottom-right */}
+        {/* CENTER — big MAP + mini-map inset. Each pane is the SAME continuum: EARTH world
+            view (WorldStrip · 3D globe / 2D flat) ⇄ tactical AO detail (AoMapPane). Zoom the
+            AO all the way out → Earth; drill an AO on Earth → tactical detail. */}
         <div className="relative flex min-h-0 min-w-0 flex-1">
-          <AoMapPane {...paneCommon} label="MAP" showElevation spanFactor={1}
-            view={viewA} setView={setViewA_} is3d={is3dA} onToggle3d={toggle3dA}
-            maximized={mapMax} onToggleMax={() => setMapMax((m) => !m)} />
+          {modeA === "world" ? (
+            <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
+              <WorldStrip label="MAP" aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }}
+                onEnterAo={(k) => { setAoKey(k); clearAo(); setModeA_("ao"); }} />
+            </div>
+          ) : (
+            <AoMapPane {...paneCommon} label="MAP" showElevation spanFactor={1}
+              view={viewA} setView={setViewA_} is3d={is3dA} onToggle3d={toggle3dA}
+              maximized={mapMax} onToggleMax={() => setMapMax((m) => !m)} onWorld={() => setModeA_("world")} />
+          )}
           {miniOpen ? (
             <div className="absolute bottom-2 right-2 z-20 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"
               style={{ width: "48%", height: "46%", minWidth: 220, minHeight: 170, borderColor: C.cyan, background: C.panel }}>
-              <AoMapPane {...paneCommon} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
-                view={viewB} setView={setViewB_} is3d={is3dB} onToggle3d={toggle3dB}
-                maximized={false} onToggleMax={() => setMapMax((m) => !m)} onHidePane={() => setMiniOpen(false)} />
+              {modeB === "world" ? (
+                <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }}
+                  onEnterAo={(k) => { setAoKey(k); clearAo(); setModeB_("ao"); }} />
+              ) : (
+                <AoMapPane {...paneCommon} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
+                  view={viewB} setView={setViewB_} is3d={is3dB} onToggle3d={toggle3dB}
+                  maximized={false} onToggleMax={() => setMapMax((m) => !m)} onHidePane={() => setMiniOpen(false)} onWorld={() => setModeB_("world")} />
+              )}
             </div>
           ) : (
             <button onClick={() => setMiniOpen(true)} title="Show mini-map"
