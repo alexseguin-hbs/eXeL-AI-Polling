@@ -410,15 +410,24 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
           const prev = touch.current.get(e.pointerId); if (!prev) return;
           touch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
           if (touch.current.size >= 2 && pinch.current) {
+            // Google-Earth 2-finger: pinch = zoom, twist = spin (roll), drag = tilt (vertical) + orbit (horizontal).
             const [a, b] = Array.from(touch.current.values());
             const dist = Math.hypot(a.x - b.x, a.y - b.y);
             const factor = dist / Math.max(1, pinch.current.dist);
             const ang = Math.atan2(b.y - a.y, b.x - a.x);
             let dAng = ang - pinch.current.ang;
             if (dAng > Math.PI) dAng -= 2 * Math.PI; else if (dAng < -Math.PI) dAng += 2 * Math.PI;
-            pinch.current = { dist, cx: pinch.current.cx, cy: pinch.current.cy, ang };
+            const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+            const dcx = cx - pinch.current.cx, dcy = cy - pinch.current.cy;
+            pinch.current = { dist, cx, cy, ang };
             if (cam.zoom * factor > ZMAX) { onDrill(cam.lat0, cam.lon0); return; }
-            setCam((c) => ({ ...c, zoom: Math.min(ZMAX, Math.max(1, c.zoom * factor)), roll: c.roll - dAng }));
+            setCam((c) => ({
+              ...c,
+              zoom: Math.min(ZMAX, Math.max(1, c.zoom * factor)),
+              roll: c.roll - dAng,
+              tilt: Math.max(-1.4, Math.min(1.4, c.tilt + dcy * 0.006)),
+              lon0: c.lon0 - dcx * 0.3,
+            }));
           } else if (touch.current.size === 1) {
             const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
             setCam((c) => ({ ...c, lon0: c.lon0 - dx * 0.5, lat0: Math.min(85, Math.max(-85, c.lat0 + dy * 0.5)) }));
