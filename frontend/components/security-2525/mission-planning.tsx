@@ -1233,7 +1233,6 @@ function AoMapPane(p: PaneProps) {
             </div>
           )}
           <button onClick={resetView} className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.border }}>RESET</button>
-          <Dots3 horizontal onClick={() => setPaletteOpen((v) => !v)} title="Placement menu (ASSET / SUPPORT)" />
         </div>
       </div>
       {/* R-CORE lane strip */}
@@ -1246,12 +1245,22 @@ function AoMapPane(p: PaneProps) {
 
       {/* pane body: relative container holds palette overlay + map (+ elevation) */}
       <div className="relative flex min-h-0 flex-1 flex-col p-2">
-        {/* placement menu overlay (3-bullet toggle) */}
-        {paletteOpen && (
+        {/* Placement menu — same 3-bullet collapse law as the OVERVIEW rails:
+            OPEN = full detail panel (collapse via the 3-bullet at its top);
+            COLLAPSED = compressed 3-bullet rail (click expands to the SAME detail).
+            Behaves identically in fullscreen. */}
+        {paletteOpen ? (
           <div className="absolute left-2 top-2 z-30 flex max-h-[calc(100%-1rem)] w-[236px] max-w-[86%] flex-col overflow-hidden rounded-lg border shadow-2xl"
             style={{ background: C.panel, borderColor: C.cyan }}
             onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>
             {palette}
+          </div>
+        ) : (
+          <div className="absolute left-2 top-14 z-30 flex flex-col items-center gap-2 rounded-md px-1.5 py-2"
+            style={{ background: "#0a0f16cc" }}
+            onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>
+            <Dots3 onClick={() => setPaletteOpen(true)} title="Expand placement menu (ASSET / SUPPORT)" />
+            <span className="text-[8px] font-semibold" style={{ color: C.dim, writingMode: "vertical-rl" }}>MENU</span>
           </div>
         )}
 
