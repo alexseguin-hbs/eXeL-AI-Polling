@@ -232,6 +232,7 @@ interface Placed {
   tls?: { p?: TL; s?: TL; t?: TL };
   fov?: TL;
   unit?: AngleUnit;
+  mobile?: boolean; // on-the-move (Avenger fires SLEW-TO-CUE only; PTL disabled while moving)
 }
 
 type AngleUnit = "deg" | "ucrs" | "mil";
@@ -1235,7 +1236,7 @@ function AoMapPane(p: PaneProps) {
                     <line x1={cx} y1={cy} x2={cx + R * Math.sin((brg * Math.PI) / 180)} y2={cy - R * Math.cos((brg * Math.PI) / 180)} stroke={col} strokeWidth="0.45" />;
                   const TLS: [TL | undefined, string, number, string][] = [
                     [u.fov, "#a78bfa", 30, "FOV"],
-                    [u.tls?.p, C.gold, 22, "PTL"],
+                    [u.mobile ? undefined : u.tls?.p, C.gold, 22, "PTL"], // PTL suppressed on-the-move
                     [u.tls?.s, C.amber, 20, "2TL"],
                     [u.tls?.t, C.cyan, 18, "3TL"],
                   ];
@@ -1679,6 +1680,18 @@ function PlacementRail(r: RailProps) {
               );
               return (
                 <>
+                  {/* Avenger PTL is only valid stationary — on-the-move fires slew-to-cue, PTL suppressed */}
+                  {a.asset === "avenger" && (
+                    <div className="mb-1.5 flex items-center justify-between rounded border p-1" style={{ borderColor: `${C.amber}55` }}>
+                      <span className="text-[9px]" style={{ color: C.dim }}>Posture</span>
+                      <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                        {([[false, "STATIONARY · PTL"], [true, "ON-THE-MOVE"]] as const).map(([mv, lb]) => (
+                          <button key={lb} onClick={() => onUpdAsset(a.id, { mobile: mv })} className="px-1.5 py-0.5"
+                            style={{ background: !!a.mobile === mv ? "#152238" : "transparent", color: !!a.mobile === mv ? (mv ? C.amber : C.gold) : C.dim }}>{lb}</button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="mb-1 flex items-center justify-between">
                     <span className="text-[9px]" style={{ color: C.dim }}>Angle unit</span>
                     <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
@@ -1689,7 +1702,9 @@ function PlacementRail(r: RailProps) {
                     </div>
                   </div>
                   {a.fov && tlRow("fov", "SENSOR / RADAR FOV", a.fov, "#a78bfa")}
-                  {a.tls && tlRow("p", "PTL / 1TL — points", a.tls.p, C.gold)}
+                  {a.asset === "avenger" && a.mobile
+                    ? <div className="mb-1.5 rounded border p-1 text-[8px]" style={{ borderColor: `${C.amber}55`, color: C.amber }}>PTL disabled on-the-move (slew-to-cue only)</div>
+                    : a.tls && tlRow("p", "PTL / 1TL — points", a.tls.p, C.gold)}
                   {a.tls && tlRow("s", "2TL — secondary", a.tls.s, C.amber)}
                   {a.tls && tlRow("t", "3TL — tertiary", a.tls.t, C.cyan)}
                 </>
