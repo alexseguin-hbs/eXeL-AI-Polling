@@ -665,7 +665,6 @@ interface PaneProps {
   iconStyle: IconStyle;
   fmt: Fmt;
   digits: Digits;
-  coordFmt: "mgrs" | "dms";
   gridOn: boolean;
   elevOn: boolean;
   showElevation: boolean;
@@ -676,60 +675,41 @@ interface PaneProps {
   view: ViewState;
   setView: (u: (v: ViewState) => ViewState) => void;
   osm: OsmData | null;
-  // shared placement state
+  borders: BorderData | null;
+  // shared placement state (read on the map surface)
   inventory: InvItem[];
   placed: Placed[];
   placedSupport: PlacedSupport[];
   selected: { kind: "asset" | "support"; id: number } | null;
-  selectedObj: Placed | PlacedSupport | undefined;
-  tab: "assets" | "support";
   selectedAsset: AssetKind | null;
   selectedSupport: SupportObjectDef | null;
   reality: RealityMode;
-  openGroups: Set<LegendGroup>;
   hoverAsset: AssetKind | null;
-  // shared mutators
+  // shared mutators used when placing on the surface
   setInventory: React.Dispatch<React.SetStateAction<InvItem[]>>;
   setPlaced: React.Dispatch<React.SetStateAction<Placed[]>>;
   setPlacedSupport: React.Dispatch<React.SetStateAction<PlacedSupport[]>>;
   setSelected: (s: { kind: "asset" | "support"; id: number } | null) => void;
-  setTab: (t: "assets" | "support") => void;
-  setSelectedAsset: (a: AssetKind | null) => void;
-  setSelectedSupport: (d: SupportObjectDef | null) => void;
-  setReality: (r: RealityMode) => void;
-  setOpenGroups: React.Dispatch<React.SetStateAction<Set<LegendGroup>>>;
   setHoverAsset: React.Dispatch<React.SetStateAction<AssetKind | null>>;
   allocId: () => number;
-  onUndoLastPlacement: () => void;
-  clearAo: () => void;
-  onSetAff: (sel: { kind: "asset" | "support"; id: number }, aff: Affiliation) => void;
-  onSetPlacedReality: (id: number, r: RealityMode) => void;
-  onUpdAsset: (id: number, patch: Partial<Placed>) => void;
-  onSetTL: (id: number, key: "p" | "s" | "t", tl: TL | null) => void;
-  onNudge: (sel: { kind: "asset" | "support"; id: number }, dLat: number, dLon: number) => void;
-  onSetCoord: (sel: { kind: "asset" | "support"; id: number }, lat: number, lon: number) => void;
-  onRemoveSelected: () => void;
-  paletteDefault: boolean;
+  // window chrome
+  maximized: boolean;
+  onToggleMax: () => void;
+  onHidePane?: () => void;
 }
 
 function AoMapPane(p: PaneProps) {
   const {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, showElevation, cursorMode, venue3d, setVenue3d,
-    spanFactor, view, setView, osm, inventory, placed, placedSupport, selected, selectedObj, tab,
-    selectedAsset, selectedSupport, reality, openGroups, hoverAsset, setInventory, setPlaced,
-    setPlacedSupport, setSelected, setTab, setSelectedAsset, setSelectedSupport, setReality,
-    setOpenGroups, setHoverAsset, allocId, onUndoLastPlacement, clearAo, onSetAff, onSetPlacedReality,
-    onUpdAsset, onSetTL, onNudge, onSetCoord, onRemoveSelected, paletteDefault,
+    spanFactor, view, setView, osm, borders, inventory, placed, placedSupport, selected, hoverAsset,
+    selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
+    setHoverAsset, allocId, maximized, onToggleMax, onHidePane,
   } = p;
 
   const [cursorLL, setCursorLL] = useState<{ lat: number; lon: number } | null>(null);
   const [cursorPx, setCursorPx] = useState<{ x: number; y: number } | null>(null);
-  const [paletteOpen, setPaletteOpen] = useState(paletteDefault);
   const [routeDraft, setRouteDraft] = useState<{ lat: number; lon: number }[]>([]);
   const [elevReveal, setElevReveal] = useState<"high" | "low" | null>(null); // HIGH/LOW coord reveal
-  const [nudgeM, setNudgeM] = useState(1);        // nudge step in metres (m ⇄ km)
-  const [coordLat, setCoordLat] = useState("");   // exact-coordinate entry drafts
-  const [coordLon, setCoordLon] = useState("");
   const mapRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean; btn: number } | null>(null);
   const bearingMemo = useRef<number | null>(null);
@@ -832,11 +812,6 @@ function AoMapPane(p: PaneProps) {
       place(payload as AssetKind, fx, fy);
     }
   };
-  const undo = () => {
-    if (routeDraft.length) { setRouteDraft((d) => d.slice(0, -1)); return; }
-    onUndoLastPlacement();
-  };
-
   // Pointer handlers — LEFT pan / RIGHT rotate; touch pan + pinch.
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === "touch") {
@@ -914,11 +889,6 @@ function AoMapPane(p: PaneProps) {
 
   // Reset the draft when the AO changes.
   useEffect(() => { setRouteDraft([]); }, [ao.key]);
-  // Sync the exact-coordinate inputs when a different object is selected.
-  useEffect(() => {
-    if (selectedObj) { setCoordLat(selectedObj.lat.toFixed(6)); setCoordLon(selectedObj.lon.toFixed(6)); }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected?.kind, selected?.id]);
   // Escape clears the in-progress route on this pane.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setRouteDraft([]); };
@@ -939,6 +909,32 @@ function AoMapPane(p: PaneProps) {
     let polyD = ""; for (const poly of osm.waterPolys) polyD += " " + wayD(poly) + "Z";
     return { tiers, waterD, polyD };
   }, [osm, box]);
+
+  // Country + US-state borders (= continent/country/state lines) and major metros,
+  // projected into the view and culled to the box. Shown on BOTH MAP and MINI MAP so
+  // zooming out reveals states, cities, coastlines and national boundaries in context.
+  const borderPaths = useMemo(() => {
+    if (!borders) return null;
+    const pad = 0.5; // ring must overlap the box to be worth drawing
+    const inBox = (lat: number, lon: number) =>
+      lat >= box.latMin - pad && lat <= box.latMax + pad && lon >= box.lonMin - pad && lon <= box.lonMax + pad;
+    const ringD = (ring: [number, number][]) => {
+      let s = "", pen = false, touched = false;
+      for (const [lon, lat] of ring) {
+        const f = toFrac(lat, lon);
+        s += `${pen ? "L" : "M"}${(f.fx * 100).toFixed(2)} ${(f.fy * 100).toFixed(2)}`;
+        pen = true;
+        if (!touched && inBox(lat, lon)) touched = true;
+      }
+      return touched ? s : "";
+    };
+    const countries = borders.countries.map(ringD).join(" ");
+    const states = borders.usStates.map(ringD).join(" ");
+    const cities = CITIES
+      .filter((c) => c.lon >= box.lonMin && c.lon <= box.lonMax && c.lat >= box.latMin && c.lat <= box.latMax)
+      .map((c) => ({ ...c, ...toFrac(c.lat, c.lon) }));
+    return { countries, states, cities };
+  }, [borders, box]);
 
   // Elevation profiles (primary pane only).
   const elevProfile = useMemo(() => {
@@ -963,250 +959,16 @@ function AoMapPane(p: PaneProps) {
     let hi = 0, lo = 0;
     front.forEach((e, i) => { if (e > front[hi]) hi = i; if (e < front[lo]) lo = i; });
     const mark = (i: number) => ({ x: (i / (N - 1)) * 100, yy: y(front[i]), e: front[i], lat: (box.latMin + box.latMax) / 2, lon: lonAt(i) });
-    return { min, max, rng, frontFill, rightPath, y, high: mark(hi), low: mark(lo) };
+    // Column (N→S) high/low for the right vertical scale.
+    let chi = 0, clo = 0;
+    col.forEach((e, i) => { if (e > col[chi]) chi = i; if (e < col[clo]) clo = i; });
+    const cmark = (i: number) => ({ yv: (i / (N - 1)) * 100, xv: rx(col[i]), e: col[i], lat: latAt(i), lon: (box.lonMin + box.lonMax) / 2 });
+    return { min, max, rng, frontFill, rightPath, y, high: mark(hi), low: mark(lo), colHigh: cmark(chi), colLow: cmark(clo) };
   }, [box]);
 
   const resetView = () => setView(() => initView(ao, spanFactor));
   const breadcrumb = geoContext(view.lat, view.lon, view.spanKm);
 
-  // ── Placement palette (ASSET / SUPPORT + inspector + manifest) ─────────────
-  const palette = (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex items-center gap-1 border-b p-1.5" style={{ borderColor: C.border }}>
-        <div className="flex flex-1 overflow-hidden rounded border text-[10px] font-semibold" style={{ borderColor: C.border }}>
-          {([["assets", "ASSETS"], ["support", "SUPPORT"]] as const).map(([t, lb]) => (
-            <button key={t} onClick={() => setTab(t)} className="flex-1 px-2 py-1"
-              style={{ background: tab === t ? "#152238" : "transparent", color: tab === t ? C.cyan : C.dim }}>{lb}</button>
-          ))}
-        </div>
-        <Dots3 onClick={() => setPaletteOpen(false)} title="Hide placement menu" />
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
-        <div className="mb-2 text-[9px]" style={{ color: C.dim }}>DRAG ONTO MAP · OR TAP THEN TAP MAP</div>
-        {tab === "assets" ? (
-          <div className="space-y-1.5">
-            {inventory.map((i) => {
-              const empty = i.stock < i.group;
-              const isArmed = selectedAsset === i.asset;
-              return (
-                <div key={i.asset}
-                  draggable={!empty}
-                  onDragStart={(e) => e.dataTransfer.setData("text/plain", i.asset)}
-                  onClick={() => !empty && (setSelectedSupport(null), setSelectedAsset(isArmed ? null : i.asset))}
-                  onMouseEnter={() => setHoverAsset(i.asset)}
-                  onMouseLeave={() => setHoverAsset((h) => (h === i.asset ? null : h))}
-                  className="flex cursor-grab items-center gap-2 rounded border px-2 py-1.5 select-none transition-shadow"
-                  style={{ borderColor: isArmed || hoverAsset === i.asset ? C.cyan : C.border, background: isArmed || hoverAsset === i.asset ? "#152238" : "transparent", boxShadow: hoverAsset === i.asset ? `0 0 0 1px ${C.cyan}, 0 0 12px ${C.cyan}66` : undefined, opacity: empty ? 0.35 : 1 }}>
-                  <AssetIcon asset={i.asset} style={iconStyle} affiliation="friendly" size={26} count={i.group > 1 ? i.group : 1} />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-semibold" style={{ color: C.text }}>{ASSET_LABELS[i.asset]}</div>
-                    <div className="truncate text-[9px]" style={{ color: C.dim }}>{i.note}</div>
-                  </div>
-                  <span className="font-mono text-[11px]" style={{ color: empty ? C.red : C.green }}>×{i.stock}</span>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="space-y-1">
-            {(Object.keys(GROUP_META) as LegendGroup[]).map((g) => {
-              const items = SUPPORT_CATALOG.filter((d) => d.group === g);
-              if (!items.length) return null;
-              const open = openGroups.has(g);
-              return (
-                <div key={g}>
-                  <button onClick={() => setOpenGroups((s) => { const n = new Set<LegendGroup>(s); n.has(g) ? n.delete(g) : n.add(g); return n; })}
-                    className="flex w-full items-center gap-1.5 rounded px-1 py-1 text-left text-[10px] font-semibold uppercase tracking-wide hover:bg-white/5"
-                    style={{ color: GROUP_META[g].color }}>
-                    <ChevronRight className="h-3 w-3 transition-transform" style={{ transform: open ? "rotate(90deg)" : "none" }} />
-                    <span className="inline-block h-2 w-2 rounded-sm" style={{ background: GROUP_META[g].color }} />
-                    {GROUP_META[g].label} <span style={{ color: C.dim }}>·{items.length}</span>
-                  </button>
-                  {open && items.map((d) => {
-                    const isArmed = selectedSupport?.key === d.key;
-                    return (
-                      <div key={d.key}
-                        draggable
-                        onDragStart={(e) => e.dataTransfer.setData("text/plain", `support:${d.key}`)}
-                        onClick={() => (setSelectedAsset(null), setSelectedSupport(isArmed ? null : d))}
-                        className="ml-4 flex cursor-grab items-center gap-2 rounded border px-2 py-1 select-none"
-                        style={{ borderColor: isArmed ? d.color : "transparent", background: isArmed ? "#152238" : "transparent" }}>
-                        <SupportGlyph glyph={d.glyph} color={d.color} size={18} />
-                        <span className="min-w-0 flex-1 truncate text-[10px]" style={{ color: C.text }}>{d.term}</span>
-                        <span className="text-[8px] uppercase" style={{ color: C.dim }}>{d.geometry[0]}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="mt-3">
-          <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Reality Mode · placed objects</div>
-          <select value={reality} onChange={(e) => setReality(e.target.value as RealityMode)}
-            className="w-full rounded border bg-transparent px-2 py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>
-            {REALITY_MODES.map((m) => <option key={m} value={m} style={{ background: C.panel }}>{m}</option>)}
-          </select>
-        </div>
-
-        {routeMode && (
-          <div className="mt-2 rounded border px-2 py-1 text-[9px]" style={{ borderColor: `${C.cyan}55`, color: C.cyan }}>
-            ROUTE: right-click each via-point · left-click to finish{routeDraft.length ? ` · ${routeDraft.length} pt` : ""}
-          </div>
-        )}
-        <div className="mt-2 flex gap-2">
-          <button onClick={undo} title="Undo"
-            className="flex flex-1 items-center justify-center gap-1.5 rounded border px-2 py-1.5 text-[10px] font-semibold hover:bg-white/5"
-            style={{ borderColor: C.border, color: C.text }}>
-            <RotateCcw className="h-3 w-3" /> UNDO
-          </button>
-          <button onClick={() => { clearAo(); setRouteDraft([]); }}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded border px-2 py-1.5 text-[10px] font-semibold hover:bg-white/5"
-            style={{ borderColor: `${C.red}44`, color: C.red }}>
-            <Trash2 className="h-3 w-3" /> CLEAR
-          </button>
-        </div>
-
-        {selectedObj && selected && (
-          <div className="mt-3 rounded border p-2" style={{ borderColor: C.cyan, background: "#0d1826" }}>
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-[10px] font-semibold" style={{ color: C.cyan }}>
-                {selected.kind === "asset" ? ASSET_LABELS[(selectedObj as Placed).asset] : (selectedObj as PlacedSupport).def.term}
-              </span>
-              <button onClick={onRemoveSelected} className="text-[9px] font-semibold" style={{ color: C.red }}>REMOVE</button>
-            </div>
-            <div className="mb-1 font-mono text-[9px]" style={{ color: C.gold }}>{fmt.coordAt(selectedObj.lat, selectedObj.lon)}</div>
-            <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Affiliation</div>
-            <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
-              {(["friendly", "hostile"] as Affiliation[]).map((a) => (
-                <button key={a} onClick={() => onSetAff(selected, a)} className="flex-1 px-2 py-1"
-                  style={{ background: selectedObj.aff === a ? "#152238" : "transparent", color: selectedObj.aff === a ? (a === "hostile" ? C.red : C.cyan) : C.dim }}>
-                  {a.toUpperCase()}
-                </button>
-              ))}
-            </div>
-            {selected.kind === "support" && (
-              <>
-                <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Reality mode</div>
-                <select value={(selectedObj as PlacedSupport).reality} onChange={(e) => onSetPlacedReality(selected.id, e.target.value as RealityMode)}
-                  className="mb-2 w-full rounded border bg-transparent px-2 py-1 text-[9px]" style={{ borderColor: C.border, color: C.text }}>
-                  {REALITY_MODES.map((m) => <option key={m} value={m} style={{ background: C.panel }}>{m}</option>)}
-                </select>
-              </>
-            )}
-            {selected.kind === "asset" && ((selectedObj as Placed).tls || (selectedObj as Placed).fov) && (() => {
-              const a = selectedObj as Placed;
-              const u = a.unit ?? "deg";
-              const unitOpts: AngleUnit[] = ["deg", "mil", "ucrs"]; // order: DEG · 6400 MIL · UCRS-2525
-              const upd = (key: "fov" | "p" | "s" | "t", tl: TL | null) => (key === "fov" ? onUpdAsset(a.id, { fov: tl ?? undefined }) : onSetTL(a.id, key, tl));
-              const numIn = (val: number, on: (deg: number) => void) => (
-                <input type="number" value={Math.round(toUnit(val, u))} onChange={(e) => on(fromUnit(parseFloat(e.target.value || "0"), u))}
-                  className="w-full rounded border bg-transparent px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.text }} />
-              );
-              const tlRow = (key: "fov" | "p" | "s" | "t", lb: string, tl: TL | null | undefined, col: string) => (
-                <div className="mb-1.5 rounded border p-1" style={{ borderColor: `${col}55` }}>
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="text-[9px] font-bold" style={{ color: col }}>{lb}</span>
-                    {(key === "s" || key === "t") && (
-                      <button onClick={() => upd(key, tl ? null : { brg: 0, left: 45, right: 45 })} className="text-[8px] font-semibold" style={{ color: tl ? C.red : C.green }}>{tl ? "REMOVE" : "ADD"}</button>
-                    )}
-                  </div>
-                  {tl && (
-                    <div className="grid grid-cols-3 gap-1">
-                      <div><div className="text-[7px]" style={{ color: C.dim }}>BRG</div>{numIn(tl.brg, (v) => upd(key, { ...tl, brg: ((v % 360) + 360) % 360 }))}</div>
-                      <div><div className="text-[7px]" style={{ color: C.dim }}>◀ LEFT</div>{numIn(tl.left, (v) => upd(key, { ...tl, left: Math.max(0, Math.min(180, v)) }))}</div>
-                      <div><div className="text-[7px]" style={{ color: C.dim }}>RIGHT ▶</div>{numIn(tl.right, (v) => upd(key, { ...tl, right: Math.max(0, Math.min(180, v)) }))}</div>
-                    </div>
-                  )}
-                </div>
-              );
-              return (
-                <>
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="text-[9px]" style={{ color: C.dim }}>Angle unit</span>
-                    <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
-                      {unitOpts.map((un) => (
-                        <button key={un} onClick={() => onUpdAsset(a.id, { unit: un })} className="px-1.5 py-0.5"
-                          style={{ background: u === un ? "#152238" : "transparent", color: u === un ? C.cyan : C.dim }}>{ANGLE_LABEL[un]}</button>
-                      ))}
-                    </div>
-                  </div>
-                  {a.fov && tlRow("fov", "SENSOR / RADAR FOV", a.fov, "#a78bfa")}
-                  {a.tls && tlRow("p", "PTL / 1TL — points", a.tls.p, C.gold)}
-                  {a.tls && tlRow("s", "2TL — secondary", a.tls.s, C.amber)}
-                  {a.tls && tlRow("t", "3TL — tertiary", a.tls.t, C.cyan)}
-                </>
-              );
-            })()}
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-[9px]" style={{ color: C.dim }}>Nudge step</span>
-              <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
-                {([[1, "1 m"], [10, "10 m"], [100, "100 m"], [1000, "1 km"]] as const).map(([mv, lb]) => (
-                  <button key={mv} onClick={() => setNudgeM(mv)} className="px-1.5 py-0.5"
-                    style={{ background: nudgeM === mv ? "#152238" : "transparent", color: nudgeM === mv ? C.cyan : C.dim }}>{lb}</button>
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-1">
-              <span />
-              <button onClick={() => onNudge(selected, nudgeM / 111320, 0)} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
-              <span />
-              <button onClick={() => onNudge(selected, 0, -nudgeM / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>◀ W</button>
-              <button onClick={() => onNudge(selected, -nudgeM / 111320, 0)} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
-              <button onClick={() => onNudge(selected, 0, nudgeM / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
-            </div>
-            {/* exact coordinate entry — type precise decimal degrees; live MGRS below */}
-            <div className="mb-1 mt-2 text-[9px]" style={{ color: C.dim }}>Set exact coordinate (decimal °)</div>
-            <div className="flex items-center gap-1">
-              <input value={coordLat} onChange={(e) => setCoordLat(e.target.value)} placeholder="lat" inputMode="decimal"
-                className="w-full rounded border bg-transparent px-1 py-0.5 font-mono text-[9px]" style={{ borderColor: C.border, color: C.text }} />
-              <input value={coordLon} onChange={(e) => setCoordLon(e.target.value)} placeholder="lon" inputMode="decimal"
-                className="w-full rounded border bg-transparent px-1 py-0.5 font-mono text-[9px]" style={{ borderColor: C.border, color: C.text }} />
-              <button onClick={() => { const la = parseFloat(coordLat), lo = parseFloat(coordLon); if (isFinite(la) && isFinite(lo)) onSetCoord(selected, la, lo); }}
-                className="shrink-0 rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.cyan, color: C.cyan }}>SET</button>
-            </div>
-            <div className="mt-0.5 font-mono text-[8px]" style={{ color: C.dim }}>MGRS {fmt.mgrsAt(selectedObj.lat, selectedObj.lon)}</div>
-          </div>
-        )}
-
-        {(placed.length > 0 || placedSupport.length > 0) && (
-          <div className="mt-3 space-y-0.5">
-            <div className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Placed — {placed.length + placedSupport.length}</div>
-            {placed.map((u) => (
-              <button key={`a${u.id}`} onClick={() => setSelected({ kind: "asset", id: u.id })}
-                onMouseEnter={() => setHoverAsset(u.asset)}
-                onMouseLeave={() => setHoverAsset((h) => (h === u.asset ? null : h))}
-                className="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-left text-[9px] hover:bg-white/5"
-                style={{ background: (selected?.kind === "asset" && selected.id === u.id) || hoverAsset === u.asset ? "#152238" : "transparent", boxShadow: hoverAsset === u.asset ? `inset 0 0 0 1px ${C.cyan}` : undefined }}>
-                <span style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
-                <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
-              </button>
-            ))}
-            {placedSupport.map((u) => (
-              <button key={`s${u.id}`} onClick={() => setSelected({ kind: "support", id: u.id })}
-                className="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-left text-[9px] hover:bg-white/5"
-                style={{ background: selected?.kind === "support" && selected.id === u.id ? "#152238" : "transparent" }}>
-                <span className="truncate" style={{ color: u.aff === "hostile" ? C.red : u.def.color }}>{u.def.term}{u.path ? ` (${u.path.length}pt)` : ""}</span>
-                <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Plain-language governance note (was the R-CORE jargon stub) */}
-        <div className="mt-3 rounded border p-2" style={{ borderColor: `${C.gold}44`, background: `${C.gold}0a` }}>
-          <div className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.gold }}>How your placements are governed</div>
-          <p className="mt-1 text-[9px] leading-snug" style={{ color: C.dim }}>
-            Everything you drop is a <span style={{ color: C.text }}>proposal</span> — never a live order. Each object is
-            stamped with its <span style={{ color: C.text }}>reality mode</span> (training, rehearsal, or live) and stays
-            <span style={{ color: C.text }}> pending human approval</span> before it counts. Nothing fires on its own — you keep command.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
@@ -1225,6 +987,10 @@ function AoMapPane(p: PaneProps) {
             </div>
           )}
           <button onClick={resetView} className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.border }}>RESET</button>
+          <button onClick={onToggleMax} title={maximized ? "Restore" : "Maximize"} className="rounded border p-0.5" style={{ borderColor: maximized ? C.cyan : C.border, color: maximized ? C.cyan : C.dim }}>
+            {maximized ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+          </button>
+          {onHidePane && <Dots3 horizontal onClick={onHidePane} title="Hide this window" />}
         </div>
       </div>
       {/* R-CORE lane strip */}
@@ -1235,27 +1001,9 @@ function AoMapPane(p: PaneProps) {
         ))}
       </div>
 
-      {/* pane body: relative container holds palette overlay + map (+ elevation) */}
+      {/* pane body: the map surface (+ elevation). The ASSET/SUPPORT menu now lives
+          in the shared left rail, outside the map, so it serves MAP and MINI MAP alike. */}
       <div className="relative flex min-h-0 flex-1 flex-col p-2">
-        {/* Placement menu — same 3-bullet collapse law as the OVERVIEW rails:
-            OPEN = full detail panel (collapse via the 3-bullet at its top);
-            COLLAPSED = compressed 3-bullet rail (click expands to the SAME detail).
-            Behaves identically in fullscreen. */}
-        {paletteOpen ? (
-          <div className="absolute left-2 top-2 z-30 flex max-h-[calc(100%-1rem)] w-[236px] max-w-[86%] flex-col overflow-hidden rounded-lg border shadow-2xl"
-            style={{ background: C.panel, borderColor: C.cyan }}
-            onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>
-            {palette}
-          </div>
-        ) : (
-          <div className="absolute left-2 top-14 z-30 flex flex-col items-center gap-2 rounded-md px-1.5 py-2"
-            style={{ background: "#0a0f16cc" }}
-            onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>
-            <Dots3 onClick={() => setPaletteOpen(true)} title="Expand placement menu (ASSET / SUPPORT)" />
-            <span className="text-[8px] font-semibold" style={{ color: C.dim, writingMode: "vertical-rl" }}>MENU</span>
-          </div>
-        )}
-
         <div className="flex min-h-0 flex-1 gap-1">
           <div ref={mapRef}
             className="relative h-full w-full overflow-hidden rounded-md touch-none"
@@ -1270,6 +1018,13 @@ function AoMapPane(p: PaneProps) {
             {/* rotated inner canvas (RENDER× size) */}
             <div className="pointer-events-none absolute" style={{ inset: `${-OFF * 100}%`, transform: `rotate(${view.bearing}rad)`, transformOrigin: "center" }}>
               <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {/* national + state boundaries (= continent/country/state lines), drawn under the OSM detail */}
+                {borderPaths && (
+                  <g>
+                    <path d={borderPaths.countries} fill="none" stroke={C.borderCountry} strokeWidth="0.4" opacity="0.55" strokeLinejoin="round" />
+                    <path d={borderPaths.states} fill="none" stroke={C.borderState} strokeWidth="0.3" opacity="0.45" strokeLinejoin="round" />
+                  </g>
+                )}
                 {osmPaths && (
                   <g>
                     <path d={osmPaths.polyD} fill="#38bdf822" stroke="#38bdf8" strokeWidth="0.15" />
@@ -1371,6 +1126,17 @@ function AoMapPane(p: PaneProps) {
                 </div>
               );
             })}
+            {/* major metros (≥1M) — surface once the view widens past ~120 km */}
+            {borderPaths && view.spanKm > 120 && CITIES.map((c) => {
+              const f = project(c.lat, c.lon);
+              if (f.fx < 0 || f.fx > 1 || f.fy < 0 || f.fy > 1) return null;
+              return (
+                <div key={c.name} className="pointer-events-none absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-0.5" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%` }}>
+                  <span className="h-1 w-1 rounded-full" style={{ background: C.text, boxShadow: `0 0 0 1px ${C.text}66` }} />
+                  <span className="whitespace-nowrap font-mono text-[7px]" style={{ color: C.text, opacity: 0.75 }}>{c.name}</span>
+                </div>
+              );
+            })}
             {/* placed assets */}
             {placed.map((u) => {
               const f = project(u.lat, u.lon);
@@ -1385,9 +1151,12 @@ function AoMapPane(p: PaneProps) {
                   title={`${ASSET_LABELS[u.asset]} — ${fmt.coordAt(u.lat, u.lon)}`}
                   className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
                   style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: hot ? 15 : undefined }}>
-                  {hot && <span className="absolute h-10 w-10 animate-ping rounded-full" style={{ boxShadow: `0 0 0 2px ${C.cyan}`, background: `${C.cyan}22`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
-                  {sel && <span className="absolute h-8 w-8 rounded-full" style={{ boxShadow: `0 0 0 2px ${C.gold}`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
-                  <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28} count={u.count} />
+                  {/* pulse + selection ring anchored to the ICON centre, not the icon+label stack */}
+                  <span className="relative flex items-center justify-center">
+                    {hot && <span className="pointer-events-none absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full" style={{ boxShadow: `0 0 0 2px ${C.cyan}`, background: `${C.cyan}22` }} />}
+                    {sel && <span className="pointer-events-none absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ boxShadow: `0 0 0 2px ${C.gold}` }} />}
+                    <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28} count={u.count} />
+                  </span>
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
                 </button>
               );
@@ -1503,10 +1272,15 @@ function AoMapPane(p: PaneProps) {
             <div className="relative w-10 shrink-0 self-stretch overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
               <svg viewBox="0 0 40 100" preserveAspectRatio="none" className="h-full w-full">
                 <path d={elevProfile.rightPath} fill={`${C.gold}22`} stroke={C.gold} strokeWidth="0.6" />
+                {/* HIGH / LOW along the N→S column, marked at their exact latitude */}
+                <circle cx={elevProfile.colHigh.xv} cy={elevProfile.colHigh.yv} r="1.4" fill={C.gold} />
+                <circle cx={elevProfile.colLow.xv} cy={elevProfile.colLow.yv} r="1.4" fill="#38bdf8" />
               </svg>
-              <span className="absolute right-0.5 top-0.5 font-mono text-[7px]" style={{ color: C.gold }}>{fmt.fmtElev(elevProfile.max)}</span>
-              <span className="absolute bottom-0.5 right-0.5 font-mono text-[7px]" style={{ color: C.dim }}>{fmt.fmtElev(elevProfile.min)}</span>
-              <span className="absolute left-1 top-1/2 -translate-y-1/2 -rotate-90 whitespace-nowrap text-[7px] font-semibold tracking-wider" style={{ color: C.dim }}>ELEV N→S</span>
+              <span className="absolute right-0.5 top-0.5 font-mono text-[7px]" style={{ color: C.gold }}>▲{fmt.fmtElev(elevProfile.max)}</span>
+              <span className="absolute bottom-0.5 right-0.5 font-mono text-[7px]" style={{ color: "#38bdf8" }}>▼{fmt.fmtElev(elevProfile.min)}</span>
+              {/* exact-position HIGH/LOW tags (left-justified to the latitude they occur) */}
+              <span className="absolute left-0.5 text-[6px] font-bold" style={{ top: `${elevProfile.colHigh.yv}%`, transform: "translateY(-50%)", color: C.gold }}>▲HI</span>
+              <span className="absolute left-0.5 text-[6px] font-bold" style={{ top: `${elevProfile.colLow.yv}%`, transform: "translateY(-50%)", color: "#38bdf8" }}>▼LO</span>
             </div>
           )}
         </div>
@@ -1547,6 +1321,278 @@ function AoMapPane(p: PaneProps) {
   );
 }
 
+// ── Shared placement rail (ASSET / SUPPORT menu + inspector) ──────────────────
+// Lives OUTSIDE the maps (left column), so one menu drives both MAP and MINI MAP.
+interface RailProps {
+  iconStyle: IconStyle; fmt: Fmt;
+  inventory: InvItem[]; tab: "assets" | "support"; setTab: (t: "assets" | "support") => void;
+  selectedAsset: AssetKind | null; setSelectedAsset: (a: AssetKind | null) => void;
+  selectedSupport: SupportObjectDef | null; setSelectedSupport: (d: SupportObjectDef | null) => void;
+  hoverAsset: AssetKind | null; setHoverAsset: React.Dispatch<React.SetStateAction<AssetKind | null>>;
+  openGroups: Set<LegendGroup>; setOpenGroups: React.Dispatch<React.SetStateAction<Set<LegendGroup>>>;
+  reality: RealityMode; setReality: (r: RealityMode) => void;
+  selected: { kind: "asset" | "support"; id: number } | null; selectedObj: Placed | PlacedSupport | undefined;
+  onSetAff: (sel: { kind: "asset" | "support"; id: number }, aff: Affiliation) => void;
+  onSetPlacedReality: (id: number, r: RealityMode) => void;
+  onUpdAsset: (id: number, patch: Partial<Placed>) => void;
+  onSetTL: (id: number, key: "p" | "s" | "t", tl: TL | null) => void;
+  onNudge: (sel: { kind: "asset" | "support"; id: number }, dLat: number, dLon: number) => void;
+  onSetCoord: (sel: { kind: "asset" | "support"; id: number }, lat: number, lon: number) => void;
+  onRemoveSelected: () => void; onUndoLastPlacement: () => void; clearAo: () => void;
+  nudgeM: number; setNudgeM: (m: number) => void;
+  coordLat: string; setCoordLat: (s: string) => void; coordLon: string; setCoordLon: (s: string) => void;
+  routeMode: boolean; onHide: () => void;
+}
+function PlacementRail(r: RailProps) {
+  const {
+    iconStyle, fmt, inventory, tab, setTab, selectedAsset, setSelectedAsset, selectedSupport, setSelectedSupport,
+    hoverAsset, setHoverAsset, openGroups, setOpenGroups, reality, setReality, selected, selectedObj,
+    onSetAff, onSetPlacedReality, onUpdAsset, onSetTL, onNudge, onSetCoord, onRemoveSelected,
+    onUndoLastPlacement, clearAo, nudgeM, setNudgeM, coordLat, setCoordLat, coordLon, setCoordLon, routeMode, onHide,
+  } = r;
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="flex items-center gap-1 border-b p-1.5" style={{ borderColor: C.border }}>
+        <div className="flex flex-1 overflow-hidden rounded border text-[10px] font-semibold" style={{ borderColor: C.border }}>
+          {([["assets", "ASSETS"], ["support", "SUPPORT"]] as const).map(([t, lb]) => (
+            <button key={t} onClick={() => setTab(t)} className="flex-1 px-2 py-1"
+              style={{ background: tab === t ? "#152238" : "transparent", color: tab === t ? C.cyan : C.dim }}>{lb}</button>
+          ))}
+        </div>
+        <Dots3 onClick={onHide} title="Hide placement menu" />
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        <div className="mb-2 text-[9px]" style={{ color: C.dim }}>DRAG ONTO MAP · OR TAP THEN TAP MAP</div>
+        {tab === "assets" ? (
+          <div className="space-y-1.5">
+            {inventory.map((i) => {
+              const empty = i.stock < i.group;
+              const isArmed = selectedAsset === i.asset;
+              return (
+                <div key={i.asset}
+                  draggable={!empty}
+                  onDragStart={(e) => e.dataTransfer.setData("text/plain", i.asset)}
+                  onClick={() => !empty && (setSelectedSupport(null), setSelectedAsset(isArmed ? null : i.asset))}
+                  onMouseEnter={() => setHoverAsset(i.asset)}
+                  onMouseLeave={() => setHoverAsset((h) => (h === i.asset ? null : h))}
+                  className="flex cursor-grab items-center gap-2 rounded border px-2 py-1.5 select-none transition-shadow"
+                  style={{ borderColor: isArmed || hoverAsset === i.asset ? C.cyan : C.border, background: isArmed || hoverAsset === i.asset ? "#152238" : "transparent", boxShadow: hoverAsset === i.asset ? `0 0 0 1px ${C.cyan}, 0 0 12px ${C.cyan}66` : undefined, opacity: empty ? 0.35 : 1 }}>
+                  <AssetIcon asset={i.asset} style={iconStyle} affiliation="friendly" size={26} count={i.group > 1 ? i.group : 1} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-semibold" style={{ color: C.text }}>{ASSET_LABELS[i.asset]}</div>
+                    <div className="truncate text-[9px]" style={{ color: C.dim }}>{i.note}</div>
+                  </div>
+                  <span className="font-mono text-[11px]" style={{ color: empty ? C.red : C.green }}>×{i.stock}</span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {(Object.keys(GROUP_META) as LegendGroup[]).map((g) => {
+              const items = SUPPORT_CATALOG.filter((d) => d.group === g);
+              if (!items.length) return null;
+              const open = openGroups.has(g);
+              return (
+                <div key={g}>
+                  <button onClick={() => setOpenGroups((s) => { const n = new Set<LegendGroup>(s); n.has(g) ? n.delete(g) : n.add(g); return n; })}
+                    className="flex w-full items-center gap-1.5 rounded px-1 py-1 text-left text-[10px] font-semibold uppercase tracking-wide hover:bg-white/5"
+                    style={{ color: GROUP_META[g].color }}>
+                    <ChevronRight className="h-3 w-3 transition-transform" style={{ transform: open ? "rotate(90deg)" : "none" }} />
+                    <span className="inline-block h-2 w-2 rounded-sm" style={{ background: GROUP_META[g].color }} />
+                    {GROUP_META[g].label} <span style={{ color: C.dim }}>·{items.length}</span>
+                  </button>
+                  {open && items.map((d) => {
+                    const isArmed = selectedSupport?.key === d.key;
+                    return (
+                      <div key={d.key}
+                        draggable
+                        onDragStart={(e) => e.dataTransfer.setData("text/plain", `support:${d.key}`)}
+                        onClick={() => (setSelectedAsset(null), setSelectedSupport(isArmed ? null : d))}
+                        className="ml-4 flex cursor-grab items-center gap-2 rounded border px-2 py-1 select-none"
+                        style={{ borderColor: isArmed ? d.color : "transparent", background: isArmed ? "#152238" : "transparent" }}>
+                        <SupportGlyph glyph={d.glyph} color={d.color} size={18} />
+                        <span className="min-w-0 flex-1 truncate text-[10px]" style={{ color: C.text }}>{d.term}</span>
+                        <span className="text-[8px] uppercase" style={{ color: C.dim }}>{d.geometry[0]}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="mt-3">
+          <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Reality Mode · placed objects</div>
+          <select value={reality} onChange={(e) => setReality(e.target.value as RealityMode)}
+            className="w-full rounded border bg-transparent px-2 py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>
+            {REALITY_MODES.map((m) => <option key={m} value={m} style={{ background: C.panel }}>{m}</option>)}
+          </select>
+        </div>
+
+        {routeMode && (
+          <div className="mt-2 rounded border px-2 py-1 text-[9px]" style={{ borderColor: `${C.cyan}55`, color: C.cyan }}>
+            ROUTE: right-click each via-point on a map · left-click to finish
+          </div>
+        )}
+        <div className="mt-2 flex gap-2">
+          <button onClick={onUndoLastPlacement} title="Undo"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded border px-2 py-1.5 text-[10px] font-semibold hover:bg-white/5"
+            style={{ borderColor: C.border, color: C.text }}>
+            <RotateCcw className="h-3 w-3" /> UNDO
+          </button>
+          <button onClick={clearAo}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded border px-2 py-1.5 text-[10px] font-semibold hover:bg-white/5"
+            style={{ borderColor: `${C.red}44`, color: C.red }}>
+            <Trash2 className="h-3 w-3" /> CLEAR
+          </button>
+        </div>
+
+        {selectedObj && selected && (
+          <div className="mt-3 rounded border p-2" style={{ borderColor: C.cyan, background: "#0d1826" }}>
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[10px] font-semibold" style={{ color: C.cyan }}>
+                {selected.kind === "asset" ? ASSET_LABELS[(selectedObj as Placed).asset] : (selectedObj as PlacedSupport).def.term}
+              </span>
+              <button onClick={onRemoveSelected} className="text-[9px] font-semibold" style={{ color: C.red }}>REMOVE</button>
+            </div>
+            <div className="mb-1 font-mono text-[9px]" style={{ color: C.gold }}>{fmt.coordAt(selectedObj.lat, selectedObj.lon)}</div>
+            <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Affiliation</div>
+            <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+              {(["friendly", "hostile"] as Affiliation[]).map((a) => (
+                <button key={a} onClick={() => onSetAff(selected, a)} className="flex-1 px-2 py-1"
+                  style={{ background: selectedObj.aff === a ? "#152238" : "transparent", color: selectedObj.aff === a ? (a === "hostile" ? C.red : C.cyan) : C.dim }}>
+                  {a.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            {selected.kind === "support" && (
+              <>
+                <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Reality mode</div>
+                <select value={(selectedObj as PlacedSupport).reality} onChange={(e) => onSetPlacedReality(selected.id, e.target.value as RealityMode)}
+                  className="mb-2 w-full rounded border bg-transparent px-2 py-1 text-[9px]" style={{ borderColor: C.border, color: C.text }}>
+                  {REALITY_MODES.map((m) => <option key={m} value={m} style={{ background: C.panel }}>{m}</option>)}
+                </select>
+              </>
+            )}
+            {selected.kind === "asset" && ((selectedObj as Placed).tls || (selectedObj as Placed).fov) && (() => {
+              const a = selectedObj as Placed;
+              const u = a.unit ?? "deg";
+              const unitOpts: AngleUnit[] = ["deg", "mil", "ucrs"];
+              const upd = (key: "fov" | "p" | "s" | "t", tl: TL | null) => (key === "fov" ? onUpdAsset(a.id, { fov: tl ?? undefined }) : onSetTL(a.id, key, tl));
+              const numIn = (val: number, on: (deg: number) => void) => (
+                <input type="number" value={Math.round(toUnit(val, u))} onChange={(e) => on(fromUnit(parseFloat(e.target.value || "0"), u))}
+                  className="w-full rounded border bg-transparent px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.text }} />
+              );
+              const tlRow = (key: "fov" | "p" | "s" | "t", lb: string, tl: TL | null | undefined, col: string) => (
+                <div className="mb-1.5 rounded border p-1" style={{ borderColor: `${col}55` }}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-[9px] font-bold" style={{ color: col }}>{lb}</span>
+                    {(key === "s" || key === "t") && (
+                      <button onClick={() => upd(key, tl ? null : { brg: 0, left: 45, right: 45 })} className="text-[8px] font-semibold" style={{ color: tl ? C.red : C.green }}>{tl ? "REMOVE" : "ADD"}</button>
+                    )}
+                  </div>
+                  {tl && (
+                    <div className="grid grid-cols-3 gap-1">
+                      <div><div className="text-[7px]" style={{ color: C.dim }}>BRG</div>{numIn(tl.brg, (v) => upd(key, { ...tl, brg: ((v % 360) + 360) % 360 }))}</div>
+                      <div><div className="text-[7px]" style={{ color: C.dim }}>◀ LEFT</div>{numIn(tl.left, (v) => upd(key, { ...tl, left: Math.max(0, Math.min(180, v)) }))}</div>
+                      <div><div className="text-[7px]" style={{ color: C.dim }}>RIGHT ▶</div>{numIn(tl.right, (v) => upd(key, { ...tl, right: Math.max(0, Math.min(180, v)) }))}</div>
+                    </div>
+                  )}
+                </div>
+              );
+              return (
+                <>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-[9px]" style={{ color: C.dim }}>Angle unit</span>
+                    <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                      {unitOpts.map((un) => (
+                        <button key={un} onClick={() => onUpdAsset(a.id, { unit: un })} className="px-1.5 py-0.5"
+                          style={{ background: u === un ? "#152238" : "transparent", color: u === un ? C.cyan : C.dim }}>{ANGLE_LABEL[un]}</button>
+                      ))}
+                    </div>
+                  </div>
+                  {a.fov && tlRow("fov", "SENSOR / RADAR FOV", a.fov, "#a78bfa")}
+                  {a.tls && tlRow("p", "PTL / 1TL — points", a.tls.p, C.gold)}
+                  {a.tls && tlRow("s", "2TL — secondary", a.tls.s, C.amber)}
+                  {a.tls && tlRow("t", "3TL — tertiary", a.tls.t, C.cyan)}
+                </>
+              );
+            })()}
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[9px]" style={{ color: C.dim }}>Nudge step</span>
+              <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                {([[1, "1 m"], [10, "10 m"], [100, "100 m"], [1000, "1 km"]] as const).map(([mv, lb]) => (
+                  <button key={mv} onClick={() => setNudgeM(mv)} className="px-1.5 py-0.5"
+                    style={{ background: nudgeM === mv ? "#152238" : "transparent", color: nudgeM === mv ? C.cyan : C.dim }}>{lb}</button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              <span />
+              <button onClick={() => onNudge(selected, nudgeM / 111320, 0)} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
+              <span />
+              <button onClick={() => onNudge(selected, 0, -nudgeM / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>◀ W</button>
+              <button onClick={() => onNudge(selected, -nudgeM / 111320, 0)} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
+              <button onClick={() => onNudge(selected, 0, nudgeM / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
+            </div>
+            <div className="mb-1 mt-2 text-[9px]" style={{ color: C.dim }}>Set exact coordinate (decimal °)</div>
+            <div className="flex items-center gap-1">
+              <input value={coordLat} onChange={(e) => setCoordLat(e.target.value)} placeholder="lat" inputMode="decimal"
+                className="w-full rounded border bg-transparent px-1 py-0.5 font-mono text-[9px]" style={{ borderColor: C.border, color: C.text }} />
+              <input value={coordLon} onChange={(e) => setCoordLon(e.target.value)} placeholder="lon" inputMode="decimal"
+                className="w-full rounded border bg-transparent px-1 py-0.5 font-mono text-[9px]" style={{ borderColor: C.border, color: C.text }} />
+              <button onClick={() => { const la = parseFloat(coordLat), lo = parseFloat(coordLon); if (isFinite(la) && isFinite(lo)) onSetCoord(selected, la, lo); }}
+                className="shrink-0 rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.cyan, color: C.cyan }}>SET</button>
+            </div>
+            <div className="mt-0.5 font-mono text-[8px]" style={{ color: C.dim }}>MGRS {fmt.mgrsAt(selectedObj.lat, selectedObj.lon)}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Active items (critical Mission-Planning manifest — placed assets + support) ─
+interface ActiveItemsProps {
+  placed: Placed[]; placedSupport: PlacedSupport[]; fmt: Fmt;
+  selected: { kind: "asset" | "support"; id: number } | null;
+  setSelected: (s: { kind: "asset" | "support"; id: number } | null) => void;
+  hoverAsset: AssetKind | null; setHoverAsset: React.Dispatch<React.SetStateAction<AssetKind | null>>;
+}
+function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverAsset, setHoverAsset }: ActiveItemsProps) {
+  const total = placed.length + placedSupport.length;
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="border-b px-2 py-1 text-[9px] font-semibold uppercase tracking-wider" style={{ borderColor: C.border, color: C.cyan }}>
+        Active items <span style={{ color: C.dim }}>— {total}</span>
+      </div>
+      <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-1.5">
+        {total === 0 && <div className="px-1 py-2 text-[9px]" style={{ color: C.dim }}>Nothing placed yet — arm an asset or support object, then tap a map.</div>}
+        {placed.map((u) => (
+          <button key={`a${u.id}`} onClick={() => setSelected({ kind: "asset", id: u.id })}
+            onMouseEnter={() => setHoverAsset(u.asset)}
+            onMouseLeave={() => setHoverAsset((h) => (h === u.asset ? null : h))}
+            className="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-left text-[9px] hover:bg-white/5"
+            style={{ background: (selected?.kind === "asset" && selected.id === u.id) || hoverAsset === u.asset ? "#152238" : "transparent", boxShadow: hoverAsset === u.asset ? `inset 0 0 0 1px ${C.cyan}` : undefined }}>
+            <span style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
+            <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
+          </button>
+        ))}
+        {placedSupport.map((u) => (
+          <button key={`s${u.id}`} onClick={() => setSelected({ kind: "support", id: u.id })}
+            className="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-left text-[9px] hover:bg-white/5"
+            style={{ background: selected?.kind === "support" && selected.id === u.id ? "#152238" : "transparent" }}>
+            <span className="truncate" style={{ color: u.aff === "hostile" ? C.red : u.def.color }}>{u.def.term}{u.path ? ` (${u.path.length}pt)` : ""}</span>
+            <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Mission Planning main view ────────────────────────────────────────────────
 export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [aoKey, setAoKey] = useState("capitol");
@@ -1570,8 +1616,15 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [topOpen, setTopOpen] = useState(true);
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
+  const [borders, setBorders] = useState<BorderData | null>(borderCache);
   const [mirror, setMirror] = useState(false); // panes lock to the same view when ON
   const [isFs, setIsFs] = useState(false);
+  const [railOpen, setRailOpen] = useState(true);          // left menu rail hideable
+  const [miniOpen, setMiniOpen] = useState(true);          // MINI MAP hideable
+  const [maxPane, setMaxPane] = useState<"map" | "mini" | null>(null); // maximize one window
+  const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
+  const [coordLat, setCoordLat] = useState("");            // exact-coordinate entry drafts
+  const [coordLon, setCoordLon] = useState("");
 
   const idRef = useRef(1);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -1609,6 +1662,15 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (document.fullscreenElement) document.exitFullscreen?.();
     else rootRef.current?.requestFullscreen?.().catch(() => {});
   };
+
+  // Load Natural Earth borders once (shared by both map panes for context layers).
+  useEffect(() => {
+    if (borderCache) { setBorders(borderCache); return; }
+    fetch("/security-2525/borders-ne50m.json")
+      .then((r) => r.json())
+      .then((d: BorderData) => { borderCache = d; setBorders(d); })
+      .catch(() => {});
+  }, []);
 
   // Load OSM roads/water for the active AO.
   useEffect(() => {
@@ -1669,6 +1731,13 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     ? (selected.kind === "asset" ? placed.find((u) => u.id === selected.id) : placedSupport.find((u) => u.id === selected.id))
     : undefined;
   const clearAo = () => { setPlaced([]); setPlacedSupport([]); setInventory(INITIAL_INVENTORY); };
+  const routeMode = !!selectedSupport && (selectedSupport.geometry === "line" || selectedSupport.geometry === "corridor");
+
+  // Sync the exact-coordinate inputs when a different object is selected.
+  useEffect(() => {
+    if (selectedObj) { setCoordLat(selectedObj.lat.toFixed(6)); setCoordLon(selectedObj.lon.toFixed(6)); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.kind, selected?.id]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -1679,12 +1748,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   }); // no deps → always latest state
 
   const paneCommon = {
-    ao, iconStyle, fmt, digits, coordFmt, gridOn, elevOn, cursorMode, venue3d, setVenue3d,
-    osm, inventory, placed, placedSupport, selected, selectedObj, tab, selectedAsset, selectedSupport,
-    reality, openGroups, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setTab,
-    setSelectedAsset, setSelectedSupport, setReality, setOpenGroups, setHoverAsset, allocId,
-    onUndoLastPlacement: undoLastPlacement, clearAo, onSetAff: setAff, onSetPlacedReality: setPlacedReality,
-    onUpdAsset: updAsset, onSetTL: setTL, onNudge: nudge, onSetCoord: setCoord, onRemoveSelected: removeSelected,
+    ao, iconStyle, fmt, digits, gridOn, elevOn, cursorMode, venue3d, setVenue3d,
+    osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
+    reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
   };
 
   return (
@@ -1785,20 +1851,71 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       </div>
 
       {topOpen && (
-        <div className="relative w-full" style={{ height: "min(38vh, 460px)", minHeight: 240 }}>
+        <div className="relative w-full" style={{ height: "min(32vh, 380px)", minHeight: 200 }}>
           <WorldStrip aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }} />
         </div>
       )}
 
-      {/* DUAL MAP WINDOWS — portrait: stacked top/bottom · landscape: side-by-side */}
-      <div className="flex flex-col gap-2 landscape:flex-row" style={{ height: "min(78vh, 1000px)", minHeight: 460 }}>
-        <div className="min-h-0 min-w-0 flex-1">
-          <AoMapPane {...paneCommon} label="MAP" showElevation spanFactor={1}
-            view={viewA} setView={setViewA_} paletteDefault />
-        </div>
-        <div className="min-h-0 min-w-0 flex-1">
-          <AoMapPane {...paneCommon} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
-            view={viewB} setView={setViewB_} paletteDefault={false} />
+      {/* WORKSPACE — LEFT rail (menu + active items, hideable) · CENTER (MAP over MINI MAP) */}
+      <div className="flex flex-col gap-2 landscape:flex-row" style={{ height: "min(82vh, 1080px)", minHeight: 480 }}>
+        {/* LEFT RAIL */}
+        {railOpen ? (
+          <div className="flex min-h-0 shrink-0 flex-col gap-2 landscape:w-64">
+            <div className="min-h-0 flex-1 overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
+              <PlacementRail
+                iconStyle={iconStyle} fmt={fmt}
+                inventory={inventory} tab={tab} setTab={setTab}
+                selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset}
+                selectedSupport={selectedSupport} setSelectedSupport={setSelectedSupport}
+                hoverAsset={hoverAsset} setHoverAsset={setHoverAsset}
+                openGroups={openGroups} setOpenGroups={setOpenGroups}
+                reality={reality} setReality={setReality}
+                selected={selected} selectedObj={selectedObj}
+                onSetAff={setAff} onSetPlacedReality={setPlacedReality} onUpdAsset={updAsset} onSetTL={setTL}
+                onNudge={nudge} onSetCoord={setCoord} onRemoveSelected={removeSelected}
+                onUndoLastPlacement={undoLastPlacement} clearAo={clearAo}
+                nudgeM={nudgeM} setNudgeM={setNudgeM}
+                coordLat={coordLat} setCoordLat={setCoordLat} coordLon={coordLon} setCoordLon={setCoordLon}
+                routeMode={routeMode} onHide={() => setRailOpen(false)} />
+            </div>
+            {/* BOTTOM-LEFT — critical Mission-Planning manifest (active assets + support) */}
+            <div className="shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:h-56" style={{ background: C.panel, borderColor: C.border }}>
+              <ActiveItems placed={placed} placedSupport={placedSupport} fmt={fmt}
+                selected={selected} setSelected={setSelected} hoverAsset={hoverAsset} setHoverAsset={setHoverAsset} />
+            </div>
+          </div>
+        ) : (
+          <button onClick={() => setRailOpen(true)} title="Show placement menu + active items"
+            className="flex shrink-0 flex-col items-center gap-2 rounded-lg border px-1.5 py-2 landscape:self-start"
+            style={{ background: C.panel, borderColor: C.border }}>
+            <span className="flex flex-col items-center gap-[3px]">{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}</span>
+            <span className="text-[8px] font-semibold" style={{ color: C.dim, writingMode: "vertical-rl" }}>MENU</span>
+          </button>
+        )}
+
+        {/* CENTER — MAP (centre) with MINI MAP docked beneath it */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
+          {maxPane !== "mini" && (
+            <div className="min-h-0 min-w-0 flex-1">
+              <AoMapPane {...paneCommon} label="MAP" showElevation spanFactor={1}
+                view={viewA} setView={setViewA_}
+                maximized={maxPane === "map"} onToggleMax={() => setMaxPane((m) => (m === "map" ? null : "map"))} />
+            </div>
+          )}
+          {maxPane !== "map" && (miniOpen ? (
+            <div className="min-h-0 min-w-0" style={maxPane === "mini" ? { flex: "1 1 0%" } : { height: "34%", minHeight: 180 }}>
+              <AoMapPane {...paneCommon} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
+                view={viewB} setView={setViewB_}
+                maximized={maxPane === "mini"} onToggleMax={() => setMaxPane((m) => (m === "mini" ? null : "mini"))}
+                onHidePane={() => { setMiniOpen(false); setMaxPane((m) => (m === "mini" ? null : m)); }} />
+            </div>
+          ) : (
+            <button onClick={() => setMiniOpen(true)}
+              className="flex shrink-0 items-center justify-center gap-2 rounded-lg border py-1.5 text-[10px] font-semibold"
+              style={{ borderColor: C.border, color: C.dim, background: C.panel }}>
+              ▾ SHOW MINI MAP
+            </button>
+          ))}
         </div>
       </div>
     </div>
