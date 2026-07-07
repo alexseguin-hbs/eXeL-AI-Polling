@@ -656,6 +656,88 @@ function synthElevation(lat: number, lon: number): number {
   return Math.max(0, 190 + e);
 }
 
+// ── Elevation Contour engine (marching squares over a capped, memoized grid) ───
+// Data source today: synthElevation (deterministic, DEM PENDING). Land = at/above
+// MSL(seaLevel); bathymetry = below. Returns 3–9 "nice" levels as SVG line paths in
+// the 0–100 map viewBox + label anchors. Swap the sampler for real USGS 3DEP /
+// Copernicus GLO-30 / GEBCO tiles behind this same interface later (R-CORE modularity).
+export interface ContourOpts { count: number; interval: number; fidelity: "low" | "med" | "high"; seaLevel: number; }
+interface ContourLine { level: number; d: string; land: boolean; label: { x: number; y: number } | null; }
+interface ContourSet { lines: ContourLine[]; min: number; max: number; step: number; count: number; }
+function niceStep(raw: number): number {
+  const mag = Math.pow(10, Math.floor(Math.log10(Math.max(1e-6, raw))));
+  const n = raw / mag;
+  return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * mag;
+}
+const MS_CASES: Record<number, [string, string][]> = {
+  1: [["L", "B"]], 2: [["B", "R"]], 3: [["L", "R"]], 4: [["T", "R"]], 5: [["T", "L"], ["B", "R"]],
+  6: [["T", "B"]], 7: [["T", "L"]], 8: [["T", "L"]], 9: [["T", "B"]], 10: [["T", "R"], ["B", "L"]],
+  11: [["T", "R"]], 12: [["L", "R"]], 13: [["B", "R"]], 14: [["L", "B"]],
+};
+function computeContours(box: { latMin: number; latMax: number; lonMin: number; lonMax: number }, o: ContourOpts): ContourSet {
+  const G = o.fidelity === "high" ? 72 : o.fidelity === "low" ? 32 : 48;
+  const V: number[][] = [];
+  for (let r = 0; r < G; r++) {
+    const lat = box.latMax - (r / (G - 1)) * (box.latMax - box.latMin);
+    const row: number[] = [];
+    for (let c = 0; c < G; c++) {
+      const lon = box.lonMin + (c / (G - 1)) * (box.lonMax - box.lonMin);
+      row.push(synthElevation(lat, lon) - o.seaLevel); // MSL-referenced
+    }
+    V.push(row);
+  }
+  let mn = Infinity, mx = -Infinity;
+  for (const row of V) for (const v of row) { if (v < mn) mn = v; if (v > mx) mx = v; }
+  const rng = Math.max(1, mx - mn);
+  const count = Math.min(9, Math.max(3, o.count));
+  const step = o.interval > 0 ? o.interval : niceStep(rng / (count + 1));
+  const levels: number[] = [];
+  for (let L = Math.ceil(mn / step) * step; L < mx; L += step) levels.push(L);
+  while (levels.length > 9) levels.splice(Math.floor(levels.length / 2), 1); // cap at 9
+  const px = (c: number) => (c / (G - 1)) * 100;
+  const py = (r: number) => (r / (G - 1)) * 100;
+  const cl = (t: number) => Math.min(1, Math.max(0, t));
+  const lines: ContourLine[] = [];
+  for (const L of levels) {
+    let d = "";
+    let labelPt: { x: number; y: number } | null = null;
+    for (let r = 0; r < G - 1; r++) {
+      for (let c = 0; c < G - 1; c++) {
+        const tl = V[r][c], tr = V[r][c + 1], br = V[r + 1][c + 1], bl = V[r + 1][c];
+        const idx = (tl > L ? 8 : 0) | (tr > L ? 4 : 0) | (br > L ? 2 : 0) | (bl > L ? 1 : 0);
+        const segs = MS_CASES[idx];
+        if (!segs) continue;
+        const it = (a: number, b: number) => cl((L - a) / ((b - a) || 1e-9));
+        const pt = (edge: string): [number, number] =>
+          edge === "T" ? [px(c + it(tl, tr)), py(r)]
+            : edge === "B" ? [px(c + it(bl, br)), py(r + 1)]
+              : edge === "L" ? [px(c), py(r + it(tl, bl))]
+                : [px(c + 1), py(r + it(tr, br))];
+        for (const [a, b] of segs) {
+          const p1 = pt(a), p2 = pt(b);
+          d += `M${p1[0].toFixed(2)} ${p1[1].toFixed(2)}L${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
+          if (!labelPt) labelPt = { x: (p1[0] + p2[0]) / 2, y: (p1[1] + p2[1]) / 2 };
+        }
+      }
+    }
+    if (d) lines.push({ level: L + o.seaLevel, d, land: L >= 0, label: labelPt });
+  }
+  return { lines, min: mn + o.seaLevel, max: mx + o.seaLevel, step, count: levels.length };
+}
+
+interface ContourSettings extends ContourOpts {
+  enable: boolean; showLand: boolean; showBathy: boolean;
+  units: "metric" | "imperial" | "both"; labelMajor: boolean; vExag: number;
+}
+const DEFAULT_CONTOURS: ContourSettings = {
+  enable: false, count: 6, interval: 0, fidelity: "med", seaLevel: 0,
+  showLand: true, showBathy: true, units: "metric", labelMajor: true, vExag: 1,
+};
+const contourLabel = (m: number, units: ContourSettings["units"]) =>
+  units === "imperial" ? `${Math.round(m * 3.28084)} ft`
+    : units === "both" ? `${Math.round(m)}m·${Math.round(m * 3.28084)}ft`
+      : `${Math.round(m)} m`;
+
 // ── Coordinate + distance formatters (settings-driven) ───────────────────────
 interface Fmt {
   mgrsAt: (lat: number, lon: number, d?: Digits) => string;
@@ -697,6 +779,7 @@ interface PaneProps {
   digits: Digits;
   gridOn: boolean;
   elevOn: boolean;
+  contourCfg: ContourSettings;
   showElevation: boolean;
   cursorMode: "pointer" | "target";
   is3d: boolean;
@@ -731,7 +814,7 @@ interface PaneProps {
 
 function AoMapPane(p: PaneProps) {
   const {
-    label, ao, iconStyle, fmt, digits, gridOn, elevOn, showElevation, cursorMode, is3d, onToggle3d,
+    label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, osm, borders, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld,
@@ -975,6 +1058,12 @@ function AoMapPane(p: PaneProps) {
     return { countries: build(borders.countries, borderBB.countries), states: build(borders.usStates, borderBB.states) };
   }, [borders, borderBB, box]);
 
+  // Topographic contours (memoized on box + settings; DEM-pending synthetic source).
+  const contourSet = useMemo(
+    () => (contourCfg.enable ? computeContours(box, contourCfg) : null),
+    [box, contourCfg]
+  );
+
   // Elevation profiles (primary pane only).
   const elevProfile = useMemo(() => {
     const N = 64;
@@ -1081,6 +1170,19 @@ function AoMapPane(p: PaneProps) {
                     <path d={osmPaths.tiers[2]} fill="none" stroke="#94a3b8" strokeWidth="0.22" opacity="0.5" strokeLinecap="round" />
                     <path d={osmPaths.tiers[3]} fill="none" stroke="#b6c2d1" strokeWidth="0.5" opacity="0.7" strokeLinecap="round" />
                     <path d={osmPaths.tiers[4]} fill="none" stroke="#e5e7eb" strokeWidth="0.85" opacity="0.8" strokeLinecap="round" />
+                  </g>
+                )}
+                {/* topographic contours — land (gray) + bathymetry-from-MSL (cyan dashed) */}
+                {contourSet && (
+                  <g>
+                    {contourSet.lines.filter((l) => (l.land ? contourCfg.showLand : contourCfg.showBathy)).map((l, i) => (
+                      <g key={i}>
+                        <path d={l.d} fill="none" stroke={l.land ? "#94a3b8" : "#22d3ee"} strokeWidth="0.22" strokeDasharray={l.land ? undefined : "1 0.7"} opacity="0.7" strokeLinecap="round" />
+                        {contourCfg.labelMajor && l.label && (
+                          <text x={l.label.x} y={l.label.y} fontSize="1.5" fontFamily="monospace" fill={l.land ? "#94a3b8" : "#22d3ee"} opacity="0.9">{contourLabel(l.level, contourCfg.units)}</text>
+                        )}
+                      </g>
+                    ))}
                   </g>
                 )}
                 {gridOn && grid.vertical.map((l) => (
@@ -1675,6 +1777,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [openGroups, setOpenGroups] = useState<Set<LegendGroup>>(new Set<LegendGroup>(["sustainment"]));
   const [selected, setSelected] = useState<{ kind: "asset" | "support"; id: number } | null>(null);
   const [elevOn, setElevOn] = useState(true);
+  const [contourCfg, setContourCfg] = useState<ContourSettings>(DEFAULT_CONTOURS);
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
   const [showSettings, setShowSettings] = useState(false);
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
@@ -1818,7 +1921,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   }); // no deps → always latest state
 
   const paneCommon = {
-    ao, iconStyle, fmt, digits, gridOn, elevOn, cursorMode,
+    ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
   };
@@ -1906,6 +2009,61 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <button onClick={() => setElevOn(!elevOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
                 style={{ borderColor: elevOn ? C.gold : C.border, color: elevOn ? C.gold : C.dim }}>{elevOn ? "ON" : "OFF"}</button>
             </div>
+
+            {/* Layers → Terrain & Visualization — Elevation Contours */}
+            <div className="mb-1 mt-2 flex items-center justify-between border-t pt-2" style={{ borderColor: C.border }}>
+              <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Elevation contours</span>
+              <button onClick={() => setContourCfg((c) => ({ ...c, enable: !c.enable }))} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                style={{ borderColor: contourCfg.enable ? C.green : C.border, color: contourCfg.enable ? C.green : C.dim }}>{contourCfg.enable ? "ON" : "OFF"}</button>
+            </div>
+            {contourCfg.enable && (
+              <div className="mb-2 space-y-1.5 rounded border p-1.5" style={{ borderColor: C.border }}>
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px]" style={{ color: C.dim }}>Count (auto 3–9)</span>
+                  <div className="flex items-center gap-1">
+                    <input type="range" min={3} max={9} value={contourCfg.count} onChange={(e) => setContourCfg((c) => ({ ...c, count: parseInt(e.target.value) }))} className="w-16" />
+                    <span className="w-3 text-right font-mono text-[9px]" style={{ color: C.text }}>{contourCfg.count}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[9px]" style={{ color: C.dim }}>Show</span>
+                  <div className="flex gap-1">
+                    <button onClick={() => setContourCfg((c) => ({ ...c, showLand: !c.showLand }))} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
+                      style={{ borderColor: contourCfg.showLand ? "#94a3b8" : C.border, color: contourCfg.showLand ? "#cbd5e1" : C.dim }}>LAND</button>
+                    <button onClick={() => setContourCfg((c) => ({ ...c, showBathy: !c.showBathy }))} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
+                      style={{ borderColor: contourCfg.showBathy ? "#22d3ee" : C.border, color: contourCfg.showBathy ? "#22d3ee" : C.dim }}>SEA (MSL)</button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[9px]" style={{ color: C.dim }}>Units</span>
+                  <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                    {(["metric", "imperial", "both"] as const).map((u) => (
+                      <button key={u} onClick={() => setContourCfg((c) => ({ ...c, units: u }))} className="px-1.5 py-0.5"
+                        style={{ background: contourCfg.units === u ? "#152238" : "transparent", color: contourCfg.units === u ? C.cyan : C.dim }}>{u === "metric" ? "m" : u === "imperial" ? "ft" : "both"}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[9px]" style={{ color: C.dim }}>Fidelity</span>
+                  <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                    {(["low", "med", "high"] as const).map((f) => (
+                      <button key={f} onClick={() => setContourCfg((c) => ({ ...c, fidelity: f }))} className="px-1.5 py-0.5"
+                        style={{ background: contourCfg.fidelity === f ? "#152238" : "transparent", color: contourCfg.fidelity === f ? C.cyan : C.dim }}>{f.toUpperCase()}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px]" style={{ color: C.dim }}>Label major</span>
+                  <button onClick={() => setContourCfg((c) => ({ ...c, labelMajor: !c.labelMajor }))} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
+                    style={{ borderColor: contourCfg.labelMajor ? C.gold : C.border, color: contourCfg.labelMajor ? C.gold : C.dim }}>{contourCfg.labelMajor ? "ON" : "OFF"}</button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px]" style={{ color: C.dim }}>Vert. exag. {contourCfg.vExag}×</span>
+                  <input type="range" min={1} max={5} value={contourCfg.vExag} onChange={(e) => setContourCfg((c) => ({ ...c, vExag: parseInt(e.target.value) }))} className="w-20" />
+                </div>
+                <div className="text-[7px]" style={{ color: C.dim }}>SYNTHETIC (DEM pending: USGS 3DEP · Copernicus GLO-30 · GEBCO)</div>
+              </div>
+            )}
             <div className="mb-1 text-[10px]" style={{ color: C.text }}>Pointer</div>
             <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
               {([["pointer", "DEFAULT"], ["target", "MINI-TARGET"]] as const).map(([m, label]) => (
