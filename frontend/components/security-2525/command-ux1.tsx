@@ -257,7 +257,7 @@ export function SecurityCommandUX1() {
             className="flex items-center gap-1.5 whitespace-nowrap rounded px-2.5 py-1 text-[10px] tracking-wide transition-colors"
             style={{ background: tab === activeTab ? "#152238" : "transparent", color: tab === activeTab ? C.cyan : C.dim }}>
             <Icon className="h-3.5 w-3.5" />
-            {tab}
+            {tab === "OVERVIEW" ? "LIVE OVERVIEW" : tab}
           </button>
         ))}
       </div>
