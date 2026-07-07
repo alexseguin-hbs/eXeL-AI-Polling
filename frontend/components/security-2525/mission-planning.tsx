@@ -1759,9 +1759,12 @@ interface ActiveItemsProps {
   setSelected: (s: { kind: "asset" | "support"; id: number } | null) => void;
   hoverAsset: AssetKind | null; setHoverAsset: React.Dispatch<React.SetStateAction<AssetKind | null>>;
   onHide?: () => void;
+  planStatus: "draft" | "pending" | "approved" | "changes";
+  onSubmit: () => void; onApprove: () => void; onChanges: () => void; onShare: () => void; shareMsg: string;
 }
-function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverAsset, setHoverAsset, onHide }: ActiveItemsProps) {
+function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverAsset, setHoverAsset, onHide, planStatus, onSubmit, onApprove, onChanges, onShare, shareMsg }: ActiveItemsProps) {
   const total = placed.length + placedSupport.length;
+  const statusColor = planStatus === "approved" ? C.green : planStatus === "pending" ? C.amber : planStatus === "changes" ? C.red : C.dim;
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex items-center justify-between border-b px-2 py-1" style={{ borderColor: C.border }}>
@@ -1791,6 +1794,31 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
           </button>
         ))}
       </div>
+      {/* Plan governance — share + send-for-approval + commander decision (HITL) */}
+      <div className="shrink-0 space-y-1 border-t p-1.5" style={{ borderColor: C.border }}>
+        <div className="flex items-center justify-between">
+          <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Plan</span>
+          <span className="rounded px-1 text-[8px] font-bold uppercase" style={{ color: statusColor, background: `${statusColor}18` }}>{planStatus}</span>
+        </div>
+        <div className="flex gap-1">
+          <button onClick={onShare} disabled={total === 0} title="Copy plan summary to clipboard (share)"
+            className="flex-1 rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.border, color: total ? C.cyan : C.dim, opacity: total ? 1 : 0.5 }}>SHARE</button>
+          <button onClick={onSubmit} disabled={total === 0 || planStatus === "pending"} title="Send the plan to a commander for approval"
+            className="flex-1 rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.amber, color: total && planStatus !== "pending" ? C.amber : C.dim, opacity: total && planStatus !== "pending" ? 1 : 0.5 }}>SUBMIT ▶</button>
+        </div>
+        {planStatus === "pending" && (
+          <div className="flex gap-1">
+            <button onClick={onApprove} className="flex-1 rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.green, color: C.green }}>✓ APPROVE</button>
+            <button onClick={onChanges} className="flex-1 rounded border px-1 py-1 text-[8px] font-semibold" style={{ borderColor: C.red, color: C.red }}>✎ CHANGES</button>
+          </div>
+        )}
+        <div className="text-[7px]" style={{ color: statusColor }}>
+          {shareMsg || (planStatus === "approved" ? "Approved by commander — proposal, not a live order"
+            : planStatus === "pending" ? "Awaiting commander decision (HITL)"
+            : planStatus === "changes" ? "Changes requested — revise and resubmit"
+            : "Nothing fires on its own — human authority retained")}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1814,6 +1842,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [elevOn, setElevOn] = useState(true);
   const [contourCfg, setContourCfg] = useState<ContourSettings>(DEFAULT_CONTOURS);
   const [rangeOn, setRangeOn] = useState(true);            // weapon-range coverage rings
+  const [planStatus, setPlanStatus] = useState<"draft" | "pending" | "approved" | "changes">("draft");
+  const [shareMsg, setShareMsg] = useState("");            // transient "copied" confirmation
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
   const [showSettings, setShowSettings] = useState(false);
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
@@ -1941,6 +1971,25 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     : undefined;
   const clearAo = () => { setPlaced([]); setPlacedSupport([]); setInventory(INITIAL_INVENTORY); };
   const routeMode = !!selectedSupport && (selectedSupport.geometry === "line" || selectedSupport.geometry === "corridor");
+
+  // ── Plan approval + share (HI commander governance) ───────────────────────
+  // Any placement edit invalidates a prior approval — the plan returns to DRAFT.
+  useEffect(() => { setPlanStatus((s) => (s === "draft" ? s : "draft")); }, [placed.length, placedSupport.length, aoKey]);
+  const planSummary = () => [
+    "SECURITY-2525 · MISSION PLAN (proposal — pending human commander approval)",
+    `AO: ${ao.name}`,
+    `Reality mode: ${reality}`,
+    `Assets ${placed.length} · Support ${placedSupport.length}`,
+    ...placed.map((u) => `  • ${ASSET_LABELS[u.asset]}${u.count > 1 ? ` ×${u.count}` : ""} @ ${fmt.coordAt(u.lat, u.lon)}${u.mobile ? " (on-the-move)" : ""}`),
+    ...placedSupport.map((u) => `  • ${u.def.term} @ ${fmt.coordAt(u.lat, u.lon)}`),
+    "Governance: nothing fires on its own — human authority retained · Vision 2525 aligned",
+  ].join("\n");
+  const sharePlan = () => {
+    const text = planSummary();
+    try { navigator.clipboard?.writeText(text); setShareMsg("Plan copied to clipboard"); }
+    catch { setShareMsg("Copy failed — select & copy manually"); }
+    setTimeout(() => setShareMsg(""), 2500);
+  };
 
   // Sync the exact-coordinate input (in the Settings-primary format) on selection change.
   useEffect(() => {
@@ -2186,7 +2235,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           <div className="min-h-0 shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:w-64" style={{ background: C.panel, borderColor: C.border }}>
             <ActiveItems placed={placed} placedSupport={placedSupport} fmt={fmt}
               selected={selected} setSelected={setSelected} hoverAsset={hoverAsset} setHoverAsset={setHoverAsset}
-              onHide={() => setRightOpen(false)} />
+              onHide={() => setRightOpen(false)}
+              planStatus={planStatus} onSubmit={() => setPlanStatus("pending")} onApprove={() => setPlanStatus("approved")}
+              onChanges={() => setPlanStatus("changes")} onShare={sharePlan} shareMsg={shareMsg} />
           </div>
         ) : (
           <button onClick={() => setRightOpen(true)} title="Show deployed-asset list"
