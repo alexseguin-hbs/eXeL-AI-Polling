@@ -1625,8 +1625,32 @@ function PlacementRail(r: RailProps) {
           </button>
         </div>
 
-        {selectedObj && selected && (
-          <div className="mt-3 rounded border p-2" style={{ borderColor: C.cyan, background: "#0d1826" }}>
+      </div>
+    </div>
+  );
+}
+
+// ── Selected-item inspector (lives in the RIGHT rail with Active Items) ───────
+interface InspectorProps {
+  selected: { kind: "asset" | "support"; id: number } | null;
+  selectedObj: Placed | PlacedSupport | undefined;
+  fmt: Fmt; coordFmt: "mgrs" | "dms"; digits: Digits;
+  nudgeM: number; setNudgeM: (m: number) => void;
+  coordText: string; setCoordText: (s: string) => void;
+  onSetAff: (sel: { kind: "asset" | "support"; id: number }, aff: Affiliation) => void;
+  onSetPlacedReality: (id: number, r: RealityMode) => void;
+  onUpdAsset: (id: number, patch: Partial<Placed>) => void;
+  onSetTL: (id: number, key: "p" | "s" | "t", tl: TL | null) => void;
+  onNudge: (sel: { kind: "asset" | "support"; id: number }, dLat: number, dLon: number) => void;
+  onSetCoord: (sel: { kind: "asset" | "support"; id: number }, lat: number, lon: number) => void;
+  onRemoveSelected: () => void;
+}
+function ItemInspector(p: InspectorProps) {
+  const { selected, selectedObj, fmt, coordFmt, digits, nudgeM, setNudgeM, coordText, setCoordText,
+    onSetAff, onSetPlacedReality, onUpdAsset, onSetTL, onNudge, onSetCoord, onRemoveSelected } = p;
+  if (!selectedObj || !selected) return null;
+  return (
+          <div className="shrink-0 overflow-y-auto border-t p-2" style={{ borderColor: C.border, maxHeight: "50%" }}>
             <div className="mb-1 flex items-center justify-between">
               <span className="text-[10px] font-semibold" style={{ color: C.cyan }}>
                 {selected.kind === "asset" ? ASSET_LABELS[(selectedObj as Placed).asset] : (selectedObj as PlacedSupport).def.term}
@@ -1680,7 +1704,6 @@ function PlacementRail(r: RailProps) {
               );
               return (
                 <>
-                  {/* Avenger PTL is only valid stationary — on-the-move fires slew-to-cue, PTL suppressed */}
                   {a.asset === "avenger" && (
                     <div className="mb-1.5 flex items-center justify-between rounded border p-1" style={{ borderColor: `${C.amber}55` }}>
                       <span className="text-[9px]" style={{ color: C.dim }}>Posture</span>
@@ -1727,7 +1750,6 @@ function PlacementRail(r: RailProps) {
               <button onClick={() => onNudge(selected, -nudgeM / 111320, 0)} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
               <button onClick={() => onNudge(selected, 0, nudgeM / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
             </div>
-            {/* exact coordinate — entry format follows the Settings coordinate format (primary) */}
             <div className="mb-1 mt-2 text-[9px]" style={{ color: C.dim }}>Set exact coordinate ({coordFmt === "mgrs" ? "MGRS" : "LLV-DMS"})</div>
             <div className="flex items-center gap-1">
               <input value={coordText} onChange={(e) => setCoordText(e.target.value)}
@@ -1741,14 +1763,10 @@ function PlacementRail(r: RailProps) {
                 }}
                 className="shrink-0 rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.cyan, color: C.cyan }}>SET</button>
             </div>
-            {/* secondary readouts — the non-primary formats */}
             <div className="mt-0.5 font-mono text-[8px]" style={{ color: C.dim }}>
               {coordFmt === "mgrs" ? `${selectedObj.lat.toFixed(6)}, ${selectedObj.lon.toFixed(6)}` : `MGRS ${latLonToMgrs(selectedObj.lat, selectedObj.lon, digits)}`}
             </div>
           </div>
-        )}
-      </div>
-    </div>
   );
 }
 
@@ -1759,10 +1777,11 @@ interface ActiveItemsProps {
   setSelected: (s: { kind: "asset" | "support"; id: number } | null) => void;
   hoverAsset: AssetKind | null; setHoverAsset: React.Dispatch<React.SetStateAction<AssetKind | null>>;
   onHide?: () => void;
+  inspector?: React.ReactNode;
   planStatus: "draft" | "pending" | "approved" | "changes";
   onSubmit: () => void; onApprove: () => void; onChanges: () => void; onShare: () => void; shareMsg: string;
 }
-function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverAsset, setHoverAsset, onHide, planStatus, onSubmit, onApprove, onChanges, onShare, shareMsg }: ActiveItemsProps) {
+function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverAsset, setHoverAsset, onHide, inspector, planStatus, onSubmit, onApprove, onChanges, onShare, shareMsg }: ActiveItemsProps) {
   const total = placed.length + placedSupport.length;
   const statusColor = planStatus === "approved" ? C.green : planStatus === "pending" ? C.amber : planStatus === "changes" ? C.red : C.dim;
   return (
@@ -1794,6 +1813,8 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
           </button>
         ))}
       </div>
+      {/* selected-item inspector (settings) — lives here in the RIGHT rail */}
+      {inspector}
       {/* Plan governance — share + send-for-approval + commander decision (HITL) */}
       <div className="shrink-0 space-y-1 border-t p-1.5" style={{ borderColor: C.border }}>
         <div className="flex items-center justify-between">
@@ -2236,6 +2257,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             <ActiveItems placed={placed} placedSupport={placedSupport} fmt={fmt}
               selected={selected} setSelected={setSelected} hoverAsset={hoverAsset} setHoverAsset={setHoverAsset}
               onHide={() => setRightOpen(false)}
+              inspector={<ItemInspector selected={selected} selectedObj={selectedObj} fmt={fmt} coordFmt={coordFmt} digits={digits}
+                nudgeM={nudgeM} setNudgeM={setNudgeM} coordText={coordText} setCoordText={setCoordText}
+                onSetAff={setAff} onSetPlacedReality={setPlacedReality} onUpdAsset={updAsset} onSetTL={setTL}
+                onNudge={nudge} onSetCoord={setCoord} onRemoveSelected={removeSelected} />}
               planStatus={planStatus} onSubmit={() => setPlanStatus("pending")} onApprove={() => setPlanStatus("approved")}
               onChanges={() => setPlanStatus("changes")} onShare={sharePlan} shareMsg={shareMsg} />
           </div>
