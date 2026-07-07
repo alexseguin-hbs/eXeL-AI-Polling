@@ -40,6 +40,7 @@ import { PfieldVenue } from "@/components/security-2525/pfield-venue";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { MIN_SPAN_KM, MAX_SPAN_KM, ZOOM_FACTOR, shouldHandOffToWorld } from "@/lib/zoom-continuum";
 import { terrainMSL, computeContours, type ContourOpts } from "@/lib/contours";
+import { TRINITY_COLORS } from "@/lib/trinity-palette";
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -316,7 +317,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
   const [cam, setCam] = useState({ lat0: center[0], lon0: center[1], tilt: 0.32, roll: 0, zoom: 1 });
   const drag = useRef<{ x: number; y: number; btn: number } | null>(null);
   const touch = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const pinch = useRef<{ dist: number; cx: number; cy: number } | null>(null);
+  const pinch = useRef<{ dist: number; cx: number; cy: number; ang: number } | null>(null);
   const gsvg = useRef<SVGSVGElement>(null);
   useEffect(() => { setCam((c) => ({ ...c, lat0: center[0], lon0: center[1] })); }, [center[0], center[1]]);
   const { lat0: LAT0, lon0: LON0, tilt, roll, zoom } = cam;
@@ -398,7 +399,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
         if (e.pointerType === "touch") {
           touch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
           (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId);
-          if (touch.current.size === 2) { const [a, b] = Array.from(touch.current.values()); pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 }; }
+          if (touch.current.size === 2) { const [a, b] = Array.from(touch.current.values()); pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, ang: Math.atan2(b.y - a.y, b.x - a.x) }; }
           return;
         }
         drag.current = { x: e.clientX, y: e.clientY, btn: e.button };
@@ -412,9 +413,12 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
             const [a, b] = Array.from(touch.current.values());
             const dist = Math.hypot(a.x - b.x, a.y - b.y);
             const factor = dist / Math.max(1, pinch.current.dist);
-            pinch.current = { dist, cx: pinch.current.cx, cy: pinch.current.cy };
+            const ang = Math.atan2(b.y - a.y, b.x - a.x);
+            let dAng = ang - pinch.current.ang;
+            if (dAng > Math.PI) dAng -= 2 * Math.PI; else if (dAng < -Math.PI) dAng += 2 * Math.PI;
+            pinch.current = { dist, cx: pinch.current.cx, cy: pinch.current.cy, ang };
             if (cam.zoom * factor > ZMAX) { onDrill(cam.lat0, cam.lon0); return; }
-            setCam((c) => ({ ...c, zoom: Math.min(ZMAX, Math.max(1, c.zoom * factor)) }));
+            setCam((c) => ({ ...c, zoom: Math.min(ZMAX, Math.max(1, c.zoom * factor)), roll: c.roll - dAng }));
           } else if (touch.current.size === 1) {
             const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
             setCam((c) => ({ ...c, lon0: c.lon0 - dx * 0.5, lat0: Math.min(85, Math.max(-85, c.lat0 + dy * 0.5)) }));
@@ -679,12 +683,18 @@ interface ContourSettings extends ContourOpts {
   units: "metric" | "imperial" | "both"; labelMajor: boolean; vExag: number;
   landColor: string; bathyColor: string; thickness: number;
 }
-// land = warm topographic tan (distinct from the grey street layer); bathy = cyan.
-const CONTOUR_COLORS = ["#d9b26a", "#86efac", "#f59e0b", "#a78bfa", "#e5e7eb"];
+// Contour palette = the canonical SoI Trinity spectrum (Infrared → ROYGBIV → Ultraviolet),
+// reused from /main so land contours read as a topographic spectrum distinct from grey streets.
+const CONTOUR_SPECTRUM = [
+  TRINITY_COLORS.human, TRINITY_COLORS.evolution, TRINITY_COLORS.intelligence, TRINITY_COLORS.temporal,
+  TRINITY_COLORS.abundance, TRINITY_COLORS.ooda, TRINITY_COLORS.platonic, TRINITY_COLORS.consciousness,
+  TRINITY_COLORS.framework, TRINITY_COLORS.wholeness, TRINITY_COLORS.family, TRINITY_COLORS.governance,
+] as const;
+const CONTOUR_THICKNESS = [0.1, 0.25, 0.5] as const;
 const DEFAULT_CONTOURS: ContourSettings = {
   enable: false, count: 6, interval: 0, fidelity: "med", seaLevel: 0,
   showLand: true, showBathy: true, units: "metric", labelMajor: true, vExag: 1,
-  landColor: "#d9b26a", bathyColor: "#22d3ee", thickness: 0.16,
+  landColor: TRINITY_COLORS.intelligence, bathyColor: TRINITY_COLORS.consciousness, thickness: 0.25,
 };
 const contourLabel = (m: number, units: ContourSettings["units"]) =>
   units === "imperial" ? `${Math.round(m * 3.28084)} ft`
@@ -734,6 +744,8 @@ interface PaneProps {
   elevOn: boolean;
   contourCfg: ContourSettings;
   rangeOn: boolean;
+  roadsOn: boolean;
+  waterOn: boolean;
   showElevation: boolean;
   cursorMode: "pointer" | "target";
   is3d: boolean;
@@ -768,7 +780,7 @@ interface PaneProps {
 
 function AoMapPane(p: PaneProps) {
   const {
-    label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, showElevation, cursorMode, is3d, onToggle3d,
+    label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, osm, borders, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld,
@@ -782,7 +794,7 @@ function AoMapPane(p: PaneProps) {
   const dragRef = useRef<{ x: number; y: number; moved: boolean; btn: number } | null>(null);
   const bearingMemo = useRef<number | null>(null);
   const touchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const pinchRef = useRef<{ dist: number; cx: number; cy: number } | null>(null);
+  const pinchRef = useRef<{ dist: number; cx: number; cy: number; ang: number } | null>(null);
 
   const RENDER = 1.5;
   const OFF = (RENDER - 1) / 2;
@@ -889,7 +901,7 @@ function AoMapPane(p: PaneProps) {
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       if (touchRef.current.size === 2) {
         const [a, b] = Array.from(touchRef.current.values());
-        pinchRef.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+        pinchRef.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, ang: Math.atan2(b.y - a.y, b.x - a.x) };
       }
       return;
     }
@@ -905,11 +917,15 @@ function AoMapPane(p: PaneProps) {
       const r = mapRef.current?.getBoundingClientRect();
       touchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (touchRef.current.size >= 2 && pinchRef.current && r) {
+        // Google-Maps-style: pinch = zoom, twist = rotate bearing (2D + 3D), together.
         const [a, b] = Array.from(touchRef.current.values());
         const dist = Math.hypot(a.x - b.x, a.y - b.y);
         const factor = pinchRef.current.dist / Math.max(1, dist);
-        pinchRef.current.dist = dist;
-        setView((v) => ({ ...v, spanKm: Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * factor)) }));
+        const ang = Math.atan2(b.y - a.y, b.x - a.x);
+        let dAng = ang - pinchRef.current.ang;
+        if (dAng > Math.PI) dAng -= 2 * Math.PI; else if (dAng < -Math.PI) dAng += 2 * Math.PI;
+        pinchRef.current.dist = dist; pinchRef.current.ang = ang;
+        setView((v) => ({ ...v, spanKm: Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * factor)), bearing: v.bearing + dAng }));
       } else if (touchRef.current.size === 1 && r) {
         panBy((e.clientX - prev.x) / r.width, (e.clientY - prev.y) / r.height);
       }
@@ -1113,12 +1129,17 @@ function AoMapPane(p: PaneProps) {
                     <path d={borderPaths.states} fill="none" stroke={C.borderState} strokeWidth="0.3" opacity="0.45" strokeLinejoin="round" />
                   </g>
                 )}
-                {osmPaths && (
+                {/* WATER — lakes/wide rivers as solid blue polygons; rivers/streams as full-width blue lines */}
+                {osmPaths && waterOn && (
                   <g>
-                    <path d={osmPaths.polyD} fill="#38bdf822" stroke="#38bdf8" strokeWidth="0.15" />
-                    {/* rivers rendered at true ground width (~60 m), scaling with zoom, not hairlines */}
-                    <path d={osmPaths.waterD} fill="none" stroke="#38bdf8" strokeWidth={Math.min(4, Math.max(0.4, (60 / (view.spanKm * 1000)) * 100))} opacity="0.8" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.2, Math.max(0.12, (12 / (view.spanKm * 1000)) * 100))} opacity="0.9" strokeLinecap="round" />
+                    <path d={osmPaths.polyD} fill="#1e6fd955" stroke="#38bdf8" strokeWidth="0.2" />
+                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={Math.min(5, Math.max(0.5, (65 / (view.spanKm * 1000)) * 100))} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.4, Math.max(0.12, (14 / (view.spanKm * 1000)) * 100))} opacity="0.85" strokeLinecap="round" />
+                  </g>
+                )}
+                {/* ROADS — grey tier hierarchy */}
+                {osmPaths && roadsOn && (
+                  <g>
                     <path d={osmPaths.tiers[2]} fill="none" stroke="#cbd5e1" strokeWidth="0.55" opacity="0.16" strokeLinecap="round" />
                     <path d={osmPaths.tiers[3]} fill="none" stroke="#cbd5e1" strokeWidth="1.0" opacity="0.2" strokeLinecap="round" />
                     <path d={osmPaths.tiers[4]} fill="none" stroke="#cbd5e1" strokeWidth="1.6" opacity="0.22" strokeLinecap="round" />
@@ -1872,6 +1893,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [elevOn, setElevOn] = useState(true);
   const [contourCfg, setContourCfg] = useState<ContourSettings>(DEFAULT_CONTOURS);
   const [rangeOn, setRangeOn] = useState(true);            // weapon-range coverage rings
+  const [roadsOn, setRoadsOn] = useState(true);            // OSM road layer
+  const [waterOn, setWaterOn] = useState(true);            // OSM waterway layer
   const [planStatus, setPlanStatus] = useState<"draft" | "pending" | "approved" | "changes">("draft");
   const [shareMsg, setShareMsg] = useState("");            // transient "copied" confirmation
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
@@ -2036,7 +2059,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   }); // no deps → always latest state
 
   const paneCommon = {
-    ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, cursorMode,
+    ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
   };
@@ -2089,6 +2112,15 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <span className="text-[10px]" style={{ color: C.text }}>1 km UTM grid</span>
               <button onClick={() => setGridOn(!gridOn)} className="flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
                 style={{ borderColor: gridOn ? C.green : C.border, color: gridOn ? C.green : C.dim }}><Grid3x3 className="h-3 w-3" />{gridOn ? "ON" : "OFF"}</button>
+            </div>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <span className="text-[10px]" style={{ color: C.text }}>Map layers</span>
+              <div className="flex gap-1">
+                <button onClick={() => setRoadsOn(!roadsOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                  style={{ borderColor: roadsOn ? "#cbd5e1" : C.border, color: roadsOn ? "#e5e7eb" : C.dim }}>ROADS</button>
+                <button onClick={() => setWaterOn(!waterOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                  style={{ borderColor: waterOn ? "#38bdf8" : C.border, color: waterOn ? "#38bdf8" : C.dim }}>WATER</button>
+              </div>
             </div>
             <div className="mb-1 text-[10px]" style={{ color: C.text }}>Coordinate format</div>
             <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
@@ -2172,18 +2204,32 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   <button onClick={() => setContourCfg((c) => ({ ...c, labelMajor: !c.labelMajor }))} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
                     style={{ borderColor: contourCfg.labelMajor ? C.gold : C.border, color: contourCfg.labelMajor ? C.gold : C.dim }}>{contourCfg.labelMajor ? "ON" : "OFF"}</button>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px]" style={{ color: C.dim }}>Line color</span>
-                  <div className="flex gap-1">
-                    {CONTOUR_COLORS.map((col) => (
+                {/* Line color — scrollable Trinity spectrum (IR→ROYGBIV→UV), + free edit */}
+                <div>
+                  <div className="mb-0.5 flex items-center justify-between">
+                    <span className="text-[9px]" style={{ color: C.dim }}>Line color (spectrum)</span>
+                    <input type="color" value={contourCfg.landColor} onChange={(e) => setContourCfg((c) => ({ ...c, landColor: e.target.value }))}
+                      className="h-4 w-6 rounded border-0 bg-transparent p-0" title="Custom colour" />
+                  </div>
+                  <div className="flex gap-1 overflow-x-auto pb-0.5">
+                    {CONTOUR_SPECTRUM.map((col) => (
                       <button key={col} onClick={() => setContourCfg((c) => ({ ...c, landColor: col }))} title={col}
-                        className="h-3.5 w-3.5 rounded-full border" style={{ background: col, borderColor: contourCfg.landColor === col ? C.text : "transparent" }} />
+                        className="h-4 w-4 shrink-0 rounded-full border" style={{ background: col, borderColor: contourCfg.landColor.toLowerCase() === col.toLowerCase() ? C.text : "transparent" }} />
                     ))}
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px]" style={{ color: C.dim }}>Thinness</span>
-                  <input type="range" min={0.08} max={0.4} step={0.02} value={contourCfg.thickness} onChange={(e) => setContourCfg((c) => ({ ...c, thickness: parseFloat(e.target.value) }))} className="w-20" />
+                {/* Thickness — presets 0.1 / 0.25 / 0.5 + editable slider */}
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[9px]" style={{ color: C.dim }}>Thickness</span>
+                  <div className="flex items-center gap-1">
+                    <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                      {CONTOUR_THICKNESS.map((t) => (
+                        <button key={t} onClick={() => setContourCfg((c) => ({ ...c, thickness: t }))} className="px-1.5 py-0.5"
+                          style={{ background: Math.abs(contourCfg.thickness - t) < 1e-6 ? "#152238" : "transparent", color: Math.abs(contourCfg.thickness - t) < 1e-6 ? C.cyan : C.dim }}>{t}</button>
+                      ))}
+                    </div>
+                    <input type="range" min={0.05} max={0.6} step={0.01} value={contourCfg.thickness} onChange={(e) => setContourCfg((c) => ({ ...c, thickness: parseFloat(e.target.value) }))} className="w-14" />
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[9px]" style={{ color: C.dim }}>Sea level (MSL) {contourCfg.seaLevel}m</span>
