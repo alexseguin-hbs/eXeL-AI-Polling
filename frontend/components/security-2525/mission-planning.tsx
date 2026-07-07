@@ -283,22 +283,22 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void;
 }) {
-  const CX = 170, CY = 170, RING = 150;
+  const CX = 170, CY = 170, RING = 150, R = 150;
   const D = Math.PI / 180;
-  const DRILL_R = 520;
-  const [cam, setCam] = useState({ lat0: center[0], lon0: center[1], tilt: 0.32, roll: 0, R: 150 });
+  const ZMAX = 4; // magnify up to 4× before drilling into the flat/AO map
+  const [cam, setCam] = useState({ lat0: center[0], lon0: center[1], tilt: 0.32, roll: 0, zoom: 1 });
   const drag = useRef<{ x: number; y: number; btn: number } | null>(null);
   const touch = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinch = useRef<{ dist: number; cx: number; cy: number } | null>(null);
   const gsvg = useRef<SVGSVGElement>(null);
   useEffect(() => { setCam((c) => ({ ...c, lat0: center[0], lon0: center[1] })); }, [center[0], center[1]]);
-  const { lat0: LAT0, lon0: LON0, tilt, roll, R } = cam;
+  const { lat0: LAT0, lon0: LON0, tilt, roll, zoom } = cam;
   const cr = Math.cos(roll), sr = Math.sin(roll), ct = Math.cos(tilt), st = Math.sin(tilt);
   useWheel(gsvg, (e) => {
     e.preventDefault();
-    const zin = e.deltaY < 0, factor = zin ? 1.12 : 1 / 1.12;
-    if (cam.R * factor > DRILL_R && zin) { onDrill(cam.lat0, cam.lon0); return; }
-    setCam((c) => ({ ...c, R: Math.min(DRILL_R, Math.max(115, c.R * factor)) }));
+    const zin = e.deltaY < 0, factor = zin ? 1.15 : 1 / 1.15;
+    if (cam.zoom * factor > ZMAX && zin) { onDrill(cam.lat0, cam.lon0); return; }
+    setCam((c) => ({ ...c, zoom: Math.min(ZMAX, Math.max(1, c.zoom * factor)) }));
   });
   const proj = (lat: number, lon: number): [number, number, boolean] => {
     const p = lat * D, l = (lon - LON0) * D, p0 = LAT0 * D;
@@ -386,8 +386,8 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
             const dist = Math.hypot(a.x - b.x, a.y - b.y);
             const factor = dist / Math.max(1, pinch.current.dist);
             pinch.current = { dist, cx: pinch.current.cx, cy: pinch.current.cy };
-            if (cam.R * factor > DRILL_R) { onDrill(cam.lat0, cam.lon0); return; }
-            setCam((c) => ({ ...c, R: Math.min(DRILL_R, Math.max(115, c.R * factor)) }));
+            if (cam.zoom * factor > ZMAX) { onDrill(cam.lat0, cam.lon0); return; }
+            setCam((c) => ({ ...c, zoom: Math.min(ZMAX, Math.max(1, c.zoom * factor)) }));
           } else if (touch.current.size === 1) {
             const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
             setCam((c) => ({ ...c, lon0: c.lon0 - dx * 0.5, lat0: Math.min(85, Math.max(-85, c.lat0 + dy * 0.5)) }));
@@ -408,28 +408,32 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
         if (e.pointerType === "touch") { touch.current.delete(e.pointerId); if (touch.current.size < 2) pinch.current = null; return; }
         drag.current = null;
       }}>
+      <defs><clipPath id="globe-clip"><circle cx={CX} cy={CY} r={RING} /></clipPath></defs>
       <circle cx={CX} cy={CY} r={RING} fill="none" stroke={C.cyan} strokeWidth="0.6" opacity="0.7" />
       {ticks}
-      <circle cx={CX} cy={CY} r={R} fill="#0c141f" stroke={C.cyan} strokeWidth="1.2" />
-      <path d={graticule} fill="none" stroke={C.cyan} strokeWidth="0.35" opacity="0.55" />
-      {borders && (
-        <>
-          <path d={borders.countries} fill="none" stroke={C.borderCountry} strokeWidth="0.5" opacity="0.75" />
-          <path d={borders.states} fill="none" stroke={C.borderState} strokeWidth="0.4" opacity="0.65" />
-        </>
-      )}
-      {AOS.map((ao) => {
-        const [x, y, v] = proj(ao.center[0], ao.center[1]);
-        if (!v) return null;
-        const active = ao.key === activeKey;
-        return (
-          <g key={ao.key} onClick={() => onSelect(ao.key)} onDoubleClick={() => onDrill(ao.center[0], ao.center[1])} style={{ cursor: "pointer" }}>
-            <circle cx={x} cy={y} r={active ? 7 : 5} fill="none" stroke={C.gold} strokeWidth="1" opacity={active ? 1 : 0.7} />
-            {active && <circle cx={x} cy={y} r="10" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.5" />}
-            <circle cx={x} cy={y} r="1.5" fill={C.gold} />
-          </g>
-        );
-      })}
+      {/* zoom magnifies the globe within the fixed compass ring (clipped) — no SVG-edge clipping */}
+      <g clipPath="url(#globe-clip)" transform={`translate(${CX} ${CY}) scale(${zoom}) translate(${-CX} ${-CY})`}>
+        <circle cx={CX} cy={CY} r={R} fill="#0c141f" stroke={C.cyan} strokeWidth={1.2 / zoom} />
+        <path d={graticule} fill="none" stroke={C.cyan} strokeWidth={0.35 / zoom} opacity="0.55" />
+        {borders && (
+          <>
+            <path d={borders.countries} fill="none" stroke={C.borderCountry} strokeWidth={0.5 / zoom} opacity="0.75" />
+            <path d={borders.states} fill="none" stroke={C.borderState} strokeWidth={0.4 / zoom} opacity="0.65" />
+          </>
+        )}
+        {AOS.map((ao) => {
+          const [x, y, v] = proj(ao.center[0], ao.center[1]);
+          if (!v) return null;
+          const active = ao.key === activeKey;
+          return (
+            <g key={ao.key} onClick={() => onSelect(ao.key)} onDoubleClick={() => onDrill(ao.center[0], ao.center[1])} style={{ cursor: "pointer" }}>
+              <circle cx={x} cy={y} r={(active ? 7 : 5) / zoom} fill="none" stroke={C.gold} strokeWidth={1 / zoom} opacity={active ? 1 : 0.7} />
+              {active && <circle cx={x} cy={y} r={10 / zoom} fill="none" stroke={C.gold} strokeWidth={0.5 / zoom} opacity="0.5" />}
+              <circle cx={x} cy={y} r={1.5 / zoom} fill={C.gold} />
+            </g>
+          );
+        })}
+      </g>
     </svg>
   );
 }
@@ -489,43 +493,56 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
             const r = flatSvg.current?.getBoundingClientRect(); if (!r) return;
             const dx = (e.clientX - d.x) / r.width * flat.w, dy = (e.clientY - d.y) / r.height * flat.h;
             d.x = e.clientX; d.y = e.clientY;
-            setFlat((f) => ({ ...f, x: f.x - dx, y: f.y - dy }));
+            // horizontal wraps around the globe (modulo world width); vertical clamps at the poles
+            setFlat((f) => ({ ...f, x: (((f.x - dx) % W) + W) % W, y: Math.max(0, Math.min(H - f.h, f.y - dy)) }));
           }}
           onPointerUp={() => { flatDrag.current = null; }}>
-          {paths && (
-            <>
-              <path d={paths.countries} fill="none" stroke={C.borderCountry} strokeWidth="0.45" opacity="0.55" vectorEffect="non-scaling-stroke" />
-              <path d={paths.states} fill="none" stroke={C.borderState} strokeWidth="0.35" opacity="0.5" vectorEffect="non-scaling-stroke" />
-            </>
-          )}
-          {/* Major metros (≥1M) — surface once zoomed past continent scale */}
-          {flat.w < W * 0.4 && CITIES.map((c) => {
-            const x = ((c.lon + 180) / 360) * W, y = ((90 - c.lat) / 180) * H;
-            return (
-              <g key={c.name} style={{ pointerEvents: "none" }}>
-                <circle cx={x} cy={y} r="1.1" fill={C.text} vectorEffect="non-scaling-stroke" />
-                <circle cx={x} cy={y} r="2.4" fill="none" stroke={C.text} strokeWidth="0.4" opacity="0.5" vectorEffect="non-scaling-stroke" />
-                <text x={x + 2.5} y={y + 1} fontSize="3.4" fill={C.text} vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{c.name}</text>
-              </g>
-            );
-          })}
-          {AOS.map((ao) => {
-            const x = ((ao.center[1] + 180) / 360) * W;
-            const y = ((90 - ao.center[0]) / 180) * H;
-            const active = ao.key === aoKey;
-            return (
-              <g key={ao.key} onClick={() => onSelect(ao.key)} style={{ cursor: "pointer" }}>
-                <circle cx={x} cy={y} r={active ? 5 : 3.5} fill="none" stroke={C.cyan} strokeWidth="1" opacity={active ? 1 : 0.6} vectorEffect="non-scaling-stroke" />
-                <circle cx={x} cy={y} r="1.4" fill={C.cyan} vectorEffect="non-scaling-stroke" />
-                <text x={x + 2} y={y - 2} fontSize="4" fill={C.gold} vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{ao.name.split(" · ")[0]}</text>
-              </g>
-            );
-          })}
+          {/* three world copies (−360° · 0 · +360°) so panning wraps seamlessly around the dateline */}
+          {[-W, 0, W].map((dx) => (
+            <g key={dx} transform={`translate(${dx} 0)`}>
+              {paths && (
+                <>
+                  <path d={paths.countries} fill="none" stroke={C.borderCountry} strokeWidth="0.45" opacity="0.55" vectorEffect="non-scaling-stroke" />
+                  <path d={paths.states} fill="none" stroke={C.borderState} strokeWidth="0.35" opacity="0.5" vectorEffect="non-scaling-stroke" />
+                </>
+              )}
+              {/* Major metros (≥1M) — surface once zoomed past continent scale */}
+              {flat.w < W * 0.4 && CITIES.map((c) => {
+                const x = ((c.lon + 180) / 360) * W, y = ((90 - c.lat) / 180) * H;
+                return (
+                  <g key={c.name} style={{ pointerEvents: "none" }}>
+                    <circle cx={x} cy={y} r="1.1" fill={C.text} vectorEffect="non-scaling-stroke" />
+                    <circle cx={x} cy={y} r="2.4" fill="none" stroke={C.text} strokeWidth="0.4" opacity="0.5" vectorEffect="non-scaling-stroke" />
+                    <text x={x + 2.5} y={y + 1} fontSize="3.4" fill={C.text} vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{c.name}</text>
+                  </g>
+                );
+              })}
+              {AOS.map((ao) => {
+                const x = ((ao.center[1] + 180) / 360) * W;
+                const y = ((90 - ao.center[0]) / 180) * H;
+                const active = ao.key === aoKey;
+                return (
+                  <g key={ao.key} onClick={() => onSelect(ao.key)} style={{ cursor: "pointer" }}>
+                    <circle cx={x} cy={y} r={active ? 5 : 3.5} fill="none" stroke={C.cyan} strokeWidth="1" opacity={active ? 1 : 0.6} vectorEffect="non-scaling-stroke" />
+                    <circle cx={x} cy={y} r="1.4" fill={C.cyan} vectorEffect="non-scaling-stroke" />
+                    <text x={x + 2} y={y - 2} fontSize="4" fill={C.gold} vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{ao.name.split(" · ")[0]}</text>
+                  </g>
+                );
+              })}
+            </g>
+          ))}
+          {/* antimeridian (±180°) seam indicator — the wrap line, dashed amber */}
+          {[-W, 0, W, 2 * W].map((sx) => (
+            <g key={`seam${sx}`} style={{ pointerEvents: "none" }}>
+              <line x1={sx} y1="0" x2={sx} y2={H} stroke={C.amber} strokeWidth="0.5" strokeDasharray="3 2" opacity="0.6" vectorEffect="non-scaling-stroke" />
+              <text x={sx + 1} y={flat.y + 5} fontSize="3.2" fill={C.amber} opacity="0.8" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>180°</text>
+            </g>
+          ))}
         </svg>
       )}
       {mode === "flat" && (() => {
         const clat = 90 - ((flat.y + flat.h / 2) / H) * 180;
-        const clon = ((flat.x + flat.w / 2) / W) * 360 - 180;
+        const clon = ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180;
         const kmW = flat.w * 111.32 * Math.cos((clat * Math.PI) / 180);
         return (
           <>
@@ -551,7 +568,7 @@ function WorldStrip({ aoKey, onSelect }: { aoKey: string; onSelect: (k: string) 
       })()}
       <div className="absolute right-2 top-2 z-10 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
         {(["globe", "flat"] as const).map((m) => (
-          <button key={m} onClick={() => (m === "flat" ? drillToFlat(center[0], center[1]) : (setCenter([90 - ((flat.y + flat.h / 2) / H) * 180, ((flat.x + flat.w / 2) / W) * 360 - 180]), setMode("globe")))} className="px-2 py-0.5"
+          <button key={m} onClick={() => (m === "flat" ? drillToFlat(center[0], center[1]) : (setCenter([90 - ((flat.y + flat.h / 2) / H) * 180, ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180]), setMode("globe")))} className="px-2 py-0.5"
             style={{ background: mode === m ? "#152238" : "transparent", color: mode === m ? C.cyan : C.dim }}>
             {m.toUpperCase()}
           </button>
