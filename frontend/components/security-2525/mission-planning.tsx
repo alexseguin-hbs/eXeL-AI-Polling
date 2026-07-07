@@ -453,7 +453,8 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
       {ticks}
       {/* zoom magnifies the globe within the fixed compass ring (clipped) — no SVG-edge clipping */}
       <g clipPath="url(#globe-clip)" transform={`translate(${CX} ${CY}) scale(${zoom}) translate(${-CX} ${-CY})`}>
-        <circle cx={CX} cy={CY} r={R} fill="#0c141f" stroke={C.cyan} strokeWidth={1.2 / zoom} />
+        <circle cx={CX} cy={CY} r={R} fill="#0a2f52" stroke={C.cyan} strokeWidth={1.2 / zoom} />
+        {borders && <path d={borders.countries} fill="#123d1f" fillRule="evenodd" stroke="none" opacity="0.9" />}
         <path d={graticule} fill="none" stroke={C.cyan} strokeWidth={0.35 / zoom} opacity="0.55" />
         {borders && (
           <>
@@ -537,11 +538,14 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label }: { aoKey: string; onSe
             setFlat((f) => ({ ...f, x: (((f.x - dx) % W) + W) % W, y: Math.max(0, Math.min(H - f.h, f.y - dy)) }));
           }}
           onPointerUp={() => { flatDrag.current = null; }}>
+          {/* blue ocean base for the whole (wrapped) world */}
+          <rect x={-W} y={0} width={3 * W} height={H} fill="#0a2f52" />
           {/* three world copies (−360° · 0 · +360°) so panning wraps seamlessly around the dateline */}
           {[-W, 0, W].map((dx) => (
             <g key={dx} transform={`translate(${dx} 0)`}>
               {paths && (
                 <>
+                  <path d={paths.countries} fill="#123d1f" fillRule="evenodd" stroke="none" />
                   <path d={paths.countries} fill="none" stroke={C.borderCountry} strokeWidth="0.45" opacity="0.55" vectorEffect="non-scaling-stroke" />
                   <path d={paths.states} fill="none" stroke={C.borderState} strokeWidth="0.35" opacity="0.5" vectorEffect="non-scaling-stroke" />
                 </>
