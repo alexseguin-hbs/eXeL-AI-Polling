@@ -1115,8 +1115,9 @@ function AoMapPane(p: PaneProps) {
     [box, contourCfg]
   );
 
-  // Elevation profiles (primary pane only).
+  // Elevation profiles (primary pane only — skipped entirely on panes without the scale).
   const elevProfile = useMemo(() => {
+    if (!showElevation) return null;
     const N = 64;
     const lonAt = (i: number) => box.lonMin + (i / (N - 1)) * (box.lonMax - box.lonMin);
     const latAt = (i: number) => box.latMax - (i / (N - 1)) * (box.latMax - box.latMin);
@@ -1143,7 +1144,7 @@ function AoMapPane(p: PaneProps) {
     col.forEach((e, i) => { if (e > col[chi]) chi = i; if (e < col[clo]) clo = i; });
     const cmark = (i: number) => ({ yv: (i / (N - 1)) * 100, xv: rx(col[i]), e: col[i], lat: latAt(i), lon: (box.lonMin + box.lonMax) / 2 });
     return { min, max, rng, frontFill, rightPath, y, high: mark(hi), low: mark(lo), colHigh: cmark(chi), colLow: cmark(clo) };
-  }, [box]);
+  }, [box, showElevation]);
 
   const resetView = () => setView(() => initView(ao, spanFactor));
   const breadcrumb = geoContext(view.lat, view.lon, view.spanKm);
@@ -1508,7 +1509,7 @@ function AoMapPane(p: PaneProps) {
           </div>
 
           {/* right elevation scale (primary pane) */}
-          {showElevation && elevOn && (
+          {showElevation && elevOn && elevProfile && (
             <div className="relative w-10 shrink-0 self-stretch overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
               <svg viewBox="0 0 40 100" preserveAspectRatio="none" className="h-full w-full">
                 <path d={elevProfile.rightPath} fill={`${C.gold}22`} stroke={C.gold} strokeWidth="0.6" />
@@ -1526,7 +1527,7 @@ function AoMapPane(p: PaneProps) {
         </div>
 
         {/* bottom elevation profile — thin strip; height matches the right scale's 40px thickness */}
-        {showElevation && elevOn && (
+        {showElevation && elevOn && elevProfile && (
           <div className="relative mt-1 h-10 shrink-0 overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
             <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="h-full w-full">
               {/* single W→E profile — one colour, matches the vertical N→S scale */}
