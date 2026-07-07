@@ -213,8 +213,8 @@ export function SecurityCommandUX1() {
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
       {/* Top bar */}
       <div className="sticky top-0 z-10 relative flex items-center justify-between border-b px-4 py-2" style={{ background: C.bg, borderColor: C.border }}>
-        <span className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 text-[10px] font-semibold tracking-wide md:flex" style={{ color: CLEARANCE_COLORS[3] }}>
-          CLEARANCE: LEVEL 3 <ClearanceSeal level={3} />
+        <span className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 text-[10px] font-semibold tracking-wide md:flex" style={{ color: C.dim }}>
+          CLEARANCE: <span style={{ color: CLEARANCE_COLORS[3] }}>LEVEL 3</span> <ClearanceSeal level={3} />
         </span>
         <div className="flex items-center gap-3 min-w-0">
           <button onClick={() => setVisionView("launcher")} className="p-1.5 rounded hover:bg-white/5" title="Back to Vision 2525">
@@ -522,7 +522,7 @@ export function SecurityCommandUX1() {
       <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
         <span><span style={{ color: C.green }}>●</span> SYSTEM HEALTH — ALL SYSTEMS NOMINAL</span>
         <span className="flex items-center gap-1.5">
-          CLEARANCE: LEVEL 3 <ClearanceSeal level={3} />
+          <span style={{ color: C.dim }}>CLEARANCE:</span> <span style={{ color: CLEARANCE_COLORS[3] }}>LEVEL 3</span> <ClearanceSeal level={3} />
         </span>
         <span>DATA FUSION ENGINE: eXeL {EXEL_VERSION} · {GIT_SHA}</span>
       </div>
