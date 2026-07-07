@@ -671,7 +671,7 @@ function synthElevation(lat: number, lon: number): number {
 // the 0–100 map viewBox + label anchors. Swap the sampler for real USGS 3DEP /
 // Copernicus GLO-30 / GEBCO tiles behind this same interface later (R-CORE modularity).
 export interface ContourOpts { count: number; interval: number; fidelity: "low" | "med" | "high"; seaLevel: number; }
-interface ContourLine { level: number; d: string; land: boolean; label: { x: number; y: number } | null; }
+interface ContourLine { level: number; d: string; land: boolean; major: boolean; label: { x: number; y: number } | null; }
 interface ContourSet { lines: ContourLine[]; min: number; max: number; step: number; count: number; }
 function niceStep(raw: number): number {
   const mag = Math.pow(10, Math.floor(Math.log10(Math.max(1e-6, raw))));
@@ -729,18 +729,25 @@ function computeContours(box: { latMin: number; latMax: number; lonMin: number; 
         }
       }
     }
-    if (d) lines.push({ level: L + o.seaLevel, d, land: L >= 0, label: labelPt });
+    if (d) lines.push({ level: L + o.seaLevel, d, land: L >= 0, major: false, label: labelPt });
   }
+  // Mark ~every Nth line "major" (key contour) so at least 3 majors emphasise relief.
+  const majorStep = Math.max(1, Math.round(lines.length / Math.max(3, Math.min(9, lines.length))));
+  lines.forEach((ln, i) => { ln.major = i % majorStep === 0; });
   return { lines, min: mn + o.seaLevel, max: mx + o.seaLevel, step, count: levels.length };
 }
 
 interface ContourSettings extends ContourOpts {
   enable: boolean; showLand: boolean; showBathy: boolean;
   units: "metric" | "imperial" | "both"; labelMajor: boolean; vExag: number;
+  landColor: string; bathyColor: string; thickness: number;
 }
+// land = warm topographic tan (distinct from the grey street layer); bathy = cyan.
+const CONTOUR_COLORS = ["#d9b26a", "#86efac", "#f59e0b", "#a78bfa", "#e5e7eb"];
 const DEFAULT_CONTOURS: ContourSettings = {
   enable: false, count: 6, interval: 0, fidelity: "med", seaLevel: 0,
   showLand: true, showBathy: true, units: "metric", labelMajor: true, vExag: 1,
+  landColor: "#d9b26a", bathyColor: "#22d3ee", thickness: 0.16,
 };
 const contourLabel = (m: number, units: ContourSettings["units"]) =>
   units === "imperial" ? `${Math.round(m * 3.28084)} ft`
@@ -1182,17 +1189,21 @@ function AoMapPane(p: PaneProps) {
                     <path d={osmPaths.tiers[4]} fill="none" stroke="#e5e7eb" strokeWidth="0.85" opacity="0.8" strokeLinecap="round" />
                   </g>
                 )}
-                {/* topographic contours — land (gray) + bathymetry-from-MSL (cyan dashed) */}
+                {/* topographic contours — land = configurable topo tint (distinct from grey streets);
+                    bathymetry-from-MSL = cyan dashed. Major key lines thicker + labelled (≥3). */}
                 {contourSet && (
                   <g>
-                    {contourSet.lines.filter((l) => (l.land ? contourCfg.showLand : contourCfg.showBathy)).map((l, i) => (
-                      <g key={i}>
-                        <path d={l.d} fill="none" stroke={l.land ? "#94a3b8" : "#22d3ee"} strokeWidth="0.22" strokeDasharray={l.land ? undefined : "1 0.7"} opacity="0.7" strokeLinecap="round" />
-                        {contourCfg.labelMajor && l.label && (
-                          <text x={l.label.x} y={l.label.y} fontSize="1.5" fontFamily="monospace" fill={l.land ? "#94a3b8" : "#22d3ee"} opacity="0.9">{contourLabel(l.level, contourCfg.units)}</text>
-                        )}
-                      </g>
-                    ))}
+                    {contourSet.lines.filter((l) => (l.land ? contourCfg.showLand : contourCfg.showBathy)).map((l, i) => {
+                      const col = l.land ? contourCfg.landColor : contourCfg.bathyColor;
+                      return (
+                        <g key={i}>
+                          <path d={l.d} fill="none" stroke={col} strokeWidth={l.major ? contourCfg.thickness * 2.2 : contourCfg.thickness} strokeDasharray={l.land ? undefined : "1 0.7"} opacity={l.major ? 0.9 : 0.5} strokeLinecap="round" />
+                          {contourCfg.labelMajor && l.major && l.label && (
+                            <text x={l.label.x} y={l.label.y} fontSize="1.6" fontFamily="monospace" fill={col} opacity="0.95">{contourLabel(l.level, contourCfg.units)}</text>
+                          )}
+                        </g>
+                      );
+                    })}
                   </g>
                 )}
                 {gridOn && grid.vertical.map((l) => (
@@ -2164,10 +2175,27 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                     style={{ borderColor: contourCfg.labelMajor ? C.gold : C.border, color: contourCfg.labelMajor ? C.gold : C.dim }}>{contourCfg.labelMajor ? "ON" : "OFF"}</button>
                 </div>
                 <div className="flex items-center justify-between">
+                  <span className="text-[9px]" style={{ color: C.dim }}>Line color</span>
+                  <div className="flex gap-1">
+                    {CONTOUR_COLORS.map((col) => (
+                      <button key={col} onClick={() => setContourCfg((c) => ({ ...c, landColor: col }))} title={col}
+                        className="h-3.5 w-3.5 rounded-full border" style={{ background: col, borderColor: contourCfg.landColor === col ? C.text : "transparent" }} />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px]" style={{ color: C.dim }}>Thinness</span>
+                  <input type="range" min={0.08} max={0.4} step={0.02} value={contourCfg.thickness} onChange={(e) => setContourCfg((c) => ({ ...c, thickness: parseFloat(e.target.value) }))} className="w-20" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px]" style={{ color: C.dim }}>Sea level (MSL) {contourCfg.seaLevel}m</span>
+                  <input type="range" min={0} max={400} step={10} value={contourCfg.seaLevel} onChange={(e) => setContourCfg((c) => ({ ...c, seaLevel: parseInt(e.target.value) }))} className="w-20" />
+                </div>
+                <div className="flex items-center justify-between">
                   <span className="text-[9px]" style={{ color: C.dim }}>Vert. exag. {contourCfg.vExag}×</span>
                   <input type="range" min={1} max={5} value={contourCfg.vExag} onChange={(e) => setContourCfg((c) => ({ ...c, vExag: parseInt(e.target.value) }))} className="w-20" />
                 </div>
-                <div className="text-[7px]" style={{ color: C.dim }}>SYNTHETIC (DEM pending: USGS 3DEP · Copernicus GLO-30 · GEBCO)</div>
+                <div className="text-[7px]" style={{ color: C.dim }}>SYNTHETIC (DEM pending: USGS 3DEP · Copernicus GLO-30 · GEBCO) · raise MSL to reveal sub-sea (bathymetry) contours</div>
               </div>
             )}
             <div className="mb-2 flex items-center justify-between">
