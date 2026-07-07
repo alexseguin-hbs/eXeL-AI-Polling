@@ -686,8 +686,8 @@ interface PaneProps {
   elevOn: boolean;
   showElevation: boolean;
   cursorMode: "pointer" | "target";
-  venue3d: boolean;
-  setVenue3d: (v: boolean) => void;
+  is3d: boolean;
+  onToggle3d: () => void;
   spanFactor: number;
   view: ViewState;
   setView: (u: (v: ViewState) => ViewState) => void;
@@ -717,7 +717,7 @@ interface PaneProps {
 
 function AoMapPane(p: PaneProps) {
   const {
-    label, ao, iconStyle, fmt, digits, gridOn, elevOn, showElevation, cursorMode, venue3d, setVenue3d,
+    label, ao, iconStyle, fmt, digits, gridOn, elevOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, osm, borders, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane,
@@ -888,6 +888,9 @@ function AoMapPane(p: PaneProps) {
     if (d?.moved) return;
     const f = fracFromEvent(e);
     if (!f) return;
+    // In 3D the surface is perspective-tilted, so click→coordinate is not exact:
+    // 3D is a visualization mode; deselect only, place in 2D.
+    if (is3d) { if (selected) setSelected(null); return; }
     const { lat, lon } = containerToLatLon(f.fx, f.fy);
     if (routeMode && selectedSupport) {
       if (e.button === 2) {
@@ -998,14 +1001,13 @@ function AoMapPane(p: PaneProps) {
           {label} · {ao.name.split(" · ")[0]} <span style={{ color: C.dim }}>· {fmt.fmtDist(view.spanKm * 1000)}</span>
         </span>
         <div className="flex items-center gap-1.5 text-[9px]" style={{ color: C.dim }}>
-          {ao.field && (
-            <div className="flex overflow-hidden rounded border font-semibold" style={{ borderColor: C.border }}>
-              {([[false, "2D"], [true, "3D"]] as const).map(([v, lb]) => (
-                <button key={lb} onClick={() => setVenue3d(v)} className="px-1.5 py-0.5"
-                  style={{ background: venue3d === v ? "#152238" : "transparent", color: venue3d === v ? C.cyan : C.dim }}>{lb}</button>
-              ))}
-            </div>
-          )}
+          {/* 2D (top-down) ⇄ 3D (perspective terrain) — on every map, same format */}
+          <div className="flex overflow-hidden rounded border font-semibold" style={{ borderColor: C.border }}>
+            {([[false, "2D"], [true, "3D"]] as const).map(([v, lb]) => (
+              <button key={lb} onClick={() => { if (is3d !== v) onToggle3d(); }} className="px-1.5 py-0.5"
+                style={{ background: is3d === v ? "#152238" : "transparent", color: is3d === v ? C.cyan : C.dim }}>{lb}</button>
+            ))}
+          </div>
           <button onClick={resetView} className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.border }}>RESET</button>
           <button onClick={onToggleMax} title={maximized ? "Restore" : "Maximize"} className="rounded border p-0.5" style={{ borderColor: maximized ? C.cyan : C.border, color: maximized ? C.cyan : C.dim }}>
             {maximized ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
@@ -1035,6 +1037,9 @@ function AoMapPane(p: PaneProps) {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); const f = fracFromEvent(e); if (f) dropAt(e.dataTransfer.getData("text/plain"), f.fx, f.fy); }}
             onMouseLeave={() => { setCursorLL(null); setCursorPx(null); }}>
+            {/* 3D tilt — the whole world layer (ground + markers) tilts as one plane;
+                HUD (compass/readouts/scale) stays screen-flat, placement uses 2D */}
+            <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 60%", transform: is3d ? "perspective(780px) rotateX(55deg) scale(1.2)" : undefined, transition: "transform 220ms ease" }}>
             {/* rotated inner canvas (RENDER× size) */}
             <div className="pointer-events-none absolute" style={{ inset: `${-OFF * 100}%`, transform: `rotate(${view.bearing}rad)`, transformOrigin: "center" }}>
               <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -1078,7 +1083,7 @@ function AoMapPane(p: PaneProps) {
                     </g>
                   );
                 })}
-                {ao.field && <PfieldVenue corners={ao.field} toFrac={toFrac} mode={venue3d ? "3d" : "2d"} />}
+                {ao.field && <PfieldVenue corners={ao.field} toFrac={toFrac} mode={is3d ? "3d" : "2d"} />}
 
                 {placed.map((u) => {
                   if (!u.tls && !u.fov) return null;
@@ -1198,6 +1203,13 @@ function AoMapPane(p: PaneProps) {
                 </button>
               );
             })}
+            </div>
+            {/* end 3D tilt layer */}
+            {is3d && (
+              <div className="pointer-events-none absolute left-1/2 top-2 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.amber }}>
+                3D · VIEW — switch to 2D to place
+              </div>
+            )}
 
             {/* compass */}
             <button
@@ -1644,7 +1656,6 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [elevOn, setElevOn] = useState(true);
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
   const [showSettings, setShowSettings] = useState(false);
-  const [venue3d, setVenue3d] = useState(false);
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
   const [borders, setBorders] = useState<BorderData | null>(borderCache);
@@ -1653,6 +1664,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [rightOpen, setRightOpen] = useState(true);        // right deployed-items rail (collapsible)
   const [miniOpen, setMiniOpen] = useState(true);          // bottom-right mini-map inset (hideable)
   const [mapMax, setMapMax] = useState(false);             // maximize the big MAP (collapse both rails)
+  const [mirror, setMirror] = useState(true);              // MIRROR couples MAP⇄MINI; SPLIT decouples
+  const [is3dA, setIs3dA] = useState(false);               // MAP 2D/3D (perspective terrain)
+  const [is3dB, setIs3dB] = useState(false);               // MINI MAP 2D/3D
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
   const [coordText, setCoordText] = useState("");          // exact-coordinate entry (Settings format)
 
@@ -1666,12 +1680,20 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   const ao = AOS.find((a) => a.key === aoKey) ?? AOS[0];
 
-  // Single AO view for the big MAP; the world-context inset is the WorldStrip mini map.
+  // MAP (A) + MINI MAP (B) are the SAME format; MIRROR keeps them in lock-step.
+  const OVERVIEW_FACTOR = 3; // mini map opens further out for situational context
   const [viewA, setViewA] = useState<ViewState>(() => initView(ao, 1));
+  const [viewB, setViewB] = useState<ViewState>(() => initView(ao, OVERVIEW_FACTOR));
   useEffect(() => {
     setViewA(initView(ao, 1));
+    setViewB(initView(ao, mirror ? 1 : OVERVIEW_FACTOR));
     if (ao.precision) setDigits(ao.precision);
   }, [aoKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (mirror) { setViewB(viewA); setIs3dB(is3dA); } }, [mirror]); // eslint-disable-line react-hooks/exhaustive-deps
+  const setViewA_ = (u: (v: ViewState) => ViewState) => { setViewA(u); if (mirror) setViewB(u); };
+  const setViewB_ = (u: (v: ViewState) => ViewState) => { setViewB(u); if (mirror) setViewA(u); };
+  const toggle3dA = () => { setIs3dA((v) => { const n = !v; if (mirror) setIs3dB(n); return n; }); };
+  const toggle3dB = () => { setIs3dB((v) => { const n = !v; if (mirror) setIs3dA(n); return n; }); };
 
   const fmt = useMemo(() => makeFormatters(coordFmt, digits, unit), [coordFmt, digits, unit]);
 
@@ -1771,7 +1793,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   }); // no deps → always latest state
 
   const paneCommon = {
-    ao, iconStyle, fmt, digits, gridOn, elevOn, cursorMode, venue3d, setVenue3d,
+    ao, iconStyle, fmt, digits, gridOn, elevOn, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
   };
@@ -1798,10 +1820,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           <span className="hidden whitespace-nowrap font-mono text-[10px] md:inline" style={{ color: C.dim }}>
             {fmt.coordAt(ao.center[0], ao.center[1])}
           </span>
-          <button onClick={() => setMiniOpen((m) => !m)} title={miniOpen ? "Hide mini-map inset" : "Show mini-map inset"}
+          <button onClick={() => setMirror((m) => !m)} title={mirror ? "MIRROR — MAP ⇄ MINI locked; click to decouple" : "SPLIT — MAP and MINI roam independently; click to mirror"}
             className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
-            style={{ borderColor: miniOpen ? C.cyan : C.border, color: miniOpen ? C.cyan : C.dim }}>
-            <Columns2 className="h-3.5 w-3.5" /> MINI
+            style={{ borderColor: mirror ? C.cyan : C.border, color: mirror ? C.cyan : C.dim }}>
+            <Columns2 className="h-3.5 w-3.5" /> {mirror ? "MIRROR" : "SPLIT"}
           </button>
           <button onClick={toggleFs} title={isFs ? "Exit fullscreen" : "Fullscreen"}
             className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
@@ -1897,21 +1919,17 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           </button>
         ))}
 
-        {/* CENTER — the big MAP; the single mini-map (world context) insets its bottom-right */}
+        {/* CENTER — the big MAP; the mini-map (SAME format) insets its bottom-right */}
         <div className="relative flex min-h-0 min-w-0 flex-1">
           <AoMapPane {...paneCommon} label="MAP" showElevation spanFactor={1}
-            view={viewA} setView={setViewA}
+            view={viewA} setView={setViewA_} is3d={is3dA} onToggle3d={toggle3dA}
             maximized={mapMax} onToggleMax={() => setMapMax((m) => !m)} />
           {miniOpen ? (
             <div className="absolute bottom-2 right-2 z-20 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"
-              style={{ width: "48%", height: "44%", minWidth: 200, minHeight: 150, borderColor: C.cyan, background: C.panel }}>
-              <div className="flex items-center justify-between border-b px-1.5 py-0.5" style={{ borderColor: C.border }}>
-                <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>MINI MAP · WORLD</span>
-                <Dots3 horizontal onClick={() => setMiniOpen(false)} title="Hide mini-map" />
-              </div>
-              <div className="relative min-h-0 flex-1">
-                <WorldStrip aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }} />
-              </div>
+              style={{ width: "48%", height: "46%", minWidth: 220, minHeight: 170, borderColor: C.cyan, background: C.panel }}>
+              <AoMapPane {...paneCommon} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
+                view={viewB} setView={setViewB_} is3d={is3dB} onToggle3d={toggle3dB}
+                maximized={false} onToggleMax={() => setMapMax((m) => !m)} onHidePane={() => setMiniOpen(false)} />
             </div>
           ) : (
             <button onClick={() => setMiniOpen(true)} title="Show mini-map"
