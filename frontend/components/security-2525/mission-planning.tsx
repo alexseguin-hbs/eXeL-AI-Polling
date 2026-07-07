@@ -38,6 +38,7 @@ import {
 } from "@/components/security-2525/mission-support";
 import { PfieldVenue } from "@/components/security-2525/pfield-venue";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
+import { MIN_SPAN_KM, MAX_SPAN_KM, ZOOM_FACTOR, shouldHandOffToWorld } from "@/lib/zoom-continuum";
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -900,9 +901,9 @@ function AoMapPane(p: PaneProps) {
   };
   useWheel(mapRef, (e) => {
     e.preventDefault();
-    // zoom out past AO scale → hand off to the Earth/world view (continuous zoom continuum)
-    if (e.deltaY > 0 && view.spanKm >= 199 && onWorld) { onWorld(); return; }
-    setView((v) => ({ ...v, spanKm: Math.min(200, Math.max(0.02, v.spanKm * (e.deltaY > 0 ? 1.15 : 1 / 1.15))) }));
+    // zoom out past continental scale → hand off to the Earth/world view (continuum)
+    if (e.deltaY > 0 && shouldHandOffToWorld(view.spanKm) && onWorld) { onWorld(); return; }
+    setView((v) => ({ ...v, spanKm: Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * (e.deltaY > 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR))) }));
   });
 
   const routeMode = !!selectedSupport && (selectedSupport.geometry === "line" || selectedSupport.geometry === "corridor");
@@ -972,7 +973,7 @@ function AoMapPane(p: PaneProps) {
         const dist = Math.hypot(a.x - b.x, a.y - b.y);
         const factor = pinchRef.current.dist / Math.max(1, dist);
         pinchRef.current.dist = dist;
-        setView((v) => ({ ...v, spanKm: Math.min(200, Math.max(0.02, v.spanKm * factor)) }));
+        setView((v) => ({ ...v, spanKm: Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * factor)) }));
       } else if (touchRef.current.size === 1 && r) {
         panBy((e.clientX - prev.x) / r.width, (e.clientY - prev.y) / r.height);
       }
