@@ -31,7 +31,7 @@ import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, 
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
-import { latLonToMgrs, utmKmGrid, chooseGridStep } from "@/components/security-2525/mgrs";
+import { latLonToMgrs, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon } from "@/components/security-2525/mgrs";
 import {
   SUPPORT_CATALOG, GROUP_META, REALITY_MODES,
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
@@ -1360,7 +1360,7 @@ interface RailProps {
   onSetCoord: (sel: { kind: "asset" | "support"; id: number }, lat: number, lon: number) => void;
   onRemoveSelected: () => void; onUndoLastPlacement: () => void; clearAo: () => void;
   nudgeM: number; setNudgeM: (m: number) => void;
-  coordLat: string; setCoordLat: (s: string) => void; coordLon: string; setCoordLon: (s: string) => void;
+  coordText: string; setCoordText: (s: string) => void; coordFmt: "mgrs" | "dms"; digits: Digits;
   routeMode: boolean; onHide: () => void;
 }
 function PlacementRail(r: RailProps) {
@@ -1368,7 +1368,7 @@ function PlacementRail(r: RailProps) {
     iconStyle, fmt, inventory, tab, setTab, selectedAsset, setSelectedAsset, selectedSupport, setSelectedSupport,
     hoverAsset, setHoverAsset, openGroups, setOpenGroups, reality, setReality, selected, selectedObj,
     onSetAff, onSetPlacedReality, onUpdAsset, onSetTL, onNudge, onSetCoord, onRemoveSelected,
-    onUndoLastPlacement, clearAo, nudgeM, setNudgeM, coordLat, setCoordLat, coordLon, setCoordLon, routeMode, onHide,
+    onUndoLastPlacement, clearAo, nudgeM, setNudgeM, coordText, setCoordText, coordFmt, digits, routeMode, onHide,
   } = r;
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -1557,16 +1557,24 @@ function PlacementRail(r: RailProps) {
               <button onClick={() => onNudge(selected, -nudgeM / 111320, 0)} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
               <button onClick={() => onNudge(selected, 0, nudgeM / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
             </div>
-            <div className="mb-1 mt-2 text-[9px]" style={{ color: C.dim }}>Set exact coordinate (decimal °)</div>
+            {/* exact coordinate — entry format follows the Settings coordinate format (primary) */}
+            <div className="mb-1 mt-2 text-[9px]" style={{ color: C.dim }}>Set exact coordinate ({coordFmt === "mgrs" ? "MGRS" : "LLV-DMS"})</div>
             <div className="flex items-center gap-1">
-              <input value={coordLat} onChange={(e) => setCoordLat(e.target.value)} placeholder="lat" inputMode="decimal"
+              <input value={coordText} onChange={(e) => setCoordText(e.target.value)}
+                placeholder={coordFmt === "mgrs" ? "14R PU 2111 4983" : "30°16'27\"N 97°44'27\"W"}
                 className="w-full rounded border bg-transparent px-1 py-0.5 font-mono text-[9px]" style={{ borderColor: C.border, color: C.text }} />
-              <input value={coordLon} onChange={(e) => setCoordLon(e.target.value)} placeholder="lon" inputMode="decimal"
-                className="w-full rounded border bg-transparent px-1 py-0.5 font-mono text-[9px]" style={{ borderColor: C.border, color: C.text }} />
-              <button onClick={() => { const la = parseFloat(coordLat), lo = parseFloat(coordLon); if (isFinite(la) && isFinite(lo)) onSetCoord(selected, la, lo); }}
+              <button onClick={() => {
+                  const t = coordText.trim();
+                  let r = coordFmt === "mgrs" ? mgrsToLatLon(t, selectedObj.lat) : dmsToLatLon(t);
+                  if (!r) { const m = t.match(/^(-?\d+(?:\.\d+)?)\s*[,\s]\s*(-?\d+(?:\.\d+)?)$/); if (m) r = { lat: parseFloat(m[1]), lon: parseFloat(m[2]) }; }
+                  if (r && isFinite(r.lat) && isFinite(r.lon)) onSetCoord(selected, r.lat, r.lon);
+                }}
                 className="shrink-0 rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.cyan, color: C.cyan }}>SET</button>
             </div>
-            <div className="mt-0.5 font-mono text-[8px]" style={{ color: C.dim }}>MGRS {fmt.mgrsAt(selectedObj.lat, selectedObj.lon)}</div>
+            {/* secondary readouts — the non-primary formats */}
+            <div className="mt-0.5 font-mono text-[8px]" style={{ color: C.dim }}>
+              {coordFmt === "mgrs" ? `${selectedObj.lat.toFixed(6)}, ${selectedObj.lon.toFixed(6)}` : `MGRS ${latLonToMgrs(selectedObj.lat, selectedObj.lon, digits)}`}
+            </div>
           </div>
         )}
       </div>
@@ -1646,8 +1654,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [miniOpen, setMiniOpen] = useState(true);          // bottom-right mini-map inset (hideable)
   const [mapMax, setMapMax] = useState(false);             // maximize the big MAP (collapse both rails)
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
-  const [coordLat, setCoordLat] = useState("");            // exact-coordinate entry drafts
-  const [coordLon, setCoordLon] = useState("");
+  const [coordText, setCoordText] = useState("");          // exact-coordinate entry (Settings format)
 
   const idRef = useRef(1);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -1749,11 +1756,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const clearAo = () => { setPlaced([]); setPlacedSupport([]); setInventory(INITIAL_INVENTORY); };
   const routeMode = !!selectedSupport && (selectedSupport.geometry === "line" || selectedSupport.geometry === "corridor");
 
-  // Sync the exact-coordinate inputs when a different object is selected.
+  // Sync the exact-coordinate input (in the Settings-primary format) on selection change.
   useEffect(() => {
-    if (selectedObj) { setCoordLat(selectedObj.lat.toFixed(6)); setCoordLon(selectedObj.lon.toFixed(6)); }
+    if (selectedObj) setCoordText(coordFmt === "mgrs" ? latLonToMgrs(selectedObj.lat, selectedObj.lon, digits) : fmt.coordAt(selectedObj.lat, selectedObj.lon));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected?.kind, selected?.id]);
+  }, [selected?.kind, selected?.id, coordFmt, digits]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -1878,7 +1885,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               onNudge={nudge} onSetCoord={setCoord} onRemoveSelected={removeSelected}
               onUndoLastPlacement={undoLastPlacement} clearAo={clearAo}
               nudgeM={nudgeM} setNudgeM={setNudgeM}
-              coordLat={coordLat} setCoordLat={setCoordLat} coordLon={coordLon} setCoordLon={setCoordLon}
+              coordText={coordText} setCoordText={setCoordText} coordFmt={coordFmt} digits={digits}
               routeMode={routeMode} onHide={() => setRailOpen(false)} />
           </div>
         ) : (
