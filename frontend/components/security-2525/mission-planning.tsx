@@ -234,6 +234,11 @@ interface Placed {
   fov?: TL;
   unit?: AngleUnit;
   mobile?: boolean; // on-the-move (Avenger fires SLEW-TO-CUE only; PTL disabled while moving)
+  // ── Track / movement (drone-war + R-CORE sim/replay; UCRS-2525 3D-ready) ──
+  heading?: number;  // deg true
+  speed?: number;    // km/h ground speed
+  altitude?: number; // m AGL/MSL
+  moving?: boolean;  // movement activated (track is live in the plan/sim)
 }
 
 type AngleUnit = "deg" | "ucrs" | "mil";
@@ -1241,6 +1246,25 @@ function AoMapPane(p: PaneProps) {
                   return <circle key={`rng${u.id}`} cx={c.fx * 100} cy={c.fy * 100} r={rr} fill={`${col}0a`} stroke={col} strokeWidth="0.18" strokeDasharray="1.2 0.8" opacity="0.5" />;
                 })}
 
+                {/* track movement vectors — heading arrow scaled by speed (active tracks) */}
+                {placed.map((u) => {
+                  if (!u.moving || u.heading == null) return null;
+                  const c = toFrac(u.lat, u.lon); const cx = c.fx * 100, cy = c.fy * 100;
+                  const len = Math.min(14, 3 + (u.speed ?? 0) / 25);
+                  const th = (u.heading * Math.PI) / 180;
+                  const ex = cx + len * Math.sin(th), ey = cy - len * Math.cos(th);
+                  const col = u.aff === "hostile" ? C.red : C.green;
+                  // arrowhead
+                  const a1 = th + Math.PI * 0.85, a2 = th - Math.PI * 0.85;
+                  return (
+                    <g key={`trk${u.id}`}>
+                      <line x1={cx} y1={cy} x2={ex} y2={ey} stroke={col} strokeWidth="0.4" opacity="0.9" />
+                      <line x1={ex} y1={ey} x2={ex + 2 * Math.sin(a1)} y2={ey - 2 * Math.cos(a1)} stroke={col} strokeWidth="0.4" />
+                      <line x1={ex} y1={ey} x2={ex + 2 * Math.sin(a2)} y2={ey - 2 * Math.cos(a2)} stroke={col} strokeWidth="0.4" />
+                    </g>
+                  );
+                })}
+
                 {placed.map((u) => {
                   if (!u.tls && !u.fov) return null;
                   const c = toFrac(u.lat, u.lon); const cx = c.fx * 100, cy = c.fy * 100;
@@ -1856,6 +1880,58 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
   );
 }
 
+// ── Tracks / movement (bottom-left) — heading · speed · altitude + activation ──
+// Every placed entity can become a live track (drone-war + R-CORE sim/replay).
+interface TracksProps {
+  placed: Placed[];
+  onUpdAsset: (id: number, patch: Partial<Placed>) => void;
+  selected: { kind: "asset" | "support"; id: number } | null;
+  setSelected: (s: { kind: "asset" | "support"; id: number } | null) => void;
+  onHide?: () => void;
+}
+function TracksPanel({ placed, onUpdAsset, selected, setSelected, onHide }: TracksProps) {
+  const num = (val: number | undefined, on: (v: number | undefined) => void, ph: string) => (
+    <input type="number" value={val ?? ""} placeholder={ph}
+      onChange={(e) => on(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+      className="w-full rounded border bg-transparent px-1 py-0.5 text-[8px] font-mono" style={{ borderColor: C.border, color: C.text }} />
+  );
+  const moving = placed.filter((u) => u.moving).length;
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="flex items-center justify-between border-b px-2 py-1" style={{ borderColor: C.border }}>
+        <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+          Tracks · movement <span style={{ color: C.dim }}>— {moving}/{placed.length} moving</span>
+        </span>
+        {onHide && <Dots3 onClick={onHide} title="Hide tracks" />}
+      </div>
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-1.5">
+        {placed.length === 0 && <div className="px-1 py-2 text-[9px]" style={{ color: C.dim }}>Place an asset (drone, Avenger, foil), then set its heading, speed & altitude and activate movement.</div>}
+        {placed.map((u) => {
+          const sel = selected?.kind === "asset" && selected.id === u.id;
+          return (
+            <div key={u.id} className="rounded border p-1" style={{ borderColor: sel ? C.cyan : C.border, background: sel ? "#152238" : "transparent" }}>
+              <button onClick={() => setSelected({ kind: "asset", id: u.id })} className="mb-1 flex w-full items-center justify-between">
+                <span className="text-[9px] font-semibold" style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
+                <span className="rounded px-1 text-[7px] font-bold" style={{ color: u.moving ? C.green : C.dim, background: u.moving ? `${C.green}18` : "transparent" }}>{u.moving ? "MOVING" : "HOLD"}</span>
+              </button>
+              <div className="grid grid-cols-3 gap-1">
+                <div><div className="text-[6px]" style={{ color: C.dim }}>HDG°</div>{num(u.heading, (v) => onUpdAsset(u.id, { heading: v === undefined ? undefined : ((v % 360) + 360) % 360 }), "000")}</div>
+                <div><div className="text-[6px]" style={{ color: C.dim }}>SPD km/h</div>{num(u.speed, (v) => onUpdAsset(u.id, { speed: v }), "0")}</div>
+                <div><div className="text-[6px]" style={{ color: C.dim }}>ALT m</div>{num(u.altitude, (v) => onUpdAsset(u.id, { altitude: v }), "0")}</div>
+              </div>
+              <button onClick={() => onUpdAsset(u.id, { moving: !u.moving })}
+                className="mt-1 w-full rounded border py-0.5 text-[8px] font-semibold"
+                style={{ borderColor: u.moving ? C.green : C.border, color: u.moving ? C.green : C.dim }}>
+                {u.moving ? "◼ HOLD MOVEMENT" : "▶ ACTIVATE MOVEMENT"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Mission Planning main view ────────────────────────────────────────────────
 export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [aoKey, setAoKey] = useState("capitol");
@@ -2219,7 +2295,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       <div className="flex flex-col gap-2 landscape:flex-row" style={{ height: "min(82vh, 1080px)", minHeight: 480 }}>
         {/* LEFT RAIL — ASSET / SUPPORT, top→bottom, collapses to a 3-bullet rail */}
         {!mapMax && (railOpen ? (
-          <div className="min-h-0 shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:w-64" style={{ background: C.panel, borderColor: C.border }}>
+          <div className="flex min-h-0 shrink-0 flex-col gap-2 landscape:w-64">
+          <div className="min-h-0 flex-1 overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
             <PlacementRail
               iconStyle={iconStyle} fmt={fmt}
               inventory={inventory} tab={tab} setTab={setTab}
@@ -2235,6 +2312,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               nudgeM={nudgeM} setNudgeM={setNudgeM}
               coordText={coordText} setCoordText={setCoordText} coordFmt={coordFmt} digits={digits}
               routeMode={routeMode} onHide={() => setRailOpen(false)} />
+          </div>
+          {/* BOTTOM-LEFT — Tracks & movement (heading · speed · altitude + activation) */}
+          <div className="shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:h-52" style={{ background: C.panel, borderColor: C.border }}>
+            <TracksPanel placed={placed} onUpdAsset={updAsset} selected={selected} setSelected={setSelected} />
+          </div>
           </div>
         ) : (
           <button onClick={() => setRailOpen(true)} title="Show ASSET / SUPPORT menu"
