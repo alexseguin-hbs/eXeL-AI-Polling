@@ -746,6 +746,7 @@ interface PaneProps {
   rangeOn: boolean;
   roadsOn: boolean;
   waterOn: boolean;
+  terrainOn: boolean;
   showElevation: boolean;
   cursorMode: "pointer" | "target";
   is3d: boolean;
@@ -780,7 +781,7 @@ interface PaneProps {
 
 function AoMapPane(p: PaneProps) {
   const {
-    label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, showElevation, cursorMode, is3d, onToggle3d,
+    label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, osm, borders, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld,
@@ -1122,6 +1123,14 @@ function AoMapPane(p: PaneProps) {
             {/* rotated inner canvas (RENDER× size) */}
             <div className="pointer-events-none absolute" style={{ inset: `${-OFF * 100}%`, transform: `rotate(${view.bearing}rad)`, transformOrigin: "center" }}>
               <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {/* LAND / OCEAN base — blue ocean fill; land = green (filled Natural Earth
+                    country polygons, which include the enclosing landmass even at tight zoom). */}
+                {terrainOn && borderPaths && (
+                  <g>
+                    <rect x="-60" y="-60" width="220" height="220" fill="#0a2f52" />
+                    <path d={borderPaths.countries} fill="#123d1f" fillRule="evenodd" />
+                  </g>
+                )}
                 {/* national + state boundaries (= continent/country/state lines), drawn under the OSM detail */}
                 {borderPaths && (
                   <g>
@@ -1895,6 +1904,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [rangeOn, setRangeOn] = useState(true);            // weapon-range coverage rings
   const [roadsOn, setRoadsOn] = useState(true);            // OSM road layer
   const [waterOn, setWaterOn] = useState(true);            // OSM waterway layer
+  const [terrainOn, setTerrainOn] = useState(true);        // green-land / blue-ocean base fill
   const [planStatus, setPlanStatus] = useState<"draft" | "pending" | "approved" | "changes">("draft");
   const [shareMsg, setShareMsg] = useState("");            // transient "copied" confirmation
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
@@ -2059,7 +2069,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   }); // no deps → always latest state
 
   const paneCommon = {
-    ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, cursorMode,
+    ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
   };
@@ -2116,6 +2126,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             <div className="mb-2 flex items-center justify-between gap-2">
               <span className="text-[10px]" style={{ color: C.text }}>Map layers</span>
               <div className="flex gap-1">
+                <button onClick={() => setTerrainOn(!terrainOn)} title="Green land / blue ocean base" className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                  style={{ borderColor: terrainOn ? "#22c55e" : C.border, color: terrainOn ? "#22c55e" : C.dim }}>LAND/SEA</button>
                 <button onClick={() => setRoadsOn(!roadsOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
                   style={{ borderColor: roadsOn ? "#cbd5e1" : C.border, color: roadsOn ? "#e5e7eb" : C.dim }}>ROADS</button>
                 <button onClick={() => setWaterOn(!waterOn)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
