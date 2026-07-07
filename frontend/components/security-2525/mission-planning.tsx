@@ -165,6 +165,17 @@ const AOS: Ao[] = [
     ],
     buildings: [],
   },
+  {
+    key: "florida",
+    name: "FLORIDA PENINSULA · LITTORAL (GULF + ATLANTIC)",
+    center: [27.9, -81.6],
+    halfKm: 160, // wide littoral AO: both coasts in view → land + bathymetry contours
+    landmarks: [
+      { name: "TAMPA BAY", lat: 27.77, lon: -82.55 },
+      { name: "CAPE CANAVERAL", lat: 28.39, lon: -80.6 },
+    ],
+    buildings: [],
+  },
 ];
 
 // ── Major metro areas (≥1M metropolitan population) — geo context labels ──────
@@ -671,6 +682,23 @@ function synthElevation(lat: number, lon: number): number {
   return Math.max(0, 190 + e);
 }
 
+/**
+ * MSL-referenced terrain (m): land ≥ 0, ocean < 0 (depth from Mean Sea Level).
+ * Inland AOs fall back to synthElevation (all land). The Florida peninsula gets a
+ * real coastline so bathymetry contours appear offshore (littoral test until GEBCO).
+ */
+function terrainMSL(lat: number, lon: number): number {
+  const inFla = lat > 24.3 && lat < 31.2 && lon > -88 && lon < -79;
+  if (inFla) {
+    const gulfCoast = -82.8 + 0.05 * Math.sin(lat * 6);   // wavy Gulf shoreline
+    const atlCoast = -80.05 + 0.05 * Math.cos(lat * 7);   // wavy Atlantic shoreline
+    if (lon < gulfCoast) return -Math.min(180, (gulfCoast - lon) * 90) + 6 * Math.sin(lon * 30); // Gulf shelf
+    if (lon > atlCoast) return -Math.min(320, (lon - atlCoast) * 260);                            // Atlantic (deeper)
+    return Math.max(0, 12 + 9 * Math.sin(lon * 40 + lat * 30) + 5 * Math.cos(lat * 55)); // low flat land
+  }
+  return synthElevation(lat, lon);
+}
+
 // ── Elevation Contour engine (marching squares over a capped, memoized grid) ───
 // Data source today: synthElevation (deterministic, DEM PENDING). Land = at/above
 // MSL(seaLevel); bathymetry = below. Returns 3–9 "nice" levels as SVG line paths in
@@ -697,7 +725,7 @@ function computeContours(box: { latMin: number; latMax: number; lonMin: number; 
     const row: number[] = [];
     for (let c = 0; c < G; c++) {
       const lon = box.lonMin + (c / (G - 1)) * (box.lonMax - box.lonMin);
-      row.push(synthElevation(lat, lon) - o.seaLevel); // MSL-referenced
+      row.push(terrainMSL(lat, lon) - o.seaLevel); // MSL-referenced (land ≥0, ocean <0)
     }
     V.push(row);
   }
@@ -1092,8 +1120,8 @@ function AoMapPane(p: PaneProps) {
     const N = 64;
     const lonAt = (i: number) => box.lonMin + (i / (N - 1)) * (box.lonMax - box.lonMin);
     const latAt = (i: number) => box.latMax - (i / (N - 1)) * (box.latMax - box.latMin);
-    const sampleRow = (lat: number) => Array.from({ length: N }, (_, i) => synthElevation(lat, lonAt(i)));
-    const sampleCol = (lon: number) => Array.from({ length: N }, (_, i) => synthElevation(latAt(i), lon));
+    const sampleRow = (lat: number) => Array.from({ length: N }, (_, i) => terrainMSL(lat, lonAt(i)));
+    const sampleCol = (lon: number) => Array.from({ length: N }, (_, i) => terrainMSL(latAt(i), lon));
     const front = sampleRow((box.latMin + box.latMax) / 2);
     const col = sampleCol((box.lonMin + box.lonMax) / 2);
     const all = [...front, ...col];
