@@ -927,31 +927,34 @@ function AoMapPane(p: PaneProps) {
     return { tiers, waterD, polyD };
   }, [osm, box]);
 
-  // Country + US-state borders (= continent/country/state lines) and major metros,
-  // projected into the view and culled to the box. Shown on BOTH MAP and MINI MAP so
-  // zooming out reveals states, cities, coastlines and national boundaries in context.
-  const borderPaths = useMemo(() => {
+  // Per-ring bounding boxes for the borders — computed once when the data loads so
+  // pan/zoom can cull off-view rings cheaply (never rebuild an off-screen path string).
+  const borderBB = useMemo(() => {
     if (!borders) return null;
-    const pad = 0.5; // ring must overlap the box to be worth drawing
-    const inBox = (lat: number, lon: number) =>
-      lat >= box.latMin - pad && lat <= box.latMax + pad && lon >= box.lonMin - pad && lon <= box.lonMax + pad;
-    const ringD = (ring: [number, number][]) => {
-      let s = "", pen = false, touched = false;
-      for (const [lon, lat] of ring) {
-        const f = toFrac(lat, lon);
-        s += `${pen ? "L" : "M"}${(f.fx * 100).toFixed(2)} ${(f.fy * 100).toFixed(2)}`;
-        pen = true;
-        if (!touched && inBox(lat, lon)) touched = true;
-      }
-      return touched ? s : "";
+    const bbOf = (rings: [number, number][][]) => rings.map((r) => {
+      let x0 = r[0][0], x1 = x0, y0 = r[0][1], y1 = y0;
+      for (const [lon, lat] of r) { if (lon < x0) x0 = lon; if (lon > x1) x1 = lon; if (lat < y0) y0 = lat; if (lat > y1) y1 = lat; }
+      return [x0, y0, x1, y1] as [number, number, number, number];
+    });
+    return { countries: bbOf(borders.countries), states: bbOf(borders.usStates) };
+  }, [borders]);
+
+  // Country + US-state borders (= continent/country/state lines), projected into the view
+  // and bbox-culled. Shown on BOTH MAP and MINI MAP so zooming out reveals states,
+  // coastlines and national boundaries layered under the OSM road/water detail.
+  const borderPaths = useMemo(() => {
+    if (!borders || !borderBB) return null;
+    const inView = (bb: [number, number, number, number]) =>
+      !(bb[2] < box.lonMin || bb[0] > box.lonMax || bb[3] < box.latMin || bb[1] > box.latMax);
+    const ringD = (ring: [number, number][]) =>
+      ring.map(([lon, lat], i) => { const f = toFrac(lat, lon); return `${i ? "L" : "M"}${(f.fx * 100).toFixed(2)} ${(f.fy * 100).toFixed(2)}`; }).join(" ");
+    const build = (rings: [number, number][][], bbs: [number, number, number, number][]) => {
+      let d = "";
+      for (let i = 0; i < rings.length; i++) if (inView(bbs[i])) d += " " + ringD(rings[i]);
+      return d;
     };
-    const countries = borders.countries.map(ringD).join(" ");
-    const states = borders.usStates.map(ringD).join(" ");
-    const cities = CITIES
-      .filter((c) => c.lon >= box.lonMin && c.lon <= box.lonMax && c.lat >= box.latMin && c.lat <= box.latMax)
-      .map((c) => ({ ...c, ...toFrac(c.lat, c.lon) }));
-    return { countries, states, cities };
-  }, [borders, box]);
+    return { countries: build(borders.countries, borderBB.countries), states: build(borders.usStates, borderBB.states) };
+  }, [borders, borderBB, box]);
 
   // Elevation profiles (primary pane only).
   const elevProfile = useMemo(() => {
