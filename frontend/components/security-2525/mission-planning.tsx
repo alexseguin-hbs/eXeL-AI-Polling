@@ -726,14 +726,12 @@ function AoMapPane(p: PaneProps) {
   const [cursorPx, setCursorPx] = useState<{ x: number; y: number } | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(paletteDefault);
   const [routeDraft, setRouteDraft] = useState<{ lat: number; lon: number }[]>([]);
-  const [bottomH, setBottomH] = useState(140);
   const [elevReveal, setElevReveal] = useState<"high" | "low" | null>(null); // HIGH/LOW coord reveal
   const [nudgeM, setNudgeM] = useState(1);        // nudge step in metres (m ⇄ km)
   const [coordLat, setCoordLat] = useState("");   // exact-coordinate entry drafts
   const [coordLon, setCoordLon] = useState("");
   const mapRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean; btn: number } | null>(null);
-  const bottomDrag = useRef<number | null>(null);
   const bearingMemo = useRef<number | null>(null);
   const touchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ dist: number; cx: number; cy: number } | null>(null);
@@ -954,12 +952,9 @@ function AoMapPane(p: PaneProps) {
     const all = [...front, ...col];
     const min = Math.min(...all), max = Math.max(...all), rng = Math.max(1, max - min);
     const y = (e: number) => 38 - ((e - min) / rng) * 34;
-    const line = (arr: number[], yShift = 0) =>
-      arr.map((e, i) => `${i ? "L" : "M"}${((i / (N - 1)) * 100).toFixed(2)} ${(y(e) + yShift).toFixed(2)}`).join("");
-    const ROWS = 4;
-    const rows = Array.from({ length: ROWS }, (_, r) =>
-      line(sampleRow(box.latMin + ((r + 1) / (ROWS + 1)) * (box.latMax - box.latMin)), -r * 1.4)
-    );
+    const line = (arr: number[]) =>
+      arr.map((e, i) => `${i ? "L" : "M"}${((i / (N - 1)) * 100).toFixed(2)} ${y(e).toFixed(2)}`).join("");
+    // Single W→E profile (one colour, mirrors the vertical N→S scale) — no stacked rows.
     const frontFill = `${line(front)} L100 40 L0 40 Z`;
     const rx = (e: number) => 4 + ((e - min) / rng) * 32;
     const rightPath =
@@ -968,10 +963,7 @@ function AoMapPane(p: PaneProps) {
     let hi = 0, lo = 0;
     front.forEach((e, i) => { if (e > front[hi]) hi = i; if (e < front[lo]) lo = i; });
     const mark = (i: number) => ({ x: (i / (N - 1)) * 100, yy: y(front[i]), e: front[i], lat: (box.latMin + box.latMax) / 2, lon: lonAt(i) });
-    const step = [5, 10, 25, 50, 100, 250].find((s) => rng / s <= 6) ?? 500;
-    const contours: number[] = [];
-    for (let lv = Math.ceil(min / step) * step; lv < max; lv += step) contours.push(lv);
-    return { min, max, rng, rows, frontFill, rightPath, y, high: mark(hi), low: mark(lo), contours, step };
+    return { min, max, rng, frontFill, rightPath, y, high: mark(hi), low: mark(lo) };
   }, [box]);
 
   const resetView = () => setView(() => initView(ao, spanFactor));
@@ -1519,59 +1511,36 @@ function AoMapPane(p: PaneProps) {
           )}
         </div>
 
-        {/* bottom elevation profile (primary pane) */}
+        {/* bottom elevation profile — thin strip; height matches the right scale's 40px thickness */}
         {showElevation && elevOn && (
-          <>
-            <div
-              onPointerDown={(e) => { bottomDrag.current = e.clientY; e.currentTarget.setPointerCapture?.(e.pointerId); }}
-              onPointerMove={(e) => {
-                if (bottomDrag.current == null) return;
-                const dy = e.clientY - bottomDrag.current;
-                bottomDrag.current = e.clientY;
-                const max = typeof window !== "undefined" ? Math.round(window.innerHeight * 0.5) : 500;
-                setBottomH((h) => Math.max(36, Math.min(max, h - dy)));
-              }}
-              onPointerUp={() => { bottomDrag.current = null; }}
-              className="mt-1 flex h-3 cursor-row-resize items-center justify-center rounded" title="Drag to resize the elevation panel">
-              <span className="h-0.5 w-10 rounded-full" style={{ background: C.border }} />
-            </div>
-            <div className="relative overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12", height: bottomH }}>
-              <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="h-full w-full">
-                {elevProfile.contours.map((lv) => { const yy = elevProfile.y(lv); return <line key={lv} x1="0" y1={yy} x2="100" y2={yy} stroke={C.land} strokeWidth="0.15" opacity="0.25" />; })}
-                {elevProfile.rows.map((d, i) => (
-                  <path key={i} d={d} fill="none" stroke={C.land} strokeWidth="0.35" opacity={0.2 + 0.5 * (i / (elevProfile.rows.length - 1))} />
-                ))}
-                <path d={elevProfile.frontFill} fill={`${C.land}18`} stroke={C.land} strokeWidth="0.6" />
-                <line x1="0" y1="39.5" x2="100" y2="39.5" stroke="#38bdf8" strokeWidth="0.5" opacity="0.5" />
-                <g>
-                  <circle cx={elevProfile.high.x} cy={elevProfile.high.yy} r="0.9" fill={C.gold} />
-                  <circle cx={elevProfile.low.x} cy={elevProfile.low.yy} r="0.9" fill="#38bdf8" />
-                </g>
-              </svg>
-              <span className="absolute left-1 top-0.5 text-[7px] font-semibold tracking-wider" style={{ color: C.dim }}>
-                ELEVATION · W→E · GREEN=LAND · CONTOUR {fmt.fmtElev(elevProfile.step)} · SYNTHETIC (DEM PENDING)
-              </span>
-              {/* HIGH / LOW markers — label reads just HIGH/LOW, left-justified to the
-                  exact spot; hover (desktop) or tap (phone) reveals the coordinate. */}
-              {(["high", "low"] as const).map((k) => {
-                const pt = k === "high" ? elevProfile.high : elevProfile.low;
-                const rev = elevReveal === k;
-                const rightSide = pt.x > 62; // flip anchor near the right edge so it stays in-frame
-                return (
-                  <button key={k}
-                    onMouseEnter={() => setElevReveal(k)}
-                    onMouseLeave={() => setElevReveal((r) => (r === k ? null : r))}
-                    onClick={() => setElevReveal((r) => (r === k ? null : k))}
-                    className="absolute flex"
-                    style={{ left: `${pt.x}%`, top: k === "high" ? 10 : undefined, bottom: k === "low" ? 10 : undefined, transform: rightSide ? "translateX(-100%)" : undefined }}>
-                    <span className="whitespace-nowrap rounded px-1 text-[7px] font-bold" style={{ background: "#0a0f16cc", color: k === "high" ? C.gold : "#38bdf8" }}>
-                      {k === "high" ? "▲ HIGH" : "▼ LOW"}{rev ? ` ${fmt.fmtElev(pt.e)} · ${fmt.coordAt(pt.lat, pt.lon)}` : ""}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </>
+          <div className="relative mt-1 h-10 shrink-0 overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
+            <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="h-full w-full">
+              {/* single W→E profile — one colour, matches the vertical N→S scale */}
+              <path d={elevProfile.frontFill} fill={`${C.land}22`} stroke={C.land} strokeWidth="0.6" />
+              <line x1="0" y1="39.5" x2="100" y2="39.5" stroke="#38bdf8" strokeWidth="0.5" opacity="0.5" />
+              <circle cx={elevProfile.high.x} cy={elevProfile.high.yy} r="0.9" fill={C.gold} />
+              <circle cx={elevProfile.low.x} cy={elevProfile.low.yy} r="0.9" fill="#38bdf8" />
+            </svg>
+            <span className="absolute left-1 top-0.5 text-[6px] font-semibold tracking-wider" style={{ color: C.dim }}>ELEV W→E</span>
+            {/* MAX (▲) / MIN (▼) height — arrow left-justified to the EXACT W→E position it occurs;
+                hover (desktop) or tap (phone) reveals the coordinate. */}
+            {(["high", "low"] as const).map((k) => {
+              const pt = k === "high" ? elevProfile.high : elevProfile.low;
+              const rev = elevReveal === k;
+              return (
+                <button key={k}
+                  onMouseEnter={() => setElevReveal(k)}
+                  onMouseLeave={() => setElevReveal((r) => (r === k ? null : r))}
+                  onClick={() => setElevReveal((r) => (r === k ? null : k))}
+                  className="absolute flex whitespace-nowrap"
+                  style={{ left: `${pt.x}%`, top: k === "high" ? 2 : undefined, bottom: k === "low" ? 2 : undefined }}>
+                  <span className="rounded px-1 text-[7px] font-bold" style={{ background: "#0a0f16cc", color: k === "high" ? C.gold : "#38bdf8" }}>
+                    {k === "high" ? "▲" : "▼"} {fmt.fmtElev(pt.e)}{rev ? ` · ${fmt.coordAt(pt.lat, pt.lon)}` : ""}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
