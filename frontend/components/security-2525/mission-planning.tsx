@@ -27,7 +27,7 @@
  * subsurface layers come later — see docs/security-2525/DATA_SOURCES.md.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Copy, Columns2 } from "lucide-react";
+import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2 } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
@@ -1580,13 +1580,17 @@ interface ActiveItemsProps {
   selected: { kind: "asset" | "support"; id: number } | null;
   setSelected: (s: { kind: "asset" | "support"; id: number } | null) => void;
   hoverAsset: AssetKind | null; setHoverAsset: React.Dispatch<React.SetStateAction<AssetKind | null>>;
+  onHide?: () => void;
 }
-function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverAsset, setHoverAsset }: ActiveItemsProps) {
+function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverAsset, setHoverAsset, onHide }: ActiveItemsProps) {
   const total = placed.length + placedSupport.length;
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="border-b px-2 py-1 text-[9px] font-semibold uppercase tracking-wider" style={{ borderColor: C.border, color: C.cyan }}>
-        Active items <span style={{ color: C.dim }}>— {total}</span>
+      <div className="flex items-center justify-between border-b px-2 py-1" style={{ borderColor: C.border }}>
+        <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+          Active items <span style={{ color: C.dim }}>— {total}</span>
+        </span>
+        {onHide && <Dots3 onClick={onHide} title="Hide deployed-asset list" />}
       </div>
       <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-1.5">
         {total === 0 && <div className="px-1 py-2 text-[9px]" style={{ color: C.dim }}>Nothing placed yet — arm an asset or support object, then tap a map.</div>}
@@ -1633,15 +1637,14 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
   const [showSettings, setShowSettings] = useState(false);
   const [venue3d, setVenue3d] = useState(false);
-  const [topOpen, setTopOpen] = useState(true);
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
   const [borders, setBorders] = useState<BorderData | null>(borderCache);
-  const [mirror, setMirror] = useState(false); // panes lock to the same view when ON
   const [isFs, setIsFs] = useState(false);
-  const [railOpen, setRailOpen] = useState(true);          // left menu rail hideable
-  const [miniOpen, setMiniOpen] = useState(true);          // MINI MAP hideable
-  const [maxPane, setMaxPane] = useState<"map" | "mini" | null>(null); // maximize one window
+  const [railOpen, setRailOpen] = useState(true);          // left ASSET/SUPPORT rail (collapsible)
+  const [rightOpen, setRightOpen] = useState(true);        // right deployed-items rail (collapsible)
+  const [miniOpen, setMiniOpen] = useState(true);          // bottom-right mini-map inset (hideable)
+  const [mapMax, setMapMax] = useState(false);             // maximize the big MAP (collapse both rails)
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
   const [coordLat, setCoordLat] = useState("");            // exact-coordinate entry drafts
   const [coordLon, setCoordLon] = useState("");
@@ -1655,20 +1658,13 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const setCursor = (m: "pointer" | "target") => { setCursorMode(m); try { localStorage.setItem("sec2525.cursorMode", m); } catch { /* no storage */ } };
 
   const ao = AOS.find((a) => a.key === aoKey) ?? AOS[0];
-  const OVERVIEW_FACTOR = 3; // mini map opens further out for situational context
 
-  // Two independent views; MIRROR keeps them in lock-step.
+  // Single AO view for the big MAP; the world-context inset is the WorldStrip mini map.
   const [viewA, setViewA] = useState<ViewState>(() => initView(ao, 1));
-  const [viewB, setViewB] = useState<ViewState>(() => initView(ao, OVERVIEW_FACTOR));
   useEffect(() => {
     setViewA(initView(ao, 1));
-    setViewB(initView(ao, mirror ? 1 : OVERVIEW_FACTOR));
     if (ao.precision) setDigits(ao.precision);
   }, [aoKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  // Entering mirror mode snaps B to A.
-  useEffect(() => { if (mirror) setViewB(viewA); }, [mirror]); // eslint-disable-line react-hooks/exhaustive-deps
-  const setViewA_ = (u: (v: ViewState) => ViewState) => { setViewA(u); if (mirror) setViewB(u); };
-  const setViewB_ = (u: (v: ViewState) => ViewState) => { setViewB(u); if (mirror) setViewA(u); };
 
   const fmt = useMemo(() => makeFormatters(coordFmt, digits, unit), [coordFmt, digits, unit]);
 
@@ -1795,10 +1791,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           <span className="hidden whitespace-nowrap font-mono text-[10px] md:inline" style={{ color: C.dim }}>
             {fmt.coordAt(ao.center[0], ao.center[1])}
           </span>
-          <button onClick={() => setMirror((m) => !m)} title={mirror ? "Panes mirrored — click to unlink" : "Mirror panes (match exactly)"}
+          <button onClick={() => setMiniOpen((m) => !m)} title={miniOpen ? "Hide mini-map inset" : "Show mini-map inset"}
             className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
-            style={{ borderColor: mirror ? C.cyan : C.border, color: mirror ? C.cyan : C.dim }}>
-            {mirror ? <Copy className="h-3.5 w-3.5" /> : <Columns2 className="h-3.5 w-3.5" />} {mirror ? "MIRROR" : "SPLIT"}
+            style={{ borderColor: miniOpen ? C.cyan : C.border, color: miniOpen ? C.cyan : C.dim }}>
+            <Columns2 className="h-3.5 w-3.5" /> MINI
           </button>
           <button onClick={toggleFs} title={isFs ? "Exit fullscreen" : "Fullscreen"}
             className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
@@ -1810,16 +1806,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             style={{ borderColor: showSettings ? C.cyan : C.border, color: showSettings ? C.cyan : C.dim }}>
             <Settings className="h-3.5 w-3.5" /> SETTINGS
           </button>
-          <Dots3 horizontal onClick={() => setTopOpen((v) => !v)} title={topOpen ? "Collapse world map" : "Expand world map"} />
         </div>
         {showSettings && (
           <div className="absolute right-0 top-9 z-40 w-60 rounded-lg border p-3 shadow-xl" style={{ background: C.panel, borderColor: C.cyan }}>
             <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Mission Planning Settings</div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[10px]" style={{ color: C.text }}>Mirror MAP ⇄ MINI MAP</span>
-              <button onClick={() => setMirror(!mirror)} className="rounded border px-1.5 py-0.5 text-[9px] font-semibold"
-                style={{ borderColor: mirror ? C.cyan : C.border, color: mirror ? C.cyan : C.dim }}>{mirror ? "MIRRORED" : "SEPARATE"}</button>
-            </div>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-[10px]" style={{ color: C.text }}>1 km UTM grid</span>
               <button onClick={() => setGridOn(!gridOn)} className="flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
@@ -1870,73 +1860,76 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
         )}
       </div>
 
-      {topOpen && (
-        <div className="relative w-full" style={{ height: "min(32vh, 380px)", minHeight: 200 }}>
-          <WorldStrip aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }} />
-        </div>
-      )}
-
-      {/* WORKSPACE — LEFT rail (menu + active items, hideable) · CENTER (MAP over MINI MAP) */}
+      {/* WORKSPACE (OVERVIEW template) — LEFT rail (ASSET/SUPPORT) · CENTER big MAP · RIGHT rail (deployed items) */}
       <div className="flex flex-col gap-2 landscape:flex-row" style={{ height: "min(82vh, 1080px)", minHeight: 480 }}>
-        {/* LEFT RAIL */}
-        {railOpen ? (
-          <div className="flex min-h-0 shrink-0 flex-col gap-2 landscape:w-64">
-            <div className="min-h-0 flex-1 overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
-              <PlacementRail
-                iconStyle={iconStyle} fmt={fmt}
-                inventory={inventory} tab={tab} setTab={setTab}
-                selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset}
-                selectedSupport={selectedSupport} setSelectedSupport={setSelectedSupport}
-                hoverAsset={hoverAsset} setHoverAsset={setHoverAsset}
-                openGroups={openGroups} setOpenGroups={setOpenGroups}
-                reality={reality} setReality={setReality}
-                selected={selected} selectedObj={selectedObj}
-                onSetAff={setAff} onSetPlacedReality={setPlacedReality} onUpdAsset={updAsset} onSetTL={setTL}
-                onNudge={nudge} onSetCoord={setCoord} onRemoveSelected={removeSelected}
-                onUndoLastPlacement={undoLastPlacement} clearAo={clearAo}
-                nudgeM={nudgeM} setNudgeM={setNudgeM}
-                coordLat={coordLat} setCoordLat={setCoordLat} coordLon={coordLon} setCoordLon={setCoordLon}
-                routeMode={routeMode} onHide={() => setRailOpen(false)} />
-            </div>
-            {/* BOTTOM-LEFT — critical Mission-Planning manifest (active assets + support) */}
-            <div className="shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:h-56" style={{ background: C.panel, borderColor: C.border }}>
-              <ActiveItems placed={placed} placedSupport={placedSupport} fmt={fmt}
-                selected={selected} setSelected={setSelected} hoverAsset={hoverAsset} setHoverAsset={setHoverAsset} />
-            </div>
+        {/* LEFT RAIL — ASSET / SUPPORT, top→bottom, collapses to a 3-bullet rail */}
+        {!mapMax && (railOpen ? (
+          <div className="min-h-0 shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:w-64" style={{ background: C.panel, borderColor: C.border }}>
+            <PlacementRail
+              iconStyle={iconStyle} fmt={fmt}
+              inventory={inventory} tab={tab} setTab={setTab}
+              selectedAsset={selectedAsset} setSelectedAsset={setSelectedAsset}
+              selectedSupport={selectedSupport} setSelectedSupport={setSelectedSupport}
+              hoverAsset={hoverAsset} setHoverAsset={setHoverAsset}
+              openGroups={openGroups} setOpenGroups={setOpenGroups}
+              reality={reality} setReality={setReality}
+              selected={selected} selectedObj={selectedObj}
+              onSetAff={setAff} onSetPlacedReality={setPlacedReality} onUpdAsset={updAsset} onSetTL={setTL}
+              onNudge={nudge} onSetCoord={setCoord} onRemoveSelected={removeSelected}
+              onUndoLastPlacement={undoLastPlacement} clearAo={clearAo}
+              nudgeM={nudgeM} setNudgeM={setNudgeM}
+              coordLat={coordLat} setCoordLat={setCoordLat} coordLon={coordLon} setCoordLon={setCoordLon}
+              routeMode={routeMode} onHide={() => setRailOpen(false)} />
           </div>
         ) : (
-          <button onClick={() => setRailOpen(true)} title="Show placement menu + active items"
+          <button onClick={() => setRailOpen(true)} title="Show ASSET / SUPPORT menu"
             className="flex shrink-0 flex-col items-center gap-2 rounded-lg border px-1.5 py-2 landscape:self-start"
             style={{ background: C.panel, borderColor: C.border }}>
             <span className="flex flex-col items-center gap-[3px]">{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}</span>
-            <span className="text-[8px] font-semibold" style={{ color: C.dim, writingMode: "vertical-rl" }}>MENU</span>
+            <span className="text-[8px] font-semibold" style={{ color: C.dim, writingMode: "vertical-rl" }}>ASSET · SUPPORT</span>
           </button>
-        )}
+        ))}
 
-        {/* CENTER — MAP (centre) with MINI MAP docked beneath it */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
-          {maxPane !== "mini" && (
-            <div className="min-h-0 min-w-0 flex-1">
-              <AoMapPane {...paneCommon} label="MAP" showElevation spanFactor={1}
-                view={viewA} setView={setViewA_}
-                maximized={maxPane === "map"} onToggleMax={() => setMaxPane((m) => (m === "map" ? null : "map"))} />
-            </div>
-          )}
-          {maxPane !== "map" && (miniOpen ? (
-            <div className="min-h-0 min-w-0" style={maxPane === "mini" ? { flex: "1 1 0%" } : { height: "34%", minHeight: 180 }}>
-              <AoMapPane {...paneCommon} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
-                view={viewB} setView={setViewB_}
-                maximized={maxPane === "mini"} onToggleMax={() => setMaxPane((m) => (m === "mini" ? null : "mini"))}
-                onHidePane={() => { setMiniOpen(false); setMaxPane((m) => (m === "mini" ? null : m)); }} />
+        {/* CENTER — the big MAP; the single mini-map (world context) insets its bottom-right */}
+        <div className="relative flex min-h-0 min-w-0 flex-1">
+          <AoMapPane {...paneCommon} label="MAP" showElevation spanFactor={1}
+            view={viewA} setView={setViewA}
+            maximized={mapMax} onToggleMax={() => setMapMax((m) => !m)} />
+          {miniOpen ? (
+            <div className="absolute bottom-2 right-2 z-20 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"
+              style={{ width: "48%", height: "44%", minWidth: 200, minHeight: 150, borderColor: C.cyan, background: C.panel }}>
+              <div className="flex items-center justify-between border-b px-1.5 py-0.5" style={{ borderColor: C.border }}>
+                <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>MINI MAP · WORLD</span>
+                <Dots3 horizontal onClick={() => setMiniOpen(false)} title="Hide mini-map" />
+              </div>
+              <div className="relative min-h-0 flex-1">
+                <WorldStrip aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }} />
+              </div>
             </div>
           ) : (
-            <button onClick={() => setMiniOpen(true)}
-              className="flex shrink-0 items-center justify-center gap-2 rounded-lg border py-1.5 text-[10px] font-semibold"
-              style={{ borderColor: C.border, color: C.dim, background: C.panel }}>
-              ▾ SHOW MINI MAP
+            <button onClick={() => setMiniOpen(true)} title="Show mini-map"
+              className="absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-md border px-2 py-1 text-[9px] font-semibold shadow-lg"
+              style={{ borderColor: C.border, color: C.dim, background: "#0a0f16dd" }}>
+              ▾ MINI MAP
             </button>
-          ))}
+          )}
         </div>
+
+        {/* RIGHT RAIL — deployed ASSET / SUPPORT list, collapses to a 3-bullet rail */}
+        {!mapMax && (rightOpen ? (
+          <div className="min-h-0 shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:w-64" style={{ background: C.panel, borderColor: C.border }}>
+            <ActiveItems placed={placed} placedSupport={placedSupport} fmt={fmt}
+              selected={selected} setSelected={setSelected} hoverAsset={hoverAsset} setHoverAsset={setHoverAsset}
+              onHide={() => setRightOpen(false)} />
+          </div>
+        ) : (
+          <button onClick={() => setRightOpen(true)} title="Show deployed-asset list"
+            className="flex shrink-0 flex-col items-center gap-2 rounded-lg border px-1.5 py-2 landscape:self-start"
+            style={{ background: C.panel, borderColor: C.border }}>
+            <span className="flex flex-col items-center gap-[3px]">{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}</span>
+            <span className="text-[8px] font-semibold" style={{ color: C.dim, writingMode: "vertical-rl" }}>ACTIVE ITEMS</span>
+          </button>
+        ))}
       </div>
     </div>
   );
