@@ -171,14 +171,16 @@ export interface GridLine {
 }
 
 /**
- * Pick a UTM grid step (m) so ~6–14 lines span the box — 1 km at AO scale,
- * stepping down to 10 m (8-digit MGRS resolution) as you zoom in.
+ * Pick a UTM grid step (m) so ~6–14 lines span the box — 10 m (8-digit MGRS) when
+ * zoomed in, EXPANDING through km up to 1000 km at continental/globe scale (the
+ * scale bar tracks this — it must not stay stuck at 10 km when zoomed out).
  */
 export function chooseGridStep(spanMeters: number): number {
-  const steps = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
+  const steps = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000,
+    100000, 250000, 500000, 1000000];
   const target = spanMeters / 9;
   for (const s of steps) if (s >= target) return s;
-  return 10000;
+  return steps[steps.length - 1];
 }
 
 /**

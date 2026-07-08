@@ -874,12 +874,25 @@ function AoMapPane(p: PaneProps) {
 
   const RENDER = 1.5;
   const OFF = (RENDER - 1) / 2;
+  // Container pixel aspect (W/H). The SVG stretches a 100×100 viewBox to fill the
+  // container (preserveAspectRatio=none), so the geographic box's km-aspect MUST
+  // match the pixel-aspect or the map distorts (Texas stretches, circular lakes → ovals).
+  const [aspect, setAspect] = useState(1.6);
+  useEffect(() => {
+    const el = mapRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => { const r = el.getBoundingClientRect(); if (r.height > 0) setAspect(r.width / r.height); });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const box = useMemo(() => {
-    const halfKm = (view.spanKm * RENDER) / 2;
-    const dLat = halfKm / 110.574;
-    const dLon = halfKm / (111.32 * Math.cos((view.lat * Math.PI) / 180));
+    // view.spanKm = E-W (horizontal) span in km; N-S derived from the container aspect.
+    const lonHalfKm = (view.spanKm * RENDER) / 2;
+    const latHalfKm = lonHalfKm / Math.max(0.2, aspect);
+    const dLat = latHalfKm / 110.574;
+    const dLon = lonHalfKm / (111.32 * Math.cos((view.lat * Math.PI) / 180));
     return { latMin: view.lat - dLat, latMax: view.lat + dLat, lonMin: view.lon - dLon, lonMax: view.lon + dLon };
-  }, [view.lat, view.lon, view.spanKm]);
+  }, [view.lat, view.lon, view.spanKm, aspect]);
   const grid = useMemo(
     () => utmKmGrid(box.latMin, box.latMax, box.lonMin, box.lonMax, chooseGridStep(view.spanKm * 1000)),
     [box, view.spanKm]
@@ -936,8 +949,8 @@ function AoMapPane(p: PaneProps) {
   const panBy = (sdx: number, sdy: number) => setView((v) => {
     const [s, c] = [Math.sin(-v.bearing), Math.cos(-v.bearing)];
     const wdx = sdx * c - sdy * s, wdy = sdx * s + sdy * c;
-    const halfKm = v.spanKm / 2;
-    const dLat = halfKm / 110.574, dLon = halfKm / (111.32 * Math.cos((v.lat * Math.PI) / 180));
+    const lonHalfKm = v.spanKm / 2, latHalfKm = lonHalfKm / Math.max(0.2, aspect); // match box aspect
+    const dLat = latHalfKm / 110.574, dLon = lonHalfKm / (111.32 * Math.cos((v.lat * Math.PI) / 180));
     return { ...v, lat: v.lat + wdy * (2 * dLat), lon: v.lon - wdx * (2 * dLon) };
   });
 
@@ -1534,8 +1547,8 @@ function AoMapPane(p: PaneProps) {
                 <line x1="35" y1="22" x2="42" y2="22" stroke={C.cyan} strokeWidth="1" />
               </svg>
             )}
-            {/* scale bar */}
-            <div className="pointer-events-none absolute bottom-1.5 left-2 right-2 flex flex-col items-end gap-0.5">
+            {/* scale bar — bottom-LEFT so the bottom-right mini-map inset never covers it */}
+            <div className="pointer-events-none absolute bottom-1.5 left-2 right-2 z-30 flex flex-col items-start gap-0.5">
               <span className="font-mono text-[8px]" style={{ color: C.text }}>{fmt.fmtDist(grid.stepM)}</span>
               <div style={{ width: `${(grid.stepM / (view.spanKm * 1000)) * 100}%`, height: 4, borderLeft: `1px solid ${C.text}`, borderRight: `1px solid ${C.text}`, borderBottom: `2px solid ${C.text}` }} />
             </div>
