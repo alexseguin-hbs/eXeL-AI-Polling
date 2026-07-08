@@ -2029,6 +2029,27 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   const idRef = useRef(1);
   const rootRef = useRef<HTMLDivElement>(null);
+  const aoKeyRef = useRef(aoKey);
+
+  // ── Plan persistence (recall next session) ────────────────────────────────
+  // Local device now (localStorage); same save contract swaps to Supabase for
+  // cross-device/team (planned): mission_plan(project_id, ao_key, owner_id,
+  // placed jsonb, placed_support jsonb, updated_at). Hot-swappable storage cube.
+  const planKey = (k: string) => `sec2525.plan.${k}`;
+  useEffect(() => { aoKeyRef.current = aoKey; }, [aoKey]);
+  // load the saved plan for the AO (or empty) + reconcile inventory/ids
+  useEffect(() => {
+    let p: Placed[] = [], s: PlacedSupport[] = [];
+    try { const raw = localStorage.getItem(planKey(aoKey)); if (raw) { const o = JSON.parse(raw); p = o.placed ?? []; s = o.placedSupport ?? []; } } catch { /* ignore */ }
+    setPlaced(p); setPlacedSupport(s);
+    setInventory(INITIAL_INVENTORY.map((i) => ({ ...i, stock: i.stock - p.filter((u) => u.asset === i.asset).reduce((a, u) => a + u.count, 0) })));
+    idRef.current = Math.max(0, ...p.map((u) => u.id), ...s.map((u) => u.id)) + 1;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aoKey]);
+  // save on every placement edit (keyed to the CURRENT AO via ref)
+  useEffect(() => {
+    try { localStorage.setItem(planKey(aoKeyRef.current), JSON.stringify({ placed, placedSupport })); } catch { /* quota */ }
+  }, [placed, placedSupport]);
 
   useEffect(() => {
     try { const v = localStorage.getItem("sec2525.cursorMode"); if (v === "target" || v === "pointer") setCursorMode(v); } catch { /* no storage */ }
@@ -2069,10 +2090,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   // Drill from the Earth/globe into an AO: land wide (region) then glide to detail.
   const enterAo = (k: string, setMode: (m: "world" | "ao") => void) => {
     const t = AOS.find((a) => a.key === k) ?? ao;
-    clearAo();
     if (t.precision) setDigits(t.precision);
     enteringRef.current = true;
-    setAoKey(k);
+    setAoKey(k); // plan-load effect restores this AO's saved placements
     const wide = 900, region = Math.max(30, t.halfKm * 6); // region ≈ 6× the site half-extent
     setViewA({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 });
     if (mirror) setViewB({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 });
@@ -2243,7 +2263,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   <div key={st} className="mb-1">
                     <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider" style={{ color: C.dim }}>{st}</div>
                     {group.map((a) => (
-                      <button key={a.key} onClick={() => { setAoKey(a.key); clearAo(); setAoMenuOpen(false); }}
+                      <button key={a.key} onClick={() => { setAoKey(a.key); setAoMenuOpen(false); }}
                         className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[10px] font-semibold hover:bg-white/5"
                         style={{ background: a.key === aoKey ? "#152238" : "transparent", color: a.key === aoKey ? C.cyan : C.text }}>
                         <MapPin className="h-3 w-3 shrink-0" style={{ color: a.key === aoKey ? C.cyan : C.dim }} />
@@ -2502,7 +2522,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
         <div className="relative flex min-h-0 min-w-0 flex-1">
           {modeA === "world" ? (
             <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
-              <WorldStrip label="MAP" aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }}
+              <WorldStrip label="MAP" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
                 onEnterAo={(k) => enterAo(k, setModeA_)} />
             </div>
           ) : (
@@ -2514,7 +2534,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             <div className="absolute bottom-2 right-2 z-20 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"
               style={{ width: "48%", height: "46%", minWidth: 220, minHeight: 170, borderColor: C.cyan, background: C.panel }}>
               {modeB === "world" ? (
-                <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); clearAo(); }}
+                <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
                   onEnterAo={(k) => enterAo(k, setModeB_)} />
               ) : (
                 <AoMapPane {...paneCommon} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
