@@ -40,6 +40,7 @@ import { PfieldVenue } from "@/components/security-2525/pfield-venue";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { MIN_SPAN_KM, MAX_SPAN_KM, ZOOM_FACTOR, shouldHandOffToWorld } from "@/lib/zoom-continuum";
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
+import { bufferPolygon } from "@/lib/aor";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { SpectrumPicker } from "@/components/security-2525/spectrum-picker";
 import { ULT_ROSTER, type UltNode } from "@/components/security-2525/ult-data";
@@ -376,20 +377,6 @@ const CITY_POLYGONS: Record<string, [number, number][]> = {
   jacksonville: [[30.33, -80.6254], [30.7792, -80.7639], [31.1080, -81.1427], [31.2283, -81.66], [31.1080, -82.1773], [30.7792, -82.5561], [30.33, -82.6946], [29.8808, -82.5561], [29.5520, -82.1773], [29.4317, -81.66], [29.5520, -81.1427], [29.8808, -80.7639]],
 };
 
-// AOR = buffer outward from the AO border by `km` (10–100). Per-vertex radial offset
-// from the polygon centroid — robust for the roughly-convex AOs planners draw. [lat,lon].
-function bufferPolygon(poly: [number, number][], km: number): [number, number][] {
-  if (poly.length < 3 || km <= 0) return poly;
-  const clat = poly.reduce((a, p) => a + p[0], 0) / poly.length;
-  const clon = poly.reduce((a, p) => a + p[1], 0) / poly.length;
-  const cosc = Math.cos((clat * Math.PI) / 180) || 1e-6;
-  return poly.map(([la, lo]) => {
-    const vy = (la - clat) * 110.574, vx = (lo - clon) * 111.32 * cosc;
-    const L = Math.hypot(vx, vy) || 1e-6;
-    const ny = (vy / L) * km, nx = (vx / L) * km;
-    return [clat + (vy + ny) / 110.574, clon + (vx + nx) / (111.32 * cosc)] as [number, number];
-  });
-}
 
 /** NON-passive wheel listener so preventDefault() keeps zoom on the map. */
 function useWheel<T extends Element>(ref: React.RefObject<T | null>, handler: (e: WheelEvent) => void) {
