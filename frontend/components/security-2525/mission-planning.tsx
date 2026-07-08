@@ -358,6 +358,16 @@ function pickDemKey(lat: number, lon: number, spanKm: number): string | null {
 }
 const demCache: Record<string, Dem> = {};
 
+// 12-sided AOR polygons (≈100 km radius) for the TX >1M metros — operator-provided.
+// Rendered as the Area-of-Responsibility boundary out to which layers extend. [lat,lon].
+const CITY_POLYGONS: Record<string, [number, number][]> = {
+  houston: [[29.7604, -94.3350], [30.2096, -94.4736], [30.5384, -94.8524], [30.6587, -95.3698], [30.5384, -95.8872], [30.2096, -96.2660], [29.7604, -96.4046], [29.3112, -96.2660], [28.9824, -95.8872], [28.8621, -95.3698], [28.9824, -94.8524], [29.3112, -94.4736]],
+  sanantonio: [[29.4241, -97.4590], [29.8733, -97.5976], [30.2021, -97.9764], [30.3224, -98.4936], [30.2021, -99.0110], [29.8733, -99.3897], [29.4241, -99.5283], [28.9749, -99.3897], [28.6461, -99.0110], [28.5258, -98.4936], [28.6461, -97.9764], [28.9749, -97.5976]],
+  dallas: [[32.7767, -95.7624], [33.2259, -95.9009], [33.5547, -96.2797], [33.6750, -96.7970], [33.5547, -97.3144], [33.2259, -97.6932], [32.7767, -97.8317], [32.3275, -97.6932], [31.9987, -97.3144], [31.8784, -96.7970], [31.9987, -96.2797], [32.3275, -95.9009]],
+  fortworth: [[32.7555, -96.2962], [33.2047, -96.4347], [33.5335, -96.8135], [33.6538, -97.3308], [33.5335, -97.8481], [33.2047, -98.2269], [32.7555, -98.3654], [32.3063, -98.2269], [31.9775, -97.8481], [31.8572, -97.3308], [31.9775, -96.8135], [32.3063, -96.4347]],
+  austin: [[30.2672, -96.7085], [30.7164, -96.8470], [31.0452, -97.2258], [31.1655, -97.7431], [31.0452, -98.2605], [30.7164, -98.6392], [30.2672, -98.7777], [29.8180, -98.6392], [29.4892, -98.2605], [29.3689, -97.7431], [29.4892, -97.2258], [29.8180, -96.8470]],
+};
+
 /** NON-passive wheel listener so preventDefault() keeps zoom on the map. */
 function useWheel<T extends Element>(ref: React.RefObject<T | null>, handler: (e: WheelEvent) => void) {
   const h = useRef(handler);
@@ -1309,6 +1319,12 @@ function AoMapPane(p: PaneProps) {
                   );
                 })}
                 {ao.field && <PfieldVenue corners={ao.field} toFrac={toFrac} mode={is3d ? "3d" : "2d"} />}
+
+                {/* AOR boundary — 12-sided ~100km polygon for TX metro AOs */}
+                {CITY_POLYGONS[ao.key] && (
+                  <polygon points={CITY_POLYGONS[ao.key].map(([la, lo]) => { const f = toFrac(la, lo); return `${(f.fx * 100).toFixed(2)},${(f.fy * 100).toFixed(2)}`; }).join(" ")}
+                    fill={`${C.gold}08`} stroke={C.gold} strokeWidth="0.35" strokeDasharray="2 1.2" opacity="0.75" />
+                )}
 
                 {/* weapon-range coverage rings (public-source ranges) — planning aid */}
                 {rangeOn && placed.map((u) => {
