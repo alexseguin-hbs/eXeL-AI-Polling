@@ -27,7 +27,7 @@
  * subsurface layers come later — see docs/security-2525/DATA_SOURCES.md.
  */
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2 } from "lucide-react";
+import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2, Eye } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
@@ -366,6 +366,14 @@ const CITY_POLYGONS: Record<string, [number, number][]> = {
   dallas: [[32.7767, -95.7624], [33.2259, -95.9009], [33.5547, -96.2797], [33.6750, -96.7970], [33.5547, -97.3144], [33.2259, -97.6932], [32.7767, -97.8317], [32.3275, -97.6932], [31.9987, -97.3144], [31.8784, -96.7970], [31.9987, -96.2797], [32.3275, -95.9009]],
   fortworth: [[32.7555, -96.2962], [33.2047, -96.4347], [33.5335, -96.8135], [33.6538, -97.3308], [33.5335, -97.8481], [33.2047, -98.2269], [32.7555, -98.3654], [32.3063, -98.2269], [31.9775, -97.8481], [31.8572, -97.3308], [31.9775, -96.8135], [32.3063, -96.4347]],
   austin: [[30.2672, -96.7085], [30.7164, -96.8470], [31.0452, -97.2258], [31.1655, -97.7431], [31.0452, -98.2605], [30.7164, -98.6392], [30.2672, -98.7777], [29.8180, -98.6392], [29.4892, -98.2605], [29.3689, -97.7431], [29.4892, -97.2258], [29.8180, -96.8470]],
+  // FL bases — operator-provided 12-point ~100 km AOR polygons
+  campblanding: [[29.95, -80.9454], [30.3992, -81.0840], [30.7280, -81.4628], [30.8483, -81.98], [30.7280, -82.4973], [30.3992, -82.8761], [29.95, -83.0146], [29.5008, -82.8761], [28.9824, -82.4973], [28.8621, -81.98], [28.9824, -81.4628], [29.5008, -81.0840]],
+  nasjax: [[30.2358, -80.6460], [30.6850, -80.7845], [31.0138, -81.1633], [31.1341, -81.6806], [31.0138, -82.1979], [30.6850, -82.5767], [30.2358, -82.7152], [29.7866, -82.5767], [29.4578, -82.1979], [29.3375, -81.6806], [29.4578, -81.1633], [29.7866, -80.7845]],
+  mayport: [[30.3925, -80.3893], [30.8417, -80.5278], [31.1705, -80.9066], [31.2908, -81.4239], [31.1705, -81.9412], [30.8417, -82.3200], [30.3925, -82.4585], [29.9433, -82.3200], [29.6145, -81.9412], [29.4942, -81.4239], [29.6145, -80.9066], [29.9433, -80.5278]],
+  naspensacola: [[30.35, -86.2554], [30.7992, -86.3939], [31.1280, -86.7727], [31.2483, -87.29], [31.1280, -87.8073], [30.7992, -88.1861], [30.35, -88.3246], [29.9008, -88.1861], [29.5720, -87.8073], [29.4517, -87.29], [29.5720, -86.7727], [29.9008, -86.3939]],
+  naswhiting: [[30.72, -85.9854], [31.1692, -86.1239], [31.4980, -86.5027], [31.6183, -87.02], [31.4980, -87.5373], [31.1692, -87.9161], [30.72, -88.0546], [30.2708, -87.9161], [29.9420, -87.5373], [29.8217, -87.02], [29.9420, -86.5027], [30.2708, -86.1239]],
+  naskeywest: [[24.58, -80.7254], [25.0292, -80.8639], [25.3580, -81.2427], [25.4783, -81.76], [25.3580, -82.2773], [25.0292, -82.6561], [24.58, -82.7946], [24.1308, -82.6561], [23.8020, -82.2773], [23.6817, -81.76], [23.8020, -81.2427], [24.1308, -80.8639]],
+  jacksonville: [[30.33, -80.6254], [30.7792, -80.7639], [31.1080, -81.1427], [31.2283, -81.66], [31.1080, -82.1773], [30.7792, -82.5561], [30.33, -82.6946], [29.8808, -82.5561], [29.5520, -82.1773], [29.4317, -81.66], [29.5520, -81.1427], [29.8808, -80.7639]],
 };
 
 /** NON-passive wheel listener so preventDefault() keeps zoom on the map. */
@@ -2089,6 +2097,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
   const [showSettings, setShowSettings] = useState(false);
   const [aoMenuOpen, setAoMenuOpen] = useState(false);   // AO/mission dropdown (declutters the scroll row)
+  const [showHiddenAos, setShowHiddenAos] = useState(false);
+  const [aoHidden, setAoHidden] = useState<Set<string>>(() => { try { return new Set<string>(JSON.parse(localStorage.getItem("sec2525.aoHidden") || "[]")); } catch { return new Set<string>(); } });
+  useEffect(() => { try { localStorage.setItem("sec2525.aoHidden", JSON.stringify(Array.from(aoHidden))); } catch { /* quota */ } }, [aoHidden]);
+  const toggleAoHidden = (k: string) => setAoHidden((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
   const [showUlt, setShowUlt] = useState(false);         // ULT · Unit Line-up Table (setup layer)
   // ULT starts at the 001–008 setup nodes; operators ADD unit rows one at a time (persisted).
   const [ultRows, setUltRows] = useState<UltNode[]>(() => {
@@ -2349,22 +2361,38 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             <div className="absolute left-1/2 top-8 z-50 max-h-[70vh] w-60 -translate-x-1/2 overflow-y-auto rounded-lg border p-1 shadow-2xl"
               style={{ background: C.panel, borderColor: C.cyan }}>
               {(["TX", "WA", "DC", "FL"] as const).map((st) => {
-                const group = AOS.filter((a) => aoStateOf(a.key) === st);
+                const group = AOS.filter((a) => aoStateOf(a.key) === st && !aoHidden.has(a.key));
                 if (!group.length) return null;
                 return (
                   <div key={st} className="mb-1">
                     <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider" style={{ color: C.dim }}>{st}</div>
                     {group.map((a) => (
-                      <button key={a.key} onClick={() => { setAoKey(a.key); setAoMenuOpen(false); }}
-                        className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[10px] font-semibold hover:bg-white/5"
-                        style={{ background: a.key === aoKey ? "#152238" : "transparent", color: a.key === aoKey ? C.cyan : C.text }}>
-                        <MapPin className="h-3 w-3 shrink-0" style={{ color: a.key === aoKey ? C.cyan : C.dim }} />
-                        <span className="truncate">{a.name.split(" · ")[0]}</span>
-                      </button>
+                      <div key={a.key} className="flex items-center gap-1 rounded pr-1 hover:bg-white/5" style={{ background: a.key === aoKey ? "#152238" : "transparent" }}>
+                        <button onClick={() => { setAoKey(a.key); setAoMenuOpen(false); }}
+                          className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1 text-left text-[10px] font-semibold"
+                          style={{ color: a.key === aoKey ? C.cyan : C.text }}>
+                          <MapPin className="h-3 w-3 shrink-0" style={{ color: a.key === aoKey ? C.cyan : C.dim }} />
+                          <span className="truncate">{a.name.split(" · ")[0]}</span>
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); toggleAoHidden(a.key); }} title="Hide / remove from list" className="shrink-0 p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+                      </div>
                     ))}
                   </div>
                 );
               })}
+              {aoHidden.size > 0 && (
+                <div className="mt-1 border-t pt-1" style={{ borderColor: C.border }}>
+                  <button onClick={() => setShowHiddenAos((v) => !v)} className="w-full px-2 py-0.5 text-left text-[8px] font-bold uppercase tracking-wider" style={{ color: C.dim }}>
+                    {showHiddenAos ? "▾" : "▸"} Hidden ({aoHidden.size}) — restore
+                  </button>
+                  {showHiddenAos && AOS.filter((a) => aoHidden.has(a.key)).map((a) => (
+                    <div key={a.key} className="flex items-center gap-1 rounded pr-1 opacity-60 hover:bg-white/5">
+                      <span className="min-w-0 flex-1 truncate px-2 py-1 text-[10px]" style={{ color: C.dim }}>{a.name.split(" · ")[0]}</span>
+                      <button onClick={() => toggleAoHidden(a.key)} title="Restore (show)" className="shrink-0 p-0.5"><Eye className="h-3 w-3" style={{ color: C.green }} /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
