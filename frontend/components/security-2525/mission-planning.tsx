@@ -42,7 +42,7 @@ import { MIN_SPAN_KM, MAX_SPAN_KM, ZOOM_FACTOR, shouldHandOffToWorld } from "@/l
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { SpectrumPicker } from "@/components/security-2525/spectrum-picker";
-import { ULT_ROSTER } from "@/components/security-2525/ult-data";
+import { ULT_ROSTER, type UltNode } from "@/components/security-2525/ult-data";
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -2024,6 +2024,15 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [showSettings, setShowSettings] = useState(false);
   const [aoMenuOpen, setAoMenuOpen] = useState(false);   // AO/mission dropdown (declutters the scroll row)
   const [showUlt, setShowUlt] = useState(false);         // ULT · Unit Line-up Table (setup layer)
+  // ULT starts at the 001–008 setup nodes; operators ADD unit rows one at a time (persisted).
+  const [ultRows, setUltRows] = useState<UltNode[]>(() => {
+    try { const r = localStorage.getItem("sec2525.ult"); if (r) return JSON.parse(r); } catch { /* ignore */ }
+    return ULT_ROSTER.slice(0, 8);
+  });
+  useEffect(() => { try { localStorage.setItem("sec2525.ult", JSON.stringify(ultRows)); } catch { /* quota */ } }, [ultRows]);
+  const updUlt = (i: number, patch: Partial<UltNode>) => setUltRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  const addUltRow = () => setUltRows((rs) => [...rs, { id: String(rs.length + 1).padStart(3, "0"), node: "", desc: "", supervisor: "", comm: "", personnel: 0, rifles: 0, vehicles: 0, equipment: "", notes: "" }]);
+  const delUltRow = (i: number) => setUltRows((rs) => rs.filter((_, j) => j !== i));
   const aoStateOf = (k: string) => (k === "dc" ? "DC" : k === "jblm" ? "WA" : k === "capitol" || k === "mabry" ? "TX" : "FL");
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
@@ -2303,28 +2312,38 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           {showUlt && (
             <div className="absolute right-0 top-9 z-50 max-h-[70vh] w-[min(92vw,560px)] overflow-auto rounded-lg border shadow-2xl" style={{ background: C.panel, borderColor: C.cyan }}>
               <div className="sticky top-0 flex items-center justify-between border-b px-2 py-1" style={{ background: C.panel, borderColor: C.border }}>
-                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>ULT · Unit Line-up (SETUP) <span style={{ color: C.dim }}>— {ULT_ROSTER.length} nodes</span></span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>ULT · Unit Line-up (SETUP) <span style={{ color: C.dim }}>— {ultRows.length} nodes</span></span>
                 <button onClick={() => setShowUlt(false)} className="text-[10px] font-semibold" style={{ color: C.dim }}>✕</button>
               </div>
               <table className="w-full border-collapse text-[8px]">
                 <thead><tr style={{ color: C.dim }}>
-                  {["ID", "NODE", "DESC", "SUP", "COMM", "PAX", "EQUIP"].map((h) => <th key={h} className="border-b px-1 py-0.5 text-left font-semibold" style={{ borderColor: C.border }}>{h}</th>)}
+                  {["ID", "NODE", "DESC", "SUP", "COMM", "PAX", "EQUIP", ""].map((h, i) => <th key={i} className="border-b px-1 py-0.5 text-left font-semibold" style={{ borderColor: C.border }}>{h}</th>)}
                 </tr></thead>
                 <tbody>
-                  {ULT_ROSTER.map((u) => (
-                    <tr key={u.id} className="hover:bg-white/5">
-                      <td className="border-b px-1 py-0.5 font-mono" style={{ borderColor: C.border, color: C.gold }}>{u.id}</td>
-                      <td className="border-b px-1 py-0.5 font-mono" style={{ borderColor: C.border, color: C.cyan }}>{u.node}</td>
-                      <td className="border-b px-1 py-0.5" style={{ borderColor: C.border, color: C.text }}>{u.desc}</td>
-                      <td className="border-b px-1 py-0.5 font-mono" style={{ borderColor: C.border, color: C.dim }}>{u.supervisor}</td>
-                      <td className="border-b px-1 py-0.5" style={{ borderColor: C.border, color: "#a78bfa" }}>{u.comm}</td>
-                      <td className="border-b px-1 py-0.5 text-right font-mono" style={{ borderColor: C.border, color: C.text }}>{u.personnel}</td>
-                      <td className="border-b px-1 py-0.5" style={{ borderColor: C.border, color: C.dim }}>{u.equipment}</td>
-                    </tr>
-                  ))}
+                  {ultRows.map((u, i) => {
+                    const cell = (val: string, on: (v: string) => void, color: string, mono = false) => (
+                      <input value={val} onChange={(e) => on(e.target.value)}
+                        className={`w-full bg-transparent px-1 py-0.5 outline-none ${mono ? "font-mono" : ""}`} style={{ color }} />
+                    );
+                    return (
+                      <tr key={u.id} className="hover:bg-white/5">
+                        <td className="border-b font-mono" style={{ borderColor: C.border, color: C.gold }}>{cell(u.id, (v) => updUlt(i, { id: v }), C.gold, true)}</td>
+                        <td className="border-b" style={{ borderColor: C.border }}>{cell(u.node, (v) => updUlt(i, { node: v }), C.cyan, true)}</td>
+                        <td className="border-b" style={{ borderColor: C.border }}>{cell(u.desc, (v) => updUlt(i, { desc: v }), C.text)}</td>
+                        <td className="border-b" style={{ borderColor: C.border }}>{cell(u.supervisor, (v) => updUlt(i, { supervisor: v }), C.dim, true)}</td>
+                        <td className="border-b" style={{ borderColor: C.border }}>{cell(u.comm, (v) => updUlt(i, { comm: v }), "#a78bfa")}</td>
+                        <td className="border-b" style={{ borderColor: C.border }}>{cell(String(u.personnel), (v) => updUlt(i, { personnel: parseInt(v) || 0 }), C.text, true)}</td>
+                        <td className="border-b" style={{ borderColor: C.border }}>{cell(u.equipment, (v) => updUlt(i, { equipment: v }), C.dim)}</td>
+                        <td className="border-b text-center" style={{ borderColor: C.border }}><button onClick={() => delUltRow(i)} title="Delete row" className="px-1 font-bold" style={{ color: C.red }}>✕</button></td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
-              <div className="px-2 py-1 text-[8px]" style={{ color: C.dim }}>Evidence / classification / replay only — establishes WHO is in the fight, WHO they report to (LINK), WHICH net they ride (COMM) before anything is placed.</div>
+              <div className="flex items-center justify-between px-2 py-1">
+                <button onClick={addUltRow} className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: C.green, color: C.green }}>＋ ADD ROW</button>
+                <span className="text-[8px]" style={{ color: C.dim }}>Starts at 001–008; add units as you build. Evidence / replay only.</span>
+              </div>
             </div>
           )}
           <button onClick={() => setMirror((m) => !m)} title={mirror ? "MIRROR — MAP ⇄ MINI locked; click to decouple" : "SPLIT — MAP and MINI roam independently; click to mirror"}
