@@ -1446,8 +1446,10 @@ function AoMapPane(p: PaneProps) {
               </div>
             )}
 
-            {/* the OTHER pane's viewport — "you are here" link between MAP ⇄ MINI MAP */}
-            {otherView && Math.abs(otherView.spanKm - view.spanKm) > 1e-6 && (() => {
+            {/* the OTHER pane's viewport — a small "you are here" box. ONLY drawn when the
+                other view is meaningfully TIGHTER than this one (a subset), so a wider view
+                never paints a giant rectangle over the whole map (that caused the cyan fill). */}
+            {otherView && otherView.spanKm < view.spanKm * 0.85 && (() => {
               const oh = otherView.spanKm / 2;
               const odLat = oh / 110.574, odLon = oh / (111.32 * Math.cos((otherView.lat * Math.PI) / 180));
               const corners: [number, number][] = [
@@ -1455,13 +1457,12 @@ function AoMapPane(p: PaneProps) {
                 [otherView.lat - odLat, otherView.lon + odLon], [otherView.lat - odLat, otherView.lon - odLon],
               ];
               const pts = corners.map(([la, lo]) => project(la, lo));
-              // only draw when the other view is (partly) inside this pane and not larger than it
-              if (otherView.spanKm > view.spanKm * 4) return null;
-              if (!pts.some((p) => p.fx > -0.4 && p.fx < 1.4 && p.fy > -0.4 && p.fy < 1.4)) return null;
+              if (pts.some((p) => !Number.isFinite(p.fx) || !Number.isFinite(p.fy))) return null; // no NaN fill
+              if (!pts.some((p) => p.fx > -0.2 && p.fx < 1.2 && p.fy > -0.2 && p.fy < 1.2)) return null;
               return (
                 <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                   <polygon points={pts.map((p) => `${(p.fx * 100).toFixed(2)},${(p.fy * 100).toFixed(2)}`).join(" ")}
-                    fill={`${C.cyan}14`} stroke={C.cyan} strokeWidth="0.4" strokeDasharray="1.5 1" />
+                    fill="none" stroke={C.cyan} strokeWidth="0.4" strokeDasharray="1.5 1" />
                 </svg>
               );
             })()}
