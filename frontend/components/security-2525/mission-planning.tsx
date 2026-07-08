@@ -1984,6 +1984,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [shareMsg, setShareMsg] = useState("");            // transient "copied" confirmation
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
   const [showSettings, setShowSettings] = useState(false);
+  const [aoMenuOpen, setAoMenuOpen] = useState(false);   // AO/mission dropdown (declutters the scroll row)
+  const aoStateOf = (k: string) => (k === "dc" ? "DC" : k === "jblm" ? "WA" : k === "capitol" || k === "mabry" ? "TX" : "FL");
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
   const [borders, setBorders] = useState<BorderData | null>(borderCache);
@@ -2197,18 +2199,39 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       {/* Minimal command bar */}
       <div className="relative flex items-center gap-2">
         <div className="flex shrink-0 items-center gap-1 text-[10px] font-semibold tracking-wide">
-          <span style={{ color: C.dim }}>{ao.key === "jblm" ? "WA" : ao.key === "dc" ? "DC" : "TX"}</span>
+          <span style={{ color: C.dim }}>{aoStateOf(ao.key)}</span>
           <ChevronRight className="h-3 w-3" style={{ color: C.border }} />
           <span style={{ color: C.cyan }}>{ao.name.split(" · ")[0]}</span>
         </div>
-        <div className="flex flex-1 items-center justify-center gap-1.5 overflow-x-auto">
-          {AOS.map((a) => (
-            <button key={a.key} onClick={() => { setAoKey(a.key); clearAo(); }}
-              className="shrink-0 whitespace-nowrap rounded border px-2 py-1 text-[10px] font-semibold tracking-wide"
-              style={{ borderColor: a.key === aoKey ? C.cyan : C.border, color: a.key === aoKey ? C.cyan : C.dim, background: a.key === aoKey ? "#152238" : "transparent" }}>
-              {a.name.split(" · ")[0]}
-            </button>
-          ))}
+        {/* AO / MISSION dropdown — grouped by state; declutters the old scroll row */}
+        <div className="relative flex-1">
+          <button onClick={() => setAoMenuOpen((v) => !v)} title="Select area of operations / mission"
+            className="mx-auto flex items-center gap-1 rounded border px-2 py-1 text-[10px] font-semibold tracking-wide"
+            style={{ borderColor: aoMenuOpen ? C.cyan : C.border, color: C.cyan }}>
+            <MapPin className="h-3 w-3" /> {ao.name.split(" · ")[0]} <ChevronRight className={`h-3 w-3 transition-transform ${aoMenuOpen ? "rotate-90" : ""}`} style={{ color: C.dim }} />
+          </button>
+          {aoMenuOpen && (
+            <div className="absolute left-1/2 top-8 z-50 max-h-[70vh] w-60 -translate-x-1/2 overflow-y-auto rounded-lg border p-1 shadow-2xl"
+              style={{ background: C.panel, borderColor: C.cyan }}>
+              {(["TX", "WA", "DC", "FL"] as const).map((st) => {
+                const group = AOS.filter((a) => aoStateOf(a.key) === st);
+                if (!group.length) return null;
+                return (
+                  <div key={st} className="mb-1">
+                    <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider" style={{ color: C.dim }}>{st}</div>
+                    {group.map((a) => (
+                      <button key={a.key} onClick={() => { setAoKey(a.key); clearAo(); setAoMenuOpen(false); }}
+                        className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[10px] font-semibold hover:bg-white/5"
+                        style={{ background: a.key === aoKey ? "#152238" : "transparent", color: a.key === aoKey ? C.cyan : C.text }}>
+                        <MapPin className="h-3 w-3 shrink-0" style={{ color: a.key === aoKey ? C.cyan : C.dim }} />
+                        <span className="truncate">{a.name.split(" · ")[0]}</span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span className="hidden whitespace-nowrap font-mono text-[10px] md:inline" style={{ color: C.dim }}>
