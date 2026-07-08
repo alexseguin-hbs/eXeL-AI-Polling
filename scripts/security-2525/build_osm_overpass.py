@@ -14,15 +14,16 @@ import json, math, sys, time, urllib.request, urllib.parse, os
 OUT = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "security-2525")
 OVERPASS = "https://overpass-api.de/api/interpreter"
 
-# key: (lat, lon, radius_km)  radius ≈ base half-extent + 10 km buffer
+# key: (lat, lon, radius_km)  radius ≈ base half-extent + 10 km buffer.
+# Radii tuned so tiles stay ~1–4 MB (phone-friendly); metros trimmed vs bases.
 BASES = {
-    "campblanding": (29.9558, -81.9803, 20),
-    "nasjax":       (30.2358, -81.6806, 20),
-    "mayport":      (30.3936, -81.4243, 20),
-    "naspensacola": (30.3536, -87.3190, 20),
-    "naswhiting":   (30.7241, -87.0219, 20),
-    "naskeywest":   (24.5758, -81.6889, 20),
-    "jacksonville": (30.3322, -81.6557, 30),
+    "campblanding": (29.9558, -81.9803, 16),
+    "nasjax":       (30.2358, -81.6806, 15),
+    "mayport":      (30.3936, -81.4243, 15),
+    "naspensacola": (30.3536, -87.3190, 16),
+    "naswhiting":   (30.7241, -87.0219, 16),
+    "naskeywest":   (24.5758, -81.6889, 18),
+    "jacksonville": (30.3322, -81.6557, 16),
 }
 TIER = {"motorway": 4, "trunk": 4, "primary": 4, "secondary": 3, "tertiary": 3,
         "residential": 2, "unclassified": 2, "service": 2, "motorway_link": 4,
@@ -35,8 +36,9 @@ def bbox(lat, lon, rkm):
     return (lat - dlat, lon - dlon, lat + dlat, lon + dlon)  # S,W,N,E
 
 
-def simplify(pts, tol=0.00012):
-    """Cheap decimation: drop points closer than tol (deg) to the last kept."""
+def simplify(pts, tol=0.00028):
+    """Cheap decimation: drop points closer than tol (deg, ~30 m) to the last kept.
+    Coarser than v1 to keep tiles phone-friendly (~1–4 MB)."""
     if len(pts) < 3:
         return pts
     out = [pts[0]]

@@ -41,6 +41,7 @@ import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { MIN_SPAN_KM, MAX_SPAN_KM, ZOOM_FACTOR, shouldHandOffToWorld } from "@/lib/zoom-continuum";
 import { terrainMSL, computeContours, type ContourOpts } from "@/lib/contours";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
+import { SpectrumPicker } from "@/components/security-2525/spectrum-picker";
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -710,20 +711,15 @@ function Dots3({ onClick, title, horizontal }: { onClick: () => void; title: str
 interface ContourSettings extends ContourOpts {
   enable: boolean; showLand: boolean; showBathy: boolean;
   units: "metric" | "imperial" | "both"; labelMajor: boolean; vExag: number;
-  landColor: string; bathyColor: string; thickness: number;
+  landColor: string; bathyColor: string; thickness: number; bathyThickness: number;
 }
-// Contour palette = the canonical SoI Trinity spectrum (Infrared → ROYGBIV → Ultraviolet),
-// reused from /main so land contours read as a topographic spectrum distinct from grey streets.
-const CONTOUR_SPECTRUM = [
-  TRINITY_COLORS.human, TRINITY_COLORS.evolution, TRINITY_COLORS.intelligence, TRINITY_COLORS.temporal,
-  TRINITY_COLORS.abundance, TRINITY_COLORS.ooda, TRINITY_COLORS.platonic, TRINITY_COLORS.consciousness,
-  TRINITY_COLORS.framework, TRINITY_COLORS.wholeness, TRINITY_COLORS.family, TRINITY_COLORS.governance,
-] as const;
+// Contour thickness presets (px in the 0–100 viewBox); colours come from the shared
+// Trinity SpectrumPicker so Land, Bathymetry and /main all draw from one palette source.
 const CONTOUR_THICKNESS = [0.1, 0.25, 0.5] as const;
 const DEFAULT_CONTOURS: ContourSettings = {
   enable: false, count: 6, interval: 0, fidelity: "med", seaLevel: 0,
   showLand: true, showBathy: true, units: "metric", labelMajor: true, vExag: 1,
-  landColor: TRINITY_COLORS.intelligence, bathyColor: TRINITY_COLORS.consciousness, thickness: 0.25,
+  landColor: TRINITY_COLORS.intelligence, bathyColor: TRINITY_COLORS.consciousness, thickness: 0.25, bathyThickness: 0.16,
 };
 const contourLabel = (m: number, units: ContourSettings["units"]) =>
   units === "imperial" ? `${Math.round(m * 3.28084)} ft`
@@ -1192,9 +1188,10 @@ function AoMapPane(p: PaneProps) {
                   <g>
                     {contourSet.lines.filter((l) => (l.land ? contourCfg.showLand : contourCfg.showBathy)).map((l, i) => {
                       const col = l.land ? contourCfg.landColor : contourCfg.bathyColor;
+                      const th = l.land ? contourCfg.thickness : contourCfg.bathyThickness;
                       return (
                         <g key={i}>
-                          <path d={l.d} fill="none" stroke={col} strokeWidth={l.major ? contourCfg.thickness * 2.2 : contourCfg.thickness} strokeDasharray={l.land ? undefined : "1 0.7"} opacity={l.major ? 0.9 : 0.5} strokeLinecap="round" />
+                          <path d={l.d} fill="none" stroke={col} strokeWidth={l.major ? th * 2.2 : th} strokeDasharray={l.land ? undefined : "1 0.7"} opacity={l.major ? 0.9 : 0.5} strokeLinecap="round" />
                           {contourCfg.labelMajor && l.major && l.label && (
                             <text x={l.label.x} y={l.label.y} fontSize="1.6" fontFamily="monospace" fill={col} opacity="0.95">{contourLabel(l.level, contourCfg.units)}</text>
                           )}
@@ -2243,13 +2240,40 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                     <span className="w-3 text-right font-mono text-[9px]" style={{ color: C.text }}>{contourCfg.count}</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between gap-1">
-                  <span className="text-[9px]" style={{ color: C.dim }}>Show</span>
-                  <div className="flex gap-1">
+                {/* ELEVATION (land) — its own enable + colour + thickness */}
+                <div className="rounded border p-1" style={{ borderColor: C.border }}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: "#cbd5e1" }}>Elevation (land)</span>
                     <button onClick={() => setContourCfg((c) => ({ ...c, showLand: !c.showLand }))} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
-                      style={{ borderColor: contourCfg.showLand ? "#94a3b8" : C.border, color: contourCfg.showLand ? "#cbd5e1" : C.dim }}>LAND</button>
+                      style={{ borderColor: contourCfg.showLand ? "#94a3b8" : C.border, color: contourCfg.showLand ? "#cbd5e1" : C.dim }}>{contourCfg.showLand ? "ON" : "OFF"}</button>
+                  </div>
+                  <SpectrumPicker value={contourCfg.landColor} onChange={(hex) => setContourCfg((c) => ({ ...c, landColor: hex }))} ariaLabel="land contour colour" />
+                  <div className="mt-1 flex items-center gap-1">
+                    <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                      {CONTOUR_THICKNESS.map((t) => (
+                        <button key={t} onClick={() => setContourCfg((c) => ({ ...c, thickness: t }))} className="px-1.5 py-0.5"
+                          style={{ background: Math.abs(contourCfg.thickness - t) < 1e-6 ? "#152238" : "transparent", color: Math.abs(contourCfg.thickness - t) < 1e-6 ? C.cyan : C.dim }}>{t}</button>
+                      ))}
+                    </div>
+                    <input type="range" min={0.05} max={0.6} step={0.01} value={contourCfg.thickness} onChange={(e) => setContourCfg((c) => ({ ...c, thickness: parseFloat(e.target.value) }))} className="w-14" />
+                  </div>
+                </div>
+                {/* BATHYMETRY (sea · MSL) — its own enable + colour + thickness */}
+                <div className="rounded border p-1" style={{ borderColor: C.border }}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: "#22d3ee" }}>Bathymetry (sea · MSL)</span>
                     <button onClick={() => setContourCfg((c) => ({ ...c, showBathy: !c.showBathy }))} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
-                      style={{ borderColor: contourCfg.showBathy ? "#22d3ee" : C.border, color: contourCfg.showBathy ? "#22d3ee" : C.dim }}>SEA (MSL)</button>
+                      style={{ borderColor: contourCfg.showBathy ? "#22d3ee" : C.border, color: contourCfg.showBathy ? "#22d3ee" : C.dim }}>{contourCfg.showBathy ? "ON" : "OFF"}</button>
+                  </div>
+                  <SpectrumPicker value={contourCfg.bathyColor} onChange={(hex) => setContourCfg((c) => ({ ...c, bathyColor: hex }))} ariaLabel="bathymetry contour colour" />
+                  <div className="mt-1 flex items-center gap-1">
+                    <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                      {CONTOUR_THICKNESS.map((t) => (
+                        <button key={t} onClick={() => setContourCfg((c) => ({ ...c, bathyThickness: t }))} className="px-1.5 py-0.5"
+                          style={{ background: Math.abs(contourCfg.bathyThickness - t) < 1e-6 ? "#152238" : "transparent", color: Math.abs(contourCfg.bathyThickness - t) < 1e-6 ? C.cyan : C.dim }}>{t}</button>
+                      ))}
+                    </div>
+                    <input type="range" min={0.05} max={0.6} step={0.01} value={contourCfg.bathyThickness} onChange={(e) => setContourCfg((c) => ({ ...c, bathyThickness: parseFloat(e.target.value) }))} className="w-14" />
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-1">
@@ -2274,33 +2298,6 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   <span className="text-[9px]" style={{ color: C.dim }}>Label major</span>
                   <button onClick={() => setContourCfg((c) => ({ ...c, labelMajor: !c.labelMajor }))} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
                     style={{ borderColor: contourCfg.labelMajor ? C.gold : C.border, color: contourCfg.labelMajor ? C.gold : C.dim }}>{contourCfg.labelMajor ? "ON" : "OFF"}</button>
-                </div>
-                {/* Line color — scrollable Trinity spectrum (IR→ROYGBIV→UV), + free edit */}
-                <div>
-                  <div className="mb-0.5 flex items-center justify-between">
-                    <span className="text-[9px]" style={{ color: C.dim }}>Line color (spectrum)</span>
-                    <input type="color" value={contourCfg.landColor} onChange={(e) => setContourCfg((c) => ({ ...c, landColor: e.target.value }))}
-                      className="h-4 w-6 rounded border-0 bg-transparent p-0" title="Custom colour" />
-                  </div>
-                  <div className="flex gap-1 overflow-x-auto pb-0.5">
-                    {CONTOUR_SPECTRUM.map((col) => (
-                      <button key={col} onClick={() => setContourCfg((c) => ({ ...c, landColor: col }))} title={col}
-                        className="h-4 w-4 shrink-0 rounded-full border" style={{ background: col, borderColor: contourCfg.landColor.toLowerCase() === col.toLowerCase() ? C.text : "transparent" }} />
-                    ))}
-                  </div>
-                </div>
-                {/* Thickness — presets 0.1 / 0.25 / 0.5 + editable slider */}
-                <div className="flex items-center justify-between gap-1">
-                  <span className="text-[9px]" style={{ color: C.dim }}>Thickness</span>
-                  <div className="flex items-center gap-1">
-                    <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
-                      {CONTOUR_THICKNESS.map((t) => (
-                        <button key={t} onClick={() => setContourCfg((c) => ({ ...c, thickness: t }))} className="px-1.5 py-0.5"
-                          style={{ background: Math.abs(contourCfg.thickness - t) < 1e-6 ? "#152238" : "transparent", color: Math.abs(contourCfg.thickness - t) < 1e-6 ? C.cyan : C.dim }}>{t}</button>
-                      ))}
-                    </div>
-                    <input type="range" min={0.05} max={0.6} step={0.01} value={contourCfg.thickness} onChange={(e) => setContourCfg((c) => ({ ...c, thickness: parseFloat(e.target.value) }))} className="w-14" />
-                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[9px]" style={{ color: C.dim }}>Sea level (MSL) {contourCfg.seaLevel}m</span>
