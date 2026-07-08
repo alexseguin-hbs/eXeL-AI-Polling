@@ -388,10 +388,17 @@ function ringPath(ring: [number, number][], w: number, h: number): string {
 }
 
 /** Orthographic wireframe GLOBE — planning start screen (drag-rotate, zoom → drill). */
-function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
+function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
-  onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void;
+  onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void; onEnterAo?: (k: string) => void;
 }) {
+  // Nearest AO to a lat/lon within ~10° → zoom-in enters it directly (no flat 'blue screen').
+  const nearestAo = (lat: number, lon: number) => {
+    let best = "", bd = Infinity;
+    for (const a of AOS) { const d = Math.hypot(a.center[0] - lat, a.center[1] - lon); if (d < bd) { bd = d; best = a.key; } }
+    return bd < 10 ? best : "";
+  };
+  const drillOrEnter = (lat: number, lon: number) => { const k = onEnterAo && nearestAo(lat, lon); if (k) onEnterAo!(k); else onDrill(lat, lon); };
   const CX = 170, CY = 170, RING = 150, R = 150;
   const D = Math.PI / 180;
   const ZMAX = 4; // magnify up to 4× before drilling into the flat/AO map
@@ -406,7 +413,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
   useWheel(gsvg, (e) => {
     e.preventDefault();
     const zin = e.deltaY < 0, factor = zin ? 1.15 : 1 / 1.15;
-    if (cam.zoom * factor > ZMAX && zin) { onDrill(cam.lat0, cam.lon0); return; }
+    if (cam.zoom * factor > ZMAX && zin) { drillOrEnter(cam.lat0, cam.lon0); return; }
     setCam((c) => ({ ...c, zoom: Math.min(ZMAX, Math.max(1, c.zoom * factor)) }));
   });
   const proj = (lat: number, lon: number): [number, number, boolean] => {
@@ -501,7 +508,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
             const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
             const dcx = cx - pinch.current.cx, dcy = cy - pinch.current.cy;
             pinch.current = { dist, cx, cy, ang };
-            if (cam.zoom * factor > ZMAX) { onDrill(cam.lat0, cam.lon0); return; }
+            if (cam.zoom * factor > ZMAX) { drillOrEnter(cam.lat0, cam.lon0); return; }
             setCam((c) => ({
               ...c,
               zoom: Math.min(ZMAX, Math.max(1, c.zoom * factor)),
@@ -548,7 +555,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill }: {
           if (!v) return null;
           const active = ao.key === activeKey;
           return (
-            <g key={ao.key} onClick={() => onSelect(ao.key)} onDoubleClick={() => onDrill(ao.center[0], ao.center[1])} style={{ cursor: "pointer" }}>
+            <g key={ao.key} onClick={() => onSelect(ao.key)} onDoubleClick={() => drillOrEnter(ao.center[0], ao.center[1])} style={{ cursor: "pointer" }}>
               <circle cx={x} cy={y} r={(active ? 7 : 5) / zoom} fill="none" stroke={C.gold} strokeWidth={1 / zoom} opacity={active ? 1 : 0.7} />
               {active && <circle cx={x} cy={y} r={10 / zoom} fill="none" stroke={C.gold} strokeWidth={0.5 / zoom} opacity="0.5" />}
               <circle cx={x} cy={y} r={1.5 / zoom} fill={C.gold} />
@@ -612,7 +619,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label }: { aoKey: string; onSe
   return (
     <div className="relative h-full w-full overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
-        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} />
+        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} />
       ) : (
         <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full touch-none" role="img"
@@ -2093,7 +2100,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const addUltRow = () => setUltRows((rs) => [...rs, { id: String(rs.length + 1).padStart(3, "0"), node: "", desc: "", supervisor: "", comm: "", personnel: 0, rifles: 0, vehicles: 0, equipment: "", notes: "" }]);
   const delUltRow = (i: number) => setUltRows((rs) => rs.filter((_, j) => j !== i));
   const aoStateOf = (k: string) => (k === "dc" ? "DC" : k === "jblm" ? "WA"
-    : ["capitol", "mabry", "houston", "sanantonio", "dallas", "fortworth", "austin"].includes(k) ? "TX" : "FL");
+    : ["capitol", "mabry", "pfield", "houston", "sanantonio", "dallas", "fortworth", "austin"].includes(k) ? "TX" : "FL");
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
   const [borders, setBorders] = useState<BorderData | null>(borderCache);
@@ -2607,10 +2614,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           </div>
         ) : (
           <button onClick={() => setRailOpen(true)} title="Show ASSET / SUPPORT menu"
-            className="flex shrink-0 flex-col items-center gap-2 rounded-lg border px-1.5 py-2 landscape:self-start"
+            className="flex shrink-0 items-center justify-center gap-2 rounded-lg border px-1.5 py-1 landscape:flex-col landscape:self-start landscape:py-2 portrait:w-full portrait:flex-row"
             style={{ background: C.panel, borderColor: C.border }}>
             <span className="flex flex-col items-center gap-[3px]">{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}</span>
-            <span className="text-[8px] font-semibold" style={{ color: C.dim, writingMode: "vertical-rl" }}>ASSET · SUPPORT</span>
+            <span className="text-[8px] font-semibold portrait:[writing-mode:horizontal-tb] landscape:[writing-mode:vertical-rl]" style={{ color: C.dim }}>ASSET · SUPPORT</span>
           </button>
         ))}
 
@@ -2664,10 +2671,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           </div>
         ) : (
           <button onClick={() => setRightOpen(true)} title="Show deployed-asset list"
-            className="flex shrink-0 flex-col items-center gap-2 rounded-lg border px-1.5 py-2 landscape:self-start"
+            className="flex shrink-0 items-center justify-center gap-2 rounded-lg border px-1.5 py-1 landscape:flex-col landscape:self-start landscape:py-2 portrait:w-full portrait:flex-row"
             style={{ background: C.panel, borderColor: C.border }}>
             <span className="flex flex-col items-center gap-[3px]">{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}</span>
-            <span className="text-[8px] font-semibold" style={{ color: C.dim, writingMode: "vertical-rl" }}>ACTIVE ITEMS</span>
+            <span className="text-[8px] font-semibold portrait:[writing-mode:horizontal-tb] landscape:[writing-mode:vertical-rl]" style={{ color: C.dim }}>ACTIVE ITEMS</span>
           </button>
         ))}
       </div>

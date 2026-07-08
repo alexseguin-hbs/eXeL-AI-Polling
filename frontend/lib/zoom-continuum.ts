@@ -6,7 +6,7 @@
  * 10 m / 10 km / 100 km / 1000 km step scales without a browser.
  */
 export const MIN_SPAN_KM = 0.01; // ~10 m across the view
-export const MAX_SPAN_KM = 2000; // ~continental; zooming out past this → Earth view
+export const MAX_SPAN_KM = 6000; // continental — zoom Texas→USA→continent before the Earth view (more transition)
 export const ZOOM_FACTOR = 1.15; // per wheel notch / pinch tick
 export const WORLD_HANDOFF_KM = MAX_SPAN_KM * 0.995;
 
