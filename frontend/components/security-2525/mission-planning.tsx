@@ -2640,10 +2640,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               onUndoLastPlacement={undoLastPlacement} clearAo={clearAo}
               routeMode={routeMode} onHide={() => setRailOpen(false)} />
           </div>
-          {/* BOTTOM-LEFT — Tracks & movement (heading · speed · altitude + activation) */}
-          <div className="shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:h-52" style={{ background: C.panel, borderColor: C.border }}>
-            <TracksPanel placed={placed} onUpdAsset={updAsset} selected={selected} setSelected={setSelected} />
-          </div>
+          {/* BOTTOM-LEFT — Tracks & movement (heading · speed · altitude + activation) — plan (AO) mode only */}
+          {modeA === "ao" && (
+            <div className="shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:h-52" style={{ background: C.panel, borderColor: C.border }}>
+              <TracksPanel placed={placed} onUpdAsset={updAsset} selected={selected} setSelected={setSelected} />
+            </div>
+          )}
           </div>
         ) : (
           <button onClick={() => setRailOpen(true)} title="Show ASSET / SUPPORT menu"
