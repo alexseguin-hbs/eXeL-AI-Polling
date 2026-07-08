@@ -196,6 +196,17 @@ const AOS: Ao[] = [
     landmarks: [{ name: "NAS KEY WEST", lat: 24.5758, lon: -81.6889 }], buildings: [] },
   { key: "jacksonville", name: "JACKSONVILLE · FL (METRO)", center: [30.3322, -81.6557], halfKm: 20, osm: "jacksonville",
     landmarks: [{ name: "DOWNTOWN JACKSONVILLE", lat: 30.3322, lon: -81.6557 }], buildings: [] },
+  // Texas >1M metros — 100 km buffer AOs (major roads + real DEM contours)
+  { key: "houston", name: "HOUSTON · TX METRO (100km)", center: [29.7604, -95.3698], halfKm: 100, osm: "houston",
+    landmarks: [{ name: "DOWNTOWN HOUSTON", lat: 29.7604, lon: -95.3698 }], buildings: [] },
+  { key: "sanantonio", name: "SAN ANTONIO · TX METRO (100km)", center: [29.4241, -98.4936], halfKm: 100, osm: "sanantonio",
+    landmarks: [{ name: "SAN ANTONIO", lat: 29.4241, lon: -98.4936 }], buildings: [] },
+  { key: "dallas", name: "DALLAS · TX METRO (100km)", center: [32.7767, -96.7970], halfKm: 100, osm: "dallas",
+    landmarks: [{ name: "DALLAS", lat: 32.7767, lon: -96.797 }], buildings: [] },
+  { key: "fortworth", name: "FORT WORTH · TX METRO (100km)", center: [32.7555, -97.3308], halfKm: 100, osm: "fortworth",
+    landmarks: [{ name: "FORT WORTH", lat: 32.7555, lon: -97.3308 }], buildings: [] },
+  { key: "austin", name: "AUSTIN · TX METRO (100km)", center: [30.2672, -97.7431], halfKm: 100, osm: "austin",
+    landmarks: [{ name: "DOWNTOWN AUSTIN", lat: 30.2672, lon: -97.7431 }], buildings: [] },
 ];
 
 // ── Major metro areas (≥1M metropolitan population) — geo context labels ──────
@@ -321,6 +332,11 @@ const DEM_INDEX: { key: string; bbox: [number, number, number, number] }[] = [
   { key: "naswhiting", bbox: [-87.62, 30.12, -86.42, 31.32] },
   { key: "naskeywest", bbox: [-82.29, 23.98, -81.09, 25.18] },
   { key: "jacksonville", bbox: [-82.26, 29.73, -81.06, 30.93] },
+  { key: "houston", bbox: [-96.41, 28.86, -94.33, 30.66] },
+  { key: "sanantonio", bbox: [-99.53, 28.52, -97.45, 30.33] },
+  { key: "dallas", bbox: [-97.83, 31.87, -95.76, 33.68] },
+  { key: "fortworth", bbox: [-98.37, 31.85, -96.29, 33.66] },
+  { key: "austin", bbox: [-98.78, 29.36, -96.70, 31.17] },
   { key: "florida", bbox: [-83.8, 24.4, -79.4, 31.0] },
   { key: "dc100", bbox: [-78.5, 37.9, -75.6, 39.9] },
   { key: "floridastate", bbox: [-87.7, 24.3, -79.9, 31.1] },
@@ -2014,7 +2030,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [selectedSupport, setSelectedSupport] = useState<SupportObjectDef | null>(null);
   const [placedSupport, setPlacedSupport] = useState<PlacedSupport[]>([]);
   const [reality, setReality] = useState<RealityMode>("training_demo");
-  const [openGroups, setOpenGroups] = useState<Set<LegendGroup>>(new Set<LegendGroup>(["sustainment"]));
+  const [openGroups, setOpenGroups] = useState<Set<LegendGroup>>(new Set<LegendGroup>()); // all groups collapsed by default
   const [selected, setSelected] = useState<{ kind: "asset" | "support"; id: number } | null>(null);
   const [elevOn, setElevOn] = useState(true);
   const [contourCfg, setContourCfg] = useState<ContourSettings>(DEFAULT_CONTOURS);
@@ -2037,7 +2053,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const updUlt = (i: number, patch: Partial<UltNode>) => setUltRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   const addUltRow = () => setUltRows((rs) => [...rs, { id: String(rs.length + 1).padStart(3, "0"), node: "", desc: "", supervisor: "", comm: "", personnel: 0, rifles: 0, vehicles: 0, equipment: "", notes: "" }]);
   const delUltRow = (i: number) => setUltRows((rs) => rs.filter((_, j) => j !== i));
-  const aoStateOf = (k: string) => (k === "dc" ? "DC" : k === "jblm" ? "WA" : k === "capitol" || k === "mabry" ? "TX" : "FL");
+  const aoStateOf = (k: string) => (k === "dc" ? "DC" : k === "jblm" ? "WA"
+    : ["capitol", "mabry", "houston", "sanantonio", "dallas", "fortworth", "austin"].includes(k) ? "TX" : "FL");
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
   const [borders, setBorders] = useState<BorderData | null>(borderCache);
