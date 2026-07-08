@@ -883,6 +883,7 @@ function AoMapPane(p: PaneProps) {
   const [cursorPx, setCursorPx] = useState<{ x: number; y: number } | null>(null);
   const [routeDraft, setRouteDraft] = useState<{ lat: number; lon: number }[]>([]);
   const [elevReveal, setElevReveal] = useState<"high" | "low" | null>(null); // HIGH/LOW coord reveal
+  const [showDecode, setShowDecode] = useState(false); // MGRS/DMS mini-lesson popover
   const mapRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean; btn: number } | null>(null);
   const bearingMemo = useRef<number | null>(null);
@@ -1517,10 +1518,32 @@ function AoMapPane(p: PaneProps) {
             <div className="pointer-events-none absolute left-14 top-2 z-20 rounded px-1 font-mono text-[9px] font-semibold" style={{ background: "#0a0f16cc", color: C.cyan }}>
               {breadcrumb.join(" · ")}
             </div>
-            {/* live cursor readout — MGRS or LLV-DMS (upper-right) */}
-            <div className="pointer-events-none absolute right-2 top-2 z-20 rounded px-1 font-mono text-[9px] font-semibold" style={{ background: "#0a0f16cc", color: cursorLL ? C.gold : C.dim }}>
-              {cursorLL ? fmt.coordAt(cursorLL.lat, cursorLL.lon) : fmt.coordAt(view.lat, view.lon)}
-            </div>
+            {/* live cursor readout — MGRS or LLV-DMS (upper-right); tap to decode (mini-lesson) */}
+            <button onClick={() => setShowDecode((v) => !v)} title="Decode this coordinate (MGRS / LLV-DMS lesson)"
+              className="absolute right-2 top-2 z-20 rounded px-1 font-mono text-[9px] font-semibold" style={{ background: "#0a0f16cc", color: cursorLL ? C.gold : C.dim }}>
+              {cursorLL ? fmt.coordAt(cursorLL.lat, cursorLL.lon) : fmt.coordAt(view.lat, view.lon)} <span style={{ color: C.dim }}>ⓘ</span>
+            </button>
+            {showDecode && (() => {
+              const p = cursorLL ?? { lat: view.lat, lon: view.lon };
+              const mp = latLonToMgrs(p.lat, p.lon, digits).split(" "); // [zoneBand, square, E, N]
+              const dms = (v: number, pos: string, neg: string) => { const h = v >= 0 ? pos : neg, a = Math.abs(v); const d = Math.floor(a), m = Math.floor((a - d) * 60), s = (((a - d) * 60 - m) * 60).toFixed(1); return `${d}°${String(m).padStart(2, "0")}'${s}"${h}`; };
+              const row = (k: string, val: string, c: string) => <div className="flex justify-between gap-2"><span style={{ color: C.dim }}>{k}</span><span className="font-mono" style={{ color: c }}>{val}</span></div>;
+              return (
+                <div className="absolute right-2 top-8 z-30 w-52 rounded-lg border p-2 text-[8px] shadow-2xl" style={{ background: C.panel, borderColor: C.cyan }}>
+                  <div className="mb-1 flex items-center justify-between"><span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: C.cyan }}>Coordinate decode</span><button onClick={() => setShowDecode(false)} style={{ color: C.dim }}>✕</button></div>
+                  <div className="mb-1 font-semibold" style={{ color: C.gold }}>MGRS · {latLonToMgrs(p.lat, p.lon, digits)}</div>
+                  {row("Zone · lat-band", mp[0], C.text)}
+                  {row("100 km square", mp[1], C.text)}
+                  {row("Easting (→E)", `${mp[2]} · ${(digits === 4 ? 10 : digits === 5 ? 1 : 0.1)} m`, C.text)}
+                  {row("Northing (↑N)", `${mp[3]} · ${(digits === 4 ? 10 : digits === 5 ? 1 : 0.1)} m`, C.text)}
+                  <div className="mb-1 mt-1.5 font-semibold" style={{ color: "#a78bfa" }}>LLV-DMS</div>
+                  {row("Latitude", dms(p.lat, "N", "S"), C.text)}
+                  {row("Longitude", dms(p.lon, "E", "W"), C.text)}
+                  {row("Decimal °", `${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`, C.dim)}
+                  <div className="mt-1 text-[7px]" style={{ color: C.dim }}>MGRS: 6°-wide zone · 8°-lat band · 100 km square · E/N within it. DMS: degrees·minutes·seconds.</div>
+                </div>
+              );
+            })()}
 
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2" style={{ borderLeft: `1px solid ${C.dim}`, borderTop: `1px solid ${C.dim}`, opacity: 0.5 }} />
             {/* 360° bearing scale */}
