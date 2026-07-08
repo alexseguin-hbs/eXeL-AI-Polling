@@ -26,7 +26,7 @@
  * World context strip: Natural Earth 50m borders (public domain). Elevation and
  * subsurface layers come later — see docs/security-2525/DATA_SOURCES.md.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2 } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
@@ -862,6 +862,7 @@ function AoMapPane(p: PaneProps) {
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld,
   } = p;
 
+  const clipId = "land" + useId().replace(/[^a-zA-Z0-9]/g, ""); // per-pane land clip (roads must not render in water)
   const [cursorLL, setCursorLL] = useState<{ lat: number; lon: number } | null>(null);
   const [cursorPx, setCursorPx] = useState<{ x: number; y: number } | null>(null);
   const [routeDraft, setRouteDraft] = useState<{ lat: number; lon: number }[]>([]);
@@ -1223,6 +1224,8 @@ function AoMapPane(p: PaneProps) {
                     <path d={borderPaths.countries} fill="#123d1f" fillRule="evenodd" />
                   </g>
                 )}
+                {/* land clip — so ROADS never render over the water shown by the base */}
+                {borderPaths && <defs><clipPath id={clipId}><path d={borderPaths.countries} fillRule="evenodd" /></clipPath></defs>}
                 {/* national + state boundaries (= continent/country/state lines), drawn under the OSM detail */}
                 {borderPaths && (
                   <g>
@@ -1238,9 +1241,9 @@ function AoMapPane(p: PaneProps) {
                     <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.4, Math.max(0.12, (14 / (view.spanKm * 1000)) * 100))} opacity="0.85" strokeLinecap="round" />
                   </g>
                 )}
-                {/* ROADS — grey tier hierarchy */}
+                {/* ROADS — grey tier hierarchy, clipped to land so none render in water */}
                 {osmPaths && roadsOn && (
-                  <g>
+                  <g clipPath={terrainOn && borderPaths && borderPaths.countries ? `url(#${clipId})` : undefined}>
                     <path d={osmPaths.tiers[2]} fill="none" stroke="#cbd5e1" strokeWidth="0.55" opacity="0.16" strokeLinecap="round" />
                     <path d={osmPaths.tiers[3]} fill="none" stroke="#cbd5e1" strokeWidth="1.0" opacity="0.2" strokeLinecap="round" />
                     <path d={osmPaths.tiers[4]} fill="none" stroke="#cbd5e1" strokeWidth="1.6" opacity="0.22" strokeLinecap="round" />
