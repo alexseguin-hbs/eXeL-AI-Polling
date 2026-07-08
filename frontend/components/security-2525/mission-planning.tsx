@@ -376,6 +376,21 @@ const CITY_POLYGONS: Record<string, [number, number][]> = {
   jacksonville: [[30.33, -80.6254], [30.7792, -80.7639], [31.1080, -81.1427], [31.2283, -81.66], [31.1080, -82.1773], [30.7792, -82.5561], [30.33, -82.6946], [29.8808, -82.5561], [29.5520, -82.1773], [29.4317, -81.66], [29.5520, -81.1427], [29.8808, -80.7639]],
 };
 
+// AOR = buffer outward from the AO border by `km` (10–100). Per-vertex radial offset
+// from the polygon centroid — robust for the roughly-convex AOs planners draw. [lat,lon].
+function bufferPolygon(poly: [number, number][], km: number): [number, number][] {
+  if (poly.length < 3 || km <= 0) return poly;
+  const clat = poly.reduce((a, p) => a + p[0], 0) / poly.length;
+  const clon = poly.reduce((a, p) => a + p[1], 0) / poly.length;
+  const cosc = Math.cos((clat * Math.PI) / 180) || 1e-6;
+  return poly.map(([la, lo]) => {
+    const vy = (la - clat) * 110.574, vx = (lo - clon) * 111.32 * cosc;
+    const L = Math.hypot(vx, vy) || 1e-6;
+    const ny = (vy / L) * km, nx = (vx / L) * km;
+    return [clat + (vy + ny) / 110.574, clon + (vx + nx) / (111.32 * cosc)] as [number, number];
+  });
+}
+
 /** NON-passive wheel listener so preventDefault() keeps zoom on the map. */
 function useWheel<T extends Element>(ref: React.RefObject<T | null>, handler: (e: WheelEvent) => void) {
   const h = useRef(handler);
@@ -893,6 +908,11 @@ interface PaneProps {
   onToggleMax: () => void;
   onHidePane?: () => void;
   onWorld?: () => void; // zoom out past AO scale → Earth/world view
+  // AO / AOR draw tool
+  drawingAo: boolean;
+  aoDraft: [number, number][];
+  onAoVertex: (lat: number, lon: number) => void;
+  drawnAo?: { poly: [number, number][]; aorKm: number };
 }
 
 function AoMapPane(p: PaneProps) {
@@ -901,6 +921,7 @@ function AoMapPane(p: PaneProps) {
     spanFactor, view, setView, otherView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld,
+    drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
 
   const clipId = "land" + useId().replace(/[^a-zA-Z0-9]/g, ""); // per-pane land clip (roads must not render in water)
@@ -1093,6 +1114,7 @@ function AoMapPane(p: PaneProps) {
     // 3D is a visualization mode; deselect only, place in 2D.
     if (is3d) { if (selected) setSelected(null); return; }
     const { lat, lon } = containerToLatLon(f.fx, f.fy);
+    if (drawingAo) { onAoVertex(lat, lon); return; } // AO draw mode → append vertex
     if (routeMode && selectedSupport) {
       if (e.button === 2) {
         setRouteDraft((pr) => [...pr, { lat, lon }]);
@@ -1340,6 +1362,22 @@ function AoMapPane(p: PaneProps) {
                   <polygon points={CITY_POLYGONS[ao.key].map(([la, lo]) => { const f = toFrac(la, lo); return `${(f.fx * 100).toFixed(2)},${(f.fy * 100).toFixed(2)}`; }).join(" ")}
                     fill={`${C.gold}08`} stroke={C.gold} strokeWidth="0.35" strokeDasharray="2 1.2" opacity="0.75" />
                 )}
+                {/* user-drawn AO (solid cyan) + its AOR buffer (dashed) */}
+                {drawnAo && (() => {
+                  const pf = (pts: [number, number][]) => pts.map(([la, lo]) => { const f = toFrac(la, lo); return `${(f.fx * 100).toFixed(2)},${(f.fy * 100).toFixed(2)}`; }).join(" ");
+                  return (<>
+                    <polygon points={pf(bufferPolygon(drawnAo.poly, drawnAo.aorKm))} fill="none" stroke={C.amber} strokeWidth="0.35" strokeDasharray="2.5 1.5" opacity="0.85" />
+                    <polygon points={pf(drawnAo.poly)} fill={`${C.cyan}0f`} stroke={C.cyan} strokeWidth="0.45" opacity="0.95" />
+                  </>);
+                })()}
+                {/* AO draft in progress — vertices + open edge */}
+                {drawingAo && aoDraft.length > 0 && (() => {
+                  const fs = aoDraft.map(([la, lo]) => toFrac(la, lo));
+                  return (<>
+                    <polyline points={fs.map((f) => `${(f.fx * 100).toFixed(2)},${(f.fy * 100).toFixed(2)}`).join(" ")} fill="none" stroke={C.cyan} strokeWidth="0.4" strokeDasharray="1 1" />
+                    {fs.map((f, i) => <circle key={i} cx={f.fx * 100} cy={f.fy * 100} r="0.7" fill={C.cyan} />)}
+                  </>);
+                })()}
 
                 {/* weapon-range coverage rings (public-source ranges) — planning aid */}
                 {rangeOn && placed.map((u) => {
@@ -2106,6 +2144,18 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [aoHidden, setAoHidden] = useState<Set<string>>(() => { try { return new Set<string>(JSON.parse(localStorage.getItem("sec2525.aoHidden") || "[]")); } catch { return new Set<string>(); } });
   useEffect(() => { try { localStorage.setItem("sec2525.aoHidden", JSON.stringify(Array.from(aoHidden))); } catch { /* quota */ } }, [aoHidden]);
   const toggleAoHidden = (k: string) => setAoHidden((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
+  // ── AO / AOR draw tool ── draw an AO polygon (tap vertices), set AOR buffer 10–100km ──
+  const [drawingAo, setDrawingAo] = useState(false);
+  const [aoDraft, setAoDraft] = useState<[number, number][]>([]);
+  const [drawnAos, setDrawnAos] = useState<Record<string, { poly: [number, number][]; aorKm: number }>>(() => {
+    try { return JSON.parse(localStorage.getItem("sec2525.drawnAos") || "{}"); } catch { return {}; }
+  });
+  useEffect(() => { try { localStorage.setItem("sec2525.drawnAos", JSON.stringify(drawnAos)); } catch { /* quota */ } }, [drawnAos]);
+  const addAoVertex = (lat: number, lon: number) => setAoDraft((d) => [...d, [lat, lon]]);
+  const saveDrawnAo = () => { if (aoDraft.length >= 3) { setDrawnAos((m) => ({ ...m, [aoKey]: { poly: aoDraft, aorKm: m[aoKey]?.aorKm ?? 25 } })); setAoDraft([]); setDrawingAo(false); } };
+  const setAorKm = (km: number) => setDrawnAos((m) => (m[aoKey] ? { ...m, [aoKey]: { ...m[aoKey], aorKm: Math.min(100, Math.max(10, km)) } } : m));
+  const deleteDrawnAo = () => setDrawnAos((m) => { const n = { ...m }; delete n[aoKey]; return n; });
+  useEffect(() => { setAoDraft([]); setDrawingAo(false); }, [aoKey]); // switching AO clears any in-progress draw
   const [showUlt, setShowUlt] = useState(false);         // ULT · Unit Line-up Table (setup layer)
   // ULT starts at the 001–008 setup nodes; operators ADD unit rows one at a time (persisted).
   const [ultRows, setUltRows] = useState<UltNode[]>(() => {
@@ -2344,6 +2394,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, cursorMode,
     osm, borders, dem, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
+    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey],
   };
 
   return (
@@ -2449,6 +2500,24 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               </div>
             </div>
           )}
+          {/* AO / AOR draw — tap map to add vertices; save; then set AOR buffer 10–100 km */}
+          <div className="flex items-center gap-1">
+            <button onClick={() => { setDrawingAo((v) => !v); setAoDraft([]); }} title="Draw AO polygon — tap the map to add vertices"
+              className="rounded border px-1.5 py-1 text-[10px] font-semibold" style={{ borderColor: drawingAo ? C.cyan : C.border, color: drawingAo ? C.cyan : C.dim }}>✎ AO</button>
+            {drawingAo && (<>
+              <span className="font-mono text-[9px]" style={{ color: C.dim }}>{aoDraft.length}</span>
+              <button onClick={() => setAoDraft((d) => d.slice(0, -1))} title="Undo last vertex" className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>↶</button>
+              <button onClick={saveDrawnAo} disabled={aoDraft.length < 3} title="Save AO (≥3 vertices)" className="rounded border px-1 py-0.5 text-[9px] font-bold" style={{ borderColor: aoDraft.length >= 3 ? C.green : C.border, color: aoDraft.length >= 3 ? C.green : C.border }}>✓</button>
+              <button onClick={() => { setDrawingAo(false); setAoDraft([]); }} title="Cancel" className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.red }}>✕</button>
+            </>)}
+            {!drawingAo && drawnAos[aoKey] && (<>
+              <span className="text-[9px] font-semibold" style={{ color: C.amber }}>AOR</span>
+              <input type="number" min={10} max={100} step={5} value={drawnAos[aoKey].aorKm} onChange={(e) => setAorKm(parseInt(e.target.value) || 10)}
+                className="w-11 rounded border bg-transparent px-1 py-0.5 text-[9px] font-mono" style={{ borderColor: C.border, color: C.text }} />
+              <span className="text-[9px]" style={{ color: C.dim }}>km</span>
+              <button onClick={deleteDrawnAo} title="Delete drawn AO" className="p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+            </>)}
+          </div>
           <button onClick={() => setMirror((m) => !m)} title={mirror ? "MIRROR — MAP ⇄ MINI locked; click to decouple" : "SPLIT — MAP and MINI roam independently; click to mirror"}
             className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
             style={{ borderColor: mirror ? C.cyan : C.border, color: mirror ? C.cyan : C.dim }}>
@@ -2604,7 +2673,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   <span className="text-[9px]" style={{ color: C.dim }}>Vert. exag. {contourCfg.vExag}×</span>
                   <input type="range" min={1} max={5} value={contourCfg.vExag} onChange={(e) => setContourCfg((c) => ({ ...c, vExag: parseInt(e.target.value) }))} className="w-20" />
                 </div>
-                <div className="text-[7px]" style={{ color: C.dim }}>SYNTHETIC (DEM pending: USGS 3DEP · Copernicus GLO-30 · GEBCO) · raise MSL to reveal sub-sea (bathymetry) contours</div>
+                <div className="text-[7px]" style={{ color: C.dim }}>REAL GEBCO 2020 DEM (land + ocean floor) where a tile covers the view; synthetic fallback elsewhere · raise MSL to reveal sub-sea (bathymetry) contours</div>
               </div>
             )}
             <div className="mb-2 flex items-center justify-between">
