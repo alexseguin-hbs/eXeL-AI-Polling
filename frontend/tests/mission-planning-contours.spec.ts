@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { computeContours, terrainMSL, niceStep, type ContourOpts } from "../lib/contours";
+import { computeContours, terrainMSL, niceStep, makeDemSampler, type ContourOpts, type Dem } from "../lib/contours";
 
 // SECURITY-2525 Mission Planning — contour line engine test.
 // Verifies marching-squares output: bounded line count, valid SVG paths, in-frame
@@ -54,6 +54,31 @@ test("terrainMSL: inland is land (>=0), Florida offshore is ocean (<0)", () => {
   expect(terrainMSL(27.9, -81.6)).toBeGreaterThanOrEqual(0);     // FL land (central)
   expect(terrainMSL(27.9, -84.0)).toBeLessThan(0);               // Gulf offshore
   expect(terrainMSL(27.9, -79.5)).toBeLessThan(0);               // Atlantic offshore
+});
+
+test("makeDemSampler: bilinear at corners, centre, and clamps outside the bbox", () => {
+  // 2×2 grid over [0,0,1,1]; row-major elev: row0 (N=1) = [10,20], row1 (S=0) = [30,40]
+  const dem: Dem = { bbox: [0, 0, 1, 1], nx: 2, ny: 2, elev: [10, 20, 30, 40] };
+  const s = makeDemSampler(dem);
+  expect(s(1, 0)).toBeCloseTo(10, 6);   // N,W
+  expect(s(1, 1)).toBeCloseTo(20, 6);   // N,E
+  expect(s(0, 0)).toBeCloseTo(30, 6);   // S,W
+  expect(s(0, 1)).toBeCloseTo(40, 6);   // S,E
+  expect(s(0.5, 0.5)).toBeCloseTo(25, 6); // centre = mean
+  expect(s(1, 0.5)).toBeCloseTo(15, 6); // N edge midpoint
+  expect(s(5, -5)).toBeCloseTo(10, 6);  // clamps to the N,W corner outside bbox
+});
+
+test("computeContours uses a real DEM sampler when provided (ocean floor negative)", () => {
+  // synthetic 'coastline' grid: west high land, east deep sea
+  const nx = 8, ny = 8, elev: number[] = [];
+  for (let r = 0; r < ny; r++) for (let c = 0; c < nx; c++) elev.push(200 - (c / (nx - 1)) * 500); // +200→-300
+  const dem: Dem = { bbox: [-1, -1, 1, 1], nx, ny, elev };
+  const cs = computeContours({ latMin: -0.9, latMax: 0.9, lonMin: -0.9, lonMax: 0.9 },
+    { count: 6, interval: 0, fidelity: "med", seaLevel: 0 }, makeDemSampler(dem));
+  expect(cs.min).toBeLessThan(0);                     // ocean depth present
+  expect(cs.lines.some((l) => l.land)).toBeTruthy();  // land contours
+  expect(cs.lines.some((l) => !l.land)).toBeTruthy(); // bathymetry contours
 });
 
 test("deterministic — identical box+opts yield identical geometry", () => {
