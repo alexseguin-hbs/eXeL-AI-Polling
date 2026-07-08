@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""SECURITY-2525 — build dem-<key>.json real elevation grids (opentopodata / SRTM 30m).
+"""SECURITY-2525 — build dem-<key>.json real elevation grids (opentopodata / GEBCO 2020).
 
 Samples a lat/lon grid of REAL elevation for each saved region so the map draws
 real topographic contours (replaces the synthetic placeholder). Output:
   { bbox:[W,S,E,N], nx, ny, elev:[row-major ny*nx, metres MSL] }
-Client bilinear-samples this grid. Data: opentopodata.org (SRTM/GEBCO, ODbL/public).
+Client bilinear-samples this grid. Data: opentopodata.org GEBCO 2020 (public).
 """
 import json, os, sys, time, urllib.request, urllib.parse
 

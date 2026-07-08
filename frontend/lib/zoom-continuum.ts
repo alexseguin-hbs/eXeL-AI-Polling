@@ -1,7 +1,7 @@
 /**
  * SECURITY-2525 · Mission Planning zoom continuum
  * ================================================
- * One geometric zoom from 10 m detail out to ~2000 km (continental), then a hand-off
+ * One geometric zoom from 10 m detail out to ~6000 km (continental), then a hand-off
  * to the Earth/world view. Pure + deterministic so it can be unit-tested at the
  * 10 m / 10 km / 100 km / 1000 km step scales without a browser.
  */

@@ -2,13 +2,15 @@
  * SECURITY-2525 · Elevation contour engine (pure + deterministic)
  * ================================================================
  * Marching squares over a capped grid → 3–9 "nice" levels as SVG line paths in the
- * 0–100 map viewBox. Land = at/above MSL(seaLevel); bathymetry = below. The sampler
- * is `terrainMSL` today (synthetic, DEM PENDING) — swap for real USGS 3DEP /
- * Copernicus GLO-30 / GEBCO tiles behind this same interface later (R-CORE modularity).
+ * 0–100 map viewBox. Land = at/above MSL(seaLevel); bathymetry = below.
+ * The PRIMARY sampler is a real GEBCO 2020 DEM (makeDemSampler over dem-<key>.json,
+ * selected by the DEM pyramid in mission-planning). `terrainMSL`/`synthElevation`
+ * below are the graceful FALLBACK when no DEM tile covers the view (R-CORE modularity:
+ * stable sampler contract, capability-detected implementation).
  * Extracted from the map component so the line geometry can be unit-tested.
  */
 
-/** SYNTHETIC elevation (meters) — deterministic pseudo-terrain until real DEM. */
+/** SYNTHETIC elevation (meters) — deterministic pseudo-terrain FALLBACK when no DEM tile covers the view. */
 export function synthElevation(lat: number, lon: number): number {
   const e =
     120 * Math.sin(lon * 3.0 + 0.3) * Math.cos(lat * 2.7) +
