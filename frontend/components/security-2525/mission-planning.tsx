@@ -1066,8 +1066,10 @@ function AoMapPane(p: PaneProps) {
     const N = 64;
     const lonAt = (i: number) => box.lonMin + (i / (N - 1)) * (box.lonMax - box.lonMin);
     const latAt = (i: number) => box.latMax - (i / (N - 1)) * (box.latMax - box.latMin);
-    const sampleRow = (lat: number) => Array.from({ length: N }, (_, i) => terrainMSL(lat, lonAt(i)));
-    const sampleCol = (lon: number) => Array.from({ length: N }, (_, i) => terrainMSL(latAt(i), lon));
+    // Elevation profiles are LAND elevation only — floor at MSL so ocean/Gulf reads flat (0), not negative.
+    const landElev = (lat: number, lon: number) => Math.max(0, terrainMSL(lat, lon));
+    const sampleRow = (lat: number) => Array.from({ length: N }, (_, i) => landElev(lat, lonAt(i)));
+    const sampleCol = (lon: number) => Array.from({ length: N }, (_, i) => landElev(latAt(i), lon));
     const front = sampleRow((box.latMin + box.latMax) / 2);
     const col = sampleCol((box.lonMin + box.lonMax) / 2);
     const all = [...front, ...col];
