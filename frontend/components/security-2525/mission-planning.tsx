@@ -1469,6 +1469,11 @@ function AoMapPane(p: PaneProps) {
                     <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28} count={u.count} />
                   </span>
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
+                  {u.moving && (
+                    <span className="whitespace-nowrap font-mono text-[7px] font-bold" style={{ color: C.green }}>
+                      {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude)}m` : ""}
+                    </span>
+                  )}
                 </button>
               );
             })}
