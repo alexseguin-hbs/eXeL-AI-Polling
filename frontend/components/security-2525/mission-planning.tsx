@@ -39,7 +39,7 @@ import {
 import { PfieldVenue } from "@/components/security-2525/pfield-venue";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { MIN_SPAN_KM, MAX_SPAN_KM, ZOOM_FACTOR, shouldHandOffToWorld } from "@/lib/zoom-continuum";
-import { terrainMSL, computeContours, type ContourOpts } from "@/lib/contours";
+import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { SpectrumPicker } from "@/components/security-2525/spectrum-picker";
 
@@ -303,6 +303,43 @@ let borderCache: BorderData | null = null;
 interface OsmWay { t: number; p: [number, number][]; bb?: [number, number, number, number] }
 interface OsmData { roads: OsmWay[]; water: [number, number][][]; waterPolys: [number, number][][] }
 const osmCache: Record<string, OsmData> = {};
+
+// ── Real DEM (GEBCO) resolution pyramid ──────────────────────────────────────
+// bbox [W,S,E,N]. The client picks the FINEST tile (smallest area) that fully
+// contains the view → base tiles up close, state tiles zoomed out. Mirror of
+// scripts/security-2525/build_dem.py REGIONS. Tiny (~8 KB) so load is instant.
+const DEM_INDEX: { key: string; bbox: [number, number, number, number] }[] = [
+  { key: "capitol", bbox: [-98.34, 29.67, -97.14, 30.88] },
+  { key: "mabry", bbox: [-98.36, 29.72, -97.16, 30.92] },
+  { key: "dc", bbox: [-77.64, 38.31, -76.44, 39.51] },
+  { key: "jblm", bbox: [-123.18, 46.49, -121.98, 47.69] },
+  { key: "campblanding", bbox: [-82.58, 29.36, -81.38, 30.56] },
+  { key: "nasjax", bbox: [-82.28, 29.64, -81.08, 30.84] },
+  { key: "mayport", bbox: [-82.02, 29.79, -80.82, 30.99] },
+  { key: "naspensacola", bbox: [-87.92, 29.75, -86.72, 30.95] },
+  { key: "naswhiting", bbox: [-87.62, 30.12, -86.42, 31.32] },
+  { key: "naskeywest", bbox: [-82.29, 23.98, -81.09, 25.18] },
+  { key: "jacksonville", bbox: [-82.26, 29.73, -81.06, 30.93] },
+  { key: "florida", bbox: [-83.8, 24.4, -79.4, 31.0] },
+  { key: "dc100", bbox: [-78.5, 37.9, -75.6, 39.9] },
+  { key: "floridastate", bbox: [-87.7, 24.3, -79.9, 31.1] },
+  { key: "washington", bbox: [-124.9, 45.5, -116.9, 49.1] },
+  { key: "texas", bbox: [-106.7, 25.8, -93.4, 36.6] },
+];
+const demArea = (b: [number, number, number, number]) => (b[2] - b[0]) * (b[3] - b[1]);
+/** Finest DEM tile fully covering the view; else the coarsest tile over its centre. */
+function pickDemKey(lat: number, lon: number, spanKm: number): string | null {
+  const halfKm = spanKm * 0.75;
+  const dLat = halfKm / 110.574, dLon = halfKm / (111.32 * Math.cos((lat * Math.PI) / 180));
+  const W = lon - dLon, E = lon + dLon, S = lat - dLat, N = lat + dLat;
+  const covers = DEM_INDEX.filter((d) => d.bbox[0] <= W && d.bbox[2] >= E && d.bbox[1] <= S && d.bbox[3] >= N)
+    .sort((a, z) => demArea(a.bbox) - demArea(z.bbox));
+  if (covers.length) return covers[0].key;
+  const overCentre = DEM_INDEX.filter((d) => d.bbox[0] <= lon && d.bbox[2] >= lon && d.bbox[1] <= lat && d.bbox[3] >= lat)
+    .sort((a, z) => demArea(z.bbox) - demArea(a.bbox));
+  return overCentre.length ? overCentre[0].key : null;
+}
+const demCache: Record<string, Dem> = {};
 
 /** NON-passive wheel listener so preventDefault() keeps zoom on the map. */
 function useWheel<T extends Element>(ref: React.RefObject<T | null>, handler: (e: WheelEvent) => void) {
@@ -788,6 +825,7 @@ interface PaneProps {
   setView: (u: (v: ViewState) => ViewState) => void;
   osm: OsmData | null;
   borders: BorderData | null;
+  dem: Dem | null;
   // shared placement state (read on the map surface)
   inventory: InvItem[];
   placed: Placed[];
@@ -814,7 +852,7 @@ interface PaneProps {
 function AoMapPane(p: PaneProps) {
   const {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
-    spanFactor, view, setView, osm, borders, inventory, placed, placedSupport, selected, hoverAsset,
+    spanFactor, view, setView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld,
   } = p;
@@ -1061,10 +1099,12 @@ function AoMapPane(p: PaneProps) {
     return { countries: build(borders.countries, borderBB.countries), states: build(borders.usStates, borderBB.states) };
   }, [borders, borderBB, box]);
 
-  // Topographic contours (memoized on box + settings; DEM-pending synthetic source).
+  // Real DEM sampler when a GEBCO tile covers the view, else synthetic fallback.
+  const sampler = useMemo(() => (dem ? makeDemSampler(dem) : terrainMSL), [dem]);
+  // Topographic contours (memoized on box + settings + DEM; real elevation + ocean floor).
   const contourSet = useMemo(
-    () => (contourCfg.enable ? computeContours(box, contourCfg) : null),
-    [box, contourCfg]
+    () => (contourCfg.enable ? computeContours(box, contourCfg, sampler) : null),
+    [box, contourCfg, sampler]
   );
 
   // Elevation profiles (primary pane only — skipped entirely on panes without the scale).
@@ -1074,7 +1114,7 @@ function AoMapPane(p: PaneProps) {
     const lonAt = (i: number) => box.lonMin + (i / (N - 1)) * (box.lonMax - box.lonMin);
     const latAt = (i: number) => box.latMax - (i / (N - 1)) * (box.latMax - box.latMin);
     // Elevation profiles are LAND elevation only — floor at MSL so ocean/Gulf reads flat (0), not negative.
-    const landElev = (lat: number, lon: number) => Math.max(0, terrainMSL(lat, lon));
+    const landElev = (lat: number, lon: number) => Math.max(0, sampler(lat, lon));
     const sampleRow = (lat: number) => Array.from({ length: N }, (_, i) => landElev(lat, lonAt(i)));
     const sampleCol = (lon: number) => Array.from({ length: N }, (_, i) => landElev(latAt(i), lon));
     const front = sampleRow((box.latMin + box.latMax) / 2);
@@ -1098,7 +1138,7 @@ function AoMapPane(p: PaneProps) {
     col.forEach((e, i) => { if (e > col[chi]) chi = i; if (e < col[clo]) clo = i; });
     const cmark = (i: number) => ({ yv: (i / (N - 1)) * 100, xv: rx(col[i]), e: col[i], lat: latAt(i), lon: (box.lonMin + box.lonMax) / 2 });
     return { min, max, rng, frontFill, rightPath, y, high: mark(hi), low: mark(lo), colHigh: cmark(chi), colLow: cmark(clo) };
-  }, [box, showElevation]);
+  }, [box, showElevation, sampler]);
 
   const resetView = () => setView(() => initView(ao, spanFactor));
   const breadcrumb = geoContext(view.lat, view.lon, view.spanKm);
@@ -1947,6 +1987,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
   const [borders, setBorders] = useState<BorderData | null>(borderCache);
+  const [dem, setDem] = useState<Dem | null>(null);   // real GEBCO grid for the current view
+  const demKeyRef = useRef<string | null>(null);
   const [isFs, setIsFs] = useState(false);
   const [railOpen, setRailOpen] = useState(true);          // left ASSET/SUPPORT rail (collapsible)
   const [rightOpen, setRightOpen] = useState(true);        // right deployed-items rail (collapsible)
@@ -2016,6 +2058,17 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const toggle3dB = () => { setIs3dB((v) => { const n = !v; if (mirror) setIs3dA(n); return n; }); };
   const setModeA_ = (m: "world" | "ao") => { setModeA(m); if (mirror) setModeB(m); };
   const setModeB_ = (m: "world" | "ao") => { setModeB(m); if (mirror) setModeA(m); };
+  // Pick + load the finest real DEM tile covering the current view (resolution pyramid).
+  useEffect(() => {
+    const key = pickDemKey(viewA.lat, viewA.lon, viewA.spanKm);
+    if (key === demKeyRef.current) return;
+    demKeyRef.current = key;
+    if (!key) { setDem(null); return; }
+    if (demCache[key]) { setDem(demCache[key]); return; }
+    fetch(`/security-2525/dem-${key}.json`).then((r) => r.json())
+      .then((d: Dem) => { demCache[key] = d; if (demKeyRef.current === key) setDem(d); })
+      .catch(() => setDem(null));
+  }, [viewA.lat, viewA.lon, viewA.spanKm]);
 
   const fmt = useMemo(() => makeFormatters(coordFmt, digits, unit), [coordFmt, digits, unit]);
 
@@ -2135,7 +2188,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   const paneCommon = {
     ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, cursorMode,
-    osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
+    osm, borders, dem, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
   };
 

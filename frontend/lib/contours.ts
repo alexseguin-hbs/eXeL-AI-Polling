@@ -35,6 +35,24 @@ export function terrainMSL(lat: number, lon: number): number {
   return synthElevation(lat, lon);
 }
 
+// A real DEM grid (GEBCO/SRTM) — bbox [W,S,E,N], row-major elev (metres MSL, ocean<0).
+export interface Dem { bbox: [number, number, number, number]; nx: number; ny: number; elev: number[]; source?: string }
+/** Bilinear sampler over a DEM grid; clamps to the grid edge outside the bbox. */
+export function makeDemSampler(dem: Dem): (lat: number, lon: number) => number {
+  const [W, S, E, N] = dem.bbox, { nx, ny, elev } = dem;
+  return (lat, lon) => {
+    const fx = Math.min(1, Math.max(0, (lon - W) / (E - W))) * (nx - 1);
+    const fy = Math.min(1, Math.max(0, (N - lat) / (N - S))) * (ny - 1);
+    const x0 = Math.floor(fx), y0 = Math.floor(fy);
+    const x1 = Math.min(nx - 1, x0 + 1), y1 = Math.min(ny - 1, y0 + 1);
+    const tx = fx - x0, ty = fy - y0;
+    const g = (r: number, c: number) => elev[r * nx + c] ?? 0;
+    const top = g(y0, x0) * (1 - tx) + g(y0, x1) * tx;
+    const bot = g(y1, x0) * (1 - tx) + g(y1, x1) * tx;
+    return top * (1 - ty) + bot * ty;
+  };
+}
+
 export interface ContourOpts { count: number; interval: number; fidelity: "low" | "med" | "high"; seaLevel: number; }
 export interface ContourLine { level: number; d: string; land: boolean; major: boolean; label: { x: number; y: number } | null; }
 export interface ContourSet { lines: ContourLine[]; min: number; max: number; step: number; count: number; }
@@ -51,7 +69,11 @@ const MS_CASES: Record<number, [string, string][]> = {
   11: [["T", "R"]], 12: [["L", "R"]], 13: [["B", "R"]], 14: [["L", "B"]],
 };
 
-export function computeContours(box: { latMin: number; latMax: number; lonMin: number; lonMax: number }, o: ContourOpts): ContourSet {
+export function computeContours(
+  box: { latMin: number; latMax: number; lonMin: number; lonMax: number },
+  o: ContourOpts,
+  sampler: (lat: number, lon: number) => number = terrainMSL, // real DEM when available, else synthetic
+): ContourSet {
   const G = o.fidelity === "high" ? 72 : o.fidelity === "low" ? 32 : 48;
   const V: number[][] = [];
   for (let r = 0; r < G; r++) {
@@ -59,7 +81,7 @@ export function computeContours(box: { latMin: number; latMax: number; lonMin: n
     const row: number[] = [];
     for (let c = 0; c < G; c++) {
       const lon = box.lonMin + (c / (G - 1)) * (box.lonMax - box.lonMin);
-      row.push(terrainMSL(lat, lon) - o.seaLevel); // MSL-referenced (land ≥0, ocean <0)
+      row.push(sampler(lat, lon) - o.seaLevel); // MSL-referenced (land ≥0, ocean <0)
     }
     V.push(row);
   }
