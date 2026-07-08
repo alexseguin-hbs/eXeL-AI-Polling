@@ -2160,6 +2160,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [borders, setBorders] = useState<BorderData | null>(borderCache);
   const [dem, setDem] = useState<Dem | null>(null);   // real GEBCO grid for the current view
   const demKeyRef = useRef<string | null>(null);
+  // Champion/challenger map engine: "current" (shipped) vs "beta" (6-face pull-as-you-need:
+  // prefetch zoom-in/out tiles so the next zoom is instant). Default current; A/B switch in Settings.
+  const [mapEngine, setMapEngine] = useState<"current" | "beta">(() => ((typeof localStorage !== "undefined" && localStorage.getItem("sec2525.mapEngine")) === "beta" ? "beta" : "current"));
+  useEffect(() => { try { localStorage.setItem("sec2525.mapEngine", mapEngine); } catch { /* quota */ } }, [mapEngine]);
   const [isFs, setIsFs] = useState(false);
   const [railOpen, setRailOpen] = useState(true);          // left ASSET/SUPPORT rail (collapsible)
   const [rightOpen, setRightOpen] = useState(true);        // right deployed-items rail (collapsible)
@@ -2259,7 +2263,17 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     fetch(`/security-2525/dem-${key}.json`).then((r) => r.json())
       .then((d: Dem) => { demCache[key] = d; if (demKeyRef.current === key) setDem(d); })
       .catch(() => setDem(null));
-  }, [viewA.lat, viewA.lon, viewA.spanKm]);
+    // 6-face BETA: prefetch the zoom-in (finer) + zoom-out (coarser) tiles so the next
+    // zoom is instant — the "pull-as-you-need" cube seed. Cache-only, no render change.
+    if (mapEngine === "beta") {
+      for (const s of [viewA.spanKm / 3, viewA.spanKm * 3]) {
+        const pk = pickDemKey(viewA.lat, viewA.lon, s);
+        if (pk && pk !== key && !demCache[pk]) {
+          fetch(`/security-2525/dem-${pk}.json`).then((r) => r.json()).then((d: Dem) => { demCache[pk] = d; }).catch(() => { /* prefetch best-effort */ });
+        }
+      }
+    }
+  }, [viewA.lat, viewA.lon, viewA.spanKm, mapEngine]);
 
   const fmt = useMemo(() => makeFormatters(coordFmt, digits, unit), [coordFmt, digits, unit]);
 
@@ -2674,6 +2688,17 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 <button key={m} onClick={() => setCursor(m)} className="flex-1 px-2 py-1"
                   style={{ background: cursorMode === m ? "#152238" : "transparent", color: cursorMode === m ? C.cyan : C.dim }}>{label}</button>
               ))}
+            </div>
+            {/* Map engine A/B — CURRENT (shipped) vs 6-FACE β (prefetch pull-as-you-need) */}
+            <div className="mt-2 border-t pt-2" style={{ borderColor: C.border }}>
+              <div className="mb-1 text-[10px]" style={{ color: C.text }}>Map engine <span className="text-[8px]" style={{ color: C.dim }}>(A/B test)</span></div>
+              <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+                {([["current", "CURRENT"], ["beta", "6-FACE β"]] as const).map(([m, label]) => (
+                  <button key={m} onClick={() => setMapEngine(m)} className="flex-1 px-2 py-1"
+                    style={{ background: mapEngine === m ? "#152238" : "transparent", color: mapEngine === m ? C.cyan : C.dim }}>{label}</button>
+                ))}
+              </div>
+              <div className="mt-1 text-[7px]" style={{ color: C.dim }}>β prefetches zoom-in/out DEM tiles so the next zoom is instant. Safe to toggle live.</div>
             </div>
           </div>
         )}
