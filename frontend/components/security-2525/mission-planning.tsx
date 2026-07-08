@@ -532,6 +532,13 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label }: { aoKey: string; onSe
     setFlat((f) => {
       const w = Math.min(W, Math.max(0.02, f.w * k)), h = w * (f.h / f.w);
       const mx = f.x + f.w / 2, my = f.y + f.h / 2;
+      // zooming IN tight over an AO → hand off to the tactical AO map (continuous world→place)
+      if (e.deltaY < 0 && onEnterAo && w < W * 0.03) {
+        const clat = 90 - (my / H) * 180, clon = (mx / W) * 360 - 180;
+        let best = "", bd = Infinity;
+        for (const a of AOS) { const d = Math.hypot(a.center[0] - clat, a.center[1] - clon); if (d < bd) { bd = d; best = a.key; } }
+        if (best && bd < 1.2) { onEnterAo(best); return f; }
+      }
       return { w, h, x: mx - w / 2, y: my - h / 2 };
     });
   });
@@ -540,7 +547,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label }: { aoKey: string; onSe
       {mode === "globe" ? (
         <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} />
       ) : (
-        <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid meet"
+        <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full touch-none" role="img"
           style={{ cursor: flatDrag.current ? "grabbing" : "grab" }}
           aria-label="World context map — country + US state borders (Natural Earth 50m); scroll to zoom, drag to pan"
