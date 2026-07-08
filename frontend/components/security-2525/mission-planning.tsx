@@ -42,6 +42,7 @@ import { MIN_SPAN_KM, MAX_SPAN_KM, ZOOM_FACTOR, shouldHandOffToWorld } from "@/l
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { SpectrumPicker } from "@/components/security-2525/spectrum-picker";
+import { ULT_ROSTER } from "@/components/security-2525/ult-data";
 
 const C = {
   bg: "#0a0e14", panel: "#111826", border: "#1e2b3a",
@@ -2006,6 +2007,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
   const [showSettings, setShowSettings] = useState(false);
   const [aoMenuOpen, setAoMenuOpen] = useState(false);   // AO/mission dropdown (declutters the scroll row)
+  const [showUlt, setShowUlt] = useState(false);         // ULT · Unit Line-up Table (setup layer)
   const aoStateOf = (k: string) => (k === "dc" ? "DC" : k === "jblm" ? "WA" : k === "capitol" || k === "mabry" ? "TX" : "FL");
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
@@ -2254,10 +2256,41 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             </div>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="relative flex shrink-0 items-center gap-2">
           <span className="hidden whitespace-nowrap font-mono text-[10px] md:inline" style={{ color: C.dim }}>
             {fmt.coordAt(ao.center[0], ao.center[1])}
           </span>
+          {/* ULT · Unit Line-up Table — the COMM/LINK setup layer (who's in the fight) */}
+          <button onClick={() => setShowUlt((v) => !v)} title="ULT — Unit Line-up Table (setup: units · COMM · LINK)"
+            className="rounded border px-1.5 py-1 text-[10px] font-semibold"
+            style={{ borderColor: showUlt ? C.cyan : C.border, color: showUlt ? C.cyan : C.dim }}>ULT</button>
+          {showUlt && (
+            <div className="absolute right-0 top-9 z-50 max-h-[70vh] w-[min(92vw,560px)] overflow-auto rounded-lg border shadow-2xl" style={{ background: C.panel, borderColor: C.cyan }}>
+              <div className="sticky top-0 flex items-center justify-between border-b px-2 py-1" style={{ background: C.panel, borderColor: C.border }}>
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>ULT · Unit Line-up (SETUP) <span style={{ color: C.dim }}>— {ULT_ROSTER.length} nodes</span></span>
+                <button onClick={() => setShowUlt(false)} className="text-[10px] font-semibold" style={{ color: C.dim }}>✕</button>
+              </div>
+              <table className="w-full border-collapse text-[8px]">
+                <thead><tr style={{ color: C.dim }}>
+                  {["ID", "NODE", "DESC", "SUP", "COMM", "PAX", "EQUIP"].map((h) => <th key={h} className="border-b px-1 py-0.5 text-left font-semibold" style={{ borderColor: C.border }}>{h}</th>)}
+                </tr></thead>
+                <tbody>
+                  {ULT_ROSTER.map((u) => (
+                    <tr key={u.id} className="hover:bg-white/5">
+                      <td className="border-b px-1 py-0.5 font-mono" style={{ borderColor: C.border, color: C.gold }}>{u.id}</td>
+                      <td className="border-b px-1 py-0.5 font-mono" style={{ borderColor: C.border, color: C.cyan }}>{u.node}</td>
+                      <td className="border-b px-1 py-0.5" style={{ borderColor: C.border, color: C.text }}>{u.desc}</td>
+                      <td className="border-b px-1 py-0.5 font-mono" style={{ borderColor: C.border, color: C.dim }}>{u.supervisor}</td>
+                      <td className="border-b px-1 py-0.5" style={{ borderColor: C.border, color: "#a78bfa" }}>{u.comm}</td>
+                      <td className="border-b px-1 py-0.5 text-right font-mono" style={{ borderColor: C.border, color: C.text }}>{u.personnel}</td>
+                      <td className="border-b px-1 py-0.5" style={{ borderColor: C.border, color: C.dim }}>{u.equipment}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-2 py-1 text-[8px]" style={{ color: C.dim }}>Evidence / classification / replay only — establishes WHO is in the fight, WHO they report to (LINK), WHICH net they ride (COMM) before anything is placed.</div>
+            </div>
+          )}
           <button onClick={() => setMirror((m) => !m)} title={mirror ? "MIRROR — MAP ⇄ MINI locked; click to decouple" : "SPLIT — MAP and MINI roam independently; click to mirror"}
             className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
             style={{ borderColor: mirror ? C.cyan : C.border, color: mirror ? C.cyan : C.dim }}>
