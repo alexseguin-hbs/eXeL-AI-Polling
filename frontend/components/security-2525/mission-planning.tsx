@@ -823,6 +823,7 @@ interface PaneProps {
   spanFactor: number;
   view: ViewState;
   setView: (u: (v: ViewState) => ViewState) => void;
+  otherView?: ViewState;  // the other pane's view → draw its viewport rectangle here
   osm: OsmData | null;
   borders: BorderData | null;
   dem: Dem | null;
@@ -852,7 +853,7 @@ interface PaneProps {
 function AoMapPane(p: PaneProps) {
   const {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
-    spanFactor, view, setView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
+    spanFactor, view, setView, otherView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld,
   } = p;
@@ -1427,6 +1428,26 @@ function AoMapPane(p: PaneProps) {
                 3D · VIEW — switch to 2D to place
               </div>
             )}
+
+            {/* the OTHER pane's viewport — "you are here" link between MAP ⇄ MINI MAP */}
+            {otherView && Math.abs(otherView.spanKm - view.spanKm) > 1e-6 && (() => {
+              const oh = otherView.spanKm / 2;
+              const odLat = oh / 110.574, odLon = oh / (111.32 * Math.cos((otherView.lat * Math.PI) / 180));
+              const corners: [number, number][] = [
+                [otherView.lat + odLat, otherView.lon - odLon], [otherView.lat + odLat, otherView.lon + odLon],
+                [otherView.lat - odLat, otherView.lon + odLon], [otherView.lat - odLat, otherView.lon - odLon],
+              ];
+              const pts = corners.map(([la, lo]) => project(la, lo));
+              // only draw when the other view is (partly) inside this pane and not larger than it
+              if (otherView.spanKm > view.spanKm * 4) return null;
+              if (!pts.some((p) => p.fx > -0.4 && p.fx < 1.4 && p.fy > -0.4 && p.fy < 1.4)) return null;
+              return (
+                <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <polygon points={pts.map((p) => `${(p.fx * 100).toFixed(2)},${(p.fy * 100).toFixed(2)}`).join(" ")}
+                    fill={`${C.cyan}14`} stroke={C.cyan} strokeWidth="0.4" strokeDasharray="1.5 1" />
+                </svg>
+              );
+            })()}
 
             {/* compass */}
             <button
@@ -2453,7 +2474,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             </div>
           ) : (
             <AoMapPane {...paneCommon} label="MAP" showElevation spanFactor={1}
-              view={viewA} setView={setViewA_} is3d={is3dA} onToggle3d={toggle3dA}
+              view={viewA} setView={setViewA_} otherView={viewB} is3d={is3dA} onToggle3d={toggle3dA}
               maximized={mapMax} onToggleMax={() => setMapMax((m) => !m)} onWorld={() => setModeA_("world")} />
           )}
           {miniOpen ? (
@@ -2464,7 +2485,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   onEnterAo={(k) => enterAo(k, setModeB_)} />
               ) : (
                 <AoMapPane {...paneCommon} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
-                  view={viewB} setView={setViewB_} is3d={is3dB} onToggle3d={toggle3dB}
+                  view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
                   maximized={false} onToggleMax={() => setMapMax((m) => !m)} onHidePane={() => setMiniOpen(false)} onWorld={() => setModeB_("world")} />
               )}
             </div>
