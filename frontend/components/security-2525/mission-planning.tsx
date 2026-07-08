@@ -2331,14 +2331,14 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             className="rounded border px-1.5 py-1 text-[10px] font-semibold"
             style={{ borderColor: showUlt ? C.cyan : C.border, color: showUlt ? C.cyan : C.dim }}>ULT</button>
           {showUlt && (
-            <div className="absolute right-0 top-9 z-50 max-h-[70vh] w-[min(92vw,560px)] overflow-auto rounded-lg border shadow-2xl" style={{ background: C.panel, borderColor: C.cyan }}>
+            <div className="absolute right-0 top-9 z-50 max-h-[70vh] w-[min(96vw,760px)] overflow-auto rounded-lg border shadow-2xl" style={{ background: C.panel, borderColor: C.cyan }}>
               <div className="sticky top-0 flex items-center justify-between border-b px-2 py-1" style={{ background: C.panel, borderColor: C.border }}>
                 <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>ULT · Unit Line-up (SETUP) <span style={{ color: C.dim }}>— {ultRows.length} nodes</span></span>
                 <button onClick={() => setShowUlt(false)} className="text-[10px] font-semibold" style={{ color: C.dim }}>✕</button>
               </div>
               <table className="w-full border-collapse text-[8px]">
                 <thead><tr style={{ color: C.dim }}>
-                  {["ID", "NODE", "DESC", "SUP", "COMM", "PAX", "EQUIP", ""].map((h, i) => <th key={i} className="border-b px-1 py-0.5 text-left font-semibold" style={{ borderColor: C.border }}>{h}</th>)}
+                  {["ID", "NODE", "DESC", "SUP", "COMM", "PAX", "WPN", "VEH", "EQUIP", "NOTES", ""].map((h, i) => <th key={i} className="border-b px-1 py-0.5 text-left font-semibold" style={{ borderColor: C.border }}>{h}</th>)}
                 </tr></thead>
                 <tbody>
                   {ultRows.map((u, i) => {
@@ -2354,7 +2354,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                         <td className="border-b" style={{ borderColor: C.border }}>{cell(u.supervisor, (v) => updUlt(i, { supervisor: v }), C.dim, true)}</td>
                         <td className="border-b" style={{ borderColor: C.border }}>{cell(u.comm, (v) => updUlt(i, { comm: v }), "#a78bfa")}</td>
                         <td className="border-b" style={{ borderColor: C.border }}>{cell(String(u.personnel), (v) => updUlt(i, { personnel: parseInt(v) || 0 }), C.text, true)}</td>
+                        <td className="border-b" style={{ borderColor: C.border }}>{cell(String(u.rifles), (v) => updUlt(i, { rifles: parseInt(v) || 0 }), C.amber, true)}</td>
+                        <td className="border-b" style={{ borderColor: C.border }}>{cell(String(u.vehicles), (v) => updUlt(i, { vehicles: parseInt(v) || 0 }), C.text, true)}</td>
                         <td className="border-b" style={{ borderColor: C.border }}>{cell(u.equipment, (v) => updUlt(i, { equipment: v }), C.dim)}</td>
+                        <td className="border-b" style={{ borderColor: C.border }}>{cell(u.notes, (v) => updUlt(i, { notes: v }), C.dim)}</td>
                         <td className="border-b text-center" style={{ borderColor: C.border }}><button onClick={() => delUltRow(i)} title="Delete row" className="px-1 font-bold" style={{ color: C.red }}>✕</button></td>
                       </tr>
                     );
