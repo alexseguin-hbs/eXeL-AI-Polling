@@ -24,7 +24,18 @@ BASES = {
     "naswhiting":   (30.7241, -87.0219, 16),
     "naskeywest":   (24.5758, -81.6889, 18),
     "jacksonville": (30.3322, -81.6557, 16),
+    # Texas >1M metros — 100 km buffer, MAJOR roads only (see MAJOR_ONLY) to stay phone-sized
+    "houston":     (29.7604, -95.3698, 100),
+    "sanantonio":  (29.4241, -98.4936, 100),
+    "dallas":      (32.7767, -96.7970, 100),
+    "fortworth":   (32.7555, -97.3308, 100),
+    "austin":      (30.2672, -97.7431, 100),
 }
+# Large-radius metros: only the highest-order roads (motorway/trunk/primary) + coarse
+# simplify so 100 km tiles stay phone-sized (~2-4 MB). Secondary+ would balloon to 10 MB+.
+MAJOR_ONLY = {"houston", "sanantonio", "dallas", "fortworth", "austin"}
+MAJOR_TIERS = {"motorway": 4, "trunk": 4, "primary": 4,
+               "motorway_link": 4, "trunk_link": 4, "primary_link": 4}
 TIER = {"motorway": 4, "trunk": 4, "primary": 4, "secondary": 3, "tertiary": 3,
         "residential": 2, "unclassified": 2, "service": 2, "motorway_link": 4,
         "trunk_link": 4, "primary_link": 4, "secondary_link": 3, "tertiary_link": 3}
@@ -49,34 +60,38 @@ def simplify(pts, tol=0.00028):
     return out
 
 
-def query(s, w, n, e):
-    hw = "|".join(TIER.keys())
-    q = f"""[out:json][timeout:90];
+def query(s, w, n, e, major=False):
+    tiers = MAJOR_TIERS if major else TIER
+    hw = "|".join(tiers.keys())
+    q = f"""[out:json][timeout:120];
 (
   way["highway"~"^({hw})$"]({s},{w},{n},{e});
-  way["waterway"~"^(river|stream|canal)$"]({s},{w},{n},{e});
+  way["waterway"~"^(river|canal)$"]({s},{w},{n},{e});
   way["natural"="water"]({s},{w},{n},{e});
 );
 out geom;"""
     data = urllib.parse.urlencode({"data": q}).encode()
     req = urllib.request.Request(OVERPASS, data=data,
                                  headers={"User-Agent": "eXeL-SECURITY-2525/1.0"})
-    with urllib.request.urlopen(req, timeout=120) as r:
+    with urllib.request.urlopen(req, timeout=180) as r:
         return json.load(r)
 
 
 def build(key, lat, lon, rkm):
+    major = key in MAJOR_ONLY
+    tol = 0.0013 if major else 0.00028  # coarser for the big metro buffers
+    tiers = MAJOR_TIERS if major else TIER
     s, w, n, e = bbox(lat, lon, rkm)
-    res = query(s, w, n, e)
+    res = query(s, w, n, e, major)
     roads, water, polys = [], [], []
     for el in res.get("elements", []):
         if el.get("type") != "way" or "geometry" not in el:
             continue
         pts = [[round(g["lon"], 5), round(g["lat"], 5)] for g in el["geometry"]]
-        pts = simplify(pts)
+        pts = simplify(pts, tol)
         tags = el.get("tags", {})
         if "highway" in tags:
-            roads.append({"t": TIER.get(tags["highway"], 2), "p": pts})
+            roads.append({"t": tiers.get(tags["highway"], 2), "p": pts})
         elif "waterway" in tags:
             water.append(pts)
         elif tags.get("natural") == "water":
