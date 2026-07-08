@@ -567,16 +567,19 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label }: { aoKey: string; onSe
     e.preventDefault();
     const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
     if (flat.w * k >= W * 0.98 && e.deltaY > 0) { setMode("globe"); return; }
+    const nw = Math.min(W, Math.max(0.02, flat.w * k));
+    // zooming IN tight over an AO → hand off to the tactical AO map.
+    // NB: call onEnterAo OUTSIDE setFlat — a parent setState inside a state updater crashes React.
+    if (e.deltaY < 0 && onEnterAo && nw < W * 0.03) {
+      const mx = flat.x + flat.w / 2, my = flat.y + flat.h / 2;
+      const clat = 90 - (my / H) * 180, clon = (mx / W) * 360 - 180;
+      let best = "", bd = Infinity;
+      for (const a of AOS) { const d = Math.hypot(a.center[0] - clat, a.center[1] - clon); if (d < bd) { bd = d; best = a.key; } }
+      if (best && bd < 1.2) { onEnterAo(best); return; }
+    }
     setFlat((f) => {
       const w = Math.min(W, Math.max(0.02, f.w * k)), h = w * (f.h / f.w);
       const mx = f.x + f.w / 2, my = f.y + f.h / 2;
-      // zooming IN tight over an AO → hand off to the tactical AO map (continuous world→place)
-      if (e.deltaY < 0 && onEnterAo && w < W * 0.03) {
-        const clat = 90 - (my / H) * 180, clon = (mx / W) * 360 - 180;
-        let best = "", bd = Infinity;
-        for (const a of AOS) { const d = Math.hypot(a.center[0] - clat, a.center[1] - clon); if (d < bd) { bd = d; best = a.key; } }
-        if (best && bd < 1.2) { onEnterAo(best); return f; }
-      }
       return { w, h, x: mx - w / 2, y: my - h / 2 };
     });
   });
