@@ -1364,10 +1364,14 @@ function AoMapPane(p: PaneProps) {
   );
   // 3D RELIEF (R1 feedback: "lift the elevation profile — connect it to data"). Each
   // contour line rises to its true level via translateZ → wireframe DEPTH from the SAME
-  // 1-fetch DEM. Uses the user's contour set when enabled, else a default 7-line set.
+  // 1-fetch DEM. STRICTLY gated on the user's ELEVATION CONTOURS toggle — NO default
+  // fallback set. Bug fix (HI P1.3, 2026-07-09): the old `?? computeContours(…count:7)`
+  // fallback drew phantom green contour lines across the terrain even when contours AND
+  // elevation profiles were both OFF. Contours off ⇒ contourSet null ⇒ reliefSet null ⇒
+  // clean 3D terrain. Turn ELEVATION CONTOURS on to get the lifted wireframe relief.
   const reliefSet = useMemo(
-    () => (is3d ? contourSet ?? computeContours(box, { ...contourCfg, count: 7 }, sampler) : null),
-    [is3d, contourSet, box, contourCfg, sampler]
+    () => (is3d ? contourSet : null),
+    [is3d, contourSet]
   );
 
   // Elevation profiles (primary pane only — skipped entirely on panes without the scale).
