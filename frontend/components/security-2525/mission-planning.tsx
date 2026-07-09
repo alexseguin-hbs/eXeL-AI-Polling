@@ -2113,9 +2113,16 @@ function AoMapPane(p: PaneProps) {
                       const deg = i * 5, a = (deg * Math.PI) / 180, maj = deg % 30 === 0, r1 = maj ? R - 4 : R - 1.5;
                       return <line key={i} x1={R * Math.sin(a)} y1={-R * Math.cos(a)} x2={r1 * Math.sin(a)} y2={-r1 * Math.cos(a)} stroke={deg === 0 ? C.red : `${C.cyan}66`} strokeWidth={maj ? 0.6 : 0.25} />;
                     })}
-                    {cards.map(([lab, deg, col]) => {
-                      const a = (deg * Math.PI) / 180, x = (R - 7) * Math.sin(a), y = -(R - 7) * Math.cos(a);
-                      return <text key={lab} x={x} y={y + 1.6} textAnchor="middle" fontSize="4.5" fontFamily="monospace" fontWeight="bold" fill={col}>{lab}</text>;
+                    {/* FX-47 (HI 1.3.3): CURVED degree ring — N/E/S/W + numbered marks every
+                        30° (000 red at N, aligned with the red tick + red fence slat). Each
+                        label is rotated tangent to the ring (the "curved" compass-rose look). */}
+                    {Array.from({ length: 12 }).map((_, i) => {
+                      const deg = i * 30, a = (deg * Math.PI) / 180, rr = R - 6;
+                      const x = rr * Math.sin(a), y = -rr * Math.cos(a);
+                      const card = deg % 90 === 0;
+                      const lab = deg === 0 ? "N" : deg === 90 ? "E" : deg === 180 ? "S" : deg === 270 ? "W" : String(deg).padStart(3, "0");
+                      const col = deg === 0 ? C.red : card ? C.cyan : `${C.cyan}bb`;
+                      return <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="central" fontSize={card ? 4.5 : 3} fontFamily="monospace" fontWeight="bold" fill={col} transform={`rotate(${deg} ${x} ${y})`}>{lab}</text>;
                     })}
                   </svg>
                   {/* CHAIN-LINK FENCE — dense vertical slats standing off the big ground ring all
