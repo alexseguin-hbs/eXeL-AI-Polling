@@ -32,6 +32,20 @@ export function distKm(a: LL, b: LL): number {
   return Math.hypot(dx, dy);
 }
 
+/**
+ * Endpoints of a transect line through `center`, `spanKm` wide, along `bearing` (deg, 90 = due
+ * E–W cross-section by default). Half the span extends each side. Pure → unit-tested; the panel
+ * feeds these into computeTransect with the same 1-fetch DEM sampler.
+ */
+export function transectLine(center: LL, spanKm: number, bearing = 90): [LL, LL] {
+  const half = Math.max(0, spanKm) / 2;
+  const th = (bearing * Math.PI) / 180;
+  const north = Math.cos(th) * half, east = Math.sin(th) * half; // km components
+  const dLat = north / R_LAT_KM;
+  const dLon = east / lonKm(center[0]);
+  return [[center[0] - dLat, center[1] - dLon], [center[0] + dLat, center[1] + dLon]];
+}
+
 /** Sample terrain elevation at n points along a→b (inclusive of both ends). */
 export function sampleTransect(a: LL, b: LL, n: number, sampler: (lat: number, lon: number) => number): TransectSample[] {
   const N = Math.max(2, Math.floor(n));

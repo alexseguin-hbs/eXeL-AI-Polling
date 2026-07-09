@@ -40,6 +40,8 @@ import { PfieldVenue } from "@/components/security-2525/pfield-venue";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { MIN_SPAN_KM, MAX_SPAN_KM, ZOOM_FACTOR, shouldHandOffToWorld } from "@/lib/zoom-continuum";
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
+import { computeTransect, transectLine, type AltObject } from "@/lib/transect";
+import { RANGE_EDGES, BAND_LABELS, mFromFt, bandOccupancy } from "@/lib/voxel";
 import { bufferPolygon } from "@/lib/aor";
 import { getTile, peekTile } from "@/lib/tile-cache";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
@@ -2115,6 +2117,98 @@ function TracksPanel({ placed, onUpdAsset, selected, setSelected, onHide }: Trac
   );
 }
 
+// ── Transect / elevation profile (full-width bottom) — the 1-fetch DEM cut ─────
+// Terrain + bathymetry + airborne-object altitude stems on ONE shared vertical scale, with the
+// voxel altitude-band gridlines. Same DEM sampler as the map → zero extra fetch. Plan mode only.
+interface TransectPanelProps { view: ViewState; dem: Dem | null; placed: Placed[]; onHide?: () => void }
+function TransectPanel({ view, dem, placed, onHide }: TransectPanelProps) {
+  const [bearing, setBearing] = useState(90); // 90 = E–W cut (default), 0 = N–S
+  const sampler = useMemo(() => (dem ? makeDemSampler(dem) : terrainMSL), [dem]);
+  const objects: AltObject[] = useMemo(
+    () => placed.filter((u) => u.altitude != null).map((u) => ({
+      lat: u.lat, lon: u.lon, altM: u.altitude!, altRef: u.altRef ?? "AGL",
+      label: ASSET_LABELS[u.asset], color: u.aff === "hostile" ? C.red : C.cyan,
+    })),
+    [placed]
+  );
+  const plot = useMemo(() => {
+    const [a, b] = transectLine([view.lat, view.lon], view.spanKm, bearing);
+    return computeTransect(a, b, sampler, objects, 160, Math.max(2, view.spanKm * 0.25));
+  }, [view.lat, view.lon, view.spanKm, bearing, sampler, objects]);
+
+  const W = 1000, H = 150, PADT = 10, PADB = 14;
+  const lo = Math.min(0, plot.minEl), hi = Math.max(plot.maxEl, lo + 1), span = hi - lo || 1;
+  const y = (e: number) => PADT + (H - PADT - PADB) * (1 - (e - lo) / span);
+  const x = (t: number) => t * W;
+  const terr = plot.samples.map((s) => `${x(s.t).toFixed(1)},${y(s.elevM).toFixed(1)}`).join(" ");
+  const area = `0,${y(lo).toFixed(1)} ${terr} ${W},${y(lo).toFixed(1)}`;
+  const seaY = y(0);
+  const occ = bandOccupancy(plot.objects.map((o) => o.mslM)); // cube-stack count per band
+  const bandLines = RANGE_EDGES
+    .map((ft) => ({ ft, yM: mFromFt(ft) }))
+    .filter((b) => b.ft > 0 && Number.isFinite(b.yM) && b.yM > lo && b.yM < hi)
+    .map((b) => ({ ft: b.ft, py: y(b.yM), label: b.ft >= 1000 ? `${b.ft / 1000}k ft` : `${b.ft} ft` }));
+
+  return (
+    <div className="flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between border-b px-2 py-1" style={{ borderColor: C.border }}>
+        <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+          Elevation profile · transect
+          <span style={{ color: C.dim }}> — {plot.lengthKm.toFixed(1)} km cut · {plot.objects.length} on axis · {lo < 0 ? `${Math.round(lo)}→` : ""}{Math.round(hi)} m MSL</span>
+        </span>
+        <div className="flex items-center gap-1.5">
+          <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+            {([[90, "E–W"], [0, "N–S"]] as const).map(([b, lb]) => (
+              <button key={lb} onClick={() => setBearing(b)} className="px-1.5 py-0.5"
+                style={{ background: bearing === b ? "#152238" : "transparent", color: bearing === b ? C.cyan : C.dim }}>{lb}</button>
+            ))}
+          </div>
+          {onHide && <Dots3 onClick={onHide} title="Hide transect" />}
+        </div>
+      </div>
+      <div className="flex gap-1.5 p-1.5">
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-28 min-w-0 flex-1" style={{ background: "#070b12", borderRadius: 4 }}>
+          {/* altitude-band gridlines (voxel RANGE_EDGES) */}
+          {bandLines.map((b) => (
+            <g key={b.ft}>
+              <line x1={0} x2={W} y1={b.py} y2={b.py} stroke={C.border} strokeWidth={0.6} strokeDasharray="4 4" />
+              <text x={W - 3} y={b.py - 2} textAnchor="end" fontSize={8} fill={C.dim}>{b.label}</text>
+            </g>
+          ))}
+          {/* sea level (MSL 0) — bathymetry reference */}
+          {lo < 0 && <line x1={0} x2={W} y1={seaY} y2={seaY} stroke="#2f6fb0" strokeWidth={0.8} strokeDasharray="2 3" />}
+          {/* terrain area + ridge line */}
+          <polygon points={area} fill="#0e2a1c" opacity={0.9} />
+          <polyline points={terr} fill="none" stroke={C.land} strokeWidth={1.2} />
+          {/* object altitude stems — terrain→MSL, label carries the reference (visual law) */}
+          {plot.objects.map((o, i) => (
+            <g key={i}>
+              <line x1={x(o.t)} x2={x(o.t)} y1={y(o.terrainM)} y2={y(o.mslM)} stroke={o.color ?? C.cyan} strokeWidth={1} strokeDasharray="1 2" />
+              <circle cx={x(o.t)} cy={y(o.mslM)} r={2.6} fill={o.color ?? C.cyan} />
+              <text x={x(o.t) + 4} y={y(o.mslM) - 3} fontSize={8} fill={o.color ?? C.cyan}>{Math.round(o.altM)}m {o.altRef}</text>
+            </g>
+          ))}
+        </svg>
+        {/* altitude-band occupancy rail — the voxel cube-stack per band (1..7 airspace) */}
+        <div className="flex w-24 shrink-0 flex-col-reverse justify-end gap-px text-[7px]">
+          {BAND_LABELS.slice(1).map((lb, i) => {
+            const n = occ[i + 1];
+            return (
+              <div key={lb} className="flex items-center gap-1" title={`${lb} ft — ${n} in band`}>
+                <span className="w-10 shrink-0 text-right" style={{ color: n ? C.cyan : C.dim }}>{lb}</span>
+                <div className="h-2 flex-1 rounded-sm" style={{ background: C.border }}>
+                  <div className="h-full rounded-sm" style={{ width: `${Math.min(100, n * 34)}%`, background: n ? C.cyan : "transparent" }} />
+                </div>
+                <span className="w-2 shrink-0" style={{ color: n ? C.cyan : C.dim }}>{n || ""}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Mission Planning main view ────────────────────────────────────────────────
 export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [aoKey, setAoKey] = useState("capitol");
@@ -2142,6 +2236,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [cursorMode, setCursorMode] = useState<"pointer" | "target">("pointer");
   const [showSettings, setShowSettings] = useState(false);
   const [showLayers, setShowLayers] = useState(false);   // LAYER CONTROLS checklist (mockup right rail)
+  const [showTransect, setShowTransect] = useState(true); // ELEVATION PROFILE / TRANSECT bottom panel
   const [aoMenuOpen, setAoMenuOpen] = useState(false);   // AO/mission dropdown (declutters the scroll row)
   const [showHiddenAos, setShowHiddenAos] = useState(false);
   const [aoHidden, setAoHidden] = useState<Set<string>>(() => { try { return new Set<string>(JSON.parse(localStorage.getItem("sec2525.aoHidden") || "[]")); } catch { return new Set<string>(); } });
@@ -2907,6 +3002,19 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           </button>
         ))}
       </div>
+
+      {/* BOTTOM — full-width ELEVATION PROFILE / TRANSECT (plan mode; reuses the 1-fetch DEM tile) */}
+      {modeA === "ao" && !mapMax && (showTransect ? (
+        <div className="mt-2 overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
+          <TransectPanel view={viewA} dem={dem} placed={placed} onHide={() => setShowTransect(false)} />
+        </div>
+      ) : (
+        <button onClick={() => setShowTransect(true)} title="Show elevation profile / transect"
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border px-2 py-1 text-[8px] font-semibold"
+          style={{ background: C.panel, borderColor: C.border, color: C.dim }}>
+          ▴ ELEVATION PROFILE · TRANSECT
+        </button>
+      ))}
     </div>
   );
 }

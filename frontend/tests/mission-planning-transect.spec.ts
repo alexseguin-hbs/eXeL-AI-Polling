@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { computeTransect, sampleTransect, projectOntoLine, distKm, type AltObject } from "../lib/transect";
+import { computeTransect, sampleTransect, projectOntoLine, distKm, transectLine, type AltObject } from "../lib/transect";
 
 // SECURITY-2525 · altitude transect engine — pure math proof (the ELEVATION PROFILE / TRANSECT).
 // Terrain + airborne objects share ONE vertical scale, all from the single DEM sampler.
@@ -52,6 +52,22 @@ test("corridor filter drops off-axis objects", () => {
   const far: AltObject = { lat: 31.5, lon: -97.5, altM: 500, altRef: "MSL", label: "far" }; // ~166 km off
   const p = computeTransect([30, -98], [30, -97], flat, [far], 120, 5);
   expect(p.objects.length).toBe(0);
+});
+
+test("transectLine: E–W (bearing 90) holds latitude, spans the width symmetrically", () => {
+  const [a, b] = transectLine([30, -98], 96, 90); // ~1° lon at 30°N ≈ 96 km
+  expect(a[0]).toBeCloseTo(30, 6);
+  expect(b[0]).toBeCloseTo(30, 6);          // constant latitude on an E–W cut
+  expect(b[1] - a[1]).toBeCloseTo(1, 1);    // ~1° of longitude wide
+  expect(distKm(a, b)).toBeCloseTo(96, 0);  // total span ≈ requested km
+});
+
+test("transectLine: N–S (bearing 0) holds longitude, half each side of center", () => {
+  const [a, b] = transectLine([30, -98], 110.574, 0); // 1° lat = 110.574 km
+  expect(a[1]).toBeCloseTo(-98, 6);
+  expect(b[1]).toBeCloseTo(-98, 6);
+  expect(a[0]).toBeCloseTo(29.5, 3);
+  expect(b[0]).toBeCloseTo(30.5, 3);
 });
 
 test("deterministic + reflects terrain via the sampler (ramp rises along track)", () => {
