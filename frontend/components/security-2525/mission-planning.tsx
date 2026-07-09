@@ -2292,7 +2292,37 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [railOpen, setRailOpen] = useState(true);          // left ASSET/SUPPORT rail (collapsible)
   const [rightOpen, setRightOpen] = useState(true);        // right deployed-items rail (collapsible)
   const [miniOpen, setMiniOpen] = useState(true);          // bottom-right mini-map inset (hideable)
-  const [mapMax, setMapMax] = useState(false);             // maximize the big MAP (collapse both rails)
+  // In-app fullscreen: MAP or MINI takes over everything BELOW the top tab bar (command bar,
+  // rails and transect hide). Distinct from isFs (browser fullscreen, menu-level Expand).
+  const [fsPane, setFsPane] = useState<null | "map" | "mini">(null);
+  const mapMax = fsPane !== null;                          // rails + command bar + transect hidden
+  const [miniPos, setMiniPos] = useState<{ x: number; y: number } | null>(null); // mini-map drag position (null = bottom-right default)
+  const miniDrag = useRef<{ dx: number; dy: number } | null>(null);
+  const centerRef = useRef<HTMLDivElement>(null);          // center map area — drag bounds for the mini
+  const wsRef = useRef<HTMLDivElement>(null);              // workspace row — measured for fullscreen height
+  const [wsTop, setWsTop] = useState(90);
+  useEffect(() => { if (fsPane && wsRef.current) setWsTop(Math.round(wsRef.current.getBoundingClientRect().top)); }, [fsPane]);
+  const onMiniGripDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const mini = e.currentTarget.parentElement, host = centerRef.current;
+    if (!mini || !host) return;
+    const mb = mini.getBoundingClientRect(), hb = host.getBoundingClientRect();
+    miniDrag.current = { dx: e.clientX - mb.left, dy: e.clientY - mb.top };
+    setMiniPos({ x: mb.left - hb.left, y: mb.top - hb.top });
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onMiniGripMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const mini = e.currentTarget.parentElement, host = centerRef.current;
+    if (!miniDrag.current || !mini || !host) return;
+    const hb = host.getBoundingClientRect(), mb = mini.getBoundingClientRect();
+    setMiniPos({
+      x: Math.min(Math.max(0, e.clientX - hb.left - miniDrag.current.dx), Math.max(0, hb.width - mb.width)),
+      y: Math.min(Math.max(0, e.clientY - hb.top - miniDrag.current.dy), Math.max(0, hb.height - mb.height)),
+    });
+  };
+  const onMiniGripUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    miniDrag.current = null;
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* not captured */ }
+  };
   const [mirror, setMirror] = useState(false);             // MIRROR couples MAP⇄MINI; SPLIT decouples
   const [is3dA, setIs3dA] = useState(false);               // MAP 2D/3D (perspective terrain)
   const [is3dB, setIs3dB] = useState(false);               // MINI MAP 2D/3D
@@ -2547,8 +2577,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   return (
     <div ref={rootRef} className="space-y-2 p-3" style={isFs ? { background: C.bg, height: "100vh", overflowY: "auto" } : undefined}>
-      {/* Minimal command bar */}
-      <div className="relative flex items-center gap-2">
+      {/* Minimal command bar — hidden while a pane is in-app fullscreen (MINIMIZE restores) */}
+      <div className={fsPane ? "hidden" : "relative flex items-center gap-2"}>
         <div className="flex shrink-0 items-center gap-1 text-[10px] font-semibold tracking-wide">
           <span style={{ color: C.dim }}>{aoStateOf(ao.key)}</span>
           <ChevronRight className="h-3 w-3" style={{ color: C.border }} />
@@ -2913,7 +2943,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       </div>
 
       {/* WORKSPACE (OVERVIEW template) — LEFT rail (ASSET/SUPPORT) · CENTER big MAP · RIGHT rail (deployed items) */}
-      <div className="flex flex-col gap-2 landscape:flex-row" style={{ height: "min(82vh, 1080px)", minHeight: 480 }}>
+      <div ref={wsRef} className="flex flex-col gap-2 landscape:flex-row"
+        style={fsPane ? { height: `calc(100dvh - ${wsTop + 10}px)`, minHeight: 480 } : { height: "min(82vh, 1080px)", minHeight: 480 }}>
         {/* LEFT RAIL — ASSET / SUPPORT, top→bottom, collapses to a 3-bullet rail */}
         {!mapMax && (railOpen ? (
           <div className="flex min-h-0 shrink-0 flex-col gap-2 landscape:w-64">
@@ -2948,8 +2979,20 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
         {/* CENTER — big MAP + mini-map inset. Each pane is the SAME continuum: EARTH world
             view (WorldStrip · 3D globe / 2D flat) ⇄ tactical AO detail (AoMapPane). Zoom the
             AO all the way out → Earth; drill an AO on Earth → tactical detail. */}
-        <div className="relative flex min-h-0 min-w-0 flex-1">
-          {modeA === "world" ? (
+        <div ref={centerRef} className="relative flex min-h-0 min-w-0 flex-1">
+          {fsPane === "mini" ? (
+            /* MINI in fullscreen — takes the whole area below the tab bar; MINIMIZE restores */
+            modeB === "world" ? (
+              <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
+                <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
+                  onEnterAo={(k) => enterAo(k, setModeB_)} />
+              </div>
+            ) : (
+              <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
+                view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
+                maximized onToggleMax={() => setFsPane(null)} onWorld={() => setModeB_("world")} />
+            )
+          ) : modeA === "world" ? (
             <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
               <WorldStrip label="MAP" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
                 onEnterAo={(k) => enterAo(k, setModeA_)} />
@@ -2957,25 +3000,48 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           ) : (
             <AoMapPane {...paneCommon} dem={dem} label="MAP" showElevation spanFactor={1}
               view={viewA} setView={setViewA_} otherView={viewB} is3d={is3dA} onToggle3d={toggle3dA}
-              maximized={mapMax} onToggleMax={() => setMapMax((m) => !m)} onWorld={() => setModeA_("world")} />
+              maximized={fsPane === "map"} onToggleMax={() => setFsPane((f) => (f === "map" ? null : "map"))} onWorld={() => setModeA_("world")} />
           )}
-          {miniOpen ? (
-            <div className="absolute bottom-2 right-2 z-20 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"
-              style={{ width: "48%", height: "46%", minWidth: 220, minHeight: 170, borderColor: C.cyan, background: C.panel }}>
-              {modeB === "world" ? (
-                <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                  onEnterAo={(k) => enterAo(k, setModeB_)} />
-              ) : (
-                <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
-                  view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
-                  maximized={false} onToggleMax={() => setMapMax((m) => !m)} onHidePane={() => setMiniOpen(false)} onWorld={() => setModeB_("world")} />
-              )}
+          {!fsPane && (miniOpen ? (
+            <div className="absolute z-20 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"
+              style={{ ...(miniPos ? { left: miniPos.x, top: miniPos.y } : { bottom: 8, right: 8 }),
+                width: "48%", height: "46%", minWidth: 220, minHeight: 170, borderColor: C.cyan, background: C.panel }}>
+              {/* drag grip — move the mini anywhere over the big map; ⛶ = mini fullscreen, ▾ = minimize */}
+              <div onPointerDown={onMiniGripDown} onPointerMove={onMiniGripMove} onPointerUp={onMiniGripUp} onPointerCancel={onMiniGripUp}
+                className="flex shrink-0 cursor-move touch-none select-none items-center justify-between border-b px-2 py-0.5"
+                style={{ background: "#0c1420", borderColor: C.cyan }}>
+                <span className="text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>⠿ MINI · DRAG</span>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setFsPane("mini")} onPointerDown={(e) => e.stopPropagation()} title="Mini map fullscreen (below menu)"
+                    className="rounded border p-0.5" style={{ borderColor: C.border, color: C.dim }}><Maximize2 className="h-2.5 w-2.5" /></button>
+                  <button onClick={() => setMiniOpen(false)} onPointerDown={(e) => e.stopPropagation()} title="Minimize mini map"
+                    className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>▾</button>
+                </div>
+              </div>
+              <div className="min-h-0 flex-1">
+                {modeB === "world" ? (
+                  <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
+                    onEnterAo={(k) => enterAo(k, setModeB_)} />
+                ) : (
+                  <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
+                    view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
+                    maximized={false} onToggleMax={() => setFsPane("mini")} onHidePane={() => setMiniOpen(false)} onWorld={() => setModeB_("world")} />
+                )}
+              </div>
             </div>
           ) : (
             <button onClick={() => setMiniOpen(true)} title="Show mini-map"
               className="absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-md border px-2 py-1 text-[9px] font-semibold shadow-lg"
               style={{ borderColor: C.border, color: C.dim, background: "#0a0f16dd" }}>
               ▾ MINI MAP
+            </button>
+          ))}
+          {fsPane && (
+            /* uniform restore — works in AO and EARTH/world modes alike */
+            <button onClick={() => setFsPane(null)} title="Minimize — back to standard screen"
+              className="absolute right-3 top-14 z-30 flex items-center gap-1 rounded-md border px-2 py-1 text-[9px] font-bold shadow-lg"
+              style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16dd" }}>
+              <Minimize2 className="h-3 w-3" /> MINIMIZE
             </button>
           )}
         </div>
