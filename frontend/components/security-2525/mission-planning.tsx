@@ -1567,7 +1567,7 @@ function AoMapPane(p: PaneProps) {
                     <path d={osmPaths.polyD} fill="#1e6fd955" stroke="#38bdf8" strokeWidth="0.2" />
                     {/* FX-11 (P1.3): floors lowered 0.5→0.18 / 0.12→0.05 — the old floor froze
                         river widths past ~13 km span; now they keep scaling with zoom-out */}
-                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={Math.min(5, Math.max(0.18, (65 / (view.spanKm * 1000)) * 100))} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={Math.min(1.8, Math.max(0.15, (65 / (view.spanKm * 1000)) * 100))} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
                     <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.4, Math.max(0.05, (14 / (view.spanKm * 1000)) * 100))} opacity="0.85" strokeLinecap="round" />
                   </g>
                 )}
