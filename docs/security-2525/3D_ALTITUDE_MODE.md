@@ -194,6 +194,25 @@ vision2525_governance_gate · export_policy_filter · webgl_fallback_handler · 
 
 ## 10. Phased slices (each ships green, reverts cleanly)
 
+> **RE-INTAKE (2026-07-09, second pass of the master spec + Release-1 H.I. feedback).**
+> Reconciliation rule: the spec is adjusted TO what shipped — **nothing H.I.-changed is
+> ever reverted** (mini-map float/resize law, header order LOCATION·2D/3D·MIRROR·RESET·
+> MINIMIZE, directional MIRROR, tracks-in-inspector, px contour cap, D-pad, UCRS-DMS
+> 3600-scale tiers, tap coordinate call-up, thin track vectors, tab persistence).
+>
+> **P1 = 3D TERRAIN RELIEF** (user-directed). Slice A shipped (lifted-contour wireframe
+> depth + LEFT altitude rail + right-drag tilt 15–85°, commit `564ac53`); remaining P1
+> depth: denser relief mesh at high fidelity, water-surface vs bathymetry dual layers,
+> depth ribs, vertical-exaggeration slider (1–5× + diagnostic unlock + warnings).
+> **P2** voxel/inspector: altitude inspector fields + governance footer (spec §Human
+> Authority on Selection), altitude shadow markers, selected-object gold stems.
+> **P3** volumes: air corridor / dome / cone / cylinder wireframe shells w/ floor+ceiling.
+> **P4** replay/scene: camera save+restore, atomic 3D restore bundle, site_scene_manager.
+> **P5** symbology depth: eXeL-STD-2525 adaptive overlays actually driving icon render;
+> Training/Diagnostic modes. Spec items already satisfied by the deployed 1-fetch tile
+> ladder, coordinate packet, AGL/MSL law, transect engine, and graceful 2D fallback are
+> marked DONE below and are not to be re-built.
+
 > **Deployed state (2026-07-09, reconciled vs the 5 eXeL AI 3D reference mockups):**
 
 - **Slice 1 (SHIPPED):** view-angle (pitch 20–75°) + symbology selector (MIL/eXeL/Hybrid — UI
