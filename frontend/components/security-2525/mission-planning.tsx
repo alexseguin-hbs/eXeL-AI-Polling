@@ -2222,28 +2222,29 @@ function AoMapPane(p: PaneProps) {
                 N slat + 000 label are red; numbers billboard upright at every tilt. Bearing-
                 rotated so the fence tracks map-north. Low node count (~48). */}
             {is3d && (() => {
-              const POSTS = 36, R = 44; // slats around a big circle; R = % of the 92% box half-extent
+              const R = 44;
               const num = (deg: number) => deg === 0 ? "N" : deg === 90 ? "E" : deg === 180 ? "S" : deg === 270 ? "W" : String(deg).padStart(3, "0");
               return (
                 <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: "92%", height: "92%", transform: "translate(-50%,-50%)", transformStyle: "preserve-3d", zIndex: 9 }}>
-                  {Array.from({ length: POSTS }).map((_, i) => {
-                    const deg = (i / POSTS) * 360, a = (deg * Math.PI) / 180 + view.bearing;
-                    const left = 50 + R * Math.sin(a), top = 50 - R * Math.cos(a);
-                    const isN = deg < 1, maj = deg % 30 < 360 / POSTS;
-                    return (
-                      <div key={`post${i}`} className="absolute" style={{ left: `${left}%`, top: `${top}%`, width: maj ? 1.5 : 0.8, height: maj ? 32 : 20,
-                        background: `linear-gradient(to top, ${isN ? C.red : C.cyan}${maj ? "cc" : "55"}, ${isN ? C.red : C.cyan}0f)`,
-                        transform: `translate(-50%,-100%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%" }} />
-                    );
-                  })}
-                  {/* degree numbers riding the fence (every 30°), billboarded upright */}
+                  {/* ground ELLIPSE ring + small INWARD notches at each 30° (flat on the plane,
+                      bearing-rotated). No tall fence, no spheres — numbers ride short spikes. */}
+                  <svg viewBox="-50 -50 100 100" width="100%" height="100%" style={{ position: "absolute", inset: 0, transform: `rotateZ(${view.bearing}rad)`, overflow: "visible" }} aria-hidden>
+                    <circle r={R} fill="none" stroke={`${C.cyan}66`} strokeWidth="0.4" />
+                    {Array.from({ length: 12 }).map((_, i) => {
+                      const deg = i * 30, a = (deg * Math.PI) / 180;
+                      return <line key={i} x1={R * Math.sin(a)} y1={-R * Math.cos(a)} x2={(R - 2.5) * Math.sin(a)} y2={-(R - 2.5) * Math.cos(a)} stroke={deg === 0 ? C.red : `${C.cyan}aa`} strokeWidth="0.6" />;
+                    })}
+                  </svg>
+                  {/* short spike + degree number ON TOP of it, billboarded, at each 30° */}
                   {Array.from({ length: 12 }).map((_, i) => {
                     const deg = i * 30, a = (deg * Math.PI) / 180 + view.bearing;
                     const left = 50 + R * Math.sin(a), top = 50 - R * Math.cos(a);
                     const col = deg === 0 ? C.red : C.cyan;
                     return (
-                      <div key={`num${i}`} className="absolute font-mono font-bold" style={{ left: `${left}%`, top: `${top}%`, fontSize: 9, lineHeight: 1, color: col, whiteSpace: "nowrap",
-                        transform: `translate(-50%,-150%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%" }}>{num(deg)}</div>
+                      <div key={`m${i}`}>
+                        <div className="absolute" style={{ left: `${left}%`, top: `${top}%`, width: 1, height: 9, background: `linear-gradient(to top, ${col}cc, ${col}22)`, transform: `translate(-50%,-100%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%" }} />
+                        <div className="absolute font-mono font-bold" style={{ left: `${left}%`, top: `${top}%`, fontSize: 8.5, lineHeight: 1, color: col, whiteSpace: "nowrap", transform: `translate(-50%,-135%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%" }}>{num(deg)}</div>
+                      </div>
                     );
                   })}
                 </div>
