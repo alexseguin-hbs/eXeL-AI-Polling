@@ -1918,7 +1918,7 @@ function AoMapPane(p: PaneProps) {
                 Base square sits ON the plane and is the addressable CUBE BASE
                 (tap → MGRS + LLV-DMS + UCRS-2525 packet). Bands rise via translateZ
                 (preserve-3d). Wireframe-only = phone / Raspberry-Pi class compute. */}
-            {is3d && voxelColumns.map((col) => {
+            {is3d && voxelLayer && voxelColumns.map((col) => {
               const f = project(col.lat, col.lon);
               if (f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02) return null;
               const paneW = mapRef.current?.clientWidth ?? 800;
@@ -2238,8 +2238,9 @@ function AoMapPane(p: PaneProps) {
                 ground ellipse ring + radial ticks are REMOVED — just a ring of billboarded
                 vertical slats (chain-link fence wall) with degree numbers riding the fence.
                 N slat + 000 label are red; numbers billboard upright at every tilt. Bearing-
-                rotated so the fence tracks map-north. Low node count (~48). */}
-            {is3d && (() => {
+                rotated so the fence tracks map-north. Low node count (~48). Gated on the ▦ VOXEL
+                toggle so 3D-without-voxel is clean (no phantom ground ellipse). */}
+            {is3d && voxelLayer && (() => {
               const R = 44;
               const num = (deg: number) => deg === 0 ? "N" : deg === 90 ? "E" : deg === 180 ? "S" : deg === 270 ? "W" : String(deg).padStart(3, "0");
               return (
