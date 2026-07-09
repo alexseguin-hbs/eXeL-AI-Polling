@@ -31,7 +31,7 @@ import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, 
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
-import { latLonToMgrs, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon } from "@/components/security-2525/mgrs";
+import { latLonToMgrs, latLonToUtm, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon } from "@/components/security-2525/mgrs";
 import {
   SUPPORT_CATALOG, GROUP_META, REALITY_MODES,
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
@@ -1587,21 +1587,28 @@ function AoMapPane(p: PaneProps) {
             {showDecode && (() => {
               const p = cursorLL ?? { lat: view.lat, lon: view.lon };
               const mp = latLonToMgrs(p.lat, p.lon, digits).split(" "); // [zoneBand, square, E, N]
+              const utm = latLonToUtm(p.lat, p.lon);
+              const elevM = sampler(p.lat, p.lon);
               const dms = (v: number, pos: string, neg: string) => { const h = v >= 0 ? pos : neg, a = Math.abs(v); const d = Math.floor(a), m = Math.floor((a - d) * 60), s = (((a - d) * 60 - m) * 60).toFixed(1); return `${d}°${String(m).padStart(2, "0")}'${s}"${h}`; };
               const row = (k: string, val: string, c: string) => <div className="flex justify-between gap-2"><span style={{ color: C.dim }}>{k}</span><span className="font-mono" style={{ color: c }}>{val}</span></div>;
               return (
-                <div className="absolute right-2 top-8 z-30 w-52 rounded-lg border p-2 text-[8px] shadow-2xl" style={{ background: C.panel, borderColor: C.cyan }}>
-                  <div className="mb-1 flex items-center justify-between"><span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: C.cyan }}>Coordinate decode</span><button onClick={() => setShowDecode(false)} style={{ color: C.dim }}>✕</button></div>
+                <div className="absolute right-2 top-8 z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl" style={{ background: C.panel, borderColor: C.cyan }}>
+                  <div className="mb-1 flex items-center justify-between"><span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: C.cyan }}>Coordinate packet</span><button onClick={() => setShowDecode(false)} style={{ color: C.dim }}>✕</button></div>
                   <div className="mb-1 font-semibold" style={{ color: C.gold }}>MGRS · {latLonToMgrs(p.lat, p.lon, digits)}</div>
                   {row("Zone · lat-band", mp[0], C.text)}
                   {row("100 km square", mp[1], C.text)}
                   {row("Easting (→E)", `${mp[2]} · ${(digits === 4 ? 10 : digits === 5 ? 1 : 0.1)} m`, C.text)}
                   {row("Northing (↑N)", `${mp[3]} · ${(digits === 4 ? 10 : digits === 5 ? 1 : 0.1)} m`, C.text)}
+                  {row("UTM", `${utm.zone} ${Math.round(utm.easting)}E ${Math.round(utm.northing)}N`, C.text)}
                   <div className="mb-1 mt-1.5 font-semibold" style={{ color: "#a78bfa" }}>LLV-DMS</div>
                   {row("Latitude", dms(p.lat, "N", "S"), C.text)}
                   {row("Longitude", dms(p.lon, "E", "W"), C.text)}
                   {row("Decimal °", `${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`, C.dim)}
-                  <div className="mt-1 text-[7px]" style={{ color: C.dim }}>MGRS: 6°-wide zone · 8°-lat band · 100 km square · E/N within it. DMS: degrees·minutes·seconds.</div>
+                  <div className="mb-1 mt-1.5 font-semibold" style={{ color: C.green }}>Elevation</div>
+                  {row(elevM >= 0 ? "Terrain (MSL)" : "Depth (below MSL)", `${Math.round(Math.abs(elevM))} m`, elevM >= 0 ? C.green : "#22d3ee")}
+                  {row("Source", dem ? "GEBCO 2020" : "synthetic", dem ? C.text : C.dim)}
+                  {row("Vert datum", dem ? "MSL (GEBCO)" : "approx", C.dim)}
+                  <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Same DEM tile that draws contours (1 fetch). MGRS: 6°-zone · 8°-band · 100 km square · E/N.</div>
                 </div>
               );
             })()}
