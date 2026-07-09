@@ -2442,25 +2442,34 @@ function AoMapPane(p: PaneProps) {
               const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
               const pxPerM = paneW / Math.max(1, view.spanKm * 1000);
               const altPx = topFt * 0.3048 * pxPerM;        // altitude ceiling in px
-              const edgePx = paneW / 2;                     // centre → map edge in px
-              const R = Math.max(edgePx, altPx);            // reach = max(edge, altitude)
+              const paneH = mapRef.current?.clientHeight ?? 600;
+              // HI: reach the FURTHEST distance visible on screen — the diagonal half, STRETCHED
+              // toward the horizon as the camera pitches back (looking across → far terrain recedes),
+              // OR the altitude ceiling, whichever is further. Hemisphere covers the whole visible sky.
+              const horizonStretch = 1 + Math.max(0, ((pitch ?? 55) - 45)) / 22;
+              const screenPx = Math.hypot(paneW / 2, paneH / 2) * horizonStretch;
+              const R = Math.max(screenPx, altPx);          // reach = max(furthest-on-screen, altitude)
               const H = R;                                  // hemisphere encloses the operational volume
               const p = pitch ?? 55;
-              const skyK = p > 85 ? Math.max(0, (88 - p) / 3) : 1;
+              // HI: the dome IS the sky backdrop — it must NOT fade at high tilt (removed the old
+              // anti-phantom skyK fade); the operator looks across the horizon to see it.
               const col = C.cyan;
               const NR = 6, NM = 6;                         // latitude rings · meridian arches
               const at = (t: string): React.CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
               return (
                 <div className="pointer-events-none absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`,
-                  transformStyle: "preserve-3d", zIndex: 12, transform: `rotateZ(${view.bearing}rad)`, opacity: 0.9 * skyK }}>
+                  transformStyle: "preserve-3d", zIndex: 12, transform: `rotateZ(${view.bearing}rad)`, opacity: 0.9 }}>
+                  {/* FLOOR — ALWAYS a circular base ring at ground level, in BOTH dome styles.
+                      Only the SKY DOME above it changes between GRID lines and HEX panels. */}
+                  <div className="rounded-full" style={{ ...at(`translateZ(0px)`), width: 2 * R, height: 2 * R, border: `${domeThick}px solid ${col}aa` }} />
                   {/* GRID style — latitude rings (flat circles at height) + meridian arches (SVG). */}
                   {domeMode === "grid" && <>
                     {Array.from({ length: NR + 1 }, (_, k) => {
                       const th = (k / NR) * (Math.PI / 2);
                       const r = R * Math.cos(th), z = H * Math.sin(th);
-                      if (r < 1) return null;
+                      if (r < 1 || k === 0) return null; // k=0 floor is drawn always (above)
                       return <div key={`dlr${k}`} className="rounded-full" style={{ ...at(`translateZ(${z}px)`),
-                        width: 2 * r, height: 2 * r, border: `${k === 0 ? domeThick * 1.5 : domeThick}px solid ${col}${k === 0 ? "dd" : "99"}` }} />;
+                        width: 2 * r, height: 2 * r, border: `${domeThick}px solid ${col}99` }} />;
                     })}
                     {Array.from({ length: NM }, (_, m) => {
                       const phi = (m / NM) * 180;
