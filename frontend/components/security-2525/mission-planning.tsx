@@ -316,7 +316,6 @@ let borderCache: BorderData | null = null;
 // ── OSM roads + waterways layer (OpenStreetMap, Python-preprocessed) ─────────
 interface OsmWay { t: number; p: [number, number][]; bb?: [number, number, number, number] }
 interface OsmData { roads: OsmWay[]; water: [number, number][][]; waterPolys: [number, number][][] }
-const osmCache: Record<string, OsmData> = {};
 
 // ── Real DEM (GEBCO) resolution pyramid ──────────────────────────────────────
 // bbox [W,S,E,N]. The client picks the FINEST tile (smallest area) that fully
@@ -2272,9 +2271,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (key === demKeyRef.current) return;
     demKeyRef.current = key;
     if (!key) { setDem(null); return; }
-    const warm = peekTile<Dem>(key);
+    const warm = peekTile<Dem>(`dem-${key}`);
     if (warm) setDem(warm); // in-memory → instant, no flash frame
-    else getTile<Dem>(key, `/security-2525/dem-${key}.json`).then((d) => {
+    else getTile<Dem>(`dem-${key}`, `/security-2525/dem-${key}.json`).then((d) => {
       if (demKeyRef.current !== key) return;        // view moved on
       if (d) setDem(d); else demKeyRef.current = null; // transient miss → retry on next move
     });
@@ -2283,7 +2282,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (mapEngine === "beta") {
       for (const s of [viewA.spanKm / 3, viewA.spanKm * 3]) {
         const pk = pickDemKey(viewA.lat, viewA.lon, s);
-        if (pk && pk !== key && !peekTile(pk)) getTile<Dem>(pk, `/security-2525/dem-${pk}.json`);
+        if (pk && pk !== key && !peekTile(`dem-${pk}`)) getTile<Dem>(`dem-${pk}`, `/security-2525/dem-${pk}.json`);
       }
     }
   }, [viewA.lat, viewA.lon, viewA.spanKm, mapEngine]);
@@ -2293,9 +2292,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (key === demKeyRefB.current) return;
     demKeyRefB.current = key;
     if (!key) { setDemB(null); return; }
-    const warm = peekTile<Dem>(key);
+    const warm = peekTile<Dem>(`dem-${key}`);
     if (warm) setDemB(warm);
-    else getTile<Dem>(key, `/security-2525/dem-${key}.json`).then((d) => {
+    else getTile<Dem>(`dem-${key}`, `/security-2525/dem-${key}.json`).then((d) => {
       if (demKeyRefB.current !== key) return;
       if (d) setDemB(d); else demKeyRefB.current = null;
     });
@@ -2323,22 +2322,24 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       .catch(() => {});
   }, []);
 
-  // Load OSM roads/water for the active AO.
+  // Load OSM roads/water for the active AO — through the tile ladder (memory→localStorage→
+  // Supabase→origin). Big 100km road tiles (too large for git) serve from Supabase once seeded.
   useEffect(() => {
     const key = ao.osm;
     if (!key) { setOsm(null); return; }
-    if (osmCache[key]) { setOsm(osmCache[key]); return; }
-    fetch(`/security-2525/osm-${key}.json`)
-      .then((r) => r.json())
-      .then((d: OsmData) => {
-        d.roads.forEach((w) => {
-          let x0 = w.p[0][0], x1 = x0, y0 = w.p[0][1], y1 = y0;
-          for (const [x, y] of w.p) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-          w.bb = [x0, y0, x1, y1];
-        });
-        osmCache[key] = d; setOsm(d);
-      })
-      .catch(() => setOsm(null));
+    const apply = (d: OsmData | null) => {
+      if (!d) { setOsm(null); return; }
+      d.roads.forEach((w) => {
+        if (w.bb) return; // already computed (cached payload)
+        let x0 = w.p[0][0], x1 = x0, y0 = w.p[0][1], y1 = y0;
+        for (const [x, y] of w.p) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+        w.bb = [x0, y0, x1, y1];
+      });
+      setOsm(d);
+    };
+    const warm = peekTile<OsmData>(`osm-${key}`);
+    if (warm) apply(warm);
+    else getTile<OsmData>(`osm-${key}`, `/security-2525/osm-${key}.json`, "vector").then((d) => { if (ao.osm === key) apply(d); });
   }, [ao.osm]);
 
   // ── Shared placement mutators ────────────────────────────────────────────
