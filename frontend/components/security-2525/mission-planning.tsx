@@ -1282,6 +1282,10 @@ function AoMapPane(p: PaneProps) {
   // FX-51 v2 (HI): MULTIPLE hooks — right-click each track adds its own label.
   const [hooks, setHooks] = useState<number[]>([]); // ids of every hooked track
   const [hookOffs, setHookOffs] = useState<Record<number, { x: number; y: number }>>({}); // PER-ID draggable hook-label offset (px from the asset); connector always follows
+  // HI 1.3.3 (voxel column owns the asset UI): PER-ASSET draggable offset for the AGL
+  // chip that lives in the column's LEVEL-1 bottom cell. Same drag pattern as hookOffs,
+  // but a SEPARATE map so dragging the AGL chip never moves the FAAD hook panel. No connector.
+  const [aglOffs, setAglOffs] = useState<Record<number, { x: number; y: number }>>({});
   const hookDrag = useRef<{ id: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
   // P1.3 (Thought Master): ESC leaves placement mode → traditional SELECT mode.
   useEffect(() => {
@@ -1806,6 +1810,11 @@ function AoMapPane(p: PaneProps) {
               const aerial = u.altitude != null && u.altitude > 0;
               const sel = selected?.kind === "asset" && selected.id === u.id;
               const hot = hoverAsset === u.asset;
+              // HI 1.3.3 (contract): when 3D + VOXEL and this asset has a voxel COLUMN, that
+              // column OWNS the on-cube UI (shield, AGL chip, dot, top-face reticle + corners).
+              // The flat marker then shows NOTHING on-map — only the 2D / voxel-off flat icon and
+              // the OFF-MAP aerial box survive below.
+              const hasColumn = is3d && voxelLayer && voxelColumns.some((c) => c.objects.some((o) => o.id === u.id));
               // HI: pin the GROUND coord chip to the box BOTTOM LINE so it never covers the top
               // target symbol — drop it ~½ cell (billboarded → toward the front floor edge).
               const groundDrop = Math.max(6, Math.round((effCellM / (view.spanKm * 1000)) * (mapRef.current?.clientWidth ?? 800) * 0.5));
@@ -1817,9 +1826,13 @@ function AoMapPane(p: PaneProps) {
                 const cx = Math.max(0.015, Math.min(0.985, f.fx));
                 const cy = Math.max(0.015, Math.min(0.985, f.fy));
                 const col = u.aff === "hostile" ? C.red : C.cyan;
+                // HI (contract item 5): lift the distant aerial box toward the HORIZON as the
+                // camera pitches back (66–88°) so an off-map flyer reads like an aircraft seen
+                // far off in the SKY, not pinned to the map edge. Grows with (pitch − 55°).
+                const horizonLift = is3d ? Math.max(0, ((pitch ?? 55) - 55)) * 1.6 : 0;
                 return (
                   <div key={u.id} className="pointer-events-none absolute" style={{ left: `${cx * 100}%`, top: `${cy * 100}%`, zIndex: 14,
-                    transform: is3d ? `translate(-50%,-100%) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-100%)", transformOrigin: "50% 100%" }}>
+                    transform: is3d ? `translate(-50%,-100%) translateY(${-horizonLift}px) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-100%)", transformOrigin: "50% 100%" }}>
                     <span className="block" style={{ width: 15, height: 15, border: `2px solid ${col}`, background: `${col}33`, boxShadow: `0 0 9px ${col}` }} />
                     <span className="mt-0.5 block whitespace-nowrap text-center font-mono text-[7px] font-bold" style={{ color: col }}>{ASSET_LABELS[u.asset]} ▲</span>
                   </div>
@@ -1854,7 +1867,9 @@ function AoMapPane(p: PaneProps) {
                         MGRS position — a circular DOT for GROUND assets (see the true spot inside
                         the grid-snapped box), a sky-face BOX for AERIAL (at altitude). Flat MIL
                         icon stays in 2D / voxel-off. */}
-                    {is3d && voxelLayer
+                    {is3d && voxelLayer && hasColumn
+                      ? null /* HI contract: the voxel COLUMN owns the shield / dot / labels */
+                      : is3d && voxelLayer
                       ? (
                         // HI: MIL-STD-2525 icon on a SHIELD badge, standing on a DOT that marks the
                         // EXACT MGRS floor spot (billboarded upright off the tilted ground surface).
@@ -1874,8 +1889,8 @@ function AoMapPane(p: PaneProps) {
                       same format as the selected-voxel label.
                       HI: N/S placement — AERIAL asset (altitude>0) → chip ABOVE the icon (North);
                       GROUND asset → chip BELOW the icon (South). flex-col `order` re-stacks it. */}
-                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 1, marginTop: aerial ? 0 : groundDrop, marginBottom: aerial ? 2 : 0 }}>{fmt.coordAt(u.lat, u.lon)}</span>
-                  {u.moving && (
+                  {!hasColumn && <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 1, marginTop: aerial ? 0 : groundDrop, marginBottom: aerial ? 2 : 0 }}>{fmt.coordAt(u.lat, u.lon)}</span>}
+                  {u.moving && !hasColumn && (
                     <span className="whitespace-nowrap font-mono text-[7px] font-bold" style={{ color: C.green }}>
                       {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude)}m ${u.altRef ?? "AGL"}` : ""}
                     </span>
@@ -2070,6 +2085,77 @@ function AoMapPane(p: PaneProps) {
                       </div>
                     );
                   })}
+                  {/* HI 1.3.3 — the VOXEL COLUMN owns the asset's on-cube UI (placed.map
+                      suppresses the flat marker for a column-backed asset): a SHIELD badge
+                      pinned to the LEVEL-1 bottom cell (always at the surface, decoupled from
+                      altitude), a DOT at the object's TRUE altitude band, a draggable AGL chip
+                      (no connector), and billboarded top-face coordinates. bandPx == cellPx so
+                      the altitude a cube represents stays dimensionally true across size tiers. */}
+                  {topObj && (() => {
+                    const pObj = placed.find((u) => u.id === topObj.id);
+                    const ac = pObj?.aff === "hostile" ? C.red : C.cyan;
+                    const aglM = Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM);
+                    const nkey = typeof topObj.id === "number" ? topObj.id : null;
+                    const off = (nkey != null ? aglOffs[nkey] : undefined) ?? { x: 0, y: cellPx / 2 + 8 };
+                    const dotZ = Math.max(0, (topObj.bandIdx - 0.5) * bandPx); // object's TRUE band centre
+                    const bb = is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""; // billboard upright off the tilted plane
+                    return (
+                      <>
+                        {/* (1) SHIELD — billboarded affiliation badge, centred in the LEVEL-1 bottom cell */}
+                        <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ opacity: dimmed ? 0.4 : 1,
+                          transform: `translate(-50%,-50%) translateZ(${bandPx / 2}px)${bb}` }}>
+                          <span className="flex items-center justify-center rounded-md" style={{ padding: 2,
+                            background: `${ac}1e`, border: `1px solid ${ac}`, boxShadow: `0 0 6px ${ac}55` }}>
+                            {pObj
+                              ? <AssetIcon asset={pObj.asset} style={iconStyle} affiliation={pObj.aff} size={20 * iconScale} count={pObj.count} />
+                              : <span className="block rounded-full" style={{ width: 8, height: 8, background: ac }} />}
+                          </span>
+                        </div>
+                        {/* (2) AGL chip — draggable (FAAD-hook drag pattern, NO connector line), Level-1 cell.
+                            Tap (no drag) pops the cube-centre coordinate call-up packet. */}
+                        <div className="absolute left-1/2 top-1/2" onPointerDown={(e) => e.stopPropagation()} style={{ pointerEvents: "auto",
+                          transform: `translate(-50%,-50%) translate3d(${off.x}px,${off.y}px,${bandPx / 2}px)${bb}` }}>
+                          <button title="Drag · tap = cube-centre coordinate + AGL"
+                            onPointerDown={(e) => {
+                              e.stopPropagation(); e.preventDefault();
+                              const sx = e.clientX, sy = e.clientY, ox = off.x, oy = off.y; let moved = false;
+                              const move = (ev: PointerEvent) => {
+                                if (Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) > 3) moved = true;
+                                if (nkey != null) setAglOffs((os) => ({ ...os, [nkey]: { x: ox + (ev.clientX - sx), y: oy + (ev.clientY - sy) } }));
+                              };
+                              const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); if (!moved) setCoordCall({ lat: col.lat, lon: col.lon }); };
+                              document.addEventListener("pointermove", move); document.addEventListener("pointerup", up);
+                            }}
+                            className="cursor-move whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold leading-tight"
+                            style={{ background: "#0a0f16dd", color: ac, border: `1px solid ${ac}66` }}>
+                            {fmt.coordAt(col.lat, col.lon)} · AGL {aglM}m
+                          </button>
+                        </div>
+                        {/* (3) DOT — the object's TRUE altitude band, at the cell centre (its real 3D spot) */}
+                        <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${dotZ}px)${bb}` }}>
+                          <span className="block rounded-full" style={{ width: 6, height: 6, background: topObj.color ?? ac, boxShadow: `0 0 6px ${topObj.color ?? ac}` }} />
+                        </div>
+                        {/* (4) TOP-FACE coordinates — CENTRE + 4 CORNERS, billboarded tiny (the target
+                            reticle itself is already drawn on the flat top face below). */}
+                        <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d" }}>
+                          <span className="absolute left-0 top-0 whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: sel ? C.gold : ac,
+                            transform: `translate(-50%,-150%) translateZ(${topZ + bandPx * 0.35}px)${bb}` }}>
+                            {fmt.coordAt(col.lat, col.lon)}
+                          </span>
+                          {col.corners.map((cn, ci) => {
+                            const cx = (ci === 0 || ci === 3 ? -1 : 1) * (cellPx / 2);
+                            const cy = (ci === 0 || ci === 1 ? -1 : 1) * (cellPx / 2);
+                            return (
+                              <span key={`tfc${ci}`} className="absolute left-0 top-0 whitespace-nowrap rounded px-0.5 font-mono text-[5px]" style={{ background: "#0a0f16aa", color: C.dim,
+                                transform: `translate(-50%,-50%) translate3d(${cx}px,${cy}px,${topZ}px)${bb}` }}>
+                                {fmt.coordAt(cn.lat, cn.lon)}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </>
+                    );
+                  })()}
                   {/* CUBE TOP (P1 slice B) — TARGET circle pops the CENTRE coordinate;
                       4 corner hotspots pop CORNER coordinates (call-up packet) */}
                   <div className="absolute left-1/2 top-1/2" style={{ width: cellPx, height: cellPx, transform: `translate(-50%,-50%) translateZ(${topZ}px)`, pointerEvents: "auto" }}
@@ -2157,35 +2243,9 @@ function AoMapPane(p: PaneProps) {
                             transform: `translate(-50%,-50%) translate3d(${cx}px,${cy}px,${topZ / 2}px) rotateX(90deg)` }} />
                         );
                       })}
-                      {(() => {
-                        // HI: only FLYING or MOVING assets show an altitude number;
-                        // GROUND/stationary show a "SURFACE" chip instead.
-                        const pObj = placed.find((u) => u.id === topObj.id);
-                        const showAlt = !!pObj && ((pObj.altitude ?? 0) > 0 || pObj.moving);
-                        if (!showAlt) {
-                          return (
-                            <div className="pointer-events-none absolute top-1/2" style={{ right: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
-                              <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.gold }}>
-                                SURFACE
-                              </span>
-                            </div>
-                          );
-                        }
-                        return (
-                          <>
-                            <div className="pointer-events-none absolute top-1/2" style={{ right: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
-                              <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.gold }}>
-                                AGL {Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM)}m
-                              </span>
-                            </div>
-                            <div className="pointer-events-none absolute top-1/2" style={{ left: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
-                              <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan }}>
-                                MSL {Math.round(topObj.mslM)}m
-                              </span>
-                            </div>
-                          </>
-                        );
-                      })()}
+                      {/* AGL/MSL flanks REMOVED (HI 1.3.3): the coordinate + AGL now live in the
+                          LEVEL-1 SHIELD chip that the voxel column owns for this asset. The gold
+                          dotted cylinder cage above stays as the select/hook terrain→object cue. */}
                     </>
                   )}
                   {/* P1.2 (Enki): 3D track vector — heading arrow drawn AT the mover's altitude
