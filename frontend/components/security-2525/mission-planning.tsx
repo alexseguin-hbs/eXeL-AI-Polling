@@ -1169,7 +1169,7 @@ function AoMapPane(p: PaneProps) {
         const ncy = (a.y + b.y) / 2;
         const dcy = ncy - pinchRef.current.cy;
         pinchRef.current.cy = ncy; pinchRef.current.cx = (a.x + b.x) / 2;
-        if (is3d && onPitch && Math.abs(dcy) > 0.5) onPitch(Math.min(88, Math.max(2, (pitch ?? 55) + dcy * 0.25)));
+        if (is3d && onPitch && Math.abs(dcy) > 0.5) onPitch(Math.min(85, Math.max(11, (pitch ?? 55) + dcy * 0.25)));
         pinchRef.current.dist = dist; pinchRef.current.ang = ang;
         setView((v) => ({ ...v, spanKm: Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * factor)), bearing: v.bearing + dAng }));
       } else if (touchRef.current.size === 1 && r) {
@@ -1190,9 +1190,9 @@ function AoMapPane(p: PaneProps) {
     if (d.btn === 2) {
       // right-drag: horizontal = bearing; vertical in 3D = TILT (R1: swing the voxel
       // view from near-OVERHEAD 15° down to almost flat across the HORIZON 85°)
-      // P1.2 (Athena): full swing — 2° looks straight DOWN the voxel (overhead),
-      // 88° is nearly parallel to the ground (voxel stacks seen from the side)
-      if (is3d && onPitch) onPitch(Math.min(88, Math.max(2, (pitch ?? 55) + dy * 0.35)));
+      // P1.3 hotfix (Thought Master): 11°–85°. 11° = near-overhead (was 15); 85° max —
+      // beyond 85 the lifted relief contours read as floating "green lines" in the sky.
+      if (is3d && onPitch) onPitch(Math.min(85, Math.max(11, (pitch ?? 55) + dy * 0.35)));
       setView((v) => ({ ...v, bearing: v.bearing - (dx / r.width) * Math.PI }));
     } else {
       panBy(dx / r.width, dy / r.height);
@@ -1865,7 +1865,7 @@ function AoMapPane(p: PaneProps) {
               </div>
             )}
             {/* TILT readout (P1) — the cue that elevation is ACTIVE: right-drag ↕ swings the
-                voxel view straight-down-the-voxel (2°) ⇄ nearly ground-parallel (88°) */}
+                voxel view near-overhead (11°) ⇄ horizon (85°) */}
             {is3d && (
               <div className="absolute left-1/2 top-7 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan, pointerEvents: "auto" }}>
                 {/* FX-21: hint FIRST, then TILT n°, then 📱 opens the slider (phone access) */}
@@ -1877,8 +1877,8 @@ function AoMapPane(p: PaneProps) {
             {/* FX-21: fixed-width tilt slider, pinned under the coordinate readout */}
             {is3d && tiltSlider && (
               <div className="absolute right-2 top-7 z-30 rounded border px-2 py-1" style={{ background: "#0a0f16ee", borderColor: C.cyan, width: 170 }}>
-                <div className="mb-0.5 font-mono text-[7px] font-bold" style={{ color: C.cyan }}>TILT {Math.round(pitch ?? 55)}° <span style={{ color: C.dim }}>2–88</span></div>
-                <input type="range" min={2} max={88} value={Math.round(pitch ?? 55)} onChange={(e) => onPitch?.(parseInt(e.target.value))} className="w-full" />
+                <div className="mb-0.5 font-mono text-[7px] font-bold" style={{ color: C.cyan }}>TILT {Math.round(pitch ?? 55)}° <span style={{ color: C.dim }}>11–85</span></div>
+                <input type="range" min={11} max={85} value={Math.round(pitch ?? 55)} onChange={(e) => onPitch?.(parseInt(e.target.value))} className="w-full" />
               </div>
             )}
             {/* FX-08 (P1.3): VOXEL onboarding — how to activate/read/release a voxel */}
@@ -3535,7 +3535,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 <span className="text-[9px]" style={{ color: C.dim }}>View angle {coordFmt === "ucrs"
                   ? (() => { const tot = Math.round(pitch * 10 * 3600); return `${String(Math.floor(tot / 3600)).padStart(4, "0")}.${String(tot % 3600).padStart(4, "0")}`; })()
                   : `${pitch.toFixed(3)}°`}</span>
-                <input type="range" min={2} max={88} value={Math.round(pitch)} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
+                <input type="range" min={11} max={85} value={Math.round(pitch)} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
               </div>
               <div className="mb-1 text-[9px]" style={{ color: C.text }}>Symbology standard</div>
               <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
