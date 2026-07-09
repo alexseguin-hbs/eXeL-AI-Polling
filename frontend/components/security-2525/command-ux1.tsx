@@ -186,10 +186,10 @@ function Bar({ label, pct }: { label: string; pct: number }) {
   );
 }
 
-export function SecurityCommandUX1() {
+export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: string } = {}) {
   const { setVisionView, exitSimulationMode } = useEasterEgg();
   const [iconStyle, setIconStyle] = useState<IconStyle>("mil");
-  const [activeTab, setActiveTab] = useState("OVERVIEW");
+  const [activeTab, setActiveTab] = useState(initialTab); // deep-linkable (e.g. /Security/2525 → PLANNING)
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [bottomOpen, setBottomOpen] = useState(true);
