@@ -2143,6 +2143,16 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const setAorKm = (km: number) => setDrawnAos((m) => (m[aoKey] ? { ...m, [aoKey]: { ...m[aoKey], aorKm: Math.min(100, Math.max(10, km)) } } : m));
   const deleteDrawnAo = () => setDrawnAos((m) => { const n = { ...m }; delete n[aoKey]; return n; });
   useEffect(() => { setAoDraft([]); setDrawingAo(false); }, [aoKey]); // switching AO clears any in-progress draw
+  // ── Custom missions ── operator-created AOs (persisted); each isolates its own placements ──
+  const [customAos, setCustomAos] = useState<Ao[]>(() => { try { return JSON.parse(localStorage.getItem("sec2525.customAos") || "[]"); } catch { return []; } });
+  useEffect(() => { try { localStorage.setItem("sec2525.customAos", JSON.stringify(customAos)); } catch { /* quota */ } }, [customAos]);
+  const createMission = () => {
+    const key = `custom-${customAos.reduce((mx, a) => Math.max(mx, parseInt(a.key.replace("custom-", "")) || 0), 0) + 1}`;
+    const m: Ao = { key, name: `MISSION ${customAos.length + 1} · CUSTOM`, center: [viewA.lat, viewA.lon], halfKm: Math.max(2, viewA.spanKm / 2), landmarks: [], buildings: [] };
+    setCustomAos((a) => [...a, m]); setAoKey(key); setAoMenuOpen(false);
+  };
+  const renameMission = (key: string, name: string) => setCustomAos((a) => a.map((m) => (m.key === key ? { ...m, name } : m)));
+  const deleteMission = (key: string) => { setCustomAos((a) => a.filter((m) => m.key !== key)); if (aoKey === key) setAoKey("capitol"); };
   const [showUlt, setShowUlt] = useState(false);         // ULT · Unit Line-up Table (setup layer)
   // ULT starts at the 001–008 setup nodes; operators ADD unit rows one at a time (persisted).
   const [ultRows, setUltRows] = useState<UltNode[]>(() => {
@@ -2153,7 +2163,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const updUlt = (i: number, patch: Partial<UltNode>) => setUltRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   const addUltRow = () => setUltRows((rs) => [...rs, { id: String(rs.length + 1).padStart(3, "0"), node: "", desc: "", supervisor: "", comm: "", personnel: 0, rifles: 0, vehicles: 0, equipment: "", notes: "" }]);
   const delUltRow = (i: number) => setUltRows((rs) => rs.filter((_, j) => j !== i));
-  const aoStateOf = (k: string) => (k === "dc" ? "DC" : k === "jblm" ? "WA"
+  const allAos = [...AOS, ...customAos];
+  const aoStateOf = (k: string) => (k.startsWith("custom-") ? "CUSTOM" : k === "dc" ? "DC" : k === "jblm" ? "WA"
     : ["capitol", "mabry", "pfield", "houston", "sanantonio", "dallas", "fortworth", "austin"].includes(k) ? "TX" : "FL");
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
@@ -2206,7 +2217,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   }, []);
   const setCursor = (m: "pointer" | "target") => { setCursorMode(m); try { localStorage.setItem("sec2525.cursorMode", m); } catch { /* no storage */ } };
 
-  const ao = AOS.find((a) => a.key === aoKey) ?? AOS[0];
+  const ao = allAos.find((a) => a.key === aoKey) ?? AOS[0];
 
   // MAP (A) + MINI MAP (B) are the SAME format; MIRROR keeps them in lock-step.
   const OVERVIEW_FACTOR = 3; // mini map opens further out for situational context
@@ -2239,7 +2250,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   };
   // Drill from the Earth/globe into an AO: land wide (region) then glide to detail.
   const enterAo = (k: string, setMode: (m: "world" | "ao") => void) => {
-    const t = AOS.find((a) => a.key === k) ?? ao;
+    const t = allAos.find((a) => a.key === k) ?? ao;
     if (t.precision) setDigits(t.precision);
     enteringRef.current = true;
     setAoKey(k); // plan-load effect restores this AO's saved placements
@@ -2417,32 +2428,47 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           {aoMenuOpen && (
             <div className="absolute left-1/2 top-8 z-50 max-h-[70vh] w-60 -translate-x-1/2 overflow-y-auto rounded-lg border p-1 shadow-2xl"
               style={{ background: C.panel, borderColor: C.cyan }}>
-              {(["TX", "WA", "DC", "FL"] as const).map((st) => {
-                const group = AOS.filter((a) => aoStateOf(a.key) === st && !aoHidden.has(a.key));
+              {(["CUSTOM", "TX", "WA", "DC", "FL"] as const).map((st) => {
+                const group = allAos.filter((a) => aoStateOf(a.key) === st && !aoHidden.has(a.key));
                 if (!group.length) return null;
                 return (
                   <div key={st} className="mb-1">
-                    <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider" style={{ color: C.dim }}>{st}</div>
-                    {group.map((a) => (
-                      <div key={a.key} className="flex items-center gap-1 rounded pr-1 hover:bg-white/5" style={{ background: a.key === aoKey ? "#152238" : "transparent" }}>
-                        <button onClick={() => { setAoKey(a.key); setAoMenuOpen(false); }}
-                          className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1 text-left text-[10px] font-semibold"
-                          style={{ color: a.key === aoKey ? C.cyan : C.text }}>
-                          <MapPin className="h-3 w-3 shrink-0" style={{ color: a.key === aoKey ? C.cyan : C.dim }} />
-                          <span className="truncate">{a.name.split(" · ")[0]}</span>
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); toggleAoHidden(a.key); }} title="Hide / remove from list" className="shrink-0 p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
-                      </div>
-                    ))}
+                    <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider" style={{ color: st === "CUSTOM" ? C.amber : C.dim }}>{st === "CUSTOM" ? "MISSIONS" : st}</div>
+                    {group.map((a) => {
+                      const custom = a.key.startsWith("custom-");
+                      return (
+                        <div key={a.key} className="flex items-center gap-1 rounded pr-1 hover:bg-white/5" style={{ background: a.key === aoKey ? "#152238" : "transparent" }}>
+                          {custom ? (
+                            <>
+                              <button onClick={() => { setAoKey(a.key); setAoMenuOpen(false); }} title="Select mission" className="shrink-0 pl-2"><MapPin className="h-3 w-3" style={{ color: a.key === aoKey ? C.cyan : C.dim }} /></button>
+                              <input value={a.name.split(" · ")[0]} onChange={(e) => renameMission(a.key, e.target.value)} onClick={(e) => e.stopPropagation()}
+                                className="min-w-0 flex-1 bg-transparent px-1 py-1 text-[10px] font-semibold outline-none" style={{ color: a.key === aoKey ? C.cyan : C.text }} />
+                              <button onClick={(e) => { e.stopPropagation(); deleteMission(a.key); }} title="Delete mission" className="shrink-0 p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={() => { setAoKey(a.key); setAoMenuOpen(false); }}
+                                className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1 text-left text-[10px] font-semibold"
+                                style={{ color: a.key === aoKey ? C.cyan : C.text }}>
+                                <MapPin className="h-3 w-3 shrink-0" style={{ color: a.key === aoKey ? C.cyan : C.dim }} />
+                                <span className="truncate">{a.name.split(" · ")[0]}</span>
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); toggleAoHidden(a.key); }} title="Hide / remove from list" className="shrink-0 p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })}
+              <button onClick={createMission} className="mt-1 w-full rounded border px-2 py-1 text-left text-[10px] font-bold" style={{ borderColor: C.green, color: C.green }}>＋ NEW MISSION (at current view)</button>
               {aoHidden.size > 0 && (
                 <div className="mt-1 border-t pt-1" style={{ borderColor: C.border }}>
                   <button onClick={() => setShowHiddenAos((v) => !v)} className="w-full px-2 py-0.5 text-left text-[8px] font-bold uppercase tracking-wider" style={{ color: C.dim }}>
                     {showHiddenAos ? "▾" : "▸"} Hidden ({aoHidden.size}) — restore
                   </button>
-                  {showHiddenAos && AOS.filter((a) => aoHidden.has(a.key)).map((a) => (
+                  {showHiddenAos && allAos.filter((a) => aoHidden.has(a.key)).map((a) => (
                     <div key={a.key} className="flex items-center gap-1 rounded pr-1 opacity-60 hover:bg-white/5">
                       <span className="min-w-0 flex-1 truncate px-2 py-1 text-[10px]" style={{ color: C.dim }}>{a.name.split(" · ")[0]}</span>
                       <button onClick={() => toggleAoHidden(a.key)} title="Restore (show)" className="shrink-0 p-0.5"><Eye className="h-3 w-3" style={{ color: C.green }} /></button>
