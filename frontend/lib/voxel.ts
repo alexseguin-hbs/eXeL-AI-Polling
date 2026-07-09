@@ -19,6 +19,7 @@ export const mFromFt = (ft: number) => ft * M_PER_FT;
 
 /** Band for an altitude in feet MSL. <0 → subsurface (-1); 0 → SURFACE (0); >0 → range band 1..7. */
 export function altitudeBandFt(ft: number): Band {
+  if (!Number.isFinite(ft)) return { index: -1, label: "UNKNOWN", floorFt: NaN, ceilFt: NaN }; // no silent "10k+"
   if (ft < 0) return { index: -1, label: "SUBSURFACE", floorFt: -Infinity, ceilFt: 0 };
   if (ft === 0) return { index: 0, label: "SURFACE", floorFt: 0, ceilFt: 0 };
   for (let j = 0; j < RANGE_EDGES.length - 1; j++) {

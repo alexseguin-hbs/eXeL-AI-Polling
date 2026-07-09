@@ -2272,7 +2272,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const enterAo = (k: string, setMode: (m: "world" | "ao") => void) => {
     const t = allAos.find((a) => a.key === k) ?? ao;
     if (t.precision) setDigits(t.precision);
-    enteringRef.current = true;
+    if (k !== aoKey) enteringRef.current = true; // only arm on a real key change, else the [aoKey] effect never clears it
     setAoKey(k); // plan-load effect restores this AO's saved placements
     const wide = 900, region = Math.max(30, t.halfKm * 6); // region ≈ 6× the site half-extent
     setViewA({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 });
@@ -2344,9 +2344,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   // Load OSM roads/water for the active AO — through the tile ladder (memory→localStorage→
   // Supabase→origin). Big 100km road tiles (too large for git) serve from Supabase once seeded.
   useEffect(() => {
+    let cancelled = false; // AO changed before the async tile resolved → drop the stale result
     const key = ao.osm;
     if (!key) { setOsm(null); return; }
     const apply = (d: OsmData | null) => {
+      if (cancelled) return;
       if (!d) { setOsm(null); return; }
       d.roads.forEach((w) => {
         if (w.bb) return; // already computed (cached payload)
@@ -2358,7 +2360,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     };
     const warm = peekTile<OsmData>(`osm-${key}`);
     if (warm) apply(warm);
-    else getTile<OsmData>(`osm-${key}`, `/security-2525/osm-${key}.json`, "vector").then((d) => { if (ao.osm === key) apply(d); });
+    else getTile<OsmData>(`osm-${key}`, `/security-2525/osm-${key}.json`, "vector").then(apply);
+    return () => { cancelled = true; };
   }, [ao.osm]);
 
   // ── Shared placement mutators ────────────────────────────────────────────
@@ -2405,8 +2408,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const routeMode = !!selectedSupport && (selectedSupport.geometry === "line" || selectedSupport.geometry === "corridor");
 
   // ── Plan approval + share (HI commander governance) ───────────────────────
-  // Any placement edit invalidates a prior approval — the plan returns to DRAFT.
-  useEffect(() => { setPlanStatus((s) => (s === "draft" ? s : "draft")); }, [placed.length, placedSupport.length, aoKey]);
+  // Any placement edit (add/remove/nudge/retarget/affiliation/altitude/TL) invalidates a prior
+  // approval — the plan returns to DRAFT. Keyed on a content signature, not just array length.
+  const planSig = useMemo(() => JSON.stringify(placed) + "|" + JSON.stringify(placedSupport), [placed, placedSupport]);
+  useEffect(() => { setPlanStatus((s) => (s === "draft" ? s : "draft")); }, [planSig, aoKey]);
   const planSummary = () => [
     "SECURITY-2525 · MISSION PLAN (proposal — pending human commander approval)",
     `AO: ${ao.name}`,

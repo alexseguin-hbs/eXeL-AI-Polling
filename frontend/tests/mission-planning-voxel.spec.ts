@@ -27,6 +27,12 @@ test("sub-surface altitude → SUBSURFACE band (index -1)", () => {
   expect(altitudeBandFt(-84).label).toBe("SUBSURFACE");
 });
 
+test("non-finite altitude → UNKNOWN (index -1), never a silent 10k+ band", () => {
+  expect(altitudeBandFt(NaN).index).toBe(-1);
+  expect(altitudeBandFt(NaN).label).toBe("UNKNOWN");
+  expect(altitudeBandFt(Infinity).label).toBe("UNKNOWN");
+});
+
 test("altitudeBandM converts metres first (2450 ft ≈ 746.8 m → band 3)", () => {
   expect(altitudeBandM(mFromFt(2450)).index).toBe(3);
 });
