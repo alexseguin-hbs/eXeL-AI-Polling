@@ -1365,9 +1365,10 @@ function AoMapPane(p: PaneProps) {
   // whole altitude column. Same DEM sampler + cell grid → zero extra fetch, cubes align.
   const latticeColumns = useMemo(() => {
     if (!is3d || !voxelLayer) return [];
-    const cLat = (box.latMin + box.latMax) / 2, cLon = (box.lonMin + box.lonMax) / 2;
-    return buildLatticeColumns(cLat, cLon, sampler, effCellM, 3);
-  }, [is3d, voxelLayer, box, sampler, effCellM]);
+    // HI 1.3.3: centre the 3×3 on the VIEW centre (the middle of the map) so it always sits
+    // in the centre square facing north — not the AO box centre (which drifts when panned).
+    return buildLatticeColumns(view.lat, view.lon, sampler, effCellM, 3);
+  }, [is3d, voxelLayer, view.lat, view.lon, sampler, effCellM]);
   // asset columns win over a lattice cell at the same physical square (occupied cubes)
   const shownColumns = useMemo(() => {
     const seen = new Set(voxelColumns.map((c) => `${c.cellM}:${c.mgrs}`));
@@ -1947,7 +1948,9 @@ function AoMapPane(p: PaneProps) {
                   {/* the cube stack — one wireframe cube per altitude band up to the top occupant */}
                   {stack.map((cb) => {
                     const occupied = cb.occupants.length > 0;
-                    const color = occupied ? (col.objects.find((o) => o.bandIdx === cb.bandIdx)?.color ?? C.cyan) : "#3b556e";
+                    // FX-53 (HI 1.3.3): a SELECTED column highlights ALL the way to the ground
+                    // in the user's highlight colour (rest of the lattice dims via `dimmed`).
+                    const color = sel ? hiCol : occupied ? (col.objects.find((o) => o.bandIdx === cb.bandIdx)?.color ?? C.cyan) : "#3b556e";
                     const z = (cb.bandIdx - 1) * bandPx;
                     return (
                       <div key={cb.bandIdx} className="pointer-events-none absolute left-0 top-0" style={{ transformStyle: "preserve-3d" }}>
@@ -2191,6 +2194,11 @@ function AoMapPane(p: PaneProps) {
                   {/* FX-05: threshold marker lines on the rail */}
                   {altRedFt != null && altRedFt > 0 && (
                     <span className="absolute left-0 right-0" style={{ top: thrTop(altRedFt), height: 2, background: C.red, boxShadow: `0 0 4px ${C.red}` }} />
+                  )}
+                  {/* FX-52 (HI 1.3.3): GREY voxel-limit line on the altitude bar — the height
+                      the voxel column reaches (voxelLimitPct% of the rail). */}
+                  {voxelLimitPct > 0 && (
+                    <span className="absolute left-0 right-0" style={{ top: thrTop((voxelLimitPct / 100) * topFt), height: 2, background: "#9ca3af", boxShadow: "0 0 4px #6b7280" }} />
                   )}
                   {altYellowFt != null && altYellowFt > 0 && (
                     <span className="absolute left-0 right-0" style={{ top: thrTop(altYellowFt), height: 2, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
