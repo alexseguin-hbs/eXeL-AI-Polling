@@ -1315,6 +1315,13 @@ function AoMapPane(p: PaneProps) {
   // P1.2 (Odin): corner HOVER chip — corner coordinate + terrain elevation at the cursor
   const [cornerHover, setCornerHover] = useState<{ key: string; ci: number } | null>(null);
   const [tiltSlider, setTiltSlider] = useState(false); // FX-21: 📱 tilt slider (phone access)
+  // FX-10 (HI 1.3.2): AUTO voxel cell = SCREEN-PROPORTIONAL reticle, not the UTM grid
+  // step. The 3×3 lattice spans 1/3 of the pane (each cell = 1/9 screen width) and is
+  // centred on the map — the nested eXeL cube metaphor (screen 3×3 → middle cube → its
+  // own 3×3 voxel) reading like a digital-weapon / thermal target. Fixed sizes (10 m /
+  // 100 m / 1 km, default 1 km) snap to real-world metres instead.
+  const autoCellM = Math.max(10, Math.round((view.spanKm * 1000) / 9));
+  const effCellM = voxelCellM && voxelCellM > 0 ? voxelCellM : autoCellM;
   const voxelColumns = useMemo(() => {
     if (!is3d) return [];
     // P1.3 round 3 (HI: "have you fixed 3D VOXEL CUBE to show?"): EVERY placed unit
@@ -1324,17 +1331,17 @@ function AoMapPane(p: PaneProps) {
       id: u.id, lat: u.lat, lon: u.lon, altM: u.altitude ?? 0, altRef: (u.altRef ?? "AGL") as "AGL" | "MSL",
       label: ASSET_LABELS[u.asset], color: u.aff === "hostile" ? C.red : C.cyan,
     }));
-    return objs.length ? buildVoxelColumns(objs, sampler, voxelCellM || grid.stepM) : [];
+    return objs.length ? buildVoxelColumns(objs, sampler, effCellM) : [];
     // (voxel-on-select effect lives right below — needs this memo declared first)
-  }, [is3d, placed, sampler, grid.stepM, voxelCellM]);
+  }, [is3d, placed, sampler, effCellM]);
   // FX-30 (HI): standalone VOXEL LATTICE — a 3×3 block of full-height stacked columns
   // centred on the view, existing WITHOUT any placed asset so you can read + click a
   // whole altitude column. Same DEM sampler + cell grid → zero extra fetch, cubes align.
   const latticeColumns = useMemo(() => {
     if (!is3d || !voxelLayer) return [];
     const cLat = (box.latMin + box.latMax) / 2, cLon = (box.lonMin + box.lonMax) / 2;
-    return buildLatticeColumns(cLat, cLon, sampler, voxelCellM || grid.stepM, 3);
-  }, [is3d, voxelLayer, box, sampler, voxelCellM, grid.stepM]);
+    return buildLatticeColumns(cLat, cLon, sampler, effCellM, 3);
+  }, [is3d, voxelLayer, box, sampler, effCellM]);
   // asset columns win over a lattice cell at the same physical square (occupied cubes)
   const shownColumns = useMemo(() => {
     const seen = new Set(voxelColumns.map((c) => `${c.cellM}:${c.mgrs}`));
@@ -1872,7 +1879,11 @@ function AoMapPane(p: PaneProps) {
                       border: `1.5px solid ${sel || voxelTop === col.key ? C.gold : "transparent"}`,
                       background: sel ? `${C.gold}22` : voxelTop === col.key ? `${C.gold}12` : "transparent" }} />
                     {/* TARGET — same proportions as the 3D crosshair cursor: outer ring,
-                        INNER ring, NSEW crosshair ticks, gold centre dot */}
+                        INNER ring, NSEW crosshair ticks, gold centre dot. FX-15 (HI 1.3.2):
+                        targets belong ONLY to asset/support cubes — an empty lattice cell
+                        gets NO reticle; hover+select its TOP to highlight the whole column
+                        instead (3-D column-reading, not a firing target). */}
+                    {!isLattice && (
                     <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: col.lat, lon: col.lon }); }}
                       title="TARGET — cube centre coordinate"
                       className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -1893,6 +1904,7 @@ function AoMapPane(p: PaneProps) {
                         </svg>
                       ); })()}
                     </button>
+                    )}
                     {col.corners.map((cn, ci) => (
                       <button key={ci} onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: cn.lat, lon: cn.lon }); }}
                         onMouseEnter={() => setCornerHover({ key: col.key, ci })}
@@ -3021,7 +3033,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
   const [altRedFt, setAltRedFt] = useState<number | null>(null);      // FX-05: RED altitude threshold
   const [altYellowFt, setAltYellowFt] = useState<number | null>(null);// FX-05: YELLOW altitude threshold
-  const [voxelCellM, setVoxelCellM] = useState<0 | 100 | 1000>(0);    // FX-10: 0 = AUTO (grid step)
+  const [voxelCellM, setVoxelCellM] = useState<0 | 10 | 100 | 1000>(1000); // FX-10 (1.3.2): default 1 km; 0 = AUTO screen reticle (3×3 = 1/3 pane, cell = 1/9)
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
@@ -3700,7 +3712,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <div className="mt-1 mb-1 flex items-center justify-between">
                 <span className="text-[9px]" style={{ color: C.text }}>3D Voxel·Cube cell</span>
                 <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
-                  {([[0, "AUTO"], [100, "100 m"], [1000, "1 km"]] as const).map(([v, label]) => (
+                  {([[0, "AUTO"], [10, "10 m"], [100, "100 m"], [1000, "1 km"]] as const).map(([v, label]) => (
                     <button key={v} onClick={() => setVoxelCellM(v)} className="px-1.5 py-0.5"
                       style={{ background: voxelCellM === v ? "#152238" : "transparent", color: voxelCellM === v ? C.cyan : C.dim }}>{label}</button>
                   ))}
