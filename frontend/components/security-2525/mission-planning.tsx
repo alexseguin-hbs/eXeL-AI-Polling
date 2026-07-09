@@ -894,6 +894,7 @@ interface PaneProps {
   onToggleMax: () => void;
   onHidePane?: () => void;
   onWorld?: () => void; // zoom out past AO scale → Earth/world view
+  pitch?: number; // 3D view angle (deg) — FAAD/AMDWS "right-click angles the view to altitude"
   // AO / AOR draw tool
   drawingAo: boolean;
   aoDraft: [number, number][];
@@ -906,7 +907,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
-    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld,
+    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, pitch,
     drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
 
@@ -1262,7 +1263,7 @@ function AoMapPane(p: PaneProps) {
             onMouseLeave={() => { setCursorLL(null); setCursorPx(null); }}>
             {/* 3D tilt — the whole world layer (ground + markers) tilts as one plane;
                 HUD (compass/readouts/scale) stays screen-flat, placement uses 2D */}
-            <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 60%", transform: is3d ? "perspective(780px) rotateX(55deg) scale(1.2)" : undefined, transition: "transform 220ms ease" }}>
+            <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 60%", transform: is3d ? `perspective(780px) rotateX(${pitch ?? 55}deg) scale(1.2)` : undefined, transition: "transform 220ms ease" }}>
             {/* rotated inner canvas (RENDER× size) */}
             <div className="pointer-events-none absolute" style={{ inset: `${-OFF * 100}%`, transform: `rotate(${view.bearing}rad)`, transformOrigin: "center" }}>
               <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -2184,6 +2185,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [mirror, setMirror] = useState(false);             // MIRROR couples MAP⇄MINI; SPLIT decouples
   const [is3dA, setIs3dA] = useState(false);               // MAP 2D/3D (perspective terrain)
   const [is3dB, setIs3dB] = useState(false);               // MINI MAP 2D/3D
+  const [pitch, setPitch] = useState(55);                  // 3D view angle (deg) — the FAAD/AMDWS altitude-angle
+  const [symbologyMode, setSymbologyMode] = useState<"mil" | "exel" | "hybrid">("mil"); // MIL-STD-2525 | eXeL-STD-2525 | Hybrid
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
@@ -2422,8 +2425,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
-    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey],
-  }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view
+    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch,
+  }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view.
+     // 2D↔3D reuses this SAME tile — is3d is a render flag only; no DEM/OSM effect depends on it → ZERO extra fetch.
 
   return (
     <div ref={rootRef} className="space-y-2 p-3" style={isFs ? { background: C.bg, height: "100vh", overflowY: "auto" } : undefined}>
@@ -2741,6 +2745,22 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 ))}
               </div>
               <div className="mt-1 text-[7px]" style={{ color: C.dim }}>β prefetches zoom-in/out DEM tiles so the next zoom is instant. Safe to toggle live.</div>
+            </div>
+            {/* 3D Elevation Mode — view angle (FAAD/AMDWS altitude-angle) + symbology standard */}
+            <div className="mt-2 border-t pt-2" style={{ borderColor: C.border }}>
+              <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>3D Elevation Mode</div>
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-[9px]" style={{ color: C.dim }}>View angle {pitch}°</span>
+                <input type="range" min={20} max={75} value={pitch} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
+              </div>
+              <div className="mb-1 text-[9px]" style={{ color: C.text }}>Symbology standard</div>
+              <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                {([["mil", "MIL-STD-2525"], ["exel", "eXeL-STD-2525"], ["hybrid", "HYBRID"]] as const).map(([m, label]) => (
+                  <button key={m} onClick={() => setSymbologyMode(m)} className="flex-1 px-1 py-1"
+                    style={{ background: symbologyMode === m ? "#152238" : "transparent", color: symbologyMode === m ? C.cyan : C.dim }}>{label}</button>
+                ))}
+              </div>
+              <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Tilt to 3D on any pane (2D/3D toggle) — reuses the same fetched tile, zero extra network. Altitude stems + transect land next.</div>
             </div>
           </div>
         )}
