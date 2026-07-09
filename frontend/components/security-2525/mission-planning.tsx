@@ -967,6 +967,7 @@ interface PaneProps {
   osm: OsmData | null;
   borders: BorderData | null;
   dem: Dem | null;
+  mapEngine: "current" | "beta";   // α (current, square map) vs β (World Disc + prefetch)
   // shared placement state (read on the map surface)
   inventory: InvItem[];
   placed: Placed[];
@@ -1016,7 +1017,7 @@ interface PaneProps {
 function AoMapPane(p: PaneProps) {
   const {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
-    spanFactor, view, setView, otherView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
+    spanFactor, view, setView, otherView, osm, borders, dem, mapEngine, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
     maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1,
@@ -2428,6 +2429,44 @@ function AoMapPane(p: PaneProps) {
                 </div>
               );
             })()}
+            {/* ── β WORLD DISC — the ground reads as a full CIRCLE of land(green)/ocean(blue)
+                 filling the dome footprint, instead of a square. The existing Natural-Earth
+                 land/ocean base fill already covers the whole canvas, so we just MASK everything
+                 OUTSIDE the dome-footprint circle to dark (a spotlight box-shadow), sharing the
+                 dome's own centre (bc) + radius (R) so the disc rim = dome floor ring by
+                 construction. β map engine only; α keeps the shipped square map. */}
+            {mapEngine === "beta" && [view.lat, view.lon].every(Number.isFinite) && (() => {
+              const bc = project(view.lat, view.lon);
+              const paneW = mapRef.current?.clientWidth ?? 800;
+              const paneH = mapRef.current?.clientHeight ?? 600;
+              const horizonStretch = 1 + Math.max(0, ((pitch ?? 55) - 45)) / 22;
+              // Ground disc = the GROUND footprint (altitude is the dome's vertical concern, not the
+              // floor): 3D reaches the horizon (furthest on screen); 2D is an inscribed visible circle.
+              const R = is3d ? Math.hypot(paneW / 2, paneH / 2) * horizonStretch : Math.min(paneW, paneH) * 0.48;
+              const NRr = 4, NSp = 12;                        // polar floor: range rings · bearing spokes
+              return (
+                <>
+                  {/* spotlight mask — dark everything OUTSIDE the circle → circular land/ocean disc */}
+                  <div className="pointer-events-none absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`,
+                    zIndex: 3, width: 2 * R, height: 2 * R, borderRadius: "50%", transform: "translate(-50%,-50%)",
+                    boxShadow: "0 0 0 9999px #070b11" }} />
+                  {/* polar FLOOR grid — concentric range rings + radial bearing spokes, bearing-locked */}
+                  <div className="pointer-events-none absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`,
+                    zIndex: 4, transform: `translate(-50%,-50%) rotateZ(${view.bearing}rad)`, transformStyle: "preserve-3d" }}>
+                    {Array.from({ length: NRr }, (_, k) => {
+                      const rr = R * ((k + 1) / NRr);
+                      return <div key={`prr${k}`} className="pointer-events-none absolute rounded-full" style={{ left: "50%", top: "50%",
+                        width: 2 * rr, height: 2 * rr, transform: "translate(-50%,-50%)", border: `1px solid ${C.cyan}22` }} />;
+                    })}
+                    {Array.from({ length: NSp }, (_, k) => {
+                      const ang = (k / NSp) * 360;
+                      return <div key={`psp${k}`} className="pointer-events-none absolute" style={{ left: "50%", top: "50%",
+                        width: R, height: 1, transformOrigin: "0 50%", transform: `rotate(${ang}deg)`, background: `${C.cyan}1e` }} />;
+                    })}
+                  </div>
+                </>
+              );
+            })()}
             {/* ── UCRS-2525 SKY DOME — a hemispherical grid over the AO (a celestial dome that
                  can host sun / moon / planets and horizon-projected distant contacts). Latitude
                  rings (flat circles at height) + meridian arches (SVG half-ellipses standing
@@ -3494,7 +3533,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const demKeyRefB = useRef<string | null>(null);
   // Champion/challenger map engine: "current" (shipped) vs "beta" (6-face pull-as-you-need:
   // prefetch zoom-in/out tiles so the next zoom is instant). Default current; A/B switch in Settings.
-  const [mapEngine, setMapEngine] = useState<"current" | "beta">(() => ((typeof localStorage !== "undefined" && localStorage.getItem("sec2525.mapEngine")) === "beta" ? "beta" : "current"));
+  // HI FIX (α glitch): mapEngine now affects RENDER (β World Disc), so it must NOT read localStorage
+  // in the initializer — that diverges SSR ("current") from the client and throws a hydration error.
+  // Init "current" (matches SSR), then adopt the stored value AFTER mount.
+  const [mapEngine, setMapEngine] = useState<"current" | "beta">("current");
+  useEffect(() => { try { if (localStorage.getItem("sec2525.mapEngine") === "beta") setMapEngine("beta"); } catch { /* ignore */ } }, []);
   useEffect(() => { try { localStorage.setItem("sec2525.mapEngine", mapEngine); } catch { /* quota */ } }, [mapEngine]);
   const [isFs, setIsFs] = useState(false);
   const [railOpen, setRailOpen] = useState(true);          // left ASSET/SUPPORT rail (collapsible)
@@ -3864,6 +3907,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM, voxelLimitPct, voxelHiColor,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
+    mapEngine,
   }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view.
      // 2D↔3D reuses this SAME tile — is3d is a render flag only; no DEM/OSM effect depends on it → ZERO extra fetch.
 
@@ -4186,8 +4230,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 {(["current", "beta"] as const).map((m) => (
                   <button key={m} onClick={() => setMapEngine(m)} className="flex-1 px-2 py-1"
                     style={{ background: mapEngine === m ? "#152238" : "transparent", color: mapEngine === m ? C.cyan : C.dim }}>
-                    {m === "current" ? "CURRENT" : (
-                      <span className="inline-flex items-center justify-center gap-1">
+                    {m === "current" ? (
+                      <span className="inline-flex items-center justify-center gap-1" title="Alpha — shipped square map">α</span>
+                    ) : (
+                      <span className="inline-flex items-center justify-center gap-1" title="Beta — World Disc + prefetch">
                         β
                         <svg width="12" height="12" viewBox="-10 -10 20 20" aria-hidden>
                           {[0, 60, 120, 180, 240, 300].map((a) => (
