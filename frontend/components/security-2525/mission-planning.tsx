@@ -2273,7 +2273,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (demCache[key]) { setDem(demCache[key]); return; }
     fetch(`/security-2525/dem-${key}.json`).then((r) => r.json())
       .then((d: Dem) => { demCache[key] = d; if (demKeyRef.current === key) setDem(d); })
-      .catch(() => setDem(null));
+      .catch(() => { demKeyRef.current = null; }); // transient error: keep current tile, retry on next move (no synthetic flash)
     // 6-face BETA: prefetch the zoom-in (finer) + zoom-out (coarser) tiles so the next
     // zoom is instant — the "pull-as-you-need" cube seed. Cache-only, no render change.
     if (mapEngine === "beta") {
