@@ -2329,28 +2329,33 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   // rails and transect hide). Distinct from isFs (browser fullscreen, menu-level Expand).
   const [fsPane, setFsPane] = useState<null | "map" | "mini">(null);
   const mapMax = fsPane !== null;                          // rails + command bar + transect hidden
-  const [miniPos, setMiniPos] = useState<{ x: number; y: number } | null>(null); // mini-map drag position (null = bottom-right default)
+  // Mini-map FLOATS (position:fixed) once dragged — anywhere in the viewport BELOW the two
+  // sticky top menus (over rails, under ACTIVE ITEMS…), not just inside the big map.
+  const [miniPos, setMiniPos] = useState<{ x: number; y: number } | null>(null); // viewport px (null = bottom-right of map, default)
   const miniDrag = useRef<{ dx: number; dy: number } | null>(null);
-  const centerRef = useRef<HTMLDivElement>(null);          // center map area — drag bounds for the mini
+  const centerRef = useRef<HTMLDivElement>(null);          // center map area — hosts the default mini position
   const wsRef = useRef<HTMLDivElement>(null);              // workspace row — measured for fullscreen height
   const [wsTop, setWsTop] = useState(90);
   useEffect(() => { if (fsPane && wsRef.current) setWsTop(Math.round(wsRef.current.getBoundingClientRect().top)); }, [fsPane]);
+  const stickyBottom = () =>
+    Math.round(document.querySelector("[data-sec2525-sticky]")?.getBoundingClientRect().bottom ?? 84);
+  const clampMini = (x: number, y: number, w: number, h: number) => ({
+    x: Math.min(Math.max(0, x), Math.max(0, window.innerWidth - w)),
+    y: Math.min(Math.max(stickyBottom(), y), Math.max(stickyBottom(), window.innerHeight - Math.min(h, 40))),
+  });
   const onMiniGripDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    const mini = e.currentTarget.parentElement, host = centerRef.current;
-    if (!mini || !host) return;
-    const mb = mini.getBoundingClientRect(), hb = host.getBoundingClientRect();
+    const mini = e.currentTarget.parentElement;
+    if (!mini) return;
+    const mb = mini.getBoundingClientRect();
     miniDrag.current = { dx: e.clientX - mb.left, dy: e.clientY - mb.top };
-    setMiniPos({ x: mb.left - hb.left, y: mb.top - hb.top });
+    setMiniPos(clampMini(mb.left, mb.top, mb.width, mb.height));
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onMiniGripMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const mini = e.currentTarget.parentElement, host = centerRef.current;
-    if (!miniDrag.current || !mini || !host) return;
-    const hb = host.getBoundingClientRect(), mb = mini.getBoundingClientRect();
-    setMiniPos({
-      x: Math.min(Math.max(0, e.clientX - hb.left - miniDrag.current.dx), Math.max(0, hb.width - mb.width)),
-      y: Math.min(Math.max(0, e.clientY - hb.top - miniDrag.current.dy), Math.max(0, hb.height - mb.height)),
-    });
+    const mini = e.currentTarget.parentElement;
+    if (!miniDrag.current || !mini) return;
+    const mb = mini.getBoundingClientRect();
+    setMiniPos(clampMini(e.clientX - miniDrag.current.dx, e.clientY - miniDrag.current.dy, mb.width, mb.height));
   };
   const onMiniGripUp = (e: React.PointerEvent<HTMLDivElement>) => {
     miniDrag.current = null;
@@ -3047,15 +3052,21 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               maximized={fsPane === "map"} onToggleMax={() => setFsPane((f) => (f === "map" ? null : "map"))} onWorld={() => setModeA_("world")} />
           )}
           {!fsPane && (miniOpen ? (
-            <div className="absolute z-20 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"
-              style={{ ...(miniPos ? { left: miniPos.x, top: miniPos.y } : { bottom: 8, right: 8 }),
-                width: "48%", height: "46%", minWidth: 220, minHeight: 170, borderColor: C.cyan, background: C.panel }}>
+            <div className={miniPos ? "fixed z-30 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl" : "absolute z-20 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"}
+              style={{ ...(miniPos
+                ? { left: miniPos.x, top: miniPos.y, width: "min(44vw, 560px)", height: "min(38vh, 420px)" }
+                : { bottom: 8, right: 8, width: "48%", height: "46%" }),
+                minWidth: 220, minHeight: 170, borderColor: C.cyan, background: C.panel }}>
               {/* drag grip — move the mini anywhere over the big map; ⛶ = mini fullscreen, ▾ = minimize */}
               <div onPointerDown={onMiniGripDown} onPointerMove={onMiniGripMove} onPointerUp={onMiniGripUp} onPointerCancel={onMiniGripUp}
                 className="flex shrink-0 cursor-move touch-none select-none items-center justify-between border-b px-2 py-0.5"
                 style={{ background: "#0c1420", borderColor: C.cyan }}>
                 <span className="text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>⠿ MINI · DRAG</span>
                 <div className="flex items-center gap-1">
+                  {miniPos && (
+                    <button onClick={() => setMiniPos(null)} onPointerDown={(e) => e.stopPropagation()} title="Dock back to bottom-right of the map"
+                      className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>⌂</button>
+                  )}
                   <button onClick={() => setFsPane("mini")} onPointerDown={(e) => e.stopPropagation()} title="Mini map fullscreen (below menu)"
                     className="rounded border p-0.5" style={{ borderColor: C.border, color: C.dim }}><Maximize2 className="h-2.5 w-2.5" /></button>
                   <button onClick={() => setMiniOpen(false)} onPointerDown={(e) => e.stopPropagation()} title="Minimize mini map"
