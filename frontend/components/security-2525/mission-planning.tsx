@@ -317,6 +317,17 @@ const AD_HALF: Partial<Record<AssetKind, number>> = { patriot: 60, thaad: 90 };
 const ASSET_RANGE_KM: Partial<Record<AssetKind, number>> = {
   avenger: 8, patriot: 160, thaad: 200, sentinel: 75,
 };
+// HI: AUTO altitude ceiling scales with the view span so the rail/voxel/dome are dimensionally
+// sensible at every zoom — a 10k-ft ceiling over the whole USA reads as a flat sliver. Stepped
+// through realistic airspace bands up to near-space for continental spans. maxAltFt overrides it.
+function autoCeilingFt(spanKm: number): number {
+  if (spanKm < 5) return 10000;
+  if (spanKm < 15) return 25000;
+  if (spanKm < 40) return 50000;
+  if (spanKm < 120) return 100000;
+  if (spanKm < 500) return 300000;
+  return 1000000;
+}
 
 // ── World border context strip (Natural Earth 50m, self-hosted) ──────────────
 interface BorderData { countries: [number, number][][]; usStates: [number, number][][] }
@@ -1353,6 +1364,8 @@ function AoMapPane(p: PaneProps) {
   const [voxelLayer, setVoxelLayer] = useState(true); // FX-30 (HI): standalone 3×3 voxel LATTICE, independent of assets, ON by default
   const [voxelSize, setVoxelSize] = useState<3 | 2 | 1>(3); // FX (HI 1.3.3): box size tier — 3X (full) · 2X (⅔) · 1X (⅓); altitude projectors always reach the grey-line altitude
   const [domeMode, setDomeMode] = useState<"grid" | "hex">("grid"); // UCRS-2525 sky dome style — globe GRID lines vs HEX panels (3rd style TBD)
+  const [domeThick, setDomeThick] = useState(1.6);                   // dome line thickness (dome settings ▲ cone icon)
+  const [domeSettingsOpen, setDomeSettingsOpen] = useState(false);   // dome settings popover open
   const [voxelTop, setVoxelTop] = useState<string | null>(null); // FX-30: hovered column TOP face (pick a stack by its top)
   // P1.2 (Odin): corner HOVER chip — corner coordinate + terrain elevation at the cursor
   const [cornerHover, setCornerHover] = useState<{ key: string; ci: number } | null>(null);
@@ -1499,13 +1512,26 @@ function AoMapPane(p: PaneProps) {
               ))}
             </div>
           )}
-          {/* UCRS-2525 sky-dome style — globe GRID lines vs HEX panels (3rd TBD) */}
+          {/* UCRS-2525 sky-dome settings — ▲ cone icon (style + line thickness), before the gear */}
           {is3d && voxelLayer && (
-            <div className="flex overflow-hidden rounded border font-semibold" style={{ borderColor: C.border }} title="Sky-dome style — globe GRID lines or HEX panels">
-              {(["grid", "hex"] as const).map((d) => (
-                <button key={d} onClick={() => setDomeMode(d)} className="px-1 py-0.5 uppercase"
-                  style={{ background: domeMode === d ? "#152238" : "transparent", color: domeMode === d ? C.cyan : C.dim }}>{d}</button>
-              ))}
+            <div className="relative">
+              <button onClick={() => setDomeSettingsOpen((o) => !o)} title="Sky-dome settings — style (GRID/HEX) + line thickness"
+                className="flex items-center rounded border px-1.5 py-0.5" style={{ borderColor: domeSettingsOpen ? C.cyan : C.border, color: domeSettingsOpen ? C.cyan : C.dim }}>
+                <svg width="11" height="11" viewBox="0 0 12 12" aria-label="Dome settings"><path d="M6 1.5 L10.5 10 L1.5 10 Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>
+              </button>
+              {domeSettingsOpen && (
+                <div className="absolute right-0 top-full z-50 mt-1 w-40 rounded border p-2 text-left" style={{ background: "#0a0f16", borderColor: C.border, boxShadow: "0 4px 18px rgba(0,0,0,.6)" }}>
+                  <div className="mb-1 text-[9px] font-bold tracking-wider" style={{ color: C.cyan }}>SKY DOME (UCRS-2525)</div>
+                  <div className="mb-1.5 flex gap-1">
+                    {(["grid", "hex"] as const).map((d) => (
+                      <button key={d} onClick={() => setDomeMode(d)} className="flex-1 rounded border px-1 py-0.5 text-[9px] font-semibold uppercase"
+                        style={{ borderColor: domeMode === d ? C.cyan : C.border, color: domeMode === d ? C.cyan : C.dim }}>{d}</button>
+                    ))}
+                  </div>
+                  <div className="mb-0.5 flex items-center justify-between text-[8px]" style={{ color: C.dim }}><span>Line thickness</span><span style={{ color: C.cyan }}>{domeThick.toFixed(1)}px</span></div>
+                  <input type="range" min={0.6} max={4} step={0.2} value={domeThick} onChange={(e) => setDomeThick(parseFloat(e.target.value))} className="w-full" style={{ accentColor: C.cyan }} />
+                </div>
+              )}
             </div>
           )}
           {onToggleMirror && (
@@ -2075,6 +2101,13 @@ function AoMapPane(p: PaneProps) {
                       background: "repeating-linear-gradient(to bottom, #6b7280 0 2px, transparent 2px 5px)", opacity: dimmed ? 0.25 : 0.6,
                       transform: `translate(-50%,-50%) translate3d(0px,0px,${(topZ + limitZ) / 2}px) rotateX(90deg)` }} />
                   )}
+                  {/* HI: GREY TOP-FACE ceiling at the voxel-limit — a grey-bordered square ABOVE the
+                      aircraft so the operator can see the top of the airspace band (above the cube). */}
+                  {limitZ > topZ + 1 && (
+                    <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: cellPx, height: cellPx,
+                      border: "1.5px dashed #9ca3afcc", background: "#6b728012", opacity: dimmed ? 0.3 : 0.7,
+                      transform: `translate(-50%,-50%) translateZ(${limitZ}px)` }} />
+                  )}
                   {/* FX-49 REMOVED (HI 1.3.3): the cell-centre SPHERE was a duplicate asset marker. The
                       ground asset DOT / aerial BOX rendered in placed.map is now the single asset symbol;
                       placed.map's onContextMenu already hooks the asset to open its track label. */}
@@ -2402,7 +2435,7 @@ function AoMapPane(p: PaneProps) {
               // HI: dome REACH = whichever is highest — the distance from centre to the map EDGE,
               // or the ALTITUDE ceiling (dimensionally accurate) — so a 10k-ft ceiling over a 100k
               // span reads sensibly instead of a confusing flat sliver. Hemisphere (H = R).
-              const topFt = maxAltFt ?? 10000;
+              const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
               const pxPerM = paneW / Math.max(1, view.spanKm * 1000);
               const altPx = topFt * 0.3048 * pxPerM;        // altitude ceiling in px
               const edgePx = paneW / 2;                     // centre → map edge in px
@@ -2423,14 +2456,14 @@ function AoMapPane(p: PaneProps) {
                       const r = R * Math.cos(th), z = H * Math.sin(th);
                       if (r < 1) return null;
                       return <div key={`dlr${k}`} className="rounded-full" style={{ ...at(`translateZ(${z}px)`),
-                        width: 2 * r, height: 2 * r, border: `${k === 0 ? 2.4 : 1.6}px solid ${col}${k === 0 ? "dd" : "99"}` }} />;
+                        width: 2 * r, height: 2 * r, border: `${k === 0 ? domeThick * 1.5 : domeThick}px solid ${col}${k === 0 ? "dd" : "99"}` }} />;
                     })}
                     {Array.from({ length: NM }, (_, m) => {
                       const phi = (m / NM) * 180;
                       return (
                         <svg key={`dm${m}`} width={2 * R} height={H} viewBox={`0 0 ${2 * R} ${H}`} style={{ position: "absolute", left: "50%", top: "50%",
                           marginLeft: -R, marginTop: -H, transformOrigin: "50% 100%", transform: `rotateZ(${phi}deg) rotateX(-90deg)`, overflow: "visible" }}>
-                          <path d={`M 0 ${H} A ${R} ${H} 0 0 1 ${2 * R} ${H}`} fill="none" stroke={col} strokeWidth="2.6" opacity="0.9" />
+                          <path d={`M 0 ${H} A ${R} ${H} 0 0 1 ${2 * R} ${H}`} fill="none" stroke={col} strokeWidth={domeThick * 1.6} opacity="0.9" />
                         </svg>
                       );
                     })}
@@ -2458,7 +2491,7 @@ function AoMapPane(p: PaneProps) {
                       <svg key={c.key} width={2 * hexR} height={2 * hexR} viewBox={`0 0 ${2 * hexR} ${2 * hexR}`}
                         style={{ position: "absolute", left: "50%", top: "50%", overflow: "visible",
                           transform: `translate(-50%,-50%) translate3d(${c.x}px,${c.y}px,${c.z}px) rotateX(${-p}deg)` }}>
-                        <polygon points={pts} fill={`${col}12`} stroke={col} strokeWidth="1.6" opacity="0.8" />
+                        <polygon points={pts} fill={`${col}12`} stroke={col} strokeWidth={domeThick} opacity="0.8" />
                       </svg>
                     ));
                   })()}
@@ -2532,8 +2565,8 @@ function AoMapPane(p: PaneProps) {
                 FX-09b: top band = maxAltFt when user-set (AUTO = 10k ft);
                 labels honor the Units setting via fmt.fmtElev. */}
             {is3d && (() => {
-              const topFt = maxAltFt ?? 10000;
-              const levels = maxAltFt ? [1, 0.75, 0.5, 0.25, 0.1, 0.05].map((k) => Math.round(maxAltFt * k)) : [10000, 7500, 5000, 2500, 1000, 500];
+              const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
+              const levels = [1, 0.75, 0.5, 0.25, 0.1, 0.05].map((k) => Math.round(topFt * k)); // scales with maxAltFt or the AUTO ceiling
               const lbl = (ft: number) => fmt.fmtElev(ft / 3.28084);
               const thrTop = (ft: number) => `${(14 + (1 - Math.min(1, Math.max(0, ft / topFt))) * 68).toFixed(1)}%`;
               return (
