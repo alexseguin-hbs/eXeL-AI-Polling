@@ -129,6 +129,29 @@ export function objectMslM(o: VoxelObject, sampler: (lat: number, lon: number) =
   return o.altRef === "AGL" ? sampler(o.lat, o.lon) + o.altM : o.altM;
 }
 
+/** A stable 3D VOXEL address: grid cell (UTM square) + altitude band. */
+export interface VoxelAddr { key: string; zone: number; cellE: number; cellN: number; bandIdx: number; centerLat: number; centerLon: number; cellM: number }
+
+/**
+ * PURE primitive — map a track position (lat/lon + MSL metres) to its stable 3D VOXEL
+ * address (cell + altitude band). This is the ARCHITECTURE HOOK for the future voxel
+ * PATH-TRAIL of a moving track ([[project_voxel_path_trail_vision]]): as an aircraft moves,
+ * push voxelAddr(...).key into a Set and render each lit cell cheaply (Pi-class) — no
+ * per-frame rebuild, no extra fetch, deterministic + dedupable by key. Altitude is a
+ * first-class axis here so flying tracks trail through the air, ground tracks along terrain.
+ * Same cell maths as buildVoxelColumns so trail cells line up exactly with the drawn grid.
+ */
+export function voxelAddr(lat: number, lon: number, mslM: number, cellM = 1000): VoxelAddr {
+  const { zone, easting, northing } = latLonToUtm(lat, lon);
+  const cellE = Math.floor(easting / cellM);
+  const cellN = Math.floor(northing / cellM);
+  let bandIdx = -1; // non-finite altitude → UNKNOWN band (voxel law: never a silent band)
+  if (Number.isFinite(mslM)) bandIdx = altitudeBandM(mslM).index;
+  const key = `${zone}${latBand(lat)}:${cellE}:${cellN}:${cellM}:Z${bandIdx}`;
+  const { lat: centerLat, lon: centerLon } = utmToLatLon(zone, (cellE + 0.5) * cellM, (cellN + 0.5) * cellM, lat < 0);
+  return { key, zone, cellE, cellN, bandIdx, centerLat, centerLon, cellM };
+}
+
 /**
  * Group objects into coordinate-addressed voxel columns.
  * - cell = UTM square of `cellM` metres (pass the visible grid step so cubes snap

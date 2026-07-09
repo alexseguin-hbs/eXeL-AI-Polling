@@ -1161,7 +1161,7 @@ function AoMapPane(p: PaneProps) {
   };
   // Pointer handlers — LEFT pan / RIGHT rotate; touch pan + pinch.
   const onPointerDown = (e: React.PointerEvent) => {
-    if (e.button === 0) setHook(null); // left-click anywhere releases the cursor hook
+    if (e.button === 0) setHooks([]); // left-click anywhere releases ALL cursor hooks
     if (e.pointerType === "touch") {
       touchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -1272,12 +1272,13 @@ function AoMapPane(p: PaneProps) {
   useEffect(() => { setRouteDraft([]); setCoordCall(null); }, [ao.key]);
   // CURSOR HOOK (P1.3 round 3, HI / FAAD C2 procedure): right-click over a track
   // "hooks" it — IFF + speed/altitude/heading data + engagement tools at the plot.
-  const [hook, setHook] = useState<number | null>(null);
-  const [hookOff, setHookOff] = useState({ x: 23, y: -23 }); // FX-51 (HI 1.3.3): draggable hook-label offset (px from the asset); connector always follows
-  const hookDrag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
+  // FX-51 v2 (HI): MULTIPLE hooks — right-click each track adds its own label.
+  const [hooks, setHooks] = useState<number[]>([]); // ids of every hooked track
+  const [hookOffs, setHookOffs] = useState<Record<number, { x: number; y: number }>>({}); // PER-ID draggable hook-label offset (px from the asset); connector always follows
+  const hookDrag = useRef<{ id: number; sx: number; sy: number; ox: number; oy: number } | null>(null);
   // P1.3 (Thought Master): ESC leaves placement mode → traditional SELECT mode.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { onDisarm?.(); setRouteDraft([]); setHook(null); } };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { onDisarm?.(); setRouteDraft([]); setHooks([]); } };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1780,24 +1781,47 @@ function AoMapPane(p: PaneProps) {
               if (f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05) return null;
               const sel = selected?.kind === "asset" && selected.id === u.id;
               const hot = hoverAsset === u.asset;
+              // HI FINAL TOUCH — a FLYING asset sits at its ACTUAL altitude in 3D. Lift the icon
+              // by translateZ on the SAME vertical scale the voxel + left ALTITUDE rail use
+              // (bandPx per band; full finite rail = 6 bands = topFt), and drop a 1px billboarded
+              // stem to the ground so the height reads. AGL/MSL normalised to MSL ft (rail = MSL).
+              const flying = is3d && u.altitude != null && u.altitude > 0;
+              const altitudePx = flying ? (() => {
+                const paneW = mapRef.current?.clientWidth ?? 800;
+                const cellPx = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW);
+                const bandPx = Math.min(cellPx, 40);            // == voxel band height
+                const topFt = maxAltFt ?? 10000;                // == ALTITUDE rail top
+                const terrainM = sampler(u.lat, u.lon);
+                const mslFt = ((u.altRef === "MSL") ? u.altitude! : terrainM + u.altitude!) * 3.28084;
+                return Math.max(0, Math.min(1, mslFt / topFt)) * 6 * bandPx; // 6 finite rail bands
+              })() : 0;
               return (
-                <button key={u.id}
+                <Fragment key={u.id}>
+                  {/* thin vertical stem: ground → flying icon, billboarded like the compass spike */}
+                  {altitudePx > 1 && (
+                    <div className="pointer-events-none absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`,
+                      width: 1, height: altitudePx, zIndex: hot ? 14 : 11,
+                      background: `linear-gradient(to top, ${u.aff === "hostile" ? C.red : C.green}, ${u.aff === "hostile" ? C.red : C.green}22)`,
+                      transform: `translate(-50%,-100%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%" }} />
+                  )}
+                <button
                   onPointerUp={(e) => { if (!dragRef.current?.moved) { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); } }}
                   onDoubleClick={(e) => { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); showVoxelFor(u.id); }} /* FX-30 (HI): double-click an asset → reveal + highlight its VOXEL·CUBE */
-                  onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); if (!dragRef.current?.moved) { setSelected({ kind: "asset", id: u.id }); setHook(u.id); } }}
+                  onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); if (!dragRef.current?.moved) { setSelected({ kind: "asset", id: u.id }); setHooks((hs) => (hs.includes(u.id) ? hs : [...hs, u.id])); setHookOffs((os) => (os[u.id] ? os : { ...os, [u.id]: { x: 23 + 20 * (Object.keys(os).length % 4), y: -23 - 16 * (Object.keys(os).length % 4) } })); } }}
                   onMouseEnter={() => setHoverAsset(u.asset)}
                   onMouseLeave={() => setHoverAsset((h) => (h === u.asset ? null : h))}
                   title={`${ASSET_LABELS[u.asset]} — ${fmt.coordAt(u.lat, u.lon)}`}
                   className="absolute flex flex-col items-center"
                   style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: hot ? 15 : undefined,
                     // P2: eXeL-STD-2525 icons are 3D — in 3D mode they BILLBOARD upright off
-                    // the tilted plane (counter-rotateX about their base), standing on terrain
-                    transform: is3d ? `translate(-50%,-50%) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-50%)",
+                    // the tilted plane (counter-rotateX about their base), standing on terrain.
+                    // FLYING assets additionally lift by translateZ(altitudePx) to their height.
+                    transform: is3d ? `translate(-50%,-50%) translateZ(${altitudePx}px) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-50%)",
                     transformOrigin: "50% 100%", transformStyle: "preserve-3d" }}>
                   {/* pulse + selection ring anchored to the ICON centre, not the icon+label stack */}
                   <span className="relative flex items-center justify-center">
                     {hot && <span className="pointer-events-none absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full" style={{ boxShadow: `0 0 0 2px ${C.cyan}`, background: `${C.cyan}22` }} />}
-                    {sel && !(is3d && hook === u.id) && <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 32 * iconScale, height: 32 * iconScale, boxShadow: `0 0 0 2px ${C.gold}` }} />}
+                    {sel && !(is3d && hooks.includes(u.id)) && <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 32 * iconScale, height: 32 * iconScale, boxShadow: `0 0 0 2px ${C.gold}` }} />}
                     <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} />
                   </span>
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
@@ -1807,6 +1831,7 @@ function AoMapPane(p: PaneProps) {
                     </span>
                   )}
                 </button>
+                </Fragment>
               );
             })}
             {/* placed support */}
@@ -1831,11 +1856,13 @@ function AoMapPane(p: PaneProps) {
             {/* CURSOR HOOK bubble (P1.3 round 3, HI / FAAD C2): right-click hooks a track —
                 IFF, SPD/ALT/HDG data, engagement tools. Billboards upright like the icons;
                 left-click anywhere or ESC releases. INSPECT = full engagement tools (rail). */}
-            {hook != null && (() => {
-              const u = placed.find((p) => p.id === hook);
+            {hooks.map((hid) => {
+              const u = placed.find((p) => p.id === hid);
               if (!u) return null;
               const f = project(u.lat, u.lon);
               if (f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05) return null;
+              const off = hookOffs[hid] ?? { x: 23, y: -23 }; // FX-51 v2: THIS label's own offset
+              const closeThis = () => setHooks((hs) => hs.filter((h) => h !== hid)); // ✕ closes only ITS label
               const row = (k: string, v: string) => (
                 <div className="flex justify-between gap-2 px-1.5"><span style={{ color: C.dim }}>{k}</span><span style={{ color: C.text }}>{v}</span></div>
               );
@@ -1845,10 +1872,10 @@ function AoMapPane(p: PaneProps) {
               // BOTTOM-LEFT corner back down to the cube's NE-top. Only ONE sphere shows (the
               // 3D voxel sphere) — the flat plane ring is suppressed for the hooked asset above.
               return (
-                <>
+                <Fragment key={hid}>
                   {/* FX-51 (HI 1.3.3): connector ALWAYS runs asset → hook-label bottom-left,
                       recomputed from the draggable offset so it never breaks when you move it. */}
-                  {(() => { const L = Math.hypot(hookOff.x, hookOff.y), ang = (Math.atan2(hookOff.y, hookOff.x) * 180) / Math.PI; return (
+                  {(() => { const L = Math.hypot(off.x, off.y), ang = (Math.atan2(off.y, off.x) * 180) / Math.PI; return (
                   <div className="pointer-events-none absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 39,
                     width: L, height: 0, borderTop: `1px solid ${C.gold}`, opacity: 0.8,
                     transform: is3d ? `rotateX(${-(pitch ?? 55)}deg) rotate(${ang}deg)` : `rotate(${ang}deg)`, transformOrigin: "0 0" }} />
@@ -1857,16 +1884,23 @@ function AoMapPane(p: PaneProps) {
                   style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 40, minWidth: 128, pointerEvents: "auto",
                     background: "#0a0f16", borderColor: C.gold, boxShadow: "0 4px 18px rgba(0,0,0,.6)",
                     // FX-51: panel bottom-left sits at the DRAGGABLE offset from the asset.
-                    transform: is3d ? `translate(${hookOff.x}px, ${hookOff.y}px) translateY(-100%) rotateX(${-(pitch ?? 55)}deg)` : `translate(${hookOff.x}px, ${hookOff.y}px) translateY(-100%)`,
+                    transform: is3d ? `translate(${off.x}px, ${off.y}px) translateY(-100%) rotateX(${-(pitch ?? 55)}deg)` : `translate(${off.x}px, ${off.y}px) translateY(-100%)`,
                     transformOrigin: "0% 100%" }}>
                   <div className="flex items-center justify-between gap-1 px-1.5 py-0.5 font-bold" style={{ color: C.gold, borderBottom: `1px solid ${C.gold}44` }}>
-                    {/* ⠿ 2×3 drag handle (same as the mini-map) — move the label further away */}
+                    {/* ⠿ 2×3 drag handle (same as the mini-map) — move THIS label further away */}
                     <span className="cursor-move select-none" style={{ color: C.dim }} title="Drag label"
-                      onPointerDown={(e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); hookDrag.current = { sx: e.clientX, sy: e.clientY, ox: hookOff.x, oy: hookOff.y }; }}
-                      onPointerMove={(e) => { if (!hookDrag.current) return; setHookOff({ x: hookDrag.current.ox + (e.clientX - hookDrag.current.sx), y: hookDrag.current.oy + (e.clientY - hookDrag.current.sy) }); }}
-                      onPointerUp={(e) => { e.stopPropagation(); hookDrag.current = null; }}>⠿</span>
+                      onPointerDown={(e) => {
+                        // HI 1.3.3 drag FIX: document-scoped listeners added on press, removed on
+                        // release — drags ONLY while held (setPointerCapture was lost on React
+                        // re-render → the label followed the mouse without pressing).
+                        e.stopPropagation(); e.preventDefault();
+                        const sx = e.clientX, sy = e.clientY, ox = off.x, oy = off.y;
+                        const move = (ev: PointerEvent) => setHookOffs((os) => ({ ...os, [hid]: { x: ox + (ev.clientX - sx), y: oy + (ev.clientY - sy) } }));
+                        const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); };
+                        document.addEventListener("pointermove", move); document.addEventListener("pointerup", up);
+                      }}>⠿</span>
                     <span>⌖ {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
-                    <button onClick={() => setHook(null)} title="Close hook" className="leading-none" style={{ color: C.dim }}>✕</button>
+                    <button onClick={closeThis} title="Close hook" className="leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
                   {row("MGRS", fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" "))}
                   {/* HI 1.3.2: bearing/speed only for MOVING assets — stationary assets +
@@ -1882,18 +1916,18 @@ function AoMapPane(p: PaneProps) {
                       style={{ borderColor: C.red, color: C.red, background: u.aff === "hostile" ? `${C.red}33` : "transparent" }}>HOS</button>
                   </div>
                   <div className="flex items-center gap-1 px-1.5 pb-1">
-                    <button className="rounded border px-1" onClick={() => { setSelected({ kind: "asset", id: u.id }); setHook(null); }}
+                    <button className="rounded border px-1" onClick={() => { setSelected({ kind: "asset", id: u.id }); closeThis(); }}
                       style={{ borderColor: C.cyan, color: C.cyan }}>INSPECT ▸</button>
                     <button className="rounded border px-1" onClick={() => {
                       setInventory((inv) => inv.map((i) => (i.asset === u.asset ? { ...i, stock: i.stock + u.count } : i)));
                       setPlaced((pl) => pl.filter((p) => p.id !== u.id));
-                      setSelected(null); setHook(null);
+                      setSelected(null); closeThis();
                     }} style={{ borderColor: C.red, color: C.red }}>DROP ✕</button>
                   </div>
                 </div>
-                </>
+                </Fragment>
               );
-            })()}
+            })}
             {/* 3D RELIEF — lifted contour wireframe: each level translateZ's to its true
                 elevation (auto vertical exaggeration, full relief ≈ 34px). Land solid green,
                 bathymetry dashed cyan below — the reference-mesh look, phone/Pi compute. */}
@@ -3714,7 +3748,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
         </div>
         {showSettings && (
           <div className="absolute right-0 top-9 z-40 w-60 rounded-lg border p-3 shadow-xl" style={{ background: C.panel, borderColor: C.cyan }}>
-            <div className="mb-2 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Mission Planning Settings</div>
+            {/* HI 1.3.3: explicit ✕ close — on phone the gear icon can scroll off-screen, so
+                the panel must be closable from within. */}
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Mission Planning Settings</span>
+              <button onClick={() => setShowSettings(false)} title="Close settings" className="text-[13px] leading-none" style={{ color: C.dim }}>✕</button>
+            </div>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-[10px]" style={{ color: C.text }}>1 km UTM grid</span>
               <button onClick={() => setGridOn(!gridOn)} className="flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
