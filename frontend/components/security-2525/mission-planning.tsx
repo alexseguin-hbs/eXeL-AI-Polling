@@ -800,9 +800,11 @@ function NumInField({ value, onCommit, className, style, lockable }: { value: nu
     <span className="flex items-center gap-1">
       {/* HI 1.3.2: same lock iconology/treatment as the Easter-egg CUBE unlocks
           (lucide Lock in a rounded-full pill on a dim background). */}
-      <button type="button" onClick={() => setUnlocked((u) => !u)} title={unlocked ? "Lock value" : "Unlock to edit"}
-        className="flex shrink-0 items-center rounded-full px-1 py-0.5" style={{ background: "#0a0f16aa", border: `1px solid ${unlocked ? C.gold : "#2b3a4d"}` }}>
-        {unlocked ? <Unlock className="h-3 w-3" style={{ color: C.gold }} /> : <Lock className="h-3 w-3" style={{ color: C.dim }} />}
+      {/* FX-50 (HI 1.3.3): padlock made PROMINENT — gold in both states + a visible gold pill,
+          so it's obviously a tap-to-unlock control (was dim grey when locked → invisible). */}
+      <button type="button" onClick={() => setUnlocked((u) => !u)} title={unlocked ? "🔓 unlocked — tap to lock" : "🔒 tap to unlock & edit"}
+        className="flex shrink-0 items-center rounded-full px-1 py-0.5" style={{ background: unlocked ? `${C.gold}22` : "#0a0f16cc", border: `1px solid ${C.gold}` }}>
+        {unlocked ? <Unlock className="h-3.5 w-3.5" style={{ color: C.gold }} /> : <Lock className="h-3.5 w-3.5" style={{ color: C.gold }} />}
       </button>
       {field}
     </span>
@@ -1884,7 +1886,7 @@ function AoMapPane(p: PaneProps) {
                 Base square sits ON the plane and is the addressable CUBE BASE
                 (tap → MGRS + LLV-DMS + UCRS-2525 packet). Bands rise via translateZ
                 (preserve-3d). Wireframe-only = phone / Raspberry-Pi class compute. */}
-            {is3d && shownColumns.map((col) => {
+            {is3d && voxelColumns.map((col) => {
               const f = project(col.lat, col.lon);
               if (f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02) return null;
               const paneW = mapRef.current?.clientWidth ?? 800;
@@ -1932,16 +1934,25 @@ function AoMapPane(p: PaneProps) {
                       background: "repeating-linear-gradient(to bottom, #6b7280 0 2px, transparent 2px 5px)", opacity: dimmed ? 0.25 : 0.6,
                       transform: `translate(-50%,-50%) translate3d(0px,0px,${(topZ + limitZ) / 2}px) rotateX(90deg)` }} />
                   )}
-                  {/* HI 1.3.2: the ASSET's MIL-STD-2525 / eXeL-STD symbol stands in the MIDDLE
-                      of its own voxel (asset columns only), billboarded upright off the tilted
-                      plane so it reads as the cube's occupant. */}
+                  {/* FX-49 (HI 1.3.3): the ASSET symbol sits on a SPHERE — ONE circle with
+                      spherical radial-gradient shading (Flower-of-Life language, as on the
+                      Results RISK/CONCERNS + Divinity selector), billboarded so it looks the
+                      SAME from every angle, PULSING when the column is selected. Carries the
+                      MIL-STD-2525 / eXeL-STD symbol in the middle. */}
                   {!isLattice && topObj && (() => {
                     const p = placed.find((u) => u.id === topObj.id);
                     if (!p) return null;
+                    const dia = Math.max(22, cellPx * 0.62);
+                    const base = p.aff === "hostile" ? C.red : C.cyan;
                     return (
                       <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ zIndex: 13,
                         transform: `translate(-50%,-50%) translateZ(${Math.max(2, topZ / 2)}px) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 50%" }}>
-                        <AssetIcon asset={p.asset} style={iconStyle} affiliation={p.aff} size={Math.max(18, cellPx * 0.5)} count={p.count} />
+                        <div className={`relative flex items-center justify-center rounded-full ${sel ? "animate-pulse" : ""}`}
+                          style={{ width: dia, height: dia,
+                            background: `radial-gradient(circle at 34% 28%, ${base}dd, ${base}66 52%, ${base}1f 78%, transparent 92%)`,
+                            boxShadow: `0 0 ${sel ? 11 : 5}px ${base}${sel ? "cc" : "55"}, inset -2px -3px 6px ${base}44, inset 2px 3px 5px ${base}22` }}>
+                          <AssetIcon asset={p.asset} style={iconStyle} affiliation={p.aff} size={Math.max(13, cellPx * 0.4)} count={p.count} />
+                        </div>
                       </div>
                     );
                   })()}
@@ -2093,49 +2104,110 @@ function AoMapPane(p: PaneProps) {
                 </div>
               );
             })}
-            {/* FX-12 (HI 1.3.2): 3D compass = CIRCULAR FENCE ON THE GROUND. Rendered INSIDE
-                the tilt layer so the ring lies FLAT on the terrain (a circle on the ground →
-                an ellipse on screen), centred on the view. rotateZ(bearing) turns the tick
-                ring so N tracks map-north; short vertical FENCE POSTS stand up off the ring
-                (rotateX(-pitch)) so it stays a legible fence edge-on near 88° and a clean
-                ring near 11°. NOT a screen-flat clock. The corner compass rose + 2D edge
-                scale are kept separately. */}
+            {/* ── 3D VOXEL LATTICE — ONE north-locked 3×3×3 wireframe box (replaces the 9 lattice
+                   columns; council-designed, 12-master SSSES synthesis). ONE projection at view
+                   centre → every cell/corner is a pure cellPx offset, so top plates ALIGN and the
+                   4×4 corners collapse to 16 shared posts. ~33 idle nodes (was ~135). Read-only. */}
+            {is3d && voxelLayer && latticeColumns.length === 9 && [view.lat, view.lon].every(Number.isFinite) && (() => {
+              const bc = project(view.lat, view.lon);
+              const paneW = mapRef.current?.clientWidth ?? 800;
+              const cellPx = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW);
+              const bandPx = Math.min(cellPx, 40);
+              const boxW = 3 * cellPx;
+              const topZ = 3 * bandPx;                                   // 3 levels tall
+              const railBands = Math.max(latticeColumns[0].cubes.filter((cb) => cb.bandIdx > 0).length, 3);
+              const limitZ = Math.max(topZ, (voxelLimitPct / 100) * railBands * bandPx);
+              const line = `${C.cyan}55`;
+              const selIdx = latticeColumns.findIndex((c) => c.key === voxelSel);
+              const dim = selIdx >= 0 ? 0.35 : 1;                        // rest dims when one column is picked
+              const p = pitch ?? 55;
+              const skyK = p > 85 ? Math.max(0, (88 - p) / 3) : 1;       // fade tall lines near-overhead
+              const at = (t: string): React.CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
+              return (
+                <div className="absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`, transformStyle: "preserve-3d", zIndex: 11, transform: `rotateZ(${view.bearing}rad)` }}>
+                  {/* (a) 4 horizontal 3×3 grid faces — ONE gradient div each + border */}
+                  {[0, 1, 2, 3].map((k) => (
+                    <div key={`vf${k}`} className="pointer-events-none" style={{ ...at(`translateZ(${k * bandPx}px)`),
+                      width: boxW, height: boxW, border: `1px solid ${C.cyan}66`, opacity: dim,
+                      backgroundImage:
+                        `repeating-linear-gradient(to right, ${line} 0 1px, transparent 1px ${cellPx}px),` +
+                        `repeating-linear-gradient(to bottom, ${line} 0 1px, transparent 1px ${cellPx}px)` }} />
+                  ))}
+                  {/* (b) 16 vertical edge posts at the 4×4 corners, stood up via rotateX(90deg) */}
+                  {Array.from({ length: 16 }, (_, n) => {
+                    const i = n % 4, j = (n / 4) | 0, x = (i - 1.5) * cellPx, y = (j - 1.5) * cellPx;
+                    return <div key={`ve${n}`} className="pointer-events-none" style={{
+                      ...at(`translate3d(${x}px,${y}px,${topZ / 2}px) rotateX(90deg)`),
+                      width: 1, height: topZ, background: line, opacity: (0.5 * skyK + 0.15) * dim }} />;
+                  })}
+                  {/* (c) SELECTED column → highlighted DOWN to ground in voxelHiColor (4 side walls) */}
+                  {selIdx >= 0 && (() => {
+                    const cx = ((selIdx % 3) - 1) * cellPx, cy = (((selIdx / 3) | 0) - 1) * cellPx;
+                    const wall = (t: string, w: number, h: number) => (
+                      <div className="pointer-events-none" style={{ ...at(`translate3d(${cx}px,${cy}px,${topZ / 2}px) ${t}`),
+                        width: w, height: h, border: `1.5px solid ${voxelHiColor}`, background: `${voxelHiColor}1e` }} />
+                    );
+                    return <>
+                      {wall(`translate3d(0,${-cellPx / 2}px,0) rotateX(90deg)`, cellPx, topZ)}
+                      {wall(`translate3d(0,${cellPx / 2}px,0) rotateX(90deg)`, cellPx, topZ)}
+                      {wall(`translate3d(${-cellPx / 2}px,0,0) rotateY(90deg)`, topZ, cellPx)}
+                      {wall(`translate3d(${cellPx / 2}px,0,0) rotateY(90deg)`, topZ, cellPx)}
+                    </>;
+                  })()}
+                  {/* (d) TOP FACE — 3×3 hover/select cells. Hover lights 1/9; click selects column */}
+                  {latticeColumns.map((lc, idx) => {
+                    const x = ((idx % 3) - 1) * cellPx, y = (((idx / 3) | 0) - 1) * cellPx;
+                    const sel = voxelSel === lc.key, hov = voxelTop === lc.key;
+                    return (
+                      <div key={lc.key} title={`${lc.mgrs} · ${lc.ucrs}`}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onMouseEnter={() => setVoxelTop(lc.key)}
+                        onMouseLeave={() => setVoxelTop((h) => (h === lc.key ? null : h))}
+                        onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(sel ? null : lc.key); }}
+                        style={{ ...at(`translate3d(${x}px,${y}px,${topZ}px)`), width: cellPx, height: cellPx,
+                          pointerEvents: "auto", cursor: "pointer", transition: "background 120ms ease",
+                          border: `1px solid ${sel ? voxelHiColor : hov ? C.gold : line}`,
+                          background: sel ? `${voxelHiColor}33` : hov ? `${C.gold}22` : "transparent" }} />
+                    );
+                  })}
+                  {/* (e) voxel-limit REACH — dotted verticals from box top up to limitZ, 4 outer corners */}
+                  {limitZ > topZ + 1 && ([[-1.5, -1.5], [1.5, -1.5], [1.5, 1.5], [-1.5, 1.5]] as const).map(([sx, sy], n) => (
+                    <div key={`vl${n}`} className="pointer-events-none" style={{
+                      ...at(`translate3d(${sx * cellPx}px,${sy * cellPx}px,${(topZ + limitZ) / 2}px) rotateX(90deg)`),
+                      width: 1, height: limitZ - topZ, opacity: 0.6 * skyK,
+                      background: "repeating-linear-gradient(to bottom, #6b7280 0 2px, transparent 2px 5px)" }} />
+                  ))}
+                </div>
+              );
+            })()}
+            {/* FX-47 (HI 1.3.3): compass = ONE VISUAL FENCE with numbers on it. The distracting
+                ground ellipse ring + radial ticks are REMOVED — just a ring of billboarded
+                vertical slats (chain-link fence wall) with degree numbers riding the fence.
+                N slat + 000 label are red; numbers billboard upright at every tilt. Bearing-
+                rotated so the fence tracks map-north. Low node count (~48). */}
             {is3d && (() => {
-              const cards: [string, number, string][] = [["N", 0, C.red], ["E", 90, C.cyan], ["S", 180, C.cyan], ["W", 270, C.cyan]];
-              const POSTS = 36; // dense fence slats all around → chain-link look
-              const R = 44;      // ring radius (of a 100 viewBox) — BIG, near the screen edges
+              const POSTS = 36, R = 44; // slats around a big circle; R = % of the 92% box half-extent
+              const num = (deg: number) => deg === 0 ? "N" : deg === 90 ? "E" : deg === 180 ? "S" : deg === 270 ? "W" : String(deg).padStart(3, "0");
               return (
                 <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: "92%", height: "92%", transform: "translate(-50%,-50%)", transformStyle: "preserve-3d", zIndex: 9 }}>
-                  {/* flat ring + ticks + labels on the ground (tilts with the plane) */}
-                  <svg viewBox="-50 -50 100 100" width="100%" height="100%" style={{ position: "absolute", inset: 0, transform: `rotateZ(${view.bearing}rad)`, overflow: "visible" }} aria-hidden>
-                    <circle r={R} fill="none" stroke={`${C.cyan}44`} strokeWidth="0.3" />
-                    {Array.from({ length: 72 }).map((_, i) => {
-                      const deg = i * 5, a = (deg * Math.PI) / 180, maj = deg % 30 === 0, r1 = maj ? R - 4 : R - 1.5;
-                      return <line key={i} x1={R * Math.sin(a)} y1={-R * Math.cos(a)} x2={r1 * Math.sin(a)} y2={-r1 * Math.cos(a)} stroke={deg === 0 ? C.red : `${C.cyan}66`} strokeWidth={maj ? 0.6 : 0.25} />;
-                    })}
-                    {/* FX-47 (HI 1.3.3): CURVED degree ring — N/E/S/W + numbered marks every
-                        30° (000 red at N, aligned with the red tick + red fence slat). Each
-                        label is rotated tangent to the ring (the "curved" compass-rose look). */}
-                    {Array.from({ length: 12 }).map((_, i) => {
-                      const deg = i * 30, a = (deg * Math.PI) / 180, rr = R - 6;
-                      const x = rr * Math.sin(a), y = -rr * Math.cos(a);
-                      const card = deg % 90 === 0;
-                      const lab = deg === 0 ? "N" : deg === 90 ? "E" : deg === 180 ? "S" : deg === 270 ? "W" : String(deg).padStart(3, "0");
-                      const col = deg === 0 ? C.red : card ? C.cyan : `${C.cyan}bb`;
-                      return <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="central" fontSize={card ? 4.5 : 3} fontFamily="monospace" fontWeight="bold" fill={col} transform={`rotate(${deg} ${x} ${y})`}>{lab}</text>;
-                    })}
-                  </svg>
-                  {/* CHAIN-LINK FENCE — dense vertical slats standing off the big ground ring all
-                      the way around, billboarded upright (rotateX(-pitch)) so it reads as a
-                      circular fence wall as big as the screen at every tilt. N slat is red. */}
                   {Array.from({ length: POSTS }).map((_, i) => {
                     const deg = (i / POSTS) * 360, a = (deg * Math.PI) / 180 + view.bearing;
                     const left = 50 + R * Math.sin(a), top = 50 - R * Math.cos(a);
-                    const isN = deg < 1;
+                    const isN = deg < 1, maj = deg % 30 < 360 / POSTS;
                     return (
-                      <div key={`post${i}`} className="absolute" style={{ left: `${left}%`, top: `${top}%`, width: 1, height: 30,
-                        background: `linear-gradient(to top, ${isN ? C.red : C.cyan}aa, ${isN ? C.red : C.cyan}0f)`,
+                      <div key={`post${i}`} className="absolute" style={{ left: `${left}%`, top: `${top}%`, width: maj ? 1.5 : 0.8, height: maj ? 32 : 20,
+                        background: `linear-gradient(to top, ${isN ? C.red : C.cyan}${maj ? "cc" : "55"}, ${isN ? C.red : C.cyan}0f)`,
                         transform: `translate(-50%,-100%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%" }} />
+                    );
+                  })}
+                  {/* degree numbers riding the fence (every 30°), billboarded upright */}
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const deg = i * 30, a = (deg * Math.PI) / 180 + view.bearing;
+                    const left = 50 + R * Math.sin(a), top = 50 - R * Math.cos(a);
+                    const col = deg === 0 ? C.red : C.cyan;
+                    return (
+                      <div key={`num${i}`} className="absolute font-mono font-bold" style={{ left: `${left}%`, top: `${top}%`, fontSize: 9, lineHeight: 1, color: col, whiteSpace: "nowrap",
+                        transform: `translate(-50%,-150%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%" }}>{num(deg)}</div>
                     );
                   })}
                 </div>
@@ -2147,18 +2219,25 @@ function AoMapPane(p: PaneProps) {
                 key info — TILT angle + how to change it + the 2D-to-place reminder. The
                 verbose voxel onboarding is dropped (element tooltips carry the how-to). */}
             {is3d && (
-              <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", pointerEvents: "auto" }}>
+              <div className="absolute left-1/2 top-2 z-20 flex -translate-x-1/2 items-center rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", pointerEvents: "auto" }}>
                 <span style={{ color: C.gold }}>TILT {Math.round(pitch ?? 55)}°</span>
-                <span style={{ color: C.dim }}> · right-drag ↕ · </span>
-                <button onClick={() => setTiltSlider((s) => !s)} title="Tilt slider">📱</button>
-                <span style={{ color: C.dim }}> · 2D to place</span>
+                {/* FX-45 (HI 1.3.3): phone slider button 2× larger, to the RIGHT of "2D to place" */}
+                <span style={{ color: C.dim }}> · right-drag ↕ · 2D to place · </span>
+                <button onClick={() => setTiltSlider((s) => !s)} title="Tilt slider" style={{ fontSize: 16, lineHeight: 1 }}>📱</button>
               </div>
             )}
-            {/* FX-21: fixed-width tilt slider, pinned top-right */}
+            {/* FX-45 (HI 1.3.3): tilt slider — 11° left, 88° right, ✕ to close */}
             {is3d && tiltSlider && (
-              <div className="absolute right-2 top-9 z-30 rounded border px-2 py-1" style={{ background: "#0a0f16ee", borderColor: C.cyan, width: 170 }}>
-                <div className="mb-0.5 font-mono text-[7px] font-bold" style={{ color: C.cyan }}>TILT {Math.round(pitch ?? 55)}° <span style={{ color: C.dim }}>11–88</span></div>
-                <input type="range" min={11} max={88} value={Math.round(pitch ?? 55)} onChange={(e) => onPitch?.(parseInt(e.target.value))} className="w-full" />
+              <div className="absolute right-2 top-9 z-30 rounded border px-2 py-1" style={{ background: "#0a0f16ee", borderColor: C.cyan, width: 190 }}>
+                <div className="mb-0.5 flex items-center justify-between font-mono text-[7px] font-bold" style={{ color: C.cyan }}>
+                  <span>TILT {Math.round(pitch ?? 55)}°</span>
+                  <button onClick={() => setTiltSlider(false)} title="Close" style={{ color: C.dim, fontSize: 11, lineHeight: 1 }}>✕</button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="font-mono text-[7px]" style={{ color: C.dim }}>11°</span>
+                  <input type="range" min={11} max={88} value={Math.round(pitch ?? 55)} onChange={(e) => onPitch?.(parseInt(e.target.value))} className="flex-1" />
+                  <span className="font-mono text-[7px]" style={{ color: C.dim }}>88°</span>
+                </div>
               </div>
             )}
             {/* LEFT ALTITUDE rail (R1 feedback) — voxel band scale, reference style.
@@ -2259,7 +2338,7 @@ function AoMapPane(p: PaneProps) {
             })()}
             {/* VOXEL coordinate packet — the tapped cube base, addressed 3 ways + Z bands */}
             {is3d && voxelSel && (() => {
-              const col = voxelColumns.find((c) => c.key === voxelSel);
+              const col = voxelColumns.find((c) => c.key === voxelSel) ?? latticeColumns.find((c) => c.key === voxelSel);
               if (!col) return null;
               const f = project(col.lat, col.lon);
               return (
