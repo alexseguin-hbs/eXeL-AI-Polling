@@ -2112,32 +2112,22 @@ function AoMapPane(p: PaneProps) {
                 </div>
               );
             })()}
+            {/* HI 1.3.2: ONE compact 3D HUD line (was three busy stacked lines). Just the
+                key info — TILT angle + how to change it + the 2D-to-place reminder. The
+                verbose voxel onboarding is dropped (element tooltips carry the how-to). */}
             {is3d && (
-              <div className="pointer-events-none absolute left-1/2 top-2 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.amber }}>
-                3D · VIEW — switch to 2D to place
+              <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", pointerEvents: "auto" }}>
+                <span style={{ color: C.gold }}>TILT {Math.round(pitch ?? 55)}°</span>
+                <span style={{ color: C.dim }}> · right-drag ↕ · </span>
+                <button onClick={() => setTiltSlider((s) => !s)} title="Tilt slider">📱</button>
+                <span style={{ color: C.dim }}> · 2D to place</span>
               </div>
             )}
-            {/* TILT readout (P1) — the cue that elevation is ACTIVE: right-drag ↕ swings the
-                voxel view near-overhead (11°) ⇄ horizon (88°) */}
-            {is3d && (
-              <div className="absolute left-1/2 top-7 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan, pointerEvents: "auto" }}>
-                {/* FX-21: hint FIRST, then TILT n°, then 📱 opens the slider (phone access) */}
-                <span style={{ color: C.dim }}>{(pitch ?? 55) < 35 ? "TOP-DOWN · " : (pitch ?? 55) > 70 ? "HORIZON · " : ""}right-drag ↕ · </span>
-                TILT {Math.round(pitch ?? 55)}°
-                <button onClick={() => setTiltSlider((s) => !s)} title="Tilt slider — same as Settings" style={{ marginLeft: 4 }}>📱</button>
-              </div>
-            )}
-            {/* FX-21: fixed-width tilt slider, pinned under the coordinate readout */}
+            {/* FX-21: fixed-width tilt slider, pinned top-right */}
             {is3d && tiltSlider && (
-              <div className="absolute right-2 top-7 z-30 rounded border px-2 py-1" style={{ background: "#0a0f16ee", borderColor: C.cyan, width: 170 }}>
+              <div className="absolute right-2 top-9 z-30 rounded border px-2 py-1" style={{ background: "#0a0f16ee", borderColor: C.cyan, width: 170 }}>
                 <div className="mb-0.5 font-mono text-[7px] font-bold" style={{ color: C.cyan }}>TILT {Math.round(pitch ?? 55)}° <span style={{ color: C.dim }}>11–88</span></div>
                 <input type="range" min={11} max={88} value={Math.round(pitch ?? 55)} onChange={(e) => onPitch?.(parseInt(e.target.value))} className="w-full" />
-              </div>
-            )}
-            {/* FX-08 (P1.3): VOXEL onboarding — how to activate/read/release a voxel */}
-            {is3d && (
-              <div className="pointer-events-none absolute left-1/2 top-12 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[7px]" style={{ background: "#0a0f16aa", color: C.dim }}>
-                3D VOXEL·CUBE: tap a placed unit → its cube · TARGET/corners = coordinates · tap cube TOP to release
               </div>
             )}
             {/* LEFT ALTITUDE rail (R1 feedback) — voxel band scale, reference style.
@@ -2200,14 +2190,25 @@ function AoMapPane(p: PaneProps) {
                     <span className="font-bold tracking-wider" style={{ color: C.cyan }}>COORDINATE · CALL-UP</span>
                     <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall(null); }} className="px-1 text-[10px] leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
-                  <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
-                    <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{fmt.mgrsAt(coordCall.lat, coordCall.lon)}</span>
-                    <span style={{ color: C.dim }}>LLV-DMS</span><span style={{ color: C.text }}>{fmtLLV(coordCall.lat, coordCall.lon)}</span>
-                    <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{fmtUcrsDms(coordCall.lat, coordCall.lon)}</span>
-                    <span style={{ color: C.dim }}>UCRS·CELL <span title="UCRS·CELL v2 — universal base-3600 address: zone · lat 3600-deg.min · lon 3600-deg.min · r = footprint radius (m). Decimal ⇄ minute interchangeable: 3600.5 ≡ 3600·1800. Body-agnostic (Mars/Moon) — VISION-2525 / LINK-2525." style={{ cursor: "help", color: C.cyan }}>ⓘ</span></span>
-                    <span style={{ color: C.cyan }}>{ucrsCell2(coordCall.lat, coordCall.lon, grid.stepM / 2)}</span>
-                    <span style={{ color: C.dim }}>ELEV</span><span style={{ color: C.gold }}>{Math.round(elevM)}m · {Math.round(elevM * 3.28084)} ft MSL</span>
-                  </div>
+                  {/* FX-03 (HI 1.3.2): show ONLY the PRIMARY coordinate (per Settings), the
+                      CELL, and elevation — not all three coordinate frames at once. Track
+                      details (speed/heading/alt) appear only when the tap resolves to a
+                      placed asset; a bare-ground call-up has none. */}
+                  {(() => {
+                    const primary: [string, string, string] = coordFmt === "mgrs"
+                      ? ["MGRS", fmt.mgrsAt(coordCall.lat, coordCall.lon), C.text]
+                      : coordFmt === "dms"
+                      ? ["LLV-DMS", fmtLLV(coordCall.lat, coordCall.lon), C.text]
+                      : ["UCRS-2525", fmtUcrsDms(coordCall.lat, coordCall.lon), C.cyan];
+                    return (
+                      <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
+                        <span style={{ color: C.dim }}>{primary[0]}</span><span style={{ color: primary[2] }}>{primary[1]}</span>
+                        <span style={{ color: C.dim }}>CELL <span title="UCRS·CELL v2 — universal base-3600 address: zone · lat 3600-deg.min · lon 3600-deg.min · r = footprint radius (m). Decimal ⇄ minute interchangeable: 3600.5 ≡ 3600·1800. Body-agnostic (Mars/Moon) — VISION-2525 / LINK-2525." style={{ cursor: "help", color: C.cyan }}>ⓘ</span></span>
+                        <span style={{ color: C.cyan }}>{ucrsCell2(coordCall.lat, coordCall.lon, grid.stepM / 2)}</span>
+                        <span style={{ color: C.dim }}>ELEV</span><span style={{ color: C.gold }}>{Math.round(elevM)} m · {Math.round(elevM * 3.28084)} ft MSL</span>
+                      </div>
+                    );
+                  })()}
                   {/* FX-13 (P1.3): PRIMARY format toggle — defaults from Settings, and
                       changing it HERE writes straight back to Settings (two-way). */}
                   <div className="mt-1 flex items-center gap-1 border-t pt-1" style={{ borderColor: C.border }}>
