@@ -1270,6 +1270,8 @@ function AoMapPane(p: PaneProps) {
   // CURSOR HOOK (P1.3 round 3, HI / FAAD C2 procedure): right-click over a track
   // "hooks" it — IFF + speed/altitude/heading data + engagement tools at the plot.
   const [hook, setHook] = useState<number | null>(null);
+  const [hookOff, setHookOff] = useState({ x: 23, y: -23 }); // FX-51 (HI 1.3.3): draggable hook-label offset (px from the asset); connector always follows
+  const hookDrag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
   // P1.3 (Thought Master): ESC leaves placement mode → traditional SELECT mode.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { onDisarm?.(); setRouteDraft([]); setHook(null); } };
@@ -1831,21 +1833,26 @@ function AoMapPane(p: PaneProps) {
               // 3D voxel sphere) — the flat plane ring is suppressed for the hooked asset above.
               return (
                 <>
-                  {/* FX-51 connector: panel bottom-left corner -> cube NE-top */}
+                  {/* FX-51 (HI 1.3.3): connector ALWAYS runs asset → hook-label bottom-left,
+                      recomputed from the draggable offset so it never breaks when you move it. */}
+                  {(() => { const L = Math.hypot(hookOff.x, hookOff.y), ang = (Math.atan2(hookOff.y, hookOff.x) * 180) / Math.PI; return (
                   <div className="pointer-events-none absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 39,
-                    width: 32, height: 0, borderTop: `1px solid ${C.gold}`, opacity: 0.8,
-                    transform: is3d ? `rotateX(${-(pitch ?? 55)}deg) rotate(-45deg)` : "rotate(-45deg)", transformOrigin: "0 0" }} />
+                    width: L, height: 0, borderTop: `1px solid ${C.gold}`, opacity: 0.8,
+                    transform: is3d ? `rotateX(${-(pitch ?? 55)}deg) rotate(${ang}deg)` : `rotate(${ang}deg)`, transformOrigin: "0 0" }} />
+                  ); })()}
                 <div className="absolute rounded border font-mono text-[8px]" onPointerDown={(e) => e.stopPropagation()}
                   style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 40, minWidth: 128, pointerEvents: "auto",
-                    // HI 1.3.2: SOLID (opaque) so it reads clearly IN FRONT of the voxel; higher
-                    // z-index than any cube; drop shadow lifts it off the scene.
                     background: "#0a0f16", borderColor: C.gold, boxShadow: "0 4px 18px rgba(0,0,0,.6)",
-                    // FX-51: bottom-left corner meets the connector far end (~+23,-23 px up-right
-                    // of the asset), clear of the cube + TARGET below-left.
-                    transform: is3d ? `translate(23px, calc(-100% - 23px)) rotateX(${-(pitch ?? 55)}deg)` : "translate(23px, calc(-100% - 23px))",
+                    // FX-51: panel bottom-left sits at the DRAGGABLE offset from the asset.
+                    transform: is3d ? `translate(${hookOff.x}px, ${hookOff.y}px) translateY(-100%) rotateX(${-(pitch ?? 55)}deg)` : `translate(${hookOff.x}px, ${hookOff.y}px) translateY(-100%)`,
                     transformOrigin: "0% 100%" }}>
-                  <div className="flex items-center justify-between gap-2 px-1.5 py-0.5 font-bold" style={{ color: C.gold, borderBottom: `1px solid ${C.gold}44` }}>
-                    <span>⌖ HOOK · {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
+                  <div className="flex items-center justify-between gap-1 px-1.5 py-0.5 font-bold" style={{ color: C.gold, borderBottom: `1px solid ${C.gold}44` }}>
+                    {/* ⠿ 2×3 drag handle (same as the mini-map) — move the label further away */}
+                    <span className="cursor-move select-none" style={{ color: C.dim }} title="Drag label"
+                      onPointerDown={(e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); hookDrag.current = { sx: e.clientX, sy: e.clientY, ox: hookOff.x, oy: hookOff.y }; }}
+                      onPointerMove={(e) => { if (!hookDrag.current) return; setHookOff({ x: hookDrag.current.ox + (e.clientX - hookDrag.current.sx), y: hookDrag.current.oy + (e.clientY - hookDrag.current.sy) }); }}
+                      onPointerUp={(e) => { e.stopPropagation(); hookDrag.current = null; }}>⠿</span>
+                    <span>⌖ {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
                     <button onClick={() => setHook(null)} title="Close hook" className="leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
                   {row("MGRS", fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" "))}
@@ -4024,7 +4031,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 className="flex shrink-0 cursor-move touch-none select-none items-center justify-between border-b px-2 py-0.5"
                 style={{ background: "#0c1420", borderColor: C.cyan }}>
                 {/* FX-07: drag dots CENTERED in the banner */}
-                <span className="flex-1 text-center text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>⠿ MINI · DRAG</span>
+                <span className="flex-1 text-center text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>⠿ Drag Mini-Map</span>
                 <div className="flex items-center gap-1">
                   {miniPos && (
                     <button onClick={() => setMiniPos(null)} onPointerDown={(e) => e.stopPropagation()} title="Dock back to bottom-right of the map"
