@@ -1782,7 +1782,7 @@ function AoMapPane(p: PaneProps) {
                   {/* pulse + selection ring anchored to the ICON centre, not the icon+label stack */}
                   <span className="relative flex items-center justify-center">
                     {hot && <span className="pointer-events-none absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full" style={{ boxShadow: `0 0 0 2px ${C.cyan}`, background: `${C.cyan}22` }} />}
-                    {sel && <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 32 * iconScale, height: 32 * iconScale, boxShadow: `0 0 0 2px ${C.gold}` }} />}
+                    {sel && !(is3d && hook === u.id) && <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 32 * iconScale, height: 32 * iconScale, boxShadow: `0 0 0 2px ${C.gold}` }} />}
                     <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} />
                   </span>
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
@@ -1825,14 +1825,25 @@ function AoMapPane(p: PaneProps) {
                 <div className="flex justify-between gap-2 px-1.5"><span style={{ color: C.dim }}>{k}</span><span style={{ color: C.text }}>{v}</span></div>
               );
               const setIff = (aff: Affiliation) => setPlaced((pl) => pl.map((p) => (p.id === u.id ? { ...p, aff } : p)));
+              // FX-51 (HI 1.3.3): OFFSET the panel clear to the upper-right so it never covers
+              // the CUBE + TARGET (legibility), and run a thin gold connector from the panel's
+              // BOTTOM-LEFT corner back down to the cube's NE-top. Only ONE sphere shows (the
+              // 3D voxel sphere) — the flat plane ring is suppressed for the hooked asset above.
               return (
+                <>
+                  {/* FX-51 connector: panel bottom-left corner -> cube NE-top */}
+                  <div className="pointer-events-none absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 39,
+                    width: 32, height: 0, borderTop: `1px solid ${C.gold}`, opacity: 0.8,
+                    transform: is3d ? `rotateX(${-(pitch ?? 55)}deg) rotate(-45deg)` : "rotate(-45deg)", transformOrigin: "0 0" }} />
                 <div className="absolute rounded border font-mono text-[8px]" onPointerDown={(e) => e.stopPropagation()}
                   style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 40, minWidth: 128, pointerEvents: "auto",
                     // HI 1.3.2: SOLID (opaque) so it reads clearly IN FRONT of the voxel; higher
                     // z-index than any cube; drop shadow lifts it off the scene.
                     background: "#0a0f16", borderColor: C.gold, boxShadow: "0 4px 18px rgba(0,0,0,.6)",
-                    transform: is3d ? `translate(-50%,-110%) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-110%)",
-                    transformOrigin: "50% 100%" }}>
+                    // FX-51: bottom-left corner meets the connector far end (~+23,-23 px up-right
+                    // of the asset), clear of the cube + TARGET below-left.
+                    transform: is3d ? `translate(23px, calc(-100% - 23px)) rotateX(${-(pitch ?? 55)}deg)` : "translate(23px, calc(-100% - 23px))",
+                    transformOrigin: "0% 100%" }}>
                   <div className="flex items-center justify-between gap-2 px-1.5 py-0.5 font-bold" style={{ color: C.gold, borderBottom: `1px solid ${C.gold}44` }}>
                     <span>⌖ HOOK · {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
                     <button onClick={() => setHook(null)} title="Close hook" className="leading-none" style={{ color: C.dim }}>✕</button>
@@ -1860,6 +1871,7 @@ function AoMapPane(p: PaneProps) {
                     }} style={{ borderColor: C.red, color: C.red }}>DROP ✕</button>
                   </div>
                 </div>
+                </>
               );
             })()}
             {/* 3D RELIEF — lifted contour wireframe: each level translateZ's to its true
@@ -2060,12 +2072,12 @@ function AoMapPane(p: PaneProps) {
                             transform: `translate(-50%,-50%) translate3d(${cx}px,${cy}px,${topZ / 2}px) rotateX(90deg)` }} />
                         );
                       })}
-                      <div className="pointer-events-none absolute top-1/2" style={{ right: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)` }}>
+                      <div className="pointer-events-none absolute top-1/2" style={{ right: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
                         <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.gold }}>
                           AGL {Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM)}m
                         </span>
                       </div>
-                      <div className="pointer-events-none absolute top-1/2" style={{ left: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)` }}>
+                      <div className="pointer-events-none absolute top-1/2" style={{ left: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
                         <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan }}>
                           MSL {Math.round(topObj.mslM)}m
                         </span>
@@ -2440,8 +2452,8 @@ function AoMapPane(p: PaneProps) {
             })()}
 
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2" style={{ borderLeft: `1px solid ${C.dim}`, borderTop: `1px solid ${C.dim}`, opacity: 0.5 }} />
-            {/* 360° bearing scale — 2D screen edges; in 3D the FX-29 horizon RING takes over */}
-            {!is3d && (() => {
+            {/* 360° bearing scale — 2D screen edges; also drawn in 3D (screen-edge ticks + red-N edge glyph) ALONGSIDE the FX-29 ground compass fence */}
+            {(() => {
               const topHeading = ((-view.bearing * 180 / Math.PI) % 360 + 360) % 360;
               const marks: React.ReactNode[] = [];
               for (let deg = 0; deg < 360; deg += 10) {
@@ -3230,7 +3242,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [altYellowFt, setAltYellowFt] = useState<number | null>(7000);// FX-05 (1.3.2): YELLOW alarm default 70% of the 10k ft rail
   const [voxelCellM, setVoxelCellM] = useState<number>(0); // FX-10 (1.3.2): 0 = AUTO screen reticle (default); 10/100/1000 presets OR any user-entered metre value
   const [voxelLimitPct, setVoxelLimitPct] = useState(100); // FX-04 (1.3.2): grey "voxel limit" extent — % of the altitude rail the voxel column reaches (like the red/yellow alarm limits)
-  const [voxelHiColor, setVoxelHiColor] = useState<string>("#eab308"); // FX-07 (1.3.2): user-set colour for the primary highlighted voxel (rest dim)
+  const [voxelHiColor, setVoxelHiColor] = useState<string>(TRINITY_COLORS.temporal); // FX-07 (1.3.2): user-set colour for the primary highlighted voxel (rest dim)
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
@@ -3913,7 +3925,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <div className="mt-1 mb-1 flex items-center justify-between">
                 <span className="text-[9px]" style={{ color: C.text }}>Highlight colour</span>
                 <div className="flex items-center gap-1">
-                  {(["#eab308", "#22d3ee", "#ef4444", "#4ade80", "#e879f9"] as const).map((cc) => (
+                  {([TRINITY_COLORS.evolution, TRINITY_COLORS.intelligence, TRINITY_COLORS.temporal, TRINITY_COLORS.ooda, TRINITY_COLORS.family] as const).map((cc) => (
                     <button key={cc} onClick={() => setVoxelHiColor(cc)} title={cc}
                       className="h-3.5 w-3.5 rounded-sm" style={{ background: cc, outline: voxelHiColor === cc ? `2px solid ${C.text}` : "none", outlineOffset: 1 }} />
                   ))}
