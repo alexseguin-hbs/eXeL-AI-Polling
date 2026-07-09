@@ -1620,6 +1620,21 @@ function AoMapPane(p: PaneProps) {
                     {fs.map((f, i) => <circle key={i} cx={f.fx * 100} cy={f.fy * 100} r="0.7" fill={C.cyan} />)}
                   </>);
                 })()}
+                {/* HI 1.3.2: OTHER pane's viewport rectangle — drawn HERE on the ground
+                    overlay (toFrac, inside the tilt+bearing layer) so in 3D it lies FLAT on
+                    the terrain instead of floating diagonally into the sky ("different
+                    dimensions"). Was previously a screen-space project() SVG outside the tilt. */}
+                {otherView && otherView.spanKm < view.spanKm * 0.85 && (() => {
+                  const oh = otherView.spanKm / 2;
+                  const odLat = oh / 110.574, odLon = oh / (111.32 * Math.cos((otherView.lat * Math.PI) / 180));
+                  const corners: [number, number][] = [
+                    [otherView.lat + odLat, otherView.lon - odLon], [otherView.lat + odLat, otherView.lon + odLon],
+                    [otherView.lat - odLat, otherView.lon + odLon], [otherView.lat - odLat, otherView.lon - odLon],
+                  ];
+                  const fs = corners.map(([la, lo]) => toFrac(la, lo));
+                  if (fs.some((f) => !Number.isFinite(f.fx) || !Number.isFinite(f.fy))) return null;
+                  return <polygon points={fs.map((f) => `${(f.fx * 100).toFixed(2)},${(f.fy * 100).toFixed(2)}`).join(" ")} fill="none" stroke={C.cyan} strokeWidth="0.4" strokeDasharray="1.5 1" opacity="0.85" />;
+                })()}
 
                 {/* weapon-range coverage rings (public-source ranges) — planning aid */}
                 {rangeOn && placed.map((u) => {
@@ -3456,39 +3471,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           )}
         </div>
         <div className="relative flex shrink-0 items-center gap-2">
-          <span className="hidden whitespace-nowrap font-mono text-[10px] md:inline" style={{ color: C.dim }}>
-            {fmt.coordAt(ao.center[0], ao.center[1])}
-          </span>
-          {/* LAYER CONTROLS — consolidated checklist (mockup right-rail layers) */}
-          <div className="relative">
-            <button onClick={() => setShowLayers((v) => !v)} title="Layer controls"
-              className="rounded border px-1.5 py-1 text-[10px] font-semibold"
-              style={{ borderColor: showLayers ? C.cyan : C.border, color: showLayers ? C.cyan : C.dim }}>LAYERS</button>
-            {showLayers && (
-              <div className="absolute right-0 top-9 z-50 w-48 rounded-lg border p-1.5 shadow-2xl" style={{ background: C.panel, borderColor: C.cyan }}>
-                <div className="mb-1 flex items-center justify-between px-0.5">
-                  <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: C.cyan }}>Layer controls</span>
-                  <button onClick={() => setShowLayers(false)} className="text-[10px]" style={{ color: C.dim }}>✕</button>
-                </div>
-                {([
-                  ["Terrain (land/sea)", terrainOn, () => setTerrainOn(!terrainOn), "#22c55e"],
-                  ["Roads", roadsOn, () => setRoadsOn(!roadsOn), "#e5e7eb"],
-                  ["Water / rivers", waterOn, () => setWaterOn(!waterOn), "#38bdf8"],
-                  ["Elevation contours", contourCfg.enable, () => setContourCfg((c) => ({ ...c, enable: !c.enable })), C.gold],
-                  ["MGRS/UTM grid", gridOn, () => setGridOn(!gridOn), "#cbd5e1"],
-                  ["Weapon range rings", rangeOn, () => setRangeOn(!rangeOn), C.cyan],
-                  ["Elevation profile", elevOn, () => setElevOn(!elevOn), C.gold],
-                ] as const).map(([label, on, toggle, col]) => (
-                  <button key={label} onClick={toggle} className="flex w-full items-center gap-2 rounded px-1 py-0.5 text-left text-[9px] hover:bg-white/5">
-                    <span className="flex h-3 w-3 shrink-0 items-center justify-center rounded-sm border text-[8px] font-bold"
-                      style={{ borderColor: on ? col : C.border, background: on ? col : "transparent", color: "#0a0f16" }}>{on ? "✓" : ""}</span>
-                    <span style={{ color: on ? C.text : C.dim }}>{label}</span>
-                  </button>
-                ))}
-                <div className="mt-1 px-1 text-[7px]" style={{ color: C.dim }}>Same layers as Settings — one glance, one tap. All from the single fetched tile.</div>
-              </div>
-            )}
-          </div>
+          {/* HI 1.3.2: removed the top-bar coordinate readout (repetitive — the in-map
+              readout already shows it) and the LAYERS panel (repetitive with Settings). */}
           {/* ULT · Unit Line-up Table — the COMM/LINK setup layer (who's in the fight) */}
           <button onClick={() => setShowUlt((v) => !v)} title="ULT — Unit Line-up Table (setup: units · COMM · LINK)"
             className="rounded border px-1.5 py-1 text-[10px] font-semibold"
