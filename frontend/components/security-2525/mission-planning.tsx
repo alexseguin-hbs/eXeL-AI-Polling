@@ -913,6 +913,7 @@ interface PaneProps {
   mirrorOn?: boolean;          // this pane is the mirror SOURCE (its view drives the other pane)
   onToggleMirror?: () => void; // MIRROR lives on the map header (upper right)
   onPitch?: (deg: number) => void; // 3D tilt via right-drag (overhead 15° ⇄ horizon 85°)
+  iconScale?: number; // icon size setting S/M/L → 1 / 1.75 / 3 (P2, visibility)
   pitch?: number; // 3D view angle (deg) — FAAD/AMDWS "right-click angles the view to altitude"
   // AO / AOR draw tool
   drawingAo: boolean;
@@ -926,7 +927,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
-    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, pitch, onPitch,
+    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, pitch, onPitch, iconScale = 1,
     drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
 
@@ -945,7 +946,12 @@ function AoMapPane(p: PaneProps) {
   // R1: tap empty ground → coordinate CALL-UP packet (MGRS + LLV-DMS + UCRS + elevation)
   const [coordCall, setCoordCall] = useState<{ lat: number; lon: number } | null>(null);
 
-  const RENDER = 1.5;
+  // Overscan: the inner canvas is RENDER× the pane per axis, so rotation (bearing)
+  // and 2D↔3D tilt NEVER expose black around the map (P1, user law 2026-07-09).
+  // A 2.6× buffer keeps a w:h up to ~2.4 (fullscreen-wide) fully covered at any
+  // bearing: inscribed radius 1.3·min(w,h) ≥ half-diagonal. Isotropic → all
+  // toFrac/containerToLatLon math is unchanged.
+  const RENDER = 2.6;
   const OFF = (RENDER - 1) / 2;
   // Container pixel aspect (W/H). The SVG stretches a 100×100 viewBox to fill the
   // container (preserveAspectRatio=none), so the geographic box's km-aspect MUST
@@ -1372,12 +1378,21 @@ function AoMapPane(p: PaneProps) {
                 {/* ROADS — grey tier hierarchy, clipped to land so none render in water */}
                 {osmPaths && roadsOn && (
                   <g clipPath={terrainOn && borderPaths && borderPaths.countries ? `url(#${clipId})` : undefined}>
-                    <path d={osmPaths.tiers[2]} fill="none" stroke="#cbd5e1" strokeWidth="0.55" opacity="0.16" strokeLinecap="round" />
-                    <path d={osmPaths.tiers[3]} fill="none" stroke="#cbd5e1" strokeWidth="1.0" opacity="0.2" strokeLinecap="round" />
-                    <path d={osmPaths.tiers[4]} fill="none" stroke="#cbd5e1" strokeWidth="1.6" opacity="0.22" strokeLinecap="round" />
-                    <path d={osmPaths.tiers[2]} fill="none" stroke="#94a3b8" strokeWidth="0.22" opacity="0.5" strokeLinecap="round" />
-                    <path d={osmPaths.tiers[3]} fill="none" stroke="#b6c2d1" strokeWidth="0.5" opacity="0.7" strokeLinecap="round" />
-                    <path d={osmPaths.tiers[4]} fill="none" stroke="#e5e7eb" strokeWidth="0.85" opacity="0.8" strokeLinecap="round" />
+                    {/* P2: road width tracks ZOOM — real-metre widths (12/24/40m core), current
+                        look preserved at tight zoom via caps; floor keeps hairline visibility */}
+                    {(() => {
+                      const rw = (m: number, cap: number) => Math.min(cap, Math.max(0.07, (m / (view.spanKm * 1000)) * 100));
+                      return (
+                        <>
+                          <path d={osmPaths.tiers[2]} fill="none" stroke="#cbd5e1" strokeWidth={rw(26, 0.55)} opacity="0.16" strokeLinecap="round" />
+                          <path d={osmPaths.tiers[3]} fill="none" stroke="#cbd5e1" strokeWidth={rw(52, 1.0)} opacity="0.2" strokeLinecap="round" />
+                          <path d={osmPaths.tiers[4]} fill="none" stroke="#cbd5e1" strokeWidth={rw(88, 1.6)} opacity="0.22" strokeLinecap="round" />
+                          <path d={osmPaths.tiers[2]} fill="none" stroke="#94a3b8" strokeWidth={rw(12, 0.22)} opacity="0.5" strokeLinecap="round" />
+                          <path d={osmPaths.tiers[3]} fill="none" stroke="#b6c2d1" strokeWidth={rw(24, 0.5)} opacity="0.7" strokeLinecap="round" />
+                          <path d={osmPaths.tiers[4]} fill="none" stroke="#e5e7eb" strokeWidth={rw(40, 0.85)} opacity="0.8" strokeLinecap="round" />
+                        </>
+                      );
+                    })()}
                   </g>
                 )}
                 {/* topographic contours — land = configurable topo tint (distinct from grey streets);
@@ -1564,13 +1579,17 @@ function AoMapPane(p: PaneProps) {
                   onMouseEnter={() => setHoverAsset(u.asset)}
                   onMouseLeave={() => setHoverAsset((h) => (h === u.asset ? null : h))}
                   title={`${ASSET_LABELS[u.asset]} — ${fmt.coordAt(u.lat, u.lon)}`}
-                  className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-                  style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: hot ? 15 : undefined }}>
+                  className="absolute flex flex-col items-center"
+                  style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: hot ? 15 : undefined,
+                    // P2: eXeL-STD-2525 icons are 3D — in 3D mode they BILLBOARD upright off
+                    // the tilted plane (counter-rotateX about their base), standing on terrain
+                    transform: is3d ? `translate(-50%,-50%) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-50%)",
+                    transformOrigin: "50% 100%", transformStyle: "preserve-3d" }}>
                   {/* pulse + selection ring anchored to the ICON centre, not the icon+label stack */}
                   <span className="relative flex items-center justify-center">
                     {hot && <span className="pointer-events-none absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full" style={{ boxShadow: `0 0 0 2px ${C.cyan}`, background: `${C.cyan}22` }} />}
-                    {sel && <span className="pointer-events-none absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ boxShadow: `0 0 0 2px ${C.gold}` }} />}
-                    <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28} count={u.count} />
+                    {sel && <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 32 * iconScale, height: 32 * iconScale, boxShadow: `0 0 0 2px ${C.gold}` }} />}
+                    <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} />
                   </span>
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
                   {u.moving && (
@@ -1590,10 +1609,12 @@ function AoMapPane(p: PaneProps) {
                 <button key={u.id}
                   onPointerUp={(e) => { if (!dragRef.current?.moved) { e.stopPropagation(); setSelected({ kind: "support", id: u.id }); } }}
                   title={`${u.def.term} · ${u.reality} — ${fmt.coordAt(u.lat, u.lon)}`}
-                  className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
-                  style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%` }}>
-                  {sel && <span className="absolute h-7 w-7 rounded-full" style={{ boxShadow: `0 0 0 2px ${C.gold}`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
-                  <SupportGlyph glyph={u.def.glyph} color={u.aff === "hostile" ? "#ef4444" : u.def.color} size={22} />
+                  className="absolute flex flex-col items-center"
+                  style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`,
+                    transform: is3d ? `translate(-50%,-50%) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-50%)",
+                    transformOrigin: "50% 100%", transformStyle: "preserve-3d" }}>
+                  {sel && <span className="absolute rounded-full" style={{ width: 26 * iconScale, height: 26 * iconScale, boxShadow: `0 0 0 2px ${C.gold}`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
+                  <SupportGlyph glyph={u.def.glyph} color={u.aff === "hostile" ? "#ef4444" : u.def.color} size={22 * iconScale} />
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
                 </button>
               );
@@ -1657,6 +1678,45 @@ function AoMapPane(p: PaneProps) {
                       </div>
                     );
                   })}
+                  {/* CUBE TOP (P1 slice B) — TARGET circle pops the CENTRE coordinate;
+                      4 corner hotspots pop CORNER coordinates (call-up packet) */}
+                  <div className="absolute left-1/2 top-1/2" style={{ width: cellPx, height: cellPx, transform: `translate(-50%,-50%) translateZ(${topZ}px)`, pointerEvents: "auto" }}>
+                    <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: col.lat, lon: col.lon }); }}
+                      title="TARGET — cube centre coordinate"
+                      className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full"
+                      style={{ width: Math.max(18, cellPx * 0.42), height: Math.max(18, cellPx * 0.42), border: `1.5px solid ${sel ? C.gold : C.cyan}`, background: "transparent" }}>
+                      <span className="rounded-full" style={{ width: 3, height: 3, background: C.gold }} />
+                    </button>
+                    {col.corners.map((cn, ci) => (
+                      <button key={ci} onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: cn.lat, lon: cn.lon }); }}
+                        title={["NW", "NE", "SE", "SW"][ci] + " corner coordinate"}
+                        className="absolute h-2.5 w-2.5 rounded-sm"
+                        style={{ ...(ci === 0 ? { left: -5, top: -5 } : ci === 1 ? { right: -5, top: -5 } : ci === 2 ? { right: -5, bottom: -5 } : { left: -5, bottom: -5 }),
+                          border: `1px solid ${C.cyan}`, background: "#0a0f16cc" }} />
+                    ))}
+                  </div>
+                  {/* hooked/selected asset → GOLD STEM terrain→object + shadow footprint (P2,
+                      spec altitude visual law) + AGL flanks LEFT, MSL flanks RIGHT (P1) */}
+                  {topObj && (sel || (selected?.kind === "asset" && col.objects.some((o) => o.id === selected.id))) && (
+                    <>
+                      <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 2, height: topZ, background: C.gold, opacity: 0.9,
+                        transform: `translate(-50%,-50%) translate3d(0px,0px,${topZ / 2}px) rotateX(90deg)` }} />
+                      <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 2, height: topZ, background: C.gold, opacity: 0.9,
+                        transform: `translate(-50%,-50%) translate3d(0px,0px,${topZ / 2}px) rotateX(90deg) rotateY(90deg)` }} />
+                      <div className="pointer-events-none absolute left-1/2 top-1/2 rounded-full" style={{ width: cellPx * 0.4, height: cellPx * 0.4,
+                        transform: "translate(-50%,-50%) translateZ(0.5px)", background: `radial-gradient(circle, ${C.gold}44 0%, transparent 70%)` }} />
+                      <div className="pointer-events-none absolute top-1/2" style={{ right: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)` }}>
+                        <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.gold }}>
+                          AGL {Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM)}m
+                        </span>
+                      </div>
+                      <div className="pointer-events-none absolute top-1/2" style={{ left: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)` }}>
+                        <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan }}>
+                          MSL {Math.round(topObj.mslM)}m
+                        </span>
+                      </div>
+                    </>
+                  )}
                   {/* stack-top label — ALWAYS carries the altitude reference (visual law) */}
                   {topObj && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 6}px)` }}>
@@ -1673,6 +1733,13 @@ function AoMapPane(p: PaneProps) {
             {is3d && (
               <div className="pointer-events-none absolute left-1/2 top-2 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.amber }}>
                 3D · VIEW — switch to 2D to place
+              </div>
+            )}
+            {/* TILT readout (P1) — the cue that elevation is ACTIVE: right-drag ↕ swings the
+                voxel view top-down (15°) ⇄ side/horizon (85°) */}
+            {is3d && (
+              <div className="pointer-events-none absolute left-1/2 top-7 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan }}>
+                TILT {Math.round(pitch ?? 55)}° <span style={{ color: C.dim }}>{(pitch ?? 55) < 35 ? "· TOP-DOWN" : (pitch ?? 55) > 70 ? "· HORIZON" : ""} right-drag ↕</span>
               </div>
             )}
             {/* LEFT ALTITUDE rail (R1 feedback) — voxel band scale, ft MSL, reference style */}
@@ -1694,7 +1761,7 @@ function AoMapPane(p: PaneProps) {
             )}
             {/* COORDINATE CALL-UP (R1) — tap empty ground: the location addressed 3 ways.
                 On phones this replaces the mouse-hover readout. */}
-            {coordCall && !is3d && (() => {
+            {coordCall && (() => {
               const f = project(coordCall.lat, coordCall.lon);
               const elevM = sampler(coordCall.lat, coordCall.lon);
               return (
@@ -1707,8 +1774,8 @@ function AoMapPane(p: PaneProps) {
                   <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
                     <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{fmt.mgrsAt(coordCall.lat, coordCall.lon)}</span>
                     <span style={{ color: C.dim }}>LLV-DMS</span><span style={{ color: C.text }}>{fmtLLV(coordCall.lat, coordCall.lon)}</span>
-                    <span style={{ color: C.dim }}>UCRS-DMS</span><span style={{ color: C.cyan }}>{fmtUcrsDms(coordCall.lat, coordCall.lon)}</span>
-                    <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{ucrsCellId(coordCall.lat, coordCall.lon, grid.stepM)}</span>
+                    <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{fmtUcrsDms(coordCall.lat, coordCall.lon)}</span>
+                    <span style={{ color: C.dim }}>UCRS·CELL</span><span style={{ color: C.cyan }}>{ucrsCellId(coordCall.lat, coordCall.lon, grid.stepM)}</span>
                     <span style={{ color: C.dim }}>ELEV</span><span style={{ color: C.gold }}>{Math.round(elevM)}m · {Math.round(elevM * 3.28084)} ft MSL</span>
                   </div>
                 </div>
@@ -1729,8 +1796,8 @@ function AoMapPane(p: PaneProps) {
                   <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
                     <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{col.mgrs}</span>
                     <span style={{ color: C.dim }}>LLV-DMS</span><span style={{ color: C.text }}>{col.llv}</span>
-                    <span style={{ color: C.dim }}>UCRS-DMS</span><span style={{ color: C.cyan }}>{col.ucrsDms}</span>
-                    <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{col.ucrs}</span>
+                    <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{col.ucrsDms}</span>
+                    <span style={{ color: C.dim }}>UCRS·CELL</span><span style={{ color: C.cyan }}>{col.ucrs}</span>
                     <span style={{ color: C.dim }}>CELL</span><span style={{ color: C.text }}>{col.cellM >= 1000 ? `${col.cellM / 1000} km` : `${col.cellM} m`} · TERRAIN {Math.round(col.terrainM)}m MSL</span>
                   </div>
                   <div className="mt-1 border-t pt-1" style={{ borderColor: C.border }}>
@@ -2591,6 +2658,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [is3dB, setIs3dB] = useState(false);               // MINI MAP 2D/3D
   const [pitch, setPitch] = useState(55);                  // 3D view angle (deg) — the FAAD/AMDWS altitude-angle
   const [symbologyMode, setSymbologyMode] = useState<"mil" | "exel" | "hybrid">("mil"); // MIL-STD-2525 | eXeL-STD-2525 | Hybrid
+  const [iconSize, setIconSize] = useState<"s" | "m" | "l">("s"); // P2: icon visibility — S(1×)/M(1.75×)/L(3×)
+  const ICON_SCALE = { s: 1, m: 1.75, l: 3 } as const;
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
@@ -2850,7 +2919,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
-    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch,
+    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
   }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view.
      // 2D↔3D reuses this SAME tile — is3d is a render flag only; no DEM/OSM effect depends on it → ZERO extra fetch.
 
@@ -3218,6 +3287,16 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   <button key={m} onClick={() => setSymbologyMode(m)} className="flex-1 px-1 py-1"
                     style={{ background: symbologyMode === m ? "#152238" : "transparent", color: symbologyMode === m ? C.cyan : C.dim }}>{label}</button>
                 ))}
+              </div>
+              {/* P2: icon visibility — S = current, L = 3× (billboarded upright in 3D) */}
+              <div className="mt-1.5 mb-1 flex items-center justify-between">
+                <span className="text-[9px]" style={{ color: C.text }}>Icon size</span>
+                <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                  {([["s", "SMALL"], ["m", "MEDIUM"], ["l", "LARGE"]] as const).map(([k, label]) => (
+                    <button key={k} onClick={() => setIconSize(k)} className="px-1.5 py-0.5"
+                      style={{ background: iconSize === k ? "#152238" : "transparent", color: iconSize === k ? C.cyan : C.dim }}>{label}</button>
+                  ))}
+                </div>
               </div>
               <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Tilt to 3D on any pane (2D/3D toggle) — reuses the same fetched tile, zero extra network. Altitude stems + transect land next.</div>
             </div>

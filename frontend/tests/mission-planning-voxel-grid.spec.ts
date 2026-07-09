@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { buildVoxelColumns, fmtLLV, fmtUcrsDms, ucrsCellId, objectMslM, type VoxelObject } from "../lib/voxel-grid";
-import { latLonToMgrs } from "../components/security-2525/mgrs";
+import { latLonToMgrs, latLonToUtm } from "../components/security-2525/mgrs";
 import { mFromFt } from "../lib/voxel";
 
 // SECURITY-2525 · VOXEL GRID — coordinate-addressed cube stacks (pure math proof).
@@ -86,6 +86,17 @@ test("non-finite altitude is EXCLUDED — never a silent cube (voxel law)", () =
   const cols = buildVoxelColumns([obj({ id: 1, altM: NaN }), obj({ id: 2, altM: 747, altRef: "MSL" })], flat100, 1000);
   expect(cols).toHaveLength(1);
   expect(cols[0].objects.map((o) => o.id)).toEqual([2]);
+});
+
+test("cube-top corners: 4 (NW,NE,SE,SW), cellM apart, centre inside (P1 hotspots)", () => {
+  const cols = buildVoxelColumns([obj({ id: 1, altM: 747, altRef: "MSL" })], flat100, 1000);
+  const c = cols[0];
+  expect(c.corners).toHaveLength(4);
+  const u = c.corners.map((k) => latLonToUtm(k.lat, k.lon));
+  expect(Math.abs(u[1].easting - u[0].easting)).toBeCloseTo(1000, 0);   // NW→NE = cellM east
+  expect(Math.abs(u[0].northing - u[3].northing)).toBeCloseTo(1000, 0); // NW→SW = cellM south
+  expect(c.lat).toBeGreaterThan(Math.min(...c.corners.map((k) => k.lat)));
+  expect(c.lat).toBeLessThan(Math.max(...c.corners.map((k) => k.lat)));
 });
 
 test("terrainM at the column = sampler at cell centre; topM = highest occupant MSL", () => {

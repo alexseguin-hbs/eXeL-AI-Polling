@@ -44,6 +44,7 @@ export interface VoxelColumn {
   llv: string;                     // cube-base address 2/3 — LLV-DMS at cell centre
   ucrs: string;                    // cube-base address 3/3 — UCRS-2525 voxel index (no Z)
   ucrsDms: string;                 // UCRS-2525 angular form — 3600-scale D·M·S (base-60 honor)
+  corners: { lat: number; lon: number }[]; // cube-top corners NW,NE,SE,SW (P1: corner hotspots)
   cubes: VoxelCube[];              // contiguous stack SURFACE→highest occupied band
   topM: number;                    // m MSL of the highest occupant (stack top)
   objects: VoxelColumnObject[];
@@ -64,10 +65,11 @@ export function fmtLLV(lat: number, lon: number): string {
 }
 
 /**
- * UCRS-2525 ANGULAR coordinate — honors base-60 Sumerian (Christo, R1 council):
+ * UCRS-2525 — CANONICAL definition (Thought Master, 2026-07-09): UCRS-2525 IS the
+ * LLV-DMS in base 3600, with N/S and E/W projections. Honors base-60 Sumerian:
  * the full circle is 3600 units and EVERY tier is 3600-scale — degrees ×10 →
  * UCRS-degrees, minutes = fraction × 3600 (vs 60), seconds = minute-fraction × 3600.
- * Laid out to mirror LLV-DMS ("nearly the same" — user law).
+ * (The zone/cell voxel index below is labeled UCRS·CELL, distinct from this.)
  */
 export function fmtUcrsDms(lat: number, lon: number): string {
   const part = (v: number, pos: string, neg: string) => {
@@ -148,6 +150,12 @@ export function buildVoxelColumns(
       llv: fmtLLV(lat, lon),
       ucrs: ucrsCellId(lat, lon, cellM),
       ucrsDms: fmtUcrsDms(lat, lon),
+      corners: ([
+        [c.cellE * cellM, (c.cellN + 1) * cellM],       // NW
+        [(c.cellE + 1) * cellM, (c.cellN + 1) * cellM], // NE
+        [(c.cellE + 1) * cellM, c.cellN * cellM],       // SE
+        [c.cellE * cellM, c.cellN * cellM],             // SW
+      ] as [number, number][]).map(([e, n]) => utmToLatLon(c.zone, e, n, c.south)),
       cubes,
       topM: Math.max(...c.objs.map((x) => x.mslM)),
       objects: c.objs
