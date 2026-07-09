@@ -2137,13 +2137,19 @@ function ItemInspector(p: InspectorProps) {
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-1">
+            {/* nudge D-PAD — N above / S below / W left / E right of a non-clickable
+                center that shows the active step (fills the whole rectangle) */}
+            <div className="grid w-full grid-cols-3 gap-1">
               <span />
-              <button onClick={() => onNudge(selected, nudgeM / 111320, 0)} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
+              <button onClick={() => onNudge(selected, nudgeM / 111320, 0)} className="w-full rounded border py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
               <span />
-              <button onClick={() => onNudge(selected, 0, -nudgeM / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>◀ W</button>
-              <button onClick={() => onNudge(selected, -nudgeM / 111320, 0)} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
-              <button onClick={() => onNudge(selected, 0, nudgeM / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="rounded border py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
+              <button onClick={() => onNudge(selected, 0, -nudgeM / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="w-full rounded border py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>◀ W</button>
+              <div className="flex w-full items-center justify-center rounded border py-1 font-mono text-[9px] font-bold select-none" aria-hidden
+                style={{ borderColor: `${C.cyan}44`, color: C.cyan, background: "#0c1420" }}>{nudgeM >= 1000 ? `${nudgeM / 1000} km` : `${nudgeM} m`}</div>
+              <button onClick={() => onNudge(selected, 0, nudgeM / (111320 * Math.cos((selectedObj.lat * Math.PI) / 180)))} className="w-full rounded border py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
+              <span />
+              <button onClick={() => onNudge(selected, -nudgeM / 111320, 0)} className="w-full rounded border py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
+              <span />
             </div>
             <div className="mb-1 mt-2 text-[9px]" style={{ color: C.dim }}>Set exact coordinate ({coordFmt === "mgrs" ? "MGRS" : "LLV-DMS"})</div>
             <div className="flex items-center gap-1">
