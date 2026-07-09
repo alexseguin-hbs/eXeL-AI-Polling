@@ -1789,12 +1789,31 @@ function AoMapPane(p: PaneProps) {
             {/* placed assets */}
             {placed.map((u) => {
               const f = project(u.lat, u.lon);
-              if (f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05) return null;
+              const off = f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05;
+              const aerial = u.altitude != null && u.altitude > 0;
               const sel = selected?.kind === "asset" && selected.id === u.id;
               const hot = hoverAsset === u.asset;
+              // HI: pin the GROUND coord chip to the box BOTTOM LINE so it never covers the top
+              // target symbol — drop it ~½ cell (billboarded → toward the front floor edge).
+              const groundDrop = Math.max(6, Math.round((effCellM / (view.spanKm * 1000)) * (mapRef.current?.clientWidth ?? 800) * 0.5));
+              // HI: GROUND units off-map are culled. AERIAL units off-map render as a distant
+              // top-face BOX (red hostile / blue friendly) clamped to the map edge toward their
+              // bearing — visible near the horizon at 66–88° tilt without zooming the 2D map out.
+              if (off && !aerial) return null;
+              if (off && aerial) {
+                const cx = Math.max(0.015, Math.min(0.985, f.fx));
+                const cy = Math.max(0.015, Math.min(0.985, f.fy));
+                const col = u.aff === "hostile" ? C.red : C.cyan;
+                return (
+                  <div key={u.id} className="pointer-events-none absolute" style={{ left: `${cx * 100}%`, top: `${cy * 100}%`, zIndex: 14,
+                    transform: is3d ? `translate(-50%,-100%) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-100%)", transformOrigin: "50% 100%" }}>
+                    <span className="block" style={{ width: 15, height: 15, border: `2px solid ${col}`, background: `${col}33`, boxShadow: `0 0 9px ${col}` }} />
+                    <span className="mt-0.5 block whitespace-nowrap text-center font-mono text-[7px] font-bold" style={{ color: col }}>{ASSET_LABELS[u.asset]} ▲</span>
+                  </div>
+                );
+              }
               // HI: altitude SPIKE/stem REMOVED — the voxel box carries altitude, so the icon sits
               // on the ground with only its coordinate chip (N above for AERIAL / S below for GROUND).
-              const aerial = u.altitude != null && u.altitude > 0;
               return (
                 <Fragment key={u.id}>
                 <button
@@ -1823,14 +1842,26 @@ function AoMapPane(p: PaneProps) {
                         the grid-snapped box), a sky-face BOX for AERIAL (at altitude). Flat MIL
                         icon stays in 2D / voxel-off. */}
                     {is3d && voxelLayer
-                      ? <span className="block rounded-full" style={{ width: 5, height: 5, background: u.aff === "hostile" ? C.red : C.cyan, boxShadow: `0 0 5px ${u.aff === "hostile" ? C.red : C.cyan}` }} />
+                      ? (
+                        // HI: MIL-STD-2525 icon on a SHIELD badge, standing on a DOT that marks the
+                        // EXACT MGRS floor spot (billboarded upright off the tilted ground surface).
+                        <span className="flex flex-col items-center">
+                          <span className="flex items-center justify-center rounded-md" style={{ padding: 2,
+                            background: `${u.aff === "hostile" ? C.red : C.cyan}1e`, border: `1px solid ${u.aff === "hostile" ? C.red : C.cyan}`,
+                            boxShadow: `0 0 6px ${u.aff === "hostile" ? C.red : C.cyan}55` }}>
+                            <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={22 * iconScale} count={u.count} />
+                          </span>
+                          <span className="mt-[1px] block rounded-full" style={{ width: 5, height: 5,
+                            background: u.aff === "hostile" ? C.red : C.cyan, boxShadow: `0 0 5px ${u.aff === "hostile" ? C.red : C.cyan}` }} />
+                        </span>
+                      )
                       : <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} />}
                   </span>
                   {/* HI 1.3.3: coordinate label = ONE black-background chip (no white version),
                       same format as the selected-voxel label.
                       HI: N/S placement — AERIAL asset (altitude>0) → chip ABOVE the icon (North);
                       GROUND asset → chip BELOW the icon (South). flex-col `order` re-stacks it. */}
-                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 0, marginTop: aerial ? 0 : 2, marginBottom: aerial ? 2 : 0 }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
+                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 1, marginTop: aerial ? 0 : groundDrop, marginBottom: aerial ? 2 : 0 }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
                   {u.moving && (
                     <span className="whitespace-nowrap font-mono text-[7px] font-bold" style={{ color: C.green }}>
                       {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude)}m ${u.altRef ?? "AGL"}` : ""}
