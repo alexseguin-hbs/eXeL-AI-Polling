@@ -27,7 +27,7 @@
  * subsurface layers come later — see docs/security-2525/DATA_SOURCES.md.
  */
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2, Eye } from "lucide-react";
+import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2, Eye, Lock, Unlock } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
@@ -781,14 +781,28 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
 
 // FX-09 (P1.3, FLUKE/FLIR entry law): numeric field that lets the user CLEAR while
 // typing — no forced 0. Commits only finite values; blur restores the canonical value.
-function NumInField({ value, onCommit, className, style }: { value: number; onCommit: (v: number) => void; className?: string; style?: React.CSSProperties }) {
+// FX-09 (HI 1.3.2): direct numeric entry — NO spinner arrows (type=text + inputMode
+// decimal, filtered to digits/dot). Optional LOCK GATE (reusing the padlock iconology of
+// the Easter-egg locked cube screens): the field is read-only until the operator taps the
+// padlock to unlock, so an alarm threshold can't be nudged by accident.
+function NumInField({ value, onCommit, className, style, lockable }: { value: number; onCommit: (v: number) => void; className?: string; style?: React.CSSProperties; lockable?: boolean }) {
   const [draft, setDraft] = useState<string | null>(null);
-  return (
-    <input type="number" value={draft ?? String(value)}
-      onChange={(e) => { const t = e.target.value; setDraft(t); const v = parseFloat(t); if (Number.isFinite(v)) onCommit(v); }}
+  const [unlocked, setUnlocked] = useState(!lockable);
+  const field = (
+    <input type="text" inputMode="decimal" value={draft ?? String(value)} readOnly={!unlocked}
+      onChange={(e) => { const t = e.target.value.replace(/[^0-9.]/g, ""); setDraft(t); const v = parseFloat(t); if (Number.isFinite(v)) onCommit(v); }}
       onBlur={() => setDraft(null)}
       className={className ?? "w-full rounded border bg-transparent px-1 py-0.5 text-[9px]"}
-      style={style ?? { borderColor: C.border, color: C.text }} />
+      style={{ ...(style ?? { borderColor: C.border, color: C.text }), opacity: unlocked ? 1 : 0.55, cursor: unlocked ? "text" : "not-allowed" }} />
+  );
+  if (!lockable) return field;
+  return (
+    <span className="flex items-center gap-1">
+      <button type="button" onClick={() => setUnlocked((u) => !u)} title={unlocked ? "Lock value" : "Unlock to edit"} className="shrink-0">
+        {unlocked ? <Unlock className="h-3 w-3" style={{ color: C.gold }} /> : <Lock className="h-3 w-3" style={{ color: C.dim }} />}
+      </button>
+      {field}
+    </span>
   );
 }
 
@@ -1871,6 +1885,19 @@ function AoMapPane(p: PaneProps) {
                     title={`${col.mgrs} · ${col.ucrs}`}
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                     style={{ width: cellPx, height: cellPx, border: `1.5px solid ${sel ? C.gold : C.cyan}`, background: sel ? `${C.gold}14` : `${C.cyan}08`, pointerEvents: "auto" }} />
+                  {/* HI 1.3.2: the ASSET's MIL-STD-2525 / eXeL-STD symbol stands in the MIDDLE
+                      of its own voxel (asset columns only), billboarded upright off the tilted
+                      plane so it reads as the cube's occupant. */}
+                  {!isLattice && topObj && (() => {
+                    const p = placed.find((u) => u.id === topObj.id);
+                    if (!p) return null;
+                    return (
+                      <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ zIndex: 13,
+                        transform: `translate(-50%,-50%) translateZ(${Math.max(2, topZ / 2)}px) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 50%" }}>
+                        <AssetIcon asset={p.asset} style={iconStyle} affiliation={p.aff} size={Math.max(18, cellPx * 0.5)} count={p.count} />
+                      </div>
+                    );
+                  })()}
                   {/* the cube stack — one wireframe cube per altitude band up to the top occupant */}
                   {stack.map((cb) => {
                     const occupied = cb.occupants.length > 0;
@@ -1954,12 +1981,20 @@ function AoMapPane(p: PaneProps) {
                       spec altitude visual law) + AGL flanks LEFT, MSL flanks RIGHT (P1) */}
                   {topObj && (sel || (selected?.kind === "asset" && col.objects.some((o) => o.id === selected.id))) && (
                     <>
-                      <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 2, height: topZ, background: C.gold, opacity: 0.9,
-                        transform: `translate(-50%,-50%) translate3d(0px,0px,${topZ / 2}px) rotateX(90deg)` }} />
-                      <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 2, height: topZ, background: C.gold, opacity: 0.9,
-                        transform: `translate(-50%,-50%) translate3d(0px,0px,${topZ / 2}px) rotateX(90deg) rotateY(90deg)` }} />
-                      <div className="pointer-events-none absolute left-1/2 top-1/2 rounded-full" style={{ width: cellPx * 0.4, height: cellPx * 0.4,
-                        transform: "translate(-50%,-50%) translateZ(0.5px)", background: `radial-gradient(circle, ${C.gold}44 0%, transparent 70%)` }} />
+                      {/* HI 1.3.2: replace the solid gold stem with a DOTTED CYLINDER cage
+                          at the TARGET inner-ring radius (asset columns only) — 8 dashed
+                          vertical struts terrain→object read as a translucent column, not a
+                          hard line. */}
+                      {Array.from({ length: 8 }).map((_, k) => {
+                        const ang = (k / 8) * Math.PI * 2;
+                        const rCyl = Math.max(6, cellPx * 0.15); // ≈ TARGET inner-circle radius
+                        const cx = rCyl * Math.cos(ang), cy = rCyl * Math.sin(ang);
+                        return (
+                          <div key={`cyl${k}`} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 1, height: topZ,
+                            background: `repeating-linear-gradient(to bottom, ${C.gold} 0 1.5px, transparent 1.5px 4px)`, opacity: 0.8,
+                            transform: `translate(-50%,-50%) translate3d(${cx}px,${cy}px,${topZ / 2}px) rotateX(90deg)` }} />
+                        );
+                      })}
                       <div className="pointer-events-none absolute top-1/2" style={{ right: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)` }}>
                         <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.gold }}>
                           AGL {Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM)}m
@@ -2036,6 +2071,32 @@ function AoMapPane(p: PaneProps) {
             })()}
             </div>
             {/* end 3D tilt layer */}
+            {/* FX-12 (HI 1.3.2): 3D compass RING — screen-flat, always centred, ALWAYS on
+                screen (the tilted horizon-tape/fence above collapses edge-on near 11°, so a
+                round HUD reticle owns the heading at every tilt). Thin outline frames the
+                voxel centre without hiding it; ticks + N (red) rotate with the bearing while
+                cardinal labels stay upright. The vertical fence + 2D edge scale are kept. */}
+            {is3d && (() => {
+              const bDeg = (view.bearing * 180) / Math.PI;
+              const cards: [string, number, string][] = [["N", 0, C.red], ["E", 90, C.cyan], ["S", 180, C.cyan], ["W", 270, C.cyan]];
+              return (
+                <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2" style={{ width: "min(46%, 360px)", height: "min(46%, 360px)" }}>
+                  <svg viewBox="-50 -50 100 100" width="100%" height="100%" aria-hidden>
+                    <circle r="47" fill="none" stroke={`${C.cyan}44`} strokeWidth="0.5" />
+                    <circle r="40" fill="none" stroke={`${C.cyan}22`} strokeWidth="0.3" />
+                    {Array.from({ length: 36 }).map((_, i) => {
+                      const deg = i * 10, a = ((deg - bDeg) * Math.PI) / 180, maj = deg % 30 === 0;
+                      const r0 = 47, r1 = maj ? 40 : 44;
+                      return <line key={i} x1={r0 * Math.sin(a)} y1={-r0 * Math.cos(a)} x2={r1 * Math.sin(a)} y2={-r1 * Math.cos(a)} stroke={deg === 0 ? C.red : `${C.cyan}77`} strokeWidth={maj ? 0.6 : 0.3} />;
+                    })}
+                    {cards.map(([lab, deg, col]) => {
+                      const a = ((deg - bDeg) * Math.PI) / 180, x = 33 * Math.sin(a), y = -33 * Math.cos(a);
+                      return <text key={lab} x={x} y={y + 2.1} textAnchor="middle" fontSize="6" fontFamily="monospace" fontWeight="bold" fill={col}>{lab}</text>;
+                    })}
+                  </svg>
+                </div>
+              );
+            })()}
             {is3d && (
               <div className="pointer-events-none absolute left-1/2 top-2 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.amber }}>
                 3D · VIEW — switch to 2D to place
@@ -2079,12 +2140,12 @@ function AoMapPane(p: PaneProps) {
                   {/* FX-05: threshold entry — RED / YELLOW (ft), FLUKE-style clearable */}
                   <span className="pointer-events-auto flex items-center gap-0.5">
                     <span className="font-mono text-[6px] font-bold" style={{ color: C.red }}>R</span>
-                    <NumInField value={altRedFt ?? 0} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)}
+                    <NumInField value={altRedFt ?? 0} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable
                       className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
                   </span>
                   <span className="pointer-events-auto flex items-center gap-0.5">
                     <span className="font-mono text-[6px] font-bold" style={{ color: C.amber }}>Y</span>
-                    <NumInField value={altYellowFt ?? 0} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)}
+                    <NumInField value={altYellowFt ?? 0} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable
                       className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
                   </span>
                   {levels.map((ft) => (
@@ -3050,8 +3111,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [iconSize, setIconSize] = useState<"s" | "m" | "l">("s"); // P2: icon visibility — S(1×)/M(1.75×)/L(3×)
   const ICON_SCALE = { s: 1, m: 2, l: 3 } as const; // P1.2 (Enki): M = 2× current, L = 3×
   const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
-  const [altRedFt, setAltRedFt] = useState<number | null>(null);      // FX-05: RED altitude threshold
-  const [altYellowFt, setAltYellowFt] = useState<number | null>(null);// FX-05: YELLOW altitude threshold
+  const [altRedFt, setAltRedFt] = useState<number | null>(9000);      // FX-05 (1.3.2): RED alarm default 90% of the 10k ft rail
+  const [altYellowFt, setAltYellowFt] = useState<number | null>(7000);// FX-05 (1.3.2): YELLOW alarm default 70% of the 10k ft rail
   const [voxelCellM, setVoxelCellM] = useState<0 | 10 | 100 | 1000>(0); // FX-10 (1.3.2): DEFAULT = AUTO screen reticle (3×3 group = 1/9 of screen area = 1/3 width, each cell = 1/9 width); 10 m / 100 m / 1 km snap to real metres
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
@@ -3101,22 +3162,22 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     setViewB(initView(ao, mirror ? 1 : OVERVIEW_FACTOR));
     if (ao.precision) setDigits(ao.precision);
   }, [aoKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  // MIRROR = NORTH-LOCK ONLY (HI 1.3.2). Panes keep independent 2D/3D + zoom + centre;
+  // only their bearing (north) stays locked. The clicked icon's pane pushes its north to
+  // the other on engage, then the two bearings track together (rotate either → both turn).
   const toggleMirror = (src: "map" | "mini") => {
     setMirrorFrom((cur) => {
-      if (cur === src) { // disengage → restore the other pane to its pre-mirror view
-        const p = preMirrorRef.current;
-        if (p) { (p.target === "map" ? setViewA : setViewB)(p.view); (p.target === "map" ? setModeA : setModeB)(p.mode); }
-        preMirrorRef.current = null;
-        return null;
-      }
-      const target = src === "mini" ? "map" : "mini";
-      preMirrorRef.current = { target, view: target === "map" ? viewA : viewB, mode: target === "map" ? modeA : modeB };
-      if (src === "mini") { setViewA(viewB); setModeA(modeB); } else { setViewB(viewA); setModeB(modeA); }
+      if (cur === src) { preMirrorRef.current = null; return null; } // disengage — nothing to restore (view/mode were never overwritten)
+      if (src === "mini") setViewA((v) => ({ ...v, bearing: viewB.bearing })); // mini clicked → push mini north to MAP
+      else setViewB((v) => ({ ...v, bearing: viewA.bearing }));                // map clicked → push map north to MINI
       return src;
     });
   };
-  const setViewA_ = (u: (v: ViewState) => ViewState) => { setViewA(u); if (mirrorFrom === "map") setViewB(u); };
-  const setViewB_ = (u: (v: ViewState) => ViewState) => { setViewB(u); if (mirrorFrom === "mini") setViewA(u); };
+  const setViewA_ = (u: (v: ViewState) => ViewState) => setViewA(u); // north sync handled by the bearing-lock effects below
+  const setViewB_ = (u: (v: ViewState) => ViewState) => setViewB(u);
+  // Bearing-lock effects: while mirrored, keep both norths equal (equality guard prevents ping-pong).
+  useEffect(() => { if (!mirror) return; setViewB((w) => (w.bearing === viewA.bearing ? w : { ...w, bearing: viewA.bearing })); }, [viewA.bearing, mirror]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!mirror) return; setViewA((w) => (w.bearing === viewB.bearing ? w : { ...w, bearing: viewB.bearing })); }, [viewB.bearing, mirror]); // eslint-disable-line react-hooks/exhaustive-deps
   // Smooth geometric ease of the MAP span (easeOutCubic) — the cinematic "fly-in".
   const zoomChainRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animateSpanTo = (fromKm: number, toKm: number, ms = 800) => {
@@ -3126,8 +3187,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       const k = Math.min(1, (now - t0) / ms);
       const e = 1 - Math.pow(1 - k, 3);
       const span = fromKm * Math.pow(toKm / fromKm, e);
-      setViewA((v) => ({ ...v, spanKm: span }));
-      if (mirror) setViewB((v) => ({ ...v, spanKm: span }));
+      setViewA((v) => ({ ...v, spanKm: span })); // zoom is per-pane now (mirror locks NORTH only)
       if (k < 1) zoomAnimRef.current = requestAnimationFrame(tick);
     };
     zoomAnimRef.current = requestAnimationFrame(tick);
@@ -3140,8 +3200,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     setAoKey(k); // plan-load effect restores this AO's saved placements
     const wide = 900, region = Math.max(30, t.halfKm * 6); // region ≈ 6× the site half-extent
     const site = Math.max(MIN_SPAN_KM, t.halfKm * 2);      // the site cut itself (e.g. Capitol 2.4 km)
-    setViewA({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 });
-    if (mirror) setViewB({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 });
+    setViewA({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 }); // mirror locks NORTH only — the mini keeps its own zoom/centre
     setMode("ao");
     // P1 (Aset + Thought Master): ONE continuous zoom from the globe to the SITE —
     // land wide, glide to region, dwell so the eye orients, then continue to the site.
@@ -3720,7 +3779,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 <div className="flex items-center gap-1">
                   <button onClick={() => setMaxAltFt(null)} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
                     style={{ borderColor: maxAltFt == null ? C.green : C.border, color: maxAltFt == null ? C.green : C.dim }}>AUTO</button>
-                  <NumInField value={maxAltFt ?? 10000} onCommit={(v) => setMaxAltFt(v > 0 ? v : null)}
+                  <NumInField value={maxAltFt ?? 10000} onCommit={(v) => setMaxAltFt(v > 0 ? v : null)} lockable
                     className="w-14 rounded border bg-transparent px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: C.text }} />
                 </div>
               </div>
