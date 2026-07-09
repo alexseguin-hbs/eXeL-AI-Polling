@@ -26,7 +26,7 @@
  * World context strip: Natural Earth 50m borders (public domain). Elevation and
  * subsurface layers come later — see docs/security-2525/DATA_SOURCES.md.
  */
-import { Fragment, useEffect, useId, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2, Eye } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
@@ -42,7 +42,7 @@ import { MIN_SPAN_KM, MAX_SPAN_KM, shouldHandOffToWorld } from "@/lib/zoom-conti
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
 import { computeTransect, transectLine, type AltObject } from "@/lib/transect";
 import { RANGE_EDGES, BAND_LABELS, mFromFt, bandOccupancy } from "@/lib/voxel";
-import { buildVoxelColumns, fmtLLV, fmtUcrsDms, ucrsCellId, ucrsCell2 } from "@/lib/voxel-grid";
+import { buildVoxelColumns, buildLatticeColumns, fmtLLV, fmtUcrsDms, ucrsCellId, ucrsCell2 } from "@/lib/voxel-grid";
 import { bufferPolygon } from "@/lib/aor";
 import { getTile, peekTile } from "@/lib/tile-cache";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
@@ -1310,25 +1310,43 @@ function AoMapPane(p: PaneProps) {
   // the visible UTM grid step; every cube BASE = MGRS + LLV-DMS + UCRS-2525; Z = band.
   // Reads the SAME 1-fetch DEM sampler as the contours — zero extra network.
   const [voxelSel, setVoxelSel] = useState<string | null>(null);
+  const [voxelLayer, setVoxelLayer] = useState(true); // FX-30 (HI): standalone 3×3 voxel LATTICE, independent of assets, ON by default
+  const [voxelTop, setVoxelTop] = useState<string | null>(null); // FX-30: hovered column TOP face (pick a stack by its top)
   // P1.2 (Odin): corner HOVER chip — corner coordinate + terrain elevation at the cursor
   const [cornerHover, setCornerHover] = useState<{ key: string; ci: number } | null>(null);
   const [tiltSlider, setTiltSlider] = useState(false); // FX-21: 📱 tilt slider (phone access)
   const voxelColumns = useMemo(() => {
     if (!is3d) return [];
-    const objs = placed.filter((u) => u.altitude != null).map((u) => ({
-      id: u.id, lat: u.lat, lon: u.lon, altM: u.altitude!, altRef: (u.altRef ?? "AGL") as "AGL" | "MSL",
+    // P1.3 round 3 (HI: "have you fixed 3D VOXEL CUBE to show?"): EVERY placed unit
+    // gets a cube — no altitude set = SURFACE band cube at terrain level (0 m AGL),
+    // so select-after-place always has a voxel to activate.
+    const objs = placed.map((u) => ({
+      id: u.id, lat: u.lat, lon: u.lon, altM: u.altitude ?? 0, altRef: (u.altRef ?? "AGL") as "AGL" | "MSL",
       label: ASSET_LABELS[u.asset], color: u.aff === "hostile" ? C.red : C.cyan,
     }));
     return objs.length ? buildVoxelColumns(objs, sampler, voxelCellM || grid.stepM) : [];
     // (voxel-on-select effect lives right below — needs this memo declared first)
   }, [is3d, placed, sampler, grid.stepM, voxelCellM]);
-  // P1.3 (Thought Master): selecting a unit — physical map click OR right-rail
-  // highlight — makes its VOXEL appear (gold selection on its cube column) in 3D.
-  useEffect(() => {
-    if (!is3d || selected?.kind !== "asset") return;
-    const col = voxelColumns.find((c) => c.objects.some((o) => o.id === selected.id));
+  // FX-30 (HI): standalone VOXEL LATTICE — a 3×3 block of full-height stacked columns
+  // centred on the view, existing WITHOUT any placed asset so you can read + click a
+  // whole altitude column. Same DEM sampler + cell grid → zero extra fetch, cubes align.
+  const latticeColumns = useMemo(() => {
+    if (!is3d || !voxelLayer) return [];
+    const cLat = (box.latMin + box.latMax) / 2, cLon = (box.lonMin + box.lonMax) / 2;
+    return buildLatticeColumns(cLat, cLon, sampler, voxelCellM || grid.stepM, 3);
+  }, [is3d, voxelLayer, box, sampler, voxelCellM, grid.stepM]);
+  // asset columns win over a lattice cell at the same physical square (occupied cubes)
+  const shownColumns = useMemo(() => {
+    const seen = new Set(voxelColumns.map((c) => `${c.cellM}:${c.mgrs}`));
+    return [...voxelColumns, ...latticeColumns.filter((c) => !seen.has(`${c.cellM}:${c.mgrs}`))];
+  }, [voxelColumns, latticeColumns]);
+  // P1.3 round 4 (HI): VOXEL is now DOUBLE-CLICK driven, not select-driven — a single
+  // left-click just SELECTS (inspector + hookable), a DOUBLE left-click reveals the
+  // unit's VOXEL·CUBE in 3D (see onDoubleClick on the asset button). Helper below.
+  const showVoxelFor = useCallback((id: number) => {
+    const col = voxelColumns.find((c) => c.objects.some((o) => o.id === id));
     if (col) setVoxelSel(col.key);
-  }, [selected, is3d, voxelColumns]);
+  }, [voxelColumns]);
   // P1.3 (Thought Master): the rail's NEGATIVE band exists only when the view holds
   // water — scaled to the DEEPEST source in view (coarse 9×9 sample of the same DEM).
   const minElevM = useMemo(() => {
@@ -1408,6 +1426,11 @@ function AoMapPane(p: PaneProps) {
                 style={{ background: is3d === v ? "#152238" : "transparent", color: is3d === v ? C.cyan : C.dim }}>{lb}</button>
             ))}
           </div>
+          {/* FX-30 (HI): VOXEL lattice ON/OFF — a 3×3 stacked-cube column grid, shown only in 3D */}
+          {is3d && (
+            <button onClick={() => setVoxelLayer((v) => !v)} title={voxelLayer ? "VOXEL lattice ON — 3×3 stacked columns (tap a top to highlight). Click to hide." : "Show the 3×3 VOXEL lattice"}
+              className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: voxelLayer ? C.gold : C.border, color: voxelLayer ? C.gold : C.dim }}>▦ VOXEL</button>
+          )}
           {onToggleMirror && (
             <button onClick={onToggleMirror} title={mirrorOn ? "Unmirror — the other map returns to its prior view" : "Mirror THIS view onto the other map (each map keeps its own 2D/3D)"}
               className="flex items-center gap-0.5 rounded border px-1 py-0.5 font-semibold" style={{ borderColor: mirrorOn ? C.cyan : C.border, color: mirrorOn ? C.cyan : C.dim }}>
@@ -1681,6 +1704,7 @@ function AoMapPane(p: PaneProps) {
               return (
                 <button key={u.id}
                   onPointerUp={(e) => { if (!dragRef.current?.moved) { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); } }}
+                  onDoubleClick={(e) => { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); showVoxelFor(u.id); }} /* FX-30 (HI): double-click an asset → reveal + highlight its VOXEL·CUBE */
                   onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); if (!dragRef.current?.moved) { setSelected({ kind: "asset", id: u.id }); setHook(u.id); } }}
                   onMouseEnter={() => setHoverAsset(u.asset)}
                   onMouseLeave={() => setHoverAsset((h) => (h === u.asset ? null : h))}
@@ -1793,13 +1817,14 @@ function AoMapPane(p: PaneProps) {
                 Base square sits ON the plane and is the addressable CUBE BASE
                 (tap → MGRS + LLV-DMS + UCRS-2525 packet). Bands rise via translateZ
                 (preserve-3d). Wireframe-only = phone / Raspberry-Pi class compute. */}
-            {is3d && voxelColumns.map((col) => {
+            {is3d && shownColumns.map((col) => {
               const f = project(col.lat, col.lon);
               if (f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02) return null;
               const paneW = mapRef.current?.clientWidth ?? 800;
               const cellPx = Math.max(16, (col.cellM / (view.spanKm * 1000)) * paneW);
               const bandPx = Math.min(cellPx, 40); // display-compressed cube height; labels carry the true altitude+ref
               const sel = voxelSel === col.key;
+              const isLattice = col.key.startsWith("LAT:"); // empty scaffold column (no asset)
               const stack = col.cubes.filter((cb) => cb.bandIdx > 0);
               const topZ = stack.length * bandPx;
               const topObj = col.objects[col.objects.length - 1];
@@ -1834,7 +1859,14 @@ function AoMapPane(p: PaneProps) {
                   {/* CUBE TOP (P1 slice B) — TARGET circle pops the CENTRE coordinate;
                       4 corner hotspots pop CORNER coordinates (call-up packet) */}
                   <div className="absolute left-1/2 top-1/2" style={{ width: cellPx, height: cellPx, transform: `translate(-50%,-50%) translateZ(${topZ}px)`, pointerEvents: "auto" }}
-                    onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(null); }} /* P1.2 (Odin): tapping the cube TOP face deactivates the voxel selection */>
+                    onMouseEnter={() => setVoxelTop(col.key)}
+                    onMouseLeave={() => setVoxelTop((h) => (h === col.key ? null : h))}
+                    onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(sel ? null : col.key); }} /* FX-30 (HI): tap the TOP face to HIGHLIGHT this whole column (tap again to release) */>
+                    {/* FX-30: top-face pick plate — lights on hover, gold when selected, so a
+                        stacked column can be chosen by its TOP (independent of any asset) */}
+                    <div className="pointer-events-none absolute inset-0" style={{
+                      border: `1.5px solid ${sel || voxelTop === col.key ? C.gold : "transparent"}`,
+                      background: sel ? `${C.gold}22` : voxelTop === col.key ? `${C.gold}12` : "transparent" }} />
                     {/* TARGET — same proportions as the 3D crosshair cursor: outer ring,
                         INNER ring, NSEW crosshair ticks, gold centre dot */}
                     <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: col.lat, lon: col.lon }); }}
@@ -2051,10 +2083,11 @@ function AoMapPane(p: PaneProps) {
               const elevM = sampler(coordCall.lat, coordCall.lon);
               return (
                 <div className="absolute z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
+                  onPointerDown={(e) => e.stopPropagation()} /* FX-30: keep the map from capturing the pointer so the ✕ (and taps inside) work */
                   style={{ left: `${Math.min(70, Math.max(2, f.fx * 100))}%`, top: `${Math.min(60, Math.max(4, f.fy * 100 - 10))}%`, background: "#0a0f16ee", borderColor: C.cyan }}>
                   <div className="mb-1 flex items-center justify-between">
                     <span className="font-bold tracking-wider" style={{ color: C.cyan }}>COORDINATE · CALL-UP</span>
-                    <button onClick={() => setCoordCall(null)} style={{ color: C.dim }}>✕</button>
+                    <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall(null); }} className="px-1 text-[10px] leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
                   <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
                     <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{fmt.mgrsAt(coordCall.lat, coordCall.lon)}</span>

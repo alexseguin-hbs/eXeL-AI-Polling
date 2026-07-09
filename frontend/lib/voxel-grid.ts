@@ -193,3 +193,61 @@ export function buildVoxelColumns(
   // deterministic order: south-west → north-east
   return columns.sort((a, b) => (a.lat - b.lat) || (a.lon - b.lon));
 }
+
+/**
+ * Standalone VOXEL LATTICE — an n×n block of FULL-height stacked columns centred on a
+ * coordinate, independent of any placed asset (HI: "see a whole stacked column outside
+ * asset selection"). Each column carries every altitude band (SURFACE→10k+) as an empty
+ * (unoccupied) wireframe cube, so you always get a tall countable stack whose TOP face is
+ * clickable. Snapped to the same UTM `cellM` grid as buildVoxelColumns → cubes align.
+ */
+export function buildLatticeColumns(
+  centerLat: number,
+  centerLon: number,
+  sampler: (lat: number, lon: number) => number,
+  cellM = 1000,
+  n = 3
+): VoxelColumn[] {
+  const { zone, easting, northing } = latLonToUtm(centerLat, centerLon);
+  const south = centerLat < 0;
+  const cellE0 = Math.floor(easting / cellM);
+  const cellN0 = Math.floor(northing / cellM);
+  const half = Math.floor(n / 2);
+  const columns: VoxelColumn[] = [];
+  for (let dj = half; dj >= -half; dj--) {          // north → south rows
+    for (let di = -half; di <= half; di++) {        // west → east cols
+      const cellE = cellE0 + di;
+      const cellN = cellN0 + dj;
+      const { lat, lon } = utmToLatLon(zone, (cellE + 0.5) * cellM, (cellN + 0.5) * cellM, south);
+      const terrainM = sampler(lat, lon);
+      const cubes: VoxelCube[] = [];
+      for (let b = 0; b < RANGE_EDGES.length; b++) {  // full stack, all bands empty
+        cubes.push({
+          bandIdx: b,
+          label: BAND_LABELS[b],
+          floorM: b === 0 ? terrainM : mFromFt(RANGE_EDGES[b - 1]),
+          ceilM: b === 0 ? terrainM : mFromFt(RANGE_EDGES[b]),
+          occupants: [],
+        });
+      }
+      columns.push({
+        key: `LAT:${zone}${latBand(lat)}:${cellE}:${cellN}:${cellM}`,
+        lat, lon, cellM, terrainM,
+        mgrs: latLonToMgrs(lat, lon, 4),
+        llv: fmtLLV(lat, lon),
+        ucrs: ucrsCellId(lat, lon, cellM),
+        ucrsDms: fmtUcrsDms(lat, lon),
+        corners: ([
+          [cellE * cellM, (cellN + 1) * cellM],       // NW
+          [(cellE + 1) * cellM, (cellN + 1) * cellM], // NE
+          [(cellE + 1) * cellM, cellN * cellM],       // SE
+          [cellE * cellM, cellN * cellM],             // SW
+        ] as [number, number][]).map(([e, nn]) => utmToLatLon(zone, e, nn, south)),
+        cubes,
+        topM: terrainM,
+        objects: [],
+      });
+    }
+  }
+  return columns;
+}
