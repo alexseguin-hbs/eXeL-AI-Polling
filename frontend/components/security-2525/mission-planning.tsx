@@ -1832,7 +1832,9 @@ function AoMapPane(p: PaneProps) {
                           : <span className="block rounded-full" style={{ width: 7, height: 7, background: u.aff === "hostile" ? C.red : C.cyan, boxShadow: `0 0 6px ${u.aff === "hostile" ? C.red : C.cyan}` }} />)
                       : <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} />}
                   </span>
-                  <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
+                  {/* HI 1.3.3: coordinate label = ONE black-background chip (no white version),
+                      same format as the selected-voxel label. */}
+                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
                   {u.moving && (
                     <span className="whitespace-nowrap font-mono text-[7px] font-bold" style={{ color: C.green }}>
                       {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude)}m ${u.altRef ?? "AGL"}` : ""}
@@ -1857,7 +1859,9 @@ function AoMapPane(p: PaneProps) {
                     transformOrigin: "50% 100%", transformStyle: "preserve-3d" }}>
                   {sel && <span className="absolute rounded-full" style={{ width: 26 * iconScale, height: 26 * iconScale, boxShadow: `0 0 0 2px ${C.gold}`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
                   <SupportGlyph glyph={u.def.glyph} color={u.aff === "hostile" ? "#ef4444" : u.def.color} size={22 * iconScale} />
-                  <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
+                  {/* HI 1.3.3: coordinate label = ONE black-background chip (no white version),
+                      same format as the selected-voxel label. */}
+                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
                 </button>
               );
             })}
