@@ -2405,14 +2405,14 @@ function AoMapPane(p: PaneProps) {
               const at = (t: string): React.CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
               return (
                 <div className="pointer-events-none absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`,
-                  transformStyle: "preserve-3d", zIndex: 9, transform: `rotateZ(${view.bearing}rad)`, opacity: 0.45 * skyK }}>
+                  transformStyle: "preserve-3d", zIndex: 9, transform: `rotateZ(${view.bearing}rad)`, opacity: 0.85 * skyK }}>
                   {/* latitude rings — flat circles at decreasing radius / increasing height */}
                   {Array.from({ length: NR + 1 }, (_, k) => {
                     const th = (k / NR) * (Math.PI / 2);
                     const r = R * Math.cos(th), z = H * Math.sin(th);
                     if (r < 1) return null;
                     return <div key={`dlr${k}`} className="rounded-full" style={{ ...at(`translateZ(${z}px)`),
-                      width: 2 * r, height: 2 * r, border: `1px solid ${col}${k === 0 ? "99" : "44"}` }} />;
+                      width: 2 * r, height: 2 * r, border: `1px solid ${col}${k === 0 ? "cc" : "77"}` }} />;
                   })}
                   {/* meridian arches — SVG half-ellipse standing vertically, one per NM (each spans a full meridian) */}
                   {Array.from({ length: NM }, (_, m) => {
@@ -2420,7 +2420,7 @@ function AoMapPane(p: PaneProps) {
                     return (
                       <svg key={`dm${m}`} width={2 * R} height={H} viewBox={`0 0 ${2 * R} ${H}`} style={{ position: "absolute", left: "50%", top: "50%",
                         marginLeft: -R, marginTop: -H, transformOrigin: "50% 100%", transform: `rotateZ(${phi}deg) rotateX(-90deg)`, overflow: "visible" }}>
-                        <path d={`M 0 ${H} A ${R} ${H} 0 0 1 ${2 * R} ${H}`} fill="none" stroke={col} strokeWidth="1" opacity="0.5" />
+                        <path d={`M 0 ${H} A ${R} ${H} 0 0 1 ${2 * R} ${H}`} fill="none" stroke={col} strokeWidth="1.6" opacity="0.9" />
                       </svg>
                     );
                   })}
