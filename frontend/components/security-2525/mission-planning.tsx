@@ -798,7 +798,10 @@ function NumInField({ value, onCommit, className, style, lockable }: { value: nu
   if (!lockable) return field;
   return (
     <span className="flex items-center gap-1">
-      <button type="button" onClick={() => setUnlocked((u) => !u)} title={unlocked ? "Lock value" : "Unlock to edit"} className="shrink-0">
+      {/* HI 1.3.2: same lock iconology/treatment as the Easter-egg CUBE unlocks
+          (lucide Lock in a rounded-full pill on a dim background). */}
+      <button type="button" onClick={() => setUnlocked((u) => !u)} title={unlocked ? "Lock value" : "Unlock to edit"}
+        className="flex shrink-0 items-center rounded-full px-1 py-0.5" style={{ background: "#0a0f16aa", border: `1px solid ${unlocked ? C.gold : "#2b3a4d"}` }}>
         {unlocked ? <Unlock className="h-3 w-3" style={{ color: C.gold }} /> : <Lock className="h-3 w-3" style={{ color: C.dim }} />}
       </button>
       {field}
@@ -1814,17 +1817,22 @@ function AoMapPane(p: PaneProps) {
               const setIff = (aff: Affiliation) => setPlaced((pl) => pl.map((p) => (p.id === u.id ? { ...p, aff } : p)));
               return (
                 <div className="absolute rounded border font-mono text-[8px]" onPointerDown={(e) => e.stopPropagation()}
-                  style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 30, minWidth: 128, pointerEvents: "auto",
-                    background: "#0a0f16f2", borderColor: C.gold,
+                  style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 40, minWidth: 128, pointerEvents: "auto",
+                    // HI 1.3.2: SOLID (opaque) so it reads clearly IN FRONT of the voxel; higher
+                    // z-index than any cube; drop shadow lifts it off the scene.
+                    background: "#0a0f16", borderColor: C.gold, boxShadow: "0 4px 18px rgba(0,0,0,.6)",
                     transform: is3d ? `translate(-50%,-110%) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-110%)",
                     transformOrigin: "50% 100%" }}>
-                  <div className="px-1.5 py-0.5 font-bold" style={{ color: C.gold, borderBottom: `1px solid ${C.gold}44` }}>
-                    ⌖ HOOK · {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}
+                  <div className="flex items-center justify-between gap-2 px-1.5 py-0.5 font-bold" style={{ color: C.gold, borderBottom: `1px solid ${C.gold}44` }}>
+                    <span>⌖ HOOK · {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
+                    <button onClick={() => setHook(null)} title="Close hook" className="leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
                   {row("MGRS", fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" "))}
-                  {row("SPD", u.speed != null ? `${Math.round(u.speed)} km/h` : "—")}
-                  {row("ALT", u.altitude != null ? `${Math.round(u.altitude)} m ${u.altRef ?? "AGL"}` : "—")}
-                  {row("HDG", u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : "—")}
+                  {/* HI 1.3.2: bearing/speed only for MOVING assets — stationary assets +
+                      support have no meaningful heading. */}
+                  {u.moving && row("SPD", u.speed != null ? `${Math.round(u.speed)} km/h` : "—")}
+                  {row("ALT", u.altitude != null ? `${Math.round(u.altitude)} m ${u.altRef ?? "AGL"}` : "SURFACE")}
+                  {u.moving && row("HDG", u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : "—")}
                   <div className="flex items-center gap-1 px-1.5 py-0.5" style={{ borderTop: `1px solid ${C.gold}22` }}>
                     <span style={{ color: C.dim }}>IFF</span>
                     <button className="rounded border px-1" onClick={() => setIff("friendly")}
@@ -1947,6 +1955,8 @@ function AoMapPane(p: PaneProps) {
                     {!isLattice && (
                     <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: col.lat, lon: col.lon }); }}
                       title="TARGET — cube centre coordinate"
+                      onMouseEnter={() => setCornerHover({ key: col.key, ci: -1 })} /* FX-02 (HI): hover the asset cube CENTRE-top → show its coordinate */
+                      onMouseLeave={() => setCornerHover((h) => (h && h.key === col.key && h.ci === -1 ? null : h))}
                       className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                       style={{ width: Math.max(22, cellPx * 0.5), height: Math.max(22, cellPx * 0.5), background: "transparent" }}>
                       {(() => { const tc = sel ? C.gold : C.cyan; return (
@@ -1979,15 +1989,18 @@ function AoMapPane(p: PaneProps) {
                         FX-15 (P1.3): chip sits fully OUTSIDE the cube top so it never covers
                         the TARGET or the corner being read. */}
                     {cornerHover?.key === col.key && (() => {
-                      const cn = col.corners[cornerHover.ci];
+                      const isCtr = cornerHover.ci === -1; // FX-02: centre-top hover
+                      const cn = isCtr ? { lat: col.lat, lon: col.lon } : col.corners[cornerHover.ci];
+                      const label = isCtr ? "CTR" : ["NW", "NE", "SE", "SW"][cornerHover.ci];
                       return (
                         <div className="pointer-events-none absolute z-30 whitespace-nowrap rounded px-1 py-0.5 font-mono text-[7px] font-bold"
-                          style={{ ...(cornerHover.ci === 0 ? { right: "100%", bottom: "100%", marginRight: 6, marginBottom: 6 }
+                          style={{ ...(isCtr ? { left: "50%", bottom: "100%", transform: "translateX(-50%)", marginBottom: 8 }
+                            : cornerHover.ci === 0 ? { right: "100%", bottom: "100%", marginRight: 6, marginBottom: 6 }
                             : cornerHover.ci === 1 ? { left: "100%", bottom: "100%", marginLeft: 6, marginBottom: 6 }
                             : cornerHover.ci === 2 ? { left: "100%", top: "100%", marginLeft: 6, marginTop: 6 }
                             : { right: "100%", top: "100%", marginRight: 6, marginTop: 6 }),
                             background: "#0a0f16ee", color: C.gold, border: `1px solid ${C.gold}55` }}>
-                          {["NW", "NE", "SE", "SW"][cornerHover.ci]} {fmt.coordAt(cn.lat, cn.lon)} · {Math.round(sampler(cn.lat, cn.lon))}m MSL
+                          {label} {fmt.coordAt(cn.lat, cn.lon)} · {Math.round(sampler(cn.lat, cn.lon))}m MSL
                         </div>
                       );
                     })()}
