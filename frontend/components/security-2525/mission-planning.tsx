@@ -2124,9 +2124,9 @@ function AoMapPane(p: PaneProps) {
               const bc = project(view.lat, view.lon);
               const paneW = mapRef.current?.clientWidth ?? 800;
               const cellPx = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW);
-              const bandPx = cellPx;                                     // FX (HI 1.3.3): TRUE CUBE — height per level = one cell WIDTH in the SAME metres (no 40px cap) → 3-high == 3-wide == 3-deep
+              const bandPx = cellPx;                                     // FX (HI 1.3.3): AUTO altitude — pixels-HIGH == pixels-WIDE (topZ == boxW), a raw 1:1 cube; perspective is what foreshortens it on screen
               const boxW = 3 * cellPx;
-              const topZ = 3 * bandPx;                                   // == boxW → a real cube
+              const topZ = 3 * bandPx;                                   // == boxW → pixels-high = pixels-wide
               const railBands = Math.max(latticeColumns[0].cubes.filter((cb) => cb.bandIdx > 0).length, 3);
               const limitZ = Math.max(topZ, (voxelLimitPct / 100) * railBands * bandPx);
               const line = `${C.cyan}55`;
@@ -2137,20 +2137,27 @@ function AoMapPane(p: PaneProps) {
               const at = (t: string): React.CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
               return (
                 <div className="absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`, transformStyle: "preserve-3d", zIndex: 11, transform: `rotateZ(${view.bearing}rad)` }}>
-                  {/* (a) 4 horizontal 3×3 grid faces — ONE gradient div each + border */}
-                  {[0, 1, 2, 3].map((k) => (
-                    <div key={`vf${k}`} className="pointer-events-none" style={{ ...at(`translateZ(${k * bandPx}px)`),
-                      width: boxW, height: boxW, border: `1px solid ${C.cyan}66`, opacity: dim,
-                      backgroundImage:
-                        `repeating-linear-gradient(to right, ${line} 0 1px, transparent 1px ${cellPx}px),` +
-                        `repeating-linear-gradient(to bottom, ${line} 0 1px, transparent 1px ${cellPx}px)` }} />
-                  ))}
-                  {/* (b) 16 vertical edge posts at the 4×4 corners, stood up via rotateX(90deg) */}
+                  {/* (a) 4 horizontal 3×3 grid faces — outer faces (floor/top) get a SOLID 2px
+                       cube edge; the two middle levels are thin interior lines. */}
+                  {[0, 1, 2, 3].map((k) => {
+                    const outer = k === 0 || k === 3;
+                    return (
+                      <div key={`vf${k}`} className="pointer-events-none" style={{ ...at(`translateZ(${k * bandPx}px)`),
+                        width: boxW, height: boxW, border: `${outer ? 2 : 1}px solid ${C.cyan}${outer ? "cc" : "40"}`, opacity: dim,
+                        backgroundImage:
+                          `repeating-linear-gradient(to right, ${line} 0 1px, transparent 1px ${cellPx}px),` +
+                          `repeating-linear-gradient(to bottom, ${line} 0 1px, transparent 1px ${cellPx}px)` }} />
+                    );
+                  })}
+                  {/* (b) 16 vertical edges — the 4 OUTER cube corners are SOLID 2px; the 12
+                       interior posts are thin subdivision lines. */}
                   {Array.from({ length: 16 }, (_, n) => {
                     const i = n % 4, j = (n / 4) | 0, x = (i - 1.5) * cellPx, y = (j - 1.5) * cellPx;
+                    const corner = (i === 0 || i === 3) && (j === 0 || j === 3);
                     return <div key={`ve${n}`} className="pointer-events-none" style={{
                       ...at(`translate3d(${x}px,${y}px,${topZ / 2}px) rotateX(90deg)`),
-                      width: 1, height: topZ, background: line, opacity: (0.5 * skyK + 0.15) * dim }} />;
+                      width: corner ? 2 : 1, height: topZ, background: corner ? `${C.cyan}cc` : line,
+                      opacity: (corner ? 0.9 : 0.4 * skyK + 0.12) * dim }} />;
                   })}
                   {/* (c) SELECTED column → highlighted DOWN to ground in voxelHiColor (4 side walls) */}
                   {selIdx >= 0 && (() => {
@@ -2189,6 +2196,16 @@ function AoMapPane(p: PaneProps) {
                       width: 1, height: limitZ - topZ, opacity: 0.6 * skyK,
                       background: "repeating-linear-gradient(to bottom, #6b7280 0 2px, transparent 2px 5px)" }} />
                   ))}
+                  {/* (f) SKYWARD TOP FACE — the SECOND face: a 3×3 grey ceiling grid drawn where
+                       the grey voxel-limit lands (solid 2px grey edge), only when the limit rises
+                       above the cube top. */}
+                  {limitZ > topZ + 1 && (
+                    <div className="pointer-events-none" style={{ ...at(`translateZ(${limitZ}px)`), width: boxW, height: boxW,
+                      border: "2px solid #9ca3afcc", opacity: 0.6 * skyK,
+                      backgroundImage:
+                        `repeating-linear-gradient(to right, #6b728077 0 1px, transparent 1px ${cellPx}px),` +
+                        `repeating-linear-gradient(to bottom, #6b728077 0 1px, transparent 1px ${cellPx}px)` }} />
+                  )}
                 </div>
               );
             })()}
