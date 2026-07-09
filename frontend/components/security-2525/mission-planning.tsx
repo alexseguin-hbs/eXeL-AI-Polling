@@ -1341,7 +1341,12 @@ function AoMapPane(p: PaneProps) {
   // centred on the map — the nested eXeL cube metaphor (screen 3×3 → middle cube → its
   // own 3×3 voxel) reading like a digital-weapon / thermal target. Fixed sizes (10 m /
   // 100 m / 1 km, default 1 km) snap to real-world metres instead.
-  const autoCellM = Math.max(10, Math.round((view.spanKm * 1000) / 9));
+  // FX-10 (HI 1.3.2): AUTO voxel 3×3 must fit INSIDE the middle cell of the screen's own
+  // 3×3 (the yellow reference cube) = 1/3 of screen width. The 3D layer magnifies by
+  // scale(1.2) × perspective (~1.3 near-overhead ≈ 1.55 total), so a naive span/9 rendered
+  // ~1.55× too big. Divide by 14 (= 9 × 1.55) so each cell ≈ paneW/9 ON SCREEN and the 3×3
+  // group ≈ paneW/3 — the thermal-target reticle the operator asked for.
+  const autoCellM = Math.max(10, Math.round((view.spanKm * 1000) / 14));
   const effCellM = voxelCellM && voxelCellM > 0 ? voxelCellM : autoCellM;
   const voxelColumns = useMemo(() => {
     if (!is3d) return [];
@@ -2094,30 +2099,32 @@ function AoMapPane(p: PaneProps) {
                 scale are kept separately. */}
             {is3d && (() => {
               const cards: [string, number, string][] = [["N", 0, C.red], ["E", 90, C.cyan], ["S", 180, C.cyan], ["W", 270, C.cyan]];
+              const POSTS = 36; // dense fence slats all around → chain-link look
+              const R = 44;      // ring radius (of a 100 viewBox) — BIG, near the screen edges
               return (
-                <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: "58%", height: "58%", transform: "translate(-50%,-50%)", transformStyle: "preserve-3d", zIndex: 9 }}>
+                <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: "92%", height: "92%", transform: "translate(-50%,-50%)", transformStyle: "preserve-3d", zIndex: 9 }}>
                   {/* flat ring + ticks + labels on the ground (tilts with the plane) */}
                   <svg viewBox="-50 -50 100 100" width="100%" height="100%" style={{ position: "absolute", inset: 0, transform: `rotateZ(${view.bearing}rad)`, overflow: "visible" }} aria-hidden>
-                    <circle r="42" fill="none" stroke={`${C.cyan}55`} strokeWidth="0.4" />
-                    {Array.from({ length: 36 }).map((_, i) => {
-                      const deg = i * 10, a = (deg * Math.PI) / 180, maj = deg % 30 === 0, r1 = maj ? 37.5 : 40;
-                      return <line key={i} x1={42 * Math.sin(a)} y1={-42 * Math.cos(a)} x2={r1 * Math.sin(a)} y2={-r1 * Math.cos(a)} stroke={deg === 0 ? C.red : `${C.cyan}88`} strokeWidth={maj ? 0.7 : 0.35} />;
+                    <circle r={R} fill="none" stroke={`${C.cyan}44`} strokeWidth="0.3" />
+                    {Array.from({ length: 72 }).map((_, i) => {
+                      const deg = i * 5, a = (deg * Math.PI) / 180, maj = deg % 30 === 0, r1 = maj ? R - 4 : R - 1.5;
+                      return <line key={i} x1={R * Math.sin(a)} y1={-R * Math.cos(a)} x2={r1 * Math.sin(a)} y2={-r1 * Math.cos(a)} stroke={deg === 0 ? C.red : `${C.cyan}66`} strokeWidth={maj ? 0.6 : 0.25} />;
                     })}
                     {cards.map(([lab, deg, col]) => {
-                      const a = (deg * Math.PI) / 180, x = 34.5 * Math.sin(a), y = -34.5 * Math.cos(a);
-                      return <text key={lab} x={x} y={y + 1.8} textAnchor="middle" fontSize="5" fontFamily="monospace" fontWeight="bold" fill={col}>{lab}</text>;
+                      const a = (deg * Math.PI) / 180, x = (R - 7) * Math.sin(a), y = -(R - 7) * Math.cos(a);
+                      return <text key={lab} x={x} y={y + 1.6} textAnchor="middle" fontSize="4.5" fontFamily="monospace" fontWeight="bold" fill={col}>{lab}</text>;
                     })}
                   </svg>
-                  {/* vertical FENCE POSTS at each cardinal — stand up off the ground ring so the
-                      fence is visible edge-on at high tilt. Positioned at the ring edge in the
-                      container's ground plane (bearing-rotated), base anchored there, then
-                      stood upright via rotateX(-pitch). SVG x∈[-50,50] ⇒ container-% = 50+x. */}
-                  {cards.map(([lab, deg, col]) => {
-                    const a = (deg * Math.PI) / 180 + view.bearing;
-                    const left = 50 + 42 * Math.sin(a), top = 50 - 42 * Math.cos(a);
+                  {/* CHAIN-LINK FENCE — dense vertical slats standing off the big ground ring all
+                      the way around, billboarded upright (rotateX(-pitch)) so it reads as a
+                      circular fence wall as big as the screen at every tilt. N slat is red. */}
+                  {Array.from({ length: POSTS }).map((_, i) => {
+                    const deg = (i / POSTS) * 360, a = (deg * Math.PI) / 180 + view.bearing;
+                    const left = 50 + R * Math.sin(a), top = 50 - R * Math.cos(a);
+                    const isN = deg < 1;
                     return (
-                      <div key={`post${lab}`} className="absolute" style={{ left: `${left}%`, top: `${top}%`, width: 1.5, height: 22,
-                        background: `linear-gradient(to top, ${col}, ${col}22)`,
+                      <div key={`post${i}`} className="absolute" style={{ left: `${left}%`, top: `${top}%`, width: 1, height: 30,
+                        background: `linear-gradient(to top, ${isN ? C.red : C.cyan}aa, ${isN ? C.red : C.cyan}0f)`,
                         transform: `translate(-50%,-100%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%" }} />
                     );
                   })}
