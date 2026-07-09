@@ -1,0 +1,7 @@
+#!/bin/sh
+# Integrity gate — block commits carrying obfuscated/injected payloads (see 2026-07-09 postcss incident).
+if [ -f frontend/scripts/integrity-guard.mjs ]; then
+  node frontend/scripts/integrity-guard.mjs || {
+    echo "commit blocked by integrity-guard (frontend/scripts/integrity-guard.mjs)"; exit 1;
+  }
+fi

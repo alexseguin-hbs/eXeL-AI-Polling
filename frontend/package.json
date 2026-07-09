@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "guard": "node scripts/integrity-guard.mjs",
+    "predev": "node scripts/integrity-guard.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/gen-seal-html.mjs",
+    "prebuild": "node scripts/integrity-guard.mjs && node scripts/gen-seal-html.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
