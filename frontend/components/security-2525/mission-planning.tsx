@@ -790,20 +790,23 @@ function NumInField({ value, onCommit, className, style, lockable }: { value: nu
   const [unlocked, setUnlocked] = useState(!lockable);
   const field = (
     <input type="text" inputMode="decimal" value={draft ?? String(value)} readOnly={!unlocked}
+      onPointerDown={(e) => e.stopPropagation()} /* map surface must not swallow the field tap */
       onChange={(e) => { const t = e.target.value.replace(/[^0-9.]/g, ""); setDraft(t); const v = parseFloat(t); if (Number.isFinite(v)) onCommit(v); }}
       onBlur={() => setDraft(null)}
       className={className ?? "w-full rounded border bg-transparent px-1 py-0.5 text-[9px]"}
-      style={{ ...(style ?? { borderColor: C.border, color: C.text }), opacity: unlocked ? 1 : 0.55, cursor: unlocked ? "text" : "not-allowed" }} />
+      style={{ ...(style ?? { borderColor: C.border, color: C.text }), pointerEvents: "auto", opacity: unlocked ? 1 : 0.55, cursor: unlocked ? "text" : "not-allowed" }} />
   );
   if (!lockable) return field;
   return (
     <span className="flex items-center gap-1">
       {/* HI 1.3.2: same lock iconology/treatment as the Easter-egg CUBE unlocks
           (lucide Lock in a rounded-full pill on a dim background). */}
-      {/* FX-50 (HI 1.3.3): padlock made PROMINENT — gold in both states + a visible gold pill,
-          so it's obviously a tap-to-unlock control (was dim grey when locked → invisible). */}
-      <button type="button" onClick={() => setUnlocked((u) => !u)} title={unlocked ? "🔓 unlocked — tap to lock" : "🔒 tap to unlock & edit"}
-        className="flex shrink-0 items-center rounded-full px-1 py-0.5" style={{ background: unlocked ? `${C.gold}22` : "#0a0f16cc", border: `1px solid ${C.gold}` }}>
+      {/* FX-50 (HI 1.3.3): padlock made PROMINENT — gold in both states + a visible gold pill.
+          onPointerDown stopPropagation so the MAP surface doesn't swallow the tap (fixes
+          "locks don't work" on the red/gold altitude bars). */}
+      <button type="button" onPointerDown={(e) => { e.stopPropagation(); }} onClick={(e) => { e.stopPropagation(); setUnlocked((u) => !u); }}
+        title={unlocked ? "🔓 unlocked — tap to lock" : "🔒 tap to unlock & edit"}
+        className="flex shrink-0 items-center rounded-full px-1 py-0.5" style={{ background: unlocked ? `${C.gold}22` : "#0a0f16cc", border: `1px solid ${C.gold}`, pointerEvents: "auto" }}>
         {unlocked ? <Unlock className="h-3.5 w-3.5" style={{ color: C.gold }} /> : <Lock className="h-3.5 w-3.5" style={{ color: C.gold }} />}
       </button>
       {field}
@@ -2401,14 +2404,21 @@ function AoMapPane(p: PaneProps) {
                     <span className="font-bold tracking-wider" style={{ color: C.gold }}>3D VOXEL·CUBE · BASE</span>
                     <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(null); }} title="Close" className="px-1 text-[11px] leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
-                  <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
-                    <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{col.mgrs}</span>
-                    <span style={{ color: C.dim }}>LLV-DMS</span><span style={{ color: C.text }}>{col.llv}</span>
-                    <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{col.ucrsDms}</span>
-                    <span style={{ color: C.dim }}>UCRS·CELL <span title="UCRS·CELL v2 — universal base-3600 address: zone · lat 3600-deg.min · lon 3600-deg.min · r = footprint radius (m). Decimal ⇄ minute interchangeable: 3600.5 ≡ 3600·1800. Body-agnostic (Mars/Moon) — VISION-2525 / LINK-2525." style={{ cursor: "help", color: C.cyan }}>ⓘ</span></span>
-                    <span style={{ color: C.cyan }}>{ucrsCell2(col.lat, col.lon, col.cellM / 2)}</span>
-                    <span style={{ color: C.dim }}>CELL</span><span style={{ color: C.text }}>{col.cellM >= 1000 ? `${col.cellM / 1000} km` : `${col.cellM} m`} · TERRAIN {Math.round(col.terrainM)}m MSL</span>
-                  </div>
+                  {/* HI 1.3.3: show ONLY the Settings-selected coordinate frame (not all three);
+                      the CELL address matches the same frame. */}
+                  {(() => {
+                    const primary: [string, string, string] = coordFmt === "mgrs" ? ["MGRS", col.mgrs, C.text]
+                      : coordFmt === "dms" ? ["LLV-DMS", col.llv, C.text]
+                      : ["UCRS-2525", col.ucrsDms, C.cyan];
+                    return (
+                      <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
+                        <span style={{ color: C.dim }}>{primary[0]}</span><span style={{ color: primary[2] }}>{primary[1]}</span>
+                        <span style={{ color: C.dim }}>CELL <span title="UCRS·CELL v2 — universal base-3600 address; r = footprint radius (m). Body-agnostic (Mars/Moon) — VISION-2525 / LINK-2525." style={{ cursor: "help", color: C.cyan }}>ⓘ</span></span>
+                        <span style={{ color: C.cyan }}>{ucrsCell2(col.lat, col.lon, col.cellM / 2)}</span>
+                        <span style={{ color: C.dim }}>SIZE</span><span style={{ color: C.text }}>{col.cellM >= 1000 ? `${col.cellM / 1000} km` : `${col.cellM} m`} · TERRAIN {Math.round(col.terrainM)}m MSL</span>
+                      </div>
+                    );
+                  })()}
                   <div className="mt-1 border-t pt-1" style={{ borderColor: C.border }}>
                     {col.objects.map((o) => (
                       <div key={String(o.id)} className="flex items-center justify-between gap-1 font-mono">
