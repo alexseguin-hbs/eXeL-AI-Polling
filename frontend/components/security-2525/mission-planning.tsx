@@ -42,6 +42,7 @@ import { MIN_SPAN_KM, MAX_SPAN_KM, shouldHandOffToWorld } from "@/lib/zoom-conti
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
 import { computeTransect, transectLine, type AltObject } from "@/lib/transect";
 import { RANGE_EDGES, BAND_LABELS, mFromFt, bandOccupancy } from "@/lib/voxel";
+import { buildVoxelColumns } from "@/lib/voxel-grid";
 import { bufferPolygon } from "@/lib/aor";
 import { getTile, peekTile } from "@/lib/tile-cache";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
@@ -579,7 +580,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo }: {
   );
 }
 
-function WorldStrip({ aoKey, onSelect, onEnterAo, label }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; label?: string }) {
+function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; label?: string; onMinimize?: () => void }) {
   const [data, setData] = useState<BorderData | null>(borderCache);
   const [mode, setMode] = useState<"globe" | "flat">("globe");
   const [center, setCenter] = useState<[number, number]>(() => (AOS.find((a) => a.key === aoKey)?.center ?? [38, -97]));
@@ -740,6 +741,13 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label }: { aoKey: string; onSe
             </button>
           ))}
         </div>
+        {/* order law: LOCATION · 3D/2D · MINIMIZE (last, upper-right) */}
+        {onMinimize && (
+          <button onClick={onMinimize} title="Minimize — back to standard screen"
+            className="flex items-center gap-1 rounded border px-2 py-0.5 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16cc" }}>
+            <Minimize2 className="h-3 w-3" /> MINIMIZE
+          </button>
+        )}
       </div>
       <span className="absolute bottom-1 right-2 z-10 text-[8px]" style={{ color: C.dim }}>
         NATURAL EARTH 50m · SCROLL=ZOOM · 3D-GLOBE ⇄ 2D-FLAT · DRILL → AO
@@ -902,6 +910,8 @@ interface PaneProps {
   onToggleMax: () => void;
   onHidePane?: () => void;
   onWorld?: () => void; // zoom out past AO scale → Earth/world view
+  mirrorOn?: boolean;          // this pane is the mirror SOURCE (its view drives the other pane)
+  onToggleMirror?: () => void; // MIRROR lives on the map header (upper right)
   pitch?: number; // 3D view angle (deg) — FAAD/AMDWS "right-click angles the view to altitude"
   // AO / AOR draw tool
   drawingAo: boolean;
@@ -915,7 +925,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
-    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, pitch,
+    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, pitch,
     drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
 
@@ -1191,6 +1201,18 @@ function AoMapPane(p: PaneProps) {
 
   // Real DEM sampler when a GEBCO tile covers the view, else synthetic fallback.
   const sampler = useMemo(() => (dem ? makeDemSampler(dem) : terrainMSL), [dem]);
+  // 3D VOXEL MODE — coordinate-addressed cube stacks (Vision-2525 law). Columns snap to
+  // the visible UTM grid step; every cube BASE = MGRS + LLV-DMS + UCRS-2525; Z = band.
+  // Reads the SAME 1-fetch DEM sampler as the contours — zero extra network.
+  const [voxelSel, setVoxelSel] = useState<string | null>(null);
+  const voxelColumns = useMemo(() => {
+    if (!is3d) return [];
+    const objs = placed.filter((u) => u.altitude != null).map((u) => ({
+      id: u.id, lat: u.lat, lon: u.lon, altM: u.altitude!, altRef: (u.altRef ?? "AGL") as "AGL" | "MSL",
+      label: ASSET_LABELS[u.asset], color: u.aff === "hostile" ? C.red : C.cyan,
+    }));
+    return objs.length ? buildVoxelColumns(objs, sampler, grid.stepM) : [];
+  }, [is3d, placed, sampler, grid.stepM]);
   // Topographic contours (memoized on box + settings + DEM; real elevation + ocean floor).
   const contourSet = useMemo(
     () => (contourCfg.enable ? computeContours(box, contourCfg, sampler) : null),
@@ -1242,6 +1264,10 @@ function AoMapPane(p: PaneProps) {
           {label} · {ao.name.split(" · ")[0]} <span style={{ color: C.dim }}>· {fmt.fmtDist(view.spanKm * 1000)}</span>
         </span>
         <div className="flex items-center gap-1.5 text-[9px]" style={{ color: C.dim }}>
+          {/* order law: LOCATION (EARTH) · 2D/3D · RESET · MINIMIZE last (upper-right) */}
+          {onWorld && (
+            <button onClick={onWorld} title="Zoom out to Earth / world view" className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.gold, color: C.gold }}>🌍 EARTH</button>
+          )}
           {/* 2D (top-down) ⇄ 3D (perspective terrain) — on every map, same format */}
           <div className="flex overflow-hidden rounded border font-semibold" style={{ borderColor: C.border }}>
             {([[false, "2D"], [true, "3D"]] as const).map(([v, lb]) => (
@@ -1249,12 +1275,16 @@ function AoMapPane(p: PaneProps) {
                 style={{ background: is3d === v ? "#152238" : "transparent", color: is3d === v ? C.cyan : C.dim }}>{lb}</button>
             ))}
           </div>
-          {onWorld && (
-            <button onClick={onWorld} title="Zoom out to Earth / world view" className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.gold, color: C.gold }}>🌍 EARTH</button>
+          {onToggleMirror && (
+            <button onClick={onToggleMirror} title={mirrorOn ? "Unmirror — the other map returns to its prior view" : "Mirror THIS view onto the other map (each map keeps its own 2D/3D)"}
+              className="flex items-center gap-0.5 rounded border px-1 py-0.5 font-semibold" style={{ borderColor: mirrorOn ? C.cyan : C.border, color: mirrorOn ? C.cyan : C.dim }}>
+              <Columns2 className="h-3 w-3" /> MIRROR
+            </button>
           )}
           <button onClick={resetView} className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.border }}>RESET</button>
-          <button onClick={onToggleMax} title={maximized ? "Restore" : "Maximize"} className="rounded border p-0.5" style={{ borderColor: maximized ? C.cyan : C.border, color: maximized ? C.cyan : C.dim }}>
-            {maximized ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+          <button onClick={onToggleMax} title={maximized ? "Minimize — back to standard screen" : "Maximize"}
+            className="flex items-center gap-1 rounded border px-1 py-0.5 font-semibold" style={{ borderColor: maximized ? C.cyan : C.border, color: maximized ? C.cyan : C.dim }}>
+            {maximized ? <><Minimize2 className="h-3 w-3" /> MINIMIZE</> : <Maximize2 className="h-3 w-3" />}
           </button>
           {onHidePane && <Dots3 horizontal onClick={onHidePane} title="Hide this window" />}
         </div>
@@ -1539,6 +1569,59 @@ function AoMapPane(p: PaneProps) {
                 </button>
               );
             })}
+            {/* ── 3D VOXEL MODE — stacked wireframe cubes per grid cell (Vision-2525 law).
+                Base square sits ON the plane and is the addressable CUBE BASE
+                (tap → MGRS + LLV-DMS + UCRS-2525 packet). Bands rise via translateZ
+                (preserve-3d). Wireframe-only = phone / Raspberry-Pi class compute. */}
+            {is3d && voxelColumns.map((col) => {
+              const f = project(col.lat, col.lon);
+              if (f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02) return null;
+              const paneW = mapRef.current?.clientWidth ?? 800;
+              const cellPx = Math.max(16, (col.cellM / (view.spanKm * 1000)) * paneW);
+              const bandPx = Math.min(cellPx, 40); // display-compressed cube height; labels carry the true altitude+ref
+              const sel = voxelSel === col.key;
+              const stack = col.cubes.filter((cb) => cb.bandIdx > 0);
+              const topZ = stack.length * bandPx;
+              const topObj = col.objects[col.objects.length - 1];
+              const face = (t: string, w: number, h: number, color: string, occupied: boolean): React.CSSProperties => ({
+                position: "absolute", left: "50%", top: "50%", width: w, height: h,
+                transform: `translate(-50%,-50%) ${t}`,
+                border: `${occupied ? 1.5 : 1}px ${occupied ? "solid" : "dashed"} ${color}`,
+                background: occupied ? `${color}10` : "transparent",
+              });
+              return (
+                <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: sel ? 14 : 12 }}>
+                  {/* addressable cube BASE (on-plane) */}
+                  <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(sel ? null : col.key); }}
+                    title={`${col.mgrs} · ${col.ucrs}`}
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                    style={{ width: cellPx, height: cellPx, border: `1.5px solid ${sel ? C.gold : C.cyan}`, background: sel ? `${C.gold}14` : `${C.cyan}08`, pointerEvents: "auto" }} />
+                  {/* the cube stack — one wireframe cube per altitude band up to the top occupant */}
+                  {stack.map((cb) => {
+                    const occupied = cb.occupants.length > 0;
+                    const color = occupied ? (col.objects.find((o) => o.bandIdx === cb.bandIdx)?.color ?? C.cyan) : "#3b556e";
+                    const z = (cb.bandIdx - 1) * bandPx;
+                    return (
+                      <div key={cb.bandIdx} className="pointer-events-none absolute left-0 top-0" style={{ transformStyle: "preserve-3d" }}>
+                        <div style={face(`translate3d(0px,0px,${z + bandPx}px)`, cellPx, cellPx, color, occupied)} />
+                        <div style={face(`translate3d(0px,${-cellPx / 2}px,${z + bandPx / 2}px) rotateX(90deg)`, cellPx, bandPx, color, occupied)} />
+                        <div style={face(`translate3d(0px,${cellPx / 2}px,${z + bandPx / 2}px) rotateX(90deg)`, cellPx, bandPx, color, occupied)} />
+                        <div style={face(`translate3d(${-cellPx / 2}px,0px,${z + bandPx / 2}px) rotateY(90deg)`, bandPx, cellPx, color, occupied)} />
+                        <div style={face(`translate3d(${cellPx / 2}px,0px,${z + bandPx / 2}px) rotateY(90deg)`, bandPx, cellPx, color, occupied)} />
+                      </div>
+                    );
+                  })}
+                  {/* stack-top label — ALWAYS carries the altitude reference (visual law) */}
+                  {topObj && (
+                    <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 6}px)` }}>
+                      <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: topObj.color ?? C.cyan }}>
+                        {Math.round(topObj.altM)}m {topObj.altRef} · Z{topObj.bandIdx}{col.objects.length > 1 ? ` +${col.objects.length - 1}` : ""}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             </div>
             {/* end 3D tilt layer */}
             {is3d && (
@@ -1546,6 +1629,36 @@ function AoMapPane(p: PaneProps) {
                 3D · VIEW — switch to 2D to place
               </div>
             )}
+            {/* VOXEL coordinate packet — the tapped cube base, addressed 3 ways + Z bands */}
+            {is3d && voxelSel && (() => {
+              const col = voxelColumns.find((c) => c.key === voxelSel);
+              if (!col) return null;
+              const f = project(col.lat, col.lon);
+              return (
+                <div className="absolute z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
+                  style={{ left: `${Math.min(70, Math.max(2, f.fx * 100))}%`, top: `${Math.min(60, Math.max(4, f.fy * 100 - 10))}%`, background: "#0a0f16ee", borderColor: C.gold }}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="font-bold tracking-wider" style={{ color: C.gold }}>VOXEL · CUBE BASE</span>
+                    <button onClick={() => setVoxelSel(null)} style={{ color: C.dim }}>✕</button>
+                  </div>
+                  <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
+                    <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{col.mgrs}</span>
+                    <span style={{ color: C.dim }}>LLV-DMS</span><span style={{ color: C.text }}>{col.llv}</span>
+                    <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{col.ucrs}</span>
+                    <span style={{ color: C.dim }}>CELL</span><span style={{ color: C.text }}>{col.cellM >= 1000 ? `${col.cellM / 1000} km` : `${col.cellM} m`} · TERRAIN {Math.round(col.terrainM)}m MSL</span>
+                  </div>
+                  <div className="mt-1 border-t pt-1" style={{ borderColor: C.border }}>
+                    {col.objects.map((o) => (
+                      <div key={String(o.id)} className="flex items-center justify-between gap-1 font-mono">
+                        <span className="truncate" style={{ color: o.color ?? C.cyan }}>{o.label}</span>
+                        <span className="whitespace-nowrap" style={{ color: C.text }}>{Math.round(o.altM)}m {o.altRef} · Z{o.bandIdx} ({BAND_LABELS[o.bandIdx]} ft)</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-1 text-[7px]" style={{ color: C.dim }}>{col.ucrs}·Z<i>n</i> = one cube · 1 fetch → altitude</div>
+                </div>
+              );
+            })()}
 
             {/* the OTHER pane's viewport — a small "you are here" box. ONLY drawn when the
                 other view is meaningfully TIGHTER than this one (a subset), so a wider view
@@ -1914,6 +2027,41 @@ function ItemInspector(p: InspectorProps) {
                 </button>
               ))}
             </div>
+            {/* TRACK · MOVEMENT — subset of the selected asset (user law: lives with the
+                item in the RIGHT rail under ACTIVE ITEMS, not a separate panel) */}
+            {selected.kind === "asset" && (() => {
+              const a = selectedObj as Placed;
+              const num = (val: number | undefined, on: (v: number | undefined) => void, ph: string) => (
+                <input type="number" value={val ?? ""} placeholder={ph}
+                  onChange={(e) => on(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                  className="w-full rounded border bg-transparent px-1 py-0.5 text-[8px] font-mono" style={{ borderColor: C.border, color: C.text }} />
+              );
+              return (
+                <div className="mb-2 rounded border p-1" style={{ borderColor: a.moving ? `${C.green}88` : C.border }}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: C.cyan }}>Track · movement</span>
+                    <span className="rounded px-1 text-[7px] font-bold" style={{ color: a.moving ? C.green : C.dim, background: a.moving ? `${C.green}18` : "transparent" }}>{a.moving ? "MOVING" : "HOLD"}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    <div><div className="text-[6px]" style={{ color: C.dim }}>HDG°</div>{num(a.heading, (v) => onUpdAsset(a.id, { heading: v === undefined ? undefined : ((v % 360) + 360) % 360 }), "000")}</div>
+                    <div><div className="text-[6px]" style={{ color: C.dim }}>SPD km/h</div>{num(a.speed, (v) => onUpdAsset(a.id, { speed: v }), "0")}</div>
+                    <div><div className="text-[6px]" style={{ color: C.dim }}>ALT m</div>{num(a.altitude, (v) => onUpdAsset(a.id, { altitude: v }), "0")}
+                      <div className="mt-0.5 flex overflow-hidden rounded border text-[6px] font-semibold" style={{ borderColor: C.border }}>
+                        {(["AGL", "MSL"] as const).map((r) => (
+                          <button key={r} onClick={() => onUpdAsset(a.id, { altRef: r })} className="flex-1 px-0.5 py-0.5"
+                            style={{ background: (a.altRef ?? "AGL") === r ? "#152238" : "transparent", color: (a.altRef ?? "AGL") === r ? C.cyan : C.dim }}>{r}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <button onClick={() => onUpdAsset(a.id, { moving: !a.moving })}
+                    className="mt-1 w-full rounded border py-0.5 text-[8px] font-semibold"
+                    style={{ borderColor: a.moving ? C.green : C.border, color: a.moving ? C.green : C.dim }}>
+                    {a.moving ? "◼ HOLD MOVEMENT" : "▶ ACTIVATE MOVEMENT"}
+                  </button>
+                </div>
+              );
+            })()}
             {selected.kind === "support" && (
               <>
                 <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Reality mode</div>
@@ -2036,6 +2184,7 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
       <div className="flex items-center justify-between border-b px-2 py-1" style={{ borderColor: C.border }}>
         <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
           Active items <span style={{ color: C.dim }}>— {total}</span>
+          {placed.some((u) => u.moving) && <span style={{ color: C.green }}> · {placed.filter((u) => u.moving).length} moving</span>}
         </span>
         {onHide && <Dots3 onClick={onHide} title="Hide deployed-asset list" />}
       </div>
@@ -2093,62 +2242,6 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
 
 // ── Tracks / movement (bottom-left) — heading · speed · altitude + activation ──
 // Every placed entity can become a live track (drone-war + R-CORE sim/replay).
-interface TracksProps {
-  placed: Placed[];
-  onUpdAsset: (id: number, patch: Partial<Placed>) => void;
-  selected: { kind: "asset" | "support"; id: number } | null;
-  setSelected: (s: { kind: "asset" | "support"; id: number } | null) => void;
-  onHide?: () => void;
-}
-function TracksPanel({ placed, onUpdAsset, selected, setSelected, onHide }: TracksProps) {
-  const num = (val: number | undefined, on: (v: number | undefined) => void, ph: string) => (
-    <input type="number" value={val ?? ""} placeholder={ph}
-      onChange={(e) => on(e.target.value === "" ? undefined : parseFloat(e.target.value))}
-      className="w-full rounded border bg-transparent px-1 py-0.5 text-[8px] font-mono" style={{ borderColor: C.border, color: C.text }} />
-  );
-  const moving = placed.filter((u) => u.moving).length;
-  return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b px-2 py-1" style={{ borderColor: C.border }}>
-        <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
-          Tracks · movement <span style={{ color: C.dim }}>— {moving}/{placed.length} moving</span>
-        </span>
-        {onHide && <Dots3 onClick={onHide} title="Hide tracks" />}
-      </div>
-      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-1.5">
-        {placed.length === 0 && <div className="px-1 py-2 text-[9px]" style={{ color: C.dim }}>Place an asset (drone, Avenger, foil), then set its heading, speed & altitude and activate movement.</div>}
-        {placed.map((u) => {
-          const sel = selected?.kind === "asset" && selected.id === u.id;
-          return (
-            <div key={u.id} className="rounded border p-1" style={{ borderColor: sel ? C.cyan : C.border, background: sel ? "#152238" : "transparent" }}>
-              <button onClick={() => setSelected({ kind: "asset", id: u.id })} className="mb-1 flex w-full items-center justify-between">
-                <span className="text-[9px] font-semibold" style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
-                <span className="rounded px-1 text-[7px] font-bold" style={{ color: u.moving ? C.green : C.dim, background: u.moving ? `${C.green}18` : "transparent" }}>{u.moving ? "MOVING" : "HOLD"}</span>
-              </button>
-              <div className="grid grid-cols-3 gap-1">
-                <div><div className="text-[6px]" style={{ color: C.dim }}>HDG°</div>{num(u.heading, (v) => onUpdAsset(u.id, { heading: v === undefined ? undefined : ((v % 360) + 360) % 360 }), "000")}</div>
-                <div><div className="text-[6px]" style={{ color: C.dim }}>SPD km/h</div>{num(u.speed, (v) => onUpdAsset(u.id, { speed: v }), "0")}</div>
-                <div><div className="text-[6px]" style={{ color: C.dim }}>ALT m</div>{num(u.altitude, (v) => onUpdAsset(u.id, { altitude: v }), "0")}
-                  <div className="mt-0.5 flex overflow-hidden rounded border text-[6px] font-semibold" style={{ borderColor: C.border }}>
-                    {(["AGL", "MSL"] as const).map((r) => (
-                      <button key={r} onClick={() => onUpdAsset(u.id, { altRef: r })} className="flex-1 px-0.5 py-0.5"
-                        style={{ background: (u.altRef ?? "AGL") === r ? "#152238" : "transparent", color: (u.altRef ?? "AGL") === r ? C.cyan : C.dim }}>{r}</button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <button onClick={() => onUpdAsset(u.id, { moving: !u.moving })}
-                className="mt-1 w-full rounded border py-0.5 text-[8px] font-semibold"
-                style={{ borderColor: u.moving ? C.green : C.border, color: u.moving ? C.green : C.dim }}>
-                {u.moving ? "◼ HOLD MOVEMENT" : "▶ ACTIVATE MOVEMENT"}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // ── Transect / elevation profile (full-width bottom) — the 1-fetch DEM cut ─────
 // Terrain + bathymetry + airborne-object altitude stems on ONE shared vertical scale, with the
@@ -2361,7 +2454,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     miniDrag.current = null;
     try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* not captured */ }
   };
-  const [mirror, setMirror] = useState(false);             // MIRROR couples MAP⇄MINI; SPLIT decouples
+  // MIRROR — directional, lives on each map's header: engaging on a pane pushes ITS view
+  // onto the other pane (each pane KEEPS its own 2D/3D); disengaging RESTORES the other
+  // pane's pre-mirror view. `mirror` stays as the derived coupled-state flag.
+  const [mirrorFrom, setMirrorFrom] = useState<null | "map" | "mini">(null);
+  const mirror = mirrorFrom !== null;
+  const preMirrorRef = useRef<{ target: "map" | "mini"; view: ViewState; mode: "world" | "ao" } | null>(null);
   const [is3dA, setIs3dA] = useState(false);               // MAP 2D/3D (perspective terrain)
   const [is3dB, setIs3dB] = useState(false);               // MINI MAP 2D/3D
   const [pitch, setPitch] = useState(55);                  // 3D view angle (deg) — the FAAD/AMDWS altitude-angle
@@ -2414,9 +2512,22 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     setViewB(initView(ao, mirror ? 1 : OVERVIEW_FACTOR));
     if (ao.precision) setDigits(ao.precision);
   }, [aoKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (mirror) { setViewB(viewA); setIs3dB(is3dA); } }, [mirror]); // eslint-disable-line react-hooks/exhaustive-deps
-  const setViewA_ = (u: (v: ViewState) => ViewState) => { setViewA(u); if (mirror) setViewB(u); };
-  const setViewB_ = (u: (v: ViewState) => ViewState) => { setViewB(u); if (mirror) setViewA(u); };
+  const toggleMirror = (src: "map" | "mini") => {
+    setMirrorFrom((cur) => {
+      if (cur === src) { // disengage → restore the other pane to its pre-mirror view
+        const p = preMirrorRef.current;
+        if (p) { (p.target === "map" ? setViewA : setViewB)(p.view); (p.target === "map" ? setModeA : setModeB)(p.mode); }
+        preMirrorRef.current = null;
+        return null;
+      }
+      const target = src === "mini" ? "map" : "mini";
+      preMirrorRef.current = { target, view: target === "map" ? viewA : viewB, mode: target === "map" ? modeA : modeB };
+      if (src === "mini") { setViewA(viewB); setModeA(modeB); } else { setViewB(viewA); setModeB(modeA); }
+      return src;
+    });
+  };
+  const setViewA_ = (u: (v: ViewState) => ViewState) => { setViewA(u); if (mirrorFrom === "map") setViewB(u); };
+  const setViewB_ = (u: (v: ViewState) => ViewState) => { setViewB(u); if (mirrorFrom === "mini") setViewA(u); };
   // Smooth geometric ease of the MAP span (easeOutCubic) — the cinematic "fly-in".
   const animateSpanTo = (fromKm: number, toKm: number, ms = 800) => {
     if (zoomAnimRef.current) cancelAnimationFrame(zoomAnimRef.current);
@@ -2443,10 +2554,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     setMode("ao");
     animateSpanTo(wide, region, 850);
   };
-  const toggle3dA = () => { setIs3dA((v) => { const n = !v; if (mirror) setIs3dB(n); return n; }); };
-  const toggle3dB = () => { setIs3dB((v) => { const n = !v; if (mirror) setIs3dA(n); return n; }); };
-  const setModeA_ = (m: "world" | "ao") => { setModeA(m); if (mirror) setModeB(m); };
-  const setModeB_ = (m: "world" | "ao") => { setModeB(m); if (mirror) setModeA(m); };
+  // 2D/3D is PER-PANE even while mirrored (user law) — only the VIEW mirrors.
+  const toggle3dA = () => setIs3dA((v) => !v);
+  const toggle3dB = () => setIs3dB((v) => !v);
+  const setModeA_ = (m: "world" | "ao") => { setModeA(m); if (mirrorFrom === "map") setModeB(m); };
+  const setModeB_ = (m: "world" | "ao") => { setModeB(m); if (mirrorFrom === "mini") setModeA(m); };
   // Pick + load the finest real DEM tile covering the current view (resolution pyramid).
   useEffect(() => {
     const key = pickDemKey(viewA.lat, viewA.lon, viewA.spanKm);
@@ -2781,11 +2893,6 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <button onClick={deleteDrawnAo} title="Delete drawn AO" className="p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
             </>)}
           </div>
-          <button onClick={() => setMirror((m) => !m)} title={mirror ? "MIRROR — MAP ⇄ MINI locked; click to decouple" : "SPLIT — MAP and MINI roam independently; click to mirror"}
-            className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
-            style={{ borderColor: mirror ? C.cyan : C.border, color: mirror ? C.cyan : C.dim }}>
-            <Columns2 className="h-3.5 w-3.5" /> {mirror ? "MIRROR" : "SPLIT"}
-          </button>
           <button onClick={() => setMiniOpen((m) => !m)} title={miniOpen ? "Hide mini-map" : "Show mini-map"}
             className="rounded border px-1.5 py-1 text-[10px] font-semibold"
             style={{ borderColor: miniOpen ? C.cyan : C.border, color: miniOpen ? C.cyan : C.dim }}>MINI</button>
@@ -3009,12 +3116,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               onUndoLastPlacement={undoLastPlacement} clearAo={clearAo}
               routeMode={routeMode} onHide={() => setRailOpen(false)} />
           </div>
-          {/* BOTTOM-LEFT — Tracks & movement (heading · speed · altitude + activation) — plan (AO) mode only */}
-          {modeA === "ao" && (
-            <div className="shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:h-52" style={{ background: C.panel, borderColor: C.border }}>
-              <TracksPanel placed={placed} onUpdAsset={updAsset} selected={selected} setSelected={setSelected} />
-            </div>
-          )}
+          {/* TRACK controls live with the selected asset in the RIGHT rail (ItemInspector) */}
           </div>
         ) : (
           <button onClick={() => setRailOpen(true)} title="Show ASSET / SUPPORT menu"
@@ -3034,21 +3136,23 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             modeB === "world" ? (
               <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
                 <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                  onEnterAo={(k) => enterAo(k, setModeB_)} />
+                  onEnterAo={(k) => enterAo(k, setModeB_)} onMinimize={() => setFsPane(null)} />
               </div>
             ) : (
               <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
                 view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
+                mirrorOn={mirrorFrom === "mini"} onToggleMirror={() => toggleMirror("mini")}
                 maximized onToggleMax={() => setFsPane(null)} onWorld={() => setModeB_("world")} />
             )
           ) : modeA === "world" ? (
             <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
               <WorldStrip label="MAP" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                onEnterAo={(k) => enterAo(k, setModeA_)} />
+                onEnterAo={(k) => enterAo(k, setModeA_)} onMinimize={fsPane === "map" ? () => setFsPane(null) : undefined} />
             </div>
           ) : (
             <AoMapPane {...paneCommon} dem={dem} label="MAP" showElevation spanFactor={1}
               view={viewA} setView={setViewA_} otherView={viewB} is3d={is3dA} onToggle3d={toggle3dA}
+              mirrorOn={mirrorFrom === "map"} onToggleMirror={() => toggleMirror("map")}
               maximized={fsPane === "map"} onToggleMax={() => setFsPane((f) => (f === "map" ? null : "map"))} onWorld={() => setModeA_("world")} />
           )}
           {!fsPane && (miniOpen ? (
@@ -3080,6 +3184,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 ) : (
                   <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
                     view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
+                    mirrorOn={mirrorFrom === "mini"} onToggleMirror={() => toggleMirror("mini")}
                     maximized={false} onToggleMax={() => setFsPane("mini")} onHidePane={() => setMiniOpen(false)} onWorld={() => setModeB_("world")} />
                 )}
               </div>
@@ -3091,14 +3196,6 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               ▾ MINI MAP
             </button>
           ))}
-          {fsPane && (
-            /* uniform restore — works in AO and EARTH/world modes alike */
-            <button onClick={() => setFsPane(null)} title="Minimize — back to standard screen"
-              className="absolute right-3 top-14 z-30 flex items-center gap-1 rounded-md border px-2 py-1 text-[9px] font-bold shadow-lg"
-              style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16dd" }}>
-              <Minimize2 className="h-3 w-3" /> MINIMIZE
-            </button>
-          )}
         </div>
 
         {/* RIGHT RAIL — deployed ASSET / SUPPORT list, collapses to a 3-bullet rail */}

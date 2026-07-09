@@ -265,8 +265,12 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
       </div>
       </div>
 
-      {/* PLANNING — mission planning: equipment inventory + MGRS drag-and-drop */}
-      {activeTab === "PLANNING" && <MissionPlanning iconStyle={iconStyle} />}
+      {/* PLANNING — mission planning: equipment inventory + MGRS drag-and-drop.
+          Kept MOUNTED (hidden, not unmounted) so location/settings/placements survive
+          switching to LIVE OVERVIEW and back (user law 2026-07-09). */}
+      <div style={activeTab === "PLANNING" ? undefined : { display: "none" }}>
+        <MissionPlanning iconStyle={iconStyle} />
+      </div>
       {activeTab !== "OVERVIEW" && activeTab !== "PLANNING" && (
         <div className="p-6 text-center text-[11px]" style={{ color: C.dim }}>
           {activeTab} — wiring pending

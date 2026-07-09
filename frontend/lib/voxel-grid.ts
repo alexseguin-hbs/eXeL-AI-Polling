@@ -11,6 +11,7 @@
  * sampler the 2D contours use (makeDemSampler) — no second data path.
  */
 import { latLonToUtm, utmToLatLon, latLonToMgrs, latBand } from "@/components/security-2525/mgrs";
+// (imports above are pure math — no DOM/React; this module stays render-head agnostic)
 import { altitudeBandM, BAND_LABELS, RANGE_EDGES, mFromFt } from "@/lib/voxel";
 
 export interface VoxelObject {
