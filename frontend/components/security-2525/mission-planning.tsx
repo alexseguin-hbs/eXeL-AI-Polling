@@ -1517,7 +1517,11 @@ function AoMapPane(p: PaneProps) {
             <div className="relative">
               <button onClick={() => setDomeSettingsOpen((o) => !o)} title="Sky-dome settings — style (GRID/HEX) + line thickness"
                 className="flex items-center rounded border px-1.5 py-0.5" style={{ borderColor: domeSettingsOpen ? C.cyan : C.border, color: domeSettingsOpen ? C.cyan : C.dim }}>
-                <svg width="11" height="11" viewBox="0 0 12 12" aria-label="Dome settings"><path d="M6 1.5 L10.5 10 L1.5 10 Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>
+                <svg width="12" height="12" viewBox="0 0 12 12" aria-label="Dome settings">
+                  <path d="M1 9.5 A 5 4.6 0 0 1 11 9.5" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                  <line x1="1" y1="9.5" x2="11" y2="9.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                  <path d="M3.4 9.5 A 2.6 3.4 0 0 1 8.6 9.5" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.6" />
+                </svg>
               </button>
               {domeSettingsOpen && (
                 <div className="absolute right-0 top-full z-50 mt-1 w-40 rounded border p-2 text-left" style={{ background: "#0a0f16", borderColor: C.border, boxShadow: "0 4px 18px rgba(0,0,0,.6)" }}>
