@@ -281,7 +281,8 @@ interface Placed {
   // ── Track / movement (drone-war + R-CORE sim/replay; UCRS-2525 3D-ready) ──
   heading?: number;  // deg true
   speed?: number;    // km/h ground speed
-  altitude?: number; // m AGL/MSL
+  altitude?: number; // m — magnitude only; frame given by altRef (altitude visual law)
+  altRef?: "AGL" | "MSL"; // altitude reference — labels MUST always carry it
   moving?: boolean;  // movement activated (track is live in the plan/sim)
 }
 
@@ -1496,7 +1497,7 @@ function AoMapPane(p: PaneProps) {
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
                   {u.moving && (
                     <span className="whitespace-nowrap font-mono text-[7px] font-bold" style={{ color: C.green }}>
-                      {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude)}m` : ""}
+                      {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude)}m ${u.altRef ?? "AGL"}` : ""}
                     </span>
                   )}
                 </button>
@@ -2092,7 +2093,14 @@ function TracksPanel({ placed, onUpdAsset, selected, setSelected, onHide }: Trac
               <div className="grid grid-cols-3 gap-1">
                 <div><div className="text-[6px]" style={{ color: C.dim }}>HDG°</div>{num(u.heading, (v) => onUpdAsset(u.id, { heading: v === undefined ? undefined : ((v % 360) + 360) % 360 }), "000")}</div>
                 <div><div className="text-[6px]" style={{ color: C.dim }}>SPD km/h</div>{num(u.speed, (v) => onUpdAsset(u.id, { speed: v }), "0")}</div>
-                <div><div className="text-[6px]" style={{ color: C.dim }}>ALT m</div>{num(u.altitude, (v) => onUpdAsset(u.id, { altitude: v }), "0")}</div>
+                <div><div className="text-[6px]" style={{ color: C.dim }}>ALT m</div>{num(u.altitude, (v) => onUpdAsset(u.id, { altitude: v }), "0")}
+                  <div className="mt-0.5 flex overflow-hidden rounded border text-[6px] font-semibold" style={{ borderColor: C.border }}>
+                    {(["AGL", "MSL"] as const).map((r) => (
+                      <button key={r} onClick={() => onUpdAsset(u.id, { altRef: r })} className="flex-1 px-0.5 py-0.5"
+                        style={{ background: (u.altRef ?? "AGL") === r ? "#152238" : "transparent", color: (u.altRef ?? "AGL") === r ? C.cyan : C.dim }}>{r}</button>
+                    ))}
+                  </div>
+                </div>
               </div>
               <button onClick={() => onUpdAsset(u.id, { moving: !u.moving })}
                 className="mt-1 w-full rounded border py-0.5 text-[8px] font-semibold"
