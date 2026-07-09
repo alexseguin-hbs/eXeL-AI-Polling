@@ -3127,7 +3127,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
   const [altRedFt, setAltRedFt] = useState<number | null>(9000);      // FX-05 (1.3.2): RED alarm default 90% of the 10k ft rail
   const [altYellowFt, setAltYellowFt] = useState<number | null>(7000);// FX-05 (1.3.2): YELLOW alarm default 70% of the 10k ft rail
-  const [voxelCellM, setVoxelCellM] = useState<0 | 10 | 100 | 1000>(0); // FX-10 (1.3.2): DEFAULT = AUTO screen reticle (3×3 group = 1/9 of screen area = 1/3 width, each cell = 1/9 width); 10 m / 100 m / 1 km snap to real metres
+  const [voxelCellM, setVoxelCellM] = useState<number>(0); // FX-10 (1.3.2): 0 = AUTO screen reticle (default); 10/100/1000 presets OR any user-entered metre value
   const [voxelLimitPct, setVoxelLimitPct] = useState(100); // FX-04 (1.3.2): grey "voxel limit" extent — % of the altitude rail the voxel column reaches (like the red/yellow alarm limits)
   const [voxelHiColor, setVoxelHiColor] = useState<string>("#eab308"); // FX-07 (1.3.2): user-set colour for the primary highlighted voxel (rest dim)
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
@@ -3771,13 +3771,19 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               {/* FX-10 (HI 1.3.2): voxel cell size — AUTO = screen-proportional reticle
                   (3×3 group = 1/9 of screen area, centred), default. Fixed sizes snap to
                   real metres. Edge width of the 3×3 group is shown live below. */}
-              <div className="mt-1 mb-1 flex items-center justify-between">
+              <div className="mt-1 mb-1 flex items-center justify-between gap-1">
                 <span className="text-[9px]" style={{ color: C.text }}>3D Voxel·Cube cell</span>
-                <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
-                  {([[0, "AUTO"], [10, "10 m"], [100, "100 m"], [1000, "1 km"]] as const).map(([v, label]) => (
-                    <button key={v} onClick={() => setVoxelCellM(v)} className="px-1.5 py-0.5"
-                      style={{ background: voxelCellM === v ? "#152238" : "transparent", color: voxelCellM === v ? C.cyan : C.dim }}>{label}</button>
-                  ))}
+                <div className="flex items-center gap-1">
+                  <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                    {([[0, "AUTO"], [10, "10"], [100, "100"], [1000, "1k"]] as const).map(([v, label]) => (
+                      <button key={v} onClick={() => setVoxelCellM(v)} className="px-1.5 py-0.5"
+                        style={{ background: voxelCellM === v ? "#152238" : "transparent", color: voxelCellM === v ? C.cyan : C.dim }}>{label}</button>
+                    ))}
+                  </div>
+                  {/* FX-10 (HI 1.3.2): user-entered custom cell size (metres) */}
+                  <NumInField value={voxelCellM} onCommit={(v) => setVoxelCellM(v >= 0 ? Math.round(v) : 0)}
+                    className="w-12 rounded border bg-transparent px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: C.text }} />
+                  <span className="text-[8px]" style={{ color: C.dim }}>m</span>
                 </div>
               </div>
               {(() => {
