@@ -38,7 +38,7 @@ import {
 } from "@/components/security-2525/mission-support";
 import { PfieldVenue } from "@/components/security-2525/pfield-venue";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
-import { MIN_SPAN_KM, MAX_SPAN_KM, ZOOM_FACTOR, shouldHandOffToWorld } from "@/lib/zoom-continuum";
+import { MIN_SPAN_KM, MAX_SPAN_KM, shouldHandOffToWorld } from "@/lib/zoom-continuum";
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
 import { computeTransect, transectLine, type AltObject } from "@/lib/transect";
 import { RANGE_EDGES, BAND_LABELS, mFromFt, bandOccupancy } from "@/lib/voxel";
@@ -999,7 +999,19 @@ function AoMapPane(p: PaneProps) {
     e.preventDefault();
     // zoom out past continental scale → hand off to the Earth/world view (continuum)
     if (e.deltaY > 0 && shouldHandOffToWorld(view.spanKm) && onWorld) { onWorld(); return; }
-    setView((v) => ({ ...v, spanKm: Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * (e.deltaY > 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR))) }));
+    // CONTINUOUS zoom — factor proportional to wheel delta (trackpads glide, a mouse
+    // notch ≈ the old ZOOM_FACTOR step) and ANCHORED AT THE CURSOR: the geographic
+    // point under the pointer stays put (c_new = lerp(p_cursor, c_old, factor)).
+    const dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 300 : 1);
+    const f = Math.exp(Math.max(-0.5, Math.min(0.5, dy * 0.0014)));
+    const frac = fracFromEvent(e);
+    const p = frac ? containerToLatLon(frac.fx, frac.fy) : null;
+    setView((v) => {
+      const spanKm = Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * f));
+      const ff = spanKm / v.spanKm; // factor actually applied after clamping
+      if (!p || ff === 1) return { ...v, spanKm };
+      return { ...v, spanKm, lat: p.lat + (v.lat - p.lat) * ff, lon: p.lon + (v.lon - p.lon) * ff };
+    });
   });
 
   const routeMode = !!selectedSupport && (selectedSupport.geometry === "line" || selectedSupport.geometry === "corridor");

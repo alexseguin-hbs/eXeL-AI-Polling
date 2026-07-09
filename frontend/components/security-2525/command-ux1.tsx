@@ -211,8 +211,9 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto pointer-events-auto" style={{ background: C.bg, color: C.text }}>
-      {/* Top bar */}
-      <div className="sticky top-0 z-10 relative flex items-center justify-between border-b px-4 py-2" style={{ background: C.bg, borderColor: C.border }}>
+      {/* Top bar + nav tabs — ONE sticky block so BOTH menus stay visible on scroll */}
+      <div className="sticky top-0 z-40" style={{ background: C.bg }}>
+      <div className="relative flex items-center justify-between border-b px-4 py-2" style={{ background: C.bg, borderColor: C.border }}>
         <span className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 text-[10px] font-semibold tracking-wide md:flex" style={{ color: C.dim }}>
           CLEARANCE: <span style={{ color: CLEARANCE_COLORS[3] }}>LEVEL 3</span> <ClearanceSeal level={3} />
         </span>
@@ -260,6 +261,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
             {tab === "OVERVIEW" ? "LIVE OVERVIEW" : tab}
           </button>
         ))}
+      </div>
       </div>
 
       {/* PLANNING — mission planning: equipment inventory + MGRS drag-and-drop */}
