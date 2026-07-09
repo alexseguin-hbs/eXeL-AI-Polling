@@ -303,7 +303,9 @@ function sectorPath(cx: number, cy: number, R: number, tl: TL) {
   const p1x = cx + R * Math.sin(a1), p1y = cy - R * Math.cos(a1);
   return `M${cx} ${cy} L${p0x.toFixed(2)} ${p0y.toFixed(2)} A ${R} ${R} 0 ${span > 180 ? 1 : 0} 1 ${p1x.toFixed(2)} ${p1y.toFixed(2)} Z`;
 }
-const AD_HALF: Partial<Record<AssetKind, number>> = { avenger: 45, patriot: 60, thaad: 90 };
+// HI: AVENGER is point-defense (Stinger, ~360°) — NO Primary Target Line. Only the
+// directional PATRIOT / THAAD launchers carry a PTL wedge.
+const AD_HALF: Partial<Record<AssetKind, number>> = { patriot: 60, thaad: 90 };
 
 // Published engagement / detection ranges (km, approximate open-source figures) —
 // a weapons-planning coverage aid, NOT a targeting authority. Sources: manufacturer
@@ -1701,8 +1703,9 @@ function AoMapPane(p: PaneProps) {
                 {placed.map((u) => {
                   if (!u.tls && !u.fov) return null;
                   const c = toFrac(u.lat, u.lon); const cx = c.fx * 100, cy = c.fy * 100;
+                  // HI: realistic (thin, non-scaling) target lines — never fatter than the icon.
                   const drawLine = (R: number, brg: number, col: string) =>
-                    <line x1={cx} y1={cy} x2={cx + R * Math.sin((brg * Math.PI) / 180)} y2={cy - R * Math.cos((brg * Math.PI) / 180)} stroke={col} strokeWidth="0.45" />;
+                    <line x1={cx} y1={cy} x2={cx + R * Math.sin((brg * Math.PI) / 180)} y2={cy - R * Math.cos((brg * Math.PI) / 180)} stroke={col} strokeWidth={iconScale >= 3 ? 0.8 : iconScale >= 2 ? 1 : 1.2} vectorEffect="non-scaling-stroke" opacity="0.85" />;
                   const TLS: [TL | undefined, string, number, string][] = [
                     [u.fov, "#a78bfa", 30, "FOV"],
                     [u.mobile ? undefined : u.tls?.p, C.gold, 22, "PTL"], // PTL suppressed on-the-move
@@ -4007,7 +4010,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 <span className="text-[9px]" style={{ color: C.text }}>3D Voxel·Cube cell</span>
                 <div className="flex items-center gap-1">
                   <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
-                    {([[0, "AUTO"], [10, "10"], [100, "100"], [1000, "1k"]] as const).map(([v, label]) => (
+                    {([[0, "AUTO"], [10, "10 m"], [100, "100 m"], [1000, "1 km"]] as const).map(([v, label]) => (
                       <button key={v} onClick={() => setVoxelCellM(v)} className="px-1.5 py-0.5"
                         style={{ background: voxelCellM === v ? "#152238" : "transparent", color: voxelCellM === v ? C.cyan : C.dim }}>{label}</button>
                     ))}
