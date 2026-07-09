@@ -1846,7 +1846,15 @@ function AoMapPane(p: PaneProps) {
                 background: occupied ? `${color}10` : "transparent",
               });
               return (
-                <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: sel ? 14 : 12 }}>
+                <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: sel ? 14 : 12,
+                  // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
+                  // by +bearing, but the faces were screen-axis-aligned, so on rotate each
+                  // cube looked like it spun on its own ("confusing as shit"). Rotate the
+                  // face-frame by +bearing about the tilted-plane normal (rotateZ) so all
+                  // cubes stay a rigid geographic grid whose faces always point N/E/S/W —
+                  // the camera orbits, the cubes never turn. Single voxel ≡ the 3×3 (both
+                  // north-locked squares). transform-origin = cube centre (0×0 anchor div).
+                  transform: is3d ? `rotateZ(${view.bearing}rad)` : undefined }}>
                   {/* addressable cube BASE (on-plane) */}
                   <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(sel ? null : col.key); }}
                     title={`${col.mgrs} · ${col.ucrs}`}
@@ -3033,7 +3041,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
   const [altRedFt, setAltRedFt] = useState<number | null>(null);      // FX-05: RED altitude threshold
   const [altYellowFt, setAltYellowFt] = useState<number | null>(null);// FX-05: YELLOW altitude threshold
-  const [voxelCellM, setVoxelCellM] = useState<0 | 10 | 100 | 1000>(1000); // FX-10 (1.3.2): default 1 km; 0 = AUTO screen reticle (3×3 = 1/3 pane, cell = 1/9)
+  const [voxelCellM, setVoxelCellM] = useState<0 | 10 | 100 | 1000>(0); // FX-10 (1.3.2): DEFAULT = AUTO screen reticle (3×3 group = 1/9 of screen area = 1/3 width, each cell = 1/9 width); 10 m / 100 m / 1 km snap to real metres
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
@@ -3708,7 +3716,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                     className="w-14 rounded border bg-transparent px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: C.text }} />
                 </div>
               </div>
-              {/* FX-10: voxel cell size — AUTO snaps to the visible grid step */}
+              {/* FX-10 (HI 1.3.2): voxel cell size — AUTO = screen-proportional reticle
+                  (3×3 group = 1/9 of screen area, centred), default. Fixed sizes snap to
+                  real metres. Edge width of the 3×3 group is shown live below. */}
               <div className="mt-1 mb-1 flex items-center justify-between">
                 <span className="text-[9px]" style={{ color: C.text }}>3D Voxel·Cube cell</span>
                 <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
@@ -3718,6 +3728,18 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   ))}
                 </div>
               </div>
+              {(() => {
+                // single edge of the 3×3 group + one voxel cell, real-world (primary pane).
+                const cellM = voxelCellM && voxelCellM > 0 ? voxelCellM : Math.max(10, Math.round((viewA.spanKm * 1000) / 9));
+                const edgeM = cellM * 3; // 3×3 group edge
+                const km = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(m >= 10000 ? 0 : 2)} km` : `${Math.round(m)} m`);
+                return (
+                  <div className="mb-1 flex items-center justify-between text-[8px] font-mono" style={{ color: C.cyan }}>
+                    <span style={{ color: C.dim }}>3×3 edge</span>
+                    <span>{km(edgeM)} <span style={{ color: C.dim }}>· voxel {km(cellM)}{voxelCellM ? "" : " · 1/9 screen"}</span></span>
+                  </div>
+                );
+              })()}
               <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Tilt to 3D on any pane (2D/3D toggle) — reuses the same fetched tile, zero extra network. Altitude stems + transect land next.</div>
             </div>
           </div>
