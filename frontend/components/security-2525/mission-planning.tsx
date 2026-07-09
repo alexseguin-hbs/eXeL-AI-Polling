@@ -1352,6 +1352,7 @@ function AoMapPane(p: PaneProps) {
   const [voxelSel, setVoxelSel] = useState<string | null>(null);
   const [voxelLayer, setVoxelLayer] = useState(true); // FX-30 (HI): standalone 3×3 voxel LATTICE, independent of assets, ON by default
   const [voxelSize, setVoxelSize] = useState<3 | 2 | 1>(3); // FX (HI 1.3.3): box size tier — 3X (full) · 2X (⅔) · 1X (⅓); altitude projectors always reach the grey-line altitude
+  const [domeMode, setDomeMode] = useState<"grid" | "hex">("grid"); // UCRS-2525 sky dome style — globe GRID lines vs HEX panels (3rd style TBD)
   const [voxelTop, setVoxelTop] = useState<string | null>(null); // FX-30: hovered column TOP face (pick a stack by its top)
   // P1.2 (Odin): corner HOVER chip — corner coordinate + terrain elevation at the cursor
   const [cornerHover, setCornerHover] = useState<{ key: string; ci: number } | null>(null);
@@ -1495,6 +1496,15 @@ function AoMapPane(p: PaneProps) {
               {([3, 2, 1] as const).map((s) => (
                 <button key={s} onClick={() => setVoxelSize(s)} className="px-1 py-0.5"
                   style={{ background: voxelSize === s ? "#152238" : "transparent", color: voxelSize === s ? C.cyan : C.dim }}>{s}X</button>
+              ))}
+            </div>
+          )}
+          {/* UCRS-2525 sky-dome style — globe GRID lines vs HEX panels (3rd TBD) */}
+          {is3d && voxelLayer && (
+            <div className="flex overflow-hidden rounded border font-semibold" style={{ borderColor: C.border }} title="Sky-dome style — globe GRID lines or HEX panels">
+              {(["grid", "hex"] as const).map((d) => (
+                <button key={d} onClick={() => setDomeMode(d)} className="px-1 py-0.5 uppercase"
+                  style={{ background: domeMode === d ? "#152238" : "transparent", color: domeMode === d ? C.cyan : C.dim }}>{d}</button>
               ))}
             </div>
           )}
@@ -1889,7 +1899,7 @@ function AoMapPane(p: PaneProps) {
                       same format as the selected-voxel label.
                       HI: N/S placement — AERIAL asset (altitude>0) → chip ABOVE the icon (North);
                       GROUND asset → chip BELOW the icon (South). flex-col `order` re-stacks it. */}
-                  {!hasColumn && <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 1, marginTop: aerial ? 0 : groundDrop, marginBottom: aerial ? 2 : 0 }}>{fmt.coordAt(u.lat, u.lon)}</span>}
+                  {!hasColumn && (sel || hot) && <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 1, marginTop: aerial ? 0 : groundDrop, marginBottom: aerial ? 2 : 0 }}>{fmt.coordAt(u.lat, u.lon)}</span>}
                   {u.moving && !hasColumn && (
                     <span className="whitespace-nowrap font-mono text-[7px] font-bold" style={{ color: C.green }}>
                       {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude)}m ${u.altRef ?? "AGL"}` : ""}
@@ -1914,9 +1924,9 @@ function AoMapPane(p: PaneProps) {
                     transformOrigin: "50% 100%", transformStyle: "preserve-3d" }}>
                   {sel && <span className="absolute rounded-full" style={{ width: 26 * iconScale, height: 26 * iconScale, boxShadow: `0 0 0 2px ${C.gold}`, top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />}
                   <SupportGlyph glyph={u.def.glyph} color={u.aff === "hostile" ? "#ef4444" : u.def.color} size={22 * iconScale} />
-                  {/* HI 1.3.3: coordinate label = ONE black-background chip (no white version),
-                      same format as the selected-voxel label. */}
-                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan }}>{fmt.coordAt(u.lat, u.lon)}</span>
+                  {/* HI: coordinate chip shows ONLY when this support item is selected/clicked
+                      (declutter — same rule as the voxel: coords on click, not always-on). */}
+                  {sel && <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan }}>{fmt.coordAt(u.lat, u.lon)}</span>}
                 </button>
               );
             })}
@@ -2405,25 +2415,53 @@ function AoMapPane(p: PaneProps) {
               const at = (t: string): React.CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
               return (
                 <div className="pointer-events-none absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`,
-                  transformStyle: "preserve-3d", zIndex: 9, transform: `rotateZ(${view.bearing}rad)`, opacity: 0.85 * skyK }}>
-                  {/* latitude rings — flat circles at decreasing radius / increasing height */}
-                  {Array.from({ length: NR + 1 }, (_, k) => {
-                    const th = (k / NR) * (Math.PI / 2);
-                    const r = R * Math.cos(th), z = H * Math.sin(th);
-                    if (r < 1) return null;
-                    return <div key={`dlr${k}`} className="rounded-full" style={{ ...at(`translateZ(${z}px)`),
-                      width: 2 * r, height: 2 * r, border: `1px solid ${col}${k === 0 ? "cc" : "77"}` }} />;
-                  })}
-                  {/* meridian arches — SVG half-ellipse standing vertically, one per NM (each spans a full meridian) */}
-                  {Array.from({ length: NM }, (_, m) => {
-                    const phi = (m / NM) * 180;
-                    return (
-                      <svg key={`dm${m}`} width={2 * R} height={H} viewBox={`0 0 ${2 * R} ${H}`} style={{ position: "absolute", left: "50%", top: "50%",
-                        marginLeft: -R, marginTop: -H, transformOrigin: "50% 100%", transform: `rotateZ(${phi}deg) rotateX(-90deg)`, overflow: "visible" }}>
-                        <path d={`M 0 ${H} A ${R} ${H} 0 0 1 ${2 * R} ${H}`} fill="none" stroke={col} strokeWidth="1.6" opacity="0.9" />
+                  transformStyle: "preserve-3d", zIndex: 12, transform: `rotateZ(${view.bearing}rad)`, opacity: 0.9 * skyK }}>
+                  {/* GRID style — latitude rings (flat circles at height) + meridian arches (SVG). */}
+                  {domeMode === "grid" && <>
+                    {Array.from({ length: NR + 1 }, (_, k) => {
+                      const th = (k / NR) * (Math.PI / 2);
+                      const r = R * Math.cos(th), z = H * Math.sin(th);
+                      if (r < 1) return null;
+                      return <div key={`dlr${k}`} className="rounded-full" style={{ ...at(`translateZ(${z}px)`),
+                        width: 2 * r, height: 2 * r, border: `${k === 0 ? 2.4 : 1.6}px solid ${col}${k === 0 ? "dd" : "99"}` }} />;
+                    })}
+                    {Array.from({ length: NM }, (_, m) => {
+                      const phi = (m / NM) * 180;
+                      return (
+                        <svg key={`dm${m}`} width={2 * R} height={H} viewBox={`0 0 ${2 * R} ${H}`} style={{ position: "absolute", left: "50%", top: "50%",
+                          marginLeft: -R, marginTop: -H, transformOrigin: "50% 100%", transform: `rotateZ(${phi}deg) rotateX(-90deg)`, overflow: "visible" }}>
+                          <path d={`M 0 ${H} A ${R} ${H} 0 0 1 ${2 * R} ${H}`} fill="none" stroke={col} strokeWidth="2.6" opacity="0.9" />
+                        </svg>
+                      );
+                    })}
+                  </>}
+                  {/* HEX style — hexagonal panels tiled over the dome (flower-of-life / geodesic).
+                      First pass: billboarded hex outlines at ring×azimuth grid points; alternate
+                      rings offset by half a step so they interlace. Apex closed by the last ring. */}
+                  {domeMode === "hex" && (() => {
+                    const hexRings = 4, spacing = R * 0.42, hexR = (spacing / 2) * 0.96;
+                    const cells: { x: number; y: number; z: number; key: string }[] = [];
+                    for (let k = 0; k <= hexRings; k++) {
+                      const th = (k / (hexRings + 0.35)) * (Math.PI / 2);
+                      const r = R * Math.cos(th), z = H * Math.sin(th);
+                      const M = k === 0 ? 6 : Math.max(1, Math.round((2 * Math.PI * r) / spacing));
+                      for (let j = 0; j < M; j++) {
+                        const phi = (j / M) * 2 * Math.PI + (k % 2) * (Math.PI / M);
+                        cells.push({ x: r * Math.cos(phi), y: r * Math.sin(phi), z, key: `hx${k}_${j}` });
+                      }
+                    }
+                    const pts = Array.from({ length: 6 }, (_, i) => {
+                      const a = (i / 6) * 2 * Math.PI;
+                      return `${(hexR + hexR * Math.cos(a)).toFixed(1)},${(hexR + hexR * Math.sin(a)).toFixed(1)}`;
+                    }).join(" ");
+                    return cells.map((c) => (
+                      <svg key={c.key} width={2 * hexR} height={2 * hexR} viewBox={`0 0 ${2 * hexR} ${2 * hexR}`}
+                        style={{ position: "absolute", left: "50%", top: "50%", overflow: "visible",
+                          transform: `translate(-50%,-50%) translate3d(${c.x}px,${c.y}px,${c.z}px) rotateX(${-p}deg)` }}>
+                        <polygon points={pts} fill={`${col}12`} stroke={col} strokeWidth="1.6" opacity="0.8" />
                       </svg>
-                    );
-                  })}
+                    ));
+                  })()}
                 </div>
               );
             })()}
