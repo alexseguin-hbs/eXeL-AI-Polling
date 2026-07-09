@@ -2124,9 +2124,9 @@ function AoMapPane(p: PaneProps) {
               const bc = project(view.lat, view.lon);
               const paneW = mapRef.current?.clientWidth ?? 800;
               const cellPx = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW);
-              const bandPx = Math.min(cellPx, 40);
+              const bandPx = cellPx;                                     // FX (HI 1.3.3): TRUE CUBE — height per level = one cell WIDTH in the SAME metres (no 40px cap) → 3-high == 3-wide == 3-deep
               const boxW = 3 * cellPx;
-              const topZ = 3 * bandPx;                                   // 3 levels tall
+              const topZ = 3 * bandPx;                                   // == boxW → a real cube
               const railBands = Math.max(latticeColumns[0].cubes.filter((cb) => cb.bandIdx > 0).length, 3);
               const limitZ = Math.max(topZ, (voxelLimitPct / 100) * railBands * bandPx);
               const line = `${C.cyan}55`;
@@ -3911,16 +3911,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   </div>
                 );
               })()}
-              {/* FX-04 (HI 1.3.2): grey VOXEL LIMIT — % of the altitude rail the voxel column
-                  reaches (lock-gated numeric entry, same style as the alarm limits). */}
-              <div className="mt-1 mb-1 flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: C.text }}>Voxel limit</span>
-                <div className="flex items-center gap-1">
-                  <NumInField value={voxelLimitPct} onCommit={(v) => setVoxelLimitPct(Math.max(0, Math.min(100, v)))} lockable
-                    className="w-12 rounded border bg-transparent px-1 py-0.5 text-[8px]" style={{ borderColor: "#6b7280", color: "#9ca3af" }} />
-                  <span className="text-[8px]" style={{ color: C.dim }}>% rail</span>
-                </div>
-              </div>
+              {/* FX-52 (HI 1.3.3): grey VOXEL LIMIT control REMOVED from Settings — it lives on
+                  the ALTITUDE BAR only (grey line there), adjustable in place. */}
               {/* FX-07 (HI 1.3.2): colour of the primary highlighted voxel (rest dim). */}
               <div className="mt-1 mb-1 flex items-center justify-between">
                 <span className="text-[9px]" style={{ color: C.text }}>Highlight colour</span>
