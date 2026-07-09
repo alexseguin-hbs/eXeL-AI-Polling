@@ -2128,15 +2128,17 @@ function AoMapPane(p: PaneProps) {
                             }}
                             className="cursor-move whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold leading-tight"
                             style={{ background: "#0a0f16dd", color: ac, border: `1px solid ${ac}66` }}>
-                            {fmt.coordAt(col.lat, col.lon)} · AGL {aglM}m
+                            AGL {aglM}m
                           </button>
                         </div>
                         {/* (3) DOT — the object's TRUE altitude band, at the cell centre (its real 3D spot) */}
                         <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${dotZ}px)${bb}` }}>
                           <span className="block rounded-full" style={{ width: 6, height: 6, background: topObj.color ?? ac, boxShadow: `0 0 6px ${topObj.color ?? ac}` }} />
                         </div>
-                        {/* (4) TOP-FACE coordinates — CENTRE + 4 CORNERS, billboarded tiny (the target
-                            reticle itself is already drawn on the flat top face below). */}
+                        {/* (4) TOP-FACE coords (CENTRE + 4 CORNERS) — HIDDEN by default to keep the
+                            voxel clean; shown ONLY when the asset is SELECTED (clicked). In 3D the
+                            AGL chip is the single always-on voxel label (HI: too busy otherwise). */}
+                        {(sel || selAsset) && (
                         <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d" }}>
                           <span className="absolute left-0 top-0 whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: sel ? C.gold : ac,
                             transform: `translate(-50%,-150%) translateZ(${topZ + bandPx * 0.35}px)${bb}` }}>
@@ -2153,6 +2155,7 @@ function AoMapPane(p: PaneProps) {
                             );
                           })}
                         </div>
+                        )}
                       </>
                     );
                   })()}
@@ -2375,6 +2378,52 @@ function AoMapPane(p: PaneProps) {
                         `repeating-linear-gradient(to right, #6b728077 0 1px, transparent 1px ${cellPx}px),` +
                         `repeating-linear-gradient(to bottom, #6b728077 0 1px, transparent 1px ${cellPx}px)` }} />
                   )}
+                </div>
+              );
+            })()}
+            {/* ── UCRS-2525 SKY DOME — a hemispherical grid over the AO (a celestial dome that
+                 can host sun / moon / planets and horizon-projected distant contacts). Latitude
+                 rings (flat circles at height) + meridian arches (SVG half-ellipses standing
+                 vertically). Its apex height = the altitude scale of the area, so when the ground
+                 AGL surface ends you see the dome behind it. Gated on 3D + ▦ VOXEL. */}
+            {is3d && voxelLayer && [view.lat, view.lon].every(Number.isFinite) && (() => {
+              const bc = project(view.lat, view.lon);
+              const paneW = mapRef.current?.clientWidth ?? 800;
+              // HI: dome REACH = whichever is highest — the distance from centre to the map EDGE,
+              // or the ALTITUDE ceiling (dimensionally accurate) — so a 10k-ft ceiling over a 100k
+              // span reads sensibly instead of a confusing flat sliver. Hemisphere (H = R).
+              const topFt = maxAltFt ?? 10000;
+              const pxPerM = paneW / Math.max(1, view.spanKm * 1000);
+              const altPx = topFt * 0.3048 * pxPerM;        // altitude ceiling in px
+              const edgePx = paneW / 2;                     // centre → map edge in px
+              const R = Math.max(edgePx, altPx);            // reach = max(edge, altitude)
+              const H = R;                                  // hemisphere encloses the operational volume
+              const p = pitch ?? 55;
+              const skyK = p > 85 ? Math.max(0, (88 - p) / 3) : 1;
+              const col = C.cyan;
+              const NR = 6, NM = 6;                         // latitude rings · meridian arches
+              const at = (t: string): React.CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
+              return (
+                <div className="pointer-events-none absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`,
+                  transformStyle: "preserve-3d", zIndex: 9, transform: `rotateZ(${view.bearing}rad)`, opacity: 0.45 * skyK }}>
+                  {/* latitude rings — flat circles at decreasing radius / increasing height */}
+                  {Array.from({ length: NR + 1 }, (_, k) => {
+                    const th = (k / NR) * (Math.PI / 2);
+                    const r = R * Math.cos(th), z = H * Math.sin(th);
+                    if (r < 1) return null;
+                    return <div key={`dlr${k}`} className="rounded-full" style={{ ...at(`translateZ(${z}px)`),
+                      width: 2 * r, height: 2 * r, border: `1px solid ${col}${k === 0 ? "99" : "44"}` }} />;
+                  })}
+                  {/* meridian arches — SVG half-ellipse standing vertically, one per NM (each spans a full meridian) */}
+                  {Array.from({ length: NM }, (_, m) => {
+                    const phi = (m / NM) * 180;
+                    return (
+                      <svg key={`dm${m}`} width={2 * R} height={H} viewBox={`0 0 ${2 * R} ${H}`} style={{ position: "absolute", left: "50%", top: "50%",
+                        marginLeft: -R, marginTop: -H, transformOrigin: "50% 100%", transform: `rotateZ(${phi}deg) rotateX(-90deg)`, overflow: "visible" }}>
+                        <path d={`M 0 ${H} A ${R} ${H} 0 0 1 ${2 * R} ${H}`} fill="none" stroke={col} strokeWidth="1" opacity="0.5" />
+                      </svg>
+                    );
+                  })}
                 </div>
               );
             })()}
