@@ -102,6 +102,28 @@ export function ucrsCellId(lat: number, lon: number, cellM: number, bandIdx?: nu
   return `UCRS ${zone}${latBand(lat)}·E${String(e).padStart(4, "0")}·N${String(n).padStart(4, "0")}${z}`;
 }
 
+/**
+ * UCRS·CELL v2 (P1.3 · F15, Thought Master): UNIVERSAL base-3600 cell address —
+ * `UCRS 14R·0302.2674N·0977.1456W·r500m·Z3`
+ * - zone·latband anchor the region (MGRS-familiar),
+ * - lat/lon as UCRS-degrees (deg ×10 → 3600 full circle) with base-3600 MINUTES as
+ *   the decimal tier: `3600.5` ≡ `3600·1800` — decimal ⇄ minute notation interchangeable,
+ * - `r` = footprint RADIUS in metres (the asset/cell size — the only extent carried),
+ * - optional `Z` altitude band. Body-agnostic (Mars/Moon) — VISION-2525 / LINK-2525.
+ * One UCRS-minute ≈ 3 m of latitude → 1 m-class addressing with the radius qualifier.
+ */
+export function ucrsCell2(lat: number, lon: number, radiusM: number, bandIdx?: number): string {
+  const part = (v: number, pos: string, neg: string) => {
+    const hemi = v < 0 ? neg : pos;
+    const tot = Math.round(Math.abs(v) * 10 * 3600); // total UCRS-minutes (deterministic)
+    const d = Math.floor(tot / 3600), m = tot % 3600;
+    return `${String(d).padStart(4, "0")}.${String(m).padStart(4, "0")}${hemi}`;
+  };
+  const { zone } = latLonToUtm(lat, lon);
+  const z = bandIdx != null ? `·Z${bandIdx}` : "";
+  return `UCRS ${zone}${latBand(lat)}·${part(lat, "N", "S")}·${part(lon, "E", "W")}·r${Math.round(radiusM)}m${z}`;
+}
+
 /** MSL metres of an object given its declared reference (AGL resolves via the sampler). */
 export function objectMslM(o: VoxelObject, sampler: (lat: number, lon: number) => number): number {
   return o.altRef === "AGL" ? sampler(o.lat, o.lon) + o.altM : o.altM;

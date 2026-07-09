@@ -26,7 +26,7 @@
  * World context strip: Natural Earth 50m borders (public domain). Elevation and
  * subsurface layers come later — see docs/security-2525/DATA_SOURCES.md.
  */
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2, Eye } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
@@ -42,7 +42,7 @@ import { MIN_SPAN_KM, MAX_SPAN_KM, shouldHandOffToWorld } from "@/lib/zoom-conti
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
 import { computeTransect, transectLine, type AltObject } from "@/lib/transect";
 import { RANGE_EDGES, BAND_LABELS, mFromFt, bandOccupancy } from "@/lib/voxel";
-import { buildVoxelColumns, fmtLLV, fmtUcrsDms, ucrsCellId } from "@/lib/voxel-grid";
+import { buildVoxelColumns, fmtLLV, fmtUcrsDms, ucrsCellId, ucrsCell2 } from "@/lib/voxel-grid";
 import { bufferPolygon } from "@/lib/aor";
 import { getTile, peekTile } from "@/lib/tile-cache";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
@@ -609,22 +609,27 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
     setFlat({ x: cx - w / 2, y: cy - h / 2, w, h });
     setCenter([lat, lon]); setMode("flat");
   };
+  // F34 (P1.3): Natural Earth 50m runs out of detail below ~2° — zooming past it gave a
+  // featureless blue screen ("crash at 26 km"). FLOOR the flat zoom there; the tactical
+  // AO map is the detail engine (hand off when an AO is within reach, else clamp + hint).
+  const FLAT_MIN_W = 4; // svg units ≈ 2° ≈ 220 km wide
   useWheel(flatSvg, (e) => {
     e.preventDefault();
     const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
     if (flat.w * k >= W * 0.98 && e.deltaY > 0) { setMode("globe"); return; }
-    const nw = Math.min(W, Math.max(0.02, flat.w * k));
-    // zooming IN tight over an AO → hand off to the tactical AO map.
+    const nw = Math.min(W, Math.max(FLAT_MIN_W, flat.w * k));
+    // zooming IN tight → hand off to the tactical AO map when one is within reach.
     // NB: call onEnterAo OUTSIDE setFlat — a parent setState inside a state updater crashes React.
     if (e.deltaY < 0 && onEnterAo && nw < W * 0.03) {
       const mx = flat.x + flat.w / 2, my = flat.y + flat.h / 2;
       const clat = 90 - (my / H) * 180, clon = (mx / W) * 360 - 180;
       let best = "", bd = Infinity;
       for (const a of AOS) { const d = Math.hypot(a.center[0] - clat, a.center[1] - clon); if (d < bd) { bd = d; best = a.key; } }
-      if (best && bd < 1.2) { onEnterAo(best); return; }
+      if (best && bd < 3) { onEnterAo(best); return; }
+      if (flat.w <= FLAT_MIN_W) return; // at the floor, nothing closer to show — never a blue screen
     }
     setFlat((f) => {
-      const w = Math.min(W, Math.max(0.02, f.w * k)), h = w * (f.h / f.w);
+      const w = Math.min(W, Math.max(FLAT_MIN_W, f.w * k)), h = w * (f.h / f.w);
       const mx = f.x + f.w / 2, my = f.y + f.h / 2;
       return { w, h, x: mx - w / 2, y: my - h / 2 };
     });
@@ -718,6 +723,24 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
             <span className="pointer-events-none absolute bottom-1 left-2 z-10 font-mono text-[8px]" style={{ color: C.gold }}>
               {latLonToMgrs(clat, clon, 4)} · {kmW >= 1 ? `${kmW.toFixed(kmW >= 10 ? 0 : 1)} km` : `${Math.round(kmW * 1000)} m`} wide
             </span>
+            {/* FX-17 (P1.3): graphic SCALE bar bottom-left — both maps carry one */}
+            {(() => {
+              const nice = [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500];
+              const target = kmW / 5;
+              const barKm = nice.reduce((p, n) => (Math.abs(n - target) < Math.abs(p - target) ? n : p), nice[0]);
+              return (
+                <span className="pointer-events-none absolute bottom-8 left-2 z-10 flex flex-col gap-0.5">
+                  <span className="font-mono text-[7px]" style={{ color: C.text }}>{barKm >= 1 ? `${barKm} km` : `${barKm * 1000} m`}</span>
+                  <span style={{ width: `${Math.min(45, (barKm / kmW) * 100)}vw`, maxWidth: 160, height: 2, background: C.text, opacity: 0.85 }} />
+                </span>
+              );
+            })()}
+            {/* F34: at the Natural-Earth data floor — degrade LOUDLY, never a blue screen */}
+            {flat.w <= FLAT_MIN_W * 1.05 && (
+              <span className="pointer-events-none absolute bottom-5 left-2 z-10 rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.amber }}>
+                ZOOM FLOOR · NATURAL EARTH 50m — DRILL → AO (▶) for tactical detail
+              </span>
+            )}
           </>
         );
       })()}
@@ -753,6 +776,19 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
         NATURAL EARTH 50m · SCROLL=ZOOM · 3D-GLOBE ⇄ 2D-FLAT · DRILL → AO
       </span>
     </div>
+  );
+}
+
+// FX-09 (P1.3, FLUKE/FLIR entry law): numeric field that lets the user CLEAR while
+// typing — no forced 0. Commits only finite values; blur restores the canonical value.
+function NumInField({ value, onCommit, className, style }: { value: number; onCommit: (v: number) => void; className?: string; style?: React.CSSProperties }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  return (
+    <input type="number" value={draft ?? String(value)}
+      onChange={(e) => { const t = e.target.value; setDraft(t); const v = parseFloat(t); if (Number.isFinite(v)) onCommit(v); }}
+      onBlur={() => setDraft(null)}
+      className={className ?? "w-full rounded border bg-transparent px-1 py-0.5 text-[9px]"}
+      style={style ?? { borderColor: C.border, color: C.text }} />
   );
 }
 
@@ -897,6 +933,15 @@ interface PaneProps {
   placedSupport: PlacedSupport[];
   selected: { kind: "asset" | "support"; id: number } | null;
   selectedAsset: AssetKind | null;
+  onDisarm?: () => void; // FX-03: clear the armed placement tool after a placement
+  coordFmt?: "mgrs" | "dms" | "ucrs";          // FX-13: current Settings format
+  onSetCoordFmt?: (f: "mgrs" | "dms" | "ucrs") => void; // FX-13: packet toggle → Settings
+  maxAltFt?: number | null;                    // FX-09b: user max altitude (null = AUTO)
+  altRedFt?: number | null;                    // FX-05: RED threshold (ft)
+  altYellowFt?: number | null;                 // FX-05: YELLOW threshold (ft)
+  setAltRedFt?: (v: number | null) => void;
+  setAltYellowFt?: (v: number | null) => void;
+  voxelCellM?: number;                         // FX-10: 0/undefined = AUTO (grid step)
   selectedSupport: SupportObjectDef | null;
   reality: RealityMode;
   hoverAsset: AssetKind | null;
@@ -928,7 +973,8 @@ function AoMapPane(p: PaneProps) {
   const {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
-    selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
+    selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
+    maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM,
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, pitch, onPitch, iconScale = 1,
     drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
@@ -990,16 +1036,21 @@ function AoMapPane(p: PaneProps) {
   });
   const rotC = (b: number, inv = false) => { const a = inv ? -b : b; return [Math.sin(a), Math.cos(a)] as const; };
   const rotAround = (x: number, y: number, s: number, c: number) => [0.5 + (x - 0.5) * c - (y - 0.5) * s, 0.5 + (x - 0.5) * s + (y - 0.5) * c] as const;
+  // FX-01 (P1.3): rotate overlays in PIXEL space (aspect-corrected). The plane layer
+  // CSS-rotates in pixels; fraction-space rotation drifted cities/assets on wide panes.
   const project = (lat: number, lon: number) => {
     const f = toFrac(lat, lon);
     const px = f.fx * RENDER - OFF, py = f.fy * RENDER - OFF;
     const [s, c] = rotC(view.bearing);
-    const [fx, fy] = rotAround(px, py, s, c);
-    return { fx, fy };
+    const a = Math.max(0.2, aspect);
+    const X = (px - 0.5) * a, Y = py - 0.5;
+    return { fx: 0.5 + (X * c - Y * s) / a, fy: 0.5 + (X * s + Y * c) };
   };
   const containerToLatLon = (cfx: number, cfy: number) => {
     const [s, c] = rotC(view.bearing, true);
-    const [px, py] = rotAround(cfx, cfy, s, c);
+    const a = Math.max(0.2, aspect);
+    const X = (cfx - 0.5) * a, Y = cfy - 0.5;
+    const px = 0.5 + (X * c - Y * s) / a, py = 0.5 + (X * s + Y * c);
     return toLatLon((px + OFF) / RENDER, (py + OFF) / RENDER);
   };
   const mFrac = (refLat: number, refLon: number, east: number, north: number) => {
@@ -1056,9 +1107,14 @@ function AoMapPane(p: PaneProps) {
     const tls = half ? { p: { brg: 0, left: half, right: half } } : undefined;
     const fov = asset === "sentinel" ? { brg: 0, left: 45, right: 45 } : undefined;
     const angUnit: AngleUnit = asset === "sentinel" ? "mil" : "deg";
+    const id = allocId();
     setPlaced((pl) => [...pl, {
-      id: allocId(), asset, count: item.group, fx, fy, lat, lon, mgrs10: latLonToMgrs(lat, lon, 5), aff: "friendly", tls, fov, unit: angUnit,
+      id, asset, count: item.group, fx, fy, lat, lon, mgrs10: latLonToMgrs(lat, lon, 5), aff: "friendly", tls, fov, unit: angUnit,
     }]);
+    // FX-03 (P1.3): the freshly placed unit is immediately SELECTED and clickable;
+    // the placement tool disarms so the next click doesn't drop another copy.
+    setSelected({ kind: "asset", id });
+    onDisarm?.();
   };
   const placeSupport = (def: SupportObjectDef, fx: number, fy: number) => {
     const { lat, lon } = containerToLatLon(fx, fy);
@@ -1108,6 +1164,12 @@ function AoMapPane(p: PaneProps) {
         const ang = Math.atan2(b.y - a.y, b.x - a.x);
         let dAng = ang - pinchRef.current.ang;
         if (dAng > Math.PI) dAng -= 2 * Math.PI; else if (dAng < -Math.PI) dAng += 2 * Math.PI;
+        // FX-19 (P1.3): phone 3D TILT — two-finger vertical drag moves the pinch midpoint,
+        // driving pitch exactly like the mouse right-drag (2°–88°), alongside zoom + twist.
+        const ncy = (a.y + b.y) / 2;
+        const dcy = ncy - pinchRef.current.cy;
+        pinchRef.current.cy = ncy; pinchRef.current.cx = (a.x + b.x) / 2;
+        if (is3d && onPitch && Math.abs(dcy) > 0.5) onPitch(Math.min(88, Math.max(2, (pitch ?? 55) + dcy * 0.25)));
         pinchRef.current.dist = dist; pinchRef.current.ang = ang;
         setView((v) => ({ ...v, spanKm: Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * factor)), bearing: v.bearing + dAng }));
       } else if (touchRef.current.size === 1 && r) {
@@ -1154,12 +1216,13 @@ function AoMapPane(p: PaneProps) {
       }
       return;
     }
-    if (selectedAsset) place(selectedAsset, f.fx, f.fy);
-    else if (selectedSupport) placeSupport(selectedSupport, f.fx, f.fy);
+    // FX-02 (P1.3): only the LEFT button places or calls up — right stays rotate/tilt
+    if (selectedAsset) { if (button === 0) place(selectedAsset, f.fx, f.fy); }
+    else if (selectedSupport) { if (button === 0) placeSupport(selectedSupport, f.fx, f.fy); }
     else if (selected) setSelected(null);
     // R1: tap EMPTY ground (nothing armed/selected) → CALL UP the coordinate packet
     // (phones have no hover cursor — this is their coordinate read)
-    else setCoordCall({ lat, lon });
+    else if (button === 0) setCoordCall({ lat, lon });
   };
   const onPointerUp = (e: React.PointerEvent) => {
     if (e.pointerType === "touch") {
@@ -1237,13 +1300,14 @@ function AoMapPane(p: PaneProps) {
   const [voxelSel, setVoxelSel] = useState<string | null>(null);
   // P1.2 (Odin): corner HOVER chip — corner coordinate + terrain elevation at the cursor
   const [cornerHover, setCornerHover] = useState<{ key: string; ci: number } | null>(null);
+  const [tiltSlider, setTiltSlider] = useState(false); // FX-21: 📱 tilt slider (phone access)
   const voxelColumns = useMemo(() => {
     if (!is3d) return [];
     const objs = placed.filter((u) => u.altitude != null).map((u) => ({
       id: u.id, lat: u.lat, lon: u.lon, altM: u.altitude!, altRef: (u.altRef ?? "AGL") as "AGL" | "MSL",
       label: ASSET_LABELS[u.asset], color: u.aff === "hostile" ? C.red : C.cyan,
     }));
-    return objs.length ? buildVoxelColumns(objs, sampler, grid.stepM) : [];
+    return objs.length ? buildVoxelColumns(objs, sampler, voxelCellM || grid.stepM) : [];
   }, [is3d, placed, sampler, grid.stepM]);
   // Topographic contours (memoized on box + settings + DEM; real elevation + ocean floor).
   const contourSet = useMemo(
@@ -1377,8 +1441,10 @@ function AoMapPane(p: PaneProps) {
                 {osmPaths && waterOn && (
                   <g>
                     <path d={osmPaths.polyD} fill="#1e6fd955" stroke="#38bdf8" strokeWidth="0.2" />
-                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={Math.min(5, Math.max(0.5, (65 / (view.spanKm * 1000)) * 100))} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.4, Math.max(0.12, (14 / (view.spanKm * 1000)) * 100))} opacity="0.85" strokeLinecap="round" />
+                    {/* FX-11 (P1.3): floors lowered 0.5→0.18 / 0.12→0.05 — the old floor froze
+                        river widths past ~13 km span; now they keep scaling with zoom-out */}
+                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={Math.min(5, Math.max(0.18, (65 / (view.spanKm * 1000)) * 100))} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.4, Math.max(0.05, (14 / (view.spanKm * 1000)) * 100))} opacity="0.85" strokeLinecap="round" />
                   </g>
                 )}
                 {/* ROADS — grey tier hierarchy, clipped to land so none render in water */}
@@ -1486,12 +1552,13 @@ function AoMapPane(p: PaneProps) {
                   // arrowhead
                   const a1 = th + Math.PI * 0.85, a2 = th - Math.PI * 0.85;
                   // R1 feedback: vector must be visually THINNER than the asset icon —
-                  // fixed 1.2px screen stroke (non-scaling) + small head, semi-transparent
+                  // FX-14 (P1.3): thinner still as icons enlarge (3× icons → 0.8px stroke)
+                  const vw = iconScale >= 3 ? 0.8 : iconScale >= 2 ? 1 : 1.2;
                   return (
                     <g key={`trk${u.id}`}>
-                      <line x1={cx} y1={cy} x2={ex} y2={ey} stroke={col} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.75" />
-                      <line x1={ex} y1={ey} x2={ex + 1.1 * Math.sin(a1)} y2={ey - 1.1 * Math.cos(a1)} stroke={col} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.75" />
-                      <line x1={ex} y1={ey} x2={ex + 1.1 * Math.sin(a2)} y2={ey - 1.1 * Math.cos(a2)} stroke={col} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.75" />
+                      <line x1={cx} y1={cy} x2={ex} y2={ey} stroke={col} strokeWidth={vw} vectorEffect="non-scaling-stroke" opacity="0.75" />
+                      <line x1={ex} y1={ey} x2={ex + 1.1 * Math.sin(a1)} y2={ey - 1.1 * Math.cos(a1)} stroke={col} strokeWidth={vw} vectorEffect="non-scaling-stroke" opacity="0.75" />
+                      <line x1={ex} y1={ey} x2={ex + 1.1 * Math.sin(a2)} y2={ey - 1.1 * Math.cos(a2)} stroke={col} strokeWidth={vw} vectorEffect="non-scaling-stroke" opacity="0.75" />
                     </g>
                   );
                 })}
@@ -1719,12 +1786,17 @@ function AoMapPane(p: PaneProps) {
                         style={{ ...(ci === 0 ? { left: -5, top: -5 } : ci === 1 ? { right: -5, top: -5 } : ci === 2 ? { right: -5, bottom: -5 } : { left: -5, bottom: -5 }),
                           border: `1px solid ${cornerHover?.key === col.key && cornerHover.ci === ci ? C.gold : C.cyan}`, background: "#0a0f16cc" }} />
                     ))}
-                    {/* P1.2 (Odin): hover chip — corner coordinate (settings format) + elevation under cursor */}
+                    {/* P1.2 (Odin): hover chip — corner coordinate (settings format) + elevation.
+                        FX-15 (P1.3): chip sits fully OUTSIDE the cube top so it never covers
+                        the TARGET or the corner being read. */}
                     {cornerHover?.key === col.key && (() => {
                       const cn = col.corners[cornerHover.ci];
                       return (
                         <div className="pointer-events-none absolute z-30 whitespace-nowrap rounded px-1 py-0.5 font-mono text-[7px] font-bold"
-                          style={{ ...(cornerHover.ci === 0 ? { left: 0, top: -16 } : cornerHover.ci === 1 ? { right: 0, top: -16 } : cornerHover.ci === 2 ? { right: 0, bottom: -16 } : { left: 0, bottom: -16 }),
+                          style={{ ...(cornerHover.ci === 0 ? { right: "100%", bottom: "100%", marginRight: 6, marginBottom: 6 }
+                            : cornerHover.ci === 1 ? { left: "100%", bottom: "100%", marginLeft: 6, marginBottom: 6 }
+                            : cornerHover.ci === 2 ? { left: "100%", top: "100%", marginLeft: 6, marginTop: 6 }
+                            : { right: "100%", top: "100%", marginRight: 6, marginTop: 6 }),
                             background: "#0a0f16ee", color: C.gold, border: `1px solid ${C.gold}55` }}>
                           {["NW", "NE", "SE", "SW"][cornerHover.ci]} {fmt.coordAt(cn.lat, cn.lon)} · {Math.round(sampler(cn.lat, cn.lon))}m MSL
                         </div>
@@ -1764,12 +1836,13 @@ function AoMapPane(p: PaneProps) {
                     const vc = p.aff === "hostile" ? C.red : C.green;
                     const hx = len * Math.sin(th), hy = -len * Math.cos(th);
                     const a1 = th + Math.PI * 0.85, a2 = th - Math.PI * 0.85, hd = Math.max(4, cellPx * 0.1);
+                    const vw3 = iconScale >= 3 ? 0.8 : iconScale >= 2 ? 1 : 1.2; // FX-14
                     return (
                       <svg key={`vec3${o.id}`} className="pointer-events-none absolute left-1/2 top-1/2" width={cellPx * 3} height={cellPx * 3}
                         viewBox={`${-cellPx * 1.5} ${-cellPx * 1.5} ${cellPx * 3} ${cellPx * 3}`} style={{ transform: `translate(-50%,-50%) translateZ(${zb}px)`, overflow: "visible" }}>
-                        <line x1={0} y1={0} x2={hx} y2={hy} stroke={vc} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.85" />
-                        <line x1={hx} y1={hy} x2={hx + hd * Math.sin(a1)} y2={hy - hd * Math.cos(a1)} stroke={vc} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.85" />
-                        <line x1={hx} y1={hy} x2={hx + hd * Math.sin(a2)} y2={hy - hd * Math.cos(a2)} stroke={vc} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.85" />
+                        <line x1={0} y1={0} x2={hx} y2={hy} stroke={vc} strokeWidth={vw3} vectorEffect="non-scaling-stroke" opacity="0.85" />
+                        <line x1={hx} y1={hy} x2={hx + hd * Math.sin(a1)} y2={hy - hd * Math.cos(a1)} stroke={vc} strokeWidth={vw3} vectorEffect="non-scaling-stroke" opacity="0.85" />
+                        <line x1={hx} y1={hy} x2={hx + hd * Math.sin(a2)} y2={hy - hd * Math.cos(a2)} stroke={vc} strokeWidth={vw3} vectorEffect="non-scaling-stroke" opacity="0.85" />
                       </svg>
                     );
                   })}
@@ -1794,27 +1867,70 @@ function AoMapPane(p: PaneProps) {
             {/* TILT readout (P1) — the cue that elevation is ACTIVE: right-drag ↕ swings the
                 voxel view straight-down-the-voxel (2°) ⇄ nearly ground-parallel (88°) */}
             {is3d && (
-              <div className="pointer-events-none absolute left-1/2 top-7 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan }}>
-                TILT {Math.round(pitch ?? 55)}° <span style={{ color: C.dim }}>{(pitch ?? 55) < 35 ? "· TOP-DOWN" : (pitch ?? 55) > 70 ? "· HORIZON" : ""} right-drag ↕</span>
+              <div className="absolute left-1/2 top-7 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan, pointerEvents: "auto" }}>
+                {/* FX-21: hint FIRST, then TILT n°, then 📱 opens the slider (phone access) */}
+                <span style={{ color: C.dim }}>{(pitch ?? 55) < 35 ? "TOP-DOWN · " : (pitch ?? 55) > 70 ? "HORIZON · " : ""}right-drag ↕ · </span>
+                TILT {Math.round(pitch ?? 55)}°
+                <button onClick={() => setTiltSlider((s) => !s)} title="Tilt slider — same as Settings" style={{ marginLeft: 4 }}>📱</button>
               </div>
             )}
-            {/* LEFT ALTITUDE rail (R1 feedback) — voxel band scale, ft MSL, reference style */}
+            {/* FX-21: fixed-width tilt slider, pinned under the coordinate readout */}
+            {is3d && tiltSlider && (
+              <div className="absolute right-2 top-7 z-30 rounded border px-2 py-1" style={{ background: "#0a0f16ee", borderColor: C.cyan, width: 170 }}>
+                <div className="mb-0.5 font-mono text-[7px] font-bold" style={{ color: C.cyan }}>TILT {Math.round(pitch ?? 55)}° <span style={{ color: C.dim }}>2–88</span></div>
+                <input type="range" min={2} max={88} value={Math.round(pitch ?? 55)} onChange={(e) => onPitch?.(parseInt(e.target.value))} className="w-full" />
+              </div>
+            )}
+            {/* FX-08 (P1.3): VOXEL onboarding — how to activate/read/release a voxel */}
             {is3d && (
-              <div className="pointer-events-none absolute bottom-10 left-1 top-9 z-20 flex w-12 flex-col justify-between rounded px-1 py-1" style={{ background: "#0a0f16aa" }}>
-                <span className="text-[6px] font-bold tracking-wider" style={{ color: C.dim }}>ALTITUDE<br />(ft MSL)</span>
-                {["10,000", "7,500", "5,000", "2,500", "1,000", "500"].map((ft) => (
-                  <span key={ft} className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.text }}>
-                    <span className="inline-block h-px w-2" style={{ background: C.cyan }} />{ft}
-                  </span>
-                ))}
-                <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.gold }}>
-                  <span className="inline-block h-px w-2" style={{ background: C.gold }} />SURFACE
-                </span>
-                <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: "#22d3ee" }}>
-                  <span className="inline-block h-px w-2" style={{ background: "#22d3ee" }} />-1,000
-                </span>
+              <div className="pointer-events-none absolute left-1/2 top-12 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[7px]" style={{ background: "#0a0f16aa", color: C.dim }}>
+                VOXEL: tap a placed unit → its cube · TARGET/corners = coordinates · tap cube TOP to release
               </div>
             )}
+            {/* LEFT ALTITUDE rail (R1 feedback) — voxel band scale, reference style.
+                FX-05: RED/YELLOW threshold entry at the rail TOP + marker lines;
+                FX-09b: top band = maxAltFt when user-set (AUTO = 10k ft);
+                labels honor the Units setting via fmt.fmtElev. */}
+            {is3d && (() => {
+              const topFt = maxAltFt ?? 10000;
+              const levels = maxAltFt ? [1, 0.75, 0.5, 0.25, 0.1, 0.05].map((k) => Math.round(maxAltFt * k)) : [10000, 7500, 5000, 2500, 1000, 500];
+              const lbl = (ft: number) => fmt.fmtElev(ft / 3.28084);
+              const thrTop = (ft: number) => `${(14 + (1 - Math.min(1, Math.max(0, ft / topFt))) * 68).toFixed(1)}%`;
+              return (
+                <div className="pointer-events-none absolute bottom-10 left-1 top-9 z-20 flex w-14 flex-col justify-between rounded px-1 py-1" style={{ background: "#0a0f16aa" }}>
+                  <span className="text-[6px] font-bold tracking-wider" style={{ color: C.dim }}>ALTITUDE<br />(MSL)</span>
+                  {/* FX-05: threshold entry — RED / YELLOW (ft), FLUKE-style clearable */}
+                  <span className="pointer-events-auto flex items-center gap-0.5">
+                    <span className="font-mono text-[6px] font-bold" style={{ color: C.red }}>R</span>
+                    <NumInField value={altRedFt ?? 0} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)}
+                      className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
+                  </span>
+                  <span className="pointer-events-auto flex items-center gap-0.5">
+                    <span className="font-mono text-[6px] font-bold" style={{ color: C.amber }}>Y</span>
+                    <NumInField value={altYellowFt ?? 0} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)}
+                      className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
+                  </span>
+                  {levels.map((ft) => (
+                    <span key={ft} className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.text }}>
+                      <span className="inline-block h-px w-2" style={{ background: C.cyan }} />{lbl(ft)}
+                    </span>
+                  ))}
+                  <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.gold }}>
+                    <span className="inline-block h-px w-2" style={{ background: C.gold }} />SURFACE
+                  </span>
+                  <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: "#22d3ee" }}>
+                    <span className="inline-block h-px w-2" style={{ background: "#22d3ee" }} />{lbl(-1000)}
+                  </span>
+                  {/* FX-05: threshold marker lines on the rail */}
+                  {altRedFt != null && altRedFt > 0 && (
+                    <span className="absolute left-0 right-0" style={{ top: thrTop(altRedFt), height: 2, background: C.red, boxShadow: `0 0 4px ${C.red}` }} />
+                  )}
+                  {altYellowFt != null && altYellowFt > 0 && (
+                    <span className="absolute left-0 right-0" style={{ top: thrTop(altYellowFt), height: 2, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
+                  )}
+                </div>
+              );
+            })()}
             {/* COORDINATE CALL-UP (R1) — tap empty ground: the location addressed 3 ways.
                 On phones this replaces the mouse-hover readout. */}
             {coordCall && (() => {
@@ -1831,8 +1947,18 @@ function AoMapPane(p: PaneProps) {
                     <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{fmt.mgrsAt(coordCall.lat, coordCall.lon)}</span>
                     <span style={{ color: C.dim }}>LLV-DMS</span><span style={{ color: C.text }}>{fmtLLV(coordCall.lat, coordCall.lon)}</span>
                     <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{fmtUcrsDms(coordCall.lat, coordCall.lon)}</span>
-                    <span style={{ color: C.dim }}>UCRS·CELL</span><span style={{ color: C.cyan }}>{ucrsCellId(coordCall.lat, coordCall.lon, grid.stepM)}</span>
+                    <span style={{ color: C.dim }}>UCRS·CELL <span title="UCRS·CELL v2 — universal base-3600 address: zone · lat 3600-deg.min · lon 3600-deg.min · r = footprint radius (m). Decimal ⇄ minute interchangeable: 3600.5 ≡ 3600·1800. Body-agnostic (Mars/Moon) — VISION-2525 / LINK-2525." style={{ cursor: "help", color: C.cyan }}>ⓘ</span></span>
+                    <span style={{ color: C.cyan }}>{ucrsCell2(coordCall.lat, coordCall.lon, grid.stepM / 2)}</span>
                     <span style={{ color: C.dim }}>ELEV</span><span style={{ color: C.gold }}>{Math.round(elevM)}m · {Math.round(elevM * 3.28084)} ft MSL</span>
+                  </div>
+                  {/* FX-13 (P1.3): PRIMARY format toggle — defaults from Settings, and
+                      changing it HERE writes straight back to Settings (two-way). */}
+                  <div className="mt-1 flex items-center gap-1 border-t pt-1" style={{ borderColor: C.border }}>
+                    <span style={{ color: C.dim }}>PRIMARY</span>
+                    {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["ucrs", "UCRS-2525"]] as const).map(([fk, lb]) => (
+                      <button key={fk} onClick={() => onSetCoordFmt?.(fk)} className="rounded border px-1 py-0"
+                        style={{ borderColor: coordFmt === fk ? C.cyan : C.border, color: coordFmt === fk ? C.cyan : C.dim }}>{lb}</button>
+                    ))}
                   </div>
                 </div>
               );
@@ -1853,7 +1979,8 @@ function AoMapPane(p: PaneProps) {
                     <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{col.mgrs}</span>
                     <span style={{ color: C.dim }}>LLV-DMS</span><span style={{ color: C.text }}>{col.llv}</span>
                     <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{col.ucrsDms}</span>
-                    <span style={{ color: C.dim }}>UCRS·CELL</span><span style={{ color: C.cyan }}>{col.ucrs}</span>
+                    <span style={{ color: C.dim }}>UCRS·CELL <span title="UCRS·CELL v2 — universal base-3600 address: zone · lat 3600-deg.min · lon 3600-deg.min · r = footprint radius (m). Decimal ⇄ minute interchangeable: 3600.5 ≡ 3600·1800. Body-agnostic (Mars/Moon) — VISION-2525 / LINK-2525." style={{ cursor: "help", color: C.cyan }}>ⓘ</span></span>
+                    <span style={{ color: C.cyan }}>{ucrsCell2(col.lat, col.lon, col.cellM / 2)}</span>
                     <span style={{ color: C.dim }}>CELL</span><span style={{ color: C.text }}>{col.cellM >= 1000 ? `${col.cellM / 1000} km` : `${col.cellM} m`} · TERRAIN {Math.round(col.terrainM)}m MSL</span>
                   </div>
                   <div className="mt-1 border-t pt-1" style={{ borderColor: C.border }}>
@@ -1983,6 +2110,15 @@ function AoMapPane(p: PaneProps) {
                     </span>
                   );
                 }
+                // FX-12 (P1.3): red NORTH glyph rides the edge with the bearing — 2D AND 3D
+                if (deg === 0) {
+                  marks.push(
+                    <span key="north" className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[10px] font-black"
+                      style={{ left: `calc(${bx * 100}% - ${(dx * 30).toFixed(2)}px)`, top: `calc(${by * 100}% - ${(dy * 30).toFixed(2)}px)`, color: C.red }}>
+                      N
+                    </span>
+                  );
+                }
               }
               return marks;
             })()}
@@ -2094,12 +2230,19 @@ interface RailProps {
   reality: RealityMode; setReality: (r: RealityMode) => void;
   onUndoLastPlacement: () => void; clearAo: () => void;
   routeMode: boolean; onHide: () => void;
+  // FX-04 (P1.3): the selected placed unit's inspector renders DIRECTLY UNDER its
+  // asset row as an accordion; minimizing it keeps the rest of the list visible.
+  selectedKind?: AssetKind | null;
+  inspector?: React.ReactNode;
+  inspectorOpen?: boolean;
+  setInspectorOpen?: (b: boolean) => void;
 }
 function PlacementRail(r: RailProps) {
   const {
     iconStyle, inventory, tab, setTab, selectedAsset, setSelectedAsset, selectedSupport, setSelectedSupport,
     hoverAsset, setHoverAsset, openGroups, setOpenGroups, reality, setReality,
     onUndoLastPlacement, clearAo, routeMode, onHide,
+    selectedKind, inspector, inspectorOpen = true, setInspectorOpen,
   } = r;
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -2120,7 +2263,8 @@ function PlacementRail(r: RailProps) {
               const empty = i.stock < i.group;
               const isArmed = selectedAsset === i.asset;
               return (
-                <div key={i.asset}
+                <Fragment key={i.asset}>
+                <div
                   draggable={!empty}
                   onDragStart={(e) => e.dataTransfer.setData("text/plain", i.asset)}
                   onClick={() => !empty && (setSelectedSupport(null), setSelectedAsset(isArmed ? null : i.asset))}
@@ -2135,6 +2279,19 @@ function PlacementRail(r: RailProps) {
                   </div>
                   <span className="font-mono text-[11px]" style={{ color: empty ? C.red : C.green }}>×{i.stock}</span>
                 </div>
+                {/* FX-04: selected unit's info accordion — directly under ITS asset row */}
+                {selectedKind === i.asset && inspector && (
+                  <div className="rounded border" style={{ borderColor: `${C.gold}66`, background: "#0d1420" }}>
+                    <button onClick={() => setInspectorOpen?.(!inspectorOpen)}
+                      className="flex w-full items-center justify-between px-2 py-1 text-[9px] font-bold tracking-wider"
+                      style={{ color: C.gold }}>
+                      <span>SELECTED · {ASSET_LABELS[i.asset]}</span>
+                      <span>{inspectorOpen ? "▾" : "▸"}</span>
+                    </button>
+                    {inspectorOpen && <div className="max-h-72 overflow-y-auto">{inspector}</div>}
+                  </div>
+                )}
+                </Fragment>
               );
             })}
           </div>
@@ -2296,8 +2453,7 @@ function ItemInspector(p: InspectorProps) {
               const unitOpts: AngleUnit[] = ["deg", "mil", "ucrs"];
               const upd = (key: "fov" | "p" | "s" | "t", tl: TL | null) => (key === "fov" ? onUpdAsset(a.id, { fov: tl ?? undefined }) : onSetTL(a.id, key, tl));
               const numIn = (val: number, on: (deg: number) => void) => (
-                <input type="number" value={Math.round(toUnit(val, u))} onChange={(e) => on(fromUnit(parseFloat(e.target.value || "0"), u))}
-                  className="w-full rounded border bg-transparent px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.text }} />
+                <NumInField value={Math.round(toUnit(val, u))} onCommit={(v) => on(fromUnit(v, u))} />
               );
               const tlRow = (key: "fov" | "p" | "s" | "t", lb: string, tl: TL | null | undefined, col: string) => (
                 <div className="mb-1.5 rounded border p-1" style={{ borderColor: `${col}55` }}>
@@ -2684,9 +2840,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   // R1 feedback: mini-map RESIZABLE like a traditional window — all four edges
   // + bottom-right corner. Left/top drags keep the opposite edge fixed.
   const [miniSize, setMiniSize] = useState<{ w: number; h: number } | null>(null);
-  const miniEdge = useRef<null | "l" | "r" | "t" | "b" | "br">(null);
+  // FX-07 (P1.3): all FOUR corners resize, like a traditional window
+  const miniEdge = useRef<null | "l" | "r" | "t" | "b" | "br" | "bl" | "tr" | "tl">(null);
   const MINI_MIN = { w: 220, h: 170 };
-  const onMiniEdgeDown = (edge: "l" | "r" | "t" | "b" | "br") => (e: React.PointerEvent<HTMLDivElement>) => {
+  const onMiniEdgeDown = (edge: "l" | "r" | "t" | "b" | "br" | "bl" | "tr" | "tl") => (e: React.PointerEvent<HTMLDivElement>) => {
     miniEdge.current = edge;
     e.currentTarget.setPointerCapture(e.pointerId);
     e.stopPropagation();
@@ -2697,15 +2854,15 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (!edge || !mini) return;
     const mb = mini.getBoundingClientRect();
     let w = mb.width, h = mb.height;
-    if (edge === "r" || edge === "br") w = e.clientX - mb.left;
-    if (edge === "b" || edge === "br") h = e.clientY - mb.top;
-    if (edge === "l") {
+    if (edge === "r" || edge === "br" || edge === "tr") w = e.clientX - mb.left;
+    if (edge === "b" || edge === "br" || edge === "bl") h = e.clientY - mb.top;
+    if (edge === "l" || edge === "bl" || edge === "tl") {
       w = mb.right - e.clientX;
       if (miniPos) setMiniPos({ x: Math.min(e.clientX, mb.right - MINI_MIN.w), y: miniPos.y });
     }
-    if (edge === "t") {
+    if (edge === "t" || edge === "tr" || edge === "tl") {
       h = mb.bottom - e.clientY;
-      if (miniPos) setMiniPos({ x: miniPos.x, y: Math.max(stickyBottom(), Math.min(e.clientY, mb.bottom - MINI_MIN.h)) });
+      if (miniPos) setMiniPos({ x: miniPos?.x ?? 0, y: Math.max(stickyBottom(), Math.min(e.clientY, mb.bottom - MINI_MIN.h)) });
     }
     setMiniSize({
       w: Math.min(Math.max(MINI_MIN.w, w), window.innerWidth - 8),
@@ -2728,6 +2885,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [symbologyMode, setSymbologyMode] = useState<"mil" | "exel" | "hybrid">("mil"); // MIL-STD-2525 | eXeL-STD-2525 | Hybrid
   const [iconSize, setIconSize] = useState<"s" | "m" | "l">("s"); // P2: icon visibility — S(1×)/M(1.75×)/L(3×)
   const ICON_SCALE = { s: 1, m: 2, l: 3 } as const; // P1.2 (Enki): M = 2× current, L = 3×
+  const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
+  const [altRedFt, setAltRedFt] = useState<number | null>(null);      // FX-05: RED altitude threshold
+  const [altYellowFt, setAltYellowFt] = useState<number | null>(null);// FX-05: YELLOW altitude threshold
+  const [voxelCellM, setVoxelCellM] = useState<0 | 100 | 1000>(0);    // FX-10: 0 = AUTO (grid step)
+  const [railInspOpen, setRailInspOpen] = useState(true);             // FX-04: left-rail accordion
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
@@ -2993,6 +3155,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const paneCommon = {
     ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
+    onDisarm: () => { setSelectedAsset(null); setSelectedSupport(null); },
+    coordFmt, onSetCoordFmt: setCoordFmt,
+    maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
   }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view.
@@ -3338,13 +3503,26 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   style={{ background: cursorMode === m ? "#152238" : "transparent", color: cursorMode === m ? C.cyan : C.dim }}>{label}</button>
               ))}
             </div>
-            {/* Map engine A/B — CURRENT (shipped) vs 6-FACE β (prefetch pull-as-you-need) */}
+            {/* Map engine A/B — CURRENT (shipped) vs β + Seed-of-Life 6 (prefetch pull-as-you-need).
+                FX-20 (P1.3): "6-FACE" wording removed — the 6-circle Seed of Life IS the icon. */}
             <div className="mt-2 border-t pt-2" style={{ borderColor: C.border }}>
               <div className="mb-1 text-[10px]" style={{ color: C.text }}>Map engine <span className="text-[8px]" style={{ color: C.dim }}>(A/B test)</span></div>
               <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
-                {([["current", "CURRENT"], ["beta", "6-FACE β"]] as const).map(([m, label]) => (
+                {(["current", "beta"] as const).map((m) => (
                   <button key={m} onClick={() => setMapEngine(m)} className="flex-1 px-2 py-1"
-                    style={{ background: mapEngine === m ? "#152238" : "transparent", color: mapEngine === m ? C.cyan : C.dim }}>{label}</button>
+                    style={{ background: mapEngine === m ? "#152238" : "transparent", color: mapEngine === m ? C.cyan : C.dim }}>
+                    {m === "current" ? "CURRENT" : (
+                      <span className="inline-flex items-center justify-center gap-1">
+                        β
+                        <svg width="12" height="12" viewBox="-10 -10 20 20" aria-hidden>
+                          {[0, 60, 120, 180, 240, 300].map((a) => (
+                            <circle key={a} cx={(4.5 * Math.sin((a * Math.PI) / 180)).toFixed(2)} cy={(-4.5 * Math.cos((a * Math.PI) / 180)).toFixed(2)} r="4.5"
+                              fill="none" stroke="currentColor" strokeWidth="0.9" />
+                          ))}
+                        </svg>
+                      </span>
+                    )}
+                  </button>
                 ))}
               </div>
               <div className="mt-1 text-[7px]" style={{ color: C.dim }}>β prefetches zoom-in/out DEM tiles so the next zoom is instant. Safe to toggle live.</div>
@@ -3353,8 +3531,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             <div className="mt-2 border-t pt-2" style={{ borderColor: C.border }}>
               <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>3D Elevation Mode</div>
               <div className="mb-1 flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: C.dim }}>View angle {pitch}°</span>
-                <input type="range" min={2} max={88} value={pitch} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
+                {/* FX-22: 3-decimal in MGRS/DMS; base-3600 A.B (UCRS-deg.min) in UCRS-2525 */}
+                <span className="text-[9px]" style={{ color: C.dim }}>View angle {coordFmt === "ucrs"
+                  ? (() => { const tot = Math.round(pitch * 10 * 3600); return `${String(Math.floor(tot / 3600)).padStart(4, "0")}.${String(tot % 3600).padStart(4, "0")}`; })()
+                  : `${pitch.toFixed(3)}°`}</span>
+                <input type="range" min={2} max={88} value={Math.round(pitch)} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
               </div>
               <div className="mb-1 text-[9px]" style={{ color: C.text }}>Symbology standard</div>
               <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
@@ -3370,6 +3551,26 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   {([["s", "SMALL"], ["m", "MEDIUM"], ["l", "LARGE"]] as const).map(([k, label]) => (
                     <button key={k} onClick={() => setIconSize(k)} className="px-1.5 py-0.5"
                       style={{ background: iconSize === k ? "#152238" : "transparent", color: iconSize === k ? C.cyan : C.dim }}>{label}</button>
+                  ))}
+                </div>
+              </div>
+              {/* FX-09b: max altitude — AUTO (10k ft) or user-fixed via data entry */}
+              <div className="mt-1.5 mb-1 flex items-center justify-between">
+                <span className="text-[9px]" style={{ color: C.text }}>Max altitude (ft)</span>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setMaxAltFt(null)} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
+                    style={{ borderColor: maxAltFt == null ? C.green : C.border, color: maxAltFt == null ? C.green : C.dim }}>AUTO</button>
+                  <NumInField value={maxAltFt ?? 10000} onCommit={(v) => setMaxAltFt(v > 0 ? v : null)}
+                    className="w-14 rounded border bg-transparent px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: C.text }} />
+                </div>
+              </div>
+              {/* FX-10: voxel cell size — AUTO snaps to the visible grid step */}
+              <div className="mt-1 mb-1 flex items-center justify-between">
+                <span className="text-[9px]" style={{ color: C.text }}>Voxel cell</span>
+                <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                  {([[0, "AUTO"], [100, "100 m"], [1000, "1 km"]] as const).map(([v, label]) => (
+                    <button key={v} onClick={() => setVoxelCellM(v)} className="px-1.5 py-0.5"
+                      style={{ background: voxelCellM === v ? "#152238" : "transparent", color: voxelCellM === v ? C.cyan : C.dim }}>{label}</button>
                   ))}
                 </div>
               </div>
@@ -3395,7 +3596,15 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               openGroups={openGroups} setOpenGroups={setOpenGroups}
               reality={reality} setReality={setReality}
               onUndoLastPlacement={undoLastPlacement} clearAo={clearAo}
-              routeMode={routeMode} onHide={() => setRailOpen(false)} />
+              routeMode={routeMode} onHide={() => setRailOpen(false)}
+              selectedKind={selected?.kind === "asset" ? (selectedObj as Placed | null)?.asset ?? null : null}
+              inspectorOpen={railInspOpen} setInspectorOpen={setRailInspOpen}
+              inspector={<ItemInspector selected={selected} selectedObj={selectedObj} fmt={fmt} coordFmt={coordFmt} digits={digits}
+                nudgeM={nudgeM} setNudgeM={setNudgeM} coordText={coordText} setCoordText={setCoordText}
+                onSetAff={setAff} onSetPlacedReality={setPlacedReality} onUpdAsset={updAsset} onSetTL={setTL}
+                onNudge={nudge} onSetCoord={setCoord} onRemoveSelected={removeSelected}
+                terrainAtSel={selectedObj ? inspSampler(selectedObj.lat, selectedObj.lon) : undefined}
+                reality={reality} planStatus={planStatus} />} />
           </div>
           {/* TRACK controls live with the selected asset in the RIGHT rail (ItemInspector) */}
           </div>
@@ -3446,7 +3655,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <div onPointerDown={onMiniGripDown} onPointerMove={onMiniGripMove} onPointerUp={onMiniGripUp} onPointerCancel={onMiniGripUp}
                 className="flex shrink-0 cursor-move touch-none select-none items-center justify-between border-b px-2 py-0.5"
                 style={{ background: "#0c1420", borderColor: C.cyan }}>
-                <span className="text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>⠿ MINI · DRAG</span>
+                {/* FX-07: drag dots CENTERED in the banner */}
+                <span className="flex-1 text-center text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>⠿ MINI · DRAG</span>
                 <div className="flex items-center gap-1">
                   {miniPos && (
                     <button onClick={() => setMiniPos(null)} onPointerDown={(e) => e.stopPropagation()} title="Dock back to bottom-right of the map"
@@ -3481,6 +3691,13 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <div onPointerDown={onMiniEdgeDown("br")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
                 title="Drag to resize" className="absolute bottom-0 right-0 z-20 flex h-4 w-4 cursor-nwse-resize touch-none items-end justify-end pb-0.5 pr-0.5"
                 style={{ color: C.cyan }}>◢</div>
+              {/* FX-07: the other three corners resize too */}
+              <div onPointerDown={onMiniEdgeDown("bl")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
+                className="absolute bottom-0 left-0 z-20 h-4 w-4 cursor-nesw-resize touch-none" />
+              <div onPointerDown={onMiniEdgeDown("tr")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
+                className="absolute right-0 top-0 z-20 h-4 w-4 cursor-nesw-resize touch-none" />
+              <div onPointerDown={onMiniEdgeDown("tl")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
+                className="absolute left-0 top-0 z-20 h-4 w-4 cursor-nwse-resize touch-none" />
             </div>
           ) : (
             <button onClick={() => setMiniOpen(true)} title="Show mini-map"

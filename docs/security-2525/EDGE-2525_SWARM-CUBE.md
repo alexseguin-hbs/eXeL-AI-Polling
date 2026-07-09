@@ -29,3 +29,32 @@ re-balances with no coordinator round-trip.
 2. Loss auto-adjust: when a tile/node request fails, neighbors widen their face coverage
    (coarser tile substitution) instead of leaving a hole — mirror of swarm re-balance.
 3. Same contract carried to drone/asset state over COMM/SYNC-2525 buses (HITL replay-safe).
+
+## MASS-AI · Modular Autonomous System doctrine (Thought Master, 2026-07-09)
+Modular thinking for EVERY system — sensors, compute, mobility — so the swarm stays
+functional through loss AND through hardware swaps, never binary alive/dead:
+
+- **Sensor knockout ≠ system death.** A robotic system with one sensor knocked out stays
+  OPERATIONAL — remaining sensors re-cover; risk rises, speed/mobility may drop, but the
+  node keeps serving the swarm (degraded-mode contract, not failure).
+- **Modular sensor swap auto-calibrates the stack.** Swap a 4K camera for 1080p (modular
+  by design): CNN input resolution, resolution monitoring, video FPS rendering, and
+  inference cadence ALL auto-adjust to stay effective at the new intake. Vision-2525 HAL
+  slot law applied to perception: any slot upgrade/downgrade → auto-recalibration.
+- **Mobility morphology re-tunes inference.** Legs/mounts → wheels: speed rises, so the
+  system's inference rate rises to match closure rates. Quadcopter vs fixed-wing: speed
+  and sensor cadence push inference to its max while RESOLUTION intake is reduced so
+  **power consistency is met** — the power budget is a first-class constraint.
+- **OPTIMAL / SUB-OPTIMAL capability broadcast.** Every node continuously publishes its
+  current capability envelope (sensor res, FPS, inference rate, speed, power state).
+  SYNC · LINK · COMMS · UCRS adjust to the node's ACTUAL performance — every CUBE and
+  LINK updated so the whole swarm stays in the loop on each member's real capabilities.
+- **Swarm centroid tracked always.** The 0.0…0 radium — the radius/center of the swarm —
+  is tracked consistently in 2D and 3D (UCRS·CELL arithmetic makes the centroid and
+  member offsets pure math), so formation, coverage, and re-balance decisions have one
+  shared origin even as members drop, swap hardware, or change morphology.
+
+Crash-fix precedent (F34, 2026-07-09): the flat Earth view zooming past its data floor
+into a featureless blue screen is the same failure class — a node exceeding its sensor's
+envelope. Fix pattern: FLOOR at the envelope edge, hand off to the finer engine when one
+is in reach, degrade loudly (hint) instead of failing silently.
