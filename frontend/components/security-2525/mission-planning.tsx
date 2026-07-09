@@ -2124,9 +2124,16 @@ function AoMapPane(p: PaneProps) {
               const bc = project(view.lat, view.lon);
               const paneW = mapRef.current?.clientWidth ?? 800;
               const cellPx = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW);
-              const bandPx = cellPx;                                     // FX (HI 1.3.3): AUTO altitude — pixels-HIGH == pixels-WIDE (topZ == boxW), a raw 1:1 cube; perspective is what foreshortens it on screen
+              // FX (HI 1.3.3): ALWAYS draw the box. Default = pixels-HIGH == pixels-WIDE (1:1
+              // cube). If the max altitude is set BELOW the proportional height, the cube
+              // COMPRESSES vertically so the operator SEES the adjustment; it never stretches
+              // beyond 1:1. propM = the metres that make the cube square (3 cells wide).
               const boxW = 3 * cellPx;
-              const topZ = 3 * bandPx;                                   // == boxW → pixels-high = pixels-wide
+              const maxAltM = (maxAltFt ?? 10000) / 3.28084;
+              const propM = 3 * effCellM;
+              const hFactor = Math.max(0.12, Math.min(1, maxAltM / propM));
+              const bandPx = cellPx * hFactor;
+              const topZ = 3 * bandPx;                                   // == boxW at 1:1; < boxW when altitude compressed
               const railBands = Math.max(latticeColumns[0].cubes.filter((cb) => cb.bandIdx > 0).length, 3);
               const limitZ = Math.max(topZ, (voxelLimitPct / 100) * railBands * bandPx);
               const line = `${C.cyan}55`;
