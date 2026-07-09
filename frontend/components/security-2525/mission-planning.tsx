@@ -311,8 +311,10 @@ const AD_HALF: Partial<Record<AssetKind, number>> = { patriot: 60, thaad: 90 };
 // a weapons-planning coverage aid, NOT a targeting authority. Sources: manufacturer
 // & defense-press public data (Stinger ~8 km; PAC-3/MSE ~35 km; THAAD ~200 km;
 // AN/MPQ-64 Sentinel detection ~75 km). X-BAT/AUTO-FOIL are program-nominal.
+// HI: only AIR-DEFENCE systems carry a coverage RING. X-BAT (UAS swarm) + AUTO-FOIL
+// (autonomous effector) are aerial EFFECTORS, not defended volumes → NO range ellipsoid.
 const ASSET_RANGE_KM: Partial<Record<AssetKind, number>> = {
-  avenger: 8, patriot: 35, thaad: 200, sentinel: 75, xbat: 15, autofoil: 10,
+  avenger: 8, patriot: 35, thaad: 200, sentinel: 75,
 };
 
 // ── World border context strip (Natural Earth 50m, self-hosted) ──────────────
