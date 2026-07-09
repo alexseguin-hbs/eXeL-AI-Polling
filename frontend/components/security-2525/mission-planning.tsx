@@ -1111,9 +1111,11 @@ function AoMapPane(p: PaneProps) {
     setPlaced((pl) => [...pl, {
       id, asset, count: item.group, fx, fy, lat, lon, mgrs10: latLonToMgrs(lat, lon, 5), aff: "friendly", tls, fov, unit: angUnit,
     }]);
-    // FX-03 (P1.3, revised): the freshly placed unit is SELECTED; the tool STAYS
-    // armed for repeat placement — ESC exits placement into select mode.
+    // FX-03 (P1.3 round 3, HI): placing a unit DISARMS the tool — one placement
+    // per palette pick, straight back to SELECT mode with the new unit selected
+    // (in 3D its VOXEL·CUBE auto-shows via the voxel-on-select effect).
     setSelected({ kind: "asset", id });
+    onDisarm?.();
   };
   const placeSupport = (def: SupportObjectDef, fx: number, fy: number) => {
     const { lat, lon } = containerToLatLon(fx, fy);
@@ -1133,6 +1135,7 @@ function AoMapPane(p: PaneProps) {
   };
   // Pointer handlers — LEFT pan / RIGHT rotate; touch pan + pinch.
   const onPointerDown = (e: React.PointerEvent) => {
+    if (e.button === 0) setHook(null); // left-click anywhere releases the cursor hook
     if (e.pointerType === "touch") {
       touchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -1168,7 +1171,7 @@ function AoMapPane(p: PaneProps) {
         const ncy = (a.y + b.y) / 2;
         const dcy = ncy - pinchRef.current.cy;
         pinchRef.current.cy = ncy; pinchRef.current.cx = (a.x + b.x) / 2;
-        if (is3d && onPitch && Math.abs(dcy) > 0.5) onPitch(Math.min(85, Math.max(11, (pitch ?? 55) + dcy * 0.25)));
+        if (is3d && onPitch && Math.abs(dcy) > 0.5) onPitch(Math.min(88, Math.max(11, (pitch ?? 55) + dcy * 0.25)));
         pinchRef.current.dist = dist; pinchRef.current.ang = ang;
         setView((v) => ({ ...v, spanKm: Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * factor)), bearing: v.bearing + dAng }));
       } else if (touchRef.current.size === 1 && r) {
@@ -1188,10 +1191,10 @@ function AoMapPane(p: PaneProps) {
     d.x = e.clientX; d.y = e.clientY;
     if (d.btn === 2) {
       // right-drag: horizontal = bearing; vertical in 3D = TILT (R1: swing the voxel
-      // view from near-OVERHEAD 15° down to almost flat across the HORIZON 85°)
-      // P1.3 hotfix (Thought Master): 11°–85°. 11° = near-overhead (was 15); 85° max —
-      // beyond 85 the lifted relief contours read as floating "green lines" in the sky.
-      if (is3d && onPitch) onPitch(Math.min(85, Math.max(11, (pitch ?? 55) + dy * 0.35)));
+      // view from near-OVERHEAD 11° down to almost flat across the HORIZON 88°).
+      // P1.3 round 3 (HI): 85→88 — the sky-line artifact is gone because the relief
+      // lift now fades to flat above 85°, and the compass WALL owns the horizon.
+      if (is3d && onPitch) onPitch(Math.min(88, Math.max(11, (pitch ?? 55) + dy * 0.35)));
       setView((v) => ({ ...v, bearing: v.bearing - (dx / r.width) * Math.PI }));
     } else {
       panBy(dx / r.width, dy / r.height);
@@ -1241,9 +1244,12 @@ function AoMapPane(p: PaneProps) {
 
   // Reset the draft + coordinate call-up when the AO changes.
   useEffect(() => { setRouteDraft([]); setCoordCall(null); }, [ao.key]);
+  // CURSOR HOOK (P1.3 round 3, HI / FAAD C2 procedure): right-click over a track
+  // "hooks" it — IFF + speed/altitude/heading data + engagement tools at the plot.
+  const [hook, setHook] = useState<number | null>(null);
   // P1.3 (Thought Master): ESC leaves placement mode → traditional SELECT mode.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { onDisarm?.(); setRouteDraft([]); } };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { onDisarm?.(); setRouteDraft([]); setHook(null); } };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1675,6 +1681,7 @@ function AoMapPane(p: PaneProps) {
               return (
                 <button key={u.id}
                   onPointerUp={(e) => { if (!dragRef.current?.moved) { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); } }}
+                  onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); if (!dragRef.current?.moved) { setSelected({ kind: "asset", id: u.id }); setHook(u.id); } }}
                   onMouseEnter={() => setHoverAsset(u.asset)}
                   onMouseLeave={() => setHoverAsset((h) => (h === u.asset ? null : h))}
                   title={`${ASSET_LABELS[u.asset]} — ${fmt.coordAt(u.lat, u.lon)}`}
@@ -1718,16 +1725,63 @@ function AoMapPane(p: PaneProps) {
                 </button>
               );
             })}
+            {/* CURSOR HOOK bubble (P1.3 round 3, HI / FAAD C2): right-click hooks a track —
+                IFF, SPD/ALT/HDG data, engagement tools. Billboards upright like the icons;
+                left-click anywhere or ESC releases. INSPECT = full engagement tools (rail). */}
+            {hook != null && (() => {
+              const u = placed.find((p) => p.id === hook);
+              if (!u) return null;
+              const f = project(u.lat, u.lon);
+              if (f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05) return null;
+              const row = (k: string, v: string) => (
+                <div className="flex justify-between gap-2 px-1.5"><span style={{ color: C.dim }}>{k}</span><span style={{ color: C.text }}>{v}</span></div>
+              );
+              const setIff = (aff: Affiliation) => setPlaced((pl) => pl.map((p) => (p.id === u.id ? { ...p, aff } : p)));
+              return (
+                <div className="absolute rounded border font-mono text-[8px]" onPointerDown={(e) => e.stopPropagation()}
+                  style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 30, minWidth: 128, pointerEvents: "auto",
+                    background: "#0a0f16f2", borderColor: C.gold,
+                    transform: is3d ? `translate(-50%,-110%) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-110%)",
+                    transformOrigin: "50% 100%" }}>
+                  <div className="px-1.5 py-0.5 font-bold" style={{ color: C.gold, borderBottom: `1px solid ${C.gold}44` }}>
+                    ⌖ HOOK · {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}
+                  </div>
+                  {row("MGRS", fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" "))}
+                  {row("SPD", u.speed != null ? `${Math.round(u.speed)} km/h` : "—")}
+                  {row("ALT", u.altitude != null ? `${Math.round(u.altitude)} m ${u.altRef ?? "AGL"}` : "—")}
+                  {row("HDG", u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : "—")}
+                  <div className="flex items-center gap-1 px-1.5 py-0.5" style={{ borderTop: `1px solid ${C.gold}22` }}>
+                    <span style={{ color: C.dim }}>IFF</span>
+                    <button className="rounded border px-1" onClick={() => setIff("friendly")}
+                      style={{ borderColor: C.cyan, color: C.cyan, background: u.aff === "friendly" ? `${C.cyan}33` : "transparent" }}>FRD</button>
+                    <button className="rounded border px-1" onClick={() => setIff("hostile")}
+                      style={{ borderColor: C.red, color: C.red, background: u.aff === "hostile" ? `${C.red}33` : "transparent" }}>HOS</button>
+                  </div>
+                  <div className="flex items-center gap-1 px-1.5 pb-1">
+                    <button className="rounded border px-1" onClick={() => { setSelected({ kind: "asset", id: u.id }); setHook(null); }}
+                      style={{ borderColor: C.cyan, color: C.cyan }}>INSPECT ▸</button>
+                    <button className="rounded border px-1" onClick={() => {
+                      setInventory((inv) => inv.map((i) => (i.asset === u.asset ? { ...i, stock: i.stock + u.count } : i)));
+                      setPlaced((pl) => pl.filter((p) => p.id !== u.id));
+                      setSelected(null); setHook(null);
+                    }} style={{ borderColor: C.red, color: C.red }}>DROP ✕</button>
+                  </div>
+                </div>
+              );
+            })()}
             {/* 3D RELIEF — lifted contour wireframe: each level translateZ's to its true
                 elevation (auto vertical exaggeration, full relief ≈ 34px). Land solid green,
                 bathymetry dashed cyan below — the reference-mesh look, phone/Pi compute. */}
             {is3d && reliefSet && reliefSet.lines.length > 0 && (() => {
               const levels = Array.from(new Set(reliefSet.lines.map((l) => l.level))).sort((a, b) => a - b);
               const lo = levels[0], span = Math.max(1, levels[levels.length - 1] - lo);
+              // P1.3 round 3: lift fades to FLAT above 85° tilt — at horizon angles the
+              // lifted wireframe used to float as "green lines in the sky" (85-cap cause).
+              const liftK = (pitch ?? 55) > 85 ? Math.max(0, (88 - (pitch ?? 55)) / 3) : 1;
               return levels.map((lvl) => (
                 <svg key={`relief${lvl}`} viewBox="0 0 100 100" preserveAspectRatio="none"
                   className="pointer-events-none absolute inset-0"
-                  style={{ transform: `translateZ(${(((lvl - lo) / span) * 34).toFixed(1)}px)` }}>
+                  style={{ transform: `translateZ(${(((lvl - lo) / span) * 34 * liftK).toFixed(1)}px)` }}>
                   {reliefSet.lines.filter((l) => l.level === lvl).map((l, i) => (
                     <path key={i} d={l.d} fill="none" stroke={l.land ? C.land : "#22d3ee"} strokeWidth={l.major ? 1.2 : 0.8}
                       vectorEffect="non-scaling-stroke" strokeDasharray={l.land ? undefined : "3 3"} opacity={l.major ? 0.8 : 0.55} />
@@ -1883,28 +1937,34 @@ function AoMapPane(p: PaneProps) {
                 </div>
               );
             })}
-            {/* FX-29 (P1.3): 3D compass ring — lies ON the ground plane so it always
-                points at the horizon; at high tilt it rings the map edge in the distance */}
+            {/* FX-29 v2 (P1.3 round 3, HI): 3D compass WALL — the old ground-plane ring
+                sprawled across the terrain and read as mystery "green contours". Now a
+                heading tape stands VERTICAL at the far edge of the plane (base drops to
+                ground level, same billboard trick as the voxel stems): edge-on near
+                overhead, a distant horizon wall as tilt approaches 88°. */}
             {is3d && (() => {
               const topHeading = ((-view.bearing * 180 / Math.PI) % 360 + 360) % 360;
-              const ringMarks: React.ReactNode[] = [];
-              for (let deg = 0; deg < 360; deg += 10) {
-                const th = ((deg - topHeading) * Math.PI) / 180;
-                const x = 50 + 46 * Math.sin(th), y = 50 - 46 * Math.cos(th);
-                if (deg % 30 === 0) {
-                  ringMarks.push(
-                    <text key={deg} x={x} y={y} fontSize="2.4" textAnchor="middle" fontFamily="monospace" fontWeight="bold"
-                      fill={deg === 0 ? C.red : C.cyan} opacity="0.9">{deg === 0 ? "N" : String(deg).padStart(3, "0")}</text>
-                  );
-                } else {
-                  ringMarks.push(<circle key={deg} cx={x} cy={y} r="0.3" fill={C.cyan} opacity="0.55" />);
-                }
+              const marks: React.ReactNode[] = [];
+              for (let off = -90; off <= 90; off += 10) {
+                const b = ((Math.round(topHeading / 10) * 10 + off) % 360 + 360) % 360;
+                const x = 50 + ((Math.round(topHeading / 10) * 10 + off - topHeading) / 90) * 50;
+                if (x < -2 || x > 102) continue;
+                const major = b % 30 === 0;
+                marks.push(
+                  <span key={off} className="absolute bottom-0" style={{ left: `${x}%`, width: 1, height: major ? "58%" : "30%",
+                    background: `linear-gradient(to bottom, ${b === 0 ? C.red : C.cyan}cc, ${b === 0 ? C.red : C.cyan}22)`, transform: "translateX(-50%)" }} />
+                );
+                if (major) marks.push(
+                  <span key={`l${off}`} className="absolute font-mono text-[8px] font-bold" style={{ left: `${x}%`, top: 2,
+                    transform: "translateX(-50%)", color: b === 0 ? C.red : C.cyan, opacity: 0.95 }}>{b === 0 ? "N" : String(b).padStart(3, "0")}</span>
+                );
               }
               return (
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0" style={{ zIndex: 11 }}>
-                  <ellipse cx="50" cy="50" rx="46" ry="46" fill="none" stroke={C.cyan} strokeWidth="0.25" opacity="0.4" vectorEffect="non-scaling-stroke" />
-                  {ringMarks}
-                </svg>
+                <div className="pointer-events-none absolute left-0 right-0 top-0" style={{ height: 46, zIndex: 11,
+                  transform: `translateY(-100%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%",
+                  background: "linear-gradient(to top, #0a0f1688, transparent)", borderBottom: `1px solid ${C.cyan}66` }}>
+                  {marks}
+                </div>
               );
             })()}
             </div>
@@ -1915,7 +1975,7 @@ function AoMapPane(p: PaneProps) {
               </div>
             )}
             {/* TILT readout (P1) — the cue that elevation is ACTIVE: right-drag ↕ swings the
-                voxel view near-overhead (11°) ⇄ horizon (85°) */}
+                voxel view near-overhead (11°) ⇄ horizon (88°) */}
             {is3d && (
               <div className="absolute left-1/2 top-7 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan, pointerEvents: "auto" }}>
                 {/* FX-21: hint FIRST, then TILT n°, then 📱 opens the slider (phone access) */}
@@ -1927,8 +1987,8 @@ function AoMapPane(p: PaneProps) {
             {/* FX-21: fixed-width tilt slider, pinned under the coordinate readout */}
             {is3d && tiltSlider && (
               <div className="absolute right-2 top-7 z-30 rounded border px-2 py-1" style={{ background: "#0a0f16ee", borderColor: C.cyan, width: 170 }}>
-                <div className="mb-0.5 font-mono text-[7px] font-bold" style={{ color: C.cyan }}>TILT {Math.round(pitch ?? 55)}° <span style={{ color: C.dim }}>11–85</span></div>
-                <input type="range" min={11} max={85} value={Math.round(pitch ?? 55)} onChange={(e) => onPitch?.(parseInt(e.target.value))} className="w-full" />
+                <div className="mb-0.5 font-mono text-[7px] font-bold" style={{ color: C.cyan }}>TILT {Math.round(pitch ?? 55)}° <span style={{ color: C.dim }}>11–88</span></div>
+                <input type="range" min={11} max={88} value={Math.round(pitch ?? 55)} onChange={(e) => onPitch?.(parseInt(e.target.value))} className="w-full" />
               </div>
             )}
             {/* FX-08 (P1.3): VOXEL onboarding — how to activate/read/release a voxel */}
@@ -3570,7 +3630,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 <span className="text-[9px]" style={{ color: C.dim }}>View angle {coordFmt === "ucrs"
                   ? (() => { const tot = Math.round(pitch * 10 * 3600); return `${String(Math.floor(tot / 3600)).padStart(4, "0")}.${String(tot % 3600).padStart(4, "0")}`; })()
                   : `${pitch.toFixed(3)}°`}</span>
-                <input type="range" min={11} max={85} value={Math.round(pitch)} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
+                <input type="range" min={11} max={88} value={Math.round(pitch)} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
               </div>
               <div className="mb-1 text-[9px]" style={{ color: C.text }}>Symbology standard</div>
               <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
