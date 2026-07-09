@@ -2054,64 +2054,47 @@ function AoMapPane(p: PaneProps) {
                 </div>
               );
             })}
-            {/* FX-29 v2 (P1.3 round 3, HI): 3D compass WALL — the old ground-plane ring
-                sprawled across the terrain and read as mystery "green contours". Now a
-                heading tape stands VERTICAL at the far edge of the plane (base drops to
-                ground level, same billboard trick as the voxel stems): edge-on near
-                overhead, a distant horizon wall as tilt approaches 88°. */}
+            {/* FX-12 (HI 1.3.2): 3D compass = CIRCULAR FENCE ON THE GROUND. Rendered INSIDE
+                the tilt layer so the ring lies FLAT on the terrain (a circle on the ground →
+                an ellipse on screen), centred on the view. rotateZ(bearing) turns the tick
+                ring so N tracks map-north; short vertical FENCE POSTS stand up off the ring
+                (rotateX(-pitch)) so it stays a legible fence edge-on near 88° and a clean
+                ring near 11°. NOT a screen-flat clock. The corner compass rose + 2D edge
+                scale are kept separately. */}
             {is3d && (() => {
-              const topHeading = ((-view.bearing * 180 / Math.PI) % 360 + 360) % 360;
-              const marks: React.ReactNode[] = [];
-              for (let off = -90; off <= 90; off += 10) {
-                const b = ((Math.round(topHeading / 10) * 10 + off) % 360 + 360) % 360;
-                const x = 50 + ((Math.round(topHeading / 10) * 10 + off - topHeading) / 90) * 50;
-                if (x < -2 || x > 102) continue;
-                const major = b % 30 === 0;
-                marks.push(
-                  <span key={off} className="absolute bottom-0" style={{ left: `${x}%`, width: 1, height: major ? "58%" : "30%",
-                    background: `linear-gradient(to bottom, ${b === 0 ? C.red : C.cyan}cc, ${b === 0 ? C.red : C.cyan}22)`, transform: "translateX(-50%)" }} />
-                );
-                if (major) marks.push(
-                  <span key={`l${off}`} className="absolute font-mono text-[8px] font-bold" style={{ left: `${x}%`, top: 2,
-                    transform: "translateX(-50%)", color: b === 0 ? C.red : C.cyan, opacity: 0.95 }}>{b === 0 ? "N" : String(b).padStart(3, "0")}</span>
-                );
-              }
+              const cards: [string, number, string][] = [["N", 0, C.red], ["E", 90, C.cyan], ["S", 180, C.cyan], ["W", 270, C.cyan]];
               return (
-                <div className="pointer-events-none absolute left-0 right-0 top-0" style={{ height: 46, zIndex: 11,
-                  transform: `translateY(-100%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%",
-                  background: "linear-gradient(to top, #0a0f1688, transparent)", borderBottom: `1px solid ${C.cyan}66` }}>
-                  {marks}
+                <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: "58%", height: "58%", transform: "translate(-50%,-50%)", transformStyle: "preserve-3d", zIndex: 9 }}>
+                  {/* flat ring + ticks + labels on the ground (tilts with the plane) */}
+                  <svg viewBox="-50 -50 100 100" width="100%" height="100%" style={{ position: "absolute", inset: 0, transform: `rotateZ(${view.bearing}rad)`, overflow: "visible" }} aria-hidden>
+                    <circle r="42" fill="none" stroke={`${C.cyan}55`} strokeWidth="0.4" />
+                    {Array.from({ length: 36 }).map((_, i) => {
+                      const deg = i * 10, a = (deg * Math.PI) / 180, maj = deg % 30 === 0, r1 = maj ? 37.5 : 40;
+                      return <line key={i} x1={42 * Math.sin(a)} y1={-42 * Math.cos(a)} x2={r1 * Math.sin(a)} y2={-r1 * Math.cos(a)} stroke={deg === 0 ? C.red : `${C.cyan}88`} strokeWidth={maj ? 0.7 : 0.35} />;
+                    })}
+                    {cards.map(([lab, deg, col]) => {
+                      const a = (deg * Math.PI) / 180, x = 34.5 * Math.sin(a), y = -34.5 * Math.cos(a);
+                      return <text key={lab} x={x} y={y + 1.8} textAnchor="middle" fontSize="5" fontFamily="monospace" fontWeight="bold" fill={col}>{lab}</text>;
+                    })}
+                  </svg>
+                  {/* vertical FENCE POSTS at each cardinal — stand up off the ground ring so the
+                      fence is visible edge-on at high tilt. Positioned at the ring edge in the
+                      container's ground plane (bearing-rotated), base anchored there, then
+                      stood upright via rotateX(-pitch). SVG x∈[-50,50] ⇒ container-% = 50+x. */}
+                  {cards.map(([lab, deg, col]) => {
+                    const a = (deg * Math.PI) / 180 + view.bearing;
+                    const left = 50 + 42 * Math.sin(a), top = 50 - 42 * Math.cos(a);
+                    return (
+                      <div key={`post${lab}`} className="absolute" style={{ left: `${left}%`, top: `${top}%`, width: 1.5, height: 22,
+                        background: `linear-gradient(to top, ${col}, ${col}22)`,
+                        transform: `translate(-50%,-100%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%" }} />
+                    );
+                  })}
                 </div>
               );
             })()}
             </div>
             {/* end 3D tilt layer */}
-            {/* FX-12 (HI 1.3.2): 3D compass RING — screen-flat, always centred, ALWAYS on
-                screen (the tilted horizon-tape/fence above collapses edge-on near 11°, so a
-                round HUD reticle owns the heading at every tilt). Thin outline frames the
-                voxel centre without hiding it; ticks + N (red) rotate with the bearing while
-                cardinal labels stay upright. The vertical fence + 2D edge scale are kept. */}
-            {is3d && (() => {
-              const bDeg = (view.bearing * 180) / Math.PI;
-              const cards: [string, number, string][] = [["N", 0, C.red], ["E", 90, C.cyan], ["S", 180, C.cyan], ["W", 270, C.cyan]];
-              return (
-                <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2" style={{ width: "min(46%, 360px)", height: "min(46%, 360px)" }}>
-                  <svg viewBox="-50 -50 100 100" width="100%" height="100%" aria-hidden>
-                    <circle r="47" fill="none" stroke={`${C.cyan}44`} strokeWidth="0.5" />
-                    <circle r="40" fill="none" stroke={`${C.cyan}22`} strokeWidth="0.3" />
-                    {Array.from({ length: 36 }).map((_, i) => {
-                      const deg = i * 10, a = ((deg - bDeg) * Math.PI) / 180, maj = deg % 30 === 0;
-                      const r0 = 47, r1 = maj ? 40 : 44;
-                      return <line key={i} x1={r0 * Math.sin(a)} y1={-r0 * Math.cos(a)} x2={r1 * Math.sin(a)} y2={-r1 * Math.cos(a)} stroke={deg === 0 ? C.red : `${C.cyan}77`} strokeWidth={maj ? 0.6 : 0.3} />;
-                    })}
-                    {cards.map(([lab, deg, col]) => {
-                      const a = ((deg - bDeg) * Math.PI) / 180, x = 33 * Math.sin(a), y = -33 * Math.cos(a);
-                      return <text key={lab} x={x} y={y + 2.1} textAnchor="middle" fontSize="6" fontFamily="monospace" fontWeight="bold" fill={col}>{lab}</text>;
-                    })}
-                  </svg>
-                </div>
-              );
-            })()}
             {/* HI 1.3.2: ONE compact 3D HUD line (was three busy stacked lines). Just the
                 key info — TILT angle + how to change it + the 2D-to-place reminder. The
                 verbose voxel onboarding is dropped (element tooltips carry the how-to). */}
@@ -2254,26 +2237,10 @@ function AoMapPane(p: PaneProps) {
               );
             })()}
 
-            {/* the OTHER pane's viewport — a small "you are here" box. ONLY drawn when the
-                other view is meaningfully TIGHTER than this one (a subset), so a wider view
-                never paints a giant rectangle over the whole map (that caused the cyan fill). */}
-            {otherView && otherView.spanKm < view.spanKm * 0.85 && (() => {
-              const oh = otherView.spanKm / 2;
-              const odLat = oh / 110.574, odLon = oh / (111.32 * Math.cos((otherView.lat * Math.PI) / 180));
-              const corners: [number, number][] = [
-                [otherView.lat + odLat, otherView.lon - odLon], [otherView.lat + odLat, otherView.lon + odLon],
-                [otherView.lat - odLat, otherView.lon + odLon], [otherView.lat - odLat, otherView.lon - odLon],
-              ];
-              const pts = corners.map(([la, lo]) => project(la, lo));
-              if (pts.some((p) => !Number.isFinite(p.fx) || !Number.isFinite(p.fy))) return null; // no NaN fill
-              if (!pts.some((p) => p.fx > -0.2 && p.fx < 1.2 && p.fy > -0.2 && p.fy < 1.2)) return null;
-              return (
-                <svg className="pointer-events-none absolute inset-0 z-10 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <polygon points={pts.map((p) => `${(p.fx * 100).toFixed(2)},${(p.fy * 100).toFixed(2)}`).join(" ")}
-                    fill="none" stroke={C.cyan} strokeWidth="0.4" strokeDasharray="1.5 1" />
-                </svg>
-              );
-            })()}
+            {/* HI 1.3.2: the OTHER pane's viewport rectangle is now drawn ON the ground
+                overlay (see the toFrac polygon up in the tilt layer) so it lies flat on the
+                terrain in 3D. The old screen-space project() SVG that floated in the air
+                ("phantom mini-map overlay") is removed. */}
 
             {/* compass */}
             <button
