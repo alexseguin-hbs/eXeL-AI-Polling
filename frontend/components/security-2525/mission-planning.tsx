@@ -1816,7 +1816,10 @@ function AoMapPane(p: PaneProps) {
                     // P2: eXeL-STD-2525 icons are 3D — in 3D mode they BILLBOARD upright off
                     // the tilted plane (counter-rotateX about their base), standing on terrain.
                     // FLYING assets additionally lift by translateZ(altitudePx) to their height.
-                    transform: is3d ? `translate(-50%,-50%) translateZ(${altitudePx}px) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-50%)",
+                    // HI 1.3.3: the LOCATION DOT stays ON THE GROUND (no altitude lift) — a high
+                    // aerial asset floating way above the box read badly; the stem + voxel box + AGL
+                    // label carry the altitude instead, the dot marks the exact spot on the ground.
+                    transform: is3d ? `translate(-50%,-50%) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-50%)",
                     transformOrigin: "50% 100%", transformStyle: "preserve-3d" }}>
                   {/* pulse + selection ring anchored to the ICON centre, not the icon+label stack */}
                   <span className="relative flex items-center justify-center">
@@ -1827,9 +1830,7 @@ function AoMapPane(p: PaneProps) {
                         the grid-snapped box), a sky-face BOX for AERIAL (at altitude). Flat MIL
                         icon stays in 2D / voxel-off. */}
                     {is3d && voxelLayer
-                      ? (flying
-                          ? <span className="block" style={{ width: 11, height: 11, border: `2px solid ${u.aff === "hostile" ? C.red : C.cyan}`, background: `${u.aff === "hostile" ? C.red : C.cyan}22`, boxShadow: `0 0 6px ${u.aff === "hostile" ? C.red : C.cyan}` }} />
-                          : <span className="block rounded-full" style={{ width: 7, height: 7, background: u.aff === "hostile" ? C.red : C.cyan, boxShadow: `0 0 6px ${u.aff === "hostile" ? C.red : C.cyan}` }} />)
+                      ? <span className="block rounded-full" style={{ width: 5, height: 5, background: u.aff === "hostile" ? C.red : C.cyan, boxShadow: `0 0 5px ${u.aff === "hostile" ? C.red : C.cyan}` }} />
                       : <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} />}
                   </span>
                   {/* HI 1.3.3: coordinate label = ONE black-background chip (no white version),
