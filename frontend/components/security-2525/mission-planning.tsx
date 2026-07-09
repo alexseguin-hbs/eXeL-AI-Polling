@@ -959,6 +959,8 @@ interface PaneProps {
   onWorld?: () => void; // zoom out past AO scale → Earth/world view
   mirrorOn?: boolean;          // this pane is the mirror SOURCE (its view drives the other pane)
   onToggleMirror?: () => void; // MIRROR lives on the map header (upper right)
+  onOpenSettings?: () => void; // HI 1.3.2: map-local settings gear (icon, right of RESET) — all map + VOXEL settings live here, decoupled from the busy top nav
+  settingsOpen?: boolean;      // reflect open state on the gear
   onPitch?: (deg: number) => void; // 3D tilt via right-drag (overhead 15° ⇄ horizon 85°)
   iconScale?: number; // icon size setting S/M/L → 1 / 1.75 / 3 (P2, visibility)
   pitch?: number; // 3D view angle (deg) — FAAD/AMDWS "right-click angles the view to altitude"
@@ -975,7 +977,7 @@ function AoMapPane(p: PaneProps) {
     spanFactor, view, setView, otherView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
     maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM,
-    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, pitch, onPitch, iconScale = 1,
+    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1,
     drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
 
@@ -1449,6 +1451,15 @@ function AoMapPane(p: PaneProps) {
             </button>
           )}
           <button onClick={resetView} className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.border }}>RESET</button>
+          {/* HI 1.3.2: map-local settings gear (icon only, right of RESET) — opens all map
+              + VOXEL settings, decoupled from the crowded top navigation. */}
+          {onOpenSettings && (
+            <button onClick={onOpenSettings} title="Map & VOXEL settings"
+              className="flex items-center rounded border px-1 py-0.5 font-semibold"
+              style={{ borderColor: settingsOpen ? C.cyan : C.border, color: settingsOpen ? C.cyan : C.dim }}>
+              <Settings className="h-3 w-3" />
+            </button>
+          )}
           <button onClick={onToggleMax} title={maximized ? "Minimize — back to standard screen" : "Maximize"}
             className="flex items-center gap-1 rounded border px-1 py-0.5 font-semibold" style={{ borderColor: maximized ? C.cyan : C.border, color: maximized ? C.cyan : C.dim }}>
             {maximized ? <><Minimize2 className="h-3 w-3" /> MINIMIZE</> : <Maximize2 className="h-3 w-3" />}
@@ -3489,11 +3500,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             style={{ borderColor: isFs ? C.cyan : C.border, color: isFs ? C.cyan : C.dim }}>
             {isFs ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
           </button>
-          <button onClick={() => setShowSettings((s) => !s)} title="Settings"
-            className="flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold"
-            style={{ borderColor: showSettings ? C.cyan : C.border, color: showSettings ? C.cyan : C.dim }}>
-            <Settings className="h-3.5 w-3.5" /> SETTINGS
-          </button>
+          {/* HI 1.3.2: top-nav SETTINGS button REMOVED — map + VOXEL settings now open
+              from the gear on the map toolbar (right of RESET) to declutter this bar. */}
         </div>
         {showSettings && (
           <div className="absolute right-0 top-9 z-40 w-60 rounded-lg border p-3 shadow-xl" style={{ background: C.panel, borderColor: C.cyan }}>
@@ -3801,6 +3809,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             <AoMapPane {...paneCommon} dem={dem} label="MAP" showElevation spanFactor={1}
               view={viewA} setView={setViewA_} otherView={viewB} is3d={is3dA} onToggle3d={toggle3dA}
               mirrorOn={mirrorFrom === "map"} onToggleMirror={() => toggleMirror("map")}
+              onOpenSettings={() => setShowSettings((s) => !s)} settingsOpen={showSettings}
               maximized={fsPane === "map"} onToggleMax={() => setFsPane((f) => (f === "map" ? null : "map"))} onWorld={() => setModeA_("world")} />
           )}
           {!fsPane && (miniOpen ? (
