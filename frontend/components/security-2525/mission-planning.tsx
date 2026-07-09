@@ -1336,6 +1336,7 @@ function AoMapPane(p: PaneProps) {
   // Reads the SAME 1-fetch DEM sampler as the contours — zero extra network.
   const [voxelSel, setVoxelSel] = useState<string | null>(null);
   const [voxelLayer, setVoxelLayer] = useState(true); // FX-30 (HI): standalone 3×3 voxel LATTICE, independent of assets, ON by default
+  const [voxelSize, setVoxelSize] = useState<3 | 2 | 1>(3); // FX (HI 1.3.3): box size tier — 3X (full) · 2X (⅔) · 1X (⅓); altitude projectors always reach the grey-line altitude
   const [voxelTop, setVoxelTop] = useState<string | null>(null); // FX-30: hovered column TOP face (pick a stack by its top)
   // P1.2 (Odin): corner HOVER chip — corner coordinate + terrain elevation at the cursor
   const [cornerHover, setCornerHover] = useState<{ key: string; ci: number } | null>(null);
@@ -1472,6 +1473,15 @@ function AoMapPane(p: PaneProps) {
           {is3d && (
             <button onClick={() => setVoxelLayer((v) => !v)} title={voxelLayer ? "VOXEL lattice ON — 3×3 stacked columns (tap a top to highlight). Click to hide." : "Show the 3×3 VOXEL lattice"}
               className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: voxelLayer ? C.gold : C.border, color: voxelLayer ? C.gold : C.dim }}>▦ VOXEL</button>
+          )}
+          {/* FX (HI 1.3.3): VOXEL box SIZE tier — 3X full · 2X ⅔ · 1X ⅓ (projectors still reach the grey altitude) */}
+          {is3d && voxelLayer && (
+            <div className="flex overflow-hidden rounded border font-semibold" style={{ borderColor: C.border }}>
+              {([3, 2, 1] as const).map((s) => (
+                <button key={s} onClick={() => setVoxelSize(s)} className="px-1 py-0.5"
+                  style={{ background: voxelSize === s ? "#152238" : "transparent", color: voxelSize === s ? C.cyan : C.dim }}>{s}X</button>
+              ))}
+            </div>
           )}
           {onToggleMirror && (
             <button onClick={onToggleMirror} title={mirrorOn ? "Unmirror — the other map returns to its prior view" : "Mirror THIS view onto the other map (each map keeps its own 2D/3D)"}
@@ -2130,19 +2140,17 @@ function AoMapPane(p: PaneProps) {
             {is3d && voxelLayer && latticeColumns.length === 9 && [view.lat, view.lon].every(Number.isFinite) && (() => {
               const bc = project(view.lat, view.lon);
               const paneW = mapRef.current?.clientWidth ?? 800;
-              const cellPx = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW);
-              // FX (HI 1.3.3): ALWAYS draw the box. Default = pixels-HIGH == pixels-WIDE (1:1
-              // cube). If the max altitude is set BELOW the proportional height, the cube
-              // COMPRESSES vertically so the operator SEES the adjustment; it never stretches
-              // beyond 1:1. propM = the metres that make the cube square (3 cells wide).
+              const cellW = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW); // full cell px (altitude reference — never shrinks)
+              // FX (HI 1.3.3): SIZE TIER — 3X full · 2X ⅔ · 1X ⅓. The cube shrinks with the
+              // tier, but the altitude projectors ALWAYS reach the grey-line altitude (limitZ
+              // is computed from the UNSCALED cellW), so a smaller box still projects to ceiling.
+              const sizeF = voxelSize === 3 ? 1 : voxelSize === 2 ? 2 / 3 : 1 / 3;
+              const cellPx = cellW * sizeF;
               const boxW = 3 * cellPx;
-              const maxAltM = (maxAltFt ?? 10000) / 3.28084;
-              const propM = 3 * effCellM;
-              const hFactor = Math.max(0.12, Math.min(1, maxAltM / propM));
-              const bandPx = cellPx * hFactor;
-              const topZ = 3 * bandPx;                                   // == boxW at 1:1; < boxW when altitude compressed
+              const bandPx = cellPx;                                     // pixels-high == pixels-wide (1:1, scaled by tier)
+              const topZ = 3 * bandPx;
               const railBands = Math.max(latticeColumns[0].cubes.filter((cb) => cb.bandIdx > 0).length, 3);
-              const limitZ = Math.max(topZ, (voxelLimitPct / 100) * railBands * bandPx);
+              const limitZ = Math.max(topZ, (voxelLimitPct / 100) * railBands * cellW);
               const line = `${C.cyan}55`;
               const selIdx = latticeColumns.findIndex((c) => c.key === voxelSel);
               const dim = selIdx >= 0 ? 0.35 : 1;                        // rest dims when one column is picked
@@ -3335,11 +3343,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       return src;
     });
   };
-  const setViewA_ = (u: (v: ViewState) => ViewState) => setViewA(u); // north sync handled by the bearing-lock effects below
-  const setViewB_ = (u: (v: ViewState) => ViewState) => setViewB(u);
-  // Bearing-lock effects: while mirrored, keep both norths equal (equality guard prevents ping-pong).
-  useEffect(() => { if (!mirror) return; setViewB((w) => (w.bearing === viewA.bearing ? w : { ...w, bearing: viewA.bearing })); }, [viewA.bearing, mirror]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (!mirror) return; setViewA((w) => (w.bearing === viewB.bearing ? w : { ...w, bearing: viewB.bearing })); }, [viewB.bearing, mirror]); // eslint-disable-line react-hooks/exhaustive-deps
+  // MIRROR = NORTH-LOCK only, synced IMMEDIATELY in the same update (HI 1.3.3 regression fix:
+  // the prior effect-based sync lagged one frame → the other pane's bearing jittered/glitched
+  // during a continuous rotate. Now the twin bearing is set in the same commit — smooth).
+  const setViewA_ = (u: (v: ViewState) => ViewState) => setViewA((v) => { const nv = u(v); if (mirror) setViewB((w) => (w.bearing === nv.bearing ? w : { ...w, bearing: nv.bearing })); return nv; });
+  const setViewB_ = (u: (v: ViewState) => ViewState) => setViewB((v) => { const nv = u(v); if (mirror) setViewA((w) => (w.bearing === nv.bearing ? w : { ...w, bearing: nv.bearing })); return nv; });
   // Smooth geometric ease of the MAP span (easeOutCubic) — the cinematic "fly-in".
   const zoomChainRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animateSpanTo = (fromKm: number, toKm: number, ms = 800) => {
