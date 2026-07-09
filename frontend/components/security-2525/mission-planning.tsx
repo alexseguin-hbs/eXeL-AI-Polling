@@ -2793,6 +2793,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const setViewA_ = (u: (v: ViewState) => ViewState) => { setViewA(u); if (mirrorFrom === "map") setViewB(u); };
   const setViewB_ = (u: (v: ViewState) => ViewState) => { setViewB(u); if (mirrorFrom === "mini") setViewA(u); };
   // Smooth geometric ease of the MAP span (easeOutCubic) — the cinematic "fly-in".
+  const zoomChainRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animateSpanTo = (fromKm: number, toKm: number, ms = 800) => {
     if (zoomAnimRef.current) cancelAnimationFrame(zoomAnimRef.current);
     const t0 = performance.now();
@@ -2813,10 +2814,16 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (k !== aoKey) enteringRef.current = true; // only arm on a real key change, else the [aoKey] effect never clears it
     setAoKey(k); // plan-load effect restores this AO's saved placements
     const wide = 900, region = Math.max(30, t.halfKm * 6); // region ≈ 6× the site half-extent
+    const site = Math.max(MIN_SPAN_KM, t.halfKm * 2);      // the site cut itself (e.g. Capitol 2.4 km)
     setViewA({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 });
     if (mirror) setViewB({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 });
     setMode("ao");
+    // P1 (Aset + Thought Master): ONE continuous zoom from the globe to the SITE —
+    // land wide, glide to region, dwell so the eye orients, then continue to the site.
+    // Same Natural-Earth source at every stage; no flat 'blue screen' hop.
     animateSpanTo(wide, region, 850);
+    if (zoomChainRef.current) clearTimeout(zoomChainRef.current);
+    zoomChainRef.current = setTimeout(() => animateSpanTo(region, site, 950), 850 + 450);
   };
   // 2D/3D is PER-PANE even while mirrored (user law) — only the VIEW mirrors.
   const toggle3dA = () => setIs3dA((v) => !v);
