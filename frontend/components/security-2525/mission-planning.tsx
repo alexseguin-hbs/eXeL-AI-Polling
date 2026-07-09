@@ -1565,18 +1565,23 @@ function AoMapPane(p: PaneProps) {
                   </g>
                 )}
                 {/* WATER — lakes/wide rivers as solid blue polygons; rivers/streams as full-width blue lines */}
-                {osmPaths && waterOn && (
+                {osmPaths && waterOn && (() => {
+                  // FX-78 (HI): light-blue water FILL + faint highlight look "silly" at high tilt
+                  // looking down and zoomed out — fade them as pitch rises and/or span grows.
+                  const waterLightK = Math.max(0, Math.min(1, (85 - (pitch ?? 55)) / 45)) * Math.min(1, 12 / view.spanKm);
+                  return (
                   <g>
-                    <path d={osmPaths.polyD} fill="#1e6fd955" stroke="#38bdf8" strokeWidth="0.2" />
+                    <path d={osmPaths.polyD} fill="#1e6fd955" stroke="#38bdf8" strokeWidth="0.2" opacity={waterLightK} />
                     {/* FX-11 (P1.3.r5 HI): PROPORTIONAL river — width mimics the ACTUAL ~40 m
                         ground width, scaled by view span (40 m / spanM * 100 = SVG units on the
                         100-unit viewBox). NO hard max cap, so a wide river reads proportionally
                         wide up-close and thin zoomed-out; floor 0.08 only so it never vanishes.
                         The faint highlight path (#7dd3fc) below stays thin. R-CORE EDGE. */}
-                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={Math.max(0.08, (40 / (view.spanKm * 1000)) * 100)} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.4, Math.max(0.05, (14 / (view.spanKm * 1000)) * 100))} opacity="0.85" strokeLinecap="round" />
+                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={Math.max(0.05, (22 / (view.spanKm * 1000)) * 100)} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.4, Math.max(0.05, (14 / (view.spanKm * 1000)) * 100))} opacity={0.85 * waterLightK} strokeLinecap="round" />
                   </g>
-                )}
+                  );
+                })()}
                 {/* ROADS — grey tier hierarchy, clipped to land so none render in water */}
                 {osmPaths && roadsOn && (
                   <g clipPath={terrainOn && borderPaths && borderPaths.countries ? `url(#${clipId})` : undefined}>
@@ -1861,7 +1866,7 @@ function AoMapPane(p: PaneProps) {
                       same format as the selected-voxel label.
                       HI: N/S placement — AERIAL asset (altitude>0) → chip ABOVE the icon (North);
                       GROUND asset → chip BELOW the icon (South). flex-col `order` re-stacks it. */}
-                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 1, marginTop: aerial ? 0 : groundDrop, marginBottom: aerial ? 2 : 0 }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
+                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 1, marginTop: aerial ? 0 : groundDrop, marginBottom: aerial ? 2 : 0 }}>{fmt.coordAt(u.lat, u.lon)}</span>
                   {u.moving && (
                     <span className="whitespace-nowrap font-mono text-[7px] font-bold" style={{ color: C.green }}>
                       {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude)}m ${u.altRef ?? "AGL"}` : ""}
@@ -1888,7 +1893,7 @@ function AoMapPane(p: PaneProps) {
                   <SupportGlyph glyph={u.def.glyph} color={u.aff === "hostile" ? "#ef4444" : u.def.color} size={22 * iconScale} />
                   {/* HI 1.3.3: coordinate label = ONE black-background chip (no white version),
                       same format as the selected-voxel label. */}
-                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
+                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan }}>{fmt.coordAt(u.lat, u.lon)}</span>
                 </button>
               );
             })}
@@ -1912,13 +1917,6 @@ function AoMapPane(p: PaneProps) {
               // 3D voxel sphere) — the flat plane ring is suppressed for the hooked asset above.
               return (
                 <Fragment key={hid}>
-                  {/* FX-51 (HI 1.3.3): connector ALWAYS runs asset → hook-label bottom-left,
-                      recomputed from the draggable offset so it never breaks when you move it. */}
-                  {(() => { const L = Math.hypot(off.x, off.y), ang = (Math.atan2(off.y, off.x) * 180) / Math.PI; return (
-                  <div className="pointer-events-none absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 39,
-                    width: L, height: 0, borderTop: `1px solid ${C.gold}`, opacity: 0.8,
-                    transform: is3d ? `rotateX(${-(pitch ?? 55)}deg) rotate(${ang}deg)` : `rotate(${ang}deg)`, transformOrigin: "0 0" }} />
-                  ); })()}
                 <div className="absolute rounded border font-mono text-[8px]" onPointerDown={(e) => e.stopPropagation()}
                   style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, zIndex: 40, minWidth: 128, pointerEvents: "auto",
                     background: "#0a0f16", borderColor: C.gold, boxShadow: "0 4px 18px rgba(0,0,0,.6)",
@@ -2004,7 +2002,8 @@ function AoMapPane(p: PaneProps) {
               const sel = voxelSel === col.key;
               const isLattice = col.key.startsWith("LAT:"); // empty scaffold column (no asset)
               const hiCol = voxelHiColor;                    // FX-07: user-set primary highlight colour
-              const dimmed = voxelSel != null && !sel;       // FX-07: non-selected voxels go lighter when one is highlighted
+              const selAsset = selected?.kind === "asset" && col.objects.some((o) => o.id === selected.id); // FX-59: the actively-selected asset's own column counts as selected
+              const dimmed = voxelSel != null && !sel && !selAsset; // FX-07 dim cue, FX-59: never dims the selected asset
               const fullStack = col.cubes.filter((cb) => cb.bandIdx > 0);
               // FX-04 (HI 1.3.2): a lattice voxel defaults to a 3-high (3×3×3) CUBE on the
               // ground (the eXeL cube-coding / swarm form, artificial 3-D feel); an asset
@@ -2021,7 +2020,7 @@ function AoMapPane(p: PaneProps) {
                 background: occupied ? `${color}10` : "transparent",
               });
               return (
-                <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: sel ? 14 : 12, opacity: dimmed ? 0.4 : 1, transition: "opacity 140ms ease",
+                <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
                   // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
                   // by +bearing, but the faces were screen-axis-aligned, so on rotate each
                   // cube looked like it spun on its own ("confusing as shit"). Rotate the
