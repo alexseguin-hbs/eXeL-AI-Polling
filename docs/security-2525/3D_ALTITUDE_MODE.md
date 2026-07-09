@@ -194,15 +194,34 @@ vision2525_governance_gate · export_policy_filter · webgl_fallback_handler · 
 
 ## 10. Phased slices (each ships green, reverts cleanly)
 
-- **Slice 1 (shipped):** view-angle (pitch 20–75°) + symbology selector (MIL/eXeL/Hybrid) +
-  **1-fetch lock** (2D↔3D zero extra network) + tile ladder + dedup proof.
-- **Slice 2 (next):** **Altitude transect panel** — reuse the single DEM tile to draw terrain +
-  water + bathymetry along a transect, overlay placed-asset altitudes as stems w/ reference
-  labels (the mockup's ELEVATION PROFILE). Pure 2D SVG, low risk, high "altitude understanding".
-  Plus **coordinate packet** (LAT/LON, LLV-DMS, UTM, MGRS, UCRS, elev, datum, confidence) on hover.
-- **Slice 3:** **Altitude stems + voxel bands in 3D** (translateZ off the tilted plane in
-  preserve-3d) + **layer-controls checklist** + **selected-object inspector** + **elevation rail**
-  + Atlantis-pattern **/Security/2525 share** of the atomic 3D restore.
+> **Deployed state (2026-07-09, reconciled vs the 5 eXeL AI 3D reference mockups):**
+
+- **Slice 1 (SHIPPED):** view-angle (pitch 20–75°) + symbology selector (MIL/eXeL/Hybrid — UI
+  stub, not yet driving icon render) + **1-fetch lock** (2D↔3D zero extra network) + tile
+  ladder + dedup proof.
+- **Slice 2 (SHIPPED, commit `b325ed7`):** **ELEVATION PROFILE / TRANSECT panel** — full-width
+  bottom panel (plan mode) off the single DEM tile: terrain area+ridge, sea-level bathymetry
+  line, voxel altitude-band dashed gridlines (RANGE_EDGES ft labels), object altitude **stems
+  terrain→MSL with reference-carrying labels** (`747m MSL`, `365m AGL` — altitude visual law),
+  right-side **band-occupancy rail** (stackable-cubes count per band), E–W / N–S cut toggle
+  (`transectLine()`), collapsible. Verified: 41/41 tests, tsc/eslint 0 err, build 25/25, PNG
+  visual sim vs reference. Also shipped earlier: **coordinate packet** (LAT/LON, LLV-DMS, UTM,
+  MGRS, UCRS, elev, datum, source), **AGL/MSL altitude reference on tracks**, **LAYER CONTROLS
+  checklist**, **/Security/2525 deep-link** (Atlantis pattern).
+- **Slice 3 (NEXT):** **Altitude stems + voxel bands in 3D** (translateZ off the tilted plane
+  in preserve-3d) + altitude rail histogram — makes 3D altitude *testable on device*.
+- **Slice 4:** **Selected-object altitude inspector** (ALTITUDE / AGL / TERRAIN ELEV / ALT REF /
+  SOURCE / CONFIDENCE per reference) + **governance status footer** (REALITY / EXPORT / R-CORE /
+  SSSES / SPIRAL).
+- **Slice 5 (user 2026-07-09):** **Map window management** — mini-map draggable to any position;
+  BOTH big map and mini map fullscreen to everything below the top tab bar; minimize restores
+  standard layout; existing menu-level browser-fullscreen Expand unchanged.
+
+**Reference-image deltas (noted, not yet built):** ft-primary altitude labels (we render m —
+unit toggle exists for distances), airspace/coverage **volumes** (domes/corridors with
+floor/ceiling), elevation heat shading, transect START/END MGRS in header, replay-snapshot
+button. The mockups' "AI recommendation / kill-chain / approve plan" panels remain converted to
+readiness/replay/governance status only (§4 safety boundary).
 
 ---
 
