@@ -309,12 +309,13 @@ const AD_HALF: Partial<Record<AssetKind, number>> = { patriot: 60, thaad: 90 };
 
 // Published engagement / detection ranges (km, approximate open-source figures) —
 // a weapons-planning coverage aid, NOT a targeting authority. Sources: manufacturer
-// & defense-press public data (Stinger ~8 km; PAC-3/MSE ~35 km; THAAD ~200 km;
-// AN/MPQ-64 Sentinel detection ~75 km). X-BAT/AUTO-FOIL are program-nominal.
+// & defense-press public data (Stinger 4–8 km; PAC-3 MSE up to ~160 km; THAAD ~200 km;
+// AN/MPQ-64 Sentinel detection 40 km basic / 75–120 km upgraded). X-BAT/AUTO-FOIL program-nominal.
+// HI (2026-07-09): use published upper figures — Avenger 8, PATRIOT PAC-3 160, THAAD 200, Sentinel 75.
 // HI: only AIR-DEFENCE systems carry a coverage RING. X-BAT (UAS swarm) + AUTO-FOIL
 // (autonomous effector) are aerial EFFECTORS, not defended volumes → NO range ellipsoid.
 const ASSET_RANGE_KM: Partial<Record<AssetKind, number>> = {
-  avenger: 8, patriot: 35, thaad: 200, sentinel: 75,
+  avenger: 8, patriot: 160, thaad: 200, sentinel: 75,
 };
 
 // ── World border context strip (Natural Earth 50m, self-hosted) ──────────────
@@ -789,9 +790,11 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
 // decimal, filtered to digits/dot). Optional LOCK GATE (reusing the padlock iconology of
 // the Easter-egg locked cube screens): the field is read-only until the operator taps the
 // padlock to unlock, so an alarm threshold can't be nudged by accident.
-function NumInField({ value, onCommit, className, style, lockable }: { value: number; onCommit: (v: number) => void; className?: string; style?: React.CSSProperties; lockable?: boolean }) {
+function NumInField({ value, onCommit, className, style, lockable, lockColor }: { value: number; onCommit: (v: number) => void; className?: string; style?: React.CSSProperties; lockable?: boolean; lockColor?: string }) {
   const [draft, setDraft] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(!lockable);
+  // FX (HI RAIL): lock iconology tints to its bar colour (R=red, Y=amber); default gold.
+  const lc = lockColor ?? C.gold;
   const field = (
     <input type="text" inputMode="decimal" value={draft ?? String(value)} readOnly={!unlocked}
       onPointerDown={(e) => e.stopPropagation()} /* map surface must not swallow the field tap */
@@ -810,8 +813,8 @@ function NumInField({ value, onCommit, className, style, lockable }: { value: nu
           "locks don't work" on the red/gold altitude bars). */}
       <button type="button" onPointerDown={(e) => { e.stopPropagation(); }} onClick={(e) => { e.stopPropagation(); setUnlocked((u) => !u); }}
         title={unlocked ? "🔓 unlocked — tap to lock" : "🔒 tap to unlock & edit"}
-        className="flex shrink-0 items-center rounded-full px-1 py-0.5" style={{ background: unlocked ? `${C.gold}22` : "#0a0f16cc", border: `1px solid ${C.gold}`, pointerEvents: "auto" }}>
-        {unlocked ? <Unlock className="h-3.5 w-3.5" style={{ color: C.gold }} /> : <Lock className="h-3.5 w-3.5" style={{ color: C.gold }} />}
+        className="flex shrink-0 items-center rounded-full px-1 py-0.5" style={{ background: unlocked ? `${lc}22` : "#0a0f16cc", border: `1px solid ${lc}`, pointerEvents: "auto" }}>
+        {unlocked ? <Unlock className="h-3.5 w-3.5" style={{ color: lc }} /> : <Lock className="h-3.5 w-3.5" style={{ color: lc }} />}
       </button>
       {field}
     </span>
@@ -1565,9 +1568,12 @@ function AoMapPane(p: PaneProps) {
                 {osmPaths && waterOn && (
                   <g>
                     <path d={osmPaths.polyD} fill="#1e6fd955" stroke="#38bdf8" strokeWidth="0.2" />
-                    {/* FX-11 (P1.3): floors lowered 0.5→0.18 / 0.12→0.05 — the old floor froze
-                        river widths past ~13 km span; now they keep scaling with zoom-out */}
-                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={Math.min(1.8, Math.max(0.15, (65 / (view.spanKm * 1000)) * 100))} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
+                    {/* FX-11 (P1.3.r5 HI): PROPORTIONAL river — width mimics the ACTUAL ~40 m
+                        ground width, scaled by view span (40 m / spanM * 100 = SVG units on the
+                        100-unit viewBox). NO hard max cap, so a wide river reads proportionally
+                        wide up-close and thin zoomed-out; floor 0.08 only so it never vanishes.
+                        The faint highlight path (#7dd3fc) below stays thin. R-CORE EDGE. */}
+                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={Math.max(0.08, (40 / (view.spanKm * 1000)) * 100)} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
                     <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.4, Math.max(0.05, (14 / (view.spanKm * 1000)) * 100))} opacity="0.85" strokeLinecap="round" />
                   </g>
                 )}
@@ -1786,29 +1792,11 @@ function AoMapPane(p: PaneProps) {
               if (f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05) return null;
               const sel = selected?.kind === "asset" && selected.id === u.id;
               const hot = hoverAsset === u.asset;
-              // HI FINAL TOUCH — a FLYING asset sits at its ACTUAL altitude in 3D. Lift the icon
-              // by translateZ on the SAME vertical scale the voxel + left ALTITUDE rail use
-              // (bandPx per band; full finite rail = 6 bands = topFt), and drop a 1px billboarded
-              // stem to the ground so the height reads. AGL/MSL normalised to MSL ft (rail = MSL).
-              const flying = is3d && u.altitude != null && u.altitude > 0;
-              const altitudePx = flying ? (() => {
-                const paneW = mapRef.current?.clientWidth ?? 800;
-                const cellPx = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW);
-                const bandPx = Math.min(cellPx, 40);            // == voxel band height
-                const topFt = maxAltFt ?? 10000;                // == ALTITUDE rail top
-                const terrainM = sampler(u.lat, u.lon);
-                const mslFt = ((u.altRef === "MSL") ? u.altitude! : terrainM + u.altitude!) * 3.28084;
-                return Math.max(0, Math.min(1, mslFt / topFt)) * 6 * bandPx; // 6 finite rail bands
-              })() : 0;
+              // HI: altitude SPIKE/stem REMOVED — the voxel box carries altitude, so the icon sits
+              // on the ground with only its coordinate chip (N above for AERIAL / S below for GROUND).
+              const aerial = u.altitude != null && u.altitude > 0;
               return (
                 <Fragment key={u.id}>
-                  {/* thin vertical stem: ground → flying icon, billboarded like the compass spike */}
-                  {altitudePx > 1 && (
-                    <div className="pointer-events-none absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`,
-                      width: 1, height: altitudePx, zIndex: hot ? 14 : 11,
-                      background: `linear-gradient(to top, ${u.aff === "hostile" ? C.red : C.green}, ${u.aff === "hostile" ? C.red : C.green}22)`,
-                      transform: `translate(-50%,-100%) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 100%" }} />
-                  )}
                 <button
                   onPointerUp={(e) => { if (!dragRef.current?.moved) { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); } }}
                   onDoubleClick={(e) => { e.stopPropagation(); setSelected({ kind: "asset", id: u.id }); showVoxelFor(u.id); }} /* FX-30 (HI): double-click an asset → reveal + highlight its VOXEL·CUBE */
@@ -1839,8 +1827,10 @@ function AoMapPane(p: PaneProps) {
                       : <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} />}
                   </span>
                   {/* HI 1.3.3: coordinate label = ONE black-background chip (no white version),
-                      same format as the selected-voxel label. */}
-                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
+                      same format as the selected-voxel label.
+                      HI: N/S placement — AERIAL asset (altitude>0) → chip ABOVE the icon (North);
+                      GROUND asset → chip BELOW the icon (South). flex-col `order` re-stacks it. */}
+                  <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 0, marginTop: aerial ? 0 : 2, marginBottom: aerial ? 2 : 0 }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
                   {u.moving && (
                     <span className="whitespace-nowrap font-mono text-[7px] font-bold" style={{ color: C.green }}>
                       {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude)}m ${u.altRef ?? "AGL"}` : ""}
@@ -2392,18 +2382,18 @@ function AoMapPane(p: PaneProps) {
                   )}
                   {/* FX-05 (HI RAIL): threshold lock+number ENTRIES ride their own line —
                       absolutely placed at thrTop() so R / Y / GREY track the moving marker. */}
-                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(altRedFt ?? 0), transform: "translateY(-50%)" }}>
+                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(altRedFt ?? 0), transform: "translateY(-110%)" }}>
                     <span className="font-mono text-[6px] font-bold" style={{ color: C.red }}>R</span>
-                    <NumInField value={altRedFt ?? 0} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable
+                    <NumInField value={altRedFt ?? 0} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable lockColor={C.red}
                       className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
                   </span>
-                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(altYellowFt ?? 0), transform: "translateY(-50%)" }}>
+                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(altYellowFt ?? 0), transform: "translateY(-110%)" }}>
                     <span className="font-mono text-[6px] font-bold" style={{ color: C.amber }}>Y</span>
-                    <NumInField value={altYellowFt ?? 0} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable
+                    <NumInField value={altYellowFt ?? 0} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable lockColor={C.amber}
                       className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
                   </span>
                   {voxelLimitPct > 0 && (
-                    <span className="pointer-events-none absolute left-1 flex items-center gap-0.5" style={{ top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-50%)" }}>
+                    <span className="pointer-events-none absolute left-1 flex items-center gap-0.5" style={{ top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-110%)" }}>
                       <span className="font-mono text-[6px] font-bold" style={{ color: "#9ca3af" }}>G</span>
                       <span className="font-mono text-[7px]" style={{ color: "#9ca3af" }}>{lbl((voxelLimitPct / 100) * topFt)}</span>
                     </span>
