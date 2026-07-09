@@ -2169,8 +2169,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
   const [osm, setOsm] = useState<OsmData | null>(null);
   const [borders, setBorders] = useState<BorderData | null>(borderCache);
-  const [dem, setDem] = useState<Dem | null>(null);   // real GEBCO grid for the current view
+  const [dem, setDem] = useState<Dem | null>(null);   // real GEBCO grid for the big MAP (viewA)
   const demKeyRef = useRef<string | null>(null);
+  const [demB, setDemB] = useState<Dem | null>(null); // independent tile for the MINI map (viewB) — correct contours in SPLIT
+  const demKeyRefB = useRef<string | null>(null);
   // Champion/challenger map engine: "current" (shipped) vs "beta" (6-face pull-as-you-need:
   // prefetch zoom-in/out tiles so the next zoom is instant). Default current; A/B switch in Settings.
   const [mapEngine, setMapEngine] = useState<"current" | "beta">(() => ((typeof localStorage !== "undefined" && localStorage.getItem("sec2525.mapEngine")) === "beta" ? "beta" : "current"));
@@ -2285,6 +2287,17 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       }
     }
   }, [viewA.lat, viewA.lon, viewA.spanKm, mapEngine]);
+  // MINI map its own tile (viewB) — so SPLIT-mode contours match the mini's region, not the big map's.
+  useEffect(() => {
+    const key = pickDemKey(viewB.lat, viewB.lon, viewB.spanKm);
+    if (key === demKeyRefB.current) return;
+    demKeyRefB.current = key;
+    if (!key) { setDemB(null); return; }
+    if (demCache[key]) { setDemB(demCache[key]); return; }
+    fetch(`/security-2525/dem-${key}.json`).then((r) => r.json())
+      .then((d: Dem) => { demCache[key] = d; if (demKeyRefB.current === key) setDemB(d); })
+      .catch(() => { demKeyRefB.current = null; });
+  }, [viewB.lat, viewB.lon, viewB.spanKm]);
 
   const fmt = useMemo(() => makeFormatters(coordFmt, digits, unit), [coordFmt, digits, unit]);
 
@@ -2404,10 +2417,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
 
   const paneCommon = {
     ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, cursorMode,
-    osm, borders, dem, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
+    osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey],
-  };
+  }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view
 
   return (
     <div ref={rootRef} className="space-y-2 p-3" style={isFs ? { background: C.bg, height: "100vh", overflowY: "auto" } : undefined}>
@@ -2773,7 +2786,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 onEnterAo={(k) => enterAo(k, setModeA_)} />
             </div>
           ) : (
-            <AoMapPane {...paneCommon} label="MAP" showElevation spanFactor={1}
+            <AoMapPane {...paneCommon} dem={dem} label="MAP" showElevation spanFactor={1}
               view={viewA} setView={setViewA_} otherView={viewB} is3d={is3dA} onToggle3d={toggle3dA}
               maximized={mapMax} onToggleMax={() => setMapMax((m) => !m)} onWorld={() => setModeA_("world")} />
           )}
@@ -2784,7 +2797,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                 <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
                   onEnterAo={(k) => enterAo(k, setModeB_)} />
               ) : (
-                <AoMapPane {...paneCommon} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
+                <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
                   view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
                   maximized={false} onToggleMax={() => setMapMax((m) => !m)} onHidePane={() => setMiniOpen(false)} onWorld={() => setModeB_("world")} />
               )}
