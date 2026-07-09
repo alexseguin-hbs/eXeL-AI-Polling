@@ -2229,10 +2229,10 @@ function AoMapPane(p: PaneProps) {
                   {/* ground ELLIPSE ring + small INWARD notches at each 30° (flat on the plane,
                       bearing-rotated). No tall fence, no spheres — numbers ride short spikes. */}
                   <svg viewBox="-50 -50 100 100" width="100%" height="100%" style={{ position: "absolute", inset: 0, transform: `rotateZ(${view.bearing}rad)`, overflow: "visible" }} aria-hidden>
-                    <circle r={R} fill="none" stroke={`${C.cyan}66`} strokeWidth="0.4" />
+                    <circle r={R} fill="none" stroke={`${C.cyan}88`} strokeWidth="0.22" />
                     {Array.from({ length: 12 }).map((_, i) => {
                       const deg = i * 30, a = (deg * Math.PI) / 180;
-                      return <line key={i} x1={R * Math.sin(a)} y1={-R * Math.cos(a)} x2={(R - 2.5) * Math.sin(a)} y2={-(R - 2.5) * Math.cos(a)} stroke={deg === 0 ? C.red : `${C.cyan}aa`} strokeWidth="0.6" />;
+                      return <line key={i} x1={R * Math.sin(a)} y1={-R * Math.cos(a)} x2={(R - 2.5) * Math.sin(a)} y2={-(R - 2.5) * Math.cos(a)} stroke={deg === 0 ? C.red : `${C.cyan}aa`} strokeWidth="0.5" />;
                     })}
                   </svg>
                   {/* short spike + degree number ON TOP of it, billboarded, at each 30° */}
@@ -2380,10 +2380,11 @@ function AoMapPane(p: PaneProps) {
               const f = project(col.lat, col.lon);
               return (
                 <div className="absolute z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
-                  style={{ left: `${Math.min(70, Math.max(2, f.fx * 100))}%`, top: `${Math.min(60, Math.max(4, f.fy * 100 - 10))}%`, background: "#0a0f16ee", borderColor: C.gold }}>
+                  onPointerDown={(e) => e.stopPropagation()} /* keep the map from capturing the pointer so the ✕ fires */
+                  style={{ left: `${Math.min(70, Math.max(2, f.fx * 100))}%`, top: `${Math.min(60, Math.max(4, f.fy * 100 - 10))}%`, background: "#0a0f16ee", borderColor: C.gold, pointerEvents: "auto" }}>
                   <div className="mb-1 flex items-center justify-between">
                     <span className="font-bold tracking-wider" style={{ color: C.gold }}>3D VOXEL·CUBE · BASE</span>
-                    <button onClick={() => setVoxelSel(null)} style={{ color: C.dim }}>✕</button>
+                    <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(null); }} title="Close" className="px-1 text-[11px] leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
                   <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
                     <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{col.mgrs}</span>
