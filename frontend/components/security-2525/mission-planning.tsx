@@ -41,6 +41,7 @@ import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { MIN_SPAN_KM, MAX_SPAN_KM, ZOOM_FACTOR, shouldHandOffToWorld } from "@/lib/zoom-continuum";
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
 import { bufferPolygon } from "@/lib/aor";
+import { getTile, peekTile } from "@/lib/tile-cache";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { SpectrumPicker } from "@/components/security-2525/spectrum-picker";
 import { ULT_ROSTER, type UltNode } from "@/components/security-2525/ult-data";
@@ -357,7 +358,6 @@ function pickDemKey(lat: number, lon: number, spanKm: number): string | null {
     .sort((a, z) => demArea(z.bbox) - demArea(a.bbox));
   return overCentre.length ? overCentre[0].key : null;
 }
-const demCache: Record<string, Dem> = {};
 
 // 12-sided AOR polygons (≈100 km radius) for the TX >1M metros — operator-provided.
 // Rendered as the Area-of-Responsibility boundary out to which layers extend. [lat,lon].
@@ -2272,18 +2272,18 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (key === demKeyRef.current) return;
     demKeyRef.current = key;
     if (!key) { setDem(null); return; }
-    if (demCache[key]) { setDem(demCache[key]); return; }
-    fetch(`/security-2525/dem-${key}.json`).then((r) => r.json())
-      .then((d: Dem) => { demCache[key] = d; if (demKeyRef.current === key) setDem(d); })
-      .catch(() => { demKeyRef.current = null; }); // transient error: keep current tile, retry on next move (no synthetic flash)
-    // 6-face BETA: prefetch the zoom-in (finer) + zoom-out (coarser) tiles so the next
-    // zoom is instant — the "pull-as-you-need" cube seed. Cache-only, no render change.
+    const warm = peekTile<Dem>(key);
+    if (warm) setDem(warm); // in-memory → instant, no flash frame
+    else getTile<Dem>(key, `/security-2525/dem-${key}.json`).then((d) => {
+      if (demKeyRef.current !== key) return;        // view moved on
+      if (d) setDem(d); else demKeyRef.current = null; // transient miss → retry on next move
+    });
+    // 6-face BETA: prefetch the zoom-in (finer) + zoom-out (coarser) tiles through the
+    // cache ladder so the next zoom is instant — the "pull-as-you-need" cube seed.
     if (mapEngine === "beta") {
       for (const s of [viewA.spanKm / 3, viewA.spanKm * 3]) {
         const pk = pickDemKey(viewA.lat, viewA.lon, s);
-        if (pk && pk !== key && !demCache[pk]) {
-          fetch(`/security-2525/dem-${pk}.json`).then((r) => r.json()).then((d: Dem) => { demCache[pk] = d; }).catch(() => { /* prefetch best-effort */ });
-        }
+        if (pk && pk !== key && !peekTile(pk)) getTile<Dem>(pk, `/security-2525/dem-${pk}.json`);
       }
     }
   }, [viewA.lat, viewA.lon, viewA.spanKm, mapEngine]);
@@ -2293,10 +2293,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (key === demKeyRefB.current) return;
     demKeyRefB.current = key;
     if (!key) { setDemB(null); return; }
-    if (demCache[key]) { setDemB(demCache[key]); return; }
-    fetch(`/security-2525/dem-${key}.json`).then((r) => r.json())
-      .then((d: Dem) => { demCache[key] = d; if (demKeyRefB.current === key) setDemB(d); })
-      .catch(() => { demKeyRefB.current = null; });
+    const warm = peekTile<Dem>(key);
+    if (warm) setDemB(warm);
+    else getTile<Dem>(key, `/security-2525/dem-${key}.json`).then((d) => {
+      if (demKeyRefB.current !== key) return;
+      if (d) setDemB(d); else demKeyRefB.current = null;
+    });
   }, [viewB.lat, viewB.lon, viewB.spanKm]);
 
   const fmt = useMemo(() => makeFormatters(coordFmt, digits, unit), [coordFmt, digits, unit]);
