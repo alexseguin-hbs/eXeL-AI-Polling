@@ -1111,10 +1111,9 @@ function AoMapPane(p: PaneProps) {
     setPlaced((pl) => [...pl, {
       id, asset, count: item.group, fx, fy, lat, lon, mgrs10: latLonToMgrs(lat, lon, 5), aff: "friendly", tls, fov, unit: angUnit,
     }]);
-    // FX-03 (P1.3): the freshly placed unit is immediately SELECTED and clickable;
-    // the placement tool disarms so the next click doesn't drop another copy.
+    // FX-03 (P1.3, revised): the freshly placed unit is SELECTED; the tool STAYS
+    // armed for repeat placement — ESC exits placement into select mode.
     setSelected({ kind: "asset", id });
-    onDisarm?.();
   };
   const placeSupport = (def: SupportObjectDef, fx: number, fy: number) => {
     const { lat, lon } = containerToLatLon(fx, fy);
@@ -1242,6 +1241,13 @@ function AoMapPane(p: PaneProps) {
 
   // Reset the draft + coordinate call-up when the AO changes.
   useEffect(() => { setRouteDraft([]); setCoordCall(null); }, [ao.key]);
+  // P1.3 (Thought Master): ESC leaves placement mode → traditional SELECT mode.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { onDisarm?.(); setRouteDraft([]); } };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Escape clears the in-progress route on this pane.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setRouteDraft([]); };
@@ -1308,7 +1314,25 @@ function AoMapPane(p: PaneProps) {
       label: ASSET_LABELS[u.asset], color: u.aff === "hostile" ? C.red : C.cyan,
     }));
     return objs.length ? buildVoxelColumns(objs, sampler, voxelCellM || grid.stepM) : [];
-  }, [is3d, placed, sampler, grid.stepM]);
+    // (voxel-on-select effect lives right below — needs this memo declared first)
+  }, [is3d, placed, sampler, grid.stepM, voxelCellM]);
+  // P1.3 (Thought Master): selecting a unit — physical map click OR right-rail
+  // highlight — makes its VOXEL appear (gold selection on its cube column) in 3D.
+  useEffect(() => {
+    if (!is3d || selected?.kind !== "asset") return;
+    const col = voxelColumns.find((c) => c.objects.some((o) => o.id === selected.id));
+    if (col) setVoxelSel(col.key);
+  }, [selected, is3d, voxelColumns]);
+  // P1.3 (Thought Master): the rail's NEGATIVE band exists only when the view holds
+  // water — scaled to the DEEPEST source in view (coarse 9×9 sample of the same DEM).
+  const minElevM = useMemo(() => {
+    if (!is3d) return 0;
+    let m = 0;
+    for (let i = 0; i <= 8; i++) for (let j = 0; j <= 8; j++) {
+      m = Math.min(m, sampler(box.latMin + ((box.latMax - box.latMin) * i) / 8, box.lonMin + ((box.lonMax - box.lonMin) * j) / 8));
+    }
+    return m;
+  }, [is3d, box, sampler]);
   // Topographic contours (memoized on box + settings + DEM; real elevation + ocean floor).
   const contourSet = useMemo(
     () => (contourCfg.enable ? computeContours(box, contourCfg, sampler) : null),
@@ -1406,7 +1430,9 @@ function AoMapPane(p: PaneProps) {
         <div className="flex min-h-0 flex-1 gap-1">
           <div ref={mapRef}
             className="relative h-full w-full overflow-hidden rounded-md touch-none"
-            style={{ background: "radial-gradient(ellipse at 50% 55%, #0f2033 0%, #070b12 75%)", border: `1px solid ${C.border}`, cursor: cursorMode === "target" ? "none" : armed ? "crosshair" : dragRef.current ? "grabbing" : "grab" }}
+            /* P1.3 (Thought Master): DEFAULT cursor is the traditional select arrow —
+               crosshair only while a placement tool is armed, grabbing only mid-drag */
+            style={{ background: "radial-gradient(ellipse at 50% 55%, #0f2033 0%, #070b12 75%)", border: `1px solid ${C.border}`, cursor: cursorMode === "target" ? "none" : armed ? "crosshair" : dragRef.current ? "grabbing" : "default" }}
             onContextMenu={(e) => e.preventDefault()}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
@@ -1857,6 +1883,30 @@ function AoMapPane(p: PaneProps) {
                 </div>
               );
             })}
+            {/* FX-29 (P1.3): 3D compass ring — lies ON the ground plane so it always
+                points at the horizon; at high tilt it rings the map edge in the distance */}
+            {is3d && (() => {
+              const topHeading = ((-view.bearing * 180 / Math.PI) % 360 + 360) % 360;
+              const ringMarks: React.ReactNode[] = [];
+              for (let deg = 0; deg < 360; deg += 10) {
+                const th = ((deg - topHeading) * Math.PI) / 180;
+                const x = 50 + 46 * Math.sin(th), y = 50 - 46 * Math.cos(th);
+                if (deg % 30 === 0) {
+                  ringMarks.push(
+                    <text key={deg} x={x} y={y} fontSize="2.4" textAnchor="middle" fontFamily="monospace" fontWeight="bold"
+                      fill={deg === 0 ? C.red : C.cyan} opacity="0.9">{deg === 0 ? "N" : String(deg).padStart(3, "0")}</text>
+                  );
+                } else {
+                  ringMarks.push(<circle key={deg} cx={x} cy={y} r="0.3" fill={C.cyan} opacity="0.55" />);
+                }
+              }
+              return (
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0" style={{ zIndex: 11 }}>
+                  <ellipse cx="50" cy="50" rx="46" ry="46" fill="none" stroke={C.cyan} strokeWidth="0.25" opacity="0.4" vectorEffect="non-scaling-stroke" />
+                  {ringMarks}
+                </svg>
+              );
+            })()}
             </div>
             {/* end 3D tilt layer */}
             {is3d && (
@@ -1884,7 +1934,7 @@ function AoMapPane(p: PaneProps) {
             {/* FX-08 (P1.3): VOXEL onboarding — how to activate/read/release a voxel */}
             {is3d && (
               <div className="pointer-events-none absolute left-1/2 top-12 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[7px]" style={{ background: "#0a0f16aa", color: C.dim }}>
-                VOXEL: tap a placed unit → its cube · TARGET/corners = coordinates · tap cube TOP to release
+                3D VOXEL·CUBE: tap a placed unit → its cube · TARGET/corners = coordinates · tap cube TOP to release
               </div>
             )}
             {/* LEFT ALTITUDE rail (R1 feedback) — voxel band scale, reference style.
@@ -1918,9 +1968,12 @@ function AoMapPane(p: PaneProps) {
                   <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.gold }}>
                     <span className="inline-block h-px w-2" style={{ background: C.gold }} />SURFACE
                   </span>
-                  <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: "#22d3ee" }}>
-                    <span className="inline-block h-px w-2" style={{ background: "#22d3ee" }} />{lbl(-1000)}
-                  </span>
+                  {/* negative band ONLY when the view holds water — deepest source in view */}
+                  {minElevM < -1 && (
+                    <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: "#22d3ee" }}>
+                      <span className="inline-block h-px w-2" style={{ background: "#22d3ee" }} />{lbl(minElevM * 3.28084)}
+                    </span>
+                  )}
                   {/* FX-05: threshold marker lines on the rail */}
                   {altRedFt != null && altRedFt > 0 && (
                     <span className="absolute left-0 right-0" style={{ top: thrTop(altRedFt), height: 2, background: C.red, boxShadow: `0 0 4px ${C.red}` }} />
@@ -1972,7 +2025,7 @@ function AoMapPane(p: PaneProps) {
                 <div className="absolute z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
                   style={{ left: `${Math.min(70, Math.max(2, f.fx * 100))}%`, top: `${Math.min(60, Math.max(4, f.fy * 100 - 10))}%`, background: "#0a0f16ee", borderColor: C.gold }}>
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="font-bold tracking-wider" style={{ color: C.gold }}>VOXEL · CUBE BASE</span>
+                    <span className="font-bold tracking-wider" style={{ color: C.gold }}>3D VOXEL·CUBE · BASE</span>
                     <button onClick={() => setVoxelSel(null)} style={{ color: C.dim }}>✕</button>
                   </div>
                   <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
@@ -2083,8 +2136,8 @@ function AoMapPane(p: PaneProps) {
             })()}
 
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2" style={{ borderLeft: `1px solid ${C.dim}`, borderTop: `1px solid ${C.dim}`, opacity: 0.5 }} />
-            {/* 360° bearing scale */}
-            {(() => {
+            {/* 360° bearing scale — 2D screen edges; in 3D the FX-29 horizon RING takes over */}
+            {!is3d && (() => {
               const topHeading = ((-view.bearing * 180 / Math.PI) % 360 + 360) % 360;
               const marks: React.ReactNode[] = [];
               for (let deg = 0; deg < 360; deg += 10) {
@@ -2230,19 +2283,12 @@ interface RailProps {
   reality: RealityMode; setReality: (r: RealityMode) => void;
   onUndoLastPlacement: () => void; clearAo: () => void;
   routeMode: boolean; onHide: () => void;
-  // FX-04 (P1.3): the selected placed unit's inspector renders DIRECTLY UNDER its
-  // asset row as an accordion; minimizing it keeps the rest of the list visible.
-  selectedKind?: AssetKind | null;
-  inspector?: React.ReactNode;
-  inspectorOpen?: boolean;
-  setInspectorOpen?: (b: boolean) => void;
 }
 function PlacementRail(r: RailProps) {
   const {
     iconStyle, inventory, tab, setTab, selectedAsset, setSelectedAsset, selectedSupport, setSelectedSupport,
     hoverAsset, setHoverAsset, openGroups, setOpenGroups, reality, setReality,
     onUndoLastPlacement, clearAo, routeMode, onHide,
-    selectedKind, inspector, inspectorOpen = true, setInspectorOpen,
   } = r;
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -2279,18 +2325,8 @@ function PlacementRail(r: RailProps) {
                   </div>
                   <span className="font-mono text-[11px]" style={{ color: empty ? C.red : C.green }}>×{i.stock}</span>
                 </div>
-                {/* FX-04: selected unit's info accordion — directly under ITS asset row */}
-                {selectedKind === i.asset && inspector && (
-                  <div className="rounded border" style={{ borderColor: `${C.gold}66`, background: "#0d1420" }}>
-                    <button onClick={() => setInspectorOpen?.(!inspectorOpen)}
-                      className="flex w-full items-center justify-between px-2 py-1 text-[9px] font-bold tracking-wider"
-                      style={{ color: C.gold }}>
-                      <span>SELECTED · {ASSET_LABELS[i.asset]}</span>
-                      <span>{inspectorOpen ? "▾" : "▸"}</span>
-                    </button>
-                    {inspectorOpen && <div className="max-h-72 overflow-y-auto">{inspector}</div>}
-                  </div>
-                )}
+                {/* FX-04 (revised by Thought Master): LEFT rail is ONLY the draw palette —
+                    the selected unit's info lives on the RIGHT rail (ACTIVE ITEMS inspector) */}
                 </Fragment>
               );
             })}
@@ -2889,7 +2925,6 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [altRedFt, setAltRedFt] = useState<number | null>(null);      // FX-05: RED altitude threshold
   const [altYellowFt, setAltYellowFt] = useState<number | null>(null);// FX-05: YELLOW altitude threshold
   const [voxelCellM, setVoxelCellM] = useState<0 | 100 | 1000>(0);    // FX-10: 0 = AUTO (grid step)
-  const [railInspOpen, setRailInspOpen] = useState(true);             // FX-04: left-rail accordion
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
@@ -3566,7 +3601,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               </div>
               {/* FX-10: voxel cell size — AUTO snaps to the visible grid step */}
               <div className="mt-1 mb-1 flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: C.text }}>Voxel cell</span>
+                <span className="text-[9px]" style={{ color: C.text }}>3D Voxel·Cube cell</span>
                 <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
                   {([[0, "AUTO"], [100, "100 m"], [1000, "1 km"]] as const).map(([v, label]) => (
                     <button key={v} onClick={() => setVoxelCellM(v)} className="px-1.5 py-0.5"
@@ -3596,15 +3631,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               openGroups={openGroups} setOpenGroups={setOpenGroups}
               reality={reality} setReality={setReality}
               onUndoLastPlacement={undoLastPlacement} clearAo={clearAo}
-              routeMode={routeMode} onHide={() => setRailOpen(false)}
-              selectedKind={selected?.kind === "asset" ? (selectedObj as Placed | null)?.asset ?? null : null}
-              inspectorOpen={railInspOpen} setInspectorOpen={setRailInspOpen}
-              inspector={<ItemInspector selected={selected} selectedObj={selectedObj} fmt={fmt} coordFmt={coordFmt} digits={digits}
-                nudgeM={nudgeM} setNudgeM={setNudgeM} coordText={coordText} setCoordText={setCoordText}
-                onSetAff={setAff} onSetPlacedReality={setPlacedReality} onUpdAsset={updAsset} onSetTL={setTL}
-                onNudge={nudge} onSetCoord={setCoord} onRemoveSelected={removeSelected}
-                terrainAtSel={selectedObj ? inspSampler(selectedObj.lat, selectedObj.lon) : undefined}
-                reality={reality} planStatus={planStatus} />} />
+              routeMode={routeMode} onHide={() => setRailOpen(false)} />
           </div>
           {/* TRACK controls live with the selected asset in the RIGHT rail (ItemInspector) */}
           </div>
