@@ -2890,7 +2890,7 @@ function ItemInspector(p: InspectorProps) {
               <span className="text-[10px] font-semibold" style={{ color: C.cyan }}>
                 {selected.kind === "asset" ? ASSET_LABELS[(selectedObj as Placed).asset] : (selectedObj as PlacedSupport).def.term}
               </span>
-              <button onClick={onRemoveSelected} className="text-[9px] font-semibold" style={{ color: C.red }}>REMOVE</button>
+              <button onClick={onRemoveSelected} className="flex items-center gap-1 text-[9px] font-semibold" style={{ color: C.red }}>REMOVE <Trash2 className="h-3 w-3" /></button>
             </div>
             <div className="mb-1 font-mono text-[9px]" style={{ color: C.gold }}>{fmt.coordAt(selectedObj.lat, selectedObj.lon)}</div>
             <div className="mb-1 text-[9px]" style={{ color: C.dim }}>Affiliation</div>
@@ -3052,11 +3052,12 @@ interface ActiveItemsProps {
   setSelected: (s: { kind: "asset" | "support"; id: number } | null) => void;
   hoverAsset: AssetKind | null; setHoverAsset: React.Dispatch<React.SetStateAction<AssetKind | null>>;
   onHide?: () => void;
+  onDelete: (kind: "asset" | "support", id: number) => void;
   inspector?: React.ReactNode;
   planStatus: "draft" | "pending" | "approved" | "changes";
   onSubmit: () => void; onApprove: () => void; onChanges: () => void; onShare: () => void; shareMsg: string;
 }
-function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverAsset, setHoverAsset, onHide, inspector, planStatus, onSubmit, onApprove, onChanges, onShare, shareMsg }: ActiveItemsProps) {
+function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverAsset, setHoverAsset, onHide, onDelete, inspector, planStatus, onSubmit, onApprove, onChanges, onShare, shareMsg }: ActiveItemsProps) {
   const total = placed.length + placedSupport.length;
   const statusColor = planStatus === "approved" ? C.green : planStatus === "pending" ? C.amber : planStatus === "changes" ? C.red : C.dim;
   return (
@@ -3071,22 +3072,28 @@ function ActiveItems({ placed, placedSupport, fmt, selected, setSelected, hoverA
       <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-1.5">
         {total === 0 && <div className="px-1 py-2 text-[9px]" style={{ color: C.dim }}>Nothing placed yet — arm an asset or support object, then tap a map.</div>}
         {placed.map((u) => (
-          <button key={`a${u.id}`} onClick={() => setSelected({ kind: "asset", id: u.id })}
+          <div key={`a${u.id}`}
             onMouseEnter={() => setHoverAsset(u.asset)}
             onMouseLeave={() => setHoverAsset((h) => (h === u.asset ? null : h))}
-            className="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-left text-[9px] hover:bg-white/5"
+            className="flex w-full items-center gap-1 rounded px-1 py-0.5 text-[9px] hover:bg-white/5"
             style={{ background: (selected?.kind === "asset" && selected.id === u.id) || hoverAsset === u.asset ? "#152238" : "transparent", boxShadow: hoverAsset === u.asset ? `inset 0 0 0 1px ${C.cyan}` : undefined }}>
-            <span style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
-            <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
-          </button>
+            <button onClick={() => setSelected({ kind: "asset", id: u.id })} className="flex min-w-0 flex-1 items-center justify-between gap-1 text-left">
+              <span style={{ color: u.aff === "hostile" ? C.red : C.text }}>{ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
+              <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); onDelete("asset", u.id); }} title="Remove" className="shrink-0 p-0.5 hover:opacity-100 opacity-60"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+          </div>
         ))}
         {placedSupport.map((u) => (
-          <button key={`s${u.id}`} onClick={() => setSelected({ kind: "support", id: u.id })}
-            className="flex w-full items-center justify-between gap-1 rounded px-1 py-0.5 text-left text-[9px] hover:bg-white/5"
+          <div key={`s${u.id}`}
+            className="flex w-full items-center gap-1 rounded px-1 py-0.5 text-[9px] hover:bg-white/5"
             style={{ background: selected?.kind === "support" && selected.id === u.id ? "#152238" : "transparent" }}>
-            <span className="truncate" style={{ color: u.aff === "hostile" ? C.red : u.def.color }}>{u.def.term}{u.path ? ` (${u.path.length}pt)` : ""}</span>
-            <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
-          </button>
+            <button onClick={() => setSelected({ kind: "support", id: u.id })} className="flex min-w-0 flex-1 items-center justify-between gap-1 text-left">
+              <span className="truncate" style={{ color: u.aff === "hostile" ? C.red : u.def.color }}>{u.def.term}{u.path ? ` (${u.path.length}pt)` : ""}</span>
+              <span className="font-mono" style={{ color: C.gold }}>{fmt.coordAt(u.lat, u.lon)}</span>
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); onDelete("support", u.id); }} title="Remove" className="shrink-0 p-0.5 hover:opacity-100 opacity-60"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+          </div>
         ))}
       </div>
       {/* selected-item inspector (settings) — lives here in the RIGHT rail */}
@@ -3608,6 +3615,12 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     if (selected.kind === "asset") { const u = placed.find((x) => x.id === selected.id); if (u) remove(u); }
     else setPlacedSupport((pl) => pl.filter((x) => x.id !== selected.id));
     setSelected(null);
+  };
+  // HI: per-row trash — delete any active item directly from the ACTIVE ITEMS list.
+  const deleteItem = (kind: "asset" | "support", id: number) => {
+    if (kind === "asset") { const u = placed.find((x) => x.id === id); if (u) remove(u); }
+    else setPlacedSupport((pl) => pl.filter((x) => x.id !== id));
+    setSelected((s) => (s && s.kind === kind && s.id === id ? null : s));
   };
   const selectedObj = selected
     ? (selected.kind === "asset" ? placed.find((u) => u.id === selected.id) : placedSupport.find((u) => u.id === selected.id))
@@ -4207,7 +4220,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           <div className="min-h-0 shrink-0 overflow-hidden rounded-lg border shadow-xl landscape:w-64" style={{ background: C.panel, borderColor: C.border }}>
             <ActiveItems placed={placed} placedSupport={placedSupport} fmt={fmt}
               selected={selected} setSelected={setSelected} hoverAsset={hoverAsset} setHoverAsset={setHoverAsset}
-              onHide={() => setRightOpen(false)}
+              onHide={() => setRightOpen(false)} onDelete={deleteItem}
               inspector={<ItemInspector selected={selected} selectedObj={selectedObj} fmt={fmt} coordFmt={coordFmt} digits={digits}
                 nudgeM={nudgeM} setNudgeM={setNudgeM} coordText={coordText} setCoordText={setCoordText}
                 onSetAff={setAff} onSetPlacedReality={setPlacedReality} onUpdAsset={updAsset} onSetTL={setTL}
