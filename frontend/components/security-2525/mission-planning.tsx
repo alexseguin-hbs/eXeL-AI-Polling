@@ -959,6 +959,8 @@ interface PaneProps {
   setAltRedFt?: (v: number | null) => void;
   setAltYellowFt?: (v: number | null) => void;
   voxelCellM?: number;                         // FX-10: 0/undefined = AUTO (grid step)
+  voxelLimitPct?: number;                      // FX-04: grey voxel-limit extent — % of the altitude rail
+  voxelHiColor?: string;                       // FX-07: colour for the primary highlighted voxel
   selectedSupport: SupportObjectDef | null;
   reality: RealityMode;
   hoverAsset: AssetKind | null;
@@ -993,7 +995,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
-    maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM,
+    maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1,
     drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
@@ -1884,8 +1886,16 @@ function AoMapPane(p: PaneProps) {
               const bandPx = Math.min(cellPx, 40); // display-compressed cube height; labels carry the true altitude+ref
               const sel = voxelSel === col.key;
               const isLattice = col.key.startsWith("LAT:"); // empty scaffold column (no asset)
-              const stack = col.cubes.filter((cb) => cb.bandIdx > 0);
+              const hiCol = voxelHiColor;                    // FX-07: user-set primary highlight colour
+              const dimmed = voxelSel != null && !sel;       // FX-07: non-selected voxels go lighter when one is highlighted
+              const fullStack = col.cubes.filter((cb) => cb.bandIdx > 0);
+              // FX-04 (HI 1.3.2): a lattice voxel defaults to a 3-high (3×3×3) CUBE on the
+              // ground (the eXeL cube-coding / swarm form, artificial 3-D feel); an asset
+              // shows its own occupied stack. A thin GREY "voxel-limit" line then rises from
+              // the cube top to voxelLimitPct% of the full altitude rail.
+              const stack = isLattice ? fullStack.slice(0, 3) : fullStack;
               const topZ = stack.length * bandPx;
+              const limitZ = Math.max(topZ + bandPx, (voxelLimitPct / 100) * Math.max(fullStack.length, 3) * bandPx);
               const topObj = col.objects[col.objects.length - 1];
               const face = (t: string, w: number, h: number, color: string, occupied: boolean): React.CSSProperties => ({
                 position: "absolute", left: "50%", top: "50%", width: w, height: h,
@@ -1894,7 +1904,7 @@ function AoMapPane(p: PaneProps) {
                 background: occupied ? `${color}10` : "transparent",
               });
               return (
-                <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: sel ? 14 : 12,
+                <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: sel ? 14 : 12, opacity: dimmed ? 0.4 : 1, transition: "opacity 140ms ease",
                   // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
                   // by +bearing, but the faces were screen-axis-aligned, so on rotate each
                   // cube looked like it spun on its own ("confusing as shit"). Rotate the
@@ -1907,7 +1917,15 @@ function AoMapPane(p: PaneProps) {
                   <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(sel ? null : col.key); }}
                     title={`${col.mgrs} · ${col.ucrs}`}
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                    style={{ width: cellPx, height: cellPx, border: `1.5px solid ${sel ? C.gold : C.cyan}`, background: sel ? `${C.gold}14` : `${C.cyan}08`, pointerEvents: "auto" }} />
+                    style={{ width: cellPx, height: cellPx, border: `1.5px solid ${sel ? hiCol : C.cyan}`, background: sel ? `${hiCol}22` : `${C.cyan}08`, pointerEvents: "auto" }} />
+                  {/* FX-04 (HI 1.3.2): grey VOXEL-LIMIT extent line — thin dashed line from the
+                      3×3×3 cube top up to the voxel limit (% of the rail), the artificial 3-D
+                      reach cue that matches the cube-coding / swarm form. */}
+                  {limitZ > topZ + 1 && (
+                    <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 1, height: limitZ - topZ,
+                      background: "repeating-linear-gradient(to bottom, #6b7280 0 2px, transparent 2px 5px)", opacity: dimmed ? 0.25 : 0.6,
+                      transform: `translate(-50%,-50%) translate3d(0px,0px,${(topZ + limitZ) / 2}px) rotateX(90deg)` }} />
+                  )}
                   {/* HI 1.3.2: the ASSET's MIL-STD-2525 / eXeL-STD symbol stands in the MIDDLE
                       of its own voxel (asset columns only), billboarded upright off the tilted
                       plane so it reads as the cube's occupant. */}
@@ -3110,6 +3128,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [altRedFt, setAltRedFt] = useState<number | null>(9000);      // FX-05 (1.3.2): RED alarm default 90% of the 10k ft rail
   const [altYellowFt, setAltYellowFt] = useState<number | null>(7000);// FX-05 (1.3.2): YELLOW alarm default 70% of the 10k ft rail
   const [voxelCellM, setVoxelCellM] = useState<0 | 10 | 100 | 1000>(0); // FX-10 (1.3.2): DEFAULT = AUTO screen reticle (3×3 group = 1/9 of screen area = 1/3 width, each cell = 1/9 width); 10 m / 100 m / 1 km snap to real metres
+  const [voxelLimitPct, setVoxelLimitPct] = useState(100); // FX-04 (1.3.2): grey "voxel limit" extent — % of the altitude rail the voxel column reaches (like the red/yellow alarm limits)
+  const [voxelHiColor, setVoxelHiColor] = useState<string>("#eab308"); // FX-07 (1.3.2): user-set colour for the primary highlighted voxel (rest dim)
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
@@ -3375,7 +3395,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     onDisarm: () => { setSelectedAsset(null); setSelectedSupport(null); },
     coordFmt, onSetCoordFmt: setCoordFmt,
-    maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM,
+    maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM, voxelLimitPct, voxelHiColor,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
   }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view.
@@ -3772,7 +3792,27 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                   </div>
                 );
               })()}
-              <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Tilt to 3D on any pane (2D/3D toggle) — reuses the same fetched tile, zero extra network. Altitude stems + transect land next.</div>
+              {/* FX-04 (HI 1.3.2): grey VOXEL LIMIT — % of the altitude rail the voxel column
+                  reaches (lock-gated numeric entry, same style as the alarm limits). */}
+              <div className="mt-1 mb-1 flex items-center justify-between">
+                <span className="text-[9px]" style={{ color: C.text }}>Voxel limit</span>
+                <div className="flex items-center gap-1">
+                  <NumInField value={voxelLimitPct} onCommit={(v) => setVoxelLimitPct(Math.max(0, Math.min(100, v)))} lockable
+                    className="w-12 rounded border bg-transparent px-1 py-0.5 text-[8px]" style={{ borderColor: "#6b7280", color: "#9ca3af" }} />
+                  <span className="text-[8px]" style={{ color: C.dim }}>% rail</span>
+                </div>
+              </div>
+              {/* FX-07 (HI 1.3.2): colour of the primary highlighted voxel (rest dim). */}
+              <div className="mt-1 mb-1 flex items-center justify-between">
+                <span className="text-[9px]" style={{ color: C.text }}>Highlight colour</span>
+                <div className="flex items-center gap-1">
+                  {(["#eab308", "#22d3ee", "#ef4444", "#4ade80", "#e879f9"] as const).map((cc) => (
+                    <button key={cc} onClick={() => setVoxelHiColor(cc)} title={cc}
+                      className="h-3.5 w-3.5 rounded-sm" style={{ background: cc, outline: voxelHiColor === cc ? `2px solid ${C.text}` : "none", outlineOffset: 1 }} />
+                  ))}
+                </div>
+              </div>
+              <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Tilt to 3D on any pane (2D/3D toggle) — reuses the same fetched tile, zero extra network. Lattice cubes default to 3×3×3; grey line traces to the voxel limit.</div>
             </div>
           </div>
         )}
