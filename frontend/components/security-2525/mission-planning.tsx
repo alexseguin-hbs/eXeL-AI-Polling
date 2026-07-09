@@ -839,7 +839,7 @@ interface Fmt {
   fmtDist: (m: number) => string;
   fmtElev: (m: number) => string;
 }
-function makeFormatters(coordFmt: "mgrs" | "dms", digits: Digits, unit: Unit): Fmt {
+function makeFormatters(coordFmt: "mgrs" | "dms" | "ucrs", digits: Digits, unit: Unit): Fmt {
   const mgrsAt = (lat: number, lon: number, d: Digits = digits) => latLonToMgrs(lat, lon, d);
   const dms1 = (v: number, pos: string, neg: string) => {
     const h = v >= 0 ? pos : neg, a = Math.abs(v);
@@ -849,7 +849,9 @@ function makeFormatters(coordFmt: "mgrs" | "dms", digits: Digits, unit: Unit): F
     return `${d}°${String(m).padStart(2, "0")}'${s.toFixed(dec).padStart(dec + 3, "0")}"${h}`;
   };
   const coordAt = (lat: number, lon: number) =>
-    coordFmt === "dms" ? `${dms1(lat, "N", "S")} ${dms1(lon, "E", "W")}` : mgrsAt(lat, lon);
+    coordFmt === "dms" ? `${dms1(lat, "N", "S")} ${dms1(lon, "E", "W")}`
+      : coordFmt === "ucrs" ? fmtUcrsDms(lat, lon) // P1.2 (Odin): UCRS-2525 as a settings-level format
+      : mgrsAt(lat, lon);
   const metric = unit === "km" || unit === "m";
   const fmtDist = (m: number) =>
     unit === "km" ? `${(m / 1000).toFixed(m >= 10000 ? 0 : 2)} km`
@@ -1126,7 +1128,9 @@ function AoMapPane(p: PaneProps) {
     if (d.btn === 2) {
       // right-drag: horizontal = bearing; vertical in 3D = TILT (R1: swing the voxel
       // view from near-OVERHEAD 15° down to almost flat across the HORIZON 85°)
-      if (is3d && onPitch) onPitch(Math.min(85, Math.max(15, (pitch ?? 55) + dy * 0.35)));
+      // P1.2 (Athena): full swing — 2° looks straight DOWN the voxel (overhead),
+      // 88° is nearly parallel to the ground (voxel stacks seen from the side)
+      if (is3d && onPitch) onPitch(Math.min(88, Math.max(2, (pitch ?? 55) + dy * 0.35)));
       setView((v) => ({ ...v, bearing: v.bearing - (dx / r.width) * Math.PI }));
     } else {
       panBy(dx / r.width, dy / r.height);
@@ -1231,6 +1235,8 @@ function AoMapPane(p: PaneProps) {
   // the visible UTM grid step; every cube BASE = MGRS + LLV-DMS + UCRS-2525; Z = band.
   // Reads the SAME 1-fetch DEM sampler as the contours — zero extra network.
   const [voxelSel, setVoxelSel] = useState<string | null>(null);
+  // P1.2 (Odin): corner HOVER chip — corner coordinate + terrain elevation at the cursor
+  const [cornerHover, setCornerHover] = useState<{ key: string; ci: number } | null>(null);
   const voxelColumns = useMemo(() => {
     if (!is3d) return [];
     const objs = placed.filter((u) => u.altitude != null).map((u) => ({
@@ -1680,20 +1686,50 @@ function AoMapPane(p: PaneProps) {
                   })}
                   {/* CUBE TOP (P1 slice B) — TARGET circle pops the CENTRE coordinate;
                       4 corner hotspots pop CORNER coordinates (call-up packet) */}
-                  <div className="absolute left-1/2 top-1/2" style={{ width: cellPx, height: cellPx, transform: `translate(-50%,-50%) translateZ(${topZ}px)`, pointerEvents: "auto" }}>
+                  <div className="absolute left-1/2 top-1/2" style={{ width: cellPx, height: cellPx, transform: `translate(-50%,-50%) translateZ(${topZ}px)`, pointerEvents: "auto" }}
+                    onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(null); }} /* P1.2 (Odin): tapping the cube TOP face deactivates the voxel selection */>
+                    {/* TARGET — same proportions as the 3D crosshair cursor: outer ring,
+                        INNER ring, NSEW crosshair ticks, gold centre dot */}
                     <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: col.lat, lon: col.lon }); }}
                       title="TARGET — cube centre coordinate"
-                      className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full"
-                      style={{ width: Math.max(18, cellPx * 0.42), height: Math.max(18, cellPx * 0.42), border: `1.5px solid ${sel ? C.gold : C.cyan}`, background: "transparent" }}>
-                      <span className="rounded-full" style={{ width: 3, height: 3, background: C.gold }} />
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{ width: Math.max(22, cellPx * 0.5), height: Math.max(22, cellPx * 0.5), background: "transparent" }}>
+                      {(() => { const tc = sel ? C.gold : C.cyan; return (
+                        <svg viewBox="-17 -17 34 34" width="100%" height="100%" aria-hidden>
+                          <circle r="15.5" fill="none" stroke={tc} strokeWidth="1.2" vectorEffect="non-scaling-stroke" opacity="0.9" />
+                          <circle r="10" fill="none" stroke={tc} strokeWidth="0.9" vectorEffect="non-scaling-stroke" opacity="0.65" />
+                          <line x1="0" y1="-15" x2="0" y2="-4" stroke={tc} strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                          <line x1="0" y1="4" x2="0" y2="15" stroke={tc} strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                          <line x1="-15" y1="0" x2="-4" y2="0" stroke={tc} strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                          <line x1="4" y1="0" x2="15" y2="0" stroke={tc} strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                          <text x="0" y="-11.5" textAnchor="middle" fontSize="4.5" fill={tc} fontFamily="monospace">N</text>
+                          <text x="0" y="15" textAnchor="middle" fontSize="4.5" fill={tc} fontFamily="monospace">S</text>
+                          <text x="12.5" y="1.6" textAnchor="middle" fontSize="4.5" fill={tc} fontFamily="monospace">E</text>
+                          <text x="-12.5" y="1.6" textAnchor="middle" fontSize="4.5" fill={tc} fontFamily="monospace">W</text>
+                          <circle r="1" fill={C.gold} />
+                        </svg>
+                      ); })()}
                     </button>
                     {col.corners.map((cn, ci) => (
                       <button key={ci} onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: cn.lat, lon: cn.lon }); }}
-                        title={["NW", "NE", "SE", "SW"][ci] + " corner coordinate"}
+                        onMouseEnter={() => setCornerHover({ key: col.key, ci })}
+                        onMouseLeave={() => setCornerHover((h) => (h && h.key === col.key && h.ci === ci ? null : h))}
+                        title={`${["NW", "NE", "SE", "SW"][ci]} · ${fmt.coordAt(cn.lat, cn.lon)} · ${Math.round(sampler(cn.lat, cn.lon))}m MSL`}
                         className="absolute h-2.5 w-2.5 rounded-sm"
                         style={{ ...(ci === 0 ? { left: -5, top: -5 } : ci === 1 ? { right: -5, top: -5 } : ci === 2 ? { right: -5, bottom: -5 } : { left: -5, bottom: -5 }),
-                          border: `1px solid ${C.cyan}`, background: "#0a0f16cc" }} />
+                          border: `1px solid ${cornerHover?.key === col.key && cornerHover.ci === ci ? C.gold : C.cyan}`, background: "#0a0f16cc" }} />
                     ))}
+                    {/* P1.2 (Odin): hover chip — corner coordinate (settings format) + elevation under cursor */}
+                    {cornerHover?.key === col.key && (() => {
+                      const cn = col.corners[cornerHover.ci];
+                      return (
+                        <div className="pointer-events-none absolute z-30 whitespace-nowrap rounded px-1 py-0.5 font-mono text-[7px] font-bold"
+                          style={{ ...(cornerHover.ci === 0 ? { left: 0, top: -16 } : cornerHover.ci === 1 ? { right: 0, top: -16 } : cornerHover.ci === 2 ? { right: 0, bottom: -16 } : { left: 0, bottom: -16 }),
+                            background: "#0a0f16ee", color: C.gold, border: `1px solid ${C.gold}55` }}>
+                          {["NW", "NE", "SE", "SW"][cornerHover.ci]} {fmt.coordAt(cn.lat, cn.lon)} · {Math.round(sampler(cn.lat, cn.lon))}m MSL
+                        </div>
+                      );
+                    })()}
                   </div>
                   {/* hooked/selected asset → GOLD STEM terrain→object + shadow footprint (P2,
                       spec altitude visual law) + AGL flanks LEFT, MSL flanks RIGHT (P1) */}
@@ -1717,6 +1753,26 @@ function AoMapPane(p: PaneProps) {
                       </div>
                     </>
                   )}
+                  {/* P1.2 (Enki): 3D track vector — heading arrow drawn AT the mover's altitude
+                      band top (its cube), same thin non-scaling style as the ground vector */}
+                  {col.objects.map((o) => {
+                    const p = placed.find((u) => u.id === o.id);
+                    if (!p || !p.moving || p.heading == null) return null;
+                    const zb = Math.max(1, o.bandIdx * bandPx);
+                    const th = (p.heading * Math.PI) / 180;
+                    const len = cellPx * (0.55 + Math.min(0.65, (p.speed ?? 0) / 600));
+                    const vc = p.aff === "hostile" ? C.red : C.green;
+                    const hx = len * Math.sin(th), hy = -len * Math.cos(th);
+                    const a1 = th + Math.PI * 0.85, a2 = th - Math.PI * 0.85, hd = Math.max(4, cellPx * 0.1);
+                    return (
+                      <svg key={`vec3${o.id}`} className="pointer-events-none absolute left-1/2 top-1/2" width={cellPx * 3} height={cellPx * 3}
+                        viewBox={`${-cellPx * 1.5} ${-cellPx * 1.5} ${cellPx * 3} ${cellPx * 3}`} style={{ transform: `translate(-50%,-50%) translateZ(${zb}px)`, overflow: "visible" }}>
+                        <line x1={0} y1={0} x2={hx} y2={hy} stroke={vc} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.85" />
+                        <line x1={hx} y1={hy} x2={hx + hd * Math.sin(a1)} y2={hy - hd * Math.cos(a1)} stroke={vc} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.85" />
+                        <line x1={hx} y1={hy} x2={hx + hd * Math.sin(a2)} y2={hy - hd * Math.cos(a2)} stroke={vc} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.85" />
+                      </svg>
+                    );
+                  })}
                   {/* stack-top label — ALWAYS carries the altitude reference (visual law) */}
                   {topObj && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 6}px)` }}>
@@ -1736,7 +1792,7 @@ function AoMapPane(p: PaneProps) {
               </div>
             )}
             {/* TILT readout (P1) — the cue that elevation is ACTIVE: right-drag ↕ swings the
-                voxel view top-down (15°) ⇄ side/horizon (85°) */}
+                voxel view straight-down-the-voxel (2°) ⇄ nearly ground-parallel (88°) */}
             {is3d && (
               <div className="pointer-events-none absolute left-1/2 top-7 z-20 -translate-x-1/2 rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan }}>
                 TILT {Math.round(pitch ?? 55)}° <span style={{ color: C.dim }}>{(pitch ?? 55) < 35 ? "· TOP-DOWN" : (pitch ?? 55) > 70 ? "· HORIZON" : ""} right-drag ↕</span>
@@ -1910,16 +1966,22 @@ function AoMapPane(p: PaneProps) {
                 const t = Math.min(0.5 / Math.max(Math.abs(dx), 1e-9), 0.5 / Math.max(Math.abs(dy), 1e-9));
                 const bx = 0.5 + dx * t, by = 0.5 + dy * t;
                 const major = deg % 30 === 0;
+                // Edge-hugging: px-fixed insets via calc() — %-based insets pull labels
+                // toward center on wide PC panes. Notch = radial tick line at the edge.
+                const notchLen = major ? 9 : 6;
+                marks.push(
+                  <span key={`n${deg}`} className="pointer-events-none absolute"
+                    style={{ left: `calc(${bx * 100}% - ${(dx * (notchLen / 2)).toFixed(2)}px)`, top: `calc(${by * 100}% - ${(dy * (notchLen / 2)).toFixed(2)}px)`,
+                      width: major ? 1.5 : 1, height: notchLen, background: deg === 0 ? C.red : C.cyan, opacity: major ? 0.9 : 0.6,
+                      transform: `translate(-50%,-50%) rotate(${deg - topHeading}deg)` }} />
+                );
                 if (major) {
-                  const lx = 0.5 + (bx - 0.5) * 0.9, ly = 0.5 + (by - 0.5) * 0.9;
                   marks.push(
                     <span key={deg} className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 font-mono text-[7px] font-bold"
-                      style={{ left: `${lx * 100}%`, top: `${ly * 100}%`, color: deg === 0 ? C.red : C.cyan, opacity: 0.8 }}>
+                      style={{ left: `calc(${bx * 100}% - ${(dx * 16).toFixed(2)}px)`, top: `calc(${by * 100}% - ${(dy * 16).toFixed(2)}px)`, color: deg === 0 ? C.red : C.cyan, opacity: 0.85 }}>
                       {String(deg).padStart(3, "0")}
                     </span>
                   );
-                } else {
-                  marks.push(<span key={deg} className="pointer-events-none absolute h-0.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ left: `${bx * 100}%`, top: `${by * 100}%`, background: C.cyan, opacity: 0.5 }} />);
                 }
               }
               return marks;
@@ -2147,7 +2209,7 @@ function PlacementRail(r: RailProps) {
 interface InspectorProps {
   selected: { kind: "asset" | "support"; id: number } | null;
   selectedObj: Placed | PlacedSupport | undefined;
-  fmt: Fmt; coordFmt: "mgrs" | "dms"; digits: Digits;
+  fmt: Fmt; coordFmt: "mgrs" | "dms" | "ucrs"; digits: Digits;
   nudgeM: number; setNudgeM: (m: number) => void;
   coordText: string; setCoordText: (s: string) => void;
   onSetAff: (sel: { kind: "asset" | "support"; id: number }, aff: Affiliation) => void;
@@ -2157,10 +2219,14 @@ interface InspectorProps {
   onNudge: (sel: { kind: "asset" | "support"; id: number }, dLat: number, dLon: number) => void;
   onSetCoord: (sel: { kind: "asset" | "support"; id: number }, lat: number, lon: number) => void;
   onRemoveSelected: () => void;
+  terrainAtSel?: number;           // P2: DEM elevation (m MSL) beneath the selected object
+  reality?: RealityMode;           // P2 governance footer
+  planStatus?: string;             // P2 governance footer (draft/pending/approved/changes)
 }
 function ItemInspector(p: InspectorProps) {
   const { selected, selectedObj, fmt, coordFmt, digits, nudgeM, setNudgeM, coordText, setCoordText,
-    onSetAff, onSetPlacedReality, onUpdAsset, onSetTL, onNudge, onSetCoord, onRemoveSelected } = p;
+    onSetAff, onSetPlacedReality, onUpdAsset, onSetTL, onNudge, onSetCoord, onRemoveSelected,
+    terrainAtSel, reality, planStatus } = p;
   if (!selectedObj || !selected) return null;
   return (
           <div className="shrink-0 overflow-y-auto border-t p-2" style={{ borderColor: C.border, maxHeight: "50%" }}>
@@ -2304,14 +2370,14 @@ function ItemInspector(p: InspectorProps) {
               <button onClick={() => onNudge(selected, -nudgeM / 111320, 0)} className="w-full rounded border py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
               <span />
             </div>
-            <div className="mb-1 mt-2 text-[9px]" style={{ color: C.dim }}>Set exact coordinate ({coordFmt === "mgrs" ? "MGRS" : "LLV-DMS"})</div>
+            <div className="mb-1 mt-2 text-[9px]" style={{ color: C.dim }}>Set exact coordinate ({coordFmt === "dms" ? "LLV-DMS" : "MGRS"})</div>
             <div className="flex items-center gap-1">
               <input value={coordText} onChange={(e) => setCoordText(e.target.value)}
-                placeholder={coordFmt === "mgrs" ? "14R PU 2111 4983" : "30°16'27\"N 97°44'27\"W"}
+                placeholder={coordFmt === "dms" ? "30°16'27\"N 97°44'27\"W" : "14R PU 2111 4983"}
                 className="w-full rounded border bg-transparent px-1 py-0.5 font-mono text-[9px]" style={{ borderColor: C.border, color: C.text }} />
               <button onClick={() => {
                   const t = coordText.trim();
-                  let r = coordFmt === "mgrs" ? mgrsToLatLon(t, selectedObj.lat) : dmsToLatLon(t);
+                  let r = coordFmt === "dms" ? dmsToLatLon(t) : mgrsToLatLon(t, selectedObj.lat);
                   if (!r) { const m = t.match(/^(-?\d+(?:\.\d+)?)\s*[,\s]\s*(-?\d+(?:\.\d+)?)$/); if (m) r = { lat: parseFloat(m[1]), lon: parseFloat(m[2]) }; }
                   if (r && isFinite(r.lat) && isFinite(r.lon)) onSetCoord(selected, r.lat, r.lon);
                 }}
@@ -2499,7 +2565,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [aoKey, setAoKey] = useState("capitol");
   const [gridOn, setGridOn] = useState(true);
   const [digits, setDigits] = useState<Digits>(4);
-  const [coordFmt, setCoordFmt] = useState<"mgrs" | "dms">("mgrs");
+  const [coordFmt, setCoordFmt] = useState<"mgrs" | "dms" | "ucrs">("mgrs");
   const [unit, setUnit] = useState<Unit>("km");
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [placed, setPlaced] = useState<Placed[]>([]);
@@ -2566,6 +2632,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [osm, setOsm] = useState<OsmData | null>(null);
   const [borders, setBorders] = useState<BorderData | null>(borderCache);
   const [dem, setDem] = useState<Dem | null>(null);   // real GEBCO grid for the big MAP (viewA)
+  // P2: terrain elevation for the inspector's ALTITUDE INFO — same 1-fetch DEM tile
+  const inspSampler = useMemo(() => (dem ? makeDemSampler(dem) : terrainMSL), [dem]);
   const demKeyRef = useRef<string | null>(null);
   const [demB, setDemB] = useState<Dem | null>(null); // independent tile for the MINI map (viewB) — correct contours in SPLIT
   const demKeyRefB = useRef<string | null>(null);
@@ -2659,7 +2727,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [pitch, setPitch] = useState(55);                  // 3D view angle (deg) — the FAAD/AMDWS altitude-angle
   const [symbologyMode, setSymbologyMode] = useState<"mil" | "exel" | "hybrid">("mil"); // MIL-STD-2525 | eXeL-STD-2525 | Hybrid
   const [iconSize, setIconSize] = useState<"s" | "m" | "l">("s"); // P2: icon visibility — S(1×)/M(1.75×)/L(3×)
-  const ICON_SCALE = { s: 1, m: 1.75, l: 3 } as const;
+  const ICON_SCALE = { s: 1, m: 2, l: 3 } as const; // P1.2 (Enki): M = 2× current, L = 3×
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
@@ -3124,7 +3192,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             </div>
             <div className="mb-1 text-[10px]" style={{ color: C.text }}>Coordinate format</div>
             <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
-              {([["mgrs", "MGRS"], ["dms", "LLV-DMS"]] as const).map(([f, label]) => (
+              {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["ucrs", "UCRS-2525"]] as const).map(([f, label]) => (
                 <button key={f} onClick={() => setCoordFmt(f)} className="flex-1 px-2 py-1"
                   style={{ background: coordFmt === f ? "#152238" : "transparent", color: coordFmt === f ? C.cyan : C.dim }}>{label}</button>
               ))}
@@ -3279,7 +3347,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>3D Elevation Mode</div>
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-[9px]" style={{ color: C.dim }}>View angle {pitch}°</span>
-                <input type="range" min={15} max={85} value={pitch} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
+                <input type="range" min={2} max={88} value={pitch} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
               </div>
               <div className="mb-1 text-[9px]" style={{ color: C.text }}>Symbology standard</div>
               <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
@@ -3425,7 +3493,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               inspector={<ItemInspector selected={selected} selectedObj={selectedObj} fmt={fmt} coordFmt={coordFmt} digits={digits}
                 nudgeM={nudgeM} setNudgeM={setNudgeM} coordText={coordText} setCoordText={setCoordText}
                 onSetAff={setAff} onSetPlacedReality={setPlacedReality} onUpdAsset={updAsset} onSetTL={setTL}
-                onNudge={nudge} onSetCoord={setCoord} onRemoveSelected={removeSelected} />}
+                onNudge={nudge} onSetCoord={setCoord} onRemoveSelected={removeSelected}
+                terrainAtSel={selectedObj ? inspSampler(selectedObj.lat, selectedObj.lon) : undefined}
+                reality={reality} planStatus={planStatus} />}
               planStatus={planStatus} onSubmit={() => setPlanStatus("pending")} onApprove={() => setPlanStatus("approved")}
               onChanges={() => setPlanStatus("changes")} onShare={sharePlan} shareMsg={shareMsg} />
           </div>

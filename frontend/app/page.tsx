@@ -273,6 +273,11 @@ export default function LandingPage() {
           <Button variant="outline" asChild>
             <a href="/dashboard/">{t("shared.landing.facilitator_button")}</a>
           </Button>
+          {/* P1.2: DIRECT access to SECURITY-2525 Mission Planning — deliberately
+              NOT Easter-egg gated; lands with the PLANNING tab highlighted */}
+          <a href="/main/Security-2525/" className="mt-2 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
+            SECURITY-2525 · {t("shared.landing.security2525_link")} →
+          </a>
         </div>
       </main>
     </div>

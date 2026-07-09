@@ -70,6 +70,11 @@ export function fmtLLV(lat: number, lon: number): string {
  * the full circle is 3600 units and EVERY tier is 3600-scale — degrees ×10 →
  * UCRS-degrees, minutes = fraction × 3600 (vs 60), seconds = minute-fraction × 3600.
  * (The zone/cell voxel index below is labeled UCRS·CELL, distinct from this.)
+ *
+ * UNIVERSAL (P1.2, Christo + Thoth): the format is pure ANGLE — it carries no
+ * Earth-specific datum, so any spherical body (Mars, Moon, exoplanet) adopts it
+ * unchanged; only the reference meridian/equator is declared per body. Every tier
+ * is 3600-scale, giving 60× finer subdivision than 60-unit DMS at each level.
  */
 export function fmtUcrsDms(lat: number, lon: number): string {
   const part = (v: number, pos: string, neg: string) => {

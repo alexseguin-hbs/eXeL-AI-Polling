@@ -64,6 +64,7 @@ const shared: TranslationEntry[] = [
   { key: "shared.landing.feature_governance_desc", englishDefault: "Auditable Consensus at the Speed of Thought", context: "Feature card description", cubeId: 0 },
   { key: "shared.landing.facilitator_cta", englishDefault: "Are you a Session Facilitator?", context: "CTA question", cubeId: 0 },
   { key: "shared.landing.facilitator_button", englishDefault: "Session Facilitator Access", context: "CTA button", cubeId: 0 },
+  { key: "shared.landing.security2525_link", englishDefault: "Mission Planning", context: "Direct link to SECURITY-2525 Mission Planning (not Easter-egg gated)", cubeId: 0 },
   // Trinity presets — 12 × 3 words + titles + custom mode
   { key: "trinity.governance.top", englishDefault: "LEADERSHIP", context: "Trinity preset 1 — top word", cubeId: 0 },
   { key: "trinity.governance.right", englishDefault: "INTEGRATION", context: "Trinity preset 1 — bottom-right word", cubeId: 0 },
