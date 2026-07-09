@@ -1685,10 +1685,18 @@ function AoMapPane(p: PaneProps) {
                   const rk = ASSET_RANGE_KM[u.asset];
                   if (!rk) return null;
                   const c = toFrac(u.lat, u.lon);
-                  const rr = (rk / (view.spanKm * RENDER)) * 100;
-                  if (rr < 0.4 || rr > 400) return null;
+                  // HI: a TRUE ground circle. The ground SVG is preserveAspectRatio="none", so a plain
+                  // <circle> stretches to an ellipse. Measure rk km East + North in fractional space
+                  // (km→° then toFrac) and use those as rx/ry → round on the ground plane at any aspect.
+                  const dLat = rk / 110.574;
+                  const dLon = rk / (111.320 * Math.cos((u.lat * Math.PI) / 180));
+                  const cE = toFrac(u.lat, u.lon + dLon);
+                  const cN = toFrac(u.lat + dLat, u.lon);
+                  const rx = Math.abs(cE.fx - c.fx) * 100;
+                  const ry = Math.abs(cN.fy - c.fy) * 100;
+                  if ((rx < 0.3 && ry < 0.3) || rx > 400 || ry > 400) return null;
                   const col = u.aff === "hostile" ? C.red : C.cyan;
-                  return <circle key={`rng${u.id}`} cx={c.fx * 100} cy={c.fy * 100} r={rr} fill={`${col}0a`} stroke={col} strokeWidth="0.18" strokeDasharray="1.2 0.8" opacity="0.5" />;
+                  return <ellipse key={`rng${u.id}`} cx={c.fx * 100} cy={c.fy * 100} rx={rx} ry={ry} fill={`${col}0a`} stroke={col} strokeWidth="0.18" strokeDasharray="1.2 0.8" opacity="0.5" />;
                 })}
 
                 {/* track movement vectors — heading arrow scaled by speed (active tracks) */}
