@@ -1822,7 +1822,15 @@ function AoMapPane(p: PaneProps) {
                   <span className="relative flex items-center justify-center">
                     {hot && <span className="pointer-events-none absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full" style={{ boxShadow: `0 0 0 2px ${C.cyan}`, background: `${C.cyan}22` }} />}
                     {sel && !(is3d && hooks.includes(u.id)) && <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 32 * iconScale, height: 32 * iconScale, boxShadow: `0 0 0 2px ${C.gold}` }} />}
-                    <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} />
+                    {/* HI 1.3.3: in 3D+VOXEL the flat icon is replaced by a marker at the EXACT
+                        MGRS position — a circular DOT for GROUND assets (see the true spot inside
+                        the grid-snapped box), a sky-face BOX for AERIAL (at altitude). Flat MIL
+                        icon stays in 2D / voxel-off. */}
+                    {is3d && voxelLayer
+                      ? (flying
+                          ? <span className="block" style={{ width: 11, height: 11, border: `2px solid ${u.aff === "hostile" ? C.red : C.cyan}`, background: `${u.aff === "hostile" ? C.red : C.cyan}22`, boxShadow: `0 0 6px ${u.aff === "hostile" ? C.red : C.cyan}` }} />
+                          : <span className="block rounded-full" style={{ width: 7, height: 7, background: u.aff === "hostile" ? C.red : C.cyan, boxShadow: `0 0 6px ${u.aff === "hostile" ? C.red : C.cyan}` }} />)
+                      : <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} />}
                   </span>
                   <span className="whitespace-nowrap font-mono text-[8px]" style={{ color: C.text }}>{fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" ")}</span>
                   {u.moving && (
@@ -1956,8 +1964,12 @@ function AoMapPane(p: PaneProps) {
               const f = project(col.lat, col.lon);
               if (f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02) return null;
               const paneW = mapRef.current?.clientWidth ?? 800;
-              const cellPx = Math.max(16, (col.cellM / (view.spanKm * 1000)) * paneW);
-              const bandPx = Math.min(cellPx, 40); // display-compressed cube height; labels carry the true altitude+ref
+              // HI 1.3.3: the ASSET cube scales with the VOXEL SIZE tier (3X/2X/1X) exactly like
+              // the lattice box, and is 1:1 (pixels-high == pixels-wide).
+              const cellW = Math.max(16, (col.cellM / (view.spanKm * 1000)) * paneW);
+              const sizeF = voxelSize === 3 ? 1 : voxelSize === 2 ? 2 / 3 : 1 / 3;
+              const cellPx = cellW * sizeF;
+              const bandPx = cellPx;
               const sel = voxelSel === col.key;
               const isLattice = col.key.startsWith("LAT:"); // empty scaffold column (no asset)
               const hiCol = voxelHiColor;                    // FX-07: user-set primary highlight colour
@@ -2010,9 +2022,18 @@ function AoMapPane(p: PaneProps) {
                     if (!p) return null;
                     const dia = Math.max(22, cellPx * 0.62);
                     const base = p.aff === "hostile" ? C.red : C.cyan;
+                    // HI 1.3.3: FLYING assets sit at the TOP of their box (at altitude), GROUND
+                    // assets at the base (L1). The sphere is CLICKABLE → opens its track label
+                    // (aerial default label to the NORTH/above, ground to the SOUTH/below).
+                    const flying = (p.altitude ?? 0) > 0;
+                    const sphereZ = flying ? topZ : Math.max(2, bandPx * 0.5);
+                    const labelOff = flying ? { x: 0, y: -34 } : { x: 0, y: 30 };
                     return (
-                      <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ zIndex: 13,
-                        transform: `translate(-50%,-50%) translateZ(${Math.max(2, topZ / 2)}px) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 50%" }}>
+                      <div className="absolute left-1/2 top-1/2" style={{ zIndex: 13, pointerEvents: "auto", cursor: "pointer",
+                        transform: `translate(-50%,-50%) translateZ(${sphereZ}px) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 50%" }}
+                        title="Open track label"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onPointerUp={(e) => { e.stopPropagation(); setSelected({ kind: "asset", id: p.id }); setHooks((hs) => (hs.includes(p.id) ? hs : [...hs, p.id])); setHookOffs((os) => (os[p.id] ? os : { ...os, [p.id]: labelOff })); }}>
                         <div className={`relative flex items-center justify-center rounded-full ${sel ? "animate-pulse" : ""}`}
                           style={{ width: dia, height: dia,
                             background: `radial-gradient(circle at 34% 28%, ${base}dd, ${base}66 52%, ${base}1f 78%, transparent 92%)`,
@@ -2445,12 +2466,16 @@ function AoMapPane(p: PaneProps) {
                     const primary: [string, string, string] = coordFmt === "mgrs" ? ["MGRS", col.mgrs, C.text]
                       : coordFmt === "dms" ? ["LLV-DMS", col.llv, C.text]
                       : ["UCRS-2525", col.ucrsDms, C.cyan];
+                    // HI 1.3.3: drop the UCRS·CELL row — instead report the CUBE's dimensions:
+                    // whole COLUMN height (3 levels), one ZONE height, and the BASE L×W in metres.
+                    const fmtM = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`);
                     return (
-                      <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
+                      <div className="grid grid-cols-[52px_1fr] gap-x-1 gap-y-0.5 font-mono">
                         <span style={{ color: C.dim }}>{primary[0]}</span><span style={{ color: primary[2] }}>{primary[1]}</span>
-                        <span style={{ color: C.dim }}>CELL <span title="UCRS·CELL v2 — universal base-3600 address; r = footprint radius (m). Body-agnostic (Mars/Moon) — VISION-2525 / LINK-2525." style={{ cursor: "help", color: C.cyan }}>ⓘ</span></span>
-                        <span style={{ color: C.cyan }}>{ucrsCell2(col.lat, col.lon, col.cellM / 2)}</span>
-                        <span style={{ color: C.dim }}>SIZE</span><span style={{ color: C.text }}>{col.cellM >= 1000 ? `${col.cellM / 1000} km` : `${col.cellM} m`} · TERRAIN {Math.round(col.terrainM)}m MSL</span>
+                        <span style={{ color: C.dim }}>COLUMN</span><span style={{ color: C.text }}>{fmtM(3 * col.cellM)} high</span>
+                        <span style={{ color: C.dim }}>ZONE</span><span style={{ color: C.text }}>{fmtM(col.cellM)} / level</span>
+                        <span style={{ color: C.dim }}>BASE</span><span style={{ color: C.text }}>{fmtM(col.cellM)} × {fmtM(col.cellM)}</span>
+                        <span style={{ color: C.dim }}>TERRAIN</span><span style={{ color: C.gold }}>{Math.round(col.terrainM)} m MSL</span>
                       </div>
                     );
                   })()}
