@@ -43,6 +43,7 @@ export interface VoxelColumn {
   mgrs: string;                    // cube-base address 1/3 — MGRS at cell centre
   llv: string;                     // cube-base address 2/3 — LLV-DMS at cell centre
   ucrs: string;                    // cube-base address 3/3 — UCRS-2525 voxel index (no Z)
+  ucrsDms: string;                 // UCRS-2525 angular form — 3600-scale D·M·S (base-60 honor)
   cubes: VoxelCube[];              // contiguous stack SURFACE→highest occupied band
   topM: number;                    // m MSL of the highest occupant (stack top)
   objects: VoxelColumnObject[];
@@ -58,6 +59,25 @@ export function fmtLLV(lat: number, lon: number): string {
     const m = Math.floor(mFull);
     const s = Math.floor((mFull - m) * 60);
     return `${d}°${String(m).padStart(2, "0")}'${String(s).padStart(2, "0")}"${hemi}`;
+  };
+  return `${part(lat, "N", "S")} ${part(lon, "E", "W")}`;
+}
+
+/**
+ * UCRS-2525 ANGULAR coordinate — honors base-60 Sumerian (Christo, R1 council):
+ * the full circle is 3600 units and EVERY tier is 3600-scale — degrees ×10 →
+ * UCRS-degrees, minutes = fraction × 3600 (vs 60), seconds = minute-fraction × 3600.
+ * Laid out to mirror LLV-DMS ("nearly the same" — user law).
+ */
+export function fmtUcrsDms(lat: number, lon: number): string {
+  const part = (v: number, pos: string, neg: string) => {
+    const hemi = v < 0 ? neg : pos;
+    // decompose from rounded TOTAL UCRS-seconds — deterministic, no FP drift
+    const tot = Math.round(Math.abs(v) * 10 * 3600 * 3600);
+    const d = Math.floor(tot / (3600 * 3600));
+    const m = Math.floor(tot / 3600) % 3600;
+    const s = tot % 3600;
+    return `${String(d).padStart(4, "0")}·${String(m).padStart(4, "0")}·${String(s).padStart(4, "0")}${hemi}`;
   };
   return `${part(lat, "N", "S")} ${part(lon, "E", "W")}`;
 }
@@ -127,6 +147,7 @@ export function buildVoxelColumns(
       mgrs: latLonToMgrs(lat, lon, 4),
       llv: fmtLLV(lat, lon),
       ucrs: ucrsCellId(lat, lon, cellM),
+      ucrsDms: fmtUcrsDms(lat, lon),
       cubes,
       topM: Math.max(...c.objs.map((x) => x.mslM)),
       objects: c.objs

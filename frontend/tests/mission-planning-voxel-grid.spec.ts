@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { buildVoxelColumns, fmtLLV, ucrsCellId, objectMslM, type VoxelObject } from "../lib/voxel-grid";
+import { buildVoxelColumns, fmtLLV, fmtUcrsDms, ucrsCellId, objectMslM, type VoxelObject } from "../lib/voxel-grid";
 import { latLonToMgrs } from "../components/security-2525/mgrs";
 import { mFromFt } from "../lib/voxel";
 
@@ -24,6 +24,15 @@ test("ucrsCellId carries zone+band, padded E/N cell indices and optional Z band"
   expect(ucrsCellId(CAP.lat, CAP.lon, 1000, 3)).toBe(`${base}·Z3`);
   // deterministic — same input, same address
   expect(ucrsCellId(CAP.lat, CAP.lon, 1000)).toBe(base);
+});
+
+test("fmtUcrsDms: EVERY tier 3600-scale (base-60 honor) — degrees×10, minutes/3600, seconds/3600", () => {
+  expect(fmtUcrsDms(30, -90)).toBe("0300·0000·0000N 0900·0000·0000W");
+  // 30.05° → 300.5 UCRS-deg → d=300, m=0.5×3600=1800
+  expect(fmtUcrsDms(30.05, 0)).toBe("0300·1800·0000N 0000·0000·0000E");
+  // minute-fraction feeds a 3600-scale seconds tier: 30.001° → 300.01 → m=36, s=0
+  expect(fmtUcrsDms(30.001, 0)).toBe("0300·0036·0000N 0000·0000·0000E");
+  expect(fmtUcrsDms(-12.25, 45.75)).toBe("0122·1800·0000S 0457·1800·0000E");
 });
 
 test("objectMslM: AGL resolves through the terrain sampler, MSL passes through", () => {

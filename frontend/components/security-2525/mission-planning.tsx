@@ -42,7 +42,7 @@ import { MIN_SPAN_KM, MAX_SPAN_KM, shouldHandOffToWorld } from "@/lib/zoom-conti
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
 import { computeTransect, transectLine, type AltObject } from "@/lib/transect";
 import { RANGE_EDGES, BAND_LABELS, mFromFt, bandOccupancy } from "@/lib/voxel";
-import { buildVoxelColumns } from "@/lib/voxel-grid";
+import { buildVoxelColumns, fmtLLV, fmtUcrsDms, ucrsCellId } from "@/lib/voxel-grid";
 import { bufferPolygon } from "@/lib/aor";
 import { getTile, peekTile } from "@/lib/tile-cache";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
@@ -912,6 +912,7 @@ interface PaneProps {
   onWorld?: () => void; // zoom out past AO scale → Earth/world view
   mirrorOn?: boolean;          // this pane is the mirror SOURCE (its view drives the other pane)
   onToggleMirror?: () => void; // MIRROR lives on the map header (upper right)
+  onPitch?: (deg: number) => void; // 3D tilt via right-drag (overhead 15° ⇄ horizon 85°)
   pitch?: number; // 3D view angle (deg) — FAAD/AMDWS "right-click angles the view to altitude"
   // AO / AOR draw tool
   drawingAo: boolean;
@@ -925,7 +926,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected,
-    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, pitch,
+    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, pitch, onPitch,
     drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
 
@@ -940,6 +941,9 @@ function AoMapPane(p: PaneProps) {
   const bearingMemo = useRef<number | null>(null);
   const touchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ dist: number; cx: number; cy: number; ang: number } | null>(null);
+  const tapRef = useRef<{ x: number; y: number; moved: boolean } | null>(null); // phone single-finger tap
+  // R1: tap empty ground → coordinate CALL-UP packet (MGRS + LLV-DMS + UCRS + elevation)
+  const [coordCall, setCoordCall] = useState<{ lat: number; lon: number } | null>(null);
 
   const RENDER = 1.5;
   const OFF = (RENDER - 1) / 2;
@@ -1069,6 +1073,8 @@ function AoMapPane(p: PaneProps) {
     if (e.pointerType === "touch") {
       touchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      // single-finger TAP tracking (phone: tap empty ground → coordinate call-up)
+      tapRef.current = touchRef.current.size === 1 ? { x: e.clientX, y: e.clientY, moved: false } : null;
       if (touchRef.current.size === 2) {
         const [a, b] = Array.from(touchRef.current.values());
         pinchRef.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, ang: Math.atan2(b.y - a.y, b.x - a.x) };
@@ -1097,6 +1103,7 @@ function AoMapPane(p: PaneProps) {
         pinchRef.current.dist = dist; pinchRef.current.ang = ang;
         setView((v) => ({ ...v, spanKm: Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * factor)), bearing: v.bearing + dAng }));
       } else if (touchRef.current.size === 1 && r) {
+        if (tapRef.current && Math.hypot(e.clientX - tapRef.current.x, e.clientY - tapRef.current.y) > 10) tapRef.current.moved = true;
         panBy((e.clientX - prev.x) / r.width, (e.clientY - prev.y) / r.height);
       }
       return;
@@ -1111,21 +1118,16 @@ function AoMapPane(p: PaneProps) {
     if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
     d.x = e.clientX; d.y = e.clientY;
     if (d.btn === 2) {
+      // right-drag: horizontal = bearing; vertical in 3D = TILT (R1: swing the voxel
+      // view from near-OVERHEAD 15° down to almost flat across the HORIZON 85°)
+      if (is3d && onPitch) onPitch(Math.min(85, Math.max(15, (pitch ?? 55) + dy * 0.35)));
       setView((v) => ({ ...v, bearing: v.bearing - (dx / r.width) * Math.PI }));
     } else {
       panBy(dx / r.width, dy / r.height);
     }
   };
-  const onPointerUp = (e: React.PointerEvent) => {
-    if (e.pointerType === "touch") {
-      touchRef.current.delete(e.pointerId);
-      if (touchRef.current.size < 2) pinchRef.current = null;
-      return;
-    }
-    const d = dragRef.current;
-    dragRef.current = null;
-    if (d?.moved) return;
-    const f = fracFromEvent(e);
+  const resolveTap = (clientX: number, clientY: number, button = 0) => {
+    const f = fracFromEvent({ clientX, clientY });
     if (!f) return;
     // In 3D the surface is perspective-tilted, so click→coordinate is not exact:
     // 3D is a visualization mode; deselect only, place in 2D.
@@ -1133,7 +1135,7 @@ function AoMapPane(p: PaneProps) {
     const { lat, lon } = containerToLatLon(f.fx, f.fy);
     if (drawingAo) { onAoVertex(lat, lon); return; } // AO draw mode → append vertex
     if (routeMode && selectedSupport) {
-      if (e.button === 2) {
+      if (button === 2) {
         setRouteDraft((pr) => [...pr, { lat, lon }]);
       } else {
         const pts = [...routeDraft, { lat, lon }];
@@ -1145,10 +1147,28 @@ function AoMapPane(p: PaneProps) {
     if (selectedAsset) place(selectedAsset, f.fx, f.fy);
     else if (selectedSupport) placeSupport(selectedSupport, f.fx, f.fy);
     else if (selected) setSelected(null);
+    // R1: tap EMPTY ground (nothing armed/selected) → CALL UP the coordinate packet
+    // (phones have no hover cursor — this is their coordinate read)
+    else setCoordCall({ lat, lon });
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (e.pointerType === "touch") {
+      const tap = tapRef.current;
+      touchRef.current.delete(e.pointerId);
+      if (touchRef.current.size < 2) pinchRef.current = null;
+      // single-finger tap (no pinch, no pan) → same resolution as a mouse click
+      if (tap && !tap.moved && touchRef.current.size === 0) resolveTap(e.clientX, e.clientY);
+      tapRef.current = null;
+      return;
+    }
+    const d = dragRef.current;
+    dragRef.current = null;
+    if (d?.moved) return;
+    resolveTap(e.clientX, e.clientY, e.button);
   };
 
-  // Reset the draft when the AO changes.
-  useEffect(() => { setRouteDraft([]); }, [ao.key]);
+  // Reset the draft + coordinate call-up when the AO changes.
+  useEffect(() => { setRouteDraft([]); setCoordCall(null); }, [ao.key]);
   // Escape clears the in-progress route on this pane.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setRouteDraft([]); };
@@ -1217,6 +1237,13 @@ function AoMapPane(p: PaneProps) {
   const contourSet = useMemo(
     () => (contourCfg.enable ? computeContours(box, contourCfg, sampler) : null),
     [box, contourCfg, sampler]
+  );
+  // 3D RELIEF (R1 feedback: "lift the elevation profile — connect it to data"). Each
+  // contour line rises to its true level via translateZ → wireframe DEPTH from the SAME
+  // 1-fetch DEM. Uses the user's contour set when enabled, else a default 7-line set.
+  const reliefSet = useMemo(
+    () => (is3d ? contourSet ?? computeContours(box, { ...contourCfg, count: 7 }, sampler) : null),
+    [is3d, contourSet, box, contourCfg, sampler]
   );
 
   // Elevation profiles (primary pane only — skipped entirely on panes without the scale).
@@ -1437,11 +1464,13 @@ function AoMapPane(p: PaneProps) {
                   const col = u.aff === "hostile" ? C.red : C.green;
                   // arrowhead
                   const a1 = th + Math.PI * 0.85, a2 = th - Math.PI * 0.85;
+                  // R1 feedback: vector must be visually THINNER than the asset icon —
+                  // fixed 1.2px screen stroke (non-scaling) + small head, semi-transparent
                   return (
                     <g key={`trk${u.id}`}>
-                      <line x1={cx} y1={cy} x2={ex} y2={ey} stroke={col} strokeWidth="0.4" opacity="0.9" />
-                      <line x1={ex} y1={ey} x2={ex + 2 * Math.sin(a1)} y2={ey - 2 * Math.cos(a1)} stroke={col} strokeWidth="0.4" />
-                      <line x1={ex} y1={ey} x2={ex + 2 * Math.sin(a2)} y2={ey - 2 * Math.cos(a2)} stroke={col} strokeWidth="0.4" />
+                      <line x1={cx} y1={cy} x2={ex} y2={ey} stroke={col} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.75" />
+                      <line x1={ex} y1={ey} x2={ex + 1.1 * Math.sin(a1)} y2={ey - 1.1 * Math.cos(a1)} stroke={col} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.75" />
+                      <line x1={ex} y1={ey} x2={ex + 1.1 * Math.sin(a2)} y2={ey - 1.1 * Math.cos(a2)} stroke={col} strokeWidth={1.2} vectorEffect="non-scaling-stroke" opacity="0.75" />
                     </g>
                   );
                 })}
@@ -1569,6 +1598,23 @@ function AoMapPane(p: PaneProps) {
                 </button>
               );
             })}
+            {/* 3D RELIEF — lifted contour wireframe: each level translateZ's to its true
+                elevation (auto vertical exaggeration, full relief ≈ 34px). Land solid green,
+                bathymetry dashed cyan below — the reference-mesh look, phone/Pi compute. */}
+            {is3d && reliefSet && reliefSet.lines.length > 0 && (() => {
+              const levels = Array.from(new Set(reliefSet.lines.map((l) => l.level))).sort((a, b) => a - b);
+              const lo = levels[0], span = Math.max(1, levels[levels.length - 1] - lo);
+              return levels.map((lvl) => (
+                <svg key={`relief${lvl}`} viewBox="0 0 100 100" preserveAspectRatio="none"
+                  className="pointer-events-none absolute inset-0"
+                  style={{ transform: `translateZ(${(((lvl - lo) / span) * 34).toFixed(1)}px)` }}>
+                  {reliefSet.lines.filter((l) => l.level === lvl).map((l, i) => (
+                    <path key={i} d={l.d} fill="none" stroke={l.land ? C.land : "#22d3ee"} strokeWidth={l.major ? 1.2 : 0.8}
+                      vectorEffect="non-scaling-stroke" strokeDasharray={l.land ? undefined : "3 3"} opacity={l.major ? 0.8 : 0.55} />
+                  ))}
+                </svg>
+              ));
+            })()}
             {/* ── 3D VOXEL MODE — stacked wireframe cubes per grid cell (Vision-2525 law).
                 Base square sits ON the plane and is the addressable CUBE BASE
                 (tap → MGRS + LLV-DMS + UCRS-2525 packet). Bands rise via translateZ
@@ -1629,6 +1675,45 @@ function AoMapPane(p: PaneProps) {
                 3D · VIEW — switch to 2D to place
               </div>
             )}
+            {/* LEFT ALTITUDE rail (R1 feedback) — voxel band scale, ft MSL, reference style */}
+            {is3d && (
+              <div className="pointer-events-none absolute bottom-10 left-1 top-9 z-20 flex w-12 flex-col justify-between rounded px-1 py-1" style={{ background: "#0a0f16aa" }}>
+                <span className="text-[6px] font-bold tracking-wider" style={{ color: C.dim }}>ALTITUDE<br />(ft MSL)</span>
+                {["10,000", "7,500", "5,000", "2,500", "1,000", "500"].map((ft) => (
+                  <span key={ft} className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.text }}>
+                    <span className="inline-block h-px w-2" style={{ background: C.cyan }} />{ft}
+                  </span>
+                ))}
+                <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.gold }}>
+                  <span className="inline-block h-px w-2" style={{ background: C.gold }} />SURFACE
+                </span>
+                <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: "#22d3ee" }}>
+                  <span className="inline-block h-px w-2" style={{ background: "#22d3ee" }} />-1,000
+                </span>
+              </div>
+            )}
+            {/* COORDINATE CALL-UP (R1) — tap empty ground: the location addressed 3 ways.
+                On phones this replaces the mouse-hover readout. */}
+            {coordCall && !is3d && (() => {
+              const f = project(coordCall.lat, coordCall.lon);
+              const elevM = sampler(coordCall.lat, coordCall.lon);
+              return (
+                <div className="absolute z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
+                  style={{ left: `${Math.min(70, Math.max(2, f.fx * 100))}%`, top: `${Math.min(60, Math.max(4, f.fy * 100 - 10))}%`, background: "#0a0f16ee", borderColor: C.cyan }}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="font-bold tracking-wider" style={{ color: C.cyan }}>COORDINATE · CALL-UP</span>
+                    <button onClick={() => setCoordCall(null)} style={{ color: C.dim }}>✕</button>
+                  </div>
+                  <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
+                    <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{fmt.mgrsAt(coordCall.lat, coordCall.lon)}</span>
+                    <span style={{ color: C.dim }}>LLV-DMS</span><span style={{ color: C.text }}>{fmtLLV(coordCall.lat, coordCall.lon)}</span>
+                    <span style={{ color: C.dim }}>UCRS-DMS</span><span style={{ color: C.cyan }}>{fmtUcrsDms(coordCall.lat, coordCall.lon)}</span>
+                    <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{ucrsCellId(coordCall.lat, coordCall.lon, grid.stepM)}</span>
+                    <span style={{ color: C.dim }}>ELEV</span><span style={{ color: C.gold }}>{Math.round(elevM)}m · {Math.round(elevM * 3.28084)} ft MSL</span>
+                  </div>
+                </div>
+              );
+            })()}
             {/* VOXEL coordinate packet — the tapped cube base, addressed 3 ways + Z bands */}
             {is3d && voxelSel && (() => {
               const col = voxelColumns.find((c) => c.key === voxelSel);
@@ -1644,6 +1729,7 @@ function AoMapPane(p: PaneProps) {
                   <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
                     <span style={{ color: C.dim }}>MGRS</span><span style={{ color: C.text }}>{col.mgrs}</span>
                     <span style={{ color: C.dim }}>LLV-DMS</span><span style={{ color: C.text }}>{col.llv}</span>
+                    <span style={{ color: C.dim }}>UCRS-DMS</span><span style={{ color: C.cyan }}>{col.ucrsDms}</span>
                     <span style={{ color: C.dim }}>UCRS-2525</span><span style={{ color: C.cyan }}>{col.ucrs}</span>
                     <span style={{ color: C.dim }}>CELL</span><span style={{ color: C.text }}>{col.cellM >= 1000 ? `${col.cellM / 1000} km` : `${col.cellM} m`} · TERRAIN {Math.round(col.terrainM)}m MSL</span>
                   </div>
@@ -2460,6 +2546,41 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     miniDrag.current = null;
     try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* not captured */ }
   };
+  // R1 feedback: mini-map RESIZABLE like a traditional window — all four edges
+  // + bottom-right corner. Left/top drags keep the opposite edge fixed.
+  const [miniSize, setMiniSize] = useState<{ w: number; h: number } | null>(null);
+  const miniEdge = useRef<null | "l" | "r" | "t" | "b" | "br">(null);
+  const MINI_MIN = { w: 220, h: 170 };
+  const onMiniEdgeDown = (edge: "l" | "r" | "t" | "b" | "br") => (e: React.PointerEvent<HTMLDivElement>) => {
+    miniEdge.current = edge;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.stopPropagation();
+  };
+  const onMiniEdgeMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const edge = miniEdge.current;
+    const mini = e.currentTarget.parentElement;
+    if (!edge || !mini) return;
+    const mb = mini.getBoundingClientRect();
+    let w = mb.width, h = mb.height;
+    if (edge === "r" || edge === "br") w = e.clientX - mb.left;
+    if (edge === "b" || edge === "br") h = e.clientY - mb.top;
+    if (edge === "l") {
+      w = mb.right - e.clientX;
+      if (miniPos) setMiniPos({ x: Math.min(e.clientX, mb.right - MINI_MIN.w), y: miniPos.y });
+    }
+    if (edge === "t") {
+      h = mb.bottom - e.clientY;
+      if (miniPos) setMiniPos({ x: miniPos.x, y: Math.max(stickyBottom(), Math.min(e.clientY, mb.bottom - MINI_MIN.h)) });
+    }
+    setMiniSize({
+      w: Math.min(Math.max(MINI_MIN.w, w), window.innerWidth - 8),
+      h: Math.min(Math.max(MINI_MIN.h, h), window.innerHeight - 8),
+    });
+  };
+  const onMiniEdgeUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    miniEdge.current = null;
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* not captured */ }
+  };
   // MIRROR — directional, lives on each map's header: engaging on a pane pushes ITS view
   // onto the other pane (each pane KEEPS its own 2D/3D); disengaging RESTORES the other
   // pane's pre-mirror view. `mirror` stays as the derived coupled-state flag.
@@ -2729,7 +2850,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
-    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch,
+    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch,
   }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view.
      // 2D↔3D reuses this SAME tile — is3d is a render flag only; no DEM/OSM effect depends on it → ZERO extra fetch.
 
@@ -3089,7 +3210,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>3D Elevation Mode</div>
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-[9px]" style={{ color: C.dim }}>View angle {pitch}°</span>
-                <input type="range" min={20} max={75} value={pitch} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
+                <input type="range" min={15} max={85} value={pitch} onChange={(e) => setPitch(parseInt(e.target.value))} className="w-24" />
               </div>
               <div className="mb-1 text-[9px]" style={{ color: C.text }}>Symbology standard</div>
               <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
@@ -3163,9 +3284,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           )}
           {!fsPane && (miniOpen ? (
             <div className={miniPos ? "fixed z-30 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl" : "absolute z-20 flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"}
-              style={{ ...(miniPos
-                ? { left: miniPos.x, top: miniPos.y, width: "min(44vw, 560px)", height: "min(38vh, 420px)" }
-                : { bottom: 8, right: 8, width: "48%", height: "46%" }),
+              style={{ ...(miniPos ? { left: miniPos.x, top: miniPos.y } : { bottom: 8, right: 8 }),
+                width: miniSize ? miniSize.w : miniPos ? "min(44vw, 560px)" : "48%",
+                height: miniSize ? miniSize.h : miniPos ? "min(38vh, 420px)" : "46%",
                 minWidth: 220, minHeight: 170, borderColor: C.cyan, background: C.panel }}>
               {/* drag grip — move the mini anywhere over the big map; ⛶ = mini fullscreen, ▾ = minimize */}
               <div onPointerDown={onMiniGripDown} onPointerMove={onMiniGripMove} onPointerUp={onMiniGripUp} onPointerCancel={onMiniGripUp}
@@ -3194,6 +3315,18 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                     maximized={false} onToggleMax={() => setFsPane("mini")} onHidePane={() => setMiniOpen(false)} onWorld={() => setModeB_("world")} />
                 )}
               </div>
+              {/* RESIZE handles (R1) — traditional window: 4 edges + bottom-right corner */}
+              <div onPointerDown={onMiniEdgeDown("l")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
+                className="absolute inset-y-0 left-0 z-10 w-1.5 cursor-ew-resize touch-none" />
+              <div onPointerDown={onMiniEdgeDown("r")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
+                className="absolute inset-y-0 right-0 z-10 w-1.5 cursor-ew-resize touch-none" />
+              <div onPointerDown={onMiniEdgeDown("t")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
+                className="absolute inset-x-0 top-0 z-10 h-1.5 cursor-ns-resize touch-none" />
+              <div onPointerDown={onMiniEdgeDown("b")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
+                className="absolute inset-x-0 bottom-0 z-10 h-1.5 cursor-ns-resize touch-none" />
+              <div onPointerDown={onMiniEdgeDown("br")} onPointerMove={onMiniEdgeMove} onPointerUp={onMiniEdgeUp} onPointerCancel={onMiniEdgeUp}
+                title="Drag to resize" className="absolute bottom-0 right-0 z-20 flex h-4 w-4 cursor-nwse-resize touch-none items-end justify-end pb-0.5 pr-0.5"
+                style={{ color: C.cyan }}>◢</div>
             </div>
           ) : (
             <button onClick={() => setMiniOpen(true)} title="Show mini-map"
