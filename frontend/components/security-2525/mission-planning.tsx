@@ -806,13 +806,18 @@ interface ContourSettings extends ContourOpts {
   units: "metric" | "imperial" | "both"; labelMajor: boolean; vExag: number;
   landColor: string; bathyColor: string; thickness: number; bathyThickness: number;
 }
-// Contour thickness presets (px in the 0–100 viewBox); colours come from the shared
-// Trinity SpectrumPicker so Land, Bathymetry and /main all draw from one palette source.
-const CONTOUR_THICKNESS = [0.1, 0.25, 0.5] as const;
+// Contour thickness in SCREEN PIXELS (vector-effect: non-scaling-stroke — same px at any
+// zoom / pane size). LAW (user 2026-07-09): contour lines must NEVER render thicker than
+// state/country border lines → hard cap at BORDER_PX.state, incl. the major-line multiplier.
+// Colours come from the shared Trinity SpectrumPicker (one palette source).
+const CONTOUR_THICKNESS = [0.5, 0.75, 1] as const;
+const BORDER_PX = { country: 1.6, state: 1.2 } as const;   // border lines, screen px
+const CONTOUR_MAX_PX = BORDER_PX.state;                    // contours cap below borders
+const capContourPx = (px: number) => Math.min(Math.max(0.25, px), CONTOUR_MAX_PX);
 const DEFAULT_CONTOURS: ContourSettings = {
   enable: false, count: 6, interval: 0, fidelity: "med", seaLevel: 0,
   showLand: true, showBathy: true, units: "metric", labelMajor: true, vExag: 1,
-  landColor: TRINITY_COLORS.intelligence, bathyColor: TRINITY_COLORS.consciousness, thickness: 0.25, bathyThickness: 0.16,
+  landColor: TRINITY_COLORS.intelligence, bathyColor: TRINITY_COLORS.consciousness, thickness: 0.75, bathyThickness: 0.5,
 };
 const contourLabel = (m: number, units: ContourSettings["units"]) =>
   units === "imperial" ? `${Math.round(m * 3.28084)} ft`
@@ -1283,8 +1288,8 @@ function AoMapPane(p: PaneProps) {
                 {/* national + state boundaries (= continent/country/state lines), drawn under the OSM detail */}
                 {borderPaths && (
                   <g>
-                    <path d={borderPaths.countries} fill="none" stroke={C.borderCountry} strokeWidth="0.4" opacity="0.55" strokeLinejoin="round" />
-                    <path d={borderPaths.states} fill="none" stroke={C.borderState} strokeWidth="0.3" opacity="0.45" strokeLinejoin="round" />
+                    <path d={borderPaths.countries} fill="none" stroke={C.borderCountry} strokeWidth={BORDER_PX.country} vectorEffect="non-scaling-stroke" opacity="0.55" strokeLinejoin="round" />
+                    <path d={borderPaths.states} fill="none" stroke={C.borderState} strokeWidth={BORDER_PX.state} vectorEffect="non-scaling-stroke" opacity="0.45" strokeLinejoin="round" />
                   </g>
                 )}
                 {/* WATER — lakes/wide rivers as solid blue polygons; rivers/streams as full-width blue lines */}
@@ -1315,7 +1320,7 @@ function AoMapPane(p: PaneProps) {
                       const th = l.land ? contourCfg.thickness : contourCfg.bathyThickness;
                       return (
                         <g key={i}>
-                          <path d={l.d} fill="none" stroke={col} strokeWidth={l.major ? th * 2.2 : th} strokeDasharray={l.land ? undefined : "1 0.7"} opacity={l.major ? 0.9 : 0.5} strokeLinecap="round" />
+                          <path d={l.d} fill="none" stroke={col} strokeWidth={capContourPx(l.major ? th * 1.5 : th)} vectorEffect="non-scaling-stroke" strokeDasharray={l.land ? undefined : "1 0.7"} opacity={l.major ? 0.9 : 0.5} strokeLinecap="round" />
                           {contourCfg.labelMajor && l.major && l.label && (
                             <text x={l.label.x} y={l.label.y} fontSize="1.6" fontFamily="monospace" fill={col} opacity="0.95">{contourLabel(l.level, contourCfg.units)}</text>
                           )}
@@ -1663,6 +1668,22 @@ function AoMapPane(p: PaneProps) {
             )}
             {/* scale bar — bottom-LEFT so the bottom-right mini-map inset never covers it */}
             <div className="pointer-events-none absolute bottom-1.5 left-2 right-2 z-30 flex flex-col items-start gap-0.5">
+              {/* CONTOUR KEY — every line's height in the chosen units (m / ft / both) */}
+              {contourSet && contourSet.lines.length > 0 && (
+                <div className="mb-0.5 flex max-w-[60%] flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded px-1 py-0.5" style={{ background: "#0a0f16cc" }}>
+                  <span className="text-[6px] font-bold tracking-wider" style={{ color: C.dim }}>CONTOURS</span>
+                  {Array.from(new Set(contourSet.lines.filter((l) => (l.land ? contourCfg.showLand : contourCfg.showBathy)).map((l) => l.level)))
+                    .sort((a, b) => b - a)
+                    .map((lvl) => {
+                      const land = lvl >= contourCfg.seaLevel;
+                      return (
+                        <span key={lvl} className="font-mono text-[7px]" style={{ color: land ? contourCfg.landColor : contourCfg.bathyColor }}>
+                          {contourLabel(lvl, contourCfg.units)}
+                        </span>
+                      );
+                    })}
+                </div>
+              )}
               <span className="font-mono text-[8px]" style={{ color: C.text }}>{fmt.fmtDist(grid.stepM)}</span>
               <div style={{ width: `${(grid.stepM / (view.spanKm * 1000)) * 100}%`, height: 4, borderLeft: `1px solid ${C.text}`, borderRight: `1px solid ${C.text}`, borderBottom: `2px solid ${C.text}` }} />
             </div>
@@ -2453,8 +2474,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     return () => document.removeEventListener("fullscreenchange", h);
   }, []);
   const toggleFs = () => {
+    // Fullscreen the WHOLE app (header, tabs, maps, rails — everything as-is);
+    // the only difference is the browser chrome disappears.
     if (document.fullscreenElement) document.exitFullscreen?.();
-    else rootRef.current?.requestFullscreen?.().catch(() => {});
+    else document.documentElement.requestFullscreen?.().catch(() => {});
   };
 
   // Load Natural Earth borders once (shared by both map panes for context layers).
@@ -2576,7 +2599,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
      // 2D↔3D reuses this SAME tile — is3d is a render flag only; no DEM/OSM effect depends on it → ZERO extra fetch.
 
   return (
-    <div ref={rootRef} className="space-y-2 p-3" style={isFs ? { background: C.bg, height: "100vh", overflowY: "auto" } : undefined}>
+    <div ref={rootRef} className="space-y-2 p-3">
       {/* Minimal command bar — hidden while a pane is in-app fullscreen (MINIMIZE restores) */}
       <div className={fsPane ? "hidden" : "relative flex items-center gap-2"}>
         <div className="flex shrink-0 items-center gap-1 text-[10px] font-semibold tracking-wide">
@@ -2844,8 +2867,13 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                           style={{ background: Math.abs(contourCfg.thickness - t) < 1e-6 ? "#152238" : "transparent", color: Math.abs(contourCfg.thickness - t) < 1e-6 ? C.cyan : C.dim }}>{t}</button>
                       ))}
                     </div>
-                    <input type="range" min={0.05} max={0.6} step={0.01} value={contourCfg.thickness} onChange={(e) => setContourCfg((c) => ({ ...c, thickness: parseFloat(e.target.value) }))} className="w-14" />
+                    <input type="range" min={0.25} max={CONTOUR_MAX_PX} step={0.05} value={contourCfg.thickness} onChange={(e) => setContourCfg((c) => ({ ...c, thickness: capContourPx(parseFloat(e.target.value)) }))} className="w-10" />
+                    <input type="number" min={0.25} max={CONTOUR_MAX_PX} step={0.05} value={contourCfg.thickness}
+                      onChange={(e) => { const v = parseFloat(e.target.value); if (Number.isFinite(v)) setContourCfg((c) => ({ ...c, thickness: capContourPx(v) })); }}
+                      className="w-11 rounded border bg-transparent px-1 py-0.5 text-[9px] font-mono" style={{ borderColor: C.border, color: C.text }} />
+                    <span className="text-[8px]" style={{ color: C.dim }}>px</span>
                   </div>
+                  <div className="mt-0.5 text-[7px]" style={{ color: C.dim }}>screen px · capped at {CONTOUR_MAX_PX}px — never thicker than state/country lines</div>
                 </div>
                 {/* BATHYMETRY (sea · MSL) — its own enable + colour + thickness */}
                 <div className="rounded border p-1" style={{ borderColor: C.border }}>
@@ -2862,7 +2890,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                           style={{ background: Math.abs(contourCfg.bathyThickness - t) < 1e-6 ? "#152238" : "transparent", color: Math.abs(contourCfg.bathyThickness - t) < 1e-6 ? C.cyan : C.dim }}>{t}</button>
                       ))}
                     </div>
-                    <input type="range" min={0.05} max={0.6} step={0.01} value={contourCfg.bathyThickness} onChange={(e) => setContourCfg((c) => ({ ...c, bathyThickness: parseFloat(e.target.value) }))} className="w-14" />
+                    <input type="range" min={0.25} max={CONTOUR_MAX_PX} step={0.05} value={contourCfg.bathyThickness} onChange={(e) => setContourCfg((c) => ({ ...c, bathyThickness: capContourPx(parseFloat(e.target.value)) }))} className="w-10" />
+                    <input type="number" min={0.25} max={CONTOUR_MAX_PX} step={0.05} value={contourCfg.bathyThickness}
+                      onChange={(e) => { const v = parseFloat(e.target.value); if (Number.isFinite(v)) setContourCfg((c) => ({ ...c, bathyThickness: capContourPx(v) })); }}
+                      className="w-11 rounded border bg-transparent px-1 py-0.5 text-[9px] font-mono" style={{ borderColor: C.border, color: C.text }} />
+                    <span className="text-[8px]" style={{ color: C.dim }}>px</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-1">
