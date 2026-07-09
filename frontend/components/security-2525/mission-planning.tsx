@@ -2016,37 +2016,9 @@ function AoMapPane(p: PaneProps) {
                       background: "repeating-linear-gradient(to bottom, #6b7280 0 2px, transparent 2px 5px)", opacity: dimmed ? 0.25 : 0.6,
                       transform: `translate(-50%,-50%) translate3d(0px,0px,${(topZ + limitZ) / 2}px) rotateX(90deg)` }} />
                   )}
-                  {/* FX-49 (HI 1.3.3): the ASSET symbol sits on a SPHERE — ONE circle with
-                      spherical radial-gradient shading (Flower-of-Life language, as on the
-                      Results RISK/CONCERNS + Divinity selector), billboarded so it looks the
-                      SAME from every angle, PULSING when the column is selected. Carries the
-                      MIL-STD-2525 / eXeL-STD symbol in the middle. */}
-                  {!isLattice && topObj && (() => {
-                    const p = placed.find((u) => u.id === topObj.id);
-                    if (!p) return null;
-                    const dia = Math.max(22, cellPx * 0.62);
-                    const base = p.aff === "hostile" ? C.red : C.cyan;
-                    // HI 1.3.3: FLYING assets sit at the TOP of their box (at altitude), GROUND
-                    // assets at the base (L1). The sphere is CLICKABLE → opens its track label
-                    // (aerial default label to the NORTH/above, ground to the SOUTH/below).
-                    const flying = (p.altitude ?? 0) > 0;
-                    const sphereZ = flying ? topZ : Math.max(2, bandPx * 0.5);
-                    const labelOff = flying ? { x: 0, y: -34 } : { x: 0, y: 30 };
-                    return (
-                      <div className="absolute left-1/2 top-1/2" style={{ zIndex: 13, pointerEvents: "auto", cursor: "pointer",
-                        transform: `translate(-50%,-50%) translateZ(${sphereZ}px) rotateX(${-(pitch ?? 55)}deg)`, transformOrigin: "50% 50%" }}
-                        title="Open track label"
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onPointerUp={(e) => { e.stopPropagation(); setSelected({ kind: "asset", id: p.id }); setHooks((hs) => (hs.includes(p.id) ? hs : [...hs, p.id])); setHookOffs((os) => (os[p.id] ? os : { ...os, [p.id]: labelOff })); }}>
-                        <div className={`relative flex items-center justify-center rounded-full ${sel ? "animate-pulse" : ""}`}
-                          style={{ width: dia, height: dia,
-                            background: `radial-gradient(circle at 34% 28%, ${base}dd, ${base}66 52%, ${base}1f 78%, transparent 92%)`,
-                            boxShadow: `0 0 ${sel ? 11 : 5}px ${base}${sel ? "cc" : "55"}, inset -2px -3px 6px ${base}44, inset 2px 3px 5px ${base}22` }}>
-                          <AssetIcon asset={p.asset} style={iconStyle} affiliation={p.aff} size={Math.max(13, cellPx * 0.4)} count={p.count} />
-                        </div>
-                      </div>
-                    );
-                  })()}
+                  {/* FX-49 REMOVED (HI 1.3.3): the cell-centre SPHERE was a duplicate asset marker. The
+                      ground asset DOT / aerial BOX rendered in placed.map is now the single asset symbol;
+                      placed.map's onContextMenu already hooks the asset to open its track label. */}
                   {/* the cube stack — one wireframe cube per altitude band up to the top occupant */}
                   {stack.map((cb) => {
                     const occupied = cb.occupants.length > 0;
@@ -2151,16 +2123,35 @@ function AoMapPane(p: PaneProps) {
                             transform: `translate(-50%,-50%) translate3d(${cx}px,${cy}px,${topZ / 2}px) rotateX(90deg)` }} />
                         );
                       })}
-                      <div className="pointer-events-none absolute top-1/2" style={{ right: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
-                        <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.gold }}>
-                          AGL {Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM)}m
-                        </span>
-                      </div>
-                      <div className="pointer-events-none absolute top-1/2" style={{ left: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
-                        <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan }}>
-                          MSL {Math.round(topObj.mslM)}m
-                        </span>
-                      </div>
+                      {(() => {
+                        // HI: only FLYING or MOVING assets show an altitude number;
+                        // GROUND/stationary show a "SURFACE" chip instead.
+                        const pObj = placed.find((u) => u.id === topObj.id);
+                        const showAlt = !!pObj && ((pObj.altitude ?? 0) > 0 || pObj.moving);
+                        if (!showAlt) {
+                          return (
+                            <div className="pointer-events-none absolute top-1/2" style={{ right: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
+                              <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.gold }}>
+                                SURFACE
+                              </span>
+                            </div>
+                          );
+                        }
+                        return (
+                          <>
+                            <div className="pointer-events-none absolute top-1/2" style={{ right: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
+                              <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.gold }}>
+                                AGL {Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM)}m
+                              </span>
+                            </div>
+                            <div className="pointer-events-none absolute top-1/2" style={{ left: cellPx / 2 + 4, transform: `translateY(-50%) translateZ(${topZ / 2}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
+                              <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: C.cyan }}>
+                                MSL {Math.round(topObj.mslM)}m
+                              </span>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </>
                   )}
                   {/* P1.2 (Enki): 3D track vector — heading arrow drawn AT the mover's altitude
@@ -2367,17 +2358,6 @@ function AoMapPane(p: PaneProps) {
               return (
                 <div className="pointer-events-none absolute bottom-10 left-1 top-9 z-20 flex w-14 flex-col justify-between rounded px-1 py-1" style={{ background: "#0a0f16aa" }}>
                   <span className="text-[6px] font-bold tracking-wider" style={{ color: C.dim }}>ALTITUDE<br />(MSL)</span>
-                  {/* FX-05: threshold entry — RED / YELLOW (ft), FLUKE-style clearable */}
-                  <span className="pointer-events-auto flex items-center gap-0.5">
-                    <span className="font-mono text-[6px] font-bold" style={{ color: C.red }}>R</span>
-                    <NumInField value={altRedFt ?? 0} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable
-                      className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
-                  </span>
-                  <span className="pointer-events-auto flex items-center gap-0.5">
-                    <span className="font-mono text-[6px] font-bold" style={{ color: C.amber }}>Y</span>
-                    <NumInField value={altYellowFt ?? 0} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable
-                      className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
-                  </span>
                   {levels.map((ft) => (
                     <span key={ft} className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.text }}>
                       <span className="inline-block h-px w-2" style={{ background: C.cyan }} />{lbl(ft)}
@@ -2403,6 +2383,24 @@ function AoMapPane(p: PaneProps) {
                   )}
                   {altYellowFt != null && altYellowFt > 0 && (
                     <span className="absolute left-0 right-0" style={{ top: thrTop(altYellowFt), height: 2, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
+                  )}
+                  {/* FX-05 (HI RAIL): threshold lock+number ENTRIES ride their own line —
+                      absolutely placed at thrTop() so R / Y / GREY track the moving marker. */}
+                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(altRedFt ?? 0), transform: "translateY(-50%)" }}>
+                    <span className="font-mono text-[6px] font-bold" style={{ color: C.red }}>R</span>
+                    <NumInField value={altRedFt ?? 0} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable
+                      className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
+                  </span>
+                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(altYellowFt ?? 0), transform: "translateY(-50%)" }}>
+                    <span className="font-mono text-[6px] font-bold" style={{ color: C.amber }}>Y</span>
+                    <NumInField value={altYellowFt ?? 0} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable
+                      className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
+                  </span>
+                  {voxelLimitPct > 0 && (
+                    <span className="pointer-events-none absolute left-1 flex items-center gap-0.5" style={{ top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-50%)" }}>
+                      <span className="font-mono text-[6px] font-bold" style={{ color: "#9ca3af" }}>G</span>
+                      <span className="font-mono text-[7px]" style={{ color: "#9ca3af" }}>{lbl((voxelLimitPct / 100) * topFt)}</span>
+                    </span>
                   )}
                 </div>
               );
