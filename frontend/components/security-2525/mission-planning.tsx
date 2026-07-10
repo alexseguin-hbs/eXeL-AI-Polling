@@ -31,7 +31,7 @@ import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, 
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
-import { latLonToMgrs, latLonToUtm, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon, gzdBoundaries, gzdOf } from "@/components/security-2525/mgrs";
+import { latLonToMgrs, latLonToUtm, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon, gzdBoundaries, gzdOf, BANDS } from "@/components/security-2525/mgrs";
 import {
   SUPPORT_CATALOG, GROUP_META, REALITY_MODES,
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
@@ -625,15 +625,21 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
           <>
             <path d={zoneOverlay.grid} fill="none" stroke={C.cyan} strokeWidth={0.3 / zoom} opacity="0.3" />
             {zoneOverlay.active && <path d={zoneOverlay.active} fill="none" stroke={C.gold} strokeWidth={0.9 / zoom} opacity="0.9" />}
-            {activeGz && coordFmt !== "ucrs" && (() => {
-              const zc = (activeGz.lonW + activeGz.lonE) / 2, bc = (activeGz.latS + activeGz.latN) / 2;
-              const [zx, zy, zv] = proj(activeGz.latN, zc);
-              const [bx, by, bv] = proj(bc, activeGz.lonW);
+            {coordFmt !== "ucrs" && (() => {
               const degL = (v: number, pos: string, neg: string) => `${Math.abs(Math.round(v))}°${v < 0 ? neg : pos}`;
+              const mgrs = coordFmt === "mgrs";
+              const zones = mgrs ? Array.from({ length: 60 }, (_, k) => k) : [];
+              const bandsArr = mgrs ? BANDS.split("") : [];
+              const merid = mgrs ? [] : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
+              const paral = mgrs ? [] : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
               return (
                 <>
-                  {zv && <text x={zx} y={zy - 3 / zoom} fontSize={7 / zoom} fontWeight="bold" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>{coordFmt === "dms" ? degL(zc, "E", "W") : activeGz.zone}</text>}
-                  {bv && <text x={bx - 3 / zoom} y={by} fontSize={7 / zoom} fontWeight="bold" fill={C.gold} textAnchor="end" style={{ fontFamily: "monospace" }}>{coordFmt === "dms" ? degL(bc, "N", "S") : activeGz.band}</text>}
+                  {/* zone numbers 1–60 along the equator; back-facing culled; active bold gold */}
+                  {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1, act = activeGz?.zone === zn; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={(act ? 7 : 4) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? C.gold : C.cyan} opacity={act ? 1 : 0.7} textAnchor="middle" style={{ fontFamily: "monospace" }}>{zn}</text> : null; })}
+                  {/* band letters C–X down the camera-center meridian */}
+                  {bandsArr.map((L, j) => { const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = activeGz?.band === L; const [x, y, v] = proj((latS + latN) / 2, LON0); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={(act ? 7 : 4) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? C.gold : C.cyan} opacity={act ? 1 : 0.7} textAnchor="middle" style={{ fontFamily: "monospace" }}>{L}</text> : null; })}
+                  {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
+                  {paral.map((lat) => { const [x, y, v] = proj(lat, LON0); return v ? <text key={`dgb${lat}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text> : null; })}
                 </>
               );
             })()}
@@ -767,8 +773,6 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
                 const parallels = mgrs ? gzdBoundaries().parallels : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
                 const xOf = (lon: number) => ((lon + 180) / 360) * W;
                 const yOf = (lat: number) => ((90 - lat) / 180) * H;
-                const zc = activeGz ? (activeGz.lonW + activeGz.lonE) / 2 : 0;
-                const bc = activeGz ? (activeGz.latS + activeGz.latN) / 2 : 0;
                 const degL = (v: number, pos: string, neg: string) => `${Math.abs(Math.round(v))}°${v < 0 ? neg : pos}`;
                 return (
                   <g style={{ pointerEvents: "none" }}>
@@ -780,26 +784,36 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
                     ))}
                     {activeGz && (
                       <>
-                        <rect x={xOf(activeGz.lonW)} y={0} width={xOf(activeGz.lonE) - xOf(activeGz.lonW)} height={H} fill={C.gold} opacity="0.08" />
-                        <rect x={0} y={yOf(activeGz.latN)} width={W} height={yOf(activeGz.latS) - yOf(activeGz.latN)} fill={C.gold} opacity="0.08" />
+                        <rect x={xOf(activeGz.lonW)} y={0} width={xOf(activeGz.lonE) - xOf(activeGz.lonW)} height={H} fill={C.gold} opacity="0.1" />
+                        <rect x={0} y={yOf(activeGz.latN)} width={W} height={yOf(activeGz.latS) - yOf(activeGz.latN)} fill={C.gold} opacity="0.1" />
                         {[activeGz.lonW, activeGz.lonE].map((lon) => (
                           <line key={`az${lon}`} x1={xOf(lon)} y1={0} x2={xOf(lon)} y2={H} stroke={C.gold} strokeWidth="0.6" opacity="0.85" vectorEffect="non-scaling-stroke" />
                         ))}
                         {[activeGz.latN, activeGz.latS].map((lat) => (
                           <line key={`ab${lat}`} x1={0} y1={yOf(lat)} x2={W} y2={yOf(lat)} stroke={C.gold} strokeWidth="0.6" opacity="0.85" vectorEffect="non-scaling-stroke" />
                         ))}
-                        {coordFmt !== "ucrs" && (
-                          <>
-                            <text x={xOf(zc)} y={yOf(activeGz.latN) - 3} fontSize="6" fontWeight="bold" fill={C.gold} textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>
-                              {coordFmt === "dms" ? degL(zc, "E", "W") : activeGz.zone}
-                            </text>
-                            <text x={xOf(activeGz.lonW) - 3} y={yOf(bc)} fontSize="6" fontWeight="bold" fill={C.gold} textAnchor="end" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>
-                              {coordFmt === "dms" ? degL(bc, "N", "S") : activeGz.band}
-                            </text>
-                          </>
-                        )}
                       </>
                     )}
+                    {/* FULL label set — every zone number 1–60 across the top, every band C–X down the left
+                        (MGRS); or degrees at each line (LLV-DMS). Active cell bold gold. */}
+                    {coordFmt === "mgrs" && (<>
+                      {Array.from({ length: 60 }, (_, k) => k).map((k) => {
+                        const lonC = -180 + k * 6 + 3, zn = k + 1, act = activeGz?.zone === zn;
+                        return <text key={`zn${k}`} x={xOf(lonC)} y={flat.y + 5} fontSize={act ? 6 : 3.5} fontWeight={act ? "bold" : "normal"} fill={act ? C.gold : C.cyan} opacity={act ? 1 : 0.55} textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{zn}</text>;
+                      })}
+                      {BANDS.split("").map((L, j) => {
+                        const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = activeGz?.band === L;
+                        return <text key={`bl${j}`} x={flat.x + 4} y={yOf((latS + latN) / 2)} fontSize={act ? 6 : 3.5} fontWeight={act ? "bold" : "normal"} fill={act ? C.gold : C.cyan} opacity={act ? 1 : 0.55} textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{L}</text>;
+                      })}
+                    </>)}
+                    {coordFmt === "dms" && (<>
+                      {meridians.map((lon) => (
+                        <text key={`dl${lon}`} x={xOf(lon)} y={flat.y + 5} fontSize="3.5" fill={C.cyan} opacity="0.6" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text>
+                      ))}
+                      {parallels.map((lat) => (
+                        <text key={`dt${lat}`} x={flat.x + 4} y={yOf(lat)} fontSize="3.5" fill={C.cyan} opacity="0.6" textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text>
+                      ))}
+                    </>)}
                   </g>
                 );
               })()}
