@@ -1377,6 +1377,7 @@ function AoMapPane(p: PaneProps) {
   // Reads the SAME 1-fetch DEM sampler as the contours — zero extra network.
   const [voxelSel, setVoxelSel] = useState<string | null>(null);
   const [thrEdit, setThrEdit] = useState<"r" | "y" | "g" | null>(null);
+  const [thrMode, setThrMode] = useState<"%" | "abs">("%");
   const [voxelLayer, setVoxelLayer] = useState(true); // FX-30 (HI): standalone 3×3 voxel LATTICE, independent of assets, ON by default
   const [voxelSize, setVoxelSize] = useState<3 | 2 | 1>(3); // FX (HI 1.3.3): box size tier — 3X (full) · 2X (⅔) · 1X (⅓); altitude projectors always reach the grey-line altitude
   const [domeMode, setDomeMode] = useState<"grid" | "hex">("grid"); // UCRS-2525 sky dome style — globe GRID lines vs HEX panels (3rd style TBD)
@@ -2765,22 +2766,34 @@ function AoMapPane(p: PaneProps) {
                     <span className="absolute left-0 right-0" style={{ top: thrTop((voxelLimitPct / 100) * topFt), height: 2, borderRadius: 1, background: "#9ca3af", boxShadow: "0 0 4px #6b7280" }} />
                   )}
                   <span className="absolute left-0 right-0" style={{ top: thrTop(yFt), height: 2, borderRadius: 1, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
-                  {/* Lock (far left, above line) → ft number. Tap lock to edit %. */}
+                  {/* Lock (far left, above line) → ft number. Tap lock → % / ABS toggle + input. */}
                   {([["r", rFt, C.red, altRedPct, (v: number) => setAltRedPct?.(v)] as const,
                     ["y", yFt, C.amber, altYellowPct, (v: number) => setAltYellowPct?.(v)] as const,
                   ]).map(([id, ft, color, pct, setPct]) => (
                     <span key={id} className="pointer-events-auto absolute flex items-center gap-0.5 rounded px-0.5" style={{ left: -6, top: thrTop(ft), transform: "translateY(-110%)", background: "#0a0e14ee" }}>
-                      <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setThrEdit(thrEdit === id ? null : id); }}
+                      <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setThrEdit(thrEdit === id ? null : id); setThrMode("%"); }}
                         className="shrink-0 p-0.5" style={{ pointerEvents: "auto" }}>
                         {thrEdit === id ? <Unlock className="h-2.5 w-2.5" style={{ color }} /> : <Lock className="h-2.5 w-2.5" style={{ color, opacity: 0.7 }} />}
                       </button>
                       {thrEdit === id ? (
                         <span className="flex items-center gap-0.5">
-                          <input type="text" inputMode="decimal" defaultValue={pct} onPointerDown={(e) => e.stopPropagation()}
-                            onBlur={(e) => { const v = parseInt(e.target.value); if (v > 0 && v <= 100) setPct(v); setThrEdit(null); }}
+                          <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setThrMode(thrMode === "%" ? "abs" : "%"); }}
+                            className="rounded border px-1 font-mono text-[6px] font-bold" style={{ borderColor: color, color, pointerEvents: "auto" }}>
+                            {thrMode === "%" ? "%" : "ABS"}
+                          </button>
+                          <input type="text" inputMode="decimal" key={`${id}-${thrMode}`}
+                            defaultValue={thrMode === "%" ? pct : Math.round(ft)}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onBlur={(e) => {
+                              const v = parseFloat(e.target.value);
+                              if (Number.isFinite(v) && v > 0) {
+                                if (thrMode === "%") { if (v <= 100) setPct(Math.round(v)); }
+                                else { setPct(Math.max(1, Math.min(100, Math.round((v / topFt) * 100)))); }
+                              }
+                              setThrEdit(null);
+                            }}
                             onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-                            className="w-6 rounded border bg-transparent px-0.5 font-mono text-[7px] font-bold" style={{ borderColor: color, color, pointerEvents: "auto" }} autoFocus />
-                          <span className="font-mono text-[6px]" style={{ color }}>%</span>
+                            className="w-10 rounded border bg-transparent px-0.5 font-mono text-[7px] font-bold" style={{ borderColor: color, color, pointerEvents: "auto" }} autoFocus />
                         </span>
                       ) : (
                         <span className="font-mono text-[7px] font-bold" style={{ color }}>{cFt(ft)}</span>
