@@ -40,6 +40,7 @@ import { PfieldVenue } from "@/components/security-2525/pfield-venue";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { MIN_SPAN_KM, MAX_SPAN_KM, shouldHandOffToWorld } from "@/lib/zoom-continuum";
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
+import { getSunPosition, getMoonPosition, skyArc } from "@/lib/celestial";
 import { computeTransect, transectLine, type AltObject } from "@/lib/transect";
 import { RANGE_EDGES, BAND_LABELS, mFromFt, bandOccupancy } from "@/lib/voxel";
 import { buildVoxelColumns, buildLatticeColumns, fmtLLV, fmtUcrsDms, ucrsCellId, ucrsCell2 } from "@/lib/voxel-grid";
@@ -1366,6 +1367,10 @@ function AoMapPane(p: PaneProps) {
   const [voxelSize, setVoxelSize] = useState<3 | 2 | 1>(3); // FX (HI 1.3.3): box size tier — 3X (full) · 2X (⅔) · 1X (⅓); altitude projectors always reach the grey-line altitude
   const [domeMode, setDomeMode] = useState<"grid" | "hex">("grid"); // UCRS-2525 sky dome style — globe GRID lines vs HEX panels (3rd style TBD)
   const [domeThick, setDomeThick] = useState(1.6);                   // dome line thickness (dome settings ▲ cone icon)
+  // UCRS-2525 celestial clock — sun/moon on the dome. Set post-mount (avoids SSR hydration
+  // mismatch on new Date()), ticks each minute so the arcs stay current.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => { setNow(new Date()); const id = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(id); }, []);
   const [domeSettingsOpen, setDomeSettingsOpen] = useState(false);   // dome settings popover open
   const [voxelTop, setVoxelTop] = useState<string | null>(null); // FX-30: hovered column TOP face (pick a stack by its top)
   // P1.2 (Odin): corner HOVER chip — corner coordinate + terrain elevation at the cursor
@@ -2548,6 +2553,31 @@ function AoMapPane(p: PaneProps) {
                           transform: `translate(-50%,-50%) translate3d(${c.x}px,${c.y}px,${c.z}px) rotateX(${-p}deg)` }}>
                         <polygon points={pts} fill={`${col}12`} stroke={col} strokeWidth={domeThick} opacity="0.8" />
                       </svg>
+                    ));
+                  })()}
+                  {/* ── CELESTIAL — sun + moon on the dome at their (azimuth, altitude) for the AO
+                       lat/lon + time, with their diurnal ARC path (rise→transit→set). Deterministic
+                       astronomy (no live data), so the dome doubles as a real celestial sphere. */}
+                  {now && (() => {
+                    // (az from N cw, alt above horizon) → dome surface: r = R·cos(alt), z = H·sin(alt)
+                    const domePt = (az: number, alt: number) => ({ x: R * Math.cos(alt) * Math.sin(az), y: -R * Math.cos(alt) * Math.cos(az), z: H * Math.sin(alt) });
+                    const bodies = [
+                      { pos: getSunPosition(now, view.lat, view.lon), arc: skyArc(getSunPosition, now, view.lat, view.lon), c: "#fbbf24", gr: 3.4 },
+                      { pos: getMoonPosition(now, view.lat, view.lon), arc: skyArc(getMoonPosition, now, view.lat, view.lon), c: "#e5e7eb", gr: 2.7 },
+                    ];
+                    return bodies.map((b, bi) => (
+                      <Fragment key={`cel${bi}`}>
+                        {b.arc.filter((pt) => pt.altitude > -0.03).map((pt, i) => {
+                          const q = domePt(pt.azimuth, Math.max(0, pt.altitude));
+                          return <div key={`ca${bi}_${i}`} className="pointer-events-none rounded-full" style={{ ...at(`translate3d(${q.x}px,${q.y}px,${q.z}px)`),
+                            width: 2, height: 2, background: b.c, opacity: 0.45 }} />;
+                        })}
+                        {b.pos.altitude > 0 && (() => {
+                          const q = domePt(b.pos.azimuth, b.pos.altitude);
+                          return <div className="pointer-events-none rounded-full" style={{ ...at(`translate3d(${q.x}px,${q.y}px,${q.z}px)`),
+                            width: 2 * b.gr, height: 2 * b.gr, background: `radial-gradient(circle at 35% 30%, ${b.c}, ${b.c}66)`, border: `1px solid ${b.c}`, boxShadow: `0 0 ${b.gr * 2}px ${b.c}` }} />;
+                        })()}
+                      </Fragment>
                     ));
                   })()}
                 </div>
