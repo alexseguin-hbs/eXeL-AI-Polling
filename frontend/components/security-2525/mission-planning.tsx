@@ -2464,9 +2464,16 @@ function AoMapPane(p: PaneProps) {
               const bc = project(view.lat, view.lon);
               const paneW = mapRef.current?.clientWidth ?? 800;
               const paneH = mapRef.current?.clientHeight ?? 600;
-              // HI: dome/disc FITS THE VIEWPORT — radius = a fixed fraction of the smaller pane
-              // dimension (same value the sky dome uses), so the whole dome + sun/moon always frame.
-              const R = Math.min(paneW, paneH) * 0.44;
+              // HI RULE — the disc R (= dome 20·x) reaches to WHICHEVER is furthest:
+              //   r = furthest distance visible on screen (½-diagonal, STRETCHED toward the horizon
+              //       as the camera pitches back), or  A = the altitude ceiling in px.
+              //   R = max(r, A):  r > A → circle reaches the furthest view · A > r → altitude drives it.
+              const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
+              const pxPerM = paneW / Math.max(1, view.spanKm * 1000);
+              const altPx = topFt * 0.3048 * pxPerM;                              // A
+              const horizonStretch = 1 + Math.max(0, ((pitch ?? 55) - 45)) / 22;
+              const screenPx = Math.hypot(paneW / 2, paneH / 2) * horizonStretch; // r
+              const R = Math.max(screenPx, altPx);                                // 20·x = max(r, A)
               const NRr = 4, NSp = 12;                        // polar floor: range rings · bearing spokes
               return (
                 <>
@@ -2505,14 +2512,19 @@ function AoMapPane(p: PaneProps) {
               // span reads sensibly instead of a confusing flat sliver. Hemisphere (H = R).
               const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
               const pxPerM = paneW / Math.max(1, view.spanKm * 1000);
-              const altPx = topFt * 0.3048 * pxPerM;        // altitude ceiling in px
+              const altPx = topFt * 0.3048 * pxPerM;        // A — altitude ceiling in px
               const paneH = mapRef.current?.clientHeight ?? 600;
-              // HI: dome FITS THE VIEWPORT — floor radius = the SAME fraction the World-Disc mask uses,
-              // so the dome rim coincides with the disc rim AND the whole dome + sun/moon always frame.
-              // Apex HEIGHT tracks the altitude ceiling but is clamped to [0.45R, R] so it always reads
-              // as a dome and never shoots off-screen (reach = distance horizontally, altitude vertically).
-              const R = Math.min(paneW, paneH) * 0.44;
-              const H = Math.min(R, Math.max(altPx, R * 0.45));
+              // HI RULE (locked to the β disc): dome floor radius R (= 20·x) = max(r, A) where
+              //   r = furthest ground distance visible on screen (½-diagonal stretched toward the
+              //       horizon by pitch), A = altitude ceiling. A > r → altitude drives the dome;
+              //   r > A → the floor circle reaches the furthest view (far in the distance).
+              const horizonStretch = 1 + Math.max(0, ((pitch ?? 55) - 45)) / 22;
+              const screenPx = Math.hypot(paneW / 2, paneH / 2) * horizonStretch; // r
+              const R = Math.max(screenPx, altPx);                                // 20·x = max(r, A)
+              // Apex HEIGHT = the true altitude ceiling (A). When altitude dominates (R = A) this is a
+              // full hemisphere; when the view radius dominates (R = r) it's a wide shallow dome whose
+              // apex still marks the real airspace ceiling. Min keeps it readable as a dome.
+              const H = Math.max(altPx, R * 0.12);
               const p = pitch ?? 55;
               // HI: the dome IS the sky backdrop — it must NOT fade at high tilt (removed the old
               // anti-phantom skyK fade); the operator looks across the horizon to see it.
