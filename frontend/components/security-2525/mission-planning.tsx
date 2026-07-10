@@ -2164,6 +2164,32 @@ function AoMapPane(p: PaneProps) {
                       </div>
                     );
                   })}
+                  {/* FX-05b: RED/ORANGE warning slivers on columns with aerial assets */}
+                  {!isLattice && col.objects.some((o) => o.altM > 0) && (() => {
+                    const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
+                    const eR = altRedFt ?? topFt * 0.9;
+                    const eY = altYellowFt ?? topFt * 0.7;
+                    const ftToZ = (ft: number) => {
+                      for (let b = 0; b < RANGE_EDGES.length - 1; b++) {
+                        if (ft <= RANGE_EDGES[b + 1]) {
+                          const floor = RANGE_EDGES[b], ceil = RANGE_EDGES[b + 1];
+                          return b * bandPx + ((ft - floor) / (ceil - floor)) * bandPx;
+                        }
+                      }
+                      return (RANGE_EDGES.length - 1) * bandPx;
+                    };
+                    const sliver = (ft: number, color: string) => {
+                      const sz = ftToZ(ft);
+                      if (sz > topZ + limitZ) return null;
+                      return (
+                        <div key={color} className="pointer-events-none absolute left-1/2 top-1/2" style={{
+                          width: cellPx + 4, height: 0, borderTop: `2px solid ${color}`,
+                          boxShadow: `0 0 6px ${color}`, opacity: dimmed ? 0.3 : 0.85,
+                          transform: `translate(-50%,-50%) translateZ(${sz}px)` }} />
+                      );
+                    };
+                    return <>{sliver(eY, C.amber)}{sliver(eR, C.red)}</>;
+                  })()}
                   {/* HI 1.3.3 — the VOXEL COLUMN owns the asset's on-cube UI (placed.map
                       suppresses the flat marker for a column-backed asset): a SHIELD badge
                       pinned to the LEVEL-1 bottom cell (always at the surface, decoupled from
@@ -2713,7 +2739,9 @@ function AoMapPane(p: PaneProps) {
                 labels honor the Units setting via fmt.fmtElev. */}
             {is3d && (() => {
               const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
-              const levels = [1, 0.75, 0.5, 0.25, 0.1, 0.05].map((k) => Math.round(topFt * k)); // scales with maxAltFt or the AUTO ceiling
+              const effRedFt = altRedFt ?? topFt * 0.9;
+              const effYellowFt = altYellowFt ?? topFt * 0.7;
+              const levels = [1, 0.75, 0.5, 0.25, 0.1, 0.05].map((k) => Math.round(topFt * k));
               const lbl = (ft: number) => fmt.fmtElev(ft / 3.28084);
               const thrTop = (ft: number) => `${(14 + (1 - Math.min(1, Math.max(0, ft / topFt))) * 68).toFixed(1)}%`;
               return (
@@ -2727,34 +2755,25 @@ function AoMapPane(p: PaneProps) {
                   <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.gold }}>
                     <span className="inline-block h-px w-2" style={{ background: C.gold }} />SURFACE
                   </span>
-                  {/* negative band ONLY when the view holds water — deepest source in view */}
                   {minElevM < -1 && (
                     <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: "#22d3ee" }}>
                       <span className="inline-block h-px w-2" style={{ background: "#22d3ee" }} />{lbl(minElevM * 3.28084)}
                     </span>
                   )}
-                  {/* FX-05: threshold marker lines on the rail */}
-                  {altRedFt != null && altRedFt > 0 && (
-                    <span className="absolute left-0 right-0" style={{ top: thrTop(altRedFt), height: 2, background: C.red, boxShadow: `0 0 4px ${C.red}` }} />
-                  )}
-                  {/* FX-52 (HI 1.3.3): GREY voxel-limit line on the altitude bar — the height
-                      the voxel column reaches (voxelLimitPct% of the rail). */}
+                  {/* FX-05: threshold marker lines — flex with topFt (90%/70% default) */}
+                  <span className="absolute left-0 right-0" style={{ top: thrTop(effRedFt), height: 2, background: C.red, boxShadow: `0 0 4px ${C.red}` }} />
                   {voxelLimitPct > 0 && (
                     <span className="absolute left-0 right-0" style={{ top: thrTop((voxelLimitPct / 100) * topFt), height: 2, background: "#9ca3af", boxShadow: "0 0 4px #6b7280" }} />
                   )}
-                  {altYellowFt != null && altYellowFt > 0 && (
-                    <span className="absolute left-0 right-0" style={{ top: thrTop(altYellowFt), height: 2, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
-                  )}
-                  {/* FX-05 (HI RAIL): threshold lock+number ENTRIES ride their own line —
-                      absolutely placed at thrTop() so R / Y / GREY track the moving marker. */}
-                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(altRedFt ?? 0), transform: "translateY(-110%)" }}>
+                  <span className="absolute left-0 right-0" style={{ top: thrTop(effYellowFt), height: 2, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
+                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(effRedFt), transform: "translateY(-110%)" }}>
                     <span className="font-mono text-[6px] font-bold" style={{ color: C.red }}>R</span>
-                    <NumInField value={altRedFt ?? 0} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable lockColor={C.red}
+                    <NumInField value={Math.round(effRedFt)} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable lockColor={C.red}
                       className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
                   </span>
-                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(altYellowFt ?? 0), transform: "translateY(-110%)" }}>
+                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(effYellowFt), transform: "translateY(-110%)" }}>
                     <span className="font-mono text-[6px] font-bold" style={{ color: C.amber }}>Y</span>
-                    <NumInField value={altYellowFt ?? 0} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable lockColor={C.amber}
+                    <NumInField value={Math.round(effYellowFt)} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable lockColor={C.amber}
                       className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
                   </span>
                   {voxelLimitPct > 0 && (
@@ -3723,8 +3742,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [iconSize, setIconSize] = useState<"s" | "m" | "l">("s"); // P2: icon visibility — S(1×)/M(1.75×)/L(3×)
   const ICON_SCALE = { s: 1, m: 2, l: 3 } as const; // P1.2 (Enki): M = 2× current, L = 3×
   const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
-  const [altRedFt, setAltRedFt] = useState<number | null>(9000);      // FX-05 (1.3.2): RED alarm default 90% of the 10k ft rail
-  const [altYellowFt, setAltYellowFt] = useState<number | null>(7000);// FX-05 (1.3.2): YELLOW alarm default 70% of the 10k ft rail
+  const [altRedFt, setAltRedFt] = useState<number | null>(null);       // FX-05: null = AUTO (90% of topFt, flexes with zoom)
+  const [altYellowFt, setAltYellowFt] = useState<number | null>(null);// FX-05: null = AUTO (70% of topFt, flexes with zoom)
   const [voxelCellM, setVoxelCellM] = useState<number>(0); // FX-10 (1.3.2): 0 = AUTO screen reticle (default); 10/100/1000 presets OR any user-entered metre value
   const [voxelLimitPct, setVoxelLimitPct] = useState(100); // FX-04 (1.3.2): grey "voxel limit" extent — % of the altitude rail the voxel column reaches (like the red/yellow alarm limits)
   const [voxelHiColor, setVoxelHiColor] = useState<string>(TRINITY_COLORS.temporal); // FX-07 (1.3.2): user-set colour for the primary highlighted voxel (rest dim)
