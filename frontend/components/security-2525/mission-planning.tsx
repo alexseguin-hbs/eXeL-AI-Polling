@@ -2561,24 +2561,39 @@ function AoMapPane(p: PaneProps) {
                   {now && (() => {
                     // (az from N cw, alt above horizon) → dome surface: r = R·cos(alt), z = H·sin(alt)
                     const domePt = (az: number, alt: number) => ({ x: R * Math.cos(alt) * Math.sin(az), y: -R * Math.cos(alt) * Math.cos(az), z: H * Math.sin(alt) });
-                    const bodies = [
-                      { pos: getSunPosition(now, view.lat, view.lon), arc: skyArc(getSunPosition, now, view.lat, view.lon), c: "#fbbf24", gr: 3.4 },
-                      { pos: getMoonPosition(now, view.lat, view.lon), arc: skyArc(getMoonPosition, now, view.lat, view.lon), c: "#e5e7eb", gr: 2.7 },
-                    ];
-                    return bodies.map((b, bi) => (
-                      <Fragment key={`cel${bi}`}>
-                        {b.arc.filter((pt) => pt.altitude > -0.03).map((pt, i) => {
-                          const q = domePt(pt.azimuth, Math.max(0, pt.altitude));
-                          return <div key={`ca${bi}_${i}`} className="pointer-events-none rounded-full" style={{ ...at(`translate3d(${q.x}px,${q.y}px,${q.z}px)`),
-                            width: 2, height: 2, background: b.c, opacity: 0.45 }} />;
+                    const sunNow = getSunPosition(now, view.lat, view.lon);
+                    const moon = { pos: getMoonPosition(now, view.lat, view.lon), arc: skyArc(getMoonPosition, now, view.lat, view.lon) };
+                    return (
+                      <>
+                        {/* SUN arc drawn as HOUR HASHES (local/CST placeholder) — read the time of
+                            day off the sun's path; every 3rd hour labelled, 00/06/12/18 major. */}
+                        {Array.from({ length: 24 }, (_, h) => {
+                          const d = new Date(now); d.setHours(h, 0, 0, 0);
+                          const sp = getSunPosition(d, view.lat, view.lon);
+                          if (sp.altitude <= 0.02) return null;
+                          const q = domePt(sp.azimuth, sp.altitude);
+                          const major = h % 6 === 0;
+                          return (
+                            <Fragment key={`sh${h}`}>
+                              <div className="pointer-events-none rounded-full" style={{ ...at(`translate3d(${q.x}px,${q.y}px,${q.z}px)`),
+                                width: major ? 4 : 2.5, height: major ? 4 : 2.5, background: "#fbbf24", opacity: major ? 0.95 : 0.55 }} />
+                              {h % 3 === 0 && <div className="pointer-events-none font-mono font-bold" style={{ ...at(`translate3d(${q.x + 4}px,${q.y - 4}px,${q.z}px)`),
+                                fontSize: 6, color: "#fbbf24", opacity: 0.9 }}>{h}</div>}
+                            </Fragment>
+                          );
                         })}
-                        {b.pos.altitude > 0 && (() => {
-                          const q = domePt(b.pos.azimuth, b.pos.altitude);
+                        {/* current SUN */}
+                        {sunNow.altitude > 0 && (() => { const q = domePt(sunNow.azimuth, sunNow.altitude);
                           return <div className="pointer-events-none rounded-full" style={{ ...at(`translate3d(${q.x}px,${q.y}px,${q.z}px)`),
-                            width: 2 * b.gr, height: 2 * b.gr, background: `radial-gradient(circle at 35% 30%, ${b.c}, ${b.c}66)`, border: `1px solid ${b.c}`, boxShadow: `0 0 ${b.gr * 2}px ${b.c}` }} />;
-                        })()}
-                      </Fragment>
-                    ));
+                            width: 9, height: 9, background: "radial-gradient(circle at 35% 30%, #fde68a, #f59e0b)", boxShadow: "0 0 11px #fbbf24", border: "1px solid #fde68a" }} />; })()}
+                        {/* MOON arc dots + current moon */}
+                        {moon.arc.filter((pt) => pt.altitude > -0.03).map((pt, i) => { const q = domePt(pt.azimuth, Math.max(0, pt.altitude));
+                          return <div key={`ma${i}`} className="pointer-events-none rounded-full" style={{ ...at(`translate3d(${q.x}px,${q.y}px,${q.z}px)`), width: 2, height: 2, background: "#e5e7eb", opacity: 0.4 }} />; })}
+                        {moon.pos.altitude > 0 && (() => { const q = domePt(moon.pos.azimuth, moon.pos.altitude);
+                          return <div className="pointer-events-none rounded-full" style={{ ...at(`translate3d(${q.x}px,${q.y}px,${q.z}px)`),
+                            width: 6, height: 6, background: "radial-gradient(circle at 35% 30%, #f8fafc, #94a3b8)", boxShadow: "0 0 7px #cbd5e1", border: "1px solid #e5e7eb" }} />; })()}
+                      </>
+                    );
                   })()}
                 </div>
               );
