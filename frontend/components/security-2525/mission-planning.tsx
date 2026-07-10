@@ -2822,10 +2822,6 @@ function AoMapPane(p: PaneProps) {
                     <span className="font-bold tracking-wider" style={{ color: C.cyan }}>COORDINATE · CALL-UP</span>
                     <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall(null); }} className="px-1 text-[10px] leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
-                  {/* FX-03 (HI 1.3.2): show ONLY the PRIMARY coordinate (per Settings), the
-                      CELL, and elevation — not all three coordinate frames at once. Track
-                      details (speed/heading/alt) appear only when the tap resolves to a
-                      placed asset; a bare-ground call-up has none. */}
                   {(() => {
                     const primary: [string, string, string] = coordFmt === "mgrs"
                       ? ["MGRS", fmt.mgrsAt(coordCall.lat, coordCall.lon), C.text]
@@ -2835,16 +2831,11 @@ function AoMapPane(p: PaneProps) {
                     return (
                       <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
                         <span style={{ color: C.dim }}>{primary[0]}</span><span style={{ color: primary[2] }}>{primary[1]}</span>
-                        <span style={{ color: C.dim }}>CELL <span title="UCRS·CELL v2 — universal base-3600 address: zone · lat 3600-deg.min · lon 3600-deg.min · r = footprint radius (m). Decimal ⇄ minute interchangeable: 3600.5 ≡ 3600·1800. Body-agnostic (Mars/Moon) — VISION-2525 / LINK-2525." style={{ cursor: "help", color: C.cyan }}>ⓘ</span></span>
-                        <span style={{ color: C.cyan }}>{ucrsCell2(coordCall.lat, coordCall.lon, grid.stepM / 2)}</span>
                         <span style={{ color: C.dim }}>ELEV</span><span style={{ color: C.gold }}>{Math.round(elevM).toLocaleString()} m · {Math.round(elevM * 3.28084).toLocaleString()} ft MSL</span>
                       </div>
                     );
                   })()}
-                  {/* FX-13 (P1.3): PRIMARY format toggle — defaults from Settings, and
-                      changing it HERE writes straight back to Settings (two-way). */}
                   <div className="mt-1 flex items-center gap-1 border-t pt-1" style={{ borderColor: C.border }}>
-                    <span style={{ color: C.dim }}>PRIMARY</span>
                     {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["ucrs", "UCRS-2525"]] as const).map(([fk, lb]) => (
                       <button key={fk} onClick={() => onSetCoordFmt?.(fk)} className="rounded border px-1 py-0"
                         style={{ borderColor: coordFmt === fk ? C.cyan : C.border, color: coordFmt === fk ? C.cyan : C.dim }}>{lb}</button>
@@ -2885,15 +2876,23 @@ function AoMapPane(p: PaneProps) {
                       </div>
                     );
                   })()}
-                  <div className="mt-1 border-t pt-1" style={{ borderColor: C.border }}>
-                    {col.objects.map((o) => (
-                      <div key={String(o.id)} className="flex items-center justify-between gap-1 font-mono">
-                        <span className="truncate" style={{ color: o.color ?? C.cyan }}>{o.label}</span>
-                        <span className="whitespace-nowrap" style={{ color: C.text }}>{Math.round(o.altM).toLocaleString()}m {o.altRef} · Z{o.bandIdx} ({BAND_LABELS[o.bandIdx]} ft)</span>
-                      </div>
+                  {col.objects.length > 0 && (
+                    <div className="mt-1 border-t pt-1" style={{ borderColor: C.border }}>
+                      {col.objects.map((o) => (
+                        <div key={String(o.id)} className="flex items-center justify-between gap-1 font-mono">
+                          <span className="truncate" style={{ color: o.color ?? C.cyan }}>{o.label}</span>
+                          <span className="whitespace-nowrap" style={{ color: C.text }}>{Math.round(o.altM).toLocaleString()}m {o.altRef} · Z{o.bandIdx}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-1 flex items-center gap-1 border-t pt-1" style={{ borderColor: C.border }}>
+                    {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["ucrs", "UCRS-2525"]] as const).map(([fk, lb]) => (
+                      <button key={fk} onClick={() => onSetCoordFmt?.(fk)} className="rounded border px-1 py-0"
+                        style={{ borderColor: coordFmt === fk ? C.gold : C.border, color: coordFmt === fk ? C.gold : C.dim }}>{lb}</button>
                     ))}
                   </div>
-                  <div className="mt-1 text-[7px]" style={{ color: C.dim }}>{col.ucrs}·Z<i>n</i> = one cube · 1 fetch → altitude</div>
+                  <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Zone = one vertical level · Z0 = surface, Z1–Z7 = altitude bands</div>
                 </div>
               );
             })()}
