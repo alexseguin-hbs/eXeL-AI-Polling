@@ -2843,17 +2843,17 @@ function AoMapPane(p: PaneProps) {
                       </div>
                     );
                   })()}
-                  <div className="mt-1 flex items-center gap-1 border-t pt-1" style={{ borderColor: C.border }}>
+                  <div className="mt-1 flex flex-wrap items-center gap-1 border-t pt-1" style={{ borderColor: C.border }}>
                     {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["ucrs", "UCRS-2525"]] as const).map(([fk, lb]) => (
                       <button key={fk} onClick={() => onSetCoordFmt?.(fk)} className="rounded border px-1 py-0"
                         style={{ borderColor: coordFmt === fk ? C.cyan : C.border, color: coordFmt === fk ? C.cyan : C.dim }}>{lb}</button>
                     ))}
-                    <div className="ml-auto flex overflow-hidden rounded border text-[7px] font-semibold" style={{ borderColor: C.border }}>
-                      {(["MSL", "AGL"] as const).map((r) => (
-                        <button key={r} onClick={() => setElevRef(r)} className="px-1 py-0"
-                          style={{ background: elevRef === r ? "#152238" : "transparent", color: elevRef === r ? C.gold : C.dim }}>{r}</button>
-                      ))}
-                    </div>
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-1">
+                    {(["AGL", "MSL"] as const).map((r) => (
+                      <button key={r} onClick={() => setElevRef(r)} className="rounded border px-1 py-0"
+                        style={{ borderColor: elevRef === r ? C.gold : C.border, color: elevRef === r ? C.gold : C.dim }}>{r}</button>
+                    ))}
                   </div>
                 </div>
               );
@@ -2905,12 +2905,12 @@ function AoMapPane(p: PaneProps) {
                       <button key={fk} onClick={() => onSetCoordFmt?.(fk)} className="rounded border px-1 py-0"
                         style={{ borderColor: coordFmt === fk ? C.gold : C.border, color: coordFmt === fk ? C.gold : C.dim }}>{lb}</button>
                     ))}
-                    <div className="ml-auto flex overflow-hidden rounded border text-[7px] font-semibold" style={{ borderColor: C.border }}>
-                      {(["MSL", "AGL"] as const).map((r) => (
-                        <button key={r} onClick={() => setElevRef(r)} className="px-1 py-0"
-                          style={{ background: elevRef === r ? "#152238" : "transparent", color: elevRef === r ? C.gold : C.dim }}>{r}</button>
-                      ))}
-                    </div>
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-1">
+                    {(["AGL", "MSL"] as const).map((r) => (
+                      <button key={r} onClick={() => setElevRef(r)} className="rounded border px-1 py-0"
+                        style={{ borderColor: elevRef === r ? C.gold : C.border, color: elevRef === r ? C.gold : C.dim }}>{r}</button>
+                    ))}
                   </div>
                   <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Zone = one vertical level · Z0 = surface, Z1–Z7 = altitude bands</div>
                 </div>
