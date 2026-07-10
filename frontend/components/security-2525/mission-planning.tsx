@@ -742,7 +742,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
               {geoContext(clat, clon, kmW).join(" · ")}
             </span>
             <span className="pointer-events-none absolute bottom-1 left-2 z-10 font-mono text-[8px]" style={{ color: C.gold }}>
-              {fmt.coordAt(clat, clon)} · {kmW >= 1 ? `${kmW.toFixed(kmW >= 10 ? 0 : 1)} km` : `${Math.round(kmW * 1000)} m`} wide
+              {latLonToMgrs(clat, clon, 4)} · {kmW >= 1 ? `${kmW.toFixed(kmW >= 10 ? 0 : 1)} km` : `${Math.round(kmW * 1000)} m`} wide
             </span>
             {/* FX-17 (P1.3): graphic SCALE bar bottom-left — both maps carry one */}
             {(() => {
@@ -3611,7 +3611,7 @@ function TransectPanel({ view, dem, placed, onHide }: TransectPanelProps) {
             <g key={i}>
               <line x1={x(o.t)} x2={x(o.t)} y1={y(o.terrainM)} y2={y(o.mslM)} stroke={o.color ?? C.cyan} strokeWidth={1} strokeDasharray="1 2" />
               <circle cx={x(o.t)} cy={y(o.mslM)} r={2.6} fill={o.color ?? C.cyan} />
-              <text x={x(o.t) + 4} y={y(o.mslM) - 3} fontSize={8} fill={o.color ?? C.cyan}>{elevRef === "MSL" ? `${Math.round(o.mslM).toLocaleString()}m MSL` : `${Math.round(o.altM).toLocaleString()}m ${o.altRef}`}</text>
+              <text x={x(o.t) + 4} y={y(o.mslM) - 3} fontSize={8} fill={o.color ?? C.cyan}>{Math.round(o.altM).toLocaleString()}m {o.altRef}</text>
             </g>
           ))}
         </svg>
