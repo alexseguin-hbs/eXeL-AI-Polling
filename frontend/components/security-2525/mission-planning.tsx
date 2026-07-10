@@ -2793,9 +2793,9 @@ function AoMapPane(p: PaneProps) {
               const f = project(coordCall.lat, coordCall.lon);
               const elevM = sampler(coordCall.lat, coordCall.lon);
               return (
-                <div className="absolute z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
-                  onPointerDown={(e) => e.stopPropagation()} /* FX-30: keep the map from capturing the pointer so the ✕ (and taps inside) work */
-                  style={{ left: `${Math.min(70, Math.max(2, f.fx * 100))}%`, top: `${Math.min(60, Math.max(4, f.fy * 100 - 10))}%`, background: "#0a0f16ee", borderColor: C.cyan }}>
+                <div className="absolute z-30 max-w-[calc(100%-16px)] w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  style={{ right: 8, top: 28, background: "#0a0f16ee", borderColor: C.cyan }}>
                   <div className="mb-1 flex items-center justify-between">
                     <span className="font-bold tracking-wider" style={{ color: C.cyan }}>COORDINATE · CALL-UP</span>
                     <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall(null); }} className="px-1 text-[10px] leading-none" style={{ color: C.dim }}>✕</button>
