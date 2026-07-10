@@ -926,10 +926,10 @@ function makeFormatters(coordFmt: "mgrs" | "dms" | "ucrs", digits: Digits, unit:
   const metric = unit === "km" || unit === "m";
   const fmtDist = (m: number) =>
     unit === "km" ? `${(m / 1000).toFixed(m >= 10000 ? 0 : 2)} km`
-      : unit === "m" ? `${Math.round(m)} m`
+      : unit === "m" ? `${Math.round(m).toLocaleString()} m`
       : unit === "mi" ? `${(m / 1609.34).toFixed(m >= 16093 ? 1 : 2)} mi`
-      : `${Math.round(m * 3.28084)} ft`;
-  const fmtElev = (m: number) => (metric ? `${Math.round(m)} m` : `${Math.round(m * 3.28084)} ft`);
+      : `${Math.round(m * 3.28084).toLocaleString()} ft`;
+  const fmtElev = (m: number) => (metric ? `${Math.round(m).toLocaleString()} m` : `${Math.round(m * 3.28084).toLocaleString()} ft`);
   return { mgrsAt, coordAt, fmtDist, fmtElev };
 }
 
@@ -973,10 +973,10 @@ interface PaneProps {
   coordFmt?: "mgrs" | "dms" | "ucrs";          // FX-13: current Settings format
   onSetCoordFmt?: (f: "mgrs" | "dms" | "ucrs") => void; // FX-13: packet toggle → Settings
   maxAltFt?: number | null;                    // FX-09b: user max altitude (null = AUTO)
-  altRedFt?: number | null;                    // FX-05: RED threshold (ft)
-  altYellowFt?: number | null;                 // FX-05: YELLOW threshold (ft)
-  setAltRedFt?: (v: number | null) => void;
-  setAltYellowFt?: (v: number | null) => void;
+  altRedPct?: number;                           // FX-05: RED threshold as % of ceiling
+  altYellowPct?: number;                       // FX-05: YELLOW threshold as % of ceiling
+  setAltRedPct?: (v: number) => void;
+  setAltYellowPct?: (v: number) => void;
   voxelCellM?: number;                         // FX-10: 0/undefined = AUTO (grid step)
   voxelLimitPct?: number;                      // FX-04: grey voxel-limit extent — % of the altitude rail
   voxelHiColor?: string;                       // FX-07: colour for the primary highlighted voxel
@@ -1014,7 +1014,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, mapEngine, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
-    maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
+    maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1,
     drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
@@ -1958,7 +1958,7 @@ function AoMapPane(p: PaneProps) {
                   {!hasColumn && (sel || hot) && <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 1, marginTop: aerial ? 0 : groundDrop, marginBottom: aerial ? 2 : 0 }}>{fmt.coordAt(u.lat, u.lon)}</span>}
                   {u.moving && !hasColumn && (
                     <span className="whitespace-nowrap font-mono text-[7px] font-bold" style={{ color: C.green }}>
-                      {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude)}m ${u.altRef ?? "AGL"}` : ""}
+                      {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude).toLocaleString()}m ${u.altRef ?? "AGL"}` : ""}
                     </span>
                   )}
                 </button>
@@ -2032,7 +2032,7 @@ function AoMapPane(p: PaneProps) {
                   {/* HI 1.3.2: bearing/speed only for MOVING assets — stationary assets +
                       support have no meaningful heading. */}
                   {u.moving && row("SPD", u.speed != null ? `${Math.round(u.speed)} km/h` : "—")}
-                  {row("ALT", u.altitude != null ? `${Math.round(u.altitude)} m ${u.altRef ?? "AGL"}` : "SURFACE")}
+                  {row("ALT", u.altitude != null ? `${Math.round(u.altitude).toLocaleString()} m ${u.altRef ?? "AGL"}` : "SURFACE")}
                   {u.moving && row("HDG", u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : "—")}
                   <div className="flex items-center gap-1 px-1.5 py-0.5" style={{ borderTop: `1px solid ${C.gold}22` }}>
                     <span style={{ color: C.dim }}>IFF</span>
@@ -2160,8 +2160,9 @@ function AoMapPane(p: PaneProps) {
                   })}
                   {/* FX-05b: RED/ORANGE warning slivers on columns with aerial assets */}
                   {!isLattice && col.objects.some((o) => o.altM > 0) && (() => {
-                    const eR = altRedFt ?? 9000;
-                    const eY = altYellowFt ?? 7000;
+                    const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
+                    const eR = topFt * (altRedPct / 100);
+                    const eY = topFt * (altYellowPct / 100);
                     const ftToZ = (ft: number) => {
                       for (let b = 0; b < RANGE_EDGES.length - 1; b++) {
                         if (ft <= RANGE_EDGES[b + 1]) {
@@ -2176,8 +2177,8 @@ function AoMapPane(p: PaneProps) {
                       if (sz > topZ + limitZ) return null;
                       return (
                         <div key={color} className="pointer-events-none absolute left-1/2 top-1/2" style={{
-                          width: cellPx + 4, height: 0, borderTop: `2px solid ${color}`,
-                          boxShadow: `0 0 6px ${color}`, opacity: dimmed ? 0.3 : 0.85,
+                          width: cellPx + 6, height: 0, borderTop: `1px solid ${color}`,
+                          boxShadow: `0 0 4px ${color}`, opacity: dimmed ? 0.3 : 0.9,
                           transform: `translate(-50%,-50%) translateZ(${sz}px)` }} />
                       );
                     };
@@ -2301,7 +2302,7 @@ function AoMapPane(p: PaneProps) {
                       <button key={ci} onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: cn.lat, lon: cn.lon }); }}
                         onMouseEnter={() => setCornerHover({ key: col.key, ci })}
                         onMouseLeave={() => setCornerHover((h) => (h && h.key === col.key && h.ci === ci ? null : h))}
-                        title={`${["NW", "NE", "SE", "SW"][ci]} · ${fmt.coordAt(cn.lat, cn.lon)} · ${Math.round(sampler(cn.lat, cn.lon))}m MSL`}
+                        title={`${["NW", "NE", "SE", "SW"][ci]} · ${fmt.coordAt(cn.lat, cn.lon)} · ${Math.round(sampler(cn.lat, cn.lon)).toLocaleString()}m MSL`}
                         className="absolute h-2.5 w-2.5 rounded-sm"
                         style={{ ...(ci === 0 ? { left: -5, top: -5 } : ci === 1 ? { right: -5, top: -5 } : ci === 2 ? { right: -5, bottom: -5 } : { left: -5, bottom: -5 }),
                           border: `1px solid ${cornerHover?.key === col.key && cornerHover.ci === ci ? C.gold : C.cyan}`, background: "#0a0f16cc" }} />
@@ -2374,7 +2375,7 @@ function AoMapPane(p: PaneProps) {
                   {topObj && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 6}px)` }}>
                       <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: topObj.color ?? C.cyan }}>
-                        {Math.round(topObj.altM)}m {topObj.altRef} · Z{topObj.bandIdx}{col.objects.length > 1 ? ` +${col.objects.length - 1}` : ""}
+                        {Math.round(topObj.altM).toLocaleString()}m {topObj.altRef} · Z{topObj.bandIdx}{col.objects.length > 1 ? ` +${col.objects.length - 1}` : ""}
                       </span>
                     </div>
                   )}
@@ -2732,13 +2733,12 @@ function AoMapPane(p: PaneProps) {
                 labels honor the Units setting via fmt.fmtElev. */}
             {is3d && (() => {
               const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
-              const rFt = altRedFt ?? 9000;
-              const yFt = altYellowFt ?? 7000;
-              const rPct = Math.round((rFt / topFt) * 100);
-              const yPct = Math.round((yFt / topFt) * 100);
+              const rFt = topFt * (altRedPct / 100);
+              const yFt = topFt * (altYellowPct / 100);
               const levels = [1, 0.75, 0.5, 0.25, 0.1, 0.05].map((k) => Math.round(topFt * k));
               const lbl = (ft: number) => fmt.fmtElev(ft / 3.28084);
               const thrTop = (ft: number) => `${(14 + (1 - Math.min(1, Math.max(0, ft / topFt))) * 68).toFixed(1)}%`;
+              const cFt = (ft: number) => Math.round(ft).toLocaleString();
               return (
                 <div className="pointer-events-none absolute bottom-10 left-1 top-9 z-20 flex w-14 flex-col justify-between rounded px-1 py-1" style={{ background: "#0a0f16aa" }}>
                   <span className="text-[6px] font-bold tracking-wider" style={{ color: C.dim }}>ALTITUDE<br />(MSL)</span>
@@ -2755,28 +2755,31 @@ function AoMapPane(p: PaneProps) {
                       <span className="inline-block h-px w-2" style={{ background: "#22d3ee" }} />{lbl(minElevM * 3.28084)}
                     </span>
                   )}
-                  {/* FX-05: threshold lines — fixed ft values, position flexes as ceiling changes */}
+                  {/* FX-05: threshold lines — always at % of ceiling, values auto-compute */}
                   <span className="absolute left-0 right-0" style={{ top: thrTop(rFt), height: 2, background: C.red, boxShadow: `0 0 4px ${C.red}` }} />
                   {voxelLimitPct > 0 && (
                     <span className="absolute left-0 right-0" style={{ top: thrTop((voxelLimitPct / 100) * topFt), height: 2, background: "#9ca3af", boxShadow: "0 0 4px #6b7280" }} />
                   )}
                   <span className="absolute left-0 right-0" style={{ top: thrTop(yFt), height: 2, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
-                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(rFt), transform: "translateY(-110%)" }}>
+                  {/* Lock → R/Y → number → % (lock furthest left, centered on line) */}
+                  <span className="pointer-events-auto absolute left-0.5 flex items-center gap-0.5" style={{ top: thrTop(rFt), transform: "translateY(-50%)" }}>
+                    <NumInField value={altRedPct} onCommit={(v) => setAltRedPct?.(Math.max(1, Math.min(100, Math.round(v))))} lockable lockColor={C.red}
+                      className="w-6 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
                     <span className="font-mono text-[6px] font-bold" style={{ color: C.red }}>R</span>
-                    <NumInField value={rFt} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable lockColor={C.red}
-                      className="w-9 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
-                    <span className="font-mono text-[6px]" style={{ color: C.red }}>{rPct}%</span>
+                    <span className="font-mono text-[6px]" style={{ color: C.red }}>{cFt(rFt)}</span>
                   </span>
-                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(yFt), transform: "translateY(-110%)" }}>
+                  <span className="pointer-events-auto absolute left-0.5 flex items-center gap-0.5" style={{ top: thrTop(yFt), transform: "translateY(-50%)" }}>
+                    <NumInField value={altYellowPct} onCommit={(v) => setAltYellowPct?.(Math.max(1, Math.min(100, Math.round(v))))} lockable lockColor={C.amber}
+                      className="w-6 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
                     <span className="font-mono text-[6px] font-bold" style={{ color: C.amber }}>Y</span>
-                    <NumInField value={yFt} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable lockColor={C.amber}
-                      className="w-9 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
-                    <span className="font-mono text-[6px]" style={{ color: C.amber }}>{yPct}%</span>
+                    <span className="font-mono text-[6px]" style={{ color: C.amber }}>{cFt(yFt)}</span>
                   </span>
                   {voxelLimitPct > 0 && (
-                    <span className="pointer-events-none absolute left-1 flex items-center gap-0.5" style={{ top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-110%)" }}>
+                    <span className="pointer-events-auto absolute left-0.5 flex items-center gap-0.5" style={{ top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-50%)" }}>
+                      <NumInField value={voxelLimitPct} onCommit={(v) => {}} lockable lockColor="#9ca3af"
+                        className="w-6 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: "#9ca3af66", color: "#9ca3af" }} />
                       <span className="font-mono text-[6px] font-bold" style={{ color: "#9ca3af" }}>G</span>
-                      <span className="font-mono text-[7px]" style={{ color: "#9ca3af" }}>{lbl((voxelLimitPct / 100) * topFt)}</span>
+                      <span className="font-mono text-[6px]" style={{ color: "#9ca3af" }}>{cFt((voxelLimitPct / 100) * topFt)}</span>
                     </span>
                   )}
                 </div>
@@ -2810,7 +2813,7 @@ function AoMapPane(p: PaneProps) {
                         <span style={{ color: C.dim }}>{primary[0]}</span><span style={{ color: primary[2] }}>{primary[1]}</span>
                         <span style={{ color: C.dim }}>CELL <span title="UCRS·CELL v2 — universal base-3600 address: zone · lat 3600-deg.min · lon 3600-deg.min · r = footprint radius (m). Decimal ⇄ minute interchangeable: 3600.5 ≡ 3600·1800. Body-agnostic (Mars/Moon) — VISION-2525 / LINK-2525." style={{ cursor: "help", color: C.cyan }}>ⓘ</span></span>
                         <span style={{ color: C.cyan }}>{ucrsCell2(coordCall.lat, coordCall.lon, grid.stepM / 2)}</span>
-                        <span style={{ color: C.dim }}>ELEV</span><span style={{ color: C.gold }}>{Math.round(elevM)} m · {Math.round(elevM * 3.28084)} ft MSL</span>
+                        <span style={{ color: C.dim }}>ELEV</span><span style={{ color: C.gold }}>{Math.round(elevM).toLocaleString()} m · {Math.round(elevM * 3.28084).toLocaleString()} ft MSL</span>
                       </div>
                     );
                   })()}
@@ -2854,7 +2857,7 @@ function AoMapPane(p: PaneProps) {
                         <span style={{ color: C.dim }}>COLUMN</span><span style={{ color: C.text }}>{fmtM(3 * col.cellM)} high</span>
                         <span style={{ color: C.dim }}>ZONE</span><span style={{ color: C.text }}>{fmtM(col.cellM)} / level</span>
                         <span style={{ color: C.dim }}>BASE</span><span style={{ color: C.text }}>{fmtM(col.cellM)} × {fmtM(col.cellM)}</span>
-                        <span style={{ color: C.dim }}>TERRAIN</span><span style={{ color: C.gold }}>{Math.round(col.terrainM)} m MSL</span>
+                        <span style={{ color: C.dim }}>TERRAIN</span><span style={{ color: C.gold }}>{Math.round(col.terrainM).toLocaleString()} m MSL</span>
                       </div>
                     );
                   })()}
@@ -2862,7 +2865,7 @@ function AoMapPane(p: PaneProps) {
                     {col.objects.map((o) => (
                       <div key={String(o.id)} className="flex items-center justify-between gap-1 font-mono">
                         <span className="truncate" style={{ color: o.color ?? C.cyan }}>{o.label}</span>
-                        <span className="whitespace-nowrap" style={{ color: C.text }}>{Math.round(o.altM)}m {o.altRef} · Z{o.bandIdx} ({BAND_LABELS[o.bandIdx]} ft)</span>
+                        <span className="whitespace-nowrap" style={{ color: C.text }}>{Math.round(o.altM).toLocaleString()}m {o.altRef} · Z{o.bandIdx} ({BAND_LABELS[o.bandIdx]} ft)</span>
                       </div>
                     ))}
                   </div>
@@ -2933,7 +2936,7 @@ function AoMapPane(p: PaneProps) {
                   {row("Longitude", dms(p.lon, "E", "W"), C.text)}
                   {row("Decimal °", `${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`, C.dim)}
                   <div className="mb-1 mt-1.5 font-semibold" style={{ color: C.green }}>Elevation</div>
-                  {row(elevM >= 0 ? "Terrain (MSL)" : "Depth (below MSL)", `${Math.round(Math.abs(elevM))} m`, elevM >= 0 ? C.green : "#22d3ee")}
+                  {row(elevM >= 0 ? "Terrain (MSL)" : "Depth (below MSL)", `${Math.round(Math.abs(elevM)).toLocaleString()} m`, elevM >= 0 ? C.green : "#22d3ee")}
                   {row("Source", dem ? "GEBCO 2020" : "synthetic", dem ? C.text : C.dim)}
                   {row("Vert datum", dem ? "MSL (GEBCO)" : "approx", C.dim)}
                   <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Same DEM tile that draws contours (1 fetch). MGRS: 6°-zone · 8°-band · 100 km square · E/N.</div>
@@ -3739,8 +3742,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [iconSize, setIconSize] = useState<"s" | "m" | "l">("s"); // P2: icon visibility — S(1×)/M(1.75×)/L(3×)
   const ICON_SCALE = { s: 1, m: 2, l: 3 } as const; // P1.2 (Enki): M = 2× current, L = 3×
   const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
-  const [altRedFt, setAltRedFt] = useState<number | null>(9000);       // FX-05: default 90% of 10k ft rail (fixed ft, line flexes on the rail as ceiling changes)
-  const [altYellowFt, setAltYellowFt] = useState<number | null>(7000);// FX-05: default 70% of 10k ft rail
+  const [altRedPct, setAltRedPct] = useState(90);       // FX-05: RED threshold as % of ceiling (default 90%)
+  const [altYellowPct, setAltYellowPct] = useState(70); // FX-05: YELLOW threshold as % of ceiling (default 70%)
   const [voxelCellM, setVoxelCellM] = useState<number>(0); // FX-10 (1.3.2): 0 = AUTO screen reticle (default); 10/100/1000 presets OR any user-entered metre value
   const [voxelLimitPct, setVoxelLimitPct] = useState(100); // FX-04 (1.3.2): grey "voxel limit" extent — % of the altitude rail the voxel column reaches (like the red/yellow alarm limits)
   const [voxelHiColor, setVoxelHiColor] = useState<string>(TRINITY_COLORS.temporal); // FX-07 (1.3.2): user-set colour for the primary highlighted voxel (rest dim)
@@ -4015,7 +4018,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     onDisarm: () => { setSelectedAsset(null); setSelectedSupport(null); },
     coordFmt, onSetCoordFmt: setCoordFmt,
-    maxAltFt, altRedFt, altYellowFt, setAltRedFt, setAltYellowFt, voxelCellM, voxelLimitPct, voxelHiColor,
+    maxAltFt, altRedPct, altYellowPct, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
     mapEngine,
