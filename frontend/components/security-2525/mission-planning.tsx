@@ -2734,27 +2734,27 @@ function AoMapPane(p: PaneProps) {
               const thrTop = (ft: number) => `${(14 + (1 - Math.min(1, Math.max(0, ft / topFt))) * 68).toFixed(1)}%`;
               const cFt = (ft: number) => Math.round(ft).toLocaleString();
               return (
-                <div className="pointer-events-none absolute bottom-10 left-1 top-9 z-20 flex w-14 flex-col justify-between rounded px-1 py-1" style={{ background: "#0a0f16aa" }}>
+                <div className="pointer-events-none absolute bottom-10 left-1 top-9 z-20 flex w-14 flex-col justify-between rounded-2xl px-1.5 py-2" style={{ background: "#0a0f16cc" }}>
                   <span className="text-[6px] font-bold tracking-wider" style={{ color: C.dim }}>ALTITUDE<br />(MSL)</span>
                   {levels.map((ft) => (
                     <span key={ft} className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.text }}>
-                      <span className="inline-block h-px w-2" style={{ background: C.cyan }} />{lbl(ft)}
+                      <span className="inline-block h-0.5 w-2 rounded-full" style={{ background: C.cyan }} />{lbl(ft)}
                     </span>
                   ))}
                   <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: C.gold }}>
-                    <span className="inline-block h-px w-2" style={{ background: C.gold }} />SURFACE
+                    <span className="inline-block h-0.5 w-2 rounded-full" style={{ background: C.gold }} />SURFACE
                   </span>
                   {minElevM < -1 && (
                     <span className="flex items-center gap-0.5 font-mono text-[7px]" style={{ color: "#22d3ee" }}>
-                      <span className="inline-block h-px w-2" style={{ background: "#22d3ee" }} />{lbl(minElevM * 3.28084)}
+                      <span className="inline-block h-0.5 w-2 rounded-full" style={{ background: "#22d3ee" }} />{lbl(minElevM * 3.28084)}
                     </span>
                   )}
                   {/* FX-05: threshold lines — always at % of ceiling, values auto-compute */}
-                  <span className="absolute left-0 right-0" style={{ top: thrTop(rFt), height: 2, background: C.red, boxShadow: `0 0 4px ${C.red}` }} />
+                  <span className="absolute left-0 right-0" style={{ top: thrTop(rFt), height: 2, borderRadius: 1, background: C.red, boxShadow: `0 0 4px ${C.red}` }} />
                   {voxelLimitPct > 0 && (
-                    <span className="absolute left-0 right-0" style={{ top: thrTop((voxelLimitPct / 100) * topFt), height: 2, background: "#9ca3af", boxShadow: "0 0 4px #6b7280" }} />
+                    <span className="absolute left-0 right-0" style={{ top: thrTop((voxelLimitPct / 100) * topFt), height: 2, borderRadius: 1, background: "#9ca3af", boxShadow: "0 0 4px #6b7280" }} />
                   )}
-                  <span className="absolute left-0 right-0" style={{ top: thrTop(yFt), height: 2, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
+                  <span className="absolute left-0 right-0" style={{ top: thrTop(yFt), height: 2, borderRadius: 1, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
                   {/* Lock → R/Y → number → % (lock furthest left, centered on line) */}
                   <span className="pointer-events-auto absolute left-0.5 flex items-center gap-0.5" style={{ top: thrTop(rFt), transform: "translateY(-50%)" }}>
                     <NumInField value={altRedPct} onCommit={(v) => setAltRedPct?.(Math.max(1, Math.min(100, Math.round(v))))} lockable lockColor={C.red}
