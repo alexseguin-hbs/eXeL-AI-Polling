@@ -1601,7 +1601,7 @@ function AoMapPane(p: PaneProps) {
                     country polygons, which include the enclosing landmass even at tight zoom). */}
                 {terrainOn && borderPaths && (
                   <g>
-                    <rect x="-60" y="-60" width="220" height="220" fill="#0a2f52" />
+                    <rect x="-1000" y="-1000" width="2100" height="2100" fill="#0a2f52" />
                     <path d={borderPaths.countries} fill="#123d1f" fillRule="evenodd" />
                   </g>
                 )}
@@ -2440,7 +2440,7 @@ function AoMapPane(p: PaneProps) {
                  OUTSIDE the dome-footprint circle to dark (a spotlight box-shadow), sharing the
                  dome's own centre (bc) + radius (R) so the disc rim = dome floor ring by
                  construction. β map engine only; α keeps the shipped square map. */}
-            {mapEngine === "beta" && [view.lat, view.lon].every(Number.isFinite) && (() => {
+            {is3d && mapEngine === "beta" && [view.lat, view.lon].every(Number.isFinite) && (() => {
               const bc = project(view.lat, view.lon);
               const paneW = mapRef.current?.clientWidth ?? 800;
               const paneH = mapRef.current?.clientHeight ?? 600;
