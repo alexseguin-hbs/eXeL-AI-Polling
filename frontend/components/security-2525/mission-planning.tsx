@@ -2755,25 +2755,19 @@ function AoMapPane(p: PaneProps) {
                     <span className="absolute left-0 right-0" style={{ top: thrTop((voxelLimitPct / 100) * topFt), height: 2, borderRadius: 1, background: "#9ca3af", boxShadow: "0 0 4px #6b7280" }} />
                   )}
                   <span className="absolute left-0 right-0" style={{ top: thrTop(yFt), height: 2, borderRadius: 1, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
-                  {/* Lock → R/Y → number → % (lock furthest left, centered on line) */}
-                  <span className="pointer-events-auto absolute left-0.5 flex items-center gap-0.5" style={{ top: thrTop(rFt), transform: "translateY(-50%)" }}>
-                    <NumInField value={altRedPct} onCommit={(v) => setAltRedPct?.(Math.max(1, Math.min(100, Math.round(v))))} lockable lockColor={C.red}
-                      className="w-6 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
-                    <span className="font-mono text-[6px] font-bold" style={{ color: C.red }}>R</span>
-                    <span className="font-mono text-[6px]" style={{ color: C.red }}>{cFt(rFt)}</span>
+                  {/* Lock (far left) → ft number. Color = threshold identity. */}
+                  <span className="pointer-events-auto absolute flex items-center gap-1" style={{ left: -4, top: thrTop(rFt), transform: "translateY(-50%)" }}>
+                    <Lock className="h-3 w-3 shrink-0" style={{ color: C.red, opacity: 0.6 }} />
+                    <span className="font-mono text-[7px] font-bold" style={{ color: C.red }}>{cFt(rFt)}</span>
                   </span>
-                  <span className="pointer-events-auto absolute left-0.5 flex items-center gap-0.5" style={{ top: thrTop(yFt), transform: "translateY(-50%)" }}>
-                    <NumInField value={altYellowPct} onCommit={(v) => setAltYellowPct?.(Math.max(1, Math.min(100, Math.round(v))))} lockable lockColor={C.amber}
-                      className="w-6 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
-                    <span className="font-mono text-[6px] font-bold" style={{ color: C.amber }}>Y</span>
-                    <span className="font-mono text-[6px]" style={{ color: C.amber }}>{cFt(yFt)}</span>
+                  <span className="pointer-events-auto absolute flex items-center gap-1" style={{ left: -4, top: thrTop(yFt), transform: "translateY(-50%)" }}>
+                    <Lock className="h-3 w-3 shrink-0" style={{ color: C.amber, opacity: 0.6 }} />
+                    <span className="font-mono text-[7px] font-bold" style={{ color: C.amber }}>{cFt(yFt)}</span>
                   </span>
                   {voxelLimitPct > 0 && (
-                    <span className="pointer-events-auto absolute left-0.5 flex items-center gap-0.5" style={{ top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-50%)" }}>
-                      <NumInField value={voxelLimitPct} onCommit={(v) => {}} lockable lockColor="#9ca3af"
-                        className="w-6 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: "#9ca3af66", color: "#9ca3af" }} />
-                      <span className="font-mono text-[6px] font-bold" style={{ color: "#9ca3af" }}>G</span>
-                      <span className="font-mono text-[6px]" style={{ color: "#9ca3af" }}>{cFt((voxelLimitPct / 100) * topFt)}</span>
+                    <span className="pointer-events-none absolute flex items-center gap-1" style={{ left: -4, top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-50%)" }}>
+                      <Lock className="h-3 w-3 shrink-0" style={{ color: "#9ca3af", opacity: 0.6 }} />
+                      <span className="font-mono text-[7px] font-bold" style={{ color: "#9ca3af" }}>{cFt((voxelLimitPct / 100) * topFt)}</span>
                     </span>
                   )}
                 </div>
