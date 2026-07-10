@@ -975,8 +975,6 @@ interface PaneProps {
   maxAltFt?: number | null;                    // FX-09b: user max altitude (null = AUTO)
   altRedPct?: number;                           // FX-05: RED threshold as % of ceiling
   altYellowPct?: number;                       // FX-05: YELLOW threshold as % of ceiling
-  setAltRedPct?: (v: number) => void;
-  setAltYellowPct?: (v: number) => void;
   voxelCellM?: number;                         // FX-10: 0/undefined = AUTO (grid step)
   voxelLimitPct?: number;                      // FX-04: grey voxel-limit extent — % of the altitude rail
   voxelHiColor?: string;                       // FX-07: colour for the primary highlighted voxel
@@ -1014,7 +1012,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, mapEngine, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
-    maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
+    maxAltFt, altRedPct = 90, altYellowPct = 70, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1,
     drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
@@ -4007,7 +4005,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     onDisarm: () => { setSelectedAsset(null); setSelectedSupport(null); },
     coordFmt, onSetCoordFmt: setCoordFmt,
-    maxAltFt, altRedPct, altYellowPct, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
+    maxAltFt, altRedPct, altYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
     mapEngine,
