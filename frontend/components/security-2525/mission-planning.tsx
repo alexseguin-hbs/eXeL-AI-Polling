@@ -1379,6 +1379,13 @@ function AoMapPane(p: PaneProps) {
   const [thrEdit, setThrEdit] = useState<"r" | "y" | "g" | null>(null);
   const [thrMode, setThrMode] = useState<"%" | "abs">("%");
   const [elevRef, setElevRef] = useState<"MSL" | "AGL">("MSL");
+  const fmtAlt = (altM: number, srcRef: "AGL" | "MSL", lat: number, lon: number) => {
+    const terrM = sampler(lat, lon);
+    const msl = srcRef === "MSL" ? altM : terrM + altM;
+    const agl = srcRef === "AGL" ? altM : altM - terrM;
+    const val = elevRef === "MSL" ? msl : agl;
+    return `${Math.round(val).toLocaleString()}m ${elevRef}`;
+  };
   const [voxelLayer, setVoxelLayer] = useState(true); // FX-30 (HI): standalone 3×3 voxel LATTICE, independent of assets, ON by default
   const [voxelSize, setVoxelSize] = useState<3 | 2 | 1>(3); // FX (HI 1.3.3): box size tier — 3X (full) · 2X (⅔) · 1X (⅓); altitude projectors always reach the grey-line altitude
   const [domeMode, setDomeMode] = useState<"grid" | "hex">("grid"); // UCRS-2525 sky dome style — globe GRID lines vs HEX panels (3rd style TBD)
@@ -1964,7 +1971,7 @@ function AoMapPane(p: PaneProps) {
                   {!hasColumn && (sel || hot) && <span className="whitespace-nowrap rounded px-1 font-mono text-[8px]" style={{ background: "#0a0f16cc", color: u.aff === "hostile" ? C.red : C.cyan, order: aerial ? -1 : 1, marginTop: aerial ? 0 : groundDrop, marginBottom: aerial ? 2 : 0 }}>{fmt.coordAt(u.lat, u.lon)}</span>}
                   {u.moving && !hasColumn && (
                     <span className="whitespace-nowrap font-mono text-[7px] font-bold" style={{ color: C.green }}>
-                      {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${Math.round(u.altitude).toLocaleString()}m ${u.altRef ?? "AGL"}` : ""}
+                      {u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : ""}{u.speed ? ` ${Math.round(u.speed)}km/h` : ""}{u.altitude ? ` ${fmtAlt(u.altitude, u.altRef ?? "AGL", u.lat, u.lon)}` : ""}
                     </span>
                   )}
                 </button>
@@ -2038,7 +2045,7 @@ function AoMapPane(p: PaneProps) {
                   {/* HI 1.3.2: bearing/speed only for MOVING assets — stationary assets +
                       support have no meaningful heading. */}
                   {u.moving && row("SPD", u.speed != null ? `${Math.round(u.speed)} km/h` : "—")}
-                  {row("ALT", u.altitude != null ? `${Math.round(u.altitude).toLocaleString()} m ${u.altRef ?? "AGL"}` : "SURFACE")}
+                  {row("ALT", u.altitude != null ? fmtAlt(u.altitude, u.altRef ?? "AGL", u.lat, u.lon) : "SURFACE")}
                   {u.moving && row("HDG", u.heading != null ? `${String(Math.round(u.heading)).padStart(3, "0")}°` : "—")}
                   <div className="flex items-center gap-1 px-1.5 py-0.5" style={{ borderTop: `1px solid ${C.gold}22` }}>
                     <span style={{ color: C.dim }}>IFF</span>
@@ -2381,7 +2388,7 @@ function AoMapPane(p: PaneProps) {
                   {topObj && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 6}px)` }}>
                       <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: topObj.color ?? C.cyan }}>
-                        {Math.round(topObj.altM).toLocaleString()}m {topObj.altRef} · Z{topObj.bandIdx}{col.objects.length > 1 ? ` +${col.objects.length - 1}` : ""}
+                        {fmtAlt(topObj.altM, topObj.altRef, col.lat, col.lon)} · Z{topObj.bandIdx}{col.objects.length > 1 ? ` +${col.objects.length - 1}` : ""}
                       </span>
                     </div>
                   )}
@@ -2888,7 +2895,7 @@ function AoMapPane(p: PaneProps) {
                       {col.objects.map((o) => (
                         <div key={String(o.id)} className="flex items-center justify-between gap-1 font-mono">
                           <span className="truncate" style={{ color: o.color ?? C.cyan }}>{o.label}</span>
-                          <span className="whitespace-nowrap" style={{ color: C.text }}>{Math.round(o.altM).toLocaleString()}m {o.altRef} · Z{o.bandIdx}</span>
+                          <span className="whitespace-nowrap" style={{ color: C.text }}>{fmtAlt(o.altM, o.altRef, col.lat, col.lon)} · Z{o.bandIdx}</span>
                         </div>
                       ))}
                     </div>
@@ -3588,7 +3595,7 @@ function TransectPanel({ view, dem, placed, onHide }: TransectPanelProps) {
             <g key={i}>
               <line x1={x(o.t)} x2={x(o.t)} y1={y(o.terrainM)} y2={y(o.mslM)} stroke={o.color ?? C.cyan} strokeWidth={1} strokeDasharray="1 2" />
               <circle cx={x(o.t)} cy={y(o.mslM)} r={2.6} fill={o.color ?? C.cyan} />
-              <text x={x(o.t) + 4} y={y(o.mslM) - 3} fontSize={8} fill={o.color ?? C.cyan}>{Math.round(o.altM)}m {o.altRef}</text>
+              <text x={x(o.t) + 4} y={y(o.mslM) - 3} fontSize={8} fill={o.color ?? C.cyan}>{elevRef === "MSL" ? `${Math.round(o.mslM).toLocaleString()}m MSL` : `${Math.round(o.altM).toLocaleString()}m ${o.altRef}`}</text>
             </g>
           ))}
         </svg>
