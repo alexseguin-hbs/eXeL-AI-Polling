@@ -1033,6 +1033,11 @@ function AoMapPane(p: PaneProps) {
   const [showDecode, setShowDecode] = useState(false); // MGRS/DMS mini-lesson popover
   const mapRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean; btn: number } | null>(null);
+  // P1 (SSSES perf): rAF-throttle the tilt/bearing drag — coalesce many pointermove events into
+  // ONE state update per animation frame so the geometry doesn't re-render ~120×/s.
+  const dragRafRef = useRef<number | null>(null);
+  const pendDragRef = useRef({ pitch: 0, bear: 0 });
+  const pitchRef = useRef(pitch); pitchRef.current = pitch;
   const bearingMemo = useRef<number | null>(null);
   const touchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ dist: number; cx: number; cy: number; ang: number } | null>(null);
@@ -1240,8 +1245,18 @@ function AoMapPane(p: PaneProps) {
       // view from near-OVERHEAD 11° down to almost flat across the HORIZON 88°).
       // P1.3 round 3 (HI): 85→88 — the sky-line artifact is gone because the relief
       // lift now fades to flat above 85°, and the compass WALL owns the horizon.
-      if (is3d && onPitch) onPitch(Math.min(88, Math.max(11, (pitch ?? 55) + dy * 0.35)));
-      setView((v) => ({ ...v, bearing: v.bearing - (dx / r.width) * Math.PI }));
+      // P1: accumulate deltas + apply ONCE per animation frame (was per pointermove ~120×/s).
+      pendDragRef.current.pitch += dy * 0.35;
+      pendDragRef.current.bear += -(dx / r.width) * Math.PI;
+      if (dragRafRef.current == null) {
+        dragRafRef.current = requestAnimationFrame(() => {
+          dragRafRef.current = null;
+          const dp = pendDragRef.current.pitch, db = pendDragRef.current.bear;
+          pendDragRef.current.pitch = 0; pendDragRef.current.bear = 0;
+          if (is3d && onPitch && dp) onPitch(Math.min(88, Math.max(11, (pitchRef.current ?? 55) + dp)));
+          if (db) setView((v) => ({ ...v, bearing: v.bearing + db }));
+        });
+      }
     } else {
       panBy(dx / r.width, dy / r.height);
     }
@@ -1372,6 +1387,7 @@ function AoMapPane(p: PaneProps) {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => { setNow(new Date()); const id = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(id); }, []);
   const [domeSettingsOpen, setDomeSettingsOpen] = useState(false);   // dome settings popover open
+  const [domeOn, setDomeOn] = useState(false);                       // HI: sky dome only renders when its ▲ setting is highlighted (default OFF = lightest render)
   const [voxelTop, setVoxelTop] = useState<string | null>(null); // FX-30: hovered column TOP face (pick a stack by its top)
   // P1.2 (Odin): corner HOVER chip — corner coordinate + terrain elevation at the cursor
   const [cornerHover, setCornerHover] = useState<{ key: string; ci: number } | null>(null);
@@ -1519,17 +1535,20 @@ function AoMapPane(p: PaneProps) {
             </div>
           )}
           {/* UCRS-2525 sky-dome settings — ▲ cone icon (style + line thickness), before the gear */}
-          {is3d && voxelLayer && (
+          {is3d && (
             <div className="relative">
-              <button onClick={() => setDomeSettingsOpen((o) => !o)} title="Sky-dome settings — style (GRID/HEX) + line thickness"
-                className="flex items-center rounded border px-1.5 py-0.5" style={{ borderColor: domeSettingsOpen ? C.cyan : C.border, color: domeSettingsOpen ? C.cyan : C.dim }}>
-                <svg width="12" height="12" viewBox="0 0 12 12" aria-label="Dome settings">
+              {/* ▲ dome toggle — highlighted = sky dome ON (default OFF, lightest render). Click toggles
+                  the dome; when ON its GRID/HEX + thickness popover opens. */}
+              <button onClick={() => setDomeOn((o) => { const n = !o; setDomeSettingsOpen(n); return n; })}
+                title={domeOn ? "Sky dome ON — click to hide (and its GRID/HEX + thickness settings)" : "Turn ON the UCRS-2525 sky dome + settings (GRID/HEX, line thickness)"}
+                className="flex items-center rounded border px-1.5 py-0.5" style={{ borderColor: domeOn ? C.cyan : C.border, color: domeOn ? C.cyan : C.dim }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" aria-label="Dome toggle">
                   <path d="M1 9.5 A 5 4.6 0 0 1 11 9.5" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                   <line x1="1" y1="9.5" x2="11" y2="9.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                   <path d="M3.4 9.5 A 2.6 3.4 0 0 1 8.6 9.5" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.6" />
                 </svg>
               </button>
-              {domeSettingsOpen && (
+              {domeOn && domeSettingsOpen && (
                 <div className="absolute right-0 top-full z-50 mt-1 w-40 rounded border p-2 text-left" style={{ background: "#0a0f16", borderColor: C.border, boxShadow: "0 4px 18px rgba(0,0,0,.6)" }}>
                   <div className="mb-1 text-[9px] font-bold tracking-wider" style={{ color: C.cyan }}>SKY DOME (UCRS-2525)</div>
                   <div className="mb-1.5 flex gap-1">
@@ -1593,7 +1612,8 @@ function AoMapPane(p: PaneProps) {
             onMouseLeave={() => { setCursorLL(null); setCursorPx(null); }}>
             {/* 3D tilt — the whole world layer (ground + markers) tilts as one plane;
                 HUD (compass/readouts/scale) stays screen-flat, placement uses 2D */}
-            <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 60%", transform: is3d ? `perspective(780px) rotateX(${pitch ?? 55}deg) scale(1.2)` : undefined, transition: "transform 220ms ease" }}>
+            <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 60%", transform: is3d ? `perspective(780px) rotateX(${pitch ?? 55}deg) scale(1.2)` : undefined, transition: "transform 220ms ease",
+              willChange: is3d ? "transform" : undefined, backfaceVisibility: "hidden" as const }}>
             {/* rotated inner canvas (RENDER× size) */}
             <div className="pointer-events-none absolute" style={{ inset: `${-OFF * 100}%`, transform: `rotate(${view.bearing}rad)`, transformOrigin: "center" }}>
               <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -2477,7 +2497,7 @@ function AoMapPane(p: PaneProps) {
                  rings (flat circles at height) + meridian arches (SVG half-ellipses standing
                  vertically). Its apex height = the altitude scale of the area, so when the ground
                  AGL surface ends you see the dome behind it. Gated on 3D + ▦ VOXEL. */}
-            {is3d && voxelLayer && [view.lat, view.lon].every(Number.isFinite) && (() => {
+            {is3d && domeOn && [view.lat, view.lon].every(Number.isFinite) && (() => {
               const bc = project(view.lat, view.lon);
               const paneW = mapRef.current?.clientWidth ?? 800;
               // HI: dome REACH = whichever is highest — the distance from centre to the map EDGE,
