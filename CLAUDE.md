@@ -3,6 +3,26 @@
 ## Workflow Rules
 - **ALWAYS commit and push to GitHub after each change.** Do not wait — commit and push immediately after every modification.
 
+## Release Process (Mandatory)
+
+1. **NEVER push without build verification.** Run `cd frontend && npx tsc --noEmit 2>&1 | grep "error TS" | grep -v "Cannot find module\|Cannot find namespace\|JSX element\|implicitly has\|is of type 'unknown'\|TS2591\|TS2503"` after EVERY commit. Zero new errors before pushing.
+
+2. **Plan before executing.** Every feature gets a 9-point SSSES + SPIRAL plan BEFORE any code is written. State what will change, which files, which lines, and what could break.
+
+3. **One commit → verify deploy → next commit.** Never batch 10 commits without checking the live site. If the site can't be reached, flag it immediately.
+
+4. **12 Ascended Masters post-release review** on every deploy. Honest grades (A-F), failures, successes, mandatory next-session process.
+
+5. **HTML feedback artifact** for every session — visual image for each FX# feature showing before/after or current state, with operator comment fields. No exceptions.
+
+6. **Never remove or change UI elements the operator didn't ask to change.** If something needs removing, ASK first. Label removal, layout changes, style changes — all require explicit approval.
+
+7. **When you don't implement something the operator asked for, say so immediately.** Don't let the operator discover it through testing. Flag gaps in your own work.
+
+8. **Unit/format consistency gate.** After touching any display code, verify ALL similar displays use the same format (coordFmt, unit, elevRef). Run a grep audit before committing.
+
+9. **Mobile-first verification.** Every UI change must be mentally verified at 375px viewport width. Overflow, touch targets, text legibility.
+
 ## Project
 - **Name:** eXeL-AI-Polling (SoI Governance Engine)
 - **Local path:** /home/alex/eXeL-AI-Polling
