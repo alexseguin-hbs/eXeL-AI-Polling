@@ -2539,7 +2539,7 @@ function AoMapPane(p: PaneProps) {
                     // hemisphere: Σ ≈ (2πR²)/(3.464x²) = 726 panels for the full demi-dome (HI spec).
                     const step = (1.5 * hexCirc) / R;
                     const domePt = (alt: number, az: number) => ({ x: R * Math.cos(alt) * Math.sin(az), y: -R * Math.cos(alt) * Math.cos(az), z: H * Math.sin(alt) });
-                    const cells: { x: number; y: number; z: number; key: string }[] = [];
+                    const cells: { x: number; y: number; z: number; az: number; alt: number; key: string }[] = [];
                     const nRings = Math.round((Math.PI / 2) / step);   // apex → horizon (~18 rings)
                     for (let k = 0; k <= nRings; k++) {
                       const alt = Math.min(Math.PI / 2 - 0.012, k * step);
@@ -2547,7 +2547,7 @@ function AoMapPane(p: PaneProps) {
                       const M = Math.max(1, Math.round((2 * Math.PI * r) / pitch));
                       for (let j = 0; j < M; j++) {
                         const az = (j / M) * 2 * Math.PI + (k % 2) * (Math.PI / M); // interlace alternate rings
-                        cells.push({ ...domePt(alt, az), key: `hx${k}_${j}` });
+                        cells.push({ ...domePt(alt, az), az, alt, key: `hx${k}_${j}` });
                       }
                     }
                     const pts = Array.from({ length: 6 }, (_, i) => {
@@ -2555,9 +2555,11 @@ function AoMapPane(p: PaneProps) {
                       return `${(hexCirc + hexCirc * Math.cos(a)).toFixed(1)},${(hexCirc + hexCirc * Math.sin(a)).toFixed(1)}`;
                     }).join(" ");
                     return cells.map((c) => (
+                      // TANGENT to the dome (rotateZ=azimuth, rotateX tilts to the elevation) so the
+                      // hexagons INTERLOCK at their seams on the curved surface — NOT billboarded.
                       <svg key={c.key} width={2 * hexCirc} height={2 * hexCirc} viewBox={`0 0 ${2 * hexCirc} ${2 * hexCirc}`}
                         style={{ position: "absolute", left: "50%", top: "50%", overflow: "visible",
-                          transform: `translate(-50%,-50%) translate3d(${c.x}px,${c.y}px,${c.z}px) rotateX(${-p}deg)` }}>
+                          transform: `translate(-50%,-50%) translate3d(${c.x}px,${c.y}px,${c.z}px) rotateZ(${((c.az * 180) / Math.PI).toFixed(1)}deg) rotateX(${(((c.alt * 180) / Math.PI) - 90).toFixed(1)}deg)` }}>
                         <polygon points={pts} fill={`${col}12`} stroke={col} strokeWidth={domeThick} opacity="0.85" />
                       </svg>
                     ));
