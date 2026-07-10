@@ -2528,26 +2528,37 @@ function AoMapPane(p: PaneProps) {
                       First pass: billboarded hex outlines at ring×azimuth grid points; alternate
                       rings offset by half a step so they interlace. Apex closed by the last ring. */}
                   {domeMode === "hex" && (() => {
-                    const hexRings = 4, spacing = R * 0.42, hexR = (spacing / 2) * 0.96;
+                    // HI SPEC (fixed geodesic — looks identical at every zoom because R is viewport-fitted,
+                    // so x scales with zoom): dome R = 20·x; panel flat-to-flat = 2·x (ring/column pitch);
+                    // hex side = 1.155·x; vertex-to-vertex = 2.309·x; 10.09° angular pitch per panel
+                    // (17.84 panels N-horizon→apex→S-horizon = 180°). All in PIXELS.
+                    const x = R / 20;
+                    const pitch = 2 * x;                       // flat-to-flat spacing (row/column pitch)
+                    const hexCirc = 1.155 * x;                 // centre→vertex (= side); v2v = 2·1.155·x = 2.309·x
+                    // Ring angular step = hex ROW HEIGHT (1.5·side) ÷ R — the pitch that TILES the
+                    // hemisphere: Σ ≈ (2πR²)/(3.464x²) = 726 panels for the full demi-dome (HI spec).
+                    const step = (1.5 * hexCirc) / R;
+                    const domePt = (alt: number, az: number) => ({ x: R * Math.cos(alt) * Math.sin(az), y: -R * Math.cos(alt) * Math.cos(az), z: H * Math.sin(alt) });
                     const cells: { x: number; y: number; z: number; key: string }[] = [];
-                    for (let k = 0; k <= hexRings; k++) {
-                      const th = (k / (hexRings + 0.35)) * (Math.PI / 2);
-                      const r = R * Math.cos(th), z = H * Math.sin(th);
-                      const M = k === 0 ? 6 : Math.max(1, Math.round((2 * Math.PI * r) / spacing));
+                    const nRings = Math.round((Math.PI / 2) / step);   // apex → horizon (~18 rings)
+                    for (let k = 0; k <= nRings; k++) {
+                      const alt = Math.min(Math.PI / 2 - 0.012, k * step);
+                      const r = R * Math.cos(alt);
+                      const M = Math.max(1, Math.round((2 * Math.PI * r) / pitch));
                       for (let j = 0; j < M; j++) {
-                        const phi = (j / M) * 2 * Math.PI + (k % 2) * (Math.PI / M);
-                        cells.push({ x: r * Math.cos(phi), y: r * Math.sin(phi), z, key: `hx${k}_${j}` });
+                        const az = (j / M) * 2 * Math.PI + (k % 2) * (Math.PI / M); // interlace alternate rings
+                        cells.push({ ...domePt(alt, az), key: `hx${k}_${j}` });
                       }
                     }
                     const pts = Array.from({ length: 6 }, (_, i) => {
-                      const a = (i / 6) * 2 * Math.PI;
-                      return `${(hexR + hexR * Math.cos(a)).toFixed(1)},${(hexR + hexR * Math.sin(a)).toFixed(1)}`;
+                      const a = (i / 6) * 2 * Math.PI + Math.PI / 6; // flat-top hexagon
+                      return `${(hexCirc + hexCirc * Math.cos(a)).toFixed(1)},${(hexCirc + hexCirc * Math.sin(a)).toFixed(1)}`;
                     }).join(" ");
                     return cells.map((c) => (
-                      <svg key={c.key} width={2 * hexR} height={2 * hexR} viewBox={`0 0 ${2 * hexR} ${2 * hexR}`}
+                      <svg key={c.key} width={2 * hexCirc} height={2 * hexCirc} viewBox={`0 0 ${2 * hexCirc} ${2 * hexCirc}`}
                         style={{ position: "absolute", left: "50%", top: "50%", overflow: "visible",
                           transform: `translate(-50%,-50%) translate3d(${c.x}px,${c.y}px,${c.z}px) rotateX(${-p}deg)` }}>
-                        <polygon points={pts} fill={`${col}12`} stroke={col} strokeWidth={domeThick} opacity="0.8" />
+                        <polygon points={pts} fill={`${col}12`} stroke={col} strokeWidth={domeThick} opacity="0.85" />
                       </svg>
                     ));
                   })()}
