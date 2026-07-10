@@ -187,7 +187,8 @@ function Bar({ label, pct }: { label: string; pct: number }) {
 }
 
 export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: string } = {}) {
-  const { setVisionView, exitSimulationMode } = useEasterEgg();
+  const { setVisionView, exitSimulationMode, simulationMode } = useEasterEgg();
+  const directLink = !simulationMode;
   const [iconStyle, setIconStyle] = useState<IconStyle>("mil");
   const [activeTab, setActiveTab] = useState(initialTab); // deep-linkable (e.g. /Security/2525 → PLANNING)
   const [leftOpen, setLeftOpen] = useState(true);
@@ -219,7 +220,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
           CLEARANCE: <span style={{ color: CLEARANCE_COLORS[3] }}>LEVEL 3</span> <ClearanceSeal level={3} />
         </span>
         <div className="flex items-center gap-3 min-w-0">
-          <button onClick={() => setVisionView("launcher")} className="p-1.5 rounded hover:bg-white/5" title="Back to Vision 2525">
+          <button onClick={() => directLink ? (window.location.href = "/") : setVisionView("launcher")} className="p-1.5 rounded hover:bg-white/5" title={directLink ? "Home" : "Back to Vision 2525"}>
             <ArrowLeft className="h-4 w-4" style={{ color: C.dim }} />
           </button>
           <span className="font-bold tracking-wider" style={{ color: C.cyan }}>eXeL AI</span>
@@ -246,7 +247,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
           </div>
           <span className="hidden md:inline text-[10px]" style={{ color: C.dim }}>OPERATOR: ALPHA-1</span>
           <span className="text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
-          <button onClick={exitSimulationMode} className="p-1.5 rounded hover:bg-white/5" title="Exit">
+          <button onClick={() => directLink ? (window.location.href = "/") : exitSimulationMode()} className="p-1.5 rounded hover:bg-white/5" title="Exit">
             <X className="h-4 w-4" style={{ color: C.dim }} />
           </button>
         </div>
