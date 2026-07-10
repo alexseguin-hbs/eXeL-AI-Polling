@@ -975,6 +975,8 @@ interface PaneProps {
   maxAltFt?: number | null;                    // FX-09b: user max altitude (null = AUTO)
   altRedPct?: number;                           // FX-05: RED threshold as % of ceiling
   altYellowPct?: number;                       // FX-05: YELLOW threshold as % of ceiling
+  setAltRedPct?: (v: number) => void;
+  setAltYellowPct?: (v: number) => void;
   voxelCellM?: number;                         // FX-10: 0/undefined = AUTO (grid step)
   voxelLimitPct?: number;                      // FX-04: grey voxel-limit extent — % of the altitude rail
   voxelHiColor?: string;                       // FX-07: colour for the primary highlighted voxel
@@ -1012,7 +1014,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, mapEngine, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
-    maxAltFt, altRedPct = 90, altYellowPct = 70, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
+    maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1,
     drawingAo, aoDraft, onAoVertex, drawnAo,
   } = p;
@@ -1370,6 +1372,7 @@ function AoMapPane(p: PaneProps) {
   // the visible UTM grid step; every cube BASE = MGRS + LLV-DMS + UCRS-2525; Z = band.
   // Reads the SAME 1-fetch DEM sampler as the contours — zero extra network.
   const [voxelSel, setVoxelSel] = useState<string | null>(null);
+  const [thrEdit, setThrEdit] = useState<"r" | "y" | "g" | null>(null);
   const [voxelLayer, setVoxelLayer] = useState(true); // FX-30 (HI): standalone 3×3 voxel LATTICE, independent of assets, ON by default
   const [voxelSize, setVoxelSize] = useState<3 | 2 | 1>(3); // FX (HI 1.3.3): box size tier — 3X (full) · 2X (⅔) · 1X (⅓); altitude projectors always reach the grey-line altitude
   const [domeMode, setDomeMode] = useState<"grid" | "hex">("grid"); // UCRS-2525 sky dome style — globe GRID lines vs HEX panels (3rd style TBD)
@@ -2753,18 +2756,31 @@ function AoMapPane(p: PaneProps) {
                     <span className="absolute left-0 right-0" style={{ top: thrTop((voxelLimitPct / 100) * topFt), height: 2, borderRadius: 1, background: "#9ca3af", boxShadow: "0 0 4px #6b7280" }} />
                   )}
                   <span className="absolute left-0 right-0" style={{ top: thrTop(yFt), height: 2, borderRadius: 1, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
-                  {/* Lock (far left) → ft number. Color = threshold identity. */}
-                  <span className="pointer-events-auto absolute flex items-center gap-1" style={{ left: -4, top: thrTop(rFt), transform: "translateY(-50%)" }}>
-                    <Lock className="h-3 w-3 shrink-0" style={{ color: C.red, opacity: 0.6 }} />
-                    <span className="font-mono text-[7px] font-bold" style={{ color: C.red }}>{cFt(rFt)}</span>
-                  </span>
-                  <span className="pointer-events-auto absolute flex items-center gap-1" style={{ left: -4, top: thrTop(yFt), transform: "translateY(-50%)" }}>
-                    <Lock className="h-3 w-3 shrink-0" style={{ color: C.amber, opacity: 0.6 }} />
-                    <span className="font-mono text-[7px] font-bold" style={{ color: C.amber }}>{cFt(yFt)}</span>
-                  </span>
+                  {/* Lock (far left, above line) → ft number. Tap lock to edit %. */}
+                  {([["r", rFt, C.red, altRedPct, (v: number) => setAltRedPct?.(v)] as const,
+                    ["y", yFt, C.amber, altYellowPct, (v: number) => setAltYellowPct?.(v)] as const,
+                  ]).map(([id, ft, color, pct, setPct]) => (
+                    <span key={id} className="pointer-events-auto absolute flex items-center gap-0.5" style={{ left: -6, top: thrTop(ft), transform: "translateY(-110%)" }}>
+                      <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setThrEdit(thrEdit === id ? null : id); }}
+                        className="shrink-0 rounded-full p-0.5" style={{ background: thrEdit === id ? `${color}22` : "transparent", border: thrEdit === id ? `1px solid ${color}` : "none", pointerEvents: "auto" }}>
+                        {thrEdit === id ? <Unlock className="h-2.5 w-2.5" style={{ color }} /> : <Lock className="h-2.5 w-2.5" style={{ color, opacity: 0.5 }} />}
+                      </button>
+                      {thrEdit === id ? (
+                        <span className="flex items-center gap-0.5">
+                          <input type="text" inputMode="decimal" defaultValue={pct} onPointerDown={(e) => e.stopPropagation()}
+                            onBlur={(e) => { const v = parseInt(e.target.value); if (v > 0 && v <= 100) setPct(v); setThrEdit(null); }}
+                            onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                            className="w-6 rounded border bg-transparent px-0.5 font-mono text-[7px] font-bold" style={{ borderColor: color, color, pointerEvents: "auto" }} autoFocus />
+                          <span className="font-mono text-[6px]" style={{ color }}>%</span>
+                        </span>
+                      ) : (
+                        <span className="font-mono text-[7px] font-bold" style={{ color }}>{cFt(ft)}</span>
+                      )}
+                    </span>
+                  ))}
                   {voxelLimitPct > 0 && (
-                    <span className="pointer-events-none absolute flex items-center gap-1" style={{ left: -4, top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-50%)" }}>
-                      <Lock className="h-3 w-3 shrink-0" style={{ color: "#9ca3af", opacity: 0.6 }} />
+                    <span className="pointer-events-none absolute flex items-center gap-0.5" style={{ left: -6, top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-110%)" }}>
+                      <Lock className="h-2.5 w-2.5 shrink-0" style={{ color: "#9ca3af", opacity: 0.5 }} />
                       <span className="font-mono text-[7px] font-bold" style={{ color: "#9ca3af" }}>{cFt((voxelLimitPct / 100) * topFt)}</span>
                     </span>
                   )}
@@ -4005,7 +4021,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     onDisarm: () => { setSelectedAsset(null); setSelectedSupport(null); },
     coordFmt, onSetCoordFmt: setCoordFmt,
-    maxAltFt, altRedPct, altYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
+    maxAltFt, altRedPct, altYellowPct, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
     mapEngine,
