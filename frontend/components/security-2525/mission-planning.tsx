@@ -2487,8 +2487,11 @@ function AoMapPane(p: PaneProps) {
               // OR the altitude ceiling, whichever is further. Hemisphere covers the whole visible sky.
               const horizonStretch = 1 + Math.max(0, ((pitch ?? 55) - 45)) / 22;
               const screenPx = Math.hypot(paneW / 2, paneH / 2) * horizonStretch;
-              const R = Math.max(screenPx, altPx);          // reach = max(furthest-on-screen, altitude)
-              const H = R;                                  // hemisphere encloses the operational volume
+              // HI: dome FLOOR = the WORLD-DISC footprint (furthest ground distance on screen) so the
+              // dome rim coincides with the disc rim; apex HEIGHT = the altitude ceiling (min ½ the
+              // footprint so it always reads as a dome). Reach = distance horizontally, altitude vertically.
+              const R = screenPx;
+              const H = Math.max(altPx, screenPx * 0.55);
               const p = pitch ?? 55;
               // HI: the dome IS the sky backdrop — it must NOT fade at high tilt (removed the old
               // anti-phantom skyK fade); the operator looks across the horizon to see it.
