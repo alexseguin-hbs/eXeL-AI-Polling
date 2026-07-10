@@ -805,28 +805,22 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
 function NumInField({ value, onCommit, className, style, lockable, lockColor }: { value: number; onCommit: (v: number) => void; className?: string; style?: React.CSSProperties; lockable?: boolean; lockColor?: string }) {
   const [draft, setDraft] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(!lockable);
-  // FX (HI RAIL): lock iconology tints to its bar colour (R=red, Y=amber); default gold.
   const lc = lockColor ?? C.gold;
   const field = (
     <input type="text" inputMode="decimal" value={draft ?? String(value)} readOnly={!unlocked}
-      onPointerDown={(e) => e.stopPropagation()} /* map surface must not swallow the field tap */
+      onPointerDown={(e) => e.stopPropagation()}
       onChange={(e) => { const t = e.target.value.replace(/[^0-9.]/g, ""); setDraft(t); const v = parseFloat(t); if (Number.isFinite(v)) onCommit(v); }}
       onBlur={() => setDraft(null)}
-      className={className ?? "w-full rounded border bg-transparent px-1 py-0.5 text-[9px]"}
-      style={{ ...(style ?? { borderColor: C.border, color: C.text }), pointerEvents: "auto", opacity: unlocked ? 1 : 0.55, cursor: unlocked ? "text" : "not-allowed" }} />
+      className={className ?? "w-full rounded bg-transparent px-1 py-0.5 text-[9px]"}
+      style={{ ...(style ?? { color: C.text }), border: !lockable || unlocked ? `1px solid ${(style?.borderColor as string) ?? C.border}` : "none", pointerEvents: "auto", opacity: !lockable || unlocked ? 1 : 0.75, cursor: !lockable || unlocked ? "text" : "default" }} />
   );
   if (!lockable) return field;
   return (
-    <span className="flex items-center gap-1">
-      {/* HI 1.3.2: same lock iconology/treatment as the Easter-egg CUBE unlocks
-          (lucide Lock in a rounded-full pill on a dim background). */}
-      {/* FX-50 (HI 1.3.3): padlock made PROMINENT — gold in both states + a visible gold pill.
-          onPointerDown stopPropagation so the MAP surface doesn't swallow the tap (fixes
-          "locks don't work" on the red/gold altitude bars). */}
+    <span className="flex items-center gap-0.5">
       <button type="button" onPointerDown={(e) => { e.stopPropagation(); }} onClick={(e) => { e.stopPropagation(); setUnlocked((u) => !u); }}
-        title={unlocked ? "🔓 unlocked — tap to lock" : "🔒 tap to unlock & edit"}
-        className="flex shrink-0 items-center rounded-full px-1 py-0.5" style={{ background: unlocked ? `${lc}22` : "#0a0f16cc", border: `1px solid ${lc}`, pointerEvents: "auto" }}>
-        {unlocked ? <Unlock className="h-3.5 w-3.5" style={{ color: lc }} /> : <Lock className="h-3.5 w-3.5" style={{ color: lc }} />}
+        title={unlocked ? "tap to lock" : "tap to unlock & edit"}
+        className="flex shrink-0 items-center rounded-full px-0.5 py-0.5" style={{ background: unlocked ? `${lc}22` : "transparent", border: unlocked ? `1px solid ${lc}` : "none", pointerEvents: "auto" }}>
+        {unlocked ? <Unlock className="h-3 w-3" style={{ color: lc }} /> : <Lock className="h-3 w-3" style={{ color: lc, opacity: 0.5 }} />}
       </button>
       {field}
     </span>
@@ -2766,15 +2760,13 @@ function AoMapPane(p: PaneProps) {
                     <span className="absolute left-0 right-0" style={{ top: thrTop((voxelLimitPct / 100) * topFt), height: 2, background: "#9ca3af", boxShadow: "0 0 4px #6b7280" }} />
                   )}
                   <span className="absolute left-0 right-0" style={{ top: thrTop(effYellowFt), height: 2, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
-                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(effRedFt), transform: "translateY(-110%)" }}>
-                    <span className="font-mono text-[6px] font-bold" style={{ color: C.red }}>R</span>
-                    <NumInField value={Math.round(effRedFt)} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable lockColor={C.red}
-                      className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
-                  </span>
                   <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(effYellowFt), transform: "translateY(-110%)" }}>
-                    <span className="font-mono text-[6px] font-bold" style={{ color: C.amber }}>Y</span>
                     <NumInField value={Math.round(effYellowFt)} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable lockColor={C.amber}
-                      className="w-9 rounded border bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
+                      className="w-9 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
+                  </span>
+                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(effRedFt), transform: "translateY(-110%)" }}>
+                    <NumInField value={Math.round(effRedFt)} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable lockColor={C.red}
+                      className="w-9 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
                   </span>
                   {voxelLimitPct > 0 && (
                     <span className="pointer-events-none absolute left-1 flex items-center gap-0.5" style={{ top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-110%)" }}>
