@@ -3536,11 +3536,11 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const demKeyRefB = useRef<string | null>(null);
   // Champion/challenger map engine: "current" (shipped) vs "beta" (6-face pull-as-you-need:
   // prefetch zoom-in/out tiles so the next zoom is instant). Default current; A/B switch in Settings.
-  // HI FIX (α glitch): mapEngine now affects RENDER (β World Disc), so it must NOT read localStorage
-  // in the initializer — that diverges SSR ("current") from the client and throws a hydration error.
-  // Init "current" (matches SSR), then adopt the stored value AFTER mount.
-  const [mapEngine, setMapEngine] = useState<"current" | "beta">("current");
-  useEffect(() => { try { if (localStorage.getItem("sec2525.mapEngine") === "beta") setMapEngine("beta"); } catch { /* ignore */ } }, []);
+  // HI: β World Disc PROMOTED to DEFAULT (2026-07-09). α (square map) stays as the Settings fallback.
+  // Init matches SSR to avoid a hydration mismatch (mapEngine now affects render), then adopt a stored
+  // user preference (if they explicitly picked α) after mount.
+  const [mapEngine, setMapEngine] = useState<"current" | "beta">("beta");
+  useEffect(() => { try { const s = localStorage.getItem("sec2525.mapEngine"); if (s === "current" || s === "beta") setMapEngine(s); } catch { /* ignore */ } }, []);
   useEffect(() => { try { localStorage.setItem("sec2525.mapEngine", mapEngine); } catch { /* quota */ } }, [mapEngine]);
   const [isFs, setIsFs] = useState(false);
   const [railOpen, setRailOpen] = useState(true);          // left ASSET/SUPPORT rail (collapsible)
