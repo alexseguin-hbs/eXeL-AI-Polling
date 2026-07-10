@@ -318,6 +318,9 @@ const AD_HALF: Partial<Record<AssetKind, number>> = { patriot: 60, thaad: 90 };
 const ASSET_RANGE_KM: Partial<Record<AssetKind, number>> = {
   avenger: 8, patriot: 160, thaad: 200, sentinel: 75,
 };
+const ASSET_RANGE_EXT_KM: Partial<Record<AssetKind, number>> = {
+  sentinel: 120,
+};
 // HI: AUTO altitude ceiling scales with the view span so the rail/voxel/dome are dimensionally
 // sensible at every zoom — a 10k-ft ceiling over the whole USA reads as a flat sliver. Stepped
 // through realistic airspace bands up to near-space for continental spans. maxAltFt overrides it.
@@ -1750,18 +1753,24 @@ function AoMapPane(p: PaneProps) {
                   const rk = ASSET_RANGE_KM[u.asset];
                   if (!rk) return null;
                   const c = toFrac(u.lat, u.lon);
-                  // HI: a TRUE ground circle. The ground SVG is preserveAspectRatio="none", so a plain
-                  // <circle> stretches to an ellipse. Measure rk km East + North in fractional space
-                  // (km→° then toFrac) and use those as rx/ry → round on the ground plane at any aspect.
-                  const dLat = rk / 110.574;
-                  const dLon = rk / (111.320 * Math.cos((u.lat * Math.PI) / 180));
-                  const cE = toFrac(u.lat, u.lon + dLon);
-                  const cN = toFrac(u.lat + dLat, u.lon);
-                  const rx = Math.abs(cE.fx - c.fx) * 100;
-                  const ry = Math.abs(cN.fy - c.fy) * 100;
-                  if ((rx < 0.3 && ry < 0.3) || rx > 400 || ry > 400) return null;
                   const col = u.aff === "hostile" ? C.red : C.cyan;
-                  return <ellipse key={`rng${u.id}`} cx={c.fx * 100} cy={c.fy * 100} rx={rx} ry={ry} fill={`${col}0a`} stroke={col} strokeWidth="0.18" strokeDasharray="1.2 0.8" opacity="0.5" />;
+                  const ring = (km: number, fill: string, strokeOp: number, dash: string) => {
+                    const dLat = km / 110.574;
+                    const dLon = km / (111.320 * Math.cos((u.lat * Math.PI) / 180));
+                    const cE = toFrac(u.lat, u.lon + dLon);
+                    const cN = toFrac(u.lat + dLat, u.lon);
+                    const rx = Math.abs(cE.fx - c.fx) * 100;
+                    const ry = Math.abs(cN.fy - c.fy) * 100;
+                    if ((rx < 0.3 && ry < 0.3) || rx > 400 || ry > 400) return null;
+                    return <ellipse cx={c.fx * 100} cy={c.fy * 100} rx={rx} ry={ry} fill={fill} stroke={col} strokeWidth="0.18" strokeDasharray={dash} opacity={strokeOp} />;
+                  };
+                  const ext = ASSET_RANGE_EXT_KM[u.asset];
+                  return (
+                    <Fragment key={`rng${u.id}`}>
+                      {ext && ring(ext, `${col}06`, 0.3, "2 1.5")}
+                      {ring(rk, `${col}12`, 0.6, "1.2 0.8")}
+                    </Fragment>
+                  );
                 })}
 
                 {/* track movement vectors — heading arrow scaled by speed (active tracks) */}
