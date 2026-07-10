@@ -2193,6 +2193,7 @@ function AoMapPane(p: PaneProps) {
                         <div key={color} className="pointer-events-none absolute left-1/2 top-1/2" style={{
                           width: cellPx, height: cellPx,
                           border: `0.5px solid ${color}cc`, background: `${color}08`,
+                          boxShadow: `0 0 3px ${color}66`,
                           opacity: dimmed ? 0.25 : 0.7,
                           transform: `translate(-50%,-50%) translateZ(${sz}px)` }} />
                       );
@@ -2753,7 +2754,6 @@ function AoMapPane(p: PaneProps) {
               const levels = [1, 0.75, 0.5, 0.25, 0.1, 0.05].map((k) => Math.round(topFt * k));
               const lbl = (ft: number) => fmt.fmtElev(ft / 3.28084);
               const thrTop = (ft: number) => `${(14 + (1 - Math.min(1, Math.max(0, ft / topFt))) * 68).toFixed(1)}%`;
-              const cFt = (ft: number) => Math.round(ft).toLocaleString();
               return (
                 <div className="pointer-events-none absolute bottom-10 left-1 top-9 z-20 flex w-14 flex-col justify-between rounded-2xl px-1.5 py-2" style={{ background: "#0a0f16cc" }}>
                   <span className="text-[6px] font-bold tracking-wider" style={{ color: C.dim }}>ALTITUDE<br />(MSL)</span>
@@ -2806,14 +2806,14 @@ function AoMapPane(p: PaneProps) {
                             className="w-10 rounded border bg-transparent px-0.5 font-mono text-[7px] font-bold" style={{ borderColor: color, color, pointerEvents: "auto" }} autoFocus />
                         </span>
                       ) : (
-                        <span className="font-mono text-[7px] font-bold" style={{ color }}>{cFt(ft)}</span>
+                        <span className="font-mono text-[7px] font-bold" style={{ color }}>{lbl(ft)}</span>
                       )}
                     </span>
                   ))}
                   {voxelLimitPct > 0 && (
                     <span className="pointer-events-none absolute flex items-center gap-0.5 rounded px-0.5" style={{ left: -6, top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-110%)", background: "#0a0e14ee" }}>
                       <Lock className="h-2.5 w-2.5 shrink-0" style={{ color: "#9ca3af", opacity: 0.7 }} />
-                      <span className="font-mono text-[7px] font-bold" style={{ color: "#9ca3af" }}>{cFt((voxelLimitPct / 100) * topFt)}</span>
+                      <span className="font-mono text-[7px] font-bold" style={{ color: "#9ca3af" }}>{lbl((voxelLimitPct / 100) * topFt)}</span>
                     </span>
                   )}
                 </div>
