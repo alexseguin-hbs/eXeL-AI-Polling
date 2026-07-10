@@ -31,7 +31,7 @@ import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, 
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
-import { latLonToMgrs, latLonToUtm, utmToLatLon, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon } from "@/components/security-2525/mgrs";
+import { latLonToMgrs, latLonToUtm, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon } from "@/components/security-2525/mgrs";
 import {
   SUPPORT_CATALOG, GROUP_META, REALITY_MODES,
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
@@ -1398,12 +1398,6 @@ function AoMapPane(p: PaneProps) {
   // group ≈ paneW/3 — the thermal-target reticle the operator asked for.
   const autoCellM = Math.max(10, Math.round((view.spanKm * 1000) / 14));
   const effCellM = voxelCellM && voxelCellM > 0 ? voxelCellM : autoCellM;
-  const viewCenter = useMemo(() => {
-    const { zone, easting, northing } = latLonToUtm(view.lat, view.lon);
-    const cellE = Math.floor(easting / effCellM);
-    const cellN = Math.floor(northing / effCellM);
-    return utmToLatLon(zone, (cellE + 0.5) * effCellM, (cellN + 0.5) * effCellM, view.lat < 0);
-  }, [view.lat, view.lon, effCellM]);
   const voxelColumns = useMemo(() => {
     if (!is3d) return [];
     // P1.3 round 3 (HI: "have you fixed 3D VOXEL CUBE to show?"): EVERY placed unit
@@ -2913,10 +2907,11 @@ function AoMapPane(p: PaneProps) {
             {/* live cursor readout — MGRS or LLV-DMS (upper-right); tap to decode (mini-lesson) */}
             <button onClick={() => setShowDecode((v) => !v)} title="Decode this coordinate (MGRS / LLV-DMS lesson)"
               className="absolute right-2 top-2 z-20 rounded px-1 font-mono text-[9px] font-semibold" style={{ background: "#0a0f16cc", color: cursorLL ? C.gold : C.dim }}>
-              {cursorLL ? fmt.coordAt(cursorLL.lat, cursorLL.lon) : fmt.coordAt(viewCenter.lat, viewCenter.lon)} <span style={{ color: C.dim }}>ⓘ</span>
+              {cursorLL ? fmt.coordAt(cursorLL.lat, cursorLL.lon) : (() => { const lc = latticeColumns.length === 9 ? latticeColumns[4] : null; return lc ? fmt.coordAt(lc.lat, lc.lon) : fmt.coordAt(view.lat, view.lon); })()} <span style={{ color: C.dim }}>ⓘ</span>
             </button>
             {showDecode && (() => {
-              const p = cursorLL ?? viewCenter;
+              const lc = latticeColumns.length === 9 ? latticeColumns[4] : null;
+              const p = cursorLL ?? (lc ? { lat: lc.lat, lon: lc.lon } : { lat: view.lat, lon: view.lon });
               const mp = latLonToMgrs(p.lat, p.lon, digits).split(" "); // [zoneBand, square, E, N]
               const utm = latLonToUtm(p.lat, p.lon);
               const elevM = sampler(p.lat, p.lon);
