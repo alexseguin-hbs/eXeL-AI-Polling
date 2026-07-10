@@ -31,7 +31,7 @@ import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, 
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
-import { latLonToMgrs, latLonToUtm, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon } from "@/components/security-2525/mgrs";
+import { latLonToMgrs, latLonToUtm, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon, gzdBoundaries, gzdOf } from "@/components/security-2525/mgrs";
 import {
   SUPPORT_CATALOG, GROUP_META, REALITY_MODES,
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
@@ -422,9 +422,11 @@ function ringPath(ring: [number, number][], w: number, h: number): string {
 }
 
 /** Orthographic wireframe GLOBE — planning start screen (drag-rotate, zoom → drill). */
-function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo }: {
+type GzCell = { zone: number; band: string; lonW: number; lonE: number; latS: number; latN: number };
+function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones, activeGz }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void; onEnterAo?: (k: string) => void;
+  coordFmt: "mgrs" | "dms" | "ucrs"; showZones: boolean; activeGz: GzCell | null;
 }) {
   // Nearest AO to a lat/lon within ~10° → zoom-in enters it directly (no flat 'blue screen').
   const nearestAo = (lat: number, lon: number) => {
@@ -489,6 +491,23 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo }: {
     states: data.usStates.map(pathOf).join(""),
     // eslint-disable-next-line react-hooks/exhaustive-deps
   } : null), [data, cam]);
+  // MGRS grid-zone training overlay on the sphere: faint 6°×8° graticule + active cell edges.
+  const zoneOverlay = useMemo(() => {
+    if (!showZones) return null;
+    const { meridians, parallels } = gzdBoundaries();
+    const grid: [number, number][][] = [];
+    for (const lon of meridians) { const r: [number, number][] = []; for (let lat = -80; lat <= 84; lat += 5) r.push([lon, lat]); grid.push(r); }
+    for (const lat of parallels) { const r: [number, number][] = []; for (let lon = -180; lon <= 180; lon += 5) r.push([lon, lat]); grid.push(r); }
+    let active = "";
+    if (activeGz) {
+      const seg: [number, number][][] = [];
+      for (const lon of [activeGz.lonW, activeGz.lonE]) { const r: [number, number][] = []; for (let lat = activeGz.latS; lat <= activeGz.latN; lat += 3) r.push([lon, lat]); seg.push(r); }
+      for (const lat of [activeGz.latS, activeGz.latN]) { const r: [number, number][] = []; for (let lon = activeGz.lonW; lon <= activeGz.lonE; lon += 3) r.push([lon, lat]); seg.push(r); }
+      active = seg.map(pathOf).join("");
+    }
+    return { grid: grid.map(pathOf).join(""), active };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cam, showZones, activeGz]);
   const ticks = useMemo(() => {
     const t: React.ReactNode[] = [];
     for (let deg = 0; deg < 360; deg += 5) {
@@ -596,14 +615,38 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo }: {
             </g>
           );
         })}
+        {zoneOverlay && (
+          <>
+            <path d={zoneOverlay.grid} fill="none" stroke={C.cyan} strokeWidth={0.3 / zoom} opacity="0.3" />
+            {zoneOverlay.active && <path d={zoneOverlay.active} fill="none" stroke={C.gold} strokeWidth={0.9 / zoom} opacity="0.9" />}
+            {activeGz && coordFmt !== "ucrs" && (() => {
+              const zc = (activeGz.lonW + activeGz.lonE) / 2, bc = (activeGz.latS + activeGz.latN) / 2;
+              const [zx, zy, zv] = proj(activeGz.latN, zc);
+              const [bx, by, bv] = proj(bc, activeGz.lonW);
+              const degL = (v: number, pos: string, neg: string) => `${Math.abs(Math.round(v))}°${v < 0 ? neg : pos}`;
+              return (
+                <>
+                  {zv && <text x={zx} y={zy - 3 / zoom} fontSize={7 / zoom} fontWeight="bold" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>{coordFmt === "dms" ? degL(zc, "E", "W") : activeGz.zone}</text>}
+                  {bv && <text x={bx - 3 / zoom} y={by} fontSize={7 / zoom} fontWeight="bold" fill={C.gold} textAnchor="end" style={{ fontFamily: "monospace" }}>{coordFmt === "dms" ? degL(bc, "N", "S") : activeGz.band}</text>}
+                </>
+              );
+            })()}
+          </>
+        )}
       </g>
     </svg>
   );
 }
 
-function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; label?: string; onMinimize?: () => void }) {
+function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; label?: string; onMinimize?: () => void; coordFmt: "mgrs" | "dms" | "ucrs" }) {
   const [data, setData] = useState<BorderData | null>(borderCache);
   const [mode, setMode] = useState<"globe" | "flat">("globe");
+  const [showZones, setShowZones] = useState(false); // MGRS/LLV-DMS grid-zone training overlay (globe + flat)
+  // Active grid-zone cell (e.g. Austin → zone 14, band R) for highlighting on the world view.
+  const activeGz = useMemo(() => {
+    const a = AOS.find((x) => x.key === aoKey);
+    return a ? gzdOf(a.center[0], a.center[1]) : null;
+  }, [aoKey]);
   const [center, setCenter] = useState<[number, number]>(() => (AOS.find((a) => a.key === aoKey)?.center ?? [38, -97]));
   useEffect(() => {
     if (borderCache) return;
@@ -658,7 +701,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
-        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} />
+        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} coordFmt={coordFmt} showZones={showZones} activeGz={activeGz} />
       ) : (
         <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full touch-none" role="img"
@@ -710,6 +753,48 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
                   </g>
                 );
               })}
+              {/* MGRS/LLV-DMS grid-zone training overlay — faint 6°×8° grid, active cell highlighted.
+                  Only when zoomed out (flat.w ≥ half world). Tiles with the wrap loop. */}
+              {showZones && flat.w >= W * 0.5 && (() => {
+                const { meridians, parallels } = gzdBoundaries();
+                const xOf = (lon: number) => ((lon + 180) / 360) * W;
+                const yOf = (lat: number) => ((90 - lat) / 180) * H;
+                const zc = activeGz ? (activeGz.lonW + activeGz.lonE) / 2 : 0;
+                const bc = activeGz ? (activeGz.latS + activeGz.latN) / 2 : 0;
+                const degL = (v: number, pos: string, neg: string) => `${Math.abs(Math.round(v))}°${v < 0 ? neg : pos}`;
+                return (
+                  <g style={{ pointerEvents: "none" }}>
+                    {meridians.map((lon) => (
+                      <line key={`zm${lon}`} x1={xOf(lon)} y1={0} x2={xOf(lon)} y2={H} stroke={C.cyan} strokeWidth="0.3" opacity="0.22" vectorEffect="non-scaling-stroke" />
+                    ))}
+                    {parallels.map((lat) => (
+                      <line key={`bp${lat}`} x1={0} y1={yOf(lat)} x2={W} y2={yOf(lat)} stroke={C.cyan} strokeWidth="0.3" opacity="0.22" vectorEffect="non-scaling-stroke" />
+                    ))}
+                    {activeGz && (
+                      <>
+                        <rect x={xOf(activeGz.lonW)} y={0} width={xOf(activeGz.lonE) - xOf(activeGz.lonW)} height={H} fill={C.gold} opacity="0.08" />
+                        <rect x={0} y={yOf(activeGz.latN)} width={W} height={yOf(activeGz.latS) - yOf(activeGz.latN)} fill={C.gold} opacity="0.08" />
+                        {[activeGz.lonW, activeGz.lonE].map((lon) => (
+                          <line key={`az${lon}`} x1={xOf(lon)} y1={0} x2={xOf(lon)} y2={H} stroke={C.gold} strokeWidth="0.6" opacity="0.85" vectorEffect="non-scaling-stroke" />
+                        ))}
+                        {[activeGz.latN, activeGz.latS].map((lat) => (
+                          <line key={`ab${lat}`} x1={0} y1={yOf(lat)} x2={W} y2={yOf(lat)} stroke={C.gold} strokeWidth="0.6" opacity="0.85" vectorEffect="non-scaling-stroke" />
+                        ))}
+                        {coordFmt !== "ucrs" && (
+                          <>
+                            <text x={xOf(zc)} y={yOf(activeGz.latN) - 3} fontSize="6" fontWeight="bold" fill={C.gold} textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>
+                              {coordFmt === "dms" ? degL(zc, "E", "W") : activeGz.zone}
+                            </text>
+                            <text x={xOf(activeGz.lonW) - 3} y={yOf(bc)} fontSize="6" fontWeight="bold" fill={C.gold} textAnchor="end" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>
+                              {coordFmt === "dms" ? degL(bc, "N", "S") : activeGz.band}
+                            </text>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </g>
+                );
+              })()}
             </g>
           ))}
           {/* antimeridian (±180°) seam indicator — the wrap line, dashed amber */}
@@ -785,6 +870,9 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
             </button>
           ))}
         </div>
+        {/* MGRS/LLV-DMS grid-zone training overlay toggle — world view only (globe + flat) */}
+        <button onClick={() => setShowZones((v) => !v)} title={showZones ? "Grid-zone overlay ON — click to hide" : "Show the MGRS / LLV-DMS grid-zone training overlay (14R at Austin)"}
+          className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: showZones ? C.gold : C.border, color: showZones ? C.gold : C.dim, background: "#0a0f16cc" }}>▦ GRID</button>
         {/* order law: LOCATION · 3D/2D · MINIMIZE (last, upper-right) */}
         {onMinimize && (
           <button onClick={onMinimize} title="Minimize — back to standard screen"
@@ -4573,7 +4661,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             modeB === "world" ? (
               <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
                 <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                  onEnterAo={(k) => enterAo(k, setModeB_)} onMinimize={() => setFsPane(null)} />
+                  onEnterAo={(k) => enterAo(k, setModeB_)} onMinimize={() => setFsPane(null)} coordFmt={coordFmt} />
               </div>
             ) : (
               <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
@@ -4584,7 +4672,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           ) : modeA === "world" ? (
             <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
               <WorldStrip label="MAP" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                onEnterAo={(k) => enterAo(k, setModeA_)} onMinimize={fsPane === "map" ? () => setFsPane(null) : undefined} />
+                onEnterAo={(k) => enterAo(k, setModeA_)} onMinimize={fsPane === "map" ? () => setFsPane(null) : undefined} coordFmt={coordFmt} />
             </div>
           ) : (
             <AoMapPane {...paneCommon} dem={dem} label="MAP" showElevation spanFactor={1}
@@ -4619,7 +4707,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <div className="min-h-0 flex-1">
                 {modeB === "world" ? (
                   <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                    onEnterAo={(k) => enterAo(k, setModeB_)} />
+                    onEnterAo={(k) => enterAo(k, setModeB_)} coordFmt={coordFmt} />
                 ) : (
                   <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
                     view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
