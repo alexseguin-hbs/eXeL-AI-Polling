@@ -978,6 +978,7 @@ interface PaneProps {
   onSetCoordFmt?: (f: "mgrs" | "dms" | "ucrs") => void; // FX-13: packet toggle → Settings
   unit?: Unit;                                 // current distance/altitude unit (km/m/mi/ft)
   onSetUnit?: (u: Unit) => void;               // unit selector callback → Settings
+  gridStepM?: number;                          // 0 = AUTO, else fixed grid step in metres
   maxAltFt?: number | null;                    // FX-09b: user max altitude (null = AUTO)
   altRedPct?: number;                           // FX-05: RED threshold as % of ceiling
   altYellowPct?: number;                       // FX-05: YELLOW threshold as % of ceiling
@@ -1020,7 +1021,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, mapEngine, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
-    unit: paneUnit = "km", onSetUnit,
+    unit: paneUnit = "km", onSetUnit, gridStepM: gridStepOverride = 0,
     maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1,
     drawingAo, aoDraft, onAoVertex, drawnAo,
@@ -1073,8 +1074,8 @@ function AoMapPane(p: PaneProps) {
     return { latMin: view.lat - dLat, latMax: view.lat + dLat, lonMin: view.lon - dLon, lonMax: view.lon + dLon };
   }, [view.lat, view.lon, view.spanKm, aspect]);
   const grid = useMemo(
-    () => utmKmGrid(box.latMin, box.latMax, box.lonMin, box.lonMax, chooseGridStep(view.spanKm * 1000)),
-    [box, view.spanKm]
+    () => utmKmGrid(box.latMin, box.latMax, box.lonMin, box.lonMax, gridStepOverride > 0 ? gridStepOverride : chooseGridStep(view.spanKm * 1000)),
+    [box, view.spanKm, gridStepOverride]
   );
   const boxW = (box.lonMax - box.lonMin) * 111320 * Math.cos((ao.center[0] * Math.PI) / 180);
 
@@ -3638,6 +3639,7 @@ function TransectPanel({ view, dem, placed, onHide }: TransectPanelProps) {
 export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [aoKey, setAoKey] = useState("capitol");
   const [gridOn, setGridOn] = useState(true);
+  const [gridStepM, setGridStepM] = useState<number>(0);
   const [digits, setDigits] = useState<Digits>(4);
   const [coordFmt, setCoordFmt] = useState<"mgrs" | "dms" | "ucrs">("mgrs");
   const [unit, setUnit] = useState<Unit>("km");
@@ -4083,7 +4085,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     onDisarm: () => { setSelectedAsset(null); setSelectedSupport(null); },
-    coordFmt, onSetCoordFmt: setCoordFmt, unit, onSetUnit: setUnit,
+    coordFmt, onSetCoordFmt: setCoordFmt, unit, onSetUnit: setUnit, gridStepM,
     maxAltFt, altRedPct, altYellowPct, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
@@ -4245,10 +4247,30 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Mission Planning Settings</span>
               <button onClick={() => setShowSettings(false)} title="Close settings" className="text-[13px] leading-none" style={{ color: C.dim }}>✕</button>
             </div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[10px]" style={{ color: C.text }}>1 km UTM grid</span>
-              <button onClick={() => setGridOn(!gridOn)} className="flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
-                style={{ borderColor: gridOn ? C.green : C.border, color: gridOn ? C.green : C.dim }}><Grid3x3 className="h-3 w-3" />{gridOn ? "ON" : "OFF"}</button>
+            <div className="mb-2">
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-[10px]" style={{ color: C.text }}>UTM grid</span>
+                <button onClick={() => setGridOn(!gridOn)} className="flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+                  style={{ borderColor: gridOn ? C.green : C.border, color: gridOn ? C.green : C.dim }}><Grid3x3 className="h-3 w-3" />{gridOn ? "ON" : "OFF"}</button>
+              </div>
+              {gridOn && (
+                <div className="flex flex-wrap items-center gap-1">
+                  <button onClick={() => setGridStepM(0)} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
+                    style={{ borderColor: gridStepM === 0 ? C.cyan : C.border, color: gridStepM === 0 ? C.cyan : C.dim }}>AUTO</button>
+                  {([
+                    [10, "10 m"], [100, "100 m"], [1000, "1 km"], [100000, "100 km"], [1000000, "1,000 km"],
+                  ] as const).map(([m, lb]) => (
+                    <button key={m} onClick={() => setGridStepM(m)} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
+                      style={{ borderColor: gridStepM === m ? C.cyan : C.border, color: gridStepM === m ? C.cyan : C.dim }}>{lb}</button>
+                  ))}
+                  {([
+                    [1609, "1 mi"], [160934, "100 mi"], [1609344, "1,000 mi"],
+                  ] as const).map(([m, lb]) => (
+                    <button key={m} onClick={() => setGridStepM(m)} className="rounded border px-1.5 py-0.5 text-[8px] font-semibold"
+                      style={{ borderColor: gridStepM === m ? C.gold : C.border, color: gridStepM === m ? C.gold : C.dim }}>{lb}</button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="mb-2 flex items-center justify-between gap-2">
               <span className="text-[10px]" style={{ color: C.text }}>Map layers</span>
