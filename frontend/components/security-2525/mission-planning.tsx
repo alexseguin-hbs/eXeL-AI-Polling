@@ -2171,7 +2171,8 @@ function AoMapPane(p: PaneProps) {
                       </div>
                     );
                   })}
-                  {/* FX-05b: RED/ORANGE warning slivers on columns with aerial assets */}
+                  {/* FX-05b: RED/ORANGE warning faces on columns with aerial assets —
+                      same horizontal face as the grey ceiling, thinner border */}
                   {!isLattice && col.objects.some((o) => o.altM > 0) && (() => {
                     const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
                     const eR = topFt * (altRedPct / 100);
@@ -2185,17 +2186,18 @@ function AoMapPane(p: PaneProps) {
                       }
                       return (RANGE_EDGES.length - 1) * bandPx;
                     };
-                    const sliver = (ft: number, color: string) => {
+                    const face = (ft: number, color: string) => {
                       const sz = ftToZ(ft);
                       if (sz > topZ + limitZ) return null;
                       return (
                         <div key={color} className="pointer-events-none absolute left-1/2 top-1/2" style={{
-                          width: cellPx + 8, height: 0, borderTop: `0.5px solid ${color}`,
-                          boxShadow: `0 0 3px ${color}`, opacity: dimmed ? 0.25 : 0.85,
+                          width: cellPx, height: cellPx,
+                          border: `0.5px solid ${color}cc`, background: `${color}08`,
+                          opacity: dimmed ? 0.25 : 0.7,
                           transform: `translate(-50%,-50%) translateZ(${sz}px)` }} />
                       );
                     };
-                    return <>{sliver(eY, C.amber)}{sliver(eR, C.red)}</>;
+                    return <>{face(eY, C.amber)}{face(eR, C.red)}</>;
                   })()}
                   {/* HI 1.3.3 — the VOXEL COLUMN owns the asset's on-cube UI (placed.map
                       suppresses the flat marker for a column-backed asset): a SHIELD badge
