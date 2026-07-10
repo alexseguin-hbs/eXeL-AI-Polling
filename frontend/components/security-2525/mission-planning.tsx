@@ -288,6 +288,7 @@ interface Placed {
   altitude?: number; // m — magnitude only; frame given by altRef (altitude visual law)
   altRef?: "AGL" | "MSL"; // altitude reference — labels MUST always carry it
   moving?: boolean;  // movement activated (track is live in the plan/sim)
+  lineW?: number;    // PTL/TL/range line thickness (0.2–2, default 0.5)
 }
 
 type AngleUnit = "deg" | "ucrs" | "mil";
@@ -1754,6 +1755,7 @@ function AoMapPane(p: PaneProps) {
                   if (!rk) return null;
                   const c = toFrac(u.lat, u.lon);
                   const col = u.aff === "hostile" ? C.red : C.cyan;
+                  const rlw = u.lineW ?? 0.5;
                   const ring = (km: number, fill: string, strokeOp: number, dash: string) => {
                     const dLat = km / 110.574;
                     const dLon = km / (111.320 * Math.cos((u.lat * Math.PI) / 180));
@@ -1762,7 +1764,7 @@ function AoMapPane(p: PaneProps) {
                     const rx = Math.abs(cE.fx - c.fx) * 100;
                     const ry = Math.abs(cN.fy - c.fy) * 100;
                     if ((rx < 0.3 && ry < 0.3) || rx > 400 || ry > 400) return null;
-                    return <ellipse cx={c.fx * 100} cy={c.fy * 100} rx={rx} ry={ry} fill={fill} stroke={col} strokeWidth="0.18" strokeDasharray={dash} opacity={strokeOp} />;
+                    return <ellipse cx={c.fx * 100} cy={c.fy * 100} rx={rx} ry={ry} fill={fill} stroke={col} strokeWidth={rlw * 0.4} strokeDasharray={dash} opacity={strokeOp} />;
                   };
                   const ext = ASSET_RANGE_EXT_KM[u.asset];
                   return (
@@ -1798,9 +1800,9 @@ function AoMapPane(p: PaneProps) {
                 {placed.map((u) => {
                   if (!u.tls && !u.fov) return null;
                   const c = toFrac(u.lat, u.lon); const cx = c.fx * 100, cy = c.fy * 100;
-                  // HI: realistic (thin, non-scaling) target lines — never fatter than the icon.
+                  const lw = u.lineW ?? 0.5;
                   const drawLine = (R: number, brg: number, col: string) =>
-                    <line x1={cx} y1={cy} x2={cx + R * Math.sin((brg * Math.PI) / 180)} y2={cy - R * Math.cos((brg * Math.PI) / 180)} stroke={col} strokeWidth={iconScale >= 3 ? 0.8 : iconScale >= 2 ? 1 : 1.2} vectorEffect="non-scaling-stroke" opacity="0.85" />;
+                    <line x1={cx} y1={cy} x2={cx + R * Math.sin((brg * Math.PI) / 180)} y2={cy - R * Math.cos((brg * Math.PI) / 180)} stroke={col} strokeWidth={lw} vectorEffect="non-scaling-stroke" opacity="0.85" />;
                   const TLS: [TL | undefined, string, number, string][] = [
                     [u.fov, "#a78bfa", 30, "FOV"],
                     [u.mobile ? undefined : u.tls?.p, C.gold, 22, "PTL"], // PTL suppressed on-the-move
@@ -3357,6 +3359,13 @@ function ItemInspector(p: InspectorProps) {
                     : a.tls && tlRow("p", "PTL / 1TL — points", a.tls.p, C.gold)}
                   {a.tls && tlRow("s", "2TL — secondary", a.tls.s, C.amber)}
                   {a.tls && tlRow("t", "3TL — tertiary", a.tls.t, C.cyan)}
+                  <div className="mt-1.5 flex items-center justify-between gap-2 border-t pt-1" style={{ borderColor: C.border }}>
+                    <span className="text-[7px]" style={{ color: C.dim }}>LINE</span>
+                    <input type="range" min={0.2} max={2} step={0.1} value={a.lineW ?? 0.5}
+                      onChange={(e) => onUpdAsset(a.id, { lineW: parseFloat(e.target.value) })}
+                      className="flex-1" style={{ accentColor: C.cyan, height: 4 }} />
+                    <span className="font-mono text-[7px]" style={{ color: C.cyan }}>{(a.lineW ?? 0.5).toFixed(1)}px</span>
+                  </div>
                 </>
               );
             })()}
