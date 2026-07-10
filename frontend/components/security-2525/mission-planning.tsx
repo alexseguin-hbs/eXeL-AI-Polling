@@ -976,6 +976,8 @@ interface PaneProps {
   onDisarm?: () => void; // FX-03: clear the armed placement tool after a placement
   coordFmt?: "mgrs" | "dms" | "ucrs";          // FX-13: current Settings format
   onSetCoordFmt?: (f: "mgrs" | "dms" | "ucrs") => void; // FX-13: packet toggle → Settings
+  unit?: Unit;                                 // current distance/altitude unit (km/m/mi/ft)
+  onSetUnit?: (u: Unit) => void;               // unit selector callback → Settings
   maxAltFt?: number | null;                    // FX-09b: user max altitude (null = AUTO)
   altRedPct?: number;                           // FX-05: RED threshold as % of ceiling
   altYellowPct?: number;                       // FX-05: YELLOW threshold as % of ceiling
@@ -1018,6 +1020,7 @@ function AoMapPane(p: PaneProps) {
     label, ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, showElevation, cursorMode, is3d, onToggle3d,
     spanFactor, view, setView, otherView, osm, borders, dem, mapEngine, inventory, placed, placedSupport, selected, hoverAsset,
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
+    unit: paneUnit = "km", onSetUnit,
     maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1,
     drawingAo, aoDraft, onAoVertex, drawnAo,
@@ -2856,6 +2859,11 @@ function AoMapPane(p: PaneProps) {
                       <button key={r} onClick={() => setElevRef(r)} className="rounded border px-1 py-0"
                         style={{ borderColor: elevRef === r ? C.gold : C.border, color: elevRef === r ? C.gold : C.dim }}>{r}</button>
                     ))}
+                    <span style={{ color: C.border }}>·</span>
+                    {(["km", "m", "mi", "ft"] as Unit[]).map((u) => (
+                      <button key={u} onClick={() => onSetUnit?.(u)} className="rounded border px-1 py-0 uppercase"
+                        style={{ borderColor: paneUnit === u ? C.cyan : C.border, color: paneUnit === u ? C.cyan : C.dim }}>{u}</button>
+                    ))}
                   </div>
                 </div>
               );
@@ -2912,6 +2920,11 @@ function AoMapPane(p: PaneProps) {
                     {(["AGL", "MSL"] as const).map((r) => (
                       <button key={r} onClick={() => setElevRef(r)} className="rounded border px-1 py-0"
                         style={{ borderColor: elevRef === r ? C.gold : C.border, color: elevRef === r ? C.gold : C.dim }}>{r}</button>
+                    ))}
+                    <span style={{ color: C.border }}>·</span>
+                    {(["km", "m", "mi", "ft"] as Unit[]).map((u) => (
+                      <button key={u} onClick={() => onSetUnit?.(u)} className="rounded border px-1 py-0 uppercase"
+                        style={{ borderColor: paneUnit === u ? C.cyan : C.border, color: paneUnit === u ? C.cyan : C.dim }}>{u}</button>
                     ))}
                   </div>
                   <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Zone = one vertical level · Z0 = surface, Z1–Z7 = altitude bands</div>
@@ -4070,7 +4083,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     ao, iconStyle, fmt, digits, gridOn, elevOn, contourCfg, rangeOn, roadsOn, waterOn, terrainOn, cursorMode,
     osm, borders, inventory, placed, placedSupport, selected, selectedAsset, selectedSupport,
     onDisarm: () => { setSelectedAsset(null); setSelectedSupport(null); },
-    coordFmt, onSetCoordFmt: setCoordFmt,
+    coordFmt, onSetCoordFmt: setCoordFmt, unit, onSetUnit: setUnit,
     maxAltFt, altRedPct, altYellowPct, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
