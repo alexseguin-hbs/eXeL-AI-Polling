@@ -1498,11 +1498,11 @@ function AoMapPane(p: PaneProps) {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
       {/* pane header */}
-      <div className="flex items-center gap-2 border-b px-2 py-1" style={{ borderColor: C.border }}>
-        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+      <div className="flex items-center gap-1.5 overflow-x-auto border-b px-2 py-1 [&>*]:shrink-0" style={{ borderColor: C.border }}>
+        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
           {label} · {ao.name.split(" · ")[0]} <span style={{ color: C.dim }}>· {fmt.fmtDist(view.spanKm * 1000)}</span>
         </span>
-        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto text-[9px] [&>*]:shrink-0" style={{ color: C.dim }}>
+        <div className="flex items-center gap-1.5 text-[9px] [&>*]:shrink-0" style={{ color: C.dim }}>
           {/* order law: LOCATION (EARTH) · 2D/3D · RESET · MINIMIZE last (upper-right) */}
           {onWorld && (
             <button onClick={onWorld} title="Zoom out to Earth / world view" className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.gold, color: C.gold }}>🌍 EARTH</button>
