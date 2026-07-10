@@ -494,20 +494,25 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   // MGRS grid-zone training overlay on the sphere: faint 6°×8° graticule + active cell edges.
   const zoneOverlay = useMemo(() => {
     if (!showZones) return null;
-    const { meridians, parallels } = gzdBoundaries();
+    // Grid spacing matches the selected protocol: MGRS → 6°×8° UTM zones; LLV-DMS / UCRS → 15° graticule.
+    const mgrs = coordFmt === "mgrs";
+    const meridians = mgrs ? gzdBoundaries().meridians : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
+    const parallels = mgrs ? gzdBoundaries().parallels : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
     const grid: [number, number][][] = [];
     for (const lon of meridians) { const r: [number, number][] = []; for (let lat = -80; lat <= 84; lat += 5) r.push([lon, lat]); grid.push(r); }
     for (const lat of parallels) { const r: [number, number][] = []; for (let lon = -180; lon <= 180; lon += 5) r.push([lon, lat]); grid.push(r); }
     let active = "";
     if (activeGz) {
       const seg: [number, number][][] = [];
-      for (const lon of [activeGz.lonW, activeGz.lonE]) { const r: [number, number][] = []; for (let lat = activeGz.latS; lat <= activeGz.latN; lat += 3) r.push([lon, lat]); seg.push(r); }
-      for (const lat of [activeGz.latS, activeGz.latN]) { const r: [number, number][] = []; for (let lon = activeGz.lonW; lon <= activeGz.lonE; lon += 3) r.push([lon, lat]); seg.push(r); }
+      // FULL zone wedge — both bounding meridians pole-to-pole
+      for (const lon of [activeGz.lonW, activeGz.lonE]) { const r: [number, number][] = []; for (let lat = -80; lat <= 84; lat += 3) r.push([lon, lat]); seg.push(r); }
+      // FULL band ring — both bounding parallels across all longitudes
+      for (const lat of [activeGz.latS, activeGz.latN]) { const r: [number, number][] = []; for (let lon = -180; lon <= 180; lon += 3) r.push([lon, lat]); seg.push(r); }
       active = seg.map(pathOf).join("");
     }
     return { grid: grid.map(pathOf).join(""), active };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cam, showZones, activeGz]);
+  }, [cam, showZones, activeGz, coordFmt]);
   const ticks = useMemo(() => {
     const t: React.ReactNode[] = [];
     for (let deg = 0; deg < 360; deg += 5) {
@@ -596,7 +601,8 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
       <g clipPath="url(#globe-clip)" transform={`translate(${CX} ${CY}) scale(${zoom}) translate(${-CX} ${-CY})`}>
         <circle cx={CX} cy={CY} r={R} fill="#0a2f52" stroke={C.cyan} strokeWidth={1.2 / zoom} />
         {borders && <path d={borders.countries} fill="#123d1f" fillRule="evenodd" stroke="none" opacity="0.9" />}
-        <path d={graticule} fill="none" stroke={C.cyan} strokeWidth={0.35 / zoom} opacity="0.55" />
+        {/* default 15° graticule — hidden when the GRID overlay is on (no duplicate grid) */}
+        <path d={graticule} fill="none" stroke={C.cyan} strokeWidth={0.35 / zoom} opacity={showZones ? 0 : 0.55} />
         {borders && (
           <>
             <path d={borders.countries} fill="none" stroke={C.borderCountry} strokeWidth={0.5 / zoom} opacity="0.75" />
@@ -756,7 +762,9 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
               {/* MGRS/LLV-DMS grid-zone training overlay — faint 6°×8° grid, active cell highlighted.
                   Only when zoomed out (flat.w ≥ half world). Tiles with the wrap loop. */}
               {showZones && flat.w >= W * 0.5 && (() => {
-                const { meridians, parallels } = gzdBoundaries();
+                const mgrs = coordFmt === "mgrs";
+                const meridians = mgrs ? gzdBoundaries().meridians : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
+                const parallels = mgrs ? gzdBoundaries().parallels : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
                 const xOf = (lon: number) => ((lon + 180) / 360) * W;
                 const yOf = (lat: number) => ((90 - lat) / 180) * H;
                 const zc = activeGz ? (activeGz.lonW + activeGz.lonE) / 2 : 0;
@@ -864,7 +872,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
         )}
         <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
           {(["globe", "flat"] as const).map((m) => (
-            <button key={m} onClick={() => (m === "flat" ? drillToFlat(center[0], center[1]) : (setCenter([90 - ((flat.y + flat.h / 2) / H) * 180, ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180]), setMode("globe")))} className="px-2 py-0.5"
+            <button key={m} onClick={() => (m === "flat" ? (() => { const cx = ((center[1] + 180) / 360) * W; setFlat({ x: cx - W / 2, y: H * 0.08, w: W, h: H * 0.62 }); setMode("flat"); })() : (setCenter([90 - ((flat.y + flat.h / 2) / H) * 180, ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180]), setMode("globe")))} className="px-2 py-0.5"
               style={{ background: mode === m ? "#152238" : "transparent", color: mode === m ? C.cyan : C.dim }}>
               {m === "globe" ? "3D" : "2D"}
             </button>
