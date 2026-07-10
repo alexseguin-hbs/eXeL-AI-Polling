@@ -2190,8 +2190,8 @@ function AoMapPane(p: PaneProps) {
                       if (sz > topZ + limitZ) return null;
                       return (
                         <div key={color} className="pointer-events-none absolute left-1/2 top-1/2" style={{
-                          width: cellPx + 6, height: 0, borderTop: `1px solid ${color}`,
-                          boxShadow: `0 0 4px ${color}`, opacity: dimmed ? 0.3 : 0.9,
+                          width: cellPx + 8, height: 0, borderTop: `0.5px solid ${color}`,
+                          boxShadow: `0 0 3px ${color}`, opacity: dimmed ? 0.25 : 0.85,
                           transform: `translate(-50%,-50%) translateZ(${sz}px)` }} />
                       );
                     };
