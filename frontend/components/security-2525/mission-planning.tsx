@@ -2444,17 +2444,17 @@ function AoMapPane(p: PaneProps) {
               const bc = project(view.lat, view.lon);
               const paneW = mapRef.current?.clientWidth ?? 800;
               const paneH = mapRef.current?.clientHeight ?? 600;
-              const horizonStretch = 1 + Math.max(0, ((pitch ?? 55) - 45)) / 22;
-              // Ground disc = the GROUND footprint (altitude is the dome's vertical concern, not the
-              // floor): 3D reaches the horizon (furthest on screen); 2D is an inscribed visible circle.
-              const R = is3d ? Math.hypot(paneW / 2, paneH / 2) * horizonStretch : Math.min(paneW, paneH) * 0.48;
+              // HI: dome/disc FITS THE VIEWPORT — radius = a fixed fraction of the smaller pane
+              // dimension (same value the sky dome uses), so the whole dome + sun/moon always frame.
+              const R = Math.min(paneW, paneH) * 0.44;
               const NRr = 4, NSp = 12;                        // polar floor: range rings · bearing spokes
               return (
                 <>
-                  {/* spotlight mask — dark everything OUTSIDE the circle → circular land/ocean disc */}
-                  <div className="pointer-events-none absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`,
-                    zIndex: 3, width: 2 * R, height: 2 * R, borderRadius: "50%", transform: "translate(-50%,-50%)",
-                    boxShadow: "0 0 0 9999px #070b11" }} />
+                  {/* PERF FIX (HI 'map slowing down'): mask is a cheap RADIAL-GRADIENT — transparent
+                      inside the disc, dark outside — NOT a 0 0 0 9999px box-shadow (that huge shadow
+                      recomposited the whole pane every frame during drag/tilt). */}
+                  <div className="pointer-events-none absolute inset-0" style={{ zIndex: 3,
+                    background: `radial-gradient(circle ${R.toFixed(0)}px at ${(bc.fx * 100).toFixed(2)}% ${(bc.fy * 100).toFixed(2)}%, transparent 0, transparent 99%, #070b11 100%)` }} />
                   {/* polar FLOOR grid — concentric range rings + radial bearing spokes, bearing-locked */}
                   <div className="pointer-events-none absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`,
                     zIndex: 4, transform: `translate(-50%,-50%) rotateZ(${view.bearing}rad)`, transformStyle: "preserve-3d" }}>
@@ -2487,16 +2487,12 @@ function AoMapPane(p: PaneProps) {
               const pxPerM = paneW / Math.max(1, view.spanKm * 1000);
               const altPx = topFt * 0.3048 * pxPerM;        // altitude ceiling in px
               const paneH = mapRef.current?.clientHeight ?? 600;
-              // HI: reach the FURTHEST distance visible on screen — the diagonal half, STRETCHED
-              // toward the horizon as the camera pitches back (looking across → far terrain recedes),
-              // OR the altitude ceiling, whichever is further. Hemisphere covers the whole visible sky.
-              const horizonStretch = 1 + Math.max(0, ((pitch ?? 55) - 45)) / 22;
-              const screenPx = Math.hypot(paneW / 2, paneH / 2) * horizonStretch;
-              // HI: dome FLOOR = the WORLD-DISC footprint (furthest ground distance on screen) so the
-              // dome rim coincides with the disc rim; apex HEIGHT = the altitude ceiling (min ½ the
-              // footprint so it always reads as a dome). Reach = distance horizontally, altitude vertically.
-              const R = screenPx;
-              const H = Math.max(altPx, screenPx * 0.55);
+              // HI: dome FITS THE VIEWPORT — floor radius = the SAME fraction the World-Disc mask uses,
+              // so the dome rim coincides with the disc rim AND the whole dome + sun/moon always frame.
+              // Apex HEIGHT tracks the altitude ceiling but is clamped to [0.45R, R] so it always reads
+              // as a dome and never shoots off-screen (reach = distance horizontally, altitude vertically).
+              const R = Math.min(paneW, paneH) * 0.44;
+              const H = Math.min(R, Math.max(altPx, R * 0.45));
               const p = pitch ?? 55;
               // HI: the dome IS the sky backdrop — it must NOT fade at high tilt (removed the old
               // anti-phantom skyK fade); the operator looks across the horizon to see it.
