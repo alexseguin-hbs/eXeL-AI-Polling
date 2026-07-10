@@ -1504,11 +1504,11 @@ function AoMapPane(p: PaneProps) {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
       {/* pane header */}
-      <div className="flex items-center justify-between gap-2 border-b px-2 py-1" style={{ borderColor: C.border }}>
-        <span className="truncate text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+      <div className="flex items-center gap-2 border-b px-2 py-1" style={{ borderColor: C.border }}>
+        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
           {label} · {ao.name.split(" · ")[0]} <span style={{ color: C.dim }}>· {fmt.fmtDist(view.spanKm * 1000)}</span>
         </span>
-        <div className="flex items-center gap-1.5 text-[9px]" style={{ color: C.dim }}>
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto text-[9px] [&>*]:shrink-0" style={{ color: C.dim }}>
           {/* order law: LOCATION (EARTH) · 2D/3D · RESET · MINIMIZE last (upper-right) */}
           {onWorld && (
             <button onClick={onWorld} title="Zoom out to Earth / world view" className="rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: C.gold, color: C.gold }}>🌍 EARTH</button>
@@ -2160,9 +2160,8 @@ function AoMapPane(p: PaneProps) {
                   })}
                   {/* FX-05b: RED/ORANGE warning slivers on columns with aerial assets */}
                   {!isLattice && col.objects.some((o) => o.altM > 0) && (() => {
-                    const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
-                    const eR = altRedFt ?? topFt * 0.9;
-                    const eY = altYellowFt ?? topFt * 0.7;
+                    const eR = altRedFt ?? 9000;
+                    const eY = altYellowFt ?? 7000;
                     const ftToZ = (ft: number) => {
                       for (let b = 0; b < RANGE_EDGES.length - 1; b++) {
                         if (ft <= RANGE_EDGES[b + 1]) {
@@ -2733,8 +2732,10 @@ function AoMapPane(p: PaneProps) {
                 labels honor the Units setting via fmt.fmtElev. */}
             {is3d && (() => {
               const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
-              const effRedFt = altRedFt ?? topFt * 0.9;
-              const effYellowFt = altYellowFt ?? topFt * 0.7;
+              const rFt = altRedFt ?? 9000;
+              const yFt = altYellowFt ?? 7000;
+              const rPct = Math.round((rFt / topFt) * 100);
+              const yPct = Math.round((yFt / topFt) * 100);
               const levels = [1, 0.75, 0.5, 0.25, 0.1, 0.05].map((k) => Math.round(topFt * k));
               const lbl = (ft: number) => fmt.fmtElev(ft / 3.28084);
               const thrTop = (ft: number) => `${(14 + (1 - Math.min(1, Math.max(0, ft / topFt))) * 68).toFixed(1)}%`;
@@ -2754,19 +2755,23 @@ function AoMapPane(p: PaneProps) {
                       <span className="inline-block h-px w-2" style={{ background: "#22d3ee" }} />{lbl(minElevM * 3.28084)}
                     </span>
                   )}
-                  {/* FX-05: threshold marker lines — flex with topFt (90%/70% default) */}
-                  <span className="absolute left-0 right-0" style={{ top: thrTop(effRedFt), height: 2, background: C.red, boxShadow: `0 0 4px ${C.red}` }} />
+                  {/* FX-05: threshold lines — fixed ft values, position flexes as ceiling changes */}
+                  <span className="absolute left-0 right-0" style={{ top: thrTop(rFt), height: 2, background: C.red, boxShadow: `0 0 4px ${C.red}` }} />
                   {voxelLimitPct > 0 && (
                     <span className="absolute left-0 right-0" style={{ top: thrTop((voxelLimitPct / 100) * topFt), height: 2, background: "#9ca3af", boxShadow: "0 0 4px #6b7280" }} />
                   )}
-                  <span className="absolute left-0 right-0" style={{ top: thrTop(effYellowFt), height: 2, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
-                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(effYellowFt), transform: "translateY(-110%)" }}>
-                    <NumInField value={Math.round(effYellowFt)} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable lockColor={C.amber}
-                      className="w-9 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
-                  </span>
-                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(effRedFt), transform: "translateY(-110%)" }}>
-                    <NumInField value={Math.round(effRedFt)} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable lockColor={C.red}
+                  <span className="absolute left-0 right-0" style={{ top: thrTop(yFt), height: 2, background: C.amber, boxShadow: `0 0 4px ${C.amber}` }} />
+                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(rFt), transform: "translateY(-110%)" }}>
+                    <span className="font-mono text-[6px] font-bold" style={{ color: C.red }}>R</span>
+                    <NumInField value={rFt} onCommit={(v) => setAltRedFt?.(v > 0 ? v : null)} lockable lockColor={C.red}
                       className="w-9 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.red}66`, color: C.red }} />
+                    <span className="font-mono text-[6px]" style={{ color: C.red }}>{rPct}%</span>
+                  </span>
+                  <span className="pointer-events-auto absolute left-1 flex items-center gap-0.5" style={{ top: thrTop(yFt), transform: "translateY(-110%)" }}>
+                    <span className="font-mono text-[6px] font-bold" style={{ color: C.amber }}>Y</span>
+                    <NumInField value={yFt} onCommit={(v) => setAltYellowFt?.(v > 0 ? v : null)} lockable lockColor={C.amber}
+                      className="w-9 rounded bg-transparent px-0.5 text-[7px]" style={{ borderColor: `${C.amber}66`, color: C.amber }} />
+                    <span className="font-mono text-[6px]" style={{ color: C.amber }}>{yPct}%</span>
                   </span>
                   {voxelLimitPct > 0 && (
                     <span className="pointer-events-none absolute left-1 flex items-center gap-0.5" style={{ top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-110%)" }}>
@@ -3734,8 +3739,8 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [iconSize, setIconSize] = useState<"s" | "m" | "l">("s"); // P2: icon visibility — S(1×)/M(1.75×)/L(3×)
   const ICON_SCALE = { s: 1, m: 2, l: 3 } as const; // P1.2 (Enki): M = 2× current, L = 3×
   const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
-  const [altRedFt, setAltRedFt] = useState<number | null>(null);       // FX-05: null = AUTO (90% of topFt, flexes with zoom)
-  const [altYellowFt, setAltYellowFt] = useState<number | null>(null);// FX-05: null = AUTO (70% of topFt, flexes with zoom)
+  const [altRedFt, setAltRedFt] = useState<number | null>(9000);       // FX-05: default 90% of 10k ft rail (fixed ft, line flexes on the rail as ceiling changes)
+  const [altYellowFt, setAltYellowFt] = useState<number | null>(7000);// FX-05: default 70% of 10k ft rail
   const [voxelCellM, setVoxelCellM] = useState<number>(0); // FX-10 (1.3.2): 0 = AUTO screen reticle (default); 10/100/1000 presets OR any user-entered metre value
   const [voxelLimitPct, setVoxelLimitPct] = useState(100); // FX-04 (1.3.2): grey "voxel limit" extent — % of the altitude rail the voxel column reaches (like the red/yellow alarm limits)
   const [voxelHiColor, setVoxelHiColor] = useState<string>(TRINITY_COLORS.temporal); // FX-07 (1.3.2): user-set colour for the primary highlighted voxel (rest dim)
