@@ -742,7 +742,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize }: { aoKey: 
               {geoContext(clat, clon, kmW).join(" · ")}
             </span>
             <span className="pointer-events-none absolute bottom-1 left-2 z-10 font-mono text-[8px]" style={{ color: C.gold }}>
-              {latLonToMgrs(clat, clon, 4)} · {kmW >= 1 ? `${kmW.toFixed(kmW >= 10 ? 0 : 1)} km` : `${Math.round(kmW * 1000)} m`} wide
+              {fmt.coordAt(clat, clon)} · {kmW >= 1 ? `${kmW.toFixed(kmW >= 10 ? 0 : 1)} km` : `${Math.round(kmW * 1000)} m`} wide
             </span>
             {/* FX-17 (P1.3): graphic SCALE bar bottom-left — both maps carry one */}
             {(() => {
@@ -1378,6 +1378,7 @@ function AoMapPane(p: PaneProps) {
   const [voxelSel, setVoxelSel] = useState<string | null>(null);
   const [thrEdit, setThrEdit] = useState<"r" | "y" | "g" | null>(null);
   const [thrMode, setThrMode] = useState<"%" | "abs">("%");
+  const [elevRef, setElevRef] = useState<"MSL" | "AGL">("MSL");
   const [voxelLayer, setVoxelLayer] = useState(true); // FX-30 (HI): standalone 3×3 voxel LATTICE, independent of assets, ON by default
   const [voxelSize, setVoxelSize] = useState<3 | 2 | 1>(3); // FX (HI 1.3.3): box size tier — 3X (full) · 2X (⅔) · 1X (⅓); altitude projectors always reach the grey-line altitude
   const [domeMode, setDomeMode] = useState<"grid" | "hex">("grid"); // UCRS-2525 sky dome style — globe GRID lines vs HEX panels (3rd style TBD)
@@ -2033,7 +2034,7 @@ function AoMapPane(p: PaneProps) {
                     <span>⌖ {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
                     <button onClick={closeThis} title="Close hook" className="leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
-                  {row("MGRS", fmt.mgrsAt(u.lat, u.lon).split(" ").slice(2).join(" "))}
+                  {row(coordFmt === "dms" ? "DMS" : coordFmt === "ucrs" ? "UCRS" : "MGRS", fmt.coordAt(u.lat, u.lon))}
                   {/* HI 1.3.2: bearing/speed only for MOVING assets — stationary assets +
                       support have no meaningful heading. */}
                   {u.moving && row("SPD", u.speed != null ? `${Math.round(u.speed)} km/h` : "—")}
@@ -2125,7 +2126,7 @@ function AoMapPane(p: PaneProps) {
                   transform: is3d ? `rotateZ(${view.bearing}rad)` : undefined }}>
                   {/* addressable cube BASE (on-plane) */}
                   <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(sel ? null : col.key); }}
-                    title={`${col.mgrs} · ${col.ucrs}`}
+                    title={fmt.coordAt(col.lat, col.lon)}
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                     style={{ width: cellPx, height: cellPx, border: `1.5px solid ${sel ? hiCol : C.cyan}`, background: sel ? `${hiCol}22` : `${C.cyan}08`, pointerEvents: "auto" }} />
                   {/* FX-04 (HI 1.3.2): grey VOXEL-LIMIT extent line — thin dashed line from the
@@ -2831,7 +2832,7 @@ function AoMapPane(p: PaneProps) {
                     return (
                       <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
                         <span style={{ color: C.dim }}>{primary[0]}</span><span style={{ color: primary[2] }}>{primary[1]}</span>
-                        <span style={{ color: C.dim }}>ELEV</span><span style={{ color: C.gold }}>{Math.round(elevM).toLocaleString()} m · {Math.round(elevM * 3.28084).toLocaleString()} ft MSL</span>
+                        <span style={{ color: C.dim }}>ELEV</span><span style={{ color: C.gold }}>{Math.round(elevM).toLocaleString()} m · {Math.round(elevM * 3.28084).toLocaleString()} ft {elevRef}</span>
                       </div>
                     );
                   })()}
@@ -2840,6 +2841,12 @@ function AoMapPane(p: PaneProps) {
                       <button key={fk} onClick={() => onSetCoordFmt?.(fk)} className="rounded border px-1 py-0"
                         style={{ borderColor: coordFmt === fk ? C.cyan : C.border, color: coordFmt === fk ? C.cyan : C.dim }}>{lb}</button>
                     ))}
+                    <div className="ml-auto flex overflow-hidden rounded border text-[7px] font-semibold" style={{ borderColor: C.border }}>
+                      {(["MSL", "AGL"] as const).map((r) => (
+                        <button key={r} onClick={() => setElevRef(r)} className="px-1 py-0"
+                          style={{ background: elevRef === r ? "#152238" : "transparent", color: elevRef === r ? C.gold : C.dim }}>{r}</button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               );
@@ -2891,6 +2898,12 @@ function AoMapPane(p: PaneProps) {
                       <button key={fk} onClick={() => onSetCoordFmt?.(fk)} className="rounded border px-1 py-0"
                         style={{ borderColor: coordFmt === fk ? C.gold : C.border, color: coordFmt === fk ? C.gold : C.dim }}>{lb}</button>
                     ))}
+                    <div className="ml-auto flex overflow-hidden rounded border text-[7px] font-semibold" style={{ borderColor: C.border }}>
+                      {(["MSL", "AGL"] as const).map((r) => (
+                        <button key={r} onClick={() => setElevRef(r)} className="px-1 py-0"
+                          style={{ background: elevRef === r ? "#152238" : "transparent", color: elevRef === r ? C.gold : C.dim }}>{r}</button>
+                      ))}
+                    </div>
                   </div>
                   <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Zone = one vertical level · Z0 = surface, Z1–Z7 = altitude bands</div>
                 </div>
@@ -3402,10 +3415,10 @@ function ItemInspector(p: InspectorProps) {
               <button onClick={() => onNudge(selected, -nudgeM / 111320, 0)} className="w-full rounded border py-1 text-[10px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
               <span />
             </div>
-            <div className="mb-1 mt-2 text-[9px]" style={{ color: C.dim }}>Set exact coordinate ({coordFmt === "dms" ? "LLV-DMS" : "MGRS"})</div>
+            <div className="mb-1 mt-2 text-[9px]" style={{ color: C.dim }}>Set exact coordinate ({coordFmt === "ucrs" ? "UCRS-2525" : coordFmt === "dms" ? "LLV-DMS" : "MGRS"})</div>
             <div className="flex items-center gap-1">
               <input value={coordText} onChange={(e) => setCoordText(e.target.value)}
-                placeholder={coordFmt === "dms" ? "30°16'27\"N 97°44'27\"W" : "14R PU 2111 4983"}
+                placeholder={coordFmt === "ucrs" ? "0304·1200N 0977·1800W" : coordFmt === "dms" ? "30°16'27\"N 97°44'27\"W" : "14R PU 2111 4983"}
                 className="w-full rounded border bg-transparent px-1 py-0.5 font-mono text-[9px]" style={{ borderColor: C.border, color: C.text }} />
               <button onClick={() => {
                   const t = coordText.trim();
