@@ -56,7 +56,7 @@ export function latLonToUtm(lat: number, lon: number): Utm {
   return { zone, easting, northing };
 }
 
-const BANDS = "CDEFGHJKLMNPQRSTUVWX";
+export const BANDS = "CDEFGHJKLMNPQRSTUVWX";
 const COLS = ["ABCDEFGH", "JKLMNPQR", "STUVWXYZ"];
 const ROWS = "ABCDEFGHJKLMNPQRSTUV";
 
@@ -212,4 +212,31 @@ export function utmKmGrid(
     horizontal.push({ frac: (n - N) / (n - s), km: ord(N) });
   }
   return { vertical, horizontal, stepM };
+}
+
+// ── MGRS Grid-Zone-Designator (GZD) helpers — training overlay on the world view ──
+// The 6°×8° UTM grid zones. Boundaries are fixed graticule lines; the active cell is
+// addressed by gzdOf(). Pure + deterministic (no DOM) so globe + flat map share the math.
+
+/** Fixed GZD graticule boundaries: zone meridians every 6° lon, band parallels every
+ *  8° lat (band X extends 72°→84°N, the real-MGRS 12° exception). */
+export function gzdBoundaries(): { meridians: number[]; parallels: number[] } {
+  const meridians: number[] = [];
+  for (let k = 0; k <= 60; k++) meridians.push(-180 + k * 6); // −180..180
+  const parallels: number[] = [];
+  for (let j = 0; j <= 19; j++) parallels.push(-80 + j * 8);  // band bottoms C..X (−80..72)
+  parallels.push(84);                                          // X top (12° band)
+  return { meridians, parallels };
+}
+
+/** Active grid-zone-designator cell for a point. Zone number uses a %60 wrap so lon=180
+ *  yields zone 1 (not the raw latLonToUtm overflow of 61). Band X's north edge is 84°. */
+export function gzdOf(lat: number, lon: number): {
+  zone: number; band: string; lonW: number; lonE: number; latS: number; latN: number;
+} {
+  const zone = (Math.floor((lon + 180) / 6) % 60) + 1;
+  const j = Math.min(Math.max(Math.floor((lat + 80) / 8), 0), 19);
+  const lonW = -180 + (zone - 1) * 6;
+  const latS = -80 + j * 8;
+  return { zone, band: BANDS[j], lonW, lonE: lonW + 6, latS, latN: j === 19 ? 84 : latS + 8 };
 }
