@@ -2760,10 +2760,10 @@ function AoMapPane(p: PaneProps) {
                   {([["r", rFt, C.red, altRedPct, (v: number) => setAltRedPct?.(v)] as const,
                     ["y", yFt, C.amber, altYellowPct, (v: number) => setAltYellowPct?.(v)] as const,
                   ]).map(([id, ft, color, pct, setPct]) => (
-                    <span key={id} className="pointer-events-auto absolute flex items-center gap-0.5" style={{ left: -6, top: thrTop(ft), transform: "translateY(-110%)" }}>
+                    <span key={id} className="pointer-events-auto absolute flex items-center gap-0.5 rounded px-0.5" style={{ left: -6, top: thrTop(ft), transform: "translateY(-110%)", background: "#0a0e14ee" }}>
                       <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setThrEdit(thrEdit === id ? null : id); }}
-                        className="shrink-0 rounded-full p-0.5" style={{ background: thrEdit === id ? `${color}22` : "transparent", border: thrEdit === id ? `1px solid ${color}` : "none", pointerEvents: "auto" }}>
-                        {thrEdit === id ? <Unlock className="h-2.5 w-2.5" style={{ color }} /> : <Lock className="h-2.5 w-2.5" style={{ color, opacity: 0.5 }} />}
+                        className="shrink-0 p-0.5" style={{ pointerEvents: "auto" }}>
+                        {thrEdit === id ? <Unlock className="h-2.5 w-2.5" style={{ color }} /> : <Lock className="h-2.5 w-2.5" style={{ color, opacity: 0.7 }} />}
                       </button>
                       {thrEdit === id ? (
                         <span className="flex items-center gap-0.5">
@@ -2779,8 +2779,8 @@ function AoMapPane(p: PaneProps) {
                     </span>
                   ))}
                   {voxelLimitPct > 0 && (
-                    <span className="pointer-events-none absolute flex items-center gap-0.5" style={{ left: -6, top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-110%)" }}>
-                      <Lock className="h-2.5 w-2.5 shrink-0" style={{ color: "#9ca3af", opacity: 0.5 }} />
+                    <span className="pointer-events-none absolute flex items-center gap-0.5 rounded px-0.5" style={{ left: -6, top: thrTop((voxelLimitPct / 100) * topFt), transform: "translateY(-110%)", background: "#0a0e14ee" }}>
+                      <Lock className="h-2.5 w-2.5 shrink-0" style={{ color: "#9ca3af", opacity: 0.7 }} />
                       <span className="font-mono text-[7px] font-bold" style={{ color: "#9ca3af" }}>{cFt((voxelLimitPct / 100) * topFt)}</span>
                     </span>
                   )}
