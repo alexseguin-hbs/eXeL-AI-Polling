@@ -1785,9 +1785,7 @@ function AoMapPane(p: PaneProps) {
                   const col = u.aff === "hostile" ? C.red : C.green;
                   // arrowhead
                   const a1 = th + Math.PI * 0.85, a2 = th - Math.PI * 0.85;
-                  // R1 feedback: vector must be visually THINNER than the asset icon —
-                  // FX-14 (P1.3): thinner still as icons enlarge (3× icons → 0.8px stroke)
-                  const vw = iconScale >= 3 ? 0.8 : iconScale >= 2 ? 1 : 1.2;
+                  const vw = u.lineW ?? 0.5;
                   return (
                     <g key={`trk${u.id}`}>
                       <line x1={cx} y1={cy} x2={ex} y2={ey} stroke={col} strokeWidth={vw} vectorEffect="non-scaling-stroke" opacity="0.75" />
@@ -2367,7 +2365,7 @@ function AoMapPane(p: PaneProps) {
                     const vc = p.aff === "hostile" ? C.red : C.green;
                     const hx = len * Math.sin(th), hy = -len * Math.cos(th);
                     const a1 = th + Math.PI * 0.85, a2 = th - Math.PI * 0.85, hd = Math.max(4, cellPx * 0.1);
-                    const vw3 = iconScale >= 3 ? 0.8 : iconScale >= 2 ? 1 : 1.2; // FX-14
+                    const vw3 = p.lineW ?? 0.5;
                     return (
                       <svg key={`vec3${o.id}`} className="pointer-events-none absolute left-1/2 top-1/2" width={cellPx * 3} height={cellPx * 3}
                         viewBox={`${-cellPx * 1.5} ${-cellPx * 1.5} ${cellPx * 3} ${cellPx * 3}`} style={{ transform: `translate(-50%,-50%) translateZ(${zb}px)`, overflow: "visible" }}>
