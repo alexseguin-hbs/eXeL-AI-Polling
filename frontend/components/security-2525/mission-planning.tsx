@@ -423,10 +423,10 @@ function ringPath(ring: [number, number][], w: number, h: number): string {
 
 /** Orthographic wireframe GLOBE — planning start screen (drag-rotate, zoom → drill). */
 type GzCell = { zone: number; band: string; lonW: number; lonE: number; latS: number; latN: number };
-function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones, activeGz }: {
+function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void; onEnterAo?: (k: string) => void;
-  coordFmt: "mgrs" | "dms" | "ucrs"; showZones: boolean; activeGz: GzCell | null;
+  coordFmt: "mgrs" | "dms" | "ucrs"; showZones: boolean;
 }) {
   // Nearest AO to a lat/lon within ~10° → zoom-in enters it directly (no flat 'blue screen').
   const nearestAo = (lat: number, lon: number) => {
@@ -446,6 +446,8 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   useEffect(() => { setCam((c) => ({ ...c, lat0: center[0], lon0: center[1] })); }, [center[0], center[1]]);
   const { lat0: LAT0, lon0: LON0, tilt, roll, zoom } = cam;
   const cr = Math.cos(roll), sr = Math.sin(roll), ct = Math.cos(tilt), st = Math.sin(tilt);
+  // Selected grid cell = whatever the globe is currently centered on — orbiting re-selects it.
+  const sel = gzdOf(LAT0, LON0);
   useWheel(gsvg, (e) => {
     e.preventDefault();
     const zin = e.deltaY < 0, factor = zin ? 1.15 : 1 / 1.15;
@@ -501,18 +503,19 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
     const grid: [number, number][][] = [];
     for (const lon of meridians) { const r: [number, number][] = []; for (let lat = -80; lat <= 84; lat += 5) r.push([lon, lat]); grid.push(r); }
     for (const lat of parallels) { const r: [number, number][] = []; for (let lon = -180; lon <= 180; lon += 5) r.push([lon, lat]); grid.push(r); }
-    let active = "";
-    if (activeGz) {
-      const seg: [number, number][][] = [];
-      // FULL zone wedge — both bounding meridians pole-to-pole
-      for (const lon of [activeGz.lonW, activeGz.lonE]) { const r: [number, number][] = []; for (let lat = -80; lat <= 84; lat += 3) r.push([lon, lat]); seg.push(r); }
-      // FULL band ring — both bounding parallels across all longitudes
-      for (const lat of [activeGz.latS, activeGz.latN]) { const r: [number, number][] = []; for (let lon = -180; lon <= 180; lon += 3) r.push([lon, lat]); seg.push(r); }
-      active = seg.map(pathOf).join("");
-    }
-    return { grid: grid.map(pathOf).join(""), active };
+    // Centered cell (updates as the globe orbits) → full band+zone lines + a filled mask.
+    const s = gzdOf(cam.lat0, cam.lon0);
+    const seg: [number, number][][] = [];
+    for (const lon of [s.lonW, s.lonE]) { const r: [number, number][] = []; for (let lat = -80; lat <= 84; lat += 3) r.push([lon, lat]); seg.push(r); }
+    for (const lat of [s.latS, s.latN]) { const r: [number, number][] = []; for (let lon = -180; lon <= 180; lon += 3) r.push([lon, lat]); seg.push(r); }
+    const ring: [number, number][] = [];
+    for (let lon = s.lonW; lon <= s.lonE; lon += 1) ring.push([lon, s.latS]);
+    for (let lat = s.latS; lat <= s.latN; lat += 1) ring.push([s.lonE, lat]);
+    for (let lon = s.lonE; lon >= s.lonW; lon -= 1) ring.push([lon, s.latN]);
+    for (let lat = s.latN; lat >= s.latS; lat -= 1) ring.push([s.lonW, lat]);
+    return { grid: grid.map(pathOf).join(""), active: seg.map(pathOf).join(""), cell: pathOf(ring) + "Z" };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cam, showZones, activeGz, coordFmt]);
+  }, [cam, showZones, coordFmt]);
   const ticks = useMemo(() => {
     const t: React.ReactNode[] = [];
     for (let deg = 0; deg < 360; deg += 5) {
@@ -623,6 +626,8 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
         })}
         {zoneOverlay && (
           <>
+            {/* slightly-yellow masked shade on the centered cell (moves as you orbit) */}
+            {zoneOverlay.cell && <path d={zoneOverlay.cell} fill={C.gold} opacity="0.16" stroke="none" />}
             <path d={zoneOverlay.grid} fill="none" stroke={C.cyan} strokeWidth={0.3 / zoom} opacity="0.3" />
             {zoneOverlay.active && <path d={zoneOverlay.active} fill="none" stroke={C.gold} strokeWidth={0.9 / zoom} opacity="0.9" />}
             {coordFmt !== "ucrs" && (() => {
@@ -634,10 +639,10 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
               const paral = mgrs ? [] : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
               return (
                 <>
-                  {/* zone numbers 1–60 along the equator; back-facing culled; active bold gold */}
-                  {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1, act = activeGz?.zone === zn; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={(act ? 7 : 4) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? C.gold : C.cyan} opacity={act ? 1 : 0.7} textAnchor="middle" style={{ fontFamily: "monospace" }}>{zn}</text> : null; })}
-                  {/* band letters C–X down the camera-center meridian */}
-                  {bandsArr.map((L, j) => { const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = activeGz?.band === L; const [x, y, v] = proj((latS + latN) / 2, LON0); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={(act ? 7 : 4) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? C.gold : C.cyan} opacity={act ? 1 : 0.7} textAnchor="middle" style={{ fontFamily: "monospace" }}>{L}</text> : null; })}
+                  {/* zone numbers 1–60 along the equator; back-facing culled; centered zone bold gold */}
+                  {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1, act = sel.zone === zn; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={(act ? 7 : 4) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? C.gold : C.cyan} opacity={act ? 1 : 0.7} textAnchor="middle" style={{ fontFamily: "monospace" }}>{zn}</text> : null; })}
+                  {/* band letters C–X down the LEFT limb (≈90° west of camera centre) */}
+                  {bandsArr.map((L, j) => { const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = sel.band === L; const [x, y, v] = proj((latS + latN) / 2, LON0 - 85); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={(act ? 7 : 4) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? C.gold : C.cyan} opacity={act ? 1 : 0.7} textAnchor="middle" style={{ fontFamily: "monospace" }}>{L}</text> : null; })}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
                   {paral.map((lat) => { const [x, y, v] = proj(lat, LON0); return v ? <text key={`dgb${lat}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text> : null; })}
                 </>
@@ -654,11 +659,6 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
   const [data, setData] = useState<BorderData | null>(borderCache);
   const [mode, setMode] = useState<"globe" | "flat">("globe");
   const [showZones, setShowZones] = useState(false); // MGRS/LLV-DMS grid-zone training overlay (globe + flat)
-  // Active grid-zone cell (e.g. Austin → zone 14, band R) for highlighting on the world view.
-  const activeGz = useMemo(() => {
-    const a = AOS.find((x) => x.key === aoKey);
-    return a ? gzdOf(a.center[0], a.center[1]) : null;
-  }, [aoKey]);
   const [center, setCenter] = useState<[number, number]>(() => (AOS.find((a) => a.key === aoKey)?.center ?? [38, -97]));
   useEffect(() => {
     if (borderCache) return;
@@ -713,7 +713,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
   return (
     <div className="relative h-full w-full overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
-        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} coordFmt={coordFmt} showZones={showZones} activeGz={activeGz} />
+        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} coordFmt={coordFmt} showZones={showZones} />
       ) : (
         <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full touch-none" role="img"
@@ -774,6 +774,10 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
                 const xOf = (lon: number) => ((lon + 180) / 360) * W;
                 const yOf = (lat: number) => ((90 - lat) / 180) * H;
                 const degL = (v: number, pos: string, neg: string) => `${Math.abs(Math.round(v))}°${v < 0 ? neg : pos}`;
+                // selected cell = the cell at the current view centre; panning re-selects it
+                const cLat = 90 - ((flat.y + flat.h / 2) / H) * 180;
+                const cLon = ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180;
+                const fsel = gzdOf(cLat, cLon);
                 return (
                   <g style={{ pointerEvents: "none" }}>
                     {meridians.map((lon) => (
@@ -782,27 +786,25 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
                     {parallels.map((lat) => (
                       <line key={`bp${lat}`} x1={0} y1={yOf(lat)} x2={W} y2={yOf(lat)} stroke={C.cyan} strokeWidth="0.3" opacity="0.22" vectorEffect="non-scaling-stroke" />
                     ))}
-                    {activeGz && (
-                      <>
-                        <rect x={xOf(activeGz.lonW)} y={0} width={xOf(activeGz.lonE) - xOf(activeGz.lonW)} height={H} fill={C.gold} opacity="0.1" />
-                        <rect x={0} y={yOf(activeGz.latN)} width={W} height={yOf(activeGz.latS) - yOf(activeGz.latN)} fill={C.gold} opacity="0.1" />
-                        {[activeGz.lonW, activeGz.lonE].map((lon) => (
-                          <line key={`az${lon}`} x1={xOf(lon)} y1={0} x2={xOf(lon)} y2={H} stroke={C.gold} strokeWidth="0.6" opacity="0.85" vectorEffect="non-scaling-stroke" />
-                        ))}
-                        {[activeGz.latN, activeGz.latS].map((lat) => (
-                          <line key={`ab${lat}`} x1={0} y1={yOf(lat)} x2={W} y2={yOf(lat)} stroke={C.gold} strokeWidth="0.6" opacity="0.85" vectorEffect="non-scaling-stroke" />
-                        ))}
-                      </>
-                    )}
+                    {/* faint yellow mask on the whole band + zone, brighter on the cell intersection */}
+                    <rect x={xOf(fsel.lonW)} y={0} width={xOf(fsel.lonE) - xOf(fsel.lonW)} height={H} fill={C.gold} opacity="0.08" />
+                    <rect x={0} y={yOf(fsel.latN)} width={W} height={yOf(fsel.latS) - yOf(fsel.latN)} fill={C.gold} opacity="0.08" />
+                    <rect x={xOf(fsel.lonW)} y={yOf(fsel.latN)} width={xOf(fsel.lonE) - xOf(fsel.lonW)} height={yOf(fsel.latS) - yOf(fsel.latN)} fill={C.gold} opacity="0.2" />
+                    {[fsel.lonW, fsel.lonE].map((lon) => (
+                      <line key={`az${lon}`} x1={xOf(lon)} y1={0} x2={xOf(lon)} y2={H} stroke={C.gold} strokeWidth="0.6" opacity="0.85" vectorEffect="non-scaling-stroke" />
+                    ))}
+                    {[fsel.latN, fsel.latS].map((lat) => (
+                      <line key={`ab${lat}`} x1={0} y1={yOf(lat)} x2={W} y2={yOf(lat)} stroke={C.gold} strokeWidth="0.6" opacity="0.85" vectorEffect="non-scaling-stroke" />
+                    ))}
                     {/* FULL label set — every zone number 1–60 across the top, every band C–X down the left
                         (MGRS); or degrees at each line (LLV-DMS). Active cell bold gold. */}
                     {coordFmt === "mgrs" && (<>
                       {Array.from({ length: 60 }, (_, k) => k).map((k) => {
-                        const lonC = -180 + k * 6 + 3, zn = k + 1, act = activeGz?.zone === zn;
+                        const lonC = -180 + k * 6 + 3, zn = k + 1, act = fsel.zone === zn;
                         return <text key={`zn${k}`} x={xOf(lonC)} y={flat.y + 5} fontSize={act ? 6 : 3.5} fontWeight={act ? "bold" : "normal"} fill={act ? C.gold : C.cyan} opacity={act ? 1 : 0.55} textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{zn}</text>;
                       })}
                       {BANDS.split("").map((L, j) => {
-                        const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = activeGz?.band === L;
+                        const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = fsel.band === L;
                         return <text key={`bl${j}`} x={flat.x + 4} y={yOf((latS + latN) / 2)} fontSize={act ? 6 : 3.5} fontWeight={act ? "bold" : "normal"} fill={act ? C.gold : C.cyan} opacity={act ? 1 : 0.55} textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{L}</text>;
                       })}
                     </>)}
