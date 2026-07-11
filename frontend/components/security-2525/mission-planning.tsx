@@ -2381,9 +2381,9 @@ function AoMapPane(p: PaneProps) {
                 border: `${lw ?? (occupied ? 1.5 : 1)}px ${occupied ? "solid" : "dashed"} ${color}`,
                 background: occupied ? `${color}10` : "transparent",
               });
-              // FINE grey wireframe edges at EVERY tier — the tall aerial cube column reads dense
-              // with 1px borders, so the grey (non-top) cubes use a hairline 0.4px edge.
-              const edgeFineW = 0.4;
+              // FINE grey wireframe edges at EVERY tier — a hairline vs the old 1px so the tall aerial
+              // column doesn't read dense, but not so thin it vanishes (0.4 disappeared).
+              const edgeFineW = 0.6;
               return (
                 <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
                   // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
@@ -2501,10 +2501,10 @@ function AoMapPane(p: PaneProps) {
                         <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${markerZ}px)${bb}` }}>
                           <span className="block rounded-full" style={{ width: 6, height: 6, background: topObj.color ?? ac, boxShadow: `0 0 6px ${topObj.color ?? ac}` }} />
                         </div>
-                        {/* (4) TOP-FACE CORNER coords — ONLY the 4 corners of the upward-facing top
-                            face, shown ONLY when the TOP FACE is clicked (voxel selected). Small,
-                            plate-free (text-shadow for legibility) so they don't cover the cube. */}
-                        {sel && (
+                        {/* (4) TOP-FACE CORNER coords — the 4 corners of the upward-facing top face,
+                            shown when the TOP FACE is clicked (selected) OR hovered. Small, plate-free
+                            (text-shadow for legibility) so they don't cover the cube. */}
+                        {(sel || voxelTop === col.key) && (
                         <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d" }}>
                           {col.corners.map((cn, ci) => {
                             const cx = (ci === 0 || ci === 3 ? -1 : 1) * (cellPx / 2);
@@ -2561,15 +2561,19 @@ function AoMapPane(p: PaneProps) {
                       ); })()}
                     </button>
                     )}
-                    {col.corners.map((cn, ci) => (
+                    {col.corners.map((cn, ci) => {
+                      const big = sel || (cornerHover?.key === col.key && cornerHover.ci === ci); // small until hover/click
+                      const s = big ? 10 : 6, off = -s / 2; // 10px (h-2.5) expanded · 6px subtle
+                      return (
                       <button key={ci} onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: cn.lat, lon: cn.lon }); }}
                         onMouseEnter={() => setCornerHover({ key: col.key, ci })}
                         onMouseLeave={() => setCornerHover((h) => (h && h.key === col.key && h.ci === ci ? null : h))}
                         title={`${["NW", "NE", "SE", "SW"][ci]} · ${fmt.coordAt(cn.lat, cn.lon)} · ${Math.round(sampler(cn.lat, cn.lon)).toLocaleString()}m MSL`}
-                        className="absolute h-2.5 w-2.5 rounded-sm"
-                        style={{ ...(ci === 0 ? { left: -5, top: -5 } : ci === 1 ? { right: -5, top: -5 } : ci === 2 ? { right: -5, bottom: -5 } : { left: -5, bottom: -5 }),
-                          border: `1px solid ${cornerHover?.key === col.key && cornerHover.ci === ci ? C.gold : C.cyan}`, background: "#0a0f16cc" }} />
-                    ))}
+                        className="absolute rounded-sm transition-all"
+                        style={{ width: s, height: s, ...(ci === 0 ? { left: off, top: off } : ci === 1 ? { right: off, top: off } : ci === 2 ? { right: off, bottom: off } : { left: off, bottom: off }),
+                          border: `1px solid ${cornerHover?.key === col.key && cornerHover.ci === ci ? C.gold : C.cyan}`, background: "#0a0f16cc", opacity: big ? 1 : 0.6 }} />
+                      );
+                    })}
                     {/* P1.2 (Odin): hover chip — corner coordinate (settings format) + elevation.
                         FX-15 (P1.3): chip sits fully OUTSIDE the cube top so it never covers
                         the TARGET or the corner being read. */}
@@ -2635,8 +2639,9 @@ function AoMapPane(p: PaneProps) {
                       </svg>
                     );
                   })}
-                  {/* stack-top label — ALWAYS carries the altitude reference (visual law) */}
-                  {topObj && (
+                  {/* stack-top MSL·Z label — ONLY when the top face is selected (declutter). The
+                      always-on AGL chip still carries the altitude, so it's never fully lost. */}
+                  {topObj && sel && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 6}px)` }}>
                       <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: topObj.color ?? C.cyan }}>
                         {fmtAlt(topObj.altM, topObj.altRef, col.lat, col.lon)} · Z{topObj.bandIdx}{col.objects.length > 1 ? ` +${col.objects.length - 1}` : ""}
