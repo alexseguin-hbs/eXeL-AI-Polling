@@ -431,6 +431,24 @@ function ringPath(ring: [number, number][], w: number, h: number): string {
 
 /** Orthographic wireframe GLOBE — planning start screen (drag-rotate, zoom → drill). */
 type GzCell = { zone: number; band: string; lonW: number; lonE: number; latS: number; latN: number };
+function cellDimsKm(c: { latN: number; latS: number; lonE: number; lonW: number }) {
+  const latC = (c.latS + c.latN) / 2;
+  return {
+    hKm: Math.round((c.latN - c.latS) * 110.574),
+    wKm: Math.round((c.lonE - c.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180)),
+  };
+}
+// Shared GRID readout — the ONE two-tone cell readout used by BOTH the globe and the flat map
+// (R-CORE: one method, not two). Cell code in intersection yellow, dims in GRID-logo gold.
+function GridReadout({ zone, band, hKm, wKm }: { zone: number; band: string; hKm: number; wKm: number }) {
+  return (
+    <span className="pointer-events-none absolute bottom-1 left-2 z-10 flex items-baseline gap-1 font-mono font-bold">
+      <span className="text-[10px]" style={{ color: TRINITY_COLORS.temporal, textShadow: "0 0 2px #0a0e14, 0 0 2px #0a0e14" }}>{zone}{band}</span>
+      <span className="text-[9px]" style={{ color: C.gold }}>· {hKm.toLocaleString()} × {wKm.toLocaleString()} km</span>
+    </span>
+  );
+}
+
 function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones, hiddenKeys }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void; onEnterAo?: (k: string) => void;
@@ -740,17 +758,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
     </svg>
     {/* GRID readout — HTML overlay INSIDE the globe (no parent state → no orbit glitch). Identical
         markup/colours to the 2D readout. Cell = screen-centre cell (sel); dims = calculated H × W. */}
-    {showZones && (() => {
-      const latC = (sel.latS + sel.latN) / 2;
-      const hKm = Math.round((sel.latN - sel.latS) * 110.574);
-      const wKm = Math.round((sel.lonE - sel.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180));
-      return (
-        <span className="pointer-events-none absolute bottom-1 left-2 z-10 flex items-baseline gap-1 font-mono font-bold">
-          <span className="text-[10px]" style={{ color: TRINITY_COLORS.temporal, textShadow: "0 0 2px #0a0e14, 0 0 2px #0a0e14" }}>{sel.zone}{sel.band}</span>
-          <span className="text-[9px]" style={{ color: C.gold }}>· {hKm.toLocaleString()} × {wKm.toLocaleString()} km</span>
-        </span>
-      );
-    })()}
+    {showZones && (() => { const { hKm, wKm } = cellDimsKm(sel); return <GridReadout zone={sel.zone} band={sel.band} hKm={hKm} wKm={wKm} />; })()}
     </div>
   );
 }
@@ -1018,15 +1026,8 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
       {showZones && mode === "flat" && (() => {
         const cLat = 90 - ((flat.y + flat.h / 2) / H) * 180;
         const cLon = ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180;
-        const g = gzdOf(cLat, cLon); const latC = (g.latS + g.latN) / 2;
-        const hKm = Math.round((g.latN - g.latS) * 110.574);
-        const wKm = Math.round((g.lonE - g.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180));
-        return (
-          <span className="pointer-events-none absolute bottom-1 left-2 z-10 flex items-baseline gap-1 font-mono font-bold">
-            <span className="text-[10px]" style={{ color: TRINITY_COLORS.temporal, textShadow: "0 0 2px #0a0e14, 0 0 2px #0a0e14" }}>{g.zone}{g.band}</span>
-            <span className="text-[9px]" style={{ color: C.gold }}>· {hKm.toLocaleString()} × {wKm.toLocaleString()} km</span>
-          </span>
-        );
+        const g = gzdOf(cLat, cLon); const { hKm, wKm } = cellDimsKm(g);
+        return <GridReadout zone={g.zone} band={g.band} hKm={hKm} wKm={wKm} />;
       })()}
       {label && (
         <span className="pointer-events-none absolute left-2 top-2 z-10 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>

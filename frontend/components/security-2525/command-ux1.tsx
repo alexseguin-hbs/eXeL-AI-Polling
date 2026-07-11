@@ -257,6 +257,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
             <button onClick={() => setMenuOpen((o) => !o)} className="p-1.5 rounded hover:bg-white/5" title="Settings — global (all tabs)">
               <Gauge className="h-4 w-4" style={{ color: menuOpen ? C.cyan : C.dim }} />
             </button>
+            {menuOpen && <div className="fixed inset-0 z-[94]" onClick={() => setMenuOpen(false)} aria-hidden />}
             {menuOpen && (
               <div className="absolute right-0 top-9 z-[95] w-44 rounded border p-2 shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
                 <div className="mb-1.5 text-[9px] font-bold tracking-wider" style={{ color: C.dim }}>SETTINGS · ALL TABS</div>
