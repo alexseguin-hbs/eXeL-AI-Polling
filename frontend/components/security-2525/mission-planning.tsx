@@ -451,6 +451,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   const touch = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinch = useRef<{ dist: number; cx: number; cy: number; ang: number } | null>(null);
   const gsvg = useRef<SVGSVGElement>(null);
+  const [dragging, setDragging] = useState(false); // LOD: while orbiting, drop the heavy per-frame labels
   // PERF/FREEZE FIX: rAF-throttle orbit. Every pointermove reprojects the whole globe (borders +
   // graticule + GRID), so firing setCam per move (~100/s) froze phones — worse with GRID on. Coalesce
   // moves into ONE setCam per animation frame (mirrors AoMapPane's dragRafRef pattern).
@@ -591,6 +592,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
       style={{ cursor: drag.current ? "grabbing" : "crosshair" }}
       onContextMenu={(e) => e.preventDefault()}
       onPointerDown={(e) => {
+        setDragging(true);
         if (e.pointerType === "touch") {
           touch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
           (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId);
@@ -640,6 +642,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
         }
       }}
       onPointerUp={(e) => {
+        setDragging(false);
         if (e.pointerType === "touch") { touch.current.delete(e.pointerId); if (touch.current.size < 2) pinch.current = null; return; }
         drag.current = null;
       }}>
@@ -659,7 +662,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
           </>
         )}
         {/* country names — front-facing only; declutter by the visible span (≈180°/zoom) */}
-        {COUNTRIES.filter((c) => !c.min || 180 / zoom <= c.min).map((c) => {
+        {!dragging && COUNTRIES.filter((c) => !c.min || 180 / zoom <= c.min).map((c) => {
           const [x, y, v] = proj(c.lat, c.lon);
           if (!v) return null;
           return <text key={c.name} x={x} y={y} fontSize={5 / zoom} fill={C.text} opacity="0.55" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", letterSpacing: "0.02em" }}>{c.name}</text>;
@@ -686,7 +689,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
             {/* zone = yellow (vertical), band = violet (horizontal) */}
             <path d={zoneOverlay.zone} fill="none" stroke={TRINITY_COLORS.temporal} strokeWidth={0.9 / zoom} opacity="0.95" />
             <path d={zoneOverlay.band} fill="none" stroke={BAND_VIOLET} strokeWidth={0.9 / zoom} opacity="0.95" />
-            {(() => {
+            {!dragging && (() => {
               /* GRID labels render for EVERY coordinate format when the GRID overlay is on —
                  the GZD training grid must never disappear because a readout format was picked.
                  GZD zone/band labels for mgrs·utm·ucrs; degree labels only for LLV-DMS. */
@@ -4224,15 +4227,19 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     playLastRef.current = 0;
     const tick = (ts: number) => {
       if (playLastRef.current === 0) playLastRef.current = ts;
-      const dtH = Math.min(0.25, (ts - playLastRef.current) / 1000) / 3600; // clamp long frames; → hours
-      playLastRef.current = ts;
-      setPlaced((pl) => pl.map((u) => {
-        if (!u.moving || u.heading == null || !u.speed) return u;
-        const km = u.speed * dtH, th = (u.heading * Math.PI) / 180; // 0°=N, clockwise
-        const dLat = (km * Math.cos(th)) / 110.574;
-        const dLon = (km * Math.sin(th)) / (111.320 * Math.cos((u.lat * Math.PI) / 180) || 1e-6);
-        return { ...u, lat: u.lat + dLat, lon: u.lon + dLon };
-      }));
+      // FREEZE FIX: repaint at ~20 fps, not every rAF frame. Each setPlaced re-renders the whole map;
+      // dead-reckoning stays accurate because dt integrates the REAL elapsed time between repaints.
+      if (ts - playLastRef.current >= 50) {
+        const dtH = Math.min(0.25, (ts - playLastRef.current) / 1000) / 3600; // clamp long frames; → hours
+        playLastRef.current = ts;
+        setPlaced((pl) => pl.map((u) => {
+          if (!u.moving || u.heading == null || !u.speed) return u;
+          const km = u.speed * dtH, th = (u.heading * Math.PI) / 180; // 0°=N, clockwise
+          const dLat = (km * Math.cos(th)) / 110.574;
+          const dLon = (km * Math.sin(th)) / (111.320 * Math.cos((u.lat * Math.PI) / 180) || 1e-6);
+          return { ...u, lat: u.lat + dLat, lon: u.lon + dLon };
+        }));
+      }
       playRafRef.current = requestAnimationFrame(tick);
     };
     playRafRef.current = requestAnimationFrame(tick);
