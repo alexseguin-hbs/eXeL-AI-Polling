@@ -684,12 +684,12 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                       meets the violet band), NOT screen-centre: tilt shifts the sub-camera point down,
                       so a screen-fixed label sat a band or two too high. Mini circle + all-yellow
                       "14R" (outline), exactly like the 2D chip that read perfectly. */}
-                  {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; return (
-                    /* "14R" address CENTRED on the yellow-zone × violet-band intersection (tracks the
-                       selected cell). No crosshair arms — the stationary dashed compass reticle
-                       (270↔90 / 000↔180) already reads the centre. */
-                    <text key="gzint" x={x} y={y} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth={2.2 / zoom}>{sel.zone}{sel.band}</text>
-                  ); })()}
+                  {mgrs && (
+                    /* "14R" address pinned to the EXACT centre of the map (CX,CY) — the intersection
+                       readout must always sit dead-centre, not drift with tilt/orbit. sel is the cell
+                       at the view centre. The dashed compass reticle (270↔90 / 000↔180) marks it. */
+                    <text key="gzint" x={CX} y={CY} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth={2.2 / zoom}>{sel.zone}{sel.band}</text>
+                  )}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
                   {paral.map((lat) => { const [x, y, v] = proj(lat, LON0); return v ? <text key={`dgb${lat}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text> : null; })}
                 </>
@@ -888,7 +888,9 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                       })}
                       {/* CROSS-SECTION address "14R" at the cell centre — SAME format as the 3D
                           globe: all-yellow, dark outline (paintOrder stroke), no box. */}
-                      {(() => { const cx = xOf((fsel.lonW + fsel.lonE) / 2), cy = yOf((fsel.latS + fsel.latN) / 2); return (
+                      {(() => { const cx = flat.x + flat.w / 2, cy = flat.y + flat.h / 2; return (
+                        /* address pinned to the EXACT centre of the flat viewport, not the cell's
+                           projected centre — the intersection readout always sits dead-centre. */
                         <text key="fzcell" x={cx} y={cy} fontSize="8" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.4">{fsel.zone}{fsel.band}</text>
                       ); })()}
                     </>)}
