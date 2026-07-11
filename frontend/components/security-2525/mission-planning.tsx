@@ -2340,6 +2340,13 @@ function AoMapPane(p: PaneProps) {
               // real height and rises OFF the top of the frame as you zoom in (the band cubes below
               // remain the readable scaffold). Not band-clamped, and it tracks view.spanKm.
               const altPxPerM = paneW / (view.spanKm * 1000);
+              // Airspace threshold CAPS — same altitudes as the LEFT altitude gauge, in TRUE scale so
+              // they share the aircraft's z: grey = voxelLimitPct%, red = altRedPct%, orange =
+              // altYellowPct% of the ceiling. An aircraft above the grey cap flies off-map (red cube).
+              const ceilM = (maxAltFt ?? autoCeilingFt(view.spanKm)) * 0.3048;
+              const capZ = ceilM * (voxelLimitPct / 100) * altPxPerM; // grey ceiling cap
+              const redZ = ceilM * (altRedPct / 100) * altPxPerM;     // red threshold
+              const orgZ = ceilM * (altYellowPct / 100) * altPxPerM;  // orange threshold
               const sel = voxelSel === col.key;
               const isLattice = col.key.startsWith("LAT:"); // empty scaffold column (no asset)
               const hiCol = voxelHiColor;                    // FX-07: user-set primary highlight colour
@@ -2351,9 +2358,16 @@ function AoMapPane(p: PaneProps) {
               // shows its own occupied stack. A thin GREY "voxel-limit" line then rises from
               // the cube top to voxelLimitPct% of the full altitude rail.
               const stack = isLattice ? fullStack.slice(0, 3) : fullStack;
-              const topZ = stack.length * bandPx;
-              const limitZ = Math.max(topZ + bandPx, (voxelLimitPct / 100) * Math.max(fullStack.length, 3) * bandPx);
               const topObj = col.objects[col.objects.length - 1];
+              // AERIAL asset → a SEPARATE column that STACKS cubes (each sized to the centre voxel
+              // cube, cellPx) all the way up to the asset's TRUE altitude; the TOP cube is the
+              // aircraft (red). More cubes appear as you zoom in (trueZ grows, cube size ~constant).
+              const objAltM = topObj ? (topObj.altRef === "AGL" ? topObj.altM : Math.max(0, topObj.mslM - col.terrainM)) : 0;
+              const trueZ = Math.max(0, objAltM * altPxPerM);
+              const aerialStack = !isLattice && objAltM > 0;
+              const nCubes = aerialStack ? Math.max(1, Math.min(64, Math.round(trueZ / cellPx))) : 0;
+              const topZ = aerialStack ? nCubes * cellPx : stack.length * bandPx;
+              const markerZ = aerialStack ? topZ : trueZ; // icon/chip sit on the column top
               const face = (t: string, w: number, h: number, color: string, occupied: boolean): React.CSSProperties => ({
                 position: "absolute", left: "50%", top: "50%", width: w, height: h,
                 transform: `translate(-50%,-50%) ${t}`,
@@ -2375,26 +2389,40 @@ function AoMapPane(p: PaneProps) {
                     title={fmt.coordAt(col.lat, col.lon)}
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                     style={{ width: cellPx, height: cellPx, border: `1.5px solid ${sel ? hiCol : C.cyan}`, background: sel ? `${hiCol}22` : `${C.cyan}08`, pointerEvents: "auto" }} />
-                  {/* FX-04 (HI 1.3.2): grey VOXEL-LIMIT extent line — thin dashed line from the
-                      3×3×3 cube top up to the voxel limit (% of the rail), the artificial 3-D
-                      reach cue that matches the cube-coding / swarm form. */}
-                  {limitZ > topZ + 1 && (
-                    <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 1, height: limitZ - topZ,
-                      background: "repeating-linear-gradient(to bottom, #6b7280 0 2px, transparent 2px 5px)", opacity: dimmed ? 0.25 : 0.6,
-                      transform: `translate(-50%,-50%) translate3d(0px,0px,${(topZ + limitZ) / 2}px) rotateX(90deg)` }} />
-                  )}
-                  {/* HI: GREY TOP-FACE ceiling at the voxel-limit — a grey-bordered square ABOVE the
-                      aircraft so the operator can see the top of the airspace band (above the cube). */}
-                  {limitZ > topZ + 1 && (
-                    <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: cellPx, height: cellPx,
-                      border: "1.5px dashed #9ca3afcc", background: "#6b728012", opacity: dimmed ? 0.3 : 0.7,
-                      transform: `translate(-50%,-50%) translateZ(${limitZ}px)` }} />
-                  )}
+                  {/* Airspace threshold CAPS — TRUE scale, at the SAME altitudes as the LEFT gauge
+                      lines. Orange (yellow%) · Red (red%) · Grey ceiling (limit%). Horizontal squares
+                      spanning the cell; an aircraft above the grey cap flies past it (off-map). */}
+                  {!isLattice && col.objects.some((o) => o.altM > 0) && ([
+                    { id: "org", z: orgZ, c: C.amber, cap: false },
+                    { id: "red", z: redZ, c: C.red, cap: false },
+                    { id: "cap", z: capZ, c: "#9ca3af", cap: true },
+                  ]).map((t) => (
+                    <div key={t.id} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: cellPx, height: cellPx,
+                      border: `${t.cap ? 1.5 : 0.75}px ${t.cap ? "dashed" : "solid"} ${t.c}${t.cap ? "cc" : "aa"}`,
+                      background: `${t.c}0e`, boxShadow: `0 0 3px ${t.c}55`, opacity: dimmed ? 0.3 : 0.75,
+                      transform: `translate(-50%,-50%) translateZ(${t.z}px)` }} />
+                  ))}
                   {/* FX-49 REMOVED (HI 1.3.3): the cell-centre SPHERE was a duplicate asset marker. The
                       ground asset DOT / aerial BOX rendered in placed.map is now the single asset symbol;
                       placed.map's onContextMenu already hooks the asset to open its track label. */}
-                  {/* the cube stack — one wireframe cube per altitude band up to the top occupant */}
-                  {stack.map((cb) => {
+                  {/* the cube stack. AERIAL asset → a true-altitude column of cubic cells (each cellPx)
+                      from the ground up to the aircraft; the TOP cube is RED = the aircraft. More
+                      cubes appear as you zoom in. GROUND/lattice → the band scaffold. */}
+                  {aerialStack
+                    ? Array.from({ length: nCubes }).map((_, i) => {
+                        const z = i * cellPx, isTop = i === nCubes - 1;
+                        const color = isTop ? C.red : sel ? hiCol : "#3b556e";
+                        return (
+                          <div key={`ac${i}`} className="pointer-events-none absolute left-0 top-0" style={{ transformStyle: "preserve-3d" }}>
+                            <div style={face(`translate3d(0px,0px,${z + cellPx}px)`, cellPx, cellPx, color, isTop)} />
+                            <div style={face(`translate3d(0px,${-cellPx / 2}px,${z + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, color, isTop)} />
+                            <div style={face(`translate3d(0px,${cellPx / 2}px,${z + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, color, isTop)} />
+                            <div style={face(`translate3d(${-cellPx / 2}px,0px,${z + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, color, isTop)} />
+                            <div style={face(`translate3d(${cellPx / 2}px,0px,${z + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, color, isTop)} />
+                          </div>
+                        );
+                      })
+                    : stack.map((cb) => {
                     const occupied = cb.occupants.length > 0;
                     // FX-53 (HI 1.3.3): a SELECTED column highlights ALL the way to the ground
                     // in the user's highlight colour (rest of the lattice dims via `dimmed`).
@@ -2410,35 +2438,7 @@ function AoMapPane(p: PaneProps) {
                       </div>
                     );
                   })}
-                  {/* FX-05b: RED/ORANGE warning faces on columns with aerial assets —
-                      same horizontal face as the grey ceiling, thinner border */}
-                  {!isLattice && col.objects.some((o) => o.altM > 0) && (() => {
-                    const topFt = maxAltFt ?? autoCeilingFt(view.spanKm);
-                    const eR = topFt * (altRedPct / 100);
-                    const eY = topFt * (altYellowPct / 100);
-                    const ftToZ = (ft: number) => {
-                      for (let b = 0; b < RANGE_EDGES.length - 1; b++) {
-                        if (ft <= RANGE_EDGES[b + 1]) {
-                          const floor = RANGE_EDGES[b], ceil = RANGE_EDGES[b + 1];
-                          return b * bandPx + ((ft - floor) / (ceil - floor)) * bandPx;
-                        }
-                      }
-                      return (RANGE_EDGES.length - 1) * bandPx;
-                    };
-                    const face = (ft: number, color: string) => {
-                      const sz = ftToZ(ft);
-                      if (sz > topZ + limitZ) return null;
-                      return (
-                        <div key={color} className="pointer-events-none absolute left-1/2 top-1/2" style={{
-                          width: cellPx, height: cellPx,
-                          border: `0.5px solid ${color}cc`, background: `${color}08`,
-                          boxShadow: `0 0 3px ${color}66`,
-                          opacity: dimmed ? 0.25 : 0.7,
-                          transform: `translate(-50%,-50%) translateZ(${sz}px)` }} />
-                      );
-                    };
-                    return <>{face(eY, C.amber)}{face(eR, C.red)}</>;
-                  })()}
+                  {/* (RED/ORANGE warning faces now unified into the true-scale CAPS above.) */}
                   {/* HI 1.3.3 — the VOXEL COLUMN owns the asset's on-cube UI (placed.map
                       suppresses the flat marker for a column-backed asset): a SHIELD badge
                       pinned to the LEVEL-1 bottom cell (always at the surface, decoupled from
@@ -2451,21 +2451,14 @@ function AoMapPane(p: PaneProps) {
                     const aglM = Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM);
                     const nkey = typeof topObj.id === "number" ? topObj.id : null;
                     const off = (nkey != null ? aglOffs[nkey] : undefined) ?? { x: 0, y: cellPx / 2 + 8 };
-                    // TRUE altitude (metres above terrain) → screen z; the aircraft flies off-screen on zoom-in.
-                    const objAltM = topObj.altRef === "AGL" ? topObj.altM : Math.max(0, topObj.mslM - col.terrainM);
-                    const trueZ = Math.max(0, objAltM * altPxPerM);
                     const bb = is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""; // billboard upright off the tilted plane
+                    // NB: for an aerial asset the true-altitude cube COLUMN (above) is the projector —
+                    // the icon/chip/dot ride its top (markerZ). No separate stem needed.
                     return (
                       <>
-                        {/* projector — dashed vertical from the ground spot up to the aircraft's TRUE altitude */}
-                        {trueZ > bandPx && (
-                          <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 1, height: trueZ, opacity: dimmed ? 0.3 : 0.6,
-                            background: `repeating-linear-gradient(to bottom, ${ac}aa 0 2px, transparent 2px 5px)`,
-                            transform: `translate(-50%,-50%) translate3d(0px,0px,${trueZ / 2}px) rotateX(90deg)` }} />
-                        )}
                         {/* (1) SHIELD — billboarded affiliation badge, at the aircraft's TRUE altitude */}
                         <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ opacity: dimmed ? 0.4 : 1,
-                          transform: `translate(-50%,-50%) translateZ(${trueZ}px)${bb}` }}>
+                          transform: `translate(-50%,-50%) translateZ(${markerZ}px)${bb}` }}>
                           <span className="flex items-center justify-center rounded-md" style={{ padding: 2,
                             background: `${ac}1e`, border: `1px solid ${ac}`, boxShadow: `0 0 6px ${ac}55` }}>
                             {pObj
@@ -2476,7 +2469,7 @@ function AoMapPane(p: PaneProps) {
                         {/* (2) AGL chip — draggable (FAAD-hook drag pattern, NO connector line), Level-1 cell.
                             Tap (no drag) pops the cube-centre coordinate call-up packet. */}
                         <div className="absolute left-1/2 top-1/2" onPointerDown={(e) => e.stopPropagation()} style={{ pointerEvents: "auto",
-                          transform: `translate(-50%,-50%) translate3d(${off.x}px,${off.y}px,${trueZ}px)${bb}` }}>
+                          transform: `translate(-50%,-50%) translate3d(${off.x}px,${off.y}px,${markerZ}px)${bb}` }}>
                           <button title="Drag · tap = cube-centre coordinate + AGL"
                             onPointerDown={(e) => {
                               e.stopPropagation(); e.preventDefault();
@@ -2494,7 +2487,7 @@ function AoMapPane(p: PaneProps) {
                           </button>
                         </div>
                         {/* (3) DOT — the object's TRUE altitude, at the cell centre (its real 3D spot) */}
-                        <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${trueZ}px)${bb}` }}>
+                        <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${markerZ}px)${bb}` }}>
                           <span className="block rounded-full" style={{ width: 6, height: 6, background: topObj.color ?? ac, boxShadow: `0 0 6px ${topObj.color ?? ac}` }} />
                         </div>
                         {/* (4) TOP-FACE coords (CENTRE + 4 CORNERS) — HIDDEN by default to keep the
