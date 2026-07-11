@@ -503,18 +503,30 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
     const grid: [number, number][][] = [];
     for (const lon of meridians) { const r: [number, number][] = []; for (let lat = -80; lat <= 84; lat += 5) r.push([lon, lat]); grid.push(r); }
     for (const lat of parallels) { const r: [number, number][] = []; for (let lon = -180; lon <= 180; lon += 5) r.push([lon, lat]); grid.push(r); }
-    // Centered cell (updates as the globe orbits) → zone wedge (yellow) + band ring (violet) + mask.
+    // Centered cell (updates as the globe orbits) → zone wedge (yellow) + band ring (violet) edges.
     const s = gzdOf(cam.lat0, cam.lon0);
     const segZone: [number, number][][] = [];
     for (const lon of [s.lonW, s.lonE]) { const r: [number, number][] = []; for (let lat = -80; lat <= 84; lat += 3) r.push([lon, lat]); segZone.push(r); }
     const segBand: [number, number][][] = [];
     for (const lat of [s.latS, s.latN]) { const r: [number, number][] = []; for (let lon = -180; lon <= 180; lon += 3) r.push([lon, lat]); segBand.push(r); }
-    const ring: [number, number][] = [];
-    for (let lon = s.lonW; lon <= s.lonE; lon += 1) ring.push([lon, s.latS]);
-    for (let lat = s.latS; lat <= s.latN; lat += 1) ring.push([s.lonE, lat]);
-    for (let lon = s.lonE; lon >= s.lonW; lon -= 1) ring.push([lon, s.latN]);
-    for (let lat = s.latN; lat >= s.latS; lat -= 1) ring.push([s.lonW, lat]);
-    return { grid: grid.map(pathOf).join(""), zone: segZone.map(pathOf).join(""), band: segBand.map(pathOf).join(""), cell: pathOf(ring) + "Z" };
+    // 10% mask-fill ALONG the selected bands: the zone as a vertical wedge (all lats), the band
+    // as a horizontal ring (all lons) — sampled into small quads; a quad drops out at the horizon
+    // if any corner is back-facing, so the shade respects the limb (no torn wrap-around fills).
+    const quadFill = (lons: number[], lats: number[]) => {
+      let out = "";
+      for (let i = 0; i < lons.length - 1; i++) for (let j = 0; j < lats.length - 1; j++) {
+        const cs: [number, number][] = [[lons[i], lats[j]], [lons[i + 1], lats[j]], [lons[i + 1], lats[j + 1]], [lons[i], lats[j + 1]]];
+        const ps = cs.map(([lo, la]) => proj(la, lo));
+        if (ps.some((pp) => !pp[2])) continue;
+        out += "M" + ps.map((pp) => `${pp[0].toFixed(1)} ${pp[1].toFixed(1)}`).join("L") + "Z";
+      }
+      return out;
+    };
+    const zoneLats: number[] = []; for (let la = -80; la <= 84; la += 4) zoneLats.push(la);
+    const bandLons: number[] = []; for (let lo = -180; lo <= 180; lo += 6) bandLons.push(lo);
+    const zoneFill = mgrs ? quadFill([s.lonW, s.lonE], zoneLats) : "";
+    const bandFill = mgrs ? quadFill(bandLons, [s.latS, s.latN]) : "";
+    return { grid: grid.map(pathOf).join(""), zone: segZone.map(pathOf).join(""), band: segBand.map(pathOf).join(""), zoneFill, bandFill };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cam, showZones, coordFmt]);
   const ticks = useMemo(() => {
@@ -627,8 +639,10 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
         })}
         {zoneOverlay && (
           <>
-            {/* masked shade on the centered cell (moves as you orbit) */}
-            {zoneOverlay.cell && <path d={zoneOverlay.cell} fill={C.gold} opacity="0.16" stroke="none" />}
+            {/* 10% mask-fill along the selected zone (yellow, vertical) + band (violet, horizontal);
+                their overlap self-highlights the active cell */}
+            {zoneOverlay.zoneFill && <path d={zoneOverlay.zoneFill} fill={TRINITY_COLORS.temporal} opacity="0.1" stroke="none" />}
+            {zoneOverlay.bandFill && <path d={zoneOverlay.bandFill} fill={TRINITY_COLORS.family} opacity="0.1" stroke="none" />}
             <path d={zoneOverlay.grid} fill="none" stroke={C.cyan} strokeWidth={0.3 / zoom} opacity="0.3" />
             {/* zone = yellow (vertical), band = violet (horizontal) */}
             <path d={zoneOverlay.zone} fill="none" stroke={TRINITY_COLORS.temporal} strokeWidth={0.9 / zoom} opacity="0.95" />
@@ -646,13 +660,8 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                   {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1, act = sel.zone === zn; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={(act ? 9 : 6) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? TRINITY_COLORS.temporal : C.cyan} opacity={act ? 1 : 0.85} textAnchor="middle" style={{ fontFamily: "monospace" }}>{zn}</text> : null; })}
                   {/* band letters C–X down the LEFT limb — enlarged for legibility */}
                   {bandsArr.map((L, j) => { const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = sel.band === L; const [x, y, v] = proj((latS + latN) / 2, LON0 - 85); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={(act ? 10 : 7.5) / zoom} fontWeight="bold" fill={act ? TRINITY_COLORS.family : C.cyan} opacity={act ? 1 : 0.9} textAnchor="middle" style={{ fontFamily: "monospace" }}>{L}</text> : null; })}
-                  {/* CROSS-SECTION address chip — where the yellow zone meets the violet band = "14R" */}
-                  {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; return (
-                    <g key="gzcell">
-                      <rect x={x - 14 / zoom} y={y - 7 / zoom} width={28 / zoom} height={13 / zoom} rx={2 / zoom} fill="#0a0e14" opacity="0.85" stroke={C.gold} strokeWidth={0.4 / zoom} />
-                      <text x={x} y={y + 3.5 / zoom} fontSize={9 / zoom} fontWeight="bold" textAnchor="middle" style={{ fontFamily: "monospace" }}><tspan fill={TRINITY_COLORS.temporal}>{sel.zone}</tspan><tspan fill={TRINITY_COLORS.family}>{sel.band}</tspan></text>
-                    </g>
-                  ); })()}
+                  {/* NB: the active "14R" address is drawn ONCE at the stationary crosshair centre
+                      (below), not here — the yellow alphanumeric belongs to the intersection only. */}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
                   {paral.map((lat) => { const [x, y, v] = proj(lat, LON0); return v ? <text key={`dgb${lat}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text> : null; })}
                 </>
@@ -665,24 +674,20 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
           orbit transform, so it never rotates with the globe. Horizontal 270(W)◄►090(E),
           vertical 000(N)▲▼180(S); the centre dot is the fixed sight the moving grid bands
           are read against. Shown with the GRID overlay. */}
-      {showZones && (() => {
-        const inset = 13;
-        const lab = (t: string, x: number, y: number) => (
-          <text x={x} y={y} fontSize="8" fontWeight="bold" fill={C.cyan} textAnchor="middle" dominantBaseline="middle"
-            style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.8">{t}</text>
-        );
-        return (
-          <g style={{ pointerEvents: "none" }}>
-            <line x1={CX - RING} y1={CY} x2={CX + RING} y2={CY} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.5" />
-            <line x1={CX} y1={CY - RING} x2={CX} y2={CY + RING} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.5" />
-            <circle cx={CX} cy={CY} r="2.2" fill="none" stroke={C.gold} strokeWidth="0.7" opacity="0.85" />
-            {lab("000", CX, CY - RING + inset)}
-            {lab("090", CX + RING - inset, CY)}
-            {lab("180", CX, CY + RING - inset)}
-            {lab("270", CX - RING + inset, CY)}
-          </g>
-        );
-      })()}
+      {showZones && (
+        <g style={{ pointerEvents: "none" }}>
+          {/* stationary reticle: dashed cross + mini centre circle (no bearing numbers) */}
+          <line x1={CX - RING} y1={CY} x2={CX + RING} y2={CY} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.5" />
+          <line x1={CX} y1={CY - RING} x2={CX} y2={CY + RING} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.5" />
+          <circle cx={CX} cy={CY} r="2.2" fill="none" stroke={C.gold} strokeWidth="0.7" opacity="0.85" />
+          {/* the yellow alphanumeric GZD address ("14R") lives ONLY here — at the crosshair the
+              zone (number) and band (letter) intersect. All yellow, per operator. */}
+          {coordFmt === "mgrs" && (
+            <text x={CX + 6} y={CY - 5} fontSize="12" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="start"
+              style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="2.6">{sel.zone}{sel.band}</text>
+          )}
+        </g>
+      )}
     </svg>
   );
 }
