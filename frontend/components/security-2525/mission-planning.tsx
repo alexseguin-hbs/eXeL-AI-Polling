@@ -684,13 +684,10 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                       meets the violet band), NOT screen-centre: tilt shifts the sub-camera point down,
                       so a screen-fixed label sat a band or two too high. Mini circle + all-yellow
                       "14R" (outline), exactly like the 2D chip that read perfectly. */}
-                  {mgrs && (() => { const lbl = `${sel.zone}${sel.band}`; const fs = 14 / zoom, w = lbl.length * fs * 0.62 + 6 / zoom, h = fs + 5 / zoom; return (
-                    /* ONE larger address chip — BLACK fill + border — pinned to the EXACT centre of the
-                       map (CX,CY = the zoom fixed point). Always dead-centre, never drifts with tilt. */
-                    <g key="gzint">
-                      <rect x={CX - w / 2} y={CY - h / 2} width={w} height={h} rx={2 / zoom} fill="#0a0e14" stroke={TRINITY_COLORS.temporal} strokeWidth={0.9 / zoom} />
-                      <text x={CX} y={CY} fontSize={fs} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace" }}>{lbl}</text>
-                    </g>
+                  {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; return (
+                    /* PRIOR style — plain yellow outlined address sitting ON the yellow×violet
+                       intersection cell (not centre-pinned, no chip). The method the operator approved. */
+                    <text key="gzint" x={x} y={y} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth={2.2 / zoom}>{sel.zone}{sel.band}</text>
                   ); })()}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
                   {paral.map((lat) => { const [x, y, v] = proj(lat, LON0); return v ? <text key={`dgb${lat}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text> : null; })}
@@ -880,27 +877,14 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                         const lonC = -180 + k * 6 + 3, zn = k + 1;
                         return <text key={`zn${k}`} x={xOf(lonC)} y={flat.y + flat.h * 0.14} fontSize="4" fill={TRINITY_COLORS.temporal} opacity="0.95" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth="0.8">{zn}</text>;
                       })}
-                      {/* band letters C–X — inset from the left edge (flat.x+3%) clear of the N↑/label HUD;
-                          active band gets a violet-bordered pill so the purple label is unmistakable */}
-                      {BANDS.split("").map((L, j) => {
-                        const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = fsel.band === L;
-                        const bx = flat.x + flat.w * 0.03, by = yOf((latS + latN) / 2);
-                        return (
-                          <g key={`bl${j}`}>
-                            {act && <rect x={bx - 2} y={by - 6.5} width={11} height={9} rx={1.5} fill="#0a0e14" opacity="0.9" stroke={BAND_VIOLET} strokeWidth="0.4" vectorEffect="non-scaling-stroke" />}
-                            <text x={bx} y={by} fontSize={act ? 8 : 6} fontWeight="bold" fill={BAND_VIOLET} opacity="0.95" textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth="0.8">{L}</text>
-                          </g>
-                        );
-                      })}
+                      {/* band letters C–X moved to the HTML overlay HUD (below) — the SVG uses
+                          preserveAspectRatio="slice" which crops the left edge, so left-anchored
+                          SVG text was never visible. The overlay layer is immune to that crop. */}
                       {/* CROSS-SECTION address "14R" at the cell centre — SAME format as the 3D
                           globe: all-yellow, dark outline (paintOrder stroke), no box. */}
-                      {(() => { const cx = flat.x + flat.w / 2, cy = flat.y + flat.h / 2; const lbl = `${fsel.zone}${fsel.band}`; const fs = 11, w = lbl.length * fs * 0.62 + 6, h = fs + 5; return (
-                        /* ONE larger address chip — BLACK fill + border — pinned to the EXACT centre of
-                           the flat viewport. The single intersection readout, always dead-centre. */
-                        <g key="fzcell">
-                          <rect x={cx - w / 2} y={cy - h / 2} width={w} height={h} rx="2" fill="#0a0e14" stroke={TRINITY_COLORS.temporal} strokeWidth="0.9" vectorEffect="non-scaling-stroke" />
-                          <text x={cx} y={cy} fontSize={fs} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{lbl}</text>
-                        </g>
+                      {(() => { const cx = xOf((fsel.lonW + fsel.lonE) / 2), cy = yOf((fsel.latS + fsel.latN) / 2); return (
+                        /* PRIOR style — plain yellow outlined address on the yellow×violet cell (no box). */
+                        <text key="fzcell" x={cx} y={cy} fontSize="8" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.4">{fsel.zone}{fsel.band}</text>
                       ); })()}
                     </>)}
                     {coordFmt === "dms" && (<>
@@ -945,6 +929,22 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
               </div>
             )}
             <span className="pointer-events-none absolute left-2 top-2 z-10 font-mono text-[9px] font-bold" style={{ color: C.red }}>N ↑</span>
+            {/* violet band letters C–X down the LEFT — on the HTML overlay (the SVG's slice crop hides
+                left-anchored SVG text). One per band between horizontal grid lines, like the yellow zones. */}
+            {showZones && coordFmt !== "dms" && flat.w >= W * 0.5 && (() => {
+              const activeBand = gzdOf(clat, clon).band;
+              return BANDS.split("").map((L, j) => {
+                const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8;
+                const by = ((90 - (latS + latN) / 2) / 180) * H;
+                const topPct = ((by - flat.y) / flat.h) * 100;
+                if (topPct < 2 || topPct > 98) return null;
+                const act = activeBand === L;
+                return (
+                  <span key={`bl${j}`} className="pointer-events-none absolute left-1 z-10 -translate-y-1/2 font-mono font-bold"
+                    style={{ top: `${topPct}%`, color: BAND_VIOLET, fontSize: act ? 12 : 9, textShadow: "0 0 2px #0a1018, 0 0 2px #0a1018" }}>{L}</span>
+                );
+              });
+            })()}
             <span className="pointer-events-none absolute right-2 top-2 z-10 font-mono text-[9px] font-semibold" style={{ color: C.cyan }}>
               {geoContext(clat, clon, kmW).join(" · ")}
             </span>
@@ -2654,6 +2654,16 @@ function AoMapPane(p: PaneProps) {
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 6}px)` }}>
                       <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: topObj.color ?? C.cyan }}>
                         {fmtAlt(topObj.altM, topObj.altRef, col.lat, col.lon)} · Z{topObj.bandIdx}{col.objects.length > 1 ? ` +${col.objects.length - 1}` : ""}
+                      </span>
+                    </div>
+                  )}
+                  {/* ASSET FACE — ONE large bordered coordinate label on top-face select. Black fill +
+                      temporal border, larger, billboarded upright above the cube. This is the "large
+                      bordered label" (no duplicate corner/CTR labels). Ground + aerial. */}
+                  {topObj && sel && (
+                    <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 18}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
+                      <span className="whitespace-nowrap rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold" style={{ background: "#0a0e14", color: TRINITY_COLORS.temporal, border: `1px solid ${TRINITY_COLORS.temporal}`, boxShadow: `0 0 6px ${TRINITY_COLORS.temporal}66` }}>
+                        {fmt.coordAt(col.lat, col.lon)}
                       </span>
                     </div>
                   )}
