@@ -504,8 +504,8 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   // MGRS grid-zone training overlay on the sphere: faint 6°×8° graticule + active cell edges.
   const zoneOverlay = useMemo(() => {
     if (!showZones) return null;
-    // Grid spacing matches the selected protocol: MGRS → 6°×8° UTM zones; LLV-DMS / UCRS → 15° graticule.
-    const mgrs = coordFmt === "mgrs" || coordFmt === "utm";
+    // Grid spacing: GZD 6°×8° UTM zones for MGRS·UTM·UCRS; 15° graticule only for LLV-DMS.
+    const mgrs = coordFmt !== "dms";
     const meridians = mgrs ? gzdBoundaries().meridians : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
     const parallels = mgrs ? gzdBoundaries().parallels : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
     const grid: [number, number][][] = [];
@@ -661,9 +661,12 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
             {/* zone = yellow (vertical), band = violet (horizontal) */}
             <path d={zoneOverlay.zone} fill="none" stroke={TRINITY_COLORS.temporal} strokeWidth={0.9 / zoom} opacity="0.95" />
             <path d={zoneOverlay.band} fill="none" stroke={BAND_VIOLET} strokeWidth={0.9 / zoom} opacity="0.95" />
-            {coordFmt !== "ucrs" && (() => {
+            {(() => {
+              /* GRID labels render for EVERY coordinate format when the GRID overlay is on —
+                 the GZD training grid must never disappear because a readout format was picked.
+                 GZD zone/band labels for mgrs·utm·ucrs; degree labels only for LLV-DMS. */
               const degL = (v: number, pos: string, neg: string) => `${Math.abs(Math.round(v))}°${v < 0 ? neg : pos}`;
-              const mgrs = coordFmt === "mgrs" || coordFmt === "utm";
+              const mgrs = coordFmt !== "dms";
               const zones = mgrs ? Array.from({ length: 60 }, (_, k) => k) : [];
               const bandsArr = mgrs ? BANDS.split("") : [];
               const merid = mgrs ? [] : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
@@ -681,10 +684,16 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                       meets the violet band), NOT screen-centre: tilt shifts the sub-camera point down,
                       so a screen-fixed label sat a band or two too high. Mini circle + all-yellow
                       "14R" (outline), exactly like the 2D chip that read perfectly. */}
-                  {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; return (
+                  {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; const cr = 15 / zoom, gap = 9 / zoom; return (
                     <g key="gzint">
-                      <circle cx={x} cy={y} r={2.2 / zoom} fill="none" stroke={C.gold} strokeWidth={0.7 / zoom} opacity="0.9" />
-                      <text x={x} y={y + 9 / zoom} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#ffffff" strokeWidth={1.6 / zoom}>{sel.zone}{sel.band}</text>
+                      {/* YELLOW centre crosshair — always sits ON the yellow-zone × violet-band
+                          intersection (tracks the selected cell). Arms leave a gap so the "14R"
+                          address sits CENTRED in the intersection square. Restored per operator. */}
+                      <line x1={x - cr} y1={y} x2={x - gap} y2={y} stroke={TRINITY_COLORS.temporal} strokeWidth={1 / zoom} opacity="0.95" />
+                      <line x1={x + gap} y1={y} x2={x + cr} y2={y} stroke={TRINITY_COLORS.temporal} strokeWidth={1 / zoom} opacity="0.95" />
+                      <line x1={x} y1={y - cr} x2={x} y2={y - gap} stroke={TRINITY_COLORS.temporal} strokeWidth={1 / zoom} opacity="0.95" />
+                      <line x1={x} y1={y + gap} x2={x} y2={y + cr} stroke={TRINITY_COLORS.temporal} strokeWidth={1 / zoom} opacity="0.95" />
+                      <text x={x} y={y} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth={2.2 / zoom}>{sel.zone}{sel.band}</text>
                     </g>
                   ); })()}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
@@ -833,7 +842,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
               {/* MGRS/LLV-DMS grid-zone training overlay — faint 6°×8° grid, active cell highlighted.
                   Only when zoomed out (flat.w ≥ half world). Tiles with the wrap loop. */}
               {showZones && flat.w >= W * 0.5 && (() => {
-                const mgrs = coordFmt === "mgrs" || coordFmt === "utm";
+                const mgrs = coordFmt !== "dms"; // GZD grid for mgrs·utm·ucrs; degrees only for LLV-DMS
                 const meridians = mgrs ? gzdBoundaries().meridians : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
                 const parallels = mgrs ? gzdBoundaries().parallels : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
                 const xOf = (lon: number) => ((lon + 180) / 360) * W;
@@ -854,7 +863,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                     {/* zone = yellow (vertical strip), band = violet (horizontal strip), cell = bright intersection */}
                     <rect x={xOf(fsel.lonW)} y={0} width={xOf(fsel.lonE) - xOf(fsel.lonW)} height={H} fill={TRINITY_COLORS.temporal} opacity="0.09" />
                     <rect x={0} y={yOf(fsel.latN)} width={W} height={yOf(fsel.latS) - yOf(fsel.latN)} fill={BAND_VIOLET} opacity="0.1" />
-                    <rect x={xOf(fsel.lonW)} y={yOf(fsel.latN)} width={xOf(fsel.lonE) - xOf(fsel.lonW)} height={yOf(fsel.latS) - yOf(fsel.latN)} fill={C.gold} opacity="0.22" />
+                    <rect x={xOf(fsel.lonW)} y={yOf(fsel.latN)} width={xOf(fsel.lonE) - xOf(fsel.lonW)} height={yOf(fsel.latS) - yOf(fsel.latN)} fill={C.gold} opacity="0.22" stroke="#ffffff" strokeWidth="0.7" strokeOpacity="0.9" vectorEffect="non-scaling-stroke" />
                     {[fsel.lonW, fsel.lonE].map((lon) => (
                       <line key={`az${lon}`} x1={xOf(lon)} y1={0} x2={xOf(lon)} y2={H} stroke={TRINITY_COLORS.temporal} strokeWidth="0.6" opacity="0.9" vectorEffect="non-scaling-stroke" />
                     ))}
@@ -863,7 +872,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                     ))}
                     {/* FULL label set — every zone number 1–60 across the top, every band C–X down the left
                         (MGRS); or degrees at each line (LLV-DMS). Active cell bold gold. */}
-                    {(coordFmt === "mgrs" || coordFmt === "utm") && (<>
+                    {mgrs && (<>
                       {/* zone numbers 1–60 — dropped BELOW the header button row (flat.y+14%) so they
                           clear the TEXAS CAPITOL/3D/2D/GRID chips. UNIFORM cyan — the active zone is
                           NOT enlarged (that made 58 jump); the only highlight is the yellow intersection. */}
@@ -879,14 +888,14 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                         return (
                           <g key={`bl${j}`}>
                             {act && <rect x={bx - 2} y={by - 6.5} width={11} height={9} rx={1.5} fill="#0a0e14" opacity="0.9" stroke={BAND_VIOLET} strokeWidth="0.4" vectorEffect="non-scaling-stroke" />}
-                            <text x={bx} y={by} fontSize={act ? 8 : 5.5} fontWeight="bold" fill={BAND_VIOLET} opacity={act ? 1 : 0.85} textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{L}</text>
+                            <text x={bx} y={by} fontSize={act ? 8 : 6} fontWeight="bold" fill={BAND_VIOLET} opacity="0.95" textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth="0.8">{L}</text>
                           </g>
                         );
                       })}
                       {/* CROSS-SECTION address "14R" at the cell centre — SAME format as the 3D
                           globe: all-yellow, dark outline (paintOrder stroke), no box. */}
                       {(() => { const cx = xOf((fsel.lonW + fsel.lonE) / 2), cy = yOf((fsel.latS + fsel.latN) / 2); return (
-                        <text key="fzcell" x={cx} y={cy + 2} fontSize="8" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#ffffff" strokeWidth="0.9">{fsel.zone}{fsel.band}</text>
+                        <text key="fzcell" x={cx} y={cy} fontSize="8" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.4">{fsel.zone}{fsel.band}</text>
                       ); })()}
                     </>)}
                     {coordFmt === "dms" && (<>
@@ -2534,8 +2543,9 @@ function AoMapPane(p: PaneProps) {
                     {/* FX-30: top-face pick plate — lights on hover, gold when selected, so a
                         stacked column can be chosen by its TOP (independent of any asset) */}
                     <div className="pointer-events-none absolute inset-0" style={{
-                      border: `${sel ? "2px" : "1.5px"} solid ${sel || voxelTop === col.key ? C.gold : "transparent"}`,
-                      background: sel ? `${C.gold}3d` : voxelTop === col.key ? `${C.gold}22` : "transparent" }} />
+                      border: `${sel ? "2.5px" : "1.5px"} solid ${sel || voxelTop === col.key ? C.gold : "transparent"}`,
+                      background: sel ? `${C.gold}80` : voxelTop === col.key ? `${C.gold}3d` : "transparent",
+                      boxShadow: sel ? `inset 0 0 12px ${C.gold}, 0 0 8px ${C.gold}aa` : "none" }} />
                     {/* TARGET — same proportions as the 3D crosshair cursor: outer ring,
                         INNER ring, NSEW crosshair ticks, gold centre dot. FX-15 (HI 1.3.2):
                         targets belong ONLY to asset/support cubes — an empty lattice cell
