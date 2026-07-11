@@ -936,7 +936,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
               {COUNTRIES.filter((c) => !c.min || (flat.w / W) * 180 <= c.min).map((c) => {
                 const x = ((c.lon + 180) / 360) * W, y = ((90 - c.lat) / 180) * H;
                 return (
-                  <text key={c.name} x={x} y={y} fontSize="3.6" fill={C.text} opacity="0.5" textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", letterSpacing: "0.03em" }}>{c.name}</text>
+                  <text key={c.name} x={x} y={y} fontSize={3.6 * (flat.w / W)} fill={C.text} opacity="0.5" textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", letterSpacing: "0.03em" }}>{c.name}</text>
                 );
               })}
               {/* Major metros (≥1M) — surface once zoomed past continent scale */}
@@ -946,7 +946,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                   <g key={c.name} style={{ pointerEvents: "none" }}>
                     <circle cx={x} cy={y} r="1.1" fill={C.text} vectorEffect="non-scaling-stroke" />
                     <circle cx={x} cy={y} r="2.4" fill="none" stroke={C.text} strokeWidth="0.4" opacity="0.5" vectorEffect="non-scaling-stroke" />
-                    <text x={x + 2.5} y={y + 1} fontSize="3.4" fill={C.text} vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{c.name}</text>
+                    <text x={x + 2.5} y={y + 1} fontSize={3.4 * (flat.w / W)} fill={C.text} vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{c.name}</text>
                   </g>
                 );
               })}
@@ -958,7 +958,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                   <g key={ao.key} onClick={() => onSelect(ao.key)} style={{ cursor: "pointer" }}>
                     <circle cx={x} cy={y} r={active ? 5 : 3.5} fill="none" stroke={C.cyan} strokeWidth="1" opacity={active ? 1 : 0.6} vectorEffect="non-scaling-stroke" />
                     <circle cx={x} cy={y} r="1.4" fill={C.cyan} vectorEffect="non-scaling-stroke" />
-                    <text x={x + 2} y={y - 2} fontSize="4" fill={C.gold} vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{ao.name.split(" · ")[0]}</text>
+                    <text x={x + 2} y={y - 2} fontSize={4 * (flat.w / W)} fill={C.gold} vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{ao.name.split(" · ")[0]}</text>
                   </g>
                 );
               })}
@@ -1001,7 +1001,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                           NOT enlarged (that made 58 jump); the only highlight is the yellow intersection. */}
                       {Array.from({ length: 60 }, (_, k) => k).map((k) => {
                         const lonC = -180 + k * 6 + 3, zn = k + 1;
-                        return <text key={`zn${k}`} x={xOf(lonC)} y={flat.y + flat.h * 0.14} fontSize="4" fill={TRINITY_COLORS.temporal} opacity="0.95" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth="0.8">{zn}</text>;
+                        return <text key={`zn${k}`} x={xOf(lonC)} y={flat.y + flat.h * 0.14} fontSize={4 * (flat.w / W)} fill={TRINITY_COLORS.temporal} opacity="0.95" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth="0.8">{zn}</text>;
                       })}
                       {/* band letters C–X moved to the HTML overlay HUD (below) — the SVG uses
                           preserveAspectRatio="slice" which crops the left edge, so left-anchored
@@ -1010,7 +1010,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                           globe: all-yellow, dark outline (paintOrder stroke), no box. */}
                       {(() => { const cx = xOf((fsel.lonW + fsel.lonE) / 2), cy = yOf((fsel.latS + fsel.latN) / 2); return (
                         /* PRIOR style — plain yellow outlined address on the yellow×violet cell (no box). */
-                        <text key="fzcell" x={cx} y={cy} fontSize="8" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke", cursor: "pointer" }} stroke="#0a0e14" strokeWidth="1.4"
+                        <text key="fzcell" x={cx} y={cy} fontSize={8 * (flat.w / W)} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke", cursor: "pointer" }} stroke="#0a0e14" strokeWidth="1.4"
                           onPointerDown={(e) => { e.stopPropagation(); }}
                           onClick={(e) => { e.stopPropagation(); frameCellFlat(fsel.latS, fsel.latN, fsel.lonW, fsel.lonE); }}>{fsel.zone}{fsel.band}</text>
                       ); })()}
