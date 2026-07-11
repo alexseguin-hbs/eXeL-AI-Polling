@@ -2328,7 +2328,7 @@ function AoMapPane(p: PaneProps) {
                     <span>⌖ {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
                     <button onClick={closeThis} title="Close hook" className="leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
-                  {row(coordFmt === "dms" ? "DMS" : coordFmt === "ucrs" ? "UCRS" : "MGRS", fmt.coordAt(u.lat, u.lon))}
+                  {row(coordFmt === "dms" ? "DMS" : coordFmt === "ucrs" ? "UCRS" : coordFmt === "utm" ? "UTM" : "MGRS", fmt.coordAt(u.lat, u.lon))}
                   {/* HI 1.3.2: bearing/speed only for MOVING assets — stationary assets +
                       support have no meaningful heading. */}
                   {u.moving && row("SPD", u.speed != null ? `${Math.round(u.speed)} km/h` : "—")}
@@ -3161,6 +3161,8 @@ function AoMapPane(p: PaneProps) {
                       ? ["MGRS", fmt.mgrsAt(coordCall.lat, coordCall.lon), C.text]
                       : coordFmt === "dms"
                       ? ["LLV-DMS", fmtLLV(coordCall.lat, coordCall.lon), C.text]
+                      : coordFmt === "utm"
+                      ? ["UTM", (() => { const u = latLonToUtm(coordCall.lat, coordCall.lon); return `${u.zone} ${Math.round(u.easting)}E ${Math.round(u.northing)}N`; })(), C.text]
                       : ["UCRS-2525", fmtUcrsDms(coordCall.lat, coordCall.lon), C.cyan];
                     return (
                       <div className="grid grid-cols-[46px_1fr] gap-x-1 gap-y-0.5 font-mono">
@@ -3208,6 +3210,7 @@ function AoMapPane(p: PaneProps) {
                   {(() => {
                     const primary: [string, string, string] = coordFmt === "mgrs" ? ["MGRS", col.mgrs, C.text]
                       : coordFmt === "dms" ? ["LLV-DMS", col.llv, C.text]
+                      : coordFmt === "utm" ? ["UTM", (() => { const u = latLonToUtm(col.lat, col.lon); return `${u.zone} ${Math.round(u.easting)}E ${Math.round(u.northing)}N`; })(), C.text]
                       : ["UCRS-2525", col.ucrsDms, C.cyan];
                     // HI 1.3.3: drop the UCRS·CELL row — instead report the CUBE's dimensions:
                     // whole COLUMN height (3 levels), one ZONE height, and the BASE L×W in metres.
