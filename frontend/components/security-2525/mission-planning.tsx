@@ -712,6 +712,10 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
           <line x1={CX} y1={CY - RING} x2={CX} y2={CY + RING} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
         </g>
       )}
+      {/* GRID readout bottom-left — the centre cell's alphanumeric + calculated cell size (H × W km) */}
+      {showZones && (() => { const latC = (sel.latS + sel.latN) / 2; const hKm = Math.round((sel.latN - sel.latS) * 110.574); const wKm = Math.round((sel.lonE - sel.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180)); return (
+        <text x={6} y={334} fontSize="9" fontWeight="bold" fill={TRINITY_COLORS.temporal} style={{ fontFamily: "monospace" }}>{sel.zone}{sel.band} · {hKm.toLocaleString()} × {wKm.toLocaleString()} km</text>
+      ); })()}
     </svg>
   );
 }
@@ -945,7 +949,9 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
               {geoContext(clat, clon, kmW).join(" · ")}
             </span>
             <span className="pointer-events-none absolute bottom-1 left-2 z-10 font-mono text-[8px]" style={{ color: C.gold }}>
-              {latLonToMgrs(clat, clon, 4)} · {kmW >= 1 ? `${kmW.toFixed(kmW >= 10 ? 0 : 1)} km` : `${Math.round(kmW * 1000)} m`} wide
+              {showZones
+                ? (() => { const g = gzdOf(clat, clon); const latC = (g.latS + g.latN) / 2; const hKm = Math.round((g.latN - g.latS) * 110.574); const wKm = Math.round((g.lonE - g.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180)); return `${g.zone}${g.band} · ${hKm.toLocaleString()} × ${wKm.toLocaleString()} km`; })()
+                : `${latLonToMgrs(clat, clon, 4)} · ${kmW >= 1 ? `${kmW.toFixed(kmW >= 10 ? 0 : 1)} km` : `${Math.round(kmW * 1000)} m`} wide`}
             </span>
             {/* FX-17 (P1.3): graphic SCALE bar bottom-left — both maps carry one */}
             {(() => {
@@ -999,9 +1005,6 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
           </button>
         )}
       </div>
-      <span className="absolute bottom-1 right-2 z-10 text-[8px]" style={{ color: C.dim }}>
-        NATURAL EARTH 50m · SCROLL=ZOOM · 3D-GLOBE ⇄ 2D-FLAT · DRILL → AO
-      </span>
     </div>
   );
 }
