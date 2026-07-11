@@ -839,6 +839,18 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
   // fitted to the pane aspect (phone portrait OR PC landscape). viewBox aspect is set to the pane
   // aspect so "slice" doesn't crop the cell; 25% margin around it.
   const frameCellFlat = (latS: number, latN: number, lonW: number, lonE: number) => {
+    // If a mission AO falls inside this GZD cell, DROP INTO the tactical AO map (where the placed
+    // assets live) instead of framing an empty world-context cell — a bare flat grid without assets
+    // isn't useful (operator law). No AO in the cell → fall back to framing the cell for context.
+    if (onEnterAo) {
+      const inCell = AOS.filter((a) => a.center[0] >= latS && a.center[0] <= latN && a.center[1] >= lonW && a.center[1] <= lonE && !hiddenKeys?.has(a.key));
+      if (inCell.length) {
+        const cLat = (latS + latN) / 2, cLon = (lonW + lonE) / 2;
+        let best = inCell[0], bd = Infinity;
+        for (const a of inCell) { const d = Math.hypot(a.center[0] - cLat, a.center[1] - cLon); if (d < bd) { bd = d; best = a; } }
+        onEnterAo(best.key); return;
+      }
+    }
     const rect = flatSvg.current?.getBoundingClientRect();
     const paneAspect = rect && rect.height > 0 ? rect.width / rect.height : 1.6;
     const x0 = ((lonW + 180) / 360) * W, x1 = ((lonE + 180) / 360) * W;
@@ -2496,7 +2508,14 @@ function AoMapPane(p: PaneProps) {
                 (preserve-3d). Wireframe-only = phone / Raspberry-Pi class compute. */}
             {is3d && voxelLayer && voxelColumns.map((col) => {
               const f = project(col.lat, col.lon);
-              if (f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02) return null;
+              const isAerialCol = !col.key.startsWith("LAT:") && col.objects.some((o) => o.altM > 0);
+              const baseOff = f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02;
+              // Ground/lattice columns off-map → cull. But an AERIAL tower whose BASE is off-map must
+              // STILL show its TOP RED BOX at the map EDGE (pilot-style), so it stays visible + selectable
+              // (operator law: "see edge of tower so the top red box shows when the base is off map").
+              if (baseOff && !isAerialCol) return null;
+              const px = baseOff ? Math.max(0.04, Math.min(0.96, f.fx)) : f.fx;
+              const py = baseOff ? Math.max(0.06, Math.min(0.94, f.fy)) : f.fy;
               const paneW = mapRef.current?.clientWidth ?? 800;
               // HI 1.3.3: the VOXEL SIZE tier (3X/2X/1X) scales ONLY the cube BASE footprint.
               // The tier scales the whole CUBE uniformly: bandPx == cellPx keeps it CUBIC (equal
@@ -2552,7 +2571,7 @@ function AoMapPane(p: PaneProps) {
               // "edge lines same width in pixels as voxel center point").
               const edgeFineW = 1;
               return (
-                <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
+                <div key={col.key} className="absolute" style={{ left: `${px * 100}%`, top: `${py * 100}%`, transformStyle: "preserve-3d", zIndex: baseOff ? 15 : (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
                   // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
                   // by +bearing, but the faces were screen-axis-aligned, so on rotate each
                   // cube looked like it spun on its own ("confusing as shit"). Rotate the
