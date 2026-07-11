@@ -2718,7 +2718,7 @@ function AoMapPane(p: PaneProps) {
                   {topObj && sel && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 18}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
                       <span className="whitespace-nowrap rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold" style={{ background: "#0a0e14", color: TRINITY_COLORS.temporal, border: `1px solid ${TRINITY_COLORS.temporal}`, boxShadow: `0 0 6px ${TRINITY_COLORS.temporal}66` }}>
-                        {fmt.coordAt(col.lat, col.lon)}
+                        {fmt.coordAt(col.lat, col.lon)} · {Math.round(sampler(col.lat, col.lon)).toLocaleString()}m MSL
                       </span>
                     </div>
                   )}
