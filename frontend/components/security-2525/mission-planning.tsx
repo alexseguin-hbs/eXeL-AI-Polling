@@ -1703,7 +1703,15 @@ function AoMapPane(p: PaneProps) {
   // scale(1.2) × perspective (~1.3 near-overhead ≈ 1.55 total), so a naive span/9 rendered
   // ~1.55× too big. Divide by 14 (= 9 × 1.55) so each cell ≈ paneW/9 ON SCREEN and the 3×3
   // group ≈ paneW/3 — the thermal-target reticle the operator asked for.
-  const autoCellM = Math.max(10, Math.round((view.spanKm * 1000) / 14));
+  // FX (HI): AUTO size is a SCREEN-FRAMING heuristic (base + 3-high column scale together via
+  // bandPx=cellPx). On a phone (portrait, ~9:16) the full 3× column top + 1× base both fit; in
+  // landscape the same width-derived size overflows the SHORT viewport and the column top clips.
+  // Fix: frame at the PHONE PORTRAIT proportion — compute the cell as if the pane were 9:16 (w/h).
+  // Portrait (aspect ≤ 9/16) is unchanged; landscape shrinks (~1/3 on a typical desktop), so the
+  // whole cube fits like it does on the phone. Manual sizes (10 m/100 m/1 km) stay true-scale.
+  const PORTRAIT_REF = 9 / 16;                            // phone portrait width/height (operator: 9:16)
+  const frameAspect = Math.max(PORTRAIT_REF, aspect);     // portrait → REF (no change); landscape → aspect
+  const autoCellM = Math.max(10, Math.round((view.spanKm * 1000) / 14 * (PORTRAIT_REF / frameAspect)));
   const effCellM = voxelCellM && voxelCellM > 0 ? voxelCellM : autoCellM;
   const voxelColumns = useMemo(() => {
     if (!is3d) return [];
@@ -2773,7 +2781,7 @@ function AoMapPane(p: PaneProps) {
               const skyK = p > 85 ? Math.max(0, (88 - p) / 3) : 1;       // fade tall lines near-overhead
               const at = (t: string): React.CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
               return (
-                <div className="absolute" style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`, transformStyle: "preserve-3d", zIndex: 11, transform: `rotateZ(${view.bearing}rad)` }}>
+                <div className="absolute" data-voxel-lattice data-cellpx={Math.round(cellPx)} style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`, transformStyle: "preserve-3d", zIndex: 11, transform: `rotateZ(${view.bearing}rad)` }}>
                   {/* (a) 4 horizontal 3×3 grid faces — outer faces (floor/top) get a SOLID 2px
                        cube edge; the two middle levels are thin interior lines. */}
                   {[0, 1, 2, 3].map((k) => {
@@ -4063,7 +4071,7 @@ function TransectPanel({ view, dem, placed, onHide }: TransectPanelProps) {
 }
 
 // ── Mission Planning main view ────────────────────────────────────────────────
-export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
+export function MissionPlanning({ iconStyle, onMaxChange }: { iconStyle: IconStyle; onMaxChange?: (max: boolean) => void }) {
   const [aoKey, setAoKey] = useState("capitol");
   const [gridOn, setGridOn] = useState(true);
   const [gridStepM, setGridStepM] = useState<number>(0);
@@ -4172,6 +4180,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   // rails and transect hide). Distinct from isFs (browser fullscreen, menu-level Expand).
   const [fsPane, setFsPane] = useState<null | "map" | "mini">(null);
   const mapMax = fsPane !== null;                          // rails + command bar + transect hidden
+  // FX: surface maximize up to the shell so it can hide the mode-TABS row (Row 2) when the map is
+  // full-screen — leaving only the eXeL-AI top line floating. (Row 1 + the map's own MINIMIZE stay.)
+  useEffect(() => { onMaxChange?.(mapMax); }, [mapMax, onMaxChange]);
   // Mini-map FLOATS (position:fixed) once dragged — anywhere in the viewport BELOW the two
   // sticky top menus (over rails, under ACTIVE ITEMS…), not just inside the big map.
   const [miniPos, setMiniPos] = useState<{ x: number; y: number } | null>(null); // viewport px (null = bottom-right of map, default)

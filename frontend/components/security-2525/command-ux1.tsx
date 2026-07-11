@@ -199,6 +199,9 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
   const [bottomOpen, setBottomOpen] = useState(true);
   const [mapMax, setMapMax] = useState(false);
   const [fsDetail, setFsDetail] = useState(false);
+  // PLANNING-tab map maximize, surfaced up from MissionPlanning (distinct from OVERVIEW's mapMax
+  // above). When the map is full-screen the mode-TABS row hides so only the eXeL-AI top line floats.
+  const [planningMax, setPlanningMax] = useState(false);
   // Global (all-tab) settings — a main-menu surface, NOT the map. FPS counter is the first entry.
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFps, setShowFps] = useState(() => { try { return localStorage.getItem("sec2525.fps") === "1"; } catch { return false; } });
@@ -326,7 +329,8 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
         </div>
       </div>
 
-      {/* Nav tabs */}
+      {/* Nav tabs — HIDDEN when the PLANNING map is maximized so only the eXeL-AI top line floats */}
+      {!(activeTab === "PLANNING" && planningMax) && (
       <div className="flex gap-1 overflow-x-auto border-b px-4 py-1.5" style={{ borderColor: C.border }}>
         {NAV.map(([tab, Icon]) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
@@ -337,13 +341,14 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
           </button>
         ))}
       </div>
+      )}
       </div>
 
       {/* PLANNING — mission planning: equipment inventory + MGRS drag-and-drop.
           Kept MOUNTED (hidden, not unmounted) so location/settings/placements survive
           switching to LIVE OVERVIEW and back (user law 2026-07-09). */}
       <div style={activeTab === "PLANNING" ? undefined : { display: "none" }}>
-        <MissionPlanning iconStyle={iconStyle} />
+        <MissionPlanning iconStyle={iconStyle} onMaxChange={setPlanningMax} />
       </div>
       {activeTab !== "OVERVIEW" && activeTab !== "PLANNING" && (
         <div className="p-6 text-center text-[11px]" style={{ color: C.dim }}>
