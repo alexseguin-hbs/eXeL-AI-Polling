@@ -431,10 +431,11 @@ function ringPath(ring: [number, number][], w: number, h: number): string {
 
 /** Orthographic wireframe GLOBE — planning start screen (drag-rotate, zoom → drill). */
 type GzCell = { zone: number; band: string; lonW: number; lonE: number; latS: number; latN: number };
-function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones, hiddenKeys }: {
+function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones, hiddenKeys, onCenter }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void; onEnterAo?: (k: string) => void;
   coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; showZones: boolean; hiddenKeys?: Set<string>;
+  onCenter?: (lat: number, lon: number) => void; // report the SCREEN-CENTRE lat/lon up (for the shared readout)
 }) {
   // Nearest AO to a lat/lon within ~10° → zoom-in enters it directly (no flat 'blue screen').
   const nearestAo = (lat: number, lon: number) => {
@@ -454,8 +455,15 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   useEffect(() => { setCam((c) => ({ ...c, lat0: center[0], lon0: center[1] })); }, [center[0], center[1]]);
   const { lat0: LAT0, lon0: LON0, tilt, roll, zoom } = cam;
   const cr = Math.cos(roll), sr = Math.sin(roll), ct = Math.cos(tilt), st = Math.sin(tilt);
-  // Selected grid cell = whatever the globe is currently centered on — orbiting re-selects it.
-  const sel = gzdOf(LAT0, LON0);
+  // Selected grid cell = the cell at SCREEN CENTRE, not the camera nadir. The fixed 3D tilt makes the
+  // nadir (LAT0,LON0) project to (CX, CY + R·sin tilt) — well below centre — so the screen-centre point
+  // sits `tilt` radians NORTH along the centre meridian. Select THAT cell so the label/strip/readout
+  // land where the operator is looking.
+  const ctrLat = Math.max(-80, Math.min(84, LAT0 + tilt * (180 / Math.PI)));
+  const sel = gzdOf(ctrLat, LON0);
+  // report the screen-centre lat/lon up so WorldStrip can render ONE shared HTML readout for 2D + 3D
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { onCenter?.(ctrLat, LON0); }, [ctrLat, LON0]);
   useWheel(gsvg, (e) => {
     e.preventDefault();
     const zin = e.deltaY < 0, factor = zin ? 1.15 : 1 / 1.15;
@@ -709,14 +717,8 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
           <line x1={CX} y1={CY - RING} x2={CX} y2={CY + RING} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
         </g>
       )}
-      {/* GRID readout bottom-left — the centre cell's alphanumeric + calculated cell size (H × W km) */}
-      {showZones && (() => { const latC = (sel.latS + sel.latN) / 2; const hKm = Math.round((sel.latN - sel.latS) * 110.574); const wKm = Math.round((sel.lonE - sel.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180)); return (
-        <text x={6} y={334} fontSize="9" fontWeight="bold" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="0.8">
-          {/* same two-tone format as 2D: cell = intersection yellow, dims = GRID-logo gold */}
-          <tspan fill={TRINITY_COLORS.temporal}>{sel.zone}{sel.band}</tspan>
-          <tspan fill={C.gold}> · {hKm.toLocaleString()} × {wKm.toLocaleString()} km</tspan>
-        </text>
-      ); })()}
+      {/* GRID readout moved to WorldStrip's HTML overlay (shared with 2D) via onCenter — one method,
+          identical size/outline/position on 2D and 3D. */}
     </svg>
   );
 }
@@ -726,6 +728,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
   const [mode, setMode] = useState<"globe" | "flat">("globe");
   const [showZones, setShowZones] = useState(false); // MGRS/LLV-DMS grid-zone training overlay (globe + flat)
   const [center, setCenter] = useState<[number, number]>(() => (AOS.find((a) => a.key === aoKey)?.center ?? [38, -97]));
+  const [globeCtr, setGlobeCtr] = useState<[number, number]>(center); // globe's live SCREEN-CENTRE lat/lon (from GlobeView onCenter)
   useEffect(() => {
     if (borderCache) return;
     fetch("/security-2525/borders-ne50m.json")
@@ -779,7 +782,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
   return (
     <div className="relative h-full w-full overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
-        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} coordFmt={coordFmt} showZones={showZones} hiddenKeys={hiddenKeys} />
+        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} coordFmt={coordFmt} showZones={showZones} hiddenKeys={hiddenKeys} onCenter={(la, lo) => setGlobeCtr([la, lo])} />
       ) : (
         <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full touch-none" role="img"
@@ -952,18 +955,8 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
             <span className="pointer-events-none absolute right-2 top-2 z-10 font-mono text-[9px] font-semibold" style={{ color: C.cyan }}>
               {geoContext(clat, clon, kmW).join(" · ")}
             </span>
-            {showZones ? (() => {
-              const g = gzdOf(clat, clon); const latC = (g.latS + g.latN) / 2;
-              const hKm = Math.round((g.latN - g.latS) * 110.574);
-              const wKm = Math.round((g.lonE - g.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180));
-              return (
-                <span className="pointer-events-none absolute bottom-1 left-2 z-10 flex items-baseline gap-1 font-mono font-bold">
-                  {/* cell = intersection yellow (smaller); dims = GRID-logo gold */}
-                  <span className="text-[10px]" style={{ color: TRINITY_COLORS.temporal, textShadow: "0 0 2px #0a0e14, 0 0 2px #0a0e14" }}>{g.zone}{g.band}</span>
-                  <span className="text-[9px]" style={{ color: C.gold }}>· {hKm.toLocaleString()} × {wKm.toLocaleString()} km</span>
-                </span>
-              );
-            })() : (
+            {/* GRID-OFF readout (MGRS + span). GRID-ON readout is the shared overlay below, so 2D & 3D match. */}
+            {!showZones && (
               <span className="pointer-events-none absolute bottom-1 left-2 z-10 font-mono text-[8px]" style={{ color: C.gold }}>
                 {`${latLonToMgrs(clat, clon, 4)} · ${kmW >= 1 ? `${kmW.toFixed(kmW >= 10 ? 0 : 1)} km` : `${Math.round(kmW * 1000)} m`} wide`}
               </span>
@@ -987,6 +980,21 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
               </span>
             )}
           </>
+        );
+      })()}
+      {/* SHARED GRID readout (2D + 3D, ONE HTML method → identical size/outline/position). Cell code
+          (screen-centre cell) in intersection yellow, dims in GRID-logo gold. */}
+      {showZones && (() => {
+        const cLat = mode === "globe" ? globeCtr[0] : 90 - ((flat.y + flat.h / 2) / H) * 180;
+        const cLon = mode === "globe" ? globeCtr[1] : ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180;
+        const g = gzdOf(cLat, cLon); const latC = (g.latS + g.latN) / 2;
+        const hKm = Math.round((g.latN - g.latS) * 110.574);
+        const wKm = Math.round((g.lonE - g.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180));
+        return (
+          <span className="pointer-events-none absolute bottom-1 left-2 z-10 flex items-baseline gap-1 font-mono font-bold">
+            <span className="text-[10px]" style={{ color: TRINITY_COLORS.temporal, textShadow: "0 0 2px #0a0e14, 0 0 2px #0a0e14" }}>{g.zone}{g.band}</span>
+            <span className="text-[9px]" style={{ color: C.gold }}>· {hKm.toLocaleString()} × {wKm.toLocaleString()} km</span>
+          </span>
         );
       })()}
       {label && (
