@@ -1825,12 +1825,15 @@ function AoMapPane(p: PaneProps) {
                 boxShadow: ucrsHot ? `0 0 0 1px ${l.color}` : undefined, opacity: dim ? 0.5 : 1 }}>{l.label}</span>
           );
         })}
-        {/* COORDINATE — lock (collapsed) / unlock (expanded); opens the MGRS·LLV-DMS·UCRS packet */}
+        {/* Coordinate LOCK — locked pulls the coordinate OFF the map and shows its location HERE (no
+            duplicate on-map readout); unlocked returns it to the map. No "lock + COORDINATE" label —
+            when locked it shows the coordinate itself; UCRS lane stays gold to bind it to UCRS-2525. */}
         <button onClick={() => setShowDecode((v) => !v)}
-          title={showDecode ? "Coordinate packet OPEN — click to close" : "COORDINATE — open the MGRS · LLV-DMS · UCRS-2525 packet"}
-          className="ml-auto flex items-center gap-0.5 rounded px-1 text-[7px] font-bold transition-colors"
+          title={showDecode ? "Coordinate locked here — click to return it to the map" : "Lock the coordinate here (clears the on-map readout)"}
+          className="ml-auto flex items-center gap-1 rounded px-1 text-[7px] font-bold font-mono transition-colors"
           style={{ color: showDecode ? C.gold : C.dim, background: showDecode ? `${C.gold}22` : "transparent", border: `1px solid ${showDecode ? C.gold : C.border}` }}>
-          {showDecode ? <Unlock className="h-2.5 w-2.5" /> : <Lock className="h-2.5 w-2.5" />} COORDINATE
+          {showDecode ? <Unlock className="h-2.5 w-2.5" /> : <Lock className="h-2.5 w-2.5" />}
+          {showDecode ? fmt.coordAt(view.lat, view.lon) : "COORD"}
         </button>
       </div>
 
@@ -3209,11 +3212,14 @@ function AoMapPane(p: PaneProps) {
             <div className="pointer-events-none absolute left-14 top-2 z-20 rounded px-1 font-mono text-[9px] font-semibold" style={{ background: "#0a0f16cc", color: C.cyan }}>
               {breadcrumb.join(" · ")}
             </div>
-            {/* live cursor readout — MGRS or LLV-DMS (upper-right); tap to decode (mini-lesson) */}
+            {/* live cursor readout — MGRS or LLV-DMS (upper-right); tap to decode (mini-lesson).
+                HIDDEN when the coordinate is LOCKED to the R-CORE strip (no duplicate readout). */}
+            {!showDecode && (
             <button onClick={() => setShowDecode((v) => !v)} title="Decode this coordinate (MGRS / LLV-DMS lesson)"
               className="absolute right-2 top-2 z-20 rounded px-1 font-mono text-[9px] font-semibold" style={{ background: "#0a0f16cc", color: cursorLL ? C.gold : C.dim }}>
               {cursorLL ? fmt.coordAt(cursorLL.lat, cursorLL.lon) : (() => { const lc = latticeColumns.length === 9 ? latticeColumns[4] : null; return lc ? fmt.coordAt(lc.lat, lc.lon) : fmt.coordAt(view.lat, view.lon); })()} <span style={{ color: C.dim }}>ⓘ</span>
             </button>
+            )}
             {showDecode && (() => {
               const lc = latticeColumns.length === 9 ? latticeColumns[4] : null;
               const p = cursorLL ?? (lc ? { lat: lc.lat, lon: lc.lon } : { lat: view.lat, lon: view.lon });
