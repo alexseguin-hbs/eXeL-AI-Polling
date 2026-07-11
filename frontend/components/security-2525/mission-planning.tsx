@@ -2376,8 +2376,9 @@ function AoMapPane(p: PaneProps) {
                 border: `${lw ?? (occupied ? 1.5 : 1)}px ${occupied ? "solid" : "dashed"} ${color}`,
                 background: occupied ? `${color}10` : "transparent",
               });
-              // finer grey wireframe edges at the bigger 2X/3X tiers (thin lines read cleaner)
-              const edgeFineW = voxelSize >= 2 ? 0.4 : undefined;
+              // FINE grey wireframe edges at EVERY tier — the tall aerial cube column reads dense
+              // with 1px borders, so the grey (non-top) cubes use a hairline 0.4px edge.
+              const edgeFineW = 0.4;
               return (
                 <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
                   // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
@@ -2657,6 +2658,13 @@ function AoMapPane(p: PaneProps) {
               const topZ = 3 * bandPx;
               const railBands = Math.max(latticeColumns[0].cubes.filter((cb) => cb.bandIdx > 0).length, 3);
               const limitZ = Math.max(topZ, (voxelLimitPct / 100) * railBands * cellW);
+              // Warning-altitude tracers for the VOXEL — SAME true-scale z as the aerial column caps
+              // (ceilM · pct · altPxPerM from ground), so grey/red/orange line up on both when their
+              // bases coincide. Grey = ceiling, red = altRedPct%, orange = altYellowPct%.
+              const altPxPerM = paneW / (view.spanKm * 1000);
+              const ceilM = (maxAltFt ?? autoCeilingFt(view.spanKm)) * 0.3048;
+              const redZv = ceilM * (altRedPct / 100) * altPxPerM;
+              const orgZv = ceilM * (altYellowPct / 100) * altPxPerM;
               const line = `${C.cyan}55`;
               const selIdx = latticeColumns.findIndex((c) => c.key === voxelSel);
               const dim = selIdx >= 0 ? 0.35 : 1;                        // rest dims when one column is picked
@@ -2734,6 +2742,13 @@ function AoMapPane(p: PaneProps) {
                         `repeating-linear-gradient(to right, #6b728077 0 1px, transparent 1px ${cellPx}px),` +
                         `repeating-linear-gradient(to bottom, #6b728077 0 1px, transparent 1px ${cellPx}px)` }} />
                   )}
+                  {/* (g) WARNING-ALTITUDE tracers — orange (yellow%) + red (red%) horizontal planes at
+                       TRUE scale, the SAME z as the aerial column's caps, so the voxel and the aircraft
+                       show their warning altitudes at the same level when their bases coincide. */}
+                  {([[orgZv, C.amber], [redZv, C.red]] as const).map(([z, c], n) => (
+                    <div key={`wt${n}`} className="pointer-events-none" style={{ ...at(`translateZ(${z}px)`), width: boxW, height: boxW,
+                      border: `1px solid ${c}cc`, background: `${c}0c`, boxShadow: `0 0 5px ${c}55`, opacity: 0.75 * skyK }} />
+                  ))}
                 </div>
               );
             })()}
