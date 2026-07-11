@@ -2148,10 +2148,13 @@ function AoMapPane(p: PaneProps) {
                 // far off in the SKY, not pinned to the map edge. Grows with (pitch − 55°).
                 const horizonLift = is3d ? Math.max(0, ((pitch ?? 55) - 55)) * 1.6 : 0;
                 return (
-                  <div key={u.id} className="pointer-events-none absolute" style={{ left: `${cx * 100}%`, top: `${cy * 100}%`, zIndex: 14,
+                  <div key={u.id} className="pointer-events-none absolute flex flex-col items-center" style={{ left: `${cx * 100}%`, top: `${cy * 100}%`, zIndex: 14,
                     transform: is3d ? `translate(-50%,-100%) translateY(${-horizonLift}px) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-100%)", transformOrigin: "50% 100%" }}>
                     <span className="block" style={{ width: 15, height: 15, border: `2px solid ${col}`, background: `${col}33`, boxShadow: `0 0 9px ${col}` }} />
                     <span className="mt-0.5 block whitespace-nowrap text-center font-mono text-[7px] font-bold" style={{ color: col }}>{ASSET_LABELS[u.asset]} ▲</span>
+                    {/* off-screen LOCATION cue (pilot-style) — the base's coordinate, clamped at the map
+                        edge toward where it actually is, so it reads like an off-screen contact. */}
+                    <span className="block whitespace-nowrap rounded px-0.5 text-center font-mono text-[6px]" style={{ background: "#0a0f16cc", color: col }}>{fmt.coordAt(u.lat, u.lon)}</span>
                   </div>
                 );
               }
