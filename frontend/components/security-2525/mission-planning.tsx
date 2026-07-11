@@ -684,17 +684,11 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                       meets the violet band), NOT screen-centre: tilt shifts the sub-camera point down,
                       so a screen-fixed label sat a band or two too high. Mini circle + all-yellow
                       "14R" (outline), exactly like the 2D chip that read perfectly. */}
-                  {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; const cr = 15 / zoom, gap = 9 / zoom; return (
-                    <g key="gzint">
-                      {/* YELLOW centre crosshair — always sits ON the yellow-zone × violet-band
-                          intersection (tracks the selected cell). Arms leave a gap so the "14R"
-                          address sits CENTRED in the intersection square. Restored per operator. */}
-                      <line x1={x - cr} y1={y} x2={x - gap} y2={y} stroke={TRINITY_COLORS.temporal} strokeWidth={1 / zoom} opacity="0.95" />
-                      <line x1={x + gap} y1={y} x2={x + cr} y2={y} stroke={TRINITY_COLORS.temporal} strokeWidth={1 / zoom} opacity="0.95" />
-                      <line x1={x} y1={y - cr} x2={x} y2={y - gap} stroke={TRINITY_COLORS.temporal} strokeWidth={1 / zoom} opacity="0.95" />
-                      <line x1={x} y1={y + gap} x2={x} y2={y + cr} stroke={TRINITY_COLORS.temporal} strokeWidth={1 / zoom} opacity="0.95" />
-                      <text x={x} y={y} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth={2.2 / zoom}>{sel.zone}{sel.band}</text>
-                    </g>
+                  {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; return (
+                    /* "14R" address CENTRED on the yellow-zone × violet-band intersection (tracks the
+                       selected cell). No crosshair arms — the stationary dashed compass reticle
+                       (270↔90 / 000↔180) already reads the centre. */
+                    <text key="gzint" x={x} y={y} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth={2.2 / zoom}>{sel.zone}{sel.band}</text>
                   ); })()}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
                   {paral.map((lat) => { const [x, y, v] = proj(lat, LON0); return v ? <text key={`dgb${lat}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text> : null; })}
@@ -980,7 +974,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
           </button>
         )}
         <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
-          {(["globe", "flat"] as const).map((m) => (
+          {(["flat", "globe"] as const).map((m) => (
             <button key={m} onClick={() => (m === "flat" ? (() => { const cx = ((center[1] + 180) / 360) * W; setFlat({ x: cx - W / 2, y: H * 0.08, w: W, h: H * 0.62 }); setMode("flat"); })() : (setCenter([90 - ((flat.y + flat.h / 2) / H) * 180, ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180]), setMode("globe")))} className="px-2 py-0.5"
               style={{ background: mode === m ? "#152238" : "transparent", color: mode === m ? C.cyan : C.dim }}>
               {m === "globe" ? "3D" : "2D"}
