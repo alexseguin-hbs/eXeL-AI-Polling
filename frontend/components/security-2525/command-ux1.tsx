@@ -287,38 +287,31 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
                 <div className="mt-1.5 border-t pt-1.5" style={{ borderColor: C.border }}>
                   <div className="mb-1 text-[9px] font-bold tracking-wider" style={{ color: C.dim }}>TARGET FPS · EDGE</div>
                   <div className="flex items-center gap-1">
-                    {[3, 6, 9, 30, 0].map((n) => (
+                    {[3, 6, 9, 33, 0].map((n) => (
                       <button key={n} onClick={() => applyCap(n)} className="flex-1 rounded border px-1 py-0.5 text-[9px] font-bold"
                         style={{ borderColor: fpsCap === n ? C.cyan : C.border, color: fpsCap === n ? C.cyan : C.dim }}>{n === 0 ? "MAX" : n}</button>
                     ))}
                   </div>
-                  <button onClick={speedTest} disabled={benching} className="mt-1.5 w-full rounded border px-1 py-1 text-[9px] font-bold"
+                  <button onClick={speedTest} disabled={benching || playing2} className="mt-1.5 w-full rounded border px-1 py-1 text-[9px] font-bold"
                     style={{ borderColor: "#ffd400", color: "#ffd400", opacity: benching ? 0.6 : 1 }}>{benching ? "TESTING…" : "SPEED TEST"}</button>
                   {bench != null && (
-                    <div className="mt-1 text-[9px] font-bold" style={{ color: bench >= 50 ? "#3ec96b" : bench >= 30 ? "#f5a623" : "#ef4444" }}>
-                      {bench} fps · {bench >= 50 ? "EDGE-ready" : bench >= 30 ? "OK · cap ≤ 30" : "set cap ≤ 9"}
-                      <button onClick={playTest} disabled={playing2 || benching} className="mt-1.5 w-full rounded border px-1 py-1 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan, opacity: playing2 ? 0.6 : 1 }}>{playing2 ? "PLAYING…" : "▶ PLAY TEST (demo)"}</button>
-                  {playing2 && playRun.length > 0 && (
-                    <div className="mt-1 truncate text-[8px]" style={{ color: C.dim }}>{playRun[playRun.length - 1].name} · {playRun[playRun.length - 1].fps} fps</div>
-                  )}
-                  {!playing2 && playHist.length > 0 && (
-                    <div className="mt-1 space-y-0.5">
-                      {playHist.map((h, i) => (
-                        <div key={i} className="text-[8px] font-bold" style={{ color: h.min >= 50 ? "#3ec96b" : h.min >= 30 ? "#f5a623" : "#ef4444" }}>run {playHist.length - i} · min {h.min} fps · worst: {h.worst.slice(0, 18)}</div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                    <div className="mt-1 text-[9px] font-bold" style={{ color: bench >= 50 ? "#3ec96b" : bench >= 30 ? "#f5a623" : "#ef4444" }}>{bench} fps · {bench >= 50 ? "EDGE-ready" : bench >= 30 ? "OK · cap ≤ 33" : "set cap ≤ 9"}</div>
                   )}
                   <button onClick={playTest} disabled={playing2 || benching} className="mt-1.5 w-full rounded border px-1 py-1 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan, opacity: playing2 ? 0.6 : 1 }}>{playing2 ? "PLAYING…" : "▶ PLAY TEST (demo)"}</button>
                   {playing2 && playRun.length > 0 && (
-                    <div className="mt-1 truncate text-[8px]" style={{ color: C.dim }}>{playRun[playRun.length - 1].name} · {playRun[playRun.length - 1].fps} fps</div>
+                    <div className="mt-1 truncate text-[8px]" style={{ color: C.dim }}>▶ {playRun[playRun.length - 1].name} · {playRun[playRun.length - 1].fps} fps</div>
                   )}
-                  {!playing2 && playHist.length > 0 && (
-                    <div className="mt-1 space-y-0.5">
-                      {playHist.map((h, i) => (
-                        <div key={i} className="text-[8px] font-bold" style={{ color: h.min >= 50 ? "#3ec96b" : h.min >= 30 ? "#f5a623" : "#ef4444" }}>run {playHist.length - i} · min {h.min} fps · worst: {h.worst.slice(0, 18)}</div>
-                      ))}
+                  {!playing2 && playRun.length > 0 && (
+                    <div className="mt-1.5 border-t pt-1" style={{ borderColor: C.border }}>
+                      <div className="mb-0.5 text-[9px] font-bold tracking-wider" style={{ color: C.dim }}>REPORT · LAST RUN</div>
+                      <div className="max-h-28 space-y-0.5 overflow-y-auto pr-0.5">
+                        {playRun.map((sec, i) => (
+                          <div key={i} className="flex items-center justify-between gap-2 text-[8px]" style={{ color: sec.minFps >= 50 ? "#3ec96b" : sec.minFps >= 30 ? "#f5a623" : "#ef4444" }}>
+                            <span className="truncate">{sec.name}</span><span className="whitespace-nowrap tabular-nums">{sec.fps}/{sec.minFps} fps</span>
+                          </div>
+                        ))}
+                      </div>
+                      {playHist.length > 1 && <div className="mt-1 text-[8px]" style={{ color: C.dim }}>prev runs min: {playHist.slice(1).map((h) => h.min + " fps").join(" · ")}</div>}
                     </div>
                   )}
                 </div>
