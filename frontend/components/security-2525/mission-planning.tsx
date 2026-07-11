@@ -2518,7 +2518,13 @@ function AoMapPane(p: PaneProps) {
             {is3d && voxelLayer && voxelColumns.map((col) => {
               const f = project(col.lat, col.lon);
               const isAerialCol = !col.key.startsWith("LAT:") && col.objects.some((o) => o.altM > 0);
-              const baseOff = f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02;
+              // F1: the FRONT/south off-screen (f.fy>1.02) already culls; the BACK/north case leaves a
+              // far-north asset with a small in-bounds f.fy so its base HOVERS at the top/horizon. In 3D,
+              // also treat the base as off-map when it sits at/behind the tilt HORIZON: hide when f.fy is
+              // in the top `horizonFrac` of the view, derived from pitch (flat 88° → more receded/behind →
+              // bigger frac; overhead 11° → ~0). Keeps near-top on-map bases at low tilt, culls the back.
+              const horizonFrac = is3d ? ((Math.max(11, Math.min(88, pitch ?? 55)) - 11) / 77) * 0.22 : 0;
+              const baseOff = f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02 || (is3d && f.fy < horizonFrac);
               // Ground/lattice columns off-map → cull. An AERIAL tower whose BASE is off-map is NOT
               // culled and NOT clamped: it renders at its TRUE projected position, so the base square
               // (hidden below) clips off the map's overflow → "disappears", while the red/grey TOP cubes
