@@ -619,12 +619,12 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
         setDragging(true);
         if (e.pointerType === "touch") {
           touch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-          (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId);
+          try { (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic/replayed pointer (play-test) has no active pointer */ }
           if (touch.current.size === 2) { const [a, b] = Array.from(touch.current.values()); pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, ang: Math.atan2(b.y - a.y, b.x - a.x) }; }
           return;
         }
         drag.current = { x: e.clientX, y: e.clientY, btn: e.button };
-        (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId);
+        try { (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic/replayed pointer (play-test) has no active pointer */ }
       }}
       onPointerMove={(e) => {
         if (e.pointerType === "touch") {
@@ -834,7 +834,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
           style={{ cursor: flatDrag.current ? "grabbing" : "grab" }}
           aria-label="World context map — country + US state borders (Natural Earth 50m); scroll to zoom, drag to pan"
           onContextMenu={(e) => e.preventDefault()}
-          onPointerDown={(e) => { flatDrag.current = { x: e.clientX, y: e.clientY }; (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); }}
+          onPointerDown={(e) => { flatDrag.current = { x: e.clientX, y: e.clientY }; try { (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic/replayed pointer (play-test) has no active pointer */ } }}
           onPointerMove={(e) => {
             const d = flatDrag.current; if (!d) return;
             const r = flatSvg.current?.getBoundingClientRect(); if (!r) return;

@@ -17,6 +17,7 @@ import {
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { getFpsCap, setFpsCap, initFpsCap, runSpeedTest } from "@/components/security-2525/fps-governor";
+import { runPlayTest, type PlaySection } from "@/components/security-2525/play-test";
 import { CLEARANCE_COLORS } from "@/lib/atlantis-package";
 import {
   AssetIcon, ASSET_ORDER, ASSET_LABELS, type IconStyle,
@@ -208,6 +209,16 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
   useEffect(() => { initFpsCap(); setFpsCapState(getFpsCap()); try { const v = Number(localStorage.getItem("sec2525.fpsBench")); if (Number.isFinite(v) && v > 0) setBench(v); } catch {} }, []);
   const applyCap = (n: number) => { setFpsCap(n); setFpsCapState(n); };
   const speedTest = async () => { setBenching(true); const fps = await runSpeedTest(2000); setBench(fps); try { localStorage.setItem("sec2525.fpsBench", String(fps)); } catch {} setBenching(false); };
+  const [playRun, setPlayRun] = useState<PlaySection[]>([]);
+  const [playing2, setPlaying2] = useState(false);
+  const [playHist, setPlayHist] = useState<{ min: number; worst: string }[]>([]);
+  const playTest = async () => {
+    setPlaying2(true); setPlayRun([]);
+    const secs: PlaySection[] = [];
+    await runPlayTest((sec) => { secs.push(sec); setPlayRun([...secs]); });
+    if (secs.length) { const min = Math.min(...secs.map((x) => x.minFps)); const worst = secs.reduce((a, b) => (b.minFps < a.minFps ? b : a), secs[0]); setPlayHist((h) => [{ min, worst: worst.name }, ...h].slice(0, 3)); }
+    setPlaying2(false);
+  };
 
   // Maximize = fill the ENTIRE physical screen (browser Fullscreen API — same
   // as F11: Chrome's tabs/URL bar disappear). Falls back to in-page overlay
@@ -286,6 +297,28 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
                   {bench != null && (
                     <div className="mt-1 text-[9px] font-bold" style={{ color: bench >= 50 ? "#3ec96b" : bench >= 30 ? "#f5a623" : "#ef4444" }}>
                       {bench} fps · {bench >= 50 ? "EDGE-ready" : bench >= 30 ? "OK · cap ≤ 30" : "set cap ≤ 9"}
+                      <button onClick={playTest} disabled={playing2 || benching} className="mt-1.5 w-full rounded border px-1 py-1 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan, opacity: playing2 ? 0.6 : 1 }}>{playing2 ? "PLAYING…" : "▶ PLAY TEST (demo)"}</button>
+                  {playing2 && playRun.length > 0 && (
+                    <div className="mt-1 truncate text-[8px]" style={{ color: C.dim }}>{playRun[playRun.length - 1].name} · {playRun[playRun.length - 1].fps} fps</div>
+                  )}
+                  {!playing2 && playHist.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {playHist.map((h, i) => (
+                        <div key={i} className="text-[8px] font-bold" style={{ color: h.min >= 50 ? "#3ec96b" : h.min >= 30 ? "#f5a623" : "#ef4444" }}>run {playHist.length - i} · min {h.min} fps · worst: {h.worst.slice(0, 18)}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                  )}
+                  <button onClick={playTest} disabled={playing2 || benching} className="mt-1.5 w-full rounded border px-1 py-1 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan, opacity: playing2 ? 0.6 : 1 }}>{playing2 ? "PLAYING…" : "▶ PLAY TEST (demo)"}</button>
+                  {playing2 && playRun.length > 0 && (
+                    <div className="mt-1 truncate text-[8px]" style={{ color: C.dim }}>{playRun[playRun.length - 1].name} · {playRun[playRun.length - 1].fps} fps</div>
+                  )}
+                  {!playing2 && playHist.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {playHist.map((h, i) => (
+                        <div key={i} className="text-[8px] font-bold" style={{ color: h.min >= 50 ? "#3ec96b" : h.min >= 30 ? "#f5a623" : "#ef4444" }}>run {playHist.length - i} · min {h.min} fps · worst: {h.worst.slice(0, 18)}</div>
+                      ))}
                     </div>
                   )}
                 </div>
