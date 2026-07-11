@@ -684,12 +684,14 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                       meets the violet band), NOT screen-centre: tilt shifts the sub-camera point down,
                       so a screen-fixed label sat a band or two too high. Mini circle + all-yellow
                       "14R" (outline), exactly like the 2D chip that read perfectly. */}
-                  {mgrs && (
-                    /* "14R" address pinned to the EXACT centre of the map (CX,CY) — the intersection
-                       readout must always sit dead-centre, not drift with tilt/orbit. sel is the cell
-                       at the view centre. The dashed compass reticle (270↔90 / 000↔180) marks it. */
-                    <text key="gzint" x={CX} y={CY} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth={2.2 / zoom}>{sel.zone}{sel.band}</text>
-                  )}
+                  {mgrs && (() => { const lbl = `${sel.zone}${sel.band}`; const fs = 14 / zoom, w = lbl.length * fs * 0.62 + 6 / zoom, h = fs + 5 / zoom; return (
+                    /* ONE larger address chip — BLACK fill + border — pinned to the EXACT centre of the
+                       map (CX,CY = the zoom fixed point). Always dead-centre, never drifts with tilt. */
+                    <g key="gzint">
+                      <rect x={CX - w / 2} y={CY - h / 2} width={w} height={h} rx={2 / zoom} fill="#0a0e14" stroke={TRINITY_COLORS.temporal} strokeWidth={0.9 / zoom} />
+                      <text x={CX} y={CY} fontSize={fs} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace" }}>{lbl}</text>
+                    </g>
+                  ); })()}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
                   {paral.map((lat) => { const [x, y, v] = proj(lat, LON0); return v ? <text key={`dgb${lat}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text> : null; })}
                 </>
@@ -888,10 +890,13 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                       })}
                       {/* CROSS-SECTION address "14R" at the cell centre — SAME format as the 3D
                           globe: all-yellow, dark outline (paintOrder stroke), no box. */}
-                      {(() => { const cx = flat.x + flat.w / 2, cy = flat.y + flat.h / 2; return (
-                        /* address pinned to the EXACT centre of the flat viewport, not the cell's
-                           projected centre — the intersection readout always sits dead-centre. */
-                        <text key="fzcell" x={cx} y={cy} fontSize="8" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.4">{fsel.zone}{fsel.band}</text>
+                      {(() => { const cx = flat.x + flat.w / 2, cy = flat.y + flat.h / 2; const lbl = `${fsel.zone}${fsel.band}`; const fs = 11, w = lbl.length * fs * 0.62 + 6, h = fs + 5; return (
+                        /* ONE larger address chip — BLACK fill + border — pinned to the EXACT centre of
+                           the flat viewport. The single intersection readout, always dead-centre. */
+                        <g key="fzcell">
+                          <rect x={cx - w / 2} y={cy - h / 2} width={w} height={h} rx="2" fill="#0a0e14" stroke={TRINITY_COLORS.temporal} strokeWidth="0.9" vectorEffect="non-scaling-stroke" />
+                          <text x={cx} y={cy} fontSize={fs} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{lbl}</text>
+                        </g>
                       ); })()}
                     </>)}
                     {coordFmt === "dms" && (<>
