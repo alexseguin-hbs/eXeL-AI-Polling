@@ -16,8 +16,8 @@ const rec = (name, pass, detail = '') => { results.push({ name, pass, detail });
 const b = await chromium.launch({ headless: true, executablePath: EXE });
 
 // helpers bound per page
-const mk = async (seedFmt) => {
-  const pg = await b.newPage({ viewport: { width: 1000, height: 820 } });
+const mk = async (seedFmt, vp) => {
+  const pg = await b.newPage({ viewport: vp ?? { width: 1000, height: 820 } });
   const errs = [];
   pg.on('pageerror', e => { if (!ALLOW.test(e.message)) errs.push('PE:' + e.message.slice(0, 90)); });
   pg.on('console', m => { if (m.type() === 'error' && !ALLOW.test(m.text())) errs.push(m.text().slice(0, 90)); });
@@ -94,6 +94,48 @@ for (const fmt of ['mgrs', 'dms', 'utm', 'ucrs']) {
   });
   rec('#14 drop → HEADING+ALT entry packet', armed && panel.hasSet && panel.hasHdg && panel.hasSave, `armed=${armed} set=${panel.hasSet} hdg=${panel.hasHdg} save=${panel.hasSave}`);
   rec('#14 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
+// ── CORPUS #15: Fix A — aspect-aware AUTO voxel size (landscape cell < portrait cell) ──
+// Same AO/span at two viewports; the standalone 3×3 lattice's on-screen cell (data-cellpx) must be
+// SMALLER in landscape than portrait (frames at the phone 9:16 proportion). Guards the "landscape
+// voxel too big / column top clipped" regression.
+const cellPxAt = async (w, h) => {
+  const { pg, errs, clk } = await mk(null, { width: w, height: h });
+  // The ▦ VOXEL lattice is ON by default — just enter 3D and it renders (do NOT click VOXEL: that hides it).
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(700);
+  // Zoom IN so the AUTO cell rises above the 16px floor — the aspect factor is only observable when
+  // the cell is unclamped (the operator's actual working view is zoomed in, not the default overview).
+  await pg.mouse.move(Math.round(w / 2), Math.round(h / 2));
+  for (let i = 0; i < 10; i++) { await pg.mouse.wheel(0, -320); await pg.waitForTimeout(70); }
+  await pg.waitForTimeout(500);
+  // Two lattices can exist (main map + mini-map). The mini floors to the 16px minimum, so take the
+  // MAX cellpx = the MAIN map's cell (the one that must shrink in landscape).
+  const cp = await pg.evaluate(() => { const els = [...document.querySelectorAll('[data-voxel-lattice]')]; if (!els.length) return null; return Math.max(...els.map(e => parseInt(e.getAttribute('data-cellpx') || '0', 10))); });
+  await pg.close();
+  return { cp, errs: errs.length };
+};
+{
+  // Both ≥1000px wide so the map command bar (EARTH/2D/3D/VOXEL) is reliably clickable; the aspect
+  // factor is width-independent, so tall-portrait vs wide-landscape isolates the aspect behaviour.
+  const port = await cellPxAt(1000, 1400);   // portrait (aspect ~0.71)
+  const land = await cellPxAt(1400, 500);    // landscape (aspect ~2.80)
+  rec('#15 voxel aspect-aware (land < port)', !!port.cp && !!land.cp && land.cp < port.cp, `port=${port.cp} land=${land.cp}`);
+  rec('#15 console clean', port.errs === 0 && land.errs === 0, `p=${port.errs} l=${land.errs}`);
+}
+
+// ── CORPUS #16: Fix B — maximize the PLANNING map hides the TABS row, keeps the eXeL-AI top line ──
+{
+  const { pg, errs, clk } = await mk(null);
+  const tabsBefore = await pg.locator('button:has-text("SENSORS")').count();
+  await clk('button[title="Maximize"]'); await pg.waitForTimeout(700);
+  const st = await pg.evaluate(() => ({
+    sensors: [...document.querySelectorAll('button')].filter(e => /SENSORS/.test(e.textContent || '')).some(e => e.offsetParent !== null),
+    exel: /eXeL/.test(document.body.innerText),
+  }));
+  rec('#16 maximize hides tabs, keeps top line', tabsBefore > 0 && !st.sensors && st.exel, `before=${tabsBefore} sensorsAfter=${st.sensors} exel=${st.exel}`);
+  rec('#16 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
 
