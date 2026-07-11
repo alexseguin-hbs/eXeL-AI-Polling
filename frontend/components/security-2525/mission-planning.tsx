@@ -1812,12 +1812,26 @@ function AoMapPane(p: PaneProps) {
           {onHidePane && <Dots3 horizontal onClick={onHidePane} title="Hide this window" />}
         </div>
       </div>
-      {/* R-CORE lane strip */}
+      {/* R-CORE lane strip + COORDINATE toggle. Opening the coordinate packet lights ONLY the
+          UCRS lane (gold) and greys the other four — binding Coordinates ⇄ R-CORE UCRS-2525. */}
       <div className="flex flex-wrap items-center gap-1 border-b px-2 py-0.5" style={{ borderColor: C.border }}>
         <span className="text-[7px] font-bold tracking-wider" style={{ color: C.dim }}>R-CORE</span>
-        {RCORE_LANES.map((l) => (
-          <span key={l.key} title={l.def} className="rounded px-1 text-[7px] font-bold" style={{ color: l.color, background: `${l.color}18` }}>{l.label}</span>
-        ))}
+        {RCORE_LANES.map((l) => {
+          const dim = showDecode && l.key !== "UCRS";          // packet open → only UCRS stays lit
+          const ucrsHot = showDecode && l.key === "UCRS";
+          return (
+            <span key={l.key} title={l.def} className="rounded px-1 text-[7px] font-bold transition-colors"
+              style={{ color: dim ? C.dim : l.color, background: dim ? `${C.dim}14` : `${l.color}${ucrsHot ? "33" : "18"}`,
+                boxShadow: ucrsHot ? `0 0 0 1px ${l.color}` : undefined, opacity: dim ? 0.5 : 1 }}>{l.label}</span>
+          );
+        })}
+        {/* COORDINATE — lock (collapsed) / unlock (expanded); opens the MGRS·LLV-DMS·UCRS packet */}
+        <button onClick={() => setShowDecode((v) => !v)}
+          title={showDecode ? "Coordinate packet OPEN — click to close" : "COORDINATE — open the MGRS · LLV-DMS · UCRS-2525 packet"}
+          className="ml-auto flex items-center gap-0.5 rounded px-1 text-[7px] font-bold transition-colors"
+          style={{ color: showDecode ? C.gold : C.dim, background: showDecode ? `${C.gold}22` : "transparent", border: `1px solid ${showDecode ? C.gold : C.border}` }}>
+          {showDecode ? <Unlock className="h-2.5 w-2.5" /> : <Lock className="h-2.5 w-2.5" />} COORDINATE
+        </button>
       </div>
 
       {/* pane body: the map surface (+ elevation). The ASSET/SUPPORT menu now lives
