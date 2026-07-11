@@ -1825,15 +1825,14 @@ function AoMapPane(p: PaneProps) {
                 boxShadow: ucrsHot ? `0 0 0 1px ${l.color}` : undefined, opacity: dim ? 0.5 : 1 }}>{l.label}</span>
           );
         })}
-        {/* Coordinate LOCK — locked pulls the coordinate OFF the map and shows its location HERE (no
-            duplicate on-map readout); unlocked returns it to the map. No "lock + COORDINATE" label —
-            when locked it shows the coordinate itself; UCRS lane stays gold to bind it to UCRS-2525. */}
+        {/* Coordinate — the view-centre coordinate LIVES HERE (in the R-CORE strip), not on the map.
+            The label IS the coordinate (no "COORDINATE" word). Tap to open the decode packet; when
+            open the other lanes grey and UCRS stays gold, binding coordinates to UCRS-2525. */}
         <button onClick={() => setShowDecode((v) => !v)}
-          title={showDecode ? "Coordinate locked here — click to return it to the map" : "Lock the coordinate here (clears the on-map readout)"}
+          title="Coordinate (tap to decode MGRS · LLV-DMS · UCRS-2525)"
           className="ml-auto flex items-center gap-1 rounded px-1 text-[7px] font-bold font-mono transition-colors"
-          style={{ color: showDecode ? C.gold : C.dim, background: showDecode ? `${C.gold}22` : "transparent", border: `1px solid ${showDecode ? C.gold : C.border}` }}>
-          {showDecode ? <Unlock className="h-2.5 w-2.5" /> : <Lock className="h-2.5 w-2.5" />}
-          {showDecode ? fmt.coordAt(view.lat, view.lon) : "COORD"}
+          style={{ color: showDecode ? C.gold : C.cyan, background: showDecode ? `${C.gold}22` : `${C.cyan}12`, border: `1px solid ${showDecode ? C.gold : C.border}` }}>
+          <Lock className="h-2.5 w-2.5" /> {fmt.coordAt(view.lat, view.lon)}
         </button>
       </div>
 
@@ -2496,20 +2495,16 @@ function AoMapPane(p: PaneProps) {
                         <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${markerZ}px)${bb}` }}>
                           <span className="block rounded-full" style={{ width: 6, height: 6, background: topObj.color ?? ac, boxShadow: `0 0 6px ${topObj.color ?? ac}` }} />
                         </div>
-                        {/* (4) TOP-FACE coords (CENTRE + 4 CORNERS) — HIDDEN by default to keep the
-                            voxel clean; shown ONLY when the asset is SELECTED (clicked). In 3D the
-                            AGL chip is the single always-on voxel label (HI: too busy otherwise). */}
-                        {(sel || selAsset) && (
+                        {/* (4) TOP-FACE CORNER coords — ONLY the 4 corners of the upward-facing top
+                            face, shown ONLY when the TOP FACE is clicked (voxel selected). Small,
+                            plate-free (text-shadow for legibility) so they don't cover the cube. */}
+                        {sel && (
                         <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d" }}>
-                          <span className="absolute left-0 top-0 whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: sel ? C.gold : ac,
-                            transform: `translate(-50%,-150%) translateZ(${topZ + bandPx * 0.35}px)${bb}` }}>
-                            {fmt.coordAt(col.lat, col.lon)}
-                          </span>
                           {col.corners.map((cn, ci) => {
                             const cx = (ci === 0 || ci === 3 ? -1 : 1) * (cellPx / 2);
                             const cy = (ci === 0 || ci === 1 ? -1 : 1) * (cellPx / 2);
                             return (
-                              <span key={`tfc${ci}`} className="absolute left-0 top-0 whitespace-nowrap rounded px-0.5 font-mono text-[5px]" style={{ background: "#0a0f16aa", color: C.dim,
+                              <span key={`tfc${ci}`} className="absolute left-0 top-0 whitespace-nowrap font-mono text-[4px]" style={{ color: C.gold, textShadow: "0 0 2px #000, 0 0 2px #000",
                                 transform: `translate(-50%,-50%) translate3d(${cx}px,${cy}px,${topZ}px)${bb}` }}>
                                 {fmt.coordAt(cn.lat, cn.lon)}
                               </span>
@@ -3212,14 +3207,8 @@ function AoMapPane(p: PaneProps) {
             <div className="pointer-events-none absolute left-14 top-2 z-20 rounded px-1 font-mono text-[9px] font-semibold" style={{ background: "#0a0f16cc", color: C.cyan }}>
               {breadcrumb.join(" · ")}
             </div>
-            {/* live cursor readout — MGRS or LLV-DMS (upper-right); tap to decode (mini-lesson).
-                HIDDEN when the coordinate is LOCKED to the R-CORE strip (no duplicate readout). */}
-            {!showDecode && (
-            <button onClick={() => setShowDecode((v) => !v)} title="Decode this coordinate (MGRS / LLV-DMS lesson)"
-              className="absolute right-2 top-2 z-20 rounded px-1 font-mono text-[9px] font-semibold" style={{ background: "#0a0f16cc", color: cursorLL ? C.gold : C.dim }}>
-              {cursorLL ? fmt.coordAt(cursorLL.lat, cursorLL.lon) : (() => { const lc = latticeColumns.length === 9 ? latticeColumns[4] : null; return lc ? fmt.coordAt(lc.lat, lc.lon) : fmt.coordAt(view.lat, view.lon); })()} <span style={{ color: C.dim }}>ⓘ</span>
-            </button>
-            )}
+            {/* (on-map coordinate readout REMOVED — the coordinate now lives ONLY in the R-CORE
+                strip chip above, so it never clutters inside the map boundary.) */}
             {showDecode && (() => {
               const lc = latticeColumns.length === 9 ? latticeColumns[4] : null;
               const p = cursorLL ?? (lc ? { lat: lc.lat, lon: lc.lon } : { lat: view.lat, lon: view.lon });
