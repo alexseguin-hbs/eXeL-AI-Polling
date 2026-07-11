@@ -1323,6 +1323,14 @@ function AoMapPane(p: PaneProps) {
   // R1: tap empty ground → coordinate CALL-UP packet (MGRS + LLV-DMS + UCRS + elevation)
   const [coordCall, setCoordCall] = useState<{ lat: number; lon: number } | null>(null);
   const [coordCallOff, setCoordCallOff] = useState({ x: 0, y: 0 }); // draggable offset for the call-up packet
+  // FX (HI): on DROP, auto-open a HEADING + ALTITUDE entry packet (0–360° / AGL·MSL) so the
+  // operator can set orientation + altitude immediately WITHOUT the right rail — the rail
+  // inspector vanishes when the map is maximized/collapsed, which lost desktop AGL entry.
+  // Same look as the COORDINATE · CALL-UP packet; works for mouse tap + phone tap (both → place()).
+  const [assetEntry, setAssetEntry] = useState<
+    { id: number; lat: number; lon: number; heading: string; altitude: string; altRef: "AGL" | "MSL" } | null
+  >(null);
+  const [assetEntryOff, setAssetEntryOff] = useState({ x: 0, y: 0 });
 
   // Overscan: the inner canvas is RENDER× the pane per axis, so rotation (bearing)
   // and 2D↔3D tilt NEVER expose black around the map (P1, user law 2026-07-09).
@@ -1445,6 +1453,10 @@ function AoMapPane(p: PaneProps) {
     // per palette pick, straight back to SELECT mode with the new unit selected
     // (in 3D its VOXEL·CUBE auto-shows via the voxel-on-select effect).
     setSelected({ kind: "asset", id });
+    // FX (HI): pop the HEADING + ALTITUDE entry packet on the map right where it landed,
+    // pre-seeded blank (AGL default for air assets). Save writes heading/altitude/altRef.
+    setAssetEntry({ id, lat, lon, heading: "", altitude: "", altRef: "AGL" });
+    setAssetEntryOff({ x: 0, y: 0 });
     onDisarm?.();
   };
   const placeSupport = (def: SupportObjectDef, fx: number, fy: number) => {
@@ -1583,7 +1595,7 @@ function AoMapPane(p: PaneProps) {
   };
 
   // Reset the draft + coordinate call-up when the AO changes.
-  useEffect(() => { setRouteDraft([]); setCoordCall(null); }, [ao.key]);
+  useEffect(() => { setRouteDraft([]); setCoordCall(null); setAssetEntry(null); }, [ao.key]);
   // CURSOR HOOK (P1.3 round 3, HI / FAAD C2 procedure): right-click over a track
   // "hooks" it — IFF + speed/altitude/heading data + engagement tools at the plot.
   // FX-51 v2 (HI): MULTIPLE hooks — right-click each track adds its own label.
@@ -3217,6 +3229,63 @@ function AoMapPane(p: PaneProps) {
                         style={{ borderColor: paneUnit === u ? C.cyan : C.border, color: paneUnit === u ? C.cyan : C.dim }}>{u}</button>
                     ))}
                   </div>
+                </div>
+              );
+            })()}
+            {/* NEW-ASSET ENTRY — HEADING (0–360°) + ALTITUDE (AGL·MSL) + SAVE. Auto-pops on drop
+                so orientation/altitude is set on the map itself (mouse + phone), independent of the
+                right rail. Copies the COORDINATE · CALL-UP look (draggable grip, cyan border). */}
+            {assetEntry && (() => {
+              const a = placed.find((u) => u.id === assetEntry.id);
+              const hdgNum = assetEntry.heading === "" ? undefined : ((parseFloat(assetEntry.heading) % 360) + 360) % 360;
+              const altNum = assetEntry.altitude === "" ? undefined : parseFloat(assetEntry.altitude);
+              const save = () => {
+                setPlaced((pl) => pl.map((u) => (u.id === assetEntry.id
+                  ? { ...u, heading: Number.isFinite(hdgNum) ? hdgNum : undefined, altitude: Number.isFinite(altNum) ? altNum : undefined, altRef: assetEntry.altRef }
+                  : u)));
+                setAssetEntry(null);
+              };
+              return (
+                <div className="absolute z-40 max-w-[calc(100%-16px)] w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  style={{ right: 8, top: 28, transform: `translate(${assetEntryOff.x}px, ${assetEntryOff.y}px)`, background: "#0a0f16ee", borderColor: C.cyan }}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1 cursor-move select-none touch-none font-bold tracking-wider" style={{ color: C.cyan }}
+                      onPointerDown={(e) => {
+                        e.stopPropagation(); (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+                        const sx = e.clientX, sy = e.clientY, ox = assetEntryOff.x, oy = assetEntryOff.y;
+                        const move = (ev: PointerEvent) => setAssetEntryOff({ x: ox + (ev.clientX - sx), y: oy + (ev.clientY - sy) });
+                        const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); };
+                        document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+                      }}>⠿ {a ? ASSET_LABELS[a.asset] : "NEW ASSET"} · SET</span>
+                    <button onPointerUp={(e) => { e.stopPropagation(); setAssetEntry(null); }} className="px-1 text-[10px] leading-none" style={{ color: C.dim }}>✕</button>
+                  </div>
+                  <div className="mb-1 font-mono" style={{ color: C.gold }}>{fmt.coordAt(assetEntry.lat, assetEntry.lon)}</div>
+                  <div className="grid grid-cols-2 gap-1">
+                    <div>
+                      <div className="text-[7px]" style={{ color: C.dim }}>HEADING 0–360°</div>
+                      <input type="number" min={0} max={360} value={assetEntry.heading} placeholder="000"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onChange={(e) => setAssetEntry((s) => (s ? { ...s, heading: e.target.value } : s))}
+                        className="w-full rounded border bg-transparent px-1 py-0.5 font-mono" style={{ borderColor: C.border, color: C.text }} />
+                    </div>
+                    <div>
+                      <div className="text-[7px]" style={{ color: C.dim }}>ALTITUDE m</div>
+                      <input type="number" value={assetEntry.altitude} placeholder="0"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onChange={(e) => setAssetEntry((s) => (s ? { ...s, altitude: e.target.value } : s))}
+                        className="w-full rounded border bg-transparent px-1 py-0.5 font-mono" style={{ borderColor: C.border, color: C.text }} />
+                    </div>
+                  </div>
+                  <div className="mt-1 flex items-center gap-1">
+                    <span style={{ color: C.dim }}>REF</span>
+                    {(["AGL", "MSL"] as const).map((r) => (
+                      <button key={r} onClick={() => setAssetEntry((s) => (s ? { ...s, altRef: r } : s))} className="rounded border px-1.5 py-0.5 font-bold"
+                        style={{ borderColor: assetEntry.altRef === r ? C.gold : C.border, color: assetEntry.altRef === r ? C.gold : C.dim }}>{r}</button>
+                    ))}
+                  </div>
+                  <button onClick={save} className="mt-1.5 w-full rounded border py-1 text-[9px] font-bold uppercase tracking-wider"
+                    style={{ borderColor: C.cyan, color: C.cyan, background: `${C.cyan}18` }}>✓ Save</button>
                 </div>
               );
             })()}
