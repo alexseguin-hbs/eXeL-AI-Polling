@@ -176,6 +176,25 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #19: aerial corner markers GOLD (new/unapproved) → GREY (approved via SAVE) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(400);
+  await clk('div.cursor-grab:has-text("AVENGER")'); await pg.waitForTimeout(300);
+  const box = await pg.locator('div.touch-none.overflow-hidden.rounded-md').first().boundingBox();
+  if (box) { await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); } await pg.waitForTimeout(500);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
+  const corners = () => pg.evaluate(() => [...document.querySelectorAll('button[title]')].filter(b => /^(NW|NE|SE|SW) ·/.test(b.getAttribute('title') || '')).map(b => getComputedStyle(b).borderTopColor));
+  const before = await corners();
+  const saved = await clk('button:has-text("Save")'); await pg.waitForTimeout(600);
+  const after = await corners();
+  const gold = before.length > 0 && before.every(c => c === 'rgb(255, 212, 0)');
+  const grey = after.length > 0 && after.every(c => c === 'rgb(156, 163, 175)');
+  rec('#19 corner GOLD(new)→GREY(approved)', gold && saved && grey, `before=${before[0]} saved=${saved} after=${after[0]}`);
+  rec('#19 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');

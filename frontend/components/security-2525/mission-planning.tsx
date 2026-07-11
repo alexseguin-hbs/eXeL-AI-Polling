@@ -298,6 +298,7 @@ interface Placed {
   altRef?: "AGL" | "MSL"; // altitude reference — labels MUST always carry it
   moving?: boolean;  // movement activated (track is live in the plan/sim)
   lineW?: number;    // PTL/TL/range line thickness (0.2–2, default 0.5)
+  approved?: boolean; // false = freshly placed (GOLD ID corner markers); true/undefined = approved (GREY default)
 }
 
 type AngleUnit = "deg" | "ucrs" | "mil";
@@ -1512,6 +1513,7 @@ function AoMapPane(p: PaneProps) {
     const id = allocId();
     setPlaced((pl) => [...pl, {
       id, asset, count: item.group, fx, fy, lat, lon, mgrs10: latLonToMgrs(lat, lon, 5), aff: "friendly", tls, fov, unit: angUnit,
+      approved: false, // freshly placed → GOLD ID corner markers until approved (SAVE)
     }]);
     // FX-03 (P1.3 round 3, HI): placing a unit DISARMS the tool — one placement
     // per palette pick, straight back to SELECT mode with the new unit selected
@@ -2518,6 +2520,10 @@ function AoMapPane(p: PaneProps) {
               const isLattice = col.key.startsWith("LAT:"); // empty scaffold column (no asset)
               const hiCol = voxelHiColor;                    // FX-07: user-set primary highlight colour
               const selAsset = selected?.kind === "asset" && col.objects.some((o) => o.id === selected.id); // FX-59: the actively-selected asset's own column counts as selected
+              // Corner-marker state: a freshly-placed (unapproved) asset shows GOLD "ID" corners; once
+              // approved (SAVE) or pre-existing, corners are GREY (default). Lattice scaffolds stay cyan.
+              const newAsset = !isLattice && placed.find((p) => col.objects.some((o) => o.id === p.id))?.approved === false;
+              const cornerRest = isLattice ? C.cyan : newAsset ? C.gold : "#9ca3af"; // grey default (matches ceiling-cap grey)
               const dimmed = voxelSel != null && !sel && !selAsset; // FX-07 dim cue, FX-59: never dims the selected asset
               const fullStack = col.cubes.filter((cb) => cb.bandIdx > 0);
               // FX-04 (HI 1.3.2): a lattice voxel defaults to a 3-high (3×3×3) CUBE on the
@@ -2541,9 +2547,10 @@ function AoMapPane(p: PaneProps) {
                 border: `${lw ?? (occupied ? 1.5 : 1)}px ${occupied ? "solid" : "dashed"} ${color}`,
                 background: occupied ? `${color}10` : "transparent",
               });
-              // FINE grey wireframe edges at EVERY tier — a hairline vs the old 1px so the tall aerial
-              // column doesn't read dense, but not so thin it vanishes (0.4 disappeared).
-              const edgeFineW = 0.6;
+              // Grey wireframe edge lines match the VOXEL CENTRE-POINT weight: the target reticle /
+              // centre dot render at 1px (non-scaling), so the cube edge lines are 1px too (operator law:
+              // "edge lines same width in pixels as voxel center point").
+              const edgeFineW = 1;
               return (
                 <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
                   // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
@@ -2723,7 +2730,7 @@ function AoMapPane(p: PaneProps) {
                         title={`${["NW", "NE", "SE", "SW"][ci]} · ${fmt.coordAt(cn.lat, cn.lon)} · ${Math.round(sampler(cn.lat, cn.lon)).toLocaleString()}m MSL`}
                         className="absolute rounded-sm transition-all"
                         style={{ width: s, height: s, ...(ci === 0 ? { left: off, top: off } : ci === 1 ? { right: off, top: off } : ci === 2 ? { right: off, bottom: off } : { left: off, bottom: off }),
-                          border: `1px solid ${cornerHover?.key === col.key && cornerHover.ci === ci ? C.gold : C.cyan}`, background: "#0a0f16cc", opacity: big ? 1 : 0.6 }} />
+                          border: `1px solid ${cornerHover?.key === col.key && cornerHover.ci === ci ? C.gold : cornerRest}`, background: "#0a0f16cc", opacity: big ? 1 : 0.85 }} />
                       );
                     })}
                     {/* P1.2 (Odin): hover chip — corner coordinate (settings format) + elevation.
@@ -3313,8 +3320,9 @@ function AoMapPane(p: PaneProps) {
               const hdgNum = assetEntry.heading === "" ? undefined : ((parseFloat(assetEntry.heading) % 360) + 360) % 360;
               const altNum = assetEntry.altitude === "" ? undefined : parseFloat(assetEntry.altitude);
               const save = () => {
+                // SAVE = APPROVE the freshly-placed asset → its GOLD ID corner markers turn GREY (default).
                 setPlaced((pl) => pl.map((u) => (u.id === assetEntry.id
-                  ? { ...u, heading: Number.isFinite(hdgNum) ? hdgNum : undefined, altitude: Number.isFinite(altNum) ? altNum : undefined, altRef: assetEntry.altRef }
+                  ? { ...u, heading: Number.isFinite(hdgNum) ? hdgNum : undefined, altitude: Number.isFinite(altNum) ? altNum : undefined, altRef: assetEntry.altRef, approved: true }
                   : u)));
                 setAssetEntry(null);
               };
