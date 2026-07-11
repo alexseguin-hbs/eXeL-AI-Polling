@@ -2510,23 +2510,9 @@ function AoMapPane(p: PaneProps) {
                         <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${markerZ}px)${bb}` }}>
                           <span className="block rounded-full" style={{ width: 6, height: 6, background: topObj.color ?? ac, boxShadow: `0 0 6px ${topObj.color ?? ac}` }} />
                         </div>
-                        {/* (4) TOP-FACE CORNER coords — the 4 corners of the upward-facing top face,
-                            shown when the TOP FACE is clicked (selected) OR hovered. Small, plate-free
-                            (text-shadow for legibility) so they don't cover the cube. */}
-                        {(sel || voxelTop === col.key) && (
-                        <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d" }}>
-                          {col.corners.map((cn, ci) => {
-                            const cx = (ci === 0 || ci === 3 ? -1 : 1) * (cellPx / 2);
-                            const cy = (ci === 0 || ci === 1 ? -1 : 1) * (cellPx / 2);
-                            return (
-                              <span key={`tfc${ci}`} className="absolute left-0 top-0 whitespace-nowrap font-mono text-[4px]" style={{ color: C.gold, textShadow: "0 0 2px #000, 0 0 2px #000",
-                                transform: `translate(-50%,-50%) translate3d(${cx}px,${cy}px,${topZ}px)${bb}` }}>
-                                {fmt.coordAt(cn.lat, cn.lon)}
-                              </span>
-                            );
-                          })}
-                        </div>
-                        )}
+                        {/* (4) TOP-FACE CORNER coord labels REMOVED per operator — the gold/orange
+                            corner readouts doubled the centre coordinate on select. Corners remain
+                            readable on demand via the corner hotspots' hover chip below. */}
                       </>
                     );
                   })()}
@@ -2587,10 +2573,12 @@ function AoMapPane(p: PaneProps) {
                     {/* P1.2 (Odin): hover chip — corner coordinate (settings format) + elevation.
                         FX-15 (P1.3): chip sits fully OUTSIDE the cube top so it never covers
                         the TARGET or the corner being read. */}
-                    {cornerHover?.key === col.key && (() => {
-                      const isCtr = cornerHover.ci === -1; // FX-02: centre-top hover
-                      const cn = isCtr ? { lat: col.lat, lon: col.lon } : col.corners[cornerHover.ci];
-                      const label = isCtr ? "CTR" : ["NW", "NE", "SE", "SW"][cornerHover.ci];
+                    {/* CENTRE (ci === -1) chip suppressed — the COORDINATE·CALL-UP box already
+                        carries the centre coordinate + MSL; only CORNER hover chips remain. */}
+                    {cornerHover?.key === col.key && cornerHover.ci !== -1 && (() => {
+                      const isCtr = false;
+                      const cn = col.corners[cornerHover.ci];
+                      const label = ["NW", "NE", "SE", "SW"][cornerHover.ci];
                       return (
                         <div className="pointer-events-none absolute z-30 whitespace-nowrap rounded px-1 py-0.5 font-mono text-[7px] font-bold"
                           style={{ ...(isCtr ? { left: "50%", bottom: "100%", transform: "translateX(-50%)", marginBottom: 8 }
