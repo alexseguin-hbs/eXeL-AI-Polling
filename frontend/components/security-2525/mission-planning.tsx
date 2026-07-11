@@ -661,6 +661,28 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
           </>
         )}
       </g>
+      {/* Stationary bearing compass — a screen-fixed reticle cross drawn OUTSIDE the zoom /
+          orbit transform, so it never rotates with the globe. Horizontal 270(W)◄►090(E),
+          vertical 000(N)▲▼180(S); the centre dot is the fixed sight the moving grid bands
+          are read against. Shown with the GRID overlay. */}
+      {showZones && (() => {
+        const inset = 13;
+        const lab = (t: string, x: number, y: number) => (
+          <text x={x} y={y} fontSize="8" fontWeight="bold" fill={C.cyan} textAnchor="middle" dominantBaseline="middle"
+            style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.8">{t}</text>
+        );
+        return (
+          <g style={{ pointerEvents: "none" }}>
+            <line x1={CX - RING} y1={CY} x2={CX + RING} y2={CY} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.5" />
+            <line x1={CX} y1={CY - RING} x2={CX} y2={CY + RING} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.5" />
+            <circle cx={CX} cy={CY} r="2.2" fill="none" stroke={C.gold} strokeWidth="0.7" opacity="0.85" />
+            {lab("000", CX, CY - RING + inset)}
+            {lab("090", CX + RING - inset, CY)}
+            {lab("180", CX, CY + RING - inset)}
+            {lab("270", CX - RING + inset, CY)}
+          </g>
+        );
+      })()}
     </svg>
   );
 }

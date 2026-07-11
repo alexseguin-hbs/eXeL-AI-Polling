@@ -229,12 +229,13 @@ export function gzdBoundaries(): { meridians: number[]; parallels: number[] } {
   return { meridians, parallels };
 }
 
-/** Active grid-zone-designator cell for a point. Zone number uses a %60 wrap so lon=180
- *  yields zone 1 (not the raw latLonToUtm overflow of 61). Band X's north edge is 84°. */
+/** Active grid-zone-designator cell for a point. Zone number uses a POSITIVE %60 wrap so
+ *  an out-of-range globe-camera longitude (e.g. −210° ≡ 150°E, or 180° → 1, never 61)
+ *  always maps to a real 1..60 zone — never a negative like −4. Band X's north edge is 84°. */
 export function gzdOf(lat: number, lon: number): {
   zone: number; band: string; lonW: number; lonE: number; latS: number; latN: number;
 } {
-  const zone = (Math.floor((lon + 180) / 6) % 60) + 1;
+  const zone = (((Math.floor((lon + 180) / 6) % 60) + 60) % 60) + 1;
   const j = Math.min(Math.max(Math.floor((lat + 80) / 8), 0), 19);
   const lonW = -180 + (zone - 1) * 6;
   const latS = -80 + j * 8;
