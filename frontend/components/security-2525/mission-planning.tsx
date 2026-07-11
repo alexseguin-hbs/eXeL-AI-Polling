@@ -1186,6 +1186,10 @@ interface PaneProps {
   aoDraft: [number, number][];
   onAoVertex: (lat: number, lon: number) => void;
   drawnAo?: { poly: [number, number][]; aorKm: number };
+  // TRACK SIM playback — aircraft dead-reckon along heading+speed; icon rotates in 2D.
+  playing?: boolean;
+  onTogglePlay?: () => void;
+  onResetTracks?: () => void;
 }
 
 function AoMapPane(p: PaneProps) {
@@ -1196,7 +1200,7 @@ function AoMapPane(p: PaneProps) {
     unit: paneUnit = "km", onSetUnit, gridStepM: gridStepOverride = 0,
     maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1,
-    drawingAo, aoDraft, onAoVertex, drawnAo,
+    drawingAo, aoDraft, onAoVertex, drawnAo, playing = false, onTogglePlay, onResetTracks,
   } = p;
 
   const clipId = "land" + useId().replace(/[^a-zA-Z0-9]/g, ""); // per-pane land clip (roads must not render in water)
@@ -1704,6 +1708,20 @@ function AoMapPane(p: PaneProps) {
                 style={{ background: is3d === v ? "#152238" : "transparent", color: is3d === v ? C.cyan : C.dim }}>{lb}</button>
             ))}
           </div>
+          {/* TRACK SIM — PLAY/PAUSE + RESET. 2D only (aircraft icons rotate to heading on playback);
+              shown only when at least one asset has an active heading+speed track. */}
+          {!is3d && onTogglePlay && placed.some((u) => u.moving && u.heading != null && u.speed) && (
+            <>
+              <button onClick={onTogglePlay} title={playing ? "Pause track simulation" : "Play track simulation — aircraft dead-reckon along heading + speed, icons rotate to track"}
+                className="flex items-center gap-1 rounded border px-1.5 py-0.5 font-semibold" style={{ borderColor: playing ? C.green : C.gold, color: playing ? C.green : C.gold }}>
+                {playing ? "❚❚ TRACKS" : "▶ TRACKS"}
+              </button>
+              {onResetTracks && (
+                <button onClick={onResetTracks} title="Reset tracks to their start positions"
+                  className="flex items-center rounded border px-1 py-0.5" style={{ borderColor: C.border, color: C.dim }}><RotateCcw className="h-3 w-3" /></button>
+              )}
+            </>
+          )}
           {/* FX-30 (HI): VOXEL lattice ON/OFF — a 3×3 stacked-cube column grid, shown only in 3D */}
           {is3d && (
             <button onClick={() => setVoxelLayer((v) => !v)} title={voxelLayer ? "VOXEL lattice ON — 3×3 stacked columns (tap a top to highlight). Click to hide." : "Show the 3×3 VOXEL lattice"}
@@ -2063,6 +2081,8 @@ function AoMapPane(p: PaneProps) {
               const f = project(u.lat, u.lon);
               const off = f.fx < -0.05 || f.fx > 1.05 || f.fy < -0.05 || f.fy > 1.05;
               const aerial = u.altitude != null && u.altitude > 0;
+              // TRACK SIM: rotate the aircraft icon to its heading — 2D playback only (per operator).
+              const trackRot = playing && !is3d && aerial && u.moving && u.heading != null ? u.heading : 0;
               const sel = selected?.kind === "asset" && selected.id === u.id;
               const hot = hoverAsset === u.asset;
               // HI 1.3.3 (contract): when 3D + VOXEL and this asset has a voxel COLUMN, that
@@ -2138,7 +2158,7 @@ function AoMapPane(p: PaneProps) {
                             background: u.aff === "hostile" ? C.red : C.cyan, boxShadow: `0 0 5px ${u.aff === "hostile" ? C.red : C.cyan}` }} />
                         </span>
                       )
-                      : <AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} />}
+                      : <span className="inline-block" style={{ transform: trackRot ? `rotate(${trackRot}deg)` : undefined, transition: "transform 120ms linear" }}><AssetIcon asset={u.asset} style={iconStyle} affiliation={u.aff} size={28 * iconScale} count={u.count} /></span>}
                   </span>
                   {/* HI 1.3.3: coordinate label = ONE black-background chip (no white version),
                       same format as the selected-voxel label.
@@ -4004,10 +4024,18 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [modeB, setModeB] = useState<"world" | "ao">("world"); // MINI: Earth/world context by default
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
   const [coordText, setCoordText] = useState("");          // exact-coordinate entry (Settings format)
+  const [playing, setPlaying] = useState(false);           // TRACK SIM playback (dead-reckoning movers)
 
   const idRef = useRef(1);
   const rootRef = useRef<HTMLDivElement>(null);
   const aoKeyRef = useRef(aoKey);
+  // ── TRACK SIMULATION (dead-reckoning) ── advance every moving asset along its heading at
+  // its ground speed; the aircraft icon rotates to heading in 2D playback. The plan already
+  // persists heading/speed/altitude/moving per AO, so a saved track replays deterministically.
+  const playRafRef = useRef<number | null>(null);
+  const playLastRef = useRef(0);
+  const playStartRef = useRef<Placed[] | null>(null); // snapshot at PLAY-start → RESET rewinds here
+  const playingRef = useRef(false);
 
   // ── Plan persistence (recall next session) ────────────────────────────────
   // Local device now (localStorage); same save contract swaps to Supabase for
@@ -4024,10 +4052,40 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     idRef.current = Math.max(0, ...p.map((u) => u.id), ...s.map((u) => u.id)) + 1;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aoKey]);
-  // save on every placement edit (keyed to the CURRENT AO via ref)
+  // save on every placement edit (keyed to the CURRENT AO via ref). NOT during playback — the
+  // dead-reckoning loop mutates positions every frame; persisting those would spam storage and
+  // overwrite the authored start. RESET/STOP restores the snapshot, which then saves normally.
   useEffect(() => {
+    if (playingRef.current || playStartRef.current) return; // sim in progress (playing OR paused) — keep the authored start
     try { localStorage.setItem(planKey(aoKeyRef.current), JSON.stringify({ placed, placedSupport })); } catch { /* quota */ }
   }, [placed, placedSupport]);
+  // Playback engine — rAF loop advances each moving asset by heading+speed·dt (great-circle-flat
+  // dead reckoning; fine at AO scale). Icon rotation happens in the pane (2D only).
+  useEffect(() => {
+    playingRef.current = playing;
+    if (!playing) { if (playRafRef.current != null) cancelAnimationFrame(playRafRef.current); playRafRef.current = null; return; }
+    if (!playStartRef.current) playStartRef.current = placed.map((u) => ({ ...u })); // rewind point (first PLAY)
+    playLastRef.current = 0;
+    const tick = (ts: number) => {
+      if (playLastRef.current === 0) playLastRef.current = ts;
+      const dtH = Math.min(0.25, (ts - playLastRef.current) / 1000) / 3600; // clamp long frames; → hours
+      playLastRef.current = ts;
+      setPlaced((pl) => pl.map((u) => {
+        if (!u.moving || u.heading == null || !u.speed) return u;
+        const km = u.speed * dtH, th = (u.heading * Math.PI) / 180; // 0°=N, clockwise
+        const dLat = (km * Math.cos(th)) / 110.574;
+        const dLon = (km * Math.sin(th)) / (111.320 * Math.cos((u.lat * Math.PI) / 180) || 1e-6);
+        return { ...u, lat: u.lat + dLat, lon: u.lon + dLon };
+      }));
+      playRafRef.current = requestAnimationFrame(tick);
+    };
+    playRafRef.current = requestAnimationFrame(tick);
+    return () => { if (playRafRef.current != null) cancelAnimationFrame(playRafRef.current); playRafRef.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing]);
+  const resetTracks = () => { setPlaying(false); if (playStartRef.current) { setPlaced(playStartRef.current); playStartRef.current = null; } };
+  // switching AO ends any playback and drops the stale rewind snapshot
+  useEffect(() => { setPlaying(false); playStartRef.current = null; }, [aoKey]);
 
   useEffect(() => {
     try { const v = localStorage.getItem("sec2525.cursorMode"); if (v === "target" || v === "pointer") setCursorMode(v); } catch { /* no storage */ }
@@ -4274,7 +4332,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
     maxAltFt, altRedPct, altYellowPct, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
     drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
-    mapEngine,
+    mapEngine, playing, onTogglePlay: () => setPlaying((p) => !p), onResetTracks: resetTracks,
   }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view.
      // 2D↔3D reuses this SAME tile — is3d is a render flag only; no DEM/OSM effect depends on it → ZERO extra fetch.
 
