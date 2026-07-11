@@ -2316,11 +2316,12 @@ function AoMapPane(p: PaneProps) {
               if (f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02) return null;
               const paneW = mapRef.current?.clientWidth ?? 800;
               // HI 1.3.3: the VOXEL SIZE tier (3X/2X/1X) scales ONLY the cube BASE footprint.
-              // The vertical band unit (bandPx) stays the UNSCALED cellW, so column height +
-              // altitude reach are tier-invariant (2X/1X = slimmer tower, SAME height/altitude).
+              // The tier scales the whole CUBE uniformly: bandPx == cellPx keeps it CUBIC (equal
+              // W/H/D), base + height shrink together (never a tower). The altitude RAIL is held
+              // fixed separately via the unscaled cellW term in limitZ below.
               const cellW = Math.max(16, (col.cellM / (view.spanKm * 1000)) * paneW);
               const cellPx = cellW * VOXEL_BASE_SCALE[voxelSize]; // BASE footprint — shrinks with the tier
-              const bandPx = cellW;                               // VERTICAL unit — altitude/height, tier-invariant
+              const bandPx = cellPx;                              // VERTICAL unit == base ⇒ cube stays cubic
               const sel = voxelSel === col.key;
               const isLattice = col.key.startsWith("LAT:"); // empty scaffold column (no asset)
               const hiCol = voxelHiColor;                    // FX-07: user-set primary highlight colour
@@ -2424,8 +2425,8 @@ function AoMapPane(p: PaneProps) {
                       suppresses the flat marker for a column-backed asset): a SHIELD badge
                       pinned to the LEVEL-1 bottom cell (always at the surface, decoupled from
                       altitude), a DOT at the object's TRUE altitude band, a draggable AGL chip
-                      (no connector), and billboarded top-face coordinates. bandPx = unscaled cellW
-                      so the altitude a cube represents is IDENTICAL across size tiers (base only shrinks). */}
+                      (no connector), and billboarded top-face coordinates. bandPx == cellPx so the
+                      cube stays cubic across tiers; the altitude rail is pinned via cellW in limitZ. */}
                   {topObj && (() => {
                     const pObj = placed.find((u) => u.id === topObj.id);
                     const ac = pObj?.aff === "hostile" ? C.red : C.cyan;
@@ -2626,12 +2627,12 @@ function AoMapPane(p: PaneProps) {
               const bc = project(view.lat, view.lon);
               const paneW = mapRef.current?.clientWidth ?? 800;
               const cellW = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW); // full cell px (altitude reference — never shrinks)
-              // FX (HI 1.3.3): SIZE TIER — 3X full · 2X ⅔ · 1X ⅓ scales ONLY the base footprint.
-              // bandPx (vertical unit) stays the UNSCALED cellW, so the box HEIGHT and every
-              // altitude plane/rail stay fixed across tiers — 2X/1X shrink the base only.
+              // FX (HI 1.3.3): SIZE TIER — 3X full · 2X ⅔ · 1X ⅓ scales the whole CUBE uniformly.
+              // bandPx == cellPx keeps the box CUBIC (base + height shrink together, never a tower);
+              // the grey altitude rail stays fixed via the UNSCALED cellW term in limitZ below.
               const cellPx = cellW * VOXEL_BASE_SCALE[voxelSize]; // BASE footprint — shrinks with the tier
               const boxW = 3 * cellPx;
-              const bandPx = cellW;                               // VERTICAL unit — altitude/height, tier-invariant
+              const bandPx = cellPx;                              // VERTICAL unit == base ⇒ cube stays cubic
               const topZ = 3 * bandPx;
               const railBands = Math.max(latticeColumns[0].cubes.filter((cb) => cb.bandIdx > 0).length, 3);
               const limitZ = Math.max(topZ, (voxelLimitPct / 100) * railBands * cellW);
