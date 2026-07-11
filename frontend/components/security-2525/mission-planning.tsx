@@ -858,8 +858,11 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                   <path d={paths.states} fill="none" stroke={C.borderState} strokeWidth="0.35" opacity="0.5" vectorEffect="non-scaling-stroke" />
                 </>
               )}
-              {/* country names — declutter by the visible span (flat.w/W · 360°) */}
-              {COUNTRIES.filter((c) => !c.min || (flat.w / W) * 360 <= c.min).map((c) => {
+              {/* country names — declutter to MATCH the 3D globe's density. The globe gates on
+                  180/zoom (a hemisphere baseline); the flat map genuinely shows a wider longitude
+                  span for the same AO, so gate on HALF the true visible span (flat.w/W · 180) so the
+                  same min-gated countries (THAILAND, VIETNAM, …) surface on 2D as on 3D. */}
+              {COUNTRIES.filter((c) => !c.min || (flat.w / W) * 180 <= c.min).map((c) => {
                 const x = ((c.lon + 180) / 360) * W, y = ((90 - c.lat) / 180) * H;
                 return (
                   <text key={c.name} x={x} y={y} fontSize="3.6" fill={C.text} opacity="0.5" textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", letterSpacing: "0.03em" }}>{c.name}</text>

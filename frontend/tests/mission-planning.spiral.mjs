@@ -139,6 +139,21 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #17: country names on 2D match the 3D globe (declutter parity) ──
+// 2D flat used a coarser span metric than the globe, so gated countries were filtered out on 2D.
+// At the same AO the 2D country-label count must now be within 1 of the 3D count (and non-trivial).
+{
+  const NAMES = ['UNITED STATES','CANADA','MEXICO','GREENLAND','GUATEMALA','HONDURAS','CUBA','NICARAGUA','PANAMA','COLOMBIA','VENEZUELA','BRAZIL','ARGENTINA','PERU','FRANCE','SPAIN','GERMANY','ALGERIA','THAILAND','VIETNAM','JAPAN','INDONESIA','AUSTRALIA'];
+  const { pg, clk } = await mk(null);
+  const cnt = () => pg.evaluate((names) => { const t = new Set([...document.querySelectorAll('text')].map(e => (e.textContent || '').trim())); return names.filter(k => t.has(k)).length; }, NAMES);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(800);
+  const c2 = await cnt();
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(1000);
+  const c3 = await cnt();
+  rec('#17 country names 2D≈3D parity', c2 >= 3 && Math.abs(c2 - c3) <= 1, `2D=${c2} 3D=${c3}`);
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');
