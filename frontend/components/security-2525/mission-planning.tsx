@@ -431,11 +431,10 @@ function ringPath(ring: [number, number][], w: number, h: number): string {
 
 /** Orthographic wireframe GLOBE — planning start screen (drag-rotate, zoom → drill). */
 type GzCell = { zone: number; band: string; lonW: number; lonE: number; latS: number; latN: number };
-function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones, hiddenKeys, onCenter }: {
+function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones, hiddenKeys }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void; onEnterAo?: (k: string) => void;
   coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; showZones: boolean; hiddenKeys?: Set<string>;
-  onCenter?: (lat: number, lon: number) => void; // report the SCREEN-CENTRE lat/lon up (for the shared readout)
 }) {
   // Nearest AO to a lat/lon within ~10° → zoom-in enters it directly (no flat 'blue screen').
   const nearestAo = (lat: number, lon: number) => {
@@ -461,9 +460,6 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   // land where the operator is looking.
   const ctrLat = Math.max(-80, Math.min(84, LAT0 + tilt * (180 / Math.PI)));
   const sel = gzdOf(ctrLat, LON0);
-  // report the screen-centre lat/lon up so WorldStrip can render ONE shared HTML readout for 2D + 3D
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { onCenter?.(ctrLat, LON0); }, [ctrLat, LON0]);
   useWheel(gsvg, (e) => {
     e.preventDefault();
     const zin = e.deltaY < 0, factor = zin ? 1.15 : 1 / 1.15;
@@ -519,8 +515,9 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
     const grid: [number, number][][] = [];
     for (const lon of meridians) { const r: [number, number][] = []; for (let lat = -80; lat <= 84; lat += 5) r.push([lon, lat]); grid.push(r); }
     for (const lat of parallels) { const r: [number, number][] = []; for (let lon = -180; lon <= 180; lon += 5) r.push([lon, lat]); grid.push(r); }
-    // Centered cell (updates as the globe orbits) → zone wedge (yellow) + band ring (violet) edges.
-    const s = gzdOf(cam.lat0, cam.lon0);
+    // Centered cell = the SCREEN-CENTRE cell (tilt-corrected), so the violet band + yellow zone wedge
+    // sit on the SAME cell as the intersection label (not the camera nadir).
+    const s = gzdOf(ctrLat, cam.lon0);
     const segZone: [number, number][][] = [];
     for (const lon of [s.lonW, s.lonE]) { const r: [number, number][] = []; for (let lat = -80; lat <= 84; lat += 3) r.push([lon, lat]); segZone.push(r); }
     const segBand: [number, number][][] = [];
@@ -568,6 +565,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
     return t;
   }, [D]);
   return (
+    <div className="relative h-full w-full">
     <svg ref={gsvg} viewBox="0 0 340 340" preserveAspectRatio="xMidYMid meet"
       className="block h-full w-full touch-none select-none" role="img"
       aria-label="Wireframe globe — orbit camera; scroll/pinch to zoom, right-drag to angle the view, drag to pan"
@@ -717,9 +715,21 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
           <line x1={CX} y1={CY - RING} x2={CX} y2={CY + RING} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
         </g>
       )}
-      {/* GRID readout moved to WorldStrip's HTML overlay (shared with 2D) via onCenter — one method,
-          identical size/outline/position on 2D and 3D. */}
     </svg>
+    {/* GRID readout — HTML overlay INSIDE the globe (no parent state → no orbit glitch). Identical
+        markup/colours to the 2D readout. Cell = screen-centre cell (sel); dims = calculated H × W. */}
+    {showZones && (() => {
+      const latC = (sel.latS + sel.latN) / 2;
+      const hKm = Math.round((sel.latN - sel.latS) * 110.574);
+      const wKm = Math.round((sel.lonE - sel.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180));
+      return (
+        <span className="pointer-events-none absolute bottom-1 left-2 z-10 flex items-baseline gap-1 font-mono font-bold">
+          <span className="text-[10px]" style={{ color: TRINITY_COLORS.temporal, textShadow: "0 0 2px #0a0e14, 0 0 2px #0a0e14" }}>{sel.zone}{sel.band}</span>
+          <span className="text-[9px]" style={{ color: C.gold }}>· {hKm.toLocaleString()} × {wKm.toLocaleString()} km</span>
+        </span>
+      );
+    })()}
+    </div>
   );
 }
 
@@ -728,7 +738,6 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
   const [mode, setMode] = useState<"globe" | "flat">("globe");
   const [showZones, setShowZones] = useState(false); // MGRS/LLV-DMS grid-zone training overlay (globe + flat)
   const [center, setCenter] = useState<[number, number]>(() => (AOS.find((a) => a.key === aoKey)?.center ?? [38, -97]));
-  const [globeCtr, setGlobeCtr] = useState<[number, number]>(center); // globe's live SCREEN-CENTRE lat/lon (from GlobeView onCenter)
   useEffect(() => {
     if (borderCache) return;
     fetch("/security-2525/borders-ne50m.json")
@@ -782,7 +791,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
   return (
     <div className="relative h-full w-full overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
-        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} coordFmt={coordFmt} showZones={showZones} hiddenKeys={hiddenKeys} onCenter={(la, lo) => setGlobeCtr([la, lo])} />
+        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} coordFmt={coordFmt} showZones={showZones} hiddenKeys={hiddenKeys} />
       ) : (
         <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full touch-none" role="img"
@@ -982,11 +991,11 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
           </>
         );
       })()}
-      {/* SHARED GRID readout (2D + 3D, ONE HTML method → identical size/outline/position). Cell code
-          (screen-centre cell) in intersection yellow, dims in GRID-logo gold. */}
-      {showZones && (() => {
-        const cLat = mode === "globe" ? globeCtr[0] : 90 - ((flat.y + flat.h / 2) / H) * 180;
-        const cLon = mode === "globe" ? globeCtr[1] : ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180;
+      {/* FLAT GRID readout (HTML). The 3D globe renders its OWN identical HTML readout inside GlobeView,
+          so both look the same with NO parent state (no orbit glitch). */}
+      {showZones && mode === "flat" && (() => {
+        const cLat = 90 - ((flat.y + flat.h / 2) / H) * 180;
+        const cLon = ((((((flat.x + flat.w / 2) / W) * 360 - 180) + 180) % 360) + 360) % 360 - 180;
         const g = gzdOf(cLat, cLon); const latC = (g.latS + g.latN) / 2;
         const hKm = Math.round((g.latN - g.latS) * 110.574);
         const wKm = Math.round((g.lonE - g.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180));
