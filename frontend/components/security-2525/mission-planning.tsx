@@ -547,7 +547,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   const zoneOverlay = useMemo(() => {
     if (!showZones) return null;
     // Grid spacing: GZD 6°×8° UTM zones for MGRS·UTM·UCRS; 15° graticule only for LLV-DMS.
-    const mgrs = coordFmt !== "dms";
+    const mgrs = true; // GZD grid ALWAYS on (format changes coordinate VALUES only)
     const meridians = mgrs ? gzdBoundaries().meridians : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
     const parallels = mgrs ? gzdBoundaries().parallels : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
     const grid: [number, number][][] = [];
@@ -712,7 +712,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                  the GZD training grid must never disappear because a readout format was picked.
                  GZD zone/band labels for mgrs·utm·ucrs; degree labels only for LLV-DMS. */
               const degL = (v: number, pos: string, neg: string) => `${Math.abs(Math.round(v))}°${v < 0 ? neg : pos}`;
-              const mgrs = coordFmt !== "dms";
+              const mgrs = true; // GZD grid ALWAYS on (format changes coordinate VALUES only)
               const zones = mgrs ? Array.from({ length: 60 }, (_, k) => k) : [];
               const bandsArr = mgrs ? BANDS.split("") : [];
               const merid = mgrs ? [] : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
@@ -885,7 +885,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
               {/* MGRS/LLV-DMS grid-zone training overlay — faint 6°×8° grid, active cell highlighted.
                   Only when zoomed out (flat.w ≥ half world). Tiles with the wrap loop. */}
               {showZones && flat.w >= W * 0.5 && (() => {
-                const mgrs = coordFmt !== "dms"; // GZD grid for mgrs·utm·ucrs; degrees only for LLV-DMS
+                const mgrs = true; // GZD grid ALWAYS on — the readout format never swaps the grid
                 const meridians = mgrs ? gzdBoundaries().meridians : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
                 const parallels = mgrs ? gzdBoundaries().parallels : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
                 const xOf = (lon: number) => ((lon + 180) / 360) * W;
@@ -933,7 +933,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                         <text key="fzcell" x={cx} y={cy} fontSize="8" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.4">{fsel.zone}{fsel.band}</text>
                       ); })()}
                     </>)}
-                    {coordFmt === "dms" && (<>
+                    {false /* GZD grid is always on — no degree-graticule swap */ && (<>
                       {meridians.map((lon) => (
                         <text key={`dl${lon}`} x={xOf(lon)} y={flat.y + flat.h * 0.14} fontSize="3.5" fill={C.cyan} opacity="0.6" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text>
                       ))}
@@ -977,7 +977,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
             <span className="pointer-events-none absolute left-2 top-2 z-10 font-mono text-[9px] font-bold" style={{ color: C.red }}>N ↑</span>
             {/* violet band letters C–X down the LEFT — on the HTML overlay (the SVG's slice crop hides
                 left-anchored SVG text). One per band between horizontal grid lines, like the yellow zones. */}
-            {showZones && coordFmt !== "dms" && flat.w >= W * 0.5 && (() => {
+            {showZones && flat.w >= W * 0.5 && (() => {
               const activeBand = gzdOf(clat, clon).band;
               return BANDS.split("").map((L, j) => {
                 const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8;
@@ -3994,6 +3994,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [gridStepM, setGridStepM] = useState<number>(0);
   const [digits, setDigits] = useState<Digits>(4);
   const [coordFmt, setCoordFmt] = useState<"mgrs" | "dms" | "ucrs" | "utm">("mgrs");
+  // load persisted format CLIENT-only, post-mount (SSR renders default → no hydration mismatch); then persist.
+  useEffect(() => { try { const v = localStorage.getItem("sec2525.coordFmt"); if (v === "mgrs" || v === "dms" || v === "ucrs" || v === "utm") setCoordFmt(v); } catch { /* ignore */ } }, []);
+  useEffect(() => { try { localStorage.setItem("sec2525.coordFmt", coordFmt); } catch {} }, [coordFmt]);
   const [unit, setUnit] = useState<Unit>("km");
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [placed, setPlaced] = useState<Placed[]>([]);
