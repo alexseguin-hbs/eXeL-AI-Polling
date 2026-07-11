@@ -32,6 +32,7 @@ import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
 import { latLonToMgrs, latLonToUtm, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon, gzdBoundaries, gzdOf, BANDS } from "@/components/security-2525/mgrs";
+import { getFpsCap, capInterval } from "@/components/security-2525/fps-governor";
 import {
   SUPPORT_CATALOG, GROUP_META, REALITY_MODES,
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
@@ -474,8 +475,13 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   // graticule + GRID), so firing setCam per move (~100/s) froze phones — worse with GRID on. Coalesce
   // moves into ONE setCam per animation frame (mirrors AoMapPane's dragRafRef pattern).
   const orbitRaf = useRef<number | null>(null);
+  const orbitLastRef = useRef(0);
   const pend = useRef({ dLon: 0, dLat: 0, dRoll: 0, dTilt: 0 });
   const flushOrbit = () => {
+    // FPS governor: at a low cap, delay the flush (keep accumulating) to throttle orbit compute on EDGE.
+    const now = performance.now();
+    if (getFpsCap() > 0 && now - orbitLastRef.current < capInterval(0)) { orbitRaf.current = requestAnimationFrame(flushOrbit); return; }
+    orbitLastRef.current = now;
     orbitRaf.current = null;
     const p = pend.current; pend.current = { dLon: 0, dLat: 0, dRoll: 0, dTilt: 0 };
     setCam((c) => ({ ...c,
@@ -4233,7 +4239,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
       if (playLastRef.current === 0) playLastRef.current = ts;
       // FREEZE FIX: repaint at ~20 fps, not every rAF frame. Each setPlaced re-renders the whole map;
       // dead-reckoning stays accurate because dt integrates the REAL elapsed time between repaints.
-      if (ts - playLastRef.current >= 50) {
+      if (ts - playLastRef.current >= capInterval(50)) {
         const dtH = Math.min(0.25, (ts - playLastRef.current) / 1000) / 3600; // clamp long frames; → hours
         playLastRef.current = ts;
         setPlaced((pl) => pl.map((u) => {

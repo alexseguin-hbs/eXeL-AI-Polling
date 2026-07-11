@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { FpsMeter } from "@/components/security-2525/fps-meter";
+import { getFpsCap, setFpsCap, initFpsCap, runSpeedTest } from "@/components/security-2525/fps-governor";
 import { CLEARANCE_COLORS } from "@/lib/atlantis-package";
 import {
   AssetIcon, ASSET_ORDER, ASSET_LABELS, type IconStyle,
@@ -201,6 +202,12 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFps, setShowFps] = useState(() => { try { return localStorage.getItem("sec2525.fps") === "1"; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem("sec2525.fps", showFps ? "1" : "0"); } catch {} }, [showFps]);
+  const [fpsCap, setFpsCapState] = useState(0);   // 0 = MAX; mirrors the governor for the UI
+  const [bench, setBench] = useState<number | null>(null);
+  const [benching, setBenching] = useState(false);
+  useEffect(() => { initFpsCap(); setFpsCapState(getFpsCap()); try { const v = Number(localStorage.getItem("sec2525.fpsBench")); if (Number.isFinite(v) && v > 0) setBench(v); } catch {} }, []);
+  const applyCap = (n: number) => { setFpsCap(n); setFpsCapState(n); };
+  const speedTest = async () => { setBenching(true); const fps = await runSpeedTest(2000); setBench(fps); try { localStorage.setItem("sec2525.fpsBench", String(fps)); } catch {} setBenching(false); };
 
   // Maximize = fill the ENTIRE physical screen (browser Fullscreen API — same
   // as F11: Chrome's tabs/URL bar disappear). Falls back to in-page overlay
@@ -259,12 +266,28 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
             </button>
             {menuOpen && <div className="fixed inset-0 z-[94]" onClick={() => setMenuOpen(false)} aria-hidden />}
             {menuOpen && (
-              <div className="absolute right-0 top-9 z-[95] w-44 rounded border p-2 shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
+              <div className="absolute right-0 top-9 z-[95] w-56 rounded border p-2 shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
                 <div className="mb-1.5 text-[9px] font-bold tracking-wider" style={{ color: C.dim }}>SETTINGS · ALL TABS</div>
                 <div className="flex items-center justify-between gap-2 py-0.5 text-[11px]" style={{ color: C.text }}>
                   <span>FPS counter</span>
                   <button onClick={() => setShowFps((v) => !v)} className="rounded border px-1.5 py-0.5 text-[9px] font-bold"
                     style={{ borderColor: showFps ? C.cyan : C.border, color: showFps ? C.cyan : C.dim }}>{showFps ? "ON" : "OFF"}</button>
+                </div>
+                <div className="mt-1.5 border-t pt-1.5" style={{ borderColor: C.border }}>
+                  <div className="mb-1 text-[9px] font-bold tracking-wider" style={{ color: C.dim }}>TARGET FPS · EDGE</div>
+                  <div className="flex items-center gap-1">
+                    {[3, 6, 9, 30, 0].map((n) => (
+                      <button key={n} onClick={() => applyCap(n)} className="flex-1 rounded border px-1 py-0.5 text-[9px] font-bold"
+                        style={{ borderColor: fpsCap === n ? C.cyan : C.border, color: fpsCap === n ? C.cyan : C.dim }}>{n === 0 ? "MAX" : n}</button>
+                    ))}
+                  </div>
+                  <button onClick={speedTest} disabled={benching} className="mt-1.5 w-full rounded border px-1 py-1 text-[9px] font-bold"
+                    style={{ borderColor: "#ffd400", color: "#ffd400", opacity: benching ? 0.6 : 1 }}>{benching ? "TESTING…" : "SPEED TEST"}</button>
+                  {bench != null && (
+                    <div className="mt-1 text-[9px] font-bold" style={{ color: bench >= 50 ? "#3ec96b" : bench >= 30 ? "#f5a623" : "#ef4444" }}>
+                      {bench} fps · {bench >= 50 ? "EDGE-ready" : bench >= 30 ? "OK · cap ≤ 30" : "set cap ≤ 9"}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
