@@ -27,7 +27,7 @@
  * subsurface layers come later — see docs/security-2525/DATA_SOURCES.md.
  */
 import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2, Eye, Lock, Unlock } from "lucide-react";
+import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2, Eye, EyeOff, Lock, Unlock } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
@@ -423,10 +423,10 @@ function ringPath(ring: [number, number][], w: number, h: number): string {
 
 /** Orthographic wireframe GLOBE — planning start screen (drag-rotate, zoom → drill). */
 type GzCell = { zone: number; band: string; lonW: number; lonE: number; latS: number; latN: number };
-function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones }: {
+function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones, hiddenKeys }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void; onEnterAo?: (k: string) => void;
-  coordFmt: "mgrs" | "dms" | "ucrs"; showZones: boolean;
+  coordFmt: "mgrs" | "dms" | "ucrs"; showZones: boolean; hiddenKeys?: Set<string>;
 }) {
   // Nearest AO to a lat/lon within ~10° → zoom-in enters it directly (no flat 'blue screen').
   const nearestAo = (lat: number, lon: number) => {
@@ -613,7 +613,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
             <path d={borders.states} fill="none" stroke={C.borderState} strokeWidth={0.4 / zoom} opacity="0.65" />
           </>
         )}
-        {AOS.map((ao) => {
+        {AOS.filter((ao) => !hiddenKeys?.has(ao.key)).map((ao) => {
           const [x, y, v] = proj(ao.center[0], ao.center[1]);
           if (!v) return null;
           const active = ao.key === activeKey;
@@ -687,7 +687,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   );
 }
 
-function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; label?: string; onMinimize?: () => void; coordFmt: "mgrs" | "dms" | "ucrs" }) {
+function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, hiddenKeys }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; label?: string; onMinimize?: () => void; coordFmt: "mgrs" | "dms" | "ucrs"; hiddenKeys?: Set<string> }) {
   const [data, setData] = useState<BorderData | null>(borderCache);
   const [mode, setMode] = useState<"globe" | "flat">("globe");
   const [showZones, setShowZones] = useState(false); // MGRS/LLV-DMS grid-zone training overlay (globe + flat)
@@ -745,7 +745,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
   return (
     <div className="relative h-full w-full overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
-        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} coordFmt={coordFmt} showZones={showZones} />
+        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} coordFmt={coordFmt} showZones={showZones} hiddenKeys={hiddenKeys} />
       ) : (
         <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full touch-none" role="img"
@@ -785,7 +785,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
                   </g>
                 );
               })}
-              {AOS.map((ao) => {
+              {AOS.filter((ao) => !hiddenKeys?.has(ao.key)).map((ao) => {
                 const x = ((ao.center[1] + 180) / 360) * W;
                 const y = ((90 - ao.center[0]) / 180) * H;
                 const active = ao.key === aoKey;
@@ -3836,6 +3836,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [aoHidden, setAoHidden] = useState<Set<string>>(() => { try { return new Set<string>(JSON.parse(localStorage.getItem("sec2525.aoHidden") || "[]")); } catch { return new Set<string>(); } });
   useEffect(() => { try { localStorage.setItem("sec2525.aoHidden", JSON.stringify(Array.from(aoHidden))); } catch { /* quota */ } }, [aoHidden]);
   const toggleAoHidden = (k: string) => setAoHidden((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
+  // Permanently-removed built-in AOs (custom missions delete from their own list). Two-tier:
+  // HIDE (list → bottom, reversible) then DELETE (from the bottom, gone from map + list).
+  const [aoDeleted, setAoDeleted] = useState<Set<string>>(() => { try { return new Set<string>(JSON.parse(localStorage.getItem("sec2525.aoDeleted") || "[]")); } catch { return new Set<string>(); } });
+  useEffect(() => { try { localStorage.setItem("sec2525.aoDeleted", JSON.stringify(Array.from(aoDeleted))); } catch { /* quota */ } }, [aoDeleted]);
   // ── AO / AOR draw tool ── draw an AO polygon (tap vertices), set AOR buffer 10–100km ──
   const [drawingAo, setDrawingAo] = useState(false);
   const [aoDraft, setAoDraft] = useState<[number, number][]>([]);
@@ -3858,6 +3862,13 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   };
   const renameMission = (key: string, name: string) => setCustomAos((a) => a.map((m) => (m.key === key ? { ...m, name } : m)));
   const deleteMission = (key: string) => { setCustomAos((a) => a.filter((m) => m.key !== key)); if (aoKey === key) setAoKey("capitol"); };
+  // Permanent delete (from the HIDDEN section): custom missions drop from their list; built-in
+  // AOs go to aoDeleted (filtered out of the map + menu). Also un-hides so it never lingers.
+  const removeAo = (key: string) => {
+    if (key.startsWith("custom-")) deleteMission(key);
+    else { setAoDeleted((s) => new Set(s).add(key)); if (aoKey === key) setAoKey(AOS.find((a) => a.key !== key && !aoDeleted.has(a.key))?.key ?? "capitol"); }
+    setAoHidden((s) => { const n = new Set(s); n.delete(key); return n; });
+  };
   const [showUlt, setShowUlt] = useState(false);         // ULT · Unit Line-up Table (setup layer)
   // ULT starts at the 001–008 setup nodes; operators ADD unit rows one at a time (persisted).
   const [ultRows, setUltRows] = useState<UltNode[]>(() => {
@@ -3868,7 +3879,9 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const updUlt = (i: number, patch: Partial<UltNode>) => setUltRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   const addUltRow = () => setUltRows((rs) => [...rs, { id: String(rs.length + 1).padStart(3, "0"), node: "", desc: "", supervisor: "", comm: "", personnel: 0, rifles: 0, vehicles: 0, equipment: "", notes: "" }]);
   const delUltRow = (i: number) => setUltRows((rs) => rs.filter((_, j) => j !== i));
-  const allAos = [...AOS, ...customAos];
+  const allAos = [...AOS.filter((a) => !aoDeleted.has(a.key)), ...customAos];
+  // Keys hidden from the WORLD map markers (2D flat + 3D globe): hidden OR deleted built-ins.
+  const worldHidden = useMemo(() => new Set<string>([...Array.from(aoHidden), ...Array.from(aoDeleted)]), [aoHidden, aoDeleted]);
   const aoStateOf = (k: string) => (k.startsWith("custom-") ? "CUSTOM" : k === "dc" ? "DC" : k === "jblm" ? "WA"
     : ["capitol", "mabry", "pfield", "houston", "sanantonio", "dallas", "fortworth", "austin"].includes(k) ? "TX" : "FL");
   const [hoverAsset, setHoverAsset] = useState<AssetKind | null>(null);
@@ -4294,7 +4307,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                               <button onClick={() => { setAoKey(a.key); setAoMenuOpen(false); }} title="Select mission" className="shrink-0 pl-2"><MapPin className="h-3 w-3" style={{ color: a.key === aoKey ? C.cyan : C.dim }} /></button>
                               <input value={a.name.split(" · ")[0]} onChange={(e) => renameMission(a.key, e.target.value)} onClick={(e) => e.stopPropagation()}
                                 className="min-w-0 flex-1 bg-transparent px-1 py-1 text-[10px] font-semibold outline-none" style={{ color: a.key === aoKey ? C.cyan : C.text }} />
-                              <button onClick={(e) => { e.stopPropagation(); deleteMission(a.key); }} title="Delete mission" className="shrink-0 p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+                              <button onClick={(e) => { e.stopPropagation(); toggleAoHidden(a.key); }} title="Hide (moves to HIDDEN at bottom — delete from there)" className="shrink-0 p-0.5"><EyeOff className="h-3 w-3" style={{ color: C.dim }} /></button>
                             </>
                           ) : (
                             <>
@@ -4304,7 +4317,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                                 <MapPin className="h-3 w-3 shrink-0" style={{ color: a.key === aoKey ? C.cyan : C.dim }} />
                                 <span className="truncate">{a.name.split(" · ")[0]}</span>
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); toggleAoHidden(a.key); }} title="Hide / remove from list" className="shrink-0 p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
+                              <button onClick={(e) => { e.stopPropagation(); toggleAoHidden(a.key); }} title="Hide (moves to HIDDEN at bottom — delete from there)" className="shrink-0 p-0.5"><EyeOff className="h-3 w-3" style={{ color: C.dim }} /></button>
                             </>
                           )}
                         </div>
@@ -4320,9 +4333,10 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
                     {showHiddenAos ? "▾" : "▸"} Hidden ({aoHidden.size}) — restore
                   </button>
                   {showHiddenAos && allAos.filter((a) => aoHidden.has(a.key)).map((a) => (
-                    <div key={a.key} className="flex items-center gap-1 rounded pr-1 opacity-60 hover:bg-white/5">
+                    <div key={a.key} className="flex items-center gap-1 rounded pr-1 opacity-70 hover:bg-white/5">
                       <span className="min-w-0 flex-1 truncate px-2 py-1 text-[10px]" style={{ color: C.dim }}>{a.name.split(" · ")[0]}</span>
-                      <button onClick={() => toggleAoHidden(a.key)} title="Restore (show)" className="shrink-0 p-0.5"><Eye className="h-3 w-3" style={{ color: C.green }} /></button>
+                      <button onClick={() => toggleAoHidden(a.key)} title="Restore (show on map + list)" className="shrink-0 p-0.5"><Eye className="h-3 w-3" style={{ color: C.green }} /></button>
+                      <button onClick={() => removeAo(a.key)} title="Delete permanently (remove from map + list)" className="shrink-0 p-0.5"><Trash2 className="h-3 w-3" style={{ color: C.red }} /></button>
                     </div>
                   ))}
                 </div>
@@ -4740,7 +4754,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             modeB === "world" ? (
               <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
                 <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                  onEnterAo={(k) => enterAo(k, setModeB_)} onMinimize={() => setFsPane(null)} coordFmt={coordFmt} />
+                  onEnterAo={(k) => enterAo(k, setModeB_)} onMinimize={() => setFsPane(null)} coordFmt={coordFmt} hiddenKeys={worldHidden} />
               </div>
             ) : (
               <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
@@ -4751,7 +4765,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
           ) : modeA === "world" ? (
             <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
               <WorldStrip label="MAP" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                onEnterAo={(k) => enterAo(k, setModeA_)} onMinimize={fsPane === "map" ? () => setFsPane(null) : undefined} coordFmt={coordFmt} />
+                onEnterAo={(k) => enterAo(k, setModeA_)} onMinimize={fsPane === "map" ? () => setFsPane(null) : undefined} coordFmt={coordFmt} hiddenKeys={worldHidden} />
             </div>
           ) : (
             <AoMapPane {...paneCommon} dem={dem} label="MAP" showElevation spanFactor={1}
@@ -4786,7 +4800,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
               <div className="min-h-0 flex-1">
                 {modeB === "world" ? (
                   <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                    onEnterAo={(k) => enterAo(k, setModeB_)} coordFmt={coordFmt} />
+                    onEnterAo={(k) => enterAo(k, setModeB_)} coordFmt={coordFmt} hiddenKeys={worldHidden} />
                 ) : (
                   <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
                     view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
