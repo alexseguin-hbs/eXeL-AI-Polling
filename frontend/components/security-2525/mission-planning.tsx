@@ -434,7 +434,7 @@ type GzCell = { zone: number; band: string; lonW: number; lonE: number; latS: nu
 function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones, hiddenKeys }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void; onEnterAo?: (k: string) => void;
-  coordFmt: "mgrs" | "dms" | "ucrs"; showZones: boolean; hiddenKeys?: Set<string>;
+  coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; showZones: boolean; hiddenKeys?: Set<string>;
 }) {
   // Nearest AO to a lat/lon within ~10° → zoom-in enters it directly (no flat 'blue screen').
   const nearestAo = (lat: number, lon: number) => {
@@ -505,7 +505,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   const zoneOverlay = useMemo(() => {
     if (!showZones) return null;
     // Grid spacing matches the selected protocol: MGRS → 6°×8° UTM zones; LLV-DMS / UCRS → 15° graticule.
-    const mgrs = coordFmt === "mgrs";
+    const mgrs = coordFmt === "mgrs" || coordFmt === "utm";
     const meridians = mgrs ? gzdBoundaries().meridians : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
     const parallels = mgrs ? gzdBoundaries().parallels : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
     const grid: [number, number][][] = [];
@@ -663,7 +663,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
             <path d={zoneOverlay.band} fill="none" stroke={BAND_VIOLET} strokeWidth={0.9 / zoom} opacity="0.95" />
             {coordFmt !== "ucrs" && (() => {
               const degL = (v: number, pos: string, neg: string) => `${Math.abs(Math.round(v))}°${v < 0 ? neg : pos}`;
-              const mgrs = coordFmt === "mgrs";
+              const mgrs = coordFmt === "mgrs" || coordFmt === "utm";
               const zones = mgrs ? Array.from({ length: 60 }, (_, k) => k) : [];
               const bandsArr = mgrs ? BANDS.split("") : [];
               const merid = mgrs ? [] : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
@@ -711,7 +711,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   );
 }
 
-function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, hiddenKeys }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; label?: string; onMinimize?: () => void; coordFmt: "mgrs" | "dms" | "ucrs"; hiddenKeys?: Set<string> }) {
+function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, hiddenKeys }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; label?: string; onMinimize?: () => void; coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; hiddenKeys?: Set<string> }) {
   const [data, setData] = useState<BorderData | null>(borderCache);
   const [mode, setMode] = useState<"globe" | "flat">("globe");
   const [showZones, setShowZones] = useState(false); // MGRS/LLV-DMS grid-zone training overlay (globe + flat)
@@ -833,7 +833,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
               {/* MGRS/LLV-DMS grid-zone training overlay — faint 6°×8° grid, active cell highlighted.
                   Only when zoomed out (flat.w ≥ half world). Tiles with the wrap loop. */}
               {showZones && flat.w >= W * 0.5 && (() => {
-                const mgrs = coordFmt === "mgrs";
+                const mgrs = coordFmt === "mgrs" || coordFmt === "utm";
                 const meridians = mgrs ? gzdBoundaries().meridians : Array.from({ length: 25 }, (_, i) => -180 + i * 15);
                 const parallels = mgrs ? gzdBoundaries().parallels : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
                 const xOf = (lon: number) => ((lon + 180) / 360) * W;
@@ -863,7 +863,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                     ))}
                     {/* FULL label set — every zone number 1–60 across the top, every band C–X down the left
                         (MGRS); or degrees at each line (LLV-DMS). Active cell bold gold. */}
-                    {coordFmt === "mgrs" && (<>
+                    {(coordFmt === "mgrs" || coordFmt === "utm") && (<>
                       {/* zone numbers 1–60 — dropped BELOW the header button row (flat.y+14%) so they
                           clear the TEXAS CAPITOL/3D/2D/GRID chips. UNIFORM cyan — the active zone is
                           NOT enlarged (that made 58 jump); the only highlight is the yellow intersection. */}
@@ -1110,7 +1110,7 @@ interface Fmt {
   fmtDist: (m: number) => string;
   fmtElev: (m: number) => string;
 }
-function makeFormatters(coordFmt: "mgrs" | "dms" | "ucrs", digits: Digits, unit: Unit): Fmt {
+function makeFormatters(coordFmt: "mgrs" | "dms" | "ucrs" | "utm", digits: Digits, unit: Unit): Fmt {
   const mgrsAt = (lat: number, lon: number, d: Digits = digits) => latLonToMgrs(lat, lon, d);
   const dms1 = (v: number, pos: string, neg: string) => {
     const h = v >= 0 ? pos : neg, a = Math.abs(v);
@@ -1119,9 +1119,11 @@ function makeFormatters(coordFmt: "mgrs" | "dms" | "ucrs", digits: Digits, unit:
     const dec = digits >= 6 ? 3 : digits === 5 ? 2 : 1;
     return `${d}°${String(m).padStart(2, "0")}'${s.toFixed(dec).padStart(dec + 3, "0")}"${h}`;
   };
+  const utmAt = (lat: number, lon: number) => { const u = latLonToUtm(lat, lon); return `${u.zone} ${Math.round(u.easting)}E ${Math.round(u.northing)}N`; };
   const coordAt = (lat: number, lon: number) =>
     coordFmt === "dms" ? `${dms1(lat, "N", "S")} ${dms1(lon, "E", "W")}`
       : coordFmt === "ucrs" ? fmtUcrsDms(lat, lon) // P1.2 (Odin): UCRS-2525 as a settings-level format
+      : coordFmt === "utm" ? utmAt(lat, lon)       // UTM zone · easting · northing
       : mgrsAt(lat, lon);
   const metric = unit === "km" || unit === "m";
   const fmtDist = (m: number) =>
@@ -1170,8 +1172,8 @@ interface PaneProps {
   selected: { kind: "asset" | "support"; id: number } | null;
   selectedAsset: AssetKind | null;
   onDisarm?: () => void; // FX-03: clear the armed placement tool after a placement
-  coordFmt?: "mgrs" | "dms" | "ucrs";          // FX-13: current Settings format
-  onSetCoordFmt?: (f: "mgrs" | "dms" | "ucrs") => void; // FX-13: packet toggle → Settings
+  coordFmt?: "mgrs" | "dms" | "ucrs" | "utm";          // FX-13: current Settings format
+  onSetCoordFmt?: (f: "mgrs" | "dms" | "ucrs" | "utm") => void; // FX-13: packet toggle → Settings
   unit?: Unit;                                 // current distance/altitude unit (km/m/mi/ft)
   onSetUnit?: (u: Unit) => void;               // unit selector callback → Settings
   gridStepM?: number;                          // 0 = AUTO, else fixed grid step in metres
@@ -1832,7 +1834,7 @@ function AoMapPane(p: PaneProps) {
           title="Coordinate (tap to decode MGRS · LLV-DMS · UCRS-2525)"
           className="ml-auto flex items-center gap-1 rounded px-1 text-[7px] font-bold font-mono transition-colors"
           style={{ color: showDecode ? C.gold : C.cyan, background: showDecode ? `${C.gold}22` : `${C.cyan}12`, border: `1px solid ${showDecode ? C.gold : C.border}` }}>
-          <Lock className="h-2.5 w-2.5" /> {fmt.coordAt(view.lat, view.lon)}
+          {fmt.coordAt(view.lat, view.lon)} {showDecode ? <Unlock className="h-2.5 w-2.5" /> : <Lock className="h-2.5 w-2.5" />}
         </button>
       </div>
 
@@ -3102,7 +3104,7 @@ function AoMapPane(p: PaneProps) {
                     );
                   })()}
                   <div className="mt-1 flex flex-wrap items-center gap-1 border-t pt-1" style={{ borderColor: C.border }}>
-                    {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["ucrs", "UCRS-2525"]] as const).map(([fk, lb]) => (
+                    {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["utm", "UTM"], ["ucrs", "UCRS-2525"]] as const).map(([fk, lb]) => (
                       <button key={fk} onClick={() => onSetCoordFmt?.(fk)} className="rounded border px-1 py-0"
                         style={{ borderColor: coordFmt === fk ? C.cyan : C.border, color: coordFmt === fk ? C.cyan : C.dim }}>{lb}</button>
                     ))}
@@ -3165,7 +3167,7 @@ function AoMapPane(p: PaneProps) {
                     </div>
                   )}
                   <div className="mt-1 flex items-center gap-1 border-t pt-1" style={{ borderColor: C.border }}>
-                    {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["ucrs", "UCRS-2525"]] as const).map(([fk, lb]) => (
+                    {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["utm", "UTM"], ["ucrs", "UCRS-2525"]] as const).map(([fk, lb]) => (
                       <button key={fk} onClick={() => onSetCoordFmt?.(fk)} className="rounded border px-1 py-0"
                         style={{ borderColor: coordFmt === fk ? C.gold : C.border, color: coordFmt === fk ? C.gold : C.dim }}>{lb}</button>
                     ))}
@@ -3249,6 +3251,14 @@ function AoMapPane(p: PaneProps) {
                   {row(elevM >= 0 ? "Terrain (MSL)" : "Depth (below MSL)", `${Math.round(Math.abs(elevM)).toLocaleString()} m`, elevM >= 0 ? C.green : "#22d3ee")}
                   {row("Source", dem ? "GEBCO 2020" : "synthetic", dem ? C.text : C.dim)}
                   {row("Vert datum", dem ? "MSL (GEBCO)" : "approx", C.dim)}
+                  {/* FORMAT selector — right here at the coordinate (no trip to Settings). Sets the
+                      active coordFmt across the app. */}
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1 border-t pt-1.5" style={{ borderColor: C.border }}>
+                    {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["utm", "UTM"], ["ucrs", "UCRS-2525"]] as const).map(([fk, lb]) => (
+                      <button key={fk} onClick={() => onSetCoordFmt?.(fk)} className="rounded border px-1 py-0 text-[8px] font-bold"
+                        style={{ borderColor: coordFmt === fk ? C.gold : C.border, color: coordFmt === fk ? C.gold : C.dim, background: coordFmt === fk ? `${C.gold}18` : "transparent" }}>{lb}</button>
+                    ))}
+                  </div>
                   <div className="mt-1 text-[7px]" style={{ color: C.dim }}>Same DEM tile that draws contours (1 fetch). MGRS: 6°-zone · 8°-band · 100 km square · E/N.</div>
                 </div>
               );
@@ -3521,7 +3531,7 @@ function PlacementRail(r: RailProps) {
 interface InspectorProps {
   selected: { kind: "asset" | "support"; id: number } | null;
   selectedObj: Placed | PlacedSupport | undefined;
-  fmt: Fmt; coordFmt: "mgrs" | "dms" | "ucrs"; digits: Digits;
+  fmt: Fmt; coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; digits: Digits;
   nudgeM: number; setNudgeM: (m: number) => void;
   coordText: string; setCoordText: (s: string) => void;
   onSetAff: (sel: { kind: "asset" | "support"; id: number }, aff: Affiliation) => void;
@@ -3891,7 +3901,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
   const [gridOn, setGridOn] = useState(true);
   const [gridStepM, setGridStepM] = useState<number>(0);
   const [digits, setDigits] = useState<Digits>(4);
-  const [coordFmt, setCoordFmt] = useState<"mgrs" | "dms" | "ucrs">("mgrs");
+  const [coordFmt, setCoordFmt] = useState<"mgrs" | "dms" | "ucrs" | "utm">("mgrs");
   const [unit, setUnit] = useState<Unit>("km");
   const [inventory, setInventory] = useState(INITIAL_INVENTORY);
   const [placed, setPlaced] = useState<Placed[]>([]);
@@ -4587,7 +4597,7 @@ export function MissionPlanning({ iconStyle }: { iconStyle: IconStyle }) {
             </div>
             <div className="mb-1 text-[10px]" style={{ color: C.text }}>Coordinate format</div>
             <div className="mb-2 flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
-              {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["ucrs", "UCRS-2525"]] as const).map(([f, label]) => (
+              {([["mgrs", "MGRS"], ["dms", "LLV-DMS"], ["utm", "UTM"], ["ucrs", "UCRS-2525"]] as const).map(([f, label]) => (
                 <button key={f} onClick={() => setCoordFmt(f)} className="flex-1 px-2 py-1"
                   style={{ background: coordFmt === f ? "#152238" : "transparent", color: coordFmt === f ? C.cyan : C.dim }}>{label}</button>
               ))}
