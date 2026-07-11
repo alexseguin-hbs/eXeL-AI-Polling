@@ -37,6 +37,7 @@ import {
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
 } from "@/components/security-2525/mission-support";
 import { PfieldVenue } from "@/components/security-2525/pfield-venue";
+import { COUNTRIES } from "@/components/security-2525/countries";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { MIN_SPAN_KM, MAX_SPAN_KM, shouldHandOffToWorld } from "@/lib/zoom-continuum";
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
@@ -625,6 +626,12 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
             <path d={borders.states} fill="none" stroke={C.borderState} strokeWidth={0.4 / zoom} opacity="0.65" />
           </>
         )}
+        {/* country names — front-facing only; declutter by the visible span (≈180°/zoom) */}
+        {COUNTRIES.filter((c) => !c.min || 180 / zoom <= c.min).map((c) => {
+          const [x, y, v] = proj(c.lat, c.lon);
+          if (!v) return null;
+          return <text key={c.name} x={x} y={y} fontSize={5 / zoom} fill={C.text} opacity="0.55" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", letterSpacing: "0.02em" }}>{c.name}</text>;
+        })}
         {AOS.filter((ao) => !hiddenKeys?.has(ao.key)).map((ao) => {
           const [x, y, v] = proj(ao.center[0], ao.center[1]);
           if (!v) return null;
@@ -658,8 +665,10 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                 <>
                   {/* zone numbers 1–60 along the equator; back-facing culled; centered zone bold yellow */}
                   {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1, act = sel.zone === zn; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={(act ? 9 : 6) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? TRINITY_COLORS.temporal : C.cyan} opacity={act ? 1 : 0.85} textAnchor="middle" style={{ fontFamily: "monospace" }}>{zn}</text> : null; })}
-                  {/* band letters C–X down the LEFT limb — enlarged for legibility */}
-                  {bandsArr.map((L, j) => { const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = sel.band === L; const [x, y, v] = proj((latS + latN) / 2, LON0 - 85); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={(act ? 10 : 7.5) / zoom} fontWeight="bold" fill={act ? TRINITY_COLORS.family : C.cyan} opacity={act ? 1 : 0.9} textAnchor="middle" style={{ fontFamily: "monospace" }}>{L}</text> : null; })}
+                  {/* band letters C–X down the CENTRE meridian (LON0) — a vertical latitude scale
+                      through the middle. The ACTIVE band is skipped here (its letter is in the
+                      yellow address at the crosshair); dark halo keeps cyan legible over the strip. */}
+                  {bandsArr.map((L, j) => { if (sel.band === L) return null; const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8; const [x, y, v] = proj((latS + latN) / 2, LON0); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={7.5 / zoom} fontWeight="bold" fill={C.cyan} opacity="0.9" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth={1.6 / zoom}>{L}</text> : null; })}
                   {/* NB: the active "14R" address is drawn ONCE at the stationary crosshair centre
                       (below), not here — the yellow alphanumeric belongs to the intersection only. */}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
@@ -683,7 +692,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
           {/* the yellow alphanumeric GZD address ("14R") lives ONLY here — at the crosshair the
               zone (number) and band (letter) intersect. All yellow, per operator. */}
           {coordFmt === "mgrs" && (
-            <text x={CX + 6} y={CY - 5} fontSize="12" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="start"
+            <text x={CX} y={CY + 11} fontSize="12" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="middle"
               style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="2.6">{sel.zone}{sel.band}</text>
           )}
         </g>
@@ -779,6 +788,13 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                   <path d={paths.states} fill="none" stroke={C.borderState} strokeWidth="0.35" opacity="0.5" vectorEffect="non-scaling-stroke" />
                 </>
               )}
+              {/* country names — declutter by the visible span (flat.w/W · 360°) */}
+              {COUNTRIES.filter((c) => !c.min || (flat.w / W) * 360 <= c.min).map((c) => {
+                const x = ((c.lon + 180) / 360) * W, y = ((90 - c.lat) / 180) * H;
+                return (
+                  <text key={c.name} x={x} y={y} fontSize="3.6" fill={C.text} opacity="0.5" textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", letterSpacing: "0.03em" }}>{c.name}</text>
+                );
+              })}
               {/* Major metros (≥1M) — surface once zoomed past continent scale */}
               {flat.w < W * 0.4 && CITIES.map((c) => {
                 const x = ((c.lon + 180) / 360) * W, y = ((90 - c.lat) / 180) * H;
@@ -860,11 +876,12 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                           </g>
                         );
                       })}
-                      {/* CROSS-SECTION address chip at the cell centre — "14R" (zone yellow + band violet) */}
+                      {/* CROSS-SECTION address chip at the cell centre — ALL-YELLOW "14R" (zone number
+                          + band letter both yellow; two-colour read messy). Intersection only. */}
                       {(() => { const cx = xOf((fsel.lonW + fsel.lonE) / 2), cy = yOf((fsel.latS + fsel.latN) / 2); return (
                         <g key="fzcell">
                           <rect x={cx - 7} y={cy - 3.5} width={14} height={7} rx={1} fill="#0a0e14" opacity="0.85" stroke={C.gold} strokeWidth="0.3" vectorEffect="non-scaling-stroke" />
-                          <text x={cx} y={cy + 2} fontSize="5" fontWeight="bold" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}><tspan fill={TRINITY_COLORS.temporal}>{fsel.zone}</tspan><tspan fill={TRINITY_COLORS.family}>{fsel.band}</tspan></text>
+                          <text x={cx} y={cy + 2} fontSize="5" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{fsel.zone}{fsel.band}</text>
                         </g>
                       ); })()}
                     </>)}
