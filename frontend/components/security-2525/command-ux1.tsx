@@ -268,6 +268,8 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
                 </div>
               </div>
             )}
+            {/* live FPS counter sits directly UNDER the settings gear icon */}
+            <FpsMeter show={showFps} />
           </div>
           <button onClick={() => directLink ? (window.location.href = "/") : exitSimulationMode()} className="p-1.5 rounded hover:bg-white/5" title="Exit">
             <X className="h-4 w-4" style={{ color: C.dim }} />
@@ -548,7 +550,6 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
       )}
       </>)}
 
-      <FpsMeter show={showFps} />
       {/* Footer */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
         <span><span style={{ color: C.green }}>●</span> SYSTEM HEALTH — ALL SYSTEMS NOMINAL</span>

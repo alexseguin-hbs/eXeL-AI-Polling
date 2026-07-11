@@ -30,7 +30,7 @@ export function FpsMeter({ show }: { show: boolean }) {
   if (!show) return null;
   const col = fps >= 50 ? "#3ec96b" : fps >= 30 ? "#f5a623" : "#ef4444";
   return (
-    <div className="pointer-events-none fixed right-2 top-14 z-[90] rounded border px-2 py-1 font-mono text-[11px] font-bold tabular-nums"
+    <div className="pointer-events-none absolute right-0 top-full mt-1 z-[90] rounded border px-2 py-1 font-mono text-[11px] font-bold tabular-nums"
       style={{ background: "#0a0e14cc", borderColor: "#1e2b3a", color: col }}
       aria-label="Frames per second">
       {fps} <span style={{ color: "#5f7186" }}>FPS</span>
