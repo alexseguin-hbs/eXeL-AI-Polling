@@ -53,6 +53,13 @@ const pickAo = async (name: string): Promise<boolean> => {
   const t = document.querySelector('button[title="Select area of operations / mission"]') as HTMLElement | null;
   if (!t) return false; t.click(); await sleep(280); return click(name);
 };
+// zoom the tactical map IN toward its centre so the DETAILED map (roads/water/terrain) shows before we
+// drop assets — switching AO lands on a wide overview, so a drop there isn't on the detailed map.
+const zoomInMap = async (n = 7) => {
+  const el = mapEl(); if (!el) return;
+  const r = el.getBoundingClientRect(); const cx = r.x + r.width / 2, cy = r.y + r.height / 2;
+  for (let i = 0; i < n; i++) { el.dispatchEvent(new WheelEvent("wheel", { deltaY: -300, clientX: cx, clientY: cy, bubbles: true, cancelable: true })); await sleep(90); }
+};
 
 // profile FPS (avg + min over 250ms windows) while `fn` runs
 async function section(name: string, fn: () => Promise<void>): Promise<PlaySection> {
@@ -79,19 +86,23 @@ export async function runPlayTest(onSection?: (s: PlaySection) => void): Promise
   const out: PlaySection[] = [];
   const run = async (name: string, fn: () => Promise<void>) => { const s = await section(name, fn); out.push(s); onSection?.(s); };
   // ── Mission tasking on the TACTICAL map first (placement is 2D + AO-map only) ──
-  await run("Switch to Camp Blanding", async () => { await pickAo("CAMP BLANDING"); await sleep(900); });
-  await run("Place AVENGER (E) + approve", async () => { click("2D"); await sleep(500); armAsset("AVENGER"); await sleep(200); tapMap(0.12, 0); await sleep(500); click("Save"); await sleep(300); });
-  await run("Add + remove SENTINEL (W)", async () => { armAsset("SENTINEL"); await sleep(200); tapMap(-0.12, 0); await sleep(500); click("Save"); await sleep(300); click("REMOVE"); await sleep(300); });
-  await run("Pan to Capitol (Austin)", async () => { await pickAo("TEXAS CAPITOL"); await sleep(800); });
-  await run("Place AUTO-FOIL aerial + approve", async () => { click("2D"); await sleep(300); armAsset("AUTO-FOIL"); await sleep(200); tapMap(0.15, 0); await sleep(500); click("Save"); await sleep(300); });
+  await run("Switch to Camp Blanding + zoom to detail", async () => { await pickAo("CAMP BLANDING"); await sleep(700); click("2D"); await sleep(300); await zoomInMap(7); await sleep(400); });
+  await run("Place AVENGER (E) on detailed map", async () => { armAsset("AVENGER"); await sleep(200); tapMap(0.1, 0); await sleep(500); click("Save"); await sleep(300); });
+  await run("Add + remove SENTINEL (W)", async () => { armAsset("SENTINEL"); await sleep(200); tapMap(-0.1, 0); await sleep(500); click("Save"); await sleep(300); click("REMOVE"); await sleep(300); });
+  await run("Pan to Capitol + zoom to detail", async () => { await pickAo("TEXAS CAPITOL"); await sleep(700); click("2D"); await sleep(300); await zoomInMap(7); await sleep(400); });
+  await run("Place AUTO-FOIL aerial on detailed map", async () => { armAsset("AUTO-FOIL"); await sleep(200); tapMap(0.14, 0); await sleep(500); click("Save"); await sleep(300); });
+  // ── Full lifecycle + key-concern coverage (last 2 days) on the detailed map ──
+  await run("Select + DELETE asset (full cycle)", async () => { await sleep(200); click("REMOVE"); await sleep(500); });
+  await run("Cycle coord MGRS→DMS→UTM→UCRS (grid stays GZD)", async () => { tapMap(0, 0); await sleep(300); click("LLV-DMS"); await sleep(300); click("UTM"); await sleep(300); click("UCRS-2525"); await sleep(300); click("MGRS"); await sleep(300); });
   // ── World-view + camera profile ──
   await run("Enter EARTH (world view)", async () => { click("EARTH"); await sleep(900); });
   await run("GRID overlay ON", async () => { click("GRID"); await sleep(700); });
-  await run("Orbit 3D globe", async () => { const g = globe(); if (g) { await drag(g, -140, 70, "touch"); await drag(g, 120, -50, "touch"); } });
+  await run("Orbit 3D globe", async () => { await sleep(600); let g = globe(); if (!g) { await sleep(700); g = globe(); } if (g) { await drag(g, -140, 70, "touch"); await drag(g, 120, -50, "touch"); } });
   await run("Switch to 2D flat", async () => { click("2D"); await sleep(900); });
   await run("Back to 3D globe", async () => { click("3D"); await sleep(800); });
   await run("Tilt 3D (right-drag 11→88)", async () => { const g = globe(); if (g) { await drag(g, 0, 120, "mouse"); await drag(g, 0, -110, "mouse"); } });
   await run("GRID overlay OFF", async () => { click("GRID"); await sleep(500); });
   await run("Mirror mini-map ⇄", async () => { click("MIRROR"); await sleep(500); click("MIRROR"); await sleep(300); });
+  await run("Maximize + minimize map", async () => { const mx = document.querySelector('button[title="Maximize"]') as HTMLElement | null; if (mx) { mx.click(); await sleep(800); click("MINIMIZE"); await sleep(500); } });
   return out;
 }
