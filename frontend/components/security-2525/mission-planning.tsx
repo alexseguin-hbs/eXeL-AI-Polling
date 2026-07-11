@@ -711,7 +711,11 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
       )}
       {/* GRID readout bottom-left — the centre cell's alphanumeric + calculated cell size (H × W km) */}
       {showZones && (() => { const latC = (sel.latS + sel.latN) / 2; const hKm = Math.round((sel.latN - sel.latS) * 110.574); const wKm = Math.round((sel.lonE - sel.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180)); return (
-        <text x={6} y={334} fontSize="9" fontWeight="bold" fill={TRINITY_COLORS.temporal} style={{ fontFamily: "monospace" }}>{sel.zone}{sel.band} · {hKm.toLocaleString()} × {wKm.toLocaleString()} km</text>
+        <text x={6} y={334} fontSize="9" fontWeight="bold" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="0.8">
+          {/* same two-tone format as 2D: cell = intersection yellow, dims = GRID-logo gold */}
+          <tspan fill={TRINITY_COLORS.temporal}>{sel.zone}{sel.band}</tspan>
+          <tspan fill={C.gold}> · {hKm.toLocaleString()} × {wKm.toLocaleString()} km</tspan>
+        </text>
       ); })()}
     </svg>
   );
@@ -948,18 +952,29 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
             <span className="pointer-events-none absolute right-2 top-2 z-10 font-mono text-[9px] font-semibold" style={{ color: C.cyan }}>
               {geoContext(clat, clon, kmW).join(" · ")}
             </span>
-            <span className="pointer-events-none absolute bottom-1 left-2 z-10 font-mono text-[8px]" style={{ color: C.gold }}>
-              {showZones
-                ? (() => { const g = gzdOf(clat, clon); const latC = (g.latS + g.latN) / 2; const hKm = Math.round((g.latN - g.latS) * 110.574); const wKm = Math.round((g.lonE - g.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180)); return `${g.zone}${g.band} · ${hKm.toLocaleString()} × ${wKm.toLocaleString()} km`; })()
-                : `${latLonToMgrs(clat, clon, 4)} · ${kmW >= 1 ? `${kmW.toFixed(kmW >= 10 ? 0 : 1)} km` : `${Math.round(kmW * 1000)} m`} wide`}
-            </span>
+            {showZones ? (() => {
+              const g = gzdOf(clat, clon); const latC = (g.latS + g.latN) / 2;
+              const hKm = Math.round((g.latN - g.latS) * 110.574);
+              const wKm = Math.round((g.lonE - g.lonW) * 111.32 * Math.cos((latC * Math.PI) / 180));
+              return (
+                <span className="pointer-events-none absolute bottom-1 left-2 z-10 flex items-baseline gap-1 font-mono font-bold">
+                  {/* cell = intersection yellow (smaller); dims = GRID-logo gold */}
+                  <span className="text-[10px]" style={{ color: TRINITY_COLORS.temporal, textShadow: "0 0 2px #0a0e14, 0 0 2px #0a0e14" }}>{g.zone}{g.band}</span>
+                  <span className="text-[9px]" style={{ color: C.gold }}>· {hKm.toLocaleString()} × {wKm.toLocaleString()} km</span>
+                </span>
+              );
+            })() : (
+              <span className="pointer-events-none absolute bottom-1 left-2 z-10 font-mono text-[8px]" style={{ color: C.gold }}>
+                {`${latLonToMgrs(clat, clon, 4)} · ${kmW >= 1 ? `${kmW.toFixed(kmW >= 10 ? 0 : 1)} km` : `${Math.round(kmW * 1000)} m`} wide`}
+              </span>
+            )}
             {/* FX-17 (P1.3): graphic SCALE bar bottom-left — both maps carry one */}
             {(() => {
               const nice = [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500];
               const target = kmW / 5;
               const barKm = nice.reduce((p, n) => (Math.abs(n - target) < Math.abs(p - target) ? n : p), nice[0]);
               return (
-                <span className="pointer-events-none absolute bottom-8 left-2 z-10 flex flex-col gap-0.5">
+                <span className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-0.5">
                   <span className="font-mono text-[7px]" style={{ color: C.text }}>{barKm >= 1 ? `${barKm} km` : `${barKm * 1000} m`}</span>
                   <span style={{ width: `${Math.min(45, (barKm / kmW) * 100)}vw`, maxWidth: 160, height: 2, background: C.text, opacity: 0.85 }} />
                 </span>
