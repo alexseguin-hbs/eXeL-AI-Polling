@@ -2336,6 +2336,10 @@ function AoMapPane(p: PaneProps) {
               const cellW = Math.max(16, (col.cellM / (view.spanKm * 1000)) * paneW);
               const cellPx = cellW * VOXEL_BASE_SCALE[voxelSize]; // BASE footprint — shrinks with the tier
               const bandPx = cellPx;                              // VERTICAL unit == base ⇒ cube stays cubic
+              // TRUE-scale altitude: 1:1 with the ground metres-per-pixel, so an aircraft sits at its
+              // real height and rises OFF the top of the frame as you zoom in (the band cubes below
+              // remain the readable scaffold). Not band-clamped, and it tracks view.spanKm.
+              const altPxPerM = paneW / (view.spanKm * 1000);
               const sel = voxelSel === col.key;
               const isLattice = col.key.startsWith("LAT:"); // empty scaffold column (no asset)
               const hiCol = voxelHiColor;                    // FX-07: user-set primary highlight colour
@@ -2447,13 +2451,21 @@ function AoMapPane(p: PaneProps) {
                     const aglM = Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM);
                     const nkey = typeof topObj.id === "number" ? topObj.id : null;
                     const off = (nkey != null ? aglOffs[nkey] : undefined) ?? { x: 0, y: cellPx / 2 + 8 };
-                    const dotZ = Math.max(0, (topObj.bandIdx - 0.5) * bandPx); // object's TRUE band centre
+                    // TRUE altitude (metres above terrain) → screen z; the aircraft flies off-screen on zoom-in.
+                    const objAltM = topObj.altRef === "AGL" ? topObj.altM : Math.max(0, topObj.mslM - col.terrainM);
+                    const trueZ = Math.max(0, objAltM * altPxPerM);
                     const bb = is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""; // billboard upright off the tilted plane
                     return (
                       <>
-                        {/* (1) SHIELD — billboarded affiliation badge, centred in the LEVEL-1 bottom cell */}
+                        {/* projector — dashed vertical from the ground spot up to the aircraft's TRUE altitude */}
+                        {trueZ > bandPx && (
+                          <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 1, height: trueZ, opacity: dimmed ? 0.3 : 0.6,
+                            background: `repeating-linear-gradient(to bottom, ${ac}aa 0 2px, transparent 2px 5px)`,
+                            transform: `translate(-50%,-50%) translate3d(0px,0px,${trueZ / 2}px) rotateX(90deg)` }} />
+                        )}
+                        {/* (1) SHIELD — billboarded affiliation badge, at the aircraft's TRUE altitude */}
                         <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ opacity: dimmed ? 0.4 : 1,
-                          transform: `translate(-50%,-50%) translateZ(${bandPx / 2}px)${bb}` }}>
+                          transform: `translate(-50%,-50%) translateZ(${trueZ}px)${bb}` }}>
                           <span className="flex items-center justify-center rounded-md" style={{ padding: 2,
                             background: `${ac}1e`, border: `1px solid ${ac}`, boxShadow: `0 0 6px ${ac}55` }}>
                             {pObj
@@ -2464,7 +2476,7 @@ function AoMapPane(p: PaneProps) {
                         {/* (2) AGL chip — draggable (FAAD-hook drag pattern, NO connector line), Level-1 cell.
                             Tap (no drag) pops the cube-centre coordinate call-up packet. */}
                         <div className="absolute left-1/2 top-1/2" onPointerDown={(e) => e.stopPropagation()} style={{ pointerEvents: "auto",
-                          transform: `translate(-50%,-50%) translate3d(${off.x}px,${off.y}px,${bandPx / 2}px)${bb}` }}>
+                          transform: `translate(-50%,-50%) translate3d(${off.x}px,${off.y}px,${trueZ}px)${bb}` }}>
                           <button title="Drag · tap = cube-centre coordinate + AGL"
                             onPointerDown={(e) => {
                               e.stopPropagation(); e.preventDefault();
@@ -2481,8 +2493,8 @@ function AoMapPane(p: PaneProps) {
                             AGL {aglM}m
                           </button>
                         </div>
-                        {/* (3) DOT — the object's TRUE altitude band, at the cell centre (its real 3D spot) */}
-                        <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${dotZ}px)${bb}` }}>
+                        {/* (3) DOT — the object's TRUE altitude, at the cell centre (its real 3D spot) */}
+                        <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${trueZ}px)${bb}` }}>
                           <span className="block rounded-full" style={{ width: 6, height: 6, background: topObj.color ?? ac, boxShadow: `0 0 6px ${topObj.color ?? ac}` }} />
                         </div>
                         {/* (4) TOP-FACE coords (CENTRE + 4 CORNERS) — HIDDEN by default to keep the
@@ -2606,7 +2618,8 @@ function AoMapPane(p: PaneProps) {
                   {col.objects.map((o) => {
                     const p = placed.find((u) => u.id === o.id);
                     if (!p || !p.moving || p.heading == null) return null;
-                    const zb = Math.max(1, o.bandIdx * bandPx);
+                    const oAltM = o.altRef === "AGL" ? o.altM : Math.max(0, o.mslM - col.terrainM);
+                    const zb = Math.max(1, oAltM * altPxPerM); // TRUE altitude, tracks zoom
                     const th = (p.heading * Math.PI) / 180;
                     const len = cellPx * (0.55 + Math.min(0.65, (p.speed ?? 0) / 600));
                     const vc = p.aff === "hostile" ? C.red : C.green;
