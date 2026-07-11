@@ -195,6 +195,23 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #20: SPEED TEST runs the FULL scripted replay (Camp Blanding + asset placement) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button[title^="Settings"]'); await pg.waitForTimeout(400);
+  const started = await clk('button:has-text("SPEED TEST")');
+  let secs = [];
+  for (let i = 0; i < 40; i++) {
+    await pg.waitForTimeout(1000);
+    secs = await pg.evaluate(() => [...document.querySelectorAll('*')].filter(e => e.children.length === 0).map(e => (e.textContent || '').trim()).filter(t => /^(Switch to Camp Blanding|Place AVENGER|Add \+ remove SENTINEL|Pan to Capitol|Place AUTO-FOIL|Mirror mini-map)/.test(t)));
+    if ([...new Set(secs)].length >= 6) break;
+  }
+  const uniq = [...new Set(secs)];
+  rec('#20 SPEED TEST replay = full mission (assets+Camp Blanding)', started && uniq.length >= 6, `sections=${uniq.length} started=${started}`);
+  rec('#20 replay console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');

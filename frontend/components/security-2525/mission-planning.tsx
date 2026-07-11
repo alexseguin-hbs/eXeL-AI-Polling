@@ -1546,7 +1546,7 @@ function AoMapPane(p: PaneProps) {
     if (e.button === 0) setHooks([]); // left-click anywhere releases ALL cursor hooks
     if (e.pointerType === "touch") {
       touchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic/replayed pointer (play-test) has no active pointer */ }
       // single-finger TAP tracking (phone: tap empty ground → coordinate call-up)
       tapRef.current = touchRef.current.size === 1 ? { x: e.clientX, y: e.clientY, moved: false } : null;
       if (touchRef.current.size === 2) {
@@ -1558,7 +1558,7 @@ function AoMapPane(p: PaneProps) {
     if (e.button !== 0 && e.button !== 2) return;
     if (routeMode && e.button === 2) return;
     dragRef.current = { x: e.clientX, y: e.clientY, moved: false, btn: e.button };
-    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    try { (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic/replayed pointer (play-test) has no active pointer */ }
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (e.pointerType === "touch") {

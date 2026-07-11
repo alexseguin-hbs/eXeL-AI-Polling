@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { FpsMeter } from "@/components/security-2525/fps-meter";
-import { getFpsCap, setFpsCap, initFpsCap, runSpeedTest } from "@/components/security-2525/fps-governor";
+import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
 import { runPlayTest, type PlaySection } from "@/components/security-2525/play-test";
 import { CLEARANCE_COLORS } from "@/lib/atlantis-package";
 import {
@@ -211,17 +211,26 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
   const [benching, setBenching] = useState(false);
   useEffect(() => { initFpsCap(); setFpsCapState(getFpsCap()); try { const v = Number(localStorage.getItem("sec2525.fpsBench")); if (Number.isFinite(v) && v > 0) setBench(v); } catch {} }, []);
   const applyCap = (n: number) => { setFpsCap(n); setFpsCapState(n); };
-  const speedTest = async () => { setBenching(true); const fps = await runSpeedTest(2000); setBench(fps); try { localStorage.setItem("sec2525.fpsBench", String(fps)); } catch {} setBenching(false); };
   const [playRun, setPlayRun] = useState<PlaySection[]>([]);
   const [playing2, setPlaying2] = useState(false);
   const [playHist, setPlayHist] = useState<{ min: number; worst: string }[]>([]);
-  const playTest = async () => {
-    setPlaying2(true); setPlayRun([]);
+  // SPEED TEST now RUNS the full scripted replay (switch AO / place assets / orbit / tilt / mirror) and
+  // reports the aggregate MIN fps as the EDGE verdict — so "the entire speed test includes placing of
+  // assets and switching to Camp Blanding." Shares the same REPORT list as PLAY TEST.
+  const runReplay = async (setBusy: (b: boolean) => void) => {
+    setBusy(true); setPlayRun([]);
     const secs: PlaySection[] = [];
     await runPlayTest((sec) => { secs.push(sec); setPlayRun([...secs]); });
-    if (secs.length) { const min = Math.min(...secs.map((x) => x.minFps)); const worst = secs.reduce((a, b) => (b.minFps < a.minFps ? b : a), secs[0]); setPlayHist((h) => [{ min, worst: worst.name }, ...h].slice(0, 3)); }
-    setPlaying2(false);
+    if (secs.length) {
+      const min = Math.min(...secs.map((x) => x.minFps));
+      const worst = secs.reduce((a, b) => (b.minFps < a.minFps ? b : a), secs[0]);
+      setBench(min); try { localStorage.setItem("sec2525.fpsBench", String(min)); } catch {}
+      setPlayHist((h) => [{ min, worst: worst.name }, ...h].slice(0, 3));
+    }
+    setBusy(false);
   };
+  const speedTest = () => runReplay(setBenching);
+  const playTest = () => runReplay(setPlaying2);
 
   // Maximize = fill the ENTIRE physical screen (browser Fullscreen API — same
   // as F11: Chrome's tabs/URL bar disappear). Falls back to in-page overlay
