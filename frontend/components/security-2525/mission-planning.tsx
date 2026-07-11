@@ -2368,12 +2368,14 @@ function AoMapPane(p: PaneProps) {
               const nCubes = aerialStack ? Math.max(1, Math.min(64, Math.round(trueZ / cellPx))) : 0;
               const topZ = aerialStack ? nCubes * cellPx : stack.length * bandPx;
               const markerZ = aerialStack ? topZ : trueZ; // icon/chip sit on the column top
-              const face = (t: string, w: number, h: number, color: string, occupied: boolean): React.CSSProperties => ({
+              const face = (t: string, w: number, h: number, color: string, occupied: boolean, lw?: number): React.CSSProperties => ({
                 position: "absolute", left: "50%", top: "50%", width: w, height: h,
                 transform: `translate(-50%,-50%) ${t}`,
-                border: `${occupied ? 1.5 : 1}px ${occupied ? "solid" : "dashed"} ${color}`,
+                border: `${lw ?? (occupied ? 1.5 : 1)}px ${occupied ? "solid" : "dashed"} ${color}`,
                 background: occupied ? `${color}10` : "transparent",
               });
+              // finer grey wireframe edges at the bigger 2X/3X tiers (thin lines read cleaner)
+              const edgeFineW = voxelSize >= 2 ? 0.4 : undefined;
               return (
                 <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
                   // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
@@ -2412,13 +2414,14 @@ function AoMapPane(p: PaneProps) {
                     ? Array.from({ length: nCubes }).map((_, i) => {
                         const z = i * cellPx, isTop = i === nCubes - 1;
                         const color = isTop ? C.red : sel ? hiCol : "#3b556e";
+                        const lw = isTop ? undefined : edgeFineW; // grey cubes get finer edges at 2X/3X
                         return (
                           <div key={`ac${i}`} className="pointer-events-none absolute left-0 top-0" style={{ transformStyle: "preserve-3d" }}>
-                            <div style={face(`translate3d(0px,0px,${z + cellPx}px)`, cellPx, cellPx, color, isTop)} />
-                            <div style={face(`translate3d(0px,${-cellPx / 2}px,${z + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, color, isTop)} />
-                            <div style={face(`translate3d(0px,${cellPx / 2}px,${z + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, color, isTop)} />
-                            <div style={face(`translate3d(${-cellPx / 2}px,0px,${z + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, color, isTop)} />
-                            <div style={face(`translate3d(${cellPx / 2}px,0px,${z + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, color, isTop)} />
+                            <div style={face(`translate3d(0px,0px,${z + cellPx}px)`, cellPx, cellPx, color, isTop, lw)} />
+                            <div style={face(`translate3d(0px,${-cellPx / 2}px,${z + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, color, isTop, lw)} />
+                            <div style={face(`translate3d(0px,${cellPx / 2}px,${z + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, color, isTop, lw)} />
+                            <div style={face(`translate3d(${-cellPx / 2}px,0px,${z + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, color, isTop, lw)} />
+                            <div style={face(`translate3d(${cellPx / 2}px,0px,${z + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, color, isTop, lw)} />
                           </div>
                         );
                       })
@@ -3113,7 +3116,8 @@ function AoMapPane(p: PaneProps) {
               return (
                 <div className="absolute z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
                   onPointerDown={(e) => e.stopPropagation()} /* keep the map from capturing the pointer so the ✕ fires */
-                  style={{ left: `${Math.min(70, Math.max(2, f.fx * 100))}%`, top: `${Math.min(60, Math.max(4, f.fy * 100 - 10))}%`, background: "#0a0f16ee", borderColor: C.gold, pointerEvents: "auto" }}>
+                  /* anchor to the corner OPPOSITE the selected cube's quadrant so the packet never covers it */
+                  style={{ ...(f.fx < 0.5 ? { right: 8 } : { left: 8 }), ...(f.fy < 0.5 ? { bottom: 8 } : { top: 36 }), background: "#0a0f16ee", borderColor: C.gold, pointerEvents: "auto" }}>
                   <div className="mb-1 flex items-center justify-between">
                     <span className="font-bold tracking-wider" style={{ color: C.gold }}>3D VOXEL·CUBE · BASE</span>
                     <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(null); }} title="Close" className="px-1 text-[11px] leading-none" style={{ color: C.dim }}>✕</button>
