@@ -282,6 +282,8 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
           </div>
           <span className="hidden md:inline text-[10px]" style={{ color: C.dim }}>OPERATOR: ALPHA-1</span>
           <span className="text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
+          {/* live FPS counter — ONE LINE, inline IN the top menu bar (next to the gear) */}
+          <FpsMeter show={showFps} />
           {/* Main-menu SETTINGS (global, all tabs) — gear opens a popover; not on the map */}
           <div className="relative">
             <button onClick={() => setMenuOpen((o) => !o)} className="p-1.5 rounded hover:bg-white/5" title="Settings — global (all tabs)">
@@ -307,7 +309,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
                   <button onClick={speedTest} disabled={benching || playing2} className="mt-1.5 w-full rounded border px-1 py-1 text-[9px] font-bold"
                     style={{ borderColor: "#ffd400", color: "#ffd400", opacity: benching ? 0.6 : 1 }}>{benching ? "TESTING…" : "SPEED TEST"}</button>
                   {bench != null && (
-                    <div className="mt-1 text-[9px] font-bold" style={{ color: bench >= 50 ? "#3ec96b" : bench >= 30 ? "#f5a623" : "#ef4444" }}>{bench} fps · {bench >= 50 ? "EDGE-ready" : bench >= 30 ? "OK · cap ≤ 33" : "set cap ≤ 9"}</div>
+                    <div className="mt-1 text-[9px] font-bold" style={{ color: bench >= 50 ? "#3ec96b" : bench >= 30 ? "#f5a623" : "#ef4444" }}>{bench} fps sustained · {bench >= 50 ? "EDGE-ready — run uncapped (MAX)" : bench >= 30 ? "OK — set FPS cap 33" : "low-power device — set FPS cap 9 for smooth play"}</div>
                   )}
                   <button onClick={playTest} disabled={playing2 || benching} className="mt-1.5 w-full rounded border px-1 py-1 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan, opacity: playing2 ? 0.6 : 1 }}>{playing2 ? "PLAYING…" : "▶ PLAY TEST (demo)"}</button>
                   {playing2 && playRun.length > 0 && (
@@ -329,8 +331,6 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
                 </div>
               </div>
             )}
-            {/* live FPS counter sits directly UNDER the settings gear icon */}
-            <FpsMeter show={showFps} />
           </div>
           <button onClick={() => directLink ? (window.location.href = "/") : exitSimulationMode()} className="p-1.5 rounded hover:bg-white/5" title="Exit">
             <X className="h-4 w-4" style={{ color: C.dim }} />

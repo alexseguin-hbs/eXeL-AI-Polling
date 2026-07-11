@@ -29,11 +29,12 @@ export function FpsMeter({ show }: { show: boolean }) {
   }, [show]);
   if (!show) return null;
   const col = fps >= 50 ? "#3ec96b" : fps >= 30 ? "#f5a623" : "#ef4444";
+  // ONE-LINE inline pill so it sits IN the top menu bar row (operator law) — not spilling below over the
+  // tabs. Mounted inline next to LINK: SECURE / the gear.
   return (
-    <div className="pointer-events-none absolute right-0 top-full mt-1 z-[90] rounded border px-2 py-1 font-mono text-[11px] font-bold tabular-nums"
-      style={{ background: "#0a0e14cc", borderColor: "#1e2b3a", color: col }}
-      aria-label="Frames per second">
-      {fps} <span style={{ color: "#5f7186" }}>FPS</span>
-    </div>
+    <span className="pointer-events-none inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums leading-none"
+      style={{ background: "#0a0e14ee", borderColor: "#1e2b3a" }} aria-label="Frames per second">
+      <span style={{ color: col }}>{fps}</span><span style={{ color: "#5f7186" }}>FPS</span>
+    </span>
   );
 }
