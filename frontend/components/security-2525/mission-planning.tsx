@@ -2601,6 +2601,14 @@ function AoMapPane(p: PaneProps) {
                       background: `${t.c}0e`, boxShadow: `0 0 3px ${t.c}55`, opacity: dimmed ? 0.3 : 0.75,
                       transform: `translate(-50%,-50%) translateZ(${t.z}px)` }} />
                   ))}
+                  {/* R10: GREY thin vertical struts ABOVE the aircraft up to the ceiling (capZ) when the
+                      aircraft is BELOW max altitude — 4 corner struts tie the orange/red/grey caps into one
+                      3D tower (the airspace-above cue). Grey #9ca3af dashed; additive, aerial-only. */}
+                  {!isLattice && aerialStack && topZ < capZ && ([[-1, -1], [1, -1], [1, 1], [-1, 1]] as const).map(([sx, sy], k) => (
+                    <div key={`up${k}`} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 1, height: capZ - topZ,
+                      background: `repeating-linear-gradient(to bottom, #9ca3af 0 1.5px, transparent 1.5px 4px)`, opacity: dimmed ? 0.25 : 0.6,
+                      transform: `translate(-50%,-50%) translate3d(${(sx * cellPx) / 2}px,${(sy * cellPx) / 2}px,${(topZ + capZ) / 2}px) rotateX(90deg)` }} />
+                  ))}
                   {/* FX-49 REMOVED (HI 1.3.3): the cell-centre SPHERE was a duplicate asset marker. The
                       ground asset DOT / aerial BOX rendered in placed.map is now the single asset symbol;
                       placed.map's onContextMenu already hooks the asset to open its track label. */}
@@ -2610,11 +2618,14 @@ function AoMapPane(p: PaneProps) {
                   {aerialStack
                     ? Array.from({ length: nCubes }).map((_, i) => {
                         const z = i * cellPx, isTop = i === nCubes - 1;
-                        const color = isTop ? C.red : sel ? hiCol : "#3b556e";
+                        // MIL-STD-2525: the aircraft (top) cube is BLUE (cyan) for FRIENDLY, RED for
+                        // hostile. Lower cubes stay the grey scaffold (or highlight when selected).
+                        const topAff = placed.find((u) => u.id === topObj?.id)?.aff;
+                        const color = isTop ? (topAff === "hostile" ? C.red : C.cyan) : sel ? hiCol : "#3b556e";
                         const lw = isTop ? undefined : edgeFineW; // grey cubes get finer edges at 2X/3X
                         return (
                           <div key={`ac${i}`} className="pointer-events-none absolute left-0 top-0" style={{ transformStyle: "preserve-3d" }}>
-                            <div style={face(`translate3d(0px,0px,${z + cellPx}px)`, cellPx, cellPx, color, isTop, lw)} />
+                            <div data-voxtop={isTop || undefined} data-topcolor={isTop ? color : undefined} style={face(`translate3d(0px,0px,${z + cellPx}px)`, cellPx, cellPx, color, isTop, lw)} />
                             <div style={face(`translate3d(0px,${-cellPx / 2}px,${z + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, color, isTop, lw)} />
                             <div style={face(`translate3d(0px,${cellPx / 2}px,${z + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, color, isTop, lw)} />
                             <div style={face(`translate3d(${-cellPx / 2}px,0px,${z + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, color, isTop, lw)} />

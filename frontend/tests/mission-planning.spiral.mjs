@@ -212,6 +212,22 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #21: MIL-STD-2525 — friendly aerial aircraft (top) cube is BLUE (cyan), not red ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(400);
+  await clk('div.cursor-grab:has-text("AVENGER")'); await pg.waitForTimeout(300);
+  const box = await pg.locator('div.touch-none.overflow-hidden.rounded-md').first().boundingBox();
+  if (box) { await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); } await pg.waitForTimeout(500);
+  await pg.locator('input[placeholder="0"]').first().fill('12000'); await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
+  const topColor = await pg.evaluate(() => { const el = document.querySelector('[data-voxtop]'); return el ? getComputedStyle(el).borderTopColor : null; });
+  // friendly (default aff) top cube must be cyan rgb(25, 200, 207), NOT red
+  rec('#21 friendly aerial top cube = BLUE (cyan)', topColor === 'rgb(25, 200, 207)', `topColor=${topColor}`);
+  rec('#21 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');
