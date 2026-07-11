@@ -2661,15 +2661,14 @@ function AoMapPane(p: PaneProps) {
               const boxW = 3 * cellPx;
               const bandPx = cellPx;                              // VERTICAL unit == base ⇒ cube stays cubic
               const topZ = 3 * bandPx;
-              const railBands = Math.max(latticeColumns[0].cubes.filter((cb) => cb.bandIdx > 0).length, 3);
-              const limitZ = Math.max(topZ, (voxelLimitPct / 100) * railBands * cellW);
-              // Warning-altitude tracers for the VOXEL — SAME true-scale z as the aerial column caps
-              // (ceilM · pct · altPxPerM from ground), so grey/red/orange line up on both when their
-              // bases coincide. Grey = ceiling, red = altRedPct%, orange = altYellowPct%.
+              // Altitude tracers for the VOXEL — SAME true-scale z as the aerial column caps
+              // (ceilM · pct · altPxPerM from ground), so grey/red/orange line up on BOTH when their
+              // bases coincide. Grey MAX = voxelLimitPct%, red = altRedPct%, orange = altYellowPct%.
               const altPxPerM = paneW / (view.spanKm * 1000);
               const ceilM = (maxAltFt ?? autoCeilingFt(view.spanKm)) * 0.3048;
               const redZv = ceilM * (altRedPct / 100) * altPxPerM;
               const orgZv = ceilM * (altYellowPct / 100) * altPxPerM;
+              const limitZ = ceilM * (voxelLimitPct / 100) * altPxPerM; // grey MAX = TRUE-scale cap (== aerial capZ)
               const line = `${C.cyan}55`;
               const selIdx = latticeColumns.findIndex((c) => c.key === voxelSel);
               const dim = selIdx >= 0 ? 0.35 : 1;                        // rest dims when one column is picked
