@@ -451,6 +451,25 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
   const touch = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinch = useRef<{ dist: number; cx: number; cy: number; ang: number } | null>(null);
   const gsvg = useRef<SVGSVGElement>(null);
+  // PERF/FREEZE FIX: rAF-throttle orbit. Every pointermove reprojects the whole globe (borders +
+  // graticule + GRID), so firing setCam per move (~100/s) froze phones — worse with GRID on. Coalesce
+  // moves into ONE setCam per animation frame (mirrors AoMapPane's dragRafRef pattern).
+  const orbitRaf = useRef<number | null>(null);
+  const pend = useRef({ dLon: 0, dLat: 0, dRoll: 0, dTilt: 0 });
+  const flushOrbit = () => {
+    orbitRaf.current = null;
+    const p = pend.current; pend.current = { dLon: 0, dLat: 0, dRoll: 0, dTilt: 0 };
+    setCam((c) => ({ ...c,
+      lon0: c.lon0 + p.dLon,
+      lat0: Math.min(85, Math.max(-85, c.lat0 + p.dLat)),
+      roll: c.roll + p.dRoll,
+      tilt: Math.max(-1.4, Math.min(1.4, c.tilt + p.dTilt)) }));
+  };
+  const queueOrbit = (d: { dLon?: number; dLat?: number; dRoll?: number; dTilt?: number }) => {
+    const p = pend.current; p.dLon += d.dLon ?? 0; p.dLat += d.dLat ?? 0; p.dRoll += d.dRoll ?? 0; p.dTilt += d.dTilt ?? 0;
+    if (orbitRaf.current == null) orbitRaf.current = requestAnimationFrame(flushOrbit);
+  };
+  useEffect(() => () => { if (orbitRaf.current != null) cancelAnimationFrame(orbitRaf.current); }, []);
   useEffect(() => { setCam((c) => ({ ...c, lat0: center[0], lon0: center[1] })); }, [center[0], center[1]]);
   const { lat0: LAT0, lon0: LON0, tilt, roll, zoom } = cam;
   const cr = Math.cos(roll), sr = Math.sin(roll), ct = Math.cos(tilt), st = Math.sin(tilt);
@@ -606,7 +625,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
             }));
           } else if (touch.current.size === 1) {
             const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
-            setCam((c) => ({ ...c, lon0: c.lon0 - dx * 0.5, lat0: Math.min(85, Math.max(-85, c.lat0 + dy * 0.5)) }));
+            queueOrbit({ dLon: -dx * 0.5, dLat: dy * 0.5 });
           }
           return;
         }
@@ -615,9 +634,9 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
         const dx = e.clientX - d.x, dy = e.clientY - d.y;
         d.x = e.clientX; d.y = e.clientY;
         if (d.btn === 2) {
-          setCam((c) => ({ ...c, roll: c.roll - dx * 0.005, tilt: Math.max(-1.4, Math.min(1.4, c.tilt + dy * 0.005)) }));
+          queueOrbit({ dRoll: -dx * 0.005, dTilt: dy * 0.005 });
         } else {
-          setCam((c) => ({ ...c, lon0: c.lon0 - dx * 0.5, lat0: Math.min(85, Math.max(-85, c.lat0 + dy * 0.5)) }));
+          queueOrbit({ dLon: -dx * 0.5, dLat: dy * 0.5 });
         }
       }}
       onPointerUp={(e) => {
