@@ -154,6 +154,28 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #18: flat EARTH map wheel-zoom works + clicking the GZD label frames the cell ──
+// Guards the useWheel regression (listener never bound to the conditionally-mounted flat SVG) and
+// the click-to-frame feature (30N/48N label → zoom to that grid cell).
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:has-text("EARTH"):visible'); await pg.waitForTimeout(700);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(600);
+  await clk('button:has-text("GRID"):visible'); await pg.waitForTimeout(500);
+  const vbw = () => pg.evaluate(() => { const s = document.querySelector('svg[aria-label^="World context map"]'); return s ? parseFloat(s.getAttribute('viewBox').split(/\s+/)[2]) : null; });
+  const box = await pg.locator('svg[aria-label^="World context map"]').boundingBox();
+  const w0 = await vbw();
+  if (box) { await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 2); for (let i = 0; i < 4; i++) { await pg.mouse.wheel(0, -300); await pg.waitForTimeout(90); } }
+  const w1 = await vbw();
+  const clicked = await pg.evaluate(() => { const t = [...document.querySelectorAll('text')].find(e => /^\d+[C-X]$/.test((e.textContent || '').trim())); if (t) { t.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true })); t.dispatchEvent(new MouseEvent('click', { bubbles: true })); return t.textContent.trim(); } return null; });
+  await pg.waitForTimeout(500);
+  const w2 = await vbw();
+  rec('#18 flat wheel-zoom works', !!w0 && !!w1 && w1 < w0, `w0=${w0 && w0.toFixed(0)} w1=${w1 && w1.toFixed(0)}`);
+  rec('#18 label click frames GZD cell', !!clicked && !!w2 && w2 < w1, `clicked=${clicked} w2=${w2 && w2.toFixed(0)}`);
+  rec('#18 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');

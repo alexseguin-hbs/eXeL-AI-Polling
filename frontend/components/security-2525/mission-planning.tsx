@@ -412,7 +412,7 @@ const CITY_POLYGONS: Record<string, [number, number][]> = {
 
 
 /** NON-passive wheel listener so preventDefault() keeps zoom on the map. */
-function useWheel<T extends Element>(ref: React.RefObject<T | null>, handler: (e: WheelEvent) => void) {
+function useWheel<T extends Element>(ref: React.RefObject<T | null>, handler: (e: WheelEvent) => void, deps: React.DependencyList = []) {
   const h = useRef(handler);
   h.current = handler;
   useEffect(() => {
@@ -421,7 +421,10 @@ function useWheel<T extends Element>(ref: React.RefObject<T | null>, handler: (e
     const fn = (e: Event) => h.current(e as WheelEvent);
     el.addEventListener("wheel", fn, { passive: false });
     return () => el.removeEventListener("wheel", fn);
-  }, [ref]);
+    // `deps` lets callers re-attach when a CONDITIONALLY-rendered target appears — the flat world
+    // SVG mounts only in flat mode, so without this the wheel listener never bound to it (no zoom).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ref, ...deps]);
 }
 
 function ringPath(ring: [number, number][], w: number, h: number): string {
@@ -450,9 +453,10 @@ function GridReadout({ zone, band, hKm, wKm }: { zone: number; band: string; hKm
   );
 }
 
-function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coordFmt, showZones, hiddenKeys }: {
+function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onFrameCell, coordFmt, showZones, hiddenKeys }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void; onEnterAo?: (k: string) => void;
+  onFrameCell?: (latS: number, latN: number, lonW: number, lonE: number) => void;
   coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; showZones: boolean; hiddenKeys?: Set<string>;
 }) {
   // Nearest AO to a lat/lon within ~10° → zoom-in enters it directly (no flat 'blue screen').
@@ -739,7 +743,9 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                   {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; return (
                     /* PRIOR style — plain yellow outlined address sitting ON the yellow×violet
                        intersection cell (not centre-pinned, no chip). The method the operator approved. */
-                    <text key="gzint" x={x} y={y} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth={2.2 / zoom}>{sel.zone}{sel.band}</text>
+                    <text key="gzint" x={x} y={y} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" style={{ fontFamily: "monospace", paintOrder: "stroke", cursor: onFrameCell ? "pointer" : undefined }} stroke="#0a0e14" strokeWidth={2.2 / zoom}
+                      onPointerDown={(e) => { if (onFrameCell) e.stopPropagation(); }}
+                      onClick={(e) => { if (onFrameCell) { e.stopPropagation(); onFrameCell(sel.latS, sel.latN, sel.lonW, sel.lonE); } }}>{sel.zone}{sel.band}</text>
                   ); })()}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
                   {paral.map((lat) => { const [x, y, v] = proj(lat, LON0); return v ? <text key={`dgb${lat}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text> : null; })}
@@ -793,6 +799,10 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
   const [flat, setFlat] = useState({ x: 0, y: H * 0.08, w: W, h: H * 0.62 });
   const flatDrag = useRef<{ x: number; y: number } | null>(null);
   const flatSvg = useRef<SVGSVGElement>(null);
+  // Phone PINCH-zoom for the flat world map (the globe + tactical map already pinch; the flat 2D
+  // EARTH map only had wheel + single-finger pan, so phones couldn't zoom it — esp. with GRID on).
+  const wTouch = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const wPinch = useRef<{ dist: number } | null>(null);
   const drillToFlat = (lat: number, lon: number) => {
     const cx = ((lon + 180) / 360) * W, cy = ((90 - lat) / 180) * H;
     const w = 0.12 * (W / 360), h = w;
@@ -823,21 +833,68 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
       const mx = f.x + f.w / 2, my = f.y + f.h / 2;
       return { w, h, x: mx - w / 2, y: my - h / 2 };
     });
-  });
+  }, [mode]);
+  // FX (HI): click the centre GZD cell label (30N/48N…) → jump to 2D flat framed on the WHOLE cell,
+  // fitted to the pane aspect (phone portrait OR PC landscape). viewBox aspect is set to the pane
+  // aspect so "slice" doesn't crop the cell; 25% margin around it.
+  const frameCellFlat = (latS: number, latN: number, lonW: number, lonE: number) => {
+    const rect = flatSvg.current?.getBoundingClientRect();
+    const paneAspect = rect && rect.height > 0 ? rect.width / rect.height : 1.6;
+    const x0 = ((lonW + 180) / 360) * W, x1 = ((lonE + 180) / 360) * W;
+    const y0 = ((90 - latN) / 180) * H, y1 = ((90 - latS) / 180) * H;
+    const w = Math.min(W, Math.max(FLAT_MIN_W, Math.max(x1 - x0, (y1 - y0) * paneAspect) * 1.25));
+    const h = w / paneAspect;
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    setFlat({ x: cx - w / 2, y: Math.max(12 - h / 2, Math.min((H - 12) - h / 2, cy - h / 2)), w, h });
+    setCenter([(latS + latN) / 2, (lonW + lonE) / 2]);
+    setMode("flat");
+  };
   return (
     <div className="relative h-full w-full overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
-        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} coordFmt={coordFmt} showZones={showZones} hiddenKeys={hiddenKeys} />
+        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} onFrameCell={frameCellFlat} coordFmt={coordFmt} showZones={showZones} hiddenKeys={hiddenKeys} />
       ) : (
         <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full touch-none" role="img"
           style={{ cursor: flatDrag.current ? "grabbing" : "grab" }}
           aria-label="World context map — country + US state borders (Natural Earth 50m); scroll to zoom, drag to pan"
           onContextMenu={(e) => e.preventDefault()}
-          onPointerDown={(e) => { flatDrag.current = { x: e.clientX, y: e.clientY }; try { (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic/replayed pointer (play-test) has no active pointer */ } }}
+          onPointerDown={(e) => {
+            if (e.pointerType === "touch") {
+              wTouch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+              try { (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic pointer */ }
+              if (wTouch.current.size === 2) { const [a, b] = Array.from(wTouch.current.values()); wPinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y) }; flatDrag.current = null; }
+              else { flatDrag.current = { x: e.clientX, y: e.clientY }; }
+              return;
+            }
+            flatDrag.current = { x: e.clientX, y: e.clientY }; try { (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic/replayed pointer (play-test) has no active pointer */ }
+          }}
           onPointerMove={(e) => {
-            const d = flatDrag.current; if (!d) return;
             const r = flatSvg.current?.getBoundingClientRect(); if (!r) return;
+            if (e.pointerType === "touch") {
+              if (!wTouch.current.has(e.pointerId)) return;
+              wTouch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+              if (wTouch.current.size >= 2 && wPinch.current) {
+                // two-finger PINCH → zoom the flat map, anchored at the pinch midpoint
+                const [a, b] = Array.from(wTouch.current.values());
+                const dist = Math.hypot(a.x - b.x, a.y - b.y);
+                const k = wPinch.current.dist / Math.max(1, dist); // fingers apart → k<1 → zoom IN
+                wPinch.current.dist = dist;
+                const mfx = ((a.x + b.x) / 2 - r.left) / r.width, mfy = ((a.y + b.y) / 2 - r.top) / r.height;
+                setFlat((f) => {
+                  const w = Math.min(W, Math.max(FLAT_MIN_W, f.w * k)), h = w * (f.h / f.w);
+                  const ax = f.x + mfx * f.w, ay = f.y + mfy * f.h; // geo point under the pinch stays put
+                  return { w, h, x: (((ax - mfx * w) % W) + W) % W, y: Math.max(12 - h / 2, Math.min((H - 12) - h / 2, ay - mfy * h)) };
+                });
+                return;
+              }
+              const d = flatDrag.current; if (!d) return;
+              const dx = (e.clientX - d.x) / r.width * flat.w, dy = (e.clientY - d.y) / r.height * flat.h;
+              d.x = e.clientX; d.y = e.clientY;
+              setFlat((f) => ({ ...f, x: (((f.x - dx) % W) + W) % W, y: Math.max(12 - f.h / 2, Math.min((H - 12) - f.h / 2, f.y - dy)) }));
+              return;
+            }
+            const d = flatDrag.current; if (!d) return;
             const dx = (e.clientX - d.x) / r.width * flat.w, dy = (e.clientY - d.y) / r.height * flat.h;
             d.x = e.clientX; d.y = e.clientY;
             // horizontal wraps around the globe (modulo world width); vertical lets the view CENTRE
@@ -845,7 +902,8 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
             // C and X — not just H↔S. flat.y may go negative (ocean rect fills beyond the poles).
             setFlat((f) => ({ ...f, x: (((f.x - dx) % W) + W) % W, y: Math.max(12 - f.h / 2, Math.min((H - 12) - f.h / 2, f.y - dy)) }));
           }}
-          onPointerUp={() => { flatDrag.current = null; }}>
+          onPointerUp={(e) => { if (e.pointerType === "touch") { wTouch.current.delete(e.pointerId); if (wTouch.current.size < 2) wPinch.current = null; if (wTouch.current.size === 0) flatDrag.current = null; return; } flatDrag.current = null; }}
+          onPointerCancel={(e) => { wTouch.current.delete(e.pointerId); if (wTouch.current.size < 2) wPinch.current = null; if (wTouch.current.size === 0) flatDrag.current = null; }}>
           {/* blue ocean base for the whole (wrapped) world */}
           <rect x={-W} y={0} width={3 * W} height={H} fill="#0a2f52" />
           {/* three world copies (−360° · 0 · +360°) so panning wraps seamlessly around the dateline */}
@@ -939,7 +997,9 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                           globe: all-yellow, dark outline (paintOrder stroke), no box. */}
                       {(() => { const cx = xOf((fsel.lonW + fsel.lonE) / 2), cy = yOf((fsel.latS + fsel.latN) / 2); return (
                         /* PRIOR style — plain yellow outlined address on the yellow×violet cell (no box). */
-                        <text key="fzcell" x={cx} y={cy} fontSize="8" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.4">{fsel.zone}{fsel.band}</text>
+                        <text key="fzcell" x={cx} y={cy} fontSize="8" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke", cursor: "pointer" }} stroke="#0a0e14" strokeWidth="1.4"
+                          onPointerDown={(e) => { e.stopPropagation(); }}
+                          onClick={(e) => { e.stopPropagation(); frameCellFlat(fsel.latS, fsel.latN, fsel.lonW, fsel.lonE); }}>{fsel.zone}{fsel.band}</text>
                       ); })()}
                     </>)}
                     {false /* GZD grid is always on — no degree-graticule swap */ && (<>
