@@ -2276,8 +2276,8 @@ function AoMapPane(p: PaneProps) {
                         e.stopPropagation(); e.preventDefault();
                         const sx = e.clientX, sy = e.clientY, ox = off.x, oy = off.y;
                         const move = (ev: PointerEvent) => setHookOffs((os) => ({ ...os, [hid]: { x: ox + (ev.clientX - sx), y: oy + (ev.clientY - sy) } }));
-                        const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); };
-                        document.addEventListener("pointermove", move); document.addEventListener("pointerup", up);
+                        const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); };
+                        document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up); // pointercancel cleanup (touch freeze fix)
                       }}>⠿</span>
                     <span>⌖ {ASSET_LABELS[u.asset]}{u.count > 1 ? ` ×${u.count}` : ""}</span>
                     <button onClick={closeThis} title="Close hook" className="leading-none" style={{ color: C.dim }}>✕</button>
@@ -2489,8 +2489,11 @@ function AoMapPane(p: PaneProps) {
                                 if (Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) > 3) moved = true;
                                 if (nkey != null) setAglOffs((os) => ({ ...os, [nkey]: { x: ox + (ev.clientX - sx), y: oy + (ev.clientY - sy) } }));
                               };
-                              const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); if (!moved) setCoordCall({ lat: col.lat, lon: col.lon }); };
-                              document.addEventListener("pointermove", move); document.addEventListener("pointerup", up);
+                              const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); if (!moved) setCoordCall({ lat: col.lat, lon: col.lon }); };
+                              // FREEZE FIX: also clean up on pointercancel — on touch (esp. at high tilt /
+                              // multi-touch) the browser fires pointercancel, not pointerup; without this the
+                              // move listener leaked and hijacked every subsequent drag, freezing map pan.
+                              document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
                             }}
                             className="cursor-move whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold leading-tight"
                             style={{ background: "#0a0f16dd", color: ac, border: `1px solid ${ac}66` }}>
