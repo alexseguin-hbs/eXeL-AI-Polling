@@ -2456,7 +2456,7 @@ function AoMapPane(p: PaneProps) {
                     const ac = pObj?.aff === "hostile" ? C.red : C.cyan;
                     const aglM = Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM);
                     const nkey = typeof topObj.id === "number" ? topObj.id : null;
-                    const off = (nkey != null ? aglOffs[nkey] : undefined) ?? { x: 0, y: cellPx / 2 + 8 };
+                    const off = (nkey != null ? aglOffs[nkey] : undefined) ?? { x: 0, y: 10 * iconScale + 14 }; // clear the icon (icon half + gap)
                     const bb = is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""; // billboard upright off the tilted plane
                     // NB: for an aerial asset the true-altitude cube COLUMN (above) is the projector —
                     // the icon/chip/dot ride its top (markerZ). No separate stem needed.
@@ -2489,7 +2489,7 @@ function AoMapPane(p: PaneProps) {
                             }}
                             className="cursor-move whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold leading-tight"
                             style={{ background: "#0a0f16dd", color: ac, border: `1px solid ${ac}66` }}>
-                            AGL {aglM}m
+                            AGL {aglM.toLocaleString()}m
                           </button>
                         </div>
                         {/* (3) DOT — the object's TRUE altitude, at the cell centre (its real 3D spot) */}
