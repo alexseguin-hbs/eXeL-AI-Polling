@@ -855,7 +855,9 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
     const paneAspect = rect && rect.height > 0 ? rect.width / rect.height : 1.6;
     const x0 = ((lonW + 180) / 360) * W, x1 = ((lonE + 180) / 360) * W;
     const y0 = ((90 - latN) / 180) * H, y1 = ((90 - latS) / 180) * H;
-    const w = Math.min(W, Math.max(FLAT_MIN_W, Math.max(x1 - x0, (y1 - y0) * paneAspect) * 1.25));
+    // 2.5× the cell → a REGIONAL view where countries + US-state borders read clearly (operator law:
+    // "detailed map with countries and USA states"), not a tight single-state crop.
+    const w = Math.min(W, Math.max(FLAT_MIN_W, Math.max(x1 - x0, (y1 - y0) * paneAspect) * 2.5));
     const h = w / paneAspect;
     const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
     setFlat({ x: cx - w / 2, y: Math.max(12 - h / 2, Math.min((H - 12) - h / 2, cy - h / 2)), w, h });
@@ -987,6 +989,13 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                     <rect x={xOf(fsel.lonW)} y={0} width={xOf(fsel.lonE) - xOf(fsel.lonW)} height={H} fill={TRINITY_COLORS.temporal} opacity="0.09" />
                     <rect x={0} y={yOf(fsel.latN)} width={W} height={yOf(fsel.latS) - yOf(fsel.latN)} fill={BAND_VIOLET} opacity="0.1" />
                     <rect x={xOf(fsel.lonW)} y={yOf(fsel.latN)} width={xOf(fsel.lonE) - xOf(fsel.lonW)} height={yOf(fsel.latS) - yOf(fsel.latN)} fill={C.gold} opacity="0.22" stroke="#ffffff" strokeWidth="0.7" strokeOpacity="0.9" vectorEffect="non-scaling-stroke" />
+                    {/* R9: WHOLE-CELL tap target — tapping anywhere in the GZD cell drills to the detailed
+                        map (the thin label was too small to hit on a phone). onPointerDown stopPropagation
+                        so the tap doesn't start a pan; onClick → same frameCellFlat as the label. */}
+                    <rect x={xOf(fsel.lonW)} y={yOf(fsel.latN)} width={xOf(fsel.lonE) - xOf(fsel.lonW)} height={yOf(fsel.latS) - yOf(fsel.latN)}
+                      fill="transparent" style={{ cursor: "pointer", pointerEvents: "auto" }}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.stopPropagation(); frameCellFlat(fsel.latS, fsel.latN, fsel.lonW, fsel.lonE); }} />
                     {[fsel.lonW, fsel.lonE].map((lon) => (
                       <line key={`az${lon}`} x1={xOf(lon)} y1={0} x2={xOf(lon)} y2={H} stroke={TRINITY_COLORS.temporal} strokeWidth="0.6" opacity="0.9" vectorEffect="non-scaling-stroke" />
                     ))}

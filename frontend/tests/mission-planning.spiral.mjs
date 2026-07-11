@@ -167,11 +167,11 @@ const cellPxAt = async (w, h) => {
   const w0 = await vbw();
   if (box) { await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 2); for (let i = 0; i < 4; i++) { await pg.mouse.wheel(0, -300); await pg.waitForTimeout(90); } }
   const w1 = await vbw();
-  const clicked = await pg.evaluate(() => { const t = [...document.querySelectorAll('text')].find(e => /^\d+[C-X]$/.test((e.textContent || '').trim())); if (t) { t.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true })); t.dispatchEvent(new MouseEvent('click', { bubbles: true })); return t.textContent.trim(); } return null; });
-  await pg.waitForTimeout(500);
+  // R9 whole-cell TAP: a real mouse click at the map centre hits the cell tap-rect → drills to the cell.
+  if (box) { await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(500); }
   const w2 = await vbw();
   rec('#18 flat wheel-zoom works', !!w0 && !!w1 && w1 < w0, `w0=${w0 && w0.toFixed(0)} w1=${w1 && w1.toFixed(0)}`);
-  rec('#18 label click frames GZD cell', !!clicked && !!w2 && w2 < w1, `clicked=${clicked} w2=${w2 && w2.toFixed(0)}`);
+  rec('#18 whole-cell tap drills to detail', !!w1 && !!w2 && w2 < w1, `w1=${w1 && w1.toFixed(0)} w2=${w2 && w2.toFixed(0)}`);
   rec('#18 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
