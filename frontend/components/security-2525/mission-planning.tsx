@@ -58,6 +58,9 @@ const C = {
   // locked wireframe color law (R-CORE Consolidation 1 §7)
   borderCountry: "#ff4444", borderState: "#ff8c00", land: "#00ff9f", gold: "#ffd400",
 };
+// GRID band colour — a BRIGHT violet (TRINITY family #8B00FF reads too dark on the map);
+// used for every horizontal latitude-band element (lines, 10% fill, letters) on 2D + 3D.
+const BAND_VIOLET = "#b57bff";
 
 type Digits = 4 | 5 | 6;
 const PRECISIONS: { d: Digits; label: string; hint: string }[] = [
@@ -649,11 +652,11 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
             {/* 10% mask-fill along the selected zone (yellow, vertical) + band (violet, horizontal);
                 their overlap self-highlights the active cell */}
             {zoneOverlay.zoneFill && <path d={zoneOverlay.zoneFill} fill={TRINITY_COLORS.temporal} opacity="0.1" stroke="none" />}
-            {zoneOverlay.bandFill && <path d={zoneOverlay.bandFill} fill={TRINITY_COLORS.family} opacity="0.1" stroke="none" />}
+            {zoneOverlay.bandFill && <path d={zoneOverlay.bandFill} fill={BAND_VIOLET} opacity="0.1" stroke="none" />}
             <path d={zoneOverlay.grid} fill="none" stroke={C.cyan} strokeWidth={0.3 / zoom} opacity="0.3" />
             {/* zone = yellow (vertical), band = violet (horizontal) */}
             <path d={zoneOverlay.zone} fill="none" stroke={TRINITY_COLORS.temporal} strokeWidth={0.9 / zoom} opacity="0.95" />
-            <path d={zoneOverlay.band} fill="none" stroke={TRINITY_COLORS.family} strokeWidth={0.9 / zoom} opacity="0.95" />
+            <path d={zoneOverlay.band} fill="none" stroke={BAND_VIOLET} strokeWidth={0.9 / zoom} opacity="0.95" />
             {coordFmt !== "ucrs" && (() => {
               const degL = (v: number, pos: string, neg: string) => `${Math.abs(Math.round(v))}°${v < 0 ? neg : pos}`;
               const mgrs = coordFmt === "mgrs";
@@ -668,7 +671,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                   {/* band letters C–X down the CENTRE meridian (LON0) — a vertical latitude scale
                       through the middle. The ACTIVE band is skipped here (its letter is in the
                       yellow address at the crosshair); dark halo keeps cyan legible over the strip. */}
-                  {bandsArr.map((L, j) => { if (sel.band === L) return null; const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8; const [x, y, v] = proj((latS + latN) / 2, LON0); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={7.5 / zoom} fontWeight="bold" fill={C.cyan} opacity="0.9" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth={1.6 / zoom}>{L}</text> : null; })}
+                  {bandsArr.map((L, j) => { if (sel.band === L) return null; const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8; const [x, y, v] = proj((latS + latN) / 2, LON0); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={7.5 / zoom} fontWeight="bold" fill={BAND_VIOLET} opacity="0.95" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth={1.6 / zoom}>{L}</text> : null; })}
                   {/* NB: the active "14R" address is drawn ONCE at the stationary crosshair centre
                       (below), not here — the yellow alphanumeric belongs to the intersection only. */}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
@@ -841,13 +844,13 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                     ))}
                     {/* zone = yellow (vertical strip), band = violet (horizontal strip), cell = bright intersection */}
                     <rect x={xOf(fsel.lonW)} y={0} width={xOf(fsel.lonE) - xOf(fsel.lonW)} height={H} fill={TRINITY_COLORS.temporal} opacity="0.09" />
-                    <rect x={0} y={yOf(fsel.latN)} width={W} height={yOf(fsel.latS) - yOf(fsel.latN)} fill={TRINITY_COLORS.family} opacity="0.12" />
+                    <rect x={0} y={yOf(fsel.latN)} width={W} height={yOf(fsel.latS) - yOf(fsel.latN)} fill={BAND_VIOLET} opacity="0.1" />
                     <rect x={xOf(fsel.lonW)} y={yOf(fsel.latN)} width={xOf(fsel.lonE) - xOf(fsel.lonW)} height={yOf(fsel.latS) - yOf(fsel.latN)} fill={C.gold} opacity="0.22" />
                     {[fsel.lonW, fsel.lonE].map((lon) => (
                       <line key={`az${lon}`} x1={xOf(lon)} y1={0} x2={xOf(lon)} y2={H} stroke={TRINITY_COLORS.temporal} strokeWidth="0.6" opacity="0.9" vectorEffect="non-scaling-stroke" />
                     ))}
                     {[fsel.latN, fsel.latS].map((lat) => (
-                      <line key={`ab${lat}`} x1={0} y1={yOf(lat)} x2={W} y2={yOf(lat)} stroke={TRINITY_COLORS.family} strokeWidth="0.6" opacity="0.9" vectorEffect="non-scaling-stroke" />
+                      <line key={`ab${lat}`} x1={0} y1={yOf(lat)} x2={W} y2={yOf(lat)} stroke={BAND_VIOLET} strokeWidth="0.6" opacity="0.9" vectorEffect="non-scaling-stroke" />
                     ))}
                     {/* FULL label set — every zone number 1–60 across the top, every band C–X down the left
                         (MGRS); or degrees at each line (LLV-DMS). Active cell bold gold. */}
@@ -871,18 +874,15 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                         const bx = flat.x + flat.w * 0.03, by = yOf((latS + latN) / 2);
                         return (
                           <g key={`bl${j}`}>
-                            {act && <rect x={bx - 2} y={by - 6.5} width={11} height={9} rx={1.5} fill="#0a0e14" opacity="0.9" stroke={TRINITY_COLORS.family} strokeWidth="0.4" vectorEffect="non-scaling-stroke" />}
-                            <text x={bx} y={by} fontSize={act ? 8 : 5.5} fontWeight="bold" fill={act ? TRINITY_COLORS.family : C.cyan} opacity={act ? 1 : 0.8} textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{L}</text>
+                            {act && <rect x={bx - 2} y={by - 6.5} width={11} height={9} rx={1.5} fill="#0a0e14" opacity="0.9" stroke={BAND_VIOLET} strokeWidth="0.4" vectorEffect="non-scaling-stroke" />}
+                            <text x={bx} y={by} fontSize={act ? 8 : 5.5} fontWeight="bold" fill={BAND_VIOLET} opacity={act ? 1 : 0.85} textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{L}</text>
                           </g>
                         );
                       })}
-                      {/* CROSS-SECTION address chip at the cell centre — ALL-YELLOW "14R" (zone number
-                          + band letter both yellow; two-colour read messy). Intersection only. */}
+                      {/* CROSS-SECTION address "14R" at the cell centre — SAME format as the 3D
+                          globe: all-yellow, dark outline (paintOrder stroke), no box. */}
                       {(() => { const cx = xOf((fsel.lonW + fsel.lonE) / 2), cy = yOf((fsel.latS + fsel.latN) / 2); return (
-                        <g key="fzcell">
-                          <rect x={cx - 7} y={cy - 3.5} width={14} height={7} rx={1} fill="#0a0e14" opacity="0.85" stroke={C.gold} strokeWidth="0.3" vectorEffect="non-scaling-stroke" />
-                          <text x={cx} y={cy + 2} fontSize="5" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{fsel.zone}{fsel.band}</text>
-                        </g>
+                        <text key="fzcell" x={cx} y={cy + 2} fontSize="6" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.4">{fsel.zone}{fsel.band}</text>
                       ); })()}
                     </>)}
                     {coordFmt === "dms" && (<>
@@ -913,16 +913,19 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
         const kmW = flat.w * 111.32 * Math.cos((clat * Math.PI) / 180);
         return (
           <>
-            <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
-              <svg width="34" height="34" viewBox="-17 -17 34 34" aria-hidden>
-                <circle r="10" fill="none" stroke={C.cyan} strokeWidth="0.8" opacity="0.7" />
-                <line x1="0" y1="-15" x2="0" y2="-4" stroke={C.cyan} strokeWidth="0.8" />
-                <line x1="0" y1="4" x2="0" y2="15" stroke={C.cyan} strokeWidth="0.8" />
-                <line x1="-15" y1="0" x2="-4" y2="0" stroke={C.cyan} strokeWidth="0.8" />
-                <line x1="4" y1="0" x2="15" y2="0" stroke={C.cyan} strokeWidth="0.8" />
-                <circle r="1" fill={C.gold} />
-              </svg>
-            </div>
+            {/* centre target reticle — hidden in GRID mode (the GZD crosshair/labels own the centre) */}
+            {!showZones && (
+              <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+                <svg width="34" height="34" viewBox="-17 -17 34 34" aria-hidden>
+                  <circle r="10" fill="none" stroke={C.cyan} strokeWidth="0.8" opacity="0.7" />
+                  <line x1="0" y1="-15" x2="0" y2="-4" stroke={C.cyan} strokeWidth="0.8" />
+                  <line x1="0" y1="4" x2="0" y2="15" stroke={C.cyan} strokeWidth="0.8" />
+                  <line x1="-15" y1="0" x2="-4" y2="0" stroke={C.cyan} strokeWidth="0.8" />
+                  <line x1="4" y1="0" x2="15" y2="0" stroke={C.cyan} strokeWidth="0.8" />
+                  <circle r="1" fill={C.gold} />
+                </svg>
+              </div>
+            )}
             <span className="pointer-events-none absolute left-2 top-2 z-10 font-mono text-[9px] font-bold" style={{ color: C.red }}>N ↑</span>
             <span className="pointer-events-none absolute right-2 top-2 z-10 font-mono text-[9px] font-semibold" style={{ color: C.cyan }}>
               {geoContext(clat, clon, kmW).join(" · ")}
