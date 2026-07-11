@@ -672,7 +672,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                 <>
                   {/* zone numbers 1–60 along the equator — UNIFORM cyan (the active zone is NOT
                       enlarged/highlighted here; the only highlight is the yellow intersection label) */}
-                  {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={6 / zoom} fill={C.cyan} opacity="0.85" textAnchor="middle" style={{ fontFamily: "monospace" }}>{zn}</text> : null; })}
+                  {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={6 / zoom} fill={TRINITY_COLORS.temporal} opacity="0.95" textAnchor="middle" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth={1.4 / zoom}>{zn}</text> : null; })}
                   {/* band letters C–X down the CENTRE meridian (LON0) — a vertical latitude scale
                       through the middle. The ACTIVE band is skipped here (its letter is in the
                       yellow address at the crosshair); dark halo keeps cyan legible over the strip. */}
@@ -684,7 +684,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
                   {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; return (
                     <g key="gzint">
                       <circle cx={x} cy={y} r={2.2 / zoom} fill="none" stroke={C.gold} strokeWidth={0.7 / zoom} opacity="0.9" />
-                      <text x={x} y={y + 9 / zoom} fontSize={11 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth={2.6 / zoom}>{sel.zone}{sel.band}</text>
+                      <text x={x} y={y + 9 / zoom} fontSize={13 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#ffffff" strokeWidth={1.6 / zoom}>{sel.zone}{sel.band}</text>
                     </g>
                   ); })()}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
@@ -869,7 +869,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                           NOT enlarged (that made 58 jump); the only highlight is the yellow intersection. */}
                       {Array.from({ length: 60 }, (_, k) => k).map((k) => {
                         const lonC = -180 + k * 6 + 3, zn = k + 1;
-                        return <text key={`zn${k}`} x={xOf(lonC)} y={flat.y + flat.h * 0.14} fontSize="4" fill={C.cyan} opacity="0.6" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{zn}</text>;
+                        return <text key={`zn${k}`} x={xOf(lonC)} y={flat.y + flat.h * 0.14} fontSize="4" fill={TRINITY_COLORS.temporal} opacity="0.95" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth="0.8">{zn}</text>;
                       })}
                       {/* band letters C–X — inset from the left edge (flat.x+3%) clear of the N↑/label HUD;
                           active band gets a violet-bordered pill so the purple label is unmistakable */}
@@ -886,7 +886,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                       {/* CROSS-SECTION address "14R" at the cell centre — SAME format as the 3D
                           globe: all-yellow, dark outline (paintOrder stroke), no box. */}
                       {(() => { const cx = xOf((fsel.lonW + fsel.lonE) / 2), cy = yOf((fsel.latS + fsel.latN) / 2); return (
-                        <text key="fzcell" x={cx} y={cy + 2} fontSize="6" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.4">{fsel.zone}{fsel.band}</text>
+                        <text key="fzcell" x={cx} y={cy + 2} fontSize="8" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#ffffff" strokeWidth="0.9">{fsel.zone}{fsel.band}</text>
                       ); })()}
                     </>)}
                     {coordFmt === "dms" && (<>
@@ -1248,6 +1248,7 @@ function AoMapPane(p: PaneProps) {
   const tapRef = useRef<{ x: number; y: number; moved: boolean } | null>(null); // phone single-finger tap
   // R1: tap empty ground → coordinate CALL-UP packet (MGRS + LLV-DMS + UCRS + elevation)
   const [coordCall, setCoordCall] = useState<{ lat: number; lon: number } | null>(null);
+  const [coordCallOff, setCoordCallOff] = useState({ x: 0, y: 0 }); // draggable offset for the call-up packet
 
   // Overscan: the inner canvas is RENDER× the pane per axis, so rotation (bearing)
   // and 2D↔3D tilt NEVER expose black around the map (P1, user law 2026-07-09).
@@ -2489,7 +2490,7 @@ function AoMapPane(p: PaneProps) {
                                 if (Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) > 3) moved = true;
                                 if (nkey != null) setAglOffs((os) => ({ ...os, [nkey]: { x: ox + (ev.clientX - sx), y: oy + (ev.clientY - sy) } }));
                               };
-                              const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); if (!moved) setCoordCall({ lat: col.lat, lon: col.lon }); };
+                              const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); if (!moved && !aerialStack) setCoordCall({ lat: col.lat, lon: col.lon }); };
                               // FREEZE FIX: also clean up on pointercancel — on touch (esp. at high tilt /
                               // multi-touch) the browser fires pointercancel, not pointerup; without this the
                               // move listener leaked and hijacked every subsequent drag, freezing map pan.
@@ -2533,15 +2534,15 @@ function AoMapPane(p: PaneProps) {
                     {/* FX-30: top-face pick plate — lights on hover, gold when selected, so a
                         stacked column can be chosen by its TOP (independent of any asset) */}
                     <div className="pointer-events-none absolute inset-0" style={{
-                      border: `1.5px solid ${sel || voxelTop === col.key ? C.gold : "transparent"}`,
-                      background: sel ? `${C.gold}22` : voxelTop === col.key ? `${C.gold}12` : "transparent" }} />
+                      border: `${sel ? "2px" : "1.5px"} solid ${sel || voxelTop === col.key ? C.gold : "transparent"}`,
+                      background: sel ? `${C.gold}3d` : voxelTop === col.key ? `${C.gold}22` : "transparent" }} />
                     {/* TARGET — same proportions as the 3D crosshair cursor: outer ring,
                         INNER ring, NSEW crosshair ticks, gold centre dot. FX-15 (HI 1.3.2):
                         targets belong ONLY to asset/support cubes — an empty lattice cell
                         gets NO reticle; hover+select its TOP to highlight the whole column
                         instead (3-D column-reading, not a firing target). */}
                     {!isLattice && (
-                    <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: col.lat, lon: col.lon }); }}
+                    <button onPointerUp={(e) => { e.stopPropagation(); if (!aerialStack) setCoordCall({ lat: col.lat, lon: col.lon }); }}
                       title="TARGET — cube centre coordinate"
                       onMouseEnter={() => setCornerHover({ key: col.key, ci: -1 })} /* FX-02 (HI): hover the asset cube CENTRE-top → show its coordinate */
                       onMouseLeave={() => setCornerHover((h) => (h && h.key === col.key && h.ci === -1 ? null : h))}
@@ -2645,7 +2646,7 @@ function AoMapPane(p: PaneProps) {
                   {/* stack-top MSL·Z label — unlocked when the column/red cube is selected (top-face
                       click → sel) OR the asset itself is selected (selAsset). Declutter otherwise; the
                       always-on AGL chip still carries the altitude, so it's never fully lost. */}
-                  {topObj && (sel || selAsset) && (
+                  {topObj && (sel || selAsset) && !aerialStack && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 6}px)` }}>
                       <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: topObj.color ?? C.cyan }}>
                         {fmtAlt(topObj.altM, topObj.altRef, col.lat, col.lon)} · Z{topObj.bandIdx}{col.objects.length > 1 ? ` +${col.objects.length - 1}` : ""}
@@ -3096,9 +3097,17 @@ function AoMapPane(p: PaneProps) {
               return (
                 <div className="absolute z-30 max-w-[calc(100%-16px)] w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
                   onPointerDown={(e) => e.stopPropagation()}
-                  style={{ right: 8, top: 28, background: "#0a0f16ee", borderColor: C.cyan }}>
+                  style={{ right: 8, top: 28, transform: `translate(${coordCallOff.x}px, ${coordCallOff.y}px)`, background: "#0a0f16ee", borderColor: C.cyan }}>
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="font-bold tracking-wider" style={{ color: C.cyan }}>COORDINATE · CALL-UP</span>
+                    {/* ⠿ drag grip — move the coordinate packet anywhere (same pattern as the mini-map) */}
+                    <span className="flex items-center gap-1 cursor-move select-none touch-none font-bold tracking-wider" style={{ color: C.cyan }}
+                      onPointerDown={(e) => {
+                        e.stopPropagation(); (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+                        const sx = e.clientX, sy = e.clientY, ox = coordCallOff.x, oy = coordCallOff.y;
+                        const move = (ev: PointerEvent) => setCoordCallOff({ x: ox + (ev.clientX - sx), y: oy + (ev.clientY - sy) });
+                        const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); };
+                        document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+                      }}>⠿ COORDINATE · CALL-UP</span>
                     <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall(null); }} className="px-1 text-[10px] leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
                   {(() => {
