@@ -8,13 +8,14 @@
  * only; live data-fusion wiring comes later. Self-contained tactical dark theme.
  * See docs/SECURITY_2525_FRAMEWORK.md §7.
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft, X, Cpu, LayoutDashboard, Radar, Crosshair, Swords,
   Package, Activity, Gamepad2, ClipboardList, AlertTriangle, Gauge, Target,
   Map, Boxes, Maximize2, Minimize2,
 } from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
+import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { CLEARANCE_COLORS } from "@/lib/atlantis-package";
 import {
   AssetIcon, ASSET_ORDER, ASSET_LABELS, type IconStyle,
@@ -196,6 +197,10 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
   const [bottomOpen, setBottomOpen] = useState(true);
   const [mapMax, setMapMax] = useState(false);
   const [fsDetail, setFsDetail] = useState(false);
+  // Global (all-tab) settings — a main-menu surface, NOT the map. FPS counter is the first entry.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showFps, setShowFps] = useState(() => { try { return localStorage.getItem("sec2525.fps") === "1"; } catch { return false; } });
+  useEffect(() => { try { localStorage.setItem("sec2525.fps", showFps ? "1" : "0"); } catch {} }, [showFps]);
 
   // Maximize = fill the ENTIRE physical screen (browser Fullscreen API — same
   // as F11: Chrome's tabs/URL bar disappear). Falls back to in-page overlay
@@ -247,6 +252,22 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
           </div>
           <span className="hidden md:inline text-[10px]" style={{ color: C.dim }}>OPERATOR: ALPHA-1</span>
           <span className="text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
+          {/* Main-menu SETTINGS (global, all tabs) — gear opens a popover; not on the map */}
+          <div className="relative">
+            <button onClick={() => setMenuOpen((o) => !o)} className="p-1.5 rounded hover:bg-white/5" title="Settings — global (all tabs)">
+              <Gauge className="h-4 w-4" style={{ color: menuOpen ? C.cyan : C.dim }} />
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-9 z-[95] w-44 rounded border p-2 shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
+                <div className="mb-1.5 text-[9px] font-bold tracking-wider" style={{ color: C.dim }}>SETTINGS · ALL TABS</div>
+                <div className="flex items-center justify-between gap-2 py-0.5 text-[11px]" style={{ color: C.text }}>
+                  <span>FPS counter</span>
+                  <button onClick={() => setShowFps((v) => !v)} className="rounded border px-1.5 py-0.5 text-[9px] font-bold"
+                    style={{ borderColor: showFps ? C.cyan : C.border, color: showFps ? C.cyan : C.dim }}>{showFps ? "ON" : "OFF"}</button>
+                </div>
+              </div>
+            )}
+          </div>
           <button onClick={() => directLink ? (window.location.href = "/") : exitSimulationMode()} className="p-1.5 rounded hover:bg-white/5" title="Exit">
             <X className="h-4 w-4" style={{ color: C.dim }} />
           </button>
@@ -526,6 +547,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
       )}
       </>)}
 
+      <FpsMeter show={showFps} />
       {/* Footer */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
         <span><span style={{ color: C.green }}>●</span> SYSTEM HEALTH — ALL SYSTEMS NOMINAL</span>
