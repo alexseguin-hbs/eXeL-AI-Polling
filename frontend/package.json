@@ -9,7 +9,8 @@
     "prebuild": "node scripts/integrity-guard.mjs && node scripts/gen-seal-html.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "e2e:map": "node tests/mission-planning.e2e.mjs"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",
