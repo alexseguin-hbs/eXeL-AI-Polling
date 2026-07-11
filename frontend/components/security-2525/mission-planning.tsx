@@ -61,6 +61,10 @@ const C = {
 // GRID band colour — a BRIGHT violet (TRINITY family #8B00FF reads too dark on the map);
 // used for every horizontal latitude-band element (lines, 10% fill, letters) on 2D + 3D.
 const BAND_VIOLET = "#b57bff";
+// VOXEL size tier → BASE footprint scale ONLY. 3X full · 2X ⅔ · 1X ⅓. Single source of truth
+// for both render blocks. NB: this scales the base footprint (cellPx) — NOT the vertical band
+// unit (bandPx = unscaled cellW), so column height + altitude stay fixed across tiers.
+const VOXEL_BASE_SCALE: Record<3 | 2 | 1, number> = { 3: 1, 2: 2 / 3, 1: 1 / 3 };
 
 type Digits = 4 | 5 | 6;
 const PRECISIONS: { d: Digits; label: string; hint: string }[] = [
@@ -2311,12 +2315,12 @@ function AoMapPane(p: PaneProps) {
               const f = project(col.lat, col.lon);
               if (f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02) return null;
               const paneW = mapRef.current?.clientWidth ?? 800;
-              // HI 1.3.3: the ASSET cube scales with the VOXEL SIZE tier (3X/2X/1X) exactly like
-              // the lattice box, and is 1:1 (pixels-high == pixels-wide).
+              // HI 1.3.3: the VOXEL SIZE tier (3X/2X/1X) scales ONLY the cube BASE footprint.
+              // The vertical band unit (bandPx) stays the UNSCALED cellW, so column height +
+              // altitude reach are tier-invariant (2X/1X = slimmer tower, SAME height/altitude).
               const cellW = Math.max(16, (col.cellM / (view.spanKm * 1000)) * paneW);
-              const sizeF = voxelSize === 3 ? 1 : voxelSize === 2 ? 2 / 3 : 1 / 3;
-              const cellPx = cellW * sizeF;
-              const bandPx = cellPx;
+              const cellPx = cellW * VOXEL_BASE_SCALE[voxelSize]; // BASE footprint — shrinks with the tier
+              const bandPx = cellW;                               // VERTICAL unit — altitude/height, tier-invariant
               const sel = voxelSel === col.key;
               const isLattice = col.key.startsWith("LAT:"); // empty scaffold column (no asset)
               const hiCol = voxelHiColor;                    // FX-07: user-set primary highlight colour
@@ -2420,8 +2424,8 @@ function AoMapPane(p: PaneProps) {
                       suppresses the flat marker for a column-backed asset): a SHIELD badge
                       pinned to the LEVEL-1 bottom cell (always at the surface, decoupled from
                       altitude), a DOT at the object's TRUE altitude band, a draggable AGL chip
-                      (no connector), and billboarded top-face coordinates. bandPx == cellPx so
-                      the altitude a cube represents stays dimensionally true across size tiers. */}
+                      (no connector), and billboarded top-face coordinates. bandPx = unscaled cellW
+                      so the altitude a cube represents is IDENTICAL across size tiers (base only shrinks). */}
                   {topObj && (() => {
                     const pObj = placed.find((u) => u.id === topObj.id);
                     const ac = pObj?.aff === "hostile" ? C.red : C.cyan;
@@ -2622,13 +2626,12 @@ function AoMapPane(p: PaneProps) {
               const bc = project(view.lat, view.lon);
               const paneW = mapRef.current?.clientWidth ?? 800;
               const cellW = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW); // full cell px (altitude reference — never shrinks)
-              // FX (HI 1.3.3): SIZE TIER — 3X full · 2X ⅔ · 1X ⅓. The cube shrinks with the
-              // tier, but the altitude projectors ALWAYS reach the grey-line altitude (limitZ
-              // is computed from the UNSCALED cellW), so a smaller box still projects to ceiling.
-              const sizeF = voxelSize === 3 ? 1 : voxelSize === 2 ? 2 / 3 : 1 / 3;
-              const cellPx = cellW * sizeF;
+              // FX (HI 1.3.3): SIZE TIER — 3X full · 2X ⅔ · 1X ⅓ scales ONLY the base footprint.
+              // bandPx (vertical unit) stays the UNSCALED cellW, so the box HEIGHT and every
+              // altitude plane/rail stay fixed across tiers — 2X/1X shrink the base only.
+              const cellPx = cellW * VOXEL_BASE_SCALE[voxelSize]; // BASE footprint — shrinks with the tier
               const boxW = 3 * cellPx;
-              const bandPx = cellPx;                                     // pixels-high == pixels-wide (1:1, scaled by tier)
+              const bandPx = cellW;                               // VERTICAL unit — altitude/height, tier-invariant
               const topZ = 3 * bandPx;
               const railBands = Math.max(latticeColumns[0].cubes.filter((cb) => cb.bandIdx > 0).length, 3);
               const limitZ = Math.max(topZ, (voxelLimitPct / 100) * railBands * cellW);
