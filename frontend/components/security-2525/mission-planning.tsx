@@ -26,7 +26,7 @@
  * World context strip: Natural Earth 50m borders (public domain). Elevation and
  * subsurface layers come later — see docs/security-2525/DATA_SOURCES.md.
  */
-import { Fragment, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { Fragment, memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, Minimize2, Columns2, Eye, EyeOff, Lock, Unlock } from "lucide-react";
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
@@ -2510,12 +2510,12 @@ function AoMapPane(p: PaneProps) {
               const f = project(col.lat, col.lon);
               const isAerialCol = !col.key.startsWith("LAT:") && col.objects.some((o) => o.altM > 0);
               const baseOff = f.fx < -0.02 || f.fx > 1.02 || f.fy < -0.02 || f.fy > 1.02;
-              // Ground/lattice columns off-map → cull. But an AERIAL tower whose BASE is off-map must
-              // STILL show its TOP RED BOX at the map EDGE (pilot-style), so it stays visible + selectable
-              // (operator law: "see edge of tower so the top red box shows when the base is off map").
+              // Ground/lattice columns off-map → cull. An AERIAL tower whose BASE is off-map is NOT
+              // culled and NOT clamped: it renders at its TRUE projected position, so the base square
+              // (hidden below) clips off the map's overflow → "disappears", while the red/grey TOP cubes
+              // (lifted up by translateZ into view) + the grey dashed connectors REMAIN at their accurate
+              // positions, the connectors clipping at the SCREEN EDGE (pilot-style off-map tower cue).
               if (baseOff && !isAerialCol) return null;
-              const px = baseOff ? Math.max(0.04, Math.min(0.96, f.fx)) : f.fx;
-              const py = baseOff ? Math.max(0.06, Math.min(0.94, f.fy)) : f.fy;
               const paneW = mapRef.current?.clientWidth ?? 800;
               // HI 1.3.3: the VOXEL SIZE tier (3X/2X/1X) scales ONLY the cube BASE footprint.
               // The tier scales the whole CUBE uniformly: bandPx == cellPx keeps it CUBIC (equal
@@ -2571,7 +2571,7 @@ function AoMapPane(p: PaneProps) {
               // "edge lines same width in pixels as voxel center point").
               const edgeFineW = 1;
               return (
-                <div key={col.key} className="absolute" style={{ left: `${px * 100}%`, top: `${py * 100}%`, transformStyle: "preserve-3d", zIndex: baseOff ? 15 : (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
+                <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
                   // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
                   // by +bearing, but the faces were screen-axis-aligned, so on rotate each
                   // cube looked like it spun on its own ("confusing as shit"). Rotate the
@@ -2580,11 +2580,14 @@ function AoMapPane(p: PaneProps) {
                   // the camera orbits, the cubes never turn. Single voxel ≡ the 3×3 (both
                   // north-locked squares). transform-origin = cube centre (0×0 anchor div).
                   transform: is3d ? `rotateZ(${view.bearing}rad)` : undefined }}>
-                  {/* addressable cube BASE (on-plane) */}
+                  {/* addressable cube BASE (on-plane) — HIDDEN when its base is off-map (R0): the base
+                      should DISAPPEAR while the red/grey top + grey connectors remain for an off-map tower. */}
+                  {!baseOff && (
                   <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(sel ? null : col.key); }}
                     title={fmt.coordAt(col.lat, col.lon)}
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                     style={{ width: cellPx, height: cellPx, border: `1.5px solid ${sel ? hiCol : C.cyan}`, background: sel ? `${hiCol}22` : `${C.cyan}08`, pointerEvents: "auto" }} />
+                  )}
                   {/* Airspace threshold CAPS — TRUE scale, at the SAME altitudes as the LEFT gauge
                       lines. Orange (yellow%) · Red (red%) · Grey ceiling (limit%). Horizontal squares
                       spanning the cell; an aircraft above the grey cap flies past it (off-map). */}
@@ -4163,7 +4166,10 @@ function TransectPanel({ view, dem, placed, onHide }: TransectPanelProps) {
 }
 
 // ── Mission Planning main view ────────────────────────────────────────────────
-export function MissionPlanning({ iconStyle, onMaxChange }: { iconStyle: IconStyle; onMaxChange?: (max: boolean) => void }) {
+// R1 (smoothness): MissionPlanningImpl is wrapped in React.memo at export so SHELL state churn
+// (settings popover, fpsCap, SPEED-TEST section streaming) does NOT re-render the mounted map.
+// Props are referentially stable (iconStyle; onMaxChange = a useState setter) → memo holds.
+function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle; onMaxChange?: (max: boolean) => void }) {
   const [aoKey, setAoKey] = useState("capitol");
   const [gridOn, setGridOn] = useState(true);
   const [gridStepM, setGridStepM] = useState<number>(0);
@@ -5285,3 +5291,5 @@ export function MissionPlanning({ iconStyle, onMaxChange }: { iconStyle: IconSty
     </div>
   );
 }
+
+export const MissionPlanning = memo(MissionPlanningImpl);
