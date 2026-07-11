@@ -642,10 +642,17 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
               const paral = mgrs ? [] : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
               return (
                 <>
-                  {/* zone numbers 1–60 along the equator; back-facing culled; centered zone bold gold */}
-                  {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1, act = sel.zone === zn; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={(act ? 7 : 4) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? TRINITY_COLORS.temporal : C.cyan} opacity={act ? 1 : 0.7} textAnchor="middle" style={{ fontFamily: "monospace" }}>{zn}</text> : null; })}
-                  {/* band letters C–X down the LEFT limb (≈90° west of camera centre) */}
-                  {bandsArr.map((L, j) => { const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = sel.band === L; const [x, y, v] = proj((latS + latN) / 2, LON0 - 85); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={(act ? 7 : 4) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? TRINITY_COLORS.family : C.cyan} opacity={act ? 1 : 0.7} textAnchor="middle" style={{ fontFamily: "monospace" }}>{L}</text> : null; })}
+                  {/* zone numbers 1–60 along the equator; back-facing culled; centered zone bold yellow */}
+                  {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1, act = sel.zone === zn; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={(act ? 9 : 6) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? TRINITY_COLORS.temporal : C.cyan} opacity={act ? 1 : 0.85} textAnchor="middle" style={{ fontFamily: "monospace" }}>{zn}</text> : null; })}
+                  {/* band letters C–X down the LEFT limb — enlarged for legibility */}
+                  {bandsArr.map((L, j) => { const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = sel.band === L; const [x, y, v] = proj((latS + latN) / 2, LON0 - 85); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={(act ? 10 : 7.5) / zoom} fontWeight="bold" fill={act ? TRINITY_COLORS.family : C.cyan} opacity={act ? 1 : 0.9} textAnchor="middle" style={{ fontFamily: "monospace" }}>{L}</text> : null; })}
+                  {/* CROSS-SECTION address chip — where the yellow zone meets the violet band = "14R" */}
+                  {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; return (
+                    <g key="gzcell">
+                      <rect x={x - 14 / zoom} y={y - 7 / zoom} width={28 / zoom} height={13 / zoom} rx={2 / zoom} fill="#0a0e14" opacity="0.85" stroke={C.gold} strokeWidth={0.4 / zoom} />
+                      <text x={x} y={y + 3.5 / zoom} fontSize={9 / zoom} fontWeight="bold" textAnchor="middle" style={{ fontFamily: "monospace" }}><tspan fill={TRINITY_COLORS.temporal}>{sel.zone}</tspan><tspan fill={TRINITY_COLORS.family}>{sel.band}</tspan></text>
+                    </g>
+                  ); })()}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
                   {paral.map((lat) => { const [x, y, v] = proj(lat, LON0); return v ? <text key={`dgb${lat}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text> : null; })}
                 </>
@@ -808,8 +815,15 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
                       })}
                       {BANDS.split("").map((L, j) => {
                         const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = fsel.band === L;
-                        return <text key={`bl${j}`} x={flat.x + 4} y={yOf((latS + latN) / 2)} fontSize={act ? 6 : 3.5} fontWeight={act ? "bold" : "normal"} fill={act ? TRINITY_COLORS.family : C.cyan} opacity={act ? 1 : 0.55} textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{L}</text>;
+                        return <text key={`bl${j}`} x={flat.x + 4} y={yOf((latS + latN) / 2)} fontSize={act ? 8 : 5.5} fontWeight="bold" fill={act ? TRINITY_COLORS.family : C.cyan} opacity={act ? 1 : 0.8} textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{L}</text>;
                       })}
+                      {/* CROSS-SECTION address chip at the cell centre — "14R" (zone yellow + band violet) */}
+                      {(() => { const cx = xOf((fsel.lonW + fsel.lonE) / 2), cy = yOf((fsel.latS + fsel.latN) / 2); return (
+                        <g key="fzcell">
+                          <rect x={cx - 7} y={cy - 3.5} width={14} height={7} rx={1} fill="#0a0e14" opacity="0.85" stroke={C.gold} strokeWidth="0.3" vectorEffect="non-scaling-stroke" />
+                          <text x={cx} y={cy + 2} fontSize="5" fontWeight="bold" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}><tspan fill={TRINITY_COLORS.temporal}>{fsel.zone}</tspan><tspan fill={TRINITY_COLORS.family}>{fsel.band}</tspan></text>
+                        </g>
+                      ); })()}
                     </>)}
                     {coordFmt === "dms" && (<>
                       {meridians.map((lon) => (
