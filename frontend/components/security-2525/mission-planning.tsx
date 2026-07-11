@@ -809,13 +809,29 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
                     {/* FULL label set — every zone number 1–60 across the top, every band C–X down the left
                         (MGRS); or degrees at each line (LLV-DMS). Active cell bold gold. */}
                     {coordFmt === "mgrs" && (<>
+                      {/* zone numbers 1–60 — dropped BELOW the header button row (flat.y+14%) so they
+                          clear the TEXAS CAPITOL/3D/2D/GRID chips; active zone gets a legibility pill */}
                       {Array.from({ length: 60 }, (_, k) => k).map((k) => {
                         const lonC = -180 + k * 6 + 3, zn = k + 1, act = fsel.zone === zn;
-                        return <text key={`zn${k}`} x={xOf(lonC)} y={flat.y + 5} fontSize={act ? 6 : 3.5} fontWeight={act ? "bold" : "normal"} fill={act ? TRINITY_COLORS.temporal : C.cyan} opacity={act ? 1 : 0.55} textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{zn}</text>;
+                        const zx = xOf(lonC), zy = flat.y + flat.h * 0.14;
+                        return (
+                          <g key={`zn${k}`}>
+                            {act && <rect x={zx - 6} y={zy - 6} width={12} height={8.5} rx={1.5} fill="#0a0e14" opacity="0.9" stroke={TRINITY_COLORS.temporal} strokeWidth="0.4" vectorEffect="non-scaling-stroke" />}
+                            <text x={zx} y={zy} fontSize={act ? 6 : 3.5} fontWeight={act ? "bold" : "normal"} fill={act ? TRINITY_COLORS.temporal : C.cyan} opacity={act ? 1 : 0.55} textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{zn}</text>
+                          </g>
+                        );
                       })}
+                      {/* band letters C–X — inset from the left edge (flat.x+3%) clear of the N↑/label HUD;
+                          active band gets a violet-bordered pill so the purple label is unmistakable */}
                       {BANDS.split("").map((L, j) => {
                         const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8, act = fsel.band === L;
-                        return <text key={`bl${j}`} x={flat.x + 4} y={yOf((latS + latN) / 2)} fontSize={act ? 8 : 5.5} fontWeight="bold" fill={act ? TRINITY_COLORS.family : C.cyan} opacity={act ? 1 : 0.8} textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{L}</text>;
+                        const bx = flat.x + flat.w * 0.03, by = yOf((latS + latN) / 2);
+                        return (
+                          <g key={`bl${j}`}>
+                            {act && <rect x={bx - 2} y={by - 6.5} width={11} height={9} rx={1.5} fill="#0a0e14" opacity="0.9" stroke={TRINITY_COLORS.family} strokeWidth="0.4" vectorEffect="non-scaling-stroke" />}
+                            <text x={bx} y={by} fontSize={act ? 8 : 5.5} fontWeight="bold" fill={act ? TRINITY_COLORS.family : C.cyan} opacity={act ? 1 : 0.8} textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{L}</text>
+                          </g>
+                        );
                       })}
                       {/* CROSS-SECTION address chip at the cell centre — "14R" (zone yellow + band violet) */}
                       {(() => { const cx = xOf((fsel.lonW + fsel.lonE) / 2), cy = yOf((fsel.latS + fsel.latN) / 2); return (
@@ -827,10 +843,10 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt }:
                     </>)}
                     {coordFmt === "dms" && (<>
                       {meridians.map((lon) => (
-                        <text key={`dl${lon}`} x={xOf(lon)} y={flat.y + 5} fontSize="3.5" fill={C.cyan} opacity="0.6" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text>
+                        <text key={`dl${lon}`} x={xOf(lon)} y={flat.y + flat.h * 0.14} fontSize="3.5" fill={C.cyan} opacity="0.6" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text>
                       ))}
                       {parallels.map((lat) => (
-                        <text key={`dt${lat}`} x={flat.x + 4} y={yOf(lat)} fontSize="3.5" fill={C.cyan} opacity="0.6" textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text>
+                        <text key={`dt${lat}`} x={flat.x + flat.w * 0.03} y={yOf(lat)} fontSize="3.5" fill={C.cyan} opacity="0.6" textAnchor="start" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text>
                       ))}
                     </>)}
                   </g>
