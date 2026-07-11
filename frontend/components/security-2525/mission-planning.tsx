@@ -2639,9 +2639,10 @@ function AoMapPane(p: PaneProps) {
                       </svg>
                     );
                   })}
-                  {/* stack-top MSL·Z label — ONLY when the top face is selected (declutter). The
+                  {/* stack-top MSL·Z label — unlocked when the column/red cube is selected (top-face
+                      click → sel) OR the asset itself is selected (selAsset). Declutter otherwise; the
                       always-on AGL chip still carries the altitude, so it's never fully lost. */}
-                  {topObj && sel && (
+                  {topObj && (sel || selAsset) && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 6}px)` }}>
                       <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: topObj.color ?? C.cyan }}>
                         {fmtAlt(topObj.altM, topObj.altRef, col.lat, col.lon)} · Z{topObj.bandIdx}{col.objects.length > 1 ? ` +${col.objects.length - 1}` : ""}
