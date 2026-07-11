@@ -666,14 +666,23 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
               const paral = mgrs ? [] : Array.from({ length: 11 }, (_, i) => -75 + i * 15);
               return (
                 <>
-                  {/* zone numbers 1–60 along the equator; back-facing culled; centered zone bold yellow */}
-                  {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1, act = sel.zone === zn; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={(act ? 9 : 6) / zoom} fontWeight={act ? "bold" : "normal"} fill={act ? TRINITY_COLORS.temporal : C.cyan} opacity={act ? 1 : 0.85} textAnchor="middle" style={{ fontFamily: "monospace" }}>{zn}</text> : null; })}
+                  {/* zone numbers 1–60 along the equator — UNIFORM cyan (the active zone is NOT
+                      enlarged/highlighted here; the only highlight is the yellow intersection label) */}
+                  {zones.map((k) => { const lonC = -180 + k * 6 + 3, zn = k + 1; const [x, y, v] = proj(0, lonC); return v ? <text key={`gz${k}`} x={x} y={y} fontSize={6 / zoom} fill={C.cyan} opacity="0.85" textAnchor="middle" style={{ fontFamily: "monospace" }}>{zn}</text> : null; })}
                   {/* band letters C–X down the CENTRE meridian (LON0) — a vertical latitude scale
                       through the middle. The ACTIVE band is skipped here (its letter is in the
                       yellow address at the crosshair); dark halo keeps cyan legible over the strip. */}
                   {bandsArr.map((L, j) => { if (sel.band === L) return null; const latS = -80 + j * 8, latN = j === 19 ? 84 : latS + 8; const [x, y, v] = proj((latS + latN) / 2, LON0); return v ? <text key={`gb${j}`} x={x} y={y} fontSize={7.5 / zoom} fontWeight="bold" fill={BAND_VIOLET} opacity="0.95" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a1018" strokeWidth={1.6 / zoom}>{L}</text> : null; })}
-                  {/* NB: the active "14R" address is drawn ONCE at the stationary crosshair centre
-                      (below), not here — the yellow alphanumeric belongs to the intersection only. */}
+                  {/* INTERSECTION marker — at the true GEOGRAPHIC cell centre (where the yellow zone
+                      meets the violet band), NOT screen-centre: tilt shifts the sub-camera point down,
+                      so a screen-fixed label sat a band or two too high. Mini circle + all-yellow
+                      "14R" (outline), exactly like the 2D chip that read perfectly. */}
+                  {mgrs && (() => { const [x, y, v] = proj((sel.latS + sel.latN) / 2, (sel.lonW + sel.lonE) / 2); if (!v) return null; return (
+                    <g key="gzint">
+                      <circle cx={x} cy={y} r={2.2 / zoom} fill="none" stroke={C.gold} strokeWidth={0.7 / zoom} opacity="0.9" />
+                      <text x={x} y={y + 9 / zoom} fontSize={11 / zoom} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth={2.6 / zoom}>{sel.zone}{sel.band}</text>
+                    </g>
+                  ); })()}
                   {merid.map((lon) => { const [x, y, v] = proj(0, lon); return v ? <text key={`dgz${lon}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lon, "E", "W")}</text> : null; })}
                   {paral.map((lat) => { const [x, y, v] = proj(lat, LON0); return v ? <text key={`dgb${lat}`} x={x} y={y} fontSize={4 / zoom} fill={C.cyan} opacity="0.7" textAnchor="middle" style={{ fontFamily: "monospace" }}>{degL(lat, "N", "S")}</text> : null; })}
                 </>
@@ -688,16 +697,10 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, coor
           are read against. Shown with the GRID overlay. */}
       {showZones && (
         <g style={{ pointerEvents: "none" }}>
-          {/* stationary reticle: dashed cross + mini centre circle (no bearing numbers) */}
-          <line x1={CX - RING} y1={CY} x2={CX + RING} y2={CY} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.5" />
-          <line x1={CX} y1={CY - RING} x2={CX} y2={CY + RING} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.5" />
-          <circle cx={CX} cy={CY} r="2.2" fill="none" stroke={C.gold} strokeWidth="0.7" opacity="0.85" />
-          {/* the yellow alphanumeric GZD address ("14R") lives ONLY here — at the crosshair the
-              zone (number) and band (letter) intersect. All yellow, per operator. */}
-          {coordFmt === "mgrs" && (
-            <text x={CX} y={CY + 11} fontSize="12" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="middle"
-              style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="2.6">{sel.zone}{sel.band}</text>
-          )}
+          {/* stationary bearing reticle — dashed cross only (the mini circle + yellow GZD label now
+              live at the GEOGRAPHIC intersection inside the globe, so they track the selected cell). */}
+          <line x1={CX - RING} y1={CY} x2={CX + RING} y2={CY} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
+          <line x1={CX} y1={CY - RING} x2={CX} y2={CY + RING} stroke={C.cyan} strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
         </g>
       )}
     </svg>
@@ -775,8 +778,10 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
             const r = flatSvg.current?.getBoundingClientRect(); if (!r) return;
             const dx = (e.clientX - d.x) / r.width * flat.w, dy = (e.clientY - d.y) / r.height * flat.h;
             d.x = e.clientX; d.y = e.clientY;
-            // horizontal wraps around the globe (modulo world width); vertical clamps at the poles
-            setFlat((f) => ({ ...f, x: (((f.x - dx) % W) + W) % W, y: Math.max(0, Math.min(H - f.h, f.y - dy)) }));
+            // horizontal wraps around the globe (modulo world width); vertical lets the view CENTRE
+            // reach ±84° lat (centre-y ∈ [12,348]) so the GZD crosshair can select the polar bands
+            // C and X — not just H↔S. flat.y may go negative (ocean rect fills beyond the poles).
+            setFlat((f) => ({ ...f, x: (((f.x - dx) % W) + W) % W, y: Math.max(12 - f.h / 2, Math.min((H - 12) - f.h / 2, f.y - dy)) }));
           }}
           onPointerUp={() => { flatDrag.current = null; }}>
           {/* blue ocean base for the whole (wrapped) world */}
@@ -856,16 +861,11 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                         (MGRS); or degrees at each line (LLV-DMS). Active cell bold gold. */}
                     {coordFmt === "mgrs" && (<>
                       {/* zone numbers 1–60 — dropped BELOW the header button row (flat.y+14%) so they
-                          clear the TEXAS CAPITOL/3D/2D/GRID chips; active zone gets a legibility pill */}
+                          clear the TEXAS CAPITOL/3D/2D/GRID chips. UNIFORM cyan — the active zone is
+                          NOT enlarged (that made 58 jump); the only highlight is the yellow intersection. */}
                       {Array.from({ length: 60 }, (_, k) => k).map((k) => {
-                        const lonC = -180 + k * 6 + 3, zn = k + 1, act = fsel.zone === zn;
-                        const zx = xOf(lonC), zy = flat.y + flat.h * 0.14;
-                        return (
-                          <g key={`zn${k}`}>
-                            {act && <rect x={zx - 6} y={zy - 6} width={12} height={8.5} rx={1.5} fill="#0a0e14" opacity="0.9" stroke={TRINITY_COLORS.temporal} strokeWidth="0.4" vectorEffect="non-scaling-stroke" />}
-                            <text x={zx} y={zy} fontSize={act ? 6 : 3.5} fontWeight={act ? "bold" : "normal"} fill={act ? TRINITY_COLORS.temporal : C.cyan} opacity={act ? 1 : 0.55} textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{zn}</text>
-                          </g>
-                        );
+                        const lonC = -180 + k * 6 + 3, zn = k + 1;
+                        return <text key={`zn${k}`} x={xOf(lonC)} y={flat.y + flat.h * 0.14} fontSize="4" fill={C.cyan} opacity="0.6" textAnchor="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>{zn}</text>;
                       })}
                       {/* band letters C–X — inset from the left edge (flat.x+3%) clear of the N↑/label HUD;
                           active band gets a violet-bordered pill so the purple label is unmistakable */}
