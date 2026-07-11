@@ -1121,11 +1121,12 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
         {/* MGRS/LLV-DMS grid-zone training overlay toggle — world view only (globe + flat) */}
         <button onClick={() => setShowZones((v) => !v)} title={showZones ? "Grid-zone overlay ON — click to hide" : "Show the MGRS / LLV-DMS grid-zone training overlay (14R at Austin)"}
           className="rounded border px-2 py-0.5 text-[9px] font-semibold" style={{ borderColor: showZones ? C.gold : C.border, color: showZones ? C.gold : C.dim, background: "#0a0f16cc" }}>▦ GRID</button>
-        {/* order law: LOCATION · 3D/2D · MINIMIZE (last, upper-right) */}
+        {/* order law: LOCATION · 3D/2D · MINIMIZE (last, upper-right). Full-screen → STANDARD
+            icon-only minimize control (traditional window-control glyph, no label). */}
         {onMinimize && (
-          <button onClick={onMinimize} title="Minimize — back to standard screen"
-            className="flex items-center gap-1 rounded border px-2 py-0.5 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16cc" }}>
-            <Minimize2 className="h-3 w-3" /> MINIMIZE
+          <button onClick={onMinimize} title="Minimize — back to standard screen" aria-label="Minimize"
+            className="flex items-center justify-center rounded border p-1" style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16cc" }}>
+            <Minimize2 className="h-3.5 w-3.5" />
           </button>
         )}
       </div>
@@ -1965,9 +1966,10 @@ function AoMapPane(p: PaneProps) {
               <Settings className="h-3 w-3" />
             </button>
           )}
-          <button onClick={onToggleMax} title={maximized ? "Minimize — back to standard screen" : "Maximize"}
-            className="flex items-center gap-1 rounded border px-1 py-0.5 font-semibold" style={{ borderColor: maximized ? C.cyan : C.border, color: maximized ? C.cyan : C.dim }}>
-            {maximized ? <><Minimize2 className="h-3 w-3" /> MINIMIZE</> : <Maximize2 className="h-3 w-3" />}
+          {/* Full-screen → STANDARD icon-only minimize (traditional upper-right window control, no label) */}
+          <button onClick={onToggleMax} title={maximized ? "Minimize — back to standard screen" : "Maximize"} aria-label={maximized ? "Minimize" : "Maximize"}
+            className="flex items-center justify-center rounded border p-1 font-semibold" style={{ borderColor: maximized ? C.cyan : C.border, color: maximized ? C.cyan : C.dim }}>
+            {maximized ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3 w-3" />}
           </button>
           {onHidePane && <Dots3 horizontal onClick={onHidePane} title="Hide this window" />}
         </div>
