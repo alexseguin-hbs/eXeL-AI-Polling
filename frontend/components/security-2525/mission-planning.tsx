@@ -2471,7 +2471,7 @@ function AoMapPane(p: PaneProps) {
                     const ac = pObj?.aff === "hostile" ? C.red : C.cyan;
                     const aglM = Math.round(topObj.altRef === "AGL" ? topObj.altM : topObj.mslM - col.terrainM);
                     const nkey = typeof topObj.id === "number" ? topObj.id : null;
-                    const off = (nkey != null ? aglOffs[nkey] : undefined) ?? { x: 0, y: 10 * iconScale + 14 }; // clear the icon (icon half + gap)
+                    const off = (nkey != null ? aglOffs[nkey] : undefined) ?? { x: 0, y: 12 * iconScale + 16 }; // sit at the BASE of the shield (icon half + gap) — never cover the MIL-STD type icon
                     const bb = is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""; // billboard upright off the tilted plane
                     // NB: for an aerial asset the true-altitude cube COLUMN (above) is the projector —
                     // the icon/chip/dot ride its top (markerZ). No separate stem needed.
@@ -2490,7 +2490,9 @@ function AoMapPane(p: PaneProps) {
                         {/* (2) AGL chip — draggable (FAAD-hook drag pattern, NO connector line), Level-1 cell.
                             Tap (no drag) pops the cube-centre coordinate call-up packet. */}
                         <div className="absolute left-1/2 top-1/2" onPointerDown={(e) => e.stopPropagation()} style={{ pointerEvents: "auto",
-                          transform: `translate(-50%,-50%) translate3d(${off.x}px,${off.y}px,${markerZ}px)${bb}` }}>
+                          /* offset applied AFTER the billboard rotation → screen-vertical, so at high
+                             tilt the AGL chip still lands at the BASE of the shield (never over the icon) */
+                          transform: `translate(-50%,-50%) translateZ(${markerZ}px)${bb} translate(${off.x}px,${off.y}px)` }}>
                           <button title="Drag · tap = cube-centre coordinate + AGL"
                             onPointerDown={(e) => {
                               e.stopPropagation(); e.preventDefault();
