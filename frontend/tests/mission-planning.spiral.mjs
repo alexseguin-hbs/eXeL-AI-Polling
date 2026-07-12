@@ -413,9 +413,10 @@ const cellPxAt = async (w, h) => {
   await pg.evaluate(() => { const p = document.querySelector('[data-voxelpacket]'); const mi = [...p.querySelectorAll('button')].find(b => /^mi$/i.test((b.textContent || '').trim())); if (mi) mi.click(); });
   await pg.waitForTimeout(400);
   const colMi = await rowOf('COLUMN'), terrMi = await rowOf('TERRAIN');
-  const dimUnit = /km/.test(colKm || '') && /mi/.test(colMi || '');   // grid dimension follows km→mi
-  const altUnit = /m MSL/.test(terrKm || '') && /ft MSL/.test(terrMi || ''); // altitude follows m→ft
-  rec('#31 voxel dims + altitude honor unit toggle (FX-56)', dimUnit && altUnit, `colKm=${colKm} colMi=${colMi} terrKm=${terrKm} terrMi=${terrMi}`);
+  const dimUnit = /\bkm\b/.test(colKm || '') && /\bmi\b/.test(colMi || '');       // grid dims follow km→mi
+  const altUnit = / km MSL$/.test(terrKm || '') && / mi MSL$/.test(terrMi || '');  // FX-56b: altitude now km/mi too
+  const dec3 = /\d\.\d{3} km/.test(colKm || '') && /\d\.\d{3} km/.test(terrKm || ''); // 3 decimals when < 100
+  rec('#31 units drive voxel dims + altitude, km/mi 3-dec (FX-56/56b)', dimUnit && altUnit && dec3, `colKm=${colKm} colMi=${colMi} terrKm=${terrKm} terrMi=${terrMi}`);
   rec('#31 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }

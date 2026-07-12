@@ -1289,13 +1289,19 @@ function makeFormatters(coordFmt: "mgrs" | "dms" | "ucrs" | "utm", digits: Digit
       : coordFmt === "ucrs" ? fmtUcrsDms(lat, lon) // P1.2 (Odin): UCRS-2525 as a settings-level format
       : coordFmt === "utm" ? utmAt(lat, lon)       // UTM zone · easting · northing
       : mgrsAt(lat, lon);
-  const metric = unit === "km" || unit === "m";
-  const fmtDist = (m: number) =>
-    unit === "km" ? `${(m / 1000).toFixed(m >= 10000 ? 0 : 2)} km`
-      : unit === "m" ? `${Math.round(m).toLocaleString()} m`
-      : unit === "mi" ? `${(m / 1609.34).toFixed(m >= 16093 ? 1 : 2)} mi`
-      : `${Math.round(m * 3.28084).toLocaleString()} ft`;
-  const fmtElev = (m: number) => (metric ? `${Math.round(m).toLocaleString()} m` : `${Math.round(m * 3.28084).toLocaleString()} ft`);
+  // FX-56b: ONE length formatter drives every distance AND altitude readout so the unit toggle propagates
+  // uniformly (like UCRS drives coordinates). km/mi honor 3 decimals when < 100 (##.### / #.###); coarser
+  // above; m/ft stay integer. Altitude (rail + orange/red/grey thresholds) now toggles to km/mi too.
+  const lenFmt = (m: number): string => {
+    if (unit === "m") return `${Math.round(m).toLocaleString()} m`;
+    if (unit === "ft") return `${Math.round(m * 3.28084).toLocaleString()} ft`;
+    const v = unit === "mi" ? m / 1609.34 : m / 1000; // km is the default
+    const u = unit === "mi" ? "mi" : "km";
+    const dec = v < 100 ? 3 : v < 1000 ? 1 : 0;
+    return `${v.toFixed(dec)} ${u}`;
+  };
+  const fmtDist = lenFmt;
+  const fmtElev = lenFmt;
   return { mgrsAt, coordAt, fmtDist, fmtElev };
 }
 
