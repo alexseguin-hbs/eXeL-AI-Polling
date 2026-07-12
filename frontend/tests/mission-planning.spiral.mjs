@@ -171,7 +171,9 @@ const cellPxAt = async (w, h) => {
   if (box) { await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(500); }
   const w2 = await vbw();
   rec('#18 flat wheel-zoom works', !!w0 && !!w1 && w1 < w0, `w0=${w0 && w0.toFixed(0)} w1=${w1 && w1.toFixed(0)}`);
-  rec('#18 whole-cell tap drills to detail', !!w1 && !!w2 && w2 < w1, `w1=${w1 && w1.toFixed(0)} w2=${w2 && w2.toFixed(0)}`);
+  // FX-43: whole-cell tap now SMOOTH-SCROLLS into the tactical AO (never a flat frame) → the flat
+  // "World context map" svg unmounts, so vbw() goes null. That IS the drill (was: w2 < w1 flat frame).
+  rec('#18 whole-cell tap → tactical AO (not flat)', !!w1 && w2 === null, `w1=${w1 && w1.toFixed(0)} w2=${w2}`);
   rec('#18 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
@@ -360,6 +362,27 @@ const cellPxAt = async (w, h) => {
   const r = await pg.evaluate(() => { const s = document.querySelector('svg[aria-label="FPS over time"]'); return { attr: s ? s.getAttribute('data-sweepcap') : null, cap: Number(localStorage.getItem('sec2525.fpsCap') || '0') }; });
   rec('#28 chart reflects selected cap 3 + cap restored (FX-34)', ok && r.attr === '3' && r.cap === 3, `rows3=${ok} attr=${r.attr} cap=${r.cap}`);
   rec('#28 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
+// ── CORPUS #29: grid label drill from EARTH → smooth into a tactical AO, NEVER the flat map (FX-43) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  const AO_RE = /CAMP BLANDING|TEXAS CAPITOL|FORT WORTH|MABRY|JBLM|JACKSONVILLE|CAPITOL|DALLAS|HOUSTON|AUSTIN|SAN ANTONIO/i;
+  const mapEarth = () => pg.evaluate(() => [...document.querySelectorAll('*')].some(e => e.children.length === 0 && /^MAP · EARTH$/.test((e.textContent || '').trim())));
+  await clk('button:has-text("EARTH"):visible'); await pg.waitForTimeout(800);
+  await clk('button:has-text("GRID"):visible'); await pg.waitForTimeout(700);
+  const earthBefore = await mapEarth();
+  const label = pg.locator('svg text').filter({ hasText: /^\d{1,2}[C-X]$/ });
+  const ln = await label.count(); let clicked = false;
+  for (let i = 0; i < ln; i++) { try { await label.nth(i).click({ force: true, timeout: 1500 }); clicked = true; break; } catch {} }
+  await pg.waitForTimeout(1800);
+  const earthAfter = await mapEarth();
+  // entered a tactical AO ⇒ left EARTH ("MAP · EARTH" gone) AND the flat world-context svg is gone
+  const flatGone = await pg.evaluate(() => !document.querySelector('svg[aria-label^="World context map"]'));
+  const aoBread = await pg.evaluate((re) => [...document.querySelectorAll('*')].some(e => e.children.length === 0 && new RegExp(re, 'i').test((e.textContent || '').trim())), AO_RE.source);
+  rec('#29 grid drill → tactical AO (not flat) (FX-43)', earthBefore && clicked && !earthAfter && flatGone && aoBread, `earthBefore=${earthBefore} clicked=${clicked} earthAfter=${earthAfter} flatGone=${flatGone} ao=${aoBread}`);
+  rec('#29 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
 

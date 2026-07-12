@@ -460,11 +460,12 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onFr
   onFrameCell?: (latS: number, latN: number, lonW: number, lonE: number) => void;
   coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; showZones: boolean; hiddenKeys?: Set<string>;
 }) {
-  // Nearest AO to a lat/lon within ~10° → zoom-in enters it directly (no flat 'blue screen').
+  // FX-43 (operator): zoom-in / grid-square drill ALWAYS smooth-scrolls into the NEAREST AO
+  // (Texas Capitol, Camp Blanding, …) — never the flat-map equivalent. No distance threshold.
   const nearestAo = (lat: number, lon: number) => {
     let best = "", bd = Infinity;
-    for (const a of AOS) { const d = Math.hypot(a.center[0] - lat, a.center[1] - lon); if (d < bd) { bd = d; best = a.key; } }
-    return bd < 10 ? best : "";
+    for (const a of AOS) { if (hiddenKeys?.has(a.key)) continue; const d = Math.hypot(a.center[0] - lat, a.center[1] - lon); if (d < bd) { bd = d; best = a.key; } }
+    return best;
   };
   const drillOrEnter = (lat: number, lon: number) => { const k = onEnterAo && nearestAo(lat, lon); if (k) onEnterAo!(k); else onDrill(lat, lon); };
   const CX = 170, CY = 170, RING = 150, R = 150;
@@ -839,15 +840,18 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
   // fitted to the pane aspect (phone portrait OR PC landscape). viewBox aspect is set to the pane
   // aspect so "slice" doesn't crop the cell; 25% margin around it.
   const frameCellFlat = (latS: number, latN: number, lonW: number, lonE: number) => {
-    // If a mission AO falls inside this GZD cell, DROP INTO the tactical AO map (where the placed
-    // assets live) instead of framing an empty world-context cell — a bare flat grid without assets
-    // isn't useful (operator law). No AO in the cell → fall back to framing the cell for context.
+    // FX-43 (operator): a grid-square click SMOOTH-SCROLLS into the tactical AO — NEVER the flat-map
+    // equivalent. Prefer an AO inside the clicked cell; otherwise enter the NEAREST AO to the cell
+    // centre. The cinematic enterAo fly-in makes it a smooth zoom. (Flat frame below is retained only
+    // as a safety net for the impossible case of zero defined AOs.)
     if (onEnterAo) {
-      const inCell = AOS.filter((a) => a.center[0] >= latS && a.center[0] <= latN && a.center[1] >= lonW && a.center[1] <= lonE && !hiddenKeys?.has(a.key));
-      if (inCell.length) {
-        const cLat = (latS + latN) / 2, cLon = (lonW + lonE) / 2;
-        let best = inCell[0], bd = Infinity;
-        for (const a of inCell) { const d = Math.hypot(a.center[0] - cLat, a.center[1] - cLon); if (d < bd) { bd = d; best = a; } }
+      const cLat = (latS + latN) / 2, cLon = (lonW + lonE) / 2;
+      const visible = AOS.filter((a) => !hiddenKeys?.has(a.key));
+      const inCell = visible.filter((a) => a.center[0] >= latS && a.center[0] <= latN && a.center[1] >= lonW && a.center[1] <= lonE);
+      const pool = inCell.length ? inCell : visible;
+      if (pool.length) {
+        let best = pool[0], bd = Infinity;
+        for (const a of pool) { const d = Math.hypot(a.center[0] - cLat, a.center[1] - cLon); if (d < bd) { bd = d; best = a; } }
         onEnterAo(best.key); return;
       }
     }
