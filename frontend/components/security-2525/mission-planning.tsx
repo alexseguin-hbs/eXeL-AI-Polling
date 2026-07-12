@@ -2706,11 +2706,13 @@ function AoMapPane(p: PaneProps) {
                                 if (Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) > 3) moved = true;
                                 if (nkey != null) setAglOffs((os) => ({ ...os, [nkey]: { x: ox + (ev.clientX - sx), y: oy + (ev.clientY - sy) } }));
                               };
-                              const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); if (!moved && !aerialStack) setCoordCall({ lat: col.lat, lon: col.lon }); };
-                              // FREEZE FIX: also clean up on pointercancel — on touch (esp. at high tilt /
-                              // multi-touch) the browser fires pointercancel, not pointerup; without this the
-                              // move listener leaked and hijacked every subsequent drag, freezing map pan.
-                              document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+                              const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up, true); document.removeEventListener("pointercancel", up, true); if (!moved) setCoordCall({ lat: col.lat, lon: col.lon }); };
+                              // FREEZE FIX (C1/FX-45): register the cleanup in the CAPTURE phase so a sibling
+                              // voxel button's stopPropagation on pointer-up can't strand the move listener
+                              // (the documented freeze — a leaked move hijacks every later drag). Capture also
+                              // covers pointercancel (touch at high tilt / multi-touch). Coord pops for AERIAL
+                              // too (FX-48): the !aerialStack gate is removed so an aerial centre tap works.
+                              document.addEventListener("pointermove", move); document.addEventListener("pointerup", up, true); document.addEventListener("pointercancel", up, true);
                             }}
                             className="cursor-move whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold leading-tight"
                             style={{ background: "#0a0f16dd", color: ac, border: `1px solid ${ac}66` }}>
@@ -2745,7 +2747,7 @@ function AoMapPane(p: PaneProps) {
                         gets NO reticle; hover+select its TOP to highlight the whole column
                         instead (3-D column-reading, not a firing target). */}
                     {!isLattice && (
-                    <button onPointerUp={(e) => { e.stopPropagation(); if (!aerialStack) setCoordCall({ lat: col.lat, lon: col.lon }); }}
+                    <button onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: col.lat, lon: col.lon }); }}
                       title="TARGET — cube centre coordinate"
                       onMouseEnter={() => setCornerHover({ key: col.key, ci: -1 })} /* FX-02 (HI): hover the asset cube CENTRE-top → show its coordinate */
                       onMouseLeave={() => setCornerHover((h) => (h && h.key === col.key && h.ci === -1 ? null : h))}
@@ -2851,7 +2853,7 @@ function AoMapPane(p: PaneProps) {
                   {/* stack-top MSL·Z label — unlocked when the column/red cube is selected (top-face
                       click → sel) OR the asset itself is selected (selAsset). Declutter otherwise; the
                       always-on AGL chip still carries the altitude, so it's never fully lost. */}
-                  {topObj && (sel || selAsset) && !aerialStack && (
+                  {topObj && (sel || selAsset) && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 6}px)` }}>
                       <span className="whitespace-nowrap rounded px-1 font-mono text-[7px] font-bold" style={{ background: "#0a0f16cc", color: topObj.color ?? C.cyan }}>
                         {fmtAlt(topObj.altM, topObj.altRef, col.lat, col.lon)} · Z{topObj.bandIdx}{col.objects.length > 1 ? ` +${col.objects.length - 1}` : ""}

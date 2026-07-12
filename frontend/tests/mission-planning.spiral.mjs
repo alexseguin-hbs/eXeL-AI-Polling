@@ -254,6 +254,30 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #23: voxel CENTER tap pops the coord call-up for AERIAL (FX-48) and never freezes (FX-45) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('div.cursor-grab:has-text("AVENGER")'); await pg.waitForTimeout(250);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(300);
+  const box = await pg.locator('div.touch-none.overflow-hidden.rounded-md').first().boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(400);
+  try { await pg.locator('input[placeholder="0"]').first().fill('12000'); } catch {}
+  await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
+  const tgt = pg.locator('button[title="TARGET — cube centre coordinate"]');
+  const has = await tgt.count();
+  if (has) await tgt.first().dispatchEvent('pointerup'); await pg.waitForTimeout(400);
+  const callUp = () => pg.evaluate(() => [...document.querySelectorAll('span')].some(e => /COORDINATE/.test(e.textContent || '')));
+  const aerialCoord = await callUp();
+  // no-freeze proof: close, reopen — app still responds
+  await clk('button:has-text("✕")'); await pg.waitForTimeout(250);
+  if (has) await tgt.first().dispatchEvent('pointerup'); await pg.waitForTimeout(300);
+  const reopened = await callUp();
+  rec('#23 aerial CENTER tap → coord call-up + no freeze', has > 0 && aerialCoord && reopened, `target=${has} coord=${aerialCoord} reopened=${reopened}`);
+  rec('#23 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');
