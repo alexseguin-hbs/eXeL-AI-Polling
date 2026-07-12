@@ -259,45 +259,47 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
       {/* Top bar + nav tabs — ONE sticky block so BOTH menus stay visible on scroll.
           data attr = clamp line for the floating mini-map (drag anywhere BELOW the menus). */}
       <div data-sec2525-sticky className="sticky top-0 z-40" style={{ background: C.bg }}>
-      <div className="relative flex items-center justify-between border-b px-4 py-2" style={{ background: C.bg, borderColor: C.border }}>
-        <span className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 text-[10px] font-semibold tracking-wide md:flex" style={{ color: C.dim }}>
-          CLEARANCE: <span style={{ color: CLEARANCE_COLORS[3] }}>LEVEL 3</span> <ClearanceSeal level={3} />
-        </span>
-        <div className="flex items-center gap-3 min-w-0">
+      {/* FX-52 (operator, IMG_7192): ONE line — FIXED "eXeL AI" left, FIXED LINK/gauge/X right, and
+          everything else on a horizontally SCROLLING middle strip so nothing bunches on phone portrait. */}
+      <div className="flex items-center gap-2 border-b px-3 py-2" style={{ background: C.bg, borderColor: C.border }}>
+        {/* FIXED LEFT — title only */}
+        <div className="flex shrink-0 items-center gap-2">
           <button onClick={() => directLink ? (window.location.href = "/") : setVisionView("launcher")} className="p-1.5 rounded hover:bg-white/5" title={directLink ? "Home" : "Back to Vision 2525"}>
             <ArrowLeft className="h-4 w-4" style={{ color: C.dim }} />
           </button>
-          <span className="font-bold tracking-wider" style={{ color: C.cyan }}>eXeL AI</span>
-          <span className="hidden sm:inline text-[10px] tracking-widest" style={{ color: C.dim }}>AUTONOMOUS COMMAND NETWORK</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: "#1a2436", color: C.amber }}>PRELIMINARY</span>
+          <span className="whitespace-nowrap font-bold tracking-wider" style={{ color: C.cyan }}>eXeL AI</span>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Iconology toggle: MIL-STD-2525 ⇄ eXeL-STD-2525 */}
-          <div className="flex overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
+        {/* MIDDLE — single scrolling line (subtitle · PRELIMINARY · STD toggle · CLEARANCE · OPERATOR).
+            The CLEARANCE seal moved here from the absolute centre overlay that overlapped PRELIMINARY.
+            Edge fade-mask hints the scroll. */}
+        <div className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto whitespace-nowrap"
+          style={{ maskImage: "linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%)", WebkitMaskImage: "linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%)" }}>
+          <span className="whitespace-nowrap text-[10px] tracking-widest" style={{ color: C.dim }}>AUTONOMOUS COMMAND NETWORK</span>
+          <span className="shrink-0 whitespace-nowrap rounded px-1.5 py-0.5 text-[9px]" style={{ background: "#1a2436", color: C.amber }}>PRELIMINARY</span>
+          <div className="flex shrink-0 overflow-hidden rounded border text-[9px] font-semibold" style={{ borderColor: C.border }}>
             {(["mil", "exel"] as IconStyle[]).map((s) => (
-              <button
-                key={s}
-                onClick={() => setIconStyle(s)}
-                className="px-2 py-1 transition-colors"
-                style={{
-                  background: iconStyle === s ? "#152238" : "transparent",
-                  color: iconStyle === s ? C.cyan : C.dim,
-                }}
-                title={s === "mil" ? "MIL-STD-2525 iconology" : "eXeL-STD-2525 iconology"}
-              >
+              <button key={s} onClick={() => setIconStyle(s)} className="whitespace-nowrap px-2 py-1 transition-colors"
+                style={{ background: iconStyle === s ? "#152238" : "transparent", color: iconStyle === s ? C.cyan : C.dim }}
+                title={s === "mil" ? "MIL-STD-2525 iconology" : "eXeL-STD-2525 iconology"}>
                 {s === "mil" ? "MIL-STD-2525" : "eXeL-STD-2525"}
               </button>
             ))}
           </div>
-          <span className="hidden md:inline text-[10px]" style={{ color: C.dim }}>OPERATOR: ALPHA-1</span>
-          <span className="text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
-          {/* live FPS counter — ONE LINE, inline IN the top menu bar (next to the gear) */}
-          <FpsMeter show={showFps} />
+          <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[10px] font-semibold tracking-wide" style={{ color: C.dim }}>
+            CLEARANCE: <span style={{ color: CLEARANCE_COLORS[3] }}>LEVEL 3</span> <ClearanceSeal level={3} />
+          </span>
+          <span className="shrink-0 whitespace-nowrap text-[10px]" style={{ color: C.dim }}>OPERATOR: ALPHA-1</span>
+        </div>
+        {/* FIXED RIGHT — LINK: SECURE + gauge (FPS pill nested UNDER it, FX-33) + X */}
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="whitespace-nowrap text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
           {/* Main-menu SETTINGS (global, all tabs) — gear opens a popover; not on the map */}
           <div className="relative">
             <button onClick={() => setMenuOpen((o) => !o)} className="p-1.5 rounded hover:bg-white/5" title="Settings — global (all tabs)">
               <Gauge className="h-4 w-4" style={{ color: menuOpen ? C.cyan : C.dim }} />
             </button>
+            {/* FX-33: live FPS pill sits directly UNDER the gauge icon (one line) */}
+            <div className="pointer-events-none absolute left-1/2 top-full z-[93] -translate-x-1/2 pt-0.5"><FpsMeter show={showFps} /></div>
             {menuOpen && <div className="fixed inset-0 z-[94]" onClick={() => setMenuOpen(false)} aria-hidden />}
             {menuOpen && (
               <div className="absolute right-0 top-9 z-[95] w-56 rounded border p-2 shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
