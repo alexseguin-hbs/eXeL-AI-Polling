@@ -307,13 +307,15 @@ const ANGLE_LABEL: Record<AngleUnit, string> = { deg: "DEG", ucrs: "UCRS-2525", 
 const toUnit = (deg: number, u: AngleUnit) => (deg * ANGLE_FULL[u]) / 360;
 const fromUnit = (v: number, u: AngleUnit) => (v * 360) / ANGLE_FULL[u];
 // SVG sector path (canvas units): from (brg-left) to (brg+right), 0=N=up.
-function sectorPath(cx: number, cy: number, R: number, tl: TL) {
+function sectorPath(cx: number, cy: number, rx: number, ry: number, tl: TL) {
+  // ELLIPTICAL sector — rx/ry follow the range-ring semi-axes so the shaded coverage hugs the published
+  // range boundary in every direction and can't overshoot it (FX-58).
   const span = tl.left + tl.right;
-  if (span >= 359.5) return `M${cx - R} ${cy} A ${R} ${R} 0 1 1 ${cx + R} ${cy} A ${R} ${R} 0 1 1 ${cx - R} ${cy} Z`;
+  if (span >= 359.5) return `M${cx - rx} ${cy} A ${rx} ${ry} 0 1 1 ${cx + rx} ${cy} A ${rx} ${ry} 0 1 1 ${cx - rx} ${cy} Z`;
   const a0 = ((tl.brg - tl.left) * Math.PI) / 180, a1 = ((tl.brg + tl.right) * Math.PI) / 180;
-  const p0x = cx + R * Math.sin(a0), p0y = cy - R * Math.cos(a0);
-  const p1x = cx + R * Math.sin(a1), p1y = cy - R * Math.cos(a1);
-  return `M${cx} ${cy} L${p0x.toFixed(2)} ${p0y.toFixed(2)} A ${R} ${R} 0 ${span > 180 ? 1 : 0} 1 ${p1x.toFixed(2)} ${p1y.toFixed(2)} Z`;
+  const p0x = cx + rx * Math.sin(a0), p0y = cy - ry * Math.cos(a0);
+  const p1x = cx + rx * Math.sin(a1), p1y = cy - ry * Math.cos(a1);
+  return `M${cx} ${cy} L${p0x.toFixed(2)} ${p0y.toFixed(2)} A ${rx} ${ry} 0 ${span > 180 ? 1 : 0} 1 ${p1x.toFixed(2)} ${p1y.toFixed(2)} Z`;
 }
 // HI: AVENGER is point-defense (Stinger, ~360°) — NO Primary Target Line. Only the
 // directional PATRIOT / THAAD launchers carry a PTL wedge.
@@ -2240,20 +2242,33 @@ function AoMapPane(p: PaneProps) {
                   if (!u.tls && !u.fov) return null;
                   const c = toFrac(u.lat, u.lon); const cx = c.fx * 100, cy = c.fy * 100;
                   const lw = u.lineW ?? 0.5;
-                  const drawLine = (R: number, brg: number, col: string) =>
-                    <line x1={cx} y1={cy} x2={cx + R * Math.sin((brg * Math.PI) / 180)} y2={cy - R * Math.cos((brg * Math.PI) / 180)} stroke={col} strokeWidth={lw} vectorEffect="non-scaling-stroke" opacity="0.85" />;
+                  // FX-58: the shaded PTL / FOV coverage extends to the asset's PUBLISHED range (km→screen),
+                  // not a fixed screen radius — so it never overshoots the disclosed-distance ring (PATRIOT
+                  // 160 km, THAAD 200 km, SENTINEL 75 km). Same km→fraction math as the range ring above.
+                  const rk = ASSET_RANGE_KM[u.asset];
+                  let rrx: number | null = null, rry = 0;
+                  if (rk) {
+                    const dLat = rk / 110.574, dLon = rk / (111.320 * Math.cos((u.lat * Math.PI) / 180));
+                    const cE = toFrac(u.lat, u.lon + dLon), cN = toFrac(u.lat + dLat, u.lon);
+                    rrx = Math.abs(cE.fx - c.fx) * 100; rry = Math.abs(cN.fy - c.fy) * 100;
+                    if (rrx < 0.2 && rry < 0.2) rrx = null;
+                  }
+                  // centre target line reaches the range boundary at its bearing (point on the range ellipse)
+                  const drawLine = (rx: number, ry: number, brg: number, col: string) =>
+                    <line x1={cx} y1={cy} x2={cx + rx * Math.sin((brg * Math.PI) / 180)} y2={cy - ry * Math.cos((brg * Math.PI) / 180)} stroke={col} strokeWidth={lw} vectorEffect="non-scaling-stroke" opacity="0.85" />;
+                  // ratio nests any secondary/tertiary target lines just inside the primary range
                   const TLS: [TL | undefined, string, number, string][] = [
-                    [u.fov, "#a78bfa", 30, "FOV"],
-                    [u.mobile ? undefined : u.tls?.p, C.gold, 22, "PTL"], // PTL suppressed on-the-move
-                    [u.tls?.s, C.amber, 20, "2TL"],
-                    [u.tls?.t, C.cyan, 18, "3TL"],
+                    [u.fov, "#a78bfa", 1.0, "FOV"],
+                    [u.mobile ? undefined : u.tls?.p, C.gold, 1.0, "PTL"], // PTL suppressed on-the-move
+                    [u.tls?.s, C.amber, 0.85, "2TL"],
+                    [u.tls?.t, C.cyan, 0.7, "3TL"],
                   ];
                   return (
                     <g key={`tl${u.id}`}>
-                      {TLS.map(([tl, col, R], i) => tl && (
+                      {TLS.map(([tl, col, ratio], i) => tl && rrx && (
                         <g key={i}>
-                          <path d={sectorPath(cx, cy, R, tl)} fill={`${col}1f`} stroke={`${col}66`} strokeWidth="0.25" />
-                          {drawLine(R, tl.brg, col)}
+                          <path d={sectorPath(cx, cy, rrx * ratio, rry * ratio, tl)} fill={`${col}1f`} stroke={`${col}66`} strokeWidth="0.25" />
+                          {drawLine(rrx * ratio, rry * ratio, tl.brg, col)}
                         </g>
                       ))}
                     </g>

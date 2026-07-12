@@ -426,6 +426,24 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #32: shaded PTL/FOV coverage hugs the published range ring (never overshoots) (FX-58) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(400);
+  await clk('div.cursor-grab:has-text("PATRIOT")'); await pg.waitForTimeout(250);
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  const box = await M.boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(300);
+  await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
+  for (let i = 0; i < 8; i++) { await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await pg.mouse.wheel(0, 400); await pg.waitForTimeout(80); }
+  await pg.waitForTimeout(500);
+  const m = await pg.evaluate(() => { const svgs = [...document.querySelectorAll('svg')]; let best = null, a = 0; for (const s of svgs) { const r = s.getBoundingClientRect(); if (r.width * r.height > a) { a = r.width * r.height; best = s; } } if (!best) return null; const ring = [...best.querySelectorAll('ellipse')].map(e => ({ rx: +e.getAttribute('rx'), ry: +e.getAttribute('ry') })).sort((x, y) => (y.rx + y.ry) - (x.rx + x.ry))[0]; const gold = [...best.querySelectorAll('path')].find(p => /1f$/.test(p.getAttribute('fill') || '') && /A /.test(p.getAttribute('d') || '')); const mm = gold && gold.getAttribute('d').match(/A\s*([\d.]+)\s+([\d.]+)/); return ring && mm ? { ringRx: ring.rx, ringRy: ring.ry, sx: +mm[1], sy: +mm[2] } : null; });
+  const ok = !!(m && Math.abs(m.sx - m.ringRx) < 0.5 && Math.abs(m.sy - m.ringRy) < 0.5);
+  rec('#32 shaded PTL/FOV == published range ring (no overshoot) (FX-58)', ok, m ? `ring=${m.ringRx.toFixed(1)}/${m.ringRy.toFixed(1)} sector=${m.sx.toFixed(1)}/${m.sy.toFixed(1)}` : 'no-measure');
+  rec('#32 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');
