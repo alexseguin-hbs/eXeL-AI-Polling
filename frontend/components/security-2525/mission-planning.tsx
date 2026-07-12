@@ -639,7 +639,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onFr
             // Google-Earth 2-finger: pinch = zoom, twist = spin (roll), drag = tilt (vertical) + orbit (horizontal).
             const [a, b] = Array.from(touch.current.values());
             const dist = Math.hypot(a.x - b.x, a.y - b.y);
-            const factor = dist / Math.max(1, pinch.current.dist);
+            const factor = 1 + (dist / Math.max(1, pinch.current.dist) - 1) * 0.5; // FX-42: damp pinch (K=0.5)
             const ang = Math.atan2(b.y - a.y, b.x - a.x);
             let dAng = ang - pinch.current.ang;
             if (dAng > Math.PI) dAng -= 2 * Math.PI; else if (dAng < -Math.PI) dAng += 2 * Math.PI;
@@ -893,7 +893,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                 // two-finger PINCH → zoom the flat map, anchored at the pinch midpoint
                 const [a, b] = Array.from(wTouch.current.values());
                 const dist = Math.hypot(a.x - b.x, a.y - b.y);
-                const k = wPinch.current.dist / Math.max(1, dist); // fingers apart → k<1 → zoom IN
+                const k = 1 + (wPinch.current.dist / Math.max(1, dist) - 1) * 0.5; // fingers apart → k<1 → zoom IN · FX-42 damp (K=0.5)
                 wPinch.current.dist = dist;
                 const mfx = ((a.x + b.x) / 2 - r.left) / r.width, mfy = ((a.y + b.y) / 2 - r.top) / r.height;
                 setFlat((f) => {
@@ -1591,7 +1591,7 @@ function AoMapPane(p: PaneProps) {
         // Google-Maps-style: pinch = zoom, twist = rotate bearing (2D + 3D), together.
         const [a, b] = Array.from(touchRef.current.values());
         const dist = Math.hypot(a.x - b.x, a.y - b.y);
-        const factor = pinchRef.current.dist / Math.max(1, dist);
+        const factor = 1 + (pinchRef.current.dist / Math.max(1, dist) - 1) * 0.5; // FX-42: damp pinch (K=0.5)
         const ang = Math.atan2(b.y - a.y, b.x - a.x);
         let dAng = ang - pinchRef.current.ang;
         if (dAng > Math.PI) dAng -= 2 * Math.PI; else if (dAng < -Math.PI) dAng += 2 * Math.PI;
