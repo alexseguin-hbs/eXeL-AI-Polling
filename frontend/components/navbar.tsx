@@ -3,6 +3,7 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { LogOut, User, Menu, Settings, Code, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ExelWordmark } from "@/components/exel-wordmark";
 import { ModeratorSettings } from "@/components/moderator-settings";
 import { TokenHUD } from "@/components/token-hud";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -63,10 +64,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                 />
               ) : (
                 <>
-                  <span className="text-lg font-bold text-primary">eXeL</span>
-                  <span className="text-lg font-light text-muted-foreground">
-                    AI Polling
-                  </span>
+                  <ExelWordmark exelClass="text-lg font-bold text-primary" aiClass="text-lg font-light text-muted-foreground" ai="AI Polling" />
                 </>
               )}
             </a>

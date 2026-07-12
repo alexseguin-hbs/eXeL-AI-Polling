@@ -343,9 +343,14 @@ const cellPxAt = async (w, h) => {
     const c = bb(spans.find(s => /CLEARANCE/.test(s.textContent || '')));
     const p = bb(spans.find(s => /PRELIMINARY/.test(s.textContent || '')));
     const overlap = (a, b) => !!(a && b && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom);
-    return { titleLeft: e ? e.left < 90 : false, linkRight: l ? l.right > 250 : false, noOverlap: !overlap(c, p) };
+    // FX-57: "AI" is grey (matches the landing) while "eXeL" is cyan
+    const exel = spans.find(s => (s.textContent || '').trim() === 'eXeL' && s.offsetParent !== null);
+    const ai = exel && exel.nextElementSibling;
+    const aiGrey = !!(exel && ai && getComputedStyle(exel).color !== getComputedStyle(ai).color);
+    return { titleLeft: e ? e.left < 90 : false, linkRight: l ? l.right > 250 : false, noOverlap: !overlap(c, p), aiGrey };
   });
   rec('#27 top bar single line: fixed title L + LINK R, no bunching @375 (FX-52)', r.titleLeft && r.linkRight && r.noOverlap, `titleL=${r.titleLeft} linkR=${r.linkRight} noOverlap=${r.noOverlap}`);
+  rec('#27 header "AI" is grey, "eXeL" cyan (FX-57)', r.aiGrey, `aiGrey=${r.aiGrey}`);
   rec('#27 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }

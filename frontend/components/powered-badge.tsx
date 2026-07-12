@@ -4,6 +4,7 @@ import { useEffect, useCallback, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
+import { ExelWordmark } from "@/components/exel-wordmark";
 import { useTheme } from "@/lib/theme-context";
 import { Play, Pause, X, Volume2, VolumeX, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -379,8 +380,7 @@ export function PoweredBadge() {
         }}
         title={easterEggUnlocked ? "Enter Simulation Mode" : "✦ The Divinity Guide — The Return to Wholeness and Living Divinity"}
       >
-        <span className="font-bold" style={{ color: badgeColor }}>eXeL</span>
-        <span className="font-light text-muted-foreground">AI</span>
+        <ExelWordmark exelClass="font-bold" exelStyle={{ color: badgeColor }} aiClass="font-light text-muted-foreground" />
       </button>
     </div>
   );

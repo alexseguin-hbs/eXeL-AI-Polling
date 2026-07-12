@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { FpsMeter } from "@/components/security-2525/fps-meter";
+import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
 import { runPlayTest, runCapSweep, type PlaySection, type CapRow } from "@/components/security-2525/play-test";
 import { CLEARANCE_COLORS } from "@/lib/atlantis-package";
@@ -267,7 +268,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
           <button onClick={() => directLink ? (window.location.href = "/") : setVisionView("launcher")} className="p-1.5 rounded hover:bg-white/5" title={directLink ? "Home" : "Back to Vision 2525"}>
             <ArrowLeft className="h-4 w-4" style={{ color: C.dim }} />
           </button>
-          <span className="whitespace-nowrap font-bold tracking-wider" style={{ color: C.cyan }}>eXeL AI</span>
+          <span className="whitespace-nowrap tracking-wider"><ExelWordmark exelClass="font-bold" exelStyle={{ color: C.cyan }} aiClass="font-light" aiStyle={{ color: C.dim }} /></span>
         </div>
         {/* MIDDLE — single scrolling line (subtitle · PRELIMINARY · STD toggle · CLEARANCE · OPERATOR).
             The CLEARANCE seal moved here from the absolute centre overlay that overlapped PRELIMINARY.
