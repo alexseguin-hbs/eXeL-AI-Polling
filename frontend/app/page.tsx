@@ -273,13 +273,13 @@ export default function LandingPage() {
           <Button variant="outline" asChild>
             <a href="/dashboard/">{t("shared.landing.facilitator_button")}</a>
           </Button>
-          {/* P1.2: DIRECT access to SECURITY-2525 Mission Planning — deliberately
-              NOT Easter-egg gated; lands with the PLANNING tab highlighted */}
-          <a href="/main/Security-2525/" className="mt-2 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
-            SECURITY-2525 · {t("shared.landing.security2525_link")} →
-          </a>
         </div>
       </main>
+      {/* DIRECT access to SECURITY-2525 — bottom-centre, between the Give Feedback button (bottom-left)
+          and the eXeL AI badge (bottom-right). NOT Easter-egg gated; lands on the PLANNING tab. */}
+      <a href="/main/Security-2525/" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
+        SECURITY-2525 →
+      </a>
     </div>
   );
 }
