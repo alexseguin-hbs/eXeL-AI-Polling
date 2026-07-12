@@ -341,7 +341,7 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
                         const title = sweepCap === 0 ? "MAX (uncapped)" : `Cap ${sweepCap} fps`;
                         const midY = (padT + H - padB) / 2;
                         return (
-                          <svg viewBox={`0 0 ${W} ${H}`} className="mt-1 w-full" style={{ background: "#070b12", borderRadius: 4 }} aria-label="FPS over time">
+                          <svg viewBox={`0 0 ${W} ${H}`} data-sweepcap={sweepCap} className="mt-1 w-full" style={{ background: "#070b12", borderRadius: 4 }} aria-label="FPS over time">
                             <text x={W / 2} y={9} textAnchor="middle" fontSize="7" fill="#ffd400" fontFamily="monospace" fontWeight="bold">{title}</text>
                             <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke={C.border} strokeWidth="0.5" />
                             <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke={C.border} strokeWidth="0.5" />

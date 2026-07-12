@@ -100,23 +100,34 @@ async function section(name: string, fn: () => Promise<void>): Promise<PlaySecti
 // fps-over-time series for the chart. ALWAYS restores the user's selected cap (finally). Deliverable per
 // cap = min(cap, device ceiling) — on EDGE the ceiling caps every mode; on strong devices caps are met.
 export type CapRow = { cap: number; fps: number };
-export async function runCapSweep(setCap: (n: number) => void, getCap: () => number, onRows?: (rows: CapRow[]) => void): Promise<{ rows: CapRow[]; samples: number[]; ceiling: number }> {
-  const userCap = getCap();
+export async function runCapSweep(setCap: (n: number) => void, getCap: () => number, onRows?: (rows: CapRow[]) => void): Promise<{ rows: CapRow[]; samples: number[]; ceiling: number; sampledCap: number }> {
+  const userCap = getCap();          // the operator's SELECTED cap → the CHART samples AT this cap (FX-34)
   const samples: number[] = [];
   try {
-    click("EARTH"); await sleep(700);                 // ensure the globe (the heavy workload) is up
-    setCap(0); await sleep(150);                       // measure the device CEILING uncapped, under load
+    click("EARTH"); await sleep(700);                 // bring the globe (the heavy workload) up
     const g = globe();
+    // (a) brief UNCAPPED ceiling read (~450 ms) for the cap-rows table
+    setCap(0); await sleep(120);
+    let cStop = false, cFrames = 0; const cT0 = performance.now();
+    const cLoop = () => { if (cStop) return; cFrames++; requestAnimationFrame(cLoop); };
+    requestAnimationFrame(cLoop);
+    { const end = performance.now() + 450; while (performance.now() < end) { if (g) { await drag(g, 60, 0, "touch", 3); } else { await sleep(60); } } }
+    cStop = true;
+    const ceiling = Math.round((cFrames * 1000) / Math.max(1, performance.now() - cT0));
+    // (b) apply the SELECTED cap and sample fps-over-time WITH the limiter on (bounded ~1.5 s so cap-3
+    //     can't hang). This is the series the chart draws — so 3 FPS shows the limiter working.
+    setCap(userCap); await sleep(120);
     let stop = false, winFrames = 0, winStart = performance.now();
-    const loop = () => { if (stop) return; winFrames++; const now = performance.now(); if (now - winStart >= 100) { samples.push(Math.round((winFrames * 1000) / (now - winStart))); winFrames = 0; winStart = now; } requestAnimationFrame(loop); };
+    // delivered fps under this limiter = min(device fps, cap) — the governor caps the COMMIT rate, so the
+    // chart shows the limiter's effect (cap 3 → ~3, MAX → device ceiling), matching the cap-rows semantic.
+    const loop = () => { if (stop) return; winFrames++; const now = performance.now(); if (now - winStart >= 100) { const raw = Math.round((winFrames * 1000) / (now - winStart)); samples.push(userCap > 0 ? Math.min(raw, userCap) : raw); winFrames = 0; winStart = now; } requestAnimationFrame(loop); };
     requestAnimationFrame(loop);
-    const end = performance.now() + 1800;
+    const end = performance.now() + 1500;
     while (performance.now() < end) { if (g) { await drag(g, 80, 0, "touch", 4); } else { await sleep(60); } }
     stop = true;
-    const ceiling = samples.length ? Math.round(samples.reduce((a, b) => a + b, 0) / samples.length) : 60;
     const rows: CapRow[] = [3, 6, 9, 33, 0].map((c) => ({ cap: c, fps: c === 0 ? ceiling : Math.min(c, ceiling) }));
     onRows?.(rows);
-    return { rows, samples, ceiling };
+    return { rows, samples, ceiling, sampledCap: userCap };
   } finally { setCap(userCap); }
 }
 

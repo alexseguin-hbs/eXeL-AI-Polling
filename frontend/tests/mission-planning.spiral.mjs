@@ -348,6 +348,21 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #28: SPEED TEST chart reflects the SELECTED limiter — cap 3 → title/attr + cap restored (FX-34) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button[title^="Settings"]'); await pg.waitForTimeout(400);
+  await clk('button:text-is("3")'); await pg.waitForTimeout(200);       // select cap 3
+  await clk('button:has-text("SPEED TEST")');
+  let ok = false;
+  for (let i = 0; i < 30; i++) { await pg.waitForTimeout(1000); ok = await pg.evaluate(() => [...document.querySelectorAll('*')].some(e => e.children.length === 0 && /^Cap 3 fps$/.test((e.textContent || '').trim()))); if (ok) break; }
+  await clk('button:has-text("SHOW CHART")'); await pg.waitForTimeout(400);
+  const r = await pg.evaluate(() => { const s = document.querySelector('svg[aria-label="FPS over time"]'); return { attr: s ? s.getAttribute('data-sweepcap') : null, cap: Number(localStorage.getItem('sec2525.fpsCap') || '0') }; });
+  rec('#28 chart reflects selected cap 3 + cap restored (FX-34)', ok && r.attr === '3' && r.cap === 3, `rows3=${ok} attr=${r.attr} cap=${r.cap}`);
+  rec('#28 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');
