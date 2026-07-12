@@ -17,6 +17,7 @@
 
 import React, { Suspense, useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { ExelWordmark } from "@/components/exel-wordmark";
 import "@/components/flower-of-life/flower-animations.css";
 import { useSearchParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
@@ -479,8 +480,7 @@ function ArxPageInner() {
       <div className="min-h-screen bg-background text-foreground">
         <div className="flex items-center justify-between max-w-lg mx-auto px-6 pt-6">
           <Link href="/divinity-guide/arx" className="flex items-center gap-1.5 hover:opacity-80">
-            <span className="text-sm font-bold text-primary">eXeL</span>
-            <span className="text-sm font-light text-primary/70">AI</span>
+            <ExelWordmark exelClass="text-sm font-bold text-primary" aiClass="text-sm font-light text-primary/70" />
           </Link>
           <Link href="/divinity-guide/arx" className="text-xs text-muted-foreground hover:text-primary transition-colors">
             ← {t("cube12.arx.back_to_arx")}
@@ -500,8 +500,7 @@ function ArxPageInner() {
             {/* Top-left: eXeL AI → Divinity Guide home | Top-right: NFC Tools */}
             <div className="flex items-center justify-between w-full mb-1">
               <Link href="/divinity-guide" className="flex items-center gap-1.5 hover:opacity-80">
-                <span className="text-sm font-bold text-primary">eXeL</span>
-                <span className="text-sm font-light text-primary/70">AI</span>
+                <ExelWordmark exelClass="text-sm font-bold text-primary" aiClass="text-sm font-light text-primary/70" />
               </Link>
               <Link href="/divinity-guide" className="text-xs text-muted-foreground hover:text-primary transition-colors">
                 {t("cube12.arx.divinity_guide")}

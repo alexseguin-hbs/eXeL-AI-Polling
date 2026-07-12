@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { ExelWordmark } from "@/components/exel-wordmark";
 import { useTheme } from "@/lib/theme-context";
 import { ApiFlower } from "@/components/api-flower";
 import { SDK_DEMO_DATA } from "@/lib/sdk-demos";
@@ -229,8 +230,7 @@ export default function ApiPage() {
           {/* Header */}
           <div className="flex items-center justify-between w-full mb-2 shrink-0">
             <Link href="/" className="flex items-center gap-1.5 hover:opacity-80">
-              <span className="text-sm font-bold" style={{ color: currentTheme.swatch }}>eXeL</span>
-              <span className="text-sm font-light" style={{ color: currentTheme.swatch, opacity: 0.7 }}>AI</span>
+              <ExelWordmark exelClass="text-sm font-bold" aiClass="text-sm font-light" exelStyle={{ color: currentTheme.swatch }} aiStyle={{ color: currentTheme.swatch, opacity: 0.7 }} />
             </Link>
             <button onClick={() => setSelectedId(null)} className="text-xs text-muted-foreground hover:text-primary">Home</button>
           </div>

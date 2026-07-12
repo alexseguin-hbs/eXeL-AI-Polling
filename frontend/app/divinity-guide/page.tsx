@@ -15,6 +15,7 @@
 
 import React, { Suspense, useState, useMemo, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { ExelWordmark } from "@/components/exel-wordmark";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import divinityPages from "@/lib/divinity-pages.json";
@@ -1776,8 +1777,7 @@ function DivinityGuidePage() {
           {/* Top-left: eXeL AI in theme color → main app home */}
           <div className="flex items-center justify-between w-full mb-1">
             <Link href="/" className="flex items-center gap-1.5 hover:opacity-80">
-              <span className="text-sm font-bold" style={{ color: currentTheme.swatch }}>eXeL</span>
-              <span className="text-sm font-light" style={{ color: currentTheme.swatch, opacity: 0.7 }}>AI</span>
+              <ExelWordmark exelClass="text-sm font-bold" aiClass="text-sm font-light" exelStyle={{ color: currentTheme.swatch }} aiStyle={{ color: currentTheme.swatch, opacity: 0.7 }} />
             </Link>
             <div className="flex items-center gap-2">
               {/* QR Code icon — expands to show Divinity Guide QR */}
