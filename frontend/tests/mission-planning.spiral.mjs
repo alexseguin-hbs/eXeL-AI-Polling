@@ -315,6 +315,21 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #26: 📱 tilt toggle sits UPPER-RIGHT of the map and opens the tilt slider (FX-54) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(800);
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  const mb = await M.boundingBox();
+  const pb = await pg.locator('[data-tiltphone]').first().boundingBox();
+  const upperRight = !!(pb && mb && (pb.x + pb.width - mb.x) / mb.width > 0.9 && (pb.y - mb.y) / mb.height < 0.1);
+  await pg.locator('[data-tiltphone]').first().dispatchEvent('click'); await pg.waitForTimeout(300);
+  const sliderOpen = (await pg.locator('input[type=range]').count()) > 0;
+  rec('#26 phone tilt toggle upper-right + opens slider (FX-54)', upperRight && sliderOpen, `upperRight=${upperRight} slider=${sliderOpen}`);
+  rec('#26 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');

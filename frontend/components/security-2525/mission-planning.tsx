@@ -3215,10 +3215,14 @@ function AoMapPane(p: PaneProps) {
             {is3d && (
               <div className="absolute left-1/2 top-2 z-20 flex -translate-x-1/2 items-center rounded px-1.5 py-0.5 font-mono text-[8px] font-bold" style={{ background: "#0a0f16cc", pointerEvents: "auto" }}>
                 <span style={{ color: C.gold }}>TILT {Math.round(pitch ?? 55)}°</span>
-                {/* FX-45 (HI 1.3.3): phone slider button 2× larger, to the RIGHT of "2D to place" */}
-                <span style={{ color: C.dim }}> · right-drag ↕ · 2D to place · </span>
-                <button onClick={() => setTiltSlider((s) => !s)} title="Tilt slider" style={{ fontSize: 16, lineHeight: 1 }}>📱</button>
+                <span style={{ color: C.dim }}> · right-drag ↕ · 2D to place</span>
               </div>
+            )}
+            {/* FX-54 (operator, IMG_7196): the 📱 tilt-slider toggle sits in the UPPER-RIGHT of the
+                map (its slider popover already opens at right-2 top-9, directly beneath it). */}
+            {is3d && (
+              <button onClick={() => setTiltSlider((s) => !s)} title="Tilt slider" data-tiltphone
+                className="absolute right-2 top-2 z-30 rounded" style={{ fontSize: 18, lineHeight: 1, background: "#0a0f16cc", padding: "1px 3px", pointerEvents: "auto" }}>📱</button>
             )}
             {/* FX-45 (HI 1.3.3): tilt slider — 11° left, 88° right, ✕ to close */}
             {is3d && tiltSlider && (
