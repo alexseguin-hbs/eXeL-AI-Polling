@@ -1542,7 +1542,7 @@ function AoMapPane(p: PaneProps) {
     setInventory((inv) => inv.map((i) => (i.asset === asset ? { ...i, stock: i.stock - i.group } : i)));
     const half = AD_HALF[asset];
     const tls = half ? { p: { brg: 0, left: half, right: half } } : undefined;
-    const fov = asset === "sentinel" ? { brg: 0, left: 45, right: 45 } : undefined;
+    const fov = undefined; // FX-59: radars are 360° (dome + cone of silence in 3D), not a ±45° wedge
     const angUnit: AngleUnit = asset === "sentinel" ? "mil" : "deg";
     const id = allocId();
     setPlaced((pl) => [...pl, {
@@ -2628,6 +2628,55 @@ function AoMapPane(p: PaneProps) {
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                     style={{ width: cellPx, height: cellPx, border: `1.5px solid ${sel ? hiCol : C.cyan}`, background: sel ? `${hiCol}22` : `${C.cyan}08`, pointerEvents: "auto" }} />
                   )}
+                  {/* FX-59: RADAR coverage (radars only — SENTINEL), shown when the radar is SELECTED, as a
+                      360° SPHERE-shell (elevation −10°→+55°) with an inverted CONE OF SILENCE carved out of the
+                      top — the zenith blind cone above +55° (half-angle α=35° from vertical: z = r·cot α).
+                      SSSES METHOD: a solid of revolution — the elevation triangle rotated N× (meridian slivers)
+                      + latitude rims. Closed-form/deterministic, ~15 static DOM nodes. Schematic size (75 km
+                      is off-screen). */}
+                  {is3d && !isLattice && placed.find((p) => p.id === topObj?.id)?.asset === "sentinel" && (() => {
+                    const L = Math.max(80, cellPx * 5);
+                    const col = placed.find((p) => p.id === topObj?.id)?.aff === "hostile" ? C.red : C.cyan;
+                    const elLo = -10, elHi = 55;
+                    const ell = (elDeg: number) => ({ r: L * Math.cos((elDeg * Math.PI) / 180), z: L * Math.sin((elDeg * Math.PI) / 180) });
+                    // horizontal rim ring at an elevation (closes the shell top/bottom)
+                    const rim = (key: string, el: number) => { const { r, z } = ell(el); return (
+                      <div key={key} className="absolute left-1/2 top-1/2" style={{ width: 2 * r, height: 2 * r, marginLeft: -r, marginTop: -r, borderRadius: "50%",
+                        border: `0.8px solid ${col}${el === elHi ? "aa" : "77"}`, transform: `translateZ(${z.toFixed(1)}px)` }} />
+                    ); };
+                    // SOLID OF REVOLUTION: the elevation triangle (−10°→+55°, vertex at radar) rotated N× around
+                    // the vertical axis. Each sliver = the sphere-surface ARC + the +55° apex RAY (the CONE OF
+                    // SILENCE wall). Rendered in a vertical plane at azimuth az → a spherical shell with an
+                    // inverted cone carved out of the top-centre. SSSES: reuses the elevation-arc math, low DOM.
+                    const N = 12;
+                    const p = (el: number) => ({ x: L * Math.cos((el * Math.PI) / 180), y: -L * Math.sin((el * Math.PI) / 180) });
+                    const lo = p(elLo), hi = p(elHi);
+                    const arcD = `M${lo.x.toFixed(1)} ${lo.y.toFixed(1)} A ${L} ${L} 0 0 0 ${hi.x.toFixed(1)} ${hi.y.toFixed(1)}`;
+                    return (
+                      <div data-radardome className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", opacity: dimmed ? 0.4 : 0.9 }}>
+                        {Array.from({ length: N }, (_, k) => {
+                          const az = (k / N) * 360;
+                          return (
+                            <div key={`sl${k}`} className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) rotateZ(${az.toFixed(1)}deg) rotateX(90deg)` }}>
+                              <svg width="1" height="1" viewBox="0 0 1 1" style={{ overflow: "visible", position: "absolute", left: 0, top: 0 }}>
+                                <path d={arcD} fill="none" stroke={`${col}88`} strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                                <line x1="0" y1="0" x2={hi.x.toFixed(1)} y2={hi.y.toFixed(1)} stroke={`${col}66`} strokeWidth="0.8" strokeDasharray="3 2" vectorEffect="non-scaling-stroke" />
+                              </svg>
+                            </div>
+                          );
+                        })}
+                        {rim("rlo", elLo)}
+                        {rim("rhi", elHi)}
+                        {/* labels, billboarded upright off the tilted plane */}
+                        <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${(L + 3).toFixed(1)}px) rotateX(${-(pitch ?? 55)}deg)` }}>
+                          <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>CoS</span>
+                        </div>
+                        <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,0) translateZ(${ell(elHi).z.toFixed(1)}px) rotateX(${-(pitch ?? 55)}deg)`, marginTop: -ell(elHi).r }}>
+                          <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>RADAR 360° · −10°/+55°</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {/* Airspace threshold CAPS — TRUE scale, at the SAME altitudes as the LEFT gauge
                       lines. Orange (yellow%) · Red (red%) · Grey ceiling (limit%). Horizontal squares
                       spanning the cell; an aircraft above the grey cap flies past it (off-map). */}

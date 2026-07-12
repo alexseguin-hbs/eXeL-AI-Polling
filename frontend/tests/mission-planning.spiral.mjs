@@ -444,6 +444,23 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #33: SENTINEL (radar) shows the −10°/+55° elevation cone in 3D; non-radars don't (FX-59) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(300);
+  await clk('div.cursor-grab:has-text("SENTINEL")'); await pg.waitForTimeout(250);
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  const box = await M.boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height * 0.6); await pg.waitForTimeout(300);
+  await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
+  const dome = await pg.evaluate(() => { const d = document.querySelector('[data-radardome]'); if (!d) return { on: false }; const slivers = d.querySelectorAll('svg').length; const rims = d.querySelectorAll('div[style*="border-radius"]').length; const cos = [...document.querySelectorAll('span')].some(s => /^CoS$/.test((s.textContent || '').trim())); const cov = [...document.querySelectorAll('span')].some(s => /RADAR 360/.test(s.textContent || '')); return { on: true, slivers, rims, cos, cov }; });
+  const ok = !!(dome.on && dome.slivers >= 8 && dome.rims >= 2 && dome.cos && dome.cov);
+  rec('#33 SENTINEL 360° radar sphere (slivers+rims) + cone of silence (FX-59)', ok, JSON.stringify(dome));
+  rec('#33 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');
