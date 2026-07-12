@@ -68,7 +68,7 @@ const pickAo = async (name: string): Promise<boolean> => {
 };
 // zoom the tactical map IN toward its centre so the DETAILED map (roads/water/terrain) shows before we
 // drop assets — switching AO lands on a wide overview, so a drop there isn't on the detailed map.
-const zoomInMap = async (n = 7) => {
+const zoomInMap = async (n = 9) => {
   const el = mapEl(); if (!el) return;
   const r = el.getBoundingClientRect(); const cx = r.x + r.width / 2, cy = r.y + r.height / 2;
   for (let i = 0; i < n; i++) { el.dispatchEvent(new WheelEvent("wheel", { deltaY: -300, clientX: cx, clientY: cy, bubbles: true, cancelable: true })); await sleep(90); }
