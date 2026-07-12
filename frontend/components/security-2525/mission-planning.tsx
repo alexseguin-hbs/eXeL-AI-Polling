@@ -2622,7 +2622,7 @@ function AoMapPane(p: PaneProps) {
                   transform: is3d ? `rotateZ(${view.bearing}rad)` : undefined }}>
                   {/* addressable cube BASE (on-plane) — HIDDEN when its base is off-map (R0): the base
                       should DISAPPEAR while the red/grey top + grey connectors remain for an off-map tower. */}
-                  {!baseOff && (
+                  {!baseOff && placed.find((p) => p.id === topObj?.id)?.asset !== "sentinel" && (
                   <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(sel ? null : col.key); }}
                     title={fmt.coordAt(col.lat, col.lon)}
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -2653,14 +2653,15 @@ function AoMapPane(p: PaneProps) {
                     const lo = p(elLo), hi = p(elHi);
                     const arcD = `M${lo.x.toFixed(1)} ${lo.y.toFixed(1)} A ${L} ${L} 0 0 0 ${hi.x.toFixed(1)} ${hi.y.toFixed(1)}`;
                     return (
-                      <div data-radardome className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", opacity: dimmed ? 0.4 : 0.9 }}>
+                      <div data-radardome className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d" }}>
                         {Array.from({ length: N }, (_, k) => {
                           const az = (k / N) * 360;
                           return (
                             <div key={`sl${k}`} className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) rotateZ(${az.toFixed(1)}deg) rotateX(90deg)` }}>
                               <svg width="1" height="1" viewBox="0 0 1 1" style={{ overflow: "visible", position: "absolute", left: 0, top: 0 }}>
-                                <path d={arcD} fill="none" stroke={`${col}88`} strokeWidth="1" vectorEffect="non-scaling-stroke" />
-                                <line x1="0" y1="0" x2={hi.x.toFixed(1)} y2={hi.y.toFixed(1)} stroke={`${col}66`} strokeWidth="0.8" strokeDasharray="3 2" vectorEffect="non-scaling-stroke" />
+                                <path d={arcD} fill="none" stroke={`${col}44`} strokeWidth="0.7" vectorEffect="non-scaling-stroke" />
+                                {/* CONE OF SILENCE wall — the +55° apex ray (bright, solid) → the inverted cone */}
+                                <line x1="0" y1="0" x2={hi.x.toFixed(1)} y2={hi.y.toFixed(1)} stroke={`${col}dd`} strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
                               </svg>
                             </div>
                           );
