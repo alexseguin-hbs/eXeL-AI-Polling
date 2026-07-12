@@ -278,6 +278,23 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #24: aerial tower = thin SOLID corner posts (FX-53), width == voxel edge (1px), not stacked cubes ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('div.cursor-grab:has-text("AUTO-FOIL")'); await pg.waitForTimeout(250);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(300);
+  const box = await pg.locator('div.touch-none.overflow-hidden.rounded-md').first().boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(400);
+  try { await pg.locator('input[placeholder="0"]').first().fill('9000'); } catch {}
+  await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
+  const posts = await pg.evaluate(() => { const e = [...document.querySelectorAll('[data-aedge]')]; return { n: e.length, w: e[0] ? getComputedStyle(e[0]).width : null }; });
+  // exactly 4 posts per aerial column, each 1px wide (== edgeFineW, matches the voxel edge)
+  rec('#24 aerial tower = 4 thin 1px corner posts (FX-53)', posts.n === 4 && posts.w === '1px', `posts=${posts.n} w=${posts.w}`);
+  rec('#24 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');

@@ -2631,23 +2631,30 @@ function AoMapPane(p: PaneProps) {
                       from the ground up to the aircraft; the TOP cube is RED = the aircraft. More
                       cubes appear as you zoom in. GROUND/lattice → the band scaffold. */}
                   {aerialStack
-                    ? Array.from({ length: nCubes }).map((_, i) => {
-                        const z = i * cellPx, isTop = i === nCubes - 1;
-                        // MIL-STD-2525: the aircraft (top) cube is BLUE (cyan) for FRIENDLY, RED for
-                        // hostile. Lower cubes stay the grey scaffold (or highlight when selected).
+                    ? (() => {
+                        // FX-53 (operator): the aerial tower's vertical lines MATCH the VOXEL edge —
+                        // thin SOLID 1px corner posts (edgeFineW), NOT a stack of dashed cube side-faces
+                        // (which piled up into a fuzzy "brick" band, IMG_7193/7195). 4 corner posts run
+                        // ground→top; the aircraft cube (BLUE friendly / RED hostile) caps the top.
                         const topAff = placed.find((u) => u.id === topObj?.id)?.aff;
-                        const color = isTop ? (topAff === "hostile" ? C.red : C.cyan) : sel ? hiCol : "#3b556e";
-                        const lw = isTop ? undefined : edgeFineW; // grey cubes get finer edges at 2X/3X
+                        const topColor = topAff === "hostile" ? C.red : C.cyan;
+                        const postColor = sel ? hiCol : "#3b556e";
+                        const acZ = (nCubes - 1) * cellPx; // aircraft cube bottom (top face at nCubes*cellPx = topZ)
                         return (
-                          <div key={`ac${i}`} className="pointer-events-none absolute left-0 top-0" style={{ transformStyle: "preserve-3d" }}>
-                            <div data-voxtop={isTop || undefined} data-topcolor={isTop ? color : undefined} style={face(`translate3d(0px,0px,${z + cellPx}px)`, cellPx, cellPx, color, isTop, lw)} />
-                            <div style={face(`translate3d(0px,${-cellPx / 2}px,${z + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, color, isTop, lw)} />
-                            <div style={face(`translate3d(0px,${cellPx / 2}px,${z + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, color, isTop, lw)} />
-                            <div style={face(`translate3d(${-cellPx / 2}px,0px,${z + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, color, isTop, lw)} />
-                            <div style={face(`translate3d(${cellPx / 2}px,0px,${z + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, color, isTop, lw)} />
+                          <div className="pointer-events-none absolute left-0 top-0" style={{ transformStyle: "preserve-3d" }}>
+                            {([[-1, -1], [1, -1], [1, 1], [-1, 1]] as const).map(([sx, sy], k) => (
+                              <div key={`aedge${k}`} data-aedge style={{ position: "absolute", left: "50%", top: "50%", width: edgeFineW, height: topZ,
+                                background: postColor, opacity: dimmed ? 0.4 : 0.85,
+                                transform: `translate(-50%,-50%) translate3d(${(sx * cellPx) / 2}px,${(sy * cellPx) / 2}px,${topZ / 2}px) rotateX(90deg)` }} />
+                            ))}
+                            <div data-voxtop data-topcolor={topColor} style={face(`translate3d(0px,0px,${acZ + cellPx}px)`, cellPx, cellPx, topColor, true)} />
+                            <div style={face(`translate3d(0px,${-cellPx / 2}px,${acZ + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, topColor, true)} />
+                            <div style={face(`translate3d(0px,${cellPx / 2}px,${acZ + cellPx / 2}px) rotateX(90deg)`, cellPx, cellPx, topColor, true)} />
+                            <div style={face(`translate3d(${-cellPx / 2}px,0px,${acZ + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, topColor, true)} />
+                            <div style={face(`translate3d(${cellPx / 2}px,0px,${acZ + cellPx / 2}px) rotateY(90deg)`, cellPx, cellPx, topColor, true)} />
                           </div>
                         );
-                      })
+                      })()
                     : stack.map((cb) => {
                     const occupied = cb.occupants.length > 0;
                     // FX-53 (HI 1.3.3): a SELECTED column highlights ALL the way to the ground
