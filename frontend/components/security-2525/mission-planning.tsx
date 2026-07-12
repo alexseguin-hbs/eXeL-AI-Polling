@@ -2323,21 +2323,18 @@ function AoMapPane(p: PaneProps) {
               // bearing — visible near the horizon at 66–88° tilt without zooming the 2D map out.
               if (off && !aerial) return null;
               if (off && aerial) {
-                const cx = Math.max(0.015, Math.min(0.985, f.fx));
-                const cy = Math.max(0.015, Math.min(0.985, f.fy));
+                // FX-39 (operator, IMG_7190/7191): when an aerial base is OFF-VIEW, DROP the base box
+                // and the coordinate — the tower receding into the distance is the threat cue. Keep just
+                // a direction CHEVRON pointing toward the off-map asset's bearing + its NAME, clamped
+                // inside the viewport. (Screen-space bearing under CSS-3D = approximate, points ~right.)
+                const cx = Math.max(0.03, Math.min(0.97, f.fx));
+                const cy = Math.max(0.03, Math.min(0.97, f.fy));
                 const col = u.aff === "hostile" ? C.red : C.cyan;
-                // HI (contract item 5): lift the distant aerial box toward the HORIZON as the
-                // camera pitches back (66–88°) so an off-map flyer reads like an aircraft seen
-                // far off in the SKY, not pinned to the map edge. Grows with (pitch − 55°).
-                const horizonLift = is3d ? Math.max(0, ((pitch ?? 55) - 55)) * 1.6 : 0;
+                const ang = (Math.atan2(f.fy - 0.5, f.fx - 0.5) * 180) / Math.PI; // 0° = east (chevron rest)
                 return (
-                  <div key={u.id} className="pointer-events-none absolute flex flex-col items-center" style={{ left: `${cx * 100}%`, top: `${cy * 100}%`, zIndex: 14,
-                    transform: is3d ? `translate(-50%,-100%) translateY(${-horizonLift}px) rotateX(${-(pitch ?? 55)}deg)` : "translate(-50%,-100%)", transformOrigin: "50% 100%" }}>
-                    <span className="block" style={{ width: 15, height: 15, border: `2px solid ${col}`, background: `${col}33`, boxShadow: `0 0 9px ${col}` }} />
-                    <span className="mt-0.5 block whitespace-nowrap text-center font-mono text-[7px] font-bold" style={{ color: col }}>{ASSET_LABELS[u.asset]} ▲</span>
-                    {/* off-screen LOCATION cue (pilot-style) — the base's coordinate, clamped at the map
-                        edge toward where it actually is, so it reads like an off-screen contact. */}
-                    <span className="block whitespace-nowrap rounded px-0.5 text-center font-mono text-[6px]" style={{ background: "#0a0f16cc", color: col }}>{fmt.coordAt(u.lat, u.lon)}</span>
+                  <div key={u.id} data-offaerial className="pointer-events-none absolute flex flex-col items-center" style={{ left: `${cx * 100}%`, top: `${cy * 100}%`, zIndex: 14, transform: "translate(-50%,-50%)" }}>
+                    <span style={{ color: col, fontSize: 13, lineHeight: 1, transform: `rotate(${ang}deg)`, textShadow: `0 0 6px ${col}` }}>➤</span>
+                    <span className="mt-0.5 block whitespace-nowrap text-center font-mono text-[7px] font-bold" style={{ color: col, textShadow: "0 0 3px #000" }}>{ASSET_LABELS[u.asset]}</span>
                   </div>
                 );
               }

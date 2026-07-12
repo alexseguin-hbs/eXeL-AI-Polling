@@ -295,6 +295,26 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #25: off-view aerial base = chevron + name only, NO base box/coord (FX-39) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('div.cursor-grab:has-text("AUTO-FOIL")'); await pg.waitForTimeout(250);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(300);
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  let box = await M.boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(400);
+  try { await pg.locator('input[placeholder="0"]').first().fill('12000'); } catch {}
+  await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
+  // pan the base OFF-view (drag content up) so the off-aerial edge marker appears
+  box = await M.boundingBox();
+  for (let p = 0; p < 3; p++) { await pg.mouse.move(box.x + box.width / 2, box.y + box.height * 0.8); await pg.mouse.down(); await pg.mouse.move(box.x + box.width / 2, box.y + box.height * 0.1, { steps: 10 }); await pg.mouse.up(); await pg.waitForTimeout(250); }
+  await pg.waitForTimeout(500);
+  const r = await pg.evaluate(() => { const e = document.querySelector('[data-offaerial]'); return { on: !!e, chevron: e ? /➤/.test(e.textContent || '') : false, name: e ? /AUTO-FOIL/.test(e.textContent || '') : false }; });
+  rec('#25 off-view aerial = chevron + name (no base box)', r.on && r.chevron && r.name, `on=${r.on} chevron=${r.chevron} name=${r.name}`);
+  rec('#25 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');
