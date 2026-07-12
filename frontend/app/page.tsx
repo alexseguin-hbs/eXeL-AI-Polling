@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SessionCodeInput } from "@/components/session-code-input";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,24 @@ export default function LandingPage() {
   const [customLabels, setCustomLabels] = useState<[string, string, string] | null>(null);
   const [customColor, setCustomColor] = useState("#10B981"); // Emerald for custom mode
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Center the SECURITY-2525 link at the MIDPOINT of the gap between the Give Feedback button (bottom-left)
+  // and the eXeL AI badge (bottom-right) — not viewport centre, since the Give Feedback pill is wider.
+  // Recomputes on resize / rotate so it stays proportional on phone AND landscape. Falls back to null
+  // (viewport centre) if the icons aren't mounted yet.
+  const [secLeft, setSecLeft] = useState<number | null>(null);
+  useEffect(() => {
+    const place = () => {
+      const fb = document.querySelector("[data-feedback-fab]")?.getBoundingClientRect();
+      const ex = document.querySelector("[data-exel-badge]")?.getBoundingClientRect();
+      if (fb && ex && ex.left > fb.right) setSecLeft((fb.right + ex.left) / 2);
+      else setSecLeft(null);
+    };
+    place();
+    const raf = requestAnimationFrame(place); // badges mount after this page paints
+    window.addEventListener("resize", place);
+    window.addEventListener("orientationchange", place);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", place); window.removeEventListener("orientationchange", place); };
+  }, []);
 
   const currentPreset = TRINITY_PRESETS[trinityIndex];
   const resolvedLabels: [string, string, string] = [t(currentPreset.keys[0]), t(currentPreset.keys[1]), t(currentPreset.keys[2])];
@@ -277,7 +295,9 @@ export default function LandingPage() {
       </main>
       {/* DIRECT access to SECURITY-2525 — bottom-centre, between the Give Feedback button (bottom-left)
           and the eXeL AI badge (bottom-right). NOT Easter-egg gated; lands on the PLANNING tab. */}
-      <a href="/main/Security-2525/" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
+      <a href="/main/Security-2525/"
+        className={`fixed bottom-6 z-50 -translate-x-1/2 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline ${secLeft == null ? "left-1/2" : ""}`}
+        style={secLeft == null ? undefined : { left: secLeft }}>
         SECURITY-2525 →
       </a>
     </div>

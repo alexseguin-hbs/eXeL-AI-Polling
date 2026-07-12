@@ -352,7 +352,7 @@ export function PoweredBadge() {
   const badgeColor = currentTheme.swatch;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div data-exel-badge className="fixed bottom-6 right-6 z-50">
       <button
         onClick={() => {
           if (easterEggUnlocked) {

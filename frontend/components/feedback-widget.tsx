@@ -99,6 +99,7 @@ export function FeedbackWidget({
       {!open && (
         <button
           onClick={() => setOpen(true)}
+          data-feedback-fab
           className={`fixed bottom-6 ${posClass} z-40 flex items-center gap-1.5 rounded-full bg-primary px-3 py-2 text-primary-foreground text-xs font-medium shadow-lg hover:opacity-90 transition-opacity`}
           title={t("shared.feedback.button")}
         >
