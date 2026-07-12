@@ -6,11 +6,22 @@
 export type PlaySection = { name: string; fps: number; minFps: number; ms: number; errors: number };
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+// CLICK SPLASH — an expanding cyan ring at (x,y) so the operator SEES every scripted tap/click during
+// the play-test (demo cue: "show users things that can be done"). Pure DOM, self-removing, no deps.
+const splash = (x: number, y: number, color = "#22d3ee") => {
+  if (typeof document === "undefined" || !Number.isFinite(x) || !Number.isFinite(y)) return;
+  const d = document.createElement("div");
+  d.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:16px;height:16px;margin:-8px 0 0 -8px;border:2px solid ${color};border-radius:50%;z-index:99999;pointer-events:none;opacity:0.95;box-shadow:0 0 8px ${color};transition:transform .5s ease-out,opacity .5s ease-out`;
+  document.body.appendChild(d);
+  requestAnimationFrame(() => { d.style.transform = "scale(3.6)"; d.style.opacity = "0"; });
+  setTimeout(() => d.remove(), 560);
+};
+const splashEl = (el: Element | null | undefined, color?: string) => { if (!el) return; const r = el.getBoundingClientRect(); splash(r.x + r.width / 2, r.y + r.height / 2, color); };
 const btn = (txt: string): HTMLButtonElement | undefined =>
   Array.from(document.querySelectorAll("button")).find(
     (b) => (b.textContent || "").includes(txt) && (b as HTMLElement).offsetParent !== null
   ) as HTMLButtonElement | undefined;
-const click = (txt: string): boolean => { const b = btn(txt); if (b) b.click(); return !!b; };
+const click = (txt: string): boolean => { const b = btn(txt); if (b) { splashEl(b); b.click(); } return !!b; };
 const globe = (): SVGElement | null => {
   const gs = Array.from(document.querySelectorAll('svg[aria-label^="Wireframe globe"]')) as SVGElement[];
   let best: SVGElement | null = null, a = 0;
@@ -20,6 +31,7 @@ const globe = (): SVGElement | null => {
 const drag = async (g: SVGElement, dx: number, dy: number, type: "touch" | "mouse", steps = 20) => {
   const r = g.getBoundingClientRect(); const cx = r.x + r.width / 2, cy = r.y + r.height / 2;
   const opt = (x: number, y: number, t: string) => ({ pointerId: type === "touch" ? 1 : 2, pointerType: type, clientX: x, clientY: y, button: type === "mouse" && t === "down" ? 2 : 0, bubbles: true });
+  splash(cx, cy);
   g.dispatchEvent(new PointerEvent("pointerdown", opt(cx, cy, "down") as PointerEventInit));
   for (let i = 1; i <= steps; i++) { g.dispatchEvent(new PointerEvent("pointermove", opt(cx + (dx * i) / steps, cy + (dy * i) / steps, "move") as PointerEventInit)); await sleep(22); }
   g.dispatchEvent(new PointerEvent("pointerup", opt(cx + dx, cy + dy, "up") as PointerEventInit));
@@ -29,7 +41,7 @@ const armAsset = (label: string): boolean => {
   const el = Array.from(document.querySelectorAll("div.cursor-grab")).find(
     (d) => (d.textContent || "").includes(label) && (d as HTMLElement).offsetParent !== null
   ) as HTMLElement | undefined;
-  el?.click(); return !!el;
+  if (el) { splashEl(el, "#eab308"); el.click(); } return !!el;
 };
 // the largest tactical map surface (mapRef has no id — select by its class signature)
 const mapEl = (): HTMLElement | null => {
@@ -44,6 +56,7 @@ const tapMap = (dxFrac: number, dyFrac: number): boolean => {
   const r = el.getBoundingClientRect();
   const x = r.x + r.width * (0.5 + dxFrac), y = r.y + r.height * (0.5 + dyFrac);
   const o = () => ({ pointerId: 3, pointerType: "mouse", clientX: x, clientY: y, button: 0, bubbles: true }) as PointerEventInit;
+  splash(x, y, "#eab308"); // gold splash at the drop point so the placement is visible
   el.dispatchEvent(new PointerEvent("pointerdown", o()));
   el.dispatchEvent(new PointerEvent("pointerup", o()));
   return true;
@@ -87,10 +100,10 @@ export async function runPlayTest(onSection?: (s: PlaySection) => void): Promise
   const run = async (name: string, fn: () => Promise<void>) => { const s = await section(name, fn); out.push(s); onSection?.(s); };
   // ── Mission tasking on the TACTICAL map first (placement is 2D + AO-map only) ──
   await run("Switch to Camp Blanding + zoom to detail", async () => { await pickAo("CAMP BLANDING"); await sleep(700); click("2D"); await sleep(300); await zoomInMap(7); await sleep(400); });
-  await run("Place AVENGER (E) on detailed map", async () => { armAsset("AVENGER"); await sleep(200); tapMap(0.1, 0); await sleep(500); click("Save"); await sleep(300); });
-  await run("Add + remove SENTINEL (W)", async () => { armAsset("SENTINEL"); await sleep(200); tapMap(-0.1, 0); await sleep(500); click("Save"); await sleep(300); click("REMOVE"); await sleep(300); });
+  await run("Place AVENGER (E) on detailed map", async () => { armAsset("AVENGER"); await sleep(600); tapMap(0.1, 0); await sleep(900); click("Save"); await sleep(700); });
+  await run("Add + remove SENTINEL (W)", async () => { armAsset("SENTINEL"); await sleep(600); tapMap(-0.1, 0); await sleep(900); click("Save"); await sleep(700); click("REMOVE"); await sleep(900); });
   await run("Pan to Capitol + zoom to detail", async () => { await pickAo("TEXAS CAPITOL"); await sleep(700); click("2D"); await sleep(300); await zoomInMap(7); await sleep(400); });
-  await run("Place AUTO-FOIL aerial on detailed map", async () => { armAsset("AUTO-FOIL"); await sleep(200); tapMap(0.14, 0); await sleep(500); click("Save"); await sleep(300); });
+  await run("Place AUTO-FOIL aerial on detailed map", async () => { armAsset("AUTO-FOIL"); await sleep(600); tapMap(0.14, 0); await sleep(900); click("Save"); await sleep(700); });
   // ── Full lifecycle + key-concern coverage (last 2 days) on the detailed map ──
   await run("Select + DELETE asset (full cycle)", async () => { await sleep(200); click("REMOVE"); await sleep(500); });
   await run("Cycle coord MGRS→DMS→UTM→UCRS (grid stays GZD)", async () => { tapMap(0, 0); await sleep(300); click("LLV-DMS"); await sleep(300); click("UTM"); await sleep(300); click("UCRS-2525"); await sleep(300); click("MGRS"); await sleep(300); });
