@@ -17,7 +17,7 @@ import {
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
-import { runPlayTest, type PlaySection } from "@/components/security-2525/play-test";
+import { runPlayTest, runCapSweep, type PlaySection, type CapRow } from "@/components/security-2525/play-test";
 import { CLEARANCE_COLORS } from "@/lib/atlantis-package";
 import {
   AssetIcon, ASSET_ORDER, ASSET_LABELS, type IconStyle,
@@ -214,23 +214,32 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
   const [playRun, setPlayRun] = useState<PlaySection[]>([]);
   const [playing2, setPlaying2] = useState(false);
   const [playHist, setPlayHist] = useState<{ min: number; worst: string }[]>([]);
-  // SPEED TEST now RUNS the full scripted replay (switch AO / place assets / orbit / tilt / mirror) and
-  // reports the aggregate MIN fps as the EDGE verdict — so "the entire speed test includes placing of
-  // assets and switching to Camp Blanding." Shares the same REPORT list as PLAY TEST.
-  const runReplay = async (setBusy: (b: boolean) => void) => {
-    setBusy(true); setPlayRun([]);
+  const [capRows, setCapRows] = useState<CapRow[]>([]);   // SPEED TEST: fps delivered per limiter cap
+  const [sweepSamples, setSweepSamples] = useState<number[]>([]); // fps-over-time series for the chart
+  const [showChart, setShowChart] = useState(false);
+  const [sweepCap, setSweepCap] = useState(0);            // the cap selected at the time of the sweep (chart title)
+  // PLAY TEST = the scripted mission replay (visible demo).
+  const playTest = async () => {
+    setPlaying2(true); setPlayRun([]);
     const secs: PlaySection[] = [];
     await runPlayTest((sec) => { secs.push(sec); setPlayRun([...secs]); });
     if (secs.length) {
       const min = Math.min(...secs.map((x) => x.minFps));
       const worst = secs.reduce((a, b) => (b.minFps < a.minFps ? b : a), secs[0]);
-      setBench(min); try { localStorage.setItem("sec2525.fpsBench", String(min)); } catch {}
       setPlayHist((h) => [{ min, worst: worst.name }, ...h].slice(0, 3));
     }
-    setBusy(false);
+    setPlaying2(false);
   };
-  const speedTest = () => runReplay(setBenching);
-  const playTest = () => runReplay(setPlaying2);
+  // SPEED TEST = Edge-2525 CALIBRATION: sweep the FPS limiter (3·6·9·33·MAX), measure sustained fps per cap
+  // under load + a fps-over-time series for the chart. Restores the user's cap (runCapSweep finally).
+  const speedTest = async () => {
+    setBenching(true); setCapRows([]); setSweepSamples([]); setSweepCap(getFpsCap());
+    const res = await runCapSweep(setFpsCap, getFpsCap, (rows) => setCapRows(rows));
+    setSweepSamples(res.samples); setCapRows(res.rows);
+    setBench(res.ceiling); try { localStorage.setItem("sec2525.fpsBench", String(res.ceiling)); } catch {}
+    setFpsCapState(getFpsCap()); // reflect the restored cap in the UI
+    setBenching(false);
+  };
 
   // Maximize = fill the ENTIRE physical screen (browser Fullscreen API — same
   // as F11: Chrome's tabs/URL bar disappear). Falls back to in-page overlay
@@ -310,6 +319,39 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
                     style={{ borderColor: "#ffd400", color: "#ffd400", opacity: benching ? 0.6 : 1 }}>{benching ? "TESTING…" : "SPEED TEST"}</button>
                   {bench != null && (
                     <div className="mt-1 text-[9px] font-bold" style={{ color: bench >= 50 ? "#3ec96b" : bench >= 30 ? "#f5a623" : "#ef4444" }}>{bench} fps sustained · {bench >= 50 ? "EDGE-ready — run uncapped (MAX)" : bench >= 30 ? "OK — set FPS cap 33" : "low-power device — set FPS cap 9 for smooth play"}</div>
+                  )}
+                  {capRows.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {/* Edge-2525 calibration: fps delivered at each limiter cap (min of cap & device ceiling) */}
+                      {capRows.map((r) => (
+                        <div key={r.cap} className="flex items-center justify-between text-[8px]" style={{ color: r.fps >= (r.cap === 0 ? 50 : r.cap) ? "#3ec96b" : "#f5a623" }}>
+                          <span style={{ color: C.dim }}>{r.cap === 0 ? "MAX (uncapped)" : `Cap ${r.cap} fps`}</span><span className="tabular-nums font-bold">{r.fps} fps</span>
+                        </div>
+                      ))}
+                      <button onClick={() => setShowChart((v) => !v)} className="mt-1 w-full rounded border px-1 py-0.5 text-[8px] font-bold" style={{ borderColor: C.border, color: showChart ? C.cyan : C.dim }}>{showChart ? "HIDE CHART" : "SHOW CHART · FPS / TIME"}</button>
+                      {showChart && sweepSamples.length > 0 && (() => {
+                        const W = 200, H = 76, padL = 22, padB = 14, padT = 14, padR = 6;
+                        const maxY = Math.max(60, ...sweepSamples);
+                        const n = sweepSamples.length;
+                        const xAt = (i: number) => padL + (n <= 1 ? 0 : (i / (n - 1)) * (W - padL - padR));
+                        const yAt = (v: number) => padT + (1 - v / maxY) * (H - padT - padB);
+                        const pts = sweepSamples.map((v, i) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(" ");
+                        const title = sweepCap === 0 ? "MAX (uncapped)" : `Cap ${sweepCap} fps`;
+                        const midY = (padT + H - padB) / 2;
+                        return (
+                          <svg viewBox={`0 0 ${W} ${H}`} className="mt-1 w-full" style={{ background: "#070b12", borderRadius: 4 }} aria-label="FPS over time">
+                            <text x={W / 2} y={9} textAnchor="middle" fontSize="7" fill="#ffd400" fontFamily="monospace" fontWeight="bold">{title}</text>
+                            <line x1={padL} y1={padT} x2={padL} y2={H - padB} stroke={C.border} strokeWidth="0.5" />
+                            <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke={C.border} strokeWidth="0.5" />
+                            <text x={2} y={padT + 3} fontSize="5" fill={C.dim} fontFamily="monospace">{maxY}</text>
+                            <text x={6} y={H - padB} fontSize="5" fill={C.dim} fontFamily="monospace">0</text>
+                            <text x={7} y={midY} fontSize="5" fill={C.dim} fontFamily="monospace" transform={`rotate(-90 7 ${midY})`}>FPS</text>
+                            <text x={(padL + W - padR) / 2} y={H - 3} textAnchor="middle" fontSize="5" fill={C.dim} fontFamily="monospace">TIME →</text>
+                            <polyline points={pts} fill="none" stroke="#3ec96b" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                          </svg>
+                        );
+                      })()}
+                    </div>
                   )}
                   <button onClick={playTest} disabled={playing2 || benching} className="mt-1.5 w-full rounded border px-1 py-1 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan, opacity: playing2 ? 0.6 : 1 }}>{playing2 ? "PLAYING…" : "▶ PLAY TEST (demo)"}</button>
                   {playing2 && playRun.length > 0 && (

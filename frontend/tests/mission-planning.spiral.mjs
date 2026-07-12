@@ -195,11 +195,12 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
-// ── CORPUS #20: SPEED TEST runs the FULL scripted replay (Camp Blanding + asset placement) ──
+// ── CORPUS #20: PLAY TEST runs the FULL scripted replay (Camp Blanding + asset placement). NOTE: the
+// scripted replay now lives under PLAY TEST; SPEED TEST runs the Edge-2525 cap sweep (see #22). ──
 {
   const { pg, errs, clk } = await mk(null);
   await clk('button[title^="Settings"]'); await pg.waitForTimeout(400);
-  const started = await clk('button:has-text("SPEED TEST")');
+  const started = await clk('button:has-text("PLAY TEST")');
   let secs = [];
   for (let i = 0; i < 40; i++) {
     await pg.waitForTimeout(1000);
@@ -207,7 +208,7 @@ const cellPxAt = async (w, h) => {
     if ([...new Set(secs)].length >= 6) break;
   }
   const uniq = [...new Set(secs)];
-  rec('#20 SPEED TEST replay = full mission (assets+Camp Blanding)', started && uniq.length >= 6, `sections=${uniq.length} started=${started}`);
+  rec('#20 PLAY TEST replay = full mission (assets+Camp Blanding)', started && uniq.length >= 6, `sections=${uniq.length} started=${started}`);
   rec('#20 replay console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
@@ -225,6 +226,31 @@ const cellPxAt = async (w, h) => {
   // friendly (default aff) top cube must be cyan rgb(25, 200, 207), NOT red
   rec('#21 friendly aerial top cube = BLUE (cyan)', topColor === 'rgb(25, 200, 207)', `topColor=${topColor}`);
   rec('#21 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
+// ── CORPUS #22: SPEED TEST cap sweep (Edge-2525 calibration) — per-cap fps rows + FPS/TIME chart, cap restored ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button[title^="Settings"]'); await pg.waitForTimeout(400);
+  const capBefore = await pg.evaluate(() => Number(localStorage.getItem('sec2525.fpsCap') || '0'));
+  const started = await clk('button:has-text("SPEED TEST")');
+  // poll for the cap rows to render (sweep runs a few globe-orbit seconds then streams rows)
+  let rows = 0;
+  for (let i = 0; i < 40; i++) {
+    await pg.waitForTimeout(1000);
+    rows = await pg.evaluate(() => [...document.querySelectorAll('*')].filter(e => e.children.length === 0).map(e => (e.textContent || '').trim()).filter(t => /^(MAX \(uncapped\)|Cap \d+ fps)$/.test(t)).length);
+    if (rows >= 5) break;
+  }
+  rec('#22 SPEED TEST cap sweep = per-cap rows (3·6·9·33·MAX)', started && rows >= 5, `rows=${rows} started=${started}`);
+  // chart toggle → FPS/TIME svg with a polyline
+  const toggled = await clk('button:has-text("SHOW CHART")'); await pg.waitForTimeout(400);
+  const chart = await pg.evaluate(() => { const s = document.querySelector('svg[aria-label="FPS over time"]'); return !!(s && s.querySelector('polyline')); });
+  rec('#22 chart toggle = FPS(Y)/TIME(X) with series', toggled && chart, `toggled=${toggled} chart=${chart}`);
+  // BACKWARD: the user's cap must be RESTORED after the sweep (never left throttled)
+  const capAfter = await pg.evaluate(() => Number(localStorage.getItem('sec2525.fpsCap') || '0'));
+  rec('#22 user FPS cap restored after sweep', capAfter === capBefore, `before=${capBefore} after=${capAfter}`);
+  rec('#22 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
 

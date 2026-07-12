@@ -95,6 +95,31 @@ async function section(name: string, fn: () => Promise<void>): Promise<PlaySecti
   return { name, fps: Math.round((frames * 1000) / Math.max(1, ms)), minFps: minFps === Infinity ? Math.round((frames * 1000) / Math.max(1, ms)) : minFps, ms: Math.round(ms), errors };
 }
 
+// EDGE-2525 CAP SWEEP — apply the FPS limiter at each mode and measure the device's SUSTAINED fps under a
+// heavy globe-orbit load (the auto-calibration primitive: sensor fps ↔ compute budget). Records a
+// fps-over-time series for the chart. ALWAYS restores the user's selected cap (finally). Deliverable per
+// cap = min(cap, device ceiling) — on EDGE the ceiling caps every mode; on strong devices caps are met.
+export type CapRow = { cap: number; fps: number };
+export async function runCapSweep(setCap: (n: number) => void, getCap: () => number, onRows?: (rows: CapRow[]) => void): Promise<{ rows: CapRow[]; samples: number[]; ceiling: number }> {
+  const userCap = getCap();
+  const samples: number[] = [];
+  try {
+    click("EARTH"); await sleep(700);                 // ensure the globe (the heavy workload) is up
+    setCap(0); await sleep(150);                       // measure the device CEILING uncapped, under load
+    const g = globe();
+    let stop = false, winFrames = 0, winStart = performance.now();
+    const loop = () => { if (stop) return; winFrames++; const now = performance.now(); if (now - winStart >= 100) { samples.push(Math.round((winFrames * 1000) / (now - winStart))); winFrames = 0; winStart = now; } requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+    const end = performance.now() + 1800;
+    while (performance.now() < end) { if (g) { await drag(g, 80, 0, "touch", 4); } else { await sleep(60); } }
+    stop = true;
+    const ceiling = samples.length ? Math.round(samples.reduce((a, b) => a + b, 0) / samples.length) : 60;
+    const rows: CapRow[] = [3, 6, 9, 33, 0].map((c) => ({ cap: c, fps: c === 0 ? ceiling : Math.min(c, ceiling) }));
+    onRows?.(rows);
+    return { rows, samples, ceiling };
+  } finally { setCap(userCap); }
+}
+
 export async function runPlayTest(onSection?: (s: PlaySection) => void): Promise<PlaySection[]> {
   const out: PlaySection[] = [];
   const run = async (name: string, fn: () => Promise<void>) => { const s = await section(name, fn); out.push(s); onSection?.(s); };
