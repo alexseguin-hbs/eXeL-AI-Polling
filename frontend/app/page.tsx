@@ -298,7 +298,7 @@ export default function LandingPage() {
       <a href="/main/Security-2525/"
         className={`fixed bottom-6 z-50 -translate-x-1/2 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline ${secLeft == null ? "left-1/2" : ""}`}
         style={secLeft == null ? undefined : { left: secLeft }}>
-        SECURITY-2525 →
+        SECURITY-2525
       </a>
     </div>
   );
