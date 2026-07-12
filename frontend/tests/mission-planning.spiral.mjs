@@ -386,6 +386,22 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #30: VOXEL·CUBE·BASE packet is draggable (⠿ grip) like the coord call-up (FX-55) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
+  const lattice = await pg.evaluate(() => !!document.querySelector('[data-voxel-lattice]'));
+  await pg.evaluate(() => { const lat = document.querySelector('[data-voxel-lattice]'); const c = lat && lat.querySelector('div[title]'); if (c) c.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 7 })); });
+  await pg.waitForTimeout(500);
+  const present = (await pg.locator('[data-voxelpacket]').count()) > 0;
+  const t0 = await pg.evaluate(() => { const e = document.querySelector('[data-voxelpacket]'); return e ? getComputedStyle(e).transform : null; });
+  let moved = false;
+  if (present) { const grip = pg.locator('[data-voxelpacket] span').filter({ hasText: /VOXEL·CUBE/ }).first(); try { const gb = await grip.boundingBox(); if (gb) { await pg.mouse.move(gb.x + gb.width / 2, gb.y + gb.height / 2); await pg.mouse.down(); await pg.mouse.move(gb.x - 120, gb.y + 100, { steps: 8 }); await pg.mouse.up(); await pg.waitForTimeout(250); const t1 = await pg.evaluate(() => { const e = document.querySelector('[data-voxelpacket]'); return e ? getComputedStyle(e).transform : null; }); moved = t0 !== t1 && t1 !== 'none' && t1 !== null; } } catch {} }
+  rec('#30 voxel base packet draggable (FX-55)', lattice && present && moved, `lattice=${lattice} present=${present} moved=${moved}`);
+  rec('#30 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');

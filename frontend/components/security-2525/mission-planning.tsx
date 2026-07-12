@@ -1413,6 +1413,7 @@ function AoMapPane(p: PaneProps) {
   // R1: tap empty ground → coordinate CALL-UP packet (MGRS + LLV-DMS + UCRS + elevation)
   const [coordCall, setCoordCall] = useState<{ lat: number; lon: number } | null>(null);
   const [coordCallOff, setCoordCallOff] = useState({ x: 0, y: 0 }); // draggable offset for the call-up packet
+  const [voxelCallOff, setVoxelCallOff] = useState({ x: 0, y: 0 }); // FX-55: draggable offset for the VOXEL·CUBE·BASE packet
   // FX (HI): on DROP, auto-open a HEADING + ALTITUDE entry packet (0–360° / AGL·MSL) so the
   // operator can set orientation + altitude immediately WITHOUT the right rail — the rail
   // inspector vanishes when the map is maximized/collapsed, which lost desktop AGL entry.
@@ -1760,6 +1761,8 @@ function AoMapPane(p: PaneProps) {
   // the visible UTM grid step; every cube BASE = MGRS + LLV-DMS + UCRS-2525; Z = band.
   // Reads the SAME 1-fetch DEM sampler as the contours — zero extra network.
   const [voxelSel, setVoxelSel] = useState<string | null>(null);
+  // FX-55: each newly-selected cube's BASE packet starts at its default off-cube anchor (clear any drag offset).
+  useEffect(() => { setVoxelCallOff({ x: 0, y: 0 }); }, [voxelSel]);
   const [thrEdit, setThrEdit] = useState<"r" | "y" | "g" | null>(null);
   const [thrMode, setThrMode] = useState<"%" | "abs">("%");
   const [elevRef, setElevRef] = useState<"MSL" | "AGL">("MSL");
@@ -3438,12 +3441,21 @@ function AoMapPane(p: PaneProps) {
               if (!col) return null;
               const f = project(col.lat, col.lon);
               return (
-                <div className="absolute z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
+                <div data-voxelpacket className="absolute z-30 w-56 rounded-lg border p-2 text-[8px] shadow-2xl"
                   onPointerDown={(e) => e.stopPropagation()} /* keep the map from capturing the pointer so the ✕ fires */
-                  /* anchor to the corner OPPOSITE the selected cube's quadrant so the packet never covers it */
-                  style={{ ...(f.fx < 0.5 ? { right: 8 } : { left: 8 }), ...(f.fy < 0.5 ? { bottom: 8 } : { top: 36 }), background: "#0a0f16ee", borderColor: C.gold, pointerEvents: "auto" }}>
+                  /* FX-55: default anchor = corner OPPOSITE the cube's quadrant (never covers it), PLUS a
+                     draggable offset (⠿ grip) so it can be moved anywhere like the mini-map / coord call-up */
+                  style={{ ...(f.fx < 0.5 ? { right: 8 } : { left: 8 }), ...(f.fy < 0.5 ? { bottom: 8 } : { top: 36 }), transform: `translate(${voxelCallOff.x}px, ${voxelCallOff.y}px)`, background: "#0a0f16ee", borderColor: C.gold, pointerEvents: "auto" }}>
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="font-bold tracking-wider" style={{ color: C.gold }}>3D VOXEL·CUBE · BASE</span>
+                    {/* ⠿ drag grip — move the packet anywhere (same pattern as the COORDINATE·CALL-UP) */}
+                    <span className="flex cursor-move select-none touch-none items-center gap-1 font-bold tracking-wider" style={{ color: C.gold }}
+                      onPointerDown={(e) => {
+                        e.stopPropagation(); (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+                        const sx = e.clientX, sy = e.clientY, ox = voxelCallOff.x, oy = voxelCallOff.y;
+                        const move = (ev: PointerEvent) => setVoxelCallOff({ x: ox + (ev.clientX - sx), y: oy + (ev.clientY - sy) });
+                        const up = () => { document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); };
+                        document.addEventListener("pointermove", move); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+                      }}>⠿ 3D VOXEL·CUBE · BASE</span>
                     <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(null); }} title="Close" className="px-1 text-[11px] leading-none" style={{ color: C.dim }}>✕</button>
                   </div>
                   {/* HI 1.3.3: show ONLY the Settings-selected coordinate frame (not all three);
