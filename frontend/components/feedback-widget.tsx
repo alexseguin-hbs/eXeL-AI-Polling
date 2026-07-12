@@ -91,7 +91,7 @@ export function FeedbackWidget({
   };
 
   const posClass =
-    position === "bottom-left" ? "left-4" : "right-4";
+    position === "bottom-left" ? "left-6" : "right-6"; // match the eXeL AI badge inset (right-6) so they're even
 
   return (
     <>
@@ -99,7 +99,7 @@ export function FeedbackWidget({
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className={`fixed bottom-4 ${posClass} z-40 flex items-center gap-1.5 rounded-full bg-primary px-3 py-2 text-primary-foreground text-xs font-medium shadow-lg hover:opacity-90 transition-opacity`}
+          className={`fixed bottom-6 ${posClass} z-40 flex items-center gap-1.5 rounded-full bg-primary px-3 py-2 text-primary-foreground text-xs font-medium shadow-lg hover:opacity-90 transition-opacity`}
           title={t("shared.feedback.button")}
         >
           <MessageSquarePlus className="h-3.5 w-3.5" />

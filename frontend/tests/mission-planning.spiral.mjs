@@ -402,6 +402,24 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #31: voxel-grid dimensions + altitude honor the UNIT toggle (km↔mi / m↔ft) (FX-56) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
+  await pg.evaluate(() => { const lat = document.querySelector('[data-voxel-lattice]'); const c = lat && lat.querySelector('div[title]'); if (c) c.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 7 })); });
+  await pg.waitForTimeout(500);
+  const rowOf = (lbl) => pg.evaluate((l) => { const p = document.querySelector('[data-voxelpacket]'); if (!p) return null; const s = [...p.querySelectorAll('span')]; const i = s.findIndex(x => (x.textContent || '').trim() === l); return i >= 0 && s[i + 1] ? s[i + 1].textContent.trim() : null; }, lbl);
+  const colKm = await rowOf('COLUMN'), terrKm = await rowOf('TERRAIN');
+  await pg.evaluate(() => { const p = document.querySelector('[data-voxelpacket]'); const mi = [...p.querySelectorAll('button')].find(b => /^mi$/i.test((b.textContent || '').trim())); if (mi) mi.click(); });
+  await pg.waitForTimeout(400);
+  const colMi = await rowOf('COLUMN'), terrMi = await rowOf('TERRAIN');
+  const dimUnit = /km/.test(colKm || '') && /mi/.test(colMi || '');   // grid dimension follows km→mi
+  const altUnit = /m MSL/.test(terrKm || '') && /ft MSL/.test(terrMi || ''); // altitude follows m→ft
+  rec('#31 voxel dims + altitude honor unit toggle (FX-56)', dimUnit && altUnit, `colKm=${colKm} colMi=${colMi} terrKm=${terrKm} terrMi=${terrMi}`);
+  rec('#31 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');

@@ -2788,7 +2788,7 @@ function AoMapPane(p: PaneProps) {
                       <button key={ci} onPointerUp={(e) => { e.stopPropagation(); setCoordCall({ lat: cn.lat, lon: cn.lon }); }}
                         onMouseEnter={() => setCornerHover({ key: col.key, ci })}
                         onMouseLeave={() => setCornerHover((h) => (h && h.key === col.key && h.ci === ci ? null : h))}
-                        title={`${["NW", "NE", "SE", "SW"][ci]} · ${fmt.coordAt(cn.lat, cn.lon)} · ${Math.round(sampler(cn.lat, cn.lon)).toLocaleString()}m MSL`}
+                        title={`${["NW", "NE", "SE", "SW"][ci]} · ${fmt.coordAt(cn.lat, cn.lon)} · ${fmt.fmtElev(sampler(cn.lat, cn.lon))} MSL`}
                         className="absolute rounded-sm transition-all"
                         style={{ width: s, height: s, ...(ci === 0 ? { left: off, top: off } : ci === 1 ? { right: off, top: off } : ci === 2 ? { right: off, bottom: off } : { left: off, bottom: off }),
                           border: `1px solid ${cornerHover?.key === col.key && cornerHover.ci === ci ? C.gold : cornerRest}`, background: "#0a0f16cc", opacity: big ? 1 : 0.85 }} />
@@ -2811,7 +2811,7 @@ function AoMapPane(p: PaneProps) {
                             : cornerHover.ci === 2 ? { left: "100%", top: "100%", marginLeft: 6, marginTop: 6 }
                             : { right: "100%", top: "100%", marginRight: 6, marginTop: 6 }),
                             background: "#0a0f16ee", color: C.gold, border: `1px solid ${C.gold}55` }}>
-                          {label} {fmt.coordAt(cn.lat, cn.lon)} · {Math.round(sampler(cn.lat, cn.lon))}m MSL
+                          {label} {fmt.coordAt(cn.lat, cn.lon)} · {fmt.fmtElev(sampler(cn.lat, cn.lon))} MSL
                         </div>
                       );
                     })()}
@@ -2877,7 +2877,7 @@ function AoMapPane(p: PaneProps) {
                   {topObj && sel && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-100%) translateZ(${topZ + 18}px)${is3d ? ` rotateX(${-(pitch ?? 55)}deg)` : ""}` }}>
                       <span className="whitespace-nowrap rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold" style={{ background: "#0a0e14", color: TRINITY_COLORS.temporal, border: `1px solid ${TRINITY_COLORS.temporal}`, boxShadow: `0 0 6px ${TRINITY_COLORS.temporal}66` }}>
-                        {fmt.coordAt(col.lat, col.lon)} · {Math.round(sampler(col.lat, col.lon)).toLocaleString()}m MSL
+                        {fmt.coordAt(col.lat, col.lon)} · {fmt.fmtElev(sampler(col.lat, col.lon))} MSL
                       </span>
                     </div>
                   )}
@@ -3467,14 +3467,16 @@ function AoMapPane(p: PaneProps) {
                       : ["UCRS-2525", col.ucrsDms, C.cyan];
                     // HI 1.3.3: drop the UCRS·CELL row — instead report the CUBE's dimensions:
                     // whole COLUMN height (3 levels), one ZONE height, and the BASE L×W in metres.
-                    const fmtM = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`);
+                    // FX-56: voxel-grid dimensions honor the UNIT toggle (km·m·mi·ft) throughout — same as
+                    // UCRS drives coordinates. Was a hardcoded km/m formatter that ignored mi/ft.
+                    const fmtM = (m: number) => fmt.fmtDist(m);
                     return (
                       <div className="grid grid-cols-[52px_1fr] gap-x-1 gap-y-0.5 font-mono">
                         <span style={{ color: C.dim }}>{primary[0]}</span><span style={{ color: primary[2] }}>{primary[1]}</span>
                         <span style={{ color: C.dim }}>COLUMN</span><span style={{ color: C.text }}>{fmtM(3 * col.cellM)} high</span>
                         <span style={{ color: C.dim }}>ZONE</span><span style={{ color: C.text }}>{fmtM(col.cellM)} / level</span>
                         <span style={{ color: C.dim }}>BASE</span><span style={{ color: C.text }}>{fmtM(col.cellM)} × {fmtM(col.cellM)}</span>
-                        <span style={{ color: C.dim }}>TERRAIN</span><span style={{ color: C.gold }}>{Math.round(col.terrainM).toLocaleString()} m MSL</span>
+                        <span style={{ color: C.dim }}>TERRAIN</span><span style={{ color: C.gold }}>{fmt.fmtElev(col.terrainM)} MSL</span>
                       </div>
                     );
                   })()}
