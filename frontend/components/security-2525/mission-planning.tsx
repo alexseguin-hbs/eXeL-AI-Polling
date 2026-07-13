@@ -325,6 +325,12 @@ function sectorPath(cx: number, cy: number, rx: number, ry: number, tl: TL) {
 // (rx,ry) → they sit exactly on the published range boundary, edges fall just inside → never overshoots
 // the disclosed distance (range-accurate). Angles run from NORTH clockwise, matching sectorPath.
 const COVERAGE_SIDES = 13;
+// Symbology-first voxel edge weight (operator law, IMG_7256): asset cube edges — land AND aerial — AND the
+// vertical leader struts descending to the floor logo/icon are drawn at this FINE weight so the MIL-STD /
+// eXeL-STD symbology at the cube centre stays the dominant read (the heavy 1.5px borders buried the 45°
+// centre iconology). Undercuts the 3×3 lattice interior lines (1px low-alpha). 0.6px = operator's thinnest;
+// on phone (DPR 2-3) it renders ~1.2-1.8 device-px crisp, on DPR=1 desktop it hairlines but stays visible.
+const EDGE_FINE = 0.6;
 function ngonPoints(cx: number, cy: number, rx: number, ry: number, sides: number = COVERAGE_SIDES, rotDeg = 0): string {
   let s = "";
   for (let k = 0; k < sides; k++) {
@@ -1487,6 +1493,7 @@ interface PaneProps {
   settingsOpen?: boolean;      // reflect open state on the gear
   onPitch?: (deg: number) => void; // 3D tilt via right-drag (overhead 15° ⇄ horizon 85°)
   iconScale?: number; // icon size setting S/M/L → 1 / 1.75 / 3 (P2, visibility)
+  edgeWidth?: number; // FX-53: user-designable voxel edge thickness (px), Settings→3D slider; default EDGE_FINE (0.6)
   pitch?: number; // 3D view angle (deg) — FAAD/AMDWS "right-click angles the view to altitude"
   // AO / AOR draw tool
   drawingAo: boolean;
@@ -1506,7 +1513,7 @@ function AoMapPane(p: PaneProps) {
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
     unit: paneUnit = "km", onSetUnit, gridStepM: gridStepOverride = 0,
     maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
-    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1,
+    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1, edgeWidth = EDGE_FINE,
     drawingAo, aoDraft, onAoVertex, drawnAo, playing = false, onTogglePlay, onResetTracks,
   } = p;
 
@@ -2722,13 +2729,14 @@ function AoMapPane(p: PaneProps) {
               const face = (t: string, w: number, h: number, color: string, occupied: boolean, lw?: number): React.CSSProperties => ({
                 position: "absolute", left: "50%", top: "50%", width: w, height: h,
                 transform: `translate(-50%,-50%) ${t}`,
-                border: `${lw ?? (occupied ? 1.5 : 1)}px ${occupied ? "solid" : "dashed"} ${color}`,
+                border: `${lw ?? edgeWidth}px ${occupied ? "solid" : "dashed"} ${color}`,
                 background: occupied ? `${color}10` : "transparent",
               });
               // Grey wireframe edge lines match the VOXEL CENTRE-POINT weight: the target reticle /
-              // centre dot render at 1px (non-scaling), so the cube edge lines are 1px too (operator law:
-              // "edge lines same width in pixels as voxel center point").
-              const edgeFineW = 1;
+              // centre dot render fine (non-scaling), so the aerial cube corner posts use the same
+              // symbology-first edgeWidth (operator law: "edge lines thinner, symbology first"; user-tunable
+              // via the Settings→3D "Edge width" slider, default EDGE_FINE = 0.6).
+              const edgeFineW = edgeWidth;
               return (
                 <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
                   // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
@@ -2745,7 +2753,7 @@ function AoMapPane(p: PaneProps) {
                   <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(sel ? null : col.key); }}
                     title={fmt.coordAt(col.lat, col.lon)}
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                    style={{ width: cellPx, height: cellPx, border: `1.5px solid ${sel ? hiCol : C.cyan}`, background: sel ? `${hiCol}22` : `${C.cyan}08`, pointerEvents: "auto" }} />
+                    style={{ width: cellPx, height: cellPx, border: `${edgeWidth}px solid ${sel ? hiCol : C.cyan}`, background: sel ? `${hiCol}22` : `${C.cyan}08`, pointerEvents: "auto" }} />
                   )}
                   {/* Airspace threshold CAPS — TRUE scale, at the SAME altitudes as the LEFT gauge
                       lines. Orange (yellow%) · Red (red%) · Grey ceiling (limit%). Horizontal squares
@@ -2969,7 +2977,7 @@ function AoMapPane(p: PaneProps) {
                         const rCyl = Math.max(6, cellPx * 0.15); // ≈ TARGET inner-circle radius
                         const cx = rCyl * Math.cos(ang), cy = rCyl * Math.sin(ang);
                         return (
-                          <div key={`cyl${k}`} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 1, height: topZ,
+                          <div key={`cyl${k}`} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: edgeWidth, height: topZ,
                             background: `repeating-linear-gradient(to bottom, ${C.gold} 0 1.5px, transparent 1.5px 4px)`, opacity: 0.8,
                             transform: `translate(-50%,-50%) translate3d(${cx}px,${cy}px,${topZ / 2}px) rotateX(90deg)` }} />
                         );
@@ -4644,6 +4652,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   const [symbologyMode, setSymbologyMode] = useState<"mil" | "exel" | "hybrid">("mil"); // MIL-STD-2525 | eXeL-STD-2525 | Hybrid
   const [iconSize, setIconSize] = useState<"s" | "m" | "l">("s"); // P2: icon visibility — S(1×)/M(1.75×)/L(3×)
   const ICON_SCALE = { s: 1, m: 2, l: 3 } as const; // P1.2 (Enki): M = 2× current, L = 3×
+  const [edgeWidth, setEdgeWidth] = useState<number>(EDGE_FINE); // FX-53: user-designable voxel edge thickness (px) — Settings→3D slider, 0.6→2.0, default EDGE_FINE (symbology-first)
   const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
   const [altRedPct, setAltRedPct] = useState(90);       // FX-05: RED threshold as % of ceiling (default 90%)
   const [altYellowPct, setAltYellowPct] = useState(70); // FX-05: YELLOW threshold as % of ceiling (default 70%)
@@ -4965,7 +4974,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
     coordFmt, onSetCoordFmt: setCoordFmt, unit, onSetUnit: setUnit, gridStepM,
     maxAltFt, altRedPct, altYellowPct, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
-    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize],
+    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize], edgeWidth,
     mapEngine, playing, onTogglePlay: () => setPlaying((p) => !p), onResetTracks: resetTracks,
   }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view.
      // 2D↔3D reuses this SAME tile — is3d is a render flag only; no DEM/OSM effect depends on it → ZERO extra fetch.
@@ -5353,6 +5362,18 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                     <button key={k} onClick={() => setIconSize(k)} className="px-1.5 py-0.5"
                       style={{ background: iconSize === k ? "#152238" : "transparent", color: iconSize === k ? C.cyan : C.dim }}>{label}</button>
                   ))}
+                </div>
+              </div>
+              {/* FX-53 (operator, IMG_7247): symbology-first VOXEL edge width — thinner edges let the MIL-STD /
+                  eXeL-STD centre icon dominate. Live: dragging updates every land + aerial cube edge AND the floor
+                  leader struts in real time. 0.6 (hairline) → 2.0 (the current heaviest voxel box edge). */}
+              <div className="mt-1.5 mb-1">
+                <div className="mb-0.5 text-[9px]" style={{ color: C.text }}>Edge width {edgeWidth.toFixed(2)}px</div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[7px]" style={{ color: C.dim }}>Min</span>
+                  <input type="range" min={0.6} max={2} step={0.05} value={edgeWidth}
+                    onChange={(e) => setEdgeWidth(parseFloat(e.target.value))} className="flex-1" />
+                  <span className="text-[7px]" style={{ color: C.dim }}>Max</span>
                 </div>
               </div>
               {/* FX-09b: max altitude — AUTO (10k ft) or user-fixed via data entry */}

@@ -291,8 +291,9 @@ const cellPxAt = async (w, h) => {
   await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
   await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
   const posts = await pg.evaluate(() => { const e = [...document.querySelectorAll('[data-aedge]')]; return { n: e.length, w: e[0] ? getComputedStyle(e[0]).width : null }; });
-  // exactly 4 posts per aerial column, each 1px wide (== edgeFineW, matches the voxel edge)
-  rec('#24 aerial tower = 4 thin 1px corner posts (FX-53)', posts.n === 4 && posts.w === '1px', `posts=${posts.n} w=${posts.w}`);
+  // exactly 4 posts per aerial column, each drawn at the symbology-first EDGE width (default 0.6px → renders ~0.59px;
+  // user-tunable 0.6→2.0 via Settings→3D). Band 0<w≤0.8 locks "fine/thinner than the old 1px" without sub-pixel brittleness.
+  rec('#24 aerial tower = 4 fine corner posts (~0.6px, symbology-first) (FX-53)', posts.n === 4 && parseFloat(posts.w) > 0 && parseFloat(posts.w) <= 0.8, `posts=${posts.n} w=${posts.w}`);
   rec('#24 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
@@ -515,6 +516,29 @@ const cellPxAt = async (w, h) => {
   // PASS = no React pageerror across every stress cycle that ran, and the page either stayed alive OR only the ENV
   // (Playwright driver) closed after a solid run of iterations. A real crash trips errs[] → hard FAIL.
   rec('#34 radar STRESS ×99 — off-map/tilt/zoom, ZERO pageerrors (P1.3 crash guard)', errs.length === 0 && (alive || (envClosed && iters >= 20)), `errs=${errs.length} iters=${iters} alive=${alive} envClosed=${envClosed}${errs[0] ? ' | ' + errs[0].slice(0, 110) : ''}`);
+  await pg.close();
+}
+
+// ── CORPUS #35: Settings→3D "Edge width" slider DRIVES the voxel edges live (FX-53, user-designable) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('div.cursor-grab:has-text("AUTO-FOIL")'); await pg.waitForTimeout(250);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(300);
+  const box = await pg.locator('div.touch-none.overflow-hidden.rounded-md').first().boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(400);
+  try { await pg.locator('input[placeholder="0"]').first().fill('9000'); } catch {}
+  await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
+  const postW = () => pg.evaluate(() => { const e = document.querySelector('[data-aedge]'); return e ? parseFloat(getComputedStyle(e).width) : null; });
+  const defW = await postW(); // ~0.6 default
+  // open the "Map & VOXEL settings" panel and slam the Edge width range (min=0.6 max=2) to max via the native setter → React onChange fires.
+  await clk('button[title*="VOXEL settings"]'); await pg.waitForTimeout(300);
+  const set = await pg.evaluate(() => { const i = [...document.querySelectorAll('input[type=range]')].find(r => r.min === '0.6' && r.max === '2'); if (!i) return false; const s = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; s.call(i, '2'); i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); return true; });
+  await pg.waitForTimeout(300);
+  const wideW = await postW(); // should have GROWN toward 2px
+  // PASS = the slider exists, and driving it from ~0.6 to 2.0 visibly thickened the aerial corner posts live.
+  rec('#35 Edge width slider drives voxel edges live (FX-53)', set && defW != null && wideW != null && defW <= 0.8 && wideW > defW + 0.5, `set=${set} def=${defW} wide=${wideW}`);
+  rec('#35 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
 
