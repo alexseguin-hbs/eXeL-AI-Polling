@@ -2599,7 +2599,9 @@ function AoMapPane(p: PaneProps) {
               const aerialStack = !isLattice && objAltM > 0;
               const nCubes = aerialStack ? Math.max(1, Math.min(64, Math.round(trueZ / cellPx))) : 0;
               const topZ = aerialStack ? nCubes * cellPx : stack.length * bandPx;
-              const markerZ = aerialStack ? topZ : trueZ; // icon/chip sit on the column top
+              // icon/shield sits on the aerial column TOP; for a GROUND asset it rides the MIDDLE
+              // of its base cube (cellPx/2), never at z=0 where it reads as "under the ground".
+              const markerZ = aerialStack ? topZ : trueZ + (isLattice ? 0 : cellPx / 2);
               const face = (t: string, w: number, h: number, color: string, occupied: boolean, lw?: number): React.CSSProperties => ({
                 position: "absolute", left: "50%", top: "50%", width: w, height: h,
                 transform: `translate(-50%,-50%) ${t}`,
@@ -2635,7 +2637,14 @@ function AoMapPane(p: PaneProps) {
                       + latitude rims. Closed-form/deterministic, ~15 static DOM nodes. Schematic size (75 km
                       is off-screen). */}
                   {is3d && !isLattice && placed.find((p) => p.id === topObj?.id)?.asset === "sentinel" && (() => {
-                    const L = Math.max(80, cellPx * 5);
+                    // REALISTIC RANGE (operator): the coverage radius = the SENTINEL published detection
+                    // range (75 km) at THIS view's km→px scale — the same altPxPerM the cubes/altitude use —
+                    // NOT an arbitrary schematic size. Capped to 0.85·pane so a zoomed-in AO stays on-screen
+                    // (the cap is ≤ real range, so the shell NEVER overshoots the disclosed distance); floored
+                    // so a continental zoom still shows a legible dome. Zoom out to see the full 75 km footprint.
+                    const rangeKm = ASSET_RANGE_KM.sentinel ?? 75;
+                    const Lreal = rangeKm * 1000 * altPxPerM;
+                    const L = Math.max(48, Math.min(Lreal, paneW * 0.85));
                     const col = placed.find((p) => p.id === topObj?.id)?.aff === "hostile" ? C.red : C.cyan;
                     const elLo = -10, elHi = 55;
                     const ell = (elDeg: number) => ({ r: L * Math.cos((elDeg * Math.PI) / 180), z: L * Math.sin((elDeg * Math.PI) / 180) });
@@ -2644,36 +2653,47 @@ function AoMapPane(p: PaneProps) {
                       <div key={key} className="absolute left-1/2 top-1/2" style={{ width: 2 * r, height: 2 * r, marginLeft: -r, marginTop: -r, borderRadius: "50%",
                         border: `0.8px solid ${col}${el === elHi ? "aa" : "77"}`, transform: `translateZ(${z.toFixed(1)}px)` }} />
                     ); };
-                    // SOLID OF REVOLUTION: the elevation triangle (−10°→+55°, vertex at radar) rotated N× around
-                    // the vertical axis. Each sliver = the sphere-surface ARC + the +55° apex RAY (the CONE OF
-                    // SILENCE wall). Rendered in a vertical plane at azimuth az → a spherical shell with an
-                    // inverted cone carved out of the top-centre. SSSES: reuses the elevation-arc math, low DOM.
-                    const N = 12;
-                    const p = (el: number) => ({ x: L * Math.cos((el * Math.PI) / 180), y: -L * Math.sin((el * Math.PI) / 180) });
-                    const lo = p(elLo), hi = p(elHi);
-                    const arcD = `M${lo.x.toFixed(1)} ${lo.y.toFixed(1)} A ${L} ${L} 0 0 0 ${hi.x.toFixed(1)} ${hi.y.toFixed(1)}`;
+                    // SOLID OF REVOLUTION — built from voxel-style 3D <div> STRUTS (translate3d + rotate),
+                    // the SAME technique as the voxel edge posts, NOT SVG. Every strut is a real 3D edge in
+                    // the cube's own frame, so it stands up in 3D (no flattening, no rotated-SVG plane).
+                    // Frame: x=east, y=south, z=up(altitude). Surface point P(φ,θ) = (L·cosφ·cosθ, L·cosφ·sinθ, L·sinφ).
+                    const RAD = Math.PI / 180;
+                    const P = (phi: number, th: number) => ({
+                      x: L * Math.cos(phi * RAD) * Math.cos(th * RAD),
+                      y: L * Math.cos(phi * RAD) * Math.sin(th * RAD),
+                      z: L * Math.sin(phi * RAD),
+                    });
+                    // generic 3D strut A→B — one thin div, aimed by yaw(Z)+pitch(Y), origin pinned at A.
+                    const seg = (key: string, a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }, w: number, alpha: string, dashed: boolean) => {
+                      const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
+                      const len = Math.hypot(dx, dy, dz);
+                      const yaw = (Math.atan2(dy, dx) * 180) / Math.PI;
+                      const pit = (Math.atan2(dz, Math.hypot(dx, dy)) * 180) / Math.PI;
+                      return (
+                        <div key={key} className="absolute left-1/2 top-1/2" style={{ width: len, height: 0, borderTop: `${w}px ${dashed ? "dashed" : "solid"} ${col}${alpha}`,
+                          transformOrigin: "0 0", transform: `translate3d(${a.x.toFixed(1)}px,${a.y.toFixed(1)}px,${a.z.toFixed(1)}px) rotateZ(${yaw.toFixed(2)}deg) rotateY(${(-pit).toFixed(2)}deg)` }} />
+                      );
+                    };
+                    const MER = 6;                          // meridian arcs (the sphere outline)
+                    const PHIS = [elLo, 6, 22, 38, elHi];   // polyline breakpoints −10°→+55°
+                    const SPK = 8;                          // Cone-of-Silence spokes (apex → +55° rim)
+                    const apex = { x: 0, y: 0, z: 0 };
                     return (
                       <div data-radardome className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d" }}>
-                        {Array.from({ length: N }, (_, k) => {
-                          const az = (k / N) * 360;
-                          return (
-                            <div key={`sl${k}`} className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) rotateZ(${az.toFixed(1)}deg) rotateX(90deg)` }}>
-                              <svg width="1" height="1" viewBox="0 0 1 1" style={{ overflow: "visible", position: "absolute", left: 0, top: 0 }}>
-                                <path d={arcD} fill="none" stroke={`${col}44`} strokeWidth="0.7" vectorEffect="non-scaling-stroke" />
-                                {/* CONE OF SILENCE wall — the +55° apex ray (bright, solid) → the inverted cone */}
-                                <line x1="0" y1="0" x2={hi.x.toFixed(1)} y2={hi.y.toFixed(1)} stroke={`${col}dd`} strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
-                              </svg>
-                            </div>
-                          );
-                        })}
+                        {/* meridian arcs — voxel-style struts, solid, dim → the coverage shell */}
+                        {Array.from({ length: MER }, (_, m) => { const th = (m / MER) * 360;
+                          return PHIS.slice(0, -1).map((ph, i) => seg(`m${m}_${i}`, P(ph, th), P(PHIS[i + 1], th), 1, "55", false)); })}
+                        {/* Cone of Silence — apex→+55° rim spokes, dashed + brighter → the carved inverted cone (empty) */}
+                        {Array.from({ length: SPK }, (_, s) => seg(`c${s}`, apex, P(elHi, (s / SPK) * 360), 1, "cc", true))}
                         {rim("rlo", elLo)}
+                        {rim("rmid", 22)}
                         {rim("rhi", elHi)}
                         {/* labels, billboarded upright off the tilted plane */}
-                        <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${(L + 3).toFixed(1)}px) rotateX(${-(pitch ?? 55)}deg)` }}>
-                          <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>CoS</span>
+                        <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${(ell(elHi).z + 4).toFixed(1)}px) rotateX(${-(pitch ?? 55)}deg)` }}>
+                          <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>CoS ▽</span>
                         </div>
                         <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,0) translateZ(${ell(elHi).z.toFixed(1)}px) rotateX(${-(pitch ?? 55)}deg)`, marginTop: -ell(elHi).r }}>
-                          <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>RADAR 360° · −10°/+55°</span>
+                          <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>RADAR {fmt.fmtDist(rangeKm * 1000)} · 360° · −10°/+55°</span>
                         </div>
                       </div>
                     );
