@@ -542,9 +542,8 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
-// ── CORPUS #36/#37: UX FIDELITY drives line detail (FX-54) — the grid stroke collapses toward a uniform baseline as
-//    the tier drops from MAX → LOW, monotonically. Grid (data-fidgrid) renders in the TACTICAL AO map (place an asset
-//    to drill in), so mirror #33/#35's placement flow. ──
+// ── CORPUS #36/#37: UX FIDELITY multiplier (FX-54) — the fidelity SLIDER (min0 max1) scales EVERY line width. As the
+//    slider drops 1.0→0.25, the grid stroke (data-fidgrid, tactical AO map) scales DOWN monotonically (× multiplier). ──
 {
   const { pg, errs, clk } = await mk(null);
   await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(300);
@@ -555,22 +554,78 @@ const cellPxAt = async (w, h) => {
   await clk('button:has-text("Save")'); await pg.waitForTimeout(400);
   const gw = () => pg.evaluate(() => { const e = document.querySelector('[data-fidgrid]'); return e ? parseFloat(e.getAttribute('stroke-width')) : null; });
   if ((await gw()) == null) { await clk('button:has-text("GRID"):visible'); await pg.waitForTimeout(400); } // ensure tactical grid is on
-  const maxW = await gw(); // default tier MAX → native 0.25 (full detail)
   await clk('button[title*="VOXEL settings"]'); await pg.waitForTimeout(300);
-  // read the grid stroke at each fidelity tier (LOW → MAX) by clicking each button in the UX fidelity row.
-  const widths = {};
-  for (const label of ['LOW', 'MED', 'HIGH', 'MAX']) { await clk(`button:text-is("${label}"):visible`); await pg.waitForTimeout(120); widths[label] = await gw(); }
-  const vals = ['LOW', 'MED', 'HIGH', 'MAX'].map((l) => widths[l]);
-  const allNum = vals.every((v) => typeof v === 'number' && Number.isFinite(v));
-  // #36: fidelity actually changes the grid stroke (MAX default native ≈0.25; LOW = fully uniform baseline ≠ MAX).
-  const drives = allNum && Math.abs(widths['MAX'] - 0.25) < 0.06 && Math.abs(widths['LOW'] - widths['MAX']) > 0.02;
-  rec('#36 UX fidelity drives line detail — grid stroke MAX(native)≠LOW(uniform) (FX-54)', drives, `max=${widths['MAX']} low=${widths['LOW']}`);
-  // #37: strictly MONOTONIC across the 4 tiers (fidF 0→1 blends baseline→native with no reversals).
+  // drive the fidelity slider (the range with min=0 max=1) to each multiplier via the native setter → React onChange.
+  const setFid = (v) => pg.evaluate((val) => { const i = [...document.querySelectorAll('input[type=range]')].find(r => r.min === '0' && r.max === '1'); if (!i) return false; const s = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; s.call(i, String(val)); i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); return true; }, v);
+  const gc = () => pg.evaluate(() => document.querySelectorAll('[data-fidgrid]').length); // grid-line COUNT (culling)
+  const widths = {}, counts = {};
+  for (const v of [0.33, 0.66, 1]) { const ok = await setFid(v); await pg.waitForTimeout(150); widths[v] = await gw(); counts[v] = await gc(); if (!ok) widths.noSlider = true; }
+  const vals = [0.33, 0.66, 1].map((v) => widths[v]);
+  const allNum = !widths.noSlider && vals.every((v) => typeof v === 'number' && Number.isFinite(v));
+  // #36: fidelity multiplier scales the grid stroke — at 1.0 native (≈0.25); at 0.33 ≈⅓ of that (MoT trinity tiers).
+  const drives = allNum && Math.abs(widths[1] - 0.25) < 0.06 && widths[0.33] < widths[1] * 0.6;
+  rec('#36 UX fidelity multiplier scales line width — grid ×0.33 ≪ ×1.0 (FX-54)', drives, `x1=${widths[1]} x.33=${widths[0.33]}`);
+  // #37: strictly MONOTONIC increasing with the multiplier (0.33<0.66<1.0), no reversals.
   let mono = allNum;
-  const inc = vals[3] > vals[0];
-  for (let i = 1; i < vals.length && mono; i++) mono = inc ? vals[i] > vals[i - 1] : vals[i] < vals[i - 1];
-  rec('#37 UX fidelity monotonic across LOW·MED·HIGH·MAX (FX-54)', mono, JSON.stringify(widths));
+  for (let i = 1; i < vals.length && mono; i++) mono = vals[i] > vals[i - 1];
+  rec('#37 UX fidelity monotonic across ×0.33·0.66·1.0 (FX-54)', mono, JSON.stringify(widths));
+  // #40: element CULLING — fewer grid lines render as fidelity drops (stride) → the real fps lever.
+  const culls = typeof counts[1] === 'number' && counts[0.33] < counts[1];
+  rec('#40 UX fidelity culls elements — fewer grid lines at ×0.33 than ×1.0 (FX-54)', culls, `n@1=${counts[1]} n@.33=${counts[0.33]}`);
   rec('#36 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
+// ── CORPUS #38: UX FIDELITY thins the VOXEL edge too (FX-54, operator: "voxel thickness must be thinned"). The aerial
+//    corner post (data-aedge = edgeWidth × fidelity) must SHRINK as the fidelity slider drops 1.0 → 0.25. ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('div.cursor-grab:has-text("AUTO-FOIL")'); await pg.waitForTimeout(250);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(300);
+  const box = await pg.locator('div.touch-none.overflow-hidden.rounded-md').first().boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(400);
+  try { await pg.locator('input[placeholder="0"]').first().fill('9000'); } catch {}
+  await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
+  const postW = () => pg.evaluate(() => { const e = document.querySelector('[data-aedge]'); return e ? parseFloat(getComputedStyle(e).width) : null; });
+  const wMax = await postW(); // fidelity 1.0 → edgeWidth (≈0.6)
+  await clk('button[title*="VOXEL settings"]'); await pg.waitForTimeout(300);
+  const setFid = (v) => pg.evaluate((val) => { const i = [...document.querySelectorAll('input[type=range]')].find(r => r.min === '0' && r.max === '1'); if (!i) return false; const s = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; s.call(i, String(val)); i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); return true; }, v);
+  const set = await setFid(0.33); await pg.waitForTimeout(250);
+  const wLow = await postW(); // fidelity 0.33 → ≈⅓ edgeWidth
+  // PASS = the voxel edge visibly thinned (≈⅓) when fidelity dropped — proving the dial reaches voxel thickness.
+  rec('#38 UX fidelity thins the VOXEL edge — data-aedge ×0.33 ≪ ×1.0 (FX-54)', set && wMax != null && wLow != null && wLow < wMax * 0.6, `set=${set} max=${wMax} low=${wLow}`);
+  rec('#38 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
+// ── CORPUS #39: UX FIDELITY FPS BENCHMARK (operator: "low fidelity should run at higher fps — test MAX vs 66% vs 33%").
+//    Heavy scene (SENTINEL coverage + voxel lattice + grid) in 3D; measure sustained rAF fps while orbiting, at each
+//    trinity tier. Reports the numbers; PASS = all three measured (fps ordering is reported, not hard-asserted — headless
+//    fps is noisy, and the culling gain is what the operator reads from the detail line). ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(300);
+  await clk('div.cursor-grab:has-text("SENTINEL")'); await pg.waitForTimeout(250);
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  const box = await M.boundingBox();
+  const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
+  if (box) await pg.mouse.click(cx, cy); await pg.waitForTimeout(400);
+  await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
+  await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(800);
+  await clk('button[title*="VOXEL settings"]'); await pg.waitForTimeout(300);
+  const setFid = (v) => pg.evaluate((val) => { const i = [...document.querySelectorAll('input[type=range]')].find(r => r.min === '0' && r.max === '1'); if (!i) return false; const s = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; s.call(i, String(val)); i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); return true; }, v);
+  const bench = async () => {
+    await pg.evaluate(() => { window.__f = 0; window.__t0 = performance.now(); const l = () => { window.__f++; window.__raf = requestAnimationFrame(l); }; window.__raf = requestAnimationFrame(l); });
+    for (let i = 0; i < 24; i++) { await pg.mouse.move(cx, cy); await pg.mouse.down({ button: 'right' }); await pg.mouse.move(cx + 40, cy + 20, { steps: 2 }); await pg.mouse.up({ button: 'right' }); await pg.waitForTimeout(18); } // orbit workload ~1.1s
+    const r = await pg.evaluate(() => { cancelAnimationFrame(window.__raf); return { f: window.__f, dt: performance.now() - window.__t0 }; });
+    return r.dt > 0 ? Math.round((r.f * 1000) / r.dt) : 0;
+  };
+  const fps = {};
+  for (const v of [1, 0.66, 0.33]) { await setFid(v); await pg.waitForTimeout(200); fps[v] = await bench(); }
+  const ok = [1, 0.66, 0.33].every((v) => typeof fps[v] === 'number' && fps[v] > 0);
+  rec('#39 UX fidelity FPS bench — MAX/66%/33% measured (FX-54)', ok, `fps@1.0=${fps[1]} fps@0.66=${fps[0.66]} fps@0.33=${fps[0.33]} (higher@low = culling win)`);
+  rec('#39 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
 

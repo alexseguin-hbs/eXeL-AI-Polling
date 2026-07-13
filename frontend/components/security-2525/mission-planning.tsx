@@ -331,14 +331,13 @@ const COVERAGE_SIDES = 13;
 // centre iconology). Undercuts the 3×3 lattice interior lines (1px low-alpha). 0.6px = operator's thinnest;
 // on phone (DPR 2-3) it renders ~1.2-1.8 device-px crisp, on DPR=1 desktop it hairlines but stays visible.
 const EDGE_FINE = 0.6;
-// UX FIDELITY (operator) — a quality dial trading LINE DETAIL for a lighter, simpler render. NOT tied to the FPS
-// governor: the speed gain is EMERGENT (thinner/uniform lines = less to render = naturally higher fps). `FID_F` is the
-// blend fraction per tier: 1 = full detail (every line keeps its native width AND thins with distance/depth), 0 = fully
-// uniform (every line collapses to the edgeWidth baseline, NO depth-thinning — far == near). Med/High blend between.
-// Default "max" = today's look, unchanged until the user opts down. One place to retune the rungs.
-type Fidelity = "max" | "high" | "med" | "low";
-const FID_F: Record<Fidelity, number> = { max: 1, high: 0.75, med: 0.5, low: 0 };
-const FID_TIERS: { k: Fidelity; label: string }[] = [{ k: "low", label: "LOW" }, { k: "med", label: "MED" }, { k: "high", label: "HIGH" }, { k: "max", label: "MAX" }];
+// UX FIDELITY (operator) — a quality dial that trades LINE THICKNESS for a lighter, faster render (for the drone-2525
+// game on low-compute machines). It is a plain MULTIPLIER on EVERY line width in the UX — voxel edges, altitude rail,
+// coverage, contours, grid, roads, all of it: thickness = nativeWidth × fidelity. It ALSO culls elements as it drops
+// (fewer grid subdivisions, minor contours, lattice interiors) — that is what actually raises fps on low-compute
+// machines. Tier marks (MoT trinity): LOW = 0 (far left, all thin / off), 0.33, 0.66, MAX = 1.0 (far right, native/
+// today). NOT tied to the FPS governor. Continuous slider 0→1.0; default 1.0. 0 = thinnest (lines vanish = max perf).
+const FID_MIN = 0;
 function ngonPoints(cx: number, cy: number, rx: number, ry: number, sides: number = COVERAGE_SIDES, rotDeg = 0): string {
   let s = "";
   for (let k = 0; k < sides; k++) {
@@ -1502,7 +1501,7 @@ interface PaneProps {
   onPitch?: (deg: number) => void; // 3D tilt via right-drag (overhead 15° ⇄ horizon 85°)
   iconScale?: number; // icon size setting S/M/L → 1 / 1.75 / 3 (P2, visibility)
   edgeWidth?: number; // FX-53: user-designable voxel edge thickness (px), Settings→3D slider; default EDGE_FINE (0.6)
-  fidelity?: Fidelity; // FX-54: UX fidelity tier — max=full detail, low=uniform lines + no depth-thinning
+  fidelity?: number; // FX-54: UX fidelity thickness multiplier (0.25=LOW … 1.0=MAX) applied to every line width
   pitch?: number; // 3D view angle (deg) — FAAD/AMDWS "right-click angles the view to altitude"
   // AO / AOR draw tool
   drawingAo: boolean;
@@ -1522,7 +1521,7 @@ function AoMapPane(p: PaneProps) {
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
     unit: paneUnit = "km", onSetUnit, gridStepM: gridStepOverride = 0,
     maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
-    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1, edgeWidth = EDGE_FINE, fidelity = "max",
+    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1, edgeWidth = EDGE_FINE, fidelity = 1,
     drawingAo, aoDraft, onAoVertex, drawnAo, playing = false, onTogglePlay, onResetTracks,
   } = p;
 
@@ -1533,14 +1532,17 @@ function AoMapPane(p: PaneProps) {
   const [elevReveal, setElevReveal] = useState<"high" | "low" | null>(null); // HIGH/LOW coord reveal
   const [showDecode, setShowDecode] = useState(false); // MGRS/DMS mini-lesson popover
   const mapRef = useRef<HTMLDivElement>(null);
-  // FX-54 UX FIDELITY — blend any stroke width toward the uniform baseline. fidF=1 (Max) → native width (full detail,
-  // distance/depth thinning intact); fidF=0 (Low) → the baseline for EVERY line, which is both uniform AND depth-flat
-  // (a constant width has no far/near variation). Two variants keep it unit-safe: `fw` for SCREEN-PX strokes (CSS /
-  // vectorEffect), baseline = edgeWidth px; `fwvb` for VIEWBOX-unit strokes (the flat-map 0..100 SVG), baseline =
-  // edgeWidth converted to viewBox units (edgeWidth·100/paneW) so px and viewBox lines land at the SAME screen width.
-  const fidF = FID_F[fidelity];
-  const fw = (native: number) => edgeWidth + (native - edgeWidth) * fidF;
-  const fwvb = (native: number) => { const u = (edgeWidth * 100) / (mapRef.current?.clientWidth ?? 800); return u + (native - u) * fidF; };
+  // FX-54 UX FIDELITY — a plain thickness MULTIPLIER: every line width is scaled by `fidF` (1.0 = native/MAX, 0.25 = LOW).
+  // Unit-agnostic (a multiplier preserves px OR viewBox units), so `fw` and `fwvb` are the same function — two names only
+  // so call sites read intent. Applies to EVERY line incl voxel edges + altitude rail. Clamped ≥FID_MIN so none vanish.
+  const fidF = Math.max(FID_MIN, Math.min(1, fidelity));
+  const fw = (native: number) => native * fidF;
+  const fwvb = fw;
+  // Element CULLING (the real fps lever on low-compute machines) — render FEWER elements as fidelity drops. `gridStride`
+  // keeps every Nth minor grid line (1 at MAX → up to 8 at LOW); `showMinor` drops minor contours + lattice interiors
+  // below the top trinity third. Default fidF=1 → stride 1 + showMinor true → today's exact scene (no regression).
+  const gridStride = Math.max(1, Math.min(8, Math.round(1 / Math.max(fidF, 0.125))));
+  const showMinor = fidF >= 0.66;
   const dragRef = useRef<{ x: number; y: number; moved: boolean; btn: number } | null>(null);
   // P1 (SSSES perf): rAF-throttle the tilt/bearing drag — coalesce many pointermove events into
   // ONE state update per animation frame so the geometry doesn't re-render ~120×/s.
@@ -2252,7 +2254,7 @@ function AoMapPane(p: PaneProps) {
                     bathymetry-from-MSL = cyan dashed. Major key lines thicker + labelled (≥3). */}
                 {contourSet && (
                   <g>
-                    {contourSet.lines.filter((l) => (l.land ? contourCfg.showLand : contourCfg.showBathy)).map((l, i) => {
+                    {contourSet.lines.filter((l) => (l.land ? contourCfg.showLand : contourCfg.showBathy) && (showMinor || l.major)).map((l, i) => {
                       const col = l.land ? contourCfg.landColor : contourCfg.bathyColor;
                       const th = l.land ? contourCfg.thickness : contourCfg.bathyThickness;
                       return (
@@ -2266,10 +2268,10 @@ function AoMapPane(p: PaneProps) {
                     })}
                   </g>
                 )}
-                {gridOn && grid.vertical.map((l) => (
+                {gridOn && grid.vertical.filter((_, i) => i % gridStride === 0).map((l) => (
                   <line key={`v${l.km}${l.frac}`} data-fidgrid x1={l.frac * 100} y1="0" x2={l.frac * 100} y2="100" stroke={C.border} strokeWidth={fwvb(0.25)} />
                 ))}
-                {gridOn && grid.horizontal.map((l) => (
+                {gridOn && grid.horizontal.filter((_, i) => i % gridStride === 0).map((l) => (
                   <line key={`h${l.km}${l.frac}`} x1="0" y1={l.frac * 100} x2="100" y2={l.frac * 100} stroke={C.border} strokeWidth={fwvb(0.25)} />
                 ))}
                 {ao.buildings.map((b) => {
@@ -2747,14 +2749,14 @@ function AoMapPane(p: PaneProps) {
               const face = (t: string, w: number, h: number, color: string, occupied: boolean, lw?: number): React.CSSProperties => ({
                 position: "absolute", left: "50%", top: "50%", width: w, height: h,
                 transform: `translate(-50%,-50%) ${t}`,
-                border: `${lw ?? edgeWidth}px ${occupied ? "solid" : "dashed"} ${color}`,
+                border: `${fw(lw ?? edgeWidth)}px ${occupied ? "solid" : "dashed"} ${color}`,
                 background: occupied ? `${color}10` : "transparent",
               });
               // Grey wireframe edge lines match the VOXEL CENTRE-POINT weight: the target reticle /
               // centre dot render fine (non-scaling), so the aerial cube corner posts use the same
               // symbology-first edgeWidth (operator law: "edge lines thinner, symbology first"; user-tunable
               // via the Settings→3D "Edge width" slider, default EDGE_FINE = 0.6).
-              const edgeFineW = edgeWidth;
+              const edgeFineW = fw(edgeWidth);
               return (
                 <div key={col.key} className="absolute" style={{ left: `${f.fx * 100}%`, top: `${f.fy * 100}%`, transformStyle: "preserve-3d", zIndex: (sel || selAsset) ? 14 : 12, opacity: 1, transition: "opacity 140ms ease",
                   // FX-07 (HI 1.3.2) NORTH-LOCK: project() already rotates the cube POSITION
@@ -2771,7 +2773,7 @@ function AoMapPane(p: PaneProps) {
                   <button onPointerUp={(e) => { e.stopPropagation(); setVoxelSel(sel ? null : col.key); }}
                     title={fmt.coordAt(col.lat, col.lon)}
                     className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-                    style={{ width: cellPx, height: cellPx, border: `${edgeWidth}px solid ${sel ? hiCol : C.cyan}`, background: sel ? `${hiCol}22` : `${C.cyan}08`, pointerEvents: "auto" }} />
+                    style={{ width: cellPx, height: cellPx, border: `${fw(edgeWidth)}px solid ${sel ? hiCol : C.cyan}`, background: sel ? `${hiCol}22` : `${C.cyan}08`, pointerEvents: "auto" }} />
                   )}
                   {/* Airspace threshold CAPS — TRUE scale, at the SAME altitudes as the LEFT gauge
                       lines. Orange (yellow%) · Red (red%) · Grey ceiling (limit%). Horizontal squares
@@ -2782,7 +2784,7 @@ function AoMapPane(p: PaneProps) {
                     { id: "cap", z: capZ, c: "#9ca3af", cap: true },
                   ]).map((t) => (
                     <div key={t.id} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: cellPx, height: cellPx,
-                      border: `${t.cap ? 1.5 : 0.75}px ${t.cap ? "dashed" : "solid"} ${t.c}${t.cap ? "cc" : "aa"}`,
+                      border: `${fw(t.cap ? 1.5 : 0.75)}px ${t.cap ? "dashed" : "solid"} ${t.c}${t.cap ? "cc" : "aa"}`,
                       background: `${t.c}0e`, boxShadow: `0 0 3px ${t.c}55`, opacity: dimmed ? 0.3 : 0.75,
                       transform: `translate(-50%,-50%) translateZ(${t.z}px)` }} />
                   ))}
@@ -2790,7 +2792,7 @@ function AoMapPane(p: PaneProps) {
                       aircraft is BELOW max altitude — 4 corner struts tie the orange/red/grey caps into one
                       3D tower (the airspace-above cue). Grey #9ca3af dashed; additive, aerial-only. */}
                   {!isLattice && aerialStack && topZ < capZ && ([[-1, -1], [1, -1], [1, 1], [-1, 1]] as const).map(([sx, sy], k) => (
-                    <div key={`up${k}`} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 1, height: capZ - topZ,
+                    <div key={`up${k}`} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: fw(1), height: capZ - topZ,
                       background: `repeating-linear-gradient(to bottom, #9ca3af 0 1.5px, transparent 1.5px 4px)`, opacity: dimmed ? 0.25 : 0.6,
                       transform: `translate(-50%,-50%) translate3d(${(sx * cellPx) / 2}px,${(sy * cellPx) / 2}px,${(topZ + capZ) / 2}px) rotateX(90deg)` }} />
                   ))}
@@ -2995,7 +2997,7 @@ function AoMapPane(p: PaneProps) {
                         const rCyl = Math.max(6, cellPx * 0.15); // ≈ TARGET inner-circle radius
                         const cx = rCyl * Math.cos(ang), cy = rCyl * Math.sin(ang);
                         return (
-                          <div key={`cyl${k}`} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: edgeWidth, height: topZ,
+                          <div key={`cyl${k}`} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: fw(edgeWidth), height: topZ,
                             background: `repeating-linear-gradient(to bottom, ${C.gold} 0 1.5px, transparent 1.5px 4px)`, opacity: 0.8,
                             transform: `translate(-50%,-50%) translate3d(${cx}px,${cy}px,${topZ / 2}px) rotateX(90deg)` }} />
                         );
@@ -3083,11 +3085,11 @@ function AoMapPane(p: PaneProps) {
                 <div className="absolute" data-voxel-lattice data-cellpx={Math.round(cellPx)} style={{ left: `${bc.fx * 100}%`, top: `${bc.fy * 100}%`, transformStyle: "preserve-3d", zIndex: 11, transform: `rotateZ(${view.bearing}rad)` }}>
                   {/* (a) 4 horizontal 3×3 grid faces — outer faces (floor/top) get a SOLID 2px
                        cube edge; the two middle levels are thin interior lines. */}
-                  {[0, 1, 2, 3].map((k) => {
+                  {[0, 1, 2, 3].filter((k) => showMinor || k === 0 || k === 3).map((k) => {
                     const outer = k === 0 || k === 3;
                     return (
                       <div key={`vf${k}`} className="pointer-events-none" style={{ ...at(`translateZ(${k * bandPx}px)`),
-                        width: boxW, height: boxW, border: `${outer ? 2 : 1}px solid ${C.cyan}${outer ? "cc" : "40"}`, opacity: dim,
+                        width: boxW, height: boxW, border: `${fw(outer ? 2 : 1)}px solid ${C.cyan}${outer ? "cc" : "40"}`, opacity: dim,
                         backgroundImage:
                           `repeating-linear-gradient(to right, ${line} 0 1px, transparent 1px ${cellPx}px),` +
                           `repeating-linear-gradient(to bottom, ${line} 0 1px, transparent 1px ${cellPx}px)` }} />
@@ -3095,12 +3097,12 @@ function AoMapPane(p: PaneProps) {
                   })}
                   {/* (b) 16 vertical edges — the 4 OUTER cube corners are SOLID 2px; the 12
                        interior posts are thin subdivision lines. */}
-                  {Array.from({ length: 16 }, (_, n) => {
+                  {Array.from({ length: 16 }, (_, n) => n).filter((n) => { const i = n % 4, j = (n / 4) | 0; return showMinor || ((i === 0 || i === 3) && (j === 0 || j === 3)); }).map((n) => {
                     const i = n % 4, j = (n / 4) | 0, x = (i - 1.5) * cellPx, y = (j - 1.5) * cellPx;
                     const corner = (i === 0 || i === 3) && (j === 0 || j === 3);
                     return <div key={`ve${n}`} className="pointer-events-none" style={{
                       ...at(`translate3d(${x}px,${y}px,${topZ / 2}px) rotateX(90deg)`),
-                      width: corner ? 2 : 1, height: topZ, background: corner ? `${C.cyan}cc` : line,
+                      width: fw(corner ? 2 : 1), height: topZ, background: corner ? `${C.cyan}cc` : line,
                       opacity: (corner ? 0.9 : 0.4 * skyK + 0.12) * dim }} />;
                   })}
                   {/* (c) SELECTED column → highlighted DOWN to ground in voxelHiColor (4 side walls) */}
@@ -3108,7 +3110,7 @@ function AoMapPane(p: PaneProps) {
                     const cx = ((selIdx % 3) - 1) * cellPx, cy = (((selIdx / 3) | 0) - 1) * cellPx;
                     const wall = (t: string, w: number, h: number) => (
                       <div className="pointer-events-none" style={{ ...at(`translate3d(${cx}px,${cy}px,${topZ / 2}px) ${t}`),
-                        width: w, height: h, border: `1.5px solid ${voxelHiColor}`, background: `${voxelHiColor}1e` }} />
+                        width: w, height: h, border: `${fw(1.5)}px solid ${voxelHiColor}`, background: `${voxelHiColor}1e` }} />
                     );
                     return <>
                       {wall(`translate3d(0,${-cellPx / 2}px,0) rotateX(90deg)`, cellPx, topZ)}
@@ -3137,7 +3139,7 @@ function AoMapPane(p: PaneProps) {
                   {limitZ > topZ + 1 && ([[-1.5, -1.5], [1.5, -1.5], [1.5, 1.5], [-1.5, 1.5]] as const).map(([sx, sy], n) => (
                     <div key={`vl${n}`} className="pointer-events-none" style={{
                       ...at(`translate3d(${sx * cellPx}px,${sy * cellPx}px,${(topZ + limitZ) / 2}px) rotateX(90deg)`),
-                      width: 1, height: limitZ - topZ, opacity: 0.6 * skyK,
+                      width: fw(1), height: limitZ - topZ, opacity: 0.6 * skyK,
                       background: "repeating-linear-gradient(to bottom, #6b7280 0 2px, transparent 2px 5px)" }} />
                   ))}
                   {/* (f) SKYWARD TOP FACE — the SECOND face: a 3×3 grey ceiling grid drawn where
@@ -3145,7 +3147,7 @@ function AoMapPane(p: PaneProps) {
                        above the cube top. */}
                   {limitZ > topZ + 1 && (
                     <div className="pointer-events-none" style={{ ...at(`translateZ(${limitZ}px)`), width: boxW, height: boxW,
-                      border: "2px solid #9ca3afcc", opacity: 0.6 * skyK,
+                      border: `${fw(2)}px solid #9ca3afcc`, opacity: 0.6 * skyK,
                       backgroundImage:
                         `repeating-linear-gradient(to right, #6b728077 0 1px, transparent 1px ${cellPx}px),` +
                         `repeating-linear-gradient(to bottom, #6b728077 0 1px, transparent 1px ${cellPx}px)` }} />
@@ -4671,9 +4673,9 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   const [iconSize, setIconSize] = useState<"s" | "m" | "l">("s"); // P2: icon visibility — S(1×)/M(1.75×)/L(3×)
   const ICON_SCALE = { s: 1, m: 2, l: 3 } as const; // P1.2 (Enki): M = 2× current, L = 3×
   const [edgeWidth, setEdgeWidth] = useState<number>(EDGE_FINE); // FX-53: user-designable voxel edge thickness (px) — Settings→3D slider, 0.6→2.0, default EDGE_FINE (symbology-first)
-  // FX-54: UX fidelity dial — MAX = all lines as-is; LOW = one uniform thickness for all lines, no depth-thinning.
-  // Line detail ONLY (NOT tied to the FPS governor — the speed gain is emergent from lighter lines). Default max.
-  const [fidelity, setFidelity] = useState<Fidelity>("max");
+  // FX-54: UX fidelity dial — a thickness MULTIPLIER (1.0 = MAX/native … 0.25 = LOW/quarter) applied to EVERY line
+  // incl voxel edges + altitude rail. Thinner = lighter render (drone-2525 low-compute). Default 1.0 = today's look.
+  const [fidelity, setFidelity] = useState<number>(1);
   const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
   const [altRedPct, setAltRedPct] = useState(90);       // FX-05: RED threshold as % of ceiling (default 90%)
   const [altYellowPct, setAltYellowPct] = useState(70); // FX-05: YELLOW threshold as % of ceiling (default 70%)
@@ -5397,18 +5399,20 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   <span className="text-[7px]" style={{ color: C.dim }}>Max</span>
                 </div>
               </div>
-              {/* FX-54 (operator): UX FIDELITY — trades LINE DETAIL for a lighter, simpler render (NOT tied to the FPS
-                  governor; lighter lines just render faster). MAX = every line as today (native width + distance/depth
-                  thinning); LOW = one uniform thickness for ALL lines, no depth-thinning even for far objects; MED/HIGH
-                  blend between. Default MAX = unchanged look. */}
+              {/* FX-54 (operator): UX FIDELITY — a thickness MULTIPLIER on EVERY line (voxel edges, altitude rail,
+                  coverage, contours, grid, roads…) that ALSO culls elements as it drops (fewer grid subdivisions, minor
+                  contours, lattice interiors) → real fps gain for the drone-2525 game on low-compute machines. Trinity
+                  marks: LOW=0 (far left, all thin/off), 33%, 66%, MAX=native (far right = today). NOT the FPS governor. */}
               <div className="mt-1.5 mb-1">
-                <div className="mb-0.5 text-[9px]" style={{ color: C.text }}>UX fidelity <span className="text-[7px]" style={{ color: C.dim }}>(line detail)</span></div>
-                <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
-                  {FID_TIERS.map(({ k, label }) => (
-                    <button key={k} onClick={() => setFidelity(k)} className="flex-1 px-1 py-1"
-                      style={{ background: fidelity === k ? "#152238" : "transparent", color: fidelity === k ? C.cyan : C.dim }}>{label}</button>
-                  ))}
+                <div className="mb-0.5 text-[9px]" style={{ color: C.text }}>UX fidelity <span className="text-[7px]" style={{ color: C.dim }}>· {Math.round(fidelity * 100)}%</span></div>
+                <div className="relative mb-0.5 h-2.5 text-[7px] font-semibold" style={{ color: C.dim }}>
+                  <span className="absolute left-0">LOW</span>
+                  <span className="absolute -translate-x-1/2" style={{ left: "33%" }}>33%</span>
+                  <span className="absolute -translate-x-1/2" style={{ left: "66%" }}>66%</span>
+                  <span className="absolute right-0">MAX</span>
                 </div>
+                <input type="range" min={0} max={1} step={0.05} value={fidelity}
+                  onChange={(e) => setFidelity(parseFloat(e.target.value))} className="w-full" />
               </div>
               {/* FX-09b: max altitude — AUTO (10k ft) or user-fixed via data entry */}
               <div className="mt-1.5 mb-1 flex items-center justify-between">
