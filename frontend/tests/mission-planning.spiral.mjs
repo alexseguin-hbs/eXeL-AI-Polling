@@ -463,21 +463,19 @@ const cellPxAt = async (w, h) => {
   // zoom IN to a tactical AO — the exact config that OOM-crashed the old 9-gradient-disc dome.
   for (let i = 0; i < 8; i++) { await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await pg.mouse.wheel(0, -500); await pg.waitForTimeout(90); }
   await pg.waitForTimeout(400);
-  const dome = await pg.evaluate(() => { const d = document.querySelector('[data-radardome]'); if (!d) return { on: false };
+  const dome = await pg.evaluate(() => { const d = document.querySelector('[data-coverage3d]'); if (!d) return { on: false };
     const paneW = document.querySelector('div.touch-none.overflow-hidden.rounded-md').clientWidth || 1;
-    const struts = d.querySelectorAll('div[style*="border-top"]').length;      // thin cone/meridian struts (cheap)
-    const grad = d.querySelectorAll('[style*="radial-gradient"]').length;       // MUST be 0 — the OOM cause
-    const svgs = d.querySelectorAll('svg').length;                             // ONE ground-coverage object
-    const polys = d.querySelectorAll('polygon').length;                        // 13-gon coverage wedges/rings
-    let maxCss = 0; d.querySelectorAll('*').forEach(e => { if ((e.offsetWidth || 0) > maxCss) maxCss = e.offsetWidth; });
-    const cos = [...document.querySelectorAll('span')].some(s => /CoS/.test(s.textContent || ''));
-    const cov = [...document.querySelectorAll('span')].some(s => /RADAR .*360/.test(s.textContent || ''));
-    const blob = [...d.querySelectorAll('*')].map(e => { const cs = getComputedStyle(e); return cs.borderTopColor + '|' + cs.fill + '|' + cs.stroke; }).join(' ');
-    const purple = /167, 139, 250|196, 181, 253/.test(blob); const cyan = /25, 200, 207/.test(blob);
-    return { on: true, struts, grad, svgs, polys, ratio: +(maxCss / paneW).toFixed(2), cos, cov, purple, cyan }; });
-  // OOM guard: zero gradient layers, single SVG object, no element wider than 2.2·pane; still reads (purple, cone, labels), no cyan.
-  const ok = !!(dome.on && dome.grad === 0 && dome.svgs >= 1 && dome.polys >= 1 && dome.struts >= 6 && dome.ratio <= 2.2 && dome.cos && dome.cov && dome.purple && !dome.cyan);
-  rec('#33 SENTINEL coverage — ONE ground SVG 13-gon (0 gradient layers, ≤2.2·pane, no cyan), zoomed-in 3D no-OOM (FX-59)', ok, JSON.stringify(dome));
+    const grad = document.querySelectorAll('[data-coverage3d] [style*="radial-gradient"]').length; // MUST be 0 — the OOM cause
+    const svgs = document.querySelectorAll('[data-coverage3d]').length;         // ONE svg per radar (screen-space overlay)
+    const polys = d.querySelectorAll('polygon').length;                        // 4 faces/sector × 13 = 52 at full 360°
+    let maxCss = 0; document.querySelectorAll('[data-coverage3d]').forEach(e => { if ((e.getBoundingClientRect().width || 0) > maxCss) maxCss = e.getBoundingClientRect().width; });
+    const cov = [...document.querySelectorAll('[data-coverage3d] text')].some(t => /RADAR .*360/.test(t.textContent || ''));
+    const blob = [...d.querySelectorAll('polygon')].map(e => { const cs = getComputedStyle(e); return cs.fill + '|' + cs.stroke; }).join(' ');
+    const purple = /167, 139, 250|1[0-9][0-9], [0-9]+, 2[0-9][0-9]/.test(blob); const cyan = /25, 200, 207/.test(blob);
+    return { on: true, grad, svgs, polys, ratio: +(maxCss / paneW).toFixed(2), cov, purple, cyan }; });
+  // 52-face solid: ONE svg/radar, 52 polygons at 360°, ZERO gradient layers (OOM class gone), ≤2.2·pane, RADAR label, purple, no cyan.
+  const ok = !!(dome.on && dome.grad === 0 && dome.svgs >= 1 && dome.polys === 52 && dome.ratio <= 2.2 && dome.cov && dome.purple && !dome.cyan);
+  rec('#33 SENTINEL coverage — 52-face projected SVG solid (0 gradient layers, ≤2.2·pane, no cyan), zoomed-in 3D no-OOM (FX-59)', ok, JSON.stringify(dome));
   rec('#33 console clean / no crash', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
