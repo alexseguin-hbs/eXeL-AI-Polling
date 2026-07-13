@@ -2205,8 +2205,8 @@ function AoMapPane(p: PaneProps) {
                 {/* national + state boundaries (= continent/country/state lines), drawn under the OSM detail */}
                 {borderPaths && (
                   <g>
-                    <path d={borderPaths.countries} fill="none" stroke={C.borderCountry} strokeWidth={BORDER_PX.country} vectorEffect="non-scaling-stroke" opacity="0.55" strokeLinejoin="round" />
-                    <path d={borderPaths.states} fill="none" stroke={C.borderState} strokeWidth={BORDER_PX.state} vectorEffect="non-scaling-stroke" opacity="0.45" strokeLinejoin="round" />
+                    <path d={borderPaths.countries} fill="none" stroke={C.borderCountry} strokeWidth={fw(BORDER_PX.country)} vectorEffect="non-scaling-stroke" opacity="0.55" strokeLinejoin="round" />
+                    <path d={borderPaths.states} fill="none" stroke={C.borderState} strokeWidth={fw(BORDER_PX.state)} vectorEffect="non-scaling-stroke" opacity="0.45" strokeLinejoin="round" />
                   </g>
                 )}
                 {/* WATER — lakes/wide rivers as solid blue polygons; rivers/streams as full-width blue lines */}
@@ -2257,7 +2257,7 @@ function AoMapPane(p: PaneProps) {
                       const th = l.land ? contourCfg.thickness : contourCfg.bathyThickness;
                       return (
                         <g key={i}>
-                          <path d={l.d} fill="none" stroke={col} strokeWidth={capContourPx(l.major ? th * 1.5 : th)} vectorEffect="non-scaling-stroke" strokeDasharray={l.land ? undefined : "1 0.7"} opacity={l.major ? 0.9 : 0.5} strokeLinecap="round" />
+                          <path d={l.d} fill="none" stroke={col} strokeWidth={fw(capContourPx(l.major ? th * 1.5 : th))} vectorEffect="non-scaling-stroke" strokeDasharray={l.land ? undefined : "1 0.7"} opacity={l.major ? 0.9 : 0.5} strokeLinecap="round" />
                           {contourCfg.labelMajor && l.major && l.label && (
                             <text x={l.label.x} y={l.label.y} fontSize="1.6" fontFamily="monospace" fill={col} opacity="0.95">{contourLabel(l.level, contourCfg.units)}</text>
                           )}
@@ -2347,7 +2347,7 @@ function AoMapPane(p: PaneProps) {
                     // 13-edge coverage polygon — the SAME flower-of-life shape the 3D dome uses (2D === 3D).
                     // Sector-blanked (covMask) → only the ON wedges draw; absent → the full 13-gon.
                     return covWedges(c.fx * 100, c.fy * 100, rx, ry, u.covMask).map((pts, wi) => (
-                      <polygon key={wi} points={pts} fill={fill} stroke={col} strokeWidth={rlw * 0.4} strokeDasharray={dash} opacity={strokeOp} />
+                      <polygon key={wi} points={pts} fill={fill} stroke={col} strokeWidth={fwvb(rlw * 0.4)} strokeDasharray={dash} opacity={strokeOp} />
                     ));
                   };
                   const ext = ASSET_RANGE_EXT_KM[u.asset];
@@ -2373,9 +2373,9 @@ function AoMapPane(p: PaneProps) {
                   const vw = u.lineW ?? 0.5;
                   return (
                     <g key={`trk${u.id}`}>
-                      <line x1={cx} y1={cy} x2={ex} y2={ey} stroke={col} strokeWidth={vw} vectorEffect="non-scaling-stroke" opacity="0.75" />
-                      <line x1={ex} y1={ey} x2={ex + 1.1 * Math.sin(a1)} y2={ey - 1.1 * Math.cos(a1)} stroke={col} strokeWidth={vw} vectorEffect="non-scaling-stroke" opacity="0.75" />
-                      <line x1={ex} y1={ey} x2={ex + 1.1 * Math.sin(a2)} y2={ey - 1.1 * Math.cos(a2)} stroke={col} strokeWidth={vw} vectorEffect="non-scaling-stroke" opacity="0.75" />
+                      <line x1={cx} y1={cy} x2={ex} y2={ey} stroke={col} strokeWidth={fw(vw)} vectorEffect="non-scaling-stroke" opacity="0.75" />
+                      <line x1={ex} y1={ey} x2={ex + 1.1 * Math.sin(a1)} y2={ey - 1.1 * Math.cos(a1)} stroke={col} strokeWidth={fw(vw)} vectorEffect="non-scaling-stroke" opacity="0.75" />
+                      <line x1={ex} y1={ey} x2={ex + 1.1 * Math.sin(a2)} y2={ey - 1.1 * Math.cos(a2)} stroke={col} strokeWidth={fw(vw)} vectorEffect="non-scaling-stroke" opacity="0.75" />
                     </g>
                   );
                 })}
@@ -2397,7 +2397,7 @@ function AoMapPane(p: PaneProps) {
                   }
                   // centre target line reaches the range boundary at its bearing (point on the range ellipse)
                   const drawLine = (rx: number, ry: number, brg: number, col: string) =>
-                    <line x1={cx} y1={cy} x2={cx + rx * Math.sin((brg * Math.PI) / 180)} y2={cy - ry * Math.cos((brg * Math.PI) / 180)} stroke={col} strokeWidth={lw} vectorEffect="non-scaling-stroke" opacity="0.85" />;
+                    <line x1={cx} y1={cy} x2={cx + rx * Math.sin((brg * Math.PI) / 180)} y2={cy - ry * Math.cos((brg * Math.PI) / 180)} stroke={col} strokeWidth={fw(lw)} vectorEffect="non-scaling-stroke" opacity="0.85" />;
                   // ratio nests any secondary/tertiary target lines just inside the primary range
                   const TLS: [TL | undefined, string, number, string][] = [
                     [u.fov, "#a78bfa", 1.0, "FOV"],
@@ -2409,7 +2409,7 @@ function AoMapPane(p: PaneProps) {
                     <g key={`tl${u.id}`}>
                       {TLS.map(([tl, col, ratio], i) => tl && rrx && (
                         <g key={i}>
-                          <path d={sectorPath(cx, cy, rrx * ratio, rry * ratio, tl)} fill={`${col}1f`} stroke={`${col}66`} strokeWidth="0.25" />
+                          <path d={sectorPath(cx, cy, rrx * ratio, rry * ratio, tl)} fill={`${col}1f`} stroke={`${col}66`} strokeWidth={fwvb(0.25)} />
                           {drawLine(rrx * ratio, rry * ratio, tl.brg, col)}
                         </g>
                       ))}
@@ -2672,7 +2672,7 @@ function AoMapPane(p: PaneProps) {
                   className="pointer-events-none absolute inset-0"
                   style={{ transform: `translateZ(${(((lvl - lo) / span) * 34 * liftK).toFixed(1)}px)` }}>
                   {reliefSet.lines.filter((l) => l.level === lvl).map((l, i) => (
-                    <path key={i} d={l.d} fill="none" stroke={l.land ? C.land : "#22d3ee"} strokeWidth={l.major ? 1.2 : 0.8}
+                    <path key={i} d={l.d} fill="none" stroke={l.land ? C.land : "#22d3ee"} strokeWidth={fw(l.major ? 1.2 : 0.8)}
                       vectorEffect="non-scaling-stroke" strokeDasharray={l.land ? undefined : "3 3"} opacity={l.major ? 0.8 : 0.55} />
                   ))}
                 </svg>
@@ -2932,12 +2932,12 @@ function AoMapPane(p: PaneProps) {
                       style={{ width: Math.max(22, cellPx * 0.5), height: Math.max(22, cellPx * 0.5), background: "transparent" }}>
                       {(() => { const tc = sel ? C.gold : C.cyan; return (
                         <svg viewBox="-17 -17 34 34" width="100%" height="100%" aria-hidden>
-                          <circle r="15.5" fill="none" stroke={tc} strokeWidth="1.2" vectorEffect="non-scaling-stroke" opacity="0.9" />
-                          <circle r="10" fill="none" stroke={tc} strokeWidth="0.9" vectorEffect="non-scaling-stroke" opacity="0.65" />
-                          <line x1="0" y1="-15" x2="0" y2="-4" stroke={tc} strokeWidth="1" vectorEffect="non-scaling-stroke" />
-                          <line x1="0" y1="4" x2="0" y2="15" stroke={tc} strokeWidth="1" vectorEffect="non-scaling-stroke" />
-                          <line x1="-15" y1="0" x2="-4" y2="0" stroke={tc} strokeWidth="1" vectorEffect="non-scaling-stroke" />
-                          <line x1="4" y1="0" x2="15" y2="0" stroke={tc} strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                          <circle r="15.5" fill="none" stroke={tc} strokeWidth={fw(1.2)} vectorEffect="non-scaling-stroke" opacity="0.9" />
+                          <circle r="10" fill="none" stroke={tc} strokeWidth={fw(0.9)} vectorEffect="non-scaling-stroke" opacity="0.65" />
+                          <line x1="0" y1="-15" x2="0" y2="-4" stroke={tc} strokeWidth={fw(1)} vectorEffect="non-scaling-stroke" />
+                          <line x1="0" y1="4" x2="0" y2="15" stroke={tc} strokeWidth={fw(1)} vectorEffect="non-scaling-stroke" />
+                          <line x1="-15" y1="0" x2="-4" y2="0" stroke={tc} strokeWidth={fw(1)} vectorEffect="non-scaling-stroke" />
+                          <line x1="4" y1="0" x2="15" y2="0" stroke={tc} strokeWidth={fw(1)} vectorEffect="non-scaling-stroke" />
                           <text x="0" y="-11.5" textAnchor="middle" fontSize="4.5" fill={tc} fontFamily="monospace">N</text>
                           <text x="0" y="15" textAnchor="middle" fontSize="4.5" fill={tc} fontFamily="monospace">S</text>
                           <text x="12.5" y="1.6" textAnchor="middle" fontSize="4.5" fill={tc} fontFamily="monospace">E</text>
@@ -3021,9 +3021,9 @@ function AoMapPane(p: PaneProps) {
                     return (
                       <svg key={`vec3${o.id}`} className="pointer-events-none absolute left-1/2 top-1/2" width={cellPx * 3} height={cellPx * 3}
                         viewBox={`${-cellPx * 1.5} ${-cellPx * 1.5} ${cellPx * 3} ${cellPx * 3}`} style={{ transform: `translate(-50%,-50%) translateZ(${zb}px)`, overflow: "visible" }}>
-                        <line x1={0} y1={0} x2={hx} y2={hy} stroke={vc} strokeWidth={vw3} vectorEffect="non-scaling-stroke" opacity="0.85" />
-                        <line x1={hx} y1={hy} x2={hx + hd * Math.sin(a1)} y2={hy - hd * Math.cos(a1)} stroke={vc} strokeWidth={vw3} vectorEffect="non-scaling-stroke" opacity="0.85" />
-                        <line x1={hx} y1={hy} x2={hx + hd * Math.sin(a2)} y2={hy - hd * Math.cos(a2)} stroke={vc} strokeWidth={vw3} vectorEffect="non-scaling-stroke" opacity="0.85" />
+                        <line x1={0} y1={0} x2={hx} y2={hy} stroke={vc} strokeWidth={fw(vw3)} vectorEffect="non-scaling-stroke" opacity="0.85" />
+                        <line x1={hx} y1={hy} x2={hx + hd * Math.sin(a1)} y2={hy - hd * Math.cos(a1)} stroke={vc} strokeWidth={fw(vw3)} vectorEffect="non-scaling-stroke" opacity="0.85" />
+                        <line x1={hx} y1={hy} x2={hx + hd * Math.sin(a2)} y2={hy - hd * Math.cos(a2)} stroke={vc} strokeWidth={fw(vw3)} vectorEffect="non-scaling-stroke" opacity="0.85" />
                       </svg>
                     );
                   })}
@@ -3242,7 +3242,7 @@ function AoMapPane(p: PaneProps) {
                   transformStyle: "preserve-3d", zIndex: 12, transform: `rotateZ(${view.bearing}rad)`, opacity: 0.9 }}>
                   {/* FLOOR — ALWAYS a circular base ring at ground level, in BOTH dome styles.
                       Only the SKY DOME above it changes between GRID lines and HEX panels. */}
-                  <div className="rounded-full" style={{ ...at(`translateZ(0px)`), width: 2 * R, height: 2 * R, border: `${domeThick}px solid ${col}aa` }} />
+                  <div className="rounded-full" style={{ ...at(`translateZ(0px)`), width: 2 * R, height: 2 * R, border: `${fw(domeThick)}px solid ${col}aa` }} />
                   {/* GRID style — latitude rings (flat circles at height) + meridian arches (SVG). */}
                   {domeMode === "grid" && <>
                     {Array.from({ length: NR + 1 }, (_, k) => {
@@ -3250,14 +3250,14 @@ function AoMapPane(p: PaneProps) {
                       const r = R * Math.cos(th), z = H * Math.sin(th);
                       if (r < 1 || k === 0) return null; // k=0 floor is drawn always (above)
                       return <div key={`dlr${k}`} className="rounded-full" style={{ ...at(`translateZ(${z}px)`),
-                        width: 2 * r, height: 2 * r, border: `${domeThick}px solid ${col}99` }} />;
+                        width: 2 * r, height: 2 * r, border: `${fw(domeThick)}px solid ${col}99` }} />;
                     })}
                     {Array.from({ length: NM }, (_, m) => {
                       const phi = (m / NM) * 180;
                       return (
                         <svg key={`dm${m}`} width={2 * R} height={H} viewBox={`0 0 ${2 * R} ${H}`} style={{ position: "absolute", left: "50%", top: "50%",
                           marginLeft: -R, marginTop: -H, transformOrigin: "50% 100%", transform: `rotateZ(${phi}deg) rotateX(-90deg)`, overflow: "visible" }}>
-                          <path d={`M 0 ${H} A ${R} ${H} 0 0 1 ${2 * R} ${H}`} fill="none" stroke={col} strokeWidth={domeThick * 1.6} opacity="0.9" />
+                          <path d={`M 0 ${H} A ${R} ${H} 0 0 1 ${2 * R} ${H}`} fill="none" stroke={col} strokeWidth={fw(domeThick * 1.6)} opacity="0.9" />
                         </svg>
                       );
                     })}
@@ -3515,7 +3515,7 @@ function AoMapPane(p: PaneProps) {
               return (
                 <svg key={`cov3d${u.id}`} data-coverage3d className="pointer-events-none absolute inset-0" width={pw} height={ph} style={{ zIndex: 6 }}>
                   {faces.map((fc, i) => { const c = darkerHex(shell, FACE_SHADE[fc.kind]); return (
-                    <polygon key={i} points={fc.pts} fill={`${c}44`} stroke={`${c}cc`} strokeWidth={0.6} strokeLinejoin="round" />
+                    <polygon key={i} points={fc.pts} fill={`${c}44`} stroke={`${c}cc`} strokeWidth={fw(0.6)} strokeLinejoin="round" />
                   ); })}
                   {labelAt && (
                     <text x={labelAt.x} y={labelAt.y - 3} textAnchor="middle" className="font-mono" style={{ fontSize: 7, fontWeight: 700, fill: shell }}>RADAR {fmt.fmtDist(rangeKm * 1000)} · 360° · −10°/+55°{u.covMask && u.covMask.length ? " · MASK" : ""}</text>
