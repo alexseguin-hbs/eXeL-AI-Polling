@@ -542,6 +542,38 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #36/#37: UX FIDELITY drives line detail (FX-54) — the grid stroke collapses toward a uniform baseline as
+//    the tier drops from MAX → LOW, monotonically. Grid (data-fidgrid) renders in the TACTICAL AO map (place an asset
+//    to drill in), so mirror #33/#35's placement flow. ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(300);
+  await clk('div.cursor-grab:has-text("SENTINEL")'); await pg.waitForTimeout(250);
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  const box = await M.boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(400);
+  await clk('button:has-text("Save")'); await pg.waitForTimeout(400);
+  const gw = () => pg.evaluate(() => { const e = document.querySelector('[data-fidgrid]'); return e ? parseFloat(e.getAttribute('stroke-width')) : null; });
+  if ((await gw()) == null) { await clk('button:has-text("GRID"):visible'); await pg.waitForTimeout(400); } // ensure tactical grid is on
+  const maxW = await gw(); // default tier MAX → native 0.25 (full detail)
+  await clk('button[title*="VOXEL settings"]'); await pg.waitForTimeout(300);
+  // read the grid stroke at each fidelity tier (LOW → MAX) by clicking each button in the UX fidelity row.
+  const widths = {};
+  for (const label of ['LOW', 'MED', 'HIGH', 'MAX']) { await clk(`button:text-is("${label}"):visible`); await pg.waitForTimeout(120); widths[label] = await gw(); }
+  const vals = ['LOW', 'MED', 'HIGH', 'MAX'].map((l) => widths[l]);
+  const allNum = vals.every((v) => typeof v === 'number' && Number.isFinite(v));
+  // #36: fidelity actually changes the grid stroke (MAX default native ≈0.25; LOW = fully uniform baseline ≠ MAX).
+  const drives = allNum && Math.abs(widths['MAX'] - 0.25) < 0.06 && Math.abs(widths['LOW'] - widths['MAX']) > 0.02;
+  rec('#36 UX fidelity drives line detail — grid stroke MAX(native)≠LOW(uniform) (FX-54)', drives, `max=${widths['MAX']} low=${widths['LOW']}`);
+  // #37: strictly MONOTONIC across the 4 tiers (fidF 0→1 blends baseline→native with no reversals).
+  let mono = allNum;
+  const inc = vals[3] > vals[0];
+  for (let i = 1; i < vals.length && mono; i++) mono = inc ? vals[i] > vals[i - 1] : vals[i] < vals[i - 1];
+  rec('#37 UX fidelity monotonic across LOW·MED·HIGH·MAX (FX-54)', mono, JSON.stringify(widths));
+  rec('#36 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');

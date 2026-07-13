@@ -331,6 +331,14 @@ const COVERAGE_SIDES = 13;
 // centre iconology). Undercuts the 3×3 lattice interior lines (1px low-alpha). 0.6px = operator's thinnest;
 // on phone (DPR 2-3) it renders ~1.2-1.8 device-px crisp, on DPR=1 desktop it hairlines but stays visible.
 const EDGE_FINE = 0.6;
+// UX FIDELITY (operator) — a quality dial trading LINE DETAIL for a lighter, simpler render. NOT tied to the FPS
+// governor: the speed gain is EMERGENT (thinner/uniform lines = less to render = naturally higher fps). `FID_F` is the
+// blend fraction per tier: 1 = full detail (every line keeps its native width AND thins with distance/depth), 0 = fully
+// uniform (every line collapses to the edgeWidth baseline, NO depth-thinning — far == near). Med/High blend between.
+// Default "max" = today's look, unchanged until the user opts down. One place to retune the rungs.
+type Fidelity = "max" | "high" | "med" | "low";
+const FID_F: Record<Fidelity, number> = { max: 1, high: 0.75, med: 0.5, low: 0 };
+const FID_TIERS: { k: Fidelity; label: string }[] = [{ k: "low", label: "LOW" }, { k: "med", label: "MED" }, { k: "high", label: "HIGH" }, { k: "max", label: "MAX" }];
 function ngonPoints(cx: number, cy: number, rx: number, ry: number, sides: number = COVERAGE_SIDES, rotDeg = 0): string {
   let s = "";
   for (let k = 0; k < sides; k++) {
@@ -1494,6 +1502,7 @@ interface PaneProps {
   onPitch?: (deg: number) => void; // 3D tilt via right-drag (overhead 15° ⇄ horizon 85°)
   iconScale?: number; // icon size setting S/M/L → 1 / 1.75 / 3 (P2, visibility)
   edgeWidth?: number; // FX-53: user-designable voxel edge thickness (px), Settings→3D slider; default EDGE_FINE (0.6)
+  fidelity?: Fidelity; // FX-54: UX fidelity tier — max=full detail, low=uniform lines + no depth-thinning
   pitch?: number; // 3D view angle (deg) — FAAD/AMDWS "right-click angles the view to altitude"
   // AO / AOR draw tool
   drawingAo: boolean;
@@ -1513,7 +1522,7 @@ function AoMapPane(p: PaneProps) {
     selectedAsset, selectedSupport, reality, setInventory, setPlaced, setPlacedSupport, setSelected, onDisarm, coordFmt, onSetCoordFmt,
     unit: paneUnit = "km", onSetUnit, gridStepM: gridStepOverride = 0,
     maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
-    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1, edgeWidth = EDGE_FINE,
+    setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1, edgeWidth = EDGE_FINE, fidelity = "max",
     drawingAo, aoDraft, onAoVertex, drawnAo, playing = false, onTogglePlay, onResetTracks,
   } = p;
 
@@ -1524,6 +1533,14 @@ function AoMapPane(p: PaneProps) {
   const [elevReveal, setElevReveal] = useState<"high" | "low" | null>(null); // HIGH/LOW coord reveal
   const [showDecode, setShowDecode] = useState(false); // MGRS/DMS mini-lesson popover
   const mapRef = useRef<HTMLDivElement>(null);
+  // FX-54 UX FIDELITY — blend any stroke width toward the uniform baseline. fidF=1 (Max) → native width (full detail,
+  // distance/depth thinning intact); fidF=0 (Low) → the baseline for EVERY line, which is both uniform AND depth-flat
+  // (a constant width has no far/near variation). Two variants keep it unit-safe: `fw` for SCREEN-PX strokes (CSS /
+  // vectorEffect), baseline = edgeWidth px; `fwvb` for VIEWBOX-unit strokes (the flat-map 0..100 SVG), baseline =
+  // edgeWidth converted to viewBox units (edgeWidth·100/paneW) so px and viewBox lines land at the SAME screen width.
+  const fidF = FID_F[fidelity];
+  const fw = (native: number) => edgeWidth + (native - edgeWidth) * fidF;
+  const fwvb = (native: number) => { const u = (edgeWidth * 100) / (mapRef.current?.clientWidth ?? 800); return u + (native - u) * fidF; };
   const dragRef = useRef<{ x: number; y: number; moved: boolean; btn: number } | null>(null);
   // P1 (SSSES perf): rAF-throttle the tilt/bearing drag — coalesce many pointermove events into
   // ONE state update per animation frame so the geometry doesn't re-render ~120×/s.
@@ -2205,8 +2222,8 @@ function AoMapPane(p: PaneProps) {
                         100-unit viewBox). NO hard max cap, so a wide river reads proportionally
                         wide up-close and thin zoomed-out; floor 0.08 only so it never vanishes.
                         The faint highlight path (#7dd3fc) below stays thin. R-CORE EDGE. */}
-                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={Math.max(0.05, (22 / (view.spanKm * 1000)) * 100)} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={Math.min(1.4, Math.max(0.05, (14 / (view.spanKm * 1000)) * 100))} opacity={0.85 * waterLightK} strokeLinecap="round" />
+                    <path d={osmPaths.waterD} fill="none" stroke="#2f8fe0" strokeWidth={fwvb(Math.max(0.05, (22 / (view.spanKm * 1000)) * 100))} opacity="0.9" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={osmPaths.waterD} fill="none" stroke="#7dd3fc" strokeWidth={fwvb(Math.min(1.4, Math.max(0.05, (14 / (view.spanKm * 1000)) * 100)))} opacity={0.85 * waterLightK} strokeLinecap="round" />
                   </g>
                   );
                 })()}
@@ -2216,7 +2233,8 @@ function AoMapPane(p: PaneProps) {
                     {/* P2: road width tracks ZOOM — real-metre widths (12/24/40m core), current
                         look preserved at tight zoom via caps; floor keeps hairline visibility */}
                     {(() => {
-                      const rw = (m: number, cap: number) => Math.min(cap, Math.max(0.07, (m / (view.spanKm * 1000)) * 100));
+                      // fwvb: at Low fidelity every road collapses to the uniform baseline (no span-thinning); at Max, native.
+                      const rw = (m: number, cap: number) => fwvb(Math.min(cap, Math.max(0.07, (m / (view.spanKm * 1000)) * 100)));
                       return (
                         <>
                           <path d={osmPaths.tiers[2]} fill="none" stroke="#cbd5e1" strokeWidth={rw(26, 0.55)} opacity="0.16" strokeLinecap="round" />
@@ -2249,10 +2267,10 @@ function AoMapPane(p: PaneProps) {
                   </g>
                 )}
                 {gridOn && grid.vertical.map((l) => (
-                  <line key={`v${l.km}${l.frac}`} x1={l.frac * 100} y1="0" x2={l.frac * 100} y2="100" stroke={C.border} strokeWidth="0.25" />
+                  <line key={`v${l.km}${l.frac}`} data-fidgrid x1={l.frac * 100} y1="0" x2={l.frac * 100} y2="100" stroke={C.border} strokeWidth={fwvb(0.25)} />
                 ))}
                 {gridOn && grid.horizontal.map((l) => (
-                  <line key={`h${l.km}${l.frac}`} x1="0" y1={l.frac * 100} x2="100" y2={l.frac * 100} stroke={C.border} strokeWidth="0.25" />
+                  <line key={`h${l.km}${l.frac}`} x1="0" y1={l.frac * 100} x2="100" y2={l.frac * 100} stroke={C.border} strokeWidth={fwvb(0.25)} />
                 ))}
                 {ao.buildings.map((b) => {
                   const pts = b.footprint.map(([e, n]) => bldFrac(b, e, n)).map((f) => `${(f.fx * 100).toFixed(2)},${(f.fy * 100).toFixed(2)}`).join(" ");
@@ -4653,6 +4671,9 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   const [iconSize, setIconSize] = useState<"s" | "m" | "l">("s"); // P2: icon visibility — S(1×)/M(1.75×)/L(3×)
   const ICON_SCALE = { s: 1, m: 2, l: 3 } as const; // P1.2 (Enki): M = 2× current, L = 3×
   const [edgeWidth, setEdgeWidth] = useState<number>(EDGE_FINE); // FX-53: user-designable voxel edge thickness (px) — Settings→3D slider, 0.6→2.0, default EDGE_FINE (symbology-first)
+  // FX-54: UX fidelity dial — MAX = all lines as-is; LOW = one uniform thickness for all lines, no depth-thinning.
+  // Line detail ONLY (NOT tied to the FPS governor — the speed gain is emergent from lighter lines). Default max.
+  const [fidelity, setFidelity] = useState<Fidelity>("max");
   const [maxAltFt, setMaxAltFt] = useState<number | null>(null);      // FX-09b: null = AUTO (10k ft rail)
   const [altRedPct, setAltRedPct] = useState(90);       // FX-05: RED threshold as % of ceiling (default 90%)
   const [altYellowPct, setAltYellowPct] = useState(70); // FX-05: YELLOW threshold as % of ceiling (default 70%)
@@ -4974,7 +4995,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
     coordFmt, onSetCoordFmt: setCoordFmt, unit, onSetUnit: setUnit, gridStepM,
     maxAltFt, altRedPct, altYellowPct, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct, voxelHiColor,
     reality, hoverAsset, setInventory, setPlaced, setPlacedSupport, setSelected, setHoverAsset, allocId,
-    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize], edgeWidth,
+    drawingAo, aoDraft, onAoVertex: addAoVertex, drawnAo: drawnAos[aoKey], pitch, onPitch: setPitch, iconScale: ICON_SCALE[iconSize], edgeWidth, fidelity,
     mapEngine, playing, onTogglePlay: () => setPlaying((p) => !p), onResetTracks: resetTracks,
   }; // NB: `dem` is passed per-pane (demA→MAP, demB→MINI) so each pane's contours match its own view.
      // 2D↔3D reuses this SAME tile — is3d is a render flag only; no DEM/OSM effect depends on it → ZERO extra fetch.
@@ -5374,6 +5395,19 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                   <input type="range" min={0.6} max={2} step={0.05} value={edgeWidth}
                     onChange={(e) => setEdgeWidth(parseFloat(e.target.value))} className="flex-1" />
                   <span className="text-[7px]" style={{ color: C.dim }}>Max</span>
+                </div>
+              </div>
+              {/* FX-54 (operator): UX FIDELITY — trades LINE DETAIL for a lighter, simpler render (NOT tied to the FPS
+                  governor; lighter lines just render faster). MAX = every line as today (native width + distance/depth
+                  thinning); LOW = one uniform thickness for ALL lines, no depth-thinning even for far objects; MED/HIGH
+                  blend between. Default MAX = unchanged look. */}
+              <div className="mt-1.5 mb-1">
+                <div className="mb-0.5 text-[9px]" style={{ color: C.text }}>UX fidelity <span className="text-[7px]" style={{ color: C.dim }}>(line detail)</span></div>
+                <div className="flex overflow-hidden rounded border text-[8px] font-semibold" style={{ borderColor: C.border }}>
+                  {FID_TIERS.map(({ k, label }) => (
+                    <button key={k} onClick={() => setFidelity(k)} className="flex-1 px-1 py-1"
+                      style={{ background: fidelity === k ? "#152238" : "transparent", color: fidelity === k ? C.cyan : C.dim }}>{label}</button>
+                  ))}
                 </div>
               </div>
               {/* FX-09b: max altitude — AUTO (10k ft) or user-fixed via data entry */}
