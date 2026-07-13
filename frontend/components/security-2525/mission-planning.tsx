@@ -1390,7 +1390,7 @@ function makeFormatters(coordFmt: "mgrs" | "dms" | "ucrs" | "utm", digits: Digit
     if (unit === "ft") return `${Math.round(m * 3.28084).toLocaleString()} ft`;
     const v = unit === "mi" ? m / 1609.34 : m / 1000; // km is the default
     const u = unit === "mi" ? "mi" : "km";
-    const dec = v < 100 ? 3 : v < 1000 ? 1 : 0;
+    const dec = v < 1000 ? 1 : 0; // operator: km/mi always ##.# (1 dp) — de-clutter, even under 100
     return `${v.toFixed(dec)} ${u}`;
   };
   const fmtDist = lenFmt;
@@ -3449,10 +3449,18 @@ function AoMapPane(p: PaneProps) {
               if (!Number.isFinite(f.fx) || !Number.isFinite(f.fy)) return null;
               const pw = mapRef.current?.clientWidth ?? 800, ph = mapRef.current?.clientHeight ?? 600;
               if (!(pw > 1) || !(view.spanKm > 0)) return null;
-              const cx = f.fx * pw, cy = f.fy * ph;
+              // ALIGN the coverage apex with the VOXEL's on-screen centre: the voxel lives inside the 3D scene's
+              // `perspective(780) rotateX(pitch) scale(1.2)` about origin (50%,60%). Replicate that on the radar's
+              // ground point so the apex sits under the voxel's target box (operator: "centre of voxel = centre of radar").
+              const p3 = ((pitch ?? 55) * Math.PI) / 180, SCALE = 1.2, PERSP = 780;
+              const ox = 0.5 * pw, oy = 0.6 * ph;
+              const rrx = (f.fx * pw - ox) * SCALE, rry = (f.fy * ph - oy) * SCALE;
+              const persp = is3d ? PERSP / Math.max(60, PERSP - rry * Math.sin(p3)) : 1;
+              const cx = ox + rrx * persp;
+              const cy = oy + rry * (is3d ? Math.cos(p3) : 1) * persp;
               const pxPerM = pw / (view.spanKm * 1000);
               const rangeKm = ASSET_RANGE_KM.sentinel ?? 75;
-              const L = Math.max(40, Math.min(rangeKm * 1000 * pxPerM, pw * 1.3)); // bounded, off-map clips at pane
+              const L = SCALE * Math.max(40, Math.min(rangeKm * 1000 * pxPerM, pw * 1.1)); // scene-scaled, bounded, clips off-map
               const shell = u.covColor ?? (u.aff === "hostile" ? C.red : "#a78bfa");
               const faces = radarSolidFaces(cx, cy, L, pitch ?? 55, view.bearing, COVERAGE_SIDES, u.covMask);
               // each of a sector's 4 faces gets a slightly darker purple (FACE_SHADE) → the 3D form reads; CoS darkest.

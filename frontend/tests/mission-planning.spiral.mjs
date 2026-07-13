@@ -420,8 +420,8 @@ const cellPxAt = async (w, h) => {
   const colMi = await rowOf('COLUMN'), terrMi = await rowOf('TERRAIN');
   const dimUnit = /\bkm\b/.test(colKm || '') && /\bmi\b/.test(colMi || '');       // grid dims follow km→mi
   const altUnit = / km MSL$/.test(terrKm || '') && / mi MSL$/.test(terrMi || '');  // FX-56b: altitude now km/mi too
-  const dec3 = /\d\.\d{3} km/.test(colKm || '') && /\d\.\d{3} km/.test(terrKm || ''); // 3 decimals when < 100
-  rec('#31 units drive voxel dims + altitude, km/mi 3-dec (FX-56/56b)', dimUnit && altUnit && dec3, `colKm=${colKm} colMi=${colMi} terrKm=${terrKm} terrMi=${terrMi}`);
+  const dec1 = /\d\.\d km/.test(colKm || '') && /\d\.\d km/.test(terrKm || ''); // operator: km/mi always ##.# (1 dp, de-clutter)
+  rec('#31 units drive voxel dims + altitude, km/mi 1-dec (FX-56/56b)', dimUnit && altUnit && dec1, `colKm=${colKm} colMi=${colMi} terrKm=${terrKm} terrMi=${terrMi}`);
   rec('#31 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
