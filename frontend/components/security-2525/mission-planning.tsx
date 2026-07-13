@@ -395,17 +395,20 @@ function radarSolidFaces(fx: number, fy: number, pw: number, ph: number, L: numb
     return { x: L * c * Math.cos(th), y: L * c * Math.sin(th), z: L * s + altPx };
   };
   const ox = 0.5 * pw, oy = 0.6 * ph;
+  const CLAMP = 100000; // SVG-safe coordinate bound — no absurd value ever reaches <polygon>
   const proj = (v: { x: number; y: number; z: number }) => {
     const rx = (fx * pw + v.x - ox) * 1.2, ry = (fy * ph + v.y - oy) * 1.2, rz = v.z * 1.2;
     const ry2 = ry * cp - rz * sp, rz2 = ry * sp + rz * cp;       // rotateX(pitch)
     const persp = 780 / Math.max(60, 780 - rz2);                  // clamp: never behind the camera
-    return { sx: ox + rx * persp, sy: oy + ry2 * persp, d: rz2, behind: rz2 >= 720 };
+    const sx = ox + rx * persp, sy = oy + ry2 * persp;
+    const bad = !Number.isFinite(sx) || !Number.isFinite(sy) || Math.abs(sx) > CLAMP || Math.abs(sy) > CLAMP;
+    return { sx, sy, d: rz2, behind: rz2 >= 720 || bad };         // treat non-finite/extreme as "behind" → face dropped
   };
   const A = { x: 0, y: 0, z: altPx };
   const faces: SolidFace[] = [];
   const push = (vs: { x: number; y: number; z: number }[], kind: FaceKind) => {
     const ps = vs.map(proj);
-    if (ps.some((q) => q.behind)) return; // cull faces crossing the camera plane (no inversion at extreme tilt)
+    if (ps.some((q) => q.behind)) return; // cull faces crossing the camera plane / non-finite (no crash, no inversion)
     faces.push({ pts: ps.map((q) => `${q.sx.toFixed(1)},${q.sy.toFixed(1)}`).join(" "), depth: ps.reduce((s, q) => s + q.d, 0) / ps.length, kind });
   };
   let labelAt: { x: number; y: number } | null = null, labelDepth = Infinity;
@@ -3465,17 +3468,23 @@ function AoMapPane(p: PaneProps) {
                 covColour, CoS = darker. Radar ALTITUDE (AGL/MSL) lifts the whole solid. ONE vector layer/radar → OOM-proof. */}
             {is3d && placed.filter((u) => u.asset === "sentinel").map((u) => {
               const f = project(u.lat, u.lon);
-              if (!Number.isFinite(f.fx) || !Number.isFinite(f.fy)) return null;
+              // HARDENING (off-map black-screen fix): bail only on non-finite OR absurdly-far garbage (>100 panes). A
+              // merely-far radar is KEPT so its silhouette keeps SHRINKING via perspective (the "tower effect" — a
+              // distant radar recedes small, like an aerial tower). The per-face finite/clamp guard closes the crash class.
+              if (!Number.isFinite(f.fx) || !Number.isFinite(f.fy) || Math.abs(f.fx - 0.5) > 100 || Math.abs(f.fy - 0.5) > 100) return null;
               const pw = mapRef.current?.clientWidth ?? 800, ph = mapRef.current?.clientHeight ?? 600;
               if (!(pw > 1) || !(view.spanKm > 0)) return null;
               const pxPerM = pw / (view.spanKm * 1000);
+              if (!Number.isFinite(pxPerM) || pxPerM <= 0) return null;
               const rangeKm = ASSET_RANGE_KM.sentinel ?? 75;
               const L = Math.max(40, Math.min(rangeKm * 1000 * pxPerM, pw * 1.1)); // 75 km at scale, bounded (clips off-map)
               // radar ALTITUDE lifts the whole solid (on a building/hill): AGL → altM; MSL → altM − terrain. px via pxPerM.
               const altM = u.altitude ?? 0;
-              const altPx = Math.max(0, u.altRef === "MSL" ? altM - sampler(u.lat, u.lon) : altM) * pxPerM;
+              const altRaw = Math.max(0, u.altRef === "MSL" ? altM - sampler(u.lat, u.lon) : altM) * pxPerM;
+              const altPx = Number.isFinite(altRaw) ? altRaw : 0; // guard NaN (e.g. off-DEM MSL sampler)
               const shell = u.covColor ?? (u.aff === "hostile" ? C.red : "#a78bfa");
-              const { faces, labelAt } = radarSolidFaces(f.fx, f.fy, pw, ph, L, altPx, pitch ?? 55, view.bearing, COVERAGE_SIDES, u.covMask);
+              const bearing = Number.isFinite(view.bearing) ? view.bearing : 0;
+              const { faces, labelAt } = radarSolidFaces(f.fx, f.fy, pw, ph, L, altPx, pitch ?? 55, bearing, COVERAGE_SIDES, u.covMask);
               // each of a sector's 4 faces gets a slightly darker purple (FACE_SHADE) → the 3D form reads; CoS darkest.
               return (
                 <svg key={`cov3d${u.id}`} data-coverage3d className="pointer-events-none absolute inset-0" width={pw} height={ph} style={{ zIndex: 6 }}>
