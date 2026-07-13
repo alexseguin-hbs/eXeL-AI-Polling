@@ -299,8 +299,9 @@ export function SecurityCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: s
             <button onClick={() => setMenuOpen((o) => !o)} className="p-1.5 rounded hover:bg-white/5" title="Settings — global (all tabs)">
               <Gauge className="h-4 w-4" style={{ color: menuOpen ? C.cyan : C.dim }} />
             </button>
-            {/* FX-33: live FPS pill sits directly UNDER the gauge icon (one line) */}
-            <div className="pointer-events-none absolute left-1/2 top-full z-[93] -translate-x-1/2 pt-0.5"><FpsMeter show={showFps} /></div>
+            {/* FX-33b: live FPS pill tucks directly UNDER the gauge on ROW ONE — pulled up so it never spills onto the
+                nav-tabs row (PLANNING) below (operator IMG_7259). Centred under the gauge, bottom at the top-bar edge. */}
+            <div className="pointer-events-none absolute left-1/2 top-full z-[93] -translate-x-1/2 -translate-y-1/2"><FpsMeter show={showFps} /></div>
             {menuOpen && <div className="fixed inset-0 z-[94]" onClick={() => setMenuOpen(false)} aria-hidden />}
             {menuOpen && (
               <div className="absolute right-0 top-9 z-[95] w-56 rounded border p-2 shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
