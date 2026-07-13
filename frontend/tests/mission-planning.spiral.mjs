@@ -454,9 +454,9 @@ const cellPxAt = async (w, h) => {
   if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height * 0.6); await pg.waitForTimeout(300);
   await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
   await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
-  const dome = await pg.evaluate(() => { const d = document.querySelector('[data-radardome]'); if (!d) return { on: false }; const struts = d.querySelectorAll('div[style*="border-top"]').length; const rims = d.querySelectorAll('div[style*="border-radius"]').length; const cos = [...document.querySelectorAll('span')].some(s => /CoS/.test(s.textContent || '')); const cov = [...document.querySelectorAll('span')].some(s => /RADAR .*360/.test(s.textContent || '')); return { on: true, struts, rims, cos, cov }; });
-  const ok = !!(dome.on && dome.struts >= 8 && dome.rims >= 2 && dome.cos && dome.cov);
-  rec('#33 SENTINEL 360° radar sphere (3D div-struts + rims) + cone of silence, realistic range (FX-59)', ok, JSON.stringify(dome));
+  const dome = await pg.evaluate(() => { const d = document.querySelector('[data-radardome]'); if (!d) return { on: false }; const struts = d.querySelectorAll('div[style*="border-top"]').length; const rims = d.querySelectorAll('div[style*="border-radius"][style*="border:"]').length; const discs = d.querySelectorAll('div[style*="radial-gradient"]').length; const cos = [...document.querySelectorAll('span')].some(s => /CoS/.test(s.textContent || '')); const cov = [...document.querySelectorAll('span')].some(s => /RADAR .*360/.test(s.textContent || '')); const all = [...d.querySelectorAll('*')]; const styleBlob = all.map(e => { const cs = getComputedStyle(e); return cs.borderTopColor + '|' + cs.backgroundImage; }).join(' '); const purple = /167, 139, 250|196, 181, 253/.test(styleBlob); const cyan = /25, 200, 207/.test(styleBlob); return { on: true, struts, rims, discs, cos, cov, purple, cyan }; });
+  const ok = !!(dome.on && dome.struts >= 8 && dome.rims >= 2 && dome.discs >= 3 && dome.cos && dome.cov && dome.purple && !dome.cyan);
+  rec('#33 SENTINEL 360° radar dome — purple shaded shell + distinct-violet CoS, no cyan, realistic range (FX-59)', ok, JSON.stringify(dome));
   rec('#33 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }

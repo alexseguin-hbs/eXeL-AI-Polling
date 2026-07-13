@@ -2644,8 +2644,15 @@ function AoMapPane(p: PaneProps) {
                     // so a continental zoom still shows a legible dome. Zoom out to see the full 75 km footprint.
                     const rangeKm = ASSET_RANGE_KM.sentinel ?? 75;
                     const Lreal = rangeKm * 1000 * altPxPerM;
-                    const L = Math.max(48, Math.min(Lreal, paneW * 0.85));
-                    const col = placed.find((p) => p.id === topObj?.id)?.aff === "hostile" ? C.red : C.cyan;
+                    // OFF-MAP AT DISTANCE (operator): true scale, no on-screen cap — the coverage reaches its
+                    // real 75 km and, when that overflows the pane, it CLIPS at the screen edge exactly like the
+                    // voxel towers' off-map cue (overflow-hidden). Bounded to 3·pane only to cap DOM/gradient size.
+                    const L = Math.max(48, Math.min(Lreal, paneW * 3));
+                    const offMap = Lreal > paneW; // coverage extends past the visible map
+                    // COVERAGE PURPLE (operator): the SAME violet the 2D FOV/RADAR coverage uses (#a78bfa), NOT cyan.
+                    // Hostile radars stay red. The Cone-of-Silence gets a slightly different, lighter violet so it POPS.
+                    const col = placed.find((p) => p.id === topObj?.id)?.aff === "hostile" ? C.red : "#a78bfa";
+                    const cosCol = placed.find((p) => p.id === topObj?.id)?.aff === "hostile" ? "#fca5a5" : "#c4b5fd";
                     const elLo = -10, elHi = 55;
                     const ell = (elDeg: number) => ({ r: L * Math.cos((elDeg * Math.PI) / 180), z: L * Math.sin((elDeg * Math.PI) / 180) });
                     // horizontal rim ring at an elevation (closes the shell top/bottom)
@@ -2653,6 +2660,15 @@ function AoMapPane(p: PaneProps) {
                       <div key={key} className="absolute left-1/2 top-1/2" style={{ width: 2 * r, height: 2 * r, marginLeft: -r, marginTop: -r, borderRadius: "50%",
                         border: `0.8px solid ${col}${el === elHi ? "aa" : "77"}`, transform: `translateZ(${z.toFixed(1)}px)` }} />
                     ); };
+                    // SHADING (operator): a translucent purple horizontal DISC = the coverage shell surface, sliced at
+                    // an elevation. radial-gradient fades at BOTH centre and rim → the "mask, slightly see-through" so
+                    // terrain shows through and the cone pops. `hole` carves the Cone-of-Silence out of the shell so the
+                    // empty inverted cone reads through the middle; the CoS discs (different violet) fill that cone.
+                    const disc = (key: string, r: number, z: number, color: string, alpha: string, hole: number) => (
+                      <div key={key} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 2 * r, height: 2 * r, marginLeft: -r, marginTop: -r, borderRadius: "50%",
+                        background: `radial-gradient(circle, transparent ${hole}%, ${color}${alpha} ${Math.min(hole + 8, 88)}%, ${color}${alpha} 90%, transparent 100%)`,
+                        transform: `translateZ(${z.toFixed(1)}px)` }} />
+                    );
                     // SOLID OF REVOLUTION — built from voxel-style 3D <div> STRUTS (translate3d + rotate),
                     // the SAME technique as the voxel edge posts, NOT SVG. Every strut is a real 3D edge in
                     // the cube's own frame, so it stands up in 3D (no flattening, no rotated-SVG plane).
@@ -2664,13 +2680,13 @@ function AoMapPane(p: PaneProps) {
                       z: L * Math.sin(phi * RAD),
                     });
                     // generic 3D strut A→B — one thin div, aimed by yaw(Z)+pitch(Y), origin pinned at A.
-                    const seg = (key: string, a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }, w: number, alpha: string, dashed: boolean) => {
+                    const seg = (key: string, a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }, w: number, alpha: string, dashed: boolean, color: string = col) => {
                       const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
                       const len = Math.hypot(dx, dy, dz);
                       const yaw = (Math.atan2(dy, dx) * 180) / Math.PI;
                       const pit = (Math.atan2(dz, Math.hypot(dx, dy)) * 180) / Math.PI;
                       return (
-                        <div key={key} className="absolute left-1/2 top-1/2" style={{ width: len, height: 0, borderTop: `${w}px ${dashed ? "dashed" : "solid"} ${col}${alpha}`,
+                        <div key={key} className="absolute left-1/2 top-1/2" style={{ width: len, height: 0, borderTop: `${w}px ${dashed ? "dashed" : "solid"} ${color}${alpha}`,
                           transformOrigin: "0 0", transform: `translate3d(${a.x.toFixed(1)}px,${a.y.toFixed(1)}px,${a.z.toFixed(1)}px) rotateZ(${yaw.toFixed(2)}deg) rotateY(${(-pit).toFixed(2)}deg)` }} />
                       );
                     };
@@ -2678,13 +2694,22 @@ function AoMapPane(p: PaneProps) {
                     const PHIS = [elLo, 6, 22, 38, elHi];   // polyline breakpoints −10°→+55°
                     const SPK = 8;                          // Cone-of-Silence spokes (apex → +55° rim)
                     const apex = { x: 0, y: 0, z: 0 };
+                    const zHi = L * Math.sin(elHi * RAD); // +55° rim height (cone apex → this)
+                    const T35 = Math.tan(35 * RAD);       // CoS half-angle from vertical
                     return (
                       <div data-radardome className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d" }}>
-                        {/* meridian arcs — voxel-style struts, solid, dim → the coverage shell */}
+                        {/* SHELL SHADING — translucent purple discs, CoS carved out of the middle (hole grows with
+                            elevation until the cone meets the sphere at +55°). Masked/see-through so the cone pops. */}
+                        {[elLo, 8, 25, 42, elHi].map((ph) => { const { r, z } = ell(ph);
+                          const hole = Math.max(0, Math.min(88, Math.tan(ph * RAD) * T35 * 100));
+                          return disc(`sh${ph}`, r, z, col, "20", hole); })}
+                        {/* CONE OF SILENCE fill — distinct lighter violet discs (z·tan35°) → the inverted cone POPS */}
+                        {[0.22, 0.46, 0.7, 0.94].map((t, i) => { const z = t * zHi; return disc(`cs${i}`, z * T35, z, cosCol, "33", 0); })}
+                        {/* meridian arcs — voxel-style struts, solid, dim → the coverage shell outline */}
                         {Array.from({ length: MER }, (_, m) => { const th = (m / MER) * 360;
-                          return PHIS.slice(0, -1).map((ph, i) => seg(`m${m}_${i}`, P(ph, th), P(PHIS[i + 1], th), 1, "55", false)); })}
-                        {/* Cone of Silence — apex→+55° rim spokes, dashed + brighter → the carved inverted cone (empty) */}
-                        {Array.from({ length: SPK }, (_, s) => seg(`c${s}`, apex, P(elHi, (s / SPK) * 360), 1, "cc", true))}
+                          return PHIS.slice(0, -1).map((ph, i) => seg(`m${m}_${i}`, P(ph, th), P(PHIS[i + 1], th), 1, "66", false)); })}
+                        {/* Cone of Silence — apex→+55° rim spokes, dashed, distinct violet → the carved inverted cone */}
+                        {Array.from({ length: SPK }, (_, s) => seg(`c${s}`, apex, P(elHi, (s / SPK) * 360), 1, "cc", true, cosCol))}
                         {rim("rlo", elLo)}
                         {rim("rmid", 22)}
                         {rim("rhi", elHi)}
@@ -2693,7 +2718,7 @@ function AoMapPane(p: PaneProps) {
                           <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>CoS ▽</span>
                         </div>
                         <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,0) translateZ(${ell(elHi).z.toFixed(1)}px) rotateX(${-(pitch ?? 55)}deg)`, marginTop: -ell(elHi).r }}>
-                          <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>RADAR {fmt.fmtDist(rangeKm * 1000)} · 360° · −10°/+55°</span>
+                          <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>RADAR {fmt.fmtDist(rangeKm * 1000)} · 360° · −10°/+55°{offMap ? " · off-map" : ""}</span>
                         </div>
                       </div>
                     );
