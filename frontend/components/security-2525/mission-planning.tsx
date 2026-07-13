@@ -382,21 +382,33 @@ type SolidFace = { pts: string; depth: number; kind: FaceKind };
 // per-face darkness (× the shell colour) → each of a sector's 4 faces is a slightly different purple so the
 // 3D form reads; the inner cone-of-silence (cos) is the darkest.
 const FACE_SHADE: Record<FaceKind, number> = { base: 1.0, wall1: 0.84, wall2: 0.7, cos: 0.52 };
-function radarSolidFaces(cx: number, cy: number, L: number, pitchDeg: number, bearingRad: number,
-  sides: number, mask: CovSeg[] | undefined): SolidFace[] {
+// Project the 52-face solid through the SCENE's EXACT transform (perspective(780)·rotateX(pitch)·scale(1.2), origin
+// 50%/60%) so the coverage is voxel-identical: apex sits on the radar voxel, foreshortens, and recedes forward/backward
+// (not up/down) at any tilt. `altPx` lifts the whole solid (radar on a building/hill). Returns painter-sorted faces +
+// the rear (farthest) top-ridge midpoint for the RADAR label. ONE svg → OOM-safe.
+function radarSolidFaces(fx: number, fy: number, pw: number, ph: number, L: number, altPx: number,
+  pitchDeg: number, bearingRad: number, sides: number, mask: CovSeg[] | undefined): { faces: SolidFace[]; labelAt: { x: number; y: number } | null } {
   const RAD = Math.PI / 180, p = pitchDeg * RAD, cp = Math.cos(p), sp = Math.sin(p);
   const PHI = [-10, 22, 55]; // ground / middle / top elevation rings
   const V = (phi: number, k: number) => {
     const c = Math.cos(phi * RAD), s = Math.sin(phi * RAD), th = ((k % sides) * 2 * Math.PI) / sides + bearingRad;
-    return { x: L * c * Math.cos(th), y: L * c * Math.sin(th), z: L * s };
+    return { x: L * c * Math.cos(th), y: L * c * Math.sin(th), z: L * s + altPx };
   };
-  const proj = (v: { x: number; y: number; z: number }) => ({ sx: cx + v.x, sy: cy + (v.y * cp - v.z * sp), d: v.y * sp + v.z * cp });
-  const A = { x: 0, y: 0, z: 0 };
+  const ox = 0.5 * pw, oy = 0.6 * ph;
+  const proj = (v: { x: number; y: number; z: number }) => {
+    const rx = (fx * pw + v.x - ox) * 1.2, ry = (fy * ph + v.y - oy) * 1.2, rz = v.z * 1.2;
+    const ry2 = ry * cp - rz * sp, rz2 = ry * sp + rz * cp;       // rotateX(pitch)
+    const persp = 780 / Math.max(60, 780 - rz2);                  // clamp: never behind the camera
+    return { sx: ox + rx * persp, sy: oy + ry2 * persp, d: rz2, behind: rz2 >= 720 };
+  };
+  const A = { x: 0, y: 0, z: altPx };
   const faces: SolidFace[] = [];
   const push = (vs: { x: number; y: number; z: number }[], kind: FaceKind) => {
     const ps = vs.map(proj);
+    if (ps.some((q) => q.behind)) return; // cull faces crossing the camera plane (no inversion at extreme tilt)
     faces.push({ pts: ps.map((q) => `${q.sx.toFixed(1)},${q.sy.toFixed(1)}`).join(" "), depth: ps.reduce((s, q) => s + q.d, 0) / ps.length, kind });
   };
+  let labelAt: { x: number; y: number } | null = null, labelDepth = Infinity;
   for (let k = 0; k < sides; k++) {
     if (!sectorOn(k, sides, mask)) continue; // cutout → skip this sector's 4 faces
     const G0 = V(PHI[0], k), G1 = V(PHI[0], k + 1), M0 = V(PHI[1], k), M1 = V(PHI[1], k + 1), T0 = V(PHI[2], k), T1 = V(PHI[2], k + 1);
@@ -404,9 +416,12 @@ function radarSolidFaces(cx: number, cy: number, L: number, pitchDeg: number, be
     push([G0, G1, M1, M0], "wall1");  // 2 BOTTOM → MIDDLE (leg 1)
     push([M0, M1, T1, T0], "wall2");  // 3 MIDDLE → TOP (leg 2)
     push([T0, T1, A], "cos");         // 4 TOP → RADAR (cone of silence)
+    // RADAR label rides the REAR (farthest = min depth) top-ridge midpoint (top of face 4, centred on the rear sector).
+    const p0 = proj(T0), p1 = proj(T1);
+    if (!p0.behind && !p1.behind) { const d = (p0.d + p1.d) / 2; if (d < labelDepth) { labelDepth = d; labelAt = { x: (p0.sx + p1.sx) / 2, y: (p0.sy + p1.sy) / 2 }; } }
   }
-  faces.sort((a, b) => b.depth - a.depth); // painter's order: far first
-  return faces;
+  faces.sort((a, b) => a.depth - b.depth); // painter's order: FAR (small rz2) first → NEAR (big rz2) last
+  return { faces, labelAt };
 }
 // HI: AVENGER is point-defense (Stinger, ~360°) — NO Primary Target Line. Only the
 // directional PATRIOT / THAAD launchers carry a PTL wedge.
@@ -2288,7 +2303,10 @@ function AoMapPane(p: PaneProps) {
                   const rk = ASSET_RANGE_KM[u.asset];
                   if (!rk) return null;
                   const c = toFrac(u.lat, u.lon);
-                  const col = u.covColor ?? (u.aff === "hostile" ? C.red : C.cyan); // operator-set coverage colour override
+                  // SENTINEL 2D coverage = the SAME purple as the 3D ground floor (operator: "bottom sector purple on
+                  // ground"); other assets keep affiliation colour. covColor overrides either.
+                  const isRadar = u.asset === "sentinel";
+                  const col = u.covColor ?? (u.aff === "hostile" ? C.red : isRadar ? "#a78bfa" : C.cyan);
                   const rlw = u.lineW ?? 0.5;
                   const ring = (km: number, fill: string, strokeOp: number, dash: string) => {
                     const dLat = km / 110.574;
@@ -2308,7 +2326,8 @@ function AoMapPane(p: PaneProps) {
                   return (
                     <Fragment key={`rng${u.id}`}>
                       {ext && ring(ext, `${col}06`, 0.3, "2 1.5")}
-                      {ring(rk, `${col}12`, 0.6, "1.2 0.8")}
+                      {/* radar → a VISIBLE purple floor fill (matches the 3D base face), solid edge; others → faint dashed */}
+                      {ring(rk, `${col}${isRadar ? "2e" : "12"}`, isRadar ? 0.85 : 0.6, isRadar ? "0" : "1.2 0.8")}
                     </Fragment>
                   );
                 })}
@@ -3440,36 +3459,32 @@ function AoMapPane(p: PaneProps) {
               );
             })()}
             {/* RADAR COVERAGE SOLID (3D) — SCREEN-SPACE overlay (NOT in the tilted voxel scene): one <svg> per
-                SENTINEL painting the 3-level (trinity) 13-sided solid via analytic orthographic projection. 4 faces
-                per sector (RADAR-BASE / BOTTOM→MID / MID→TOP / TOP→RADAR CoS) × 13 = 52; blanked sectors emit nothing.
-                Shell = covColour, CoS = darker. ONE vector layer/radar → OOM-proof; drawn even when the voxel box is
-                off-map (independent of column culling); painter-sorted far→near. Bounded box ≤ ~2.6·pane. */}
+                SENTINEL painting the 3-level (trinity) 13-sided solid, projected through the SCENE's EXACT transform
+                so it is voxel-identical (apex on the voxel, recedes forward/backward — not up/down). 4 faces per sector
+                (RADAR-BASE / BOTTOM→MID / MID→TOP / TOP→RADAR CoS) × 13 = 52; blanked sectors emit nothing. Shell =
+                covColour, CoS = darker. Radar ALTITUDE (AGL/MSL) lifts the whole solid. ONE vector layer/radar → OOM-proof. */}
             {is3d && placed.filter((u) => u.asset === "sentinel").map((u) => {
               const f = project(u.lat, u.lon);
               if (!Number.isFinite(f.fx) || !Number.isFinite(f.fy)) return null;
               const pw = mapRef.current?.clientWidth ?? 800, ph = mapRef.current?.clientHeight ?? 600;
               if (!(pw > 1) || !(view.spanKm > 0)) return null;
-              // ALIGN the coverage apex with the VOXEL's on-screen centre: the voxel lives inside the 3D scene's
-              // `perspective(780) rotateX(pitch) scale(1.2)` about origin (50%,60%). Replicate that on the radar's
-              // ground point so the apex sits under the voxel's target box (operator: "centre of voxel = centre of radar").
-              const p3 = ((pitch ?? 55) * Math.PI) / 180, SCALE = 1.2, PERSP = 780;
-              const ox = 0.5 * pw, oy = 0.6 * ph;
-              const rrx = (f.fx * pw - ox) * SCALE, rry = (f.fy * ph - oy) * SCALE;
-              const persp = is3d ? PERSP / Math.max(60, PERSP - rry * Math.sin(p3)) : 1;
-              const cx = ox + rrx * persp;
-              const cy = oy + rry * (is3d ? Math.cos(p3) : 1) * persp;
               const pxPerM = pw / (view.spanKm * 1000);
               const rangeKm = ASSET_RANGE_KM.sentinel ?? 75;
-              const L = SCALE * Math.max(40, Math.min(rangeKm * 1000 * pxPerM, pw * 1.1)); // scene-scaled, bounded, clips off-map
+              const L = Math.max(40, Math.min(rangeKm * 1000 * pxPerM, pw * 1.1)); // 75 km at scale, bounded (clips off-map)
+              // radar ALTITUDE lifts the whole solid (on a building/hill): AGL → altM; MSL → altM − terrain. px via pxPerM.
+              const altM = u.altitude ?? 0;
+              const altPx = Math.max(0, u.altRef === "MSL" ? altM - sampler(u.lat, u.lon) : altM) * pxPerM;
               const shell = u.covColor ?? (u.aff === "hostile" ? C.red : "#a78bfa");
-              const faces = radarSolidFaces(cx, cy, L, pitch ?? 55, view.bearing, COVERAGE_SIDES, u.covMask);
+              const { faces, labelAt } = radarSolidFaces(f.fx, f.fy, pw, ph, L, altPx, pitch ?? 55, view.bearing, COVERAGE_SIDES, u.covMask);
               // each of a sector's 4 faces gets a slightly darker purple (FACE_SHADE) → the 3D form reads; CoS darkest.
               return (
                 <svg key={`cov3d${u.id}`} data-coverage3d className="pointer-events-none absolute inset-0" width={pw} height={ph} style={{ zIndex: 6 }}>
                   {faces.map((fc, i) => { const c = darkerHex(shell, FACE_SHADE[fc.kind]); return (
                     <polygon key={i} points={fc.pts} fill={`${c}44`} stroke={`${c}cc`} strokeWidth={0.6} strokeLinejoin="round" />
                   ); })}
-                  <text x={cx} y={cy - L * Math.cos(55 * Math.PI / 180) - 4} textAnchor="middle" className="font-mono" style={{ fontSize: 7, fontWeight: 700, fill: shell }}>RADAR {fmt.fmtDist(rangeKm * 1000)} · 360° · −10°/+55°{u.covMask && u.covMask.length ? " · MASK" : ""}</text>
+                  {labelAt && (
+                    <text x={labelAt.x} y={labelAt.y - 3} textAnchor="middle" className="font-mono" style={{ fontSize: 7, fontWeight: 700, fill: shell }}>RADAR {fmt.fmtDist(rangeKm * 1000)} · 360° · −10°/+55°{u.covMask && u.covMask.length ? " · MASK" : ""}</text>
+                  )}
                 </svg>
               );
             })}
@@ -5363,7 +5378,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                 // single edge of the 3×3 group + one voxel cell, real-world (primary pane).
                 const cellM = voxelCellM && voxelCellM > 0 ? voxelCellM : Math.max(10, Math.round((viewA.spanKm * 1000) / 9));
                 const edgeM = cellM * 3; // 3×3 group edge
-                const km = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(m >= 10000 ? 0 : 2)} km` : `${Math.round(m)} m`);
+                const km = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`); // km always ##.#
                 return (
                   <div className="mb-1 flex items-center justify-between text-[8px] font-mono" style={{ color: C.cyan }}>
                     <span style={{ color: C.dim }}>3×3 edge</span>
