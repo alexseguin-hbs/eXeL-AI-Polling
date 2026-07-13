@@ -4087,7 +4087,7 @@ function ItemInspector(p: InspectorProps) {
                 </select>
               </>
             )}
-            {selected.kind === "asset" && ((selectedObj as Placed).tls || (selectedObj as Placed).fov) && (() => {
+            {selected.kind === "asset" && ((selectedObj as Placed).tls || (selectedObj as Placed).fov || (selectedObj as Placed).asset === "sentinel") && (() => {
               const a = selectedObj as Placed;
               const u = a.unit ?? "deg";
               const unitOpts: AngleUnit[] = ["deg", "mil", "ucrs"];
@@ -4140,6 +4140,43 @@ function ItemInspector(p: InspectorProps) {
                     : a.tls && tlRow("p", "PTL / 1TL — points", a.tls.p, C.gold)}
                   {a.tls && tlRow("s", "2TL — secondary", a.tls.s, C.amber)}
                   {a.tls && tlRow("t", "3TL — tertiary", a.tls.t, C.cyan)}
+                  {/* SECTOR MASK — radar sector blanking (avoid radiating): up to 5 segments in 6400-mil space,
+                      each RADIATE or BLANK. PTL-style. Circle 0→6400 (N up); a row is [prev→END] mil. */}
+                  {a.asset === "sentinel" && (() => {
+                    const mask = a.covMask ?? [];
+                    const setMask = (m: CovSeg[]) => {
+                      const s = m.map((x) => ({ toMil: Math.min(6400, Math.max(1, Math.round(x.toMil))), on: !!x.on }))
+                        .sort((p, q) => p.toMil - q.toMil).filter((x, i, arr) => i === 0 || x.toMil > arr[i - 1].toMil).slice(0, 5);
+                      onUpdAsset(a.id, { covMask: s.length ? s : undefined });
+                    };
+                    const blanked = mask.filter((s) => !s.on).length;
+                    return (
+                      <div className="mb-1.5 rounded border p-1" style={{ borderColor: "#a78bfa55" }}>
+                        <div className="mb-1 flex items-center justify-between">
+                          <span className="text-[9px] font-bold" style={{ color: "#a78bfa" }}>SECTOR MASK · 6400 MIL{mask.length ? ` · ${blanked} blank` : ""}</span>
+                          <button onClick={() => (mask.length ? setMask([]) : setMask([{ toMil: 1600, on: false }, { toMil: 6400, on: true }]))}
+                            className="text-[8px] font-semibold" style={{ color: mask.length ? C.red : C.green }}>{mask.length ? "CLEAR" : "ENABLE"}</button>
+                        </div>
+                        {mask.map((seg, i) => { const from = i === 0 ? 0 : mask[i - 1].toMil; return (
+                          <div key={i} className="mb-1 flex items-center gap-1">
+                            <span className="w-9 text-right font-mono text-[7px]" style={{ color: C.dim }}>{from}→</span>
+                            <div className="w-12"><NumInField value={seg.toMil} onCommit={(v) => setMask(mask.map((s, j) => (j === i ? { ...s, toMil: v } : s)))} /></div>
+                            <button onClick={() => setMask(mask.map((s, j) => (j === i ? { ...s, on: !s.on } : s)))}
+                              className="rounded px-1 py-0.5 text-[8px] font-bold" style={{ background: seg.on ? "#a78bfa22" : "#ef444422", color: seg.on ? "#a78bfa" : C.red }}>{seg.on ? "RADIATE" : "BLANK"}</button>
+                            <button onClick={() => setMask(mask.filter((_, j) => j !== i))} className="ml-auto text-[10px] leading-none" style={{ color: C.red }}>×</button>
+                          </div>
+                        ); })}
+                        {mask.length > 0 && mask.length < 5 && (() => {
+                          const lastFrom = mask.length >= 2 ? mask[mask.length - 2].toMil : 0;
+                          const lastTo = mask[mask.length - 1].toMil, mid = Math.round((lastFrom + lastTo) / 2);
+                          if (mid <= lastFrom || mid >= lastTo) return null;
+                          return <button onClick={() => { const m = [...mask]; m.splice(mask.length - 1, 0, { toMil: mid, on: !mask[mask.length - 1].on }); setMask(m); }}
+                            className="text-[8px] font-semibold" style={{ color: C.green }}>+ SECTOR (max 5)</button>;
+                        })()}
+                        <div className="mt-0.5 text-[7px]" style={{ color: C.dim }}>{mask.length ? "Row = [prev→END] mil · RADIATE/BLANK. Tail past last END is blank." : "Blank sectors so the radar avoids radiating in chosen azimuths."}</div>
+                      </div>
+                    );
+                  })()}
                   <div className="mt-1.5 flex items-center justify-between gap-2 border-t pt-1" style={{ borderColor: C.border }}>
                     <span className="text-[7px]" style={{ color: C.dim }}>LINE</span>
                     <input type="range" min={0.2} max={2} step={0.1} value={a.lineW ?? 0.5}
