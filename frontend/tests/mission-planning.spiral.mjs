@@ -384,10 +384,15 @@ const cellPxAt = async (w, h) => {
   for (let i = 0; i < ln; i++) { try { await label.nth(i).click({ force: true, timeout: 1500 }); clicked = true; break; } catch {} }
   await pg.waitForTimeout(1800);
   const earthAfter = await mapEarth();
-  // entered a tactical AO ⇒ left EARTH ("MAP · EARTH" gone) AND the flat world-context svg is gone
+  // FX-GLOBE (operator): a globe GZD-cell tap goes to a DETAILED destination framed on THAT cell — either a tactical AO
+  // (when one is in/near the cell) OR the flat detailed map with a persistent yellow "landed" cell marker (for a cell
+  // with no nearby AO, e.g. 4Q/Hawaii). NEVER a bare empty grid. (Supersedes the old strict "always tactical AO" — a far
+  // ocean cell must land on its real area, not teleport to the nearest mainland AO.)
   const flatGone = await pg.evaluate(() => !document.querySelector('svg[aria-label^="World context map"]'));
   const aoBread = await pg.evaluate((re) => [...document.querySelectorAll('*')].some(e => e.children.length === 0 && new RegExp(re, 'i').test((e.textContent || '').trim())), AO_RE.source);
-  rec('#29 grid drill → tactical AO (not flat) (FX-43)', earthBefore && clicked && !earthAfter && flatGone && aoBread, `earthBefore=${earthBefore} clicked=${clicked} earthAfter=${earthAfter} flatGone=${flatGone} ao=${aoBread}`);
+  const landed = await pg.evaluate(() => !!document.querySelector('[data-landedcell]')); // yellow landed-cell marker on the flat map
+  const drilledAO = !earthAfter && flatGone && aoBread; // entered a tactical AO
+  rec('#29 grid drill → detailed destination (tactical AO or flat+landed cell), never bare grid (FX-GLOBE)', earthBefore && clicked && (drilledAO || landed), `earthBefore=${earthBefore} clicked=${clicked} drilledAO=${drilledAO} landed=${landed}`);
   rec('#29 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }

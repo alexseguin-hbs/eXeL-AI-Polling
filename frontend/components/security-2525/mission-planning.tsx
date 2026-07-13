@@ -925,6 +925,10 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
   const [flat, setFlat] = useState({ x: 0, y: H * 0.08, w: W, h: H * 0.62 });
   const flatDrag = useRef<{ x: number; y: number } | null>(null);
   const flatSvg = useRef<SVGSVGElement>(null);
+  // FX-GLOBE (operator): after clicking a globe GZD cell (e.g. 4Q → Hawaii), the destination flat map shows the tapped
+  // cell as a persistent YELLOW-FILLED highlight (4 corners) + centred code — a "did we land in the right area" cue.
+  // Cleared the moment the user pans or zooms the flat map.
+  const [landedCell, setLandedCell] = useState<{ latS: number; latN: number; lonW: number; lonE: number; code: string } | null>(null);
   // Phone PINCH-zoom for the flat world map (the globe + tactical map already pinch; the flat 2D
   // EARTH map only had wheel + single-finger pan, so phones couldn't zoom it — esp. with GRID on).
   const wTouch = useRef<Map<number, { x: number; y: number }>>(new Map());
@@ -941,6 +945,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
   const FLAT_MIN_W = 4; // svg units ≈ 2° ≈ 220 km wide
   useWheel(flatSvg, (e) => {
     e.preventDefault();
+    setLandedCell(null); // any zoom clears the "landed cell" confirmation marker
     const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
     if (flat.w * k >= W * 0.98 && e.deltaY > 0) { setMode("globe"); return; }
     const nw = Math.min(W, Math.max(FLAT_MIN_W, flat.w * k));
@@ -968,17 +973,23 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
     // equivalent. Prefer an AO inside the clicked cell; otherwise enter the NEAREST AO to the cell
     // centre. The cinematic enterAo fly-in makes it a smooth zoom. (Flat frame below is retained only
     // as a safety net for the impossible case of zero defined AOs.)
+    const cLat = (latS + latN) / 2, cLon = (lonW + lonE) / 2;
     if (onEnterAo) {
-      const cLat = (latS + latN) / 2, cLon = (lonW + lonE) / 2;
       const visible = AOS.filter((a) => !hiddenKeys?.has(a.key));
       const inCell = visible.filter((a) => a.center[0] >= latS && a.center[0] <= latN && a.center[1] >= lonW && a.center[1] <= lonE);
+      // Enter the nearest AO — but ONLY if it's IN the cell or REASONABLY near it (≤18°, which blankets the continental
+      // AOs TX/WA/DC/FL). (Bug fix: the old fallback used ALL AOs with no distance limit, so a cell with no nearby AO —
+      // e.g. 4Q/Hawaii, ~42° from the mainland — teleported to a far mainland AO. Now such a far cell falls through to
+      // frame the flat DETAILED map on the cell itself + the yellow landed marker.)
       const pool = inCell.length ? inCell : visible;
-      if (pool.length) {
-        let best = pool[0], bd = Infinity;
-        for (const a of pool) { const d = Math.hypot(a.center[0] - cLat, a.center[1] - cLon); if (d < bd) { bd = d; best = a; } }
-        onEnterAo(best.key); return;
-      }
+      let best: (typeof visible)[number] | null = null, bd = Infinity;
+      for (const a of pool) { const d = Math.hypot(a.center[0] - cLat, a.center[1] - cLon); if (d < bd) { bd = d; best = a; } }
+      if (best && (inCell.length > 0 || bd <= 18)) { onEnterAo(best.key); return; }
     }
+    // No AO in the cell → frame the flat DETAILED map ON the tapped cell + drop the persistent yellow "landed" marker so
+    // the operator can confirm we went to the right area (e.g. 4Q lands on Hawaii, not the mainland).
+    const g = gzdOf(cLat, cLon);
+    setLandedCell({ latS, latN, lonW, lonE, code: `${g.zone}${g.band}` });
     const rect = flatSvg.current?.getBoundingClientRect();
     const paneAspect = rect && rect.height > 0 ? rect.width / rect.height : 1.6;
     const x0 = ((lonW + 180) / 360) * W, x1 = ((lonE + 180) / 360) * W;
@@ -1032,12 +1043,14 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
                 return;
               }
               const d = flatDrag.current; if (!d) return;
+              setLandedCell(null); // panning clears the landed-cell marker
               const dx = (e.clientX - d.x) / r.width * flat.w, dy = (e.clientY - d.y) / r.height * flat.h;
               d.x = e.clientX; d.y = e.clientY;
               setFlat((f) => ({ ...f, x: (((f.x - dx) % W) + W) % W, y: Math.max(12 - f.h / 2, Math.min((H - 12) - f.h / 2, f.y - dy)) }));
               return;
             }
             const d = flatDrag.current; if (!d) return;
+            setLandedCell(null); // panning clears the landed-cell marker
             const dx = (e.clientX - d.x) / r.width * flat.w, dy = (e.clientY - d.y) / r.height * flat.h;
             d.x = e.clientX; d.y = e.clientY;
             // horizontal wraps around the globe (modulo world width); vertical lets the view CENTRE
@@ -1172,6 +1185,26 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, label, onMinimize, coordFmt, h
               <text x={sx + 1} y={flat.y + 5} fontSize="3.2" fill={C.amber} opacity="0.8" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace" }}>180°</text>
             </g>
           ))}
+          {/* FX-GLOBE: persistent "landed cell" — after a globe GZD tap, the tapped cell is drawn YELLOW-FILLED with its
+              4 corners + the code centred, at ANY zoom (unlike the zoomed-out training grid), until the user pans/zooms.
+              Tiled ±W so it shows through the world-wrap. */}
+          {landedCell && (() => {
+            const xOf = (lon: number) => ((lon + 180) / 360) * W, yOf = (lat: number) => ((90 - lat) / 180) * H;
+            const x0 = xOf(landedCell.lonW), x1 = xOf(landedCell.lonE), y0 = yOf(landedCell.latN), y1 = yOf(landedCell.latS);
+            const cw = x1 - x0, ch = y1 - y0, tick = Math.min(cw, ch) * 0.22, code = Math.min(cw, ch) * 0.3;
+            return [-W, 0, W].map((off) => (
+              <g key={`landed${off}`} data-landedcell={off === 0 ? landedCell.code : undefined} style={{ pointerEvents: "none" }}>
+                <rect x={x0 + off} y={y0} width={cw} height={ch} fill={`${C.gold}22`} stroke={TRINITY_COLORS.temporal} strokeWidth="1.4" strokeOpacity="0.95" vectorEffect="non-scaling-stroke" />
+                {([[x0, y0, 1, 1], [x1, y0, -1, 1], [x1, y1, -1, -1], [x0, y1, 1, -1]] as const).map(([px, py, sx, sy], i) => (
+                  <g key={i}>
+                    <line x1={px + off} y1={py} x2={px + off + sx * tick} y2={py} stroke={TRINITY_COLORS.temporal} strokeWidth="2.4" vectorEffect="non-scaling-stroke" />
+                    <line x1={px + off} y1={py} x2={px + off} y2={py + sy * tick} stroke={TRINITY_COLORS.temporal} strokeWidth="2.4" vectorEffect="non-scaling-stroke" />
+                  </g>
+                ))}
+                <text x={(x0 + x1) / 2 + off} y={(y0 + y1) / 2} fontSize={code} fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1.4">{landedCell.code}</text>
+              </g>
+            ));
+          })()}
         </svg>
       )}
       {mode === "flat" && (() => {
