@@ -50,6 +50,7 @@ import { bufferPolygon } from "@/lib/aor";
 import { getTile, peekTile } from "@/lib/tile-cache";
 import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { SpectrumPicker } from "@/components/security-2525/spectrum-picker";
+import { TrinityColorPicker } from "@/components/trinity-color-picker";
 import { ULT_ROSTER, type UltNode } from "@/components/security-2525/ult-data";
 
 const C = {
@@ -290,6 +291,7 @@ interface Placed {
   tls?: { p?: TL; s?: TL; t?: TL };
   fov?: TL;
   covMask?: CovSeg[]; // radar sector blanking — up to 5 ascending mil segments (0-6400), each on/off (radiate). Absent = 360°.
+  covColor?: string;  // radar coverage/mask colour (hex #RRGGBB) — set via the standard TrinityColorPicker. Absent = default.
   unit?: AngleUnit;
   mobile?: boolean; // on-the-move (Avenger fires SLEW-TO-CUE only; PTL disabled while moving)
   // ── Track / movement (drone-war + R-CORE sim/replay; UCRS-2525 3D-ready) ──
@@ -2236,7 +2238,7 @@ function AoMapPane(p: PaneProps) {
                   const rk = ASSET_RANGE_KM[u.asset];
                   if (!rk) return null;
                   const c = toFrac(u.lat, u.lon);
-                  const col = u.aff === "hostile" ? C.red : C.cyan;
+                  const col = u.covColor ?? (u.aff === "hostile" ? C.red : C.cyan); // operator-set coverage colour override
                   const rlw = u.lineW ?? 0.5;
                   const ring = (km: number, fill: string, strokeOp: number, dash: string) => {
                     const dLat = km / 110.574;
@@ -2694,7 +2696,8 @@ function AoMapPane(p: PaneProps) {
                     const offMap = Lreal > paneW;
                     const aff = placed.find((p) => p.id === topObj?.id)?.aff;
                     const mask = placed.find((p) => p.id === topObj?.id)?.covMask; // sector blanking (Phase B); absent = 360°
-                    const col = aff === "hostile" ? C.red : "#a78bfa";   // 2D coverage violet (no cyan); hostile red
+                    const covColor = placed.find((p) => p.id === topObj?.id)?.covColor; // operator colour override
+                    const col = covColor ?? (aff === "hostile" ? C.red : "#a78bfa");   // 2D coverage violet (no cyan); hostile red
                     const cosCol = aff === "hostile" ? "#fca5a5" : "#c4b5fd"; // distinct lighter violet — CoS pops
                     const RAD = Math.PI / 180, elLo = -10, elHi = 55;
                     const zHi = L * Math.sin(elHi * RAD);                 // +55° rim height (cone apex → this)
@@ -4024,6 +4027,7 @@ function ItemInspector(p: InspectorProps) {
   const { selected, selectedObj, fmt, coordFmt, digits, nudgeM, setNudgeM, coordText, setCoordText,
     onSetAff, onSetPlacedReality, onUpdAsset, onSetTL, onNudge, onSetCoord, onRemoveSelected,
     terrainAtSel, reality, planStatus } = p;
+  const [covColorOpen, setCovColorOpen] = useState(false); // reveal the standard TrinityColorPicker for coverage colour
   if (!selectedObj || !selected) return null;
   return (
           <div className="shrink-0 overflow-y-auto border-t p-2" style={{ borderColor: C.border, maxHeight: "50%" }}>
@@ -4174,6 +4178,21 @@ function ItemInspector(p: InspectorProps) {
                             className="text-[8px] font-semibold" style={{ color: C.green }}>+ SECTOR (max 5)</button>;
                         })()}
                         <div className="mt-0.5 text-[7px]" style={{ color: C.dim }}>{mask.length ? "Row = [prev→END] mil · RADIATE/BLANK. Tail past last END is blank." : "Blank sectors so the radar avoids radiating in chosen azimuths."}</div>
+                        {/* COLOUR — the standard TrinityColorPicker (same editor as Settings + Trinity). Sets the
+                            coverage/mask colour for THIS radar (2D ring + 3D dome). Reveal-on-demand to save space. */}
+                        <div className="mt-1 flex items-center justify-between gap-2 border-t pt-1" style={{ borderColor: C.border }}>
+                          <span className="text-[8px] font-bold" style={{ color: a.covColor ?? "#a78bfa" }}>COVERAGE COLOUR</span>
+                          <div className="flex items-center gap-1">
+                            <span className="inline-block h-3 w-3 rounded-sm border" style={{ background: a.covColor ?? "#a78bfa", borderColor: C.border }} />
+                            {a.covColor && <button onClick={() => onUpdAsset(a.id, { covColor: undefined })} className="text-[7px] font-semibold" style={{ color: C.dim }}>RESET</button>}
+                            <button onClick={() => setCovColorOpen((o) => !o)} className="text-[8px] font-semibold" style={{ color: C.cyan }}>{covColorOpen ? "CLOSE" : "EDIT"}</button>
+                          </div>
+                        </div>
+                        {covColorOpen && (
+                          <div className="mt-1">
+                            <TrinityColorPicker value={a.covColor ?? "#a78bfa"} onChange={(hex) => onUpdAsset(a.id, { covColor: hex })} />
+                          </div>
+                        )}
                       </div>
                     );
                   })()}
