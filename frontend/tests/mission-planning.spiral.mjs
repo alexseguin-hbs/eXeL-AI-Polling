@@ -437,7 +437,13 @@ const cellPxAt = async (w, h) => {
   await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
   for (let i = 0; i < 8; i++) { await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await pg.mouse.wheel(0, 400); await pg.waitForTimeout(80); }
   await pg.waitForTimeout(500);
-  const m = await pg.evaluate(() => { const svgs = [...document.querySelectorAll('svg')]; let best = null, a = 0; for (const s of svgs) { const r = s.getBoundingClientRect(); if (r.width * r.height > a) { a = r.width * r.height; best = s; } } if (!best) return null; const ring = [...best.querySelectorAll('ellipse')].map(e => ({ rx: +e.getAttribute('rx'), ry: +e.getAttribute('ry') })).sort((x, y) => (y.rx + y.ry) - (x.rx + x.ry))[0]; const gold = [...best.querySelectorAll('path')].find(p => /1f$/.test(p.getAttribute('fill') || '') && /A /.test(p.getAttribute('d') || '')); const mm = gold && gold.getAttribute('d').match(/A\s*([\d.]+)\s+([\d.]+)/); return ring && mm ? { ringRx: ring.rx, ringRy: ring.ry, sx: +mm[1], sy: +mm[2] } : null; });
+  const m = await pg.evaluate(() => { const N = 13; const svgs = [...document.querySelectorAll('svg')]; let best = null, a = 0; for (const s of svgs) { const r = s.getBoundingClientRect(); if (r.width * r.height > a) { a = r.width * r.height; best = s; } } if (!best) return null;
+    // range ring is now the shared 13-gon <polygon>; reconstruct its inscribing ellipse (rx,ry) from vertices
+    // (vertices sit on the true range ellipse the sector arc uses → sector still can't overshoot the disclosed range).
+    const covPolys = [...best.querySelectorAll('polygon')].map(p => (p.getAttribute('points') || '').trim().split(/\s+/).map(t => t.split(',').map(Number))).filter(pts => pts.length === N);
+    if (!covPolys.length) return null;
+    let ring = null, am = 0; for (const pts of covPolys) { const cx = pts.reduce((s, q) => s + q[0], 0) / N, cy = pts.reduce((s, q) => s + q[1], 0) / N; const ry = cy - pts[0][1]; const rx = (pts[3][0] - cx) / Math.sin((3 * 2 * Math.PI) / N); const ar = Math.abs(rx * ry); if (ar > am) { am = ar; ring = { rx: Math.abs(rx), ry: Math.abs(ry) }; } }
+    const gold = [...best.querySelectorAll('path')].find(p => /1f$/.test(p.getAttribute('fill') || '') && /A /.test(p.getAttribute('d') || '')); const mm = gold && gold.getAttribute('d').match(/A\s*([\d.]+)\s+([\d.]+)/); return ring && mm ? { ringRx: ring.rx, ringRy: ring.ry, sx: +mm[1], sy: +mm[2] } : null; });
   const ok = !!(m && Math.abs(m.sx - m.ringRx) < 0.5 && Math.abs(m.sy - m.ringRy) < 0.5);
   rec('#32 shaded PTL/FOV == published range ring (no overshoot) (FX-58)', ok, m ? `ring=${m.ringRx.toFixed(1)}/${m.ringRy.toFixed(1)} sector=${m.sx.toFixed(1)}/${m.sy.toFixed(1)}` : 'no-measure');
   rec('#32 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
@@ -451,13 +457,28 @@ const cellPxAt = async (w, h) => {
   await clk('div.cursor-grab:has-text("SENTINEL")'); await pg.waitForTimeout(250);
   const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
   const box = await M.boundingBox();
-  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height * 0.6); await pg.waitForTimeout(300);
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(300);
   await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
   await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(900);
-  const dome = await pg.evaluate(() => { const d = document.querySelector('[data-radardome]'); if (!d) return { on: false }; const struts = d.querySelectorAll('div[style*="border-top"]').length; const rims = d.querySelectorAll('div[style*="border-radius"][style*="border:"]').length; const discs = d.querySelectorAll('div[style*="radial-gradient"]').length; const cos = [...document.querySelectorAll('span')].some(s => /CoS/.test(s.textContent || '')); const cov = [...document.querySelectorAll('span')].some(s => /RADAR .*360/.test(s.textContent || '')); const all = [...d.querySelectorAll('*')]; const styleBlob = all.map(e => { const cs = getComputedStyle(e); return cs.borderTopColor + '|' + cs.backgroundImage; }).join(' '); const purple = /167, 139, 250|196, 181, 253/.test(styleBlob); const cyan = /25, 200, 207/.test(styleBlob); return { on: true, struts, rims, discs, cos, cov, purple, cyan }; });
-  const ok = !!(dome.on && dome.struts >= 8 && dome.rims >= 2 && dome.discs >= 3 && dome.cos && dome.cov && dome.purple && !dome.cyan);
-  rec('#33 SENTINEL 360° radar dome — purple shaded shell + distinct-violet CoS, no cyan, realistic range (FX-59)', ok, JSON.stringify(dome));
-  rec('#33 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  // zoom IN to a tactical AO — the exact config that OOM-crashed the old 9-gradient-disc dome.
+  for (let i = 0; i < 8; i++) { await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await pg.mouse.wheel(0, -500); await pg.waitForTimeout(90); }
+  await pg.waitForTimeout(400);
+  const dome = await pg.evaluate(() => { const d = document.querySelector('[data-radardome]'); if (!d) return { on: false };
+    const paneW = document.querySelector('div.touch-none.overflow-hidden.rounded-md').clientWidth || 1;
+    const struts = d.querySelectorAll('div[style*="border-top"]').length;      // thin cone/meridian struts (cheap)
+    const grad = d.querySelectorAll('[style*="radial-gradient"]').length;       // MUST be 0 — the OOM cause
+    const svgs = d.querySelectorAll('svg').length;                             // ONE ground-coverage object
+    const polys = d.querySelectorAll('polygon').length;                        // 13-gon coverage wedges/rings
+    let maxCss = 0; d.querySelectorAll('*').forEach(e => { if ((e.offsetWidth || 0) > maxCss) maxCss = e.offsetWidth; });
+    const cos = [...document.querySelectorAll('span')].some(s => /CoS/.test(s.textContent || ''));
+    const cov = [...document.querySelectorAll('span')].some(s => /RADAR .*360/.test(s.textContent || ''));
+    const blob = [...d.querySelectorAll('*')].map(e => { const cs = getComputedStyle(e); return cs.borderTopColor + '|' + cs.fill + '|' + cs.stroke; }).join(' ');
+    const purple = /167, 139, 250|196, 181, 253/.test(blob); const cyan = /25, 200, 207/.test(blob);
+    return { on: true, struts, grad, svgs, polys, ratio: +(maxCss / paneW).toFixed(2), cos, cov, purple, cyan }; });
+  // OOM guard: zero gradient layers, single SVG object, no element wider than 2.2·pane; still reads (purple, cone, labels), no cyan.
+  const ok = !!(dome.on && dome.grad === 0 && dome.svgs >= 1 && dome.polys >= 1 && dome.struts >= 6 && dome.ratio <= 2.2 && dome.cos && dome.cov && dome.purple && !dome.cyan);
+  rec('#33 SENTINEL coverage — ONE ground SVG 13-gon (0 gradient layers, ≤2.2·pane, no cyan), zoomed-in 3D no-OOM (FX-59)', ok, JSON.stringify(dome));
+  rec('#33 console clean / no crash', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
 

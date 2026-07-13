@@ -289,6 +289,7 @@ interface Placed {
   aff: Affiliation;
   tls?: { p?: TL; s?: TL; t?: TL };
   fov?: TL;
+  covMask?: CovSeg[]; // radar sector blanking — up to 5 ascending mil segments (0-6400), each on/off (radiate). Absent = 360°.
   unit?: AngleUnit;
   mobile?: boolean; // on-the-move (Avenger fires SLEW-TO-CUE only; PTL disabled while moving)
   // ── Track / movement (drone-war + R-CORE sim/replay; UCRS-2525 3D-ready) ──
@@ -316,6 +317,44 @@ function sectorPath(cx: number, cy: number, rx: number, ry: number, tl: TL) {
   const p0x = cx + rx * Math.sin(a0), p0y = cy - ry * Math.cos(a0);
   const p1x = cx + rx * Math.sin(a1), p1y = cy - ry * Math.cos(a1);
   return `M${cx} ${cy} L${p0x.toFixed(2)} ${p0y.toFixed(2)} A ${rx} ${ry} 0 ${span > 180 ? 1 : 0} 1 ${p1x.toFixed(2)} ${p1y.toFixed(2)} Z`;
+}
+// COVERAGE POLYGON — a 13-edge "flower-of-life" n-gon, the SINGLE shared coverage shape for BOTH the 2D
+// range ring and the 3D radar dome (so they read as one system). Vertices are INSCRIBED on the ellipse
+// (rx,ry) → they sit exactly on the published range boundary, edges fall just inside → never overshoots
+// the disclosed distance (range-accurate). Angles run from NORTH clockwise, matching sectorPath.
+const COVERAGE_SIDES = 13;
+function ngonPoints(cx: number, cy: number, rx: number, ry: number, sides: number = COVERAGE_SIDES, rotDeg = 0): string {
+  let s = "";
+  for (let k = 0; k < sides; k++) {
+    const a = ((rotDeg + (k * 360) / sides) * Math.PI) / 180;
+    s += `${(cx + rx * Math.sin(a)).toFixed(2)},${(cy - ry * Math.cos(a)).toFixed(2)} `;
+  }
+  return s.trim();
+}
+// ON-wedge polygons for a coverage sector-mask (NATO mils, 6400=full). Returns one SVG points-string per
+// radiating segment (OFF segments omitted → "sliver cut out"). Each wedge = centre + the 13-gon boundary
+// vertices sampled across [fromMil,toMil], so blanking uses the SAME polygon geometry in 2D and 3D.
+type CovSeg = { toMil: number; on: boolean };
+function covWedges(cx: number, cy: number, rx: number, ry: number, mask: CovSeg[] | undefined): string[] {
+  if (!mask || mask.length === 0) return [ngonPoints(cx, cy, rx, ry)]; // no mask → full 13-gon
+  const wedges: string[] = [];
+  let from = 0;
+  for (const seg of mask) {
+    const to = Math.max(from, Math.min(6400, seg.toMil));
+    if (seg.on && to > from) {
+      const a0 = (from * 360) / 6400, a1 = (to * 360) / 6400;
+      // sample the boundary every ≤ (360/13)° so the wedge edge tracks the shared 13-gon
+      const step = 360 / COVERAGE_SIDES, n = Math.max(1, Math.ceil((a1 - a0) / step));
+      let pts = `${cx.toFixed(2)},${cy.toFixed(2)} `;
+      for (let k = 0; k <= n; k++) {
+        const a = ((a0 + ((a1 - a0) * k) / n) * Math.PI) / 180;
+        pts += `${(cx + rx * Math.sin(a)).toFixed(2)},${(cy - ry * Math.cos(a)).toFixed(2)} `;
+      }
+      wedges.push(pts.trim());
+    }
+    from = to;
+  }
+  return wedges;
 }
 // HI: AVENGER is point-defense (Stinger, ~360°) — NO Primary Target Line. Only the
 // directional PATRIOT / THAAD launchers carry a PTL wedge.
@@ -2207,7 +2246,11 @@ function AoMapPane(p: PaneProps) {
                     const rx = Math.abs(cE.fx - c.fx) * 100;
                     const ry = Math.abs(cN.fy - c.fy) * 100;
                     if ((rx < 0.3 && ry < 0.3) || rx > 400 || ry > 400) return null;
-                    return <ellipse cx={c.fx * 100} cy={c.fy * 100} rx={rx} ry={ry} fill={fill} stroke={col} strokeWidth={rlw * 0.4} strokeDasharray={dash} opacity={strokeOp} />;
+                    // 13-edge coverage polygon — the SAME flower-of-life shape the 3D dome uses (2D === 3D).
+                    // Sector-blanked (covMask) → only the ON wedges draw; absent → the full 13-gon.
+                    return covWedges(c.fx * 100, c.fy * 100, rx, ry, u.covMask).map((pts, wi) => (
+                      <polygon key={wi} points={pts} fill={fill} stroke={col} strokeWidth={rlw * 0.4} strokeDasharray={dash} opacity={strokeOp} />
+                    ));
                   };
                   const ext = ASSET_RANGE_EXT_KM[u.asset];
                   return (
@@ -2637,49 +2680,33 @@ function AoMapPane(p: PaneProps) {
                       + latitude rims. Closed-form/deterministic, ~15 static DOM nodes. Schematic size (75 km
                       is off-screen). */}
                   {is3d && !isLattice && placed.find((p) => p.id === topObj?.id)?.asset === "sentinel" && (() => {
-                    // REALISTIC RANGE (operator): the coverage radius = the SENTINEL published detection
-                    // range (75 km) at THIS view's km→px scale — the same altPxPerM the cubes/altitude use —
-                    // NOT an arbitrary schematic size. Capped to 0.85·pane so a zoomed-in AO stays on-screen
-                    // (the cap is ≤ real range, so the shell NEVER overshoots the disclosed distance); floored
-                    // so a continental zoom still shows a legible dome. Zoom out to see the full 75 km footprint.
+                    // RADAR COVERAGE — rendered as ONE ground SVG (13-edge coverage polygon, the SAME flower-of-life
+                    // shape the 2D ring uses) + a few thin 3D struts for the cone-of-silence & dome outline. This
+                    // replaced 9 giant radial-gradient discs (~180 MB of GPU layers → mobile OOM). The SVG lies flat
+                    // on the ground plane (no translateZ) so the scene's rotateX(pitch) foreshortens it for FREE — a
+                    // tilt-drag re-transforms ONE layer, zero repaint. Vector → constant memory at any zoom.
                     const rangeKm = ASSET_RANGE_KM.sentinel ?? 75;
                     const Lreal = rangeKm * 1000 * altPxPerM;
-                    // OFF-MAP AT DISTANCE (operator): true scale, no on-screen cap — the coverage reaches its
-                    // real 75 km and, when that overflows the pane, it CLIPS at the screen edge exactly like the
-                    // voxel towers' off-map cue (overflow-hidden). Bounded to 3·pane only to cap DOM/gradient size.
-                    const L = Math.max(48, Math.min(Lreal, paneW * 3));
-                    const offMap = Lreal > paneW; // coverage extends past the visible map
-                    // COVERAGE PURPLE (operator): the SAME violet the 2D FOV/RADAR coverage uses (#a78bfa), NOT cyan.
-                    // Hostile radars stay red. The Cone-of-Silence gets a slightly different, lighter violet so it POPS.
-                    const col = placed.find((p) => p.id === topObj?.id)?.aff === "hostile" ? C.red : "#a78bfa";
-                    const cosCol = placed.find((p) => p.id === topObj?.id)?.aff === "hostile" ? "#fca5a5" : "#c4b5fd";
-                    const elLo = -10, elHi = 55;
-                    const ell = (elDeg: number) => ({ r: L * Math.cos((elDeg * Math.PI) / 180), z: L * Math.sin((elDeg * Math.PI) / 180) });
-                    // horizontal rim ring at an elevation (closes the shell top/bottom)
-                    const rim = (key: string, el: number) => { const { r, z } = ell(el); return (
-                      <div key={key} className="absolute left-1/2 top-1/2" style={{ width: 2 * r, height: 2 * r, marginLeft: -r, marginTop: -r, borderRadius: "50%",
-                        border: `0.8px solid ${col}${el === elHi ? "aa" : "77"}`, transform: `translateZ(${z.toFixed(1)}px)` }} />
-                    ); };
-                    // SHADING (operator): a translucent purple horizontal DISC = the coverage shell surface, sliced at
-                    // an elevation. radial-gradient fades at BOTH centre and rim → the "mask, slightly see-through" so
-                    // terrain shows through and the cone pops. `hole` carves the Cone-of-Silence out of the shell so the
-                    // empty inverted cone reads through the middle; the CoS discs (different violet) fill that cone.
-                    const disc = (key: string, r: number, z: number, color: string, alpha: string, hole: number) => (
-                      <div key={key} className="pointer-events-none absolute left-1/2 top-1/2" style={{ width: 2 * r, height: 2 * r, marginLeft: -r, marginTop: -r, borderRadius: "50%",
-                        background: `radial-gradient(circle, transparent ${hole}%, ${color}${alpha} ${Math.min(hole + 8, 88)}%, ${color}${alpha} 90%, transparent 100%)`,
-                        transform: `translateZ(${z.toFixed(1)}px)` }} />
-                    );
-                    // SOLID OF REVOLUTION — built from voxel-style 3D <div> STRUTS (translate3d + rotate),
-                    // the SAME technique as the voxel edge posts, NOT SVG. Every strut is a real 3D edge in
-                    // the cube's own frame, so it stands up in 3D (no flattening, no rotated-SVG plane).
-                    // Frame: x=east, y=south, z=up(altitude). Surface point P(φ,θ) = (L·cosφ·cosθ, L·cosφ·sinθ, L·sinφ).
-                    const RAD = Math.PI / 180;
+                    if (!(altPxPerM > 0) || !(paneW > 1)) return null; // degenerate view guard (no absurd element)
+                    // geometry radius (struts): true 75 km, bounded to 1.5·pane so struts/rim stay cheap; the coverage
+                    // still reaches the pane edge and CLIPS (off-map cue) rather than being drawn on-screen-only.
+                    const L = Math.max(48, Math.min(Lreal, paneW * 1.5));
+                    const offMap = Lreal > paneW;
+                    const aff = placed.find((p) => p.id === topObj?.id)?.aff;
+                    const mask = placed.find((p) => p.id === topObj?.id)?.covMask; // sector blanking (Phase B); absent = 360°
+                    const col = aff === "hostile" ? C.red : "#a78bfa";   // 2D coverage violet (no cyan); hostile red
+                    const cosCol = aff === "hostile" ? "#fca5a5" : "#c4b5fd"; // distinct lighter violet — CoS pops
+                    const RAD = Math.PI / 180, elLo = -10, elHi = 55;
+                    const zHi = L * Math.sin(elHi * RAD);                 // +55° rim height (cone apex → this)
+                    // ONE bounded raster for the ground SVG: half-size ≤ 1.3·pane, so a deep-zoom coverage clips at
+                    // the pane edge instead of allocating a giant layer. Polygon drawn at true L → clips when L > SR.
+                    const SR = Math.min(L, paneW * 1.3), svgD = 2 * SR;
                     const P = (phi: number, th: number) => ({
                       x: L * Math.cos(phi * RAD) * Math.cos(th * RAD),
                       y: L * Math.cos(phi * RAD) * Math.sin(th * RAD),
                       z: L * Math.sin(phi * RAD),
                     });
-                    // generic 3D strut A→B — one thin div, aimed by yaw(Z)+pitch(Y), origin pinned at A.
+                    // thin 3D strut A→B — one height:0 border div (negligible memory at any length).
                     const seg = (key: string, a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }, w: number, alpha: string, dashed: boolean, color: string = col) => {
                       const dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
                       const len = Math.hypot(dx, dy, dz);
@@ -2690,35 +2717,43 @@ function AoMapPane(p: PaneProps) {
                           transformOrigin: "0 0", transform: `translate3d(${a.x.toFixed(1)}px,${a.y.toFixed(1)}px,${a.z.toFixed(1)}px) rotateZ(${yaw.toFixed(2)}deg) rotateY(${(-pit).toFixed(2)}deg)` }} />
                       );
                     };
-                    const MER = 6;                          // meridian arcs (the sphere outline)
-                    const PHIS = [elLo, 6, 22, 38, elHi];   // polyline breakpoints −10°→+55°
-                    const SPK = 8;                          // Cone-of-Silence spokes (apex → +55° rim)
                     const apex = { x: 0, y: 0, z: 0 };
-                    const zHi = L * Math.sin(elHi * RAD); // +55° rim height (cone apex → this)
-                    const T35 = Math.tan(35 * RAD);       // CoS half-angle from vertical
+                    const cx = SR, cy = SR;
                     return (
                       <div data-radardome className="pointer-events-none absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d" }}>
-                        {/* SHELL SHADING — translucent purple discs, CoS carved out of the middle (hole grows with
-                            elevation until the cone meets the sphere at +55°). Masked/see-through so the cone pops. */}
-                        {[elLo, 8, 25, 42, elHi].map((ph) => { const { r, z } = ell(ph);
-                          const hole = Math.max(0, Math.min(88, Math.tan(ph * RAD) * T35 * 100));
-                          return disc(`sh${ph}`, r, z, col, "20", hole); })}
-                        {/* CONE OF SILENCE fill — distinct lighter violet discs (z·tan35°) → the inverted cone POPS */}
-                        {[0.22, 0.46, 0.7, 0.94].map((t, i) => { const z = t * zHi; return disc(`cs${i}`, z * T35, z, cosCol, "33", 0); })}
-                        {/* meridian arcs — voxel-style struts, solid, dim → the coverage shell outline */}
-                        {Array.from({ length: MER }, (_, m) => { const th = (m / MER) * 360;
+                        {/* GROUND COVERAGE — ONE svg, flat on the ground plane (scene tilt foreshortens it). 13-gon ON
+                            wedges only (covMask blanks slivers); absent mask → full 13-gon. Constant memory, one layer. */}
+                        <svg width={svgD} height={svgD} viewBox={`0 0 ${svgD.toFixed(0)} ${svgD.toFixed(0)}`}
+                          style={{ position: "absolute", left: -SR, top: -SR, overflow: "hidden" }}>
+                          {/* radial spokes to each vertex — the sector / flower-of-life read */}
+                          {Array.from({ length: COVERAGE_SIDES }, (_, k) => { const a = ((k * 360) / COVERAGE_SIDES) * RAD;
+                            return <line key={`sp${k}`} x1={cx} y1={cy} x2={(cx + L * Math.sin(a)).toFixed(1)} y2={(cy - L * Math.cos(a)).toFixed(1)} stroke={`${col}30`} strokeWidth={0.5} />; })}
+                          {/* filled coverage 13-gon wedges (radiating sectors) */}
+                          {covWedges(cx, cy, L, L, mask).map((pts, i) => (
+                            <polygon key={`cov${i}`} points={pts} fill={`${col}22`} stroke={`${col}bb`} strokeWidth={1} strokeLinejoin="round" />
+                          ))}
+                          {/* concentric range rings */}
+                          {[0.5, 0.8].map((f, i) => (
+                            <polygon key={`rr${i}`} points={ngonPoints(cx, cy, L * f, L * f)} fill="none" stroke={`${col}44`} strokeWidth={0.6} />
+                          ))}
+                          {/* Cone-of-Silence footprint hint — small central 13-gon in the distinct violet */}
+                          <polygon points={ngonPoints(cx, cy, L * 0.16, L * 0.16)} fill={`${cosCol}2e`} stroke={`${cosCol}bb`} strokeWidth={0.8} />
+                        </svg>
+                        {/* 3D CONE OF SILENCE — apex→+55° rim spokes (dashed, distinct violet) → the inverted blind cone */}
+                        {Array.from({ length: 8 }, (_, s) => seg(`c${s}`, apex, P(elHi, (s / 8) * 360), 1, "cc", true, cosCol))}
+                        {/* dome outline — a few meridian arcs (purple), the sphere hint */}
+                        {Array.from({ length: 4 }, (_, m) => { const th = (m / 4) * 360; const PHIS = [elLo, 22, elHi];
                           return PHIS.slice(0, -1).map((ph, i) => seg(`m${m}_${i}`, P(ph, th), P(PHIS[i + 1], th), 1, "66", false)); })}
-                        {/* Cone of Silence — apex→+55° rim spokes, dashed, distinct violet → the carved inverted cone */}
-                        {Array.from({ length: SPK }, (_, s) => seg(`c${s}`, apex, P(elHi, (s / SPK) * 360), 1, "cc", true, cosCol))}
-                        {rim("rlo", elLo)}
-                        {rim("rmid", 22)}
-                        {rim("rhi", elHi)}
+                        {/* +55° rim ellipse — the CoS mouth (one thin border div) */}
+                        <div className="absolute left-1/2 top-1/2" style={{ width: 2 * L * Math.cos(elHi * RAD), height: 2 * L * Math.cos(elHi * RAD),
+                          marginLeft: -L * Math.cos(elHi * RAD), marginTop: -L * Math.cos(elHi * RAD), borderRadius: "50%",
+                          border: `0.8px solid ${cosCol}aa`, transform: `translateZ(${zHi.toFixed(1)}px)` }} />
                         {/* labels, billboarded upright off the tilted plane */}
-                        <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${(ell(elHi).z + 4).toFixed(1)}px) rotateX(${-(pitch ?? 55)}deg)` }}>
+                        <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,-50%) translateZ(${(zHi + 4).toFixed(1)}px) rotateX(${-(pitch ?? 55)}deg)` }}>
                           <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>CoS ▽</span>
                         </div>
-                        <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,0) translateZ(${ell(elHi).z.toFixed(1)}px) rotateX(${-(pitch ?? 55)}deg)`, marginTop: -ell(elHi).r }}>
-                          <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>RADAR {fmt.fmtDist(rangeKm * 1000)} · 360° · −10°/+55°{offMap ? " · off-map" : ""}</span>
+                        <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(-50%,0) translateZ(${zHi.toFixed(1)}px) rotateX(${-(pitch ?? 55)}deg)`, marginTop: -L * Math.cos(elHi * RAD) }}>
+                          <span className="whitespace-nowrap rounded px-0.5 font-mono text-[6px] font-bold" style={{ background: "#0a0f16cc", color: col }}>RADAR {fmt.fmtDist(rangeKm * 1000)} · 360° · −10°/+55°{offMap ? " · off-map" : ""}{mask && mask.length ? " · MASK" : ""}</span>
                         </div>
                       </div>
                     );
