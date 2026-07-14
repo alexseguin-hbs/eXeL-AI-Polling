@@ -22,24 +22,29 @@ const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
 
 // PHASE CLOCK — the canonical Base-3600 view: PERIHELION at 12 o'clock, HU running clockwise (0→3600).
 // Each planet sits at its HU angle; the selected planet gets a hand. Complements the landscape map.
-function PhaseClock({ items, selId }: { items: { id: string; name: string; color: string; effHu: number }[]; selId: string }) {
+function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string; name: string; color: string; effHu: number }[]; selId: string; overhead: boolean; onToggle: () => void }) {
   const R = 36, cx = 50, cy = 50;
   const ang = (hu: number) => (hu / 3600) * 2 * Math.PI;                 // 0 at 12 o'clock, clockwise
   const at = (hu: number, r = R) => [cx + r * Math.sin(ang(hu)), cy - r * Math.cos(ang(hu))] as const;
   const sel = items.find((i) => i.id === selId);
+  const hand = sel ? at(sel.effHu, R - 2) : null;
   return (
-    <svg data-phase-clock viewBox="0 0 100 100" width={86} height={86} className="rounded-full" style={{ background: "rgba(8,12,20,0.82)" }}>
-      <circle cx={cx} cy={cy} r={R + 6} fill="none" stroke="#233043" strokeWidth="0.6" />
-      <circle cx={cx} cy={cy} r={R} fill="none" stroke="#16202e" strokeWidth="0.5" />
-      {[0, 900, 1800, 2700].map((h) => { const [x1, y1] = at(h, R + 4), [x2, y2] = at(h, R); return <line key={h} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#3f4d5f" strokeWidth="0.5" />; })}
-      <text x={cx} y={cy - R - 8} fontSize="4.4" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>PERI</text>
-      <text x={cx} y={cy + R + 11} fontSize="4.4" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>APHE</text>
-      <text x={cx + R + 3} y={cy + 1.5} fontSize="3" fill={C.dim} textAnchor="start" style={{ fontFamily: "monospace" }}>900</text>
-      <text x={cx - R - 3} y={cy + 1.5} fontSize="3" fill={C.dim} textAnchor="end" style={{ fontFamily: "monospace" }}>2700</text>
-      {sel && (() => { const [hx, hy] = at(sel.effHu, R - 2); return <line x1={cx} y1={cy} x2={hx} y2={hy} stroke={sel.color} strokeWidth="0.8" />; })()}
-      {items.map((it) => { const [x, y] = at(it.effHu); const on = it.id === selId; return <circle key={it.id} cx={x} cy={y} r={on ? 2.2 : it.id === "earth" ? 1.8 : 1.2} fill={it.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />; })}
-      <circle cx={cx} cy={cy} r="2.2" fill="#fff3b0" />
-    </svg>
+    <button data-clock-toggle onClick={onToggle} type="button"
+      aria-label={overhead ? "Back to tilted view" : "Overhead view"} title={overhead ? "Back to tilted view" : "Overhead view — perihelion at 12 o'clock"}
+      className="cursor-pointer rounded-full p-0" style={{ background: "rgba(8,12,20,0.82)", border: overhead ? "1px solid #19c8cf" : "1px solid transparent", lineHeight: 0 }}>
+      <svg data-phase-clock viewBox="0 0 100 100" width={86} height={86} className="rounded-full" style={{ display: "block" }}>
+        <circle cx={cx} cy={cy} r={R + 6} fill="none" stroke="#233043" strokeWidth="0.6" />
+        <circle cx={cx} cy={cy} r={R} fill="none" stroke="#16202e" strokeWidth="0.5" />
+        {[0, 900, 1800, 2700].map((h) => { const [x1, y1] = at(h, R + 4), [x2, y2] = at(h, R); return <line key={h} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#3f4d5f" strokeWidth="0.5" />; })}
+        <text x={cx} y={cy - R - 8} fontSize="4.4" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>PERI</text>
+        <text x={cx} y={cy + R + 11} fontSize="4.4" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>APHE</text>
+        <text x={cx + R + 3} y={cy + 1.5} fontSize="3" fill={C.dim} textAnchor="start" style={{ fontFamily: "monospace" }}>900</text>
+        <text x={cx - R - 3} y={cy + 1.5} fontSize="3" fill={C.dim} textAnchor="end" style={{ fontFamily: "monospace" }}>2700</text>
+        {hand ? <line x1={cx} y1={cy} x2={hand[0]} y2={hand[1]} stroke={sel!.color} strokeWidth="0.8" /> : null}
+        {items.map((it) => { const [x, y] = at(it.effHu); const on = it.id === selId; return <circle key={it.id} cx={x} cy={y} r={on ? 2.2 : it.id === "earth" ? 1.8 : 1.2} fill={it.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />; })}
+        <circle cx={cx} cy={cy} r="2.2" fill="#fff3b0" />
+      </svg>
+    </button>
   );
 }
 
@@ -49,6 +54,7 @@ export function ArchitectCelestial() {
   const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
   const [scaleMode, setScaleMode] = useState<"schematic" | "true">("schematic");
   const [max, setMax] = useState(false);            // maximize the whole solar system
+  const [overhead, setOverhead] = useState(false);  // clock icon → top-down overhead view (perihelion at 12)
   const sinE = Math.sin(tiltDeg * DEG);
 
   // Layout: each orbit is an ellipse in its plane (semi-major ax, focus offset ax·e), foreshortened vertically
@@ -87,12 +93,42 @@ export function ArchitectCelestial() {
         <div className="relative">
         {/* PHASE CLOCK — upper-right: perihelion at 12 o'clock (canonical Base-3600 convention) */}
         <div className="absolute right-1 top-1 z-10">
-          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu }))} selId={selId} />
+          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu }))} selId={selId} overhead={overhead} onToggle={() => setOverhead((v) => !v)} />
         </div>
         {/* mini 3D Earth globe — bottom-right, drag L/R to rotate (spin on equator), no zoom */}
         <div className="absolute bottom-1 right-1 z-10">
           <MiniGlobe lat={30.27} lon={-97.74} size={max ? 132 : 88} color={C.gold} />
         </div>
+        {overhead ? (
+        <svg data-arch-celestial data-overhead viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "radial-gradient(circle at 50% 50%, #0b1122, #05070d)", aspectRatio: "2.2 / 1" }}>
+          {/* TOP-DOWN OVERHEAD — Sun at centre, perihelion UP (12 o'clock), aphelion DOWN */}
+          {laid.map(({ p, i, effHu }) => {
+            const A = scaleMode === "true" ? axTrue(p.aAU) * 0.56 : 7 + i * 4.85;
+            const rx = A * bOverA(p.e), cyo = 56 + A * p.e, cx0 = 122;
+            const phi = huToNu(effHu) * DEG, r = A * (1 - p.e * p.e) / (1 + p.e * Math.cos(phi));
+            const x = cx0 + r * Math.sin(phi), y = 56 - r * Math.cos(phi);
+            const on = p.id === selId;
+            return (
+              <g key={`ov${p.id}`}>
+                <ellipse data-orbit cx={cx0} cy={cyo} rx={rx} ry={A} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.55" />
+                <circle cx={cx0} cy={56 - A * (1 - p.e)} r="0.7" fill={p.color} />{/* perihelion — top */}
+                <circle cx={cx0} cy={56 + A * (1 + p.e)} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* aphelion — bottom */}
+                <g data-planet data-planet-id={p.id} onClick={() => setSelId(p.id)} style={{ cursor: "pointer" }}>
+                  <circle cx={x} cy={y} r={Math.max(4, p.dot + 2.5)} fill="transparent" />
+                  {on && <circle cx={x} cy={y} r={p.dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
+                  <circle cx={x} cy={y} r={p.dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
+                  <text x={x} y={y - p.dot - 1.2} fontSize="2.3" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
+                </g>
+              </g>
+            );
+          })}
+          <text x={122} y={7} fontSize="3.2" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>PERIHELION ▲ 12:00</text>
+          <text x={122} y={109} fontSize="3.2" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>▼ APHELION 6:00</text>
+          <circle cx={122} cy={56} r="7.5" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.4" />
+          <circle cx={122} cy={56} r="4.8" fill="#fff3b0" />
+          <text x={122} y={56 + 12} fontSize="2.5" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
+        </svg>
+        ) : (
         <svg data-arch-celestial viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: "2.2 / 1" }}>
           {/* orbital-plane baseline (the tilt reference / SA) */}
           <ellipse cx={SUN_X} cy={SUN_Y} rx="118" ry={118 * sinE} fill="none" stroke="#141d29" strokeWidth="0.3" />
@@ -130,6 +166,7 @@ export function ArchitectCelestial() {
             );
           })}
         </svg>
+        )}
         </div>
         {/* controls: HU scrubber + SA tilt */}
         <div className="mt-1 grid grid-cols-1 gap-x-3 gap-y-0.5 text-[9px] sm:grid-cols-2">
