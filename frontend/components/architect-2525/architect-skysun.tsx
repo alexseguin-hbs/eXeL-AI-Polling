@@ -8,7 +8,7 @@
  * for Orion. Score each cardinal facing for seasonal daylight → window-placement recommendation. Pure
  * client math (deterministic → replayable, U-WF-08). Self-contained SVG.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArchitectCelestial } from "./architect-celestial";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
@@ -93,10 +93,19 @@ function WorldPlacement({ lat, lon, onPick }: { lat: number; lon: number; onPick
 export function ArchitectSkySun() {
   const [lat, setLat] = useState(30.44);   // default: Pfield · Pflugerville, TX (soccer complex)
   const [lon, setLon] = useState(-97.62);
-  const [doy, setDoy] = useState(172);     // ~summer solstice
-  const [hour, setHour] = useState(12);
+  const [doy, setDoy] = useState(172);     // SSR seed (~summer solstice); replaced by TODAY on mount
+  const [hour, setHour] = useState(12);    // noon — sun high for a meaningful default
   const [year, setYear] = useState(2025);
   const [skyView, setSkyView] = useState<"dome" | "solar">("dome"); // SUN·SKY sub-view: sky dome ↔ UCRS-2525 solar system
+
+  // Default to TODAY (client-only → no SSR hydration mismatch). Everything (sun · moon · dome · solar map)
+  // adjusts to the current date at the placed location; the operator can still scrub any date afterwards.
+  useEffect(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    setYear(y);
+    setDoy(Math.round((Date.UTC(y, now.getMonth(), now.getDate()) - Date.UTC(y, 0, 0)) / 86400000));
+  }, []);
 
   const sun = sunPos(lat, doy, hour);
   const dayPath = Array.from({ length: 29 }, (_, i) => 5 + i * 0.5).map((h) => sunPos(lat, doy, h)).filter((p) => p.el > -2);
