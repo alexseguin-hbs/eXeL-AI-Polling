@@ -68,7 +68,7 @@ export function SessionCodeInput() {
             autoComplete="off"
             autoCapitalize="characters"
             spellCheck={false}
-            className="flex-1 h-14 rounded-lg border border-input bg-background px-4 text-center text-2xl font-mono tracking-[0.3em] text-foreground placeholder:text-muted-foreground/40 placeholder:tracking-[0.3em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
+            className="min-w-0 flex-1 h-14 rounded-lg border border-input bg-background px-4 text-center text-2xl font-mono tracking-[0.3em] text-foreground placeholder:text-muted-foreground/40 placeholder:tracking-[0.3em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
           />
           <Button
             type="submit"
