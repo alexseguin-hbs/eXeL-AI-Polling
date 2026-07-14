@@ -169,16 +169,22 @@ export function ArchitectCelestial({
   // and rotates every other planet to its relative position. (Default selection Earth → Earth at perihelion.)
   const selIdx = Math.max(0, PLANETS.findIndex((p) => p.id === selId));
   const select = (id: string) => { setSelId(id); setHu(0); }; // land the newly-selected planet at its perihelion
-  const laid = useMemo(() => PLANETS.map((p, i) => {
-    const ax = axTrue(p.aAU);                         // TRUE-SCALE (log-radius real proportions) — single view
-    const ry = ax * bOverA(p.e) * sinE;             // foreshortened minor axis (the tilt)
-    const cx = SUN_X - ax * p.e;                     // Sun sits at the right focus
-    const effHu = ((hu + (i - selIdx) * 400) % 3600 + 3600) % 3600; // selected planet at HU 0 (perihelion), others relative
-    const nu = huToNu(effHu) * DEG;
-    const x = cx + ax * Math.cos(nu), y = SUN_Y + ry * Math.sin(nu);
-    const depth = Math.sin(nu);                       // +front / −back
-    return { p, i, ax, ry, cx, effHu, x, y, depth };
-  }), [hu, sinE, selIdx]);
+  // ACCURATE ORBITAL RATES: HU 0→3600 = ONE orbit of the SELECTED planet. That maps to elapsed days via the
+  // selected planet's period (tDays, perihelion→perihelion); every other planet advances by elapsed/tDays → the
+  // real relative speeds (Mercury laps ~248× per Pluto orbit). A fixed per-planet phase gives the initial spread.
+  const laid = useMemo(() => {
+    const tElapsed = (hu / 3600) * PLANETS[selIdx].tDays;  // days since the selected planet was at perihelion
+    return PLANETS.map((p, i) => {
+      const ax = axTrue(p.aAU);                       // TRUE-SCALE (log-radius real proportions) — single view
+      const ry = ax * bOverA(p.e) * sinE;             // foreshortened minor axis (the tilt)
+      const cx = SUN_X - ax * p.e;                    // Sun sits at the right focus
+      const effHu = (((i - selIdx) * 400 + (tElapsed / p.tDays) * 3600) % 3600 + 3600) % 3600; // accurate rate
+      const nu = huToNu(effHu) * DEG;
+      const x = cx + ax * Math.cos(nu), y = SUN_Y + ry * Math.sin(nu);
+      const depth = Math.sin(nu);                     // +front / −back
+      return { p, i, ax, ry, cx, effHu, x, y, depth };
+    });
+  }, [hu, sinE, selIdx]);
 
   const sel = laid.find((l) => l.p.id === selId) || laid[2];
   const rd = ucrsAt(sel.p, sel.effHu);

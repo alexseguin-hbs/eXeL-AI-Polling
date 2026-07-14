@@ -60,6 +60,15 @@ const SUBNAV: Record<string, string[]> = {
   Build: ["Build 4D", "Estimate", "Forecast", "Cost·Time"],
   Lifecycle: ["Twin", "Replay"],
 };
+// Per-tab "•••" advanced menu (Security-2525 "•••" method) — a persisted expander on every major tab.
+const ADV_MENU: Record<string, [string, string][]> = {
+  Overview: [["Health", "SSSES · SPIRAL · R-CORE"], ["Readiness", "Gates · Human Authority"], ["Activity", "Feed · Notifications"], ["Digital Twin", "Live model · Sensors"]],
+  Design: [["Layers", "Systems · MEP · Structure"], ["Compare", "Variants · Diff"], ["Coordinate", "MGRS · UCRS · Site"], ["Import", "IFC · DWG · GIS"]],
+  Simulate: [["Analysis", "Energy · Structural · CFD"], ["Validation", "Clash · Code check"], ["Twin", "Live vs model"], ["Confidence", "Cone · AACE class"]],
+  Review: [["Decisions", "Log · Approvals"], ["Issues", "Punch · RFI"], ["Approvals", "Gov · Edu · Innovation"], ["Contributions", "SoI · MoT · Trinity"]],
+  Build: [["Permits", "Submittals · Inspections"], ["Procurement", "Bids · POs"], ["Field", "Daily logs · Safety"], ["Cost", "Cone · Forecast · $/min"]],
+  Lifecycle: [["Assets", "Registry · Warranty"], ["Maintenance", "Schedule · Work orders"], ["Insurance", "Policy · Claims"], ["History", "Replay · Actuals"]],
+};
 // Route/deep-link aliases: old tab name → [primary, subtab?] so nothing 404s.
 const TAB_ALIAS: Record<string, [string, string?]> = {
   OVERVIEW: ["Overview"], DESIGN: ["Design", "Model"], "SUN·SKY": ["Design", "Site"],
@@ -357,6 +366,22 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           </div>
         )}
         </div>
+        )}
+        {/* "•••" ADVANCED — a persisted expander on EVERY major tab (outside the Model/other split so it always
+            shows, incl. Design→Model); reuses the Security-2525 "•••" method. Hidden on the More tab (which IS advanced). */}
+        {activeTab !== "More" && (
+          <div className="mt-3" data-adv-tab={activeTab}>
+            <Expander id={`adv.${activeTab}`} title="••• Advanced" sub={activeTab}>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {(ADV_MENU[activeTab] ?? []).map(([g, items]) => (
+                  <div key={g} data-adv-group className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
+                    <div className="text-[10px] font-bold" style={{ color: C.cyan }}>{g}</div>
+                    <div className="mt-1 text-[9px]" style={{ color: C.dim }}>{items}</div>
+                  </div>
+                ))}
+              </div>
+            </Expander>
+          </div>
         )}
       </div>
 

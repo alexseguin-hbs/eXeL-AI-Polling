@@ -477,6 +477,27 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A30: a "••• Advanced" expander on ALL 6 major tabs (persisted), absent on More ──
+{
+  const { pg, tab } = await mk();
+  const majors = ['Overview', 'Design', 'Simulate', 'Review', 'Build', 'Lifecycle'];
+  let present = 0, opened = false, persisted = false;
+  for (const t of majors) {
+    await tab(t); await pg.waitForTimeout(160);
+    const has = await pg.evaluate(() => !!document.querySelector('[data-adv-tab] [data-arch-exp^="adv."]'));
+    if (has) present++;
+  }
+  // open on Build + verify it persists to localStorage
+  await tab('Build'); await pg.waitForTimeout(160);
+  await pg.evaluate(() => { const b = [...document.querySelectorAll('[data-adv-tab] button')].find((x) => /Advanced/.test(x.textContent || '')); b && b.click(); });
+  await pg.waitForTimeout(160);
+  opened = await pg.evaluate(() => !!document.querySelector('[data-adv-group]'));
+  persisted = await pg.evaluate(() => localStorage.getItem('arch2525.exp.adv.Build') === '1');
+  const moreAbsent = await (async () => { await tab('More'); await pg.waitForTimeout(160); return pg.evaluate(() => !document.querySelector('[data-adv-tab]')); })();
+  rec('#A30 "••• Advanced" expander on all 6 major tabs (persisted) + absent on More', present === 6 && opened && persisted && moreAbsent, `present=${present} opened=${opened} persisted=${persisted} moreAbsent=${moreAbsent}`);
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
