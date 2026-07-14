@@ -299,7 +299,8 @@ const mk = async (vp) => {
     orbits: document.querySelectorAll('[data-orbit]').length,
     hu: !!document.querySelector('[data-hu-input]'),
     tilt: !!document.querySelector('[data-tilt-input]'),
-    scale: document.querySelectorAll('[data-scale-toggle]').length,
+    psize: document.querySelectorAll('[data-psize-toggle]').length,          // Planet Size: Actual/Exaggerated (2)
+    noSchematic: document.querySelectorAll('[data-scale-toggle]').length === 0, // schematic toggle removed — True-Scale locked
     coord: /SA\.EA\.\.HU/.test(document.querySelector('[data-ucrs-coord]')?.textContent || ''),
     earthPeri: /230\.1584\.\.0\s*·\s*0\.0\.\.0/.test(document.querySelector('[data-ucrs-coord]')?.textContent || ''), // Earth default = perihelion (HU 0)
     clock: !!document.querySelector('[data-phase-clock]') && /PERI/.test(document.querySelector('[data-phase-clock]')?.textContent || '') && /APHE/.test(document.querySelector('[data-phase-clock]')?.textContent || ''),
@@ -312,9 +313,9 @@ const mk = async (vp) => {
   // click Mercury → readout switches + shows SR/SP-OTU
   await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(150);
   const after = await pg.evaluate(() => document.querySelector('[data-ucrs-readout]')?.textContent || '');
-  const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu && base.tilt && base.scale === 2 && base.coord && base.earthPeri && base.clock
+  const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu && base.tilt && base.psize === 2 && base.noSchematic && base.coord && base.earthPeri && base.clock
     && parseFloat(ry1) < parseFloat(ry0) && /Mercury/.test(after) && /SR:/.test(after) && /SP-OTU/.test(after);
-  rec('#A21 UCRS-2525 v2 — 9 planets + tilt ellipsoid + scale toggle + SA.EA..HU + click→coords', ok, JSON.stringify({ ...base, ry0, ry1, afterHasMercury: /Mercury/.test(after) }));
+  rec('#A21 UCRS-2525 v2 — 9 planets + tilt ellipsoid + True-Scale + Planet-Size toggle + SA.EA..HU + click→coords', ok, JSON.stringify({ ...base, ry0, ry1, afterHasMercury: /Mercury/.test(after) }));
 
   // #A21b: clock icon toggles the top-down OVERHEAD view (perihelion at 12) and back
   await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(160);
@@ -349,14 +350,55 @@ const mk = async (vp) => {
   await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
   const hasPlay = await pg.locator('[data-cel-play]').count();
   const hasDate = await pg.locator('[data-cel-date]').count();
-  const earthGlobe = await pg.evaluate(() => !!document.querySelector('[data-mini-globe]') && !document.querySelector('[data-planet-inset]')); // default Earth → globe
+  // default Earth → real land/ocean globe + the Moon beside it (draggable 3D)
+  const earthGlobe = await pg.evaluate(() => !!document.querySelector('[data-mini-globe]') && !!document.querySelector('[data-planet-globe][data-body="Moon"]'));
   await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(150);
-  const merc = await pg.evaluate(() => !!document.querySelector('[data-planet-inset]') && !document.querySelector('[data-mini-globe]')); // Mercury → full-3600 orbit inset
+  const merc = await pg.evaluate(() => !!document.querySelector('[data-planet-globe][data-body="Mercury"]') && !document.querySelector('[data-mini-globe]')); // Mercury → draggable 3D planet globe
   const readT = () => pg.evaluate(() => (document.querySelector('[data-arch-tab="Design"]')?.textContent || '').match(/(\d+\.\d)h\b/)?.[1] || null);
   const t0 = await readT();
   await pg.locator('[data-cel-play]').click(); await pg.waitForTimeout(600); await pg.locator('[data-cel-play]').click();
   const t1 = await readT();
-  rec('#A23 date + play (time advances) + selected-planet inset (Earth globe ↔ planet full-3600 orbit)', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && !!t0 && t0 !== t1, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} merc=${merc} t0=${t0} t1=${t1}`);
+  rec('#A23 date + play (time advances) + selected body 3D globe (Earth+Moon ↔ draggable planet)', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && !!t0 && t0 !== t1, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} merc=${merc} t0=${t0} t1=${t1}`);
+  await pg.close();
+}
+
+// ── #A24: Planet Size Actual↔Exaggerated toggle changes the map dot radius (Jupiter shrinks in Actual) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  const jupR = () => pg.evaluate(() => { const g = document.querySelector('[data-planet-id="jupiter"]'); const dot = g ? [...g.querySelectorAll('circle')].find((c) => (c.getAttribute('fill') || '').startsWith('#')) : null; return dot ? parseFloat(dot.getAttribute('r') || '0') : 0; }); // the coloured dot (hit-target is fill=transparent)
+  await pg.locator('[data-psize][data-psize="exaggerated"]').click(); await pg.waitForTimeout(120);
+  const exag = await jupR();
+  await pg.locator('[data-psize][data-psize="actual"]').click(); await pg.waitForTimeout(120);
+  const actual = await jupR();
+  const activeActual = await pg.evaluate(() => document.querySelectorAll('[data-psize-toggle]').length === 2);
+  rec('#A24 Planet Size Actual↔Exaggerated toggle resizes dots', activeActual && exag > 0 && actual > 0 && exag !== actual, `exag=${exag} actual=${actual} toggle2=${activeActual}`);
+  await pg.close();
+}
+
+// ── #A25: solar-system gesture nav — wheel zoom + drag pan change the view transform + reset restores ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  const svg = pg.locator('[data-arch-celestial]');
+  const vt0 = await pg.evaluate(() => document.querySelector('[data-cel-view]')?.getAttribute('transform') || '');
+  const box = await svg.boundingBox();
+  // wheel-zoom over the map (zoom about the Sun) then drag-pan on empty space
+  if (box) { await pg.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5); await pg.mouse.wheel(0, -240); await pg.waitForTimeout(120); }
+  const z1 = await pg.evaluate(() => document.querySelector('[data-cel-zoom]')?.textContent || '');
+  const vt1 = await pg.evaluate(() => document.querySelector('[data-cel-view]')?.getAttribute('transform') || '');
+  // pan on the empty bottom strip (below all orbits, so no planet swallows the drag)
+  if (box) { await pg.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.9); await pg.mouse.down(); await pg.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.88, { steps: 6 }); await pg.mouse.up(); await pg.waitForTimeout(120); }
+  const vt2 = await pg.evaluate(() => document.querySelector('[data-cel-view]')?.getAttribute('transform') || '');
+  const hasReset = await pg.locator('[data-cel-reset]').count();
+  if (hasReset) { await pg.locator('[data-cel-reset]').click(); await pg.waitForTimeout(120); }
+  const vt3 = await pg.evaluate(() => document.querySelector('[data-cel-view]')?.getAttribute('transform') || '');
+  const zoomed = vt1 !== vt0;
+  const panned = vt2 !== vt1;
+  const reset = vt3 !== vt2 && /scale\(1\)/.test(vt3);
+  rec('#A25 solar-system pinch/wheel zoom + drag pan + rotate (view transform) + reset', zoomed && panned && hasReset === 1 && reset, `z1=${z1} zoomed=${zoomed} panned=${panned} reset=${reset}`);
   await pg.close();
 }
 

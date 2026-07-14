@@ -6,16 +6,18 @@
  * A 3D tilted-plane solar-system view for SUN·SKY. Orbits are ELLIPSOID rings on a plane tilted by an
  * elevation angle (SA · star/system tilt), aphelion LEFT / perihelion RIGHT, Sun at the shared right focus.
  * Coloured across the 13-Trinity spectrum (Mercury red → Neptune violet → Pluto ultraviolet); Earth drawn
- * largest with an EA axial-tilt marker (the reference/home planet, EA 230.1584). Toggle Schematic ↔ True-scale.
- * Click any planet → its Base-3600 UCRS-2525 coordinates (voxel-style). HU scrubber advances all planets.
- * Driven by lib/ucrs-2525.ts (pure). Self-contained SVG.
+ * largest with an EA axial-tilt marker (the reference/home planet, EA 230.1584). Orbits are TRUE-SCALE
+ * (log-radius real proportions). Planet Size toggles Actual ↔ Exaggerated dots. Click any planet → its
+ * Base-3600 UCRS-2525 coordinates (voxel-style); the selected body shows as a draggable 3D globe (Earth +
+ * Moon, or a procedural planet). HU scrubber advances all planets. Driven by lib/ucrs-2525.ts. Self-contained SVG.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Maximize2, Minimize2, Play, Pause } from "lucide-react";
 import {
-  PLANETS, ucrsAt, huToNu, axSchematic, axTrue, bOverA, fmt3600, FULL_ORBIT, fmtMeters, type Planet,
+  PLANETS, MOON, ucrsAt, huToNu, axTrue, bOverA, fmt3600, FULL_ORBIT, fmtMeters, planetDotRadius,
 } from "@/lib/ucrs-2525";
 import { MiniGlobe } from "./mini-globe";
+import { PlanetGlobe } from "./planet-globe";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
@@ -49,33 +51,12 @@ function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string;
   );
 }
 
-// Focused single-planet orbit inset — the selected planet's FULL 3600 orbit (perihelion right / aphelion left),
-// the planet at its current HU, Sun at the focus. Lets you watch e.g. Mercury's whole orbit in the corner.
-function PlanetOrbitInset({ planet, effHu, size = 84 }: { planet: Planet; effHu: number; size?: number }) {
-  const cx = 60, cy = 50, A = 44, e = planet.e;
-  const ry = A * bOverA(e) * 0.6, ctrX = cx - A * e;
-  const phi = huToNu(effHu) * DEG;
-  const px = ctrX + A * Math.cos(phi), py = cy + ry * Math.sin(phi);
-  return (
-    <svg data-planet-inset viewBox="0 0 120 100" width={size * 1.35} height={size} className="rounded" style={{ background: "rgba(8,12,20,0.86)", display: "block", border: `1px solid ${planet.color}55` }}>
-      <ellipse cx={ctrX} cy={cy} rx={A} ry={ry} fill="none" stroke={planet.color} strokeWidth="0.55" strokeDasharray="1 1.1" opacity="0.7" />
-      <circle cx={ctrX + A} cy={cy} r="1.5" fill={planet.color} />{/* perihelion (right) */}
-      <circle cx={ctrX - A} cy={cy} r="1.5" fill="none" stroke={planet.color} strokeWidth="0.5" />{/* aphelion (left) */}
-      <circle cx={cx} cy={cy} r="3.6" fill="#fff3b0" />{/* Sun at focus */}
-      <circle cx={px} cy={py} r={Math.max(1.8, planet.dot + 0.5)} fill={planet.color} stroke="#fff" strokeWidth="0.4" />
-      <text x={px} y={py - planet.dot - 2.5} fontSize="4.2" fill="#fff" textAnchor="middle" style={{ fontFamily: "monospace" }}>{planet.name}</text>
-      <text x={4} y={96} fontSize="4" fill="#5f7186" style={{ fontFamily: "monospace" }}>HU {Math.round(effHu)} · full 3600</text>
-      <text x={ctrX + A - 1} y={cy - 2.5} fontSize="3.4" fill={planet.color} textAnchor="end" style={{ fontFamily: "monospace" }}>peri▶</text>
-    </svg>
-  );
-}
-
 export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number; lon?: number } = {}) {
   // Default location: Pfield · Pflugerville, TX (shared with the Sky Dome / view-from-location).
   const [hu, setHu] = useState(0);
   const [selId, setSelId] = useState("earth");
   const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
-  const [scaleMode, setScaleMode] = useState<"schematic" | "true">("schematic");
+  const [planetSize, setPlanetSize] = useState<"actual" | "exaggerated">("exaggerated"); // dot sizing on the map
   const [max, setMax] = useState(false);            // maximize the whole solar system
   const [overhead, setOverhead] = useState(false);  // clock icon → top-down overhead view (perihelion at 12)
   const [year, setYear] = useState(2025);
@@ -95,6 +76,69 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
   }, [playing]);
   const sinE = Math.sin(tiltDeg * DEG);
 
+  // ── GESTURE NAVIGATION — pinch-zoom + one/two-finger rotate/pan on the solar system (mirrors the
+  // Security-2525 globe: 1 finger = pan, 2 fingers = pinch-zoom + twist-rotate; mouse wheel = zoom;
+  // right-drag = rotate). The whole map (both tilted + overhead) rides a view transform about the Sun. ──
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [view, setView] = useState({ zoom: 1, tx: 0, ty: 0, rot: 0 });
+  const touch = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinch = useRef<{ dist: number; cx: number; cy: number; ang: number } | null>(null);
+  const pan = useRef<{ x: number; y: number; btn: number } | null>(null);
+  const ZMIN = 0.6, ZMAX = 6;
+  const pxK = () => { const r = svgRef.current?.getBoundingClientRect(); return r && r.width ? 244 / r.width : 1; }; // client px → viewBox units
+  const clampZ = (z: number) => Math.min(ZMAX, Math.max(ZMIN, z));
+  const resetView = () => setView({ zoom: 1, tx: 0, ty: 0, rot: 0 });
+  const vt = `translate(${view.tx} ${view.ty}) translate(${SUN_X} ${SUN_Y}) scale(${view.zoom}) rotate(${view.rot}) translate(${-SUN_X} ${-SUN_Y})`;
+  // native, non-passive wheel listener (React onWheel is passive → cannot preventDefault) — zoom about the Sun
+  useEffect(() => {
+    const el = svgRef.current; if (!el) return;
+    const onWheel = (e: WheelEvent) => { e.preventDefault(); setView((v) => ({ ...v, zoom: clampZ(v.zoom * (e.deltaY < 0 ? 1.12 : 1 / 1.12)) })); };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [overhead]); // re-bind when the mounted svg swaps (tilted ↔ overhead)
+  const gestureHandlers = {
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    onPointerDown: (e: React.PointerEvent) => {
+      if (e.pointerType === "touch") {
+        touch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        try { (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic pointer */ }
+        if (touch.current.size === 2) { const [a, b] = Array.from(touch.current.values()); pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, ang: Math.atan2(b.y - a.y, b.x - a.x) }; }
+        return;
+      }
+      pan.current = { x: e.clientX, y: e.clientY, btn: e.button };
+      try { (e.currentTarget as SVGElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic pointer */ }
+    },
+    onPointerMove: (e: React.PointerEvent) => {
+      const k = pxK();
+      if (e.pointerType === "touch") {
+        const prev = touch.current.get(e.pointerId); if (!prev) return;
+        touch.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (touch.current.size >= 2 && pinch.current) {
+          // two-finger: pinch = zoom, twist = rotate, midpoint drag = pan (Google-Earth style)
+          const [a, b] = Array.from(touch.current.values());
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          const factor = 1 + (dist / Math.max(1, pinch.current.dist) - 1) * 0.6;
+          const ang = Math.atan2(b.y - a.y, b.x - a.x);
+          let dAng = ang - pinch.current.ang; if (dAng > Math.PI) dAng -= 2 * Math.PI; else if (dAng < -Math.PI) dAng += 2 * Math.PI;
+          const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2, dcx = cx - pinch.current.cx, dcy = cy - pinch.current.cy;
+          pinch.current = { dist, cx, cy, ang };
+          setView((v) => ({ zoom: clampZ(v.zoom * factor), rot: v.rot + dAng * (180 / Math.PI), tx: v.tx + dcx * k, ty: v.ty + dcy * k }));
+        } else if (touch.current.size === 1) {
+          setView((v) => ({ ...v, tx: v.tx + (e.clientX - prev.x) * k, ty: v.ty + (e.clientY - prev.y) * k }));
+        }
+        return;
+      }
+      const d = pan.current; if (!d) return;
+      const dx = e.clientX - d.x, dy = e.clientY - d.y; d.x = e.clientX; d.y = e.clientY;
+      if (d.btn === 2) setView((v) => ({ ...v, rot: v.rot + dx * 0.4 }));         // right-drag = rotate
+      else setView((v) => ({ ...v, tx: v.tx + dx * k, ty: v.ty + dy * k }));      // left-drag = pan
+    },
+    onPointerUp: (e: React.PointerEvent) => {
+      if (e.pointerType === "touch") { touch.current.delete(e.pointerId); if (touch.current.size < 2) pinch.current = null; return; }
+      pan.current = null;
+    },
+  };
+
   // Layout: each orbit is an ellipse in its plane (semi-major ax, focus offset ax·e), foreshortened vertically
   // by sin(elevation). Planet at true anomaly ν(HU); depth = sin(ν) (front > 0, back < 0).
   // Reference index = the SELECTED planet: selecting a planet places IT at perihelion (HU 0 / 12 o'clock)
@@ -102,7 +146,7 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
   const selIdx = Math.max(0, PLANETS.findIndex((p) => p.id === selId));
   const select = (id: string) => { setSelId(id); setHu(0); }; // land the newly-selected planet at its perihelion
   const laid = useMemo(() => PLANETS.map((p, i) => {
-    const ax = scaleMode === "true" ? axTrue(p.aAU) : axSchematic(i);
+    const ax = axTrue(p.aAU);                         // TRUE-SCALE (log-radius real proportions) — single view
     const ry = ax * bOverA(p.e) * sinE;             // foreshortened minor axis (the tilt)
     const cx = SUN_X - ax * p.e;                     // Sun sits at the right focus
     const effHu = ((hu + (i - selIdx) * 400) % 3600 + 3600) % 3600; // selected planet at HU 0 (perihelion), others relative
@@ -110,7 +154,7 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
     const x = cx + ax * Math.cos(nu), y = SUN_Y + ry * Math.sin(nu);
     const depth = Math.sin(nu);                       // +front / −back
     return { p, i, ax, ry, cx, effHu, x, y, depth };
-  }), [hu, sinE, scaleMode, selIdx]);
+  }), [hu, sinE, selIdx]);
 
   const sel = laid.find((l) => l.p.id === selId) || laid[2];
   const rd = ucrsAt(sel.p, sel.effHu);
@@ -122,9 +166,11 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
         <div className="mb-1 flex flex-wrap items-center justify-between gap-1 text-[9px]">
           <span className="font-bold tracking-wider" style={{ color: C.violet }}>UCRS-2525 · BASE-3600 CELESTIAL MAP</span>
           <div className="flex items-center gap-1">
-            {(["schematic", "true"] as const).map((m) => (
-              <button key={m} data-scale-toggle onClick={() => setScaleMode(m)} className="rounded border px-1.5 py-0.5 text-[8px]"
-                style={{ borderColor: C.border, color: scaleMode === m ? C.violet : C.dim, background: scaleMode === m ? "#221833" : "transparent" }}>{m === "true" ? "true-scale" : "schematic"}</button>
+            <span className="text-[7px] uppercase tracking-wider" style={{ color: C.gold }}>True-Scale</span>
+            <span className="text-[7px]" style={{ color: C.dim }}>· Planet Size</span>
+            {(["actual", "exaggerated"] as const).map((m) => (
+              <button key={m} data-psize-toggle data-psize={m} onClick={() => setPlanetSize(m)} className="rounded border px-1.5 py-0.5 text-[8px] capitalize"
+                style={{ borderColor: C.border, color: planetSize === m ? C.violet : C.dim, background: planetSize === m ? "#221833" : "transparent" }}>{m}</button>
             ))}
             <button data-cel-max onClick={() => setMax((v) => !v)} title={max ? "Minimize" : "Maximize"} aria-label={max ? "Minimize" : "Maximize"}
               className="ml-0.5 flex items-center justify-center rounded border p-1" style={{ borderColor: max ? C.cyan : C.border, color: max ? C.cyan : C.dim }}>
@@ -137,32 +183,47 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
         <div className="absolute right-1 top-1 z-10">
           <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu, idx: l.i }))} selId={selId} overhead={overhead} onToggle={() => setOverhead((v) => !v)} />
         </div>
-        {/* bottom-right — the SELECTED planet: Earth = draggable land/ocean globe (spins with time-of-day);
-            any other planet = a focused full-3600 orbit view (watch e.g. Mercury go around) */}
-        <div className="absolute bottom-1 right-1 z-10">
-          {selId === "earth"
-            ? <MiniGlobe lat={lat} lon={lon} size={max ? 128 : 82} color={C.gold} spinDeg={(hour / 24) * 360} />
-            : <PlanetOrbitInset planet={sel.p} effHu={sel.effHu} size={max ? 118 : 82} />}
+        {/* bottom-right — the SELECTED body as a DRAGGABLE 3D globe (Security-2525 globe interaction).
+            Earth = real land/ocean globe (spins with time-of-day) + the Moon beside it; any other planet =
+            a procedural 3D sphere (bands / craters / Saturn's rings). Drag L/R to rotate · no zoom. */}
+        <div className="absolute bottom-1 right-1 z-10 flex items-end gap-1">
+          {selId === "earth" ? (
+            <>
+              <MiniGlobe lat={lat} lon={lon} size={max ? 128 : 82} color={C.gold} spinDeg={(hour / 24) * 360} />
+              <PlanetGlobe body={MOON} size={max ? 56 : 40} />
+            </>
+          ) : (
+            <PlanetGlobe body={sel.p} size={max ? 120 : 84} />
+          )}
         </div>
+        {/* zoom / reset — pinch or wheel to zoom, drag to pan, two-finger twist (or right-drag) to rotate */}
+        <div className="absolute bottom-1 left-1 z-10 flex items-center gap-1">
+          <span data-cel-zoom className="rounded px-1 py-0.5 text-[8px] tabular-nums" style={{ background: "rgba(8,12,20,0.82)", color: C.cyan, fontFamily: "monospace" }}>{view.zoom.toFixed(1)}×</span>
+          {(view.zoom !== 1 || view.tx !== 0 || view.ty !== 0 || view.rot !== 0) && (
+            <button data-cel-reset onClick={resetView} className="rounded border px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: C.dim, background: "rgba(8,12,20,0.82)" }}>reset</button>
+          )}
+        </div>
+        <div className="pointer-events-none absolute left-1 top-1 z-10 text-[7px]" style={{ color: C.dim, fontFamily: "monospace" }}>pinch/scroll zoom · drag pan · twist rotate</div>
         {overhead ? (
-        <svg data-arch-celestial data-overhead viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "radial-gradient(circle at 50% 50%, #0b1122, #05070d)", aspectRatio: "2.2 / 1" }}>
+        <svg ref={svgRef} {...gestureHandlers} data-arch-celestial data-overhead viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full touch-none select-none rounded" style={{ background: "radial-gradient(circle at 50% 50%, #0b1122, #05070d)", aspectRatio: "2.2 / 1", cursor: pan.current ? "grabbing" : "grab" }}>
+          <g data-cel-view transform={vt}>
           {/* TOP-DOWN OVERHEAD — Sun at centre, perihelion UP (12 o'clock), aphelion DOWN */}
-          {laid.map(({ p, i, effHu }) => {
-            const A = scaleMode === "true" ? axTrue(p.aAU) * 0.56 : 7 + i * 4.85;
+          {laid.map(({ p, effHu }) => {
+            const A = axTrue(p.aAU) * 0.56;                 // TRUE-SCALE (log-radius) top-down
             const rx = A * bOverA(p.e), cyo = 56 + A * p.e, cx0 = 122;
             const phi = huToNu(effHu) * DEG, r = A * (1 - p.e * p.e) / (1 + p.e * Math.cos(phi));
             const x = cx0 + r * Math.sin(phi), y = 56 - r * Math.cos(phi);
-            const on = p.id === selId;
+            const on = p.id === selId, dot = planetDotRadius(p, planetSize);
             return (
               <g key={`ov${p.id}`}>
                 <ellipse data-orbit cx={cx0} cy={cyo} rx={rx} ry={A} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.55" />
                 <circle cx={cx0} cy={56 - A * (1 - p.e)} r="0.7" fill={p.color} />{/* perihelion — top */}
                 <circle cx={cx0} cy={56 + A * (1 + p.e)} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* aphelion — bottom */}
-                <g data-planet data-planet-id={p.id} onClick={() => select(p.id)} style={{ cursor: "pointer" }}>
-                  <circle cx={x} cy={y} r={Math.max(4, p.dot + 2.5)} fill="transparent" />
-                  {on && <circle cx={x} cy={y} r={p.dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
-                  <circle cx={x} cy={y} r={p.dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
-                  <text x={x} y={y - p.dot - 1.2} fontSize="2.3" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
+                <g data-planet data-planet-id={p.id} onPointerDown={(e) => e.stopPropagation()} onClick={() => select(p.id)} style={{ cursor: "pointer" }}>
+                  <circle cx={x} cy={y} r={Math.max(4, dot + 2.5)} fill="transparent" />
+                  {on && <circle cx={x} cy={y} r={dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
+                  <circle cx={x} cy={y} r={dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
+                  <text x={x} y={y - dot - 1.2} fontSize="2.3" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
                 </g>
               </g>
             );
@@ -172,9 +233,11 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
           <circle cx={122} cy={56} r="7.5" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.4" />
           <circle cx={122} cy={56} r="4.8" fill="#fff3b0" />
           <text x={122} y={56 + 12} fontSize="2.5" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
+          </g>
         </svg>
         ) : (
-        <svg data-arch-celestial viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: "2.2 / 1" }}>
+        <svg ref={svgRef} {...gestureHandlers} data-arch-celestial viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full touch-none select-none rounded" style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: "2.2 / 1", cursor: pan.current ? "grabbing" : "grab" }}>
+          <g data-cel-view transform={vt}>
           {/* orbital-plane baseline (the tilt reference / SA) */}
           <ellipse cx={SUN_X} cy={SUN_Y} rx="118" ry={118 * sinE} fill="none" stroke="#141d29" strokeWidth="0.3" />
           {/* orbits — ellipsoid rings + apsidal line + peri/aphe markers */}
@@ -199,17 +262,19 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
           {drawOrder.map(({ p, x, y, depth }) => {
             const on = p.id === selId;
             const dscale = 0.82 + 0.34 * ((depth + 1) / 2);   // front bigger, back smaller
-            const r = p.dot * dscale, op = 0.6 + 0.4 * ((depth + 1) / 2);
+            const r = planetDotRadius(p, planetSize) * dscale, op = 0.6 + 0.4 * ((depth + 1) / 2);
             return (
-              <g key={p.id} data-planet data-planet-id={p.id} onClick={() => select(p.id)} style={{ cursor: "pointer" }} opacity={op}>
+              <g key={p.id} data-planet data-planet-id={p.id} onPointerDown={(e) => e.stopPropagation()} onClick={() => select(p.id)} style={{ cursor: "pointer" }} opacity={op}>
                 <circle cx={x} cy={y} r={Math.max(4, r + 2.5)} fill="transparent" />
                 {on && <circle cx={x} cy={y} r={r + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
+                {p.rings && <ellipse cx={x} cy={y} rx={r + 1.6} ry={(r + 1.6) * sinE} fill="none" stroke={p.color} strokeWidth="0.3" opacity="0.8" />}
                 <circle cx={x} cy={y} r={r} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
                 {p.id === "earth" && (() => { const a = 23.4 * DEG, L = r + 2.2; return <line x1={x - Math.sin(a) * L} y1={y - Math.cos(a) * L} x2={x + Math.sin(a) * L} y2={y + Math.cos(a) * L} stroke="#fff" strokeWidth="0.35" opacity="0.75" />; })()}
                 <text x={x} y={y - r - 1.2} fontSize="2.3" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
               </g>
             );
           })}
+          </g>
         </svg>
         )}
         </div>

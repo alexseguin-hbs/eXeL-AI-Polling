@@ -133,7 +133,7 @@ export function ArchitectSkySun() {
       {/* SUN·SKY sub-view toggle — the sky dome over the lot, or the UCRS-2525 Base-3600 solar system */}
       <div className="flex flex-wrap items-center gap-1 text-[10px]">
         <span className="mr-1 font-bold tracking-wider" style={{ color: C.violet }}>SUN·SKY</span>
-        {([["dome", "Sky Dome"], ["solar", "Solar System · UCRS-2525"]] as const).map(([v, label]) => (
+        {([["dome", "Sky Dome"], ["solar", "Solar System"]] as const).map(([v, label]) => (
           <button key={v} data-sky-view={v} onClick={() => setSkyView(v)} className="rounded border px-2 py-0.5 text-[9px] font-semibold"
             style={{ borderColor: C.border, color: skyView === v ? C.violet : C.dim, background: skyView === v ? "#221833" : "transparent" }}>{label}</button>
         ))}
