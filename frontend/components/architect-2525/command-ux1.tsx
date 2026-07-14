@@ -195,7 +195,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               className="flex shrink-0 items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold tracking-wide transition-colors"
               style={{ background: tab === activeTab ? "#221833" : "transparent", color: tab === activeTab ? C.violet : C.dim }}>
               <Icon className="h-3.5 w-3.5" />
-              {tab === "More" ? "••• More" : tab}
+              {tab}
             </button>
           ))}
         </div>
