@@ -1574,6 +1574,9 @@ function AoMapPane(p: PaneProps) {
   // ONE state update per animation frame so the geometry doesn't re-render ~120×/s.
   const dragRafRef = useRef<number | null>(null);
   useEffect(() => () => { if (dragRafRef.current != null) cancelAnimationFrame(dragRafRef.current); }, []); // cancel pending drag frame on unmount
+  // D2 (Odin perf): while actively panning, drop the heavy per-frame country/state label layer (re-projects every
+  // pointermove). Restored on pointer-up. Mirrors GlobeView's `dragging` LOD.
+  const [aoDragging, setAoDragging] = useState(false);
   const pendDragRef = useRef({ pitch: 0, bear: 0 });
   const pitchRef = useRef(pitch); pitchRef.current = pitch;
   const bearingMemo = useRef<number | null>(null);
@@ -1620,7 +1623,12 @@ function AoMapPane(p: PaneProps) {
     return { latMin: view.lat - dLat, latMax: view.lat + dLat, lonMin: view.lon - dLon, lonMax: view.lon + dLon };
   }, [view.lat, view.lon, view.spanKm, aspect]);
   const grid = useMemo(
-    () => utmKmGrid(box.latMin, box.latMax, box.lonMin, box.lonMax, gridStepOverride > 0 ? gridStepOverride : chooseGridStep(view.spanKm * 1000)),
+    // F1 (operator/Thoth): the UTM km grid is only valid within ONE 6° UTM zone — across a multi-zone box the easting
+    // resets at each zone meridian, so utmKmGrid returns misplaced/absent lines. Suppress it once the box spans >1 zone
+    // (~5.5° to keep a margin); at those wide spans the GZD grid + country/state labels carry the reference instead.
+    () => ((box.lonMax - box.lonMin) > 5.5
+      ? { vertical: [], horizontal: [], stepM: 0 }
+      : utmKmGrid(box.latMin, box.latMax, box.lonMin, box.lonMax, gridStepOverride > 0 ? gridStepOverride : chooseGridStep(view.spanKm * 1000))),
     [box, view.spanKm, gridStepOverride]
   );
   const boxW = (box.lonMax - box.lonMin) * 111320 * Math.cos((ao.center[0] * Math.PI) / 180);
@@ -1694,7 +1702,7 @@ function AoMapPane(p: PaneProps) {
   // and out-of-range lon/lat then fed MGRS/grid/contour math that threw → client-side exception. Normalise longitude to
   // [−180,180) and clamp latitude at every pan/zoom source so `view` is ALWAYS valid.
   const normLL = (lat: number, lon: number) => ({ lat: Math.max(-85, Math.min(85, lat)), lon: ((((lon + 180) % 360) + 360) % 360) - 180 });
-  const panBy = (sdx: number, sdy: number) => { onClearEntryGrid?.(); return setView((v) => {
+  const panBy = (sdx: number, sdy: number) => { onClearEntryGrid?.(); setAoDragging(true); return setView((v) => {
     const [s, c] = [Math.sin(-v.bearing), Math.cos(-v.bearing)];
     const wdx = sdx * c - sdy * s, wdy = sdx * s + sdy * c;
     const lonHalfKm = v.spanKm / 2, latHalfKm = lonHalfKm / Math.max(0.2, aspect); // match box aspect
@@ -1846,6 +1854,7 @@ function AoMapPane(p: PaneProps) {
     else if (button === 0) setCoordCall({ lat, lon });
   };
   const onPointerUp = (e: React.PointerEvent) => {
+    setAoDragging(false); // D2: restore the label layer once the pan/drag ends
     if (e.pointerType === "touch") {
       const tap = tapRef.current;
       touchRef.current.delete(e.pointerId);
@@ -2247,7 +2256,7 @@ function AoMapPane(p: PaneProps) {
                     declutter-gated by the tactical view span (spanDeg ≈ spanKm/111): a country/state shows only when the
                     view is zoomed to ≤ its `min°` and its centroid is on-screen. Countries in country-border colour,
                     states (smaller) in state-border colour; dark halo for legibility over terrain. */}
-                {(() => {
+                {!aoDragging && (() => {
                   // True visible longitude span, HALVED to match the flat strip (:1071) + globe (:819) declutter
                   // convention. Includes cos(lat) (like `box`'s dLon) so labels don't flood too early at high latitude.
                   const spanDeg = view.spanKm / (111.32 * Math.max(0.2, Math.cos(view.lat * Math.PI / 180))) / 2;
@@ -4888,14 +4897,14 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   const setViewB_ = (u: (v: ViewState) => ViewState) => setViewB((v) => { const nv = u(v); if (mirror) setViewA((w) => (w.bearing === nv.bearing ? w : { ...w, bearing: nv.bearing })); return nv; });
   // Smooth geometric ease of the MAP span (easeOutCubic) — the cinematic "fly-in".
   const zoomChainRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const animateSpanTo = (fromKm: number, toKm: number, ms = 800) => {
+  const animateSpanTo = (fromKm: number, toKm: number, ms = 800, setV: typeof setViewA = setViewA) => {
     if (zoomAnimRef.current) cancelAnimationFrame(zoomAnimRef.current);
     const t0 = performance.now();
     const tick = (now: number) => {
       const k = Math.min(1, (now - t0) / ms);
       const e = 1 - Math.pow(1 - k, 3);
       const span = fromKm * Math.pow(toKm / fromKm, e);
-      setViewA((v) => ({ ...v, spanKm: span })); // zoom is per-pane now (mirror locks NORTH only)
+      setV((v) => ({ ...v, spanKm: span })); // zoom is per-pane (mirror locks NORTH only); setV targets the entered pane
       if (k < 1) zoomAnimRef.current = requestAnimationFrame(tick);
     };
     zoomAnimRef.current = requestAnimationFrame(tick);
@@ -4914,15 +4923,18 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
     setAoKey(k); // plan-load effect restores this AO's saved placements
     const wide = 900, region = Math.max(30, t.halfKm * 6); // region ≈ 6× the site half-extent
     const site = Math.max(MIN_SPAN_KM, t.halfKm * 2);      // the site cut itself (e.g. Capitol 2.4 km)
-    setViewA({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 }); // mirror locks NORTH only — the mini keeps its own zoom/centre
+    // F2 (operator): fly the ENTERED pane — Bravo (setModeB_) drills viewB, Alpha drills viewA — so a grid tap on the mini
+    // moves the mini, not the main map.
+    const isB = setMode === setModeB_, setV = isB ? setViewB : setViewA;
+    setV(() => ({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 })); // mirror locks NORTH only — the mini keeps its own zoom/centre
     setMode("ao");
-    if (setMode === setModeA_) setEntryGridA(true); else if (setMode === setModeB_) setEntryGridB(true); // FX-YGRID: show yellow grid on the entered pane
+    if (isB) setEntryGridB(true); else if (setMode === setModeA_) setEntryGridA(true); // FX-YGRID: yellow grid on the entered pane
     // P1 (Aset + Thought Master): ONE continuous zoom from the globe to the SITE —
     // land wide, glide to region, dwell so the eye orients, then continue to the site.
     // Same Natural-Earth source at every stage; no flat 'blue screen' hop.
-    animateSpanTo(wide, region, 850);
+    animateSpanTo(wide, region, 850, setV);
     if (zoomChainRef.current) clearTimeout(zoomChainRef.current);
-    zoomChainRef.current = setTimeout(() => animateSpanTo(region, site, 950), 850 + 450);
+    zoomChainRef.current = setTimeout(() => animateSpanTo(region, site, 950, setV), 850 + 450);
   };
   // FX-GLOBE (operator): clicking ANY grid coordinate must enter the TACTICAL asset-placement map at that spot (not the
   // flat Natural-Earth map). For a cell with no predefined AO (e.g. 4Q/Hawaii) we create/reuse a custom "GRID <code>" AO
@@ -4940,12 +4952,14 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
     if (key !== aoKey) enteringRef.current = true;
     setAoKey(key);
     const wide = 900, region = Math.max(30, halfKm * 6), site = Math.max(MIN_SPAN_KM, halfKm * 2);
-    setViewA({ lat, lon, spanKm: wide, bearing: 0 });
+    // F2: fly the ENTERED pane (Bravo grid tap → viewB, Alpha → viewA).
+    const isB = setMode === setModeB_, setV = isB ? setViewB : setViewA;
+    setV(() => ({ lat, lon, spanKm: wide, bearing: 0 }));
     setMode("ao");
-    if (setMode === setModeA_) setEntryGridA(true); else if (setMode === setModeB_) setEntryGridB(true); // FX-YGRID: yellow grid on entry
-    animateSpanTo(wide, region, 850);
+    if (isB) setEntryGridB(true); else if (setMode === setModeA_) setEntryGridA(true); // FX-YGRID: yellow grid on entry
+    animateSpanTo(wide, region, 850, setV);
     if (zoomChainRef.current) clearTimeout(zoomChainRef.current);
-    zoomChainRef.current = setTimeout(() => animateSpanTo(region, site, 950), 850 + 450);
+    zoomChainRef.current = setTimeout(() => animateSpanTo(region, site, 950, setV), 850 + 450);
   };
   // PROMOTE (operator): the moment an asset/support is placed while viewing a transient scratch cell, save it as a real
   // customAo (persisted + deletable) — "persist as if the user wants to save". Empty scratch visits are never saved.
