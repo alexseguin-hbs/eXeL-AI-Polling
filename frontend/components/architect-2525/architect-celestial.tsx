@@ -34,7 +34,7 @@ export function ArchitectCelestial() {
     const ax = scaleMode === "true" ? axTrue(p.aAU) : axSchematic(i);
     const ry = ax * bOverA(p.e) * sinE;             // foreshortened minor axis (the tilt)
     const cx = SUN_X - ax * p.e;                     // Sun sits at the right focus
-    const effHu = (hu + i * 400) % 3600;
+    const effHu = ((hu + (i - 2) * 400) % 3600 + 3600) % 3600; // Earth (index 2) STARTS at perihelion (HU 0)
     const nu = huToNu(effHu) * DEG;
     const x = cx + ax * Math.cos(nu), y = SUN_Y + ry * Math.sin(nu);
     const depth = Math.sin(nu);                       // +front / −back

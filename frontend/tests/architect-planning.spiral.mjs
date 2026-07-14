@@ -301,6 +301,7 @@ const mk = async (vp) => {
     tilt: !!document.querySelector('[data-tilt-input]'),
     scale: document.querySelectorAll('[data-scale-toggle]').length,
     coord: /SA\.EA\.\.HU/.test(document.querySelector('[data-ucrs-coord]')?.textContent || ''),
+    earthPeri: /230\.1584\.\.0\s*·\s*0\.0\.\.0/.test(document.querySelector('[data-ucrs-coord]')?.textContent || ''), // Earth default = perihelion (HU 0)
   }));
   // tilt changes the ellipsoid foreshortening (orbit ry shrinks as tilt lowers)
   const ry0 = await pg.evaluate(() => document.querySelector('[data-orbit]')?.getAttribute('ry'));
@@ -310,7 +311,7 @@ const mk = async (vp) => {
   // click Mercury → readout switches + shows SR/SP-OTU
   await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(150);
   const after = await pg.evaluate(() => document.querySelector('[data-ucrs-readout]')?.textContent || '');
-  const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu && base.tilt && base.scale === 2 && base.coord
+  const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu && base.tilt && base.scale === 2 && base.coord && base.earthPeri
     && parseFloat(ry1) < parseFloat(ry0) && /Mercury/.test(after) && /SR:/.test(after) && /SP-OTU/.test(after);
   rec('#A21 UCRS-2525 v2 — 9 planets + tilt ellipsoid + scale toggle + SA.EA..HU + click→coords', ok, JSON.stringify({ ...base, ry0, ry1, afterHasMercury: /Mercury/.test(after) }));
 
