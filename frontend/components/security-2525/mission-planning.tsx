@@ -939,6 +939,20 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], pla
   // featureless blue screen ("crash at 26 km"). FLOOR the flat zoom there; the tactical
   // AO map is the detail engine (hand off when an AO is within reach, else clamp + hint).
   const FLAT_MIN_W = 4; // svg units ≈ 2° ≈ 220 km wide
+  // Nearest VISIBLE predefined AO inside a GZD cell (or null) — shared by BOTH grid→tactical entry paths (wheel handoff +
+  // frameCellFlat) so a multi-AO cell resolves to the SAME destination regardless of how it was entered.
+  const nearestAoInCell = (latS: number, latN: number, lonW: number, lonE: number) => {
+    const c0 = (latS + latN) / 2, c1 = (lonW + lonE) / 2;
+    let best: Ao | null = null, bd = Infinity;
+    for (const a of AOS) {
+      if (hiddenKeys?.has(a.key)) continue;
+      if (a.center[0] >= latS && a.center[0] <= latN && a.center[1] >= lonW && a.center[1] <= lonE) {
+        const d = Math.hypot(a.center[0] - c0, a.center[1] - c1);
+        if (d < bd) { bd = d; best = a; }
+      }
+    }
+    return best;
+  };
   useWheel(flatSvg, (e) => {
     e.preventDefault();
     const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
@@ -952,8 +966,8 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], pla
       const mx = flat.x + flat.w / 2, my = flat.y + flat.h / 2;
       const clat = 90 - (my / H) * 180, clon = ((((mx / W) * 360 - 180) % 360) + 360 + 180) % 360 - 180;
       const gc = gzdOf(clat, clon);
-      const inCell = AOS.filter((a) => !hiddenKeys?.has(a.key) && a.center[0] >= gc.latS && a.center[0] <= gc.latN && a.center[1] >= gc.lonW && a.center[1] <= gc.lonE);
-      if (onEnterAo && inCell.length) { onEnterAo(inCell[0].key); return; }
+      const best = nearestAoInCell(gc.latS, gc.latN, gc.lonW, gc.lonE);
+      if (onEnterAo && best) { onEnterAo(best.key); return; }
       if (onEnterCoord) { onEnterCoord(clat, clon, `${gc.zone}${gc.band}`); return; }
       if (flat.w <= FLAT_MIN_W) return; // no enter-callback → clamp at the floor (never a blue screen)
     }
@@ -973,13 +987,8 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], pla
     const cLat = (latS + latN) / 2, cLon = (lonW + lonE) / 2;
     const g = gzdOf(cLat, cLon);
     if (onEnterAo) {
-      const visible = AOS.filter((a) => !hiddenKeys?.has(a.key));
-      const inCell = visible.filter((a) => a.center[0] >= latS && a.center[0] <= latN && a.center[1] >= lonW && a.center[1] <= lonE);
-      if (inCell.length) {
-        let best = inCell[0], bd = Infinity;
-        for (const a of inCell) { const d = Math.hypot(a.center[0] - cLat, a.center[1] - cLon); if (d < bd) { bd = d; best = a; } }
-        onEnterAo(best.key); return;
-      }
+      const best = nearestAoInCell(latS, latN, lonW, lonE);
+      if (best) { onEnterAo(best.key); return; }
     }
     // No predefined AO in the cell → tactical asset map at the exact clicked cell (custom AO). NEVER stay on the flat map.
     if (onEnterCoord) { onEnterCoord(cLat, cLon, `${g.zone}${g.band}`); return; }
@@ -1179,7 +1188,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], pla
           ))}
           {/* FX-GLOBE: back-propagated ASSET markers — placed assets/support echo as small affiliation-coloured dots on
               the 2D world strip so their positions are visible when zoomed out. Tiled ±W for the world-wrap; read-only. */}
-          {[...placed, ...placedSupport].slice(0, 400).map((u, i) => {
+          {[...placed, ...placedSupport].slice(0, 2000).map((u, i) => { /* cap = worst-case guard; well above any realistic placement count so the world strip matches the (uncapped) main map */
             const col = u.aff === "hostile" ? C.red : u.aff === "friendly" ? C.cyan : C.amber;
             const bx = ((u.lon + 180) / 360) * W, by = ((90 - u.lat) / 180) * H;
             return [-W, 0, W].map((off) => (
@@ -1564,6 +1573,7 @@ function AoMapPane(p: PaneProps) {
   // P1 (SSSES perf): rAF-throttle the tilt/bearing drag — coalesce many pointermove events into
   // ONE state update per animation frame so the geometry doesn't re-render ~120×/s.
   const dragRafRef = useRef<number | null>(null);
+  useEffect(() => () => { if (dragRafRef.current != null) cancelAnimationFrame(dragRafRef.current); }, []); // cancel pending drag frame on unmount
   const pendDragRef = useRef({ pitch: 0, bear: 0 });
   const pitchRef = useRef(pitch); pitchRef.current = pitch;
   const bearingMemo = useRef<number | null>(null);
@@ -2238,16 +2248,26 @@ function AoMapPane(p: PaneProps) {
                     view is zoomed to ≤ its `min°` and its centroid is on-screen. Countries in country-border colour,
                     states (smaller) in state-border colour; dark halo for legibility over terrain. */}
                 {(() => {
-                  const spanDeg = view.spanKm / 111;
+                  // True visible longitude span, HALVED to match the flat strip (:1071) + globe (:819) declutter
+                  // convention. Includes cos(lat) (like `box`'s dLon) so labels don't flood too early at high latitude.
+                  const spanDeg = view.spanKm / (111.32 * Math.max(0.2, Math.cos(view.lat * Math.PI / 180))) / 2;
                   const onScreen = (lat: number, lon: number) => { const f = toFrac(lat, lon); return (f.fx > -0.03 && f.fx < 1.03 && f.fy > -0.03 && f.fy < 1.03) ? f : null; };
+                  // Greedy declutter: place COUNTRIES first (priority), then US_STATES; skip any label whose anchor is too
+                  // close to one already kept, so dense clusters (NE states) don't overlap.
+                  const kept: { name: string; px: number; py: number; country: boolean }[] = [];
+                  const tryAdd = (name: string, lat: number, lon: number, country: boolean) => {
+                    const f = onScreen(lat, lon); if (!f) return;
+                    const px = f.fx * 100, py = f.fy * 100;
+                    for (const k of kept) { if (Math.abs(k.px - px) < 7 && Math.abs(k.py - py) < 3) return; }
+                    kept.push({ name, px, py, country });
+                  };
+                  COUNTRIES.filter((c) => !c.min || spanDeg <= c.min).forEach((c) => tryAdd(c.name, c.lat, c.lon, true));
+                  US_STATES.filter((s) => spanDeg <= (s.min ?? 26)).forEach((s) => tryAdd(s.name, s.lat, s.lon, false));
                   return (
                     <g style={{ pointerEvents: "none" }} data-geolabels>
-                      {COUNTRIES.filter((c) => !c.min || spanDeg <= c.min).map((c) => { const f = onScreen(c.lat, c.lon); return f ? (
-                        <text key={`gcn${c.name}`} x={f.fx * 100} y={f.fy * 100} fontSize="2.3" fill={C.borderCountry} opacity="0.7" textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke", letterSpacing: "0.04em" }} stroke="#0a0e14" strokeWidth="0.6">{c.name}</text>
-                      ) : null; })}
-                      {US_STATES.filter((s) => spanDeg <= (s.min ?? 26)).map((s) => { const f = onScreen(s.lat, s.lon); return f ? (
-                        <text key={`gst${s.name}`} x={f.fx * 100} y={f.fy * 100} fontSize="1.7" fill={C.borderState} opacity="0.8" textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke", letterSpacing: "0.03em" }} stroke="#0a0e14" strokeWidth="0.5">{s.name}</text>
-                      ) : null; })}
+                      {kept.map((k, i) => (
+                        <text key={`gl${i}${k.name}`} x={k.px} y={k.py} fontSize={k.country ? 2.3 : 1.7} fill={k.country ? C.borderCountry : C.borderState} opacity={k.country ? 0.7 : 0.8} textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke", letterSpacing: k.country ? "0.04em" : "0.03em" }} stroke="#0a0e14" strokeWidth={k.country ? 0.6 : 0.5}>{k.name}</text>
+                      ))}
                     </g>
                   );
                 })()}
@@ -4606,7 +4626,12 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
     setCustomAos((a) => [...a, m]); setAoKey(key); setAoMenuOpen(false);
   };
   const renameMission = (key: string, name: string) => setCustomAos((a) => a.map((m) => (m.key === key ? { ...m, name } : m)));
-  const deleteMission = (key: string) => { setCustomAos((a) => a.filter((m) => m.key !== key)); if (aoKey === key) setAoKey("capitol"); };
+  const deleteMission = (key: string) => {
+    setCustomAos((a) => a.filter((m) => m.key !== key));
+    try { localStorage.removeItem(planKey(key)); } catch { /* ignore */ } // drop the saved plan so a re-tapped grid cell can't resurrect it
+    if (scratchAo?.key === key) setScratchAo(null);
+    if (aoKey === key) setAoKey("capitol");
+  };
   // Permanent delete (from the HIDDEN section): custom missions drop from their list; built-in
   // AOs go to aoDeleted (filtered out of the map + menu). Also un-hides so it never lingers.
   const removeAo = (key: string) => {
@@ -4773,11 +4798,15 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   // cross-device/team (planned): mission_plan(project_id, ao_key, owner_id,
   // placed jsonb, placed_support jsonb, updated_at). Hot-swappable storage cube.
   const planKey = (k: string) => `sec2525.plan.${k}`;
+  // Baseline placement count LOADED for the current AO — the promote effect compares against this so it fires only on a
+  // real NEW placement, never when plan-load repopulates placements on an aoKey change (fixes spurious promote).
+  const placedBaselineRef = useRef(0);
   useEffect(() => { aoKeyRef.current = aoKey; }, [aoKey]);
   // load the saved plan for the AO (or empty) + reconcile inventory/ids
   useEffect(() => {
     let p: Placed[] = [], s: PlacedSupport[] = [];
     try { const raw = localStorage.getItem(planKey(aoKey)); if (raw) { const o = JSON.parse(raw); p = o.placed ?? []; s = o.placedSupport ?? []; } } catch { /* ignore */ }
+    placedBaselineRef.current = p.length + s.length;
     setPlaced(p); setPlacedSupport(s);
     setInventory(INITIAL_INVENTORY.map((i) => ({ ...i, stock: i.stock - p.filter((u) => u.asset === i.asset).reduce((a, u) => a + u.count, 0) })));
     idRef.current = Math.max(0, ...p.map((u) => u.id), ...s.map((u) => u.id)) + 1;
@@ -4871,6 +4900,12 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
     };
     zoomAnimRef.current = requestAnimationFrame(tick);
   };
+  // Cancel the cinematic fly-in rAF + chained setTimeout on unmount (else they fire setViewA after unmount). Mirrors the
+  // orbitRaf/playRaf cleanup pattern.
+  useEffect(() => () => {
+    if (zoomAnimRef.current) cancelAnimationFrame(zoomAnimRef.current);
+    if (zoomChainRef.current) clearTimeout(zoomChainRef.current);
+  }, []);
   // Drill from the Earth/globe into an AO: land wide (region) then glide to detail.
   const enterAo = (k: string, setMode: (m: "world" | "ao") => void) => {
     const t = allAos.find((a) => a.key === k) ?? ao;
@@ -4893,10 +4928,15 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   // flat Natural-Earth map). For a cell with no predefined AO (e.g. 4Q/Hawaii) we create/reuse a custom "GRID <code>" AO
   // at the clicked centre and drill into it — so the operator can place assets & support there like any AO.
   const enterCoord = (lat: number, lon: number, code: string, setMode: (m: "world" | "ao") => void) => {
-    const key = `grid-${code}`, halfKm = 25;
-    // TRANSIENT scratch AO unless this cell was already promoted to a saved customAo (then just enter it). No persistence
-    // until an asset/support is placed (see the promote effect) — so empty grid visits never create deletable AOs.
-    setScratchAo(customAos.some((m) => m.key === key) ? null : { key, name: `GRID ${code}`, center: [lat, lon] as [number, number], halfKm, landmarks: [], buildings: [] });
+    // KEY uses the `custom-` prefix so a promoted cell flows through removeAo→deleteMission (deletable) + aoStateOf's
+    // custom branch (correct menu group + rename/delete UI) — fixes the "can't delete grid AO" bug.
+    const key = `custom-grid-${code}`, halfKm = 25;
+    // Already promoted → re-enter via enterAo so the view centers on the SAVED center/halfKm (not the passed coord),
+    // keeping restored assets on-screen. (Fixes the re-entry recenter/misalignment bug.)
+    if (customAos.some((m) => m.key === key)) { enterAo(key, setMode); return; }
+    // TRANSIENT scratch AO — no persistence until an asset/support is placed (promote effect) so empty grid visits
+    // never create deletable AOs.
+    setScratchAo({ key, name: `GRID ${code}`, center: [lat, lon] as [number, number], halfKm, landmarks: [], buildings: [] });
     if (key !== aoKey) enteringRef.current = true;
     setAoKey(key);
     const wide = 900, region = Math.max(30, halfKm * 6), site = Math.max(MIN_SPAN_KM, halfKm * 2);
@@ -4910,7 +4950,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   // PROMOTE (operator): the moment an asset/support is placed while viewing a transient scratch cell, save it as a real
   // customAo (persisted + deletable) — "persist as if the user wants to save". Empty scratch visits are never saved.
   useEffect(() => {
-    if (scratchAo && aoKey === scratchAo.key && (placed.length + placedSupport.length) > 0 && !customAos.some((m) => m.key === scratchAo.key)) {
+    if (scratchAo && aoKey === scratchAo.key && (placed.length + placedSupport.length) > placedBaselineRef.current && !customAos.some((m) => m.key === scratchAo.key)) {
       const promoted = scratchAo;
       setCustomAos((a) => (a.some((m) => m.key === promoted.key) ? a : [...a, promoted]));
       setScratchAo(null);

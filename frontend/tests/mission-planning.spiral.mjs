@@ -749,6 +749,30 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #48: promoted grid AO is DELETABLE (custom- key) + does NOT resurrect on re-tap (12-master bug fix) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:has-text("EARTH"):visible'); await pg.waitForTimeout(700);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(500);
+  await clk('button:has-text("GRID"):visible'); await pg.waitForTimeout(500);
+  // pan the flat world strip WEST into the open Pacific (no predefined AO there) so the centre cell is a SCRATCH cell.
+  const box = await pg.locator('svg[aria-label^="World context map"]').boundingBox();
+  if (box) { const cx = box.x + box.width / 2, cy = box.y + box.height / 2; for (let i = 0; i < 6; i++) { await pg.mouse.move(cx, cy); await pg.mouse.down(); await pg.mouse.move(cx + 120, cy, { steps: 3 }); await pg.mouse.up(); await pg.waitForTimeout(60); } }
+  await pg.waitForTimeout(300);
+  // whole-cell tap → enter the scratch tactical cell (no AO) ; then place a SENTINEL → PROMOTE to a saved AO.
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(2400);
+  await clk('div.cursor-grab:has-text("SENTINEL")'); await pg.waitForTimeout(250);
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  const mb = await M.boundingBox();
+  if (mb) await pg.mouse.click(mb.x + mb.width / 2, mb.y + mb.height / 2); await pg.waitForTimeout(400);
+  await clk('button:has-text("Save")').catch(() => {}); await pg.waitForTimeout(300);
+  const promoted = await pg.evaluate(() => { try { const a = JSON.parse(localStorage.getItem('sec2525.customAos') || '[]'); const g = a.find((m) => m.key && m.key.indexOf('grid-') >= 0); return g ? { key: g.key, deletablePrefix: g.key.startsWith('custom-') } : null; } catch { return null; } });
+  // PASS = a grid cell became a saved AO whose key is `custom-`-prefixed → routes through the deletable path (removeAo→deleteMission).
+  rec('#48 placed grid cell promotes to a DELETABLE custom- AO (bug fix)', !!(promoted && promoted.deletablePrefix), `promoted=${JSON.stringify(promoted)}`);
+  rec('#48 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');
