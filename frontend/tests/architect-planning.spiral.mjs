@@ -498,6 +498,26 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A31: Build → Framing — member-by-member plan (draw + per-placement time/cost) + robotics 24/7 scenario + recompute ──
+{
+  const { pg, tab, clk } = await mk();
+  await tab('Build');
+  await clk('[data-arch-subnav] button:has-text("Framing")'); await pg.waitForTimeout(250);
+  const base = await pg.evaluate(() => ({
+    panel: !!document.querySelector('[data-arch-framing]'),
+    plan: !!document.querySelector('[data-framing-plan]'),
+    robotics: !!document.querySelector('[data-framing-robotics]'),
+    members: +((document.querySelector('[data-framing-stat="Members"]')?.textContent) || '0'),
+    seq: document.querySelectorAll('[data-framing-step]').length,
+    hasRobot: /🤖/.test(document.querySelector('[data-framing-robotics]')?.textContent || ''),
+  }));
+  await pg.evaluate(() => { const inp = document.querySelector('[data-framing-input="L ft"]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, '80'); inp.dispatchEvent(new Event('input', { bubbles: true })); });
+  await pg.waitForTimeout(200);
+  const after = await pg.evaluate(() => +((document.querySelector('[data-framing-stat="Members"]')?.textContent) || '0'));
+  rec('#A31 Build→Framing member plan + per-placement time/cost + robotics 24/7 + recompute', base.panel && base.plan && base.robotics && base.hasRobot && base.members > 20 && base.seq >= 5 && after > base.members, JSON.stringify({ ...base, after }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

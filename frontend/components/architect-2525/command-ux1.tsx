@@ -28,6 +28,7 @@ import { ArchitectSkySun } from "./architect-skysun";
 import { ArchitectSoI } from "./architect-soi";
 import { ArchitectEstimate } from "./architect-estimate";
 import { ArchitectForecast } from "./architect-forecast";
+import { ArchitectFraming } from "./architect-framing";
 import { IteratePanel, SharePanel, QualifyPanel } from "./architect-panels";
 import { SimulatePanel, ReviewPanel, TwinPanel, ReplayPanel } from "./architect-panels2";
 
@@ -57,7 +58,7 @@ const NAV: [string, React.ComponentType<{ className?: string }>][] = [
 const SUBNAV: Record<string, string[]> = {
   Design: ["Model", "Site", "Compare"],
   Review: ["Reviews", "Qualification", "Contributions"],
-  Build: ["Build 4D", "Estimate", "Forecast", "Cost·Time"],
+  Build: ["Build 4D", "Framing", "Estimate", "Forecast", "Cost·Time"],
   Lifecycle: ["Twin", "Replay"],
 };
 // Per-tab "•••" advanced menu (Security-2525 "•••" method) — a persisted expander on every major tab.
@@ -314,6 +315,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               </div>
             </div>
           </div>
+        ) : activeTab === "Build" && sub("Build") === "Framing" ? (
+          <ArchitectFraming />
         ) : activeTab === "Build" && sub("Build") === "Estimate" ? (
           <ArchitectEstimate />
         ) : activeTab === "Build" && sub("Build") === "Forecast" ? (
