@@ -901,7 +901,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onFr
   );
 }
 
-function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], placedSupport = [], label, onMinimize, coordFmt, hiddenKeys }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; onEnterCoord?: (lat: number, lon: number, code: string) => void; placed?: Placed[]; placedSupport?: PlacedSupport[]; label?: string; onMinimize?: () => void; coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; hiddenKeys?: Set<string> }) {
+function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], placedSupport = [], label, onMinimize, coordFmt, hiddenKeys }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; onEnterCoord?: (latS: number, latN: number, lonW: number, lonE: number, code: string) => void; placed?: Placed[]; placedSupport?: PlacedSupport[]; label?: string; onMinimize?: () => void; coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; hiddenKeys?: Set<string> }) {
   const [data, setData] = useState<BorderData | null>(borderCache);
   const [mode, setMode] = useState<"globe" | "flat">("globe");
   const [showZones, setShowZones] = useState(false); // MGRS/LLV-DMS grid-zone training overlay (globe + flat)
@@ -968,7 +968,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], pla
       const gc = gzdOf(clat, clon);
       const best = nearestAoInCell(gc.latS, gc.latN, gc.lonW, gc.lonE);
       if (onEnterAo && best) { onEnterAo(best.key); return; }
-      if (onEnterCoord) { onEnterCoord(clat, clon, `${gc.zone}${gc.band}`); return; }
+      if (onEnterCoord) { onEnterCoord(gc.latS, gc.latN, gc.lonW, gc.lonE, `${gc.zone}${gc.band}`); return; }
       if (flat.w <= FLAT_MIN_W) return; // no enter-callback → clamp at the floor (never a blue screen)
     }
     setFlat((f) => {
@@ -990,8 +990,8 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], pla
       const best = nearestAoInCell(latS, latN, lonW, lonE);
       if (best) { onEnterAo(best.key); return; }
     }
-    // No predefined AO in the cell → tactical asset map at the exact clicked cell (custom AO). NEVER stay on the flat map.
-    if (onEnterCoord) { onEnterCoord(cLat, cLon, `${g.zone}${g.band}`); return; }
+    // No predefined AO in the cell → frame the whole cell (corners) on the tactical map (custom AO). NEVER stay flat.
+    if (onEnterCoord) { onEnterCoord(latS, latN, lonW, lonE, `${g.zone}${g.band}`); return; }
     // Defensive fallback ONLY if onEnterCoord wasn't provided: frame the flat map on the cell (should not happen).
     const rect = flatSvg.current?.getBoundingClientRect();
     const paneAspect = rect && rect.height > 0 ? rect.width / rect.height : 1.6;
@@ -4644,7 +4644,10 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   // Permanent delete (from the HIDDEN section): custom missions drop from their list; built-in
   // AOs go to aoDeleted (filtered out of the map + menu). Also un-hides so it never lingers.
   const removeAo = (key: string) => {
-    if (key.startsWith("custom-")) deleteMission(key);
+    // Route ALL customAos-resident keys to deleteMission: `custom-*` (missions + new custom-grid cells) AND legacy
+    // `grid-*` cells (created by an earlier build, still in some users' localStorage). Both live in customAos, so the
+    // old aoDeleted branch could never remove them → they reappeared. Built-in AOS keys still go to aoDeleted.
+    if (key.startsWith("custom-") || key.startsWith("grid-")) deleteMission(key);
     else { setAoDeleted((s) => new Set(s).add(key)); if (aoKey === key) setAoKey(AOS.find((a) => a.key !== key && !aoDeleted.has(a.key))?.key ?? "capitol"); }
     setAoHidden((s) => { const n = new Set(s); n.delete(key); return n; });
   };
@@ -4939,27 +4942,31 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   // FX-GLOBE (operator): clicking ANY grid coordinate must enter the TACTICAL asset-placement map at that spot (not the
   // flat Natural-Earth map). For a cell with no predefined AO (e.g. 4Q/Hawaii) we create/reuse a custom "GRID <code>" AO
   // at the clicked centre and drill into it — so the operator can place assets & support there like any AO.
-  const enterCoord = (lat: number, lon: number, code: string, setMode: (m: "world" | "ao") => void) => {
+  const enterCoord = (latS: number, latN: number, lonW: number, lonE: number, code: string, setMode: (m: "world" | "ao") => void) => {
     // KEY uses the `custom-` prefix so a promoted cell flows through removeAo→deleteMission (deletable) + aoStateOf's
     // custom branch (correct menu group + rename/delete UI) — fixes the "can't delete grid AO" bug.
-    const key = `custom-grid-${code}`, halfKm = 25;
-    // Already promoted → re-enter via enterAo so the view centers on the SAVED center/halfKm (not the passed coord),
-    // keeping restored assets on-screen. (Fixes the re-entry recenter/misalignment bug.)
+    const key = `custom-grid-${code}`;
+    const cLat = (latS + latN) / 2, cLon = (lonW + lonE) / 2;
+    // Already promoted → re-enter via enterAo so the view centers on the SAVED center/halfKm, keeping restored assets
+    // on-screen. (Fixes the re-entry recenter/misalignment bug.)
     if (customAos.some((m) => m.key === key)) { enterAo(key, setMode); return; }
-    // TRANSIENT scratch AO — no persistence until an asset/support is placed (promote effect) so empty grid visits
-    // never create deletable AOs.
-    setScratchAo({ key, name: `GRID ${code}`, center: [lat, lon] as [number, number], halfKm, landmarks: [], buildings: [] });
+    // FRAME THE WHOLE GZD CELL from its CORNER coordinates (operator: "use corner coordinates and zoom to that grid") so
+    // the land inside the cell is in view — not a point in the ocean at the cell centre (the 5Q→Hawaii bug). The entry
+    // grid draws the yellow cell outline. halfKm = cell half-extent so re-entry re-frames the same cell.
+    const widthKm = (lonE - lonW) * 111.32 * Math.cos((cLat * Math.PI) / 180);
+    const heightKm = (latN - latS) * 110.574;
+    const fitKm = Math.max(widthKm, heightKm) * 1.15; // E-W span that frames the cell (+15% margin)
+    const halfKm = fitKm / 2;
+    setScratchAo({ key, name: `GRID ${code}`, center: [cLat, cLon] as [number, number], halfKm, landmarks: [], buildings: [] });
     if (key !== aoKey) enteringRef.current = true;
     setAoKey(key);
-    const wide = 900, region = Math.max(30, halfKm * 6), site = Math.max(MIN_SPAN_KM, halfKm * 2);
-    // F2: fly the ENTERED pane (Bravo grid tap → viewB, Alpha → viewA).
+    // F2: fly the ENTERED pane (Bravo grid tap → viewB, Alpha → viewA). Land wide, glide to the cell frame.
+    const wide = Math.max(900, fitKm * 1.6);
     const isB = setMode === setModeB_, setV = isB ? setViewB : setViewA;
-    setV(() => ({ lat, lon, spanKm: wide, bearing: 0 }));
+    setV(() => ({ lat: cLat, lon: cLon, spanKm: wide, bearing: 0 }));
     setMode("ao");
     if (isB) setEntryGridB(true); else if (setMode === setModeA_) setEntryGridA(true); // FX-YGRID: yellow grid on entry
-    animateSpanTo(wide, region, 850, setV);
-    if (zoomChainRef.current) clearTimeout(zoomChainRef.current);
-    zoomChainRef.current = setTimeout(() => animateSpanTo(region, site, 950, setV), 850 + 450);
+    animateSpanTo(wide, fitKm, 950, setV);
   };
   // PROMOTE (operator): the moment an asset/support is placed while viewing a transient scratch cell, save it as a real
   // customAo (persisted + deletable) — "persist as if the user wants to save". Empty scratch visits are never saved.
@@ -5661,7 +5668,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
             modeB === "world" ? (
               <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
                 <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                  onEnterAo={(k) => enterAo(k, setModeB_)} onEnterCoord={(lat, lon, code) => enterCoord(lat, lon, code, setModeB_)}
+                  onEnterAo={(k) => enterAo(k, setModeB_)} onEnterCoord={(latS, latN, lonW, lonE, code) => enterCoord(latS, latN, lonW, lonE, code, setModeB_)}
                   placed={placed} placedSupport={placedSupport} onMinimize={() => setFsPane(null)} coordFmt={coordFmt} hiddenKeys={worldHidden} />
               </div>
             ) : (
@@ -5674,7 +5681,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
           ) : modeA === "world" ? (
             <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
               <WorldStrip label="MAP" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                onEnterAo={(k) => enterAo(k, setModeA_)} onEnterCoord={(lat, lon, code) => enterCoord(lat, lon, code, setModeA_)}
+                onEnterAo={(k) => enterAo(k, setModeA_)} onEnterCoord={(latS, latN, lonW, lonE, code) => enterCoord(latS, latN, lonW, lonE, code, setModeA_)}
                 placed={placed} placedSupport={placedSupport} onMinimize={fsPane === "map" ? () => setFsPane(null) : undefined} coordFmt={coordFmt} hiddenKeys={worldHidden} />
             </div>
           ) : (
@@ -5711,7 +5718,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
               <div className="min-h-0 flex-1">
                 {modeB === "world" ? (
                   <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
-                    onEnterAo={(k) => enterAo(k, setModeB_)} onEnterCoord={(lat, lon, code) => enterCoord(lat, lon, code, setModeB_)}
+                    onEnterAo={(k) => enterAo(k, setModeB_)} onEnterCoord={(latS, latN, lonW, lonE, code) => enterCoord(latS, latN, lonW, lonE, code, setModeB_)}
                     placed={placed} placedSupport={placedSupport} coordFmt={coordFmt} hiddenKeys={worldHidden} />
                 ) : (
                   <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
