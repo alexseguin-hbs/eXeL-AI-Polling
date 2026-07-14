@@ -35,7 +35,7 @@ function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string;
   const hand = sel ? at(sel.effHu, radiusFor(sel.idx)) : null;          // line reaches the selected planet's dot
   return (
     <button data-clock-toggle onClick={onToggle} type="button"
-      aria-label={overhead ? "Back to tilted view" : "Overhead view"} title={overhead ? "Back to tilted view" : "Overhead view — perihelion at 12 o'clock"}
+      aria-label={overhead ? "Reset map orientation" : "Perihelion to top"} title={overhead ? "Reset map orientation" : "Rotate map — perihelion + selected planet to the top (12 o'clock)"}
       className="cursor-pointer rounded-full p-0" style={{ background: "rgba(8,12,20,0.82)", border: overhead ? "1px solid #19c8cf" : "1px solid transparent", lineHeight: 0 }}>
       <svg data-phase-clock viewBox="0 0 100 100" width={58} height={58} className="rounded-full" style={{ display: "block" }}>
         <circle cx={cx} cy={cy} r={R + 6} fill="none" stroke="#233043" strokeWidth="0.6" />
@@ -72,8 +72,8 @@ export function ArchitectCelestial({
   const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
   const [planetSize, setPlanetSize] = useState<"actual" | "exaggerated">("exaggerated"); // dot sizing on the map
   const [srUnit, setSrUnit] = useState<SrUnit>("m"); // SR distance unit (tap value to cycle)
-  const [max, setMax] = useState(false);            // maximize the whole solar system
-  const [overhead, setOverhead] = useState(false);  // clock icon → top-down overhead view (perihelion at 12)
+  const [max, setMax] = useState(false);            // maximize → full-screen big map (zoom to an orbit, rotate)
+  const [periTop, setPeriTop] = useState(false);    // clock icon → rotate the big map so perihelion + planet are at TOP
   const [playing, setPlaying] = useState(false);
   const isoDate = new Date(Date.UTC(year, 0, doy)).toISOString().slice(0, 10);
   const setFromDate = (iso: string) => { const d = new Date(iso + "T00:00:00Z"); if (isNaN(d.getTime())) return; setYear(d.getUTCFullYear()); setDoy(Math.round((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 0)) / 86400000)); };
@@ -100,14 +100,16 @@ export function ArchitectCelestial({
   const pxK = () => { const r = svgRef.current?.getBoundingClientRect(); return r && r.width ? 244 / r.width : 1; }; // client px → viewBox units
   const clampZ = (z: number) => Math.min(ZMAX, Math.max(ZMIN, z));
   const resetView = () => setView({ zoom: 1, tx: 0, ty: 0, rot: 0 });
-  const vt = `translate(${view.tx} ${view.ty}) translate(${SUN_X} ${SUN_Y}) scale(${view.zoom}) rotate(${view.rot}) translate(${-SUN_X} ${-SUN_Y})`;
+  // periTop adds a −90° spin about the Sun so perihelion (normally at the right) — and the selected planet
+  // sitting on it — swing to the TOP (12 o'clock); gesture rotation (view.rot) composes on top.
+  const vt = `translate(${view.tx} ${view.ty}) translate(${SUN_X} ${SUN_Y}) scale(${view.zoom}) rotate(${view.rot + (periTop ? -90 : 0)}) translate(${-SUN_X} ${-SUN_Y})`;
   // native, non-passive wheel listener (React onWheel is passive → cannot preventDefault) — zoom about the Sun
   useEffect(() => {
     const el = svgRef.current; if (!el) return;
     const onWheel = (e: WheelEvent) => { e.preventDefault(); setView((v) => ({ ...v, zoom: clampZ(v.zoom * (e.deltaY < 0 ? 1.12 : 1 / 1.12)) })); };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [overhead]); // re-bind when the mounted svg swaps (tilted ↔ overhead)
+  }, []); // single map svg (no view swap) → bind once
   const gestureHandlers = {
     onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
     onPointerDown: (e: React.PointerEvent) => {
@@ -173,8 +175,8 @@ export function ArchitectCelestial({
   const drawOrder = [...laid].sort((a, b) => a.depth - b.depth); // back planets first
 
   return (
-    <div className={max ? "fixed inset-0 z-[80] grid gap-3 overflow-auto p-3 lg:grid-cols-[1fr_272px]" : "grid gap-3 lg:grid-cols-[1fr_272px]"} style={max ? { background: "#05070d" } : undefined}>
-      <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
+    <div className={max ? "fixed inset-0 z-[80] flex flex-col gap-2 overflow-hidden p-2" : "grid gap-3 lg:grid-cols-[1fr_272px]"} style={max ? { background: "#05070d" } : undefined}>
+      <div className={max ? "flex min-h-0 flex-1 flex-col rounded-lg border p-2" : "rounded-lg border p-2"} style={{ borderColor: C.border, background: C.panel }}>
         <div className="mb-1 flex flex-wrap items-center justify-between gap-1 text-[9px]">
           <span className="font-bold tracking-wider" style={{ color: C.violet }}>UCRS-2525 · BASE-3600 CELESTIAL MAP</span>
           <div className="flex items-center gap-1">
@@ -190,10 +192,10 @@ export function ArchitectCelestial({
             </button>
           </div>
         </div>
-        <div className="relative">
-        {/* PHASE CLOCK — upper-right: perihelion at 12 o'clock (canonical Base-3600 convention) */}
+        <div className={max ? "relative min-h-0 flex-1" : "relative"}>
+        {/* PHASE CLOCK — upper-right: click to rotate the big map so perihelion + planet are at TOP (12 o'clock) */}
         <div className="absolute right-1 top-1 z-10">
-          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu, idx: l.i }))} selId={selId} overhead={overhead} onToggle={() => setOverhead((v) => !v)} />
+          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu, idx: l.i }))} selId={selId} overhead={periTop} onToggle={() => setPeriTop((v) => !v)} />
         </div>
         {/* bottom-right — the SELECTED body as a DRAGGABLE 3D globe (Security-2525 globe interaction).
             Earth = real land/ocean globe (spins with time-of-day) + the Moon beside it; any other planet =
@@ -212,40 +214,10 @@ export function ArchitectCelestial({
             <button data-cel-reset onClick={resetView} className="rounded border px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: C.dim, background: "rgba(8,12,20,0.82)" }}>reset</button>
           )}
         </div>
-        <div className="pointer-events-none absolute left-1 top-1 z-10 text-[7px]" style={{ color: C.dim, fontFamily: "monospace" }}>pinch/scroll zoom · drag pan · twist rotate</div>
-        {overhead ? (
-        <svg ref={svgRef} {...gestureHandlers} data-arch-celestial data-overhead viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full touch-none select-none rounded" style={{ background: "radial-gradient(circle at 50% 50%, #0b1122, #05070d)", aspectRatio: "2.2 / 1", cursor: pan.current ? "grabbing" : "grab" }}>
-          <g data-cel-view transform={vt}>
-          {/* TOP-DOWN OVERHEAD — Sun at centre, perihelion UP (12 o'clock), aphelion DOWN */}
-          {laid.map(({ p, effHu }) => {
-            const A = axTrue(p.aAU) * 0.56;                 // TRUE-SCALE (log-radius) top-down
-            const rx = A * bOverA(p.e), cyo = 56 + A * p.e, cx0 = 122;
-            const phi = huToNu(effHu) * DEG, r = A * (1 - p.e * p.e) / (1 + p.e * Math.cos(phi));
-            const x = cx0 + r * Math.sin(phi), y = 56 - r * Math.cos(phi);
-            const on = p.id === selId, dot = planetDotRadius(p, planetSize);
-            return (
-              <g key={`ov${p.id}`}>
-                <ellipse data-orbit cx={cx0} cy={cyo} rx={rx} ry={A} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.55" />
-                <circle cx={cx0} cy={56 - A * (1 - p.e)} r="0.7" fill={p.color} />{/* perihelion — top */}
-                <circle cx={cx0} cy={56 + A * (1 + p.e)} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* aphelion — bottom */}
-                <g data-planet data-planet-id={p.id} onPointerDown={(e) => e.stopPropagation()} onClick={() => select(p.id)} style={{ cursor: "pointer" }}>
-                  <circle cx={x} cy={y} r={Math.max(4, dot + 2.5)} fill="transparent" />
-                  {on && <circle cx={x} cy={y} r={dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
-                  <circle cx={x} cy={y} r={dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
-                  <text x={x} y={y - dot - 1.2} fontSize="2.3" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
-                </g>
-              </g>
-            );
-          })}
-          <text x={122} y={7} fontSize="3.2" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>PERIHELION ▲ 12:00</text>
-          <text x={122} y={109} fontSize="3.2" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>▼ APHELION 6:00</text>
-          <circle cx={122} cy={56} r="7.5" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.4" />
-          <circle cx={122} cy={56} r="4.8" fill="#fff3b0" />
-          <text x={122} y={56 + 12} fontSize="2.5" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
-          </g>
-        </svg>
-        ) : (
-        <svg ref={svgRef} {...gestureHandlers} data-arch-celestial viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full touch-none select-none rounded" style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: "2.2 / 1", cursor: pan.current ? "grabbing" : "grab" }}>
+        <div className="pointer-events-none absolute left-1 top-1 z-10 text-[7px]" style={{ color: C.dim, fontFamily: "monospace" }}>pinch/scroll zoom · drag pan · twist rotate{periTop ? " · perihelion▲top" : ""}</div>
+        <svg ref={svgRef} {...gestureHandlers} data-arch-celestial data-peritop={periTop ? "1" : undefined} viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet"
+          className={max ? "h-full w-full touch-none select-none rounded" : "w-full touch-none select-none rounded"}
+          style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: max ? undefined : "2.2 / 1", height: max ? "100%" : undefined, cursor: pan.current ? "grabbing" : "grab" }}>
           <g data-cel-view transform={vt}>
           {/* orbital-plane baseline (the tilt reference / SA) */}
           <ellipse cx={SUN_X} cy={SUN_Y} rx="118" ry={118 * sinE} fill="none" stroke="#141d29" strokeWidth="0.3" />
@@ -285,7 +257,6 @@ export function ArchitectCelestial({
           })}
           </g>
         </svg>
-        )}
         </div>
         {/* controls: HU scrubber + SA tilt */}
         <div className="mt-1 grid grid-cols-1 gap-x-3 gap-y-0.5 text-[9px] sm:grid-cols-2">
@@ -311,8 +282,8 @@ export function ArchitectCelestial({
         <div className="text-[8px]" style={{ color: C.dim }}>Full orbit reference · <span style={{ color: C.gold }}>{FULL_ORBIT}</span> (SA.EA..HU)</div>
       </div>
 
-      {/* CLICKED PLANET → Base-3600 coordinates (voxel-style) */}
-      <div data-ucrs-readout className="space-y-1 rounded-lg border p-3 text-[10px]" style={{ borderColor: sel.p.color, background: C.panel }}>
+      {/* CLICKED PLANET → Base-3600 coordinates (voxel-style) — hidden in full-screen big-map mode */}
+      <div data-ucrs-readout className={`space-y-1 rounded-lg border p-3 text-[10px] ${max ? "hidden" : ""}`} style={{ borderColor: sel.p.color, background: C.panel }}>
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-bold" style={{ color: sel.p.color }}>◉ {sel.p.name}</span>
           <span className="text-[9px]" style={{ color: C.dim }}>UCRS-2525</span>

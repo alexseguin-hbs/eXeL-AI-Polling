@@ -317,12 +317,12 @@ const mk = async (vp) => {
     && parseFloat(ry1) < parseFloat(ry0) && /Mercury/.test(after) && /SR:/.test(after) && /SP-OTU/.test(after);
   rec('#A21 UCRS-2525 v2 — 9 planets + tilt ellipsoid + True-Scale + Planet-Size toggle + SA.EA..HU + click→coords', ok, JSON.stringify({ ...base, ry0, ry1, afterHasMercury: /Mercury/.test(after) }));
 
-  // #A21b: clock icon toggles the top-down OVERHEAD view (perihelion at 12) and back
+  // #A21b: clock icon rotates the big map so perihelion + the selected planet swing to the TOP (12 o'clock), and back
   await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(160);
-  const ovOn = await pg.evaluate(() => !!document.querySelector('[data-arch-celestial][data-overhead]') && /PERIHELION.*12:00/.test(document.querySelector('[data-overhead]')?.textContent || ''));
+  const ovOn = await pg.evaluate(() => document.querySelector('[data-arch-celestial]')?.getAttribute('data-peritop') === '1' && /rotate\(-90/.test(document.querySelector('[data-cel-view]')?.getAttribute('transform') || ''));
   await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(130);
-  const ovOff = await pg.evaluate(() => !document.querySelector('[data-overhead]') && !!document.querySelector('[data-arch-celestial]'));
-  rec('#A21b clock icon → overhead top-down view (perihelion 12:00) + toggle back', ovOn && ovOff, `on=${ovOn} off=${ovOff}`);
+  const ovOff = await pg.evaluate(() => document.querySelector('[data-arch-celestial]')?.getAttribute('data-peritop') !== '1' && !/rotate\(-90/.test(document.querySelector('[data-cel-view]')?.getAttribute('transform') || ''));
+  rec('#A21b clock rotates map → perihelion + planet at top (12:00) + toggle back', ovOn && ovOff, `on=${ovOn} off=${ovOff}`);
 
   // #A22: mini 3D Earth globe present + drag rotates it (graticule paths change) + no wheel/zoom handler
   await pg.locator('[data-planet-id="earth"]').click({ force: true }); await pg.waitForTimeout(150); // re-select Earth → globe (Mercury was selected above)
