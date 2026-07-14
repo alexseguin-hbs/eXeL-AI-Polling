@@ -552,6 +552,26 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A33: Moon play (Earth only, bottom-right of the mini map) runs one orbit → counter advances → auto-stops ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  const onEarth = await pg.evaluate(() => !!document.querySelector('[data-earth-moon] [data-moon-play]'));
+  await pg.evaluate(() => { const b = document.querySelector('[data-moon-play] button'); b && b.click(); });
+  await pg.waitForTimeout(1200);
+  const c1 = await pg.evaluate(() => document.querySelector('[data-moon-counter]')?.textContent || '');
+  await pg.waitForTimeout(1500);
+  const c2 = await pg.evaluate(() => document.querySelector('[data-moon-counter]')?.textContent || '');
+  const n1 = +(c1.match(/(\d+)\/3600/)?.[1] || -1), n2 = +(c2.match(/(\d+)\/3600/)?.[1] || -1);
+  await pg.waitForTimeout(7000); // 9s run → auto-stop
+  const stopped = await pg.evaluate(() => !document.querySelector('[data-moon-counter]'));
+  await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(200);
+  const noMoonOnMercury = await pg.evaluate(() => !document.querySelector('[data-moon-play]'));
+  rec('#A33 Moon play (Earth only) — counter advances toward 3600 + auto-stops; absent on planets', onEarth && n2 > n1 && n1 >= 0 && stopped && noMoonOnMercury, `onEarth=${onEarth} n1=${n1} n2=${n2} stopped=${stopped} noMoonOnMercury=${noMoonOnMercury}`);
+  await pg.close();
+}
+
 // ── #A34: constellation celestial sphere behind the system (inside the view transform, moves with pan) + Polaris ──
 {
   const { pg, tab, subtab, clk } = await mk();

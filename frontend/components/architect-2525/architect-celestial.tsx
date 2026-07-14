@@ -103,6 +103,28 @@ export function ArchitectCelestial({
     return () => { if (raf.current != null) cancelAnimationFrame(raf.current); playStart.current = null; };
   }, [playing]);
   const spinDir = Math.sign(PLANETS.find((p) => p.id === selId)?.rotDays ?? 1) || 1;
+
+  // MOON PLAY (Earth only): one full Moon orbit — Moon angle 0→360° (same face, tidal-lock), Earth spins the
+  // accurate N times (N = period ÷ Earth-day), then auto-stop. Sidereal 27.32 d (true orbit) / synodic 29.53 d.
+  const [moonPlaying, setMoonPlaying] = useState(false);
+  const [moonPlayT, setMoonPlayT] = useState(0);
+  const [moonMode, setMoonMode] = useState<"sidereal" | "synodic">("sidereal");
+  const moonPeriodDays = moonMode === "sidereal" ? 27.3217 : 29.5306;
+  const moonRaf = useRef<number | null>(null);
+  const moonStart = useRef<number | null>(null);
+  useEffect(() => {
+    if (!moonPlaying) { setMoonPlayT(0); moonStart.current = null; return; }
+    const DURATION = 9000;
+    const tick = (ts: number) => {
+      if (moonStart.current == null) moonStart.current = ts;
+      const t = Math.min(1, (ts - moonStart.current) / DURATION);
+      setMoonPlayT(t);
+      if (t >= 1) { setMoonPlaying(false); return; }
+      moonRaf.current = requestAnimationFrame(tick);
+    };
+    moonRaf.current = requestAnimationFrame(tick);
+    return () => { if (moonRaf.current != null) cancelAnimationFrame(moonRaf.current); moonStart.current = null; };
+  }, [moonPlaying]);
   const sinE = Math.sin(tiltDeg * DEG);
 
   // ── GESTURE NAVIGATION — pinch-zoom + one/two-finger rotate/pan on the solar system (mirrors the
@@ -224,7 +246,9 @@ export function ArchitectCelestial({
         <div className="absolute bottom-1 right-1 z-10">
           <MiniPanel title={selId === "earth" ? "EARTH · MOON" : sel.p.name.toUpperCase()} subtitle={fmtDist(rd.sr, distUnit)} rotation={fmtRotation(sel.p.rotDays)} coord={`SA.EA..HU ${fmt3600(sel.effHu)}`}
             render={(cs) => selId === "earth"
-              ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare playT={playT} />
+              ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare playT={playT}
+                  moonPlayT={moonPlayT} moonPeriodDays={moonPeriodDays} moonPlaying={moonPlaying} onMoonPlay={() => setMoonPlaying((p) => !p)}
+                  moonMode={moonMode} onMoonMode={() => setMoonMode((m) => (m === "sidereal" ? "synodic" : "sidereal"))} />
               : <TexturedGlobe src={sel.p.tex} size={cs} ring={sel.p.rings ? SATURN_RING_TEX : null} spinDeg={playT * 360 * spinDir} />}
           />
         </div>
