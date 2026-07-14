@@ -237,6 +237,24 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A18: Build→Estimate cone-of-uncertainty + advancing a gate tightens (confidence↑, band↓) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Build'); await subtab('Estimate');
+  const rd = () => pg.evaluate(() => {
+    const root = document.querySelector('[data-arch-estimate]');
+    const conf = +(document.querySelector('[data-arch-checkpoint]')?.textContent?.match(/Confidence:\s*(\d+)%/)?.[1] || 0);
+    const band = +(root?.textContent?.match(/±(\d+)% band/)?.[1] || 0);
+    return { cone: !!document.querySelector('[data-arch-cone]'), checkpoint: !!document.querySelector('[data-arch-checkpoint]'), sections: document.querySelectorAll('[data-est-section]').length, conf, band };
+  });
+  const before = await rd();
+  await clk('[data-est-advance]'); await pg.waitForTimeout(200);
+  const after = await rd();
+  const ok = before.cone && before.checkpoint && before.sections === 10 && after.conf > before.conf && after.band < before.band;
+  rec('#A18 Build→Estimate cone + Human Authority + advancing a gate tightens (conf↑ band↓)', ok, JSON.stringify({ before, after }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
