@@ -111,5 +111,24 @@ export function rollupFraming(members: Member[], crew: number): FramingRollup {
   };
 }
 
+export interface CutRow { material: string; lengthFt: number; qty: number; totalMin: number; totalCostUsd: number; automatable: boolean; }
+/** Bill of materials / cut list — group members by (material, length) → quantities. The purchasing + cut sheet. */
+export function cutList(members: Member[]): CutRow[] {
+  const map = new Map<string, CutRow>();
+  for (const m of members) {
+    const key = `${m.material}@${m.lengthFt}`;
+    const row = map.get(key) ?? { material: m.material, lengthFt: m.lengthFt, qty: 0, totalMin: 0, totalCostUsd: 0, automatable: m.automatable };
+    row.qty += 1; row.totalMin += m.placeMin; row.totalCostUsd = Math.round((row.totalCostUsd + m.costUsd) * 100) / 100;
+    map.set(key, row);
+  }
+  return Array.from(map.values()).sort((a, b) => b.qty - a.qty);
+}
+/** Cut list as CSV text (printable / exportable purchasing sheet). */
+export function cutListCsv(members: Member[]): string {
+  const rows = cutList(members);
+  return "Material,Length(ft),Qty,Install(min),Cost(USD),Robot\n" +
+    rows.map((r) => `${r.material},${r.lengthFt},${r.qty},${r.totalMin},${r.totalCostUsd.toFixed(2)},${r.automatable ? "yes" : "no"}`).join("\n");
+}
+
 export const fmtHrs = (min: number) => `${(min / 60).toFixed(1)} h`;
 export const fmtUsd = (n: number) => `$${Math.round(n).toLocaleString()}`;

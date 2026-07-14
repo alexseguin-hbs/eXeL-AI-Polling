@@ -8,7 +8,7 @@
  * WorkSection estimate engine: a homeowner sees exactly where the labour is and where robots can supplement.
  */
 import { useMemo, useState } from "react";
-import { generateFraming, fmtHrs, fmtUsd, type MemberType } from "@/lib/architect-framing";
+import { generateFraming, cutList, cutListCsv, fmtHrs, fmtUsd, type MemberType } from "@/lib/architect-framing";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", amber: "#f59e0b" };
 const TYPE_COLOR: Record<MemberType, string> = { stud: "#c084fc", plate: "#19c8cf", topplate: "#19c8cf", joist: "#22c55e", rafter: "#f59e0b", header: "#ef4444", beam: "#ffd400", column: "#94a3b8" };
@@ -21,6 +21,9 @@ export function ArchitectFraming() {
   const [crew, setCrew] = useState(4);
   const plan = useMemo(() => generateFraming({ widthFt: W, lengthFt: L, heightFt: H, studSpacingIn: spacing, crew, laborRate: 55 }), [W, L, H, spacing, crew]);
   const r = plan.rollup;
+  const bom = useMemo(() => cutList(plan.members), [plan]);
+  const [copied, setCopied] = useState(false);
+  const copyCsv = () => { try { navigator.clipboard?.writeText(cutListCsv(plan.members)); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* clipboard unavailable */ } };
 
   // plan drawing scale (W horizontal · L vertical) into a 200×150 viewBox
   const PW = 200, PH = 150, pad = 16;
@@ -89,6 +92,27 @@ export function ArchitectFraming() {
               <div><div style={{ color: C.dim }}>Saved</div><div className="font-bold" style={{ color: C.green }}>{r.daysSaved} d</div></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* CUT LIST / BILL OF MATERIALS — grouped by material + length → qty (the purchasing + cut sheet) */}
+      <div className="rounded-lg border" style={{ borderColor: C.border, background: C.panel }}>
+        <div className="flex items-center justify-between border-b px-3 py-1.5" style={{ borderColor: C.border }}>
+          <span className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>CUT LIST · BILL OF MATERIALS</span>
+          <button data-framing-copy onClick={copyCsv} className="rounded border px-2 py-0.5 text-[8px]" style={{ borderColor: C.border, color: copied ? C.green : C.cyan }}>{copied ? "✓ copied CSV" : "⧉ copy CSV"}</button>
+        </div>
+        <div className="max-h-44 overflow-y-auto p-2 text-[9px]" style={{ fontFamily: "monospace" }}>
+          <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 border-b pb-0.5 font-bold" style={{ color: C.dim, borderColor: C.border }}>
+            <span>Material</span><span>Len</span><span>Qty</span><span>Cost</span>
+          </div>
+          {bom.map((row) => (
+            <div key={`${row.material}${row.lengthFt}`} data-framing-bom className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 py-0.5">
+              <span style={{ color: C.text }}>{row.automatable ? "🤖 " : ""}{row.material}</span>
+              <span className="tabular-nums" style={{ color: C.dim }}>{row.lengthFt}′</span>
+              <span className="tabular-nums" style={{ color: C.cyan }}>×{row.qty}</span>
+              <span className="tabular-nums" style={{ color: C.green }}>{fmtUsd(row.totalCostUsd)}</span>
+            </div>
+          ))}
         </div>
       </div>
 
