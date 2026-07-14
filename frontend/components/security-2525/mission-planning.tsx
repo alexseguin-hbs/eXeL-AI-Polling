@@ -38,7 +38,7 @@ import {
   type SupportObjectDef, type MarkerGlyph, type LegendGroup, type RealityMode,
 } from "@/components/security-2525/mission-support";
 import { PfieldVenue } from "@/components/security-2525/pfield-venue";
-import { COUNTRIES } from "@/components/security-2525/countries";
+import { COUNTRIES, US_STATES } from "@/components/security-2525/countries";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { MIN_SPAN_KM, MAX_SPAN_KM, shouldHandOffToWorld } from "@/lib/zoom-continuum";
 import { terrainMSL, computeContours, makeDemSampler, type ContourOpts, type Dem } from "@/lib/contours";
@@ -2225,6 +2225,24 @@ function AoMapPane(p: PaneProps) {
                     <path d={borderPaths.states} fill="none" stroke={C.borderState} strokeWidth={fw(BORDER_PX.state)} vectorEffect="non-scaling-stroke" opacity="0.45" strokeLinejoin="round" />
                   </g>
                 )}
+                {/* FX-GLOBE (operator): COUNTRY + US-STATE name labels on the TACTICAL asset map too — all of them,
+                    declutter-gated by the tactical view span (spanDeg ≈ spanKm/111): a country/state shows only when the
+                    view is zoomed to ≤ its `min°` and its centroid is on-screen. Countries in country-border colour,
+                    states (smaller) in state-border colour; dark halo for legibility over terrain. */}
+                {(() => {
+                  const spanDeg = view.spanKm / 111;
+                  const onScreen = (lat: number, lon: number) => { const f = toFrac(lat, lon); return (f.fx > -0.03 && f.fx < 1.03 && f.fy > -0.03 && f.fy < 1.03) ? f : null; };
+                  return (
+                    <g style={{ pointerEvents: "none" }} data-geolabels>
+                      {COUNTRIES.filter((c) => !c.min || spanDeg <= c.min).map((c) => { const f = onScreen(c.lat, c.lon); return f ? (
+                        <text key={`gcn${c.name}`} x={f.fx * 100} y={f.fy * 100} fontSize="2.3" fill={C.borderCountry} opacity="0.7" textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke", letterSpacing: "0.04em" }} stroke="#0a0e14" strokeWidth="0.6">{c.name}</text>
+                      ) : null; })}
+                      {US_STATES.filter((s) => spanDeg <= (s.min ?? 26)).map((s) => { const f = onScreen(s.lat, s.lon); return f ? (
+                        <text key={`gst${s.name}`} x={f.fx * 100} y={f.fy * 100} fontSize="1.7" fill={C.borderState} opacity="0.8" textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke", letterSpacing: "0.03em" }} stroke="#0a0e14" strokeWidth="0.5">{s.name}</text>
+                      ) : null; })}
+                    </g>
+                  );
+                })()}
                 {/* WATER — lakes/wide rivers as solid blue polygons; rivers/streams as full-width blue lines */}
                 {osmPaths && waterOn && (() => {
                   // FX-78 (HI): light-blue water FILL + faint highlight look "silly" at high tilt

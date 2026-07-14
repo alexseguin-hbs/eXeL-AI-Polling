@@ -682,6 +682,22 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #44: COUNTRY + US-STATE labels on the TACTICAL asset map, zoom-gated (FX-GLOBE, operator "all of em") ──
+{
+  const { pg, errs } = await mk(null);
+  await pg.waitForTimeout(600); // default pane is the tactical asset map (modeA="ao")
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  const box = await M.boundingBox();
+  // zoom OUT the tactical map to a regional/CONUS span so country + state centroids come on-screen (labels are gated to
+  // on-screen centroids + view span ≤ min°). data-geolabels lives ONLY on the tactical AoMapPane.
+  if (box) { await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 2); for (let i = 0; i < 14; i++) { await pg.mouse.wheel(0, 500); await pg.waitForTimeout(80); } }
+  await pg.waitForTimeout(600);
+  const geo = await pg.evaluate(() => { const g = document.querySelector('[data-geolabels]'); if (!g) return { has: false }; const names = [...g.querySelectorAll('text')].map((t) => (t.textContent || '').trim()); return { has: true, count: names.length, us: names.some((n) => /UNITED STATES|CANADA|MEXICO|TEXAS|CALIFORNIA|FLORIDA|WASHINGTON|NEW YORK/.test(n)) }; });
+  rec('#44 country + US-state labels on the TACTICAL asset map (FX-GLOBE)', !!(geo.has && geo.count > 0 && geo.us), JSON.stringify(geo));
+  rec('#44 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');
