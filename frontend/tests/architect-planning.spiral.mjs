@@ -473,11 +473,12 @@ const mk = async (vp) => {
   await pg.waitForTimeout(200);
   const z1 = await pg.evaluate(() => +(document.querySelector('[data-textured-globe]')?.getAttribute('data-zoom') || 1));
   await pg.locator('[data-planet-id="earth"]').click({ force: true }); await pg.waitForTimeout(300);
-  await pg.locator('[data-cel-play]').click(); await pg.waitForTimeout(500);
-  const during = await pg.evaluate(() => (document.querySelector('[data-cel-play]')?.textContent || '').includes('pause'));
+  // planet-rotation play (mini bottom-left, ▶ · name) spins one axial rotation then auto-stops
+  await pg.locator('[data-planet-spin]').click(); await pg.waitForTimeout(500);
+  const during = await pg.evaluate(() => (document.querySelector('[data-planet-spin]')?.textContent || '').includes('⏸'));
   await pg.waitForTimeout(6500); // one-rotation preview = 6s → auto-stop
-  const after = await pg.evaluate(() => (document.querySelector('[data-cel-play]')?.textContent || '').includes('play'));
-  rec('#A28 zoom-to-detail on globe (wheel) + Play one rotation then auto-stops', z1 > z0 && z1 > 1.3 && during && after, `z0=${z0} z1=${z1} during=${during} after=${after}`);
+  const after = await pg.evaluate(() => (document.querySelector('[data-planet-spin]')?.textContent || '').includes('▶'));
+  rec('#A28 zoom-to-detail on globe (wheel) + planet-spin play (mini ▶·name) one rotation then auto-stops', z1 > z0 && z1 > 1.3 && during && after, `z0=${z0} z1=${z1} during=${during} after=${after}`);
   await pg.close();
 }
 
@@ -634,6 +635,25 @@ const mk = async (vp) => {
   const inclOk = Math.abs(incl.earth) < 0.01 && Math.abs(incl.pluto) > Math.abs(incl.mercury) && Math.abs(incl.mercury) > 0;
   const ok = range.min === 0 && range.max === 45 && moved && inclOk;
   rec('#A37 SA tilt 0-45° + constellations tilt with system + orbits ride off Earth plane (Pluto>Mercury>Earth=0)', ok, JSON.stringify({ range, cy10, cy45, incl }));
+  await pg.close();
+}
+
+// ── #A38: main-map ORBIT play sweeps HU (SA.EA..HU counter ticks) + 1×/2×/3× speed selector (3× = current) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  const speeds = await pg.evaluate(() => document.querySelectorAll('[data-cel-speed-x]').length);      // 1×/2×/3× buttons
+  const huText = () => pg.evaluate(() => document.querySelector('[data-hu-input]')?.value);
+  await pg.evaluate(() => { const b = document.querySelector('[data-cel-speed-x="3"]'); b && b.click(); }); // fastest
+  const hu0 = await huText();
+  await pg.locator('[data-cel-play]').click(); await pg.waitForTimeout(150);
+  const playingLabel = await pg.evaluate(() => (document.querySelector('[data-cel-play]')?.textContent || '').includes('pause'));
+  await pg.waitForTimeout(700);
+  const hu1 = await huText();                       // HU advanced around the orbit
+  await pg.locator('[data-cel-play]').click();      // pause
+  const ok = speeds === 3 && playingLabel && hu0 !== hu1;
+  rec('#A38 main-map orbit play sweeps HU (counter ticks) + 1×/2×/3× speed', ok, JSON.stringify({ speeds, hu0, hu1, playingLabel }));
   await pg.close();
 }
 

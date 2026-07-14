@@ -85,7 +85,7 @@ export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172
       )}
       {/* orbit-position counter while playing */}
       {moonPlaying && (
-        <span data-moon-counter className="absolute bottom-0.5 left-0.5 z-10 rounded px-1 text-[7px] tabular-nums" style={{ background: "rgba(6,10,16,0.85)", color: "#19c8cf", fontFamily: "monospace" }}>
+        <span data-moon-counter className="absolute bottom-0.5 left-1/2 z-10 -translate-x-1/2 rounded px-1 text-[7px] tabular-nums" style={{ background: "rgba(6,10,16,0.85)", color: "#19c8cf", fontFamily: "monospace" }}>
           {Math.round(moonPlayT * 3600)}/3600 · {(moonPlayT * moonPeriodDays).toFixed(1)}d
         </span>
       )}

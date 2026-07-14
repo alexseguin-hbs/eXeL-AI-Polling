@@ -104,6 +104,29 @@ export function ArchitectCelestial({
   }, [playing]);
   const spinDir = Math.sign(PLANETS.find((p) => p.id === selId)?.rotDays ?? 1) || 1;
 
+  // ORBIT PLAY (main map): sweep HU 0→3600 around the SELECTED planet's orbit, looping. Speed 1×/2×/3× where
+  // 3× = fastest (current). The other planets advance at their ACCURATE relative rates (the laid memo), so you
+  // see the selected body lap the slower outer planets; the SA.EA..HU counter + orbit-pos ####/3600 tick live.
+  const [orbitPlaying, setOrbitPlaying] = useState(false);
+  const [orbitSpeed, setOrbitSpeed] = useState<1 | 2 | 3>(3);
+  const orbRaf = useRef<number | null>(null);
+  const orbStart = useRef<number | null>(null);
+  const orbBase = useRef(0);
+  useEffect(() => {
+    if (!orbitPlaying) { orbStart.current = null; return; }
+    const durFull = 6000 * (3 / orbitSpeed);   // one full 0→3600 orbit: 3×→6s · 2×→9s · 1×→18s (slower reveals others)
+    const base = hu;
+    const tick = (ts: number) => {
+      if (orbStart.current == null) { orbStart.current = ts; orbBase.current = base; }
+      const advanced = ((ts - orbStart.current) / durFull) * 3600;
+      setHu((orbBase.current + advanced) % 3600);
+      orbRaf.current = requestAnimationFrame(tick);
+    };
+    orbRaf.current = requestAnimationFrame(tick);
+    return () => { if (orbRaf.current != null) cancelAnimationFrame(orbRaf.current); orbStart.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orbitPlaying, orbitSpeed]);
+
   // MOON PLAY (Earth only): one full Moon orbit — Moon angle 0→360° (same face, tidal-lock), Earth spins the
   // accurate N times (N = period ÷ Earth-day), then auto-stop. Sidereal 27.32 d (true orbit) / synodic 29.53 d.
   const [moonPlaying, setMoonPlaying] = useState(false);
@@ -280,11 +303,20 @@ export function ArchitectCelestial({
             a procedural 3D sphere (bands / craters / Saturn's rings). Drag L/R to rotate · no zoom. */}
         <div className="absolute bottom-1 right-1 z-10">
           <MiniPanel title={selId === "earth" ? "EARTH · MOON" : sel.p.name.toUpperCase()} subtitle={fmtDist(rd.sr, distUnit)} rotation={fmtRotation(sel.p.rotDays)} coord={`SA.EA..HU ${fmt3600(sel.effHu)}`}
-            render={(cs) => selId === "earth"
-              ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare playT={playT}
-                  moonPlayT={moonPlayT} moonPeriodDays={moonPeriodDays} moonPlaying={moonPlaying} onMoonPlay={() => setMoonPlaying((p) => !p)}
-                  moonMode={moonMode} onMoonMode={() => setMoonMode((m) => (m === "sidereal" ? "synodic" : "sidereal"))} />
-              : <TexturedGlobe src={sel.p.tex} size={cs} ring={sel.p.rings ? SATURN_RING_TEX : null} spinDeg={playT * 360 * spinDir} />}
+            render={(cs) => (
+              <div className="relative" style={{ width: cs, height: cs }}>
+                {selId === "earth"
+                  ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare playT={playT}
+                      moonPlayT={moonPlayT} moonPeriodDays={moonPeriodDays} moonPlaying={moonPlaying} onMoonPlay={() => setMoonPlaying((p) => !p)}
+                      moonMode={moonMode} onMoonMode={() => setMoonMode((m) => (m === "sidereal" ? "synodic" : "sidereal"))} />
+                  : <TexturedGlobe src={sel.p.tex} size={cs} ring={sel.p.rings ? SATURN_RING_TEX : null} spinDeg={playT * 360 * spinDir} />}
+                {/* PLANET ROTATION play — bottom-LEFT of the mini map (▶ · planet name), spins the selected body one
+                    axial rotation then auto-stops (accurate retrograde direction). Moon revolution stays bottom-RIGHT. */}
+                <button data-planet-spin onClick={() => setPlaying((p) => !p)} title={`Spin ${sel.p.name} one rotation (${fmtRotation(sel.p.rotDays)})`}
+                  className="absolute bottom-0.5 left-0.5 z-20 flex items-center gap-0.5 rounded border px-1 py-0.5 text-[7px] font-bold"
+                  style={{ borderColor: playing ? C.gold : "#2a3340", color: playing ? C.gold : "#9aa7b8", background: "rgba(6,10,16,0.85)" }}>{playing ? "⏸" : "▶"} · {sel.p.name}</button>
+              </div>
+            )}
           />
         </div>
         {/* zoom / reset — pinch or wheel to zoom, drag to pan, two-finger twist (or right-drag) to rotate */}
@@ -378,12 +410,18 @@ export function ArchitectCelestial({
           <input data-hu-input type="range" min={0} max={3600} step={1} value={hu} onChange={(e) => setHu(+e.target.value)} className="flex-1" />
           <span className="tabular-nums" style={{ color: C.cyan }}>{fmt3600(hu)}</span>
         </label>
-        {/* DATE + PLAY — select a month/day, click play: Earth rotates (time-of-day) + planets orbit */}
+        {/* DATE + ORBIT PLAY — play sweeps the SELECTED planet 0→3600 around its orbit; 1×/2×/3× speed (3× = current). */}
         <div className="mt-1 flex flex-wrap items-center gap-2 text-[9px]" style={{ color: C.dim }}>
-          <button data-cel-play onClick={() => setPlaying((p) => !p)} className="flex items-center gap-1 rounded border px-2 py-0.5 font-semibold"
-            style={{ borderColor: playing ? C.gold : C.border, color: playing ? C.gold : C.dim }}>
-            {playing ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}{playing ? "pause" : "play"}
+          <button data-cel-play onClick={() => setOrbitPlaying((p) => !p)} title="Play the selected planet around its orbit (0→3600)" className="flex items-center gap-1 rounded border px-2 py-0.5 font-semibold"
+            style={{ borderColor: orbitPlaying ? C.gold : C.border, color: orbitPlaying ? C.gold : C.dim }}>
+            {orbitPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}{orbitPlaying ? "pause" : "orbit"}
           </button>
+          <div data-cel-speed className="flex items-center gap-0.5">
+            {([1, 2, 3] as const).map((s) => (
+              <button key={s} data-cel-speed-x={s} onClick={() => setOrbitSpeed(s)} title={s === 3 ? "3× (current speed)" : `${s}× (slower — reveals outer planets)`}
+                className="rounded border px-1 py-0.5 tabular-nums" style={{ borderColor: C.border, color: orbitSpeed === s ? C.gold : C.dim, background: orbitSpeed === s ? "#241a06" : "transparent" }}>{s}×</button>
+            ))}
+          </div>
           <label className="flex items-center gap-1">Date<input data-cel-date type="date" value={isoDate} onChange={(e) => setFromDate(e.target.value)} className="rounded border bg-transparent px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.text }} /></label>
           <span data-cel-clock>{monthDay} · <span style={{ color: C.cyan }}>{fmtClock(hour, clockFmt)} {tz.label}</span></span>
           <span>◉ Pfield · Pflugerville TX</span>
