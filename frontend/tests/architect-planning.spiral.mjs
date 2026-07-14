@@ -57,6 +57,29 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A4: OVERVIEW observability tiles present ──
+{
+  const { pg } = await mk();
+  const txt = await pg.evaluate(() => document.querySelector('[data-arch-tab="OVERVIEW"]')?.textContent || '');
+  const ok = ['Project Cost', 'Time Capital', 'Iteration', 'SSSES'].every((k) => txt.includes(k)) && /\$[\d,]/.test(txt);
+  rec('#A4 OVERVIEW tiles (cost / time-capital / iteration / SSSES)', ok, txt.slice(0, 60));
+  await pg.close();
+}
+
+// ── #A5: COST·TIME $/min recomputes live on input change ──
+{
+  const { pg, clk } = await mk();
+  await clk('button:has-text("COST·TIME")'); await pg.waitForTimeout(200);
+  const totalOf = () => pg.evaluate(() => { const t = document.querySelector('[data-arch-tab="COST·TIME"]')?.textContent || ''; const m = t.match(/Total \(billed\)\s*\$([\d,]+\.\d{2})/); return m ? m[1] : (t.match(/\$([\d,]+\.\d{2})/g) || []).join(','); });
+  const before = await totalOf();
+  // bump the Labor (min) input (first number input in the tab) and confirm the billed total changes.
+  await pg.evaluate(() => { const inp = document.querySelector('[data-arch-tab="COST·TIME"] input[type=number]'); if (inp) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, '96000'); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); } });
+  await pg.waitForTimeout(200);
+  const after = await totalOf();
+  rec('#A5 COST·TIME $/min recomputes on input', !!before && !!after && before !== after, `before=${before} after=${after}`);
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

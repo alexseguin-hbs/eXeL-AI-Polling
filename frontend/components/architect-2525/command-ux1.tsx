@@ -20,6 +20,7 @@ import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
+import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
 
 // Self-contained theme (Architect = violet Trinity accent; mirrors Security's inline C object).
 const C = {
@@ -49,6 +50,28 @@ const NAV: [string, React.ComponentType<{ className?: string }>][] = [
   ["REPLAY", History],
 ];
 
+function Tile({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
+  return (
+    <div className="rounded-lg border p-3" style={{ borderColor: C.border, background: C.panel }}>
+      <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color: C.dim }}>{label}</div>
+      <div className="mt-1 text-lg font-bold tabular-nums" style={{ color: color ?? C.text }}>{value}</div>
+      {sub && <div className="mt-0.5 text-[9px]" style={{ color: C.dim }}>{sub}</div>}
+    </div>
+  );
+}
+
+function NumField({ label, value, onChange, step = 1 }: { label: string; value: number; onChange: (n: number) => void; step?: number }) {
+  return (
+    <label className="flex items-center justify-between gap-2 text-[11px]" style={{ color: C.text }}>
+      <span>{label}</span>
+      <input type="number" value={value} step={step} min={0}
+        onChange={(e) => onChange(Math.max(0, parseFloat(e.target.value) || 0))}
+        className="w-24 rounded border bg-transparent px-2 py-0.5 text-right tabular-nums"
+        style={{ borderColor: C.border, color: C.text }} />
+    </label>
+  );
+}
+
 export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: string } = {}) {
   const { setVisionView, exitSimulationMode, simulationMode } = useEasterEgg();
   const router = useRouter();
@@ -60,6 +83,18 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const [fpsCap, setFpsCapState] = useState(0);
   useEffect(() => { initFpsCap(); setFpsCapState(getFpsCap()); }, []);
   const applyCap = (n: number) => { setFpsCap(n); setFpsCapState(n); };
+
+  // $/min economy inputs (live client-side; seeded with a representative custom-home project).
+  const [laborMin, setLaborMin] = useState(48000);   // ~800 labor-hours
+  const [reviewMin, setReviewMin] = useState(1200);  // 20 architect-review hours
+  const [donatedMin, setDonatedMin] = useState(600); // 10 donated/learning hours
+  const [ratePerHr, setRatePerHr] = useState(DEFAULT_RATE_PER_HR);
+  const [materialsUsd, setMaterialsUsd] = useState(320000);
+  const [days, setDays] = useState(120);
+  const [allocMode, setAllocMode] = useState<AllocationMode>("spread");
+  const econ = computeEconomy({ laborMin, reviewMin, donatedMin, ratePerHr, materialsUsd, aiMultiplier: 2, impact: 1.2, quality: 1.1 });
+  const perDay = allocate(econ.totalUsd, days, allocMode);
+  const iteration = 20; // current iteration in the 20-33 loop (demo)
 
   const goHome = () => { if (directLink) router.push("/"); else { exitSimulationMode(); setVisionView("launcher"); } };
 
@@ -131,16 +166,79 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         </div>
       </div>
 
-      {/* TAB CONTENT — placeholders this increment; OVERVIEW + COST·TIME built next. */}
-      <div className="p-6">
-        <div data-arch-tab={activeTab} className="flex min-h-[60vh] flex-col items-center justify-center gap-2 text-center">
-          <span className="text-sm font-semibold tracking-wide" style={{ color: C.violet }}>{activeTab}</span>
-          <span className="text-xs" style={{ color: C.dim }}>Architect-2525 · wiring pending</span>
-          <span className="max-w-md text-[11px]" style={{ color: C.dim }}>
-            Vision 2525 construction coordination — simulate, review, qualify, and approve homes before construction. See
-            docs/architecture-2525/MASTER_SPEC.md.
-          </span>
-        </div>
+      {/* TAB CONTENT — OVERVIEW + COST·TIME live; others "wiring pending". */}
+      <div data-arch-tab={activeTab} className="p-4">
+        {activeTab === "OVERVIEW" ? (
+          <div className="space-y-3">
+            <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>
+              OBSERVABILITY · PROJECT HEALTH <span style={{ color: C.dim }}>· V2525-000842 · Custom Residence</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              <Tile label="Iteration" value={`${iteration} / 33`} sub="20–33 loop" color={C.cyan} />
+              <Tile label="Build-Ready" value="—" sub="qualify to unlock" color={C.amber} />
+              <Tile label="Risk" value="LOW" sub="30–50% lower" color={C.green} />
+              <Tile label="Project Cost" value={fmtUsd(econ.totalUsd)} sub={`${fmtUsd(econ.perMin)}/min`} color={C.text} />
+              <Tile label="Time Donated" value={`${Math.round(donatedMin / 60)} h`} sub={`${econ.learningPoints} learning pts`} color={C.violet} />
+              <Tile label="Time Capital" value={fmtUsd(econ.timeCapitalUsd)} sub="MoT × $/min" color={C.gold} />
+              <Tile label="◬ ♡ 웃" value={`${econ.trinity.unity} · ${econ.trinity.heart} · ${fmtUsd(econ.trinity.human)}`} sub="Trinity ledger" color={C.cyan} />
+              <Tile label="Fee" value={fmtUsd(econ.feeUsd)} sub="transparent · fair" color={C.green} />
+            </div>
+            <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>SSSES</div>
+            <div className="grid grid-cols-5 gap-2">
+              {["Security", "Stability", "Scalability", "Efficiency", "Succinctness"].map((p) => (
+                <Tile key={p} label={p} value="—" sub="pending" color={C.dim} />
+              ))}
+            </div>
+            <div className="rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel, color: C.dim }}>
+              <span style={{ color: C.violet }}>Knowledge Graph</span> — every project improves the next. Foundation → Concrete → Climate → Drainage → Best Practices → Future Recommendations. <span style={{ color: C.dim }}>(wiring pending)</span>
+            </div>
+          </div>
+        ) : activeTab === "COST·TIME" ? (
+          <div className="grid gap-3 lg:grid-cols-2">
+            <div className="space-y-2 rounded-lg border p-3" style={{ borderColor: C.border, background: C.panel }}>
+              <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>$/min ECONOMY · INPUTS</div>
+              <NumField label="Labor (min)" value={laborMin} onChange={setLaborMin} step={60} />
+              <NumField label="Expert review (min)" value={reviewMin} onChange={setReviewMin} step={30} />
+              <NumField label="Donated / learning (min)" value={donatedMin} onChange={setDonatedMin} step={30} />
+              <NumField label="Rate ($/hr)" value={ratePerHr} onChange={setRatePerHr} step={0.25} />
+              <NumField label="Materials ($)" value={materialsUsd} onChange={setMaterialsUsd} step={1000} />
+              <NumField label="Project days" value={days} onChange={(n) => setDays(Math.max(1, Math.round(n)))} step={1} />
+              <div className="flex items-center justify-between gap-2 pt-1 text-[11px]">
+                <span>Allocation</span>
+                <div className="flex gap-1">
+                  {(["single", "spread"] as AllocationMode[]).map((m) => (
+                    <button key={m} onClick={() => setAllocMode(m)} className="rounded border px-2 py-0.5 text-[10px]"
+                      style={{ borderColor: C.border, color: allocMode === m ? C.violet : C.dim, background: allocMode === m ? "#221833" : "transparent" }}>{m}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Tile label="Labor" value={fmtUsd(econ.laborUsd)} color={C.text} />
+                <Tile label="Review" value={fmtUsd(econ.reviewUsd)} color={C.text} />
+                <Tile label="Donated (value)" value={fmtUsd(econ.donatedUsd)} sub="in-kind" color={C.violet} />
+                <Tile label="Materials" value={fmtUsd(econ.materialsUsd)} color={C.text} />
+                <Tile label="Total (billed)" value={fmtUsd(econ.totalUsd)} sub={`${fmtUsd(econ.perMin)}/min`} color={C.gold} />
+                <Tile label={allocMode === "single" ? "Day 1" : "Per day"} value={fmtUsd(perDay[0])} sub={`${perDay.length} day(s)`} color={C.cyan} />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <Tile label="◬ AI" value={String(econ.trinity.unity)} color={C.cyan} />
+                <Tile label="♡ SI" value={String(econ.trinity.heart)} color={C.red} />
+                <Tile label="웃 HI" value={fmtUsd(econ.trinity.human)} color={C.green} />
+              </div>
+              <div className="rounded-lg border p-2 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>
+                Time Capital <span style={{ color: C.gold }}>{fmtUsd(econ.timeCapitalUsd)}</span> · Learning points <span style={{ color: C.violet }}>{econ.learningPoints}</span>. Client preview reconciles to the Cube 5/8 ledger on sync.
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex min-h-[55vh] flex-col items-center justify-center gap-2 text-center">
+            <span className="text-sm font-semibold tracking-wide" style={{ color: C.violet }}>{activeTab}</span>
+            <span className="text-xs" style={{ color: C.dim }}>Architect-2525 · wiring pending</span>
+            <span className="max-w-md text-[11px]" style={{ color: C.dim }}>See docs/architecture-2525/MASTER_SPEC.md.</span>
+          </div>
+        )}
       </div>
 
       {/* FOOTER */}
