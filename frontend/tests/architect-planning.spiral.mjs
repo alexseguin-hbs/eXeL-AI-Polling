@@ -612,6 +612,31 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A37: SA tilt 0-45° · constellations TILT with the system · orbits ride off Earth's plane (inclination) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120);        // open ⚙ to reach the SA tilt slider
+  const setTilt = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(150); };
+  const range = await pg.evaluate(() => { const t = document.querySelector('[data-tilt-input]'); return { min: +t.min, max: +t.max }; });
+  // constellation Y moves when SA tilt changes (celestial sphere foreshortens with the system)
+  const conY = () => pg.evaluate(() => document.querySelector('[data-constellation="Orion"] circle')?.getAttribute('cy'));
+  await setTilt(10); const cy10 = await conY();
+  await setTilt(45); const cy45 = await conY();
+  // orbital inclination: Earth's orbit stays flat (rotate ~0); an inclined orbit (Pluto 17°) is rotated off it
+  const incl = await pg.evaluate(() => ({
+    earth: +(document.querySelector('[data-orbit-group="earth"]')?.getAttribute('data-incl') || 'NaN'),
+    pluto: +(document.querySelector('[data-orbit-group="pluto"]')?.getAttribute('data-incl') || 'NaN'),
+    mercury: +(document.querySelector('[data-orbit-group="mercury"]')?.getAttribute('data-incl') || 'NaN'),
+  }));
+  const moved = cy10 !== null && cy45 !== null && cy10 !== cy45;
+  const inclOk = Math.abs(incl.earth) < 0.01 && Math.abs(incl.pluto) > Math.abs(incl.mercury) && Math.abs(incl.mercury) > 0;
+  const ok = range.min === 0 && range.max === 45 && moved && inclOk;
+  rec('#A37 SA tilt 0-45° + constellations tilt with system + orbits ride off Earth plane (Pluto>Mercury>Earth=0)', ok, JSON.stringify({ range, cy10, cy45, incl }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

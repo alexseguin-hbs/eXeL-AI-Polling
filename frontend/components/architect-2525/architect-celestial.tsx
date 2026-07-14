@@ -126,6 +126,8 @@ export function ArchitectCelestial({
     return () => { if (moonRaf.current != null) cancelAnimationFrame(moonRaf.current); moonStart.current = null; };
   }, [moonPlaying]);
   const sinE = Math.sin(tiltDeg * DEG);
+  const cosE = Math.cos(tiltDeg * DEG);                 // edge-on component — inclination shows most when cosE→1 (low tilt)
+  const sphereSquash = 0.18 + 0.82 * sinE;              // celestial-sphere vertical foreshorten: tilts WITH the system (moves as SA changes), never fully collapses
 
   // ── GESTURE NAVIGATION — pinch-zoom + one/two-finger rotate/pan on the solar system (mirrors the
   // Security-2525 globe: 1 finger = pan, 2 fingers = pinch-zoom + twist-rotate; mouse wheel = zoom;
@@ -209,34 +211,46 @@ export function ArchitectCelestial({
       const cx = SUN_X - ax * p.e;                    // Sun sits at the right focus
       const effHu = (((i - selIdx) * 400 + (tElapsed / p.tDays) * 3600) % 3600 + 3600) % 3600; // accurate rate
       const nu = huToNu(effHu) * DEG;
-      const x = cx + ax * Math.cos(nu), y = SUN_Y + ry * Math.sin(nu);
+      const x0 = cx + ax * Math.cos(nu), y0 = SUN_Y + ry * Math.sin(nu);  // in-plane (ecliptic) screen position
+      // ORBITAL INCLINATION — tilt this orbit off Earth's plane by its real inclination. Node line = the
+      // horizontal major axis (through the Sun); rotating about the Sun lifts inclined orbits (Mercury 7°, Pluto 17°)
+      // off Earth's flat line. cosE → the tilt is most visible edge-on (low SA), fades as you look straight down.
+      const inclRot = p.incl * cosE * 1.6;            // visual degrees this orbit tilts off the ecliptic
+      const a = inclRot * DEG, ca = Math.cos(a), sa = Math.sin(a);
+      const dx = x0 - SUN_X, dyv = y0 - SUN_Y;
+      const x = SUN_X + dx * ca - dyv * sa, y = SUN_Y + dx * sa + dyv * ca;
       const depth = Math.sin(nu);                     // +front / −back
-      return { p, i, ax, ry, cx, effHu, x, y, depth };
+      return { p, i, ax, ry, cx, effHu, x, y, depth, inclRot };
     });
-  }, [hu, sinE, selIdx]);
+  }, [hu, sinE, cosE, selIdx]);
 
-  const bgStars = useMemo(() => starfield(SUN_X, SUN_Y, 116, 130), []); // fixed celestial-sphere backdrop
-  // Memoised backdrop element — the ~180 stars/constellations are static, so React reuses this exact tree on
-  // every pan/zoom/rotate (only the parent <g> transform changes) → smooth navigation, no per-frame element churn.
-  const starfieldEl = useMemo(() => (
-    <g data-starfield>
-      <circle cx={SUN_X} cy={SUN_Y} r="116" fill="none" stroke="#131c28" strokeWidth="0.3" />
-      {bgStars.map(([sx, sy, sr], i) => <circle key={`bg${i}`} cx={sx} cy={sy} r={sr} fill="#8b9bb5" opacity="0.45" />)}
-      {PRIORITY_CONSTELLATIONS.map((con) => {
-        const RB = 108, ccx = SUN_X + RB * con.radius * Math.sin(con.angle * DEG), ccy = SUN_Y - RB * con.radius * Math.cos(con.angle * DEG);
-        const pts = con.stars.map(([dx, dy]) => [ccx + dx, ccy + dy] as const);
-        const isUMi = con.name === "Ursa Minor";
-        return (
-          <g key={con.name} data-constellation={con.name}>
-            {con.lines.map(([a, b], i) => <line key={i} x1={pts[a][0]} y1={pts[a][1]} x2={pts[b][0]} y2={pts[b][1]} stroke="#39496380" strokeWidth="0.2" />)}
-            {pts.map(([x, y], i) => { const polaris = isUMi && i === 0; return <circle key={i} cx={x} cy={y} r={polaris ? 0.9 : 0.5} fill={polaris ? "#ffffff" : "#aebfd6"} />; })}
-            <text x={ccx} y={ccy - 8} fontSize="2.1" fill="#54627a" textAnchor="middle" style={{ fontFamily: "monospace" }}>{con.name}</text>
-            {isUMi && <text x={pts[0][0] + 1.5} y={pts[0][1] - 0.5} fontSize="2.3" fill="#fff" style={{ fontFamily: "monospace" }}>Polaris</text>}
-          </g>
-        );
-      })}
-    </g>
-  ), [bgStars]);
+  const bgStars = useMemo(() => starfield(SUN_X, SUN_Y, 116, 130), []); // celestial-sphere backdrop (fixed pattern)
+  // Memoised backdrop — the ~180 stars/constellations are static in shape, so React reuses this tree on every
+  // pan/zoom/rotate (only the parent <g> transform changes). It DOES recompute when the SA tilt changes: the whole
+  // sphere foreshortens vertically by `sphereSquash` so the constellations TILT/MOVE with the system — you're inside
+  // the sphere looking out, so raising the tilt swings the star dome. Recompute is tilt-only (not per pan frame).
+  const starfieldEl = useMemo(() => {
+    const yf = (y: number) => SUN_Y + (y - SUN_Y) * sphereSquash;   // foreshorten a screen-Y about the Sun by the tilt
+    return (
+      <g data-starfield>
+        <ellipse cx={SUN_X} cy={SUN_Y} rx="116" ry={116 * sphereSquash} fill="none" stroke="#131c28" strokeWidth="0.3" />
+        {bgStars.map(([sx, sy, sr], i) => <circle key={`bg${i}`} cx={sx} cy={yf(sy)} r={sr} fill="#8b9bb5" opacity="0.45" />)}
+        {PRIORITY_CONSTELLATIONS.map((con) => {
+          const RB = 108, ccx = SUN_X + RB * con.radius * Math.sin(con.angle * DEG), ccy = yf(SUN_Y - RB * con.radius * Math.cos(con.angle * DEG));
+          const pts = con.stars.map(([dx, dy]) => [ccx + dx, ccy + dy] as const);  // asterism shape stays readable; the sphere tilts, not each figure
+          const isUMi = con.name === "Ursa Minor";
+          return (
+            <g key={con.name} data-constellation={con.name}>
+              {con.lines.map(([a, b], i) => <line key={i} x1={pts[a][0]} y1={pts[a][1]} x2={pts[b][0]} y2={pts[b][1]} stroke="#39496380" strokeWidth="0.2" />)}
+              {pts.map(([x, y], i) => { const polaris = isUMi && i === 0; return <circle key={i} cx={x} cy={y} r={polaris ? 0.9 : 0.5} fill={polaris ? "#ffffff" : "#aebfd6"} />; })}
+              <text x={ccx} y={ccy - 8} fontSize="2.1" fill="#54627a" textAnchor="middle" style={{ fontFamily: "monospace" }}>{con.name}</text>
+              {isUMi && <text x={pts[0][0] + 1.5} y={pts[0][1] - 0.5} fontSize="2.3" fill="#fff" style={{ fontFamily: "monospace" }}>Polaris</text>}
+            </g>
+          );
+        })}
+      </g>
+    );
+  }, [bgStars, sphereSquash]);
   const sel = laid.find((l) => l.p.id === selId) || laid[2];
   const rd = ucrsAt(sel.p, sel.effHu);
   const drawOrder = [...laid].sort((a, b) => a.depth - b.depth); // back planets first
@@ -320,9 +334,10 @@ export function ArchitectCelestial({
           ) : (<>
           {/* orbital-plane baseline (the tilt reference / SA) */}
           <ellipse cx={SUN_X} cy={SUN_Y} rx="118" ry={118 * sinE} fill="none" stroke="#141d29" strokeWidth="0.3" />
-          {/* orbits — ellipsoid rings + apsidal line + peri/aphe markers */}
-          {laid.map(({ p, ax, ry, cx }) => (
-            <g key={`o${p.id}`}>
+          {/* orbits — ellipsoid rings + apsidal line + peri/aphe markers; each ring rotated about the Sun by its
+              inclination so you can SEE which orbits ride off Earth's plane (Earth's stays flat, Pluto/Mercury tilt). */}
+          {laid.map(({ p, ax, ry, cx, inclRot }) => (
+            <g key={`o${p.id}`} data-orbit-group={p.id} data-incl={inclRot.toFixed(2)} transform={`rotate(${inclRot} ${SUN_X} ${SUN_Y})`}>
               <line x1={cx - ax} y1={SUN_Y} x2={cx + ax} y2={SUN_Y} stroke={p.color} strokeWidth="0.22" strokeDasharray="1.4 1.4" opacity="0.3" />
               <ellipse data-orbit cx={cx} cy={SUN_Y} rx={ax} ry={ry} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.6" />
               <circle cx={cx + ax} cy={SUN_Y} r="0.7" fill={p.color} />{/* perihelion (Sun side) — filled */}
@@ -408,7 +423,7 @@ export function ArchitectCelestial({
               <span className="text-[8px]" style={{ color: C.dim }}>· {tz.label}</span>
             </div>
             <label className="flex items-center gap-2" style={{ color: C.dim }}>SA tilt
-              <input data-tilt-input type="range" min={8} max={42} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" />
+              <input data-tilt-input type="range" min={0} max={45} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" />
               <span className="tabular-nums" style={{ color: C.violet }}>{tiltDeg}°</span>
             </label>
             <div className="border-t pt-1" style={{ borderColor: C.border, fontFamily: "monospace" }}>
