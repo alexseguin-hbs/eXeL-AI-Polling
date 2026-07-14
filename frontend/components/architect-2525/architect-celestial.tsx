@@ -14,6 +14,7 @@ import { useMemo, useState } from "react";
 import {
   PLANETS, ucrsAt, huToNu, axSchematic, axTrue, bOverA, fmt3600, FULL_ORBIT, fmtMeters,
 } from "@/lib/ucrs-2525";
+import { MiniGlobe } from "./mini-globe";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
@@ -54,6 +55,11 @@ export function ArchitectCelestial() {
             ))}
           </div>
         </div>
+        <div className="relative">
+        {/* mini 3D Earth globe — drag L/R to rotate, no zoom (Security-2525 globe inspiration) */}
+        <div className="absolute bottom-1 left-1 z-10">
+          <MiniGlobe lat={30.27} lon={-97.74} size={84} color={C.cyan} />
+        </div>
         <svg data-arch-celestial viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: "2.2 / 1" }}>
           {/* orbital-plane baseline (the tilt reference / SA) */}
           <ellipse cx={SUN_X} cy={SUN_Y} rx="118" ry={118 * sinE} fill="none" stroke="#141d29" strokeWidth="0.3" />
@@ -91,6 +97,7 @@ export function ArchitectCelestial() {
             );
           })}
         </svg>
+        </div>
         {/* controls: HU scrubber + SA tilt */}
         <div className="mt-1 grid grid-cols-1 gap-x-3 gap-y-0.5 text-[9px] sm:grid-cols-2">
           <label className="flex items-center gap-2" style={{ color: C.dim }}>HU

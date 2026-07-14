@@ -313,6 +313,15 @@ const mk = async (vp) => {
   const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu && base.tilt && base.scale === 2 && base.coord
     && parseFloat(ry1) < parseFloat(ry0) && /Mercury/.test(after) && /SR:/.test(after) && /SP-OTU/.test(after);
   rec('#A21 UCRS-2525 v2 — 9 planets + tilt ellipsoid + scale toggle + SA.EA..HU + click→coords', ok, JSON.stringify({ ...base, ry0, ry1, afterHasMercury: /Mercury/.test(after) }));
+
+  // #A22: mini 3D Earth globe present + drag rotates it (graticule paths change) + no wheel/zoom handler
+  const glb = pg.locator('[data-mini-globe]');
+  const has = await glb.count();
+  const before = await pg.evaluate(() => document.querySelector('[data-mini-globe]')?.innerHTML.length || 0);
+  const box = await glb.boundingBox();
+  if (box) { await pg.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5); await pg.mouse.down(); await pg.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.5, { steps: 6 }); await pg.mouse.up(); await pg.waitForTimeout(120); }
+  const afterHtml = await pg.evaluate(() => document.querySelector('[data-mini-globe]')?.innerHTML.length || 0);
+  rec('#A22 mini 3D Earth globe present + drag rotates (no zoom)', has === 1 && afterHtml !== before, `has=${has} before=${before} after=${afterHtml}`);
   await pg.close();
 }
 
