@@ -19,6 +19,7 @@ import {
 } from "@/lib/ucrs-2525";
 import { PlanetGlobe } from "./planet-globe";
 import { EarthMoonBox } from "./earth-moon-box";
+import { MiniPanel } from "./mini-panel";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
@@ -197,10 +198,12 @@ export function ArchitectCelestial({
         {/* bottom-right — the SELECTED body as a DRAGGABLE 3D globe (Security-2525 globe interaction).
             Earth = real land/ocean globe (spins with time-of-day) + the Moon beside it; any other planet =
             a procedural 3D sphere (bands / craters / Saturn's rings). Drag L/R to rotate · no zoom. */}
-        <div className="absolute bottom-1 right-1 z-10 flex items-end gap-1">
-          {selId === "earth"
-            ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={max ? 168 : 116} color={C.gold} />
-            : <PlanetGlobe body={sel.p} size={max ? 120 : 84} />}
+        <div className="absolute bottom-1 right-1 z-10">
+          <MiniPanel title={selId === "earth" ? "EARTH · MOON" : sel.p.name.toUpperCase()} subtitle={fmtKm(rd.sr)} coord={`SA.EA..HU ${fmt3600(sel.effHu)}`}
+            render={(cs) => selId === "earth"
+              ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare />
+              : <PlanetGlobe body={sel.p} size={cs} label={false} />}
+          />
         </div>
         {/* zoom / reset — pinch or wheel to zoom, drag to pan, two-finger twist (or right-drag) to rotate */}
         <div className="absolute bottom-1 left-1 z-10 flex items-center gap-1">

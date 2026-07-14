@@ -11,8 +11,8 @@ import { MiniGlobe } from "./mini-globe";
 const SIDEREAL = 27.321661, SYNODIC = 29.530589; // days
 const shade = (hex: string, f: number) => { const n = parseInt(hex.slice(1), 16); const c = (v: number) => Math.max(0, Math.min(255, Math.round(v * f))); return `rgb(${c((n >> 16) & 255)},${c((n >> 8) & 255)},${c(n & 255)})`; };
 
-export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172, hour = 12, size = 108, color = "#ffd400" }: {
-  lat?: number; lon?: number; year?: number; doy?: number; hour?: number; size?: number; color?: string;
+export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172, hour = 12, size = 108, color = "#ffd400", bare = false }: {
+  lat?: number; lon?: number; year?: number; doy?: number; hour?: number; size?: number; color?: string; bare?: boolean;
 }) {
   const days = (year - 2000) * 365.25 + doy + hour / 24;
   const orbit = ((days / SIDEREAL) * 360) % 360;            // Moon's angular position around Earth
@@ -25,7 +25,7 @@ export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172
   const globe = size * 0.62;
 
   return (
-    <div data-earth-moon className="relative rounded-md border" style={{ width: size, height: size, borderColor: "#1e2b3a", background: "rgba(6,10,16,0.9)" }}>
+    <div data-earth-moon className={`relative rounded-md ${bare ? "" : "border"}`} style={{ width: size, height: size, borderColor: "#1e2b3a", background: bare ? "transparent" : "rgba(6,10,16,0.9)" }}>
       <span className="absolute left-1 top-0.5 z-10 text-[7px]" style={{ color: "#9aa7b8", fontFamily: "monospace" }}>☾ {(illum * 100).toFixed(0)}%</span>
       {/* Moon orbit ring + Moon (rendered under/over the Earth so it reads as orbiting) */}
       <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="pointer-events-none absolute inset-0">

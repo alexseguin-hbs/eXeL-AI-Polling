@@ -420,6 +420,31 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A27: the globe MiniPanel mimics the Security mini-map — ⠿ Drag header + R-CORE lanes + resize + reposition ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  const chrome = await pg.evaluate(() => {
+    const p = document.querySelector('[data-mini-panel]');
+    return {
+      panel: !!p,
+      drag: /⠿\s*Drag/.test(p?.textContent || ''),
+      lanes: /R-CORE/.test(p?.textContent || '') && ['COMM', 'EDGE', 'SYNC', 'LINK', 'UCRS'].every((k) => (p?.textContent || '').includes(k)),
+      resize: !!document.querySelector('[data-mini-panel-resize]'),
+      max: !!document.querySelector('[data-mini-panel-max]'),
+      globe: !!p?.querySelector('[data-mini-globe]'),
+    };
+  });
+  const grip = pg.locator('[data-mini-panel] .cursor-move').first();
+  const gb = await grip.boundingBox();
+  if (gb) { await pg.mouse.move(gb.x + gb.width / 2, gb.y + gb.height / 2); await pg.mouse.down(); await pg.mouse.move(gb.x - 120, gb.y - 90, { steps: 6 }); await pg.mouse.up(); await pg.waitForTimeout(120); }
+  const moved = await pg.evaluate(() => { const p = document.querySelector('[data-mini-panel]'); return !!p && getComputedStyle(p).position === 'fixed'; });
+  const ok = chrome.panel && chrome.drag && chrome.lanes && chrome.resize && chrome.max && chrome.globe && moved;
+  rec('#A27 globe MiniPanel — ⠿ Drag header + R-CORE lanes + resize + maximize + repositions', ok, JSON.stringify({ ...chrome, moved }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
