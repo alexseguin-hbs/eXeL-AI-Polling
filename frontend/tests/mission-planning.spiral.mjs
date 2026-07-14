@@ -146,11 +146,15 @@ const cellPxAt = async (w, h) => {
   const NAMES = ['UNITED STATES','CANADA','MEXICO','GREENLAND','GUATEMALA','HONDURAS','CUBA','NICARAGUA','PANAMA','COLOMBIA','VENEZUELA','BRAZIL','ARGENTINA','PERU','FRANCE','SPAIN','GERMANY','ALGERIA','THAILAND','VIETNAM','JAPAN','INDONESIA','AUSTRALIA'];
   const { pg, clk } = await mk(null);
   const cnt = () => pg.evaluate((names) => { const t = new Set([...document.querySelectorAll('text')].map(e => (e.textContent || '').trim())); return names.filter(k => t.has(k)).length; }, NAMES);
+  await clk('button:has-text("EARTH"):visible'); await pg.waitForTimeout(700); // world view (Alpha now defaults tactical → go to EARTH for country labels)
   await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(800);
   const c2 = await cnt();
   await clk('button:text-is("3D"):visible'); await pg.waitForTimeout(1000);
   const c3 = await cnt();
-  rec('#17 country names 2D≈3D parity', c2 >= 3 && Math.abs(c2 - c3) <= 1, `2D=${c2} 3D=${c3}`);
+  // Declutter parity: the FIXED bug was the 2D flat map filtering out MORE countries than the globe (coarser span
+  // metric). So the meaningful check is 2D ≥ 3D (within 1) — the 3D globe legitimately shows FEWER at a wide view
+  // because its far hemisphere is hidden, which is correct, not a regression.
+  rec('#17 country names 2D≥3D parity (2D not over-filtering)', c2 >= 3 && c2 >= c3 - 1, `2D=${c2} 3D=${c3}`);
   await pg.close();
 }
 
@@ -384,15 +388,12 @@ const cellPxAt = async (w, h) => {
   for (let i = 0; i < ln; i++) { try { await label.nth(i).click({ force: true, timeout: 1500 }); clicked = true; break; } catch {} }
   await pg.waitForTimeout(1800);
   const earthAfter = await mapEarth();
-  // FX-GLOBE (operator): a globe GZD-cell tap goes to a DETAILED destination framed on THAT cell — either a tactical AO
-  // (when one is in/near the cell) OR the flat detailed map with a persistent yellow "landed" cell marker (for a cell
-  // with no nearby AO, e.g. 4Q/Hawaii). NEVER a bare empty grid. (Supersedes the old strict "always tactical AO" — a far
-  // ocean cell must land on its real area, not teleport to the nearest mainland AO.)
+  // FX-GLOBE (operator): a globe GZD-cell tap ALWAYS enters the TACTICAL asset-placement map at that coordinate —
+  // predefined AO when one sits in the cell, else a custom "GRID <code>" AO (e.g. 4Q → Hawaii). Detected by leaving BOTH
+  // the globe ("MAP · EARTH" gone) AND the flat world-context svg (gone) → only the tactical AoMapPane remains.
   const flatGone = await pg.evaluate(() => !document.querySelector('svg[aria-label^="World context map"]'));
-  const aoBread = await pg.evaluate((re) => [...document.querySelectorAll('*')].some(e => e.children.length === 0 && new RegExp(re, 'i').test((e.textContent || '').trim())), AO_RE.source);
-  const landed = await pg.evaluate(() => !!document.querySelector('[data-landedcell]')); // yellow landed-cell marker on the flat map
-  const drilledAO = !earthAfter && flatGone && aoBread; // entered a tactical AO
-  rec('#29 grid drill → detailed destination (tactical AO or flat+landed cell), never bare grid (FX-GLOBE)', earthBefore && clicked && (drilledAO || landed), `earthBefore=${earthBefore} clicked=${clicked} drilledAO=${drilledAO} landed=${landed}`);
+  const tactical = !earthAfter && flatGone; // entered the tactical asset map (predefined or custom AO)
+  rec('#29 grid tap → TACTICAL asset map at that coordinate, never flat/bare grid (FX-GLOBE)', earthBefore && clicked && tactical, `earthBefore=${earthBefore} clicked=${clicked} earthAfter=${earthAfter} flatGone=${flatGone}`);
   rec('#29 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
@@ -631,6 +632,53 @@ const cellPxAt = async (w, h) => {
   const ok = [1, 0.66, 0.33].every((v) => typeof fps[v] === 'number' && fps[v] > 0);
   rec('#39 UX fidelity FPS bench — MAX/66%/33% measured (FX-54)', ok, `fps@1.0=${fps[1]} fps@0.66=${fps[0.66]} fps@0.33=${fps[0.33]} (higher@low = culling win)`);
   rec('#39 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
+// ── CORPUS #41: flat world strip → SEAMLESS tactical handoff on zoom-in past 1 GZD cell (FX-GLOBE B2) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:has-text("EARTH"):visible'); await pg.waitForTimeout(700);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(600);
+  await clk('button:has-text("GRID"):visible'); await pg.waitForTimeout(500);
+  const flatSvg = () => pg.evaluate(() => !!document.querySelector('svg[aria-label^="World context map"]'));
+  const before = await flatSvg();
+  const box = await pg.locator('svg[aria-label^="World context map"]').boundingBox();
+  if (box) { await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 2); for (let i = 0; i < 42 && (await flatSvg()); i++) { await pg.mouse.wheel(0, -320); await pg.waitForTimeout(70); } }
+  await pg.waitForTimeout(1500);
+  const after = await flatSvg();
+  // PASS = zooming in past ~1 GZD cell left the flat world strip for the tactical asset map (flat svg unmounted).
+  rec('#41 flat zoom-in past 1 GZD cell → tactical asset map (FX-GLOBE B2)', before === true && after === false, `flatBefore=${before} flatAfter=${after}`);
+  rec('#41 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
+// ── CORPUS #42: BRAVO is ONE map like Alpha — tactical-first on load (no globe pane) (FX-GLOBE) ──
+{
+  const { pg, errs } = await mk(null);
+  await pg.waitForTimeout(600);
+  // both panes default to the tactical asset map → NO wireframe-globe pane visible on load.
+  const globes = await pg.evaluate(() => document.querySelectorAll('svg[aria-label^="Wireframe globe"]').length);
+  rec('#42 Bravo one map — tactical-first, no globe pane on load (FX-GLOBE)', globes === 0, `globes=${globes}`);
+  rec('#42 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
+// ── CORPUS #43: placed assets BACK-PROPAGATE as markers onto the 2D world strip (FX-GLOBE) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(300);
+  await clk('div.cursor-grab:has-text("SENTINEL")'); await pg.waitForTimeout(250);
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  const box = await M.boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(300);
+  await clk('button:has-text("Save")'); await pg.waitForTimeout(300);
+  // go to the world strip (zoom out to the flat world) and confirm the asset echoes as a marker dot.
+  await clk('button:has-text("EARTH"):visible'); await pg.waitForTimeout(500);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(500);
+  const marks = await pg.evaluate(() => document.querySelectorAll('[data-assetmark]').length);
+  rec('#43 placed asset back-propagates as a world-strip marker (FX-GLOBE)', marks > 0, `assetMarks=${marks}`);
+  rec('#43 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
 
