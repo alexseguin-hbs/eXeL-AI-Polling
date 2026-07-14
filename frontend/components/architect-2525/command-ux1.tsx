@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, X, Gauge, LayoutDashboard, PencilRuler, Hammer, Boxes,
-  Users, Building2, MoreHorizontal, Search, Play, Bell,
+  Users, Building2, MoreHorizontal, Search, Play, Bell, ChevronDown,
 } from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { FpsMeter } from "@/components/security-2525/fps-meter";
@@ -89,6 +89,28 @@ function NumField({ label, value, onChange, step = 1 }: { label: string; value: 
         className="w-24 rounded border bg-transparent px-2 py-0.5 text-right tabular-nums"
         style={{ borderColor: C.border, color: C.text }} />
     </label>
+  );
+}
+
+// Reusable collapsible section (flush = just a toggle header + children, no outer box) with per-section
+// persisted open state (arch2525.exp.<id>). Collapsed by default → Overview opens as a clean Mission Command.
+// Lazy: children unmount when collapsed. (2525-core candidate — the "start minimized, expand on demand" law.)
+function Expander({ id, title, sub, defaultOpen = false, children }: { id: string; title: string; sub?: string; defaultOpen?: boolean; children: React.ReactNode }) {
+  const key = `arch2525.exp.${id}`;
+  const [open, setOpen] = useState(() => { try { const v = localStorage.getItem(key); return v === null ? defaultOpen : v === "1"; } catch { return defaultOpen; } });
+  useEffect(() => { try { localStorage.setItem(key, open ? "1" : "0"); } catch {} }, [key, open]);
+  return (
+    <div data-arch-exp={id}>
+      <button onClick={() => setOpen((o) => !o)} aria-expanded={open}
+        className="flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left transition-colors hover:bg-white/5"
+        style={{ borderColor: C.border, background: C.panel }}>
+        <span className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>
+          {title}{sub && <span className="ml-2 font-normal" style={{ color: C.dim }}>· {sub}</span>}
+        </span>
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 transition-transform" style={{ color: C.dim, transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
+      {open && <div className="mt-2">{children}</div>}
+    </div>
   );
 }
 
@@ -249,10 +271,14 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                 <Tile key={p} label={p} value="—" sub="pending" color={C.dim} />
               ))}
             </div>
-            <div className="rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel, color: C.dim }}>
-              <span style={{ color: C.violet }}>Knowledge Graph</span> — every project improves the next. Foundation → Concrete → Climate → Drainage → Best Practices → Future Recommendations. <span style={{ color: C.dim }}>(wiring pending)</span>
-            </div>
-            <ArchitectSoI econ={econ} />
+            <Expander id="kg" title="Knowledge Graph" sub="every project improves the next">
+              <div className="rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel, color: C.dim }}>
+                Foundation → Concrete → Climate → Drainage → Best Practices → Future Recommendations. <span style={{ color: C.dim }}>(wiring pending)</span>
+              </div>
+            </Expander>
+            <Expander id="soi" title="System of Intelligence · Tri-Coin" sub="incentive framework — tap to expand">
+              <ArchitectSoI econ={econ} />
+            </Expander>
           </div>
         ) : activeTab === "Build" && sub("Build") === "Cost·Time" ? (
           <div className="grid gap-3 lg:grid-cols-2">

@@ -179,9 +179,18 @@ const mk = async (vp) => {
   await pg.close();
 }
 
-// ── #A13: OVERVIEW embeds the SoI Tri-Coin incentive framework (♡ SI · 웃 HI · ◬ AI) + NOSE ──
+// ── #A16: Overview opens CLEAN — SoI collapsed by default (Sprint 2), expander present ──
 {
   const { pg } = await mk();
+  const st = await pg.evaluate(() => ({ exp: !!document.querySelector('[data-arch-exp="soi"]'), collapsed: !document.querySelector('[data-soi]') }));
+  rec('#A16 Overview clean — SoI collapsed by default + expander present', st.exp && st.collapsed, JSON.stringify(st));
+  await pg.close();
+}
+
+// ── #A13: OVERVIEW embeds the SoI Tri-Coin incentive framework (♡ SI · 웃 HI · ◬ AI) + NOSE (expand first) ──
+{
+  const { pg, clk } = await mk();
+  await clk('[data-arch-exp="soi"] button'); await pg.waitForTimeout(200); // expand the collapsed SoI
   const soi = await pg.evaluate(() => {
     const s = document.querySelector('[data-soi]');
     if (!s) return { has: false };
