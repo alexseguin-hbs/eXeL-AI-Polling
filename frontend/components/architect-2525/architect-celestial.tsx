@@ -97,16 +97,20 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
 
   // Layout: each orbit is an ellipse in its plane (semi-major ax, focus offset ax·e), foreshortened vertically
   // by sin(elevation). Planet at true anomaly ν(HU); depth = sin(ν) (front > 0, back < 0).
+  // Reference index = the SELECTED planet: selecting a planet places IT at perihelion (HU 0 / 12 o'clock)
+  // and rotates every other planet to its relative position. (Default selection Earth → Earth at perihelion.)
+  const selIdx = Math.max(0, PLANETS.findIndex((p) => p.id === selId));
+  const select = (id: string) => { setSelId(id); setHu(0); }; // land the newly-selected planet at its perihelion
   const laid = useMemo(() => PLANETS.map((p, i) => {
     const ax = scaleMode === "true" ? axTrue(p.aAU) : axSchematic(i);
     const ry = ax * bOverA(p.e) * sinE;             // foreshortened minor axis (the tilt)
     const cx = SUN_X - ax * p.e;                     // Sun sits at the right focus
-    const effHu = ((hu + (i - 2) * 400) % 3600 + 3600) % 3600; // Earth (index 2) STARTS at perihelion (HU 0)
+    const effHu = ((hu + (i - selIdx) * 400) % 3600 + 3600) % 3600; // selected planet at HU 0 (perihelion), others relative
     const nu = huToNu(effHu) * DEG;
     const x = cx + ax * Math.cos(nu), y = SUN_Y + ry * Math.sin(nu);
     const depth = Math.sin(nu);                       // +front / −back
     return { p, i, ax, ry, cx, effHu, x, y, depth };
-  }), [hu, sinE, scaleMode]);
+  }), [hu, sinE, scaleMode, selIdx]);
 
   const sel = laid.find((l) => l.p.id === selId) || laid[2];
   const rd = ucrsAt(sel.p, sel.effHu);
@@ -154,7 +158,7 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
                 <ellipse data-orbit cx={cx0} cy={cyo} rx={rx} ry={A} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.55" />
                 <circle cx={cx0} cy={56 - A * (1 - p.e)} r="0.7" fill={p.color} />{/* perihelion — top */}
                 <circle cx={cx0} cy={56 + A * (1 + p.e)} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* aphelion — bottom */}
-                <g data-planet data-planet-id={p.id} onClick={() => setSelId(p.id)} style={{ cursor: "pointer" }}>
+                <g data-planet data-planet-id={p.id} onClick={() => select(p.id)} style={{ cursor: "pointer" }}>
                   <circle cx={x} cy={y} r={Math.max(4, p.dot + 2.5)} fill="transparent" />
                   {on && <circle cx={x} cy={y} r={p.dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
                   <circle cx={x} cy={y} r={p.dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
@@ -197,7 +201,7 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
             const dscale = 0.82 + 0.34 * ((depth + 1) / 2);   // front bigger, back smaller
             const r = p.dot * dscale, op = 0.6 + 0.4 * ((depth + 1) / 2);
             return (
-              <g key={p.id} data-planet data-planet-id={p.id} onClick={() => setSelId(p.id)} style={{ cursor: "pointer" }} opacity={op}>
+              <g key={p.id} data-planet data-planet-id={p.id} onClick={() => select(p.id)} style={{ cursor: "pointer" }} opacity={op}>
                 <circle cx={x} cy={y} r={Math.max(4, r + 2.5)} fill="transparent" />
                 {on && <circle cx={x} cy={y} r={r + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
                 <circle cx={x} cy={y} r={r} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
