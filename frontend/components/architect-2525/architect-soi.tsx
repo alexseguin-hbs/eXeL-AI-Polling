@@ -14,7 +14,8 @@ import { fmtUsd } from "./architect-economy";
 import { loadSoI, saveSoI, publishSoI, subscribeSoI, type SoiFramework } from "@/lib/soi-framework";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e", red: "#ef4444" };
-const COIN_C: Record<string, string> = { SI: C.red, HI: C.green, AI: C.cyan };
+// SoI Tri-Coin colours (operator spec): ♡ heart / S.I. = sunset yellow · ◬ / A.I. = eXeL AI cyan · 웃 human / H.I. = 13-Trinity violet
+const COIN_C: Record<string, string> = { SI: C.gold, HI: C.violet, AI: C.cyan };
 
 export function ArchitectSoI({ econ }: { econ: EconomyResult }) {
   const [soi, setSoi] = useState<SoiFramework>(() => loadSoI());
@@ -78,8 +79,8 @@ export function ArchitectSoI({ econ }: { econ: EconomyResult }) {
         {/* contribution reputation (live) */}
         <div className="space-y-1 rounded-lg border p-2" style={{ borderColor: C.border, background: "#0c1420" }}>
           <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>CONTRIBUTION REPUTATION <span style={{ color: C.dim }}>· portable identity of service</span></div>
-          <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.red }}>♡</span><span style={{ color: C.dim }}>presence — how you show up ({econ.trinity.heart})</span></div>
-          <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.green }}>웃</span><span style={{ color: C.dim }}>skill — professional value ({fmtUsd(econ.trinity.human)})</span></div>
+          <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.gold }}>♡</span><span style={{ color: C.dim }}>presence — how you show up ({econ.trinity.heart})</span></div>
+          <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.violet }}>웃</span><span style={{ color: C.dim }}>skill — professional value ({fmtUsd(econ.trinity.human)})</span></div>
           <div className="flex items-baseline gap-2 text-[9px]"><span className="w-4" style={{ color: C.cyan }}>◬</span><span style={{ color: C.dim }}>scalability — leverage created ({econ.trinity.unity})</span></div>
           <div className="border-t pt-1 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>Time Capital <span style={{ color: C.gold }}>{fmtUsd(econ.timeCapitalUsd)}</span> · Learning pts <span style={{ color: C.violet }}>{econ.learningPoints}</span>.</div>
         </div>
