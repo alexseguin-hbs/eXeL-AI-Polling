@@ -596,6 +596,22 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A36: zoom works in BOTH standard + clock (top-down) views; Earth·Moon mini view has a distant backdrop ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  const svg = pg.locator('[data-arch-celestial]');
+  const zoomIn = async () => { const box = await svg.boundingBox(); if (box) { await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await pg.mouse.wheel(0, -240); await pg.waitForTimeout(120); } return pg.evaluate(() => +(document.querySelector('[data-cel-zoom]')?.textContent?.replace('×', '') || 1)); };
+  const zStd = await zoomIn();                                   // standard view
+  await pg.locator('[data-cel-reset]').click().catch(() => {}); await pg.waitForTimeout(100);
+  await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(200); // top-down
+  const zTop = await zoomIn();                                   // clock/top-down view
+  const backdrop = await pg.evaluate(() => !!document.querySelector('[data-earth-moon] [data-em-backdrop]'));
+  rec('#A36 zoom works in standard + clock views + Earth·Moon distant backdrop', zStd > 1 && zTop > 1 && backdrop, `zStd=${zStd} zTop=${zTop} backdrop=${backdrop}`);
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
