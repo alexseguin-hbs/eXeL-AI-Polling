@@ -255,6 +255,10 @@ azimuth-elevation across the year and renders a sky dome with sun path, moon pat
 **Polaris + Orion**). Each opening (ARC-03) is scored for **view + seasonal daylight** → a **window-placement optimizer**
 (SSSES-scored, determinism-hashed). Handles hemisphere flips + extreme-latitude edge cases (Enki's list).
 
+> **Detailed sub-spec (change-controlled):** [`CELESTIAL_SKY_SPEC.md`](./CELESTIAL_SKY_SPEC.md) — the authoritative
+> contract for the Sky Dome + Solar-System (UCRS) views, coordinate systems, star/zodiac realism model, control
+> inventory + Homeowner/Advanced tiering, and the CHANGE CONTROL clause. Any celestial/sky change edits that spec first.
+
 ### 12c · Open Sharing, Universal Comments & Homeowner Consolidation (ARC-25→27)
 A **public/tokenized share link** lets anyone view, walk, and comment. Comments become **candidate deltas**; once shared,
 the **homeowner consolidates** them through the eXeL polling engine (Cubes 1–9, 33-iteration theme clustering) — collective
