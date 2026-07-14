@@ -22,6 +22,7 @@ import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
 import { ArchitectDesign, type DesignMetrics } from "./architect-design";
+import { ArchitectBuild } from "./architect-build";
 
 // Self-contained theme (Architect = violet Trinity accent; mirrors Security's inline C object).
 const C = {
@@ -240,6 +241,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               </div>
             </div>
           </div>
+        ) : activeTab === "BUILD" ? (
+          <ArchitectBuild />
         ) : (
           <div className="flex min-h-[55vh] flex-col items-center justify-center gap-2 text-center">
             <span className="text-sm font-semibold tracking-wide" style={{ color: C.violet }}>{activeTab}</span>

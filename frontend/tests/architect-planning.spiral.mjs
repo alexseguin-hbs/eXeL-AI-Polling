@@ -95,6 +95,19 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A7: BUILD 4D scrubber reveals elements by day (electrical "wire from power" after day 12) ──
+{
+  const { pg, clk } = await mk();
+  await clk('button:has-text("BUILD")'); await pg.waitForTimeout(200);
+  const hasBuild = await pg.evaluate(() => !!document.querySelector('[data-arch-build]') && (document.querySelector('[data-arch-tab="BUILD"]')?.textContent || '').includes('TRADE COORDINATION'));
+  const elecEarly = await pg.evaluate(() => !!document.querySelector('[data-el="electrical"]')); // day 1 → not yet
+  await pg.evaluate(() => { const r = document.querySelector('[data-arch-tab="BUILD"] input[type=range]'); if (r) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(r, '20'); r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); } });
+  await pg.waitForTimeout(150);
+  const elecLate = await pg.evaluate(() => !!document.querySelector('[data-el="electrical"]')); // day 20 → wire from power present
+  rec('#A7 BUILD 4D scrubber reveals electrical run by day', hasBuild && !elecEarly && elecLate, `build=${hasBuild} early=${elecEarly} late=${elecLate}`);
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
