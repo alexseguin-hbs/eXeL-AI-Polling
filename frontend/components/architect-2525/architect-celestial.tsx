@@ -15,11 +15,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Maximize2, Minimize2, Play, Pause } from "lucide-react";
 import {
   PLANETS, ucrsAt, huToNu, axTrue, bOverA, fmt3600, FULL_ORBIT, planetDotRadius,
-  fmtSr, fmtKm, ltuToDays, SR_UNIT_CYCLE, type SrUnit,
+  fmtSr, fmtKm, ltuToDays, SR_UNIT_CYCLE, SATURN_RING_TEX, type SrUnit,
 } from "@/lib/ucrs-2525";
-import { PlanetGlobe } from "./planet-globe";
 import { EarthMoonBox } from "./earth-moon-box";
 import { MiniPanel } from "./mini-panel";
+import { TexturedGlobe } from "./textured-globe";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
@@ -204,7 +204,7 @@ export function ArchitectCelestial({
           <MiniPanel title={selId === "earth" ? "EARTH · MOON" : sel.p.name.toUpperCase()} subtitle={fmtKm(rd.sr)} coord={`SA.EA..HU ${fmt3600(sel.effHu)}`}
             render={(cs) => selId === "earth"
               ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare />
-              : <PlanetGlobe body={sel.p} size={cs} label={false} />}
+              : <TexturedGlobe src={sel.p.tex} size={cs} ring={sel.p.rings ? SATURN_RING_TEX : null} />}
           />
         </div>
         {/* zoom / reset — pinch or wheel to zoom, drag to pan, two-finger twist (or right-drag) to rotate */}

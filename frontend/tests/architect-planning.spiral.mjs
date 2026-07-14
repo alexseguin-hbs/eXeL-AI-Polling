@@ -357,8 +357,8 @@ const mk = async (vp) => {
   await pg.locator('[data-sr-unit]').click(); await pg.waitForTimeout(80);
   const sr1 = await pg.evaluate(() => document.querySelector('[data-sr-unit]')?.textContent || '');
   const srUnitOk = !!sr0 && sr0 !== sr1 && /km/.test(await pg.evaluate(() => document.querySelector('[data-ucrs-readout]')?.textContent || ''));
-  await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(150);
-  const merc = await pg.evaluate(() => !!document.querySelector('[data-planet-globe][data-body="Mercury"]') && !document.querySelector('[data-earth-moon]')); // Mercury → draggable 3D planet globe
+  await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(300);
+  const merc = await pg.evaluate(() => !!document.querySelector('[data-textured-globe]') && !document.querySelector('[data-earth-moon]')); // Mercury → real-textured 3D globe
   const readT = () => pg.evaluate(() => (document.querySelector('[data-arch-tab="Design"]')?.textContent || '').match(/(\d+\.\d)h\b/)?.[1] || null);
   const t0 = await readT();
   await pg.locator('[data-cel-play]').click(); await pg.waitForTimeout(600); await pg.locator('[data-cel-play]').click();
@@ -442,6 +442,22 @@ const mk = async (vp) => {
   const moved = await pg.evaluate(() => { const p = document.querySelector('[data-mini-panel]'); return !!p && getComputedStyle(p).position === 'fixed'; });
   const ok = chrome.panel && chrome.drag && chrome.lanes && chrome.resize && chrome.max && chrome.globe && moved;
   rec('#A27 globe MiniPanel — ⠿ Drag header + R-CORE lanes + resize + maximize + repositions', ok, JSON.stringify({ ...chrome, moved }));
+  await pg.close();
+}
+
+// ── #A29: the Moon is real-textured and orbits Earth at its ASTRONOMICALLY ACCURATE position — moving the
+//     date shifts the Moon's orbital position AND its illuminated phase (2025-01-13 full ≈ 99% → 01-21 ≈ waning). ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  const has = await pg.evaluate(() => !!document.querySelector('[data-earth-moon] [data-moon-body] [data-textured-globe]'));
+  const posOf = () => pg.evaluate(() => document.querySelector('[data-moon-body]')?.getAttribute('style') || '');
+  const illumOf = () => pg.evaluate(() => (document.querySelector('[data-earth-moon]')?.textContent || '').match(/☾\s*(\d+)%/)?.[1] || '');
+  const setDate = (d) => pg.evaluate((dd) => { const inp = document.querySelector('[data-cel-date]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, dd); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); }, d);
+  await setDate('2025-01-13'); await pg.waitForTimeout(400); const p1 = await posOf(), i1 = await illumOf();
+  await setDate('2025-01-21'); await pg.waitForTimeout(400); const p2 = await posOf(), i2 = await illumOf();
+  rec('#A29 Moon accurate orbit — real-textured Moon moves + phase changes with date', has && p1 !== p2 && !!i1 && i1 !== i2, `has=${has} moved=${p1 !== p2} i1=${i1} i2=${i2}`);
   await pg.close();
 }
 

@@ -10,6 +10,7 @@
  */
 import { useEffect, useState } from "react";
 import { ArchitectCelestial } from "./architect-celestial";
+import { moonState } from "@/lib/astro-moon";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const RAD = Math.PI / 180;
@@ -33,29 +34,18 @@ function eclToRaDec(lonDeg: number, latDeg: number) {
   const dec = Math.asin(Math.sin(b) * Math.cos(e) + Math.cos(b) * Math.sin(e) * Math.sin(l)) / RAD;
   return { ra, dec };
 }
-// Deterministic low-precision MOON position (alt-az) + illuminated fraction, sharing the sun's solar-time
-// convention so the sky is self-consistent. Approximate (main periodic terms only) — labeled as such in UI.
+// Deterministic MOON alt-az, reusing the shared lunar model (lib/astro-moon) so the dome + the Earth+Moon
+// mini view + the celestial map all agree. Converts the shared ecliptic position to horizon coords here.
 function moonSky(lat: number, dayOfYear: number, hour: number, year = 2025) {
-  const d = (year - 2000) * 365.25 + dayOfYear + hour / 24 - 1.5; // days since J2000 (approx)
-  const Ms = 357.529 + 0.98560028 * d;                 // sun mean anomaly
-  const Ls = 280.459 + 0.98564736 * d;                 // sun mean longitude
-  const lamSun = Ls + 1.915 * Math.sin(Ms * RAD) + 0.020 * Math.sin(2 * Ms * RAD);
-  const Lm = 218.316 + 13.176396 * d;                  // moon mean longitude
-  const Mm = 134.963 + 13.064993 * d;                  // moon mean anomaly
-  const Fm = 93.272 + 13.229350 * d;                   // moon argument of latitude
-  const lamMoon = Lm + 6.289 * Math.sin(Mm * RAD);     // ecliptic longitude
-  const betMoon = 5.128 * Math.sin(Fm * RAD);          // ecliptic latitude
-  const sun = eclToRaDec(lamSun, 0), moon = eclToRaDec(lamMoon, betMoon);
+  const ms = moonState(year, dayOfYear, hour);
+  const sun = eclToRaDec(ms.eclLonSun, 0), moon = eclToRaDec(ms.eclLonMoon, ms.eclLatMoon);
   const Hs = 15 * (hour - 12);                          // sun hour angle (solar time)
   let Hm = Hs - (moon.ra - sun.ra);                     // moon hour angle (shared LST)
   Hm = ((Hm + 180) % 360 + 360) % 360 - 180;
   const decR = moon.dec * RAD, latR = lat * RAD, HmR = Hm * RAD;
   const el = Math.asin(Math.max(-1, Math.min(1, Math.sin(decR) * Math.sin(latR) + Math.cos(decR) * Math.cos(latR) * Math.cos(HmR)))) / RAD;
   const az = (Math.atan2(-Math.cos(decR) * Math.sin(HmR), Math.sin(decR) * Math.cos(latR) - Math.cos(decR) * Math.sin(latR) * Math.cos(HmR)) / RAD + 360) % 360;
-  const elong = ((lamMoon - lamSun) % 360 + 360) % 360; // elongation → phase
-  const illum = (1 - Math.cos(elong * RAD)) / 2;        // fraction illuminated
-  const phase = elong < 22.5 || elong >= 337.5 ? "New" : elong < 67.5 ? "Waxing crescent" : elong < 112.5 ? "First quarter" : elong < 157.5 ? "Waxing gibbous" : elong < 202.5 ? "Full" : elong < 247.5 ? "Waning gibbous" : elong < 292.5 ? "Last quarter" : "Waning crescent";
-  return { az, el, illum, phase };
+  return { az, el, illum: ms.illum, phase: ms.phase };
 }
 
 // Sky-dome projection: zenith at centre, horizon at radius R. az 0=N (top), clockwise.
