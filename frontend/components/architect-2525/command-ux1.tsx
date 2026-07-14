@@ -12,8 +12,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, X, Gauge, LayoutDashboard, PencilRuler, Hammer, Sun, Boxes,
-  DollarSign, RefreshCw, Share2, Users, ShieldCheck, Copy, History,
+  ArrowLeft, X, Gauge, LayoutDashboard, PencilRuler, Hammer, Boxes,
+  Users, Building2, MoreHorizontal, Search, Play, Bell,
 } from "lucide-react";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { FpsMeter } from "@/components/security-2525/fps-meter";
@@ -40,21 +40,35 @@ const BUILD_DATE = process.env.NEXT_PUBLIC_BUILD_DATE;
 const BUILD_TIME = process.env.NEXT_PUBLIC_BUILD_TIME?.replace(":", ".").replace(" ", "");
 const EXEL_VERSION = BUILD_DATE && BUILD_TIME ? `v0.001-${BUILD_DATE}-${BUILD_TIME}` : "v0.001-dev";
 
-// The 12 Architect-2525 tabs (MASTER_SPEC §5). Label · icon.
+// Vision 2525 UI Standard v3.0 — 7 permanent tabs (Replay is universal, not a tab). Label · icon.
 const NAV: [string, React.ComponentType<{ className?: string }>][] = [
-  ["OVERVIEW", LayoutDashboard],
-  ["DESIGN", PencilRuler],
-  ["BUILD", Hammer],
-  ["SUN·SKY", Sun],
-  ["SIMULATE", Boxes],
-  ["COST·TIME", DollarSign],
-  ["ITERATE", RefreshCw],
-  ["SHARE", Share2],
-  ["REVIEW", Users],
-  ["QUALIFY", ShieldCheck],
-  ["TWIN", Copy],
-  ["REPLAY", History],
+  ["Overview", LayoutDashboard],
+  ["Design", PencilRuler],
+  ["Simulate", Boxes],
+  ["Review", Users],
+  ["Build", Hammer],
+  ["Lifecycle", Building2],
+  ["More", MoreHorizontal],
 ];
+// Inner (secondary) tabs per primary tab — where the former 12 panels now live.
+const SUBNAV: Record<string, string[]> = {
+  Design: ["Model", "Site", "Compare"],
+  Review: ["Reviews", "Qualification", "Contributions"],
+  Build: ["Build 4D", "Cost·Time"],
+  Lifecycle: ["Twin", "Replay"],
+};
+// Route/deep-link aliases: old tab name → [primary, subtab?] so nothing 404s.
+const TAB_ALIAS: Record<string, [string, string?]> = {
+  OVERVIEW: ["Overview"], DESIGN: ["Design", "Model"], "SUN·SKY": ["Design", "Site"],
+  ITERATE: ["Design", "Compare"], SIMULATE: ["Simulate"], REVIEW: ["Review", "Reviews"],
+  QUALIFY: ["Review", "Qualification"], SHARE: ["Review", "Contributions"],
+  BUILD: ["Build", "Build 4D"], "COST·TIME": ["Build", "Cost·Time"],
+  TWIN: ["Lifecycle", "Twin"], REPLAY: ["Lifecycle", "Replay"], MORE: ["More"],
+};
+const resolveTab = (init: string): [string, string | undefined] => {
+  if (NAV.some((n) => n[0] === init)) return [init, undefined];
+  const a = TAB_ALIAS[init]; return a ? [a[0], a[1]] : ["Overview", undefined];
+};
 
 function Tile({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
   return (
@@ -82,7 +96,11 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const { setVisionView, exitSimulationMode, simulationMode } = useEasterEgg();
   const router = useRouter();
   const directLink = !simulationMode;
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [initTab, initSub] = resolveTab(initialTab);
+  const [activeTab, setActiveTab] = useState(initTab);
+  const [subTab, setSubTab] = useState<Record<string, string>>(initSub ? { [initTab]: initSub } : {});
+  const sub = (tab: string) => subTab[tab] ?? SUBNAV[tab]?.[0] ?? "";
+  const setSub = (tab: string, s: string) => setSubTab((m) => ({ ...m, [tab]: s }));
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFps, setShowFps] = useState(() => { try { return localStorage.getItem("arch2525.fps") === "1"; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem("arch2525.fps", showFps ? "1" : "0"); } catch {} }, [showFps]);
@@ -117,8 +135,17 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             <ExelWordmark exelStyle={{ color: C.cyan }} aiClass="font-light" aiStyle={{ color: C.dim }} />
           </div>
           <div className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto">
-            <span className="shrink-0 whitespace-nowrap text-[10px] tracking-widest" style={{ color: C.violet }}>ARCHITECT · VISION 2525</span>
-            <span className="shrink-0 whitespace-nowrap text-[9px]" style={{ color: C.dim }}>Innovation at the Speed of Thought</span>
+            <span className="shrink-0 whitespace-nowrap text-[11px] font-bold tracking-widest" style={{ color: C.violet }}>Architect-2525</span>
+            <span className="shrink-0 whitespace-nowrap text-[9px]" style={{ color: C.dim }}>Building Lifecycle Coordination · Vision 2525</span>
+            {/* persistent header: global search + replay controls (universal) + notifications */}
+            <div className="ml-auto flex shrink-0 items-center gap-1">
+              <button title="Search (⌘K)" className="rounded p-1 hover:bg-white/5"><Search className="h-3.5 w-3.5" style={{ color: C.dim }} /></button>
+              <div className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title="Replay (universal)">
+                <Play className="h-3 w-3" style={{ color: C.cyan }} />
+                <span className="text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>REPLAY</span>
+              </div>
+              <button title="Notifications" className="rounded p-1 hover:bg-white/5"><Bell className="h-3.5 w-3.5" style={{ color: C.dim }} /></button>
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <span className="whitespace-nowrap text-[10px]" style={{ color: C.green }}>LINK: SECURE</span>
@@ -160,10 +187,30 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               className="flex shrink-0 items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold tracking-wide transition-colors"
               style={{ background: tab === activeTab ? "#221833" : "transparent", color: tab === activeTab ? C.violet : C.dim }}>
               <Icon className="h-3.5 w-3.5" />
-              {tab}
+              {tab === "More" ? "••• More" : tab}
             </button>
           ))}
         </div>
+        {/* PROJECT RIBBON — always visible below the nav (v3.0) */}
+        <div data-arch-ribbon className="flex items-center gap-x-4 gap-y-0.5 overflow-x-auto border-b px-4 py-1 text-[9px] whitespace-nowrap" style={{ borderColor: C.border }}>
+          <span style={{ color: C.dim }}>PROJECT <span style={{ color: C.text }}>V2525-000842</span></span>
+          <span style={{ color: C.dim }}>Stage Gate <span style={{ color: C.gold }}>G6</span></span>
+          <span style={{ color: C.dim }}>Iteration <span style={{ color: C.cyan }}>{iteration} / 33</span></span>
+          <span style={{ color: C.dim }}>SSSES <span style={{ color: C.green }}>—</span></span>
+          <span style={{ color: C.dim }}>SPIRAL <span style={{ color: C.green }}>green</span></span>
+          <span style={{ color: C.dim }}>R-CORE <span style={{ color: C.cyan }}>SYNC</span></span>
+          <span style={{ color: C.dim }}>Human Authority <span style={{ color: C.violet }}>Homeowner</span></span>
+          <span style={{ color: C.dim }}>Replay <span style={{ color: C.green }}>ready</span></span>
+        </div>
+        {/* SUBNAV — inner (secondary) tabs for the active primary tab */}
+        {SUBNAV[activeTab] && (
+          <div data-arch-subnav className="flex gap-1 overflow-x-auto border-b px-4 py-1" style={{ borderColor: C.border }}>
+            {SUBNAV[activeTab].map((s) => (
+              <button key={s} onClick={() => setSub(activeTab, s)} className="shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold transition-colors"
+                style={{ background: sub(activeTab) === s ? "#221833" : "transparent", color: sub(activeTab) === s ? C.violet : C.dim }}>{s}</button>
+            ))}
+          </div>
+        )}
         {/* R-CORE badge strip (reused contract) */}
         <div className="flex items-center gap-2 border-b px-4 py-0.5 text-[8px] font-bold tracking-wider" style={{ borderColor: C.border }}>
           <span style={{ color: C.dim }}>R-CORE</span>
@@ -173,14 +220,14 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         </div>
       </div>
 
-      {/* TAB CONTENT — DESIGN kept mounted (model survives tab switches); OVERVIEW + COST·TIME live; others pending. */}
+      {/* TAB CONTENT — Design→Model kept mounted (model survives tab/subtab switches). */}
       <div className="p-4">
-        <div data-arch-tab={activeTab === "DESIGN" ? "DESIGN" : undefined} style={activeTab === "DESIGN" ? undefined : { display: "none" }}>
+        <div data-arch-tab={activeTab === "Design" && sub("Design") === "Model" ? "Design" : undefined} style={activeTab === "Design" && sub("Design") === "Model" ? undefined : { display: "none" }}>
           <ArchitectDesign onMetrics={setDesignMetrics} />
         </div>
-        {activeTab !== "DESIGN" && (
+        {!(activeTab === "Design" && sub("Design") === "Model") && (
         <div data-arch-tab={activeTab}>
-        {activeTab === "OVERVIEW" ? (
+        {activeTab === "Overview" ? (
           <div className="space-y-3">
             <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>
               OBSERVABILITY · PROJECT HEALTH <span style={{ color: C.dim }}>· V2525-000842 · Custom Residence</span>
@@ -207,7 +254,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             </div>
             <ArchitectSoI econ={econ} />
           </div>
-        ) : activeTab === "COST·TIME" ? (
+        ) : activeTab === "Build" && sub("Build") === "Cost·Time" ? (
           <div className="grid gap-3 lg:grid-cols-2">
             <div className="space-y-2 rounded-lg border p-3" style={{ borderColor: C.border, background: C.panel }}>
               <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>$/min ECONOMY · INPUTS</div>
@@ -246,27 +293,49 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               </div>
             </div>
           </div>
-        ) : activeTab === "BUILD" ? (
+        ) : activeTab === "Build" && sub("Build") === "Build 4D" ? (
           <ArchitectBuild />
-        ) : activeTab === "SUN·SKY" ? (
+        ) : activeTab === "Design" && sub("Design") === "Site" ? (
           <ArchitectSkySun />
-        ) : activeTab === "ITERATE" ? (
+        ) : activeTab === "Design" && sub("Design") === "Compare" ? (
           <IteratePanel />
-        ) : activeTab === "SHARE" ? (
+        ) : activeTab === "Review" && sub("Review") === "Contributions" ? (
           <SharePanel />
-        ) : activeTab === "QUALIFY" ? (
+        ) : activeTab === "Review" && sub("Review") === "Qualification" ? (
           <QualifyPanel />
-        ) : activeTab === "SIMULATE" ? (
+        ) : activeTab === "Simulate" ? (
           <SimulatePanel />
-        ) : activeTab === "REVIEW" ? (
+        ) : activeTab === "Review" ? (
           <ReviewPanel />
-        ) : activeTab === "TWIN" ? (
-          <TwinPanel />
-        ) : activeTab === "REPLAY" ? (
+        ) : activeTab === "Lifecycle" && sub("Lifecycle") === "Replay" ? (
           <ReplayPanel />
+        ) : activeTab === "Lifecycle" ? (
+          <TwinPanel />
+        ) : activeTab === "More" ? (
+          <div className="space-y-3">
+            <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>••• MORE · ADVANCED CAPABILITIES</div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                ["Coordination", "Participants · Tasks · Votes · Risks"],
+                ["Governance", "SSSES · SPIRAL · R-CORE · Human Authority"],
+                ["Intelligence", "AI Agents · Knowledge Graph · Patterns"],
+                ["Economy", "MoT · Time Capital · Trinity · Reputation"],
+                ["Data", "IFC · DWG · GIS · Import · Export"],
+                ["Administration", "Settings · Team · Permissions · Audit"],
+                ["Tools", "Clash · Compare · Snapshot · A11y"],
+                ["Help", "Docs · Tutorials · Glossary · Tour"],
+              ].map(([g, items]) => (
+                <div key={g} data-more-group className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
+                  <div className="text-[10px] font-bold" style={{ color: C.cyan }}>{g}</div>
+                  <div className="mt-1 text-[9px]" style={{ color: C.dim }}>{items}</div>
+                </div>
+              ))}
+            </div>
+            <div className="text-[9px]" style={{ color: C.dim }}>Reuses the Security-2525 "•••" expansion method · content wiring per Sprint 2+.</div>
+          </div>
         ) : (
           <div className="flex min-h-[55vh] flex-col items-center justify-center gap-2 text-center">
-            <span className="text-sm font-semibold tracking-wide" style={{ color: C.violet }}>{activeTab}</span>
+            <span className="text-sm font-semibold tracking-wide" style={{ color: C.violet }}>{activeTab}{SUBNAV[activeTab] ? ` · ${sub(activeTab)}` : ""}</span>
             <span className="text-xs" style={{ color: C.dim }}>Architect-2525 · wiring pending</span>
             <span className="max-w-md text-[11px]" style={{ color: C.dim }}>See docs/architecture-2525/MASTER_SPEC.md.</span>
           </div>

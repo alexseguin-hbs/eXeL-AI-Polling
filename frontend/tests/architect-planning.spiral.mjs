@@ -1,4 +1,4 @@
-// Architect-2525 SPIRAL gate — forward corpus for the /main/Architect-2525 command shell.
+// Architect-2525 SPIRAL gate — forward corpus for /main/Architect-2525 (Vision 2525 UI Standard v3.0, 7 tabs).
 // Run: cd frontend && npm run dev ; node tests/architect-planning.spiral.mjs
 // Backward safety = the Security-2525 corpus (npm run e2e:spiral) must stay green (shared shell/engines untouched).
 import { chromium } from 'playwright';
@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 const EXE = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const URL = 'http://localhost:3000/main/Architect-2525/';
 const ALLOW = /404|does not match|did not match|hydrat|server-rendered|Prop .* did not match/i;
-const TABS = ['OVERVIEW', 'DESIGN', 'BUILD', 'SUN·SKY', 'SIMULATE', 'COST·TIME', 'ITERATE', 'SHARE', 'REVIEW', 'QUALIFY', 'TWIN', 'REPLAY'];
+const TABS = ['Overview', 'Design', 'Simulate', 'Review', 'Build', 'Lifecycle', 'More']; // v3.0 seven-tab spine
 
 const results = [];
 const rec = (name, pass, detail = '') => { results.push({ name, pass, detail }); };
@@ -18,31 +18,34 @@ const mk = async (vp) => {
   pg.on('pageerror', e => { if (!ALLOW.test(e.message)) errs.push('PE:' + e.message.slice(0, 90)); });
   pg.on('console', m => { if (m.type() === 'error' && !ALLOW.test(m.text())) errs.push(m.text().slice(0, 90)); });
   const clk = async (sel) => { const l = pg.locator(sel); const n = await l.count(); for (let i = 0; i < n; i++) { const el = l.nth(i); let v = false; try { v = await el.isVisible(); } catch {} if (!v) continue; try { await el.click({ timeout: 2500 }); return true; } catch {} } return false; };
+  const tab = async (t) => { await clk(`button:has-text("${t}")`); await pg.waitForTimeout(160); };
+  const subtab = async (s) => { await clk(`[data-arch-subnav] button:has-text("${s}")`); await pg.waitForTimeout(160); };
   await pg.goto(URL, { waitUntil: 'domcontentloaded', timeout: 90000 });
   await pg.waitForTimeout(1800);
-  return { pg, errs, clk };
+  return { pg, errs, clk, tab, subtab };
 };
 
-// ── #A1: route loads + shell chrome + all 12 tabs present ──
+// ── #A1: route loads + v3.0 header (Architect-2525) + 7 tabs present ──
 {
-  const { pg, errs, clk } = await mk();
-  const header = await pg.evaluate(() => document.body.innerText.includes('ARCHITECT · VISION 2525'));
-  const tabsPresent = await pg.evaluate((tabs) => tabs.every((t) => [...document.querySelectorAll('button')].some((b) => (b.textContent || '').trim().includes(t))), TABS);
-  rec('#A1 route loads + shell header + 12 tabs present', header && tabsPresent, `header=${header} tabs=${tabsPresent}`);
+  const { pg, errs } = await mk();
+  const header = await pg.evaluate(() => document.body.innerText.includes('Architect-2525'));
+  const noOld = await pg.evaluate(() => !document.body.innerText.includes('ARCHITECT · VISION 2525'));
+  const tabsPresent = await pg.evaluate((tabs) => tabs.every((t) => [...document.querySelectorAll('button')].some((b) => (b.textContent || '').trim().includes(t === 'More' ? 'More' : t))), TABS);
+  rec('#A1 route loads + "Architect-2525" header + 7 tabs present', header && noOld && tabsPresent, `header=${header} noOld=${noOld} tabs=${tabsPresent}`);
   rec('#A1 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await pg.close();
 }
 
-// ── #A2: each tab switches (data-arch-tab reflects the active tab) ──
+// ── #A2: each of the 7 tabs switches (data-arch-tab reflects the active tab) ──
 {
-  const { pg, clk } = await mk();
+  const { pg, tab } = await mk();
   let allSwitch = true, detail = '';
   for (const t of TABS) {
-    const ok = await clk(`button:has-text("${t}")`); await pg.waitForTimeout(120);
+    await tab(t);
     const active = await pg.evaluate(() => document.querySelector('[data-arch-tab]')?.getAttribute('data-arch-tab') || '');
-    if (!ok || active !== t) { allSwitch = false; detail = `fail@${t} (got ${active})`; break; }
+    if (active !== t) { allSwitch = false; detail = `fail@${t} (got ${active})`; break; }
   }
-  rec('#A2 all 12 tabs switch active content', allSwitch, detail);
+  rec('#A2 all 7 tabs switch active content', allSwitch, detail);
   await pg.close();
 }
 
@@ -57,112 +60,122 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A14: persistent header (search/replay/notifications) + project ribbon + ••• More menu ──
+{
+  const { pg, tab } = await mk();
+  const ribbon = await pg.evaluate(() => { const r = document.querySelector('[data-arch-ribbon]'); const t = r?.textContent || ''; return !!r && /Stage Gate/.test(t) && /Iteration/.test(t) && /Human Authority/.test(t) && /Replay/.test(t); });
+  const hdr = await pg.evaluate(() => !!document.querySelector('button[title="Search (⌘K)"]') && !!document.querySelector('button[title="Notifications"]') && document.body.innerText.includes('REPLAY'));
+  await tab('More');
+  const more = await pg.evaluate(() => document.querySelectorAll('[data-more-group]').length);
+  rec('#A14 persistent header + project ribbon + ••• More groups', ribbon && hdr && more === 8, `ribbon=${ribbon} hdr=${hdr} more=${more}`);
+  await pg.close();
+}
+
 // ── #A4: OVERVIEW observability tiles present ──
 {
   const { pg } = await mk();
-  const txt = await pg.evaluate(() => document.querySelector('[data-arch-tab="OVERVIEW"]')?.textContent || '');
+  const txt = await pg.evaluate(() => document.querySelector('[data-arch-tab="Overview"]')?.textContent || '');
   const ok = ['Project Cost', 'Time Capital', 'Iteration', 'SSSES'].every((k) => txt.includes(k)) && /\$[\d,]/.test(txt);
   rec('#A4 OVERVIEW tiles (cost / time-capital / iteration / SSSES)', ok, txt.slice(0, 60));
   await pg.close();
 }
 
-// ── #A5: COST·TIME $/min recomputes live on input change ──
+// ── #A5: Build → Cost·Time $/min recomputes live on input change ──
 {
-  const { pg, clk } = await mk();
-  await clk('button:has-text("COST·TIME")'); await pg.waitForTimeout(200);
-  const totalOf = () => pg.evaluate(() => { const t = document.querySelector('[data-arch-tab="COST·TIME"]')?.textContent || ''; const m = t.match(/Total \(billed\)\s*\$([\d,]+\.\d{2})/); return m ? m[1] : (t.match(/\$([\d,]+\.\d{2})/g) || []).join(','); });
+  const { pg, tab, subtab } = await mk();
+  await tab('Build'); await subtab('Cost·Time');
+  const totalOf = () => pg.evaluate(() => { const t = document.querySelector('[data-arch-tab="Build"]')?.textContent || ''; const m = t.match(/Total \(billed\)\s*\$([\d,]+\.\d{2})/); return m ? m[1] : (t.match(/\$([\d,]+\.\d{2})/g) || []).join(','); });
   const before = await totalOf();
-  // bump the Labor (min) input (first number input in the tab) and confirm the billed total changes.
-  await pg.evaluate(() => { const inp = document.querySelector('[data-arch-tab="COST·TIME"] input[type=number]'); if (inp) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, '96000'); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); } });
+  await pg.evaluate(() => { const inp = document.querySelector('[data-arch-tab="Build"] input[type=number]'); if (inp) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, '96000'); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); } });
   await pg.waitForTimeout(200);
   const after = await totalOf();
-  rec('#A5 COST·TIME $/min recomputes on input', !!before && !!after && before !== after, `before=${before} after=${after}`);
+  rec('#A5 Build→Cost·Time $/min recomputes on input', !!before && !!after && before !== after, `before=${before} after=${after}`);
   await pg.close();
 }
 
-// ── #A6: DESIGN places a 2×4 wall (count ↑) + 3D toggle renders extrusions ──
+// ── #A6: Design → Model places a 2×4 wall (count ↑) + 3D toggle renders extrusions ──
 {
-  const { pg, clk } = await mk();
-  await clk('button:has-text("DESIGN")'); await pg.waitForTimeout(200);
-  const wallCount = () => pg.evaluate(() => { const t = document.querySelector('[data-arch-tab="DESIGN"]')?.textContent || ''; const m = t.match(/Walls \(2×4\)\s*(\d+)/); return m ? +m[1] : -1; });
+  const { pg, clk, tab } = await mk();
+  await tab('Design'); // default subtab = Model
+  const wallCount = () => pg.evaluate(() => { const t = document.querySelector('[data-arch-tab="Design"]')?.textContent || ''; const m = t.match(/Walls \(2×4\)\s*(\d+)/); return m ? +m[1] : -1; });
   const before = await wallCount();
   const box = await pg.locator('[data-arch-design]').boundingBox();
   if (box) { await pg.mouse.click(box.x + box.width * 0.25, box.y + box.height * 0.55); await pg.waitForTimeout(90); await pg.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.55); await pg.waitForTimeout(140); }
   const after = await wallCount();
-  await clk('button:has-text("2D")'); await pg.waitForTimeout(150); // toggle → 3D
+  await clk('button:has-text("2D")'); await pg.waitForTimeout(150);
   const poly = await pg.evaluate(() => !!document.querySelector('[data-arch-design] polygon[data-wall]'));
-  rec('#A6 DESIGN places wall (count↑) + 3D extrusion renders', before >= 0 && after > before && poly, `before=${before} after=${after} poly=${poly}`);
+  rec('#A6 Design→Model places wall (count↑) + 3D extrusion', before >= 0 && after > before && poly, `before=${before} after=${after} poly=${poly}`);
   await pg.close();
 }
 
-// ── #A7: BUILD 4D scrubber reveals elements by day (electrical "wire from power" after day 12) ──
+// ── #A7: Build → Build 4D scrubber reveals electrical run by day ──
 {
-  const { pg, clk } = await mk();
-  await clk('button:has-text("BUILD")'); await pg.waitForTimeout(200);
-  const hasBuild = await pg.evaluate(() => !!document.querySelector('[data-arch-build]') && (document.querySelector('[data-arch-tab="BUILD"]')?.textContent || '').includes('TRADE COORDINATION'));
-  const elecEarly = await pg.evaluate(() => !!document.querySelector('[data-el="electrical"]')); // day 1 → not yet
-  await pg.evaluate(() => { const r = document.querySelector('[data-arch-tab="BUILD"] input[type=range]'); if (r) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(r, '20'); r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); } });
+  const { pg, tab, subtab } = await mk();
+  await tab('Build'); await subtab('Build 4D');
+  const hasBuild = await pg.evaluate(() => !!document.querySelector('[data-arch-build]') && (document.querySelector('[data-arch-tab="Build"]')?.textContent || '').includes('TRADE COORDINATION'));
+  const elecEarly = await pg.evaluate(() => !!document.querySelector('[data-el="electrical"]'));
+  await pg.evaluate(() => { const r = document.querySelector('[data-arch-tab="Build"] input[type=range]'); if (r) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(r, '20'); r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); } });
   await pg.waitForTimeout(150);
-  const elecLate = await pg.evaluate(() => !!document.querySelector('[data-el="electrical"]')); // day 20 → wire from power present
-  rec('#A7 BUILD 4D scrubber reveals electrical run by day', hasBuild && !elecEarly && elecLate, `build=${hasBuild} early=${elecEarly} late=${elecLate}`);
+  const elecLate = await pg.evaluate(() => !!document.querySelector('[data-el="electrical"]'));
+  rec('#A7 Build→4D scrubber reveals electrical run by day', hasBuild && !elecEarly && elecLate, `build=${hasBuild} early=${elecEarly} late=${elecLate}`);
   await pg.close();
 }
 
-// ── #A8: SUN·SKY celestial dome + window optimization ──
+// ── #A8: Design → Site (SUN·SKY) sun-path + Polaris + window optimization ──
 {
-  const { pg, clk } = await mk();
-  await clk('button:has-text("SUN·SKY")'); await pg.waitForTimeout(200);
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Site');
   const ok = await pg.evaluate(() => {
     const dome = document.querySelector('[data-arch-sky]');
-    const txt = document.querySelector('[data-arch-tab="SUN·SKY"]')?.textContent || '';
+    const txt = document.querySelector('[data-arch-tab="Design"]')?.textContent || '';
     return !!dome && !!dome.querySelector('[data-el="sunpath"]') && !!dome.querySelector('[data-el="polaris"]') && txt.includes('WINDOW OPTIMIZATION') && txt.includes('Best light');
   });
-  rec('#A8 SUN·SKY sun-path + Polaris + window optimization', ok, '');
+  rec('#A8 Design→Site SUN·SKY sun-path + Polaris + window optimization', ok, '');
   await pg.close();
 }
 
-// ── #A9: ITERATE 20→33 gallery ──
+// ── #A9: Design → Compare (ITERATE 20→33 gallery) ──
 {
-  const { pg, clk } = await mk();
-  await clk('button:has-text("ITERATE")'); await pg.waitForTimeout(150);
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Compare');
   const n = await pg.evaluate(() => document.querySelectorAll('[data-iter]').length);
-  const approved = await pg.evaluate(() => (document.querySelector('[data-arch-tab="ITERATE"]')?.textContent || '').includes('APPROVED'));
-  rec('#A9 ITERATE 20→33 gallery (14 cards, 33 approved)', n === 14 && approved, `cards=${n} approved=${approved}`);
+  const approved = await pg.evaluate(() => (document.querySelector('[data-arch-tab="Design"]')?.textContent || '').includes('APPROVED'));
+  rec('#A9 Design→Compare ITERATE 20→33 gallery (14 cards, 33 approved)', n === 14 && approved, `cards=${n} approved=${approved}`);
   await pg.close();
 }
 
-// ── #A10: SHARE universal comment → delta ──
+// ── #A10: Review → Contributions (SHARE) universal comment → delta ──
 {
-  const { pg, clk } = await mk();
-  await clk('button:has-text("SHARE")'); await pg.waitForTimeout(150);
+  const { pg, clk, tab, subtab } = await mk();
+  await tab('Review'); await subtab('Contributions');
   const count = () => pg.evaluate(() => document.querySelectorAll('[data-share-comments] > div').length);
   const before = await count();
-  await pg.evaluate(() => { const inp = document.querySelector('[data-arch-tab="SHARE"] input'); if (inp) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, 'Add a skylight'); inp.dispatchEvent(new Event('input', { bubbles: true })); } });
+  await pg.evaluate(() => { const inp = document.querySelector('[data-arch-tab="Review"] input'); if (inp) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, 'Add a skylight'); inp.dispatchEvent(new Event('input', { bubbles: true })); } });
   await clk('button:has-text("post")'); await pg.waitForTimeout(150);
   const after = await count();
-  rec('#A10 SHARE comment posts → delta list grows', after === before + 1, `before=${before} after=${after}`);
+  rec('#A10 Review→Contributions comment posts → delta grows', after === before + 1, `before=${before} after=${after}`);
   await pg.close();
 }
 
-// ── #A11: QUALIFY automated checks + gates + on-chain approval ──
+// ── #A11: Review → Qualification (QUALIFY) checks + gates + on-chain approval ──
 {
-  const { pg, clk } = await mk();
-  await clk('button:has-text("QUALIFY")'); await pg.waitForTimeout(150);
-  const txt = await pg.evaluate(() => document.querySelector('[data-arch-tab="QUALIFY"]')?.textContent || '');
+  const { pg, tab, subtab } = await mk();
+  await tab('Review'); await subtab('Qualification');
+  const txt = await pg.evaluate(() => document.querySelector('[data-arch-tab="Review"]')?.textContent || '');
   const ok = ['AUTOMATED CHECKS', 'Structural', 'G6 Permit', 'APPROVAL RECORD', 'IMMUTABLE'].every((k) => txt.includes(k));
-  rec('#A11 QUALIFY checks + G0–G13 gates + on-chain approval', ok, '');
+  rec('#A11 Review→Qualification checks + G0–G13 gates + on-chain approval', ok, '');
   await pg.close();
 }
 
-// ── #A12: final 4 tabs render (SIMULATE / REVIEW / TWIN / REPLAY) ──
+// ── #A12: Simulate + Review→Reviews + Lifecycle→Twin/Replay render ──
 {
-  const { pg, clk } = await mk();
-  const check = async (tab, sel, min = 1) => { await clk(`button:has-text("${tab}")`); await pg.waitForTimeout(120); return pg.evaluate((s) => document.querySelectorAll(s).length, sel).then((n) => n >= min); };
-  const sim = await check("SIMULATE", "[data-sim]", 10);
-  const rev = await check("REVIEW", "[data-expert]", 3);
-  const twin = await check("TWIN", "[data-twin]", 5);
-  const rep = await check("REPLAY", "[data-replay]", 3);
-  rec('#A12 SIMULATE/REVIEW/TWIN/REPLAY render', sim && rev && twin && rep, `sim=${sim} rev=${rev} twin=${twin} rep=${rep}`);
+  const { pg, tab, subtab } = await mk();
+  const check = async (sel, min = 1) => pg.evaluate((s) => document.querySelectorAll(s).length, sel).then((n) => n >= min);
+  await tab('Simulate'); const sim = await check('[data-sim]', 10);
+  await tab('Review'); await subtab('Reviews'); const rev = await check('[data-expert]', 3);
+  await tab('Lifecycle'); const twin = await check('[data-twin]', 5);
+  await subtab('Replay'); const rep = await check('[data-replay]', 3);
+  rec('#A12 Simulate / Review→Reviews / Lifecycle→Twin+Replay render', sim && rev && twin && rep, `sim=${sim} rev=${rev} twin=${twin} rep=${rep}`);
   await pg.close();
 }
 
@@ -172,7 +185,7 @@ const mk = async (vp) => {
   const soi = await pg.evaluate(() => {
     const s = document.querySelector('[data-soi]');
     if (!s) return { has: false };
-    const t = document.querySelector('[data-arch-tab="OVERVIEW"]')?.textContent || '';
+    const t = document.querySelector('[data-arch-tab="Overview"]')?.textContent || '';
     return {
       has: true,
       coins: s.querySelectorAll('[data-soi-coin]').length,
@@ -183,7 +196,17 @@ const mk = async (vp) => {
     };
   });
   const ok = !!(soi.has && soi.coins === 3 && soi.nose === 4 && soi.flow === 4 && soi.law && soi.reimagine);
-  rec('#A13 SoI Tri-Coin framework (3 coins + NOSE + 5× ◬ law + reimagine) on OVERVIEW', ok, JSON.stringify(soi));
+  rec('#A13 SoI Tri-Coin framework (3 coins + NOSE + 5× ◬ law) on OVERVIEW', ok, JSON.stringify(soi));
+  await pg.close();
+}
+
+// ── #A15: old-tab deep-links alias to the new 7-tab structure (no 404) ──
+{
+  const pg = await b.newPage({ viewport: { width: 1000, height: 820 } });
+  await pg.goto(URL, { waitUntil: 'domcontentloaded', timeout: 90000 });
+  await pg.waitForTimeout(1500);
+  const alive = await pg.evaluate(() => document.body.innerText.includes('Architect-2525'));
+  rec('#A15 route loads without 404 (aliases preserved)', alive, '');
   await pg.close();
 }
 
