@@ -16,7 +16,7 @@ import { Maximize2, Minimize2, Play, Pause } from "lucide-react";
 import {
   PLANETS, ucrsAt, huToNu, axTrue, bOverA, fmt3600, FULL_ORBIT, planetDotRadius,
   fmtDist, fmtTime, fmtRotation, DIST_UNITS, DIST_LABEL, TIME_UNITS, TIME_LABEL, SATURN_RING_TEX,
-  SIZE_MODES, SIZE_LABEL, type DistUnit, type TimeUnit, type PlanetSizeMode,
+  SIZE_MODES, SIZE_LABEL, fmtClock, tzFromLon, type DistUnit, type TimeUnit, type PlanetSizeMode, type ClockFormat,
 } from "@/lib/ucrs-2525";
 import { EarthMoonBox } from "./earth-moon-box";
 import { MiniPanel } from "./mini-panel";
@@ -73,6 +73,8 @@ export function ArchitectCelestial({
   const cycleSize = () => setSizeMode((m) => SIZE_MODES[(SIZE_MODES.indexOf(m) + 1) % SIZE_MODES.length]);
   const [distUnit, setDistUnit] = useState<DistUnit>("km"); // Units of Measure — distance (⚙ panel)
   const [timeUnit, setTimeUnit] = useState<TimeUnit>("days"); // Units of Measure — time (⚙ panel)
+  const [clockFmt, setClockFmt] = useState<ClockFormat>("24h"); // military 24h / standard 12h (⚙ panel)
+  const tz = tzFromLon(lon);                                     // location-derived time zone (e.g. CST)
   const [showDetail, setShowDetail] = useState(false);       // ⚙ units & detail — collapsed by default (declutter)
   const [max, setMax] = useState(false);            // maximize → full-screen big map (zoom to an orbit, rotate)
   const [periTop, setPeriTop] = useState(false);    // clock icon → rotate the big map so perihelion + planet are at TOP
@@ -319,7 +321,7 @@ export function ArchitectCelestial({
             {playing ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}{playing ? "pause" : "play"}
           </button>
           <label className="flex items-center gap-1">Date<input data-cel-date type="date" value={isoDate} onChange={(e) => setFromDate(e.target.value)} className="rounded border bg-transparent px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.text }} /></label>
-          <span>{monthDay} · <span style={{ color: C.cyan }}>{hour.toFixed(1)}h</span></span>
+          <span data-cel-clock>{monthDay} · <span style={{ color: C.cyan }}>{fmtClock(hour, clockFmt)} {tz.label}</span></span>
           <span>◉ Pfield · Pflugerville TX</span>
         </div>
         <div className="text-[8px]" style={{ color: C.dim }}>Full orbit reference · <span style={{ color: C.gold }}>{FULL_ORBIT}</span> (SA.EA..HU)</div>
@@ -350,6 +352,11 @@ export function ArchitectCelestial({
             <div className="flex flex-wrap items-center gap-1">
               <span className="w-12 shrink-0" style={{ color: C.dim }}>Time</span>
               {TIME_UNITS.map((u) => <button key={u} data-time-unit={u} onClick={() => setTimeUnit(u)} className="rounded border px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: timeUnit === u ? C.violet : C.dim, background: timeUnit === u ? "#221833" : "transparent" }}>{TIME_LABEL[u]}</button>)}
+            </div>
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="w-12 shrink-0" style={{ color: C.dim }}>Clock</span>
+              {([["24h", "military"], ["12h", "am·pm"]] as const).map(([f, lab]) => <button key={f} data-clock-fmt={f} onClick={() => setClockFmt(f)} className="rounded border px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: clockFmt === f ? C.cyan : C.dim, background: clockFmt === f ? "#0c2230" : "transparent" }}>{lab}</button>)}
+              <span className="text-[8px]" style={{ color: C.dim }}>· {tz.label}</span>
             </div>
             <label className="flex items-center gap-2" style={{ color: C.dim }}>SA tilt
               <input data-tilt-input type="range" min={8} max={42} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" />

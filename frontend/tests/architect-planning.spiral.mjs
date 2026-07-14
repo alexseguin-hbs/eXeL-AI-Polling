@@ -536,6 +536,22 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A35: clock shows location time zone (CST for Pfield) + military(24h)⇄standard(12h am·pm) toggle in ⚙ ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  // set noon so the 12h form is unambiguous (12:00 → 12:00 pm)
+  await pg.evaluate(() => { const r = document.querySelector('[data-hu-input]'); }); // no-op keep structure
+  const clk24 = await pg.evaluate(() => document.querySelector('[data-cel-clock]')?.textContent || '');
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120);
+  await pg.locator('[data-clock-fmt="12h"]').click(); await pg.waitForTimeout(120);
+  const clk12 = await pg.evaluate(() => document.querySelector('[data-cel-clock]')?.textContent || '');
+  const ok = /CST/.test(clk24) && /\d{2}:\d{2}/.test(clk24) && /(am|pm)/.test(clk12) && clk24 !== clk12;
+  rec('#A35 clock — location tz (CST) + military(24h) ⇄ standard(12h am·pm)', ok, `clk24="${clk24.trim()}" clk12="${clk12.trim()}"`);
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

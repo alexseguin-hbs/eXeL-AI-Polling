@@ -125,6 +125,28 @@ export function fmtDist(meters: number, unit: DistUnit): string {
   if (unit === "1e9") return `${(meters / 1e9).toLocaleString(undefined, { maximumFractionDigits: 4 })} ×10⁹ m`;
   return `${Math.round(meters).toLocaleString()} m`;
 }
+// ── Clock: military (24h) / standard (12h am·pm), in the LOCATION's time zone (derived from longitude) ──
+export type ClockFormat = "24h" | "12h";
+/** Location time zone from longitude — continental-US political bands (approx), nautical fallback elsewhere. */
+export function tzFromLon(lon: number): { offset: number; label: string } {
+  if (lon <= -67.5 && lon > -127) {
+    if (lon > -87.5) return { offset: -5, label: "EST" };
+    if (lon > -101.5) return { offset: -6, label: "CST" };   // Pfield (−97.62) ⇒ CST
+    if (lon > -114.5) return { offset: -7, label: "MST" };
+    return { offset: -8, label: "PST" };
+  }
+  const o = Math.round(lon / 15);
+  return { offset: o, label: `UTC${o >= 0 ? "+" : ""}${o}` };
+}
+/** Decimal local hour → clock string. 13.5 → "13:30" (24h) / "1:30 pm" (12h). 1.0 → "01:00" / "1:00 am". */
+export function fmtClock(decimalHour: number, format: ClockFormat): string {
+  const h = ((Math.floor(decimalHour) % 24) + 24) % 24;
+  const mm = String(Math.round((decimalHour - Math.floor(decimalHour)) * 60) % 60).padStart(2, "0");
+  if (format === "24h") return `${String(h).padStart(2, "0")}:${mm}`;
+  const ampm = h < 12 ? "am" : "pm";
+  return `${h % 12 === 0 ? 12 : h % 12}:${mm} ${ampm}`;
+}
+
 export type TimeUnit = "days" | "hours" | "seconds";
 export const TIME_UNITS: TimeUnit[] = ["days", "hours", "seconds"];
 export const TIME_LABEL: Record<TimeUnit, string> = { days: "days", hours: "hours", seconds: "sec (LTU)" };
