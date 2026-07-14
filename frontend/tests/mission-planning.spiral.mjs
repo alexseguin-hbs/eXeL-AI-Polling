@@ -698,6 +698,57 @@ const cellPxAt = async (w, h) => {
   await pg.close();
 }
 
+// ── CORPUS #45: YELLOW entry grid on tactical arrival, clears on pan (FX-YGRID) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:has-text("EARTH"):visible'); await pg.waitForTimeout(700);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(500);
+  await clk('button:has-text("GRID"):visible'); await pg.waitForTimeout(500);
+  const box = await pg.locator('svg[aria-label^="World context map"]').boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(2600); // enter tactical (fly-in)
+  const onEntry = await pg.evaluate(() => !!document.querySelector('[data-entrygrid]'));
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  const mb = await M.boundingBox();
+  if (mb) { await pg.mouse.move(mb.x + mb.width / 2, mb.y + mb.height / 2); await pg.mouse.down(); await pg.mouse.move(mb.x + mb.width / 2 - 70, mb.y + mb.height / 2 - 30, { steps: 5 }); await pg.mouse.up(); }
+  await pg.waitForTimeout(400);
+  const afterPan = await pg.evaluate(() => !!document.querySelector('[data-entrygrid]'));
+  rec('#45 yellow entry grid on tactical arrival + clears on pan (FX-YGRID)', onEntry && !afterPan, `onEntry=${onEntry} afterPan=${afterPan}`);
+  rec('#45 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
+// ── CORPUS #46: pan far WEST across the antimeridian → NO crash (FX-YGRID crash fix, operator IMG_7263) ──
+{
+  const { pg, errs } = await mk(null); // errs captures pageerrors + console errors
+  const M = pg.locator('div.touch-none.overflow-hidden.rounded-md').first();
+  const box = await M.boundingBox();
+  if (box) {
+    const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
+    await pg.mouse.move(cx, cy);
+    for (let i = 0; i < 3; i++) { await pg.mouse.wheel(0, 300); await pg.waitForTimeout(80); } // widen span so each pan moves real degrees (stay tactical)
+    for (let i = 0; i < 60; i++) { await pg.mouse.down(); await pg.mouse.move(cx + 130, cy, { steps: 2 }); await pg.mouse.up(); await pg.mouse.move(cx, cy); await pg.waitForTimeout(25); } // drag right = pan west, across −180
+  }
+  await pg.waitForTimeout(500);
+  const alive = await pg.evaluate(() => !!document.querySelector('div.touch-none'));
+  rec('#46 pan far west across the antimeridian → no crash (FX-YGRID)', errs.length === 0 && alive, `errs=${errs.length} alive=${alive} ${errs.slice(0, 1).join('')}`);
+  await pg.close();
+}
+
+// ── CORPUS #47: grid tap does NOT auto-create a deletable AO (operator) ──
+{
+  const { pg, errs, clk } = await mk(null);
+  await clk('button:has-text("EARTH"):visible'); await pg.waitForTimeout(700);
+  await clk('button:text-is("2D"):visible'); await pg.waitForTimeout(500);
+  await clk('button:has-text("GRID"):visible'); await pg.waitForTimeout(500);
+  const box = await pg.locator('svg[aria-label^="World context map"]').boundingBox();
+  if (box) await pg.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await pg.waitForTimeout(2200);
+  // no asset placed → NO `grid-` AO persisted to the deletable customAos list.
+  const custom = await pg.evaluate(() => localStorage.getItem('sec2525.customAos') || '[]');
+  rec('#47 grid tap creates NO auto-AO (no grid- in customAos) (FX-YGRID)', !custom.includes('"grid-'), `customAos=${custom.slice(0, 80)}`);
+  rec('#47 console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('SPIRAL ' + passed + '/' + total + ' passed');

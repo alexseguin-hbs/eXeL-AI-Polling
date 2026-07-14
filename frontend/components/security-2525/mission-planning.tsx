@@ -1516,6 +1516,8 @@ interface PaneProps {
   iconScale?: number; // icon size setting S/M/L → 1 / 1.75 / 3 (P2, visibility)
   edgeWidth?: number; // FX-53: user-designable voxel edge thickness (px), Settings→3D slider; default EDGE_FINE (0.6)
   fidelity?: number; // FX-54: UX fidelity thickness multiplier (0.25=LOW … 1.0=MAX) applied to every line width
+  entryGrid?: boolean; // FX-YGRID: show the yellow GZD grid (arrived from globe/world strip); clears on pan/zoom
+  onClearEntryGrid?: () => void; // called on the first user pan/zoom to hide the entry grid
   pitch?: number; // 3D view angle (deg) — FAAD/AMDWS "right-click angles the view to altitude"
   // AO / AOR draw tool
   drawingAo: boolean;
@@ -1536,6 +1538,7 @@ function AoMapPane(p: PaneProps) {
     unit: paneUnit = "km", onSetUnit, gridStepM: gridStepOverride = 0,
     maxAltFt, altRedPct = 90, altYellowPct = 70, setAltRedPct, setAltYellowPct, voxelCellM, voxelLimitPct = 100, voxelHiColor = "#eab308",
     setHoverAsset, allocId, maximized, onToggleMax, onHidePane, onWorld, mirrorOn, onToggleMirror, onOpenSettings, settingsOpen, pitch, onPitch, iconScale = 1, edgeWidth = EDGE_FINE, fidelity = 1,
+    entryGrid = false, onClearEntryGrid,
     drawingAo, aoDraft, onAoVertex, drawnAo, playing = false, onTogglePlay, onResetTracks,
   } = p;
 
@@ -1656,6 +1659,7 @@ function AoMapPane(p: PaneProps) {
   };
   useWheel(mapRef, (e) => {
     e.preventDefault();
+    onClearEntryGrid?.(); // FX-YGRID: any zoom clears the entry grid
     // zoom out past continental scale → hand off to the Earth/world view (continuum)
     if (e.deltaY > 0 && shouldHandOffToWorld(view.spanKm) && onWorld) { onWorld(); return; }
     // CONTINUOUS zoom — factor proportional to wheel delta (trackpads glide, a mouse
@@ -1669,20 +1673,24 @@ function AoMapPane(p: PaneProps) {
       const spanKm = Math.min(MAX_SPAN_KM, Math.max(MIN_SPAN_KM, v.spanKm * f));
       const ff = spanKm / v.spanKm; // factor actually applied after clamping
       if (!p || ff === 1) return { ...v, spanKm };
-      return { ...v, spanKm, lat: p.lat + (v.lat - p.lat) * ff, lon: p.lon + (v.lon - p.lon) * ff };
+      return { ...v, spanKm, ...normLL(p.lat + (v.lat - p.lat) * ff, p.lon + (v.lon - p.lon) * ff) };
     });
   });
 
   const routeMode = !!selectedSupport && (selectedSupport.geometry === "line" || selectedSupport.geometry === "corridor");
   const armed = selectedAsset || selectedSupport;
 
-  const panBy = (sdx: number, sdy: number) => setView((v) => {
+  // FX-YGRID crash fix (operator IMG_7263): panning west from Hawaii toward Asia drove view.lon below −180 (unbounded),
+  // and out-of-range lon/lat then fed MGRS/grid/contour math that threw → client-side exception. Normalise longitude to
+  // [−180,180) and clamp latitude at every pan/zoom source so `view` is ALWAYS valid.
+  const normLL = (lat: number, lon: number) => ({ lat: Math.max(-85, Math.min(85, lat)), lon: ((((lon + 180) % 360) + 360) % 360) - 180 });
+  const panBy = (sdx: number, sdy: number) => { onClearEntryGrid?.(); return setView((v) => {
     const [s, c] = [Math.sin(-v.bearing), Math.cos(-v.bearing)];
     const wdx = sdx * c - sdy * s, wdy = sdx * s + sdy * c;
     const lonHalfKm = v.spanKm / 2, latHalfKm = lonHalfKm / Math.max(0.2, aspect); // match box aspect
     const dLat = latHalfKm / 110.574, dLon = lonHalfKm / (111.32 * Math.cos((v.lat * Math.PI) / 180));
-    return { ...v, lat: v.lat + wdy * (2 * dLat), lon: v.lon - wdx * (2 * dLon) };
-  });
+    return { ...v, ...normLL(v.lat + wdy * (2 * dLat), v.lon - wdx * (2 * dLon)) };
+  }); };
 
   const place = (asset: AssetKind, fx: number, fy: number) => {
     const item = inventory.find((i) => i.asset === asset);
@@ -2240,6 +2248,27 @@ function AoMapPane(p: PaneProps) {
                       {US_STATES.filter((s) => spanDeg <= (s.min ?? 26)).map((s) => { const f = onScreen(s.lat, s.lon); return f ? (
                         <text key={`gst${s.name}`} x={f.fx * 100} y={f.fy * 100} fontSize="1.7" fill={C.borderState} opacity="0.8" textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke", letterSpacing: "0.03em" }} stroke="#0a0e14" strokeWidth="0.5">{s.name}</text>
                       ) : null; })}
+                    </g>
+                  );
+                })()}
+                {/* FX-YGRID (operator): YELLOW GZD grid shown on ARRIVAL from the globe/world strip — the 6°×8° zone/band
+                    lines (visible during the wide fly-in) + the landed cell filled/outlined with its code (visible once
+                    settled). Clears on the first pan/zoom (onClearEntryGrid). Projected with toFrac like the borders. */}
+                {entryGrid && (() => {
+                  const { meridians, parallels } = gzdBoundaries();
+                  const cell = gzdOf(view.lat, view.lon);
+                  const P = (lat: number, lon: number) => { const f = toFrac(lat, lon); return `${(f.fx * 100).toFixed(2)},${(f.fy * 100).toFixed(2)}`; };
+                  const cc = toFrac((cell.latS + cell.latN) / 2, (cell.lonW + cell.lonE) / 2);
+                  return (
+                    <g style={{ pointerEvents: "none" }} data-entrygrid>
+                      {meridians.filter((l) => l >= box.lonMin - 6 && l <= box.lonMax + 6).map((l) => (
+                        <polyline key={`egm${l}`} points={`${P(box.latMax, l)} ${P(box.latMin, l)}`} fill="none" stroke={TRINITY_COLORS.temporal} strokeWidth="0.4" opacity="0.55" vectorEffect="non-scaling-stroke" />
+                      ))}
+                      {parallels.filter((l) => l >= box.latMin - 8 && l <= box.latMax + 8).map((l) => (
+                        <polyline key={`egp${l}`} points={`${P(l, box.lonMin)} ${P(l, box.lonMax)}`} fill="none" stroke={TRINITY_COLORS.temporal} strokeWidth="0.4" opacity="0.55" vectorEffect="non-scaling-stroke" />
+                      ))}
+                      <polygon points={`${P(cell.latN, cell.lonW)} ${P(cell.latN, cell.lonE)} ${P(cell.latS, cell.lonE)} ${P(cell.latS, cell.lonW)}`} fill={`${C.gold}18`} stroke={TRINITY_COLORS.temporal} strokeWidth="0.8" opacity="0.9" vectorEffect="non-scaling-stroke" />
+                      <text x={cc.fx * 100} y={cc.fy * 100} fontSize="4" fontWeight="bold" fill={TRINITY_COLORS.temporal} textAnchor="middle" dominantBaseline="central" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke" }} stroke="#0a0e14" strokeWidth="1">{cell.zone}{cell.band}</text>
                     </g>
                   );
                 })()}
@@ -4567,6 +4596,10 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   // ── Custom missions ── operator-created AOs (persisted); each isolates its own placements ──
   const [customAos, setCustomAos] = useState<Ao[]>(() => { try { return JSON.parse(localStorage.getItem("sec2525.customAos") || "[]"); } catch { return []; } });
   useEffect(() => { try { localStorage.setItem("sec2525.customAos", JSON.stringify(customAos)); } catch { /* quota */ } }, [customAos]);
+  // FX-YGRID (operator): a grid-cell tap goes to a TRANSIENT scratch AO — NOT persisted, NOT in the deletable customAos
+  // menu — so exploring the map never spawns AOs to clean up. It PROMOTES to a real saved customAo only once an asset or
+  // support is placed there ("persist as if the user wants to save").
+  const [scratchAo, setScratchAo] = useState<Ao | null>(null);
   const createMission = () => {
     const key = `custom-${customAos.reduce((mx, a) => Math.max(mx, parseInt(a.key.replace("custom-", "")) || 0), 0) + 1}`;
     const m: Ao = { key, name: `MISSION ${customAos.length + 1} · CUSTOM`, center: [viewA.lat, viewA.lon], halfKm: Math.max(2, viewA.spanKm / 2), landmarks: [], buildings: [] };
@@ -4591,7 +4624,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   const updUlt = (i: number, patch: Partial<UltNode>) => setUltRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   const addUltRow = () => setUltRows((rs) => [...rs, { id: String(rs.length + 1).padStart(3, "0"), node: "", desc: "", supervisor: "", comm: "", personnel: 0, rifles: 0, vehicles: 0, equipment: "", notes: "" }]);
   const delUltRow = (i: number) => setUltRows((rs) => rs.filter((_, j) => j !== i));
-  const allAos = [...AOS.filter((a) => !aoDeleted.has(a.key)), ...customAos];
+  const allAos = [...AOS.filter((a) => !aoDeleted.has(a.key)), ...customAos, ...(scratchAo && !customAos.some((m) => m.key === scratchAo.key) ? [scratchAo] : [])];
   // Keys hidden from the WORLD map markers (2D flat + 3D globe): hidden OR deleted built-ins.
   const worldHidden = useMemo(() => new Set<string>([...Array.from(aoHidden), ...Array.from(aoDeleted)]), [aoHidden, aoDeleted]);
   const aoStateOf = (k: string) => (k.startsWith("custom-") ? "CUSTOM" : k === "dc" ? "DC" : k === "jblm" ? "WA"
@@ -4716,6 +4749,10 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   const [voxelHiColor, setVoxelHiColor] = useState<string>(TRINITY_COLORS.temporal); // FX-07 (1.3.2): user-set colour for the primary highlighted voxel (rest dim)
   const [modeA, setModeA] = useState<"world" | "ao">("ao");   // MAP: Capitol/AO detail by default
   const [modeB, setModeB] = useState<"world" | "ao">("ao"); // FX-GLOBE (operator): Bravo is ONE map like Alpha — tactical-first (globe/world still reachable by zooming out)
+  // FX-YGRID (operator): yellow GZD grid shown on a tactical pane when you ARRIVE from the globe/world strip (enterAo /
+  // enterCoord), cleared on the first pan/zoom of that pane. Per-pane so Alpha + Bravo are independent.
+  const [entryGridA, setEntryGridA] = useState(false);
+  const [entryGridB, setEntryGridB] = useState(false);
   const [nudgeM, setNudgeM] = useState(1);                 // inspector nudge step (m)
   const [coordText, setCoordText] = useState("");          // exact-coordinate entry (Settings format)
   const [playing, setPlaying] = useState(false);           // TRACK SIM playback (dead-reckoning movers)
@@ -4844,6 +4881,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
     const site = Math.max(MIN_SPAN_KM, t.halfKm * 2);      // the site cut itself (e.g. Capitol 2.4 km)
     setViewA({ lat: t.center[0], lon: t.center[1], spanKm: wide, bearing: 0 }); // mirror locks NORTH only — the mini keeps its own zoom/centre
     setMode("ao");
+    if (setMode === setModeA_) setEntryGridA(true); else if (setMode === setModeB_) setEntryGridB(true); // FX-YGRID: show yellow grid on the entered pane
     // P1 (Aset + Thought Master): ONE continuous zoom from the globe to the SITE —
     // land wide, glide to region, dwell so the eye orients, then continue to the site.
     // Same Natural-Earth source at every stage; no flat 'blue screen' hop.
@@ -4856,18 +4894,28 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
   // at the clicked centre and drill into it — so the operator can place assets & support there like any AO.
   const enterCoord = (lat: number, lon: number, code: string, setMode: (m: "world" | "ao") => void) => {
     const key = `grid-${code}`, halfKm = 25;
-    setCustomAos((a) => a.some((m) => m.key === key)
-      ? a.map((m) => (m.key === key ? { ...m, center: [lat, lon] as [number, number] } : m))
-      : [...a, { key, name: `GRID ${code}`, center: [lat, lon] as [number, number], halfKm, landmarks: [], buildings: [] }]);
+    // TRANSIENT scratch AO unless this cell was already promoted to a saved customAo (then just enter it). No persistence
+    // until an asset/support is placed (see the promote effect) — so empty grid visits never create deletable AOs.
+    setScratchAo(customAos.some((m) => m.key === key) ? null : { key, name: `GRID ${code}`, center: [lat, lon] as [number, number], halfKm, landmarks: [], buildings: [] });
     if (key !== aoKey) enteringRef.current = true;
     setAoKey(key);
     const wide = 900, region = Math.max(30, halfKm * 6), site = Math.max(MIN_SPAN_KM, halfKm * 2);
     setViewA({ lat, lon, spanKm: wide, bearing: 0 });
     setMode("ao");
+    if (setMode === setModeA_) setEntryGridA(true); else if (setMode === setModeB_) setEntryGridB(true); // FX-YGRID: yellow grid on entry
     animateSpanTo(wide, region, 850);
     if (zoomChainRef.current) clearTimeout(zoomChainRef.current);
     zoomChainRef.current = setTimeout(() => animateSpanTo(region, site, 950), 850 + 450);
   };
+  // PROMOTE (operator): the moment an asset/support is placed while viewing a transient scratch cell, save it as a real
+  // customAo (persisted + deletable) — "persist as if the user wants to save". Empty scratch visits are never saved.
+  useEffect(() => {
+    if (scratchAo && aoKey === scratchAo.key && (placed.length + placedSupport.length) > 0 && !customAos.some((m) => m.key === scratchAo.key)) {
+      const promoted = scratchAo;
+      setCustomAos((a) => (a.some((m) => m.key === promoted.key) ? a : [...a, promoted]));
+      setScratchAo(null);
+    }
+  }, [placed.length, placedSupport.length, aoKey, scratchAo, customAos]);
   // 2D/3D is PER-PANE even while mirrored (user law) — only the VIEW mirrors.
   const toggle3dA = () => setIs3dA((v) => !v);
   const toggle3dB = () => setIs3dB((v) => !v);
@@ -5565,6 +5613,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
             ) : (
               <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
                 view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
+                entryGrid={entryGridB} onClearEntryGrid={() => setEntryGridB(false)}
                 mirrorOn={mirrorFrom === "mini"} onToggleMirror={() => toggleMirror("mini")}
                 maximized onToggleMax={() => setFsPane(null)} onWorld={() => setModeB_("world")} />
             )
@@ -5577,6 +5626,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
           ) : (
             <AoMapPane {...paneCommon} dem={dem} label="MAP" showElevation spanFactor={1}
               view={viewA} setView={setViewA_} otherView={viewB} is3d={is3dA} onToggle3d={toggle3dA}
+              entryGrid={entryGridA} onClearEntryGrid={() => setEntryGridA(false)}
               mirrorOn={mirrorFrom === "map"} onToggleMirror={() => toggleMirror("map")}
               onOpenSettings={() => setShowSettings((s) => !s)} settingsOpen={showSettings}
               maximized={fsPane === "map"} onToggleMax={() => setFsPane((f) => (f === "map" ? null : "map"))} onWorld={() => setModeA_("world")} />
@@ -5612,6 +5662,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                 ) : (
                   <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
                     view={viewB} setView={setViewB_} otherView={viewA} is3d={is3dB} onToggle3d={toggle3dB}
+                    entryGrid={entryGridB} onClearEntryGrid={() => setEntryGridB(false)}
                     mirrorOn={mirrorFrom === "mini"} onToggleMirror={() => toggleMirror("mini")}
                     maximized={false} onToggleMax={() => setFsPane("mini")} onHidePane={() => setMiniOpen(false)} onWorld={() => setModeB_("world")} />
                 )}
