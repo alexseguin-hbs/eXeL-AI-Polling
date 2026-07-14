@@ -128,9 +128,11 @@ const mk = async (vp) => {
   const ok = await pg.evaluate(() => {
     const dome = document.querySelector('[data-arch-sky]');
     const txt = document.querySelector('[data-arch-tab="Design"]')?.textContent || '';
-    return !!dome && !!dome.querySelector('[data-el="sunpath"]') && !!dome.querySelector('[data-el="polaris"]') && txt.includes('WINDOW OPTIMIZATION') && txt.includes('Best light');
+    return !!dome && !!dome.querySelector('[data-el="sunpath"]') && !!dome.querySelector('[data-el="polaris"]')
+      && !!dome.querySelector('[data-el="moonpath"]') && !!document.querySelector('[data-arch-calendar] input[data-cal-input]')
+      && txt.includes('WINDOW OPTIMIZATION') && txt.includes('Best light') && /Moon:/.test(txt);
   });
-  rec('#A8 Design→Site SUN·SKY sun-path + Polaris + window optimization', ok, '');
+  rec('#A8 Design→Site SUN·SKY sun+moon paths + Polaris + calendar + window optimization', ok, '');
   await pg.close();
 }
 
