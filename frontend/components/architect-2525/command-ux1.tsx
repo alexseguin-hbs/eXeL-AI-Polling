@@ -13,8 +13,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, X, Gauge, LayoutDashboard, PencilRuler, Hammer, Boxes,
-  Users, Building2, MoreHorizontal, Search, Play, Bell, ChevronDown,
+  Users, Building2, MoreHorizontal, Search, Play, Bell,
 } from "lucide-react";
+import { Expander as CoreExpander } from "@/components/2525-core/expander";
 import { useEasterEgg } from "@/lib/easter-egg-context";
 import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { ExelWordmark } from "@/components/exel-wordmark";
@@ -94,27 +95,10 @@ function NumField({ label, value, onChange, step = 1 }: { label: string; value: 
   );
 }
 
-// Reusable collapsible section (flush = just a toggle header + children, no outer box) with per-section
-// persisted open state (arch2525.exp.<id>). Collapsed by default → Overview opens as a clean Mission Command.
-// Lazy: children unmount when collapsed. (2525-core candidate — the "start minimized, expand on demand" law.)
-function Expander({ id, title, sub, defaultOpen = false, children }: { id: string; title: string; sub?: string; defaultOpen?: boolean; children: React.ReactNode }) {
-  const key = `arch2525.exp.${id}`;
-  const [open, setOpen] = useState(() => { try { const v = localStorage.getItem(key); return v === null ? defaultOpen : v === "1"; } catch { return defaultOpen; } });
-  useEffect(() => { try { localStorage.setItem(key, open ? "1" : "0"); } catch {} }, [key, open]);
-  return (
-    <div data-arch-exp={id}>
-      <button onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        className="flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left transition-colors hover:bg-white/5"
-        style={{ borderColor: C.border, background: C.panel }}>
-        <span className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>
-          {title}{sub && <span className="ml-2 font-normal" style={{ color: C.dim }}>· {sub}</span>}
-        </span>
-        <ChevronDown className="h-3.5 w-3.5 shrink-0 transition-transform" style={{ color: C.dim, transform: open ? "rotate(180deg)" : "none" }} />
-      </button>
-      {open && <div className="mt-2">{children}</div>}
-    </div>
-  );
-}
+// Architect binding of the shared 2525-core Expander (collapsed by default; persists arch2525.exp.<id>).
+const EXP_COLORS = { border: C.border, panel: C.panel, accent: C.violet, dim: C.dim };
+const Expander = (p: { id: string; title: string; sub?: string; defaultOpen?: boolean; children: React.ReactNode }) =>
+  <CoreExpander {...p} colors={EXP_COLORS} storagePrefix="arch2525.exp" />;
 
 export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: string } = {}) {
   const { setVisionView, exitSimulationMode, simulationMode } = useEasterEgg();
