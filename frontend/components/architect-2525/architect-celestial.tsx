@@ -20,6 +20,29 @@ import { MiniGlobe } from "./mini-globe";
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
 
+// PHASE CLOCK — the canonical Base-3600 view: PERIHELION at 12 o'clock, HU running clockwise (0→3600).
+// Each planet sits at its HU angle; the selected planet gets a hand. Complements the landscape map.
+function PhaseClock({ items, selId }: { items: { id: string; name: string; color: string; effHu: number }[]; selId: string }) {
+  const R = 36, cx = 50, cy = 50;
+  const ang = (hu: number) => (hu / 3600) * 2 * Math.PI;                 // 0 at 12 o'clock, clockwise
+  const at = (hu: number, r = R) => [cx + r * Math.sin(ang(hu)), cy - r * Math.cos(ang(hu))] as const;
+  const sel = items.find((i) => i.id === selId);
+  return (
+    <svg data-phase-clock viewBox="0 0 100 100" width={86} height={86} className="rounded-full" style={{ background: "rgba(8,12,20,0.82)" }}>
+      <circle cx={cx} cy={cy} r={R + 6} fill="none" stroke="#233043" strokeWidth="0.6" />
+      <circle cx={cx} cy={cy} r={R} fill="none" stroke="#16202e" strokeWidth="0.5" />
+      {[0, 900, 1800, 2700].map((h) => { const [x1, y1] = at(h, R + 4), [x2, y2] = at(h, R); return <line key={h} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#3f4d5f" strokeWidth="0.5" />; })}
+      <text x={cx} y={cy - R - 8} fontSize="4.4" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>PERI</text>
+      <text x={cx} y={cy + R + 11} fontSize="4.4" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>APHE</text>
+      <text x={cx + R + 3} y={cy + 1.5} fontSize="3" fill={C.dim} textAnchor="start" style={{ fontFamily: "monospace" }}>900</text>
+      <text x={cx - R - 3} y={cy + 1.5} fontSize="3" fill={C.dim} textAnchor="end" style={{ fontFamily: "monospace" }}>2700</text>
+      {sel && (() => { const [hx, hy] = at(sel.effHu, R - 2); return <line x1={cx} y1={cy} x2={hx} y2={hy} stroke={sel.color} strokeWidth="0.8" />; })()}
+      {items.map((it) => { const [x, y] = at(it.effHu); const on = it.id === selId; return <circle key={it.id} cx={x} cy={y} r={on ? 2.2 : it.id === "earth" ? 1.8 : 1.2} fill={it.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />; })}
+      <circle cx={cx} cy={cy} r="2.2" fill="#fff3b0" />
+    </svg>
+  );
+}
+
 export function ArchitectCelestial() {
   const [hu, setHu] = useState(0);
   const [selId, setSelId] = useState("earth");
@@ -62,6 +85,10 @@ export function ArchitectCelestial() {
           </div>
         </div>
         <div className="relative">
+        {/* PHASE CLOCK — upper-right: perihelion at 12 o'clock (canonical Base-3600 convention) */}
+        <div className="absolute right-1 top-1 z-10">
+          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu }))} selId={selId} />
+        </div>
         {/* mini 3D Earth globe — bottom-right, drag L/R to rotate (spin on equator), no zoom */}
         <div className="absolute bottom-1 right-1 z-10">
           <MiniGlobe lat={30.27} lon={-97.74} size={max ? 132 : 88} color={C.gold} />
