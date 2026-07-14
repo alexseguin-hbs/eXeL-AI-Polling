@@ -80,6 +80,21 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A6: DESIGN places a 2×4 wall (count ↑) + 3D toggle renders extrusions ──
+{
+  const { pg, clk } = await mk();
+  await clk('button:has-text("DESIGN")'); await pg.waitForTimeout(200);
+  const wallCount = () => pg.evaluate(() => { const t = document.querySelector('[data-arch-tab="DESIGN"]')?.textContent || ''; const m = t.match(/Walls \(2×4\)\s*(\d+)/); return m ? +m[1] : -1; });
+  const before = await wallCount();
+  const box = await pg.locator('[data-arch-design]').boundingBox();
+  if (box) { await pg.mouse.click(box.x + box.width * 0.25, box.y + box.height * 0.55); await pg.waitForTimeout(90); await pg.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.55); await pg.waitForTimeout(140); }
+  const after = await wallCount();
+  await clk('button:has-text("2D")'); await pg.waitForTimeout(150); // toggle → 3D
+  const poly = await pg.evaluate(() => !!document.querySelector('[data-arch-design] polygon[data-wall]'));
+  rec('#A6 DESIGN places wall (count↑) + 3D extrusion renders', before >= 0 && after > before && poly, `before=${before} after=${after} poly=${poly}`);
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

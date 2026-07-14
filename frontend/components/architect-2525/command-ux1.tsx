@@ -21,6 +21,7 @@ import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
+import { ArchitectDesign, type DesignMetrics } from "./architect-design";
 
 // Self-contained theme (Architect = violet Trinity accent; mirrors Security's inline C object).
 const C = {
@@ -95,6 +96,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const econ = computeEconomy({ laborMin, reviewMin, donatedMin, ratePerHr, materialsUsd, aiMultiplier: 2, impact: 1.2, quality: 1.1 });
   const perDay = allocate(econ.totalUsd, days, allocMode);
   const iteration = 20; // current iteration in the 20-33 loop (demo)
+  const [designMetrics, setDesignMetrics] = useState<DesignMetrics | null>(null);
 
   const goHome = () => { if (directLink) router.push("/"); else { exitSimulationMode(); setVisionView("launcher"); } };
 
@@ -166,8 +168,13 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         </div>
       </div>
 
-      {/* TAB CONTENT — OVERVIEW + COST·TIME live; others "wiring pending". */}
-      <div data-arch-tab={activeTab} className="p-4">
+      {/* TAB CONTENT — DESIGN kept mounted (model survives tab switches); OVERVIEW + COST·TIME live; others pending. */}
+      <div className="p-4">
+        <div data-arch-tab={activeTab === "DESIGN" ? "DESIGN" : undefined} style={activeTab === "DESIGN" ? undefined : { display: "none" }}>
+          <ArchitectDesign onMetrics={setDesignMetrics} />
+        </div>
+        {activeTab !== "DESIGN" && (
+        <div data-arch-tab={activeTab}>
         {activeTab === "OVERVIEW" ? (
           <div className="space-y-3">
             <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>
@@ -182,6 +189,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               <Tile label="Time Capital" value={fmtUsd(econ.timeCapitalUsd)} sub="MoT × $/min" color={C.gold} />
               <Tile label="◬ ♡ 웃" value={`${econ.trinity.unity} · ${econ.trinity.heart} · ${fmtUsd(econ.trinity.human)}`} sub="Trinity ledger" color={C.cyan} />
               <Tile label="Fee" value={fmtUsd(econ.feeUsd)} sub="transparent · fair" color={C.green} />
+              <Tile label="Model" value={designMetrics ? `${designMetrics.walls} walls` : "—"} sub={designMetrics ? `${designMetrics.studs} studs · ${designMetrics.linearFt} ft` : "open DESIGN"} color={C.cyan} />
             </div>
             <div className="text-[11px] font-bold tracking-wider" style={{ color: C.violet }}>SSSES</div>
             <div className="grid grid-cols-5 gap-2">
@@ -238,6 +246,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             <span className="text-xs" style={{ color: C.dim }}>Architect-2525 · wiring pending</span>
             <span className="max-w-md text-[11px]" style={{ color: C.dim }}>See docs/architecture-2525/MASTER_SPEC.md.</span>
           </div>
+        )}
+        </div>
         )}
       </div>
 
