@@ -371,7 +371,7 @@ export function PoweredBadge() {
             router.push("/divinity-guide");
           }
         }}
-        className={`flex h-8 w-32 items-center justify-center gap-1.5 rounded-full border bg-background/80 px-3 text-xs backdrop-blur transition-colors cursor-pointer hover:bg-background/95 ${
+        className={`flex h-8 w-fit items-center justify-center gap-1.5 rounded-full border bg-background/80 px-3 text-xs backdrop-blur transition-colors cursor-pointer hover:bg-background/95 ${
           easterEggUnlocked ? "badge-blink" : ""
         }`}
         style={{
