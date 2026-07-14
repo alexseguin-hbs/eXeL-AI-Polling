@@ -108,6 +108,19 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A8: SUN·SKY celestial dome + window optimization ──
+{
+  const { pg, clk } = await mk();
+  await clk('button:has-text("SUN·SKY")'); await pg.waitForTimeout(200);
+  const ok = await pg.evaluate(() => {
+    const dome = document.querySelector('[data-arch-sky]');
+    const txt = document.querySelector('[data-arch-tab="SUN·SKY"]')?.textContent || '';
+    return !!dome && !!dome.querySelector('[data-el="sunpath"]') && !!dome.querySelector('[data-el="polaris"]') && txt.includes('WINDOW OPTIMIZATION') && txt.includes('Best light');
+  });
+  rec('#A8 SUN·SKY sun-path + Polaris + window optimization', ok, '');
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
