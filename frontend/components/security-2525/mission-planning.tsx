@@ -63,6 +63,22 @@ const C = {
 // GRID band colour — a BRIGHT violet (TRINITY family #8B00FF reads too dark on the map);
 // used for every horizontal latitude-band element (lines, 10% fill, letters) on 2D + 3D.
 const BAND_VIOLET = "#b57bff";
+// ONE grey country/state map-label law — reused by the Globe, the flat World Strip, and the
+// Tactical asset map so all three render identically (operator: "same method throughout all areas,
+// R-CORE reuse for max modular infrastructure"). Each caller supplies its own projected x/y + a
+// base `size` (globe 5/zoom · flat 3.6·flat.w/W · tactical fixed); GEO_LABEL fixes the shared
+// country-vs-state proportion + opacity. Country = C.text (grey), state = C.dim (dimmer/smaller).
+// Optional thin dark halo (tactical only, over busy terrain). Candidate for extraction into 2525-core
+// (Manta-2525 / Drone-2525 inherit the same label law). Pure, stateless.
+const GEO_LABEL = { country: { size: 1, opacity: 0.6 }, state: { size: 0.74, opacity: 0.5 } };
+function GeoLabel({ x, y, size, name, kind = "country", halo = 0 }:
+  { x: number; y: number; size: number; name: string; kind?: "country" | "state"; halo?: number }) {
+  return (
+    <text x={x} y={y} fontSize={size * GEO_LABEL[kind].size} fill={kind === "country" ? C.text : C.dim}
+      opacity={GEO_LABEL[kind].opacity} textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke"
+      stroke="#0a0e14" strokeWidth={halo} style={{ fontFamily: "monospace", letterSpacing: "0.03em", paintOrder: "stroke" }}>{name}</text>
+  );
+}
 // VOXEL size tier → BASE footprint scale ONLY. 3X full · 2X ⅔ · 1X ⅓. Single source of truth
 // for both render blocks. NB: this scales the base footprint (cellPx) — NOT the vertical band
 // unit (bandPx = unscaled cellW), so column height + altitude stay fixed across tiers.
@@ -578,20 +594,27 @@ function GridReadout({ zone, band, hKm, wKm }: { zone: number; band: string; hKm
   );
 }
 
-function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onFrameCell, coordFmt, showZones, hiddenKeys }: {
+function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onEnterPoint, onFrameCell, coordFmt, showZones, hiddenKeys }: {
   data: BorderData | null; center: [number, number]; activeKey: string;
   onSelect: (k: string) => void; onDrill: (lat: number, lon: number) => void; onEnterAo?: (k: string) => void;
+  onEnterPoint?: (lat: number, lon: number) => void;
   onFrameCell?: (latS: number, latN: number, lonW: number, lonE: number) => void;
   coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; showZones: boolean; hiddenKeys?: Set<string>;
 }) {
-  // FX-43 (operator): zoom-in / grid-square drill ALWAYS smooth-scrolls into the NEAREST AO
-  // (Texas Capitol, Camp Blanding, …) — never the flat-map equivalent. No distance threshold.
+  // Double-click a specific AO marker = EXPLICIT selection → smooth-scroll into THAT AO (real OSM/DEM).
   const nearestAo = (lat: number, lon: number) => {
     let best = "", bd = Infinity;
     for (const a of AOS) { if (hiddenKeys?.has(a.key)) continue; const d = Math.hypot(a.center[0] - lat, a.center[1] - lon); if (d < bd) { bd = d; best = a.key; } }
     return best;
   };
   const drillOrEnter = (lat: number, lon: number) => { const k = onEnterAo && nearestAo(lat, lon); if (k) onEnterAo!(k); else onDrill(lat, lon); };
+  // INZOOM handoff (operator): zooming IN past ZMAX enters the tactical map centred EXACTLY on the SCREEN-CENTRE
+  // coordinate (the crosshair / centre voxel), NEVER the nearest AO. Screen-centre is tilt-corrected — the fixed 3D
+  // tilt projects the nadir (lat0,lon0) below centre, so the point under the crosshair sits `tilt` rad NORTH.
+  const enterCtr = () => {
+    const cLat = Math.max(-80, Math.min(84, cam.lat0 + cam.tilt * (180 / Math.PI)));
+    if (onEnterPoint) onEnterPoint(cLat, cam.lon0); else drillOrEnter(cam.lat0, cam.lon0);
+  };
   const CX = 170, CY = 170, RING = 150, R = 150;
   const D = Math.PI / 180;
   const ZMAX = 4; // magnify up to 4× before drilling into the flat/AO map
@@ -637,7 +660,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onFr
   useWheel(gsvg, (e) => {
     e.preventDefault();
     const zin = e.deltaY < 0, factor = zin ? 1.15 : 1 / 1.15;
-    if (cam.zoom * factor > ZMAX && zin) { drillOrEnter(cam.lat0, cam.lon0); return; }
+    if (cam.zoom * factor > ZMAX && zin) { enterCtr(); return; }
     setCam((c) => ({ ...c, zoom: Math.min(ZMAX, Math.max(1, c.zoom * factor)) }));
   });
   const proj = (lat: number, lon: number): [number, number, boolean] => {
@@ -771,7 +794,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onFr
             const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
             const dcx = cx - pinch.current.cx, dcy = cy - pinch.current.cy;
             pinch.current = { dist, cx, cy, ang };
-            if (cam.zoom * factor > ZMAX) { drillOrEnter(cam.lat0, cam.lon0); return; }
+            if (cam.zoom * factor > ZMAX) { enterCtr(); return; }
             setCam((c) => ({
               ...c,
               zoom: Math.min(ZMAX, Math.max(1, c.zoom * factor)),
@@ -819,7 +842,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onFr
         {!dragging && COUNTRIES.filter((c) => !c.min || 180 / zoom <= c.min).map((c) => {
           const [x, y, v] = proj(c.lat, c.lon);
           if (!v) return null;
-          return <text key={c.name} x={x} y={y} fontSize={5 / zoom} fill={C.text} opacity="0.55" textAnchor="middle" dominantBaseline="middle" style={{ fontFamily: "monospace", letterSpacing: "0.02em" }}>{c.name}</text>;
+          return <GeoLabel key={c.name} x={x} y={y} size={5 / zoom} name={c.name} />;
         })}
         {AOS.filter((ao) => !hiddenKeys?.has(ao.key)).map((ao) => {
           const [x, y, v] = proj(ao.center[0], ao.center[1]);
@@ -901,7 +924,7 @@ function GlobeView({ data, center, activeKey, onSelect, onDrill, onEnterAo, onFr
   );
 }
 
-function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], placedSupport = [], label, onMinimize, coordFmt, hiddenKeys }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; onEnterCoord?: (latS: number, latN: number, lonW: number, lonE: number, code: string) => void; placed?: Placed[]; placedSupport?: PlacedSupport[]; label?: string; onMinimize?: () => void; coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; hiddenKeys?: Set<string> }) {
+function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, onEnterPoint, placed = [], placedSupport = [], label, onMinimize, coordFmt, hiddenKeys }: { aoKey: string; onSelect: (k: string) => void; onEnterAo?: (k: string) => void; onEnterCoord?: (latS: number, latN: number, lonW: number, lonE: number, code: string) => void; onEnterPoint?: (lat: number, lon: number) => void; placed?: Placed[]; placedSupport?: PlacedSupport[]; label?: string; onMinimize?: () => void; coordFmt: "mgrs" | "dms" | "ucrs" | "utm"; hiddenKeys?: Set<string> }) {
   const [data, setData] = useState<BorderData | null>(borderCache);
   const [mode, setMode] = useState<"globe" | "flat">("globe");
   const [showZones, setShowZones] = useState(false); // MGRS/LLV-DMS grid-zone training overlay (globe + flat)
@@ -939,35 +962,20 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], pla
   // featureless blue screen ("crash at 26 km"). FLOOR the flat zoom there; the tactical
   // AO map is the detail engine (hand off when an AO is within reach, else clamp + hint).
   const FLAT_MIN_W = 4; // svg units ≈ 2° ≈ 220 km wide
-  // Nearest VISIBLE predefined AO inside a GZD cell (or null) — shared by BOTH grid→tactical entry paths (wheel handoff +
-  // frameCellFlat) so a multi-AO cell resolves to the SAME destination regardless of how it was entered.
-  const nearestAoInCell = (latS: number, latN: number, lonW: number, lonE: number) => {
-    const c0 = (latS + latN) / 2, c1 = (lonW + lonE) / 2;
-    let best: Ao | null = null, bd = Infinity;
-    for (const a of AOS) {
-      if (hiddenKeys?.has(a.key)) continue;
-      if (a.center[0] >= latS && a.center[0] <= latN && a.center[1] >= lonW && a.center[1] <= lonE) {
-        const d = Math.hypot(a.center[0] - c0, a.center[1] - c1);
-        if (d < bd) { bd = d; best = a; }
-      }
-    }
-    return best;
-  };
   useWheel(flatSvg, (e) => {
     e.preventDefault();
     const k = e.deltaY > 0 ? 1.15 : 1 / 1.15;
     if (flat.w * k >= W * 0.98 && e.deltaY > 0) { setMode("globe"); return; }
     const nw = Math.min(W, Math.max(FLAT_MIN_W, flat.w * k));
     // SEAMLESS handoff (operator): zooming IN past where a single GZD cell (6° = W/60 = 12 units) fills the pane → enter
-    // the TACTICAL asset map at the current CENTRE. Predefined AO in the centred cell → that AO (real OSM/DEM); else a
-    // custom "GRID <code>" cell via onEnterCoord. So the flat world strip is just the mid layer of ONE continuous map.
+    // the TACTICAL asset map centred EXACTLY on the SCREEN-CENTRE coordinate (the crosshair / centre voxel = asset anchor)
+    // — NEVER the nearest predefined AO/AOR. So the flat world strip is just the mid layer of ONE continuous map.
     // NB: call the enter-callbacks OUTSIDE setFlat — a parent setState inside a state updater crashes React.
     if (e.deltaY < 0 && nw <= W / 60) {
       const mx = flat.x + flat.w / 2, my = flat.y + flat.h / 2;
       const clat = 90 - (my / H) * 180, clon = ((((mx / W) * 360 - 180) % 360) + 360 + 180) % 360 - 180;
+      if (onEnterPoint) { onEnterPoint(clat, clon); return; }
       const gc = gzdOf(clat, clon);
-      const best = nearestAoInCell(gc.latS, gc.latN, gc.lonW, gc.lonE);
-      if (onEnterAo && best) { onEnterAo(best.key); return; }
       if (onEnterCoord) { onEnterCoord(gc.latS, gc.latN, gc.lonW, gc.lonE, `${gc.zone}${gc.band}`); return; }
       if (flat.w <= FLAT_MIN_W) return; // no enter-callback → clamp at the floor (never a blue screen)
     }
@@ -981,16 +989,13 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], pla
   // fitted to the pane aspect (phone portrait OR PC landscape). viewBox aspect is set to the pane
   // aspect so "slice" doesn't crop the cell; 25% margin around it.
   const frameCellFlat = (latS: number, latN: number, lonW: number, lonE: number) => {
-    // FX-GLOBE (operator): a grid-cell tap ALWAYS enters the TACTICAL asset-placement map at that coordinate — never the
-    // flat map. If a predefined AO sits INSIDE the tapped cell, enter it (real OSM/DEM). Otherwise drill a custom "GRID
-    // <code>" AO at the exact clicked cell via onEnterCoord (e.g. 4Q → Hawaii), so the operator can place assets there.
+    // FX-GLOBE (operator): a grid-cell tap ALWAYS enters the TACTICAL asset-placement map framed on the TAPPED cell —
+    // never the flat map, and never snapped to the nearest predefined AO/AOR ("we will not go to the closest AOR OR AO").
+    // Drill a custom "GRID <code>" AO at the exact clicked cell via onEnterCoord (e.g. 4Q → Hawaii) so the operator can
+    // place assets there. Predefined AOs remain reachable by explicit marker/dropdown selection.
     const cLat = (latS + latN) / 2, cLon = (lonW + lonE) / 2;
     const g = gzdOf(cLat, cLon);
-    if (onEnterAo) {
-      const best = nearestAoInCell(latS, latN, lonW, lonE);
-      if (best) { onEnterAo(best.key); return; }
-    }
-    // No predefined AO in the cell → frame the whole cell (corners) on the tactical map (custom AO). NEVER stay flat.
+    // Frame the whole tapped cell (corners) on the tactical map (custom AO). NEVER stay flat, NEVER a nearby AO.
     if (onEnterCoord) { onEnterCoord(latS, latN, lonW, lonE, `${g.zone}${g.band}`); return; }
     // Defensive fallback ONLY if onEnterCoord wasn't provided: frame the flat map on the cell (should not happen).
     const rect = flatSvg.current?.getBoundingClientRect();
@@ -1009,7 +1014,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], pla
   return (
     <div className="relative h-full w-full overflow-hidden rounded-md border" style={{ borderColor: C.border, background: "#070b12" }}>
       {mode === "globe" ? (
-        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} onFrameCell={frameCellFlat} coordFmt={coordFmt} showZones={showZones} hiddenKeys={hiddenKeys} />
+        <GlobeView data={data} center={center} activeKey={aoKey} onSelect={onSelect} onDrill={drillToFlat} onEnterAo={onEnterAo} onEnterPoint={onEnterPoint} onFrameCell={frameCellFlat} coordFmt={coordFmt} showZones={showZones} hiddenKeys={hiddenKeys} />
       ) : (
         <svg ref={flatSvg} viewBox={`${flat.x} ${flat.y} ${flat.w} ${flat.h}`} preserveAspectRatio="xMidYMid slice"
           className="block h-full w-full touch-none" role="img"
@@ -1080,7 +1085,7 @@ function WorldStrip({ aoKey, onSelect, onEnterAo, onEnterCoord, placed = [], pla
               {COUNTRIES.filter((c) => !c.min || (flat.w / W) * 180 <= c.min).map((c) => {
                 const x = ((c.lon + 180) / 360) * W, y = ((90 - c.lat) / 180) * H;
                 return (
-                  <text key={c.name} x={x} y={y} fontSize={3.6 * (flat.w / W)} fill={C.text} opacity="0.5" textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", letterSpacing: "0.03em" }}>{c.name}</text>
+                  <GeoLabel key={c.name} x={x} y={y} size={3.6 * (flat.w / W)} name={c.name} />
                 );
               })}
               {/* Major metros (≥1M) — surface once zoomed past continent scale */}
@@ -2275,7 +2280,7 @@ function AoMapPane(p: PaneProps) {
                   return (
                     <g style={{ pointerEvents: "none" }} data-geolabels>
                       {kept.map((k, i) => (
-                        <text key={`gl${i}${k.name}`} x={k.px} y={k.py} fontSize={k.country ? 2.3 : 1.7} fill={k.country ? C.borderCountry : C.borderState} opacity={k.country ? 0.7 : 0.8} textAnchor="middle" dominantBaseline="middle" vectorEffect="non-scaling-stroke" style={{ fontFamily: "monospace", paintOrder: "stroke", letterSpacing: k.country ? "0.04em" : "0.03em" }} stroke="#0a0e14" strokeWidth={k.country ? 0.6 : 0.5}>{k.name}</text>
+                        <GeoLabel key={`gl${i}${k.name}`} x={k.px} y={k.py} size={2.0} name={k.name} kind={k.country ? "country" : "state"} halo={0.3} />
                       ))}
                     </g>
                   );
@@ -4968,6 +4973,16 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
     if (isB) setEntryGridB(true); else if (setMode === setModeA_) setEntryGridA(true); // FX-YGRID: yellow grid on entry
     animateSpanTo(wide, fitKm, 950, setV);
   };
+  // ENTER-POINT (operator): an INZOOM from the Globe or the flat World Strip lands the tactical asset map centred
+  // EXACTLY on the screen-centre coordinate — the crosshair / centre voxel = the asset-placement anchor — and NEVER
+  // snaps to the nearest predefined AO/AOR. Reuse enterCoord with a tight symmetric box around the point so its
+  // midpoint (cLat,cLon) IS this coordinate, at a tactical span (~±0.08° ≈ 18 km). Predefined AOs are unaffected
+  // (enterCoord only ever recalls a previously-saved CUSTOM cell), so we can only land on screen-centre or a cell the
+  // operator themselves saved — exactly the requested law.
+  const enterPoint = (lat: number, lon: number, setMode: (m: "world" | "ao") => void) => {
+    const d = 0.08, g = gzdOf(lat, lon);
+    enterCoord(lat - d, lat + d, lon - d, lon + d, `${g.zone}${g.band}`, setMode);
+  };
   // PROMOTE (operator): the moment an asset/support is placed while viewing a transient scratch cell, save it as a real
   // customAo (persisted + deletable) — "persist as if the user wants to save". Empty scratch visits are never saved.
   useEffect(() => {
@@ -5669,6 +5684,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
               <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
                 <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
                   onEnterAo={(k) => enterAo(k, setModeB_)} onEnterCoord={(latS, latN, lonW, lonE, code) => enterCoord(latS, latN, lonW, lonE, code, setModeB_)}
+                  onEnterPoint={(lat, lon) => enterPoint(lat, lon, setModeB_)}
                   placed={placed} placedSupport={placedSupport} onMinimize={() => setFsPane(null)} coordFmt={coordFmt} hiddenKeys={worldHidden} />
               </div>
             ) : (
@@ -5682,6 +5698,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
             <div className="h-full w-full overflow-hidden rounded-lg border shadow-xl" style={{ borderColor: C.border, background: C.panel }}>
               <WorldStrip label="MAP" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
                 onEnterAo={(k) => enterAo(k, setModeA_)} onEnterCoord={(latS, latN, lonW, lonE, code) => enterCoord(latS, latN, lonW, lonE, code, setModeA_)}
+                onEnterPoint={(lat, lon) => enterPoint(lat, lon, setModeA_)}
                 placed={placed} placedSupport={placedSupport} onMinimize={fsPane === "map" ? () => setFsPane(null) : undefined} coordFmt={coordFmt} hiddenKeys={worldHidden} />
             </div>
           ) : (
@@ -5719,6 +5736,7 @@ function MissionPlanningImpl({ iconStyle, onMaxChange }: { iconStyle: IconStyle;
                 {modeB === "world" ? (
                   <WorldStrip label="MINI" aoKey={aoKey} onSelect={(k) => { setAoKey(k); }}
                     onEnterAo={(k) => enterAo(k, setModeB_)} onEnterCoord={(latS, latN, lonW, lonE, code) => enterCoord(latS, latN, lonW, lonE, code, setModeB_)}
+                  onEnterPoint={(lat, lon) => enterPoint(lat, lon, setModeB_)}
                     placed={placed} placedSupport={placedSupport} coordFmt={coordFmt} hiddenKeys={worldHidden} />
                 ) : (
                   <AoMapPane {...paneCommon} dem={mirror ? dem : demB} label="MINI MAP" showElevation={false} spanFactor={mirror ? 1 : OVERVIEW_FACTOR}
