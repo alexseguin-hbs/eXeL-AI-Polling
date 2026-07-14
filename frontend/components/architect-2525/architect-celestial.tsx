@@ -216,6 +216,27 @@ export function ArchitectCelestial({
   }, [hu, sinE, selIdx]);
 
   const bgStars = useMemo(() => starfield(SUN_X, SUN_Y, 116, 130), []); // fixed celestial-sphere backdrop
+  // Memoised backdrop element — the ~180 stars/constellations are static, so React reuses this exact tree on
+  // every pan/zoom/rotate (only the parent <g> transform changes) → smooth navigation, no per-frame element churn.
+  const starfieldEl = useMemo(() => (
+    <g data-starfield>
+      <circle cx={SUN_X} cy={SUN_Y} r="116" fill="none" stroke="#131c28" strokeWidth="0.3" />
+      {bgStars.map(([sx, sy, sr], i) => <circle key={`bg${i}`} cx={sx} cy={sy} r={sr} fill="#8b9bb5" opacity="0.45" />)}
+      {PRIORITY_CONSTELLATIONS.map((con) => {
+        const RB = 108, ccx = SUN_X + RB * con.radius * Math.sin(con.angle * DEG), ccy = SUN_Y - RB * con.radius * Math.cos(con.angle * DEG);
+        const pts = con.stars.map(([dx, dy]) => [ccx + dx, ccy + dy] as const);
+        const isUMi = con.name === "Ursa Minor";
+        return (
+          <g key={con.name} data-constellation={con.name}>
+            {con.lines.map(([a, b], i) => <line key={i} x1={pts[a][0]} y1={pts[a][1]} x2={pts[b][0]} y2={pts[b][1]} stroke="#39496380" strokeWidth="0.2" />)}
+            {pts.map(([x, y], i) => { const polaris = isUMi && i === 0; return <circle key={i} cx={x} cy={y} r={polaris ? 0.9 : 0.5} fill={polaris ? "#ffffff" : "#aebfd6"} />; })}
+            <text x={ccx} y={ccy - 8} fontSize="2.1" fill="#54627a" textAnchor="middle" style={{ fontFamily: "monospace" }}>{con.name}</text>
+            {isUMi && <text x={pts[0][0] + 1.5} y={pts[0][1] - 0.5} fontSize="2.3" fill="#fff" style={{ fontFamily: "monospace" }}>Polaris</text>}
+          </g>
+        );
+      })}
+    </g>
+  ), [bgStars]);
   const sel = laid.find((l) => l.p.id === selId) || laid[2];
   const rd = ucrsAt(sel.p, sel.effHu);
   const drawOrder = [...laid].sort((a, b) => a.depth - b.depth); // back planets first
@@ -263,26 +284,9 @@ export function ArchitectCelestial({
         <svg ref={svgRef} {...gestureHandlers} data-arch-celestial data-peritop={periTop ? "1" : undefined} viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet"
           className={max ? "h-full w-full touch-none select-none rounded" : "w-full touch-none select-none rounded"}
           style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: max ? undefined : "2.2 / 1", height: max ? "100%" : undefined, cursor: pan.current ? "grabbing" : "grab" }}>
-          <g data-cel-view transform={vt}>
-          {/* CELESTIAL SPHERE — fixed star backdrop (you're inside looking out); pans/zooms/rotates with the view.
-              Priority constellations + Polaris pinned near north. Behind the orbits. */}
-          <g data-starfield>
-            <circle cx={SUN_X} cy={SUN_Y} r="116" fill="none" stroke="#131c28" strokeWidth="0.3" />
-            {bgStars.map(([sx, sy, sr], i) => <circle key={`bg${i}`} cx={sx} cy={sy} r={sr} fill="#8b9bb5" opacity="0.45" />)}
-            {PRIORITY_CONSTELLATIONS.map((con) => {
-              const RB = 108, ccx = SUN_X + RB * con.radius * Math.sin(con.angle * DEG), ccy = SUN_Y - RB * con.radius * Math.cos(con.angle * DEG);
-              const pts = con.stars.map(([dx, dy]) => [ccx + dx, ccy + dy] as const);
-              const isUMi = con.name === "Ursa Minor";
-              return (
-                <g key={con.name} data-constellation={con.name}>
-                  {con.lines.map(([a, b], i) => <line key={i} x1={pts[a][0]} y1={pts[a][1]} x2={pts[b][0]} y2={pts[b][1]} stroke="#39496380" strokeWidth="0.2" />)}
-                  {pts.map(([x, y], i) => { const polaris = isUMi && i === 0; return <circle key={i} cx={x} cy={y} r={polaris ? 0.9 : 0.5} fill={polaris ? "#ffffff" : "#aebfd6"} />; })}
-                  <text x={ccx} y={ccy - 8} fontSize="2.1" fill="#54627a" textAnchor="middle" style={{ fontFamily: "monospace" }}>{con.name}</text>
-                  {isUMi && <text x={pts[0][0] + 1.5} y={pts[0][1] - 0.5} fontSize="2.3" fill="#fff" style={{ fontFamily: "monospace" }}>Polaris</text>}
-                </g>
-              );
-            })}
-          </g>
+          <g data-cel-view transform={vt} style={{ willChange: "transform" }}>
+          {/* CELESTIAL SPHERE — fixed star backdrop (memoised); pans/zooms/rotates with the view. */}
+          {starfieldEl}
           {periTop ? (
           <g data-overhead-view>
             {/* TOP-DOWN CLOCK VIEW — looking straight down the orbital plane: near-circular orbits, UNIFORM
