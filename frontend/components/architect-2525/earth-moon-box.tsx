@@ -12,15 +12,18 @@ import { moonState } from "@/lib/astro-moon";
 import { MiniGlobe } from "./mini-globe";
 import { TexturedGlobe } from "./textured-globe";
 
-export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172, hour = 12, size = 116, color = "#ffd400", bare = false }: {
-  lat?: number; lon?: number; year?: number; doy?: number; hour?: number; size?: number; color?: string; bare?: boolean;
+export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172, hour = 12, size = 116, color = "#ffd400", bare = false, playT = 0 }: {
+  lat?: number; lon?: number; year?: number; doy?: number; hour?: number; size?: number; color?: string; bare?: boolean; playT?: number;
 }) {
   const m = moonState(year, doy, hour);
   const cx = size / 2, cy = size / 2;
   // orbit radius tracks real distance (363k perigee → 405k apogee) mapped into the box
   const dist01 = Math.max(0, Math.min(1, (m.distanceKm - 356500) / (406700 - 356500)));
   const orbR = size * (0.34 + 0.08 * dist01);
-  const ang = m.eclLonMoon * Math.PI / 180;                 // accurate orbital angle
+  // PLAY advances the Moon exactly 13.18° (the arc it covers in the 24 h of one Earth rotation); tidal
+  // locking → the Moon's own spin equals its orbital angle (same face toward Earth).
+  const moonAngleDeg = m.eclLonMoon + playT * 13.176;
+  const ang = moonAngleDeg * Math.PI / 180;                 // accurate orbital angle
   const mx = cx + orbR * Math.cos(ang), my = cy - orbR * Math.sin(ang);
   const moonSize = Math.max(16, size * 0.2);
   const globe = size * 0.6;
@@ -34,11 +37,11 @@ export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172
       </svg>
       {/* Earth vector globe (draggable) — precise graticule + site marker */}
       <div className="absolute" style={{ left: cx - globe / 2, top: cy - globe / 2, width: globe }}>
-        <MiniGlobe lat={lat} lon={lon} size={globe} color={color} spinDeg={(hour / 24) * 360} />
+        <MiniGlobe lat={lat} lon={lon} size={globe} color={color} spinDeg={(hour / 24) * 360 + playT * 360} />
       </div>
-      {/* Moon — real texture, at the accurate orbital position */}
+      {/* Moon — real texture, at the accurate orbital position (spin = orbital angle → tidally locked) */}
       <div className="absolute" style={{ left: mx - moonSize / 2, top: my - moonSize / 2 }} data-moon-body>
-        <TexturedGlobe src={MOON.tex} size={moonSize} spinDeg={m.eclLonMoon} />
+        <TexturedGlobe src={MOON.tex} size={moonSize} spinDeg={moonAngleDeg} />
       </div>
     </div>
   );

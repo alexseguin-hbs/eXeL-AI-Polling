@@ -28,20 +28,21 @@ export interface Planet {
   globe: string;       // realistic base albedo colour for the draggable 3D globe (distinct from Trinity dot colour)
   rings?: boolean;     // Saturn — draw ring system on the 3D globe + map dot
   tex: string;         // real equirectangular surface map (local /public/planets asset) for the textured 3D globe
+  rotDays: number;     // sidereal axial rotation period (Earth days); negative = retrograde spin (Venus, Uranus, Pluto)
 }
 
 // Mercury → Neptune → Pluto, coloured across the Trinity spectrum (red → violet → ultraviolet).
 // radiusKm = real equatorial radius (Jupiter 69,911 → Pluto 1,188); globe = realistic albedo for the 3D view.
 export const PLANETS: Planet[] = [
-  { id: "mercury", name: "Mercury", aAU: 0.387098, e: 0.205630, tDays: 87.969, color: "#ff2d2d", dot: 1.1, ea: "—", radiusKm: 2439.7, surface: "rocky", globe: "#8c8378", tex: "/planets/mercurymap.jpg" },
-  { id: "venus", name: "Venus", aAU: 0.723332, e: 0.006772, tDays: 224.701, color: "#ff8c1a", dot: 1.5, ea: "—", radiusKm: 6051.8, surface: "banded", globe: "#d9b87a", tex: "/planets/venusmap.jpg" },
-  { id: "earth", name: "Earth", aAU: 1.000000, e: 0.016710, tDays: 365.2422, color: "#ffd400", dot: 2.6, ea: "230.1584", radiusKm: 6371.0, surface: "rocky", globe: "#2f6fb0", tex: "/planets/earthmap1k.jpg" },
-  { id: "mars", name: "Mars", aAU: 1.523679, e: 0.093400, tDays: 686.980, color: "#22c55e", dot: 1.3, ea: "—", radiusKm: 3389.5, surface: "rocky", globe: "#b5502f", tex: "/planets/marsmap1k.jpg" },
-  { id: "jupiter", name: "Jupiter", aAU: 5.204267, e: 0.048775, tDays: 4332.589, color: "#19c8cf", dot: 2.2, ea: "—", radiusKm: 69911, surface: "banded", globe: "#c9a06a", tex: "/planets/jupitermap.jpg" },
-  { id: "saturn", name: "Saturn", aAU: 9.582017, e: 0.055723, tDays: 10759.22, color: "#3b82f6", dot: 2.0, ea: "—", radiusKm: 58232, surface: "banded", globe: "#d9c48a", rings: true, tex: "/planets/saturnmap.jpg" },
-  { id: "uranus", name: "Uranus", aAU: 19.18916, e: 0.047220, tDays: 30688.5, color: "#6366f1", dot: 1.7, ea: "—", radiusKm: 25362, surface: "banded", globe: "#a5d6d9", tex: "/planets/uranusmap.jpg" },
-  { id: "neptune", name: "Neptune", aAU: 30.06992, e: 0.008678, tDays: 60182.0, color: "#a855f7", dot: 1.7, ea: "—", radiusKm: 24622, surface: "banded", globe: "#3a5bd0", tex: "/planets/neptunemap.jpg" }, // violet — "last planet"
-  { id: "pluto", name: "Pluto", aAU: 39.48211, e: 0.248808, tDays: 90560.0, color: "#d400ff", dot: 0.9, ea: "—", radiusKm: 1188.3, surface: "rocky", globe: "#b8a68f", tex: "/planets/plutomap1k.jpg" },   // ultraviolet (UV)
+  { id: "mercury", name: "Mercury", aAU: 0.387098, e: 0.205630, tDays: 87.969, color: "#ff2d2d", dot: 1.1, ea: "—", radiusKm: 2439.7, surface: "rocky", globe: "#8c8378", tex: "/planets/mercurymap.jpg", rotDays: 58.646 },
+  { id: "venus", name: "Venus", aAU: 0.723332, e: 0.006772, tDays: 224.701, color: "#ff8c1a", dot: 1.5, ea: "—", radiusKm: 6051.8, surface: "banded", globe: "#d9b87a", tex: "/planets/venusmap.jpg", rotDays: -243.025 },
+  { id: "earth", name: "Earth", aAU: 1.000000, e: 0.016710, tDays: 365.2422, color: "#ffd400", dot: 2.6, ea: "230.1584", radiusKm: 6371.0, surface: "rocky", globe: "#2f6fb0", tex: "/planets/earthmap1k.jpg", rotDays: 0.99726968 },
+  { id: "mars", name: "Mars", aAU: 1.523679, e: 0.093400, tDays: 686.980, color: "#22c55e", dot: 1.3, ea: "—", radiusKm: 3389.5, surface: "rocky", globe: "#b5502f", tex: "/planets/marsmap1k.jpg", rotDays: 1.02595676 },
+  { id: "jupiter", name: "Jupiter", aAU: 5.204267, e: 0.048775, tDays: 4332.589, color: "#19c8cf", dot: 2.2, ea: "—", radiusKm: 69911, surface: "banded", globe: "#c9a06a", tex: "/planets/jupitermap.jpg", rotDays: 0.41354 },
+  { id: "saturn", name: "Saturn", aAU: 9.582017, e: 0.055723, tDays: 10759.22, color: "#3b82f6", dot: 2.0, ea: "—", radiusKm: 58232, surface: "banded", globe: "#d9c48a", rings: true, tex: "/planets/saturnmap.jpg", rotDays: 0.44401 },
+  { id: "uranus", name: "Uranus", aAU: 19.18916, e: 0.047220, tDays: 30688.5, color: "#6366f1", dot: 1.7, ea: "—", radiusKm: 25362, surface: "banded", globe: "#a5d6d9", tex: "/planets/uranusmap.jpg", rotDays: -0.71833 },
+  { id: "neptune", name: "Neptune", aAU: 30.06992, e: 0.008678, tDays: 60182.0, color: "#a855f7", dot: 1.7, ea: "—", radiusKm: 24622, surface: "banded", globe: "#3a5bd0", tex: "/planets/neptunemap.jpg", rotDays: 0.67125 }, // violet — "last planet"
+  { id: "pluto", name: "Pluto", aAU: 39.48211, e: 0.248808, tDays: 90560.0, color: "#d400ff", dot: 0.9, ea: "—", radiusKm: 1188.3, surface: "rocky", globe: "#b8a68f", tex: "/planets/plutomap1k.jpg", rotDays: -6.38723 },   // ultraviolet (UV)
 ];
 
 /** Earth's Moon — companion body for the 3D globe view (real NASA-derived albedo map). */

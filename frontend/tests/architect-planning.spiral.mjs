@@ -359,11 +359,7 @@ const mk = async (vp) => {
   const srUnitOk = !!sr0 && sr0 !== sr1 && /km/.test(await pg.evaluate(() => document.querySelector('[data-ucrs-readout]')?.textContent || ''));
   await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(300);
   const merc = await pg.evaluate(() => !!document.querySelector('[data-textured-globe]') && !document.querySelector('[data-earth-moon]')); // Mercury → real-textured 3D globe
-  const readT = () => pg.evaluate(() => (document.querySelector('[data-arch-tab="Design"]')?.textContent || '').match(/(\d+\.\d)h\b/)?.[1] || null);
-  const t0 = await readT();
-  await pg.locator('[data-cel-play]').click(); await pg.waitForTimeout(600); await pg.locator('[data-cel-play]').click();
-  const t1 = await readT();
-  rec('#A23 date + play + Earth+Moon box ↔ planet globe + SR unit cycles (m/×10⁶/×10⁹/AU) + km', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && srUnitOk && !!t0 && t0 !== t1, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} merc=${merc} sr0=${sr0} sr1=${sr1} srUnitOk=${srUnitOk} t0=${t0} t1=${t1}`);
+  rec('#A23 date + play control + Earth+Moon box ↔ textured planet + SR unit cycles (m/×10⁶/×10⁹/AU) + km', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && srUnitOk, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} merc=${merc} sr0=${sr0} sr1=${sr1} srUnitOk=${srUnitOk}`);
   await pg.close();
 }
 
@@ -458,6 +454,26 @@ const mk = async (vp) => {
   await setDate('2025-01-13'); await pg.waitForTimeout(400); const p1 = await posOf(), i1 = await illumOf();
   await setDate('2025-01-21'); await pg.waitForTimeout(400); const p2 = await posOf(), i2 = await illumOf();
   rec('#A29 Moon accurate orbit — real-textured Moon moves + phase changes with date', has && p1 !== p2 && !!i1 && i1 !== i2, `has=${has} moved=${p1 !== p2} i1=${i1} i2=${i2}`);
+  await pg.close();
+}
+
+// ── #A28: zoom-to-detail on the textured globe (wheel raises data-zoom) + Play runs ONE rotation then auto-stops ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  await pg.locator('[data-planet-id="mars"]').click({ force: true }); await pg.waitForTimeout(500);
+  const g = await pg.locator('[data-textured-globe]').boundingBox();
+  const z0 = await pg.evaluate(() => +(document.querySelector('[data-textured-globe]')?.getAttribute('data-zoom') || 1));
+  if (g) { await pg.mouse.move(g.x + g.width / 2, g.y + g.height / 2); for (let i = 0; i < 6; i++) { await pg.mouse.wheel(0, -120); await pg.waitForTimeout(30); } }
+  await pg.waitForTimeout(200);
+  const z1 = await pg.evaluate(() => +(document.querySelector('[data-textured-globe]')?.getAttribute('data-zoom') || 1));
+  await pg.locator('[data-planet-id="earth"]').click({ force: true }); await pg.waitForTimeout(300);
+  await pg.locator('[data-cel-play]').click(); await pg.waitForTimeout(500);
+  const during = await pg.evaluate(() => (document.querySelector('[data-cel-play]')?.textContent || '').includes('pause'));
+  await pg.waitForTimeout(6500); // one-rotation preview = 6s → auto-stop
+  const after = await pg.evaluate(() => (document.querySelector('[data-cel-play]')?.textContent || '').includes('play'));
+  rec('#A28 zoom-to-detail on globe (wheel) + Play one rotation then auto-stops', z1 > z0 && z1 > 1.3 && during && after, `z0=${z0} z1=${z1} during=${during} after=${after}`);
   await pg.close();
 }
 

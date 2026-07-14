@@ -55,18 +55,16 @@ function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string;
 
 export function ArchitectCelestial({
   lat = 30.44, lon = -97.62,
-  year = 2025, doy = 172, hour = 12, onYear, onDoy, onHour,
+  year = 2025, doy = 172, hour = 12, onYear, onDoy,
 }: {
   lat?: number; lon?: number;
   year?: number; doy?: number; hour?: number;                 // date/time lifted from SUN·SKY so the Sky Dome stays synced
   onYear?: (n: number | ((p: number) => number)) => void;
   onDoy?: (n: number | ((p: number) => number)) => void;
-  onHour?: (n: number | ((p: number) => number)) => void;
 } = {}) {
   // Default location: Pfield · Pflugerville, TX (shared with the Sky Dome / view-from-location).
   const setYear = useMemo(() => onYear ?? (() => {}), [onYear]);
   const setDoy = useMemo(() => onDoy ?? (() => {}), [onDoy]);
-  const setHour = useMemo(() => onHour ?? (() => {}), [onHour]);
   const [hu, setHu] = useState(0);
   const [selId, setSelId] = useState("earth");
   const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
@@ -78,14 +76,26 @@ export function ArchitectCelestial({
   const isoDate = new Date(Date.UTC(year, 0, doy)).toISOString().slice(0, 10);
   const setFromDate = (iso: string) => { const d = new Date(iso + "T00:00:00Z"); if (isNaN(d.getTime())) return; setYear(d.getUTCFullYear()); setDoy(Math.round((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 0)) / 86400000)); };
   const monthDay = new Date(year, 0, doy).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  // PLAY: time flows → Earth spins on its axis (hour) + every planet advances along its orbit (HU).
+  // PLAY: run exactly ONE full axial rotation of the selected body, then auto-stop. playT ramps 0→1 over
+  // a fixed preview; the selected planet's globe spins 360° in its ACCURATE direction (retrograde = −1),
+  // and (Earth) the Moon advances the 13.18° it really covers in 24 h. Deterministic preview → resets to 0.
+  const [playT, setPlayT] = useState(0);
   const raf = useRef<number | null>(null);
+  const playStart = useRef<number | null>(null);
   useEffect(() => {
-    if (!playing) return;
-    const tick = () => { setHour((h) => (h + 0.14) % 24); setHu((u) => (u + 3) % 3600); raf.current = requestAnimationFrame(tick); };
+    if (!playing) { setPlayT(0); playStart.current = null; return; }
+    const DURATION = 6000;
+    const tick = (ts: number) => {
+      if (playStart.current == null) playStart.current = ts;
+      const t = Math.min(1, (ts - playStart.current) / DURATION);
+      setPlayT(t);
+      if (t >= 1) { setPlaying(false); return; }
+      raf.current = requestAnimationFrame(tick);
+    };
     raf.current = requestAnimationFrame(tick);
-    return () => { if (raf.current != null) cancelAnimationFrame(raf.current); };
-  }, [playing, setHour]);
+    return () => { if (raf.current != null) cancelAnimationFrame(raf.current); playStart.current = null; };
+  }, [playing]);
+  const spinDir = Math.sign(PLANETS.find((p) => p.id === selId)?.rotDays ?? 1) || 1;
   const sinE = Math.sin(tiltDeg * DEG);
 
   // ── GESTURE NAVIGATION — pinch-zoom + one/two-finger rotate/pan on the solar system (mirrors the
@@ -203,8 +213,8 @@ export function ArchitectCelestial({
         <div className="absolute bottom-1 right-1 z-10">
           <MiniPanel title={selId === "earth" ? "EARTH · MOON" : sel.p.name.toUpperCase()} subtitle={fmtKm(rd.sr)} coord={`SA.EA..HU ${fmt3600(sel.effHu)}`}
             render={(cs) => selId === "earth"
-              ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare />
-              : <TexturedGlobe src={sel.p.tex} size={cs} ring={sel.p.rings ? SATURN_RING_TEX : null} />}
+              ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare playT={playT} />
+              : <TexturedGlobe src={sel.p.tex} size={cs} ring={sel.p.rings ? SATURN_RING_TEX : null} spinDeg={playT * 360 * spinDir} />}
           />
         </div>
         {/* zoom / reset — pinch or wheel to zoom, drag to pan, two-finger twist (or right-drag) to rotate */}
