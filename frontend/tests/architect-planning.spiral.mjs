@@ -154,6 +154,18 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A12: final 4 tabs render (SIMULATE / REVIEW / TWIN / REPLAY) ──
+{
+  const { pg, clk } = await mk();
+  const check = async (tab, sel, min = 1) => { await clk(`button:has-text("${tab}")`); await pg.waitForTimeout(120); return pg.evaluate((s) => document.querySelectorAll(s).length, sel).then((n) => n >= min); };
+  const sim = await check("SIMULATE", "[data-sim]", 10);
+  const rev = await check("REVIEW", "[data-expert]", 3);
+  const twin = await check("TWIN", "[data-twin]", 5);
+  const rep = await check("REPLAY", "[data-replay]", 3);
+  rec('#A12 SIMULATE/REVIEW/TWIN/REPLAY render', sim && rev && twin && rep, `sim=${sim} rev=${rev} twin=${twin} rep=${rep}`);
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
