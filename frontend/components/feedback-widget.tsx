@@ -100,11 +100,11 @@ export function FeedbackWidget({
         <button
           onClick={() => setOpen(true)}
           data-feedback-fab
-          className={`fixed bottom-6 ${posClass} z-40 flex items-center gap-1.5 rounded-full bg-primary px-3 py-2 text-primary-foreground text-xs font-medium shadow-lg hover:opacity-90 transition-opacity`}
+          className={`fixed bottom-6 ${posClass} z-40 flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-primary-foreground text-[11px] font-medium shadow-md hover:opacity-90 transition-opacity`}
           title={t("shared.feedback.button")}
         >
-          <MessageSquarePlus className="h-3.5 w-3.5" />
-          {t("shared.feedback.button")}
+          <MessageSquarePlus className="h-3 w-3" />
+          {t("shared.feedback.fab")}
         </button>
       )}
 

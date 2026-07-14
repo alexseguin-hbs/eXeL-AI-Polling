@@ -41,6 +41,7 @@ const shared: TranslationEntry[] = [
   { key: "shared.tokens.unity", englishDefault: "◬ Tokens", context: "◬ token label", cubeId: 0 },
   { key: "shared.tokens.human", englishDefault: "웃 Tokens", context: "웃 token label", cubeId: 0 },
   { key: "shared.feedback.button", englishDefault: "Give Feedback", context: "Persistent feedback button", cubeId: 0 },
+  { key: "shared.feedback.fab", englishDefault: "Feedback", context: "Compact feedback FAB label (pill matches the eXeL badge size)", cubeId: 0 },
   { key: "shared.feedback.placeholder", englishDefault: "Tell us what you think...", context: "Feedback textarea placeholder", cubeId: 0 },
   { key: "shared.feedback.submit", englishDefault: "Submit Feedback", context: "Submit feedback button", cubeId: 0 },
   { key: "shared.feedback.thanks", englishDefault: "Thank you for your feedback!", context: "Post-submit confirmation", cubeId: 0 },
