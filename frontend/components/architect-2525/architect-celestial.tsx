@@ -10,10 +10,10 @@
  * Click any planet → its Base-3600 UCRS-2525 coordinates (voxel-style). HU scrubber advances all planets.
  * Driven by lib/ucrs-2525.ts (pure). Self-contained SVG.
  */
-import { useMemo, useState } from "react";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Maximize2, Minimize2, Play, Pause } from "lucide-react";
 import {
-  PLANETS, ucrsAt, huToNu, axSchematic, axTrue, bOverA, fmt3600, FULL_ORBIT, fmtMeters,
+  PLANETS, ucrsAt, huToNu, axSchematic, axTrue, bOverA, fmt3600, FULL_ORBIT, fmtMeters, type Planet,
 } from "@/lib/ucrs-2525";
 import { MiniGlobe } from "./mini-globe";
 
@@ -22,17 +22,18 @@ const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
 
 // PHASE CLOCK — the canonical Base-3600 view: PERIHELION at 12 o'clock, HU running clockwise (0→3600).
 // Each planet sits at its HU angle; the selected planet gets a hand. Complements the landscape map.
-function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string; name: string; color: string; effHu: number }[]; selId: string; overhead: boolean; onToggle: () => void }) {
+function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string; name: string; color: string; effHu: number; idx: number }[]; selId: string; overhead: boolean; onToggle: () => void }) {
   const R = 36, cx = 50, cy = 50;
   const ang = (hu: number) => (hu / 3600) * 2 * Math.PI;                 // 0 at 12 o'clock, clockwise
+  const radiusFor = (idx: number) => 12 + (idx / 8) * (R - 12);          // spacing ∝ distance from Sun (Mercury→Pluto)
   const at = (hu: number, r = R) => [cx + r * Math.sin(ang(hu)), cy - r * Math.cos(ang(hu))] as const;
   const sel = items.find((i) => i.id === selId);
-  const hand = sel ? at(sel.effHu, R - 2) : null;
+  const hand = sel ? at(sel.effHu, radiusFor(sel.idx)) : null;          // line reaches the selected planet's dot
   return (
     <button data-clock-toggle onClick={onToggle} type="button"
       aria-label={overhead ? "Back to tilted view" : "Overhead view"} title={overhead ? "Back to tilted view" : "Overhead view — perihelion at 12 o'clock"}
       className="cursor-pointer rounded-full p-0" style={{ background: "rgba(8,12,20,0.82)", border: overhead ? "1px solid #19c8cf" : "1px solid transparent", lineHeight: 0 }}>
-      <svg data-phase-clock viewBox="0 0 100 100" width={86} height={86} className="rounded-full" style={{ display: "block" }}>
+      <svg data-phase-clock viewBox="0 0 100 100" width={58} height={58} className="rounded-full" style={{ display: "block" }}>
         <circle cx={cx} cy={cy} r={R + 6} fill="none" stroke="#233043" strokeWidth="0.6" />
         <circle cx={cx} cy={cy} r={R} fill="none" stroke="#16202e" strokeWidth="0.5" />
         {[0, 900, 1800, 2700].map((h) => { const [x1, y1] = at(h, R + 4), [x2, y2] = at(h, R); return <line key={h} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#3f4d5f" strokeWidth="0.5" />; })}
@@ -41,20 +42,57 @@ function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string;
         <text x={cx + R + 3} y={cy + 1.5} fontSize="3" fill={C.dim} textAnchor="start" style={{ fontFamily: "monospace" }}>900</text>
         <text x={cx - R - 3} y={cy + 1.5} fontSize="3" fill={C.dim} textAnchor="end" style={{ fontFamily: "monospace" }}>2700</text>
         {hand ? <line x1={cx} y1={cy} x2={hand[0]} y2={hand[1]} stroke={sel!.color} strokeWidth="0.8" /> : null}
-        {items.map((it) => { const [x, y] = at(it.effHu); const on = it.id === selId; return <circle key={it.id} cx={x} cy={y} r={on ? 2.2 : it.id === "earth" ? 1.8 : 1.2} fill={it.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />; })}
+        {items.map((it) => { const [x, y] = at(it.effHu, radiusFor(it.idx)); const on = it.id === selId; return <circle key={it.id} cx={x} cy={y} r={on ? 2.2 : it.id === "earth" ? 1.8 : 1.2} fill={it.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />; })}
         <circle cx={cx} cy={cy} r="2.2" fill="#fff3b0" />
       </svg>
     </button>
   );
 }
 
-export function ArchitectCelestial() {
+// Focused single-planet orbit inset — the selected planet's FULL 3600 orbit (perihelion right / aphelion left),
+// the planet at its current HU, Sun at the focus. Lets you watch e.g. Mercury's whole orbit in the corner.
+function PlanetOrbitInset({ planet, effHu, size = 84 }: { planet: Planet; effHu: number; size?: number }) {
+  const cx = 60, cy = 50, A = 44, e = planet.e;
+  const ry = A * bOverA(e) * 0.6, ctrX = cx - A * e;
+  const phi = huToNu(effHu) * DEG;
+  const px = ctrX + A * Math.cos(phi), py = cy + ry * Math.sin(phi);
+  return (
+    <svg data-planet-inset viewBox="0 0 120 100" width={size * 1.35} height={size} className="rounded" style={{ background: "rgba(8,12,20,0.86)", display: "block", border: `1px solid ${planet.color}55` }}>
+      <ellipse cx={ctrX} cy={cy} rx={A} ry={ry} fill="none" stroke={planet.color} strokeWidth="0.55" strokeDasharray="1 1.1" opacity="0.7" />
+      <circle cx={ctrX + A} cy={cy} r="1.5" fill={planet.color} />{/* perihelion (right) */}
+      <circle cx={ctrX - A} cy={cy} r="1.5" fill="none" stroke={planet.color} strokeWidth="0.5" />{/* aphelion (left) */}
+      <circle cx={cx} cy={cy} r="3.6" fill="#fff3b0" />{/* Sun at focus */}
+      <circle cx={px} cy={py} r={Math.max(1.8, planet.dot + 0.5)} fill={planet.color} stroke="#fff" strokeWidth="0.4" />
+      <text x={px} y={py - planet.dot - 2.5} fontSize="4.2" fill="#fff" textAnchor="middle" style={{ fontFamily: "monospace" }}>{planet.name}</text>
+      <text x={4} y={96} fontSize="4" fill="#5f7186" style={{ fontFamily: "monospace" }}>HU {Math.round(effHu)} · full 3600</text>
+      <text x={ctrX + A - 1} y={cy - 2.5} fontSize="3.4" fill={planet.color} textAnchor="end" style={{ fontFamily: "monospace" }}>peri▶</text>
+    </svg>
+  );
+}
+
+export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number; lon?: number } = {}) {
+  // Default location: Pfield · Pflugerville, TX (shared with the Sky Dome / view-from-location).
   const [hu, setHu] = useState(0);
   const [selId, setSelId] = useState("earth");
   const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
   const [scaleMode, setScaleMode] = useState<"schematic" | "true">("schematic");
   const [max, setMax] = useState(false);            // maximize the whole solar system
   const [overhead, setOverhead] = useState(false);  // clock icon → top-down overhead view (perihelion at 12)
+  const [year, setYear] = useState(2025);
+  const [doy, setDoy] = useState(172);
+  const [hour, setHour] = useState(12);             // time-of-day → Earth's daily rotation
+  const [playing, setPlaying] = useState(false);
+  const isoDate = new Date(Date.UTC(year, 0, doy)).toISOString().slice(0, 10);
+  const setFromDate = (iso: string) => { const d = new Date(iso + "T00:00:00Z"); if (isNaN(d.getTime())) return; setYear(d.getUTCFullYear()); setDoy(Math.round((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 0)) / 86400000)); };
+  const monthDay = new Date(year, 0, doy).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  // PLAY: time flows → Earth spins on its axis (hour) + every planet advances along its orbit (HU).
+  const raf = useRef<number | null>(null);
+  useEffect(() => {
+    if (!playing) return;
+    const tick = () => { setHour((h) => (h + 0.14) % 24); setHu((u) => (u + 3) % 3600); raf.current = requestAnimationFrame(tick); };
+    raf.current = requestAnimationFrame(tick);
+    return () => { if (raf.current != null) cancelAnimationFrame(raf.current); };
+  }, [playing]);
   const sinE = Math.sin(tiltDeg * DEG);
 
   // Layout: each orbit is an ellipse in its plane (semi-major ax, focus offset ax·e), foreshortened vertically
@@ -93,11 +131,14 @@ export function ArchitectCelestial() {
         <div className="relative">
         {/* PHASE CLOCK — upper-right: perihelion at 12 o'clock (canonical Base-3600 convention) */}
         <div className="absolute right-1 top-1 z-10">
-          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu }))} selId={selId} overhead={overhead} onToggle={() => setOverhead((v) => !v)} />
+          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu, idx: l.i }))} selId={selId} overhead={overhead} onToggle={() => setOverhead((v) => !v)} />
         </div>
-        {/* mini 3D Earth globe — bottom-right, drag L/R to rotate (spin on equator), no zoom */}
+        {/* bottom-right — the SELECTED planet: Earth = draggable land/ocean globe (spins with time-of-day);
+            any other planet = a focused full-3600 orbit view (watch e.g. Mercury go around) */}
         <div className="absolute bottom-1 right-1 z-10">
-          <MiniGlobe lat={30.27} lon={-97.74} size={max ? 132 : 88} color={C.gold} />
+          {selId === "earth"
+            ? <MiniGlobe lat={lat} lon={lon} size={max ? 128 : 82} color={C.gold} spinDeg={(hour / 24) * 360} />
+            : <PlanetOrbitInset planet={sel.p} effHu={sel.effHu} size={max ? 118 : 82} />}
         </div>
         {overhead ? (
         <svg data-arch-celestial data-overhead viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "radial-gradient(circle at 50% 50%, #0b1122, #05070d)", aspectRatio: "2.2 / 1" }}>
@@ -178,6 +219,16 @@ export function ArchitectCelestial() {
             <input data-tilt-input type="range" min={8} max={42} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" />
             <span className="tabular-nums" style={{ color: C.violet }}>{tiltDeg}°</span>
           </label>
+        </div>
+        {/* DATE + PLAY — select a month/day, click play: Earth rotates (time-of-day) + planets orbit */}
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-[9px]" style={{ color: C.dim }}>
+          <button data-cel-play onClick={() => setPlaying((p) => !p)} className="flex items-center gap-1 rounded border px-2 py-0.5 font-semibold"
+            style={{ borderColor: playing ? C.gold : C.border, color: playing ? C.gold : C.dim }}>
+            {playing ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}{playing ? "pause" : "play"}
+          </button>
+          <label className="flex items-center gap-1">Date<input data-cel-date type="date" value={isoDate} onChange={(e) => setFromDate(e.target.value)} className="rounded border bg-transparent px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.text }} /></label>
+          <span>{monthDay} · <span style={{ color: C.cyan }}>{hour.toFixed(1)}h</span></span>
+          <span>◉ Pfield · Pflugerville TX</span>
         </div>
         <div className="text-[8px]" style={{ color: C.dim }}>Full orbit reference · <span style={{ color: C.gold }}>{FULL_ORBIT}</span> (SA.EA..HU)</div>
       </div>

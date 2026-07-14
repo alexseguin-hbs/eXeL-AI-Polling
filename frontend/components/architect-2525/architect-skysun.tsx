@@ -91,8 +91,8 @@ function WorldPlacement({ lat, lon, onPick }: { lat: number; lon: number; onPick
 }
 
 export function ArchitectSkySun() {
-  const [lat, setLat] = useState(30.27);   // demo: Austin (matches a Security AO)
-  const [lon, setLon] = useState(-97.74);
+  const [lat, setLat] = useState(30.44);   // default: Pfield · Pflugerville, TX (soccer complex)
+  const [lon, setLon] = useState(-97.62);
   const [doy, setDoy] = useState(172);     // ~summer solstice
   const [hour, setHour] = useState(12);
   const [year, setYear] = useState(2025);
@@ -138,7 +138,7 @@ export function ArchitectSkySun() {
             style={{ borderColor: C.border, color: skyView === v ? C.violet : C.dim, background: skyView === v ? "#221833" : "transparent" }}>{label}</button>
         ))}
       </div>
-      {skyView === "solar" ? <ArchitectCelestial /> : (
+      {skyView === "solar" ? <ArchitectCelestial lat={lat} lon={lon} /> : (
       <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
       <div className="relative rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         {/* CALENDAR — upper-right of the sky dome: pick any date to scrub sun + moon across the year */}

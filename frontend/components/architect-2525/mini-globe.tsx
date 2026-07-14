@@ -41,7 +41,7 @@ function ringLine(ring: [number, number][], lon0: number, lat0: number, roll: nu
   return d;
 }
 
-export function MiniGlobe({ lat = 30.27, lon = -97.74, size = 92, color = "#ffd400" }: { lat?: number; lon?: number; size?: number; color?: string }) {
+export function MiniGlobe({ lat = 30.44, lon = -97.62, size = 92, color = "#ffd400", spinDeg = 0 }: { lat?: number; lon?: number; size?: number; color?: string; spinDeg?: number }) {
   const [borders, setBorders] = useState<BorderData | null>(MG_BORDERS);
   const [rot, setRot] = useState({ lon: -lon, lat: 16, roll: 0 });
   const drag = useRef<{ x: number; y: number; btn: number } | null>(null);
@@ -52,9 +52,10 @@ export function MiniGlobe({ lat = 30.27, lon = -97.74, size = 92, color = "#ffd4
     fetch("/security-2525/borders-ne50m.json").then((r) => r.json()).then((d: BorderData) => { MG_BORDERS = d; setBorders(d); }).catch(() => {});
   }, []);
 
+  const lon0 = rot.lon + spinDeg; // manual drag + time-of-day spin (Earth rotates on its axis when playing)
   const parallels = [-60, -30, 0, 30, 60];
-  const pk = (la: number) => ringLine(Array.from({ length: 73 }, (_, i) => [-180 + i * 5, la] as [number, number]), rot.lon, rot.lat, rot.roll);
-  const loc = project(lat, lon, rot.lon, rot.lat, rot.roll);
+  const pk = (la: number) => ringLine(Array.from({ length: 73 }, (_, i) => [-180 + i * 5, la] as [number, number]), lon0, rot.lat, rot.roll);
+  const loc = project(lat, lon, lon0, rot.lat, rot.roll);
 
   const down = (e: React.PointerEvent) => { drag.current = { x: e.clientX, y: e.clientY, btn: e.button }; (e.target as Element).setPointerCapture?.(e.pointerId); };
   const move = (e: React.PointerEvent) => {
@@ -73,8 +74,8 @@ export function MiniGlobe({ lat = 30.27, lon = -97.74, size = 92, color = "#ffd4
         <defs><clipPath id={`g${clip}`}><circle cx={CX} cy={CY} r={R} /></clipPath></defs>
         <circle cx={CX} cy={CY} r={R} fill={OCEAN} stroke="#0f3f6e" strokeWidth="0.6" />
         <g clipPath={`url(#g${clip})`}>
-          {borders && borders.countries.map((ring, i) => { const d = ringFill(ring, rot.lon, rot.lat, rot.roll); return d ? <path key={`f${i}`} d={d} fill={LAND} stroke="none" /> : null; })}
-          {borders && borders.countries.map((ring, i) => <path key={`c${i}`} d={ringLine(ring, rot.lon, rot.lat, rot.roll)} fill="none" stroke={COAST} strokeWidth="0.25" opacity="0.75" />)}
+          {borders && borders.countries.map((ring, i) => { const d = ringFill(ring, lon0, rot.lat, rot.roll); return d ? <path key={`f${i}`} d={d} fill={LAND} stroke="none" /> : null; })}
+          {borders && borders.countries.map((ring, i) => <path key={`c${i}`} d={ringLine(ring, lon0, rot.lat, rot.roll)} fill="none" stroke={COAST} strokeWidth="0.25" opacity="0.75" />)}
           {parallels.map((la) => <path key={`p${la}`} d={pk(la)} fill="none" stroke="#79a7c9" strokeWidth={la === 0 ? 0.4 : 0.22} opacity={la === 0 ? 0.5 : 0.28} />)}
         </g>
         <circle cx={CX} cy={CY} r={R} fill="none" stroke="#233043" strokeWidth="0.5" />

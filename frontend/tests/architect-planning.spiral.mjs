@@ -324,6 +324,7 @@ const mk = async (vp) => {
   rec('#A21b clock icon → overhead top-down view (perihelion 12:00) + toggle back', ovOn && ovOff, `on=${ovOn} off=${ovOff}`);
 
   // #A22: mini 3D Earth globe present + drag rotates it (graticule paths change) + no wheel/zoom handler
+  await pg.locator('[data-planet-id="earth"]').click({ force: true }); await pg.waitForTimeout(150); // re-select Earth → globe (Mercury was selected above)
   const glb = pg.locator('[data-mini-globe]');
   const has = await glb.count();
   const before = await pg.evaluate(() => document.querySelector('[data-mini-globe]')?.innerHTML.length || 0);
@@ -338,6 +339,24 @@ const mk = async (vp) => {
   await maxBtn.click(); await pg.waitForTimeout(120);
   const restored = await pg.evaluate(() => document.querySelector('[data-cel-max]')?.getAttribute('aria-label') === 'Maximize');
   rec('#A22 mini 3D Earth globe (drag, no zoom) + solar-system maximize/minimize', has === 1 && afterHtml !== before && hasMax === 1 && maximized && restored, `globe=${has} rot=${afterHtml !== before} max=${maximized} restored=${restored}`);
+  await pg.close();
+}
+
+// ── #A23: date + PLAY (Earth rotates / planets orbit) + selected-planet bottom-right (Earth globe ↔ planet orbit) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  const hasPlay = await pg.locator('[data-cel-play]').count();
+  const hasDate = await pg.locator('[data-cel-date]').count();
+  const earthGlobe = await pg.evaluate(() => !!document.querySelector('[data-mini-globe]') && !document.querySelector('[data-planet-inset]')); // default Earth → globe
+  await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(150);
+  const merc = await pg.evaluate(() => !!document.querySelector('[data-planet-inset]') && !document.querySelector('[data-mini-globe]')); // Mercury → full-3600 orbit inset
+  const readT = () => pg.evaluate(() => (document.querySelector('[data-arch-tab="Design"]')?.textContent || '').match(/(\d+\.\d)h\b/)?.[1] || null);
+  const t0 = await readT();
+  await pg.locator('[data-cel-play]').click(); await pg.waitForTimeout(600); await pg.locator('[data-cel-play]').click();
+  const t1 = await readT();
+  rec('#A23 date + play (time advances) + selected-planet inset (Earth globe ↔ planet full-3600 orbit)', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && !!t0 && t0 !== t1, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} merc=${merc} t0=${t0} t1=${t1}`);
   await pg.close();
 }
 
