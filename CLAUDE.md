@@ -303,8 +303,31 @@ All clustering and ranking operations must be fully reproducible:
 | 8 | (1,1,2) | Token Reward Calculator | 3 | SoI Trinity Tokens, ledger, payments, talent profiles, execution separation |
 | 9 | (1,1,3) | Reports & Dashboards | 1 | CSV/PDF, Pixelated Tokens, CQS dashboard, data destruction |
 | 10 | (2,2,2) CENTER | Simulation Orchestrator | 3 | Per-cube isolation, code challenge, replay, metric comparison. **Feedback Loop (FB) at center** — collects from every screen, auto-tags Cube + CRS, feeds backlog → votes → AI → ◬ ♡ 웃 approval → deploy |
-| 11 | (3,2,2) | Blockchain (Quai/QI) | 3 | On-chain survey governance proofs, AI/SI/HI token conversion to QI/USDC, chain recording. Data flows: Cube 9→10→11 (survey results → simulation verify → chain record) |
-| 12 | (3,2,1) | Divinity Guide & NFT ARX | 3 | Divinity Guide reader (10 languages, Pinyin, bilingual mirror), NFT ARX physically-backed tokens (mint, verify, transfer, marketplace). Separate from Cube 11 — shares Quai chain but independent code path |
+| 11 | (2,1,2) | Replay / Metrics | 3 | Deterministic replay + metric-vs-baseline comparison for Cubes 1-9. Validation group. |
+| 12 | (2,1,3) | Verify | 3 | SHA-256 determinism proofs, checkout/checkin, CI gating. Validation group. |
+| 13 | (2,2,3) | Baseline Compare | 3 | Simulation pass criteria — must exceed existing System/User/Business metrics. Validation group. |
+| 14 | (2,3,3) | Payments | 3 | Stripe monetization tiers + cost estimation, layered on Cube 8's operational ledger. Value group. |
+| 15 | (2,3,2) | Tokenization | 3 | SoI Trinity tokens (♡ ◬ 웃) minting + cross-chain conversion. Value group. |
+| 16 | (2,3,1) | Atlantis Accords | 3 | Governance charter — accord sections, approvals (Government/Education/Innovation), target countries, 33-language viewer. Governance group. |
+| 17 | (2,2,1) | Blockchain (Quai/QI) | 3 | Quai/QI on-chain governance proofs; AI/SI/HI token conversion to QI/USDC. Governance group. (was Cube 11 in the old 12-cube model) |
+| 18 | (2,1,1) | ARX · S.I. | 3 | ARX physically-backed NFT tokens anchored to Shared Intent (S.I.). Governance group. (absorbs the old Cube 12 NFT ARX; the Divinity Guide is now a frontend route `/divinity-guide`, not a numbered cube) |
+| 19 | (3,2,2) CENTER | Innovation Life Cycle | 3 | Level 3 center (mirrors Cube 1 & Cube 10) — project life cycle across the 9 Level-3 cubes; Domain Play reference. Vision 2525 substrate. |
+| 20 | (3,1,2) | Concept Ingest | 3 | Concept intake + Spec Slug validation per Domain Play. Vision 2525 substrate. |
+| 21 | (3,1,3) | Model Ingest | 3 | CAD / Python edge / 3D model intake; validates on baseline HAL. Vision 2525 substrate. |
+| 22 | (3,2,3) | Proposal Collector | 3 | Reviews/proposals (distinct from L1 votes); feeds Cube 25. Vision 2525 substrate. |
+| 23 | (3,3,3) | De-Risk Gateway | 3 | Phased polling gates — Pilot→Refine→Qualify→Adopt; Risk Register. Vision 2525 substrate. |
+| 24 | (3,3,2) | Estimator AI | 3 | Cost / timeline / domain-declared axes; Monte Carlo P10/P50/P90. Vision 2525 substrate. |
+| 25 | (3,3,1) | Governance & Quote Board | 3 | Quote-lock bound to the Principle Compliance Manifest; ≥1 human signer. Vision 2525 substrate. |
+| 26 | (3,2,1) | Execution Marketplace | 3 | Trust-weighted, multi-country contractors; routes execution by HAL profile. Vision 2525 substrate. |
+| 27 | (3,1,1) | Delivery & Actuals | 3 | Actuals vs quote delta; feeds the Cube 24 world model. Vision 2525 substrate. |
+
+> **LEVELS (reconciled 2026-07-14 to `components/cube-status.tsx` + `docs/CUBE_19_27_LEVEL_3_FRAMEWORK.md`):**
+> **Level 1 (Cubes 1-9)** = Polling · **Level 2 (Cubes 10-18)** = Simulation / Provenance / Value / Governance
+> (Sim center 10; Validation 11-13; Value 14-15; Governance 16-18) · **Level 3 (Cubes 19-27)** = Innovation substrate
+> (Vision 2525). Coordinates are `(level, row, col)` on a 3×3 grid per level, center at `(L,2,2)`.
+> **Standalone `<Domain>-2525` apps (Security-2525, Architecture-2525, Manta/Drone-2525) are NOT numbered cubes** — they
+> plug into the Level-3 substrate as **Domain Play** configs on the shared WIREFRAME-CORE (`docs/2525-core/`). The app
+> renders this exact map in Settings → Cube Architecture (Level 1/2/3 tabs).
 
 ## CRS Naming Convention
 
@@ -444,8 +467,8 @@ Track and optimize for:
 | 8 Tokens | **~82%** | **82** | 194 | CRS-18-19, 24-25, 32-35 | 59-jurisdiction precision. Lifecycle exhaustive. |
 | 9 Reports | **~76%** | **76** | 93 | CRS-14-15, 19-21 | CSV N=10 determinism. Distribution matrix. |
 | 10 Simulation | **~74%** | **74** | 107 | Cube 10 internal | Challenge system + saved use cases + feedback + voting + dual access |
-| 11 Blockchain | **Planned** | **0** | 0 | CRS-23 | Quai/QI on-chain survey proofs + AI/SI/HI token conversion. Data: Cube 9→10→11 |
-| 12 Divinity/NFT | **Planned** | **0** | 0 | NEW | Divinity Guide reader + NFT ARX physically-backed tokens (mint/verify/transfer) |
+| 10-18 Level 2 | **Planned/WIP** | — | — | — | Simulation (10, WIP) · Replay/Metrics (11) · Verify (12) · Baseline Compare (13) · Payments (14) · Tokenization (15) · Atlantis Accords (16, WIP) · Blockchain Quai/QI (17) · ARX·S.I. (18). See Cube Architecture Overview. |
+| 19-27 Level 3 | **Framework** | — | — | — | Innovation substrate (Vision 2525): Innovation Life Cycle (19) · Concept/Model Ingest (20-21) · Proposal Collector (22) · De-Risk Gateway (23) · Estimator AI (24) · Governance & Quote Board (25) · Execution Marketplace (26) · Delivery & Actuals (27). Domain Plays (Security-2525, Architecture-2525) run here. |
 | **SDK/Cross-Cube/Scale** | **Active** | — | 441 | — | N=99 SSSES Spiral (48) + WireGuard Cubes 1-3 (72) + WireGuard Cubes 4-10 (126) + 1M All Cubes (53) + SDK Core (31) + Theme Compression (27) + 1M Simulation (24) + Cross-Cube Chain (22) + SDK Functions (19) + Broadcast Payload (17) + Health (2) |
 | **Total** | | | **1,488 (2,212 executed)** | | |
 
