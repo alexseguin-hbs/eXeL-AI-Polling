@@ -50,14 +50,24 @@ export const MOON = { id: "moon", name: "Moon", radiusKm: 1737.4, color: "#c7c7d
 /** Saturn's ring colour strip (equirectangular radial). */
 export const SATURN_RING_TEX = "/planets/saturnringcolor.jpg";
 
-/** Largest body radius (Jupiter) — normaliser for the Actual planet-size mode. */
+/** Largest planet radius (Jupiter) + the Sun — normalisers for the planet-size modes. */
 export const RADIUS_MAX_KM = 69911;
+export const SUN_RADIUS_KM = 695700;
+export const SUN_DOT_R = 4.8; // the Sun's dot radius on the map (viewBox units)
+export type PlanetSizeMode = "truescale" | "proportional" | "exaggerated";
+export const SIZE_MODES: PlanetSizeMode[] = ["truescale", "proportional", "exaggerated"];
+export const SIZE_LABEL: Record<PlanetSizeMode, string> = { truescale: "True Scale", proportional: "Proportional", exaggerated: "Exaggerated" };
 /**
- * Map dot radius for a planet. "exaggerated" = legibility sizes (Earth emphasised, the default);
- * "actual" = true relative sizes (Jupiter ≫ Earth ≫ Pluto), floored so tiny worlds stay pickable.
+ * Map dot radius per size mode:
+ *  • truescale    — real size relative to the SUN (planets are tiny specks; hit-target keeps them clickable),
+ *  • proportional — real size relative to the other PLANETS (Jupiter ≫ Earth ≫ Pluto),
+ *  • exaggerated  — proportional but a little bigger for legibility.
  */
-export const planetDotRadius = (p: Planet, mode: "actual" | "exaggerated") =>
-  mode === "actual" ? Math.max(0.5, (p.radiusKm / RADIUS_MAX_KM) * 6) : p.dot;
+export const planetDotRadius = (p: Planet, mode: PlanetSizeMode): number => {
+  if (mode === "truescale") return Math.max(0.15, (p.radiusKm / SUN_RADIUS_KM) * SUN_DOT_R);
+  const proportional = Math.max(0.5, (p.radiusKm / RADIUS_MAX_KM) * 6);
+  return mode === "exaggerated" ? proportional * 1.6 : proportional;
+};
 
 /** Orbit radius (m) at true anomaly ν (deg from perihelion): r = a(1-e²)/(1+e·cosν). */
 export function orbitR(aMeters: number, e: number, nuDeg: number): number {

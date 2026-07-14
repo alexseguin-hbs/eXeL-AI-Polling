@@ -300,7 +300,7 @@ const mk = async (vp) => {
     orbits: document.querySelectorAll('[data-orbit]').length,
     hu: !!document.querySelector('[data-hu-input]'),
     tilt: !!document.querySelector('[data-tilt-input]'),
-    psize: document.querySelectorAll('[data-psize-toggle]').length,          // Planet Size: Actual/Exaggerated (2), in ⚙
+    psize: document.querySelectorAll('[data-size-cycle]').length,            // planet-size cycler in the header (1)
     noSchematic: document.querySelectorAll('[data-scale-toggle]').length === 0, // schematic toggle removed — True-Scale locked
     coord: /SA\.EA\.\.HU/.test(document.querySelector('[data-ucrs-coord]')?.textContent || ''),
     earthPeri: /230\.1584\.\.0\s*·\s*0\.0\.\.0/.test(document.querySelector('[data-ucrs-coord]')?.textContent || ''), // Earth default = perihelion (HU 0)
@@ -314,7 +314,7 @@ const mk = async (vp) => {
   // click Mercury → readout switches + shows Distance/SP-OTU
   await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(150);
   const after = await pg.evaluate(() => document.querySelector('[data-ucrs-readout]')?.textContent || '');
-  const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu && base.tilt && base.psize === 2 && base.noSchematic && base.coord && base.earthPeri && base.clock
+  const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu && base.tilt && base.psize === 1 && base.noSchematic && base.coord && base.earthPeri && base.clock
     && parseFloat(ry1) < parseFloat(ry0) && /Mercury/.test(after) && /Distance/.test(after) && /SP-OTU/.test(after);
   rec('#A21 UCRS-2525 v2 — 9 planets + tilt ellipsoid + True-Scale + Planet-Size (⚙) + SA.EA..HU + click→coords', ok, JSON.stringify({ ...base, ry0, ry1, afterHasMercury: /Mercury/.test(after) }));
 
@@ -383,14 +383,15 @@ const mk = async (vp) => {
   const { pg, tab, subtab, clk } = await mk();
   await tab('Design'); await subtab('Site');
   await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
-  await clk('[data-cel-detail]'); await pg.waitForTimeout(120); // Planet Size lives in the ⚙ panel now
   const jupR = () => pg.evaluate(() => { const g = document.querySelector('[data-planet-id="jupiter"]'); const dot = g ? [...g.querySelectorAll('circle')].find((c) => (c.getAttribute('fill') || '').startsWith('#')) : null; return dot ? parseFloat(dot.getAttribute('r') || '0') : 0; }); // the coloured dot (hit-target is fill=transparent)
-  await pg.locator('[data-psize][data-psize="exaggerated"]').click(); await pg.waitForTimeout(120);
-  const exag = await jupR();
-  await pg.locator('[data-psize][data-psize="actual"]').click(); await pg.waitForTimeout(120);
-  const actual = await jupR();
-  const activeActual = await pg.evaluate(() => document.querySelectorAll('[data-psize-toggle]').length === 2);
-  rec('#A24 Planet Size Actual↔Exaggerated toggle resizes dots', activeActual && exag > 0 && actual > 0 && exag !== actual, `exag=${exag} actual=${actual} toggle2=${activeActual}`);
+  const modeOf = () => pg.evaluate(() => document.querySelector('[data-size-cycle]')?.getAttribute('data-size-mode') || '');
+  // header text cycles True Scale → Proportional → Exaggerated; Jupiter's dot changes across modes
+  const sizes = {}, modes = {};
+  for (let i = 0; i < 3; i++) { const m = await modeOf(); modes[m] = 1; sizes[m] = await jupR(); await pg.locator('[data-size-cycle]').click(); await pg.waitForTimeout(120); }
+  const keys = Object.keys(sizes);
+  const three = keys.length === 3 && modes['truescale'] && modes['proportional'] && modes['exaggerated'];
+  const distinct = new Set(keys.map((k) => sizes[k].toFixed(2))).size === 3 && sizes['truescale'] < sizes['proportional'] && sizes['proportional'] < sizes['exaggerated'];
+  rec('#A24 3-way size cycler (True Scale < Proportional < Exaggerated) resizes dots', three && distinct, JSON.stringify(sizes));
   await pg.close();
 }
 

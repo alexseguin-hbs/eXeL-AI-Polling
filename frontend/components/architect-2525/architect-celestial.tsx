@@ -16,7 +16,7 @@ import { Maximize2, Minimize2, Play, Pause } from "lucide-react";
 import {
   PLANETS, ucrsAt, huToNu, axTrue, bOverA, fmt3600, FULL_ORBIT, planetDotRadius,
   fmtDist, fmtTime, fmtRotation, DIST_UNITS, DIST_LABEL, TIME_UNITS, TIME_LABEL, SATURN_RING_TEX,
-  type DistUnit, type TimeUnit,
+  SIZE_MODES, SIZE_LABEL, type DistUnit, type TimeUnit, type PlanetSizeMode,
 } from "@/lib/ucrs-2525";
 import { EarthMoonBox } from "./earth-moon-box";
 import { MiniPanel } from "./mini-panel";
@@ -69,7 +69,8 @@ export function ArchitectCelestial({
   const [hu, setHu] = useState(0);
   const [selId, setSelId] = useState("earth");
   const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
-  const [planetSize, setPlanetSize] = useState<"actual" | "exaggerated">("exaggerated"); // dot sizing on the map
+  const [sizeMode, setSizeMode] = useState<PlanetSizeMode>("proportional"); // planet dot sizing — cycled via the header text
+  const cycleSize = () => setSizeMode((m) => SIZE_MODES[(SIZE_MODES.indexOf(m) + 1) % SIZE_MODES.length]);
   const [distUnit, setDistUnit] = useState<DistUnit>("km"); // Units of Measure — distance (⚙ panel)
   const [timeUnit, setTimeUnit] = useState<TimeUnit>("days"); // Units of Measure — time (⚙ panel)
   const [showDetail, setShowDetail] = useState(false);       // ⚙ units & detail — collapsed by default (declutter)
@@ -196,18 +197,21 @@ export function ArchitectCelestial({
   return (
     <div className={max ? "fixed inset-0 z-[80] flex flex-col gap-2 overflow-hidden p-2" : "grid gap-3 lg:grid-cols-[1fr_272px]"} style={max ? { background: "#05070d" } : undefined}>
       <div className={max ? "flex min-h-0 flex-1 flex-col rounded-lg border p-2" : "rounded-lg border p-2"} style={{ borderColor: C.border, background: C.panel }}>
+        {/* HEADER BAR (Security-2525 mission-control): title · size-mode cycler · minimize/maximize */}
         <div className="mb-1 flex items-center justify-between gap-1 text-[9px]">
           <span className="font-bold tracking-wider" style={{ color: C.violet }}>UCRS-2525 · BASE-3600 CELESTIAL MAP</span>
-          <span className="text-[7px] uppercase tracking-wider" style={{ color: C.gold }}>True-Scale</span>
+          <div className="flex items-center gap-1">
+            <button data-size-cycle data-size-mode={sizeMode} onClick={cycleSize} title="Cycle planet size: True Scale (vs Sun) → Proportional (vs planets) → Exaggerated"
+              className="rounded border px-1.5 py-0.5 text-[8px] uppercase tracking-wider" style={{ borderColor: C.border, color: C.gold }}>{SIZE_LABEL[sizeMode]}</button>
+            <button data-cel-max onClick={() => setMax((v) => !v)} title={max ? "Minimize" : "Expand map"} aria-label={max ? "Minimize" : "Maximize"}
+              className="flex items-center justify-center rounded border p-1" style={{ borderColor: max ? C.cyan : C.border, color: max ? C.cyan : C.dim }}>
+              {max ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+            </button>
+          </div>
         </div>
         <div className={max ? "relative min-h-0 flex-1" : "relative"}>
-        {/* MISSION-CONTROL WINDOW CONTROLS — upper-right of the map (Security-2525 style): expand/minimize on
-            top, then the clock (top-down toggle) below it. */}
-        <div className="absolute right-1 top-1 z-10 flex flex-col items-end gap-1">
-          <button data-cel-max onClick={() => setMax((v) => !v)} title={max ? "Minimize" : "Expand map"} aria-label={max ? "Minimize" : "Maximize"}
-            className="flex items-center justify-center rounded border p-1" style={{ borderColor: max ? C.cyan : C.border, color: max ? C.cyan : C.dim, background: "rgba(8,12,20,0.82)" }}>
-            {max ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
-          </button>
+        {/* PHASE CLOCK — the only top-right map overlay (top-down toggle). */}
+        <div className="absolute right-1 top-1 z-10">
           <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu, idx: l.i }))} selId={selId} overhead={periTop} onToggle={() => setPeriTop((v) => !v)} />
         </div>
         {/* bottom-right — the SELECTED body as a DRAGGABLE 3D globe (Security-2525 globe interaction).
@@ -240,7 +244,7 @@ export function ArchitectCelestial({
               const A = axTrue(p.aAU) * 0.5, e2 = p.e, rx = A * bOverA(e2), cyo = SUN_Y + A * e2;
               const phi = huToNu(effHu) * DEG, rr = A * (1 - e2 * e2) / (1 + e2 * Math.cos(phi));
               const x = SUN_X + rr * Math.sin(phi), y = SUN_Y - rr * Math.cos(phi); // phi 0 → perihelion at top
-              const on = p.id === selId, dot = planetDotRadius(p, planetSize);
+              const on = p.id === selId, dot = planetDotRadius(p, sizeMode);
               return (
                 <g key={`ov${p.id}`}>
                   <ellipse data-orbit cx={SUN_X} cy={cyo} rx={rx} ry={A} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.55" />
@@ -287,7 +291,7 @@ export function ArchitectCelestial({
           {drawOrder.map(({ p, x, y, depth }) => {
             const on = p.id === selId;
             const dscale = 0.82 + 0.34 * ((depth + 1) / 2);   // front bigger, back smaller
-            const r = planetDotRadius(p, planetSize) * dscale, op = 0.6 + 0.4 * ((depth + 1) / 2);
+            const r = planetDotRadius(p, sizeMode) * dscale, op = 0.6 + 0.4 * ((depth + 1) / 2);
             return (
               <g key={p.id} data-planet data-planet-id={p.id} onPointerDown={(e) => e.stopPropagation()} onClick={() => select(p.id)} style={{ cursor: "pointer" }} opacity={op}>
                 <circle cx={x} cy={y} r={Math.max(4, r + 2.5)} fill="transparent" />
@@ -346,10 +350,6 @@ export function ArchitectCelestial({
             <div className="flex flex-wrap items-center gap-1">
               <span className="w-12 shrink-0" style={{ color: C.dim }}>Time</span>
               {TIME_UNITS.map((u) => <button key={u} data-time-unit={u} onClick={() => setTimeUnit(u)} className="rounded border px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: timeUnit === u ? C.violet : C.dim, background: timeUnit === u ? "#221833" : "transparent" }}>{TIME_LABEL[u]}</button>)}
-            </div>
-            <div className="flex flex-wrap items-center gap-1">
-              <span className="w-12 shrink-0" style={{ color: C.dim }}>Planet</span>
-              {(["actual", "exaggerated"] as const).map((m) => <button key={m} data-psize-toggle data-psize={m} onClick={() => setPlanetSize(m)} className="rounded border px-1 py-0.5 text-[8px] capitalize" style={{ borderColor: C.border, color: planetSize === m ? C.violet : C.dim, background: planetSize === m ? "#221833" : "transparent" }}>{m}</button>)}
             </div>
             <label className="flex items-center gap-2" style={{ color: C.dim }}>SA tilt
               <input data-tilt-input type="range" min={8} max={42} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" />
