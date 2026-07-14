@@ -552,6 +552,30 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A34: constellation celestial sphere behind the system (inside the view transform, moves with pan) + Polaris ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  const info = await pg.evaluate(() => {
+    const sf = document.querySelector('[data-cel-view] [data-starfield]');
+    return {
+      inView: !!sf,
+      cons: document.querySelectorAll('[data-constellation]').length,
+      orion: !!document.querySelector('[data-constellation="Orion"]'),
+      polaris: /Polaris/.test(sf?.textContent || ''),
+    };
+  });
+  // constellations sit inside data-cel-view, so panning the map moves them (transform changes)
+  const vt0 = await pg.evaluate(() => document.querySelector('[data-cel-view]')?.getAttribute('transform') || '');
+  const box = await pg.locator('[data-arch-celestial]').boundingBox();
+  if (box) { await pg.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.85); await pg.mouse.down(); await pg.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.8, { steps: 5 }); await pg.mouse.up(); await pg.waitForTimeout(120); }
+  const vt1 = await pg.evaluate(() => document.querySelector('[data-cel-view]')?.getAttribute('transform') || '');
+  const ok = info.inView && info.cons >= 12 && info.orion && info.polaris && vt0 !== vt1;
+  rec('#A34 constellation celestial sphere (12+ incl. Orion, Polaris) inside view + moves with pan', ok, JSON.stringify({ ...info, moved: vt0 !== vt1 }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
