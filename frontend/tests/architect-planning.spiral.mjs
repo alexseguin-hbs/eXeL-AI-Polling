@@ -288,6 +288,27 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A21: Design→Solar System UCRS-2525 celestial map — 9 planets + orbits + click → Base-3600 coords ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Solar System');
+  const base = await pg.evaluate(() => ({
+    map: !!document.querySelector('[data-arch-celestial]'),
+    planets: document.querySelectorAll('[data-planet]').length,
+    orbits: document.querySelectorAll('[data-orbit]').length,
+    hu: !!document.querySelector('[data-hu-input]'),
+    readout: (document.querySelector('[data-ucrs-readout]')?.textContent || ''),
+  }));
+  // click Mercury → readout switches to Mercury + shows SR/SP-OTU
+  await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(150);
+  const after = await pg.evaluate(() => document.querySelector('[data-ucrs-readout]')?.textContent || '');
+  const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu
+    && /3600\.3600\.\.3600/.test(base.readout) === false /* full-orbit ref is in the scrubber, not readout */
+    && /Mercury/.test(after) && /SR:/.test(after) && /SP-OTU/.test(after);
+  rec('#A21 UCRS-2525 celestial map — 9 planets + orbits + click→Base-3600 coords', ok, JSON.stringify({ ...base, readout: undefined, afterHasMercury: /Mercury/.test(after) }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

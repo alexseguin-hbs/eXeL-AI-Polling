@@ -28,6 +28,7 @@ import { ArchitectSkySun } from "./architect-skysun";
 import { ArchitectSoI } from "./architect-soi";
 import { ArchitectEstimate } from "./architect-estimate";
 import { ArchitectForecast } from "./architect-forecast";
+import { ArchitectCelestial } from "./architect-celestial";
 import { IteratePanel, SharePanel, QualifyPanel } from "./architect-panels";
 import { SimulatePanel, ReviewPanel, TwinPanel, ReplayPanel } from "./architect-panels2";
 
@@ -55,7 +56,7 @@ const NAV: [string, React.ComponentType<{ className?: string }>][] = [
 ];
 // Inner (secondary) tabs per primary tab — where the former 12 panels now live.
 const SUBNAV: Record<string, string[]> = {
-  Design: ["Model", "Site", "Compare"],
+  Design: ["Model", "Site", "Solar System", "Compare"],
   Review: ["Reviews", "Qualification", "Contributions"],
   Build: ["Build 4D", "Estimate", "Forecast", "Cost·Time"],
   Lifecycle: ["Twin", "Replay"],
@@ -313,6 +314,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           <ArchitectBuild />
         ) : activeTab === "Design" && sub("Design") === "Site" ? (
           <ArchitectSkySun />
+        ) : activeTab === "Design" && sub("Design") === "Solar System" ? (
+          <ArchitectCelestial />
         ) : activeTab === "Design" && sub("Design") === "Compare" ? (
           <IteratePanel />
         ) : activeTab === "Review" && sub("Review") === "Contributions" ? (
