@@ -15,7 +15,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Maximize2, Minimize2, Play, Pause } from "lucide-react";
 import {
   PLANETS, ucrsAt, huToNu, axTrue, bOverA, fmt3600, FULL_ORBIT, planetDotRadius,
-  fmtSr, fmtKm, ltuToDays, SR_UNIT_CYCLE, SATURN_RING_TEX, type SrUnit,
+  fmtSr, fmtKm, ltuToDays, fmtRotation, SR_UNIT_CYCLE, SATURN_RING_TEX, type SrUnit,
 } from "@/lib/ucrs-2525";
 import { EarthMoonBox } from "./earth-moon-box";
 import { MiniPanel } from "./mini-panel";
@@ -110,9 +110,9 @@ export function ArchitectCelestial({
   const pxK = () => { const r = svgRef.current?.getBoundingClientRect(); return r && r.width ? 244 / r.width : 1; }; // client px → viewBox units
   const clampZ = (z: number) => Math.min(ZMAX, Math.max(ZMIN, z));
   const resetView = () => setView({ zoom: 1, tx: 0, ty: 0, rot: 0 });
-  // periTop adds a −90° spin about the Sun so perihelion (normally at the right) — and the selected planet
-  // sitting on it — swing to the TOP (12 o'clock); gesture rotation (view.rot) composes on top.
-  const vt = `translate(${view.tx} ${view.ty}) translate(${SUN_X} ${SUN_Y}) scale(${view.zoom}) rotate(${view.rot + (periTop ? -90 : 0)}) translate(${-SUN_X} ${-SUN_Y})`;
+  // view transform (pan · zoom · gesture-rotate about the Sun). In clock/top-down mode perihelion is already
+  // rendered at the top natively (upright labels + uniform planet sizes), so no extra spin is added here.
+  const vt = `translate(${view.tx} ${view.ty}) translate(${SUN_X} ${SUN_Y}) scale(${view.zoom}) rotate(${view.rot}) translate(${-SUN_X} ${-SUN_Y})`;
   // native, non-passive wheel listener (React onWheel is passive → cannot preventDefault) — zoom about the Sun
   useEffect(() => {
     const el = svgRef.current; if (!el) return;
@@ -217,7 +217,7 @@ export function ArchitectCelestial({
             Earth = real land/ocean globe (spins with time-of-day) + the Moon beside it; any other planet =
             a procedural 3D sphere (bands / craters / Saturn's rings). Drag L/R to rotate · no zoom. */}
         <div className="absolute bottom-1 right-1 z-10">
-          <MiniPanel title={selId === "earth" ? "EARTH · MOON" : sel.p.name.toUpperCase()} subtitle={fmtKm(rd.sr)} coord={`SA.EA..HU ${fmt3600(sel.effHu)}`}
+          <MiniPanel title={selId === "earth" ? "EARTH · MOON" : sel.p.name.toUpperCase()} subtitle={fmtKm(rd.sr)} rotation={fmtRotation(sel.p.rotDays)} coord={`SA.EA..HU ${fmt3600(sel.effHu)}`}
             render={(cs) => selId === "earth"
               ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare playT={playT} />
               : <TexturedGlobe src={sel.p.tex} size={cs} ring={sel.p.rings ? SATURN_RING_TEX : null} spinDeg={playT * 360 * spinDir} />}
@@ -235,6 +235,37 @@ export function ArchitectCelestial({
           className={max ? "h-full w-full touch-none select-none rounded" : "w-full touch-none select-none rounded"}
           style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: max ? undefined : "2.2 / 1", height: max ? "100%" : undefined, cursor: pan.current ? "grabbing" : "grab" }}>
           <g data-cel-view transform={vt}>
+          {periTop ? (
+          <g data-overhead-view>
+            {/* TOP-DOWN CLOCK VIEW — looking straight down the orbital plane: near-circular orbits, UNIFORM
+                planet sizes all the way around (perihelion→aphelion), upright labels. Perihelion ▲ at top. */}
+            {laid.map(({ p, effHu }) => {
+              const A = axTrue(p.aAU) * 0.5, e2 = p.e, rx = A * bOverA(e2), cyo = SUN_Y + A * e2;
+              const phi = huToNu(effHu) * DEG, rr = A * (1 - e2 * e2) / (1 + e2 * Math.cos(phi));
+              const x = SUN_X + rr * Math.sin(phi), y = SUN_Y - rr * Math.cos(phi); // phi 0 → perihelion at top
+              const on = p.id === selId, dot = planetDotRadius(p, planetSize);
+              return (
+                <g key={`ov${p.id}`}>
+                  <ellipse data-orbit cx={SUN_X} cy={cyo} rx={rx} ry={A} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.55" />
+                  <circle cx={SUN_X} cy={SUN_Y - A * (1 - e2)} r="0.7" fill={p.color} />{/* perihelion — top */}
+                  <circle cx={SUN_X} cy={SUN_Y + A * (1 + e2)} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* aphelion — bottom */}
+                  <g data-planet data-planet-id={p.id} onPointerDown={(ev) => ev.stopPropagation()} onClick={() => select(p.id)} style={{ cursor: "pointer" }}>
+                    <circle cx={x} cy={y} r={Math.max(4, dot + 2.5)} fill="transparent" />
+                    {on && <circle cx={x} cy={y} r={dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
+                    {p.rings && <ellipse cx={x} cy={y} rx={dot + 1.6} ry={dot + 1.6} fill="none" stroke={p.color} strokeWidth="0.3" opacity="0.8" />}
+                    <circle cx={x} cy={y} r={dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
+                    <text x={x} y={y - dot - 1.2} fontSize="2.3" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
+                  </g>
+                </g>
+              );
+            })}
+            <circle cx={SUN_X} cy={SUN_Y} r="7.5" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.4" />
+            <circle cx={SUN_X} cy={SUN_Y} r="4.8" fill="#fff3b0" />
+            <text x={SUN_X} y={SUN_Y + 11} fontSize="2.5" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
+            <text x={SUN_X} y={8} fontSize="3" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>PERIHELION ▲</text>
+            <text x={SUN_X} y={110} fontSize="3" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>▼ APHELION</text>
+          </g>
+          ) : (<>
           {/* orbital-plane baseline (the tilt reference / SA) */}
           <ellipse cx={SUN_X} cy={SUN_Y} rx="118" ry={118 * sinE} fill="none" stroke="#141d29" strokeWidth="0.3" />
           {/* orbits — ellipsoid rings + apsidal line + peri/aphe markers */}
@@ -271,6 +302,7 @@ export function ArchitectCelestial({
               </g>
             );
           })}
+          </>)}
           </g>
         </svg>
         </div>

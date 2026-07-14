@@ -14,8 +14,8 @@ import { RCORE_LANES } from "@/components/security-2525/rcore";
 
 const C = { panel: "#0c1420", border: "#1e2b3a", dim: "#5f7186", cyan: "#19c8cf", text: "#c8d6e5" };
 
-export function MiniPanel({ title, subtitle, coord, lanes = true, defaultW = 176, defaultH = 208, minW = 132, minH = 156, render }: {
-  title: string; subtitle?: string; coord?: string; lanes?: boolean;
+export function MiniPanel({ title, subtitle, coord, rotation, lanes = true, defaultW = 176, defaultH = 208, minW = 132, minH = 156, render }: {
+  title: string; subtitle?: string; coord?: string; rotation?: string; lanes?: boolean;
   defaultW?: number; defaultH?: number; minW?: number; minH?: number;
   render: (contentSize: number) => ReactNode;
 }) {
@@ -67,6 +67,8 @@ export function MiniPanel({ title, subtitle, coord, lanes = true, defaultW = 176
           {RCORE_LANES.map((l) => <span key={l.key} title={l.def} style={{ color: l.color }}>{l.label}</span>)}
         </div>
       )}
+      {/* rotation period (a planet's "day") */}
+      {rotation && <div data-mini-rotation className="shrink-0 truncate px-1.5 text-[8px]" style={{ color: C.cyan, fontFamily: "monospace" }}>⟳ {rotation}</div>}
       {/* content (globe / map) — sized to the panel */}
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">{render(contentSize)}</div>
       {/* coordinate line */}

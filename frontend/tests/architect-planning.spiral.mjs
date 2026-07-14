@@ -317,12 +317,12 @@ const mk = async (vp) => {
     && parseFloat(ry1) < parseFloat(ry0) && /Mercury/.test(after) && /SR:/.test(after) && /SP-OTU/.test(after);
   rec('#A21 UCRS-2525 v2 — 9 planets + tilt ellipsoid + True-Scale + Planet-Size toggle + SA.EA..HU + click→coords', ok, JSON.stringify({ ...base, ry0, ry1, afterHasMercury: /Mercury/.test(after) }));
 
-  // #A21b: clock icon rotates the big map so perihelion + the selected planet swing to the TOP (12 o'clock), and back
+  // #A21b: clock icon → TRUE top-down view (perihelion ▲ at top, uniform planets, upright labels) + toggle back
   await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(160);
-  const ovOn = await pg.evaluate(() => document.querySelector('[data-arch-celestial]')?.getAttribute('data-peritop') === '1' && /rotate\(-90/.test(document.querySelector('[data-cel-view]')?.getAttribute('transform') || ''));
+  const ovOn = await pg.evaluate(() => document.querySelector('[data-arch-celestial]')?.getAttribute('data-peritop') === '1' && !!document.querySelector('[data-overhead-view]') && /PERIHELION\s*▲/.test(document.querySelector('[data-overhead-view]')?.textContent || ''));
   await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(130);
-  const ovOff = await pg.evaluate(() => document.querySelector('[data-arch-celestial]')?.getAttribute('data-peritop') !== '1' && !/rotate\(-90/.test(document.querySelector('[data-cel-view]')?.getAttribute('transform') || ''));
-  rec('#A21b clock rotates map → perihelion + planet at top (12:00) + toggle back', ovOn && ovOff, `on=${ovOn} off=${ovOff}`);
+  const ovOff = await pg.evaluate(() => document.querySelector('[data-arch-celestial]')?.getAttribute('data-peritop') !== '1' && !document.querySelector('[data-overhead-view]'));
+  rec('#A21b clock → true top-down (perihelion ▲ top, uniform planets) + toggle back', ovOn && ovOff, `on=${ovOn} off=${ovOff}`);
 
   // #A22: mini 3D Earth globe present + drag rotates it (graticule paths change) + no wheel/zoom handler
   await pg.locator('[data-planet-id="earth"]').click({ force: true }); await pg.waitForTimeout(150); // re-select Earth → globe (Mercury was selected above)
@@ -515,6 +515,20 @@ const mk = async (vp) => {
   await pg.waitForTimeout(200);
   const after = await pg.evaluate(() => +((document.querySelector('[data-framing-stat="Members"]')?.textContent) || '0'));
   rec('#A31 Build→Framing member plan + per-placement time/cost + robotics 24/7 + recompute', base.panel && base.plan && base.robotics && base.hasRobot && base.members > 20 && base.seq >= 5 && after > base.members, JSON.stringify({ ...base, after }));
+  await pg.close();
+}
+
+// ── #A32: the mini map shows the selected planet's axial ROTATION period (days+hours, ↺ for retrograde) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  await pg.locator('[data-planet-id="jupiter"]').click({ force: true }); await pg.waitForTimeout(400);
+  const jup = await pg.evaluate(() => document.querySelector('[data-mini-rotation]')?.textContent || '');
+  await pg.locator('[data-planet-id="venus"]').click({ force: true }); await pg.waitForTimeout(400);
+  const ven = await pg.evaluate(() => document.querySelector('[data-mini-rotation]')?.textContent || '');
+  const ok = /9\.\d\s*h/.test(jup) && /↺/.test(ven) && /243/.test(ven); // Jupiter ~9.9h · Venus 243 d retrograde
+  rec('#A32 mini map shows axial rotation period (Jupiter ~9.9 h · Venus 243 d ↺ retrograde)', ok, `jup="${jup.trim()}" ven="${ven.trim()}"`);
   await pg.close();
 }
 

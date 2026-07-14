@@ -115,3 +115,12 @@ export function fmtSr(meters: number, unit: SrUnit): string {
 export const fmtKm = (meters: number) => `${Math.round(meters / 1000).toLocaleString()} km`;
 /** LTU (local seconds elapsed) → whole days, for the human-readable time readout. */
 export const ltuToDays = (ltuSeconds: number) => Math.round(ltuSeconds / 86400);
+/**
+ * Axial rotation period (a planet's "day") in human terms: days, plus hours for sub-2-day rotators,
+ * with ↺ for retrograde (Venus · Uranus · Pluto). E.g. Jupiter → "0.41 d · 9.9 h", Venus → "243 d ↺".
+ */
+export function fmtRotation(rotDays: number): string {
+  const d = Math.abs(rotDays), retro = rotDays < 0 ? " ↺" : "";
+  const days = `${d.toFixed(d < 10 ? 2 : 1)} d`;
+  return (d < 2 ? `${days} · ${(d * 24).toFixed(1)} h` : days) + retro;
+}
