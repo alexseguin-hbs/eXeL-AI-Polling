@@ -138,7 +138,7 @@ export function ArchitectSkySun() {
             style={{ borderColor: C.border, color: skyView === v ? C.violet : C.dim, background: skyView === v ? "#221833" : "transparent" }}>{label}</button>
         ))}
       </div>
-      {skyView === "solar" ? <ArchitectCelestial lat={lat} lon={lon} /> : (
+      {skyView === "solar" ? <ArchitectCelestial lat={lat} lon={lon} year={year} doy={doy} hour={hour} onYear={setYear} onDoy={setDoy} onHour={setHour} /> : (
       <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
       <div className="relative rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         {/* CALENDAR — upper-right of the sky dome: pick any date to scrub sun + moon across the year */}

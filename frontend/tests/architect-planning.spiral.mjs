@@ -350,15 +350,33 @@ const mk = async (vp) => {
   await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
   const hasPlay = await pg.locator('[data-cel-play]').count();
   const hasDate = await pg.locator('[data-cel-date]').count();
-  // default Earth → real land/ocean globe + the Moon beside it (draggable 3D)
-  const earthGlobe = await pg.evaluate(() => !!document.querySelector('[data-mini-globe]') && !!document.querySelector('[data-planet-globe][data-body="Moon"]'));
+  // default Earth → Earth+Moon box (draggable land/ocean globe with the Moon orbiting inside)
+  const earthGlobe = await pg.evaluate(() => !!document.querySelector('[data-earth-moon]') && !!document.querySelector('[data-earth-moon] [data-mini-globe]'));
+  // SR distance has a tappable unit and km on the right; tapping cycles the unit
+  const sr0 = await pg.evaluate(() => document.querySelector('[data-sr-unit]')?.textContent || '');
+  await pg.locator('[data-sr-unit]').click(); await pg.waitForTimeout(80);
+  const sr1 = await pg.evaluate(() => document.querySelector('[data-sr-unit]')?.textContent || '');
+  const srUnitOk = !!sr0 && sr0 !== sr1 && /km/.test(await pg.evaluate(() => document.querySelector('[data-ucrs-readout]')?.textContent || ''));
   await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(150);
-  const merc = await pg.evaluate(() => !!document.querySelector('[data-planet-globe][data-body="Mercury"]') && !document.querySelector('[data-mini-globe]')); // Mercury → draggable 3D planet globe
+  const merc = await pg.evaluate(() => !!document.querySelector('[data-planet-globe][data-body="Mercury"]') && !document.querySelector('[data-earth-moon]')); // Mercury → draggable 3D planet globe
   const readT = () => pg.evaluate(() => (document.querySelector('[data-arch-tab="Design"]')?.textContent || '').match(/(\d+\.\d)h\b/)?.[1] || null);
   const t0 = await readT();
   await pg.locator('[data-cel-play]').click(); await pg.waitForTimeout(600); await pg.locator('[data-cel-play]').click();
   const t1 = await readT();
-  rec('#A23 date + play (time advances) + selected body 3D globe (Earth+Moon ↔ draggable planet)', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && !!t0 && t0 !== t1, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} merc=${merc} t0=${t0} t1=${t1}`);
+  rec('#A23 date + play + Earth+Moon box ↔ planet globe + SR unit cycles (m/×10⁶/×10⁹/AU) + km', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && srUnitOk && !!t0 && t0 !== t1, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} merc=${merc} sr0=${sr0} sr1=${sr1} srUnitOk=${srUnitOk} t0=${t0} t1=${t1}`);
+  await pg.close();
+}
+
+// ── #A26: the Sky Dome reflects the date set on the Solar-System view (single shared date) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  await pg.evaluate(() => { const inp = document.querySelector('[data-cel-date]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, '2025-03-21'); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); });
+  await pg.waitForTimeout(150);
+  await clk('[data-sky-view="dome"]'); await pg.waitForTimeout(200);
+  const domeDate = await pg.evaluate(() => document.querySelector('[data-cal-input]')?.value || '');
+  rec('#A26 Sky Dome reflects the Solar-System date (shared)', domeDate === '2025-03-21', `domeDate=${domeDate}`);
   await pg.close();
 }
 

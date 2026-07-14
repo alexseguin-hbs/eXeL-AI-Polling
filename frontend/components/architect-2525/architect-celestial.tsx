@@ -14,10 +14,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Maximize2, Minimize2, Play, Pause } from "lucide-react";
 import {
-  PLANETS, MOON, ucrsAt, huToNu, axTrue, bOverA, fmt3600, FULL_ORBIT, fmtMeters, planetDotRadius,
+  PLANETS, ucrsAt, huToNu, axTrue, bOverA, fmt3600, FULL_ORBIT, planetDotRadius,
+  fmtSr, fmtKm, ltuToDays, SR_UNIT_CYCLE, type SrUnit,
 } from "@/lib/ucrs-2525";
-import { MiniGlobe } from "./mini-globe";
 import { PlanetGlobe } from "./planet-globe";
+import { EarthMoonBox } from "./earth-moon-box";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
@@ -51,17 +52,27 @@ function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string;
   );
 }
 
-export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number; lon?: number } = {}) {
+export function ArchitectCelestial({
+  lat = 30.44, lon = -97.62,
+  year = 2025, doy = 172, hour = 12, onYear, onDoy, onHour,
+}: {
+  lat?: number; lon?: number;
+  year?: number; doy?: number; hour?: number;                 // date/time lifted from SUN·SKY so the Sky Dome stays synced
+  onYear?: (n: number | ((p: number) => number)) => void;
+  onDoy?: (n: number | ((p: number) => number)) => void;
+  onHour?: (n: number | ((p: number) => number)) => void;
+} = {}) {
   // Default location: Pfield · Pflugerville, TX (shared with the Sky Dome / view-from-location).
+  const setYear = useMemo(() => onYear ?? (() => {}), [onYear]);
+  const setDoy = useMemo(() => onDoy ?? (() => {}), [onDoy]);
+  const setHour = useMemo(() => onHour ?? (() => {}), [onHour]);
   const [hu, setHu] = useState(0);
   const [selId, setSelId] = useState("earth");
   const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
   const [planetSize, setPlanetSize] = useState<"actual" | "exaggerated">("exaggerated"); // dot sizing on the map
+  const [srUnit, setSrUnit] = useState<SrUnit>("m"); // SR distance unit (tap value to cycle)
   const [max, setMax] = useState(false);            // maximize the whole solar system
   const [overhead, setOverhead] = useState(false);  // clock icon → top-down overhead view (perihelion at 12)
-  const [year, setYear] = useState(2025);
-  const [doy, setDoy] = useState(172);
-  const [hour, setHour] = useState(12);             // time-of-day → Earth's daily rotation
   const [playing, setPlaying] = useState(false);
   const isoDate = new Date(Date.UTC(year, 0, doy)).toISOString().slice(0, 10);
   const setFromDate = (iso: string) => { const d = new Date(iso + "T00:00:00Z"); if (isNaN(d.getTime())) return; setYear(d.getUTCFullYear()); setDoy(Math.round((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 0)) / 86400000)); };
@@ -73,7 +84,7 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
     const tick = () => { setHour((h) => (h + 0.14) % 24); setHu((u) => (u + 3) % 3600); raf.current = requestAnimationFrame(tick); };
     raf.current = requestAnimationFrame(tick);
     return () => { if (raf.current != null) cancelAnimationFrame(raf.current); };
-  }, [playing]);
+  }, [playing, setHour]);
   const sinE = Math.sin(tiltDeg * DEG);
 
   // ── GESTURE NAVIGATION — pinch-zoom + one/two-finger rotate/pan on the solar system (mirrors the
@@ -187,14 +198,9 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
             Earth = real land/ocean globe (spins with time-of-day) + the Moon beside it; any other planet =
             a procedural 3D sphere (bands / craters / Saturn's rings). Drag L/R to rotate · no zoom. */}
         <div className="absolute bottom-1 right-1 z-10 flex items-end gap-1">
-          {selId === "earth" ? (
-            <>
-              <MiniGlobe lat={lat} lon={lon} size={max ? 128 : 82} color={C.gold} spinDeg={(hour / 24) * 360} />
-              <PlanetGlobe body={MOON} size={max ? 56 : 40} />
-            </>
-          ) : (
-            <PlanetGlobe body={sel.p} size={max ? 120 : 84} />
-          )}
+          {selId === "earth"
+            ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={max ? 168 : 116} color={C.gold} />
+            : <PlanetGlobe body={sel.p} size={max ? 120 : 84} />}
         </div>
         {/* zoom / reset — pinch or wheel to zoom, drag to pan, two-finger twist (or right-drag) to rotate */}
         <div className="absolute bottom-1 left-1 z-10 flex items-center gap-1">
@@ -312,13 +318,18 @@ export function ArchitectCelestial({ lat = 30.44, lon = -97.62 }: { lat?: number
           SA.EA..HU = 0.0..0 · {sel.p.ea === "—" ? "—" : `${sel.p.ea}..0`} · {fmt3600(sel.effHu)}
         </div>
         <div style={{ fontFamily: "monospace" }}>
-          <div><span style={{ color: C.dim }}>SR:</span> <span style={{ color: C.cyan }}>{fmtMeters(rd.sr)}</span></div>
-          <div><span style={{ color: C.dim }}>SP-OTU:</span> <span style={{ color: C.text }}>{rd.spotu.toFixed(4)}</span> · <span style={{ color: C.dim }}>RTU:</span> <span style={{ color: C.text }}>{rd.rtu}</span></div>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span style={{ color: C.dim }}>SR:</span>
+            <button data-sr-unit onClick={() => setSrUnit((u) => SR_UNIT_CYCLE[(SR_UNIT_CYCLE.indexOf(u) + 1) % SR_UNIT_CYCLE.length])}
+              className="rounded border px-1 py-0.5 tabular-nums" style={{ borderColor: C.border, color: C.cyan }} title="tap to change unit (m / ×10⁶ m / ×10⁹ m / AU)">{fmtSr(rd.sr, srUnit)}</button>
+            <span className="tabular-nums" style={{ color: C.dim }}>{fmtKm(rd.sr)}</span>
+          </div>
+          <div><span style={{ color: C.dim }}>SP-OTU:</span> <span style={{ color: C.text }}>{rd.spotu.toFixed(4)}</span> · <span style={{ color: C.dim }}>Days:</span> <span style={{ color: C.text }}>{ltuToDays(rd.ltu).toLocaleString()} d</span></div>
           <div><span style={{ color: C.dim }}>LTU:</span> <span style={{ color: C.text }}>{rd.ltu.toLocaleString()} s</span></div>
         </div>
         <div className="border-t pt-1 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
-          <div><span style={{ color: C.green }}>Perihelion ▶</span> {fmtMeters(rd.peri)}</div>
-          <div><span style={{ color: C.violet }}>◀ Aphelion</span> {fmtMeters(rd.aphe)}</div>
+          <div><span style={{ color: C.green }}>Perihelion ▶</span> {fmtSr(rd.peri, srUnit)} · {fmtKm(rd.peri)}</div>
+          <div><span style={{ color: C.violet }}>◀ Aphelion</span> {fmtSr(rd.aphe, srUnit)} · {fmtKm(rd.aphe)}</div>
           <div>Period {sel.p.tDays.toLocaleString()} d · a {sel.p.aAU} AU · e {sel.p.e}</div>
         </div>
         <div className="text-[8px]" style={{ color: C.dim }}>Tilted ellipsoid (SA) · aphelion left / perihelion right · HU 0=perihelion, 1800=aphelion, 3600=full orbit. Deterministic → replayable.</div>

@@ -98,3 +98,16 @@ export const fmt3600 = (n: number) => `${Math.round(n)}.0..0`;
 /** The canonical full-orbit reference: 3600.3600..3600 (SA.EA..HU at one complete revolution). */
 export const FULL_ORBIT = "3600.3600..3600";
 export const fmtMeters = (m: number) => `${Math.round(m).toLocaleString()} m`;
+
+// ── SR distance units — left value tap-cycles m → ×10⁶ m → ×10⁹ m → AU; km is always shown on the right ──
+export type SrUnit = "m" | "1e6" | "1e9" | "AU";
+export const SR_UNIT_CYCLE: SrUnit[] = ["m", "1e6", "1e9", "AU"];
+export function fmtSr(meters: number, unit: SrUnit): string {
+  if (unit === "AU") return `${(meters / AU).toLocaleString(undefined, { maximumFractionDigits: 4 })} AU`;
+  if (unit === "1e6") return `${(meters / 1e6).toLocaleString(undefined, { maximumFractionDigits: 3 })} ×10⁶ m`;
+  if (unit === "1e9") return `${(meters / 1e9).toLocaleString(undefined, { maximumFractionDigits: 4 })} ×10⁹ m`;
+  return `${Math.round(meters).toLocaleString()} m`;
+}
+export const fmtKm = (meters: number) => `${Math.round(meters / 1000).toLocaleString()} km`;
+/** LTU (local seconds elapsed) → whole days, for the human-readable time readout. */
+export const ltuToDays = (ltuSeconds: number) => Math.round(ltuSeconds / 86400);
