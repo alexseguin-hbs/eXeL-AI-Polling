@@ -24,6 +24,7 @@ import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationM
 import { ArchitectDesign, type DesignMetrics } from "./architect-design";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
+import { IteratePanel, SharePanel, QualifyPanel } from "./architect-panels";
 
 // Self-contained theme (Architect = violet Trinity accent; mirrors Security's inline C object).
 const C = {
@@ -246,6 +247,12 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           <ArchitectBuild />
         ) : activeTab === "SUN·SKY" ? (
           <ArchitectSkySun />
+        ) : activeTab === "ITERATE" ? (
+          <IteratePanel />
+        ) : activeTab === "SHARE" ? (
+          <SharePanel />
+        ) : activeTab === "QUALIFY" ? (
+          <QualifyPanel />
         ) : (
           <div className="flex min-h-[55vh] flex-col items-center justify-center gap-2 text-center">
             <span className="text-sm font-semibold tracking-wide" style={{ color: C.violet }}>{activeTab}</span>

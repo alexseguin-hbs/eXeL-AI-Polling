@@ -121,6 +121,39 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A9: ITERATE 20→33 gallery ──
+{
+  const { pg, clk } = await mk();
+  await clk('button:has-text("ITERATE")'); await pg.waitForTimeout(150);
+  const n = await pg.evaluate(() => document.querySelectorAll('[data-iter]').length);
+  const approved = await pg.evaluate(() => (document.querySelector('[data-arch-tab="ITERATE"]')?.textContent || '').includes('APPROVED'));
+  rec('#A9 ITERATE 20→33 gallery (14 cards, 33 approved)', n === 14 && approved, `cards=${n} approved=${approved}`);
+  await pg.close();
+}
+
+// ── #A10: SHARE universal comment → delta ──
+{
+  const { pg, clk } = await mk();
+  await clk('button:has-text("SHARE")'); await pg.waitForTimeout(150);
+  const count = () => pg.evaluate(() => document.querySelectorAll('[data-share-comments] > div').length);
+  const before = await count();
+  await pg.evaluate(() => { const inp = document.querySelector('[data-arch-tab="SHARE"] input'); if (inp) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, 'Add a skylight'); inp.dispatchEvent(new Event('input', { bubbles: true })); } });
+  await clk('button:has-text("post")'); await pg.waitForTimeout(150);
+  const after = await count();
+  rec('#A10 SHARE comment posts → delta list grows', after === before + 1, `before=${before} after=${after}`);
+  await pg.close();
+}
+
+// ── #A11: QUALIFY automated checks + gates + on-chain approval ──
+{
+  const { pg, clk } = await mk();
+  await clk('button:has-text("QUALIFY")'); await pg.waitForTimeout(150);
+  const txt = await pg.evaluate(() => document.querySelector('[data-arch-tab="QUALIFY"]')?.textContent || '');
+  const ok = ['AUTOMATED CHECKS', 'Structural', 'G6 Permit', 'APPROVAL RECORD', 'IMMUTABLE'].every((k) => txt.includes(k));
+  rec('#A11 QUALIFY checks + G0–G13 gates + on-chain approval', ok, '');
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
