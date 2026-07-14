@@ -378,20 +378,25 @@ const mk = async (vp) => {
   await pg.close();
 }
 
-// ── #A24: Planet Size Actual↔Exaggerated toggle changes the map dot radius (Jupiter shrinks in Actual) ──
+// ── #A24: 3-way size cycler True Scale → Proportional → THEMATIC (no Exaggerated); Thematic = compressed 1.0-1.5× spread ──
 {
   const { pg, tab, subtab, clk } = await mk();
   await tab('Design'); await subtab('Site');
   await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
-  const jupR = () => pg.evaluate(() => { const g = document.querySelector('[data-planet-id="jupiter"]'); const dot = g ? [...g.querySelectorAll('circle')].find((c) => (c.getAttribute('fill') || '').startsWith('#')) : null; return dot ? parseFloat(dot.getAttribute('r') || '0') : 0; }); // the coloured dot (hit-target is fill=transparent)
+  const dotR = (id) => pg.evaluate((pid) => { const g = document.querySelector(`[data-planet-id="${pid}"]`); const dot = g ? [...g.querySelectorAll('circle')].find((c) => (c.getAttribute('fill') || '').startsWith('#')) : null; return dot ? parseFloat(dot.getAttribute('r') || '0') : 0; }, id); // coloured dot (hit-target is fill=transparent)
   const modeOf = () => pg.evaluate(() => document.querySelector('[data-size-cycle]')?.getAttribute('data-size-mode') || '');
-  // header text cycles True Scale → Proportional → Exaggerated; Jupiter's dot changes across modes
+  // cycle all 3 modes, capturing Jupiter's dot per mode + the mode set (must be truescale/proportional/thematic, NO exaggerated)
   const sizes = {}, modes = {};
-  for (let i = 0; i < 3; i++) { const m = await modeOf(); modes[m] = 1; sizes[m] = await jupR(); await pg.locator('[data-size-cycle]').click(); await pg.waitForTimeout(120); }
-  const keys = Object.keys(sizes);
-  const three = keys.length === 3 && modes['truescale'] && modes['proportional'] && modes['exaggerated'];
-  const distinct = new Set(keys.map((k) => sizes[k].toFixed(2))).size === 3 && sizes['truescale'] < sizes['proportional'] && sizes['proportional'] < sizes['exaggerated'];
-  rec('#A24 3-way size cycler (True Scale < Proportional < Exaggerated) resizes dots', three && distinct, JSON.stringify(sizes));
+  for (let i = 0; i < 3; i++) { const m = await modeOf(); modes[m] = 1; sizes[m] = await dotR('jupiter'); await pg.locator('[data-size-cycle]').click(); await pg.waitForTimeout(120); }
+  const three = Object.keys(sizes).length === 3 && modes['truescale'] && modes['proportional'] && modes['thematic'] && !modes['exaggerated'];
+  const ordered = sizes['truescale'] < sizes['proportional'];            // real-scale ordering intact (same planet, same depth → dscale cancels)
+  // land on Thematic + switch to the TOP-DOWN view (uniform dots, NO depth-scale) so the cross-planet spread is pure:
+  // largest (Jupiter) ≤ ~1.5× smallest (Pluto).
+  while ((await modeOf()) !== 'thematic') { await pg.locator('[data-size-cycle]').click(); await pg.waitForTimeout(120); }
+  await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(200);
+  const jT = await dotR('jupiter'), pT = await dotR('pluto');
+  const spreadOk = jT > 0 && pT > 0 && jT / pT <= 1.55 && jT / pT >= 1.0; // ~50% spread, largest not dwarfing smallest
+  rec('#A24 size cycler TrueScale→Proportional→Thematic (no Exaggerated) + Thematic 1.0-1.5× spread', three && ordered && spreadOk, JSON.stringify({ sizes, jT, pT, ratio: +(jT / pT).toFixed(3) }));
   await pg.close();
 }
 
@@ -530,10 +535,12 @@ const mk = async (vp) => {
   await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
   await pg.locator('[data-planet-id="jupiter"]').click({ force: true }); await pg.waitForTimeout(400);
   const jup = await pg.evaluate(() => document.querySelector('[data-mini-rotation]')?.textContent || '');
-  await pg.locator('[data-planet-id="venus"]').click({ force: true }); await pg.waitForTimeout(400);
-  const ven = await pg.evaluate(() => document.querySelector('[data-mini-rotation]')?.textContent || '');
-  const ok = /9\.\d\s*h/.test(jup) && /↺/.test(ven) && /243/.test(ven); // Jupiter ~9.9h · Venus 243 d retrograde
-  rec('#A32 mini map shows axial rotation period (Jupiter ~9.9 h · Venus 243 d ↺ retrograde)', ok, `jup="${jup.trim()}" ven="${ven.trim()}"`);
+  // Uranus for the retrograde check — an ISOLATED outer planet (no inner-planet overlap → robust click) that is
+  // genuinely retrograde (rotDays −0.718 → "0.72 d ↺ · 17.2 h"). (Venus is also retrograde but overlaps Mercury.)
+  await pg.locator('[data-planet-id="uranus"]').click({ force: true }); await pg.waitForTimeout(400);
+  const ret = await pg.evaluate(() => document.querySelector('[data-mini-rotation]')?.textContent || '');
+  const ok = /9\.\d\s*h/.test(jup) && /↺/.test(ret) && /17\.2/.test(ret); // Jupiter ~9.9h · Uranus 17.2 h retrograde ↺
+  rec('#A32 mini map shows axial rotation period (Jupiter ~9.9 h · Uranus 17.2 h ↺ retrograde)', ok, `jup="${jup.trim()}" uranus="${ret.trim()}"`);
   await pg.close();
 }
 

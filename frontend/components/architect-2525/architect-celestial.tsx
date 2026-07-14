@@ -70,7 +70,7 @@ export function ArchitectCelestial({
   const [hu, setHu] = useState(0);
   const [selId, setSelId] = useState("earth");
   const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
-  const [sizeMode, setSizeMode] = useState<PlanetSizeMode>("proportional"); // planet dot sizing — cycled via the header text
+  const [sizeMode, setSizeMode] = useState<PlanetSizeMode>("thematic"); // planet dot sizing — Thematic default (connected scene); cycled via the header text
   const cycleSize = () => setSizeMode((m) => SIZE_MODES[(SIZE_MODES.indexOf(m) + 1) % SIZE_MODES.length]);
   const [distUnit, setDistUnit] = useState<DistUnit>("km"); // Units of Measure — distance (⚙ panel)
   const [timeUnit, setTimeUnit] = useState<TimeUnit>("days"); // Units of Measure — time (⚙ panel)
@@ -285,7 +285,7 @@ export function ArchitectCelestial({
         <div className="mb-1 flex items-center justify-between gap-1 text-[9px]">
           <span className="font-bold tracking-wider" style={{ color: C.violet }}>UCRS-2525 · BASE-3600 CELESTIAL MAP</span>
           <div className="flex items-center gap-1">
-            <button data-size-cycle data-size-mode={sizeMode} onClick={cycleSize} title="Cycle planet size: True Scale (vs Sun) → Proportional (vs planets) → Exaggerated"
+            <button data-size-cycle data-size-mode={sizeMode} onClick={cycleSize} title="Cycle planet size: True Scale (vs Sun) → Proportional (vs planets) → Thematic (all similar, ~50% spread)"
               className="rounded border px-1.5 py-0.5 text-[8px] uppercase tracking-wider" style={{ borderColor: C.border, color: C.gold }}>{SIZE_LABEL[sizeMode]}</button>
             <button data-cel-max onClick={() => setMax((v) => !v)} title={max ? "Minimize" : "Expand map"} aria-label={max ? "Minimize" : "Maximize"}
               className="flex items-center justify-center rounded border p-1" style={{ borderColor: max ? C.cyan : C.border, color: max ? C.cyan : C.dim }}>

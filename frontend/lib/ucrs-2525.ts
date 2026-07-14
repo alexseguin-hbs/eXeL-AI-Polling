@@ -52,22 +52,28 @@ export const MOON = { id: "moon", name: "Moon", radiusKm: 1737.4, color: "#c7c7d
 export const SATURN_RING_TEX = "/planets/saturnringcolor.jpg";
 
 /** Largest planet radius (Jupiter) + the Sun — normalisers for the planet-size modes. */
-export const RADIUS_MAX_KM = 69911;
+export const RADIUS_MAX_KM = 69911;   // Jupiter — the largest
+export const RADIUS_MIN_KM = 1188.3;  // Pluto — the smallest (Thematic spread anchor)
 export const SUN_RADIUS_KM = 695700;
 export const SUN_DOT_R = 4.8; // the Sun's dot radius on the map (viewBox units)
-export type PlanetSizeMode = "truescale" | "proportional" | "exaggerated";
-export const SIZE_MODES: PlanetSizeMode[] = ["truescale", "proportional", "exaggerated"];
-export const SIZE_LABEL: Record<PlanetSizeMode, string> = { truescale: "True Scale", proportional: "Proportional", exaggerated: "Exaggerated" };
+export type PlanetSizeMode = "truescale" | "proportional" | "thematic";
+export const SIZE_MODES: PlanetSizeMode[] = ["truescale", "proportional", "thematic"];
+export const SIZE_LABEL: Record<PlanetSizeMode, string> = { truescale: "True Scale", proportional: "Proportional", thematic: "Thematic" };
+// Thematic base dot + spread: smallest planet = THEMATIC_BASE, largest = THEMATIC_BASE × (1 + THEMATIC_SPREAD).
+const THEMATIC_BASE = 1.6, THEMATIC_SPREAD = 0.5;
 /**
  * Map dot radius per size mode:
  *  • truescale    — real size relative to the SUN (planets are tiny specks; hit-target keeps them clickable),
  *  • proportional — real size relative to the other PLANETS (Jupiter ≫ Earth ≫ Pluto),
- *  • exaggerated  — proportional but a little bigger for legibility.
+ *  • thematic     — real ORDER but compressed to a 1.0×–1.5× spread (largest only ~50% bigger than smallest), so
+ *                   every planet is a modest dot sitting ON its orbit and the scene reads as one connected family.
  */
 export const planetDotRadius = (p: Planet, mode: PlanetSizeMode): number => {
   if (mode === "truescale") return Math.max(0.15, (p.radiusKm / SUN_RADIUS_KM) * SUN_DOT_R);
-  const proportional = Math.max(0.5, (p.radiusKm / RADIUS_MAX_KM) * 6);
-  return mode === "exaggerated" ? proportional * 1.6 : proportional;
+  if (mode === "proportional") return Math.max(0.5, (p.radiusKm / RADIUS_MAX_KM) * 6);
+  // thematic: log-normalise real radius into [0,1] → 1.0×–1.5× of the base (Pluto→base, Jupiter→1.5×base)
+  const norm = (Math.log(p.radiusKm) - Math.log(RADIUS_MIN_KM)) / (Math.log(RADIUS_MAX_KM) - Math.log(RADIUS_MIN_KM));
+  return THEMATIC_BASE * (1 + THEMATIC_SPREAD * Math.max(0, Math.min(1, norm)));
 };
 
 /** Orbit radius (m) at true anomaly ν (deg from perihelion): r = a(1-e²)/(1+e·cosν). */
