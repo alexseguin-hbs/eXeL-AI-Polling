@@ -288,24 +288,31 @@ const mk = async (vp) => {
   await pg.close();
 }
 
-// ── #A21: Design→Solar System UCRS-2525 celestial map — 9 planets + orbits + click → Base-3600 coords ──
+// ── #A21: Design→Site→SUN·SKY "Solar System" toggle → UCRS-2525 celestial map (9 planets + Base-3600 coords) ──
 {
-  const { pg, tab, subtab } = await mk();
-  await tab('Design'); await subtab('Solar System');
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(200); // UCRS-2525 lives inside SUN·SKY
   const base = await pg.evaluate(() => ({
     map: !!document.querySelector('[data-arch-celestial]'),
     planets: document.querySelectorAll('[data-planet]').length,
     orbits: document.querySelectorAll('[data-orbit]').length,
     hu: !!document.querySelector('[data-hu-input]'),
-    readout: (document.querySelector('[data-ucrs-readout]')?.textContent || ''),
+    tilt: !!document.querySelector('[data-tilt-input]'),
+    scale: document.querySelectorAll('[data-scale-toggle]').length,
+    coord: /SA\.EA\.\.HU/.test(document.querySelector('[data-ucrs-coord]')?.textContent || ''),
   }));
-  // click Mercury → readout switches to Mercury + shows SR/SP-OTU
+  // tilt changes the ellipsoid foreshortening (orbit ry shrinks as tilt lowers)
+  const ry0 = await pg.evaluate(() => document.querySelector('[data-orbit]')?.getAttribute('ry'));
+  await pg.evaluate(() => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, '8'); t.dispatchEvent(new Event('input', { bubbles: true })); });
+  await pg.waitForTimeout(150);
+  const ry1 = await pg.evaluate(() => document.querySelector('[data-orbit]')?.getAttribute('ry'));
+  // click Mercury → readout switches + shows SR/SP-OTU
   await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(150);
   const after = await pg.evaluate(() => document.querySelector('[data-ucrs-readout]')?.textContent || '');
-  const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu
-    && /3600\.3600\.\.3600/.test(base.readout) === false /* full-orbit ref is in the scrubber, not readout */
-    && /Mercury/.test(after) && /SR:/.test(after) && /SP-OTU/.test(after);
-  rec('#A21 UCRS-2525 celestial map — 9 planets + orbits + click→Base-3600 coords', ok, JSON.stringify({ ...base, readout: undefined, afterHasMercury: /Mercury/.test(after) }));
+  const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu && base.tilt && base.scale === 2 && base.coord
+    && parseFloat(ry1) < parseFloat(ry0) && /Mercury/.test(after) && /SR:/.test(after) && /SP-OTU/.test(after);
+  rec('#A21 UCRS-2525 v2 — 9 planets + tilt ellipsoid + scale toggle + SA.EA..HU + click→coords', ok, JSON.stringify({ ...base, ry0, ry1, afterHasMercury: /Mercury/.test(after) }));
   await pg.close();
 }
 

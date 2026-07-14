@@ -28,7 +28,6 @@ import { ArchitectSkySun } from "./architect-skysun";
 import { ArchitectSoI } from "./architect-soi";
 import { ArchitectEstimate } from "./architect-estimate";
 import { ArchitectForecast } from "./architect-forecast";
-import { ArchitectCelestial } from "./architect-celestial";
 import { IteratePanel, SharePanel, QualifyPanel } from "./architect-panels";
 import { SimulatePanel, ReviewPanel, TwinPanel, ReplayPanel } from "./architect-panels2";
 
@@ -56,7 +55,7 @@ const NAV: [string, React.ComponentType<{ className?: string }>][] = [
 ];
 // Inner (secondary) tabs per primary tab — where the former 12 panels now live.
 const SUBNAV: Record<string, string[]> = {
-  Design: ["Model", "Site", "Solar System", "Compare"],
+  Design: ["Model", "Site", "Compare"],
   Review: ["Reviews", "Qualification", "Contributions"],
   Build: ["Build 4D", "Estimate", "Forecast", "Cost·Time"],
   Lifecycle: ["Twin", "Replay"],
@@ -314,8 +313,6 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           <ArchitectBuild />
         ) : activeTab === "Design" && sub("Design") === "Site" ? (
           <ArchitectSkySun />
-        ) : activeTab === "Design" && sub("Design") === "Solar System" ? (
-          <ArchitectCelestial />
         ) : activeTab === "Design" && sub("Design") === "Compare" ? (
           <IteratePanel />
         ) : activeTab === "Review" && sub("Review") === "Contributions" ? (
@@ -350,7 +347,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                 </div>
               ))}
             </div>
-            <div className="text-[9px]" style={{ color: C.dim }}>Reuses the Security-2525 "•••" expansion method · content wiring per Sprint 2+.</div>
+            <div className="text-[9px]" style={{ color: C.dim }}>Reuses the Security-2525 {"“•••”"} expansion method · content wiring per Sprint 2+.</div>
           </div>
         ) : (
           <div className="flex min-h-[55vh] flex-col items-center justify-center gap-2 text-center">

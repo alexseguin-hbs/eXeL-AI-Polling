@@ -9,6 +9,7 @@
  * client math (deterministic → replayable, U-WF-08). Self-contained SVG.
  */
 import { useState } from "react";
+import { ArchitectCelestial } from "./architect-celestial";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const RAD = Math.PI / 180;
@@ -95,6 +96,7 @@ export function ArchitectSkySun() {
   const [doy, setDoy] = useState(172);     // ~summer solstice
   const [hour, setHour] = useState(12);
   const [year, setYear] = useState(2025);
+  const [skyView, setSkyView] = useState<"dome" | "solar">("dome"); // SUN·SKY sub-view: sky dome ↔ UCRS-2525 solar system
 
   const sun = sunPos(lat, doy, hour);
   const dayPath = Array.from({ length: 29 }, (_, i) => 5 + i * 0.5).map((h) => sunPos(lat, doy, h)).filter((p) => p.el > -2);
@@ -127,7 +129,17 @@ export function ArchitectSkySun() {
   const corners = [{ k: "NW", la: lat + dLat, lo: lon - dLon }, { k: "NE", la: lat + dLat, lo: lon + dLon }, { k: "SE", la: lat - dLat, lo: lon + dLon }, { k: "SW", la: lat - dLat, lo: lon - dLon }];
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
+    <div className="space-y-2">
+      {/* SUN·SKY sub-view toggle — the sky dome over the lot, or the UCRS-2525 Base-3600 solar system */}
+      <div className="flex flex-wrap items-center gap-1 text-[10px]">
+        <span className="mr-1 font-bold tracking-wider" style={{ color: C.violet }}>SUN·SKY</span>
+        {([["dome", "Sky Dome"], ["solar", "Solar System · UCRS-2525"]] as const).map(([v, label]) => (
+          <button key={v} data-sky-view={v} onClick={() => setSkyView(v)} className="rounded border px-2 py-0.5 text-[9px] font-semibold"
+            style={{ borderColor: C.border, color: skyView === v ? C.violet : C.dim, background: skyView === v ? "#221833" : "transparent" }}>{label}</button>
+        ))}
+      </div>
+      {skyView === "solar" ? <ArchitectCelestial /> : (
+      <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
       <div className="relative rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         {/* CALENDAR — upper-right of the sky dome: pick any date to scrub sun + moon across the year */}
         <div data-arch-calendar className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1 rounded-md border p-1.5" style={{ borderColor: C.border, background: "rgba(12,20,32,0.8)", backdropFilter: "blur(2px)" }}>
@@ -190,6 +202,8 @@ export function ArchitectSkySun() {
           <div className="mt-1 text-[9px]" style={{ color: C.dim }}>Polaris ≈ {polaris.el.toFixed(0)}° (latitude). Sun exact; moon is an approximate model. Deterministic → replayable.</div>
         </div>
       </div>
+      </div>
+      )}
     </div>
   );
 }

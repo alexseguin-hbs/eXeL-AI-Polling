@@ -64,6 +64,17 @@ export function ucrsAt(p: Planet, hu: number): UcrsReading {
   return { hu, nu, sr, spotu, rtu: Math.round(hu), ltu: Math.round(spotu * tSec), peri: perihelionM(p), aphe: aphelionM(p) };
 }
 
+// ── Display helpers (v2 tilted-ellipsoid map) ──
+/** Schematic semi-major (index-spaced) so all 9 planets are visible at once. */
+export const axSchematic = (i: number) => 12 + i * 7.2;
+/** True-scale semi-major (log of AU) so real proportions show while inner planets stay legible. */
+export function axTrue(aAU: number): number {
+  const lo = Math.log(0.387098), hi = Math.log(39.48211);
+  return 9 + 70 * (Math.log(aAU) - lo) / (hi - lo);
+}
+/** Semi-minor / semi-major ratio of the true orbit (√(1-e²)); used before the tilt foreshortening. */
+export const bOverA = (e: number) => Math.sqrt(1 - e * e);
+
 /** Format a base-3600 unit as "N.0..0" (A.B..C notation, sub-units zeroed for the demo). */
 export const fmt3600 = (n: number) => `${Math.round(n)}.0..0`;
 /** The canonical full-orbit reference: 3600.3600..3600 (SA.EA..HU at one complete revolution). */

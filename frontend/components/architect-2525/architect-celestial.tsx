@@ -1,99 +1,120 @@
 "use client";
 
 /**
- * ARCHITECT-2525 · UCRS-2525 Celestial Map (Design → Solar System).
- * ================================================================
- * A landscape solar-system view for SUN·SKY: every planet on a dotted elliptical orbit, aphelion LEFT and
- * perihelion RIGHT (Sun at the right focus), coloured across the 13-Trinity spectrum (Mercury red → Neptune
- * violet → Pluto ultraviolet). Earth is drawn largest (the reference/home planet). Click any planet and its
- * Base-3600 UCRS-2525 coordinates appear — the same "read the coordinate on click" pattern as the voxel.
- * The HU scrubber (0 → 3600.3600..3600) advances every planet along its orbit. Driven by lib/ucrs-2525.ts.
+ * ARCHITECT-2525 · UCRS-2525 Celestial Map v2 (Design → Solar System).
+ * ===================================================================
+ * A 3D tilted-plane solar-system view for SUN·SKY. Orbits are ELLIPSOID rings on a plane tilted by an
+ * elevation angle (SA · star/system tilt), aphelion LEFT / perihelion RIGHT, Sun at the shared right focus.
+ * Coloured across the 13-Trinity spectrum (Mercury red → Neptune violet → Pluto ultraviolet); Earth drawn
+ * largest with an EA axial-tilt marker (the reference/home planet, EA 230.1584). Toggle Schematic ↔ True-scale.
+ * Click any planet → its Base-3600 UCRS-2525 coordinates (voxel-style). HU scrubber advances all planets.
+ * Driven by lib/ucrs-2525.ts (pure). Self-contained SVG.
  */
 import { useMemo, useState } from "react";
-import { PLANETS, ucrsAt, huToNu, fmt3600, FULL_ORBIT, fmtMeters, type Planet } from "@/lib/ucrs-2525";
+import {
+  PLANETS, ucrsAt, huToNu, axSchematic, axTrue, bOverA, fmt3600, FULL_ORBIT, fmtMeters,
+} from "@/lib/ucrs-2525";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
-
-// Landscape schematic: Sun at the right focus; orbits index-spaced so all planets are visible; eccentricity
-// shown horizontally (perihelion right / aphelion left), vertical is a cosmetic squash to fit the strip.
-const SUN_X = 120, SUN_Y = 55, VSQUASH = 0.34;
-const axFor = (i: number) => 12 + i * 7.2;
+const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
 
 export function ArchitectCelestial() {
-  const [hu, setHu] = useState(0);              // global Horizontal Angular Unit (0..3600)
+  const [hu, setHu] = useState(0);
   const [selId, setSelId] = useState("earth");
+  const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
+  const [scaleMode, setScaleMode] = useState<"schematic" | "true">("schematic");
+  const sinE = Math.sin(tiltDeg * DEG);
 
+  // Layout: each orbit is an ellipse in its plane (semi-major ax, focus offset ax·e), foreshortened vertically
+  // by sin(elevation). Planet at true anomaly ν(HU); depth = sin(ν) (front > 0, back < 0).
   const laid = useMemo(() => PLANETS.map((p, i) => {
-    const ax = axFor(i), ay = ax * VSQUASH, cx = SUN_X - ax * p.e;
-    const effHu = (hu + i * 400) % 3600;         // spread planets around their orbits
-    const phi = huToNu(effHu) * Math.PI / 180;   // angle from perihelion (right)
-    const x = cx + ax * Math.cos(phi), y = SUN_Y + ay * Math.sin(phi);
-    return { p, i, ax, ay, cx, effHu, x, y };
-  }), [hu]);
+    const ax = scaleMode === "true" ? axTrue(p.aAU) : axSchematic(i);
+    const ry = ax * bOverA(p.e) * sinE;             // foreshortened minor axis (the tilt)
+    const cx = SUN_X - ax * p.e;                     // Sun sits at the right focus
+    const effHu = (hu + i * 400) % 3600;
+    const nu = huToNu(effHu) * DEG;
+    const x = cx + ax * Math.cos(nu), y = SUN_Y + ry * Math.sin(nu);
+    const depth = Math.sin(nu);                       // +front / −back
+    return { p, i, ax, ry, cx, effHu, x, y, depth };
+  }), [hu, sinE, scaleMode]);
 
   const sel = laid.find((l) => l.p.id === selId) || laid[2];
   const rd = ucrsAt(sel.p, sel.effHu);
+  const drawOrder = [...laid].sort((a, b) => a.depth - b.depth); // back planets first
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[1fr_270px]">
+    <div className="grid gap-3 lg:grid-cols-[1fr_272px]">
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
-        <div className="mb-1 flex items-center justify-between text-[9px]">
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-1 text-[9px]">
           <span className="font-bold tracking-wider" style={{ color: C.violet }}>UCRS-2525 · BASE-3600 CELESTIAL MAP</span>
-          <span style={{ color: C.dim }}>◀ aphelion · perihelion ▶ · click a planet</span>
+          <div className="flex items-center gap-1">
+            {(["schematic", "true"] as const).map((m) => (
+              <button key={m} data-scale-toggle onClick={() => setScaleMode(m)} className="rounded border px-1.5 py-0.5 text-[8px]"
+                style={{ borderColor: C.border, color: scaleMode === m ? C.violet : C.dim, background: scaleMode === m ? "#221833" : "transparent" }}>{m === "true" ? "true-scale" : "schematic"}</button>
+            ))}
+          </div>
         </div>
-        <svg data-arch-celestial viewBox="0 0 240 110" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "radial-gradient(circle at 50% 46%, #0a1020, #05070d)", aspectRatio: "2.2 / 1" }}>
-          {/* orbits — dotted ellipses, aphelion left / perihelion right */}
-          {laid.map(({ p, i, ax, ay, cx }) => (
+        <svg data-arch-celestial viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: "2.2 / 1" }}>
+          {/* orbital-plane baseline (the tilt reference / SA) */}
+          <ellipse cx={SUN_X} cy={SUN_Y} rx="118" ry={118 * sinE} fill="none" stroke="#141d29" strokeWidth="0.3" />
+          {/* orbits — ellipsoid rings + apsidal line + peri/aphe markers */}
+          {laid.map(({ p, ax, ry, cx }) => (
             <g key={`o${p.id}`}>
-              <ellipse data-orbit cx={cx} cy={SUN_Y} rx={ax} ry={ay} fill="none" stroke={p.color} strokeWidth="0.3" strokeDasharray="0.9 1.1" opacity="0.55" />
-              {/* perihelion (right) + aphelion (left) ticks */}
-              <circle cx={cx + ax} cy={SUN_Y} r="0.5" fill={p.color} opacity="0.9" />
-              <circle cx={cx - ax} cy={SUN_Y} r="0.5" fill={p.color} opacity="0.5" />
+              <line x1={cx - ax} y1={SUN_Y} x2={cx + ax} y2={SUN_Y} stroke={p.color} strokeWidth="0.22" strokeDasharray="1.4 1.4" opacity="0.3" />
+              <ellipse data-orbit cx={cx} cy={SUN_Y} rx={ax} ry={ry} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.6" />
+              <circle cx={cx + ax} cy={SUN_Y} r="0.7" fill={p.color} />{/* perihelion (Sun side) — filled */}
+              <circle cx={cx - ax} cy={SUN_Y} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* aphelion — hollow */}
             </g>
           ))}
           {/* Earth peri/aphe labels */}
           {(() => { const e = laid[2]; return <>
-            <text x={e.cx - e.ax - 1} y={SUN_Y - 1.5} fontSize="2.4" fill={C.dim} textAnchor="end" style={{ fontFamily: "monospace" }}>aphelion</text>
-            <text x={e.cx + e.ax + 1} y={SUN_Y - 1.5} fontSize="2.4" fill={C.dim} style={{ fontFamily: "monospace" }}>perihelion</text>
+            <text x={e.cx - e.ax - 1} y={SUN_Y - 1.4} fontSize="2.3" fill={C.dim} textAnchor="end" style={{ fontFamily: "monospace" }}>aphelion ◀</text>
+            <text x={e.cx + e.ax + 1} y={SUN_Y - 1.4} fontSize="2.3" fill={C.dim} style={{ fontFamily: "monospace" }}>▶ perihelion</text>
           </>; })()}
           {/* Sun at the shared right focus */}
-          <circle cx={SUN_X} cy={SUN_Y} r="4.6" fill="#fff3b0" />
-          <circle cx={SUN_X} cy={SUN_Y} r="7" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.5" />
-          <text x={SUN_X} y={SUN_Y + 12} fontSize="2.6" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
-          {/* planets — Earth largest; click to read coordinates */}
-          {laid.map(({ p, x, y }) => {
+          <circle cx={SUN_X} cy={SUN_Y} r="7.5" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.4" />
+          <circle cx={SUN_X} cy={SUN_Y} r="4.8" fill="#fff3b0" />
+          <text x={SUN_X} y={SUN_Y + 12} fontSize="2.5" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
+          {/* planets — back first; Earth largest + EA axial marker; depth-scaled */}
+          {drawOrder.map(({ p, x, y, depth }) => {
             const on = p.id === selId;
+            const dscale = 0.82 + 0.34 * ((depth + 1) / 2);   // front bigger, back smaller
+            const r = p.dot * dscale, op = 0.6 + 0.4 * ((depth + 1) / 2);
             return (
-              <g key={p.id} data-planet data-planet-id={p.id} onClick={() => setSelId(p.id)} style={{ cursor: "pointer" }}>
-                <circle cx={x} cy={y} r={Math.max(4, p.dot + 2.5)} fill="transparent" />{/* hit area */}
-                {on && <circle cx={x} cy={y} r={p.dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
-                <circle cx={x} cy={y} r={p.dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
-                <text x={x} y={y - p.dot - 1.2} fontSize="2.4" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
+              <g key={p.id} data-planet data-planet-id={p.id} onClick={() => setSelId(p.id)} style={{ cursor: "pointer" }} opacity={op}>
+                <circle cx={x} cy={y} r={Math.max(4, r + 2.5)} fill="transparent" />
+                {on && <circle cx={x} cy={y} r={r + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
+                <circle cx={x} cy={y} r={r} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
+                {p.id === "earth" && (() => { const a = 23.4 * DEG, L = r + 2.2; return <line x1={x - Math.sin(a) * L} y1={y - Math.cos(a) * L} x2={x + Math.sin(a) * L} y2={y + Math.cos(a) * L} stroke="#fff" strokeWidth="0.35" opacity="0.75" />; })()}
+                <text x={x} y={y - r - 1.2} fontSize="2.3" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
               </g>
             );
           })}
         </svg>
-        {/* HU scrubber → 3600.3600..3600 */}
-        <label className="mt-1 flex items-center gap-2 text-[10px]" style={{ color: C.dim }}>
-          HU
-          <input data-hu-input type="range" min={0} max={3600} step={1} value={hu} onChange={(e) => setHu(+e.target.value)} className="flex-1" />
-          <span className="tabular-nums" style={{ color: C.cyan }}>{fmt3600(hu)}</span>
-          <span style={{ color: C.dim }}>/ {FULL_ORBIT}</span>
-        </label>
+        {/* controls: HU scrubber + SA tilt */}
+        <div className="mt-1 grid grid-cols-1 gap-x-3 gap-y-0.5 text-[9px] sm:grid-cols-2">
+          <label className="flex items-center gap-2" style={{ color: C.dim }}>HU
+            <input data-hu-input type="range" min={0} max={3600} step={1} value={hu} onChange={(e) => setHu(+e.target.value)} className="flex-1" />
+            <span className="tabular-nums" style={{ color: C.cyan }}>{fmt3600(hu)}</span>
+          </label>
+          <label className="flex items-center gap-2" style={{ color: C.dim }}>SA tilt
+            <input data-tilt-input type="range" min={8} max={42} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" />
+            <span className="tabular-nums" style={{ color: C.violet }}>{tiltDeg}°</span>
+          </label>
+        </div>
+        <div className="text-[8px]" style={{ color: C.dim }}>Full orbit reference · <span style={{ color: C.gold }}>{FULL_ORBIT}</span> (SA.EA..HU)</div>
       </div>
 
-      {/* CLICKED PLANET → Base-3600 coordinates (voxel-style read-out) */}
+      {/* CLICKED PLANET → Base-3600 coordinates (voxel-style) */}
       <div data-ucrs-readout className="space-y-1 rounded-lg border p-3 text-[10px]" style={{ borderColor: sel.p.color, background: C.panel }}>
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-bold" style={{ color: sel.p.color }}>◉ {sel.p.name}</span>
           <span className="text-[9px]" style={{ color: C.dim }}>UCRS-2525</span>
         </div>
-        <div style={{ fontFamily: "monospace" }}>
-          <div><span style={{ color: C.dim }}>SA:</span> <span style={{ color: C.text }}>0.0..0</span></div>
-          <div><span style={{ color: C.dim }}>EA:</span> <span style={{ color: C.text }}>{sel.p.ea === "—" ? "—" : `${sel.p.ea}..0`}</span></div>
-          <div><span style={{ color: C.dim }}>HU:</span> <span style={{ color: C.gold }}>{fmt3600(sel.effHu)}</span></div>
+        <div data-ucrs-coord className="rounded border px-1.5 py-1 text-[10px]" style={{ borderColor: C.border, fontFamily: "monospace", color: C.gold }}>
+          SA.EA..HU = 0.0..0 · {sel.p.ea === "—" ? "—" : `${sel.p.ea}..0`} · {fmt3600(sel.effHu)}
         </div>
-        <div className="border-t pt-1" style={{ borderColor: C.border, fontFamily: "monospace" }}>
+        <div style={{ fontFamily: "monospace" }}>
           <div><span style={{ color: C.dim }}>SR:</span> <span style={{ color: C.cyan }}>{fmtMeters(rd.sr)}</span></div>
           <div><span style={{ color: C.dim }}>SP-OTU:</span> <span style={{ color: C.text }}>{rd.spotu.toFixed(4)}</span> · <span style={{ color: C.dim }}>RTU:</span> <span style={{ color: C.text }}>{rd.rtu}</span></div>
           <div><span style={{ color: C.dim }}>LTU:</span> <span style={{ color: C.text }}>{rd.ltu.toLocaleString()} s</span></div>
@@ -103,7 +124,7 @@ export function ArchitectCelestial() {
           <div><span style={{ color: C.violet }}>◀ Aphelion</span> {fmtMeters(rd.aphe)}</div>
           <div>Period {sel.p.tDays.toLocaleString()} d · a {sel.p.aAU} AU · e {sel.p.e}</div>
         </div>
-        <div className="text-[8px]" style={{ color: C.dim }}>Base-3600: 1 A = 3600 B · 1 B = 3600 C. HU 0 = perihelion, 1800 = aphelion, 3600 = full orbit. Deterministic → replayable.</div>
+        <div className="text-[8px]" style={{ color: C.dim }}>Tilted ellipsoid (SA) · aphelion left / perihelion right · HU 0=perihelion, 1800=aphelion, 3600=full orbit. Deterministic → replayable.</div>
       </div>
     </div>
   );
