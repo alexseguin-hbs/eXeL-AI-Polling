@@ -15,7 +15,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Maximize2, Minimize2, Play, Pause } from "lucide-react";
 import {
   PLANETS, ucrsAt, huToNu, axTrue, bOverA, fmt3600, FULL_ORBIT, planetDotRadius,
-  fmtSr, fmtKm, ltuToDays, fmtRotation, SR_UNIT_CYCLE, SATURN_RING_TEX, type SrUnit,
+  fmtDist, fmtTime, fmtRotation, DIST_UNITS, DIST_LABEL, TIME_UNITS, TIME_LABEL, SATURN_RING_TEX,
+  type DistUnit, type TimeUnit,
 } from "@/lib/ucrs-2525";
 import { EarthMoonBox } from "./earth-moon-box";
 import { MiniPanel } from "./mini-panel";
@@ -69,7 +70,9 @@ export function ArchitectCelestial({
   const [selId, setSelId] = useState("earth");
   const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
   const [planetSize, setPlanetSize] = useState<"actual" | "exaggerated">("exaggerated"); // dot sizing on the map
-  const [srUnit, setSrUnit] = useState<SrUnit>("m"); // SR distance unit (tap value to cycle)
+  const [distUnit, setDistUnit] = useState<DistUnit>("km"); // Units of Measure — distance (⚙ panel)
+  const [timeUnit, setTimeUnit] = useState<TimeUnit>("days"); // Units of Measure — time (⚙ panel)
+  const [showDetail, setShowDetail] = useState(false);       // ⚙ units & detail — collapsed by default (declutter)
   const [max, setMax] = useState(false);            // maximize → full-screen big map (zoom to an orbit, rotate)
   const [periTop, setPeriTop] = useState(false);    // clock icon → rotate the big map so perihelion + planet are at TOP
   const [playing, setPlaying] = useState(false);
@@ -193,31 +196,25 @@ export function ArchitectCelestial({
   return (
     <div className={max ? "fixed inset-0 z-[80] flex flex-col gap-2 overflow-hidden p-2" : "grid gap-3 lg:grid-cols-[1fr_272px]"} style={max ? { background: "#05070d" } : undefined}>
       <div className={max ? "flex min-h-0 flex-1 flex-col rounded-lg border p-2" : "rounded-lg border p-2"} style={{ borderColor: C.border, background: C.panel }}>
-        <div className="mb-1 flex flex-wrap items-center justify-between gap-1 text-[9px]">
+        <div className="mb-1 flex items-center justify-between gap-1 text-[9px]">
           <span className="font-bold tracking-wider" style={{ color: C.violet }}>UCRS-2525 · BASE-3600 CELESTIAL MAP</span>
-          <div className="flex items-center gap-1">
-            <span className="text-[7px] uppercase tracking-wider" style={{ color: C.gold }}>True-Scale</span>
-            <span className="text-[7px]" style={{ color: C.dim }}>· Planet Size</span>
-            {(["actual", "exaggerated"] as const).map((m) => (
-              <button key={m} data-psize-toggle data-psize={m} onClick={() => setPlanetSize(m)} className="rounded border px-1.5 py-0.5 text-[8px] capitalize"
-                style={{ borderColor: C.border, color: planetSize === m ? C.violet : C.dim, background: planetSize === m ? "#221833" : "transparent" }}>{m}</button>
-            ))}
-            <button data-cel-max onClick={() => setMax((v) => !v)} title={max ? "Minimize" : "Maximize"} aria-label={max ? "Minimize" : "Maximize"}
-              className="ml-0.5 flex items-center justify-center rounded border p-1" style={{ borderColor: max ? C.cyan : C.border, color: max ? C.cyan : C.dim }}>
-              {max ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
-            </button>
-          </div>
+          <span className="text-[7px] uppercase tracking-wider" style={{ color: C.gold }}>True-Scale</span>
         </div>
         <div className={max ? "relative min-h-0 flex-1" : "relative"}>
-        {/* PHASE CLOCK — upper-right: click to rotate the big map so perihelion + planet are at TOP (12 o'clock) */}
-        <div className="absolute right-1 top-1 z-10">
+        {/* MISSION-CONTROL WINDOW CONTROLS — upper-right of the map (Security-2525 style): expand/minimize on
+            top, then the clock (top-down toggle) below it. */}
+        <div className="absolute right-1 top-1 z-10 flex flex-col items-end gap-1">
+          <button data-cel-max onClick={() => setMax((v) => !v)} title={max ? "Minimize" : "Expand map"} aria-label={max ? "Minimize" : "Maximize"}
+            className="flex items-center justify-center rounded border p-1" style={{ borderColor: max ? C.cyan : C.border, color: max ? C.cyan : C.dim, background: "rgba(8,12,20,0.82)" }}>
+            {max ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+          </button>
           <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu, idx: l.i }))} selId={selId} overhead={periTop} onToggle={() => setPeriTop((v) => !v)} />
         </div>
         {/* bottom-right — the SELECTED body as a DRAGGABLE 3D globe (Security-2525 globe interaction).
             Earth = real land/ocean globe (spins with time-of-day) + the Moon beside it; any other planet =
             a procedural 3D sphere (bands / craters / Saturn's rings). Drag L/R to rotate · no zoom. */}
         <div className="absolute bottom-1 right-1 z-10">
-          <MiniPanel title={selId === "earth" ? "EARTH · MOON" : sel.p.name.toUpperCase()} subtitle={fmtKm(rd.sr)} rotation={fmtRotation(sel.p.rotDays)} coord={`SA.EA..HU ${fmt3600(sel.effHu)}`}
+          <MiniPanel title={selId === "earth" ? "EARTH · MOON" : sel.p.name.toUpperCase()} subtitle={fmtDist(rd.sr, distUnit)} rotation={fmtRotation(sel.p.rotDays)} coord={`SA.EA..HU ${fmt3600(sel.effHu)}`}
             render={(cs) => selId === "earth"
               ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare playT={playT} />
               : <TexturedGlobe src={sel.p.tex} size={cs} ring={sel.p.rings ? SATURN_RING_TEX : null} spinDeg={playT * 360 * spinDir} />}
@@ -306,17 +303,11 @@ export function ArchitectCelestial({
           </g>
         </svg>
         </div>
-        {/* controls: HU scrubber + SA tilt */}
-        <div className="mt-1 grid grid-cols-1 gap-x-3 gap-y-0.5 text-[9px] sm:grid-cols-2">
-          <label className="flex items-center gap-2" style={{ color: C.dim }}>HU
-            <input data-hu-input type="range" min={0} max={3600} step={1} value={hu} onChange={(e) => setHu(+e.target.value)} className="flex-1" />
-            <span className="tabular-nums" style={{ color: C.cyan }}>{fmt3600(hu)}</span>
-          </label>
-          <label className="flex items-center gap-2" style={{ color: C.dim }}>SA tilt
-            <input data-tilt-input type="range" min={8} max={42} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" />
-            <span className="tabular-nums" style={{ color: C.violet }}>{tiltDeg}°</span>
-          </label>
-        </div>
+        {/* controls: HU orbit scrubber (SA tilt + Planet Size + Units now live behind ⚙ in the readout) */}
+        <label className="mt-1 flex items-center gap-2 text-[9px]" style={{ color: C.dim }}>HU
+          <input data-hu-input type="range" min={0} max={3600} step={1} value={hu} onChange={(e) => setHu(+e.target.value)} className="flex-1" />
+          <span className="tabular-nums" style={{ color: C.cyan }}>{fmt3600(hu)}</span>
+        </label>
         {/* DATE + PLAY — select a month/day, click play: Earth rotates (time-of-day) + planets orbit */}
         <div className="mt-1 flex flex-wrap items-center gap-2 text-[9px]" style={{ color: C.dim }}>
           <button data-cel-play onClick={() => setPlaying((p) => !p)} className="flex items-center gap-1 rounded border px-2 py-0.5 font-semibold"
@@ -330,31 +321,48 @@ export function ArchitectCelestial({
         <div className="text-[8px]" style={{ color: C.dim }}>Full orbit reference · <span style={{ color: C.gold }}>{FULL_ORBIT}</span> (SA.EA..HU)</div>
       </div>
 
-      {/* CLICKED PLANET → Base-3600 coordinates (voxel-style) — hidden in full-screen big-map mode */}
+      {/* SELECTED BODY — MINIMAL readout on-screen; the Base-3600 detail + Units of Measure live behind ⚙.
+          Hidden in full-screen big-map mode. */}
       <div data-ucrs-readout className={`space-y-1 rounded-lg border p-3 text-[10px] ${max ? "hidden" : ""}`} style={{ borderColor: sel.p.color, background: C.panel }}>
         <div className="flex items-center justify-between">
           <span className="text-[12px] font-bold" style={{ color: sel.p.color }}>◉ {sel.p.name}</span>
-          <span className="text-[9px]" style={{ color: C.dim }}>UCRS-2525</span>
+          <button data-cel-detail onClick={() => setShowDetail((v) => !v)} className="rounded border px-1.5 py-0.5 text-[8px]" style={{ borderColor: C.border, color: showDetail ? C.violet : C.dim }} title="Units of Measure & Base-3600 detail">⚙ {showDetail ? "less" : "units · detail"}</button>
         </div>
-        <div data-ucrs-coord className="rounded border px-1.5 py-1 text-[10px]" style={{ borderColor: C.border, fontFamily: "monospace", color: C.gold }}>
+        {/* minimal: UCRS coord · distance (in chosen UoM) · orbit position · rotation */}
+        <div data-ucrs-coord className="rounded border px-1.5 py-0.5 text-[10px]" style={{ borderColor: C.border, fontFamily: "monospace", color: C.gold }}>
           SA.EA..HU = 0.0..0 · {sel.p.ea === "—" ? "—" : `${sel.p.ea}..0`} · {fmt3600(sel.effHu)}
         </div>
         <div style={{ fontFamily: "monospace" }}>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <span style={{ color: C.dim }}>SR:</span>
-            <button data-sr-unit onClick={() => setSrUnit((u) => SR_UNIT_CYCLE[(SR_UNIT_CYCLE.indexOf(u) + 1) % SR_UNIT_CYCLE.length])}
-              className="rounded border px-1 py-0.5 tabular-nums" style={{ borderColor: C.border, color: C.cyan }} title="tap to change unit (m / ×10⁶ m / ×10⁹ m / AU)">{fmtSr(rd.sr, srUnit)}</button>
-            <span className="tabular-nums" style={{ color: C.dim }}>{fmtKm(rd.sr)}</span>
+          <div><span style={{ color: C.dim }}>Distance</span> <span data-ucrs-dist className="tabular-nums" style={{ color: C.cyan }}>{fmtDist(rd.sr, distUnit)}</span></div>
+          <div><span style={{ color: C.dim }}>Orbit pos</span> <span className="tabular-nums" style={{ color: C.text }}>{Math.round(sel.effHu)}/3600</span> <span style={{ color: C.dim }}>· ⟳ {fmtRotation(sel.p.rotDays)}</span></div>
+        </div>
+        {/* ⚙ UNITS & DETAIL — collapsed by default */}
+        {showDetail && (
+          <div data-cel-detail-panel className="space-y-1 border-t pt-1 text-[9px]" style={{ borderColor: C.border }}>
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="w-12 shrink-0" style={{ color: C.dim }}>Distance</span>
+              {DIST_UNITS.map((u) => <button key={u} data-dist-unit={u} onClick={() => setDistUnit(u)} className="rounded border px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: distUnit === u ? C.cyan : C.dim, background: distUnit === u ? "#0c2230" : "transparent" }}>{DIST_LABEL[u]}</button>)}
+            </div>
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="w-12 shrink-0" style={{ color: C.dim }}>Time</span>
+              {TIME_UNITS.map((u) => <button key={u} data-time-unit={u} onClick={() => setTimeUnit(u)} className="rounded border px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: timeUnit === u ? C.violet : C.dim, background: timeUnit === u ? "#221833" : "transparent" }}>{TIME_LABEL[u]}</button>)}
+            </div>
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="w-12 shrink-0" style={{ color: C.dim }}>Planet</span>
+              {(["actual", "exaggerated"] as const).map((m) => <button key={m} data-psize-toggle data-psize={m} onClick={() => setPlanetSize(m)} className="rounded border px-1 py-0.5 text-[8px] capitalize" style={{ borderColor: C.border, color: planetSize === m ? C.violet : C.dim, background: planetSize === m ? "#221833" : "transparent" }}>{m}</button>)}
+            </div>
+            <label className="flex items-center gap-2" style={{ color: C.dim }}>SA tilt
+              <input data-tilt-input type="range" min={8} max={42} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" />
+              <span className="tabular-nums" style={{ color: C.violet }}>{tiltDeg}°</span>
+            </label>
+            <div className="border-t pt-1" style={{ borderColor: C.border, fontFamily: "monospace" }}>
+              <div><span style={{ color: C.dim }}>SP-OTU</span> {rd.spotu.toFixed(4)} · <span style={{ color: C.dim }}>RTU</span> {rd.rtu} · <span style={{ color: C.dim }}>elapsed</span> {fmtTime(rd.ltu, timeUnit)}</div>
+              <div><span style={{ color: C.green }}>Perihelion ▶</span> {fmtDist(rd.peri, distUnit)}</div>
+              <div><span style={{ color: C.violet }}>◀ Aphelion</span> {fmtDist(rd.aphe, distUnit)}</div>
+              <div style={{ color: C.dim }}>Period {sel.p.tDays.toLocaleString()} d · a {sel.p.aAU} AU · e {sel.p.e}</div>
+            </div>
           </div>
-          <div><span style={{ color: C.dim }}>SP-OTU:</span> <span style={{ color: C.text }}>{rd.spotu.toFixed(4)}</span> · <span style={{ color: C.dim }}>Days:</span> <span style={{ color: C.text }}>{ltuToDays(rd.ltu).toLocaleString()} d</span></div>
-          <div><span style={{ color: C.dim }}>LTU:</span> <span style={{ color: C.text }}>{rd.ltu.toLocaleString()} s</span></div>
-        </div>
-        <div className="border-t pt-1 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
-          <div><span style={{ color: C.green }}>Perihelion ▶</span> {fmtSr(rd.peri, srUnit)} · {fmtKm(rd.peri)}</div>
-          <div><span style={{ color: C.violet }}>◀ Aphelion</span> {fmtSr(rd.aphe, srUnit)} · {fmtKm(rd.aphe)}</div>
-          <div>Period {sel.p.tDays.toLocaleString()} d · a {sel.p.aAU} AU · e {sel.p.e}</div>
-        </div>
-        <div className="text-[8px]" style={{ color: C.dim }}>Tilted ellipsoid (SA) · aphelion left / perihelion right · HU 0=perihelion, 1800=aphelion, 3600=full orbit. Deterministic → replayable.</div>
+        )}
       </div>
     </div>
   );

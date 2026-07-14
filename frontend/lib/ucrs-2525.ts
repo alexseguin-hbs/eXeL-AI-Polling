@@ -103,15 +103,31 @@ export const fmt3600 = (n: number) => `${Math.round(n)}.0..0`;
 export const FULL_ORBIT = "3600.3600..3600";
 export const fmtMeters = (m: number) => `${Math.round(m).toLocaleString()} m`;
 
-// ── SR distance units — left value tap-cycles m → ×10⁶ m → ×10⁹ m → AU; km is always shown on the right ──
-export type SrUnit = "m" | "1e6" | "1e9" | "AU";
-export const SR_UNIT_CYCLE: SrUnit[] = ["m", "1e6", "1e9", "AU"];
-export function fmtSr(meters: number, unit: SrUnit): string {
+// ── Units of Measure (set once in the celestial ⚙ panel → update throughout the readout) ──
+// Distance: km · m · ×10⁶ m · ×10⁹ m · AU. Time: days · hours · seconds (LTU).
+export type DistUnit = "km" | "m" | "1e6" | "1e9" | "AU";
+export const DIST_UNITS: DistUnit[] = ["km", "m", "1e6", "1e9", "AU"];
+export const DIST_LABEL: Record<DistUnit, string> = { km: "km", m: "m", "1e6": "×10⁶ m", "1e9": "×10⁹ m", AU: "AU" };
+export function fmtDist(meters: number, unit: DistUnit): string {
+  if (unit === "km") return `${Math.round(meters / 1000).toLocaleString()} km`;
   if (unit === "AU") return `${(meters / AU).toLocaleString(undefined, { maximumFractionDigits: 4 })} AU`;
   if (unit === "1e6") return `${(meters / 1e6).toLocaleString(undefined, { maximumFractionDigits: 3 })} ×10⁶ m`;
   if (unit === "1e9") return `${(meters / 1e9).toLocaleString(undefined, { maximumFractionDigits: 4 })} ×10⁹ m`;
   return `${Math.round(meters).toLocaleString()} m`;
 }
+export type TimeUnit = "days" | "hours" | "seconds";
+export const TIME_UNITS: TimeUnit[] = ["days", "hours", "seconds"];
+export const TIME_LABEL: Record<TimeUnit, string> = { days: "days", hours: "hours", seconds: "sec (LTU)" };
+export function fmtTime(seconds: number, unit: TimeUnit): string {
+  if (unit === "days") return `${Math.round(seconds / 86400).toLocaleString()} d`;
+  if (unit === "hours") return `${Math.round(seconds / 3600).toLocaleString()} h`;
+  return `${Math.round(seconds).toLocaleString()} s`;
+}
+
+// (legacy SR helper kept for any external import)
+export type SrUnit = "m" | "1e6" | "1e9" | "AU";
+export const SR_UNIT_CYCLE: SrUnit[] = ["m", "1e6", "1e9", "AU"];
+export const fmtSr = (meters: number, unit: SrUnit): string => fmtDist(meters, unit as DistUnit);
 export const fmtKm = (meters: number) => `${Math.round(meters / 1000).toLocaleString()} km`;
 /** LTU (local seconds elapsed) → whole days, for the human-readable time readout. */
 export const ltuToDays = (ltuSeconds: number) => Math.round(ltuSeconds / 86400);

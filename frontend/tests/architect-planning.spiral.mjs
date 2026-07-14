@@ -293,29 +293,30 @@ const mk = async (vp) => {
   const { pg, tab, subtab, clk } = await mk();
   await tab('Design'); await subtab('Site');
   await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(200); // UCRS-2525 lives inside SUN·SKY
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120);        // open the ⚙ units & detail panel (declutter)
   const base = await pg.evaluate(() => ({
     map: !!document.querySelector('[data-arch-celestial]'),
     planets: document.querySelectorAll('[data-planet]').length,
     orbits: document.querySelectorAll('[data-orbit]').length,
     hu: !!document.querySelector('[data-hu-input]'),
     tilt: !!document.querySelector('[data-tilt-input]'),
-    psize: document.querySelectorAll('[data-psize-toggle]').length,          // Planet Size: Actual/Exaggerated (2)
+    psize: document.querySelectorAll('[data-psize-toggle]').length,          // Planet Size: Actual/Exaggerated (2), in ⚙
     noSchematic: document.querySelectorAll('[data-scale-toggle]').length === 0, // schematic toggle removed — True-Scale locked
     coord: /SA\.EA\.\.HU/.test(document.querySelector('[data-ucrs-coord]')?.textContent || ''),
     earthPeri: /230\.1584\.\.0\s*·\s*0\.0\.\.0/.test(document.querySelector('[data-ucrs-coord]')?.textContent || ''), // Earth default = perihelion (HU 0)
     clock: !!document.querySelector('[data-phase-clock]') && /PERI/.test(document.querySelector('[data-phase-clock]')?.textContent || '') && /APHE/.test(document.querySelector('[data-phase-clock]')?.textContent || ''),
   }));
-  // tilt changes the ellipsoid foreshortening (orbit ry shrinks as tilt lowers)
+  // tilt (in ⚙) changes the ellipsoid foreshortening (orbit ry shrinks as tilt lowers)
   const ry0 = await pg.evaluate(() => document.querySelector('[data-orbit]')?.getAttribute('ry'));
   await pg.evaluate(() => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, '8'); t.dispatchEvent(new Event('input', { bubbles: true })); });
   await pg.waitForTimeout(150);
   const ry1 = await pg.evaluate(() => document.querySelector('[data-orbit]')?.getAttribute('ry'));
-  // click Mercury → readout switches + shows SR/SP-OTU
+  // click Mercury → readout switches + shows Distance/SP-OTU
   await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(150);
   const after = await pg.evaluate(() => document.querySelector('[data-ucrs-readout]')?.textContent || '');
   const ok = base.map && base.planets === 9 && base.orbits === 9 && base.hu && base.tilt && base.psize === 2 && base.noSchematic && base.coord && base.earthPeri && base.clock
-    && parseFloat(ry1) < parseFloat(ry0) && /Mercury/.test(after) && /SR:/.test(after) && /SP-OTU/.test(after);
-  rec('#A21 UCRS-2525 v2 — 9 planets + tilt ellipsoid + True-Scale + Planet-Size toggle + SA.EA..HU + click→coords', ok, JSON.stringify({ ...base, ry0, ry1, afterHasMercury: /Mercury/.test(after) }));
+    && parseFloat(ry1) < parseFloat(ry0) && /Mercury/.test(after) && /Distance/.test(after) && /SP-OTU/.test(after);
+  rec('#A21 UCRS-2525 v2 — 9 planets + tilt ellipsoid + True-Scale + Planet-Size (⚙) + SA.EA..HU + click→coords', ok, JSON.stringify({ ...base, ry0, ry1, afterHasMercury: /Mercury/.test(after) }));
 
   // #A21b: clock icon → TRUE top-down view (perihelion ▲ at top, uniform planets, upright labels) + toggle back
   await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(160);
@@ -352,14 +353,15 @@ const mk = async (vp) => {
   const hasDate = await pg.locator('[data-cel-date]').count();
   // default Earth → Earth+Moon box (draggable land/ocean globe with the Moon orbiting inside)
   const earthGlobe = await pg.evaluate(() => !!document.querySelector('[data-earth-moon]') && !!document.querySelector('[data-earth-moon] [data-mini-globe]'));
-  // SR distance has a tappable unit and km on the right; tapping cycles the unit
-  const sr0 = await pg.evaluate(() => document.querySelector('[data-sr-unit]')?.textContent || '');
-  await pg.locator('[data-sr-unit]').click(); await pg.waitForTimeout(80);
-  const sr1 = await pg.evaluate(() => document.querySelector('[data-sr-unit]')?.textContent || '');
-  const srUnitOk = !!sr0 && sr0 !== sr1 && /km/.test(await pg.evaluate(() => document.querySelector('[data-ucrs-readout]')?.textContent || ''));
+  // Units of Measure (⚙): distance defaults to km; picking AU updates the on-screen distance throughout
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120);
+  const d0 = await pg.evaluate(() => document.querySelector('[data-ucrs-dist]')?.textContent || '');
+  await pg.locator('[data-dist-unit="AU"]').click(); await pg.waitForTimeout(100);
+  const d1 = await pg.evaluate(() => document.querySelector('[data-ucrs-dist]')?.textContent || '');
+  const uomOk = /km/.test(d0) && /AU/.test(d1) && d0 !== d1;
   await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(300);
   const merc = await pg.evaluate(() => !!document.querySelector('[data-textured-globe]') && !document.querySelector('[data-earth-moon]')); // Mercury → real-textured 3D globe
-  rec('#A23 date + play control + Earth+Moon box ↔ textured planet + SR unit cycles (m/×10⁶/×10⁹/AU) + km', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && srUnitOk, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} merc=${merc} sr0=${sr0} sr1=${sr1} srUnitOk=${srUnitOk}`);
+  rec('#A23 date + play control + Earth+Moon box ↔ textured planet + UoM distance (km→AU) updates throughout', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && uomOk, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} merc=${merc} d0="${d0}" d1="${d1}" uomOk=${uomOk}`);
   await pg.close();
 }
 
@@ -381,6 +383,7 @@ const mk = async (vp) => {
   const { pg, tab, subtab, clk } = await mk();
   await tab('Design'); await subtab('Site');
   await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120); // Planet Size lives in the ⚙ panel now
   const jupR = () => pg.evaluate(() => { const g = document.querySelector('[data-planet-id="jupiter"]'); const dot = g ? [...g.querySelectorAll('circle')].find((c) => (c.getAttribute('fill') || '').startsWith('#')) : null; return dot ? parseFloat(dot.getAttribute('r') || '0') : 0; }); // the coloured dot (hit-target is fill=transparent)
   await pg.locator('[data-psize][data-psize="exaggerated"]').click(); await pg.waitForTimeout(120);
   const exag = await jupR();
