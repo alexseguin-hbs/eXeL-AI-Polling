@@ -1,5 +1,8 @@
 # ARCHITECTURE-2525 — CRS Specification
 
+> **Superset spec: [`MASTER_SPEC.md`](./MASTER_SPEC.md)** — the authoritative Architect-2525 Master Specification (12-tab
+> UX, $/min economy, ARC-01→33, coverage matrix). This file remains the ARC-01→11 primitive catalog it references.
+
 > Level 3 domain on WIREFRAME-CORE (`docs/2525-core/WIREFRAME-CORE.md`), developed in
 > PARALLEL with SECURITY-2525. Why parallel: drawing a 2×4 wall in pixel wireframe is
 > the same critical primitive as drawing security forces — one substrate, two domains,
