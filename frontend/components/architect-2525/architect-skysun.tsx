@@ -66,6 +66,29 @@ const dome = (az: number, el: number) => {
 
 const FACINGS = [{ k: "S", az: 180 }, { k: "E", az: 90 }, { k: "W", az: 270 }, { k: "N", az: 0 }];
 
+// World-map coordinate picker (equirectangular) — click to place the property; the marker's lat/lon
+// becomes the SINGLE coordinate source for the whole site (structure · sun · moon · terrain). Plus a
+// 4-corner property lot derived from the centre (reuse of the Security corner-coordinate framing idea).
+function WorldPlacement({ lat, lon, onPick }: { lat: number; lon: number; onPick: (la: number, lo: number) => void }) {
+  const W = 200, H = 100;
+  const mx = ((lon + 180) / 360) * W, my = ((90 - lat) / 180) * H;
+  const pick = (e: React.MouseEvent) => {
+    const r = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
+    const px = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    const py = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+    onPick(Math.round((90 - py * 180) * 100) / 100, Math.round((px * 360 - 180) * 100) / 100);
+  };
+  return (
+    <svg data-arch-world viewBox="0 0 200 100" preserveAspectRatio="none" onClick={pick}
+      className="w-full cursor-crosshair rounded" style={{ background: "#071019", aspectRatio: "2 / 1", border: `1px solid ${C.border}` }}>
+      {[-60, -30, 0, 30, 60].map((la) => { const y = ((90 - la) / 180) * H; return <line key={`la${la}`} x1={0} y1={y} x2={W} y2={y} stroke={la === 0 ? "#2a3a4a" : "#141d29"} strokeWidth={la === 0 ? 0.5 : 0.3} />; })}
+      {[-120, -60, 0, 60, 120].map((lo) => { const x = ((lo + 180) / 360) * W; return <line key={`lo${lo}`} x1={x} y1={0} x2={x} y2={H} stroke={lo === 0 ? "#2a3a4a" : "#141d29"} strokeWidth={lo === 0 ? 0.5 : 0.3} />; })}
+      <circle cx={mx} cy={my} r={2.6} fill="none" stroke={C.gold} strokeWidth={0.8} />
+      <circle cx={mx} cy={my} r={0.9} fill={C.gold} />
+    </svg>
+  );
+}
+
 export function ArchitectSkySun() {
   const [lat, setLat] = useState(30.27);   // demo: Austin (matches a Security AO)
   const [lon, setLon] = useState(-97.74);
@@ -99,6 +122,9 @@ export function ArchitectSkySun() {
   const isoDate = new Date(Date.UTC(year, 0, doy)).toISOString().slice(0, 10);
   const setFromDate = (iso: string) => { const d = new Date(iso + "T00:00:00Z"); if (isNaN(d.getTime())) return; setYear(d.getUTCFullYear()); const start = Date.UTC(d.getUTCFullYear(), 0, 0); setDoy(Math.round((d.getTime() - start) / 86400000)); };
   const season = ((): string => { const m = dateObj.getMonth(); return m < 2 || m === 11 ? "Winter" : m < 5 ? "Spring" : m < 8 ? "Summer" : "Autumn"; })();
+  // 4-corner property lot from the placed centre (±15 m ≈ 30 m lot) — the reference frame the whole site shares.
+  const dLat = 15 / 111320, dLon = dLat / Math.max(0.2, Math.cos(lat * RAD));
+  const corners = [{ k: "NW", la: lat + dLat, lo: lon - dLon }, { k: "NE", la: lat + dLat, lo: lon + dLon }, { k: "SE", la: lat - dLat, lo: lon + dLon }, { k: "SW", la: lat - dLat, lo: lon - dLon }];
 
   return (
     <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
@@ -130,6 +156,21 @@ export function ArchitectSkySun() {
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lon<input type="number" value={lon} step={0.5} onChange={(e) => setLon(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
           <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Day <input type="range" min={1} max={365} value={doy} onChange={(e) => setDoy(+e.target.value)} className="flex-1" /><span style={{ color: C.gold }}>{monthDay}</span></label>
           <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Hour <input type="range" min={0} max={24} step={0.5} value={hour} onChange={(e) => setHour(+e.target.value)} className="flex-1" /><span style={{ color: C.cyan }}>{hour}:00 · {sun.el > 0 ? `el ${sun.el.toFixed(0)}°` : "night"}</span></label>
+        </div>
+        {/* WORLD PLACEMENT — click the map to place the property; its lat/lon is the single coordinate
+            source feeding the sun + moon above (and, later, structure + terrain). */}
+        <div className="mt-2 border-t pt-2" style={{ borderColor: C.border }}>
+          <div className="mb-1 flex items-center justify-between text-[9px]">
+            <span className="font-bold tracking-wider" style={{ color: C.violet }}>PROPERTY PLACEMENT</span>
+            <span style={{ color: C.dim }}>click map → set lot · {lat.toFixed(2)}, {lon.toFixed(2)}</span>
+          </div>
+          <WorldPlacement lat={lat} lon={lon} onPick={(la, lo) => { setLat(la); setLon(lo); }} />
+          <div data-arch-lot className="mt-1 grid grid-cols-2 gap-1 text-[8px]" style={{ fontFamily: "monospace" }}>
+            {corners.map((c) => (
+              <span key={c.k} data-lot-corner style={{ color: C.dim }}><span style={{ color: C.gold }}>◱ {c.k}</span> {c.la.toFixed(5)}, {c.lo.toFixed(5)}</span>
+            ))}
+          </div>
+          <div className="mt-0.5 text-[8px]" style={{ color: C.dim }}>4-corner lot (~30 m) — shared reference frame for structure · sun · moon · terrain.</div>
         </div>
       </div>
       <div className="space-y-2 rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel }}>

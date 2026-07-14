@@ -136,6 +136,22 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A17: Design→Site world-map property placement → clicking sets lat/lon (single coord source) + 4-corner lot ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Site');
+  const has = await pg.evaluate(() => !!document.querySelector('[data-arch-world]') && document.querySelectorAll('[data-lot-corner]').length === 4);
+  const map = pg.locator('[data-arch-world]');
+  await map.scrollIntoViewIfNeeded(); await pg.waitForTimeout(150);
+  const box = await map.boundingBox();
+  const readLot = () => pg.evaluate(() => document.querySelector('[data-arch-tab="Design"]')?.textContent?.match(/set lot · ([\-\d.]+), ([\-\d.]+)/)?.slice(1).join(','));
+  const before = await readLot();
+  if (box) { await pg.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.35); await pg.waitForTimeout(250); }
+  const after = await readLot();
+  rec('#A17 Site world-map placement sets lat/lon + 4-corner lot', has && !!after && before !== after, `has=${has} before=${before} after=${after}`);
+  await pg.close();
+}
+
 // ── #A9: Design → Compare (ITERATE 20→33 gallery) ──
 {
   const { pg, tab, subtab } = await mk();
