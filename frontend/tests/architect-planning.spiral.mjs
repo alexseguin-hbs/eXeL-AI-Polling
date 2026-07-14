@@ -274,6 +274,20 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A20: SoI editable in Architect → saves to draft + publishes to the /main store (flow-through) ──
+{
+  const { pg, clk } = await mk();
+  await clk('[data-arch-exp="soi"] button'); await pg.waitForTimeout(200);   // expand SoI
+  await clk('[data-soi-edit]'); await pg.waitForTimeout(150);                 // edit mode
+  await pg.evaluate(() => { const inp = document.querySelector('[data-soi-thesis]'); if (inp) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, 'EDITED-THESIS-XYZ'); inp.dispatchEvent(new Event('input', { bubbles: true })); } });
+  await pg.waitForTimeout(150);
+  await clk('[data-soi-publish]'); await pg.waitForTimeout(150);
+  const st = await pg.evaluate(() => ({ draft: localStorage.getItem('soi2525.draft') || '', pub: localStorage.getItem('soi2525.published') || '' }));
+  const ok = /EDITED-THESIS-XYZ/.test(st.draft) && /EDITED-THESIS-XYZ/.test(st.pub);
+  rec('#A20 SoI editable → draft saved + published to /main store', ok, `draft=${/EDITED/.test(st.draft)} pub=${/EDITED/.test(st.pub)}`);
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
