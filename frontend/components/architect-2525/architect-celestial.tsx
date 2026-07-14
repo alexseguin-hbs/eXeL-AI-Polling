@@ -11,6 +11,7 @@
  * Driven by lib/ucrs-2525.ts (pure). Self-contained SVG.
  */
 import { useMemo, useState } from "react";
+import { Maximize2, Minimize2 } from "lucide-react";
 import {
   PLANETS, ucrsAt, huToNu, axSchematic, axTrue, bOverA, fmt3600, FULL_ORBIT, fmtMeters,
 } from "@/lib/ucrs-2525";
@@ -24,6 +25,7 @@ export function ArchitectCelestial() {
   const [selId, setSelId] = useState("earth");
   const [tiltDeg, setTiltDeg] = useState(26);       // SA — orbital-plane elevation
   const [scaleMode, setScaleMode] = useState<"schematic" | "true">("schematic");
+  const [max, setMax] = useState(false);            // maximize the whole solar system
   const sinE = Math.sin(tiltDeg * DEG);
 
   // Layout: each orbit is an ellipse in its plane (semi-major ax, focus offset ax·e), foreshortened vertically
@@ -44,7 +46,7 @@ export function ArchitectCelestial() {
   const drawOrder = [...laid].sort((a, b) => a.depth - b.depth); // back planets first
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[1fr_272px]">
+    <div className={max ? "fixed inset-0 z-[80] grid gap-3 overflow-auto p-3 lg:grid-cols-[1fr_272px]" : "grid gap-3 lg:grid-cols-[1fr_272px]"} style={max ? { background: "#05070d" } : undefined}>
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         <div className="mb-1 flex flex-wrap items-center justify-between gap-1 text-[9px]">
           <span className="font-bold tracking-wider" style={{ color: C.violet }}>UCRS-2525 · BASE-3600 CELESTIAL MAP</span>
@@ -53,12 +55,16 @@ export function ArchitectCelestial() {
               <button key={m} data-scale-toggle onClick={() => setScaleMode(m)} className="rounded border px-1.5 py-0.5 text-[8px]"
                 style={{ borderColor: C.border, color: scaleMode === m ? C.violet : C.dim, background: scaleMode === m ? "#221833" : "transparent" }}>{m === "true" ? "true-scale" : "schematic"}</button>
             ))}
+            <button data-cel-max onClick={() => setMax((v) => !v)} title={max ? "Minimize" : "Maximize"} aria-label={max ? "Minimize" : "Maximize"}
+              className="ml-0.5 flex items-center justify-center rounded border p-1" style={{ borderColor: max ? C.cyan : C.border, color: max ? C.cyan : C.dim }}>
+              {max ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+            </button>
           </div>
         </div>
         <div className="relative">
-        {/* mini 3D Earth globe — drag L/R to rotate, no zoom (Security-2525 globe inspiration) */}
-        <div className="absolute bottom-1 left-1 z-10">
-          <MiniGlobe lat={30.27} lon={-97.74} size={84} color={C.cyan} />
+        {/* mini 3D Earth globe — bottom-right, drag L/R to rotate (spin on equator), no zoom */}
+        <div className="absolute bottom-1 right-1 z-10">
+          <MiniGlobe lat={30.27} lon={-97.74} size={max ? 132 : 88} color={C.gold} />
         </div>
         <svg data-arch-celestial viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet" className="w-full rounded" style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: "2.2 / 1" }}>
           {/* orbital-plane baseline (the tilt reference / SA) */}

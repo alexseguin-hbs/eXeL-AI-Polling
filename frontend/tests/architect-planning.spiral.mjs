@@ -321,7 +321,14 @@ const mk = async (vp) => {
   const box = await glb.boundingBox();
   if (box) { await pg.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5); await pg.mouse.down(); await pg.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.5, { steps: 6 }); await pg.mouse.up(); await pg.waitForTimeout(120); }
   const afterHtml = await pg.evaluate(() => document.querySelector('[data-mini-globe]')?.innerHTML.length || 0);
-  rec('#A22 mini 3D Earth globe present + drag rotates (no zoom)', has === 1 && afterHtml !== before, `has=${has} before=${before} after=${afterHtml}`);
+  // maximize the whole solar system → the root becomes fixed inset-0; minimize returns
+  const maxBtn = pg.locator('[data-cel-max]');
+  const hasMax = await maxBtn.count();
+  await maxBtn.click(); await pg.waitForTimeout(150);
+  const maximized = await pg.evaluate(() => { const b = document.querySelector('[data-cel-max]'); const root = b?.closest('.fixed.inset-0'); return !!root && b?.getAttribute('aria-label') === 'Minimize'; });
+  await maxBtn.click(); await pg.waitForTimeout(120);
+  const restored = await pg.evaluate(() => document.querySelector('[data-cel-max]')?.getAttribute('aria-label') === 'Maximize');
+  rec('#A22 mini 3D Earth globe (drag, no zoom) + solar-system maximize/minimize', has === 1 && afterHtml !== before && hasMax === 1 && maximized && restored, `globe=${has} rot=${afterHtml !== before} max=${maximized} restored=${restored}`);
   await pg.close();
 }
 
