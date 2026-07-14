@@ -166,6 +166,27 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A13: OVERVIEW embeds the SoI Tri-Coin incentive framework (♡ SI · 웃 HI · ◬ AI) + NOSE ──
+{
+  const { pg } = await mk();
+  const soi = await pg.evaluate(() => {
+    const s = document.querySelector('[data-soi]');
+    if (!s) return { has: false };
+    const t = document.querySelector('[data-arch-tab="OVERVIEW"]')?.textContent || '';
+    return {
+      has: true,
+      coins: s.querySelectorAll('[data-soi-coin]').length,
+      nose: s.querySelectorAll('[data-soi-nose]').length,
+      flow: s.querySelectorAll('[data-soi-flow]').length,
+      law: /1 min SI = 5 ◬/.test(t) && /Shared Intention/.test(t) && /Human Intelligence/.test(t) && /Artificial Intelligence/.test(t),
+      reimagine: /reimagine innovation incentives/.test(t),
+    };
+  });
+  const ok = !!(soi.has && soi.coins === 3 && soi.nose === 4 && soi.flow === 4 && soi.law && soi.reimagine);
+  rec('#A13 SoI Tri-Coin framework (3 coins + NOSE + 5× ◬ law + reimagine) on OVERVIEW', ok, JSON.stringify(soi));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

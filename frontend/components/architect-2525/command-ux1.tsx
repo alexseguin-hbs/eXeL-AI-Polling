@@ -24,6 +24,7 @@ import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationM
 import { ArchitectDesign, type DesignMetrics } from "./architect-design";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
+import { ArchitectSoI } from "./architect-soi";
 import { IteratePanel, SharePanel, QualifyPanel } from "./architect-panels";
 import { SimulatePanel, ReviewPanel, TwinPanel, ReplayPanel } from "./architect-panels2";
 
@@ -97,7 +98,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const [materialsUsd, setMaterialsUsd] = useState(320000);
   const [days, setDays] = useState(120);
   const [allocMode, setAllocMode] = useState<AllocationMode>("spread");
-  const econ = computeEconomy({ laborMin, reviewMin, donatedMin, ratePerHr, materialsUsd, aiMultiplier: 2, impact: 1.2, quality: 1.1 });
+  const econ = computeEconomy({ laborMin, reviewMin, donatedMin, ratePerHr, materialsUsd, aiMultiplier: 5, impact: 1.2, quality: 1.1 }); // ◬ = ♡ × 5 (SoI: 1 min SI = 5 ◬, 5× time acceleration)
   const perDay = allocate(econ.totalUsd, days, allocMode);
   const iteration = 20; // current iteration in the 20-33 loop (demo)
   const [designMetrics, setDesignMetrics] = useState<DesignMetrics | null>(null);
@@ -204,6 +205,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             <div className="rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel, color: C.dim }}>
               <span style={{ color: C.violet }}>Knowledge Graph</span> — every project improves the next. Foundation → Concrete → Climate → Drainage → Best Practices → Future Recommendations. <span style={{ color: C.dim }}>(wiring pending)</span>
             </div>
+            <ArchitectSoI econ={econ} />
           </div>
         ) : activeTab === "COST·TIME" ? (
           <div className="grid gap-3 lg:grid-cols-2">
