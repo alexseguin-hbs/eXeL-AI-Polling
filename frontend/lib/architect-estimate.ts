@@ -123,3 +123,41 @@ export function checkpointForGate(gateIdx: number): Checkpoint {
   for (let i = g; i >= 0; i--) if (CHECKPOINTS[i]) return CHECKPOINTS[i];
   return CHECKPOINTS[0];
 }
+
+// ── 4D construction schedule (Sprint 5): sequence the work sections into a month-by-month build with
+// trade parallelism (MEP rough-in runs together; finish + landscaping overlap). Pure + deterministic.
+export interface ScheduledSection extends WorkSection { startMo: number; durMo: number; }
+// Build phases — each phase starts after the previous phase's latest finish; members within a phase run in parallel.
+const PHASES: string[][] = [["site"], ["found"], ["frame"], ["roof"], ["plumb", "elec", "hvac"], ["drywall"], ["finish", "land"]];
+
+/** Schedule sections across months given a crew size (hrs/mo per crew ≈ 160). Returns start+duration per section. */
+export function scheduleSections(sections: WorkSection[], crew = 8): ScheduledSection[] {
+  const hpm = Math.max(80, crew * 160);
+  const byId = new Map(sections.map((s) => [s.id, s]));
+  const out: ScheduledSection[] = [];
+  let cursor = 0;
+  for (const phase of PHASES) {
+    let phaseEnd = cursor;
+    for (const id of phase) {
+      const s = byId.get(id); if (!s) continue;
+      const durMo = Math.max(1, Math.ceil(s.manHours / hpm));
+      out.push({ ...s, startMo: cursor, durMo });
+      phaseEnd = Math.max(phaseEnd, cursor + durMo);
+    }
+    cursor = phaseEnd;
+  }
+  // append any sections not in a phase, sequentially
+  for (const s of sections) if (!out.some((o) => o.id === s.id)) { const durMo = Math.max(1, Math.ceil(s.manHours / hpm)); out.push({ ...s, startMo: cursor, durMo }); cursor += durMo; }
+  return out;
+}
+
+/** Total build months + per-month cost/hours forecast (cost + hours spread evenly across each section's months). */
+export function monthlyForecast(scheduled: ScheduledSection[]): { months: number; perMonth: { cost: number; hours: number }[] } {
+  const months = scheduled.reduce((m, s) => Math.max(m, s.startMo + s.durMo), 0);
+  const perMonth = Array.from({ length: months }, () => ({ cost: 0, hours: 0 }));
+  for (const s of scheduled) {
+    const c = s.costUsd / s.durMo, h = s.manHours / s.durMo;
+    for (let m = s.startMo; m < s.startMo + s.durMo; m++) { perMonth[m].cost += c; perMonth[m].hours += h; }
+  }
+  return { months, perMonth };
+}

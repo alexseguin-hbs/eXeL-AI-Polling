@@ -255,6 +255,25 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A19: Build→Forecast Gantt + monthly forecast + re-forecasts when crew changes ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Build'); await subtab('Forecast');
+  const rd = () => pg.evaluate(() => ({
+    forecast: !!document.querySelector('[data-arch-forecast]'),
+    gantt: document.querySelectorAll('[data-gantt-row]').length,
+    months: document.querySelectorAll('[data-forecast-month]').length,
+  }));
+  const before = await rd();
+  // shrink the crew → build takes longer (more months)
+  await pg.evaluate(() => { const inp = [...document.querySelectorAll('[data-arch-forecast] input[type=number]')][0]; if (inp) { const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(inp, '3'); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); } });
+  await pg.waitForTimeout(200);
+  const after = await rd();
+  const ok = before.forecast && before.gantt === 10 && before.months >= 3 && after.months > before.months;
+  rec('#A19 Build→Forecast Gantt(10) + monthly + smaller crew → longer schedule', ok, JSON.stringify({ before, after }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

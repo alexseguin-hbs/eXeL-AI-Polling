@@ -26,6 +26,7 @@ import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
 import { ArchitectSoI } from "./architect-soi";
 import { ArchitectEstimate } from "./architect-estimate";
+import { ArchitectForecast } from "./architect-forecast";
 import { IteratePanel, SharePanel, QualifyPanel } from "./architect-panels";
 import { SimulatePanel, ReviewPanel, TwinPanel, ReplayPanel } from "./architect-panels2";
 
@@ -55,7 +56,7 @@ const NAV: [string, React.ComponentType<{ className?: string }>][] = [
 const SUBNAV: Record<string, string[]> = {
   Design: ["Model", "Site", "Compare"],
   Review: ["Reviews", "Qualification", "Contributions"],
-  Build: ["Build 4D", "Estimate", "Cost·Time"],
+  Build: ["Build 4D", "Estimate", "Forecast", "Cost·Time"],
   Lifecycle: ["Twin", "Replay"],
 };
 // Route/deep-link aliases: old tab name → [primary, subtab?] so nothing 404s.
@@ -322,6 +323,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           </div>
         ) : activeTab === "Build" && sub("Build") === "Estimate" ? (
           <ArchitectEstimate />
+        ) : activeTab === "Build" && sub("Build") === "Forecast" ? (
+          <ArchitectForecast />
         ) : activeTab === "Build" && sub("Build") === "Build 4D" ? (
           <ArchitectBuild />
         ) : activeTab === "Design" && sub("Design") === "Site" ? (
