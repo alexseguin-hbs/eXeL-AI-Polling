@@ -8,6 +8,7 @@
  */
 import { PLANETS, MOON, MOON_SIDEREAL_DAYS, MOON_SYNODIC_DAYS } from "../lib/ucrs-2525.ts";
 import { PRIORITY_CONSTELLATIONS, POLARIS } from "../lib/constellations.ts";
+import { heliocentricLon } from "../lib/ephemeris.ts";
 
 let pass = 0, fail = 0;
 const ok = (name, cond, detail = "") => { (cond ? pass++ : fail++); console.log((cond ? "PASS " : "FAIL ") + name + (detail ? "  (" + detail + ")" : "")); };
@@ -59,6 +60,16 @@ for (const c of PRIORITY_CONSTELLATIONS) {
   // RA wraps at 24h — compare on the circle
   const dRa = Math.min(Math.abs(c.ra - r[0]), 24 - Math.abs(c.ra - r[0]));
   ok(`${c.name} RA ${c.ra}h/Dec ${c.dec}° in region`, dRa <= 1.5 && near(c.dec, r[1], 12), `ΔRA ${dRa.toFixed(2)}h ΔDec ${(c.dec - r[1]).toFixed(1)}`);
+}
+
+console.log("— REAL EPHEMERIS: heliocentric longitude @ J2000 vs computed reference snapshot —");
+const J2000_JD = 2451545;
+// λ @ J2000.0 (deg) computed from the same JPL elements (research validation snapshot). Inner ±0.5°, outer ±1.0°.
+const REF_LON = { mercury: [253.784, 0.5], venus: [182.607, 0.5], earth: [100.380, 0.5], mars: [359.448, 0.5], jupiter: [36.380, 1.0], saturn: [45.579, 1.0], uranus: [316.399, 1.0], neptune: [303.916, 1.0], pluto: [250.535, 1.0] };
+for (const [id, [lam, tol]] of Object.entries(REF_LON)) {
+  const got = heliocentricLon(id, J2000_JD);
+  const d = Math.min(Math.abs(got - lam), 360 - Math.abs(got - lam));
+  ok(`${id} λ@J2000 ${got.toFixed(3)}° ≈ ${lam}° (±${tol})`, d <= tol, `Δ ${d.toFixed(3)}°`);
 }
 
 console.log("\nCELESTIAL-TRUTH " + pass + "/" + (pass + fail) + " passed");

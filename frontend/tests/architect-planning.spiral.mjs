@@ -381,9 +381,11 @@ const mk = async (vp) => {
   await pg.locator('[data-dist-unit="AU"]').click(); await pg.waitForTimeout(100);
   const d1 = await pg.evaluate(() => document.querySelector('[data-ucrs-dist]')?.textContent || '');
   const uomOk = /km/.test(d0) && /AU/.test(d1) && d0 !== d1;
-  await pg.locator('[data-planet-id="mercury"]').click({ force: true }); await pg.waitForTimeout(300);
-  const merc = await pg.evaluate(() => !!document.querySelector('[data-textured-globe]') && !document.querySelector('[data-earth-moon]')); // Mercury → real-textured 3D globe
-  rec('#A23 date + play control + Earth+Moon box ↔ textured planet + UoM distance (km→AU) updates throughout', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && uomOk, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} merc=${merc} d0="${d0}" d1="${d1}" uomOk=${uomOk}`);
+  // Jupiter — a non-Earth planet clear of the bottom-right mini-panel overlay (Neptune/Mercury can sit under it at the
+  // small test viewport → the click lands on the panel; the real UI selects fine, verified by diagnostic). Robust choice.
+  await pg.locator('[data-planet-id="jupiter"]').click({ force: true }); await pg.waitForTimeout(300);
+  const merc = await pg.evaluate(() => !!document.querySelector('[data-textured-globe]') && !document.querySelector('[data-earth-moon]'));
+  rec('#A23 date + play control + Earth+Moon box ↔ textured planet + UoM distance (km→AU) updates throughout', hasPlay === 1 && hasDate === 1 && earthGlobe && merc && uomOk, `play=${hasPlay} date=${hasDate} earthGlobe=${earthGlobe} nonEarthGlobe=${merc} d0="${d0}" d1="${d1}" uomOk=${uomOk}`);
   await pg.close();
 }
 
@@ -723,6 +725,22 @@ const mk = async (vp) => {
   const polNote = await pg.evaluate(() => (document.body.textContent || '').match(/Polaris ≈ (\d+)°/)?.[1]);
   const ok = info.stars >= 1 && info.hasPolaris && Math.abs((+polNote) - 30) <= 2;
   rec('#A39b DOME real bright-star overlay + Polaris el≈|lat| (both views share one sky)', ok, JSON.stringify({ ...info, polNote }));
+  await pg.close();
+}
+
+// ── #A42: ACCURATE mode — flipping to real Kepler positions moves a planet off its schematic spot (additive, default-off) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120);
+  const defOff = await pg.evaluate(() => document.querySelector('[data-cel-accurate]')?.getAttribute('data-cel-accurate') === '0'); // default schematic
+  const jupPos = () => pg.evaluate(() => { const g = document.querySelector('[data-planet-id="jupiter"] circle'); return g ? g.getAttribute('cx') + ',' + g.getAttribute('cy') : ''; });
+  const before = await jupPos();
+  await pg.locator('[data-cel-accurate]').click(); await pg.waitForTimeout(200); // → accurate (real)
+  const on = await pg.evaluate(() => document.querySelector('[data-cel-accurate]')?.getAttribute('data-cel-accurate') === '1');
+  const after = await jupPos();
+  rec('#A42 accurate mode (default off) → real Kepler positions move a planet', defOff && on && before !== after && !!before, JSON.stringify({ defOff, on, before, after }));
   await pg.close();
 }
 

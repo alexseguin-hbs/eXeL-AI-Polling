@@ -22,6 +22,7 @@ import { EarthMoonBox } from "./earth-moon-box";
 import { MiniPanel } from "./mini-panel";
 import { TexturedGlobe } from "./textured-globe";
 import { PRIORITY_CONSTELLATIONS, starfield, raDecToDisc, ZODIAC, ZODIAC_ORIGIN } from "@/lib/constellations";
+import { dateToJD, trueAnomaly, HAS_EPHEMERIS } from "@/lib/ephemeris";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
@@ -80,6 +81,7 @@ export function ArchitectCelestial({
   const [max, setMax] = useState(false);            // maximize → full-screen big map (zoom to an orbit, rotate)
   const [periTop, setPeriTop] = useState(false);    // clock icon → rotate the big map so perihelion + planet are at TOP
   const [playing, setPlaying] = useState(false);
+  const [accurate, setAccurate] = useState(false); // ACCURATE mode: real Kepler positions for the date (default off → schematic)
   const isoDate = new Date(Date.UTC(year, 0, doy)).toISOString().slice(0, 10);
   const setFromDate = (iso: string) => { const d = new Date(iso + "T00:00:00Z"); if (isNaN(d.getTime())) return; setYear(d.getUTCFullYear()); setDoy(Math.round((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 0)) / 86400000)); };
   const monthDay = new Date(year, 0, doy).toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -228,11 +230,15 @@ export function ArchitectCelestial({
   // real relative speeds (Mercury laps ~248× per Pluto orbit). A fixed per-planet phase gives the initial spread.
   const laid = useMemo(() => {
     const tElapsed = (hu / 3600) * PLANETS[selIdx].tDays;  // days since the selected planet was at perihelion
+    const jd = dateToJD(year, doy, hour);
     return PLANETS.map((p, i) => {
       const ax = axTrue(p.aAU);                       // TRUE-SCALE (log-radius real proportions) — single view
       const ry = ax * bOverA(p.e) * sinE;             // foreshortened minor axis (the tilt)
       const cx = SUN_X - ax * p.e;                    // Sun sits at the right focus
-      const effHu = (((i - selIdx) * 400 + (tElapsed / p.tDays) * 3600) % 3600 + 3600) % 3600; // accurate rate
+      // POSITION: schematic (arbitrary phase spread) OR — in ACCURATE mode — the REAL true-anomaly for the date
+      // (Kepler from JPL J2000 elements), so planets sit at their true relative positions. HU stays the time scrubber.
+      const baseHu = accurate && HAS_EPHEMERIS(p.id) ? (trueAnomaly(p.id, jd) / 360) * 3600 : (i - selIdx) * 400;
+      const effHu = ((baseHu + (tElapsed / p.tDays) * 3600) % 3600 + 3600) % 3600; // accurate rate
       const nu = huToNu(effHu) * DEG;
       const x0 = cx + ax * Math.cos(nu), y0 = SUN_Y + ry * Math.sin(nu);  // in-plane (ecliptic) screen position
       // ORBITAL INCLINATION — tilt this orbit off Earth's plane by its real inclination. Node line = the
@@ -245,7 +251,7 @@ export function ArchitectCelestial({
       const depth = Math.sin(nu);                     // +front / −back
       return { p, i, ax, ry, cx, effHu, x, y, depth, inclRot };
     });
-  }, [hu, sinE, cosE, selIdx]);
+  }, [hu, sinE, cosE, selIdx, accurate, year, doy, hour]);
 
   const bgStars = useMemo(() => starfield(SUN_X, SUN_Y, 116, 130), []); // celestial-sphere backdrop (fixed pattern)
   // Memoised backdrop — the ~180 stars/constellations are static in shape, so React reuses this tree on every
@@ -487,6 +493,11 @@ export function ArchitectCelestial({
               <input data-tilt-input type="range" min={0} max={45} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" />
               <span className="tabular-nums" style={{ color: C.violet }}>{tiltDeg}°</span>
             </label>
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="w-12 shrink-0" style={{ color: C.dim }}>Position</span>
+              <button data-cel-accurate={accurate ? "1" : "0"} onClick={() => setAccurate((v) => !v)} title="Schematic spread ↔ REAL Kepler positions for the date (JPL J2000 ephemeris)"
+                className="rounded border px-1.5 py-0.5 text-[8px]" style={{ borderColor: C.border, color: accurate ? C.green : C.dim, background: accurate ? "#0c2216" : "transparent" }}>{accurate ? "● accurate (real)" : "○ schematic"}</button>
+            </div>
             <div className="border-t pt-1" style={{ borderColor: C.border, fontFamily: "monospace" }}>
               <div><span style={{ color: C.dim }}>SP-OTU</span> {rd.spotu.toFixed(4)} · <span style={{ color: C.dim }}>RTU</span> {rd.rtu} · <span style={{ color: C.dim }}>elapsed</span> {fmtTime(rd.ltu, timeUnit)}</div>
               <div><span style={{ color: C.green }}>Perihelion ▶</span> {fmtDist(rd.peri, distUnit)}</div>
