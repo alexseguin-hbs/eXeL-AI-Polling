@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "next lint",
     "e2e:map": "node tests/mission-planning.e2e.mjs",
-    "e2e:spiral": "node tests/mission-planning.spiral.mjs"
+    "e2e:spiral": "node tests/mission-planning.spiral.mjs",
+    "test:truth": "node --experimental-strip-types tests/celestial-truth.mjs"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",

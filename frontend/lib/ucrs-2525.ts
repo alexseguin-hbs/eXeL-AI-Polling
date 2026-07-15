@@ -40,14 +40,17 @@ export const PLANETS: Planet[] = [
   { id: "earth", name: "Earth", aAU: 1.000000, e: 0.016710, tDays: 365.2422, color: "#ffd400", dot: 2.6, ea: "230.1584", radiusKm: 6371.0, surface: "rocky", globe: "#2f6fb0", tex: "/planets/earthmap1k.jpg", rotDays: 0.99726968, incl: 0.00 },
   { id: "mars", name: "Mars", aAU: 1.523679, e: 0.093400, tDays: 686.980, color: "#22c55e", dot: 1.3, ea: "—", radiusKm: 3389.5, surface: "rocky", globe: "#b5502f", tex: "/planets/marsmap1k.jpg", rotDays: 1.02595676, incl: 1.85 },
   { id: "jupiter", name: "Jupiter", aAU: 5.204267, e: 0.048775, tDays: 4332.589, color: "#19c8cf", dot: 2.2, ea: "—", radiusKm: 69911, surface: "banded", globe: "#c9a06a", tex: "/planets/jupitermap.jpg", rotDays: 0.41354, incl: 1.30 },
-  { id: "saturn", name: "Saturn", aAU: 9.582017, e: 0.055723, tDays: 10759.22, color: "#3b82f6", dot: 2.0, ea: "—", radiusKm: 58232, surface: "banded", globe: "#d9c48a", rings: true, tex: "/planets/saturnmap.jpg", rotDays: 0.44401, incl: 2.49 },
+  { id: "saturn", name: "Saturn", aAU: 9.536676, e: 0.053862, tDays: 10759.22, color: "#3b82f6", dot: 2.0, ea: "—", radiusKm: 58232, surface: "banded", globe: "#d9c48a", rings: true, tex: "/planets/saturnmap.jpg", rotDays: 0.44401, incl: 2.49 },
   { id: "uranus", name: "Uranus", aAU: 19.18916, e: 0.047220, tDays: 30688.5, color: "#6366f1", dot: 1.7, ea: "—", radiusKm: 25362, surface: "banded", globe: "#a5d6d9", tex: "/planets/uranusmap.jpg", rotDays: -0.71833, incl: 0.77 },
   { id: "neptune", name: "Neptune", aAU: 30.06992, e: 0.008678, tDays: 60182.0, color: "#a855f7", dot: 1.7, ea: "—", radiusKm: 24622, surface: "banded", globe: "#3a5bd0", tex: "/planets/neptunemap.jpg", rotDays: 0.67125, incl: 1.77 }, // violet — "last planet"
   { id: "pluto", name: "Pluto", aAU: 39.48211, e: 0.248808, tDays: 90560.0, color: "#d400ff", dot: 0.9, ea: "—", radiusKm: 1188.3, surface: "rocky", globe: "#b8a68f", tex: "/planets/plutomap1k.jpg", rotDays: -6.38723, incl: 17.16 },   // ultraviolet (UV)
 ];
 
-/** Earth's Moon — companion body for the 3D globe view (real NASA-derived albedo map). */
-export const MOON = { id: "moon", name: "Moon", radiusKm: 1737.4, color: "#c7c7d0", surface: "rocky" as SurfaceKind, globe: "#9a9aa2", tex: "/planets/moonmap1k.jpg" };
+/** Earth's Moon — companion body for the 3D globe view (real NASA-derived albedo map). NASA Moon Fact Sheet values. */
+export const MOON = { id: "moon", name: "Moon", radiusKm: 1737.4, color: "#c7c7d0", surface: "rocky" as SurfaceKind, globe: "#9a9aa2", tex: "/planets/moonmap1k.jpg", distanceKm: 384400, e: 0.0549, inclDeg: 5.145 };
+/** Moon periods (days) — SINGLE SOURCE shared by the component + the truth harness. Tidally locked (spin = sidereal). */
+export const MOON_SIDEREAL_DAYS = 27.3217;   // orbit vs the stars
+export const MOON_SYNODIC_DAYS = 29.5306;    // phase cycle (new→new)
 /** Saturn's ring colour strip (equirectangular radial). */
 export const SATURN_RING_TEX = "/planets/saturnringcolor.jpg";
 

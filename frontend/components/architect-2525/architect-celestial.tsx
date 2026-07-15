@@ -16,7 +16,7 @@ import { Maximize2, Minimize2, Play, Pause } from "lucide-react";
 import {
   PLANETS, ucrsAt, huToNu, axTrue, bOverA, fmt3600, FULL_ORBIT, planetDotRadius,
   fmtDist, fmtTime, fmtRotation, DIST_UNITS, DIST_LABEL, TIME_UNITS, TIME_LABEL, SATURN_RING_TEX,
-  SIZE_MODES, SIZE_LABEL, fmtClock, tzFromLon, type DistUnit, type TimeUnit, type PlanetSizeMode, type ClockFormat,
+  SIZE_MODES, SIZE_LABEL, fmtClock, tzFromLon, MOON_SIDEREAL_DAYS, MOON_SYNODIC_DAYS, type DistUnit, type TimeUnit, type PlanetSizeMode, type ClockFormat,
 } from "@/lib/ucrs-2525";
 import { EarthMoonBox } from "./earth-moon-box";
 import { MiniPanel } from "./mini-panel";
@@ -132,7 +132,7 @@ export function ArchitectCelestial({
   const [moonPlaying, setMoonPlaying] = useState(false);
   const [moonPlayT, setMoonPlayT] = useState(0);
   const [moonMode, setMoonMode] = useState<"sidereal" | "synodic">("sidereal");
-  const moonPeriodDays = moonMode === "sidereal" ? 27.3217 : 29.5306;
+  const moonPeriodDays = moonMode === "sidereal" ? MOON_SIDEREAL_DAYS : MOON_SYNODIC_DAYS;
   const moonRaf = useRef<number | null>(null);
   const moonStart = useRef<number | null>(null);
   useEffect(() => {
