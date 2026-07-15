@@ -877,6 +877,31 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A52: CLOCK icon defaults tilt=45 + resets rotation (upright labels) EVERY click (operator IMG_7337/7339) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(200);
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120);            // open ⚙ to reach the tilt slider
+  const setTilt = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-tilt-input]'); if (!t) return; const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(120); };
+  const rotOf = () => pg.evaluate(() => (document.querySelector('[data-cel-view]')?.getAttribute('transform') || '').match(/rotate\(([-0-9.]+)/)?.[1] || '0');
+  // twist the map (right-drag = rotate) and knock the tilt off 45 → prove the clock click straightens BOTH
+  const svg = pg.locator('[data-arch-celestial]'); const box = await svg.boundingBox();
+  if (box) { await pg.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5); await pg.mouse.down({ button: 'right' }); await pg.mouse.move(box.x + box.width * 0.78, box.y + box.height * 0.5, { steps: 6 }); await pg.mouse.up({ button: 'right' }); await pg.waitForTimeout(120); }
+  await setTilt(20);
+  await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(180);
+  const tiltAfter = await pg.evaluate(() => +(document.querySelector('[data-tilt-input]')?.value || '0'));
+  const rotAfter = +(await rotOf());
+  const peritop = await pg.evaluate(() => document.querySelector('[data-arch-celestial]')?.getAttribute('data-peritop') === '1');
+  // and re-asserts 45 even when already IN clock view (knock tilt off, click again → back to 45, not exit)
+  await setTilt(20);
+  await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(160);
+  const tiltReassert = await pg.evaluate(() => +(document.querySelector('[data-tilt-input]')?.value || '0'));
+  const ok = tiltAfter === 45 && Math.abs(rotAfter) < 0.01 && peritop && tiltReassert === 45;
+  rec('#A52 clock icon → 45° + rotation reset (upright labels) every click', ok, JSON.stringify({ tiltAfter, rotAfter, peritop, tiltReassert }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

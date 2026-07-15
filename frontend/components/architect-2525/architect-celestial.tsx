@@ -311,7 +311,7 @@ export function ArchitectCelestial({
       <div className={max ? "flex min-h-0 flex-1 flex-col rounded-lg border p-2" : "rounded-lg border p-2"} style={{ borderColor: C.border, background: C.panel }}>
         {/* HEADER BAR (Security-2525 mission-control): title · size-mode cycler · minimize/maximize */}
         <div className="mb-1 flex items-center justify-between gap-1 text-[9px]">
-          <span className="font-bold tracking-wider" style={{ color: C.violet }}>UCRS-2525 · BASE-3600 CELESTIAL MAP</span>
+          <span className="font-bold tracking-wider" style={{ color: C.violet }}>BASE-3600 CELESTIAL MAP</span>
           <div className="flex items-center gap-1">
             <button data-size-cycle data-size-mode={sizeMode} onClick={cycleSize} title="Cycle planet size: True Scale (vs Sun) → Proportional (vs planets) → Thematic (all similar, ~50% spread)"
               className="rounded border px-1.5 py-0.5 text-[8px] uppercase tracking-wider" style={{ borderColor: C.border, color: C.gold }}>{SIZE_LABEL[sizeMode]}</button>
@@ -324,7 +324,13 @@ export function ArchitectCelestial({
         <div className={max ? "relative min-h-0 flex-1" : "relative"}>
         {/* PHASE CLOCK — the only top-right map overlay (top-down toggle). */}
         <div className="absolute right-1 top-1 z-10">
-          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu, idx: l.i }))} selId={selId} overhead={periTop} onToggle={() => setPeriTop((v) => { const next = !v; if (next) setTiltDeg(45); return next; })} />
+          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu, idx: l.i }))} selId={selId} overhead={periTop} onToggle={() => {
+            // Clock icon: EVERY click re-asserts the canonical clock view — perihelion at top (45° tilt) AND the map
+            // un-twisted (rot 0 → constellation/planet labels face UPRIGHT, not sideways). Only exits when already
+            // exactly canonical (periTop + 45°), so a second click toggles back. (operator IMG_7337 / IMG_7339)
+            if (periTop && tiltDeg === 45) { setPeriTop(false); }
+            else { setPeriTop(true); setTiltDeg(45); setView((v) => ({ ...v, rot: 0 })); }
+          }} />
         </div>
         {/* bottom-right — the SELECTED body as a DRAGGABLE 3D globe (Security-2525 globe interaction).
             Earth = real land/ocean globe (spins with time-of-day) + the Moon beside it; any other planet =
