@@ -21,7 +21,7 @@ import {
 import { EarthMoonBox } from "./earth-moon-box";
 import { MiniPanel } from "./mini-panel";
 import { TexturedGlobe } from "./textured-globe";
-import { PRIORITY_CONSTELLATIONS, starfield } from "@/lib/constellations";
+import { PRIORITY_CONSTELLATIONS, starfield, raDecToDisc, ZODIAC, ZODIAC_ORIGIN } from "@/lib/constellations";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const SUN_X = 122, SUN_Y = 56, DEG = Math.PI / 180;
@@ -254,12 +254,32 @@ export function ArchitectCelestial({
   // the sphere looking out, so raising the tilt swings the star dome. Recompute is tilt-only (not per pan frame).
   const starfieldEl = useMemo(() => {
     const yf = (y: number) => SUN_Y + (y - SUN_Y) * sphereSquash;   // foreshorten a screen-Y about the Sun by the tilt
+    const sinE = (sphereSquash - 0.18) / 0.82;                      // recover the plane tilt for the ecliptic zodiac ring
+    const RZ = 100;                                                 // zodiac ring radius — just outside the outermost orbit
     return (
       <g data-starfield>
         <ellipse cx={SUN_X} cy={SUN_Y} rx="116" ry={116 * sphereSquash} fill="none" stroke="#131c28" strokeWidth="0.3" />
         {bgStars.map(([sx, sy, sr], i) => <circle key={`bg${i}`} cx={sx} cy={yf(sy)} r={sr} fill="#8b9bb5" opacity="0.45" />)}
+        {/* ZODIAC BAND — the 12 ecliptic signs on the ORBITAL PLANE (ecliptic), a ring concentric with the orbits so
+            stars → zodiac → orbits read as one scene. In Honor of the Sumerian/Babylonian sky masters (MUL.APIN). */}
+        <g data-zodiac>
+          <ellipse cx={SUN_X} cy={SUN_Y} rx={RZ} ry={RZ * sinE} fill="none" stroke="#2a2140" strokeWidth="0.3" strokeDasharray="1.5 1.5" opacity="0.7" />
+          {ZODIAC.map((z) => {
+            const a = z.lonDeg * DEG, zx = SUN_X + RZ * Math.sin(a), zy = SUN_Y - RZ * sinE * Math.cos(a);
+            return (
+              <g key={z.name} data-constellation={z.name} data-zodiac-sign={z.name}>
+                <circle cx={zx} cy={zy} r="0.7" fill="#a78bfa" opacity="0.9" />
+                <text x={zx} y={zy - 1.6} fontSize="2" fill="#7c6aa8" textAnchor="middle" style={{ fontFamily: "monospace" }}>{z.name}</text>
+                <text x={zx} y={zy + 3} fontSize="1.5" fill="#4a4066" textAnchor="middle" style={{ fontFamily: "monospace" }}>{z.sumerian}</text>
+              </g>
+            );
+          })}
+          <text data-zodiac-origin x={SUN_X} y={SUN_Y - RZ * sinE - 3} fontSize="2" fill="#6b5a99" textAnchor="middle" style={{ fontFamily: "monospace" }}>{ZODIAC_ORIGIN}</text>
+        </g>
+        {/* PRIORITY CONSTELLATIONS — placed by REAL RA/Dec (RA → bearing, Dec → co-declination from Polaris). */}
         {PRIORITY_CONSTELLATIONS.map((con) => {
-          const RB = 108, ccx = SUN_X + RB * con.radius * Math.sin(con.angle * DEG), ccy = yf(SUN_Y - RB * con.radius * Math.cos(con.angle * DEG));
+          const disc = raDecToDisc(con.ra, con.dec);
+          const RB = 108, ccx = SUN_X + RB * disc.radius * Math.sin(disc.angle * DEG), ccy = yf(SUN_Y - RB * disc.radius * Math.cos(disc.angle * DEG));
           const pts = con.stars.map(([dx, dy]) => [ccx + dx, ccy + dy] as const);  // asterism shape stays readable; the sphere tilts, not each figure
           const isUMi = con.name === "Ursa Minor";
           return (

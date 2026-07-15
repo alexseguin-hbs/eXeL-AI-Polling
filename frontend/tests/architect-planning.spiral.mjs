@@ -664,6 +664,46 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A39: MAP — real RA/Dec constellations + the 12-sign Zodiac band (Sumerian provenance) on the ecliptic + Polaris ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  const info = await pg.evaluate(() => ({
+    zodiacSigns: document.querySelectorAll('[data-zodiac] [data-zodiac-sign]').length,
+    provenance: /Sumerian|MUL\.APIN|Babylonian/.test(document.querySelector('[data-zodiac-origin]')?.textContent || ''),
+    aries: !!document.querySelector('[data-zodiac-sign="Aries"]'),
+    priority: document.querySelectorAll('[data-starfield] [data-constellation]').length, // priority (12) + zodiac (12)
+    polaris: /Polaris/.test(document.querySelector('[data-starfield]')?.textContent || ''),
+    orion: !!document.querySelector('[data-constellation="Orion"]'),
+  }));
+  // tilt still moves the star sphere (keep #A37 behaviour): Orion cy changes when SA tilt changes
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120);
+  const conY = () => pg.evaluate(() => document.querySelector('[data-constellation="Orion"] circle')?.getAttribute('cy'));
+  const setTilt = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(150); };
+  await setTilt(10); const y10 = await conY(); await setTilt(45); const y45 = await conY();
+  const ok = info.zodiacSigns === 12 && info.provenance && info.aries && info.priority >= 24 && info.polaris && info.orion && y10 !== y45;
+  rec('#A39 MAP real RA/Dec constellations + 12 Zodiac signs (Sumerian) on ecliptic + Polaris + tilt-moves-sky', ok, JSON.stringify({ ...info, y10, y45 }));
+  await pg.close();
+}
+
+// ── #A39b: DOME — real bright-star overlay (RA/Dec → alt-az) agrees with the map; Polaris el ≈ |lat| ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Site');   // default sub-view is the Sky Dome
+  await pg.waitForTimeout(300);
+  const info = await pg.evaluate(() => {
+    const stars = document.querySelectorAll('[data-arch-sky] [data-el="star"]').length;
+    const pol = document.querySelector('[data-arch-sky] [data-el="polaris"]');
+    return { stars, hasPolaris: !!pol };
+  });
+  // Polaris altitude ≈ latitude (30.44 default) — read the note line
+  const polNote = await pg.evaluate(() => (document.body.textContent || '').match(/Polaris ≈ (\d+)°/)?.[1]);
+  const ok = info.stars >= 1 && info.hasPolaris && Math.abs((+polNote) - 30) <= 2;
+  rec('#A39b DOME real bright-star overlay + Polaris el≈|lat| (both views share one sky)', ok, JSON.stringify({ ...info, polNote }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

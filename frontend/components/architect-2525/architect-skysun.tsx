@@ -48,6 +48,26 @@ function moonSky(lat: number, dayOfYear: number, hour: number, year = 2025) {
   return { az, el, illum: ms.illum, phase: ms.phase };
 }
 
+// Deterministic star alt-az from real equatorial coords (RA hours, Dec deg), sharing the same LST reference as the
+// Moon (so the Dome + the Solar-System map agree on the sky — CELESTIAL_SKY_SPEC §2/§6).
+function starSky(raHours: number, decDeg: number, lat: number, dayOfYear: number, hour: number, year = 2025) {
+  const ms = moonState(year, dayOfYear, hour);
+  const sun = eclToRaDec(ms.eclLonSun, 0);              // sun RA/dec (degrees)
+  const Hs = 15 * (hour - 12);                          // sun hour angle (solar time)
+  let H = Hs - (raHours * 15 - sun.ra);                 // star hour angle (shared LST)
+  H = ((H + 180) % 360 + 360) % 360 - 180;
+  const decR = decDeg * RAD, latR = lat * RAD, HR = H * RAD;
+  const el = Math.asin(Math.max(-1, Math.min(1, Math.sin(decR) * Math.sin(latR) + Math.cos(decR) * Math.cos(latR) * Math.cos(HR)))) / RAD;
+  const az = (Math.atan2(-Math.cos(decR) * Math.sin(HR), Math.sin(decR) * Math.cos(latR) - Math.cos(decR) * Math.sin(latR) * Math.cos(HR)) / RAD + 360) % 360;
+  return { az, el };
+}
+// A short bright-star subset (real RA h / Dec °, J2000) mirrored onto the Dome — the same sky the map's constellations show.
+const BRIGHT_STARS: { n: string; ra: number; dec: number }[] = [
+  { n: "Sirius", ra: 6.75, dec: -16.7 }, { n: "Betelgeuse", ra: 5.92, dec: 7.4 }, { n: "Rigel", ra: 5.24, dec: -8.2 },
+  { n: "Vega", ra: 18.62, dec: 38.8 }, { n: "Arcturus", ra: 14.26, dec: 19.2 }, { n: "Capella", ra: 5.28, dec: 46.0 },
+  { n: "Aldebaran", ra: 4.60, dec: 16.5 }, { n: "Antares", ra: 16.49, dec: -26.4 }, { n: "Deneb", ra: 20.69, dec: 45.3 },
+];
+
 // Sky-dome projection: zenith at centre, horizon at radius R. az 0=N (top), clockwise.
 const R = 44, CX = 50, CY = 50;
 const dome = (az: number, el: number) => {
@@ -160,7 +180,10 @@ export function ArchitectSkySun() {
           {moon.el > 0 && <circle data-el="moon" cx={mx} cy={my} r="1.6" fill="#e5e7eb" fillOpacity={0.3 + 0.7 * moon.illum} stroke="#cbd5e1" strokeWidth="0.2" />}
           {/* Polaris (true north) + Orion marker */}
           <circle data-el="polaris" cx={px} cy={py} r="0.9" fill="#fff" /><text x={px + 2} y={py} fontSize="2.4" fill="#fff" style={{ fontFamily: "monospace" }}>Polaris</text>
-          {(() => { const [ox, oy] = dome(135, Math.max(10, 40 - Math.abs(lat) / 2)); return <><circle cx={ox} cy={oy} r="0.7" fill="#9fd" /><circle cx={ox + 2} cy={oy + 1} r="0.7" fill="#9fd" /><circle cx={ox + 4} cy={oy + 2} r="0.7" fill="#9fd" /><text x={ox} y={oy - 2} fontSize="2.2" fill="#9fd" style={{ fontFamily: "monospace" }}>Orion</text></>; })()}
+          {/* Real bright stars (RA/Dec → alt-az), only those above the horizon — the same sky as the Solar-System map */}
+          {BRIGHT_STARS.map((s) => { const p = starSky(s.ra, s.dec, lat, doy, hour, year); if (p.el <= 0) return null; const [x, y] = dome(p.az, p.el); return (
+            <g key={s.n} data-el="star"><circle cx={x} cy={y} r="0.55" fill="#9fd" /><text x={x + 1.4} y={y + 0.6} fontSize="1.9" fill="#7fb8c8" style={{ fontFamily: "monospace" }}>{s.n}</text></g>
+          ); })}
         </svg>
         <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lat<input type="number" value={lat} step={0.5} onChange={(e) => setLat(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
