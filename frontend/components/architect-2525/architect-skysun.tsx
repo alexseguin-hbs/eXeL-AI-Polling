@@ -320,6 +320,13 @@ export function ArchitectSkySun() {
             {aligned ? <>✦ This {cardOf(facingAz)} face frames the <span style={{ color: C.gold }}>{nearestAlign.label}</span> (az {nearestAlign.az.toFixed(0)}°).</>
               : nearestAlign ? <>Nearest event: {nearestAlign.label} at az {nearestAlign.az.toFixed(0)}° — rotate the face {nearestAlign.diff.toFixed(0)}° to frame it.</> : "—"}
           </div>
+          {/* WINDOW STORY — one plain-language sentence for the heart (synthesis of the numbers below) */}
+          <div data-arch-window-story className="mt-1 text-[10px]" style={{ color: C.text }}>
+            ✧ Your <span style={{ color: C.violet }}>{cardOf(facingAz)}</span> window
+            {aligned ? <> frames the <span style={{ color: C.gold }}>{nearestAlign.label}</span></> : <> best catches {best.k}-facing light</>}
+            {moonOver ? <>; on {monthDay} the Moon passes it at <span style={{ color: "#e5e7eb" }}>{fmtHM(moonOver.hour)}</span></> : null}
+            {bestMoon ? <>; its natural moon-anniversary is <span style={{ color: "#e5e7eb" }}>{mdLabel(bestMoon.doy)}</span></> : null}.
+          </div>
           {/* THE MISSION — on THIS date, when do the Sun + Moon cross this window (time · elevation · phase)? */}
           <div data-arch-window-transit className="mt-1 rounded px-1 py-0.5 text-[9px]" style={{ background: "#0c1420", color: C.dim }}>
             <div><span style={{ color: C.gold }}>☀ Sun</span> over your {cardOf(facingAz)} window:{" "}

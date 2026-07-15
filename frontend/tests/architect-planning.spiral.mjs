@@ -843,6 +843,17 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A50: HOMEOWNER — plain-language "Window Story" synthesis line (one sentence for the heart) ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Site'); await pg.waitForTimeout(300);
+  const hasStory = await pg.locator('[data-arch-window-story]').count();
+  const story = await pg.evaluate(() => document.querySelector('[data-arch-window-story]')?.textContent || '');
+  const ok = hasStory === 1 && /Your/.test(story) && /window/.test(story) && story.length > 20;
+  rec('#A50 plain-language Window Story synthesis line (one sentence, human)', ok, JSON.stringify({ hasStory, story: story.replace(/\s+/g, ' ').slice(0, 80) }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

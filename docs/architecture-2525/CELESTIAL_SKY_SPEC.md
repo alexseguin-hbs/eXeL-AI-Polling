@@ -183,6 +183,9 @@ the change (baseline count captured, targeted assertion flips as intended, total
   date changes** (Summer ≠ Winter) — proving it is date-driven, not static.
 - `#A49` — **Reverse solver / natural anniversary**: `data-arch-best-date` names the best sky-framing date for the
   window, and a `data-arch-best-jump` "go" button jumps the calendar (`data-cal-input`) to that discovered date.
+- `#A50` — **Window Story**: `data-arch-window-story` renders one plain-language synthesis sentence ("Your <card>
+  window frames … ; on <date> the Moon passes it at <time> ; its natural moon-anniversary is <date>.") — the numbers
+  spoken simply, for the heart. Synthesised from the SAME computed values as the detail lines (no second calculation).
 - Existing `#A21/#A23/#A24/#A25/#A38` first enter Advanced (`[data-cel-mode="advanced"]`) — enumerated, bounded edit.
 
 ---
