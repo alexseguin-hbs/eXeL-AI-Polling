@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArchitectCelestial } from "./architect-celestial";
 import { moonState } from "@/lib/astro-moon";
+import { overWindow, bestDateForWindow } from "@/lib/celestial";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const RAD = Math.PI / 180;
@@ -67,38 +68,8 @@ function moonSky(lat: number, dayOfYear: number, hour: number, year = 2025) {
   return { az, el, illum: ms.illum, phase: ms.phase };
 }
 
-// HOMEOWNER MISSION — "the Moon (or Sun) over your window." Scan the selected date for the moment a body's
-// azimuth crosses the window / house-face azimuth WHILE it is above the horizon (visible through the opening).
-// Returns the closest-pass hour + how squarely it frames the opening (diff°, 0 = dead-centre). The homeowner
-// picks the date (an anniversary, a season) + the window; we compute the exact moment — sun by day, moon by night.
-function overWindow(posFn: (h: number) => { az: number; el: number }, facingAz: number, step = 0.05): { hour: number; el: number; az: number; diff: number } | null {
-  const angDiff = (a: number, bb: number) => Math.abs(((a - bb) % 360 + 540) % 360 - 180);
-  let best: { hour: number; el: number; az: number; diff: number } | null = null;
-  for (let h = 0; h <= 24; h += step) {
-    const p = posFn(h);
-    if (p.el <= 0) continue;                        // below the horizon → not framed by the window
-    const diff = angDiff(p.az, facingAz);
-    if (!best || diff < best.diff) best = { hour: h, el: p.el, az: p.az, diff };
-  }
-  return best;
-}
-
-// REVERSE mission — "which time of year does the sky best frame THIS window?" Scan the year for the date whose best
-// transit through the window azimuth is squarest (smallest diff°) at a usable elevation, then refine the minute on the
-// winning day. This is how the homeowner DISCOVERS a natural anniversary: the season the Sun (or Moon) signs their
-// opening. Pure + deterministic (coarse year scan → fine day refine); same {lat,facingAz,year} → same date.
-function bestDateForWindow(posAt: (doy: number, h: number) => { az: number; el: number }, facingAz: number, minEl = 5): { doy: number; hour: number; el: number; diff: number } | null {
-  let bestDoy = -1, bestScore = Infinity;
-  for (let d = 1; d <= 365; d++) {
-    const t = overWindow((h) => posAt(d, h), facingAz, 0.5);   // coarse day scan
-    if (!t || t.el < minEl) continue;
-    const score = t.diff - t.el * 0.001;                        // squarest framing; tiebreak → higher elevation
-    if (score < bestScore) { bestScore = score; bestDoy = d; }
-  }
-  if (bestDoy < 0) return null;
-  const fine = overWindow((h) => posAt(bestDoy, h), facingAz, 0.05);   // refine the exact minute on the winning day
-  return fine ? { doy: bestDoy, hour: fine.hour, el: fine.el, diff: fine.diff } : null;
-}
+// HOMEOWNER MISSION — the window-framing solvers (overWindow / bestDateForWindow) now live in lib/celestial.ts as pure,
+// Node-importable (truth-harness-lockable) functions; imported at the top. See CELESTIAL_SKY_SPEC §9.
 
 // Deterministic star alt-az from real equatorial coords (RA hours, Dec deg), sharing the same LST reference as the
 // Moon (so the Dome + the Solar-System map agree on the sky — CELESTIAL_SKY_SPEC §2/§6).

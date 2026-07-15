@@ -80,3 +80,38 @@ export function skyArc(fn: (d: Date, lat: number, lon: number) => SkyPos, date: 
   }
   return out;
 }
+
+// ── Window framing (Architect-2525 HOMEOWNER MISSION) — CELESTIAL_SKY_SPEC §9 ──────────────────────────────────────
+// Generic over ANY (hour → {az, el} in DEGREES) sampler, so the caller supplies the Sun / Moon / any body. Pure +
+// deterministic (same inputs → same output). Kept model-agnostic (plain {az,el°}, not SkyPos) so it composes with the
+// component's doy/hour sun+moon model as well as this lib's Date model. Node-importable → truth-harness lockable.
+export interface WindowHit { hour: number; el: number; az: number; diff: number }
+
+// The moment on a day a body's azimuth crosses the window/house-face azimuth WHILE above the horizon; null if it never
+// clears the horizon that day. diff° = how squarely it frames the opening (0 = dead centre). step = scan resolution (h).
+export function overWindow(posFn: (h: number) => { az: number; el: number }, facingAz: number, step = 0.05): WindowHit | null {
+  const angDiff = (a: number, bb: number) => Math.abs(((a - bb) % 360 + 540) % 360 - 180);
+  let best: WindowHit | null = null;
+  for (let h = 0; h <= 24; h += step) {
+    const p = posFn(h);
+    if (p.el <= 0) continue;
+    const diff = angDiff(p.az, facingAz);
+    if (!best || diff < best.diff) best = { hour: h, el: p.el, az: p.az, diff };
+  }
+  return best;
+}
+
+// REVERSE — which date of the year best frames THIS window (squarest transit at a usable elevation): coarse year scan
+// → fine minute refine on the winning day. The homeowner discovers a natural anniversary. null if no date qualifies.
+export function bestDateForWindow(posAt: (doy: number, h: number) => { az: number; el: number }, facingAz: number, minEl = 5): { doy: number; hour: number; el: number; diff: number } | null {
+  let bestDoy = -1, bestScore = Infinity;
+  for (let d = 1; d <= 365; d++) {
+    const t = overWindow((h) => posAt(d, h), facingAz, 0.5);
+    if (!t || t.el < minEl) continue;
+    const score = t.diff - t.el * 0.001;
+    if (score < bestScore) { bestScore = score; bestDoy = d; }
+  }
+  if (bestDoy < 0) return null;
+  const fine = overWindow((h) => posAt(bestDoy, h), facingAz, 0.05);
+  return fine ? { doy: bestDoy, hour: fine.hour, el: fine.el, diff: fine.diff } : null;
+}

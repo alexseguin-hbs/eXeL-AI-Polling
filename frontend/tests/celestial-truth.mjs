@@ -9,6 +9,7 @@
 import { PLANETS, MOON, MOON_SIDEREAL_DAYS, MOON_SYNODIC_DAYS, sunDotRadius, planetDotRadius } from "../lib/ucrs-2525.ts";
 import { PRIORITY_CONSTELLATIONS, POLARIS } from "../lib/constellations.ts";
 import { heliocentricLon } from "../lib/ephemeris.ts";
+import { overWindow, bestDateForWindow } from "../lib/celestial.ts";
 
 let pass = 0, fail = 0;
 const ok = (name, cond, detail = "") => { (cond ? pass++ : fail++); console.log((cond ? "PASS " : "FAIL ") + name + (detail ? "  (" + detail + ")" : "")); };
@@ -77,6 +78,26 @@ const jup = PLANETS.find((p) => p.id === "jupiter");
 const sunTh = sunDotRadius("thematic"), jupTh = planetDotRadius(jup, "thematic");
 ok(`thematic Sun ${sunTh} is the biggest body but modest (> Jupiter ${jupTh.toFixed(2)}, < 4)`, sunTh > jupTh && sunTh < 4);
 ok(`Sun size ordered thematic(${sunTh}) < truescale(${sunDotRadius("truescale")}) < proportional(${sunDotRadius("proportional")})`, sunDotRadius("thematic") < sunDotRadius("truescale") && sunDotRadius("truescale") < sunDotRadius("proportional"));
+
+console.log("— WINDOW-FRAMING solvers (homeowner mission, lib/celestial) — deterministic + edge/null paths —");
+// A synthetic body that SWEEPS azimuth (15°/h, like the real sky), crossing due-SOUTH (az 180) exactly at local noon,
+// climbing to el 50° at transit, below the horizon at night. (Real bodies always move in az → a single, meaningful transit.)
+const dueSouthNoon = (h) => ({ az: 180 + (h - 12) * 15, el: 50 - Math.abs(h - 12) * 10 });
+const hitS = overWindow(dueSouthNoon, 180);
+ok(`overWindow finds the S transit AT noon (hour ${hitS?.hour?.toFixed(2)})`, !!hitS && near(hitS.hour, 12, 0.1) && near(hitS.diff, 0, 1), `diff ${hitS?.diff?.toFixed(2)}`);
+// NULL path — a body that never clears the horizon returns null (never framed).
+const alwaysBelow = () => ({ az: 180, el: -10 });
+ok("overWindow returns null when the body never rises (never framed)", overWindow(alwaysBelow, 180) === null);
+// A window facing EAST (90°) is best matched by this body when its az is nearest 90° (early, low) → wide-ish diff, hit above horizon.
+const hitE = overWindow(dueSouthNoon, 90);
+ok(`overWindow east-facing vs sweeping body → hit above horizon (diff ${hitE?.diff?.toFixed(0)}°)`, !!hitE && hitE.el > 0);
+// Determinism — identical inputs → identical output.
+ok("overWindow deterministic (same inputs → same hour)", overWindow(dueSouthNoon, 180)?.hour === hitS?.hour);
+// bestDateForWindow — only doy 100 puts the body above the horizon (sweeping to S at noon); others below → picks 100.
+const onlyDoy100 = (doy, h) => ({ az: 180 + (h - 12) * 15, el: doy === 100 ? 50 - Math.abs(h - 12) * 10 : -5 });
+const bd = bestDateForWindow(onlyDoy100, 180);
+ok(`bestDateForWindow picks the only qualifying date (doy ${bd?.doy})`, !!bd && bd.doy === 100);
+ok("bestDateForWindow returns null when no date qualifies", bestDateForWindow(() => ({ az: 180, el: -5 }), 180) === null);
 
 console.log("\nCELESTIAL-TRUTH " + pass + "/" + (pass + fail) + " passed");
 if (fail > 0) process.exit(1);

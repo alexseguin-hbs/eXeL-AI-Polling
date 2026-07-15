@@ -186,6 +186,10 @@ the change (baseline count captured, targeted assertion flips as intended, total
 - `#A50` — **Window Story**: `data-arch-window-story` renders one plain-language synthesis sentence ("Your <card>
   window frames … ; on <date> the Moon passes it at <time> ; its natural moon-anniversary is <date>.") — the numbers
   spoken simply, for the heart. Synthesised from the SAME computed values as the detail lines (no second calculation).
+- **Truth-harness locks** (`npm run test:truth`, pure Node) — `overWindow` / `bestDateForWindow` now live in
+  `lib/celestial.ts` (pure, Node-importable) and are locked there: due-south body → transit AT noon (diff≈0); the
+  **null path** (body never rises → `null`); off-facing → hit above horizon; determinism (same inputs → same hour);
+  and `bestDateForWindow` picks the only qualifying date / returns `null` when none qualifies.
 - Existing `#A21/#A23/#A24/#A25/#A38` first enter Advanced (`[data-cel-mode="advanced"]`) — enumerated, bounded edit.
 
 ---
