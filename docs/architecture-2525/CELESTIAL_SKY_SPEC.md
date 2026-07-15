@@ -62,6 +62,12 @@ deterministic function of these five inputs.
   `ccy = yf(SUN_Y − RB·rFromDec·cos(θRA))` where `yf` applies the tilt foreshorten `sphereSquash = 0.18 + 0.82·sinE`.
   Polaris (Dec +89.3°) → `rFromDec≈0` → pinned near the Sun/top. The whole star layer rides the pan/zoom/rotate `vt`.
 - **Dome:** `raDecToHorizon(ra,dec,date,lat,lon) → {az,el}` then `dome(az,el)`; render only `el > 0` (above horizon).
+- **CONSTANT-STROKE LAW (companion to the constant-label law):** the whole map is drawn inside
+  `<g data-cel-view transform="… scale(view.zoom) …">`, so the browser would multiply every `stroke-width` AND
+  `stroke-dasharray` length by the zoom → chunky lines at high zoom (operator, IMG_7336 @6×). A single scoped CSS rule
+  `[data-cel-view] line,ellipse,circle,path { vector-effect: non-scaling-stroke }` renders strokes + dashes in screen
+  space → **lines stay a constant thinness at any zoom**. Affects stroke rendering only (never fill/`r`/positions), so
+  planet dots still scale with the map. Locked by `#A51`.
 
 ---
 
@@ -186,6 +192,8 @@ the change (baseline count captured, targeted assertion flips as intended, total
 - `#A50` — **Window Story**: `data-arch-window-story` renders one plain-language synthesis sentence ("Your <card>
   window frames … ; on <date> the Moon passes it at <time> ; its natural moon-anniversary is <date>.") — the numbers
   spoken simply, for the heart. Synthesised from the SAME computed values as the detail lines (no second calculation).
+- `#A51` — **Constant stroke on zoom**: a `data-orbit` ellipse (and a constellation `line`) inside `data-cel-view`
+  resolves `getComputedStyle().vectorEffect === "non-scaling-stroke"`, and a wheel-zoom keeps the on-screen stroke thin.
 - **Truth-harness locks** (`npm run test:truth`, pure Node) — `overWindow` / `bestDateForWindow` now live in
   `lib/celestial.ts` (pure, Node-importable) and are locked there: due-south body → transit AT noon (diff≈0); the
   **null path** (body never rises → `null`); off-facing → hit above horizon; determinism (same inputs → same hour);

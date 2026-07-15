@@ -358,6 +358,11 @@ export function ArchitectCelestial({
         <svg ref={svgRef} {...gestureHandlers} data-arch-celestial data-peritop={periTop ? "1" : undefined} viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet"
           className={max ? "h-full w-full touch-none select-none rounded" : "w-full touch-none select-none rounded"}
           style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: max ? undefined : "2.2 / 1", height: max ? "100%" : undefined, cursor: pan.current ? "grabbing" : "grab" }}>
+          {/* CONSTANT-STROKE LAW (companion to the constant-label law): the whole map lives inside scale(view.zoom), so
+              without this the browser multiplies every stroke-width + dash length by the zoom → chunky lines at 6×.
+              non-scaling-stroke renders stroke width AND dashes in screen space → lines stay thin at any zoom (operator,
+              IMG_7336). Affects stroke rendering only — never fill/r/positions, so planet dots still scale correctly. */}
+          <style>{`[data-cel-view] line,[data-cel-view] ellipse,[data-cel-view] circle,[data-cel-view] path{vector-effect:non-scaling-stroke}`}</style>
           <g data-cel-view transform={vt} style={{ willChange: "transform" }}>
           {/* CELESTIAL SPHERE — fixed star backdrop (memoised); pans/zooms/rotates with the view. */}
           {starfieldEl}

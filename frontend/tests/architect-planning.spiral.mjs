@@ -854,6 +854,29 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A51: CELESTIAL — line/stroke thinness stays CONSTANT on zoom (vector-effect: non-scaling-stroke) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  // the orbit rings + constellation lines inside data-cel-view must resolve non-scaling-stroke (screen-space stroke)
+  const ve = await pg.evaluate(() => {
+    const o = document.querySelector('[data-cel-view] [data-orbit]');
+    const l = document.querySelector('[data-cel-view] line');
+    return { orbit: o ? getComputedStyle(o).vectorEffect : 'none', line: l ? getComputedStyle(l).vectorEffect : 'none' };
+  });
+  // and after a wheel-zoom, the orbit's on-screen stroke thickness must NOT grow (thin at any zoom)
+  const svg = pg.locator('[data-arch-celestial]'); const box = await svg.boundingBox();
+  const orbitBox = () => pg.evaluate(() => { const o = document.querySelector('[data-cel-view] [data-orbit]'); if (!o) return 0; const r = o.getBoundingClientRect(); return Math.min(r.width, r.height); });
+  const wPre = await orbitBox();
+  if (box) { await pg.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5); await pg.mouse.wheel(0, -240); await pg.waitForTimeout(150); }
+  const zoomTxt = await pg.evaluate(() => document.querySelector('[data-cel-zoom]')?.textContent || '');
+  const strokePx = await pg.evaluate(() => { const o = document.querySelector('[data-cel-view] [data-orbit]'); if (!o) return -1; return parseFloat(getComputedStyle(o).strokeWidth); });
+  const ok = ve.orbit === 'non-scaling-stroke' && ve.line === 'non-scaling-stroke' && strokePx > 0 && strokePx < 2;
+  rec('#A51 celestial strokes stay thin on zoom (non-scaling-stroke on orbits + lines)', ok, JSON.stringify({ ...ve, zoom: zoomTxt, strokePx: strokePx.toFixed(3), wPre: wPre.toFixed(0) }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
