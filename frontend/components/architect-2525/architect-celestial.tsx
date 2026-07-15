@@ -358,19 +358,22 @@ export function ArchitectCelestial({
             {/* TOP-DOWN CLOCK VIEW — looking straight down the orbital plane: near-circular orbits, UNIFORM
                 planet sizes all the way around (perihelion→aphelion), upright labels. Perihelion ▲ at top. */}
             {laid.map(({ p, effHu }) => {
-              const A = axTrue(p.aAU) * 0.5, e2 = p.e, rx = A * bOverA(e2), cyo = SUN_Y + A * e2;
+              // CLOCK/top-down view foreshortened by the SAME `sinE` (elevation sine) as the normal branch — so the
+              // SA tilt slider/gesture tilts the orbital pattern here too (single tilt source). rx/x unchanged →
+              // perihelion-at-top framing preserved; at tilt 45° (max) the plane is viewed from 45° elevation.
+              const A = axTrue(p.aAU) * 0.5, e2 = p.e, rx = A * bOverA(e2), cyo = SUN_Y + A * e2 * sinE;
               const phi = huToNu(effHu) * DEG, rr = A * (1 - e2 * e2) / (1 + e2 * Math.cos(phi));
-              const x = SUN_X + rr * Math.sin(phi), y = SUN_Y - rr * Math.cos(phi); // phi 0 → perihelion at top
+              const x = SUN_X + rr * Math.sin(phi), y = SUN_Y - rr * Math.cos(phi) * sinE; // phi 0 → perihelion at top
               const on = p.id === selId, dot = planetDotRadius(p, sizeMode);
               return (
                 <g key={`ov${p.id}`}>
-                  <ellipse data-orbit cx={SUN_X} cy={cyo} rx={rx} ry={A} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.55" />
-                  <circle cx={SUN_X} cy={SUN_Y - A * (1 - e2)} r="0.7" fill={p.color} />{/* perihelion — top */}
-                  <circle cx={SUN_X} cy={SUN_Y + A * (1 + e2)} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* aphelion — bottom */}
+                  <ellipse data-orbit cx={SUN_X} cy={cyo} rx={rx} ry={A * sinE} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.55" />
+                  <circle cx={SUN_X} cy={SUN_Y - A * (1 - e2) * sinE} r="0.7" fill={p.color} />{/* perihelion — top */}
+                  <circle cx={SUN_X} cy={SUN_Y + A * (1 + e2) * sinE} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* aphelion — bottom */}
                   <g data-planet data-planet-id={p.id} onPointerDown={(ev) => ev.stopPropagation()} onClick={() => select(p.id)} style={{ cursor: "pointer" }}>
                     <circle cx={x} cy={y} r={Math.max(4, dot + 2.5)} fill="transparent" />
                     {on && <circle cx={x} cy={y} r={dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
-                    {p.rings && <ellipse cx={x} cy={y} rx={dot + 1.6} ry={dot + 1.6} fill="none" stroke={p.color} strokeWidth="0.3" opacity="0.8" />}
+                    {p.rings && <ellipse cx={x} cy={y} rx={dot + 1.6} ry={(dot + 1.6) * sinE} fill="none" stroke={p.color} strokeWidth="0.3" opacity="0.8" />}
                     <circle cx={x} cy={y} r={dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
                     <text x={x} y={y - dot - 1.2} fontSize="2.3" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
                   </g>

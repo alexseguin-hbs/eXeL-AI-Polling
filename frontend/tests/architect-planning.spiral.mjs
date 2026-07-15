@@ -344,6 +344,28 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A21c: CAPABILITY LOCK — SA tilt foreshortens the orbital pattern in BOTH the normal AND clock/overhead views ──
+// (the regression that shipped: clock-mode orbits ignored the tilt. Lock: orbit ry(tilt 8) < ry(tilt 45) AND >0 in both.)
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120); // open ⚙ → SA tilt slider
+  const setTilt = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(160); };
+  const orbitRy = (sel) => pg.evaluate((s) => { const o = document.querySelector(`${s} [data-orbit]`); return o ? +o.getAttribute('ry') : NaN; }, sel);
+  // NORMAL view
+  await setTilt(45); const nRy45 = await orbitRy('[data-cel-view]');
+  await setTilt(8);  const nRy8  = await orbitRy('[data-cel-view]');
+  // CLOCK / overhead view
+  await clk('[data-clock-toggle]'); await pg.waitForTimeout(200);
+  await setTilt(45); const cRy45 = await orbitRy('[data-overhead-view]');
+  await setTilt(8);  const cRy8  = await orbitRy('[data-overhead-view]');
+  const normalOk = nRy8 < nRy45 && nRy8 > 0;
+  const clockOk = cRy8 < cRy45 && cRy8 > 0;                   // THE fix — was broken (clock ignored tilt)
+  rec('#A21c tilt foreshortens orbits in BOTH normal AND clock views (single tilt source)', normalOk && clockOk, JSON.stringify({ nRy8, nRy45, cRy8, cRy45 }));
+  await pg.close();
+}
+
 // ── #A23: date + PLAY (Earth rotates / planets orbit) + selected-planet bottom-right (Earth globe ↔ planet orbit) ──
 {
   const { pg, tab, subtab, clk } = await mk();
