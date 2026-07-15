@@ -70,7 +70,12 @@ export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172
       <div className="absolute" style={{ left: cx - globe / 2, top: cy - globe / 2, width: globe }}>
         <MiniGlobe lat={lat} lon={lon} size={globe} color={color} spinDeg={earthSpin} />
       </div>
-      {/* Moon — real texture, at the accurate orbital position (spin = orbital angle → tidally locked) */}
+      {/* Moon — real texture, at the accurate orbital position (spin = orbital angle → tidally locked).
+          An always-visible RIM (+ subtle glow) sits behind it so the disc is never lost even at NEW MOON (0% lit,
+          near-black texture) — the operator's "moon is missing" fix. Rim brightens slightly with illumination. */}
+      <div className="pointer-events-none absolute rounded-full" data-moon-rim
+        style={{ left: mx - moonSize / 2, top: my - moonSize / 2, width: moonSize, height: moonSize,
+          border: "0.75px solid #6b7688", boxShadow: `0 0 ${3 + 5 * m.illum}px rgba(180,195,220,${0.25 + 0.5 * m.illum})`, background: "radial-gradient(circle at 50% 50%, #2a323f, #10151d)" }} />
       <div className="absolute" style={{ left: mx - moonSize / 2, top: my - moonSize / 2 }} data-moon-body>
         <TexturedGlobe src={MOON.tex} size={moonSize} spinDeg={moonAngleDeg} />
       </div>
