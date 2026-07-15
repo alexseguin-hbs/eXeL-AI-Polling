@@ -8,7 +8,7 @@
  * for Orion. Score each cardinal facing for seasonal daylight → window-placement recommendation. Pure
  * client math (deterministic → replayable, U-WF-08). Self-contained SVG.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArchitectCelestial } from "./architect-celestial";
 import { moonState } from "@/lib/astro-moon";
 
@@ -71,16 +71,33 @@ function moonSky(lat: number, dayOfYear: number, hour: number, year = 2025) {
 // azimuth crosses the window / house-face azimuth WHILE it is above the horizon (visible through the opening).
 // Returns the closest-pass hour + how squarely it frames the opening (diff°, 0 = dead-centre). The homeowner
 // picks the date (an anniversary, a season) + the window; we compute the exact moment — sun by day, moon by night.
-function overWindow(posFn: (h: number) => { az: number; el: number }, facingAz: number): { hour: number; el: number; az: number; diff: number } | null {
+function overWindow(posFn: (h: number) => { az: number; el: number }, facingAz: number, step = 0.05): { hour: number; el: number; az: number; diff: number } | null {
   const angDiff = (a: number, bb: number) => Math.abs(((a - bb) % 360 + 540) % 360 - 180);
   let best: { hour: number; el: number; az: number; diff: number } | null = null;
-  for (let h = 0; h <= 24; h += 0.05) {
+  for (let h = 0; h <= 24; h += step) {
     const p = posFn(h);
     if (p.el <= 0) continue;                        // below the horizon → not framed by the window
     const diff = angDiff(p.az, facingAz);
     if (!best || diff < best.diff) best = { hour: h, el: p.el, az: p.az, diff };
   }
   return best;
+}
+
+// REVERSE mission — "which time of year does the sky best frame THIS window?" Scan the year for the date whose best
+// transit through the window azimuth is squarest (smallest diff°) at a usable elevation, then refine the minute on the
+// winning day. This is how the homeowner DISCOVERS a natural anniversary: the season the Sun (or Moon) signs their
+// opening. Pure + deterministic (coarse year scan → fine day refine); same {lat,facingAz,year} → same date.
+function bestDateForWindow(posAt: (doy: number, h: number) => { az: number; el: number }, facingAz: number, minEl = 5): { doy: number; hour: number; el: number; diff: number } | null {
+  let bestDoy = -1, bestScore = Infinity;
+  for (let d = 1; d <= 365; d++) {
+    const t = overWindow((h) => posAt(d, h), facingAz, 0.5);   // coarse day scan
+    if (!t || t.el < minEl) continue;
+    const score = t.diff - t.el * 0.001;                        // squarest framing; tiebreak → higher elevation
+    if (score < bestScore) { bestScore = score; bestDoy = d; }
+  }
+  if (bestDoy < 0) return null;
+  const fine = overWindow((h) => posAt(bestDoy, h), facingAz, 0.05);   // refine the exact minute on the winning day
+  return fine ? { doy: bestDoy, hour: fine.hour, el: fine.el, diff: fine.diff } : null;
 }
 
 // Deterministic star alt-az from real equatorial coords (RA hours, Dec deg), sharing the same LST reference as the
@@ -185,6 +202,12 @@ export function ArchitectSkySun() {
   const moonOver = overWindow((h) => moonSky(lat, doy, h, year), facingAz);
   const moonOverPhase = moonOver ? moonSky(lat, doy, moonOver.hour, year) : null;
   const framesWord = (d: number) => d <= 5 ? "frames" : d <= 15 ? "grazes" : "closest pass";
+  // REVERSE — the natural anniversary: which date of the year does the sky best frame this window? (memoised — a
+  // year-scan is heavier than a single-date read, so it recomputes only when lat / window / year change).
+  const bestSun = useMemo(() => bestDateForWindow((d, h) => sunPos(lat, d, h), facingAz), [lat, facingAz]);
+  const bestMoon = useMemo(() => bestDateForWindow((d, h) => moonSky(lat, d, h, year), facingAz), [lat, facingAz, year]);
+  const bestMoonPhase = bestMoon ? moonSky(lat, bestMoon.doy, bestMoon.hour, year) : null;
+  const mdLabel = (d: number) => new Date(year, 0, d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
   const moon = moonSky(lat, doy, hour, year);
   const moonPath = Array.from({ length: 29 }, (_, i) => 5 + i * 0.5).map((h) => moonSky(lat, doy, h, year)).filter((p) => p.el > -2);
@@ -304,6 +327,20 @@ export function ArchitectSkySun() {
             <div><span style={{ color: "#e5e7eb" }}>☾ Moon</span> over your {cardOf(facingAz)} window:{" "}
               {moonOver && moonOverPhase ? <span style={{ color: C.text }}>{fmtHM(moonOver.hour)} · el {moonOver.el.toFixed(0)}° · {moonOverPhase.phase} {(moonOverPhase.illum * 100).toFixed(0)}% · <span style={{ color: moonOver.diff <= 5 ? C.green : C.dim }}>{framesWord(moonOver.diff)} (Δ{moonOver.diff.toFixed(0)}°)</span></span> : <span>never above horizon this date</span>}</div>
             <div className="text-[8px]" style={{ color: C.dim }}>Pick your anniversary / a season on the calendar → this is the moment the sky frames your opening.</div>
+          </div>
+          {/* REVERSE — the natural anniversary: which date of the year best frames THIS window (+ jump the calendar there) */}
+          <div data-arch-best-date className="mt-1 rounded px-1 py-0.5 text-[9px]" style={{ background: "#0c1420", color: C.dim }}>
+            <div style={{ color: C.violet }}>◷ Natural anniversary — best sky framing for your {cardOf(facingAz)} window:</div>
+            <div className="flex items-center gap-1">
+              <span style={{ color: C.gold }}>☀</span>
+              {bestSun ? <><span style={{ color: C.text }}>{mdLabel(bestSun.doy)} · {fmtHM(bestSun.hour)} · el {bestSun.el.toFixed(0)}° · {framesWord(bestSun.diff)} (Δ{bestSun.diff.toFixed(0)}°)</span>
+                <button data-arch-best-jump onClick={() => setDoy(bestSun.doy)} className="rounded px-1" style={{ border: `1px solid ${C.border}`, color: C.cyan }}>go</button></> : <span>the Sun never frames this facing</span>}
+            </div>
+            <div className="flex items-center gap-1">
+              <span style={{ color: "#e5e7eb" }}>☾</span>
+              {bestMoon && bestMoonPhase ? <><span style={{ color: C.text }}>{mdLabel(bestMoon.doy)} · {fmtHM(bestMoon.hour)} · el {bestMoon.el.toFixed(0)}° · {bestMoonPhase.phase} · {framesWord(bestMoon.diff)} (Δ{bestMoon.diff.toFixed(0)}°)</span>
+                <button data-arch-best-jump onClick={() => setDoy(bestMoon.doy)} className="rounded px-1" style={{ border: `1px solid ${C.border}`, color: C.cyan }}>go</button></> : <span>the Moon never frames this facing this year</span>}
+            </div>
           </div>
           <div className="mt-1"><span style={{ color: "#e5e7eb" }}>☾ Moon:</span> <span style={{ color: C.text }}>{moon.phase}</span> · {(moon.illum * 100).toFixed(0)}% lit · {moon.el > 0 ? `el ${moon.el.toFixed(0)}°` : "below horizon"}</div>
           <div className="mt-1 text-[9px]" style={{ color: C.dim }}>Polaris ≈ {polaris.el.toFixed(0)}° (latitude). Sun exact; moon is an approximate model. Deterministic → replayable.</div>

@@ -145,6 +145,12 @@ removed.** Every planet label is anchored to its dot; the dot stays centered on 
   illumination at that instant. The homeowner picks an anniversary / a season on the calendar → the readout is the
   exact moment the sky frames that opening. Pure, deterministic (same `{lat,doy,year,facingAz}` → same result). This
   is the literal operator mission: "track when the moon goes over a window or signify a certain time of year."
+- **Reverse — natural anniversary (`data-arch-best-date`)** — `bestDateForWindow(posAt, facingAz)` scans the year
+  (coarse day scan → fine minute refine on the winner) for the date whose best transit through the window is squarest
+  at a usable elevation. Renders a ☀ Sun line + a ☾ Moon line (`Mon DD · HH:MM · el X° · phase · frames (Δ°)`), each
+  with a `data-arch-best-jump` "go" button that sets the calendar (`setDoy`) to that discovered date. This is how the
+  homeowner DISCOVERS a natural anniversary — the season the sky signs their opening. Memoised on `{lat,facingAz,year}`
+  (a year-scan is heavier than a single-date read); pure + deterministic.
 
 ---
 
@@ -175,6 +181,8 @@ the change (baseline count captured, targeted assertion flips as intended, total
 - `#A48` — **Moon/Sun over the window on the selected date** (the mission): `data-arch-window-transit` shows a ☀ Sun
   line + a ☾ Moon line (`over your <card> window`) with a time/elevation/phase, and the Moon line **recomputes when the
   date changes** (Summer ≠ Winter) — proving it is date-driven, not static.
+- `#A49` — **Reverse solver / natural anniversary**: `data-arch-best-date` names the best sky-framing date for the
+  window, and a `data-arch-best-jump` "go" button jumps the calendar (`data-cal-input`) to that discovered date.
 - Existing `#A21/#A23/#A24/#A25/#A38` first enter Advanced (`[data-cel-mode="advanced"]`) — enumerated, bounded edit.
 
 ---

@@ -822,6 +822,27 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A49: HOMEOWNER REVERSE — natural anniversary: which date best frames the window + "go" jumps the calendar there ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Site'); await pg.waitForTimeout(300);
+  const hasBest = await pg.locator('[data-arch-best-date]').count();
+  const bestText = await pg.evaluate(() => document.querySelector('[data-arch-best-date]')?.textContent || '');
+  const jumps = await pg.locator('[data-arch-best-jump]').count();
+  // set the calendar to a known-off date (Winter) first so the jump to the best (summer for a S window) is unambiguous
+  await pg.evaluate(() => { const btns = [...document.querySelectorAll('[data-arch-presets] button')]; const bt = btns.find((b) => /winter/i.test(b.textContent || '')); if (bt) bt.click(); });
+  await pg.waitForTimeout(160);
+  const dateBefore = await pg.evaluate(() => document.querySelector('[data-cal-input]')?.value || '');
+  // click the Sun "go" — the date must jump to the discovered anniversary
+  await pg.evaluate(() => { const b = [...document.querySelectorAll('[data-arch-best-jump]')][0]; if (b) b.click(); });
+  await pg.waitForTimeout(160);
+  const dateAfter = await pg.evaluate(() => document.querySelector('[data-cal-input]')?.value || '');
+  const mentions = /natural anniversary/i.test(bestText) && /best sky framing/i.test(bestText);
+  const ok = hasBest === 1 && jumps >= 1 && mentions && dateAfter !== '' && dateAfter !== dateBefore;
+  rec('#A49 reverse solver — natural anniversary best-frames the window + "go" jumps the calendar', ok, JSON.stringify({ hasBest, jumps, before: dateBefore, after: dateAfter, best: bestText.replace(/\s+/g, ' ').slice(0, 64) }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
