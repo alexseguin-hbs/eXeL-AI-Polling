@@ -789,6 +789,21 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A46: HOMEOWNER — settable window/house-face azimuth + alignment to a special-date sunrise/sunset ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Site'); await pg.waitForTimeout(300);
+  const hasFacing = await pg.locator('[data-arch-facing]').count();
+  const setFacing = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-arch-facing]'); if (!t) return; const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(140); };
+  const align = () => pg.evaluate(() => document.querySelector('[data-arch-align]')?.textContent || '');
+  await setFacing(118); const a118 = await align();   // ~winter-solstice sunrise azimuth at lat 30
+  await setFacing(300); const a300 = await align();
+  const mentions = (s) => /(solstice|equinox)/.test(s) && /(sunrise|sunset)/.test(s);
+  const ok = hasFacing === 1 && mentions(a118) && mentions(a300) && a118 !== a300;
+  rec('#A46 settable window-face azimuth → aligns to a special-date sunrise/sunset (the mission sentence)', ok, JSON.stringify({ a118: a118.slice(0, 40), a300: a300.slice(0, 40) }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

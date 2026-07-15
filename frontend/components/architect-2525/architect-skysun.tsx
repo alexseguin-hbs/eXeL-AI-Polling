@@ -126,6 +126,7 @@ export function ArchitectSkySun() {
   const [hour, setHour] = useState(12);    // noon — sun high for a meaningful default
   const [year, setYear] = useState(2025);
   const [skyView, setSkyView] = useState<"dome" | "solar">("dome"); // SUN·SKY sub-view: sky dome ↔ UCRS-2525 solar system
+  const [facingAz, setFacingAz] = useState(180); // a house face / window azimuth (0=N,90=E,180=S,270=W) to align to the sun
 
   // Default to TODAY (client-only → no SSR hydration mismatch). Everything (sun · moon · dome · solar map)
   // adjusts to the current date at the placed location; the operator can still scrub any date afterwards.
@@ -150,6 +151,17 @@ export function ArchitectSkySun() {
   }).sort((a, b) => b.score - a.score);
   const best = exposure[0], worst = exposure[exposure.length - 1];
   const riseSet = sunRiseSet(lat, doy);   // homeowner sunrise/sunset for the selected date + location
+  // ALIGNMENT — which special-date sunrise/sunset does this house-face / window azimuth line up with?
+  const SEASON_LABEL: Record<string, string> = { winterSolstice: "winter-solstice", springEquinox: "spring-equinox", summerSolstice: "summer-solstice", fallEquinox: "fall-equinox" };
+  const cardOf = (az: number) => ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round((((az % 360) + 360) % 360) / 45) % 8];
+  const alignEvents = Object.entries(SEASON_DOY).flatMap(([name, d]) => {
+    const rs = sunRiseSet(lat, d); const ev: { label: string; az: number }[] = [];
+    if (rs.rise != null) ev.push({ label: `${SEASON_LABEL[name]} sunrise`, az: sunPos(lat, d, rs.rise).az });
+    if (rs.set != null) ev.push({ label: `${SEASON_LABEL[name]} sunset`, az: sunPos(lat, d, rs.set).az });
+    return ev;
+  });
+  const nearestAlign = alignEvents.map((e) => ({ ...e, diff: Math.min(Math.abs(e.az - facingAz), 360 - Math.abs(e.az - facingAz)) })).sort((a, b) => a.diff - b.diff)[0];
+  const aligned = nearestAlign && nearestAlign.diff <= 6;   // within 6° = this face frames that event
 
   const moon = moonSky(lat, doy, hour, year);
   const moonPath = Array.from({ length: 29 }, (_, i) => 5 + i * 0.5).map((h) => moonSky(lat, doy, h, year)).filter((p) => p.el > -2);
@@ -253,6 +265,15 @@ export function ArchitectSkySun() {
         <div className="border-t pt-1 text-[10px]" style={{ borderColor: C.border }}>
           <div><span style={{ color: C.green }}>Best light:</span> <span style={{ color: C.text }}>{best.k}-facing</span> — primary living windows.</div>
           <div><span style={{ color: C.gold }}>Manage:</span> <span style={{ color: C.text }}>{worst.k === "N" ? "N (low gain)" : worst.k}</span> — shade/minimize glare.</div>
+          {/* ALIGN A HOUSE FACE / WINDOW — set its azimuth, see which special-date sunrise/sunset it frames */}
+          <div className="mt-1 flex items-center gap-2 text-[9px]" style={{ color: C.dim }}>Window face
+            <input data-arch-facing type="range" min={0} max={359} value={facingAz} onChange={(e) => setFacingAz(+e.target.value)} className="flex-1" />
+            <span className="tabular-nums" style={{ color: C.violet }}>{facingAz}° {cardOf(facingAz)}</span>
+          </div>
+          <div data-arch-align className="text-[10px]" style={{ color: aligned ? C.green : C.dim }}>
+            {aligned ? <>✦ This {cardOf(facingAz)} face frames the <span style={{ color: C.gold }}>{nearestAlign.label}</span> (az {nearestAlign.az.toFixed(0)}°).</>
+              : nearestAlign ? <>Nearest event: {nearestAlign.label} at az {nearestAlign.az.toFixed(0)}° — rotate the face {nearestAlign.diff.toFixed(0)}° to frame it.</> : "—"}
+          </div>
           <div className="mt-1"><span style={{ color: "#e5e7eb" }}>☾ Moon:</span> <span style={{ color: C.text }}>{moon.phase}</span> · {(moon.illum * 100).toFixed(0)}% lit · {moon.el > 0 ? `el ${moon.el.toFixed(0)}°` : "below horizon"}</div>
           <div className="mt-1 text-[9px]" style={{ color: C.dim }}>Polaris ≈ {polaris.el.toFixed(0)}° (latitude). Sun exact; moon is an approximate model. Deterministic → replayable.</div>
         </div>
