@@ -920,6 +920,30 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A54: PLANET expand mode matches the MAP maximize — full-screen + cyan minimize UPPER-RIGHT + restore ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  // maximize the planet MiniPanel
+  await pg.evaluate(() => document.querySelector('[data-mini-panel-max]')?.click()); await pg.waitForTimeout(200);
+  const maxed = await pg.evaluate(() => {
+    const p = document.querySelector('[data-mini-panel][data-mini-max="1"]');
+    if (!p) return { full: false };
+    const cs = getComputedStyle(p), r = p.getBoundingClientRect();
+    // the header minimize button should be cyan-bordered (rgb(25,200,207)) — same look as the map's data-cel-max
+    const btn = p.querySelector('[data-mini-panel-max]');
+    const bc = btn ? getComputedStyle(btn).borderColor.replace(/\s/g, '') : '';
+    return { full: cs.position === 'fixed' && r.width >= window.innerWidth - 4 && r.height >= window.innerHeight - 4, cyanBtn: /25,200,207/.test(bc) };
+  });
+  // restore (click the same minimize) → back to docked (no data-mini-max)
+  await pg.evaluate(() => document.querySelector('[data-mini-panel][data-mini-max="1"] [data-mini-panel-max]')?.click()); await pg.waitForTimeout(160);
+  const restored = await pg.evaluate(() => !document.querySelector('[data-mini-panel][data-mini-max="1"]'));
+  const ok = maxed.full === true && maxed.cyanBtn === true && restored === true;
+  rec('#A54 planet expand = full-screen like the map + cyan minimize upper-right + restores', ok, JSON.stringify({ ...maxed, restored }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

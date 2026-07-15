@@ -394,7 +394,7 @@ export function ArchitectCelestial({
                     {on && <circle cx={x} cy={y} r={dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
                     {p.rings && <ellipse cx={x} cy={y} rx={dot + 1.6} ry={(dot + 1.6) * sinE} fill="none" stroke={p.color} strokeWidth="0.3" opacity="0.8" />}
                     <circle cx={x} cy={y} r={dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
-                    <text x={x} y={y - dot - 1.2} fontSize={2.3 * lz} fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
+                    <text x={x} y={y - dot - 1.2} fontSize={2.8 * lz} fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
                   </g>
                 </g>
               );
@@ -441,7 +441,7 @@ export function ArchitectCelestial({
                 {p.rings && <ellipse cx={x} cy={y} rx={r + 1.6} ry={(r + 1.6) * sinE} fill="none" stroke={p.color} strokeWidth="0.3" opacity="0.8" />}
                 <circle cx={x} cy={y} r={r} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
                 {p.id === "earth" && (() => { const a = 23.4 * DEG, L = r + 2.2; return <line x1={x - Math.sin(a) * L} y1={y - Math.cos(a) * L} x2={x + Math.sin(a) * L} y2={y + Math.cos(a) * L} stroke="#fff" strokeWidth="0.35" opacity="0.75" />; })()}
-                <text x={x} y={y - r - 1.2} fontSize={2.3 * lz} fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
+                <text x={x} y={y - r - 1.2} fontSize={2.8 * lz} fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
               </g>
             );
           })}

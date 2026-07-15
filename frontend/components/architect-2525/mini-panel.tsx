@@ -51,20 +51,32 @@ export function MiniPanel({ title, subtitle, coord, rotation, lanes = true, defa
   return (
     <div data-mini-panel data-mini-max={max ? "1" : undefined} className={max ? "fixed inset-0 z-[90] flex flex-col overflow-hidden border-2" : pos ? "fixed z-[70] flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl" : "flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"}
       style={{ ...(max ? {} : pos ? { left: pos.x, top: pos.y } : {}), width: W, height: H, borderColor: C.cyan, background: max ? "#05070d" : C.panel }}>
-      {/* ⠿ Drag grip header — move the panel anywhere; ⛶ maximize · ▾ collapse · ⌂ dock back */}
-      <div onPointerDown={gripDown} onPointerMove={gripMove} onPointerUp={gripUp} onPointerCancel={gripUp}
-        className="flex shrink-0 cursor-move touch-none select-none items-center justify-between border-b px-1.5 py-0.5" style={{ background: "#0c1420", borderColor: C.cyan }}>
-        <span className="flex-1 truncate text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>⠿ Drag {title}</span>
-        <div className="flex items-center gap-0.5">
-          {pos && !max && <button onClick={() => setPos(null)} onPointerDown={(e) => e.stopPropagation()} title="Dock back" className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>⌂</button>}
-          <button data-mini-panel-max onClick={() => setMax((v) => !v)} onPointerDown={(e) => e.stopPropagation()} title={max ? "Restore" : "Maximize"} className="rounded border p-0.5" style={{ borderColor: C.border, color: C.dim }}>{max ? <Minimize2 className="h-2.5 w-2.5" /> : <Maximize2 className="h-2.5 w-2.5" />}</button>
-          <button onClick={() => setOpen(false)} onPointerDown={(e) => e.stopPropagation()} title="Collapse" className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>▾</button>
+      {max ? (
+        /* MAXIMIZED — clean header matching the solar-system map maximize: title left · cyan minimize UPPER-RIGHT
+           (operator IMG_7347/7348: planet expand mode + minimize button same as the map's). */
+        <div className="mb-1 flex shrink-0 items-center justify-between gap-1 border-b px-1.5 py-1 text-[9px]" style={{ background: "#0c1420", borderColor: C.cyan }}>
+          <span className="truncate font-bold tracking-wider" style={{ color: C.cyan }}>{title}{subtitle ? <span style={{ color: C.dim }}> · {subtitle}</span> : null}</span>
+          <button data-mini-panel-max onClick={() => setMax(false)} title="Minimize" aria-label="Minimize"
+            className="flex items-center justify-center rounded border p-1" style={{ borderColor: C.cyan, color: C.cyan }}><Minimize2 className="h-3 w-3" /></button>
         </div>
-      </div>
-      {/* title · subtitle */}
-      <div className="flex shrink-0 items-center justify-between px-1.5 pt-0.5 text-[8px]" style={{ color: C.cyan, fontFamily: "monospace" }}>
-        <span className="font-bold tracking-wider">{title}</span>{subtitle && <span style={{ color: C.dim }}>{subtitle}</span>}
-      </div>
+      ) : (
+        <>
+          {/* ⠿ Drag grip header — move the panel anywhere; ⛶ maximize · ▾ collapse · ⌂ dock back */}
+          <div onPointerDown={gripDown} onPointerMove={gripMove} onPointerUp={gripUp} onPointerCancel={gripUp}
+            className="flex shrink-0 cursor-move touch-none select-none items-center justify-between border-b px-1.5 py-0.5" style={{ background: "#0c1420", borderColor: C.cyan }}>
+            <span className="flex-1 truncate text-[8px] font-bold tracking-wider" style={{ color: C.dim }}>⠿ Drag {title}</span>
+            <div className="flex items-center gap-0.5">
+              {pos && <button onClick={() => setPos(null)} onPointerDown={(e) => e.stopPropagation()} title="Dock back" className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>⌂</button>}
+              <button data-mini-panel-max onClick={() => setMax(true)} onPointerDown={(e) => e.stopPropagation()} title="Maximize" className="rounded border p-0.5" style={{ borderColor: C.border, color: C.dim }}><Maximize2 className="h-2.5 w-2.5" /></button>
+              <button onClick={() => setOpen(false)} onPointerDown={(e) => e.stopPropagation()} title="Collapse" className="rounded border px-1 text-[8px] font-bold" style={{ borderColor: C.border, color: C.dim }}>▾</button>
+            </div>
+          </div>
+          {/* title · subtitle */}
+          <div className="flex shrink-0 items-center justify-between px-1.5 pt-0.5 text-[8px]" style={{ color: C.cyan, fontFamily: "monospace" }}>
+            <span className="font-bold tracking-wider">{title}</span>{subtitle && <span style={{ color: C.dim }}>{subtitle}</span>}
+          </div>
+        </>
+      )}
       {/* R-CORE capability lanes */}
       {lanes && (
         <div className="flex shrink-0 flex-wrap items-center gap-x-1 gap-y-0 px-1.5 py-0.5 text-[7px] font-bold tracking-wide">
