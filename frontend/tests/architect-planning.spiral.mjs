@@ -902,6 +902,24 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A53: settings sliders match Security-2525 (cyan accent, not default browser blue) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(200);
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120);              // open ⚙ to reach the tilt slider
+  const acc = await pg.evaluate(() => {
+    const t = document.querySelector('[data-tilt-input]'), h = document.querySelector('[data-hu-input]');
+    const norm = (s) => (s || '').replace(/\s/g, '');
+    return { tilt: t ? norm(getComputedStyle(t).accentColor) : 'none', hu: h ? norm(getComputedStyle(h).accentColor) : 'none' };
+  });
+  // cyan #19c8cf → rgb(25,200,207); accept any explicit color (not 'auto'/default)
+  const isCyan = (s) => s === 'rgb(25,200,207)' || /25,200,207/.test(s);
+  const ok = isCyan(acc.tilt) && isCyan(acc.hu);
+  rec('#A53 settings sliders use Security cyan accent (not default blue)', ok, JSON.stringify(acc));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

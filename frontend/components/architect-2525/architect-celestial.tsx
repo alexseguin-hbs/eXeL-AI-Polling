@@ -451,7 +451,7 @@ export function ArchitectCelestial({
         </div>
         {/* controls: HU orbit scrubber (SA tilt + Planet Size + Units now live behind ⚙ in the readout) */}
         <label className="mt-1 flex items-center gap-2 text-[9px]" style={{ color: C.dim }}>HU
-          <input data-hu-input type="range" min={0} max={3600} step={1} value={hu} onChange={(e) => setHu(+e.target.value)} className="flex-1" />
+          <input data-hu-input type="range" min={0} max={3600} step={1} value={hu} onChange={(e) => setHu(+e.target.value)} className="flex-1" style={{ accentColor: C.cyan, height: 4 }} />
           <span className="tabular-nums" style={{ color: C.cyan }}>{fmt3600(hu)}</span>
         </label>
         {/* DATE + ORBIT PLAY — play sweeps the SELECTED planet 0→3600 around its orbit; 1×/2×/3× speed (3× = current). */}
@@ -505,7 +505,7 @@ export function ArchitectCelestial({
               <span className="text-[8px]" style={{ color: C.dim }}>· {tz.label}</span>
             </div>
             <label className="flex items-center gap-2" style={{ color: C.dim }}>SA tilt
-              <input data-tilt-input type="range" min={0} max={45} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" />
+              <input data-tilt-input type="range" min={0} max={45} step={1} value={tiltDeg} onChange={(e) => setTiltDeg(+e.target.value)} className="flex-1" style={{ accentColor: C.cyan, height: 4 }} />
               <span className="tabular-nums" style={{ color: C.violet }}>{tiltDeg}°</span>
             </label>
             <div className="flex flex-wrap items-center gap-1">

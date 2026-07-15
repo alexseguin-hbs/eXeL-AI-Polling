@@ -237,8 +237,8 @@ export function ArchitectSkySun() {
         <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lat<input type="number" value={lat} step={0.5} onChange={(e) => setLat(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
           <label className="flex items-center justify-between gap-1" style={{ color: C.text }}>Lon<input type="number" value={lon} step={0.5} onChange={(e) => setLon(parseFloat(e.target.value) || 0)} className="w-20 rounded border bg-transparent px-1 text-right" style={{ borderColor: C.border }} /></label>
-          <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Day <input type="range" min={1} max={365} value={doy} onChange={(e) => setDoy(+e.target.value)} className="flex-1" /><span style={{ color: C.gold }}>{monthDay}</span></label>
-          <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Hour <input type="range" min={0} max={24} step={0.5} value={hour} onChange={(e) => setHour(+e.target.value)} className="flex-1" /><span style={{ color: C.cyan }}>{hour}:00 · {sun.el > 0 ? `el ${sun.el.toFixed(0)}°` : "night"}</span></label>
+          <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Day <input type="range" min={1} max={365} value={doy} onChange={(e) => setDoy(+e.target.value)} className="flex-1" style={{ accentColor: C.cyan, height: 4 }} /><span style={{ color: C.gold }}>{monthDay}</span></label>
+          <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Hour <input type="range" min={0} max={24} step={0.5} value={hour} onChange={(e) => setHour(+e.target.value)} className="flex-1" style={{ accentColor: C.cyan, height: 4 }} /><span style={{ color: C.cyan }}>{hour}:00 · {sun.el > 0 ? `el ${sun.el.toFixed(0)}°` : "night"}</span></label>
         </div>
         {/* SPECIAL-DATE PRESETS — jump the sky to the key times of year a homeowner designs around */}
         <div data-arch-presets className="mt-1 flex flex-wrap gap-1 text-[8px]">
@@ -284,7 +284,7 @@ export function ArchitectSkySun() {
           <div><span style={{ color: C.gold }}>Manage:</span> <span style={{ color: C.text }}>{worst.k === "N" ? "N (low gain)" : worst.k}</span> — shade/minimize glare.</div>
           {/* ALIGN A HOUSE FACE / WINDOW — set its azimuth, see which special-date sunrise/sunset it frames */}
           <div className="mt-1 flex items-center gap-2 text-[9px]" style={{ color: C.dim }}>Window face
-            <input data-arch-facing type="range" min={0} max={359} value={facingAz} onChange={(e) => setFacingAz(+e.target.value)} className="flex-1" />
+            <input data-arch-facing type="range" min={0} max={359} value={facingAz} onChange={(e) => setFacingAz(+e.target.value)} className="flex-1" style={{ accentColor: C.cyan, height: 4 }} />
             <span className="tabular-nums" style={{ color: C.violet }}>{facingAz}° {cardOf(facingAz)}</span>
           </div>
           <div data-arch-align className="text-[10px]" style={{ color: aligned ? C.green : C.dim }}>
