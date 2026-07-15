@@ -20,6 +20,7 @@ import {
 } from "@/lib/ucrs-2525";
 import { EarthMoonBox } from "./earth-moon-box";
 import { MiniPanel } from "./mini-panel";
+import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { TexturedGlobe } from "./textured-globe";
 import { PRIORITY_CONSTELLATIONS, starfield, raDecToDisc, ZODIAC, ZODIAC_ORIGIN } from "@/lib/constellations";
 import { dateToJD, trueAnomaly, HAS_EPHEMERIS } from "@/lib/ephemeris";
@@ -320,6 +321,12 @@ export function ArchitectCelestial({
               {max ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
             </button>
           </div>
+        </div>
+        {/* R-CORE map lane strip — horizontally SCROLLABLE (Security-2525 map-control method); moved off the shell so
+            the area below the main tab bar is decluttered. Map-specific R-CORE lanes live with the map now. */}
+        <div data-cel-rcore className="mb-1 flex items-center gap-2 overflow-x-auto whitespace-nowrap border-b pb-1 text-[8px] font-bold tracking-wider" style={{ borderColor: C.border }}>
+          <span className="shrink-0" style={{ color: C.dim }}>R-CORE</span>
+          {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0" style={{ color: l.color }}>{l.label}</span>)}
         </div>
         <div className={max ? "relative min-h-0 flex-1" : "relative"}>
         {/* PHASE CLOCK — the only top-right map overlay (top-down toggle). */}

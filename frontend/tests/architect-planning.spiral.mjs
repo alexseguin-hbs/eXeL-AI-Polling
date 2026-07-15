@@ -944,6 +944,26 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A55: DECLUTTER — R-CORE lanes live in a SCROLLABLE map row (Security method), removed from the shell below-tabs ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  const info = await pg.evaluate(() => {
+    const row = document.querySelector('[data-cel-rcore]');
+    const txt = row?.textContent || '';
+    const ox = row ? getComputedStyle(row).overflowX : '';
+    // the OLD shell strip was an unconditional R-CORE row directly under [data-arch-subnav]; it should be gone now
+    const sub = document.querySelector('[data-arch-subnav]');
+    const next = sub?.nextElementSibling;
+    const shellStripGone = !(next && /^R-CORE/.test((next.textContent || '').trim()) && !next.hasAttribute('data-arch-tab'));
+    return { hasRow: !!row, lanes: ['COMM', 'EDGE', 'SYNC', 'LINK', 'UCRS'].every((k) => txt.includes(k)), scrollable: ox === 'auto' || ox === 'scroll', shellStripGone };
+  });
+  const ok = info.hasRow && info.lanes && info.scrollable && info.shellStripGone;
+  rec('#A55 R-CORE moved to a scrollable map row (declutter) — Security-2525 method', ok, JSON.stringify(info));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

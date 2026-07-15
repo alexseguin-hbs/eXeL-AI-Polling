@@ -20,7 +20,6 @@ import { useEasterEgg } from "@/lib/easter-egg-context";
 import { FpsMeter } from "@/components/security-2525/fps-meter";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
-import { RCORE_LANES } from "@/components/security-2525/rcore";
 import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
 import { ArchitectDesign, type DesignMetrics } from "./architect-design";
 import { ArchitectBuild } from "./architect-build";
@@ -229,13 +228,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             ))}
           </div>
         )}
-        {/* R-CORE badge strip (reused contract) */}
-        <div className="flex items-center gap-2 border-b px-4 py-0.5 text-[8px] font-bold tracking-wider" style={{ borderColor: C.border }}>
-          <span style={{ color: C.dim }}>R-CORE</span>
-          {RCORE_LANES.map((l) => (
-            <span key={l.key} title={l.def} style={{ color: l.color }}>{l.label}</span>
-          ))}
-        </div>
+        {/* R-CORE lanes moved OFF the shell (declutter) → into the map's own scrollable control row
+            (Security-2525 map-control method). R-CORE status also stays in the project ribbon above. */}
       </div>
 
       {/* TAB CONTENT — Design→Model kept mounted (model survives tab/subtab switches). */}
