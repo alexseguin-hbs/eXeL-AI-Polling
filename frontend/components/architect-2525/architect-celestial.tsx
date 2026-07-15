@@ -493,15 +493,15 @@ export function ArchitectCelestial({
           <div data-cel-detail-panel className="space-y-1 border-t pt-1 text-[9px]" style={{ borderColor: C.border }}>
             <div className="flex flex-wrap items-center gap-1">
               <span className="w-12 shrink-0" style={{ color: C.dim }}>Distance</span>
-              {DIST_UNITS.map((u) => <button key={u} data-dist-unit={u} onClick={() => setDistUnit(u)} className="rounded border px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: distUnit === u ? C.cyan : C.dim, background: distUnit === u ? "#0c2230" : "transparent" }}>{DIST_LABEL[u]}</button>)}
+              {DIST_UNITS.map((u) => <button key={u} data-dist-unit={u} onClick={() => setDistUnit(u)} className="rounded border px-1.5 py-0.5 text-[9px] font-bold" style={{ borderColor: distUnit === u ? C.cyan : C.border, color: distUnit === u ? C.cyan : C.dim, background: distUnit === u ? "#152238" : "transparent" }}>{DIST_LABEL[u]}</button>)}
             </div>
             <div className="flex flex-wrap items-center gap-1">
               <span className="w-12 shrink-0" style={{ color: C.dim }}>Time</span>
-              {TIME_UNITS.map((u) => <button key={u} data-time-unit={u} onClick={() => setTimeUnit(u)} className="rounded border px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: timeUnit === u ? C.violet : C.dim, background: timeUnit === u ? "#221833" : "transparent" }}>{TIME_LABEL[u]}</button>)}
+              {TIME_UNITS.map((u) => <button key={u} data-time-unit={u} onClick={() => setTimeUnit(u)} className="rounded border px-1.5 py-0.5 text-[9px] font-bold" style={{ borderColor: timeUnit === u ? C.violet : C.border, color: timeUnit === u ? C.violet : C.dim, background: timeUnit === u ? "#152238" : "transparent" }}>{TIME_LABEL[u]}</button>)}
             </div>
             <div className="flex flex-wrap items-center gap-1">
               <span className="w-12 shrink-0" style={{ color: C.dim }}>Clock</span>
-              {([["24h", "military"], ["12h", "am·pm"]] as const).map(([f, lab]) => <button key={f} data-clock-fmt={f} onClick={() => setClockFmt(f)} className="rounded border px-1 py-0.5 text-[8px]" style={{ borderColor: C.border, color: clockFmt === f ? C.cyan : C.dim, background: clockFmt === f ? "#0c2230" : "transparent" }}>{lab}</button>)}
+              {([["24h", "military"], ["12h", "am·pm"]] as const).map(([f, lab]) => <button key={f} data-clock-fmt={f} onClick={() => setClockFmt(f)} className="rounded border px-1.5 py-0.5 text-[9px] font-bold" style={{ borderColor: clockFmt === f ? C.cyan : C.border, color: clockFmt === f ? C.cyan : C.dim, background: clockFmt === f ? "#152238" : "transparent" }}>{lab}</button>)}
               <span className="text-[8px]" style={{ color: C.dim }}>· {tz.label}</span>
             </div>
             <label className="flex items-center gap-2" style={{ color: C.dim }}>SA tilt
@@ -511,7 +511,7 @@ export function ArchitectCelestial({
             <div className="flex flex-wrap items-center gap-1">
               <span className="w-12 shrink-0" style={{ color: C.dim }}>Position</span>
               <button data-cel-accurate={accurate ? "1" : "0"} onClick={() => setAccurate((v) => !v)} title="Schematic spread ↔ REAL Kepler positions for the date (JPL J2000 ephemeris)"
-                className="rounded border px-1.5 py-0.5 text-[8px]" style={{ borderColor: C.border, color: accurate ? C.green : C.dim, background: accurate ? "#0c2216" : "transparent" }}>{accurate ? "● accurate (real)" : "○ schematic"}</button>
+                className="rounded border px-1.5 py-0.5 text-[9px] font-bold" style={{ borderColor: accurate ? C.green : C.border, color: accurate ? C.green : C.dim, background: accurate ? "#152238" : "transparent" }}>{accurate ? "● accurate (real)" : "○ schematic"}</button>
             </div>
             <div className="border-t pt-1" style={{ borderColor: C.border, fontFamily: "monospace" }}>
               <div><span style={{ color: C.dim }}>SP-OTU</span> {rd.spotu.toFixed(4)} · <span style={{ color: C.dim }}>RTU</span> {rd.rtu} · <span style={{ color: C.dim }}>elapsed</span> {fmtTime(rd.ltu, timeUnit)}</div>
