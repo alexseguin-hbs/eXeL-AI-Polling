@@ -322,7 +322,7 @@ export function ArchitectCelestial({
         <div className={max ? "relative min-h-0 flex-1" : "relative"}>
         {/* PHASE CLOCK — the only top-right map overlay (top-down toggle). */}
         <div className="absolute right-1 top-1 z-10">
-          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu, idx: l.i }))} selId={selId} overhead={periTop} onToggle={() => setPeriTop((v) => !v)} />
+          <PhaseClock items={laid.map((l) => ({ id: l.p.id, name: l.p.name, color: l.p.color, effHu: l.effHu, idx: l.i }))} selId={selId} overhead={periTop} onToggle={() => setPeriTop((v) => { const next = !v; if (next) setTiltDeg(45); return next; })} />
         </div>
         {/* bottom-right — the SELECTED body as a DRAGGABLE 3D globe (Security-2525 globe interaction).
             Earth = real land/ocean globe (spins with time-of-day) + the Moon beside it; any other planet =
@@ -389,8 +389,10 @@ export function ArchitectCelestial({
             <circle cx={SUN_X} cy={SUN_Y} r="7.5" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.4" />
             <circle cx={SUN_X} cy={SUN_Y} r="4.8" fill="#fff3b0" />
             <text x={SUN_X} y={SUN_Y + 11} fontSize="2.5" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
-            <text x={SUN_X} y={8} fontSize="3" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>PERIHELION ▲</text>
-            <text x={SUN_X} y={110} fontSize="3" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>▼ APHELION</text>
+            <text x={SUN_X} y={4.5} fontSize="3" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>▲</text>
+            <text x={SUN_X} y={8.5} fontSize="3" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>PERIHELION</text>
+            <text x={SUN_X} y={108} fontSize="3" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>APHELION</text>
+            <text x={SUN_X} y={112} fontSize="3" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>▼</text>
           </g>
           ) : (<>
           {/* orbital-plane baseline (the tilt reference / SA) */}

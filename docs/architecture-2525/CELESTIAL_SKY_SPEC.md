@@ -169,6 +169,17 @@ the change (baseline count captured, targeted assertion flips as intended, total
 
 ---
 
+## 11b. CRS — Continuous Rotation & Clock Tilt (operator, this batch)
+
+**CRS-SS-01 · Orbital play at 3600 — DEFERRED (looping kept).** A continuous-accumulation variant (`huTotal` grows past
+3600, counter + elapsed date keep ticking) was prototyped, then **reverted per operator** ("just stop when you get to
+3600, this was your first implementation and you did just fine"). The accepted behavior is the original: orbit-play
+sweeps HU 0→3600 and **loops** (wraps to 0), which is simple + already verified (`#A38`). Continuous accumulation may be
+revisited later as an additive mode. No change to the play model this batch.
+
+**CRS-SS-02 · Clock view defaults to 45° tilt + perihelion top.** Clicking the clock/top-down toggle sets `tiltDeg = 45`
+(max — looking most over the Sun) with perihelion at the top. Test `#A21b`/`#A43b`: entering clock view → `tiltDeg` is 45.
+
 ## 12. CHANGE CONTROL — STOP REWORK (the contract)
 
 The churn came from feature-by-feature screenshot iteration with no written contract. Therefore:

@@ -320,7 +320,7 @@ const mk = async (vp) => {
 
   // #A21b: clock icon → TRUE top-down view (perihelion ▲ at top, uniform planets, upright labels) + toggle back
   await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(160);
-  const ovOn = await pg.evaluate(() => document.querySelector('[data-arch-celestial]')?.getAttribute('data-peritop') === '1' && !!document.querySelector('[data-overhead-view]') && /PERIHELION\s*▲/.test(document.querySelector('[data-overhead-view]')?.textContent || ''));
+  const ovOn = await pg.evaluate(() => { const t = document.querySelector('[data-overhead-view]')?.textContent || ''; return document.querySelector('[data-arch-celestial]')?.getAttribute('data-peritop') === '1' && !!document.querySelector('[data-overhead-view]') && /▲/.test(t) && /PERIHELION/.test(t) && /APHELION/.test(t) && /▼/.test(t); }); // arrows now on their own line (▲ above PERIHELION · ▼ below APHELION)
   await pg.locator('[data-clock-toggle]').click(); await pg.waitForTimeout(130);
   const ovOff = await pg.evaluate(() => document.querySelector('[data-arch-celestial]')?.getAttribute('data-peritop') !== '1' && !document.querySelector('[data-overhead-view]'));
   rec('#A21b clock → true top-down (perihelion ▲ top, uniform planets) + toggle back', ovOn && ovOff, `on=${ovOn} off=${ovOff}`);
@@ -363,6 +363,20 @@ const mk = async (vp) => {
   const normalOk = nRy8 < nRy45 && nRy8 > 0;
   const clockOk = cRy8 < cRy45 && cRy8 > 0;                   // THE fix — was broken (clock ignored tilt)
   rec('#A21c tilt foreshortens orbits in BOTH normal AND clock views (single tilt source)', normalOk && clockOk, JSON.stringify({ nRy8, nRy45, cRy8, cRy45 }));
+  await pg.close();
+}
+
+// ── #A43: CRS-SS-02 — clicking the clock/top-down toggle defaults the SA tilt to 45° (looking most over the Sun) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
+  await clk('[data-cel-detail]'); await pg.waitForTimeout(120);
+  // set tilt to something other than 45 first
+  await pg.evaluate(() => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, '20'); t.dispatchEvent(new Event('input', { bubbles: true })); }); await pg.waitForTimeout(120);
+  await clk('[data-clock-toggle]'); await pg.waitForTimeout(200);   // → clock view should force tilt 45
+  const tilt = await pg.evaluate(() => +(document.querySelector('[data-tilt-input]')?.value || 0));
+  rec('#A43 clock toggle defaults SA tilt to 45° (perihelion-top over the Sun)', tilt === 45, `tiltAfterClock=${tilt}`);
   await pg.close();
 }
 
