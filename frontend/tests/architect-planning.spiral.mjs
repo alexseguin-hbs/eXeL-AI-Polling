@@ -771,6 +771,24 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A45: HOMEOWNER — Sky Dome special-date presets (solstice/equinox/today) + sunrise/sunset readout ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Site'); await pg.waitForTimeout(300);   // Sky Dome default
+  const presets = await pg.evaluate(() => document.querySelectorAll('[data-arch-presets] [data-preset]').length);
+  const riseSet = () => pg.evaluate(() => document.querySelector('[data-arch-riseset]')?.textContent || '');
+  // Summer Solstice → a June day; Winter Solstice → a December day; rise/set readout present + differs
+  await pg.locator('[data-arch-presets] [data-preset]', { hasText: 'Summer Solstice' }).click(); await pg.waitForTimeout(160);
+  const summer = await riseSet();
+  const monthS = await pg.evaluate(() => (document.body.textContent || '').includes('Jun'));
+  await pg.locator('[data-arch-presets] [data-preset]', { hasText: 'Winter Solstice' }).click(); await pg.waitForTimeout(160);
+  const winter = await riseSet();
+  const hasRise = /↑\s*\d\d:\d\d/.test(summer) && /↑\s*\d\d:\d\d/.test(winter);
+  const ok = presets === 5 && monthS && hasRise && summer !== winter;
+  rec('#A45 Sky Dome special-date presets (5) + sunrise/sunset readout (summer≠winter)', ok, JSON.stringify({ presets, monthS, summer: summer.slice(0, 24), winter: winter.slice(0, 24) }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

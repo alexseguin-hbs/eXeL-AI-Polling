@@ -27,6 +27,25 @@ function sunPos(lat: number, dayOfYear: number, hour: number) {
   return { az, el };
 }
 
+// Deterministic sunrise / sunset (local solar hours) — scan the day for the elevation crossing the horizon
+// (−0.833° incl. refraction). Returns null hours + polar flags for high latitudes (sun never rises / never sets).
+function sunRiseSet(lat: number, doy: number): { rise: number | null; set: number | null; polarDay: boolean; polarNight: boolean } {
+  const h0 = -0.833;
+  let rise: number | null = null, set: number | null = null, above = 0, below = 0;
+  let prev = sunPos(lat, doy, 0).el;
+  for (let h = 0.1; h <= 24; h += 0.1) {
+    const el = sunPos(lat, doy, h).el;
+    if (el > h0) above++; else below++;
+    if (prev <= h0 && el > h0 && rise === null) rise = h;
+    if (prev > h0 && el <= h0 && rise !== null && set === null) set = h;
+    prev = el;
+  }
+  return { rise, set, polarDay: below === 0, polarNight: above === 0 };
+}
+// Solstice / equinox day-of-year (canonical, ±1 day) — the homeowner "special date" anchors.
+const SEASON_DOY = { winterSolstice: 355, springEquinox: 80, summerSolstice: 172, fallEquinox: 266 };
+const fmtHM = (h: number | null): string => { if (h == null) return "—"; const tm = Math.round(h * 60); return `${String(Math.floor(tm / 60) % 24).padStart(2, "0")}:${String(tm % 60).padStart(2, "0")}`; };
+
 // Ecliptic (λ,β) → equatorial (RA, dec), obliquity ε.
 function eclToRaDec(lonDeg: number, latDeg: number) {
   const e = 23.4397 * RAD, l = lonDeg * RAD, b = latDeg * RAD;
@@ -130,6 +149,7 @@ export function ArchitectSkySun() {
     return { ...f, score: Math.round(s * 10) / 10 };
   }).sort((a, b) => b.score - a.score);
   const best = exposure[0], worst = exposure[exposure.length - 1];
+  const riseSet = sunRiseSet(lat, doy);   // homeowner sunrise/sunset for the selected date + location
 
   const moon = moonSky(lat, doy, hour, year);
   const moonPath = Array.from({ length: 29 }, (_, i) => 5 + i * 0.5).map((h) => moonSky(lat, doy, h, year)).filter((p) => p.el > -2);
@@ -191,6 +211,13 @@ export function ArchitectSkySun() {
           <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Day <input type="range" min={1} max={365} value={doy} onChange={(e) => setDoy(+e.target.value)} className="flex-1" /><span style={{ color: C.gold }}>{monthDay}</span></label>
           <label className="col-span-2 flex items-center gap-2" style={{ color: C.dim }}>Hour <input type="range" min={0} max={24} step={0.5} value={hour} onChange={(e) => setHour(+e.target.value)} className="flex-1" /><span style={{ color: C.cyan }}>{hour}:00 · {sun.el > 0 ? `el ${sun.el.toFixed(0)}°` : "night"}</span></label>
         </div>
+        {/* SPECIAL-DATE PRESETS — jump the sky to the key times of year a homeowner designs around */}
+        <div data-arch-presets className="mt-1 flex flex-wrap gap-1 text-[8px]">
+          {([["Winter Solstice", SEASON_DOY.winterSolstice], ["Spring Equinox", SEASON_DOY.springEquinox], ["Summer Solstice", SEASON_DOY.summerSolstice], ["Fall Equinox", SEASON_DOY.fallEquinox]] as const).map(([lab, d]) => (
+            <button key={lab} data-preset onClick={() => setDoy(d)} className="rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: doy === d ? C.gold : C.dim, background: doy === d ? "#241a06" : "transparent" }}>{lab}</button>
+          ))}
+          <button data-preset onClick={() => { const n = new Date(); setYear(n.getFullYear()); setDoy(Math.round((Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) - Date.UTC(n.getFullYear(), 0, 0)) / 86400000)); }} className="rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>Today</button>
+        </div>
         {/* WORLD PLACEMENT — click the map to place the property; its lat/lon is the single coordinate
             source feeding the sun + moon above (and, later, structure + terrain). */}
         <div className="mt-2 border-t pt-2" style={{ borderColor: C.border }}>
@@ -209,6 +236,12 @@ export function ArchitectSkySun() {
       </div>
       <div className="space-y-2 rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel }}>
         <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>WINDOW OPTIMIZATION</div>
+        {/* sunrise / sunset for the placed lot on the selected date — the homeowner's daylight window */}
+        <div data-arch-riseset className="text-[10px]" style={{ color: C.text }}>
+          {riseSet.polarDay ? <span style={{ color: C.gold }}>☀ Polar day — sun never sets</span>
+            : riseSet.polarNight ? <span style={{ color: C.dim }}>☾ Polar night — sun never rises</span>
+            : <><span style={{ color: C.gold }}>↑ {fmtHM(riseSet.rise)}</span> · <span style={{ color: "#7dd3fc" }}>↓ {fmtHM(riseSet.set)}</span> <span style={{ color: C.dim }}>sunrise · sunset</span></>}
+        </div>
         <div className="text-[9px]" style={{ color: C.dim }}>Seasonal solar-gain by facing ({monthDay}):</div>
         {exposure.map((e) => (
           <div key={e.k} className="flex items-center gap-2">
