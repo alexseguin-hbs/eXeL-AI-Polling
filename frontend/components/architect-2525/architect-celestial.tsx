@@ -81,6 +81,11 @@ export function ArchitectCelestial({
   const [showDetail, setShowDetail] = useState(false);       // ⚙ units & detail — collapsed by default (declutter)
   const [max, setMax] = useState(false);            // maximize → full-screen big map (zoom to an orbit, rotate)
   const [periTop, setPeriTop] = useState(false);    // clock icon → rotate the big map so perihelion + planet are at TOP
+  // MAP ••• EDGE EXPANDERS (Security-2525 Dots3 method) — left / right / bottom collapsible menus that hold
+  // map/visualization controls, keeping the default map clean ("less on map"). Default closed.
+  const [expL, setExpL] = useState(false);
+  const [expR, setExpR] = useState(false);
+  const [expB, setExpB] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [accurate, setAccurate] = useState(false); // ACCURATE mode: real Kepler positions for the date (default off → schematic)
   const isoDate = new Date(Date.UTC(year, 0, doy)).toISOString().slice(0, 10);
@@ -368,6 +373,20 @@ export function ArchitectCelestial({
           )}
         </div>
         <div className="pointer-events-none absolute left-1 top-1 z-10 text-[7px]" style={{ color: C.dim, fontFamily: "monospace" }}>pinch/scroll zoom · drag pan · twist rotate{periTop ? " · perihelion▲top" : ""}</div>
+        {/* MAP ••• EDGE EXPANDERS — left · right · bottom collapsible menus (Security-2525 Dots3 method), so map /
+            visualization controls tuck away and the default map stays clean. Placeholders now; controls migrate in. */}
+        <button data-map-exp-left-btn onClick={() => setExpL((v) => !v)} title="Map tools · left" aria-label="Left map menu"
+          className="absolute left-0.5 top-1/2 z-20 -translate-y-1/2 rounded border px-0.5 py-1.5 text-[9px] font-bold leading-[0.5]"
+          style={{ borderColor: expL ? C.cyan : C.border, color: expL ? C.cyan : C.dim, background: "rgba(8,12,20,0.82)" }}>⋮</button>
+        {expL && <div data-map-exp-left className="absolute left-4 top-1/2 z-20 max-h-[80%] -translate-y-1/2 overflow-y-auto rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.94)" }}>Left map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder)</span></div>}
+        <button data-map-exp-right-btn onClick={() => setExpR((v) => !v)} title="Map tools · right" aria-label="Right map menu"
+          className="absolute right-0.5 top-1/2 z-20 -translate-y-1/2 rounded border px-0.5 py-1.5 text-[9px] font-bold leading-[0.5]"
+          style={{ borderColor: expR ? C.cyan : C.border, color: expR ? C.cyan : C.dim, background: "rgba(8,12,20,0.82)" }}>⋮</button>
+        {expR && <div data-map-exp-right className="absolute right-4 top-1/2 z-20 max-h-[80%] -translate-y-1/2 overflow-y-auto rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.94)" }}>Right map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder)</span></div>}
+        <button data-map-exp-bottom-btn onClick={() => setExpB((v) => !v)} title="Map tools · bottom" aria-label="Bottom map menu"
+          className="absolute bottom-0.5 left-1/2 z-20 -translate-x-1/2 rounded border px-2 py-0.5 text-[9px] font-bold leading-none"
+          style={{ borderColor: expB ? C.cyan : C.border, color: expB ? C.cyan : C.dim, background: "rgba(8,12,20,0.82)" }}>•••</button>
+        {expB && <div data-map-exp-bottom className="absolute bottom-5 left-1/2 z-20 max-w-[90%] -translate-x-1/2 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.94)" }}>Bottom map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder)</span></div>}
         <svg ref={svgRef} {...gestureHandlers} data-arch-celestial data-peritop={periTop ? "1" : undefined} viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet"
           className={max ? "h-full w-full touch-none select-none rounded" : "w-full touch-none select-none rounded"}
           style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: max ? undefined : "2.2 / 1", height: max ? "100%" : undefined, cursor: pan.current ? "grabbing" : "grab" }}>

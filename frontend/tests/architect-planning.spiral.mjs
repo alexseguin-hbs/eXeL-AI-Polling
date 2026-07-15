@@ -964,6 +964,24 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A56: MAP ••• edge expanders — left · right · bottom collapsible menus (default closed, open on click) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  const btns = await pg.evaluate(() => ['left', 'right', 'bottom'].map((s) => !!document.querySelector(`[data-map-exp-${s}-btn]`)));
+  const closed0 = await pg.evaluate(() => ['left', 'right', 'bottom'].every((s) => !document.querySelector(`[data-map-exp-${s}]`)));
+  const opened = {};
+  for (const s of ['left', 'right', 'bottom']) {
+    await pg.evaluate((side) => document.querySelector(`[data-map-exp-${side}-btn]`)?.click(), s); await pg.waitForTimeout(120);
+    opened[s] = await pg.evaluate((side) => !!document.querySelector(`[data-map-exp-${side}]`), s);
+    await pg.evaluate((side) => document.querySelector(`[data-map-exp-${side}-btn]`)?.click(), s); await pg.waitForTimeout(80); // close again
+  }
+  const ok = btns.every(Boolean) && closed0 && opened.left && opened.right && opened.bottom;
+  rec('#A56 map ••• edge expanders (left · right · bottom) present, default closed, open on click', ok, JSON.stringify({ btns, closed0, opened }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
