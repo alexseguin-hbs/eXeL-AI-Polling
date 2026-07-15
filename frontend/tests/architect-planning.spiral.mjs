@@ -758,6 +758,19 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A44: HOMEOWNER LOCK — Sky Dome sun rises in the EAST and sets in the WEST (arcs through the south), by hour ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Site'); await pg.waitForTimeout(300);   // Sky Dome is the default sub-view
+  const setHour = async (h) => { await pg.evaluate((val) => { const t = [...document.querySelectorAll('input[type=range]')].find(i => +i.max === 24); if (!t) return; const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, h); await pg.waitForTimeout(140); };
+  const sunX = () => pg.evaluate(() => { const c = document.querySelector('[data-el="sun"]'); return c ? +c.getAttribute('cx') : null; });
+  await setHour(8); const morn = await sunX();   // morning → east (CX=50, east = x > 50)
+  await setHour(16); const eve = await sunX();    // evening → west (x < 50)
+  const ok = morn !== null && eve !== null && morn > 51 && eve < 49;
+  rec('#A44 Sky Dome sun rises EAST (morning x>50) + sets WEST (evening x<50) — homeowner arc', ok, `mornX=${morn?.toFixed(1)} eveX=${eve?.toFixed(1)}`);
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
