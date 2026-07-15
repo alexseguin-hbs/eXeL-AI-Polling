@@ -138,6 +138,13 @@ removed.** Every planet label is anchored to its dot; the dot stays centered on 
 - **Alignment insight** (`data-arch-align`) — compares `facingAz` to the sunrise azimuth at each preset date → e.g.
   "this face meets the winter-solstice sunrise." Stretch: per-window azimuths derived from the design model's openings
   + `lotHeading` (default plan-up = North), rendered `data-arch-window-align`.
+- **Moon-/Sun-over-window transit (THE MISSION)** — for the SELECTED date + the window azimuth, `overWindow(posFn,
+  facingAz)` scans the day (0.05 h) for the moment a body's azimuth crosses the opening WHILE `el > 0`, returning
+  `{hour, el, az, diff}` (diff° = how squarely it frames the opening). Rendered `data-arch-window-transit`: a ☀ Sun
+  line + a ☾ Moon line, each `HH:MM · el X° · frames/grazes/closest-pass (Δ°)`, the Moon line also carrying phase +
+  illumination at that instant. The homeowner picks an anniversary / a season on the calendar → the readout is the
+  exact moment the sky frames that opening. Pure, deterministic (same `{lat,doy,year,facingAz}` → same result). This
+  is the literal operator mission: "track when the moon goes over a window or signify a certain time of year."
 
 ---
 
@@ -165,6 +172,9 @@ the change (baseline count captured, targeted assertion flips as intended, total
 - `#A40b` — right-drag (vertical) tilts (orbit `ry` / star `cy` moves); plain left-drag only pans.
 - `#A41` — 5 date presets; Summer→June date; rise/set readout changes winter↔summer.
 - `#A41b` — settable facing updates the alignment insight (names a solstice/equinox + rise/set).
+- `#A48` — **Moon/Sun over the window on the selected date** (the mission): `data-arch-window-transit` shows a ☀ Sun
+  line + a ☾ Moon line (`over your <card> window`) with a time/elevation/phase, and the Moon line **recomputes when the
+  date changes** (Summer ≠ Winter) — proving it is date-driven, not static.
 - Existing `#A21/#A23/#A24/#A25/#A38` first enter Advanced (`[data-cel-mode="advanced"]`) — enumerated, bounded edit.
 
 ---

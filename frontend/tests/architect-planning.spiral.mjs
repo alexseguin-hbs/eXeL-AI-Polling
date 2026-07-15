@@ -804,6 +804,24 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A48: HOMEOWNER MISSION — Moon (+Sun) over the window on the selected date (time · elevation · phase) ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Site'); await pg.waitForTimeout(300);
+  const hasTransit = await pg.locator('[data-arch-window-transit]').count();
+  const readTransit = () => pg.evaluate(() => document.querySelector('[data-arch-window-transit]')?.textContent || '');
+  const clkPreset = async (label) => { await pg.evaluate((lab) => { const btns = [...document.querySelectorAll('[data-arch-presets] button')]; const bt = btns.find((b) => (b.textContent || '').includes(lab)); if (bt) bt.click(); }, label); await pg.waitForTimeout(180); };
+  const timeRe = /\b\d{2}:\d{2}\b/;
+  await clkPreset('Summer'); const summer = await readTransit();
+  await clkPreset('Winter'); const winter = await readTransit();
+  const mentionsBoth = (s) => /☀\s*Sun/.test(s) && /☾\s*Moon/.test(s) && /over your/.test(s);
+  // date-driven: the Moon transit line differs between two seasons (proves it recomputes per selected date)
+  const moonLine = (s) => (s.match(/☾\s*Moon over your[^☀]*/) || [''])[0];
+  const ok = hasTransit === 1 && mentionsBoth(summer) && mentionsBoth(winter) && (timeRe.test(summer) || /never above horizon/.test(summer)) && moonLine(summer) !== moonLine(winter);
+  rec('#A48 Moon/Sun over the window on the selected date — the mission (time · el · phase, date-driven)', ok, JSON.stringify({ hasTransit, summer: summer.replace(/\s+/g, ' ').slice(0, 70), winter: winter.replace(/\s+/g, ' ').slice(0, 70) }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

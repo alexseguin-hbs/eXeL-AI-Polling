@@ -67,6 +67,22 @@ function moonSky(lat: number, dayOfYear: number, hour: number, year = 2025) {
   return { az, el, illum: ms.illum, phase: ms.phase };
 }
 
+// HOMEOWNER MISSION — "the Moon (or Sun) over your window." Scan the selected date for the moment a body's
+// azimuth crosses the window / house-face azimuth WHILE it is above the horizon (visible through the opening).
+// Returns the closest-pass hour + how squarely it frames the opening (diff°, 0 = dead-centre). The homeowner
+// picks the date (an anniversary, a season) + the window; we compute the exact moment — sun by day, moon by night.
+function overWindow(posFn: (h: number) => { az: number; el: number }, facingAz: number): { hour: number; el: number; az: number; diff: number } | null {
+  const angDiff = (a: number, bb: number) => Math.abs(((a - bb) % 360 + 540) % 360 - 180);
+  let best: { hour: number; el: number; az: number; diff: number } | null = null;
+  for (let h = 0; h <= 24; h += 0.05) {
+    const p = posFn(h);
+    if (p.el <= 0) continue;                        // below the horizon → not framed by the window
+    const diff = angDiff(p.az, facingAz);
+    if (!best || diff < best.diff) best = { hour: h, el: p.el, az: p.az, diff };
+  }
+  return best;
+}
+
 // Deterministic star alt-az from real equatorial coords (RA hours, Dec deg), sharing the same LST reference as the
 // Moon (so the Dome + the Solar-System map agree on the sky — CELESTIAL_SKY_SPEC §2/§6).
 function starSky(raHours: number, decDeg: number, lat: number, dayOfYear: number, hour: number, year = 2025) {
@@ -162,6 +178,13 @@ export function ArchitectSkySun() {
   });
   const nearestAlign = alignEvents.map((e) => ({ ...e, diff: Math.min(Math.abs(e.az - facingAz), 360 - Math.abs(e.az - facingAz)) })).sort((a, b) => a.diff - b.diff)[0];
   const aligned = nearestAlign && nearestAlign.diff <= 6;   // within 6° = this face frames that event
+
+  // MOON-OVER-WINDOW / special-date transit — for THIS date + THIS window azimuth, when do the Sun and Moon
+  // cross the opening (time · elevation · moon phase)? The homeowner's anniversary + window → the exact moment.
+  const sunOver = overWindow((h) => sunPos(lat, doy, h), facingAz);
+  const moonOver = overWindow((h) => moonSky(lat, doy, h, year), facingAz);
+  const moonOverPhase = moonOver ? moonSky(lat, doy, moonOver.hour, year) : null;
+  const framesWord = (d: number) => d <= 5 ? "frames" : d <= 15 ? "grazes" : "closest pass";
 
   const moon = moonSky(lat, doy, hour, year);
   const moonPath = Array.from({ length: 29 }, (_, i) => 5 + i * 0.5).map((h) => moonSky(lat, doy, h, year)).filter((p) => p.el > -2);
@@ -273,6 +296,14 @@ export function ArchitectSkySun() {
           <div data-arch-align className="text-[10px]" style={{ color: aligned ? C.green : C.dim }}>
             {aligned ? <>✦ This {cardOf(facingAz)} face frames the <span style={{ color: C.gold }}>{nearestAlign.label}</span> (az {nearestAlign.az.toFixed(0)}°).</>
               : nearestAlign ? <>Nearest event: {nearestAlign.label} at az {nearestAlign.az.toFixed(0)}° — rotate the face {nearestAlign.diff.toFixed(0)}° to frame it.</> : "—"}
+          </div>
+          {/* THE MISSION — on THIS date, when do the Sun + Moon cross this window (time · elevation · phase)? */}
+          <div data-arch-window-transit className="mt-1 rounded px-1 py-0.5 text-[9px]" style={{ background: "#0c1420", color: C.dim }}>
+            <div><span style={{ color: C.gold }}>☀ Sun</span> over your {cardOf(facingAz)} window:{" "}
+              {sunOver ? <span style={{ color: C.text }}>{fmtHM(sunOver.hour)} · el {sunOver.el.toFixed(0)}° · <span style={{ color: sunOver.diff <= 5 ? C.green : C.dim }}>{framesWord(sunOver.diff)} (Δ{sunOver.diff.toFixed(0)}°)</span></span> : <span>never above horizon this date</span>}</div>
+            <div><span style={{ color: "#e5e7eb" }}>☾ Moon</span> over your {cardOf(facingAz)} window:{" "}
+              {moonOver && moonOverPhase ? <span style={{ color: C.text }}>{fmtHM(moonOver.hour)} · el {moonOver.el.toFixed(0)}° · {moonOverPhase.phase} {(moonOverPhase.illum * 100).toFixed(0)}% · <span style={{ color: moonOver.diff <= 5 ? C.green : C.dim }}>{framesWord(moonOver.diff)} (Δ{moonOver.diff.toFixed(0)}°)</span></span> : <span>never above horizon this date</span>}</div>
+            <div className="text-[8px]" style={{ color: C.dim }}>Pick your anniversary / a season on the calendar → this is the moment the sky frames your opening.</div>
           </div>
           <div className="mt-1"><span style={{ color: "#e5e7eb" }}>☾ Moon:</span> <span style={{ color: C.text }}>{moon.phase}</span> · {(moon.illum * 100).toFixed(0)}% lit · {moon.el > 0 ? `el ${moon.el.toFixed(0)}°` : "below horizon"}</div>
           <div className="mt-1 text-[9px]" style={{ color: C.dim }}>Polaris ≈ {polaris.el.toFixed(0)}° (latitude). Sun exact; moon is an approximate model. Deterministic → replayable.</div>
