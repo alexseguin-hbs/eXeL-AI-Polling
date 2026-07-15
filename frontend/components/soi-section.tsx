@@ -11,9 +11,11 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { SoITrinity } from "@/components/soi-trinity";
 import { useTheme } from "@/lib/theme-context";
+import { TRINITY_COLORS } from "@/lib/trinity-palette";
 import { loadPublishedSoI, subscribeSoI, type SoiFramework } from "@/lib/soi-framework";
 
-const COIN_C: Record<string, string> = { SI: "#ef4444", HI: "#22c55e", AI: "#19c8cf" };
+// SoI Tri-Coin colours (operator + 13-Trinity): ♡ S.I. = sunset yellow · 웃 H.I. = violet · ◬ A.I. = cyan
+const COIN_C: Record<string, string> = { SI: TRINITY_COLORS.temporal, HI: TRINITY_COLORS.family, AI: TRINITY_COLORS.consciousness };
 
 export function SoISection() {
   const { currentTheme } = useTheme();
@@ -28,7 +30,8 @@ export function SoISection() {
         <CardDescription>{soi.thesis}</CardDescription>
       </CardHeader>
       <CardContent className="grid items-center gap-6 md:grid-cols-[180px_1fr]">
-        <div className="mx-auto"><SoITrinity labels={["A.I.", "S.I.", "H.I."]} color={accent} textColor="#0a1628" size={168} /></div>
+        {/* glyphs only, operator layout: 웃 H.I. top · ♡ S.I. bottom-right · ◬ A.I. bottom-left; per-ring 13-Trinity colours */}
+        <div className="mx-auto"><SoITrinity labels={["웃", "♡", "◬"]} colors={[TRINITY_COLORS.family, TRINITY_COLORS.temporal, TRINITY_COLORS.consciousness]} color={accent} textColor="#0a1628" size={168} /></div>
         <div className="grid gap-3 sm:grid-cols-3">
           {soi.coins.map((c) => (
             <div key={c.key} data-soi-section-coin className="rounded-lg border p-3">

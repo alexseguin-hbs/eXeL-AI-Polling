@@ -25,6 +25,7 @@ import { useId } from "react";
 
 export interface SoITrinityProps {
   labels?: [string, string, string];
+  colors?: [string, string, string];   // optional per-ring colour [top, bottom-right, bottom-left] — default: monochrome `color`
   color?: string;
   textColor?: string;
   size?: number;
@@ -49,6 +50,7 @@ export interface SoITrinityProps {
 
 export function SoITrinity({
   labels = ["WISDOM", "HARMONY", "CONNECTION"],
+  colors,
   color = "currentColor",
   textColor = "black",
   size = 400,
@@ -110,7 +112,7 @@ export function SoITrinity({
     return `M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${r} ${r} 0 0 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`;
   }
 
-  function RingBand({ rcx, rcy, clip }: { rcx: number; rcy: number; clip?: string }) {
+  function RingBand({ rcx, rcy, clip, ringColor }: { rcx: number; rcy: number; clip?: string; ringColor?: string }) {
     const p = clip ? { clipPath: `url(#${clip})` } : {};
     return (
       <>
@@ -121,7 +123,7 @@ export function SoITrinity({
         <circle cx={rcx} cy={rcy} r={ringMidR}
           fill="none" stroke="black" strokeWidth={ringWidth} {...p} />
         <circle cx={rcx} cy={rcy} r={ringMidR}
-          fill="none" stroke={color} strokeWidth={ringWidth - borderWidth * 2} {...p} />
+          fill="none" stroke={ringColor ?? color} strokeWidth={ringWidth - borderWidth * 2} {...p} />
       </>
     );
   }
@@ -154,9 +156,9 @@ export function SoITrinity({
           opaque (black border + cyan), so a later ring cleanly covers earlier ones
           at the overlaps and its black border separates them. No masks, no clips
           through the cyan → NO trace lines behind the solid fill. */}
-      <RingBand rcx={rings[0].cx} rcy={rings[0].cy} />
-      <RingBand rcx={rings[1].cx} rcy={rings[1].cy} />
-      <RingBand rcx={rings[2].cx} rcy={rings[2].cy} />
+      <RingBand rcx={rings[0].cx} rcy={rings[0].cy} ringColor={colors?.[0]} />
+      <RingBand rcx={rings[1].cx} rcy={rings[1].cy} ringColor={colors?.[1]} />
+      <RingBand rcx={rings[2].cx} rcy={rings[2].cy} ringColor={colors?.[2]} />
 
       {/* 4. UNITY ring — black band underneath, color narrower on top (zero seam) */}
       <circle cx={cx} cy={cy} r={outerR - outerWidth / 2}
