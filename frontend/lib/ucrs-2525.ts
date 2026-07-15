@@ -79,6 +79,15 @@ export const planetDotRadius = (p: Planet, mode: PlanetSizeMode): number => {
   return THEMATIC_BASE * (1 + THEMATIC_SPREAD * Math.max(0, Math.min(1, norm)));
 };
 
+/**
+ * The SUN's dot radius per size mode — kept PROPORTIONATE to the planets so the scene reads as one family:
+ *  • truescale    — Sun dominant vs the tiny real specks (SUN_DOT_R),
+ *  • proportional — a touch bigger than Jupiter's 6 (Sun ≈ 7.2),
+ *  • thematic     — modestly the biggest, ~1.4× the largest thematic planet (2.4) → ~3.3, not overwhelming.
+ */
+export const sunDotRadius = (mode: PlanetSizeMode): number =>
+  mode === "truescale" ? SUN_DOT_R : mode === "proportional" ? 7.2 : 3.3;
+
 /** Orbit radius (m) at true anomaly ν (deg from perihelion): r = a(1-e²)/(1+e·cosν). */
 export function orbitR(aMeters: number, e: number, nuDeg: number): number {
   return (aMeters * (1 - e * e)) / (1 + e * Math.cos(nuDeg * DEG));

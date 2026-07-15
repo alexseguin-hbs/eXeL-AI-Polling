@@ -308,7 +308,7 @@ const mk = async (vp) => {
   }));
   // tilt (in ⚙) changes the ellipsoid foreshortening (orbit ry shrinks as tilt lowers)
   const ry0 = await pg.evaluate(() => document.querySelector('[data-orbit]')?.getAttribute('ry'));
-  await pg.evaluate(() => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, '8'); t.dispatchEvent(new Event('input', { bubbles: true })); });
+  await pg.evaluate(() => { const t = document.querySelector('[data-tilt-input]'); if (!t) return; const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, '8'); t.dispatchEvent(new Event('input', { bubbles: true })); });
   await pg.waitForTimeout(150);
   const ry1 = await pg.evaluate(() => document.querySelector('[data-orbit]')?.getAttribute('ry'));
   // click Mercury → readout switches + shows Distance/SP-OTU
@@ -351,7 +351,7 @@ const mk = async (vp) => {
   await tab('Design'); await subtab('Site');
   await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
   await clk('[data-cel-detail]'); await pg.waitForTimeout(120); // open ⚙ → SA tilt slider
-  const setTilt = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(160); };
+  const setTilt = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-tilt-input]'); if (!t) return; const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(160); };
   const orbitRy = (sel) => pg.evaluate((s) => { const o = document.querySelector(`${s} [data-orbit]`); return o ? +o.getAttribute('ry') : NaN; }, sel);
   // NORMAL view
   await setTilt(45); const nRy45 = await orbitRy('[data-cel-view]');
@@ -373,7 +373,7 @@ const mk = async (vp) => {
   await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
   await clk('[data-cel-detail]'); await pg.waitForTimeout(120);
   // set tilt to something other than 45 first
-  await pg.evaluate(() => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, '20'); t.dispatchEvent(new Event('input', { bubbles: true })); }); await pg.waitForTimeout(120);
+  await pg.evaluate(() => { const t = document.querySelector('[data-tilt-input]'); if (!t) return; const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, '20'); t.dispatchEvent(new Event('input', { bubbles: true })); }); await pg.waitForTimeout(120);
   await clk('[data-clock-toggle]'); await pg.waitForTimeout(200);   // → clock view should force tilt 45
   const tilt = await pg.evaluate(() => +(document.querySelector('[data-tilt-input]')?.value || 0));
   rec('#A43 clock toggle defaults SA tilt to 45° (perihelion-top over the Sun)', tilt === 45, `tiltAfterClock=${tilt}`);
@@ -664,8 +664,8 @@ const mk = async (vp) => {
   await tab('Design'); await subtab('Site');
   await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(300);
   await clk('[data-cel-detail]'); await pg.waitForTimeout(120);        // open ⚙ to reach the SA tilt slider
-  const setTilt = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(150); };
-  const range = await pg.evaluate(() => { const t = document.querySelector('[data-tilt-input]'); return { min: +t.min, max: +t.max }; });
+  const setTilt = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-tilt-input]'); if (!t) return; const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(150); };
+  const range = await pg.evaluate(() => { const t = document.querySelector('[data-tilt-input]'); if (!t) return { min: 0, max: 0 }; return { min: +t.min, max: +t.max }; });
   // constellation Y moves when SA tilt changes (celestial sphere foreshortens with the system)
   const conY = () => pg.evaluate(() => document.querySelector('[data-constellation="Orion"] circle')?.getAttribute('cy'));
   await setTilt(10); const cy10 = await conY();
@@ -718,7 +718,7 @@ const mk = async (vp) => {
   // tilt still moves the star sphere (keep #A37 behaviour): Orion cy changes when SA tilt changes
   await clk('[data-cel-detail]'); await pg.waitForTimeout(120);
   const conY = () => pg.evaluate(() => document.querySelector('[data-constellation="Orion"] circle')?.getAttribute('cy'));
-  const setTilt = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-tilt-input]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(150); };
+  const setTilt = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-tilt-input]'); if (!t) return; const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, String(val)); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(150); };
   await setTilt(10); const y10 = await conY(); await setTilt(45); const y45 = await conY();
   const ok = info.zodiacSigns === 12 && info.provenance && info.aries && info.priority >= 24 && info.polaris && info.orion && y10 !== y45;
   rec('#A39 MAP real RA/Dec constellations + 12 Zodiac signs (Sumerian) on ecliptic + Polaris + tilt-moves-sky', ok, JSON.stringify({ ...info, y10, y45 }));

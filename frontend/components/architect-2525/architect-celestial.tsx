@@ -16,7 +16,7 @@ import { Maximize2, Minimize2, Play, Pause } from "lucide-react";
 import {
   PLANETS, ucrsAt, huToNu, axTrue, bOverA, fmt3600, FULL_ORBIT, planetDotRadius,
   fmtDist, fmtTime, fmtRotation, DIST_UNITS, DIST_LABEL, TIME_UNITS, TIME_LABEL, SATURN_RING_TEX,
-  SIZE_MODES, SIZE_LABEL, fmtClock, tzFromLon, MOON_SIDEREAL_DAYS, MOON_SYNODIC_DAYS, type DistUnit, type TimeUnit, type PlanetSizeMode, type ClockFormat,
+  SIZE_MODES, SIZE_LABEL, sunDotRadius, fmtClock, tzFromLon, MOON_SIDEREAL_DAYS, MOON_SYNODIC_DAYS, type DistUnit, type TimeUnit, type PlanetSizeMode, type ClockFormat,
 } from "@/lib/ucrs-2525";
 import { EarthMoonBox } from "./earth-moon-box";
 import { MiniPanel } from "./mini-panel";
@@ -302,6 +302,8 @@ export function ArchitectCelestial({
   }, [bgStars, sphereSquash]);
   const sel = laid.find((l) => l.p.id === selId) || laid[2];
   const rd = ucrsAt(sel.p, sel.effHu);
+  const sunR = sunDotRadius(sizeMode);   // Sun sized PROPORTIONATE to the current planet-size mode (thematic = modest)
+  const lz = 1 / view.zoom;              // label counter-scale: divide fontSize by zoom → text stays CONSTANT screen size (GeoLabel law)
   const drawOrder = [...laid].sort((a, b) => a.depth - b.depth); // back planets first
 
   return (
@@ -381,18 +383,18 @@ export function ArchitectCelestial({
                     {on && <circle cx={x} cy={y} r={dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
                     {p.rings && <ellipse cx={x} cy={y} rx={dot + 1.6} ry={(dot + 1.6) * sinE} fill="none" stroke={p.color} strokeWidth="0.3" opacity="0.8" />}
                     <circle cx={x} cy={y} r={dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
-                    <text x={x} y={y - dot - 1.2} fontSize="2.3" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
+                    <text x={x} y={y - dot - 1.2} fontSize={2.3 * lz} fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
                   </g>
                 </g>
               );
             })}
-            <circle cx={SUN_X} cy={SUN_Y} r="7.5" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.4" />
-            <circle cx={SUN_X} cy={SUN_Y} r="4.8" fill="#fff3b0" />
-            <text x={SUN_X} y={SUN_Y + 11} fontSize="2.5" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
-            <text x={SUN_X} y={4.5} fontSize="3" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>▲</text>
-            <text x={SUN_X} y={8.5} fontSize="3" fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>PERIHELION</text>
-            <text x={SUN_X} y={108} fontSize="3" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>APHELION</text>
-            <text x={SUN_X} y={112} fontSize="3" fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>▼</text>
+            <circle data-sun-glow cx={SUN_X} cy={SUN_Y} r={sunR * 1.5625} fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.4" />
+            <circle data-sun cx={SUN_X} cy={SUN_Y} r={sunR} fill="#fff3b0" />
+            <text x={SUN_X} y={SUN_Y + 11} fontSize={2.5 * lz} fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
+            <text x={SUN_X} y={4.5} fontSize={3 * lz} fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>▲</text>
+            <text x={SUN_X} y={8.5} fontSize={3 * lz} fill={C.green} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>PERIHELION</text>
+            <text x={SUN_X} y={108} fontSize={3 * lz} fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>APHELION</text>
+            <text x={SUN_X} y={112} fontSize={3 * lz} fill={C.violet} textAnchor="middle" fontWeight="bold" style={{ fontFamily: "monospace" }}>▼</text>
           </g>
           ) : (<>
           {/* orbital-plane baseline (the tilt reference / SA) */}
@@ -409,13 +411,13 @@ export function ArchitectCelestial({
           ))}
           {/* Earth peri/aphe labels */}
           {(() => { const e = laid[2]; return <>
-            <text x={e.cx - e.ax - 1} y={SUN_Y - 1.4} fontSize="2.3" fill={C.dim} textAnchor="end" style={{ fontFamily: "monospace" }}>aphelion ◀</text>
-            <text x={e.cx + e.ax + 1} y={SUN_Y - 1.4} fontSize="2.3" fill={C.dim} style={{ fontFamily: "monospace" }}>▶ perihelion</text>
+            <text x={e.cx - e.ax - 1} y={SUN_Y - 1.4} fontSize={2.3 * lz} fill={C.dim} textAnchor="end" style={{ fontFamily: "monospace" }}>aphelion ◀</text>
+            <text x={e.cx + e.ax + 1} y={SUN_Y - 1.4} fontSize={2.3 * lz} fill={C.dim} style={{ fontFamily: "monospace" }}>▶ perihelion</text>
           </>; })()}
           {/* Sun at the shared right focus */}
-          <circle cx={SUN_X} cy={SUN_Y} r="7.5" fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.4" />
-          <circle cx={SUN_X} cy={SUN_Y} r="4.8" fill="#fff3b0" />
-          <text x={SUN_X} y={SUN_Y + 12} fontSize="2.5" fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
+          <circle data-sun-glow cx={SUN_X} cy={SUN_Y} r={sunR * 1.5625} fill="none" stroke={C.gold} strokeWidth="0.5" opacity="0.4" />
+          <circle data-sun cx={SUN_X} cy={SUN_Y} r={sunR} fill="#fff3b0" />
+          <text x={SUN_X} y={SUN_Y + 12} fontSize={2.5 * lz} fill={C.gold} textAnchor="middle" style={{ fontFamily: "monospace" }}>SUN</text>
           {/* planets — back first; Earth largest + EA axial marker; depth-scaled */}
           {drawOrder.map(({ p, x, y, depth }) => {
             const on = p.id === selId;
@@ -428,7 +430,7 @@ export function ArchitectCelestial({
                 {p.rings && <ellipse cx={x} cy={y} rx={r + 1.6} ry={(r + 1.6) * sinE} fill="none" stroke={p.color} strokeWidth="0.3" opacity="0.8" />}
                 <circle cx={x} cy={y} r={r} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
                 {p.id === "earth" && (() => { const a = 23.4 * DEG, L = r + 2.2; return <line x1={x - Math.sin(a) * L} y1={y - Math.cos(a) * L} x2={x + Math.sin(a) * L} y2={y + Math.cos(a) * L} stroke="#fff" strokeWidth="0.35" opacity="0.75" />; })()}
-                <text x={x} y={y - r - 1.2} fontSize="2.3" fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
+                <text x={x} y={y - r - 1.2} fontSize={2.3 * lz} fill={on ? "#fff" : p.color} textAnchor="middle" style={{ fontFamily: "monospace" }}>{p.name}</text>
               </g>
             );
           })}

@@ -6,7 +6,7 @@
  * REFERENCE sources (J2000): JPL SSD Standish `p_elem_t1` (orbital elements); NASA GSFC planetary + Moon fact sheets
  * (rotation, periods, Moon); astropixels.com / Espenak (bright-star RA/Dec). See docs/architecture-2525/CELESTIAL_SKY_SPEC.md §6.
  */
-import { PLANETS, MOON, MOON_SIDEREAL_DAYS, MOON_SYNODIC_DAYS } from "../lib/ucrs-2525.ts";
+import { PLANETS, MOON, MOON_SIDEREAL_DAYS, MOON_SYNODIC_DAYS, sunDotRadius, planetDotRadius } from "../lib/ucrs-2525.ts";
 import { PRIORITY_CONSTELLATIONS, POLARIS } from "../lib/constellations.ts";
 import { heliocentricLon } from "../lib/ephemeris.ts";
 
@@ -71,6 +71,12 @@ for (const [id, [lam, tol]] of Object.entries(REF_LON)) {
   const d = Math.min(Math.abs(got - lam), 360 - Math.abs(got - lam));
   ok(`${id} λ@J2000 ${got.toFixed(3)}° ≈ ${lam}° (±${tol})`, d <= tol, `Δ ${d.toFixed(3)}°`);
 }
+
+console.log("— SUN size proportionate to the planet-size mode (thematic Sun modest, not overwhelming) —");
+const jup = PLANETS.find((p) => p.id === "jupiter");
+const sunTh = sunDotRadius("thematic"), jupTh = planetDotRadius(jup, "thematic");
+ok(`thematic Sun ${sunTh} is the biggest body but modest (> Jupiter ${jupTh.toFixed(2)}, < 4)`, sunTh > jupTh && sunTh < 4);
+ok(`Sun size ordered thematic(${sunTh}) < truescale(${sunDotRadius("truescale")}) < proportional(${sunDotRadius("proportional")})`, sunDotRadius("thematic") < sunDotRadius("truescale") && sunDotRadius("truescale") < sunDotRadius("proportional"));
 
 console.log("\nCELESTIAL-TRUTH " + pass + "/" + (pass + fail) + " passed");
 if (fail > 0) process.exit(1);
