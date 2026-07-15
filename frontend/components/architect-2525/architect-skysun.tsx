@@ -323,7 +323,7 @@ export function ArchitectSkySun() {
           {/* WINDOW STORY — one plain-language sentence for the heart (synthesis of the numbers below) */}
           <div data-arch-window-story className="mt-1 text-[10px]" style={{ color: C.text }}>
             ✧ Your <span style={{ color: C.violet }}>{cardOf(facingAz)}</span> window
-            {aligned ? <> frames the <span style={{ color: C.gold }}>{nearestAlign.label}</span></> : <> best catches {best.k}-facing light</>}
+            {aligned ? <> frames the <span style={{ color: C.gold }}>{nearestAlign.label}</span></> : nearestAlign ? <> is <span style={{ color: C.gold }}>{nearestAlign.diff.toFixed(0)}°</span> from framing the {nearestAlign.label}</> : <> faces {cardOf(facingAz)}</>}
             {moonOver ? <>; on {monthDay} the Moon passes it at <span style={{ color: "#e5e7eb" }}>{fmtHM(moonOver.hour)}</span></> : null}
             {bestMoon ? <>; its natural moon-anniversary is <span style={{ color: "#e5e7eb" }}>{mdLabel(bestMoon.doy)}</span></> : null}.
           </div>
