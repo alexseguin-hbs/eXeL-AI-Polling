@@ -38,13 +38,15 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
   const leafCount = flattenLayers([node]).filter((n) => !n.children?.length && isVisibleForType(n.id, scope.id, homeType)).length;
   const isHidden = !!state?.hidden.has(node.id);
   const isLocked = !!state?.locked.has(node.id);
-  // "Add to house" (R4) — a leaf toggles itself; a branch/system adds all its buildable leaves.
-  const leafDescendants = flattenLayers([node]).filter((n) => !n.children?.length && !n.level3);
-  const inHouse = !!state && node.id.startsWith("physical/") && leafDescendants.length > 0 && leafDescendants.every((n) => state.spec.has(n.id));
-  const canBuild = node.id.startsWith("physical/");
+  // "Add to house" (R4) — a leaf toggles itself; a branch/system adds all its buildable leaves. Level 3
+  // Cubes are NOT buildable, and the leaf set honors the Tiny Home filter (so "Add system" never adds
+  // components the tree doesn't offer).
+  const canBuild = node.id.startsWith("physical/") && !node.level3;
+  const leafDescendants = flattenLayers([node]).filter((n) => !n.children?.length && !n.level3 && isVisibleForType(n.id, scope.id, homeType));
+  const inHouse = !!state && canBuild && leafDescendants.length > 0 && leafDescendants.every((n) => state.spec.has(n.id));
   const addToHouse = () => {
     if (!state) return;
-    if (kids.length) { inHouse ? leafDescendants.forEach((n) => state.spec.has(n.id) && state.toggleSpec(n.id)) : state.addSubtreeToSpec(node); }
+    if (kids.length) { inHouse ? leafDescendants.forEach((n) => state.spec.has(n.id) && state.toggleSpec(n.id)) : state.addSpecIds(leafDescendants.map((n) => n.id)); }
     else state.toggleSpec(node.id);
   };
 

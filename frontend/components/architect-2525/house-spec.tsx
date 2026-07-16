@@ -33,8 +33,9 @@ export function HouseSpec({ state }: { state: LayerState }) {
 
   const maxPhaseDays = Math.max(...est.byPhase.map((p) => p.days), 1);
   const sched = houseSchedule(ids);
-  // spec ids resolved to their (leaf) component nodes
-  const items = ids.map((id) => findLayer(id)?.node).filter((n): n is LayerNode => !!n && !n.children?.length);
+  // spec ids resolved to their (leaf) component nodes — excludes any non-buildable (level3) ids so the
+  // chip list matches exactly what houseEstimate counts/prices (specLeafIds also drops level3).
+  const items = ids.map((id) => findLayer(id)?.node).filter((n): n is LayerNode => !!n && !n.children?.length && !n.level3);
 
   return (
     <div data-arch-house-spec data-house-count={est.count} className="flex flex-col gap-3 text-[11px] md:flex-row md:items-start md:gap-4">
@@ -76,7 +77,7 @@ export function HouseSpec({ state }: { state: LayerState }) {
               style={{
                 top: i * 18, height: 15,
                 left: `${(p.start / (sched.totalDays || 1)) * 100}%`,
-                width: `${Math.max(4, (p.days / (sched.totalDays || 1)) * 100)}%`,
+                width: `${Math.min(100 - (p.start / (sched.totalDays || 1)) * 100, Math.max(4, (p.days / (sched.totalDays || 1)) * 100))}%`,
                 background: p.color, color: "#0a0e14", opacity: 0.9, whiteSpace: "nowrap", overflow: "hidden",
               }}
               title={`${p.label}: day ${p.start}–${p.start + p.days}`}>

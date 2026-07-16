@@ -1370,6 +1370,28 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A75: REVIEW FIXES — a Level 3 Cubes node is NOT buildable (no Add-to-house control), and a Tiny
+//          Home "Add system" adds ONLY the tiny-buildable leaves (Foundation → 3, not the full 8). ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => localStorage.removeItem('arch2525.houseSpec'));
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/level-3-cubes"]')?.click()); await pg.waitForTimeout(200);
+  const l3NoBuild = await pg.evaluate(() => {
+    const insp = document.querySelector('[data-arch-layer-inspector]');
+    return insp?.getAttribute('data-inspect-id') === 'physical/foundation/level-3-cubes' && !insp.querySelector('[data-inspect-ctl="house"]');
+  });
+  await pg.evaluate(() => document.querySelector('[data-hometype="tiny"]')?.click()); await pg.waitForTimeout(200);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-inspect-ctl="house"]')?.click()); await pg.waitForTimeout(220);
+  const tinyCount = await pg.evaluate(() => +(document.querySelector('[data-arch-house-spec]')?.getAttribute('data-house-count') || '0'));
+  const ok = l3NoBuild && tinyCount === 3;
+  rec('#A75 review fixes — Level 3 not buildable; Tiny "Add system" adds only tiny leaves (Foundation=3)', ok, JSON.stringify({ l3NoBuild, tinyCount }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

@@ -51,7 +51,9 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
     return { visible: vis, forceOpen: open };
   }, [query]);
 
-  const isOpen = (id: string) => (forceOpen ? forceOpen.has(id) : openIds.has(id));
+  // While searching, ancestors of matches are force-open; a manually-toggled branch also stays openable.
+  const isOpen = (id: string) => (forceOpen ? (forceOpen.has(id) || openIds.has(id)) : openIds.has(id));
+  const visCount = (list: LayerNode[]) => (visible ? list.filter((c) => visible.has(c.id)).length : list.length);
   const toggle = (id: string) => setOpenIds((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
@@ -88,7 +90,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
             : <span className="inline-block h-3 w-3 shrink-0" />}
           <span className="min-w-0 flex-1 truncate">{node.label}</span>
           {state.spec.has(node.id) && <span data-layer-inhouse title="On the house" className="shrink-0 h-1.5 w-1.5 rounded-full" style={{ background: C.green }} />}
-          {hasKids && <span className="shrink-0 text-[8px] group-hover:hidden" style={{ color: C.dim }}>·{kids.length}</span>}
+          {hasKids && <span className="shrink-0 text-[8px] group-hover:hidden" style={{ color: C.dim }}>·{visCount(kids)}</span>}
           {/* per-item controls (👁 🔒 ⚙ •••) — Security iconography; reveal on hover/selected to keep rows clean */}
           <span className={`shrink-0 items-center gap-0 ${selected || isHidden || isLocked ? "flex" : "hidden group-hover:flex"}`}>
             <IconBtn hook="visibility" title={isHidden ? "Show layer" : "Hide layer"} on={() => toggleHidden(node.id)} active={isHidden} activeColor={C.dim} Icon={Eye} IconOff={EyeOff} />
@@ -137,7 +139,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
               <ChevronRight className="h-3 w-3 shrink-0 transition-transform" style={{ transform: open ? "rotate(90deg)" : "none" }} />
               <span className="inline-block h-2 w-2 shrink-0 rounded-sm" style={{ background: SCOPE_COLOR[scope.id] }} />
               <span className="min-w-0 flex-1 truncate">{scope.label}</span>
-              <span className="shrink-0 text-[8px]" style={{ color: C.dim }}>·{scopeKids.length}</span>
+              <span className="shrink-0 text-[8px]" style={{ color: C.dim }}>·{visCount(scopeKids)}</span>
             </button>
             {open && scopeKids.map((n) => renderNode(n, 1, scope.id))}
           </div>

@@ -8,13 +8,15 @@
 import { useEffect, useState } from "react";
 import { flattenLayers, type LayerNode } from "@/lib/architect-layers";
 
+// Empty on the server AND the client's first render (no hydration mismatch under `output: export`);
+// stored values load in a mount effect. Persistence is write-through on mutation — never on mount —
+// so the pre-load empty state can't clobber what's in localStorage.
 function usePersistentSet(key: string): [Set<string>, (id: string) => void, (ids?: string[]) => void] {
-  const [set, setSet] = useState<Set<string>>(() => {
-    try { return new Set<string>(JSON.parse(localStorage.getItem(key) || "[]")); } catch { return new Set<string>(); }
-  });
-  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(Array.from(set))); } catch {} }, [key, set]);
-  const toggle = (id: string) => setSet((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const replace = (ids: string[] = []) => setSet(new Set(ids));
+  const [set, setSet] = useState<Set<string>>(() => new Set<string>());
+  useEffect(() => { try { const v = localStorage.getItem(key); if (v) setSet(new Set<string>(JSON.parse(v))); } catch {} }, [key]);
+  const persist = (n: Set<string>) => { try { localStorage.setItem(key, JSON.stringify(Array.from(n))); } catch {} return n; };
+  const toggle = (id: string) => setSet((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return persist(n); });
+  const replace = (ids: string[] = []) => setSet(() => persist(new Set(ids)));
   return [set, toggle, replace];
 }
 
@@ -28,7 +30,7 @@ export interface LayerState {
   // house build spec (R4) — the components the user has chosen to put ON the house
   spec: Set<string>;
   toggleSpec: (id: string) => void;
-  addSubtreeToSpec: (node: LayerNode) => void;   // add a whole system's leaves at once
+  addSpecIds: (ids: string[]) => void;   // add a set of leaf ids at once (the caller applies any home-type filter)
   clearSpec: () => void;
 }
 
@@ -41,10 +43,7 @@ export function useLayerState(): LayerState {
     replaceHidden(flattenLayers().filter((n) => !n.children?.length && !keep.has(n.id)).map((n) => n.id));
   };
   const revealAll = () => replaceHidden([]);
-  const addSubtreeToSpec = (node: LayerNode) => {
-    const leaves = flattenLayers([node]).filter((n) => !n.children?.length && !n.level3).map((n) => n.id);
-    replaceSpec(Array.from(new Set([...Array.from(spec), ...leaves])));
-  };
+  const addSpecIds = (ids: string[]) => replaceSpec(Array.from(new Set([...Array.from(spec), ...ids])));
   const clearSpec = () => replaceSpec([]);
-  return { hidden, locked, toggleHidden, toggleLocked, isolate, revealAll, spec, toggleSpec, addSubtreeToSpec, clearSpec };
+  return { hidden, locked, toggleHidden, toggleLocked, isolate, revealAll, spec, toggleSpec, addSpecIds, clearSpec };
 }
