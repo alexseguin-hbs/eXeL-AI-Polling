@@ -115,15 +115,19 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
 
   return (
     <div data-arch-layer-tree className="flex flex-col gap-1">
-      {/* HOME TYPE — Tiny Home limits the buildable physical systems + fewer decisions (R3). */}
-      <div data-layer-hometype className="mb-1 flex items-center gap-1 rounded border p-1" style={{ borderColor: C.border }}>
-        {HOME_TYPES.map((h) => (
-          <button key={h.id} data-hometype={h.id} title={h.note} onClick={() => onHomeType?.(h.id)}
-            className="flex-1 rounded px-2 py-1 text-[9px] font-semibold uppercase tracking-wide"
-            style={{ background: homeType === h.id ? "#221833" : "transparent", color: homeType === h.id ? C.violet : C.dim }}>
-            {h.label}
-          </button>
-        ))}
+      {/* TARGET MARKET — Tiny Home & Home are the two markets. Tiny Home limits systems + decisions (R3/R8). */}
+      <div data-layer-hometype className="mb-1 rounded border p-1" style={{ borderColor: C.border }}>
+        <div className="mb-1 px-1 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Target market</div>
+        <div className="flex items-center gap-1">
+          {HOME_TYPES.map((h) => (
+            <button key={h.id} data-hometype={h.id} title={h.note} onClick={() => onHomeType?.(h.id)}
+              className="flex-1 rounded px-2 py-1 text-[9px] font-semibold uppercase tracking-wide"
+              style={{ background: homeType === h.id ? "#221833" : "transparent", color: homeType === h.id ? C.violet : C.dim }}>
+              {h.label}
+            </button>
+          ))}
+        </div>
+        <div className="mt-1 px-1 text-[8px] leading-tight" style={{ color: C.dim }}>{HOME_TYPES.find((h) => h.id === homeType)?.note}</div>
       </div>
       <input data-layer-search value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search layers…"
         className="mb-1 w-full rounded border bg-transparent px-2 py-1 text-[10px]"

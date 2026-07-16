@@ -118,12 +118,13 @@ export function childCount(node: LayerNode | LayerScope): number {
 }
 
 // ── PROJECT TYPE ────────────────────────────────────────────────────────────────────────────────
-// A Tiny Home has LIMITED decisions: a curated subset of physical systems/components is buildable.
-// (Operator: "tiny home selector that limits what assets are possible to add … limited decisions.")
+// TARGET MARKETS. The product serves two: Tiny Home and Home. A Tiny Home has LIMITED decisions — a
+// curated subset of physical systems/components is buildable; a Home is the full digital twin.
+// (Operator: "Tiny Home & Home are two target markets" · "tiny home … limits what assets … limited decisions.")
 export type HomeType = "full" | "tiny";
 export const HOME_TYPES: { id: HomeType; label: string; note: string }[] = [
-  { id: "full", label: "Full Home", note: "Every system + Level 3 substrate" },
-  { id: "tiny", label: "Tiny Home", note: "Limited systems · fewer decisions" },
+  { id: "tiny", label: "Tiny Home", note: "Limited systems · fewer decisions · faster to build" },
+  { id: "full", label: "Home", note: "Full digital twin · every system + Level 3 substrate" },
 ];
 
 // Tiny-home-buildable components, authored by label so slugs stay in sync with the tree. Excluded entirely:
