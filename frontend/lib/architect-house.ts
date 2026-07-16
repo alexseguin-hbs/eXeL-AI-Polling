@@ -70,6 +70,20 @@ function phaseDuration(days: number[]): number {
   return Math.max(Math.max(...days), Math.ceil(days.reduce((a, b) => a + b, 0) / 2));
 }
 
+// Parallel install: each phase STARTS when the previous is ~60% done (40% overlap on the seam), so
+// timelines overlap. Returns each phase's start day on a shared axis + the critical-path total.
+export interface ScheduledPhase extends PhaseRollup { start: number; }
+function withStarts(byPhase: PhaseRollup[]): { scheduled: ScheduledPhase[]; totalDays: number } {
+  let start = 0, end = 0;
+  const scheduled = byPhase.map((p) => {
+    const sp: ScheduledPhase = { ...p, start };
+    end = Math.max(end, start + p.days);
+    start = start + Math.max(1, Math.ceil(p.days * 0.6));
+    return sp;
+  });
+  return { scheduled, totalDays: end };
+}
+
 export function houseEstimate(specIds: string[]): HouseEstimate {
   const leaves = specLeafIds(specIds);
   const buckets = new Map<Phase, { cost: number; days: number[]; count: number }>();
@@ -89,7 +103,14 @@ export function houseEstimate(specIds: string[]): HouseEstimate {
       return { phase: p.id, label: PHASE_LABEL[p.id], color: PHASE_COLOR[p.id], count: b.count, cost: b.cost, days: phaseDuration(b.days) };
     });
   const sequentialDays = byPhase.reduce((a, p) => a + p.days, 0);
-  // Parallel install: each phase starts when the previous is ~60% done (rough 40% overlap on the seam).
-  const parallelDays = byPhase.reduce((acc, p, i) => acc + (i === 0 ? p.days : Math.ceil(p.days * 0.6)), 0);
+  const parallelDays = withStarts(byPhase).totalDays;
   return { count: leaves.length, cost, sequentialDays, parallelDays, byPhase };
+}
+
+export interface HouseSchedule { phases: ScheduledPhase[]; totalDays: number; sequentialDays: number; savedDays: number; }
+// The overlapping install schedule — phase bars on a shared time axis (R5).
+export function houseSchedule(specIds: string[]): HouseSchedule {
+  const est = houseEstimate(specIds);
+  const { scheduled, totalDays } = withStarts(est.byPhase);
+  return { phases: scheduled, totalDays, sequentialDays: est.sequentialDays, savedDays: Math.max(0, est.sequentialDays - totalDays) };
 }

@@ -7,7 +7,7 @@
  * install time (overlapping phases) is shown alongside the naive sequential total.
  */
 import { X, Home, Layers } from "lucide-react";
-import { houseEstimate, componentEstimate } from "@/lib/architect-house";
+import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect-house";
 import { findLayer, type LayerNode } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
 
@@ -28,6 +28,7 @@ export function HouseSpec({ state }: { state: LayerState }) {
   }
 
   const maxPhaseDays = Math.max(...est.byPhase.map((p) => p.days), 1);
+  const sched = houseSchedule(ids);
   // spec ids resolved to their (leaf) component nodes
   const items = ids.map((id) => findLayer(id)?.node).filter((n): n is LayerNode => !!n && !n.children?.length);
 
@@ -54,6 +55,32 @@ export function HouseSpec({ state }: { state: LayerState }) {
             <span className="w-24 shrink-0 text-right text-[9px] tabular-nums" style={{ color: C.dim }}>{p.count}× · {p.days}d · {fmtUsd(p.cost)}</span>
           </div>
         ))}
+      </div>
+
+      {/* PARALLEL INSTALL TIMELINE — phase bars on a shared day-axis; overlaps show parallel install (R5). */}
+      <div data-arch-timeline className="flex flex-col gap-1 rounded border p-2" style={{ borderColor: C.border }}>
+        <div className="flex items-center gap-2 text-[9px] uppercase tracking-wider" style={{ color: C.dim }}>
+          <span style={{ color: C.cyan }}>Parallel install timeline</span>
+          <span>· critical path <span className="tabular-nums" style={{ color: C.green }}>{sched.totalDays} days</span></span>
+          {sched.savedDays > 0 && <span>· saves <span className="tabular-nums" style={{ color: C.gold }}>{sched.savedDays} days</span> vs sequential</span>}
+        </div>
+        <div className="relative" style={{ height: sched.phases.length * 18 + 4 }}>
+          {sched.phases.map((p, i) => (
+            <div key={p.phase} data-timeline-phase={p.phase} className="absolute flex items-center rounded px-1.5 text-[8px] font-semibold"
+              style={{
+                top: i * 18, height: 15,
+                left: `${(p.start / (sched.totalDays || 1)) * 100}%`,
+                width: `${Math.max(4, (p.days / (sched.totalDays || 1)) * 100)}%`,
+                background: p.color, color: "#0a0e14", opacity: 0.9, whiteSpace: "nowrap", overflow: "hidden",
+              }}
+              title={`${p.label}: day ${p.start}–${p.start + p.days}`}>
+              {p.label}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-between text-[8px] tabular-nums" style={{ color: C.dim }}>
+          <span>day 0</span><span>day {sched.totalDays}</span>
+        </div>
       </div>
 
       {/* chosen components */}

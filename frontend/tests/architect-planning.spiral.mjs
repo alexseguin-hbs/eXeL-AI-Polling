@@ -1325,6 +1325,32 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A73: PARALLEL INSTALL TIMELINE — phases render as bars on a shared day axis, OVERLAPPING (each starts
+//          before the previous finishes) so the critical path is shorter than the sequential sum. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => localStorage.removeItem('arch2525.houseSpec'));
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  for (const s of ['foundation', 'structure', 'electrical']) {
+    await pg.evaluate((sys) => document.querySelector(`[data-layer-node="physical/${sys}"]`)?.click(), s); await pg.waitForTimeout(150);
+    await pg.evaluate(() => document.querySelector('[data-inspect-ctl="house"]')?.click()); await pg.waitForTimeout(180);
+  }
+  const info = await pg.evaluate(() => {
+    const bars = [...document.querySelectorAll('[data-arch-timeline] [data-timeline-phase]')];
+    const lefts = bars.map((b) => parseFloat(b.style.left) || 0);
+    return {
+      timeline: !!document.querySelector('[data-arch-timeline]'),
+      phases: bars.map((b) => b.getAttribute('data-timeline-phase')),
+      secondOffset: lefts.length >= 2 && lefts[1] > 0 && lefts[1] < 100,   // framing starts after day 0 (overlap)
+      savesText: /saves/i.test(document.querySelector('[data-arch-timeline]')?.textContent || ''),
+    };
+  });
+  const ok = info.timeline && info.phases.length === 3 && ['foundation', 'framing', 'mep'].every((p) => info.phases.includes(p)) && info.secondOffset && info.savesText;
+  rec('#A73 parallel install timeline — overlapping phase bars on a shared day axis + saves-vs-sequential', ok, JSON.stringify(info));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
