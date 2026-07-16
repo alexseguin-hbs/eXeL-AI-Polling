@@ -9,7 +9,7 @@
  * quiet prompt when nothing is selected.
  */
 import { Eye, EyeOff, Lock, Unlock, Crosshair, RotateCcw } from "lucide-react";
-import { findLayer, flattenLayers, type LayerNode } from "@/lib/architect-layers";
+import { findLayer, flattenLayers, isVisibleForType, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
 
 const C = { border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400" };
@@ -21,7 +21,7 @@ const SCOPE_LINK: Record<string, string> = {
   lifecycle: "Generated post-occupancy — Assets · Warranty · Service History",
 };
 
-export function LayerInspector({ selectedId, state }: { selectedId?: string | null; state?: LayerState }) {
+export function LayerInspector({ selectedId, state, homeType = "full" }: { selectedId?: string | null; state?: LayerState; homeType?: HomeType }) {
   if (!selectedId) {
     return (
       <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
@@ -33,8 +33,9 @@ export function LayerInspector({ selectedId, state }: { selectedId?: string | nu
   if (!found) return <div className="text-[10px]" style={{ color: C.dim }}>Unknown layer.</div>;
   const { node, scope, path } = found;
   const color = SCOPE_COLOR[scope.id] ?? C.text;
-  const kids: LayerNode[] = node.children ?? [];
-  const leafCount = flattenLayers([node]).filter((n) => !n.children?.length).length;
+  // Honor the Tiny Home filter so "Contains" matches what the tree offers (R3).
+  const kids: LayerNode[] = (node.children ?? []).filter((c) => isVisibleForType(c.id, scope.id, homeType));
+  const leafCount = flattenLayers([node]).filter((n) => !n.children?.length && isVisibleForType(n.id, scope.id, homeType)).length;
   const isHidden = !!state?.hidden.has(node.id);
   const isLocked = !!state?.locked.has(node.id);
 

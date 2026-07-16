@@ -1274,6 +1274,28 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A71: TINY HOME selector limits the buildable physical systems + decisions — Fire Protection and
+//          Communications drop out (12→10 systems), and no Level 3 Cubes appear; Full Home restores them. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(300);
+  const systemCount = () => pg.evaluate(() =>
+    [...document.querySelectorAll('[data-arch-layer-tree] [data-layer-node]')]
+      .filter((n) => /^physical\/[^/]+$/.test(n.getAttribute('data-layer-node') || '')).length);
+  const fullN = await systemCount();
+  await pg.evaluate(() => document.querySelector('[data-hometype="tiny"]')?.click()); await pg.waitForTimeout(220);
+  const tinyN = await systemCount();
+  const fireGone = await pg.evaluate(() => !document.querySelector('[data-layer-node="physical/fire-protection"]'));
+  const commsGone = await pg.evaluate(() => !document.querySelector('[data-layer-node="physical/communications-low-voltage"]'));
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  const noL3 = await pg.evaluate(() => !document.querySelector('[data-layer-node="physical/foundation/level-3-cubes"]'));
+  await pg.evaluate(() => document.querySelector('[data-hometype="full"]')?.click()); await pg.waitForTimeout(220);
+  const backN = await systemCount();
+  const ok = fullN === 12 && tinyN === 10 && fireGone && commsGone && noL3 && backN === 12;
+  rec('#A71 Tiny Home limits systems (12→10, no Fire/Comms/L3) + Full Home restores', ok, JSON.stringify({ fullN, tinyN, fireGone, commsGone, noL3, backN }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

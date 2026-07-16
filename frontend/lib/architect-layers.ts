@@ -117,6 +117,52 @@ export function childCount(node: LayerNode | LayerScope): number {
   return node.children?.length ?? 0;
 }
 
+// ── PROJECT TYPE ────────────────────────────────────────────────────────────────────────────────
+// A Tiny Home has LIMITED decisions: a curated subset of physical systems/components is buildable.
+// (Operator: "tiny home selector that limits what assets are possible to add … limited decisions.")
+export type HomeType = "full" | "tiny";
+export const HOME_TYPES: { id: HomeType; label: string; note: string }[] = [
+  { id: "full", label: "Full Home", note: "Every system + Level 3 substrate" },
+  { id: "tiny", label: "Tiny Home", note: "Limited systems · fewer decisions" },
+];
+
+// Tiny-home-buildable components, authored by label so slugs stay in sync with the tree. Excluded entirely:
+// Fire Protection, Communications & Low Voltage, and all Level 3 Cubes (no L3 substrate on a tiny home).
+const TINY_SPEC: Record<string, string[]> = {
+  Site: ["Parcel / Property Boundaries", "Utilities (Water, Sewer, Electric, Gas, Telecom)", "Setbacks & Easements", "Solar Orientation & Wind Context"],
+  Spaces: ["Floors", "Rooms & Zones", "Circulation Paths", "Outdoor Spaces"],
+  Foundation: ["Footings", "Slab-on-Grade", "Anchor Bolts & Hold-downs"],
+  Structure: ["Primary Structure", "Floor Systems", "Roof Systems"],
+  "Building Envelope": ["Exterior Walls", "Roofing System", "Windows & Exterior Doors", "Insulation & Weather Barriers", "Cladding / Siding"],
+  Mechanical: ["Equipment", "Ventilation Systems"],
+  Electrical: ["Main Service & Panel", "Circuits & Wiring", "Lighting", "Devices & Fixtures"],
+  Plumbing: ["Supply Lines", "Drain, Waste & Vent (DWV)", "Water Heater", "Fixtures"],
+  Interior: ["Non-Load-Bearing Walls", "Flooring", "Cabinetry & Millwork", "Painting & Coatings"],
+  Exterior: ["Decks, Patios & Porches", "Exterior Lighting"],
+};
+const TINY_HOME_IDS = new Set<string>(
+  Object.entries(TINY_SPEC).flatMap(([sys, leaves]) => leaves.map((l) => `physical/${slug(sys)}/${slug(l)}`)),
+);
+
+// A physical node is visible for a Tiny Home if it is (or contains, or is an ancestor of) a buildable
+// component — but never a Level 3 Cubes node. Precomputed once (ancestors + descendants of each allowed id).
+export const TINY_VISIBLE: Set<string> = (() => {
+  const vis = new Set<string>();
+  Array.from(TINY_HOME_IDS).forEach((id) => {
+    const f = findLayer(id);
+    if (!f) return;
+    f.path.forEach((n) => vis.add(n.id));               // self + ancestors
+    flattenLayers([f.node]).forEach((n) => { if (!n.level3) vis.add(n.id); }); // self + descendants, minus L3
+  });
+  return vis;
+})();
+
+// Is this node offered for the given home type? Only the physical scope is limited; Operational/Lifecycle stay full.
+export function isVisibleForType(id: string, scopeId: string, homeType: HomeType): boolean {
+  if (homeType === "full" || scopeId !== "physical") return true;
+  return TINY_VISIBLE.has(id);
+}
+
 // Resolve an id to its node, owning scope, and ancestor path (root → node). Used by the Context inspector.
 export function findLayer(id: string): { node: LayerNode; scope: LayerScope; path: LayerNode[] } | null {
   for (const scope of LAYER_TREE) {

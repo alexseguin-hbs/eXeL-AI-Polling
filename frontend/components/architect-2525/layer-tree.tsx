@@ -11,15 +11,20 @@
  */
 import { useMemo, useState } from "react";
 import { ChevronRight, Eye, EyeOff, Lock, Unlock, Settings, MoreHorizontal } from "lucide-react";
-import { LAYER_TREE, type LayerNode } from "@/lib/architect-layers";
+import { LAYER_TREE, HOME_TYPES, isVisibleForType, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
 
 const C = { border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400" };
 const SCOPE_COLOR: Record<string, string> = { physical: C.violet, operational: C.cyan, lifecycle: C.green };
 
 // `state` (visibility + lock Sets) is lifted to the shell so the RIGHT Context inspector shares it (R2).
-export function LayerTree({ selectedId, onSelect, state }: { selectedId?: string | null; onSelect?: (id: string) => void; state: LayerState }) {
+// `homeType` limits which physical components are offered — a Tiny Home has fewer decisions (R3).
+export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHomeType }: {
+  selectedId?: string | null; onSelect?: (id: string) => void; state: LayerState;
+  homeType?: HomeType; onHomeType?: (t: HomeType) => void;
+}) {
   const { hidden, locked, toggleHidden, toggleLocked, isolate: isolateNode, revealAll } = state;
+  const tinyOK = (id: string, scopeId: string) => isVisibleForType(id, scopeId, homeType);
   // Scopes open by default; systems collapsed (matches Security's "start collapsed" density).
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set(["physical", "operational", "lifecycle"]));
   const [q, setQ] = useState("");
@@ -63,9 +68,11 @@ export function LayerTree({ selectedId, onSelect, state }: { selectedId?: string
     );
   };
 
-  const renderNode = (node: LayerNode, depth: number) => {
+  const renderNode = (node: LayerNode, depth: number, scopeId: string) => {
     if (visible && !visible.has(node.id)) return null;
-    const hasKids = !!node.children?.length;
+    if (!tinyOK(node.id, scopeId)) return null;   // Tiny Home hides non-buildable physical components
+    const kids = (node.children ?? []).filter((c) => tinyOK(c.id, scopeId));
+    const hasKids = kids.length > 0;
     const open = isOpen(node.id);
     const selected = selectedId === node.id;
     const isHidden = hidden.has(node.id);
@@ -80,7 +87,7 @@ export function LayerTree({ selectedId, onSelect, state }: { selectedId?: string
             ? <ChevronRight className="h-3 w-3 shrink-0 transition-transform" style={{ transform: open ? "rotate(90deg)" : "none", color: C.dim }} />
             : <span className="inline-block h-3 w-3 shrink-0" />}
           <span className="min-w-0 flex-1 truncate">{node.label}</span>
-          {hasKids && <span className="shrink-0 text-[8px] group-hover:hidden" style={{ color: C.dim }}>·{node.children!.length}</span>}
+          {hasKids && <span className="shrink-0 text-[8px] group-hover:hidden" style={{ color: C.dim }}>·{kids.length}</span>}
           {/* per-item controls (👁 🔒 ⚙ •••) — Security iconography; reveal on hover/selected to keep rows clean */}
           <span className={`shrink-0 items-center gap-0 ${selected || isHidden || isLocked ? "flex" : "hidden group-hover:flex"}`}>
             <IconBtn hook="visibility" title={isHidden ? "Show layer" : "Hide layer"} on={() => toggleHidden(node.id)} active={isHidden} activeColor={C.dim} Icon={Eye} IconOff={EyeOff} />
@@ -98,18 +105,29 @@ export function LayerTree({ selectedId, onSelect, state }: { selectedId?: string
             <button className="px-2 py-1 text-left hover:bg-white/5" style={{ color: C.text }} onClick={(e) => { stop(e); revealAll(); setMenuId(null); }}>Reveal all</button>
           </div>
         )}
-        {open && node.children?.map((c) => renderNode(c, depth + 1))}
+        {open && kids.map((c) => renderNode(c, depth + 1, scopeId))}
       </div>
     );
   };
 
   return (
     <div data-arch-layer-tree className="flex flex-col gap-1">
+      {/* HOME TYPE — Tiny Home limits the buildable physical systems + fewer decisions (R3). */}
+      <div data-layer-hometype className="mb-1 flex items-center gap-1 rounded border p-1" style={{ borderColor: C.border }}>
+        {HOME_TYPES.map((h) => (
+          <button key={h.id} data-hometype={h.id} title={h.note} onClick={() => onHomeType?.(h.id)}
+            className="flex-1 rounded px-2 py-1 text-[9px] font-semibold uppercase tracking-wide"
+            style={{ background: homeType === h.id ? "#221833" : "transparent", color: homeType === h.id ? C.violet : C.dim }}>
+            {h.label}
+          </button>
+        ))}
+      </div>
       <input data-layer-search value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search layers…"
         className="mb-1 w-full rounded border bg-transparent px-2 py-1 text-[10px]"
         style={{ borderColor: C.border, color: C.text }} />
       {LAYER_TREE.map((scope) => {
         const open = isOpen(scope.id);
+        const scopeKids = scope.children.filter((n) => tinyOK(n.id, scope.id));
         return (
           <div key={scope.id} data-layer-scope={scope.id}>
             <button onClick={() => toggle(scope.id)} data-layer-node={scope.id}
@@ -118,9 +136,9 @@ export function LayerTree({ selectedId, onSelect, state }: { selectedId?: string
               <ChevronRight className="h-3 w-3 shrink-0 transition-transform" style={{ transform: open ? "rotate(90deg)" : "none" }} />
               <span className="inline-block h-2 w-2 shrink-0 rounded-sm" style={{ background: SCOPE_COLOR[scope.id] }} />
               <span className="min-w-0 flex-1 truncate">{scope.label}</span>
-              <span className="shrink-0 text-[8px]" style={{ color: C.dim }}>·{scope.children.length}</span>
+              <span className="shrink-0 text-[8px]" style={{ color: C.dim }}>·{scopeKids.length}</span>
             </button>
-            {open && scope.children.map((n) => renderNode(n, 1))}
+            {open && scopeKids.map((n) => renderNode(n, 1, scope.id))}
           </div>
         );
       })}
