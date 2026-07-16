@@ -79,6 +79,15 @@ const sunTh = sunDotRadius("thematic"), jupTh = planetDotRadius(jup, "thematic")
 ok(`thematic Sun ${sunTh} is the biggest body but modest (> Jupiter ${jupTh.toFixed(2)}, < 4)`, sunTh > jupTh && sunTh < 4);
 ok(`Sun size ordered thematic(${sunTh}) < truescale(${sunDotRadius("truescale")}) < proportional(${sunDotRadius("proportional")})`, sunDotRadius("thematic") < sunDotRadius("truescale") && sunDotRadius("truescale") < sunDotRadius("proportional"));
 
+console.log("— PLANET size: TRUE SCALE accurate + Jupiter NOT too big in the other modes + Moon real diameter (operator) —");
+const jupTs = planetDotRadius(jup, "truescale"), sunTs = sunDotRadius("truescale");
+ok(`true-scale Jupiter/Sun ≈ 0.10 (real 69911/695700 = 0.1005): got ${(jupTs / sunTs).toFixed(3)}`, Math.abs(jupTs / sunTs - 0.1005) < 0.02);
+const jupPr = planetDotRadius(jup, "proportional"), sunPr = sunDotRadius("proportional");
+ok(`proportional Jupiter (${jupPr.toFixed(2)}) reads well under the Sun (${sunPr}) — < 45% (was ~83%)`, jupPr / sunPr < 0.45);
+ok(`thematic Jupiter (${jupTh.toFixed(2)}) modest under the Sun (${sunTh})`, jupTh < sunTh * 0.7);
+const earthKm = PLANETS.find((p) => p.id === "earth").radiusKm;
+ok(`Moon:Earth diameter ratio = real 0.273 (${(MOON.radiusKm / earthKm).toFixed(3)})`, Math.abs(MOON.radiusKm / earthKm - 0.2727) < 0.005);
+
 console.log("— WINDOW-FRAMING solvers (homeowner mission, lib/celestial) — deterministic + edge/null paths —");
 // A synthetic body that SWEEPS azimuth (15°/h, like the real sky), crossing due-SOUTH (az 180) exactly at local noon,
 // climbing to el 50° at transit, below the horizon at night. (Real bodies always move in az → a single, meaningful transit.)

@@ -29,8 +29,10 @@ export function EarthMoonBox({ lat = 30.44, lon = -97.62, year = 2025, doy = 172
   const moonAngleDeg = m.eclLonMoon + playT * 13.176 + moonPlayT * 360;
   const ang = moonAngleDeg * Math.PI / 180;                 // accurate orbital angle
   const mx = cx + orbR * Math.cos(ang), my = cy - orbR * Math.sin(ang);
-  const moonSize = Math.max(16, size * 0.2);
   const globe = size * 0.6;
+  // Moon disc sized from REAL data: Moon:Earth diameter ratio = 1737.4 / 6371 = 0.273× (operator: use actual diameters).
+  const earthKm = PLANETS.find((p) => p.id === "earth")?.radiusKm ?? 6371;
+  const moonSize = Math.max(14, globe * (MOON.radiusKm / earthKm));
   const earthSpin = (hour / 24) * 360 + playT * 360 + moonPlayT * 360 * moonPeriodDays; // spins N times per Moon orbit
   // DISTANT BACKDROP — deep-space stars + a couple of constellations + far-off planet specks, behind Earth+Moon
   // (looking out from Earth/Moon). Memoized (size-keyed) so it never recomputes during drag/spin (smoothness).

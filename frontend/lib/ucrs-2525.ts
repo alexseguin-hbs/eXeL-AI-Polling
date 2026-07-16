@@ -63,7 +63,7 @@ export type PlanetSizeMode = "truescale" | "proportional" | "thematic";
 export const SIZE_MODES: PlanetSizeMode[] = ["truescale", "proportional", "thematic"];
 export const SIZE_LABEL: Record<PlanetSizeMode, string> = { truescale: "True Scale", proportional: "Proportional", thematic: "Thematic" };
 // Thematic base dot + spread: smallest planet = THEMATIC_BASE, largest = THEMATIC_BASE × (1 + THEMATIC_SPREAD).
-const THEMATIC_BASE = 1.6, THEMATIC_SPREAD = 0.5;
+const THEMATIC_BASE = 1.1, THEMATIC_SPREAD = 0.5;  // shrunk (operator: planets too big) — planets now 1.1×–1.65×, modest vs Sun 3.3
 /**
  * Map dot radius per size mode:
  *  • truescale    — real size relative to the SUN (planets are tiny specks; hit-target keeps them clickable),
@@ -73,7 +73,7 @@ const THEMATIC_BASE = 1.6, THEMATIC_SPREAD = 0.5;
  */
 export const planetDotRadius = (p: Planet, mode: PlanetSizeMode): number => {
   if (mode === "truescale") return Math.max(0.15, (p.radiusKm / SUN_RADIUS_KM) * SUN_DOT_R);
-  if (mode === "proportional") return Math.max(0.5, (p.radiusKm / RADIUS_MAX_KM) * 6);
+  if (mode === "proportional") return Math.max(0.5, (p.radiusKm / RADIUS_MAX_KM) * 2.6);  // shrunk from ×6 (Jupiter 6→2.6) so it reads well under the Sun (7.2), not ~83% of it
   // thematic: log-normalise real radius into [0,1] → 1.0×–1.5× of the base (Pluto→base, Jupiter→1.5×base)
   const norm = (Math.log(p.radiusKm) - Math.log(RADIUS_MIN_KM)) / (Math.log(RADIUS_MAX_KM) - Math.log(RADIUS_MIN_KM));
   return THEMATIC_BASE * (1 + THEMATIC_SPREAD * Math.max(0, Math.min(1, norm)));
