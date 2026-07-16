@@ -1231,6 +1231,30 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A69: DESKTOP LAYOUT — on a wide (≥lg) viewport the Layer Tree sits to the LEFT of the design engine in
+//          one row (never stacked above it); on a narrow viewport it stacks. Width breakpoint, not orientation. ──
+{
+  const { pg, tab } = await mk({ width: 1280, height: 800 });
+  await tab('Design'); await pg.waitForTimeout(300);
+  const wide = await pg.evaluate(() => {
+    const e = document.querySelector('[data-arch-engine]')?.getBoundingClientRect();
+    const t = document.querySelector('[data-arch-layer-tree]')?.getBoundingClientRect();
+    if (!e || !t) return null;
+    return { treeLeftOfEngine: t.x < e.x, sameRow: Math.abs(t.y - e.y) < 140, engineWide: e.width > 560 };
+  });
+  await pg.close();
+  const { pg: pg2, tab: tab2 } = await mk({ width: 400, height: 900 });
+  await tab2('Design'); await pg2.waitForTimeout(300);
+  const narrow = await pg2.evaluate(() => {
+    const e = document.querySelector('[data-arch-engine]')?.getBoundingClientRect();
+    const t = document.querySelector('[data-arch-layer-tree]')?.getBoundingClientRect();
+    return e && t ? e.y > t.y + 40 : null;   // stacked: engine below the tree
+  });
+  await pg2.close();
+  const ok = wide && wide.treeLeftOfEngine && wide.sameRow && wide.engineWide && narrow === true;
+  rec('#A69 desktop: Layer Tree LEFT of engine (one row); mobile: stacked', ok, JSON.stringify({ wide, narrowStacked: narrow }));
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

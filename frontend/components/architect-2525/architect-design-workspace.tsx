@@ -30,15 +30,15 @@ function Rail({ side, title, open, setOpen, children }: {
 }) {
   if (!open) {
     return (
-      <div className="flex shrink-0 flex-col items-center gap-2 pt-1 landscape:w-[56px]">
+      <div className="flex shrink-0 flex-col items-center gap-2 pt-1 md:w-[56px]">
         <Toggle3 onClick={() => setOpen(true)} title={`Show ${title}`} />
-        <span className="hidden text-[8px] font-semibold uppercase tracking-wider landscape:[writing-mode:vertical-rl]"
+        <span className="hidden text-[8px] font-semibold uppercase tracking-wider md:[writing-mode:vertical-rl]"
           style={{ color: C.dim }}>{title}</span>
       </div>
     );
   }
   return (
-    <div className="flex min-h-0 shrink-0 flex-col gap-2 landscape:w-64">
+    <div className="flex min-h-0 shrink-0 flex-col gap-2 md:w-64">
       <div className="min-h-0 flex-1 overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
         <div className="flex items-center justify-between border-b p-1.5" style={{ borderColor: C.border }}>
           <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{title}</span>
@@ -60,9 +60,10 @@ export function DesignWorkspace({ leftRail, rightRail, children, selectedId }: {
   // "Selecting any item in the Layer Tree opens the Right Context Panel" — auto-open on a new selection.
   useEffect(() => { if (selectedId) setRightOpen(true); }, [selectedId]);
   return (
-    // flex-wrap: when a rail + the engine's min-width can't fit, the rail wraps below instead of crushing the
-    // visualization engine (the celestial map's absolute overlays overlap if the map gets too narrow).
-    <div data-arch-design-ws className="flex flex-col gap-2 landscape:flex-row landscape:flex-wrap">
+    // Width breakpoint (md = 768px), NOT orientation: on desktop/tablet the tree sits to the LEFT of the engine
+    // in a single row; below md it stacks vertically (phones). No flex-wrap — wrapping was letting the engine
+    // drop BELOW the tree on some desktop windows (the reported "tree above the design window" bug).
+    <div data-arch-design-ws className="flex flex-col gap-2 md:flex-row md:items-stretch">
       <Rail side="left" title="Layer Tree" open={leftOpen} setOpen={setLeftOpen}>
         {leftRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
@@ -71,7 +72,7 @@ export function DesignWorkspace({ leftRail, rightRail, children, selectedId }: {
           </div>
         )}
       </Rail>
-      <div data-arch-engine className="min-w-0 flex-1 landscape:min-w-[560px]">{children}</div>
+      <div data-arch-engine className="min-w-0 flex-1">{children}</div>
       <Rail side="right" title="Context" open={rightOpen} setOpen={setRightOpen}>
         {rightRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>

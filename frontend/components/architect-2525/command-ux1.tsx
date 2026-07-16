@@ -214,7 +214,10 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             </button>
           ))}
         </div>
-        {/* PROJECT RIBBON — always visible below the nav (v3.0) */}
+        {/* PROJECT RIBBON — visible below the nav (v3.0). Hidden on DESIGN: the Design tab is a dense
+            3-column Digital-Twin workspace, so its header stays minimal (nav + engine tabs only). The full
+            ribbon remains on every other tab; project status also lives on the Overview dashboard. */}
+        {activeTab !== "Design" && (
         <div data-arch-ribbon className="flex items-center gap-x-4 gap-y-0.5 overflow-x-auto border-b px-4 py-1 text-[9px] whitespace-nowrap" style={{ borderColor: C.border }}>
           <span style={{ color: C.dim }}>PROJECT <span style={{ color: C.text }}>V2525-000842</span></span>
           <span style={{ color: C.dim }}>Stage Gate <span style={{ color: C.gold }}>G6</span></span>
@@ -225,6 +228,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           <span style={{ color: C.dim }}>Human Authority <span style={{ color: C.violet }}>Homeowner</span></span>
           <span style={{ color: C.dim }}>Replay <span style={{ color: C.green }}>ready</span></span>
         </div>
+        )}
         {/* SUBNAV — inner (secondary) tabs for the active primary tab */}
         {SUBNAV[activeTab] && (
           <div data-arch-subnav className="flex gap-1 overflow-x-auto border-b px-4 py-1" style={{ borderColor: C.border }}>
