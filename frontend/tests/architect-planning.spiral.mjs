@@ -1070,6 +1070,87 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A59: LAYER TREE renders in the Design LEFT rail — 3 scopes (Physical Digital Twin · Operational
+//          Intelligence · Lifecycle) + a search box (Vision 2525 Digital Twin Standard v1.0). ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(300);
+  const info = await pg.evaluate(() => {
+    const tree = document.querySelector('[data-arch-layer-tree]');
+    const scopes = [...document.querySelectorAll('[data-layer-scope]')].map((s) => s.getAttribute('data-layer-scope'));
+    return {
+      tree: !!tree,
+      search: !!document.querySelector('[data-layer-search]'),
+      scopes,
+      hasPhysical: !!document.querySelector('[data-layer-node="physical/site"]'),   // Site branch present
+    };
+  });
+  const want = ['physical', 'operational', 'lifecycle'];
+  const ok = info.tree && info.search && want.every((s) => info.scopes.includes(s)) && info.hasPhysical;
+  rec('#A59 Layer Tree in Design LEFT rail — 3 scopes + search box', ok, JSON.stringify(info));
+  await pg.close();
+}
+
+// ── #A60: NESTING LAW — "Level 3 Cubes" lives INSIDE physical systems (never a top-level branch); Site &
+//          Spaces have none; Structure is 4 levels deep (Scope → Structure → Primary System → members). ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(300);
+  // expand all 10 physical systems (collapsed nodes don't render children) + Primary Structure for the 4th level
+  const SYS = ['foundation', 'structure', 'building-envelope', 'mechanical', 'electrical', 'plumbing', 'fire-protection', 'communications-low-voltage', 'interior', 'exterior'];
+  for (const s of SYS) { await pg.evaluate((id) => document.querySelector(`[data-layer-node="physical/${id}"]`)?.click(), s); await pg.waitForTimeout(40); }
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/structure/primary-structure"]')?.click()); await pg.waitForTimeout(120);
+  const info = await pg.evaluate(() => {
+    const l3 = [...document.querySelectorAll('[data-layer-node]')].filter((n) => /\/level-3-cubes$/.test(n.getAttribute('data-layer-node') || ''));
+    const l3ids = l3.map((n) => n.getAttribute('data-layer-node'));
+    // a Level-3-Cubes node id has ≥2 slashes (scope/system/level-3-cubes) → nested, not top-level
+    const allNested = l3ids.length >= 10 && l3ids.every((id) => (id.match(/\//g) || []).length >= 2);
+    const siteNo = !document.querySelector('[data-layer-node="physical/site/level-3-cubes"]');
+    const spacesNo = !document.querySelector('[data-layer-node="physical/spaces/level-3-cubes"]');
+    // 4-level depth: a member under Primary Structure
+    const beam = !!document.querySelector('[data-layer-node="physical/structure/primary-structure/beams-girders"]');
+    return { count: l3ids.length, allNested, siteNo, spacesNo, beam };
+  });
+  const ok = info.allNested && info.siteNo && info.spacesNo && info.beam;
+  rec('#A60 nesting law — Level 3 Cubes inside systems (10, ≥2 deep, not Site/Spaces) + Structure 4-level depth', ok, JSON.stringify(info));
+  await pg.close();
+}
+
+// ── #A61: EXPAND / COLLAPSE — a physical system (Foundation) toggles its children open/closed. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(300);
+  const footingSel = '[data-layer-node="physical/foundation/footings"]';
+  const seen = () => pg.evaluate((s) => !!document.querySelector(s), footingSel);
+  const closed0 = !(await seen());                                                // collapsed by default
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  const openedNow = await seen();                                                 // child visible after expand
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  const closedAgain = !(await seen());                                            // hidden after collapse
+  const ok = closed0 && openedNow && closedAgain;
+  rec('#A61 Layer Tree expand/collapse — Foundation toggles children', ok, JSON.stringify({ closed0, openedNow, closedAgain }));
+  await pg.close();
+}
+
+// ── #A65: SEARCH / FILTER — typing filters to matches and auto-expands their ancestors (the enhancement
+//          over Security's PlacementRail, which has no search). ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(300);
+  const setSearch = async (v) => { await pg.evaluate((val) => { const t = document.querySelector('[data-layer-search]'); if (!t) return; const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(t, val); t.dispatchEvent(new Event('input', { bubbles: true })); }, v); await pg.waitForTimeout(200); };
+  await setSearch('ductwork');
+  const info = await pg.evaluate(() => ({
+    duct: !!document.querySelector('[data-layer-node="physical/mechanical/ductwork"]'),  // match visible (ancestor auto-expanded)
+    unrelated: !!document.querySelector('[data-layer-node="physical/foundation/footings"]'), // non-match hidden
+    nodes: document.querySelectorAll('[data-arch-layer-tree] [data-layer-node]').length,
+  }));
+  await setSearch('');   // clear restores full tree
+  const restored = await pg.evaluate(() => document.querySelectorAll('[data-arch-layer-tree] [data-layer-node]').length);
+  const ok = info.duct && !info.unrelated && restored > info.nodes;
+  rec('#A65 Layer Tree search filters to matches + auto-expands ancestors (Security lacks this)', ok, JSON.stringify({ ...info, restored }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

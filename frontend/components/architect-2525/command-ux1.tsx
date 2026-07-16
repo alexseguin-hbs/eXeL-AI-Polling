@@ -23,6 +23,7 @@ import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps
 import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
 import { ArchitectDesign, type DesignMetrics } from "./architect-design";
 import { DesignWorkspace } from "./architect-design-workspace";
+import { LayerTree } from "./layer-tree";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
 import { ArchitectSoI } from "./architect-soi";
@@ -119,6 +120,9 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const [subTab, setSubTab] = useState<Record<string, string>>(initSub ? { [initTab]: initSub } : {});
   const sub = (tab: string) => subTab[tab] ?? SUBNAV[tab]?.[0] ?? "";
   const setSub = (tab: string, s: string) => setSubTab((m) => ({ ...m, [tab]: s }));
+  // Layer Tree selection — the canonical "what exists" pointer, lifted to the shell so every workspace
+  // references it (Vision 2525 Digital Twin Standard v1.0). Drives the RIGHT Context panel (C5).
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFps, setShowFps] = useState(() => { try { return localStorage.getItem("arch2525.fps") === "1"; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem("arch2525.fps", showFps ? "1" : "0"); } catch {} }, [showFps]);
@@ -237,7 +241,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           4-tab visualization engine · RIGHT Context). Kept always-mounted so the Model survives tab switches. */}
       <div className="p-4">
         <div data-arch-tab={activeTab === "Design" ? "Design" : undefined} style={activeTab === "Design" ? undefined : { display: "none" }}>
-          <DesignWorkspace>
+          <DesignWorkspace leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} />}>
             {/* MODEL kept mounted (display:none when another engine view is active) so wireframe state persists. */}
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>
               <ArchitectDesign onMetrics={setDesignMetrics} />
