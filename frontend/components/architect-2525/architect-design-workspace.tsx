@@ -11,7 +11,7 @@
  * The engine tabs themselves live in the shell SUBNAV row (Model/Site/Sky/Compare) directly above this — that
  * keeps every existing SPIRAL assert (`[data-arch-subnav] button:has-text("Site")` + `[data-sky-view]`) green.
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc" };
 
@@ -52,11 +52,13 @@ function Rail({ side, title, open, setOpen, children }: {
   );
 }
 
-export function DesignWorkspace({ leftRail, rightRail, children }: {
-  leftRail?: ReactNode; rightRail?: ReactNode; children: ReactNode;
+export function DesignWorkspace({ leftRail, rightRail, children, selectedId }: {
+  leftRail?: ReactNode; rightRail?: ReactNode; children: ReactNode; selectedId?: string | null;
 }) {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(false); // Context opens on selection (C5); collapsed keeps the engine wide
+  // "Selecting any item in the Layer Tree opens the Right Context Panel" — auto-open on a new selection.
+  useEffect(() => { if (selectedId) setRightOpen(true); }, [selectedId]);
   return (
     // flex-wrap: when a rail + the engine's min-width can't fit, the rail wraps below instead of crushing the
     // visualization engine (the celestial map's absolute overlays overlap if the map gets too narrow).

@@ -1192,6 +1192,30 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A64: SELECTION → RIGHT CONTEXT PANEL — clicking a layer opens the (default-collapsed) Context rail
+//          and inspects the node (breadcrumb + label), and highlights the tree row. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(300);
+  const rightBefore = await pg.evaluate(() => !!document.querySelector('[data-arch-rail="right"]')); // collapsed by default → false
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.click()); await pg.waitForTimeout(250);
+  const info = await pg.evaluate(() => {
+    const insp = document.querySelector('[data-arch-layer-inspector]');
+    const row = document.querySelector('[data-layer-node="physical/foundation/footings"]');
+    return {
+      rightOpen: !!document.querySelector('[data-arch-rail="right"]'),
+      inspectId: insp?.getAttribute('data-inspect-id'),
+      hasLabel: (insp?.textContent || '').includes('Footings'),
+      hasBreadcrumb: (insp?.textContent || '').includes('Foundation'),
+      rowHighlighted: row ? getComputedStyle(row).backgroundColor === 'rgb(34, 24, 51)' : false,
+    };
+  });
+  const ok = rightBefore === false && info.rightOpen && info.inspectId === 'physical/foundation/footings' && info.hasLabel && info.hasBreadcrumb && info.rowHighlighted;
+  rec('#A64 select layer → RIGHT Context panel opens + inspects (breadcrumb + label) + row highlighted', ok, JSON.stringify(info));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

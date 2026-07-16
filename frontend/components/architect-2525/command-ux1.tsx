@@ -24,6 +24,7 @@ import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationM
 import { ArchitectDesign, type DesignMetrics } from "./architect-design";
 import { DesignWorkspace } from "./architect-design-workspace";
 import { LayerTree } from "./layer-tree";
+import { LayerInspector } from "./layer-inspector";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
 import { ArchitectSoI } from "./architect-soi";
@@ -241,7 +242,11 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           4-tab visualization engine · RIGHT Context). Kept always-mounted so the Model survives tab switches. */}
       <div className="p-4">
         <div data-arch-tab={activeTab === "Design" ? "Design" : undefined} style={activeTab === "Design" ? undefined : { display: "none" }}>
-          <DesignWorkspace leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} />}>
+          <DesignWorkspace
+            selectedId={selectedLayerId}
+            leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} />}
+            rightRail={<LayerInspector selectedId={selectedLayerId} />}
+          >
             {/* MODEL kept mounted (display:none when another engine view is active) so wireframe state persists. */}
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>
               <ArchitectDesign onMetrics={setDesignMetrics} />

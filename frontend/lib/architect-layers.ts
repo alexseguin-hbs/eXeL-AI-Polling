@@ -116,3 +116,22 @@ export function flattenLayers(nodes: LayerNode[] = LAYER_TREE.flatMap((s) => s.c
 export function childCount(node: LayerNode | LayerScope): number {
   return node.children?.length ?? 0;
 }
+
+// Resolve an id to its node, owning scope, and ancestor path (root → node). Used by the Context inspector.
+export function findLayer(id: string): { node: LayerNode; scope: LayerScope; path: LayerNode[] } | null {
+  for (const scope of LAYER_TREE) {
+    const path: LayerNode[] = [];
+    const dfs = (nodes: LayerNode[]): LayerNode | null => {
+      for (const n of nodes) {
+        path.push(n);
+        if (n.id === id) return n;
+        if (n.children) { const f = dfs(n.children); if (f) return f; }
+        path.pop();
+      }
+      return null;
+    };
+    const found = dfs(scope.children);
+    if (found) return { node: found, scope, path: [...path] };
+  }
+  return null;
+}
