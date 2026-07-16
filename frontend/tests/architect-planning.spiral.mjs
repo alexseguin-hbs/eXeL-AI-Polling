@@ -983,6 +983,26 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A57: the ••• toggles use Security's Toggle3 look — three CYAN dots (not a text glyph) ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  const info = await pg.evaluate(() => {
+    const out = {};
+    for (const s of ['left', 'right', 'bottom']) {
+      const btn = document.querySelector(`[data-map-exp-${s}-btn]`);
+      const dots = btn ? [...btn.querySelectorAll('span')] : [];
+      const cyan = dots.filter((d) => getComputedStyle(d).backgroundColor.replace(/\s/g, '') === 'rgb(25,200,207)').length;
+      out[s] = { dots: dots.length, cyan };
+    }
+    return out;
+  });
+  const ok = ['left', 'right', 'bottom'].every((s) => info[s].dots >= 3 && info[s].cyan >= 3);
+  rec('#A57 ••• toggles = Security Toggle3 look (3 cyan dots each)', ok, JSON.stringify(info));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
