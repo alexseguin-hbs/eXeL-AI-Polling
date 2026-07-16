@@ -52,18 +52,20 @@ function Rail({ side, title, open, setOpen, children }: {
   );
 }
 
-export function DesignWorkspace({ leftRail, rightRail, children, selectedId }: {
-  leftRail?: ReactNode; rightRail?: ReactNode; children: ReactNode; selectedId?: string | null;
+export function DesignWorkspace({ leftRail, rightRail, bottomPanel, children, selectedId }: {
+  leftRail?: ReactNode; rightRail?: ReactNode; bottomPanel?: ReactNode; children: ReactNode; selectedId?: string | null;
 }) {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(false); // Context opens on selection (C5); collapsed keeps the engine wide
+  const [bottomOpen, setBottomOpen] = useState(true); // house build spec (R4) — expandable bottom panel
   // "Selecting any item in the Layer Tree opens the Right Context Panel" — auto-open on a new selection.
   useEffect(() => { if (selectedId) setRightOpen(true); }, [selectedId]);
   return (
-    // Width breakpoint (md = 768px), NOT orientation: on desktop/tablet the tree sits to the LEFT of the engine
-    // in a single row; below md it stacks vertically (phones). No flex-wrap — wrapping was letting the engine
-    // drop BELOW the tree on some desktop windows (the reported "tree above the design window" bug).
-    <div data-arch-design-ws className="flex flex-col gap-2 md:flex-row md:items-stretch">
+    <div className="flex flex-col gap-2">
+      {/* Width breakpoint (md = 768px), NOT orientation: on desktop/tablet the tree sits to the LEFT of the
+          engine in one row; below md it stacks vertically (phones). No flex-wrap — wrapping let the engine
+          drop BELOW the tree on some desktop windows (the reported "tree above the design window" bug). */}
+      <div data-arch-design-ws className="flex flex-col gap-2 md:flex-row md:items-stretch">
       <Rail side="left" title="Layer Tree" open={leftOpen} setOpen={setLeftOpen}>
         {leftRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
@@ -80,6 +82,19 @@ export function DesignWorkspace({ leftRail, rightRail, children, selectedId }: {
           </div>
         )}
       </Rail>
+    </div>
+      {/* HOUSE BUILD SPEC — the expandable bottom panel (R4); collapses like Security's ELEVATION PROFILE. */}
+      {bottomPanel && (
+        <div data-arch-bottom-panel className="rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
+          <button data-arch-bottom-toggle onClick={() => setBottomOpen((o) => !o)}
+            className="flex w-full items-center justify-between border-b px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider hover:bg-white/5"
+            style={{ borderColor: bottomOpen ? C.border : "transparent", color: C.dim }}>
+            <span style={{ color: C.violet }}>House Build Spec</span>
+            <span aria-hidden style={{ transform: bottomOpen ? "rotate(90deg)" : "none", transition: "transform .15s" }}>›</span>
+          </button>
+          {bottomOpen && <div className="p-3">{bottomPanel}</div>}
+        </div>
+      )}
     </div>
   );
 }

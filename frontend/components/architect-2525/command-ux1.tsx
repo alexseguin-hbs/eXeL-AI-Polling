@@ -26,6 +26,7 @@ import { DesignWorkspace } from "./architect-design-workspace";
 import { LayerTree } from "./layer-tree";
 import { LayerInspector } from "./layer-inspector";
 import { useLayerState } from "./use-layer-state";
+import { HouseSpec } from "./house-spec";
 import { type HomeType } from "@/lib/architect-layers";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
@@ -254,6 +255,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             selectedId={selectedLayerId}
             leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} />}
             rightRail={<LayerInspector selectedId={selectedLayerId} state={layerState} homeType={homeType} />}
+            bottomPanel={<HouseSpec state={layerState} />}
           >
             {/* MODEL kept mounted (display:none when another engine view is active) so wireframe state persists. */}
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>

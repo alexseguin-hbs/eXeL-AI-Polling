@@ -25,15 +25,26 @@ export interface LayerState {
   toggleLocked: (id: string) => void;
   isolate: (node: LayerNode) => void;   // hide every leaf outside this node's subtree
   revealAll: () => void;
+  // house build spec (R4) — the components the user has chosen to put ON the house
+  spec: Set<string>;
+  toggleSpec: (id: string) => void;
+  addSubtreeToSpec: (node: LayerNode) => void;   // add a whole system's leaves at once
+  clearSpec: () => void;
 }
 
 export function useLayerState(): LayerState {
   const [hidden, toggleHidden, replaceHidden] = usePersistentSet("arch2525.layerHidden");
   const [locked, toggleLocked] = usePersistentSet("arch2525.layerLocked");
+  const [spec, toggleSpec, replaceSpec] = usePersistentSet("arch2525.houseSpec");
   const isolate = (node: LayerNode) => {
     const keep = new Set(flattenLayers([node]).map((n) => n.id));
     replaceHidden(flattenLayers().filter((n) => !n.children?.length && !keep.has(n.id)).map((n) => n.id));
   };
   const revealAll = () => replaceHidden([]);
-  return { hidden, locked, toggleHidden, toggleLocked, isolate, revealAll };
+  const addSubtreeToSpec = (node: LayerNode) => {
+    const leaves = flattenLayers([node]).filter((n) => !n.children?.length && !n.level3).map((n) => n.id);
+    replaceSpec(Array.from(new Set([...Array.from(spec), ...leaves])));
+  };
+  const clearSpec = () => replaceSpec([]);
+  return { hidden, locked, toggleHidden, toggleLocked, isolate, revealAll, spec, toggleSpec, addSubtreeToSpec, clearSpec };
 }

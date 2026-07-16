@@ -8,7 +8,7 @@
  * Selection is the canonical "what exists" pointer (selectedLayerId, lifted to the shell). Returns a
  * quiet prompt when nothing is selected.
  */
-import { Eye, EyeOff, Lock, Unlock, Crosshair, RotateCcw } from "lucide-react";
+import { Eye, EyeOff, Lock, Unlock, Crosshair, RotateCcw, Home, Plus, Check } from "lucide-react";
 import { findLayer, flattenLayers, isVisibleForType, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
 
@@ -38,6 +38,15 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
   const leafCount = flattenLayers([node]).filter((n) => !n.children?.length && isVisibleForType(n.id, scope.id, homeType)).length;
   const isHidden = !!state?.hidden.has(node.id);
   const isLocked = !!state?.locked.has(node.id);
+  // "Add to house" (R4) — a leaf toggles itself; a branch/system adds all its buildable leaves.
+  const leafDescendants = flattenLayers([node]).filter((n) => !n.children?.length && !n.level3);
+  const inHouse = !!state && node.id.startsWith("physical/") && leafDescendants.length > 0 && leafDescendants.every((n) => state.spec.has(n.id));
+  const canBuild = node.id.startsWith("physical/");
+  const addToHouse = () => {
+    if (!state) return;
+    if (kids.length) { inHouse ? leafDescendants.forEach((n) => state.spec.has(n.id) && state.toggleSpec(n.id)) : state.addSubtreeToSpec(node); }
+    else state.toggleSpec(node.id);
+  };
 
   return (
     <div data-arch-layer-inspector data-inspect-id={node.id} className="flex flex-col gap-2 text-[10px]">
@@ -53,6 +62,15 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
       {/* SETTINGS for THIS single item (Security asset-inspector model) — visibility · lock · isolate · reveal all */}
       {state && (
         <div data-inspect-actions className="flex flex-wrap items-center gap-1.5 rounded border p-1.5" style={{ borderColor: C.border }}>
+          {canBuild && (
+            <button data-inspect-ctl="house" onClick={addToHouse}
+              className="flex items-center gap-1 rounded border px-1.5 py-1 text-[9px] font-semibold hover:bg-white/5"
+              style={{ borderColor: inHouse ? C.green : C.violet, color: inHouse ? C.green : C.violet, background: inHouse ? "#0c1420" : "transparent" }}>
+              {inHouse ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+              {inHouse ? "In house" : (kids.length ? "Add system" : "Add to house")}
+              <Home className="h-3 w-3" />
+            </button>
+          )}
           <button data-inspect-ctl="visibility" onClick={() => state.toggleHidden(node.id)}
             className="flex items-center gap-1 rounded border px-1.5 py-1 text-[9px] hover:bg-white/5"
             style={{ borderColor: C.border, color: isHidden ? C.dim : C.text }}>

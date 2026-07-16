@@ -1296,6 +1296,35 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A72: WIREFRAME THE HOUSE by selecting components — "Add to house" from the Context inspector adds
+//          the component to the House Build Spec (bottom panel) with a rough estimate + phase, marks the
+//          tree row, and "Add system" adds a whole system's leaves at once. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => localStorage.removeItem('arch2525.houseSpec'));
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  const empty = await pg.evaluate(() => document.querySelector('[data-arch-house-spec]')?.getAttribute('data-house-count'));
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.click()); await pg.waitForTimeout(200);
+  await pg.evaluate(() => document.querySelector('[data-inspect-ctl="house"]')?.click()); await pg.waitForTimeout(220);
+  const add = await pg.evaluate(() => ({
+    count: document.querySelector('[data-arch-house-spec]')?.getAttribute('data-house-count'),
+    item: !!document.querySelector('[data-house-item="physical/foundation/footings"]'),
+    treeDot: !!document.querySelector('[data-layer-node="physical/foundation/footings"] [data-layer-inhouse]'),
+    hasCost: /\$[\d,]/.test(document.querySelector('[data-arch-house-spec]')?.textContent || ''),
+    hasPhase: !!document.querySelector('[data-house-phase="foundation"]'),
+    hasParallel: /parallel/i.test(document.querySelector('[data-arch-house-spec]')?.textContent || ''),
+  }));
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/electrical"]')?.click()); await pg.waitForTimeout(200);
+  await pg.evaluate(() => document.querySelector('[data-inspect-ctl="house"]')?.click()); await pg.waitForTimeout(220);
+  const afterSystem = await pg.evaluate(() => +(document.querySelector('[data-arch-house-spec]')?.getAttribute('data-house-count') || '0'));
+  const mepPhase = await pg.evaluate(() => !!document.querySelector('[data-house-phase="mep"]'));
+  const ok = empty === '0' && add.count === '1' && add.item && add.treeDot && add.hasCost && add.hasPhase && add.hasParallel && afterSystem > 1 && mepPhase;
+  rec('#A72 wireframe house — Add to house → spec + estimate + phase + tree dot; Add system adds leaves; parallel MEP', ok, JSON.stringify({ empty, ...add, afterSystem, mepPhase }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
