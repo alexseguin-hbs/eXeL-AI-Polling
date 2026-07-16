@@ -123,13 +123,16 @@ function WorldPlacement({ lat, lon, onPick }: { lat: number; lon: number; onPick
   );
 }
 
-export function ArchitectSkySun() {
+// forceView: when the Design engine's SKY tab drives this component, pin the sub-view (celestial map) and hide the
+// internal Sky-Dome/Solar-System toggle. When absent (SITE tab), the internal toggle stays — SPIRAL asserts drive it.
+export function ArchitectSkySun({ forceView }: { forceView?: "dome" | "solar" } = {}) {
   const [lat, setLat] = useState(30.44);   // default: Pfield · Pflugerville, TX (soccer complex)
   const [lon, setLon] = useState(-97.62);
   const [doy, setDoy] = useState(172);     // SSR seed (~summer solstice); replaced by TODAY on mount
   const [hour, setHour] = useState(12);    // noon — sun high for a meaningful default
   const [year, setYear] = useState(2025);
-  const [skyView, setSkyView] = useState<"dome" | "solar">("dome"); // SUN·SKY sub-view: sky dome ↔ UCRS-2525 solar system
+  const [skyView, setSkyView] = useState<"dome" | "solar">(forceView ?? "dome"); // SUN·SKY sub-view: sky dome ↔ UCRS-2525 solar system
+  const view = forceView ?? skyView;       // engine-pinned view wins over the internal toggle
   const [facingAz, setFacingAz] = useState(180); // a house face / window azimuth (0=N,90=E,180=S,270=W) to align to the sun
 
   // Default to TODAY (client-only → no SSR hydration mismatch). Everything (sun · moon · dome · solar map)
@@ -198,15 +201,18 @@ export function ArchitectSkySun() {
 
   return (
     <div className="space-y-2">
-      {/* SUN·SKY sub-view toggle — the sky dome over the lot, or the UCRS-2525 Base-3600 solar system */}
+      {/* SUN·SKY sub-view toggle — the sky dome over the lot, or the UCRS-2525 Base-3600 solar system.
+          Hidden when the Design engine's SKY tab pins the view (forceView) — the engine tab is the toggle then. */}
+      {!forceView && (
       <div className="flex flex-wrap items-center gap-1 text-[10px]">
         <span className="mr-1 font-bold tracking-wider" style={{ color: C.violet }}>SUN·SKY</span>
         {([["dome", "Sky Dome"], ["solar", "Solar System"]] as const).map(([v, label]) => (
           <button key={v} data-sky-view={v} onClick={() => setSkyView(v)} className="rounded border px-2 py-0.5 text-[9px] font-semibold"
-            style={{ borderColor: C.border, color: skyView === v ? C.violet : C.dim, background: skyView === v ? "#221833" : "transparent" }}>{label}</button>
+            style={{ borderColor: C.border, color: view === v ? C.violet : C.dim, background: view === v ? "#221833" : "transparent" }}>{label}</button>
         ))}
       </div>
-      {skyView === "solar" ? <ArchitectCelestial lat={lat} lon={lon} year={year} doy={doy} hour={hour} onYear={setYear} onDoy={setDoy} /> : (
+      )}
+      {view === "solar" ? <ArchitectCelestial lat={lat} lon={lon} year={year} doy={doy} hour={hour} onYear={setYear} onDoy={setDoy} /> : (
       <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
       <div className="relative rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         {/* CALENDAR — upper-right of the sky dome: pick any date to scrub sun + moon across the year */}

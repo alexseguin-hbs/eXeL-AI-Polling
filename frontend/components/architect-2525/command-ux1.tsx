@@ -22,6 +22,7 @@ import { ExelWordmark } from "@/components/exel-wordmark";
 import { getFpsCap, setFpsCap, initFpsCap } from "@/components/security-2525/fps-governor";
 import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationMode } from "./architect-economy";
 import { ArchitectDesign, type DesignMetrics } from "./architect-design";
+import { DesignWorkspace } from "./architect-design-workspace";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
 import { ArchitectSoI } from "./architect-soi";
@@ -55,7 +56,7 @@ const NAV: [string, React.ComponentType<{ className?: string }>][] = [
 ];
 // Inner (secondary) tabs per primary tab — where the former 12 panels now live.
 const SUBNAV: Record<string, string[]> = {
-  Design: ["Model", "Site", "Compare"],
+  Design: ["Model", "Site", "Sky", "Compare"], // 4-tab visualization engine (Sky = celestial map + Moon-over-window)
   Review: ["Reviews", "Qualification", "Contributions"],
   Build: ["Build 4D", "Framing", "Estimate", "Forecast", "Cost·Time"],
   Lifecycle: ["Twin", "Replay"],
@@ -232,12 +233,21 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             (Security-2525 map-control method). R-CORE status also stays in the project ribbon above. */}
       </div>
 
-      {/* TAB CONTENT — Design→Model kept mounted (model survives tab/subtab switches). */}
+      {/* TAB CONTENT — the DESIGN tab is a Security-2525-style 3-column workspace (LEFT Layer Tree · CENTER
+          4-tab visualization engine · RIGHT Context). Kept always-mounted so the Model survives tab switches. */}
       <div className="p-4">
-        <div data-arch-tab={activeTab === "Design" && sub("Design") === "Model" ? "Design" : undefined} style={activeTab === "Design" && sub("Design") === "Model" ? undefined : { display: "none" }}>
-          <ArchitectDesign onMetrics={setDesignMetrics} />
+        <div data-arch-tab={activeTab === "Design" ? "Design" : undefined} style={activeTab === "Design" ? undefined : { display: "none" }}>
+          <DesignWorkspace>
+            {/* MODEL kept mounted (display:none when another engine view is active) so wireframe state persists. */}
+            <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>
+              <ArchitectDesign onMetrics={setDesignMetrics} />
+            </div>
+            {sub("Design") === "Site" ? <ArchitectSkySun /> : null}
+            {sub("Design") === "Sky" ? <ArchitectSkySun forceView="solar" /> : null}
+            {sub("Design") === "Compare" ? <IteratePanel /> : null}
+          </DesignWorkspace>
         </div>
-        {!(activeTab === "Design" && sub("Design") === "Model") && (
+        {activeTab !== "Design" && (
         <div data-arch-tab={activeTab}>
         {activeTab === "Overview" ? (
           <div className="space-y-3">
@@ -317,10 +327,6 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           <ArchitectForecast />
         ) : activeTab === "Build" && sub("Build") === "Build 4D" ? (
           <ArchitectBuild />
-        ) : activeTab === "Design" && sub("Design") === "Site" ? (
-          <ArchitectSkySun />
-        ) : activeTab === "Design" && sub("Design") === "Compare" ? (
-          <IteratePanel />
         ) : activeTab === "Review" && sub("Review") === "Contributions" ? (
           <SharePanel />
         ) : activeTab === "Review" && sub("Review") === "Qualification" ? (

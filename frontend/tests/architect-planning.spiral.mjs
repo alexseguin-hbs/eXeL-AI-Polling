@@ -1029,6 +1029,47 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A66: DESIGN is a Security-2525-style 3-column workspace (LEFT Layer Tree · CENTER engine · RIGHT context)
+//          with a 4-tab visualization engine (Model · Site · Sky · Compare) — the Digital-Twin cockpit shell. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(250);
+  const info = await pg.evaluate(() => {
+    const subnav = document.querySelector('[data-arch-subnav]');
+    const tabs = subnav ? [...subnav.querySelectorAll('button')].map((b) => (b.textContent || '').trim()) : [];
+    return {
+      ws: !!document.querySelector('[data-arch-design-ws]'),
+      leftRail: !!document.querySelector('[data-arch-rail="left"]'),   // Layer Tree rail (open by default)
+      engine: !!document.querySelector('[data-arch-engine]'),
+      tabs,
+    };
+  });
+  const want = ['Model', 'Site', 'Sky', 'Compare'];
+  const ok = info.ws && info.leftRail && info.engine && want.every((t) => info.tabs.includes(t)) && info.tabs.length === 4;
+  rec('#A66 Design = 3-column workspace (Layer Tree · engine · context) + 4 engine tabs incl SKY', ok, JSON.stringify(info));
+  await pg.close();
+}
+
+// ── #A67: the celestial map + Moon-over-window are PRESERVED, not removed — the SKY tab renders the celestial
+//          map with its ••• map rails intact; the SITE tab keeps the Sky-Dome/Solar toggle + the window mission. ──
+{
+  const { pg, tab, subtab } = await mk();
+  await tab('Design'); await subtab('Sky'); await pg.waitForTimeout(400);
+  const sky = await pg.evaluate(() => ({
+    celestial: !!document.querySelector('[data-arch-celestial]'),                         // celestial map under SKY
+    railBtns: ['left', 'right', 'bottom'].every((s) => !!document.querySelector(`[data-map-exp-${s}-btn]`)), // ••• rails intact
+    noToggle: !document.querySelector('[data-sky-view]'),                                 // engine tab replaces internal toggle
+  }));
+  await subtab('Site'); await pg.waitForTimeout(350);
+  const site = await pg.evaluate(() => ({
+    domeToggle: !!document.querySelector('[data-sky-view="solar"]'),                       // SITE keeps dome/solar toggle
+    windowMission: !!document.querySelector('[data-arch-window-transit]'),                 // Moon-over-window preserved
+  }));
+  const ok = sky.celestial && sky.railBtns && sky.noToggle && site.domeToggle && site.windowMission;
+  rec('#A67 SKY = celestial map + ••• rails (preserved); SITE keeps dome/solar toggle + Moon-over-window mission', ok, JSON.stringify({ sky, site }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
