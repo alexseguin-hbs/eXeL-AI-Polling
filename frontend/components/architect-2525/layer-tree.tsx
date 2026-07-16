@@ -9,40 +9,23 @@
  * auto-expands ancestors of matches). Selection highlights the row; the engine + right Context panel
  * wire to it in later steps. Built generically so it can promote to 2525-core (MANIFEST candidate).
  */
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronRight, Eye, EyeOff, Lock, Unlock, Settings, MoreHorizontal } from "lucide-react";
-import { LAYER_TREE, flattenLayers, type LayerNode } from "@/lib/architect-layers";
+import { LAYER_TREE, type LayerNode } from "@/lib/architect-layers";
+import { type LayerState } from "./use-layer-state";
 
 const C = { border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400" };
 const SCOPE_COLOR: Record<string, string> = { physical: C.violet, operational: C.cyan, lifecycle: C.green };
 
-// Persisted Set<id> in localStorage — Security-2525 `aoHidden` pattern (mission-planning.tsx:4611).
-function usePersistentSet(key: string): [Set<string>, (id: string) => void, (ids?: string[]) => void] {
-  const [set, setSet] = useState<Set<string>>(() => {
-    try { return new Set<string>(JSON.parse(localStorage.getItem(key) || "[]")); } catch { return new Set<string>(); }
-  });
-  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(Array.from(set))); } catch {} }, [key, set]);
-  const toggle = (id: string) => setSet((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const replace = (ids: string[] = []) => setSet(new Set(ids));
-  return [set, toggle, replace];
-}
-
-export function LayerTree({ selectedId, onSelect }: { selectedId?: string | null; onSelect?: (id: string) => void }) {
+// `state` (visibility + lock Sets) is lifted to the shell so the RIGHT Context inspector shares it (R2).
+export function LayerTree({ selectedId, onSelect, state }: { selectedId?: string | null; onSelect?: (id: string) => void; state: LayerState }) {
+  const { hidden, locked, toggleHidden, toggleLocked, isolate: isolateNode, revealAll } = state;
   // Scopes open by default; systems collapsed (matches Security's "start collapsed" density).
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set(["physical", "operational", "lifecycle"]));
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
-  const [hidden, toggleHidden, replaceHidden] = usePersistentSet("arch2525.layerHidden");
-  const [locked, toggleLocked] = usePersistentSet("arch2525.layerLocked");
   const [menuId, setMenuId] = useState<string | null>(null);
-
-  // "Isolate" — hide every leaf outside this node's subtree (Security has no equivalent; genuinely useful here).
-  const isolate = (node: LayerNode) => {
-    const keep = new Set(flattenLayers([node]).map((n) => n.id));
-    const all = flattenLayers();
-    replaceHidden(all.filter((n) => !n.children?.length && !keep.has(n.id)).map((n) => n.id));
-    setMenuId(null);
-  };
+  const isolate = (node: LayerNode) => { isolateNode(node); setMenuId(null); };
 
   // Search: the set of node ids to keep visible, plus ancestors to force-open.
   const { visible, forceOpen } = useMemo(() => {
@@ -112,7 +95,7 @@ export function LayerTree({ selectedId, onSelect }: { selectedId?: string | null
         {menuId === node.id && (
           <div data-layer-menu={node.id} className="ml-6 mb-1 flex flex-col rounded border text-[9px]" style={{ borderColor: C.border, background: "#0c1420" }}>
             <button className="px-2 py-1 text-left hover:bg-white/5" style={{ color: C.text }} onClick={(e) => { stop(e); isolate(node); }}>Isolate — hide all other layers</button>
-            <button className="px-2 py-1 text-left hover:bg-white/5" style={{ color: C.text }} onClick={(e) => { stop(e); replaceHidden([]); setMenuId(null); }}>Reveal all</button>
+            <button className="px-2 py-1 text-left hover:bg-white/5" style={{ color: C.text }} onClick={(e) => { stop(e); revealAll(); setMenuId(null); }}>Reveal all</button>
           </div>
         )}
         {open && node.children?.map((c) => renderNode(c, depth + 1))}

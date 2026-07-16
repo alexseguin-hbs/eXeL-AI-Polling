@@ -1255,6 +1255,25 @@ const mk = async (vp) => {
   rec('#A69 desktop: Layer Tree LEFT of engine (one row); mobile: stacked', ok, JSON.stringify({ wide, narrowStacked: narrow }));
 }
 
+// ── #A70: RIGHT Context panel = SETTINGS for the single selected item (Security asset-inspector model) —
+//          toggling visibility / lock from the inspector acts on that item and syncs to its tree row. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.layerHidden'); localStorage.removeItem('arch2525.layerLocked'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.click()); await pg.waitForTimeout(250);
+  const hasActions = await pg.evaluate(() => !!document.querySelector('[data-arch-layer-inspector][data-inspect-id="physical/foundation/footings"] [data-inspect-actions]'));
+  await pg.evaluate(() => document.querySelector('[data-inspect-ctl="visibility"]')?.click()); await pg.waitForTimeout(150);
+  const treeHidden = await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.getAttribute('data-layer-hidden') === 'true');
+  await pg.evaluate(() => document.querySelector('[data-inspect-ctl="lock"]')?.click()); await pg.waitForTimeout(150);
+  const treeLocked = await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.getAttribute('data-layer-locked') === 'true');
+  const ok = hasActions && treeHidden && treeLocked;
+  rec('#A70 RIGHT Context = per-item settings — visibility/lock from inspector sync to the tree row', ok, JSON.stringify({ hasActions, treeHidden, treeLocked }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

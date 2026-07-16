@@ -25,6 +25,7 @@ import { ArchitectDesign, type DesignMetrics } from "./architect-design";
 import { DesignWorkspace } from "./architect-design-workspace";
 import { LayerTree } from "./layer-tree";
 import { LayerInspector } from "./layer-inspector";
+import { useLayerState } from "./use-layer-state";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
 import { ArchitectSoI } from "./architect-soi";
@@ -124,6 +125,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   // Layer Tree selection — the canonical "what exists" pointer, lifted to the shell so every workspace
   // references it (Vision 2525 Digital Twin Standard v1.0). Drives the RIGHT Context panel (C5).
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const layerState = useLayerState(); // shared visibility/lock — driven from BOTH the tree and the Context inspector
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFps, setShowFps] = useState(() => { try { return localStorage.getItem("arch2525.fps") === "1"; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem("arch2525.fps", showFps ? "1" : "0"); } catch {} }, [showFps]);
@@ -248,8 +250,8 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         <div data-arch-tab={activeTab === "Design" ? "Design" : undefined} style={activeTab === "Design" ? undefined : { display: "none" }}>
           <DesignWorkspace
             selectedId={selectedLayerId}
-            leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} />}
-            rightRail={<LayerInspector selectedId={selectedLayerId} />}
+            leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} />}
+            rightRail={<LayerInspector selectedId={selectedLayerId} state={layerState} />}
           >
             {/* MODEL kept mounted (display:none when another engine view is active) so wireframe state persists. */}
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>

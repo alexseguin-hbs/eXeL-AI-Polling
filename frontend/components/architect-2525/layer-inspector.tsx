@@ -8,7 +8,9 @@
  * Selection is the canonical "what exists" pointer (selectedLayerId, lifted to the shell). Returns a
  * quiet prompt when nothing is selected.
  */
+import { Eye, EyeOff, Lock, Unlock, Crosshair, RotateCcw } from "lucide-react";
 import { findLayer, flattenLayers, type LayerNode } from "@/lib/architect-layers";
+import { type LayerState } from "./use-layer-state";
 
 const C = { border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400" };
 const SCOPE_COLOR: Record<string, string> = { physical: C.violet, operational: C.cyan, lifecycle: C.green };
@@ -19,7 +21,7 @@ const SCOPE_LINK: Record<string, string> = {
   lifecycle: "Generated post-occupancy — Assets · Warranty · Service History",
 };
 
-export function LayerInspector({ selectedId }: { selectedId?: string | null }) {
+export function LayerInspector({ selectedId, state }: { selectedId?: string | null; state?: LayerState }) {
   if (!selectedId) {
     return (
       <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
@@ -33,6 +35,8 @@ export function LayerInspector({ selectedId }: { selectedId?: string | null }) {
   const color = SCOPE_COLOR[scope.id] ?? C.text;
   const kids: LayerNode[] = node.children ?? [];
   const leafCount = flattenLayers([node]).filter((n) => !n.children?.length).length;
+  const isHidden = !!state?.hidden.has(node.id);
+  const isLocked = !!state?.locked.has(node.id);
 
   return (
     <div data-arch-layer-inspector data-inspect-id={node.id} className="flex flex-col gap-2 text-[10px]">
@@ -44,6 +48,32 @@ export function LayerInspector({ selectedId }: { selectedId?: string | null }) {
       <div className="flex items-center gap-2">
         <span className="min-w-0 flex-1 truncate text-[12px] font-semibold" style={{ color: node.level3 ? C.cyan : C.text }}>{node.label}</span>
       </div>
+
+      {/* SETTINGS for THIS single item (Security asset-inspector model) — visibility · lock · isolate · reveal all */}
+      {state && (
+        <div data-inspect-actions className="flex flex-wrap items-center gap-1.5 rounded border p-1.5" style={{ borderColor: C.border }}>
+          <button data-inspect-ctl="visibility" onClick={() => state.toggleHidden(node.id)}
+            className="flex items-center gap-1 rounded border px-1.5 py-1 text-[9px] hover:bg-white/5"
+            style={{ borderColor: C.border, color: isHidden ? C.dim : C.text }}>
+            {isHidden ? <EyeOff className="h-3 w-3" style={{ color: C.dim }} /> : <Eye className="h-3 w-3" style={{ color: C.cyan }} />}
+            {isHidden ? "Hidden" : "Visible"}
+          </button>
+          <button data-inspect-ctl="lock" onClick={() => state.toggleLocked(node.id)}
+            className="flex items-center gap-1 rounded border px-1.5 py-1 text-[9px] hover:bg-white/5"
+            style={{ borderColor: C.border, color: isLocked ? C.gold : C.text }}>
+            {isLocked ? <Lock className="h-3 w-3" style={{ color: C.gold }} /> : <Unlock className="h-3 w-3" style={{ color: C.dim }} />}
+            {isLocked ? "Locked" : "Unlocked"}
+          </button>
+          <button data-inspect-ctl="isolate" onClick={() => state.isolate(node)}
+            className="flex items-center gap-1 rounded border px-1.5 py-1 text-[9px] hover:bg-white/5" style={{ borderColor: C.border, color: C.text }}>
+            <Crosshair className="h-3 w-3" style={{ color: C.violet }} /> Isolate
+          </button>
+          <button data-inspect-ctl="reveal" onClick={() => state.revealAll()}
+            className="flex items-center gap-1 rounded border px-1.5 py-1 text-[9px] hover:bg-white/5" style={{ borderColor: C.border, color: C.dim }}>
+            <RotateCcw className="h-3 w-3" /> Reveal all
+          </button>
+        </div>
+      )}
       <div className="flex flex-wrap gap-1">
         <span className="rounded px-1.5 py-0.5 text-[8px] font-semibold uppercase" style={{ background: "#0c1420", color }}>{scope.label}</span>
         {node.level3 && <span className="rounded px-1.5 py-0.5 text-[8px] font-semibold uppercase" style={{ background: "#0c1420", color: C.cyan }}>Level 3 Substrate</span>}
