@@ -333,6 +333,29 @@ export function ArchitectCelestial({
           <span className="shrink-0" style={{ color: C.dim }}>R-CORE</span>
           {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0" style={{ color: l.color }}>{l.label}</span>)}
         </div>
+        {/* MAP ••• TOOL MENUS — OUTSIDE the map surface (Security-2525 rail method). The three toggles sit in a
+            tight bar ABOVE the map; expanding one drops its panel into its OWN flow section that PUSHES the map
+            down — it is never an absolute overlay on the map (operator: "bullet expansion fields are outside map …
+            see how the expand collapses in a tight section above the map"). data-map-exp-*-btn / data-map-exp-*
+            hooks preserved for the SPIRAL locks (#A56/#A57/#A58). Controls migrate into these panels next (#16). */}
+        <div data-cel-toolbar className="mb-1 flex items-center gap-2 text-[8px]" style={{ color: C.dim }}>
+          <span className="shrink-0 font-bold tracking-wider">MAP TOOLS</span>
+          <button data-map-exp-left-btn onClick={() => setExpL((v) => !v)} title="Left map tools · •••" aria-label="Left map menu"
+            className="flex flex-row items-center gap-[3px] rounded border px-1.5 py-1 hover:bg-white/5" style={{ borderColor: expL ? C.cyan : C.border }}>
+            <span className="mr-0.5 font-bold" style={{ color: expL ? C.cyan : C.dim }}>L</span>{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
+          </button>
+          <button data-map-exp-right-btn onClick={() => setExpR((v) => !v)} title="Right map tools · •••" aria-label="Right map menu"
+            className="flex flex-row items-center gap-[3px] rounded border px-1.5 py-1 hover:bg-white/5" style={{ borderColor: expR ? C.cyan : C.border }}>
+            <span className="mr-0.5 font-bold" style={{ color: expR ? C.cyan : C.dim }}>R</span>{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
+          </button>
+          <button data-map-exp-bottom-btn onClick={() => setExpB((v) => !v)} title="Bottom map tools · •••" aria-label="Bottom map menu"
+            className="flex flex-row items-center gap-[3px] rounded border px-1.5 py-1 hover:bg-white/5" style={{ borderColor: expB ? C.cyan : C.border }}>
+            <span className="mr-0.5 font-bold" style={{ color: expB ? C.cyan : C.dim }}>B</span>{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
+          </button>
+        </div>
+        {expL && <div data-map-exp-left className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Left map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder — size · orbit-play · HU migrate here)</span></div>}
+        {expR && <div data-map-exp-right className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Right map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder — date · units · tilt migrate here)</span></div>}
+        {expB && <div data-map-exp-bottom className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Bottom map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder — position · readout migrate here)</span></div>}
         <div className={max ? "relative min-h-0 flex-1" : "relative"}>
         {/* PHASE CLOCK — the only top-right map overlay (top-down toggle). */}
         <div className="absolute right-1 top-1 z-10">
@@ -373,26 +396,6 @@ export function ArchitectCelestial({
           )}
         </div>
         <div className="pointer-events-none absolute left-1 top-1 z-10 text-[7px]" style={{ color: C.dim, fontFamily: "monospace" }}>pinch/scroll zoom · drag pan · twist rotate{periTop ? " · perihelion▲top" : ""}</div>
-        {/* MAP ••• EDGE EXPANDERS — left · right · bottom collapsible menus (Security-2525 Dots3 method), so map /
-            visualization controls tuck away and the default map stays clean. Placeholders now; controls migrate in. */}
-        <button data-map-exp-left-btn onClick={() => setExpL((v) => !v)} title="Map tools · left" aria-label="Left map menu"
-          className="absolute left-0.5 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-[3px] rounded border px-1 py-1.5 hover:bg-white/5"
-          style={{ borderColor: expL ? C.cyan : C.border, background: "rgba(8,12,20,0.82)" }}>
-          {[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
-        </button>
-        {expL && <div data-map-exp-left className="absolute left-4 top-1/2 z-20 max-h-[80%] -translate-y-1/2 overflow-y-auto rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.94)" }}>Left map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder)</span></div>}
-        <button data-map-exp-right-btn onClick={() => setExpR((v) => !v)} title="Map tools · right" aria-label="Right map menu"
-          className="absolute right-0.5 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-[3px] rounded border px-1 py-1.5 hover:bg-white/5"
-          style={{ borderColor: expR ? C.cyan : C.border, background: "rgba(8,12,20,0.82)" }}>
-          {[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
-        </button>
-        {expR && <div data-map-exp-right className="absolute right-4 top-1/2 z-20 max-h-[80%] -translate-y-1/2 overflow-y-auto rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.94)" }}>Right map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder)</span></div>}
-        <button data-map-exp-bottom-btn onClick={() => setExpB((v) => !v)} title="Map tools · bottom" aria-label="Bottom map menu"
-          className="absolute bottom-0.5 left-1/2 z-20 flex -translate-x-1/2 flex-row items-center gap-[3px] rounded border px-1.5 py-1 hover:bg-white/5"
-          style={{ borderColor: expB ? C.cyan : C.border, background: "rgba(8,12,20,0.82)" }}>
-          {[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
-        </button>
-        {expB && <div data-map-exp-bottom className="absolute bottom-5 left-1/2 z-20 max-w-[90%] -translate-x-1/2 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.94)" }}>Bottom map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder)</span></div>}
         <svg ref={svgRef} {...gestureHandlers} data-arch-celestial data-peritop={periTop ? "1" : undefined} viewBox="0 0 244 112" preserveAspectRatio="xMidYMid meet"
           className={max ? "h-full w-full touch-none select-none rounded" : "w-full touch-none select-none rounded"}
           style={{ background: "radial-gradient(circle at 50% 42%, #0b1122, #05070d)", aspectRatio: max ? undefined : "2.2 / 1", height: max ? "100%" : undefined, cursor: pan.current ? "grabbing" : "grab" }}>

@@ -1003,6 +1003,32 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A58: the ••• panels live OUTSIDE the map — expanding one sits ABOVE the map surface (its own flow section),
+//          never overlapping/covering the SVG map (operator: "bullet expansion fields are outside map … the
+//          expand collapses in a tight section above the map"). Asserts the REAL anti-overlay property. ──
+{
+  const { pg, tab, subtab, clk } = await mk();
+  await tab('Design'); await subtab('Site');
+  await clk('[data-sky-view="solar"]'); await pg.waitForTimeout(250);
+  // open the left ••• menu, then measure the panel vs the map
+  await pg.evaluate(() => document.querySelector('[data-map-exp-left-btn]')?.click()); await pg.waitForTimeout(150);
+  const info = await pg.evaluate(() => {
+    const panel = document.querySelector('[data-map-exp-left]');
+    const svg = document.querySelector('[data-arch-celestial]');
+    if (!panel || !svg) return { panel: !!panel, svg: !!svg };
+    const p = panel.getBoundingClientRect(), m = svg.getBoundingClientRect();
+    return {
+      panel: true, svg: true,
+      insideSvg: svg.contains(panel),                 // must be false — not a child of the map
+      panelBottom: Math.round(p.bottom), mapTop: Math.round(m.top),
+      above: p.bottom <= m.top + 1,                   // panel ends at/above the map top → no overlap
+    };
+  });
+  const ok = info.panel && info.svg && info.insideSvg === false && info.above === true;
+  rec('#A58 ••• panels are OUTSIDE the map (expand sits above, never overlaps the map surface)', ok, JSON.stringify(info));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
