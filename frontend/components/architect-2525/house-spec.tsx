@@ -10,6 +10,7 @@ import { X, Home, Layers } from "lucide-react";
 import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect-house";
 import { findLayer, type LayerNode } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
+import { HouseSchematic } from "./house-schematic";
 
 const C = { border: "#1e2b3a", panel: "#111826", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400", red: "#ef4444" };
 const fmtUsd = (n: number) => "$" + Math.round(n).toLocaleString();
@@ -20,9 +21,12 @@ export function HouseSpec({ state }: { state: LayerState }) {
 
   if (est.count === 0) {
     return (
-      <div data-arch-house-spec data-house-count="0" className="flex items-center gap-2 text-[11px]" style={{ color: C.dim }}>
-        <Home className="h-4 w-4" style={{ color: C.violet }} />
-        Wireframe your house — select a component in the Layer Tree, then <span style={{ color: C.text }}>Add&nbsp;to&nbsp;house</span> in the Context panel.
+      <div data-arch-house-spec data-house-count="0" className="flex flex-wrap items-center gap-4 text-[11px]" style={{ color: C.dim }}>
+        <HouseSchematic state={state} />
+        <div className="flex-1">
+          <span className="flex items-center gap-1.5 font-semibold" style={{ color: C.violet }}><Home className="h-4 w-4" /> Wireframe your house</span>
+          <div className="mt-1">Select a component in the Layer Tree, then <span style={{ color: C.text }}>Add&nbsp;to&nbsp;house</span> in the Context panel. The cross-section fills in as you go.</div>
+        </div>
       </div>
     );
   }
@@ -33,7 +37,9 @@ export function HouseSpec({ state }: { state: LayerState }) {
   const items = ids.map((id) => findLayer(id)?.node).filter((n): n is LayerNode => !!n && !n.children?.length);
 
   return (
-    <div data-arch-house-spec data-house-count={est.count} className="flex flex-col gap-3 text-[11px]">
+    <div data-arch-house-spec data-house-count={est.count} className="flex flex-col gap-3 text-[11px] md:flex-row md:items-start md:gap-4">
+      <div className="shrink-0"><HouseSchematic state={state} /></div>
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
       {/* totals */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
         <span className="flex items-center gap-1.5 font-semibold" style={{ color: C.violet }}><Home className="h-4 w-4" /> HOUSE BUILD SPEC</span>
@@ -96,6 +102,7 @@ export function HouseSpec({ state }: { state: LayerState }) {
             </span>
           );
         })}
+      </div>
       </div>
     </div>
   );

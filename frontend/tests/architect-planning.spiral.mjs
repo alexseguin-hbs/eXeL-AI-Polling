@@ -1351,6 +1351,25 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A74: HOUSE SCHEMATIC — a cross-section renders as a faint ghost when the house is empty and
+//          assembles (its parts draw in) as components are added. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => localStorage.removeItem('arch2525.houseSpec'));
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  const ghost = await pg.evaluate(() => !!document.querySelector('[data-arch-house-spec][data-house-count="0"] [data-arch-schematic]'));
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-inspect-ctl="house"]')?.click()); await pg.waitForTimeout(220);
+  const filled = await pg.evaluate(() => {
+    const svg = document.querySelector('[data-arch-schematic]');
+    return { present: !!svg, shapes: svg ? svg.querySelectorAll('rect,polygon,polyline,line,circle').length : 0 };
+  });
+  const ok = ghost && filled.present && filled.shapes > 5;
+  rec('#A74 house schematic — ghost cross-section when empty + assembles as components are chosen', ok, JSON.stringify({ ghost, ...filled }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
