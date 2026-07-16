@@ -934,7 +934,8 @@ const mk = async (vp) => {
     // the header minimize button should be cyan-bordered (rgb(25,200,207)) — same look as the map's data-cel-max
     const btn = p.querySelector('[data-mini-panel-max]');
     const bc = btn ? getComputedStyle(btn).borderColor.replace(/\s/g, '') : '';
-    return { full: cs.position === 'fixed' && r.width >= window.innerWidth - 4 && r.height >= window.innerHeight - 4, cyanBtn: /25,200,207/.test(bc) };
+    // MUST cover the WHOLE viewport from the top-left (over the app nav) — not just be big somewhere lower
+    return { full: cs.position === 'fixed' && r.top <= 2 && r.left <= 2 && r.width >= window.innerWidth - 4 && r.height >= window.innerHeight - 4, cyanBtn: /25,200,207/.test(bc), top: Math.round(r.top), left: Math.round(r.left) };
   });
   // restore (click the same minimize) → back to docked (no data-mini-max)
   await pg.evaluate(() => document.querySelector('[data-mini-panel][data-mini-max="1"] [data-mini-panel-max]')?.click()); await pg.waitForTimeout(160);

@@ -9,6 +9,7 @@
  * resize only on the corner, so the content keeps its own pointer interactions (e.g. globe rotate).
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 
@@ -28,6 +29,11 @@ export function MiniPanel({ title, subtitle, coord, rotation, lanes = true, defa
   // viewport-aware content size for the FULL-SCREEN maximize (fills the screen cleanly, like the solar-system maximize)
   const [vp, setVp] = useState({ w: 900, h: 700 });
   useEffect(() => { const on = () => setVp({ w: window.innerWidth, h: window.innerHeight }); on(); window.addEventListener("resize", on); return () => window.removeEventListener("resize", on); }, []);
+  // Maximized panel is PORTALLED to <body> so its `fixed inset-0` covers the TRUE viewport — over the app nav /
+  // ribbon / sub-nav — exactly like the solar-system map maximize (operator IMG_7355 vs IMG_7356). Without the portal
+  // the panel is trapped below the nav by an ancestor stacking/containing block, leaving the "noisy sub menus" showing.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const gripDown = (e: React.PointerEvent) => { grip.current = { x: e.clientX, y: e.clientY, px: pos?.x ?? (e.currentTarget as HTMLElement).getBoundingClientRect().left, py: pos?.y ?? (e.currentTarget as HTMLElement).getBoundingClientRect().top }; (e.currentTarget as Element).setPointerCapture?.(e.pointerId); };
   const gripMove = (e: React.PointerEvent) => { const g = grip.current; if (!g) return; setPos({ x: g.px + (e.clientX - g.x), y: g.py + (e.clientY - g.y) }); };
@@ -48,8 +54,8 @@ export function MiniPanel({ title, subtitle, coord, rotation, lanes = true, defa
   // globe/moon view is big, centred and clean — matching the solar-system maximize. Reserve room for the chrome rows.
   const contentSize = max ? Math.round(Math.min(vp.w - 24, vp.h - (lanes ? 150 : 120))) : Math.max(minW - 16, Math.min(size.w - 12, size.h - (lanes ? 78 : 58)));
 
-  return (
-    <div data-mini-panel data-mini-max={max ? "1" : undefined} className={max ? "fixed inset-0 z-[90] flex flex-col overflow-hidden border-2" : pos ? "fixed z-[70] flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl" : "flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"}
+  const panel = (
+    <div data-mini-panel data-mini-max={max ? "1" : undefined} className={max ? "fixed inset-0 z-[120] flex flex-col overflow-hidden border-2" : pos ? "fixed z-[70] flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl" : "flex flex-col overflow-hidden rounded-lg border-2 shadow-2xl"}
       style={{ ...(max ? {} : pos ? { left: pos.x, top: pos.y } : {}), width: W, height: H, borderColor: C.cyan, background: max ? "#05070d" : C.panel }}>
       {max ? (
         /* MAXIMIZED — clean header matching the solar-system map maximize: title left · cyan minimize UPPER-RIGHT
@@ -95,4 +101,6 @@ export function MiniPanel({ title, subtitle, coord, rotation, lanes = true, defa
         title="Drag to resize" className="absolute bottom-0 right-0 z-10 flex h-4 w-4 cursor-nwse-resize touch-none items-end justify-end pb-0.5 pr-0.5" style={{ color: C.cyan }}>◢</div>}
     </div>
   );
+  // Maximized → portal to <body> so it covers the ENTIRE viewport (over the app nav), like the map maximize.
+  return max && mounted ? createPortal(panel, document.body) : panel;
 }
