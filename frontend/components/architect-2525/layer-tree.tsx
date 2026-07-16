@@ -9,18 +9,40 @@
  * auto-expands ancestors of matches). Selection highlights the row; the engine + right Context panel
  * wire to it in later steps. Built generically so it can promote to 2525-core (MANIFEST candidate).
  */
-import { useMemo, useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { LAYER_TREE, type LayerNode } from "@/lib/architect-layers";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronRight, Eye, EyeOff, Lock, Unlock, Settings, MoreHorizontal } from "lucide-react";
+import { LAYER_TREE, flattenLayers, type LayerNode } from "@/lib/architect-layers";
 
-const C = { border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e" };
+const C = { border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400" };
 const SCOPE_COLOR: Record<string, string> = { physical: C.violet, operational: C.cyan, lifecycle: C.green };
+
+// Persisted Set<id> in localStorage — Security-2525 `aoHidden` pattern (mission-planning.tsx:4611).
+function usePersistentSet(key: string): [Set<string>, (id: string) => void, (ids?: string[]) => void] {
+  const [set, setSet] = useState<Set<string>>(() => {
+    try { return new Set<string>(JSON.parse(localStorage.getItem(key) || "[]")); } catch { return new Set<string>(); }
+  });
+  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(Array.from(set))); } catch {} }, [key, set]);
+  const toggle = (id: string) => setSet((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const replace = (ids: string[] = []) => setSet(new Set(ids));
+  return [set, toggle, replace];
+}
 
 export function LayerTree({ selectedId, onSelect }: { selectedId?: string | null; onSelect?: (id: string) => void }) {
   // Scopes open by default; systems collapsed (matches Security's "start collapsed" density).
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set(["physical", "operational", "lifecycle"]));
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
+  const [hidden, toggleHidden, replaceHidden] = usePersistentSet("arch2525.layerHidden");
+  const [locked, toggleLocked] = usePersistentSet("arch2525.layerLocked");
+  const [menuId, setMenuId] = useState<string | null>(null);
+
+  // "Isolate" — hide every leaf outside this node's subtree (Security has no equivalent; genuinely useful here).
+  const isolate = (node: LayerNode) => {
+    const keep = new Set(flattenLayers([node]).map((n) => n.id));
+    const all = flattenLayers();
+    replaceHidden(all.filter((n) => !n.children?.length && !keep.has(n.id)).map((n) => n.id));
+    setMenuId(null);
+  };
 
   // Search: the set of node ids to keep visible, plus ancestors to force-open.
   const { visible, forceOpen } = useMemo(() => {
@@ -44,23 +66,55 @@ export function LayerTree({ selectedId, onSelect }: { selectedId?: string | null
   const isOpen = (id: string) => (forceOpen ? forceOpen.has(id) : openIds.has(id));
   const toggle = (id: string) => setOpenIds((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
+  const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
+  const IconBtn = ({ hook, title, on, active, activeColor, Icon, IconOff }: {
+    hook: string; title: string; on: () => void; active: boolean; activeColor: string;
+    Icon: typeof Eye; IconOff?: typeof Eye;
+  }) => {
+    const Show = active && IconOff ? IconOff : Icon;
+    return (
+      <button data-layer-ctl={hook} title={title} onClick={(e) => { stop(e); on(); }}
+        className="shrink-0 rounded p-0.5 hover:bg-white/10" style={{ opacity: active ? 1 : 0.45 }}>
+        <Show className="h-3 w-3" style={{ color: active ? activeColor : C.dim }} />
+      </button>
+    );
+  };
+
   const renderNode = (node: LayerNode, depth: number) => {
     if (visible && !visible.has(node.id)) return null;
     const hasKids = !!node.children?.length;
     const open = isOpen(node.id);
     const selected = selectedId === node.id;
+    const isHidden = hidden.has(node.id);
+    const isLocked = locked.has(node.id);
     return (
       <div key={node.id}>
-        <div data-layer-node={node.id}
+        <div data-layer-node={node.id} data-layer-hidden={isHidden || undefined} data-layer-locked={isLocked || undefined}
           onClick={() => { if (hasKids) toggle(node.id); onSelect?.(node.id); }}
-          className="flex cursor-pointer items-center gap-1 rounded px-1 py-1 text-[10px] select-none hover:bg-white/5"
-          style={{ marginLeft: depth * 12, background: selected ? "#221833" : "transparent", color: node.level3 ? C.cyan : C.text }}>
+          className="group flex cursor-pointer items-center gap-1 rounded px-1 py-1 text-[10px] select-none hover:bg-white/5"
+          style={{ marginLeft: depth * 12, background: selected ? "#221833" : "transparent", color: node.level3 ? C.cyan : C.text, opacity: isHidden ? 0.4 : 1 }}>
           {hasKids
             ? <ChevronRight className="h-3 w-3 shrink-0 transition-transform" style={{ transform: open ? "rotate(90deg)" : "none", color: C.dim }} />
             : <span className="inline-block h-3 w-3 shrink-0" />}
           <span className="min-w-0 flex-1 truncate">{node.label}</span>
-          {hasKids && <span className="shrink-0 text-[8px]" style={{ color: C.dim }}>·{node.children!.length}</span>}
+          {hasKids && <span className="shrink-0 text-[8px] group-hover:hidden" style={{ color: C.dim }}>·{node.children!.length}</span>}
+          {/* per-item controls (👁 🔒 ⚙ •••) — Security iconography; reveal on hover/selected to keep rows clean */}
+          <span className={`shrink-0 items-center gap-0 ${selected || isHidden || isLocked ? "flex" : "hidden group-hover:flex"}`}>
+            <IconBtn hook="visibility" title={isHidden ? "Show layer" : "Hide layer"} on={() => toggleHidden(node.id)} active={isHidden} activeColor={C.dim} Icon={Eye} IconOff={EyeOff} />
+            <IconBtn hook="lock" title={isLocked ? "Unlock layer" : "Lock layer"} on={() => toggleLocked(node.id)} active={isLocked} activeColor={C.gold} Icon={Unlock} IconOff={Lock} />
+            <IconBtn hook="settings" title="Layer settings (open Context)" on={() => onSelect?.(node.id)} active={selected} activeColor={C.cyan} Icon={Settings} />
+            <button data-layer-ctl="menu" title="More" onClick={(e) => { stop(e); setMenuId((m) => (m === node.id ? null : node.id)); }}
+              className="shrink-0 rounded p-0.5 hover:bg-white/10" style={{ opacity: menuId === node.id ? 1 : 0.45 }}>
+              <MoreHorizontal className="h-3 w-3" style={{ color: menuId === node.id ? C.cyan : C.dim }} />
+            </button>
+          </span>
         </div>
+        {menuId === node.id && (
+          <div data-layer-menu={node.id} className="ml-6 mb-1 flex flex-col rounded border text-[9px]" style={{ borderColor: C.border, background: "#0c1420" }}>
+            <button className="px-2 py-1 text-left hover:bg-white/5" style={{ color: C.text }} onClick={(e) => { stop(e); isolate(node); }}>Isolate — hide all other layers</button>
+            <button className="px-2 py-1 text-left hover:bg-white/5" style={{ color: C.text }} onClick={(e) => { stop(e); replaceHidden([]); setMenuId(null); }}>Reveal all</button>
+          </div>
+        )}
         {open && node.children?.map((c) => renderNode(c, depth + 1))}
       </div>
     );

@@ -1151,6 +1151,47 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A62: VISIBILITY (👁) — the eye control hides/shows a layer (persisted Set, Security aoHidden pattern). ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.layerHidden'); localStorage.removeItem('arch2525.layerLocked'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  const node = '[data-layer-node="physical/foundation/footings"]';
+  const hiddenAttr = () => pg.evaluate((s) => document.querySelector(s)?.getAttribute('data-layer-hidden'), node);
+  const before = await hiddenAttr();
+  await pg.evaluate((s) => document.querySelector(`${s} [data-layer-ctl="visibility"]`)?.click(), node); await pg.waitForTimeout(140);
+  const after = await hiddenAttr();
+  await pg.evaluate((s) => document.querySelector(`${s} [data-layer-ctl="visibility"]`)?.click(), node); await pg.waitForTimeout(140);
+  const restored = await hiddenAttr();
+  const ok = !before && after === 'true' && !restored;
+  rec('#A62 Layer visibility toggle (👁) hides + shows a layer', ok, JSON.stringify({ before, after, restored }));
+  await pg.close();
+}
+
+// ── #A63: LOCK (🔒) + more (•••) — the lock control marks a layer locked; the ••• menu isolates + reveals. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.layerHidden'); localStorage.removeItem('arch2525.layerLocked'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  const node = '[data-layer-node="physical/foundation/footings"]';
+  const lockedAttr = () => pg.evaluate((s) => document.querySelector(s)?.getAttribute('data-layer-locked'), node);
+  const before = await lockedAttr();
+  await pg.evaluate((s) => document.querySelector(`${s} [data-layer-ctl="lock"]`)?.click(), node); await pg.waitForTimeout(140);
+  const afterLock = await lockedAttr();
+  // ••• menu → Isolate hides other leaves, then Reveal all restores
+  await pg.evaluate((s) => document.querySelector(`${s} [data-layer-ctl="menu"]`)?.click(), node); await pg.waitForTimeout(120);
+  const menuShown = await pg.evaluate(() => !!document.querySelector('[data-layer-menu="physical/foundation/footings"]'));
+  await pg.evaluate(() => { const m = document.querySelector('[data-layer-menu="physical/foundation/footings"]'); m?.querySelector('button')?.click(); }); await pg.waitForTimeout(150);
+  const isolatedHidesOther = await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/slab-on-grade"]')?.getAttribute('data-layer-hidden') === 'true');
+  const ok = !before && afterLock === 'true' && menuShown && isolatedHidesOther;
+  rec('#A63 Layer lock (🔒) marks locked + ••• menu Isolate hides other layers', ok, JSON.stringify({ before, afterLock, menuShown, isolatedHidesOther }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
