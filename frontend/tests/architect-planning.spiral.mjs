@@ -1216,6 +1216,21 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A68: SINGLE-TREE LAW — the Layer Tree is the canonical "what exists" structure. It is defined ONCE
+//          (only in the Design workspace); no other tab renders or duplicates it (Vision 2525 design principle). ──
+{
+  const { pg, tab } = await mk();
+  const counts = {};
+  for (const t of ['Overview', 'Design', 'Simulate', 'Review', 'Build', 'Lifecycle']) {
+    await tab(t); await pg.waitForTimeout(220);
+    counts[t] = await pg.evaluate(() => document.querySelectorAll('[data-arch-layer-tree]').length);
+  }
+  const inDesignWs = await pg.evaluate(() => { const t = document.querySelector('[data-arch-layer-tree]'); return !!t?.closest('[data-arch-design-ws]'); });
+  const ok = Object.values(counts).every((c) => c === 1) && inDesignWs;   // exactly one, always, only in the Design workspace
+  rec('#A68 single-tree law — exactly one Layer Tree, only in the Design workspace (no tab redefines it)', ok, JSON.stringify({ counts, inDesignWs }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
