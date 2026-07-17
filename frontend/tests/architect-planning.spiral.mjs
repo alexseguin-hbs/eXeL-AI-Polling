@@ -1761,6 +1761,33 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A90: DRAG-DROP placement — dropping a Vision-Tree item onto the building (the map dropzone) adds its
+//          buildable leaves to the House Build Spec (operator: "drag and drop left item menu onto building"). ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => localStorage.removeItem('arch2525.houseSpec'));
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(300);
+  const before = await pg.evaluate(() => document.querySelector('[data-arch-house-spec]')?.getAttribute('data-house-count'));
+  const res = await pg.evaluate(() => {
+    const tgt = document.querySelector('[data-arch-dropzone]');
+    if (!tgt) return { dropped: false };
+    const dt = new DataTransfer(); dt.setData('text/plain', 'physical/foundation/footings');
+    tgt.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt }));
+    tgt.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
+    return { dropped: true };
+  });
+  await pg.waitForTimeout(300);
+  const after = await pg.evaluate(() => ({
+    count: document.querySelector('[data-arch-house-spec]')?.getAttribute('data-house-count'),
+    item: !!document.querySelector('[data-house-item="physical/foundation/footings"]'),
+    draggable: !!document.querySelector('[data-layer-node="physical/site"][draggable="true"]'),
+  }));
+  const ok90 = res.dropped && before === '0' && Number(after.count) > 0 && after.item && after.draggable;
+  rec('#A90 drag-drop a Vision-Tree item onto the building adds it to the house', ok90, JSON.stringify({ before, ...after }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

@@ -28,7 +28,7 @@ import { LayerInspector } from "./layer-inspector";
 import { useLayerState } from "./use-layer-state";
 import { HouseSpec } from "./house-spec";
 import { MasterReadout } from "./master-readout";
-import { type HomeType } from "@/lib/architect-layers";
+import { type HomeType, findLayer, flattenLayers } from "@/lib/architect-layers";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
 import { ArchitectSoI } from "./architect-soi";
@@ -263,7 +263,13 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>
               {/* Master key (dimensions · cost · time · confidence) rides the map's OWN scrolling header (operator:
                   "place project master key in same scrolling header as map" · Security R-CORE reuse). */}
-              <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout state={layerState} inline />} />
+              <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout state={layerState} inline />}
+                onDropComponent={(id) => {
+                  // Drag-drop a Vision-Tree item onto the building → add its buildable leaves to the house (operator).
+                  const found = findLayer(id); if (!found) return;
+                  const leaves = flattenLayers([found.node]).filter((n) => !n.children?.length && !n.level3);
+                  if (leaves.length) { layerState.addSpecIds(leaves.map((n) => n.id)); layerState.logReplay("house.drop", `drag-drop ${id} → +${leaves.length}`); }
+                }} />
             </div>
             {sub("Design") === "Site" ? <ArchitectSkySun /> : null}
             {sub("Design") === "Sky" ? <ArchitectSkySun forceView="solar" /> : null}

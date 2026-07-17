@@ -33,8 +33,9 @@ const iso = (x: number, y: number, z: number): Pt => {
 
 export interface DesignMetrics { walls: number; linearFt: number; studs: number; openings: number; }
 
-export function ArchitectDesign({ onMetrics, header }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode }) {
+export function ArchitectDesign({ onMetrics, header, onDropComponent }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void }) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const [dragOver, setDragOver] = useState(false);   // drag-drop a Vision-Tree item onto the building
   const [walls, setWalls] = useState<Wall[]>([
     { a: [4, 4], b: [36, 4] }, { a: [36, 4], b: [36, 26] },
     { a: [36, 26], b: [4, 26] }, { a: [4, 26], b: [4, 4] },
@@ -79,7 +80,11 @@ export function ArchitectDesign({ onMetrics, header }: { onMetrics?: (m: DesignM
   // cost / time now live on the map's settings header (MasterReadout, rendered by the shell). The wireframe still
   // emits its primitive metrics via onMetrics for the $/min economy + 4D build; it just isn't shown as a panel here.
   return (
-      <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
+      <div data-arch-dropzone className="rounded-lg border p-2 transition-colors"
+        onDragOver={(e) => { if (onDropComponent) { e.preventDefault(); setDragOver(true); } }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); const id = e.dataTransfer.getData("text/plain"); if (id) onDropComponent?.(id); }}
+        style={{ borderColor: dragOver ? C.cyan : C.border, background: dragOver ? "#0e2233" : C.panel }}>
         {/* Scrolling map header (Security-2525 R-CORE pattern): the Project·Master key rides the SAME horizontally-
             scrollable header as the map tools, so dimensions/cost/time sit on the map, not in a separate bar. */}
         <div data-arch-map-header className="mb-1 flex items-center gap-3 overflow-x-auto text-[10px]">

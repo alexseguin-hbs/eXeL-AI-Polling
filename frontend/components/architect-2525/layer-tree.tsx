@@ -88,6 +88,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
     return (
       <div key={node.id}>
         <div data-layer-node={node.id} data-layer-hidden={isHidden || undefined} data-layer-locked={isLocked || undefined}
+          draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", node.id); e.dataTransfer.effectAllowed = "copy"; }}
           onClick={() => { if (hasKids) toggle(node.id); onSelect?.(node.id); }}
           className="group flex cursor-pointer items-center gap-1 rounded px-1 py-1 text-[10px] select-none hover:bg-white/5"
           style={{ marginLeft: depth * 12, background: selected ? "#221833" : "transparent", color: node.level3 ? C.cyan : C.text, opacity: isHidden ? 0.4 : 1 }}>
