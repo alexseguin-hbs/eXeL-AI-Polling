@@ -12,8 +12,13 @@ import { exportBIM, importBIM, physicalSystems } from "@/lib/architect-bim";
 import { type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
 
-const C = { border: "#1e2b3a", panel2: "#0c1420", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400" };
+const C = { border: "#1e2b3a", panel2: "#0c1420", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const nowMs = () => { try { return Date.now(); } catch { return 0; } };
+
+// Cloud-backup status chip (Slice 3) — mirrors the Design workspace snapshot to Supabase. "offline" simply means
+// no Supabase env / table yet (localStorage still holds everything); it is never an error the user must act on.
+const CLOUD_LABEL: Record<string, string> = { idle: "Cloud sync", saving: "Saving…", saved: "Saved to cloud", offline: "Local only", error: "Save retrying" };
+const CLOUD_COLOR: Record<string, string> = { idle: "#5f7186", saving: "#19c8cf", saved: "#22c55e", offline: "#5f7186", error: "#ffd400" };
 
 export function BimIO({ state, homeType }: { state: LayerState; homeType: HomeType }) {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -57,6 +62,11 @@ export function BimIO({ state, homeType }: { state: LayerState; homeType: HomeTy
           <Upload className="h-3 w-3" /> Import BIM
         </button>
         <input ref={fileRef} data-bim-file type="file" accept="application/json,.json,.ifcjson" onChange={onFile} className="hidden" />
+        <span data-arch-cloud-status={state.cloudStatus} title="Design saved-files back up to the cloud (survives cache-clear, reloads on this account)"
+          className="ml-auto flex items-center gap-1 text-[8px] font-semibold uppercase tracking-wider">
+          <span className="h-1.5 w-1.5 rounded-full" style={{ background: CLOUD_COLOR[state.cloudStatus] }} />
+          <span style={{ color: CLOUD_COLOR[state.cloudStatus] }}>{CLOUD_LABEL[state.cloudStatus]}</span>
+        </span>
       </div>
       <div className="text-[8px] leading-tight" style={{ color: C.dim }}>
         Preliminary structured model · not for construction · states assumptions &amp; gaps · <span style={{ color: C.gold }}>human review required</span> before professional use.

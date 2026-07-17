@@ -1604,6 +1604,26 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A83: SAVED FILES cloud backup (Supabase) degrades gracefully — with no Supabase env the client is null,
+//          so the House-Build-Spec cloud-status chip reads "offline" (never an error) AND the workspace still
+//          persists through the localStorage rung: a seeded house spec survives a full reload. No throw, no loss
+//          when the durable rung is unavailable (tile-cache.ts ladder law). ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(350);
+  const chip = await pg.evaluate(() => {
+    const el = document.querySelector('[data-arch-cloud-status]');
+    return { present: !!el, status: el?.getAttribute('data-arch-cloud-status') || '', visible: !!(el && el.offsetParent !== null) };
+  });
+  // Seed the local house spec, reload → it must persist (localStorage rung intact regardless of cloud).
+  await pg.evaluate(() => localStorage.setItem('arch2525.houseSpec', JSON.stringify(['physical/site'])));
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1700);
+  const persisted = await pg.evaluate(() => { try { return JSON.parse(localStorage.getItem('arch2525.houseSpec') || '[]'); } catch { return []; } });
+  const ok83 = chip.present && chip.visible && chip.status === 'offline' && Array.isArray(persisted) && persisted.includes('physical/site');
+  rec('#A83 saved-files cloud backup degrades gracefully (offline) + localStorage snapshot round-trips', ok83, JSON.stringify({ chip, persisted }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
