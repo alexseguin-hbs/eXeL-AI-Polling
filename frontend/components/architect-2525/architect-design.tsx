@@ -73,13 +73,12 @@ export function ArchitectDesign({ onMetrics }: { onMetrics?: (m: DesignMetrics) 
 
   const clearAll = () => { setWalls([]); setOpenings([]); setPending(null); emit([], []); };
 
-  const totalStuds = walls.reduce((a, w) => a + studs(w), 0);
-  const totalFt = Math.round(walls.reduce((a, w) => a + lenFt(w), 0));
-
   const sx = (x: number) => (x / LOT_W) * 100, sy = (y: number) => (y / LOT_H) * 100;
 
+  // The MODEL · U-WF PRIMITIVES readout was removed per operator (2026-07-17) — the master House dimensions /
+  // cost / time now live on the map's settings header (MasterReadout, rendered by the shell). The wireframe still
+  // emits its primitive metrics via onMetrics for the $/min economy + 4D build; it just isn't shown as a panel here.
   return (
-    <div className="grid gap-3 lg:grid-cols-[1fr_220px]">
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
         <div className="mb-1 flex items-center gap-1 text-[10px]">
           {(["wall", "door", "window"] as const).map((m) => (
@@ -122,20 +121,5 @@ export function ArchitectDesign({ onMetrics }: { onMetrics?: (m: DesignMetrics) 
           {view3d ? "3D isometric — edit in 2D" : mode === "wall" ? "Click two grid points to place a 2×4 wall" : `Click near a wall to place a ${mode}`}
         </div>
       </div>
-      <div className="space-y-2 rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel }}>
-        <div className="text-[10px] font-bold tracking-wider" style={{ color: C.violet }}>MODEL · U-WF PRIMITIVES</div>
-        <Row k="Walls (2×4)" v={String(walls.length)} />
-        <Row k="Linear ft" v={String(totalFt)} />
-        <Row k="Studs @ 16″ OC" v={String(totalStuds)} />
-        <Row k="Openings" v={String(openings.length)} />
-        <div className="border-t pt-1 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>
-          Each member = wireframe primitive + metadata packet (ARC-02.01). Counts feed the $/min economy + 4D build.
-        </div>
-      </div>
-    </div>
   );
-}
-
-function Row({ k, v }: { k: string; v: string }) {
-  return <div className="flex items-center justify-between" style={{ color: C.text }}><span style={{ color: C.dim }}>{k}</span><span className="tabular-nums font-bold">{v}</span></div>;
 }

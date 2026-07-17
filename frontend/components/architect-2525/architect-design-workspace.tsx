@@ -74,10 +74,10 @@ export function DesignWorkspace({ leftRail, rightRail, bottomPanel, children, se
           engine in one row; below md it stacks vertically (phones). No flex-wrap — wrapping let the engine
           drop BELOW the tree on some desktop windows (the reported "tree above the design window" bug). */}
       <div data-arch-design-ws className="flex flex-col gap-2 md:flex-row md:items-stretch">
-      <Rail side="left" title="Design Tree" open={leftOpen} setOpen={setLeftOpen}>
+      <Rail side="left" title="Vision Tree" open={leftOpen} setOpen={setLeftOpen}>
         {leftRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
-            <span className="font-semibold" style={{ color: C.violet }}>Design Tree</span> — the physical Digital Twin.
+            <span className="font-semibold" style={{ color: C.violet }}>Vision Tree</span> — the physical Digital Twin.
             <div className="mt-1">Hierarchy renders here (C2+).</div>
           </div>
         )}

@@ -97,7 +97,8 @@ const mk = async (vp) => {
 {
   const { pg, clk, tab } = await mk();
   await tab('Design'); // default subtab = Model
-  const wallCount = () => pg.evaluate(() => { const t = document.querySelector('[data-arch-tab="Design"]')?.textContent || ''; const m = t.match(/Walls \(2×4\)\s*(\d+)/); return m ? +m[1] : -1; });
+  // Count the wall primitives directly in the SVG (the MODEL · U-WF PRIMITIVES readout panel was removed 2026-07-17).
+  const wallCount = () => pg.evaluate(() => document.querySelectorAll('[data-arch-design] [data-wall]').length);
   const before = await wallCount();
   const box = await pg.locator('[data-arch-design]').boundingBox();
   if (box) { await pg.mouse.click(box.x + box.width * 0.25, box.y + box.height * 0.55); await pg.waitForTimeout(90); await pg.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.55); await pg.waitForTimeout(140); }
@@ -1585,8 +1586,8 @@ const mk = async (vp) => {
     return { present: !!el, visible: !!(lab && lab.offsetParent !== null), label: (lab?.textContent || '').trim(),
       wm: lab ? getComputedStyle(lab).writingMode : '' };
   });
-  // Collapse the LEFT rail (renamed "Design Tree") via its expanded-header toggle → collapsed vertical label visible.
-  await pg.click('[title="Collapse Design Tree"]'); await pg.waitForTimeout(180);
+  // Collapse the LEFT rail ("Vision Tree") via its expanded-header toggle → collapsed vertical label visible.
+  await pg.click('[title="Collapse Vision Tree"]'); await pg.waitForTimeout(180);
   const left = await pg.evaluate(() => {
     const el = document.querySelector('[data-arch-rail-collapsed="left"]');
     const lab = el?.querySelector('[data-arch-rail-label="left"]');
@@ -1594,13 +1595,13 @@ const mk = async (vp) => {
       wm: lab ? getComputedStyle(lab).writingMode : '' };
   });
   // Re-open left, select a tree row → the right "Active Items" panel auto-opens (detail expands on right).
-  await pg.click('[title="Show Design Tree"]'); await pg.waitForTimeout(160);
+  await pg.click('[title="Show Vision Tree"]'); await pg.waitForTimeout(160);
   await pg.click('[data-layer-node="physical/site"]'); await pg.waitForTimeout(220);
   const autoRight = await pg.evaluate(() => !!document.querySelector('[data-arch-rail="right"]'));
   const ok82 = right.present && right.visible && /ACTIVE ITEMS/i.test(right.label)
-    && left.present && left.visible && /DESIGN TREE/i.test(left.label) && /vertical/.test(left.wm)
+    && left.present && left.visible && /VISION TREE/i.test(left.label) && /vertical/.test(left.wm)
     && autoRight;
-  rec('#A82 rails renamed Design Tree/Active Items + collapsed vertical label (≥md) + select auto-opens right', ok82, JSON.stringify({ right, left, autoRight }));
+  rec('#A82 rails Vision Tree/Active Items + collapsed vertical label (≥md) + select auto-opens right', ok82, JSON.stringify({ right, left, autoRight }));
   await pg.close();
 }
 
@@ -1676,6 +1677,27 @@ const mk = async (vp) => {
   });
   const ok85 = before.hasCtl && before.cost > 0 && after.cost > before.cost && after.scale > before.scale && Math.abs(after.scale - 2) < 0.02;
   rec('#A85 global building params live-recalc — bigger area rescales the project rollup cost (scale 1→2)', ok85, JSON.stringify({ before, after }));
+  await pg.close();
+}
+
+// ── #A86: MODEL cleanup (operator 2026-07-17) — the MODEL · U-WF PRIMITIVES panel is REMOVED, and the Model map
+//          instead carries a MASTER READOUT (house dimensions · master cost · build time) on a settings header. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  const r = await pg.evaluate(() => {
+    const readout = document.querySelector('[data-arch-master-readout]');
+    const t = readout?.textContent || '';
+    return {
+      noPrimitives: !/U-WF PRIMITIVES/.test(document.body.innerText),
+      readout: !!(readout && readout.offsetParent !== null),
+      hasDims: /ft²/.test(t) && /footprint/i.test(t),
+      hasCost: /\$/.test(t) && /master cost/i.test(t),
+      hasTime: /days/i.test(t) && /build time/i.test(t),
+    };
+  });
+  const ok86 = r.noPrimitives && r.readout && r.hasDims && r.hasCost && r.hasTime;
+  rec('#A86 Model cleanup — U-WF PRIMITIVES removed; master readout (dimensions·cost·time) on settings header', ok86, JSON.stringify(r));
   await pg.close();
 }
 

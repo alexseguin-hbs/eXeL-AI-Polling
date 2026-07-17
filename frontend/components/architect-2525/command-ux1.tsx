@@ -27,6 +27,7 @@ import { LayerTree } from "./layer-tree";
 import { LayerInspector } from "./layer-inspector";
 import { useLayerState } from "./use-layer-state";
 import { HouseSpec } from "./house-spec";
+import { MasterReadout } from "./master-readout";
 import { type HomeType } from "@/lib/architect-layers";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
@@ -259,6 +260,9 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           >
             {/* MODEL kept mounted (display:none when another engine view is active) so wireframe state persists. */}
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>
+              {/* Master readout (dimensions · cost · time) on the map's settings header — replaces the removed
+                  MODEL · U-WF PRIMITIVES panel (operator 2026-07-17). Live from the shared params + rollup. */}
+              <MasterReadout state={layerState} />
               <ArchitectDesign onMetrics={setDesignMetrics} />
             </div>
             {sub("Design") === "Site" ? <ArchitectSkySun /> : null}
