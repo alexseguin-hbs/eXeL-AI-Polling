@@ -1478,6 +1478,31 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A79: TRINITY = THREE LEDGERS (MoT consolidation #2) — the Asset Intelligence panel shows the SoI Trinity as
+//          three DISTINCT ledgers ◬ AI · ♡ spiritual · 웃 human, never collapsed to one number; MoT is a separate
+//          minutes row. ──
+{
+  const { pg, tab } = await mk();
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.click()); await pg.waitForTimeout(250);
+  const tri = await pg.evaluate(() => {
+    const row = document.querySelector('[data-asset-trinity]');
+    const ai = document.querySelector('[data-trinity-ai]')?.textContent || '';
+    const sp = document.querySelector('[data-trinity-spiritual]')?.textContent || '';
+    const hu = document.querySelector('[data-trinity-human]')?.textContent || '';
+    const motRow = [...document.querySelectorAll('div')].some((d) => /MoT \(minutes\)/.test(d.textContent || ''));
+    return { hasRow: !!row, ai, sp, hu, motRow };
+  });
+  // three separate ledgers, each carrying its glyph + a number, distinctly rendered (not one combined value)
+  const num = (s) => (s.match(/-?\d[\d,]*/) || [''])[0];
+  const threeDistinct = /◬/.test(tri.ai) && /♡/.test(tri.sp) && /웃/.test(tri.hu) && num(tri.ai) !== '' && num(tri.sp) !== '' && num(tri.hu) !== '';
+  const ok79 = tri.hasRow && threeDistinct && tri.motRow;
+  rec('#A79 Trinity is three distinct ledgers ◬♡웃 (never one number) + MoT minutes row', ok79, JSON.stringify(tri));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

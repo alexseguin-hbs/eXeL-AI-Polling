@@ -70,7 +70,8 @@ export function assetIntel(id: string, params: AssetParams = {}, ov: AssetOverri
     procurement: { preferredSupplier: ov.supplier ?? "", alternateSuppliers: [], unitPrice: Math.round(baseCost / qty), leadTime: prof.leadDays, deliveryStatus: "ordered" },
     status: { phase: ov.phase ?? "designed", confidence, aaceClass, risk: prof.risk, qualification: { security: "pending", stability: "pending", scalability: "pending", efficiency: "pending", succinctness: "pending" } },
     dependencies: [], successors: [], documents: [], simulations: [], reviews: [], replay: [],
-    economy: { mot: Math.round(laborHours * 60), timeCapital: Math.round(econ.timeCapitalUsd), trinityTokens: econ.trinity.heart, budget: installed },
+    // Trinity = three ledgers (◬ AI · ♡ spiritual · 웃 human); map computeEconomy: unity→ai, heart→spiritual, human→human.
+    economy: { mot: Math.round(laborHours * 60), timeCapital: Math.round(econ.timeCapitalUsd), trinity: { ai: econ.trinity.unity, spiritual: econ.trinity.heart, human: econ.trinity.human, total: Math.round(econ.trinity.unity + econ.trinity.heart + econ.trinity.human) }, budget: installed },
     lifecycle: { maintenance: { frequency: "annual", lastService: 0, nextService: 0 }, warranty: { provider: "", expires: 0, extended: false }, serviceHistory: [] },
     metadata: { sourceFile: "", sourceHash: "", sourceType: "layer-tree", importTimestamp: 0, humanReviewStatus: "unreviewed" },
   };

@@ -161,7 +161,16 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
             <Row k="Lead time" v={`${asset.procurement.leadTime} days`} />
             <Row k="Unit price" v={fmtUsd(asset.procurement.unitPrice)} />
             {rValue > 0 && <Row k="Insulation R-value" v={`R-${rValue}`} c={C.cyan} />}
-            <Row k="MoT · Trinity ♡" v={`${asset.economy.mot} min · ${asset.economy.trinityTokens}`} c={C.violet} />
+            <Row k="MoT (minutes)" v={`${asset.economy.mot} min`} c={C.violet} />
+            {/* Trinity = three distinct ledgers (◬ AI · ♡ spiritual · 웃 human), never collapsed to one (MoT #2). */}
+            <div data-asset-trinity className="flex items-center justify-between gap-2">
+              <span style={{ color: C.dim }}>Trinity ledgers</span>
+              <span className="tabular-nums" style={{ color: C.violet }}>
+                <span data-trinity-ai>◬ {asset.economy.trinity.ai}</span>{" · "}
+                <span data-trinity-spiritual>♡ {asset.economy.trinity.spiritual}</span>{" · "}
+                <span data-trinity-human>웃 {asset.economy.trinity.human}</span>
+              </span>
+            </div>
             <Row k="Time Capital" v={fmtUsd(asset.economy.timeCapital)} c={C.gold} />
           </div>
 

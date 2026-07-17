@@ -24,6 +24,15 @@ export interface Qualification {
   security: SssesState; stability: SssesState; scalability: SssesState; efficiency: SssesState; succinctness: SssesState;
 }
 
+/**
+ * SoI Trinity — three distinct contribution ledgers, never one number (MoT consolidation #2):
+ *   ◬ ai        — Artificial Intelligence contribution (from computeEconomy.trinity.unity)
+ *   ♡ spiritual — Shared-Intent / spiritual contribution (from computeEconomy.trinity.heart)
+ *   웃 human     — Human Intelligence contribution / min-wage value (from computeEconomy.trinity.human)
+ * `total` is a derived convenience for display only; the three ledgers stay separate at the data layer.
+ */
+export interface TrinityLedger { ai: number; spiritual: number; human: number; total?: number }
+
 export interface Asset {
   id: string;
   templateId: string;
@@ -45,7 +54,9 @@ export interface Asset {
   simulations: string[];
   reviews: string[];
   replay: string[];
-  economy: { mot: number; timeCapital: number; trinityTokens: number; budget: number };
+  // Trinity is THREE distinct contribution ledgers (◬ AI · ♡ spiritual · 웃 human), NEVER collapsed to one
+  // value (Master-of-Thought consolidation #2). `total` is a derived convenience, not a substitute for the three.
+  economy: { mot: number; timeCapital: number; trinity: TrinityLedger; budget: number };
   lifecycle: {
     maintenance: { frequency: string; lastService: number; nextService: number };
     warranty: { provider: string; expires: number; extended: boolean };
