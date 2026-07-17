@@ -1823,6 +1823,29 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A93: RIGHT PANEL split — TOP "Active Elements" (the in-house components list) + BOTTOM "Selected Element"
+//          (the deep detail). Clicking an Active Element makes it the Selected Element (MP ActiveItems/Inspector). ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => localStorage.removeItem('arch2525.houseSpec'));
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(300);
+  await pg.click('[data-recommend="hi"]'); await pg.waitForTimeout(300);   // populate Active Elements
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(260); // opens the right rail
+  const info = await pg.evaluate(() => ({
+    hasActive: !!document.querySelector('[data-arch-active-elements]'),
+    hasSelected: !!document.querySelector('[data-arch-selected-element]'),
+    rows: document.querySelectorAll('[data-arch-active-elements] [data-active-el]').length,
+    inspector: !!document.querySelector('[data-arch-selected-element] [data-arch-layer-inspector]'),
+  }));
+  const picked = await pg.evaluate(() => { const el = document.querySelector('[data-active-el]'); const id = el?.getAttribute('data-active-el'); el?.click(); return id; });
+  await pg.waitForTimeout(220);
+  const after = await pg.evaluate(() => document.querySelector('[data-arch-selected-element] [data-inspect-id]')?.getAttribute('data-inspect-id'));
+  const ok93 = info.hasActive && info.hasSelected && info.rows >= 6 && !!picked && after === picked;
+  rec('#A93 right panel — Active Elements (top) + Selected Element (bottom); click active → becomes selected', ok93, JSON.stringify({ ...info, picked, after }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

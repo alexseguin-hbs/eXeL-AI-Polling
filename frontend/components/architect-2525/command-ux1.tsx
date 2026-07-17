@@ -24,7 +24,7 @@ import { computeEconomy, allocate, fmtUsd, DEFAULT_RATE_PER_HR, type AllocationM
 import { ArchitectDesign, type DesignMetrics } from "./architect-design";
 import { DesignWorkspace } from "./architect-design-workspace";
 import { LayerTree } from "./layer-tree";
-import { LayerInspector } from "./layer-inspector";
+import { RightPanel } from "./right-panel";
 import { useLayerState } from "./use-layer-state";
 import { HouseSpec } from "./house-spec";
 import { MasterReadout } from "./master-readout";
@@ -256,7 +256,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           <DesignWorkspace
             selectedId={selectedLayerId}
             leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} />}
-            rightRail={<LayerInspector selectedId={selectedLayerId} state={layerState} homeType={homeType} />}
+            rightRail={<RightPanel selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} />}
             bottomPanel={<HouseSpec state={layerState} homeType={homeType} selectedId={selectedLayerId} onSelect={setSelectedLayerId} />}
           >
             {/* MODEL kept mounted (display:none when another engine view is active) so wireframe state persists. */}
