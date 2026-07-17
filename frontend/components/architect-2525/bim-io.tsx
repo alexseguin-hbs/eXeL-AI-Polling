@@ -66,6 +66,13 @@ export function BimIO({ state, homeType }: { state: LayerState; homeType: HomeTy
           Imported <span style={{ color: C.text }}>{manifest.file}</span> · hash {manifest.hash} · placed <span style={{ color: C.cyan }}>{manifest.placed}</span> · queued <span style={{ color: C.gold }}>{manifest.queued}</span>
         </div>
       )}
+      {manifest && (
+        // Inc 5 — mapping provenance: exact IFC matches vs auto-inferred (keyword) vs spatially-located.
+        // Keyword mappings are AI-inferred best-guesses → surfaced so a human can review them.
+        <div data-bim-mapsummary className="text-[8px]" style={{ color: C.dim }}>
+          Mapping · <span style={{ color: C.cyan }}>{manifest.exact} exact</span> · <span style={{ color: C.violet }}>{manifest.keyword} keyword-inferred</span> · <span style={{ color: C.gold }}>{manifest.queued} unclassified</span> · <span style={{ color: C.text }}>{manifest.spatialLinked} spatially-located</span>
+        </div>
+      )}
       {unclassified.length > 0 && (
         <div data-bim-unclassified className="flex flex-col gap-1 rounded border p-1" style={{ borderColor: C.border, background: C.panel2 }}>
           <div className="flex items-center gap-1 text-[9px] font-semibold" style={{ color: C.gold }}>

@@ -1535,6 +1535,42 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A81: BIM OBJECT MAPPING (Inc 5) — import deepens: IFC-class→system keyword fallback catches variants
+//          (IfcStairFlight → structure, IfcSpaceHeater → mechanical), the spatial hierarchy (building→storey→
+//          space) is resolved, and only a genuinely-unknown class lands in the Unclassified queue. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.houseSpec'); localStorage.removeItem('arch2525.replay'); localStorage.removeItem('arch2525.unclassified'); localStorage.removeItem('arch2525.bimManifest'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  const bim = JSON.stringify({ objects: [
+    { ifcClass: 'IfcBuilding', id: 'b1' },
+    { ifcClass: 'IfcBuildingStorey', id: 's1', parent: 'b1' },
+    { ifcClass: 'IfcSpace', id: 'sp1', parent: 's1' },
+    { ifcClass: 'IfcWall', id: 'w1', parent: 'sp1', area: 24 },       // exact → structure, spatially located
+    { ifcClass: 'IfcStairFlight', id: 'st1', parent: 's1' },          // keyword → structure
+    { ifcClass: 'IfcSpaceHeater', id: 'h1', parent: 'sp1' },          // keyword → mechanical
+    { ifcClass: 'IfcFoo', id: 'foo1' },                              // unknown → Unclassified
+  ] });
+  await pg.setInputFiles('[data-bim-file]', { name: 'rich.json', mimeType: 'application/json', buffer: Buffer.from(bim) });
+  await pg.waitForTimeout(500);
+  const res = await pg.evaluate(() => {
+    const sum = document.querySelector('[data-bim-mapsummary]')?.textContent || '';
+    const unc = document.querySelector('[data-bim-unclassified]')?.textContent || '';
+    const g = (re) => (sum.match(re) || [])[1];
+    return {
+      exact: +(g(/(\d+)\s*exact/) || 0),
+      keyword: +(g(/(\d+)\s*keyword/) || 0),
+      unclassified: +(g(/(\d+)\s*unclassified/) || 0),
+      spatial: +(g(/(\d+)\s*spatially/) || 0),
+      uncHasFoo: /IfcFoo/.test(unc), uncHasStair: /IfcStairFlight/.test(unc),
+    };
+  });
+  const ok81 = res.exact >= 1 && res.keyword >= 2 && res.unclassified >= 1 && res.spatial >= 3 && res.uncHasFoo && !res.uncHasStair;
+  rec('#A81 BIM object mapping — keyword fallback + spatial hierarchy + only-unknown unclassified', ok81, JSON.stringify(res));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

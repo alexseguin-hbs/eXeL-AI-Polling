@@ -53,7 +53,8 @@ export interface LayerState {
 }
 
 export interface ReplayEvent { t: number; kind: string; detail: string; }
-export interface BimManifest { file: string; hash: string; placed: number; queued: number; }
+// Inc 5 — the manifest carries the mapping provenance summary (exact/keyword/spatial) for UI transparency.
+export interface BimManifest { file: string; hash: string; placed: number; queued: number; exact: number; keyword: number; spatialLinked: number; }
 
 export function useLayerState(): LayerState {
   const [hidden, toggleHidden, replaceHidden] = usePersistentSet("arch2525.layerHidden");
@@ -90,8 +91,8 @@ export function useLayerState(): LayerState {
   const applyBimImport = (res: BimImport) => {
     addSpecIds(res.leafIds);
     setUnclassified((u) => persistUnc([...u, ...res.unclassified]));
-    setBimManifest(() => persistMan({ file: res.sourceFile, hash: res.sourceHash, placed: res.leafIds.length, queued: res.unclassified.length }));
-    logReplay("bim.import", `${res.objects.length} mapped · ${res.unclassified.length} unclassified · ${res.sourceFile}`);
+    setBimManifest(() => persistMan({ file: res.sourceFile, hash: res.sourceHash, placed: res.leafIds.length, queued: res.unclassified.length, exact: res.summary.exact, keyword: res.summary.keyword, spatialLinked: res.summary.spatialLinked }));
+    logReplay("bim.import", `${res.objects.length} mapped (${res.summary.exact} exact · ${res.summary.keyword} keyword) · ${res.unclassified.length} unclassified · ${res.summary.spatialLinked} spatial-linked · ${res.sourceFile}`);
   };
   const resolveUnclassified = (extId: string, systemId: string) => {
     const leaf = systemFirstLeaf(systemId);
