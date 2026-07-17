@@ -33,8 +33,22 @@ const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-").
 // A homeowner's floor area, story count, and finish tier scale the project estimate independently of which
 // individual components are chosen. Pure + deterministic → the rollup stays replayable.
 export type FinishTier = "standard" | "premium" | "luxury";
-export interface GlobalParams { areaSqft: number; stories: number; finish: FinishTier; }
-export const DEFAULT_PARAMS: GlobalParams = { areaSqft: 2000, stories: 1, finish: "standard" };
+export type HouseStyle = "standard" | "stylized";
+export interface GlobalParams { areaSqft: number; stories: number; finish: FinishTier; style?: HouseStyle; }
+export const DEFAULT_PARAMS: GlobalParams = { areaSqft: 2000, stories: 1, finish: "standard", style: "standard" };
+
+// Net-to-gross USABLE ratio by style: a STANDARD layout loses ~18% to walls/halls; a STYLIZED (open-plan /
+// optimized / futuristic) layout is more efficient (~8% loss). "Equivalent sqft" = the GROSS a standard house
+// would need to deliver the SAME usable space, so you can mock standard then stylized and compare like-for-like.
+const NET_RATIO: Record<HouseStyle, number> = { standard: 0.82, stylized: 0.92 };
+
+export interface StyleEquivalence { style: HouseStyle; gross: number; usable: number; equivalentStandardGross: number; }
+export function styleEquivalence(p: GlobalParams = DEFAULT_PARAMS): StyleEquivalence {
+  const style: HouseStyle = p.style ?? "standard";
+  const gross = Math.max(0, Math.round(p.areaSqft));
+  const usable = Math.round(gross * NET_RATIO[style]);
+  return { style, gross, usable, equivalentStandardGross: Math.round(usable / NET_RATIO.standard) };
+}
 const BASELINE_SQFT = 2000;
 const FINISH_FACTOR: Record<FinishTier, number> = { standard: 1, premium: 1.25, luxury: 1.6 };
 const clampNum = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(n) ? n : lo));

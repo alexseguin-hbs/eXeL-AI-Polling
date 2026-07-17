@@ -1788,6 +1788,24 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A91: STANDARD vs STYLIZED — toggling the house Style recomputes the usable / equivalent-standard square
+//          footage (operator: mock a standard house then a stylized house, see the equivalent sqft here). ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.globalParams'); localStorage.removeItem('arch2525.houseSpec'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(300);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-inspect-ctl="house"]')?.click()); await pg.waitForTimeout(240);
+  const std = await pg.evaluate(() => document.querySelector('[data-arch-style-equiv]')?.textContent?.replace(/\s+/g, ' ').trim() || '');
+  await pg.click('[data-param-style="stylized"]'); await pg.waitForTimeout(260);
+  const sty = await pg.evaluate(() => document.querySelector('[data-arch-style-equiv]')?.textContent?.replace(/\s+/g, ' ').trim() || '');
+  const ok91 = /ft²/.test(std) && /ft²/.test(sty) && std !== sty && /standard/i.test(sty);
+  rec('#A91 standard vs stylized — Style toggle changes usable + equivalent-standard sqft', ok91, JSON.stringify({ std: std.slice(0, 44), sty: sty.slice(0, 44) }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

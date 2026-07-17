@@ -8,7 +8,7 @@
  */
 import { X, Home, Layers } from "lucide-react";
 import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect-house";
-import { projectRollup } from "@/lib/architect-project";
+import { projectRollup, styleEquivalence } from "@/lib/architect-project";
 import { findLayer, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
 import { HouseSchematic } from "./house-schematic";
@@ -72,6 +72,19 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect }: { 
             className="rounded border bg-transparent px-1 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>
             <option value="standard">Standard</option><option value="premium">Premium</option><option value="luxury">Luxury</option>
           </select></label>
+        {/* HOUSE STYLE — mock Standard vs Stylized and see the equivalent usable square footage (operator). */}
+        <span className="flex items-center gap-1" style={{ color: C.dim }}>Style
+          {(["standard", "stylized"] as const).map((s) => (
+            <button key={s} data-param-style={s} onClick={() => state.setGlobalParams({ style: s })}
+              className="rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase"
+              style={{ borderColor: C.border, background: (state.globalParams.style ?? "standard") === s ? "#0e2233" : "transparent", color: (state.globalParams.style ?? "standard") === s ? C.cyan : C.dim }}>{s}</button>
+          ))}
+        </span>
+        {(() => { const e = styleEquivalence(state.globalParams); return (
+          <span data-arch-style-equiv className="tabular-nums" style={{ color: C.dim }}>
+            Usable <span style={{ color: C.text }}>{e.usable.toLocaleString()} ft²</span> · ≡ <span style={{ color: C.cyan }}>{e.equivalentStandardGross.toLocaleString()} ft²</span> standard
+          </span>
+        ); })()}
       </div>
 
       {/* PROJECT ROLLUP & QUALIFICATION (Inc 6) — the real spec rolled up at the current gate, REUSING the estimate
