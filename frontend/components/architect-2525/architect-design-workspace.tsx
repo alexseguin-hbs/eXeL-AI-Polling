@@ -29,12 +29,20 @@ function Rail({ side, title, open, setOpen, children }: {
   side: "left" | "right"; title: string; open: boolean; setOpen: (b: boolean) => void; children: ReactNode;
 }) {
   if (!open) {
+    // Collapsed rail — Security mission-planning parity (mission-planning.tsx:5670-5674 / :5795-5799): a bordered
+    // pill that is a full-width HORIZONTAL bar on narrow/portrait (<md) and a 56px VERTICAL rail on wide/landscape
+    // (≥md). The label stays visible in BOTH (writing-mode horizontal-tb → vertical-rl); the whole pill re-opens the
+    // rail. Matches operator refs: IMG_7401 (landscape vertical rails) + IMG_7399 (portrait horizontal bar).
     return (
-      <div className="flex shrink-0 flex-col items-center gap-2 pt-1 md:w-[56px]">
-        <Toggle3 onClick={() => setOpen(true)} title={`Show ${title}`} />
-        <span className="hidden text-[8px] font-semibold uppercase tracking-wider md:[writing-mode:vertical-rl]"
+      <button data-arch-rail-collapsed={side} onClick={() => setOpen(true)} title={`Show ${title}`}
+        className="flex w-full shrink-0 flex-row items-center justify-center gap-2 rounded-lg border px-1.5 py-1 hover:bg-white/5 md:w-[56px] md:flex-col md:self-start md:py-2"
+        style={{ background: C.panel, borderColor: C.border }}>
+        <span data-arch-rail-toggle className="flex flex-col items-center gap-[3px]">
+          {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
+        </span>
+        <span data-arch-rail-label={side} className="text-[8px] font-semibold uppercase tracking-wider [writing-mode:horizontal-tb] md:[writing-mode:vertical-rl]"
           style={{ color: C.dim }}>{title}</span>
-      </div>
+      </button>
     );
   }
   return (
@@ -66,16 +74,16 @@ export function DesignWorkspace({ leftRail, rightRail, bottomPanel, children, se
           engine in one row; below md it stacks vertically (phones). No flex-wrap — wrapping let the engine
           drop BELOW the tree on some desktop windows (the reported "tree above the design window" bug). */}
       <div data-arch-design-ws className="flex flex-col gap-2 md:flex-row md:items-stretch">
-      <Rail side="left" title="Layer Tree" open={leftOpen} setOpen={setLeftOpen}>
+      <Rail side="left" title="Design Tree" open={leftOpen} setOpen={setLeftOpen}>
         {leftRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
-            <span className="font-semibold" style={{ color: C.violet }}>Layer Tree</span> — the physical Digital Twin.
+            <span className="font-semibold" style={{ color: C.violet }}>Design Tree</span> — the physical Digital Twin.
             <div className="mt-1">Hierarchy renders here (C2+).</div>
           </div>
         )}
       </Rail>
       <div data-arch-engine className="min-w-0 flex-1">{children}</div>
-      <Rail side="right" title="Context" open={rightOpen} setOpen={setRightOpen}>
+      <Rail side="right" title="Active Items" open={rightOpen} setOpen={setRightOpen}>
         {rightRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
             Select a layer to inspect its properties, Level&nbsp;3 Cubes, and linked records (C5).

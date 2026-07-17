@@ -1571,6 +1571,39 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A82: rails renamed "Design Tree" / "Active Items" + Security-style collapsed labels — the collapsed rail is a
+//          bordered pill whose panel-name label stays VISIBLE (vertical writing-mode ≥md, matching Security's
+//          ASSET·SUPPORT / ACTIVE ITEMS), and selecting a tree row AUTO-OPENS the right "Active Items" panel
+//          (operator: "I like seeing detail expand on right when selected"). Default vp 1000px → ≥md → vertical. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(300);
+  // Right rail is collapsed by default → its bordered pill shows the renamed "Active Items" label, visible.
+  const right = await pg.evaluate(() => {
+    const el = document.querySelector('[data-arch-rail-collapsed="right"]');
+    const lab = el?.querySelector('[data-arch-rail-label="right"]');
+    return { present: !!el, visible: !!(lab && lab.offsetParent !== null), label: (lab?.textContent || '').trim(),
+      wm: lab ? getComputedStyle(lab).writingMode : '' };
+  });
+  // Collapse the LEFT rail (renamed "Design Tree") via its expanded-header toggle → collapsed vertical label visible.
+  await pg.click('[title="Collapse Design Tree"]'); await pg.waitForTimeout(180);
+  const left = await pg.evaluate(() => {
+    const el = document.querySelector('[data-arch-rail-collapsed="left"]');
+    const lab = el?.querySelector('[data-arch-rail-label="left"]');
+    return { present: !!el, visible: !!(lab && lab.offsetParent !== null), label: (lab?.textContent || '').trim(),
+      wm: lab ? getComputedStyle(lab).writingMode : '' };
+  });
+  // Re-open left, select a tree row → the right "Active Items" panel auto-opens (detail expands on right).
+  await pg.click('[title="Show Design Tree"]'); await pg.waitForTimeout(160);
+  await pg.click('[data-layer-node="physical/site"]'); await pg.waitForTimeout(220);
+  const autoRight = await pg.evaluate(() => !!document.querySelector('[data-arch-rail="right"]'));
+  const ok82 = right.present && right.visible && /ACTIVE ITEMS/i.test(right.label)
+    && left.present && left.visible && /DESIGN TREE/i.test(left.label) && /vertical/.test(left.wm)
+    && autoRight;
+  rec('#A82 rails renamed Design Tree/Active Items + collapsed vertical label (≥md) + select auto-opens right', ok82, JSON.stringify({ right, left, autoRight }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
