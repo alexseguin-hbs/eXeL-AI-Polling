@@ -11,6 +11,7 @@ import { systemFirstLeaf, type BimImport, type ImportedObject } from "@/lib/arch
 import { type AssetOverrides } from "@/lib/architect-assets";
 import { cloudEnabled, loadSnapshot, saveSnapshot, type ArchitectSnapshot, type CloudStatus } from "@/lib/architect-saved-files";
 import { DEFAULT_PARAMS, type GlobalParams } from "@/lib/architect-project";
+import { DEFAULT_PROGRAM, type RoomProgram } from "@/lib/room-program";
 
 // Empty on the server AND the client's first render (no hydration mismatch under `output: export`);
 // stored values load in a mount effect. Persistence is write-through on mutation — never on mount —
@@ -56,6 +57,8 @@ export interface LayerState {
   // the project rollup. Persisted + in the cloud snapshot; every change logs Replay (a homeowner decision).
   globalParams: GlobalParams;
   setGlobalParams: (patch: Partial<GlobalParams>) => void;
+  program: RoomProgram;
+  setProgram: (patch: Partial<RoomProgram>) => void;
   // Supabase saved-files (cloud backup) — the workspace snapshot mirrors to Supabase (best-effort, never blocks
   // the UI); localStorage stays the fast local rung. `cloudStatus` drives a small indicator near House Build Spec.
   cloudStatus: CloudStatus;
@@ -140,6 +143,16 @@ export function useLayerState(): LayerState {
     return next;
   });
 
+  // Room program (V2) — bedrooms · bathrooms · ceiling ht; drives the element-count inspector. Persisted + snapshot.
+  const [program, setProgramRaw] = useState<RoomProgram>(DEFAULT_PROGRAM);
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.program"); if (v) setProgramRaw({ ...DEFAULT_PROGRAM, ...JSON.parse(v) }); } catch {} }, []);
+  const setProgram = (patch: Partial<RoomProgram>) => setProgramRaw((p) => {
+    const next = { ...p, ...patch };
+    try { localStorage.setItem("arch2525.program", JSON.stringify(next)); } catch {}
+    logReplay("program.change", Object.entries(patch).map(([k, v]) => `${k}=${v}`).join(" · "));
+    return next;
+  });
+
   // ── Supabase saved-files (Slice 3) — cloud backup of the whole workspace snapshot. ──────────────────────────
   // localStorage is the fast local rung; Supabase is the durable + cross-device rung (tile-cache.ts ladder). All
   // best-effort: no env / missing table / offline → silently local-only. RESTORE happens ONLY when this device is
@@ -155,6 +168,7 @@ export function useLayerState(): LayerState {
     assetOverrides,
     gate,
     globalParams,
+    program,
     replay,
     savedAt: (() => { try { return Date.now(); } catch { return 0; } })(),
   });
@@ -176,6 +190,7 @@ export function useLayerState(): LayerState {
         put("arch2525.assetOverrides", snap.assetOverrides ?? {});
         put("arch2525.gate", Math.max(0, Math.min(13, snap.gate ?? 3)));
         if (snap.globalParams) put("arch2525.globalParams", snap.globalParams);
+        if (snap.program) put("arch2525.program", snap.program);
         replaceSpec(snap.houseSpec ?? []);
         replaceHidden(snap.layerHidden ?? []);
         replaceLocked(snap.layerLocked ?? []);
@@ -184,6 +199,7 @@ export function useLayerState(): LayerState {
         setAssetOverrides((snap.assetOverrides as Record<string, AssetOverrides>) ?? {});
         setGateRaw(Math.max(0, Math.min(13, snap.gate ?? 3)));
         if (snap.globalParams) setGlobalParamsRaw({ ...DEFAULT_PARAMS, ...(snap.globalParams as Partial<GlobalParams>) });
+        if (snap.program) setProgramRaw({ ...DEFAULT_PROGRAM, ...(snap.program as Partial<RoomProgram>) });
         setCloudStatus("saved");
       } else if (!localEmpty) {
         // Existing local work — back it up to the cloud so it's durable + reachable on the next device.
@@ -199,11 +215,11 @@ export function useLayerState(): LayerState {
     if (skipSave.current || !cloudEnabled()) return;
     const id = setTimeout(() => { setCloudStatus("saving"); saveSnapshot(snapshot()).then(setCloudStatus); }, 1200);
     return () => clearTimeout(id);
-  }, [spec, hidden, locked, unclassified, bimManifest, assetOverrides, gate, globalParams]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [spec, hidden, locked, unclassified, bimManifest, assetOverrides, gate, globalParams, program]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     hidden, locked, toggleHidden, toggleLocked, isolate, revealAll, spec, toggleSpec, addSpecIds, setSpecIds, clearSpec,
     replay, logReplay, unclassified, bimManifest, applyBimImport, resolveUnclassified, assetOverrides, setAssetOverride,
-    gate, setGate, globalParams, setGlobalParams, cloudStatus,
+    gate, setGate, globalParams, setGlobalParams, program, setProgram, cloudStatus,
   };
 }

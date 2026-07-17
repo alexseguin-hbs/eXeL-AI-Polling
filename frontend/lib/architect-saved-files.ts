@@ -24,6 +24,7 @@ export interface ArchitectSnapshot {
   assetOverrides: Record<string, unknown>;
   gate: number;
   globalParams?: unknown; // S5 — whole-project inputs (area · stories · finish); optional for back-compat
+  program?: unknown;      // V2 — room program (bedrooms · bathrooms · ceiling ht); optional for back-compat
   replay: unknown[];
   savedAt: number; // ms epoch of the snapshot (last-write-wins across devices)
 }

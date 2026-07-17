@@ -1846,6 +1846,29 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A94: BUILDING PROGRAM — icon-led element counts (🛏 bedrooms · 🛁 baths · 📏 sqft · ⚡ electric A/V · HVAC ·
+//          🚰 plumbing pipe/valves); editing bedrooms live-recomputes per-room volume (cooling). ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.program'); localStorage.removeItem('arch2525.globalParams'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(280);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(260); // open right rail
+  const info = await pg.evaluate(() => {
+    const bp = document.querySelector('[data-arch-building-program]');
+    const rows = ['bedrooms', 'bathrooms', 'sqft', 'electric', 'plumbing'].filter((r) => bp?.querySelector(`[data-program-row="${r}"]`)).length;
+    const elec = document.querySelector('[data-program-row="electric"]')?.textContent || '';
+    return { has: !!bp, rows, electricAmps: /\dA/.test(elec) };
+  });
+  const vol0 = await pg.evaluate(() => document.querySelector('[data-program-bedvol]')?.textContent || '');
+  await pg.evaluate(() => { const row = document.querySelector('[data-program-row="bedrooms"]'); const b = row?.querySelectorAll('button'); if (b) b[b.length - 1].click(); }); // bedrooms '+'
+  await pg.waitForTimeout(240);
+  const vol1 = await pg.evaluate(() => document.querySelector('[data-program-bedvol]')?.textContent || '');
+  const ok94 = info.has && info.rows === 5 && info.electricAmps && /ft³/.test(vol0) && vol0 !== vol1;
+  rec('#A94 building program — element counts + live recompute (bedrooms → per-room volume)', ok94, JSON.stringify({ ...info, vol0: vol0.replace(/\s+/g, ' ').slice(0, 22), vol1: vol1.replace(/\s+/g, ' ').slice(0, 22) }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
