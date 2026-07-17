@@ -1745,6 +1745,22 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A89: per-item estimate — every buildable physical leaf carries a STARTING COST · install-time chip
+//          (operator: "all items on tree get starting cost and installation … build schedule"). ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(300);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(220);
+  const est = await pg.evaluate(() => {
+    const leaf = document.querySelector('[data-layer-node="physical/foundation/footings"]');
+    const chip = leaf?.querySelector('[data-layer-est]');
+    return { hasChip: !!chip, text: (chip?.textContent || '').trim() };
+  });
+  const ok89 = est.hasChip && /\$/.test(est.text) && /d$/.test(est.text);
+  rec('#A89 per-item starting cost · install-time chip on every buildable leaf', ok89, JSON.stringify(est));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

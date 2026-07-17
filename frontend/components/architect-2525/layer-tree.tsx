@@ -12,9 +12,12 @@
 import { useMemo, useState } from "react";
 import { ChevronRight, Eye, EyeOff, Lock, Unlock, Settings, MoreHorizontal } from "lucide-react";
 import { LAYER_TREE, HOME_TYPES, isVisibleForType, type LayerNode, type HomeType } from "@/lib/architect-layers";
+import { componentEstimate } from "@/lib/architect-house";
 import { type LayerState } from "./use-layer-state";
 import { AlvarMark } from "./alvar-mark";
 import { TRINITY_13, trinityHex } from "@/lib/trinity-colors";
+
+const kUsd = (n: number) => (n >= 1000 ? `$${Math.round(n / 1000)}k` : `$${n}`);
 
 const C = { border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400" };
 const SCOPE_COLOR: Record<string, string> = { physical: C.violet, operational: C.cyan, lifecycle: C.green };
@@ -94,6 +97,10 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
           <span className="min-w-0 flex-1 truncate">{node.label}</span>
           {state.spec.has(node.id) && <span data-layer-inhouse title="On the house" className="shrink-0 h-1.5 w-1.5 rounded-full" style={{ background: C.green }} />}
           {hasKids && <span className="shrink-0 text-[8px] group-hover:hidden" style={{ color: C.dim }}>·{visCount(kids)}</span>}
+          {/* Per-item STARTING COST · install time — every buildable leaf carries an estimate (operator ask). */}
+          {!hasKids && !node.level3 && (() => { const e = componentEstimate(node.id); return e ? (
+            <span data-layer-est className="shrink-0 text-[8px] tabular-nums group-hover:hidden" style={{ color: C.dim }} title={`Starting cost ${kUsd(e.cost)} · install ~${e.days} days`}>{kUsd(e.cost)}·{e.days}d</span>
+          ) : null; })()}
           {/* per-item controls (👁 🔒 ⚙ •••) — Security iconography; reveal on hover/selected to keep rows clean */}
           <span className={`shrink-0 items-center gap-0 ${selected || isHidden || isLocked ? "flex" : "hidden group-hover:flex"}`}>
             <IconBtn hook="visibility" title={isHidden ? "Show layer" : "Hide layer"} on={() => toggleHidden(node.id)} active={isHidden} activeColor={C.dim} Icon={Eye} IconOff={EyeOff} />
