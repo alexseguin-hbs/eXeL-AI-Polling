@@ -8,11 +8,15 @@
  * Selection is the canonical "what exists" pointer (selectedLayerId, lifted to the shell). Returns a
  * quiet prompt when nothing is selected.
  */
-import { Eye, EyeOff, Lock, Unlock, Crosshair, RotateCcw, Home, Plus, Check } from "lucide-react";
+import { Eye, EyeOff, Lock, Unlock, Crosshair, RotateCcw, Home, Plus, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { findLayer, flattenLayers, isVisibleForType, type LayerNode, type HomeType } from "@/lib/architect-layers";
+import { assetIntel, assetRValue } from "@/lib/architect-assets";
+import { assetTotalDays, DIGITAL_TWIN_PHASES } from "@/lib/vision2525/asset";
 import { type LayerState } from "./use-layer-state";
 
-const C = { border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400" };
+const C = { border: "#1e2b3a", panel2: "#0c1420", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400", red: "#ef4444" };
+const fmtUsd = (n: number) => "$" + Math.round(n).toLocaleString();
+const RISK_COLOR: Record<string, string> = { low: "#22c55e", medium: "#f59e0b", high: "#ef4444" };
 const SCOPE_COLOR: Record<string, string> = { physical: C.violet, operational: C.cyan, lifecycle: C.green };
 // Scope-specific "linked records" hint — what the Digital Twin references at this node (wiring is progressive).
 const SCOPE_LINK: Record<string, string> = {
@@ -49,6 +53,21 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
     if (kids.length) { inHouse ? leafDescendants.forEach((n) => state.spec.has(n.id) && state.toggleSpec(n.id)) : state.addSpecIds(leafDescendants.map((n) => n.id)); }
     else state.toggleSpec(node.id);
   };
+
+  // Asset Intelligence (Inc 2) — a leaf physical component IS an asset; render the shared Asset record.
+  const isAsset = canBuild && !kids.length;
+  const ov = state?.assetOverrides?.[node.id] ?? {};
+  const asset = isAsset ? assetIntel(node.id, {}, ov) : null;
+  const rValue = isAsset ? assetRValue(node.id, ov) : 0;
+  const phaseIdx = asset ? DIGITAL_TWIN_PHASES.indexOf(asset.status.phase) : 0;
+  const stepPhase = (d: number) => {
+    if (!state || !asset) return;
+    const i = Math.max(0, Math.min(DIGITAL_TWIN_PHASES.length - 1, phaseIdx + d));
+    state.setAssetOverride(node.id, { phase: DIGITAL_TWIN_PHASES[i] });
+  };
+  const Row = ({ k, v, c }: { k: string; v: string; c?: string }) => (
+    <div className="flex items-center justify-between gap-2"><span style={{ color: C.dim }}>{k}</span><span className="tabular-nums" style={{ color: c ?? C.text }}>{v}</span></div>
+  );
 
   return (
     <div data-arch-layer-inspector data-inspect-id={node.id} className="flex flex-col gap-2 text-[10px]">
@@ -99,7 +118,85 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
         <span className="rounded px-1.5 py-0.5 text-[8px] font-semibold uppercase" style={{ background: "#0c1420", color }}>{scope.label}</span>
         {node.level3 && <span className="rounded px-1.5 py-0.5 text-[8px] font-semibold uppercase" style={{ background: "#0c1420", color: C.cyan }}>Level 3 Substrate</span>}
         <span className="rounded px-1.5 py-0.5 text-[8px] font-semibold uppercase" style={{ background: "#0c1420", color: C.dim }}>{kids.length ? `${kids.length} children · ${leafCount} leaves` : "leaf"}</span>
+        {asset && <span className="rounded px-1.5 py-0.5 text-[8px] font-semibold uppercase" style={{ background: "#0c1420", color: RISK_COLOR[asset.status.risk] }}>{asset.status.risk} risk</span>}
       </div>
+
+      {/* ASSET INTELLIGENCE — the shared Vision-2525 Asset record for this component (Inc 2). */}
+      {asset && state && (
+        <div data-arch-asset data-asset-id={asset.id} className="flex flex-col gap-2 rounded border p-2" style={{ borderColor: C.border, background: C.panel2 }}>
+          <div className="flex items-center justify-between text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
+            <span>Asset Intelligence</span>
+            <span style={{ color: C.dim }}>AACE {asset.status.aaceClass} · {asset.status.confidence}% conf</span>
+          </div>
+
+          {/* Digital-Twin status stepper (Human Authority advances qualification) */}
+          <div data-asset-status className="flex items-center gap-1.5">
+            <button data-asset-status-prev onClick={() => stepPhase(-1)} className="rounded border p-0.5 hover:bg-white/10" style={{ borderColor: C.border }}><ChevronLeft className="h-3 w-3" style={{ color: C.dim }} /></button>
+            <span className="flex-1 rounded py-1 text-center text-[9px] font-semibold uppercase" style={{ background: "#152238", color: C.violet }}>{asset.status.phase}</span>
+            <button data-asset-status-next onClick={() => stepPhase(1)} className="rounded border p-0.5 hover:bg-white/10" style={{ borderColor: C.border }}><ChevronRight className="h-3 w-3" style={{ color: C.cyan }} /></button>
+          </div>
+          <div className="text-[8px]" style={{ color: C.dim }}>Human Authority advances the Digital-Twin status (Designed → … → Operational). Every step is logged to Replay.</div>
+
+          {/* Cost intelligence */}
+          <div data-asset-cost className="flex flex-col gap-0.5">
+            <div className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Cost</div>
+            <Row k="Material" v={fmtUsd(asset.cost.material)} />
+            <Row k="Labor" v={fmtUsd(asset.cost.labor)} />
+            <Row k="Equipment" v={fmtUsd(asset.cost.equipment)} />
+            <Row k="Subcontract" v={fmtUsd(asset.cost.subcontract)} />
+            <Row k="Installed" v={fmtUsd(asset.cost.installed)} c={C.gold} />
+            <Row k="Replacement · Lifecycle" v={`${fmtUsd(asset.cost.replacement)} · ${fmtUsd(asset.cost.lifecycle)}`} c={C.dim} />
+          </div>
+
+          {/* Schedule intelligence */}
+          <div data-asset-schedule className="flex flex-col gap-0.5">
+            <div className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Schedule (days)</div>
+            <Row k="Eng · Proc · Fab" v={`${asset.schedule.engineering} · ${asset.schedule.procurement} · ${asset.schedule.fabrication}`} />
+            <Row k="Ship · Install · Insp · Comm" v={`${asset.schedule.shipping} · ${asset.schedule.installation} · ${asset.schedule.inspection} · ${asset.schedule.commissioning}`} />
+            <Row k="Total duration" v={`${assetTotalDays(asset)} days`} c={C.green} />
+          </div>
+
+          {/* Procurement + energy + economy */}
+          <div className="flex flex-col gap-0.5">
+            <Row k="Lead time" v={`${asset.procurement.leadTime} days`} />
+            <Row k="Unit price" v={fmtUsd(asset.procurement.unitPrice)} />
+            {rValue > 0 && <Row k="Insulation R-value" v={`R-${rValue}`} c={C.cyan} />}
+            <Row k="MoT · Trinity ♡" v={`${asset.economy.mot} min · ${asset.economy.trinityTokens}`} c={C.violet} />
+            <Row k="Time Capital" v={fmtUsd(asset.economy.timeCapital)} c={C.gold} />
+          </div>
+
+          {/* CUSTOMIZATIONS — live recalculation + validation + Replay */}
+          <div data-asset-customize className="flex flex-col gap-1 rounded border p-1.5" style={{ borderColor: C.border }}>
+            <div className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Customize</div>
+            <label className="flex items-center justify-between gap-2 text-[9px]" style={{ color: C.text }}>
+              <span>Quantity</span>
+              <input data-asset-qty type="number" min={1} value={asset.quantities.count}
+                onChange={(e) => state.setAssetOverride(node.id, { quantity: Math.max(1, Math.round(+e.target.value || 1)) })}
+                className="w-16 rounded border bg-transparent px-1 py-0.5 text-right tabular-nums" style={{ borderColor: C.border, color: C.text }} />
+            </label>
+            <label className="flex items-center justify-between gap-2 text-[9px]" style={{ color: C.text }}>
+              <span>Premium upgrade (+R / +25% cost)</span>
+              <button data-asset-upgrade onClick={() => state.setAssetOverride(node.id, { upgraded: !ov.upgraded })}
+                className="rounded border px-1.5 py-0.5 text-[9px] font-semibold" style={{ borderColor: ov.upgraded ? C.green : C.border, color: ov.upgraded ? C.green : C.dim }}>
+                {ov.upgraded ? "On" : "Off"}
+              </button>
+            </label>
+            <label className="flex items-center justify-between gap-2 text-[9px]" style={{ color: C.text }}>
+              <span>Supplier</span>
+              <input data-asset-supplier type="text" value={asset.procurement.preferredSupplier} placeholder="—"
+                onChange={(e) => state.setAssetOverride(node.id, { supplier: e.target.value })}
+                className="w-24 rounded border bg-transparent px-1 py-0.5 text-right" style={{ borderColor: C.border, color: C.text }} />
+            </label>
+          </div>
+
+          {/* SSSES qualification (per-asset readiness) */}
+          <div data-asset-ssses className="flex flex-wrap gap-1">
+            {(["security", "stability", "scalability", "efficiency", "succinctness"] as const).map((k) => (
+              <span key={k} className="rounded px-1 py-0.5 text-[7px] uppercase" style={{ background: "#0c1420", color: C.dim }}>{k[0]}:{asset.status.qualification[k][0]}</span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* children */}
       {kids.length > 0 && (

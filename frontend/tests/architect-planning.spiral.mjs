@@ -1419,6 +1419,36 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A77: ASSET INTELLIGENCE — selecting a leaf physical component renders the shared Asset record (cost +
+//          schedule + customize + status sections); changing quantity LIVE-RECALCULATES cost; the Digital-Twin
+//          status stepper logs a Replay event. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.assetOverrides'); localStorage.removeItem('arch2525.replay'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.click()); await pg.waitForTimeout(250);
+  const present = await pg.evaluate(() => ({
+    asset: !!document.querySelector('[data-arch-asset][data-asset-id="physical/foundation/footings"]'),
+    cost: !!document.querySelector('[data-asset-cost]'),
+    schedule: !!document.querySelector('[data-asset-schedule]'),
+    customize: !!document.querySelector('[data-asset-customize]'),
+    status: !!document.querySelector('[data-asset-status]'),
+  }));
+  const installed = () => pg.evaluate(() => { const el = [...document.querySelectorAll('[data-asset-cost] div')].find((d) => /Installed/.test(d.textContent || '')); return el?.textContent || ''; });
+  const before = await installed();
+  await pg.evaluate(() => { const i = document.querySelector('[data-asset-qty]'); const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; set.call(i, '3'); i.dispatchEvent(new Event('input', { bubbles: true })); });
+  await pg.waitForTimeout(250);
+  const afterQty = await installed();
+  await pg.evaluate(() => document.querySelector('[data-asset-status-next]')?.click()); await pg.waitForTimeout(200);
+  const replay = await pg.evaluate(() => { try { return JSON.parse(localStorage.getItem('arch2525.replay') || '[]').some((e) => e.kind === 'asset.customize'); } catch { return false; } });
+  const recalc = before !== afterQty && /\$/.test(afterQty);
+  const ok = present.asset && present.cost && present.schedule && present.customize && present.status && recalc && replay;
+  rec('#A77 Asset Intelligence — record on select + quantity live-recalc + status stepper Replay', ok, JSON.stringify({ ...present, before: before.replace(/\s+/g, ' ').slice(0, 22), afterQty: afterQty.replace(/\s+/g, ' ').slice(0, 22), replay }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

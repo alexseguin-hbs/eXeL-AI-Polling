@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import { flattenLayers, type LayerNode } from "@/lib/architect-layers";
 import { systemFirstLeaf, type BimImport, type ImportedObject } from "@/lib/architect-bim";
+import { type AssetOverrides } from "@/lib/architect-assets";
 
 // Empty on the server AND the client's first render (no hydration mismatch under `output: export`);
 // stored values load in a mount effect. Persistence is write-through on mutation — never on mount —
@@ -42,6 +43,9 @@ export interface LayerState {
   bimManifest: BimManifest | null;
   applyBimImport: (res: BimImport) => void;
   resolveUnclassified: (extId: string, systemId: string) => void;
+  // Asset Intelligence customizations (Inc 2) — per-asset overrides (quantity/upgrade/supplier/status).
+  assetOverrides: Record<string, AssetOverrides>;
+  setAssetOverride: (id: string, patch: AssetOverrides) => void;
 }
 
 export interface ReplayEvent { t: number; kind: string; detail: string; }
@@ -93,8 +97,16 @@ export function useLayerState(): LayerState {
     logReplay("bim.classify", `${extId} → ${systemId}`);
   };
 
+  // Asset Intelligence customizations (Inc 2) — persisted per-asset overrides; each edit logs a Replay event.
+  const [assetOverrides, setAssetOverrides] = useState<Record<string, AssetOverrides>>({});
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.assetOverrides"); if (v) setAssetOverrides(JSON.parse(v)); } catch {} }, []);
+  const setAssetOverride = (id: string, patch: AssetOverrides) => {
+    setAssetOverrides((m) => { const next = { ...m, [id]: { ...(m[id] || {}), ...patch } }; try { localStorage.setItem("arch2525.assetOverrides", JSON.stringify(next)); } catch {} return next; });
+    logReplay("asset.customize", `${id} · ${Object.keys(patch).join(",")}`);
+  };
+
   return {
     hidden, locked, toggleHidden, toggleLocked, isolate, revealAll, spec, toggleSpec, addSpecIds, setSpecIds, clearSpec,
-    replay, logReplay, unclassified, bimManifest, applyBimImport, resolveUnclassified,
+    replay, logReplay, unclassified, bimManifest, applyBimImport, resolveUnclassified, assetOverrides, setAssetOverride,
   };
 }
