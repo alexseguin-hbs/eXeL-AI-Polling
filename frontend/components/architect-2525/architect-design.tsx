@@ -8,7 +8,7 @@
  * isometric one-source (ARC-05). Live count/cost rollup feeds the $/min economy.
  * Self-contained; pure SVG (HAL-friendly, U-WF-07). Kept mounted by the shell.
  */
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
 const C = {
   panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186",
@@ -33,7 +33,7 @@ const iso = (x: number, y: number, z: number): Pt => {
 
 export interface DesignMetrics { walls: number; linearFt: number; studs: number; openings: number; }
 
-export function ArchitectDesign({ onMetrics }: { onMetrics?: (m: DesignMetrics) => void }) {
+export function ArchitectDesign({ onMetrics, header }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [walls, setWalls] = useState<Wall[]>([
     { a: [4, 4], b: [36, 4] }, { a: [36, 4], b: [36, 26] },
@@ -80,14 +80,19 @@ export function ArchitectDesign({ onMetrics }: { onMetrics?: (m: DesignMetrics) 
   // emits its primitive metrics via onMetrics for the $/min economy + 4D build; it just isn't shown as a panel here.
   return (
       <div className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>
-        <div className="mb-1 flex items-center gap-1 text-[10px]">
-          {(["wall", "door", "window"] as const).map((m) => (
-            <button key={m} onClick={() => { setMode(m); setPending(null); }} className="rounded border px-2 py-0.5"
-              style={{ borderColor: C.border, color: mode === m ? C.violet : C.dim, background: mode === m ? "#221833" : "transparent" }}>{m}</button>
-          ))}
-          <button onClick={() => setView3d((v) => !v)} className="ml-auto rounded border px-2 py-0.5"
-            style={{ borderColor: C.border, color: view3d ? C.cyan : C.dim }}>{view3d ? "3D" : "2D"}</button>
-          <button onClick={clearAll} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>clear</button>
+        {/* Scrolling map header (Security-2525 R-CORE pattern): the Project·Master key rides the SAME horizontally-
+            scrollable header as the map tools, so dimensions/cost/time sit on the map, not in a separate bar. */}
+        <div data-arch-map-header className="mb-1 flex items-center gap-3 overflow-x-auto text-[10px]">
+          {header}
+          <div className="flex shrink-0 items-center gap-1" style={header ? { marginLeft: "auto" } : undefined}>
+            {(["wall", "door", "window"] as const).map((m) => (
+              <button key={m} onClick={() => { setMode(m); setPending(null); }} className="rounded border px-2 py-0.5"
+                style={{ borderColor: C.border, color: mode === m ? C.cyan : C.dim, background: mode === m ? "#0e2233" : "transparent" }}>{m}</button>
+            ))}
+            <button onClick={() => setView3d((v) => !v)} className="rounded border px-2 py-0.5"
+              style={{ borderColor: C.border, color: view3d ? C.cyan : C.dim }}>{view3d ? "3D" : "2D"}</button>
+            <button onClick={clearAll} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>clear</button>
+          </div>
         </div>
         <svg ref={svgRef} data-arch-design viewBox="0 0 100 75" preserveAspectRatio="xMidYMid meet"
           onClick={onClick} className="w-full cursor-crosshair rounded" style={{ background: "#070b12", aspectRatio: "4 / 3" }}>

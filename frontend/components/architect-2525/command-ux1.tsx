@@ -260,10 +260,9 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
           >
             {/* MODEL kept mounted (display:none when another engine view is active) so wireframe state persists. */}
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>
-              {/* Master readout (dimensions · cost · time) on the map's settings header — replaces the removed
-                  MODEL · U-WF PRIMITIVES panel (operator 2026-07-17). Live from the shared params + rollup. */}
-              <MasterReadout state={layerState} />
-              <ArchitectDesign onMetrics={setDesignMetrics} />
+              {/* Master key (dimensions · cost · time · confidence) rides the map's OWN scrolling header (operator:
+                  "place project master key in same scrolling header as map" · Security R-CORE reuse). */}
+              <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout state={layerState} inline />} />
             </div>
             {sub("Design") === "Site" ? <ArchitectSkySun /> : null}
             {sub("Design") === "Sky" ? <ArchitectSkySun forceView="solar" /> : null}

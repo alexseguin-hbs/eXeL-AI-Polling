@@ -28,6 +28,8 @@ function Toggle3({ onClick, title }: { onClick: () => void; title: string }) {
 function Rail({ side, title, open, setOpen, children }: {
   side: "left" | "right"; title: string; open: boolean; setOpen: (b: boolean) => void; children: ReactNode;
 }) {
+  // Design primary accent = AI cyan (matches Mission Planning). The Vision Tree (left) rail title reads in cyan.
+  const titleColor = side === "left" ? C.cyan : C.dim;
   if (!open) {
     // Collapsed rail — Security mission-planning parity (mission-planning.tsx:5670-5674 / :5795-5799): a bordered
     // pill that is a full-width HORIZONTAL bar on narrow/portrait (<md) and a 56px VERTICAL rail on wide/landscape
@@ -41,7 +43,7 @@ function Rail({ side, title, open, setOpen, children }: {
           {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
         </span>
         <span data-arch-rail-label={side} className="text-[8px] font-semibold uppercase tracking-wider [writing-mode:horizontal-tb] md:[writing-mode:vertical-rl]"
-          style={{ color: C.dim }}>{title}</span>
+          style={{ color: titleColor }}>{title}</span>
       </button>
     );
   }
@@ -49,7 +51,7 @@ function Rail({ side, title, open, setOpen, children }: {
     <div className="flex min-h-0 shrink-0 flex-col gap-2 md:w-64">
       <div className="min-h-0 flex-1 overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
         <div className="flex items-center justify-between border-b p-1.5" style={{ borderColor: C.border }}>
-          <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{title}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: titleColor }}>{title}</span>
           <Toggle3 onClick={() => setOpen(false)} title={`Collapse ${title}`} />
         </div>
         <div data-arch-rail={side} className="overflow-y-auto p-2" style={{ maxHeight: "72vh" }}>

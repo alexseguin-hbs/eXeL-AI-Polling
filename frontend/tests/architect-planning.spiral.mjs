@@ -1688,16 +1688,39 @@ const mk = async (vp) => {
   const r = await pg.evaluate(() => {
     const readout = document.querySelector('[data-arch-master-readout]');
     const t = readout?.textContent || '';
+    const header = document.querySelector('[data-arch-map-header]');
     return {
       noPrimitives: !/U-WF PRIMITIVES/.test(document.body.innerText),
       readout: !!(readout && readout.offsetParent !== null),
-      hasDims: /ft²/.test(t) && /footprint/i.test(t),
-      hasCost: /\$/.test(t) && /master cost/i.test(t),
-      hasTime: /days/i.test(t) && /build time/i.test(t),
+      inHeader: !!(header && readout && header.contains(readout)),   // rides the map's own scrolling header
+      hasDims: /ft²/.test(t) && /×/.test(t),
+      hasCost: /\$/.test(t) && /cost/i.test(t),
+      hasTime: /days/i.test(t) && /build/i.test(t),
     };
   });
-  const ok86 = r.noPrimitives && r.readout && r.hasDims && r.hasCost && r.hasTime;
-  rec('#A86 Model cleanup — U-WF PRIMITIVES removed; master readout (dimensions·cost·time) on settings header', ok86, JSON.stringify(r));
+  const ok86 = r.noPrimitives && r.readout && r.inHeader && r.hasDims && r.hasCost && r.hasTime;
+  rec('#A86 Model cleanup — U-WF PRIMITIVES removed; master key rides the map scrolling header (Security R-CORE)', ok86, JSON.stringify(r));
+  await pg.close();
+}
+
+// ── #A87: ALVAR MARK — the Vision Tree's guardian icon (ouroboros + Yggdrasil + runes) renders BEFORE the tree
+//          content as a single-color line-art homage, and tapping it cycles the 13 SoI-Trinity colors (modular). ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  const info = await pg.evaluate(() => {
+    const header = document.querySelector('[data-alvar-header]');
+    const mark = header?.querySelector('[data-alvar-mark]');
+    const cs = mark ? getComputedStyle(mark) : null;
+    const masked = cs ? (cs.maskImage !== 'none' || cs.webkitMaskImage !== 'none') : false;
+    const market = document.querySelector('[data-layer-hometype]');
+    const before = header && market ? (header.compareDocumentPosition(market) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0 : false;
+    return { hasMark: !!mark, bg: cs?.backgroundColor || '', masked, before: !!before };
+  });
+  await pg.click('[data-alvar-header]'); await pg.waitForTimeout(140);
+  const after = await pg.evaluate(() => { const m = document.querySelector('[data-alvar-header] [data-alvar-mark]'); return m ? getComputedStyle(m).backgroundColor : ''; });
+  const ok87 = info.hasMark && info.before && info.masked && /rgb/.test(info.bg) && after !== '' && after !== info.bg;
+  rec('#A87 Alvar raster icon (real art, masked) renders before Vision Tree + taps cycle the 13 Trinity colors', ok87, JSON.stringify({ ...info, after }));
   await pg.close();
 }
 
