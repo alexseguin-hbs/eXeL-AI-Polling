@@ -113,8 +113,9 @@ function NumField({ label, value, onChange, step = 1 }: { label: string; value: 
 
 // Architect binding of the shared 2525-core Expander (collapsed by default; persists arch2525.exp.<id>).
 const EXP_COLORS = { border: C.border, panel: C.panel, accent: C.violet, dim: C.dim };
-const Expander = (p: { id: string; title: string; sub?: string; defaultOpen?: boolean; children: React.ReactNode }) =>
-  <CoreExpander {...p} colors={EXP_COLORS} storagePrefix="arch2525.exp" />;
+const EXP_COLORS_CYAN = { border: C.border, panel: C.panel, accent: C.cyan, dim: C.dim };   // Design primary
+const Expander = ({ cyan, ...p }: { id: string; title: string; sub?: string; defaultOpen?: boolean; dots?: boolean; cyan?: boolean; children: React.ReactNode }) =>
+  <CoreExpander {...p} colors={cyan ? EXP_COLORS_CYAN : EXP_COLORS} storagePrefix="arch2525.exp" />;
 
 export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: string } = {}) {
   const { setVisionView, exitSimulationMode, simulationMode } = useEasterEgg();
@@ -396,7 +397,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             shows, incl. Design→Model); reuses the Security-2525 "•••" method. Hidden on the More tab (which IS advanced). */}
         {activeTab !== "More" && (
           <div className="mt-3" data-adv-tab={activeTab}>
-            <Expander id={`adv.${activeTab}`} title="••• Advanced" sub={activeTab}>
+            <Expander id={`adv.${activeTab}`} title="Advanced" sub={activeTab} dots cyan>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {(ADV_MENU[activeTab] ?? []).map(([g, items]) => (
                   <div key={g} data-adv-group className="rounded-lg border p-2" style={{ borderColor: C.border, background: C.panel }}>

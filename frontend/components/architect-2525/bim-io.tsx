@@ -17,8 +17,10 @@ const nowMs = () => { try { return Date.now(); } catch { return 0; } };
 
 // Cloud-backup status chip (Slice 3) — mirrors the Design workspace snapshot to Supabase. "offline" simply means
 // no Supabase env / table yet (localStorage still holds everything); it is never an error the user must act on.
-const CLOUD_LABEL: Record<string, string> = { idle: "Cloud sync", saving: "Saving…", saved: "Saved to cloud", offline: "Local only", error: "Save retrying" };
-const CLOUD_COLOR: Record<string, string> = { idle: "#5f7186", saving: "#19c8cf", saved: "#22c55e", offline: "#5f7186", error: "#ffd400" };
+// "error" reads as a calm "Local only" (dim), NOT an alarming retry — the common cause before migration 022 is
+// simply that the table isn't there yet, and localStorage still holds everything (nothing is lost).
+const CLOUD_LABEL: Record<string, string> = { idle: "Cloud sync", saving: "Saving…", saved: "Saved to cloud", offline: "Local only", error: "Local only" };
+const CLOUD_COLOR: Record<string, string> = { idle: "#5f7186", saving: "#19c8cf", saved: "#22c55e", offline: "#5f7186", error: "#5f7186" };
 
 export function BimIO({ state, homeType }: { state: LayerState; homeType: HomeType }) {
   const fileRef = useRef<HTMLInputElement>(null);

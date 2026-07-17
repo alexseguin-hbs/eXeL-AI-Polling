@@ -81,7 +81,11 @@ export async function saveSnapshot(snap: ArchitectSnapshot, sourceHash?: string)
       },
       { onConflict: "owner_key,name" },
     );
-    return error ? "error" : "saved";
+    if (!error) return "saved";
+    // A missing table (pre-migration) is expected → report as local-only, not an error the user must act on.
+    const msg = `${(error as { code?: string }).code ?? ""} ${error.message ?? ""}`.toLowerCase();
+    if (/42p01|pgrst205|does not exist|could not find|schema cache/.test(msg)) return "offline";
+    return "error";
   } catch {
     return "error";
   }

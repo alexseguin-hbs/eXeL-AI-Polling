@@ -14,10 +14,10 @@ export interface ExpanderColors { border: string; panel: string; accent: string;
 const DEFAULT_COLORS: ExpanderColors = { border: "#1e2b3a", panel: "#111826", accent: "#c084fc", dim: "#5f7186" };
 
 export function Expander({
-  id, title, sub, defaultOpen = false, colors = DEFAULT_COLORS, storagePrefix = "2525.exp", children,
+  id, title, sub, defaultOpen = false, colors = DEFAULT_COLORS, storagePrefix = "2525.exp", dots = false, children,
 }: {
   id: string; title: string; sub?: string; defaultOpen?: boolean;
-  colors?: ExpanderColors; storagePrefix?: string; children: ReactNode;
+  colors?: ExpanderColors; storagePrefix?: string; dots?: boolean; children: ReactNode;
 }) {
   const key = `${storagePrefix}.${id}`;
   const [open, setOpen] = useState(() => { try { const v = localStorage.getItem(key); return v === null ? defaultOpen : v === "1"; } catch { return defaultOpen; } });
@@ -30,7 +30,14 @@ export function Expander({
         <span className="text-[11px] font-bold tracking-wider" style={{ color: colors.accent }}>
           {title}{sub && <span className="ml-2 font-normal" style={{ color: colors.dim }}>· {sub}</span>}
         </span>
-        <ChevronDown className="h-3.5 w-3.5 shrink-0 transition-transform" style={{ color: colors.dim, transform: open ? "rotate(180deg)" : "none" }} />
+        {dots ? (
+          // Security-2525 Toggle3 look — three accent dots as the collapse control (matches the map/panel headers).
+          <span data-exp-dots className="flex shrink-0 items-center gap-[3px]">
+            {[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: colors.accent }} />)}
+          </span>
+        ) : (
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 transition-transform" style={{ color: colors.dim, transform: open ? "rotate(180deg)" : "none" }} />
+        )}
       </button>
       {open && <div className="mt-2">{children}</div>}
     </div>

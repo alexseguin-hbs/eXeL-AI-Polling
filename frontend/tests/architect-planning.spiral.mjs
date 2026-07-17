@@ -1724,6 +1724,27 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A88: Advanced ••• uses the Security 3-cyan-dot toggle (R-CORE Expander `dots` variant), and the cloud-status
+//          chip degrades to a CALM "Local only" — never an alarming "retry" — when Supabase/table is absent. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  const info = await pg.evaluate(() => {
+    const adv = document.querySelector('[data-adv-tab] [data-arch-exp]');
+    const dots = adv?.querySelector('[data-exp-dots]');
+    const chip = document.querySelector('[data-arch-cloud-status]');
+    return {
+      advDots: !!dots,
+      dotCount: dots ? dots.querySelectorAll('span').length : 0,
+      cloudCalm: !/retry/i.test(chip?.textContent || ''),
+      cloudText: (chip?.textContent || '').trim(),
+    };
+  });
+  const ok88 = info.advDots && info.dotCount === 3 && info.cloudCalm;
+  rec('#A88 Advanced ••• Security 3-dot toggle + calm cloud chip (no alarming retry)', ok88, JSON.stringify(info));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
