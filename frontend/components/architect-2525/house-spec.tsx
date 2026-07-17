@@ -8,25 +8,29 @@
  */
 import { X, Home, Layers } from "lucide-react";
 import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect-house";
-import { findLayer, type LayerNode } from "@/lib/architect-layers";
+import { findLayer, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
 import { HouseSchematic } from "./house-schematic";
+import { BimIO } from "./bim-io";
 
 const C = { border: "#1e2b3a", panel: "#111826", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400", red: "#ef4444" };
 const fmtUsd = (n: number) => "$" + Math.round(n).toLocaleString();
 
-export function HouseSpec({ state }: { state: LayerState }) {
+export function HouseSpec({ state, homeType = "full" }: { state: LayerState; homeType?: HomeType }) {
   const ids = Array.from(state.spec);
   const est = houseEstimate(ids);
 
   if (est.count === 0) {
     return (
-      <div data-arch-house-spec data-house-count="0" className="flex flex-wrap items-center gap-4 text-[11px]" style={{ color: C.dim }}>
-        <HouseSchematic state={state} />
-        <div className="flex-1">
-          <span className="flex items-center gap-1.5 font-semibold" style={{ color: C.violet }}><Home className="h-4 w-4" /> Wireframe your house</span>
-          <div className="mt-1">Select a component in the Layer Tree, then <span style={{ color: C.text }}>Add&nbsp;to&nbsp;house</span> in the Context panel. The cross-section fills in as you go.</div>
+      <div data-arch-house-spec data-house-count="0" className="flex flex-col gap-3 text-[11px]" style={{ color: C.dim }}>
+        <div className="flex flex-wrap items-center gap-4">
+          <HouseSchematic state={state} />
+          <div className="flex-1">
+            <span className="flex items-center gap-1.5 font-semibold" style={{ color: C.violet }}><Home className="h-4 w-4" /> Wireframe your house</span>
+            <div className="mt-1">Select a component in the Layer Tree, then <span style={{ color: C.text }}>Add&nbsp;to&nbsp;house</span> in the Context panel — or <span style={{ color: C.text }}>Import BIM</span> below. The cross-section fills in as you go.</div>
+          </div>
         </div>
+        <BimIO state={state} homeType={homeType} />
       </div>
     );
   }
@@ -50,6 +54,9 @@ export function HouseSpec({ state }: { state: LayerState }) {
         <span style={{ color: C.dim }}>Sequential <span className="tabular-nums" style={{ color: C.dim }}>{est.sequentialDays} days</span></span>
         <button data-house-clear onClick={state.clearSpec} className="ml-auto rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>Clear</button>
       </div>
+
+      {/* BIM I/O — generate a BIM-compatible model or import one (Inc 1). */}
+      <BimIO state={state} homeType={homeType} />
 
       {/* per-phase rollup bars (parallel install: MEP systems share one phase) */}
       <div className="flex flex-col gap-1">

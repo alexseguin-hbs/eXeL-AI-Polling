@@ -1392,6 +1392,33 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A76: BIM I/O — Generate + Import controls; importing a BIM file maps objects into the Physical
+//          Digital Twin (adds to the house spec), routes unknowns to an Unclassified queue (not discarded),
+//          logs a Replay event, and assigning an unclassified object classifies it into a system. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.houseSpec'); localStorage.removeItem('arch2525.replay'); localStorage.removeItem('arch2525.unclassified'); localStorage.removeItem('arch2525.bimManifest'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  const bar = await pg.evaluate(() => !!document.querySelector('[data-arch-bim]') && !!document.querySelector('[data-bim-export]') && !!document.querySelector('[data-bim-import]'));
+  const bim = JSON.stringify({ objects: [{ ifcClass: 'IfcWall', id: 'w1' }, { ifcClass: 'IfcWindow', id: 'win1' }, { ifcClass: 'IfcFoo', id: 'foo1' }] });
+  await pg.setInputFiles('[data-bim-file]', { name: 'test.json', mimeType: 'application/json', buffer: Buffer.from(bim) });
+  await pg.waitForTimeout(500);
+  const afterImport = await pg.evaluate(() => ({
+    count: +(document.querySelector('[data-arch-house-spec]')?.getAttribute('data-house-count') || '0'),
+    unclassified: !!document.querySelector('[data-bim-unclassified]'),
+    manifest: /placed/.test(document.querySelector('[data-bim-manifest]')?.textContent || ''),
+    replay: (() => { try { return JSON.parse(localStorage.getItem('arch2525.replay') || '[]').some((e) => e.kind === 'bim.import'); } catch { return false; } })(),
+  }));
+  const beforeAssign = afterImport.count;
+  await pg.evaluate(() => { const s = document.querySelector('[data-unclassified-assign]'); if (s) { s.value = 'physical/interior'; s.dispatchEvent(new Event('change', { bubbles: true })); } });
+  await pg.waitForTimeout(350);
+  const afterAssign = await pg.evaluate(() => +(document.querySelector('[data-arch-house-spec]')?.getAttribute('data-house-count') || '0'));
+  const ok = bar && afterImport.count >= 2 && afterImport.unclassified && afterImport.manifest && afterImport.replay && afterAssign > beforeAssign;
+  rec('#A76 BIM I/O — import maps to systems + Unclassified queue + Replay; assign classifies into a system', ok, JSON.stringify({ bar, ...afterImport, beforeAssign, afterAssign }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
