@@ -35,7 +35,8 @@ Legend: ✅ already reused in Architect · ◻️ candidate (not yet lifted) · 
 | Token | Value | Where |
 |---|---|---|
 | Accent (Security) | cyan `#19c8cf` | Toggle3 dots · MiniPanel border · zoom badge |
-| Accent (Architect) | violet `#c084fc` (`C.violet`) | tab active · expander headers |
+| Accent (Architect · Design primary) | **cyan `#19c8cf`** (Mission-Planning parity, 2026-07-17) | Vision Tree · Alvar · map tools · master key · Advanced ••• dots |
+| Accent (Architect · Trinity/HI) | violet `#c084fc` (`C.violet`) | HI/AI·Vision · Trinity glyphs · retained where semantic |
 | Active pill bg | `#221833` | nav/subnav active |
 | Panel bg | `#111826` (`C.panel`) | cards, panels |
 | Border | `#1e2b3a` (`C.border`) | all frames |
@@ -51,6 +52,23 @@ Legend: ✅ already reused in Architect · ◻️ candidate (not yet lifted) · 
 - **`ucrs-2525.ts`** — Base-3600 planetary math + real orbital periods (perihelion→perihelion) + rotation periods
   (retrograde-aware) + texture map registry.
 
+## New Vision-2525 shared primitives — Design-tab batch (2026-07-17)
+
+| Primitive | Source | Reuse | Notes |
+|---|---|---|---|
+| **13-colour SoI-Trinity palette** | `lib/trinity-colors.ts` `TRINITY_13` | any domain | anchored ◬cyan · ♡sunset · 웃violet + 10 bridging hues; `trinityHex(i)`. |
+| **Alvar iconology** | `lib/alvar-logos.ts` + `alvar-mark.tsx` + `public/architect/alvar*.png` | any domain | ONE masked raster (`alvar.png`) → 13 live colour versions via CSS mask; 13 hi-res pre-tinted PNGs + `.jpg` source. |
+| **Expander `dots` variant** | `2525-core/expander.tsx` (`dots` prop) | ✅ shared | renders the Security Toggle3 (3 accent dots) as the collapse control. |
+| **In-header key pattern** | `master-readout.tsx` (`inline`) → `architect-design.tsx` `[data-arch-map-header]` | pattern | ride the project key on the map's OWN horizontally-scrolling header (Security R-CORE). |
+| **Project rollup + qualification** | `lib/architect-project.ts` | 🔷 promote | `projectRollup` (real spec × gate), `GateReference{frameworkId,gateId,sequence,status}` (NO literal G8), `SssesReadiness{score,status,confidencePct,evidenceIds}`, `paramScale`, `styleEquivalence`. |
+| **Recommend placement (HI/AI)** | `architect-layers.ts` `recommendPlacement(mode,homeType,style)` | pattern | deterministic starter builds; a real provider can replace the AI branch without changing callers. |
+| **Drag-drop → house** | tree rows `draggable` → `[data-arch-dropzone]` `onDrop` → `addSpecIds` | pattern | DnD add-to-model via the reused add path; branch drops all leaves, leaf drops itself. |
+| **Per-item estimate chip** | `layer-tree.tsx` + `componentEstimate` | pattern | every buildable leaf shows starting `$·d`. |
+| **Cloud saved-files** | `lib/architect-saved-files.ts` + `supabase/migrations/022_*` | 🔷 promote | workspace snapshot → Supabase (best-effort); missing table → calm "Local only", never a false retry. |
+| **Collapsed rail width** | `56px` (expanded `264px`) | ✅ Architect Design rails | horizontal bar <md / vertical rotated-label rail ≥md (Security parity). |
+
 ## Determinism note
 All Architect visuals are deterministic from inputs (date, lat/lon, HU): seeded/period-based, local texture assets
-(no runtime external fetch), so identical inputs → identical render → replayable (Vision-2525 U-WF-08).
+(no runtime external fetch), so identical inputs → identical render → replayable (Vision-2525 U-WF-08). The new
+`projectRollup` / `paramScale` / `styleEquivalence` / `recommendPlacement` are pure functions — same inputs → same
+output → replayable.
