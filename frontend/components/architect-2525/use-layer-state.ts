@@ -59,6 +59,8 @@ export interface LayerState {
   setGlobalParams: (patch: Partial<GlobalParams>) => void;
   program: RoomProgram;
   setProgram: (patch: Partial<RoomProgram>) => void;
+  codes: Set<string>;               // chosen building standards (V4)
+  toggleCode: (id: string) => void;
   // Supabase saved-files (cloud backup) — the workspace snapshot mirrors to Supabase (best-effort, never blocks
   // the UI); localStorage stays the fast local rung. `cloudStatus` drives a small indicator near House Build Spec.
   cloudStatus: CloudStatus;
@@ -72,6 +74,7 @@ export function useLayerState(): LayerState {
   const [hidden, toggleHidden, replaceHidden] = usePersistentSet("arch2525.layerHidden");
   const [locked, toggleLocked, replaceLocked] = usePersistentSet("arch2525.layerLocked");
   const [spec, toggleSpec, replaceSpec] = usePersistentSet("arch2525.houseSpec");
+  const [codes, toggleCodeRaw, replaceCodes] = usePersistentSet("arch2525.codes");   // V4 — chosen building standards
   const isolate = (node: LayerNode) => {
     const keep = new Set(flattenLayers([node]).map((n) => n.id));
     replaceHidden(flattenLayers().filter((n) => !n.children?.length && !keep.has(n.id)).map((n) => n.id));
@@ -152,6 +155,7 @@ export function useLayerState(): LayerState {
     logReplay("program.change", Object.entries(patch).map(([k, v]) => `${k}=${v}`).join(" · "));
     return next;
   });
+  const toggleCode = (id: string) => { toggleCodeRaw(id); logReplay("codes.select", id); };   // chosen standard + Replay
 
   // ── Supabase saved-files (Slice 3) — cloud backup of the whole workspace snapshot. ──────────────────────────
   // localStorage is the fast local rung; Supabase is the durable + cross-device rung (tile-cache.ts ladder). All
@@ -169,6 +173,7 @@ export function useLayerState(): LayerState {
     gate,
     globalParams,
     program,
+    codes: Array.from(codes),
     replay,
     savedAt: (() => { try { return Date.now(); } catch { return 0; } })(),
   });
@@ -191,6 +196,7 @@ export function useLayerState(): LayerState {
         put("arch2525.gate", Math.max(0, Math.min(13, snap.gate ?? 3)));
         if (snap.globalParams) put("arch2525.globalParams", snap.globalParams);
         if (snap.program) put("arch2525.program", snap.program);
+        if (snap.codes) put("arch2525.codes", snap.codes);
         replaceSpec(snap.houseSpec ?? []);
         replaceHidden(snap.layerHidden ?? []);
         replaceLocked(snap.layerLocked ?? []);
@@ -200,6 +206,7 @@ export function useLayerState(): LayerState {
         setGateRaw(Math.max(0, Math.min(13, snap.gate ?? 3)));
         if (snap.globalParams) setGlobalParamsRaw({ ...DEFAULT_PARAMS, ...(snap.globalParams as Partial<GlobalParams>) });
         if (snap.program) setProgramRaw({ ...DEFAULT_PROGRAM, ...(snap.program as Partial<RoomProgram>) });
+        if (snap.codes) replaceCodes(snap.codes as string[]);
         setCloudStatus("saved");
       } else if (!localEmpty) {
         // Existing local work — back it up to the cloud so it's durable + reachable on the next device.
@@ -215,11 +222,11 @@ export function useLayerState(): LayerState {
     if (skipSave.current || !cloudEnabled()) return;
     const id = setTimeout(() => { setCloudStatus("saving"); saveSnapshot(snapshot()).then(setCloudStatus); }, 1200);
     return () => clearTimeout(id);
-  }, [spec, hidden, locked, unclassified, bimManifest, assetOverrides, gate, globalParams, program]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [spec, hidden, locked, unclassified, bimManifest, assetOverrides, gate, globalParams, program, codes]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     hidden, locked, toggleHidden, toggleLocked, isolate, revealAll, spec, toggleSpec, addSpecIds, setSpecIds, clearSpec,
     replay, logReplay, unclassified, bimManifest, applyBimImport, resolveUnclassified, assetOverrides, setAssetOverride,
-    gate, setGate, globalParams, setGlobalParams, program, setProgram, cloudStatus,
+    gate, setGate, globalParams, setGlobalParams, program, setProgram, codes, toggleCode, cloudStatus,
   };
 }

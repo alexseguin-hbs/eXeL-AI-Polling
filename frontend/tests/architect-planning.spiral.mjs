@@ -1869,6 +1869,46 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A95: BOTTOM B1/B2 — two stacked expandables ("Planning·Scheduling·Cost" + "Approvals·Codes"), each collapsing
+//          to a CENTERED ••• (Toggle3 horizontal). B1 open by default; B2 collapsed → expands to the codes panel. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  const info = await pg.evaluate(() => {
+    const b1 = document.querySelector('[data-arch-bpanel="b1"]'), b2 = document.querySelector('[data-arch-bpanel="b2"]');
+    const t2 = b2?.querySelector('[data-bpanel-toggle="b2"]');
+    let centered = false;
+    if (t2 && t2.parentElement) { const r = t2.getBoundingClientRect(), pr = t2.parentElement.getBoundingClientRect(); centered = Math.abs((r.left + r.right) / 2 - (pr.left + pr.right) / 2) < 30; }
+    return { b1: !!b1, b2: !!b2, dots: t2 ? t2.querySelectorAll('span').length : 0, centered, codesHiddenAtStart: !document.querySelector('[data-arch-codes]') };
+  });
+  await pg.click('[data-bpanel-toggle="b2"]'); await pg.waitForTimeout(220);
+  const opened = await pg.evaluate(() => !!document.querySelector('[data-arch-codes]'));
+  const ok95 = info.b1 && info.b2 && info.dots === 3 && info.centered && info.codesHiddenAtStart && opened;
+  rec('#A95 bottom B1/B2 expandables + centered ••• — B2 collapsed → expands to codes', ok95, JSON.stringify({ ...info, opened }));
+  await pg.close();
+}
+
+// ── #A96: APPROVALS / CODES — multi-select building standards (USA/IRC · Texas · Tiny Appendix Q · Sustainable);
+//          ≥1 selectable; each shows headline requirements; the choice persists across reload. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => localStorage.removeItem('arch2525.codes'));
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(280);
+  await pg.click('[data-bpanel-toggle="b2"]'); await pg.waitForTimeout(220);
+  const n = await pg.evaluate(() => document.querySelectorAll('[data-code-toggle]').length);
+  await pg.click('[data-code-toggle="usa-irc-2021"]'); await pg.waitForTimeout(160);
+  await pg.click('[data-code-toggle="texas-irc"]'); await pg.waitForTimeout(220);
+  const after = await pg.evaluate(() => ({
+    details: document.querySelectorAll('[data-code-detail]').length,
+    hasReq: /IRC|egress|windstorm/i.test(document.querySelector('[data-arch-codes]')?.textContent || ''),
+    persisted: (() => { try { return JSON.parse(localStorage.getItem('arch2525.codes') || '[]'); } catch { return []; } })(),
+  }));
+  const ok96 = n >= 4 && after.details === 2 && after.hasReq && after.persisted.includes('usa-irc-2021') && after.persisted.includes('texas-irc');
+  rec('#A96 approvals — multi-select standards (≥1) + headline requirements + persists', ok96, JSON.stringify({ n, ...after }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

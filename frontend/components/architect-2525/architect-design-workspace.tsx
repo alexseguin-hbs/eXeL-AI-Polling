@@ -62,12 +62,31 @@ function Rail({ side, title, open, setOpen, children }: {
   );
 }
 
-export function DesignWorkspace({ leftRail, rightRail, bottomPanel, children, selectedId }: {
-  leftRail?: ReactNode; rightRail?: ReactNode; bottomPanel?: ReactNode; children: ReactNode; selectedId?: string | null;
+// B1/B2 bottom expandable — Security-2525 parity: collapses to a CENTERED ••• (Toggle3 horizontal), title left.
+function BottomPanel({ id, title, accent, open, setOpen, children }: {
+  id: string; title: string; accent: string; open: boolean; setOpen: (b: boolean) => void; children: ReactNode;
+}) {
+  return (
+    <div data-arch-bpanel={id} className="rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
+      <div className="relative flex items-center justify-center px-3 py-1.5" style={{ borderBottom: open ? `1px solid ${C.border}` : "1px solid transparent" }}>
+        <span className="absolute left-3 text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
+        <button data-bpanel-toggle={id} onClick={() => setOpen(!open)} title={open ? "Collapse" : "Expand"}
+          className="flex flex-row items-center gap-[3px] rounded p-1 hover:bg-white/5">
+          {[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
+        </button>
+      </div>
+      {open && <div className="p-3">{children}</div>}
+    </div>
+  );
+}
+
+export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2, children, selectedId }: {
+  leftRail?: ReactNode; rightRail?: ReactNode; bottomPanel?: ReactNode; bottomPanel2?: ReactNode; children: ReactNode; selectedId?: string | null;
 }) {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(false); // Context opens on selection (C5); collapsed keeps the engine wide
-  const [bottomOpen, setBottomOpen] = useState(true); // house build spec (R4) — expandable bottom panel
+  const [b1Open, setB1Open] = useState(true);        // B1 Planning·Scheduling·Cost — open by default
+  const [b2Open, setB2Open] = useState(false);       // B2 Approvals·Codes — expand on demand
   // "Selecting any item in the Layer Tree opens the Right Context Panel" — auto-open on a new selection.
   useEffect(() => { if (selectedId) setRightOpen(true); }, [selectedId]);
   return (
@@ -93,17 +112,12 @@ export function DesignWorkspace({ leftRail, rightRail, bottomPanel, children, se
         )}
       </Rail>
     </div>
-      {/* HOUSE BUILD SPEC — the expandable bottom panel (R4); collapses like Security's ELEVATION PROFILE. */}
+      {/* BOTTOM B1 / B2 — two stacked expandables, each collapsing to a centered ••• (Security parity). */}
       {bottomPanel && (
-        <div data-arch-bottom-panel className="rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
-          <button data-arch-bottom-toggle onClick={() => setBottomOpen((o) => !o)}
-            className="flex w-full items-center justify-between border-b px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider hover:bg-white/5"
-            style={{ borderColor: bottomOpen ? C.border : "transparent", color: C.dim }}>
-            <span style={{ color: C.violet }}>House Build Spec</span>
-            <span aria-hidden style={{ transform: bottomOpen ? "rotate(90deg)" : "none", transition: "transform .15s" }}>›</span>
-          </button>
-          {bottomOpen && <div className="p-3">{bottomPanel}</div>}
-        </div>
+        <BottomPanel id="b1" title="Planning · Scheduling · Cost" accent={C.violet} open={b1Open} setOpen={setB1Open}>{bottomPanel}</BottomPanel>
+      )}
+      {bottomPanel2 && (
+        <BottomPanel id="b2" title="Approvals · Codes" accent={C.cyan} open={b2Open} setOpen={setB2Open}>{bottomPanel2}</BottomPanel>
       )}
     </div>
   );

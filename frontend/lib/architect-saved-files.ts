@@ -25,6 +25,7 @@ export interface ArchitectSnapshot {
   gate: number;
   globalParams?: unknown; // S5 — whole-project inputs (area · stories · finish); optional for back-compat
   program?: unknown;      // V2 — room program (bedrooms · bathrooms · ceiling ht); optional for back-compat
+  codes?: string[];       // V4 — chosen building standards; optional for back-compat
   replay: unknown[];
   savedAt: number; // ms epoch of the snapshot (last-write-wins across devices)
 }
