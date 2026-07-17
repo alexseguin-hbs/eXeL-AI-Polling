@@ -12,6 +12,7 @@ import { Eye, EyeOff, Lock, Unlock, Crosshair, RotateCcw, Home, Plus, Check, Che
 import { findLayer, flattenLayers, isVisibleForType, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { assetIntel, assetRValue } from "@/lib/architect-assets";
 import { assetTotalDays, DIGITAL_TWIN_PHASES } from "@/lib/vision2525/asset";
+import { GATES, LAST_GATE, checkpointForGate, bandFor, AACE, classForGate, advanceGate, retreatGate } from "@/lib/architect-estimate";
 import { type LayerState } from "./use-layer-state";
 
 const C = { border: "#1e2b3a", panel2: "#0c1420", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400", red: "#ef4444" };
@@ -57,7 +58,10 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
   // Asset Intelligence (Inc 2) — a leaf physical component IS an asset; render the shared Asset record.
   const isAsset = canBuild && !kids.length;
   const ov = state?.assetOverrides?.[node.id] ?? {};
-  const asset = isAsset ? assetIntel(node.id, {}, ov) : null;
+  // Inc 4 — the project stage gate drives the asset estimate through the reused estimate engine: advancing a
+  // gate raises confidence + narrows the ± band. Human Authority (checkpointForGate) shows who must sign off.
+  const gate = state?.gate ?? 3;
+  const asset = isAsset ? assetIntel(node.id, { gateIdx: gate }, ov) : null;
   const rValue = isAsset ? assetRValue(node.id, ov) : 0;
   const phaseIdx = asset ? DIGITAL_TWIN_PHASES.indexOf(asset.status.phase) : 0;
   const stepPhase = (d: number) => {
@@ -136,6 +140,37 @@ export function LayerInspector({ selectedId, state, homeType = "full" }: { selec
             <button data-asset-status-next onClick={() => stepPhase(1)} className="rounded border p-0.5 hover:bg-white/10" style={{ borderColor: C.border }}><ChevronRight className="h-3 w-3" style={{ color: C.cyan }} /></button>
           </div>
           <div className="text-[8px]" style={{ color: C.dim }}>Human Authority advances the Digital-Twin status (Designed → … → Operational). Every step is logged to Replay.</div>
+
+          {/* HUMAN AUTHORITY · QUALIFICATION GATE (Inc 4) — who must sign off at the current stage gate, and the
+              estimate cone (AACE band on installed cost) that TIGHTENS as gates advance. Reuses architect-estimate. */}
+          {(() => {
+            const cp = checkpointForGate(gate);
+            const band = bandFor(asset.cost.installed, gate);
+            const cls = classForGate(gate);
+            const anyPending = Object.values(asset.status.qualification).some((s) => s !== "approved");
+            return (
+              <div data-asset-authority className="flex flex-col gap-1 rounded border p-1.5" style={{ borderColor: anyPending ? C.gold : C.green, background: "#0c1420" }}>
+                <div className="flex items-center justify-between text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.gold }}>
+                  <span>Human Authority · {GATES[gate]}</span>
+                  <span style={{ color: C.dim }}>AACE {cls} · {AACE[cls].label}</span>
+                </div>
+                <Row k="Required decision" v={cp.decision} c={C.text} />
+                <div data-asset-authority-who className="flex items-center justify-between gap-2"><span style={{ color: C.dim }}>Responsible authority</span><span style={{ color: C.violet }}>{cp.authority}</span></div>
+                <Row k="Evidence" v={cp.evidence} c={C.dim} />
+                <Row k="Estimate cone (installed)" v={`${fmtUsd(band.lo)} – ${fmtUsd(band.hi)} · ±${Math.round(band.pct * 100)}%`} c={C.gold} />
+                {anyPending && <div className="text-[8px]" style={{ color: C.gold }}>⚠ Qualification pending — {cp.authority} sign-off required before this asset is qualified.</div>}
+                {state && (
+                  <div className="flex items-center gap-1.5">
+                    <button data-authority-retreat onClick={() => state.setGate(retreatGate(gate))} disabled={gate === 0}
+                      className="rounded border px-1.5 py-0.5 text-[9px] hover:bg-white/10" style={{ borderColor: C.border, color: gate === 0 ? C.dim : C.text }}>◀ back</button>
+                    <span className="flex-1 text-center text-[8px]" style={{ color: C.dim }}>decision → tighter estimate</span>
+                    <button data-authority-advance onClick={() => state.setGate(advanceGate(gate))} disabled={gate === LAST_GATE}
+                      className="rounded border px-1.5 py-0.5 text-[9px] font-bold hover:bg-white/10" style={{ borderColor: C.gold, color: gate === LAST_GATE ? C.dim : C.gold }}>advance ▶</button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Cost intelligence */}
           <div data-asset-cost className="flex flex-col gap-0.5">

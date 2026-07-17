@@ -1503,6 +1503,38 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A80: ENGINE INTEGRATION + HUMAN AUTHORITY (Inc 4) — the asset panel shows a Human Authority checkpoint
+//          (responsible authority + required decision) driven by the reused estimate engine; advancing the
+//          project stage gate MATURES the estimate: confidence RISES and the ± cone band NARROWS (tighter). ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.gate'); localStorage.removeItem('arch2525.assetOverrides'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.click()); await pg.waitForTimeout(250);
+  const read = () => pg.evaluate(() => {
+    const auth = document.querySelector('[data-asset-authority]');
+    const who = document.querySelector('[data-asset-authority-who]')?.textContent || '';
+    const conf = (document.querySelector('[data-arch-asset] [style*="dim"]')?.textContent || document.querySelector('[data-arch-asset]')?.textContent || '');
+    const confPct = ((document.querySelector('[data-arch-asset]')?.textContent || '').match(/(\d+)%\s*conf/) || [])[1];
+    const bandPct = ((auth?.textContent || '').match(/±(\d+)%/) || [])[1];
+    return { hasAuth: !!auth, who, confPct: confPct ? +confPct : null, bandPct: bandPct ? +bandPct : null };
+  });
+  const before = await read();
+  // advance the stage gate twice (a homeowner decision → tighter estimate)
+  await pg.evaluate(() => document.querySelector('[data-authority-advance]')?.click()); await pg.waitForTimeout(180);
+  await pg.evaluate(() => document.querySelector('[data-authority-advance]')?.click()); await pg.waitForTimeout(220);
+  const after = await read();
+  const replayGate = await pg.evaluate(() => { try { return JSON.parse(localStorage.getItem('arch2525.replay') || '[]').some((e) => e.kind === 'gate.advance'); } catch { return false; } });
+  const hasAuthority = before.hasAuth && /[A-Za-z]/.test(before.who);
+  const tighter = before.confPct != null && after.confPct != null && after.confPct > before.confPct
+                && before.bandPct != null && after.bandPct != null && after.bandPct < before.bandPct;
+  const ok80 = hasAuthority && tighter && replayGate;
+  rec('#A80 engine integration — Human Authority checkpoint + advancing gate tightens estimate (conf↑ band↓)', ok80, JSON.stringify({ before, after, replayGate }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

@@ -46,6 +46,10 @@ export interface LayerState {
   // Asset Intelligence customizations (Inc 2) — per-asset overrides (quantity/upgrade/supplier/status).
   assetOverrides: Record<string, AssetOverrides>;
   setAssetOverride: (id: string, patch: AssetOverrides) => void;
+  // Project stage gate (Inc 4) — the single Design-workspace gate index into the reused estimate engine's
+  // GATES ladder (G0–G13). Advancing it matures every asset's estimate: confidence RISES, ± band NARROWS.
+  gate: number;
+  setGate: (g: number) => void;
 }
 
 export interface ReplayEvent { t: number; kind: string; detail: string; }
@@ -105,8 +109,20 @@ export function useLayerState(): LayerState {
     logReplay("asset.customize", `${id} · ${Object.keys(patch).join(",")}`);
   };
 
+  // Project stage gate (Inc 4) — persisted index into the reused estimate engine's G0–G13 ladder; every change
+  // logs Replay (a homeowner decision). Default G3 (Concept), matching the estimate surface's starting gate.
+  const [gate, setGateRaw] = useState(3);
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.gate"); if (v != null) setGateRaw(Math.max(0, Math.min(13, JSON.parse(v)))); } catch {} }, []);
+  const setGate = (g: number) => setGateRaw(() => {
+    const n = Math.max(0, Math.min(13, Math.round(g)));
+    try { localStorage.setItem("arch2525.gate", JSON.stringify(n)); } catch {}
+    logReplay("gate.advance", `G${n}`);
+    return n;
+  });
+
   return {
     hidden, locked, toggleHidden, toggleLocked, isolate, revealAll, spec, toggleSpec, addSpecIds, setSpecIds, clearSpec,
     replay, logReplay, unclassified, bimManifest, applyBimImport, resolveUnclassified, assetOverrides, setAssetOverride,
+    gate, setGate,
   };
 }
