@@ -29,6 +29,25 @@ export interface GateReference {
 const FRAMEWORK_ID = "architect/g0-g13";
 const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
+// ── Global building parameters (Vision 2525 · S5) — whole-project inputs that LIVE-RECALCULATE the rollup.
+// A homeowner's floor area, story count, and finish tier scale the project estimate independently of which
+// individual components are chosen. Pure + deterministic → the rollup stays replayable.
+export type FinishTier = "standard" | "premium" | "luxury";
+export interface GlobalParams { areaSqft: number; stories: number; finish: FinishTier; }
+export const DEFAULT_PARAMS: GlobalParams = { areaSqft: 2000, stories: 1, finish: "standard" };
+const BASELINE_SQFT = 2000;
+const FINISH_FACTOR: Record<FinishTier, number> = { standard: 1, premium: 1.25, luxury: 1.6 };
+const clampNum = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(n) ? n : lo));
+
+/** Deterministic scale multiplier from the global params (area × stories economy-of-scale × finish tier). */
+export function paramScale(p: GlobalParams = DEFAULT_PARAMS): number {
+  const area = clampNum(p.areaSqft, 200, 100000) / BASELINE_SQFT;
+  // Each extra story adds ~85% of a floor's cost (shared foundation/roof → mild economy of scale).
+  const stories = 1 + 0.85 * (clampNum(p.stories, 1, 60) - 1);
+  const finish = FINISH_FACTOR[p.finish] ?? 1;
+  return Math.round(area * stories * finish * 1000) / 1000;
+}
+
 /** Build a GateReference for a gate index within the Architect G0–G13 framework (status vs the current gate). */
 export function gateRef(seq: number, currentGate: number = seq): GateReference {
   const s = Math.max(0, Math.min(LAST_GATE, Math.round(seq)));
@@ -56,14 +75,18 @@ export interface ProjectRollup {
   gate: GateReference;    // the current gate, referenced (never a literal G8)
   ssses: SssesReadiness;
   bySystem: { phase: string; label: string; color: string; count: number; cost: number }[];
+  scale: number;          // the global-params multiplier applied to cost (1 = baseline)
 }
 
-/** Roll the REAL house spec up to a project total at the current gate — totals · tightening band · SSSES readiness. */
-export function projectRollup(specIds: string[], gateIdx: number): ProjectRollup {
+/** Roll the REAL house spec up to a project total at the current gate — totals · tightening band · SSSES readiness.
+ *  Optional global params scale the whole-project cost live (area · stories · finish tier). */
+export function projectRollup(specIds: string[], gateIdx: number, params?: GlobalParams): ProjectRollup {
   const est = houseEstimate(specIds);
   const g = Math.max(0, Math.min(LAST_GATE, Math.round(gateIdx)));
   const cls = classForGate(g);
   const confidencePct = confidenceForGate(g);
+  const scale = paramScale(params ?? DEFAULT_PARAMS);
+  const costUsd = Math.round(est.cost * scale);
   // Definition maturity (gate) blended with spec completeness (some components chosen) → an SSSES readiness score.
   const definition = g / LAST_GATE;                 // 0..1
   const completeness = est.count > 0 ? Math.min(1, est.count / 12) : 0; // 12 physical systems ≈ a full twin
@@ -71,13 +94,14 @@ export function projectRollup(specIds: string[], gateIdx: number): ProjectRollup
   const status: SssesStatus = est.count === 0 ? "not_assessed" : score >= 80 ? "passed" : score >= 50 ? "in_progress" : "warning";
   return {
     count: est.count,
-    costUsd: est.cost,
+    costUsd,
     aaceClass: cls,
     aaceLabel: AACE[cls].label,
     confidencePct,
-    costBand: bandFor(est.cost, g),
+    costBand: bandFor(costUsd, g),
     gate: gateRef(g, g),
-    ssses: { score, status, confidencePct, evidenceIds: [`gate:${slug(GATES[g])}`, `spec:${est.count}`] },
-    bySystem: est.byPhase.map((p) => ({ phase: p.phase, label: p.label, color: p.color, count: p.count, cost: p.cost })),
+    ssses: { score, status, confidencePct, evidenceIds: [`gate:${slug(GATES[g])}`, `spec:${est.count}`, `scale:${scale}`] },
+    bySystem: est.byPhase.map((p) => ({ phase: p.phase, label: p.label, color: p.color, count: p.count, cost: Math.round(p.cost * scale) })),
+    scale,
   };
 }

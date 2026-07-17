@@ -1654,6 +1654,31 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A85: GLOBAL BUILDING PARAMS live-recalc (S5) — changing a whole-project input (floor area) rescales the
+//          project rollup cost LIVE via a deterministic params scale (reused estimate × scale). Default 2000 ft²
+//          → scale 1; 4000 ft² → scale 2 → cost doubles. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.houseSpec'); localStorage.removeItem('arch2525.gate'); localStorage.removeItem('arch2525.globalParams'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.click()); await pg.waitForTimeout(180);
+  await pg.evaluate(() => document.querySelector('[data-inspect-ctl="house"]')?.click()); await pg.waitForTimeout(240);
+  const before = await pg.evaluate(() => {
+    const el = document.querySelector('[data-arch-project-rollup]');
+    return { cost: +(el?.getAttribute('data-rollup-cost') || '0'), scale: +(el?.getAttribute('data-rollup-scale') || '0'), hasCtl: !!document.querySelector('[data-param-area]') };
+  });
+  await pg.fill('[data-param-area]', '4000'); await pg.waitForTimeout(320);
+  const after = await pg.evaluate(() => {
+    const el = document.querySelector('[data-arch-project-rollup]');
+    return { cost: +(el?.getAttribute('data-rollup-cost') || '0'), scale: +(el?.getAttribute('data-rollup-scale') || '0') };
+  });
+  const ok85 = before.hasCtl && before.cost > 0 && after.cost > before.cost && after.scale > before.scale && Math.abs(after.scale - 2) < 0.02;
+  rec('#A85 global building params live-recalc — bigger area rescales the project rollup cost (scale 1→2)', ok85, JSON.stringify({ before, after }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

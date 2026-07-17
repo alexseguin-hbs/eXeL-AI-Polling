@@ -56,15 +56,36 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect }: { 
         <button data-house-clear onClick={state.clearSpec} className="ml-auto rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>Clear</button>
       </div>
 
+      {/* GLOBAL BUILDING PARAMS (S5) — whole-project inputs that LIVE-RECALCULATE the rollup below. */}
+      <div data-arch-global-params className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded border px-2 py-1" style={{ borderColor: C.border }}>
+        <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Building</span>
+        <label className="flex items-center gap-1" style={{ color: C.dim }}>Area
+          <input data-param-area type="number" min={200} max={100000} step={100} value={state.globalParams.areaSqft}
+            onChange={(e) => state.setGlobalParams({ areaSqft: Math.round(Number(e.target.value) || 0) })}
+            className="w-16 rounded border bg-transparent px-1 py-0.5 text-right text-[10px] tabular-nums" style={{ borderColor: C.border, color: C.text }} /> ft²</label>
+        <span className="flex items-center gap-1" style={{ color: C.dim }}>Stories
+          <button data-param-stories-dec onClick={() => state.setGlobalParams({ stories: Math.max(1, state.globalParams.stories - 1) })} className="rounded border px-1 leading-none" style={{ borderColor: C.border, color: C.text }}>−</button>
+          <span className="tabular-nums" style={{ color: C.text }}>{state.globalParams.stories}</span>
+          <button data-param-stories-inc onClick={() => state.setGlobalParams({ stories: Math.min(60, state.globalParams.stories + 1) })} className="rounded border px-1 leading-none" style={{ borderColor: C.border, color: C.text }}>+</button></span>
+        <label className="flex items-center gap-1" style={{ color: C.dim }}>Finish
+          <select data-param-finish value={state.globalParams.finish} onChange={(e) => state.setGlobalParams({ finish: e.target.value as "standard" | "premium" | "luxury" })}
+            className="rounded border bg-transparent px-1 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>
+            <option value="standard">Standard</option><option value="premium">Premium</option><option value="luxury">Luxury</option>
+          </select></label>
+      </div>
+
       {/* PROJECT ROLLUP & QUALIFICATION (Inc 6) — the real spec rolled up at the current gate, REUSING the estimate
-          engine. Gate is referenced (frameworkId + sequence + status), never a literal G8; SSSES is a score+status. */}
+          engine, scaled live by the global building params (S5). Gate is referenced (frameworkId + sequence +
+          status), never a literal G8; SSSES is a score+status. */}
       {(() => {
-        const roll = projectRollup(ids, state.gate);
+        const roll = projectRollup(ids, state.gate, state.globalParams);
         const ss = { passed: C.green, in_progress: C.cyan, warning: C.gold, blocked: C.red, not_assessed: C.dim }[roll.ssses.status];
         return (
           <div data-arch-project-rollup data-gate-seq={roll.gate.sequence} data-ssses-score={roll.ssses.score}
+            data-rollup-cost={roll.costUsd} data-rollup-scale={roll.scale}
             className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded border px-2 py-1" style={{ borderColor: C.border, background: C.panel }}>
             <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.violet }}>Project rollup</span>
+            <span style={{ color: C.dim }}>Scale <span className="tabular-nums" style={{ color: C.text }}>×{roll.scale}</span></span>
             <span style={{ color: C.dim }}>AACE <span style={{ color: C.text }}>Class&nbsp;{roll.aaceClass} · {roll.aaceLabel}</span></span>
             <span style={{ color: C.dim }}>Confidence <span className="tabular-nums" style={{ color: C.cyan }}>{roll.confidencePct}%</span></span>
             <span style={{ color: C.dim }}>Cost band <span className="tabular-nums" style={{ color: C.gold }}>{fmtUsd(roll.costBand.lo)}–{fmtUsd(roll.costBand.hi)}</span> <span className="tabular-nums">±{Math.round(roll.costBand.pct * 100)}%</span></span>

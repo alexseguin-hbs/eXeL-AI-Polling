@@ -23,6 +23,7 @@ export interface ArchitectSnapshot {
   bimManifest: unknown;
   assetOverrides: Record<string, unknown>;
   gate: number;
+  globalParams?: unknown; // S5 — whole-project inputs (area · stories · finish); optional for back-compat
   replay: unknown[];
   savedAt: number; // ms epoch of the snapshot (last-write-wins across devices)
 }
