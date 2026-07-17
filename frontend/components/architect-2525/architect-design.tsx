@@ -9,6 +9,7 @@
  * Self-contained; pure SVG (HAL-friendly, U-WF-07). Kept mounted by the shell.
  */
 import { useRef, useState, type ReactNode } from "react";
+import { VoxelHouse } from "./voxel-house";
 
 const C = {
   panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186",
@@ -44,6 +45,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent }: { onMetr
   const [pending, setPending] = useState<Pt | null>(null);
   const [mode, setMode] = useState<"wall" | "door" | "window">("wall");
   const [view3d, setView3d] = useState(false);
+  const [voxel, setVoxel] = useState(false);   // V5 — 3×3×3 land-base voxel (house at center); 2D default = first floor
 
   const emit = (ws: Wall[], os: Opening[]) => onMetrics?.({
     walls: ws.length, linearFt: Math.round(ws.reduce((a, w) => a + lenFt(w), 0)),
@@ -94,11 +96,14 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent }: { onMetr
               <button key={m} onClick={() => { setMode(m); setPending(null); }} className="rounded border px-2 py-0.5"
                 style={{ borderColor: C.border, color: mode === m ? C.cyan : C.dim, background: mode === m ? "#0e2233" : "transparent" }}>{m}</button>
             ))}
-            <button onClick={() => setView3d((v) => !v)} className="rounded border px-2 py-0.5"
-              style={{ borderColor: C.border, color: view3d ? C.cyan : C.dim }}>{view3d ? "3D" : "2D"}</button>
+            <button onClick={() => setView3d((v) => !v)} disabled={voxel} className="rounded border px-2 py-0.5"
+              style={{ borderColor: C.border, color: voxel ? "#33415a" : view3d ? C.cyan : C.dim }}>{view3d ? "3D" : "2D"}</button>
+            <button data-arch-voxel-toggle onClick={() => setVoxel((v) => !v)} className="rounded border px-2 py-0.5"
+              style={{ borderColor: voxel ? C.cyan : C.border, color: voxel ? C.cyan : C.dim }}>▦ Voxel</button>
             <button onClick={clearAll} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>clear</button>
           </div>
         </div>
+        {voxel ? <VoxelHouse /> : (
         <svg ref={svgRef} data-arch-design viewBox="0 0 100 75" preserveAspectRatio="xMidYMid meet"
           onClick={onClick} className="w-full cursor-crosshair rounded" style={{ background: "#070b12", aspectRatio: "4 / 3" }}>
           {!view3d ? (
@@ -127,8 +132,9 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent }: { onMetr
             </>
           )}
         </svg>
+        )}
         <div className="mt-1 text-[9px]" style={{ color: C.dim }}>
-          {view3d ? "3D isometric — edit in 2D" : mode === "wall" ? "Click two grid points to place a 2×4 wall" : `Click near a wall to place a ${mode}`}
+          {voxel ? "3×3×3 voxel — first-floor plan lives in 2D · drag to orbit" : view3d ? "3D isometric — edit in 2D" : mode === "wall" ? "Click two grid points to place a 2×4 wall" : `Click near a wall to place a ${mode}`}
         </div>
       </div>
   );

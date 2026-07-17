@@ -1909,6 +1909,19 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A97: 3×3×3 VOXEL MAP — 2D default is the first-floor plan (svg); the VOXEL toggle swaps in the 3×3×3 land
+//          base with the house cube at the center cell (Mission-Planning CSS-3D knowhow). ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  const before = await pg.evaluate(() => ({ svg: !!document.querySelector('[data-arch-design]'), voxel: !!document.querySelector('[data-arch-voxel]') }));
+  await pg.click('[data-arch-voxel-toggle]'); await pg.waitForTimeout(280);
+  const after = await pg.evaluate(() => ({ svg: !!document.querySelector('[data-arch-design]'), voxel: !!document.querySelector('[data-arch-voxel]'), house: !!document.querySelector('[data-arch-voxel-house]') }));
+  const ok97 = before.svg && !before.voxel && after.voxel && after.house && !after.svg;
+  rec('#A97 voxel map — 2D first-floor default; VOXEL → 3×3×3 land base + house cube at center', ok97, JSON.stringify({ before, after }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
