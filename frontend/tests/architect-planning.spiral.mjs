@@ -1624,6 +1624,36 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A84: PROJECT ROLLUP & QUALIFICATION (Inc 6) — the REAL house spec rolls up at the current gate via the
+//          REUSED estimate engine: AACE class + confidence + tightening cost band, a GateReference (frameworkId +
+//          sequence + status — addressed by ordinal, no literal G8), and SSSES as a SCORE + status (not a label). ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.houseSpec'); localStorage.removeItem('arch2525.gate'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  // Add a real buildable leaf so the House Build Spec (and thus the project rollup) render.
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation"]')?.click()); await pg.waitForTimeout(150);
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.click()); await pg.waitForTimeout(180);
+  await pg.evaluate(() => document.querySelector('[data-inspect-ctl="house"]')?.click()); await pg.waitForTimeout(240);
+  const roll = await pg.evaluate(() => {
+    const el = document.querySelector('[data-arch-project-rollup]');
+    if (!el) return { present: false };
+    const t = el.textContent || '';
+    return {
+      present: true,
+      gateSeq: el.getAttribute('data-gate-seq'),
+      sssesScore: el.getAttribute('data-ssses-score'),
+      hasAace: /AACE/i.test(t), hasSsses: /SSSES/i.test(t), hasCost: /\$/.test(t),
+      hasGate: /gate/i.test(t), noHardG8: !/\bG8\b/.test(t),
+    };
+  });
+  const ok84 = roll.present && roll.gateSeq === '3' && Number(roll.sssesScore) >= 0
+    && roll.hasAace && roll.hasSsses && roll.hasCost && roll.hasGate && roll.noHardG8;
+  rec('#A84 project rollup — real spec × gate via reused engine; GateReference (seq, no literal G8) + SSSES score', ok84, JSON.stringify(roll));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

@@ -8,6 +8,7 @@
  */
 import { X, Home, Layers } from "lucide-react";
 import { houseEstimate, houseSchedule, componentEstimate } from "@/lib/architect-house";
+import { projectRollup } from "@/lib/architect-project";
 import { findLayer, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
 import { HouseSchematic } from "./house-schematic";
@@ -54,6 +55,24 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect }: { 
         <span style={{ color: C.dim }}>Sequential <span className="tabular-nums" style={{ color: C.dim }}>{est.sequentialDays} days</span></span>
         <button data-house-clear onClick={state.clearSpec} className="ml-auto rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>Clear</button>
       </div>
+
+      {/* PROJECT ROLLUP & QUALIFICATION (Inc 6) — the real spec rolled up at the current gate, REUSING the estimate
+          engine. Gate is referenced (frameworkId + sequence + status), never a literal G8; SSSES is a score+status. */}
+      {(() => {
+        const roll = projectRollup(ids, state.gate);
+        const ss = { passed: C.green, in_progress: C.cyan, warning: C.gold, blocked: C.red, not_assessed: C.dim }[roll.ssses.status];
+        return (
+          <div data-arch-project-rollup data-gate-seq={roll.gate.sequence} data-ssses-score={roll.ssses.score}
+            className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded border px-2 py-1" style={{ borderColor: C.border, background: C.panel }}>
+            <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.violet }}>Project rollup</span>
+            <span style={{ color: C.dim }}>AACE <span style={{ color: C.text }}>Class&nbsp;{roll.aaceClass} · {roll.aaceLabel}</span></span>
+            <span style={{ color: C.dim }}>Confidence <span className="tabular-nums" style={{ color: C.cyan }}>{roll.confidencePct}%</span></span>
+            <span style={{ color: C.dim }}>Cost band <span className="tabular-nums" style={{ color: C.gold }}>{fmtUsd(roll.costBand.lo)}–{fmtUsd(roll.costBand.hi)}</span> <span className="tabular-nums">±{Math.round(roll.costBand.pct * 100)}%</span></span>
+            <span style={{ color: C.dim }} title={`Framework ${roll.gate.frameworkId}`}>Gate <span style={{ color: C.text }}>{roll.gate.gateId}</span> <span className="uppercase" style={{ color: C.cyan }}>{roll.gate.status.replace("_", " ")}</span></span>
+            <span style={{ color: C.dim }}>SSSES <span className="tabular-nums" style={{ color: ss }}>{roll.ssses.score}</span> <span className="uppercase" style={{ color: ss }}>{roll.ssses.status.replace("_", " ")}</span></span>
+          </div>
+        );
+      })()}
 
       {/* BIM I/O — generate a BIM-compatible model or import one (Inc 1). */}
       <BimIO state={state} homeType={homeType} />
