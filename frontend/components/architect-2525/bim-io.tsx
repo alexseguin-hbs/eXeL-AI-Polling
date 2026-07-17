@@ -9,7 +9,7 @@
 import { useRef } from "react";
 import { Download, Upload, FileWarning } from "lucide-react";
 import { exportBIM, importBIM, physicalSystems } from "@/lib/architect-bim";
-import { type HomeType } from "@/lib/architect-layers";
+import { recommendPlacement, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
 
 const C = { border: "#1e2b3a", panel2: "#0c1420", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
@@ -64,6 +64,11 @@ export function BimIO({ state, homeType }: { state: LayerState; homeType: HomeTy
           <Upload className="h-3 w-3" /> Import BIM
         </button>
         <input ref={fileRef} data-bim-file type="file" accept="application/json,.json,.ifcjson" onChange={onFile} className="hidden" />
+        {/* HI / AI recommend placement — one-tap starter builds (operator: HI standard-placement · AI vision-driven). */}
+        <button data-recommend="hi" onClick={() => { const ids = recommendPlacement("hi", homeType, state.globalParams.style); state.addSpecIds(ids); state.logReplay("recommend.hi", `HI standard build · +${ids.length} components`); }}
+          className={btn} style={{ borderColor: C.cyan, color: C.cyan }} title="HI recommend — standard, code-normative build (foundation · structure · envelope · MEP)">웃 HI · Standard</button>
+        <button data-recommend="ai" onClick={() => { const ids = recommendPlacement("ai", homeType, state.globalParams.style); state.addSpecIds(ids); state.logReplay("recommend.ai", `AI ${state.globalParams.style ?? "standard"} vision build · +${ids.length} components`); }}
+          className={btn} style={{ borderColor: C.violet, color: C.violet }} title="AI recommend — vision-driven build tuned to your Style (adds interior · exterior · smart systems)">◬ AI · Vision</button>
         <span data-arch-cloud-status={state.cloudStatus} title="Design saved-files back up to the cloud (survives cache-clear, reloads on this account)"
           className="ml-auto flex items-center gap-1 text-[8px] font-semibold uppercase tracking-wider">
           <span className="h-1.5 w-1.5 rounded-full" style={{ background: CLOUD_COLOR[state.cloudStatus] }} />

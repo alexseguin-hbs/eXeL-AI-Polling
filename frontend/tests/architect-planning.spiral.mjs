@@ -1806,6 +1806,23 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A92: HI / AI recommend placement — HI adds a standard code-normative core build; AI (vision) adds MORE
+//          (the experience/design systems), tuned to the chosen Style (operator: HI standard · AI vision). ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => localStorage.removeItem('arch2525.houseSpec'));
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(300);
+  await pg.click('[data-recommend="hi"]'); await pg.waitForTimeout(280);
+  const hi = await pg.evaluate(() => +(document.querySelector('[data-arch-house-spec]')?.getAttribute('data-house-count') || '0'));
+  await pg.evaluate(() => document.querySelector('[data-house-clear]')?.click()); await pg.waitForTimeout(220);
+  await pg.click('[data-recommend="ai"]'); await pg.waitForTimeout(280);
+  const ai = await pg.evaluate(() => +(document.querySelector('[data-arch-house-spec]')?.getAttribute('data-house-count') || '0'));
+  const ok92 = hi >= 6 && ai > hi;
+  rec('#A92 HI/AI recommend — HI standard core build; AI vision adds design systems (more components)', ok92, JSON.stringify({ hi, ai }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

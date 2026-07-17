@@ -182,3 +182,27 @@ export function findLayer(id: string): { node: LayerNode; scope: LayerScope; pat
   }
   return null;
 }
+
+// ── Recommend placement (Vision 2525) — deterministic starter builds for the "HI recommend" / "AI recommend" ask.
+//  • HI (standard): the code/historical-norm CORE systems (foundation · structure · envelope · MEP) — a sound,
+//    conventional build. • AI (vision): the HI core PLUS the experience/design systems (interior · exterior ·
+//    comms/low-voltage), and, for a STYLIZED vision, fire-protection too — a design-forward, non-standard build.
+// Both return buildable leaf ids filtered by the home type. Pure + deterministic (no network) — a real provider
+// call can replace the AI branch later without changing callers.
+const HI_CORE_SYSTEMS = ["physical/foundation", "physical/structure", "physical/building-envelope", "physical/mechanical", "physical/electrical", "physical/plumbing"];
+const AI_VISION_SYSTEMS = ["physical/interior", "physical/exterior", "physical/communications-low-voltage"];
+
+export function recommendPlacement(mode: "hi" | "ai", homeType: HomeType, style: "standard" | "stylized" = "standard"): string[] {
+  const systems = mode === "hi"
+    ? HI_CORE_SYSTEMS
+    : [...HI_CORE_SYSTEMS, ...AI_VISION_SYSTEMS, ...(style === "stylized" ? ["physical/fire-protection"] : [])];
+  const ids = new Set<string>();
+  for (const sysId of systems) {
+    const found = findLayer(sysId);
+    if (!found) continue;
+    flattenLayers([found.node])
+      .filter((n) => !n.children?.length && !n.level3 && isVisibleForType(n.id, "physical", homeType))
+      .forEach((n) => ids.add(n.id));
+  }
+  return Array.from(ids);
+}
