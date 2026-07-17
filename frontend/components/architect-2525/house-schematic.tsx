@@ -6,16 +6,23 @@
  * Present phases render solid in their phase color; not-yet-chosen phases render as a faint dashed ghost —
  * so "wireframe your house by selecting what you want" is literal and visual.
  */
-import { houseEstimate, PHASES, type Phase } from "@/lib/architect-house";
+import { houseEstimate, specLeafIds, componentEstimate, PHASES, type Phase } from "@/lib/architect-house";
 import { type LayerState } from "./use-layer-state";
 
 const C = { border: "#1e2b3a", dim: "#5f7186", text: "#c8d6e5" };
 const COLOR: Record<Phase, string> = Object.fromEntries(PHASES.map((p) => [p.id, p.color])) as Record<Phase, string>;
 
-export function HouseSchematic({ state }: { state: LayerState }) {
+// Inc 3 — the schematic is a "model": clicking a phase selects a component of it (model→tree→panel), and
+// the phase owning the selected asset is highlighted (tree→model).
+export function HouseSchematic({ state, selectedId, onSelect }: { state: LayerState; selectedId?: string | null; onSelect?: (id: string) => void }) {
   const est = houseEstimate(Array.from(state.spec));
   const present = new Set<Phase>(est.byPhase.map((p) => p.phase));
-  // Draw a layer either solid (chosen) or as a faint dashed ghost (not yet chosen).
+  const specLeaves = specLeafIds(Array.from(state.spec));
+  const phaseLeaf = (ph: Phase): string | null => specLeaves.find((id) => componentEstimate(id)?.phase === ph) ?? null;
+  const selPhase: Phase | null = selectedId ? componentEstimate(selectedId)?.phase ?? null : null;
+  const pick = (ph: Phase) => { const leaf = phaseLeaf(ph); if (leaf && onSelect) { onSelect(leaf); state.logReplay("select.model", `phase:${ph}`); } };
+
+  // Draw a layer either solid (chosen) or as a faint dashed ghost (not yet chosen); selected phase is emphasized.
   const on = (ph: Phase) => present.has(ph);
   const stroke = (ph: Phase) => (on(ph) ? COLOR[ph] : "#2b3d52");
   const fill = (ph: Phase, o = 0.18) => (on(ph) ? `${COLOR[ph]}${Math.round(o * 255).toString(16).padStart(2, "0")}` : "transparent");
@@ -23,6 +30,7 @@ export function HouseSchematic({ state }: { state: LayerState }) {
   const sw = 0.8;
 
   return (
+    <div className="flex flex-col gap-1">
     <svg data-arch-schematic viewBox="0 0 120 96" className="w-full" style={{ maxWidth: 200, height: "auto" }} role="img" aria-label="House cross-section assembling from chosen components">
       {/* SITE — ground line */}
       <line x1="4" y1="84" x2="116" y2="84" stroke={stroke("site")} strokeWidth={on("site") ? 1.4 : sw} strokeDasharray={dash("site")} />
@@ -61,6 +69,9 @@ export function HouseSchematic({ state }: { state: LayerState }) {
         <rect x="34" y="52" width="10" height="9" fill={fill("finish", 0.3)} />
       </g>
 
+      {/* selected-phase highlight ring (tree → model) */}
+      {selPhase && on(selPhase) && <rect x="20" y="20" width="80" height="66" fill="none" stroke={COLOR[selPhase]} strokeWidth="0.6" strokeDasharray="3 2" rx="2" opacity="0.9" />}
+
       {/* phase legend chips */}
       {PHASES.map((p, i) => (
         <g key={p.id} opacity={on(p.id) ? 1 : 0.35}>
@@ -68,5 +79,16 @@ export function HouseSchematic({ state }: { state: LayerState }) {
         </g>
       ))}
     </svg>
+    {/* clickable phase chips — the "model" is selectable (model → tree → right panel) */}
+    <div data-schematic-chips className="flex flex-wrap gap-1" style={{ maxWidth: 200 }}>
+      {PHASES.filter((p) => present.has(p.id)).map((p) => (
+        <button key={p.id} data-schematic-phase={p.id} onClick={() => pick(p.id)} title={`Select a ${p.label} component`}
+          className="rounded border px-1 py-0.5 text-[7px] font-semibold uppercase"
+          style={{ borderColor: selPhase === p.id ? p.color : C.border, color: p.color, background: selPhase === p.id ? "#152238" : "transparent" }}>
+          {p.label}
+        </button>
+      ))}
+    </div>
+    </div>
   );
 }

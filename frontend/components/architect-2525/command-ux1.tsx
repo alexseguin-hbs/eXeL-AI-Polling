@@ -255,7 +255,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             selectedId={selectedLayerId}
             leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} />}
             rightRail={<LayerInspector selectedId={selectedLayerId} state={layerState} homeType={homeType} />}
-            bottomPanel={<HouseSpec state={layerState} homeType={homeType} />}
+            bottomPanel={<HouseSpec state={layerState} homeType={homeType} selectedId={selectedLayerId} onSelect={setSelectedLayerId} />}
           >
             {/* MODEL kept mounted (display:none when another engine view is active) so wireframe state persists. */}
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>

@@ -1449,6 +1449,35 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A78: SELECTION SYNC (Tree ↔ center model ↔ right, bidirectional) — clicking a model (schematic) phase
+//          selects a component of it (tree row highlights + inspector opens) and logs Replay; selecting a tree
+//          component highlights the owning phase in the model. ──
+{
+  const { pg, tab } = await mk();
+  await pg.evaluate(() => { localStorage.removeItem('arch2525.houseSpec'); localStorage.removeItem('arch2525.replay'); });
+  await pg.reload({ waitUntil: 'domcontentloaded' }); await pg.waitForTimeout(1600);
+  await tab('Design'); await pg.waitForTimeout(250);
+  for (const s of ['foundation', 'structure']) {
+    await pg.evaluate((sys) => document.querySelector(`[data-layer-node="physical/${sys}"]`)?.click(), s); await pg.waitForTimeout(120);
+    await pg.evaluate(() => document.querySelector('[data-inspect-ctl="house"]')?.click()); await pg.waitForTimeout(160);
+  }
+  // MODEL → TREE + PANEL: click the foundation schematic chip
+  await pg.evaluate(() => document.querySelector('[data-schematic-phase="foundation"]')?.click()); await pg.waitForTimeout(250);
+  const model = await pg.evaluate(() => {
+    const insp = document.querySelector('[data-arch-layer-inspector]');
+    const id = insp?.getAttribute('data-inspect-id') || '';
+    const row = id ? document.querySelector(`[data-layer-node="${id}"]`) : null;
+    return { hasInspector: !!insp, isFoundation: id.startsWith('physical/foundation/'), treeSelected: row ? getComputedStyle(row).backgroundColor === 'rgb(34, 24, 51)' : false };
+  });
+  const replayModel = await pg.evaluate(() => { try { return JSON.parse(localStorage.getItem('arch2525.replay') || '[]').some((e) => e.kind === 'select.model'); } catch { return false; } });
+  // TREE → MODEL: select a foundation leaf → its phase chip is highlighted
+  await pg.evaluate(() => document.querySelector('[data-layer-node="physical/foundation/footings"]')?.click()); await pg.waitForTimeout(250);
+  const chipHi = await pg.evaluate(() => { const b = document.querySelector('[data-schematic-phase="foundation"]'); return b ? getComputedStyle(b).backgroundColor === 'rgb(21, 34, 56)' : false; });
+  const ok = model.hasInspector && model.isFoundation && model.treeSelected && replayModel && chipHi;
+  rec('#A78 selection sync — model chip → tree+panel; tree → model chip highlighted; Replay logged', ok, JSON.stringify({ ...model, replayModel, chipHi }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

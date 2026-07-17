@@ -16,7 +16,7 @@ import { BimIO } from "./bim-io";
 const C = { border: "#1e2b3a", panel: "#111826", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400", red: "#ef4444" };
 const fmtUsd = (n: number) => "$" + Math.round(n).toLocaleString();
 
-export function HouseSpec({ state, homeType = "full" }: { state: LayerState; homeType?: HomeType }) {
+export function HouseSpec({ state, homeType = "full", selectedId, onSelect }: { state: LayerState; homeType?: HomeType; selectedId?: string | null; onSelect?: (id: string) => void }) {
   const ids = Array.from(state.spec);
   const est = houseEstimate(ids);
 
@@ -24,7 +24,7 @@ export function HouseSpec({ state, homeType = "full" }: { state: LayerState; hom
     return (
       <div data-arch-house-spec data-house-count="0" className="flex flex-col gap-3 text-[11px]" style={{ color: C.dim }}>
         <div className="flex flex-wrap items-center gap-4">
-          <HouseSchematic state={state} />
+          <HouseSchematic state={state} selectedId={selectedId} onSelect={onSelect} />
           <div className="flex-1">
             <span className="flex items-center gap-1.5 font-semibold" style={{ color: C.violet }}><Home className="h-4 w-4" /> Wireframe your house</span>
             <div className="mt-1">Select a component in the Layer Tree, then <span style={{ color: C.text }}>Add&nbsp;to&nbsp;house</span> in the Context panel — or <span style={{ color: C.text }}>Import BIM</span> below. The cross-section fills in as you go.</div>
@@ -43,7 +43,7 @@ export function HouseSpec({ state, homeType = "full" }: { state: LayerState; hom
 
   return (
     <div data-arch-house-spec data-house-count={est.count} className="flex flex-col gap-3 text-[11px] md:flex-row md:items-start md:gap-4">
-      <div className="shrink-0"><HouseSchematic state={state} /></div>
+      <div className="shrink-0"><HouseSchematic state={state} selectedId={selectedId} onSelect={onSelect} /></div>
       <div className="flex min-w-0 flex-1 flex-col gap-3">
       {/* totals */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
