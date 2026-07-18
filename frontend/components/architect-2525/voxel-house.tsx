@@ -170,7 +170,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
       {sel != null && tiny && (
         <div data-arch-voxel-selroom className="absolute left-2 bottom-8 rounded border px-2 py-0.5 text-[10px]"
           style={{ borderColor: `${C.gold}66`, color: C.gold, background: "#0a0f16cc" }}>
-          {TINY_ROOMS[sel].k} · {TINY_ROOMS[sel].label} · 10'×10'×10'
+          {TINY_ROOMS[sel].k} · {TINY_ROOMS[sel].label} · {"10'×10'×10'"}
         </div>
       )}
 
