@@ -8,6 +8,7 @@
  * is hidden." Rendered as a compact overlay on the map by DesignWorkspace when the right rail is
  * collapsed. Values are the deterministic `programMetrics(...).counts` (+ sqft), never re-derived here.
  */
+import { useMemo } from "react";
 import { LayoutGrid, Bath, Ruler, Square, DoorOpen, Plug } from "lucide-react";
 import { programMetrics } from "@/lib/room-program";
 import { type LayerState } from "./use-layer-state";
@@ -15,7 +16,7 @@ import { type LayerState } from "./use-layer-state";
 const C = { border: "#1e2b3a", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 
 export function MetricStrip({ state, overlay = false, homeType = "full" }: { state: LayerState; overlay?: boolean; homeType?: "full" | "tiny" }) {
-  const m = programMetrics(state.globalParams, state.program, homeType);
+  const m = useMemo(() => programMetrics(state.globalParams, state.program, homeType), [state.globalParams, state.program, homeType]);
   const items: { icon: typeof Bath; label: string; value: string; color: string }[] = [
     { icon: LayoutGrid, label: "Rooms", value: `${m.counts.rooms}`, color: C.violet },
     { icon: Bath, label: "Baths", value: `${m.bathrooms}`, color: C.violet },

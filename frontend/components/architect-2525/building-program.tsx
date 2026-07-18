@@ -8,7 +8,7 @@
  * 🛁 Bathrooms · 📏 Sq Ft · ⚡ Electric (service A/V · HVAC tons · appliance kW) · 🚰 Plumbing
  * (fixture units · water/sewer pipe size · valves · fittings — so a plumber can estimate).
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Bed, Bath, Ruler, Zap, Droplets, ChevronRight, ChefHat } from "lucide-react";
 import { programMetrics } from "@/lib/room-program";
 import { type LayerState } from "./use-layer-state";
@@ -26,7 +26,7 @@ function Stepper({ v, min, max, on }: { v: number; min: number; max: number; on:
 }
 
 export function BuildingProgram({ state, homeType = "full" }: { state: LayerState; homeType?: "full" | "tiny" }) {
-  const m = programMetrics(state.globalParams, state.program, homeType);
+  const m = useMemo(() => programMetrics(state.globalParams, state.program, homeType), [state.globalParams, state.program, homeType]);
   const [open, setOpen] = useState<Record<string, boolean>>({ bedrooms: true });
   const tog = (k: string) => setOpen((o) => ({ ...o, [k]: !o[k] }));
   const Chevron = ({ k }: { k: string }) => <ChevronRight className="h-3 w-3 shrink-0 transition-transform" style={{ color: C.dim, transform: open[k] ? "rotate(90deg)" : "none" }} />;
