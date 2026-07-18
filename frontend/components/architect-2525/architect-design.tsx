@@ -57,6 +57,11 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [walkRoomId, setWalkRoomId] = useState<string>("entry");     // low-fi walkthrough position
   const tiny = homeType === "tiny";
   const selectRoom = (id: string) => setRoomSel((s) => (s === id ? null : id));
+  // Persist the room layout so a design survives reload (the kid's home iterates over time). Write-on-mutation
+  // (never a value-effect) — the repo's usePersistentSet pattern — so the mount load can't be clobbered.
+  const RL_KEY = "arch2525.roomLayout";
+  useEffect(() => { try { const v = localStorage.getItem(RL_KEY); if (v) setRoomLayout(JSON.parse(v)); } catch {} }, []);
+  const persistLayout = (next: RoomCell[]) => { try { localStorage.setItem(RL_KEY, JSON.stringify(next)); } catch {} return next; };
   // Walk to the adjacent room in the 3×3, if one exists there (steps through the wireframe room by room).
   const walkStep = (dRow: number, dCol: number) => {
     const cur = roomLayout.find((r) => r.id === walkRoomId); if (!cur) return;
@@ -68,8 +73,9 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // (keeps the nine-room grid full; adjacency only, so cost is unchanged — honors the operator's rule).
   const moveRoom = (dRow: number, dCol: number) => {
     if (!roomSel) return;
-    setRoomLayout((prev) => moveRoomInLayout(prev, roomSel, dRow, dCol));
+    setRoomLayout((prev) => persistLayout(moveRoomInLayout(prev, roomSel, dRow, dCol)));
   };
+  const resetLayout = () => setRoomLayout(persistLayout(cloneLayout()));
   // Tiny Home defaults to the 2D floor plan with a persistent 3D mini-map (operator: "2D and 3D");
   // the ▦ Voxel toggle still swaps the main view to the full 3D voxel. Leaving tiny turns voxel off.
   useEffect(() => { if (homeType !== "tiny") setVoxel(false); }, [homeType]);
@@ -188,6 +194,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                   <button data-arch-roommove-e onClick={() => moveRoom(0, 1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
                 </div>
                 <button data-arch-roommove-s onClick={() => moveRoom(1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
+                <button data-arch-roommove-reset onClick={resetLayout} className="mt-0.5 rounded border px-1 text-[8px]" style={{ borderColor: C.border, color: C.dim }}>reset</button>
               </div>
             )}
             </>
