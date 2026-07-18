@@ -300,6 +300,11 @@ export default function LandingPage() {
         style={secLeft == null ? undefined : { left: secLeft }}>
         SECURITY-2525
       </a>
+      {/* DIRECT access to CELESTIAL-2525 (family/education sky reader) — stacked just above the Security link. */}
+      <a href="/main/Celestial-2525/"
+        className="fixed bottom-11 left-1/2 z-50 -translate-x-1/2 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
+        CELESTIAL-2525
+      </a>
     </div>
   );
 }
