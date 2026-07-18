@@ -1941,6 +1941,23 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A99: B1 MAXIMIZE — the "Planning · Scheduling · Cost" bottom panel maximizes to FULL SCREEN over the nav
+//          (operator IMG_7418); portaled to <body> so the panel origin sits at the true viewport top-left. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  await pg.click('[data-bpanel-max="b1"]'); await pg.waitForTimeout(220);
+  const info = await pg.evaluate(() => {
+    const el = document.querySelector('[data-arch-bpanel-max="1"]');
+    if (!el) return { max: false };
+    const r = el.getBoundingClientRect();
+    return { max: true, top: Math.round(r.top), left: Math.round(r.left), coversW: r.width >= window.innerWidth - 2, coversH: r.height >= window.innerHeight - 2, body: el.parentElement === document.body };
+  });
+  const ok99 = info.max && info.top <= 2 && info.left <= 2 && info.coversW && info.coversH && info.body;
+  rec('#A99 B1 Planning·Scheduling·Cost maximizes full-screen (portaled to body, origin 0,0, covers viewport)', ok99, JSON.stringify(info));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

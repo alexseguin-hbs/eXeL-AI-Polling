@@ -12,6 +12,8 @@
  * keeps every existing SPIRAL assert (`[data-arch-subnav] button:has-text("Site")` + `[data-sky-view]`) green.
  */
 import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { Maximize2, Minimize2 } from "lucide-react";
 import { AlvarMark } from "./alvar-mark";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc" };
@@ -66,10 +68,33 @@ function Rail({ side, title, open, setOpen, children, titleIcon }: {
   );
 }
 
-// B1/B2 bottom expandable — Security-2525 parity: collapses to a CENTERED ••• (Toggle3 horizontal), title left.
+// B1/B2 bottom expandable — Security-2525 parity: collapses to a CENTERED ••• (Toggle3 horizontal), title left,
+// and a MAXIMIZE control (right) that portals the panel full-screen over the nav (operator IMG_7418 — reuses the
+// mini-panel.tsx createPortal pattern so `fixed inset-0` covers the TRUE viewport, not trapped below the shell).
 function BottomPanel({ id, title, accent, open, setOpen, children }: {
   id: string; title: string; accent: string; open: boolean; setOpen: (b: boolean) => void; children: ReactNode;
 }) {
+  const [max, setMax] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (max) {
+    const full = (
+      <div data-arch-bpanel={id} data-arch-bpanel-max="1" className="fixed inset-0 z-[120] flex flex-col overflow-hidden border-2"
+        style={{ background: "#05070d", borderColor: C.cyan }}>
+        <div className="flex shrink-0 items-center justify-between border-b px-3 py-2" style={{ borderColor: C.cyan }}>
+          <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
+          <button data-bpanel-max={id} onClick={() => setMax(false)} title="Minimize" aria-label="Minimize"
+            className="flex items-center gap-1 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.cyan, color: C.cyan }}>
+            <Minimize2 className="h-3 w-3" /> Minimize
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
+      </div>
+    );
+    return mounted ? createPortal(full, document.body) : full;
+  }
+
   return (
     <div data-arch-bpanel={id} className="rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
       <div className="relative flex items-center justify-center px-3 py-1.5" style={{ borderBottom: open ? `1px solid ${C.border}` : "1px solid transparent" }}>
@@ -78,6 +103,8 @@ function BottomPanel({ id, title, accent, open, setOpen, children }: {
           className="flex flex-row items-center gap-[3px] rounded p-1 hover:bg-white/5">
           {[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
         </button>
+        <button data-bpanel-max={id} onClick={() => { setMax(true); setOpen(true); }} title="Maximize to full screen" aria-label="Maximize"
+          className="absolute right-3 rounded p-1 hover:bg-white/10"><Maximize2 className="h-3 w-3" style={{ color: C.dim }} /></button>
       </div>
       {open && <div className="p-3">{children}</div>}
     </div>
