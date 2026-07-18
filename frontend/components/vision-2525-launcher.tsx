@@ -22,6 +22,7 @@ export function Vision2525Launcher() {
     { id: "atlantis", code: "ATLANTIS-2525", name: "ENCODED MESSAGING", tagline: "Compose · Encode · Send", color: "#eab308", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/encrypted-messaging"); } },
     { id: "codex", code: "CODEX-2525", name: "LIGHT CODEX", tagline: "Encode · Image · Key", color: "#e879f9", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/light-codex"); } },
     { id: "architect", code: "ARCHITECT-2525", name: "ARCHITECT", tagline: "Design · Build · Model", color: "#c084fc", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/main/Architect-2525"); } },
+    { id: "celestial", code: "CELESTIAL-2525", name: "CELESTIAL", tagline: "Sky · Learn · Family", color: "#a78bfa", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/main/Celestial-2525"); } },
     { id: "manta", code: "MANTA-2525", name: "MANTA", tagline: "Maritime · Subsurface", color: "#38bdf8", unlocked: false },
     { id: "drone", code: "DRONE-2525", name: "DRONE", tagline: "Swarm · A.B..C Coordinates", color: "#f59e0b", unlocked: false },
   ];
