@@ -48,3 +48,29 @@ export function roomAt(layout: RoomCell[], row: number, col: number): RoomCell |
 export function layoutSqft(layout: RoomCell[]): number {
   return layout.reduce((sum, r) => sum + r.w * r.d * ROOM_FT * ROOM_FT, 0);
 }
+
+/**
+ * P3 cube modification — move a room by (dRow,dCol) within the 3×3 footprint, SWAPPING with whatever
+ * room it displaces so the grid stays full (adjacency only → cost unchanged). Out-of-bounds is a no-op.
+ * Pure: returns a new layout, never mutates the input.
+ */
+export function moveRoomInLayout(layout: RoomCell[], id: string, dRow: number, dCol: number): RoomCell[] {
+  const cur = layout.find((r) => r.id === id);
+  if (!cur) return layout;
+  const nr = cur.row + dRow, nc = cur.col + dCol;
+  if (nr < 0 || nr >= TINY_GRID || nc < 0 || nc >= TINY_GRID) return layout; // clamp to footprint
+  const other = layout.find((r) => r.row === nr && r.col === nc);
+  return layout.map((r) =>
+    r.id === cur.id ? { ...r, row: nr, col: nc }
+    : other && r.id === other.id ? { ...r, row: cur.row, col: cur.col }
+    : r);
+}
+
+/**
+ * P3 stretch — resize a room's width/depth in whole 10-ft cells within a clamp (default 1..2 = 10..20 ft),
+ * the "within 10 ft" envelope the operator asked for. Pure; feeds layoutSqft so area/cost track the change.
+ */
+export function resizeRoomInLayout(layout: RoomCell[], id: string, w: number, d: number, max = 2): RoomCell[] {
+  const clamp = (n: number) => Math.max(1, Math.min(max, Math.round(n)));
+  return layout.map((r) => (r.id === id ? { ...r, w: clamp(w), d: clamp(d) } : r));
+}

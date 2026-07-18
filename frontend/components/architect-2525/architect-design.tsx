@@ -13,7 +13,7 @@ import { VoxelHouse } from "./voxel-house";
 import { TinyFloorplan } from "./tiny-floorplan";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
-import { cloneLayout, type RoomCell } from "@/lib/room-layout";
+import { cloneLayout, moveRoomInLayout, type RoomCell } from "@/lib/room-layout";
 
 const C = {
   panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186",
@@ -68,16 +68,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // (keeps the nine-room grid full; adjacency only, so cost is unchanged — honors the operator's rule).
   const moveRoom = (dRow: number, dCol: number) => {
     if (!roomSel) return;
-    setRoomLayout((prev) => {
-      const cur = prev.find((r) => r.id === roomSel); if (!cur) return prev;
-      const nr = cur.row + dRow, nc = cur.col + dCol;
-      if (nr < 0 || nr > 2 || nc < 0 || nc > 2) return prev; // clamp to the 3×3 footprint
-      const other = prev.find((r) => r.row === nr && r.col === nc);
-      return prev.map((r) =>
-        r.id === cur.id ? { ...r, row: nr, col: nc }
-        : other && r.id === other.id ? { ...r, row: cur.row, col: cur.col }
-        : r);
-    });
+    setRoomLayout((prev) => moveRoomInLayout(prev, roomSel, dRow, dCol));
   };
   // Tiny Home defaults to the 2D floor plan with a persistent 3D mini-map (operator: "2D and 3D");
   // the ▦ Voxel toggle still swaps the main view to the full 3D voxel. Leaving tiny turns voxel off.

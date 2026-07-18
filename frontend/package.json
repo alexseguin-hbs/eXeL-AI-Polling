@@ -15,7 +15,8 @@
     "test:truth": "node --experimental-strip-types tests/celestial-truth.mjs",
     "test:bim": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/architect-bim.test.mjs",
     "test:celestial": "node --experimental-strip-types tests/celestial-masters.test.mjs",
-    "test:celestial-i18n": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/celestial-i18n.test.mjs"
+    "test:celestial-i18n": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/celestial-i18n.test.mjs",
+    "test:room-layout": "node --experimental-strip-types tests/room-layout.test.mjs"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",
