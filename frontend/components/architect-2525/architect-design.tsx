@@ -8,7 +8,7 @@
  * isometric one-source (ARC-05). Live count/cost rollup feeds the $/min economy.
  * Self-contained; pure SVG (HAL-friendly, U-WF-07). Kept mounted by the shell.
  */
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { VoxelHouse } from "./voxel-house";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
@@ -49,6 +49,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [mode, setMode] = useState<"wall" | "door" | "window">("wall");
   const [view3d, setView3d] = useState(false);
   const [voxel, setVoxel] = useState(false);   // V5 — 3×3×3 land-base voxel (house at center); 2D default = first floor
+  // Selecting Tiny Home loads its 3D model immediately (operator: "house not loaded into tiny home / 3D not active").
+  useEffect(() => { if (homeType === "tiny") setVoxel(true); }, [homeType]);
 
   const emit = (ws: Wall[], os: Opening[]) => onMetrics?.({
     walls: ws.length, linearFt: Math.round(ws.reduce((a, w) => a + lenFt(w), 0)),

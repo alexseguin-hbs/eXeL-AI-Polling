@@ -25,7 +25,7 @@ export function MetricStrip({ state, overlay = false }: { state: LayerState; ove
     { icon: Plug, label: "Outlets", value: `${m.counts.outlets}`, color: C.gold },
   ];
   return (
-    <div data-arch-metricstrip className={overlay ? "pointer-events-none absolute right-2 top-2 z-10 flex flex-col gap-1 rounded-lg border p-1.5 shadow-lg" : "flex flex-wrap gap-1"}
+    <div data-arch-metricstrip className={overlay ? "pointer-events-none absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 flex-row flex-wrap justify-center gap-x-2 gap-y-0.5 rounded-lg border px-2 py-1 shadow-lg" : "flex flex-wrap gap-1"}
       style={overlay ? { background: "#0a0f16e6", borderColor: C.border } : undefined}>
       {items.map(({ icon: Icon, label, value, color }) => (
         <div key={label} data-arch-metric={label.toLowerCase()} title={`${label}: ${value}`} className="flex items-center gap-1.5 px-1 text-[10px]">

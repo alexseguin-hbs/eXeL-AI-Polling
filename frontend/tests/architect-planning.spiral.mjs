@@ -1926,8 +1926,7 @@ const mk = async (vp) => {
 {
   const { pg, tab } = await mk();
   await tab('Design'); await pg.waitForTimeout(320);
-  await pg.click('[data-hometype="tiny"]').catch(() => {}); await pg.waitForTimeout(200);
-  await pg.click('[data-arch-voxel-toggle]'); await pg.waitForTimeout(300);
+  await pg.click('[data-hometype="tiny"]').catch(() => {}); await pg.waitForTimeout(400);   // Tiny Home auto-loads the 3D voxel
   const info = await pg.evaluate(() => {
     const cells = Array.from(document.querySelectorAll('[data-arch-voxel-cell]')).map((c) => c.getAttribute('data-arch-voxel-cell'));
     return { voxel: !!document.querySelector('[data-arch-voxel]'), compass: !!document.querySelector('[data-arch-compass]'), cellCount: cells.length, keys: cells };
