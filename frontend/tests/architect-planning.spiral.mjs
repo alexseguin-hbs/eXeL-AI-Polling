@@ -1994,6 +1994,28 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A102: AMENITIES + TUNABLE KITCHEN (F6) — the Vision Tree Exterior offers Pool + Pool Chiller (deck/pool/
+//          chiller amenities), and the Building Program's Kitchens count is tunable via its stepper. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  await pg.fill('[data-layer-search]', 'pool').catch(() => {}); await pg.waitForTimeout(220);
+  const amen = await pg.evaluate(() => {
+    const rows = Array.from(document.querySelectorAll('[data-arch-layer-tree] [data-layer-node]')).map((n) => n.textContent || '');
+    return { pool: rows.some((t) => /Pool/.test(t)), chiller: rows.some((t) => /Chiller/.test(t)) };
+  });
+  await pg.fill('[data-layer-search]', '').catch(() => {}); await pg.waitForTimeout(120);
+  // The Building Program lives in the right rail (collapsed by default) — open it to reach the Kitchens stepper.
+  await pg.click('[data-arch-rail-collapsed="right"]').catch(() => {}); await pg.waitForTimeout(200);
+  const k0 = await pg.evaluate(() => document.querySelector('[data-program-row="kitchens"] span.tabular-nums')?.textContent || '');
+  await pg.evaluate(() => { const r = document.querySelector('[data-program-row="kitchens"]'); const bs = r ? r.querySelectorAll('button') : null; if (bs && bs.length) bs[bs.length - 1].click(); });
+  await pg.waitForTimeout(150);
+  const k1 = await pg.evaluate(() => document.querySelector('[data-program-row="kitchens"] span.tabular-nums')?.textContent || '');
+  const ok102 = amen.pool && amen.chiller && k0 === '1' && k1 === '2';
+  rec('#A102 amenities (Pool · Pool Chiller in Exterior) + tunable Kitchens stepper (1→2)', ok102, JSON.stringify({ ...amen, k0, k1 }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

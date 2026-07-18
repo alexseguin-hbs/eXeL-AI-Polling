@@ -9,7 +9,7 @@
  * (fixture units · water/sewer pipe size · valves · fittings — so a plumber can estimate).
  */
 import { useState } from "react";
-import { Bed, Bath, Ruler, Zap, Droplets, ChevronRight } from "lucide-react";
+import { Bed, Bath, Ruler, Zap, Droplets, ChevronRight, ChefHat } from "lucide-react";
 import { programMetrics } from "@/lib/room-program";
 import { type LayerState } from "./use-layer-state";
 
@@ -59,6 +59,13 @@ export function BuildingProgram({ state }: { state: LayerState }) {
           <Bath className="h-3.5 w-3.5 shrink-0" style={{ color: C.violet }} />
           <span className="flex-1">Bathrooms</span>
           <Stepper v={m.bathrooms} min={1} max={10} on={(n) => state.setProgram({ bathrooms: n })} />
+        </div>
+
+        {/* 🍳 Kitchens — tunable (operator: "kitchen should be tunable, bathrooms adjustable, etc.") */}
+        <div data-program-row="kitchens" className="flex items-center gap-2 border-b px-2 py-1" style={{ borderColor: C.border }}>
+          <ChefHat className="h-3.5 w-3.5 shrink-0" style={{ color: C.violet }} />
+          <span className="flex-1">Kitchens</span>
+          <Stepper v={state.program.kitchens ?? 1} min={1} max={4} on={(n) => state.setProgram({ kitchens: n })} />
         </div>
 
         {/* 📏 Square feet — gross · usable (read-only, from params) */}

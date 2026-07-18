@@ -11,8 +11,8 @@
  */
 import { styleEquivalence, type GlobalParams } from "./architect-project";
 
-export interface RoomProgram { bedrooms: number; bathrooms: number; ceilingFt: number; }
-export const DEFAULT_PROGRAM: RoomProgram = { bedrooms: 3, bathrooms: 2, ceilingFt: 9 };
+export interface RoomProgram { bedrooms: number; bathrooms: number; ceilingFt: number; kitchens?: number; }
+export const DEFAULT_PROGRAM: RoomProgram = { bedrooms: 3, bathrooms: 2, ceilingFt: 9, kitchens: 1 };
 const clampN = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number.isFinite(n) ? Math.round(n) : lo));
 
 /** Smart-default a program from the whole-house area (≈650 gross sqft/bedroom; ~0.75 bath/bedroom). */
@@ -66,7 +66,8 @@ export function programMetrics(params: GlobalParams, prog: RoomProgram = DEFAULT
   //  windows ≈ 2 per bedroom + 5 common (egress + daylight, IRC R303/R310 spirit)
   //  doors   ≈ beds + baths + 3 (interior per room + 2 exterior + garage/patio)
   //  outlets ≈ NEC 210.52 receptacle rough count (perimeter-driven → ~1 / 60 usable sqft + 1 / room)
-  const totalRooms = beds + baths + 4;
+  const kitchens = clampN(prog.kitchens ?? 1, 1, 4);
+  const totalRooms = beds + baths + kitchens + 3;   // + living · dining · utility
   const counts: KeyCounts = {
     rooms: totalRooms,
     windows: beds * 2 + 5,

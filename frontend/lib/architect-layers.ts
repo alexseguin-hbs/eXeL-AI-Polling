@@ -88,7 +88,8 @@ const PHYSICAL: Raw[] = [
     "Countertops & Backsplashes", "Painting & Coatings", L3,
   ]),
   B("Exterior", [
-    "Landscaping", "Hardscaping", "Driveways & Walkways", "Decks, Patios & Porches", "Fencing", "Exterior Lighting", L3,
+    "Landscaping", "Hardscaping", "Driveways & Walkways", "Decks, Patios & Porches", "Lower Deck", "Upper Deck",
+    "Pool", "Pool Chiller / Equipment", "Hot Tub / Spa", "Outdoor Kitchen", "Fencing", "Exterior Lighting", L3,
   ]),
 ];
 
