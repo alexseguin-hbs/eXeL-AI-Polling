@@ -10,7 +10,7 @@
  */
 import { useRef, useState, type ReactNode } from "react";
 import { VoxelHouse } from "./voxel-house";
-import type { HomeType } from "@/lib/architect-layers";
+import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 
 const C = {
@@ -36,7 +36,8 @@ const iso = (x: number, y: number, z: number): Pt => {
 
 export interface DesignMetrics { walls: number; linearFt: number; studs: number; openings: number; }
 
-export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram }) {
+export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program, selectedId }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram; selectedId?: string | null }) {
+  const selectedLabel = selectedId ? (findLayer(selectedId)?.node.label ?? null) : null;
   const svgRef = useRef<SVGSVGElement>(null);
   const [dragOver, setDragOver] = useState(false);   // drag-drop a Vision-Tree item onto the building
   const [walls, setWalls] = useState<Wall[]>([
@@ -84,7 +85,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // cost / time now live on the map's settings header (MasterReadout, rendered by the shell). The wireframe still
   // emits its primitive metrics via onMetrics for the $/min economy + 4D build; it just isn't shown as a panel here.
   return (
-      <div data-arch-dropzone className="rounded-lg border p-2 transition-colors"
+      <div data-arch-dropzone className="relative rounded-lg border p-2 transition-colors"
         onDragOver={(e) => { if (onDropComponent) { e.preventDefault(); setDragOver(true); } }}
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => { e.preventDefault(); setDragOver(false); const id = e.dataTransfer.getData("text/plain"); if (id) onDropComponent?.(id); }}
@@ -105,6 +106,13 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             <button onClick={clearAll} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>clear</button>
           </div>
         </div>
+        {/* F3 — clicking an Active Element / Vision-Tree row reflects it ON the map (2D or 3D voxel). */}
+        {selectedLabel && (
+          <div data-arch-selected-onmap className="pointer-events-none absolute left-1/2 top-9 z-20 -translate-x-1/2 animate-pulse rounded-full border px-3 py-1 text-[10px] font-semibold shadow-lg"
+            style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16ee" }}>
+            ◎ {selectedLabel} <span style={{ color: C.dim }}>· shown on map</span>
+          </div>
+        )}
         {voxel ? <VoxelHouse homeType={homeType} program={program} /> : (
         <svg ref={svgRef} data-arch-design viewBox="0 0 100 75" preserveAspectRatio="xMidYMid meet"
           onClick={onClick} className="w-full cursor-crosshair rounded" style={{ background: "#070b12", aspectRatio: "4 / 3" }}>

@@ -2016,6 +2016,20 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A103: SELECTION REFLECTS ON THE MAP (F3) — clicking a Vision-Tree element shows it on the 2D/3D map via
+//          an on-map badge naming the selected element (operator: "if I click on text of these items you can
+//          see on 2D or 3D map"). ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  await pg.click('[data-layer-node="physical/foundation"]').catch(() => {}); await pg.waitForTimeout(160);
+  await pg.click('[data-layer-node="physical/foundation/footings"]').catch(() => {}); await pg.waitForTimeout(220);
+  const info = await pg.evaluate(() => { const b = document.querySelector('[data-arch-selected-onmap]'); return { onMap: !!b, text: (b?.textContent || '').trim() }; });
+  const ok103 = info.onMap && /Footings/.test(info.text);
+  rec('#A103 selecting a Vision-Tree element reflects it ON the map (2D/3D) via an on-map badge', ok103, JSON.stringify(info));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
