@@ -1958,6 +1958,25 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A100: KEY METRICS ON THE MAP (F4) — with the Active-Items rail collapsed (default), the minimum housing
+//          metrics (Rooms · Baths · Sq Ft · Windows · Doors · Outlets) overlay ONTO the map; expanding hides them. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  const before = await pg.evaluate(() => {
+    const strip = document.querySelector('[data-arch-engine] [data-arch-metricstrip]');
+    const metrics = Array.from(document.querySelectorAll('[data-arch-metricstrip] [data-arch-metric]')).map((m) => m.getAttribute('data-arch-metric'));
+    return { onMap: !!strip, metrics };
+  });
+  await pg.click('[data-arch-rail-collapsed="right"]').catch(() => {}); await pg.waitForTimeout(200);
+  const afterOpen = await pg.evaluate(() => !!document.querySelector('[data-arch-engine] [data-arch-metricstrip]'));
+  const need = ['rooms', 'baths', 'sq ft', 'windows', 'doors', 'outlets'];
+  const has = new Set(before.metrics);
+  const ok100 = before.onMap && need.every((n) => has.has(n)) && !afterOpen;
+  rec('#A100 key metrics (Rooms·Baths·SqFt·Windows·Doors·Outlets) ride on the map when Active Items is collapsed', ok100, JSON.stringify({ ...before, afterOpen }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');

@@ -23,10 +23,12 @@ export function deriveProgram(p: GlobalParams): RoomProgram {
 
 export interface Electrical { serviceAmps: number; voltage: number; hvacTons: number; applianceKw: number; }
 export interface Plumbing { fixtureUnits: number; waterPipeIn: string; sewerPipeIn: string; valves: number; fittings: number; }
+// Key at-a-glance counts (F4) — the minimum housing metrics shown on the map when the Active-Items rail is hidden.
+export interface KeyCounts { rooms: number; windows: number; doors: number; outlets: number; }
 export interface ProgramMetrics {
   grossSqft: number; usableSqft: number; bedrooms: number; bathrooms: number;
   perBedroomSqft: number; bedroomVolumeFt3: number;
-  electrical: Electrical; plumbing: Plumbing;
+  electrical: Electrical; plumbing: Plumbing; counts: KeyCounts;
 }
 
 // Electrical service by conditioned area (NEC-style tiers) — 240 V split-phase US residential.
@@ -59,5 +61,17 @@ export function programMetrics(params: GlobalParams, prog: RoomProgram = DEFAULT
     valves: baths * 6 + 4,                                       // shutoffs + supply stops + hose bibbs
     fittings: baths * 12 + beds * 2 + 8,                         // elbows/tees/couplings estimate
   };
-  return { grossSqft: gross, usableSqft: usable, bedrooms: beds, bathrooms: baths, perBedroomSqft, bedroomVolumeFt3, electrical, plumbing };
+  // Key counts (F4) — rough, deterministic, code-informed at-a-glance numbers.
+  //  rooms   = beds + baths + 4 common (living · kitchen · dining · utility)
+  //  windows ≈ 2 per bedroom + 5 common (egress + daylight, IRC R303/R310 spirit)
+  //  doors   ≈ beds + baths + 3 (interior per room + 2 exterior + garage/patio)
+  //  outlets ≈ NEC 210.52 receptacle rough count (perimeter-driven → ~1 / 60 usable sqft + 1 / room)
+  const totalRooms = beds + baths + 4;
+  const counts: KeyCounts = {
+    rooms: totalRooms,
+    windows: beds * 2 + 5,
+    doors: beds + baths + 3,
+    outlets: Math.round(usable / 60) + totalRooms,
+  };
+  return { grossSqft: gross, usableSqft: usable, bedrooms: beds, bathrooms: baths, perBedroomSqft, bedroomVolumeFt3, electrical, plumbing, counts };
 }

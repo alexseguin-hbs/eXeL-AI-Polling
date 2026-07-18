@@ -111,8 +111,8 @@ function BottomPanel({ id, title, accent, open, setOpen, children }: {
   );
 }
 
-export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2, children, selectedId }: {
-  leftRail?: ReactNode; rightRail?: ReactNode; bottomPanel?: ReactNode; bottomPanel2?: ReactNode; children: ReactNode; selectedId?: string | null;
+export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2, children, selectedId, metricStrip }: {
+  leftRail?: ReactNode; rightRail?: ReactNode; bottomPanel?: ReactNode; bottomPanel2?: ReactNode; children: ReactNode; selectedId?: string | null; metricStrip?: ReactNode;
 }) {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(false); // Context opens on selection (C5); collapsed keeps the engine wide
@@ -135,7 +135,11 @@ export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2
           </div>
         )}
       </Rail>
-      <div data-arch-engine className="min-w-0 flex-1">{children}</div>
+      <div data-arch-engine className="relative min-w-0 flex-1">
+        {children}
+        {/* F4 — when the Active Items rail is collapsed, the key housing metrics ride ONTO the map. */}
+        {!rightOpen && metricStrip}
+      </div>
       <Rail side="right" title="Active Items" open={rightOpen} setOpen={setRightOpen}>
         {rightRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>

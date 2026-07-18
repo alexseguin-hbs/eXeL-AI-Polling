@@ -25,6 +25,7 @@ import { ArchitectDesign, type DesignMetrics } from "./architect-design";
 import { DesignWorkspace } from "./architect-design-workspace";
 import { LayerTree } from "./layer-tree";
 import { RightPanel } from "./right-panel";
+import { MetricStrip } from "./metric-strip";
 import { useLayerState } from "./use-layer-state";
 import { HouseSpec } from "./house-spec";
 import { CodesPanel } from "./codes-panel";
@@ -258,6 +259,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             selectedId={selectedLayerId}
             leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} />}
             rightRail={<RightPanel selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} />}
+            metricStrip={<MetricStrip state={layerState} overlay />}
             bottomPanel={<HouseSpec state={layerState} homeType={homeType} selectedId={selectedLayerId} onSelect={setSelectedLayerId} />}
             bottomPanel2={<CodesPanel state={layerState} />}
           >
