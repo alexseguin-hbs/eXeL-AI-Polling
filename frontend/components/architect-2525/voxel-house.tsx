@@ -32,7 +32,7 @@ const TINY_ROOMS: { k: string; label: string }[] = [
   { k: "O", label: "Office" }, { k: "S", label: "Storage · Laundry" }, { k: "E", label: "Entry · Porch" },
 ];
 
-export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62 }: { homeType?: HomeType; program?: RoomProgram; lat?: number; lon?: number }) {
+export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false }: { homeType?: HomeType; program?: RoomProgram; lat?: number; lon?: number; height?: number; compact?: boolean }) {
   const [bearing, setBearing] = useState(0);       // 0 = NORTH up (operator: North is the default)
   const [pitch, setPitch] = useState(58);          // camera tilt (deg)
   const [zoom, setZoom] = useState(1);
@@ -140,7 +140,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
 
   return (
     <div data-arch-voxel className="relative w-full cursor-grab touch-none overflow-hidden rounded active:cursor-grabbing"
-      style={{ background: "#070b12", height: 400 }}
+      style={{ background: "#070b12", height }}
       onPointerMove={onMove} onWheel={onWheel}>
       <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 60%",
         transform: `perspective(820px) rotateX(${pitch}deg) scale(${1.02 * zoom})` }}>
@@ -155,7 +155,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
       </div>
 
       {/* Per-corner ALTITUDE of the 3×3 land base (operator: "each corner … show height"). ft, from procedural terrain. */}
-      {([["nw", "left-2 top-9", ca.nw], ["ne", "right-2 top-12", ca.ne], ["sw", "left-2 bottom-2", ca.sw], ["se", "right-2 bottom-2", ca.se]] as const).map(([k, pos, m]) => (
+      {!compact && ([["nw", "left-2 top-9", ca.nw], ["ne", "right-2 top-12", ca.ne], ["sw", "left-2 bottom-2", ca.sw], ["se", "right-2 bottom-2", ca.se]] as const).map(([k, pos, m]) => (
         <div key={k} data-arch-corner-alt={k} className={`absolute ${pos} rounded border px-1 text-[8px] font-semibold tabular-nums`}
           style={{ borderColor: `${C.green}55`, color: C.green, background: "#0a0f16cc" }}>{k.toUpperCase()} {mToFt(m) >= 0 ? "+" : ""}{mToFt(m)}′</div>
       ))}
@@ -174,9 +174,11 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
         </div>
       )}
 
-      <div className="absolute left-2 top-2 max-w-[68%] text-[9px]" style={{ color: C.dim }}>
-        {caption}
-      </div>
+      {!compact && (
+        <div className="absolute left-2 top-2 max-w-[68%] text-[9px]" style={{ color: C.dim }}>
+          {caption}
+        </div>
+      )}
     </div>
   );
 }

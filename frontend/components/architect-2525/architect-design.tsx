@@ -10,6 +10,7 @@
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { VoxelHouse } from "./voxel-house";
+import { TinyFloorplan } from "./tiny-floorplan";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 
@@ -49,8 +50,11 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [mode, setMode] = useState<"wall" | "door" | "window">("wall");
   const [view3d, setView3d] = useState(false);
   const [voxel, setVoxel] = useState(false);   // V5 — 3×3×3 land-base voxel (house at center); 2D default = first floor
-  // Selecting Tiny Home loads its 3D model immediately (operator: "house not loaded into tiny home / 3D not active").
-  useEffect(() => { if (homeType === "tiny") setVoxel(true); }, [homeType]);
+  const [roomSel, setRoomSel] = useState<string | null>(null); // selected Tiny Home room (2D plan ↔ 3D mini)
+  const tiny = homeType === "tiny";
+  // Tiny Home defaults to the 2D floor plan with a persistent 3D mini-map (operator: "2D and 3D");
+  // the ▦ Voxel toggle still swaps the main view to the full 3D voxel. Leaving tiny turns voxel off.
+  useEffect(() => { if (homeType !== "tiny") setVoxel(false); }, [homeType]);
 
   const emit = (ws: Wall[], os: Opening[]) => onMetrics?.({
     walls: ws.length, linearFt: Math.round(ws.reduce((a, w) => a + lenFt(w), 0)),
@@ -115,7 +119,18 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             ◎ {selectedLabel} <span style={{ color: C.dim }}>· shown on map</span>
           </div>
         )}
-        {voxel ? <VoxelHouse homeType={homeType} program={program} /> : (
+        {voxel ? <VoxelHouse homeType={homeType} program={program} /> : tiny ? (
+          <div data-arch-tiny-view className="relative">
+            {/* MAIN = 2D floor plan of the nine labeled rooms (operator's finalized design) */}
+            <TinyFloorplan selectedRoomId={roomSel} onSelectRoom={(id) => setRoomSel((s) => (s === id ? null : id))} />
+            {/* persistent 3D MINI-MAP (operator: "2D and 3D") — compact voxel, North default */}
+            <div data-arch-minimap className="absolute bottom-2 right-2 w-[42%] max-w-[210px] overflow-hidden rounded-lg border shadow-lg"
+              style={{ borderColor: C.border, background: "#070b12" }}>
+              <div className="px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>3D · mini-map</div>
+              <VoxelHouse homeType={homeType} program={program} height={150} compact />
+            </div>
+          </div>
+        ) : (
         <svg ref={svgRef} data-arch-design viewBox="0 0 100 75" preserveAspectRatio="xMidYMid meet"
           onClick={onClick} className="w-full cursor-crosshair rounded" style={{ background: "#070b12", aspectRatio: "4 / 3" }}>
           {!view3d ? (
@@ -146,7 +161,9 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
         </svg>
         )}
         <div className="mt-1 text-[9px]" style={{ color: C.dim }}>
-          {voxel ? "3D voxel — click a room to select · drag to orbit/tilt · scroll to zoom · first-floor plan lives in 2D" : view3d ? "3D isometric — edit in 2D" : mode === "wall" ? "Click two grid points to place a 2×4 wall" : `Click near a wall to place a ${mode}`}
+          {voxel ? "3D voxel — click a room to select · drag to orbit/tilt · scroll to zoom · first-floor plan lives in 2D"
+            : tiny ? "2D floor plan — nine 10'×10' rooms = 900 ft² · click a room to select · 3D mini-map lower-right · ▦ Voxel for full 3D"
+            : view3d ? "3D isometric — edit in 2D" : mode === "wall" ? "Click two grid points to place a 2×4 wall" : `Click near a wall to place a ${mode}`}
         </div>
       </div>
   );
