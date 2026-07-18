@@ -12,6 +12,7 @@
  * keeps every existing SPIRAL assert (`[data-arch-subnav] button:has-text("Site")` + `[data-sky-view]`) green.
  */
 import { useEffect, useState, type ReactNode } from "react";
+import { AlvarMark } from "./alvar-mark";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc" };
 
@@ -25,8 +26,8 @@ function Toggle3({ onClick, title }: { onClick: () => void; title: string }) {
   );
 }
 
-function Rail({ side, title, open, setOpen, children }: {
-  side: "left" | "right"; title: string; open: boolean; setOpen: (b: boolean) => void; children: ReactNode;
+function Rail({ side, title, open, setOpen, children, titleIcon }: {
+  side: "left" | "right"; title: string; open: boolean; setOpen: (b: boolean) => void; children: ReactNode; titleIcon?: ReactNode;
 }) {
   // Design primary accent = AI cyan (matches Mission Planning). The Vision Tree (left) rail title reads in cyan.
   const titleColor = side === "left" ? C.cyan : C.dim;
@@ -42,6 +43,7 @@ function Rail({ side, title, open, setOpen, children }: {
         <span data-arch-rail-toggle className="flex flex-col items-center gap-[3px]">
           {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
         </span>
+        {titleIcon}
         <span data-arch-rail-label={side} className="text-[8px] font-semibold uppercase tracking-wider [writing-mode:horizontal-tb] md:[writing-mode:vertical-rl]"
           style={{ color: titleColor }}>{title}</span>
       </button>
@@ -51,7 +53,9 @@ function Rail({ side, title, open, setOpen, children }: {
     <div className="flex min-h-0 shrink-0 flex-col gap-2 md:w-64">
       <div className="min-h-0 flex-1 overflow-hidden rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
         <div className="flex items-center justify-between border-b p-1.5" style={{ borderColor: C.border }}>
-          <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: titleColor }}>{title}</span>
+          <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: titleColor }}>
+            {titleIcon}{title}
+          </span>
           <Toggle3 onClick={() => setOpen(false)} title={`Collapse ${title}`} />
         </div>
         <div data-arch-rail={side} className="overflow-y-auto p-2" style={{ maxHeight: "72vh" }}>
@@ -95,7 +99,8 @@ export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2
           engine in one row; below md it stacks vertically (phones). No flex-wrap — wrapping let the engine
           drop BELOW the tree on some desktop windows (the reported "tree above the design window" bug). */}
       <div data-arch-design-ws className="flex flex-col gap-2 md:flex-row md:items-stretch">
-      <Rail side="left" title="Vision Tree" open={leftOpen} setOpen={setLeftOpen}>
+      <Rail side="left" title="Vision Tree" open={leftOpen} setOpen={setLeftOpen}
+        titleIcon={<AlvarMark color={C.cyan} size={16} title="Alvar — guardian of the Vision Tree" />}>
         {leftRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
             <span className="font-semibold" style={{ color: C.violet }}>Vision Tree</span> — the physical Digital Twin.

@@ -1703,24 +1703,22 @@ const mk = async (vp) => {
   await pg.close();
 }
 
-// ── #A87: ALVAR MARK — the Vision Tree's guardian icon (ouroboros + Yggdrasil + runes) renders BEFORE the tree
-//          content as a single-color line-art homage, and tapping it cycles the 13 SoI-Trinity colors (modular). ──
+// ── #A87: ALVAR MARK — the Vision Tree's guardian icon (ouroboros + Yggdrasil + runes) now renders as the rail
+//          title icon, immediately LEFT of the "Vision Tree" title (operator IMG_7413), a masked cyan raster. ──
 {
   const { pg, tab } = await mk();
   await tab('Design'); await pg.waitForTimeout(320);
   const info = await pg.evaluate(() => {
-    const header = document.querySelector('[data-alvar-header]');
-    const mark = header?.querySelector('[data-alvar-mark]');
+    const marks = Array.from(document.querySelectorAll('[data-alvar-mark]'));
+    // The Vision-Tree rail header title icon: an Alvar mark whose parent's text reads "Vision Tree".
+    const mark = marks.find((m) => (m.parentElement?.textContent || '').includes('Vision Tree'));
     const cs = mark ? getComputedStyle(mark) : null;
     const masked = cs ? (cs.maskImage !== 'none' || cs.webkitMaskImage !== 'none') : false;
-    const market = document.querySelector('[data-layer-hometype]');
-    const before = header && market ? (header.compareDocumentPosition(market) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0 : false;
-    return { hasMark: !!mark, bg: cs?.backgroundColor || '', masked, before: !!before };
+    const firstChild = mark ? mark.parentElement?.firstElementChild === mark : false; // sits LEFT of the title text
+    return { hasMark: !!mark, bg: cs?.backgroundColor || '', masked, firstChild: !!firstChild };
   });
-  await pg.click('[data-alvar-header]'); await pg.waitForTimeout(140);
-  const after = await pg.evaluate(() => { const m = document.querySelector('[data-alvar-header] [data-alvar-mark]'); return m ? getComputedStyle(m).backgroundColor : ''; });
-  const ok87 = info.hasMark && info.before && info.masked && /rgb/.test(info.bg) && after !== '' && after !== info.bg;
-  rec('#A87 Alvar raster icon (real art, masked) renders before Vision Tree + taps cycle the 13 Trinity colors', ok87, JSON.stringify({ ...info, after }));
+  const ok87 = info.hasMark && info.masked && /rgb/.test(info.bg) && info.firstChild;
+  rec('#A87 Alvar mark renders left of the "Vision Tree" rail title (masked raster, cyan)', ok87, JSON.stringify(info));
   await pg.close();
 }
 

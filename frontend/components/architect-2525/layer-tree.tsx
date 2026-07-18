@@ -14,8 +14,6 @@ import { ChevronRight, Eye, EyeOff, Lock, Unlock, Settings, MoreHorizontal } fro
 import { LAYER_TREE, HOME_TYPES, isVisibleForType, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { componentEstimate } from "@/lib/architect-house";
 import { type LayerState } from "./use-layer-state";
-import { AlvarMark } from "./alvar-mark";
-import { TRINITY_13, trinityHex } from "@/lib/trinity-colors";
 
 const kUsd = (n: number) => (n >= 1000 ? `$${Math.round(n / 1000)}k` : `$${n}`);
 
@@ -35,7 +33,6 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
   const [menuId, setMenuId] = useState<string | null>(null);
-  const [alvarIdx, setAlvarIdx] = useState(0);   // Alvar mark color index into the 13 Trinity colors (default AI cyan — Design primary)
   const isolate = (node: LayerNode) => { isolateNode(node); setMenuId(null); };
 
   // Search: the set of node ids to keep visible, plus ancestors to force-open.
@@ -126,17 +123,6 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
 
   return (
     <div data-arch-layer-tree className="flex flex-col gap-1">
-      {/* ALVAR — the Vision Tree's guardian mark (Old Norse elf-warrior / guardian: protection · strength ·
-          persistence). Click cycles the 13 SoI-Trinity colors (modular iconology). Sits BEFORE the tree. */}
-      <button data-alvar-header onClick={() => setAlvarIdx((i) => (i + 1) % TRINITY_13.length)}
-        title={`Alvar · ${TRINITY_13[alvarIdx].name} — tap to cycle the 13 Trinity colors`}
-        className="mb-1 flex items-center gap-2 rounded px-1 py-0.5 hover:bg-white/5">
-        <AlvarMark color={trinityHex(alvarIdx)} size={30} />
-        <span className="text-left">
-          <span className="block text-[9px] font-semibold uppercase tracking-widest" style={{ color: trinityHex(alvarIdx) }}>Alvar</span>
-          <span className="block text-[7px] uppercase tracking-wider" style={{ color: C.dim }}>Guardian · {TRINITY_13[alvarIdx].name}</span>
-        </span>
-      </button>
       {/* TARGET MARKET — Tiny Home & Home are the two markets. Tiny Home limits systems + decisions (R3/R8). */}
       <div data-layer-hometype className="mb-1 rounded border p-1" style={{ borderColor: C.border }}>
         <div className="mb-1 px-1 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Target market</div>
