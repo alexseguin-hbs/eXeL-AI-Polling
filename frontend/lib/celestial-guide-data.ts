@@ -31,7 +31,7 @@ export const CELESTIAL_GROUPS: { id: string; label: string; stroke: string }[] =
 
 export const CELESTIAL_BODIES: CelestialEntry[] = [
   {
-    id: "sun", name: "The Sun", emoji: "☀️", master: "Asar", group: "sun-rocky",
+    id: "sun", name: "The Sun", emoji: "☀️", master: "Krishna", group: "sun-rocky",
     text: {
       kids: "The Sun is a giant ball of glowing gas, so huge that about a million Earths could fit inside it! Its warm light zooms across space and takes eight minutes to reach us.",
       middle: "The Sun is our nearest star, a giant glowing ball of hydrogen and helium gas about 1,391,000 km wide — roughly 109 times the width of Earth. It holds about 99.86% of all the mass in the solar system, and its gravity keeps every planet in orbit. Deep in its core, hydrogen fuses into helium at around 15 million °C, releasing the light and heat that make life on Earth possible. That light takes about 8 minutes and 20 seconds to reach us. The Sun is roughly 4.6 billion years old and about halfway through its life as a stable, hydrogen-burning star.",
@@ -40,7 +40,7 @@ export const CELESTIAL_BODIES: CelestialEntry[] = [
     },
   },
   {
-    id: "mercury", name: "Mercury", emoji: "☿", master: "Enki", group: "sun-rocky",
+    id: "mercury", name: "Mercury", emoji: "☿", master: "Thoth", group: "sun-rocky",
     text: {
       kids: "Mercury is the tiniest planet and races closest to the Sun, zipping all the way around it in just 88 days. One side bakes hot enough to melt lead while the other freezes in shadow!",
       middle: "Mercury is the smallest planet, only about 4,879 km across — a bit more than a third the width of Earth. It orbits closest to the Sun (about 58 million km) and races around it in just 88 Earth-days, the fastest planet of all. But it spins very slowly, so one Mercury day-night cycle lasts about 176 Earth-days. With almost no atmosphere to trap heat, temperatures swing wildly: up to about 430 °C in sunlight and down to about −180 °C at night. Its grey, cratered surface looks a lot like our Moon, and it even hides pockets of ice in deep polar craters the sunlight never reaches.",
@@ -94,7 +94,7 @@ export const CELESTIAL_BODIES: CelestialEntry[] = [
     },
   },
   {
-    id: "saturn", name: "Saturn", emoji: "♄", master: "Krishna", group: "giants",
+    id: "saturn", name: "Saturn", emoji: "♄", master: "Odin", group: "giants",
     text: {
       kids: "Saturn is the ringed planet, wrapped in thousands of shiny rings made of ice and rock. It's so light for its size that it would float in a giant bathtub of water!",
       middle: "Saturn is the sixth planet and the second-largest, about 120,500 km across. It is a gas giant of hydrogen and helium, famous for its spectacular rings — countless chunks of ice and rock, from grains to house-sized boulders, spread wide but only about 10 meters thick. Saturn is the least dense planet; it is so light for its size that it would float in water. It spins fast (about 10.7 hours a day) but takes about 29 Earth-years to orbit the Sun. Saturn has at least 146 known moons — more than any other planet — including giant Titan, which has a thick atmosphere and lakes of liquid methane, and little Enceladus, which shoots geysers of water from a hidden ocean into space.",
@@ -112,7 +112,7 @@ export const CELESTIAL_BODIES: CelestialEntry[] = [
     },
   },
   {
-    id: "neptune", name: "Neptune", emoji: "♆", master: "Athena", group: "giants",
+    id: "neptune", name: "Neptune", emoji: "♆", master: "Enki", group: "giants",
     text: {
       kids: "Neptune is the farthest planet, a deep blue ice giant with the fastest winds in the solar system — storms that blow faster than a jet plane! It's so far it takes 165 years to circle the Sun.",
       middle: "Neptune is the eighth and most distant planet, an ice giant about 49,000 km across and a vivid deep blue from methane in its atmosphere. It is the windiest planet, with supersonic storms roaring up to about 2,000 km/h. Neptune is so far from the Sun — about 4.5 billion km — that it takes 165 Earth-years to complete one orbit, and its cloud tops are extremely cold, around −220 °C. Amazingly, Neptune was discovered in 1846 through mathematics: astronomers predicted its position from the way its gravity tugged on Uranus, then pointed a telescope and found it. It has faint rings and 16 known moons, the largest being Triton, which orbits backwards and has geysers of nitrogen — hints it was captured from the distant Kuiper Belt.",
@@ -121,7 +121,7 @@ export const CELESTIAL_BODIES: CelestialEntry[] = [
     },
   },
   {
-    id: "pluto", name: "Pluto", emoji: "♇", master: "Odin", group: "far",
+    id: "pluto", name: "Pluto", emoji: "♇", master: "Asar", group: "far",
     text: {
       kids: "Pluto is a small, icy dwarf planet far out past Neptune. It even has a big heart-shaped patch of frozen ice on its surface, and a moon almost as big as itself!",
       middle: "Pluto is a dwarf planet in the Kuiper Belt, the ring of icy worlds beyond Neptune. It is small — about 2,377 km across, smaller than Earth's Moon — and made of rock and ice. Pluto is so far from the Sun that it takes 248 Earth-years to orbit once, and its surface is a frigid −230 °C. It was discovered in 1930 and counted as the ninth planet until 2006, when it was reclassified as a 'dwarf planet' after astronomers found many similar icy worlds nearby. In 2015 the New Horizons spacecraft flew past and revealed a stunning world: a huge heart-shaped plain of frozen nitrogen, water-ice mountains, and possible ice volcanoes. Pluto has five moons; the largest, Charon, is so big that the two orbit a point in space between them.",
@@ -130,7 +130,7 @@ export const CELESTIAL_BODIES: CelestialEntry[] = [
     },
   },
   {
-    id: "polaris", name: "Polaris (North Star)", emoji: "⭐", master: "Thoth", group: "far",
+    id: "polaris", name: "Polaris (North Star)", emoji: "⭐", master: "Athena", group: "far",
     text: {
       kids: "Polaris is the North Star. It sits almost exactly above Earth's North Pole, so it barely moves in the sky while all the other stars circle around it — the perfect star for finding your way!",
       middle: "Polaris is the North Star — not a planet, but a star far outside our solar system, about 433 light-years away. It looks special because it sits almost directly above Earth's North Pole. As Earth spins, all the other stars appear to circle around Polaris while it stays nearly still, which has made it a guide for travelers and sailors for thousands of years to find north. Polaris is actually much bigger and brighter than the Sun — a yellow supergiant about 2,000 times more luminous. It is also a 'Cepheid variable,' a type of star that pulses and changes brightness in a regular rhythm. Astronomers use Cepheids like Polaris as 'standard candles' to measure the vast distances to other stars and galaxies.",
