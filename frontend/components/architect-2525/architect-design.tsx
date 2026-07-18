@@ -13,6 +13,7 @@ import { VoxelHouse } from "./voxel-house";
 import { TinyFloorplan } from "./tiny-floorplan";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
+import { cloneLayout, type RoomCell } from "@/lib/room-layout";
 
 const C = {
   panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186",
@@ -51,7 +52,24 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [view3d, setView3d] = useState(false);
   const [voxel, setVoxel] = useState(false);   // V5 — 3×3×3 land-base voxel (house at center); 2D default = first floor
   const [roomSel, setRoomSel] = useState<string | null>(null); // selected Tiny Home room (2D plan ↔ 3D mini)
+  const [roomLayout, setRoomLayout] = useState<RoomCell[]>(() => cloneLayout()); // P3 — movable room model
   const tiny = homeType === "tiny";
+  const selectRoom = (id: string) => setRoomSel((s) => (s === id ? null : id));
+  // P3 cube modification — move the selected room within the 3×3 grid, swapping with whatever it displaces
+  // (keeps the nine-room grid full; adjacency only, so cost is unchanged — honors the operator's rule).
+  const moveRoom = (dRow: number, dCol: number) => {
+    if (!roomSel) return;
+    setRoomLayout((prev) => {
+      const cur = prev.find((r) => r.id === roomSel); if (!cur) return prev;
+      const nr = cur.row + dRow, nc = cur.col + dCol;
+      if (nr < 0 || nr > 2 || nc < 0 || nc > 2) return prev; // clamp to the 3×3 footprint
+      const other = prev.find((r) => r.row === nr && r.col === nc);
+      return prev.map((r) =>
+        r.id === cur.id ? { ...r, row: nr, col: nc }
+        : other && r.id === other.id ? { ...r, row: cur.row, col: cur.col }
+        : r);
+    });
+  };
   // Tiny Home defaults to the 2D floor plan with a persistent 3D mini-map (operator: "2D and 3D");
   // the ▦ Voxel toggle still swaps the main view to the full 3D voxel. Leaving tiny turns voxel off.
   useEffect(() => { if (homeType !== "tiny") setVoxel(false); }, [homeType]);
@@ -119,16 +137,29 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             ◎ {selectedLabel} <span style={{ color: C.dim }}>· shown on map</span>
           </div>
         )}
-        {voxel ? <VoxelHouse homeType={homeType} program={program} /> : tiny ? (
+        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} /> : tiny ? (
           <div data-arch-tiny-view className="relative">
             {/* MAIN = 2D floor plan of the nine labeled rooms (operator's finalized design) */}
-            <TinyFloorplan selectedRoomId={roomSel} onSelectRoom={(id) => setRoomSel((s) => (s === id ? null : id))} />
-            {/* persistent 3D MINI-MAP (operator: "2D and 3D") — compact voxel, North default */}
+            <TinyFloorplan layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} />
+            {/* persistent 3D MINI-MAP (operator: "2D and 3D") — compact voxel, North default, same layout */}
             <div data-arch-minimap className="absolute bottom-2 right-2 w-[42%] max-w-[210px] overflow-hidden rounded-lg border shadow-lg"
               style={{ borderColor: C.border, background: "#070b12" }}>
               <div className="px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>3D · mini-map</div>
-              <VoxelHouse homeType={homeType} program={program} height={150} compact />
+              <VoxelHouse homeType={homeType} program={program} height={150} compact layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} />
             </div>
+            {/* P3 cube modification — move the selected room with the D-pad (Mission-Planning nudge parity) */}
+            {roomSel && (
+              <div data-arch-roommove className="absolute left-2 top-2 flex flex-col items-center gap-0.5 rounded-lg border p-1.5 shadow-lg"
+                style={{ borderColor: C.cyan, background: "#0a0f16ee" }}>
+                <div className="mb-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Move room</div>
+                <button data-arch-roommove-n onClick={() => moveRoom(-1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
+                <div className="flex gap-0.5">
+                  <button data-arch-roommove-w onClick={() => moveRoom(0, -1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>◀ W</button>
+                  <button data-arch-roommove-e onClick={() => moveRoom(0, 1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
+                </div>
+                <button data-arch-roommove-s onClick={() => moveRoom(1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
+              </div>
+            )}
           </div>
         ) : (
         <svg ref={svgRef} data-arch-design viewBox="0 0 100 75" preserveAspectRatio="xMidYMid meet"

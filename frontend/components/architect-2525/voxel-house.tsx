@@ -22,21 +22,21 @@ import { useState, type CSSProperties } from "react";
 import type { HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { elevAt, cornerAltitudes, mToFt } from "@/lib/terrain";
+import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
 
 const C = { dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", text: "#c8d6e5", green: "#22c55e" };
 
-// Tiny-home 3×3 room grid (operator finalized design) — index = row*3 + col, read top→bottom / left→right.
-const TINY_ROOMS: { k: string; label: string }[] = [
-  { k: "M", label: "Master Bedroom" }, { k: "B", label: "Master Bath" }, { k: "C", label: "Master Closet" },
-  { k: "L", label: "Living Room" }, { k: "K", label: "Kitchen" }, { k: "D", label: "Dining Room" },
-  { k: "O", label: "Office" }, { k: "S", label: "Storage · Laundry" }, { k: "E", label: "Entry · Porch" },
-];
-
-export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false }: { homeType?: HomeType; program?: RoomProgram; lat?: number; lon?: number; height?: number; compact?: boolean }) {
+export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom }: {
+  homeType?: HomeType; program?: RoomProgram; lat?: number; lon?: number; height?: number; compact?: boolean;
+  layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void;
+}) {
   const [bearing, setBearing] = useState(0);       // 0 = NORTH up (operator: North is the default)
   const [pitch, setPitch] = useState(58);          // camera tilt (deg)
   const [zoom, setZoom] = useState(1);
-  const [sel, setSel] = useState<number | null>(null);
+  const [selLocal, setSelLocal] = useState<string | null>(null);
+  // Selection can be lifted (controlled) so the 2D plan, 3D voxel, and right panel agree; else local.
+  const selId = onSelectRoom ? (selectedRoomId ?? null) : selLocal;
+  const selectRoom = (id: string) => { if (onSelectRoom) onSelectRoom(id); else setSelLocal((s) => (s === id ? null : id)); };
   const tiny = homeType === "tiny";
 
   const cell = 66, n = 3, box = n * cell; // land-base cell (px); the house = the centre cell at 1× voxel size
@@ -87,20 +87,19 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
 
   // A room/house cube at grid index, of edge `size`, laid out on a `size`-pitch 3×3 (so 3 rooms span 3·size).
   // 4 violet walls + a clickable top face carrying the label. `cx/cy` shift the whole 3×3 into a parent cell.
-  const roomCube = (idx: number, label: string, key: string, size: number, cx = 0, cy = 0, opts: { color?: string; font?: number } = {}) => {
-    const col = idx % 3, row = (idx / 3) | 0;
+  const roomCube = (id: string, label: string, key: string, size: number, row: number, col: number, cx = 0, cy = 0, opts: { color?: string; font?: number } = {}) => {
     const x = cx + (col - 1) * size, y = cy + (row - 1) * size, h = size;
-    const selected = sel === idx;
+    const selected = selId === id;
     const color = selected ? C.gold : (opts.color ?? C.violet);
     return (
-      <div key={`room${idx}`} style={{ ...at(`translate3d(${x}px,${y}px,0px)`), transformStyle: "preserve-3d" }}>
+      <div key={`room${id}`} style={{ ...at(`translate3d(${x}px,${y}px,0px)`), transformStyle: "preserve-3d" }}>
         <div style={face(`translate3d(0px,${-size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false)} />
         <div style={face(`translate3d(0px,${size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false)} />
         <div style={face(`translate3d(${-size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false)} />
         <div style={face(`translate3d(${size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false)} />
         <button
           data-arch-voxel-cell={key}
-          onClick={(e) => { e.stopPropagation(); setSel((s) => (s === idx ? null : idx)); }}
+          onClick={(e) => { e.stopPropagation(); selectRoom(id); }}
           title={label}
           style={{ ...face(`translate3d(0px,0px,${h}px)`, size, size, color, true),
             display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
@@ -149,8 +148,8 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
           {terrain}
           {fullLattice}
           {tiny
-            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{TINY_ROOMS.map((r, i) => roomCube(i, r.label, r.k, roomSize, 0, 0, { font: 8 }))}{porch}</div>
-            : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube(4, "House", "H", cell)}</div>}
+            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8 }))}{porch}</div>
+            : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1)}</div>}
         </div>
       </div>
 
@@ -167,12 +166,12 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
       </div>
 
       {/* selected-room readout */}
-      {sel != null && tiny && (
+      {selId && tiny && !compact && (() => { const r = layout.find((x) => x.id === selId); if (!r) return null; return (
         <div data-arch-voxel-selroom className="absolute left-2 bottom-8 rounded border px-2 py-0.5 text-[10px]"
           style={{ borderColor: `${C.gold}66`, color: C.gold, background: "#0a0f16cc" }}>
-          {TINY_ROOMS[sel].k} · {TINY_ROOMS[sel].label} · {"10'×10'×10'"}
+          {r.k} · {r.label} · {`${10 * r.w}'×${10 * r.d}'×10'`}
         </div>
-      )}
+      ); })()}
 
       {!compact && (
         <div className="absolute left-2 top-2 max-w-[68%] text-[9px]" style={{ color: C.dim }}>
