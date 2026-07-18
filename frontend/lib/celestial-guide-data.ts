@@ -9,11 +9,11 @@
  */
 
 export type ReadingLevel = "kids" | "middle" | "high" | "adult";
-export const READING_LEVELS: { id: ReadingLevel; label: string; words: string; fill: string; stroke: string }[] = [
-  { id: "kids", label: "Kids", words: "~33 words", fill: "#ef4444", stroke: "#ef4444" },      // red
-  { id: "middle", label: "Middle", words: "~111 words", fill: "#22c55e", stroke: "#22c55e" },  // green
-  { id: "high", label: "High School", words: "~333 words", fill: "#3b82f6", stroke: "#3b82f6" }, // blue
-  { id: "adult", label: "Adult", words: "~999 words", fill: "#c084fc", stroke: "#c084fc" },     // violet
+export const READING_LEVELS: { id: ReadingLevel; label: string; fill: string; stroke: string }[] = [
+  { id: "kids", label: "Elementary", fill: "#ef4444", stroke: "#ef4444" },      // red
+  { id: "middle", label: "Middle School", fill: "#22c55e", stroke: "#22c55e" },  // green
+  { id: "high", label: "High School", fill: "#3b82f6", stroke: "#3b82f6" },      // blue
+  { id: "adult", label: "College Level", fill: "#c084fc", stroke: "#c084fc" },   // violet
 ];
 
 export interface CelestialEntry {

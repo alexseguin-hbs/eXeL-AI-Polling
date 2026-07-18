@@ -59,12 +59,13 @@ function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string;
 
 export function ArchitectCelestial({
   lat = 30.44, lon = -97.62,
-  year = 2025, doy = 172, hour = 12, onYear, onDoy,
+  year = 2025, doy = 172, hour = 12, onYear, onDoy, minimal = false,
 }: {
   lat?: number; lon?: number;
   year?: number; doy?: number; hour?: number;                 // date/time lifted from SUN·SKY so the Sky Dome stays synced
   onYear?: (n: number | ((p: number) => number)) => void;
   onDoy?: (n: number | ((p: number) => number)) => void;
+  minimal?: boolean;                                          // family/kiosk mode (Celestial-2525) — hide the unused MAP-TOOLS ••• bar + R-CORE strip
 } = {}) {
   // Default location: Pfield · Pflugerville, TX (shared with the Sky Dome / view-from-location).
   const setYear = useMemo(() => onYear ?? (() => {}), [onYear]);
@@ -329,16 +330,16 @@ export function ArchitectCelestial({
         </div>
         {/* R-CORE map lane strip — horizontally SCROLLABLE (Security-2525 map-control method); moved off the shell so
             the area below the main tab bar is decluttered. Map-specific R-CORE lanes live with the map now. */}
-        <div data-cel-rcore className="mb-1 flex items-center gap-2 overflow-x-auto whitespace-nowrap border-b pb-1 text-[8px] font-bold tracking-wider" style={{ borderColor: C.border }}>
+        {!minimal && <div data-cel-rcore className="mb-1 flex items-center gap-2 overflow-x-auto whitespace-nowrap border-b pb-1 text-[8px] font-bold tracking-wider" style={{ borderColor: C.border }}>
           <span className="shrink-0" style={{ color: C.dim }}>R-CORE</span>
           {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0" style={{ color: l.color }}>{l.label}</span>)}
-        </div>
+        </div>}
         {/* MAP ••• TOOL MENUS — OUTSIDE the map surface (Security-2525 rail method). The three toggles sit in a
             tight bar ABOVE the map; expanding one drops its panel into its OWN flow section that PUSHES the map
             down — it is never an absolute overlay on the map (operator: "bullet expansion fields are outside map …
             see how the expand collapses in a tight section above the map"). data-map-exp-*-btn / data-map-exp-*
             hooks preserved for the SPIRAL locks (#A56/#A57/#A58). Controls migrate into these panels next (#16). */}
-        <div data-cel-toolbar className="mb-1 flex items-center gap-2 text-[8px]" style={{ color: C.dim }}>
+        {!minimal && <><div data-cel-toolbar className="mb-1 flex items-center gap-2 text-[8px]" style={{ color: C.dim }}>
           <span className="shrink-0 font-bold tracking-wider">MAP TOOLS</span>
           <button data-map-exp-left-btn onClick={() => setExpL((v) => !v)} title="Left map tools · •••" aria-label="Left map menu"
             className="flex flex-row items-center gap-[3px] rounded border px-1.5 py-1 hover:bg-white/5" style={{ borderColor: expL ? C.cyan : C.border }}>
@@ -356,6 +357,7 @@ export function ArchitectCelestial({
         {expL && <div data-map-exp-left className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Left map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder — size · orbit-play · HU migrate here)</span></div>}
         {expR && <div data-map-exp-right className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Right map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder — date · units · tilt migrate here)</span></div>}
         {expB && <div data-map-exp-bottom className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Bottom map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder — position · readout migrate here)</span></div>}
+        </>}
         <div className={max ? "relative min-h-0 flex-1" : "relative"}>
         {/* PHASE CLOCK — the only top-right map overlay (top-down toggle). */}
         <div className="absolute right-1 top-1 z-10">
@@ -422,8 +424,8 @@ export function ArchitectCelestial({
               return (
                 <g key={`ov${p.id}`}>
                   <ellipse data-orbit cx={SUN_X} cy={cyo} rx={rx} ry={A * sinE} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.55" />
-                  <circle cx={SUN_X} cy={SUN_Y - A * (1 - e2) * sinE} r="0.7" fill={p.color} />{/* perihelion — top */}
-                  <circle cx={SUN_X} cy={SUN_Y + A * (1 + e2) * sinE} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* aphelion — bottom */}
+                  <circle cx={SUN_X} cy={SUN_Y - A * (1 - e2) * sinE} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* perihelion (HU 0/3600) — hollow, solid border */}
+                  <circle cx={SUN_X} cy={SUN_Y + A * (1 + e2) * sinE} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" strokeDasharray="0.6 0.5" />{/* aphelion (HU 1800) — hollow, dotted border */}
                   <g data-planet data-planet-id={p.id} onPointerDown={(ev) => ev.stopPropagation()} onClick={() => select(p.id)} style={{ cursor: "pointer" }}>
                     <circle cx={x} cy={y} r={Math.max(4, dot + 2.5)} fill="transparent" />
                     {on && <circle cx={x} cy={y} r={dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
@@ -451,8 +453,8 @@ export function ArchitectCelestial({
             <g key={`o${p.id}`} data-orbit-group={p.id} data-incl={inclRot.toFixed(2)} transform={`rotate(${inclRot} ${SUN_X} ${SUN_Y})`}>
               <line x1={cx - ax} y1={SUN_Y} x2={cx + ax} y2={SUN_Y} stroke={p.color} strokeWidth="0.22" strokeDasharray="1.4 1.4" opacity="0.3" />
               <ellipse data-orbit cx={cx} cy={SUN_Y} rx={ax} ry={ry} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.6" />
-              <circle cx={cx + ax} cy={SUN_Y} r="0.7" fill={p.color} />{/* perihelion (Sun side) — filled */}
-              <circle cx={cx - ax} cy={SUN_Y} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* aphelion — hollow */}
+              <circle cx={cx + ax} cy={SUN_Y} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* perihelion (HU 0/3600) — hollow, solid border */}
+              <circle cx={cx - ax} cy={SUN_Y} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" strokeDasharray="0.6 0.5" />{/* aphelion (HU 1800) — hollow, dotted border */}
             </g>
           ))}
           {/* Earth peri/aphe labels */}
