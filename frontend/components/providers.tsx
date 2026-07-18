@@ -42,6 +42,8 @@ function GlobalFeedback() {
     ? "polling"
     : path.startsWith("/join")
     ? "join"
+    : path.startsWith("/Celestial-2525") || path.startsWith("/main/Celestial-2525")
+    ? "celestial"
     : path === "/"
     ? "landing"
     : "other";

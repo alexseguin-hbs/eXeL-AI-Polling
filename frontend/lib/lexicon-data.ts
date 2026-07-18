@@ -998,6 +998,40 @@ const cube12: TranslationEntry[] = [
   { key: "cube12.arx.chip_programmed_success", englishDefault: "Chip paired and programmed! Tapping it will open the item page.", context: "Post-registration chip program success", cubeId: 12 },
 ];
 
+// ─── Celestial-2525 — family/education sky reader (standalone /main app) ─────
+const celestial: TranslationEntry[] = [
+  // chrome
+  { key: "celestial.product", englishDefault: "Celestial-2525", context: "Celestial reader product name (header)", cubeId: 30 },
+  { key: "celestial.tagline", englishDefault: "The Sky, for Family & Friends · Vision 2525", context: "Celestial reader header tagline", cubeId: 30 },
+  { key: "celestial.linkSecure", englishDefault: "LINK: SECURE", context: "Celestial reader secure-link status badge", cubeId: 30 },
+  { key: "celestial.tapHint", englishDefault: "Tap a circle to open its worlds, then pick one to read", context: "Celestial group-navigator helper label", cubeId: 30 },
+  { key: "celestial.readingLevel", englishDefault: "Reading level:", context: "Celestial reading-level picker label", cubeId: 30 },
+  { key: "celestial.guidedBy", englishDefault: "Guided by Ascended Master {master}", context: "Celestial per-body author byline; {master} = Ascended Master name", cubeId: 30 },
+  { key: "celestial.footer", englishDefault: "12 worlds · 4 reading levels · authored by the 12 Ascended Masters. Facts from NASA fact sheets. Use the ⭐ feedback button to tell us what to add.", context: "Celestial reader footer note", cubeId: 30 },
+  // reading-level labels
+  { key: "celestial.level.kids", englishDefault: "Elementary", context: "Celestial reading-level: elementary", cubeId: 30 },
+  { key: "celestial.level.middle", englishDefault: "Middle School", context: "Celestial reading-level: middle school", cubeId: 30 },
+  { key: "celestial.level.high", englishDefault: "High School", context: "Celestial reading-level: high school", cubeId: 30 },
+  { key: "celestial.level.adult", englishDefault: "College Level", context: "Celestial reading-level: college", cubeId: 30 },
+  // group labels
+  { key: "celestial.group.sun-rocky", englishDefault: "Sun & Rocky Worlds", context: "Celestial body group: Sun & rocky worlds", cubeId: 30 },
+  { key: "celestial.group.giants", englishDefault: "The Giants", context: "Celestial body group: gas/ice giants", cubeId: 30 },
+  { key: "celestial.group.far", englishDefault: "Far Reaches & Stars", context: "Celestial body group: far reaches & stars", cubeId: 30 },
+  // body names
+  { key: "celestial.body.sun", englishDefault: "The Sun", context: "Celestial body name: Sun", cubeId: 30 },
+  { key: "celestial.body.mercury", englishDefault: "Mercury", context: "Celestial body name: Mercury", cubeId: 30 },
+  { key: "celestial.body.venus", englishDefault: "Venus", context: "Celestial body name: Venus", cubeId: 30 },
+  { key: "celestial.body.earth", englishDefault: "Earth", context: "Celestial body name: Earth", cubeId: 30 },
+  { key: "celestial.body.moon", englishDefault: "The Moon", context: "Celestial body name: Moon", cubeId: 30 },
+  { key: "celestial.body.mars", englishDefault: "Mars", context: "Celestial body name: Mars", cubeId: 30 },
+  { key: "celestial.body.jupiter", englishDefault: "Jupiter", context: "Celestial body name: Jupiter", cubeId: 30 },
+  { key: "celestial.body.saturn", englishDefault: "Saturn", context: "Celestial body name: Saturn", cubeId: 30 },
+  { key: "celestial.body.uranus", englishDefault: "Uranus", context: "Celestial body name: Uranus", cubeId: 30 },
+  { key: "celestial.body.neptune", englishDefault: "Neptune", context: "Celestial body name: Neptune", cubeId: 30 },
+  { key: "celestial.body.pluto", englishDefault: "Pluto", context: "Celestial body name: Pluto", cubeId: 30 },
+  { key: "celestial.body.polaris", englishDefault: "Polaris (North Star)", context: "Celestial body name: Polaris", cubeId: 30 },
+];
+
 // ─── Aggregated cube groups ──────────────────────────────────────
 
 export const CUBE_GROUPS: CubeGroup[] = [
@@ -1013,6 +1047,7 @@ export const CUBE_GROUPS: CubeGroup[] = [
   { cubeId: 9, label: "Cube 9 — Reports", keys: cube9 },
   { cubeId: 10, label: "Cube 10 — Simulation", keys: cube10 },
   { cubeId: 12, label: "Cube 12 — ARX Tokens", keys: cube12 },
+  { cubeId: 30, label: "Celestial-2525 — Sky Reader", keys: celestial },
 ];
 
 /** Flat lookup: key → TranslationEntry (for English defaults + context) */
