@@ -39,10 +39,15 @@ function serviceAmps(usable: number): number {
   return 400;
 }
 
-export function programMetrics(params: GlobalParams, prog: RoomProgram = DEFAULT_PROGRAM): ProgramMetrics {
-  const eq = styleEquivalence(params);           // gross + usable (net-to-gross by style)
+/** Finalized Tiny Home (operator design): 3×3 grid of nine 10'×10'×10' rooms = 900 ft², 1 story,
+ * one full bath (Master Bath). Fixed by the design — NOT derived from global area. */
+export const TINY_HOME = { grossSqft: 900, usableSqft: 900, rooms: 9, bathrooms: 1, bedrooms: 1, ceilingFt: 10, footprintFt: 30, windows: 8, doors: 9 } as const;
+
+export function programMetrics(params: GlobalParams, prog: RoomProgram = DEFAULT_PROGRAM, homeType: "full" | "tiny" = "full"): ProgramMetrics {
+  const tiny = homeType === "tiny";
+  const eq = tiny ? { gross: TINY_HOME.grossSqft, usable: TINY_HOME.usableSqft } : styleEquivalence(params); // gross + usable (net-to-gross by style)
   const usable = eq.usable, gross = eq.gross;
-  const beds = clampN(prog.bedrooms, 1, 12), baths = clampN(prog.bathrooms, 1, 10), ceil = clampN(prog.ceilingFt, 7, 16);
+  const beds = tiny ? TINY_HOME.bedrooms : clampN(prog.bedrooms, 1, 12), baths = tiny ? TINY_HOME.bathrooms : clampN(prog.bathrooms, 1, 10), ceil = tiny ? TINY_HOME.ceilingFt : clampN(prog.ceilingFt, 7, 16);
   // Bedrooms take ~32% of usable area; the rest is living/kitchen/bath/circulation.
   const perBedroomSqft = Math.round((usable * 0.32) / beds);
   const bedroomVolumeFt3 = Math.round(perBedroomSqft * ceil);
@@ -67,11 +72,11 @@ export function programMetrics(params: GlobalParams, prog: RoomProgram = DEFAULT
   //  doors   ≈ beds + baths + 3 (interior per room + 2 exterior + garage/patio)
   //  outlets ≈ NEC 210.52 receptacle rough count (perimeter-driven → ~1 / 60 usable sqft + 1 / room)
   const kitchens = clampN(prog.kitchens ?? 1, 1, 4);
-  const totalRooms = beds + baths + kitchens + 3;   // + living · dining · utility
+  const totalRooms = tiny ? TINY_HOME.rooms : beds + baths + kitchens + 3;   // + living · dining · utility
   const counts: KeyCounts = {
     rooms: totalRooms,
-    windows: beds * 2 + 5,
-    doors: beds + baths + 3,
+    windows: tiny ? TINY_HOME.windows : beds * 2 + 5,
+    doors: tiny ? TINY_HOME.doors : beds + baths + 3,
     outlets: Math.round(usable / 60) + totalRooms,
   };
   return { grossSqft: gross, usableSqft: usable, bedrooms: beds, bathrooms: baths, perBedroomSqft, bedroomVolumeFt3, electrical, plumbing, counts };

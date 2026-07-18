@@ -11,6 +11,7 @@
 import { Settings } from "lucide-react";
 import { projectRollup } from "@/lib/architect-project";
 import { houseEstimate } from "@/lib/architect-house";
+import { TINY_HOME } from "@/lib/room-program";
 import { type LayerState } from "./use-layer-state";
 
 const C = { border: "#1e2b3a", panel: "#111826", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
@@ -18,12 +19,16 @@ const fmtUsd = (n: number) => "$" + Math.round(n).toLocaleString();
 
 // `inline` renders the key WITHOUT its own card — for sitting inside the map's scrolling header (Security R-CORE
 // reuse). Default renders the bordered card. `whitespace-nowrap` keeps the chips on one scrollable line in a header.
-export function MasterReadout({ state, inline = false }: { state: LayerState; inline?: boolean }) {
+export function MasterReadout({ state, inline = false, homeType = "full" }: { state: LayerState; inline?: boolean; homeType?: "full" | "tiny" }) {
   const p = state.globalParams;
   const roll = projectRollup(Array.from(state.spec), state.gate, p);
   const est = houseEstimate(Array.from(state.spec));
-  const footprint = Math.max(1, Math.round(p.areaSqft / Math.max(1, p.stories)));
-  const side = Math.round(Math.sqrt(footprint));   // approx square footprint W×L (ft)
+  const tiny = homeType === "tiny";
+  // Tiny Home is a FIXED 900 ft² / 30×30 / 1-story design; full home derives from global params.
+  const grossSqft = tiny ? TINY_HOME.grossSqft : Math.max(0, Math.round(p.areaSqft));
+  const stories = tiny ? 1 : Math.max(1, p.stories);
+  const footprint = Math.max(1, Math.round(grossSqft / stories));
+  const side = tiny ? TINY_HOME.footprintFt : Math.round(Math.sqrt(footprint));   // approx square footprint W×L (ft)
   const wrap = inline
     ? "flex shrink-0 items-center gap-x-3 whitespace-nowrap text-[10px]"
     : "mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border px-3 py-1.5 text-[10px]";
@@ -32,7 +37,7 @@ export function MasterReadout({ state, inline = false }: { state: LayerState; in
       <span className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>
         <Settings className="h-3 w-3" /> Project · Master
       </span>
-      <span style={{ color: C.dim }}>Dimensions <span style={{ color: C.text }}>{p.areaSqft.toLocaleString()} ft² · {p.stories} {p.stories > 1 ? "stories" : "story"} · ~{side}×{side} ft</span></span>
+      <span style={{ color: C.dim }}>Dimensions <span style={{ color: C.text }}>{grossSqft.toLocaleString()} ft² · {stories} {stories > 1 ? "stories" : "story"} · ~{side}×{side} ft</span></span>
       <span style={{ color: C.dim }}>Cost <span className="tabular-nums" style={{ color: C.gold }}>{fmtUsd(roll.costUsd)}</span> <span className="tabular-nums">({fmtUsd(roll.costBand.lo)}–{fmtUsd(roll.costBand.hi)})</span></span>
       <span style={{ color: C.dim }}>Build <span className="tabular-nums" style={{ color: C.green }}>~{est.parallelDays} days</span></span>
       <span style={{ color: C.dim }}>Confidence <span className="tabular-nums" style={{ color: C.cyan }}>{roll.confidencePct}%</span></span>

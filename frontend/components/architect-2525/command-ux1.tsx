@@ -259,7 +259,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             selectedId={selectedLayerId}
             leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} />}
             rightRail={<RightPanel selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} />}
-            metricStrip={<MetricStrip state={layerState} overlay />}
+            metricStrip={<MetricStrip state={layerState} overlay homeType={homeType} />}
             bottomPanel={<HouseSpec state={layerState} homeType={homeType} selectedId={selectedLayerId} onSelect={setSelectedLayerId} />}
             bottomPanel2={<CodesPanel state={layerState} />}
           >
@@ -267,7 +267,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             <div style={sub("Design") === "Model" ? undefined : { display: "none" }}>
               {/* Master key (dimensions · cost · time · confidence) rides the map's OWN scrolling header (operator:
                   "place project master key in same scrolling header as map" · Security R-CORE reuse). */}
-              <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout state={layerState} inline />}
+              <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout state={layerState} inline homeType={homeType} />}
                 homeType={homeType} program={layerState.program} selectedId={selectedLayerId}
                 onDropComponent={(id) => {
                   // Drag-drop a Vision-Tree item onto the building → add its buildable leaves to the house (operator).

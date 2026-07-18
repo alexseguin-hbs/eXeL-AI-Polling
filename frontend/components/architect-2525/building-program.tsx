@@ -25,8 +25,8 @@ function Stepper({ v, min, max, on }: { v: number; min: number; max: number; on:
   );
 }
 
-export function BuildingProgram({ state }: { state: LayerState }) {
-  const m = programMetrics(state.globalParams, state.program);
+export function BuildingProgram({ state, homeType = "full" }: { state: LayerState; homeType?: "full" | "tiny" }) {
+  const m = programMetrics(state.globalParams, state.program, homeType);
   const [open, setOpen] = useState<Record<string, boolean>>({ bedrooms: true });
   const tog = (k: string) => setOpen((o) => ({ ...o, [k]: !o[k] }));
   const Chevron = ({ k }: { k: string }) => <ChevronRight className="h-3 w-3 shrink-0 transition-transform" style={{ color: C.dim, transform: open[k] ? "rotate(90deg)" : "none" }} />;

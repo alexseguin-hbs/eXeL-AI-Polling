@@ -24,7 +24,7 @@ export function RightPanel({ selectedId, onSelect, state, homeType = "full" }: {
   return (
     <div data-arch-right-panel className="flex flex-col gap-2">
       {/* BUILDING PROGRAM — the element-counting inspector (bedrooms · baths · sqft · electric · plumbing). */}
-      {state && <BuildingProgram state={state} />}
+      {state && <BuildingProgram state={state} homeType={homeType} />}
 
       {/* TOP ~⅓ — ACTIVE ELEMENTS: the in-house components; click one to make it the Selected Element. */}
       <div data-arch-active-elements className="rounded-lg border" style={{ borderColor: C.border }}>
