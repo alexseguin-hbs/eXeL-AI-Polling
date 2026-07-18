@@ -10,6 +10,8 @@
  */
 import { useRef, useState, type ReactNode } from "react";
 import { VoxelHouse } from "./voxel-house";
+import type { HomeType } from "@/lib/architect-layers";
+import type { RoomProgram } from "@/lib/room-program";
 
 const C = {
   panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186",
@@ -34,7 +36,7 @@ const iso = (x: number, y: number, z: number): Pt => {
 
 export interface DesignMetrics { walls: number; linearFt: number; studs: number; openings: number; }
 
-export function ArchitectDesign({ onMetrics, header, onDropComponent }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void }) {
+export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [dragOver, setDragOver] = useState(false);   // drag-drop a Vision-Tree item onto the building
   const [walls, setWalls] = useState<Wall[]>([
@@ -103,7 +105,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent }: { onMetr
             <button onClick={clearAll} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>clear</button>
           </div>
         </div>
-        {voxel ? <VoxelHouse /> : (
+        {voxel ? <VoxelHouse homeType={homeType} program={program} /> : (
         <svg ref={svgRef} data-arch-design viewBox="0 0 100 75" preserveAspectRatio="xMidYMid meet"
           onClick={onClick} className="w-full cursor-crosshair rounded" style={{ background: "#070b12", aspectRatio: "4 / 3" }}>
           {!view3d ? (
@@ -134,7 +136,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent }: { onMetr
         </svg>
         )}
         <div className="mt-1 text-[9px]" style={{ color: C.dim }}>
-          {voxel ? "3×3×3 voxel — first-floor plan lives in 2D · drag to orbit" : view3d ? "3D isometric — edit in 2D" : mode === "wall" ? "Click two grid points to place a 2×4 wall" : `Click near a wall to place a ${mode}`}
+          {voxel ? "3D voxel — click a room to select · drag to orbit/tilt · scroll to zoom · first-floor plan lives in 2D" : view3d ? "3D isometric — edit in 2D" : mode === "wall" ? "Click two grid points to place a 2×4 wall" : `Click near a wall to place a ${mode}`}
         </div>
       </div>
   );

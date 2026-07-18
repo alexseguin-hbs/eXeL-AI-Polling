@@ -266,6 +266,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               {/* Master key (dimensions · cost · time · confidence) rides the map's OWN scrolling header (operator:
                   "place project master key in same scrolling header as map" · Security R-CORE reuse). */}
               <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout state={layerState} inline />}
+                homeType={homeType} program={layerState.program}
                 onDropComponent={(id) => {
                   // Drag-drop a Vision-Tree item onto the building → add its buildable leaves to the house (operator).
                   const found = findLayer(id); if (!found) return;

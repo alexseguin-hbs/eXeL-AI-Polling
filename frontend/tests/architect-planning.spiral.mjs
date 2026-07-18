@@ -1920,6 +1920,27 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A98: SELECTABLE TINY-HOME VOXEL (Mission-Planning parity + operator finalized design) — switching to the
+//          Tiny Home market + VOXEL renders the 3×3×1 labeled rooms (M/B/C · L/K/D · O/S/E), a North compass,
+//          and each room's top face is a selectable pick cell (click → highlight readout). ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  await pg.click('[data-hometype="tiny"]').catch(() => {}); await pg.waitForTimeout(200);
+  await pg.click('[data-arch-voxel-toggle]'); await pg.waitForTimeout(300);
+  const info = await pg.evaluate(() => {
+    const cells = Array.from(document.querySelectorAll('[data-arch-voxel-cell]')).map((c) => c.getAttribute('data-arch-voxel-cell'));
+    return { voxel: !!document.querySelector('[data-arch-voxel]'), compass: !!document.querySelector('[data-arch-compass]'), cellCount: cells.length, keys: cells };
+  });
+  // pick a room → selection readout appears
+  await pg.click('[data-arch-voxel-cell="K"]').catch(() => {}); await pg.waitForTimeout(150);
+  const selRoom = await pg.evaluate(() => !!document.querySelector('[data-arch-voxel-selroom]'));
+  const keyset = new Set(info.keys);
+  const ok98 = info.voxel && info.compass && info.cellCount === 9 && ['M', 'B', 'C', 'L', 'K', 'D', 'O', 'S', 'E'].every((k) => keyset.has(k)) && selRoom;
+  rec('#A98 tiny-home voxel — 9 selectable labeled rooms (M/B/C·L/K/D·O/S/E) + North compass + pick highlights', ok98, JSON.stringify({ ...info, selRoom }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
