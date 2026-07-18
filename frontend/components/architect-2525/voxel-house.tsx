@@ -30,7 +30,6 @@ const TINY_ROOMS: { k: string; label: string }[] = [
   { k: "L", label: "Living Room" }, { k: "K", label: "Kitchen" }, { k: "D", label: "Dining Room" },
   { k: "O", label: "Office" }, { k: "S", label: "Storage · Laundry" }, { k: "E", label: "Entry · Porch" },
 ];
-const ENTRY_IDX = 8; // the E cell (bottom-right) carries the front porch + stairs
 
 export function VoxelHouse({ homeType = "full", program }: { homeType?: HomeType; program?: RoomProgram }) {
   const [bearing, setBearing] = useState(0);       // 0 = NORTH up (operator: North is the default)
@@ -39,7 +38,7 @@ export function VoxelHouse({ homeType = "full", program }: { homeType?: HomeType
   const [sel, setSel] = useState<number | null>(null);
   const tiny = homeType === "tiny";
 
-  const cell = 52, n = 3, box = n * cell, hh = cell; // one storey = one voxel tall
+  const cell = 66, n = 3, box = n * cell; // land-base cell (px); the house = the centre cell at 1× voxel size
   const at = (t: string): CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
   const face = (t: string, w: number, h: number, color: string, solid: boolean): CSSProperties =>
     ({ ...at(t), width: w, height: h, border: `1px ${solid ? "solid" : "dashed"} ${color}`, background: solid ? `${color}22` : "transparent" });
@@ -59,41 +58,42 @@ export function VoxelHouse({ homeType = "full", program }: { homeType?: HomeType
       backgroundImage: `repeating-linear-gradient(to right, ${C.cyan}22 0 1px, transparent 1px ${cell}px), repeating-linear-gradient(to bottom, ${C.cyan}22 0 1px, transparent 1px ${cell}px)` }} />
   );
 
-  // A single room/house cube at grid index: 4 violet walls + a clickable top face carrying the label.
-  const roomCube = (idx: number, label: string, key: string, opts: { selectable?: boolean; color?: string } = {}) => {
+  // A room/house cube at grid index, of edge `size`, laid out on a `size`-pitch 3×3 (so 3 rooms span 3·size).
+  // 4 violet walls + a clickable top face carrying the label. `cx/cy` shift the whole 3×3 into a parent cell.
+  const roomCube = (idx: number, label: string, key: string, size: number, cx = 0, cy = 0, opts: { color?: string; font?: number } = {}) => {
     const col = idx % 3, row = (idx / 3) | 0;
-    const x = (col - 1) * cell, y = (row - 1) * cell;
+    const x = cx + (col - 1) * size, y = cy + (row - 1) * size, h = size;
     const selected = sel === idx;
     const color = selected ? C.gold : (opts.color ?? C.violet);
     return (
       <div key={`room${idx}`} style={{ ...at(`translate3d(${x}px,${y}px,0px)`), transformStyle: "preserve-3d" }}>
-        {/* 4 walls */}
-        <div style={face(`translate3d(0px,${-cell / 2}px,${hh / 2}px) rotateX(90deg)`, cell, hh, color, false)} />
-        <div style={face(`translate3d(0px,${cell / 2}px,${hh / 2}px) rotateX(90deg)`, cell, hh, color, false)} />
-        <div style={face(`translate3d(${-cell / 2}px,0px,${hh / 2}px) rotateY(90deg)`, hh, cell, color, false)} />
-        <div style={face(`translate3d(${cell / 2}px,0px,${hh / 2}px) rotateY(90deg)`, hh, cell, color, false)} />
-        {/* clickable top face + label */}
+        <div style={face(`translate3d(0px,${-size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false)} />
+        <div style={face(`translate3d(0px,${size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false)} />
+        <div style={face(`translate3d(${-size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false)} />
+        <div style={face(`translate3d(${size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false)} />
         <button
           data-arch-voxel-cell={key}
-          onClick={(e) => { e.stopPropagation(); if (opts.selectable !== false) setSel((s) => (s === idx ? null : idx)); }}
+          onClick={(e) => { e.stopPropagation(); setSel((s) => (s === idx ? null : idx)); }}
           title={label}
-          style={{ ...face(`translate3d(0px,0px,${hh}px)`, cell, cell, color, true),
+          style={{ ...face(`translate3d(0px,0px,${h}px)`, size, size, color, true),
             display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
             background: selected ? `${C.gold}44` : `${color}22`, color: selected ? C.gold : C.text,
-            fontSize: 11, fontWeight: 700, letterSpacing: 1 }}>
+            fontSize: opts.font ?? 11, fontWeight: 700, letterSpacing: 1 }}>
           {key}
         </button>
       </div>
     );
   };
 
-  // Front porch stair on the Entry (E) cell — a couple of steps stepping down in front (+Y = toward viewer/front).
-  const ecol = ENTRY_IDX % 3, erow = (ENTRY_IDX / 3) | 0;
-  const ex = (ecol - 1) * cell, ey = (erow - 1) * cell;
+  // The tiny HOUSE occupies the MIDDLE cube of the 3×3 land base at 1× voxel size (Mission-Planning tier):
+  // its 9 rooms are a 3×3 sub-grid nested inside the centre cell (roomSize = cell/3), so the surrounding 8
+  // cells stay as LAND (elevation surfaces land next). Zoom in (scroll) to read the room labels.
+  const roomSize = cell / 3;
+  // Front porch stair — off the Entry room (E, sub-idx 8) at the front edge of the centre cell.
   const porch = tiny ? (
-    <div data-arch-voxel-porch style={{ ...at(`translate3d(${ex}px,${ey + cell * 0.7}px,0px)`), transformStyle: "preserve-3d" }}>
+    <div data-arch-voxel-porch style={{ ...at(`translate3d(${roomSize}px,${cell / 2 + 3}px,0px)`), transformStyle: "preserve-3d" }}>
       {[0, 1, 2].map((s) => (
-        <div key={s} style={face(`translate3d(0px,${s * 6}px,${(3 - s) * 4}px)`, cell * 0.7, 6, C.cyan, true)} />
+        <div key={s} style={face(`translate3d(0px,${s * 4}px,${(3 - s) * 3}px)`, roomSize * 0.8, 4, C.cyan, true)} />
       ))}
     </div>
   ) : null;
@@ -108,7 +108,7 @@ export function VoxelHouse({ homeType = "full", program }: { homeType?: HomeType
 
   const beds = program?.bedrooms;
   const caption = tiny
-    ? "Tiny Home · 3×3×1 · 30'×30'×10' · ~900 ft² · click a room · drag to orbit/tilt · scroll to zoom"
+    ? "Tiny Home · house = centre cube (1× voxel) of the 3×3 land base · ~900 ft² · click a room · drag to orbit/tilt · scroll to zoom"
     : `3×3×3 land base · house at center (2,2)${beds ? ` · ${beds} bed` : ""} · drag to orbit/tilt · scroll to zoom`;
 
   return (
@@ -121,8 +121,8 @@ export function VoxelHouse({ homeType = "full", program }: { homeType?: HomeType
           {landFloor}
           {fullLattice}
           {tiny
-            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{TINY_ROOMS.map((r, i) => roomCube(i, r.label, r.k))}{porch}</div>
-            : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube(4, "House", "H")}</div>}
+            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{TINY_ROOMS.map((r, i) => roomCube(i, r.label, r.k, roomSize, 0, 0, { font: 8 }))}{porch}</div>
+            : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube(4, "House", "H", cell)}</div>}
         </div>
       </div>
 
