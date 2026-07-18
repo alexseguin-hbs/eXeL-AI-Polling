@@ -21,8 +21,9 @@
 import { useState, type CSSProperties } from "react";
 import type { HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
+import { elevAt, cornerAltitudes, mToFt } from "@/lib/terrain";
 
-const C = { dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", text: "#c8d6e5" };
+const C = { dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", text: "#c8d6e5", green: "#22c55e" };
 
 // Tiny-home 3×3 room grid (operator finalized design) — index = row*3 + col, read top→bottom / left→right.
 const TINY_ROOMS: { k: string; label: string }[] = [
@@ -31,7 +32,7 @@ const TINY_ROOMS: { k: string; label: string }[] = [
   { k: "O", label: "Office" }, { k: "S", label: "Storage · Laundry" }, { k: "E", label: "Entry · Porch" },
 ];
 
-export function VoxelHouse({ homeType = "full", program }: { homeType?: HomeType; program?: RoomProgram }) {
+export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62 }: { homeType?: HomeType; program?: RoomProgram; lat?: number; lon?: number }) {
   const [bearing, setBearing] = useState(0);       // 0 = NORTH up (operator: North is the default)
   const [pitch, setPitch] = useState(58);          // camera tilt (deg)
   const [zoom, setZoom] = useState(1);
@@ -51,12 +52,38 @@ export function VoxelHouse({ homeType = "full", program }: { homeType?: HomeType
   };
   const onWheel = (e: React.WheelEvent) => { setZoom((z) => Math.max(0.6, Math.min(2.4, z - e.deltaY * 0.0012))); };
 
-  // The exterior land base — a 3×3 grid floor (cyan) so the plot reads as 30'×30'.
+  // The exterior land base — a 3×3 grid floor (cyan datum plane) so the plot reads as the parcel.
   const landFloor = (
     <div style={{ ...at("translateZ(0px)"), width: box, height: box,
       border: `2px solid ${C.cyan}cc`,
       backgroundImage: `repeating-linear-gradient(to right, ${C.cyan}22 0 1px, transparent 1px ${cell}px), repeating-linear-gradient(to bottom, ${C.cyan}22 0 1px, transparent 1px ${cell}px)` }} />
   );
+
+  // TERRAIN ELEVATION (operator) — the 8 land cells AROUND the house rise/fall to their procedural elevation
+  // (seeded by the lot lat/lon; datum = house pad). Grass-shaded slabs so the relief reads when you orbit.
+  const ELEV_SCALE = 5;                    // px per metre of elevation
+  const datum = elevAt(lat, lon, 0, 0);
+  const slab = (t: string, w: number, h: number, fill: string): CSSProperties => ({ ...at(t), width: w, height: h, background: fill, border: `1px solid ${fill}` });
+  const terrain = [0, 1, 2, 3, 5, 6, 7, 8].map((i) => {
+    const col = i % 3, row = (i / 3) | 0, gx = col - 1, gy = row - 1;
+    const em = Math.round((elevAt(lat, lon, gx, gy) - datum) * 10) / 10;   // metres relative to the pad
+    const ePx = em * ELEV_SCALE;
+    const tt = Math.max(0, Math.min(1, (em + 5) / 13));                    // low → high
+    const grass = `hsl(${95 + tt * 20}, ${30 + tt * 22}%, ${24 + tt * 24}%)`;
+    const x = gx * cell, y = gy * cell, top = Math.max(ePx, 0), bot = Math.min(ePx, 0), skirt = top - bot;
+    return (
+      <div key={`t${i}`} data-arch-land-cell={i} title={`${mToFt(em) >= 0 ? "+" : ""}${mToFt(em)} ft`} style={{ ...at(`translate3d(${x}px,${y}px,0px)`), transformStyle: "preserve-3d" }}>
+        <div style={{ ...slab(`translate3d(0px,0px,${ePx}px)`, cell, cell, grass), opacity: 0.9 }} />
+        {skirt > 0.5 && (<>
+          <div style={slab(`translate3d(0px,${-cell / 2}px,${bot + skirt / 2}px) rotateX(90deg)`, cell, skirt, grass)} />
+          <div style={slab(`translate3d(0px,${cell / 2}px,${bot + skirt / 2}px) rotateX(90deg)`, cell, skirt, grass)} />
+          <div style={slab(`translate3d(${-cell / 2}px,0px,${bot + skirt / 2}px) rotateY(90deg)`, skirt, cell, grass)} />
+          <div style={slab(`translate3d(${cell / 2}px,0px,${bot + skirt / 2}px) rotateY(90deg)`, skirt, cell, grass)} />
+        </>)}
+      </div>
+    );
+  });
+  const ca = cornerAltitudes(lat, lon);
 
   // A room/house cube at grid index, of edge `size`, laid out on a `size`-pitch 3×3 (so 3 rooms span 3·size).
   // 4 violet walls + a clickable top face carrying the label. `cx/cy` shift the whole 3×3 into a parent cell.
@@ -108,8 +135,8 @@ export function VoxelHouse({ homeType = "full", program }: { homeType?: HomeType
 
   const beds = program?.bedrooms;
   const caption = tiny
-    ? "Tiny Home · house = centre cube (1× voxel) of the 3×3 land base · ~900 ft² · click a room · drag to orbit/tilt · scroll to zoom"
-    : `3×3×3 land base · house at center (2,2)${beds ? ` · ${beds} bed` : ""} · drag to orbit/tilt · scroll to zoom`;
+    ? "Tiny Home · house = centre cube of the 3×3 land base · surrounding land shows elevation · orbit to read relief · scroll to zoom"
+    : `3×3 land base · house at centre · surrounding land shows elevation${beds ? ` · ${beds} bed` : ""} · orbit to read relief · scroll to zoom`;
 
   return (
     <div data-arch-voxel className="relative w-full cursor-grab touch-none overflow-hidden rounded active:cursor-grabbing"
@@ -119,12 +146,19 @@ export function VoxelHouse({ homeType = "full", program }: { homeType?: HomeType
         transform: `perspective(820px) rotateX(${pitch}deg) scale(${1.02 * zoom})` }}>
         <div className="absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", transform: `rotateZ(${bearing}rad)` }}>
           {landFloor}
+          {terrain}
           {fullLattice}
           {tiny
             ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{TINY_ROOMS.map((r, i) => roomCube(i, r.label, r.k, roomSize, 0, 0, { font: 8 }))}{porch}</div>
             : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube(4, "House", "H", cell)}</div>}
         </div>
       </div>
+
+      {/* Per-corner ALTITUDE of the 3×3 land base (operator: "each corner … show height"). ft, from procedural terrain. */}
+      {([["nw", "left-2 top-9", ca.nw], ["ne", "right-2 top-12", ca.ne], ["sw", "left-2 bottom-2", ca.sw], ["se", "right-2 bottom-2", ca.se]] as const).map(([k, pos, m]) => (
+        <div key={k} data-arch-corner-alt={k} className={`absolute ${pos} rounded border px-1 text-[8px] font-semibold tabular-nums`}
+          style={{ borderColor: `${C.green}55`, color: C.green, background: "#0a0f16cc" }}>{k.toUpperCase()} {mToFt(m) >= 0 ? "+" : ""}{mToFt(m)}′</div>
+      ))}
 
       {/* NORTH-default compass rose (rotates with bearing so N always points to scene-north). */}
       <div data-arch-compass className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full border"

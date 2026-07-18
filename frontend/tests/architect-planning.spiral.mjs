@@ -1977,6 +1977,23 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A101: TERRAIN ELEVATION — the 8 land cells around the house rise/fall to a deterministic procedural
+//          elevation (seeded by lot lat/lon) + the 4 base corners show their altitude in ft. ──
+{
+  const { pg, tab } = await mk();
+  await tab('Design'); await pg.waitForTimeout(320);
+  await pg.click('[data-arch-voxel-toggle]'); await pg.waitForTimeout(280);
+  const info = await pg.evaluate(() => ({
+    landCells: document.querySelectorAll('[data-arch-land-cell]').length,
+    corners: Array.from(document.querySelectorAll('[data-arch-corner-alt]')).map((c) => c.getAttribute('data-arch-corner-alt')),
+    cornerText: Array.from(document.querySelectorAll('[data-arch-corner-alt]')).map((c) => (c.textContent || '').trim()),
+  }));
+  const cset = new Set(info.corners);
+  const ok101 = info.landCells === 8 && ['nw', 'ne', 'sw', 'se'].every((k) => cset.has(k)) && info.cornerText.some((t) => /′/.test(t));
+  rec('#A101 terrain — 8 elevation land cells around the house + 4 corner altitudes (ft) from procedural heightfield', ok101, JSON.stringify(info));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
