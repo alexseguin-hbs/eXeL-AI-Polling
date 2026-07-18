@@ -18,8 +18,27 @@ const PAD = 16;               // margin for the dimension lines/labels
 const SIDE = U * TINY_GRID;   // 90 units = 30 ft
 const VB = SIDE + PAD * 2;
 
-export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom }: {
-  layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void;
+// Low-fi furniture per room key — thin dim strokes inside the room rect (rx,ry,rw,rh), matching the
+// reference plan (bed, bath fixtures, sofa, kitchen counter/island, dining table, desk, laundry). Pure.
+function furniture(k: string, rx: number, ry: number, rw: number, rh: number) {
+  const F = "#5f7186"; const box = (x: number, y: number, w: number, h: number, r = 0) => <rect x={x} y={y} width={w} height={h} rx={r} fill="none" stroke={F} strokeWidth="0.4" />;
+  const cx = rx + rw / 2, cy = ry + rh / 2;
+  switch (k) {
+    case "M": return <>{box(rx + rw * 0.28, ry + rh * 0.15, rw * 0.44, rh * 0.55, 1)}{box(rx + rw * 0.31, ry + rh * 0.17, rw * 0.16, rh * 0.14)}{box(rx + rw * 0.53, ry + rh * 0.17, rw * 0.16, rh * 0.14)}</>; // bed + 2 pillows
+    case "B": return <>{box(rx + rw * 0.12, ry + rh * 0.14, rw * 0.34, rh * 0.24, 2)}<circle cx={rx + rw * 0.72} cy={ry + rh * 0.24} r={rw * 0.09} fill="none" stroke={F} strokeWidth="0.4" />{box(rx + rw * 0.6, ry + rh * 0.55, rw * 0.28, rh * 0.3, 1)}</>; // tub + sink + toilet
+    case "C": return <>{[0.2, 0.4, 0.6, 0.8].map((f, i) => <line key={i} x1={rx + rw * 0.15} y1={ry + rh * f} x2={rx + rw * 0.85} y2={ry + rh * f} stroke={F} strokeWidth="0.35" />)}</>; // shelving
+    case "L": return <>{box(rx + rw * 0.12, ry + rh * 0.45, rw * 0.5, rh * 0.35, 1)}{box(rx + rw * 0.12, ry + rh * 0.2, rw * 0.18, rh * 0.6, 1)}{box(rx + rw * 0.68, ry + rh * 0.15, rw * 0.2, rh * 0.12)}</>; // sectional sofa + tv
+    case "K": return <>{box(rx + rw * 0.12, ry + rh * 0.12, rw * 0.76, rh * 0.16)}{box(rx + rw * 0.3, ry + rh * 0.45, rw * 0.4, rh * 0.28, 1)}<circle cx={rx + rw * 0.24} cy={ry + rh * 0.2} r={rw * 0.05} fill="none" stroke={F} strokeWidth="0.4" /></>; // counter + island + sink
+    case "D": return <>{box(rx + rw * 0.32, ry + rh * 0.32, rw * 0.36, rh * 0.36, 1)}{[[0.22, 0.5], [0.78, 0.5], [0.5, 0.22], [0.5, 0.78]].map(([fx, fy], i) => <circle key={i} cx={rx + rw * fx} cy={ry + rh * fy} r={rw * 0.06} fill="none" stroke={F} strokeWidth="0.4" />)}</>; // table + 4 chairs
+    case "O": return <>{box(rx + rw * 0.15, ry + rh * 0.18, rw * 0.55, rh * 0.16)}<circle cx={cx} cy={ry + rh * 0.55} r={rw * 0.08} fill="none" stroke={F} strokeWidth="0.4" /></>; // desk + chair
+    case "S": return <>{box(rx + rw * 0.18, ry + rh * 0.2, rw * 0.28, rh * 0.28, 1)}{box(rx + rw * 0.54, ry + rh * 0.2, rw * 0.28, rh * 0.28, 1)}<circle cx={rx + rw * 0.32} cy={ry + rh * 0.34} r={rw * 0.07} fill="none" stroke={F} strokeWidth="0.35" /><circle cx={rx + rw * 0.68} cy={ry + rh * 0.34} r={rw * 0.07} fill="none" stroke={F} strokeWidth="0.35" /></>; // washer + dryer
+    case "E": return <>{box(rx + rw * 0.34, ry + rh * 0.12, rw * 0.32, rh * 0.2, 1)}</>; // entry mat
+    default: return null;
+  }
+}
+
+export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, showFurniture = true }: {
+  layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void; showFurniture?: boolean;
 }) {
   const x = (col: number) => PAD + col * U;
   const y = (row: number) => PAD + row * U;
@@ -42,6 +61,7 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
         return (
           <g key={r.id} data-arch-floorplan-room={r.id} onClick={() => onSelectRoom?.(r.id)} style={{ cursor: onSelectRoom ? "pointer" : "default" }}>
             <rect x={rx} y={ry} width={rw} height={rh} fill={sel ? `${C.gold}22` : "transparent"} stroke={sel ? C.gold : C.wall} strokeWidth={sel ? 1.2 : 0.7} />
+            {showFurniture && furniture(r.k, rx, ry, rw, rh)}
             {/* door opening — a gold gap on the room's south wall (interior circulation side) */}
             <line x1={rx + rw * 0.55} y1={ry + rh} x2={rx + rw * 0.85} y2={ry + rh} stroke={C.bg} strokeWidth="1.6" />
             <path d={`M ${rx + rw * 0.55} ${ry + rh} A ${rw * 0.3} ${rw * 0.3} 0 0 1 ${rx + rw * 0.55} ${ry + rh - rw * 0.3}`} fill="none" stroke={C.door} strokeWidth="0.3" opacity="0.7" />
