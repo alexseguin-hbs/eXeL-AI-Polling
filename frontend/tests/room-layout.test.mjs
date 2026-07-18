@@ -1,6 +1,6 @@
 // ARCHITECT-2525 room-layout lock — pure move/swap/resize/sqft semantics (P3 cube modification).
 // Run: node --experimental-strip-types tests/room-layout.test.mjs
-import { TINY_ROOM_LAYOUT, cloneLayout, roomAt, layoutSqft, moveRoomInLayout, resizeRoomInLayout, TINY_SIDE_FT } from "../lib/room-layout.ts";
+import { TINY_ROOM_LAYOUT, cloneLayout, roomAt, layoutSqft, moveRoomInLayout, resizeRoomInLayout, TINY_SIDE_FT, setRoomElement, toggleRoomFurniture, layoutTotals, moduleHash, ELEMENT_MAX } from "../lib/room-layout.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log("PASS", m); } else { fail++; console.log("FAIL", m); } };
@@ -37,6 +37,22 @@ ok(grown.find((r) => r.id === "living").w === 2, "living stretched to 2 cells wi
 ok(layoutSqft(grown) === 1000, "sqft tracks the stretch (900 + 100)");
 const clamped = resizeRoomInLayout(TINY_ROOM_LAYOUT, "living", 9, 9);
 ok(clamped.find((r) => r.id === "living").w === 2, "resize clamps to max 2 cells (within 10 ft)");
+
+// 8. per-room element editing (Enter-room → optimize it only).
+const w0 = TINY_ROOM_LAYOUT.find((r) => r.id === "living").windows;
+const inc = setRoomElement(TINY_ROOM_LAYOUT, "living", "windows", 1);
+ok(inc.find((r) => r.id === "living").windows === w0 + 1, "setRoomElement +1 window");
+const clampHi = setRoomElement(TINY_ROOM_LAYOUT, "living", "windows", 99);
+ok(clampHi.find((r) => r.id === "living").windows === ELEMENT_MAX, "element clamps to ELEMENT_MAX");
+const clampLo = setRoomElement(TINY_ROOM_LAYOUT, "entry", "outlets", -99);
+ok(clampLo.find((r) => r.id === "entry").outlets === 0, "element clamps to 0 (no negative)");
+ok(TINY_ROOM_LAYOUT.find((r) => r.id === "living").windows === w0, "setRoomElement is pure (source unchanged)");
+
+// 9. furniture toggle + totals = Σ rooms + deterministic module hash.
+ok(toggleRoomFurniture(TINY_ROOM_LAYOUT, "office").find((r) => r.id === "office").furniture === false, "toggleRoomFurniture flips off");
+const tot = layoutTotals(TINY_ROOM_LAYOUT);
+ok(tot.rooms === 9 && tot.windows === TINY_ROOM_LAYOUT.reduce((s, r) => s + r.windows, 0), "layoutTotals = Σ per-room");
+ok(moduleHash(TINY_ROOM_LAYOUT) === moduleHash(cloneLayout()) && moduleHash(inc) !== moduleHash(TINY_ROOM_LAYOUT), "moduleHash deterministic + changes on edit");
 
 console.log(`\nROOM-LAYOUT ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);

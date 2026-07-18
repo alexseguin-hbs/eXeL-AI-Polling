@@ -203,7 +203,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
           {terrain}
           {fullLattice}
           {tiny
-            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: true }))}{porch}</div>
+            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture }))}{porch}</div>
             : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1)}</div>}
         </div>
       </div>

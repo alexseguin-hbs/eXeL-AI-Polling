@@ -66,7 +66,9 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
         return (
           <g key={r.id} data-arch-floorplan-room={r.id} onClick={() => selectRoom(r.id)} style={{ cursor: onSelectRoom ? "pointer" : "default" }}>
             <rect x={rx} y={ry} width={rw} height={rh} fill={sel ? `${C.gold}22` : "transparent"} stroke={sel ? C.gold : C.wall} strokeWidth={sel ? 1.2 : 0.7} />
-            {showFurniture && furniture(r.k, rx, ry, rw, rh)}
+            {/* windows — cyan ticks on the north wall, one per r.windows (adjustable per room) */}
+            {Array.from({ length: r.windows }).map((_, wi) => { const wxp = rx + (rw * (wi + 1)) / (r.windows + 1); return <line key={`win${wi}`} x1={wxp - 2.6} y1={ry} x2={wxp + 2.6} y2={ry} stroke={C.cyan} strokeWidth="1.4" />; })}
+            {showFurniture && r.furniture && furniture(r.k, rx, ry, rw, rh)}
             {/* door opening — a gold gap on the room's south wall (interior circulation side) */}
             <line x1={rx + rw * 0.55} y1={ry + rh} x2={rx + rw * 0.85} y2={ry + rh} stroke={C.bg} strokeWidth="1.6" />
             <path d={`M ${rx + rw * 0.55} ${ry + rh} A ${rw * 0.3} ${rw * 0.3} 0 0 1 ${rx + rw * 0.55} ${ry + rh - rw * 0.3}`} fill="none" stroke={C.door} strokeWidth="0.3" opacity="0.7" />

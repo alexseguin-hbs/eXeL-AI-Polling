@@ -13,7 +13,7 @@ import { VoxelHouse } from "./voxel-house";
 import { TinyFloorplan } from "./tiny-floorplan";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
-import { cloneLayout, moveRoomInLayout, type RoomCell } from "@/lib/room-layout";
+import { cloneLayout, moveRoomInLayout, setRoomElement, toggleRoomFurniture, type RoomCell, type ElementKind } from "@/lib/room-layout";
 
 const C = {
   panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186",
@@ -55,6 +55,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [roomLayout, setRoomLayout] = useState<RoomCell[]>(() => cloneLayout()); // P3 — movable room model
   const [tinyMode, setTinyMode] = useState<"edit" | "walk">("edit"); // edit the plan ⇄ walk the wireframe
   const [walkRoomId, setWalkRoomId] = useState<string>("entry");     // low-fi walkthrough position
+  const [focusRoomId, setFocusRoomId] = useState<string | null>(null); // ⏎ Enter a room → optimize it only
   const tiny = homeType === "tiny";
   const selectRoom = (id: string) => setRoomSel((s) => (s === id ? null : id));
   // Persist the room layout so a design survives reload (the kid's home iterates over time). Write-on-mutation
@@ -76,6 +77,10 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
     setRoomLayout((prev) => persistLayout(moveRoomInLayout(prev, roomSel, dRow, dCol)));
   };
   const resetLayout = () => setRoomLayout(persistLayout(cloneLayout()));
+  // Enter a room → optimize IT ONLY: step its elements / toggle furniture (persisted, clamped).
+  const setElement = (kind: ElementKind, delta: number) => { if (focusRoomId) setRoomLayout((prev) => persistLayout(setRoomElement(prev, focusRoomId, kind, delta))); };
+  const toggleFurn = () => { if (focusRoomId) setRoomLayout((prev) => persistLayout(toggleRoomFurniture(prev, focusRoomId))); };
+  const focusRoom = focusRoomId ? roomLayout.find((r) => r.id === focusRoomId) : undefined;
   // Tiny Home defaults to the 2D floor plan with a persistent 3D mini-map (operator: "2D and 3D");
   // the ▦ Voxel toggle still swaps the main view to the full 3D voxel. Leaving tiny turns voxel off.
   useEffect(() => { if (homeType !== "tiny") setVoxel(false); }, [homeType]);
@@ -183,8 +188,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
               <div className="px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>3D · mini-map</div>
               <VoxelHouse homeType={homeType} program={program} height={150} compact layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} />
             </div>
-            {/* P3 cube modification — move the selected room with the D-pad (Mission-Planning nudge parity) */}
-            {roomSel && (
+            {/* HOUSE level — move the selected room (D-pad) + ⏎ Enter to optimize it only */}
+            {roomSel && !focusRoomId && (
               <div data-arch-roommove className="absolute left-2 top-9 flex flex-col items-center gap-0.5 rounded-lg border p-1.5 shadow-lg"
                 style={{ borderColor: C.cyan, background: "#0a0f16ee" }}>
                 <div className="mb-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Move room</div>
@@ -194,7 +199,30 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                   <button data-arch-roommove-e onClick={() => moveRoom(0, 1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
                 </div>
                 <button data-arch-roommove-s onClick={() => moveRoom(1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
+                <button data-arch-room-enter onClick={() => setFocusRoomId(roomSel)} className="mt-0.5 rounded border px-2 text-[10px] font-semibold" style={{ borderColor: C.cyan, color: C.cyan }}>⏎ Enter</button>
                 <button data-arch-roommove-reset onClick={resetLayout} className="mt-0.5 rounded border px-1 text-[8px]" style={{ borderColor: C.border, color: C.dim }}>reset</button>
+              </div>
+            )}
+            {/* ROOM level — optimize THIS room only: windows · doors · outlets · furniture */}
+            {focusRoom && (
+              <div data-arch-room-editor className="absolute left-2 top-9 flex flex-col gap-1 rounded-lg border p-2 shadow-lg"
+                style={{ borderColor: C.gold, background: "#0a0f16f2" }}>
+                <div className="flex items-center gap-2">
+                  <button data-arch-room-back onClick={() => setFocusRoomId(null)} className="rounded border px-1.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← Back</button>
+                  <span className="text-[11px] font-bold" style={{ color: C.gold }}>{focusRoom.k} · {focusRoom.label}</span>
+                </div>
+                {([["Windows", "windows"], ["Doors", "doors"], ["Outlets", "outlets"]] as const).map(([lbl, kind]) => (
+                  <div key={kind} className="flex items-center justify-between gap-2 text-[10px]" style={{ color: C.text }}>
+                    <span style={{ color: C.dim }}>{lbl}</span>
+                    <span className="flex items-center gap-1">
+                      <button data-arch-el-dec={kind} onClick={() => setElement(kind, -1)} className="rounded border px-1.5" style={{ borderColor: C.border, color: C.text }}>◀</button>
+                      <span className="w-4 text-center tabular-nums" style={{ color: C.cyan }}>{focusRoom[kind]}</span>
+                      <button data-arch-el-inc={kind} onClick={() => setElement(kind, 1)} className="rounded border px-1.5" style={{ borderColor: C.border, color: C.text }}>▶</button>
+                    </span>
+                  </div>
+                ))}
+                <button data-arch-el-furn onClick={toggleFurn} className="rounded border px-2 py-0.5 text-[10px] font-semibold"
+                  style={{ borderColor: focusRoom.furniture ? C.cyan : C.border, color: focusRoom.furniture ? C.cyan : C.dim }}>🪑 Furniture {focusRoom.furniture ? "on" : "off"}</button>
               </div>
             )}
             </>
