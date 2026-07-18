@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { VoxelHouse } from "./voxel-house";
 import { TinyFloorplan } from "./tiny-floorplan";
+import { MiniPanel } from "./mini-panel";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { cloneLayout, moveRoomInLayout, setRoomElement, toggleRoomFurniture, type RoomCell, type ElementKind } from "@/lib/room-layout";
@@ -81,6 +82,16 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const setElement = (kind: ElementKind, delta: number) => { if (focusRoomId) setRoomLayout((prev) => persistLayout(setRoomElement(prev, focusRoomId, kind, delta))); };
   const toggleFurn = () => { if (focusRoomId) setRoomLayout((prev) => persistLayout(toggleRoomFurniture(prev, focusRoomId))); };
   const focusRoom = focusRoomId ? roomLayout.find((r) => r.id === focusRoomId) : undefined;
+  // Structural members — VISIBLE + ADJUSTABLE (operator: "can't see/change structural beam sizes").
+  const STUD_SIZES = ["2×4", "2×6", "2×8"] as const;
+  const BEAM_SIZES = ["4×6", "4×8", "6×8", "GLULAM"] as const;
+  const [studIdx, setStudIdx] = useState(0);
+  const [beamIdx, setBeamIdx] = useState(1);
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.structure"); if (v) { const s = JSON.parse(v); if (Number.isInteger(s.stud)) setStudIdx(s.stud); if (Number.isInteger(s.beam)) setBeamIdx(s.beam); } } catch {} }, []);
+  const persistStruct = (stud: number, beam: number) => { try { localStorage.setItem("arch2525.structure", JSON.stringify({ stud, beam })); } catch {} };
+  const cycleStud = () => setStudIdx((i) => { const n = (i + 1) % STUD_SIZES.length; persistStruct(n, beamIdx); return n; });
+  const cycleBeam = () => setBeamIdx((i) => { const n = (i + 1) % BEAM_SIZES.length; persistStruct(studIdx, n); return n; });
+  const wallW = [1, 1.7, 2.4][studIdx]; // stud size → visible wireframe member thickness
   // Tiny Home defaults to the 2D floor plan with a persistent 3D mini-map (operator: "2D and 3D");
   // the ▦ Voxel toggle still swaps the main view to the full 3D voxel. Leaving tiny turns voxel off.
   useEffect(() => { if (homeType !== "tiny") setVoxel(false); }, [homeType]);
@@ -130,15 +141,34 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
         <div data-arch-map-header className="mb-1 flex items-center gap-3 overflow-x-auto text-[10px]">
           {header}
           <div className="flex shrink-0 items-center gap-1" style={header ? { marginLeft: "auto" } : undefined}>
-            {(["wall", "door", "window"] as const).map((m) => (
-              <button key={m} onClick={() => { setMode(m); setPending(null); }} className="rounded border px-2 py-0.5"
-                style={{ borderColor: C.border, color: mode === m ? C.cyan : C.dim, background: mode === m ? "#0e2233" : "transparent" }}>{m}</button>
-            ))}
-            <button onClick={() => setView3d((v) => !v)} disabled={voxel} className="rounded border px-2 py-0.5"
-              style={{ borderColor: C.border, color: voxel ? "#33415a" : view3d ? C.cyan : C.dim }}>{view3d ? "3D" : "2D"}</button>
-            <button data-arch-voxel-toggle onClick={() => setVoxel((v) => !v)} className="rounded border px-2 py-0.5"
-              style={{ borderColor: voxel ? C.cyan : C.border, color: voxel ? C.cyan : C.dim }}>▦ Voxel</button>
-            <button onClick={clearAll} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>clear</button>
+            {tiny ? (
+              <>
+                {/* segmented view — 2D · 3D · Voxel (Mission-Planning-style; replaces the loose toggles) */}
+                <div className="flex overflow-hidden rounded border" style={{ borderColor: C.border }}>
+                  {([["2D", () => { setVoxel(false); setView3d(false); }, !voxel && !view3d],
+                     ["3D", () => { setVoxel(false); setView3d(true); }, !voxel && view3d],
+                     ["Voxel", () => setVoxel(true), voxel]] as const).map(([lbl, fn, on]) => (
+                    <button key={lbl} data-arch-view={lbl} onClick={fn} className="px-2 py-0.5"
+                      style={{ color: on ? C.cyan : C.dim, background: on ? "#0e2233" : "transparent" }}>{lbl}</button>
+                  ))}
+                </div>
+                {/* structural members — SEE + ADJUST stud/beam sizes (reflected as wireframe thickness) */}
+                <button data-arch-stud onClick={cycleStud} title="Stud size — tap to change" className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.text }}>Studs {STUD_SIZES[studIdx]}</button>
+                <button data-arch-beam onClick={cycleBeam} title="Beam size — tap to change" className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.text }}>Beams {BEAM_SIZES[beamIdx]}</button>
+              </>
+            ) : (
+              <>
+                {(["wall", "door", "window"] as const).map((m) => (
+                  <button key={m} onClick={() => { setMode(m); setPending(null); }} className="rounded border px-2 py-0.5"
+                    style={{ borderColor: C.border, color: mode === m ? C.cyan : C.dim, background: mode === m ? "#0e2233" : "transparent" }}>{m}</button>
+                ))}
+                <button onClick={() => setView3d((v) => !v)} disabled={voxel} className="rounded border px-2 py-0.5"
+                  style={{ borderColor: C.border, color: voxel ? "#33415a" : view3d ? C.cyan : C.dim }}>{view3d ? "3D" : "2D"}</button>
+                <button data-arch-voxel-toggle onClick={() => setVoxel((v) => !v)} className="rounded border px-2 py-0.5"
+                  style={{ borderColor: voxel ? C.cyan : C.border, color: voxel ? C.cyan : C.dim }}>▦ Voxel</button>
+                <button onClick={clearAll} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>clear</button>
+              </>
+            )}
           </div>
         </div>
         {/* F3 — clicking an Active Element / Vision-Tree row reflects it ON the map (2D or 3D voxel). */}
@@ -148,7 +178,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             ◎ {selectedLabel} <span style={{ color: C.dim }}>· shown on map</span>
           </div>
         )}
-        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} /> : tiny ? (
+        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} /> : tiny ? (
           <div data-arch-tiny-view className="relative">
             {/* edit ⇄ walk toggle */}
             <div className="absolute right-2 top-2 z-20 flex gap-1">
@@ -162,7 +192,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             {tinyMode === "walk" ? (
               <div data-arch-walk className="relative">
                 {/* low-fidelity wireframe WALKTHROUGH — step room to room through the voxel at eye level */}
-                <VoxelHouse homeType={homeType} program={program} height={380} compact layout={roomLayout} walk walkRoomId={walkRoomId} />
+                <VoxelHouse homeType={homeType} program={program} height={380} compact layout={roomLayout} walk walkRoomId={walkRoomId} wallW={wallW} />
                 <div data-arch-walk-room className="absolute left-2 top-2 rounded-lg border px-2 py-1 text-[11px] font-semibold shadow-lg"
                   style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16ee" }}>
                   🚶 {walkRoom ? `${walkRoom.k} · ${walkRoom.label}` : "—"}
@@ -182,11 +212,11 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             <>
             {/* MAIN = 2D floor plan of the nine labeled rooms (operator's finalized design) */}
             <TinyFloorplan layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} />
-            {/* persistent 3D MINI-MAP (operator: "2D and 3D") — compact voxel, North default, same layout */}
-            <div data-arch-minimap className="absolute bottom-2 right-2 w-[42%] max-w-[210px] overflow-hidden rounded-lg border shadow-lg"
-              style={{ borderColor: C.border, background: "#070b12" }}>
-              <div className="px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>3D · mini-map</div>
-              <VoxelHouse homeType={homeType} program={program} height={150} compact layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} />
+            {/* persistent 3D MINI-MAP (operator: "adjustable like Mission Planning") — the MiniPanel cube:
+                ⠿ drag · ◢ resize · ▾ collapse-to-tab · ⛶ maximize (portal). Same roomLayout + selection. */}
+            <div data-arch-minimap className="absolute bottom-2 right-2 z-10">
+              <MiniPanel title="3D · MODEL" subtitle="Tiny Home" lanes={false} defaultW={196} defaultH={208} minW={140} minH={150}
+                render={(s) => <VoxelHouse homeType={homeType} program={program} height={s} compact layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} />} />
             </div>
             {/* HOUSE level — move the selected room (D-pad) + ⏎ Enter to optimize it only */}
             {roomSel && !focusRoomId && (

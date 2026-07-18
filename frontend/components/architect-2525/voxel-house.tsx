@@ -26,10 +26,10 @@ import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
 
 const C = { dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", text: "#c8d6e5", green: "#22c55e" };
 
-export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, walk = false, walkRoomId }: {
+export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, walk = false, walkRoomId, wallW = 1 }: {
   homeType?: HomeType; program?: RoomProgram; lat?: number; lon?: number; height?: number; compact?: boolean;
   layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void;
-  walk?: boolean; walkRoomId?: string | null;
+  walk?: boolean; walkRoomId?: string | null; wallW?: number;
 }) {
   const [bearing, setBearing] = useState(0);       // 0 = NORTH up (operator: North is the default)
   const [pitch, setPitch] = useState(58);          // camera tilt (deg)
@@ -42,8 +42,8 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
 
   const cell = 66, n = 3, box = n * cell; // land-base cell (px); the house = the centre cell at 1× voxel size
   const at = (t: string): CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
-  const face = (t: string, w: number, h: number, color: string, solid: boolean): CSSProperties =>
-    ({ ...at(t), width: w, height: h, border: `1px ${solid ? "solid" : "dashed"} ${color}`, background: solid ? `${color}22` : "transparent" });
+  const face = (t: string, w: number, h: number, color: string, solid: boolean, bw = 1): CSSProperties =>
+    ({ ...at(t), width: w, height: h, border: `${bw}px ${solid ? "solid" : "dashed"} ${color}`, background: solid ? `${color}22` : "transparent" });
 
   // Gestures (Mission-Planning parity, touch + mouse): ONE finger/drag = orbit bearing + tilt pitch;
   // TWO fingers = pinch-to-zoom. Wheel = zoom. Pointer positions are tracked so touch deltas are reliable.
@@ -140,10 +140,10 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
     const color = selected ? C.gold : (opts.color ?? C.violet);
     return (
       <div key={`room${id}`} style={{ ...at(`translate3d(${x}px,${y}px,0px)`), transformStyle: "preserve-3d" }}>
-        <div style={face(`translate3d(0px,${-size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false)} />
-        <div style={face(`translate3d(0px,${size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false)} />
-        <div style={face(`translate3d(${-size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false)} />
-        <div style={face(`translate3d(${size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false)} />
+        <div style={face(`translate3d(0px,${-size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false, wallW)} />
+        <div style={face(`translate3d(0px,${size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false, wallW)} />
+        <div style={face(`translate3d(${-size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false, wallW)} />
+        <div style={face(`translate3d(${size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false, wallW)} />
         {opts.furn && furn3d(key, size)}
         <button
           data-arch-voxel-cell={key}
