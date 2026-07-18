@@ -26,9 +26,10 @@ import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
 
 const C = { dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", text: "#c8d6e5", green: "#22c55e" };
 
-export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom }: {
+export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, walk = false, walkRoomId }: {
   homeType?: HomeType; program?: RoomProgram; lat?: number; lon?: number; height?: number; compact?: boolean;
   layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void;
+  walk?: boolean; walkRoomId?: string | null;
 }) {
   const [bearing, setBearing] = useState(0);       // 0 = NORTH up (operator: North is the default)
   const [pitch, setPitch] = useState(58);          // camera tilt (deg)
@@ -115,6 +116,13 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   // its 9 rooms are a 3×3 sub-grid nested inside the centre cell (roomSize = cell/3), so the surrounding 8
   // cells stay as LAND (elevation surfaces land next). Zoom in (scroll) to read the room labels.
   const roomSize = cell / 3;
+  // WALK MODE (operator: "wireframe low-fidelity walkthrough must be possible") — drop to near eye-level,
+  // zoom in, and centre the scene on the current room so you step through the wireframe room by room.
+  const walkRoom = walk && tiny ? layout.find((r) => r.id === walkRoomId) : undefined;
+  const wx = walkRoom ? (walkRoom.col - 1) * roomSize : 0;
+  const wy = walkRoom ? (walkRoom.row - 1) * roomSize : 0;
+  const effPitch = walk ? 20 : pitch;   // low angle = first-person feel
+  const effZoom = walk ? 3.2 : zoom;    // stand inside the room
   // Front porch stair — off the Entry room (E, sub-idx 8) at the front edge of the centre cell.
   const porch = tiny ? (
     <div data-arch-voxel-porch style={{ ...at(`translate3d(${roomSize}px,${cell / 2 + 3}px,0px)`), transformStyle: "preserve-3d" }}>
@@ -142,8 +150,8 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
       style={{ background: "#070b12", height }}
       onPointerMove={onMove} onWheel={onWheel}>
       <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 60%",
-        transform: `perspective(820px) rotateX(${pitch}deg) scale(${1.02 * zoom})` }}>
-        <div className="absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", transform: `rotateZ(${bearing}rad)` }}>
+        transform: `perspective(820px) rotateX(${effPitch}deg) scale(${1.02 * effZoom})` }}>
+        <div className="absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", transform: `rotateZ(${bearing}rad) translate3d(${-wx}px,${-wy}px,0px)` }}>
           {landFloor}
           {terrain}
           {fullLattice}

@@ -53,8 +53,17 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [voxel, setVoxel] = useState(false);   // V5 — 3×3×3 land-base voxel (house at center); 2D default = first floor
   const [roomSel, setRoomSel] = useState<string | null>(null); // selected Tiny Home room (2D plan ↔ 3D mini)
   const [roomLayout, setRoomLayout] = useState<RoomCell[]>(() => cloneLayout()); // P3 — movable room model
+  const [tinyMode, setTinyMode] = useState<"edit" | "walk">("edit"); // edit the plan ⇄ walk the wireframe
+  const [walkRoomId, setWalkRoomId] = useState<string>("entry");     // low-fi walkthrough position
   const tiny = homeType === "tiny";
   const selectRoom = (id: string) => setRoomSel((s) => (s === id ? null : id));
+  // Walk to the adjacent room in the 3×3, if one exists there (steps through the wireframe room by room).
+  const walkStep = (dRow: number, dCol: number) => {
+    const cur = roomLayout.find((r) => r.id === walkRoomId); if (!cur) return;
+    const next = roomLayout.find((r) => r.row === cur.row + dRow && r.col === cur.col + dCol);
+    if (next) setWalkRoomId(next.id);
+  };
+  const walkRoom = roomLayout.find((r) => r.id === walkRoomId);
   // P3 cube modification — move the selected room within the 3×3 grid, swapping with whatever it displaces
   // (keeps the nine-room grid full; adjacency only, so cost is unchanged — honors the operator's rule).
   const moveRoom = (dRow: number, dCol: number) => {
@@ -139,6 +148,36 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
         )}
         {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} /> : tiny ? (
           <div data-arch-tiny-view className="relative">
+            {/* edit ⇄ walk toggle */}
+            <div className="absolute right-2 top-2 z-20 flex gap-1">
+              {(["edit", "walk"] as const).map((m) => (
+                <button key={m} data-arch-tiny-mode={m} onClick={() => setTinyMode(m)} className="rounded border px-2 py-0.5 text-[10px] font-semibold"
+                  style={{ borderColor: tinyMode === m ? C.cyan : C.border, color: tinyMode === m ? C.cyan : C.dim, background: tinyMode === m ? "#0e2233" : "transparent" }}>
+                  {m === "edit" ? "✎ Edit" : "🚶 Walk"}
+                </button>
+              ))}
+            </div>
+            {tinyMode === "walk" ? (
+              <div data-arch-walk className="relative">
+                {/* low-fidelity wireframe WALKTHROUGH — step room to room through the voxel at eye level */}
+                <VoxelHouse homeType={homeType} program={program} height={380} compact layout={roomLayout} walk walkRoomId={walkRoomId} />
+                <div data-arch-walk-room className="absolute left-2 top-2 rounded-lg border px-2 py-1 text-[11px] font-semibold shadow-lg"
+                  style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16ee" }}>
+                  🚶 {walkRoom ? `${walkRoom.k} · ${walkRoom.label}` : "—"}
+                </div>
+                {/* walk D-pad — step to the adjacent room */}
+                <div data-arch-walkpad className="absolute bottom-2 left-1/2 flex -translate-x-1/2 flex-col items-center gap-0.5 rounded-lg border p-1.5 shadow-lg"
+                  style={{ borderColor: C.cyan, background: "#0a0f16ee" }}>
+                  <button data-arch-walk-n onClick={() => walkStep(-1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
+                  <div className="flex gap-0.5">
+                    <button data-arch-walk-w onClick={() => walkStep(0, -1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>◀ W</button>
+                    <button data-arch-walk-e onClick={() => walkStep(0, 1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
+                  </div>
+                  <button data-arch-walk-s onClick={() => walkStep(1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
+                </div>
+              </div>
+            ) : (
+            <>
             {/* MAIN = 2D floor plan of the nine labeled rooms (operator's finalized design) */}
             <TinyFloorplan layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} />
             {/* persistent 3D MINI-MAP (operator: "2D and 3D") — compact voxel, North default, same layout */}
@@ -149,7 +188,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             </div>
             {/* P3 cube modification — move the selected room with the D-pad (Mission-Planning nudge parity) */}
             {roomSel && (
-              <div data-arch-roommove className="absolute left-2 top-2 flex flex-col items-center gap-0.5 rounded-lg border p-1.5 shadow-lg"
+              <div data-arch-roommove className="absolute left-2 top-9 flex flex-col items-center gap-0.5 rounded-lg border p-1.5 shadow-lg"
                 style={{ borderColor: C.cyan, background: "#0a0f16ee" }}>
                 <div className="mb-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Move room</div>
                 <button data-arch-roommove-n onClick={() => moveRoom(-1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
@@ -159,6 +198,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                 </div>
                 <button data-arch-roommove-s onClick={() => moveRoom(1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
               </div>
+            )}
+            </>
             )}
           </div>
         ) : (
