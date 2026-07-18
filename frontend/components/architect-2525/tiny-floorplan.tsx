@@ -9,8 +9,9 @@
  * read one source. Clicking a room selects it (lifts to the app so the right panel + 3D agree).
  */
 import { TINY_ROOM_LAYOUT, ROOM_FT, TINY_GRID, type RoomCell } from "@/lib/room-layout";
+import { useMapGestures } from "./use-map-gestures";
 
-const C = { bg: "#070b12", grid: "#13202f", wall: "#c084fc", door: "#ffd400", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400" };
+const C = { bg: "#070b12", grid: "#13202f", wall: "#c084fc", door: "#ffd400", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", gold: "#ffd400", border: "#1e2b3a" };
 
 // SVG layout: 30-ft plan drawn at 30 units/room inside a padded viewBox (room for dimension lines).
 const U = 30;                 // svg units per 10-ft room cell
@@ -42,7 +43,11 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
 }) {
   const x = (col: number) => PAD + col * U;
   const y = (row: number) => PAD + row * U;
+  const { zoom, pan, reset, moved, handlers } = useMapGestures({ min: 0.6, max: 5 });
+  const selectRoom = (id: string) => { if (!moved.current) onSelectRoom?.(id); }; // ignore the tap that trails a gesture
   return (
+    <div data-arch-floorplan-wrap className="relative w-full overflow-hidden rounded" style={{ touchAction: "none", background: C.bg }} {...handlers}>
+      <div style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "center", transition: "none" }}>
     <svg data-arch-floorplan viewBox={`0 0 ${VB} ${VB}`} preserveAspectRatio="xMidYMid meet"
       className="w-full rounded" style={{ background: C.bg, aspectRatio: "1 / 1" }}>
       {/* overall 30'-0" dimension lines (top + left) */}
@@ -59,7 +64,7 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
         const sel = selectedRoomId === r.id;
         const rx = x(r.col), ry = y(r.row), rw = U * r.w, rh = U * r.d;
         return (
-          <g key={r.id} data-arch-floorplan-room={r.id} onClick={() => onSelectRoom?.(r.id)} style={{ cursor: onSelectRoom ? "pointer" : "default" }}>
+          <g key={r.id} data-arch-floorplan-room={r.id} onClick={() => selectRoom(r.id)} style={{ cursor: onSelectRoom ? "pointer" : "default" }}>
             <rect x={rx} y={ry} width={rw} height={rh} fill={sel ? `${C.gold}22` : "transparent"} stroke={sel ? C.gold : C.wall} strokeWidth={sel ? 1.2 : 0.7} />
             {showFurniture && furniture(r.k, rx, ry, rw, rh)}
             {/* door opening — a gold gap on the room's south wall (interior circulation side) */}
@@ -77,5 +82,12 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
       {(() => { const e = layout.find((r) => r.k === "E"); if (!e) return null; const ex = x(e.col) + U * e.w * 0.5, ey = y(e.row) + U * e.d;
         return <g data-arch-floorplan-porch>{[0, 1, 2].map((i) => <line key={i} x1={ex - 6} y1={ey + 2 + i * 2.2} x2={ex + 6} y2={ey + 2 + i * 2.2} stroke={C.cyan} strokeWidth="0.5" />)}</g>; })()}
     </svg>
+      </div>
+      {(zoom !== 1 || pan.x !== 0 || pan.y !== 0) && (
+        <button data-arch-floorplan-reset onClick={reset} className="absolute bottom-1 left-1 rounded border px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider"
+          style={{ borderColor: C.border, color: C.dim, background: "#0a0f16cc" }}>⤢ reset</button>
+      )}
+      <div className="pointer-events-none absolute right-1 top-1 text-[8px]" style={{ color: C.dim }}>two-finger zoom · pan</div>
+    </div>
   );
 }

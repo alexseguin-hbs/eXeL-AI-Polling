@@ -18,7 +18,7 @@
  *  • FULL HOME — the generic 3×3×3 land base with a single house cube at the centre (2,2) cell.
  * Elevation surfaces (per-corner altitude) land in the next slice; this is the selectable-voxel core.
  */
-import { useState, type CSSProperties } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import type { HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { elevAt, cornerAltitudes, mToFt } from "@/lib/terrain";
@@ -45,13 +45,32 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   const face = (t: string, w: number, h: number, color: string, solid: boolean): CSSProperties =>
     ({ ...at(t), width: w, height: h, border: `1px ${solid ? "solid" : "dashed"} ${color}`, background: solid ? `${color}22` : "transparent" });
 
-  // Drag = orbit bearing (horizontal) + tilt pitch (vertical). Wheel = zoom. (MP gesture model, :1815.)
+  // Gestures (Mission-Planning parity, touch + mouse): ONE finger/drag = orbit bearing + tilt pitch;
+  // TWO fingers = pinch-to-zoom. Wheel = zoom. Pointer positions are tracked so touch deltas are reliable.
+  const gp = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const gpinch = useRef<number | null>(null);
+  const clampZoom = (z: number) => Math.max(0.6, Math.min(3.2, z));
+  const onDown = (e: React.PointerEvent) => { gp.current.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (gp.current.size === 2) gpinch.current = null; };
   const onMove = (e: React.PointerEvent) => {
-    if (e.buttons !== 1) return;
-    setBearing((b) => b + e.movementX * 0.012);
-    setPitch((p) => Math.max(18, Math.min(82, p - e.movementY * 0.15)));
+    if (!gp.current.has(e.pointerId)) {
+      // mouse fallback: primary button held with no tracked pointer (e.g. capture missed)
+      if (e.buttons === 1) { setBearing((b) => b + e.movementX * 0.012); setPitch((p) => Math.max(18, Math.min(82, p - e.movementY * 0.15))); }
+      return;
+    }
+    const prev = gp.current.get(e.pointerId)!;
+    gp.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const a = Array.from(gp.current.values());
+    if (a.length >= 2) {
+      const d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y);
+      if (gpinch.current) setZoom((z) => clampZoom(z * (d / gpinch.current!)));
+      gpinch.current = d;
+    } else {
+      setBearing((b) => b + (e.clientX - prev.x) * 0.012);
+      setPitch((p) => Math.max(18, Math.min(82, p - (e.clientY - prev.y) * 0.15)));
+    }
   };
-  const onWheel = (e: React.WheelEvent) => { setZoom((z) => Math.max(0.6, Math.min(2.4, z - e.deltaY * 0.0012))); };
+  const onUp = (e: React.PointerEvent) => { gp.current.delete(e.pointerId); if (gp.current.size < 2) gpinch.current = null; };
+  const onWheel = (e: React.WheelEvent) => { setZoom((z) => clampZoom(z - e.deltaY * 0.0012)); };
 
   // The exterior land base — a 3×3 grid floor (cyan datum plane) so the plot reads as the parcel.
   const landFloor = (
@@ -86,9 +105,36 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   });
   const ca = cornerAltitudes(lat, lon);
 
+  // Low-fi 3D furniture — a translucent cuboid (top + 4 short walls) at floor level inside a room.
+  const furnBox = (dx: number, dy: number, w: number, d: number, hgt: number, col: string, kk: string) => (
+    <div key={kk} style={{ ...at(`translate3d(${dx}px,${dy}px,0px)`), transformStyle: "preserve-3d" }}>
+      <div style={face(`translate3d(0px,0px,${hgt}px)`, w, d, col, true)} />
+      <div style={face(`translate3d(0px,${-d / 2}px,${hgt / 2}px) rotateX(90deg)`, w, hgt, col, true)} />
+      <div style={face(`translate3d(0px,${d / 2}px,${hgt / 2}px) rotateX(90deg)`, w, hgt, col, true)} />
+      <div style={face(`translate3d(${-w / 2}px,0px,${hgt / 2}px) rotateY(90deg)`, hgt, d, col, true)} />
+      <div style={face(`translate3d(${w / 2}px,0px,${hgt / 2}px) rotateY(90deg)`, hgt, d, col, true)} />
+    </div>
+  );
+  // 3D furniture artifacts per room key (operator: "3D artifacts replicating bed, etc") — bed, tub/sink,
+  // wardrobe, sofa, kitchen island/counter, dining table, desk, washer/dryer. Low-fi, deterministic.
+  const furn3d = (key: string, s: number) => {
+    const V = C.violet, Cy = C.cyan, A = C.gold;
+    switch (key) {
+      case "M": return furnBox(0, s * 0.06, s * 0.58, s * 0.72, s * 0.16, V, "bed");                                                   // bed
+      case "B": return <>{furnBox(-s * 0.22, -s * 0.16, s * 0.34, s * 0.24, s * 0.16, Cy, "tub")}{furnBox(s * 0.24, s * 0.22, s * 0.2, s * 0.2, s * 0.18, Cy, "sink")}</>; // tub + sink
+      case "C": return furnBox(-s * 0.3, 0, s * 0.14, s * 0.7, s * 0.5, V, "wardrobe");                                                 // tall wardrobe
+      case "L": return <>{furnBox(-s * 0.06, s * 0.22, s * 0.5, s * 0.2, s * 0.16, V, "sofa")}{furnBox(-s * 0.3, -s * 0.02, s * 0.16, s * 0.5, s * 0.16, V, "chaise")}</>; // sectional
+      case "K": return <>{furnBox(0, 0, s * 0.4, s * 0.26, s * 0.2, Cy, "island")}{furnBox(0, -s * 0.34, s * 0.7, s * 0.14, s * 0.22, Cy, "counter")}</>; // island + counter
+      case "D": return furnBox(0, 0, s * 0.4, s * 0.4, s * 0.16, A, "table");                                                          // dining table
+      case "O": return furnBox(0, -s * 0.16, s * 0.52, s * 0.16, s * 0.18, V, "desk");                                                 // desk
+      case "S": return <>{furnBox(-s * 0.2, 0, s * 0.26, s * 0.26, s * 0.22, Cy, "washer")}{furnBox(s * 0.2, 0, s * 0.26, s * 0.26, s * 0.22, Cy, "dryer")}</>; // washer + dryer
+      default: return null;                                                                                                            // E — porch outside
+    }
+  };
+
   // A room/house cube at grid index, of edge `size`, laid out on a `size`-pitch 3×3 (so 3 rooms span 3·size).
   // 4 violet walls + a clickable top face carrying the label. `cx/cy` shift the whole 3×3 into a parent cell.
-  const roomCube = (id: string, label: string, key: string, size: number, row: number, col: number, cx = 0, cy = 0, opts: { color?: string; font?: number } = {}) => {
+  const roomCube = (id: string, label: string, key: string, size: number, row: number, col: number, cx = 0, cy = 0, opts: { color?: string; font?: number; furn?: boolean } = {}) => {
     const x = cx + (col - 1) * size, y = cy + (row - 1) * size, h = size;
     const selected = selId === id;
     const color = selected ? C.gold : (opts.color ?? C.violet);
@@ -98,6 +144,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
         <div style={face(`translate3d(0px,${size / 2}px,${h / 2}px) rotateX(90deg)`, size, h, color, false)} />
         <div style={face(`translate3d(${-size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false)} />
         <div style={face(`translate3d(${size / 2}px,0px,${h / 2}px) rotateY(90deg)`, h, size, color, false)} />
+        {opts.furn && furn3d(key, size)}
         <button
           data-arch-voxel-cell={key}
           onClick={(e) => { e.stopPropagation(); selectRoom(id); }}
@@ -148,7 +195,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   return (
     <div data-arch-voxel className="relative w-full cursor-grab touch-none overflow-hidden rounded active:cursor-grabbing"
       style={{ background: "#070b12", height }}
-      onPointerMove={onMove} onWheel={onWheel}>
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onWheel={onWheel}>
       <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 60%",
         transform: `perspective(820px) rotateX(${effPitch}deg) scale(${1.02 * effZoom})` }}>
         <div className="absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", transform: `rotateZ(${bearing}rad) translate3d(${-wx}px,${-wy}px,0px)` }}>
@@ -156,7 +203,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
           {terrain}
           {fullLattice}
           {tiny
-            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8 }))}{porch}</div>
+            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: true }))}{porch}</div>
             : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1)}</div>}
         </div>
       </div>
