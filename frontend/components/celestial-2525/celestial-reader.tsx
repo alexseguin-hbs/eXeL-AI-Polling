@@ -67,9 +67,9 @@ export function CelestialReader() {
                 emblem POSITION (violet top · cyan bottom-left · sunset-gold bottom-right — operator IMG_6294),
                 overriding group.stroke; the group label text is kept. */}
             <svg data-cel-flower viewBox="0 0 200 170" className="mx-auto block w-full max-w-[300px]">
-              <circle data-cel-unity cx="100" cy="84" r="78" fill="none" stroke="#e8eef7" strokeWidth="1" opacity="0.5" />
+              <circle data-cel-unity cx="100" cy="84" r="76" fill="none" stroke="#e8eef7" strokeWidth="1" opacity="0.5" />
               {CELESTIAL_GROUPS.map((g, i) => {
-                const p = [{ cx: 100, cy: 57 }, { cx: 76.6, cy: 97.5 }, { cx: 123.4, cy: 97.5 }][i] ?? { cx: 100, cy: 84 };
+                const p = [{ cx: 100, cy: 52 }, { cx: 72.3, cy: 100 }, { cx: 127.7, cy: 100 }][i] ?? { cx: 100, cy: 84 };
                 const col = [C.violet, C.cyan, C.gold][i] ?? g.stroke; // emblem position color (top·BL·BR)
                 const open = openGroup === g.id;
                 const words = t("celestial.group." + g.id).split(" ");
@@ -77,7 +77,7 @@ export function CelestialReader() {
                 const l1 = words.slice(0, mid).join(" "), l2 = words.slice(mid).join(" ");
                 return (
                   <g key={g.id} data-cel-group={g.id} onClick={() => setOpenGroup(open ? null : g.id)} style={{ cursor: "pointer" }}>
-                    <circle cx={p.cx} cy={p.cy} r="44" fill={open ? `${col}33` : `${col}14`} stroke={col} strokeWidth={open ? 2.4 : 1.4} />
+                    <circle cx={p.cx} cy={p.cy} r="41" fill={open ? `${col}33` : `${col}14`} stroke={col} strokeWidth={open ? 2.4 : 1.4} />
                     <text x={p.cx} y={l2 ? p.cy - 2 : p.cy + 3} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={col}>{l1}</text>
                     {l2 && <text x={p.cx} y={p.cy + 8} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={col}>{l2}</text>}
                   </g>
