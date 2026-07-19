@@ -16,14 +16,15 @@ import { CELESTIAL_BODIES, CELESTIAL_GROUPS, READING_LEVELS, type ReadingLevel }
 import { useLexicon } from "@/lib/lexicon-context";
 import { useCelestialContent } from "@/lib/use-celestial-content";
 
-const RTL_LOCALES = new Set(["ar", "he", "fa"]);
-
 const C = { bg: "#070b12", panel: "#0c1420", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400" };
 
 export function CelestialReader() {
-  const { t, activeLocale } = useLexicon();
+  const { t, activeLocale, languages } = useLexicon();
   const bodies = useCelestialContent(activeLocale);
-  const rtl = RTL_LOCALES.has(activeLocale);
+  // Language list = the SAME set as Settings / the Language Lexicon (approved languages only).
+  const langOptions = languages.filter((l) => l.status === "approved");
+  const isRTL = (loc: string) => languages.find((l) => l.code === loc)?.direction === "rtl";
+  const rtl = isRTL(activeLocale);
   const [level, setLevel] = useState<ReadingLevel>("middle");
   const [bodyId, setBodyId] = useState("earth");
   const [openGroup, setOpenGroup] = useState<string | null>("sun-rocky");
@@ -32,6 +33,12 @@ export function CelestialReader() {
   const [full, setFull] = useState(false);          // full-screen (portal over the nav, like the map maximize)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  // Dual-language 50/50 (Divinity bilingual-reader parity) — primary + mirror columns, English-fallback
+  // per column until per-language prose packs land. Independent scroll + per-column RTL.
+  const [primaryLoc, setPrimaryLoc] = useState(activeLocale);
+  const [mirrorLoc, setMirrorLoc] = useState(activeLocale === "es" ? "en" : "es");
+  const bodyP = useCelestialContent(primaryLoc).find((b) => b.id === bodyId) ?? bodies[0];
+  const bodyM = useCelestialContent(mirrorLoc).find((b) => b.id === bodyId) ?? bodies[0];
 
   const reader = (
     <div data-celestial-reader className={full ? "fixed inset-0 z-[120] flex flex-col overflow-auto" : "flex min-h-screen flex-col"} style={{ background: C.bg, color: C.text }}>
@@ -130,8 +137,18 @@ export function CelestialReader() {
             </div>
             <span className="ml-auto rounded-full border px-2 py-0.5 text-[10px] font-semibold" style={{ borderColor: levelMeta.stroke, color: levelMeta.stroke }}>{t("celestial.level." + level)}</span>
           </div>
-          <div data-cel-content className="whitespace-pre-line text-[13px] leading-relaxed" style={{ color: C.text }}>
-            {body.text[level]}
+          {/* 50/50 DUAL-LANGUAGE (Divinity bilingual-reader) — primary ‖ mirror, independent scroll, per-column RTL */}
+          <div data-cel-dual className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
+            {[{ k: "primary", loc: primaryLoc, set: setPrimaryLoc, bd: bodyP }, { k: "mirror", loc: mirrorLoc, set: setMirrorLoc, bd: bodyM }].map((col) => (
+              <div key={col.k} data-cel-col={col.k} dir={isRTL(col.loc) ? "rtl" : "ltr"}
+                className="flex w-full flex-col gap-1 md:w-1/2 md:min-h-0 md:overflow-y-auto md:pr-2">
+                <select data-cel-lang={col.k} value={col.loc} onChange={(e) => col.set(e.target.value)}
+                  className="self-start rounded border px-2 py-0.5 text-[11px] font-semibold" style={{ borderColor: C.border, background: C.panel, color: C.cyan }}>
+                  {langOptions.map((l) => <option key={l.code} value={l.code} style={{ background: C.panel, color: C.text }}>{l.nameNative}</option>)}
+                </select>
+                <div className="whitespace-pre-line text-[13px] leading-relaxed" style={{ color: C.text }}>{col.bd.text[level]}</div>
+              </div>
+            ))}
           </div>
 
           <div className="mt-auto border-t pt-2 text-[9px] leading-relaxed" style={{ borderColor: C.border, color: C.dim }}>
