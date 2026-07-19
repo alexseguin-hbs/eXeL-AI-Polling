@@ -121,8 +121,16 @@ export function ArchitectCelestial({
   const [orbitPlaying, setOrbitPlaying] = useState(false);
   const [orbitSpeed, setOrbitSpeed] = useState<number>(3);
   // Controlled selection from the Celestial-2525 reader: when the parent picks a body, select it on the map
-  // and start a slow replay at 1/12× (operator: "1/12 speed of 1x for when planet is selected on flower section").
-  useEffect(() => { if (externalSelId) { setSelId(externalSelId); setOrbitSpeed(1 / 12); setOrbitPlaying(true); } }, [externalSelId]);
+  // and start a slow replay at 1/12× (operator: "1/12 speed of 1x when a planet is selected"). Play must NOT
+  // auto-start on mount — only when the USER actively selects a body (map click or reading tab). The mount
+  // ref skips the first run so the initial default body renders static; every later selection starts play.
+  const selMounted = useRef(false);
+  useEffect(() => {
+    if (!externalSelId) return;
+    setSelId(externalSelId);
+    if (!selMounted.current) { selMounted.current = true; return; } // first paint → no auto-play
+    setOrbitSpeed(1 / 12); setOrbitPlaying(true); setPlaying(false);  // user selection → slow 1/12 orbit + mini revolution
+  }, [externalSelId]);
   const orbRaf = useRef<number | null>(null);
   const orbStart = useRef<number | null>(null);
   const orbBase = useRef(0);
@@ -140,6 +148,27 @@ export function ArchitectCelestial({
     return () => { if (orbRaf.current != null) cancelAnimationFrame(orbRaf.current); orbStart.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orbitPlaying, orbitSpeed]);
+
+  // MINI-MAP REVOLUTION: while the orbit is playing (and the one-shot rotation isn't), spin the selected body's
+  // mini globe continuously at the SAME speed scale as the orbit — so a 1/12× selection reveals both the slow
+  // orbit AND a slow globe revolution (operator: "1/12 speed for both Map and mini map planet revolution").
+  const [miniSpinDeg, setMiniSpinDeg] = useState(0);
+  const miniRaf = useRef<number | null>(null);
+  const miniStart = useRef<number | null>(null);
+  const miniBase = useRef(0);
+  useEffect(() => {
+    if (!orbitPlaying || playing) { miniStart.current = null; return; }
+    const period = 4000 / orbitSpeed;   // one globe rotation: 1×→4s · 1/12→48s (slow, matches the orbit scale)
+    const base = miniSpinDeg;
+    const tick = (ts: number) => {
+      if (miniStart.current == null) { miniStart.current = ts; miniBase.current = base; }
+      setMiniSpinDeg((miniBase.current + ((ts - miniStart.current) / period) * 360) % 360);
+      miniRaf.current = requestAnimationFrame(tick);
+    };
+    miniRaf.current = requestAnimationFrame(tick);
+    return () => { if (miniRaf.current != null) cancelAnimationFrame(miniRaf.current); miniStart.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orbitPlaying, orbitSpeed, playing]);
 
   // MOON PLAY (Earth only): one full Moon orbit — Moon angle 0→360° (same face, tidal-lock), Earth spins the
   // accurate N times (N = period ÷ Earth-day), then auto-stop. Sidereal 27.32 d (true orbit) / synodic 29.53 d.
@@ -382,10 +411,10 @@ export function ArchitectCelestial({
             render={(cs) => (
               <div className="relative" style={{ width: cs, height: cs }}>
                 {selId === "earth"
-                  ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare playT={playT}
+                  ? <EarthMoonBox lat={lat} lon={lon} year={year} doy={doy} hour={hour} size={cs} color={C.gold} bare playT={playing ? playT : (orbitPlaying ? (miniSpinDeg / 360) : 0)}
                       moonPlayT={moonPlayT} moonPeriodDays={moonPeriodDays} moonPlaying={moonPlaying} onMoonPlay={() => setMoonPlaying((p) => !p)}
                       moonMode={moonMode} onMoonMode={() => setMoonMode((m) => (m === "sidereal" ? "synodic" : "sidereal"))} />
-                  : <TexturedGlobe src={sel.p.tex} size={cs} ring={sel.p.rings ? SATURN_RING_TEX : null} spinDeg={playT * 360 * spinDir} />}
+                  : <TexturedGlobe src={sel.p.tex} size={cs} ring={sel.p.rings ? SATURN_RING_TEX : null} spinDeg={(playing ? playT * 360 : (orbitPlaying ? miniSpinDeg : 0)) * spinDir} />}
                 {/* PLANET ROTATION play — bottom-LEFT of the mini map (▶ · planet name), spins the selected body one
                     axial rotation then auto-stops (accurate retrograde direction). Moon revolution stays bottom-RIGHT. */}
                 <button data-planet-spin onClick={() => setPlaying((p) => !p)} title={`Spin ${sel.p.name} one rotation (${fmtRotation(sel.p.rotDays)})`}

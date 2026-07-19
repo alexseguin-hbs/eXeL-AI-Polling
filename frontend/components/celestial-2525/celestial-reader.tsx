@@ -28,7 +28,9 @@ export function CelestialReader() {
   const rtl = isRTL(activeLocale);
   const [level, setLevel] = useState<ReadingLevel>("middle");
   const [bodyId, setBodyId] = useState("earth");
-  const [openGroup, setOpenGroup] = useState<string | null>("sun-rocky");
+  // Reading area is GATED on a circle being selected (operator): starts minimized; tapping a Trinity circle
+  // opens its worlds + expands the reading page; tapping the centre intersection node minimizes it again.
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const body = bodies.find((b) => b.id === bodyId) ?? bodies[0];
   const levelMeta = READING_LEVELS.find((l) => l.id === level)!;
   const [full, setFull] = useState(false);          // full-screen (portal over the nav, like the map maximize)
@@ -97,7 +99,11 @@ export function CelestialReader() {
                   </g>
                 );
               })}
-              <circle cx="100" cy="84" r="4" fill="none" stroke="#e8eef7" strokeWidth="1" opacity="0.7" />
+              {/* centre intersection node — tap to MINIMIZE the reading area (closes all circles). */}
+              <circle data-cel-min cx="100" cy="84" r="7" fill="transparent" stroke="#e8eef7" strokeWidth="1" opacity={openGroup ? 0.9 : 0.4}
+                onClick={(e) => { e.stopPropagation(); setOpenGroup(null); }} style={{ cursor: "pointer" }}>
+                <title>Minimize the reading area</title>
+              </circle>
             </svg>
             {openGroup && (
               <div className="mt-1 flex flex-wrap justify-center gap-1.5">
@@ -117,7 +123,9 @@ export function CelestialReader() {
           </div>
         </div>
 
-        {/* RIGHT — the reading page for the selected body */}
+        {/* RIGHT — the reading page for the selected body. GATED: only rendered when a Trinity circle is
+            selected (operator); the centre intersection node minimizes it by clearing openGroup. */}
+        {openGroup && (
         <div data-cel-page dir={rtl ? "rtl" : "ltr"} className="flex w-full flex-col gap-3 overflow-y-auto p-4 lg:flex-1">
           {/* reading-level picker — DROPDOWN on phone (one line, no wrap), pills on ≥sm */}
           <div className="flex items-center gap-2">
@@ -169,6 +177,7 @@ export function CelestialReader() {
             {"12 worlds · 4 reading levels · authored by the 12 Ascended Masters. Facts from NASA fact sheets. Use the ⭐ feedback button to tell us what to add."}
           </div>
         </div>
+        )}
       </div>
     </div>
   );
