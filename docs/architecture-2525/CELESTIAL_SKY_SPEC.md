@@ -229,3 +229,16 @@ The churn came from feature-by-feature screenshot iteration with no written cont
    test a regression; never dismiss two failures as flaky.
 
 > This section is the operator's contract. Honor demands we reflect true reality — and that we stop repeating mistakes.
+
+## §13 — Invariants held + wrapped scope (Session 12)
+- **Single tilt source (held):** `tiltDeg` is the ONE tilt state (`architect-celestial.tsx`); `sinE = sin(tiltDeg)` and
+  `cosE = cos(tiltDeg)` derive from it once and feed BOTH the tilted and overhead/clock render branches + the star field.
+  There is no second tilt variable, so the two branches can never disagree — the "single-tilt-source invariant" the
+  hardening pass targeted already holds by construction. A physical helper-extraction is therefore optional and DEFERRED
+  (it would refactor operator-praised, live code for no user-facing gain — STITCH-ONLY, §12).
+- **Capability locks present:** `#A43` (clock toggle → SA tilt 45°, perihelion over the Sun) and `#A44` (Sky-Dome sun
+  rises EAST / sets WEST by hour — the homeowner arc) are live in `tests/architect-planning.spiral.mjs`.
+- **Gesture navigation present:** pinch-zoom · one-finger rotate/pan · two-finger pinch/twist/pan · right-drag rotate
+  (`gestureHandlers`). Gesture-**tilt** (right-drag-vertical → `setTiltDeg`) is DEFERRED: the SA-tilt slider remains the
+  precise control, and adding a new vertical-drag gesture to the praised map risks the existing pan/rotate feel.
+- **Celestial is WRAPPED** (operator-confirmed live at `407d03c`). Further celestial change re-opens this spec first (§12).
