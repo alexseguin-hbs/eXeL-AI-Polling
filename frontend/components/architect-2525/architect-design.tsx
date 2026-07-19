@@ -14,7 +14,9 @@ import { TinyFloorplan } from "./tiny-floorplan";
 import { MiniPanel } from "./mini-panel";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
-import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
+import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setRoomObjects, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
+import { RoomDesigner } from "./room-designer";
+import type { PlacedObject } from "@/lib/room-objects";
 import { sanitizeRoomLayout } from "@/lib/architect-guard";
 
 const C = {
@@ -83,6 +85,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // Enter a room → optimize IT ONLY: step its elements / toggle furniture (persisted, clamped).
   const setElement = (kind: ElementKind, delta: number) => { if (focusRoomId) setRoomLayout((prev) => persistLayout(setRoomElement(prev, focusRoomId, kind, delta))); };
   const toggleFurn = () => { if (focusRoomId) setRoomLayout((prev) => persistLayout(toggleRoomFurniture(prev, focusRoomId))); };
+  const setObjects = (objects: PlacedObject[]) => { if (focusRoomId) setRoomLayout((prev) => persistLayout(setRoomObjects(prev, focusRoomId, objects))); };
   const focusRoom = focusRoomId ? roomLayout.find((r) => r.id === focusRoomId) : undefined;
   // F9 stretch — resize the focused room's width/depth within the 10-ft envelope (1..2 cells = 10..20 ft),
   // clamped by the pure resizeRoomInLayout; persisted; feeds layoutSqft so area/cost track the change.
@@ -254,7 +257,12 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             ◎ {selectedLabel} <span style={{ color: C.dim }}>· shown on map</span>
           </div>
         )}
-        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} /> : tiny ? (
+        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} /> : tiny && focusRoom ? (
+          // EXPLODED single-room designer (operator IMG_7489: Enter → just this 10×10 in 2D + 10×10×10 in 3D)
+          <div data-arch-tiny-view className="relative">
+            <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)} />
+          </div>
+        ) : tiny ? (
           <div data-arch-tiny-view className="relative">
             {/* edit ⇄ walk toggle */}
             <div className="absolute right-2 top-2 z-20 flex gap-1">
@@ -302,7 +310,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                 <div data-arch-roommove-grip onPointerDown={moveGripDown} onPointerMove={moveGripMove} onPointerUp={moveGripUp} onPointerCancel={moveGripUp}
                   className="mb-0.5 flex w-full cursor-grab touch-none items-center gap-1 active:cursor-grabbing" title="Drag to move this panel">
                   <span className="tracking-tighter" style={{ color: C.dim, fontSize: 9 }}>⠿</span>
-                  <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Move room</span>
+                  <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Room · move / design</span>
                 </div>
                 <button data-arch-roommove-n onClick={() => moveRoom(-1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
                 <div className="flex gap-0.5">
@@ -310,7 +318,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                   <button data-arch-roommove-e onClick={() => moveRoom(0, 1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>E ▶</button>
                 </div>
                 <button data-arch-roommove-s onClick={() => moveRoom(1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▼ S</button>
-                <button data-arch-room-enter onClick={() => setFocusRoomId(roomSel)} className="mt-0.5 rounded border px-2 text-[10px] font-semibold" style={{ borderColor: C.cyan, color: C.cyan }}>⏎ Enter</button>
+                <button data-arch-room-enter onClick={() => setFocusRoomId(roomSel)} className="mt-0.5 rounded border px-2 text-[10px] font-semibold" style={{ borderColor: C.gold, color: C.gold }}>⏎ Enter &amp; Design</button>
                 <button data-arch-roommove-reset onClick={resetLayout} className="mt-0.5 rounded border px-1 text-[8px]" style={{ borderColor: C.border, color: C.dim }}>reset</button>
               </div>
             )}

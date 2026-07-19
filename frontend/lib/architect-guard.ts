@@ -14,6 +14,20 @@
 import { DEFAULT_PARAMS, type FinishTier, type GlobalParams, type HouseStyle } from "./architect-project";
 import { DEFAULT_PROGRAM, type RoomProgram } from "./room-program";
 import { cloneLayout, ELEMENT_MAX, TINY_GRID, type RoomCell } from "./room-layout";
+import { OBJECT_SPEC, ROOM_GRID, type PlacedObject, type ObjectKind, type Rot } from "./room-objects";
+
+/** Whitelist a stored PlacedObject[] — keep only well-formed placements, clamp to the 10×10 grid + valid rot. */
+function sanitizeObjects(raw: unknown): PlacedObject[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: PlacedObject[] = [];
+  for (const o of raw) {
+    const r = asRecord(o);
+    if (typeof r.id !== "string" || typeof r.kind !== "string" || !(r.kind in OBJECT_SPEC)) continue;
+    const rot = ([0, 90, 180, 270] as const).includes(r.rot as Rot) ? (r.rot as Rot) : 0;
+    out.push({ id: r.id, kind: r.kind as ObjectKind, gx: boundInt(r.gx, 0, ROOM_GRID - 1), gy: boundInt(r.gy, 0, ROOM_GRID - 1), rot });
+  }
+  return out.length ? out : undefined;
+}
 import { STANDARD_BY_ID } from "./building-codes";
 import type { ArchitectSnapshot } from "./architect-saved-files";
 
@@ -82,6 +96,7 @@ export function sanitizeRoomLayout(raw: unknown): RoomCell[] {
       doors: boundInt(c.doors, 0, ELEMENT_MAX),
       outlets: boundInt(c.outlets, 0, ELEMENT_MAX),
       furniture: c.furniture === true,
+      objects: sanitizeObjects(c.objects),
     });
   }
   return cells.length ? cells : cloneLayout();

@@ -17,6 +17,8 @@ export interface RoomCell {
   d: number;    // depth in 10-ft cells (1 = 10 ft)
   // Adjustable key elements of the 10×10 cube (operator: enter a room → optimize it only).
   windows: number; doors: number; outlets: number; furniture: boolean;
+  // Interactive in-room designer placements (#167) — furniture/openings on the 1-ft grid, 2D+3D.
+  objects?: import("./room-objects").PlacedObject[];
 }
 /** Kinds a room element editor can step. */
 export type ElementKind = "windows" | "doors" | "outlets";
@@ -82,6 +84,11 @@ export function resizeRoomInLayout(layout: RoomCell[], id: string, w: number, d:
 }
 
 /** Enter a room → optimize it only: step one element (windows/doors/outlets) by ±delta, clamped 0..ELEMENT_MAX. Pure. */
+/** Replace a room's interactive-designer object list (#167). Pure; returns a new layout. */
+export function setRoomObjects(layout: RoomCell[], id: string, objects: import("./room-objects").PlacedObject[]): RoomCell[] {
+  return layout.map((r) => (r.id === id ? { ...r, objects } : r));
+}
+
 export function setRoomElement(layout: RoomCell[], id: string, kind: ElementKind, delta: number): RoomCell[] {
   return layout.map((r) => (r.id === id ? { ...r, [kind]: Math.max(0, Math.min(ELEMENT_MAX, r[kind] + delta)) } : r));
 }
