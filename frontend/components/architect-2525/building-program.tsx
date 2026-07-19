@@ -25,7 +25,7 @@ function Stepper({ v, min, max, on }: { v: number; min: number; max: number; on:
   );
 }
 
-export function BuildingProgram({ state, homeType = "full" }: { state: LayerState; homeType?: "full" | "tiny" }) {
+export function BuildingProgram({ state, homeType = "full" }: { state: LayerState; homeType?: "full" | "tiny" | "multifamily" | "commercial" }) {
   const m = useMemo(() => programMetrics(state.globalParams, state.program, homeType), [state.globalParams, state.program, homeType]);
   const [open, setOpen] = useState<Record<string, boolean>>({ bedrooms: true });
   const tog = (k: string) => setOpen((o) => ({ ...o, [k]: !o[k] }));

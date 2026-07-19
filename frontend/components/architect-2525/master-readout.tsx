@@ -19,7 +19,7 @@ const fmtUsd = (n: number) => "$" + Math.round(n).toLocaleString();
 
 // `inline` renders the key WITHOUT its own card — for sitting inside the map's scrolling header (Security R-CORE
 // reuse). Default renders the bordered card. `whitespace-nowrap` keeps the chips on one scrollable line in a header.
-export function MasterReadout({ state, inline = false, homeType = "full" }: { state: LayerState; inline?: boolean; homeType?: "full" | "tiny" }) {
+export function MasterReadout({ state, inline = false, homeType = "full" }: { state: LayerState; inline?: boolean; homeType?: "full" | "tiny" | "multifamily" | "commercial" }) {
   const p = state.globalParams;
   const roll = projectRollup(Array.from(state.spec), state.gate, p);
   const est = houseEstimate(Array.from(state.spec));

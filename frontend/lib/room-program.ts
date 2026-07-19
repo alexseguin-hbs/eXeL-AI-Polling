@@ -43,7 +43,9 @@ function serviceAmps(usable: number): number {
  * one full bath (Master Bath). Fixed by the design — NOT derived from global area. */
 export const TINY_HOME = { grossSqft: 900, usableSqft: 900, rooms: 9, bathrooms: 1, bedrooms: 1, ceilingFt: 10, footprintFt: 30, windows: 8, doors: 9 } as const;
 
-export function programMetrics(params: GlobalParams, prog: RoomProgram = DEFAULT_PROGRAM, homeType: "full" | "tiny" = "full"): ProgramMetrics {
+// homeType accepts all four markets; only "tiny" changes the metrics (fixed 900 ft² program) — Home /
+// Multi-Family / Commercial use the style-equivalence gross/usable (per-market scale is a flagged follow-on).
+export function programMetrics(params: GlobalParams, prog: RoomProgram = DEFAULT_PROGRAM, homeType: "full" | "tiny" | "multifamily" | "commercial" = "full"): ProgramMetrics {
   const tiny = homeType === "tiny";
   const eq = tiny ? { gross: TINY_HOME.grossSqft, usable: TINY_HOME.usableSqft } : styleEquivalence(params); // gross + usable (net-to-gross by style)
   const usable = eq.usable, gross = eq.gross;

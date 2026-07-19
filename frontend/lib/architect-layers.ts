@@ -122,10 +122,16 @@ export function childCount(node: LayerNode | LayerScope): number {
 // TARGET MARKETS. The product serves two: Tiny Home and Home. A Tiny Home has LIMITED decisions — a
 // curated subset of physical systems/components is buildable; a Home is the full digital twin.
 // (Operator: "Tiny Home & Home are two target markets" · "tiny home … limits what assets … limited decisions.")
-export type HomeType = "full" | "tiny";
+// Four markets (S4/#114): Tiny Home (curated subset) · Home · Multi-Family · Commercial. Tiny is the only
+// market that LIMITS the buildable physical systems; the other three carry the full digital twin (every system
+// + Level 3 substrate), differing today by label/intent — per-market program scale + code sets are a follow-on
+// once the operator sets each market's unit counts / occupancy / applicable codes (flagged, not guessed).
+export type HomeType = "full" | "tiny" | "multifamily" | "commercial";
 export const HOME_TYPES: { id: HomeType; label: string; note: string }[] = [
   { id: "tiny", label: "Tiny Home", note: "Limited systems · fewer decisions · faster to build" },
   { id: "full", label: "Home", note: "Full digital twin · every system + Level 3 substrate" },
+  { id: "multifamily", label: "Multi-Family", note: "Full twin · multiple units · shared circulation + fire protection" },
+  { id: "commercial", label: "Commercial", note: "Full twin · occupancy-driven · fire/egress/ADA + heavier MEP" },
 ];
 
 // Tiny-home-buildable components, authored by label so slugs stay in sync with the tree. Excluded entirely:
@@ -159,9 +165,10 @@ export const TINY_VISIBLE: Set<string> = (() => {
   return vis;
 })();
 
-// Is this node offered for the given home type? Only the physical scope is limited; Operational/Lifecycle stay full.
+// Is this node offered for the given home type? Only TINY limits the physical scope; Home / Multi-Family /
+// Commercial all carry the full twin. Operational/Lifecycle scopes stay full for every market.
 export function isVisibleForType(id: string, scopeId: string, homeType: HomeType): boolean {
-  if (homeType === "full" || scopeId !== "physical") return true;
+  if (homeType !== "tiny" || scopeId !== "physical") return true;
   return TINY_VISIBLE.has(id);
 }
 
