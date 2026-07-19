@@ -28,10 +28,10 @@ import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
 
 const C = { dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", text: "#c8d6e5", green: "#22c55e" };
 
-export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, walk = false, walkRoomId, wallW = 1, hvac = false }: {
+export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, walk = false, walkRoomId, wallW = 1, hvac = false, showSockets = true }: {
   homeType?: HomeType; program?: RoomProgram; lat?: number; lon?: number; height?: number; compact?: boolean;
   layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void;
-  walk?: boolean; walkRoomId?: string | null; wallW?: number; hvac?: boolean;
+  walk?: boolean; walkRoomId?: string | null; wallW?: number; hvac?: boolean; showSockets?: boolean;
 }) {
   const [bearing, setBearing] = useState(0);       // 0 = NORTH up (operator: North is the default)
   const [pitch, setPitch] = useState(58);          // camera tilt (deg)
@@ -191,6 +191,23 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
     </div>
   ) : null;
 
+  // ELECTRICAL OUTLETS in WALK mode (operator IMG_7486: "sockets viewable in 3D walkable mode, single room
+  // only") — gold markers low on the walk-room's 4 walls, one per the room's outlet count. Toggled from the
+  // ⚡ Electric section of Design Settings; only rendered when walking a single room (never the full plan).
+  const sockets = walk && walkRoom && showSockets ? (
+    <div data-arch-voxel-sockets style={{ ...at(`translate3d(${wx}px,${wy}px,0px)`), transformStyle: "preserve-3d" }}>
+      {Array.from({ length: Math.min(8, walkRoom.outlets || 0) }).map((_, i) => {
+        const wall = i % 4, h = roomSize / 2, z = 4; // z ≈ outlet height, low on the wall
+        const along = (((Math.floor(i / 4) + 1) / (Math.floor((walkRoom.outlets || 0) / 4) + 2)) - 0.5) * roomSize * 0.7;
+        const t = wall === 0 ? `translate3d(${along}px,${-h}px,${z}px) rotateX(90deg)`
+          : wall === 1 ? `translate3d(${along}px,${h}px,${z}px) rotateX(90deg)`
+          : wall === 2 ? `translate3d(${-h}px,${along}px,${z}px) rotateY(90deg)`
+          : `translate3d(${h}px,${along}px,${z}px) rotateY(90deg)`;
+        return <div key={i} style={{ ...face(t, 3, 3, C.gold, true), boxShadow: `0 0 4px ${C.gold}` }} />;
+      })}
+    </div>
+  ) : null;
+
   // FULL-home fallback: the original 3×3×3 land base + one house cube at the centre cell.
   const fullLattice = !tiny ? [0, 1, 2, 3].map((k) => {
     const outer = k === 0 || k === 3;
@@ -215,7 +232,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
           {terrain}
           {fullLattice}
           {tiny
-            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture }))}{porch}{ducts}</div>
+            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture }))}{porch}{ducts}{sockets}</div>
             : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1)}</div>}
         </div>
       </div>

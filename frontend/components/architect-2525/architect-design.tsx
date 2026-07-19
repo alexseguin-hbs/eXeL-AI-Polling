@@ -119,6 +119,15 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [hvac, setHvac] = useState(false); // aerial HVAC ducts overlay (operator ask)
   useEffect(() => { try { setHvac(localStorage.getItem("arch2525.hvac") === "1"); } catch {} }, []);
   const toggleHvac = () => setHvac((h) => { const n = !h; try { localStorage.setItem("arch2525.hvac", n ? "1" : "0"); } catch {} return n; });
+  // DESIGN SETTINGS (operator IMG_7486/7488): declutter the toolbar into a ⚙ gear → grouped settings panel
+  // (Mission-Planning parity), sections by system with iconology. Electric = show outlets/sockets in walk mode.
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showSockets, setShowSockets] = useState(true);   // ⚡ outlets visible in 3D walk (single room)
+  useEffect(() => { try { setShowSockets(localStorage.getItem("arch2525.sockets") !== "0"); } catch {} }, []);
+  const toggleSockets = () => setShowSockets((s) => { const n = !s; try { localStorage.setItem("arch2525.sockets", n ? "1" : "0"); } catch {} return n; });
+  const [showPlumbing, setShowPlumbing] = useState(false); // 🚰 supply/DWV runs overlay (placeholder toggle)
+  useEffect(() => { try { setShowPlumbing(localStorage.getItem("arch2525.plumbing") === "1"); } catch {} }, []);
+  const togglePlumbing = () => setShowPlumbing((p) => { const n = !p; try { localStorage.setItem("arch2525.plumbing", n ? "1" : "0"); } catch {} return n; });
   // Tiny Home defaults to the 2D floor plan with a persistent 3D mini-map (operator: "2D and 3D");
   // the ▦ Voxel toggle still swaps the main view to the full 3D voxel. Leaving tiny turns voxel off.
   useEffect(() => { if (homeType !== "tiny") setVoxel(false); }, [homeType]);
@@ -179,10 +188,10 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                       style={{ color: on ? C.cyan : C.dim, background: on ? "#0e2233" : "transparent" }}>{lbl}</button>
                   ))}
                 </div>
-                {/* structural members — SEE + ADJUST stud/beam sizes (reflected as wireframe thickness) */}
-                <button data-arch-stud onClick={cycleStud} title="Stud size — tap to change" className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.text }}>Studs {STUD_SIZES[studIdx]}</button>
-                <button data-arch-beam onClick={cycleBeam} title="Beam size — tap to change" className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.text }}>Beams {BEAM_SIZES[beamIdx]}</button>
-                <button data-arch-hvac onClick={toggleHvac} title="Aerial HVAC ducts" className="rounded border px-2 py-0.5" style={{ borderColor: hvac ? "#38bdf8" : C.border, color: hvac ? "#38bdf8" : C.dim }}>🌬 Ducts</button>
+                {/* ⚙ DESIGN SETTINGS — Studs·Beams·Ducts·Electric·Plumbing moved OFF the toolbar into a grouped
+                    panel (operator IMG_7486/7488, Mission-Planning parity). Toolbar stays 2D/3D/Voxel + gear. */}
+                <button data-arch-design-settings-btn onClick={() => setSettingsOpen((v) => !v)} title="Design settings" aria-label="Design settings"
+                  className="rounded border px-2 py-0.5" style={{ borderColor: settingsOpen ? C.cyan : C.border, color: settingsOpen ? C.cyan : C.dim }}>⚙</button>
               </>
             ) : (
               <>
@@ -199,6 +208,45 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             )}
           </div>
         </div>
+        {/* DESIGN SETTINGS panel (Mission-Planning parity, operator IMG_7488) — grouped by system, iconology,
+            pill toggles. Opened by the ⚙ gear; declutters the toolbar. */}
+        {settingsOpen && tiny && (
+          <div data-arch-design-settings className="absolute right-2 top-9 z-30 w-60 rounded-lg border p-2 text-[10px] shadow-2xl"
+            style={{ borderColor: C.cyan, background: "#0a0f16f7" }}>
+            <div className="mb-1 flex items-center justify-between">
+              <span className="font-bold uppercase tracking-wider" style={{ color: C.cyan }}>Design Settings</span>
+              <button onClick={() => setSettingsOpen(false)} className="rounded px-1 hover:bg-white/10" style={{ color: C.dim }}>✕</button>
+            </div>
+            {/* 🏗 STRUCTURAL */}
+            <div className="mb-0.5 mt-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}>🏗 Structural</div>
+            <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
+              <span>Studs</span>
+              <button data-arch-stud onClick={cycleStud} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{STUD_SIZES[studIdx]}</button>
+            </div>
+            <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
+              <span>Beams</span>
+              <button data-arch-beam onClick={cycleBeam} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{BEAM_SIZES[beamIdx]}</button>
+            </div>
+            {/* 🌬 AIR FLOW */}
+            <div className="mb-0.5 mt-1.5 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}>🌬 Air Flow</div>
+            <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
+              <span>Ducts (aerial)</span>
+              <button data-arch-hvac onClick={toggleHvac} className="rounded border px-2 py-0.5" style={{ borderColor: hvac ? "#38bdf8" : C.border, color: hvac ? "#38bdf8" : C.dim }}>{hvac ? "ON" : "OFF"}</button>
+            </div>
+            {/* ⚡ ELECTRIC */}
+            <div className="mb-0.5 mt-1.5 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}>⚡ Electric</div>
+            <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
+              <span>Outlets in walk</span>
+              <button data-arch-sockets onClick={toggleSockets} className="rounded border px-2 py-0.5" style={{ borderColor: showSockets ? C.gold : C.border, color: showSockets ? C.gold : C.dim }}>{showSockets ? "ON" : "OFF"}</button>
+            </div>
+            {/* 🚰 PLUMBING */}
+            <div className="mb-0.5 mt-1.5 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}>🚰 Plumbing</div>
+            <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
+              <span>Supply · DWV runs</span>
+              <button data-arch-plumbing onClick={togglePlumbing} className="rounded border px-2 py-0.5" style={{ borderColor: showPlumbing ? "#22c55e" : C.border, color: showPlumbing ? "#22c55e" : C.dim }}>{showPlumbing ? "ON" : "OFF"}</button>
+            </div>
+          </div>
+        )}
         {/* F3 — clicking an Active Element / Vision-Tree row reflects it ON the map (2D or 3D voxel). */}
         {selectedLabel && (
           <div data-arch-selected-onmap className="pointer-events-none absolute left-1/2 top-9 z-20 -translate-x-1/2 animate-pulse rounded-full border px-3 py-1 text-[10px] font-semibold shadow-lg"
@@ -220,7 +268,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             {tinyMode === "walk" ? (
               <div data-arch-walk className="relative">
                 {/* low-fidelity wireframe WALKTHROUGH — step room to room through the voxel at eye level */}
-                <VoxelHouse homeType={homeType} program={program} height={380} compact layout={roomLayout} walk walkRoomId={walkRoomId} wallW={wallW} hvac={hvac} />
+                <VoxelHouse homeType={homeType} program={program} height={380} compact layout={roomLayout} walk walkRoomId={walkRoomId} wallW={wallW} hvac={hvac} showSockets={showSockets} />
                 <div data-arch-walk-room className="absolute left-2 top-2 rounded-lg border px-2 py-1 text-[11px] font-semibold shadow-lg"
                   style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16ee" }}>
                   🚶 {walkRoom ? `${walkRoom.k} · ${walkRoom.label}` : "—"}
