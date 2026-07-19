@@ -40,7 +40,9 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   // Selection can be lifted (controlled) so the 2D plan, 3D voxel, and right panel agree; else local.
   const selId = onSelectRoom ? (selectedRoomId ?? null) : selLocal;
   const selectRoom = (id: string) => { if (onSelectRoom) onSelectRoom(id); else setSelLocal((s) => (s === id ? null : id)); };
-  const tiny = homeType === "tiny";
+  // Room-based render applies to the unlocked markets — Tiny Home AND Home (MF/Commercial locked). Both show the
+  // 9-room ground floor as LEVEL 1 of a 3×3×3 cube (operator: "voxel = first level of a 3×3×3 cube").
+  const tiny = homeType === "tiny" || homeType === "full";
 
   const cell = 66, n = 3, box = n * cell; // land-base cell (px); the house = the centre cell at 1× voxel size
   const at = (t: string): CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
@@ -216,6 +218,22 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
       backgroundImage: `repeating-linear-gradient(to right, ${C.cyan}22 0 1px, transparent 1px ${cell}px), repeating-linear-gradient(to bottom, ${C.cyan}22 0 1px, transparent 1px ${cell}px)` }} />;
   }) : null;
 
+  // 3×3×3 CUBE FRAME (operator: "voxel = first level of a 3×3×3 cube") — the 9-room ground floor is LEVEL 1; two
+  // more wireframe levels (violet 3×3 grids at the room-height pitch) + corner posts stack above the house's
+  // centre cell, so the home reads as the first level of a 27-cell cube (Vision-2525 cube · room to grow up).
+  const cubeFrame = tiny ? (
+    <div data-arch-voxel-cube style={{ transformStyle: "preserve-3d" }}>
+      {[1, 2, 3].map((lvl) => (
+        <div key={`cl${lvl}`} style={{ ...at(`translateZ(${lvl * roomSize}px)`), width: cell, height: cell,
+          border: `1px solid ${C.violet}${lvl === 3 ? "88" : "44"}`,
+          backgroundImage: `repeating-linear-gradient(to right, ${C.violet}22 0 1px, transparent 1px ${roomSize}px), repeating-linear-gradient(to bottom, ${C.violet}22 0 1px, transparent 1px ${roomSize}px)` }} />
+      ))}
+      {([[-1, -1], [1, -1], [-1, 1], [1, 1]] as const).map(([sx, sy], i) => (
+        <div key={`post${i}`} style={{ ...at(`translate3d(${sx * cell / 2}px,${sy * cell / 2}px,${1.5 * roomSize}px) rotateX(90deg)`), width: 1.4, height: 3 * roomSize, background: `${C.violet}66` }} />
+      ))}
+    </div>
+  ) : null;
+
   const beds = program?.bedrooms;
   const caption = tiny
     ? "Tiny Home · house = centre cube of the 3×3 land base · surrounding land shows elevation · orbit to read relief · scroll to zoom"
@@ -232,7 +250,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
           {terrain}
           {fullLattice}
           {tiny
-            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture }))}{porch}{ducts}{sockets}</div>
+            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture }))}{porch}{ducts}{sockets}{cubeFrame}</div>
             : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1)}</div>}
         </div>
       </div>

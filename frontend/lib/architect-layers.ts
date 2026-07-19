@@ -127,12 +127,16 @@ export function childCount(node: LayerNode | LayerScope): number {
 // + Level 3 substrate), differing today by label/intent — per-market program scale + code sets are a follow-on
 // once the operator sets each market's unit counts / occupancy / applicable codes (flagged, not guessed).
 export type HomeType = "full" | "tiny" | "multifamily" | "commercial";
-export const HOME_TYPES: { id: HomeType; label: string; note: string }[] = [
+// `locked` markets are shown in the selector but not yet selectable (operator: lock MF + Commercial for now);
+// they inherit the full design tooling once unlocked. Tiny + Home are the live, buildable markets today.
+export const HOME_TYPES: { id: HomeType; label: string; note: string; locked?: boolean }[] = [
   { id: "tiny", label: "Tiny Home", note: "Limited systems · fewer decisions · faster to build" },
   { id: "full", label: "Home", note: "Full digital twin · every system + Level 3 substrate" },
-  { id: "multifamily", label: "Multi-Family", note: "Full twin · multiple units · shared circulation + fire protection" },
-  { id: "commercial", label: "Commercial", note: "Full twin · occupancy-driven · fire/egress/ADA + heavier MEP" },
+  { id: "multifamily", label: "Multi-Family", note: "Multiple units · shared circulation + fire protection · coming soon", locked: true },
+  { id: "commercial", label: "Commercial", note: "Occupancy-driven · fire/egress/ADA + heavier MEP · coming soon", locked: true },
 ];
+/** The markets a user can actually select today (unlocked). Others render 🔒 in the selector. */
+export const UNLOCKED_MARKETS: HomeType[] = HOME_TYPES.filter((h) => !h.locked).map((h) => h.id);
 
 // Tiny-home-buildable components, authored by label so slugs stay in sync with the tree. Excluded entirely:
 // Fire Protection, Communications & Low Voltage, and all Level 3 Cubes (no L3 substrate on a tiny home).

@@ -62,6 +62,10 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [walkRoomId, setWalkRoomId] = useState<string>("entry");     // low-fi walkthrough position
   const [focusRoomId, setFocusRoomId] = useState<string | null>(null); // ⏎ Enter a room → optimize it only
   const tiny = homeType === "tiny";
+  // The room-based design tooling (⚙ settings · Move Room · ⏎ Enter · exploded RoomDesigner · room 2D/3D) is
+  // offered for every UNLOCKED market — Tiny Home AND Home (operator: "replicate tiny features for other options";
+  // Multi-Family/Commercial are locked). Home reuses the same room layout to start (per-market sets refine later).
+  const designable = homeType === "tiny" || homeType === "full";
   const selectRoom = (id: string) => setRoomSel((s) => (s === id ? null : id));
   // Persist the room layout so a design survives reload (the kid's home iterates over time). Write-on-mutation
   // (never a value-effect) — the repo's usePersistentSet pattern — so the mount load can't be clobbered.
@@ -183,7 +187,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
         <div data-arch-map-header className="mb-1 flex items-center gap-3 overflow-x-auto text-[10px]">
           {header}
           <div className="flex shrink-0 items-center gap-1" style={header ? { marginLeft: "auto" } : undefined}>
-            {tiny ? (
+            {designable ? (
               <>
                 {/* segmented view — 2D · 3D · Voxel (Mission-Planning-style; replaces the loose toggles) */}
                 <div className="flex overflow-hidden rounded border" style={{ borderColor: C.border }}>
@@ -216,7 +220,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
         </div>
         {/* DESIGN SETTINGS panel (Mission-Planning parity, operator IMG_7488) — grouped by system, iconology,
             pill toggles. Opened by the ⚙ gear; declutters the toolbar. */}
-        {settingsOpen && tiny && (
+        {settingsOpen && designable && (
           <div data-arch-design-settings className="absolute right-2 top-9 z-30 w-60 rounded-lg border p-2 text-[10px] shadow-2xl"
             style={{ borderColor: C.cyan, background: "#0a0f16f7" }}>
             <div className="mb-1 flex items-center justify-between">
@@ -260,12 +264,12 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             ◎ {selectedLabel} <span style={{ color: C.dim }}>· shown on map</span>
           </div>
         )}
-        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} /> : tiny && focusRoom ? (
+        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} /> : designable && focusRoom ? (
           // EXPLODED single-room designer (operator IMG_7489: Enter → just this 10×10 in 2D + 10×10×10 in 3D)
           <div data-arch-tiny-view className="relative">
             <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)} />
           </div>
-        ) : tiny ? (
+        ) : designable ? (
           <div data-arch-tiny-view className="relative">
             {/* edit ⇄ walk toggle */}
             <div className="absolute right-2 top-2 z-20 flex gap-1">

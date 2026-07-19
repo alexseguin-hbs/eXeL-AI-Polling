@@ -30,7 +30,7 @@ import { useLayerState } from "./use-layer-state";
 import { HouseSpec } from "./house-spec";
 import { CodesPanel } from "./codes-panel";
 import { MasterReadout } from "./master-readout";
-import { type HomeType, findLayer, flattenLayers } from "@/lib/architect-layers";
+import { type HomeType, UNLOCKED_MARKETS, findLayer, flattenLayers } from "@/lib/architect-layers";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
 import { SkyCelestialEmbed } from "./sky-celestial-embed";
@@ -133,7 +133,14 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   // references it (Vision 2525 Digital Twin Standard v1.0). Drives the RIGHT Context panel (C5).
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const layerState = useLayerState(); // shared visibility/lock — driven from BOTH the tree and the Context inspector
-  const [homeType, setHomeType] = useState<HomeType>("full"); // Tiny Home limits buildable systems + decisions (R3)
+  // Target market — PERSISTED (arch2525.homeType) so it survives reloads/deploys (operator: tooling "disappeared"
+  // because the selection reset to Home each load). Only UNLOCKED markets are accepted (Tiny · Home).
+  const [homeType, setHomeTypeState] = useState<HomeType>(() => {
+    if (typeof window === "undefined") return "full";
+    try { const v = localStorage.getItem("arch2525.homeType"); if (v && UNLOCKED_MARKETS.includes(v as HomeType)) return v as HomeType; } catch {}
+    return "full";
+  });
+  const setHomeType = (t: HomeType) => { if (!UNLOCKED_MARKETS.includes(t)) return; setHomeTypeState(t); try { localStorage.setItem("arch2525.homeType", t); } catch {} };
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFps, setShowFps] = useState(() => { try { return localStorage.getItem("arch2525.fps") === "1"; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem("arch2525.fps", showFps ? "1" : "0"); } catch {} }, [showFps]);

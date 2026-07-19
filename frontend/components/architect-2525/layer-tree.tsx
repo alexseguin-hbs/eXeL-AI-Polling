@@ -126,12 +126,14 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
       {/* TARGET MARKET — Tiny Home & Home are the two markets. Tiny Home limits systems + decisions (R3/R8). */}
       <div data-layer-hometype className="mb-1 rounded border p-1" style={{ borderColor: C.border }}>
         <div className="mb-1 px-1 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Target market</div>
-        <div className="flex items-center gap-1">
+        <div className="grid grid-cols-2 gap-1">
           {HOME_TYPES.map((h) => (
-            <button key={h.id} data-hometype={h.id} title={h.note} onClick={() => onHomeType?.(h.id)}
-              className="flex-1 rounded px-2 py-1 text-[9px] font-semibold uppercase tracking-wide"
-              style={{ background: homeType === h.id ? "#221833" : "transparent", color: homeType === h.id ? C.violet : C.dim }}>
-              {h.label}
+            <button key={h.id} data-hometype={h.id} data-hometype-locked={h.locked ? "1" : undefined}
+              title={h.locked ? `${h.label} — coming soon` : h.note} disabled={h.locked}
+              onClick={() => { if (!h.locked) onHomeType?.(h.id); }}
+              className="flex items-center justify-center gap-1 rounded px-2 py-1 text-[9px] font-semibold uppercase tracking-wide"
+              style={{ background: homeType === h.id ? "#221833" : "transparent", color: h.locked ? "#3a4658" : homeType === h.id ? C.violet : C.dim, cursor: h.locked ? "not-allowed" : "pointer" }}>
+              {h.locked && <Lock className="h-2.5 w-2.5" />}{h.label}
             </button>
           ))}
         </div>
