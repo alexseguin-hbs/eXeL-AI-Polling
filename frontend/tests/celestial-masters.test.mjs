@@ -16,5 +16,14 @@ const masters = CELESTIAL_BODIES.map((b) => b.master);
 rec('all 12 masters distinct (not all one master)', new Set(masters).size === 12 && masters.length === 12, `distinct=${new Set(masters).size}/${masters.length}`);
 rec('every body has content at all 4 reading levels', CELESTIAL_BODIES.every((b) => b.text.kids && b.text.middle && b.text.high && b.text.adult), '');
 
+// SYMBOLOGY LOCK (operator IMG_7475): Sun/Earth/Moon/Polaris must use astronomical GLYPHS matching the
+// planets — never colour picture-emoji. Guard the exact glyphs + a no-emoji-variation-selector rule.
+const GLYPH = { sun: '☉', earth: '♁', moon: '☽', polaris: '★' };
+for (const [id, g] of Object.entries(GLYPH)) {
+  const b = CELESTIAL_BODIES.find((x) => x.id === id);
+  rec(`${id} uses glyph symbology ${g}`, b?.emoji === g, `got ${b?.emoji}`);
+}
+rec('no body uses an emoji variation-selector (\\uFE0F) — glyphs only', CELESTIAL_BODIES.every((b) => !/️/.test(b.emoji)), '');
+
 console.log(`\nCELESTIAL-MASTERS ${pass}/${pass + fail} passed`);
 process.exit(fail === 0 ? 0 : 1);
