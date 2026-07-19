@@ -64,7 +64,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const { bearing, pitch, zoom } = cam;
   const camReset = cam.reset;
 
-  const cellFromEvent = (e: React.PointerEvent | React.MouseEvent): { gx: number; gy: number } | null => {
+  const cellFromEvent = (e: React.PointerEvent | React.MouseEvent | React.DragEvent): { gx: number; gy: number } | null => {
     const svg = svgRef.current; if (!svg) return null;
     const r = svg.getBoundingClientRect();
     // Screen → viewBox (0..100, square so linear), then UNDO the plan rotation about the centre (50,50).
@@ -97,6 +97,15 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   };
   const svgUp = () => { drag.current = null; };
   const bgClick = (e: React.MouseEvent) => { const c = cellFromEvent(e); if (c) placeAt(c.gx, c.gy); };
+  // Drag an asset FROM the palette and DROP it on the floor (operator IMG_7513: "drag from left on map").
+  const dropOnFloor = (e: React.DragEvent) => {
+    e.preventDefault();
+    const k = e.dataTransfer.getData("text/plain") as ObjectKind;
+    if (!(k in OBJECT_SPEC)) return;
+    const c = cellFromEvent(e); if (!c) return;
+    const p = OBJECT_SPEC[k].onWall ? wallSnap(c.gx, c.gy) : c;
+    onChange(placeObject(objects, k, p.gx, p.gy));
+  };
 
   const sel = objects.find((o) => o.id === selId) || null;
 
@@ -153,7 +162,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         {/* 2D interactive floor — rotatable (North compass) + mirror; placement inverts the rotation */}
         <div className="relative w-full lg:w-1/2">
           <svg ref={svgRef} data-arch-roomdesign-2d viewBox="0 0 100 100" className="w-full rounded border" style={{ borderColor: C.cyan, background: "#070b12", aspectRatio: "1 / 1", touchAction: "none" }}
-            onPointerMove={svgMove} onPointerUp={svgUp} onPointerCancel={svgUp}>
+            onPointerMove={svgMove} onPointerUp={svgUp} onPointerCancel={svgUp}
+            onDragOver={(e) => e.preventDefault()} onDrop={dropOnFloor}>
             <g data-arch-roomdesign-2d-rot transform={`rotate(${bearing2d} 50 50)`}>
             {/* 1-ft grid */}
             {Array.from({ length: N + 1 }).map((_, i) => (
@@ -261,8 +271,9 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         {OBJECT_KINDS.map((k) => {
           const s = OBJECT_SPEC[k], on = tool === k, Icon = ICON[k];
           return (
-            <button key={k} data-arch-tool={k} onClick={() => setTool(on ? null : k)} title={s.label}
-              className="flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px]"
+            <button key={k} data-arch-tool={k} onClick={() => setTool(on ? null : k)} title={`${s.label} — tap then tap the floor, or drag onto the plan`}
+              draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", k); e.dataTransfer.effectAllowed = "copy"; setTool(k); }}
+              className="flex cursor-grab items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] active:cursor-grabbing"
               style={{ borderColor: on ? C.gold : C.border, background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
               <Icon className="h-3.5 w-3.5" style={{ color: on ? C.gold : s.color }} />{s.label}
             </button>
