@@ -16,8 +16,18 @@ export type ObjectKind =
 
 export type Rot = 0 | 90 | 180 | 270;
 
-/** One placed object on the room floor grid. gx/gy = grid cell (0..9); rot = 0|90|180|270°. */
-export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; }
+/** One placed object on the room floor grid. gx/gy = grid cell (0..9); rot = 0|90|180|270°; variant = size id. */
+export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; variant?: string; }
+
+/** Size variants (feet) for kinds that come in standard sizes — e.g. beds: Twin/Full/Queen/King (operator example). */
+export interface SizeVariant { id: string; label: string; w: number; d: number }
+export const BED_VARIANTS: SizeVariant[] = [
+  { id: "twin",  label: "Twin",  w: 3.25, d: 6.25 },
+  { id: "full",  label: "Full",  w: 4.5,  d: 6.25 },
+  { id: "queen", label: "Queen", w: 5,    d: 6.67 },
+  { id: "king",  label: "King",  w: 6.33, d: 6.67 },
+];
+export const VARIANTS: Partial<Record<ObjectKind, SizeVariant[]>> = { bed: BED_VARIANTS };
 
 /** Palette metadata — footprint (ft), display glyph/label, colour, and whether it snaps to a WALL edge. */
 export const OBJECT_SPEC: Record<ObjectKind, { label: string; emoji: string; w: number; d: number; onWall: boolean; color: string }> = {
@@ -57,6 +67,24 @@ export function moveObject(objs: PlacedObject[], id: string, gx: number, gy: num
 /** Rotate an object 90° clockwise (0→90→180→270→0). */
 export function rotateObject(objs: PlacedObject[], id: string): PlacedObject[] {
   return objs.map((o) => (o.id === id ? { ...o, rot: (((o.rot + 90) % 360) as Rot) } : o));
+}
+
+/** Footprint (ft) for a placed object — its variant's size when set, else the kind default. */
+export function footprintOf(o: PlacedObject): { w: number; d: number } {
+  const vs = VARIANTS[o.kind];
+  if (vs && o.variant) { const v = vs.find((x) => x.id === o.variant); if (v) return { w: v.w, d: v.d }; }
+  return { w: OBJECT_SPEC[o.kind].w, d: OBJECT_SPEC[o.kind].d };
+}
+
+/** Cycle an object to its next size variant (no-op for kinds without variants). First cycle sets the 2nd size. */
+export function cycleVariant(objs: PlacedObject[], id: string): PlacedObject[] {
+  return objs.map((o) => {
+    if (o.id !== id) return o;
+    const vs = VARIANTS[o.kind]; if (!vs || vs.length === 0) return o;
+    const cur = vs.findIndex((v) => v.id === o.variant);
+    const idx = cur < 0 ? 0 : (cur + 1) % vs.length;
+    return { ...o, variant: vs[idx].id };
+  });
 }
 
 /** Remove an object. */

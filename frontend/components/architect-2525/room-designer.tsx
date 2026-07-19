@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import {
   OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
+  footprintOf, cycleVariant, VARIANTS,
   type PlacedObject, type ObjectKind,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
@@ -203,7 +204,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             {/* placed objects */}
             {objects.map((o) => {
               const s = OBJECT_SPEC[o.kind];
-              const w = s.w, d = s.d; // footprint in ft (rotation applied via the SVG transform below)
+              const { w, d } = footprintOf(o); // footprint in ft (variant-aware; rotation applied via SVG transform below)
               const cx = o.gx * 10 + 5, cy = o.gy * 10 + 5;
               const on = o.id === selId;
               const Icon = ICON[o.kind];
@@ -246,8 +247,9 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             {/* objects as extruded footprints (top face lifted by object height), depth-sorted for the orbit */}
             {objs3d.map((o) => {
               const s = OBJECT_SPEC[o.kind];
+              const fp = footprintOf(o);
               const swap = o.rot === 90 || o.rot === 270;
-              const w = swap ? s.d : s.w, d = swap ? s.w : s.d, hgt = Math.max(2, Math.min(7, Math.round((s.w + s.d) / 2)));
+              const w = swap ? fp.d : fp.w, d = swap ? fp.w : fp.d, hgt = Math.max(2, Math.min(7, Math.round((fp.w + fp.d) / 2)));
               const x0 = o.gx + 0.5 - w / 2, y0 = o.gy + 0.5 - d / 2;
               const base = [iso(x0, y0, 0), iso(x0 + w, y0, 0), iso(x0 + w, y0 + d, 0), iso(x0, y0 + d, 0)];
               const top = [iso(x0, y0, hgt), iso(x0 + w, y0, hgt), iso(x0 + w, y0 + d, hgt), iso(x0, y0 + d, hgt)];
@@ -299,15 +301,28 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         })}
       </div>
 
-      {/* selected-object controls */}
-      {sel && (() => { const SelIcon = ICON[sel.kind]; return (
-        <div className="flex items-center gap-2 text-[10px]" style={{ color: C.text }}>
-          <span className="flex items-center gap-1" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {OBJECT_SPEC[sel.kind].label}</span>
-          <button data-arch-roomobj-rotate onClick={() => onChange(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
-          <button data-arch-roomobj-delete onClick={() => { onChange(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
-          <span style={{ color: C.dim }}>· drag to move</span>
-        </div>
-      ); })()}
+      {/* selected-object controls + details (dims · size variant) — the "asset details" for the active element */}
+      {sel && (() => {
+        const SelIcon = ICON[sel.kind];
+        const fp = footprintOf(sel);
+        const vs = VARIANTS[sel.kind];
+        const vLabel = vs?.find((v) => v.id === sel.variant)?.label;
+        const fmt = (n: number) => (Number.isInteger(n) ? `${n}` : n.toFixed(1).replace(/\.0$/, ""));
+        return (
+          <div data-arch-roomobj-detail className="flex flex-wrap items-center gap-2 text-[10px]" style={{ color: C.text }}>
+            <span className="flex items-center gap-1" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {vLabel ? `${vLabel} ` : ""}{OBJECT_SPEC[sel.kind].label}</span>
+            <span data-arch-roomobj-dims style={{ color: C.dim }}>{fmt(fp.w)}′ × {fmt(fp.d)}′</span>
+            {vs && (
+              <button data-arch-roomobj-size onClick={() => onChange(cycleVariant(objects, sel.id))} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.violet }}>
+                Size: {vLabel ?? "—"} ↻
+              </button>
+            )}
+            <button data-arch-roomobj-rotate onClick={() => onChange(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
+            <button data-arch-roomobj-delete onClick={() => { onChange(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
+            <span style={{ color: C.dim }}>· drag to move</span>
+          </div>
+        );
+      })()}
     </div>
   );
 }

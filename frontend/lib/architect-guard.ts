@@ -14,7 +14,7 @@
 import { DEFAULT_PARAMS, type FinishTier, type GlobalParams, type HouseStyle } from "./architect-project";
 import { DEFAULT_PROGRAM, type RoomProgram } from "./room-program";
 import { cloneLayout, ELEMENT_MAX, TINY_GRID, type RoomCell } from "./room-layout";
-import { OBJECT_SPEC, ROOM_GRID, type PlacedObject, type ObjectKind, type Rot } from "./room-objects";
+import { OBJECT_SPEC, ROOM_GRID, VARIANTS, type PlacedObject, type ObjectKind, type Rot } from "./room-objects";
 
 /** Whitelist a stored PlacedObject[] — keep only well-formed placements, clamp to the 10×10 grid + valid rot. */
 function sanitizeObjects(raw: unknown): PlacedObject[] | undefined {
@@ -24,7 +24,10 @@ function sanitizeObjects(raw: unknown): PlacedObject[] | undefined {
     const r = asRecord(o);
     if (typeof r.id !== "string" || typeof r.kind !== "string" || !(r.kind in OBJECT_SPEC)) continue;
     const rot = ([0, 90, 180, 270] as const).includes(r.rot as Rot) ? (r.rot as Rot) : 0;
-    out.push({ id: r.id, kind: r.kind as ObjectKind, gx: boundInt(r.gx, 0, ROOM_GRID - 1), gy: boundInt(r.gy, 0, ROOM_GRID - 1), rot });
+    // Preserve a size variant only if it's a known id for this kind (whitelist — untrusted stored value).
+    const kind = r.kind as ObjectKind;
+    const variant = typeof r.variant === "string" && VARIANTS[kind]?.some((v) => v.id === r.variant) ? r.variant : undefined;
+    out.push({ id: r.id, kind, gx: boundInt(r.gx, 0, ROOM_GRID - 1), gy: boundInt(r.gy, 0, ROOM_GRID - 1), rot, ...(variant ? { variant } : {}) });
   }
   return out.length ? out : undefined;
 }

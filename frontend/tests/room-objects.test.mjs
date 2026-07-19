@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -42,6 +42,17 @@ const mvert = mirrorObjects(mo, "v");
 ok(mvert[0].gy === ROOM_GRID - 1 - 3 && mvert[0].gx === 2, "mirror v flips gy (3→6), keeps gx");
 ok(JSON.stringify(mirrorObjects(mh, "h")) === JSON.stringify(mo), "mirror h twice = identity (involution, replay-safe)");
 ok(mo[0].gx === 2, "mirror did not mutate the source array");
+
+// Size variants — beds come in Twin/Full/Queen/King (operator example); footprint follows the variant.
+ok(BED_VARIANTS.length === 4 && BED_VARIANTS.map((v) => v.id).join() === "twin,full,queen,king", "bed variants = twin,full,queen,king");
+ok(VARIANTS.bed && !VARIANTS.sofa, "only kinds with sizes have variants (bed yes, sofa no)");
+let bo = placeObject([], "bed", 4, 4);
+ok(footprintOf(bo[0]).w === OBJECT_SPEC.bed.w, "no variant → kind-default footprint");
+bo = cycleVariant(bo, "bed-1"); ok(bo[0].variant === "twin", "first cycle → twin (index 0)");
+bo = cycleVariant(bo, "bed-1"); ok(bo[0].variant === "full", "next cycle → full");
+const king = { id: "bed-9", kind: "bed", gx: 0, gy: 0, rot: 0, variant: "king" };
+ok(footprintOf(king).w === 6.33 && footprintOf(king).d === 6.67, "king footprint = 6.33 × 6.67 ft");
+ok(cycleVariant(placeObject([], "sofa", 1, 1), "sofa-1")[0].variant === undefined, "cycleVariant no-op for kinds without variants");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");
