@@ -11,7 +11,7 @@ class FeedbackCreate(BaseModel):
     feedback_text: str = Field(..., min_length=1, max_length=2000)
     screen: str = Field(default="unknown", max_length=50)
     category: str = Field(default="general", max_length=30)
-    device_type: str | None = None
+    device_type: str | None = Field(default=None, max_length=20)  # bound to match the DB VARCHAR(20)
     language_code: str = Field(default="en", max_length=10)
 
 
