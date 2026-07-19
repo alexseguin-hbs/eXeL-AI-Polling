@@ -66,7 +66,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   };
   const camMove = (e: React.PointerEvent) => {
     if (!gp.current.has(e.pointerId)) {
-      if (e.buttons === 1) { setBearing((b) => b + e.movementX * 0.012); setPitch((p) => Math.max(6, Math.min(90, p - e.movementY * 0.15))); }
+      // LEFT or RIGHT button orbits/tilts (Mission-Planning parity); the svg suppresses the context menu.
+      if (e.buttons === 1 || e.buttons === 2) { setBearing((b) => b + e.movementX * 0.012); setPitch((p) => Math.max(6, Math.min(90, p - e.movementY * 0.15))); }
       return;
     }
     const prev = gp.current.get(e.pointerId)!;
@@ -214,6 +215,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         <div className="relative w-full lg:w-1/2">
           <svg data-arch-roomdesign-3d viewBox="0 0 260 220" className="w-full rounded border"
             style={{ borderColor: C.cyan, background: "#070b12", aspectRatio: "1 / 1", touchAction: "none", cursor: "grab" }}
+            onContextMenu={(e) => e.preventDefault()}
             onPointerDown={camDown} onPointerMove={camMove} onPointerUp={camUp} onPointerLeave={camUp} onPointerCancel={camUp} onWheel={camWheel}>
             <polygon points={poly(floor)} fill={`${C.cyan}12`} stroke={`${C.cyan}66`} strokeWidth={1} />
             {[0, 1, 2, 3].map((i) => <line key={i} x1={floor[i][0]} y1={floor[i][1]} x2={ceil[i][0]} y2={ceil[i][1]} stroke={`${C.cyan}44`} strokeWidth={0.8} />)}

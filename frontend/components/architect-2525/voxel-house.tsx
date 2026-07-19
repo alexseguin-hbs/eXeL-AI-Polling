@@ -57,8 +57,9 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   const onDown = (e: React.PointerEvent) => { gp.current.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (gp.current.size === 2) gpinch.current = null; };
   const onMove = (e: React.PointerEvent) => {
     if (!gp.current.has(e.pointerId)) {
-      // mouse fallback: primary button held with no tracked pointer (e.g. capture missed)
-      if (e.buttons === 1) { setBearing((b) => b + e.movementX * 0.012); setPitch((p) => Math.max(18, Math.min(82, p - e.movementY * 0.15))); }
+      // mouse fallback: LEFT or RIGHT button held with no tracked pointer (Mission-Planning parity — right-drag
+      // orbits/tilts too; the container suppresses the context menu so the right-drag reads cleanly).
+      if (e.buttons === 1 || e.buttons === 2) { setBearing((b) => b + e.movementX * 0.012); setPitch((p) => Math.max(18, Math.min(82, p - e.movementY * 0.15))); }
       return;
     }
     const prev = gp.current.get(e.pointerId)!;
@@ -242,6 +243,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   return (
     <div data-arch-voxel className="relative w-full cursor-grab touch-none overflow-hidden rounded active:cursor-grabbing"
       style={{ background: "#070b12", height }}
+      onContextMenu={(e) => e.preventDefault()}
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onWheel={onWheel}>
       <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 60%",
         transform: `perspective(820px) rotateX(${effPitch}deg) scale(${1.02 * effZoom})` }}>
