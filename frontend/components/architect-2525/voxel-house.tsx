@@ -26,10 +26,10 @@ import { TINY_ROOM_LAYOUT, type RoomCell } from "@/lib/room-layout";
 
 const C = { dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", text: "#c8d6e5", green: "#22c55e" };
 
-export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, walk = false, walkRoomId, wallW = 1 }: {
+export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.62, height = 400, compact = false, layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, walk = false, walkRoomId, wallW = 1, hvac = false }: {
   homeType?: HomeType; program?: RoomProgram; lat?: number; lon?: number; height?: number; compact?: boolean;
   layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void;
-  walk?: boolean; walkRoomId?: string | null; wallW?: number;
+  walk?: boolean; walkRoomId?: string | null; wallW?: number; hvac?: boolean;
 }) {
   const [bearing, setBearing] = useState(0);       // 0 = NORTH up (operator: North is the default)
   const [pitch, setPitch] = useState(58);          // camera tilt (deg)
@@ -179,6 +179,16 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
     </div>
   ) : null;
 
+  // AERIAL HVAC DUCTS (operator: "don't forget aerial ducts for hvac") — overhead trunk + branch runs at
+  // ceiling height across the tiny home, so ductwork reads in 3D. Low-fi cyan slabs; toggled from the header.
+  const ducts = hvac && tiny ? (
+    <div data-arch-voxel-hvac style={{ transformStyle: "preserve-3d" }}>
+      <div style={face(`translate3d(0px,0px,${roomSize + 3}px)`, roomSize * 2.7, 6, "#38bdf8", true)} />{/* E-W trunk */}
+      {[-1, 0, 1].map((r) => <div key={r} style={face(`translate3d(0px,${r * roomSize}px,${roomSize + 3}px)`, 5, roomSize * 0.9, "#38bdf8", true)} />)}{/* N-S branches per row */}
+      {[-1, 0, 1].map((c) => <div key={`v${c}`} style={{ ...at(`translate3d(${c * roomSize}px,${roomSize}px,${roomSize}px)`), width: 5, height: 3, background: "#38bdf8" }} />)}{/* register drops */}
+    </div>
+  ) : null;
+
   // FULL-home fallback: the original 3×3×3 land base + one house cube at the centre cell.
   const fullLattice = !tiny ? [0, 1, 2, 3].map((k) => {
     const outer = k === 0 || k === 3;
@@ -203,7 +213,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
           {terrain}
           {fullLattice}
           {tiny
-            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture }))}{porch}</div>
+            ? <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{layout.map((r) => roomCube(r.id, r.label, r.k, roomSize, r.row, r.col, 0, 0, { font: 8, furn: r.furniture }))}{porch}{ducts}</div>
             : <div data-arch-voxel-house style={{ transformStyle: "preserve-3d" }}>{roomCube("house", "House", "H", cell, 1, 1)}</div>}
         </div>
       </div>

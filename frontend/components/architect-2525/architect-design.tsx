@@ -92,6 +92,9 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const cycleStud = () => setStudIdx((i) => { const n = (i + 1) % STUD_SIZES.length; persistStruct(n, beamIdx); return n; });
   const cycleBeam = () => setBeamIdx((i) => { const n = (i + 1) % BEAM_SIZES.length; persistStruct(studIdx, n); return n; });
   const wallW = [1, 1.7, 2.4][studIdx]; // stud size → visible wireframe member thickness
+  const [hvac, setHvac] = useState(false); // aerial HVAC ducts overlay (operator ask)
+  useEffect(() => { try { setHvac(localStorage.getItem("arch2525.hvac") === "1"); } catch {} }, []);
+  const toggleHvac = () => setHvac((h) => { const n = !h; try { localStorage.setItem("arch2525.hvac", n ? "1" : "0"); } catch {} return n; });
   // Tiny Home defaults to the 2D floor plan with a persistent 3D mini-map (operator: "2D and 3D");
   // the ▦ Voxel toggle still swaps the main view to the full 3D voxel. Leaving tiny turns voxel off.
   useEffect(() => { if (homeType !== "tiny") setVoxel(false); }, [homeType]);
@@ -155,6 +158,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                 {/* structural members — SEE + ADJUST stud/beam sizes (reflected as wireframe thickness) */}
                 <button data-arch-stud onClick={cycleStud} title="Stud size — tap to change" className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.text }}>Studs {STUD_SIZES[studIdx]}</button>
                 <button data-arch-beam onClick={cycleBeam} title="Beam size — tap to change" className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.text }}>Beams {BEAM_SIZES[beamIdx]}</button>
+                <button data-arch-hvac onClick={toggleHvac} title="Aerial HVAC ducts" className="rounded border px-2 py-0.5" style={{ borderColor: hvac ? "#38bdf8" : C.border, color: hvac ? "#38bdf8" : C.dim }}>🌬 Ducts</button>
               </>
             ) : (
               <>
@@ -178,7 +182,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             ◎ {selectedLabel} <span style={{ color: C.dim }}>· shown on map</span>
           </div>
         )}
-        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} /> : tiny ? (
+        {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} /> : tiny ? (
           <div data-arch-tiny-view className="relative">
             {/* edit ⇄ walk toggle */}
             <div className="absolute right-2 top-2 z-20 flex gap-1">
@@ -192,7 +196,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             {tinyMode === "walk" ? (
               <div data-arch-walk className="relative">
                 {/* low-fidelity wireframe WALKTHROUGH — step room to room through the voxel at eye level */}
-                <VoxelHouse homeType={homeType} program={program} height={380} compact layout={roomLayout} walk walkRoomId={walkRoomId} wallW={wallW} />
+                <VoxelHouse homeType={homeType} program={program} height={380} compact layout={roomLayout} walk walkRoomId={walkRoomId} wallW={wallW} hvac={hvac} />
                 <div data-arch-walk-room className="absolute left-2 top-2 rounded-lg border px-2 py-1 text-[11px] font-semibold shadow-lg"
                   style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16ee" }}>
                   🚶 {walkRoom ? `${walkRoom.k} · ${walkRoom.label}` : "—"}
@@ -216,7 +220,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                 ⠿ drag · ◢ resize · ▾ collapse-to-tab · ⛶ maximize (portal). Same roomLayout + selection. */}
             <div data-arch-minimap className="absolute bottom-2 right-2 z-10">
               <MiniPanel title="3D · MODEL" subtitle="Tiny Home" lanes={false} defaultW={196} defaultH={208} minW={140} minH={150}
-                render={(s) => <VoxelHouse homeType={homeType} program={program} height={s} compact layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} />} />
+                render={(s) => <VoxelHouse homeType={homeType} program={program} height={s} compact layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} />} />
             </div>
             {/* HOUSE level — move the selected room (D-pad) + ⏎ Enter to optimize it only */}
             {roomSel && !focusRoomId && (
