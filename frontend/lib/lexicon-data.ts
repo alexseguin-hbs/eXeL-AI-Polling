@@ -1014,9 +1014,9 @@ const celestial: TranslationEntry[] = [
   { key: "celestial.level.high", englishDefault: "High School", context: "Celestial reading-level: high school", cubeId: 30 },
   { key: "celestial.level.adult", englishDefault: "College Level", context: "Celestial reading-level: college", cubeId: 30 },
   // group labels
-  { key: "celestial.group.sun-rocky", englishDefault: "Sun & Rocky Worlds", context: "Celestial body group: Sun & rocky worlds", cubeId: 30 },
+  { key: "celestial.group.sun-rocky", englishDefault: "Rocky Worlds", context: "Celestial body group: rocky/terrestrial worlds + dwarf", cubeId: 30 },
   { key: "celestial.group.giants", englishDefault: "The Giants", context: "Celestial body group: gas/ice giants", cubeId: 30 },
-  { key: "celestial.group.far", englishDefault: "Far Reaches & Stars", context: "Celestial body group: far reaches & stars", cubeId: 30 },
+  { key: "celestial.group.far", englishDefault: "Sun & Stars", context: "Celestial body group: the Sun & the stars", cubeId: 30 },
   // body names
   { key: "celestial.body.sun", englishDefault: "The Sun", context: "Celestial body name: Sun", cubeId: 30 },
   { key: "celestial.body.mercury", englishDefault: "Mercury", context: "Celestial body name: Mercury", cubeId: 30 },

@@ -24,14 +24,14 @@ export interface CelestialEntry {
 // Three progressive-reveal circles (operator: "3 circles that expand to all planets; 9 or 12 is final,
 // okay to use Moon, Sun, and Polaris to reach 9 or 12").
 export const CELESTIAL_GROUPS: { id: string; label: string; stroke: string }[] = [
-  { id: "sun-rocky", label: "Sun & Rocky Worlds", stroke: "#ffd400" },
+  { id: "sun-rocky", label: "Rocky Worlds", stroke: "#c084fc" },
   { id: "giants", label: "The Giants", stroke: "#19c8cf" },
-  { id: "far", label: "Far Reaches & Stars", stroke: "#c084fc" },
+  { id: "far", label: "Sun & Stars", stroke: "#ffd400" },
 ];
 
 export const CELESTIAL_BODIES: CelestialEntry[] = [
   {
-    id: "sun", name: "The Sun", emoji: "☀️", master: "Krishna", group: "sun-rocky",
+    id: "sun", name: "The Sun", emoji: "☀️", master: "Krishna", group: "far",
     text: {
       kids: "The Sun is a giant ball of glowing gas, so huge that about a million Earths could fit inside it! Its warm light zooms across space and takes eight minutes to reach us.",
       middle: "The Sun is our nearest star, a giant glowing ball of hydrogen and helium gas about 1,391,000 km wide — roughly 109 times the width of Earth. It holds about 99.86% of all the mass in the solar system, and its gravity keeps every planet in orbit. Deep in its core, hydrogen fuses into helium at around 15 million °C, releasing the light and heat that make life on Earth possible. That light takes about 8 minutes and 20 seconds to reach us. The Sun is roughly 4.6 billion years old and about halfway through its life as a stable, hydrogen-burning star.",
@@ -121,7 +121,7 @@ export const CELESTIAL_BODIES: CelestialEntry[] = [
     },
   },
   {
-    id: "pluto", name: "Pluto", emoji: "♇", master: "Asar", group: "far",
+    id: "pluto", name: "Pluto", emoji: "♇", master: "Asar", group: "sun-rocky",
     text: {
       kids: "Pluto is a small, icy dwarf planet far out past Neptune. It even has a big heart-shaped patch of frozen ice on its surface, and a moon almost as big as itself!",
       middle: "Pluto is a dwarf planet in the Kuiper Belt, the ring of icy worlds beyond Neptune. It is small — about 2,377 km across, smaller than Earth's Moon — and made of rock and ice. Pluto is so far from the Sun that it takes 248 Earth-years to orbit once, and its surface is a frigid −230 °C. It was discovered in 1930 and counted as the ninth planet until 2006, when it was reclassified as a 'dwarf planet' after astronomers found many similar icy worlds nearby. In 2015 the New Horizons spacecraft flew past and revealed a stunning world: a huge heart-shaped plain of frozen nitrogen, water-ice mountains, and possible ice volcanoes. Pluto has five moons; the largest, Charon, is so big that the two orbit a point in space between them.",

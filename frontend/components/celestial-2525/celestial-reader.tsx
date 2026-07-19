@@ -66,10 +66,11 @@ export function CelestialReader() {
                 centroid (100,84) at radius 27 → symmetric "trinity-logo" overlap. Circle COLOR follows the
                 emblem POSITION (violet top · cyan bottom-left · sunset-gold bottom-right — operator IMG_6294),
                 overriding group.stroke; the group label text is kept. */}
-            <svg data-cel-flower viewBox="0 0 200 170" className="mx-auto block w-full max-w-[300px]">
-              <circle data-cel-unity cx="100" cy="84" r="76" fill="none" stroke="#e8eef7" strokeWidth="1" opacity="0.5" />
+            <svg data-cel-flower viewBox="0 0 200 150" className="mx-auto block w-full max-w-[300px]">
               {CELESTIAL_GROUPS.map((g, i) => {
                 const p = [{ cx: 100, cy: 52 }, { cx: 72.3, cy: 100 }, { cx: 127.7, cy: 100 }][i] ?? { cx: 100, cy: 84 };
+                // Label sits in the circle's CLEAR crescent (away from the centre overlap): top→crown, BL→lower-left, BR→lower-right.
+                const tp = [{ x: 100, y: 44 }, { x: 60, y: 100 }, { x: 140, y: 100 }][i] ?? p;
                 const col = [C.violet, C.cyan, C.gold][i] ?? g.stroke; // emblem position color (top·BL·BR)
                 const open = openGroup === g.id;
                 const words = t("celestial.group." + g.id).split(" ");
@@ -78,8 +79,8 @@ export function CelestialReader() {
                 return (
                   <g key={g.id} data-cel-group={g.id} onClick={() => setOpenGroup(open ? null : g.id)} style={{ cursor: "pointer" }}>
                     <circle cx={p.cx} cy={p.cy} r="41" fill={open ? `${col}33` : `${col}14`} stroke={col} strokeWidth={open ? 2.4 : 1.4} />
-                    <text x={p.cx} y={l2 ? p.cy - 2 : p.cy + 3} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={col}>{l1}</text>
-                    {l2 && <text x={p.cx} y={p.cy + 8} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={col}>{l2}</text>}
+                    <text x={tp.x} y={l2 ? tp.y - 4 : tp.y + 3} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={col}>{l1}</text>
+                    {l2 && <text x={tp.x} y={tp.y + 6} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={col}>{l2}</text>}
                   </g>
                 );
               })}
