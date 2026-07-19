@@ -9,7 +9,8 @@
  * RIGHT = the READING PAGE (a reading-level picker + the selected body's page). Each body is authored
  * by one of the 12 Ascended Masters. Content is bundled-static + deterministic.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArchitectCelestial } from "@/components/architect-2525/architect-celestial";
 import { CELESTIAL_BODIES, CELESTIAL_GROUPS, READING_LEVELS, type ReadingLevel } from "@/lib/celestial-guide-data";
 import { useLexicon } from "@/lib/lexicon-context";
@@ -28,15 +29,20 @@ export function CelestialReader() {
   const [openGroup, setOpenGroup] = useState<string | null>("sun-rocky");
   const body = bodies.find((b) => b.id === bodyId) ?? bodies[0];
   const levelMeta = READING_LEVELS.find((l) => l.id === level)!;
+  const [full, setFull] = useState(false);          // full-screen (portal over the nav, like the map maximize)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  return (
-    <div data-celestial-reader className="flex min-h-screen flex-col" style={{ background: C.bg, color: C.text }}>
+  const reader = (
+    <div data-celestial-reader className={full ? "fixed inset-0 z-[120] flex flex-col overflow-auto" : "flex min-h-screen flex-col"} style={{ background: C.bg, color: C.text }}>
       {/* header */}
       <div className="flex items-center gap-3 border-b px-4 py-2" style={{ borderColor: C.border }}>
         <a href="/" className="text-[12px] font-bold" style={{ color: C.cyan }}>eXeL <span style={{ color: C.dim }}>AI</span></a>
         <span className="text-[13px] font-bold tracking-wider" style={{ color: C.violet }}>{t("celestial.product")}</span>
         <span className="hidden text-[10px] sm:inline" style={{ color: C.dim }}>{t("celestial.tagline")}</span>
         <span className="ml-auto text-[10px] font-semibold" style={{ color: "#22c55e" }}>{t("celestial.linkSecure")}</span>
+        <button data-cel-full onClick={() => setFull((f) => !f)} title={full ? "Exit full screen" : "Full screen"}
+          className="rounded border px-2 py-0.5 text-[11px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }}>{full ? "▣ Min" : "⛶ Full"}</button>
       </div>
 
       {/* split: LEFT visual selector · RIGHT reading page (Divinity-Guide model) — stacks on phones */}
@@ -135,4 +141,6 @@ export function CelestialReader() {
       </div>
     </div>
   );
+  // Full-screen → portal over the app nav (mini-panel maximize pattern); else render in place.
+  return full && mounted ? createPortal(reader, document.body) : reader;
 }
