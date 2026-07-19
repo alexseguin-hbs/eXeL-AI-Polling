@@ -97,7 +97,10 @@ export default function LandingPage() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
 
-      <main className="flex flex-1 flex-col items-center justify-center px-4">
+      {/* pb-28 reserves clearance for the fixed bottom badges (Feedback · SECURITY-2525 · eXeL AI) so they no
+          longer cover the last content — the Trinity emblem / feature cards (#164, Thought Master IMG_7482). The
+          badges stay fixed + reachable app-wide; only the homepage content is padded above them. */}
+      <main className="flex flex-1 flex-col items-center justify-center px-4 pb-28">
         {/* Hero */}
         <div className="flex flex-col items-center gap-6 text-center mb-10">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
