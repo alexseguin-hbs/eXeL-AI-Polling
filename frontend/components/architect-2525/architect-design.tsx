@@ -17,6 +17,7 @@ import type { RoomProgram } from "@/lib/room-program";
 import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setRoomObjects, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
 import { RoomDesigner } from "./room-designer";
 import type { PlacedObject } from "@/lib/room-objects";
+import { Frame, Wind, Zap, Droplets } from "lucide-react"; // our own iconology (no emojis) for Design Settings
 import { sanitizeRoomLayout } from "@/lib/architect-guard";
 
 const C = {
@@ -110,15 +111,17 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   };
   const moveGripUp = (e: React.PointerEvent) => { moveDrag.current = null; try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {} };
   // Structural members — VISIBLE + ADJUSTABLE (operator: "can't see/change structural beam sizes").
-  const STUD_SIZES = ["2×4", "2×6", "2×8"] as const;
-  const BEAM_SIZES = ["4×6", "4×8", "6×8", "GLULAM"] as const;
-  const [studIdx, setStudIdx] = useState(0);
-  const [beamIdx, setBeamIdx] = useState(1);
+  // Wall studs — deeper cavities (up to 2×12) hold insulation + the Air/Electric/Plumbing runs inside the wall.
+  const STUD_SIZES = ["2×4", "2×6", "2×8", "2×10", "2×12"] as const;
+  // Interior beams — STEEL, default 10×10, options up to 12×12 (bigger sections carry loads + service chases).
+  const BEAM_SIZES = ["6×8", "8×8 Steel", "10×10 Steel", "12×12 Steel", "GLULAM"] as const;
+  const [studIdx, setStudIdx] = useState(1);   // 2×6 wall default
+  const [beamIdx, setBeamIdx] = useState(2);   // 10×10 Steel default (operator)
   useEffect(() => { try { const v = localStorage.getItem("arch2525.structure"); if (v) { const s = JSON.parse(v); if (Number.isInteger(s.stud)) setStudIdx(s.stud); if (Number.isInteger(s.beam)) setBeamIdx(s.beam); } } catch {} }, []);
   const persistStruct = (stud: number, beam: number) => { try { localStorage.setItem("arch2525.structure", JSON.stringify({ stud, beam })); } catch {} };
   const cycleStud = () => setStudIdx((i) => { const n = (i + 1) % STUD_SIZES.length; persistStruct(n, beamIdx); return n; });
   const cycleBeam = () => setBeamIdx((i) => { const n = (i + 1) % BEAM_SIZES.length; persistStruct(studIdx, n); return n; });
-  const wallW = [1, 1.7, 2.4][studIdx]; // stud size → visible wireframe member thickness
+  const wallW = [1, 1.7, 2.4, 3.1, 3.8][studIdx] ?? 1.7; // stud depth → wireframe member thickness (deeper = MEP-in-wall)
   const [hvac, setHvac] = useState(false); // aerial HVAC ducts overlay (operator ask)
   useEffect(() => { try { setHvac(localStorage.getItem("arch2525.hvac") === "1"); } catch {} }, []);
   const toggleHvac = () => setHvac((h) => { const n = !h; try { localStorage.setItem("arch2525.hvac", n ? "1" : "0"); } catch {} return n; });
@@ -220,8 +223,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
               <span className="font-bold uppercase tracking-wider" style={{ color: C.cyan }}>Design Settings</span>
               <button onClick={() => setSettingsOpen(false)} className="rounded px-1 hover:bg-white/10" style={{ color: C.dim }}>✕</button>
             </div>
-            {/* 🏗 STRUCTURAL */}
-            <div className="mb-0.5 mt-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}>🏗 Structural</div>
+            {/* STRUCTURAL */}
+            <div className="mb-0.5 mt-1 flex items-center gap-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}><Frame className="h-2.5 w-2.5" /> Structural</div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
               <span>Studs</span>
               <button data-arch-stud onClick={cycleStud} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{STUD_SIZES[studIdx]}</button>
@@ -230,20 +233,20 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
               <span>Beams</span>
               <button data-arch-beam onClick={cycleBeam} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{BEAM_SIZES[beamIdx]}</button>
             </div>
-            {/* 🌬 AIR FLOW */}
-            <div className="mb-0.5 mt-1.5 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}>🌬 Air Flow</div>
+            {/* AIR FLOW */}
+            <div className="mb-0.5 mt-1.5 flex items-center gap-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}><Wind className="h-2.5 w-2.5" /> Air Flow</div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
               <span>Ducts (aerial)</span>
               <button data-arch-hvac onClick={toggleHvac} className="rounded border px-2 py-0.5" style={{ borderColor: hvac ? "#38bdf8" : C.border, color: hvac ? "#38bdf8" : C.dim }}>{hvac ? "ON" : "OFF"}</button>
             </div>
-            {/* ⚡ ELECTRIC */}
-            <div className="mb-0.5 mt-1.5 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}>⚡ Electric</div>
+            {/* ELECTRIC */}
+            <div className="mb-0.5 mt-1.5 flex items-center gap-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}><Zap className="h-2.5 w-2.5" /> Electric</div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
               <span>Outlets in walk</span>
               <button data-arch-sockets onClick={toggleSockets} className="rounded border px-2 py-0.5" style={{ borderColor: showSockets ? C.gold : C.border, color: showSockets ? C.gold : C.dim }}>{showSockets ? "ON" : "OFF"}</button>
             </div>
-            {/* 🚰 PLUMBING */}
-            <div className="mb-0.5 mt-1.5 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}>🚰 Plumbing</div>
+            {/* PLUMBING */}
+            <div className="mb-0.5 mt-1.5 flex items-center gap-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}><Droplets className="h-2.5 w-2.5" /> Plumbing</div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
               <span>Supply · DWV runs</span>
               <button data-arch-plumbing onClick={togglePlumbing} className="rounded border px-2 py-0.5" style={{ borderColor: showPlumbing ? "#22c55e" : C.border, color: showPlumbing ? "#22c55e" : C.dim }}>{showPlumbing ? "ON" : "OFF"}</button>
