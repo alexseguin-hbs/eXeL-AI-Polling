@@ -59,13 +59,14 @@ function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string;
 
 export function ArchitectCelestial({
   lat = 30.44, lon = -97.62,
-  year = 2025, doy = 172, hour = 12, onYear, onDoy, minimal = false,
+  year = 2025, doy = 172, hour = 12, onYear, onDoy, minimal = false, externalSelId,
 }: {
   lat?: number; lon?: number;
   year?: number; doy?: number; hour?: number;                 // date/time lifted from SUN·SKY so the Sky Dome stays synced
   onYear?: (n: number | ((p: number) => number)) => void;
   onDoy?: (n: number | ((p: number) => number)) => void;
   minimal?: boolean;                                          // family/kiosk mode (Celestial-2525) — hide the unused MAP-TOOLS ••• bar + R-CORE strip
+  externalSelId?: string;                                     // controlled selection (Celestial-2525 reader) — follow the chosen body + reset play to 1×
 } = {}) {
   // Default location: Pfield · Pflugerville, TX (shared with the Sky Dome / view-from-location).
   const setYear = useMemo(() => onYear ?? (() => {}), [onYear]);
@@ -117,7 +118,10 @@ export function ArchitectCelestial({
   // 3× = fastest (current). The other planets advance at their ACCURATE relative rates (the laid memo), so you
   // see the selected body lap the slower outer planets; the SA.EA..HU counter + orbit-pos ####/3600 tick live.
   const [orbitPlaying, setOrbitPlaying] = useState(false);
-  const [orbitSpeed, setOrbitSpeed] = useState<1 | 2 | 3>(3);
+  const [orbitSpeed, setOrbitSpeed] = useState<number>(3);
+  // Controlled selection from the Celestial-2525 reader: when the parent picks a body, select it on the map
+  // and start a slow replay at 1/12× (operator: "1/12 speed of 1x for when planet is selected on flower section").
+  useEffect(() => { if (externalSelId) { setSelId(externalSelId); setOrbitSpeed(1 / 12); setOrbitPlaying(true); } }, [externalSelId]);
   const orbRaf = useRef<number | null>(null);
   const orbStart = useRef<number | null>(null);
   const orbBase = useRef(0);

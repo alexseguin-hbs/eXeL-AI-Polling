@@ -15,6 +15,7 @@ import { ArchitectCelestial } from "@/components/architect-2525/architect-celest
 import { CELESTIAL_BODIES, CELESTIAL_GROUPS, READING_LEVELS, type ReadingLevel } from "@/lib/celestial-guide-data";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useCelestialContent } from "@/lib/use-celestial-content";
+import { AlignedBilingual } from "@/components/celestial-2525/aligned-bilingual";
 
 const C = { bg: "#070b12", panel: "#0c1420", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400" };
 
@@ -40,6 +41,18 @@ export function CelestialReader() {
   const bodyP = useCelestialContent(primaryLoc).find((b) => b.id === bodyId) ?? bodies[0];
   const bodyM = useCelestialContent(mirrorLoc).find((b) => b.id === bodyId) ?? bodies[0];
 
+  // Bidirectional link: picking a planet (flower row OR any path) selects the body, opens its flower group
+  // so it stays highlighted "above", and scrolls the reading page into view. The map (ArchitectCelestial)
+  // receives bodyId as its controlled selection and resets orbit-play to 1× on every change.
+  const selectBody = (id: string) => {
+    setBodyId(id);
+    const g = bodies.find((b) => b.id === id)?.group;
+    if (g) setOpenGroup(g);
+    if (typeof requestAnimationFrame !== "undefined") requestAnimationFrame(() => {
+      try { document.querySelector("[data-cel-page]")?.scrollIntoView({ behavior: "smooth", block: "start" }); } catch {}
+    });
+  };
+
   const reader = (
     <div data-celestial-reader className={full ? "fixed inset-0 z-[120] flex flex-col overflow-auto" : "flex min-h-screen flex-col"} style={{ background: C.bg, color: C.text }}>
       {/* header */}
@@ -57,7 +70,7 @@ export function CelestialReader() {
         {/* LEFT — the visual selector: full celestial map + 3-circle → all body navigator */}
         <div data-cel-visual className="flex w-full flex-col gap-2 border-b p-2 lg:w-[52%] lg:border-b-0 lg:border-r" style={{ borderColor: C.border }}>
           <div data-cel-map className="min-h-[36vh] flex-1">
-            <ArchitectCelestial minimal />
+            <ArchitectCelestial minimal externalSelId={bodyId} />
           </div>
           {/* flower-of-life selector (Divinity model) — 3 overlapping group circles → drill to the 12 bodies */}
           <div data-cel-selector>
@@ -91,7 +104,7 @@ export function CelestialReader() {
                 {bodies.filter((b) => b.group === openGroup).map((b) => {
                   const sel = bodyId === b.id;
                   return (
-                    <button key={b.id} data-cel-body={b.id} onClick={() => setBodyId(b.id)}
+                    <button key={b.id} data-cel-body={b.id} onClick={() => selectBody(b.id)}
                       className="flex flex-col items-center rounded-lg border px-2 py-1 text-[11px]"
                       style={{ borderColor: sel ? C.gold : C.border, background: sel ? `${C.gold}22` : "transparent", color: sel ? C.gold : C.text }}>
                       <span className="text-[16px] leading-none">{b.emoji}</span>
@@ -144,19 +157,13 @@ export function CelestialReader() {
             </div>
             <span className="ml-auto rounded-full border px-2 py-0.5 text-[10px] font-semibold" style={{ borderColor: levelMeta.stroke, color: levelMeta.stroke }}>{t("celestial.level." + level)}</span>
           </div>
-          {/* 50/50 DUAL-LANGUAGE (Divinity bilingual-reader) — primary ‖ mirror, independent scroll, per-column RTL */}
-          <div data-cel-dual className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
-            {[{ k: "primary", loc: primaryLoc, set: setPrimaryLoc, bd: bodyP }, { k: "mirror", loc: mirrorLoc, set: setMirrorLoc, bd: bodyM }].map((col) => (
-              <div key={col.k} data-cel-col={col.k} dir={isRTL(col.loc) ? "rtl" : "ltr"}
-                className="flex w-full flex-col gap-1 md:w-1/2 md:min-h-0 md:overflow-y-auto md:pr-2">
-                <select data-cel-lang={col.k} value={col.loc} onChange={(e) => col.set(e.target.value)}
-                  className="self-start rounded border px-2 py-0.5 text-[11px] font-semibold" style={{ borderColor: C.border, background: C.panel, color: C.cyan }}>
-                  {langOptions.map((l) => <option key={l.code} value={l.code} style={{ background: C.panel, color: C.text }}>{l.nameNative}</option>)}
-                </select>
-                <div className="whitespace-pre-line text-[13px] leading-relaxed" style={{ color: C.text }}>{col.bd.text[level]}</div>
-              </div>
-            ))}
-          </div>
+          {/* 50/50 DUAL-LANGUAGE (Divinity bilingual-reader) — hover/tap a word → its sentence highlights on
+              BOTH columns + the translated equivalent word brightens on the mirror side. */}
+          <AlignedBilingual
+            primary={{ key: "primary", loc: primaryLoc, text: bodyP.text[level], rtl: isRTL(primaryLoc), setLoc: setPrimaryLoc }}
+            mirror={{ key: "mirror", loc: mirrorLoc, text: bodyM.text[level], rtl: isRTL(mirrorLoc), setLoc: setMirrorLoc }}
+            langOptions={langOptions.map((l) => ({ code: l.code, nameNative: l.nameNative }))}
+          />
 
           <div className="mt-auto border-t pt-2 text-[9px] leading-relaxed" style={{ borderColor: C.border, color: C.dim }}>
             {"12 worlds · 4 reading levels · authored by the 12 Ascended Masters. Facts from NASA fact sheets. Use the ⭐ feedback button to tell us what to add."}
