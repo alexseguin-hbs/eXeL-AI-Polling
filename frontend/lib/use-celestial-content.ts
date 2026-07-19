@@ -21,6 +21,7 @@ export type CelestialLangPack = Record<string, Partial<BodyText>>;
 const LANG_LOADERS: Record<string, () => Promise<{ default: CelestialLangPack }>> = {
   ar: () => import("./celestial-guide-ar.json") as Promise<{ default: CelestialLangPack }>,
   bn: () => import("./celestial-guide-bn.json") as Promise<{ default: CelestialLangPack }>,
+  cs: () => import("./celestial-guide-cs.json") as Promise<{ default: CelestialLangPack }>,
   da: () => import("./celestial-guide-da.json") as Promise<{ default: CelestialLangPack }>,
   de: () => import("./celestial-guide-de.json") as Promise<{ default: CelestialLangPack }>,
   el: () => import("./celestial-guide-el.json") as Promise<{ default: CelestialLangPack }>,
