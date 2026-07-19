@@ -181,7 +181,7 @@ export default function LandingPage() {
               title text is a HIDDEN hyperlink to the Celestial-2525 sky reader — styled identically (no
               underline), so it isn't apparent. A little gift for whoever cycles to the Framework. */}
           <p className="text-sm font-semibold" style={{ color: displayColor }}>
-            {!customMode && currentPreset.titleKey === "trinity.framework.title" ? (
+            {!customMode && currentPreset.titleKey === "trinity.blank.title" ? (
               <a href="/main/Celestial-2525/" data-trinity-egg style={{ color: "inherit", textDecoration: "none" }}>
                 {displayTitle}
               </a>
