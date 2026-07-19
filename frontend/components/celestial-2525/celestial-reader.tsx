@@ -62,22 +62,28 @@ export function CelestialReader() {
           {/* flower-of-life selector (Divinity model) — 3 overlapping group circles → drill to the 12 bodies */}
           <div data-cel-selector>
             <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{t("celestial.tapHint")}</div>
-            <svg data-cel-flower viewBox="0 0 200 150" className="mx-auto block w-full max-w-[300px]">
+            {/* Vision-2525 emblem: white unity ring + 3 equilateral Trinity circles, 120° apart around the
+                centroid (100,84) at radius 27 → symmetric "trinity-logo" overlap. Circle COLOR follows the
+                emblem POSITION (violet top · cyan bottom-left · sunset-gold bottom-right — operator IMG_6294),
+                overriding group.stroke; the group label text is kept. */}
+            <svg data-cel-flower viewBox="0 0 200 170" className="mx-auto block w-full max-w-[300px]">
+              <circle data-cel-unity cx="100" cy="84" r="78" fill="none" stroke="#e8eef7" strokeWidth="1" opacity="0.5" />
               {CELESTIAL_GROUPS.map((g, i) => {
-                const p = [{ cx: 100, cy: 50 }, { cx: 62, cy: 100 }, { cx: 138, cy: 100 }][i] ?? { cx: 100, cy: 75 };
+                const p = [{ cx: 100, cy: 57 }, { cx: 76.6, cy: 97.5 }, { cx: 123.4, cy: 97.5 }][i] ?? { cx: 100, cy: 84 };
+                const col = [C.violet, C.cyan, C.gold][i] ?? g.stroke; // emblem position color (top·BL·BR)
                 const open = openGroup === g.id;
                 const words = t("celestial.group." + g.id).split(" ");
                 const mid = Math.ceil(words.length / 2);
                 const l1 = words.slice(0, mid).join(" "), l2 = words.slice(mid).join(" ");
                 return (
                   <g key={g.id} data-cel-group={g.id} onClick={() => setOpenGroup(open ? null : g.id)} style={{ cursor: "pointer" }}>
-                    <circle cx={p.cx} cy={p.cy} r="42" fill={open ? `${g.stroke}33` : `${g.stroke}14`} stroke={g.stroke} strokeWidth={open ? 2.4 : 1.4} />
-                    <text x={p.cx} y={l2 ? p.cy - 2 : p.cy + 3} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={g.stroke}>{l1}</text>
-                    {l2 && <text x={p.cx} y={p.cy + 8} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={g.stroke}>{l2}</text>}
+                    <circle cx={p.cx} cy={p.cy} r="44" fill={open ? `${col}33` : `${col}14`} stroke={col} strokeWidth={open ? 2.4 : 1.4} />
+                    <text x={p.cx} y={l2 ? p.cy - 2 : p.cy + 3} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={col}>{l1}</text>
+                    {l2 && <text x={p.cx} y={p.cy + 8} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={col}>{l2}</text>}
                   </g>
                 );
               })}
-              <circle cx="100" cy="83" r="4" fill="none" stroke={C.violet} strokeWidth="1" />
+              <circle cx="100" cy="84" r="4" fill="none" stroke="#e8eef7" strokeWidth="1" opacity="0.7" />
             </svg>
             {openGroup && (
               <div className="mt-1 flex flex-wrap justify-center gap-1.5">
