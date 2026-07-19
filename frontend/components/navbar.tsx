@@ -1,10 +1,11 @@
 "use client";
 
 import { useAuth0 } from "@auth0/auth0-react";
-import { LogOut, User, Menu, Settings, Code, Globe } from "lucide-react";
+import { LogOut, User, Menu, Settings, Code, Globe, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExelWordmark } from "@/components/exel-wordmark";
 import { ModeratorSettings } from "@/components/moderator-settings";
+import { SoISection } from "@/components/soi-section";
 import { TokenHUD } from "@/components/token-hud";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useState } from "react";
@@ -22,6 +23,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [apiSdkOpen, setApiSdkOpen] = useState(false);
+  const [soiOpen, setSoiOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const { t, activeLocale, setActiveLocale, languages, romanizationEnabled, setRomanizationEnabled } = useLexicon();
@@ -224,6 +226,17 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                         {t("sdk.api_key.title")}
                       </a>
                       <button
+                        data-nav-soi
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setSoiOpen(true);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        {t("shared.nav.soi")}
+                      </button>
+                      <button
                         onClick={() => {
                           setMenuOpen(false);
                           logout?.({
@@ -390,6 +403,25 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                   </button>
                 </div>
               </section>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SoI Framework — System of Intelligence (◬ ♡ 웃 Tri-Coin), reuses the SoISection widget */}
+      {soiOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4">
+          <div className="fixed inset-0 bg-black/40" onClick={() => setSoiOpen(false)} />
+          <div className="relative z-50 mt-14 w-full max-w-2xl rounded-xl border bg-card shadow-2xl">
+            <div className="sticky top-0 flex items-center justify-between border-b bg-card px-5 py-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">{t("shared.nav.soi")}</h2>
+              </div>
+              <button onClick={() => setSoiOpen(false)} className="text-muted-foreground hover:text-foreground">✕</button>
+            </div>
+            <div className="p-5">
+              <SoISection />
             </div>
           </div>
         </div>
