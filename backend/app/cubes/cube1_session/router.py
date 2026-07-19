@@ -175,12 +175,15 @@ async def list_sessions(
 
 
 @router.post("", response_model=SessionRead, status_code=201)
+@limiter.limit("30/minute")
 async def create_session(
+    request: Request,
     payload: SessionCreate,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(require_role("moderator", "admin")),
 ):
-    """CRS-01: Moderator creates a new polling session."""
+    """CRS-01: Moderator creates a new polling session. Per-IP ceiling (SSSES Security) — additive
+    anti-abuse cap mirroring the join endpoint's limiter; moderators create far fewer than 30 sessions/min."""
     session = await service.create_session(
         db,
         title=payload.title,
