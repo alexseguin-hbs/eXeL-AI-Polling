@@ -292,6 +292,30 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           </div>
         );
       })()}
+
+      {/* ACTIVE ELEMENTS — the room's placed assets, click to select (highlights 2D+3D + shows details above). */}
+      {objects.length > 0 && (
+        <div data-arch-room-active className="rounded border p-1" style={{ borderColor: C.border, background: "#070b12" }}>
+          <div className="mb-1 px-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Active Elements · {objects.length}</div>
+          <div className="flex flex-col gap-0.5">
+            {objects.map((o) => {
+              const s = OBJECT_SPEC[o.kind], RowIcon = ICON[o.kind], on = o.id === selId;
+              const vLabel = VARIANTS[o.kind]?.find((v) => v.id === o.variant)?.label;
+              const fp = footprintOf(o);
+              const fmt = (n: number) => (Number.isInteger(n) ? `${n}` : n.toFixed(1).replace(/\.0$/, ""));
+              return (
+                <button key={o.id} data-arch-active-el={o.kind} onClick={() => setSelId(on ? null : o.id)}
+                  className="flex items-center gap-1.5 rounded px-1 py-0.5 text-left text-[10px]"
+                  style={{ background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
+                  <RowIcon className="h-3 w-3 shrink-0" style={{ color: on ? C.gold : s.color }} />
+                  <span className="min-w-0 flex-1 truncate">{vLabel ? `${vLabel} ` : ""}{s.label}</span>
+                  <span className="shrink-0 tabular-nums" style={{ color: C.dim, fontSize: 8 }}>{fmt(fp.w)}′×{fmt(fp.d)}′ · {o.gx},{o.gy}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
