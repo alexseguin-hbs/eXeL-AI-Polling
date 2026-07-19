@@ -35,6 +35,7 @@ const LANG_LOADERS: Record<string, () => Promise<{ default: CelestialLangPack }>
   sv: () => import("./celestial-guide-sv.json") as Promise<{ default: CelestialLangPack }>,
   tl: () => import("./celestial-guide-tl.json") as Promise<{ default: CelestialLangPack }>,
   uk: () => import("./celestial-guide-uk.json") as Promise<{ default: CelestialLangPack }>,
+  vi: () => import("./celestial-guide-vi.json") as Promise<{ default: CelestialLangPack }>,
   zh: () => import("./celestial-guide-zh.json") as Promise<{ default: CelestialLangPack }>,
 };
 
