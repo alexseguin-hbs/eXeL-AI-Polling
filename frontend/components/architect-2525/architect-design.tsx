@@ -14,7 +14,7 @@ import { TinyFloorplan } from "./tiny-floorplan";
 import { MiniPanel } from "./mini-panel";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
-import { cloneLayout, moveRoomInLayout, setRoomElement, toggleRoomFurniture, type RoomCell, type ElementKind } from "@/lib/room-layout";
+import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
 import { sanitizeRoomLayout } from "@/lib/architect-guard";
 
 const C = {
@@ -84,6 +84,14 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const setElement = (kind: ElementKind, delta: number) => { if (focusRoomId) setRoomLayout((prev) => persistLayout(setRoomElement(prev, focusRoomId, kind, delta))); };
   const toggleFurn = () => { if (focusRoomId) setRoomLayout((prev) => persistLayout(toggleRoomFurniture(prev, focusRoomId))); };
   const focusRoom = focusRoomId ? roomLayout.find((r) => r.id === focusRoomId) : undefined;
+  // F9 stretch — resize the focused room's width/depth within the 10-ft envelope (1..2 cells = 10..20 ft),
+  // clamped by the pure resizeRoomInLayout; persisted; feeds layoutSqft so area/cost track the change.
+  const stretch = (dim: "w" | "d", delta: number) => {
+    if (!focusRoomId || !focusRoom) return;
+    const w = dim === "w" ? focusRoom.w + delta : focusRoom.w;
+    const d = dim === "d" ? focusRoom.d + delta : focusRoom.d;
+    setRoomLayout((prev) => persistLayout(resizeRoomInLayout(prev, focusRoomId, w, d)));
+  };
   // Structural members — VISIBLE + ADJUSTABLE (operator: "can't see/change structural beam sizes").
   const STUD_SIZES = ["2×4", "2×6", "2×8"] as const;
   const BEAM_SIZES = ["4×6", "4×8", "6×8", "GLULAM"] as const;
@@ -254,6 +262,17 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                       <button data-arch-el-dec={kind} onClick={() => setElement(kind, -1)} className="rounded border px-1.5" style={{ borderColor: C.border, color: C.text }}>◀</button>
                       <span className="w-4 text-center tabular-nums" style={{ color: C.cyan }}>{focusRoom[kind]}</span>
                       <button data-arch-el-inc={kind} onClick={() => setElement(kind, 1)} className="rounded border px-1.5" style={{ borderColor: C.border, color: C.text }}>▶</button>
+                    </span>
+                  </div>
+                ))}
+                {/* F9 stretch — widen/deepen the room within the 10-ft envelope (10↔20 ft); feeds sqft/cost. */}
+                {([["Width", "w"], ["Depth", "d"]] as const).map(([lbl, dim]) => (
+                  <div key={dim} className="flex items-center justify-between gap-2 text-[10px]" style={{ color: C.text }}>
+                    <span style={{ color: C.dim }}>{lbl}</span>
+                    <span className="flex items-center gap-1">
+                      <button data-arch-stretch-dec={dim} onClick={() => stretch(dim, -1)} className="rounded border px-1.5" style={{ borderColor: C.border, color: C.text }}>◀</button>
+                      <span className="w-8 text-center tabular-nums" style={{ color: C.gold }}>{focusRoom[dim] * ROOM_FT} ft</span>
+                      <button data-arch-stretch-inc={dim} onClick={() => stretch(dim, 1)} className="rounded border px-1.5" style={{ borderColor: C.border, color: C.text }}>▶</button>
                     </span>
                   </div>
                 ))}
