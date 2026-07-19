@@ -3,6 +3,8 @@
 // FPS per section for EDGE calibration + acting as a live demo. Drives the REAL UI via DOM events — no
 // new imperative API. v2 now covers the full requested replay: switch AO (Camp Blanding), PLACE assets
 // (arm palette div + tap the tactical map), add+remove, pan to Capitol, plus orbit/grid/2D↔3D/tilt/mirror.
+import { ASSET_LABELS, ASSET_ORDER } from "@/components/security-2525/asset-icons";
+
 export type PlaySection = { name: string; fps: number; minFps: number; ms: number; errors: number };
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -140,6 +142,14 @@ export async function runPlayTest(onSection?: (s: PlaySection) => void): Promise
   await run("Add + remove SENTINEL (W)", async () => { armAsset("SENTINEL"); await sleep(600); tapMap(-0.1, 0); await sleep(900); click("Save"); await sleep(700); click("REMOVE"); await sleep(900); });
   await run("Pan to Capitol + zoom to detail", async () => { await pickAo("TEXAS CAPITOL"); await sleep(700); click("2D"); await sleep(300); await zoomInMap(7); await sleep(400); });
   await run("Place AUTO-FOIL aerial on detailed map", async () => { armAsset("AUTO-FOIL"); await sleep(600); tapMap(0.14, 0); await sleep(900); click("Save"); await sleep(700); });
+  // #26 — exercise EVERY asset in the catalog one-by-one (arm → place → save → remove), not just the 3 above.
+  for (const kind of ASSET_ORDER) {
+    const label = ASSET_LABELS[kind];
+    await run(`Test asset ${label} (place → save → remove)`, async () => {
+      if (!armAsset(label)) return;            // palette item not visible → skip this asset, keep going
+      await sleep(400); tapMap(0.06, 0); await sleep(700); click("Save"); await sleep(600); click("REMOVE"); await sleep(600);
+    });
+  }
   // ── Full lifecycle + key-concern coverage (last 2 days) on the detailed map ──
   await run("Select + DELETE asset (full cycle)", async () => { await sleep(200); click("REMOVE"); await sleep(500); });
   await run("Cycle coord MGRS→DMS→UTM→UCRS (grid stays GZD)", async () => { tapMap(0, 0); await sleep(300); click("LLV-DMS"); await sleep(300); click("UTM"); await sleep(300); click("UCRS-2525"); await sleep(300); click("MGRS"); await sleep(300); });
