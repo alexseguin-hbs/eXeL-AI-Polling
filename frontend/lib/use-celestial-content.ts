@@ -23,6 +23,7 @@ const LANG_LOADERS: Record<string, () => Promise<{ default: CelestialLangPack }>
   da: () => import("./celestial-guide-da.json") as Promise<{ default: CelestialLangPack }>,
   de: () => import("./celestial-guide-de.json") as Promise<{ default: CelestialLangPack }>,
   es: () => import("./celestial-guide-es.json") as Promise<{ default: CelestialLangPack }>,
+  fi: () => import("./celestial-guide-fi.json") as Promise<{ default: CelestialLangPack }>,
   fr: () => import("./celestial-guide-fr.json") as Promise<{ default: CelestialLangPack }>,
   he: () => import("./celestial-guide-he.json") as Promise<{ default: CelestialLangPack }>,
   hi: () => import("./celestial-guide-hi.json") as Promise<{ default: CelestialLangPack }>,
@@ -32,6 +33,7 @@ const LANG_LOADERS: Record<string, () => Promise<{ default: CelestialLangPack }>
   pt: () => import("./celestial-guide-pt.json") as Promise<{ default: CelestialLangPack }>,
   ru: () => import("./celestial-guide-ru.json") as Promise<{ default: CelestialLangPack }>,
   sv: () => import("./celestial-guide-sv.json") as Promise<{ default: CelestialLangPack }>,
+  tl: () => import("./celestial-guide-tl.json") as Promise<{ default: CelestialLangPack }>,
   uk: () => import("./celestial-guide-uk.json") as Promise<{ default: CelestialLangPack }>,
   zh: () => import("./celestial-guide-zh.json") as Promise<{ default: CelestialLangPack }>,
 };
