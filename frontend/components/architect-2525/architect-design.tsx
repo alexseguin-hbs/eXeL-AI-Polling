@@ -92,6 +92,20 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
     const d = dim === "d" ? focusRoom.d + delta : focusRoom.d;
     setRoomLayout((prev) => persistLayout(resizeRoomInLayout(prev, focusRoomId, w, d)));
   };
+  // MOVE ROOM panel drag (operator IMG_7484: "move room needs draggable header") — a ⠿ grip repositions the
+  // panel so it stops overlapping the rooms. Offset from its default anchor; released on up/leave/cancel (Thor).
+  const [movePos, setMovePos] = useState({ x: 0, y: 0 });
+  const moveDrag = useRef<{ ox: number; oy: number; px: number; py: number } | null>(null);
+  const moveGripDown = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
+    moveDrag.current = { ox: movePos.x, oy: movePos.y, px: e.clientX, py: e.clientY };
+  };
+  const moveGripMove = (e: React.PointerEvent) => {
+    if (!moveDrag.current) return;
+    setMovePos({ x: moveDrag.current.ox + (e.clientX - moveDrag.current.px), y: moveDrag.current.oy + (e.clientY - moveDrag.current.py) });
+  };
+  const moveGripUp = (e: React.PointerEvent) => { moveDrag.current = null; try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {} };
   // Structural members — VISIBLE + ADJUSTABLE (operator: "can't see/change structural beam sizes").
   const STUD_SIZES = ["2×4", "2×6", "2×8"] as const;
   const BEAM_SIZES = ["4×6", "4×8", "6×8", "GLULAM"] as const;
@@ -235,8 +249,13 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
             {/* HOUSE level — move the selected room (D-pad) + ⏎ Enter to optimize it only */}
             {roomSel && !focusRoomId && (
               <div data-arch-roommove className="absolute left-2 top-9 flex flex-col items-center gap-0.5 rounded-lg border p-1.5 shadow-lg"
-                style={{ borderColor: C.cyan, background: "#0a0f16ee" }}>
-                <div className="mb-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Move room</div>
+                style={{ borderColor: C.cyan, background: "#0a0f16ee", transform: `translate(${movePos.x}px, ${movePos.y}px)` }}>
+                {/* draggable header (⠿ grip) — reposition the panel off the rooms (operator IMG_7484) */}
+                <div data-arch-roommove-grip onPointerDown={moveGripDown} onPointerMove={moveGripMove} onPointerUp={moveGripUp} onPointerCancel={moveGripUp}
+                  className="mb-0.5 flex w-full cursor-grab touch-none items-center gap-1 active:cursor-grabbing" title="Drag to move this panel">
+                  <span className="tracking-tighter" style={{ color: C.dim, fontSize: 9 }}>⠿</span>
+                  <span className="text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Move room</span>
+                </div>
                 <button data-arch-roommove-n onClick={() => moveRoom(-1, 0)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>▲ N</button>
                 <div className="flex gap-0.5">
                   <button data-arch-roommove-w onClick={() => moveRoom(0, -1)} className="rounded border px-2 text-[11px]" style={{ borderColor: C.border, color: C.text }}>◀ W</button>

@@ -8,7 +8,7 @@
  * is hidden." Rendered as a compact overlay on the map by DesignWorkspace when the right rail is
  * collapsed. Values are the deterministic `programMetrics(...).counts` (+ sqft), never re-derived here.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { LayoutGrid, Bath, Ruler, Square, DoorOpen, Plug } from "lucide-react";
 import { programMetrics } from "@/lib/room-program";
 import { type LayerState } from "./use-layer-state";
@@ -17,6 +17,8 @@ const C = { border: "#1e2b3a", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc
 
 export function MetricStrip({ state, overlay = false, homeType = "full" }: { state: LayerState; overlay?: boolean; homeType?: "full" | "tiny" | "multifamily" | "commercial" }) {
   const m = useMemo(() => programMetrics(state.globalParams, state.program, homeType), [state.globalParams, state.program, homeType]);
+  // Default COLLAPSED = icon + number only (operator IMG_7484); ••• expand reveals the grey labels + widens.
+  const [expanded, setExpanded] = useState(false);
   const items: { icon: typeof Bath; label: string; value: string; color: string }[] = [
     { icon: LayoutGrid, label: "Rooms", value: `${m.counts.rooms}`, color: C.violet },
     { icon: Bath, label: "Baths", value: `${m.bathrooms}`, color: C.violet },
@@ -25,14 +27,35 @@ export function MetricStrip({ state, overlay = false, homeType = "full" }: { sta
     { icon: DoorOpen, label: "Doors", value: `${m.counts.doors}`, color: C.green },
     { icon: Plug, label: "Outlets", value: `${m.counts.outlets}`, color: C.gold },
   ];
+  // Non-overlay (docked in a rail): the original wrap layout.
+  if (!overlay) {
+    return (
+      <div data-arch-metricstrip className="flex flex-wrap gap-1">
+        {items.map(({ icon: Icon, label, value, color }) => (
+          <div key={label} data-arch-metric={label.toLowerCase()} title={`${label}: ${value}`} className="flex items-center gap-1.5 px-1 text-[10px]">
+            <Icon className="h-3.5 w-3.5 shrink-0" style={{ color }} />
+            <span className="tabular-nums font-semibold" style={{ color }}>{value}</span>
+            <span className="uppercase tracking-wide" style={{ color: C.dim, fontSize: 8 }}>{label}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  // OVERLAY (operator IMG_7484): a VERTICAL rail on the RIGHT, INSIDE the map border — one icon+number per row.
+  // Collapsed = icons + numbers only; the ••• button expands to reveal the grey labels (widens the rail).
   return (
-    <div data-arch-metricstrip className={overlay ? "pointer-events-none absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 flex-row flex-wrap justify-center gap-x-2 gap-y-0.5 rounded-lg border px-2 py-1 shadow-lg" : "flex flex-wrap gap-1"}
-      style={overlay ? { background: "#0a0f16e6", borderColor: C.border } : undefined}>
+    <div data-arch-metricstrip data-arch-metric-expanded={expanded ? "1" : "0"}
+      className="pointer-events-auto absolute right-2 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-0.5 rounded-lg border px-1 py-1 shadow-lg"
+      style={{ background: "#0a0f16e6", borderColor: C.border }}>
+      <button data-arch-metric-expand onClick={() => setExpanded((v) => !v)} title={expanded ? "Collapse metrics" : "Expand metrics (show labels)"}
+        className="mb-0.5 flex items-center justify-center gap-[3px] self-end rounded p-0.5 hover:bg-white/10">
+        {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
+      </button>
       {items.map(({ icon: Icon, label, value, color }) => (
         <div key={label} data-arch-metric={label.toLowerCase()} title={`${label}: ${value}`} className="flex items-center gap-1.5 px-1 text-[10px]">
           <Icon className="h-3.5 w-3.5 shrink-0" style={{ color }} />
           <span className="tabular-nums font-semibold" style={{ color }}>{value}</span>
-          <span className="uppercase tracking-wide" style={{ color: C.dim, fontSize: 8 }}>{label}</span>
+          {expanded && <span className="uppercase tracking-wide" style={{ color: C.dim, fontSize: 8 }}>{label}</span>}
         </div>
       ))}
     </div>
