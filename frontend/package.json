@@ -17,7 +17,8 @@
     "test:celestial": "node --experimental-strip-types tests/celestial-masters.test.mjs",
     "test:celestial-i18n": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/celestial-i18n.test.mjs",
     "test:room-layout": "node --experimental-strip-types tests/room-layout.test.mjs",
-    "test:celestial-packs": "node --experimental-strip-types tests/celestial-packs.test.mjs"
+    "test:celestial-packs": "node --experimental-strip-types tests/celestial-packs.test.mjs",
+    "test:all": "npm run test:room-layout && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:bim"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",
