@@ -20,6 +20,7 @@ export type CelestialLangPack = Record<string, Partial<BodyText>>;
 // their JSON packs land; until then every non-English locale falls back to English, by design.
 const LANG_LOADERS: Record<string, () => Promise<{ default: CelestialLangPack }>> = {
   ar: () => import("./celestial-guide-ar.json") as Promise<{ default: CelestialLangPack }>,
+  da: () => import("./celestial-guide-da.json") as Promise<{ default: CelestialLangPack }>,
   de: () => import("./celestial-guide-de.json") as Promise<{ default: CelestialLangPack }>,
   es: () => import("./celestial-guide-es.json") as Promise<{ default: CelestialLangPack }>,
   fr: () => import("./celestial-guide-fr.json") as Promise<{ default: CelestialLangPack }>,
@@ -27,8 +28,10 @@ const LANG_LOADERS: Record<string, () => Promise<{ default: CelestialLangPack }>
   hi: () => import("./celestial-guide-hi.json") as Promise<{ default: CelestialLangPack }>,
   it: () => import("./celestial-guide-it.json") as Promise<{ default: CelestialLangPack }>,
   ja: () => import("./celestial-guide-ja.json") as Promise<{ default: CelestialLangPack }>,
+  no: () => import("./celestial-guide-no.json") as Promise<{ default: CelestialLangPack }>,
   pt: () => import("./celestial-guide-pt.json") as Promise<{ default: CelestialLangPack }>,
   ru: () => import("./celestial-guide-ru.json") as Promise<{ default: CelestialLangPack }>,
+  sv: () => import("./celestial-guide-sv.json") as Promise<{ default: CelestialLangPack }>,
   uk: () => import("./celestial-guide-uk.json") as Promise<{ default: CelestialLangPack }>,
   zh: () => import("./celestial-guide-zh.json") as Promise<{ default: CelestialLangPack }>,
 };
