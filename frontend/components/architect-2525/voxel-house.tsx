@@ -16,7 +16,9 @@
  *    violet interior room voxels + labels + a front porch stair. (Layout is adjacency only — cost
  *    is unchanged; the cost/schedule engine is untouched.)
  *  • FULL HOME — the generic 3×3×3 land base with a single house cube at the centre (2,2) cell.
- * Elevation surfaces (per-corner altitude) land in the next slice; this is the selectable-voxel core.
+ * Elevation surfaces are LIVE: the 8 land cells around the pad rise/fall to their procedural altitude
+ * (grass-shaded slabs + skirts), the four outer corners carry visible altitude labels, and a
+ * North-default compass rides the corner (F1 · #136; terrain math + determinism lock in lib/terrain.ts).
  */
 import { useRef, useState, type CSSProperties } from "react";
 import type { HomeType } from "@/lib/architect-layers";
