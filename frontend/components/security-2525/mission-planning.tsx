@@ -3935,18 +3935,26 @@ function AoMapPane(p: PaneProps) {
                   : selectedSupport ? <SupportGlyph glyph={selectedSupport.glyph} color={selectedSupport.color} size={26} /> : null}
               </div>
             )}
-            {/* mini-target cursor */}
-            {cursorMode === "target" && cursorPx && (
-              <svg className="pointer-events-none absolute" width="44" height="44" style={{ left: cursorPx.x - 22, top: cursorPx.y - 22 }}>
-                <circle cx="22" cy="22" r="20" fill="none" stroke={C.cyan} strokeWidth="1" opacity="0.5" />
-                <circle cx="22" cy="22" r="11" fill="none" stroke={C.cyan} strokeWidth="1" opacity="0.8" />
-                <circle cx="22" cy="22" r="1.6" fill={C.gold} />
-                <line x1="22" y1="2" x2="22" y2="9" stroke={C.cyan} strokeWidth="1" />
-                <line x1="22" y1="35" x2="22" y2="42" stroke={C.cyan} strokeWidth="1" />
-                <line x1="2" y1="22" x2="9" y2="22" stroke={C.cyan} strokeWidth="1" />
-                <line x1="35" y1="22" x2="42" y2="22" stroke={C.cyan} strokeWidth="1" />
-              </svg>
-            )}
+            {/* mini-target cursor — sized to the 1X CENTER-VOXEL footprint (#28): reuses the exact cell-px
+                formula from the voxel render loops (effCellM/spanKm·paneW) × the 1X tier scale, so the reticle
+                always equals one 1X voxel and grows/shrinks with zoom. Clamped so it stays usable. */}
+            {cursorMode === "target" && cursorPx && (() => {
+              const paneW = mapRef.current?.clientWidth ?? 800;
+              const cellBase = Math.max(16, (effCellM / (view.spanKm * 1000)) * paneW);
+              const S = Math.max(24, Math.min(140, cellBase * VOXEL_BASE_SCALE[1]));
+              const k = S / 44, c = S / 2;
+              return (
+                <svg data-sec-target-cursor className="pointer-events-none absolute" width={S} height={S} style={{ left: cursorPx.x - c, top: cursorPx.y - c }}>
+                  <circle cx={c} cy={c} r={20 * k} fill="none" stroke={C.cyan} strokeWidth="1" opacity="0.5" />
+                  <circle cx={c} cy={c} r={11 * k} fill="none" stroke={C.cyan} strokeWidth="1" opacity="0.8" />
+                  <circle cx={c} cy={c} r={1.6 * k} fill={C.gold} />
+                  <line x1={c} y1={2 * k} x2={c} y2={9 * k} stroke={C.cyan} strokeWidth="1" />
+                  <line x1={c} y1={35 * k} x2={c} y2={42 * k} stroke={C.cyan} strokeWidth="1" />
+                  <line x1={2 * k} y1={c} x2={9 * k} y2={c} stroke={C.cyan} strokeWidth="1" />
+                  <line x1={35 * k} y1={c} x2={42 * k} y2={c} stroke={C.cyan} strokeWidth="1" />
+                </svg>
+              );
+            })()}
             {/* scale bar — bottom-LEFT so the bottom-right mini-map inset never covers it */}
             <div className="pointer-events-none absolute bottom-1.5 left-2 right-2 z-30 flex flex-col items-start gap-0.5">
               {/* CONTOUR KEY — every line's height in the chosen units (m / ft / both) */}
