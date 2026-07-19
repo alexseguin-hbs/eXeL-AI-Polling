@@ -22,6 +22,7 @@ const LANG_LOADERS: Record<string, () => Promise<{ default: CelestialLangPack }>
   ar: () => import("./celestial-guide-ar.json") as Promise<{ default: CelestialLangPack }>,
   da: () => import("./celestial-guide-da.json") as Promise<{ default: CelestialLangPack }>,
   de: () => import("./celestial-guide-de.json") as Promise<{ default: CelestialLangPack }>,
+  el: () => import("./celestial-guide-el.json") as Promise<{ default: CelestialLangPack }>,
   es: () => import("./celestial-guide-es.json") as Promise<{ default: CelestialLangPack }>,
   fi: () => import("./celestial-guide-fi.json") as Promise<{ default: CelestialLangPack }>,
   fr: () => import("./celestial-guide-fr.json") as Promise<{ default: CelestialLangPack }>,
