@@ -11,10 +11,10 @@
 import { useRef, useState } from "react";
 import {
   Bed, Sofa, CookingPot, Utensils, Monitor, Toilet, Bath, Droplet, WashingMachine, DoorOpen,
-  RectangleHorizontal, RotateCw, Trash2, type LucideIcon,
+  RectangleHorizontal, RotateCw, RotateCcw, FlipHorizontal2, FlipVertical2, Trash2, type LucideIcon,
 } from "lucide-react";
 import {
-  OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject,
+  OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
   type PlacedObject, type ObjectKind,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
@@ -49,6 +49,10 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const [selId, setSelId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const drag = useRef<string | null>(null);
+  // 2D plan orientation — rotate the floor plan (North compass, Mission-Planning parity). Placement inverts this
+  // so a tap always lands in the true cell regardless of rotation. Mirror is a DATA op (mirrorObjects), not here.
+  const [bearing2d, setBearing2d] = useState(0); // degrees, 0 = North up
+  const rot2d = (d: number) => setBearing2d((b) => ((b + d) % 360 + 360) % 360);
 
   // ── 3D CAMERA (Mission-Planning parity) — orbit bearing + tilt pitch + zoom, driven by the SAME gesture
   // model as voxel-house.tsx: ONE finger/drag = orbit + tilt, TWO fingers = pinch-zoom, wheel = zoom
@@ -93,8 +97,14 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent): { gx: number; gy: number } | null => {
     const svg = svgRef.current; if (!svg) return null;
     const r = svg.getBoundingClientRect();
-    const gx = Math.floor(((e.clientX - r.left) / r.width) * N);
-    const gy = Math.floor(((e.clientY - r.top) / r.height) * N);
+    // Screen → viewBox (0..100, square so linear), then UNDO the plan rotation about the centre (50,50).
+    const vx = ((e.clientX - r.left) / r.width) * 100;
+    const vy = ((e.clientY - r.top) / r.height) * 100;
+    const th = (bearing2d * Math.PI) / 180, cs = Math.cos(th), sn = Math.sin(th);
+    const dx = vx - 50, dy = vy - 50;
+    const lx = 50 + (dx * cs + dy * sn);   // inverse rotation (−θ)
+    const ly = 50 + (-dx * sn + dy * cs);
+    const gx = Math.floor(lx / 10), gy = Math.floor(ly / 10);
     if (gx < 0 || gx >= N || gy < 0 || gy >= N) return null;
     return { gx, gy };
   };
@@ -169,10 +179,11 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
       </div>
 
       <div className="flex flex-col gap-2 lg:flex-row">
-        {/* 2D interactive floor */}
-        <div className="w-full lg:w-1/2">
+        {/* 2D interactive floor — rotatable (North compass) + mirror; placement inverts the rotation */}
+        <div className="relative w-full lg:w-1/2">
           <svg ref={svgRef} data-arch-roomdesign-2d viewBox="0 0 100 100" className="w-full rounded border" style={{ borderColor: C.cyan, background: "#070b12", aspectRatio: "1 / 1", touchAction: "none" }}
             onPointerMove={svgMove} onPointerUp={svgUp} onPointerCancel={svgUp}>
+            <g data-arch-roomdesign-2d-rot transform={`rotate(${bearing2d} 50 50)`}>
             {/* 1-ft grid */}
             {Array.from({ length: N + 1 }).map((_, i) => (
               <g key={i}>
@@ -208,7 +219,19 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                 </g>
               );
             })}
+            </g>
           </svg>
+          {/* 2D compass (rotates with the plan) + rotate + mirror controls — Mission-Planning parity */}
+          <div data-arch-roomdesign-2d-compass className="pointer-events-none absolute left-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border" style={{ borderColor: `${C.cyan}66`, background: "#0a0f16cc" }}>
+            <span style={{ display: "inline-block", transform: `rotate(${-bearing2d}deg)`, color: C.cyan, fontSize: 9, fontWeight: 800 }}>N↑</span>
+          </div>
+          <div className="absolute right-1.5 top-1.5 flex gap-1">
+            <button data-arch-2d-rotccw onClick={() => rot2d(-15)} title="Rotate plan left" className="rounded border p-0.5" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.cyan }}><RotateCcw className="h-3 w-3" /></button>
+            <button data-arch-2d-rotcw onClick={() => rot2d(15)} title="Rotate plan right" className="rounded border p-0.5" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.cyan }}><RotateCw className="h-3 w-3" /></button>
+            <button data-arch-2d-mirrorh onClick={() => onChange(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="rounded border p-0.5" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.violet }}><FlipHorizontal2 className="h-3 w-3" /></button>
+            <button data-arch-2d-mirrorv onClick={() => onChange(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="rounded border p-0.5" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.violet }}><FlipVertical2 className="h-3 w-3" /></button>
+          </div>
+          {bearing2d !== 0 && <button data-arch-2d-north onClick={() => setBearing2d(0)} className="absolute bottom-1 left-1.5 rounded border px-1.5 py-0.5 text-[8px]" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.dim }}>North</button>}
         </div>
 
         {/* 3D voxel mirror — orbit/tilt/pinch (Mission-Planning parity) */}

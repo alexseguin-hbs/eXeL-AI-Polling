@@ -68,3 +68,14 @@ export function removeObject(objs: PlacedObject[], id: string): PlacedObject[] {
 export function countKind(objs: PlacedObject[], kind: ObjectKind): number {
   return objs.filter((o) => o.kind === kind).length;
 }
+
+/**
+ * Mirror the whole layout across the room's centre — "h" flips left↔right (gx), "v" flips top↔bottom (gy).
+ * A DATA op (not a view flip) so BOTH the 2D plan and the 3D voxel reflect it from one source. Immutable +
+ * deterministic; applying the same axis twice returns the original layout (involution → replay-safe).
+ */
+export function mirrorObjects(objs: PlacedObject[], axis: "h" | "v"): PlacedObject[] {
+  return objs.map((o) => axis === "h"
+    ? { ...o, gx: clampCell(ROOM_GRID - 1 - o.gx) }
+    : { ...o, gy: clampCell(ROOM_GRID - 1 - o.gy) });
+}
