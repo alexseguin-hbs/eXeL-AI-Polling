@@ -20,7 +20,8 @@
  * (grass-shaded slabs + skirts), the four outer corners carry visible altitude labels, and a
  * North-default compass rides the corner (F1 · #136; terrain math + determinism lock in lib/terrain.ts).
  */
-import { useRef, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
+import { useRCoreGestures } from "./use-rcore-gestures";
 import type { HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { elevAt, cornerAltitudes, mToFt } from "@/lib/terrain";
@@ -33,9 +34,10 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   layout?: RoomCell[]; selectedRoomId?: string | null; onSelectRoom?: (id: string) => void;
   walk?: boolean; walkRoomId?: string | null; wallW?: number; hvac?: boolean; showSockets?: boolean;
 }) {
-  const [bearing, setBearing] = useState(0);       // 0 = NORTH up (operator: North is the default)
-  const [pitch, setPitch] = useState(58);          // camera tilt (deg)
-  const [zoom, setZoom] = useState(1);
+  // Camera = the shared Vision-2525 R-Core interaction model (identical to Mission-Planning + the room voxel).
+  const cam = useRCoreGestures({ initialBearing: 0, initialPitch: 58, initialZoom: 1,
+    cfg: { minPitch: 18, maxPitch: 82, minZoom: 0.6, maxZoom: 3.2 } });
+  const { bearing, pitch, zoom } = cam;
   const [selLocal, setSelLocal] = useState<string | null>(null);
   // Selection can be lifted (controlled) so the 2D plan, 3D voxel, and right panel agree; else local.
   const selId = onSelectRoom ? (selectedRoomId ?? null) : selLocal;
@@ -49,33 +51,6 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   const face = (t: string, w: number, h: number, color: string, solid: boolean, bw = 1): CSSProperties =>
     ({ ...at(t), width: w, height: h, border: `${bw}px ${solid ? "solid" : "dashed"} ${color}`, background: solid ? `${color}22` : "transparent" });
 
-  // Gestures (Mission-Planning parity, touch + mouse): ONE finger/drag = orbit bearing + tilt pitch;
-  // TWO fingers = pinch-to-zoom. Wheel = zoom. Pointer positions are tracked so touch deltas are reliable.
-  const gp = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const gpinch = useRef<number | null>(null);
-  const clampZoom = (z: number) => Math.max(0.6, Math.min(3.2, z));
-  const onDown = (e: React.PointerEvent) => { gp.current.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (gp.current.size === 2) gpinch.current = null; };
-  const onMove = (e: React.PointerEvent) => {
-    if (!gp.current.has(e.pointerId)) {
-      // mouse fallback: LEFT or RIGHT button held with no tracked pointer (Mission-Planning parity — right-drag
-      // orbits/tilts too; the container suppresses the context menu so the right-drag reads cleanly).
-      if (e.buttons === 1 || e.buttons === 2) { setBearing((b) => b + e.movementX * 0.012); setPitch((p) => Math.max(18, Math.min(82, p - e.movementY * 0.15))); }
-      return;
-    }
-    const prev = gp.current.get(e.pointerId)!;
-    gp.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const a = Array.from(gp.current.values());
-    if (a.length >= 2) {
-      const d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y);
-      if (gpinch.current) setZoom((z) => clampZoom(z * (d / gpinch.current!)));
-      gpinch.current = d;
-    } else {
-      setBearing((b) => b + (e.clientX - prev.x) * 0.012);
-      setPitch((p) => Math.max(18, Math.min(82, p - (e.clientY - prev.y) * 0.15)));
-    }
-  };
-  const onUp = (e: React.PointerEvent) => { gp.current.delete(e.pointerId); if (gp.current.size < 2) gpinch.current = null; };
-  const onWheel = (e: React.WheelEvent) => { setZoom((z) => clampZoom(z - e.deltaY * 0.0012)); };
 
   // The exterior land base — a 3×3 grid floor (cyan datum plane) so the plot reads as the parcel.
   const landFloor = (
@@ -237,16 +212,15 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
 
   const beds = program?.bedrooms;
   const caption = tiny
-    ? "Tiny Home · house = centre cube of the 3×3 land base · surrounding land shows elevation · orbit to read relief · scroll to zoom"
-    : `3×3 land base · house at centre · surrounding land shows elevation${beds ? ` · ${beds} bed` : ""} · orbit to read relief · scroll to zoom`;
+    ? "Tiny Home · house = centre cube of the 3×3 land base · surrounding land shows elevation · L-drag pan · R-drag rotate/tilt · pinch/scroll zoom"
+    : `3×3 land base · house at centre · surrounding land shows elevation${beds ? ` · ${beds} bed` : ""} · L-drag pan · R-drag rotate/tilt · pinch/scroll zoom`;
 
   return (
     <div data-arch-voxel className="relative w-full cursor-grab touch-none overflow-hidden rounded active:cursor-grabbing"
       style={{ background: "#070b12", height }}
-      onContextMenu={(e) => e.preventDefault()}
-      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onWheel={onWheel}>
+      {...cam.handlers} onPointerLeave={cam.handlers.onPointerUp}>
       <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 60%",
-        transform: `perspective(820px) rotateX(${effPitch}deg) scale(${1.02 * effZoom})` }}>
+        transform: `translate(${cam.pan.x}px, ${cam.pan.y}px) perspective(820px) rotateX(${effPitch}deg) scale(${1.02 * effZoom})` }}>
         <div className="absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", transform: `rotateZ(${bearing}rad) translate3d(${-wx}px,${-wy}px,0px)` }}>
           {landFloor}
           {terrain}

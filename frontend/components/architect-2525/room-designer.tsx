@@ -19,6 +19,7 @@ import {
   type PlacedObject, type ObjectKind,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
+import { useRCoreGestures } from "./use-rcore-gestures";
 import type { RoomCell } from "@/lib/room-layout";
 
 const C = { border: "#1e2b3a", panel: "#0c1420", dim: "#5f7186", text: "#c8d6e5", cyan: "#19c8cf", gold: "#ffd400", violet: "#c084fc" };
@@ -55,45 +56,13 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const [bearing2d, setBearing2d] = useState(0); // degrees, 0 = North up
   const rot2d = (d: number) => setBearing2d((b) => ((b + d) % 360 + 360) % 360);
 
-  // ── 3D CAMERA (Mission-Planning parity) — orbit bearing + tilt pitch + zoom, driven by the SAME gesture
-  // model as voxel-house.tsx: ONE finger/drag = orbit + tilt, TWO fingers = pinch-zoom, wheel = zoom
-  // (operator IMG_7492/7494/7495: "use same two pinch and rotation to view inside of room as Mission planning 3D map").
-  const [bearing, setBearing] = useState(-Math.PI / 4); // classic corner view by default (matches the old static iso)
-  const [pitch, setPitch] = useState(34);               // camera tilt (deg from horizontal); 90 = top-down plan
-  const [zoom, setZoom] = useState(1);
-  const gp = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const gpinch = useRef<number | null>(null);
-  const clampZoom = (z: number) => Math.max(0.6, Math.min(3.2, z));
-  const camDown = (e: React.PointerEvent) => {
-    gp.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (gp.current.size === 2) gpinch.current = null;
-    try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch {}
-  };
-  const camMove = (e: React.PointerEvent) => {
-    if (!gp.current.has(e.pointerId)) {
-      // LEFT or RIGHT button orbits/tilts (Mission-Planning parity); the svg suppresses the context menu.
-      if (e.buttons === 1 || e.buttons === 2) { setBearing((b) => b + e.movementX * 0.012); setPitch((p) => Math.max(6, Math.min(90, p - e.movementY * 0.15))); }
-      return;
-    }
-    const prev = gp.current.get(e.pointerId)!;
-    gp.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const a = Array.from(gp.current.values());
-    if (a.length >= 2) {
-      const d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y);
-      if (gpinch.current) setZoom((z) => clampZoom(z * (d / gpinch.current!)));
-      gpinch.current = d;
-    } else {
-      setBearing((b) => b + (e.clientX - prev.x) * 0.012);
-      setPitch((p) => Math.max(6, Math.min(90, p - (e.clientY - prev.y) * 0.15)));
-    }
-  };
-  const camUp = (e: React.PointerEvent) => {
-    gp.current.delete(e.pointerId);
-    if (gp.current.size < 2) gpinch.current = null;
-    try { (e.currentTarget as Element).releasePointerCapture(e.pointerId); } catch {}
-  };
-  const camWheel = (e: React.WheelEvent) => { setZoom((z) => clampZoom(z - e.deltaY * 0.0012)); };
-  const camReset = () => { setBearing(-Math.PI / 4); setPitch(34); setZoom(1); };
+  // ── 3D CAMERA — the shared Vision-2525 R-Core interaction model (identical to Mission-Planning): LEFT-drag /
+  // one-finger = PAN · RIGHT-drag = rotate+tilt · two fingers = pinch-zoom + twist-bearing + vertical-tilt · wheel
+  // = zoom. One hook, no local re-implementation (operator: "R-Core for all areas of interaction").
+  const cam = useRCoreGestures({ initialBearing: -Math.PI / 4, initialPitch: 34, initialZoom: 1,
+    cfg: { minPitch: 6, maxPitch: 90, minZoom: 0.6, maxZoom: 3.2 } });
+  const { bearing, pitch, zoom } = cam;
+  const camReset = cam.reset;
 
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent): { gx: number; gy: number } | null => {
     const svg = svgRef.current; if (!svg) return null;
@@ -141,7 +110,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     const dx = x - cx, dy = y - cy, dz = z - cz;
     const xw = dx * cosB - dy * sinB;
     const yw = dx * sinB + dy * cosB;
-    return [OX + xw * U * zoom, OY + (yw * sinP - dz * cosP) * U * zoom];
+    // pan (R-Core left-drag) translates the whole scene in screen space
+    return [OX + cam.pan.x + xw * U * zoom, OY + cam.pan.y + (yw * sinP - dz * cosP) * U * zoom];
   };
   const floor = [iso(0, 0, 0), iso(N, 0, 0), iso(N, N, 0), iso(0, N, 0)];
   const ceil = [iso(0, 0, N), iso(N, 0, N), iso(N, N, N), iso(0, N, N)];
@@ -239,8 +209,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         <div className="relative w-full lg:w-1/2">
           <svg data-arch-roomdesign-3d viewBox="0 0 260 220" className="w-full rounded border"
             style={{ borderColor: C.cyan, background: "#070b12", aspectRatio: "1 / 1", touchAction: "none", cursor: "grab" }}
-            onContextMenu={(e) => e.preventDefault()}
-            onPointerDown={camDown} onPointerMove={camMove} onPointerUp={camUp} onPointerLeave={camUp} onPointerCancel={camUp} onWheel={camWheel}>
+            {...cam.handlers} onPointerLeave={cam.handlers.onPointerUp}>
             <polygon points={poly(floor)} fill={`${C.cyan}12`} stroke={`${C.cyan}66`} strokeWidth={1} />
             {[0, 1, 2, 3].map((i) => <line key={i} x1={floor[i][0]} y1={floor[i][1]} x2={ceil[i][0]} y2={ceil[i][1]} stroke={`${C.cyan}44`} strokeWidth={0.8} />)}
             <polygon points={poly(ceil)} fill="none" stroke={`${C.cyan}33`} strokeWidth={0.7} />
@@ -273,7 +242,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             <span style={{ display: "inline-block", transform: `rotate(${-bearing}rad)`, color: C.cyan, fontSize: 9, fontWeight: 800 }}>N↑</span>
           </div>
           <button data-arch-roomdesign-reset onClick={camReset} title="Reset view" className="absolute right-1.5 top-1.5 rounded border px-1.5 py-0.5 text-[8px]" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.dim }}>Reset</button>
-          <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>drag orbit · pinch/scroll zoom · 2-finger tilt</div>
+          <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>L-drag pan · R-drag rotate/tilt · pinch/scroll zoom · 2-finger twist/tilt</div>
         </div>
       </div>
 
