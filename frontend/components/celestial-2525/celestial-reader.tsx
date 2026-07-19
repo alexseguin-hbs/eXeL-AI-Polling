@@ -83,20 +83,31 @@ export function CelestialReader() {
 
         {/* RIGHT — the reading page for the selected body */}
         <div data-cel-page dir={rtl ? "rtl" : "ltr"} className="flex w-full flex-col gap-3 overflow-y-auto p-4 lg:flex-1">
-          {/* reading-level picker (kids · middle · high · adult) */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{t("celestial.readingLevel")}</span>
-            {READING_LEVELS.map((l) => {
-              const active = level === l.id;
-              return (
-                <button key={l.id} data-cel-level={l.id} onClick={() => setLevel(l.id)}
-                  className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold"
-                  style={{ borderColor: l.stroke, background: active ? l.stroke : "transparent", color: active ? "#05070d" : l.stroke }}>
-                  <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: active ? "#05070d" : l.stroke }} />
-                  {t("celestial.level." + l.id)}
-                </button>
-              );
-            })}
+          {/* reading-level picker — DROPDOWN on phone (one line, no wrap), pills on ≥sm */}
+          <div className="flex items-center gap-2">
+            <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{t("celestial.readingLevel")}</span>
+            {/* mobile: single-line dropdown with all 4 options */}
+            <select data-cel-level-select value={level} onChange={(e) => setLevel(e.target.value as ReadingLevel)}
+              className="rounded-lg border px-2 py-1 text-[12px] font-semibold sm:hidden"
+              style={{ borderColor: levelMeta.stroke, background: C.panel, color: levelMeta.stroke }}>
+              {READING_LEVELS.map((l) => (
+                <option key={l.id} value={l.id} style={{ background: C.panel, color: C.text }}>{t("celestial.level." + l.id)}</option>
+              ))}
+            </select>
+            {/* ≥sm: the pill row */}
+            <div className="hidden flex-wrap items-center gap-2 sm:flex">
+              {READING_LEVELS.map((l) => {
+                const active = level === l.id;
+                return (
+                  <button key={l.id} data-cel-level={l.id} onClick={() => setLevel(l.id)}
+                    className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold"
+                    style={{ borderColor: l.stroke, background: active ? l.stroke : "transparent", color: active ? "#05070d" : l.stroke }}>
+                    <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: active ? "#05070d" : l.stroke }} />
+                    {t("celestial.level." + l.id)}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* the page */}
