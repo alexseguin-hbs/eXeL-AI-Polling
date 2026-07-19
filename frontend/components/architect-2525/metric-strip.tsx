@@ -47,8 +47,9 @@ export function MetricStrip({ state, overlay = false, homeType = "full" }: { sta
     <div data-arch-metricstrip data-arch-metric-expanded={expanded ? "1" : "0"}
       className="pointer-events-auto absolute right-2 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-0.5 rounded-lg border px-1 py-1 shadow-lg"
       style={{ background: "#0a0f16e6", borderColor: C.border }}>
+      {/* ••• expand — VERTICAL stacked dots, TOP-LEFT of the rail (operator IMG_7492). */}
       <button data-arch-metric-expand onClick={() => setExpanded((v) => !v)} title={expanded ? "Collapse metrics" : "Expand metrics (show labels)"}
-        className="mb-0.5 flex items-center justify-center gap-[3px] self-end rounded p-0.5 hover:bg-white/10">
+        className="mb-0.5 flex flex-col items-center justify-center gap-[3px] self-start rounded p-0.5 hover:bg-white/10">
         {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
       </button>
       {items.map(({ icon: Icon, label, value, color }) => (
