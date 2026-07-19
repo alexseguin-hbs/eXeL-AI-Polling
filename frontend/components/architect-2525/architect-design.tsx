@@ -17,7 +17,7 @@ import type { RoomProgram } from "@/lib/room-program";
 import { cloneLayout, moveRoomInLayout, resizeRoomInLayout, setRoomElement, setRoomObjects, toggleRoomFurniture, ROOM_FT, type RoomCell, type ElementKind } from "@/lib/room-layout";
 import { RoomDesigner } from "./room-designer";
 import type { PlacedObject } from "@/lib/room-objects";
-import { Frame, Wind, Zap, Droplets } from "lucide-react"; // our own iconology (no emojis) for Design Settings
+import { Frame, Wind, Zap, Droplets, Settings } from "lucide-react"; // our own iconology (no emojis) for Design Settings
 import { sanitizeRoomLayout } from "@/lib/architect-guard";
 
 const C = {
@@ -212,7 +212,7 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
                 {/* ⚙ DESIGN SETTINGS — Studs·Beams·Ducts·Electric·Plumbing moved OFF the toolbar into a grouped
                     panel (operator IMG_7486/7488, Mission-Planning parity). Toolbar stays 2D/3D/Voxel + gear. */}
                 <button data-arch-design-settings-btn onClick={() => setSettingsOpen((v) => !v)} title="Design settings" aria-label="Design settings"
-                  className="rounded border px-2 py-0.5" style={{ borderColor: settingsOpen ? C.cyan : C.border, color: settingsOpen ? C.cyan : C.dim }}>⚙</button>
+                  className="flex items-center rounded border px-1.5 py-1" style={{ borderColor: settingsOpen ? C.cyan : C.border, color: settingsOpen ? C.cyan : C.dim }}><Settings className="h-3 w-3" /></button>
               </>
             ) : (
               <>

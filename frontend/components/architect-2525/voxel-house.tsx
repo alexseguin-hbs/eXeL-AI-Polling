@@ -22,6 +22,7 @@
  */
 import { useState, type CSSProperties } from "react";
 import { useRCoreGestures } from "./use-rcore-gestures";
+import { Compass2525 } from "./compass-2525";
 import type { HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { elevAt, cornerAltitudes, mToFt } from "@/lib/terrain";
@@ -237,11 +238,8 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
           style={{ borderColor: `${C.green}55`, color: C.green, background: "#0a0f16cc" }}>{k.toUpperCase()} {mToFt(m) >= 0 ? "+" : ""}{mToFt(m)}′</div>
       ))}
 
-      {/* NORTH-default compass rose (rotates with bearing so N always points to scene-north). */}
-      <div data-arch-compass className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full border"
-        style={{ borderColor: `${C.cyan}55`, background: "#0a0f16cc" }}>
-        <span style={{ display: "inline-block", transform: `rotate(${-bearing}rad)`, color: C.cyan, fontSize: 9, fontWeight: 800 }}>N↑</span>
-      </div>
+      {/* shared Mission-Planning compass rose (rotates with bearing; click = snap north) */}
+      <Compass2525 bearing={bearing} onNorth={() => cam.setBearing(0)} size={34} className="absolute right-2 top-2 border" style={{ borderColor: `${C.cyan}55` }} />
 
       {/* selected-room readout */}
       {selId && tiny && !compact && (() => { const r = layout.find((x) => x.id === selId); if (!r) return null; return (

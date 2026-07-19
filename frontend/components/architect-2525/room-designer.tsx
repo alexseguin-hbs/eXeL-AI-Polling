@@ -11,8 +11,9 @@
 import { useRef, useState } from "react";
 import {
   Bed, Sofa, CookingPot, Utensils, Monitor, Toilet, Bath, Droplet, WashingMachine, DoorOpen,
-  RectangleHorizontal, RotateCw, RotateCcw, FlipHorizontal2, FlipVertical2, Trash2, type LucideIcon,
+  RectangleHorizontal, RotateCw, RotateCcw, Columns2, Rows2, Trash2, type LucideIcon,
 } from "lucide-react";
+import { Compass2525 } from "./compass-2525";
 import {
   OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
   footprintOf, cycleVariant, VARIANTS,
@@ -202,17 +203,14 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             })}
             </g>
           </svg>
-          {/* 2D compass (rotates with the plan) + rotate + mirror controls — Mission-Planning parity */}
-          <div data-arch-roomdesign-2d-compass className="pointer-events-none absolute left-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border" style={{ borderColor: `${C.cyan}66`, background: "#0a0f16cc" }}>
-            <span style={{ display: "inline-block", transform: `rotate(${-bearing2d}deg)`, color: C.cyan, fontSize: 9, fontWeight: 800 }}>N↑</span>
-          </div>
+          {/* shared Mission-Planning compass (rotates with the plan; click = snap north) + rotate + mirror controls */}
+          <Compass2525 bearing={(bearing2d * Math.PI) / 180} onNorth={() => setBearing2d(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
           <div className="absolute right-1.5 top-1.5 flex gap-1">
             <button data-arch-2d-rotccw onClick={() => rot2d(-15)} title="Rotate plan left" className="rounded border p-0.5" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.cyan }}><RotateCcw className="h-3 w-3" /></button>
             <button data-arch-2d-rotcw onClick={() => rot2d(15)} title="Rotate plan right" className="rounded border p-0.5" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.cyan }}><RotateCw className="h-3 w-3" /></button>
-            <button data-arch-2d-mirrorh onClick={() => onChange(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="rounded border p-0.5" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.violet }}><FlipHorizontal2 className="h-3 w-3" /></button>
-            <button data-arch-2d-mirrorv onClick={() => onChange(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="rounded border p-0.5" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.violet }}><FlipVertical2 className="h-3 w-3" /></button>
+            <button data-arch-2d-mirrorh onClick={() => onChange(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="rounded border p-0.5" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.violet }}><Columns2 className="h-3 w-3" /></button>
+            <button data-arch-2d-mirrorv onClick={() => onChange(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="rounded border p-0.5" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.violet }}><Rows2 className="h-3 w-3" /></button>
           </div>
-          {bearing2d !== 0 && <button data-arch-2d-north onClick={() => setBearing2d(0)} className="absolute bottom-1 left-1.5 rounded border px-1.5 py-0.5 text-[8px]" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.dim }}>North</button>}
         </div>
 
         {/* 3D voxel mirror — orbit/tilt/pinch (Mission-Planning parity) */}
@@ -247,10 +245,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             {run3d(wiring?.runs, MEP_COL.wiring, 3, "wiring")}
             {run3d(duct?.runs, MEP_COL.duct, N - 0.5, "duct")}
           </svg>
-          {/* NORTH compass (rotates with bearing) + reset — Mission-Planning parity chrome */}
-          <div data-arch-roomdesign-compass className="pointer-events-none absolute left-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border" style={{ borderColor: `${C.cyan}66`, background: "#0a0f16cc" }}>
-            <span style={{ display: "inline-block", transform: `rotate(${-bearing}rad)`, color: C.cyan, fontSize: 9, fontWeight: 800 }}>N↑</span>
-          </div>
+          {/* shared Mission-Planning compass (rotates with bearing; click = snap north) */}
+          <Compass2525 bearing={bearing} onNorth={() => cam.setBearing(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
           <button data-arch-roomdesign-reset onClick={camReset} title="Reset view" className="absolute right-1.5 top-1.5 rounded border px-1.5 py-0.5 text-[8px]" style={{ borderColor: C.border, background: "#0a0f16cc", color: C.dim }}>Reset</button>
           <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>L-drag pan · R-drag rotate/tilt · pinch/scroll zoom · 2-finger twist/tilt</div>
         </div>
