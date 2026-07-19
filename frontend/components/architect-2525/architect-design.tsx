@@ -135,9 +135,20 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const [showSockets, setShowSockets] = useState(true);   // ⚡ outlets visible in 3D walk (single room)
   useEffect(() => { try { setShowSockets(localStorage.getItem("arch2525.sockets") !== "0"); } catch {} }, []);
   const toggleSockets = () => setShowSockets((s) => { const n = !s; try { localStorage.setItem("arch2525.sockets", n ? "1" : "0"); } catch {} return n; });
-  const [showPlumbing, setShowPlumbing] = useState(false); // 🚰 supply/DWV runs overlay (placeholder toggle)
-  useEffect(() => { try { setShowPlumbing(localStorage.getItem("arch2525.plumbing") === "1"); } catch {} }, []);
-  const togglePlumbing = () => setShowPlumbing((p) => { const n = !p; try { localStorage.setItem("arch2525.plumbing", n ? "1" : "0"); } catch {} return n; });
+  // P2 DEPTH — every system is show/no-show and draws its run in the room's 2D plan + 3D voxel with a length
+  // sub-menu (operator IMG_7487/7488): Plumbing = Water Source + Sewer; Electric adds Wiring-to-outlets.
+  const [showWater, setShowWater] = useState(false);   // 🚰 water-supply runs (source → fixtures)
+  const [showSewer, setShowSewer] = useState(false);   // 🚰 sewer/DWV runs (fixtures → stack)
+  const [showWiring, setShowWiring] = useState(false); // ⚡ wiring runs (panel → outlets)
+  useEffect(() => { try {
+    setShowWater(localStorage.getItem("arch2525.water") === "1");
+    setShowSewer(localStorage.getItem("arch2525.sewer") === "1");
+    setShowWiring(localStorage.getItem("arch2525.wiring") === "1");
+  } catch {} }, []);
+  const persistFlag = (k: string, v: boolean) => { try { localStorage.setItem(k, v ? "1" : "0"); } catch {} };
+  const toggleWater = () => setShowWater((v) => { const n = !v; persistFlag("arch2525.water", n); return n; });
+  const toggleSewer = () => setShowSewer((v) => { const n = !v; persistFlag("arch2525.sewer", n); return n; });
+  const toggleWiring = () => setShowWiring((v) => { const n = !v; persistFlag("arch2525.wiring", n); return n; });
   // Tiny Home defaults to the 2D floor plan with a persistent 3D mini-map (operator: "2D and 3D");
   // the ▦ Voxel toggle still swaps the main view to the full 3D voxel. Leaving tiny turns voxel off.
   useEffect(() => { if (homeType !== "tiny") setVoxel(false); }, [homeType]);
@@ -243,18 +254,27 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
               <span>Ducts (aerial)</span>
               <button data-arch-hvac onClick={toggleHvac} className="rounded border px-2 py-0.5" style={{ borderColor: hvac ? "#38bdf8" : C.border, color: hvac ? "#38bdf8" : C.dim }}>{hvac ? "ON" : "OFF"}</button>
             </div>
-            {/* ELECTRIC */}
+            {/* ELECTRIC — outlets in walk + wiring-to-outlets (drawn in the room 2D/3D with wire ft · circuits · amps) */}
             <div className="mb-0.5 mt-1.5 flex items-center gap-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}><Zap className="h-2.5 w-2.5" /> Electric</div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
               <span>Outlets in walk</span>
               <button data-arch-sockets onClick={toggleSockets} className="rounded border px-2 py-0.5" style={{ borderColor: showSockets ? C.gold : C.border, color: showSockets ? C.gold : C.dim }}>{showSockets ? "ON" : "OFF"}</button>
             </div>
-            {/* PLUMBING */}
+            <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
+              <span>Wiring to outlets</span>
+              <button data-arch-wiring onClick={toggleWiring} className="rounded border px-2 py-0.5" style={{ borderColor: showWiring ? C.gold : C.border, color: showWiring ? C.gold : C.dim }}>{showWiring ? "ON" : "OFF"}</button>
+            </div>
+            {/* PLUMBING — Water Source + Sewer, each show/no-show; runs + total pipe length show in the room view */}
             <div className="mb-0.5 mt-1.5 flex items-center gap-1 font-semibold uppercase tracking-wider" style={{ color: C.dim, fontSize: 8 }}><Droplets className="h-2.5 w-2.5" /> Plumbing</div>
             <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
-              <span>Supply · DWV runs</span>
-              <button data-arch-plumbing onClick={togglePlumbing} className="rounded border px-2 py-0.5" style={{ borderColor: showPlumbing ? "#22c55e" : C.border, color: showPlumbing ? "#22c55e" : C.dim }}>{showPlumbing ? "ON" : "OFF"}</button>
+              <span>Water Source</span>
+              <button data-arch-water onClick={toggleWater} className="rounded border px-2 py-0.5" style={{ borderColor: showWater ? C.cyan : C.border, color: showWater ? C.cyan : C.dim }}>{showWater ? "ON" : "OFF"}</button>
             </div>
+            <div className="flex items-center justify-between py-0.5" style={{ color: C.text }}>
+              <span>Sewer</span>
+              <button data-arch-sewer onClick={toggleSewer} className="rounded border px-2 py-0.5" style={{ borderColor: showSewer ? "#22c55e" : C.border, color: showSewer ? "#22c55e" : C.dim }}>{showSewer ? "ON" : "OFF"}</button>
+            </div>
+            <div className="mt-1 text-[8px] leading-tight" style={{ color: C.dim }}>Enter a room (⏎) to see these runs drawn in 2D + 3D with total pipe/wire length.</div>
           </div>
         )}
         {/* F3 — clicking an Active Element / Vision-Tree row reflects it ON the map (2D or 3D voxel). */}
@@ -267,7 +287,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
         {voxel ? <VoxelHouse homeType={homeType} program={program} layout={roomLayout} selectedRoomId={roomSel} onSelectRoom={selectRoom} wallW={wallW} hvac={hvac} /> : designable && focusRoom ? (
           // EXPLODED single-room designer (operator IMG_7489: Enter → just this 10×10 in 2D + 10×10×10 in 3D)
           <div data-arch-tiny-view className="relative">
-            <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)} />
+            <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)}
+              showWater={showWater} showSewer={showSewer} showWiring={showWiring} showDucts={hvac} />
           </div>
         ) : designable ? (
           <div data-arch-tiny-view className="relative">

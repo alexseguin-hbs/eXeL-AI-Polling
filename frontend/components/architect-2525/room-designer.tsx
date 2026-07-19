@@ -17,6 +17,7 @@ import {
   OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject,
   type PlacedObject, type ObjectKind,
 } from "@/lib/room-objects";
+import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
 import type { RoomCell } from "@/lib/room-layout";
 
 const C = { border: "#1e2b3a", panel: "#0c1420", dim: "#5f7186", text: "#c8d6e5", cyan: "#19c8cf", gold: "#ffd400", violet: "#c084fc" };
@@ -39,7 +40,10 @@ function wallSnap(gx: number, gy: number): { gx: number; gy: number } {
   return { gx: N - 1, gy };
 }
 
-export function RoomDesigner({ room, onChange, onBack }: { room: RoomCell; onChange: (o: PlacedObject[]) => void; onBack: () => void }) {
+export function RoomDesigner({ room, onChange, onBack, showWater = false, showSewer = false, showWiring = false, showDucts = false }: {
+  room: RoomCell; onChange: (o: PlacedObject[]) => void; onBack: () => void;
+  showWater?: boolean; showSewer?: boolean; showWiring?: boolean; showDucts?: boolean;
+}) {
   const objects = room.objects ?? [];
   const [tool, setTool] = useState<ObjectKind | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
@@ -134,6 +138,26 @@ export function RoomDesigner({ room, onChange, onBack }: { room: RoomCell; onCha
   const depthKey = (gx: number, gy: number) => (gx - cx) * sinB + (gy - cy) * cosB;
   const objs3d = [...objects].sort((a, b) => depthKey(a.gx, a.gy) - depthKey(b.gx, b.gy));
 
+  // ── MEP RUNS (P2) — draw the systems enabled in Design Settings in BOTH views; totals from lib/mep-runs. ──
+  const outlets = room.outlets ?? 0;
+  const water = showWater ? waterRuns(objects) : null;
+  const sewer = showSewer ? sewerRuns(objects) : null;
+  const wiring = showWiring ? wiringRuns(outlets) : null;
+  const duct = showDucts ? ductRuns() : null;
+  const eSpec = showWiring ? electricSpecs(outlets) : null;
+  const MEP_COL = { water: C.cyan, sewer: "#22c55e", wiring: C.gold, duct: "#38bdf8" };
+  const anyMep = !!(water || sewer || wiring || duct);
+  // 2D: polyline through grid-cell centres (viewBox 0..100). 3D: same path at a system height (floor→ceiling).
+  const c2 = (n: number) => n * 10 + 5;
+  const run2d = (runs: MepRun[] | undefined, col: string, key: string) => runs?.map((r, i) => (
+    <polyline key={`${key}${i}`} data-arch-mep2d={key} points={r.path.map((p) => `${c2(p.gx)},${c2(p.gy)}`).join(" ")}
+      fill="none" stroke={col} strokeWidth={0.9} strokeDasharray="2 1.5" strokeLinecap="round" opacity={0.85} />
+  ));
+  const run3d = (runs: MepRun[] | undefined, col: string, z: number, key: string) => runs?.map((r, i) => (
+    <polyline key={`${key}3d${i}`} data-arch-mep3d={key} points={r.path.map((p) => iso(p.gx + 0.5, p.gy + 0.5, z).join(",")).join(" ")}
+      fill="none" stroke={col} strokeWidth={1} strokeDasharray="2 1.5" strokeLinecap="round" opacity={0.9} />
+  ));
+
   return (
     <div data-arch-room-designer className="flex min-h-0 flex-1 flex-col gap-2">
       {/* header */}
@@ -159,6 +183,11 @@ export function RoomDesigner({ room, onChange, onBack }: { room: RoomCell; onCha
             <rect x={0} y={0} width={100} height={100} fill="transparent" onClick={bgClick} style={{ cursor: tool ? "copy" : "default" }} />
             {/* room walls */}
             <rect x={1} y={1} width={98} height={98} fill="none" stroke={C.violet} strokeWidth={1.2} />
+            {/* MEP runs (enabled systems) — drawn under the furniture so objects stay tappable */}
+            {run2d(water?.runs, MEP_COL.water, "water")}
+            {run2d(sewer?.runs, MEP_COL.sewer, "sewer")}
+            {run2d(wiring?.runs, MEP_COL.wiring, "wiring")}
+            {run2d(duct?.runs, MEP_COL.duct, "duct")}
             {/* placed objects */}
             {objects.map((o) => {
               const s = OBJECT_SPEC[o.kind];
@@ -206,6 +235,11 @@ export function RoomDesigner({ room, onChange, onBack }: { room: RoomCell; onCha
                 </g>
               );
             })}
+            {/* MEP runs at system heights — pipes on the floor, wiring mid-wall, ducts at the ceiling */}
+            {run3d(water?.runs, MEP_COL.water, 0.3, "water")}
+            {run3d(sewer?.runs, MEP_COL.sewer, 0.3, "sewer")}
+            {run3d(wiring?.runs, MEP_COL.wiring, 3, "wiring")}
+            {run3d(duct?.runs, MEP_COL.duct, N - 0.5, "duct")}
           </svg>
           {/* NORTH compass (rotates with bearing) + reset — Mission-Planning parity chrome */}
           <div data-arch-roomdesign-compass className="pointer-events-none absolute left-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border" style={{ borderColor: `${C.cyan}66`, background: "#0a0f16cc" }}>
@@ -215,6 +249,16 @@ export function RoomDesigner({ room, onChange, onBack }: { room: RoomCell; onCha
           <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>drag orbit · pinch/scroll zoom · 2-finger tilt</div>
         </div>
       </div>
+
+      {/* MEP length totals (operator: "sub-menu to show length of total pipe / electrical specs") — one source (lib/mep-runs) */}
+      {anyMep && (
+        <div data-arch-mep-readout className="flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded border px-2 py-1 text-[9px]" style={{ borderColor: C.border, background: "#070b12" }}>
+          {water && <span data-arch-mep-water style={{ color: MEP_COL.water }}>Water {water.totalFt} ft</span>}
+          {sewer && <span data-arch-mep-sewer style={{ color: MEP_COL.sewer }}>Sewer {sewer.totalFt} ft</span>}
+          {wiring && eSpec && <span data-arch-mep-wire style={{ color: MEP_COL.wiring }}>Wire {eSpec.wireFt} ft · {eSpec.circuits} circ · {eSpec.amps}A</span>}
+          {duct && <span data-arch-mep-duct style={{ color: MEP_COL.duct }}>Duct {duct.totalFt} ft</span>}
+        </div>
+      )}
 
       {/* palette */}
       <div data-arch-roomdesign-palette className="flex flex-wrap gap-1">
