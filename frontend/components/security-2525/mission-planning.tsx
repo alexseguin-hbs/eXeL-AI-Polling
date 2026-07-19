@@ -31,6 +31,7 @@ import { Grid3x3, MapPin, Trash2, ChevronRight, Settings, RotateCcw, Maximize2, 
 import {
   AssetIcon, ASSET_LABELS, type AssetKind, type IconStyle, type Affiliation,
 } from "@/components/security-2525/asset-icons";
+import { isAerialAsset } from "@/lib/asset-kinematics";
 import { latLonToMgrs, latLonToUtm, utmKmGrid, chooseGridStep, mgrsToLatLon, dmsToLatLon, gzdBoundaries, gzdOf, BANDS } from "@/components/security-2525/mgrs";
 import { getFpsCap, capInterval } from "@/components/security-2525/fps-governor";
 import {
@@ -4215,6 +4216,8 @@ function ItemInspector(p: InspectorProps) {
                     <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: C.cyan }}>Track · movement</span>
                     <span className="rounded px-1 text-[7px] font-bold" style={{ color: a.moving ? C.green : C.dim, background: a.moving ? `${C.green}18` : "transparent" }}>{a.moving ? "MOVING" : "HOLD"}</span>
                   </div>
+                  {/* #25 — aerial assets set up with HDG·SPD·ALT; ground assets with COURSE·SPD only (no altitude). */}
+                  {isAerialAsset(a.asset) ? (
                   <div className="grid grid-cols-3 gap-1">
                     <div><div className="text-[6px]" style={{ color: C.dim }}>HDG°</div>{num(a.heading, (v) => onUpdAsset(a.id, { heading: v === undefined ? undefined : ((v % 360) + 360) % 360 }), "000")}</div>
                     <div><div className="text-[6px]" style={{ color: C.dim }}>SPD km/h</div>{num(a.speed, (v) => onUpdAsset(a.id, { speed: v }), "0")}</div>
@@ -4227,6 +4230,12 @@ function ItemInspector(p: InspectorProps) {
                       </div>
                     </div>
                   </div>
+                  ) : (
+                  <div className="grid grid-cols-2 gap-1">
+                    <div><div className="text-[6px]" style={{ color: C.dim }}>CRS°</div>{num(a.heading, (v) => onUpdAsset(a.id, { heading: v === undefined ? undefined : ((v % 360) + 360) % 360 }), "000")}</div>
+                    <div><div className="text-[6px]" style={{ color: C.dim }}>SPD km/h</div>{num(a.speed, (v) => onUpdAsset(a.id, { speed: v }), "0")}</div>
+                  </div>
+                  )}
                   <button onClick={() => onUpdAsset(a.id, { moving: !a.moving })}
                     className="mt-1 w-full rounded border py-0.5 text-[8px] font-semibold"
                     style={{ borderColor: a.moving ? C.green : C.border, color: a.moving ? C.green : C.dim }}>
