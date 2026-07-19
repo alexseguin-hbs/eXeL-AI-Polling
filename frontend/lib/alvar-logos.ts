@@ -1,8 +1,9 @@
 /**
  * ALVAR TRINITY LOGOS — the 13 pre-rendered high-resolution rasters (Vision 2525)
  * ===============================================================================
- * The operator-supplied Alvar art (ouroboros + Yggdrasil + ALVAR runes) pre-tinted into each of the 13 SoI-Trinity
- * colors at 1024px, as standalone transparent PNGs for modular reuse throughout the apps (use any as an <img>).
+ * The operator-supplied Alvar art (ouroboros DRAGON + Yggdrasil tree framing the TEXAS outline + LONE STAR +
+ * ALVAR runes; updated 2026-07-19) pre-tinted into each of the 13 SoI-Trinity colors at 1024px, as standalone
+ * transparent PNGs for modular reuse throughout the apps (use any as an <img>).
  *   • ALVAR_LOGOS[i].src → /architect/alvar-<id>.png   (colored art on transparent)
  *   • ALVAR_MASK          → /architect/alvar.png        (white silhouette — CSS-mask/tint to ANY color live)
  *   • ALVAR_SOURCE        → /architect/alvar.jpg        (the original raster)

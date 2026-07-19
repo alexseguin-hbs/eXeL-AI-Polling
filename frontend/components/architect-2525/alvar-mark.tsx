@@ -3,9 +3,10 @@
 /**
  * ALVAR MARK — Vision-Tree iconology (Vision 2525)
  * ================================================
- * The Alvar symbol (operator-supplied art, 2026-07-17): an OUROBOROS dragon encircling the YGGDRASIL Tree of
- * Life, ringed by ALVAR runes (Ansuz·Laguz·Wunjo·Ansuz·Raidho). "Alvar" = Old Norse "elf-warrior / guardian":
- * protection · strength · persistence. Placed BEFORE the Vision Tree.
+ * The Alvar symbol (operator-supplied art, updated 2026-07-19): an OUROBOROS DRAGON (fire-maned head biting its
+ * tail) encircling the YGGDRASIL Tree of Life — whose two crowns frame the TEXAS outline and the LONE STAR —
+ * ringed by ALVAR runes (Ansuz·Laguz·Wunjo·Ansuz·Raidho). "Alvar" = Old Norse "elf-warrior / guardian":
+ * protection · strength · persistence · rooted-in-place. Placed BEFORE the Vision Tree.
  *
  * Rendered as the REAL raster (public/architect/alvar.png — a transparent silhouette derived from the source
  * art) recolored via CSS mask, so ONE asset yields all 13 SoI-Trinity color versions (lib/trinity-colors.ts) for
