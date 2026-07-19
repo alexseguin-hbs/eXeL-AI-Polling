@@ -33,6 +33,7 @@ import { MasterReadout } from "./master-readout";
 import { type HomeType, findLayer, flattenLayers } from "@/lib/architect-layers";
 import { ArchitectBuild } from "./architect-build";
 import { ArchitectSkySun } from "./architect-skysun";
+import { SkyCelestialEmbed } from "./sky-celestial-embed";
 import { ArchitectSoI } from "./architect-soi";
 import { ArchitectEstimate } from "./architect-estimate";
 import { ArchitectForecast } from "./architect-forecast";
@@ -277,7 +278,9 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                 }} />
             </div>
             {sub("Design") === "Site" ? <ArchitectSkySun /> : null}
-            {sub("Design") === "Sky" ? <ArchitectSkySun forceView="solar" /> : null}
+            {/* Sky = the Celestial-2525 MASTER, embedded via iframe (operator: one master design, no code
+                repurposing). Any celestial iteration lands in /main/Celestial-2525 and flows here for free. */}
+            {sub("Design") === "Sky" ? <SkyCelestialEmbed /> : null}
             {sub("Design") === "Compare" ? <IteratePanel /> : null}
           </DesignWorkspace>
         </div>
