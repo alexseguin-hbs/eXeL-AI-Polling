@@ -177,12 +177,18 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Title + master + words. Easter egg: when the white "Trinity Framework" preset is showing, the
-              title text is a HIDDEN hyperlink to the Celestial-2525 sky reader — styled identically (no
-              underline), so it isn't apparent. A little gift for whoever cycles to the Framework. */}
+          {/* Title + master + words. Two HIDDEN hyperlinks (styled identically — no underline — so they
+              aren't apparent, a gift for whoever cycles the presets):
+              · white "Trinity Framework" → the Celestial-2525 sky reader.
+              · violet "Sacred Family Framework" → Architect-2525 Design (Thought Master: home is where a
+                child's heart, mind and spirit grow — central and critical for family). */}
           <p className="text-sm font-semibold" style={{ color: displayColor }}>
             {!customMode && currentPreset.titleKey === "trinity.blank.title" ? (
               <a href="/main/Celestial-2525/" data-trinity-egg style={{ color: "inherit", textDecoration: "none" }}>
+                {displayTitle}
+              </a>
+            ) : !customMode && currentPreset.titleKey === "trinity.family.title" ? (
+              <a href="/main/Architect-2525/design/" data-family-egg style={{ color: "inherit", textDecoration: "none" }}>
                 {displayTitle}
               </a>
             ) : displayTitle}
