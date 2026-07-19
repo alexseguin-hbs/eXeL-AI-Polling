@@ -10,6 +10,10 @@
  */
 import { useRef, useState } from "react";
 import {
+  Bed, Sofa, CookingPot, Utensils, Monitor, Toilet, Bath, Droplet, WashingMachine, DoorOpen,
+  RectangleHorizontal, RotateCw, Trash2, type LucideIcon,
+} from "lucide-react";
+import {
   OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject,
   type PlacedObject, type ObjectKind,
 } from "@/lib/room-objects";
@@ -17,6 +21,13 @@ import type { RoomCell } from "@/lib/room-layout";
 
 const C = { border: "#1e2b3a", panel: "#0c1420", dim: "#5f7186", text: "#c8d6e5", cyan: "#19c8cf", gold: "#ffd400", violet: "#c084fc" };
 const N = ROOM_GRID; // 10
+
+// Our own iconology (no emojis, operator's standing rule) — one lucide glyph per object kind.
+const ICON: Record<ObjectKind, LucideIcon> = {
+  bed: Bed, sofa: Sofa, counter: CookingPot, table: Utensils, desk: Monitor,
+  toilet: Toilet, tub: Bath, sink: Droplet, washer: WashingMachine,
+  door: DoorOpen, window: RectangleHorizontal,
+};
 
 /** Snap a wall object (window/door) to whichever of the 4 edges is nearest the drop cell. */
 function wallSnap(gx: number, gy: number): { gx: number; gy: number } {
@@ -154,11 +165,16 @@ export function RoomDesigner({ room, onChange, onBack }: { room: RoomCell; onCha
               const w = s.w, d = s.d; // footprint in ft (rotation applied via the SVG transform below)
               const cx = o.gx * 10 + 5, cy = o.gy * 10 + 5;
               const on = o.id === selId;
+              const Icon = ICON[o.kind];
               return (
                 <g key={o.id} data-arch-roomobj={o.kind} transform={`rotate(${o.rot} ${cx} ${cy})`} style={{ cursor: "grab" }} onPointerDown={objDown(o.id)}>
                   <rect x={cx - w * 5} y={cy - d * 5} width={w * 10} height={d * 10} rx={1.5}
                     fill={`${s.color}${on ? "55" : "2e"}`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
-                  <text x={cx} y={cy + 3} textAnchor="middle" fontSize={7}>{s.emoji}</text>
+                  <foreignObject x={cx - 4} y={cy - 4} width={8} height={8} style={{ pointerEvents: "none" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 8, height: 8 }}>
+                      <Icon style={{ width: 6, height: 6, color: on ? C.gold : s.color }} />
+                    </div>
+                  </foreignObject>
                 </g>
               );
             })}
@@ -203,26 +219,26 @@ export function RoomDesigner({ room, onChange, onBack }: { room: RoomCell; onCha
       {/* palette */}
       <div data-arch-roomdesign-palette className="flex flex-wrap gap-1">
         {OBJECT_KINDS.map((k) => {
-          const s = OBJECT_SPEC[k], on = tool === k;
+          const s = OBJECT_SPEC[k], on = tool === k, Icon = ICON[k];
           return (
             <button key={k} data-arch-tool={k} onClick={() => setTool(on ? null : k)} title={s.label}
               className="flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px]"
               style={{ borderColor: on ? C.gold : C.border, background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
-              <span className="text-[12px] leading-none">{s.emoji}</span>{s.label}
+              <Icon className="h-3.5 w-3.5" style={{ color: on ? C.gold : s.color }} />{s.label}
             </button>
           );
         })}
       </div>
 
       {/* selected-object controls */}
-      {sel && (
+      {sel && (() => { const SelIcon = ICON[sel.kind]; return (
         <div className="flex items-center gap-2 text-[10px]" style={{ color: C.text }}>
-          <span style={{ color: C.gold }}>{OBJECT_SPEC[sel.kind].emoji} {OBJECT_SPEC[sel.kind].label}</span>
-          <button data-arch-roomobj-rotate onClick={() => onChange(rotateObject(objects, sel.id))} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>↻ Rotate</button>
-          <button data-arch-roomobj-delete onClick={() => { onChange(removeObject(objects, sel.id)); setSelId(null); }} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}>🗑 Delete</button>
+          <span className="flex items-center gap-1" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {OBJECT_SPEC[sel.kind].label}</span>
+          <button data-arch-roomobj-rotate onClick={() => onChange(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
+          <button data-arch-roomobj-delete onClick={() => { onChange(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
           <span style={{ color: C.dim }}>· drag to move</span>
         </div>
-      )}
+      ); })()}
     </div>
   );
 }
