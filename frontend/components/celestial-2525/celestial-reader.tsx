@@ -46,38 +46,41 @@ export function CelestialReader() {
           <div data-cel-map className="min-h-[36vh] flex-1">
             <ArchitectCelestial minimal />
           </div>
-          <div>
+          {/* flower-of-life selector (Divinity model) — 3 overlapping group circles → drill to the 12 bodies */}
+          <div data-cel-selector>
             <div className="mb-1 text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{t("celestial.tapHint")}</div>
-            <div className="flex flex-col gap-1.5">
-              {CELESTIAL_GROUPS.map((g) => {
+            <svg data-cel-flower viewBox="0 0 200 150" className="mx-auto block w-full max-w-[300px]">
+              {CELESTIAL_GROUPS.map((g, i) => {
+                const p = [{ cx: 100, cy: 50 }, { cx: 62, cy: 100 }, { cx: 138, cy: 100 }][i] ?? { cx: 100, cy: 75 };
                 const open = openGroup === g.id;
-                const members = bodies.filter((b) => b.group === g.id);
+                const words = t("celestial.group." + g.id).split(" ");
+                const mid = Math.ceil(words.length / 2);
+                const l1 = words.slice(0, mid).join(" "), l2 = words.slice(mid).join(" ");
                 return (
-                  <div key={g.id}>
-                    <button data-cel-group={g.id} onClick={() => setOpenGroup(open ? null : g.id)}
-                      className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-[12px] font-semibold"
-                      style={{ borderColor: g.stroke, background: open ? `${g.stroke}22` : "transparent", color: g.stroke }}>
-                      <span className="inline-block h-4 w-4 rounded-full" style={{ background: g.stroke }} />
-                      {t("celestial.group." + g.id)} <span style={{ color: C.dim, fontWeight: 400 }}>· {members.length}</span>
-                    </button>
-                    {open && (
-                      <div className="mt-1 flex flex-wrap gap-1 pl-4">
-                        {members.map((b) => {
-                          const sel = bodyId === b.id;
-                          return (
-                            <button key={b.id} data-cel-body={b.id} onClick={() => setBodyId(b.id)}
-                              className="rounded-full border px-2 py-0.5 text-[12px]"
-                              style={{ borderColor: sel ? C.gold : C.border, background: sel ? `${C.gold}22` : "transparent", color: sel ? C.gold : C.text }}>
-                              {b.emoji} {t("celestial.body." + b.id)}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  <g key={g.id} data-cel-group={g.id} onClick={() => setOpenGroup(open ? null : g.id)} style={{ cursor: "pointer" }}>
+                    <circle cx={p.cx} cy={p.cy} r="42" fill={open ? `${g.stroke}33` : `${g.stroke}14`} stroke={g.stroke} strokeWidth={open ? 2.4 : 1.4} />
+                    <text x={p.cx} y={l2 ? p.cy - 2 : p.cy + 3} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={g.stroke}>{l1}</text>
+                    {l2 && <text x={p.cx} y={p.cy + 8} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={g.stroke}>{l2}</text>}
+                  </g>
                 );
               })}
-            </div>
+              <circle cx="100" cy="83" r="4" fill="none" stroke={C.violet} strokeWidth="1" />
+            </svg>
+            {openGroup && (
+              <div className="mt-1 flex flex-wrap justify-center gap-1.5">
+                {bodies.filter((b) => b.group === openGroup).map((b) => {
+                  const sel = bodyId === b.id;
+                  return (
+                    <button key={b.id} data-cel-body={b.id} onClick={() => setBodyId(b.id)}
+                      className="flex flex-col items-center rounded-lg border px-2 py-1 text-[11px]"
+                      style={{ borderColor: sel ? C.gold : C.border, background: sel ? `${C.gold}22` : "transparent", color: sel ? C.gold : C.text }}>
+                      <span className="text-[16px] leading-none">{b.emoji}</span>
+                      <span className="mt-0.5">{t("celestial.body." + b.id)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
