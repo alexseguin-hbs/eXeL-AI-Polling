@@ -19,7 +19,18 @@ export type CelestialLangPack = Record<string, Partial<BodyText>>;
 // Code-split loaders — English is the bundled base (not listed). Register new languages here as
 // their JSON packs land; until then every non-English locale falls back to English, by design.
 const LANG_LOADERS: Record<string, () => Promise<{ default: CelestialLangPack }>> = {
-  // es: () => import("./celestial-guide-es.json") as Promise<{ default: CelestialLangPack }>,
+  ar: () => import("./celestial-guide-ar.json") as Promise<{ default: CelestialLangPack }>,
+  de: () => import("./celestial-guide-de.json") as Promise<{ default: CelestialLangPack }>,
+  es: () => import("./celestial-guide-es.json") as Promise<{ default: CelestialLangPack }>,
+  fr: () => import("./celestial-guide-fr.json") as Promise<{ default: CelestialLangPack }>,
+  he: () => import("./celestial-guide-he.json") as Promise<{ default: CelestialLangPack }>,
+  hi: () => import("./celestial-guide-hi.json") as Promise<{ default: CelestialLangPack }>,
+  it: () => import("./celestial-guide-it.json") as Promise<{ default: CelestialLangPack }>,
+  ja: () => import("./celestial-guide-ja.json") as Promise<{ default: CelestialLangPack }>,
+  pt: () => import("./celestial-guide-pt.json") as Promise<{ default: CelestialLangPack }>,
+  ru: () => import("./celestial-guide-ru.json") as Promise<{ default: CelestialLangPack }>,
+  uk: () => import("./celestial-guide-uk.json") as Promise<{ default: CelestialLangPack }>,
+  zh: () => import("./celestial-guide-zh.json") as Promise<{ default: CelestialLangPack }>,
 };
 
 /** Locales that have (or will have) a code-split prose pack. English is always available. */
