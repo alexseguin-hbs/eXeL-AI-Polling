@@ -70,7 +70,7 @@ export function CelestialReader() {
         {/* LEFT — the visual selector: full celestial map + 3-circle → all body navigator */}
         <div data-cel-visual className="flex w-full flex-col gap-2 border-b p-2 lg:w-[52%] lg:border-b-0 lg:border-r" style={{ borderColor: C.border }}>
           <div data-cel-map className="min-h-[36vh] flex-1">
-            <ArchitectCelestial minimal externalSelId={bodyId} />
+            <ArchitectCelestial minimal externalSelId={bodyId} onSelect={selectBody} />
           </div>
           {/* flower-of-life selector (Divinity model) — 3 overlapping group circles → drill to the 12 bodies */}
           <div data-cel-selector>

@@ -59,7 +59,7 @@ function PhaseClock({ items, selId, overhead, onToggle }: { items: { id: string;
 
 export function ArchitectCelestial({
   lat = 30.44, lon = -97.62,
-  year = 2025, doy = 172, hour = 12, onYear, onDoy, minimal = false, externalSelId,
+  year = 2025, doy = 172, hour = 12, onYear, onDoy, minimal = false, externalSelId, onSelect,
 }: {
   lat?: number; lon?: number;
   year?: number; doy?: number; hour?: number;                 // date/time lifted from SUN·SKY so the Sky Dome stays synced
@@ -67,6 +67,7 @@ export function ArchitectCelestial({
   onDoy?: (n: number | ((p: number) => number)) => void;
   minimal?: boolean;                                          // family/kiosk mode (Celestial-2525) — hide the unused MAP-TOOLS ••• bar + R-CORE strip
   externalSelId?: string;                                     // controlled selection (Celestial-2525 reader) — follow the chosen body + reset play to 1×
+  onSelect?: (id: string) => void;                            // fires when the USER clicks a planet on the map → parent opens that body's text
 } = {}) {
   // Default location: Pfield · Pflugerville, TX (shared with the Sky Dome / view-from-location).
   const setYear = useMemo(() => onYear ?? (() => {}), [onYear]);
@@ -235,7 +236,7 @@ export function ArchitectCelestial({
   // Reference index = the SELECTED planet: selecting a planet places IT at perihelion (HU 0 / 12 o'clock)
   // and rotates every other planet to its relative position. (Default selection Earth → Earth at perihelion.)
   const selIdx = Math.max(0, PLANETS.findIndex((p) => p.id === selId));
-  const select = (id: string) => { setSelId(id); setHu(0); }; // land the newly-selected planet at its perihelion
+  const select = (id: string) => { setSelId(id); setHu(0); onSelect?.(id); }; // land at perihelion + tell the parent (reader opens that body's text)
   // ACCURATE ORBITAL RATES: HU 0→3600 = ONE orbit of the SELECTED planet. That maps to elapsed days via the
   // selected planet's period (tDays, perihelion→perihelion); every other planet advances by elapsed/tDays → the
   // real relative speeds (Mercury laps ~248× per Pluto orbit). A fixed per-planet phase gives the initial spread.
@@ -430,8 +431,8 @@ export function ArchitectCelestial({
                   <ellipse data-orbit cx={SUN_X} cy={cyo} rx={rx} ry={A * sinE} fill="none" stroke={p.color} strokeWidth="0.32" strokeDasharray="0.9 1.1" opacity="0.55" />
                   <circle cx={SUN_X} cy={SUN_Y - A * (1 - e2) * sinE} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" />{/* perihelion (HU 0/3600) — hollow, solid border */}
                   <circle cx={SUN_X} cy={SUN_Y + A * (1 + e2) * sinE} r="0.7" fill="none" stroke={p.color} strokeWidth="0.3" strokeDasharray="0.6 0.5" />{/* aphelion (HU 1800) — hollow, dotted border */}
-                  <g data-planet data-planet-id={p.id} onPointerDown={(ev) => ev.stopPropagation()} onClick={() => select(p.id)} style={{ cursor: "pointer" }}>
-                    <circle cx={x} cy={y} r={Math.max(4, dot + 2.5)} fill="transparent" />
+                  <g data-planet data-planet-id={p.id} onPointerDown={(ev) => { ev.stopPropagation(); select(p.id); }} onClick={() => select(p.id)} style={{ cursor: "pointer" }}>
+                    <circle cx={x} cy={y} r={Math.max(7, dot + 4)} fill="transparent" />{/* enlarged tap target — reliable planet select on touch */}
                     {on && <circle cx={x} cy={y} r={dot + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
                     {p.rings && <ellipse cx={x} cy={y} rx={dot + 1.6} ry={(dot + 1.6) * sinE} fill="none" stroke={p.color} strokeWidth="0.3" opacity="0.8" />}
                     <circle cx={x} cy={y} r={dot} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
@@ -476,8 +477,8 @@ export function ArchitectCelestial({
             const dscale = 0.82 + 0.34 * ((depth + 1) / 2);   // front bigger, back smaller
             const r = planetDotRadius(p, sizeMode) * dscale, op = 0.6 + 0.4 * ((depth + 1) / 2);
             return (
-              <g key={p.id} data-planet data-planet-id={p.id} onPointerDown={(e) => e.stopPropagation()} onClick={() => select(p.id)} style={{ cursor: "pointer" }} opacity={op}>
-                <circle cx={x} cy={y} r={Math.max(4, r + 2.5)} fill="transparent" />
+              <g key={p.id} data-planet data-planet-id={p.id} onPointerDown={(e) => { e.stopPropagation(); select(p.id); }} onClick={() => select(p.id)} style={{ cursor: "pointer" }} opacity={op}>
+                <circle cx={x} cy={y} r={Math.max(7, r + 4)} fill="transparent" />{/* enlarged tap target — reliable planet select on touch */}
                 {on && <circle cx={x} cy={y} r={r + 2} fill="none" stroke="#fff" strokeWidth="0.4" />}
                 {p.rings && <ellipse cx={x} cy={y} rx={r + 1.6} ry={(r + 1.6) * sinE} fill="none" stroke={p.color} strokeWidth="0.3" opacity="0.8" />}
                 <circle cx={x} cy={y} r={r} fill={p.color} stroke={on ? "#fff" : "none"} strokeWidth="0.3" />
