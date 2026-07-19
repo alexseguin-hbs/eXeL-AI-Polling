@@ -177,9 +177,15 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Title + master + words */}
+          {/* Title + master + words. Easter egg: when the white "Trinity Framework" preset is showing, the
+              title text is a HIDDEN hyperlink to the Celestial-2525 sky reader — styled identically (no
+              underline), so it isn't apparent. A little gift for whoever cycles to the Framework. */}
           <p className="text-sm font-semibold" style={{ color: displayColor }}>
-            {displayTitle}
+            {!customMode && currentPreset.titleKey === "trinity.framework.title" ? (
+              <a href="/main/Celestial-2525/" data-trinity-egg style={{ color: "inherit", textDecoration: "none" }}>
+                {displayTitle}
+              </a>
+            ) : displayTitle}
           </p>
           {customMode && (
             <p className="text-[10px] text-muted-foreground">{t("trinity.custom.edit")}</p>
@@ -300,11 +306,8 @@ export default function LandingPage() {
         style={secLeft == null ? undefined : { left: secLeft }}>
         SECURITY-2525
       </a>
-      {/* DIRECT access to CELESTIAL-2525 (family/education sky reader) — stacked just above the Security link. */}
-      <a href="/main/Celestial-2525/"
-        className="fixed bottom-11 left-1/2 z-50 -translate-x-1/2 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
-        CELESTIAL-2525
-      </a>
+      {/* CELESTIAL-2525 is now reached ONLY via the hidden easter-egg link on the "Trinity Framework" title
+          (below the white trinity emblem) — no visible footer link. A little gift for the curious. */}
     </div>
   );
 }
