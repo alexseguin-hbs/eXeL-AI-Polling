@@ -19,7 +19,8 @@
     "test:room-layout": "node --experimental-strip-types tests/room-layout.test.mjs",
     "test:guard": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/architect-guard.test.mjs",
     "test:celestial-packs": "node --experimental-strip-types tests/celestial-packs.test.mjs",
-    "test:all": "npm run test:room-layout && npm run test:guard && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:bim"
+    "test:sky-embed": "node --experimental-strip-types tests/sky-embed.test.mjs",
+    "test:all": "npm run test:room-layout && npm run test:guard && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:sky-embed && npm run test:bim"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",

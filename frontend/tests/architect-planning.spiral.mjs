@@ -1051,23 +1051,31 @@ const mk = async (vp) => {
   await pg.close();
 }
 
-// ── #A67: the celestial map + Moon-over-window are PRESERVED, not removed — the SKY tab renders the celestial
-//          map with its ••• map rails intact; the SITE tab keeps the Sky-Dome/Solar toggle + the window mission. ──
+// ── #A67: the celestial map + Moon-over-window are PRESERVED after the Sky→iframe master embed (e2a39f3) —
+//          the SKY tab embeds the Celestial-2525 MASTER via iframe (→ /main/Celestial-2525); the SITE tab keeps
+//          the Sky-Dome/Solar toggle + the window mission, and its Solar view renders the full celestial map
+//          with its ••• rails intact. (The rails live inside the minimal iframe on SKY — unreachable by
+//          querySelector — so the full-map/rails checks belong on the SITE→Solar path now.) ──
 {
   const { pg, tab, subtab } = await mk();
   await tab('Design'); await subtab('Sky'); await pg.waitForTimeout(400);
-  const sky = await pg.evaluate(() => ({
-    celestial: !!document.querySelector('[data-arch-celestial]'),                         // celestial map under SKY
-    railBtns: ['left', 'right', 'bottom'].every((s) => !!document.querySelector(`[data-map-exp-${s}-btn]`)), // ••• rails intact
-    noToggle: !document.querySelector('[data-sky-view]'),                                 // engine tab replaces internal toggle
-  }));
+  const sky = await pg.evaluate(() => {
+    const f = document.querySelector('[data-sky-celestial-embed] iframe');
+    return { embed: !!f, src: (f && f.getAttribute('src')) || '' };            // SKY = Celestial-2525 master iframe
+  });
   await subtab('Site'); await pg.waitForTimeout(350);
   const site = await pg.evaluate(() => ({
-    domeToggle: !!document.querySelector('[data-sky-view="solar"]'),                       // SITE keeps dome/solar toggle
-    windowMission: !!document.querySelector('[data-arch-window-transit]'),                 // Moon-over-window preserved
+    domeToggle: !!document.querySelector('[data-sky-view="solar"]'),           // SITE keeps dome/solar toggle
+    windowMission: !!document.querySelector('[data-arch-window-transit]'),     // Moon-over-window preserved (dome)
   }));
-  const ok = sky.celestial && sky.railBtns && sky.noToggle && site.domeToggle && site.windowMission;
-  rec('#A67 SKY = celestial map + ••• rails (preserved); SITE keeps dome/solar toggle + Moon-over-window mission', ok, JSON.stringify({ sky, site }));
+  try { await pg.click('[data-sky-view="solar"]'); } catch {}                  // SITE → Solar = full (non-minimal) map
+  await pg.waitForTimeout(350);
+  const solar = await pg.evaluate(() => ({
+    celestial: !!document.querySelector('[data-arch-celestial]'),             // full celestial map under SITE→Solar
+    railBtns: ['left', 'right', 'bottom'].every((s) => !!document.querySelector(`[data-map-exp-${s}-btn]`)), // ••• rails intact
+  }));
+  const ok = sky.embed && /\/main\/Celestial-2525/.test(sky.src) && site.domeToggle && site.windowMission && solar.celestial && solar.railBtns;
+  rec('#A67 SKY embeds Celestial-2525 master (iframe); SITE keeps dome/solar toggle + Moon-over-window + full map•••rails on Solar', ok, JSON.stringify({ sky, site, solar }));
   await pg.close();
 }
 
