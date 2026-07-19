@@ -14,6 +14,7 @@
  *   architect_saved_files(id uuid pk, owner_key text, name text, payload jsonb, source_hash text, updated_at)
  */
 import { supabase } from "./supabase";
+import { sanitizeSnapshot } from "./architect-guard";
 
 export interface ArchitectSnapshot {
   houseSpec: string[];
@@ -103,7 +104,9 @@ export async function loadSnapshot(): Promise<ArchitectSnapshot | null> {
       .eq("owner_key", ownerKey())
       .eq("name", NAME)
       .maybeSingle();
-    return (data as { payload?: ArchitectSnapshot } | null)?.payload ?? null;
+    const payload = (data as { payload?: unknown } | null)?.payload;
+    // WireGuard: a cloud row is untrusted input — sanitize before it can seat any state.
+    return payload == null ? null : sanitizeSnapshot(payload);
   } catch {
     return null;
   }

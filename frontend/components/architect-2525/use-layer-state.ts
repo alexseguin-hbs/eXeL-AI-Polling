@@ -12,13 +12,15 @@ import { type AssetOverrides } from "@/lib/architect-assets";
 import { cloudEnabled, loadSnapshot, saveSnapshot, type ArchitectSnapshot, type CloudStatus } from "@/lib/architect-saved-files";
 import { DEFAULT_PARAMS, type GlobalParams } from "@/lib/architect-project";
 import { DEFAULT_PROGRAM, type RoomProgram } from "@/lib/room-program";
+import { sanitizeParams, sanitizeProgram, strList } from "@/lib/architect-guard";
 
 // Empty on the server AND the client's first render (no hydration mismatch under `output: export`);
 // stored values load in a mount effect. Persistence is write-through on mutation — never on mount —
 // so the pre-load empty state can't clobber what's in localStorage.
 function usePersistentSet(key: string): [Set<string>, (id: string) => void, (ids?: string[]) => void] {
   const [set, setSet] = useState<Set<string>>(() => new Set<string>());
-  useEffect(() => { try { const v = localStorage.getItem(key); if (v) setSet(new Set<string>(JSON.parse(v))); } catch {} }, [key]);
+  // WireGuard: a stored set is untrusted — keep only string members (never seat objects/numbers/injections).
+  useEffect(() => { try { const v = localStorage.getItem(key); if (v) setSet(new Set<string>(strList(JSON.parse(v)))); } catch {} }, [key]);
   const persist = (n: Set<string>) => { try { localStorage.setItem(key, JSON.stringify(Array.from(n))); } catch {} return n; };
   const toggle = (id: string) => setSet((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return persist(n); });
   const replace = (ids: string[] = []) => setSet(() => persist(new Set(ids)));
@@ -138,7 +140,8 @@ export function useLayerState(): LayerState {
 
   // Global building params (S5) — persisted; each change recomputes the rollup live and logs Replay.
   const [globalParams, setGlobalParamsRaw] = useState<GlobalParams>(DEFAULT_PARAMS);
-  useEffect(() => { try { const v = localStorage.getItem("arch2525.globalParams"); if (v) setGlobalParamsRaw({ ...DEFAULT_PARAMS, ...JSON.parse(v) }); } catch {} }, []);
+  // WireGuard: clamp area/stories + whitelist finish/style at the boundary (not incidentally downstream).
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.globalParams"); if (v) setGlobalParamsRaw(sanitizeParams(JSON.parse(v))); } catch {} }, []);
   const setGlobalParams = (patch: Partial<GlobalParams>) => setGlobalParamsRaw((p) => {
     const next = { ...p, ...patch };
     try { localStorage.setItem("arch2525.globalParams", JSON.stringify(next)); } catch {}
@@ -148,7 +151,8 @@ export function useLayerState(): LayerState {
 
   // Room program (V2) — bedrooms · bathrooms · ceiling ht; drives the element-count inspector. Persisted + snapshot.
   const [program, setProgramRaw] = useState<RoomProgram>(DEFAULT_PROGRAM);
-  useEffect(() => { try { const v = localStorage.getItem("arch2525.program"); if (v) setProgramRaw({ ...DEFAULT_PROGRAM, ...JSON.parse(v) }); } catch {} }, []);
+  // WireGuard: clamp bedrooms/bathrooms/ceiling/kitchens at the boundary.
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.program"); if (v) setProgramRaw(sanitizeProgram(JSON.parse(v))); } catch {} }, []);
   const setProgram = (patch: Partial<RoomProgram>) => setProgramRaw((p) => {
     const next = { ...p, ...patch };
     try { localStorage.setItem("arch2525.program", JSON.stringify(next)); } catch {}

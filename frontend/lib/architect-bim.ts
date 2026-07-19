@@ -8,6 +8,7 @@
  */
 import { findLayer, flattenLayers, type HomeType } from "./architect-layers";
 import { houseEstimate, houseSchedule, componentEstimate, type HouseEstimate, type HouseSchedule } from "./architect-house";
+import { boundNum } from "./architect-guard";
 
 export const BIM_FORMAT = "eXeL-BIM/1.0";
 
@@ -115,7 +116,9 @@ function fnv1a(s: string): string {
   return (h >>> 0).toString(16);
 }
 
-const num = (v: unknown): number => (Number.isFinite(Number(v)) ? Number(v) : 0);
+// WireGuard: imported quantities are untrusted — finite AND upper-bounded (a huge area/qty/volume must not
+// flow into the cost/schedule engines). Reuses the shared guard cube's boundNum (0..1e9).
+const num = (v: unknown): number => boundNum(v, 1e9, 0);
 
 export function importBIM(raw: unknown, sourceFile = "import.json", now = 0): BimImport {
   const sourceHash = fnv1a(JSON.stringify(raw ?? null));

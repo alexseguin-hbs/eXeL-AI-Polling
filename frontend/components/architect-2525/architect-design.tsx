@@ -15,6 +15,7 @@ import { MiniPanel } from "./mini-panel";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import type { RoomProgram } from "@/lib/room-program";
 import { cloneLayout, moveRoomInLayout, setRoomElement, toggleRoomFurniture, type RoomCell, type ElementKind } from "@/lib/room-layout";
+import { sanitizeRoomLayout } from "@/lib/architect-guard";
 
 const C = {
   panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186",
@@ -62,7 +63,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // Persist the room layout so a design survives reload (the kid's home iterates over time). Write-on-mutation
   // (never a value-effect) — the repo's usePersistentSet pattern — so the mount load can't be clobbered.
   const RL_KEY = "arch2525.roomLayout";
-  useEffect(() => { try { const v = localStorage.getItem(RL_KEY); if (v) setRoomLayout(JSON.parse(v)); } catch {} }, []);
+  // WireGuard: a stored layout is untrusted — sanitize (clamp grid/size/element counts, drop malformed) at the boundary.
+  useEffect(() => { try { const v = localStorage.getItem(RL_KEY); if (v) setRoomLayout(sanitizeRoomLayout(JSON.parse(v))); } catch {} }, []);
   const persistLayout = (next: RoomCell[]) => { try { localStorage.setItem(RL_KEY, JSON.stringify(next)); } catch {} return next; };
   // Walk to the adjacent room in the 3×3, if one exists there (steps through the wireframe room by room).
   const walkStep = (dRow: number, dCol: number) => {

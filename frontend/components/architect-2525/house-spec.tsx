@@ -61,7 +61,7 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect }: { 
         <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: C.cyan }}>Building</span>
         <label className="flex items-center gap-1" style={{ color: C.dim }}>Area
           <input data-param-area type="number" min={200} max={100000} step={100} value={state.globalParams.areaSqft}
-            onChange={(e) => state.setGlobalParams({ areaSqft: Math.round(Number(e.target.value) || 0) })}
+            onChange={(e) => state.setGlobalParams({ areaSqft: Math.max(200, Math.min(100000, Math.round(Number(e.target.value) || 200))) })}
             className="w-16 rounded border bg-transparent px-1 py-0.5 text-right text-[10px] tabular-nums" style={{ borderColor: C.border, color: C.text }} /> ft²</label>
         <span className="flex items-center gap-1" style={{ color: C.dim }}>Stories
           <button data-param-stories-dec onClick={() => state.setGlobalParams({ stories: Math.max(1, state.globalParams.stories - 1) })} className="rounded border px-1 leading-none" style={{ borderColor: C.border, color: C.text }}>−</button>

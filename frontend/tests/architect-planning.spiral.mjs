@@ -2029,6 +2029,28 @@ const mk = async (vp) => {
   await pg.close();
 }
 
+// ── #A-sec: WIREGUARD — a tampered/malformed localStorage store must NOT crash the Architect route; the
+//          room layout falls back to a sane default (lib/architect-guard.ts sanitizers at the trust boundary). ──
+{
+  const { pg, tab } = await mk();
+  // Seed adversarial values at every guarded boundary, then reload so the load-effects run against them.
+  await pg.evaluate(() => {
+    localStorage.setItem('arch2525.roomLayout', JSON.stringify([{ id: 'x', k: 'X', label: 'X', row: 99, col: -5, windows: 999, doors: -3, outlets: 'NaN' }, { junk: true }, 'not-a-cell']));
+    localStorage.setItem('arch2525.globalParams', JSON.stringify({ areaSqft: -1, stories: 9999, finish: "'; DROP TABLE--" }));
+    localStorage.setItem('arch2525.program', JSON.stringify({ bedrooms: 999, bathrooms: -5 }));
+    localStorage.setItem('arch2525.gate', '999');
+    localStorage.setItem('arch2525.houseSpec', JSON.stringify([1, null, 'ok', { bad: 1 }]));
+  });
+  const crashErrs = [];
+  pg.on('pageerror', e => { if (/Cannot read|undefined is not|is not a function|Maximum call/i.test(e.message)) crashErrs.push(e.message.slice(0, 90)); });
+  await pg.reload({ waitUntil: 'domcontentloaded', timeout: 90000 });
+  await pg.waitForTimeout(1500);
+  await tab('Design'); await pg.waitForTimeout(320);
+  const rendered = await pg.evaluate(() => document.body.innerText.includes('Architect-2525'));
+  rec('#A-sec WireGuard — malformed localStorage does not crash Architect (guard sanitizes at boundary)', rendered && crashErrs.length === 0, JSON.stringify({ rendered, crashErrs: crashErrs.slice(0, 2) }));
+  await pg.close();
+}
+
 await b.close();
 const passed = results.filter(r => r.pass).length, total = results.length;
 console.log('ARCH-SPIRAL ' + passed + '/' + total + ' passed');
