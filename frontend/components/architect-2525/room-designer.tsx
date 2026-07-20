@@ -14,7 +14,7 @@ import {
   RectangleHorizontal, RotateCw, RotateCcw, Columns2, Rows2, SquareStack, Trash2,
   Archive, Lamp, Tv, Refrigerator, Flame, ShowerHead, DoorClosed, Library, Armchair, Hexagon, Triangle,
   Shirt, Rows3, Footprints, Frame, RectangleVertical, LampFloor, Fan,
-  ArrowUp, ArrowDown, ArrowLeft, ArrowRight,
+  ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Link2, Link2Off,
   type LucideIcon,
 } from "lucide-react";
 import { Compass2525 } from "./compass-2525";
@@ -111,6 +111,13 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const [demoStep, setDemoStep] = useState(0);
   const [nudgeIx, setNudgeIx] = useState(1); // FIX-B nudge step index (default 6")
   const [helpOpen, setHelpOpen] = useState(false); // FIX-C explanations
+  // Mirror / North-lock (IMG_7549/7550): when on, the bottom/mini pane shares the top pane's camera + 2D bearing, so
+  // rotating one rotates BOTH to the same North (Mission-Planning mirror). Persisted like the layout choice.
+  const [linkView, setLinkView] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return localStorage.getItem("arch2525.roomLinkView") === "1"; } catch { return false; }
+  });
+  const setLink = (v: boolean) => { setLinkView(v); try { localStorage.setItem("arch2525.roomLinkView", v ? "1" : "0"); } catch {} };
   const [dimEntry, setDimEntry] = useState<{ edit: "oc" | "size" | "gapNear" | "gapFar" } | null>(null); // FIX-5b/5c numeric entry
   const [dimVal, setDimVal] = useState("");
 
@@ -291,6 +298,10 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         </g>
       </svg>
       <Compass2525 bearing={(bear * Math.PI) / 180} onNorth={() => setBear(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
+      <button data-arch-room-link onClick={() => setLink(!linkView)} title={linkView ? "North LOCKED — top & mini rotate together (tap to unlock)" : "Lock North — rotate top & mini together (mirror)"}
+        className="absolute right-1.5 top-1.5 z-10 rounded border p-0.5" style={{ borderColor: linkView ? C.cyan : C.border, color: linkView ? C.cyan : C.dim, background: "#0a0f16cc" }}>
+        {linkView ? <Link2 className="h-3 w-3" /> : <Link2Off className="h-3 w-3" />}
+      </button>
       {/* FIX-5b/5c — numeric dimension entry (click a ✎ dimension → type an exact value in feet-inches). Editing a
           gap moves the object so the OTHER gap re-derives; size snaps to nearest standard; O.C. sets exact centre. */}
       {interactive && sel && dimEntry && (() => {
@@ -402,6 +413,10 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           })}
         </svg>
         <Compass2525 bearing={vcam.bearing} onNorth={() => vcam.setBearing(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
+        <button data-arch-room-link onClick={() => setLink(!linkView)} title={linkView ? "North LOCKED — top & mini rotate together (tap to unlock)" : "Lock North — rotate top & mini together (mirror)"}
+          className="absolute right-1.5 top-1.5 z-10 rounded border p-0.5" style={{ borderColor: linkView ? C.cyan : C.border, color: linkView ? C.cyan : C.dim, background: "#0a0f16cc" }}>
+          {linkView ? <Link2 className="h-3 w-3" /> : <Link2Off className="h-3 w-3" />}
+        </button>
         <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>L-drag pan · R-drag rotate/tilt · pinch/scroll zoom · 2-finger twist/tilt</div>
       </div>
     );
@@ -500,10 +515,12 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           </div>
           {/* interior palette BETWEEN the two panes */}
           {paletteEl}
-          {/* BOTTOM pane — independent view + camera/angle */}
+          {/* BOTTOM pane — independent view + camera/angle · North-lock shares the TOP pane's bearing/camera so both rotate together */}
           <div className="relative">
             {paneHeader(bottomView, setBottomView, rotB, camB.reset)}
-            {bottomView === "2D" ? plan2D(bearingB, setBearingB, false) : voxel3D(camB)}
+            {bottomView === "2D"
+              ? plan2D(linkView ? bearing2d : bearingB, linkView ? setBearing2d : setBearingB, false)
+              : voxel3D(linkView ? cam : camB)}
           </div>
         </div>
       ) : (
@@ -514,7 +531,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             <div className="absolute bottom-2 right-2 z-10">
               <MiniPanel title={mainView === "2D" ? "3D · Voxel" : "2D · Plan"} subtitle={`${room.k} · ${room.label}`}
                 defaultW={188} defaultH={210} minW={140} minH={150}
-                render={(s) => (mainView === "2D" ? voxel3D(camB, s) : plan2D(bearingB, setBearingB, false, s))} />
+                render={(s) => (mainView === "2D" ? voxel3D(linkView ? cam : camB, s) : plan2D(linkView ? bearing2d : bearingB, linkView ? setBearing2d : setBearingB, false, s))} />
             </div>
           </div>
           {paletteEl}
