@@ -110,6 +110,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const [demoOpen, setDemoOpen] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
   const [nudgeIx, setNudgeIx] = useState(1); // FIX-B nudge step index (default 6")
+  const [helpOpen, setHelpOpen] = useState(false); // FIX-C explanations
 
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent | React.DragEvent): { gx: number; gy: number } | null => {
     const svg = svgRef.current; if (!svg) return null;
@@ -424,7 +425,23 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         <button data-arch-roomdesign-back onClick={onBack} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← Back to house</button>
         <span className="text-[11px] font-bold" style={{ color: C.gold }}>{room.k} · {room.label}</span>
         <span className="text-[9px]" style={{ color: C.dim }}>10′×10′ · tap a tool, tap the floor</span>
+        {/* FIX-C — explanations for the non-simple areas (operator: intuitive + get explanations) */}
+        <button data-arch-help onClick={() => setHelpOpen((h) => !h)} className="ml-auto rounded-full border px-1.5 text-[10px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }} title="How this designer works">?</button>
       </div>
+      {helpOpen && (
+        <div data-arch-help-panel className="rounded border p-2 text-[10px] leading-relaxed" style={{ borderColor: C.cyan, background: "#070b12", color: C.text }}>
+          <div className="mb-1 font-bold" style={{ color: C.cyan }}>How to design this room</div>
+          <ul className="ml-3 list-disc space-y-0.5" style={{ color: C.dim }}>
+            <li><span style={{ color: C.text }}>Place:</span> tap a palette item (grouped by system) then tap the floor, or drag it onto the 2D plan.</li>
+            <li><span style={{ color: C.text }}>Move:</span> drag on the plan, or select an item and use the ↑↓←→ <span style={{ color: C.text }}>nudge pad</span> — tap the step to switch 1&quot; / 6&quot; / 1&apos;. Items can never leave the room.</li>
+            <li><span style={{ color: C.text }}>Resize:</span> tap <span style={{ color: C.violet }}>Size</span> to cycle standard sizes (beds, doors, windows), or tap a cyan <span style={{ color: C.cyan }}>dimension ✎</span> on the plan (R.O. cycles size, O.C. nudges along the wall).</li>
+            <li><span style={{ color: C.text }}>Doors &amp; windows</span> slide along their wall; pick standard sizes/heights from Size.</li>
+            <li><span style={{ color: C.text }}>Systems:</span> outlets show on the walls at 1.5&apos; AFF; water/sewer/wire/duct runs draw in 2D + 3D with total lengths.</li>
+            <li><span style={{ color: C.text }}>Bill of Materials</span> lists purchasable, quotable quantities (pipe/wire/duct ft, outlets, fixtures).</li>
+            <li><span style={{ color: C.text }}>Views:</span> two panes, each 2D or 3D at its own angle — left-drag pan · right-drag rotate/tilt · pinch/scroll zoom (same feel as Mission-Planning).</li>
+          </ul>
+        </div>
+      )}
 
       {/* STACKED (two independent panes, top+bottom) ⇄ FLOATING (main + draggable mini) — operator IMG_7521 */}
       {layoutMode === "stacked" ? (
