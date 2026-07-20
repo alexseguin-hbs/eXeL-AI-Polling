@@ -326,17 +326,33 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         };
         const axSuffix = dimEntry.axis === "y" ? " ↕" : " ↔"; // show which coordinate is being edited
         const label = (dimEntry.edit === "oc" ? "O.C." : dimEntry.edit === "gapNear" ? "From wall" : dimEntry.edit === "gapFar" ? "To wall" : "Size") + axSuffix;
+        // ON-SCREEN feet-inches KEYPAD — no native <input>, so iOS Safari never auto-zooms the page when you enter a
+        // measurement (operator flagged the zoom twice, IMG_7565), and the big buttons are kid/grandma-friendly.
+        const press = (ch: string) => setDimVal((s) => (s.length < 8 ? s + ch : s));
+        const key = (ch: string, cls = "") => (
+          <button key={ch} data-arch-dim-key={ch} onClick={() => press(ch)}
+            className={`rounded border py-2 text-[15px] font-semibold tabular-nums active:opacity-70 ${cls}`}
+            style={{ borderColor: C.border, color: C.text, background: "#0e1622" }}>{ch}</button>
+        );
         return (
-          <div data-arch-dim-entry className="absolute left-1/2 top-1.5 flex -translate-x-1/2 items-center gap-1 rounded border px-1.5 py-1 shadow-lg"
-            style={{ borderColor: C.cyan, background: "#0a0f16f2", touchAction: "manipulation" }}>
-            <span className="text-[9px] font-semibold" style={{ color: C.dim }}>{label}</span>
-            {/* fontSize 16 + inputMode: iOS Safari auto-zooms the page when focusing an input under 16px — 16px stops it
-                (operator: "don't zoom in when I click dimensions to input specifics"). */}
-            <input data-arch-dim-input autoFocus inputMode="decimal" value={dimVal} onChange={(e) => setDimVal(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") applyDim(); else if (e.key === "Escape") setDimEntry(null); }}
-              placeholder={`e.g. 3'-6"`} className="w-20 rounded border bg-transparent px-1 py-0.5" style={{ borderColor: C.border, color: C.text, fontSize: 16 }} />
-            <button data-arch-dim-ok onClick={applyDim} className="rounded border px-1.5 py-0.5 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }}>Set</button>
-            <button data-arch-dim-cancel onClick={() => setDimEntry(null)} className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>✕</button>
+          <div data-arch-dim-entry className="absolute left-1/2 top-1.5 z-20 w-[190px] -translate-x-1/2 rounded-lg border p-2 shadow-lg"
+            style={{ borderColor: C.cyan, background: "#0a0f16f7", touchAction: "manipulation" }}>
+            <div className="mb-1.5 flex items-center gap-2">
+              <span className="shrink-0 text-[10px] font-semibold" style={{ color: C.dim }}>{label}</span>
+              <span data-arch-dim-display className="flex-1 rounded border px-2 py-1 text-right text-[16px] font-bold tabular-nums"
+                style={{ borderColor: C.border, color: C.cyan, background: "#070b12" }}>{dimVal || `0'-0"`}</span>
+              <button data-arch-dim-cancel onClick={() => setDimEntry(null)} className="shrink-0 rounded border px-1.5 py-1 text-[12px]" style={{ borderColor: C.border, color: C.dim }}>✕</button>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((n) => key(n))}
+              {key("'")}{key("0")}{key(`"`)}
+            </div>
+            <div className="mt-1 grid grid-cols-2 gap-1">
+              <button data-arch-dim-back onClick={() => setDimVal((s) => s.slice(0, -1))}
+                className="rounded border py-2 text-[13px] font-semibold active:opacity-70" style={{ borderColor: C.border, color: C.dim, background: "#0e1622" }}>⌫ Del</button>
+              <button data-arch-dim-ok onClick={applyDim}
+                className="rounded border py-2 text-[13px] font-bold active:opacity-70" style={{ borderColor: C.cyan, color: "#04222a", background: C.cyan }}>Set</button>
+            </div>
           </div>
         );
       })()}
