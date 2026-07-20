@@ -521,46 +521,16 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         );
       })()}
 
-      {/* selected-object controls + details (dims · size variant) — the "asset details" for the active element */}
-      {sel && (() => {
-        const SelIcon = ICON[sel.kind];
-        const fp = footprintOf(sel);
-        const vs = VARIANTS[sel.kind];
-        const vLabel = vs?.find((v) => v.id === sel.variant)?.label;
-        const selSpec = OBJECT_SPEC[sel.kind];
-        // S6 — CAD-consistent readout (feet-inches, matching the on-plan dims) + wall indicator for openings.
-        return (
-          <div data-arch-roomobj-detail className="flex flex-wrap items-center gap-2 text-[10px]" style={{ color: C.text }}>
-            <span className="flex items-center gap-1" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {vLabel ? `${vLabel} ` : ""}{selSpec.label}</span>
-            <span data-arch-roomobj-dims style={{ color: C.dim }}>{ftIn(fp.w)} W × {ftIn(fp.d)} D × {ftIn(heightOf(sel))} H</span>
-            {selSpec.onWall && <span data-arch-roomobj-wall className="rounded border px-1 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{wallOf(sel.gx, sel.gy)} wall</span>}
-            {vs && (
-              <button data-arch-roomobj-size onClick={() => onChange(cycleVariant(objects, sel.id))} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.violet }}>
-                Size: {vLabel ?? "—"} ↻
-              </button>
-            )}
-            <button data-arch-roomobj-rotate onClick={() => onChange(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
-            <button data-arch-roomobj-delete onClick={() => { onChange(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
-            {/* FIX-B — spatial nudge pad (arrows + ft/in step), Mission-Planning asset-planning style */}
-            <span data-arch-nudge className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title={`Nudge the selected item by the chosen step; tap the step to change 1" / 6" / 1'`}>
-              <button data-arch-nudge-step onClick={() => setNudgeIx((i) => (i + 1) % NUDGE_STEPS_FT.length)} className="rounded px-1 text-[9px] font-bold tabular-nums" style={{ color: C.gold }}>{NUDGE_STEPS_FT[nudgeIx].label}</button>
-              {(() => { const step = NUDGE_STEPS_FT[nudgeIx].ft; return (<>
-                <button data-arch-nudge-up onClick={() => onChange(nudgeObject(objects, sel.id, 0, -step))} title="Move up (N)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowUp className="h-3 w-3" /></button>
-                <button data-arch-nudge-down onClick={() => onChange(nudgeObject(objects, sel.id, 0, step))} title="Move down (S)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowDown className="h-3 w-3" /></button>
-                <button data-arch-nudge-left onClick={() => onChange(nudgeObject(objects, sel.id, -step, 0))} title="Move left (W)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowLeft className="h-3 w-3" /></button>
-                <button data-arch-nudge-right onClick={() => onChange(nudgeObject(objects, sel.id, step, 0))} title="Move right (E)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowRight className="h-3 w-3" /></button>
-              </>); })()}
-            </span>
-            <span style={{ color: C.dim }}>· drag or nudge to move</span>
-          </div>
-        );
-      })()}
-
-      {/* ACTIVE ELEMENTS — the room's placed assets, click to select (highlights 2D+3D + shows details above). */}
+      {/* ELEMENTS — merged Active list + Selected detail (operator IMG_7544): the room's items list on top (~1/3,
+          scrolls when one is selected), the SELECTED item's full controls expand below (~2/3). Scoped to THIS room's
+          objects (bedroom mode → only bedroom items). Click a row to select → details expand; click again to deselect. */}
       {objects.length > 0 && (
         <div data-arch-room-active className="rounded border p-1" style={{ borderColor: C.border, background: "#070b12" }}>
-          <div className="mb-1 px-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Active Elements · {objects.length}</div>
-          <div className="flex flex-col gap-0.5">
+          <div className="mb-1 flex items-center justify-between px-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
+            <span>Elements · {objects.length}</span>{sel && <span style={{ color: C.gold }}>1 selected</span>}
+          </div>
+          {/* list — shrinks to a scroll pane when an item is selected so the detail gets the bottom ~2/3 */}
+          <div className="flex flex-col gap-0.5 overflow-y-auto" style={sel ? { maxHeight: 88 } : undefined}>
             {objects.map((o) => {
               const s = OBJECT_SPEC[o.kind], RowIcon = ICON[o.kind], on = o.id === selId;
               const vLabel = VARIANTS[o.kind]?.find((v) => v.id === o.variant)?.label;
@@ -572,11 +542,45 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                   style={{ background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
                   <RowIcon className="h-3 w-3 shrink-0" style={{ color: on ? C.gold : s.color }} />
                   <span className="min-w-0 flex-1 truncate">{vLabel ? `${vLabel} ` : ""}{s.label}</span>
-                  <span className="shrink-0 tabular-nums" style={{ color: C.dim, fontSize: 8 }}>{fmt(fp.w)}×{fmt(fp.d)}×{fmt(heightOf(o))}′ · {o.gx},{o.gy}</span>
+                  <span className="shrink-0 tabular-nums" style={{ color: C.dim, fontSize: 8 }}>{fmt(fp.w)}×{fmt(fp.d)}×{fmt(heightOf(o))}′ · {fmt(o.gx)},{fmt(o.gy)}</span>
                 </button>
               );
             })}
           </div>
+          {/* SELECTED detail — expands in the bottom ~2/3 (dims · wall · size · rotate · delete · nudge pad) */}
+          {sel && (() => {
+            const SelIcon = ICON[sel.kind];
+            const fp = footprintOf(sel);
+            const vs = VARIANTS[sel.kind];
+            const vLabel = vs?.find((v) => v.id === sel.variant)?.label;
+            const selSpec = OBJECT_SPEC[sel.kind];
+            return (
+              <div data-arch-roomobj-detail className="mt-1 flex flex-wrap items-center gap-2 border-t pt-1.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>
+                <span className="flex items-center gap-1 font-semibold" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {vLabel ? `${vLabel} ` : ""}{selSpec.label}</span>
+                <span data-arch-roomobj-dims style={{ color: C.dim }}>{ftIn(fp.w)} W × {ftIn(fp.d)} D × {ftIn(heightOf(sel))} H</span>
+                {selSpec.onWall && <span data-arch-roomobj-wall className="rounded border px-1 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{wallOf(sel.gx, sel.gy)} wall</span>}
+                {vs && (
+                  <button data-arch-roomobj-size onClick={() => onChange(cycleVariant(objects, sel.id))} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.violet }}>
+                    Size: {vLabel ?? "—"} ↻
+                  </button>
+                )}
+                <button data-arch-roomobj-rotate onClick={() => onChange(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
+                <button data-arch-roomobj-delete onClick={() => { onChange(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
+                {/* FIX-B — spatial nudge pad (arrows + ft/in step), Mission-Planning asset-planning style */}
+                <span data-arch-nudge className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title={`Nudge the selected item by the chosen step; tap the step to change 1" / 6" / 1'`}>
+                  <button data-arch-nudge-step onClick={() => setNudgeIx((i) => (i + 1) % NUDGE_STEPS_FT.length)} className="rounded px-1 text-[9px] font-bold tabular-nums" style={{ color: C.gold }}>{NUDGE_STEPS_FT[nudgeIx].label}</button>
+                  {(() => { const step = NUDGE_STEPS_FT[nudgeIx].ft; return (<>
+                    <button data-arch-nudge-up onClick={() => onChange(nudgeObject(objects, sel.id, 0, -step))} title="Move up (N)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowUp className="h-3 w-3" /></button>
+                    <button data-arch-nudge-down onClick={() => onChange(nudgeObject(objects, sel.id, 0, step))} title="Move down (S)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowDown className="h-3 w-3" /></button>
+                    <button data-arch-nudge-left onClick={() => onChange(nudgeObject(objects, sel.id, -step, 0))} title="Move left (W)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowLeft className="h-3 w-3" /></button>
+                    <button data-arch-nudge-right onClick={() => onChange(nudgeObject(objects, sel.id, step, 0))} title="Move right (E)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowRight className="h-3 w-3" /></button>
+                  </>); })()}
+                </span>
+                <button data-arch-roomobj-deselect onClick={() => setSelId(null)} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>Done</button>
+                <span style={{ color: C.dim }}>· drag or nudge to move</span>
+              </div>
+            );
+          })()}
         </div>
       )}
 
