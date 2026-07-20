@@ -11,7 +11,7 @@
 import { useRef, useState } from "react";
 import {
   Bed, Sofa, CookingPot, Utensils, Monitor, Toilet, Bath, Droplet, WashingMachine, DoorOpen,
-  RectangleHorizontal, RotateCw, RotateCcw, Columns2, Rows2, Trash2, type LucideIcon,
+  RectangleHorizontal, RotateCw, RotateCcw, Columns2, Rows2, SquareStack, Trash2, type LucideIcon,
 } from "lucide-react";
 import { Compass2525 } from "./compass-2525";
 import { MiniPanel } from "./mini-panel";
@@ -54,6 +54,12 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const [selId, setSelId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const drag = useRef<string | null>(null);
+  // S0 — layout mode: STACKED (top+bottom panes) ⇄ FLOATING (main + draggable mini). Persisted (operator IMG_7521).
+  const [layoutMode, setLayoutMode] = useState<"stacked" | "floating">(() => {
+    if (typeof window === "undefined") return "stacked";
+    try { return localStorage.getItem("arch2525.roomLayoutMode") === "floating" ? "floating" : "stacked"; } catch { return "stacked"; }
+  });
+  const setLayout = (m: "stacked" | "floating") => { setLayoutMode(m); try { localStorage.setItem("arch2525.roomLayoutMode", m); } catch {} };
   // 2D plan orientation — rotate the floor plan (North compass, Mission-Planning parity). Placement inverts this
   // so a tap always lands in the true cell regardless of rotation. Mirror is a DATA op (mirrorObjects), not here.
   const [bearing2d, setBearing2d] = useState(0); // degrees, 0 = North up
@@ -62,10 +68,16 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // ── 3D CAMERA — the shared Vision-2525 R-Core interaction model (identical to Mission-Planning): LEFT-drag /
   // one-finger = PAN · RIGHT-drag = rotate+tilt · two fingers = pinch-zoom + twist-bearing + vertical-tilt · wheel
   // = zoom. One hook, no local re-implementation (operator: "R-Core for all areas of interaction").
-  const cam = useRCoreGestures({ initialBearing: -Math.PI / 4, initialPitch: 34, initialZoom: 1, touchOrbit: true,
-    cfg: { minPitch: 6, maxPitch: 90, minZoom: 0.6, maxZoom: 3.2 } });
-  const { bearing, pitch, zoom } = cam;
+  const CAM_OPTS = { initialBearing: -Math.PI / 4, initialPitch: 34, initialZoom: 1, touchOrbit: true,
+    cfg: { minPitch: 6, maxPitch: 90, minZoom: 0.6, maxZoom: 3.2 } } as const;
+  const cam = useRCoreGestures(CAM_OPTS);   // TOP pane 3D camera (also the FLOATING main)
+  const camB = useRCoreGestures(CAM_OPTS);  // BOTTOM pane 3D camera — independent angle (stacked mode)
   const camReset = cam.reset;
+  // Independent 2D plan rotations: bearing2d = TOP/main (interactive); bearingB = BOTTOM pane (view echo).
+  const [bearingB, setBearingB] = useState(0);
+  const rotB = (d: number) => setBearingB((b) => ((b + d) % 360 + 360) % 360);
+  // Each stacked pane picks its own view mode; default TOP 2D · BOTTOM 3D (operator: 2D top / 3D bottom default).
+  const [bottomView, setBottomView] = useState<"2D" | "3D">("3D");
 
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent | React.DragEvent): { gx: number; gy: number } | null => {
     const svg = svgRef.current; if (!svg) return null;
@@ -112,25 +124,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
 
   const sel = objects.find((o) => o.id === selId) || null;
 
-  // ── 3D voxel projection (10×10×10) — orbit(bearing)+tilt(pitch)+zoom around the room centre. ──
-  // World (x,y,z), z up. Yaw about z, then tilt: screenY = worldY·sin(φ) − z·cos(φ) (φ=90° → top-down plan).
-  const U = 8, OX = 130, OY = 110;           // unit px + viewBox centre (260×220)
-  const cx = N / 2, cy = N / 2, cz = N / 2;  // orbit pivot = room centre
-  const cosB = Math.cos(bearing), sinB = Math.sin(bearing);
-  const phi = (pitch * Math.PI) / 180, sinP = Math.sin(phi), cosP = Math.cos(phi);
-  const iso = (x: number, y: number, z: number): [number, number] => {
-    const dx = x - cx, dy = y - cy, dz = z - cz;
-    const xw = dx * cosB - dy * sinB;
-    const yw = dx * sinB + dy * cosB;
-    // pan (R-Core left-drag) translates the whole scene in screen space
-    return [OX + cam.pan.x + xw * U * zoom, OY + cam.pan.y + (yw * sinP - dz * cosP) * U * zoom];
-  };
-  const floor = [iso(0, 0, 0), iso(N, 0, 0), iso(N, N, 0), iso(0, N, 0)];
-  const ceil = [iso(0, 0, N), iso(N, 0, N), iso(N, N, N), iso(0, N, N)];
   const poly = (pts: [number, number][]) => pts.map((p) => p.join(",")).join(" ");
-  // Depth-sort objects so nearer boxes draw last (painter's algorithm as the camera orbits).
-  const depthKey = (gx: number, gy: number) => (gx - cx) * sinB + (gy - cy) * cosB;
-  const objs3d = [...objects].sort((a, b) => depthKey(a.gx, a.gy) - depthKey(b.gx, b.gy));
 
   // ── MEP RUNS (P2) — draw the systems enabled in Design Settings in BOTH views; totals from lib/mep-runs. ──
   const outlets = room.outlets ?? 0;
@@ -147,31 +141,26 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     <polyline key={`${key}${i}`} data-arch-mep2d={key} points={r.path.map((p) => `${c2(p.gx)},${c2(p.gy)}`).join(" ")}
       fill="none" stroke={col} strokeWidth={0.9} strokeDasharray="2 1.5" strokeLinecap="round" opacity={0.85} />
   ));
-  const run3d = (runs: MepRun[] | undefined, col: string, z: number, key: string) => runs?.map((r, i) => (
-    <polyline key={`${key}3d${i}`} data-arch-mep3d={key} points={r.path.map((p) => iso(p.gx + 0.5, p.gy + 0.5, z).join(",")).join(" ")}
-      fill="none" stroke={col} strokeWidth={1} strokeDasharray="2 1.5" strokeLinecap="round" opacity={0.9} />
-  ));
-
-  // MAIN ↔ MINI (Mission-Planning parity, operator IMG_7516): one MAIN map toggles 2D⇄3D; the MINI is a
-  // draggable/resizable MiniPanel showing the OTHER view. Both views are one function each, rendered in either slot.
+  // TOP/main pane view (bottom pane uses bottomView, declared above with its own camera camB).
   const [mainView, setMainView] = useState<"2D" | "3D">("2D");
   const boxStyle = (size?: number) => ({ touchAction: "none" as const, ...(size ? { width: size, height: size } : { width: "100%" }) });
   const svgStyle = (size?: number) => (size ? { width: size, height: size } : { width: "100%", aspectRatio: "1 / 1" as const });
 
-  const plan2D = (size?: number) => (
+  // 2D floor plan. `interactive` (top/main) wires the svgRef + placement handlers; the echo (bottom pane) renders
+  // read-only at its own rotation `bear`. This lets two 2D panes hold independent angles.
+  const plan2D = (bear: number, setBear: (n: number) => void, interactive: boolean, size?: number) => (
     <div className="relative" style={boxStyle(size)}>
-      <svg ref={svgRef} data-arch-roomdesign-2d viewBox="0 0 100 100" className="rounded border"
-        style={{ borderColor: C.cyan, background: "#070b12", touchAction: "none", ...svgStyle(size) }}
-        onPointerMove={svgMove} onPointerUp={svgUp} onPointerCancel={svgUp}
-        onDragOver={(e) => e.preventDefault()} onDrop={dropOnFloor}>
-        <g data-arch-roomdesign-2d-rot transform={`rotate(${bearing2d} 50 50)`}>
+      <svg {...(interactive ? { ref: svgRef, onPointerMove: svgMove, onPointerUp: svgUp, onPointerCancel: svgUp, onDragOver: (e: React.DragEvent) => e.preventDefault(), onDrop: dropOnFloor } : {})}
+        data-arch-roomdesign-2d viewBox="0 0 100 100" className="rounded border"
+        style={{ borderColor: C.cyan, background: "#070b12", touchAction: "none", ...svgStyle(size) }}>
+        <g data-arch-roomdesign-2d-rot transform={`rotate(${bear} 50 50)`}>
           {Array.from({ length: N + 1 }).map((_, i) => (
             <g key={i}>
               <line x1={i * 10} y1={0} x2={i * 10} y2={100} stroke={`${C.cyan}22`} strokeWidth={0.4} />
               <line x1={0} y1={i * 10} x2={100} y2={i * 10} stroke={`${C.cyan}22`} strokeWidth={0.4} />
             </g>
           ))}
-          <rect x={0} y={0} width={100} height={100} fill="transparent" onClick={bgClick} style={{ cursor: tool ? "copy" : "default" }} />
+          {interactive && <rect x={0} y={0} width={100} height={100} fill="transparent" onClick={bgClick} style={{ cursor: tool ? "copy" : "default" }} />}
           <rect x={1} y={1} width={98} height={98} fill="none" stroke={C.violet} strokeWidth={1.2} />
           {run2d(water?.runs, MEP_COL.water, "water")}
           {run2d(sewer?.runs, MEP_COL.sewer, "sewer")}
@@ -184,7 +173,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             const on = o.id === selId;
             const Icon = ICON[o.kind];
             return (
-              <g key={o.id} data-arch-roomobj={o.kind} transform={`rotate(${o.rot} ${cx} ${cy})`} style={{ cursor: "grab" }} onPointerDown={objDown(o.id)}>
+              <g key={o.id} data-arch-roomobj={o.kind} transform={`rotate(${o.rot} ${cx} ${cy})`} style={{ cursor: interactive ? "grab" : "default" }} onPointerDown={interactive ? objDown(o.id) : undefined}>
                 <rect x={cx - w * 5} y={cy - d * 5} width={w * 10} height={d * 10} rx={1.5}
                   fill={`${s.color}${on ? "55" : "2e"}`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
                 <foreignObject x={cx - 4} y={cy - 4} width={8} height={8} style={{ pointerEvents: "none" }}>
@@ -197,42 +186,110 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           })}
         </g>
       </svg>
-      <Compass2525 bearing={(bearing2d * Math.PI) / 180} onNorth={() => setBearing2d(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
+      <Compass2525 bearing={(bear * Math.PI) / 180} onNorth={() => setBear(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
     </div>
   );
 
-  const voxel3D = (size?: number) => (
-    <div className="relative" style={boxStyle(size)}>
-      <svg data-arch-roomdesign-3d viewBox="0 0 260 220" className="rounded border"
-        style={{ borderColor: C.cyan, background: "#070b12", touchAction: "none", cursor: "grab", ...svgStyle(size) }}
-        {...cam.handlers} onPointerLeave={cam.handlers.onPointerUp}>
-        <polygon points={poly(floor)} fill={`${C.cyan}12`} stroke={`${C.cyan}66`} strokeWidth={1} />
-        {[0, 1, 2, 3].map((i) => <line key={i} x1={floor[i][0]} y1={floor[i][1]} x2={ceil[i][0]} y2={ceil[i][1]} stroke={`${C.cyan}44`} strokeWidth={0.8} />)}
-        <polygon points={poly(ceil)} fill="none" stroke={`${C.cyan}33`} strokeWidth={0.7} />
-        {objs3d.map((o) => {
-          const s = OBJECT_SPEC[o.kind];
-          const fp = footprintOf(o);
-          const swap = o.rot === 90 || o.rot === 270;
-          const w = swap ? fp.d : fp.w, d = swap ? fp.w : fp.d, hgt = s.h; // real per-furniture height (ft)
-          const x0 = o.gx + 0.5 - w / 2, y0 = o.gy + 0.5 - d / 2;
-          const base = [iso(x0, y0, 0), iso(x0 + w, y0, 0), iso(x0 + w, y0 + d, 0), iso(x0, y0 + d, 0)];
-          const top = [iso(x0, y0, hgt), iso(x0 + w, y0, hgt), iso(x0 + w, y0 + d, hgt), iso(x0, y0 + d, hgt)];
-          const on = o.id === selId;
-          return (
-            <g key={o.id} data-arch-roomobj3d={o.kind}>
-              <polygon points={poly([base[0], base[1], top[1], top[0]])} fill={`${s.color}22`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.7} />
-              <polygon points={poly([base[1], base[2], top[2], top[1]])} fill={`${s.color}18`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.7} />
-              <polygon points={poly(top)} fill={`${s.color}33`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
-            </g>
-          );
-        })}
-        {run3d(water?.runs, MEP_COL.water, 0.3, "water")}
-        {run3d(sewer?.runs, MEP_COL.sewer, 0.3, "sewer")}
-        {run3d(wiring?.runs, MEP_COL.wiring, 3, "wiring")}
-        {run3d(duct?.runs, MEP_COL.duct, N - 0.5, "duct")}
-      </svg>
-      <Compass2525 bearing={bearing} onNorth={() => cam.setBearing(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
-      <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>L-drag pan · R-drag rotate/tilt · pinch/scroll zoom · 2-finger twist/tilt</div>
+  // 3D voxel — self-contained projection from the PASSED camera, so top + bottom panes hold independent angles.
+  const voxel3D = (vcam: ReturnType<typeof useRCoreGestures>, size?: number) => {
+    const U = 8, OX = 130, OY = 110, cx = N / 2, cy = N / 2, cz = N / 2;
+    const cosB = Math.cos(vcam.bearing), sinB = Math.sin(vcam.bearing);
+    const phi = (vcam.pitch * Math.PI) / 180, sinP = Math.sin(phi), cosP = Math.cos(phi);
+    const iso = (x: number, y: number, z: number): [number, number] => {
+      const dx = x - cx, dy = y - cy, dz = z - cz;
+      const xw = dx * cosB - dy * sinB, yw = dx * sinB + dy * cosB;
+      return [OX + vcam.pan.x + xw * U * vcam.zoom, OY + vcam.pan.y + (yw * sinP - dz * cosP) * U * vcam.zoom];
+    };
+    const floor = [iso(0, 0, 0), iso(N, 0, 0), iso(N, N, 0), iso(0, N, 0)];
+    const ceil = [iso(0, 0, N), iso(N, 0, N), iso(N, N, N), iso(0, N, N)];
+    const depthKey = (gx: number, gy: number) => (gx - cx) * sinB + (gy - cy) * cosB;
+    const objs = [...objects].sort((a, b) => depthKey(a.gx, a.gy) - depthKey(b.gx, b.gy));
+    const r3 = (runs: MepRun[] | undefined, col: string, z: number, key: string) => runs?.map((r, i) => (
+      <polyline key={`${key}3d${i}`} data-arch-mep3d={key} points={r.path.map((p) => iso(p.gx + 0.5, p.gy + 0.5, z).join(",")).join(" ")}
+        fill="none" stroke={col} strokeWidth={1} strokeDasharray="2 1.5" strokeLinecap="round" opacity={0.9} />
+    ));
+    return (
+      <div className="relative" style={boxStyle(size)}>
+        <svg data-arch-roomdesign-3d viewBox="0 0 260 220" className="rounded border"
+          style={{ borderColor: C.cyan, background: "#070b12", touchAction: "none", cursor: "grab", ...svgStyle(size) }}
+          {...vcam.handlers} onPointerLeave={vcam.handlers.onPointerUp}>
+          <polygon points={poly(floor)} fill={`${C.cyan}12`} stroke={`${C.cyan}66`} strokeWidth={1} />
+          {[0, 1, 2, 3].map((i) => <line key={i} x1={floor[i][0]} y1={floor[i][1]} x2={ceil[i][0]} y2={ceil[i][1]} stroke={`${C.cyan}44`} strokeWidth={0.8} />)}
+          <polygon points={poly(ceil)} fill="none" stroke={`${C.cyan}33`} strokeWidth={0.7} />
+          {objs.map((o) => {
+            const s = OBJECT_SPEC[o.kind];
+            const fp = footprintOf(o);
+            const swap = o.rot === 90 || o.rot === 270;
+            const w = swap ? fp.d : fp.w, d = swap ? fp.w : fp.d, hgt = s.h;
+            const x0 = o.gx + 0.5 - w / 2, y0 = o.gy + 0.5 - d / 2;
+            const base = [iso(x0, y0, 0), iso(x0 + w, y0, 0), iso(x0 + w, y0 + d, 0), iso(x0, y0 + d, 0)];
+            const top = [iso(x0, y0, hgt), iso(x0 + w, y0, hgt), iso(x0 + w, y0 + d, hgt), iso(x0, y0 + d, hgt)];
+            const on = o.id === selId;
+            return (
+              <g key={o.id} data-arch-roomobj3d={o.kind}>
+                <polygon points={poly([base[0], base[1], top[1], top[0]])} fill={`${s.color}22`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.7} />
+                <polygon points={poly([base[1], base[2], top[2], top[1]])} fill={`${s.color}18`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.7} />
+                <polygon points={poly(top)} fill={`${s.color}33`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
+              </g>
+            );
+          })}
+          {r3(water?.runs, MEP_COL.water, 0.3, "water")}
+          {r3(sewer?.runs, MEP_COL.sewer, 0.3, "sewer")}
+          {r3(wiring?.runs, MEP_COL.wiring, 3, "wiring")}
+          {r3(duct?.runs, MEP_COL.duct, N - 0.5, "duct")}
+        </svg>
+        <Compass2525 bearing={vcam.bearing} onNorth={() => vcam.setBearing(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
+        <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>L-drag pan · R-drag rotate/tilt · pinch/scroll zoom · 2-finger twist/tilt</div>
+      </div>
+    );
+  };
+
+  // Layout toggle (stacked ⇄ floating) — lives in the top/main header only.
+  const layoutToggleEl = (
+    <button data-arch-room-layout onClick={() => setLayout(layoutMode === "stacked" ? "floating" : "stacked")}
+      title={layoutMode === "stacked" ? "Switch to floating mini" : "Switch to stacked panes"}
+      className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}>
+      <SquareStack className="h-3 w-3" />
+    </button>
+  );
+  // One MP-style pane header: 2D/3D toggle · view controls (rotate/mirror or reset) · R-CORE lanes.
+  const paneHeader = (view: "2D" | "3D", setView: (v: "2D" | "3D") => void, rot: (d: number) => void, onReset: () => void, lead?: React.ReactNode) => (
+    <div data-arch-room-header className="mb-1 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px]" style={{ borderColor: C.border, background: C.panel }}>
+      {lead}
+      <div className="flex shrink-0 overflow-hidden rounded border" style={{ borderColor: C.border }}>
+        {(["2D", "3D"] as const).map((v) => (
+          <button key={v} data-arch-room-view={v} onClick={() => setView(v)} className="px-2 py-0.5 font-semibold"
+            style={{ color: view === v ? C.cyan : C.dim, background: view === v ? "#0e2233" : "transparent" }}>{v}</button>
+        ))}
+      </div>
+      {view === "2D" ? (
+        <>
+          <button onClick={() => rot(-15)} title="Rotate plan left" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCcw className="h-3 w-3" /></button>
+          <button onClick={() => rot(15)} title="Rotate plan right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /></button>
+          <button onClick={() => onChange(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
+          <button onClick={() => onChange(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
+        </>
+      ) : (
+        <button onClick={onReset} title="Reset view" className="shrink-0 rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.dim }}>Reset</button>
+      )}
+      <span className="shrink-0 font-semibold" style={{ color: C.dim }}>R-CORE</span>
+      {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0 rounded px-1 font-semibold" style={{ color: l.color }}>{l.label}</span>)}
+    </div>
+  );
+  // Interior palette (shared between both layout modes) — sits between the panes (stacked) / below (floating).
+  const paletteEl = (
+    <div data-arch-roomdesign-palette className="flex flex-wrap gap-1">
+      {OBJECT_KINDS.map((k) => {
+        const s = OBJECT_SPEC[k], on = tool === k, Icon = ICON[k];
+        return (
+          <button key={k} data-arch-tool={k} onClick={() => setTool(on ? null : k)} title={`${s.label} — tap then tap the floor, or drag onto the plan`}
+            draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", k); e.dataTransfer.effectAllowed = "copy"; setTool(k); }}
+            className="flex cursor-grab items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] active:cursor-grabbing"
+            style={{ borderColor: on ? C.gold : C.border, background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
+            <Icon className="h-3.5 w-3.5" style={{ color: on ? C.gold : s.color }} />{s.label}
+          </button>
+        );
+      })}
     </div>
   );
 
@@ -245,53 +302,36 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         <span className="text-[9px]" style={{ color: C.dim }}>10′×10′ · tap a tool, tap the floor</span>
       </div>
 
-      {/* MAIN map + draggable/resizable MINI (Mission-Planning main↔mini, operator IMG_7516) */}
-      <div className="relative">
-        {/* MAIN banner — MP-method 2D/3D toggle + view controls + R-CORE lane strip (scrollable) */}
-        <div data-arch-room-header className="mb-1 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap rounded border px-1.5 py-0.5 text-[9px]" style={{ borderColor: C.border, background: C.panel }}>
-          <div className="flex shrink-0 overflow-hidden rounded border" style={{ borderColor: C.border }}>
-            {(["2D", "3D"] as const).map((v) => (
-              <button key={v} data-arch-room-view={v} onClick={() => setMainView(v)} className="px-2 py-0.5 font-semibold"
-                style={{ color: mainView === v ? C.cyan : C.dim, background: mainView === v ? "#0e2233" : "transparent" }}>{v}</button>
-            ))}
+      {/* STACKED (two independent panes, top+bottom) ⇄ FLOATING (main + draggable mini) — operator IMG_7521 */}
+      {layoutMode === "stacked" ? (
+        <div className="flex flex-col gap-2">
+          {/* TOP pane — interactive editor */}
+          <div className="relative">
+            {paneHeader(mainView, setMainView, rot2d, cam.reset, layoutToggleEl)}
+            {mainView === "2D" ? plan2D(bearing2d, setBearing2d, true) : voxel3D(cam)}
           </div>
-          {mainView === "2D" ? (
-            <>
-              <button data-arch-2d-rotccw onClick={() => rot2d(-15)} title="Rotate plan left" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCcw className="h-3 w-3" /></button>
-              <button data-arch-2d-rotcw onClick={() => rot2d(15)} title="Rotate plan right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /></button>
-              <button data-arch-2d-mirrorh onClick={() => onChange(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
-              <button data-arch-2d-mirrorv onClick={() => onChange(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
-            </>
-          ) : (
-            <button data-arch-3d-reset onClick={camReset} title="Reset view" className="shrink-0 rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.dim }}>Reset</button>
-          )}
-          <span className="shrink-0 font-semibold" style={{ color: C.dim }}>R-CORE</span>
-          {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0 rounded px-1 font-semibold" style={{ color: l.color }}>{l.label}</span>)}
+          {/* interior palette BETWEEN the two panes */}
+          {paletteEl}
+          {/* BOTTOM pane — independent view + camera/angle */}
+          <div className="relative">
+            {paneHeader(bottomView, setBottomView, rotB, camB.reset)}
+            {bottomView === "2D" ? plan2D(bearingB, setBearingB, false) : voxel3D(camB)}
+          </div>
         </div>
-        {/* MAIN body = the selected view */}
-        {mainView === "2D" ? plan2D() : voxel3D()}
-        {/* MINI = the OTHER view, docked bottom-right — draggable · resizable · maximizable (MiniPanel) */}
-        <div className="absolute bottom-2 right-2 z-10">
-          <MiniPanel title={mainView === "2D" ? "3D · Voxel" : "2D · Plan"} subtitle={`${room.k} · ${room.label}`}
-            defaultW={188} defaultH={210} minW={140} minH={150}
-            render={(s) => (mainView === "2D" ? voxel3D(s) : plan2D(s))} />
-        </div>
-      </div>
-
-      {/* INTERIOR palette — placed directly under the maps, between the 2D/3D views and the readouts (operator IMG_7519) */}
-      <div data-arch-roomdesign-palette className="flex flex-wrap gap-1">
-        {OBJECT_KINDS.map((k) => {
-          const s = OBJECT_SPEC[k], on = tool === k, Icon = ICON[k];
-          return (
-            <button key={k} data-arch-tool={k} onClick={() => setTool(on ? null : k)} title={`${s.label} — tap then tap the floor, or drag onto the plan`}
-              draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", k); e.dataTransfer.effectAllowed = "copy"; setTool(k); }}
-              className="flex cursor-grab items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] active:cursor-grabbing"
-              style={{ borderColor: on ? C.gold : C.border, background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
-              <Icon className="h-3.5 w-3.5" style={{ color: on ? C.gold : s.color }} />{s.label}
-            </button>
-          );
-        })}
-      </div>
+      ) : (
+        <>
+          <div className="relative">
+            {paneHeader(mainView, setMainView, rot2d, cam.reset, layoutToggleEl)}
+            {mainView === "2D" ? plan2D(bearing2d, setBearing2d, true) : voxel3D(cam)}
+            <div className="absolute bottom-2 right-2 z-10">
+              <MiniPanel title={mainView === "2D" ? "3D · Voxel" : "2D · Plan"} subtitle={`${room.k} · ${room.label}`}
+                defaultW={188} defaultH={210} minW={140} minH={150}
+                render={(s) => (mainView === "2D" ? voxel3D(camB, s) : plan2D(bearingB, setBearingB, false, s))} />
+            </div>
+          </div>
+          {paletteEl}
+        </>
+      )}
 
       {/* MEP length totals (operator: "sub-menu to show length of total pipe / electrical specs") — one source (lib/mep-runs) */}
       {anyMep && (
