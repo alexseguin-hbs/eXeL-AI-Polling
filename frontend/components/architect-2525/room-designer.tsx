@@ -24,7 +24,7 @@ import {
   footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
-import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
+import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
 import { annotateObject, ftIn } from "@/lib/dim-annot";
 import { runPlaytest, PLAYTEST_SYSTEMS } from "@/lib/architect-playtest";
 import { useRCoreGestures } from "./use-rcore-gestures";
@@ -154,6 +154,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const wiring = showWiring ? wiringRuns(outlets) : null;
   const duct = showDucts ? ductRuns() : null;
   const eSpec = showWiring ? electricSpecs(outlets) : null;
+  const outMarks = showWiring ? outletMarkers(outlets) : null;   // FIX-4 wall-mounted outlets
   const MEP_COL = { water: C.cyan, sewer: "#22c55e", wiring: C.gold, duct: "#38bdf8" };
   const anyMep = !!(water || sewer || wiring || duct);
   // 2D: polyline through grid-cell centres (viewBox 0..100). 3D: same path at a system height (floor→ceiling).
@@ -187,6 +188,11 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           {run2d(sewer?.runs, MEP_COL.sewer, "sewer")}
           {run2d(wiring?.runs, MEP_COL.wiring, "wiring")}
           {run2d(duct?.runs, MEP_COL.duct, "duct")}
+          {/* FIX-4 — outlets as marks ON the wall cell (visible in the walls) */}
+          {outMarks?.map((m, i) => (
+            <rect key={`out${i}`} data-arch-outlet2d x={c2(m.gx) - 1.4} y={c2(m.gy) - 1.4} width={2.8} height={2.8} rx={0.4}
+              fill={MEP_COL.wiring} stroke="#070b12" strokeWidth={0.4} />
+          ))}
           {objects.map((o) => {
             const s = OBJECT_SPEC[o.kind];
             const { w, d } = footprintOf(o);
@@ -307,6 +313,16 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           {r3(sewer?.runs, MEP_COL.sewer, 0.3, "sewer")}
           {r3(wiring?.runs, MEP_COL.wiring, 3, "wiring")}
           {r3(duct?.runs, MEP_COL.duct, N - 0.5, "duct")}
+          {/* FIX-4 — outlets on the WALL FACE at ~1.5ft AFF (a small box, not a floor dot) */}
+          {outMarks?.map((m, i) => {
+            const cxo = m.gx + 0.5, cyo = m.gy + 0.5, s2 = 0.28;
+            const b = [iso(cxo - s2, cyo - s2, m.affFt - s2), iso(cxo + s2, cyo - s2, m.affFt - s2), iso(cxo + s2, cyo + s2, m.affFt - s2), iso(cxo - s2, cyo + s2, m.affFt - s2)];
+            const t = [iso(cxo - s2, cyo - s2, m.affFt + s2), iso(cxo + s2, cyo - s2, m.affFt + s2), iso(cxo + s2, cyo + s2, m.affFt + s2), iso(cxo - s2, cyo + s2, m.affFt + s2)];
+            return <g key={`out3d${i}`} data-arch-outlet3d>
+              <polygon points={poly([b[0], b[1], t[1], t[0]])} fill={MEP_COL.wiring} stroke="#070b12" strokeWidth={0.4} />
+              <polygon points={poly(t)} fill={MEP_COL.wiring} stroke="#070b12" strokeWidth={0.4} />
+            </g>;
+          })}
         </svg>
         <Compass2525 bearing={vcam.bearing} onNorth={() => vcam.setBearing(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
         <div className="pointer-events-none absolute bottom-1 left-1.5 text-[7px]" style={{ color: C.dim }}>L-drag pan · R-drag rotate/tilt · pinch/scroll zoom · 2-finger twist/tilt</div>

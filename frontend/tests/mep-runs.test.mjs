@@ -3,7 +3,7 @@
 // Run: node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/mep-runs.test.mjs
 import {
   MEP_GRID, MEP_SOURCE, routeManhattan, pathLengthFt, runsToEndpoints, fixtureEndpoints,
-  waterRuns, sewerRuns, outletPositions, wiringRuns, electricSpecs, ductRuns,
+  waterRuns, sewerRuns, outletPositions, wiringRuns, electricSpecs, ductRuns, outletMarkers, OUTLET_AFF_FT,
 } from "../lib/mep-runs.ts";
 import { placeObject } from "../lib/room-objects.ts";
 
@@ -77,6 +77,14 @@ ok(electricSpecs(9).circuits === 2 && electricSpecs(9).amps === 30, "9 outlets �
 const dr = ductRuns();
 ok(dr.runs.length === 1 && dr.runs[0].to.gx === 5 && dr.runs[0].to.gy === 5, "ductRuns → centre register (5,5)");
 ok(dr.totalFt === pathLengthFt(routeManhattan(MEP_SOURCE.air, { gx: 5, gy: 5 })), "duct total = air→centre length");
+
+// FIX-4 — outlets as WALL-MOUNTED markers (seen IN the walls, at receptacle height).
+const om = outletMarkers(4);
+ok(om.length === 4 && om.every((m) => m.affFt === OUTLET_AFF_FT && OUTLET_AFF_FT > 0 && OUTLET_AFF_FT < 10), "outletMarkers: 4 markers at ~1.5ft AFF");
+ok(om.every((m) => ["N", "S", "E", "W"].includes(m.wall)), "every outlet marker is bound to a perimeter wall");
+ok(om.every((m) => m.gx === 0 || m.gy === 0 || m.gx === MEP_GRID - 1 || m.gy === MEP_GRID - 1), "outlet markers sit on the room perimeter (in a wall)");
+ok(outletMarkers(0).length === 0, "no outlets → no markers");
+ok(JSON.stringify(outletMarkers(6)) === JSON.stringify(outletMarkers(6)), "outletMarkers deterministic");
 
 console.log(`\nMEP-RUNS ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

@@ -9,7 +9,7 @@
  * Pure + deterministic (replay law): Manhattan L-routes (horizontal then vertical), fixed source anchors, no
  * Math.random, no I/O. 1 grid cell = 1 ft (matches ROOM_GRID = 10 → a 10'×10' room).
  */
-import { ROOM_GRID, type ObjectKind, type PlacedObject } from "./room-objects";
+import { ROOM_GRID, wallOf, type ObjectKind, type PlacedObject, type Wall } from "./room-objects";
 
 export const MEP_GRID = ROOM_GRID; // 10 — one cell per foot
 
@@ -109,6 +109,17 @@ export function outletPositions(count: number): MepPt[] {
 /** ELECTRIC WIRING runs — from the panel to every outlet. */
 export function wiringRuns(outletCount: number): SystemRuns {
   return runsToEndpoints(MEP_SOURCE.panel, outletPositions(outletCount));
+}
+
+/**
+ * FIX-4 — MEP IN THE WALLS: each outlet as a WALL-MOUNTED marker (operator: "not sure how to see outlets in walls").
+ * An outlet sits on the perimeter wall it's nearest to, at standard receptacle height (~1.5 ft AFF), so the 2D plan
+ * can draw a mark on that wall and the 3D voxel can draw it on the wall FACE at height — not a floor dot.
+ */
+export const OUTLET_AFF_FT = 1.5; // standard receptacle height above finished floor
+export interface OutletMarker { gx: number; gy: number; wall: Wall; affFt: number }
+export function outletMarkers(outletCount: number): OutletMarker[] {
+  return outletPositions(outletCount).map((p) => ({ gx: p.gx, gy: p.gy, wall: wallOf(p.gx, p.gy), affFt: OUTLET_AFF_FT }));
 }
 
 /** ELECTRIC specs from the outlet count — total wire ft, circuits (≤8 outlets/circuit), and service amps. */
