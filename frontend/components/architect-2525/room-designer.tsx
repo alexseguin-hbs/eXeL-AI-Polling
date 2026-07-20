@@ -28,6 +28,7 @@ import {
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
 import { annotateObject, chainDims, ftIn } from "@/lib/dim-annot";
+import { useLexicon } from "@/lib/lexicon-context";
 import { roomBom } from "@/lib/architect-bom";
 import { runPlaytest, PLAYTEST_SYSTEMS } from "@/lib/architect-playtest";
 import { useRCoreGestures } from "./use-rcore-gestures";
@@ -74,6 +75,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   room: RoomCell; onChange: (o: PlacedObject[]) => void; onBack: () => void;
   showWater?: boolean; showSewer?: boolean; showWiring?: boolean; showDucts?: boolean;
 }) {
+  const { t } = useLexicon(); // ONE master lexicon (vision.* shared UX — used by Security-2525 + Architect-2525)
   const objects = room.objects ?? [];
   const [tool, setTool] = useState<ObjectKind | null>(null);
   const [selId, setSelId] = useState<string | null>(null);
@@ -325,7 +327,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           setDimEntry(null);
         };
         const axSuffix = dimEntry.axis === "y" ? " ↕" : " ↔"; // show which coordinate is being edited
-        const label = (dimEntry.edit === "oc" ? "O.C." : dimEntry.edit === "gapNear" ? "From wall" : dimEntry.edit === "gapFar" ? "To wall" : "Size") + axSuffix;
+        const label = (dimEntry.edit === "oc" ? t("vision.dim.oc") : dimEntry.edit === "gapNear" ? t("vision.dim.fromWall") : dimEntry.edit === "gapFar" ? t("vision.dim.toWall") : t("vision.dim.size")) + axSuffix;
         // ON-SCREEN feet-inches KEYPAD — no native <input>, so iOS Safari never auto-zooms the page when you enter a
         // measurement (operator flagged the zoom twice, IMG_7565), and the big buttons are kid/grandma-friendly.
         const press = (ch: string) => setDimVal((s) => (s.length < 8 ? s + ch : s));
@@ -349,9 +351,9 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             </div>
             <div className="mt-1 grid grid-cols-2 gap-1">
               <button data-arch-dim-back onClick={() => setDimVal((s) => s.slice(0, -1))}
-                className="rounded border py-2 text-[13px] font-semibold active:opacity-70" style={{ borderColor: C.border, color: C.dim, background: "#0e1622" }}>⌫ Del</button>
+                className="rounded border py-2 text-[13px] font-semibold active:opacity-70" style={{ borderColor: C.border, color: C.dim, background: "#0e1622" }}>⌫ {t("vision.dim.del")}</button>
               <button data-arch-dim-ok onClick={applyDim}
-                className="rounded border py-2 text-[13px] font-bold active:opacity-70" style={{ borderColor: C.cyan, color: "#04222a", background: C.cyan }}>Set</button>
+                className="rounded border py-2 text-[13px] font-bold active:opacity-70" style={{ borderColor: C.cyan, color: "#04222a", background: C.cyan }}>{t("vision.dim.set")}</button>
             </div>
           </div>
         );
@@ -472,12 +474,12 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           <button onClick={() => rot(15)} title="Rotate plan right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /></button>
         </>
       ) : (
-        <button onClick={onReset} title="Reset view" className="shrink-0 rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.dim }}>Reset</button>
+        <button onClick={onReset} title="Reset view" className="shrink-0 rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.dim }}>{t("vision.ctrl.reset")}</button>
       )}
       {/* S8 — MIRROR is a DATA op (affects 2D + 3D from one source), so it's shown in BOTH view modes on every pane */}
       <button onClick={() => onChange(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
       <button onClick={() => onChange(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
-      <span className="shrink-0 font-semibold" style={{ color: C.dim }}>R-CORE</span>
+      <span className="shrink-0 font-semibold" style={{ color: C.dim }}>{t("vision.rcore")}</span>
       {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0 rounded px-1 font-semibold" style={{ color: l.color }}>{l.label}</span>)}
     </div>
   );
@@ -509,7 +511,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     <div data-arch-room-designer className="flex min-h-0 flex-1 flex-col gap-2" style={{ touchAction: "pan-y" }}>{/* S4b: page still scrolls vertically, but a pinch inside the designer can't zoom the whole page */}
       {/* header */}
       <div className="flex items-center gap-2">
-        <button data-arch-roomdesign-back onClick={onBack} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← Back to house</button>
+        <button data-arch-roomdesign-back onClick={onBack} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← {t("vision.nav.backToHouse")}</button>
         <span className="text-[11px] font-bold" style={{ color: C.gold }}>{room.k} · {room.label}</span>
         <span className="text-[9px]" style={{ color: C.dim }}>10′×10′ · tap a tool, tap the floor</span>
         {/* FIX-C — explanations for the non-simple areas (operator: intuitive + get explanations) */}

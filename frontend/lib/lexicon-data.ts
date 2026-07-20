@@ -712,7 +712,7 @@ const cube8: TranslationEntry[] = [
   { key: "shared.nav.collapse", englishDefault: "Collapse", context: "Collapsible section toggle", cubeId: 0 },
   { key: "shared.nav.expand", englishDefault: "Expand", context: "Collapsible section toggle", cubeId: 0 },
   { key: "shared.nav.fullscreen", englishDefault: "Fullscreen", context: "Fullscreen button tooltip", cubeId: 0 },
-  { key: "shared.nav.cancel", englishDefault: "Cancel", context: "Cancel button", cubeId: 0 },
+  // (shared.nav.cancel is defined once in the shared block above — duplicate removed so the one master has no dup keys)
   { key: "shared.currency.usd", englishDefault: "USD", context: "Currency code label", cubeId: 0 },
   // Cube status labels
   { key: "cube1.settings.status_deployed", englishDefault: "Deployed", context: "Cube architecture status", cubeId: 1 },
@@ -1033,6 +1033,36 @@ const celestial: TranslationEntry[] = [
   { key: "celestial.body.polaris", englishDefault: "Polaris (North Star)", context: "Celestial body name: Polaris", cubeId: 30 },
 ];
 
+// ─── Vision-2525 shared design-surface UX (ONE master, used by BOTH Security-2525 & Architect-2525) ──
+// Operator: "language lexicon for UX phrases should be extended for Security-2525 and Architect-2525 so we have
+// one master that everyone uses. R-CORE VISION•2525 in action always." This is the cross-project R-CORE / view /
+// measurement vocabulary the tactical map and the room designer render identically — every 2525 domain draws from here.
+const vision2525: TranslationEntry[] = [
+  // View-mode toggle (shared by the Security tactical map + Architect room designer)
+  { key: "vision.view.2d", englishDefault: "2D", context: "View-mode toggle: 2D plan", cubeId: 40 },
+  { key: "vision.view.3d", englishDefault: "3D", context: "View-mode toggle: 3D", cubeId: 40 },
+  { key: "vision.view.voxel", englishDefault: "Voxel", context: "View-mode toggle: voxel", cubeId: 40 },
+  // R-CORE shared capability-lane rail
+  { key: "vision.rcore", englishDefault: "R-CORE", context: "R-CORE shared capability-lane rail label", cubeId: 40 },
+  // View controls (same feel across every 2525 map)
+  { key: "vision.ctrl.rotateLeft", englishDefault: "Rotate left", context: "Rotate the plan left", cubeId: 40 },
+  { key: "vision.ctrl.rotateRight", englishDefault: "Rotate right", context: "Rotate the plan right", cubeId: 40 },
+  { key: "vision.ctrl.reset", englishDefault: "Reset", context: "Reset the camera/view", cubeId: 40 },
+  { key: "vision.ctrl.mirrorH", englishDefault: "Mirror left↔right", context: "Mirror horizontally (data op, both views)", cubeId: 40 },
+  { key: "vision.ctrl.mirrorV", englishDefault: "Mirror top↔bottom", context: "Mirror vertically (data op, both views)", cubeId: 40 },
+  { key: "vision.ctrl.northLock", englishDefault: "Lock North", context: "Lock the compass north / link panes together", cubeId: 40 },
+  { key: "vision.ctrl.northLocked", englishDefault: "North locked", context: "North currently locked (tap to unlock)", cubeId: 40 },
+  { key: "vision.nav.backToHouse", englishDefault: "Back to house", context: "Return from a single room to the whole-house view", cubeId: 40 },
+  { key: "vision.help", englishDefault: "How this works", context: "Help / explanations toggle", cubeId: 40 },
+  // Measurement entry (feet-inches keypad) — shared engineering nomenclature (R.O./O.C./AFF)
+  { key: "vision.dim.fromWall", englishDefault: "From wall", context: "Dimension: clearance from wall to the near edge", cubeId: 40 },
+  { key: "vision.dim.toWall", englishDefault: "To wall", context: "Dimension: clearance from the far edge to the wall", cubeId: 40 },
+  { key: "vision.dim.oc", englishDefault: "O.C.", context: "Dimension: on-center position (engineering nomenclature)", cubeId: 40 },
+  { key: "vision.dim.size", englishDefault: "Size", context: "Dimension: object size", cubeId: 40 },
+  { key: "vision.dim.set", englishDefault: "Set", context: "Commit the typed measurement", cubeId: 40 },
+  { key: "vision.dim.del", englishDefault: "Del", context: "Delete the last digit in the measurement keypad", cubeId: 40 },
+];
+
 // ─── Aggregated cube groups ──────────────────────────────────────
 
 export const CUBE_GROUPS: CubeGroup[] = [
@@ -1049,6 +1079,7 @@ export const CUBE_GROUPS: CubeGroup[] = [
   { cubeId: 10, label: "Cube 10 — Simulation", keys: cube10 },
   { cubeId: 12, label: "Cube 12 — ARX Tokens", keys: cube12 },
   { cubeId: 30, label: "Celestial-2525 — Sky Reader", keys: celestial },
+  { cubeId: 40, label: "Vision-2525 — R-CORE Shared UX", keys: vision2525 },
 ];
 
 /** Flat lookup: key → TranslationEntry (for English defaults + context) */
