@@ -29,19 +29,22 @@ export const BED_VARIANTS: SizeVariant[] = [
 ];
 export const VARIANTS: Partial<Record<ObjectKind, SizeVariant[]>> = { bed: BED_VARIANTS };
 
-/** Palette metadata — footprint (ft), display glyph/label, colour, and whether it snaps to a WALL edge. */
-export const OBJECT_SPEC: Record<ObjectKind, { label: string; emoji: string; w: number; d: number; onWall: boolean; color: string }> = {
-  bed:     { label: "Bed",     emoji: "🛏", w: 5, d: 6, onWall: false, color: "#c084fc" },
-  sofa:    { label: "Sofa",    emoji: "🛋", w: 5, d: 2, onWall: false, color: "#c084fc" },
-  counter: { label: "Counter", emoji: "🍳", w: 4, d: 2, onWall: false, color: "#19c8cf" },
-  table:   { label: "Table",   emoji: "🍽", w: 4, d: 4, onWall: false, color: "#ffd400" },
-  desk:    { label: "Desk",    emoji: "🖥", w: 4, d: 2, onWall: false, color: "#c084fc" },
-  toilet:  { label: "Toilet",  emoji: "🚽", w: 2, d: 2, onWall: false, color: "#19c8cf" },
-  tub:     { label: "Tub",     emoji: "🛁", w: 5, d: 2, onWall: false, color: "#19c8cf" },
-  sink:    { label: "Sink",    emoji: "🚰", w: 2, d: 2, onWall: false, color: "#19c8cf" },
-  washer:  { label: "Washer",  emoji: "🧺", w: 2, d: 2, onWall: false, color: "#19c8cf" },
-  door:    { label: "Door",    emoji: "🚪", w: 3, d: 1, onWall: true,  color: "#22c55e" },
-  window:  { label: "Window",  emoji: "▭",  w: 3, d: 1, onWall: true,  color: "#19c8cf" },
+/**
+ * Palette metadata — footprint W×D (ft) + HEIGHT h (ft), display glyph/label, colour, wall-snap flag.
+ * h = best real-world approximation so the 3D extrusion reads true (bed low, counter 3', door 6'8", etc.).
+ */
+export const OBJECT_SPEC: Record<ObjectKind, { label: string; emoji: string; w: number; d: number; h: number; onWall: boolean; color: string }> = {
+  bed:     { label: "Bed",     emoji: "🛏", w: 5, d: 6, h: 2,    onWall: false, color: "#c084fc" }, // mattress top ~24"
+  sofa:    { label: "Sofa",    emoji: "🛋", w: 5, d: 2, h: 2.8,  onWall: false, color: "#c084fc" }, // back ~33"
+  counter: { label: "Counter", emoji: "🍳", w: 4, d: 2, h: 3,    onWall: false, color: "#19c8cf" }, // kitchen counter 36"
+  table:   { label: "Table",   emoji: "🍽", w: 4, d: 4, h: 2.5,  onWall: false, color: "#ffd400" }, // dining 30"
+  desk:    { label: "Desk",    emoji: "🖥", w: 4, d: 2, h: 2.5,  onWall: false, color: "#c084fc" }, // 29–30"
+  toilet:  { label: "Toilet",  emoji: "🚽", w: 2, d: 2, h: 2.5,  onWall: false, color: "#19c8cf" }, // tank ~30"
+  tub:     { label: "Tub",     emoji: "🛁", w: 5, d: 2, h: 2,    onWall: false, color: "#19c8cf" }, // rim ~24"
+  sink:    { label: "Sink",    emoji: "🚰", w: 2, d: 2, h: 2.8,  onWall: false, color: "#19c8cf" }, // vanity ~34"
+  washer:  { label: "Washer",  emoji: "🧺", w: 2, d: 2, h: 3,    onWall: false, color: "#19c8cf" }, // 36"
+  door:    { label: "Door",    emoji: "🚪", w: 3, d: 1, h: 6.7,  onWall: true,  color: "#22c55e" }, // 6'8" opening
+  window:  { label: "Window",  emoji: "▭",  w: 3, d: 1, h: 4,    onWall: true,  color: "#19c8cf" }, // ~4' sash
 };
 
 export const OBJECT_KINDS = Object.keys(OBJECT_SPEC) as ObjectKind[];

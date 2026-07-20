@@ -213,7 +213,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           const s = OBJECT_SPEC[o.kind];
           const fp = footprintOf(o);
           const swap = o.rot === 90 || o.rot === 270;
-          const w = swap ? fp.d : fp.w, d = swap ? fp.w : fp.d, hgt = Math.max(2, Math.min(7, Math.round((fp.w + fp.d) / 2)));
+          const w = swap ? fp.d : fp.w, d = swap ? fp.w : fp.d, hgt = s.h; // real per-furniture height (ft)
           const x0 = o.gx + 0.5 - w / 2, y0 = o.gy + 0.5 - d / 2;
           const base = [iso(x0, y0, 0), iso(x0 + w, y0, 0), iso(x0 + w, y0 + d, 0), iso(x0, y0 + d, 0)];
           const top = [iso(x0, y0, hgt), iso(x0 + w, y0, hgt), iso(x0 + w, y0 + d, hgt), iso(x0, y0 + d, hgt)];
@@ -313,7 +313,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         return (
           <div data-arch-roomobj-detail className="flex flex-wrap items-center gap-2 text-[10px]" style={{ color: C.text }}>
             <span className="flex items-center gap-1" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {vLabel ? `${vLabel} ` : ""}{OBJECT_SPEC[sel.kind].label}</span>
-            <span data-arch-roomobj-dims style={{ color: C.dim }}>{fmt(fp.w)}′ × {fmt(fp.d)}′</span>
+            <span data-arch-roomobj-dims style={{ color: C.dim }}>{fmt(fp.w)}′ W × {fmt(fp.d)}′ D × {fmt(OBJECT_SPEC[sel.kind].h)}′ H</span>
             {vs && (
               <button data-arch-roomobj-size onClick={() => onChange(cycleVariant(objects, sel.id))} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.violet }}>
                 Size: {vLabel ?? "—"} ↻
@@ -342,7 +342,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                   style={{ background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
                   <RowIcon className="h-3 w-3 shrink-0" style={{ color: on ? C.gold : s.color }} />
                   <span className="min-w-0 flex-1 truncate">{vLabel ? `${vLabel} ` : ""}{s.label}</span>
-                  <span className="shrink-0 tabular-nums" style={{ color: C.dim, fontSize: 8 }}>{fmt(fp.w)}′×{fmt(fp.d)}′ · {o.gx},{o.gy}</span>
+                  <span className="shrink-0 tabular-nums" style={{ color: C.dim, fontSize: 8 }}>{fmt(fp.w)}×{fmt(fp.d)}×{fmt(s.h)}′ · {o.gx},{o.gy}</span>
                 </button>
               );
             })}

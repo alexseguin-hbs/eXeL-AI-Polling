@@ -31,6 +31,8 @@ ok(countKind(a2, "bed") === 2, "countKind bed = 2 (feeds metrics)");
 ok(OBJECT_KINDS.length === Object.keys(OBJECT_SPEC).length && OBJECT_KINDS.length >= 11, "palette has >=11 kinds with specs");
 ok(OBJECT_SPEC.door.onWall && OBJECT_SPEC.window.onWall && !OBJECT_SPEC.bed.onWall, "door/window snap to wall; bed does not");
 ok(OBJECT_KINDS.every((k) => OBJECT_SPEC[k].w > 0 && OBJECT_SPEC[k].d > 0 && OBJECT_SPEC[k].emoji), "every kind has a positive footprint + glyph");
+ok(OBJECT_KINDS.every((k) => OBJECT_SPEC[k].h > 0), "every kind has a real 3D height (L×W×H)");
+ok(OBJECT_SPEC.door.h > OBJECT_SPEC.bed.h && OBJECT_SPEC.counter.h === 3, "heights are realistic (door tallest; counter 3ft)");
 
 // Mirror — data flip across the room centre (reflects in BOTH 2D + 3D since one source).
 let mo = placeObject([], "bed", 2, 3);
