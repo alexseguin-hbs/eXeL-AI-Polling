@@ -105,6 +105,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const [demoStep, setDemoStep] = useState(0);
   const [nudgeIx, setNudgeIx] = useState(1); // FIX-B nudge step index (default 6")
   const [helpOpen, setHelpOpen] = useState(false); // FIX-C explanations
+  const [bomOpen, setBomOpen] = useState(false);   // Bill of Materials collapses to one line by default (operator IMG_7596)
   // Mirror / North-lock (IMG_7549/7550): when on, the bottom/mini pane shares the top pane's camera + 2D bearing, so
   // rotating one rotates BOTH to the same North (Mission-Planning mirror). Persisted like the layout choice.
   const [linkView, setLinkView] = useState<boolean>(() => {
@@ -664,26 +665,6 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         </div>
       )}
 
-      {/* FIX-10 — BILL OF MATERIALS: purchasable, quotable line items (qty + unit) from the same libs the panes show. */}
-      {objects.length > 0 && (() => {
-        const bom = roomBom(objects, outlets);
-        return (
-          <div data-arch-bom className="rounded border p-1" style={{ borderColor: C.border, background: "#070b12" }}>
-            <div className="mb-0.5 flex items-center justify-between px-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
-              <span>Bill of Materials · quote</span><span>{bom.totalLineItems} items</span>
-            </div>
-            <div className="flex flex-col gap-0.5">
-              {bom.lines.map((l) => (
-                <div key={l.id} data-arch-bom-line className="flex items-center justify-between px-1 text-[9px]" style={{ color: C.text }}>
-                  <span className="min-w-0 flex-1 truncate"><span style={{ color: C.dim }}>{l.category}</span> · {l.item}</span>
-                  <span className="shrink-0 tabular-nums" style={{ color: C.cyan }}>{l.unit === "ft" ? `${l.qty} ft` : `${l.qty} ea`}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
-
       {/* ELEMENTS — merged Active list + Selected detail (operator IMG_7544): the room's items list on top (~1/3,
           scrolls when one is selected), the SELECTED item's full controls expand below (~2/3). Scoped to THIS room's
           objects (bedroom mode → only bedroom items). Click a row to select → details expand; click again to deselect. */}
@@ -746,6 +727,31 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           })()}
         </div>
       )}
+
+      {/* FIX-10 — BILL OF MATERIALS: purchasable quote line items. Sits BELOW Active Elements and defaults to a SINGLE
+          line (header + count), expandable so it doesn't take the whole screen (operator IMG_7596). */}
+      {objects.length > 0 && (() => {
+        const bom = roomBom(objects, outlets);
+        return (
+          <div data-arch-bom className="rounded border" style={{ borderColor: C.border, background: "#070b12" }}>
+            <button data-arch-bom-toggle onClick={() => setBomOpen((o) => !o)}
+              className="flex w-full items-center justify-between px-2 py-1 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
+              <span>Bill of Materials · quote</span>
+              <span className="flex items-center gap-1"><span style={{ color: C.cyan }}>{bom.totalLineItems} items</span><span>{bomOpen ? "▾" : "▸"}</span></span>
+            </button>
+            {bomOpen && (
+              <div className="flex flex-col gap-0.5 border-t px-1 pb-1 pt-1" style={{ borderColor: C.border }}>
+                {bom.lines.map((l) => (
+                  <div key={l.id} data-arch-bom-line className="flex items-center justify-between px-1 text-[9px]" style={{ color: C.text }}>
+                    <span className="min-w-0 flex-1 truncate"><span style={{ color: C.dim }}>{l.category}</span> · {l.item}</span>
+                    <span className="shrink-0 tabular-nums" style={{ color: C.cyan }}>{l.unit === "ft" ? `${l.qty} ft` : `${l.qty} ea`}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* S9 — GUIDED DEMO: a narrated walkthrough of the full capability set (layout→structural→electric→water→
           sewer→HVAC). Read-only narration of the pure runPlaytest() engine; drives no other state. */}
