@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -175,6 +175,15 @@ vw = setVariantByWidth(vw, "door-1", 32 / 12);
 ok(VARIANTS.door.find((v) => v.id === vw[0].variant), "setVariantByWidth picks a real door variant");
 ok(Math.abs(footprintOf(vw[0]).w - 32 / 12) <= 0.5, "chosen door width is the closest standard to 32\"");
 ok(setVariantByWidth(placeObject([], "sofa", 1, 1), "sofa-1")[0]?.variant === undefined || true, "setVariantByWidth no-op for kinds without variants");
+
+// FIX-5c — setGap: edit wall→edge clearance; the object moves so the far gap re-derives (sum stays = room).
+let gb = placeObject([], "bed", 3, 3);                 // bed 5 wide, cx 3.5 → near 1', far 4'
+gb = setGap(gb, "bed-1", "near", 2);                    // set near gap to 2' → cx = 2 + 2.5 = 4.5
+ok(Math.abs(gb[0].gx - 4) < 1e-9, "setGap near 2' → gx 4 (near edge 2' from wall)");
+ok(Math.abs((ROOM_GRID - (gb[0].gx + 0.5 + footprintOf(gb[0]).w / 2)) - 3) < 1e-9, "far gap re-derived to 3' (near 2 + size 5 + far 3 = 10)");
+gb = setGap(gb, "bed-1", "far", 1);                    // set far gap to 1' → near becomes 4'
+ok(Math.abs((gb[0].gx + 0.5 - footprintOf(gb[0]).w / 2) - 4) < 1e-9, "setGap far 1' → near edge 4' from wall");
+ok(setGap(gb, "bed-1", "near", 99)[0].gx + 0.5 + footprintOf(gb[0]).w / 2 <= ROOM_GRID + 1e-9, "setGap clamps object inside the room");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");

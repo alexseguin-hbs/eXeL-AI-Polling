@@ -17,8 +17,40 @@ export function ftIn(feet: number): string {
   return `${ft}'-${inch}"`;
 }
 
-/** What a tappable dimension edits (FIX-5): "oc" = on-centre POSITION (nudge along wall) · "size" = ROUGH-OPENING size. */
-export type DimEdit = "oc" | "size";
+/** What a tappable dimension edits (FIX-5): "oc" = on-centre POSITION · "size" = size · "gapNear"/"gapFar" =
+ * clearance from a wall to the object's near/far edge (editing one shifts the object so the chain still sums to the room). */
+export type DimEdit = "oc" | "size" | "gapNear" | "gapFar";
+
+/** One segment of the wall→edge · size · edge→wall dimension chain (feet coords along one axis). */
+export interface ChainSeg { kind: "gapNear" | "size" | "gapFar"; ft: number; a: number; b: number; label: string; edit: DimEdit }
+/** The 3-segment dimension chain for a selected object along one axis (operator: wall→edge, object, edge→wall). */
+export interface DimChain { axis: "x" | "y"; along: number; segs: ChainSeg[] }
+
+/**
+ * Build the wall→near-edge · object · far-edge→wall chain for an object along its primary axis (a wall opening runs
+ * ALONG its wall; free furniture uses the X/width axis). The three segments always sum to the room dimension, so
+ * editing any one (and re-deriving) updates the others. Pure + deterministic.
+ */
+export function chainDims(o: PlacedObject, spec: { onWall: boolean }, footprint: { w: number; d: number }, roomFt = ROOM_FT): DimChain {
+  const wall = spec.onWall ? wallOf(o.gx, o.gy) : "N";
+  const axis: "x" | "y" = wall === "W" || wall === "E" ? "y" : "x";
+  const centre = axis === "x" ? o.gx + 0.5 : o.gy + 0.5;
+  const size = axis === "x" ? footprint.w : footprint.d;
+  const near = Math.max(0, centre - size / 2);          // wall(0) → near edge
+  const far = Math.max(0, roomFt - (centre + size / 2)); // far edge → wall(roomFt)
+  // place the chain just OUTSIDE the object on the perpendicular axis (inside the room)
+  const perpCentre = axis === "x" ? o.gy + 0.5 : o.gx + 0.5;
+  const perpHalf = axis === "x" ? footprint.d / 2 : footprint.w / 2;
+  const along = Math.min(roomFt - 0.4, perpCentre + perpHalf + 0.4);
+  return {
+    axis, along,
+    segs: [
+      { kind: "gapNear", ft: near, a: 0, b: near, label: ftIn(near), edit: "gapNear" },
+      { kind: "size", ft: size, a: near, b: near + size, label: ftIn(size), edit: "size" },
+      { kind: "gapFar", ft: far, a: near + size, b: roomFt, label: ftIn(far), edit: "gapFar" },
+    ],
+  };
+}
 /** A dimension witness line (feet coords) with a text label at its midpoint; `edit` marks it tappable to fine-tune. */
 export interface DimLine { x1: number; y1: number; x2: number; y2: number; label: string; edit?: DimEdit }
 /** A free-text note (R.O./AFF/size); `edit` marks it tappable to fine-tune (FIX-5). */

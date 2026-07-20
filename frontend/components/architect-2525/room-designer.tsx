@@ -23,11 +23,11 @@ import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
   OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
   footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette,
-  nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth,
+  nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
-import { annotateObject, ftIn } from "@/lib/dim-annot";
+import { annotateObject, chainDims, ftIn } from "@/lib/dim-annot";
 import { roomBom } from "@/lib/architect-bom";
 import { runPlaytest, PLAYTEST_SYSTEMS } from "@/lib/architect-playtest";
 import { useRCoreGestures } from "./use-rcore-gestures";
@@ -111,7 +111,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const [demoStep, setDemoStep] = useState(0);
   const [nudgeIx, setNudgeIx] = useState(1); // FIX-B nudge step index (default 6")
   const [helpOpen, setHelpOpen] = useState(false); // FIX-C explanations
-  const [dimEntry, setDimEntry] = useState<{ edit: "oc" | "size" } | null>(null); // FIX-5b numeric entry
+  const [dimEntry, setDimEntry] = useState<{ edit: "oc" | "size" | "gapNear" | "gapFar" } | null>(null); // FIX-5b/5c numeric entry
   const [dimVal, setDimVal] = useState("");
 
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent | React.DragEvent): { gx: number; gy: number } | null => {
@@ -232,64 +232,86 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           {/* S5 — CAD dimension callouts for the selected/dragged object (O.C. · R.O. · AFF, feet-inches). Interactive
               pane only; witness lines + labels rotate with the plan. Vendors build each room to a published standard. */}
           {interactive && sel && (() => {
-            const ann = annotateObject(sel, { ...OBJECT_SPEC[sel.kind], h: heightOf(sel) }, footprintOf(sel));
+            const fp = footprintOf(sel);
+            const ann = annotateObject(sel, { ...OBJECT_SPEC[sel.kind], h: heightOf(sel) }, fp);
+            const chain = chainDims(sel, OBJECT_SPEC[sel.kind], fp);   // FIX-5c wall→edge · size · edge→wall
             const U = 10; // ft → viewBox units
-            // FIX-5b — tap a dimension to TYPE an exact value (O.C. position or size), feet-inches. Opens the entry
-            // field prefilled with the current value; commit parses via parseFeet → setAlongWall / setVariantByWidth.
-            const applyEdit = (e: React.MouseEvent, edit?: "oc" | "size") => {
+            // Tap any dimension to TYPE an exact value; commit re-derives so the OTHER gaps update (operator).
+            const applyEdit = (e: React.MouseEvent, edit: "oc" | "size" | "gapNear" | "gapFar", cur: number) => {
               e.stopPropagation();
-              if (!edit) return;
-              const w = wallOf(sel.gx, sel.gy);
-              const cur = edit === "oc" ? (w === "N" || w === "S" ? sel.gx + 0.5 : sel.gy + 0.5) : footprintOf(sel).w;
               setDimVal(ftIn(cur));
               setDimEntry({ edit });
             };
+            const t = 1;
             return (
               <g data-arch-roomdim>
-                {ann.lines.map((l, i) => {
-                  const x1 = l.x1 * U, y1 = l.y1 * U, x2 = l.x2 * U, y2 = l.y2 * U;
-                  const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-                  const horiz = Math.abs(y2 - y1) <= Math.abs(x2 - x1), t = 1;
+                {/* FIX-5c — the 3-segment chain along the object's axis: wall→near edge · object · far edge→wall.
+                    Each label is tappable to enter an exact value; editing one shifts the object so the others change. */}
+                {chain.segs.map((s, i) => {
+                  const horiz = chain.axis === "x";
+                  const a = s.a * U, b = s.b * U, along = chain.along * U;
+                  const X1 = horiz ? a : along, Y1 = horiz ? along : a, X2 = horiz ? b : along, Y2 = horiz ? along : b;
+                  const mx = (X1 + X2) / 2, my = (Y1 + Y2) / 2;
+                  const col = s.kind === "size" ? C.gold : C.cyan;
                   return (
-                    <g key={i}>
-                      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={C.gold} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                    <g key={`c${i}`}>
+                      <line x1={X1} y1={Y1} x2={X2} y2={Y2} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
                       {horiz ? (<>
-                        <line x1={x1} y1={y1 - t} x2={x1} y2={y1 + t} stroke={C.gold} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
-                        <line x1={x2} y1={y2 - t} x2={x2} y2={y2 + t} stroke={C.gold} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                        <line x1={X1} y1={Y1 - t} x2={X1} y2={Y1 + t} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                        <line x1={X2} y1={Y2 - t} x2={X2} y2={Y2 + t} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
                       </>) : (<>
-                        <line x1={x1 - t} y1={y1} x2={x1 + t} y2={y1} stroke={C.gold} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
-                        <line x1={x2 - t} y1={y2} x2={x2 + t} y2={y2} stroke={C.gold} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                        <line x1={X1 - t} y1={Y1} x2={X1 + t} y2={Y1} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                        <line x1={X2 - t} y1={Y2} x2={X2 + t} y2={Y2} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
                       </>)}
-                      <text data-arch-dim-edit={l.edit} x={mx} y={my - 1.2} fontSize={3} fill={l.edit ? C.cyan : C.gold} textAnchor="middle" stroke="#070b12" strokeWidth={0.7}
-                        style={{ paintOrder: "stroke", cursor: l.edit ? "pointer" : "default", pointerEvents: l.edit ? "auto" : "none" }}
-                        onClick={l.edit ? (e) => applyEdit(e, l.edit) : undefined}>{l.label}{l.edit === "oc" ? " ✎" : ""}</text>
+                      <text data-arch-dim-edit={s.edit} x={mx} y={my - 1.2} fontSize={2.8} fill={col} textAnchor="middle" stroke="#070b12" strokeWidth={0.7}
+                        style={{ paintOrder: "stroke", cursor: "pointer" }} onClick={(e) => applyEdit(e, s.edit, s.ft)}>{s.label} ✎</text>
                     </g>
                   );
                 })}
-                {ann.notes.map((n, i) => (
-                  <text key={`n${i}`} data-arch-dim-edit={n.edit} x={(sel.gx + 0.5) * U} y={(sel.gy + 0.5) * U + 4.2 + i * 3.6} fontSize={3} fill={n.edit ? C.cyan : C.gold}
-                    textAnchor="middle" stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke", cursor: n.edit ? "pointer" : "default", pointerEvents: n.edit ? "auto" : "none" }}
-                    onClick={n.edit ? (e) => applyEdit(e, n.edit) : undefined}>{n.text}{n.edit === "size" ? " ✎" : ""}</text>
-                ))}
+                {/* R.O. / SILL notes stay for openings (not part of the position chain) */}
+                {ann.notes.map((n, i) => {
+                  const ne = n.edit; // capture so TS narrows inside the onClick closure
+                  return (
+                    <text key={`n${i}`} data-arch-dim-edit={ne} x={(sel.gx + 0.5) * U} y={(sel.gy + 0.5) * U + 4.2 + i * 3.6} fontSize={3} fill={ne ? C.cyan : C.gold}
+                      textAnchor="middle" stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke", cursor: ne ? "pointer" : "default", pointerEvents: ne ? "auto" : "none" }}
+                      onClick={ne ? (e) => applyEdit(e, ne, fp.w) : undefined}>{n.text}{ne === "size" ? " ✎" : ""}</text>
+                  );
+                })}
               </g>
             );
           })()}
         </g>
       </svg>
       <Compass2525 bearing={(bear * Math.PI) / 180} onNorth={() => setBear(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
-      {/* FIX-5b — numeric dimension entry (click a ✎ dimension → type an exact value in feet-inches) */}
-      {interactive && sel && dimEntry && (
-        <div data-arch-dim-entry className="absolute left-1/2 top-1.5 flex -translate-x-1/2 items-center gap-1 rounded border px-1.5 py-1 shadow-lg"
-          style={{ borderColor: C.cyan, background: "#0a0f16f2" }}>
-          <span className="text-[9px] font-semibold" style={{ color: C.dim }}>{dimEntry.edit === "oc" ? "O.C." : "Width"}</span>
-          <input data-arch-dim-input autoFocus value={dimVal} onChange={(e) => setDimVal(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { const v = parseFeet(dimVal); if (v != null) onChange(dimEntry.edit === "oc" ? setAlongWall(objects, sel.id, v) : setVariantByWidth(objects, sel.id, v)); setDimEntry(null); } else if (e.key === "Escape") setDimEntry(null); }}
-            placeholder={`e.g. 3'-6"`} className="w-16 rounded border bg-transparent px-1 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }} />
-          <button data-arch-dim-ok onClick={() => { const v = parseFeet(dimVal); if (v != null) onChange(dimEntry.edit === "oc" ? setAlongWall(objects, sel.id, v) : setVariantByWidth(objects, sel.id, v)); setDimEntry(null); }}
-            className="rounded border px-1.5 py-0.5 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }}>Set</button>
-          <button data-arch-dim-cancel onClick={() => setDimEntry(null)} className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>✕</button>
-        </div>
-      )}
+      {/* FIX-5b/5c — numeric dimension entry (click a ✎ dimension → type an exact value in feet-inches). Editing a
+          gap moves the object so the OTHER gap re-derives; size snaps to nearest standard; O.C. sets exact centre. */}
+      {interactive && sel && dimEntry && (() => {
+        const applyDim = () => {
+          const v = parseFeet(dimVal);
+          if (v != null) {
+            const e = dimEntry.edit;
+            onChange(
+              e === "oc" ? setAlongWall(objects, sel.id, v)
+              : e === "gapNear" ? setGap(objects, sel.id, "near", v)
+              : e === "gapFar" ? setGap(objects, sel.id, "far", v)
+              : setVariantByWidth(objects, sel.id, v)
+            );
+          }
+          setDimEntry(null);
+        };
+        const label = dimEntry.edit === "oc" ? "O.C." : dimEntry.edit === "gapNear" ? "From wall" : dimEntry.edit === "gapFar" ? "To wall" : "Size";
+        return (
+          <div data-arch-dim-entry className="absolute left-1/2 top-1.5 flex -translate-x-1/2 items-center gap-1 rounded border px-1.5 py-1 shadow-lg"
+            style={{ borderColor: C.cyan, background: "#0a0f16f2" }}>
+            <span className="text-[9px] font-semibold" style={{ color: C.dim }}>{label}</span>
+            <input data-arch-dim-input autoFocus value={dimVal} onChange={(e) => setDimVal(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") applyDim(); else if (e.key === "Escape") setDimEntry(null); }}
+              placeholder={`e.g. 3'-6"`} className="w-16 rounded border bg-transparent px-1 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }} />
+            <button data-arch-dim-ok onClick={applyDim} className="rounded border px-1.5 py-0.5 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }}>Set</button>
+            <button data-arch-dim-cancel onClick={() => setDimEntry(null)} className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>✕</button>
+          </div>
+        );
+      })()}
     </div>
   );
 

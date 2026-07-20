@@ -179,6 +179,25 @@ export function setAlongWall(objs: PlacedObject[], id: string, ocFt: number): Pl
   });
 }
 
+/**
+ * Set the clearance GAP from a wall to the object's near ("near") or far ("far") edge along its primary axis
+ * (wall opening → along its wall; free furniture → X). Moving one edge shifts the whole object, so the wall→edge ·
+ * size · edge→wall chain re-derives and the OTHER gap updates automatically (operator: edit one, others change).
+ */
+export function setGap(objs: PlacedObject[], id: string, which: "near" | "far", gapFt: number): PlacedObject[] {
+  return objs.map((o) => {
+    if (o.id !== id) return o;
+    const fp = footprintOf(o);
+    const wall = OBJECT_SPEC[o.kind].onWall ? wallOf(o.gx, o.gy) : "N";
+    const axis: "x" | "y" = wall === "W" || wall === "E" ? "y" : "x";
+    const size = axis === "x" ? fp.w : fp.d;
+    const centre = which === "near" ? gapFt + size / 2 : ROOM_GRID - gapFt - size / 2;
+    const g = centre - 0.5;
+    const c = clampFootprint(axis === "x" ? g : o.gx, axis === "y" ? g : o.gy, fp.w, fp.d, o.rot, false);
+    return { ...o, gx: c.gx, gy: c.gy };
+  });
+}
+
 /** FIX-5b — set the size variant whose WIDTH is closest to the typed feet value (no-op for kinds without variants). */
 export function setVariantByWidth(objs: PlacedObject[], id: string, wFt: number): PlacedObject[] {
   return objs.map((o) => {
