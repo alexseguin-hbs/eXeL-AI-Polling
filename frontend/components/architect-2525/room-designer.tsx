@@ -278,17 +278,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         </div>
       </div>
 
-      {/* MEP length totals (operator: "sub-menu to show length of total pipe / electrical specs") — one source (lib/mep-runs) */}
-      {anyMep && (
-        <div data-arch-mep-readout className="flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded border px-2 py-1 text-[9px]" style={{ borderColor: C.border, background: "#070b12" }}>
-          {water && <span data-arch-mep-water style={{ color: MEP_COL.water }}>Water {water.totalFt} ft</span>}
-          {sewer && <span data-arch-mep-sewer style={{ color: MEP_COL.sewer }}>Sewer {sewer.totalFt} ft</span>}
-          {wiring && eSpec && <span data-arch-mep-wire style={{ color: MEP_COL.wiring }}>Wire {eSpec.wireFt} ft · {eSpec.circuits} circ · {eSpec.amps}A</span>}
-          {duct && <span data-arch-mep-duct style={{ color: MEP_COL.duct }}>Duct {duct.totalFt} ft</span>}
-        </div>
-      )}
-
-      {/* palette */}
+      {/* INTERIOR palette — placed directly under the maps, between the 2D/3D views and the readouts (operator IMG_7519) */}
       <div data-arch-roomdesign-palette className="flex flex-wrap gap-1">
         {OBJECT_KINDS.map((k) => {
           const s = OBJECT_SPEC[k], on = tool === k, Icon = ICON[k];
@@ -302,6 +292,16 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           );
         })}
       </div>
+
+      {/* MEP length totals (operator: "sub-menu to show length of total pipe / electrical specs") — one source (lib/mep-runs) */}
+      {anyMep && (
+        <div data-arch-mep-readout className="flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded border px-2 py-1 text-[9px]" style={{ borderColor: C.border, background: "#070b12" }}>
+          {water && <span data-arch-mep-water style={{ color: MEP_COL.water }}>Water {water.totalFt} ft</span>}
+          {sewer && <span data-arch-mep-sewer style={{ color: MEP_COL.sewer }}>Sewer {sewer.totalFt} ft</span>}
+          {wiring && eSpec && <span data-arch-mep-wire style={{ color: MEP_COL.wiring }}>Wire {eSpec.wireFt} ft · {eSpec.circuits} circ · {eSpec.amps}A</span>}
+          {duct && <span data-arch-mep-duct style={{ color: MEP_COL.duct }}>Duct {duct.totalFt} ft</span>}
+        </div>
+      )}
 
       {/* selected-object controls + details (dims · size variant) — the "asset details" for the active element */}
       {sel && (() => {
