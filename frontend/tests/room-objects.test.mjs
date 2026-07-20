@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced, setVariantByHeight } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -205,6 +205,14 @@ ok(Math.abs(pj.w - 15) < 1e-9 && Math.abs(pj.h - 18) < 1e-9, "projectPlaced: 5×
 // Offset cell + mid-room position scales proportionally (gx 2 of 10 → +6 in a 30-wide cell offset by 100).
 const pj2 = projectPlaced({ id: "b1", kind: "bed", gx: 2, gy: 3, rot: 0 }, 100, 50, 30, 30);
 ok(Math.abs(pj2.x - 106) < 1e-9 && Math.abs(pj2.y - 59) < 1e-9, "projectPlaced: grid 2,3 in offset cell → 106,59");
+
+// setVariantByHeight — 3D height edit picks the variant whose HEIGHT is nearest (operator: adjust window head height).
+// WINDOW_VARIANTS heights: 2,3,4,5,... — typing 5' → the 3'×5' variant; typing 2' → the 2'×2' awning.
+let wh = setVariantByHeight(placeObject([], "window", 0, 4), "window-1", 5);
+ok(heightOf(wh[0]) === 5, "setVariantByHeight window 5' → 5'-tall variant");
+wh = setVariantByHeight(wh, "window-1", 2);
+ok(heightOf(wh[0]) === 2, "setVariantByHeight window 2' → 2'-tall variant");
+ok(setVariantByHeight(placeObject([], "sofa", 1, 1), "sofa-1", 3)[0]?.variant === undefined, "setVariantByHeight no-op for kinds without height variants");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");

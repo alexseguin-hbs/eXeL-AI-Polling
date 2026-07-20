@@ -213,6 +213,20 @@ export function setVariantByWidth(objs: PlacedObject[], id: string, wFt: number,
   });
 }
 
+/** Set the size variant whose HEIGHT is closest to the typed feet value (no-op for kinds without height variants).
+ * Lets the 3D view adjust an object's height — e.g. window head height — the same way 2D edits width (operator). */
+export function setVariantByHeight(objs: PlacedObject[], id: string, hFt: number): PlacedObject[] {
+  return objs.map((o) => {
+    if (o.id !== id) return o;
+    const vs = VARIANTS[o.kind];
+    const withH = vs?.filter((v) => typeof v.h === "number");
+    if (!withH || withH.length === 0) return o;
+    let best = withH[0], bestD = Math.abs((withH[0].h as number) - hFt);
+    for (const v of withH) { const dd = Math.abs((v.h as number) - hFt); if (dd < bestD) { best = v; bestD = dd; } }
+    return { ...o, variant: best.id };
+  });
+}
+
 /** Deterministic id from kind + running index (no Math.random → replayable). */
 function nextId(objs: PlacedObject[], kind: ObjectKind): string {
   const n = objs.filter((o) => o.kind === kind).length + 1;
