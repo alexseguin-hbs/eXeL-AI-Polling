@@ -39,5 +39,19 @@ ok(near(wheelZoom(-100) * wheelZoom(100), 1), "wheel up∘down = identity (symme
 const g = pairGeometry(0, 0, 3, 4);
 ok(g.dist === 5 && near(g.cy, 2), "pairGeometry dist=5, midY=2");
 
+// S4 — MISSION-PLANNING PARITY LOCK: the shared constants must EXACTLY match mission-planning.tsx so Architect
+// never feels faster/twitchier than the tactical map (operator). These pin the source-of-truth values.
+ok(RCORE_CFG.pinchDamp === 0.5, "MP parity: pinch damp K=0.5 (mission-planning.tsx:791)");
+ok(RCORE_CFG.wheelStep === 0.15, "MP parity: wheel step 0.15 → factor 1.15 (mission-planning.tsx:663)");
+ok(near(wheelZoom(-1), 1.15) && near(wheelZoom(1), 1 / 1.15), "wheel factor = 1.15 / (1/1.15), identical to MP");
+ok(RCORE_CFG.rightPitch === 0.35 && RCORE_CFG.twoFingerTilt === 0.25, "MP parity: right-pitch 0.35, two-finger tilt 0.25");
+// sensitivity scalar (default 1 = MP parity; <1 = calmer). Default must not change any delta.
+ok(RCORE_CFG.sensitivity === 1, "sensitivity defaults to 1 (MP parity, inert)");
+const calm = { ...RCORE_CFG, sensitivity: 0.5 };
+ok(near(rightDrag(100, 20, 200, calm).dBearing, rightDrag(100, 20, 200).dBearing * 0.5), "sensitivity 0.5 halves right-drag bearing");
+ok(near(rightDrag(100, 20, 200, calm).dPitch, rightDrag(100, 20, 200).dPitch * 0.5), "sensitivity 0.5 halves right-drag pitch");
+ok(near(pinchUpdate(p0, twisted, calm).dBearing, pinchUpdate(p0, twisted).dBearing * 0.5), "sensitivity 0.5 halves two-finger twist");
+ok(near(pinchUpdate(p0, spread, calm).zoomFactor, pinchUpdate(p0, spread).zoomFactor), "sensitivity does NOT change zoom (only rotate/tilt feel)");
+
 console.log(`\nRCORE-GESTURES ${pass}/${pass + fail} passed`);
 if (fail) process.exit(1);

@@ -15,10 +15,12 @@
 export interface GestureCfg {
   minPitch: number; maxPitch: number; minZoom: number; maxZoom: number;
   pinchDamp: number; rightPitch: number; twoFingerTilt: number; wheelStep: number;
+  sensitivity: number; // S4 — global rotate/tilt feel scalar (1 = Mission-Planning parity; <1 = calmer/slower)
 }
 export const RCORE_CFG: GestureCfg = {
   minPitch: 11, maxPitch: 88, minZoom: 0.4, maxZoom: 6,
-  pinchDamp: 0.5, rightPitch: 0.35, twoFingerTilt: 0.25, wheelStep: 0.1,
+  // S4 — matched EXACTLY to mission-planning.tsx: pinch damp 0.5 (:791), wheel 1.15 (:663), tilt 0.25, right-pitch 0.35.
+  pinchDamp: 0.5, rightPitch: 0.35, twoFingerTilt: 0.25, wheelStep: 0.15, sensitivity: 1,
 };
 
 export const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v));
@@ -30,9 +32,10 @@ export const wrapAngle = (a: number): number => {
   return x;
 };
 
-/** RIGHT-drag → bearing/pitch deltas. bearing += −(dx/width)·π (MP) ; pitch += dy·rightPitch. */
+/** RIGHT-drag → bearing/pitch deltas. bearing += −(dx/width)·π (MP) ; pitch += dy·rightPitch. Scaled by sensitivity. */
 export function rightDrag(dx: number, dy: number, width: number, cfg: GestureCfg = RCORE_CFG): { dBearing: number; dPitch: number } {
-  return { dBearing: -(dx / Math.max(1, width)) * Math.PI, dPitch: dy * cfg.rightPitch };
+  const s = cfg.sensitivity ?? 1;
+  return { dBearing: -(dx / Math.max(1, width)) * Math.PI * s, dPitch: dy * cfg.rightPitch * s };
 }
 
 export interface PinchState { dist: number; ang: number; cy: number }
@@ -42,9 +45,10 @@ export interface PinchState { dist: number; ang: number; cy: number }
  * Google-Maps style, exactly like mission-planning.tsx:1783-1798.
  */
 export function pinchUpdate(prev: PinchState, cur: PinchState, cfg: GestureCfg = RCORE_CFG): { zoomFactor: number; dBearing: number; dPitch: number } {
+  const s = cfg.sensitivity ?? 1;
   const zoomFactor = 1 + (cur.dist / Math.max(1, prev.dist) - 1) * cfg.pinchDamp; // spread → dist↑ → factor>1 → zoom in
-  const dBearing = wrapAngle(cur.ang - prev.ang);
-  const dPitch = (cur.cy - prev.cy) * cfg.twoFingerTilt;
+  const dBearing = wrapAngle(cur.ang - prev.ang) * s;
+  const dPitch = (cur.cy - prev.cy) * cfg.twoFingerTilt * s;
   return { zoomFactor, dBearing, dPitch };
 }
 
