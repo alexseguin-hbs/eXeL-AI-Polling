@@ -13,6 +13,7 @@ import {
   Bed, Sofa, CookingPot, Utensils, Monitor, Toilet, Bath, Droplet, WashingMachine, DoorOpen,
   RectangleHorizontal, RotateCw, RotateCcw, Columns2, Rows2, SquareStack, Trash2,
   Archive, Lamp, Tv, Refrigerator, Flame, ShowerHead, DoorClosed, Library, Armchair, Hexagon, Triangle,
+  Shirt, Rows3, Footprints, Frame, RectangleVertical, LampFloor, Fan,
   type LucideIcon,
 } from "lucide-react";
 import { Compass2525 } from "./compass-2525";
@@ -40,6 +41,8 @@ const ICON: Record<ObjectKind, LucideIcon> = {
   dresser: Archive, nightstand: Lamp, tv: Tv, fridge: Refrigerator, stove: Flame,
   shower: ShowerHead, wardrobe: DoorClosed, bookshelf: Library, chair: Armchair,
   shell: Hexagon, roof: Triangle,
+  // FIX-9 closet storage + gaps
+  closetrod: Shirt, shelving: Rows3, shoerack: Footprints, rug: Frame, mirror: RectangleVertical, lamp: LampFloor, rangehood: Fan,
   door: DoorOpen, window: RectangleHorizontal,
 };
 

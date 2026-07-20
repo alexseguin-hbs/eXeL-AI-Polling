@@ -14,6 +14,8 @@ export type ObjectKind =
   | "toilet" | "tub" | "sink" | "washer"
   // S3 — context-aware room assets (bedroom → dresser/nightstand/tv/wardrobe, kitchen → fridge/stove, bath → shower …)
   | "dresser" | "nightstand" | "tv" | "fridge" | "stove" | "shower" | "wardrobe" | "bookshelf" | "chair"
+  // FIX-9 — richer per-room catalog (closet storage + common gaps)
+  | "closetrod" | "shelving" | "shoerack" | "rug" | "mirror" | "lamp" | "rangehood"
   // S3 — structural SHELL system (hex wall panel + roof panel) — the EcoSpheres shell folded into Architect assets
   | "shell" | "roof"
   | "door" | "window";
@@ -57,6 +59,14 @@ export const OBJECT_SPEC: Record<ObjectKind, { label: string; emoji: string; w: 
   wardrobe:  { label: "Wardrobe",  emoji: "🚪", w: 4,   d: 2,   h: 7,   onWall: false, color: "#c084fc" },
   bookshelf: { label: "Bookshelf", emoji: "📚", w: 3,   d: 1,   h: 6,   onWall: false, color: "#c084fc" },
   chair:     { label: "Chair",     emoji: "🪑", w: 1.7, d: 1.7, h: 2.8, onWall: false, color: "#c084fc" },
+  // FIX-9 — closet storage + common gaps
+  closetrod: { label: "Closet Rod",emoji: "👕", w: 4,   d: 1.5, h: 6,   onWall: true,  color: "#c084fc" }, // hanging rod + hangers
+  shelving:  { label: "Shelving",  emoji: "🗄", w: 3,   d: 1,   h: 6,   onWall: true,  color: "#c084fc" },
+  shoerack:  { label: "Shoe Rack", emoji: "👟", w: 2.5, d: 1,   h: 2,   onWall: false, color: "#c084fc" },
+  rug:       { label: "Rug",       emoji: "🟫", w: 6,   d: 4,   h: 0.1, onWall: false, color: "#c084fc" },
+  mirror:    { label: "Mirror",    emoji: "🪞", w: 2,   d: 0.2, h: 4,   onWall: true,  color: "#19c8cf" },
+  lamp:      { label: "Lamp",      emoji: "💡", w: 1,   d: 1,   h: 5,   onWall: false, color: "#c084fc" },
+  rangehood: { label: "Range Hood",emoji: "🌀", w: 2.5, d: 1.5, h: 1.5, onWall: true,  color: "#19c8cf" },
   // S3 — structural SHELL system (steel-grey): hex wall panel + roof panel.
   shell:     { label: "Shell Panel",emoji: "⬡", w: 4,  d: 0.7, h: 8,   onWall: true,  color: "#8899aa" },
   roof:      { label: "Roof Panel", emoji: "🔺", w: 5,  d: 5,   h: 0.7, onWall: false, color: "#8899aa" },
@@ -194,11 +204,11 @@ export function shapePartsOf(kind: ObjectKind): ShapePart[] { return SHAPE_PARTS
  */
 export const ROOM_ASSETS_VERSION = 1;
 export const ROOM_ASSETS: Record<string, ObjectKind[]> = {
-  M: ["bed", "nightstand", "dresser", "wardrobe", "tv", "chair"],   // Master Bedroom
-  B: ["toilet", "tub", "shower", "sink"],                            // Master Bath
-  C: ["wardrobe", "dresser", "bookshelf"],                           // Master Closet
-  L: ["sofa", "tv", "table", "chair", "bookshelf"],                  // Living Room
-  K: ["counter", "sink", "fridge", "stove"],                         // Kitchen
+  M: ["bed", "nightstand", "dresser", "wardrobe", "tv", "chair", "mirror", "lamp", "rug"], // Master Bedroom
+  B: ["toilet", "tub", "shower", "sink", "mirror", "shelving"],       // Master Bath
+  C: ["wardrobe", "dresser", "closetrod", "shelving", "shoerack", "mirror"], // Master Closet (FIX-9)
+  L: ["sofa", "tv", "table", "chair", "bookshelf", "rug", "lamp"],    // Living Room
+  K: ["counter", "sink", "fridge", "stove", "rangehood"],             // Kitchen
   D: ["table", "chair", "counter"],                                  // Dining Room
   O: ["desk", "chair", "bookshelf", "tv"],                           // Office
   S: ["washer", "sink", "counter"],                                  // Storage · Laundry
@@ -225,8 +235,9 @@ export type AssetGroup = "Sleep" | "Living" | "Kitchen" | "Bath" | "Openings" | 
 export const GROUP_ORDER: AssetGroup[] = ["Sleep", "Living", "Kitchen", "Bath", "Openings", "Shell"];
 const ASSET_GROUP: Record<ObjectKind, AssetGroup> = {
   bed: "Sleep", nightstand: "Sleep", dresser: "Sleep", wardrobe: "Sleep",
-  sofa: "Living", chair: "Living", table: "Living", tv: "Living", bookshelf: "Living", desk: "Living",
-  counter: "Kitchen", fridge: "Kitchen", stove: "Kitchen",
+  closetrod: "Sleep", shelving: "Sleep", shoerack: "Sleep", mirror: "Sleep",
+  sofa: "Living", chair: "Living", table: "Living", tv: "Living", bookshelf: "Living", desk: "Living", rug: "Living", lamp: "Living",
+  counter: "Kitchen", fridge: "Kitchen", stove: "Kitchen", rangehood: "Kitchen",
   toilet: "Bath", tub: "Bath", shower: "Bath", sink: "Bath", washer: "Bath",
   door: "Openings", window: "Openings",
   shell: "Shell", roof: "Shell",

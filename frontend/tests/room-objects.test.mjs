@@ -96,6 +96,11 @@ ok(kitchen.includes("fridge") && kitchen.includes("stove") && kitchen.includes("
 ok(!kitchen.includes("bed") && !kitchen.includes("toilet"), "kitchen palette excludes bedroom/bath items");
 ok(paletteForRoom("M").includes("bed") && paletteForRoom("M").includes("nightstand") && paletteForRoom("M").includes("dresser"), "bedroom palette has bed/nightstand/dresser");
 ok(paletteForRoom("B").includes("shower") && paletteForRoom("B").includes("tub") && paletteForRoom("B").includes("toilet"), "bath palette has shower/tub/toilet");
+// FIX-9 — richer closet catalog + gaps; all new kinds are real specs + grouped.
+["closetrod", "shelving", "shoerack", "rug", "mirror", "lamp", "rangehood"].forEach((k) =>
+  ok(k in OBJECT_SPEC && GROUP_ORDER.includes(groupOf(k)), `FIX-9 kind ${k} has spec + group`));
+ok(["closetrod", "shelving", "shoerack"].every((k) => paletteForRoom("C").includes(k)), "closet palette has rod + shelving + shoe rack (IMG_7532)");
+ok(paletteForRoom("K").includes("rangehood") && paletteForRoom("M").includes("mirror") && paletteForRoom("L").includes("rug"), "kitchen→rangehood, bedroom→mirror, living→rug");
 ok(["door", "window", "shell", "roof"].every((k) => paletteForRoom("O").includes(k)), "every room palette appends openings + structural shell");
 ok(new Set(paletteForRoom("L")).size === paletteForRoom("L").length, "palette is de-duplicated (no repeated kind)");
 ok(paletteForRoom("ZZ").length > 0 && paletteForRoom("ZZ").includes("door"), "unknown room key → general fallback palette (still has openings)");
