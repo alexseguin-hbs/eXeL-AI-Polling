@@ -62,7 +62,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // ── 3D CAMERA — the shared Vision-2525 R-Core interaction model (identical to Mission-Planning): LEFT-drag /
   // one-finger = PAN · RIGHT-drag = rotate+tilt · two fingers = pinch-zoom + twist-bearing + vertical-tilt · wheel
   // = zoom. One hook, no local re-implementation (operator: "R-Core for all areas of interaction").
-  const cam = useRCoreGestures({ initialBearing: -Math.PI / 4, initialPitch: 34, initialZoom: 1,
+  const cam = useRCoreGestures({ initialBearing: -Math.PI / 4, initialPitch: 34, initialZoom: 1, touchOrbit: true,
     cfg: { minPitch: 6, maxPitch: 90, minZoom: 0.6, maxZoom: 3.2 } });
   const { bearing, pitch, zoom } = cam;
   const camReset = cam.reset;
@@ -155,7 +155,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // MAIN ↔ MINI (Mission-Planning parity, operator IMG_7516): one MAIN map toggles 2D⇄3D; the MINI is a
   // draggable/resizable MiniPanel showing the OTHER view. Both views are one function each, rendered in either slot.
   const [mainView, setMainView] = useState<"2D" | "3D">("2D");
-  const boxStyle = (size?: number) => (size ? { width: size, height: size } : { width: "100%" });
+  const boxStyle = (size?: number) => ({ touchAction: "none" as const, ...(size ? { width: size, height: size } : { width: "100%" }) });
   const svgStyle = (size?: number) => (size ? { width: size, height: size } : { width: "100%", aspectRatio: "1 / 1" as const });
 
   const plan2D = (size?: number) => (

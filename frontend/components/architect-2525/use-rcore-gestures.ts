@@ -14,7 +14,8 @@ export interface RCoreOpts {
   initialBearing?: number;  // radians (0 = North up)
   initialPitch?: number;    // degrees
   initialZoom?: number;
-  pan?: boolean;            // LEFT-drag / one-finger pans (default true)
+  pan?: boolean;            // LEFT-drag (mouse) pans (default true)
+  touchOrbit?: boolean;     // one-finger TOUCH orbits+tilts instead of panning (3D voxels — natural on phones)
   cfg?: Partial<GestureCfg>;
 }
 
@@ -22,6 +23,7 @@ export function useRCoreGestures(opts: RCoreOpts = {}) {
   const cfg: GestureCfg = { ...RCORE_CFG, ...(opts.cfg ?? {}) };
   const b0 = opts.initialBearing ?? 0, p0 = opts.initialPitch ?? 58, z0 = opts.initialZoom ?? 1;
   const panOn = opts.pan !== false;
+  const touchOrbit = opts.touchOrbit === true;
   const [bearing, setBearing] = useState(b0);
   const [pitch, setPitch] = useState(p0);
   const [zoom, setZoom] = useState(z0);
@@ -54,12 +56,13 @@ export function useRCoreGestures(opts: RCoreOpts = {}) {
     }
     const dx = e.clientX - px, dy = e.clientY - py;
     if (Math.abs(dx) + Math.abs(dy) > 0) moved.current = true;
-    if (rec.btn === 2) {  // RIGHT-drag → rotate + tilt (mouse); touch reports button 0 → pans below
+    // RIGHT-drag (mouse) OR one-finger TOUCH on a 3D voxel → rotate + tilt (natural on phones, no clunky pan).
+    if (rec.btn === 2 || (touchOrbit && e.pointerType === "touch")) {
       const width = (e.currentTarget as Element).getBoundingClientRect().width || 1;
       const { dBearing, dPitch } = rightDrag(dx, dy, width, cfg);
       setBearing((b) => b + dBearing);
       setPitch((p) => clamp(p + dPitch, cfg.minPitch, cfg.maxPitch));
-    } else if (panOn) {   // LEFT-drag / one-finger → PAN
+    } else if (panOn) {   // LEFT-drag (mouse) / one-finger (non-orbit surfaces) → PAN
       setPan((p) => ({ x: p.x + dx, y: p.y + dy }));
     }
   };

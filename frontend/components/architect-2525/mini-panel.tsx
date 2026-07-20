@@ -92,8 +92,8 @@ export function MiniPanel({ title, subtitle, coord, rotation, lanes = true, defa
       )}
       {/* rotation period (a planet's "day") */}
       {rotation && <div data-mini-rotation className="shrink-0 truncate px-1.5 text-[8px]" style={{ color: C.cyan, fontFamily: "monospace" }}>⟳ {rotation}</div>}
-      {/* content (globe / map) — sized to the panel */}
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">{render(contentSize)}</div>
+      {/* content (globe / map) — sized to the panel; touch-action none so a pinch here never zooms the page */}
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden" style={{ touchAction: "none" }}>{render(contentSize)}</div>
       {/* coordinate line */}
       {coord && <div className="shrink-0 truncate px-1.5 pb-0.5 text-[7px]" style={{ color: C.dim, fontFamily: "monospace" }}>{coord} 🔒</div>}
       {/* resize handle ◢ */}

@@ -36,7 +36,7 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   walk?: boolean; walkRoomId?: string | null; wallW?: number; hvac?: boolean; showSockets?: boolean;
 }) {
   // Camera = the shared Vision-2525 R-Core interaction model (identical to Mission-Planning + the room voxel).
-  const cam = useRCoreGestures({ initialBearing: 0, initialPitch: 58, initialZoom: 1,
+  const cam = useRCoreGestures({ initialBearing: 0, initialPitch: 58, initialZoom: 1, touchOrbit: true,
     cfg: { minPitch: 18, maxPitch: 82, minZoom: 0.6, maxZoom: 3.2 } });
   const { bearing, pitch, zoom } = cam;
   const [selLocal, setSelLocal] = useState<string | null>(null);
