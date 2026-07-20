@@ -47,8 +47,8 @@ export function MetricStrip({ state, overlay = false, homeType = "full" }: { sta
   // Collapsed = icons + numbers only; the ••• button expands to reveal the grey labels (widens the rail).
   return (
     <div data-arch-metricstrip data-arch-metric-expanded={expanded ? "1" : "0"}
-      className="pointer-events-auto absolute right-2 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-0.5 rounded-lg border px-1 py-1 shadow-lg"
-      style={{ background: "#0a0f16e6", borderColor: C.border }}>
+      className="pointer-events-auto absolute right-2 top-12 z-10 flex max-h-[78%] flex-col gap-0.5 overflow-y-auto rounded-lg border px-1 py-1 shadow-lg"
+      style={{ background: "#0a0f16e6", borderColor: C.border }}>{/* top-12 keeps the expandable BELOW the R-CORE header (operator IMG_7551) */}
       {/* ••• expand — VERTICAL stacked dots, TOP-LEFT of the rail (operator IMG_7492). */}
       <button data-arch-metric-expand onClick={() => setExpanded((v) => !v)} title={expanded ? "Collapse metrics" : "Expand metrics (show labels)"}
         className="mb-0.5 flex flex-col items-center justify-center gap-[3px] self-start rounded p-0.5 hover:bg-white/10">
