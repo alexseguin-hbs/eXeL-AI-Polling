@@ -19,6 +19,7 @@ import { RoomDesigner } from "./room-designer";
 import type { PlacedObject } from "@/lib/room-objects";
 import { Frame, Wind, Zap, Droplets, Settings } from "lucide-react"; // our own iconology (no emojis) for Design Settings
 import { sanitizeRoomLayout } from "@/lib/architect-guard";
+import { cloudEnabled, saveRoomLayout, loadRoomLayout } from "@/lib/architect-saved-files";
 
 const C = {
   panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186",
@@ -73,6 +74,23 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   // WireGuard: a stored layout is untrusted — sanitize (clamp grid/size/element counts, drop malformed) at the boundary.
   useEffect(() => { try { const v = localStorage.getItem(RL_KEY); if (v) setRoomLayout(sanitizeRoomLayout(JSON.parse(v))); } catch {} }, []);
   const persistLayout = (next: RoomCell[]) => { try { localStorage.setItem(RL_KEY, JSON.stringify(next)); } catch {} return next; };
+  // SUPABASE durability — the room-furniture layouts lived only in localStorage, so a cache-clear / new device lost
+  // every interior. Best-effort cloud rung (mirrors architect-saved-files): load cloud on mount (durable, cross-device),
+  // then debounced write-through on change. skipCloudSave prevents the mount seat from immediately re-saving.
+  const skipCloudSave = useRef(true);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (cloudEnabled()) { const cloud = await loadRoomLayout(); if (!cancelled && cloud && cloud.length) { setRoomLayout(cloud); persistLayout(cloud); } }
+      skipCloudSave.current = false;
+    })();
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (skipCloudSave.current || !cloudEnabled()) return;
+    const id = setTimeout(() => { saveRoomLayout(roomLayout); }, 1200); // best-effort, never throws
+    return () => clearTimeout(id);
+  }, [roomLayout]);
   // Walk to the adjacent room in the 3×3, if one exists there (steps through the wireframe room by room).
   const walkStep = (dRow: number, dCol: number) => {
     const cur = roomLayout.find((r) => r.id === walkRoomId); if (!cur) return;

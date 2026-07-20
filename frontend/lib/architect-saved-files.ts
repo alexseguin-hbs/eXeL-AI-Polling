@@ -14,7 +14,8 @@
  *   architect_saved_files(id uuid pk, owner_key text, name text, payload jsonb, source_hash text, updated_at)
  */
 import { supabase } from "./supabase";
-import { sanitizeSnapshot } from "./architect-guard";
+import { sanitizeSnapshot, sanitizeRoomLayout } from "./architect-guard";
+import { type RoomCell } from "./room-layout";
 
 export interface ArchitectSnapshot {
   houseSpec: string[];
@@ -35,6 +36,7 @@ export type CloudStatus = "idle" | "saving" | "saved" | "offline" | "error";
 
 const TABLE = "architect_saved_files";
 const NAME = "workspace";
+const NAME_ROOMS = "roomlayout"; // per-room furniture layouts — the interior designs the operator builds room by room
 
 /** Per-browser owner id (persisted). Swap to the logged-in user id HERE when accounts land. */
 export function ownerKey(): string {
@@ -107,6 +109,38 @@ export async function loadSnapshot(): Promise<ArchitectSnapshot | null> {
     const payload = (data as { payload?: unknown } | null)?.payload;
     // WireGuard: a cloud row is untrusted input — sanitize before it can seat any state.
     return payload == null ? null : sanitizeSnapshot(payload);
+  } catch {
+    return null;
+  }
+}
+
+// ─── Per-room furniture layouts (the interior designs) — the ONE Supabase gap: these lived only in localStorage,
+//     so a cache-clear / new device lost every room's furniture. Same best-effort/never-throws/sanitized ladder. ───
+
+/** Best-effort push of the room-furniture layout to Supabase (durable + cross-device). Never throws. */
+export async function saveRoomLayout(layout: RoomCell[], sourceHash?: string): Promise<CloudStatus> {
+  if (!supabase) return "offline";
+  try {
+    const { error } = await supabase.from(TABLE).upsert(
+      { owner_key: ownerKey(), name: NAME_ROOMS, payload: { layout }, source_hash: sourceHash ?? null, updated_at: new Date(Date.now()).toISOString() },
+      { onConflict: "owner_key,name" },
+    );
+    if (!error) return "saved";
+    const msg = `${(error as { code?: string }).code ?? ""} ${error.message ?? ""}`.toLowerCase();
+    if (/42p01|pgrst205|does not exist|could not find|schema cache/.test(msg)) return "offline"; // pre-migration → local-only
+    return "error";
+  } catch {
+    return "error";
+  }
+}
+
+/** Best-effort load of this owner's room-furniture layout. Sanitized (WireGuard). Returns null on any failure / no row. */
+export async function loadRoomLayout(): Promise<RoomCell[] | null> {
+  if (!supabase) return null;
+  try {
+    const { data } = await supabase.from(TABLE).select("payload").eq("owner_key", ownerKey()).eq("name", NAME_ROOMS).maybeSingle();
+    const raw = (data as { payload?: { layout?: unknown } } | null)?.payload?.layout;
+    return raw == null ? null : sanitizeRoomLayout(raw); // untrusted cloud row → sanitize before it seats any state
   } catch {
     return null;
   }
