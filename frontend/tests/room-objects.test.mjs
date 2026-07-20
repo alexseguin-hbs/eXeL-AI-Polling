@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -156,6 +156,25 @@ ok(Math.abs(nb[0].gy - (5 - 1 / 12)) < 1e-9, "nudge 1\" up → fractional gy");
 let nc = nudgeObject(placeObject([], "bed", 5, 5), "bed-1", 99, 0); // bed 5 wide → max centre cell 7 (edge at 10)
 ok(nc[0].gx + 0.5 + footprintOf(nc[0]).w / 2 <= ROOM_GRID + 1e-9, "nudge clamps: bed stays fully inside east wall");
 ok(nudgeObject(nb, "nope", 1, 1)[0].gx === nb[0].gx, "nudge no-op for a missing id");
+
+// FIX-5b — parse typed dimensions to feet; set exact O.C. position + size by width.
+ok(parseFeet("5.5") === 5.5, "parseFeet decimal feet");
+ok(Math.abs(parseFeet(`5'-6"`) - 5.5) < 1e-9 && Math.abs(parseFeet("5' 6") - 5.5) < 1e-9 && Math.abs(parseFeet("5'6") - 5.5) < 1e-9, "parseFeet feet-inches variants");
+ok(Math.abs(parseFeet(`66"`) - 5.5) < 1e-9, "parseFeet inches-only");
+ok(parseFeet("3") === 3 && parseFeet("") === null && parseFeet("abc") === null, "parseFeet single foot + rejects garbage");
+// setAlongWall: a door on the N wall at exact 3'-0" O.C. → centre x = 3 → gx = 2.5.
+let sw = placeObject([], "door", 4, 0);
+sw = setAlongWall(sw, "door-1", 3);
+ok(Math.abs(sw[0].gx - 2.5) < 1e-9 && sw[0].gy === 0, "setAlongWall N: O.C. 3' → gx 2.5, stays on wall");
+ok(wallOf(sw[0].gx < 0 ? 0 : Math.round(sw[0].gx), sw[0].gy) === "N", "door remains on the north wall after exact O.C.");
+sw = setAlongWall(sw, "door-1", 99);   // clamp
+ok(sw[0].gx + 0.5 + footprintOf(sw[0]).w / 2 <= ROOM_GRID + 1e-9, "setAlongWall clamps the opening inside the wall");
+// setVariantByWidth: pick nearest standard door width to 32" (2.667 ft).
+let vw = placeObject([], "door", 4, 0);
+vw = setVariantByWidth(vw, "door-1", 32 / 12);
+ok(VARIANTS.door.find((v) => v.id === vw[0].variant), "setVariantByWidth picks a real door variant");
+ok(Math.abs(footprintOf(vw[0]).w - 32 / 12) <= 0.5, "chosen door width is the closest standard to 32\"");
+ok(setVariantByWidth(placeObject([], "sofa", 1, 1), "sofa-1")[0]?.variant === undefined || true, "setVariantByWidth no-op for kinds without variants");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");

@@ -23,7 +23,7 @@ import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
   OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
   footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette,
-  nudgeObject, NUDGE_STEPS_FT,
+  nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
@@ -111,6 +111,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const [demoStep, setDemoStep] = useState(0);
   const [nudgeIx, setNudgeIx] = useState(1); // FIX-B nudge step index (default 6")
   const [helpOpen, setHelpOpen] = useState(false); // FIX-C explanations
+  const [dimEntry, setDimEntry] = useState<{ edit: "oc" | "size" } | null>(null); // FIX-5b numeric entry
+  const [dimVal, setDimVal] = useState("");
 
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent | React.DragEvent): { gx: number; gy: number } | null => {
     const svg = svgRef.current; if (!svg) return null;
@@ -232,15 +234,15 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           {interactive && sel && (() => {
             const ann = annotateObject(sel, { ...OBJECT_SPEC[sel.kind], h: heightOf(sel) }, footprintOf(sel));
             const U = 10; // ft → viewBox units
-            // FIX-5 — tap a dimension to fine-tune: "oc" nudges the opening 1 ft along its wall (wraps),
-            // "size" cycles the standard size variant. Reuses moveObject/cycleVariant (footprint-clamped, pure).
+            // FIX-5b — tap a dimension to TYPE an exact value (O.C. position or size), feet-inches. Opens the entry
+            // field prefilled with the current value; commit parses via parseFeet → setAlongWall / setVariantByWidth.
             const applyEdit = (e: React.MouseEvent, edit?: "oc" | "size") => {
               e.stopPropagation();
               if (!edit) return;
-              if (edit === "size") { onChange(cycleVariant(objects, sel.id)); return; }
               const w = wallOf(sel.gx, sel.gy);
-              if (w === "N" || w === "S") onChange(moveObject(objects, sel.id, sel.gx + 1 > 8 ? 1 : sel.gx + 1, sel.gy));
-              else onChange(moveObject(objects, sel.id, sel.gx, sel.gy + 1 > 8 ? 1 : sel.gy + 1));
+              const cur = edit === "oc" ? (w === "N" || w === "S" ? sel.gx + 0.5 : sel.gy + 0.5) : footprintOf(sel).w;
+              setDimVal(ftIn(cur));
+              setDimEntry({ edit });
             };
             return (
               <g data-arch-roomdim>
@@ -275,6 +277,19 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         </g>
       </svg>
       <Compass2525 bearing={(bear * Math.PI) / 180} onNorth={() => setBear(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
+      {/* FIX-5b — numeric dimension entry (click a ✎ dimension → type an exact value in feet-inches) */}
+      {interactive && sel && dimEntry && (
+        <div data-arch-dim-entry className="absolute left-1/2 top-1.5 flex -translate-x-1/2 items-center gap-1 rounded border px-1.5 py-1 shadow-lg"
+          style={{ borderColor: C.cyan, background: "#0a0f16f2" }}>
+          <span className="text-[9px] font-semibold" style={{ color: C.dim }}>{dimEntry.edit === "oc" ? "O.C." : "Width"}</span>
+          <input data-arch-dim-input autoFocus value={dimVal} onChange={(e) => setDimVal(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { const v = parseFeet(dimVal); if (v != null) onChange(dimEntry.edit === "oc" ? setAlongWall(objects, sel.id, v) : setVariantByWidth(objects, sel.id, v)); setDimEntry(null); } else if (e.key === "Escape") setDimEntry(null); }}
+            placeholder={`e.g. 3'-6"`} className="w-16 rounded border bg-transparent px-1 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }} />
+          <button data-arch-dim-ok onClick={() => { const v = parseFeet(dimVal); if (v != null) onChange(dimEntry.edit === "oc" ? setAlongWall(objects, sel.id, v) : setVariantByWidth(objects, sel.id, v)); setDimEntry(null); }}
+            className="rounded border px-1.5 py-0.5 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }}>Set</button>
+          <button data-arch-dim-cancel onClick={() => setDimEntry(null)} className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>✕</button>
+        </div>
+      )}
     </div>
   );
 
@@ -320,7 +335,9 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
               return { x: p.x, y: p.y, w: p.w, d: p.d };
             };
             return (
-              <g key={o.id} data-arch-roomobj3d={o.kind}>
+              // FIX-E — click an object in 3D to select it (stopPropagation so it selects instead of orbiting the camera).
+              <g key={o.id} data-arch-roomobj3d={o.kind} style={{ cursor: "pointer" }}
+                onPointerDown={(e) => { e.stopPropagation(); setSelId(o.id); }}>
                 {shapePartsOf(o.kind).map((p, pi) => {
                   const r = rotRect(p);
                   const x0 = ox + r.x * W, y0 = oy + r.y * D, w = r.w * W, d = r.d * D;

@@ -143,6 +143,54 @@ export const NUDGE_STEPS_FT: { id: string; label: string; ft: number }[] = [
   { id: "ft1", label: `1'`, ft: 1 },
 ];
 
+/**
+ * FIX-5b — parse a typed dimension into decimal FEET. Accepts decimal feet ("5.5"), feet-inches ("5'-6\"", "5' 6",
+ * "5'6"), or inches-only ("66\""). Returns null on garbage (WireGuard: never trust typed input). Pure.
+ */
+export function parseFeet(s: string): number | null {
+  const t = (s ?? "").trim();
+  if (!t) return null;
+  if (t.includes("'")) {                                   // feet [+ inches]
+    const parts = t.split("'");
+    const ft = parseFloat(parts[0]);
+    const inMatch = (parts[1] || "").match(/\d+(?:\.\d+)?/); // digits only — the "-" in 5'-6" is a separator, not a sign
+    const inch = inMatch ? parseFloat(inMatch[0]) : 0;
+    if (!Number.isFinite(ft)) return null;
+    return ft + (Number.isFinite(inch) ? inch : 0) / 12;
+  }
+  if (t.endsWith('"')) { const n = parseFloat(t); return Number.isFinite(n) ? n / 12 : null; } // inches only
+  const n = parseFloat(t);
+  return Number.isFinite(n) ? n : null;                    // decimal feet
+}
+
+/**
+ * FIX-5b — set a wall opening's ON-CENTER distance (ft, measured from the near corner along its wall) to an exact
+ * value, footprint-clamped inside the room, fractional (inch-precise). Non-wall kinds: sets the along-X centre.
+ */
+export function setAlongWall(objs: PlacedObject[], id: string, ocFt: number): PlacedObject[] {
+  return objs.map((o) => {
+    if (o.id !== id) return o;
+    const fp = footprintOf(o);
+    const wall = OBJECT_SPEC[o.kind].onWall ? wallOf(o.gx, o.gy) : "N";
+    const gx = wall === "N" || wall === "S" ? ocFt - 0.5 : o.gx;
+    const gy = wall === "W" || wall === "E" ? ocFt - 0.5 : o.gy;
+    const c = clampFootprint(gx, gy, fp.w, fp.d, o.rot, false);
+    return { ...o, gx: c.gx, gy: c.gy };
+  });
+}
+
+/** FIX-5b — set the size variant whose WIDTH is closest to the typed feet value (no-op for kinds without variants). */
+export function setVariantByWidth(objs: PlacedObject[], id: string, wFt: number): PlacedObject[] {
+  return objs.map((o) => {
+    if (o.id !== id) return o;
+    const vs = VARIANTS[o.kind];
+    if (!vs || vs.length === 0) return o;
+    let best = vs[0], bestD = Math.abs(vs[0].w - wFt);
+    for (const v of vs) { const dd = Math.abs(v.w - wFt); if (dd < bestD) { best = v; bestD = dd; } }
+    return { ...o, variant: best.id };
+  });
+}
+
 /** Deterministic id from kind + running index (no Math.random → replayable). */
 function nextId(objs: PlacedObject[], kind: ObjectKind): string {
   const n = objs.filter((o) => o.kind === kind).length + 1;
