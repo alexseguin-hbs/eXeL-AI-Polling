@@ -24,6 +24,7 @@ import {
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
+import { annotateObject } from "@/lib/dim-annot";
 import { useRCoreGestures } from "./use-rcore-gestures";
 import type { RoomCell } from "@/lib/room-layout";
 
@@ -197,6 +198,38 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
               </g>
             );
           })}
+          {/* S5 — CAD dimension callouts for the selected/dragged object (O.C. · R.O. · AFF, feet-inches). Interactive
+              pane only; witness lines + labels rotate with the plan. Vendors build each room to a published standard. */}
+          {interactive && sel && (() => {
+            const ann = annotateObject(sel, OBJECT_SPEC[sel.kind], footprintOf(sel));
+            const U = 10; // ft → viewBox units
+            return (
+              <g data-arch-roomdim style={{ pointerEvents: "none" }}>
+                {ann.lines.map((l, i) => {
+                  const x1 = l.x1 * U, y1 = l.y1 * U, x2 = l.x2 * U, y2 = l.y2 * U;
+                  const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+                  const horiz = Math.abs(y2 - y1) <= Math.abs(x2 - x1), t = 1;
+                  return (
+                    <g key={i}>
+                      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={C.gold} strokeWidth={0.5} />
+                      {horiz ? (<>
+                        <line x1={x1} y1={y1 - t} x2={x1} y2={y1 + t} stroke={C.gold} strokeWidth={0.5} />
+                        <line x1={x2} y1={y2 - t} x2={x2} y2={y2 + t} stroke={C.gold} strokeWidth={0.5} />
+                      </>) : (<>
+                        <line x1={x1 - t} y1={y1} x2={x1 + t} y2={y1} stroke={C.gold} strokeWidth={0.5} />
+                        <line x1={x2 - t} y1={y2} x2={x2 + t} y2={y2} stroke={C.gold} strokeWidth={0.5} />
+                      </>)}
+                      <text x={mx} y={my - 1.2} fontSize={3} fill={C.gold} textAnchor="middle" stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke" }}>{l.label}</text>
+                    </g>
+                  );
+                })}
+                {ann.notes.map((n, i) => (
+                  <text key={`n${i}`} x={(sel.gx + 0.5) * U} y={(sel.gy + 0.5) * U + 4.2 + i * 3.6} fontSize={3} fill={C.gold}
+                    textAnchor="middle" stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke" }}>{n}</text>
+                ))}
+              </g>
+            );
+          })()}
         </g>
       </svg>
       <Compass2525 bearing={(bear * Math.PI) / 180} onNorth={() => setBear(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
