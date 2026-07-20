@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -57,6 +57,18 @@ bo = cycleVariant(bo, "bed-1"); ok(bo[0].variant === "full", "next cycle → ful
 const king = { id: "bed-9", kind: "bed", gx: 0, gy: 0, rot: 0, variant: "king" };
 ok(footprintOf(king).w === 6.33 && footprintOf(king).d === 6.67, "king footprint = 6.33 × 6.67 ft");
 ok(cycleVariant(placeObject([], "sofa", 1, 1), "sofa-1")[0].variant === undefined, "cycleVariant no-op for kinds without variants");
+
+// FIX-1 — standard door/window sizes carry height; heightOf reflects the variant, else the kind default.
+ok(VARIANTS.door && VARIANTS.window, "doors + windows have standard size variants");
+ok(DOOR_VARIANTS.every((v) => v.h && v.h > 0) && WINDOW_VARIANTS.every((v) => v.h && v.h > 0), "every door/window variant carries a height");
+let wv = placeObject([], "window", 4, 0);
+ok(heightOf(wv[0]) === OBJECT_SPEC.window.h, "no variant → window height = kind default");
+wv = [{ id: "window-9", kind: "window", gx: 4, gy: 0, rot: 0, variant: "w35" }];
+ok(heightOf(wv[0]) === 5 && footprintOf(wv[0]).w === 3, "window variant w35 → 3ft wide × 5ft tall");
+const dv = [{ id: "door-9", kind: "door", gx: 5, gy: 9, rot: 0, variant: "d36" }];
+ok(heightOf(dv[0]) === 8 && footprintOf(dv[0]).w === 3, "door variant d36 → 3ft wide × 8ft tall");
+// cycling openings now works (they have variants).
+ok(cycleVariant(placeObject([], "door", 5, 9), "door-1")[0].variant === DOOR_VARIANTS[0].id, "door cycles to first standard size");
 
 // S1 — wall detection + slide-along-wall (doors/windows slide, never jump off their wall).
 ok(wallOf(4, 0) === "N" && wallOf(4, 9) === "S" && wallOf(0, 4) === "W" && wallOf(9, 4) === "E", "wallOf: N/S/W/E edges");

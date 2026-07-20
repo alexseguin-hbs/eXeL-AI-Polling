@@ -25,15 +25,38 @@ export type Rot = 0 | 90 | 180 | 270;
 /** One placed object on the room floor grid. gx/gy = grid cell (0..9); rot = 0|90|180|270°; variant = size id. */
 export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; variant?: string; }
 
-/** Size variants (feet) for kinds that come in standard sizes — e.g. beds: Twin/Full/Queen/King (operator example). */
-export interface SizeVariant { id: string; label: string; w: number; d: number }
+/** Size variants (feet) for kinds that come in standard sizes — beds Twin/Full/Queen/King; doors/windows standard R.O.
+ *  sizes (FIX-1). `h` (height, ft) is optional — set for openings where height matters (operator: window height). */
+export interface SizeVariant { id: string; label: string; w: number; d: number; h?: number }
 export const BED_VARIANTS: SizeVariant[] = [
   { id: "twin",  label: "Twin",  w: 3.25, d: 6.25 },
   { id: "full",  label: "Full",  w: 4.5,  d: 6.25 },
   { id: "queen", label: "Queen", w: 5,    d: 6.67 },
   { id: "king",  label: "King",  w: 6.33, d: 6.67 },
 ];
-export const VARIANTS: Partial<Record<ObjectKind, SizeVariant[]>> = { bed: BED_VARIANTS };
+// FIX-1 — standard door sizes (width × 6'8" or 8'0"), depth = thin panel.
+export const DOOR_VARIANTS: SizeVariant[] = [
+  { id: "d28", label: `2'-8"`, w: 2.33, d: 0.4, h: 6.67 },
+  { id: "d30", label: `2'-10"`, w: 2.5, d: 0.4, h: 6.67 },
+  { id: "d32", label: `3'-0"`, w: 3,    d: 0.4, h: 6.67 },
+  { id: "d36", label: `3'-0"×8'`, w: 3, d: 0.4, h: 8 },
+];
+// FIX-1 — standard window sizes (width × height), depth = thin sash.
+export const WINDOW_VARIANTS: SizeVariant[] = [
+  { id: "awning", label: `2'×2'`, w: 2, d: 0.5, h: 2 },
+  { id: "w23",    label: `2'×3'`, w: 2, d: 0.5, h: 3 },
+  { id: "w34",    label: `3'×4'`, w: 3, d: 0.5, h: 4 },
+  { id: "w35",    label: `3'×5'`, w: 3, d: 0.5, h: 5 },
+  { id: "slider", label: `6'×4' slider`, w: 6, d: 0.5, h: 4 },
+];
+export const VARIANTS: Partial<Record<ObjectKind, SizeVariant[]>> = { bed: BED_VARIANTS, door: DOOR_VARIANTS, window: WINDOW_VARIANTS };
+
+/** Height (ft) of a placed object — its variant's height when set, else the kind default (FIX-1). */
+export function heightOf(o: PlacedObject): number {
+  const vs = VARIANTS[o.kind];
+  if (vs && o.variant) { const v = vs.find((x) => x.id === o.variant); if (v && typeof v.h === "number") return v.h; }
+  return OBJECT_SPEC[o.kind].h;
+}
 
 /**
  * Palette metadata — footprint W×D (ft) + HEIGHT h (ft), display glyph/label, colour, wall-snap flag.

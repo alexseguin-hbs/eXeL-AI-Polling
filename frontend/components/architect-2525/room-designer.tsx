@@ -21,7 +21,7 @@ import { MiniPanel } from "./mini-panel";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
   OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
-  footprintOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette,
+  footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
@@ -208,7 +208,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           {/* S5 — CAD dimension callouts for the selected/dragged object (O.C. · R.O. · AFF, feet-inches). Interactive
               pane only; witness lines + labels rotate with the plan. Vendors build each room to a published standard. */}
           {interactive && sel && (() => {
-            const ann = annotateObject(sel, OBJECT_SPEC[sel.kind], footprintOf(sel));
+            const ann = annotateObject(sel, { ...OBJECT_SPEC[sel.kind], h: heightOf(sel) }, footprintOf(sel));
             const U = 10; // ft → viewBox units
             return (
               <g data-arch-roomdim style={{ pointerEvents: "none" }}>
@@ -273,7 +273,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             const s = OBJECT_SPEC[o.kind];
             const fp = footprintOf(o);
             const swap = o.rot === 90 || o.rot === 270;
-            const W = swap ? fp.d : fp.w, D = swap ? fp.w : fp.d, hgt = s.h;   // world footprint after rotation
+            const W = swap ? fp.d : fp.w, D = swap ? fp.w : fp.d, hgt = heightOf(o);   // world footprint + variant height
             const ox = o.gx + 0.5 - W / 2, oy = o.gy + 0.5 - D / 2;           // object origin corner in world
             const on = o.id === selId;
             // S2 — rotate a part's unit-square footprint rect by o.rot (single M90 map, others composed) so the
@@ -433,7 +433,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         return (
           <div data-arch-roomobj-detail className="flex flex-wrap items-center gap-2 text-[10px]" style={{ color: C.text }}>
             <span className="flex items-center gap-1" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {vLabel ? `${vLabel} ` : ""}{selSpec.label}</span>
-            <span data-arch-roomobj-dims style={{ color: C.dim }}>{ftIn(fp.w)} W × {ftIn(fp.d)} D × {ftIn(selSpec.h)} H</span>
+            <span data-arch-roomobj-dims style={{ color: C.dim }}>{ftIn(fp.w)} W × {ftIn(fp.d)} D × {ftIn(heightOf(sel))} H</span>
             {selSpec.onWall && <span data-arch-roomobj-wall className="rounded border px-1 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{wallOf(sel.gx, sel.gy)} wall</span>}
             {vs && (
               <button data-arch-roomobj-size onClick={() => onChange(cycleVariant(objects, sel.id))} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.violet }}>
@@ -463,7 +463,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                   style={{ background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
                   <RowIcon className="h-3 w-3 shrink-0" style={{ color: on ? C.gold : s.color }} />
                   <span className="min-w-0 flex-1 truncate">{vLabel ? `${vLabel} ` : ""}{s.label}</span>
-                  <span className="shrink-0 tabular-nums" style={{ color: C.dim, fontSize: 8 }}>{fmt(fp.w)}×{fmt(fp.d)}×{fmt(s.h)}′ · {o.gx},{o.gy}</span>
+                  <span className="shrink-0 tabular-nums" style={{ color: C.dim, fontSize: 8 }}>{fmt(fp.w)}×{fmt(fp.d)}×{fmt(heightOf(o))}′ · {o.gx},{o.gy}</span>
                 </button>
               );
             })}
