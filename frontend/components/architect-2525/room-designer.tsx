@@ -26,6 +26,7 @@ import {
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
 import { annotateObject, ftIn } from "@/lib/dim-annot";
+import { roomBom } from "@/lib/architect-bom";
 import { runPlaytest, PLAYTEST_SYSTEMS } from "@/lib/architect-playtest";
 import { useRCoreGestures } from "./use-rcore-gestures";
 import type { RoomCell } from "@/lib/room-layout";
@@ -437,6 +438,26 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           {duct && <span data-arch-mep-duct style={{ color: MEP_COL.duct }}>Duct {duct.totalFt} ft</span>}
         </div>
       )}
+
+      {/* FIX-10 — BILL OF MATERIALS: purchasable, quotable line items (qty + unit) from the same libs the panes show. */}
+      {objects.length > 0 && (() => {
+        const bom = roomBom(objects, outlets);
+        return (
+          <div data-arch-bom className="rounded border p-1" style={{ borderColor: C.border, background: "#070b12" }}>
+            <div className="mb-0.5 flex items-center justify-between px-0.5 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
+              <span>Bill of Materials · quote</span><span>{bom.totalLineItems} items</span>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              {bom.lines.map((l) => (
+                <div key={l.id} data-arch-bom-line className="flex items-center justify-between px-1 text-[9px]" style={{ color: C.text }}>
+                  <span className="min-w-0 flex-1 truncate"><span style={{ color: C.dim }}>{l.category}</span> · {l.item}</span>
+                  <span className="shrink-0 tabular-nums" style={{ color: C.cyan }}>{l.unit === "ft" ? `${l.qty} ft` : `${l.qty} ea`}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* selected-object controls + details (dims · size variant) — the "asset details" for the active element */}
       {sel && (() => {

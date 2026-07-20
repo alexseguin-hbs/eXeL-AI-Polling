@@ -26,9 +26,10 @@
     "test:mep-runs": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/mep-runs.test.mjs",
     "test:dim-annot": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/dim-annot.test.mjs",
     "test:playtest": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/architect-playtest.test.mjs",
+    "test:bom": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/architect-bom.test.mjs",
     "test:rcore-gestures": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/rcore-gestures.test.mjs",
     "test:asset-kinematics": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/asset-kinematics.test.mjs",
-    "test:all": "npm run test:room-layout && npm run test:room-objects && npm run test:mep-runs && npm run test:dim-annot && npm run test:playtest && npm run test:rcore-gestures && npm run test:asset-kinematics && npm run test:guard && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:sky-embed && npm run test:terrain && npm run test:home-eggs && npm run test:bim"
+    "test:all": "npm run test:room-layout && npm run test:room-objects && npm run test:mep-runs && npm run test:dim-annot && npm run test:playtest && npm run test:rcore-gestures && npm run test:asset-kinematics && npm run test:guard && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:sky-embed && npm run test:terrain && npm run test:home-eggs && npm run test:bim && npm run test:bom"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",
