@@ -60,8 +60,8 @@ export const OBJECT_SPEC: Record<ObjectKind, { label: string; emoji: string; w: 
   // S3 — structural SHELL system (steel-grey): hex wall panel + roof panel.
   shell:     { label: "Shell Panel",emoji: "⬡", w: 4,  d: 0.7, h: 8,   onWall: true,  color: "#8899aa" },
   roof:      { label: "Roof Panel", emoji: "🔺", w: 5,  d: 5,   h: 0.7, onWall: false, color: "#8899aa" },
-  door:    { label: "Door",    emoji: "🚪", w: 3, d: 1, h: 6.7,  onWall: true,  color: "#22c55e" }, // 6'8" opening
-  window:  { label: "Window",  emoji: "▭",  w: 3, d: 1, h: 4,    onWall: true,  color: "#19c8cf" }, // ~4' sash
+  door:    { label: "Door",    emoji: "🚪", w: 3, d: 0.4, h: 6.7, onWall: true,  color: "#22c55e" }, // FIX-2 thin panel, 6'8" opening
+  window:  { label: "Window",  emoji: "▭",  w: 3, d: 0.5, h: 4,   onWall: true,  color: "#19c8cf" }, // FIX-2 thin sash, ~4'
 };
 
 export const OBJECT_KINDS = Object.keys(OBJECT_SPEC) as ObjectKind[];

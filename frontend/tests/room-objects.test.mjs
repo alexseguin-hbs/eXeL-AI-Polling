@@ -33,6 +33,8 @@ ok(OBJECT_SPEC.door.onWall && OBJECT_SPEC.window.onWall && !OBJECT_SPEC.bed.onWa
 ok(OBJECT_KINDS.every((k) => OBJECT_SPEC[k].w > 0 && OBJECT_SPEC[k].d > 0 && OBJECT_SPEC[k].emoji), "every kind has a positive footprint + glyph");
 ok(OBJECT_KINDS.every((k) => OBJECT_SPEC[k].h > 0), "every kind has a real 3D height (L×W×H)");
 ok(OBJECT_SPEC.door.h > OBJECT_SPEC.bed.h && OBJECT_SPEC.counter.h === 3, "heights are realistic (door tallest; counter 3ft)");
+// FIX-2 — openings are THIN in the wall (not 1ft-deep floating boxes, operator IMG_7528).
+ok(OBJECT_SPEC.door.d <= 0.5 && OBJECT_SPEC.window.d <= 0.6, "door/window are thin openings (d ≤ ~0.5ft)");
 
 // Mirror — data flip across the room centre (reflects in BOTH 2D + 3D since one source).
 let mo = placeObject([], "bed", 2, 3);
