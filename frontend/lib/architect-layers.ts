@@ -15,6 +15,8 @@
  * commercial, institutional) are just alternate exports later. Depth is not uniform: Structure is
  * four levels deep (Scope → Structure → Primary/Floor/Roof/Lateral System → members).
  */
+import { paletteForRoom, ROOM_ASSETS, type ObjectKind } from "./room-objects";
+import { WATER_FIXTURES, DRAIN_FIXTURES } from "./mep-runs";
 
 export interface LayerNode {
   id: string;              // stable, unique, path-derived slug — used as the SPIRAL `data-layer-node` hook
@@ -174,6 +176,56 @@ export const TINY_VISIBLE: Set<string> = (() => {
 export function isVisibleForType(id: string, scopeId: string, homeType: HomeType): boolean {
   if (homeType !== "tiny" || scopeId !== "physical") return true;
   return TINY_VISIBLE.has(id);
+}
+
+// ── CONTEXT-SCOPED VISION TREE (per-room infrastructure) ─────────────────────────────────────────
+// When a single room is entered, the left Vision Tree narrows the PHYSICAL scope to only the systems that
+// room actually needs — DERIVED (never hand-authored) so tree, MEP runs, and the BOM can never diverge:
+//   • Plumbing iff the room's palette holds a water/drain fixture (the SAME predicate mep-runs + the BOM use).
+//   • Electrical + Mechanical + Interior + Building-Envelope + Structure are universal (wiring/duct/shell everywhere).
+//   • Comms/Low-Voltage where an AV/data asset (tv/desk) exists; Exterior only for the Entry/Porch (E).
+// Excluded from a room's scope entirely: Site, Spaces, Foundation, Fire-Protection (house-level only) — so a
+// CLOSET shows no plumbing/sinks (operator rule). Operational/Lifecycle scopes stay full; house view is unchanged.
+const SYS = {
+  electrical: "physical/electrical", plumbing: "physical/plumbing", mechanical: "physical/mechanical",
+  interior: "physical/interior", envelope: "physical/building-envelope", structure: "physical/structure",
+  comms: "physical/communications-low-voltage", exterior: "physical/exterior",
+} as const;
+const WET_FIXTURES: ObjectKind[] = Array.from(new Set<ObjectKind>([...WATER_FIXTURES, ...DRAIN_FIXTURES]));
+
+/** DERIVED per-room physical systems: essential (auto-open) + secondary (collapsed). See block comment above. */
+export function roomSystems(roomKey: string): { essential: string[]; secondary: string[] } {
+  const kinds = new Set<ObjectKind>(paletteForRoom(roomKey));
+  const wet = WET_FIXTURES.some((k) => kinds.has(k));          // plumbing iff a wet fixture is offered here
+  const av = kinds.has("tv") || kinds.has("desk");             // comms iff an AV/data asset is offered here
+  const essential = [SYS.electrical, ...(wet ? [SYS.plumbing] : [])];
+  const secondary = [SYS.mechanical, SYS.interior, SYS.envelope, SYS.structure,
+    ...(av ? [SYS.comms] : []), ...(roomKey === "E" ? [SYS.exterior] : [])];
+  return { essential, secondary };
+}
+
+/** Precomputed visible-id Set per room — self+ancestors+descendants (minus L3) of each in-scope system (like TINY_VISIBLE). */
+export const ROOM_VISIBLE: Record<string, Set<string>> = (() => {
+  const out: Record<string, Set<string>> = {};
+  for (const key of Object.keys(ROOM_ASSETS)) {
+    const vis = new Set<string>();
+    const sys = roomSystems(key);
+    [...sys.essential, ...sys.secondary].forEach((sysId) => {
+      const f = findLayer(sysId); if (!f) return;
+      f.path.forEach((n) => vis.add(n.id));                                          // self + ancestors (incl. 'physical' root)
+      flattenLayers([f.node]).forEach((n) => { if (!n.level3) vis.add(n.id); });     // self + descendants, minus L3
+    });
+    out[key] = vis;
+  }
+  return out;
+})();
+
+/** Is this node visible when the given ROOM is focused? null room / non-physical scope / unknown key → true (fail-open). */
+export function isVisibleForRoom(id: string, scopeId: string, roomKey: string | null): boolean {
+  if (!roomKey || scopeId !== "physical") return true;
+  const set = ROOM_VISIBLE[roomKey];
+  if (!set) return true;   // unknown room key → never blank the tree
+  return set.has(id);
 }
 
 // Resolve an id to its node, owning scope, and ancestor path (root → node). Used by the Context inspector.
