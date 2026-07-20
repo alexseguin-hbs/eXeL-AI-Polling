@@ -166,7 +166,8 @@ export function slideAlongWall(wall: Wall, gx: number, gy: number): { gx: number
 export interface ShapePart { x: number; y: number; z: number; w: number; d: number; h: number }
 const FULL_BOX: ShapePart[] = [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 1 }];
 const SHAPE_PARTS: Partial<Record<ObjectKind, ShapePart[]>> = {
-  bed:    [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 0.6 }, { x: 0.12, y: 0.02, z: 0.6, w: 0.76, d: 0.24, h: 0.32 }], // mattress + pillow
+  // FIX-3 realistic bed: base platform (reads on all sides) + inset mattress + pillow + headboard (not a flat 2-faced slab)
+  bed:    [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 0.35 }, { x: 0.06, y: 0.1, z: 0.35, w: 0.88, d: 0.85, h: 0.33 }, { x: 0.12, y: 0.12, z: 0.68, w: 0.76, d: 0.22, h: 0.26 }, { x: 0, y: 0, z: 0, w: 1, d: 0.1, h: 1.0 }],
   sofa:   [{ x: 0, y: 0.34, z: 0, w: 1, d: 0.66, h: 0.5 }, { x: 0, y: 0, z: 0, w: 1, d: 0.34, h: 1 }],        // seat + back
   desk:   [{ x: 0, y: 0, z: 0.82, w: 1, d: 1, h: 0.18 }, { x: 0, y: 0, z: 0, w: 0.08, d: 1, h: 0.82 }, { x: 0.92, y: 0, z: 0, w: 0.08, d: 1, h: 0.82 }], // top + 2 legs
   table:  [{ x: 0, y: 0, z: 0.82, w: 1, d: 1, h: 0.18 }, { x: 0.4, y: 0.4, z: 0, w: 0.2, d: 0.2, h: 0.82 }],  // top + pedestal
