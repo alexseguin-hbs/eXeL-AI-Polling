@@ -27,6 +27,9 @@ import { LayerTree } from "./layer-tree";
 import { RightPanel } from "./right-panel";
 import { MetricStrip } from "./metric-strip";
 import { useLayerState } from "./use-layer-state";
+import { ArchitectProjects } from "./architect-projects";
+import { serializeProject, type ArchitectProjectFile } from "@/lib/architect-project-file";
+import { type RoomCell } from "@/lib/room-layout";
 import { HouseSpec } from "./house-spec";
 import { CodesPanel } from "./codes-panel";
 import { MasterReadout } from "./master-readout";
@@ -141,6 +144,17 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
     return "full";
   });
   const setHomeType = (t: HomeType) => { if (!UNLOCKED_MARKETS.includes(t)) return; setHomeTypeState(t); try { localStorage.setItem("arch2525.homeType", t); } catch {} };
+  // .arch2525 project file — command-ux1 is the ONE place with the full design: layer snapshot + market + room layout.
+  // ArchitectDesign mirrors its room layout up (designRooms) and accepts importLayout to seat a loaded design.
+  const [designRooms, setDesignRooms] = useState<RoomCell[]>([]);
+  const [importLayout, setImportLayout] = useState<RoomCell[] | null>(null);
+  const buildProjectFile = (name: string): ArchitectProjectFile =>
+    serializeProject(name, homeType, layerState.snapshot(), designRooms, (() => { try { return Date.now(); } catch { return 0; } })());
+  const loadProjectFile = (file: ArchitectProjectFile) => {
+    layerState.applySnapshot(file.snapshot);                       // seat systems · params · program · codes · BIM · gate
+    if (UNLOCKED_MARKETS.includes(file.homeType as HomeType)) setHomeType(file.homeType as HomeType);
+    setImportLayout([...file.roomLayout]); // fresh ref each load → ArchitectDesign's seat effect always re-fires
+  };
   const [menuOpen, setMenuOpen] = useState(false);
   const [showFps, setShowFps] = useState(() => { try { return localStorage.getItem("arch2525.fps") === "1"; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem("arch2525.fps", showFps ? "1" : "0"); } catch {} }, [showFps]);
@@ -278,12 +292,19 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                   "place project master key in same scrolling header as map" · Security R-CORE reuse). */}
               <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout state={layerState} inline homeType={homeType} />}
                 homeType={homeType} program={layerState.program} selectedId={selectedLayerId} onFocusRoom={setFocusRoom}
+                onRoomLayoutChange={setDesignRooms} importLayout={importLayout}
                 onDropComponent={(id) => {
                   // Drag-drop a Vision-Tree item onto the building → add its buildable leaves to the house (operator).
                   const found = findLayer(id); if (!found) return;
                   const leaves = flattenLayers([found.node]).filter((n) => !n.children?.length && !n.level3);
                   if (leaves.length) { layerState.addSpecIds(leaves.map((n) => n.id)); layerState.logReplay("house.drop", `drag-drop ${id} → +${leaves.length}`); }
                 }} />
+              {/* Design Files — save/upload the full .arch2525 project (all elements) + saved-designs library (like MP missions) */}
+              <div className="mt-2">
+                <Expander id="projectfiles" title="Design Files" sub="save · upload · .arch2525" cyan>
+                  <ArchitectProjects buildFile={buildProjectFile} onLoad={loadProjectFile} />
+                </Expander>
+              </div>
             </div>
             {sub("Design") === "Site" ? <ArchitectSkySun /> : null}
             {/* Sky = the Celestial-2525 MASTER, embedded via iframe (operator: one master design, no code

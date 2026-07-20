@@ -44,7 +44,7 @@ const iso = (x: number, y: number, z: number): Pt => {
 
 export interface DesignMetrics { walls: number; linearFt: number; studs: number; openings: number; }
 
-export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program, selectedId, onFocusRoom }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram; selectedId?: string | null; onFocusRoom?: (room: { k: string; label: string } | null) => void }) {
+export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program, selectedId, onFocusRoom, onRoomLayoutChange, importLayout }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram; selectedId?: string | null; onFocusRoom?: (room: { k: string; label: string } | null) => void; onRoomLayoutChange?: (rooms: RoomCell[]) => void; importLayout?: RoomCell[] | null }) {
   const selectedLabel = selectedId ? (findLayer(selectedId)?.node.label ?? null) : null;
   const svgRef = useRef<SVGSVGElement>(null);
   const [dragOver, setDragOver] = useState(false);   // drag-drop a Vision-Tree item onto the building
@@ -91,6 +91,10 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
     const id = setTimeout(() => { saveRoomLayout(roomLayout); }, 1200); // best-effort, never throws
     return () => clearTimeout(id);
   }, [roomLayout]);
+  // .arch2525 project file — mirror the current room layout UP so command-ux1 can bundle it into the design file,
+  // and SEAT an uploaded/loaded layout when importLayout is handed down (already sanitized by parseProject).
+  useEffect(() => { onRoomLayoutChange?.(roomLayout); }, [roomLayout]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (importLayout && importLayout.length) { setRoomLayout(persistLayout(importLayout)); } }, [importLayout]); // eslint-disable-line react-hooks/exhaustive-deps
   // Walk to the adjacent room in the 3×3, if one exists there (steps through the wireframe room by room).
   const walkStep = (dRow: number, dCol: number) => {
     const cur = roomLayout.find((r) => r.id === walkRoomId); if (!cur) return;

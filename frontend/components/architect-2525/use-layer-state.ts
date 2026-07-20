@@ -66,6 +66,9 @@ export interface LayerState {
   // Supabase saved-files (cloud backup) — the workspace snapshot mirrors to Supabase (best-effort, never blocks
   // the UI); localStorage stays the fast local rung. `cloudStatus` drives a small indicator near House Build Spec.
   cloudStatus: CloudStatus;
+  // .arch2525 project file — build the full snapshot for save/export, or seat a loaded/uploaded one.
+  snapshot: () => ArchitectSnapshot;
+  applySnapshot: (snap: ArchitectSnapshot) => void;
 }
 
 export interface ReplayEvent { t: number; kind: string; detail: string; }
@@ -181,6 +184,21 @@ export function useLayerState(): LayerState {
     replay,
     savedAt: (() => { try { return Date.now(); } catch { return 0; } })(),
   });
+  // Seat a whole snapshot into the workspace — used when LOADING a saved design / uploaded .arch2525 file (operator).
+  // Same field-by-field seat the cloud/local mount-load uses; sanitize happens upstream (parseProject / sanitizeSnapshot).
+  const applySnapshot = (snap: ArchitectSnapshot) => {
+    const put = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+    replaceSpec(snap.houseSpec ?? []);
+    replaceHidden(snap.layerHidden ?? []);
+    replaceLocked(snap.layerLocked ?? []);
+    setUnclassified((snap.unclassified as ImportedObject[]) ?? []); put("arch2525.unclassified", snap.unclassified ?? []);
+    setBimManifest((snap.bimManifest as BimManifest | null) ?? null); put("arch2525.bimManifest", snap.bimManifest ?? null);
+    setAssetOverrides((snap.assetOverrides as Record<string, AssetOverrides>) ?? {}); put("arch2525.assetOverrides", snap.assetOverrides ?? {});
+    setGateRaw(Math.max(0, Math.min(13, snap.gate ?? 3))); put("arch2525.gate", Math.max(0, Math.min(13, snap.gate ?? 3)));
+    if (snap.globalParams) { setGlobalParamsRaw({ ...DEFAULT_PARAMS, ...(snap.globalParams as Partial<GlobalParams>) }); put("arch2525.globalParams", snap.globalParams); }
+    if (snap.program) { setProgramRaw({ ...DEFAULT_PROGRAM, ...(snap.program as Partial<RoomProgram>) }); put("arch2525.program", snap.program); }
+    if (snap.codes) replaceCodes(snap.codes as string[]);
+  };
   useEffect(() => {
     let cancelled = false;
     if (!cloudEnabled()) { setCloudStatus("offline"); skipSave.current = false; return; }
@@ -232,5 +250,6 @@ export function useLayerState(): LayerState {
     hidden, locked, toggleHidden, toggleLocked, isolate, revealAll, spec, toggleSpec, addSpecIds, setSpecIds, clearSpec,
     replay, logReplay, unclassified, bimManifest, applyBimImport, resolveUnclassified, assetOverrides, setAssetOverride,
     gate, setGate, globalParams, setGlobalParams, program, setProgram, codes, toggleCode, cloudStatus,
+    snapshot, applySnapshot, // .arch2525 project file: build the full snapshot / seat a loaded one
   };
 }
