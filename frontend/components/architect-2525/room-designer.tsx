@@ -20,7 +20,7 @@ import { MiniPanel } from "./mini-panel";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
   OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
-  footprintOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom,
+  footprintOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
@@ -340,20 +340,26 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     </div>
   );
   // Interior palette (shared between both layout modes) — sits between the panes (stacked) / below (floating).
+  // S3: context-aware (paletteForRoom, single source) · S7: grouped by building system (groupPalette).
+  const toolBtn = (k: ObjectKind) => {
+    const s = OBJECT_SPEC[k], on = tool === k, Icon = ICON[k];
+    return (
+      <button key={k} data-arch-tool={k} onClick={() => setTool(on ? null : k)} title={`${s.label} — tap then tap the floor, or drag onto the plan`}
+        draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", k); e.dataTransfer.effectAllowed = "copy"; setTool(k); }}
+        className="flex cursor-grab items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] active:cursor-grabbing"
+        style={{ borderColor: on ? C.gold : C.border, background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
+        <Icon className="h-3.5 w-3.5" style={{ color: on ? C.gold : s.color }} />{s.label}
+      </button>
+    );
+  };
   const paletteEl = (
-    <div data-arch-roomdesign-palette className="flex flex-wrap gap-1" style={{ touchAction: "none" }}>{/* S4b: pinch here must not zoom the page */}
-      {/* S3: palette is context-aware — the room's typical assets + common openings/shell (paletteForRoom, single source) */}
-      {paletteForRoom(room.k).map((k) => {
-        const s = OBJECT_SPEC[k], on = tool === k, Icon = ICON[k];
-        return (
-          <button key={k} data-arch-tool={k} onClick={() => setTool(on ? null : k)} title={`${s.label} — tap then tap the floor, or drag onto the plan`}
-            draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", k); e.dataTransfer.effectAllowed = "copy"; setTool(k); }}
-            className="flex cursor-grab items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] active:cursor-grabbing"
-            style={{ borderColor: on ? C.gold : C.border, background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
-            <Icon className="h-3.5 w-3.5" style={{ color: on ? C.gold : s.color }} />{s.label}
-          </button>
-        );
-      })}
+    <div data-arch-roomdesign-palette className="flex flex-wrap items-stretch gap-x-2 gap-y-1" style={{ touchAction: "none" }}>{/* S4b: pinch here must not zoom the page */}
+      {groupPalette(paletteForRoom(room.k)).map(({ group, kinds }) => (
+        <div key={group} data-arch-palette-group={group} className="flex items-center gap-1">
+          <span className="shrink-0 text-[7px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{group}</span>
+          {kinds.map(toolBtn)}
+        </div>
+      ))}
     </div>
   );
 

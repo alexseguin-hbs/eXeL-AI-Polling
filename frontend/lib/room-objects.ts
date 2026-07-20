@@ -181,6 +181,29 @@ export function paletteForRoom(roomKey: string): ObjectKind[] {
   return out;
 }
 
+/**
+ * S7 — palette GROUPING by building system, so the context palette reads as tidy sections (Sleep · Living · Kitchen ·
+ * Bath · Openings · Shell) instead of a flat row. Pure + deterministic; the palette render just maps over the result.
+ */
+export type AssetGroup = "Sleep" | "Living" | "Kitchen" | "Bath" | "Openings" | "Shell";
+export const GROUP_ORDER: AssetGroup[] = ["Sleep", "Living", "Kitchen", "Bath", "Openings", "Shell"];
+const ASSET_GROUP: Record<ObjectKind, AssetGroup> = {
+  bed: "Sleep", nightstand: "Sleep", dresser: "Sleep", wardrobe: "Sleep",
+  sofa: "Living", chair: "Living", table: "Living", tv: "Living", bookshelf: "Living", desk: "Living",
+  counter: "Kitchen", fridge: "Kitchen", stove: "Kitchen",
+  toilet: "Bath", tub: "Bath", shower: "Bath", sink: "Bath", washer: "Bath",
+  door: "Openings", window: "Openings",
+  shell: "Shell", roof: "Shell",
+};
+/** Which system group a kind belongs to (S7). */
+export function groupOf(kind: ObjectKind): AssetGroup { return ASSET_GROUP[kind]; }
+/** Group a palette's kinds into ordered system sections, preserving input order within each group; empty groups omitted. */
+export function groupPalette(kinds: ObjectKind[]): { group: AssetGroup; kinds: ObjectKind[] }[] {
+  return GROUP_ORDER
+    .map((group) => ({ group, kinds: kinds.filter((k) => ASSET_GROUP[k] === group) }))
+    .filter((g) => g.kinds.length > 0);
+}
+
 /** Remove an object. */
 export function removeObject(objs: PlacedObject[], id: string): PlacedObject[] {
   return objs.filter((o) => o.id !== id);

@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -96,6 +96,16 @@ ok(paletteForRoom("B").includes("shower") && paletteForRoom("B").includes("tub")
 ok(["door", "window", "shell", "roof"].every((k) => paletteForRoom("O").includes(k)), "every room palette appends openings + structural shell");
 ok(new Set(paletteForRoom("L")).size === paletteForRoom("L").length, "palette is de-duplicated (no repeated kind)");
 ok(paletteForRoom("ZZ").length > 0 && paletteForRoom("ZZ").includes("door"), "unknown room key → general fallback palette (still has openings)");
+
+// S7 — palette grouping by building system. Every kind has a group; groups render in fixed order; empty groups omitted.
+ok(OBJECT_KINDS.every((k) => GROUP_ORDER.includes(groupOf(k))), "every kind maps to a known system group");
+ok(groupOf("bed") === "Sleep" && groupOf("fridge") === "Kitchen" && groupOf("shower") === "Bath" && groupOf("door") === "Openings" && groupOf("shell") === "Shell", "kinds map to the right groups");
+const kg = groupPalette(paletteForRoom("K"));
+ok(kg.map((g) => g.group).join(",") === kg.map((g) => g.group).sort((a, b) => GROUP_ORDER.indexOf(a) - GROUP_ORDER.indexOf(b)).join(","), "groups appear in GROUP_ORDER order");
+ok(kg.every((g) => g.kinds.length > 0), "no empty groups returned");
+ok(kg.flatMap((g) => g.kinds).length === paletteForRoom("K").length, "grouping preserves every palette kind (no drops/dupes)");
+ok(kg.find((g) => g.group === "Kitchen")?.kinds.includes("fridge"), "kitchen group contains fridge");
+ok(kg.some((g) => g.group === "Openings") && kg.some((g) => g.group === "Shell"), "kitchen palette still shows Openings + Shell groups");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");
