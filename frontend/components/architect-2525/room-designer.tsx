@@ -279,7 +279,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                       <polygon points={head(X1, Y1, 1)} fill={col} style={{ pointerEvents: "none" }} />
                       <polygon points={head(X2, Y2, -1)} fill={col} style={{ pointerEvents: "none" }} />
                       <text data-arch-dim-edit={s.edit} x={mx} y={my - 1.2} fontSize={2.8} fill={col} textAnchor="middle" stroke="#070b12" strokeWidth={0.7}
-                        style={{ paintOrder: "stroke", cursor: "pointer" }} onClick={(e) => applyEdit(e, s.edit, s.ft)}>{s.label} ✎</text>
+                        style={{ paintOrder: "stroke", vectorEffect: "non-scaling-stroke", cursor: "pointer" }} onClick={(e) => applyEdit(e, s.edit, s.ft)}>{s.label} ✎</text>
                     </g>
                   );
                 })}
@@ -288,7 +288,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                   const ne = n.edit; // capture so TS narrows inside the onClick closure
                   return (
                     <text key={`n${i}`} data-arch-dim-edit={ne} x={(sel.gx + 0.5) * U} y={(sel.gy + 0.5) * U + 4.2 + i * 3.6} fontSize={3} fill={ne ? C.cyan : C.gold}
-                      textAnchor="middle" stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke", cursor: ne ? "pointer" : "default", pointerEvents: ne ? "auto" : "none" }}
+                      textAnchor="middle" stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke", vectorEffect: "non-scaling-stroke", cursor: ne ? "pointer" : "default", pointerEvents: ne ? "auto" : "none" }}
                       onClick={ne ? (e) => applyEdit(e, ne, fp.w) : undefined}>{n.text}{ne === "size" ? " ✎" : ""}</text>
                   );
                 })}
