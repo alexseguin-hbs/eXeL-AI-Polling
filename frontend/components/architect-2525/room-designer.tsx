@@ -157,7 +157,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // read-only at its own rotation `bear`. This lets two 2D panes hold independent angles.
   const plan2D = (bear: number, setBear: (n: number) => void, interactive: boolean, size?: number) => (
     <div className="relative" style={boxStyle(size)}>
-      <svg {...(interactive ? { ref: svgRef, onPointerMove: svgMove, onPointerUp: svgUp, onPointerCancel: svgUp, onDragOver: (e: React.DragEvent) => e.preventDefault(), onDrop: dropOnFloor } : {})}
+      <svg {...(interactive ? { ref: svgRef, onPointerMove: svgMove, onPointerUp: svgUp, onPointerCancel: svgUp, onPointerLeave: svgUp, onDragOver: (e: React.DragEvent) => e.preventDefault(), onDrop: dropOnFloor } : {})}
         data-arch-roomdesign-2d viewBox="0 0 100 100" className="rounded border"
         style={{ borderColor: C.cyan, background: "#070b12", touchAction: "none", ...svgStyle(size) }}>
         <g data-arch-roomdesign-2d-rot transform={`rotate(${bear} 50 50)`}>
@@ -285,7 +285,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   );
   // Interior palette (shared between both layout modes) — sits between the panes (stacked) / below (floating).
   const paletteEl = (
-    <div data-arch-roomdesign-palette className="flex flex-wrap gap-1">
+    <div data-arch-roomdesign-palette className="flex flex-wrap gap-1" style={{ touchAction: "none" }}>{/* S4b: pinch here must not zoom the page */}
       {OBJECT_KINDS.map((k) => {
         const s = OBJECT_SPEC[k], on = tool === k, Icon = ICON[k];
         return (
@@ -301,7 +301,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   );
 
   return (
-    <div data-arch-room-designer className="flex min-h-0 flex-1 flex-col gap-2">
+    <div data-arch-room-designer className="flex min-h-0 flex-1 flex-col gap-2" style={{ touchAction: "pan-y" }}>{/* S4b: page still scrolls vertically, but a pinch inside the designer can't zoom the whole page */}
       {/* header */}
       <div className="flex items-center gap-2">
         <button data-arch-roomdesign-back onClick={onBack} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← Back to house</button>
