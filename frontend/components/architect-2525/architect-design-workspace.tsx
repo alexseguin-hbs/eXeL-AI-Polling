@@ -40,7 +40,7 @@ function Rail({ side, title, open, setOpen, children, titleIcon }: {
     // rail. Matches operator refs: IMG_7401 (landscape vertical rails) + IMG_7399 (portrait horizontal bar).
     return (
       <button data-arch-rail-collapsed={side} onClick={() => setOpen(true)} title={`Show ${title}`}
-        className="flex w-full shrink-0 flex-row items-center justify-center gap-2 rounded-lg border px-1.5 py-1 hover:bg-white/5 md:w-[56px] md:flex-col md:self-end md:py-2"
+        className="flex w-full shrink-0 flex-row items-center justify-center gap-2 rounded-lg border px-1.5 py-1 hover:bg-white/5 md:w-[56px] md:flex-col md:self-start md:py-2"
         style={{ background: C.panel, borderColor: C.border }}>
         <span data-arch-rail-toggle className="flex flex-col items-center gap-[3px]">
           {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
@@ -104,8 +104,11 @@ function BottomPanel({ id, title, accent, open, setOpen, children }: {
           {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
         </button>
         <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
-        <button data-bpanel-max={id} onClick={() => { setMax(true); setOpen(true); }} title="Maximize to full screen" aria-label="Maximize"
-          className="absolute right-3 rounded p-1 hover:bg-white/10"><Maximize2 className="h-3 w-3" style={{ color: C.dim }} /></button>
+        {/* Maximize is only offered once the panel is EXPANDED — you can't full-screen a collapsed panel (operator). */}
+        {open && (
+          <button data-bpanel-max={id} onClick={() => { setMax(true); setOpen(true); }} title="Maximize to full screen" aria-label="Maximize"
+            className="absolute right-3 rounded p-1 hover:bg-white/10"><Maximize2 className="h-3 w-3" style={{ color: C.dim }} /></button>
+        )}
       </div>
       {open && <div className="p-3">{children}</div>}
     </div>
@@ -141,7 +144,7 @@ export function DesignWorkspace({ leftRail, rightRail, bottomPanel, bottomPanel2
         {/* F4 — when the Active Items rail is collapsed, the key housing metrics ride ONTO the map. */}
         {!rightOpen && metricStrip}
       </div>
-      <Rail side="right" title="Active Items" open={rightOpen} setOpen={setRightOpen}>
+      <Rail side="right" title="Active Elements" open={rightOpen} setOpen={setRightOpen}>
         {rightRail ?? (
           <div className="text-[10px] leading-relaxed" style={{ color: C.dim }}>
             Select a layer to inspect its properties, Level&nbsp;3 Cubes, and linked records (C5).
