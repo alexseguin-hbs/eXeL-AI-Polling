@@ -118,7 +118,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     try { return localStorage.getItem("arch2525.roomLinkView") === "1"; } catch { return false; }
   });
   const setLink = (v: boolean) => { setLinkView(v); try { localStorage.setItem("arch2525.roomLinkView", v ? "1" : "0"); } catch {} };
-  const [dimEntry, setDimEntry] = useState<{ edit: "oc" | "size" | "gapNear" | "gapFar" } | null>(null); // FIX-5b/5c numeric entry
+  const [dimEntry, setDimEntry] = useState<{ edit: "oc" | "size" | "gapNear" | "gapFar"; axis: "x" | "y" } | null>(null); // FIX-5b/5c numeric entry (axis: horizontal|vertical chain)
   const [dimVal, setDimVal] = useState("");
 
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent | React.DragEvent): { gx: number; gy: number } | null => {
@@ -241,55 +241,61 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           {interactive && sel && (() => {
             const fp = footprintOf(sel);
             const ann = annotateObject(sel, { ...OBJECT_SPEC[sel.kind], h: heightOf(sel) }, fp);
-            const chain = chainDims(sel, OBJECT_SPEC[sel.kind], fp);   // FIX-5c wall→edge · size · edge→wall
+            const onWall = OBJECT_SPEC[sel.kind].onWall;
+            // FIX-5c — the object's primary chain; free furniture ALSO gets the perpendicular chain so BOTH horizontal
+            // AND vertical coordinates are editable in the same manner (operator: "include vertical coordinates too").
+            const primary = chainDims(sel, OBJECT_SPEC[sel.kind], fp);
+            const perp = onWall ? null : chainDims(sel, OBJECT_SPEC[sel.kind], fp, undefined, primary.axis === "x" ? "y" : "x");
             const U = 10; // ft → viewBox units
             // Tap any dimension to TYPE an exact value; commit re-derives so the OTHER gaps update (operator).
-            const applyEdit = (e: React.MouseEvent, edit: "oc" | "size" | "gapNear" | "gapFar", cur: number) => {
+            const applyEdit = (e: React.MouseEvent, edit: "oc" | "size" | "gapNear" | "gapFar", cur: number, axis: "x" | "y") => {
               e.stopPropagation();
               setDimVal(ftIn(cur));
-              setDimEntry({ edit });
+              setDimEntry({ edit, axis });
             };
+            const renderChain = (chain: ReturnType<typeof chainDims>, tag: string) => chain.segs.map((s, i) => {
+              const horiz = chain.axis === "x";
+              const a = s.a * U, b = s.b * U, along = chain.along * U;
+              const X1 = horiz ? a : along, Y1 = horiz ? along : a, X2 = horiz ? b : along, Y2 = horiz ? along : b;
+              const mx = (X1 + X2) / 2, my = (Y1 + Y2) / 2;
+              const col = s.kind === "size" ? C.gold : C.cyan;
+              const ah = 1.4, ew = 1.6; // arrowhead length · extension-line half-length
+              // standard CAD dimension: witness (extension) lines at each end + inward-pointing arrowheads.
+              const head = (hx: number, hy: number, dir: 1 | -1) => horiz
+                ? poly([[hx, hy], [hx + dir * ah, hy - ah * 0.6], [hx + dir * ah, hy + ah * 0.6]])
+                : poly([[hx, hy], [hx - ah * 0.6, hy + dir * ah], [hx + ah * 0.6, hy + dir * ah]]);
+              return (
+                <g key={`${tag}${i}`}>
+                  {/* witness/extension lines at both ends (perpendicular to the dimension line) */}
+                  {horiz ? (<>
+                    <line x1={X1} y1={Y1 - ew} x2={X1} y2={Y1 + ew} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
+                    <line x1={X2} y1={Y2 - ew} x2={X2} y2={Y2 + ew} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
+                  </>) : (<>
+                    <line x1={X1 - ew} y1={Y1} x2={X1 + ew} y2={Y1} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
+                    <line x1={X2 - ew} y1={Y2} x2={X2 + ew} y2={Y2} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
+                  </>)}
+                  {/* dimension line + inward arrowheads at each end (engineering-drawing standard) */}
+                  <line x1={X1} y1={Y1} x2={X2} y2={Y2} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                  <polygon points={head(X1, Y1, 1)} fill={col} style={{ pointerEvents: "none" }} />
+                  <polygon points={head(X2, Y2, -1)} fill={col} style={{ pointerEvents: "none" }} />
+                  <text data-arch-dim-edit={s.edit} data-arch-dim-axis={chain.axis} x={mx} y={my - 1.2} fontSize={2.8} fill={col} textAnchor="middle" stroke="#070b12" strokeWidth={0.7}
+                    style={{ paintOrder: "stroke", vectorEffect: "non-scaling-stroke", cursor: "pointer" }} onClick={(e) => applyEdit(e, s.edit, s.ft, chain.axis)}>{s.label} ✎</text>
+                </g>
+              );
+            });
             return (
               <g data-arch-roomdim>
-                {/* FIX-5c — the 3-segment chain along the object's axis: wall→near edge · object · far edge→wall.
-                    Each label is tappable to enter an exact value; editing one shifts the object so the others change. */}
-                {chain.segs.map((s, i) => {
-                  const horiz = chain.axis === "x";
-                  const a = s.a * U, b = s.b * U, along = chain.along * U;
-                  const X1 = horiz ? a : along, Y1 = horiz ? along : a, X2 = horiz ? b : along, Y2 = horiz ? along : b;
-                  const mx = (X1 + X2) / 2, my = (Y1 + Y2) / 2;
-                  const col = s.kind === "size" ? C.gold : C.cyan;
-                  const ah = 1.4, ew = 1.6; // arrowhead length · extension-line half-length
-                  // standard CAD dimension: witness (extension) lines at each end + inward-pointing arrowheads.
-                  const head = (hx: number, hy: number, dir: 1 | -1) => horiz
-                    ? poly([[hx, hy], [hx + dir * ah, hy - ah * 0.6], [hx + dir * ah, hy + ah * 0.6]])
-                    : poly([[hx, hy], [hx - ah * 0.6, hy + dir * ah], [hx + ah * 0.6, hy + dir * ah]]);
-                  return (
-                    <g key={`c${i}`}>
-                      {/* witness/extension lines at both ends (perpendicular to the dimension line) */}
-                      {horiz ? (<>
-                        <line x1={X1} y1={Y1 - ew} x2={X1} y2={Y1 + ew} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
-                        <line x1={X2} y1={Y2 - ew} x2={X2} y2={Y2 + ew} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
-                      </>) : (<>
-                        <line x1={X1 - ew} y1={Y1} x2={X1 + ew} y2={Y1} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
-                        <line x1={X2 - ew} y1={Y2} x2={X2 + ew} y2={Y2} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
-                      </>)}
-                      {/* dimension line + inward arrowheads at each end (engineering-drawing standard) */}
-                      <line x1={X1} y1={Y1} x2={X2} y2={Y2} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
-                      <polygon points={head(X1, Y1, 1)} fill={col} style={{ pointerEvents: "none" }} />
-                      <polygon points={head(X2, Y2, -1)} fill={col} style={{ pointerEvents: "none" }} />
-                      <text data-arch-dim-edit={s.edit} x={mx} y={my - 1.2} fontSize={2.8} fill={col} textAnchor="middle" stroke="#070b12" strokeWidth={0.7}
-                        style={{ paintOrder: "stroke", vectorEffect: "non-scaling-stroke", cursor: "pointer" }} onClick={(e) => applyEdit(e, s.edit, s.ft)}>{s.label} ✎</text>
-                    </g>
-                  );
-                })}
+                {/* FIX-5c — 3-segment chain(s): wall→near edge · object · far edge→wall. Horizontal always; vertical too
+                    for free furniture. Each label is tappable to type an exact value; editing one re-derives the others. */}
+                {renderChain(primary, "c")}
+                {perp && renderChain(perp, "cy")}
                 {/* R.O. / SILL notes stay for openings (not part of the position chain) */}
                 {ann.notes.map((n, i) => {
                   const ne = n.edit; // capture so TS narrows inside the onClick closure
                   return (
                     <text key={`n${i}`} data-arch-dim-edit={ne} x={(sel.gx + 0.5) * U} y={(sel.gy + 0.5) * U + 4.2 + i * 3.6} fontSize={3} fill={ne ? C.cyan : C.gold}
                       textAnchor="middle" stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke", vectorEffect: "non-scaling-stroke", cursor: ne ? "pointer" : "default", pointerEvents: ne ? "auto" : "none" }}
-                      onClick={ne ? (e) => applyEdit(e, ne, fp.w) : undefined}>{n.text}{ne === "size" ? " ✎" : ""}</text>
+                      onClick={ne ? (e) => applyEdit(e, ne, fp.w, primary.axis) : undefined}>{n.text}{ne === "size" ? " ✎" : ""}</text>
                   );
                 })}
               </g>
@@ -308,24 +314,27 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         const applyDim = () => {
           const v = parseFeet(dimVal);
           if (v != null) {
-            const e = dimEntry.edit;
+            const e = dimEntry.edit, ax = dimEntry.axis; // ax routes to the horizontal (x) or vertical (y) chain
             onChange(
-              e === "oc" ? setAlongWall(objects, sel.id, v)
-              : e === "gapNear" ? setGap(objects, sel.id, "near", v)
-              : e === "gapFar" ? setGap(objects, sel.id, "far", v)
-              : setVariantByWidth(objects, sel.id, v)
+              e === "oc" ? setAlongWall(objects, sel.id, v, ax)
+              : e === "gapNear" ? setGap(objects, sel.id, "near", v, ax)
+              : e === "gapFar" ? setGap(objects, sel.id, "far", v, ax)
+              : setVariantByWidth(objects, sel.id, v, ax)
             );
           }
           setDimEntry(null);
         };
-        const label = dimEntry.edit === "oc" ? "O.C." : dimEntry.edit === "gapNear" ? "From wall" : dimEntry.edit === "gapFar" ? "To wall" : "Size";
+        const axSuffix = dimEntry.axis === "y" ? " ↕" : " ↔"; // show which coordinate is being edited
+        const label = (dimEntry.edit === "oc" ? "O.C." : dimEntry.edit === "gapNear" ? "From wall" : dimEntry.edit === "gapFar" ? "To wall" : "Size") + axSuffix;
         return (
           <div data-arch-dim-entry className="absolute left-1/2 top-1.5 flex -translate-x-1/2 items-center gap-1 rounded border px-1.5 py-1 shadow-lg"
-            style={{ borderColor: C.cyan, background: "#0a0f16f2" }}>
+            style={{ borderColor: C.cyan, background: "#0a0f16f2", touchAction: "manipulation" }}>
             <span className="text-[9px] font-semibold" style={{ color: C.dim }}>{label}</span>
-            <input data-arch-dim-input autoFocus value={dimVal} onChange={(e) => setDimVal(e.target.value)}
+            {/* fontSize 16 + inputMode: iOS Safari auto-zooms the page when focusing an input under 16px — 16px stops it
+                (operator: "don't zoom in when I click dimensions to input specifics"). */}
+            <input data-arch-dim-input autoFocus inputMode="decimal" value={dimVal} onChange={(e) => setDimVal(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") applyDim(); else if (e.key === "Escape") setDimEntry(null); }}
-              placeholder={`e.g. 3'-6"`} className="w-16 rounded border bg-transparent px-1 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.text }} />
+              placeholder={`e.g. 3'-6"`} className="w-20 rounded border bg-transparent px-1 py-0.5" style={{ borderColor: C.border, color: C.text, fontSize: 16 }} />
             <button data-arch-dim-ok onClick={applyDim} className="rounded border px-1.5 py-0.5 text-[9px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }}>Set</button>
             <button data-arch-dim-cancel onClick={() => setDimEntry(null)} className="rounded border px-1 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.dim }}>✕</button>
           </div>

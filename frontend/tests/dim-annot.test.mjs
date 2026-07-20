@@ -53,6 +53,15 @@ ok(cc.segs[0].edit === "gapNear" && cc.segs[1].edit === "size" && cc.segs[2].edi
 const cwin = chainDims({ id: "w", kind: "window", gx: 0, gy: 4, rot: 0 }, OBJECT_SPEC.window, footprintOf({ kind: "window" }));
 ok(cwin.axis === "y", "chainDims: W/E wall opening → Y axis (runs along its wall)");
 
+// ── vertical coordinates (operator: "include vertical coordinates as well in same matter") — forceAxis "y" ──
+const cy = chainDims(cbed, OBJECT_SPEC.bed, footprintOf(cbed), undefined, "y");
+ok(cy.axis === "y" && cy.segs.length === 3, "chainDims forceAxis 'y': vertical chain, 3 segments");
+ok(cy.segs.map((s) => s.kind).join(",") === "gapNear,size,gapFar", "vertical chain order: gapNear · size · gapFar");
+ok(Math.abs(cy.segs[0].ft + cy.segs[1].ft + cy.segs[2].ft - ROOM_FT) < 1e-9, "vertical chain sums to the room (10 ft)");
+// bed depth 6, centred gy 3 → cy 3.5: near 0.5' · size 6' · far 3.5'
+ok(Math.abs(cy.segs[1].ft - 6) < 1e-9 && Math.abs(cy.segs[0].ft - 0.5) < 1e-9 && Math.abs(cy.segs[2].ft - 3.5) < 1e-9, "vertical: near 0.5' · depth 6' · far 3.5'");
+ok(cy.axis !== cc.axis, "vertical (y) and horizontal (x) chains are on different axes — both shown for free furniture");
+
 // ── determinism ──
 ok(JSON.stringify(annotateObject(door, OBJECT_SPEC.door, footprintOf(door))) === JSON.stringify(da), "annotateObject is deterministic");
 ok(JSON.stringify(chainDims(cbed, OBJECT_SPEC.bed, footprintOf(cbed))) === JSON.stringify(cc), "chainDims is deterministic");

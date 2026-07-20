@@ -167,13 +167,14 @@ export function parseFeet(s: string): number | null {
  * FIX-5b — set a wall opening's ON-CENTER distance (ft, measured from the near corner along its wall) to an exact
  * value, footprint-clamped inside the room, fractional (inch-precise). Non-wall kinds: sets the along-X centre.
  */
-export function setAlongWall(objs: PlacedObject[], id: string, ocFt: number): PlacedObject[] {
+export function setAlongWall(objs: PlacedObject[], id: string, ocFt: number, forceAxis?: "x" | "y"): PlacedObject[] {
   return objs.map((o) => {
     if (o.id !== id) return o;
     const fp = footprintOf(o);
     const wall = OBJECT_SPEC[o.kind].onWall ? wallOf(o.gx, o.gy) : "N";
-    const gx = wall === "N" || wall === "S" ? ocFt - 0.5 : o.gx;
-    const gy = wall === "W" || wall === "E" ? ocFt - 0.5 : o.gy;
+    const axis: "x" | "y" = forceAxis ?? (wall === "W" || wall === "E" ? "y" : "x"); // forceAxis = vertical O.C. entry
+    const gx = axis === "x" ? ocFt - 0.5 : o.gx;
+    const gy = axis === "y" ? ocFt - 0.5 : o.gy;
     const c = clampFootprint(gx, gy, fp.w, fp.d, o.rot, false);
     return { ...o, gx: c.gx, gy: c.gy };
   });
@@ -184,12 +185,12 @@ export function setAlongWall(objs: PlacedObject[], id: string, ocFt: number): Pl
  * (wall opening → along its wall; free furniture → X). Moving one edge shifts the whole object, so the wall→edge ·
  * size · edge→wall chain re-derives and the OTHER gap updates automatically (operator: edit one, others change).
  */
-export function setGap(objs: PlacedObject[], id: string, which: "near" | "far", gapFt: number): PlacedObject[] {
+export function setGap(objs: PlacedObject[], id: string, which: "near" | "far", gapFt: number, forceAxis?: "x" | "y"): PlacedObject[] {
   return objs.map((o) => {
     if (o.id !== id) return o;
     const fp = footprintOf(o);
     const wall = OBJECT_SPEC[o.kind].onWall ? wallOf(o.gx, o.gy) : "N";
-    const axis: "x" | "y" = wall === "W" || wall === "E" ? "y" : "x";
+    const axis: "x" | "y" = forceAxis ?? (wall === "W" || wall === "E" ? "y" : "x"); // forceAxis = vertical gap entry
     const size = axis === "x" ? fp.w : fp.d;
     const centre = which === "near" ? gapFt + size / 2 : ROOM_GRID - gapFt - size / 2;
     const g = centre - 0.5;
@@ -198,14 +199,16 @@ export function setGap(objs: PlacedObject[], id: string, which: "near" | "far", 
   });
 }
 
-/** FIX-5b — set the size variant whose WIDTH is closest to the typed feet value (no-op for kinds without variants). */
-export function setVariantByWidth(objs: PlacedObject[], id: string, wFt: number): PlacedObject[] {
+/** FIX-5b — set the size variant whose WIDTH (axis "x", default) or DEPTH (axis "y") is closest to the typed feet
+ * value (no-op for kinds without variants). The vertical dimension chain edits by depth in the same manner. */
+export function setVariantByWidth(objs: PlacedObject[], id: string, wFt: number, forceAxis: "x" | "y" = "x"): PlacedObject[] {
   return objs.map((o) => {
     if (o.id !== id) return o;
     const vs = VARIANTS[o.kind];
     if (!vs || vs.length === 0) return o;
-    let best = vs[0], bestD = Math.abs(vs[0].w - wFt);
-    for (const v of vs) { const dd = Math.abs(v.w - wFt); if (dd < bestD) { best = v; bestD = dd; } }
+    const dim = (v: { w: number; d: number }) => (forceAxis === "y" ? v.d : v.w);
+    let best = vs[0], bestD = Math.abs(dim(vs[0]) - wFt);
+    for (const v of vs) { const dd = Math.abs(dim(v) - wFt); if (dd < bestD) { best = v; bestD = dd; } }
     return { ...o, variant: best.id };
   });
 }

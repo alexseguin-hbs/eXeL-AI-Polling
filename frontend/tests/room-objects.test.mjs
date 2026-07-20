@@ -185,6 +185,17 @@ gb = setGap(gb, "bed-1", "far", 1);                    // set far gap to 1' → 
 ok(Math.abs((gb[0].gx + 0.5 - footprintOf(gb[0]).w / 2) - 4) < 1e-9, "setGap far 1' → near edge 4' from wall");
 ok(setGap(gb, "bed-1", "near", 99)[0].gx + 0.5 + footprintOf(gb[0]).w / 2 <= ROOM_GRID + 1e-9, "setGap clamps object inside the room");
 
+// Vertical coordinates (operator: "include vertical coordinates as well in same matter") — forceAxis "y" moves in Y.
+let vy = placeObject([], "bed", 3, 3);                  // bed depth 6, cy 3.5 → near 0.5', far 3.5'
+vy = setGap(vy, "bed-1", "near", 2, "y");               // vertical near gap 2' → moves in Y, gx unchanged
+ok(Math.abs(vy[0].gy + 0.5 - footprintOf(vy[0]).d / 2 - 2) < 1e-9, "setGap axis 'y' near 2' → near edge 2' from top wall (moves in Y)");
+ok(vy[0].gx === placeObject([], "bed", 3, 3)[0].gx, "setGap axis 'y' leaves the X position untouched");
+let voc = setAlongWall(placeObject([], "bed", 3, 3), "bed-1", 5, "y"); // vertical O.C. 5' → cy 5 → gy 4.5
+ok(Math.abs(voc[0].gy - 4.5) < 1e-9, "setAlongWall axis 'y': vertical O.C. 5' → gy 4.5");
+// setVariantByWidth axis 'y' picks nearest by DEPTH (vertical size edit, same manner)
+let vd = setVariantByWidth(placeObject([], "bed", 1, 1), "bed-1", 3, "y");
+ok(VARIANTS.bed.find((v) => v.id === vd[0].variant), "setVariantByWidth axis 'y' picks a real variant by depth");
+
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");
 

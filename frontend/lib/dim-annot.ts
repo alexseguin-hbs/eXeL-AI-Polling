@@ -31,9 +31,11 @@ export interface DimChain { axis: "x" | "y"; along: number; segs: ChainSeg[] }
  * ALONG its wall; free furniture uses the X/width axis). The three segments always sum to the room dimension, so
  * editing any one (and re-deriving) updates the others. Pure + deterministic.
  */
-export function chainDims(o: PlacedObject, spec: { onWall: boolean }, footprint: { w: number; d: number }, roomFt = ROOM_FT): DimChain {
+export function chainDims(o: PlacedObject, spec: { onWall: boolean }, footprint: { w: number; d: number }, roomFt = ROOM_FT, forceAxis?: "x" | "y"): DimChain {
   const wall = spec.onWall ? wallOf(o.gx, o.gy) : "N";
-  const axis: "x" | "y" = wall === "W" || wall === "E" ? "y" : "x";
+  // forceAxis lets the renderer draw BOTH the horizontal (x) and vertical (y) chains for free furniture (operator:
+  // "include vertical coordinates as well in same matter"); default = the object's primary axis (as before).
+  const axis: "x" | "y" = forceAxis ?? (wall === "W" || wall === "E" ? "y" : "x");
   const centre = axis === "x" ? o.gx + 0.5 : o.gy + 0.5;
   const size = axis === "x" ? footprint.w : footprint.d;
   const near = Math.max(0, centre - size / 2);          // wall(0) → near edge
