@@ -9,6 +9,7 @@
  * read one source. Clicking a room selects it (lifts to the app so the right panel + 3D agree).
  */
 import { TINY_ROOM_LAYOUT, ROOM_FT, TINY_GRID, type RoomCell } from "@/lib/room-layout";
+import { projectPlaced, OBJECT_SPEC, type PlacedObject } from "@/lib/room-objects";
 import { useRCoreGestures } from "./use-rcore-gestures";
 import { Compass2525 } from "./compass-2525";
 
@@ -37,6 +38,18 @@ function furniture(k: string, rx: number, ry: number, rw: number, rh: number) {
     case "E": return <>{box(rx + rw * 0.34, ry + rh * 0.12, rw * 0.32, rh * 0.2, 1)}</>; // entry mat
     default: return null;
   }
+}
+
+// ACTUAL placed contents — projects each object the user placed in the room (via the in-room designer) into the room
+// cell, so the whole-house plan models what's REALLY inside, matching the entered-room view (operator IMG_7568/7569).
+function placedContents(objects: PlacedObject[], rx: number, ry: number, rw: number, rh: number) {
+  return objects.map((o, i) => {
+    const p = projectPlaced(o, rx, ry, rw, rh);
+    const opening = o.kind === "door" || o.kind === "window";
+    const col = opening ? (o.kind === "door" ? C.door : C.cyan) : (OBJECT_SPEC[o.kind]?.color ?? C.dim);
+    return <rect key={`o${i}`} x={p.x} y={p.y} width={Math.max(0.7, p.w)} height={Math.max(0.7, p.h)} rx={opening ? 0 : 0.6}
+      fill={opening ? col : "none"} stroke={col} strokeWidth={opening ? 0.3 : 0.5} opacity={opening ? 0.95 : 0.85} />;
+  });
 }
 
 export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSelectRoom, showFurniture = true }: {
@@ -69,12 +82,17 @@ export function TinyFloorplan({ layout = TINY_ROOM_LAYOUT, selectedRoomId, onSel
         return (
           <g key={r.id} data-arch-floorplan-room={r.id} onClick={() => selectRoom(r.id)} style={{ cursor: onSelectRoom ? "pointer" : "default" }}>
             <rect x={rx} y={ry} width={rw} height={rh} fill={sel ? `${C.gold}22` : "transparent"} stroke={sel ? C.gold : C.wall} strokeWidth={sel ? 1.2 : 0.7} />
-            {/* windows — cyan ticks on the north wall, one per r.windows (adjustable per room) */}
-            {Array.from({ length: r.windows }).map((_, wi) => { const wxp = rx + (rw * (wi + 1)) / (r.windows + 1); return <line key={`win${wi}`} x1={wxp - 2.6} y1={ry} x2={wxp + 2.6} y2={ry} stroke={C.cyan} strokeWidth="1.4" />; })}
-            {showFurniture && r.furniture && furniture(r.k, rx, ry, rw, rh)}
-            {/* door opening — a gold gap on the room's south wall (interior circulation side) */}
-            <line x1={rx + rw * 0.55} y1={ry + rh} x2={rx + rw * 0.85} y2={ry + rh} stroke={C.bg} strokeWidth="1.6" />
-            <path d={`M ${rx + rw * 0.55} ${ry + rh} A ${rw * 0.3} ${rw * 0.3} 0 0 1 ${rx + rw * 0.55} ${ry + rh - rw * 0.3}`} fill="none" stroke={C.door} strokeWidth="0.3" opacity="0.7" />
+            {(() => {
+              const placed = r.objects && r.objects.length > 0; // room has ACTUAL designed contents → model those
+              if (placed && showFurniture) return placedContents(r.objects!, rx, ry, rw, rh);
+              // untouched room → keep the low-fi representative hint (generic furniture + window ticks + a door arc)
+              return (<>
+                {Array.from({ length: r.windows }).map((_, wi) => { const wxp = rx + (rw * (wi + 1)) / (r.windows + 1); return <line key={`win${wi}`} x1={wxp - 2.6} y1={ry} x2={wxp + 2.6} y2={ry} stroke={C.cyan} strokeWidth="1.4" />; })}
+                {showFurniture && r.furniture && furniture(r.k, rx, ry, rw, rh)}
+                <line x1={rx + rw * 0.55} y1={ry + rh} x2={rx + rw * 0.85} y2={ry + rh} stroke={C.bg} strokeWidth="1.6" />
+                <path d={`M ${rx + rw * 0.55} ${ry + rh} A ${rw * 0.3} ${rw * 0.3} 0 0 1 ${rx + rw * 0.55} ${ry + rh - rw * 0.3}`} fill="none" stroke={C.door} strokeWidth="0.3" opacity="0.7" />
+              </>);
+            })()}
             {/* label */}
             <text x={rx + rw / 2} y={ry + rh / 2 - 3} fill={sel ? C.gold : C.text} fontSize="7" fontWeight="700" textAnchor="middle">{r.k}</text>
             <text x={rx + rw / 2} y={ry + rh / 2 + 4} fill={C.dim} fontSize="3.4" textAnchor="middle">{r.label}</text>

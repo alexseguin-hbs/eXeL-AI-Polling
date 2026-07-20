@@ -253,6 +253,13 @@ export function footprintOf(o: PlacedObject): { w: number; d: number } {
   return { w: OBJECT_SPEC[o.kind].w, d: OBJECT_SPEC[o.kind].d };
 }
 
+/** Project a placed object's footprint into a room rectangle (rx,ry,rw,rh) on the whole-house plan so the 2D floor
+ * plan / voxel model what's ACTUALLY inside each room, not a generic placeholder (operator IMG_7568/7569). Pure. */
+export function projectPlaced(o: PlacedObject, rx: number, ry: number, rw: number, rh: number, roomFt = ROOM_GRID): { x: number; y: number; w: number; h: number } {
+  const fp = footprintOf(o);
+  return { x: rx + (o.gx / roomFt) * rw, y: ry + (o.gy / roomFt) * rh, w: (fp.w / roomFt) * rw, h: (fp.d / roomFt) * rh };
+}
+
 /** Cycle an object to its next size variant (no-op for kinds without variants). First cycle sets the 2nd size. */
 export function cycleVariant(objs: PlacedObject[], id: string): PlacedObject[] {
   return objs.map((o) => {

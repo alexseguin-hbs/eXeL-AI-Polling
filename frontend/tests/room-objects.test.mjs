@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -195,6 +195,16 @@ ok(Math.abs(voc[0].gy - 4.5) < 1e-9, "setAlongWall axis 'y': vertical O.C. 5' �
 // setVariantByWidth axis 'y' picks nearest by DEPTH (vertical size edit, same manner)
 let vd = setVariantByWidth(placeObject([], "bed", 1, 1), "bed-1", 3, "y");
 ok(VARIANTS.bed.find((v) => v.id === vd[0].variant), "setVariantByWidth axis 'y' picks a real variant by depth");
+
+// projectPlaced — the whole-house plan/voxel model ACTUAL room contents (operator IMG_7568/7569).
+// A 5×6 bed at grid 0,0 projected into a 30×30 room cell at origin: x/y 0, w = 5/10*30 = 15, h = 6/10*30 = 18.
+const bed00 = { id: "b0", kind: "bed", gx: 0, gy: 0, rot: 0 };
+const pj = projectPlaced(bed00, 0, 0, 30, 30);
+ok(pj.x === 0 && pj.y === 0, "projectPlaced: grid 0,0 → cell origin");
+ok(Math.abs(pj.w - 15) < 1e-9 && Math.abs(pj.h - 18) < 1e-9, "projectPlaced: 5×6 bed → 15×18 in a 30×30 cell");
+// Offset cell + mid-room position scales proportionally (gx 2 of 10 → +6 in a 30-wide cell offset by 100).
+const pj2 = projectPlaced({ id: "b1", kind: "bed", gx: 2, gy: 3, rot: 0 }, 100, 50, 30, 30);
+ok(Math.abs(pj2.x - 106) < 1e-9 && Math.abs(pj2.y - 59) < 1e-9, "projectPlaced: grid 2,3 in offset cell → 106,59");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");
