@@ -97,12 +97,13 @@ function BottomPanel({ id, title, accent, open, setOpen, children }: {
 
   return (
     <div data-arch-bpanel={id} className="rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
-      <div className="relative flex items-center justify-center px-3 py-1.5" style={{ borderBottom: open ? `1px solid ${C.border}` : "1px solid transparent" }}>
-        <span className="absolute left-3 text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
+      {/* ••• dots LEFT of the title (operator: standardize to the ACTIVE ITEMS style — vertical dots, left-aligned). */}
+      <div className="relative flex items-center gap-2 px-3 py-1.5" style={{ borderBottom: open ? `1px solid ${C.border}` : "1px solid transparent" }}>
         <button data-bpanel-toggle={id} onClick={() => setOpen(!open)} title={open ? "Collapse" : "Expand"}
-          className="flex flex-row items-center gap-[3px] rounded p-1 hover:bg-white/5">
-          {[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
+          className="flex flex-col items-center gap-[2px] rounded p-1 hover:bg-white/5">
+          {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
         </button>
+        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
         <button data-bpanel-max={id} onClick={() => { setMax(true); setOpen(true); }} title="Maximize to full screen" aria-label="Maximize"
           className="absolute right-3 rounded p-1 hover:bg-white/10"><Maximize2 className="h-3 w-3" style={{ color: C.dim }} /></button>
       </div>
