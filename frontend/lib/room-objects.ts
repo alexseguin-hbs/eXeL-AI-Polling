@@ -145,6 +145,12 @@ const SHAPE_PARTS: Partial<Record<ObjectKind, ShapePart[]>> = {
   sink:   [{ x: 0, y: 0, z: 0.58, w: 1, d: 1, h: 0.42 }, { x: 0.35, y: 0.35, z: 0, w: 0.3, d: 0.3, h: 0.58 }], // basin + pedestal
   chair:  [{ x: 0, y: 0.2, z: 0, w: 1, d: 0.8, h: 0.5 }, { x: 0, y: 0, z: 0, w: 1, d: 0.2, h: 1 }],           // seat + back
   tv:     [{ x: 0, y: 0.35, z: 0.1, w: 1, d: 0.5, h: 0.85 }],  // thin screen panel
+  fridge: [{ x: 0, y: 0, z: 0.45, w: 1, d: 1, h: 0.55 }, { x: 0, y: 0, z: 0, w: 1, d: 1, h: 0.45 }],          // fridge over freezer
+  stove:  [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 0.9 }, { x: 0.05, y: 0.05, z: 0.9, w: 0.9, d: 0.9, h: 0.1 }],    // body + cooktop
+  bookshelf: [{ x: 0, y: 0, z: 0, w: 1, d: 0.15, h: 1 }, { x: 0, y: 0, z: 0.25, w: 1, d: 1, h: 0.08 }, { x: 0, y: 0, z: 0.55, w: 1, d: 1, h: 0.08 }, { x: 0, y: 0, z: 0.85, w: 1, d: 1, h: 0.08 }], // back + 3 shelves
+  wardrobe: [{ x: 0, y: 0, z: 0, w: 0.5, d: 1, h: 1 }, { x: 0.5, y: 0, z: 0, w: 0.5, d: 1, h: 1 }],           // twin doors
+  dresser: [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 0.33 }, { x: 0, y: 0, z: 0.33, w: 1, d: 1, h: 0.33 }, { x: 0, y: 0, z: 0.66, w: 1, d: 1, h: 0.34 }], // 3 drawers
+  shower: [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 0.15 }, { x: 0, y: 0, z: 0, w: 0.12, d: 1, h: 1 }, { x: 0, y: 0, z: 0, w: 1, d: 0.12, h: 1 }], // pan + 2 glass walls
   window: [{ x: 0, y: 0, z: 0.32, w: 1, d: 1, h: 0.5 }],  // a mid-height sash band (not floor-to-ceiling)
 };
 /** The low-fi 3D shape of a kind as fractional sub-boxes (S2). Falls back to a single full box. */

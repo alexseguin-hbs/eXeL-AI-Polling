@@ -77,6 +77,7 @@ ok(OBJECT_KINDS.every((k) => shapePartsOf(k).every((p) =>
   p.x >= 0 && p.y >= 0 && p.z >= 0 && p.w > 0 && p.d > 0 && p.h > 0 &&
   p.x + p.w <= 1.0001 && p.y + p.d <= 1.0001 && p.z + p.h <= 1.0001)), "shapePartsOf: all parts inside the 0..1 unit box");
 ok(shapePartsOf("bed").length === 2 && shapePartsOf("sofa").length === 2 && shapePartsOf("desk").length === 3 && shapePartsOf("toilet").length === 2, "distinct shapes: bed/sofa 2 parts, desk 3, toilet 2");
+ok(shapePartsOf("fridge").length === 2 && shapePartsOf("stove").length === 2 && shapePartsOf("bookshelf").length === 4 && shapePartsOf("wardrobe").length === 2 && shapePartsOf("dresser").length === 3 && shapePartsOf("shower").length === 3, "S3 appliance/storage shapes: fridge 2, stove 2, bookshelf 4, wardrobe 2, dresser 3, shower 3");
 ok(shapePartsOf("counter").length === 1 && shapePartsOf("counter")[0].w === 1 && shapePartsOf("counter")[0].h === 1, "kinds without a shape entry fall back to one full box");
 ok(shapePartsOf("window")[0].z > 0 && shapePartsOf("window")[0].z + shapePartsOf("window")[0].h < 1, "window is a mid-height band (not floor-to-ceiling)");
 // Determinism / no-mutation — same kind → identical parts each call.
