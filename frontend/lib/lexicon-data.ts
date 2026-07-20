@@ -1061,6 +1061,7 @@ const vision2525: TranslationEntry[] = [
   { key: "vision.dim.oc", englishDefault: "O.C.", context: "Dimension: on-center position (engineering nomenclature)", cubeId: 40 },
   { key: "vision.dim.size", englishDefault: "Size", context: "Dimension: object size", cubeId: 40 },
   { key: "vision.dim.height", englishDefault: "Height", context: "Dimension: object height (3D — e.g. window head height)", cubeId: 40 },
+  { key: "vision.dim.offGround", englishDefault: "Off ground", context: "Dimension: object distance above finished floor (3D — window sill etc.)", cubeId: 40 },
   { key: "vision.dim.set", englishDefault: "Set", context: "Commit the typed measurement", cubeId: 40 },
   { key: "vision.dim.del", englishDefault: "Del", context: "Delete the last digit in the measurement keypad", cubeId: 40 },
 ];

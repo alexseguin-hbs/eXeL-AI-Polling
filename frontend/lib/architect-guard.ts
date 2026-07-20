@@ -27,7 +27,8 @@ function sanitizeObjects(raw: unknown): PlacedObject[] | undefined {
     // Preserve a size variant only if it's a known id for this kind (whitelist — untrusted stored value).
     const kind = r.kind as ObjectKind;
     const variant = typeof r.variant === "string" && VARIANTS[kind]?.some((v) => v.id === r.variant) ? r.variant : undefined;
-    out.push({ id: r.id, kind, gx: boundInt(r.gx, 0, ROOM_GRID - 1), gy: boundInt(r.gy, 0, ROOM_GRID - 1), rot, ...(variant ? { variant } : {}) });
+    const elev = typeof r.elev === "number" && Number.isFinite(r.elev) ? boundNum(r.elev, ROOM_GRID) : undefined; // ft off floor (window sill etc.)
+    out.push({ id: r.id, kind, gx: boundInt(r.gx, 0, ROOM_GRID - 1), gy: boundInt(r.gy, 0, ROOM_GRID - 1), rot, ...(variant ? { variant } : {}), ...(elev !== undefined ? { elev } : {}) });
   }
   return out.length ? out : undefined;
 }

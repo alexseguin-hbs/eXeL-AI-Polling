@@ -23,7 +23,7 @@ import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
   OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
   footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette,
-  nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setVariantByHeight, setGap,
+  nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setVariantByHeight, setGap, elevOf, setElev,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
@@ -112,7 +112,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     try { return localStorage.getItem("arch2525.roomLinkView") === "1"; } catch { return false; }
   });
   const setLink = (v: boolean) => { setLinkView(v); try { localStorage.setItem("arch2525.roomLinkView", v ? "1" : "0"); } catch {} };
-  const [dimEntry, setDimEntry] = useState<{ edit: "oc" | "size" | "gapNear" | "gapFar" | "height"; axis: "x" | "y" } | null>(null); // FIX-5b/5c numeric entry (axis: horizontal|vertical chain; height = 3D)
+  const [dimEntry, setDimEntry] = useState<{ edit: "oc" | "size" | "gapNear" | "gapFar" | "height" | "elev"; axis: "x" | "y" } | null>(null); // FIX-5b/5c numeric entry (axis: horizontal|vertical chain; height = 3D)
   const [dimVal, setDimVal] = useState("");
 
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent | React.DragEvent): { gx: number; gy: number } | null => {
@@ -145,7 +145,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   };
   // Open the feet-inches keypad prefilled with the current value — shared by the 2D dimension labels AND the 3D
   // height dimension, so both panes edit through one entry (operator: adjust height like a window in 3D).
-  const startDimEdit = (edit: "oc" | "size" | "gapNear" | "gapFar" | "height", cur: number, axis: "x" | "y" = "x") => {
+  const startDimEdit = (edit: "oc" | "size" | "gapNear" | "gapFar" | "height" | "elev", cur: number, axis: "x" | "y" = "x") => {
     setDimVal(ftIn(cur));
     setDimEntry({ edit, axis });
   };
@@ -262,14 +262,19 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
               <g key={o.id} data-arch-roomobj={o.kind} transform={`rotate(${o.rot} ${cx} ${cy})`} style={{ cursor: interactive ? "grab" : "default" }} onPointerDown={interactive ? objDown(o.id) : undefined}>
                 <rect x={cx - w * 5} y={cy - d * 5} width={w * 10} height={d * 10} rx={1.5}
                   fill={`${s.color}${on ? "55" : "2e"}`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
-                {/* upper-left DRAG GRIP — a clear, consistent move handle on every item so it's easy to grab and drag
-                    (operator: draggable upper-left icon, Mission-Planning parity). Visual only; the whole group drags. */}
-                {interactive && (
-                  <g style={{ pointerEvents: "none" }}>
-                    <circle cx={cx - w * 5} cy={cy - d * 5} r={3} fill={on ? C.gold : s.color} stroke="#070b12" strokeWidth={0.6} />
-                    <path d={`M ${cx - w * 5 - 1.3} ${cy - d * 5} h2.6 M ${cx - w * 5} ${cy - d * 5 - 1.3} v2.6`} stroke="#070b12" strokeWidth={0.7} strokeLinecap="round" />
-                  </g>
-                )}
+                {/* upper-left DRAG GRIP — the standard 6-dot handle (2 cols × 3 rows, ⠿) so it reads as "grab to move",
+                    matching the mini-map grip (operator IMG_7593). Visual only; the whole group drags. */}
+                {interactive && (() => {
+                  const gx0 = cx - w * 5, gy0 = cy - d * 5, col = on ? C.gold : s.color;
+                  return (
+                    <g style={{ pointerEvents: "none" }}>
+                      <rect x={gx0 - 3.4} y={gy0 - 4.4} width={6.8} height={8.8} rx={1.4} fill="#070b12dd" stroke={col} strokeWidth={0.5} />
+                      {[0, 1, 2].map((r) => [0, 1].map((c) => (
+                        <circle key={`${r}${c}`} cx={gx0 - 1.5 + c * 3} cy={gy0 - 2.7 + r * 2.7} r={0.75} fill={col} />
+                      )))}
+                    </g>
+                  );
+                })()}
                 <foreignObject x={cx - 4} y={cy - 4} width={8} height={8} style={{ pointerEvents: "none" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 8, height: 8 }}>
                     <Icon style={{ width: 6, height: 6, color: on ? C.gold : s.color }} />
@@ -361,14 +366,15 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
               : e === "gapNear" ? setGap(objects, sel.id, "near", v, ax)
               : e === "gapFar" ? setGap(objects, sel.id, "far", v, ax)
               : e === "height" ? setVariantByHeight(objects, sel.id, v)   // 3D height edit (e.g. window head height)
+              : e === "elev" ? setElev(objects, sel.id, v)                // 3D distance-off-ground edit (window sill etc.)
               : setVariantByWidth(objects, sel.id, v, ax)
             );
           }
           setDimEntry(null);
         };
-        const isH = dimEntry.edit === "height";
-        const axSuffix = isH ? "" : dimEntry.axis === "y" ? " ↕" : " ↔"; // show which coordinate is being edited (height has none)
-        const label = (dimEntry.edit === "oc" ? t("vision.dim.oc") : dimEntry.edit === "gapNear" ? t("vision.dim.fromWall") : dimEntry.edit === "gapFar" ? t("vision.dim.toWall") : isH ? t("vision.dim.height") : t("vision.dim.size")) + axSuffix;
+        const isH = dimEntry.edit === "height" || dimEntry.edit === "elev";
+        const axSuffix = isH ? "" : dimEntry.axis === "y" ? " ↕" : " ↔"; // show which coordinate is being edited (height/elev have none)
+        const label = (dimEntry.edit === "oc" ? t("vision.dim.oc") : dimEntry.edit === "gapNear" ? t("vision.dim.fromWall") : dimEntry.edit === "gapFar" ? t("vision.dim.toWall") : dimEntry.edit === "height" ? t("vision.dim.height") : dimEntry.edit === "elev" ? t("vision.dim.offGround") : t("vision.dim.size")) + axSuffix;
         // ON-SCREEN feet-inches KEYPAD — no native <input>, so iOS Safari never auto-zooms the page when you enter a
         // measurement (operator flagged the zoom twice, IMG_7565), and the big buttons are kid/grandma-friendly.
         const press = (ch: string) => setDimVal((s) => (s.length < 8 ? s + ch : s));
@@ -450,7 +456,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                 {shapePartsOf(o.kind).map((p, pi) => {
                   const r = rotRect(p);
                   const x0 = ox + r.x * W, y0 = oy + r.y * D, w = r.w * W, d = r.d * D;
-                  const z0 = p.z * hgt, z1 = (p.z + p.h) * hgt;
+                  const e0 = elevOf(o);                       // lift the whole object by its distance off the floor
+                  const z0 = p.z * hgt + e0, z1 = (p.z + p.h) * hgt + e0;
                   const base = [iso(x0, y0, z0), iso(x0 + w, y0, z0), iso(x0 + w, y0 + d, z0), iso(x0, y0 + d, z0)];
                   const top = [iso(x0, y0, z1), iso(x0 + w, y0, z1), iso(x0 + w, y0 + d, z1), iso(x0, y0 + d, z1)];
                   return (
@@ -473,20 +480,29 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             const fp = footprintOf(o); const swap = o.rot === 90 || o.rot === 270;
             const W = swap ? fp.d : fp.w, D = swap ? fp.w : fp.d;
             const ox = o.gx + 0.5 - W / 2, oy = o.gy + 0.5 - D / 2;   // object origin corner in world
-            const hgt = heightOf(o); const isWin = o.kind === "window";
+            const hgt = heightOf(o); const e0 = elevOf(o);
             const lx = Math.max(0.15, ox - 0.35);                    // witness rail just outside the front-left corner
-            const pB = iso(lx, oy, 0), pT = iso(lx, oy, hgt);        // floor → top of object
+            const pB = iso(lx, oy, e0), pT = iso(lx, oy, e0 + hgt);  // object BASE (off-ground) → top
             const mx = (pB[0] + pT[0]) / 2, my = (pB[1] + pT[1]) / 2;
-            const tick = (px: number, py: number) => <line x1={px - 2} y1={py} x2={px + 2} y2={py} stroke={C.gold} strokeWidth={0.6} style={{ pointerEvents: "none" }} />;
+            // off-ground rail (floor → base), always tappable so you can lift ANY item off the floor (operator IMG_7594)
+            const ox2 = Math.max(0.1, lx - 0.5);
+            const gB = iso(ox2, oy, 0), gT = iso(ox2, oy, e0);
+            const gmx = (gB[0] + gT[0]) / 2, gmy = (gB[1] + gT[1]) / 2;
+            const tick = (px: number, py: number, col: string) => <line x1={px - 2} y1={py} x2={px + 2} y2={py} stroke={col} strokeWidth={0.6} style={{ pointerEvents: "none" }} />;
             return (
               <g data-arch-roomobj3d-height>
+                {/* HEIGHT (base → top) */}
                 <line x1={pB[0]} y1={pB[1]} x2={pT[0]} y2={pT[1]} stroke={C.gold} strokeWidth={0.7} style={{ pointerEvents: "none" }} />
-                {tick(pB[0], pB[1])}{tick(pT[0], pT[1])}
+                {tick(pB[0], pB[1], C.gold)}{tick(pT[0], pT[1], C.gold)}
                 <text data-arch-dim-edit="height" x={mx - 3} y={my} fontSize={7} fill={C.gold} textAnchor="end" stroke="#070b12" strokeWidth={1.6}
                   style={{ paintOrder: "stroke", vectorEffect: "non-scaling-stroke", cursor: "pointer" }}
                   onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); startDimEdit("height", hgt); }}>H {ftIn(hgt)} ✎</text>
-                {isWin && <text x={mx - 3} y={my + 7} fontSize={5.5} fill={C.cyan} textAnchor="end" stroke="#070b12" strokeWidth={1.4}
-                  style={{ paintOrder: "stroke", vectorEffect: "non-scaling-stroke", pointerEvents: "none" }}>SILL 3&apos;-0&quot; AFF</text>}
+                {/* OFF-GROUND (floor → base) — tappable to set distance off the ground / window sill */}
+                <line x1={gB[0]} y1={gB[1]} x2={gT[0]} y2={gT[1]} stroke={C.cyan} strokeWidth={0.6} strokeDasharray="1.5 1" style={{ pointerEvents: "none" }} />
+                {tick(gB[0], gB[1], C.cyan)}{tick(gT[0], gT[1], C.cyan)}
+                <text data-arch-dim-edit="elev" x={gmx - 3} y={gmy} fontSize={6} fill={C.cyan} textAnchor="end" stroke="#070b12" strokeWidth={1.4}
+                  style={{ paintOrder: "stroke", vectorEffect: "non-scaling-stroke", cursor: "pointer" }}
+                  onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); startDimEdit("elev", e0); }}>OG {ftIn(e0)} ✎</text>
               </g>
             );
           })()}

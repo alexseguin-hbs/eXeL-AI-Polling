@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced, setVariantByHeight } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT, parseFeet, setAlongWall, setVariantByWidth, setGap, projectPlaced, setVariantByHeight, elevOf, setElev, STD_SILL_FT } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -220,6 +220,14 @@ ok(heightOf(wh[0]) === 5, "setVariantByHeight window 5' → 5'-tall variant");
 wh = setVariantByHeight(wh, "window-1", 2);
 ok(heightOf(wh[0]) === 2, "setVariantByHeight window 2' → 2'-tall variant");
 ok(setVariantByHeight(placeObject([], "sofa", 1, 1), "sofa-1", 3)[0]?.variant === undefined, "setVariantByHeight no-op for kinds without height variants");
+
+// Distance off ground (operator IMG_7594) — editable elevation; windows default to a 3' sill.
+ok(elevOf(placeObject([], "window", 0, 4)[0]) === STD_SILL_FT, "window defaults to a 3' sill off the floor");
+ok(elevOf(placeObject([], "bed", 4, 4)[0]) === 0, "floor furniture defaults to 0 off ground");
+let el = setElev(placeObject([], "tv", 4, 4), "tv-1", 4);
+ok(elevOf(el[0]) === 4, "setElev lifts a TV 4' off the floor");
+ok(elevOf(setElev(el, "tv-1", 99)[0]) <= ROOM_GRID - heightOf(el[0]) + 1e-9, "setElev clamps so the object top stays in the 10' room");
+ok(elevOf(setElev(el, "tv-1", -3)[0]) === 0, "setElev never goes below the floor");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");

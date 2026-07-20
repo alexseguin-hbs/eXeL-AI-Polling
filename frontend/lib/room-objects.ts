@@ -23,7 +23,7 @@ export type ObjectKind =
 export type Rot = 0 | 90 | 180 | 270;
 
 /** One placed object on the room floor grid. gx/gy = grid cell (0..9); rot = 0|90|180|270°; variant = size id. */
-export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; variant?: string; }
+export interface PlacedObject { id: string; kind: ObjectKind; gx: number; gy: number; rot: Rot; variant?: string; elev?: number; /* ft above finished floor — window sill, wall-mounted TV, etc. */ }
 
 /** Size variants (feet) for kinds that come in standard sizes — beds Twin/Full/Queen/King; doors/windows standard R.O.
  *  sizes (FIX-1). `h` (height, ft) is optional — set for openings where height matters (operator: window height). */
@@ -294,6 +294,25 @@ export function footprintOf(o: PlacedObject): { w: number; d: number } {
 export function projectPlaced(o: PlacedObject, rx: number, ry: number, rw: number, rh: number, roomFt = ROOM_GRID): { x: number; y: number; w: number; h: number } {
   const fp = footprintOf(o);
   return { x: rx + (o.gx / roomFt) * rw, y: ry + (o.gy / roomFt) * rh, w: (fp.w / roomFt) * rw, h: (fp.d / roomFt) * rh };
+}
+
+/** Standard window sill height above finished floor (ft) — the default off-ground for a window. */
+export const STD_SILL_FT = 3;
+
+/** Distance the object's BASE sits above the finished floor (ft). Windows default to a 3' sill; a wall-mounted TV or
+ * high shelf can be lifted too. Editable in the 3D view (operator: "distance off ground must be editable"). */
+export function elevOf(o: PlacedObject): number {
+  if (typeof o.elev === "number" && Number.isFinite(o.elev)) return Math.max(0, o.elev);
+  return o.kind === "window" ? STD_SILL_FT : 0;
+}
+
+/** Set an object's distance off the ground (ft), clamped so its top stays within the 10' room. */
+export function setElev(objs: PlacedObject[], id: string, ft: number): PlacedObject[] {
+  return objs.map((o) => {
+    if (o.id !== id) return o;
+    const maxE = Math.max(0, ROOM_GRID - heightOf(o));
+    return { ...o, elev: Math.max(0, Math.min(maxE, ft)) };
+  });
 }
 
 /** Cycle an object to its next size variant (no-op for kinds without variants). First cycle sets the 2nd size. */
