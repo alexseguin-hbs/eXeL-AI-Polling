@@ -18,8 +18,8 @@ import { MiniPanel } from "./mini-panel";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
   OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
-  footprintOf, cycleVariant, VARIANTS, wallOf, slideAlongWall,
-  type PlacedObject, type ObjectKind, type Wall,
+  footprintOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf,
+  type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
 import { useRCoreGestures } from "./use-rcore-gestures";
@@ -227,16 +227,33 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             const s = OBJECT_SPEC[o.kind];
             const fp = footprintOf(o);
             const swap = o.rot === 90 || o.rot === 270;
-            const w = swap ? fp.d : fp.w, d = swap ? fp.w : fp.d, hgt = s.h;
-            const x0 = o.gx + 0.5 - w / 2, y0 = o.gy + 0.5 - d / 2;
-            const base = [iso(x0, y0, 0), iso(x0 + w, y0, 0), iso(x0 + w, y0 + d, 0), iso(x0, y0 + d, 0)];
-            const top = [iso(x0, y0, hgt), iso(x0 + w, y0, hgt), iso(x0 + w, y0 + d, hgt), iso(x0, y0 + d, hgt)];
+            const W = swap ? fp.d : fp.w, D = swap ? fp.w : fp.d, hgt = s.h;   // world footprint after rotation
+            const ox = o.gx + 0.5 - W / 2, oy = o.gy + 0.5 - D / 2;           // object origin corner in world
             const on = o.id === selId;
+            // S2 — rotate a part's unit-square footprint rect by o.rot (single M90 map, others composed) so the
+            // pillow/back/legs stay attached to the right side as the object turns.
+            const rotRect = (p: ShapePart) => {
+              if (o.rot === 90)  return { x: p.y, y: 1 - (p.x + p.w), w: p.d, d: p.w };
+              if (o.rot === 180) return { x: 1 - (p.x + p.w), y: 1 - (p.y + p.d), w: p.w, d: p.d };
+              if (o.rot === 270) return { x: 1 - (p.y + p.d), y: p.x, w: p.d, d: p.w };
+              return { x: p.x, y: p.y, w: p.w, d: p.d };
+            };
             return (
               <g key={o.id} data-arch-roomobj3d={o.kind}>
-                <polygon points={poly([base[0], base[1], top[1], top[0]])} fill={`${s.color}22`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.7} />
-                <polygon points={poly([base[1], base[2], top[2], top[1]])} fill={`${s.color}18`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.7} />
-                <polygon points={poly(top)} fill={`${s.color}33`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
+                {shapePartsOf(o.kind).map((p, pi) => {
+                  const r = rotRect(p);
+                  const x0 = ox + r.x * W, y0 = oy + r.y * D, w = r.w * W, d = r.d * D;
+                  const z0 = p.z * hgt, z1 = (p.z + p.h) * hgt;
+                  const base = [iso(x0, y0, z0), iso(x0 + w, y0, z0), iso(x0 + w, y0 + d, z0), iso(x0, y0 + d, z0)];
+                  const top = [iso(x0, y0, z1), iso(x0 + w, y0, z1), iso(x0 + w, y0 + d, z1), iso(x0, y0 + d, z1)];
+                  return (
+                    <g key={pi} data-arch-roomobj3d-part={o.kind}>
+                      <polygon points={poly([base[0], base[1], top[1], top[0]])} fill={`${s.color}22`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.7} />
+                      <polygon points={poly([base[1], base[2], top[2], top[1]])} fill={`${s.color}18`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.7} />
+                      <polygon points={poly(top)} fill={`${s.color}33`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
+                    </g>
+                  );
+                })}
               </g>
             );
           })}

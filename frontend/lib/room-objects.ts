@@ -111,6 +111,26 @@ export function slideAlongWall(wall: Wall, gx: number, gy: number): { gx: number
   }
 }
 
+/**
+ * S2 — low-fi 3D SHAPE parts. Each part is a sub-box in FRACTIONS (0..1) of the object's local w×d×h box, so the
+ * 3D voxel reads as a real object (bed = slab+pillow, sofa = seat+back, desk = top+legs …) instead of a plain box.
+ * Pure data (voxel3D just extrudes each part), so it's unit-testable. Kinds without an entry fall back to one full box.
+ * Convention: y=0 is the object's "front/head" edge; z=0 is the floor.
+ */
+export interface ShapePart { x: number; y: number; z: number; w: number; d: number; h: number }
+const FULL_BOX: ShapePart[] = [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 1 }];
+const SHAPE_PARTS: Partial<Record<ObjectKind, ShapePart[]>> = {
+  bed:    [{ x: 0, y: 0, z: 0, w: 1, d: 1, h: 0.6 }, { x: 0.12, y: 0.02, z: 0.6, w: 0.76, d: 0.24, h: 0.32 }], // mattress + pillow
+  sofa:   [{ x: 0, y: 0.34, z: 0, w: 1, d: 0.66, h: 0.5 }, { x: 0, y: 0, z: 0, w: 1, d: 0.34, h: 1 }],        // seat + back
+  desk:   [{ x: 0, y: 0, z: 0.82, w: 1, d: 1, h: 0.18 }, { x: 0, y: 0, z: 0, w: 0.08, d: 1, h: 0.82 }, { x: 0.92, y: 0, z: 0, w: 0.08, d: 1, h: 0.82 }], // top + 2 legs
+  table:  [{ x: 0, y: 0, z: 0.82, w: 1, d: 1, h: 0.18 }, { x: 0.4, y: 0.4, z: 0, w: 0.2, d: 0.2, h: 0.82 }],  // top + pedestal
+  toilet: [{ x: 0.12, y: 0.3, z: 0, w: 0.76, d: 0.7, h: 0.55 }, { x: 0.12, y: 0, z: 0, w: 0.76, d: 0.3, h: 1 }], // bowl + tank
+  sink:   [{ x: 0, y: 0, z: 0.58, w: 1, d: 1, h: 0.42 }, { x: 0.35, y: 0.35, z: 0, w: 0.3, d: 0.3, h: 0.58 }], // basin + pedestal
+  window: [{ x: 0, y: 0, z: 0.32, w: 1, d: 1, h: 0.5 }],  // a mid-height sash band (not floor-to-ceiling)
+};
+/** The low-fi 3D shape of a kind as fractional sub-boxes (S2). Falls back to a single full box. */
+export function shapePartsOf(kind: ObjectKind): ShapePart[] { return SHAPE_PARTS[kind] ?? FULL_BOX; }
+
 /** Remove an object. */
 export function removeObject(objs: PlacedObject[], id: string): PlacedObject[] {
   return objs.filter((o) => o.id !== id);

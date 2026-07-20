@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -70,6 +70,17 @@ ok(slideAlongWall("E", 2, 4).gx === ROOM_GRID - 1 && slideAlongWall("E", 2, 4).g
 ok(slideAlongWall("N", 42, 0).gx === ROOM_GRID - 1 && slideAlongWall("N", -5, 0).gx === 0, "slide clamps the along-axis to 0..9");
 // A door on the N wall stays on N when dragged sideways (the S1 behavior).
 ok(wallOf(slideAlongWall("N", 8, 3).gx, slideAlongWall("N", 8, 3).gy) === "N", "slid door stays on its wall (N→N)");
+
+// S2 — low-fi 3D shape parts (fractional sub-boxes). Every kind returns >=1 part fully inside its unit box.
+ok(OBJECT_KINDS.every((k) => shapePartsOf(k).length >= 1), "shapePartsOf: every kind has >=1 part");
+ok(OBJECT_KINDS.every((k) => shapePartsOf(k).every((p) =>
+  p.x >= 0 && p.y >= 0 && p.z >= 0 && p.w > 0 && p.d > 0 && p.h > 0 &&
+  p.x + p.w <= 1.0001 && p.y + p.d <= 1.0001 && p.z + p.h <= 1.0001)), "shapePartsOf: all parts inside the 0..1 unit box");
+ok(shapePartsOf("bed").length === 2 && shapePartsOf("sofa").length === 2 && shapePartsOf("desk").length === 3 && shapePartsOf("toilet").length === 2, "distinct shapes: bed/sofa 2 parts, desk 3, toilet 2");
+ok(shapePartsOf("counter").length === 1 && shapePartsOf("counter")[0].w === 1 && shapePartsOf("counter")[0].h === 1, "kinds without a shape entry fall back to one full box");
+ok(shapePartsOf("window")[0].z > 0 && shapePartsOf("window")[0].z + shapePartsOf("window")[0].h < 1, "window is a mid-height band (not floor-to-ceiling)");
+// Determinism / no-mutation — same kind → identical parts each call.
+ok(JSON.stringify(shapePartsOf("bed")) === JSON.stringify(shapePartsOf("bed")), "shapePartsOf is deterministic");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");
