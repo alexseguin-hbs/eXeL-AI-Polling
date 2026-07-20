@@ -106,17 +106,42 @@ const clampCell = (n: number) => Math.max(0, Math.min(ROOM_GRID - 1, Math.round(
  * so it can never be dragged so its box pokes through a wall (operator IMG_7530). Cells are integers; an object at
  * cell g has its centre at g+0.5 ft and spans ±f/2. An object larger than the room is centred (best effort — Enki).
  */
-export function clampFootprint(gx: number, gy: number, w: number, d: number, rot: Rot = 0): { gx: number; gy: number } {
+export function clampFootprint(gx: number, gy: number, w: number, d: number, rot: Rot = 0, round = true): { gx: number; gy: number } {
   const swap = rot === 90 || rot === 270;
   const fw = swap ? d : w, fd = swap ? w : d;
   const axis = (g: number, f: number): number => {
-    const lo = Math.ceil(f / 2 - 0.5);                 // smallest cell whose left edge ≥ 0
-    const hi = Math.floor(ROOM_GRID - 0.5 - f / 2);    // largest cell whose right edge ≤ ROOM_GRID
-    if (lo > hi) return Math.max(0, Math.min(ROOM_GRID - 1, Math.round((ROOM_GRID - f) / 2))); // oversize → centred
-    return Math.max(lo, Math.min(hi, Math.round(g)));
+    // whole footprint inside [0,ROOM_GRID] ft: centre (g+0.5) must be in [f/2, ROOM_GRID-f/2] → g in [f/2-0.5, ROOM_GRID-0.5-f/2]
+    if (round) {
+      const lo = Math.ceil(f / 2 - 0.5), hi = Math.floor(ROOM_GRID - 0.5 - f / 2);
+      if (lo > hi) return Math.max(0, Math.min(ROOM_GRID - 1, Math.round((ROOM_GRID - f) / 2))); // oversize → centred
+      return Math.max(lo, Math.min(hi, Math.round(g)));
+    }
+    const lo = f / 2 - 0.5, hi = ROOM_GRID - 0.5 - f / 2;         // fractional (FIX-B fine nudge)
+    if (lo > hi) return (ROOM_GRID - f) / 2 - 0.5;
+    return Math.max(lo, Math.min(hi, g));
   };
   return { gx: axis(gx, fw), gy: axis(gy, fd) };
 }
+
+/**
+ * FIX-B — fine spatial nudge (operator: arrows + ft/inches, like Mission-Planning asset planning). Move an object by a
+ * fractional-foot delta (e.g. 1" = 1/12 ft, 6", 1'), footprint-clamped inside the room WITHOUT snapping to whole cells,
+ * so a user can position to the inch. dx = +right/−left, dy = +down(S)/−up(N). Pure + deterministic.
+ */
+export function nudgeObject(objs: PlacedObject[], id: string, dxFt: number, dyFt: number): PlacedObject[] {
+  return objs.map((o) => {
+    if (o.id !== id) return o;
+    const fp = footprintOf(o);
+    const c = clampFootprint(o.gx + dxFt, o.gy + dyFt, fp.w, fp.d, o.rot, false);
+    return { ...o, gx: c.gx, gy: c.gy };
+  });
+}
+/** Standard nudge steps (ft) for the arrow pad: 1 inch, 6 inches, 1 foot. */
+export const NUDGE_STEPS_FT: { id: string; label: string; ft: number }[] = [
+  { id: "in1", label: `1"`, ft: 1 / 12 },
+  { id: "in6", label: `6"`, ft: 0.5 },
+  { id: "ft1", label: `1'`, ft: 1 },
+];
 
 /** Deterministic id from kind + running index (no Math.random → replayable). */
 function nextId(objs: PlacedObject[], kind: ObjectKind): string {

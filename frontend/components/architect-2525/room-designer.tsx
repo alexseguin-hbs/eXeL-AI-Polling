@@ -14,6 +14,7 @@ import {
   RectangleHorizontal, RotateCw, RotateCcw, Columns2, Rows2, SquareStack, Trash2,
   Archive, Lamp, Tv, Refrigerator, Flame, ShowerHead, DoorClosed, Library, Armchair, Hexagon, Triangle,
   Shirt, Rows3, Footprints, Frame, RectangleVertical, LampFloor, Fan,
+  ArrowUp, ArrowDown, ArrowLeft, ArrowRight,
   type LucideIcon,
 } from "lucide-react";
 import { Compass2525 } from "./compass-2525";
@@ -22,6 +23,7 @@ import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
   OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
   footprintOf, heightOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom, groupPalette,
+  nudgeObject, NUDGE_STEPS_FT,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
@@ -96,6 +98,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // S9 — guided demo runner (read-only narration of the pure runPlaytest() engine). Additive; drives nothing else.
   const [demoOpen, setDemoOpen] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
+  const [nudgeIx, setNudgeIx] = useState(1); // FIX-B nudge step index (default 6")
 
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent | React.DragEvent): { gx: number; gy: number } | null => {
     const svg = svgRef.current; if (!svg) return null;
@@ -492,7 +495,17 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             )}
             <button data-arch-roomobj-rotate onClick={() => onChange(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
             <button data-arch-roomobj-delete onClick={() => { onChange(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
-            <span style={{ color: C.dim }}>· drag to move</span>
+            {/* FIX-B — spatial nudge pad (arrows + ft/in step), Mission-Planning asset-planning style */}
+            <span data-arch-nudge className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title={`Nudge the selected item by the chosen step; tap the step to change 1" / 6" / 1'`}>
+              <button data-arch-nudge-step onClick={() => setNudgeIx((i) => (i + 1) % NUDGE_STEPS_FT.length)} className="rounded px-1 text-[9px] font-bold tabular-nums" style={{ color: C.gold }}>{NUDGE_STEPS_FT[nudgeIx].label}</button>
+              {(() => { const step = NUDGE_STEPS_FT[nudgeIx].ft; return (<>
+                <button data-arch-nudge-up onClick={() => onChange(nudgeObject(objects, sel.id, 0, -step))} title="Move up (N)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowUp className="h-3 w-3" /></button>
+                <button data-arch-nudge-down onClick={() => onChange(nudgeObject(objects, sel.id, 0, step))} title="Move down (S)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowDown className="h-3 w-3" /></button>
+                <button data-arch-nudge-left onClick={() => onChange(nudgeObject(objects, sel.id, -step, 0))} title="Move left (W)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowLeft className="h-3 w-3" /></button>
+                <button data-arch-nudge-right onClick={() => onChange(nudgeObject(objects, sel.id, step, 0))} title="Move right (E)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowRight className="h-3 w-3" /></button>
+              </>); })()}
+            </span>
+            <span style={{ color: C.dim }}>· drag or nudge to move</span>
           </div>
         );
       })()}

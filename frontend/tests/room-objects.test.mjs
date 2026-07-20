@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, heightOf, cycleVariant, VARIANTS, BED_VARIANTS, DOOR_VARIANTS, WINDOW_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint, nudgeObject, NUDGE_STEPS_FT } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -144,6 +144,18 @@ let fx = placeObject([], "bed", 9, 9);        // clamps in on place
 ok(inside(fx[0].gx, footprintOf(fx[0]).w) && inside(fx[0].gy, footprintOf(fx[0]).d), "placed bed fully inside after corner drop");
 fx = rotateObject(fx, "bed-1");
 ok(inside(fx[0].gx, footprintOf(fx[0]).d) && inside(fx[0].gy, footprintOf(fx[0]).w), "rotated bed re-clamped fully inside");
+
+// FIX-B — fine spatial nudge (ft/inches), fractional, footprint-clamped inside the room.
+ok(NUDGE_STEPS_FT.map((s) => s.label).join(",") === `1",6",1'` && Math.abs(NUDGE_STEPS_FT[0].ft - 1 / 12) < 1e-9, "nudge steps = 1\" / 6\" / 1'");
+let nb = placeObject([], "chair", 5, 5);          // chair 1.7x1.7, centre cell 5
+nb = nudgeObject(nb, "chair-1", 0.5, 0);          // +6" right
+ok(Math.abs(nb[0].gx - 5.5) < 1e-9 && nb[0].gy === 5, "nudge +6\" right → fractional gx 5.5 (not snapped)");
+nb = nudgeObject(nb, "chair-1", 0, -1 / 12);      // 1" up
+ok(Math.abs(nb[0].gy - (5 - 1 / 12)) < 1e-9, "nudge 1\" up → fractional gy");
+// nudge cannot push the footprint through a wall (clamped, fractional).
+let nc = nudgeObject(placeObject([], "bed", 5, 5), "bed-1", 99, 0); // bed 5 wide → max centre cell 7 (edge at 10)
+ok(nc[0].gx + 0.5 + footprintOf(nc[0]).w / 2 <= ROOM_GRID + 1e-9, "nudge clamps: bed stays fully inside east wall");
+ok(nudgeObject(nb, "nope", 1, 1)[0].gx === nb[0].gx, "nudge no-op for a missing id");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");
