@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -81,6 +81,21 @@ ok(shapePartsOf("counter").length === 1 && shapePartsOf("counter")[0].w === 1 &&
 ok(shapePartsOf("window")[0].z > 0 && shapePartsOf("window")[0].z + shapePartsOf("window")[0].h < 1, "window is a mid-height band (not floor-to-ceiling)");
 // Determinism / no-mutation — same kind → identical parts each call.
 ok(JSON.stringify(shapePartsOf("bed")) === JSON.stringify(shapePartsOf("bed")), "shapePartsOf is deterministic");
+
+// S3 — context-aware room palette. ROOM_ASSETS is the single junction; every listed kind must be a real spec.
+ok(ROOM_ASSETS_VERSION === 1, "ROOM_ASSETS is versioned (extend, don't fork — Odin)");
+ok(Object.keys(ROOM_ASSETS).sort().join("") === "BCDEKLMOS", "ROOM_ASSETS covers all 9 room keys M/B/C/L/K/D/O/S/E");
+ok(Object.values(ROOM_ASSETS).flat().every((k) => k in OBJECT_SPEC), "every ROOM_ASSETS kind is a real OBJECT_SPEC kind");
+ok(COMMON_ASSETS.every((k) => k in OBJECT_SPEC) && COMMON_ASSETS.includes("door") && COMMON_ASSETS.includes("shell"), "COMMON_ASSETS = openings + structural shell, all real kinds");
+// paletteForRoom = room assets + common, de-duplicated, context-correct.
+const kitchen = paletteForRoom("K");
+ok(kitchen.includes("fridge") && kitchen.includes("stove") && kitchen.includes("sink"), "kitchen palette has fridge/stove/sink");
+ok(!kitchen.includes("bed") && !kitchen.includes("toilet"), "kitchen palette excludes bedroom/bath items");
+ok(paletteForRoom("M").includes("bed") && paletteForRoom("M").includes("nightstand") && paletteForRoom("M").includes("dresser"), "bedroom palette has bed/nightstand/dresser");
+ok(paletteForRoom("B").includes("shower") && paletteForRoom("B").includes("tub") && paletteForRoom("B").includes("toilet"), "bath palette has shower/tub/toilet");
+ok(["door", "window", "shell", "roof"].every((k) => paletteForRoom("O").includes(k)), "every room palette appends openings + structural shell");
+ok(new Set(paletteForRoom("L")).size === paletteForRoom("L").length, "palette is de-duplicated (no repeated kind)");
+ok(paletteForRoom("ZZ").length > 0 && paletteForRoom("ZZ").includes("door"), "unknown room key → general fallback palette (still has openings)");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");

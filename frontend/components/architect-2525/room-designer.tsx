@@ -11,14 +11,16 @@
 import { useRef, useState } from "react";
 import {
   Bed, Sofa, CookingPot, Utensils, Monitor, Toilet, Bath, Droplet, WashingMachine, DoorOpen,
-  RectangleHorizontal, RotateCw, RotateCcw, Columns2, Rows2, SquareStack, Trash2, type LucideIcon,
+  RectangleHorizontal, RotateCw, RotateCcw, Columns2, Rows2, SquareStack, Trash2,
+  Archive, Lamp, Tv, Refrigerator, Flame, ShowerHead, DoorClosed, Library, Armchair, Hexagon, Triangle,
+  type LucideIcon,
 } from "lucide-react";
 import { Compass2525 } from "./compass-2525";
 import { MiniPanel } from "./mini-panel";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
-  OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
-  footprintOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf,
+  OBJECT_SPEC, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
+  footprintOf, cycleVariant, VARIANTS, wallOf, slideAlongWall, shapePartsOf, paletteForRoom,
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
@@ -32,6 +34,10 @@ const N = ROOM_GRID; // 10
 const ICON: Record<ObjectKind, LucideIcon> = {
   bed: Bed, sofa: Sofa, counter: CookingPot, table: Utensils, desk: Monitor,
   toilet: Toilet, tub: Bath, sink: Droplet, washer: WashingMachine,
+  // S3 context assets + structural shell
+  dresser: Archive, nightstand: Lamp, tv: Tv, fridge: Refrigerator, stove: Flame,
+  shower: ShowerHead, wardrobe: DoorClosed, bookshelf: Library, chair: Armchair,
+  shell: Hexagon, roof: Triangle,
   door: DoorOpen, window: RectangleHorizontal,
 };
 
@@ -303,7 +309,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // Interior palette (shared between both layout modes) — sits between the panes (stacked) / below (floating).
   const paletteEl = (
     <div data-arch-roomdesign-palette className="flex flex-wrap gap-1" style={{ touchAction: "none" }}>{/* S4b: pinch here must not zoom the page */}
-      {OBJECT_KINDS.map((k) => {
+      {/* S3: palette is context-aware — the room's typical assets + common openings/shell (paletteForRoom, single source) */}
+      {paletteForRoom(room.k).map((k) => {
         const s = OBJECT_SPEC[k], on = tool === k, Icon = ICON[k];
         return (
           <button key={k} data-arch-tool={k} onClick={() => setTool(on ? null : k)} title={`${s.label} — tap then tap the floor, or drag onto the plan`}

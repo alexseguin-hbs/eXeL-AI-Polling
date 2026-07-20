@@ -12,6 +12,10 @@ export const ROOM_GRID = 10; // 10×10 ft floor (1-ft cells), matching a 10'×10
 export type ObjectKind =
   | "bed" | "sofa" | "counter" | "table" | "desk"
   | "toilet" | "tub" | "sink" | "washer"
+  // S3 — context-aware room assets (bedroom → dresser/nightstand/tv/wardrobe, kitchen → fridge/stove, bath → shower …)
+  | "dresser" | "nightstand" | "tv" | "fridge" | "stove" | "shower" | "wardrobe" | "bookshelf" | "chair"
+  // S3 — structural SHELL system (hex wall panel + roof panel) — the EcoSpheres shell folded into Architect assets
+  | "shell" | "roof"
   | "door" | "window";
 
 export type Rot = 0 | 90 | 180 | 270;
@@ -43,6 +47,19 @@ export const OBJECT_SPEC: Record<ObjectKind, { label: string; emoji: string; w: 
   tub:     { label: "Tub",     emoji: "🛁", w: 5, d: 2, h: 2,    onWall: false, color: "#19c8cf" }, // rim ~24"
   sink:    { label: "Sink",    emoji: "🚰", w: 2, d: 2, h: 2.8,  onWall: false, color: "#19c8cf" }, // vanity ~34"
   washer:  { label: "Washer",  emoji: "🧺", w: 2, d: 2, h: 3,    onWall: false, color: "#19c8cf" }, // 36"
+  // S3 — context assets (violet = furniture, cyan = appliance/plumbing).
+  dresser:   { label: "Dresser",   emoji: "🗄", w: 3,   d: 1.7, h: 3,   onWall: false, color: "#c084fc" },
+  nightstand:{ label: "Nightstand",emoji: "🛋", w: 1.5, d: 1.5, h: 2,   onWall: false, color: "#c084fc" },
+  tv:        { label: "TV",        emoji: "📺", w: 3.5, d: 0.4, h: 2,   onWall: true,  color: "#c084fc" }, // wall-mounted
+  fridge:    { label: "Fridge",    emoji: "🧊", w: 3,   d: 2.7, h: 6,   onWall: false, color: "#19c8cf" },
+  stove:     { label: "Stove",     emoji: "🔥", w: 2.5, d: 2.5, h: 3,   onWall: false, color: "#19c8cf" },
+  shower:    { label: "Shower",    emoji: "🚿", w: 3,   d: 3,   h: 7,   onWall: false, color: "#19c8cf" },
+  wardrobe:  { label: "Wardrobe",  emoji: "🚪", w: 4,   d: 2,   h: 7,   onWall: false, color: "#c084fc" },
+  bookshelf: { label: "Bookshelf", emoji: "📚", w: 3,   d: 1,   h: 6,   onWall: false, color: "#c084fc" },
+  chair:     { label: "Chair",     emoji: "🪑", w: 1.7, d: 1.7, h: 2.8, onWall: false, color: "#c084fc" },
+  // S3 — structural SHELL system (steel-grey): hex wall panel + roof panel.
+  shell:     { label: "Shell Panel",emoji: "⬡", w: 4,  d: 0.7, h: 8,   onWall: true,  color: "#8899aa" },
+  roof:      { label: "Roof Panel", emoji: "🔺", w: 5,  d: 5,   h: 0.7, onWall: false, color: "#8899aa" },
   door:    { label: "Door",    emoji: "🚪", w: 3, d: 1, h: 6.7,  onWall: true,  color: "#22c55e" }, // 6'8" opening
   window:  { label: "Window",  emoji: "▭",  w: 3, d: 1, h: 4,    onWall: true,  color: "#19c8cf" }, // ~4' sash
 };
@@ -126,10 +143,43 @@ const SHAPE_PARTS: Partial<Record<ObjectKind, ShapePart[]>> = {
   table:  [{ x: 0, y: 0, z: 0.82, w: 1, d: 1, h: 0.18 }, { x: 0.4, y: 0.4, z: 0, w: 0.2, d: 0.2, h: 0.82 }],  // top + pedestal
   toilet: [{ x: 0.12, y: 0.3, z: 0, w: 0.76, d: 0.7, h: 0.55 }, { x: 0.12, y: 0, z: 0, w: 0.76, d: 0.3, h: 1 }], // bowl + tank
   sink:   [{ x: 0, y: 0, z: 0.58, w: 1, d: 1, h: 0.42 }, { x: 0.35, y: 0.35, z: 0, w: 0.3, d: 0.3, h: 0.58 }], // basin + pedestal
+  chair:  [{ x: 0, y: 0.2, z: 0, w: 1, d: 0.8, h: 0.5 }, { x: 0, y: 0, z: 0, w: 1, d: 0.2, h: 1 }],           // seat + back
+  tv:     [{ x: 0, y: 0.35, z: 0.1, w: 1, d: 0.5, h: 0.85 }],  // thin screen panel
   window: [{ x: 0, y: 0, z: 0.32, w: 1, d: 1, h: 0.5 }],  // a mid-height sash band (not floor-to-ceiling)
 };
 /** The low-fi 3D shape of a kind as fractional sub-boxes (S2). Falls back to a single full box. */
 export function shapePartsOf(kind: ObjectKind): ShapePart[] { return SHAPE_PARTS[kind] ?? FULL_BOX; }
+
+/**
+ * S3 — CONTEXT-AWARE ROOM ASSETS. The SINGLE source mapping each room key (M/B/C/L/K/D/O/S/E — see room-layout) to the
+ * furniture/appliances typically used there, so entering a bedroom offers bed·nightstand·dresser·wardrobe·tv·chair, a
+ * kitchen offers counter·sink·fridge·stove, etc. (operator: "left selection matches the room"). VERSIONED so future
+ * room types EXTEND this map rather than fork it (Odin). Palette = this list + always openings + structural shell.
+ */
+export const ROOM_ASSETS_VERSION = 1;
+export const ROOM_ASSETS: Record<string, ObjectKind[]> = {
+  M: ["bed", "nightstand", "dresser", "wardrobe", "tv", "chair"],   // Master Bedroom
+  B: ["toilet", "tub", "shower", "sink"],                            // Master Bath
+  C: ["wardrobe", "dresser", "bookshelf"],                           // Master Closet
+  L: ["sofa", "tv", "table", "chair", "bookshelf"],                  // Living Room
+  K: ["counter", "sink", "fridge", "stove"],                         // Kitchen
+  D: ["table", "chair", "counter"],                                  // Dining Room
+  O: ["desk", "chair", "bookshelf", "tv"],                           // Office
+  S: ["washer", "sink", "counter"],                                  // Storage · Laundry
+  E: ["chair", "table", "bookshelf"],                                // Entry · Porch
+};
+/** Openings + structural shell offered in EVERY room (walls, roof, doors, windows exist everywhere). */
+export const COMMON_ASSETS: ObjectKind[] = ["door", "window", "shell", "roof"];
+/** General fallback palette for an unknown room key — a broad furniture set. */
+const GENERAL_ASSETS: ObjectKind[] = ["bed", "sofa", "counter", "table", "desk", "chair", "toilet", "sink"];
+/** The palette for a room: its context assets (or a general set) + the common openings/shell, de-duplicated (S3). */
+export function paletteForRoom(roomKey: string): ObjectKind[] {
+  const base = ROOM_ASSETS[roomKey] ?? GENERAL_ASSETS;
+  const seen = new Set<ObjectKind>();
+  const out: ObjectKind[] = [];
+  for (const k of [...base, ...COMMON_ASSETS]) if (!seen.has(k)) { seen.add(k); out.push(k); }
+  return out;
+}
 
 /** Remove an object. */
 export function removeObject(objs: PlacedObject[], id: string): PlacedObject[] {
