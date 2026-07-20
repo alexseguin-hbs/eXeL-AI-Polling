@@ -262,6 +262,14 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
               <g key={o.id} data-arch-roomobj={o.kind} transform={`rotate(${o.rot} ${cx} ${cy})`} style={{ cursor: interactive ? "grab" : "default" }} onPointerDown={interactive ? objDown(o.id) : undefined}>
                 <rect x={cx - w * 5} y={cy - d * 5} width={w * 10} height={d * 10} rx={1.5}
                   fill={`${s.color}${on ? "55" : "2e"}`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
+                {/* upper-left DRAG GRIP — a clear, consistent move handle on every item so it's easy to grab and drag
+                    (operator: draggable upper-left icon, Mission-Planning parity). Visual only; the whole group drags. */}
+                {interactive && (
+                  <g style={{ pointerEvents: "none" }}>
+                    <circle cx={cx - w * 5} cy={cy - d * 5} r={3} fill={on ? C.gold : s.color} stroke="#070b12" strokeWidth={0.6} />
+                    <path d={`M ${cx - w * 5 - 1.3} ${cy - d * 5} h2.6 M ${cx - w * 5} ${cy - d * 5 - 1.3} v2.6`} stroke="#070b12" strokeWidth={0.7} strokeLinecap="round" />
+                  </g>
+                )}
                 <foreignObject x={cx - 4} y={cy - 4} width={8} height={8} style={{ pointerEvents: "none" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 8, height: 8 }}>
                     <Icon style={{ width: 6, height: 6, color: on ? C.gold : s.color }} />
