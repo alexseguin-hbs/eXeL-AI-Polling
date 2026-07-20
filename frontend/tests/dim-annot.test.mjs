@@ -19,15 +19,16 @@ ok(ftIn(6.33) === `6'-4"`, "ftIn(6.33) = 6'-4\" (king bed width)");
 const door = { id: "door-1", kind: "door", gx: 4, gy: 0, rot: 0 };
 const da = annotateObject(door, OBJECT_SPEC.door, footprintOf(door));
 ok(da.lines.length === 1 && da.lines[0].y1 === 0.5 && da.lines[0].x2 === 4.5, "door N: O.C. witness line along the top wall to centre 4.5ft");
-ok(da.lines[0].label === `4'-6" O.C.`, "door O.C. label = 4'-6\" O.C. (centre of gx=4 cell)");
-ok(da.notes[0] === `R.O. 3'-0" × 6'-8"`, "door R.O. note = 3'-0\" × 6'-8\" (6.7ft header)");
-ok(!da.notes.some((n) => n.includes("AFF")), "door has no SILL AFF note");
+ok(da.lines[0].label === `4'-6" O.C.` && da.lines[0].edit === "oc", "door O.C. label = 4'-6\" O.C., tappable (edit:oc)");
+ok(da.notes[0].text === `R.O. 3'-0" × 6'-8"` && da.notes[0].edit === "size", "door R.O. note = 3'-0\" × 6'-8\", tappable (edit:size)");
+ok(!da.notes.some((n) => n.text.includes("AFF")), "door has no SILL AFF note");
 
-// ── window adds a SILL AFF note ──
+// ── window adds a SILL AFF note (not editable) ──
 const win = { id: "window-1", kind: "window", gx: 2, gy: 0, rot: 0 };
 const wa = annotateObject(win, OBJECT_SPEC.window, footprintOf(win));
-ok(wa.notes.some((n) => n === `SILL 3'-0" AFF`), "window adds SILL 3'-0\" AFF");
-ok(wa.notes[0] === `R.O. 3'-0" × 4'-0"`, "window R.O. = 3'-0\" × 4'-0\"");
+const sill = wa.notes.find((n) => n.text === `SILL 3'-0" AFF`);
+ok(sill && !sill.edit, "window adds SILL 3'-0\" AFF (not tappable)");
+ok(wa.notes[0].text === `R.O. 3'-0" × 4'-0"`, "window R.O. = 3'-0\" × 4'-0\"");
 
 // ── wall selection per side (W/E/S) pins the correct axis ──
 ok(annotateObject({ id: "d", kind: "door", gx: 0, gy: 5, rot: 0 }, OBJECT_SPEC.door, footprintOf({ kind: "door" })).lines[0].x1 === 0.5, "door W wall: vertical dim inset from left");
@@ -37,8 +38,8 @@ ok(annotateObject({ id: "d", kind: "door", gx: 5, gy: 9, rot: 0 }, OBJECT_SPEC.d
 // ── free furniture → W×D size line + note (no R.O.) ──
 const bed = { id: "bed-1", kind: "bed", gx: 3, gy: 3, rot: 0 };
 const ba = annotateObject(bed, OBJECT_SPEC.bed, footprintOf(bed));
-ok(ba.notes[0] === `5'-0" × 6'-0"`, "bed size note = 5'-0\" × 6'-0\"");
-ok(!ba.notes.some((n) => n.includes("R.O.")), "furniture has no R.O. note");
+ok(ba.notes[0].text === `5'-0" × 6'-0"` && ba.notes[0].edit === "size", "bed size note = 5'-0\" × 6'-0\", tappable (edit:size)");
+ok(!ba.notes.some((n) => n.text.includes("R.O.")), "furniture has no R.O. note");
 ok(ba.lines[0].label === `5'-0"`, "furniture width dim label = 5'-0\"");
 
 // ── determinism ──

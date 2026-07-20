@@ -217,29 +217,42 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           {interactive && sel && (() => {
             const ann = annotateObject(sel, { ...OBJECT_SPEC[sel.kind], h: heightOf(sel) }, footprintOf(sel));
             const U = 10; // ft → viewBox units
+            // FIX-5 — tap a dimension to fine-tune: "oc" nudges the opening 1 ft along its wall (wraps),
+            // "size" cycles the standard size variant. Reuses moveObject/cycleVariant (footprint-clamped, pure).
+            const applyEdit = (e: React.MouseEvent, edit?: "oc" | "size") => {
+              e.stopPropagation();
+              if (!edit) return;
+              if (edit === "size") { onChange(cycleVariant(objects, sel.id)); return; }
+              const w = wallOf(sel.gx, sel.gy);
+              if (w === "N" || w === "S") onChange(moveObject(objects, sel.id, sel.gx + 1 > 8 ? 1 : sel.gx + 1, sel.gy));
+              else onChange(moveObject(objects, sel.id, sel.gx, sel.gy + 1 > 8 ? 1 : sel.gy + 1));
+            };
             return (
-              <g data-arch-roomdim style={{ pointerEvents: "none" }}>
+              <g data-arch-roomdim>
                 {ann.lines.map((l, i) => {
                   const x1 = l.x1 * U, y1 = l.y1 * U, x2 = l.x2 * U, y2 = l.y2 * U;
                   const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
                   const horiz = Math.abs(y2 - y1) <= Math.abs(x2 - x1), t = 1;
                   return (
                     <g key={i}>
-                      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={C.gold} strokeWidth={0.5} />
+                      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={C.gold} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
                       {horiz ? (<>
-                        <line x1={x1} y1={y1 - t} x2={x1} y2={y1 + t} stroke={C.gold} strokeWidth={0.5} />
-                        <line x1={x2} y1={y2 - t} x2={x2} y2={y2 + t} stroke={C.gold} strokeWidth={0.5} />
+                        <line x1={x1} y1={y1 - t} x2={x1} y2={y1 + t} stroke={C.gold} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                        <line x1={x2} y1={y2 - t} x2={x2} y2={y2 + t} stroke={C.gold} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
                       </>) : (<>
-                        <line x1={x1 - t} y1={y1} x2={x1 + t} y2={y1} stroke={C.gold} strokeWidth={0.5} />
-                        <line x1={x2 - t} y1={y2} x2={x2 + t} y2={y2} stroke={C.gold} strokeWidth={0.5} />
+                        <line x1={x1 - t} y1={y1} x2={x1 + t} y2={y1} stroke={C.gold} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                        <line x1={x2 - t} y1={y2} x2={x2 + t} y2={y2} stroke={C.gold} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
                       </>)}
-                      <text x={mx} y={my - 1.2} fontSize={3} fill={C.gold} textAnchor="middle" stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke" }}>{l.label}</text>
+                      <text data-arch-dim-edit={l.edit} x={mx} y={my - 1.2} fontSize={3} fill={l.edit ? C.cyan : C.gold} textAnchor="middle" stroke="#070b12" strokeWidth={0.7}
+                        style={{ paintOrder: "stroke", cursor: l.edit ? "pointer" : "default", pointerEvents: l.edit ? "auto" : "none" }}
+                        onClick={l.edit ? (e) => applyEdit(e, l.edit) : undefined}>{l.label}{l.edit === "oc" ? " ✎" : ""}</text>
                     </g>
                   );
                 })}
                 {ann.notes.map((n, i) => (
-                  <text key={`n${i}`} x={(sel.gx + 0.5) * U} y={(sel.gy + 0.5) * U + 4.2 + i * 3.6} fontSize={3} fill={C.gold}
-                    textAnchor="middle" stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke" }}>{n}</text>
+                  <text key={`n${i}`} data-arch-dim-edit={n.edit} x={(sel.gx + 0.5) * U} y={(sel.gy + 0.5) * U + 4.2 + i * 3.6} fontSize={3} fill={n.edit ? C.cyan : C.gold}
+                    textAnchor="middle" stroke="#070b12" strokeWidth={0.7} style={{ paintOrder: "stroke", cursor: n.edit ? "pointer" : "default", pointerEvents: n.edit ? "auto" : "none" }}
+                    onClick={n.edit ? (e) => applyEdit(e, n.edit) : undefined}>{n.text}{n.edit === "size" ? " ✎" : ""}</text>
                 ))}
               </g>
             );
