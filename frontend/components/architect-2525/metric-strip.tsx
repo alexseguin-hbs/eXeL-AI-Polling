@@ -9,8 +9,9 @@
  * collapsed. Values are the deterministic `programMetrics(...).counts` (+ sqft), never re-derived here.
  */
 import { useMemo, useState } from "react";
-import { LayoutGrid, Bath, Ruler, Square, DoorOpen, Plug } from "lucide-react";
+import { LayoutGrid, Bath, Ruler, Square, DoorOpen, Plug, SlidersHorizontal } from "lucide-react";
 import { programMetrics } from "@/lib/room-program";
+import { BuildingProgram } from "./building-program";
 import { type LayerState } from "./use-layer-state";
 
 const C = { border: "#1e2b3a", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
@@ -19,6 +20,7 @@ export function MetricStrip({ state, overlay = false, homeType = "full" }: { sta
   const m = useMemo(() => programMetrics(state.globalParams, state.program, homeType), [state.globalParams, state.program, homeType]);
   // Default COLLAPSED = icon + number only (operator IMG_7484); ••• expand reveals the grey labels + widens.
   const [expanded, setExpanded] = useState(false);
+  const [showProgram, setShowProgram] = useState(false); // operator IMG_7545: Building Program is a TOGGLE here, not atop Active Items
   const items: { icon: typeof Bath; label: string; value: string; color: string }[] = [
     { icon: LayoutGrid, label: "Rooms", value: `${m.counts.rooms}`, color: C.violet },
     { icon: Bath, label: "Baths", value: `${m.bathrooms}`, color: C.violet },
@@ -59,6 +61,20 @@ export function MetricStrip({ state, overlay = false, homeType = "full" }: { sta
           {expanded && <span className="uppercase tracking-wide" style={{ color: C.dim, fontSize: 8 }}>{label}</span>}
         </div>
       ))}
+      {/* Building Program TOGGLE — under the existing metric info (operator IMG_7545). Only when expanded. */}
+      {expanded && (
+        <>
+          <button data-arch-program-toggle onClick={() => setShowProgram((v) => !v)} title="Building Program — bedrooms · baths · sqft · electric · plumbing"
+            className="mt-0.5 flex items-center gap-1.5 rounded border px-1 py-0.5 text-[9px] font-semibold hover:bg-white/10" style={{ borderColor: C.border, color: showProgram ? C.cyan : C.dim }}>
+            <SlidersHorizontal className="h-3 w-3 shrink-0" /> Program {showProgram ? "▾" : "▸"}
+          </button>
+          {showProgram && (
+            <div data-arch-program-panel className="mt-0.5 max-h-[46vh] w-56 overflow-y-auto rounded border p-1" style={{ borderColor: C.border, background: "#0a0f16" }}>
+              <BuildingProgram state={state} homeType={homeType} />
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

@@ -12,7 +12,6 @@
 import { Trash2, Boxes } from "lucide-react";
 import { findLayer, type HomeType } from "@/lib/architect-layers";
 import { LayerInspector } from "./layer-inspector";
-import { BuildingProgram } from "./building-program";
 import { type LayerState } from "./use-layer-state";
 
 const C = { border: "#1e2b3a", panel2: "#0c1420", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e" };
@@ -23,8 +22,8 @@ export function RightPanel({ selectedId, onSelect, state, homeType = "full" }: {
   const active = state ? Array.from(state.spec) : [];
   return (
     <div data-arch-right-panel className="flex flex-col gap-2">
-      {/* BUILDING PROGRAM — the element-counting inspector (bedrooms · baths · sqft · electric · plumbing). */}
-      {state && <BuildingProgram state={state} homeType={homeType} />}
+      {/* Building Program moved OFF the top of Active Items → it's now a toggle under the map's ••• metric-strip
+          hideaway (operator IMG_7545: "make this a toggle mode under existing info on large map hideaway menu"). */}
 
       {/* TOP ~⅓ — ACTIVE ELEMENTS: the in-house components; click one to make it the Selected Element. */}
       <div data-arch-active-elements className="rounded-lg border" style={{ borderColor: C.border }}>
