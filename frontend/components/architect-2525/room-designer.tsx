@@ -34,6 +34,17 @@ import { useRCoreGestures } from "./use-rcore-gestures";
 import type { RoomCell } from "@/lib/room-layout";
 
 const C = { border: "#1e2b3a", panel: "#0c1420", dim: "#5f7186", text: "#c8d6e5", cyan: "#19c8cf", gold: "#ffd400", violet: "#c084fc" };
+
+// FIX-D — solid polygon-face shading (reuse Mission-Planning radar-dome FACE_SHADE technique, IMG_7534): multiply an
+// object's hex colour toward black per face (top brightest → sides darker) so 3D furniture reads SOLID, not translucent.
+const FACE_SHADE = { top: 1.0, front: 0.82, side: 0.6 } as const;
+function shade(hex: string, f: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const r = Math.round(((n >> 16) & 255) * f), g = Math.round(((n >> 8) & 255) * f), b = Math.round((n & 255) * f);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
 const N = ROOM_GRID; // 10
 
 // Our own iconology (no emojis, operator's standing rule) — one lucide glyph per object kind.
@@ -317,9 +328,10 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                   const top = [iso(x0, y0, z1), iso(x0 + w, y0, z1), iso(x0 + w, y0 + d, z1), iso(x0, y0 + d, z1)];
                   return (
                     <g key={pi} data-arch-roomobj3d-part={o.kind}>
-                      <polygon points={poly([base[0], base[1], top[1], top[0]])} fill={`${s.color}22`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.7} />
-                      <polygon points={poly([base[1], base[2], top[2], top[1]])} fill={`${s.color}18`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.7} />
-                      <polygon points={poly(top)} fill={`${s.color}33`} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.4 : 0.8} />
+                      {/* FIX-D solid shaded faces (top brightest → sides darker); selected = gold tint */}
+                      <polygon points={poly([base[0], base[1], top[1], top[0]])} fill={on ? shade(C.gold, FACE_SHADE.front) : shade(s.color, FACE_SHADE.front)} stroke={on ? C.gold : s.color} strokeWidth={on ? 1 : 0.5} />
+                      <polygon points={poly([base[1], base[2], top[2], top[1]])} fill={on ? shade(C.gold, FACE_SHADE.side) : shade(s.color, FACE_SHADE.side)} stroke={on ? C.gold : s.color} strokeWidth={on ? 1 : 0.5} />
+                      <polygon points={poly(top)} fill={on ? shade(C.gold, FACE_SHADE.top) : shade(s.color, FACE_SHADE.top)} stroke={on ? C.gold : s.color} strokeWidth={on ? 1.2 : 0.6} />
                     </g>
                   );
                 })}
