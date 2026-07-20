@@ -1048,6 +1048,7 @@ const vision2525: TranslationEntry[] = [
   { key: "vision.ctrl.rotateLeft", englishDefault: "Rotate left", context: "Rotate the plan left", cubeId: 40 },
   { key: "vision.ctrl.rotateRight", englishDefault: "Rotate right", context: "Rotate the plan right", cubeId: 40 },
   { key: "vision.ctrl.reset", englishDefault: "Reset", context: "Reset the camera/view", cubeId: 40 },
+  { key: "vision.ctrl.undo", englishDefault: "Undo", context: "Undo the last placement / edit in the designer", cubeId: 40 },
   { key: "vision.ctrl.mirrorH", englishDefault: "Mirror left↔right", context: "Mirror horizontally (data op, both views)", cubeId: 40 },
   { key: "vision.ctrl.mirrorV", englishDefault: "Mirror top↔bottom", context: "Mirror vertically (data op, both views)", cubeId: 40 },
   { key: "vision.ctrl.northLock", englishDefault: "Lock North", context: "Lock the compass north / link panes together", cubeId: 40 },

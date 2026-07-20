@@ -14,7 +14,7 @@ import {
   RectangleHorizontal, RotateCw, RotateCcw, Columns2, Rows2, SquareStack, Trash2,
   Archive, Lamp, Tv, Refrigerator, Flame, ShowerHead, DoorClosed, Library, Armchair, Hexagon, Triangle,
   Shirt, Rows3, Footprints, Frame, RectangleVertical, LampFloor, Fan,
-  ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Link2, Link2Off,
+  ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Link2, Link2Off, Undo2,
   type LucideIcon,
 } from "lucide-react";
 import { Compass2525 } from "./compass-2525";
@@ -138,13 +138,27 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     return { gx, gy };
   };
 
+  // UNDO — snapshot the object list BEFORE each discrete edit so any placement/move/delete can be reversed (operator:
+  // "undo button for ensuring multiple items are unplaced"). Drag-moves push ONE snapshot (pre-drag), not per-tick.
+  const [history, setHistory] = useState<PlacedObject[][]>([]);
+  const dragPushed = useRef(false);
+  const commit = (next: PlacedObject[]) => { setHistory((h) => [...h.slice(-49), objects]); onChange(next); };
+  const undo = () => {
+    setHistory((h) => {
+      if (h.length === 0) return h;
+      onChange(h[h.length - 1]);
+      setSelId(null);
+      return h.slice(0, -1);
+    });
+  };
   const placeAt = (gx: number, gy: number) => {
     if (!tool) return;
     const p = OBJECT_SPEC[tool].onWall ? wallSnap(gx, gy) : { gx, gy };
-    onChange(placeObject(objects, tool, p.gx, p.gy));
+    commit(placeObject(objects, tool, p.gx, p.gy));
+    setTool(null); // auto-disengage so a second tap doesn't stamp a duplicate (operator: re-select to place again)
   };
   const objDown = (id: string) => (e: React.PointerEvent) => {
-    e.stopPropagation(); drag.current = id; setSelId(id);
+    e.stopPropagation(); drag.current = id; setSelId(id); dragPushed.current = false;
     // S1 — lock this drag to the wall the object currently sits on, so it slides along it.
     const o = objects.find((x) => x.id === id);
     dragWall.current = o && OBJECT_SPEC[o.kind].onWall ? wallOf(o.gx, o.gy) : null;
@@ -156,7 +170,11 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     const o = objects.find((x) => x.id === drag.current); if (!o) return;
     // S1 — a wall object SLIDES along its captured wall (perpendicular axis pinned); everything else moves freely.
     const p = OBJECT_SPEC[o.kind].onWall ? slideAlongWall(dragWall.current ?? wallOf(c.gx, c.gy), c.gx, c.gy) : c;
-    if (p.gx !== o.gx || p.gy !== o.gy) onChange(moveObject(objects, o.id, p.gx, p.gy));
+    if (p.gx !== o.gx || p.gy !== o.gy) {
+      // push ONE pre-drag snapshot the first time this drag actually moves, so the whole drag is a single undo step.
+      if (!dragPushed.current) { setHistory((h) => [...h.slice(-49), objects]); dragPushed.current = true; }
+      onChange(moveObject(objects, o.id, p.gx, p.gy));
+    }
   };
   const svgUp = () => { drag.current = null; dragWall.current = null; };
   const bgClick = (e: React.MouseEvent) => { const c = cellFromEvent(e); if (c) placeAt(c.gx, c.gy); };
@@ -167,7 +185,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     if (!(k in OBJECT_SPEC)) return;
     const c = cellFromEvent(e); if (!c) return;
     const p = OBJECT_SPEC[k].onWall ? wallSnap(c.gx, c.gy) : c;
-    onChange(placeObject(objects, k, p.gx, p.gy));
+    commit(placeObject(objects, k, p.gx, p.gy));
+    setTool(null); // auto-disengage after a drop too, so the next drop needs a fresh pick
   };
 
   const sel = objects.find((o) => o.id === selId) || null;
@@ -317,7 +336,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           const v = parseFeet(dimVal);
           if (v != null) {
             const e = dimEntry.edit, ax = dimEntry.axis; // ax routes to the horizontal (x) or vertical (y) chain
-            onChange(
+            commit(
               e === "oc" ? setAlongWall(objects, sel.id, v, ax)
               : e === "gapNear" ? setGap(objects, sel.id, "near", v, ax)
               : e === "gapFar" ? setGap(objects, sel.id, "far", v, ax)
@@ -477,8 +496,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         <button onClick={onReset} title="Reset view" className="shrink-0 rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.dim }}>{t("vision.ctrl.reset")}</button>
       )}
       {/* S8 — MIRROR is a DATA op (affects 2D + 3D from one source), so it's shown in BOTH view modes on every pane */}
-      <button onClick={() => onChange(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
-      <button onClick={() => onChange(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
+      <button onClick={() => commit(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
+      <button onClick={() => commit(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
       <span className="shrink-0 font-semibold" style={{ color: C.dim }}>{t("vision.rcore")}</span>
       {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0 rounded px-1 font-semibold" style={{ color: l.color }}>{l.label}</span>)}
     </div>
@@ -514,8 +533,15 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         <button data-arch-roomdesign-back onClick={onBack} className="rounded border px-2 py-0.5 text-[10px]" style={{ borderColor: C.border, color: C.dim }}>← {t("vision.nav.backToHouse")}</button>
         <span className="text-[11px] font-bold" style={{ color: C.gold }}>{room.k} · {room.label}</span>
         <span className="text-[9px]" style={{ color: C.dim }}>10′×10′ · tap a tool, tap the floor</span>
+        {/* UNDO — reverse the last placement/move/edit (operator: "undo button for ensuring multiple items are unplaced") */}
+        <button data-arch-roomdesign-undo onClick={undo} disabled={history.length === 0}
+          className="ml-auto flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold disabled:opacity-40"
+          style={{ borderColor: history.length ? C.gold : C.border, color: history.length ? C.gold : C.dim }}
+          title={`${t("vision.ctrl.undo")}${history.length ? ` (${history.length})` : ""}`}>
+          <Undo2 className="h-3 w-3" /> {t("vision.ctrl.undo")}{history.length ? ` ${history.length}` : ""}
+        </button>
         {/* FIX-C — explanations for the non-simple areas (operator: intuitive + get explanations) */}
-        <button data-arch-help onClick={() => setHelpOpen((h) => !h)} className="ml-auto rounded-full border px-1.5 text-[10px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }} title="How this designer works">?</button>
+        <button data-arch-help onClick={() => setHelpOpen((h) => !h)} className="rounded-full border px-1.5 text-[10px] font-bold" style={{ borderColor: C.cyan, color: C.cyan }} title="How this designer works">?</button>
       </div>
       {helpOpen && (
         <div data-arch-help-panel className="rounded border p-2 text-[10px] leading-relaxed" style={{ borderColor: C.cyan, background: "#070b12", color: C.text }}>
@@ -634,20 +660,20 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                 <span data-arch-roomobj-dims style={{ color: C.dim }}>{ftIn(fp.w)} W × {ftIn(fp.d)} D × {ftIn(heightOf(sel))} H</span>
                 {selSpec.onWall && <span data-arch-roomobj-wall className="rounded border px-1 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{wallOf(sel.gx, sel.gy)} wall</span>}
                 {vs && (
-                  <button data-arch-roomobj-size onClick={() => onChange(cycleVariant(objects, sel.id))} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.violet }}>
+                  <button data-arch-roomobj-size onClick={() => commit(cycleVariant(objects, sel.id))} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.violet }}>
                     Size: {vLabel ?? "—"} ↻
                   </button>
                 )}
-                <button data-arch-roomobj-rotate onClick={() => onChange(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
-                <button data-arch-roomobj-delete onClick={() => { onChange(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
+                <button data-arch-roomobj-rotate onClick={() => commit(rotateObject(objects, sel.id))} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /> Rotate</button>
+                <button data-arch-roomobj-delete onClick={() => { commit(removeObject(objects, sel.id)); setSelId(null); }} className="flex items-center gap-1 rounded border px-2 py-0.5" style={{ borderColor: C.border, color: "#f87171" }}><Trash2 className="h-3 w-3" /> Delete</button>
                 {/* FIX-B — spatial nudge pad (arrows + ft/in step), Mission-Planning asset-planning style */}
                 <span data-arch-nudge className="flex items-center gap-0.5 rounded border px-1 py-0.5" style={{ borderColor: C.border }} title={`Nudge the selected item by the chosen step; tap the step to change 1" / 6" / 1'`}>
                   <button data-arch-nudge-step onClick={() => setNudgeIx((i) => (i + 1) % NUDGE_STEPS_FT.length)} className="rounded px-1 text-[9px] font-bold tabular-nums" style={{ color: C.gold }}>{NUDGE_STEPS_FT[nudgeIx].label}</button>
                   {(() => { const step = NUDGE_STEPS_FT[nudgeIx].ft; return (<>
-                    <button data-arch-nudge-up onClick={() => onChange(nudgeObject(objects, sel.id, 0, -step))} title="Move up (N)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowUp className="h-3 w-3" /></button>
-                    <button data-arch-nudge-down onClick={() => onChange(nudgeObject(objects, sel.id, 0, step))} title="Move down (S)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowDown className="h-3 w-3" /></button>
-                    <button data-arch-nudge-left onClick={() => onChange(nudgeObject(objects, sel.id, -step, 0))} title="Move left (W)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowLeft className="h-3 w-3" /></button>
-                    <button data-arch-nudge-right onClick={() => onChange(nudgeObject(objects, sel.id, step, 0))} title="Move right (E)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowRight className="h-3 w-3" /></button>
+                    <button data-arch-nudge-up onClick={() => commit(nudgeObject(objects, sel.id, 0, -step))} title="Move up (N)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowUp className="h-3 w-3" /></button>
+                    <button data-arch-nudge-down onClick={() => commit(nudgeObject(objects, sel.id, 0, step))} title="Move down (S)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowDown className="h-3 w-3" /></button>
+                    <button data-arch-nudge-left onClick={() => commit(nudgeObject(objects, sel.id, -step, 0))} title="Move left (W)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowLeft className="h-3 w-3" /></button>
+                    <button data-arch-nudge-right onClick={() => commit(nudgeObject(objects, sel.id, step, 0))} title="Move right (E)" className="rounded p-0.5" style={{ color: C.cyan }}><ArrowRight className="h-3 w-3" /></button>
                   </>); })()}
                 </span>
                 <button data-arch-roomobj-deselect onClick={() => setSelId(null)} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.dim }}>Done</button>
