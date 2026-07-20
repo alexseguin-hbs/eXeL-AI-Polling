@@ -10,7 +10,7 @@
  * wire to it in later steps. Built generically so it can promote to 2525-core (MANIFEST candidate).
  */
 import { useEffect, useMemo, useState } from "react";
-import { ChevronRight, Eye, EyeOff, Lock, Unlock, Settings, MoreHorizontal, DoorOpen } from "lucide-react";
+import { ChevronRight, Eye, EyeOff, Lock, Unlock, Settings, MoreHorizontal, DoorOpen, Zap, Droplet, Fan, Sofa, Frame, Wifi, Trees, RectangleHorizontal } from "lucide-react";
 import { LAYER_TREE, HOME_TYPES, isVisibleForType, isVisibleForRoom, roomSystems, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { componentEstimate } from "@/lib/architect-house";
 import { type LayerState } from "./use-layer-state";
@@ -19,6 +19,18 @@ const kUsd = (n: number) => (n >= 1000 ? `$${Math.round(n / 1000)}k` : `$${n}`);
 
 const C = { border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400" };
 const SCOPE_COLOR: Record<string, string> = { physical: C.violet, operational: C.cyan, lifecycle: C.green };
+// Slice 3 — per-system icon + colour for the in-room tree; colours mirror the map's MEP palette (droplet-cyan
+// plumbing, zap-gold electrical, fan-blue duct) so a tree system and its map run read as one source.
+const SYSTEM_META: Record<string, { Icon: typeof Eye; color: string }> = {
+  "physical/electrical": { Icon: Zap, color: "#ffd400" },
+  "physical/plumbing": { Icon: Droplet, color: "#19c8cf" },
+  "physical/mechanical": { Icon: Fan, color: "#38bdf8" },
+  "physical/interior": { Icon: Sofa, color: "#c084fc" },
+  "physical/building-envelope": { Icon: RectangleHorizontal, color: "#19c8cf" },
+  "physical/structure": { Icon: Frame, color: "#5f7186" },
+  "physical/communications-low-voltage": { Icon: Wifi, color: "#22c55e" },
+  "physical/exterior": { Icon: Trees, color: "#22c55e" },
+};
 
 // `state` (visibility + lock Sets) is lifted to the shell so the RIGHT Context inspector shares it (R2).
 // `homeType` limits which physical components are offered — a Tiny Home has fewer decisions (R3).
@@ -33,6 +45,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
   const roomOK = (id: string, scopeId: string) => isVisibleForRoom(id, scopeId, roomKey);
   // A node shows only if it passes BOTH the market gate AND the room gate (room = null → whole-house, unchanged).
   const inScope = (id: string, scopeId: string) => tinyOK(id, scopeId) && roomOK(id, scopeId);
+  const essentialIds = roomKey ? new Set(roomSystems(roomKey).essential) : null; // bold the room's essential systems
   // Scopes open by default; systems collapsed (matches Security's "start collapsed" density).
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set(["physical", "operational", "lifecycle"]));
   // On entering a room, auto-open its ESSENTIAL system(s) so plumbing/electrical are visible with zero clicks.
@@ -102,7 +115,10 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
           {hasKids
             ? <ChevronRight className="h-3 w-3 shrink-0 transition-transform" style={{ transform: open ? "rotate(90deg)" : "none", color: C.dim }} />
             : <span className="inline-block h-3 w-3 shrink-0" />}
-          <span className="min-w-0 flex-1 truncate">{node.label}</span>
+          {/* Slice 3 — in a room, a system row gets its MEP-coloured icon; essential systems (e.g. Plumbing) show gold-bold. */}
+          {(() => { const meta = focusRoom && depth === 1 && scopeId === "physical" ? SYSTEM_META[node.id] : undefined;
+            return meta ? <meta.Icon className="h-3 w-3 shrink-0" style={{ color: meta.color }} /> : null; })()}
+          <span className="min-w-0 flex-1 truncate" style={essentialIds?.has(node.id) ? { fontWeight: 700, color: C.gold } : undefined}>{node.label}</span>
           {state.spec.has(node.id) && <span data-layer-inhouse title="On the house" className="shrink-0 h-1.5 w-1.5 rounded-full" style={{ background: C.green }} />}
           {hasKids && <span className="shrink-0 text-[8px] group-hover:hidden" style={{ color: C.dim }}>·{visCount(kids)}</span>}
           {/* Per-item STARTING COST · install time — every buildable leaf carries an estimate (operator ask). */}
