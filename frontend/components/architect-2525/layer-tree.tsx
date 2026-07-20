@@ -12,6 +12,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Eye, EyeOff, Lock, Unlock, Settings, MoreHorizontal, DoorOpen, Zap, Droplet, Fan, Sofa, Frame, Wifi, Trees, RectangleHorizontal } from "lucide-react";
 import { LAYER_TREE, HOME_TYPES, isVisibleForType, isVisibleForRoom, roomSystems, type LayerNode, type HomeType } from "@/lib/architect-layers";
+import { paletteForRoom, groupPalette, OBJECT_SPEC } from "@/lib/room-objects";
+import { OBJECT_ICON } from "./object-icons";
 import { componentEstimate } from "@/lib/architect-house";
 import { type LayerState } from "./use-layer-state";
 
@@ -155,6 +157,29 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
           <DoorOpen className="h-3 w-3 shrink-0" style={{ color: C.gold }} />
           <span className="font-bold" style={{ color: C.gold }}>{focusRoom.k} · {focusRoom.label}</span>
           <span className="min-w-0 flex-1 truncate" style={{ color: C.dim }}>— its systems · ← Back to house for all</span>
+        </div>
+      )}
+      {/* FURNITURE — when a room is entered, list ITS furniture with the SAME mini icons as the room designer palette
+          (operator: the Vision Tree needs a furniture section that matches the room's mini icons). Grouped by system. */}
+      {focusRoom && roomKey && (
+        <div data-arch-tree-furniture className="mb-1 rounded border p-1" style={{ borderColor: C.border, background: "#0a0f16" }}>
+          <div className="mb-1 flex items-center gap-1 px-1 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>
+            <Sofa className="h-3 w-3" style={{ color: C.violet }} /> Furniture · {focusRoom.label}
+          </div>
+          <div className="flex flex-col gap-0.5">
+            {groupPalette(paletteForRoom(roomKey)).map(({ group, kinds }) => (
+              <div key={group} data-arch-tree-furn-group={group}>
+                <div className="px-1 text-[7px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>{group}</div>
+                <div className="flex flex-wrap gap-1 px-1 py-0.5">
+                  {kinds.map((k) => { const Icon = OBJECT_ICON[k]; const s = OBJECT_SPEC[k]; return (
+                    <span key={k} data-arch-tree-furn={k} className="flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px]" style={{ borderColor: C.border, color: C.text }}>
+                      <Icon className="h-3 w-3 shrink-0" style={{ color: s.color }} /> {s.label}
+                    </span>
+                  ); })}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
       {/* TARGET MARKET — Tiny Home & Home are the two markets. Tiny Home limits systems + decisions (R3/R8). */}

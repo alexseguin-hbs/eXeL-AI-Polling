@@ -29,6 +29,7 @@ import {
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, outletMarkers, type MepRun } from "@/lib/mep-runs";
 import { annotateObject, chainDims, ftIn } from "@/lib/dim-annot";
 import { useLexicon } from "@/lib/lexicon-context";
+import { OBJECT_ICON } from "./object-icons";
 import { roomBom } from "@/lib/architect-bom";
 import { runPlaytest, PLAYTEST_SYSTEMS } from "@/lib/architect-playtest";
 import { useRCoreGestures } from "./use-rcore-gestures";
@@ -49,17 +50,7 @@ function shade(hex: string, f: number): string {
 const N = ROOM_GRID; // 10
 
 // Our own iconology (no emojis, operator's standing rule) — one lucide glyph per object kind.
-const ICON: Record<ObjectKind, LucideIcon> = {
-  bed: Bed, sofa: Sofa, counter: CookingPot, table: Utensils, desk: Monitor,
-  toilet: Toilet, tub: Bath, sink: Droplet, washer: WashingMachine,
-  // S3 context assets + structural shell
-  dresser: Archive, nightstand: Lamp, tv: Tv, fridge: Refrigerator, stove: Flame,
-  shower: ShowerHead, wardrobe: DoorClosed, bookshelf: Library, chair: Armchair,
-  shell: Hexagon, roof: Triangle,
-  // FIX-9 closet storage + gaps
-  closetrod: Shirt, shelving: Rows3, shoerack: Footprints, rug: Frame, mirror: RectangleVertical, lamp: LampFloor, rangehood: Fan,
-  door: DoorOpen, window: RectangleHorizontal,
-};
+const ICON = OBJECT_ICON; // shared per-kind icons (one source — also used by the Vision Tree furniture section)
 
 /** Snap a wall object (window/door) to whichever of the 4 edges is nearest the drop cell. */
 function wallSnap(gx: number, gy: number): { gx: number; gy: number } {
