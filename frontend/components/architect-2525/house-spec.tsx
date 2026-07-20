@@ -17,7 +17,7 @@ import { BimIO } from "./bim-io";
 const C = { border: "#1e2b3a", panel: "#111826", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", green: "#22c55e", gold: "#ffd400", red: "#ef4444" };
 const fmtUsd = (n: number) => "$" + Math.round(n).toLocaleString();
 
-export function HouseSpec({ state, homeType = "full", selectedId, onSelect }: { state: LayerState; homeType?: HomeType; selectedId?: string | null; onSelect?: (id: string) => void }) {
+export function HouseSpec({ state, homeType = "full", selectedId, onSelect, onLoadArchitect }: { state: LayerState; homeType?: HomeType; selectedId?: string | null; onSelect?: (id: string) => void; onLoadArchitect?: (file: import("@/lib/architect-project-file").ArchitectProjectFile) => void }) {
   const ids = Array.from(state.spec);
   const est = houseEstimate(ids);
 
@@ -31,7 +31,7 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect }: { 
             <div className="mt-1">Select a component in the Layer Tree, then <span style={{ color: C.text }}>Add&nbsp;to&nbsp;house</span> in the Context panel — or <span style={{ color: C.text }}>Import BIM</span> below. The cross-section fills in as you go.</div>
           </div>
         </div>
-        <BimIO state={state} homeType={homeType} />
+        <BimIO state={state} homeType={homeType} onLoadArchitect={onLoadArchitect} />
       </div>
     );
   }
@@ -109,7 +109,7 @@ export function HouseSpec({ state, homeType = "full", selectedId, onSelect }: { 
       })()}
 
       {/* BIM I/O — generate a BIM-compatible model or import one (Inc 1). */}
-      <BimIO state={state} homeType={homeType} />
+      <BimIO state={state} homeType={homeType} onLoadArchitect={onLoadArchitect} />
 
       {/* per-phase rollup bars (parallel install: MEP systems share one phase) */}
       <div className="flex flex-col gap-1">

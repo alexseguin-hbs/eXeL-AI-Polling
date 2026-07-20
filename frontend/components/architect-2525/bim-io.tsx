@@ -11,6 +11,7 @@ import { Download, Upload, FileWarning } from "lucide-react";
 import { exportBIM, importBIM, physicalSystems } from "@/lib/architect-bim";
 import { recommendPlacement, type HomeType } from "@/lib/architect-layers";
 import { type LayerState } from "./use-layer-state";
+import { isSealed, unsealProject, parseProject, ARCH_FILE_EXT, type ArchitectProjectFile } from "@/lib/architect-project-file";
 
 const C = { border: "#1e2b3a", panel2: "#0c1420", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", green: "#22c55e" };
 const nowMs = () => { try { return Date.now(); } catch { return 0; } };
@@ -22,7 +23,7 @@ const nowMs = () => { try { return Date.now(); } catch { return 0; } };
 const CLOUD_LABEL: Record<string, string> = { idle: "Cloud sync", saving: "Saving…", saved: "Saved to cloud", offline: "Local only", error: "Local only" };
 const CLOUD_COLOR: Record<string, string> = { idle: "#5f7186", saving: "#19c8cf", saved: "#22c55e", offline: "#5f7186", error: "#5f7186" };
 
-export function BimIO({ state, homeType }: { state: LayerState; homeType: HomeType }) {
+export function BimIO({ state, homeType, onLoadArchitect }: { state: LayerState; homeType: HomeType; onLoadArchitect?: (file: ArchitectProjectFile) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const { unclassified, bimManifest: manifest } = state;
 
@@ -41,8 +42,14 @@ export function BimIO({ state, homeType }: { state: LayerState; homeType: HomeTy
     if (!f) return;
     const reader = new FileReader();
     reader.onload = () => {
+      const text = String(reader.result);
+      // Someone else's design can be either a full Architect-2525 project (.arch2525, sealed or plain) OR a BIM/IFC
+      // model. Detect the Architect file first and load the whole design; otherwise import as BIM (operator).
+      const arch = isSealed(text) ? unsealProject(text) : parseProject(text);
+      if (arch && onLoadArchitect) { onLoadArchitect(arch); state.logReplay("design.import", `${f.name} → ${arch.name}`); e.target.value = ""; return; }
+      if (isSealed(text) && !arch) { state.logReplay("design.import.sealed", `${f.name} — sealed, system unlock failed`); e.target.value = ""; return; }
       try {
-        const res = importBIM(JSON.parse(String(reader.result)), f.name, nowMs());
+        const res = importBIM(JSON.parse(text), f.name, nowMs());
         state.applyBimImport(res);
       } catch {
         state.logReplay("bim.import.error", f.name);
@@ -60,10 +67,11 @@ export function BimIO({ state, homeType }: { state: LayerState; homeType: HomeTy
         <button data-bim-export onClick={generate} className={btn} style={{ borderColor: C.violet, color: C.violet }}>
           <Download className="h-3 w-3" /> Generate BIM-compatible model
         </button>
-        <button data-bim-import onClick={() => fileRef.current?.click()} className={btn} style={{ borderColor: C.border, color: C.text }}>
-          <Upload className="h-3 w-3" /> Import BIM
+        <button data-bim-import onClick={() => fileRef.current?.click()} className={btn} style={{ borderColor: C.border, color: C.text }}
+          title="Upload someone else's design — a BIM/IFC model OR an Architect-2525 (.arch2525) design (sealed files unlock only in-system)">
+          <Upload className="h-3 w-3" /> Import BIM / .{ARCH_FILE_EXT}
         </button>
-        <input ref={fileRef} data-bim-file type="file" accept="application/json,.json,.ifcjson" onChange={onFile} className="hidden" />
+        <input ref={fileRef} data-bim-file type="file" accept={`application/json,.json,.ifcjson,.${ARCH_FILE_EXT}`} onChange={onFile} className="hidden" />
         {/* HI / AI recommend placement — one-tap starter builds (operator: HI standard-placement · AI vision-driven). */}
         <button data-recommend="hi" onClick={() => { const ids = recommendPlacement("hi", homeType, state.globalParams.style); state.addSpecIds(ids); state.logReplay("recommend.hi", `HI standard build · +${ids.length} components`); }}
           className={btn} style={{ borderColor: C.cyan, color: C.cyan }} title="HI recommend — standard, code-normative build (foundation · structure · envelope · MEP)">웃 HI · Standard</button>
