@@ -25,6 +25,7 @@ import {
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
 import { annotateObject, ftIn } from "@/lib/dim-annot";
+import { runPlaytest, PLAYTEST_SYSTEMS } from "@/lib/architect-playtest";
 import { useRCoreGestures } from "./use-rcore-gestures";
 import type { RoomCell } from "@/lib/room-layout";
 
@@ -88,6 +89,9 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const rotB = (d: number) => setBearingB((b) => ((b + d) % 360 + 360) % 360);
   // Each stacked pane picks its own view mode; default TOP 2D · BOTTOM 3D (operator: 2D top / 3D bottom default).
   const [bottomView, setBottomView] = useState<"2D" | "3D">("3D");
+  // S9 — guided demo runner (read-only narration of the pure runPlaytest() engine). Additive; drives nothing else.
+  const [demoOpen, setDemoOpen] = useState(false);
+  const [demoStep, setDemoStep] = useState(0);
 
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent | React.DragEvent): { gx: number; gy: number } | null => {
     const svg = svgRef.current; if (!svg) return null;
@@ -463,6 +467,49 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
           </div>
         </div>
       )}
+
+      {/* S9 — GUIDED DEMO: a narrated walkthrough of the full capability set (layout→structural→electric→water→
+          sewer→HVAC). Read-only narration of the pure runPlaytest() engine; drives no other state. */}
+      <div data-arch-playtest className="rounded border" style={{ borderColor: C.border, background: "#070b12" }}>
+        <button data-arch-playtest-toggle onClick={() => { setDemoOpen((o) => !o); setDemoStep(0); }}
+          className="flex w-full items-center justify-between px-2 py-1 text-[10px] font-semibold" style={{ color: C.cyan }}>
+          <span>▶ Guided demo — what’s possible</span>
+          <span style={{ color: C.dim }}>{demoOpen ? "▾" : "▸"}</span>
+        </button>
+        {demoOpen && (() => {
+          const frames = runPlaytest(undefined, outlets);
+          const i = Math.max(0, Math.min(frames.length - 1, demoStep));
+          const f = frames[i];
+          const T = f.totals;
+          return (
+            <div className="border-t px-2 py-1.5 text-[10px]" style={{ borderColor: C.border, color: C.text }}>
+              {/* progress dots — one per system */}
+              <div className="mb-1 flex items-center gap-1">
+                {PLAYTEST_SYSTEMS.map((s, k) => (
+                  <span key={s} title={s} className="h-1.5 flex-1 rounded" style={{ background: k <= i ? C.cyan : C.border }} />
+                ))}
+              </div>
+              <div className="font-semibold" style={{ color: C.gold }}>{i + 1}/{frames.length} · {f.step.title}</div>
+              <div className="mt-0.5" style={{ color: C.dim }}>{f.step.detail}</div>
+              {/* live totals for the systems active at this step (numbers equal the real designer's) */}
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[9px]">
+                {f.toggles.water && <span style={{ color: MEP_COL.water }}>Water {T.waterFt} ft</span>}
+                {f.toggles.sewer && <span style={{ color: MEP_COL.sewer }}>Sewer {T.sewerFt} ft</span>}
+                {f.toggles.electric && <span style={{ color: MEP_COL.wiring }}>Wire {T.wireFt} ft · {T.circuits} circ · {T.amps}A</span>}
+                {f.toggles.hvac && <span style={{ color: MEP_COL.duct }}>Duct {T.ductFt} ft</span>}
+                {f.toggles.structural && <span style={{ color: "#8899aa" }}>Structural shell shown</span>}
+              </div>
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <button data-arch-playtest-prev onClick={() => setDemoStep(Math.max(0, i - 1))} disabled={i === 0}
+                  className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: i === 0 ? C.border : C.dim }}>‹ Prev</button>
+                <button data-arch-playtest-next onClick={() => setDemoStep(Math.min(frames.length - 1, i + 1))} disabled={i === frames.length - 1}
+                  className="rounded border px-2 py-0.5" style={{ borderColor: C.cyan, color: i === frames.length - 1 ? C.border : C.cyan }}>Next ›</button>
+                <span style={{ color: C.dim }}>· {f.objects.length} elements placed</span>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
     </div>
   );
 }
