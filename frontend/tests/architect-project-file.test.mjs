@@ -1,7 +1,7 @@
 // ARCHITECT-2525 .arch2525 PROJECT FILE lock — the custom, uploadable design file round-trips ALL elements and
 // rejects foreign / hostile uploads (WireGuard). Run:
 // node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-project-file.test.mjs
-import { serializeProject, toFileText, parseProject, projectFilename, ARCH_FILE_FORMAT, ARCH_FILE_EXT } from "../lib/architect-project-file.ts";
+import { serializeProject, toFileText, parseProject, projectFilename, ARCH_FILE_FORMAT, ARCH_FILE_EXT, sealProject, unsealProject, isSealed, ARCH_SEALED_FORMAT } from "../lib/architect-project-file.ts";
 import { placeObject } from "../lib/room-objects.ts";
 import { TINY_ROOM_LAYOUT } from "../lib/room-layout.ts";
 
@@ -44,6 +44,22 @@ ok(Array.isArray(hostile.snapshot.houseSpec) && hostile.snapshot.gate <= 13, "ho
 // 5. filename slug
 ok(projectFilename("My Loft!") === `my-loft.${ARCH_FILE_EXT}`, "projectFilename slugs the name + .arch2525 ext");
 ok(projectFilename("") === `design.${ARCH_FILE_EXT}`, "projectFilename falls back to 'design'");
+
+// 6. MAX MODULARITY — a future addition in the ext bag round-trips losslessly through this parser
+const withExt = serializeProject("Future", "full", snapshot, rooms, 1, { fabSpec: { hal: "robot-A", v: 2 }, futureCube: [1, 2, 3] });
+const extBack = parseProject(toFileText(withExt));
+ok(extBack.ext && extBack.ext.futureCube && JSON.stringify(extBack.ext.fabSpec) === JSON.stringify({ hal: "robot-A", v: 2 }), "ext bag (future additions) preserved through parse — forward-compatible");
+
+// 7. SYSTEM SEAL — encrypt so only the system can unlock
+const sealed = sealProject(proj);
+ok(sealed.format === ARCH_SEALED_FORMAT && sealed.sealed === true && typeof sealed.blob === "string", "sealProject produces a sealed envelope");
+ok(!sealed.blob.includes("bed") && !sealed.blob.includes("My Loft") && !sealed.blob.includes("architect-2525\""), "sealed blob is NOT plaintext (design encrypted)");
+ok(sealed.name === "My Loft", "sealed envelope keeps a clear title so the library can list it locked");
+ok(isSealed(sealed) && isSealed(toFileText(sealed)) && !isSealed(toFileText(proj)), "isSealed detects sealed vs plain");
+const unsealed = unsealProject(toFileText(sealed));
+ok(unsealed !== null && unsealed.name === "My Loft" && (unsealed.roomLayout[0].objects || []).some((o) => o.kind === "bed"), "unsealProject round-trips the full design (system unlock)");
+ok(parseProject(toFileText(sealed)) === null, "plain parseProject refuses a sealed file (must go through unseal)");
+ok(unsealProject('{"format":"architect-2525-sealed","alg":"nope","blob":"x"}') === null, "unseal rejects an unknown seal alg");
 
 console.log(`\nARCHITECT-PROJECT-FILE ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);
