@@ -24,7 +24,7 @@ import {
   type PlacedObject, type ObjectKind, type Wall, type ShapePart,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
-import { annotateObject } from "@/lib/dim-annot";
+import { annotateObject, ftIn } from "@/lib/dim-annot";
 import { useRCoreGestures } from "./use-rcore-gestures";
 import type { RoomCell } from "@/lib/room-layout";
 
@@ -413,11 +413,13 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         const fp = footprintOf(sel);
         const vs = VARIANTS[sel.kind];
         const vLabel = vs?.find((v) => v.id === sel.variant)?.label;
-        const fmt = (n: number) => (Number.isInteger(n) ? `${n}` : n.toFixed(1).replace(/\.0$/, ""));
+        const selSpec = OBJECT_SPEC[sel.kind];
+        // S6 — CAD-consistent readout (feet-inches, matching the on-plan dims) + wall indicator for openings.
         return (
           <div data-arch-roomobj-detail className="flex flex-wrap items-center gap-2 text-[10px]" style={{ color: C.text }}>
-            <span className="flex items-center gap-1" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {vLabel ? `${vLabel} ` : ""}{OBJECT_SPEC[sel.kind].label}</span>
-            <span data-arch-roomobj-dims style={{ color: C.dim }}>{fmt(fp.w)}′ W × {fmt(fp.d)}′ D × {fmt(OBJECT_SPEC[sel.kind].h)}′ H</span>
+            <span className="flex items-center gap-1" style={{ color: C.gold }}><SelIcon className="h-3.5 w-3.5" /> {vLabel ? `${vLabel} ` : ""}{selSpec.label}</span>
+            <span data-arch-roomobj-dims style={{ color: C.dim }}>{ftIn(fp.w)} W × {ftIn(fp.d)} D × {ftIn(selSpec.h)} H</span>
+            {selSpec.onWall && <span data-arch-roomobj-wall className="rounded border px-1 py-0.5" style={{ borderColor: C.border, color: C.cyan }}>{wallOf(sel.gx, sel.gy)} wall</span>}
             {vs && (
               <button data-arch-roomobj-size onClick={() => onChange(cycleVariant(objects, sel.id))} className="rounded border px-2 py-0.5" style={{ borderColor: C.border, color: C.violet }}>
                 Size: {vLabel ?? "—"} ↻
