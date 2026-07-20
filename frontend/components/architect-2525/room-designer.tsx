@@ -242,7 +242,6 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
               setDimVal(ftIn(cur));
               setDimEntry({ edit });
             };
-            const t = 1;
             return (
               <g data-arch-roomdim>
                 {/* FIX-5c — the 3-segment chain along the object's axis: wall→near edge · object · far edge→wall.
@@ -253,16 +252,25 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                   const X1 = horiz ? a : along, Y1 = horiz ? along : a, X2 = horiz ? b : along, Y2 = horiz ? along : b;
                   const mx = (X1 + X2) / 2, my = (Y1 + Y2) / 2;
                   const col = s.kind === "size" ? C.gold : C.cyan;
+                  const ah = 1.4, ew = 1.6; // arrowhead length · extension-line half-length
+                  // standard CAD dimension: witness (extension) lines at each end + inward-pointing arrowheads.
+                  const head = (hx: number, hy: number, dir: 1 | -1) => horiz
+                    ? poly([[hx, hy], [hx + dir * ah, hy - ah * 0.6], [hx + dir * ah, hy + ah * 0.6]])
+                    : poly([[hx, hy], [hx - ah * 0.6, hy + dir * ah], [hx + ah * 0.6, hy + dir * ah]]);
                   return (
                     <g key={`c${i}`}>
-                      <line x1={X1} y1={Y1} x2={X2} y2={Y2} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                      {/* witness/extension lines at both ends (perpendicular to the dimension line) */}
                       {horiz ? (<>
-                        <line x1={X1} y1={Y1 - t} x2={X1} y2={Y1 + t} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
-                        <line x1={X2} y1={Y2 - t} x2={X2} y2={Y2 + t} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                        <line x1={X1} y1={Y1 - ew} x2={X1} y2={Y1 + ew} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
+                        <line x1={X2} y1={Y2 - ew} x2={X2} y2={Y2 + ew} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
                       </>) : (<>
-                        <line x1={X1 - t} y1={Y1} x2={X1 + t} y2={Y1} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
-                        <line x1={X2 - t} y1={Y2} x2={X2 + t} y2={Y2} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                        <line x1={X1 - ew} y1={Y1} x2={X1 + ew} y2={Y1} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
+                        <line x1={X2 - ew} y1={Y2} x2={X2 + ew} y2={Y2} stroke={col} strokeWidth={0.35} style={{ pointerEvents: "none" }} />
                       </>)}
+                      {/* dimension line + inward arrowheads at each end (engineering-drawing standard) */}
+                      <line x1={X1} y1={Y1} x2={X2} y2={Y2} stroke={col} strokeWidth={0.5} style={{ pointerEvents: "none" }} />
+                      <polygon points={head(X1, Y1, 1)} fill={col} style={{ pointerEvents: "none" }} />
+                      <polygon points={head(X2, Y2, -1)} fill={col} style={{ pointerEvents: "none" }} />
                       <text data-arch-dim-edit={s.edit} x={mx} y={my - 1.2} fontSize={2.8} fill={col} textAnchor="middle" stroke="#070b12" strokeWidth={0.7}
                         style={{ paintOrder: "stroke", cursor: "pointer" }} onClick={(e) => applyEdit(e, s.edit, s.ft)}>{s.label} ✎</text>
                     </g>
