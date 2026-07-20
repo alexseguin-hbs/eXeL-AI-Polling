@@ -34,9 +34,16 @@ export function useRCoreGestures(opts: RCoreOpts = {}) {
 
   const onPointerDown = (e: RPE) => {
     pts.current.set(e.pointerId, { x: e.clientX, y: e.clientY, btn: e.button });
-    if (pts.current.size === 1) moved.current = false;
-    if (pts.current.size === 2) pinch.current = null;   // fresh baseline when the 2nd finger lands
-    try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch {}
+    if (pts.current.size === 1) {
+      moved.current = false;
+      // Capture only a SINGLE pointer (so a drag that leaves the element keeps orbiting/panning).
+      try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch {}
+    } else if (pts.current.size === 2) {
+      pinch.current = null;   // fresh baseline when the 2nd finger lands
+      // MULTI-TOUCH: release the single-pointer capture — iOS Safari stops delivering the 2nd finger's pointermove
+      // events while the 1st is captured, which killed two-finger pinch-zoom in the voxel (operator IMG_7570).
+      pts.current.forEach((_, id) => { try { (e.currentTarget as Element).releasePointerCapture(id); } catch {} });
+    }
   };
   const onPointerMove = (e: RPE) => {
     const rec = pts.current.get(e.pointerId); if (!rec) return;
