@@ -98,7 +98,6 @@ import {
   type CuneiformArc,
 } from "@/components/master-of-thought";
 import { loadMotConfig, saveMotConfig, subscribeMotConfig } from "@/lib/mot-config";
-import { useLexicon } from "@/lib/lexicon-context";
 import {
   getTheme2_3Positions,
   getHubPosition,
@@ -850,7 +849,6 @@ function LibraryReader({
   lang?: DivinityLang;
   onExpandBilingual?: () => void;
 }) {
-  const { t } = useLexicon();
   const touchStartX = React.useRef(0);
   const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -1335,7 +1333,6 @@ function DivinityGuidePage() {
   const mirrorSections = SECTIONS_MAP[mirrorLang];
   const mirrorReflectionLabel = DIVINITY_TRANSLATIONS[mirrorLang].reflection;
 
-  const { t } = useLexicon();
   const { currentTheme } = useTheme();
   const hub = getHubPosition();
   const outerPositions = getTheme2_3Positions();
