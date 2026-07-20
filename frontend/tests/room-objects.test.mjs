@@ -185,6 +185,13 @@ gb = setGap(gb, "bed-1", "far", 1);                    // set far gap to 1' → 
 ok(Math.abs((gb[0].gx + 0.5 - footprintOf(gb[0]).w / 2) - 4) < 1e-9, "setGap far 1' → near edge 4' from wall");
 ok(setGap(gb, "bed-1", "near", 99)[0].gx + 0.5 + footprintOf(gb[0]).w / 2 <= ROOM_GRID + 1e-9, "setGap clamps object inside the room");
 
+// Closet rod must reach the FULL 10 ft wall length (operator IMG_7581) — typed R.O. size → 10' variant.
+let cr = placeObject([], "closetrod", 4, 0);
+cr = setVariantByWidth(cr, "closetrod-1", 10);
+ok(Math.abs(footprintOf(cr[0]).w - 10) < 1e-9, "setVariantByWidth closetrod 10' → 10 ft full length");
+ok(cr[0].gx + 0.5 - footprintOf(cr[0]).w / 2 >= -1e-9 && cr[0].gx + 0.5 + footprintOf(cr[0]).w / 2 <= ROOM_GRID + 1e-9, "a 10' closet rod still fits inside the room (clamped, spans wall)");
+ok(setVariantByWidth(cr, "closetrod-1", 3)[0].variant === "cr3", "closet rod 3' → cr3 variant");
+
 // Vertical coordinates (operator: "include vertical coordinates as well in same matter") — forceAxis "y" moves in Y.
 let vy = placeObject([], "bed", 3, 3);                  // bed depth 6, cy 3.5 → near 0.5', far 3.5'
 vy = setGap(vy, "bed-1", "near", 2, "y");               // vertical near gap 2' → moves in Y, gx unchanged

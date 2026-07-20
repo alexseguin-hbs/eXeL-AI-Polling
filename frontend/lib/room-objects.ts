@@ -49,7 +49,24 @@ export const WINDOW_VARIANTS: SizeVariant[] = [
   { id: "w35",    label: `3'×5'`, w: 3, d: 0.5, h: 5 },
   { id: "slider", label: `6'×4' slider`, w: 6, d: 0.5, h: 4 },
 ];
-export const VARIANTS: Partial<Record<ObjectKind, SizeVariant[]>> = { bed: BED_VARIANTS, door: DOOR_VARIANTS, window: WINDOW_VARIANTS };
+// Closet rod / shelving are linear closet elements — they must reach the FULL wall length (operator: the closet rod
+// wouldn't go to 10 ft). Widths 3'→10'; the 10' variant spans the whole wall (setVariantByWidth / typed R.O. size).
+export const CLOSETROD_VARIANTS: SizeVariant[] = [
+  { id: "cr3",  label: `3'`,       w: 3,  d: 1.5, h: 6 },
+  { id: "cr4",  label: `4'`,       w: 4,  d: 1.5, h: 6 },
+  { id: "cr5",  label: `5'`,       w: 5,  d: 1.5, h: 6 },
+  { id: "cr6",  label: `6'`,       w: 6,  d: 1.5, h: 6 },
+  { id: "cr8",  label: `8'`,       w: 8,  d: 1.5, h: 6 },
+  { id: "cr10", label: `10' full`, w: 10, d: 1.5, h: 6 },
+];
+export const SHELVING_VARIANTS: SizeVariant[] = [
+  { id: "sh3",  label: `3'`,       w: 3,  d: 1,   h: 6 },
+  { id: "sh4",  label: `4'`,       w: 4,  d: 1,   h: 6 },
+  { id: "sh6",  label: `6'`,       w: 6,  d: 1,   h: 6 },
+  { id: "sh8",  label: `8'`,       w: 8,  d: 1,   h: 6 },
+  { id: "sh10", label: `10' full`, w: 10, d: 1,   h: 6 },
+];
+export const VARIANTS: Partial<Record<ObjectKind, SizeVariant[]>> = { bed: BED_VARIANTS, door: DOOR_VARIANTS, window: WINDOW_VARIANTS, closetrod: CLOSETROD_VARIANTS, shelving: SHELVING_VARIANTS };
 
 /** Height (ft) of a placed object — its variant's height when set, else the kind default (FIX-1). */
 export function heightOf(o: PlacedObject): number {
@@ -209,7 +226,12 @@ export function setVariantByWidth(objs: PlacedObject[], id: string, wFt: number,
     const dim = (v: { w: number; d: number }) => (forceAxis === "y" ? v.d : v.w);
     let best = vs[0], bestD = Math.abs(dim(vs[0]) - wFt);
     for (const v of vs) { const dd = Math.abs(dim(v) - wFt); if (dd < bestD) { best = v; bestD = dd; } }
-    return { ...o, variant: best.id };
+    const next = { ...o, variant: best.id };
+    // Re-clamp after resizing so a widened element (e.g. a 10' closet rod) can't poke through a wall — it re-centres
+    // to span the room instead (operator IMG_7581). Fractional, footprint-aware.
+    const fp = footprintOf(next);
+    const c = clampFootprint(o.gx, o.gy, fp.w, fp.d, o.rot, false);
+    return { ...next, gx: c.gx, gy: c.gy };
   });
 }
 
