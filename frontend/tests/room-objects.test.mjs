@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall, shapePartsOf, ROOM_ASSETS, ROOM_ASSETS_VERSION, COMMON_ASSETS, paletteForRoom, groupOf, groupPalette, GROUP_ORDER, clampFootprint } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -12,11 +12,11 @@ const a2 = placeObject(a, "bed", 5, 5);
 ok(a2[1].id === "bed-2", "second bed → bed-2 (running index, no random)");
 ok(JSON.stringify(placeObject([], "bed", 2, 3)) === JSON.stringify(a), "place is deterministic (same input → same output)");
 
-// Clamp to the 10×10 grid (Enki: never off-grid).
-const c = placeObject([], "sofa", 99, -4);
-ok(c[0].gx === ROOM_GRID - 1 && c[0].gy === 0, "place clamps to 0..9 (99,-4 → 9,0)");
-const mv = moveObject(a, "bed-1", -3, 42);
-ok(mv[0].gx === 0 && mv[0].gy === ROOM_GRID - 1, "move clamps to 0..9");
+// FIX-6 — footprint-aware clamp: the WHOLE object stays inside the room, never off-grid, never poking a wall.
+const c = placeObject([], "sofa", 99, -4);   // sofa 5w x 2d
+ok(c[0].gx === 7 && c[0].gy === 1, "place footprint-clamps sofa 5x2 (99,-4 → 7,1: box fully inside)");
+const mv = moveObject(a, "bed-1", -3, 42);   // bed 5w x 6.7d
+ok(mv[0].gx === 2 && mv[0].gy === 6, "move footprint-clamps bed 5x6.7 (-3,42 → 2,6)");
 
 // Rotate cycles 0→90→180→270→0.
 let r = placeObject([], "desk", 1, 1);
@@ -36,10 +36,10 @@ ok(OBJECT_SPEC.door.h > OBJECT_SPEC.bed.h && OBJECT_SPEC.counter.h === 3, "heigh
 
 // Mirror — data flip across the room centre (reflects in BOTH 2D + 3D since one source).
 let mo = placeObject([], "bed", 2, 3);
-mo = placeObject(mo, "sink", 0, 9);
+mo = placeObject(mo, "sink", 0, 9);   // 2ft sink footprint-clamps off the corner → (1,8)
 const mh = mirrorObjects(mo, "h");
 ok(mh[0].gx === ROOM_GRID - 1 - 2 && mh[0].gy === 3, "mirror h flips gx (2→7), keeps gy");
-ok(mh[1].gx === ROOM_GRID - 1 - 0 && mh[1].gy === 9, "mirror h: left-wall sink (0,9) → right wall (9,9)");
+ok(mo[1].gx === 1 && mo[1].gy === 8 && mh[1].gx === ROOM_GRID - 1 - 1 && mh[1].gy === 8, "sink clamps (0,9)→(1,8); mirror h → (8,8)");
 const mvert = mirrorObjects(mo, "v");
 ok(mvert[0].gy === ROOM_GRID - 1 - 3 && mvert[0].gx === 2, "mirror v flips gy (3→6), keeps gx");
 ok(JSON.stringify(mirrorObjects(mh, "h")) === JSON.stringify(mo), "mirror h twice = identity (involution, replay-safe)");
@@ -107,6 +107,24 @@ ok(kg.every((g) => g.kinds.length > 0), "no empty groups returned");
 ok(kg.flatMap((g) => g.kinds).length === paletteForRoom("K").length, "grouping preserves every palette kind (no drops/dupes)");
 ok(kg.find((g) => g.group === "Kitchen")?.kinds.includes("fridge"), "kitchen group contains fridge");
 ok(kg.some((g) => g.group === "Openings") && kg.some((g) => g.group === "Shell"), "kitchen palette still shows Openings + Shell groups");
+
+// FIX-6 — clampFootprint keeps the whole box in [0,ROOM_GRID] ft; a cell g spans [g+0.5±f/2].
+const inside = (g, f) => g + 0.5 - f / 2 >= -1e-9 && g + 0.5 + f / 2 <= ROOM_GRID + 1e-9;
+// a 3-wide door slid to the corner cannot overhang the wall end.
+ok(clampFootprint(9, 0, 3, 0.15, 0).gx === 8 && inside(8, 3), "clampFootprint: 3ft-wide object pulled off the corner (9→8)");
+ok(clampFootprint(0, 0, 3, 0.15, 0).gx === 1, "clampFootprint: 3ft-wide object off the near corner (0→1)");
+// rotation swaps which footprint axis binds.
+ok(clampFootprint(9, 9, 5, 2, 0).gx === 7 && clampFootprint(9, 9, 5, 2, 0).gy === 8, "clampFootprint rot0: 5x2 (9,9→7,8)");
+ok(clampFootprint(9, 9, 5, 2, 90).gx === 8 && clampFootprint(9, 9, 5, 2, 90).gy === 7, "clampFootprint rot90 swaps axes: 5x2 (9,9→8,7)");
+// centred object stays put; oversize object is centred, never NaN/off-grid.
+ok(clampFootprint(4, 4, 2, 2, 0).gx === 4 && clampFootprint(4, 4, 2, 2, 0).gy === 4, "clampFootprint leaves an in-bounds object put");
+const big = clampFootprint(9, 9, 12, 12, 0);
+ok(big.gx >= 0 && big.gx <= ROOM_GRID - 1 && Number.isFinite(big.gx), "clampFootprint: oversize object centred, still on-grid");
+// move + rotate stay inside: place a bed at a corner then rotate — must remain fully inside.
+let fx = placeObject([], "bed", 9, 9);        // clamps in on place
+ok(inside(fx[0].gx, footprintOf(fx[0]).w) && inside(fx[0].gy, footprintOf(fx[0]).d), "placed bed fully inside after corner drop");
+fx = rotateObject(fx, "bed-1");
+ok(inside(fx[0].gx, footprintOf(fx[0]).d) && inside(fx[0].gy, footprintOf(fx[0]).w), "rotated bed re-clamped fully inside");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");

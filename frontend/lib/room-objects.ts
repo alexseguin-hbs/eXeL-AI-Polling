@@ -68,25 +68,54 @@ export const OBJECT_KINDS = Object.keys(OBJECT_SPEC) as ObjectKind[];
 
 const clampCell = (n: number) => Math.max(0, Math.min(ROOM_GRID - 1, Math.round(n)));
 
+/**
+ * FIX-6 — footprint-aware clamp: keep an object's WHOLE footprint (rotation-aware) inside the 0..ROOM_GRID ft room,
+ * so it can never be dragged so its box pokes through a wall (operator IMG_7530). Cells are integers; an object at
+ * cell g has its centre at g+0.5 ft and spans ±f/2. An object larger than the room is centred (best effort — Enki).
+ */
+export function clampFootprint(gx: number, gy: number, w: number, d: number, rot: Rot = 0): { gx: number; gy: number } {
+  const swap = rot === 90 || rot === 270;
+  const fw = swap ? d : w, fd = swap ? w : d;
+  const axis = (g: number, f: number): number => {
+    const lo = Math.ceil(f / 2 - 0.5);                 // smallest cell whose left edge ≥ 0
+    const hi = Math.floor(ROOM_GRID - 0.5 - f / 2);    // largest cell whose right edge ≤ ROOM_GRID
+    if (lo > hi) return Math.max(0, Math.min(ROOM_GRID - 1, Math.round((ROOM_GRID - f) / 2))); // oversize → centred
+    return Math.max(lo, Math.min(hi, Math.round(g)));
+  };
+  return { gx: axis(gx, fw), gy: axis(gy, fd) };
+}
+
 /** Deterministic id from kind + running index (no Math.random → replayable). */
 function nextId(objs: PlacedObject[], kind: ObjectKind): string {
   const n = objs.filter((o) => o.kind === kind).length + 1;
   return `${kind}-${n}`;
 }
 
-/** Place a new object at (gx,gy), clamped to the 10×10 grid. Returns a NEW array (never mutates). */
+/** Place a new object at (gx,gy), clamped so its whole footprint stays inside the room (FIX-6). NEW array, no mutate. */
 export function placeObject(objs: PlacedObject[], kind: ObjectKind, gx: number, gy: number): PlacedObject[] {
-  return [...objs, { id: nextId(objs, kind), kind, gx: clampCell(gx), gy: clampCell(gy), rot: 0 }];
+  const c = clampFootprint(gx, gy, OBJECT_SPEC[kind].w, OBJECT_SPEC[kind].d, 0);
+  return [...objs, { id: nextId(objs, kind), kind, gx: c.gx, gy: c.gy, rot: 0 }];
 }
 
-/** Move an existing object to (gx,gy), clamped. */
+/** Move an existing object to (gx,gy), footprint-clamped (rotation- + variant-aware) fully inside the room (FIX-6). */
 export function moveObject(objs: PlacedObject[], id: string, gx: number, gy: number): PlacedObject[] {
-  return objs.map((o) => (o.id === id ? { ...o, gx: clampCell(gx), gy: clampCell(gy) } : o));
+  return objs.map((o) => {
+    if (o.id !== id) return o;
+    const fp = footprintOf(o);
+    const c = clampFootprint(gx, gy, fp.w, fp.d, o.rot);
+    return { ...o, gx: c.gx, gy: c.gy };
+  });
 }
 
-/** Rotate an object 90° clockwise (0→90→180→270→0). */
+/** Rotate an object 90° clockwise (0→90→180→270→0), then re-clamp so the rotated footprint stays inside (FIX-6). */
 export function rotateObject(objs: PlacedObject[], id: string): PlacedObject[] {
-  return objs.map((o) => (o.id === id ? { ...o, rot: (((o.rot + 90) % 360) as Rot) } : o));
+  return objs.map((o) => {
+    if (o.id !== id) return o;
+    const rot = (((o.rot + 90) % 360) as Rot);
+    const fp = footprintOf(o);
+    const c = clampFootprint(o.gx, o.gy, fp.w, fp.d, rot);
+    return { ...o, rot, gx: c.gx, gy: c.gy };
+  });
 }
 
 /** Footprint (ft) for a placed object — its variant's size when set, else the kind default. */
