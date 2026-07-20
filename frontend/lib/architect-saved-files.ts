@@ -72,9 +72,23 @@ export function cloudEnabled(): boolean {
   return !!supabase;
 }
 
+// PERF — skip a cloud write whose CONTENT is byte-identical to the last one we saved for that name. The debounced
+// write-through fires on any state-reference change (even a no-op re-render), so without this every idle tick would
+// re-upload the full snapshot; the hash guard cuts those redundant writes → less Supabase write load, egress, cost.
+const lastHash: Record<string, string> = {};
+function contentHash(v: unknown): string {
+  const s = JSON.stringify(v);
+  let h = 5381; for (let i = 0; i < s.length; i++) h = (((h << 5) + h) ^ s.charCodeAt(i)) >>> 0;
+  return `${h.toString(36)}:${s.length}`;
+}
+
 /** Best-effort push of the snapshot to Supabase. Never throws. Returns the resulting CloudStatus. */
 export async function saveSnapshot(snap: ArchitectSnapshot, sourceHash?: string): Promise<CloudStatus> {
   if (!supabase) return "offline";
+  // dedup on CONTENT (exclude savedAt — the timestamp changes every tick and would defeat the guard).
+  const { savedAt: _t, ...content } = snap;
+  const h = contentHash(content);
+  if (lastHash[NAME] === h) return "saved"; // unchanged → no network write
   try {
     const { error } = await supabase.from(TABLE).upsert(
       {
@@ -86,7 +100,7 @@ export async function saveSnapshot(snap: ArchitectSnapshot, sourceHash?: string)
       },
       { onConflict: "owner_key,name" },
     );
-    if (!error) return "saved";
+    if (!error) { lastHash[NAME] = h; return "saved"; }
     // A missing table (pre-migration) is expected → report as local-only, not an error the user must act on.
     const msg = `${(error as { code?: string }).code ?? ""} ${error.message ?? ""}`.toLowerCase();
     if (/42p01|pgrst205|does not exist|could not find|schema cache/.test(msg)) return "offline";
@@ -120,12 +134,14 @@ export async function loadSnapshot(): Promise<ArchitectSnapshot | null> {
 /** Best-effort push of the room-furniture layout to Supabase (durable + cross-device). Never throws. */
 export async function saveRoomLayout(layout: RoomCell[], sourceHash?: string): Promise<CloudStatus> {
   if (!supabase) return "offline";
+  const h = contentHash(layout);
+  if (lastHash[NAME_ROOMS] === h) return "saved"; // unchanged → no network write
   try {
     const { error } = await supabase.from(TABLE).upsert(
       { owner_key: ownerKey(), name: NAME_ROOMS, payload: { layout }, source_hash: sourceHash ?? null, updated_at: new Date(Date.now()).toISOString() },
       { onConflict: "owner_key,name" },
     );
-    if (!error) return "saved";
+    if (!error) { lastHash[NAME_ROOMS] = h; return "saved"; }
     const msg = `${(error as { code?: string }).code ?? ""} ${error.message ?? ""}`.toLowerCase();
     if (/42p01|pgrst205|does not exist|could not find|schema cache/.test(msg)) return "offline"; // pre-migration → local-only
     return "error";
