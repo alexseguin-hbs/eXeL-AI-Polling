@@ -18,8 +18,8 @@ import { MiniPanel } from "./mini-panel";
 import { RCORE_LANES } from "@/components/security-2525/rcore";
 import {
   OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, placeObject, moveObject, rotateObject, removeObject, mirrorObjects,
-  footprintOf, cycleVariant, VARIANTS,
-  type PlacedObject, type ObjectKind,
+  footprintOf, cycleVariant, VARIANTS, wallOf, slideAlongWall,
+  type PlacedObject, type ObjectKind, type Wall,
 } from "@/lib/room-objects";
 import { waterRuns, sewerRuns, wiringRuns, ductRuns, electricSpecs, type MepRun } from "@/lib/mep-runs";
 import { useRCoreGestures } from "./use-rcore-gestures";
@@ -54,6 +54,9 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const [selId, setSelId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const drag = useRef<string | null>(null);
+  // S1 — the wall a dragged door/window is LOCKED to, captured at grab so it SLIDES along that wall (never jumps
+  // to a nearer edge mid-drag). Cleared on release. null = not dragging a wall object.
+  const dragWall = useRef<Wall | null>(null);
   // S0 — layout mode: STACKED (top+bottom panes) ⇄ FLOATING (main + draggable mini). Persisted (operator IMG_7521).
   const [layoutMode, setLayoutMode] = useState<"stacked" | "floating">(() => {
     if (typeof window === "undefined") return "stacked";
@@ -101,16 +104,20 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   };
   const objDown = (id: string) => (e: React.PointerEvent) => {
     e.stopPropagation(); drag.current = id; setSelId(id);
+    // S1 — lock this drag to the wall the object currently sits on, so it slides along it.
+    const o = objects.find((x) => x.id === id);
+    dragWall.current = o && OBJECT_SPEC[o.kind].onWall ? wallOf(o.gx, o.gy) : null;
     try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch {}
   };
   const svgMove = (e: React.PointerEvent) => {
     if (!drag.current) return;
     const c = cellFromEvent(e); if (!c) return;
     const o = objects.find((x) => x.id === drag.current); if (!o) return;
-    const p = OBJECT_SPEC[o.kind].onWall ? wallSnap(c.gx, c.gy) : c;
+    // S1 — a wall object SLIDES along its captured wall (perpendicular axis pinned); everything else moves freely.
+    const p = OBJECT_SPEC[o.kind].onWall ? slideAlongWall(dragWall.current ?? wallOf(c.gx, c.gy), c.gx, c.gy) : c;
     if (p.gx !== o.gx || p.gy !== o.gy) onChange(moveObject(objects, o.id, p.gx, p.gy));
   };
-  const svgUp = () => { drag.current = null; };
+  const svgUp = () => { drag.current = null; dragWall.current = null; };
   const bgClick = (e: React.MouseEvent) => { const c = cellFromEvent(e); if (c) placeAt(c.gx, c.gy); };
   // Drag an asset FROM the palette and DROP it on the floor (operator IMG_7513: "drag from left on map").
   const dropOnFloor = (e: React.DragEvent) => {

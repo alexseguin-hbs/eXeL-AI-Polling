@@ -90,6 +90,27 @@ export function cycleVariant(objs: PlacedObject[], id: string): PlacedObject[] {
   });
 }
 
+/** Which wall a cell is nearest (N/S/E/W) — used to LOCK a door/window to its wall while it slides (#S1). */
+export type Wall = "N" | "S" | "E" | "W";
+export function wallOf(gx: number, gy: number): Wall {
+  const dLeft = gx, dRight = ROOM_GRID - 1 - gx, dTop = gy, dBot = ROOM_GRID - 1 - gy;
+  const m = Math.min(dLeft, dRight, dTop, dBot);
+  if (m === dTop) return "N";
+  if (m === dBot) return "S";
+  if (m === dLeft) return "W";
+  return "E";
+}
+/** Slide a wall object ALONG the given wall: pin the perpendicular axis, clamp the along-axis to 0..9. */
+export function slideAlongWall(wall: Wall, gx: number, gy: number): { gx: number; gy: number } {
+  const c = (n: number) => Math.max(0, Math.min(ROOM_GRID - 1, Math.round(n)));
+  switch (wall) {
+    case "N": return { gx: c(gx), gy: 0 };
+    case "S": return { gx: c(gx), gy: ROOM_GRID - 1 };
+    case "W": return { gx: 0, gy: c(gy) };
+    default:  return { gx: ROOM_GRID - 1, gy: c(gy) };
+  }
+}
+
 /** Remove an object. */
 export function removeObject(objs: PlacedObject[], id: string): PlacedObject[] {
   return objs.filter((o) => o.id !== id);

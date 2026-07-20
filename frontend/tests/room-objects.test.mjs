@@ -1,6 +1,6 @@
 // ROOM-OBJECTS lock (#167 Stage 1) — the interactive room-designer model is pure, deterministic (replay law),
 // and clamps every placement to the 10×10 grid. Run: node --experimental-strip-types tests/room-objects.test.mjs
-import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID } from "../lib/room-objects.ts";
+import { placeObject, moveObject, rotateObject, removeObject, countKind, mirrorObjects, footprintOf, cycleVariant, VARIANTS, BED_VARIANTS, OBJECT_SPEC, OBJECT_KINDS, ROOM_GRID, wallOf, slideAlongWall } from "../lib/room-objects.ts";
 
 let pass = 0, fail = 0;
 const ok = (c, m) => { (c ? pass++ : fail++); console.log(c ? "PASS" : "FAIL", m); };
@@ -55,6 +55,21 @@ bo = cycleVariant(bo, "bed-1"); ok(bo[0].variant === "full", "next cycle → ful
 const king = { id: "bed-9", kind: "bed", gx: 0, gy: 0, rot: 0, variant: "king" };
 ok(footprintOf(king).w === 6.33 && footprintOf(king).d === 6.67, "king footprint = 6.33 × 6.67 ft");
 ok(cycleVariant(placeObject([], "sofa", 1, 1), "sofa-1")[0].variant === undefined, "cycleVariant no-op for kinds without variants");
+
+// S1 — wall detection + slide-along-wall (doors/windows slide, never jump off their wall).
+ok(wallOf(4, 0) === "N" && wallOf(4, 9) === "S" && wallOf(0, 4) === "W" && wallOf(9, 4) === "E", "wallOf: N/S/W/E edges");
+ok(wallOf(2, 3) === "W", "wallOf interior nearest-edge → W (left dist 2 < top dist 3)");
+ok(wallOf(3, 1) === "N", "wallOf interior nearest-edge → N (top dist 1 < left dist 3)");
+// Deterministic corner resolution (Enki): (0,0) equidistant to N & W → priority N > S > W > E picks N.
+ok(wallOf(0, 0) === "N" && wallOf(9, 0) === "N" && wallOf(0, 9) === "S" && wallOf(9, 9) === "S", "wallOf corners resolve deterministically (N/S win ties)");
+// slideAlongWall pins the perpendicular axis and clamps the along axis to 0..9.
+ok(slideAlongWall("N", 5, 8).gx === 5 && slideAlongWall("N", 5, 8).gy === 0, "slide N: pins gy=0, keeps gx");
+ok(slideAlongWall("S", 3, 1).gx === 3 && slideAlongWall("S", 3, 1).gy === ROOM_GRID - 1, "slide S: pins gy=9, keeps gx");
+ok(slideAlongWall("W", 7, 6).gx === 0 && slideAlongWall("W", 7, 6).gy === 6, "slide W: pins gx=0, keeps gy");
+ok(slideAlongWall("E", 2, 4).gx === ROOM_GRID - 1 && slideAlongWall("E", 2, 4).gy === 4, "slide E: pins gx=9, keeps gy");
+ok(slideAlongWall("N", 42, 0).gx === ROOM_GRID - 1 && slideAlongWall("N", -5, 0).gx === 0, "slide clamps the along-axis to 0..9");
+// A door on the N wall stays on N when dragged sideways (the S1 behavior).
+ok(wallOf(slideAlongWall("N", 8, 3).gx, slideAlongWall("N", 8, 3).gy) === "N", "slid door stays on its wall (N→N)");
 
 // Immutability — originals never mutated.
 ok(a.length === 1, "place did not mutate the source array");
