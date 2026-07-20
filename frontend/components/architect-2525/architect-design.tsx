@@ -43,7 +43,7 @@ const iso = (x: number, y: number, z: number): Pt => {
 
 export interface DesignMetrics { walls: number; linearFt: number; studs: number; openings: number; }
 
-export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program, selectedId }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram; selectedId?: string | null }) {
+export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, program, selectedId, onFocusRoom }: { onMetrics?: (m: DesignMetrics) => void; header?: ReactNode; onDropComponent?: (id: string) => void; homeType?: HomeType; program?: RoomProgram; selectedId?: string | null; onFocusRoom?: (room: { k: string; label: string } | null) => void }) {
   const selectedLabel = selectedId ? (findLayer(selectedId)?.node.label ?? null) : null;
   const svgRef = useRef<SVGSVGElement>(null);
   const [dragOver, setDragOver] = useState(false);   // drag-drop a Vision-Tree item onto the building
@@ -92,6 +92,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
   const toggleFurn = () => { if (focusRoomId) setRoomLayout((prev) => persistLayout(toggleRoomFurniture(prev, focusRoomId))); };
   const setObjects = (objects: PlacedObject[]) => { if (focusRoomId) setRoomLayout((prev) => persistLayout(setRoomObjects(prev, focusRoomId, objects))); };
   const focusRoom = focusRoomId ? roomLayout.find((r) => r.id === focusRoomId) : undefined;
+  // Emit the entered room UP so the left Vision Tree can context-scope to it (additive; null on Back-to-house).
+  useEffect(() => { onFocusRoom?.(focusRoom ? { k: focusRoom.k, label: focusRoom.label } : null); }, [focusRoomId, focusRoom?.k, focusRoom?.label]);
   // F9 stretch — resize the focused room's width/depth within the 10-ft envelope (1..2 cells = 10..20 ft),
   // clamped by the pure resizeRoomInLayout; persisted; feeds layoutSqft so area/cost track the change.
   const stretch = (dim: "w" | "d", delta: number) => {

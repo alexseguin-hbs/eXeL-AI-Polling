@@ -9,9 +9,9 @@
  * auto-expands ancestors of matches). Selection highlights the row; the engine + right Context panel
  * wire to it in later steps. Built generically so it can promote to 2525-core (MANIFEST candidate).
  */
-import { useMemo, useState } from "react";
-import { ChevronRight, Eye, EyeOff, Lock, Unlock, Settings, MoreHorizontal } from "lucide-react";
-import { LAYER_TREE, HOME_TYPES, isVisibleForType, type LayerNode, type HomeType } from "@/lib/architect-layers";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronRight, Eye, EyeOff, Lock, Unlock, Settings, MoreHorizontal, DoorOpen } from "lucide-react";
+import { LAYER_TREE, HOME_TYPES, isVisibleForType, isVisibleForRoom, roomSystems, type LayerNode, type HomeType } from "@/lib/architect-layers";
 import { componentEstimate } from "@/lib/architect-house";
 import { type LayerState } from "./use-layer-state";
 
@@ -22,14 +22,24 @@ const SCOPE_COLOR: Record<string, string> = { physical: C.violet, operational: C
 
 // `state` (visibility + lock Sets) is lifted to the shell so the RIGHT Context inspector shares it (R2).
 // `homeType` limits which physical components are offered — a Tiny Home has fewer decisions (R3).
-export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHomeType }: {
+export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHomeType, focusRoom = null }: {
   selectedId?: string | null; onSelect?: (id: string) => void; state: LayerState;
   homeType?: HomeType; onHomeType?: (t: HomeType) => void;
+  focusRoom?: { k: string; label: string } | null;  // context-scope: when a room is entered, narrow the physical tree
 }) {
   const { hidden, locked, toggleHidden, toggleLocked, isolate: isolateNode, revealAll } = state;
+  const roomKey = focusRoom?.k ?? null;
   const tinyOK = (id: string, scopeId: string) => isVisibleForType(id, scopeId, homeType);
+  const roomOK = (id: string, scopeId: string) => isVisibleForRoom(id, scopeId, roomKey);
+  // A node shows only if it passes BOTH the market gate AND the room gate (room = null → whole-house, unchanged).
+  const inScope = (id: string, scopeId: string) => tinyOK(id, scopeId) && roomOK(id, scopeId);
   // Scopes open by default; systems collapsed (matches Security's "start collapsed" density).
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set(["physical", "operational", "lifecycle"]));
+  // On entering a room, auto-open its ESSENTIAL system(s) so plumbing/electrical are visible with zero clicks.
+  useEffect(() => {
+    if (!roomKey) return;
+    setOpenIds((s) => { const n = new Set(s); n.add("physical"); roomSystems(roomKey).essential.forEach((id) => n.add(id)); return n; });
+  }, [roomKey]);
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
   const [menuId, setMenuId] = useState<string | null>(null);
@@ -75,8 +85,8 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
 
   const renderNode = (node: LayerNode, depth: number, scopeId: string) => {
     if (visible && !visible.has(node.id)) return null;
-    if (!tinyOK(node.id, scopeId)) return null;   // Tiny Home hides non-buildable physical components
-    const kids = (node.children ?? []).filter((c) => tinyOK(c.id, scopeId));
+    if (!inScope(node.id, scopeId)) return null;   // hidden by market OR by the entered room's scope
+    const kids = (node.children ?? []).filter((c) => inScope(c.id, scopeId));
     const hasKids = kids.length > 0;
     const open = isOpen(node.id);
     const selected = selectedId === node.id;
@@ -123,6 +133,14 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
 
   return (
     <div data-arch-layer-tree className="flex flex-col gap-1">
+      {/* Context-scope banner — shown only when a room is entered; the Target-Market box stays below (operator choice). */}
+      {focusRoom && (
+        <div data-arch-tree-focus className="mb-1 flex items-center gap-1.5 rounded border px-2 py-1 text-[10px]" style={{ borderColor: C.gold, background: "#0c1420" }}>
+          <DoorOpen className="h-3 w-3 shrink-0" style={{ color: C.gold }} />
+          <span className="font-bold" style={{ color: C.gold }}>{focusRoom.k} · {focusRoom.label}</span>
+          <span className="min-w-0 flex-1 truncate" style={{ color: C.dim }}>— its systems · ← Back to house for all</span>
+        </div>
+      )}
       {/* TARGET MARKET — Tiny Home & Home are the two markets. Tiny Home limits systems + decisions (R3/R8). */}
       <div data-layer-hometype className="mb-1 rounded border p-1" style={{ borderColor: C.border }}>
         <div className="mb-1 px-1 text-[8px] font-semibold uppercase tracking-wider" style={{ color: C.dim }}>Target market</div>
@@ -144,7 +162,7 @@ export function LayerTree({ selectedId, onSelect, state, homeType = "full", onHo
         style={{ borderColor: C.border, color: C.text }} />
       {LAYER_TREE.map((scope) => {
         const open = isOpen(scope.id);
-        const scopeKids = scope.children.filter((n) => tinyOK(n.id, scope.id));
+        const scopeKids = scope.children.filter((n) => inScope(n.id, scope.id));
         return (
           <div key={scope.id} data-layer-scope={scope.id}>
             <button onClick={() => toggle(scope.id)} data-layer-node={scope.id}

@@ -160,6 +160,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
   const perDay = allocate(econ.totalUsd, days, allocMode);
   const iteration = 20; // current iteration in the 20-33 loop (demo)
   const [designMetrics, setDesignMetrics] = useState<DesignMetrics | null>(null);
+  const [focusRoom, setFocusRoom] = useState<{ k: string; label: string } | null>(null); // entered room → context-scopes the Vision Tree
 
   const goHome = () => { if (directLink) router.push("/"); else { exitSimulationMode(); setVisionView("launcher"); } };
 
@@ -265,7 +266,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
         <div data-arch-tab={activeTab === "Design" ? "Design" : undefined} style={activeTab === "Design" ? undefined : { display: "none" }}>
           <DesignWorkspace
             selectedId={selectedLayerId}
-            leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} />}
+            leftRail={<LayerTree selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} onHomeType={setHomeType} focusRoom={focusRoom} />}
             rightRail={<RightPanel selectedId={selectedLayerId} onSelect={setSelectedLayerId} state={layerState} homeType={homeType} />}
             metricStrip={<MetricStrip state={layerState} overlay homeType={homeType} />}
             bottomPanel={<HouseSpec state={layerState} homeType={homeType} selectedId={selectedLayerId} onSelect={setSelectedLayerId} />}
@@ -276,7 +277,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
               {/* Master key (dimensions · cost · time · confidence) rides the map's OWN scrolling header (operator:
                   "place project master key in same scrolling header as map" · Security R-CORE reuse). */}
               <ArchitectDesign onMetrics={setDesignMetrics} header={<MasterReadout state={layerState} inline homeType={homeType} />}
-                homeType={homeType} program={layerState.program} selectedId={selectedLayerId}
+                homeType={homeType} program={layerState.program} selectedId={selectedLayerId} onFocusRoom={setFocusRoom}
                 onDropComponent={(id) => {
                   // Drag-drop a Vision-Tree item onto the building → add its buildable leaves to the house (operator).
                   const found = findLayer(id); if (!found) return;
