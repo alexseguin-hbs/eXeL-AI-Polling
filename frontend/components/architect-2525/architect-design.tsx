@@ -290,7 +290,8 @@ export function ArchitectDesign({ onMetrics, header, onDropComponent, homeType, 
           // EXPLODED single-room designer (operator IMG_7489: Enter → just this 10×10 in 2D + 10×10×10 in 3D)
           <div data-arch-tiny-view className="relative">
             <RoomDesigner room={focusRoom} onChange={setObjects} onBack={() => setFocusRoomId(null)}
-              showWater={showWater} showSewer={showSewer} showWiring={showWiring} showDucts={hvac} />
+              showWater={showWater} showSewer={showSewer} showWiring={showWiring} showDucts={hvac}
+              topView={view3d ? "3D" : "2D"} onTopView={(v) => setView3d(v === "3D")} />
           </div>
         ) : designable ? (
           <div data-arch-tiny-view className="relative">

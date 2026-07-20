@@ -71,9 +71,10 @@ function wallSnap(gx: number, gy: number): { gx: number; gy: number } {
   return { gx: N - 1, gy };
 }
 
-export function RoomDesigner({ room, onChange, onBack, showWater = false, showSewer = false, showWiring = false, showDucts = false }: {
+export function RoomDesigner({ room, onChange, onBack, showWater = false, showSewer = false, showWiring = false, showDucts = false, topView, onTopView }: {
   room: RoomCell; onChange: (o: PlacedObject[]) => void; onBack: () => void;
   showWater?: boolean; showSewer?: boolean; showWiring?: boolean; showDucts?: boolean;
+  topView?: "2D" | "3D"; onTopView?: (v: "2D" | "3D") => void; // engine 2D/3D toggle drives the TOP pane (one source)
 }) {
   const { t } = useLexicon(); // ONE master lexicon (vision.* shared UX — used by Security-2525 + Architect-2525)
   const objects = room.objects ?? [];
@@ -215,8 +216,12 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     <polyline key={`${key}${i}`} data-arch-mep2d={key} points={r.path.map((p) => `${c2(p.gx)},${c2(p.gy)}`).join(" ")}
       fill="none" stroke={col} strokeWidth={0.9} strokeDasharray="2 1.5" strokeLinecap="round" opacity={0.85} />
   ));
-  // TOP/main pane view (bottom pane uses bottomView, declared above with its own camera camB).
-  const [mainView, setMainView] = useState<"2D" | "3D">("2D");
+  // TOP/main pane view (bottom pane uses bottomView, declared above with its own camera camB). CONTROLLED by the
+  // engine 2D/3D toggle when topView/onTopView are passed (operator IMG_7575: engine "3D" must switch the top map),
+  // else internal state. Either way the pane's own 2D/3D button and the engine toggle stay in sync (one source).
+  const [topViewLocal, setTopViewLocal] = useState<"2D" | "3D">("2D");
+  const mainView = topView ?? topViewLocal;
+  const setMainView = onTopView ?? setTopViewLocal;
   const boxStyle = (size?: number) => ({ touchAction: "none" as const, ...(size ? { width: size, height: size } : { width: "100%" }) });
   const svgStyle = (size?: number) => (size ? { width: size, height: size } : { width: "100%", aspectRatio: "1 / 1" as const });
 
