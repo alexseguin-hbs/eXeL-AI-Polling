@@ -1878,7 +1878,7 @@ function DivinityGuidePage() {
               <button
                 onClick={() => { setViewMode("library"); setSelectedSection(null); setSelectedChapterId(null); setSelectedLibrary(null); }}
                 className={`px-3 py-1 text-[10px] rounded-full transition-all ${viewMode === "library" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
-              >{t("divinity.sacred_library")}</button>
+              >{divinityUi.sacredLibrary}</button>
           </div>
 
           {/* Flower SVG */}
