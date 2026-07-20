@@ -86,14 +86,15 @@ export function VoxelHouse({ homeType = "full", program, lat = 30.44, lon = -97.
   });
   const ca = cornerAltitudes(lat, lon);
 
-  // Low-fi 3D furniture — a translucent cuboid (top + 4 short walls) at floor level inside a room.
+  // Low-fi 3D furniture — a SOLID-reading cuboid (top brightest → sides darker) so furniture HIGHLIGHTS against the
+  // wireframe rooms (operator IMG_7531: "voxel should show furniture"). Top fill ~40%, walls ~26% (vs the old flat 13%).
   const furnBox = (dx: number, dy: number, w: number, d: number, hgt: number, col: string, kk: string) => (
     <div key={kk} style={{ ...at(`translate3d(${dx}px,${dy}px,0px)`), transformStyle: "preserve-3d" }}>
-      <div style={face(`translate3d(0px,0px,${hgt}px)`, w, d, col, true)} />
-      <div style={face(`translate3d(0px,${-d / 2}px,${hgt / 2}px) rotateX(90deg)`, w, hgt, col, true)} />
-      <div style={face(`translate3d(0px,${d / 2}px,${hgt / 2}px) rotateX(90deg)`, w, hgt, col, true)} />
-      <div style={face(`translate3d(${-w / 2}px,0px,${hgt / 2}px) rotateY(90deg)`, hgt, d, col, true)} />
-      <div style={face(`translate3d(${w / 2}px,0px,${hgt / 2}px) rotateY(90deg)`, hgt, d, col, true)} />
+      <div style={{ ...face(`translate3d(0px,0px,${hgt}px)`, w, d, col, true), background: `${col}66` }} />
+      <div style={{ ...face(`translate3d(0px,${-d / 2}px,${hgt / 2}px) rotateX(90deg)`, w, hgt, col, true), background: `${col}42` }} />
+      <div style={{ ...face(`translate3d(0px,${d / 2}px,${hgt / 2}px) rotateX(90deg)`, w, hgt, col, true), background: `${col}42` }} />
+      <div style={{ ...face(`translate3d(${-w / 2}px,0px,${hgt / 2}px) rotateY(90deg)`, hgt, d, col, true), background: `${col}30` }} />
+      <div style={{ ...face(`translate3d(${w / 2}px,0px,${hgt / 2}px) rotateY(90deg)`, hgt, d, col, true), background: `${col}30` }} />
     </div>
   );
   // 3D furniture artifacts per room key (operator: "3D artifacts replicating bed, etc") — bed, tub/sink,
