@@ -183,8 +183,19 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
       onChange(moveObject(objects, o.id, p.gx, p.gy));
     }
   };
-  const svgUp = () => { drag.current = null; dragWall.current = null; };
-  const bgClick = (e: React.MouseEvent) => { const c = cellFromEvent(e); if (c) placeAt(c.gx, c.gy); };
+  // Tap-to-place is on POINTERUP at the SVG level, not the floor rect's onClick — on mobile a click after the
+  // touch-action/pointer gesture (or an MEP mark / outlet sitting over the tap) silently swallowed the placement,
+  // so toilet/tub/sink armed but "nothing appeared" (operator IMG_7579). Object taps set drag.current via objDown
+  // (pointer-captured), so they never reach this as a place.
+  const tapStart = useRef<{ x: number; y: number } | null>(null);
+  const svgDown = (e: React.PointerEvent) => { if (tool && !drag.current) tapStart.current = { x: e.clientX, y: e.clientY }; };
+  const svgUp = (e?: React.PointerEvent) => {
+    const wasDrag = drag.current; drag.current = null; dragWall.current = null;
+    const s = tapStart.current; tapStart.current = null;
+    if (!e || wasDrag || !tool || !s) return;               // only an un-dragged tap with a tool armed places
+    if (Math.abs(e.clientX - s.x) + Math.abs(e.clientY - s.y) > 12) return; // moved too far → treat as a drag, not a tap
+    const c = cellFromEvent(e); if (c) placeAt(c.gx, c.gy);
+  };
   // Drag an asset FROM the palette and DROP it on the floor (operator IMG_7513: "drag from left on map").
   const dropOnFloor = (e: React.DragEvent) => {
     e.preventDefault();
@@ -229,7 +240,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // read-only at its own rotation `bear`. This lets two 2D panes hold independent angles.
   const plan2D = (bear: number, setBear: (n: number) => void, interactive: boolean, size?: number) => (
     <div className="relative" style={boxStyle(size)}>
-      <svg {...(interactive ? { ref: svgRef, onPointerMove: svgMove, onPointerUp: svgUp, onPointerCancel: svgUp, onPointerLeave: svgUp, onDragOver: (e: React.DragEvent) => e.preventDefault(), onDrop: dropOnFloor } : {})}
+      <svg {...(interactive ? { ref: svgRef, onPointerDown: svgDown, onPointerMove: svgMove, onPointerUp: svgUp, onPointerCancel: () => svgUp(), onPointerLeave: () => svgUp(), onDragOver: (e: React.DragEvent) => e.preventDefault(), onDrop: dropOnFloor } : {})}
         data-arch-roomdesign-2d viewBox="0 0 100 100" className="rounded border"
         style={{ borderColor: C.cyan, background: "#070b12", touchAction: "none", ...svgStyle(size) }}>
         <g data-arch-roomdesign-2d-rot transform={`rotate(${bear} 50 50)`}>
@@ -239,7 +250,7 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
               <line x1={0} y1={i * 10} x2={100} y2={i * 10} stroke={`${C.cyan}22`} strokeWidth={0.4} />
             </g>
           ))}
-          {interactive && <rect x={0} y={0} width={100} height={100} fill="transparent" onClick={bgClick} style={{ cursor: tool ? "copy" : "default" }} />}
+          {interactive && <rect x={0} y={0} width={100} height={100} fill="transparent" style={{ cursor: tool ? "copy" : "default", pointerEvents: "none" }} />}
           <rect x={1} y={1} width={98} height={98} fill="none" stroke={C.violet} strokeWidth={1.2} />
           {run2d(water?.runs, MEP_COL.water, "water")}
           {run2d(sewer?.runs, MEP_COL.sewer, "sewer")}
