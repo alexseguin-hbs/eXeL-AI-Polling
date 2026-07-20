@@ -325,16 +325,18 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
             style={{ color: view === v ? C.cyan : C.dim, background: view === v ? "#0e2233" : "transparent" }}>{v}</button>
         ))}
       </div>
+      {/* S8 — view-specific control (2D = rotate plan · 3D = reset camera) */}
       {view === "2D" ? (
         <>
           <button onClick={() => rot(-15)} title="Rotate plan left" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCcw className="h-3 w-3" /></button>
           <button onClick={() => rot(15)} title="Rotate plan right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.cyan }}><RotateCw className="h-3 w-3" /></button>
-          <button onClick={() => onChange(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
-          <button onClick={() => onChange(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
         </>
       ) : (
         <button onClick={onReset} title="Reset view" className="shrink-0 rounded border px-1.5 py-0.5" style={{ borderColor: C.border, color: C.dim }}>Reset</button>
       )}
+      {/* S8 — MIRROR is a DATA op (affects 2D + 3D from one source), so it's shown in BOTH view modes on every pane */}
+      <button onClick={() => onChange(mirrorObjects(objects, "h"))} title="Mirror left↔right" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Columns2 className="h-3 w-3" /></button>
+      <button onClick={() => onChange(mirrorObjects(objects, "v"))} title="Mirror top↔bottom" className="shrink-0 rounded border p-0.5" style={{ borderColor: C.border, color: C.violet }}><Rows2 className="h-3 w-3" /></button>
       <span className="shrink-0 font-semibold" style={{ color: C.dim }}>R-CORE</span>
       {RCORE_LANES.map((l) => <span key={l.key} title={l.def} className="shrink-0 rounded px-1 font-semibold" style={{ color: l.color }}>{l.label}</span>)}
     </div>
