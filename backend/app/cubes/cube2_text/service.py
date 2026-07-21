@@ -473,17 +473,29 @@ async def publish_submission_event(
     char_count: int,
     **kwargs,
 ) -> None:
-    """Broadcast response submission event via Supabase Realtime.
+    """Broadcast a response-submission event via Supabase Realtime (CRS-07.03).
 
-    Channel: session:{session_id}:responses
-    Consumed by Cube 6 (AI theming) for live feed + theme pipeline.
-    Frontend receives via Supabase Broadcast listener (Trinity Channel A).
+    Channel: session:{session_id}:responses · event: response_submitted. This is a
+    DISTINCT channel from the frontend Trinity delivery (session:{short_code}), so
+    the server-authoritative broadcast never collides with live-feed delivery.
+    Non-fatal: broadcast_event() no-ops + warns if Supabase isn't configured, and
+    any failure is swallowed so a broadcast never breaks a submission.
     """
-    logger.debug(
-        "cube2.broadcast.published",
-        session_id=str(session_id),
-        response_id=str(response_meta_id),
-    )
+    from app.core.supabase_broadcast import broadcast_event
+
+    try:
+        await broadcast_event(
+            channel=f"session:{session_id}:responses",
+            event="response_submitted",
+            payload={
+                "response_id": str(response_meta_id),
+                "session_id": str(session_id),
+                "language_code": language_code,
+                "char_count": char_count,
+            },
+        )
+    except Exception as e:  # never let a broadcast failure break the submission
+        logger.warning("cube2.broadcast.error", error=str(e), session_id=str(session_id))
 
 
 # ---------------------------------------------------------------------------
