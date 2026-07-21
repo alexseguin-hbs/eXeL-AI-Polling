@@ -1720,6 +1720,7 @@ Use these exactly as “build targets” for website + backend.
 - **CRS-04.01** Session expiry (default 24h) — returns 410 Gone after `expires_at`; `SessionExpiredError` on all join attempts.
 - **CRS-04.02** Block joins on invalid states: draft joins rejected; closed/archived sessions blocked with `SessionStateError`.
 - **CRS-04.03** State machine with validated transitions only: draft → open → polling → ranking → closed → archived; invalid transitions return 409.
+  - **CRS-04.03.01** **Automated static-poll timer auto-close (stretch → shipped 2026-07-21):** pure `static_poll_expired(session, now)` + `close_expired_static_polls(db)` transition every expired static poll (ends_at ≤ now, status=polling) polling → ranking — identical to a manual Stop Polling (fires Cube 6 Phase B). Idempotent, deterministic, `now`-injectable. **The first taste of Cube-10 autonomy.** Deploy wiring = a scheduler/cron calls it periodically (infra). pytest-locked (7 assertions). *(Implemented — MVP1 service layer)*
 
 ### MVP1 — Poll Control & Text Input — Cubes 1, 2
 

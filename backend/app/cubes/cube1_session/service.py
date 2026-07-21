@@ -483,6 +483,51 @@ async def transition_session(
 
 
 # ---------------------------------------------------------------------------
+# CRS-04.03 stretch — automated state transitions on static-poll timer expiry.
+# The first taste of Cube-10 autonomy: a static poll whose ends_at has passed
+# auto-closes (polling → ranking, same as a manual Stop Polling → triggers Cube 6).
+# A scheduler/cron (or the orchestrator) calls close_expired_static_polls periodically.
+# ---------------------------------------------------------------------------
+
+
+def static_poll_expired(session: Session, now: datetime | None = None) -> bool:
+    """True iff `session` is a static poll currently polling whose ends_at has passed (pure)."""
+    now = now or datetime.now(timezone.utc)
+    return (
+        getattr(session, "polling_mode_type", None) == "static_poll"
+        and session.status == "polling"
+        and session.ends_at is not None
+        and now >= session.ends_at
+    )
+
+
+async def close_expired_static_polls(
+    db: AsyncSession, *, now: datetime | None = None
+) -> list[uuid.UUID]:
+    """Auto-close every static poll whose timer has expired (polling → ranking).
+
+    Deterministic + idempotent: only polling static polls with ends_at <= now are touched;
+    each is transitioned exactly like a manual Stop Polling (fires Cube 6 Phase B). Returns
+    the ids transitioned. `now` injectable for tests. Called by a scheduler/cron in deploy.
+    """
+    now = now or datetime.now(timezone.utc)
+    result = await db.execute(
+        select(Session).where(
+            Session.polling_mode_type == "static_poll",
+            Session.status == "polling",
+            Session.ends_at.isnot(None),
+            Session.ends_at <= now,
+        )
+    )
+    expired = list(result.scalars().all())
+    closed: list[uuid.UUID] = []
+    for sess in expired:
+        await transition_session(db, sess, "ranking", actor_id="system:auto-timer")
+        closed.append(sess.id)
+    return closed
+
+
+# ---------------------------------------------------------------------------
 # Participant Join
 # ---------------------------------------------------------------------------
 

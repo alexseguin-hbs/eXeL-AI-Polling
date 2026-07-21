@@ -45,7 +45,7 @@
 ### CRS-04 — Validate access  ·  04.01 expiry 410 · 04.02 invalid-state · 04.03 state machine
 - **Stability** ✅ 6-state machine (`SESSION_TRANSITIONS`) + the transition matrix locked by the harness.
 - **Security** ✅ payment-open gate added (moderator_paid can't open until paid, `f85ad17`).
-- **Scalability** ◻ CRS-04.03 stretch = automated state transitions on timer expiry for static polls (a scheduler/worker) — the first taste of Cube-10 autonomy.
+- **Scalability** ✅ CRS-04.03 stretch = **automated static-poll timer auto-close** shipped: pure `static_poll_expired(session, now)` + `close_expired_static_polls(db)` (polling → ranking, idempotent, only expired) — the first taste of Cube-10 autonomy. Deploy wiring = a scheduler/cron (or the orchestrator) calls it periodically (infra step).
 - **Efficiency** ◻ replay_hash on close queries all ResponseMeta ids — at 1M responses stream/aggregate the hash incrementally rather than load ids.
 
 ### CRS-05 — Anonymity modes  ·  05.01 anonymous · 05.02 identified · 05.03 pseudonymous
