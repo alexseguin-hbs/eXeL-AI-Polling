@@ -14,7 +14,10 @@ ThemeIdType = Literal[
 class SessionCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=500)
     description: str | None = None
-    anonymity_mode: Literal["identified", "anonymous", "pseudonymous"] = "identified"
+    # CRS-05 / operator rule: standard live session is ANONYMOUS by default (users join
+    # with no login; opting into results is what triggers login → user_id). Moderator
+    # may still override to "identified" or "pseudonymous".
+    anonymity_mode: Literal["identified", "anonymous", "pseudonymous"] = "anonymous"
     cycle_mode: Literal["single", "multi"] = "single"
     max_cycles: int = Field(1, ge=1, le=100)
     ranking_mode: Literal["auto", "manual"] = "auto"

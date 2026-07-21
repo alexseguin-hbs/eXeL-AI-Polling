@@ -77,19 +77,28 @@ async def export_csv(
         if user.role == "moderator" and session.created_by != user.user_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your session")
     else:
-        if session.pricing_tier == "cost_split":
-            p_result = await db.execute(
-                select(Participant).where(
-                    Participant.session_id == session_id,
-                    Participant.user_id == user.user_id,
-                )
+        # CRS-05 results gate (operator rule): a participant receives results ONLY if they
+        # joined LOGGED IN (get_current_user requires a JWT, so a matched user_id proves a
+        # non-anonymous join — anonymous joins carry no token and never reach here) AND
+        # opted into results at join. Remain-anonymous / opt-out → no personal results.
+        p_result = await db.execute(
+            select(Participant).where(
+                Participant.session_id == session_id,
+                Participant.user_id == user.user_id,
             )
-            participant = p_result.scalar_one_or_none()
-            if not participant or participant.payment_status not in ("paid", "lead_exempt"):
-                raise HTTPException(
-                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                    detail="Payment required to access results",
-                )
+        )
+        participant = p_result.scalar_one_or_none()
+        if not participant or not participant.results_opt_in:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Results require joining this session logged in and opting into results",
+            )
+        # Cost-split additionally requires payment before results are delivered.
+        if session.pricing_tier == "cost_split" and participant.payment_status not in ("paid", "lead_exempt"):
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail="Payment required to access results",
+            )
 
     # Resolve export content tier based on user's donations
     content_tier = await service.resolve_export_tier(

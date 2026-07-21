@@ -186,7 +186,7 @@ async def create_session(
     title: str,
     created_by: str,
     description: str | None = None,
-    anonymity_mode: str = "identified",
+    anonymity_mode: str = "anonymous",  # CRS-05: anonymous-by-default (moderator can override)
     cycle_mode: str = "single",
     max_cycles: int = 1,
     ranking_mode: str = "auto",
@@ -567,12 +567,19 @@ async def join_session(
             await db.refresh(existing)
             return session, existing
 
-    # CRS-05: build anon hash if anonymity mode enabled
+    # CRS-05: build session-scoped anon hash.
+    #   anonymous / pseudonymous → anon_hash is ALWAYS set. Hash the user_id when the
+    #     participant logged in (e.g. to receive results); for a TRULY anonymous join
+    #     (user_id=None) hash the freshly-minted participant id instead, so anonymous
+    #     audit hashing still fires (prior code skipped anon_hash when user_id was None).
+    #   identified → anon_hash stays None.
+    participant_id = uuid.uuid4()
     anon_hash = None
-    if session.anonymity_mode == "anonymous" and user_id:
-        anon_hash = anonymize_user_id(user_id, str(session.id))
+    if session.anonymity_mode in ("anonymous", "pseudonymous"):
+        anon_hash = anonymize_user_id(user_id or str(participant_id), str(session.id))
 
     participant = Participant(
+        id=participant_id,
         session_id=session.id,
         user_id=user_id,
         anon_hash=anon_hash,
