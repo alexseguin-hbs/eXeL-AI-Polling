@@ -36,11 +36,13 @@ VALID_DISPUTE_RESOLUTIONS = {"resolved", "rejected"}
 # ISO 3166-1 alpha-2: exactly 2 uppercase ASCII letters
 _JURISDICTION_RE = re.compile(r"^[A-Z]{2}$")
 
+from fastapi.responses import HTMLResponse
+
 from app.core.auth import CurrentUser, get_current_user
 from app.core.dependencies import get_db
 from app.core.hi_rates import get_all_rates, resolve_human_rate
 from app.core.permissions import require_role
-from app.cubes.cube8_tokens import payment_service, service
+from app.cubes.cube8_tokens import payment_service, service, stripe_config
 from app.schemas.token import TokenDisputeCreate, TokenDisputeRead, TokenLedgerRead
 
 router = APIRouter(tags=["Cube 8 — Tokens"])
@@ -68,6 +70,96 @@ class DonationRequest(BaseModel):
     session_id: uuid.UUID
     participant_id: uuid.UUID | None = None
     amount_cents: int
+
+
+# ---------------------------------------------------------------------------
+# Stripe Status & Ops UI (wire the existing Stripe integration)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/payments/stripe/status")
+async def get_stripe_status():
+    """Safe Stripe configuration status (masked secret — never the full key)."""
+    return stripe_config.stripe_config_status()
+
+
+@router.post("/payments/stripe/test-checkout")
+async def create_stripe_test_checkout(
+    user: CurrentUser = Depends(require_role("admin", "lead_developer")),
+):
+    """Create a standalone $11.11 test Checkout Session to verify charge capability.
+
+    Returns the Stripe-hosted URL. Helpful 400 when unconfigured; 502 on a Stripe error
+    (e.g. the dev sandbox blocks api.stripe.com — run backend/scripts/verify_stripe_charge.py
+    where Stripe is reachable, or unblock the host in the environment network policy).
+    """
+    from fastapi import HTTPException
+
+    try:
+        stripe = stripe_config.get_stripe_client()
+    except stripe_config.StripeNotConfiguredError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    try:
+        cs = stripe.checkout.Session.create(
+            mode="payment",
+            line_items=[{"price_data": {"currency": "usd",
+                "product_data": {"name": "eXeL AI Polling — Stripe verification ($11.11)"},
+                "unit_amount": 1111}, "quantity": 1}],
+            success_url="https://example.com/success?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url="https://example.com/cancel",
+        )
+        return {"url": cs.url, "mode": stripe_config.stripe_config_status()["mode"]}
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"Stripe error: {type(e).__name__}: {e}")
+
+
+@router.get("/payments/stripe", response_class=HTMLResponse)
+async def stripe_ops_page():
+    """Simple ops page: shows Stripe config status + how to verify charging."""
+    s = stripe_config.stripe_config_status()
+    mode = s["mode"]
+    badge = {"test": ("#16c784", "TEST MODE"), "live": ("#e5484d", "⚠ LIVE MODE"),
+             "unconfigured": ("#8b8f96", "NOT CONFIGURED")}.get(mode, ("#f5a623", mode.upper()))
+    dot = "#16c784" if s["configured"] else "#e5484d"
+    wh = "#16c784" if s["webhook_configured"] else "#f5a623"
+    html = f"""<!doctype html><html><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>eXeL AI · Stripe Status</title>
+<style>
+  :root{{color-scheme:dark}}
+  body{{margin:0;background:#0a0e14;color:#e6edf3;font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}}
+  .wrap{{max-width:640px;margin:0 auto;padding:32px 20px}}
+  h1{{font-size:20px;margin:0 0 4px;color:#00ffff}}
+  .sub{{color:#8b98a5;margin:0 0 24px;font-size:13px}}
+  .card{{background:#111722;border:1px solid #1e2733;border-radius:12px;padding:20px;margin:0 0 16px}}
+  .row{{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #19212b}}
+  .row:last-child{{border-bottom:none}}
+  .k{{color:#8b98a5}} .v{{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}}
+  .badge{{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;color:#0a0e14;background:{badge[0]}}}
+  .dot{{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}}
+  code{{background:#0a0e14;border:1px solid #1e2733;border-radius:6px;padding:2px 6px;font-size:13px}}
+  pre{{background:#0a0e14;border:1px solid #1e2733;border-radius:8px;padding:12px;overflow:auto;font-size:12.5px}}
+  .hint{{color:#8b98a5;font-size:13px}}
+</style></head><body><div class="wrap">
+  <h1>◬ eXeL AI Polling — Stripe Status</h1>
+  <p class="sub">SoI Trinity payments · Cube 8. Keys come only from the environment; nothing secret is stored in the repo.</p>
+  <div class="card">
+    <div class="row"><span class="k">Configured</span><span class="v"><span class="dot" style="background:{dot}"></span>{str(s['configured']).lower()}</span></div>
+    <div class="row"><span class="k">Mode</span><span class="v"><span class="badge">{badge[1]}</span></span></div>
+    <div class="row"><span class="k">Environment</span><span class="v">{s['environment']}</span></div>
+    <div class="row"><span class="k">Secret key</span><span class="v">{s['secret_key_masked'] or '—'}</span></div>
+    <div class="row"><span class="k">Publishable key</span><span class="v">{(s['publishable_key'][:14] + '…') if s['publishable_key'] else '—'}</span></div>
+    <div class="row"><span class="k">Webhook secret</span><span class="v"><span class="dot" style="background:{wh}"></span>{'set' if s['webhook_configured'] else 'not set'}</span></div>
+  </div>
+  <div class="card">
+    <b>Verify charge capability</b>
+    <p class="hint">Run where <code>api.stripe.com</code> is reachable (the dev sandbox blocks it):</p>
+    <pre>export STRIPE_SECRET_KEY=sk_test_…
+cd backend &amp;&amp; python scripts/verify_stripe_charge.py</pre>
+    <p class="hint">Or, as admin: <code>POST /api/v1/payments/stripe/test-checkout</code> → returns a hosted $11.11 checkout URL.</p>
+  </div>
+</div></body></html>"""
+    return HTMLResponse(html)
 
 
 # ---------------------------------------------------------------------------
