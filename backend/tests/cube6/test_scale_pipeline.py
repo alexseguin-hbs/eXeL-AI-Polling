@@ -265,13 +265,11 @@ class TestRealData5000CSV:
     def csv_data(self):
         import pandas as pd
         import os
-        csv_path = os.path.join(
-            os.path.dirname(__file__), "..", "..",
+        # Repo root = backend/tests/cube6/ → up 3 (cube6 → tests → backend → repo).
+        csv_path = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), "..", "..", "..",
             "Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv"
-        )
-        if not os.path.exists(csv_path):
-            # Try project root
-            csv_path = "/home/alex/eXeL-AI-Polling/Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv"
+        ))
         return pd.read_csv(csv_path)
 
     def test_csv_has_5000_rows(self, csv_data):

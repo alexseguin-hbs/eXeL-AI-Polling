@@ -18,7 +18,7 @@ from app.cubes.cube10_simulation.saved_use_cases import (
 )
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
-DEMO_PATH = Path("/home/alex/eXeL-AI-Polling/Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv")
+DEMO_PATH = Path(__file__).resolve().parents[3] / "Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv"
 
 DATASETS = [
     ("sim_use_case_1000.csv", 1000, "Q1 strategic priority"),

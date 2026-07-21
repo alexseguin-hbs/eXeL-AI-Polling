@@ -27,7 +27,7 @@ _skip = pytest.mark.skipif(
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
-CSV_PATH = "/home/alex/eXeL-AI-Polling/Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv"
+CSV_PATH = str(Path(__file__).resolve().parents[3] / "Updated_Web_Results_With_Themes_And_Summaries_v04.1_5000.csv")
 
 
 @pytest.fixture(scope="module")

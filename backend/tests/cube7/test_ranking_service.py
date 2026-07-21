@@ -478,9 +478,11 @@ class TestLexiconCoverage:
     def test_spec_required_keys_exist(self):
         """All 17 CRS-spec keys must be in lexicon-data.ts."""
         import subprocess
+        from pathlib import Path
+        repo_root = Path(__file__).resolve().parents[3]  # cube7 → tests → backend → repo
         result = subprocess.run(
             ["grep", "-c", "cube7.", "frontend/lib/lexicon-data.ts"],
-            capture_output=True, text=True, cwd="/home/alex/eXeL-AI-Polling",
+            capture_output=True, text=True, cwd=str(repo_root),
         )
         count = int(result.stdout.strip())
         # Spec requires 17, we have more (extra is OK, fewer is NOT)

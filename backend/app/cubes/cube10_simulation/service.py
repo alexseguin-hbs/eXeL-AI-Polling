@@ -27,11 +27,16 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger("cube10")
+
+# Repo-relative backend dir (this file: backend/app/cubes/cube10_simulation/service.py).
+# Replaces a hardcoded /home/alex path so the sim subprocess runs anywhere (CI, cloud, dev).
+_BACKEND_DIR = Path(__file__).resolve().parents[3]
 
 
 # ---------------------------------------------------------------------------
@@ -331,7 +336,7 @@ async def run_sandbox_tests(
             "python", "-m", "pytest", f"tests/{test_dir}/", "--tb=short", "-q",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            cwd="/home/alex/eXeL-AI-Polling/backend",
+            cwd=str(_BACKEND_DIR),
         )
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=60.0)
         output = stdout.decode()
