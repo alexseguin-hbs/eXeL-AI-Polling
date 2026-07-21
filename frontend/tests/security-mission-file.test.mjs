@@ -64,5 +64,10 @@ ok(unsealed !== null && unsealed.name === "AO Alpha Recon" && unsealed.plan.plac
 ok(parseMission(toFileText(sealed)) === null, "plain parseMission refuses a sealed file (must go through unseal)");
 ok(unsealMission('{"format":"security-2525-sealed","alg":"nope","blob":"x"}') === null, "unseal rejects an unknown seal alg");
 
+// 8. SEC-B integrity checksum — a tampered blob fails the checksum and refuses to unlock
+ok(typeof sealed.sum === "string" && sealed.sum.length === 8, "sealMission stamps an integrity checksum");
+const tampered = { ...sealed, blob: sealed.blob.slice(0, -4) + (sealed.blob.slice(-4) === "AAAA" ? "BBBB" : "AAAA") };
+ok(unsealMission(JSON.stringify(tampered)) === null, "unseal REFUSES a tampered blob (checksum mismatch)");
+
 console.log(`\nSECURITY-MISSION-FILE ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);

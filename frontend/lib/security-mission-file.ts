@@ -35,6 +35,14 @@ export interface SealedMissionFile {
   name: string;   // clear-text title so the library can list a sealed mission without unlocking
   savedAt: number;
   blob: string;   // encrypted mission (base64)
+  sum: string;    // SEC-B integrity checksum of the plaintext — unseal rejects a tampered blob
+}
+
+/** Deterministic 32-bit FNV-1a hash (hex) — a fast integrity check, not a cryptographic MAC (that lands with AES/KMS). */
+function fnv1a(s: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0; }
+  return h.toString(16).padStart(8, "0");
 }
 
 /** Build a portable mission file from live state. Pure — caller supplies savedAt. */
@@ -83,8 +91,9 @@ function xorBytes(data: Uint8Array): Uint8Array { const key = enc().encode(SYSTE
 
 /** Seal a mission into an encrypted envelope only the system can unlock. Deterministic. */
 export function sealMission(m: SecMissionFile): SealedMissionFile {
-  const blob = b64(xorBytes(enc().encode(JSON.stringify(m))));
-  return { format: SEC_SEALED_FORMAT, version: SEC_FILE_VERSION, sealed: true, alg: SEC_SEAL_ALG, name: m.name, savedAt: m.savedAt, blob };
+  const plaintext = JSON.stringify(m);
+  const blob = b64(xorBytes(enc().encode(plaintext)));
+  return { format: SEC_SEALED_FORMAT, version: SEC_FILE_VERSION, sealed: true, alg: SEC_SEAL_ALG, name: m.name, savedAt: m.savedAt, blob, sum: fnv1a(plaintext) };
 }
 
 /** True when a parsed object / JSON string is a sealed envelope. */
@@ -99,7 +108,12 @@ export function unsealMission(raw: unknown): SecMissionFile | null {
   if (!o || typeof o !== "object") return null;
   const env = o as Record<string, unknown>;
   if (env.format !== SEC_SEALED_FORMAT || env.alg !== SEC_SEAL_ALG || typeof env.blob !== "string") return null;
-  try { return parseMission(new TextDecoder().decode(xorBytes(unb64(env.blob)))); } catch { return null; }
+  try {
+    const plaintext = new TextDecoder().decode(xorBytes(unb64(env.blob)));
+    // SEC-B integrity check — a tampered blob won't match the stored checksum → refuse to unlock.
+    if (typeof env.sum === "string" && env.sum !== fnv1a(plaintext)) return null;
+    return parseMission(plaintext);
+  } catch { return null; }
 }
 
 /** Safe download filename → "ao-alpha-recon.sec2525". */
