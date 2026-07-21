@@ -53,6 +53,31 @@ export function strList(v: unknown): string[] {
 const asRecord = (v: unknown): Record<string, unknown> => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
 const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 
+// ── Structural guards for untrusted persisted records (localStorage / Supabase restore) — block wrong-type payloads
+//    and prototype pollution at the trust boundary WITHOUT dropping legitimate inner fields (SEC-B). ──
+const DANGER_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+/** Keep only plain-object members of an array (drop primitives/arrays/null); optionally cap to the last `max`. */
+export function objArray(raw: unknown, max?: number): Record<string, unknown>[] {
+  if (!Array.isArray(raw)) return [];
+  const out = raw.filter((e): e is Record<string, unknown> => !!e && typeof e === "object" && !Array.isArray(e));
+  return typeof max === "number" ? out.slice(-max) : out;
+}
+/** A plain-object map (string key → object value); strips dangerous keys (prototype pollution) + non-object values. */
+export function objMap(raw: unknown): Record<string, Record<string, unknown>> {
+  const out: Record<string, Record<string, unknown>> = {};
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (DANGER_KEYS.has(k)) continue;
+    if (v && typeof v === "object" && !Array.isArray(v)) out[k] = v as Record<string, unknown>;
+  }
+  return out;
+}
+/** A single plain-object record or null (e.g. a persisted manifest) — blocks arrays/primitives/injection. */
+export function objOrNull(raw: unknown): Record<string, unknown> | null {
+  return raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : null;
+}
+
 const FINISH_TIERS: readonly FinishTier[] = ["standard", "premium", "luxury"];
 const HOUSE_STYLES: readonly HouseStyle[] = ["standard", "stylized"];
 

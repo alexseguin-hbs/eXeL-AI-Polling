@@ -12,7 +12,7 @@ import { type AssetOverrides } from "@/lib/architect-assets";
 import { cloudEnabled, loadSnapshot, saveSnapshot, type ArchitectSnapshot, type CloudStatus } from "@/lib/architect-saved-files";
 import { DEFAULT_PARAMS, type GlobalParams } from "@/lib/architect-project";
 import { DEFAULT_PROGRAM, type RoomProgram } from "@/lib/room-program";
-import { sanitizeParams, sanitizeProgram, strList } from "@/lib/architect-guard";
+import { sanitizeParams, sanitizeProgram, strList, objArray, objMap, objOrNull } from "@/lib/architect-guard";
 
 // Empty on the server AND the client's first render (no hydration mismatch under `output: export`);
 // stored values load in a mount effect. Persistence is write-through on mutation — never on mount —
@@ -91,7 +91,7 @@ export function useLayerState(): LayerState {
 
   // Replay log — bounded, persisted, write-through (last 200 events).
   const [replay, setReplay] = useState<ReplayEvent[]>([]);
-  useEffect(() => { try { const v = localStorage.getItem("arch2525.replay"); if (v) setReplay(JSON.parse(v)); } catch {} }, []);
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.replay"); if (v) setReplay(objArray(JSON.parse(v), 200) as unknown as ReplayEvent[]); } catch {} }, []);
   const logReplay = (kind: string, detail: string) => setReplay((r) => {
     const now = (() => { try { return Date.now(); } catch { return 0; } })();
     const next = [...r, { t: now, kind, detail }].slice(-200);
@@ -103,8 +103,8 @@ export function useLayerState(): LayerState {
   const [unclassified, setUnclassified] = useState<ImportedObject[]>([]);
   const [bimManifest, setBimManifest] = useState<BimManifest | null>(null);
   useEffect(() => {
-    try { const u = localStorage.getItem("arch2525.unclassified"); if (u) setUnclassified(JSON.parse(u)); } catch {}
-    try { const m = localStorage.getItem("arch2525.bimManifest"); if (m) setBimManifest(JSON.parse(m)); } catch {}
+    try { const u = localStorage.getItem("arch2525.unclassified"); if (u) setUnclassified(objArray(JSON.parse(u)) as unknown as ImportedObject[]); } catch {}
+    try { const m = localStorage.getItem("arch2525.bimManifest"); if (m) setBimManifest(objOrNull(JSON.parse(m)) as BimManifest | null); } catch {}
   }, []);
   const persistUnc = (u: ImportedObject[]) => { try { localStorage.setItem("arch2525.unclassified", JSON.stringify(u)); } catch {} return u; };
   const persistMan = (m: BimManifest | null) => { try { localStorage.setItem("arch2525.bimManifest", JSON.stringify(m)); } catch {} return m; };
@@ -124,7 +124,7 @@ export function useLayerState(): LayerState {
 
   // Asset Intelligence customizations (Inc 2) — persisted per-asset overrides; each edit logs a Replay event.
   const [assetOverrides, setAssetOverrides] = useState<Record<string, AssetOverrides>>({});
-  useEffect(() => { try { const v = localStorage.getItem("arch2525.assetOverrides"); if (v) setAssetOverrides(JSON.parse(v)); } catch {} }, []);
+  useEffect(() => { try { const v = localStorage.getItem("arch2525.assetOverrides"); if (v) setAssetOverrides(objMap(JSON.parse(v)) as Record<string, AssetOverrides>); } catch {} }, []);
   const setAssetOverride = (id: string, patch: AssetOverrides) => {
     setAssetOverrides((m) => { const next = { ...m, [id]: { ...(m[id] || {}), ...patch } }; try { localStorage.setItem("arch2525.assetOverrides", JSON.stringify(next)); } catch {} return next; });
     logReplay("asset.customize", `${id} · ${Object.keys(patch).join(",")}`);
