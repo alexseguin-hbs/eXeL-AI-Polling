@@ -145,6 +145,20 @@ async def emit_ranking_complete(
             extra={"session_id": str(session_id), "error": str(exc)},
         )
 
+    # Fire the `ranking_complete` WEBHOOK to any registered subscriptions (CRS-19 /
+    # API productization). The webhook infra (HMAC-signed, SSRF-guarded, metered) was
+    # built but never called; this is the missing trigger. Fire-and-forget — a webhook
+    # failure must never break ranking completion.
+    try:
+        from app.cubes.cube5_gateway.webhook_service import deliver_event
+
+        await deliver_event(db, session_id, "ranking_complete", payload)
+    except Exception as exc:
+        logger.warning(
+            "cube7.ranking_complete.webhook_failed",
+            extra={"session_id": str(session_id), "error": str(exc)},
+        )
+
     # Trigger CQS scoring via Cube 5 — pass the full handoff payload
     try:
         from app.cubes.cube5_gateway.service import trigger_cqs_scoring
