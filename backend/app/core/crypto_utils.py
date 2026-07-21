@@ -5,7 +5,7 @@ Every hash in the system flows through this module.
 
 CRS-03: Replay hash (deterministic session verification)
 CRS-05: Anon hash (privacy-preserving participant ID)
-CRS-08: Response hash (integrity verification on clean_text)
+CRS-08: Response hash (integrity/dedup over the validated submission text)
 """
 
 from __future__ import annotations
@@ -15,13 +15,16 @@ import json
 import uuid
 
 
-def compute_response_hash(clean_text: str) -> str:
-    """CRS-08: SHA-256 integrity hash of clean response text.
+def compute_response_hash(text: str) -> str:
+    """CRS-08: SHA-256 integrity/dedup hash of a response.
 
-    Used by Cube 2 (text) and Cube 3 (voice) to verify response integrity.
+    Callers pass the VALIDATED submission text (pre-scrub) — see
+    cube2_text/service.store_response — so identical resubmissions dedup to the
+    same hash regardless of per-run PII-scrub differences. A one-way hash never
+    leaks the underlying text. Used by Cube 2 (text) and Cube 3 (voice).
     64-char hex string. Deterministic: same text → same hash.
     """
-    return hashlib.sha256(clean_text.encode()).hexdigest()
+    return hashlib.sha256(text.encode()).hexdigest()
 
 
 def compute_anon_hash(
