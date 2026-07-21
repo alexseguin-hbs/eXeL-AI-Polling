@@ -13,6 +13,8 @@ SAME algorithm the aggregator used, or it falsely reports a determinism mismatch
 Run: `cd backend && .venv/bin/python -m app.cubes.cube10_simulation.harness_cube7`
 """
 
+import hashlib
+
 from app.cubes.cube7_ranking import ranking_aggregation as ra
 
 _THEMES = ["t_mobile", "t_api", "t_analytics", "t_branding", "t_moderation"]
@@ -54,10 +56,17 @@ def run_harness_cube7(
     w_order = _order(w_scores, seed)
     w_hash = ra._compute_replay_hash(rankings, seed, "quadratic_borda")
 
+    # Determinism signature (Dev-Sim registry): sha256 over the deterministic
+    # outputs (both algorithms' hashes + orders) — the equivalence oracle.
+    signature = hashlib.sha256(
+        "|".join([u_hash, w_hash, ">".join(u_order), ">".join(w_order)]).encode()
+    ).hexdigest()
+
     return {
         "cube": "cube7_ranking",
         "n_themes": n,
         "participants": len(rankings),
+        "determinism_signature": signature,
         "unweighted": {"winner": u_order[0], "order": u_order, "replay_hash": u_hash},
         "quadratic": {
             "weights": {p: round(w, 4) for p, w in weights.items()},

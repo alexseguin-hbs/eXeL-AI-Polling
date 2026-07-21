@@ -349,12 +349,16 @@ async def replay_case(
 # (sandbox oracle) + challenge_loop (baseline↔candidate→verdict→swap).
 # ---------------------------------------------------------------------------
 
+from app.cubes.cube10_simulation.challenge_loop import HARNESS_CUBES
+
 _CUBE_NAMES = {
     1: "Session Join & QR", 2: "Text Submission", 3: "Voice-to-Text",
     4: "Response Collector", 5: "Gateway / Orchestrator", 6: "AI Theming Clusterer",
     7: "Prioritization & Ranking", 8: "Token Rewards", 9: "Reports & Dashboards",
 }
-_HARNESS_CUBES = {1}  # cubes with a runnable stand-alone harness (Cube 1 is the reference)
+# Single source of truth (challenge_loop.HARNESS_CUBES): cubes 1, 2, 6, 7 have
+# runnable stand-alone harnesses; the rest are pending.
+_HARNESS_CUBES = HARNESS_CUBES
 
 
 @router.get("/sim/cubes")
@@ -373,13 +377,20 @@ async def sim_cube_contract(cube_id: int):
         raise HTTPException(status_code=400, detail="cube_id must be 1-9")
     if cube_id not in _HARNESS_CUBES:
         raise HTTPException(status_code=404,
-            detail=f"Cube {cube_id} has no stand-alone harness yet — Cube 1 is the reference.")
-    from app.cubes.cube10_simulation.harness_cube1 import simulate_cube1
+            detail=f"Cube {cube_id} has no stand-alone harness yet.")
+    from app.cubes.cube10_simulation.challenge_loop import _run_harness
 
-    r = await simulate_cube1()
+    r = await _run_harness(cube_id)
+    if "io_contract" in r:  # Cube 1 emits a rich inputs→functions→outputs contract
+        return {
+            "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
+            "io_contract": r["io_contract"], "inputs": r["inputs"], "sample_outputs": r["outputs"],
+        }
+    # Cubes 2/6/7: minimal contract from the harness result (R2 enriches the block diagram).
     return {
         "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
-        "io_contract": r["io_contract"], "inputs": r["inputs"], "sample_outputs": r["outputs"],
+        "io_contract": {"cube": r.get("cube", _CUBE_NAMES[cube_id])},
+        "inputs": {}, "sample_outputs": r,
     }
 
 
@@ -391,14 +402,13 @@ async def sim_cube_run(
     """Play-test the whole cube → actual outputs + metrics baseline + determinism signature."""
     if cube_id not in _HARNESS_CUBES:
         raise HTTPException(status_code=404,
-            detail=f"Cube {cube_id} has no stand-alone harness yet — Cube 1 is the reference.")
-    from app.cubes.cube10_simulation.challenge_loop import run_cube_baseline
+            detail=f"Cube {cube_id} has no stand-alone harness yet.")
+    from app.cubes.cube10_simulation.challenge_loop import _run_harness
 
-    baseline = await run_cube_baseline(cube_id)
-    from app.cubes.cube10_simulation.harness_cube1 import simulate_cube1
-    r = await simulate_cube1()
-    return {"cube_id": cube_id, "metrics": r["metrics"], "outputs": r["outputs"],
-            "determinism_signature": baseline["signature"]}
+    r = await _run_harness(cube_id)
+    outputs = {k: v for k, v in r.items() if k != "metrics"}
+    return {"cube_id": cube_id, "metrics": r.get("metrics", {}), "outputs": outputs,
+            "determinism_signature": r.get("determinism_signature", "")}
 
 
 class SimChallengeRequest(BaseModel):

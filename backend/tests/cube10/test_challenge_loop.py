@@ -10,6 +10,7 @@ import pytest
 
 from app.cubes.cube10_simulation.challenge_loop import (
     CHALLENGE_TIERS,
+    HARNESS_CUBES,
     decide_swap,
     evaluate_challenge,
     normalize_candidate,
@@ -139,3 +140,28 @@ class TestIntegration:
 
     def test_tiers_constant(self):
         assert CHALLENGE_TIERS == {"manual", "semi", "automated"}
+
+
+class TestHarnessRegistration:
+    """R0.2: cubes 1, 2, 6, 7 have registered runnable harnesses (not Cube 1 only)."""
+
+    def test_registry_contains_all_four(self):
+        assert HARNESS_CUBES == frozenset({1, 2, 6, 7})
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("cube_id", [1, 2, 6, 7])
+    async def test_baseline_runs_for_each_registered_cube(self, cube_id):
+        base = await run_cube_baseline(cube_id)
+        assert base["cube_id"] == cube_id
+        assert len(base["signature"]) == 64  # every harness emits a determinism signature
+
+    @pytest.mark.asyncio
+    async def test_matching_candidate_swaps_for_cube7(self):
+        # The whole loop now works for a non-Cube-1 reference (Cube 7).
+        base = await run_cube_baseline(7)
+        out = await run_challenge(
+            7, {"signature": base["signature"], "duration_ms": base["duration_ms"]},
+            tier="manual", human_approved=True,
+        )
+        assert out["verdict"]["overall_passed"] is True
+        assert out["decision"]["decision"] == "swap"

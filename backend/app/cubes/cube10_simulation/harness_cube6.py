@@ -25,6 +25,18 @@ from app.cubes.cube6_ai.centroid_summarizer import truncate_to_words
 from app.cubes.cube6_ai.providers.factory import get_summarization_provider
 
 
+# Self-contained default feedback so the Dev-Sim can run the harness app-side
+# without depending on the test fixtures (tests/ is not importable from app/).
+_DEFAULT_FEEDBACK: list[dict] = [
+    {"persona": "Data Analyst", "text": "The clustering sometimes merges unrelated ideas — a real concern for accuracy."},
+    {"persona": "Event Organizer", "text": "Mobile drag-and-drop ranking is frustrating and barely works on my phone."},
+    {"persona": "Educator", "text": "I love how fast the themes appear — this is genuinely useful and effective."},
+    {"persona": "Product Manager", "text": "Anonymity is great, but I worry the export format loses some nuance."},
+    {"persona": "Developer", "text": "Clean API and the summaries are accurate; the tool is valuable for our workflow."},
+    {"persona": "Participant", "text": "It was fine. Nothing stood out either way for me."},
+]
+
+
 def _seed_int(seed: str) -> int:
     return int(hashlib.md5(seed.encode()).hexdigest()[:8], 16)
 
@@ -35,9 +47,15 @@ def _live_labels(themes: list[dict]) -> list[dict]:
 
 
 async def run_harness_cube6(
-    feedback: list[dict], seed: str = "lock", provider: str = "offline"
+    feedback: list[dict] | None = None, seed: str = "lock", provider: str = "offline"
 ) -> dict:
-    """Run the real phase_b theming engine on `feedback` (list of {persona, text})."""
+    """Run the real phase_b theming engine on `feedback` (list of {persona, text}).
+
+    `feedback` defaults to a small self-contained sample so the Dev-Sim can call
+    run_harness_cube6() with no args (offline, deterministic).
+    """
+    if feedback is None:
+        feedback = _DEFAULT_FEEDBACK
     summarizer = get_summarization_provider(provider)
     seed_i = _seed_int(seed)
 
