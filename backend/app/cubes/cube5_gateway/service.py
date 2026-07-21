@@ -305,6 +305,110 @@ async def get_participant_time_summary(
 
 
 # ---------------------------------------------------------------------------
+# System-of-Innovation $/min per-poll metrics (A2 — CRS-19)
+# ---------------------------------------------------------------------------
+
+
+def minutes_to_dollars(active_minutes: float, hourly_rate: float) -> float:
+    """Min-wage-equivalent dollar VALUE of `active_minutes` at `hourly_rate` ($/hr).
+
+    This is the valuation rate for the "System of Innovation" $/min figure — distinct
+    from the 웃 payout (which stays 0 pre-treasury when human_enabled=False). Format: #.####.
+    """
+    if active_minutes <= 0 or hourly_rate <= 0:
+        return 0.0
+    return round(active_minutes * (hourly_rate / 60.0), 4)
+
+
+def dollars_per_min(total_dollars: float, wallclock_minutes: float) -> float:
+    """$ value generated per minute of the poll's wall-clock. 0 when no elapsed time."""
+    if wallclock_minutes <= 0:
+        return 0.0
+    return round(total_dollars / wallclock_minutes, 4)
+
+
+async def get_session_poll_metrics(
+    db: AsyncSession,
+    *,
+    session_id: uuid.UUID,
+    country: str | None = None,
+    state: str | None = None,
+    now: datetime | None = None,
+) -> dict:
+    """SoI per-poll metrics: user + moderator active time, first-class $/min, and ♡웃◬ totals.
+
+    Reuses the TimeEntry aggregation + Cube 8 token summary + the jurisdiction rate table.
+    Moderator active time = the poll's live wall-clock (opened_at → closed_at/now), so no
+    extra table/migration is needed to split user vs moderator. `now` is injectable for
+    deterministic tests.
+    """
+    from app.cubes.cube8_tokens.service import get_session_token_summary
+    from app.models.session import Session
+
+    now = now or datetime.now(timezone.utc)
+    rate = resolve_human_rate(country, state)  # $/hr — default 7.25 (US federal)
+
+    sess = (
+        await db.execute(select(Session).where(Session.id == session_id))
+    ).scalar_one_or_none()
+    if sess is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Session '{session_id}' not found",
+        )
+
+    # Users — sum active seconds + count distinct participants across all TimeEntry rows
+    agg = (
+        await db.execute(
+            select(
+                func.coalesce(func.sum(TimeEntry.duration_seconds), 0.0).label("total_seconds"),
+                func.count(func.distinct(TimeEntry.participant_id)).label("user_count"),
+            ).where(TimeEntry.session_id == session_id)
+        )
+    ).one()
+    user_active_min = float(agg.total_seconds) / 60.0
+    user_count = int(agg.user_count)
+    user_dollars = minutes_to_dollars(user_active_min, rate)
+
+    # Moderator — poll wall-clock window (no per-moderator TimeEntry needed)
+    if sess.opened_at is not None:
+        end = sess.closed_at or now
+        mod_active_min = max(0.0, (end - sess.opened_at).total_seconds() / 60.0)
+    else:
+        mod_active_min = 0.0
+    mod_dollars = minutes_to_dollars(mod_active_min, rate)
+
+    total_dollars = round(user_dollars + mod_dollars, 4)
+    # $/min against the poll wall-clock (moderator window); fall back to user minutes if never opened
+    wallclock_min = mod_active_min if mod_active_min > 0 else user_active_min
+    dpm = dollars_per_min(total_dollars, wallclock_min)
+
+    tokens = await get_session_token_summary(db, session_id)
+
+    return {
+        "session_id": str(session_id),
+        "hourly_rate": rate,
+        "dollars_per_min": dpm,
+        "total_value_usd": total_dollars,
+        "users": {
+            "count": user_count,
+            "active_min": round(user_active_min, 4),
+            "value_usd": user_dollars,
+        },
+        "moderator": {
+            "active_min": round(mod_active_min, 4),
+            "value_usd": mod_dollars,
+        },
+        "totals": {
+            "heart": float(tokens.get("total_heart", 0.0)),
+            "human": float(tokens.get("total_human", 0.0)),
+            "unity": float(tokens.get("total_unity", 0.0)),
+        },
+        "human_enabled": settings.human_enabled,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Pipeline Orchestrator
 # ---------------------------------------------------------------------------
 

@@ -133,6 +133,21 @@ async def trigger_theming(
     return PipelineTriggerRead.model_validate(trigger)
 
 
+@router.get("/sessions/{session_id}/metrics")
+async def get_poll_metrics(
+    session_id: uuid.UUID,
+    country: str | None = None,
+    state: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser | None = Depends(get_optional_current_user),
+):
+    """SoI System-of-Innovation per-poll metrics (CRS-19): user + moderator active time,
+    first-class $/min, and ♡웃◬ totals. country/state resolve the 웃 jurisdiction rate."""
+    return await service.get_session_poll_metrics(
+        db, session_id=session_id, country=country, state=state
+    )
+
+
 @router.get(
     "/sessions/{session_id}/pipeline/status",
     response_model=PipelineStatusResponse,
