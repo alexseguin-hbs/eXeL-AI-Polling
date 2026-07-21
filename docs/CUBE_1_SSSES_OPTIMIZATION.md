@@ -60,7 +60,7 @@
 
 ### CRS-19.06 — SoI $/min + MoT cost control chart (NEW this session)
 - **Efficiency** ✅ single SQL aggregate (SUM/COUNT) + one endpoint; pure math for $/min + MoT.
-- **Scalability** ◻ MoT control LIMITS need a historical session series → a `session_cost_series` rollup (per-quarter) feeds real UCL/LCL; today limits are None (honest).
+- **Scalability** ✅ MoT control LIMITS now real for a PROJECT/BUSINESS via `mot_cost_series([burn_rates], window)` — SPC chart, centerline = mean, UCL/LCL = mean ± 3σ (LCL floored 0), out-of-control count (cost anomalies). Single-poll `mot` still reports None limits (a lone point can't have limits — honest). The per-quarter rollup that FEEDS the series needs project scoping (CRS-01.03, migration) to auto-collect across a project's sessions.
 - **Stability** ◻ moderator active-min = poll wall-clock (proxy, no migration) — a first-class moderator TimeEntry (actor_role column) would be exact but needs a migration.
 - **Security** ✅ 웃 valuation is independent of `human_enabled` (valuation ≠ payout); payout stays 0 pre-treasury.
 

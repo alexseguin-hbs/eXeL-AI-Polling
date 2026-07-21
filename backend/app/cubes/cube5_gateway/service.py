@@ -361,8 +361,47 @@ def mot_cost_control_chart(
         "baseline_per_min": baseline_per_min,      # control-chart centerline (allocated)
         "actual_per_min": actual_per_min,          # plotted point (burn rate)
         "variance_pct": variance_pct,
-        "upper_control_limit": None,               # needs a historical series (future)
+        "upper_control_limit": None,               # single point — limits need a series (see below)
         "lower_control_limit": None,
+    }
+
+
+def mot_cost_series(
+    burn_rates_per_min: list[float],
+    window_days: float = MOT_DEFAULT_WINDOW_DAYS,
+) -> dict:
+    """MoT cost control chart for a PROJECT/BUSINESS running many polls (operator: "running a
+    project or business with eXeL AI ... a real-time control chart on cost").
+
+    Given the per-minute burn rates of N polls/costs (each a point from mot_cost_control_chart),
+    computes a proper statistical-process-control chart: centerline = mean, control limits =
+    mean ± 3σ (population), LCL floored at 0. Points outside the limits are out-of-control
+    (cost anomalies to investigate). This is where the 91.25-day window's control LIMITS become
+    real — they need the series that a single poll can't provide.
+    """
+    pts = [float(x) for x in burn_rates_per_min if isinstance(x, (int, float))]
+    n = len(pts)
+    if n == 0:
+        return {
+            "window_days": window_days, "n": 0, "centerline": 0.0,
+            "stdev": 0.0, "upper_control_limit": 0.0, "lower_control_limit": 0.0,
+            "out_of_control_count": 0, "points": [],
+        }
+    centerline = sum(pts) / n
+    variance = sum((x - centerline) ** 2 for x in pts) / n  # population variance
+    stdev = variance ** 0.5
+    ucl = centerline + 3 * stdev
+    lcl = max(0.0, centerline - 3 * stdev)
+    ooc = sum(1 for x in pts if x > ucl or x < lcl)
+    return {
+        "window_days": window_days,
+        "n": n,
+        "centerline": round(centerline, 6),
+        "stdev": round(stdev, 6),
+        "upper_control_limit": round(ucl, 6),
+        "lower_control_limit": round(lcl, 6),
+        "out_of_control_count": ooc,
+        "points": [round(x, 6) for x in pts],
     }
 
 

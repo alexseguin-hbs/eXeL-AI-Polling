@@ -72,6 +72,36 @@ class TestMotCostControlChart:
         assert c["window_minutes"] == 1440.0
         assert c["baseline_per_min"] == 1.0              # $1440 over 1 day = $1/min
 
+    def test_series_control_limits_over_many_polls(self):
+        """Project/business: N poll burn-rates → SPC chart with real 3σ control limits."""
+        from app.cubes.cube5_gateway.service import mot_cost_series
+
+        c = mot_cost_series([1.0, 1.0, 1.0, 1.0, 1.0])   # zero variance
+        assert c["n"] == 5 and c["centerline"] == 1.0 and c["stdev"] == 0.0
+        assert c["upper_control_limit"] == 1.0 and c["lower_control_limit"] == 1.0
+        assert c["out_of_control_count"] == 0
+
+    def test_series_flags_out_of_control_point(self):
+        from app.cubes.cube5_gateway.service import mot_cost_series
+
+        # 20 stable polls + one cost spike → the spike sits beyond mean + 3σ.
+        c = mot_cost_series([1.0] * 20 + [5.0])
+        assert c["upper_control_limit"] > c["centerline"] > c["lower_control_limit"]
+        assert c["out_of_control_count"] == 1
+        assert c["lower_control_limit"] == 0.0            # floored at 0
+
+    def test_series_empty(self):
+        from app.cubes.cube5_gateway.service import mot_cost_series
+
+        c = mot_cost_series([])
+        assert c["n"] == 0 and c["centerline"] == 0.0 and c["upper_control_limit"] == 0.0
+
+    def test_series_window_carried(self):
+        from app.cubes.cube5_gateway.service import mot_cost_series
+
+        assert mot_cost_series([2.0, 4.0], window_days=30)["window_days"] == 30
+        assert mot_cost_series([2.0, 4.0])["window_days"] == 91.25
+
     @pytest.mark.asyncio
     async def test_metrics_endpoint_includes_mot_block(self):
         import uuid
