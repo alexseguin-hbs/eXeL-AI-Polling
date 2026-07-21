@@ -144,6 +144,28 @@ class TestReplayVerification:
         assert "db.commit" not in src
         assert "db.flush" not in src
 
+    def test_verify_replay_uses_stored_algorithm(self):
+        """C7-1: verify_replay must recompute with the algorithm the aggregator
+        persisted (not always unweighted Borda), else quadratic sessions falsely
+        report a determinism mismatch."""
+        import inspect
+        src = inspect.getsource(verify_replay)
+        # Reads the persisted per-row algorithm from the stored aggregation.
+        assert ".algorithm" in src
+        assert "stored_algorithm" in src
+        # Branches to quadratic weighting when the aggregator used it.
+        assert "quadratic_borda" in src
+        assert "_weighted_borda_scores" in src
+        # Folds the stored algorithm into the replay hash (not the default).
+        assert "_compute_replay_hash(" in src
+
+    def test_verify_replay_accepts_participant_stakes(self):
+        """C7-1: quadratic order can only be reproduced with the stakes, so
+        verify_replay must accept participant_stakes."""
+        import inspect
+        sig = inspect.signature(verify_replay)
+        assert "participant_stakes" in sig.parameters
+
 
 # ---------------------------------------------------------------------------
 # Router Structure Tests

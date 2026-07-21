@@ -754,11 +754,21 @@ async def verify_replay(
     seed: str | None = None,
     theme01_category: str | None = None,
     theme_level: str | None = None,
+    participant_stakes: dict[str, float] | None = None,
 ) -> dict:
     """CRS-13.03: Re-run aggregation and compare replay hash.
 
     Does NOT write to DB — read-only verification.
     Returns match status + both hashes.
+
+    C7-1 (2026-07-21): recompute with the SAME algorithm the aggregator used.
+    The algorithm is persisted per-row on `AggregatedRanking.algorithm`
+    ("borda_count" or "quadratic_borda") and folded into the replay hash — so
+    a quadratic session must be verified with quadratic_borda, or both the
+    hash and the recomputed order falsely mismatch (the old code always used
+    unweighted Borda). For quadratic, pass `participant_stakes` to reproduce
+    the exact weighted order; without stakes the hash still pins determinism
+    but the order is not independently recomputed (order_recomputed=False).
 
     Step 5 (2026-07-03): auto-fills category/level from the Session so the
     verifier hashes the same slice-pinned payload the aggregator did.
@@ -803,24 +813,49 @@ async def verify_replay(
     user_rankings = list(result.scalars().all())
 
     all_rankings: list[list[str]] = []
+    all_participant_ids: list[str] = []
     for ur in user_rankings:
         ids = ur.ranked_theme_ids
         if isinstance(ids, list):
             all_rankings.append(ids)
+            all_participant_ids.append(str(ur.participant_id))
 
     effective_seed = seed or str(session_id)
     n_themes = len(all_rankings[0]) if all_rankings else 0
 
-    # Recompute
-    scores = _borda_scores(all_rankings, n_themes)
-    sorted_t = sorted(
-        scores.items(),
-        key=lambda x: (-x[1], _seeded_tiebreak_key(x[0], effective_seed)),
+    # C7-1: recompute with the SAME algorithm the aggregator persisted.
+    stored_algorithm = (
+        existing_rankings[0].algorithm if existing_rankings else "borda_count"
     )
-    recomputed_order = [t[0] for t in sorted_t]
+
+    order_recomputed = True
+    if stored_algorithm == "quadratic_borda" and participant_stakes:
+        weights = _quadratic_weights(participant_stakes)
+        scores = _weighted_borda_scores(
+            all_rankings, all_participant_ids, weights, n_themes
+        )
+    elif stored_algorithm == "quadratic_borda":
+        # Quadratic session but no stakes supplied — the exact weighted order
+        # can't be reproduced here. The hash (below, pinned to quadratic_borda)
+        # still verifies determinism; do not claim an order match/mismatch.
+        scores = None
+        order_recomputed = False
+    else:
+        scores = _borda_scores(all_rankings, n_themes)
+
+    if scores is not None:
+        sorted_t = sorted(
+            scores.items(),
+            key=lambda x: (-x[1], _seeded_tiebreak_key(x[0], effective_seed)),
+        )
+        recomputed_order = [t[0] for t in sorted_t]
+    else:
+        recomputed_order = existing_order  # not independently recomputed
+
     replay_hash = _compute_replay_hash(
         all_rankings,
         effective_seed,
+        stored_algorithm,
         theme01_category=theme01_category,
         theme_level=theme_level,
     )
@@ -828,11 +863,13 @@ async def verify_replay(
     return {
         "session_id": str(session_id),
         "cycle_id": cycle_id,
+        "algorithm": stored_algorithm,
         "replay_hash": replay_hash,
         "theme01_category": theme01_category,
         "theme_level": theme_level,
         "existing_order": existing_order,
         "recomputed_order": recomputed_order,
-        "match": existing_order == recomputed_order,
+        "order_recomputed": order_recomputed,
+        "match": (existing_order == recomputed_order) if order_recomputed else None,
         "participant_count": len(all_rankings),
     }
