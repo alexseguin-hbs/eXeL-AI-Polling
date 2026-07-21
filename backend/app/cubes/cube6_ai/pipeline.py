@@ -23,7 +23,7 @@ from app.config import settings
 from app.cubes.cube6_ai.providers.base import EmbeddingProvider, SummarizationProvider
 from app.cubes.cube6_ai.providers.factory import (
     get_embedding_provider,
-    get_summarization_provider,
+    get_summarization_provider_or_offline,
 )
 from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
@@ -91,7 +91,9 @@ async def run_pipeline(
     seed_int = int(hashlib.md5(effective_seed.encode()).hexdigest()[:8], 16)
 
     provider_name = session.ai_provider or "openai"
-    summarizer = get_summarization_provider(provider_name)
+    # C6-2: never crash the whole pipeline on a missing key — degrade to the
+    # deterministic OFFLINE provider in dev/test/CI (production still raises).
+    summarizer = get_summarization_provider_or_offline(provider_name)
 
     # Cost tracking for this pipeline run
     from app.cubes.cube6_ai.providers.base import AICostTracker

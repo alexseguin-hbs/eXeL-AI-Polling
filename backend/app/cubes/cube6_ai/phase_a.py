@@ -24,7 +24,7 @@ from app.config import settings
 from app.cubes.cube6_ai.providers.base import EmbeddingProvider, SummarizationProvider
 from app.cubes.cube6_ai.providers.factory import (
     get_embedding_provider,
-    get_summarization_provider,
+    get_summarization_provider_or_offline,
 )
 from app.models.response_meta import ResponseMeta
 from app.models.response_summary import ResponseSummary
@@ -153,7 +153,9 @@ async def _summarize_single_response_inner(
         )
     else:
         # --- Task A1: Single structured prompt (2 round-trips max) ---
-        summarizer = get_summarization_provider(ai_provider)
+        # C6-2: degrade to the deterministic OFFLINE provider on a missing key
+        # in dev/test/CI so a single response never crashes Phase A (prod raises).
+        summarizer = get_summarization_provider_or_offline(ai_provider)
 
         translate = (
             "If the text is not in English, translate it to English first. "

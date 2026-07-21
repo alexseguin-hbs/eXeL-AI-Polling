@@ -137,3 +137,28 @@ def get_summarization_provider(name: str) -> SummarizationProvider:
         f"No summarization provider available. Requested: '{name}', "
         f"checked: {[p.value for p in chain]}. Configure at least one API key."
     )
+
+
+def get_summarization_provider_or_offline(name: str) -> SummarizationProvider:
+    """C6-2: resolve a provider, degrading to the deterministic OFFLINE provider
+    instead of crashing when no API key is configured.
+
+    Guardrail (Odin): OFFLINE is a graceful degradation for dev/test/CI — NOT a
+    silent production default. In production a missing key STILL raises, so the
+    system never ships stub themes to real users without an explicit choice.
+    Non-production falls back to OFFLINE so the pipeline runs end-to-end with no
+    key (CI + local dev), emitting deterministic themes.
+    """
+    try:
+        return get_summarization_provider(name)
+    except ValueError:
+        from app.config import settings
+
+        if settings.environment == "production":
+            raise
+        logger.warning(
+            "cube6.provider.offline_fallback requested=%s reason=no_api_key environment=%s",
+            name,
+            settings.environment,
+        )
+        return _SUMMARIZATION_PROVIDERS[AIProviderName.OFFLINE]()

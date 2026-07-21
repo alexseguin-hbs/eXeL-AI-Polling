@@ -88,3 +88,28 @@ def test_deterministic_repeatable():
     b = _run(s.summarize(["INPUT: mobile is a concern and a problem"], instruction=pb._CLASSIFY_INSTRUCTION))
     assert a == b
     assert _run(e.embed(["x"])) == _run(e.embed(["x"]))
+
+
+def test_c6_2_graceful_fallback_to_offline_in_dev(monkeypatch):
+    """C6-2: with no key, non-production degrades to OFFLINE (pipeline never crashes)."""
+    from app.cubes.cube6_ai.providers import factory
+    from app.config import settings
+
+    # No key for any real provider → the normal resolver raises.
+    monkeypatch.setattr(factory, "_has_api_key", lambda p: p == AIProviderName.OFFLINE)
+    monkeypatch.setattr(settings, "environment", "development")
+
+    prov = factory.get_summarization_provider_or_offline("openai")
+    assert prov.provider_name == AIProviderName.OFFLINE
+
+
+def test_c6_2_production_still_raises_without_key(monkeypatch):
+    """C6-2 guardrail (Odin): production must NOT silently ship stub themes."""
+    from app.cubes.cube6_ai.providers import factory
+    from app.config import settings
+
+    monkeypatch.setattr(factory, "_has_api_key", lambda p: p == AIProviderName.OFFLINE)
+    monkeypatch.setattr(settings, "environment", "production")
+
+    with pytest.raises(ValueError):
+        factory.get_summarization_provider_or_offline("openai")
