@@ -18,13 +18,21 @@ import { AlvarMark } from "./alvar-mark";
 
 const C = { panel: "#111826", border: "#1e2b3a", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc" };
 
-// Security-2525 "•••" collapse control (Dots3/Toggle3) — three cyan bullets.
+// ONE canonical "•••" expander — three cyan bullets stacked right over each other. Every Design-view expander
+// (Vision Tree / Active Elements rails · B1/B2 bottom menus) renders THIS so the dots are pixel-identical
+// (operator IMG_7606: "copy ••• Active Elements as basis for the expandable menus beneath them").
+function Dots3() {
+  return (
+    <span className="flex flex-col items-center gap-[3px]">
+      {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
+    </span>
+  );
+}
+// Security-2525 "•••" collapse control (Toggle3) — the Dots3 stack as a button.
 function Toggle3({ onClick, title }: { onClick: () => void; title: string }) {
   return (
     <button onClick={onClick} title={title} data-arch-rail-toggle
-      className="flex flex-col items-center gap-[3px] rounded p-1 hover:bg-white/10">
-      {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
-    </button>
+      className="rounded p-1 hover:bg-white/10"><Dots3 /></button>
   );
 }
 
@@ -42,9 +50,7 @@ function Rail({ side, title, open, setOpen, children, titleIcon }: {
       <button data-arch-rail-collapsed={side} onClick={() => setOpen(true)} title={`Show ${title}`}
         className="flex w-full shrink-0 flex-row items-center justify-center gap-2 rounded-lg border px-1.5 py-1 hover:bg-white/5 md:w-[30px] md:flex-col md:gap-1.5 md:self-start md:px-0.5 md:py-2"
         style={{ background: C.panel, borderColor: C.border }}>
-        <span data-arch-rail-toggle className="flex flex-col items-center gap-[3px]">
-          {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
-        </span>
+        <span data-arch-rail-toggle><Dots3 /></span>
         {titleIcon}
         <span data-arch-rail-label={side} className="text-[8px] font-semibold uppercase tracking-wider [writing-mode:horizontal-tb] md:[writing-mode:vertical-rl]"
           style={{ color: titleColor }}>{title}</span>
@@ -100,9 +106,7 @@ function BottomPanel({ id, title, accent, open, setOpen, children }: {
       {/* ••• dots LEFT of the title (operator: standardize to the ACTIVE ITEMS style — vertical dots, left-aligned). */}
       <div className="relative flex items-center gap-2 px-3 py-1.5" style={{ borderBottom: open ? `1px solid ${C.border}` : "1px solid transparent" }}>
         <button data-bpanel-toggle={id} onClick={() => setOpen(!open)} title={open ? "Collapse" : "Expand"}
-          className="flex flex-col items-center gap-[2px] rounded p-1 hover:bg-white/5">
-          {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
-        </button>
+          className="rounded p-1 hover:bg-white/5"><Dots3 /></button>
         <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
         {/* Maximize is only offered once the panel is EXPANDED — you can't full-screen a collapsed panel (operator). */}
         {open && (
