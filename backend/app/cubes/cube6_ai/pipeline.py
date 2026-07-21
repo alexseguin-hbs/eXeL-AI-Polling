@@ -233,25 +233,39 @@ async def run_pipeline(
             len(levels.get("3", []))
             for levels in reduced.values()
         )
+        themes_ready_payload = {
+            "session_id": str(session_id),
+            "short_code": session.short_code,          # Krishna contract fix
+            "cycle_id": session.current_cycle,          # Krishna contract fix
+            "theme_count": theme_count,
+            "total_responses": len(responses),
+            "replay_hash": replay_hash,
+            "duration_sec": duration,
+            "contract_version": "2026-07-03.1",         # Krishna contract fix
+        }
         await broadcast_event(
             channel=f"session:{session.short_code}",
             event="themes_ready",
-            payload={
-                "session_id": str(session_id),
-                "short_code": session.short_code,          # Krishna contract fix
-                "cycle_id": session.current_cycle,          # Krishna contract fix
-                "theme_count": theme_count,
-                "total_responses": len(responses),
-                "replay_hash": replay_hash,
-                "duration_sec": duration,
-                "contract_version": "2026-07-03.1",         # Krishna contract fix
-            },
+            payload=themes_ready_payload,
         )
         logger.info(
             "cube6.themes_ready.broadcast",
             session_id=str(session_id),
             theme_count=theme_count,
         )
+        # Fire the themes_ready WEBHOOK to any registered subscriptions (API
+        # productization) — the built webhook infra had no callers. Fire-and-forget
+        # so a webhook can never break a completed theming run (mirrors Cube 7).
+        try:
+            from app.cubes.cube5_gateway.webhook_service import deliver_event
+
+            await deliver_event(db, session_id, "themes_ready", themes_ready_payload)
+        except Exception as exc:
+            logger.warning(
+                "cube6.themes_ready.webhook_failed",
+                session_id=str(session_id),
+                error=str(exc),
+            )
     except Exception as exc:
         # Non-fatal — results are stored even if broadcast fails
         logger.warning(
