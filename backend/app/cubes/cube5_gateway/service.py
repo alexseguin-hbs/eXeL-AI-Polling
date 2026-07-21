@@ -327,11 +327,47 @@ def dollars_per_min(total_dollars: float, wallclock_minutes: float) -> float:
     return round(total_dollars / wallclock_minutes, 4)
 
 
+def session_profit(revenue_usd: float, cost_usd: float) -> dict:
+    """R4.2: per-session profitability for the Moderator view (operator: "aggregated
+    cost and profit for a session"). revenue = fees collected, cost = SoI operational
+    value (active-min × rate). Pure + deterministic. Format: dollars #.####, margin #.##.
+    """
+    revenue = round(max(revenue_usd, 0.0), 4)
+    cost = round(max(cost_usd, 0.0), 4)
+    profit = round(revenue - cost, 4)
+    margin_pct = round(profit / revenue * 100.0, 2) if revenue > 0 else 0.0
+    return {
+        "revenue_usd": revenue,
+        "cost_usd": cost,
+        "profit_usd": profit,
+        "margin_pct": margin_pct,
+    }
+
+
 # MoT (Master-of-Thought) cost measurement — every cost is a time allocation measured to
 # the minute, viewed over a default 91.25-day window (a quarter = 365.25/4). This is the
 # centerline/basis for the real-time cost CONTROL CHART (operator, 2026-07-21).
 MOT_DEFAULT_WINDOW_DAYS = 91.25
 _MINUTES_PER_DAY = 1440.0
+
+# MoT named window presets (operator 2026-07-21): the cost control chart can be
+# viewed over a month (1/12 year), a quarter (the DEFAULT), or a full year
+# (leap-aware). `quarter` stays the default view.
+MOT_WINDOWS: dict[str, float] = {
+    "month": 30.4166666666667,   # 365 / 12
+    "quarter": 91.25,            # 365.25 / 4  — DEFAULT
+    "year": 365.0,               # leap-aware via resolve_mot_window(is_leap=True → 366)
+}
+
+
+def resolve_mot_window(name: str = "quarter", *, is_leap: bool = False) -> float:
+    """Resolve a named MoT window → days. `year` returns 366 in a leap year, else 365.
+
+    Unknown names fall back to the default quarter (91.25). Pure + deterministic.
+    """
+    if name == "year":
+        return 366.0 if is_leap else 365.0
+    return MOT_WINDOWS.get(name, MOT_DEFAULT_WINDOW_DAYS)
 
 
 def mot_cost_control_chart(
@@ -466,12 +502,21 @@ async def get_session_poll_metrics(
 
     tokens = await get_session_token_summary(db, session_id)
 
+    # R4.2: per-session profit for the Moderator — revenue (fees collected) vs the
+    # SoI operational cost (labor value). Time Capital = total active minutes invested.
+    _fee = getattr(sess, "fee_amount_cents", 0)
+    revenue_usd = round((_fee if isinstance(_fee, (int, float)) else 0) / 100.0, 4)
+    profit = session_profit(revenue_usd, total_dollars)
+    time_capital_min = round(user_active_min + mod_active_min, 4)
+
     return {
         "session_id": str(session_id),
         "hourly_rate": rate,
         "dollars_per_min": dpm,
         "total_value_usd": total_dollars,
         "mot": mot,  # MoT cost control chart (default 91.25-day window)
+        "mot_windows": MOT_WINDOWS,  # selectable views: month / quarter (default) / year
+        "profit": {**profit, "time_capital_min": time_capital_min},
         "users": {
             "count": user_count,
             "active_min": round(user_active_min, 4),

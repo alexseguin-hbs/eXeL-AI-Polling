@@ -199,3 +199,43 @@ class TestPollMetrics:
                    new=AsyncMock(return_value={"total_heart": 0.0, "total_human": 0.0, "total_unity": 0.0})):
             m = await service.get_session_poll_metrics(mock_db, session_id=session.id, now=now)
         assert m["moderator"]["active_min"] == 5.0
+
+
+# ── R4: MoT window presets + session profit ──────────────────────────────────
+class TestMotWindowsAndProfit:
+    def test_window_presets(self):
+        from app.cubes.cube5_gateway.service import MOT_WINDOWS, resolve_mot_window
+        assert MOT_WINDOWS["quarter"] == 91.25          # DEFAULT
+        assert abs(MOT_WINDOWS["month"] - 30.4166666666667) < 1e-9  # 1/12 year
+        assert resolve_mot_window("year") == 365.0
+        assert resolve_mot_window("year", is_leap=True) == 366.0
+        assert resolve_mot_window("month") == MOT_WINDOWS["month"]
+        assert resolve_mot_window("bogus") == 91.25     # unknown → default
+
+    def test_session_profit_math(self):
+        from app.cubes.cube5_gateway.service import session_profit
+        p = session_profit(100.0, 30.0)
+        assert p == {"revenue_usd": 100.0, "cost_usd": 30.0, "profit_usd": 70.0, "margin_pct": 70.0}
+
+    def test_session_profit_zero_revenue_no_div0(self):
+        from app.cubes.cube5_gateway.service import session_profit
+        p = session_profit(0.0, 30.0)
+        assert p["profit_usd"] == -30.0 and p["margin_pct"] == 0.0
+
+    @pytest.mark.asyncio
+    async def test_metrics_include_profit_and_windows(self):
+        from app.cubes.cube5_gateway import service
+
+        now = datetime(2026, 3, 31, 12, 5, tzinfo=timezone.utc)
+        session = MagicMock(); session.id = uuid.uuid4()
+        session.opened_at = now - timedelta(minutes=10)
+        session.closed_at = None
+        session.fee_amount_cents = 1111  # $11.11 moderator-paid tier
+        mock_db = _metrics_mocks(session, total_seconds=0.0, user_count=0)
+        with patch("app.cubes.cube8_tokens.service.get_session_token_summary",
+                   new=AsyncMock(return_value={"total_heart": 0.0, "total_human": 0.0, "total_unity": 0.0})):
+            m = await service.get_session_poll_metrics(mock_db, session_id=session.id, now=now)
+        assert m["profit"]["revenue_usd"] == 11.11
+        assert "cost_usd" in m["profit"] and "margin_pct" in m["profit"]
+        assert m["profit"]["time_capital_min"] == 10.0
+        assert m["mot_windows"]["quarter"] == 91.25
