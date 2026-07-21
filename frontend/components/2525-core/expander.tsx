@@ -46,7 +46,9 @@ export function Expander({
             {title}{sub && <span className="ml-2 font-normal" style={{ color: colors.dim }}>· {sub}</span>}
           </span>
         )}
-        <ChevronDown className={`${dots ? "absolute right-3" : "ml-auto"} h-3.5 w-3.5 shrink-0 transition-transform`} style={{ color: colors.dim, transform: open ? "rotate(180deg)" : "none" }} />
+        {/* Dotted mode: the ••• IS the sole expand/collapse affordance — no right chevron (operator IMG_7614:
+            "remove Advanced Design dropdown on right, same function as •••"). Non-dotted keeps the right chevron. */}
+        {!dots && <ChevronDown className="ml-auto h-3.5 w-3.5 shrink-0 transition-transform" style={{ color: colors.dim, transform: open ? "rotate(180deg)" : "none" }} />}
       </button>
       {open && <div className="mt-2">{children}</div>}
     </div>
