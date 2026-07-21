@@ -5,6 +5,7 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Te
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.core.encrypted_types import EncryptedText
 from app.db.base import Base
 
 
@@ -29,7 +30,7 @@ class ResponseMeta(Base):
         UUID(as_uuid=True), ForeignKey("participants.id"), nullable=True
     )
     source: Mapped[str] = mapped_column(String(20), default="text")
-    raw_text: Mapped[str | None] = mapped_column(Text)
+    raw_text: Mapped[str | None] = mapped_column(EncryptedText)  # AES at rest (opt-in on key)
     char_count: Mapped[int] = mapped_column(Integer, default=0)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_flagged: Mapped[bool] = mapped_column(Boolean, default=False)

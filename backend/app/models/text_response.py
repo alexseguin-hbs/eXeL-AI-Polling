@@ -14,6 +14,7 @@ from sqlalchemy import Boolean, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.core.encrypted_types import EncryptedText
 from app.db.base import Base
 
 
@@ -33,13 +34,13 @@ class TextResponse(Base):
     pii_detected: Mapped[bool] = mapped_column(Boolean, default=False)
     pii_types: Mapped[dict | None] = mapped_column(JSONB)
     # e.g. [{"type": "EMAIL", "start": 10, "end": 25, "text": "***"}]
-    pii_scrubbed_text: Mapped[str | None] = mapped_column(Text)
+    pii_scrubbed_text: Mapped[str | None] = mapped_column(EncryptedText)  # AES at rest (opt-in on key)
 
     # Profanity detection results (non-blocking — raw + clean stored)
     profanity_detected: Mapped[bool] = mapped_column(Boolean, default=False)
     profanity_words: Mapped[dict | None] = mapped_column(JSONB)
     # e.g. [{"word": "***", "severity": "medium", "position": 5}]
-    clean_text: Mapped[str | None] = mapped_column(Text)
+    clean_text: Mapped[str | None] = mapped_column(EncryptedText)  # AES at rest (opt-in on key)
 
     # CRS-08: Integrity hash — SHA-256 of raw_text for verification
     response_hash: Mapped[str | None] = mapped_column(String(64))
