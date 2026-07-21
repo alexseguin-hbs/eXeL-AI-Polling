@@ -116,6 +116,7 @@ from app.core.submission_validators import (  # noqa: F401
     validate_question,
     validate_participant,
     validate_text_input,
+    validate_and_fit_text_input,
 )
 
 
@@ -531,8 +532,20 @@ async def submit_text_response(
     await validate_question(db, question_id, session_id)
     participant = await validate_participant(db, participant_id, session_id)
 
-    # --- 2. Validate text input ---
-    text = validate_text_input(raw_text, session.max_response_length)
+    # --- 2. Validate text input (second-pass reprocessing on over-length) ---
+    # Thought-Master directive: an over-length submission is NOT rejected — it is
+    # reprocessed to fit and INCLUDED, so no participant's response is dropped.
+    text, was_reprocessed = validate_and_fit_text_input(
+        raw_text, session.max_response_length
+    )
+    if was_reprocessed:
+        logger.info(
+            "cube2.text.reprocessed_overlength",
+            session_id=str(session_id),
+            original_chars=len(raw_text.strip()),
+            fitted_chars=len(text),
+            max_length=session.max_response_length,
+        )
 
     # Concurrency cap: limit parallel submissions per session
     sem = _text_semaphore_pool.get(session_id)

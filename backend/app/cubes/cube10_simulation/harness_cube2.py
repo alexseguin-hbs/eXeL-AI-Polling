@@ -18,8 +18,7 @@ import os
 import time
 
 from app.core.crypto_utils import compute_response_hash
-from app.core.exceptions import ResponseValidationError
-from app.core.submission_validators import validate_text_input
+from app.core.submission_validators import validate_and_fit_text_input, validate_text_input
 from app.cubes.cube2_text.service import detect_pii, detect_profanity, scrub_pii
 
 _MAX_LENGTH = 3333
@@ -132,7 +131,7 @@ async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False) -> di
         svc._get_ner_pipeline = _ner_disabled  # type: ignore[assignment]
     db = _NoFilterDB()
 
-    total = pii_responses = profanity_responses = scrubbed = rejected = 0
+    total = pii_responses = profanity_responses = scrubbed = reprocessed = 0
     total_chars = 0
     unique_hashes: set[str] = set()
     hasher = hashlib.sha256()  # rolling signature — bounded memory at any N
@@ -140,14 +139,11 @@ async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False) -> di
     t0 = time.perf_counter()
     try:
         for i, raw in enumerate(_load_dataset_texts(limit)):
-            try:
-                validated = validate_text_input(raw, _MAX_LENGTH)
-            except ResponseValidationError:
-                # Cube 2 rejects over-length / invalid submissions (422) — a real
-                # pipeline outcome; tally it and fold the rejection into the signature.
-                rejected += 1
-                hasher.update(f"{i}:REJECTED".encode())
-                continue
+            # Second-pass reprocessing: over-length responses are fitted + INCLUDED
+            # (Thought-Master directive), never dropped.
+            validated, was_reprocessed = validate_and_fit_text_input(raw, _MAX_LENGTH)
+            if was_reprocessed:
+                reprocessed += 1
             detections = await detect_pii(validated)
             clean = scrub_pii(validated, detections)
             profanity = await detect_profanity(db, clean, "en")
@@ -174,7 +170,7 @@ async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False) -> di
         "cube": "cube2_text",
         "dataset": os.path.basename(_DATASET_CSV),
         "total": total,
-        "rejected": rejected,
+        "reprocessed": reprocessed,
         "pii_responses": pii_responses,
         "scrubbed": scrubbed,
         "profanity_responses": profanity_responses,
@@ -189,7 +185,7 @@ async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False) -> di
 def render_dataset(r: dict) -> str:
     out = ["═" * 72, f"  CUBE 2 · 5000-MOCK DATASET SIM — {r['total']} responses · offline", "═" * 72]
     out.append(f"  dataset:            {r['dataset']}")
-    out.append(f"  accepted:           {r['total']}   rejected (422): {r['rejected']}")
+    out.append(f"  included:           {r['total']}   reprocessed (2nd pass): {r['reprocessed']}")
     out.append(f"  PII detected:       {r['pii_responses']}  (scrubbed: {r['scrubbed']})")
     out.append(f"  profanity flagged:  {r['profanity_responses']}")
     out.append(f"  unique hashes:      {r['unique_hashes']} / {r['total']}")

@@ -95,7 +95,7 @@ async def validate_participant(
 
 
 def validate_text_input(raw_text: str, max_length: int) -> str:
-    """Validate text is non-empty and within Unicode-aware length limit."""
+    """Validate text is non-empty and within Unicode-aware length limit (strict)."""
     text = raw_text.strip()
     if not text:
         raise ResponseValidationError("Response text cannot be empty")
@@ -105,3 +105,35 @@ def validate_text_input(raw_text: str, max_length: int) -> str:
             f"(submitted: {len(text)})"
         )
     return text
+
+
+def reprocess_overlength(text: str, max_chars: int) -> tuple[str, bool]:
+    """Second-pass reprocess: fit an over-length submission within `max_chars` on a
+    word boundary so it is INCLUDED rather than dropped (Thought-Master directive:
+    "any over character or word length gets reprocessed to include in second pass").
+
+    Deterministic + pure: returns (text, False) when already within the limit, else
+    (fitted_text, True) — truncated to the last whitespace at/under `max_chars` so a
+    word is never split (falls back to a hard cut only when there is no whitespace).
+    """
+    if len(text) <= max_chars:
+        return text, False
+    cut = text[:max_chars]
+    sp = cut.rfind(" ")
+    if sp > 0:
+        cut = cut[:sp]
+    return cut.rstrip(), True
+
+
+def validate_and_fit_text_input(raw_text: str, max_length: int) -> tuple[str, bool]:
+    """Non-empty validation + over-length REPROCESSING (the second-pass path).
+
+    Unlike the strict `validate_text_input` (which raises 422 on over-length), this
+    reprocesses an over-length submission to fit and INCLUDES it, returning
+    (text, was_reprocessed). Empty text still raises — an empty response has no
+    content to include on a second pass.
+    """
+    text = raw_text.strip()
+    if not text:
+        raise ResponseValidationError("Response text cannot be empty")
+    return reprocess_overlength(text, max_length)
