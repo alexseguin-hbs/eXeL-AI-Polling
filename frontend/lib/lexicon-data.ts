@@ -730,6 +730,9 @@ const cube8: TranslationEntry[] = [
   { key: "cube10.sim.status_archived", englishDefault: "Archived", context: "SIM state label", cubeId: 10 },
   { key: "cube10.sim.mode_live", englishDefault: "LIVE", context: "Session mode badge", cubeId: 10 },
   { key: "cube10.sim.mode_static", englishDefault: "STATIC", context: "Session mode badge", cubeId: 10 },
+  // SoI Framework (System of Intelligence · Tri-Coin) — section labels shown in the Settings SoI modal + dashboard.
+  { key: "soi.section.flow", englishDefault: "Value & Flow", context: "SoI Framework: heading for how contribution converts to real value (Redeem/Exchange/Stake/Amplify)", cubeId: 8 },
+  { key: "soi.section.nose", englishDefault: "Why It Matters", context: "SoI Framework: heading for the Need/Outcome/Solution/Evidence (NOSE) frame", cubeId: 8 },
 ];
 
 const cube9: TranslationEntry[] = [
