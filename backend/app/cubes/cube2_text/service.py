@@ -25,6 +25,7 @@ import math
 import re
 import time
 import uuid
+from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any
 
@@ -202,7 +203,8 @@ def scrub_pii(text: str, detections: list[dict]) -> str:
 
 # Profanity cache: compiled patterns + DB query results with TTL
 _profanity_pattern_cache: dict[tuple[str, str], re.Pattern | None] = {}
-_profanity_query_cache: dict[str, tuple[float, list]] = {}  # lang -> (timestamp, filters)
+# C2-5: true LRU (OrderedDict) — O(1) eviction instead of an O(n) min()-scan.
+_profanity_query_cache: "OrderedDict[str, tuple[float, list]]" = OrderedDict()  # lang -> (timestamp, filters)
 _PROFANITY_CACHE_TTL = 60.0  # seconds — avoid DB hit on every submission
 _PROFANITY_PATTERN_CACHE_MAX = 10_000  # max compiled patterns before eviction
 _PROFANITY_QUERY_CACHE_MAX = 100  # max language entries before eviction
@@ -225,6 +227,7 @@ async def detect_profanity(
     cached = _profanity_query_cache.get(language_code)
     if cached and (now - cached[0]) < _PROFANITY_CACHE_TTL:
         filters = cached[1]
+        _profanity_query_cache.move_to_end(language_code)  # mark most-recently-used
     else:
         result = await db.execute(
             select(ProfanityFilter).where(
@@ -237,11 +240,11 @@ async def detect_profanity(
             {"id": str(pf.id), "pattern": pf.pattern, "severity": pf.severity, "replacement": pf.replacement}
             for pf in raw_filters
         ]
-        # Evict oldest entries if query cache exceeds max
-        if len(_profanity_query_cache) >= _PROFANITY_QUERY_CACHE_MAX:
-            oldest_key = min(_profanity_query_cache, key=lambda k: _profanity_query_cache[k][0])
-            del _profanity_query_cache[oldest_key]
+        # Evict least-recently-used entry if the query cache is at capacity (O(1)).
+        if language_code not in _profanity_query_cache and len(_profanity_query_cache) >= _PROFANITY_QUERY_CACHE_MAX:
+            _profanity_query_cache.popitem(last=False)
         _profanity_query_cache[language_code] = (now, filters)
+        _profanity_query_cache.move_to_end(language_code)
 
     matches: list[dict] = []
     for pf in filters:
