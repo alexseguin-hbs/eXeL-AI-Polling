@@ -1763,7 +1763,7 @@ Use these exactly as “build targets” for website + backend.
 
 **CRS-11** User ranks themes after poll closes. *(Cube 7)*
 - **CRS-11.01** Ranking UI displays Theme2 hierarchy (9/6/3) for participant voting after themes_ready event.
-- **CRS-11.02** Vote submission: each participant assigns priority order to themes; submission validated against session voting level (9/6/3).
+- **CRS-11.02** Vote submission: each participant assigns priority order to themes; submission validated against session voting level (9/6/3). **METRIC/STATUS (shipped 2026-07-21):** the frontend ranking DnD (`theme-ranking-dnd.tsx`) now POSTs the ordered `ranked_theme_ids` → `POST /sessions/{id}/rankings` (was discarded); auth resolves the participant server-side → `aggregate_rankings` (quadratic Borda + anti-sybil). Cube 7 backend 188 tests. *(Implemented — MVP1; realtime live-display + moderator 3/6/9 round control = next FE slices.)*
 - **CRS-11.03** CQS scoring: after ranking closes, `score_cqs()` applied to responses in #1 most-voted Theme2 cluster with >95% confidence. *(Not yet implemented — CRS-14.01 in CUBES_4-6.md)*
 - **CRS-11.04** `identify_top_theme2()` finds #1 most-voted cluster; `emit_ranking_complete()` notifies Cube 5 with top_theme2_id for CQS pipeline.
 
@@ -1843,6 +1843,17 @@ Use these exactly as “build targets” for website + backend.
 - **CRS-25.04** Token lifecycle states: simulated → pending → approved → finalized → reversed.
 
 ### MVP3 — Simulation, Optimization & Evolution — Cube 10
+
+> **STATUS (shipped 2026-07-21 — Manual tier + Dev-Sim, Cube 1 & Cube 7 reference):** the unplug-replug loop is REAL
+> at the backend + surfaced in the UI. **`harness_cube1`** = the stand-alone sandbox oracle (simulated inputs → actual
+> outputs + metrics baseline + SHA-256 determinism signature; runnable `python -m …harness_cube1`). **`challenge_loop`**
+> = baseline↔candidate → `compare_metrics` (tests ≥100% · duration ≤120% · no SSSES regression) **+ determinism-
+> equivalence guardrail** → `decide_swap` **3 tiers** (**manual**=human-approve · **semi**=human-select · **automated**=
+> quadratic supermajority + equivalence guardrail; human override permanent, CRS-30.03). **Dev-Sim** surface (`/sim`,
+> password-gated via the CUBE-SIM launcher spoke): `GET /sim/cubes` (Cubes 1-9), `GET /sim/cube/{id}/contract` (inputs→
+> functions→outputs), `POST /sim/cube/{id}/run` (play-test metrics), `POST /sim/cube/{id}/challenge` (Dev checks in code →
+> verdict + swap). 25 pytest locks. **Manual review first; Semi/Automated tie to polling-vote results.** Semi/Auto are
+> built as decision-functions (gated); a real arbitrary-code sandbox + autonomous pipeline are the Vision-2525 endpoint.
 
 **CRS-26** Lead/Developer checks out a cube into simulation mode safely.
 - **CRS-26.01** Cube checkout: creates isolated git worktree for the target cube; production code unaffected during sim.
