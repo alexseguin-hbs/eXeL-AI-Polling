@@ -884,6 +884,8 @@ const cube10: TranslationEntry[] = [
   { key: "cube10.sim.theming_complete", englishDefault: "Cube 6 AI Theming Complete", context: "Theming analysis banner", cubeId: 10 },
   { key: "cube10.sim.responses_to_themes", englishDefault: "{0} responses → {1} themes identified", context: "Theming summary with placeholders", cubeId: 10 },
   { key: "cube10.sim.rankings_submitted", englishDefault: "Rankings submitted!", context: "Ranking confirmation message", cubeId: 10 },
+  { key: "cube7.ranking.submit_error_title", englishDefault: "Could not submit ranking", context: "Toast title when the ranking POST to Cube 7 fails", cubeId: 7 },
+  { key: "cube7.ranking.submit_error_retry", englishDefault: "Your ranking wasn't saved. Check your connection and try again.", context: "Toast description when the ranking POST fails", cubeId: 7 },
   { key: "cube10.sim.session_complete", englishDefault: "Session Complete", context: "Session complete heading", cubeId: 10 },
   { key: "cube10.sim.results_summary", englishDefault: "Session Results", context: "Results phase heading", cubeId: 10 },
   { key: "cube10.sim.response_submitted", englishDefault: "Response submitted", context: "Toast after response submit", cubeId: 10 },

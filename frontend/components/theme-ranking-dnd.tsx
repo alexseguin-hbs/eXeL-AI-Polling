@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { api } from "@/lib/api";
+import { api, ApiClientError } from "@/lib/api";
+import { toast } from "@/components/ui/use-toast";
 import {
   DndContext,
   closestCenter,
@@ -215,21 +216,34 @@ export function ThemeRankingDnD({
     []
   );
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     setSubmitted(true);
     // CRS-11/12: post the ranked order to Cube 7's live aggregation engine (real sessions only;
     // the SIM demo has no sessionId → it just advances). Auth resolves the participant server-side.
     if (sessionId) {
-      api
-        .post(`/sessions/${sessionId}/rankings`, {
+      try {
+        await api.post(`/sessions/${sessionId}/rankings`, {
           ranked_theme_ids: orderedThemes.map((th) => th.id),
-        })
-        .catch(() => {}); // never block the UX on a ranking POST error
+        });
+      } catch (err) {
+        // C7-5: a failed ranking POST must NOT silently advance — surface it and
+        // let the participant retry, so their vote actually reaches the aggregator.
+        setSubmitted(false);
+        toast({
+          title: t("cube7.ranking.submit_error_title"),
+          description:
+            err instanceof ApiClientError && err.detail
+              ? err.detail
+              : t("cube7.ranking.submit_error_retry"),
+          variant: "destructive",
+        });
+        return;
+      }
     }
     setTimeout(() => {
       onComplete();
     }, 1500);
-  }, [onComplete, sessionId, orderedThemes]);
+  }, [onComplete, sessionId, orderedThemes, t]);
 
   const activeTheme = activeId
     ? orderedThemes.find((th) => th.id === activeId)
