@@ -72,26 +72,39 @@ import { supabase } from "@/lib/supabase";
 import { syncStatusToSupabase, fetchStatusFromSupabase } from "@/lib/supabase-session-sync";
 
 /** Generate a ~33-word summary of response text for live feed display.
- *  Cube 6 Phase A stub: extracts key sentences to fit ~33 words.
- *  Will be replaced by real AI summarization (333→111→33) when pipeline is live. */
+ *  Cube 6 Phase A CLIENT FALLBACK — used only until the real AI summary
+ *  (333→111→33) arrives via the `summary_ready` broadcast (onSummaryReady).
+ *  Produces a clean, sentence-aware ~33-word reduction: strips meta prefixes
+ *  ("Response 7:", "( ~360 words )"), prefers whole sentences, and only ever
+ *  hard-cuts on a word/clause boundary with a single ellipsis — never a raw
+ *  mid-word chop. (True AI summarization is the Cube 6 deep-dive item.) */
 function summarizeTo33Words(text: string): string {
-  const words = text.split(/\s+/);
-  if (words.length <= 33) return text;
-  // Extract first sentence(s) up to ~33 words
-  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  // Strip seed/meta noise: leading "Response N:" and any "( ~360 words )" marker.
+  const clean = text
+    .replace(/^\s*response\s*\d+\s*[:.\-—]\s*/i, "")
+    .replace(/\(\s*~?\s*\d+\s*words?\s*\)/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const words = clean.split(" ");
+  if (words.length <= 33) return clean;
+  // Prefer WHOLE sentences up to ~33 words — a real reduction, not a chop.
+  const sentences = clean.match(/[^.!?]+[.!?]+/g) || [clean];
   let summary = "";
   let wordCount = 0;
   for (const sentence of sentences) {
-    const sentenceWords = sentence.trim().split(/\s+/);
-    if (wordCount + sentenceWords.length > 33 && wordCount > 0) break;
-    summary += (summary ? " " : "") + sentence.trim();
-    wordCount += sentenceWords.length;
+    const s = sentence.trim();
+    const n = s.split(" ").length;
+    if (wordCount + n > 33 && wordCount > 0) break;
+    summary += (summary ? " " : "") + s;
+    wordCount += n;
   }
-  // If first sentence is still too long, hard-cut at 33 words
-  if (wordCount > 33) {
-    return words.slice(0, 33).join(" ") + "...";
-  }
-  return summary;
+  if (summary && wordCount > 0 && wordCount <= 33) return summary;
+  // First sentence alone exceeds 33 words → cut on a word boundary, drop any
+  // dangling partial clause after the last comma, close with a single ellipsis.
+  let head = words.slice(0, 33).join(" ").replace(/[.,;:!?]+$/, "");
+  const lastComma = head.lastIndexOf(",");
+  if (lastComma > head.length * 0.6) head = head.slice(0, lastComma);
+  return head + "…";
 }
 
 function statusColor(status: string): string {
