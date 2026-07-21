@@ -40,7 +40,7 @@ function Rail({ side, title, open, setOpen, children, titleIcon }: {
     // rail. Matches operator refs: IMG_7401 (landscape vertical rails) + IMG_7399 (portrait horizontal bar).
     return (
       <button data-arch-rail-collapsed={side} onClick={() => setOpen(true)} title={`Show ${title}`}
-        className="flex w-full shrink-0 flex-row items-center justify-center gap-2 rounded-lg border px-1.5 py-1 hover:bg-white/5 md:w-[56px] md:flex-col md:self-start md:py-2"
+        className="flex w-full shrink-0 flex-row items-center justify-center gap-2 rounded-lg border px-1.5 py-1 hover:bg-white/5 md:w-[30px] md:flex-col md:gap-1.5 md:self-start md:px-0.5 md:py-2"
         style={{ background: C.panel, borderColor: C.border }}>
         <span data-arch-rail-toggle className="flex flex-col items-center gap-[3px]">
           {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
