@@ -242,6 +242,21 @@ class TestGetMetrics:
         data = resp.json()
         assert "system" in data
 
+    @pytest.mark.asyncio
+    async def test_metrics_forbidden_for_non_privileged_user(self, client, regular_user):
+        """CC-1: a plain participant (role='user') must be BLOCKED from the
+        session aggregate metrics — previously only get_current_user gated it,
+        so any authenticated user could read them."""
+        from app.core.auth import get_current_user
+        from app.main import app
+
+        app.dependency_overrides[get_current_user] = lambda: regular_user
+        try:
+            resp = await client.get(f"{PREFIX}/metrics")
+        finally:
+            app.dependency_overrides.pop(get_current_user, None)
+        assert resp.status_code == 403
+
 
 # ---------------------------------------------------------------------------
 # GET /responses/{response_id} — single response detail (requires auth)

@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.dependencies import get_db
 from app.core.exceptions import ResponseNotFoundError
+from app.core.permissions import require_role
 from app.core.rate_limit import limiter
 from app.core.submission_validators import validate_session_exists
 from app.cubes.cube2_text import metrics as cube2_metrics
@@ -100,9 +101,17 @@ async def get_metrics(
     request: Request,
     session_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead_developer")),
 ):
-    """Cube 2 metrics (Moderator-only). CRS-07: aggregate session data protected."""
+    """Cube 2 metrics (Moderator/Lead/Admin only). CRS-07: aggregate session data protected.
+
+    CC-1: RBAC-enforced — the docstring said "Moderator-only" but the guard was
+    only get_current_user, so any authenticated participant could read the
+    session's aggregate metrics. Now gated to privileged roles. The response is
+    an open dict because get_all_metrics returns a polymorphic shape (metrics, or
+    a `metrics_unavailable` fallback on DB error) — a strict response_model would
+    strip the fallback fields.
+    """
     return await cube2_metrics.get_all_metrics(db, session_id)
 
 
