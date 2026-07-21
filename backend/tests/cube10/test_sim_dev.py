@@ -1,0 +1,86 @@
+"""Cube 10 · Level-2 Simulation — Dev-Sim endpoints (see Cubes 1-9, Cube-1 I/O, run, check-in).
+
+The Simulation option surface: list cubes, inspect Cube 1's inputs→functions→outputs, play-test
+for metrics, and a Master Developer checks in a candidate → verdict + swap decision.
+
+Run: cd backend && python -m pytest tests/cube10/test_sim_dev.py -v --tb=short
+"""
+from unittest.mock import MagicMock
+
+import pytest
+from fastapi import HTTPException
+
+from app.cubes.cube10_simulation import router as r
+
+
+def _admin():
+    u = MagicMock(); u.role = "admin"; u.user_id = "auth0|dev"
+    return u
+
+
+class TestListCubes:
+    @pytest.mark.asyncio
+    async def test_lists_cubes_1_to_9(self):
+        out = await r.sim_list_cubes()
+        ids = [c["cube_id"] for c in out["cubes"]]
+        assert ids == list(range(1, 10))
+        c1 = next(c for c in out["cubes"] if c["cube_id"] == 1)
+        c2 = next(c for c in out["cubes"] if c["cube_id"] == 2)
+        assert c1["harness_available"] is True and c1["name"] == "Session Join & QR"
+        assert c2["harness_available"] is False
+
+
+class TestContract:
+    @pytest.mark.asyncio
+    async def test_cube1_contract_has_io(self):
+        out = await r.sim_cube_contract(1)
+        assert out["cube_id"] == 1
+        assert "create_session" in out["io_contract"]["functions"]
+        assert "seed" in out["inputs"]
+        assert len(out["sample_outputs"]["session_id"]) == 36
+
+    @pytest.mark.asyncio
+    async def test_cube2_no_harness_404(self):
+        with pytest.raises(HTTPException) as e:
+            await r.sim_cube_contract(2)
+        assert e.value.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_out_of_range_400(self):
+        with pytest.raises(HTTPException) as e:
+            await r.sim_cube_contract(99)
+        assert e.value.status_code == 400
+
+
+class TestRun:
+    @pytest.mark.asyncio
+    async def test_cube1_run_metrics_and_signature(self):
+        out = await r.sim_cube_run(1, user=_admin())
+        assert out["cube_id"] == 1
+        assert out["metrics"]["function_calls"] == 5
+        assert len(out["determinism_signature"]) == 64
+
+
+class TestChallenge:
+    @pytest.mark.asyncio
+    async def test_matching_candidate_manual_swap(self):
+        # First learn the live signature, then check in an equivalent candidate.
+        base = await r.sim_cube_run(1, user=_admin())
+        payload = r.SimChallengeRequest(
+            candidate={"signature": base["determinism_signature"],
+                       "duration_ms": base["metrics"]["wall_time_ms"]},
+            tier="manual", human_approved=True,
+        )
+        out = await r.sim_cube_challenge(1, payload, user=_admin())
+        assert out["verdict"]["overall_passed"] is True
+        assert out["decision"]["decision"] == "swap"
+
+    @pytest.mark.asyncio
+    async def test_different_candidate_rejected(self):
+        payload = r.SimChallengeRequest(
+            candidate={"signature": "z" * 64, "duration_ms": 0.001},
+            tier="automated",
+        )
+        out = await r.sim_cube_challenge(1, payload, user=_admin())
+        assert out["verdict"]["overall_passed"] is False
+        assert out["decision"]["decision"] == "reject"

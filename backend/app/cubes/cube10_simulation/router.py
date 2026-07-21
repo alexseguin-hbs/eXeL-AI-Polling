@@ -340,3 +340,87 @@ async def replay_case(
     if not case:
         raise HTTPException(status_code=404, detail="Saved case not found")
     return await replay_against_dataset(case, cube_id, function_name)
+
+
+# ---------------------------------------------------------------------------
+# Dev-Sim — the Simulation option surface: see Cubes 1-9, inspect Cube 1's
+# inputs → functions → outputs, PLAY-TEST the whole cube for metrics, and let a
+# Master Developer check in candidate code for testing. Reuses the Cube-1 harness
+# (sandbox oracle) + challenge_loop (baseline↔candidate→verdict→swap).
+# ---------------------------------------------------------------------------
+
+_CUBE_NAMES = {
+    1: "Session Join & QR", 2: "Text Submission", 3: "Voice-to-Text",
+    4: "Response Collector", 5: "Gateway / Orchestrator", 6: "AI Theming Clusterer",
+    7: "Prioritization & Ranking", 8: "Token Rewards", 9: "Reports & Dashboards",
+}
+_HARNESS_CUBES = {1}  # cubes with a runnable stand-alone harness (Cube 1 is the reference)
+
+
+@router.get("/sim/cubes")
+async def sim_list_cubes():
+    """List Cubes 1-9 for the Simulation option; flag which have a runnable harness."""
+    return {"cubes": [
+        {"cube_id": i, "name": _CUBE_NAMES[i], "harness_available": i in _HARNESS_CUBES}
+        for i in range(1, 10)
+    ]}
+
+
+@router.get("/sim/cube/{cube_id}/contract")
+async def sim_cube_contract(cube_id: int):
+    """Cube I/O contract — inputs → functions → outputs (Cube 1 from the live harness)."""
+    if cube_id < 1 or cube_id > 9:
+        raise HTTPException(status_code=400, detail="cube_id must be 1-9")
+    if cube_id not in _HARNESS_CUBES:
+        raise HTTPException(status_code=404,
+            detail=f"Cube {cube_id} has no stand-alone harness yet — Cube 1 is the reference.")
+    from app.cubes.cube10_simulation.harness_cube1 import simulate_cube1
+
+    r = await simulate_cube1()
+    return {
+        "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
+        "io_contract": r["io_contract"], "inputs": r["inputs"], "sample_outputs": r["outputs"],
+    }
+
+
+@router.post("/sim/cube/{cube_id}/run")
+async def sim_cube_run(
+    cube_id: int,
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Play-test the whole cube → actual outputs + metrics baseline + determinism signature."""
+    if cube_id not in _HARNESS_CUBES:
+        raise HTTPException(status_code=404,
+            detail=f"Cube {cube_id} has no stand-alone harness yet — Cube 1 is the reference.")
+    from app.cubes.cube10_simulation.challenge_loop import run_cube_baseline
+
+    baseline = await run_cube_baseline(cube_id)
+    from app.cubes.cube10_simulation.harness_cube1 import simulate_cube1
+    r = await simulate_cube1()
+    return {"cube_id": cube_id, "metrics": r["metrics"], "outputs": r["outputs"],
+            "determinism_signature": baseline["signature"]}
+
+
+class SimChallengeRequest(BaseModel):
+    candidate: dict
+    tier: str = "manual"
+    human_approved: bool = False
+    human_selected: bool = False
+
+
+@router.post("/sim/cube/{cube_id}/challenge")
+async def sim_cube_challenge(
+    cube_id: int,
+    payload: SimChallengeRequest,
+    user: CurrentUser = Depends(require_role("admin", "lead_developer")),
+):
+    """Master Developer checks in a candidate → baseline vs candidate → verdict + 3-tier swap."""
+    if cube_id not in _HARNESS_CUBES:
+        raise HTTPException(status_code=404,
+            detail=f"Cube {cube_id} challenge not available yet — Cube 1 is the reference.")
+    from app.cubes.cube10_simulation.challenge_loop import run_challenge
+
+    return await run_challenge(
+        cube_id, payload.candidate, tier=payload.tier,
+        human_approved=payload.human_approved, human_selected=payload.human_selected,
+    )
