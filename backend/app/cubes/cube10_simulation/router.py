@@ -177,10 +177,13 @@ async def create_submission(
 @router.get("/submissions/{submission_id}/test")
 async def run_tests(
     submission_id: str,
+    cube_id: int,
     user: CurrentUser = Depends(require_role("admin", "lead_developer")),
 ):
-    """Run sandbox tests against a submission."""
-    return await service.run_sandbox_tests(submission_id, cube_id=0)
+    """Run sandbox tests against a submission (cube_id 1-9 targets that cube's suite)."""
+    if cube_id not in ALLOWED_CUBE_IDS:
+        raise HTTPException(status_code=400, detail=f"cube_id must be 1-9, got {cube_id}")
+    return await service.run_sandbox_tests(submission_id, cube_id=cube_id)
 
 
 @router.get("/submissions/{submission_id}/tally")
