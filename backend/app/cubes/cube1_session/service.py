@@ -466,12 +466,17 @@ async def transition_session(
 
     session.status = new_status
 
-    # G5 fix: audit log on every state transition
+    # G5 fix: audit log on every state transition.
+    # CC-3: derive the actor role from the actor id — a "system:*" actor (e.g. the
+    # auto-timer that closes expired static polls) is NOT a moderator; hardcoding
+    # "moderator" mis-attributes autonomous transitions in the audit trail.
+    effective_actor = actor_id or session.created_by
+    actor_role = "system" if str(effective_actor).startswith("system:") else "moderator"
     await _log_audit(
         db,
         session_id=session.id,
-        actor_id=actor_id or session.created_by,
-        actor_role="moderator",
+        actor_id=effective_actor,
+        actor_role=actor_role,
         action_type=f"session.transition.{old_status}_to_{new_status}",
         before_state={"status": old_status},
         after_state={"status": new_status},

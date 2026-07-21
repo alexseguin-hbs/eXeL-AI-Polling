@@ -82,3 +82,24 @@ class TestCloseExpiredStaticPolls:
         db.execute = AsyncMock(return_value=r)
         closed = await close_expired_static_polls(db, now=NOW)
         assert closed == []
+
+    @pytest.mark.asyncio
+    async def test_auto_timer_transition_audited_as_system_not_moderator(self):
+        """CC-3: the autonomous auto-timer close must be attributed to actor_role
+        'system' in the audit trail, not falsely to 'moderator'."""
+        from app.cubes.cube1_session.service import close_expired_static_polls
+
+        s1 = _static(ends_at=NOW - timedelta(minutes=2))
+        db = AsyncMock()
+        r = MagicMock(); r.scalars.return_value.all.return_value = [s1]
+        db.execute = AsyncMock(return_value=r)
+        db.add = MagicMock(); db.commit = AsyncMock(); db.refresh = AsyncMock()
+
+        audit = AsyncMock()
+        with patch("app.cubes.cube1_session.service._log_audit", new=audit):
+            await close_expired_static_polls(db, now=NOW)
+
+        assert audit.await_count == 1
+        kwargs = audit.await_args.kwargs
+        assert kwargs["actor_id"] == "system:auto-timer"
+        assert kwargs["actor_role"] == "system"
