@@ -451,24 +451,52 @@ Central orchestrator dispatches 100 responses across 12 sequential agent waves w
 - Cubes most frequently simulated
 
 ### Cube 10 — CRS Traceability (Full)
+
+> **⚠ CRS CANONICAL NOTE (reconciled 2026-07-21).** `Requirements.txt` is the authoritative CRS numbering reference
+> (`Requirements.txt:1701`). Per that source the **Cube-10 simulation family is CRS-26 → CRS-31** (checkout → modify →
+> replay → compare → approve/reject → version). **CRS-25 is Trinity Tokens** and **CRS-32 → CRS-35 are the Token/
+> governance family (Cube 8)** — NOT Cube-10 simulation (see `Requirements.txt:1837-1885` and `docs/CUBES_7-9.md`). An
+> earlier version of this table numbered the sim family CRS-25 → CRS-35 (off by one and colliding with the Token CRS);
+> the table below is corrected to canon. The forward-looking **autonomy-ladder** ideas that previously sat at CRS-31→35
+> (Tri-Coin integrity across sims · AI-proposed variants · human-selects · guardrail-autonomy · lattice co-evolution) have
+> no canonical top-level number — they are retained as **proposed sub-CRS extensions** in the "Simulation Autonomy
+> Maturity" table further below, tracked under the CRS-26→31 parents.
+
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|
 | CRS-22 | CRS-22.IN.SRS.022 | CRS-22.OUT.SRS.022 | **Not implemented** | 3 | Lead overrides rankings with documented justification | Justification required and logged | Bias detection and peer review |
 | CRS-23 | CRS-23.IN.SRS.023 | CRS-23.OUT.SRS.023 | **Not implemented** | 3 | System supports multi-cycle polling logic | Deterministic state transitions across cycles | Branching deep-dive paths |
 | CRS-24 | CRS-24.IN.SRS.024 | CRS-24.OUT.SRS.024 | **Not implemented** | 3 | System enforces governance, audit logging, RBAC | Full action traceability by role | SOC2 and ISO audit exports |
-| CRS-25 | CRS-25.IN.SRS.025 | CRS-25.OUT.SRS.025 | **Not implemented** | 3 | Lead checks out cube into simulation mode safely | Isolated simulation environment per cube | Parallel multi-cube simulation |
-| CRS-26 | CRS-26.IN.SRS.026 | CRS-26.OUT.SRS.026 | **Not implemented** | 3 | Lead modifies cube code and reruns simulations | Baseline vs variant metric comparison | AI-assisted optimization hints |
-| CRS-27 | CRS-27.IN.SRS.027 | CRS-27.OUT.SRS.027 | **Not implemented** | 3 | System replays upstream/downstream cube dependencies | Deterministic dependency replay | Parallel dependency graph simulation |
-| CRS-28 | CRS-28.IN.SRS.028 | CRS-28.OUT.SRS.028 | **Not implemented** | 3 | System compares simulation and production metrics | Latency and cost deltas calculated | Predictive impact scoring |
-| CRS-29 | CRS-29.IN.SRS.029 | CRS-29.OUT.SRS.029 | **Not implemented** | 3 | Lead approves or rejects simulated cube changes | Manual approval gate enforced | Reputation-weighted approvals |
-| CRS-30 | CRS-30.IN.SRS.030 | CRS-30.OUT.SRS.030 | **Not implemented** | 3 | System versions every cube and dependency | Immutable version graph per cube | AI rollback recommendations |
-| CRS-31 | CRS-31.IN.SRS.031 | CRS-31.OUT.SRS.031 | **Not implemented** | 3 | System preserves Tri-Coin integrity across simulations | Token calculations remain invariant | Fairness optimization engine |
-| CRS-32 | CRS-32.IN.AIML.032 | CRS-32.OUT.AIML.032 | **Not implemented** | 3 | System generates AI-proposed cube improvements | At least 1 AI-generated variant per cube | Multi-agent self-optimization |
-| CRS-33 | CRS-33.IN.SRS.033 | CRS-33.OUT.SRS.033 | **Not implemented** | 3 | Lead selects which AI-generated cube version to adopt | Human selection required before promotion | Delegated trust thresholds |
-| CRS-34 | CRS-34.IN.AIML.034 | CRS-34.OUT.AIML.034 | **Not implemented** | 3 | System gradually automates cube evolution under guardrails | Guardrail-constrained autonomy | Fully self-healing architecture |
-| CRS-35 | CRS-35.IN.AIML.035 | CRS-35.OUT.AIML.035 | **Not implemented** | 3 | System evolves entire cube lattice coherently | Coordinated cube evolution | Self-directed system intelligence |
+| **CRS-26** | CRS-26.IN.SRS.026 | CRS-26.OUT.SRS.026 | **Not implemented** | 3 | Lead/Developer checks out a cube into simulation mode safely (26.01 isolated git worktree · 26.02 canned fixtures, no real DB/API) | Isolated simulation environment per cube; production code unaffected | Parallel multi-cube simulation |
+| **CRS-27** | CRS-27.IN.SRS.027 | CRS-27.OUT.SRS.027 | **Not implemented** | 3 | Lead/Developer updates cube code + reruns sims (27.01 diff vs baseline · 27.02 sim runner full suite) | Baseline vs variant metric comparison | AI-assisted optimization hints |
+| **CRS-28** | CRS-28.IN.SRS.028 | CRS-28.OUT.SRS.028 | **Not implemented** | 3 | System replays upstream/downstream deps (28.01 forward 1→10 · 28.02 backward 10→1 interface contracts) | Deterministic dependency replay | Parallel dependency graph simulation |
+| **CRS-29** | CRS-29.IN.SRS.029 | CRS-29.OUT.SRS.029 | **Not implemented** | 3 | System compares sim vs production metrics (29.01 SSSES pillar delta — must meet/exceed all · 29.02 SHA-256 replay-hash match) | Latency and cost deltas calculated | Predictive impact scoring |
+| **CRS-30** | CRS-30.IN.SRS.030 | CRS-30.OUT.SRS.030 | **Not implemented** | 3 | Lead/Developer approves/rejects sim changes (30.01 approve→merge · 30.02 reject→delete+log · **30.03 humans remain final approvers, no AI self-merge**) | Manual approval gate enforced | Reputation-weighted approvals |
+| **CRS-31** | CRS-31.IN.SRS.031 | CRS-31.OUT.SRS.031 | **Not implemented** | 3 | System versions every cube + dependency (31.01 pinned version tag + `cube_dependency_graph` · 31.02 one-action rollback → dep re-validation) | Immutable version graph per cube | AI rollback recommendations |
+> Rows CRS-25 and CRS-32→CRS-35 removed from this table — they are the **Token/governance family (Cube 8)**, not Cube-10
+> simulation. See `Requirements.txt:1837-1885` and `docs/CUBES_7-9.md` for their canonical definitions.
 
 ---
+
+## Simulation Autonomy Maturity — 3 Tiers (Manual → Semi-Automated → Automated)
+
+> The operator directive: every cube must be **fully simulatable with Manual, Semi-Automated, and eventually Automated
+> plans to unplug and replug the cube base** ("an 8×8×8 cube replaces a 10×10×10 cube — same functionality, better
+> metrics"). This is the R-CORE loop applied to the codebase itself — *"simulate before deployment · replay before
+> expansion · qualify before certification · scale only what earns trust"* (`docs/security-2525/RCORE_CONSOLIDATION_1.md`).
+> The **swap mechanism is identical at all three tiers — only the approver changes.** Canonical simulation CRS-26→31 IS
+> Tier ①; Tiers ②/③ extend the same parents with proposed sub-CRS (MVP3+, no new top-level numbers — CRS-32→35 are Tokens).
+
+| Tier | Approver | Canonical + proposed sub-CRS | What runs (per cube) |
+|------|----------|------------------------------|----------------------|
+| **① MANUAL** (build now) | **Human** (CRS-30.03 permanent) | CRS-26 checkout · 27 modify+rerun · 28 replay deps · 29 compare (SSSES delta + replay-hash) · **30 human approve/reject** · 31 version/rollback | Dev checks out the cube → stand-alone harness runs the REAL service against canned fixtures → `compare_metrics` gate (tests ≥100% · duration ≤120% · no SSSES pillar regression) + SHA-256 replay-hash equivalence → **human clicks Approve** → versioned swap; rollback always available |
+| **② SEMI-AUTOMATED** (next) | **Human selects** among machine-generated variants | *proposed:* **CRS-27.03** system proposes ≥1 optimized variant per cube · **CRS-30.04** human SELECTS the winning variant before merge · **CRS-31.03** versioned AI-variant lineage in `cube_dependency_graph` | AI/optimizer generates the candidate cube + auto-runs the sandbox; metrics + I/O diagram auto-render side-by-side; **human still chooses + promotes**; Tri-Coin ($/min) math proven invariant across the swap (token integrity, cf. CRS-25.04 lifecycle) |
+| **③ AUTOMATED** (Vision-2525 endpoint) | **Autonomous on consensus** — human override permanent | *proposed:* **CRS-30.05** guardrail-gated autonomous approve on supermajority vote + SSSES pass + replay-equivalence · **CRS-28.03** lattice-coherent up/downstream co-evolution | On quadratic team supermajority (66.6% · 10% quorum) + green `compare_metrics` + replay-hash match, the system unplugs old / replugs new **autonomously** — but replay truth, SSSES qualification, and a standing human override (CRS-30.03) are **permanent guardrails**; autonomy is earned per-cube, never blind |
+
+**Per-cube sub-specs = the Checkout Contracts below** (NOT new CRS numbers): `cube_id` (1–9) is a **parameter** of the
+CRS-26→31 flow and of `simulation_runs.cube_id` (`Requirements.txt:1463-1489`), so per-cube simulation is specified by
+each cube's Checkout Contract (INPUT vars · OUTPUT validations · downstream contracts · determinism endpoint), not by a
+`CRS-##.##` per cube. **Cube 1 and Cube 7 are the two reference cubes** that prove the loop before it generalizes to all 9.
 
 ## Per-Cube Checkout Contracts (for Simulation & Code Challenge)
 

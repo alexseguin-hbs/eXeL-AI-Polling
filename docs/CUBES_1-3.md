@@ -536,6 +536,16 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 **Outcome Metrics:** Sessions completed vs abandoned (by polling mode), Deep dive utilization rate, Multi-round progression rate, Average rounds per deep dive, Participant retention across deep dive rounds, Time-to-first-response after join, Revenue per session, Cost splitting utilization rate, Gamified reward utilization rate, Average per-user fee
 
 ### Cube 1 — CRS Traceability (Full DesignMatrix)
+
+> **⚠ CRS-05 CANONICAL NOTE (reconciled 2026-07-21).** `Requirements.txt` is authoritative (`:1701`). Per canon
+> **CRS-05 = anonymity modes** (05.01 anonymous · 05.02 identified · 05.03 pseudonymous — `Requirements.txt:1726-1729`),
+> shared with Cube 2 (see the Cube 2 traceability table + `docs/CUBES_1-3.md:941-944`). The **4-layer cross-device
+> auto-advance sync** documented under the "CRS-05" label in the Cube-1 table *below* is a **distinct capability**; by
+> canon it realizes **CRS-02.03** (lobby auto-advance) + **CRS-18** (real-time WebSocket updates: 18.01 Broadcast · 18.02
+> Presence · 18.03 DB-poll fallback — `Requirements.txt:1801-1804`). It is retained here under its historical label as the
+> **LOCKED "Trinity Redundancy" live-delivery contract** (see `CLAUDE.md`), but for canonical numbering trace it to
+> CRS-02.03 / CRS-18. No code change — a documentation reconciliation only.
+
 | CRS | Design Input ID | Design Output ID | Status | MVP | User Story | Specification Target | Stretch Target | Design Output: Definable / Measurable |
 |-----|----------------|-----------------|--------|-----|------------|---------------------|---------------|--------------------------------------|
 | CRS-01 | CRS-01.IN.SRS.001 | CRS-01.OUT.SRS.001 | **Implemented** | 1 | Moderator creates session + secure link/QR for instant participant access | QR + URL in <2s, 99.5% availability | Branded, expiring QR codes with analytics, 99.9% availability | Session created in < 500ms; short_code unique across 5 retry attempts; all 15+ fields persisted to `sessions` table; QR PNG + join URL returned in single response |
@@ -572,6 +582,36 @@ These are **manual end-to-end tests** run against the live Cloudflare Pages depl
 - `fetchStatusFromSupabase` returns `title` + `polling_mode_type` → session hydration without QR URL params
 - Status never regresses: `STATUS_ORDER` rank enforced in `checkStatus` — once "polling", local stale "open" ignored
 - `new_response` broadcast routed to `feedResponses` on dashboard → live feed updates without KV
+
+### Cube 1 — R-CORE × Vision-2525 Optimization Lens (2026-07-21)
+
+> **R-CORE** = *Recursive Continuous Operational Reality Ecosystem* (`docs/VISION_2525.md:22`,
+> `docs/CUBE_19_27_LEVEL_3_FRAMEWORK.md:836,850`) — essence: **"every event can strengthen the next event."** Its
+> code-level corollary is the reuse doctrine live in `frontend/lib/architect-guard.ts:8` — **"build once, consume many"** —
+> and the R-CORE *law* of ranked-implementation failover (`docs/security-2525/RCORE_6CUBE_ARCHITECTURE.md:60-62`). This
+> lens re-reads each Cube-1 CRS as (a) ONE reused source and (b) a Vision-2525 optimization axis — which is exactly the
+> per-sub-CRS **Stretch Target** column above. The 6 Vision-2525 principles R-CORE forces every decision to answer
+> (`docs/CUBE_19_27_LEVEL_3_FRAMEWORK.md:857-862`) map onto the Cube-1 simulation gate: **Truth**="what can be replayed?"
+> → `Session.replay_hash` + `GET /verify-determinism` · **Accountability**="who acted, under what authority?" → AuditLog +
+> CRS-30.03 human approver · **Wisdom**="what consequence was considered?" → `compare_metrics` · **Resilience**="continue
+> under pressure?" → rollback · **Dignity/Stewardship** → anonymous-by-default + a cleaner cube for the next developer.
+
+| Sub-CRS | R-CORE reuse (build once → consume many) | Vision-2525 optimization axis (the Stretch → auto-heal) |
+|---------|------------------------------------------|----------------------------------------------------------|
+| CRS-01.02 | one `_generate_unique_short_code` + `generate_qr_*` | animated/branded QR w/ embedded session metadata |
+| CRS-02.01 | one `get_optional_current_user()` auth seam | device fingerprint = soft identity without login |
+| CRS-02.02 | one `join-flow.tsx` Language→Identity→Results→Join step machine | 1-click join for returning participants |
+| CRS-03.01 | one seed → one UUID5; duplicate seed returns existing session | SHA-256 signed session identity tokens |
+| CRS-03.02 | one 8-char code + 5-attempt collision-retry helper | cryptographic entropy guarantee |
+| CRS-04.01–.03 | one `SESSION_TRANSITIONS` table + `transition_session()` | **automated state transitions on timer expiry** (first taste of autonomy) |
+| CRS-05.01/.02/.03 | one `anon_hash` (SHA-256) path, mode-branched | soft re-identification · post-session reveal opt-in · configurable pseudonymity window |
+| CRS-06.01/.02 | one `validate_session_for_submission()` reused by Cubes 2/3/4 | time-based auto-open on moderator schedule · graceful 5s drain |
+
+**Cube-1 stand-alone simulation I/O contract:** the runnable inputs→functions→outputs map for Cube 1 is the
+**Checkout Contract** in `docs/CUBE_10.md` (INPUT variables · OUTPUT validation functions · downstream contracts ·
+`GET /sessions/{id}/verify-determinism` · 59 tests) — the spec the Cube-1 stand-alone SIM harness (Phase A3) and the
+Challenge System (Phase D) build against. Per-cube simulation is a **parameter** (`cube_id`) of the canonical CRS-26→31
+flow, not a per-cube CRS number (see `docs/CUBE_10.md` → "Simulation Autonomy Maturity — 3 Tiers").
 
 ### Cube 1 — DesignMatrix VOC (Voice of Customer)
 | CRS | Customer Need | VOC Comment |
