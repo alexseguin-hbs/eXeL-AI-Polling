@@ -504,6 +504,21 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                 <text data-arch-dim-edit="elev" x={gmx - 3} y={gmy} fontSize={6} fill={C.cyan} textAnchor="end" stroke="#070b12" strokeWidth={1.4}
                   style={{ paintOrder: "stroke", vectorEffect: "non-scaling-stroke", cursor: "pointer" }}
                   onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); startDimEdit("elev", e0); }}>OG {ftIn(e0)} ✎</text>
+                {/* TOP → ROOF (object top → ceiling) — informational headroom above the item, continues the H rail
+                    up to the ceiling so you see the gap to the roof (operator FX-57). Derived, not editable. */}
+                {(() => {
+                  const gap = Math.max(0, N - e0 - hgt);
+                  const rT = iso(lx, oy, N);
+                  const tmx = (pT[0] + rT[0]) / 2, tmy = (pT[1] + rT[1]) / 2;
+                  return (
+                    <g data-arch-roomobj3d-toroof style={{ pointerEvents: "none" }}>
+                      <line x1={pT[0]} y1={pT[1]} x2={rT[0]} y2={rT[1]} stroke={C.violet} strokeWidth={0.6} strokeDasharray="1.5 1" />
+                      {tick(pT[0], pT[1], C.violet)}{tick(rT[0], rT[1], C.violet)}
+                      <text x={tmx - 3} y={tmy} fontSize={6} fill={C.violet} textAnchor="end" stroke="#070b12" strokeWidth={1.4}
+                        style={{ paintOrder: "stroke", vectorEffect: "non-scaling-stroke" }}>TR {ftIn(gap)}</text>
+                    </g>
+                  );
+                })()}
               </g>
             );
           })()}
