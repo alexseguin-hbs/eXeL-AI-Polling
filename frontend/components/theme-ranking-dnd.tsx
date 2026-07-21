@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { api } from "@/lib/api";
 import {
   DndContext,
   closestCenter,
@@ -163,9 +164,11 @@ function DragOverlayItem({
 export function ThemeRankingDnD({
   themes,
   onComplete,
+  sessionId,
 }: {
   themes: SimTheme[];
   onComplete: () => void;
+  sessionId?: string; // real session → POST the ranked order to Cube 7's live aggregator
 }) {
   const [orderedThemes, setOrderedThemes] = useState<SimTheme[]>(themes);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -214,10 +217,19 @@ export function ThemeRankingDnD({
 
   const handleSubmit = useCallback(() => {
     setSubmitted(true);
+    // CRS-11/12: post the ranked order to Cube 7's live aggregation engine (real sessions only;
+    // the SIM demo has no sessionId → it just advances). Auth resolves the participant server-side.
+    if (sessionId) {
+      api
+        .post(`/sessions/${sessionId}/rankings`, {
+          ranked_theme_ids: orderedThemes.map((th) => th.id),
+        })
+        .catch(() => {}); // never block the UX on a ranking POST error
+    }
     setTimeout(() => {
       onComplete();
     }, 1500);
-  }, [onComplete]);
+  }, [onComplete, sessionId, orderedThemes]);
 
   const activeTheme = activeId
     ? orderedThemes.find((th) => th.id === activeId)

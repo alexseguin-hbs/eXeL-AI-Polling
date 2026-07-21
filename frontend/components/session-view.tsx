@@ -1213,6 +1213,7 @@ export function SessionView() {
         {session?.status === "ranking" && (
           <ThemeRankingDnD
             themes={simThemes.length > 0 ? simThemes : SIM_THEMES}
+            sessionId={simulationMode ? undefined : sessionId}
             onComplete={async () => {
               if (simulationMode) {
                 setSession((prev) => prev ? { ...prev, status: "closed" } : prev);
