@@ -30,6 +30,7 @@ from typing import Any
 
 import structlog
 from sqlalchemy import func, select
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.concurrency import SessionSemaphorePool
@@ -207,6 +208,10 @@ _profanity_query_cache: "OrderedDict[str, tuple[float, list]]" = OrderedDict()  
 _PROFANITY_CACHE_TTL = 60.0  # seconds — avoid DB hit on every submission
 _PROFANITY_PATTERN_CACHE_MAX = 10_000  # max compiled patterns before eviction
 _PROFANITY_QUERY_CACHE_MAX = 100  # max language entries before eviction
+
+# C2-4: transient-DB-error retry for store_response (connection drop / deadlock / timeout)
+_STORE_MAX_RETRIES = 3
+_STORE_RETRY_BACKOFF = 0.1  # seconds; doubles each attempt
 
 
 async def detect_profanity(
@@ -397,54 +402,63 @@ async def store_response(
     Returns (ResponseMeta, response_hash) tuple.
     """
     now = datetime.now(timezone.utc)
-
-    # --- Postgres: ResponseMeta (raw_text stored here) ---
-    response_meta = ResponseMeta(
-        session_id=session_id,
-        question_id=question_id,
-        participant_id=participant_id,
-        cycle_id=cycle_id,
-        source="text",
-        raw_text=raw_text,
-        char_count=len(raw_text),
-        submitted_at=now,
-        is_flagged=False,
-    )
-    db.add(response_meta)
-
-    try:
-        await db.flush()  # Get ID before creating TextResponse
-    except Exception as e:
-        await db.rollback()
-        logger.error("cube2.store.flush_failed", error=str(e), session_id=str(session_id))
-        raise ResponseValidationError(f"Failed to store response: {e}")
-
-    # --- Postgres: TextResponse (1:1 with ResponseMeta) ---
     response_hash = compute_response_hash(raw_text)
 
-    text_response = TextResponse(
-        response_meta_id=response_meta.id,
-        language_code=language_code,
-        is_anonymous=is_anonymous,
-        pii_detected=pii_detected,
-        pii_types=pii_types,
-        pii_scrubbed_text=pii_scrubbed_text,
-        profanity_detected=profanity_detected,
-        profanity_words=profanity_words,
-        clean_text=clean_text,
-        response_hash=response_hash,
-    )
-    db.add(text_response)
+    # C2-4 (Stability): bounded retry on TRANSIENT DB errors (dropped connection,
+    # deadlock, timeout). Objects are rebuilt each attempt because rollback expunges
+    # them. Non-transient errors (integrity, validation) fail fast — no retry.
+    last_error: Exception | None = None
+    for attempt in range(_STORE_MAX_RETRIES):
+        try:
+            response_meta = ResponseMeta(
+                session_id=session_id,
+                question_id=question_id,
+                participant_id=participant_id,
+                cycle_id=cycle_id,
+                source="text",
+                raw_text=raw_text,
+                char_count=len(raw_text),
+                submitted_at=now,
+                is_flagged=False,
+            )
+            db.add(response_meta)
+            await db.flush()  # Get ID before creating TextResponse
 
-    try:
-        await db.commit()
-    except Exception as e:
-        await db.rollback()
-        logger.error("cube2.store.commit_failed", error=str(e), session_id=str(session_id))
-        raise ResponseValidationError(f"Failed to commit response: {e}")
+            text_response = TextResponse(
+                response_meta_id=response_meta.id,
+                language_code=language_code,
+                is_anonymous=is_anonymous,
+                pii_detected=pii_detected,
+                pii_types=pii_types,
+                pii_scrubbed_text=pii_scrubbed_text,
+                profanity_detected=profanity_detected,
+                profanity_words=profanity_words,
+                clean_text=clean_text,
+                response_hash=response_hash,
+            )
+            db.add(text_response)
+            await db.commit()
+            await db.refresh(response_meta)
+            return response_meta, response_hash
+        except OperationalError as e:  # transient — retry with backoff
+            last_error = e
+            await db.rollback()
+            logger.warning(
+                "cube2.store.retry",
+                attempt=attempt + 1,
+                max_retries=_STORE_MAX_RETRIES,
+                error=str(e),
+                session_id=str(session_id),
+            )
+            if attempt + 1 < _STORE_MAX_RETRIES:
+                await asyncio.sleep(_STORE_RETRY_BACKOFF * (2 ** attempt))
+        except Exception as e:  # non-transient — fail fast (integrity/validation)
+            await db.rollback()
+            logger.error("cube2.store.failed", error=str(e), session_id=str(session_id))
+            raise ResponseValidationError(f"Failed to store response: {e}")
 
-    await db.refresh(response_meta)
-    return response_meta, response_hash
+    logger.error("cube2.store.retries_exhausted", error=str(last_error), session_id=str(session_id))
+    raise ResponseValidationError(f"Failed to store response after {_STORE_MAX_RETRIES} attempts: {last_error}")
 
 
 # ---------------------------------------------------------------------------

@@ -547,7 +547,8 @@ class TestStoreResponseFailure:
         mock_db.rollback = AsyncMock()
 
         # Patch flush to set meta.id via add tracking
-        with pytest.raises(ResponseValidationError, match="Failed to commit response"):
+        # C2-4: commit + flush failures now share the unified "Failed to store response" message.
+        with pytest.raises(ResponseValidationError, match="Failed to store response"):
             await store_response(
                 mock_db,
                 session_id=uuid.uuid4(),
