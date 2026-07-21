@@ -425,6 +425,21 @@ async def transition_session(
             f"transition to '{new_status}' (allowed: {allowed})",
         )
 
+    # B2 — payment gate (operator: payment working before Cube 2). A `moderator_paid`
+    # session cannot OPEN or start POLLING until the moderator has paid upfront (is_paid,
+    # set by the Stripe webhook). Free + cost_split tiers are never blocked here (cost_split
+    # collects per-participant at results time; results are not gated by donation). 402 →
+    # the moderator completes Checkout, the webhook flips is_paid, and the retry succeeds.
+    if (
+        new_status in ("open", "polling")
+        and session.pricing_tier == "moderator_paid"
+        and not session.is_paid
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Moderator payment required before opening a moderator-paid session",
+        )
+
     old_status = session.status
     now = datetime.now(timezone.utc)
 
