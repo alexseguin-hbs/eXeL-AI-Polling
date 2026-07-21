@@ -138,13 +138,16 @@ async def get_poll_metrics(
     session_id: uuid.UUID,
     country: str | None = None,
     state: str | None = None,
+    mot_window_days: float = service.MOT_DEFAULT_WINDOW_DAYS,
     db: AsyncSession = Depends(get_db),
     user: CurrentUser | None = Depends(get_optional_current_user),
 ):
     """SoI System-of-Innovation per-poll metrics (CRS-19): user + moderator active time,
-    first-class $/min, and ♡웃◬ totals. country/state resolve the 웃 jurisdiction rate."""
+    first-class $/min, ♡웃◬ totals, and the MoT cost control chart (default 91.25-day view).
+    country/state resolve the 웃 jurisdiction rate; mot_window_days sets the cost-view window."""
     return await service.get_session_poll_metrics(
-        db, session_id=session_id, country=country, state=state
+        db, session_id=session_id, country=country, state=state,
+        mot_window_days=mot_window_days,
     )
 
 

@@ -39,6 +39,58 @@ class TestPureMath:
         assert dollars_per_min(0, 10) == 0.0
 
 
+# ── MoT cost control chart (operator: 91.25-day default window) ──────────────
+class TestMotCostControlChart:
+    def test_default_window_is_a_quarter(self):
+        from app.cubes.cube5_gateway.service import MOT_DEFAULT_WINDOW_DAYS
+
+        assert MOT_DEFAULT_WINDOW_DAYS == 91.25          # 365.25 / 4
+
+    def test_window_minutes_and_baseline(self):
+        from app.cubes.cube5_gateway.service import mot_cost_control_chart
+
+        c = mot_cost_control_chart(total_value_usd=131.4, active_minutes=60)
+        assert c["window_days"] == 91.25
+        assert c["window_minutes"] == 131400.0          # 91.25 × 1440
+        # $131.40 allocated over 131400 min → $0.001/min centerline.
+        assert c["baseline_per_min"] == 0.001
+        assert c["actual_per_min"] == 2.19              # 131.4 / 60
+        assert c["variance_pct"] > 0                     # burn ≫ allocation
+        assert c["upper_control_limit"] is None          # needs historical series
+
+    def test_zero_guards(self):
+        from app.cubes.cube5_gateway.service import mot_cost_control_chart
+
+        c = mot_cost_control_chart(0.0, 0.0)
+        assert c["baseline_per_min"] == 0.0 and c["actual_per_min"] == 0.0
+        assert c["variance_pct"] == 0.0
+
+    def test_custom_window(self):
+        from app.cubes.cube5_gateway.service import mot_cost_control_chart
+
+        c = mot_cost_control_chart(1440.0, 60, window_days=1)
+        assert c["window_minutes"] == 1440.0
+        assert c["baseline_per_min"] == 1.0              # $1440 over 1 day = $1/min
+
+    @pytest.mark.asyncio
+    async def test_metrics_endpoint_includes_mot_block(self):
+        import uuid
+        from datetime import datetime, timedelta, timezone
+        from app.cubes.cube5_gateway import service
+
+        t0 = datetime(2026, 3, 31, 12, 0, tzinfo=timezone.utc)
+        session = MagicMock(); session.id = uuid.uuid4()
+        session.opened_at = t0; session.closed_at = t0 + timedelta(minutes=10)
+        mock_db = _metrics_mocks(session, total_seconds=600.0, user_count=5)
+        with patch("app.cubes.cube8_tokens.service.get_session_token_summary",
+                   new=AsyncMock(return_value={"total_heart": 0.0, "total_human": 0.0, "total_unity": 0.0})):
+            m = await service.get_session_poll_metrics(mock_db, session_id=session.id)
+        assert "mot" in m
+        assert m["mot"]["window_days"] == 91.25
+        # actual_per_min on the MoT chart mirrors the poll's $/min burn rate.
+        assert m["mot"]["actual_per_min"] == pytest.approx(m["dollars_per_min"], abs=0.01)
+
+
 # ── Aggregation ──────────────────────────────────────────────────────────────
 def _metrics_mocks(session, *, total_seconds, user_count):
     mock_db = AsyncMock()

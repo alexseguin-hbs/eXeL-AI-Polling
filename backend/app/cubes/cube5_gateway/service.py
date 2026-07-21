@@ -327,12 +327,52 @@ def dollars_per_min(total_dollars: float, wallclock_minutes: float) -> float:
     return round(total_dollars / wallclock_minutes, 4)
 
 
+# MoT (Master-of-Thought) cost measurement — every cost is a time allocation measured to
+# the minute, viewed over a default 91.25-day window (a quarter = 365.25/4). This is the
+# centerline/basis for the real-time cost CONTROL CHART (operator, 2026-07-21).
+MOT_DEFAULT_WINDOW_DAYS = 91.25
+_MINUTES_PER_DAY = 1440.0
+
+
+def mot_cost_control_chart(
+    total_value_usd: float,
+    active_minutes: float,
+    window_days: float = MOT_DEFAULT_WINDOW_DAYS,
+) -> dict:
+    """MoT cost control chart for a project/business/poll cost.
+
+    centerline (baseline_per_min): the value allocated evenly across the window, to the
+        minute — the expected/allocated cost rate over the 91.25-day default view.
+    plotted point (actual_per_min): the actual burn rate during active minutes.
+    variance_pct: how far actual deviates from the allocated baseline.
+    Control LIMITS need a historical series (a run of sessions) → None for now (future).
+    A polling session is one point/series on this chart.
+    """
+    window_minutes = round(max(window_days, 0.0) * _MINUTES_PER_DAY, 2)
+    baseline_per_min = round(total_value_usd / window_minutes, 6) if window_minutes > 0 else 0.0
+    actual_per_min = round(total_value_usd / active_minutes, 6) if active_minutes > 0 else 0.0
+    variance_pct = (
+        round((actual_per_min - baseline_per_min) / baseline_per_min * 100.0, 2)
+        if baseline_per_min > 0 else 0.0
+    )
+    return {
+        "window_days": window_days,
+        "window_minutes": window_minutes,
+        "baseline_per_min": baseline_per_min,      # control-chart centerline (allocated)
+        "actual_per_min": actual_per_min,          # plotted point (burn rate)
+        "variance_pct": variance_pct,
+        "upper_control_limit": None,               # needs a historical series (future)
+        "lower_control_limit": None,
+    }
+
+
 async def get_session_poll_metrics(
     db: AsyncSession,
     *,
     session_id: uuid.UUID,
     country: str | None = None,
     state: str | None = None,
+    mot_window_days: float = MOT_DEFAULT_WINDOW_DAYS,
     now: datetime | None = None,
 ) -> dict:
     """SoI per-poll metrics: user + moderator active time, first-class $/min, and ♡웃◬ totals.
@@ -382,6 +422,8 @@ async def get_session_poll_metrics(
     # $/min against the poll wall-clock (moderator window); fall back to user minutes if never opened
     wallclock_min = mod_active_min if mod_active_min > 0 else user_active_min
     dpm = dollars_per_min(total_dollars, wallclock_min)
+    # MoT cost control chart — this poll as a point on the 91.25-day cost view (operator).
+    mot = mot_cost_control_chart(total_dollars, wallclock_min, mot_window_days)
 
     tokens = await get_session_token_summary(db, session_id)
 
@@ -390,6 +432,7 @@ async def get_session_poll_metrics(
         "hourly_rate": rate,
         "dollars_per_min": dpm,
         "total_value_usd": total_dollars,
+        "mot": mot,  # MoT cost control chart (default 91.25-day window)
         "users": {
             "count": user_count,
             "active_min": round(user_active_min, 4),
