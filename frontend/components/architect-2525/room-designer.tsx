@@ -86,6 +86,31 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // so a tap always lands in the true cell regardless of rotation. Mirror is a DATA op (mirrorObjects), not here.
   const [bearing2d, setBearing2d] = useState(0); // degrees, 0 = North up
   const rot2d = (d: number) => setBearing2d((b) => ((b + d) % 360 + 360) % 360);
+  // FX-60 — pinch/scroll ZOOM on the 2D 10×10 plan (see object edges + piping/electrical/ducting). The plan renders
+  // through a dynamic viewBox `${panX} ${panY} ${100/zoom} ${100/zoom}`; at zoom=1/pan=0 the viewBox is exactly
+  // "0 0 100 100" — identical to before — so placement/drag are unchanged unless the user zooms in. cellFromEvent
+  // folds the same viewBox so a tap/drag always lands in the true cell at any zoom.
+  const [zoom2d, setZoom2d] = useState(1);
+  const [pan2d, setPan2d] = useState({ x: 0, y: 0 });
+  const resetZoom2d = () => { setZoom2d(1); setPan2d({ x: 0, y: 0 }); };
+  const pts2d = useRef<Map<number, { x: number; y: number }>>(new Map()); // active pointers on the 2D svg (pinch)
+  const pinchDist = useRef<number | null>(null);
+  // Zoom toward a fractional point (fx,fy ∈ 0..1 of the svg) by `factor`, clamped 1..4, panning to keep that point fixed.
+  const zoomAt2d = (fx: number, fy: number, factor: number) => {
+    const nz = Math.min(4, Math.max(1, zoom2d * factor));
+    if (nz === zoom2d) return;
+    if (nz === 1) { setZoom2d(1); setPan2d({ x: 0, y: 0 }); return; }
+    const vbW = 100 / zoom2d, nvbW = 100 / nz;
+    const cx = pan2d.x + fx * vbW, cy = pan2d.y + fy * vbW;      // world point under the cursor before zoom
+    let nx = cx - fx * nvbW, ny = cy - fy * nvbW;                 // keep it under the cursor after zoom
+    nx = Math.min(100 - nvbW, Math.max(0, nx)); ny = Math.min(100 - nvbW, Math.max(0, ny)); // clamp inside 0..100
+    setZoom2d(nz); setPan2d({ x: nx, y: ny });
+  };
+  const onWheel2d = (e: React.WheelEvent) => {
+    const svg = svgRef.current; if (!svg) return;
+    const r = svg.getBoundingClientRect();
+    zoomAt2d((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height, e.deltaY < 0 ? 1.15 : 1 / 1.15);
+  };
 
   // ── 3D CAMERA — the shared Vision-2525 R-Core interaction model (identical to Mission-Planning): LEFT-drag /
   // one-finger = PAN · RIGHT-drag = rotate+tilt · two fingers = pinch-zoom + twist-bearing + vertical-tilt · wheel
@@ -119,9 +144,12 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   const cellFromEvent = (e: React.PointerEvent | React.MouseEvent | React.DragEvent): { gx: number; gy: number } | null => {
     const svg = svgRef.current; if (!svg) return null;
     const r = svg.getBoundingClientRect();
-    // Screen → viewBox (0..100, square so linear), then UNDO the plan rotation about the centre (50,50).
-    const vx = ((e.clientX - r.left) / r.width) * 100;
-    const vy = ((e.clientY - r.top) / r.height) * 100;
+    // Screen → viewBox, then UNDO the plan rotation about the centre (50,50). The viewBox may be zoomed/panned
+    // (FX-60); fold `pan2d` + `100/zoom2d` here so a tap lands in the true cell at any zoom (at zoom=1 this is
+    // exactly the original 0..100 mapping).
+    const vbW = 100 / zoom2d;
+    const vx = pan2d.x + ((e.clientX - r.left) / r.width) * vbW;
+    const vy = pan2d.y + ((e.clientY - r.top) / r.height) * vbW;
     const th = (bearing2d * Math.PI) / 180, cs = Math.cos(th), sn = Math.sin(th);
     const dx = vx - 50, dy = vy - 50;
     const lx = 50 + (dx * cs + dy * sn);   // inverse rotation (−θ)
@@ -164,6 +192,19 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
     try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch {}
   };
   const svgMove = (e: React.PointerEvent) => {
+    // FX-60 — two-finger pinch zoom: track both pointers, zoom by their distance ratio about their midpoint.
+    if (pts2d.current.has(e.pointerId)) pts2d.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinchDist.current != null && pts2d.current.size >= 2) {
+      const [a, b] = Array.from(pts2d.current.values());
+      const nd = Math.hypot(a.x - b.x, a.y - b.y);
+      const svg = svgRef.current;
+      if (svg && pinchDist.current > 0 && nd > 0) {
+        const r = svg.getBoundingClientRect();
+        zoomAt2d(((a.x + b.x) / 2 - r.left) / r.width, ((a.y + b.y) / 2 - r.top) / r.height, nd / pinchDist.current);
+      }
+      pinchDist.current = nd;
+      return; // pinching — do not move objects
+    }
     if (!drag.current) return;
     const c = cellFromEvent(e); if (!c) return;
     const o = objects.find((x) => x.id === drag.current); if (!o) return;
@@ -180,11 +221,23 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // so toilet/tub/sink armed but "nothing appeared" (operator IMG_7579). Object taps set drag.current via objDown
   // (pointer-captured), so they never reach this as a place.
   const tapStart = useRef<{ x: number; y: number } | null>(null);
-  const svgDown = (e: React.PointerEvent) => { if (tool && !drag.current) tapStart.current = { x: e.clientX, y: e.clientY }; };
+  const svgDown = (e: React.PointerEvent) => {
+    pts2d.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts2d.current.size >= 2 && !drag.current) {   // FX-60 — 2nd finger starts a pinch; cancel any pending tap-place
+      const [a, b] = Array.from(pts2d.current.values());
+      pinchDist.current = Math.hypot(a.x - b.x, a.y - b.y);
+      tapStart.current = null;
+      return;
+    }
+    if (tool && !drag.current) tapStart.current = { x: e.clientX, y: e.clientY };
+  };
   const svgUp = (e?: React.PointerEvent) => {
+    const wasPinch = pinchDist.current != null;             // capture BEFORE clearing so a post-pinch lift never places
+    if (e) pts2d.current.delete(e.pointerId); else pts2d.current.clear();  // cancel/leave → drop all tracked pointers
+    if (pts2d.current.size < 2) pinchDist.current = null;
     const wasDrag = drag.current; drag.current = null; dragWall.current = null;
     const s = tapStart.current; tapStart.current = null;
-    if (!e || wasDrag || !tool || !s) return;               // only an un-dragged tap with a tool armed places
+    if (!e || wasDrag || wasPinch || !tool || !s) return;   // only an un-dragged, un-pinched tap with a tool armed places
     if (Math.abs(e.clientX - s.x) + Math.abs(e.clientY - s.y) > 12) return; // moved too far → treat as a drag, not a tap
     const c = cellFromEvent(e); if (c) placeAt(c.gx, c.gy);
   };
@@ -232,8 +285,8 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
   // read-only at its own rotation `bear`. This lets two 2D panes hold independent angles.
   const plan2D = (bear: number, setBear: (n: number) => void, interactive: boolean, size?: number) => (
     <div className="relative" style={boxStyle(size)}>
-      <svg {...(interactive ? { ref: svgRef, onPointerDown: svgDown, onPointerMove: svgMove, onPointerUp: svgUp, onPointerCancel: () => svgUp(), onPointerLeave: () => svgUp(), onDragOver: (e: React.DragEvent) => e.preventDefault(), onDrop: dropOnFloor } : {})}
-        data-arch-roomdesign-2d viewBox="0 0 100 100" className="rounded border"
+      <svg {...(interactive ? { ref: svgRef, onPointerDown: svgDown, onPointerMove: svgMove, onPointerUp: svgUp, onPointerCancel: () => svgUp(), onPointerLeave: () => svgUp(), onWheel: onWheel2d, onDragOver: (e: React.DragEvent) => e.preventDefault(), onDrop: dropOnFloor } : {})}
+        data-arch-roomdesign-2d viewBox={interactive ? `${pan2d.x} ${pan2d.y} ${100 / zoom2d} ${100 / zoom2d}` : "0 0 100 100"} className="rounded border"
         style={{ borderColor: C.cyan, background: "#070b12", touchAction: "none", ...svgStyle(size) }}>
         <g data-arch-roomdesign-2d-rot transform={`rotate(${bear} 50 50)`}>
           {Array.from({ length: N + 1 }).map((_, i) => (
@@ -351,6 +404,12 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
         </g>
       </svg>
       <Compass2525 bearing={(bear * Math.PI) / 180} onNorth={() => setBear(0)} size={26} className="absolute left-1.5 top-1.5 border" style={{ borderColor: `${C.cyan}66` }} />
+      {/* FX-60 — 2D zoom readout + reset (scroll / pinch to zoom the plan; tap to reset to 1×). Interactive pane only. */}
+      {interactive && zoom2d > 1 && (
+        <button data-arch-2d-zoomreset onClick={resetZoom2d} title="Reset zoom (scroll or pinch to zoom the plan)"
+          className="absolute bottom-1.5 right-1.5 z-10 rounded border px-1.5 py-0.5 text-[9px] font-semibold"
+          style={{ borderColor: C.cyan, color: C.cyan, background: "#0a0f16cc" }}>{zoom2d.toFixed(1)}× ⟲</button>
+      )}
       <button data-arch-room-link onClick={() => setLink(!linkView)} title={linkView ? "North LOCKED — top & mini rotate together (tap to unlock)" : "Lock North — rotate top & mini together (mirror)"}
         className="absolute right-1.5 top-1.5 z-10 rounded border p-0.5" style={{ borderColor: linkView ? C.cyan : C.border, color: linkView ? C.cyan : C.dim, background: "#0a0f16cc" }}>
         {linkView ? <Link2 className="h-3 w-3" /> : <Link2Off className="h-3 w-3" />}
