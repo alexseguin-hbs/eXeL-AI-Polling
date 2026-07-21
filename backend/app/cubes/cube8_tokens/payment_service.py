@@ -454,6 +454,7 @@ async def handle_payment_completed(
                 "cube8.payment.checkout_completed",
                 extra={"checkout_id": checkout_id, "type": tx.transaction_type},
             )
+            await _fire_payment_received(db, tx)
         elif tx and tx.status == "completed":
             logger.info("cube8.payment.checkout_already_completed", extra={"checkout_id": checkout_id})
 
@@ -479,8 +480,29 @@ async def handle_payment_completed(
                 "cube8.payment.intent_succeeded",
                 extra={"pi_id": pi_id, "type": tx.transaction_type},
             )
+            await _fire_payment_received(db, tx)
         elif tx and tx.status == "completed":
             logger.info("cube8.payment.intent_already_completed", extra={"pi_id": pi_id})
+
+
+async def _fire_payment_received(db: AsyncSession, tx) -> None:
+    """Fire the payment_received webhook after a payment completes (API productization).
+
+    Fire-and-forget via safe_deliver_webhook — a webhook can never break payment
+    processing. Only fires for session-scoped payments (session_id present).
+    """
+    if not getattr(tx, "session_id", None):
+        return
+    from app.cubes.cube5_gateway.webhook_service import safe_deliver_webhook
+
+    await safe_deliver_webhook(
+        db, tx.session_id, "payment_received",
+        {
+            "session_id": str(tx.session_id),
+            "amount_cents": tx.amount_cents,
+            "transaction_type": tx.transaction_type,
+        },
+    )
 
 
 # ---------------------------------------------------------------------------

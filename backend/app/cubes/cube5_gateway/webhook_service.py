@@ -197,6 +197,28 @@ async def deliver_event(
     return deliveries
 
 
+async def safe_deliver_webhook(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    event_type: str,
+    payload: dict,
+) -> None:
+    """Fire-and-forget webhook delivery for event producers (Krishna: build once).
+
+    Wraps deliver_event in try/except + logging so a webhook failure can NEVER break
+    the producing cube's pipeline. deliver_event early-returns when no subscriptions
+    match, so this is cheap on the common (no-webhook) path. Producers call this ONE
+    line instead of repeating the guard.
+    """
+    try:
+        await deliver_event(db, session_id, event_type, payload)
+    except Exception as exc:  # noqa: BLE001 — a webhook must never break the producer
+        logger.warning(
+            "cube5.webhook.delivery_failed event=%s session_id=%s error=%s",
+            event_type, str(session_id), str(exc),
+        )
+
+
 async def list_webhooks(
     db: AsyncSession,
     session_id: uuid.UUID,

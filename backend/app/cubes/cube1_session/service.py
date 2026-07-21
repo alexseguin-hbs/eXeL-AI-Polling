@@ -484,6 +484,25 @@ async def transition_session(
 
     await db.commit()
     await db.refresh(session)
+
+    # Fire the session_closed WEBHOOK (API productization) — strictly AFTER commit so
+    # a webhook can never affect close durability. Only on the terminal `closed` state
+    # (not the auto-timer polling→ranking path). safe_deliver_webhook early-returns when
+    # no subscriptions exist (cheap); a registered-but-slow subscriber can add latency
+    # to this close response — acceptable for v1, revisit with a background queue.
+    if new_status == "closed":
+        from app.cubes.cube5_gateway.webhook_service import safe_deliver_webhook
+
+        await safe_deliver_webhook(
+            db, session.id, "session_closed",
+            {
+                "session_id": str(session.id),
+                "short_code": session.short_code,
+                "status": "closed",
+                "replay_hash": session.replay_hash,
+                "closed_at": session.closed_at.isoformat() if session.closed_at else None,
+            },
+        )
     return session
 
 
