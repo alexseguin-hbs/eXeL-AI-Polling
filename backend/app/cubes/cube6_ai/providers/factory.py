@@ -27,6 +27,10 @@ from app.cubes.cube6_ai.providers.claude_provider import (
     ClaudeEmbedding,
     ClaudeSummarization,
 )
+from app.cubes.cube6_ai.providers.offline_provider import (
+    OfflineEmbedding,
+    OfflineSummarization,
+)
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -42,6 +46,7 @@ _EMBEDDING_PROVIDERS: dict[AIProviderName, type[EmbeddingProvider]] = {
     AIProviderName.GROK: GrokEmbedding,
     AIProviderName.GEMINI: GeminiEmbedding,
     AIProviderName.CLAUDE: ClaudeEmbedding,
+    AIProviderName.OFFLINE: OfflineEmbedding,
 }
 
 _SUMMARIZATION_PROVIDERS: dict[AIProviderName, type[SummarizationProvider]] = {
@@ -49,11 +54,20 @@ _SUMMARIZATION_PROVIDERS: dict[AIProviderName, type[SummarizationProvider]] = {
     AIProviderName.GROK: GrokSummarization,
     AIProviderName.GEMINI: GeminiSummarization,
     AIProviderName.CLAUDE: ClaudeSummarization,
+    AIProviderName.OFFLINE: OfflineSummarization,
 }
 
 
 def _has_api_key(provider: AIProviderName) -> bool:
-    """Check if the API key for a provider is configured."""
+    """Check if the API key for a provider is configured.
+
+    OFFLINE needs no key — it is deterministic/no-network. It is deliberately
+    NOT in _FAILOVER_ORDER, so a real request with no keys still errors (Odin's
+    guardrail: a missing prod key must never silently ship stub themes). Offline
+    is reached ONLY by an explicit `provider="offline"` request.
+    """
+    if provider == AIProviderName.OFFLINE:
+        return True
     keys = {
         AIProviderName.OPENAI: settings.openai_api_key,
         AIProviderName.GROK: settings.xai_api_key,

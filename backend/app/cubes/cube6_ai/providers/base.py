@@ -23,6 +23,7 @@ class AIProviderName(str, Enum):
     GROK = "grok"  # xAI — uses OpenAI-compatible API
     GEMINI = "gemini"  # Google
     CLAUDE = "claude"  # Anthropic
+    OFFLINE = "offline"  # Deterministic, no-key, no-network — CI + Dev-Sim + BYOK fallback (opt-in only)
 
 
 # Cost per 1K tokens (input) by provider — used for cost logging
