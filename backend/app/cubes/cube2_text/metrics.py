@@ -8,17 +8,52 @@ Three metric categories for Cube 10 simulation comparison:
 All metrics are computed from existing Postgres tables (ResponseMeta,
 TextResponse, TimeEntry) so Cube 10 can compare proposed changes
 against production baselines.
+
+C2-3 (Stability): every metric function is guarded — a DB error returns a
+zeroed default with `metrics_unavailable=True` instead of 500-ing the moderator
+metrics endpoint. The happy path is unchanged.
 """
 
 import uuid
 from datetime import datetime, timezone
 
+import structlog
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.response_meta import ResponseMeta
 from app.models.text_response import TextResponse
 from app.models.time_tracking import TimeEntry
+
+logger = structlog.get_logger(__name__)
+
+_DEFAULT_SYSTEM = {
+    "avg_submission_latency_s": 0.0,
+    "max_submission_latency_s": 0.0,
+    "total_responses": 0,
+    "responses_per_minute": 0.0,
+    "ner_pipeline_invocations": 0,
+    "metrics_unavailable": True,
+}
+_DEFAULT_USER = {
+    "language_distribution": {},
+    "avg_response_length": 0.0,
+    "max_response_length": 0,
+    "pii_detection_rate_pct": 0.0,
+    "profanity_detection_rate_pct": 0.0,
+    "unique_participants": 0,
+    "responses_per_participant": 0.0,
+    "metrics_unavailable": True,
+}
+_DEFAULT_OUTCOME = {
+    "clean_response_ratio_pct": 0.0,
+    "flagged_response_count": 0,
+    "total_heart_tokens_distributed": 0.0,
+    "total_unity_tokens_distributed": 0.0,
+    "avg_heart_per_response": 0.0,
+    "avg_unity_per_response": 0.0,
+    "metrics_unavailable": True,
+}
 
 
 def _session_response_ids(session_id: uuid.UUID):
@@ -36,57 +71,61 @@ async def get_system_metrics(
     session_id: uuid.UUID,
 ) -> dict:
     """System metrics: latency and throughput indicators."""
-    # Submission latency from time_entries (cube2, action=responding)
-    latency_result = await db.execute(
-        select(
-            func.avg(TimeEntry.duration_seconds).label("avg_latency"),
-            func.max(TimeEntry.duration_seconds).label("max_latency"),
-            func.count(TimeEntry.id).label("count"),
-        ).where(
-            TimeEntry.session_id == session_id,
-            TimeEntry.cube_id == "cube2",
-            TimeEntry.action_type == "responding",
-            TimeEntry.stopped_at.isnot(None),
+    try:
+        # Submission latency from time_entries (cube2, action=responding)
+        latency_result = await db.execute(
+            select(
+                func.avg(TimeEntry.duration_seconds).label("avg_latency"),
+                func.max(TimeEntry.duration_seconds).label("max_latency"),
+                func.count(TimeEntry.id).label("count"),
+            ).where(
+                TimeEntry.session_id == session_id,
+                TimeEntry.cube_id == "cube2",
+                TimeEntry.action_type == "responding",
+                TimeEntry.stopped_at.isnot(None),
+            )
         )
-    )
-    latency_row = latency_result.one()
+        latency_row = latency_result.one()
 
-    # Total responses
-    count_result = await db.execute(
-        select(func.count(ResponseMeta.id)).where(
-            ResponseMeta.session_id == session_id,
+        # Total responses
+        count_result = await db.execute(
+            select(func.count(ResponseMeta.id)).where(
+                ResponseMeta.session_id == session_id,
+            )
         )
-    )
-    total_responses = count_result.scalar() or 0
+        total_responses = count_result.scalar() or 0
 
-    # Throughput: responses per minute (time span from first to last response)
-    span_result = await db.execute(
-        select(
-            func.min(ResponseMeta.submitted_at).label("first"),
-            func.max(ResponseMeta.submitted_at).label("last"),
-        ).where(ResponseMeta.session_id == session_id)
-    )
-    span_row = span_result.one()
-    rpm = 0.0
-    if span_row.first and span_row.last and span_row.first != span_row.last:
-        span_minutes = (span_row.last - span_row.first).total_seconds() / 60.0
-        rpm = total_responses / span_minutes if span_minutes > 0 else 0.0
-
-    # NER pipeline invocations (responses where PII detection ran)
-    ner_count_result = await db.execute(
-        select(func.count(TextResponse.id)).where(
-            TextResponse.response_meta_id.in_(_session_response_ids(session_id))
+        # Throughput: responses per minute (time span from first to last response)
+        span_result = await db.execute(
+            select(
+                func.min(ResponseMeta.submitted_at).label("first"),
+                func.max(ResponseMeta.submitted_at).label("last"),
+            ).where(ResponseMeta.session_id == session_id)
         )
-    )
-    ner_invocations = ner_count_result.scalar() or 0
+        span_row = span_result.one()
+        rpm = 0.0
+        if span_row.first and span_row.last and span_row.first != span_row.last:
+            span_minutes = (span_row.last - span_row.first).total_seconds() / 60.0
+            rpm = total_responses / span_minutes if span_minutes > 0 else 0.0
 
-    return {
-        "avg_submission_latency_s": round(float(latency_row.avg_latency or 0), 4),
-        "max_submission_latency_s": round(float(latency_row.max_latency or 0), 4),
-        "total_responses": total_responses,
-        "responses_per_minute": round(rpm, 2),
-        "ner_pipeline_invocations": ner_invocations,
-    }
+        # NER pipeline invocations (responses where PII detection ran)
+        ner_count_result = await db.execute(
+            select(func.count(TextResponse.id)).where(
+                TextResponse.response_meta_id.in_(_session_response_ids(session_id))
+            )
+        )
+        ner_invocations = ner_count_result.scalar() or 0
+
+        return {
+            "avg_submission_latency_s": round(float(latency_row.avg_latency or 0), 4),
+            "max_submission_latency_s": round(float(latency_row.max_latency or 0), 4),
+            "total_responses": total_responses,
+            "responses_per_minute": round(rpm, 2),
+            "ner_pipeline_invocations": ner_invocations,
+        }
+    except Exception as exc:  # DB failure → safe default, never 500 the endpoint
+        logger.warning("cube2.metrics.system.db_error", session_id=str(session_id), error=str(exc))
+        return dict(_DEFAULT_SYSTEM)
 
 
 async def get_user_metrics(
@@ -94,62 +133,66 @@ async def get_user_metrics(
     session_id: uuid.UUID,
 ) -> dict:
     """User metrics: submission patterns and detection rates."""
-    # Language distribution
-    lang_result = await db.execute(
-        select(
-            TextResponse.language_code,
-            func.count(TextResponse.id).label("count"),
+    try:
+        # Language distribution
+        lang_result = await db.execute(
+            select(
+                TextResponse.language_code,
+                func.count(TextResponse.id).label("count"),
+            )
+            .where(
+                TextResponse.response_meta_id.in_(_session_response_ids(session_id))
+            )
+            .group_by(TextResponse.language_code)
         )
-        .where(
-            TextResponse.response_meta_id.in_(_session_response_ids(session_id))
+        language_distribution = {row.language_code: row.count for row in lang_result.all()}
+
+        # Response length stats
+        length_result = await db.execute(
+            select(
+                func.avg(ResponseMeta.char_count).label("avg_len"),
+                func.max(ResponseMeta.char_count).label("max_len"),
+            ).where(ResponseMeta.session_id == session_id)
         )
-        .group_by(TextResponse.language_code)
-    )
-    language_distribution = {row.language_code: row.count for row in lang_result.all()}
+        length_row = length_result.one()
 
-    # Response length stats
-    length_result = await db.execute(
-        select(
-            func.avg(ResponseMeta.char_count).label("avg_len"),
-            func.max(ResponseMeta.char_count).label("max_len"),
-        ).where(ResponseMeta.session_id == session_id)
-    )
-    length_row = length_result.one()
-
-    # PII and profanity detection rates
-    detection_result = await db.execute(
-        select(
-            func.count(TextResponse.id).label("total"),
-            func.sum(case((TextResponse.pii_detected.is_(True), 1), else_=0)).label("pii_count"),
-            func.sum(case((TextResponse.profanity_detected.is_(True), 1), else_=0)).label("prof_count"),
-        ).where(
-            TextResponse.response_meta_id.in_(_session_response_ids(session_id))
+        # PII and profanity detection rates
+        detection_result = await db.execute(
+            select(
+                func.count(TextResponse.id).label("total"),
+                func.sum(case((TextResponse.pii_detected.is_(True), 1), else_=0)).label("pii_count"),
+                func.sum(case((TextResponse.profanity_detected.is_(True), 1), else_=0)).label("prof_count"),
+            ).where(
+                TextResponse.response_meta_id.in_(_session_response_ids(session_id))
+            )
         )
-    )
-    det_row = detection_result.one()
-    total = det_row.total or 0
+        det_row = detection_result.one()
+        total = det_row.total or 0
 
-    # Unique participants and responses per participant
-    participant_result = await db.execute(
-        select(
-            func.count(func.distinct(ResponseMeta.participant_id)).label("unique"),
-            func.count(ResponseMeta.id).label("total"),
-        ).where(ResponseMeta.session_id == session_id)
-    )
-    part_row = participant_result.one()
-    unique_participants = part_row.unique or 0
+        # Unique participants and responses per participant
+        participant_result = await db.execute(
+            select(
+                func.count(func.distinct(ResponseMeta.participant_id)).label("unique"),
+                func.count(ResponseMeta.id).label("total"),
+            ).where(ResponseMeta.session_id == session_id)
+        )
+        part_row = participant_result.one()
+        unique_participants = part_row.unique or 0
 
-    return {
-        "language_distribution": language_distribution,
-        "avg_response_length": round(float(length_row.avg_len or 0), 1),
-        "max_response_length": int(length_row.max_len or 0),
-        "pii_detection_rate_pct": round(_safe_pct(det_row.pii_count or 0, total), 2),
-        "profanity_detection_rate_pct": round(_safe_pct(det_row.prof_count or 0, total), 2),
-        "unique_participants": unique_participants,
-        "responses_per_participant": round(
-            (part_row.total or 0) / unique_participants if unique_participants > 0 else 0.0, 2
-        ),
-    }
+        return {
+            "language_distribution": language_distribution,
+            "avg_response_length": round(float(length_row.avg_len or 0), 1),
+            "max_response_length": int(length_row.max_len or 0),
+            "pii_detection_rate_pct": round(_safe_pct(det_row.pii_count or 0, total), 2),
+            "profanity_detection_rate_pct": round(_safe_pct(det_row.prof_count or 0, total), 2),
+            "unique_participants": unique_participants,
+            "responses_per_participant": round(
+                (part_row.total or 0) / unique_participants if unique_participants > 0 else 0.0, 2
+            ),
+        }
+    except Exception as exc:
+        logger.warning("cube2.metrics.user.db_error", session_id=str(session_id), error=str(exc))
+        return dict(_DEFAULT_USER)
 
 
 async def get_outcome_metrics(
@@ -157,60 +200,64 @@ async def get_outcome_metrics(
     session_id: uuid.UUID,
 ) -> dict:
     """Outcome / Business metrics: quality and token indicators."""
-    # Clean vs flagged ratio
-    quality_result = await db.execute(
-        select(
-            func.count(TextResponse.id).label("total"),
-            func.sum(
-                case(
-                    (
-                        TextResponse.pii_detected.is_(False) & TextResponse.profanity_detected.is_(False),
-                        1,
-                    ),
-                    else_=0,
-                )
-            ).label("clean_count"),
-        ).where(
-            TextResponse.response_meta_id.in_(_session_response_ids(session_id))
+    try:
+        # Clean vs flagged ratio
+        quality_result = await db.execute(
+            select(
+                func.count(TextResponse.id).label("total"),
+                func.sum(
+                    case(
+                        (
+                            TextResponse.pii_detected.is_(False) & TextResponse.profanity_detected.is_(False),
+                            1,
+                        ),
+                        else_=0,
+                    )
+                ).label("clean_count"),
+            ).where(
+                TextResponse.response_meta_id.in_(_session_response_ids(session_id))
+            )
         )
-    )
-    q_row = quality_result.one()
-    total = q_row.total or 0
+        q_row = quality_result.one()
+        total = q_row.total or 0
 
-    # Flagged count
-    flagged_result = await db.execute(
-        select(func.count(ResponseMeta.id)).where(
-            ResponseMeta.session_id == session_id,
-            ResponseMeta.is_flagged.is_(True),
+        # Flagged count
+        flagged_result = await db.execute(
+            select(func.count(ResponseMeta.id)).where(
+                ResponseMeta.session_id == session_id,
+                ResponseMeta.is_flagged.is_(True),
+            )
         )
-    )
-    flagged_count = flagged_result.scalar() or 0
+        flagged_count = flagged_result.scalar() or 0
 
-    # Token distribution from Cube 2 time entries
-    token_result = await db.execute(
-        select(
-            func.sum(TimeEntry.heart_tokens_earned).label("total_heart"),
-            func.sum(TimeEntry.unity_tokens_earned).label("total_unity"),
-            func.count(TimeEntry.id).label("entry_count"),
-        ).where(
-            TimeEntry.session_id == session_id,
-            TimeEntry.cube_id == "cube2",
-            TimeEntry.action_type == "responding",
+        # Token distribution from Cube 2 time entries
+        token_result = await db.execute(
+            select(
+                func.sum(TimeEntry.heart_tokens_earned).label("total_heart"),
+                func.sum(TimeEntry.unity_tokens_earned).label("total_unity"),
+                func.count(TimeEntry.id).label("entry_count"),
+            ).where(
+                TimeEntry.session_id == session_id,
+                TimeEntry.cube_id == "cube2",
+                TimeEntry.action_type == "responding",
+            )
         )
-    )
-    t_row = token_result.one()
-    total_heart = float(t_row.total_heart or 0)
-    total_unity = float(t_row.total_unity or 0)
-    entry_count = t_row.entry_count or 0
+        t_row = token_result.one()
+        total_heart = float(t_row.total_heart or 0)
+        total_unity = float(t_row.total_unity or 0)
+        entry_count = t_row.entry_count or 0
 
-    return {
-        "clean_response_ratio_pct": round(_safe_pct(q_row.clean_count or 0, total), 2),
-        "flagged_response_count": flagged_count,
-        "total_heart_tokens_distributed": round(total_heart, 4),
-        "total_unity_tokens_distributed": round(total_unity, 4),
-        "avg_heart_per_response": round(total_heart / entry_count if entry_count > 0 else 0.0, 4),
-        "avg_unity_per_response": round(total_unity / entry_count if entry_count > 0 else 0.0, 4),
-    }
+        return {
+            "clean_response_ratio_pct": round(_safe_pct(q_row.clean_count or 0, total), 2),
+            "flagged_response_count": flagged_count,
+            "total_heart_tokens_distributed": round(total_heart, 4),
+            "total_unity_tokens_distributed": round(total_unity, 4),
+            "avg_heart_per_response": round(total_heart / entry_count if entry_count > 0 else 0.0, 4),
+            "avg_unity_per_response": round(total_unity / entry_count if entry_count > 0 else 0.0, 4),
+        }
+    except Exception as exc:
+        logger.warning("cube2.metrics.outcome.db_error", session_id=str(session_id), error=str(exc))
+        return dict(_DEFAULT_OUTCOME)
 
 
 async def get_all_metrics(
