@@ -194,6 +194,23 @@ export function JoinFlow() {
           `/sessions/join/${code}`,
           { display_name: null, language_code: browserLang, results_opt_in: false },
         );
+        // Presence: late (fast-track) joiners must be counted too. Mirror handleJoin —
+        // read the global Supabase count, increment, broadcast on the subscribed channel
+        // and write to the DB, so the moderator dashboard + lobby devices see the true
+        // participant total (previously the fast-track path skipped this → "0 users").
+        const currentSb = await fetchStatusFromSupabase(code).catch(() => null);
+        const trueLiveCount = Math.max(
+          (session?.participant_count ?? 0) + 1,
+          (currentSb?.participant_count ?? 0) + 1,
+        );
+        if (channelRef.current) {
+          channelRef.current
+            .send({ type: "broadcast", event: "presence", payload: { participant_count: trueLiveCount } })
+            .catch(() => {});
+        }
+        syncStatusToSupabase(code, session?.status || "polling", trueLiveCount).catch(() => {});
+        setParticipantCount(trueLiveCount);
+
         const simSuffix = simMode ? "&sim=1" : "";
         router.push(
           `/session/?id=${response.session_id}&pid=${response.participant_id}&lang=${browserLang}${simSuffix}`,
