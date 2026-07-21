@@ -30,9 +30,10 @@
     "test:bom": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/architect-bom.test.mjs",
     "test:room-row-actions": "node tests/room-row-actions.test.mjs",
     "test:security-file": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/security-mission-file.test.mjs",
+    "test:security-guard": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/security-guard.test.mjs",
     "test:rcore-gestures": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/rcore-gestures.test.mjs",
     "test:asset-kinematics": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/asset-kinematics.test.mjs",
-    "test:all": "npm run test:room-layout && npm run test:room-objects && npm run test:mep-runs && npm run test:dim-annot && npm run test:playtest && npm run test:room-scope && npm run test:rcore-gestures && npm run test:asset-kinematics && npm run test:guard && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:sky-embed && npm run test:terrain && npm run test:home-eggs && npm run test:bim && npm run test:bom && npm run test:room-row-actions && npm run test:security-file"
+    "test:all": "npm run test:room-layout && npm run test:room-objects && npm run test:mep-runs && npm run test:dim-annot && npm run test:playtest && npm run test:room-scope && npm run test:rcore-gestures && npm run test:asset-kinematics && npm run test:guard && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:sky-embed && npm run test:terrain && npm run test:home-eggs && npm run test:bim && npm run test:bom && npm run test:room-row-actions && npm run test:security-file && npm run test:security-guard"
   },
   "dependencies": {
     "@arx-research/libhalo": "^1.18.1",
