@@ -18,8 +18,12 @@ const C = { border: "#1e2b3a", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc
 
 export function MetricStrip({ state, overlay = false, homeType = "full" }: { state: LayerState; overlay?: boolean; homeType?: "full" | "tiny" | "multifamily" | "commercial" }) {
   const m = useMemo(() => programMetrics(state.globalParams, state.program, homeType), [state.globalParams, state.program, homeType]);
-  // Default COLLAPSED = icon + number only (operator IMG_7484); ••• expand reveals the grey labels + widens.
-  const [expanded, setExpanded] = useState(false);
+  // 3-state view (operator feedback FX-54): tap ••• to cycle  icons+number → icons+number+words → ••• only.
+  // "dots" is the minimal footprint so the rail never covers critical UX.
+  const [mode, setMode] = useState<"icons" | "words" | "dots">("icons");
+  const cycleMode = () => setMode((v) => (v === "icons" ? "words" : v === "words" ? "dots" : "icons"));
+  const showItems = mode !== "dots";
+  const expanded = mode === "words";
   const [showProgram, setShowProgram] = useState(false); // operator IMG_7545: Building Program is a TOGGLE here, not atop Active Items
   const items: { icon: typeof Bath; label: string; value: string; color: string }[] = [
     { icon: LayoutGrid, label: "Rooms", value: `${m.counts.rooms}`, color: C.violet },
@@ -46,15 +50,16 @@ export function MetricStrip({ state, overlay = false, homeType = "full" }: { sta
   // OVERLAY (operator IMG_7484): a VERTICAL rail on the RIGHT, INSIDE the map border — one icon+number per row.
   // Collapsed = icons + numbers only; the ••• button expands to reveal the grey labels (widens the rail).
   return (
-    <div data-arch-metricstrip data-arch-metric-expanded={expanded ? "1" : "0"}
-      className="pointer-events-auto absolute right-2 top-12 z-10 flex max-h-[78%] flex-col items-center gap-0.5 overflow-y-auto rounded-lg border px-1 py-1 shadow-lg"
-      style={{ background: "#0a0f16e6", borderColor: C.border }}>{/* top-12 keeps the expandable BELOW the R-CORE header (operator IMG_7551) */}
-      {/* ••• expand — VERTICAL stacked dots, CENTERED so they sit symmetric over the centered metric rows (operator IMG_7606). */}
-      <button data-arch-metric-expand onClick={() => setExpanded((v) => !v)} title={expanded ? "Collapse metrics" : "Expand metrics (show labels)"}
-        className="mb-0.5 flex flex-col items-center justify-center gap-[3px] rounded p-0.5 hover:bg-white/10">
+    <div data-arch-metricstrip data-arch-metric-mode={mode}
+      className="pointer-events-auto absolute right-2 top-20 z-10 flex max-h-[72%] flex-col items-center gap-0.5 overflow-y-auto rounded-lg border px-1 py-1 shadow-lg"
+      style={{ background: "#0a0f16e6", borderColor: C.border }}>{/* top-20 clears the 2D/3D · gear · Edit/Walk controls so the rail never covers critical UX (operator FX-54) */}
+      {/* ••• — tap to CYCLE the 3 views: icons+number → +labels → dots only (operator FX-54). Centered, stacked. */}
+      <button data-arch-metric-cycle onClick={cycleMode}
+        title={`Metrics view: ${mode === "icons" ? "icons + number" : mode === "words" ? "icons + number + labels" : "hidden (••• only)"} — tap to cycle`}
+        className="flex flex-col items-center justify-center gap-[3px] rounded p-0.5 hover:bg-white/10" style={{ marginBottom: showItems ? 2 : 0 }}>
         {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
       </button>
-      {items.map(({ icon: Icon, label, value, color }) => (
+      {showItems && items.map(({ icon: Icon, label, value, color }) => (
         <div key={label} data-arch-metric={label.toLowerCase()} title={`${label}: ${value}`} className="flex items-center justify-center gap-1.5 px-1 text-[10px]">
           <Icon className="h-3.5 w-3.5 shrink-0" style={{ color }} />
           <span className="tabular-nums font-semibold" style={{ color }}>{value}</span>
