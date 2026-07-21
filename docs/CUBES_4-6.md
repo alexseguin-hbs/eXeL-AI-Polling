@@ -994,7 +994,12 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 139/139 pass, average ba
 |------|:---:|:---:|:---:|:---:|:---:|:---:|
 | **4 Collector** | 85 | 80 | 85 | 85 | 95 | **86** |
 | **5 Gateway** | 85 | 85 | 90 | 85 | 90 | **87** |
-| **6 AI Pipeline** | 75 | 65 | 70 | 70 | 75 | **80** |
+| **6 AI Pipeline** | 80 | 85 | 82 | 85 | 90 | **84** |
+
+> **Re-scored 2026-07-21** (deep-dive + `offline` provider `df838ce`, theming harness `e635b58`). Prior 80 rested on
+> stale findings — several already resolved in code. The `offline` deterministic provider makes the real
+> classify→generate→reduce→assign→replay-hash paths CI-provable without a billed key, lifting Stability/Scalability/
+> Efficiency; CQS is implemented; concurrency caps exist; efficiency collapsed to 1–2 calls. Per-pillar detail below.
 
 ---
 
@@ -1024,11 +1029,11 @@ See `SPIRAL_METRICS.md` — N=9 (Feb 26). Cube 6 tests: 139/139 pass, average ba
 
 | Pillar | Score | Gap | Finding |
 |--------|:---:|---|---|
-| Security | 70 | Voice path PII gate unverified | Text path verified (`clean_text` → `summarize_single_response()`). Voice path (Cube 3 → Cube 2 pipeline) uses same `clean_text` field but no structured log confirms PII scrub at entry to Phase A. Task A7 adds assertion. |
-| Stability | 65 | Phase A retry + Phase B 5K E2E still pending | Both broadcasts RESOLVED: `summary_ready` (Task A5) + `themes_ready` (Task B4) IMPLEMENTED. Remaining: (1) Phase A has no retry on AI failure; (2) Phase B not yet run against live 5000-response dataset. |
-| Scalability | 55 | No concurrency cap on Phase A; Phase B unverified at scale | 100 concurrent submits → 100 uncapped AI calls via `asyncio.create_task()`. Phase B `asyncio.gather()` exists but batch classification at 5000 responses unconfirmed. Task A3 (Semaphore) + Task B3 (parallel verify) fix this. |
-| Efficiency | 55 | 3 sequential AI round-trips; fallback shown instead of AI output | `summarize_single_response()` makes 3 sequential API calls. Single structured JSON prompt would halve round-trips (Task A1). No broadcast = dashboard always shows client-side truncation fallback. |
-| Succinctness | 75 | `score_cqs()` + `select_cqs_winner()` not implemented | `push_to_live_feed()` fully IMPLEMENTED — both `summary_ready` (Phase A) and `themes_ready` (Phase B) via `broadcast_event()`. 2 remaining functions with no implementation: `score_cqs()`, `select_cqs_winner()`. |
+| Security | 80 | Voice-path PII assertion (minor) | Text path verified (`clean_text` → `summarize_single_response()`). Task A7 PII-scrub assertion RESOLVED (`SSSES.md:163`). The `offline` provider (`df838ce`) adds a zero-data-egress test path (no external calls in CI). Residual: extend the voice-path structured-log assertion. |
+| Stability | 85 | Phase A retry present; full-pipeline E2E now offline-provable | Broadcasts RESOLVED (`summary_ready`, `themes_ready`). Phase A retry EXISTS (`core/phase_a_retry.py`). The `offline` provider + `harness_cube6` (`e635b58`) run the REAL classify→…→assign pipeline deterministically on 25 responses with a stable replay signature — the "5K E2E" is now runnable in CI (parametrizable to 5000). Residual: DB-persistence E2E needs a real test DB (aiosqlite absent). |
+| Scalability | 82 | Concurrency caps confirmed; scale now offline-verifiable | Concurrency caps EXIST (`phase_a.py:45`, `phase_b.py:289`) + marble sampling caps LLM calls (`sample_count=100 × sample_size=10`). The `offline` provider lets Phase B scale be verified in CI without billing (Task B3). Residual: run the offline harness at n=5000 as a standing scale lock. |
+| Efficiency | 85 | Collapsed to 1–2 calls; CI-provable | `summarize_single_response()` uses ONE structured prompt (`phase_a.py:155-210`, Task A1 RESOLVED). Broadcasts deliver real summaries; the client truncation is only a fallback. The `offline` provider proves the efficient path in CI (previously only `LIVE_AI=1`). |
+| Succinctness | 90 | CQS implemented | `push_to_live_feed()` fully IMPLEMENTED. `score_cqs()` + `select_cqs_winner()` + `run_cqs_pipeline()` are IMPLEMENTED (`cqs_engine.py:45/165/189`) — the prior "not implemented" note was stale. Residual: CQS-engine unit tests. |
 
 ---
 
