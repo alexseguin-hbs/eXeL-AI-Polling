@@ -388,9 +388,9 @@ export function ArchitectCelestial({
             <span className="mr-0.5 font-bold" style={{ color: expB ? C.cyan : C.dim }}>B</span>{[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: C.cyan }} />)}
           </button>
         </div>
-        {expL && <div data-map-exp-left className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Left map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder — size · orbit-play · HU migrate here)</span></div>}
-        {expR && <div data-map-exp-right className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Right map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder — date · units · tilt migrate here)</span></div>}
-        {expB && <div data-map-exp-bottom className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Bottom map tools <span style={{ color: C.cyan }}>•••</span> <span>(placeholder — position · readout migrate here)</span></div>}
+        {expL && <div data-map-exp-left className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Left map tools <span style={{ color: C.cyan }}>•••</span></div>}
+        {expR && <div data-map-exp-right className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Right map tools <span style={{ color: C.cyan }}>•••</span></div>}
+        {expB && <div data-map-exp-bottom className="mb-1 overflow-x-auto whitespace-nowrap rounded border p-1.5 text-[8px]" style={{ borderColor: C.cyan, color: C.dim, background: "rgba(8,12,20,0.55)" }}>Bottom map tools <span style={{ color: C.cyan }}>•••</span></div>}
         </>}
         <div className={max ? "relative min-h-0 flex-1" : "relative"}>
         {/* PHASE CLOCK — the only top-right map overlay (top-down toggle). */}
