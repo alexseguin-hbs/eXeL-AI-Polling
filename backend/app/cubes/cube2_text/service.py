@@ -20,7 +20,6 @@ Profanity Pipeline (non-blocking):
 from __future__ import annotations
 
 import asyncio
-import json
 import math
 import re
 import time
@@ -549,7 +548,6 @@ async def _submit_text_inner(
       6. Token earning (Cube 5 time tracking)    → float tokens           (CRS-10)
       7. Fire Phase A summary (Cube 6 async)     → background task        (CRS-11)
     """
-    """Inner submission logic — runs under semaphore protection."""
     # --- 2b. Language sanity check (non-blocking) ---
     if not detect_language(text, language_code):
         logger.warning(
