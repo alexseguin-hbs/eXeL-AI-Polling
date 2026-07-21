@@ -9,6 +9,7 @@ import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useLexicon } from "@/lib/lexicon-context";
+import { CubeDevSim } from "@/components/cube-dev-sim";
 
 // SIM is easter-egg + password gated. The gate lives in React context (in-memory
 // only). If the user navigates here without unlocking on `/` first, we bounce
@@ -31,6 +32,7 @@ function SimSplitScreen() {
   }, [gated, router]);
 
   const [origin, setOrigin] = useState<string>("");
+  const [view, setView] = useState<"dev" | "split">("dev");
   useEffect(() => {
     if (typeof window !== "undefined") setOrigin(window.location.origin);
   }, []);
@@ -79,6 +81,19 @@ function SimSplitScreen() {
         </div>
       </div>
 
+      {/* Simulation option: Cube Developer Sim (Cubes 1-9) vs the session split-screen demo */}
+      <div className="flex justify-center gap-2 border-b border-border/40 bg-muted/10 px-4 py-2">
+        <Button variant={view === "dev" ? "default" : "outline"} size="sm" onClick={() => setView("dev")}>
+          Cube Dev Sim · 1–9
+        </Button>
+        <Button variant={view === "split" ? "default" : "outline"} size="sm" onClick={() => setView("split")}>
+          Session Demo
+        </Button>
+      </div>
+
+      {view === "dev" && <CubeDevSim />}
+
+      {view === "split" && (<>
       <div className="grid flex-1 grid-cols-1 gap-0 md:grid-cols-2">
         {/* LEFT — Moderator */}
         <div className="flex flex-col border-r border-border/40 min-h-[70vh]">
@@ -145,6 +160,7 @@ function SimSplitScreen() {
           </div>
         </div>
       </div>
+      </>)}
     </div>
   );
 }

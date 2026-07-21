@@ -30,7 +30,6 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { AuthGuard } from "@/components/auth-guard";
 import { Navbar } from "@/components/navbar";
-import { SoISection } from "@/components/soi-section";
 import { FlowerVisualization } from "@/components/flower-of-life/flower-visualization";
 import { PricingTierSelector, DonationPrompt } from "@/components/stripe-payment";
 import { Button } from "@/components/ui/button";
@@ -1213,8 +1212,8 @@ function DashboardContent() {
       <Navbar />
 
       <main className="container py-8">
-        {/* System of Intelligence — published from Architect-2525, shown when logged in */}
-        <SoISection />
+        {/* SoI Framework lives only in the navbar "SoI Framework" menu now — the dashboard
+            shows only past Polls + Create Session (operator). */}
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
