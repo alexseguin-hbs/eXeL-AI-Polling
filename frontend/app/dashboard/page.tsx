@@ -576,8 +576,10 @@ function SessionDetail({
                 {t("cube6.themes.ready_badge").replace("{count}", String(themeCount))}
               </span>
             )}
-            {/* Close — live polls only (static polls close at ends_at deadline) */}
-            {["open", "polling", "ranking"].includes(session.status) && isLiveInteractive && (
+            {/* Close — live polls only (static polls close at ends_at deadline).
+                NOT during polling: operator flow is Polling → Start Ranking → (then) Close.
+                Closing is offered in the lobby (open) and during ranking/prioritization only. */}
+            {["open", "ranking"].includes(session.status) && isLiveInteractive && (
               <Button
                 variant="destructive"
                 onClick={() => handleTransition("close")}
