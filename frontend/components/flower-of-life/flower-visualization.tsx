@@ -20,12 +20,19 @@ import {
   THEME1_INDEX,
 } from "@/lib/flower-geometry";
 import { generateSampleSessionData } from "@/lib/sample-session-data";
-import type { Theme01Label, ThemeInfo } from "@/lib/types";
+import { adaptLiveThemes, type LiveThemeRow } from "@/lib/adapt-live-themes";
+import { api } from "@/lib/api";
+import type { Theme01Label, ThemeInfo, SessionThemeData } from "@/lib/types";
 import "@/components/flower-of-life/flower-animations.css";
 
 // Module-level constants — pure functions with no deps, computed once
 const THEME1_POSITIONS = getTheme1Positions();
 const HUB_POSITION = getHubPosition();
+
+// Demo showcase sessions keep the seeded 5,000-response mock (the praised
+// visualization). EVERY other (real) session fetches live Cube 6 themes instead —
+// so a newly-created poll never shows the 5,000 sample. (Operator, 2026-07-21.)
+const DEMO_SHOWCASE_CODES = new Set(["DEMO2026", "PAST0001", "STATIC01"]);
 
 // ── Theme1 color config ──────────────────────────────────────────
 
@@ -69,16 +76,51 @@ interface FlowerVisualizationProps {
   sessionId: string;
   sessionTitle: string;
   isPaidTier?: boolean;
+  /** Session short code — the seeded 5,000-response showcase renders ONLY for the
+   *  demo codes; every real session fetches live Cube 6 themes (GET /themes). */
+  sessionShortCode?: string;
 }
 
 export function FlowerVisualization({
   sessionId,
   sessionTitle,
   isPaidTier = false,
+  sessionShortCode,
 }: FlowerVisualizationProps) {
+  const isDemo = !!sessionShortCode && DEMO_SHOWCASE_CODES.has(sessionShortCode.toUpperCase());
+  const [liveData, setLiveData] = useState<SessionThemeData | null>(null);
+  const [liveStatus, setLiveStatus] = useState<"loading" | "empty" | "ready">(isDemo ? "ready" : "loading");
+
+  // Real sessions: fetch Cube 6 Theme 01 (Risk/Supporting/Neutral) + Theme 02
+  // (3/6/9) from the backend and adapt into the visual's shape. Falls back to a
+  // placeholder (never the mock) when a session has no themes yet.
+  useEffect(() => {
+    if (isDemo) return;
+    let cancelled = false;
+    setLiveStatus("loading");
+    (async () => {
+      try {
+        const rows = await api.get<LiveThemeRow[]>(`/sessions/${sessionId}/themes`);
+        if (cancelled) return;
+        const adapted = adaptLiveThemes(sessionId, rows || []);
+        if (adapted.totalResponses > 0) {
+          setLiveData(adapted);
+          setLiveStatus("ready");
+        } else {
+          setLiveStatus("empty");
+        }
+      } catch {
+        if (!cancelled) setLiveStatus("empty");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isDemo, sessionId]);
+
   const data = useMemo(
-    () => generateSampleSessionData(sessionId),
-    [sessionId]
+    () => (isDemo ? generateSampleSessionData(sessionId) : liveData ?? adaptLiveThemes(sessionId, [])),
+    [isDemo, sessionId, liveData]
   );
 
   const [state, setState] = useState<FlowerState>({
@@ -242,6 +284,28 @@ export function FlowerVisualization({
   }, [state.view, state.selectedTheme1, theme1Positions, hubPosition]);
 
   // ── Render ───────────────────────────────────────────────────
+
+  // Real session with no themes yet (loading, or none generated) → placeholder,
+  // NEVER the seeded 5,000-response mock.
+  if (!isDemo && liveStatus !== "ready") {
+    return (
+      <Card className="mt-6">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Theme Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center gap-2 py-12 text-center text-muted-foreground">
+            <p className="text-sm">
+              {liveStatus === "loading"
+                ? "Loading live themes…"
+                : "Themes will appear here once responses are analyzed — Theme 01 (Risk · Supporting · Neutral), then 3 / 6 / 9 sub-themes."}
+            </p>
+            <p className="text-xs opacity-70">Live results only — sample data is never shown for real sessions.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card

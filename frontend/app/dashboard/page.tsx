@@ -976,6 +976,7 @@ function SessionDetail({
           <FlowerVisualization
             sessionId={session.id}
             sessionTitle={session.title}
+            sessionShortCode={session.short_code}
             isPaidTier={session.pricing_tier !== "free"}
           />
         )}
