@@ -269,9 +269,9 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
                   const gx0 = cx - w * 5, gy0 = cy - d * 5, col = on ? C.gold : s.color;
                   return (
                     <g style={{ pointerEvents: "none" }}>
-                      <rect x={gx0 - 2.1} y={gy0 - 2.9} width={4.2} height={5.8} rx={1} fill="#070b12dd" stroke={col} strokeWidth={0.4} />
+                      <rect x={gx0 - 1.15} y={gy0 - 1.65} width={2.3} height={3.3} rx={0.6} fill="#070b12dd" stroke={col} strokeWidth={0.3} />
                       {[0, 1, 2].map((r) => [0, 1].map((c) => (
-                        <circle key={`${r}${c}`} cx={gx0 - 1 + c * 2} cy={gy0 - 1.9 + r * 1.9} r={0.5} fill={col} />
+                        <circle key={`${r}${c}`} cx={gx0 - 0.55 + c * 1.1} cy={gy0 - 1.05 + r * 1.05} r={0.26} fill={col} />
                       )))}
                     </g>
                   );
