@@ -681,13 +681,21 @@ export function RoomDesigner({ room, onChange, onBack, showWater = false, showSe
               const fp = footprintOf(o);
               const fmt = (n: number) => (Number.isInteger(n) ? `${n}` : n.toFixed(1).replace(/\.0$/, ""));
               return (
-                <button key={o.id} data-arch-active-el={o.kind} onClick={() => setSelId(on ? null : o.id)}
-                  className="flex items-center gap-1.5 rounded px-1 py-0.5 text-left text-[10px]"
+                // Row = a select area (icon + name + dims) PLUS Rotate/Delete on the RIGHT of every item, so a
+                // highlighted item can be rotated or removed in one tap — no hunting for the control (operator IMG_7611).
+                <div key={o.id} data-arch-active-el={o.kind}
+                  className="flex items-center gap-1 rounded px-1 py-0.5 text-[10px]"
                   style={{ background: on ? `${C.gold}1e` : "transparent", color: on ? C.gold : C.text }}>
-                  <RowIcon className="h-3 w-3 shrink-0" style={{ color: on ? C.gold : s.color }} />
-                  <span className="min-w-0 flex-1 truncate">{vLabel ? `${vLabel} ` : ""}{s.label}</span>
-                  <span className="shrink-0 tabular-nums" style={{ color: C.dim, fontSize: 8 }}>{fmt(fp.w)}×{fmt(fp.d)}×{fmt(heightOf(o))}′ · {fmt(o.gx)},{fmt(o.gy)}</span>
-                </button>
+                  <button onClick={() => setSelId(on ? null : o.id)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
+                    <RowIcon className="h-3 w-3 shrink-0" style={{ color: on ? C.gold : s.color }} />
+                    <span className="min-w-0 flex-1 truncate">{vLabel ? `${vLabel} ` : ""}{s.label}</span>
+                    <span className="shrink-0 tabular-nums" style={{ color: C.dim, fontSize: 8 }}>{fmt(fp.w)}×{fmt(fp.d)}×{fmt(heightOf(o))}′</span>
+                  </button>
+                  <button data-arch-el-rotate={o.kind} onClick={() => commit(rotateObject(objects, o.id))} title={`Rotate ${s.label}`} aria-label={`Rotate ${s.label}`}
+                    className="shrink-0 rounded p-1 hover:bg-white/10" style={{ color: C.cyan }}><RotateCw className="h-3 w-3" /></button>
+                  <button data-arch-el-delete={o.kind} onClick={() => { commit(removeObject(objects, o.id)); if (selId === o.id) setSelId(null); }} title={`Delete ${s.label}`} aria-label={`Delete ${s.label}`}
+                    className="shrink-0 rounded p-1 hover:bg-white/10" style={{ color: "#f87171" }}><Trash2 className="h-3 w-3" /></button>
+                </div>
               );
             })}
           </div>
