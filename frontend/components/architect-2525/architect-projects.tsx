@@ -9,7 +9,8 @@
  * owned by command-ux1 (which has the full layer snapshot + homeType + room layout); this is only the UI.
  */
 import { useEffect, useRef, useState } from "react";
-import { Download, Upload, Save, FolderOpen, Trash2, ChevronRight } from "lucide-react";
+import { Download, Upload, Save, FolderOpen, Trash2, ChevronRight, Info } from "lucide-react";
+import { useLexicon } from "@/lib/lexicon-context";
 import { type ArchitectProjectFile, toFileText, parseProject, projectFilename, ARCH_FILE_EXT } from "@/lib/architect-project-file";
 
 const C = { border: "#1e2b3a", panel: "#0c1420", text: "#c8d6e5", dim: "#5f7186", cyan: "#19c8cf", violet: "#c084fc", gold: "#ffd400", red: "#f87171" };
@@ -26,21 +27,23 @@ export function ArchitectProjects({ buildFile, onLoad }: {
   buildFile: (name: string) => ArchitectProjectFile;      // command-ux1 assembles the full .arch2525 from live state
   onLoad: (file: ArchitectProjectFile) => void;           // command-ux1 seats snapshot + rooms + market
 }) {
+  const { t } = useLexicon();
   const [name, setName] = useState("");
   const [lib, setLib] = useState<SavedEntry[]>(() => readLib());
   const [msg, setMsg] = useState<string | null>(null);
   const [open, setOpen] = useState(false);                // MP-style declutter — list lives behind the pill
+  const [showHelp, setShowHelp] = useState(false);        // ⓘ best-practices explainer (operator FX-55)
   const fileRef = useRef<HTMLInputElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const note = (m: string) => { setMsg(m); setTimeout(() => setMsg(null), 2600); };
 
-  // Click-away closes the dropdown, like the Security AO/MISSION menu.
+  // Click-away closes the dropdown + help, like the Security AO/MISSION menu.
   useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => { if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false); };
+    if (!open && !showHelp) return;
+    const onDoc = (e: MouseEvent) => { if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) { setOpen(false); setShowHelp(false); } };
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
-  }, [open]);
+  }, [open, showHelp]);
 
   const saveNamed = () => {
     const nm = name.trim() || "Untitled Design";
@@ -73,13 +76,33 @@ export function ArchitectProjects({ buildFile, onLoad }: {
   const btn = "flex items-center gap-1 rounded border px-2 py-1 text-[10px] font-semibold";
   return (
     <div ref={wrapRef} data-arch-projects className="relative flex flex-col gap-1 text-[11px]" style={{ color: C.text }}>
-      {/* Collapsed pill — same declutter method as Security-2525's AO/MISSION dropdown */}
-      <button data-arch-proj-menu onClick={() => setOpen((v) => !v)} title="Saved designs — save · load · export .arch2525"
-        className="flex items-center gap-1.5 rounded border px-2 py-1 text-[10px] font-semibold tracking-wide"
-        style={{ borderColor: open ? C.cyan : C.border, color: C.cyan }}>
-        <FolderOpen className="h-3 w-3" /> Saved Designs · {lib.length}
-        <ChevronRight className={`h-3 w-3 transition-transform ${open ? "rotate-90" : ""}`} style={{ color: C.dim }} />
-      </button>
+      {/* Collapsed pill (Security AO/MISSION declutter) + an ⓘ best-practices explainer (operator FX-55). */}
+      <div className="flex items-center gap-1">
+        <button data-arch-proj-menu onClick={() => { setOpen((v) => !v); setShowHelp(false); }} title="Saved designs — save · load · export .arch2525"
+          className="flex items-center gap-1.5 rounded border px-2 py-1 text-[10px] font-semibold tracking-wide"
+          style={{ borderColor: open ? C.cyan : C.border, color: C.cyan }}>
+          <FolderOpen className="h-3 w-3" /> Saved Designs · {lib.length}
+          <ChevronRight className={`h-3 w-3 transition-transform ${open ? "rotate-90" : ""}`} style={{ color: C.dim }} />
+        </button>
+        <button data-arch-proj-info onClick={() => { setShowHelp((v) => !v); setOpen(false); }} aria-label={t("vision.designfiles.help.title")} title={t("vision.designfiles.help.title")}
+          className="rounded border p-1" style={{ borderColor: showHelp ? C.cyan : C.border, color: C.cyan }}>
+          <Info className="h-3 w-3" />
+        </button>
+      </div>
+
+      {showHelp && (
+        <div data-arch-proj-help className="absolute left-0 top-9 z-50 w-72 max-w-[calc(100vw-2rem)] rounded-lg border p-2 text-[10px] leading-relaxed shadow-2xl"
+          style={{ background: C.panel, borderColor: C.cyan, color: C.dim }}>
+          <div className="mb-1 text-[8px] font-bold uppercase tracking-wider" style={{ color: C.gold }}>{t("vision.designfiles.help.title")}</div>
+          <ul className="space-y-1">
+            <li><span className="font-semibold" style={{ color: C.cyan }}>Save</span> — {t("vision.designfiles.help.save")}</li>
+            <li><span className="font-semibold" style={{ color: C.violet }}>.{ARCH_FILE_EXT}</span> — {t("vision.designfiles.help.export")}</li>
+            <li><span className="font-semibold" style={{ color: C.text }}>Upload</span> — {t("vision.designfiles.help.upload")}</li>
+            <li>{t("vision.designfiles.help.manage")}</li>
+            <li style={{ color: C.cyan }}>{t("vision.designfiles.help.tip")}</li>
+          </ul>
+        </div>
+      )}
 
       {open && (
         <div data-arch-proj-panel className="absolute left-0 top-8 z-50 flex max-h-[70vh] w-72 max-w-[calc(100vw-2rem)] flex-col gap-2 overflow-y-auto rounded-lg border p-2 shadow-2xl"

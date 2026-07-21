@@ -1095,6 +1095,13 @@ const vision2525: TranslationEntry[] = [
   { key: "vision.dim.offGround", englishDefault: "Off ground", context: "Dimension: object distance above finished floor (3D — window sill etc.)", cubeId: 40 },
   { key: "vision.dim.set", englishDefault: "Set", context: "Commit the typed measurement", cubeId: 40 },
   { key: "vision.dim.del", englishDefault: "Del", context: "Delete the last digit in the measurement keypad", cubeId: 40 },
+  // Design Files (Architect-2525 .arch2525 saved-designs) — ⓘ best-practices explainer (operator FX-55).
+  { key: "vision.designfiles.help.title", englishDefault: "How Design Files work", context: "Design Files ⓘ help popover heading", cubeId: 40 },
+  { key: "vision.designfiles.help.save", englishDefault: "keep the current design in this browser (up to 30).", context: "Design Files help: Save action", cubeId: 40 },
+  { key: "vision.designfiles.help.export", englishDefault: "download the design as a file to share or back up.", context: "Design Files help: Export .arch2525 action", cubeId: 40 },
+  { key: "vision.designfiles.help.upload", englishDefault: "open a .arch2525 design file from your device.", context: "Design Files help: Upload action", cubeId: 40 },
+  { key: "vision.designfiles.help.manage", englishDefault: "Each saved design can be loaded, downloaded, or deleted.", context: "Design Files help: per-row actions", cubeId: 40 },
+  { key: "vision.designfiles.help.tip", englishDefault: "Tip: Export then Upload to move a design between devices.", context: "Design Files help: cross-device tip", cubeId: 40 },
 ];
 
 // ─── Aggregated cube groups ──────────────────────────────────────
