@@ -464,10 +464,9 @@ export function SessionView() {
 
         setSession(data);
         setParticipantCount(data.participant_count ?? 0);
-        // Start time tracking when session is actively polling
-        if (["open", "polling"].includes(data.status)) {
-          startTimer();
-        }
+        // Do NOT start the participation timer on join/load. Anti-gaming: the timer
+        // starts on the FIRST keystroke or FIRST voice transcript via
+        // startTimerOnActivity() — users can't accrue time by sitting idle in the poll.
       } catch (err) {
         if (err instanceof ApiClientError) {
           setError((err as ApiClientError).detail);
