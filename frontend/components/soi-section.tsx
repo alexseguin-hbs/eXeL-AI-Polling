@@ -39,15 +39,19 @@ export function SoISection() {
 
   return (
     <Card data-soi-section className="mb-8">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">System of Innovation <span className="text-xs font-normal text-muted-foreground">· ◬ ♡ 웃 Tri-Coin</span></CardTitle>
+      <CardHeader className="text-center md:text-left">
+        {/* Line 1: title · Line 2: · ◬ ♡ 웃 Tri-Coin (glyphs 3×) · centered on phone, left on desktop. */}
+        <CardTitle className="flex flex-col items-center gap-1 md:items-start">
+          <span>System of Innovation</span>
+          <span className="font-normal text-muted-foreground">· <span className="text-3xl align-middle leading-none tracking-wide">◬ ♡ 웃</span> Tri-Coin</span>
+        </CardTitle>
         <CardDescription>{tr(soi.thesis, DEFAULT_SOI.thesis, "soi.thesis")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Trinity glyph (left) + the three coins — LEFT-justified (items-start, no mx-auto). All rings = the
-            single theme accent (cyan); the SoITrinity falls back to `color` when no per-ring `colors` are given. */}
+        {/* Trinity glyph + the three coins. Trinity is CENTERED on phone (mx-auto), left-justified on
+            desktop. All rings = the single theme accent (cyan); SoITrinity falls back to `color`. */}
         <div className="grid items-start gap-6 md:grid-cols-[180px_1fr]">
-          <div><SoITrinity labels={["웃", "♡", "◬"]} color={accent} textColor="#0a1628" size={168} /></div>
+          <div className="mx-auto md:mx-0"><SoITrinity labels={["웃", "♡", "◬"]} color={accent} textColor="#0a1628" size={168} /></div>
           <div className="grid gap-3 sm:grid-cols-3">
             {[...soi.coins].sort((a, b) => (COIN_ORDER[a.key] ?? 9) - (COIN_ORDER[b.key] ?? 9)).map((c) => {
               const dc = DEFAULT_SOI.coins.find((x) => x.key === c.key);
