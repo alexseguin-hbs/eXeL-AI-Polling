@@ -19,10 +19,12 @@ const SIM_DEFAULT_CODE = "DEMO2026";
 function SimSplitScreen() {
   const router = useRouter();
   const params = useSearchParams();
-  const { simulationMode, cube10Access } = useEasterEgg();
+  const { simulationMode, cube10Access, easterEggUnlocked } = useEasterEgg();
   const { t } = useLexicon();
 
-  const gated = simulationMode || cube10Access === "admin" || cube10Access === "challenger";
+  // /sim (Cube Dev-Sim) stays password-gated: reachable only once the easter egg is unlocked
+  // (the "CUBE SIM" launcher spoke exits simulationMode then routes here, so keep easterEggUnlocked).
+  const gated = simulationMode || easterEggUnlocked || cube10Access === "admin" || cube10Access === "challenger";
   const sessionCode = params.get("code") || SIM_DEFAULT_CODE;
 
   useEffect(() => {
