@@ -339,7 +339,7 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
             </div>
             <Expander id="kg" title="Knowledge Graph" sub="every project improves the next">
               <div className="rounded-lg border p-3 text-[11px]" style={{ borderColor: C.border, background: C.panel, color: C.dim }}>
-                Foundation → Concrete → Climate → Drainage → Best Practices → Future Recommendations. <span style={{ color: C.dim }}>(wiring pending)</span>
+                Foundation → Concrete → Climate → Drainage → Best Practices → Future Recommendations.
               </div>
             </Expander>
             <Expander id="soi" title="System of Intelligence · Tri-Coin" sub="incentive framework — tap to expand">
@@ -425,13 +425,11 @@ export function ArchitectCommandUX1({ initialTab = "OVERVIEW" }: { initialTab?: 
                 </div>
               ))}
             </div>
-            <div className="text-[9px]" style={{ color: C.dim }}>Reuses the Security-2525 {"“•••”"} expansion method · content wiring per Sprint 2+.</div>
           </div>
         ) : (
           <div className="flex min-h-[55vh] flex-col items-center justify-center gap-2 text-center">
             <span className="text-sm font-semibold tracking-wide" style={{ color: C.violet }}>{activeTab}{SUBNAV[activeTab] ? ` · ${sub(activeTab)}` : ""}</span>
-            <span className="text-xs" style={{ color: C.dim }}>Architect-2525 · wiring pending</span>
-            <span className="max-w-md text-[11px]" style={{ color: C.dim }}>See docs/architecture-2525/MASTER_SPEC.md.</span>
+            <span className="text-xs" style={{ color: C.dim }}>Coming soon</span>
           </div>
         )}
         </div>
