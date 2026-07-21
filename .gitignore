@@ -20,6 +20,9 @@ node_modules/
 **/.env
 **/.env.local
 **/.env.*
+# ...but DO track the committed templates (no secrets — placeholders only)
+!.env.example
+!**/.env.example
 
 # WSL/Windows metadata junk
 *:Zone.Identifier

@@ -14,9 +14,12 @@ export const AUTH0_REDIRECT_URI =
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-// Stripe (publishable key — safe for browser, not a secret)
+// Stripe (publishable key — safe for browser, not a secret).
+// Comes from NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (see frontend/.env.example).
+// Empty → the payment UI runs in test/no-charge mode; operator drops in a
+// pk_test_/pk_live_ key to enable Checkout / Payment Intents. No key in the repo.
 export const STRIPE_PUBLISHABLE_KEY =
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_51TGqNcAKTYQveN5ogGtsrltn65Fpz9uB14fGKklsSeYbpe6czK7qw0S9GUhIS2MunpIIiK7j6Kq5zYlwRLcgq8f400geBCprUF";
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
 
 // Pricing tiers
 export const PRICING_TIERS = [
