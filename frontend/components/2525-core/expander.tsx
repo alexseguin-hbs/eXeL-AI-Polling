@@ -25,18 +25,25 @@ export function Expander({
   return (
     <div data-arch-exp={id}>
       <button onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        className="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors hover:bg-white/5"
+        className="relative flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors hover:bg-white/5"
         style={{ borderColor: colors.border, background: colors.panel }}>
-        {/* ••• dots LEFT of the title (operator: standardize to the ACTIVE ITEMS style — vertical dots, left-aligned). */}
-        {dots && (
-          <span data-exp-dots className="flex shrink-0 flex-col items-center gap-[2px]">
-            {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: colors.accent }} />)}
+        {/* When dotted, CENTER the ••• + title like the Active Elements bar so every ••• stacks down the middle
+            (operator IMG_7607); the chevron pins absolute-right. Non-dotted headers keep the left title + right chevron. */}
+        {dots ? (
+          <span className="flex flex-1 items-center justify-center gap-2">
+            <span data-exp-dots className="flex shrink-0 flex-col items-center gap-[3px]">
+              {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: colors.accent }} />)}
+            </span>
+            <span className="text-[11px] font-bold tracking-wider" style={{ color: colors.accent }}>
+              {title}{sub && <span className="ml-2 font-normal" style={{ color: colors.dim }}>· {sub}</span>}
+            </span>
+          </span>
+        ) : (
+          <span className="text-[11px] font-bold tracking-wider" style={{ color: colors.accent }}>
+            {title}{sub && <span className="ml-2 font-normal" style={{ color: colors.dim }}>· {sub}</span>}
           </span>
         )}
-        <span className="text-[11px] font-bold tracking-wider" style={{ color: colors.accent }}>
-          {title}{sub && <span className="ml-2 font-normal" style={{ color: colors.dim }}>· {sub}</span>}
-        </span>
-        <ChevronDown className="ml-auto h-3.5 w-3.5 shrink-0 transition-transform" style={{ color: colors.dim, transform: open ? "rotate(180deg)" : "none" }} />
+        <ChevronDown className={`${dots ? "absolute right-3" : "ml-auto"} h-3.5 w-3.5 shrink-0 transition-transform`} style={{ color: colors.dim, transform: open ? "rotate(180deg)" : "none" }} />
       </button>
       {open && <div className="mt-2">{children}</div>}
     </div>

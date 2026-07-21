@@ -103,8 +103,9 @@ function BottomPanel({ id, title, accent, open, setOpen, children }: {
 
   return (
     <div data-arch-bpanel={id} className="rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
-      {/* ••• dots LEFT of the title (operator: standardize to the ACTIVE ITEMS style — vertical dots, left-aligned). */}
-      <div className="relative flex items-center gap-2 px-3 py-1.5" style={{ borderBottom: open ? `1px solid ${C.border}` : "1px solid transparent" }}>
+      {/* ••• dots + title CENTERED — copy the Active Elements bar so every expander's ••• stack down the middle
+          (operator IMG_7607). Maximize stays pinned absolute-right. */}
+      <div className="relative flex items-center justify-center gap-2 px-3 py-1.5" style={{ borderBottom: open ? `1px solid ${C.border}` : "1px solid transparent" }}>
         <button data-bpanel-toggle={id} onClick={() => setOpen(!open)} title={open ? "Collapse" : "Expand"}
           className="rounded p-1 hover:bg-white/5"><Dots3 /></button>
         <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
