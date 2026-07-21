@@ -100,7 +100,7 @@ export default function LandingPage() {
       {/* pb-28 reserves clearance for the fixed bottom badges (Feedback · SECURITY-2525 · eXeL AI) so they no
           longer cover the last content — the Trinity emblem / feature cards (#164, Thought Master IMG_7482). The
           badges stay fixed + reachable app-wide; only the homepage content is padded above them. */}
-      <main className="flex flex-1 flex-col items-center justify-center px-4 pb-28">
+      <main className="flex flex-1 flex-col items-center justify-center px-4 pb-36">
         {/* Hero */}
         <div className="flex flex-col items-center gap-6 text-center mb-10">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
@@ -311,7 +311,7 @@ export default function LandingPage() {
       {/* DIRECT access to SECURITY-2525 — bottom-centre, between the Give Feedback button (bottom-left)
           and the eXeL AI badge (bottom-right). NOT Easter-egg gated; lands on the PLANNING tab. */}
       <a href="/main/Security-2525/"
-        className={`fixed bottom-6 z-50 -translate-x-1/2 font-mono text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline ${secLeft == null ? "left-1/2" : ""}`}
+        className={`fixed bottom-6 z-50 -translate-x-1/2 rounded-full border bg-background/85 px-3 py-1 font-mono text-xs text-muted-foreground backdrop-blur transition-colors hover:text-primary hover:bg-background/95 ${secLeft == null ? "left-1/2" : ""}`}
         style={secLeft == null ? undefined : { left: secLeft }}>
         SECURITY-2525
       </a>
