@@ -733,6 +733,34 @@ const cube8: TranslationEntry[] = [
   // SoI Framework (System of Intelligence · Tri-Coin) — section labels shown in the Settings SoI modal + dashboard.
   { key: "soi.section.flow", englishDefault: "Value & Flow", context: "SoI Framework: heading for how contribution converts to real value (Redeem/Exchange/Stake/Amplify)", cubeId: 8 },
   { key: "soi.section.nose", englishDefault: "Why It Matters", context: "SoI Framework: heading for the Need/Outcome/Solution/Evidence (NOSE) frame", cubeId: 8 },
+  // SoI Framework — the default framework CONTENT (thesis · 3 Tri-Coins · Value/Flow · NOSE). englishDefault MUST
+  // mirror DEFAULT_SOI in lib/soi-framework.ts exactly (soi-section renders defaults via t() so they translate 33 langs).
+  { key: "soi.thesis", englishDefault: "Value what people bring, not only what they produce. ♡ carries the why · 웃 powers the how · ◬ multiplies the what — so shared intention becomes shared progress for every learner, maker, and community on Earth.", context: "SoI Framework thesis — the one-line vision", cubeId: 8 },
+  { key: "soi.coin.SI.name", englishDefault: "Shared Intention", context: "SoI coin ♡ SI name", cubeId: 8 },
+  { key: "soi.coin.SI.law", englishDefault: "1 minute given = 1 ♡", context: "SoI coin ♡ SI earning rule (keep the ♡ glyph + numbers)", cubeId: 8 },
+  { key: "soi.coin.SI.purpose", englishDefault: "Time offered in good faith — the trust and belonging that let people build together.", context: "SoI coin ♡ SI purpose", cubeId: 8 },
+  { key: "soi.coin.HI.name", englishDefault: "Human Intelligence", context: "SoI coin 웃 HI name", cubeId: 8 },
+  { key: "soi.coin.HI.law", englishDefault: "1 hour of fair work ≈ 7.25 웃", context: "SoI coin 웃 HI earning rule (keep the 웃 glyph + numbers)", cubeId: 8 },
+  { key: "soi.coin.HI.purpose", englishDefault: "Skill, craft, and care — honored so people and their families can thrive.", context: "SoI coin 웃 HI purpose", cubeId: 8 },
+  { key: "soi.coin.AI.name", englishDefault: "Artificial Intelligence", context: "SoI coin ◬ AI name", cubeId: 8 },
+  { key: "soi.coin.AI.law", englishDefault: "1 min SI = 5 ◬ (5× leverage)", context: "SoI coin ◬ AI earning rule (keep the ◬ glyph + numbers)", cubeId: 8 },
+  { key: "soi.coin.AI.purpose", englishDefault: "Time saved by the tools we create together — leverage returned to everyone, not the few.", context: "SoI coin ◬ AI purpose", cubeId: 8 },
+  { key: "soi.flow.redeem.k", englishDefault: "Redeem", context: "SoI value-flow step label", cubeId: 8 },
+  { key: "soi.flow.redeem.d", englishDefault: "웃 becomes real-world value when the treasury allows.", context: "SoI value-flow: Redeem", cubeId: 8 },
+  { key: "soi.flow.exchange.k", englishDefault: "Exchange", context: "SoI value-flow step label", cubeId: 8 },
+  { key: "soi.flow.exchange.d", englishDefault: "Trade within the community — services, tools, and mentorship.", context: "SoI value-flow: Exchange", cubeId: 8 },
+  { key: "soi.flow.stake.k", englishDefault: "Stake", context: "SoI value-flow step label", cubeId: 8 },
+  { key: "soi.flow.stake.d", englishDefault: "Shape decisions, earn bonuses, and unlock what comes next.", context: "SoI value-flow: Stake", cubeId: 8 },
+  { key: "soi.flow.amplify.k", englishDefault: "Amplify", context: "SoI value-flow step label", cubeId: 8 },
+  { key: "soi.flow.amplify.d", englishDefault: "♡ grows into ◬ when your work becomes a tool others reuse.", context: "SoI value-flow: Amplify", cubeId: 8 },
+  { key: "soi.nose.need.k", englishDefault: "Need", context: "SoI NOSE frame label", cubeId: 8 },
+  { key: "soi.nose.need.d", englishDefault: "The world rarely rewards unpaid contribution — or the tools that multiply everyone's effort.", context: "SoI NOSE: Need", cubeId: 8 },
+  { key: "soi.nose.outcome.k", englishDefault: "Outcome", context: "SoI NOSE frame label", cubeId: 8 },
+  { key: "soi.nose.outcome.d", englishDefault: "Decisions in minutes, not weeks — with rewards that are transparent and fair to all.", context: "SoI NOSE: Outcome", cubeId: 8 },
+  { key: "soi.nose.solution.k", englishDefault: "Solution", context: "SoI NOSE frame label", cubeId: 8 },
+  { key: "soi.nose.solution.d", englishDefault: "Fast, inclusive polling + AI clustering + a tokenized Tri-Coin of shared value.", context: "SoI NOSE: Solution", cubeId: 8 },
+  { key: "soi.nose.evidence.k", englishDefault: "Evidence", context: "SoI NOSE frame label", cubeId: 8 },
+  { key: "soi.nose.evidence.d", englishDefault: "Live pilots since 2026 — an open model educators and innovators everywhere can build on.", context: "SoI NOSE: Evidence", cubeId: 8 },
 ];
 
 const cube9: TranslationEntry[] = [

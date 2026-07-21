@@ -20,26 +20,30 @@ export interface SoiFramework {
   nose: SoiKV[];      // Need / Outcome / Solution / Evidence
 }
 
-// Default framework — copy simplified to speak to hearts, minds, and spirits (operator ask E).
+// Default framework — copy written to inspire users, educators, and innovators everywhere, and to read clearly in
+// every language (operator ask: "make sense in all languages · inspire users, education and innovators all over the
+// world"). The DISPLAY surfaces (soi-section.tsx) render these defaults through the lexicon `t()` so they translate
+// into all 33 languages; the englishDefault of each SoI lexicon key mirrors the strings below EXACTLY. Anchors kept
+// for the SPIRAL: coin names (Shared/Human/Artificial Intelligence) + the AI law substring "1 min SI = 5 ◬".
 export const DEFAULT_SOI: SoiFramework = {
   version: SOI_VERSION,
-  thesis: "Value presence, not just production. ♡ fuels the why · 웃 powers the how · ◬ scales the what.",
+  thesis: "Value what people bring, not only what they produce. ♡ carries the why · 웃 powers the how · ◬ multiplies the what — so shared intention becomes shared progress for every learner, maker, and community on Earth.",
   coins: [
-    { sym: "♡", key: "SI", name: "Shared Intention", law: "1 min contributed = 1 ♡", purpose: "Time given in goodwill — builds trust and belonging." },
-    { sym: "웃", key: "HI", name: "Human Intelligence", law: "min-wage $7.25/hr → 1 hr ≈ 7.25 웃", purpose: "Skill and care, fairly compensated — sustains people." },
-    { sym: "◬", key: "AI", name: "Artificial Intelligence", law: "1 min SI = 5 ◬ (5× acceleration)", purpose: "Time saved by tools — rewards leverage shared with all." },
+    { sym: "♡", key: "SI", name: "Shared Intention", law: "1 minute given = 1 ♡", purpose: "Time offered in good faith — the trust and belonging that let people build together." },
+    { sym: "웃", key: "HI", name: "Human Intelligence", law: "1 hour of fair work ≈ 7.25 웃", purpose: "Skill, craft, and care — honored so people and their families can thrive." },
+    { sym: "◬", key: "AI", name: "Artificial Intelligence", law: "1 min SI = 5 ◬ (5× leverage)", purpose: "Time saved by the tools we create together — leverage returned to everyone, not the few." },
   ],
   flow: [
-    { k: "Redeem", d: "웃 HI → cash on treasury availability" },
-    { k: "Exchange", d: "internal — services · tools · mentoring" },
-    { k: "Stake", d: "governance · bonuses · future access" },
-    { k: "Amplify", d: "♡ SI → ◬ AI when a task becomes a reusable tool" },
+    { k: "Redeem", d: "웃 becomes real-world value when the treasury allows." },
+    { k: "Exchange", d: "Trade within the community — services, tools, and mentorship." },
+    { k: "Stake", d: "Shape decisions, earn bonuses, and unlock what comes next." },
+    { k: "Amplify", d: "♡ grows into ◬ when your work becomes a tool others reuse." },
   ],
   nose: [
-    { k: "Need", d: "Legacy systems fail to value non-monetary contribution and scalable tools." },
-    { k: "Outcome", d: "Decisions go from days → minutes, with transparent, fair rewards." },
-    { k: "Solution", d: "Fast polling + AI clustering + tokenized Tri-Coin value." },
-    { k: "Evidence", d: "SoI test deployments live 2026; echoed by Deloitte + Gartner." },
+    { k: "Need", d: "The world rarely rewards unpaid contribution — or the tools that multiply everyone's effort." },
+    { k: "Outcome", d: "Decisions in minutes, not weeks — with rewards that are transparent and fair to all." },
+    { k: "Solution", d: "Fast, inclusive polling + AI clustering + a tokenized Tri-Coin of shared value." },
+    { k: "Evidence", d: "Live pilots since 2026 — an open model educators and innovators everywhere can build on." },
   ],
 };
 
