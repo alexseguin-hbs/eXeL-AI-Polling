@@ -27,17 +27,18 @@ export function Expander({
       <button onClick={() => setOpen((o) => !o)} aria-expanded={open}
         className="relative flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors hover:bg-white/5"
         style={{ borderColor: colors.border, background: colors.panel }}>
-        {/* When dotted, CENTER the ••• + title like the Active Elements bar so every ••• stacks down the middle
-            (operator IMG_7607); the chevron pins absolute-right. Non-dotted headers keep the left title + right chevron. */}
+        {/* When dotted, PIN the ••• to one fixed column (≈6rem left of centre) so it lines up with the other expanders'
+            ••• regardless of title length (operator IMG_7608/7609); the title reads to its right, chevron pins right.
+            Non-dotted headers keep the left title + right chevron. */}
         {dots ? (
-          <span className="flex flex-1 items-center justify-center gap-2">
-            <span data-exp-dots className="flex shrink-0 flex-col items-center gap-[3px]">
+          <>
+            <span data-exp-dots className="absolute left-[calc(50%-6rem)] top-1/2 flex shrink-0 -translate-y-1/2 flex-col items-center gap-[3px]">
               {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: colors.accent }} />)}
             </span>
-            <span className="text-[11px] font-bold tracking-wider" style={{ color: colors.accent }}>
+            <span className="pl-[calc(50%-5.2rem)] text-[11px] font-bold tracking-wider" style={{ color: colors.accent }}>
               {title}{sub && <span className="ml-2 font-normal" style={{ color: colors.dim }}>· {sub}</span>}
             </span>
-          </span>
+          </>
         ) : (
           <span className="text-[11px] font-bold tracking-wider" style={{ color: colors.accent }}>
             {title}{sub && <span className="ml-2 font-normal" style={{ color: colors.dim }}>· {sub}</span>}

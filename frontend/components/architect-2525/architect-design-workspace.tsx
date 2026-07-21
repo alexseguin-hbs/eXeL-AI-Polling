@@ -48,12 +48,15 @@ function Rail({ side, title, open, setOpen, children, titleIcon }: {
     // rail. Matches operator refs: IMG_7401 (landscape vertical rails) + IMG_7399 (portrait horizontal bar).
     return (
       <button data-arch-rail-collapsed={side} onClick={() => setOpen(true)} title={`Show ${title}`}
-        className="flex w-full shrink-0 flex-row items-center justify-center gap-2 rounded-lg border px-1.5 py-1 hover:bg-white/5 md:w-[30px] md:flex-col md:gap-1.5 md:self-start md:px-0.5 md:py-2"
+        className="relative flex w-full shrink-0 flex-row items-center rounded-lg border px-1.5 py-1 hover:bg-white/5 md:w-[30px] md:flex-col md:items-center md:justify-center md:gap-1.5 md:self-start md:px-0.5 md:py-2"
         style={{ background: C.panel, borderColor: C.border }}>
-        <span data-arch-rail-toggle><Dots3 /></span>
-        {titleIcon}
-        <span data-arch-rail-label={side} className="text-[8px] font-semibold uppercase tracking-wider [writing-mode:horizontal-tb] md:[writing-mode:vertical-rl]"
-          style={{ color: titleColor }}>{title}</span>
+        {/* portrait: ••• PINNED to the same column as the bottom expanders (operator IMG_7608). landscape: static, vertical rail. */}
+        <span data-arch-rail-toggle className="absolute left-[calc(50%-6rem)] top-1/2 -translate-y-1/2 md:static md:translate-y-0"><Dots3 /></span>
+        <span className="flex items-center gap-2 pl-[calc(50%-5rem)] md:flex-col md:gap-1.5 md:pl-0">
+          {titleIcon}
+          <span data-arch-rail-label={side} className="text-[8px] font-semibold uppercase tracking-wider [writing-mode:horizontal-tb] md:[writing-mode:vertical-rl]"
+            style={{ color: titleColor }}>{title}</span>
+        </span>
       </button>
     );
   }
@@ -103,12 +106,13 @@ function BottomPanel({ id, title, accent, open, setOpen, children }: {
 
   return (
     <div data-arch-bpanel={id} className="rounded-lg border shadow-xl" style={{ background: C.panel, borderColor: C.border }}>
-      {/* ••• dots + title CENTERED — copy the Active Elements bar so every expander's ••• stack down the middle
-          (operator IMG_7607). Maximize stays pinned absolute-right. */}
-      <div className="relative flex items-center justify-center gap-2 px-3 py-1.5" style={{ borderBottom: open ? `1px solid ${C.border}` : "1px solid transparent" }}>
+      {/* ••• PINNED to one fixed x (≈6rem left of centre) so every expander's ••• line up in ONE vertical column
+          regardless of title length — PLANNING·SCHEDULING·COST no longer drifts left (operator IMG_7608/7609).
+          Title reads to the right of the column; maximize stays pinned absolute-right. */}
+      <div className="relative flex items-center px-3 py-1.5" style={{ borderBottom: open ? `1px solid ${C.border}` : "1px solid transparent" }}>
         <button data-bpanel-toggle={id} onClick={() => setOpen(!open)} title={open ? "Collapse" : "Expand"}
-          className="rounded p-1 hover:bg-white/5"><Dots3 /></button>
-        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
+          className="absolute left-[calc(50%-6rem)] top-1/2 -translate-y-1/2 rounded p-1 hover:bg-white/5"><Dots3 /></button>
+        <span className="pl-[calc(50%-5.2rem)] text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{title}</span>
         {/* Maximize is only offered once the panel is EXPANDED — you can't full-screen a collapsed panel (operator). */}
         {open && (
           <button data-bpanel-max={id} onClick={() => { setMax(true); setOpen(true); }} title="Maximize to full screen" aria-label="Maximize"
