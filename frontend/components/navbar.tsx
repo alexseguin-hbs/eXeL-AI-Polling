@@ -231,9 +231,9 @@ export function Navbar({ sessionTitle }: NavbarProps) {
                           setMenuOpen(false);
                           setSoiOpen(true);
                         }}
-                        className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm hover:bg-accent"
+                        className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent"
                       >
-                        <Sparkles className="h-4 w-4" />
+                        <Sparkles className="h-4 w-4 shrink-0" />
                         {t("shared.nav.soi")}
                       </button>
                       <button
@@ -416,7 +416,7 @@ export function Navbar({ sessionTitle }: NavbarProps) {
             <div className="sticky top-0 flex items-center justify-between border-b bg-card px-5 py-4">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold">{t("shared.nav.soi")}</h2>
+                <h2 className="text-lg font-semibold">{t("shared.nav.soi_title")}</h2>
               </div>
               <button onClick={() => setSoiOpen(false)} className="text-muted-foreground hover:text-foreground">✕</button>
             </div>

@@ -24,6 +24,8 @@ import { loadPublishedSoI, subscribeSoI, DEFAULT_SOI, type SoiFramework } from "
 // SoI Tri-Coin colours (operator + 13-Trinity): ♡ S.I. = sunset yellow · 웃 H.I. = violet · ◬ A.I. = cyan.
 // These stay distinct on the COIN CARDS (they carry AI/SI/HI meaning) — only the RINGS are unified to cyan.
 const COIN_C: Record<string, string> = { SI: TRINITY_COLORS.temporal, HI: TRINITY_COLORS.family, AI: TRINITY_COLORS.consciousness };
+// Display order of the three coins (operator): AI, SI, HI — matches the homepage Trinity alignment.
+const COIN_ORDER: Record<string, number> = { AI: 0, SI: 1, HI: 2 };
 
 export function SoISection() {
   const { currentTheme } = useTheme();
@@ -38,7 +40,7 @@ export function SoISection() {
   return (
     <Card data-soi-section className="mb-8">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">System of Intelligence <span className="text-xs font-normal text-muted-foreground">· ◬ ♡ 웃 Tri-Coin</span></CardTitle>
+        <CardTitle className="flex items-center gap-2">System of Innovation <span className="text-xs font-normal text-muted-foreground">· ◬ ♡ 웃 Tri-Coin</span></CardTitle>
         <CardDescription>{tr(soi.thesis, DEFAULT_SOI.thesis, "soi.thesis")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -47,7 +49,7 @@ export function SoISection() {
         <div className="grid items-start gap-6 md:grid-cols-[180px_1fr]">
           <div><SoITrinity labels={["웃", "♡", "◬"]} color={accent} textColor="#0a1628" size={168} /></div>
           <div className="grid gap-3 sm:grid-cols-3">
-            {soi.coins.map((c) => {
+            {[...soi.coins].sort((a, b) => (COIN_ORDER[a.key] ?? 9) - (COIN_ORDER[b.key] ?? 9)).map((c) => {
               const dc = DEFAULT_SOI.coins.find((x) => x.key === c.key);
               return (
                 <div key={c.key} data-soi-section-coin className="rounded-lg border p-3">
