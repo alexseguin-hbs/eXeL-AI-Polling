@@ -47,15 +47,15 @@ export function MetricStrip({ state, overlay = false, homeType = "full" }: { sta
   // Collapsed = icons + numbers only; the ••• button expands to reveal the grey labels (widens the rail).
   return (
     <div data-arch-metricstrip data-arch-metric-expanded={expanded ? "1" : "0"}
-      className="pointer-events-auto absolute right-2 top-12 z-10 flex max-h-[78%] flex-col gap-0.5 overflow-y-auto rounded-lg border px-1 py-1 shadow-lg"
+      className="pointer-events-auto absolute right-2 top-12 z-10 flex max-h-[78%] flex-col items-center gap-0.5 overflow-y-auto rounded-lg border px-1 py-1 shadow-lg"
       style={{ background: "#0a0f16e6", borderColor: C.border }}>{/* top-12 keeps the expandable BELOW the R-CORE header (operator IMG_7551) */}
-      {/* ••• expand — VERTICAL stacked dots, TOP-LEFT of the rail (operator IMG_7492). */}
+      {/* ••• expand — VERTICAL stacked dots, CENTERED so they sit symmetric over the centered metric rows (operator IMG_7606). */}
       <button data-arch-metric-expand onClick={() => setExpanded((v) => !v)} title={expanded ? "Collapse metrics" : "Expand metrics (show labels)"}
-        className="mb-0.5 flex flex-col items-center justify-center gap-[3px] self-start rounded p-0.5 hover:bg-white/10">
+        className="mb-0.5 flex flex-col items-center justify-center gap-[3px] rounded p-0.5 hover:bg-white/10">
         {[0, 1, 2].map((i) => <span key={i} className="h-1 w-1 rounded-full" style={{ background: C.cyan }} />)}
       </button>
       {items.map(({ icon: Icon, label, value, color }) => (
-        <div key={label} data-arch-metric={label.toLowerCase()} title={`${label}: ${value}`} className="flex items-center gap-1.5 px-1 text-[10px]">
+        <div key={label} data-arch-metric={label.toLowerCase()} title={`${label}: ${value}`} className="flex items-center justify-center gap-1.5 px-1 text-[10px]">
           <Icon className="h-3.5 w-3.5 shrink-0" style={{ color }} />
           <span className="tabular-nums font-semibold" style={{ color }}>{value}</span>
           {expanded && <span className="uppercase tracking-wide" style={{ color: C.dim, fontSize: 8 }}>{label}</span>}
