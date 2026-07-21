@@ -165,3 +165,20 @@ class TestHarnessRegistration:
         )
         assert out["verdict"]["overall_passed"] is True
         assert out["decision"]["decision"] == "swap"
+
+    @pytest.mark.asyncio
+    async def test_crs_gate_blocks_simulation_before_ready(self):
+        # R5 Foundation-of-Truth gate: a not-yet-approved CRS blocks the challenge.
+        from app.core.crs_lifecycle import CRSLifecycleError
+
+        with pytest.raises(CRSLifecycleError):
+            await run_challenge(7, {"signature": "x"}, tier="manual", crs_state="draft")
+
+    @pytest.mark.asyncio
+    async def test_crs_gate_allows_when_simulation_ready(self):
+        base = await run_cube_baseline(7)
+        out = await run_challenge(
+            7, {"signature": base["signature"], "duration_ms": base["duration_ms"]},
+            tier="manual", human_approved=True, crs_state="simulation_ready",
+        )
+        assert out["decision"]["decision"] == "swap"
