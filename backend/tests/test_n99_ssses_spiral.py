@@ -629,7 +629,7 @@ class TestCube10SSSES:
         reference = None
         for _ in range(N):
             chain = ""
-            for cube_id in [1, 2, 3, 4, 5, 6, 7, 8]:
+            for cube_id in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
                 chain = hashlib.sha256(f"{chain}:cube{cube_id}:seed42".encode()).hexdigest()
             if reference is None:
                 reference = chain
@@ -661,7 +661,7 @@ class TestSpiralRCore1to8:
 
     def test_all_eight_harnesses_signed(self):
         sigs = self._signatures()
-        assert sorted(sigs) == [1, 2, 3, 4, 5, 6, 7, 8]
+        assert sorted(sigs) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
         for cid, sig in sigs.items():
             assert len(sig) == 64, f"cube{cid} signature not 64-hex"
 
@@ -670,7 +670,7 @@ class TestSpiralRCore1to8:
         reference = None
         for _ in range(N):
             chain = ""
-            for cid in [1, 2, 3, 4, 5, 6, 7, 8]:  # FORWARD spiral
+            for cid in [1, 2, 3, 4, 5, 6, 7, 8, 9]:  # FORWARD spiral
                 chain = hashlib.sha256(f"{chain}:{sigs[cid]}".encode()).hexdigest()
             reference = reference or chain
             assert chain == reference
@@ -680,7 +680,7 @@ class TestSpiralRCore1to8:
         reference = None
         for _ in range(N):
             chain = ""
-            for cid in [8, 7, 6, 5, 4, 3, 2, 1]:  # BACKWARD spiral
+            for cid in [9, 8, 7, 6, 5, 4, 3, 2, 1]:  # BACKWARD spiral
                 chain = hashlib.sha256(f"{chain}:{sigs[cid]}".encode()).hexdigest()
             reference = reference or chain
             assert chain == reference
@@ -695,7 +695,7 @@ class TestSpiralRCore1to8:
                 chain = hashlib.sha256(f"{chain}:{sigs[cid]}".encode()).hexdigest()
             return chain
 
-        assert _chain([1, 2, 3, 4, 5, 6, 7, 8]) != _chain([8, 7, 6, 5, 4, 3, 2, 1])
+        assert _chain([1, 2, 3, 4, 5, 6, 7, 8, 9]) != _chain([9, 8, 7, 6, 5, 4, 3, 2, 1])
 
 
 # ═══════════════════════════════════════════════════════════════════

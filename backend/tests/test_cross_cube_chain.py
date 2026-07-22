@@ -196,7 +196,7 @@ class TestDevSimHarnessCoverage:
 
     def test_harness_cubes_cover_one_through_eight(self):
         from app.cubes.cube10_simulation.challenge_loop import HARNESS_CUBES
-        assert HARNESS_CUBES == frozenset({1, 2, 3, 4, 5, 6, 7, 8})
+        assert HARNESS_CUBES == frozenset({1, 2, 3, 4, 5, 6, 7, 8, 9})
 
     def test_each_harness_emits_64hex_signature(self):
         import asyncio

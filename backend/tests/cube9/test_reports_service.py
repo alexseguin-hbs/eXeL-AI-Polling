@@ -88,7 +88,7 @@ class TestRouterStructure:
         """Router has 14 endpoints (base + compression + replay + trends)."""
         from app.cubes.cube9_reports.router import router
         routes = [r for r in router.routes if hasattr(r, "methods")]
-        assert len(routes) == 14
+        assert len(routes) == 15
 
     def test_csv_export_endpoint(self):
         from app.cubes.cube9_reports.router import router

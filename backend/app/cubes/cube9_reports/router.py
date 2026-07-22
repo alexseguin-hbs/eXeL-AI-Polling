@@ -148,6 +148,22 @@ async def get_analytics(
     return await service.build_analytics_dashboard(db, session_id)
 
 
+@router.get("/reports/metrics")
+async def get_reports_metrics(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Cube 9 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 1-8.
+
+    Surfaces the library metrics engine (cube9_reports.metrics) for the Dev-Sim /
+    qualification gateway. Privileged-role only; DB-error-guarded downstream.
+    """
+    from app.cubes.cube9_reports import metrics as reports_metrics
+
+    return await reports_metrics.get_all_metrics(db, session_id)
+
+
 # ---------------------------------------------------------------------------
 # CRS-19.02: CQS Dashboard
 # ---------------------------------------------------------------------------
