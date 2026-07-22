@@ -261,7 +261,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:py-14">
         {/* Intro — centered masthead: name (largest), eyebrow, headline, then the summary */}
         <div className="text-center">
-          <p className="mb-3 text-4xl font-bold tracking-tight text-primary sm:text-5xl">Alex Seguin</p>
+          <p className="mb-3 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">Alex Seguin</p>
           <p className="mb-3 text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70">The actual work</p>
           <h1 className="text-balance text-2xl font-semibold leading-tight sm:text-3xl">
             How I think. Then the proof behind it.
