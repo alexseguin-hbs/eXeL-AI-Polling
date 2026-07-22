@@ -152,3 +152,19 @@ async def generate_theme_summaries(
         "results": results,
         "note": "AI provider integration pending. Returns prompts for review.",
     }
+
+
+@router.get("/ai/metrics")
+async def get_ai_metrics(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+):
+    """Cube 6 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 2/3/7/8.
+
+    Library-only metrics engine (cube6_ai.metrics) surfaced for the Dev-Sim /
+    qualification gateway. Privileged-role only; DB-error-guarded downstream.
+    """
+    from app.cubes.cube6_ai import metrics as ai_metrics
+
+    return await ai_metrics.get_all_metrics(db, session_id)

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import CurrentUser, get_current_user, get_optional_current_user
 from app.core.dependencies import get_db
 from app.core.exceptions import ResponseNotFoundError
+from app.core.permissions import require_role
 from app.cubes.cube4_collector.service import (
     check_all_confirmed,
     create_desired_outcome,
@@ -196,3 +197,19 @@ async def log_results(
         assessed_by=body.assessed_by,
     )
     return DesiredOutcomeRead.model_validate(outcome)
+
+
+@router.get("/metrics")
+async def get_collector_metrics(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+):
+    """Cube 4 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 2/3/7/8.
+
+    Library-only metrics engine (cube4_collector.metrics) surfaced for the Dev-Sim /
+    qualification gateway. Privileged-role only; DB-error-guarded downstream.
+    """
+    from app.cubes.cube4_collector import metrics as collector_metrics
+
+    return await collector_metrics.get_all_metrics(db, session_id)

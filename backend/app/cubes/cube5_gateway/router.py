@@ -316,3 +316,20 @@ async def delete_webhook(
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Webhook not found")
     return {"status": "deactivated"}
+
+
+@router.get("/sessions/{session_id}/pipeline/metrics")
+async def get_gateway_metrics(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+):
+    """Cube 5 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 2/3/7/8.
+
+    Distinct path from GET /sessions/{id}/metrics (which returns MoT poll economics):
+    this surfaces the library-only SSSES triad (cube5_gateway.metrics) for the Dev-Sim /
+    qualification gateway. Privileged-role only; DB-error-guarded downstream.
+    """
+    from app.cubes.cube5_gateway import metrics as gateway_metrics
+
+    return await gateway_metrics.get_all_metrics(db, session_id)

@@ -506,3 +506,20 @@ async def verify_determinism(
         "is_deterministic": session.seed is not None,
         "has_replay_hash": session.replay_hash is not None,
     }
+
+
+@router.get("/{session_id}/ssses-metrics")
+async def get_session_ssses_metrics(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Cube 1 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 2/3/7/8.
+
+    The metrics engine (cube1_session.metrics) was library-only; this surfaces it so the
+    Dev-Sim / qualification gateway can read Cube 1's live baseline. Privileged-role only.
+    DB-error-guarded downstream (never 500s).
+    """
+    from app.cubes.cube1_session import metrics as session_metrics
+
+    return await session_metrics.get_all_metrics(db, session_id)
