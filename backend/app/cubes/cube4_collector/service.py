@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import log_audit
 from app.core.crypto_utils import compute_anon_hash
+from app.core.rcore.rotor_adapter import stamp_orm as _hwr_stamp
 from app.core.presence import get_presence as _core_get_presence, set_presence as _core_set_presence
 from app.core.submission_validators import validate_session_exists  # noqa: F401 — re-exported for router
 
@@ -422,6 +423,9 @@ async def create_desired_outcome(
         outcome_status="pending",
     )
     db.add(outcome)
+    # HWR seam (H4): route this write to its seeded 6-face partition when the ring is
+    # provisioned; a NO-OP until settings.hwr_enabled + migration 026 land (non-breaking).
+    _hwr_stamp(outcome, key=str(session_id), seq=0)
     await db.flush()  # get outcome.id for the audit object_id
     # R-Core: one append-only AuditLog row per desired-outcome creation (transition-
     # level Human-Authority attribution, in the same transaction).

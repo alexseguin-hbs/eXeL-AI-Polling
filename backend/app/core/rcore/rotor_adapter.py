@@ -39,6 +39,25 @@ def stamp_face(record: dict, *, key: str, seq: int) -> dict:
     return {**record, "hwr_face": assign_face(key, seq)}
 
 
+def stamp_orm(record, *, key: str, seq: int) -> int | None:
+    """Stamp an ORM object with its seeded HWR face when the ring is enabled.
+
+    Non-breaking by construction: returns None and touches NOTHING when HWR is off, so
+    a cube can adopt this seam at its write site with zero behavior change. When the ring
+    is on it computes the deterministic face (0..5) and, if the model carries the
+    `hwr_face` column (migration 026 applied), sets it so the row routes to that partition.
+    Returns the computed face either way (for logging/audit), or None when disabled.
+
+    Complements `stamp_face` (dict path) — this is the ORM path Cubes 1-8 write through.
+    """
+    if not hwr_enabled():
+        return None
+    face = assign_face(key, seq)
+    if hasattr(record, "hwr_face"):
+        record.hwr_face = face
+    return face
+
+
 def read_target(base_table: str) -> str:
     """The table to SELECT from: the partitioned parent (transparent) when enabled, or
     the hub materialized view for coalesced reads; the base table when disabled.
