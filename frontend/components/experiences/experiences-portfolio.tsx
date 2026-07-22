@@ -25,7 +25,7 @@ const WRITEUPS: Item[] = [
     badge: "Presentation · plan",
     blurb:
       "The executive presentation: the value proposition, a 4-phase $18M work plan with milestones and a rough-order budget, the operational metrics it moves, and its broader national impact; the same vision, decision-ready.",
-    href: "/experiences/eXeL_AI_Strategy_Project_Description_A.Seguin_v2.pdf",
+    href: "/experiences/eXeL_AI_Strategy_AIML_Software_Dev_Integration_A.Seguin.pdf",
   },
   {
     kind: "pdf",
@@ -33,7 +33,7 @@ const WRITEUPS: Item[] = [
     badge: "Writeup · 21 pp",
     blurb:
       "The complete 21-page technical writeup: an AI platform ecosystem integrating the Army IVAS headset with ground robots, drones, and edge AI. Problem framing, CONOPs, sensor-fusion architecture, and an OODA-loop decision-support model, end to end.",
-    href: "/experiences/eXeL_AI_Strategy_AIML_Software_Dev_Integration_A.Seguin.pdf",
+    href: "/experiences/eXeL_AI_Strategy_Project_Description_A.Seguin_v2.pdf",
   },
 ];
 
