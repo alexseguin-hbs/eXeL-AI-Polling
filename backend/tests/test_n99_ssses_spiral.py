@@ -1003,6 +1003,14 @@ class TestFeatureRemovalGuard:
         assert "exclude" in s.lower(), "Anti-sybil exclusion REMOVED from Cube 7!"
         assert "merge" in s, "Shard merge REMOVED from Cube 7!"
 
+    def test_cube7_shared_audit_parity(self):
+        """R3.4: Cube 7 carries the SHARED core.audit.log_audit on the governance override
+        (in addition to its domain GovernanceOverride table) — uniform R-Core audit."""
+        s = self._be("app/cubes/cube7_ranking/ranking_governance.py")
+        assert "log_audit" in s, "Cube 7 shared log_audit REMOVED!"
+        assert "ranking.governance_override" in s, "Cube 7 shared-audit action REMOVED!"
+        assert "GovernanceOverride" in s, "Cube 7 domain GovernanceOverride REMOVED!"
+
     # ═══ CUBE 8 — Token Ledger ═══
     def test_cube8_token_system(self):
         """Cube 8: Token types + lifecycle must exist."""

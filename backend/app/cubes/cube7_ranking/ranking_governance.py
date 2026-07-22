@@ -339,6 +339,23 @@ async def apply_governance_override(
     db.add(override)
     await db.flush()
 
+    # R3.4: also write the SHARED core.audit.log_audit row (in addition to the domain
+    # GovernanceOverride table) so Cube 7 carries the same transition-level attribution
+    # primitive as cubes 2/3/4/5/6/8/9/10 — uniform R-Core audit across the lattice.
+    from app.core.audit import log_audit
+
+    log_audit(
+        db,
+        session_id=session_id,
+        actor_id=overridden_by,
+        actor_role="moderator",
+        action_type="ranking.governance_override",
+        object_type="ranking_override",
+        object_id=str(theme_id),
+        before={"rank": original_rank},
+        after={"rank": new_rank, "justification": justification.strip()},
+    )
+
     # Broadcast updated rankings
     try:
         from app.core.supabase_broadcast import broadcast_event
