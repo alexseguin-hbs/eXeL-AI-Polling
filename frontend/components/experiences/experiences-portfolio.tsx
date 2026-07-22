@@ -155,12 +155,13 @@ function SectionHead({
 }) {
   return (
     <div className="mb-5">
-      <div className="mb-1.5 flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.2em] text-primary/70">
+      {/* Cyan eyebrow is the primary header: larger + bold. White title is the smaller sub-header. */}
+      <div className="mb-1 flex items-center gap-2 text-base font-bold uppercase tracking-[0.14em] text-primary sm:text-lg">
         {icon}
         {eyebrow}
       </div>
-      <h2 className="text-xl font-semibold">{title}</h2>
-      <p className="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-muted-foreground">{intro}</p>
+      <h2 className="text-sm font-medium text-foreground">{title}</h2>
+      <p className="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">{intro}</p>
     </div>
   );
 }
@@ -387,7 +388,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
                 <Presentation className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <div className="truncate font-medium group-hover:text-primary">EdTech Presentation</div>
+                <div className="truncate font-medium group-hover:text-primary">EdTech Initiative Presentation</div>
                 <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
                   Bringing AI education to more learners: the mission that started eXeL AI (launched after COVID).
                 </p>
