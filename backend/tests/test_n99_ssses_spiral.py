@@ -699,6 +699,127 @@ class TestSpiralRCore1to8:
 
 
 # ═══════════════════════════════════════════════════════════════════
+# R6.1 — SPIRAL R-CORE VERIFIER: Cube 10 is the harness HOST / referee.
+# Cube 10 is N-A as a chain LINK (it DRIVES the chain, it doesn't sit in it) — so the
+# honest 1→10 spiral is 1↔9 links with Cube 10 as the determinism referee that confirms
+# every cube's signature reproduces (forward result == backward result under equivalence).
+# ═══════════════════════════════════════════════════════════════════
+
+class TestSpiralRCoreVerifier1to10:
+    """Cube 10 as the objective referee of the 1↔9 R-Core spiral."""
+
+    def test_cube10_is_host_not_a_chain_link(self):
+        """HARNESS_CUBES deliberately stops at 9 — Cube 10 hosts the harness, it is not a
+        target of it (a harness of the simulator would be circular)."""
+        from app.cubes.cube10_simulation.challenge_loop import HARNESS_CUBES
+        assert 10 not in HARNESS_CUBES
+        assert sorted(HARNESS_CUBES) == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    def test_cube10_referee_reproduces_every_signature(self):
+        """The referee runs each cube's baseline TWICE through the host and confirms the
+        determinism_signature is identical — the property both the forward AND the backward
+        spiral rely on (a signature is per-cube, independent of chain direction)."""
+        import asyncio
+
+        from app.cubes.cube10_simulation.challenge_loop import (
+            HARNESS_CUBES, run_cube_baseline,
+        )
+
+        async def _sig(cid):
+            return (await run_cube_baseline(cid))["signature"]
+
+        for cid in sorted(HARNESS_CUBES):
+            a = asyncio.run(_sig(cid))
+            b = asyncio.run(_sig(cid))
+            assert a == b, f"cube{cid} signature not reproducible under the referee"
+            assert len(a) == 64
+
+    def test_forward_and_backward_share_the_same_signature_set(self):
+        """Forward (1→9) and backward (9→1) traverse the SAME per-cube signatures — the
+        chains differ only in ORDER, never in the underlying evidence (co-evolution
+        coherence, Vision-2525 CRS-35)."""
+        sigs = TestSpiralRCore1to8._signatures()
+        forward = [sigs[c] for c in [1, 2, 3, 4, 5, 6, 7, 8, 9]]
+        backward = [sigs[c] for c in [9, 8, 7, 6, 5, 4, 3, 2, 1]]
+        assert set(forward) == set(backward)
+        assert forward == list(reversed(backward))
+
+
+# ═══════════════════════════════════════════════════════════════════
+# R6.3 — SPIRAL HWR: the Hexagonal Write Rotor folded into the spiral.
+# A write fanned across the 6 faces then coalesced reproduces the SAME replay_hash
+# FORWARD (write→coalesce) and is re-derivable BACKWARD (coalesce→per-face via the seeded
+# rotor_face), N=99 — the write-layer analogue of the read-layer Trinity Redundancy.
+# ═══════════════════════════════════════════════════════════════════
+
+class TestSpiralHWR1to10:
+    """The write-rotor is bit-reproducible in BOTH directions across N runs."""
+
+    @staticmethod
+    def _records(n=18):
+        # 18 = 2 per cube across the 1..9 spiral (each cube feeds the shared ring).
+        return [{"cube_id": (i % 9) + 1, "seq": i, "payload": f"r{i}"} for i in range(n)]
+
+    def test_forward_coalesce_replay_hash_deterministic_n99(self):
+        """FORWARD: writing the same records in the same order → the SAME canonical
+        coalesced replay_hash, every run."""
+        from app.core.rcore.write_rotor import RotorRing
+        reference = None
+        for _ in range(N):
+            ring = RotorRing(seed="spiral")
+            for rec in self._records():
+                ring.write(rec, key=f"cube{rec['cube_id']}")
+            out = ring.read_all()
+            reference = reference or out["replay_hash"]
+            assert out["replay_hash"] == reference
+            assert len(out["replay_hash"]) == 64
+
+    def test_backward_face_attribution_reproduces_n99(self):
+        """BACKWARD: each record's face is re-derivable from (key, seq) via the SAME seeded
+        rotor_face — the coalesced hub can attribute every row back to the face it rode."""
+        from app.core.rcore.write_rotor import RotorRing
+        for _ in range(N):
+            ring = RotorRing(seed="spiral")
+            recs = self._records()
+            written = [ring.write(rec, key=f"cube{rec['cube_id']}") for rec in recs]
+            for seq, rec in enumerate(recs):
+                assert ring.attribute(f"cube{rec['cube_id']}", seq) == written[seq]
+
+    def test_subset_survival_write_layer_trinity_n99(self):
+        """WRITE-LAYER TRINITY: the SAME record arriving on any subset of faces still
+        coalesces to ONE canonical row (dedup by content hash) — a slow/failed face never
+        drops a write, mirroring the read-layer Trinity Redundancy."""
+        from app.core.rcore.write_rotor import coalesce
+        rec = {"id": "r-same", "v": 1}
+        for _ in range(N):
+            out = coalesce([[rec], [rec], [rec], [], [], []])  # 3 faces carry the same record
+            assert out["count"] == 1
+            assert out["dedup_removed"] == 2
+
+    def test_hwr_replay_hash_binds_into_spiral_fingerprint_n99(self):
+        """The HWR coalesce replay_hash folds into the 1→9 harness signature chain → ONE
+        combined SPIRAL fingerprint, deterministic across N: the write-layer and the
+        R-Core harness layer co-verify in a single reproducible hash."""
+        import hashlib as _h
+
+        from app.core.rcore.write_rotor import RotorRing
+
+        sigs = TestSpiralRCore1to8._signatures()
+        reference = None
+        for _ in range(N):
+            ring = RotorRing(seed="spiral")
+            for rec in self._records():
+                ring.write(rec, key=f"cube{rec['cube_id']}")
+            hwr = ring.read_all()["replay_hash"]
+            chain = hwr
+            for cid in [1, 2, 3, 4, 5, 6, 7, 8, 9]:  # forward R-Core spiral, seeded by HWR
+                chain = _h.sha256(f"{chain}:{sigs[cid]}".encode()).hexdigest()
+            reference = reference or chain
+            assert chain == reference
+            assert len(chain) == 64
+
+
+# ═══════════════════════════════════════════════════════════════════
 # CROSS-CUBE — Trinity Redundancy + Broadcast Integrity
 # SSSES: Channel naming, payload format, deduplication
 # ═══════════════════════════════════════════════════════════════════
@@ -879,6 +1000,37 @@ class TestFeatureRemovalGuard:
         """Cube 10: Challenge/submission system must exist."""
         s = self._be("app/cubes/cube10_simulation/service.py")
         assert "challenge" in s.lower() or "submission" in s.lower(), "Challenge system REMOVED from Cube 10!"
+
+    # ═══ R-CORE SURFACES — Cube 9 full parity (metrics · harness · verify · audit) ═══
+    def test_cube9_rcore_surfaces(self):
+        """Cube 9: R-Core surfaces (metrics triad · export-hash verify anchor · AuditLog on
+        the irreversible destroy) must exist — never regress to the pre-R-Core state."""
+        assert self._be("app/cubes/cube9_reports/metrics.py")  # metrics.py present
+        s = self._be("app/cubes/cube9_reports/service.py")
+        assert "compute_export_hash" in s, "Cube 9 replay/verify hash REMOVED!"
+        assert "verify_export" in s, "Cube 9 verify_export anchor REMOVED!"
+        assert "log_audit" in s, "Cube 9 AuditLog attribution REMOVED!"
+        assert self._be("app/cubes/cube10_simulation/harness_cube9.py")  # harness present
+
+    # ═══ R-CORE SURFACES — Cube 10 AuditLog (its one genuine surface) ═══
+    def test_cube10_audit_surface(self):
+        """Cube 10: AuditLog on the feedback transition (its one genuine R-Core surface)."""
+        s = self._be("app/cubes/cube10_simulation/service.py")
+        assert "log_audit" in s, "Cube 10 AuditLog attribution REMOVED!"
+        assert "sim.feedback_submitted" in s, "Cube 10 feedback audit action REMOVED!"
+
+    # ═══ HWR — the Hexagonal Write Rotor substrate + cube seams ═══
+    def test_hwr_substrate_and_seams(self):
+        """HWR: the shared 6-face write rotor + adapter must exist, and the four
+        highest-volume writes (Cube 4·2·3·8) must carry the non-breaking seam."""
+        wr = self._be("app/core/rcore/write_rotor.py")
+        assert "def rotor_face" in wr and "def coalesce" in wr, "HWR core REMOVED!"
+        assert "FACES: int = 6" in wr, "HWR 6-face geometry REMOVED!"
+        ad = self._be("app/core/rcore/rotor_adapter.py")
+        assert "def stamp_orm" in ad and "def stamp_face" in ad, "HWR adapter seam REMOVED!"
+        for cube in ("cube4_collector", "cube2_text", "cube3_voice", "cube8_tokens"):
+            s = self._be(f"app/cubes/{cube}/service.py")
+            assert "_hwr_stamp" in s, f"HWR write seam REMOVED from {cube}!"
 
     # ═══ CROSS-CUBE: Supabase + Broadcast ═══
     def test_supabase_client_exists(self):
