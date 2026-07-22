@@ -195,6 +195,23 @@ async def get_anomalies(
     return {"session_id": str(session_id), "anomalies": anomalies}
 
 
+@router.get("/rankings/metrics")
+async def get_ranking_metrics(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+):
+    """Q4: Cube 7 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 1/2/3.
+
+    The metrics engine (cube7_ranking.metrics) existed but was library-only; this
+    exposes it so the Dev-Sim / qualification gateway can read Cube 7's live baseline.
+    Privileged-role only (aggregate session data). DB-error-guarded downstream.
+    """
+    from app.cubes.cube7_ranking import metrics as ranking_metrics
+
+    return await ranking_metrics.get_all_metrics(db, session_id)
+
+
 # ---------------------------------------------------------------------------
 # CRS-22: Governance Override (MVP3 — stub)
 # ---------------------------------------------------------------------------
