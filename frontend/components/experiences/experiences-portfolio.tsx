@@ -1,41 +1,55 @@
 "use client";
 
-// The portfolio the Experiences QR opens ("see the actual work"): demo videos · IP/patents ·
-// industrial hardware · Deloitte-assessed strategy · résumés. Rendered by both /experiences/docs
-// and /main/experiences/docs. Video cards LINK OUT to YouTube in a new tab (zero CSP risk — no
-// external images or iframes). PDF cards give View (browser reader) + Download; the four PDFs are
-// hosted in frontend/public/experiences/ and serve at /experiences/<file>. Copy is written to land
-// with hiring managers globally: heart · mind · spirit, an invitation to look.
+// The portfolio the Experiences QR opens ("see the actual work"). Order (hiring-manager flow):
+// Résumé → Writeup & Presentation → IP/Patents → Industrial → Demo videos → P.S.
+// Résumés lead; every blurb reflects the real contents of the document it links to. Rendered by
+// both /experiences/docs and /main/experiences/docs. Video cards LINK OUT to YouTube in a new tab
+// (zero CSP risk). PDF cards give View (browser reader) + Download; the PDFs are hosted in
+// frontend/public/experiences/ and serve at /experiences/<file>. Copy is written to land with
+// hiring managers globally: heart · mind · spirit, an invitation to look.
 
 import Link from "next/link";
-import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download } from "lucide-react";
-
-type VideoCard = { id: string; title: string; proves: string };
-const VIDEOS: VideoCard[] = [
-  {
-    id: "rpbb0AiM9fI",
-    title: "Athena AI + Teal 2 Drone Partnership",
-    proves: "AI decision-support paired with an autonomous UAS — intelligence and hardware working as one system.",
-  },
-  {
-    id: "Ve7Yqs8uw5M",
-    title: "Boston Dynamics Spot + Fluke SV600 Acoustic Imager",
-    proves: "A quadruped robot carrying an acoustic-imaging payload to find leaks a human can't hear — robotics meets sensing.",
-  },
-  {
-    id: "GGJyRyaE6y4",
-    title: "Fluke Ti450 SF6 — Thermal Gas Detection",
-    proves: "Making an invisible gas visible on camera — the kind of product problem I take from concept to the field.",
-  },
-  {
-    id: "wbsUZAVa2zM",
-    title: "AI / Claude Code — Building eXeL, Live",
-    proves: "How this very platform is built: human intent directing AI to ship real, governed software.",
-  },
-];
+import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation } from "lucide-react";
 
 type LinkCard = { title: string; blurb: string; href: string; badge?: string };
 
+// ── Résumés (lead) — blurbs pulled from the actual documents ────────────────────────────────
+const RESUMES: LinkCard[] = [
+  {
+    title: "Résumé — HI + AI Systems (Industrial & Defense)",
+    blurb:
+      "15+ years leading perception, sensor-fusion, and autonomy products across defense and industrial — Athena AI / Teal-2, Shield AI's first $25M R&D roadmap, FLIR's $200M portfolio, and 15+ Fluke thermal & acoustic launches — with an active SECRET clearance and the Apple-cited sensor-fusion patent.",
+    href: "/experiences/A.M.Seguin_Resume_HI_AI_Systems_Industrial_Defense.pdf",
+    badge: "Résumé · systems",
+  },
+  {
+    title: "Résumé — Technical Program Manager (ATS)",
+    blurb:
+      "The same career, framed for program leadership: end-to-end delivery, R&D-portfolio governance, and risk management with hard outcomes — a $200M portfolio consolidated toward an $8B acquisition, 12% CAGR on a $3B business, and 20× developer throughput via AI automation.",
+    href: "/experiences/ATS_ASeguin_Resume_TPM_20260126.pdf",
+    badge: "Résumé · ATS-ready",
+  },
+];
+
+// ── Writeup & Presentation — the AI/ML strategy documents ───────────────────────────────────
+const WRITEUPS: LinkCard[] = [
+  {
+    title: "AI/ML Software & Integration — Full Writeup",
+    blurb:
+      "The complete 21-page technical writeup: an AI platform ecosystem integrating the Army IVAS headset with ground robots, drones, and edge AI — problem framing, CONOPs, sensor-fusion architecture, and an OODA-loop decision-support model, end to end.",
+    href: "/experiences/eXeL_AI_Strategy_AIML_Software_Dev_Integration_A.Seguin.pdf",
+    badge: "Writeup · 21 pp",
+  },
+  {
+    title: "AI/ML Strategy — Project Description & Plan (v2)",
+    blurb:
+      "The executive presentation: the value proposition, a 4-phase $18M work plan with milestones and a rough-order budget, the operational metrics it moves, and its broader national impact — the same vision, decision-ready.",
+    href: "/experiences/eXeL_AI_Strategy_Project_Description_A.Seguin_v2.pdf",
+    badge: "Presentation · plan",
+  },
+];
+
+// ── IP / Patents ────────────────────────────────────────────────────────────────────────────
 const IP: LinkCard[] = [
   {
     title: "Sensor Fusion Patent",
@@ -51,6 +65,7 @@ const IP: LinkCard[] = [
   },
 ];
 
+// ── Industrial (shipped hardware) ───────────────────────────────────────────────────────────
 const INDUSTRIAL: LinkCard[] = [
   {
     title: "Boston Dynamics Spot · MUVE C360",
@@ -66,31 +81,27 @@ const INDUSTRIAL: LinkCard[] = [
   },
 ];
 
-const ASSESSMENTS: LinkCard[] = [
+type VideoCard = { id: string; title: string; proves: string };
+const VIDEOS: VideoCard[] = [
   {
-    title: "eXeL AI Strategy — AI/ML Software Development Integration",
-    blurb: "The full Deloitte-assessed strategy for eXeL AI and its engineering integration (21 pp).",
-    href: "/experiences/eXeL_AI_Strategy_AIML_Software_Dev_Integration_A.Seguin.pdf",
-    badge: "Deloitte assessment",
+    id: "rpbb0AiM9fI",
+    title: "Athena AI + Teal 2 Drone Partnership",
+    proves: "AI decision-support paired with an autonomous drone — intelligence and hardware working as one system.",
   },
   {
-    title: "eXeL AI Strategy — Project Description (v2)",
-    blurb: "The reviewed project description — the vision, scope, and outcomes, evaluated end to end.",
-    href: "/experiences/eXeL_AI_Strategy_Project_Description_A.Seguin_v2.pdf",
-    badge: "Deloitte assessment",
-  },
-];
-
-const RESUMES: LinkCard[] = [
-  {
-    title: "A. M. Seguin — HI + AI Systems (Industrial & Defense)",
-    blurb: "The full record: sensor fusion, robotics, and human-plus-AI systems across industrial and defense.",
-    href: "/experiences/A.M.Seguin_Resume_HI_AI_Systems_Industrial_Defense.pdf",
+    id: "Ve7Yqs8uw5M",
+    title: "Boston Dynamics Spot + Fluke SV600 Acoustic Imager",
+    proves: "A quadruped robot carrying an acoustic-imaging payload to find leaks a human can't hear — robotics meets sensing.",
   },
   {
-    title: "A. Seguin — Technical Program Manager (ATS)",
-    blurb: "An ATS-friendly TPM résumé — the same work, framed for program leadership.",
-    href: "/experiences/ATS_ASeguin_Resume_TPM_20260126.pdf",
+    id: "GGJyRyaE6y4",
+    title: "Fluke Ti450 SF6 — Thermal Gas Detection",
+    proves: "Making an invisible gas visible on camera — the kind of product problem I take from concept to the field.",
+  },
+  {
+    id: "wbsUZAVa2zM",
+    title: "AI / Claude Code — Building eXeL, Live",
+    proves: "How this very platform is built: human intent directing AI to ship real, governed software.",
   },
 ];
 
@@ -191,16 +202,78 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:py-14">
+        {/* Intro */}
         <p className="mb-3 text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70">The actual work</p>
         <h1 className="text-balance text-3xl font-semibold leading-tight sm:text-4xl">
-          Real systems, shipped — and the proof behind them.
+          Start with the résumé — then see the proof behind it.
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          Below is a short tour of work I&apos;m proud of: field demos, a patent the industry builds on, hardware
-          that reached customers, an independent Deloitte review, and résumés if you want the full record. Everything
-          here is verifiable — that&apos;s the point.
+          Two résumés to read first, a technical writeup and presentation that show how I think, then the
+          receipts: a patent the industry builds on, hardware that reached customers, and field demos. Everything
+          here is real and verifiable — that&apos;s the point.
         </p>
 
+        {/* 1 · Résumés (lead) */}
+        <section className="mt-12">
+          <SectionHead
+            icon={<GraduationCap className="h-3.5 w-3.5" />}
+            eyebrow="Résumés"
+            title="Start here"
+            intro="Two framings of the same career — deep systems engineering, and technical program leadership. View or download."
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {RESUMES.map((c) => (
+              <OutCard key={c.href} c={c} />
+            ))}
+          </div>
+        </section>
+
+        {/* 2 · Writeup & Presentation */}
+        <section className="mt-12">
+          <SectionHead
+            icon={<Presentation className="h-3.5 w-3.5" />}
+            eyebrow="Writeup · Presentation"
+            title="How I think, on the page"
+            intro="A technical capability writeup and an executive presentation I authored — an AI/ML platform for multi-domain defense operations (Army IVAS), with Deloitte among the references."
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {WRITEUPS.map((c) => (
+              <OutCard key={c.href} c={c} />
+            ))}
+          </div>
+        </section>
+
+        {/* 3 · IP / Patents */}
+        <section className="mt-12">
+          <SectionHead
+            icon={<Award className="h-3.5 w-3.5" />}
+            eyebrow="IP · Patents"
+            title="Work the industry builds on"
+            intro="A patent isn't just a filing — it's an idea others adopt. Mine has been cited twice by Apple."
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {IP.map((c) => (
+              <OutCard key={c.href} c={c} />
+            ))}
+          </div>
+        </section>
+
+        {/* 4 · Industrial */}
+        <section className="mt-12">
+          <SectionHead
+            icon={<Cpu className="h-3.5 w-3.5" />}
+            eyebrow="Industrial"
+            title="Hardware that reached the field"
+            intro="Shipped sensor and robotics products — from a first MVP to real revenue and real deployments."
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {INDUSTRIAL.map((c) => (
+              <OutCard key={c.href} c={c} />
+            ))}
+          </div>
+        </section>
+
+        {/* 5 · Demo videos */}
         <section className="mt-12">
           <SectionHead
             icon={<Play className="h-3.5 w-3.5" />}
@@ -229,62 +302,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
           </div>
         </section>
 
-        <section className="mt-12">
-          <SectionHead
-            icon={<Award className="h-3.5 w-3.5" />}
-            eyebrow="IP · Patents"
-            title="Work the industry builds on"
-            intro="A patent isn't just a filing — it's an idea others adopt. Mine has been cited twice by Apple."
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {IP.map((c) => (
-              <OutCard key={c.href} c={c} />
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-12">
-          <SectionHead
-            icon={<Cpu className="h-3.5 w-3.5" />}
-            eyebrow="Industrial"
-            title="Hardware that reached the field"
-            intro="Shipped sensor and robotics products — from a first MVP to real revenue and real deployments."
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {INDUSTRIAL.map((c) => (
-              <OutCard key={c.href} c={c} />
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-12">
-          <SectionHead
-            icon={<FileText className="h-3.5 w-3.5" />}
-            eyebrow="Independent assessment"
-            title="Reviewed by Deloitte"
-            intro="Two Deloitte assessments of the eXeL AI strategy and its engineering — an outside, independent read."
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {ASSESSMENTS.map((c) => (
-              <OutCard key={c.href} c={c} />
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-12">
-          <SectionHead
-            icon={<GraduationCap className="h-3.5 w-3.5" />}
-            eyebrow="Résumés"
-            title="The full record"
-            intro="Two framings of the same career — systems-engineering depth, and technical program leadership."
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {RESUMES.map((c) => (
-              <OutCard key={c.href} c={c} />
-            ))}
-          </div>
-        </section>
-
+        {/* P.S. */}
         <section className="mt-12 rounded-xl border border-border/60 bg-card p-5">
           <div className="mb-1.5 text-[11px] font-mono uppercase tracking-[0.2em] text-primary/70">P.S.</div>
           <a
