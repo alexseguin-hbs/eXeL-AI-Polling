@@ -18,10 +18,13 @@ _PILLARS = ("security", "stability", "scalability", "efficiency", "succinctness"
 
 # Factor weights (sum = 1.0). SSSES carries the most weight; the trust gates
 # (replay / human authority / simulation) are smaller but are also hard blockers.
+# Q2 added `consensus` (agreement across voters) and `low_risk` (= 1 - risk).
 _WEIGHTS = {
-    "ssses": 0.40,
-    "confidence": 0.15,
-    "evidence": 0.15,
+    "ssses": 0.30,
+    "confidence": 0.10,
+    "evidence": 0.10,
+    "consensus": 0.10,
+    "low_risk": 0.10,
     "replay_verified": 0.10,
     "human_authority": 0.10,
     "simulation_passed": 0.10,
@@ -39,6 +42,8 @@ def compute_readiness(
     ssses: dict[str, float] | None = None,
     confidence: float = 0.0,
     evidence_quality: float = 0.0,
+    consensus: float = 0.0,
+    risk: float = 0.0,
     replay_verified: bool = False,
     human_authority: bool = False,
     simulation_passed: bool = False,
@@ -48,6 +53,8 @@ def compute_readiness(
     ssses           — per-pillar scores 0-100 (from compare_metrics); missing → 0.
     confidence      — 0-1 (theme/aggregation confidence).
     evidence_quality— 0-1 (CQS composite of the supporting responses).
+    consensus       — 0-1 (voter agreement; compose anomalies + personal-vs-group).
+    risk            — 0-1 (higher = worse; folded in as low_risk = 1 - risk).
     replay_verified / human_authority / simulation_passed — the three trust gates.
 
     Returns {readiness_score, factors, blocking, ready, highest_impact, explanation}.
@@ -61,6 +68,8 @@ def compute_readiness(
         "ssses": _clamp01(ssses_avg / 100.0),
         "confidence": _clamp01(confidence),
         "evidence": _clamp01(evidence_quality),
+        "consensus": _clamp01(consensus),
+        "low_risk": _clamp01(1.0 - risk),
         "replay_verified": 1.0 if replay_verified else 0.0,
         "human_authority": 1.0 if human_authority else 0.0,
         "simulation_passed": 1.0 if simulation_passed else 0.0,
@@ -96,4 +105,22 @@ def compute_readiness(
         "ready": ready,
         "highest_impact": highest_impact,
         "explanation": explanation,
+    }
+
+
+def project_readiness(current: dict, planned_deltas: dict) -> dict:
+    """Q2: current vs PROJECTED readiness given planned signal improvements.
+
+    `current` and `planned_deltas` are compute_readiness kwargs (planned_deltas holds
+    the signals a team plans to raise — e.g. {"confidence": 0.9, "human_authority": True}).
+    Lets a team see how a decision affects future qualification BEFORE implementing it.
+    Honest scope: this is a current+deltas projection, not a statistical forecast.
+    """
+    now = compute_readiness(**current)
+    projected = compute_readiness(**{**current, **planned_deltas})
+    return {
+        "current": now,
+        "projected": projected,
+        "delta": round(projected["readiness_score"] - now["readiness_score"], 2),
+        "would_become_ready": projected["ready"] and not now["ready"],
     }

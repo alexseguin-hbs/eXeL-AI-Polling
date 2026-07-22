@@ -1,13 +1,13 @@
-"""R6 lock: Cube 7 qualification gateway — evidence-driven readiness scoring."""
+"""R6 + Q2 lock: Cube 7 qualification gateway — evidence-driven readiness scoring."""
 
-from app.cubes.cube7_ranking.qualification import compute_readiness
+from app.cubes.cube7_ranking.qualification import compute_readiness, project_readiness
 
 
 def test_fully_qualified_is_ready():
     r = compute_readiness(
         ssses={"security": 100, "stability": 100, "scalability": 100,
                "efficiency": 100, "succinctness": 100},
-        confidence=1.0, evidence_quality=1.0,
+        confidence=1.0, evidence_quality=1.0, consensus=1.0, risk=0.0,
         replay_verified=True, human_authority=True, simulation_passed=True,
     )
     assert r["readiness_score"] == 100.0
@@ -36,11 +36,36 @@ def test_highest_impact_points_at_biggest_weighted_gap():
     assert r["highest_impact"] == "ssses"
 
 
-def test_empty_signals_is_zero_and_blocked():
-    r = compute_readiness()
+def test_worst_case_is_zero_and_blocked():
+    # True worst case: max risk (low_risk=0) + no evidence + no gates.
+    r = compute_readiness(risk=1.0)
     assert r["readiness_score"] == 0.0
     assert r["ready"] is False
     assert set(r["blocking"]) == {"replay_verified", "human_authority", "simulation_passed"}
+
+
+def test_q2_risk_and_consensus_affect_score():
+    base = dict(ssses={p: 100 for p in ("security", "stability", "scalability",
+                                        "efficiency", "succinctness")},
+               confidence=1.0, evidence_quality=1.0,
+               replay_verified=True, human_authority=True, simulation_passed=True)
+    high = compute_readiness(**base, consensus=1.0, risk=0.0)
+    low = compute_readiness(**base, consensus=0.0, risk=1.0)
+    # consensus (0.10) + low_risk (0.10) = 20 points swing.
+    assert round(high["readiness_score"] - low["readiness_score"], 1) == 20.0
+
+
+def test_project_readiness_shows_delta_and_flip():
+    current = dict(ssses={p: 100 for p in ("security", "stability", "scalability",
+                                           "efficiency", "succinctness")},
+                  confidence=1.0, evidence_quality=1.0, consensus=1.0, risk=0.0,
+                  replay_verified=True, simulation_passed=True,
+                  human_authority=False)  # one gate missing → not ready
+    proj = project_readiness(current, {"human_authority": True})
+    assert proj["current"]["ready"] is False
+    assert proj["projected"]["ready"] is True
+    assert proj["would_become_ready"] is True
+    assert proj["delta"] > 0
 
 
 def test_deterministic():
