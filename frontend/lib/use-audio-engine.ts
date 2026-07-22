@@ -109,6 +109,28 @@ function decodeAudio(
   });
 }
 
+// ─── Background playback (Media Session) ────────────────────────
+// Tell the OS/browser this is ongoing MEDIA so it keeps the audio alive when the tab is
+// backgrounded / Chrome is minimized, and surfaces lock-screen / notification controls.
+// (True background playback of Web Audio is browser-dependent; MediaSession + the
+// visibility-resume below is the standard best-effort — it markedly improves it, esp. on
+// Android Chrome and desktop.)
+function applyMediaSession(playing: boolean) {
+  if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+  try {
+    navigator.mediaSession.playbackState = playing ? "playing" : "paused";
+    if (playing && !navigator.mediaSession.metadata && typeof MediaMetadata !== "undefined") {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: "Vision • 2525 — Seed of Life",
+        artist: "eXeL AI · ◬ ♡ 웃 Tri-Coin",
+        album: "Where Shared Intention moves at the Speed of Thought",
+      });
+    }
+  } catch {
+    /* MediaMetadata / playbackState unsupported — ignore */
+  }
+}
+
 // ─── Hook ───────────────────────────────────────────────────────
 
 export function useAudioEngine(trackUrls: string[]) {
@@ -408,6 +430,7 @@ export function useAudioEngine(trackUrls: string[]) {
     startSource(idx, FADE_IN_DURATION);
     isPlayingRef.current = true;
     setState((s) => ({ ...s, isPlaying: true }));
+    applyMediaSession(true); // keep audio alive when minimized + lock-screen controls
   }, [startSource]);
 
   const play = useCallback(() => {
@@ -460,6 +483,7 @@ export function useAudioEngine(trackUrls: string[]) {
     stopSource(idx, FADE_OUT_DURATION);
     isPlayingRef.current = false;
     setState((s) => ({ ...s, isPlaying: false }));
+    applyMediaSession(false);
   }, [stopSource]);
 
   // ── Switch Track (crossfade) ────────────────────────────────
@@ -547,6 +571,14 @@ export function useAudioEngine(trackUrls: string[]) {
     disposedRef.current = true;
     isPlayingRef.current = false;
     wantsPlayRef.current = false;
+    if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
+      try {
+        navigator.mediaSession.playbackState = "none";
+        navigator.mediaSession.metadata = null;
+      } catch {
+        /* ignore */
+      }
+    }
 
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
@@ -599,6 +631,50 @@ export function useAudioEngine(trackUrls: string[]) {
       error: null,
     });
   }, []);
+
+  // ── Media Session action handlers (lock-screen / notification / headset buttons) ──
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+    const ms = navigator.mediaSession;
+    const n = Math.max(1, trackUrls.length);
+    try {
+      ms.setActionHandler("play", () => play());
+      ms.setActionHandler("pause", () => pause());
+      ms.setActionHandler("previoustrack", () => switchTrack((currentTrackRef.current + n - 1) % n));
+      ms.setActionHandler("nexttrack", () => switchTrack((currentTrackRef.current + 1) % n));
+    } catch {
+      /* some actions unsupported on this browser */
+    }
+    return () => {
+      try {
+        for (const a of ["play", "pause", "previoustrack", "nexttrack"] as const) {
+          ms.setActionHandler(a, null);
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+  }, [play, pause, switchTrack, trackUrls.length]);
+
+  // ── Resume on return-to-foreground: browsers may SUSPEND the context in the
+  // background; when the tab/app becomes visible again, resume + restart if the user
+  // still wants playback. (Paired with MediaSession above for the best-effort keep-alive.)
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onVis = () => {
+      if (document.visibilityState !== "visible") return;
+      const c = ctxRef.current;
+      if (c && wantsPlayRef.current && c.state === "suspended") {
+        c.resume()
+          .then(() => {
+            if (wantsPlayRef.current && c.state === "running" && !isPlayingRef.current) doStart();
+          })
+          .catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [doStart]);
 
   // Cleanup on unmount
   useEffect(() => {
