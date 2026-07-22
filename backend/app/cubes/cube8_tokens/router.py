@@ -302,6 +302,23 @@ async def get_token_summary(
     return await service.get_session_token_summary(db, session_id)
 
 
+@router.get("/sessions/{session_id}/tokens/metrics")
+async def get_token_metrics(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Cube 8 SSSES metrics (System/User/Outcome) — R-Core parity with cubes 1-7.
+
+    Library-only metrics engine (cube8_tokens.metrics) surfaced so the Dev-Sim /
+    qualification gateway can read Cube 8's live token-ledger baseline. Privileged-role
+    only (aggregate session data). DB-error-guarded downstream (never 500s).
+    """
+    from app.cubes.cube8_tokens import metrics as token_metrics
+
+    return await token_metrics.get_all_metrics(db, session_id)
+
+
 @router.post("/tokens/{entry_id}/transition")
 async def transition_state(
     entry_id: uuid.UUID,
