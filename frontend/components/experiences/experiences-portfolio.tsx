@@ -15,18 +15,18 @@ type LinkCard = { title: string; blurb: string; href: string; badge?: string };
 // ── Writeup & Presentation — the AI/ML strategy documents ───────────────────────────────────
 const WRITEUPS: LinkCard[] = [
   {
-    title: "AI/ML Software & Integration — Full Writeup",
-    blurb:
-      "The complete 21-page technical writeup: an AI platform ecosystem integrating the Army IVAS headset with ground robots, drones, and edge AI — problem framing, CONOPs, sensor-fusion architecture, and an OODA-loop decision-support model, end to end.",
-    href: "/experiences/eXeL_AI_Strategy_AIML_Software_Dev_Integration_A.Seguin.pdf",
-    badge: "Writeup · 21 pp",
-  },
-  {
     title: "AI/ML Strategy — Project Description & Plan (v2)",
     blurb:
       "The executive presentation: the value proposition, a 4-phase $18M work plan with milestones and a rough-order budget, the operational metrics it moves, and its broader national impact — the same vision, decision-ready.",
     href: "/experiences/eXeL_AI_Strategy_Project_Description_A.Seguin_v2.pdf",
     badge: "Presentation · plan",
+  },
+  {
+    title: "AI/ML Software & Integration — Full Writeup",
+    blurb:
+      "The complete 21-page technical writeup: an AI platform ecosystem integrating the Army IVAS headset with ground robots, drones, and edge AI — problem framing, CONOPs, sensor-fusion architecture, and an OODA-loop decision-support model, end to end.",
+    href: "/experiences/eXeL_AI_Strategy_AIML_Software_Dev_Integration_A.Seguin.pdf",
+    badge: "Writeup · 21 pp",
   },
 ];
 
@@ -40,9 +40,9 @@ const RESUMES: LinkCard[] = [
     badge: "Résumé · systems",
   },
   {
-    title: "Résumé — Technical Program Manager (ATS)",
+    title: "Résumé — Technical Product Manager (ATS)",
     blurb:
-      "The same career, framed for program leadership: end-to-end delivery, R&D-portfolio governance, and risk management with hard outcomes — a $200M portfolio consolidated toward an $8B acquisition, 12% CAGR on a $3B business, and 20× developer throughput via AI automation.",
+      "The same career, framed for product leadership: end-to-end delivery, R&D-portfolio governance, and risk management with hard outcomes — a $200M portfolio consolidated toward an $8B acquisition, 12% CAGR on a $3B business, and 20× developer throughput via AI automation.",
     href: "/experiences/ATS_ASeguin_Resume_TPM_20260126.pdf",
     badge: "Résumé · ATS-ready",
   },
@@ -258,7 +258,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
         <section className="mt-12">
           <SectionHead
             icon={<Presentation className="h-3.5 w-3.5" />}
-            eyebrow="Writeup · Presentation"
+            eyebrow="Presentation · Writeup"
             title="How I think, on the page"
             intro="A technical capability writeup and an executive presentation I authored — an AI/ML platform for multi-domain defense operations (Army IVAS), with Deloitte among the references."
           />
@@ -275,7 +275,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
             icon={<GraduationCap className="h-3.5 w-3.5" />}
             eyebrow="Résumés"
             title="The full record"
-            intro="Two framings of the same career — deep systems engineering, and technical program leadership. View or download."
+            intro="Two framings of the same career — deep systems engineering, and technical product leadership. View or download."
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {RESUMES.map((c) => (
