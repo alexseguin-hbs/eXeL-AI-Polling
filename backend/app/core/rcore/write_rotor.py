@@ -44,30 +44,49 @@ def _content_hash(record: dict) -> str:
     ).hexdigest()
 
 
-def coalesce(face_batches: list[list[dict]]) -> dict:
+def coalesce(face_batches: list[list[dict]], *, dedup_key: str | None = None) -> dict:
     """Pull the 6 faces together at the hub → ONE canonical, deduped, ordered result.
 
-    Dedup by content hash (Trinity `seenIds` idea — the SAME record arriving on more
-    than one face counts once). Deterministic ordering by content hash so the result +
-    its `replay_hash` are reproducible regardless of face-arrival order. Returns
+    Dedup by fingerprint (Trinity `seenIds` idea — the SAME record arriving on more than
+    one face counts once). Deterministic ordering by fingerprint so the result + its
+    `replay_hash` are reproducible regardless of face-arrival order. Returns
     {rows, count, dedup_removed, faces, replay_hash}.
+
+    Two fingerprint modes:
+      · dedup_key=None (default) — CONTENT hash: sha256(json(record)). Correct for keyless
+        records, but pays a json.dumps + sha256 PER ROW (the 1M hot spot).
+      · dedup_key="id" (or any stable field) — NATURAL-KEY fast path: dedup on record[key]
+        directly (O(1), no hashing per row). This mirrors how Postgres actually dedups —
+        a PRIMARY KEY / UNIQUE constraint on the partitioned parent — so it is both the
+        FASTER and the more Supabase-faithful path; use it whenever writes carry a stable id.
+    Both modes are deterministic within their mode.
     """
     seen: set[str] = set()
     canonical: list[tuple[str, dict]] = []
     total_in = 0
-    for batch in face_batches:
-        for record in batch:
-            total_in += 1
-            ch = _content_hash(record)
-            if ch in seen:
-                continue
-            seen.add(ch)
-            canonical.append((ch, record))
+    if dedup_key is not None:
+        for batch in face_batches:
+            for record in batch:
+                total_in += 1
+                fp = str(record.get(dedup_key))
+                if fp in seen:
+                    continue
+                seen.add(fp)
+                canonical.append((fp, record))
+    else:
+        for batch in face_batches:
+            for record in batch:
+                total_in += 1
+                fp = _content_hash(record)
+                if fp in seen:
+                    continue
+                seen.add(fp)
+                canonical.append((fp, record))
 
-    canonical.sort(key=lambda t: t[0])  # deterministic order (by content hash)
-    rows = [r for _ch, r in canonical]
+    canonical.sort(key=lambda t: t[0])  # deterministic order (by fingerprint)
+    rows = [r for _fp, r in canonical]
     replay_hash = hashlib.sha256(
-        ":".join(ch for ch, _r in canonical).encode()
+        ":".join(fp for fp, _r in canonical).encode()
     ).hexdigest()
     return {
         "rows": rows,
@@ -101,9 +120,12 @@ class RotorRing:
         """Per-face absorbed-record counts (write-balance signal)."""
         return [len(f) for f in self._faces]
 
-    def read_all(self) -> dict:
-        """Gather all 6 faces → coalesce → canonical hub result (with replay_hash)."""
-        return coalesce(self._faces)
+    def read_all(self, *, dedup_key: str | None = None) -> dict:
+        """Gather all 6 faces → coalesce → canonical hub result (with replay_hash).
+
+        Pass `dedup_key` to use the natural-key fast path (Supabase-faithful, O(1)/row).
+        """
+        return coalesce(self._faces, dedup_key=dedup_key)
 
     def attribute(self, key: str, seq: int) -> int:
         """Backward reproducibility: which face DID (key, seq) land on? (same seed)."""

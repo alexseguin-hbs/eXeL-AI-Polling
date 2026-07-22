@@ -89,3 +89,41 @@ def test_backward_attribution_matches_forward():
     faces_written = [ring.write({"i": i}, key="sess-x") for i in range(20)]
     faces_attributed = [ring.attribute("sess-x", seq) for seq in range(20)]
     assert faces_written == faces_attributed
+
+
+# ── Supabase-faithful natural-key fast path (dedup by id, not content hash) ──
+
+def test_coalesce_dedup_key_dedups_by_natural_key():
+    # Same id on two faces → ONE row (mirrors a Postgres PRIMARY KEY / UNIQUE constraint).
+    recs = [{"id": i, "v": i} for i in range(10)]
+    out = coalesce([recs, recs[:3], [], [], [], []], dedup_key="id")
+    assert out["count"] == 10
+    assert out["dedup_removed"] == 3
+
+
+def test_coalesce_dedup_key_deterministic_replay_hash():
+    recs = [{"id": i, "v": i} for i in range(50)]
+
+    def run():
+        return coalesce([recs[:25], recs[25:], [], [], [], []], dedup_key="id")
+
+    a, b = run(), run()
+    assert a["replay_hash"] == b["replay_hash"]
+    assert len(a["replay_hash"]) == 64
+
+
+def test_coalesce_dedup_key_same_rowset_as_content_mode():
+    # Both modes yield the SAME set of surviving rows (only ordering/replay_hash differ).
+    recs = [{"id": i, "v": i} for i in range(30)]
+    fast = coalesce([recs, recs, [], [], [], []], dedup_key="id")
+    content = coalesce([recs, recs, [], [], [], []])
+    assert fast["count"] == content["count"] == 30
+    assert {r["id"] for r in fast["rows"]} == {r["id"] for r in content["rows"]}
+
+
+def test_read_all_dedup_key_pass_through():
+    ring = RotorRing(seed="fixed")
+    for i in range(100):
+        ring.write({"id": i, "v": i}, key="sess")
+    out = ring.read_all(dedup_key="id")
+    assert out["count"] == 100 and len(out["replay_hash"]) == 64

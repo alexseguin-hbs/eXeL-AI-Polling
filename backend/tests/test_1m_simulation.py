@@ -465,3 +465,69 @@ class TestFullPipelineSimulation:
         scale_factor = 1_000_000 / n_5k
         estimated_time = 1.0 * math.log2(scale_factor)  # O(log N) with sampling
         assert estimated_time < 60, f"Estimated 1M time: {estimated_time:.1f}s"
+
+
+class TestHWR1MAbsorption:
+    """HWR (Hexagonal Write Rotor) 1M-scale absorption — the write-layer analogue of the
+    1M streaming test. Fans 1M records across the 6 faces then coalesces at the hub via
+    the Supabase-faithful natural-key fast path (dedup by id = a Postgres UNIQUE
+    constraint). LOAD-TOLERANT guards (throughput floor + determinism + balance), never
+    an absolute wall-clock — same philosophy as R5.1's streaming timing test.
+    """
+
+    N = 1_000_000
+
+    @staticmethod
+    def _rec(i: int) -> dict:
+        return {"id": i, "cube_id": (i % 9) + 1, "payload": f"r{i}"}
+
+    def test_hwr_1m_absorb_balance_and_throughput(self):
+        import time as _t
+
+        from app.core.rcore.write_rotor import RotorRing
+
+        ring = RotorRing(seed="bench")
+        # warmup (discard) so allocation cost doesn't skew the window
+        for i in range(10_000):
+            ring.write(self._rec(i), key=f"cube{(i % 9) + 1}")
+
+        ring = RotorRing(seed="bench")
+        t0 = _t.perf_counter()
+        for i in range(self.N):
+            ring.write(self._rec(i), key=f"cube{(i % 9) + 1}")
+        write_s = _t.perf_counter() - t0
+
+        t0 = _t.perf_counter()
+        out = ring.read_all(dedup_key="id")  # natural-key fast path
+        coalesce_s = _t.perf_counter() - t0
+
+        # Correctness: all 1M unique ids survive; nothing dropped.
+        assert out["count"] == self.N
+        assert out["dedup_removed"] == 0
+        assert len(out["replay_hash"]) == 64
+
+        # Balance: the 6 faces absorb near-evenly (seeded hash spread). min/max ≥ 0.95.
+        counts = ring.face_counts()
+        assert len(counts) == 6 and sum(counts) == self.N
+        assert min(counts) / max(counts) >= 0.95, f"faces uneven: {counts}"
+
+        # Throughput floor — VERY conservative (≥ 50k rows/s absorb, ≥ 50k rows/s
+        # coalesce), ~3-5× below a healthy loaded-box rate, so it never flakes; it only
+        # fires if the pure-Python path truly collapses.
+        assert self.N / max(write_s, 1e-9) >= 50_000, f"absorb {self.N/write_s:.0f} r/s"
+        assert self.N / max(coalesce_s, 1e-9) >= 50_000, f"coalesce {self.N/coalesce_s:.0f} r/s"
+
+    def test_hwr_absorb_deterministic_replay_hash(self):
+        # Determinism at a smaller N (two full runs): same records in the same order →
+        # the SAME canonical coalesced replay_hash. The reproducibility proof.
+        from app.core.rcore.write_rotor import RotorRing
+
+        def run():
+            ring = RotorRing(seed="bench")
+            for i in range(50_000):
+                ring.write(self._rec(i), key=f"cube{(i % 9) + 1}")
+            return ring.read_all(dedup_key="id")
+
+        a, b = run(), run()
+        assert a["replay_hash"] == b["replay_hash"]
+        assert a["count"] == b["count"] == 50_000
