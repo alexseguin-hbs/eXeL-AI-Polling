@@ -19,16 +19,13 @@
 //     Location drops the #fragment — losing the hash the reader needs. /seal
 //     serves the reader with a terminal 200, so the fragment survives one hop.
 //
-// SITE PAUSE (kill-switch):
-//   When paused, EVERY route except the home page (/, /main, /main/*) and
-//   static assets is served the /paused.html page with a 503. Two independent
-//   switches, checked in order, both OPTIONAL and default-OFF:
-//     1. KV binding `SITE_STATE`, key "paused" == "1"|"true"  (instant, no deploy)
-//     2. env var `SITE_PAUSED` == "1"                          (needs a deploy)
-//   The check FAILS OPEN: any missing binding or runtime error leaves the site
-//   fully live, so a misconfiguration can never take the platform down. To pause
-//   live: `wrangler kv key put --binding=SITE_STATE paused 1` (or set it in the
-//   Cloudflare dashboard). To resume: set it to "0" / delete the key.
+// SECURITY:
+//   1. Edge PREVENTION — deny unambiguous attack signatures in the request
+//      PATH (traversal, dotfiles, scanner probes) before they reach assets.
+//   2. PAUSE kill-switch — when paused, every route except the home page
+//      (/, /main, /main/*) and static assets returns paused.html with 503.
+//   Both fail OPEN: any error leaves the site fully live. Toggle the pause via
+//   KV `SITE_STATE:paused` (instant) or env `SITE_PAUSED` (both default OFF).
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -41,6 +38,18 @@ export default {
         return Response.redirect(url.origin + "/seal#" + hash, 302);
       }
       return Response.redirect(url.origin + "/Atlantis-Accords/", 302);
+    }
+
+    // --- Edge PREVENTION (path only; query strings are never inspected) ---
+    try {
+      const raw = url.pathname.toLowerCase();
+      const dec = decodeURIComponent(raw);
+      const SIGS = ["../", "<script", "union select", "/etc/passwd", "/.env", "/.git/", "/wp-admin", "/wp-login"];
+      if (raw.includes("%00") || SIGS.some((sig) => dec.includes(sig))) {
+        return new Response("Forbidden", { status: 403, headers: { "cache-control": "no-store" } });
+      }
+    } catch (_e) {
+      // malformed percent-encoding — do not block; let ASSETS handle it
     }
 
     // --- Site pause kill-switch (fails OPEN on any error) ---

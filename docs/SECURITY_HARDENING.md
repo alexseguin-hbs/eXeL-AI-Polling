@@ -11,6 +11,37 @@ and fails OPEN.
 
 ---
 
+## 0. THREAT LEVEL — "Attack Likely → Imminent → In Progress"
+
+`backend/app/core/threat_level.py` (pure, tested — `assess_threat(signals)`) reads a
+window of security telemetry and reports one escalating level, the reasons, the
+OpenAI-style **"actions we are taking now"**, and two decisions the platform acts on
+(`should_alert`, `should_pause`). This is the readout you asked for.
+
+| Level | Means | Example signals | Alert? | Pause? |
+|---|---|---|:--:|:--:|
+| **Nominal** | quiet | — | — | — |
+| **Attack Likely** | reconnaissance / probing | elevated 401/403 bursts, rate-limit breaches, a few blocked payloads | no (monitor) | no |
+| **Attack Imminent** | active exploitation attempts | exploit signatures firing (SQLi/XSS/traversal), credential-stuffing across ≥3 IPs, admin-endpoint probing | **yes → explore@eXeL-AI.com** | no |
+| **Attack In Progress** | compromise indicators | served-asset integrity fail, unverified-origin state change, RLS-deny spike, exfil-sized response | **yes** | **YES → kill-switch** |
+
+Design: **conservative + monotonic** — any single hard compromise indicator forces
+"In Progress" regardless of the softer counts, and only "In Progress" trips the pause.
+Thresholds live at the top of the module and are tunable. 13 unit tests
+(`tests/core/test_threat_level.py`) lock each tier + the escalation.
+
+**How it connects:** the app anomaly monitor (Phase 2) feeds live `SecuritySignals`
+into `assess_threat` every window → on `should_alert` it emails the alert dashboard
+(§2b) → on `should_pause` it trips the KV kill-switch (§1). Until the monitor is wired,
+run it on-demand against Cloudflare/Supabase logs.
+
+**Edge prevention (LIVE):** `frontend/worker.js` also *denies* unambiguous attack
+signatures in the request PATH (traversal `../`, dotfiles `/.env` `/.git/`, scanner
+probes `/wp-admin`, `<script`, `union select`, null bytes) with a 403 before they ever
+reach the app — the "prevent it from occurring" first layer, fail-open by construction.
+
+---
+
 ## 1. PAUSE KILL-SWITCH — LIVE NOW (edge-enforced)
 
 **What it does.** When paused, every route **except** the home page
