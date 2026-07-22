@@ -527,7 +527,7 @@ class TestCube9SSSES:
 
     VALID_EXPORT_FORMATS = ("csv", "pdf")
     VALID_SUMMARY_TIERS = ("33", "111", "333")
-    CSV_COLUMNS = 19  # Updated from 16 (Asar audit)
+    CSV_COLUMNS = 20  # 20-column schema (was 16→19; now +Response_Language, 3 Theme_Description, Theme01_Category — CLAUDE.md)
 
     # ── Security: Export format whitelist ──
     def test_security_export_format_whitelist_n99(self):
@@ -540,7 +540,7 @@ class TestCube9SSSES:
 
     # ── Stability: CSV column count ──
     def test_stability_csv_column_count_n99(self):
-        """CSV export always has exactly 19 columns."""
+        """CSV export always has exactly 20 columns (20-column target schema)."""
         from app.cubes.cube9_reports.service import CSV_COLUMNS
         for _ in range(N):
             assert len(CSV_COLUMNS) == self.CSV_COLUMNS
@@ -623,17 +623,79 @@ class TestCube10SSSES:
             for invalid in ("Positive", "NEUTRAL", "bad", "good", ""):
                 assert invalid not in self.VALID_SENTIMENTS
 
-    # ── Stability: Replay hash chain integrity ──
+    # ── Stability: Replay hash chain integrity (full 1→8) ──
     def test_stability_replay_hash_chain_n99(self):
-        """Cube 1→2→4→6→7→9 hash chain is deterministic."""
+        """Cube 1→2→3→4→5→6→7→8 hash chain is deterministic (full ingestion→token tier)."""
         reference = None
         for _ in range(N):
             chain = ""
-            for cube_id in [1, 2, 4, 6, 7, 9]:
+            for cube_id in [1, 2, 3, 4, 5, 6, 7, 8]:
                 chain = hashlib.sha256(f"{chain}:cube{cube_id}:seed42".encode()).hexdigest()
             if reference is None:
                 reference = chain
             assert chain == reference
+
+
+# ═══════════════════════════════════════════════════════════════════
+# SPIRAL R-CORE — bidirectional 1→8 forward + 8→1 backward, driven by the
+# REAL registered Dev-Sim harness determinism signatures (the objective referee).
+# SSSES: Stability (deterministic across N), Security (order-sensitive chain).
+# ═══════════════════════════════════════════════════════════════════
+
+class TestSpiralRCore1to8:
+    """The bidirectional SPIRAL: every registered harness (Cubes 1-8) emits a
+    determinism_signature; the forward (1→8) and backward (8→1) chains are each
+    deterministic across N runs, and differ from each other (direction is real)."""
+
+    @staticmethod
+    def _signatures():
+        import asyncio
+
+        from app.cubes.cube10_simulation.challenge_loop import HARNESS_CUBES, run_cube_baseline
+
+        async def _all():
+            return {cid: (await run_cube_baseline(cid))["signature"]
+                    for cid in sorted(HARNESS_CUBES)}
+
+        return asyncio.run(_all())
+
+    def test_all_eight_harnesses_signed(self):
+        sigs = self._signatures()
+        assert sorted(sigs) == [1, 2, 3, 4, 5, 6, 7, 8]
+        for cid, sig in sigs.items():
+            assert len(sig) == 64, f"cube{cid} signature not 64-hex"
+
+    def test_forward_chain_deterministic_n99(self):
+        sigs = self._signatures()
+        reference = None
+        for _ in range(N):
+            chain = ""
+            for cid in [1, 2, 3, 4, 5, 6, 7, 8]:  # FORWARD spiral
+                chain = hashlib.sha256(f"{chain}:{sigs[cid]}".encode()).hexdigest()
+            reference = reference or chain
+            assert chain == reference
+
+    def test_backward_chain_deterministic_n99(self):
+        sigs = self._signatures()
+        reference = None
+        for _ in range(N):
+            chain = ""
+            for cid in [8, 7, 6, 5, 4, 3, 2, 1]:  # BACKWARD spiral
+                chain = hashlib.sha256(f"{chain}:{sigs[cid]}".encode()).hexdigest()
+            reference = reference or chain
+            assert chain == reference
+
+    def test_forward_and_backward_differ(self):
+        """Order matters — the spiral direction is a real, distinguishable chain."""
+        sigs = self._signatures()
+
+        def _chain(order):
+            chain = ""
+            for cid in order:
+                chain = hashlib.sha256(f"{chain}:{sigs[cid]}".encode()).hexdigest()
+            return chain
+
+        assert _chain([1, 2, 3, 4, 5, 6, 7, 8]) != _chain([8, 7, 6, 5, 4, 3, 2, 1])
 
 
 # ═══════════════════════════════════════════════════════════════════

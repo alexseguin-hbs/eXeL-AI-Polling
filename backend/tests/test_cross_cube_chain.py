@@ -188,3 +188,27 @@ class TestScaleConstants:
         from app.cubes.cube9_reports.service import export_session_csv_streaming
         import inspect
         assert inspect.isasyncgenfunction(export_session_csv_streaming)
+
+
+class TestDevSimHarnessCoverage:
+    """R-Core: every cube 1-8 has a registered, runnable Dev-Sim harness (the objective
+    determinism referee for the bidirectional 1↔8 SPIRAL)."""
+
+    def test_harness_cubes_cover_one_through_eight(self):
+        from app.cubes.cube10_simulation.challenge_loop import HARNESS_CUBES
+        assert HARNESS_CUBES == frozenset({1, 2, 3, 4, 5, 6, 7, 8})
+
+    def test_each_harness_emits_64hex_signature(self):
+        import asyncio
+
+        from app.cubes.cube10_simulation.challenge_loop import (
+            HARNESS_CUBES,
+            run_cube_baseline,
+        )
+
+        async def _run():
+            for cid in sorted(HARNESS_CUBES):
+                base = await run_cube_baseline(cid)
+                assert len(base["signature"]) == 64, f"cube{cid} signature not 64-hex"
+
+        asyncio.run(_run())
