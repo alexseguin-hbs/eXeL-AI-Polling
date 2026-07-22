@@ -30,9 +30,31 @@ from fastapi import HTTPException, status
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.audit import log_audit
+from app.core.rcore.execution_modes import dispatch_execution_mode
 from app.models.token_ledger import TokenDispute, TokenLedger
 
 logger = logging.getLogger("cube8")
+
+
+def dispatch_token_award(
+    result: dict,
+    *,
+    mode: str,
+    human_approved: bool = False,
+    human_selected: bool = False,
+) -> dict:
+    """Route a token award/finalization through the SHARED R-Core execution-mode gate.
+
+    The SAME ledger math runs in every mode — only the approver/automation changes.
+    automated auto-finalizes ONLY inside the risk/confidence guardrail; live/finalize
+    requires human authority (Human Authority is a permanent gate over real value).
+    Thin delegator to core.rcore.execution_modes.dispatch_execution_mode.
+    """
+    return dispatch_execution_mode(
+        result, mode=mode, human_approved=human_approved, human_selected=human_selected,
+    )
+
 
 # ---------------------------------------------------------------------------
 # Lifecycle State Machine
@@ -339,6 +361,21 @@ async def transition_lifecycle_state(
         )
 
     entry.lifecycle_state = new_state
+
+    # Human-Authority attribution: one append-only audit row per lifecycle transition
+    # (R-Core parity with cube1/7). actor is the transitioner (else system:auto).
+    actor = transitioned_by or "system:auto"
+    log_audit(
+        db,
+        session_id=entry.session_id,
+        actor_id=actor,
+        actor_role="system" if actor.startswith("system:") else "admin",
+        action_type="token.lifecycle_transition",
+        object_type="token_ledger",
+        object_id=str(entry_id),
+        before={"lifecycle_state": current},
+        after={"lifecycle_state": new_state},
+    )
     await db.flush()
 
     logger.info(
