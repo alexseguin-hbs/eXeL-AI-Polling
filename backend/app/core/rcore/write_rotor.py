@@ -108,3 +108,62 @@ class RotorRing:
     def attribute(self, key: str, seq: int) -> int:
         """Backward reproducibility: which face DID (key, seq) land on? (same seed)."""
         return rotor_face(key, seq, self.seed)
+
+
+# ---------------------------------------------------------------------------
+# H2 — R-Core surfaces for the rotor (metrics triad + audit on coalesce)
+# ---------------------------------------------------------------------------
+
+
+def rotor_metrics(ring: "RotorRing", coalesced: dict, *, distinct_writers: int = 0) -> dict:
+    """SSSES System/User/Outcome triad for a write rotor (pure).
+
+    System  — per-face absorbed counts + balance (max/min face load; 1.0 = perfectly even)
+    User    — distinct writers who fed the ring
+    Outcome — coalesced canonical count, dedup removed, replay_hash (reproducibility proof)
+    """
+    counts = ring.face_counts()
+    total = sum(counts)
+    hi, lo = (max(counts), min(counts)) if counts else (0, 0)
+    balance = round(lo / hi, 4) if hi > 0 else 1.0  # 1.0 = perfectly even across faces
+    return {
+        "component": "hex_write_rotor",
+        "system": {
+            "faces": FACES,
+            "writes_absorbed": total,
+            "face_counts": counts,
+            "balance": balance,
+        },
+        "user": {"distinct_writers": int(distinct_writers)},
+        "outcome": {
+            "coalesced_count": coalesced.get("count", 0),
+            "dedup_removed": coalesced.get("dedup_removed", 0),
+            "replay_hash": coalesced.get("replay_hash"),
+        },
+    }
+
+
+def audit_coalesce(db, *, session_id, actor_id: str, coalesced: dict, actor_role: str = "system"):
+    """Write one append-only AuditLog row per hub coalesce (R-Core Human-Authority trail).
+
+    Records who/when coalesced how many faces into how many canonical rows + the
+    replay_hash — the write-side analogue of the per-transition audit on cubes 1-9.
+    Delegates to the shared core.audit.log_audit (caller owns the commit).
+    """
+    from app.core.audit import log_audit
+
+    return log_audit(
+        db,
+        session_id=session_id,
+        actor_id=actor_id,
+        actor_role=actor_role,
+        action_type="hwr.coalesce",
+        object_type="hex_write_rotor",
+        object_id=coalesced.get("replay_hash"),
+        after={
+            "faces": coalesced.get("faces"),
+            "coalesced_count": coalesced.get("count"),
+            "dedup_removed": coalesced.get("dedup_removed"),
+            "replay_hash": coalesced.get("replay_hash"),
+        },
+    )
