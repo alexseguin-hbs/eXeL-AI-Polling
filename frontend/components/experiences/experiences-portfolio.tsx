@@ -96,7 +96,7 @@ const IP: Item[] = [
 const VIDEOS: Item[] = [
   { kind: "video", title: "Athena AI + Teal 2 Drone", blurb: "AI decision-support paired with an autonomous drone; intelligence and hardware working as one system.", href: "https://youtu.be/rpbb0AiM9fI" },
   { kind: "video", title: "BD Spot + Fluke SV600", blurb: "Boston Dynamics Spot carrying an acoustic-imaging payload to find leaks a human can't hear; robotics meets sensing.", href: "https://youtu.be/Ve7Yqs8uw5M" },
-  { kind: "video", title: "Fluke Ti450 SF6 Dual-Purpose", blurb: "A dual-purpose thermal imager: SF6 gas detection and everyday thermal inspection. Making an invisible gas visible on camera, concept to field.", href: "https://youtu.be/GGJyRyaE6y4" },
+  { kind: "video", title: "Dual-Purpose Fluke Ti450 SF6", blurb: "A dual-purpose thermal imager: SF6 gas detection and everyday thermal inspection. Making an invisible gas visible on camera, concept to field.", href: "https://youtu.be/GGJyRyaE6y4" },
   { kind: "video", title: "AI / Claude Code Demo", blurb: "How this very platform is built: human intent directing AI to ship real, governed software.", href: "https://youtu.be/wbsUZAVa2zM" },
 ];
 
