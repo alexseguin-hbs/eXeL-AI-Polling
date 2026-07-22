@@ -32,6 +32,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit import log_audit
 from app.core.rcore.execution_modes import dispatch_execution_mode
+from app.core.rcore.rotor_adapter import stamp_orm as _hwr_stamp
 from app.models.token_ledger import TokenDispute, TokenLedger
 
 logger = logging.getLogger("cube8")
@@ -278,6 +279,10 @@ async def create_ledger_entry(
         reference_id=reference_id,
     )
     db.add(entry)
+    # HWR seam (H4): route each append-only ledger entry to its seeded 6-face partition,
+    # sharded by a rich natural key (session·user·action·reference) so entries spread
+    # evenly across faces. NO-OP until settings.hwr_enabled + migration 026 land.
+    _hwr_stamp(entry, key=f"{session_id}:{user_id}:{action_type}:{reference_id}", seq=0)
     await db.flush()
     await db.refresh(entry)
 
