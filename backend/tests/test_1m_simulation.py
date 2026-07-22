@@ -305,25 +305,55 @@ class TestExportScale:
         assert len(lines) == 5001  # header + 5000 rows
 
     def test_streaming_1m_rows_timing(self):
-        """Simulate 1M row CSV streaming — target: <10s."""
-        sample = load_csv_rows(10)  # Load 10 rows as template
+        """1M-row CSV streaming perf — LOAD-TOLERANT guard (R5.1).
 
-        start = time.perf_counter()
-        output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=list(sample[0].keys()))
-        writer.writeheader()
-        for i in range(100_000):  # 100K rows (10 templates × 10K)
-            row = sample[i % len(sample)].copy()
-            row["User"] = f"User_{i:06d}"
-            writer.writerow(row)
-        elapsed = time.perf_counter() - start
+        The old absolute-wall-clock assertion (`< Ns`) measured the shared CI box's
+        spare CPU, not our code — 18s under full-suite load broke a 15s ceiling.
+        Replaced with two load-independent guards:
+          (a) THROUGHPUT FLOOR — rows/sec ≥ a floor (a busy CPU lowers the absolute time
+              but the RATE degrades far less), after a warmup pass so allocation/JIT cost
+              doesn't skew the measured window; and
+          (b) LINEAR SCALING — t(100k)/t(10k) stays near-linear, which catches an
+              O(n²)-class regression regardless of how loaded the machine is (both halves
+              run under the same contention, so the RATIO is stable).
+        """
+        sample = load_csv_rows(10)
+        fieldnames = list(sample[0].keys())
 
-        # Smoke check (not an SLA): catches catastrophic O(n²)-class regressions, not
-        # small load variance. Generous ceiling because this runs on a shared CI box
-        # where CPU contention (e.g. a full-suite run) can double pure-Python csv time.
-        assert elapsed < 60.0, f"100K CSV export took {elapsed:.1f}s (shared-CI tolerance)"
-        lines = output.getvalue().strip().split("\n")
-        assert len(lines) == 100_001  # header + 100K
+        def _write(n: int) -> float:
+            out = io.StringIO()
+            w = csv.DictWriter(out, fieldnames=fieldnames)
+            w.writeheader()
+            for i in range(n):
+                row = sample[i % len(sample)].copy()
+                row["User"] = f"User_{i:06d}"
+                w.writerow(row)
+            assert len(out.getvalue().strip().split("\n")) == n + 1  # header + n
+            return out
+
+        # Warmup (discard) — pay allocation/interpreter costs before measuring.
+        _write(10_000)
+
+        t0 = time.perf_counter()
+        _write(10_000)
+        t_10k = time.perf_counter() - t0
+
+        t0 = time.perf_counter()
+        out_100k = _write(100_000)
+        t_100k = time.perf_counter() - t0
+
+        # (a) Throughput floor — VERY conservative (≥ 1.5k rows/s, ~3× below a healthy
+        # loaded-box rate) so it never flakes; it only fires if pure-Python csv writing
+        # truly collapses. The linear-scaling ratio (b) is the real regression guard.
+        rows_per_sec = 100_000 / max(t_100k, 1e-9)
+        assert rows_per_sec >= 1_500, f"throughput {rows_per_sec:.0f} rows/s below floor"
+
+        # (b) Linear scaling — 10× the rows should take < 40× the time (headroom for
+        # fixed overhead + noise); a quadratic path would blow past this.
+        assert t_100k < t_10k * 40, (
+            f"non-linear: t(100k)={t_100k:.2f}s vs 40×t(10k)={t_10k * 40:.2f}s"
+        )
+        assert len(out_100k.getvalue().strip().split("\n")) == 100_001
 
     def test_content_tier_resolution(self):
         """Verify 8-tier monetization thresholds."""
