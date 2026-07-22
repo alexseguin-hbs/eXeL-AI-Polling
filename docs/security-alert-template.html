@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>eXeL AI — Security Alert</title>
+</head>
+<!--
+  CANONICAL ALERT-EMAIL DASHBOARD (single page, self-contained, no external assets).
+  The alerting pipeline (Cloudflare WAF notification OR the app anomaly monitor)
+  fills the {{TOKENS}} and emails this HTML to explore@eXeL-AI.com in real time.
+  All styles are inline so every email client renders it. Links point back to the
+  live site's control page + Cloudflare Security Events.
+-->
+<body style="margin:0;background:#05121a;color:#cbd5e1;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+  <div style="max-width:640px;margin:0 auto;padding:24px;">
+
+    <!-- Severity banner -->
+    <div style="border-radius:14px 14px 0 0;padding:18px 22px;background:#7f1d1d;color:#fff;">
+      <div style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;opacity:.85;">eXeL AI · Security Alert</div>
+      <div style="font-size:22px;font-weight:800;margin-top:4px;">{{SEVERITY}} — {{HEADLINE}}</div>
+      <div style="font-size:13px;opacity:.9;margin-top:6px;">Detected {{DETECTED_AT}} · site state: <b>{{SITE_STATE}}</b></div>
+    </div>
+
+    <!-- Body -->
+    <div style="border:1px solid rgba(25,200,207,.25);border-top:none;border-radius:0 0 14px 14px;background:#091a22;padding:22px;">
+
+      <p style="font-size:14px;line-height:1.6;margin:0 0 16px;">
+        {{SUMMARY}} A potential compromise or attack was detected against the eXeL AI
+        polling platform. Review the signals below and pause the site if warranted.
+      </p>
+
+      <!-- Signals table -->
+      <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#19c8cf;font-weight:700;margin:0 0 8px;">Triggering signals</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;">
+        <tr style="color:#64748b;text-align:left;">
+          <th style="padding:6px 8px;border-bottom:1px solid #16303a;">Type</th>
+          <th style="padding:6px 8px;border-bottom:1px solid #16303a;">Source IP</th>
+          <th style="padding:6px 8px;border-bottom:1px solid #16303a;">Path</th>
+          <th style="padding:6px 8px;border-bottom:1px solid #16303a;">Count</th>
+          <th style="padding:6px 8px;border-bottom:1px solid #16303a;">Last seen</th>
+        </tr>
+        <!-- {{SIGNAL_ROWS}} — one <tr> per signal, e.g.: -->
+        <tr>
+          <td style="padding:6px 8px;border-bottom:1px solid #0f2029;">{{TYPE}}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #0f2029;font-family:monospace;">{{IP}}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #0f2029;font-family:monospace;">{{PATH}}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #0f2029;">{{COUNT}}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #0f2029;">{{LAST_SEEN}}</td>
+        </tr>
+      </table>
+
+      <!-- Actions -->
+      <div style="margin-top:22px;">
+        <a href="{{CONTROL_URL}}" style="display:inline-block;background:#19c8cf;color:#04141b;font-weight:700;text-decoration:none;padding:11px 18px;border-radius:10px;font-size:14px;">Pause the site (SMS-verified)</a>
+        <a href="{{EVENTS_URL}}" style="display:inline-block;margin-left:8px;border:1px solid rgba(25,200,207,.4);color:#19c8cf;text-decoration:none;padding:11px 18px;border-radius:10px;font-size:14px;">View security events</a>
+      </div>
+
+      <p style="font-size:12px;color:#64748b;margin:22px 0 0;line-height:1.6;">
+        Pausing takes the whole platform offline except the home page and requires a
+        6-character code texted to 512.808.8745. This alert was generated automatically;
+        if you did not expect it, treat it as real until verified.
+      </p>
+    </div>
+
+    <div style="text-align:center;color:#3f5866;font-size:11px;margin-top:14px;">
+      eXeL AI governance engine · automated security monitor
+    </div>
+  </div>
+</body>
+</html>
