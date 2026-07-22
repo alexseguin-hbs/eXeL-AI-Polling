@@ -10,6 +10,14 @@ import os
 SEED = 42
 rng = np.random.default_rng(SEED)
 
+# Theme01 → normalized slice key, mirroring cube6_ai.pipeline._category_key (kept inline
+# so the generator stays standalone / dependency-free). Populates the 20th column.
+_CATEGORY_KEYS = {
+    "Risk & Concerns": "risk",
+    "Supporting Comments": "support",
+    "Neutral Comments": "neutral",
+}
+
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ---------------------------------------------------------------------------
@@ -291,6 +299,12 @@ def generate_csv(
         t6_pool = themes_6[theme01]
         t3_pool = themes_3[theme01]
 
+        t2_9 = rng.choice(t9_pool)
+        t2_6 = rng.choice(t6_pool)
+        t2_3 = rng.choice(t3_pool)
+        # 20-col schema: Theme01_Category (normalized risk|support|neutral slice key,
+        # derived from Theme01 exactly as Cube 6's _category_key does) + the 3
+        # Theme2_*_Description columns, in CSV_COLUMNS order (matches cube9 export).
         row = {
             "Q_Number": "Q-0001",
             "Question": question,
@@ -301,13 +315,17 @@ def generate_csv(
             "111_Summary": s111,
             "33_Summary": s33,
             "Theme01": theme01,
+            "Theme01_Category": _CATEGORY_KEYS.get(theme01, ""),
             "Theme01_Confidence": pick_confidence(),
-            "Theme2_9": rng.choice(t9_pool),
+            "Theme2_9": t2_9,
             "Theme2_9_Confidence": pick_confidence(),
-            "Theme2_6": rng.choice(t6_pool),
+            "Theme2_9_Description": f"{t2_9} — representative cluster theme",
+            "Theme2_6": t2_6,
             "Theme2_6_Confidence": pick_confidence(),
-            "Theme2_3": rng.choice(t3_pool),
+            "Theme2_6_Description": f"{t2_6} — representative cluster theme",
+            "Theme2_3": t2_3,
             "Theme2_3_Confidence": pick_confidence(),
+            "Theme2_3_Description": f"{t2_3} — representative cluster theme",
         }
         rows.append(row)
 

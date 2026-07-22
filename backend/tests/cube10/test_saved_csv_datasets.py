@@ -60,17 +60,14 @@ class TestDatasetSchema:
     @pytest.mark.parametrize("fname,expected_rows,_", DATASETS)
     def test_column_count(self, fname, expected_rows, _):
         df = pd.read_csv(_require_fixture(fname))
-        assert len(df.columns) == 19
+        assert len(df.columns) == 20  # full 20-col schema (R1.1: +Theme01_Category)
 
     @pytest.mark.parametrize("fname,expected_rows,_", DATASETS)
     def test_column_names_match(self, fname, expected_rows, _):
         df = pd.read_csv(_require_fixture(fname))
-        # Sample fixtures may predate ADDITIVE export columns — the export CSV_COLUMNS
-        # gained `Theme01_Category` (the Theme01 slice key) after these 19-column
-        # fixtures were generated. Assert every fixture column is a VALID export column
-        # (a clean subset — no unknown/renamed columns), robust to future additions.
-        unknown = set(df.columns) - set(CSV_COLUMNS)
-        assert not unknown, f"{fname} has columns not in the export schema: {unknown}"
+        # STRICT: generated/committed sim fixtures are the full 20-col export schema,
+        # in exact CSV_COLUMNS order (column-consistent with cube9 export + Cube 6 forward).
+        assert list(df.columns) == CSV_COLUMNS
 
     @pytest.mark.parametrize("fname,expected_rows,_", DATASETS)
     def test_row_count(self, fname, expected_rows, _):
