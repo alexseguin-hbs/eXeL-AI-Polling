@@ -2,157 +2,133 @@
 
 // The portfolio the Experiences QR opens ("see the actual work"). Order (hiring-manager flow):
 // Presentation & Writeup, Résumés, Industrial, Demo videos, EdTech · eXeL AI, IP/Patents (bottom).
-// Titles are kept SHORT so they render on a single line on phones; the badge carries the type and the
-// blurb carries the detail. Copy avoids the em-dash on purpose. Rendered by both /experiences/docs
-// and /main/experiences/docs.
+// Every item is a consistent collapsible Card: an open-link icon on the LEFT, the title + badge as a
+// 2-line default, an expand dropdown on the UPPER RIGHT, and the blurb (plus PDF View/Download) kept
+// indented under the header when expanded. Copy avoids the em-dash on purpose. Titles use `truncate`
+// so they stay on one line on phones. Rendered by both /experiences/docs and /main/experiences/docs.
 
 import { useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film } from "lucide-react";
 
-type LinkCard = { title: string; blurb: string; href: string; badge?: string };
+type CardKind = "pdf" | "link" | "video";
+type Item = { kind: CardKind; title: string; blurb: string; href: string; badge?: string; icon?: LucideIcon };
 
 // ── Presentation & Writeup — the AI/ML strategy documents ───────────────────────────────────
-const WRITEUPS: LinkCard[] = [
+const WRITEUPS: Item[] = [
   {
+    kind: "pdf",
+    icon: Presentation,
     title: "AI/ML Strategy · Plan",
+    badge: "Presentation · plan",
     blurb:
       "The executive presentation: the value proposition, a 4-phase $18M work plan with milestones and a rough-order budget, the operational metrics it moves, and its broader national impact; the same vision, decision-ready.",
     href: "/experiences/eXeL_AI_Strategy_Project_Description_A.Seguin_v2.pdf",
-    badge: "Presentation · plan",
   },
   {
+    kind: "pdf",
     title: "AI/ML System Integration",
+    badge: "Writeup · 21 pp",
     blurb:
       "The complete 21-page technical writeup: an AI platform ecosystem integrating the Army IVAS headset with ground robots, drones, and edge AI. Problem framing, CONOPs, sensor-fusion architecture, and an OODA-loop decision-support model, end to end.",
     href: "/experiences/eXeL_AI_Strategy_AIML_Software_Dev_Integration_A.Seguin.pdf",
-    badge: "Writeup · 21 pp",
   },
 ];
 
 // ── Résumés — blurbs pulled from the actual documents ───────────────────────────────────────
-const RESUMES: LinkCard[] = [
+const RESUMES: Item[] = [
   {
+    kind: "pdf",
     title: "HI + AI Systems",
+    badge: "Defense • Systems",
     blurb:
       "15+ years leading perception, sensor-fusion, and autonomy products across defense and industrial: Athena AI / Teal-2, Shield AI's first $25M R&D roadmap, FLIR's $200M portfolio, and 15+ Fluke thermal & acoustic launches, plus an active SECRET clearance and the Apple-cited sensor-fusion patent.",
     href: "/experiences/A.M.Seguin_Resume_HI_AI_Systems_Industrial_Defense.pdf",
-    badge: "Defense • Systems",
   },
   {
+    kind: "pdf",
     title: "Technical Product Manager",
+    badge: "TPM • PdM",
     blurb:
       "The same career, framed for product leadership: end-to-end delivery, R&D-portfolio governance, and risk management with hard outcomes. A $200M portfolio consolidated toward an $8B acquisition, 12% CAGR on a $3B business, and 20× developer throughput via AI automation.",
     href: "/experiences/ATS_ASeguin_Resume_TPM_20260126.pdf",
-    badge: "TPM • PdM",
   },
 ];
 
 // ── Industrial (shipped hardware) ───────────────────────────────────────────────────────────
-const INDUSTRIAL: LinkCard[] = [
+const INDUSTRIAL: Item[] = [
   {
+    kind: "link",
     title: "BD Spot · MUVE C360",
+    badge: "In the field",
     blurb: "Gas-leak detection mounted on Boston Dynamics Spot; a shipped integration keeping people out of harm's way.",
     href: "https://defense.flir.com/about/news/muve-c360-on-spot-detects-gas-leak/",
-    badge: "In the field",
   },
   {
+    kind: "link",
     title: "Acoustic Imager · ii900",
-    blurb: "Led a handheld acoustic-imaging product from MVP to market; a new category customers could finally point and use.",
-    href: "https://tinyurl.com/yc82z8v3",
     badge: "$20M Year-1 revenue",
+    blurb: "Led a handheld acoustic-imaging product from first build to market; a new category customers could finally point and use.",
+    href: "https://tinyurl.com/yc82z8v3",
   },
 ];
 
 // ── IP / Patents (bottom) ───────────────────────────────────────────────────────────────────
-const IP: LinkCard[] = [
+const IP: Item[] = [
   {
+    kind: "link",
     title: "Sensor Fusion Patent",
+    badge: "Cited 2× by Apple",
     blurb: "My patent on multi-sensor fusion, independently cited twice by Apple in their own filings.",
     href: "https://tinyurl.com/Sensor-Fusion-Patent",
-    badge: "Cited 2× by Apple",
   },
   {
+    kind: "link",
     title: "Apple US 2024/0107160 A1",
+    badge: "Apple citation",
     blurb: "One of the Apple patents that cites the work above; the citation, in Apple's own words.",
     href: "https://patents.google.com/patent/US20240107160A1/en",
-    badge: "Apple citation",
   },
 ];
-
-type VideoCardData = { title: string; blurb: string; href: string };
 
 // Demo videos — industrial & defense field demos (opens on YouTube).
-const VIDEOS: VideoCardData[] = [
-  {
-    title: "SF6 Dual-Purpose Imager",
-    blurb: "A dual-purpose thermal imager: SF6 gas detection and everyday thermal inspection in one camera.",
-    href: "https://youtu.be/vaToP90nka0",
-  },
-  {
-    title: "Athena AI + Teal 2 Drone",
-    blurb: "AI decision-support paired with an autonomous drone; intelligence and hardware working as one system.",
-    href: "https://youtu.be/rpbb0AiM9fI",
-  },
-  {
-    title: "BD Spot + Fluke SV600",
-    blurb: "Boston Dynamics Spot carrying an acoustic-imaging payload to find leaks a human can't hear; robotics meets sensing.",
-    href: "https://youtu.be/Ve7Yqs8uw5M",
-  },
-  {
-    title: "Fluke Ti450 SF6 Camera",
-    blurb: "Making an invisible gas visible on camera: the kind of product problem I take from concept to the field.",
-    href: "https://youtu.be/GGJyRyaE6y4",
-  },
-  {
-    title: "AI / Claude Code Demo",
-    blurb: "How this very platform is built: human intent directing AI to ship real, governed software.",
-    href: "https://youtu.be/wbsUZAVa2zM",
-  },
+const VIDEOS: Item[] = [
+  { kind: "video", title: "SF6 Dual-Purpose Imager", blurb: "A dual-purpose thermal imager: SF6 gas detection and everyday thermal inspection in one camera.", href: "https://youtu.be/vaToP90nka0" },
+  { kind: "video", title: "Athena AI + Teal 2 Drone", blurb: "AI decision-support paired with an autonomous drone; intelligence and hardware working as one system.", href: "https://youtu.be/rpbb0AiM9fI" },
+  { kind: "video", title: "BD Spot + Fluke SV600", blurb: "Boston Dynamics Spot carrying an acoustic-imaging payload to find leaks a human can't hear; robotics meets sensing.", href: "https://youtu.be/Ve7Yqs8uw5M" },
+  { kind: "video", title: "Fluke Ti450 SF6 Camera", blurb: "Making an invisible gas visible on camera: the kind of product problem I take from concept to the field.", href: "https://youtu.be/GGJyRyaE6y4" },
+  { kind: "video", title: "AI / Claude Code Demo", blurb: "How this very platform is built: human intent directing AI to ship real, governed software.", href: "https://youtu.be/wbsUZAVa2zM" },
 ];
 
-// EdTech · eXeL AI — the product/education videos (making AI learnable).
-const EDTECH_VIDEOS: VideoCardData[] = [
-  {
-    title: "eXeL AI · Sensor Fusion",
-    blurb: "The launch video: how the eXeL AI Sensor Fusion app brings edge perception to everyday devices, by Alex.",
-    href: "https://tinyurl.com/eXeL-AI-Launch-Video",
-  },
-  {
-    title: "eXeL AI · Simplifying CV",
-    blurb: "Making computer-vision AI/ML approachable: point, learn, and build with real models.",
-    href: "https://youtu.be/1hqutudJXF0?si=Nbzex0K0JT775Etu",
-  },
-  {
-    title: "eXeL AI Lane Detection",
-    blurb: "Lane-detection computer vision on a real car; learning AI by building it.",
-    href: "https://tinyurl.com/27999v63",
-  },
+// EdTech · eXeL AI — the education presentation (leads) and product videos.
+const EDTECH_PRESENTATION: Item = {
+  kind: "link",
+  icon: Presentation,
+  title: "EdTech Initiative Presentation",
+  blurb: "Bringing AI education to more learners: the mission that started eXeL AI (launched after COVID).",
+  href: "https://tinyurl.com/eXeL-AI-SFO",
+};
+
+const EDTECH_VIDEOS: Item[] = [
+  { kind: "video", title: "eXeL AI · Sensor Fusion", blurb: "The launch video: how the eXeL AI Sensor Fusion app brings edge perception to everyday devices, by Alex.", href: "https://tinyurl.com/eXeL-AI-Launch-Video" },
+  { kind: "video", title: "eXeL AI · Simplifying CV", blurb: "Making computer-vision AI/ML approachable: point, learn, and build with real models.", href: "https://youtu.be/1hqutudJXF0?si=Nbzex0K0JT775Etu" },
+  { kind: "video", title: "eXeL AI Lane Detection", blurb: "Lane-detection computer vision on a real car; learning AI by building it.", href: "https://tinyurl.com/27999v63" },
 ];
 
 // eXeL AI Initiative — "Preparing AI to Serve the Future of Humanity" (educational vignettes).
-const VIGNETTES: VideoCardData[] = [
-  { title: "ML Introduction · 1", blurb: "Machine Learning: introduction (Vignette 0001).", href: "https://youtu.be/xzhHllVpYgM" },
-  { title: "ML Introduction · 2", blurb: "Machine Learning: introduction (Vignette 0002).", href: "https://youtu.be/uNUW4c-leLo" },
-  { title: "AI Agents · Intro", blurb: "AI Agents: introduction (Vignette 0003).", href: "https://youtu.be/HfXzn0KCLcs" },
-  { title: "AlphaStar · StarCraft II", blurb: "AlphaStar: StarCraft 2 strategy (Vignette 0004).", href: "https://youtu.be/hF_8Qg7F3KY" },
-  { title: "Teaming · Ender's Game", blurb: "Teaming concepts: Ender's Game (Vignette 0005).", href: "https://youtu.be/KN0t0eRo5-4" },
-  { title: "DARPA Dogfight · AI", blurb: "AI agent: DARPA dogfight challenge (Vignette 0006).", href: "https://youtu.be/PwSL60rEDJU" },
-  { title: "UAS Drones · OFFSET", blurb: "Teaming: UAS drones + DARPA's OFFSET (Vignette 0007).", href: "https://youtu.be/wxHIYh2WRxM" },
-  { title: "Simulation & LVC", blurb: "Simulation & LVC benefits: Live-Virtual-Constructive (Vignette 0008).", href: "https://youtu.be/LDTcLRhmuMo" },
+const VIGNETTES: Item[] = [
+  { kind: "video", title: "ML Introduction · 1", blurb: "Machine Learning: introduction (Vignette 0001).", href: "https://youtu.be/xzhHllVpYgM" },
+  { kind: "video", title: "ML Introduction · 2", blurb: "Machine Learning: introduction (Vignette 0002).", href: "https://youtu.be/uNUW4c-leLo" },
+  { kind: "video", title: "AI Agents · Intro", blurb: "AI Agents: introduction (Vignette 0003).", href: "https://youtu.be/HfXzn0KCLcs" },
+  { kind: "video", title: "AlphaStar · StarCraft II", blurb: "AlphaStar: StarCraft 2 strategy (Vignette 0004).", href: "https://youtu.be/hF_8Qg7F3KY" },
+  { kind: "video", title: "Teaming · Ender's Game", blurb: "Teaming concepts: Ender's Game (Vignette 0005).", href: "https://youtu.be/KN0t0eRo5-4" },
+  { kind: "video", title: "DARPA Dogfight · AI", blurb: "AI agent: DARPA dogfight challenge (Vignette 0006).", href: "https://youtu.be/PwSL60rEDJU" },
+  { kind: "video", title: "UAS Drones · OFFSET", blurb: "Teaming: UAS drones + DARPA's OFFSET (Vignette 0007).", href: "https://youtu.be/wxHIYh2WRxM" },
+  { kind: "video", title: "Simulation & LVC", blurb: "Simulation & LVC benefits: Live-Virtual-Constructive (Vignette 0008).", href: "https://youtu.be/LDTcLRhmuMo" },
 ];
 
-function SectionHead({
-  icon,
-  eyebrow,
-  title,
-  intro,
-}: {
-  icon: React.ReactNode;
-  eyebrow: string;
-  title: string;
-  intro: string;
-}) {
+function SectionHead({ icon, eyebrow, title, intro }: { icon: React.ReactNode; eyebrow: string; title: string; intro: string }) {
   return (
     <div className="mb-5">
       {/* Cyan eyebrow is the primary header: larger + bold. White title is the smaller sub-header. */}
@@ -166,90 +142,77 @@ function SectionHead({
   );
 }
 
-// External links render as a single click-through card. PDFs render as a static card with
-// two explicit actions — View (browser PDF reader, new tab) and Download (download attribute).
-// Titles use `truncate` so they always stay on one line.
-function OutCard({ c }: { c: LinkCard }) {
-  const isPdf = c.href.toLowerCase().endsWith(".pdf");
-
-  if (isPdf) {
-    return (
-      <div className="flex flex-col rounded-xl border border-border/60 bg-card p-4">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="min-w-0 truncate font-medium">{c.title}</h3>
-          <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </div>
-        {c.badge && (
-          <span className="mt-2 inline-flex w-fit rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-            {c.badge}
-          </span>
-        )}
-        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{c.blurb}</p>
-        <div className="mt-3 flex items-center gap-2">
-          <a
-            href={c.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
-          >
-            <FileText className="h-3.5 w-3.5" />
-            View
-          </a>
-          <a
-            href={c.href}
-            download
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-3 py-1.5 text-xs font-medium transition hover:border-primary/60 hover:text-primary"
-          >
-            <Download className="h-3.5 w-3.5" />
-            Download
-          </a>
-        </div>
-      </div>
-    );
-  }
-
+// Unified collapsible card: open-link icon (left), title + badge (2-line default), expand dropdown
+// (upper right). The blurb and PDF actions stay indented under the header when expanded.
+function Card({ item }: { item: Item }) {
+  const [open, setOpen] = useState(false);
+  const Icon = item.icon ?? (item.kind === "pdf" ? FileText : item.kind === "video" ? Play : ExternalLink);
   return (
-    <a
-      href={c.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex flex-col rounded-xl border border-border/60 bg-card p-4 transition hover:border-primary/60"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="min-w-0 truncate font-medium">{c.title}</h3>
-        <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
+    <div className="rounded-xl border border-border/60 bg-card">
+      <div className="flex items-start gap-3 p-4">
+        {/* open link — LEFT */}
+        <a
+          href={item.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Open ${item.title}`}
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary transition hover:bg-primary hover:text-primary-foreground"
+        >
+          <Icon className="h-4 w-4" />
+        </a>
+
+        {/* header + badge (+ expanded blurb) stay under the header */}
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium">{item.title}</div>
+          {item.badge && (
+            <span className="mt-1 inline-flex w-fit rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+              {item.badge}
+            </span>
+          )}
+          {open && (
+            <div className="mt-3">
+              <p className="text-[13px] leading-relaxed text-muted-foreground">{item.blurb}</p>
+              {item.kind === "pdf" && (
+                <div className="mt-3 flex items-center gap-2">
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    View
+                  </a>
+                  <a
+                    href={item.href}
+                    download
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-3 py-1.5 text-xs font-medium transition hover:border-primary/60 hover:text-primary"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Download
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* expand dropdown — UPPER RIGHT */}
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-label="Toggle details"
+          className="shrink-0 rounded-md p-1 text-muted-foreground transition hover:text-primary"
+        >
+          <ChevronDown className={`h-5 w-5 transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
       </div>
-      {c.badge && (
-        <span className="mt-2 inline-flex w-fit rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-          {c.badge}
-        </span>
-      )}
-      <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{c.blurb}</p>
-    </a>
+    </div>
   );
 }
 
-// Video card — play glyph + single-line title + blurb, opens the link in a new tab.
-function VideoCard({ v }: { v: VideoCardData }) {
-  return (
-    <a
-      href={v.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex flex-col rounded-xl border border-border/60 bg-card p-4 transition hover:border-primary/60"
-    >
-      <div className="flex items-center gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-          <Play className="h-4 w-4 translate-x-[1px]" />
-        </span>
-        <h3 className="min-w-0 truncate font-medium">{v.title}</h3>
-      </div>
-      <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{v.blurb}</p>
-    </a>
-  );
-}
-
-// Expandable "Video Vignettes" block — default collapsed (minimized).
+// Expandable "Video Vignettes" group — default collapsed (minimized); reveals vignette cards.
 function VideoVignettes() {
   const [open, setOpen] = useState(false);
   return (
@@ -276,7 +239,7 @@ function VideoVignettes() {
       {open && (
         <div className="grid gap-3 border-t border-border/60 p-4 sm:grid-cols-2">
           {VIGNETTES.map((v) => (
-            <VideoCard key={v.href} v={v} />
+            <Card key={v.href} item={v} />
           ))}
         </div>
       )}
@@ -311,14 +274,14 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
         {/* 1 · Presentation & Writeup (lead) */}
         <section className="mt-12">
           <SectionHead
-            icon={<Presentation className="h-3.5 w-3.5" />}
+            icon={<Presentation className="h-4 w-4" />}
             eyebrow="Presentation · Writeup"
             title="How I think, on the page"
             intro="An executive presentation and technical capability writeup I authored when Deloitte asked me to assess the U.S. Army's IVAS (Integrated Visual Augmentation System): an AI/ML platform for multi-domain defense operations."
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {WRITEUPS.map((c) => (
-              <OutCard key={c.href} c={c} />
+              <Card key={c.href} item={c} />
             ))}
           </div>
         </section>
@@ -326,14 +289,14 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
         {/* 2 · Résumés */}
         <section className="mt-12">
           <SectionHead
-            icon={<GraduationCap className="h-3.5 w-3.5" />}
+            icon={<GraduationCap className="h-4 w-4" />}
             eyebrow="Résumés"
             title="The full record"
-            intro="Two framings of the same career: deep systems engineering, and technical product leadership. View or download."
+            intro="Two framings of the same career: deep systems engineering, and technical product leadership. Open the icon to view, expand for details."
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {RESUMES.map((c) => (
-              <OutCard key={c.href} c={c} />
+              <Card key={c.href} item={c} />
             ))}
           </div>
         </section>
@@ -341,14 +304,14 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
         {/* 3 · Industrial */}
         <section className="mt-12">
           <SectionHead
-            icon={<Cpu className="h-3.5 w-3.5" />}
+            icon={<Cpu className="h-4 w-4" />}
             eyebrow="Industrial"
             title="Hardware that reached the field"
-            intro="Shipped sensor and robotics products, from a first MVP to real revenue and real deployments."
+            intro="Shipped sensor and robotics products, from a first build to real revenue and real deployments."
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {INDUSTRIAL.map((c) => (
-              <OutCard key={c.href} c={c} />
+              <Card key={c.href} item={c} />
             ))}
           </div>
         </section>
@@ -356,49 +319,32 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
         {/* 4 · Demo videos */}
         <section className="mt-12">
           <SectionHead
-            icon={<Play className="h-3.5 w-3.5" />}
+            icon={<Play className="h-4 w-4" />}
             eyebrow="Demo videos"
             title="See it running"
-            intro="Short videos: AI, robotics, and sensing in real settings. Each opens in a new tab."
+            intro="Short videos: AI, robotics, and sensing in real settings. Open the icon to play."
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {VIDEOS.map((v) => (
-              <VideoCard key={v.href} v={v} />
+              <Card key={v.href} item={v} />
             ))}
           </div>
         </section>
 
-        {/* 5 · EdTech · eXeL AI (education presentation first, then videos, then vignettes) — before IP */}
+        {/* 5 · EdTech · eXeL AI (presentation first, then videos, then vignettes) — before IP */}
         <section className="mt-12">
           <SectionHead
-            icon={<Rocket className="h-3.5 w-3.5" />}
+            icon={<Rocket className="h-4 w-4" />}
             eyebrow="EdTech · eXeL AI"
             title="Making AI learnable"
             intro="The through-line behind everything: eXeL AI, making sensor-fusion and computer-vision AI approachable, and an EdTech initiative I launched after COVID. The work has always been about helping people learn, build, and rise, not just the technology."
           />
-          {/* Education presentation (Google Slides) — FIRST, before the videos, with the Presentation icon */}
-          <a
-            href="https://tinyurl.com/eXeL-AI-SFO"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card p-4 transition hover:border-primary/60"
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                <Presentation className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <div className="truncate font-medium group-hover:text-primary">EdTech Initiative Presentation</div>
-                <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                  Bringing AI education to more learners: the mission that started eXeL AI (launched after COVID).
-                </p>
-              </div>
-            </div>
-            <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
-          </a>
+          <div className="grid gap-3">
+            <Card item={EDTECH_PRESENTATION} />
+          </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {EDTECH_VIDEOS.map((v) => (
-              <VideoCard key={v.href} v={v} />
+              <Card key={v.href} item={v} />
             ))}
           </div>
           {/* Video Vignettes — expandable, default minimized */}
@@ -408,14 +354,14 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
         {/* 6 · IP / Patents (bottom) */}
         <section className="mt-12">
           <SectionHead
-            icon={<Award className="h-3.5 w-3.5" />}
+            icon={<Award className="h-4 w-4" />}
             eyebrow="IP · Patents"
             title="Work the industry builds on"
             intro="A patent isn't just a filing; it's an idea others adopt. Mine has been cited twice by Apple."
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {IP.map((c) => (
-              <OutCard key={c.href} c={c} />
+              <Card key={c.href} item={c} />
             ))}
           </div>
         </section>
