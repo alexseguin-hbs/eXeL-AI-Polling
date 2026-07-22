@@ -101,6 +101,12 @@ export function CubeDevSim() {
         and isn&apos;t slower can be swapped in — an 8×8×8 replacing a 10×10×10.
       </p>
 
+      {/* E3: the 9 live cubes grouped under a LEVEL 1 header (Levels 2-3 land when those
+          cubes have a Dev-Sim harness). Select a cube first, then play-test / check-in. */}
+      <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.2em] text-primary/70">
+        <span className="rounded border border-primary/40 px-1.5 py-0.5">Level 1</span>
+        <span className="text-muted-foreground">Cubes 1–9 · Polling · select a cube</span>
+      </div>
       {/* Cube 1-9 selector */}
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
         {cubes.map((c) => (
