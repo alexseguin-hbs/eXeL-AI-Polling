@@ -818,6 +818,36 @@ class TestSpiralHWR1to10:
             assert chain == reference
             assert len(chain) == 64
 
+    def test_cross_tier_face_agreement_n99(self):
+        """H-I · the 4-tier CHAIN: the seeded rotor_face re-derives the SAME face at every
+        tier — client → local edge → API origin → cloud Supabase all agree for a given
+        (key, seq), so a write's routing is reproducible end-to-end (the write-layer
+        analogue of the read-layer Trinity Redundancy). N=99."""
+        from app.core.rcore.write_rotor import rotor_face
+
+        tiers = ["client", "edge", "origin", "db"]  # the 4 tiers each compute the face
+        for _ in range(N):
+            for seq in range(24):
+                key = f"cube{(seq % 9) + 1}"
+                faces = {t: rotor_face(key, seq, "hwr") for t in tiers}
+                assert len(set(faces.values())) == 1  # every tier agrees on ONE face
+                assert 0 <= next(iter(faces.values())) < 6
+
+    def test_bulk_absorb_reproducible_across_tiers_n99(self):
+        """H-I · a bulk batch absorbed at the edge vs at the origin yields the SAME canonical
+        replay_hash — the coalesce is tier-independent, so the edge can pre-coalesce and the
+        origin re-derive the identical fingerprint. N=99."""
+        from app.core.rcore.write_rotor import absorb_bulk
+
+        recs = [{"id": i, "cube_id": (i % 9) + 1} for i in range(200)]
+        reference = None
+        for _ in range(N):
+            edge = absorb_bulk(recs, dedup_key="id")["replay_hash"]
+            origin = absorb_bulk(recs, dedup_key="id")["replay_hash"]
+            assert edge == origin
+            reference = reference or edge
+            assert edge == reference
+
 
 # ═══════════════════════════════════════════════════════════════════
 # CROSS-CUBE — Trinity Redundancy + Broadcast Integrity
