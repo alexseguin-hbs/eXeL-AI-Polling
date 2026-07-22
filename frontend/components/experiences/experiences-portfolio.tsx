@@ -1,35 +1,16 @@
 "use client";
 
 // The portfolio the Experiences QR opens ("see the actual work"). Order (hiring-manager flow):
-// Résumé → Writeup & Presentation → IP/Patents → Industrial → Demo videos → P.S.
-// Résumés lead; every blurb reflects the real contents of the document it links to. Rendered by
-// both /experiences/docs and /main/experiences/docs. Video cards LINK OUT to YouTube in a new tab
-// (zero CSP risk). PDF cards give View (browser reader) + Download; the PDFs are hosted in
-// frontend/public/experiences/ and serve at /experiences/<file>. Copy is written to land with
-// hiring managers globally: heart · mind · spirit, an invitation to look.
+// Writeup & Presentation → Résumés → Industrial → Demo videos → EdTech · eXeL AI → IP/Patents (bottom).
+// Every blurb reflects the real contents of the document/link it points to. Rendered by both
+// /experiences/docs and /main/experiences/docs. Video cards LINK OUT in a new tab (zero CSP risk).
+// PDF cards give View (browser reader) + Download; the PDFs are hosted in frontend/public/experiences/
+// and serve at /experiences/<file>. Copy is written to land with hiring managers globally.
 
 import Link from "next/link";
-import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation } from "lucide-react";
+import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket } from "lucide-react";
 
 type LinkCard = { title: string; blurb: string; href: string; badge?: string };
-
-// ── Résumés (lead) — blurbs pulled from the actual documents ────────────────────────────────
-const RESUMES: LinkCard[] = [
-  {
-    title: "Résumé — HI + AI Systems (Industrial & Defense)",
-    blurb:
-      "15+ years leading perception, sensor-fusion, and autonomy products across defense and industrial — Athena AI / Teal-2, Shield AI's first $25M R&D roadmap, FLIR's $200M portfolio, and 15+ Fluke thermal & acoustic launches — with an active SECRET clearance and the Apple-cited sensor-fusion patent.",
-    href: "/experiences/A.M.Seguin_Resume_HI_AI_Systems_Industrial_Defense.pdf",
-    badge: "Résumé · systems",
-  },
-  {
-    title: "Résumé — Technical Program Manager (ATS)",
-    blurb:
-      "The same career, framed for program leadership: end-to-end delivery, R&D-portfolio governance, and risk management with hard outcomes — a $200M portfolio consolidated toward an $8B acquisition, 12% CAGR on a $3B business, and 20× developer throughput via AI automation.",
-    href: "/experiences/ATS_ASeguin_Resume_TPM_20260126.pdf",
-    badge: "Résumé · ATS-ready",
-  },
-];
 
 // ── Writeup & Presentation — the AI/ML strategy documents ───────────────────────────────────
 const WRITEUPS: LinkCard[] = [
@@ -49,19 +30,21 @@ const WRITEUPS: LinkCard[] = [
   },
 ];
 
-// ── IP / Patents ────────────────────────────────────────────────────────────────────────────
-const IP: LinkCard[] = [
+// ── Résumés — blurbs pulled from the actual documents ───────────────────────────────────────
+const RESUMES: LinkCard[] = [
   {
-    title: "Sensor Fusion Patent",
-    blurb: "My patent on multi-sensor fusion — independently cited twice by Apple in their own filings.",
-    href: "https://tinyurl.com/Sensor-Fusion-Patent",
-    badge: "Cited 2× by Apple",
+    title: "Résumé — HI + AI Systems (Industrial & Defense)",
+    blurb:
+      "15+ years leading perception, sensor-fusion, and autonomy products across defense and industrial — Athena AI / Teal-2, Shield AI's first $25M R&D roadmap, FLIR's $200M portfolio, and 15+ Fluke thermal & acoustic launches — with an active SECRET clearance and the Apple-cited sensor-fusion patent.",
+    href: "/experiences/A.M.Seguin_Resume_HI_AI_Systems_Industrial_Defense.pdf",
+    badge: "Résumé · systems",
   },
   {
-    title: "Apple US 2024/0107160 A1",
-    blurb: "One of the Apple patents that cites the work above — the citation, in Apple's own words.",
-    href: "https://patents.google.com/patent/US20240107160A1/en",
-    badge: "Apple citation",
+    title: "Résumé — Technical Program Manager (ATS)",
+    blurb:
+      "The same career, framed for program leadership: end-to-end delivery, R&D-portfolio governance, and risk management with hard outcomes — a $200M portfolio consolidated toward an $8B acquisition, 12% CAGR on a $3B business, and 20× developer throughput via AI automation.",
+    href: "/experiences/ATS_ASeguin_Resume_TPM_20260126.pdf",
+    badge: "Résumé · ATS-ready",
   },
 ];
 
@@ -81,27 +64,64 @@ const INDUSTRIAL: LinkCard[] = [
   },
 ];
 
-type VideoCard = { id: string; title: string; proves: string };
-const VIDEOS: VideoCard[] = [
+// ── IP / Patents (bottom) ───────────────────────────────────────────────────────────────────
+const IP: LinkCard[] = [
   {
-    id: "rpbb0AiM9fI",
+    title: "Sensor Fusion Patent",
+    blurb: "My patent on multi-sensor fusion — independently cited twice by Apple in their own filings.",
+    href: "https://tinyurl.com/Sensor-Fusion-Patent",
+    badge: "Cited 2× by Apple",
+  },
+  {
+    title: "Apple US 2024/0107160 A1",
+    blurb: "One of the Apple patents that cites the work above — the citation, in Apple's own words.",
+    href: "https://patents.google.com/patent/US20240107160A1/en",
+    badge: "Apple citation",
+  },
+];
+
+type VideoCardData = { title: string; blurb: string; href: string };
+
+// Demo videos — industrial & defense field demos (opens on YouTube).
+const VIDEOS: VideoCardData[] = [
+  {
     title: "Athena AI + Teal 2 Drone Partnership",
-    proves: "AI decision-support paired with an autonomous drone — intelligence and hardware working as one system.",
+    blurb: "AI decision-support paired with an autonomous drone — intelligence and hardware working as one system.",
+    href: "https://youtu.be/rpbb0AiM9fI",
   },
   {
-    id: "Ve7Yqs8uw5M",
     title: "Boston Dynamics Spot + Fluke SV600 Acoustic Imager",
-    proves: "A quadruped robot carrying an acoustic-imaging payload to find leaks a human can't hear — robotics meets sensing.",
+    blurb: "A quadruped robot carrying an acoustic-imaging payload to find leaks a human can't hear — robotics meets sensing.",
+    href: "https://youtu.be/Ve7Yqs8uw5M",
   },
   {
-    id: "GGJyRyaE6y4",
     title: "Fluke Ti450 SF6 — Thermal Gas Detection",
-    proves: "Making an invisible gas visible on camera — the kind of product problem I take from concept to the field.",
+    blurb: "Making an invisible gas visible on camera — the kind of product problem I take from concept to the field.",
+    href: "https://youtu.be/GGJyRyaE6y4",
   },
   {
-    id: "wbsUZAVa2zM",
     title: "AI / Claude Code — Building eXeL, Live",
-    proves: "How this very platform is built: human intent directing AI to ship real, governed software.",
+    blurb: "How this very platform is built: human intent directing AI to ship real, governed software.",
+    href: "https://youtu.be/wbsUZAVa2zM",
+  },
+];
+
+// EdTech · eXeL AI — the product/education videos (making AI learnable).
+const EDTECH_VIDEOS: VideoCardData[] = [
+  {
+    title: "eXeL AI Intro — Sensor Fusion App",
+    blurb: "The launch video: how the eXeL AI Sensor Fusion app brings edge perception to everyday devices — by Alex.",
+    href: "https://tinyurl.com/eXeL-AI-Launch-Video",
+  },
+  {
+    title: "eXeL AI App — Simplifying AI/ML for Computer Vision",
+    blurb: "Making computer-vision AI/ML approachable — point, learn, and build with real models.",
+    href: "https://youtu.be/1hqutudJXF0?si=Nbzex0K0JT775Etu",
+  },
+  {
+    title: "eXeL AI Car Project — Lane Detection (MVP)",
+    blurb: "An MVP putting lane-detection computer vision on a real car — learning AI by building it.",
+    href: "https://tinyurl.com/27999v63",
   },
 ];
 
@@ -190,6 +210,26 @@ function OutCard({ c }: { c: LinkCard }) {
   );
 }
 
+// Video card — play glyph + title + blurb, opens the link in a new tab.
+function VideoCard({ v }: { v: VideoCardData }) {
+  return (
+    <a
+      href={v.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex flex-col rounded-xl border border-border/60 bg-card p-4 transition hover:border-primary/60"
+    >
+      <div className="flex items-start gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+          <Play className="h-4 w-4 translate-x-[1px]" />
+        </span>
+        <h3 className="font-medium leading-snug">{v.title}</h3>
+      </div>
+      <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{v.blurb}</p>
+    </a>
+  );
+}
+
 export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -209,8 +249,8 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
           Open with a technical writeup and executive presentation that show how I approach a hard problem, then the
-          résumés, then the receipts: a patent the industry builds on, hardware that reached customers, and field
-          demos. Everything here is real and verifiable — that&apos;s the point.
+          résumés, the hardware and demos that reached the field, the EdTech mission behind eXeL AI, and a patent the
+          industry builds on. Everything here is real and verifiable — that&apos;s the point.
         </p>
 
         {/* 1 · Writeup & Presentation (lead) */}
@@ -243,22 +283,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
           </div>
         </section>
 
-        {/* 3 · IP / Patents */}
-        <section className="mt-12">
-          <SectionHead
-            icon={<Award className="h-3.5 w-3.5" />}
-            eyebrow="IP · Patents"
-            title="Work the industry builds on"
-            intro="A patent isn't just a filing — it's an idea others adopt. Mine has been cited twice by Apple."
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {IP.map((c) => (
-              <OutCard key={c.href} c={c} />
-            ))}
-          </div>
-        </section>
-
-        {/* 4 · Industrial */}
+        {/* 3 · Industrial */}
         <section className="mt-12">
           <SectionHead
             icon={<Cpu className="h-3.5 w-3.5" />}
@@ -273,50 +298,66 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
           </div>
         </section>
 
-        {/* 5 · Demo videos */}
+        {/* 4 · Demo videos */}
         <section className="mt-12">
           <SectionHead
             icon={<Play className="h-3.5 w-3.5" />}
             eyebrow="Demo videos"
             title="See it running"
-            intro="Four short videos — AI, robotics, and sensing in real settings. Each opens on YouTube in a new tab."
+            intro="Short videos — AI, robotics, and sensing in real settings. Each opens in a new tab."
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {VIDEOS.map((v) => (
-              <a
-                key={v.id}
-                href={`https://youtu.be/${v.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex flex-col rounded-xl border border-border/60 bg-card p-4 transition hover:border-primary/60"
-              >
-                <div className="flex items-start gap-3">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                    <Play className="h-4 w-4 translate-x-[1px]" />
-                  </span>
-                  <h3 className="font-medium leading-snug">{v.title}</h3>
-                </div>
-                <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{v.proves}</p>
-              </a>
+              <VideoCard key={v.href} v={v} />
             ))}
           </div>
         </section>
 
-        {/* P.S. */}
-        <section className="mt-12 rounded-xl border border-border/60 bg-card p-5">
-          <div className="mb-1.5 text-[11px] font-mono uppercase tracking-[0.2em] text-primary/70">P.S.</div>
+        {/* 5 · EdTech · eXeL AI (videos + the initiative) — before IP */}
+        <section className="mt-12">
+          <SectionHead
+            icon={<Rocket className="h-3.5 w-3.5" />}
+            eyebrow="EdTech · eXeL AI"
+            title="Making AI learnable"
+            intro="The through-line behind everything: eXeL AI — making sensor-fusion and computer-vision AI approachable — and an EdTech initiative I launched after COVID. The work has always been about helping people learn, build, and rise, not just the technology."
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {EDTECH_VIDEOS.map((v) => (
+              <VideoCard key={v.href} v={v} />
+            ))}
+          </div>
+          {/* the EdTech initiative (the old P.S., folded in here) */}
           <a
             href="https://tinyurl.com/eXeL-AI-SFO"
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-1.5 font-medium hover:text-primary"
+            className="group mt-3 flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card p-4 transition hover:border-primary/60"
           >
-            An EdTech initiative I launched after COVID
-            <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+            <div>
+              <div className="font-medium leading-snug group-hover:text-primary">
+                EdTech Initiative — launched after COVID
+              </div>
+              <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+                Bringing AI education to more learners — the mission that started eXeL AI.
+              </p>
+            </div>
+            <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
           </a>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-            Because the work has always been about helping people learn, build, and rise — not just the technology.
-          </p>
+        </section>
+
+        {/* 6 · IP / Patents (bottom) */}
+        <section className="mt-12">
+          <SectionHead
+            icon={<Award className="h-3.5 w-3.5" />}
+            eyebrow="IP · Patents"
+            title="Work the industry builds on"
+            intro="A patent isn't just a filing — it's an idea others adopt. Mine has been cited twice by Apple."
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {IP.map((c) => (
+              <OutCard key={c.href} c={c} />
+            ))}
+          </div>
         </section>
 
         <p className="mt-12 text-center text-xs leading-relaxed text-muted-foreground/80">
