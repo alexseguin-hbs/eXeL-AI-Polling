@@ -74,6 +74,12 @@ class Settings(BaseSettings):
     human_hourly_rate: float = 7.25      # Per-hour — default US federal min wage
     human_currency: str = "USD"          # Reference currency for rate table
 
+    # Hexagonal Write Rotor (HWR) — 6-face write sharding for fast DB absorption.
+    # OFF by default: writes degrade to the current single-table path until the
+    # 6-partition ring migration (026_hex_write_ring.sql) is applied to Supabase.
+    hwr_enabled: bool = False
+    hwr_seed: str = "hwr"                 # rotor face-selection seed (replay-stable)
+
     # Cloudflare deployment
     behind_cloudflare: bool = False          # Enable CF-Connecting-IP extraction
     allowed_origins: str = ""                # Comma-separated extra CORS origins
