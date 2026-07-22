@@ -116,6 +116,21 @@ async def submit_feedback(
         await db.flush()
         await db.refresh(fb)
         feedback_id = str(fb.id)
+        # R-Core: append-only AuditLog attribution for the feedback transition (Cube 10's
+        # one genuine missing surface — harness/metrics/exec-modes are N-A/Origin by design).
+        from app.core.audit import log_audit
+
+        log_audit(
+            db,
+            session_id=None,
+            actor_id=submitted_by,
+            actor_role=role,
+            action_type="sim.feedback_submitted",
+            object_type="product_feedback",
+            object_id=feedback_id,
+            after={"cube_id": cube_id, "crs_id": crs_id, "priority": priority,
+                   "category": category},
+        )
     except Exception as exc:
         # G9 fix: Log the error instead of silently swallowing it.
         # Still non-fatal (returns dict) but now caller can detect failure via persisted=False.
