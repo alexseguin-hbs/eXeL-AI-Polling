@@ -34,6 +34,7 @@ from app.core.audit import log_audit
 from app.core.concurrency import SessionSemaphorePool
 from app.core.crypto_utils import compute_response_hash
 from app.core.exceptions import ResponseValidationError
+from app.core.rcore.rotor_adapter import stamp_orm as _hwr_stamp
 from app.core.submission_validators import (
     validate_participant,
     validate_question,
@@ -321,6 +322,11 @@ async def store_voice_response(
     # CRS-08: SHA-256 integrity hash of clean transcript text
     if response_hash is None:
         response_hash = compute_response_hash(clean_text)
+
+    # HWR seam (H4): route this voice response to its seeded 6-face partition, sharded by
+    # session with a hash-derived seq (same convention as Cube 2 text). NO-OP until
+    # settings.hwr_enabled + migration 026 land (non-breaking).
+    _hwr_stamp(response_meta, key=str(session_id), seq=int(response_hash[:8], 16))
 
     text_response = TextResponse(
         response_meta_id=response_meta.id,
