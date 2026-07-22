@@ -270,7 +270,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
           <h1 className="text-balance text-2xl font-semibold leading-tight sm:text-3xl">
             How I think. Then the proof behind it.
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+          <p className="mt-4 max-w-2xl text-left text-[15px] leading-relaxed text-muted-foreground">
             Open with an executive presentation and technical writeup that show how I approach a hard problem, then the
             résumés, the hardware and field demos that reached customers, the EdTech mission behind eXeL AI, and a patent
             the industry builds on. Everything here is real and verifiable; that&apos;s the point.
