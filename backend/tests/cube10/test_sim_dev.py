@@ -83,10 +83,16 @@ class TestChallenge:
     @pytest.mark.asyncio
     async def test_matching_candidate_manual_swap(self):
         # First learn the live signature, then check in an equivalent candidate.
+        # The candidate carries the SAME determinism signature (proving equivalence) and a
+        # trivially-fast duration. NOTE: the challenge measures its OWN fresh baseline wall
+        # time, so we must NOT feed back the cold first-run wall_time_ms — that made the
+        # ≤120% duration gate depend on run-to-run timing noise (cold vs warm) and flake.
+        # An "at-least-as-fast equivalent candidate" (tiny absolute duration) is the honest,
+        # deterministic representation — same convention as test_different_candidate_rejected.
         base = await r.sim_cube_run(1, user=_admin())
         payload = r.SimChallengeRequest(
             candidate={"signature": base["determinism_signature"],
-                       "duration_ms": base["metrics"]["wall_time_ms"]},
+                       "duration_ms": 0.001},
             tier="manual", human_approved=True,
         )
         out = await r.sim_cube_challenge(1, payload, user=_admin())
