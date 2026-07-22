@@ -27,6 +27,8 @@ import pandas as pd
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.audit import log_audit
+from app.core.rcore.execution_modes import dispatch_execution_mode
 from app.models.participant import Participant
 from app.models.question import Question
 from app.models.response_meta import ResponseMeta
@@ -197,6 +199,48 @@ def compute_export_hash(csv_bytes: bytes) -> str:
     """
     import hashlib
     return hashlib.sha256(csv_bytes).hexdigest()
+
+
+def dispatch_report_mode(
+    result: dict,
+    *,
+    mode: str,
+    human_approved: bool = False,
+    human_selected: bool = False,
+) -> dict:
+    """Route a report distribution / data-destruction through the shared R-Core gate.
+
+    The SAME report logic runs in every mode — only the approver/automation changes.
+    Irreversible destruction routes as `live` and requires human_approved (a permanent
+    Human-Authority gate over data loss — Thor). Thin delegator to the shared module.
+    """
+    return dispatch_execution_mode(
+        result, mode=mode, human_approved=human_approved, human_selected=human_selected,
+    )
+
+
+async def verify_export(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    content_tier: str = TIER_FULL,
+) -> dict:
+    """R-Core replay anchor: re-export deterministically + recompute the governance hash.
+
+    Activates the previously-dormant `compute_export_hash` — CSV rows are exported in a
+    stable ORDER BY, so the SHA-256 is reproducible across re-exports (a consumer can
+    compare the hash to confirm the export is unchanged). Read-only; the export-hash is
+    the 4th link in the governance proof chain (Cube 11 blockchain anchor).
+    """
+    buf = await export_session_csv(db, session_id, content_tier)
+    csv_bytes = buf.getvalue() if isinstance(buf.getvalue(), bytes) else buf.getvalue().encode("utf-8")
+    export_hash = compute_export_hash(csv_bytes)
+    return {
+        "session_id": str(session_id),
+        "content_tier": content_tier,
+        "export_hash": export_hash,
+        "deterministic": True,
+        "note": "SHA-256 over the stably-ordered CSV export — reproducible governance anchor",
+    }
 
 
 # 20-column CSV schema (19 previous + Theme01_Category)
@@ -779,6 +823,20 @@ async def destroy_session_export_data(
             summary_33="[DESTROYED]",
             original_text="[DESTROYED]",
         )
+    )
+
+    # R-Core: append-only AuditLog on the IRREVERSIBLE destruction (the highest-value
+    # attribution point — who destroyed what, and how much). Human-Authority trail.
+    log_audit(
+        db,
+        session_id=session_id,
+        actor_id=destroyed_by,
+        actor_role="system" if str(destroyed_by).startswith("system:") else "moderator",
+        action_type="reports.data_destroyed",
+        object_type="session_export",
+        object_id=str(session_id),
+        after={"responses_destroyed": total_responses,
+               "summaries_destroyed": total_summaries},
     )
 
     await db.commit()

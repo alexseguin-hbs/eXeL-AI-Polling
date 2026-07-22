@@ -164,6 +164,22 @@ async def get_reports_metrics(
     return await reports_metrics.get_all_metrics(db, session_id)
 
 
+@router.get("/export/verify")
+async def verify_export_hash(
+    session_id: uuid.UUID,
+    content_tier: str = "full",
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin")),
+):
+    """Cube 9 replay verification — reproducible SHA-256 governance hash of the export.
+
+    Activates the governance `compute_export_hash` as Cube 9's own replay anchor (R-Core
+    parity with cube1 verify-determinism / cube7 verify_replay): re-exports the stably-
+    ordered CSV and recomputes the hash so a consumer can confirm the export is unchanged.
+    """
+    return await service.verify_export(db, session_id, content_tier)
+
+
 # ---------------------------------------------------------------------------
 # CRS-19.02: CQS Dashboard
 # ---------------------------------------------------------------------------
