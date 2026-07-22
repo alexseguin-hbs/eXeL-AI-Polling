@@ -68,8 +68,12 @@ const TRACK_URLS = SONG_PAIRINGS.map((s) => `${s.audio}?v=${AUDIO_VERSION}`);
  * The underlying page remains fully visible and interactive.
  * Logos float at corners, Web Audio engine for gapless crossfade playback.
  */
+// Persistent 3-Seed music layer — renders whenever easter-egg simulationMode is active,
+// OVER any sub-menu (launcher / Cube Sim / security). The 3 Seed-of-Life logos + play/volume
+// persist and the music plays the whole time in easter-egg mode (E1). The fixed corner
+// elements leave the menu underneath fully clickable.
 function SimulationOverlay() {
-  const { setVisionView } = useEasterEgg();
+  const { exitSimulationMode } = useEasterEgg();
   const { t } = useLexicon();
 
   const {
@@ -117,11 +121,12 @@ function SimulationOverlay() {
     }
   }, [ready, isPlaying, play, initialize]);
 
-  // Dispose music + return to the Vision 2525 launcher (hub), not a full exit.
+  // Exit easter-egg mode entirely (dispose the music, leave simulation). There is no
+  // separate "sim" sub-view anymore — the seeds are the persistent layer over every menu.
   const handleExit = useCallback(() => {
     dispose();
-    setVisionView("launcher");
-  }, [dispose, setVisionView]);
+    exitSimulationMode();
+  }, [dispose, exitSimulationMode]);
 
   const handleToggle = useCallback(() => {
     if (isPlaying) {
@@ -169,44 +174,26 @@ function SimulationOverlay() {
     );
   };
 
-  // Loading state — circular progress ring
+  // Loading state — a SMALL, NON-BLOCKING corner ring (music loads in the background while
+  // the easter-egg sub-menu underneath stays fully usable; E1: 3 seeds persist over any menu).
   if (!ready && !audioError) {
     return (
-      <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-auto">
-        <div className="flex flex-col items-center gap-3">
-          <div className="relative h-20 w-20">
-            <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-              {/* Background ring */}
-              <circle
-                cx="50"
-                cy="50"
-                r="42"
-                fill="none"
-                stroke="hsl(183, 30%, 20%)"
-                strokeWidth="6"
-              />
-              {/* Progress ring */}
-              <circle
-                cx="50"
-                cy="50"
-                r="42"
-                fill="none"
-                stroke={TRINITY_COLORS.AI}
-                strokeWidth="6"
-                strokeLinecap="round"
-                strokeDasharray={`${2 * Math.PI * 42}`}
-                strokeDashoffset={`${2 * Math.PI * 42 * (1 - loadProgress / 100)}`}
-                style={{ transition: "stroke-dashoffset 0.3s" }}
-              />
-            </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-xs font-mono text-primary/80">
-              {loadProgress}%
-            </span>
-          </div>
-          <span className="text-[10px] font-mono text-primary/60">
-            {t("shared.sim.loading")}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-2 pointer-events-none">
+        <div className="relative h-10 w-10">
+          <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(183, 30%, 20%)" strokeWidth="8" />
+            <circle
+              cx="50" cy="50" r="42" fill="none" stroke={TRINITY_COLORS.AI} strokeWidth="8"
+              strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 42}`}
+              strokeDashoffset={`${2 * Math.PI * 42 * (1 - loadProgress / 100)}`}
+              style={{ transition: "stroke-dashoffset 0.3s" }}
+            />
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-[9px] font-mono text-primary/80">
+            {loadProgress}%
           </span>
         </div>
+        <span className="text-[10px] font-mono text-primary/60">{t("shared.sim.loading")}</span>
       </div>
     );
   }
@@ -343,10 +330,15 @@ export function PoweredBadge() {
   }, [enterSimulationMode, isAuthenticated, router, pathname, searchParams]);
 
   if (simulationMode) {
-    // Vision 2525 hub: land on the launcher, spoke into SIM (music) or Security UX1.
-    if (visionView === "sim") return <SimulationOverlay />;
-    if (visionView === "security") return <SecurityCommandUX1 />;
-    return <Vision2525Launcher />;
+    // Vision 2525 hub: the sub-menu (launcher or Security UX1) renders underneath, and the
+    // 3-Seed music layer persists OVER it (E1) — so the seeds + music stay up in ANY
+    // easter-egg sub-menu. (The old dedicated "sim" music view is gone; music is always-on.)
+    return (
+      <>
+        {visionView === "security" ? <SecurityCommandUX1 /> : <Vision2525Launcher />}
+        <SimulationOverlay />
+      </>
+    );
   }
 
   // Badge color follows the active theme (defaults to AI Cyan when not authenticated)
