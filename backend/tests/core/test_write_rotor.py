@@ -127,3 +127,38 @@ def test_read_all_dedup_key_pass_through():
         ring.write({"id": i, "v": i}, key="sess")
     out = ring.read_all(dedup_key="id")
     assert out["count"] == 100 and len(out["replay_hash"]) == 64
+
+
+# ── H-B: streaming-Merkle replay hash (write-time amortized, O(FACES) finalize) ──
+
+def test_merkle_replay_hash_deterministic():
+    def build():
+        ring = RotorRing(seed="fixed", track_merkle=True)
+        for i in range(500):
+            ring.write({"id": i, "v": i}, key="sess")
+        return ring.merkle_replay_hash()
+
+    a, b = build(), build()
+    assert a == b and len(a) == 64  # same writes, same order → same Merkle root
+
+
+def test_merkle_replay_hash_order_sensitive():
+    # The stream proof is order-sensitive (unlike the dedup coalesce replay_hash).
+    r1 = RotorRing(seed="fixed", track_merkle=True)
+    for i in [1, 2, 3]:
+        r1.write({"id": i}, key="k")
+    r2 = RotorRing(seed="fixed", track_merkle=True)
+    for i in [3, 2, 1]:
+        r2.write({"id": i}, key="k")
+    assert r1.merkle_replay_hash() != r2.merkle_replay_hash()
+
+
+def test_merkle_finalize_does_not_rescan_rows():
+    # O(FACES): merkle_replay_hash reads only the 6 rolling digests, not the row buffers.
+    ring = RotorRing(seed="fixed", track_merkle=True)
+    for i in range(50):
+        ring.write({"id": i}, key="k")
+    h = ring.merkle_replay_hash()
+    # Mutating the stored row buffers must NOT change the already-folded digest root.
+    ring._faces[0].append({"id": "tamper"})
+    assert ring.merkle_replay_hash() == h

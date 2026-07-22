@@ -104,17 +104,42 @@ class RotorRing:
     coalesces to the canonical hub result. Deterministic + reproducible.
     """
 
-    def __init__(self, seed: str = "hwr") -> None:
+    def __init__(self, seed: str = "hwr", *, track_merkle: bool = False) -> None:
         self.seed = seed
         self._faces: list[list[dict]] = [[] for _ in range(FACES)]
         self._seq = 0
+        # H-B streaming-Merkle (OPT-IN, default off so the fast absorb path is unchanged):
+        # one rolling digest per face, folded on each write. Moves the O(n) replay hashing
+        # from READ-time to WRITE-time (amortized, paid once while the record is in hand) so
+        # the replay proof FINALIZES in O(FACES), not O(rows). Enable when you want the proof.
+        self._track_merkle = track_merkle
+        self._face_digests: list = [hashlib.sha256() for _ in range(FACES)] if track_merkle else []
 
     def write(self, record: dict, *, key: str) -> int:
         """Absorb one record onto its seeded face; returns the face index (0..5)."""
         face = rotor_face(key, self._seq, self.seed)
         self._faces[face].append(record)
+        if self._track_merkle:
+            # fold the record's content fingerprint + its sequence into this face's digest
+            self._face_digests[face].update(f"{self._seq}:{_content_hash(record)}".encode())
         self._seq += 1
         return face
+
+    def merkle_replay_hash(self) -> str:
+        """O(FACES) streaming-Merkle root over the 6 rolling per-face digests.
+
+        Requires `track_merkle=True` at construction. Complements `read_all().replay_hash`:
+        that one is order-INDEPENDENT + dedup-based (proves the canonical SET); this one is
+        order-SENSITIVE per face (proves the write STREAM) and finalizes without re-scanning
+        any rows — the write-time-amortized proof. Deterministic: same writes/order → same root.
+        """
+        if not self._track_merkle:
+            raise RuntimeError("merkle_replay_hash requires RotorRing(track_merkle=True)")
+        root = hashlib.sha256()
+        for d in self._face_digests:
+            root.update(d.hexdigest().encode())
+            root.update(b":")
+        return root.hexdigest()
 
     def face_counts(self) -> list[int]:
         """Per-face absorbed-record counts (write-balance signal)."""
