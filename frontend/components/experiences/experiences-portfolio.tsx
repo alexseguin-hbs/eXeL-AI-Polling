@@ -205,30 +205,15 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
         {/* Intro */}
         <p className="mb-3 text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70">The actual work</p>
         <h1 className="text-balance text-3xl font-semibold leading-tight sm:text-4xl">
-          Start with the résumé — then see the proof behind it.
+          How I think — then the proof behind it.
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          Two résumés to read first, a technical writeup and presentation that show how I think, then the
-          receipts: a patent the industry builds on, hardware that reached customers, and field demos. Everything
-          here is real and verifiable — that&apos;s the point.
+          Open with a technical writeup and executive presentation that show how I approach a hard problem, then the
+          résumés, then the receipts: a patent the industry builds on, hardware that reached customers, and field
+          demos. Everything here is real and verifiable — that&apos;s the point.
         </p>
 
-        {/* 1 · Résumés (lead) */}
-        <section className="mt-12">
-          <SectionHead
-            icon={<GraduationCap className="h-3.5 w-3.5" />}
-            eyebrow="Résumés"
-            title="Start here"
-            intro="Two framings of the same career — deep systems engineering, and technical program leadership. View or download."
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {RESUMES.map((c) => (
-              <OutCard key={c.href} c={c} />
-            ))}
-          </div>
-        </section>
-
-        {/* 2 · Writeup & Presentation */}
+        {/* 1 · Writeup & Presentation (lead) */}
         <section className="mt-12">
           <SectionHead
             icon={<Presentation className="h-3.5 w-3.5" />}
@@ -238,6 +223,21 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {WRITEUPS.map((c) => (
+              <OutCard key={c.href} c={c} />
+            ))}
+          </div>
+        </section>
+
+        {/* 2 · Résumés */}
+        <section className="mt-12">
+          <SectionHead
+            icon={<GraduationCap className="h-3.5 w-3.5" />}
+            eyebrow="Résumés"
+            title="The full record"
+            intro="Two framings of the same career — deep systems engineering, and technical program leadership. View or download."
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {RESUMES.map((c) => (
               <OutCard key={c.href} c={c} />
             ))}
           </div>
