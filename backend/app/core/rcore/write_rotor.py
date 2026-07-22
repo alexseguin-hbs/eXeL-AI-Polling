@@ -97,6 +97,31 @@ def coalesce(face_batches: list[list[dict]], *, dedup_key: str | None = None) ->
     }
 
 
+def absorb_bulk(
+    records: list[dict],
+    *,
+    key_field: str = "id",
+    dedup_key: str | None = None,
+    seed: str = "hwr",
+) -> dict:
+    """One-call absorb of MANY records — the bulk analogue of write()+read_all().
+
+    Rotates each record to its seeded face (spreading the batch across the 6 faces) then
+    coalesces to the canonical hub result. This is the primitive behind the API bulk-ingest
+    path (Tier 2): a client sends ONE array, the server absorbs it in one pass instead of
+    N per-row round-trips — 1M calls → ~100 chunked calls. Deterministic + reproducible.
+
+    Returns {rows, count, dedup_removed, faces, replay_hash, face_counts}.
+    """
+    faces: list[list[dict]] = [[] for _ in range(FACES)]
+    for seq, rec in enumerate(records):
+        key = str(rec.get(key_field, seq))
+        faces[rotor_face(key, seq, seed)].append(rec)
+    out = coalesce(faces, dedup_key=dedup_key)
+    out["face_counts"] = [len(f) for f in faces]
+    return out
+
+
 class RotorRing:
     """In-memory 6-face write ring (the offline oracle; prod = 6 Postgres partitions).
 

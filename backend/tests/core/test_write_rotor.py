@@ -162,3 +162,34 @@ def test_merkle_finalize_does_not_rescan_rows():
     # Mutating the stored row buffers must NOT change the already-folded digest root.
     ring._faces[0].append({"id": "tamper"})
     assert ring.merkle_replay_hash() == h
+
+
+# ── H-C: absorb_bulk — one-call bulk absorb (Tier 2, 1M calls → few) ──
+
+def test_absorb_bulk_all_unique_survive():
+    from app.core.rcore.write_rotor import absorb_bulk
+    recs = [{"id": i, "v": i} for i in range(1000)]
+    out = absorb_bulk(recs, dedup_key="id")
+    assert out["count"] == 1000 and out["dedup_removed"] == 0
+    assert sum(out["face_counts"]) == 1000
+    assert min(out["face_counts"]) / max(out["face_counts"]) >= 0.9  # even spread
+
+
+def test_absorb_bulk_deterministic_and_dedups():
+    from app.core.rcore.write_rotor import absorb_bulk
+    recs = [{"id": i % 100, "v": i} for i in range(300)]  # 100 unique ids, 3× each
+    a = absorb_bulk(recs, dedup_key="id")
+    b = absorb_bulk(recs, dedup_key="id")
+    assert a["count"] == 100 and a["dedup_removed"] == 200
+    assert a["replay_hash"] == b["replay_hash"] and len(a["replay_hash"]) == 64
+
+
+def test_absorb_bulk_matches_ring_write_rows():
+    # absorb_bulk is the bulk analogue of write()+read_all — same surviving id set.
+    from app.core.rcore.write_rotor import RotorRing, absorb_bulk
+    recs = [{"id": i} for i in range(200)]
+    ring = RotorRing(seed="hwr")
+    for r in recs:
+        ring.write(r, key=str(r["id"]))
+    bulk = absorb_bulk(recs, dedup_key="id")
+    assert {r["id"] for r in bulk["rows"]} == {r["id"] for r in ring.read_all(dedup_key="id")["rows"]}
