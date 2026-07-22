@@ -260,7 +260,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
             icon={<Presentation className="h-3.5 w-3.5" />}
             eyebrow="Presentation · Writeup"
             title="How I think, on the page"
-            intro="A technical capability writeup and an executive presentation I authored — an AI/ML platform for multi-domain defense operations (Army IVAS), with Deloitte among the references."
+            intro="A technical capability writeup and executive presentation I authored when Deloitte asked me to assess the U.S. Army's IVAS (Integrated Visual Augmentation System) — an AI/ML platform for multi-domain defense operations."
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {WRITEUPS.map((c) => (
@@ -322,28 +322,33 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
             title="Making AI learnable"
             intro="The through-line behind everything: eXeL AI — making sensor-fusion and computer-vision AI approachable — and an EdTech initiative I launched after COVID. The work has always been about helping people learn, build, and rise, not just the technology."
           />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {EDTECH_VIDEOS.map((v) => (
-              <VideoCard key={v.href} v={v} />
-            ))}
-          </div>
-          {/* the EdTech initiative (the old P.S., folded in here) */}
+          {/* Education presentation (Google Slides) — FIRST, before the videos, with the Presentation icon */}
           <a
             href="https://tinyurl.com/eXeL-AI-SFO"
             target="_blank"
             rel="noopener noreferrer"
-            className="group mt-3 flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card p-4 transition hover:border-primary/60"
+            className="group flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card p-4 transition hover:border-primary/60"
           >
-            <div>
-              <div className="font-medium leading-snug group-hover:text-primary">
-                EdTech Initiative — launched after COVID
+            <div className="flex items-start gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+                <Presentation className="h-4 w-4" />
+              </span>
+              <div>
+                <div className="font-medium leading-snug group-hover:text-primary">
+                  EdTech Initiative — Education Presentation
+                </div>
+                <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+                  Bringing AI education to more learners — the mission that started eXeL AI (launched after COVID).
+                </p>
               </div>
-              <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                Bringing AI education to more learners — the mission that started eXeL AI.
-              </p>
             </div>
-            <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
+            <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
           </a>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {EDTECH_VIDEOS.map((v) => (
+              <VideoCard key={v.href} v={v} />
+            ))}
+          </div>
         </section>
 
         {/* 6 · IP / Patents (bottom) */}
