@@ -96,11 +96,13 @@ function SimSplitScreen() {
       {view === "dev" && <CubeDevSim />}
 
       {view === "split" && (<>
-      <div className="grid flex-1 grid-cols-1 gap-0 md:grid-cols-2">
-        {/* LEFT — Moderator */}
-        <div className="flex flex-col border-r border-border/40 min-h-[70vh]">
+      {/* E4: Moderator TOP / User BOTTOM vertical split (mobile-first — works on phone;
+          was left/right which cramped on 375px). Each pane ~45vh so both fit + the QR bar. */}
+      <div className="flex flex-1 flex-col gap-0">
+        {/* TOP — Moderator */}
+        <div className="flex flex-col border-b border-border/40 h-[45vh]">
           <div className="flex items-center justify-between border-b border-border/40 bg-muted/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            <span>{t("cube10.sim.split_moderator")}</span>
+            <span>▲ {t("cube10.sim.split_moderator")}</span>
             <span className="font-mono normal-case tracking-normal opacity-70">
               {modUrl}
             </span>
@@ -113,10 +115,10 @@ function SimSplitScreen() {
           />
         </div>
 
-        {/* RIGHT — User 1 */}
-        <div className="flex flex-col min-h-[70vh]">
+        {/* BOTTOM — User 1 */}
+        <div className="flex flex-col h-[45vh]">
           <div className="flex items-center justify-between border-b border-border/40 bg-muted/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            <span>{t("cube10.sim.split_user1")}</span>
+            <span>▼ {t("cube10.sim.split_user1")}</span>
             <span className="font-mono normal-case tracking-normal opacity-70">
               {userUrl}
             </span>
