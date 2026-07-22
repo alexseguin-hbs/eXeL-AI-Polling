@@ -330,12 +330,15 @@ export function PoweredBadge() {
   }, [enterSimulationMode, isAuthenticated, router, pathname, searchParams]);
 
   if (simulationMode) {
-    // Vision 2525 hub: the sub-menu (launcher or Security UX1) renders underneath, and the
-    // 3-Seed music layer persists OVER it (E1) — so the seeds + music stay up in ANY
-    // easter-egg sub-menu. (The old dedicated "sim" music view is gone; music is always-on.)
+    // The 3-Seed music layer persists OVER whatever easter-egg sub-menu is showing (E1) —
+    // seeds + music stay up in ANY sub-menu, music always-on (the old dedicated "sim" view
+    // is gone). On a DEDICATED tool route (Cube Sim /sim), that page IS the content, so we
+    // render ONLY the seed layer over it — not the hub launcher (E5). On the hub, the
+    // launcher / Security UX1 renders underneath.
+    const onToolRoute = pathname?.startsWith("/sim");
     return (
       <>
-        {visionView === "security" ? <SecurityCommandUX1 /> : <Vision2525Launcher />}
+        {!onToolRoute && (visionView === "security" ? <SecurityCommandUX1 /> : <Vision2525Launcher />)}
         <SimulationOverlay />
       </>
     );

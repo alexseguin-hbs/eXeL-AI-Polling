@@ -17,8 +17,11 @@ export function Vision2525Launcher() {
   const router = useRouter();
 
   const domains: CubeDomain[] = [
-    { id: "sim", code: "SIM-2525", name: "SIMULATION", tagline: "Play · Train · Replay", color: "#19C8CF", unlocked: true, onEnter: () => setVisionView("sim") },
-    { id: "cubesim", code: "SIM-CUBE-2525", name: "CUBE SIM", tagline: "Cubes 1–9 · Dev-Sim", color: "#22d3ee", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/sim"); } },
+    // E2: the old "SIMULATION" (music) card is removed — the 3-Seed music is now ALWAYS-ON
+    // and persists over every easter-egg sub-menu (E1). The only simulation is CUBE SIM.
+    // E5: CUBE SIM keeps easter-egg mode active (no exitSimulationMode) so the 3 seeds +
+    // music persist on /sim too; the /sim page renders under the persistent seed layer.
+    { id: "cubesim", code: "SIM-CUBE-2525", name: "CUBE SIM", tagline: "Cubes 1–9 · Dev-Sim", color: "#22d3ee", unlocked: true, onEnter: () => { router.push("/sim"); } },
     { id: "security", code: "SECURITY-2525", name: "SECURITY", tagline: "Air & Missile Defense C2", color: "#ff4444", unlocked: true, onEnter: () => setVisionView("security") },
     { id: "atlantis", code: "ATLANTIS-2525", name: "ENCODED MESSAGING", tagline: "Compose · Encode · Send", color: "#eab308", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/encrypted-messaging"); } },
     { id: "codex", code: "CODEX-2525", name: "LIGHT CODEX", tagline: "Encode · Image · Key", color: "#e879f9", unlocked: true, onEnter: () => { exitSimulationMode(); router.push("/light-codex"); } },
