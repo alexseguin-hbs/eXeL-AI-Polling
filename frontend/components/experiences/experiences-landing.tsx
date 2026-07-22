@@ -45,11 +45,11 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
           A window into real work
         </p>
         <h1 className="text-balance text-center text-3xl font-semibold leading-tight sm:text-4xl">
-          Don&apos;t take my word for it — <span className="text-primary">see the work.</span>
+          Don&apos;t take my word for it. <span className="text-primary">See the work.</span>
         </h1>
         <p className="mt-3 text-center text-base font-semibold text-primary">Alex Seguin</p>
         <p className="mt-4 max-w-lg text-balance text-center text-[15px] leading-relaxed text-muted-foreground">
-          A short, honest portfolio: things I&apos;ve built, shipped, and been recognized for — sensor-fusion
+          A short, honest portfolio. Things I&apos;ve built, shipped, and been recognized for: sensor-fusion
           systems in the field, a patent Apple has cited twice, and the AI platform you&apos;re looking at now.
           Scan the code or open the link to explore.
         </p>
@@ -86,7 +86,7 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
         </div>
 
         <p className="mt-8 max-w-md text-balance text-center text-xs leading-relaxed text-muted-foreground/80">
-          Built on the eXeL AI governance engine — where shared intention moves at the speed of thought.
+          Built on the eXeL AI governance engine, where shared intention moves at the speed of thought.
         </p>
       </main>
     </div>
