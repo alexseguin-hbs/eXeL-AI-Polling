@@ -11,6 +11,7 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, ArrowRight, Copy, Check, QrCode } from "lucide-react";
 import { SITE_URL } from "@/lib/atlantis-package";
+import { LangSelect } from "@/components/experiences/lang-select";
 
 export function ExperiencesLanding({ basePath }: { basePath: string }) {
   const docsPath = `${basePath}/docs`;
@@ -37,7 +38,10 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
           <ArrowLeft className="h-4 w-4" />
           eXeL AI
         </Link>
-        <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-primary/70">Experiences</span>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-primary/70">Experiences</span>
+          <LangSelect />
+        </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center px-5 py-10 sm:py-16">

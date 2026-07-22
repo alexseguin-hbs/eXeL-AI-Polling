@@ -11,6 +11,7 @@ import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film } from "lucide-react";
+import { LangSelect } from "@/components/experiences/lang-select";
 
 type CardKind = "pdf" | "link" | "video";
 type Item = { kind: CardKind; title: string; blurb: string; href: string; badge?: string; icon?: LucideIcon };
@@ -255,7 +256,10 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
           <ArrowLeft className="h-4 w-4" />
           Experiences
         </Link>
-        <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-primary/70">Portfolio</span>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-primary/70">Portfolio</span>
+          <LangSelect />
+        </div>
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:py-14">
