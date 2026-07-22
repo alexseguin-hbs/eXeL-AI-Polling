@@ -94,10 +94,9 @@ const IP: Item[] = [
 
 // Demo videos — industrial & defense field demos (opens on YouTube).
 const VIDEOS: Item[] = [
-  { kind: "video", title: "SF6 Dual-Purpose Imager", blurb: "A dual-purpose thermal imager: SF6 gas detection and everyday thermal inspection in one camera.", href: "https://youtu.be/vaToP90nka0" },
   { kind: "video", title: "Athena AI + Teal 2 Drone", blurb: "AI decision-support paired with an autonomous drone; intelligence and hardware working as one system.", href: "https://youtu.be/rpbb0AiM9fI" },
   { kind: "video", title: "BD Spot + Fluke SV600", blurb: "Boston Dynamics Spot carrying an acoustic-imaging payload to find leaks a human can't hear; robotics meets sensing.", href: "https://youtu.be/Ve7Yqs8uw5M" },
-  { kind: "video", title: "Fluke Ti450 SF6 Camera", blurb: "Making an invisible gas visible on camera: the kind of product problem I take from concept to the field.", href: "https://youtu.be/GGJyRyaE6y4" },
+  { kind: "video", title: "Fluke Ti450 SF6 Dual-Purpose", blurb: "A dual-purpose thermal imager: SF6 gas detection and everyday thermal inspection. Making an invisible gas visible on camera, concept to field.", href: "https://youtu.be/GGJyRyaE6y4" },
   { kind: "video", title: "AI / Claude Code Demo", blurb: "How this very platform is built: human intent directing AI to ship real, governed software.", href: "https://youtu.be/wbsUZAVa2zM" },
 ];
 
