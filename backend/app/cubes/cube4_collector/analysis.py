@@ -20,6 +20,62 @@ import uuid
 
 _ANALYSIS_VERSION = "1.0.0"
 
+# A3: the 7 execution modes (memo). The SAME analysis runs in every mode — only the
+# APPROVER / automation changes, never the analytical logic. Mirrors challenge_loop tiers.
+ANALYSIS_MODES: tuple[str, ...] = (
+    "manual", "assisted", "semi_automated", "automated", "replay", "sandbox", "live",
+)
+# Automated acceptance guardrails (Thor): never auto-accept a high-risk / low-confidence read.
+_AUTO_MAX_RISK = 0.30
+_AUTO_MIN_CONFIDENCE = 0.70
+
+
+def dispatch_analysis_mode(
+    result: dict,
+    *,
+    mode: str,
+    human_approved: bool = False,
+    human_selected: bool = False,
+    replay_match: bool | None = None,
+) -> dict:
+    """Route a synthesized analysis through an execution mode → {mode, status, reason}.
+
+    manual/assisted → human must approve. semi_automated → human selects among variants.
+    automated → auto-accepted ONLY if risk ≤ 0.30 and confidence ≥ 0.70 (else held —
+    a guardrail, never blind). replay → reproducibility check (replay_match). sandbox →
+    isolated, never promoted to live. live → production apply, requires human_approved
+    (Human Authority is a permanent gate). Pure + deterministic.
+    """
+    if mode not in ANALYSIS_MODES:
+        raise ValueError(f"mode must be one of {list(ANALYSIS_MODES)}, got {mode!r}")
+
+    conf = float(result.get("confidence", 0.0) or 0.0)
+    risk = float(result.get("risk", 1.0) or 0.0)
+
+    if mode == "sandbox":
+        return {"mode": mode, "status": "sandboxed",
+                "reason": "isolated run — not applied to live"}
+    if mode == "replay":
+        status = "verified" if replay_match else ("mismatch" if replay_match is False else "pending")
+        return {"mode": mode, "status": status,
+                "reason": "replay reproducibility check"}
+    if mode in ("manual", "assisted"):
+        return {"mode": mode, "status": "accepted" if human_approved else "pending",
+                "reason": "human approved" if human_approved else "awaiting human review"}
+    if mode == "semi_automated":
+        return {"mode": mode, "status": "accepted" if human_selected else "pending",
+                "reason": "human selected" if human_selected else "awaiting human selection"}
+    if mode == "automated":
+        ok = risk <= _AUTO_MAX_RISK and conf >= _AUTO_MIN_CONFIDENCE
+        return {"mode": mode, "status": "accepted" if ok else "held",
+                "reason": (f"auto-accepted (risk {risk} ≤ {_AUTO_MAX_RISK}, "
+                           f"confidence {conf} ≥ {_AUTO_MIN_CONFIDENCE})") if ok else
+                          "held — risk/confidence outside the automated guardrail"}
+    # live
+    return {"mode": mode, "status": "accepted" if human_approved else "pending",
+            "reason": "human authority approved for production" if human_approved
+                      else "awaiting human authority (permanent gate)"}
+
 
 def _clamp01(x: float) -> float:
     return 0.0 if x < 0 else 1.0 if x > 1 else x
