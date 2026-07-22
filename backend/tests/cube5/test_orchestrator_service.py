@@ -304,9 +304,11 @@ class TestTriggerCqsScoring:
             mock_db, uuid.uuid4(), top_theme2_id="theme_xyz"
         )
 
-        added_obj = mock_db.add.call_args[0][0]
-        assert added_obj.trigger_type == "cqs_scoring"
-        assert added_obj.trigger_metadata["top_theme2_id"] == "theme_xyz"
+        # add() is now called for BOTH the PipelineTrigger and the R-Core AuditLog row;
+        # pick the trigger among the added objects (G3 audit parity).
+        added = [c[0][0] for c in mock_db.add.call_args_list]
+        trig = next(o for o in added if getattr(o, "trigger_type", None) == "cqs_scoring")
+        assert trig.trigger_metadata["top_theme2_id"] == "theme_xyz"
 
     @pytest.mark.asyncio
     async def test_cqs_without_theme_id(self):
@@ -320,8 +322,9 @@ class TestTriggerCqsScoring:
 
         await trigger_cqs_scoring(mock_db, uuid.uuid4())
 
-        added_obj = mock_db.add.call_args[0][0]
-        assert added_obj.trigger_metadata["top_theme2_id"] is None
+        added = [c[0][0] for c in mock_db.add.call_args_list]
+        trig = next(o for o in added if getattr(o, "trigger_type", None) == "cqs_scoring")
+        assert trig.trigger_metadata["top_theme2_id"] is None
 
 
 # ---------------------------------------------------------------------------

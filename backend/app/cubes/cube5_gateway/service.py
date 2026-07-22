@@ -31,13 +31,33 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.core.audit import log_audit
 from app.core.hi_rates import resolve_human_rate
 from app.core.concurrency import SessionSemaphorePool
+from app.core.rcore.execution_modes import dispatch_execution_mode
 from app.models.pipeline_trigger import PipelineTrigger, VALID_TRIGGER_TYPES
 from app.models.time_tracking import TimeEntry
 from app.models.token_ledger import TokenLedger
 
 logger = logging.getLogger(__name__)
+
+
+def dispatch_pipeline_mode(
+    result: dict,
+    *,
+    mode: str,
+    human_approved: bool = False,
+    human_selected: bool = False,
+) -> dict:
+    """Route a pipeline trigger through the SHARED R-Core execution-mode gate.
+
+    The SAME orchestration runs in every mode — only the approver/automation changes.
+    automated auto-proceeds ONLY inside the risk/confidence guardrail; live requires
+    human authority. Thin delegator to core.rcore.execution_modes.dispatch_execution_mode.
+    """
+    return dispatch_execution_mode(
+        result, mode=mode, human_approved=human_approved, human_selected=human_selected,
+    )
 
 # Global pipeline concurrency cap — prevents unbounded Cube 6 executions
 _pipeline_semaphore = asyncio.Semaphore(10)
@@ -790,15 +810,20 @@ async def trigger_cqs_scoring(
     algorithm: str | None = None,
     participant_count: int | None = None,
     replay_hash: str | None = None,
+    top_theme2_label: str | None = None,
+    theme_level: str = "3",
 ) -> PipelineTrigger:
-    """Create a pipeline trigger for CQS scoring (placeholder).
+    """Trigger CQS scoring after Cube 7 ranking completes (G3: real scoring, guarded).
 
-    CQS scoring fires after Cube 7 ranking completes. Scores only
-    responses in the #1 most-voted Theme2 cluster with >95% confidence.
+    Scores only responses in the #1 most-voted Theme2 cluster with >95% confidence.
+    Krishna contract (2026-07-03): accepts the full Cube 7 → Cube 8 handoff fields so
+    downstream Cube 8 token disbursement can attribute rewards against the exact
+    aggregation slice (algorithm, replay hash, cycle).
 
-    Krishna contract (2026-07-03): accepts the full Cube 7 → Cube 8 handoff
-    fields so downstream Cube 8 token disbursement can attribute rewards
-    against the exact aggregation slice (algorithm, replay hash, cycle).
+    G3 (2026-07-22): when the Theme2 *label* is available, INVOKES the real Cube 6
+    `run_cqs_pipeline` (score → seeded winner) — guarded so a missing AI key / offline
+    env degrades to a trigger-only record rather than failing the orchestrator. Writes
+    one append-only AuditLog row for the trigger (R-Core Human-Authority parity).
     """
     metadata = {"top_theme2_id": top_theme2_id}
     if cycle_id is not None:
@@ -809,12 +834,37 @@ async def trigger_cqs_scoring(
         metadata["participant_count"] = participant_count
     if replay_hash is not None:
         metadata["replay_hash"] = replay_hash
-    return await _create_trigger(
+
+    trigger = await _create_trigger(db, session_id, "cqs_scoring", metadata=metadata)
+
+    # R-Core audit: one append-only row attributing the Cube 5 → Cube 8 handoff.
+    log_audit(
         db,
-        session_id,
-        "cqs_scoring",
-        metadata=metadata,
+        session_id=session_id,
+        actor_id="system:orchestrator",
+        actor_role="system",
+        action_type="pipeline.cqs_scoring_triggered",
+        object_type="pipeline",
+        object_id=str(getattr(trigger, "id", "")) or None,
+        after=metadata,
     )
+
+    # G3: fire the REAL scoring when a Theme2 label is resolvable (guarded).
+    if top_theme2_label:
+        try:
+            from app.cubes.cube6_ai.cqs_engine import run_cqs_pipeline
+
+            cqs = await run_cqs_pipeline(db, session_id, top_theme2_label, theme_level)
+            logger.info(
+                "cube5.cqs.scored",
+                extra={"session_id": str(session_id), "status": cqs.get("status")},
+            )
+        except Exception as exc:  # noqa: BLE001 — degrade to trigger-only, never fail orchestration
+            logger.warning(
+                "cube5.cqs.scoring_degraded — trigger recorded, scoring skipped: %s", exc
+            )
+
+    return trigger
 
 
 async def orchestrate_post_polling(
