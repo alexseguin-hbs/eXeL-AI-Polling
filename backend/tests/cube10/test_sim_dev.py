@@ -28,11 +28,13 @@ class TestListCubes:
         c2 = next(c for c in out["cubes"] if c["cube_id"] == 2)
         c4 = next(c for c in out["cubes"] if c["cube_id"] == 4)
         c5 = next(c for c in out["cubes"] if c["cube_id"] == 5)
+        c8 = next(c for c in out["cubes"] if c["cube_id"] == 8)
         assert c1["harness_available"] is True and c1["name"] == "Session Join & QR"
-        # cubes 1, 2, 3, 4, 5, 6, 7 now have registered harnesses.
+        # cubes 1, 2, 3, 4, 5, 6, 7, 8 now have registered harnesses.
         assert c2["harness_available"] is True
         assert c4["harness_available"] is True
         assert c5["harness_available"] is True  # Cube 5 harness registered (G2)
+        assert c8["harness_available"] is True  # Cube 8 harness registered (Phase 8)
 
 
 class TestContract:
@@ -54,9 +56,9 @@ class TestContract:
 
     @pytest.mark.asyncio
     async def test_unregistered_cube_still_404(self):
-        # Cube 8 has no harness yet → still 404 (Cube 5 registered in G2).
+        # Cube 9 has no harness yet → still 404 (Cube 8 registered in Phase 8).
         with pytest.raises(HTTPException) as e:
-            await r.sim_cube_contract(8)
+            await r.sim_cube_contract(9)
         assert e.value.status_code == 404
 
     @pytest.mark.asyncio
