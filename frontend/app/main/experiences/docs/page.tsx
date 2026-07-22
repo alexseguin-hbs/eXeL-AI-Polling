@@ -8,7 +8,7 @@
 // Copy is written to land with hiring managers globally: heart · mind · spirit, an invitation to look.
 
 import Link from "next/link";
-import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap } from "lucide-react";
+import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download } from "lucide-react";
 
 type VideoCard = { id: string; title: string; proves: string };
 const VIDEOS: VideoCard[] = [
@@ -68,16 +68,16 @@ const INDUSTRIAL: LinkCard[] = [
 
 const ASSESSMENTS: LinkCard[] = [
   {
-    title: "Deloitte — AI/ML Software Development Integration",
-    blurb: "An independent Deloitte assessment of the eXeL AI strategy and its engineering integration (21 pp).",
-    href: "/experiences/Deloitte_eXeL_AI_ML_Software_Integration_A.Seguin.pdf",
-    badge: "Deloitte",
+    title: "eXeL AI Strategy — AI/ML Software Development Integration",
+    blurb: "The full Deloitte-assessed strategy for eXeL AI and its engineering integration (21 pp).",
+    href: "/experiences/eXeL_AI_Strategy_AIML_Software_Dev_Integration_A.Seguin.pdf",
+    badge: "Deloitte assessment",
   },
   {
-    title: "Deloitte — eXeL AI Project Description (v2)",
-    blurb: "The Deloitte-reviewed project description — the vision, scope, and outcomes, evaluated by a third party.",
-    href: "/experiences/Deloitte_eXeL_AI_Project_Description_v2.pdf",
-    badge: "Deloitte",
+    title: "eXeL AI Strategy — Project Description (v2)",
+    blurb: "The reviewed project description — the vision, scope, and outcomes, evaluated end to end.",
+    href: "/experiences/eXeL_AI_Strategy_Project_Description_A.Seguin_v2.pdf",
+    badge: "Deloitte assessment",
   },
 ];
 
@@ -85,7 +85,7 @@ const RESUMES: LinkCard[] = [
   {
     title: "A. M. Seguin — HI + AI Systems (Industrial & Defense)",
     blurb: "The full record: sensor fusion, robotics, and human-plus-AI systems across industrial and defense.",
-    href: "/experiences/A.M.Seguin_Resume_HI__AI_Systems_Industrial__Defense.pdf",
+    href: "/experiences/A.M.Seguin_Resume_HI_AI_Systems_Industrial_Defense.pdf",
   },
   {
     title: "A. Seguin — Technical Program Manager (ATS)",
@@ -117,22 +117,58 @@ function SectionHead({
   );
 }
 
+// External links (patents, industrial, edtech) render as a single click-through card.
+// PDFs (assessments, résumés) render as a static card with TWO explicit actions —
+// View (opens the browser's PDF reader in a new tab) and Download (saves the file).
 function OutCard({ c }: { c: LinkCard }) {
-  const external = c.href.startsWith("http");
+  const isPdf = c.href.toLowerCase().endsWith(".pdf");
+
+  if (isPdf) {
+    return (
+      <div className="flex flex-col rounded-xl border border-border/60 bg-card p-4">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="font-medium leading-snug">{c.title}</h3>
+          <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+        </div>
+        {c.badge && (
+          <span className="mt-2 inline-flex w-fit rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+            {c.badge}
+          </span>
+        )}
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{c.blurb}</p>
+        <div className="mt-3 flex items-center gap-2">
+          <a
+            href={c.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            View
+          </a>
+          <a
+            href={c.href}
+            download
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-3 py-1.5 text-xs font-medium transition hover:border-primary/60 hover:text-primary"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Download
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <a
       href={c.href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
+      target="_blank"
+      rel="noopener noreferrer"
       className="group flex flex-col rounded-xl border border-border/60 bg-card p-4 transition hover:border-primary/60"
     >
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-medium leading-snug">{c.title}</h3>
-        {external ? (
-          <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
-        ) : (
-          <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
-        )}
+        <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary" />
       </div>
       {c.badge && (
         <span className="mt-2 inline-flex w-fit rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
