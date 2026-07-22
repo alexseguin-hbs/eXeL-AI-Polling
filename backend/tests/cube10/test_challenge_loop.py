@@ -145,11 +145,11 @@ class TestIntegration:
 class TestHarnessRegistration:
     """R0.2: cubes 1, 2, 6, 7 have registered runnable harnesses (not Cube 1 only)."""
 
-    def test_registry_contains_all_five(self):
-        assert HARNESS_CUBES == frozenset({1, 2, 3, 6, 7})
+    def test_registry_contains_all_six(self):
+        assert HARNESS_CUBES == frozenset({1, 2, 3, 4, 6, 7})
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("cube_id", [1, 2, 3, 6, 7])
+    @pytest.mark.parametrize("cube_id", [1, 2, 3, 4, 6, 7])
     async def test_baseline_runs_for_each_registered_cube(self, cube_id):
         base = await run_cube_baseline(cube_id)
         assert base["cube_id"] == cube_id

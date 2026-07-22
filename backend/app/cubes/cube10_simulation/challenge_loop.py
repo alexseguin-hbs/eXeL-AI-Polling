@@ -47,6 +47,10 @@ async def _run_harness(cube_id: int) -> dict:
         from app.cubes.cube10_simulation.harness_cube3 import run_harness_cube3
 
         return await run_harness_cube3()
+    if cube_id == 4:
+        from app.cubes.cube10_simulation.harness_cube4 import run_harness_cube4
+
+        return run_harness_cube4()
     if cube_id == 6:
         from app.cubes.cube10_simulation.harness_cube6 import run_harness_cube6
 
@@ -56,12 +60,12 @@ async def _run_harness(cube_id: int) -> dict:
 
         return run_harness_cube7()
     raise NotImplementedError(
-        f"No stand-alone harness for cube {cube_id} yet — Cubes 1, 2, 3, 6, 7 are runnable."
+        f"No stand-alone harness for cube {cube_id} yet — Cubes 1, 2, 3, 4, 6, 7 are runnable."
     )
 
 
 # Cubes with a registered, runnable stand-alone harness (single source of truth).
-HARNESS_CUBES: frozenset[int] = frozenset({1, 2, 3, 6, 7})
+HARNESS_CUBES: frozenset[int] = frozenset({1, 2, 3, 4, 6, 7})
 
 
 def _harness_to_metrics(result: dict, cube_id: int, role: str) -> dict:
