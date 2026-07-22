@@ -20,6 +20,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.core.audit import log_audit
+from app.core.rcore.execution_modes import dispatch_execution_mode
 from app.cubes.cube6_ai.providers.base import EmbeddingProvider, SummarizationProvider
 from app.cubes.cube6_ai.providers.factory import (
     get_embedding_provider,
@@ -163,6 +165,20 @@ async def run_pipeline(
         )
 
         session.pipeline_stage = "completed"
+
+        # R-Core audit: one append-only row attributing the theming-pipeline completion
+        # (transition-level — one per pipeline run, scale-safe). Carries the replay_hash.
+        log_audit(
+            db,
+            session_id=session_id,
+            actor_id="system:orchestrator",
+            actor_role="system",
+            action_type="ai.theming_completed",
+            object_type="pipeline",
+            object_id=str(session_id),
+            before={"pipeline_stage": "storing"},
+            after={"pipeline_stage": "completed", "replay_hash": replay_hash},
+        )
 
     except Exception as exc:
         # Task B5: On failure, mark session with error stage for status endpoint
@@ -417,3 +433,45 @@ async def get_session_themes_enriched(
             "parent_theme_id": t.parent_theme_id,
         })
     return enriched
+
+
+def dispatch_theming_mode(
+    result: dict,
+    *,
+    mode: str,
+    human_approved: bool = False,
+    human_selected: bool = False,
+) -> dict:
+    """Route a theming run through the SHARED R-Core execution-mode gate.
+
+    The SAME theming pipeline runs in every mode — only the approver/automation changes.
+    automated auto-accepts ONLY inside the risk/confidence guardrail; live requires human
+    authority. Thin delegator to core.rcore.execution_modes.dispatch_execution_mode.
+    """
+    return dispatch_execution_mode(
+        result, mode=mode, human_approved=human_approved, human_selected=human_selected,
+    )
+
+
+async def verify_theming_replay(db: AsyncSession, session_id: uuid.UUID) -> dict:
+    """Expose Cube 6's own replay anchor for verification (R-Core parity with Cube 1).
+
+    Cube 6 authoritatively writes `Session.replay_hash` at theming completion
+    (phase_b). This surfaces it so a consumer can compare the persisted hash across
+    re-runs (deterministic theming ⇒ identical hash). Honest scope: this returns the
+    STORED anchor, not a live AI re-run (theming is provider-bound; the harness/offline
+    provider is the recompute oracle). Read-only.
+    """
+    from app.models.session import Session
+
+    session = (
+        await db.execute(select(Session).where(Session.id == session_id))
+    ).scalar_one_or_none()
+    replay_hash = getattr(session, "replay_hash", None) if session else None
+    return {
+        "session_id": str(session_id),
+        "replay_hash": replay_hash,
+        "has_replay_hash": replay_hash is not None,
+        "is_deterministic": replay_hash is not None,
+        "note": "stored theming replay anchor; offline harness is the recompute oracle",
+    }

@@ -168,3 +168,19 @@ async def get_ai_metrics(
     from app.cubes.cube6_ai import metrics as ai_metrics
 
     return await ai_metrics.get_all_metrics(db, session_id)
+
+
+@router.get("/ai/verify-replay")
+async def verify_ai_replay(
+    session_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+):
+    """Cube 6 replay-anchor verification (R-Core parity with Cube 1 verify-determinism).
+
+    Surfaces the theming `replay_hash` Cube 6 persists at completion so a consumer can
+    confirm deterministic theming across re-runs. Read-only; privileged-role only.
+    """
+    from app.cubes.cube6_ai.pipeline import verify_theming_replay
+
+    return await verify_theming_replay(db, session_id)
