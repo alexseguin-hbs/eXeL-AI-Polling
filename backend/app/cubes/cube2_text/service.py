@@ -36,6 +36,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.audit import log_audit
 from app.core.concurrency import SessionSemaphorePool
 from app.core.crypto_utils import compute_anon_hash, compute_response_hash
+from app.core.rcore.rotor_adapter import stamp_orm as _hwr_stamp
 from app.core.exceptions import (
     ParticipantNotFoundError,
     QuestionNotFoundError,
@@ -424,6 +425,11 @@ async def store_response(
                 is_flagged=False,
             )
             db.add(response_meta)
+            # HWR seam (H4): route each response to its seeded 6-face partition, sharded
+            # by session with a hash-derived seq that spreads writes evenly across faces.
+            # NO-OP until settings.hwr_enabled + migration 026 land (non-breaking).
+            _hwr_stamp(response_meta, key=str(session_id),
+                       seq=int(response_hash[:8], 16))
             await db.flush()  # Get ID before creating TextResponse
 
             text_response = TextResponse(
