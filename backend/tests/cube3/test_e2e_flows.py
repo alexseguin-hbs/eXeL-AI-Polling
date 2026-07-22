@@ -129,8 +129,9 @@ class TestSubmissionFlow:
                 audio_format="webm",
             )
 
-        # Verify Postgres writes (ResponseMeta + VoiceResponse + TextResponse)
-        assert mock_db.add.call_count == 3
+        # Verify Postgres writes (ResponseMeta + VoiceResponse + TextResponse + AuditLog).
+        # The 4th add is the R-Core transition-level audit row (voice.submitted).
+        assert mock_db.add.call_count == 4
 
         # Verify return includes tokens + voice metadata
         assert result["source"] == "voice"

@@ -520,7 +520,9 @@ class TestCreateDesiredOutcome:
             description="Achieve consensus on AI governance priorities",
             time_estimate_minutes=30,
         )
-        mock_db.add.assert_called_once()
+        # add() is now called for BOTH the DesiredOutcome and the R-Core AuditLog row.
+        added = [c[0][0] for c in mock_db.add.call_args_list]
+        assert any(getattr(o, "outcome_status", None) == "pending" for o in added)
         mock_db.commit.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -533,9 +535,10 @@ class TestCreateDesiredOutcome:
         mock_db.refresh = AsyncMock()
 
         await create_desired_outcome(mock_db, uuid.uuid4(), description="Test")
-        added_obj = mock_db.add.call_args[0][0]
-        assert added_obj.outcome_status == "pending"
-        assert added_obj.all_confirmed is False
+        added = [c[0][0] for c in mock_db.add.call_args_list]
+        outcome_obj = next(o for o in added if getattr(o, "outcome_status", None) is not None)
+        assert outcome_obj.outcome_status == "pending"
+        assert outcome_obj.all_confirmed is False
 
 
 class TestRecordConfirmation:

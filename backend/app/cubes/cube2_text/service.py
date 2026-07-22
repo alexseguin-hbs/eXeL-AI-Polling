@@ -33,6 +33,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.audit import log_audit
 from app.core.concurrency import SessionSemaphorePool
 from app.core.crypto_utils import compute_anon_hash, compute_response_hash
 from app.core.exceptions import (
@@ -438,6 +439,19 @@ async def store_response(
                 response_hash=response_hash,
             )
             db.add(text_response)
+            # CC-4 / R-Core: one append-only AuditLog row per text submission
+            # (transition-level Human-Authority attribution, in the same transaction).
+            log_audit(
+                db,
+                session_id=session_id,
+                actor_id=(str(participant_id) if participant_id else "anonymous"),
+                actor_role=("anonymous" if is_anonymous else "participant"),
+                action_type="text.submitted",
+                object_type="response",
+                object_id=str(response_meta.id),
+                after={"response_hash": response_hash, "char_count": len(raw_text),
+                       "language_code": language_code, "pii_detected": pii_detected},
+            )
             await db.commit()
             await db.refresh(response_meta)
             return response_meta, response_hash

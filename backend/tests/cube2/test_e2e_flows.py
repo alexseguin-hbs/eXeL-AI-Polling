@@ -110,8 +110,9 @@ class TestSubmissionFlow:
                 language_code="en",
             )
 
-        # Verify Postgres writes (add called for ResponseMeta + TextResponse)
-        assert mock_db.add.call_count == 2
+        # Verify Postgres writes (add called for ResponseMeta + TextResponse + AuditLog).
+        # The 3rd add is the R-Core transition-level audit row (CC-4).
+        assert mock_db.add.call_count == 3
 
         # Verify return includes tokens
         assert result["heart_tokens_earned"] == 1.0

@@ -20,6 +20,7 @@ import structlog
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.audit import log_audit
 from app.core.crypto_utils import compute_anon_hash
 from app.core.presence import get_presence as _core_get_presence, set_presence as _core_set_presence
 from app.core.submission_validators import validate_session_exists  # noqa: F401 — re-exported for router
@@ -421,6 +422,19 @@ async def create_desired_outcome(
         outcome_status="pending",
     )
     db.add(outcome)
+    await db.flush()  # get outcome.id for the audit object_id
+    # R-Core: one append-only AuditLog row per desired-outcome creation (transition-
+    # level Human-Authority attribution, in the same transaction).
+    log_audit(
+        db,
+        session_id=session_id,
+        actor_id=(str(created_by) if created_by else "system"),
+        actor_role=("participant" if created_by else "system"),
+        action_type="collector.desired_outcome_created",
+        object_type="desired_outcome",
+        object_id=str(outcome.id),
+        after={"description": description, "time_estimate_minutes": time_estimate_minutes},
+    )
     await db.commit()
     await db.refresh(outcome)
 

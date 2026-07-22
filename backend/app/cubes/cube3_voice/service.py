@@ -30,6 +30,7 @@ import structlog
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.audit import log_audit
 from app.core.concurrency import SessionSemaphorePool
 from app.core.crypto_utils import compute_response_hash
 from app.core.exceptions import ResponseValidationError
@@ -334,6 +335,20 @@ async def store_voice_response(
         response_hash=response_hash,
     )
     db.add(text_response)
+
+    # R-Core: one append-only AuditLog row per voice submission (transition-level
+    # Human-Authority attribution, in the same transaction).
+    log_audit(
+        db,
+        session_id=session_id,
+        actor_id=(str(participant_id) if participant_id else "anonymous"),
+        actor_role=("anonymous" if is_anonymous else "participant"),
+        action_type="voice.submitted",
+        object_type="response",
+        object_id=str(response_meta.id),
+        after={"response_hash": response_hash, "source": "voice",
+               "pii_detected": pii_detected},
+    )
 
     try:
         await db.commit()
