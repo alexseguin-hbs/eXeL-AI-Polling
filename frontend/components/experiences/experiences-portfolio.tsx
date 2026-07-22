@@ -37,14 +37,14 @@ const RESUMES: LinkCard[] = [
     blurb:
       "15+ years leading perception, sensor-fusion, and autonomy products across defense and industrial: Athena AI / Teal-2, Shield AI's first $25M R&D roadmap, FLIR's $200M portfolio, and 15+ Fluke thermal & acoustic launches, plus an active SECRET clearance and the Apple-cited sensor-fusion patent.",
     href: "/experiences/A.M.Seguin_Resume_HI_AI_Systems_Industrial_Defense.pdf",
-    badge: "Industrial & Defense",
+    badge: "Defense • Systems",
   },
   {
     title: "Technical Product Manager",
     blurb:
       "The same career, framed for product leadership: end-to-end delivery, R&D-portfolio governance, and risk management with hard outcomes. A $200M portfolio consolidated toward an $8B acquisition, 12% CAGR on a $3B business, and 20× developer throughput via AI automation.",
     href: "/experiences/ATS_ASeguin_Resume_TPM_20260126.pdf",
-    badge: "ATS-ready",
+    badge: "TPM • PdM",
   },
 ];
 
@@ -124,8 +124,8 @@ const EDTECH_VIDEOS: VideoCardData[] = [
     href: "https://youtu.be/1hqutudJXF0?si=Nbzex0K0JT775Etu",
   },
   {
-    title: "eXeL AI Car · Lane Detect",
-    blurb: "An MVP putting lane-detection computer vision on a real car; learning AI by building it.",
+    title: "eXeL AI Lane Detection",
+    blurb: "Lane-detection computer vision on a real car; learning AI by building it.",
     href: "https://tinyurl.com/27999v63",
   },
 ];
