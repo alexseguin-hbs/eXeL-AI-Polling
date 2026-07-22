@@ -42,8 +42,11 @@ export function SoISection() {
       <CardHeader className="text-center md:text-left">
         {/* Line 1: title · Line 2: · ◬ ♡ 웃 Tri-Coin (glyphs 3×) · centered on phone, left on desktop. */}
         <CardTitle className="flex flex-col items-center gap-1 md:items-start">
-          <span>System of Innovation</span>
-          <span className="font-normal text-muted-foreground">· <span className="text-3xl align-middle leading-none tracking-wide">◬ ♡ 웃</span> Tri-Coin</span>
+          {/* Top strings routed through t() for cross-cultural readability (was hardcoded English).
+              The ◬ ♡ 웃 glyphs are universal symbols — kept literal. Sizes unchanged (S1 enlarged the
+              RING glyphs only, not this header). */}
+          <span>{t("shared.nav.soi_title")}</span>
+          <span className="font-normal text-muted-foreground">· <span className="text-3xl align-middle leading-none tracking-wide">◬ ♡ 웃</span> {t("soi.tricoin")}</span>
         </CardTitle>
         <CardDescription>{tr(soi.thesis, DEFAULT_SOI.thesis, "soi.thesis")}</CardDescription>
       </CardHeader>

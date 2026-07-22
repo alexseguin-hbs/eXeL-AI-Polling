@@ -734,6 +734,7 @@ const cube8: TranslationEntry[] = [
   // SoI Framework (System of Intelligence · Tri-Coin) — section labels shown in the Settings SoI modal + dashboard.
   { key: "soi.section.flow", englishDefault: "Value & Flow", context: "SoI Framework: heading for how contribution converts to real value (Redeem/Exchange/Stake/Amplify)", cubeId: 8 },
   { key: "soi.section.nose", englishDefault: "Why It Matters", context: "SoI Framework: heading for the Need/Outcome/Solution/Evidence (NOSE) frame", cubeId: 8 },
+  { key: "soi.tricoin", englishDefault: "Tri-Coin", context: "SoI Framework sub-header label after the ◬ ♡ 웃 glyphs (brand term; falls back to English where untranslated)", cubeId: 8 },
   // SoI Framework — the default framework CONTENT (thesis · 3 Tri-Coins · Value/Flow · NOSE). englishDefault MUST
   // mirror DEFAULT_SOI in lib/soi-framework.ts exactly (soi-section renders defaults via t() so they translate 33 langs).
   { key: "soi.thesis", englishDefault: "Value what people bring, not only what they produce. ♡ carries the why · 웃 powers the how · ◬ multiplies the what — so shared intention becomes shared progress for every learner, maker, and community on Earth.", context: "SoI Framework thesis — the one-line vision", cubeId: 8 },

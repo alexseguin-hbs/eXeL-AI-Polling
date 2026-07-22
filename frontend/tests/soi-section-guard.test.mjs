@@ -18,5 +18,14 @@ ok(/<SoITrinity\b[^>]*\bfontSize=\{1[4-9]\}/.test(src),
   "SoITrinity is invoked with an explicit enlarged fontSize (14-19) — ring glyphs bigger, isolated call site");
 ok(/labels=\{\["웃", "♡", "◬"\]\}/.test(src), "the 3 Tri-Coin glyph labels are still passed to the rings");
 
+// ── S2: top strings routed through t() for cross-cultural readability (were hardcoded English) ──
+ok(/\{t\("shared\.nav\.soi_title"\)\}/.test(src), "in-card header renders via t(\"shared.nav.soi_title\")");
+ok(/\{t\("soi\.tricoin"\)\}/.test(src), "the \"Tri-Coin\" sub-header renders via t(\"soi.tricoin\")");
+ok(!/<span>System of Innovation<\/span>/.test(src), "no hardcoded-English \"System of Innovation\" literal remains in the card header");
+
+// S2: the soi.tricoin lexicon key exists (cubeId 8) so the fallback chain has an englishDefault
+const lex = readFileSync(join(__dirname, "..", "lib", "lexicon-data.ts"), "utf8");
+ok(/key:\s*"soi\.tricoin"[^}]*cubeId:\s*8/.test(lex), "soi.tricoin key registered in the cubeId-8 group");
+
 console.log(`\nSOI-SECTION-GUARD ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);
