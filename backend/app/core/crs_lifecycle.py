@@ -13,22 +13,40 @@ on top — this state machine is what they enforce. Deterministic, no I/O.
 
 from __future__ import annotations
 
-# Ordered lifecycle. `simulation_ready` is the terminal gate that unlocks the
-# Cube-10 simulation / challenge loop for the requirement.
-CRS_STATES: tuple[str, ...] = ("draft", "review", "approved", "simulation_ready")
+# Ordered lifecycle (memo 2026-07-21 extension). `simulation_ready` remains the
+# MID-lifecycle gate that unlocks the Cube-10 simulation / challenge loop; a CRS
+# then progresses through qualification → certification → publication → replay-enabled.
+CRS_STATES: tuple[str, ...] = (
+    "draft", "review", "approved", "simulation_ready",
+    "qualified", "certified", "published", "replay_enabled",
+)
 
-# Forward + backward transitions. A requirement can always be sent back a step
-# (review→draft, approved→review, simulation_ready→approved) so Human Authority
-# can withdraw approval; it can never skip a step forward.
+# Forward + backward transitions. A requirement can always be sent back a step so
+# Human Authority can withdraw a decision; it can never skip a step forward.
 CRS_TRANSITIONS: dict[str, tuple[str, ...]] = {
     "draft": ("review",),
     "review": ("approved", "draft"),
     "approved": ("simulation_ready", "review"),
-    "simulation_ready": ("approved",),
+    "simulation_ready": ("qualified", "approved"),
+    "qualified": ("certified", "simulation_ready"),
+    "certified": ("published", "qualified"),
+    "published": ("replay_enabled", "certified"),
+    "replay_enabled": ("published",),
 }
 
-# The single state at which downstream simulation/ranking/automation is permitted.
+# The state at which downstream simulation/ranking/automation is permitted. It is
+# MID-lifecycle now (4 qualification states follow), so this stays pinned here.
 SIMULATION_READY_STATE = "simulation_ready"
+
+# The state at which a CRS is fully qualified to advance to production use.
+QUALIFIED_STATE = "qualified"
+
+
+def is_qualified(state: str) -> bool:
+    """True once a CRS has passed qualification (qualified or any later state)."""
+    if state not in CRS_STATES:
+        return False
+    return CRS_STATES.index(state) >= CRS_STATES.index(QUALIFIED_STATE)
 
 
 class CRSLifecycleError(Exception):
