@@ -130,14 +130,15 @@ const VIGNETTES: Item[] = [
 
 function SectionHead({ icon, eyebrow, title, intro }: { icon: React.ReactNode; eyebrow: string; title: string; intro: string }) {
   return (
-    <div className="mb-5">
-      {/* Cyan eyebrow is the primary header: larger + bold. White title is the smaller sub-header. */}
-      <div className="mb-1 flex items-center gap-2 text-base font-bold uppercase tracking-[0.14em] text-primary sm:text-lg">
-        {icon}
-        {eyebrow}
+    // Icon sits in its own left column so it stands out; the eyebrow (bold cyan header),
+    // the white sub-title, and the intro are all indented under the header.
+    <div className="mb-5 flex items-start gap-2.5">
+      <span className="mt-1 shrink-0 text-primary">{icon}</span>
+      <div className="min-w-0">
+        <div className="text-base font-bold uppercase tracking-[0.14em] text-primary sm:text-lg">{eyebrow}</div>
+        <h2 className="mt-0.5 text-sm font-medium text-foreground">{title}</h2>
+        <p className="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">{intro}</p>
       </div>
-      <h2 className="text-sm font-medium text-foreground">{title}</h2>
-      <p className="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">{intro}</p>
     </div>
   );
 }
@@ -259,17 +260,19 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:py-14">
-        {/* Intro — name masthead first, then eyebrow + headline */}
-        <p className="mb-4 text-3xl font-bold tracking-tight text-primary sm:text-4xl">Alex Seguin</p>
-        <p className="mb-3 text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70">The actual work</p>
-        <h1 className="text-balance text-3xl font-semibold leading-tight sm:text-4xl">
-          How I think. Then the proof behind it.
-        </h1>
-        <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          Open with an executive presentation and technical writeup that show how I approach a hard problem, then the
-          résumés, the hardware and field demos that reached customers, the EdTech mission behind eXeL AI, and a patent
-          the industry builds on. Everything here is real and verifiable; that&apos;s the point.
-        </p>
+        {/* Intro — centered masthead: name (largest), eyebrow, headline, then the summary */}
+        <div className="text-center">
+          <p className="mb-3 text-4xl font-bold tracking-tight text-primary sm:text-5xl">Alex Seguin</p>
+          <p className="mb-3 text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70">The actual work</p>
+          <h1 className="text-balance text-2xl font-semibold leading-tight sm:text-3xl">
+            How I think. Then the proof behind it.
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+            Open with an executive presentation and technical writeup that show how I approach a hard problem, then the
+            résumés, the hardware and field demos that reached customers, the EdTech mission behind eXeL AI, and a patent
+            the industry builds on. Everything here is real and verifiable; that&apos;s the point.
+          </p>
+        </div>
 
         {/* 1 · Presentation & Writeup (lead) */}
         <section className="mt-12">

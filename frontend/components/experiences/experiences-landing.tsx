@@ -63,16 +63,16 @@ export function ExperiencesLanding({ basePath }: { basePath: string }) {
             Scan to open the portfolio on any device
           </div>
 
-          <div className="flex w-full flex-col items-stretch gap-2 sm:flex-row">
-            <div className="flex min-w-0 flex-1 items-center rounded-lg border border-border/60 bg-background px-3 py-2">
-              <span className="truncate font-mono text-xs text-muted-foreground">{docsUrl}</span>
-            </div>
+          {/* URL with a standard copy icon inline on the right (no separate button) */}
+          <div className="flex w-full items-center gap-2 rounded-lg border border-border/60 bg-background px-3 py-2">
+            <span className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">{docsUrl}</span>
             <button
               onClick={copyLink}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border/60 bg-background px-3 py-2 text-xs font-medium transition hover:border-primary/60 hover:text-primary"
+              aria-label={copied ? "Copied" : "Copy link"}
+              title={copied ? "Copied" : "Copy link"}
+              className="shrink-0 rounded p-1 text-muted-foreground transition hover:text-primary"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? "Copied" : "Copy link"}
+              {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
             </button>
           </div>
 
