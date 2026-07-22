@@ -5,8 +5,9 @@
 // Titles are kept SHORT so they render on a single line on phones; the badge carries the type and the
 // blurb carries the detail. Rendered by both /experiences/docs and /main/experiences/docs.
 
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket } from "lucide-react";
+import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film } from "lucide-react";
 
 type LinkCard = { title: string; blurb: string; href: string; badge?: string };
 
@@ -35,14 +36,14 @@ const RESUMES: LinkCard[] = [
     blurb:
       "15+ years leading perception, sensor-fusion, and autonomy products across defense and industrial — Athena AI / Teal-2, Shield AI's first $25M R&D roadmap, FLIR's $200M portfolio, and 15+ Fluke thermal & acoustic launches — with an active SECRET clearance and the Apple-cited sensor-fusion patent.",
     href: "/experiences/A.M.Seguin_Resume_HI_AI_Systems_Industrial_Defense.pdf",
-    badge: "Résumé · systems",
+    badge: "Industrial & Defense",
   },
   {
     title: "Technical Product Manager",
     blurb:
       "The same career, framed for product leadership: end-to-end delivery, R&D-portfolio governance, and risk management with hard outcomes — a $200M portfolio consolidated toward an $8B acquisition, 12% CAGR on a $3B business, and 20× developer throughput via AI automation.",
     href: "/experiences/ATS_ASeguin_Resume_TPM_20260126.pdf",
-    badge: "Résumé · ATS-ready",
+    badge: "ATS-ready",
   },
 ];
 
@@ -121,6 +122,18 @@ const EDTECH_VIDEOS: VideoCardData[] = [
     blurb: "An MVP putting lane-detection computer vision on a real car — learning AI by building it.",
     href: "https://tinyurl.com/27999v63",
   },
+];
+
+// eXeL AI Initiative — "Preparing AI to Serve the Future of Humanity" (educational vignettes).
+const VIGNETTES: VideoCardData[] = [
+  { title: "ML Introduction · 1", blurb: "Machine Learning — Introduction (Vignette 0001).", href: "https://youtu.be/xzhHllVpYgM" },
+  { title: "ML Introduction · 2", blurb: "Machine Learning — Introduction (Vignette 0002).", href: "https://youtu.be/uNUW4c-leLo" },
+  { title: "AI Agents — Intro", blurb: "AI Agents — Introduction (Vignette 0003).", href: "https://youtu.be/HfXzn0KCLcs" },
+  { title: "AlphaStar — StarCraft II", blurb: "AlphaStar — StarCraft 2 strategy (Vignette 0004).", href: "https://youtu.be/hF_8Qg7F3KY" },
+  { title: "Teaming — Ender's Game", blurb: "Teaming concepts — Ender's Game (Vignette 0005).", href: "https://youtu.be/KN0t0eRo5-4" },
+  { title: "DARPA Dogfight — AI", blurb: "AI agent — DARPA dogfight challenge (Vignette 0006).", href: "https://youtu.be/PwSL60rEDJU" },
+  { title: "UAS Drones — OFFSET", blurb: "Teaming — UAS drones + DARPA's OFFSET (Vignette 0007).", href: "https://youtu.be/wxHIYh2WRxM" },
+  { title: "Simulation & LVC", blurb: "Simulation & LVC benefits — Live-Virtual-Constructive (Vignette 0008).", href: "https://youtu.be/LDTcLRhmuMo" },
 ];
 
 function SectionHead({
@@ -229,6 +242,41 @@ function VideoCard({ v }: { v: VideoCardData }) {
   );
 }
 
+// Expandable "Video Vignettes" block — default collapsed (minimized).
+function VideoVignettes() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-3 overflow-hidden rounded-xl border border-border/60 bg-card">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="group flex w-full items-center justify-between gap-3 p-4 text-left"
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+            <Film className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="font-medium">Video Vignettes</div>
+            <p className="truncate text-[13px] text-muted-foreground">
+              eXeL AI Initiative — &ldquo;Preparing AI to Serve the Future of Humanity&rdquo;
+            </p>
+          </div>
+        </div>
+        <ChevronDown className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="grid gap-3 border-t border-border/60 p-4 sm:grid-cols-2">
+          {VIGNETTES.map((v) => (
+            <VideoCard key={v.href} v={v} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -248,7 +296,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
           How I think — then the proof behind it.
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          Open with a technical writeup and executive presentation that show how I approach a hard problem — then the
+          Open with an executive presentation and technical writeup that show how I approach a hard problem — then the
           résumés, the hardware and field demos that reached customers, the EdTech mission behind eXeL AI, and a patent
           the industry builds on. Everything here is real and verifiable — that&apos;s the point.
         </p>
@@ -259,7 +307,7 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
             icon={<Presentation className="h-3.5 w-3.5" />}
             eyebrow="Presentation · Writeup"
             title="How I think, on the page"
-            intro="A technical capability writeup and executive presentation I authored when Deloitte asked me to assess the U.S. Army's IVAS (Integrated Visual Augmentation System) — an AI/ML platform for multi-domain defense operations."
+            intro="An executive presentation and technical capability writeup I authored when Deloitte asked me to assess the U.S. Army's IVAS (Integrated Visual Augmentation System) — an AI/ML platform for multi-domain defense operations."
           />
           <div className="grid gap-3 sm:grid-cols-2">
             {WRITEUPS.map((c) => (
@@ -346,6 +394,8 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
               <VideoCard key={v.href} v={v} />
             ))}
           </div>
+          {/* Video Vignettes — expandable, default minimized */}
+          <VideoVignettes />
         </section>
 
         {/* 6 · IP / Patents (bottom) */}
