@@ -318,7 +318,10 @@ class TestExportScale:
             writer.writerow(row)
         elapsed = time.perf_counter() - start
 
-        assert elapsed < 15.0, f"100K CSV export took {elapsed:.1f}s (WSL2 tolerance)"
+        # Smoke check (not an SLA): catches catastrophic O(n²)-class regressions, not
+        # small load variance. Generous ceiling because this runs on a shared CI box
+        # where CPU contention (e.g. a full-suite run) can double pure-Python csv time.
+        assert elapsed < 60.0, f"100K CSV export took {elapsed:.1f}s (shared-CI tolerance)"
         lines = output.getvalue().strip().split("\n")
         assert len(lines) == 100_001  # header + 100K
 

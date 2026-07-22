@@ -14,6 +14,14 @@ Verifies Cube 6 AI Pipeline integrates correctly with ALL other cubes.
 
 import pytest
 
+from app.config import settings as _settings
+# STT/AI provider resolution constructs real SDK clients that reject empty keys →
+# skip in a keyless env rather than fail.
+_HAS_AI_KEY = any(getattr(_settings, _k, "") for _k in
+                  ("openai_api_key", "gemini_api_key", "xai_api_key", "anthropic_api_key"))
+requires_live_ai = pytest.mark.skipif(
+    not _HAS_AI_KEY, reason="requires a live AI/STT provider key (keyless env)")
+
 
 # ═══════════════════════════════════════════════════════════════════
 # Cube 6/1: Session → Pipeline Trigger
@@ -85,6 +93,7 @@ class TestCube6_Cube3:
         from app.cubes.cube3_voice.service import submit_voice_response
         assert callable(submit_voice_response)
 
+    @requires_live_ai
     def test_stt_providers_available(self):
         from app.cubes.cube3_voice.providers.factory import get_stt_provider
         whisper = get_stt_provider("openai")
