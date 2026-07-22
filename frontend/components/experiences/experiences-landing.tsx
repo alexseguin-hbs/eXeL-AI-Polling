@@ -6,21 +6,19 @@
 // person who built real things), mind (evidence), spirit (work in service of more).
 // Reuses QRCodeSVG exactly like app/sim/page.tsx.
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, ArrowRight, Copy, Check, QrCode } from "lucide-react";
+import { SITE_URL } from "@/lib/atlantis-package";
 
 export function ExperiencesLanding({ basePath }: { basePath: string }) {
   const docsPath = `${basePath}/docs`;
-  const [origin, setOrigin] = useState<string>("");
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") setOrigin(window.location.origin);
-  }, []);
-
-  const docsUrl = useMemo(() => (origin ? `${origin}${docsPath}` : docsPath), [origin, docsPath]);
+  // QR encodes the ABSOLUTE production URL (not window.location.origin) so anyone who
+  // scans it — on any device, from any host — lands on the live portfolio docs page.
+  const docsUrl = `${SITE_URL}${docsPath}`;
 
   const copyLink = async () => {
     try {
