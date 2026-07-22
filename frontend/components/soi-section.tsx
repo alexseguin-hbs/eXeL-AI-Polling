@@ -51,7 +51,10 @@ export function SoISection() {
         {/* Trinity glyph + the three coins. Trinity is CENTERED on phone (mx-auto), left-justified on
             desktop. All rings = the single theme accent (cyan); SoITrinity falls back to `color`. */}
         <div className="grid items-start gap-6 md:grid-cols-[180px_1fr]">
-          <div className="mx-auto md:mx-0"><SoITrinity labels={["웃", "♡", "◬"]} color={accent} textColor="#0a1628" size={168} /></div>
+          {/* Ring glyphs enlarged (fontSize 17 vs default 11; ring band width is 21) — isolated to
+              this call site so the homepage/divinity SoITrinity are untouched. Header/sub-header sizes
+              are separate HTML (CardTitle above) and stay as-is (operator: enlarge glyphs, not headers). */}
+          <div className="mx-auto md:mx-0"><SoITrinity labels={["웃", "♡", "◬"]} color={accent} textColor="#0a1628" size={168} fontSize={17} /></div>
           <div className="grid gap-3 sm:grid-cols-3">
             {[...soi.coins].sort((a, b) => (COIN_ORDER[a.key] ?? 9) - (COIN_ORDER[b.key] ?? 9)).map((c) => {
               const dc = DEFAULT_SOI.coins.find((x) => x.key === c.key);

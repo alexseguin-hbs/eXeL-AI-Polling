@@ -32,6 +32,7 @@
     "test:security-file": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/security-mission-file.test.mjs",
     "test:security-guard": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/security-guard.test.mjs",
     "test:soi-i18n": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/soi-i18n-contract.test.mjs",
+    "test:soi-section": "node tests/soi-section-guard.test.mjs",
     "test:economy": "node --experimental-strip-types tests/architect-economy.test.mjs",
     "test:house": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-house.test.mjs",
     "test:layers": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/architect-layers.test.mjs",
@@ -43,7 +44,7 @@
     "test:rcore-gestures": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/rcore-gestures.test.mjs",
     "test:asset-kinematics": "node --experimental-strip-types --loader ./tests/ts-ext-loader.mjs tests/asset-kinematics.test.mjs",
     "test:realtime-ranking": "node --experimental-strip-types tests/use-realtime-ranking.test.mjs",
-    "test:all": "npm run test:room-layout && npm run test:room-objects && npm run test:mep-runs && npm run test:dim-annot && npm run test:playtest && npm run test:room-scope && npm run test:rcore-gestures && npm run test:asset-kinematics && npm run test:guard && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:sky-embed && npm run test:terrain && npm run test:home-eggs && npm run test:bim && npm run test:bom && npm run test:room-row-actions && npm run test:security-file && npm run test:security-guard && npm run test:soi-i18n && npm run test:economy && npm run test:house && npm run test:layers && npm run test:framing && npm run test:estimate && npm run test:trinity-palette && npm run test:room-program && npm run test:project && npm run test:adapt-themes && npm run test:realtime-ranking",
+    "test:all": "npm run test:room-layout && npm run test:room-objects && npm run test:mep-runs && npm run test:dim-annot && npm run test:playtest && npm run test:room-scope && npm run test:rcore-gestures && npm run test:asset-kinematics && npm run test:guard && npm run test:celestial && npm run test:celestial-packs && npm run test:celestial-i18n && npm run test:sky-embed && npm run test:terrain && npm run test:home-eggs && npm run test:bim && npm run test:bom && npm run test:room-row-actions && npm run test:security-file && npm run test:security-guard && npm run test:soi-i18n && npm run test:soi-section && npm run test:economy && npm run test:house && npm run test:layers && npm run test:framing && npm run test:estimate && npm run test:trinity-palette && npm run test:room-program && npm run test:project && npm run test:adapt-themes && npm run test:realtime-ranking",
     "test:adapt-themes": "node --experimental-strip-types --loader ./tests/ts-alias-loader.mjs tests/adapt-live-themes.test.mjs"
   },
   "dependencies": {
