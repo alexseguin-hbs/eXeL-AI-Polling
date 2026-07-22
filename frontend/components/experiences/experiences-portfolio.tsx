@@ -243,11 +243,11 @@ export function ExperiencesPortfolio({ basePath }: { basePath: string }) {
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:py-14">
         {/* Intro */}
+        <p className="mb-4 text-3xl font-bold tracking-tight text-primary sm:text-4xl">Alex Seguin</p>
         <p className="mb-3 text-[11px] font-mono uppercase tracking-[0.25em] text-primary/70">The actual work</p>
         <h1 className="text-balance text-3xl font-semibold leading-tight sm:text-4xl">
           How I think — then the proof behind it.
         </h1>
-        <p className="mt-3 text-base font-semibold text-primary">Alex Seguin</p>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
           Open with a technical writeup and executive presentation that show how I approach a hard problem — then the
           résumés, the hardware and field demos that reached customers, the EdTech mission behind eXeL AI, and a patent
