@@ -291,10 +291,10 @@ class TestRouterStructure:
         assert "Cube 7 — Ranking" in router.tags
 
     def test_endpoint_count(self):
-        """Router has 12 endpoints (Q4 added /rankings/metrics)."""
+        """Router has 13 endpoints (Q4 added /rankings/metrics; Q3 added /rankings/readiness)."""
         from app.cubes.cube7_ranking.router import router
         routes = [r for r in router.routes if hasattr(r, "methods")]
-        assert len(routes) == 12
+        assert len(routes) == 13
 
     def test_post_rankings_exists(self):
         from app.cubes.cube7_ranking.router import router

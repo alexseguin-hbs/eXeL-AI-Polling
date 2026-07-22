@@ -212,6 +212,29 @@ async def get_ranking_metrics(
     return await ranking_metrics.get_all_metrics(db, session_id)
 
 
+@router.get("/rankings/readiness")
+async def get_ranking_readiness(
+    session_id: uuid.UUID,
+    cycle_id: int = 1,
+    simulation_passed: bool = False,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(require_role("moderator", "admin", "lead")),
+):
+    """Q3: Cube 7 R-Core readiness profile — the qualification gateway's answer object.
+
+    Gathers the REAL session signals (SSSES metrics triad, confidence, consensus,
+    replay-verified, human-authority, simulation, risk) and folds them into the pure
+    `compute_readiness`, answering why-scored / evidence / risks / weak-pillars /
+    highest-impact-next-move / ready-to-advance. Privileged-role only. Each gather is
+    guarded so a missing source degrades the profile rather than 500-ing.
+    """
+    from app.cubes.cube7_ranking.readiness import readiness_profile
+
+    return await readiness_profile(
+        db, session_id, cycle_id=cycle_id, simulation_passed=simulation_passed,
+    )
+
+
 # ---------------------------------------------------------------------------
 # CRS-22: Governance Override (MVP3 — stub)
 # ---------------------------------------------------------------------------
