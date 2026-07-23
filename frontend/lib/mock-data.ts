@@ -781,9 +781,26 @@ function _faceNeighbors(i: number): number[] {
   }
   return o;
 }
+function _axisSlabs(seed: number, n: number): number[][] {
+  const axis = (Math.imul(seed + 1, 2654435761) >>> 0) % 3;
+  const xyz = (i: number) => [i % 3, Math.floor(i / 3) % 3, Math.floor(i / 9)];
+  if (n === 3) {
+    const g: number[][] = [[], [], []];
+    for (let i = 0; i < 27; i++) g[xyz(i)[axis]].push(i);
+    return g;
+  }
+  const cols: Record<string, number[]> = {}; const keys: string[] = [];
+  for (let i = 0; i < 27; i++) {
+    const c = xyz(i); c[axis] = 0; const key = c.join(",");
+    if (!(key in cols)) { cols[key] = []; keys.push(key); }
+    cols[key].push(i);
+  }
+  return keys.map((k) => cols[k]);
+}
 function _connectedPartition(seed: number, n: number): number[][] {
   if (n <= 1) return [Array.from({ length: 27 }, (_, i) => i)];
   if (n >= 27) return Array.from({ length: 27 }, (_, i) => [i]);
+  if (n === 3 || n === 9) return _axisSlabs(seed, n);   // clean slabs/columns (FX-K)
   const key = (c: number) => { let h = (2166136261 ^ Math.imul(seed + 1, 2654435761)) >>> 0; h = Math.imul(h ^ (c + 1), 16777619) >>> 0; return h; };
   const order = Array.from({ length: 27 }, (_, c) => c).sort((a, b) => key(a) - key(b));
   const pos: Record<number, number> = {}; order.forEach((c, i) => { pos[c] = i; });

@@ -124,21 +124,53 @@ def _seeded_order(cube_id: int) -> list[int]:
     return sorted(range(27), key=lambda c: hashlib.sha256(f"{cube_id}:{c}".encode()).hexdigest())
 
 
+def _slab_axis(cube_id: int) -> int:
+    """A deterministic axis 0/1/2 per cube — so a cube's clean slab/column split is X, Y,
+    or Z (operator: layers OR vertical planes are both valid; vary the orientation)."""
+    return int(hashlib.sha256(f"{cube_id}:axis".encode()).hexdigest(), 16) % 3
+
+
+def _axis_slabs(cube_id: int, n: int) -> list[list[int]]:
+    """Clean axis-aligned connected blocks (operator's preferred examples):
+    n=3 → 3 planar slabs of 9 (e.g. Level 1/2/3, OR 3 vertical planes) along a seeded
+    axis; n=9 → 9 columns of 3 (fix the other two coords) along a seeded axis."""
+    axis = _slab_axis(cube_id)
+    if n == 3:
+        groups: list[list[int]] = [[], [], []]
+        for i in range(27):
+            groups[_cell_xyz(i)[axis]].append(i)
+        return groups
+    # n == 9 → collapse along the axis; the other-two-coord pair keys a column of 3.
+    cols: dict[tuple[int, int, int], list[int]] = {}
+    keys: list[tuple[int, int, int]] = []
+    for i in range(27):
+        c = list(_cell_xyz(i))
+        c[axis] = 0
+        key = (c[0], c[1], c[2])
+        if key not in cols:
+            cols[key] = []
+            keys.append(key)
+        cols[key].append(i)
+    return [cols[k] for k in keys]
+
+
 @lru_cache(maxsize=1024)
 def partition(cube_id: int, n: int) -> list[list[int]]:
     """Split the 27 mini-cubes into n FACE-CONNECTED building blocks (the Lego rule:
     a block's cubes always touch — side-by-side OR stacked — so it could physically
-    stack into a unique shape).
+    stack into a shape).
 
-    Supports ANY n in 2..27. n≥27 → each mini-cube is its own block. Otherwise: seeded
-    multi-source region-growing — n seeds from a cube_id-seeded order, each region grows
-    round-robin by claiming an unassigned FACE-neighbor → connected + balanced + a UNIQUE
-    pattern per (cube, n). @lru_cache keeps every config "saved in memory" (deterministic,
-    reproduced identically)."""
+    Supports ANY n in 2..27. n≥27 → each mini-cube. n=3 → 3 clean planar slabs
+    (layers or vertical planes, seeded axis); n=9 → 9 columns (seeded axis) — the
+    operator's preferred clean examples. Every other n → seeded multi-source
+    region-growing (any connected shape, unique per cube). @lru_cache keeps every
+    config "saved in memory" (deterministic, reproduced identically)."""
     if n <= 1:
         return [list(range(27))]
     if n >= 27:
         return [[i] for i in range(27)]
+    if n == 3 or n == 9:
+        return _axis_slabs(cube_id, n)
     order = _seeded_order(cube_id)
     pos = {c: i for i, c in enumerate(order)}
     seeds = order[:n]

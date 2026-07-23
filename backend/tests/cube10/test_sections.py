@@ -124,6 +124,26 @@ class TestPartition:
     def test_n27_singletons(self):
         assert partition(5, 27) == [[k] for k in range(27)]
 
+    def test_n3_are_clean_slabs_of_9(self):
+        # Operator's example: 3 building blocks = 3 clean planar slabs (layers OR
+        # vertical planes), each 3×3 = 9 face-connected cells.
+        for c in ALL_CUBES:
+            groups = partition(c, 3)
+            assert [len(g) for g in groups] == [9, 9, 9]
+            for g in groups:
+                assert _is_face_connected(g)
+
+    def test_n9_are_columns_of_3(self):
+        for c in ALL_CUBES:
+            groups = partition(c, 9)
+            assert [len(g) for g in groups] == [3] * 9
+            for g in groups:
+                assert _is_face_connected(g)
+
+    def test_slab_orientation_varies_across_cubes(self):
+        # layers vs vertical planes — the seeded axis differs across cubes.
+        assert len({tuple(tuple(g) for g in partition(c, 3)) for c in ALL_CUBES}) > 1
+
     def test_deterministic(self):
         assert partition(6, 4) == partition(6, 4)
 
