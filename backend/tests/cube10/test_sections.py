@@ -6,12 +6,30 @@ from app.cubes.cube10_simulation.sections import (
     LEVELS,
     SECTION_KEYS,
     SECTIONS,
+    _face_neighbors,
+    partition,
     sections_for,
     segment_cells,
     voxel_highlight,
 )
 
 ALL_CUBES = list(range(1, 10))
+
+
+def _is_face_connected(cells: list[int]) -> bool:
+    """True iff the cells form ONE face-connected polycube (the Lego rule)."""
+    if not cells:
+        return True
+    want = set(cells)
+    seen = {cells[0]}
+    stack = [cells[0]]
+    while stack:
+        cur = stack.pop()
+        for nb in _face_neighbors(cur):
+            if nb in want and nb not in seen:
+                seen.add(nb)
+                stack.append(nb)
+    return seen == want
 
 
 class TestSectionsMap:
@@ -51,14 +69,18 @@ class TestVoxelHighlight:
             assert n3 <= n6 <= n9 == 27
             assert n3 == 9 and n6 == 18  # ceil(27*3/9), ceil(27*6/9)
 
-    def test_sections_are_coherent_contiguous_slabs(self):
-        # FX-G: a section is a COHERENT contiguous segment, the SAME shape for every
-        # cube (operator: "not a random pattern; a building block is a segment").
+    def test_sections_are_face_connected(self):
+        # FX-I / Lego rule: every building block's mini-cubes must TOUCH (be a single
+        # face-connected polycube) — not a scatter, so it could physically stack.
         for c in ALL_CUBES:
-            for k, key in enumerate(SECTION_KEYS):
-                cells = voxel_highlight(c, 9, key)
-                assert cells == list(range(cells[0], cells[-1] + 1))  # contiguous
-                assert cells == segment_cells(4, k)                    # same across cubes
+            for key in SECTION_KEYS:
+                assert _is_face_connected(voxel_highlight(c, 9, key)), \
+                    f"cube {c} section {key} is not face-connected"
+
+    def test_sections_vary_per_cube(self):
+        # FX-I: the 4-block pattern differs across cubes (per-cube variety restored).
+        sigs = {tuple(voxel_highlight(c, 9, "A")) for c in ALL_CUBES}
+        assert len(sigs) > 1
 
     def test_bad_level_and_section_raise(self):
         with pytest.raises(ValueError):
@@ -84,6 +106,31 @@ class TestSegmentCells:
             assert cells == list(range(cells[0], cells[-1] + 1)) if cells else True  # contiguous
             seen += cells
         assert sorted(seen) == list(range(27))
+
+
+class TestPartition:
+    @pytest.mark.parametrize("n", ALLOWED_SECTION_COUNTS)
+    def test_blocks_are_face_connected_and_cover(self, n):
+        for c in ALL_CUBES:
+            groups = partition(c, n)
+            assert len(groups) == n
+            seen: list[int] = []
+            for g in groups:
+                assert g, "empty block"
+                assert _is_face_connected(g), f"cube {c} n={n} block not connected: {g}"
+                seen += g
+            assert sorted(seen) == list(range(27))  # disjoint + cover all 27
+
+    def test_n3_is_levels_n27_singletons(self):
+        assert partition(5, 3) == [list(range(0, 9)), list(range(9, 18)), list(range(18, 27))]
+        assert partition(5, 27) == [[k] for k in range(27)]
+
+    def test_deterministic(self):
+        assert partition(6, 4) == partition(6, 4)
+
+    def test_four_block_pattern_varies_across_cubes(self):
+        pats = {tuple(tuple(g) for g in partition(c, 4)) for c in ALL_CUBES}
+        assert len(pats) > 1
 
 
 class TestSectionsForCounts:

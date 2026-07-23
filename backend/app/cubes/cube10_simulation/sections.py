@@ -94,32 +94,89 @@ SECTIONS: dict[int, list[dict]] = {
 
 
 def segment_cells(n: int, k: int) -> list[int]:
-    """The COHERENT contiguous slab of cells for block k of an n-way split (FX-G).
-
-    Cells are indexed z-major: cell = z*9 + y*3 + x, so 0-8 = Level 1, 9-17 = Level 2,
-    18-26 = Level 3. Block k = the contiguous range [floor(k*27/n) .. floor((k+1)*27/n)).
-    n=3 → the 3 levels exactly · n=9 → the 9 rows · n=27 → each mini-cube · n=4 → 4
-    stacked slabs. Deterministic and the SAME coherent shape for every cube (operator:
-    "not a random pattern; a building block is a segment, e.g. all of Level 1")."""
+    """The contiguous INDEX slab for block k of an n-way split (kept as a utility).
+    NOTE: index-contiguous is NOT face-connected in 3D — the workbench uses the
+    face-connected `partition` below (the Lego rule). Cells are z-major:
+    cell = z*9 + y*3 + x, so 0-8 = Level 1, 9-17 = Level 2, 18-26 = Level 3."""
     lo = (k * 27) // n
     hi = ((k + 1) * 27) // n
     return list(range(lo, hi))
 
 
+def _cell_xyz(i: int) -> tuple[int, int, int]:
+    return (i % 3, (i // 3) % 3, i // 9)
+
+
+def _face_neighbors(i: int) -> list[int]:
+    """The face-adjacent cells of cell i in the 3×3×3 (share a whole face)."""
+    x, y, z = _cell_xyz(i)
+    out: list[int] = []
+    for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+        nx, ny, nz = x + dx, y + dy, z + dz
+        if 0 <= nx < 3 and 0 <= ny < 3 and 0 <= nz < 3:
+            out.append(nz * 9 + ny * 3 + nx)
+    return out
+
+
+def _seeded_order(cube_id: int) -> list[int]:
+    """A deterministic permutation of 0..26 seeded by cube_id (per-cube variety)."""
+    return sorted(range(27), key=lambda c: hashlib.sha256(f"{cube_id}:{c}".encode()).hexdigest())
+
+
+def partition(cube_id: int, n: int) -> list[list[int]]:
+    """Split the 27 mini-cubes into n FACE-CONNECTED building blocks (the Lego rule:
+    a block's cubes always touch, so it could physically stack).
+
+    n=3 → the 3 levels · n=9 → the 9 vertical columns · n=27 → each mini-cube. Other n
+    (incl. 4) → seeded multi-source region-growing: n seeds from a cube_id-seeded order,
+    each region grows round-robin by claiming an unassigned FACE-neighbor → connected +
+    balanced + a DIFFERENT pattern per cube (operator: "different patterns each time")."""
+    if n == 3:
+        return [list(range(0, 9)), list(range(9, 18)), list(range(18, 27))]
+    if n == 27:
+        return [[i] for i in range(27)]
+    if n == 9:
+        return [[c, c + 9, c + 18] for c in range(9)]
+    order = _seeded_order(cube_id)
+    pos = {c: i for i, c in enumerate(order)}
+    seeds = order[:n]
+    owner = {s: k for k, s in enumerate(seeds)}
+    members: list[list[int]] = [[s] for s in seeds]
+    assigned = set(seeds)
+    remaining = 27 - n
+    while remaining > 0:
+        progressed = False
+        for k in range(n):
+            cands = {nb for m in members[k] for nb in _face_neighbors(m) if nb not in assigned}
+            if cands:
+                nb = min(cands, key=lambda c: pos[c])   # deterministic pick
+                owner[nb] = k
+                assigned.add(nb)
+                members[k].append(nb)
+                remaining -= 1
+                progressed = True
+                if remaining == 0:
+                    break
+        if not progressed:  # safety net — impossible in a fully face-connected 3×3×3
+            for c in range(27):
+                if c not in assigned:
+                    owner[c] = pos[c] % n
+                    assigned.add(c)
+            remaining = 0
+    return [sorted(c for c in range(27) if owner[c] == k) for k in range(n)]
+
+
 def voxel_highlight(cube_id: int, level: int, section: str | None) -> list[int]:
     """Pure, deterministic lit set of mini-cube indices (0..26).
 
-    section=None → the whole cube; A/B/C/D → that curated function slab (a coherent
-    contiguous segment, NOT a scatter). level ∈ {3,6,9} scales density within the
-    eligible cells: 3 → ⅓, 6 → ⅔, 9 → all. Same (level, section) → identical list.
-    (cube_id is accepted for signature stability but no longer seeds a scatter —
-    sections are coherent slabs, identical across cubes.)
-    """
+    section=None → the whole cube; A/B/C/D → that curated function block — a
+    FACE-CONNECTED polycube (the Lego rule), varied per cube. level ∈ {3,6,9} scales
+    density within the eligible cells: 3 → ⅓, 6 → ⅔, 9 → all."""
     if level not in LEVELS:
         raise ValueError(f"level must be one of {LEVELS}, got {level!r}")
     if section is not None and section not in SECTION_KEYS:
         raise ValueError(f"section must be one of {SECTION_KEYS} or None, got {section!r}")
-    cells = list(range(27)) if section is None else segment_cells(4, SECTION_KEYS.index(section))
+    cells = list(range(27)) if section is None else partition(cube_id, 4)[SECTION_KEYS.index(section)]
     n = math.ceil(len(cells) * level / 9) if cells else 0
     return sorted(cells)[:n]
 
@@ -150,8 +207,9 @@ def sections_for(cube_id: int, count: int = 4) -> list[dict]:
             "highlight": {str(lvl): voxel_highlight(cube_id, lvl, s["key"]) for lvl in LEVELS},
         } for s in SECTIONS[cube_id]]
     out: list[dict] = []
+    blocks = partition(cube_id, count)
     for k in range(count):
-        cells = segment_cells(count, k)
+        cells = blocks[k]
         label = f"Level {k + 1}" if count == 3 else f"Block {k + 1}"
         out.append({
             "key": f"B{k + 1}", "label": label, "functions": _block_functions(cube_id, cells),
