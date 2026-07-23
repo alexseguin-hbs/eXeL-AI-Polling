@@ -7,14 +7,14 @@
 // indented under the header when expanded. Copy avoids the em-dash on purpose. Titles use `truncate`
 // so they stay on one line on phones. Rendered by both /experiences/docs and /main/experiences/docs.
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film } from "lucide-react";
 import { LangSelect } from "@/components/experiences/lang-select";
 
 type CardKind = "pdf" | "link" | "video";
-type Item = { kind: CardKind; title: string; blurb: string; href: string; badge?: string; icon?: LucideIcon };
+type Item = { kind: CardKind; title: string; blurb: string; href: string; badge?: ReactNode; icon?: LucideIcon };
 
 // ── Presentation & Writeup — the AI/ML strategy documents ───────────────────────────────────
 const WRITEUPS: Item[] = [
@@ -69,7 +69,11 @@ const INDUSTRIAL: Item[] = [
   {
     kind: "link",
     title: "Acoustic Imager · ii900",
-    badge: "$20M Year-1 revenue",
+    badge: (
+      <>
+        1<sup className="align-super text-[9px]">st</sup> Year Revenue: $20M
+      </>
+    ),
     blurb: "Led a handheld acoustic-imaging product from first build to market; a new category customers could finally point and use.",
     href: "https://tinyurl.com/yc82z8v3",
   },
