@@ -213,6 +213,18 @@ class TestSimContractGranularity:
         resp = await client.get("/api/v1/sim/cube/2/contract?sections=5")
         assert resp.status_code == 400
 
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("cube_id", [1, 2, 7])
+    async def test_each_block_has_its_own_io(self, client, cube_id):
+        # FX-H: every section/building block carries its own inputs·functions·outputs.
+        resp = await client.get(f"/api/v1/sim/cube/{cube_id}/contract")
+        assert resp.status_code == 200
+        for s in resp.json()["sections"]:
+            io = s.get("io")
+            assert io and set(io) == {"inputs", "functions", "outputs"}
+            assert io["inputs"] and io["outputs"]        # never empty (fallback to whole-cube)
+            assert io["functions"] == s["functions"]
+
 
 class TestSimCubeReplayRoute:
     """GET /sim/cube/{id}/replay — beat the WHOLE cube or ONE building block (section)."""

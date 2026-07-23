@@ -371,6 +371,34 @@ async def sim_list_cubes():
     ]}
 
 
+def _enrich_sections_io(cube_id: int, secs: list[dict], whole_io: dict) -> list[dict]:
+    """FX-H: give each section/building block its OWN inputs·functions·outputs, gathered
+    from the shared `core.universal` registry for the section's functions. A block with
+    no registry match falls back to the whole-cube io so it's never empty."""
+    from app.core.universal import get_by_cube
+
+    reg = {f["name"]: f for f in get_by_cube(cube_id)}
+    for s in secs:
+        inputs: set[str] = set()
+        outputs: set[str] = set()
+        for nm in s.get("functions", []):
+            f = reg.get(nm)
+            if not f:
+                continue
+            if f.get("input_schema"):
+                inputs.add(f["input_schema"])
+            if f.get("output_schema"):
+                outputs.add(f["output_schema"])
+            if f.get("broadcasts_event"):
+                outputs.add(f["broadcasts_event"])
+        s["io"] = {
+            "inputs": sorted(inputs) or whole_io.get("inputs", []),
+            "functions": s.get("functions", []),
+            "outputs": sorted(outputs) or whole_io.get("outputs", []),
+        }
+    return secs
+
+
 @router.get("/sim/cube/{cube_id}/contract")
 async def sim_cube_contract(cube_id: int, sections: int = 4):
     """Cube I/O contract — inputs → functions → outputs, RICH for ALL cubes 1-9.
@@ -398,7 +426,7 @@ async def sim_cube_contract(cube_id: int, sections: int = 4):
         return {
             "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
             "io_contract": r["io_contract"], "inputs": r["inputs"], "sample_outputs": r["outputs"],
-            "sections": sections_for(cube_id, sections),
+            "sections": _enrich_sections_io(cube_id, sections_for(cube_id, sections), r["io_contract"]),
         }
     # Cubes 2-9: compose a rich contract from the shared universal-function registry
     # (fn names + input/output schemas + path params) folded with the harness's real
@@ -420,7 +448,8 @@ async def sim_cube_contract(cube_id: int, sections: int = 4):
         "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
         "io_contract": {"inputs": sorted(inputs), "functions": functions, "outputs": sorted(outputs)},
         "inputs": sorted(inputs), "sample_outputs": r,
-        "sections": sections_for(cube_id, sections),
+        "sections": _enrich_sections_io(cube_id, sections_for(cube_id, sections),
+            {"inputs": sorted(inputs), "outputs": sorted(outputs)}),
     }
 
 
