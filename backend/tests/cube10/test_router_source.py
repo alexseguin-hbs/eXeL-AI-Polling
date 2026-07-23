@@ -19,24 +19,35 @@ class TestResolveCubeSources:
             assert b["source"] and len(b["source"]) > 0
             assert "app/cubes/" in b["path"]  # WireGuard: cube tree only
 
-    def test_whitelist_drops_core_utilities(self):
-        # cube 2 section D = compute_response_hash, which lives in app/core (not a cube).
-        # It must NOT be leaked → resolved False, source None.
+    def test_core_operational_code_is_shown(self):
+        # FX-H: a section's shared operational code (e.g. compute_response_hash from
+        # app/core) IS shown now, so the section's code is complete.
         blocks = _resolve_cube_sources(2, "D")
         core_fn = next(b for b in blocks if b["name"] == "compute_response_hash")
-        assert core_fn["resolved"] is False
-        assert core_fn["source"] is None
-        assert core_fn["path"] is None
+        assert core_fn["resolved"] is True and core_fn["source"]
 
     def test_section_filter_narrows_blocks(self):
         blocks = _resolve_cube_sources(2, "B")
         assert blocks and all(b["section"] == "B" for b in blocks)
 
-    def test_no_block_ever_points_outside_cube_tree(self):
+    def test_no_block_leaks_a_secret_file(self):
+        # WireGuard: source may come from app/cubes OR app/core, but NEVER a secret file.
         for cube in range(1, 10):
             for b in _resolve_cube_sources(cube, None):
                 if b["resolved"]:
-                    assert "app/cubes/" in (b["path"] or ""), f"cube {cube} leaked {b['path']}"
+                    p = b["path"] or ""
+                    assert "app/cubes/" in p or "app/core/" in p, f"cube {cube} odd path {p}"
+                    assert not any(x in p for x in ("security.py", "config.py", "auth.py",
+                        "provider_credentials.py", "stripe_config.py")), f"cube {cube} leaked {p}"
+
+    def test_every_level1_section_has_complete_source(self):
+        # FX-H.3: every cube 1-9, all 4 sections resolve real, complete code to operate them.
+        from app.cubes.cube10_simulation.sections import SECTION_KEYS
+        for cube in range(1, 10):
+            for key in SECTION_KEYS:
+                blocks = _resolve_cube_sources(cube, key)
+                assert any(b["resolved"] and b["source"] for b in blocks), \
+                    f"cube {cube} section {key} has no resolvable source"
 
     def test_result_is_memoized(self):
         # SSSES Efficiency: source is static at runtime → same (cube, section) is cached

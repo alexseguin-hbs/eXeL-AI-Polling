@@ -466,14 +466,26 @@ _CUBE_PKG = {
     9: "cube9_reports",
 }
 _SOURCE_MAX = 8000  # cap per block — a slice, never a dump
+# WireGuard denylist: never surface source of secret/crypto/config/auth files even
+# when a section function is re-exported from app/core (FX-H — complete section code).
+_SOURCE_DENY = {"security.py", "config.py", "auth.py", "provider_credentials.py", "stripe_config.py"}
+
+
+def _source_allowed(path: str) -> bool:
+    """A source file is shown iff it lives in app/cubes/** OR app/core/** (the real
+    operational code a section needs to operate), but NEVER a denylisted secret file."""
+    p = path.replace("\\", "/")
+    base = p.rsplit("/", 1)[-1]
+    if base in _SOURCE_DENY:
+        return False
+    return "/app/cubes/" in p or "/app/core/" in p
 
 
 def _iter_cube_callables(cube_id: int):
-    """Yield (name, callable) for functions/methods DEFINED under app/cubes/<pkg>/**.
-
-    The WireGuard boundary: a callable is yielded only when its real source file is
-    inside app/cubes/ — re-exported core utilities (e.g. compute_response_hash from
-    app/core) resolve to their core file and are dropped, never leaked."""
+    """Yield (name, callable) for functions/methods a cube's section may need — those
+    DEFINED under app/cubes/<pkg>/** OR re-exported from app/core/** (so a section that
+    calls a shared validator/hash/rate helper still shows COMPLETE code). Secret/crypto/
+    config/auth files are denied (`_SOURCE_DENY`), never leaked."""
     import importlib
     import inspect
     import pkgutil
@@ -527,8 +539,8 @@ def _resolve_cube_sources(cube_id: int, section: str | None) -> list[dict]:
             src_file = inspect.getsourcefile(obj) or ""
         except Exception:  # noqa: BLE001
             continue
-        if "/app/cubes/" not in src_file.replace("\\", "/"):
-            continue  # WireGuard: cube tree only — drop core/config/secret paths
+        if not _source_allowed(src_file):
+            continue  # WireGuard: cubes + core operational code only; secret files denied
         exact.setdefault(name, obj)
         pool.append((name, obj))
 
