@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { useLexicon } from "@/lib/lexicon-context";
 
 type CubeInfo = { cube_id: number; name: string; harness_available: boolean };
 type Section = { key: string; label: string; functions: string[]; highlight: Record<string, number[]> };
@@ -45,6 +46,7 @@ type Level = (typeof LEVELS)[number];
 const AI = "#19c8cf", SI = "#ffcf5a", HI = "#b98cff", GOOD = "#3ddc9a";
 
 export function CubeDevSim() {
+  const { t } = useLexicon();
   const [cubes, setCubes] = useState<CubeInfo[]>([]);
   const [sel, setSel] = useState<number | null>(null);
   const [contract, setContract] = useState<Contract | null>(null);
@@ -122,8 +124,8 @@ export function CubeDevSim() {
         <div className="flex items-center gap-2">
           <Boxes className="h-5 w-5" style={{ color: AI }} />
           <div>
-            <h2 className="text-sm font-semibold leading-tight">Cube Simulation Workbench</h2>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Manual Vision • 2525</p>
+            <h2 className="text-sm font-semibold leading-tight">{t("cube10.sim.wb_title")}</h2>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{t("cube10.sim.wb_subtitle")}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -141,7 +143,7 @@ export function CubeDevSim() {
       {/* Level 1 cube selector */}
       <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.2em]" style={{ color: AI }}>
         <span className="rounded border px-1.5 py-0.5" style={{ borderColor: AI }}>Level 1</span>
-        <span className="text-muted-foreground">Cubes 1–9 · pick one</span>
+        <span className="text-muted-foreground">{t("cube10.sim.pick_cube")}</span>
       </div>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
         {cubes.map((c) => (
@@ -161,7 +163,7 @@ export function CubeDevSim() {
         <>
           {/* Level dial (3/6/9) + section chips */}
           <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-3">
-            <span className="text-xs font-semibold text-muted-foreground">Level</span>
+            <span className="text-xs font-semibold text-muted-foreground">{t("cube10.sim.level")}</span>
             <div className="inline-flex overflow-hidden rounded-lg border" role="group" aria-label="Theme level">
               {LEVELS.map((lv) => (
                 <button key={lv} onClick={() => setLevel(lv)} data-sim-level={lv}
@@ -211,9 +213,9 @@ export function CubeDevSim() {
 
           {/* Block I·F·O */}
           <div className="grid gap-3 sm:grid-cols-3">
-            {col("Input", contract.io_contract.inputs, SI)}
-            {col("Functions", activeSection?.functions ?? contract.io_contract.functions, AI)}
-            {col("Output", contract.io_contract.outputs, HI)}
+            {col(t("cube10.sim.input"), contract.io_contract.inputs, SI)}
+            {col(t("cube10.sim.functions"), activeSection?.functions ?? contract.io_contract.functions, AI)}
+            {col(t("cube10.sim.output"), contract.io_contract.outputs, HI)}
           </div>
 
           {/* LIVE ↔ YOUR VERSION code (maximizable) */}
@@ -260,14 +262,14 @@ export function CubeDevSim() {
           <div className="flex flex-wrap items-center gap-2">
             <Button onClick={checkIn} disabled={busy === "checkin"} variant="outline" className="gap-2">
               {busy === "checkin" ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitCommitHorizontal className="h-4 w-4" />}
-              Check In {checkedIn && <Check className="h-3.5 w-3.5" style={{ color: GOOD }} />}
+              {t("cube10.sim.check_in")} {checkedIn && <Check className="h-3.5 w-3.5" style={{ color: GOOD }} />}
             </Button>
             <Button onClick={() => submit(false)} disabled={busy === "submit" || !checkedIn} className="gap-2">
               {busy === "submit" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-              Submit to Simulate
+              {t("cube10.sim.submit_simulate")}
             </Button>
             <span className="text-[11px] text-muted-foreground">
-              {checkedIn ? "checked in — now simulate" : "check in first (versions your code + Replay evidence)"}
+              {checkedIn ? t("cube10.sim.checked_in_hint") : t("cube10.sim.check_in_first")}
             </span>
           </div>
 
@@ -288,17 +290,17 @@ export function CubeDevSim() {
               </div>
               {/* 3-member outcome validation */}
               <div className="flex items-center gap-2 text-xs">
-                <span className="font-mono" style={{ color: HI }}>웃 outcome validators {result.validation.validators}/{result.validation.required}</span>
-                <span className="text-muted-foreground">— HI finalizes only after ≥3 members validate (anti-dishonesty)</span>
+                <span className="font-mono" style={{ color: HI }}>웃 {t("cube10.sim.validators")} {result.validation.validators}/{result.validation.required}</span>
+                <span className="text-muted-foreground">— {t("cube10.sim.validators_note")}</span>
               </div>
               {/* Human review + submit contribution */}
               <div className="flex flex-wrap items-center gap-2 border-t pt-3">
-                <span className="text-xs font-semibold text-muted-foreground">Human review:</span>
-                <button onClick={() => setVerdictVote("pass")} className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${verdictVote === "pass" ? "text-black" : ""}`} style={verdictVote === "pass" ? { background: GOOD, borderColor: GOOD } : { color: GOOD, borderColor: `${GOOD}66` }}><Check className="h-3 w-3" />Pass</button>
-                <button onClick={() => setVerdictVote("revise")} className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${verdictVote === "revise" ? "text-black" : ""}`} style={verdictVote === "revise" ? { background: SI, borderColor: SI } : { color: SI, borderColor: `${SI}66` }}><Pencil className="h-3 w-3" />Revise</button>
-                <button onClick={() => setVerdictVote("block")} className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${verdictVote === "block" ? "text-black" : ""}`} style={verdictVote === "block" ? { background: "#ff5d6c", borderColor: "#ff5d6c" } : { color: "#ff5d6c", borderColor: "#ff5d6c66" }}><Ban className="h-3 w-3" />Block</button>
+                <span className="text-xs font-semibold text-muted-foreground">{t("cube10.sim.human_review")}</span>
+                <button onClick={() => setVerdictVote("pass")} className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${verdictVote === "pass" ? "text-black" : ""}`} style={verdictVote === "pass" ? { background: GOOD, borderColor: GOOD } : { color: GOOD, borderColor: `${GOOD}66` }}><Check className="h-3 w-3" />{t("cube10.sim.vote_pass")}</button>
+                <button onClick={() => setVerdictVote("revise")} className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${verdictVote === "revise" ? "text-black" : ""}`} style={verdictVote === "revise" ? { background: SI, borderColor: SI } : { color: SI, borderColor: `${SI}66` }}><Pencil className="h-3 w-3" />{t("cube10.sim.vote_revise")}</button>
+                <button onClick={() => setVerdictVote("block")} className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs ${verdictVote === "block" ? "text-black" : ""}`} style={verdictVote === "block" ? { background: "#ff5d6c", borderColor: "#ff5d6c" } : { color: "#ff5d6c", borderColor: "#ff5d6c66" }}><Ban className="h-3 w-3" />{t("cube10.sim.vote_block")}</button>
                 <Button onClick={() => submit(true)} disabled={busy === "submit" || verdictVote !== "pass"} className="ml-auto gap-2" size="sm">
-                  <Flag className="h-4 w-4" />Submit contribution
+                  <Flag className="h-4 w-4" />{t("cube10.sim.submit_contribution")}
                 </Button>
               </div>
             </div>
