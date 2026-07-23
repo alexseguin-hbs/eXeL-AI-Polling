@@ -247,18 +247,21 @@ async def replay_against_dataset(
     import hashlib
     import time
 
-    from app.cubes.cube10_simulation.sections import SECTIONS, voxel_highlight
+    from app.cubes.cube10_simulation.sections import SECTION_KEYS, SECTIONS, voxel_highlight
 
     start = time.monotonic()
 
     def _scope_sig(base_sig: str) -> str:
         """Fold the checked-out section into the signature so a block-scoped replay
-        hashes DISTINCTLY from the whole cube (deterministic — reuses the seeded
-        voxel_highlight cells). section=None → the whole-cube signature unchanged."""
+        hashes DISTINCTLY from the whole cube (deterministic). Curated A-D fold the
+        seeded voxel_highlight cells (byte-identical to before); an N-section block key
+        (B1..BN) folds the key string. section=None → whole-cube signature unchanged."""
         if not section:
             return base_sig
-        cells = voxel_highlight(cube_id, 9, section)
-        return hashlib.sha256(f"{base_sig}:{section}:{cells}".encode()).hexdigest()
+        if section in SECTION_KEYS:
+            cells = voxel_highlight(cube_id, 9, section)
+            return hashlib.sha256(f"{base_sig}:{section}:{cells}".encode()).hexdigest()
+        return hashlib.sha256(f"{base_sig}:{section}".encode()).hexdigest()
 
     def _section_label() -> str:
         if not section:

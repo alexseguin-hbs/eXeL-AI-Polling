@@ -190,6 +190,30 @@ class TestSimContractRichness:
         assert io.get("outputs"), f"cube {cube_id} outputs empty"
 
 
+class TestSimContractGranularity:
+    """FX-G — /contract?sections=N returns coherent block-segments."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("n", [3, 4, 9, 27])
+    async def test_contract_returns_n_sections(self, client, n):
+        resp = await client.get(f"/api/v1/sim/cube/2/contract?sections={n}")
+        assert resp.status_code == 200
+        secs = resp.json()["sections"]
+        assert len(secs) == n
+        merged = [c for s in secs for c in s["highlight"]["9"]]
+        assert sorted(merged) == list(range(27))  # cover all 27 once
+
+    @pytest.mark.asyncio
+    async def test_n3_are_levels(self, client):
+        resp = await client.get("/api/v1/sim/cube/2/contract?sections=3")
+        assert [s["label"] for s in resp.json()["sections"]] == ["Level 1", "Level 2", "Level 3"]
+
+    @pytest.mark.asyncio
+    async def test_bad_count_returns_400(self, client):
+        resp = await client.get("/api/v1/sim/cube/2/contract?sections=5")
+        assert resp.status_code == 400
+
+
 class TestSimCubeReplayRoute:
     """GET /sim/cube/{id}/replay — beat the WHOLE cube or ONE building block (section)."""
 

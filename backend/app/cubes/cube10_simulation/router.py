@@ -372,11 +372,14 @@ async def sim_list_cubes():
 
 
 @router.get("/sim/cube/{cube_id}/contract")
-async def sim_cube_contract(cube_id: int):
+async def sim_cube_contract(cube_id: int, sections: int = 4):
     """Cube I/O contract — inputs → functions → outputs, RICH for ALL cubes 1-9.
     Cube 1 emits its own io_contract from the harness; cubes 2-9 compose one from the
     shared `core.universal` registry (per-fn input/output schemas) so the workbench
-    always has a real inputs·functions·outputs diagram."""
+    always has a real inputs·functions·outputs diagram.
+
+    `sections` (FX-G) is the block granularity: 4 = the curated function sections,
+    3/9/27 = coherent block-segments (3 levels / 9 rows / 27 mini-cubes)."""
     if cube_id < 1 or cube_id > 9:
         raise HTTPException(status_code=400, detail="cube_id must be 1-9")
     if cube_id not in _HARNESS_CUBES:
@@ -384,14 +387,18 @@ async def sim_cube_contract(cube_id: int):
             detail=f"Cube {cube_id} has no stand-alone harness yet.")
     from app.cubes.cube10_simulation.challenge_loop import _run_harness
 
-    from app.cubes.cube10_simulation.sections import sections_for
+    from app.cubes.cube10_simulation.sections import ALLOWED_SECTION_COUNTS, sections_for
+
+    if sections not in ALLOWED_SECTION_COUNTS:
+        raise HTTPException(status_code=400,
+            detail=f"sections must be one of {ALLOWED_SECTION_COUNTS}")
 
     r = await _run_harness(cube_id)
     if "io_contract" in r:  # Cube 1 emits a rich inputs→functions→outputs contract
         return {
             "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
             "io_contract": r["io_contract"], "inputs": r["inputs"], "sample_outputs": r["outputs"],
-            "sections": sections_for(cube_id),
+            "sections": sections_for(cube_id, sections),
         }
     # Cubes 2-9: compose a rich contract from the shared universal-function registry
     # (fn names + input/output schemas + path params) folded with the harness's real
@@ -413,7 +420,7 @@ async def sim_cube_contract(cube_id: int):
         "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
         "io_contract": {"inputs": sorted(inputs), "functions": functions, "outputs": sorted(outputs)},
         "inputs": sorted(inputs), "sample_outputs": r,
-        "sections": sections_for(cube_id),
+        "sections": sections_for(cube_id, sections),
     }
 
 
