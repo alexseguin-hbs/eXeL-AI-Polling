@@ -50,6 +50,15 @@ type SubmitResult = {
 const FULL = 9;
 const AI = "#19c8cf", SI = "#ffcf5a", HI = "#b98cff", GOOD = "#3ddc9a";
 
+// Per-block palette (FX-I) — Trinity colors first (AI·SI·HI·GOOD), then distinct hues
+// so up to 27 building blocks each read as a different color (operator: "trinity colors
+// first then more if 13+ sections").
+const BLOCK_PAL = [AI, SI, HI, GOOD, "#ff6b6b", "#4dabf7", "#f783ac", "#ffa94d", "#a9e34b",
+  "#63e6be", "#748ffc", "#ffd43b", "#e599f7", "#66d9e8", "#ff8787", "#b2f2bb"];
+function blockColor(k: number): string {
+  return k < BLOCK_PAL.length ? BLOCK_PAL[k] : `hsl(${Math.round((k * 137.5) % 360)} 70% 62%)`;
+}
+
 export function CubeDevSim() {
   const { t } = useLexicon();
   const [cubes, setCubes] = useState<CubeInfo[]>([]);
@@ -405,42 +414,42 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
   });
   const { bearing, pitch, zoom } = cam;
   const cell = fill ? 46 : 30, gap = fill ? 8 : 6, step = cell + gap;
-  // The 3×3×3 is ALWAYS a wireframe outline (OFF = transparent, thin dim border); the
-  // selected block's cubes fill solid SI (ON). Exploded → each cube offset along Z by
-  // its block index so the coherent segments separate. Memoized (not per-frame).
-  const OFF = "#31456a";
+  // Each building block is a DIFFERENT color (FX-I). The selected block fills solid +
+  // bright; the other blocks show in their own color, dimmer (so all distinct blocks
+  // read at a glance). Exploded → each block moves as a RIGID group along its centroid
+  // direction (blocks stay together, clear spacing between them). Memoized (not per-frame).
   const blocks = useMemo<ReactNode[]>(() => {
     const at = (t: string): CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
-    const face = (t: string, w: number, h: number, on: boolean, alpha: string): CSSProperties =>
-      ({ ...at(t), width: w, height: h, border: `1px solid ${on ? SI : OFF}`, background: on ? `${SI}${alpha}` : "transparent" });
-    const mid = (nSections - 1) / 2;
-    const explodeGap = fill ? 52 : 32;   // clear Lego/Tetris separation along the stack axis
+    const face = (t: string, w: number, h: number, hex: string, alpha: string): CSSProperties =>
+      ({ ...at(t), width: w, height: h, border: `1px solid ${hex}`, background: `${hex}${alpha}` });
+    // Per-block centroid (cell-space, centered at 0) → the rigid explode direction.
+    const sums: Record<number, [number, number, number, number]> = {};
+    for (let i = 0; i < 27; i++) {
+      const k = blockOf[i] ?? 0, x = i % 3, y = Math.floor(i / 3) % 3, z = Math.floor(i / 9);
+      const s = (sums[k] ||= [0, 0, 0, 0]); s[0] += x; s[1] += y; s[2] += z; s[3] += 1;
+    }
+    const dir: Record<number, [number, number, number]> = {};
+    for (const k in sums) { const s = sums[k]; dir[k] = [s[0] / s[3] - 1, s[1] / s[3] - 1, s[2] / s[3] - 1]; }
+    const exStep = fill ? step * 1.7 : step * 1.15;
     const out: ReactNode[] = [];
     for (let i = 0; i < 27; i++) {
       const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
-      const ez = exploded ? ((blockOf[i] ?? 0) - mid) * explodeGap : 0;
-      const x = (col - 1) * step, y = (row - 1) * step, z = (layer - 1) * step + ez;
+      const k = blockOf[i] ?? 0, d = dir[k] ?? [0, 0, 0];
+      const ox = exploded ? d[0] * exStep : 0, oy = exploded ? d[1] * exStep : 0, oz = exploded ? d[2] * exStep : 0;
+      const x = (col - 1) * step + ox, y = (row - 1) * step + oy, z = (layer - 1) * step + oz;
       const on = lit.has(i);
+      const hex = blockColor(k);
+      // selected block bright/solid; others their color, dimmer
+      const [tA, sA, s2A, op] = on ? ["dd", "aa", "88", 1] : ["3a", "26", "1c", 0.6];
       out.push(
-        <div key={i} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d" }}>
-          <div style={face(`translate3d(0px,0px,${cell / 2}px)`, cell, cell, on, "cc")} />
-          <div style={face(`translate3d(0px,${-cell / 2}px,0px) rotateX(90deg)`, cell, cell, on, "99")} />
-          <div style={face(`translate3d(0px,${cell / 2}px,0px) rotateX(90deg)`, cell, cell, on, "99")} />
-          <div style={face(`translate3d(${-cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on, "77")} />
-          <div style={face(`translate3d(${cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on, "77")} />
+        <div key={i} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d", opacity: op }}>
+          <div style={face(`translate3d(0px,0px,${cell / 2}px)`, cell, cell, hex, tA)} />
+          <div style={face(`translate3d(0px,${-cell / 2}px,0px) rotateX(90deg)`, cell, cell, hex, sA)} />
+          <div style={face(`translate3d(0px,${cell / 2}px,0px) rotateX(90deg)`, cell, cell, hex, sA)} />
+          <div style={face(`translate3d(${-cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, hex, s2A)} />
+          <div style={face(`translate3d(${cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, hex, s2A)} />
         </div>,
       );
-    }
-    // Exploded → 4 corner connector rods spanning the stack (the "screws" that hold the
-    // stacked plates, like the reference case exploded view).
-    if (exploded && nSections > 1) {
-      const totalH = 2 * step + (nSections - 1) * explodeGap + cell;
-      const r = step * 1.2;
-      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy], k) => {
-        out.push(<div key={`rod${k}`}
-          style={{ ...at(`translate3d(${sx * r}px,${sy * r}px,0px) rotateX(90deg)`),
-            width: 2, height: totalH, background: `${OFF}dd` }} />);
-      });
     }
     return out;
   }, [lit, blockOf, nSections, exploded, cell, step, fill]);
