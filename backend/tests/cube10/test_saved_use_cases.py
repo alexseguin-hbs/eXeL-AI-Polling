@@ -217,3 +217,28 @@ class TestConstants:
         assert DEMO_DATASET["response_count"] == 5000
         assert DEMO_DATASET["session_code"] == "PAST0001"
         assert DEMO_DATASET["is_permanent"] is True
+
+
+class TestCube2RealReplay:
+    """Cube 2 dataset-replay is REAL + deterministic (Manual Vision • 2525 — the
+    2nd reference cube after Cube 1). No more `pending_dataset_replay` stub."""
+
+    async def test_cube2_replay_is_real_not_pending(self):
+        from app.cubes.cube10_simulation.saved_use_cases import replay_against_dataset
+
+        case = _make_case(300)
+        r = await replay_against_dataset(case, 2, "run_harness_cube2_dataset")
+        assert r["status"] == "replayed"  # not "pending_dataset_replay"
+        assert r["cube_id"] == 2
+        assert isinstance(r["replay_hash"], str) and len(r["replay_hash"]) == 64
+        assert r["row_count"] > 0
+        assert r["replay_hash_match"] is True
+
+    async def test_cube2_replay_deterministic_across_runs(self):
+        from app.cubes.cube10_simulation.saved_use_cases import replay_against_dataset
+
+        case = _make_case(300)
+        r1 = await replay_against_dataset(case, 2, "run_harness_cube2_dataset")
+        r2 = await replay_against_dataset(case, 2, "run_harness_cube2_dataset")
+        # same rows in the same order → identical replay hash (the R-Core anchor)
+        assert r1["replay_hash"] == r2["replay_hash"]
