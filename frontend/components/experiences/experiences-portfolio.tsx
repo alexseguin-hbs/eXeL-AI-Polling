@@ -10,12 +10,13 @@
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film } from "lucide-react";
+import { ArrowLeft, Play, ExternalLink, Award, Cpu, FileText, GraduationCap, Download, Presentation, Rocket, ChevronDown, Film, Sparkles } from "lucide-react";
 import { LangSelect } from "@/components/experiences/lang-select";
 import { useLexicon } from "@/lib/lexicon-context";
 
 type CardKind = "pdf" | "link" | "video";
-type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; icon?: LucideIcon };
+type Secret = { labelKey: string; view: string; download: string };
+type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; icon?: LucideIcon; secret?: Secret };
 
 // ── Presentation & Writeup — the AI/ML strategy documents ───────────────────────────────────
 const WRITEUPS: Item[] = [
@@ -80,6 +81,12 @@ const IP: Item[] = [
     badgeKey: "experiences.card.ip1.badge",
     blurbKey: "experiences.card.ip1.blurb",
     href: "https://tinyurl.com/Sensor-Fusion-Patent",
+    // hidden mini easter egg — a sensor-fusion deep-dive PDF, revealed on expand
+    secret: {
+      labelKey: "experiences.egg.sensorFusion",
+      view: "https://drive.google.com/file/d/1NKlswkP17KJsluq_vbqTFMX_gmBnN9nO/view?usp=drivesdk",
+      download: "https://drive.google.com/uc?export=download&id=1NKlswkP17KJsluq_vbqTFMX_gmBnN9nO",
+    },
   },
   {
     kind: "link",
@@ -191,6 +198,34 @@ function Card({ item }: { item: Item }) {
                     <Download className="h-3.5 w-3.5" />
                     {t("experiences.download")}
                   </a>
+                </div>
+              )}
+              {/* hidden mini easter egg — revealed only when the card is expanded */}
+              {item.secret && (
+                <div className="mt-3 rounded-lg border border-primary/25 bg-primary/5 p-2.5">
+                  <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold text-primary/80">
+                    <Sparkles className="h-3 w-3" /> {t(item.secret.labelKey)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={item.secret.view}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      {t("experiences.view")}
+                    </a>
+                    <a
+                      href={item.secret.download}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-3 py-1.5 text-xs font-medium transition hover:border-primary/60 hover:text-primary"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      {t("experiences.download")}
+                    </a>
+                  </div>
                 </div>
               )}
             </div>

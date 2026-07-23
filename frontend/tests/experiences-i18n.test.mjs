@@ -37,8 +37,10 @@ ok(ivas.includes("IVAS") && /sensor fusion/i.test(ivas) && /OODA/.test(ivas),
 
 // 5. French (operator priority) covers EVERY experiences.* key with a non-empty string.
 const fr = SEEDED_TRANSLATIONS.fr || {};
-const frMissing = KEYS.filter((k) => !(typeof fr[k] === "string" && fr[k].trim().length > 0));
-ok(frMissing.length === 0, `French seeds all ${KEYS.length} experiences.* keys (missing: ${frMissing.length})`);
+// experiences.egg.* are hidden easter-egg labels — English-only by design (fallback covers them).
+const frKeys = KEYS.filter((k) => !k.startsWith("experiences.egg."));
+const frMissing = frKeys.filter((k) => !(typeof fr[k] === "string" && fr[k].trim().length > 0));
+ok(frMissing.length === 0, `French seeds all ${frKeys.length} experiences.* keys (missing: ${frMissing.length})`);
 
 // 6. French actually translates prose (not just the English echo) on a known key.
 ok((fr["experiences.landing.open"] || "") && fr["experiences.landing.open"] !== DEFAULT_ENGLISH_TRANSLATIONS["experiences.landing.open"].englishDefault,
@@ -49,10 +51,12 @@ ok((fr["experiences.name"] || "") === "Alex Seguin", "proper noun kept literal i
 
 // 8. ALL 32 non-English app languages cover every experiences.* key (full 33-language render).
 const LANGS32 = ["fr","es","de","it","pt","nl","ru","zh","ja","ko","ar","hi","bn","pa","th","vi","id","ms","tl","tr","pl","uk","ro","el","cs","sv","da","fi","no","he","sw","ne"];
+// experiences.egg.* are hidden easter-egg labels — English-only by design (fallback covers them).
+const COVERAGE_KEYS = KEYS.filter((k) => !k.startsWith("experiences.egg."));
 const gaps = [];
 for (const l of LANGS32) {
   const tr = SEEDED_TRANSLATIONS[l] || {};
-  const miss = KEYS.filter((k) => !(typeof tr[k] === "string" && tr[k].trim().length > 0));
+  const miss = COVERAGE_KEYS.filter((k) => !(typeof tr[k] === "string" && tr[k].trim().length > 0));
   if (miss.length) gaps.push(`${l}:${miss.length}`);
 }
 ok(gaps.length === 0, `all 32 non-English locales cover every experiences.* key (gaps: ${gaps.join(" ") || "none"})`);
