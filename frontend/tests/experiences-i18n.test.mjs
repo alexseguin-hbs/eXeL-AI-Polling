@@ -47,5 +47,15 @@ ok((fr["experiences.landing.open"] || "") && fr["experiences.landing.open"] !== 
 // 7. Proper nouns stay literal across locales (the name is not 'translated').
 ok((fr["experiences.name"] || "") === "Alex Seguin", "proper noun kept literal in French (experiences.name)");
 
+// 8. ALL 32 non-English app languages cover every experiences.* key (full 33-language render).
+const LANGS32 = ["fr","es","de","it","pt","nl","ru","zh","ja","ko","ar","hi","bn","pa","th","vi","id","ms","tl","tr","pl","uk","ro","el","cs","sv","da","fi","no","he","sw","ne"];
+const gaps = [];
+for (const l of LANGS32) {
+  const tr = SEEDED_TRANSLATIONS[l] || {};
+  const miss = KEYS.filter((k) => !(typeof tr[k] === "string" && tr[k].trim().length > 0));
+  if (miss.length) gaps.push(`${l}:${miss.length}`);
+}
+ok(gaps.length === 0, `all 32 non-English locales cover every experiences.* key (gaps: ${gaps.join(" ") || "none"})`);
+
 console.log(`\nEXPERIENCES-I18N ${pass}/${pass + fail} passed`);
 if (fail > 0) process.exit(1);
