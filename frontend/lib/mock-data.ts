@@ -771,7 +771,8 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
   const [path, query] = rawPath.split("?");
   const qs = new URLSearchParams(query || "");
   if (method === "GET" && path === "/sim/cubes") {
-    return { cubes: Object.entries(_SIM_CUBES).map(([id, c]) => ({ id: Number(id), name: c.name, level: "Level 1" })) };
+    // Mirror the backend shape exactly: {cube_id, name, harness_available}. All 9 have harnesses.
+    return { cubes: Object.entries(_SIM_CUBES).map(([id, c]) => ({ cube_id: Number(id), name: c.name, harness_available: true })) };
   }
   const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay)$/);
   if (!m) return undefined;
@@ -788,11 +789,28 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
   if (method === "GET" && action === "replay") {
     const section = qs.get("section");
     const sig = _mockHash(`replay:${id}:${section || "cube"}`);
-    return { cube_id: id, section: section || null, section_label: section ? (_SIM_SECTIONS[section] || section) : "whole cube", scope: section ? "block" : "cube", status: "replayed", signature: sig, replay_hash: sig, row_count: 300, replay_hash_match: true };
+    // Mirror the backend replay_against_dataset return shape (full keys).
+    return {
+      case_id: "demo", response_count: 300, cube_id: id, function_name: "",
+      section: section || null, section_label: section ? (_SIM_SECTIONS[section] || section) : "whole cube",
+      scope: section ? "block" : "cube", status: "replayed",
+      signature: sig, replay_hash: sig, row_count: 300, duration_ms: 42.0, replay_hash_match: true,
+    };
   }
   if (method === "POST" && action === "challenge") {
+    // Mirror run_challenge: {baseline, candidate, verdict, decision:{tier, decision, reason, tally}}.
     const tier = (body as { tier?: string } | undefined)?.tier || "manual";
-    return { tier, decision: "swap", reason: "equivalent + faster (mock)", verdict: { equivalent: true, compare_passed: true, faster: true, overall_passed: true }, tally: null };
+    const sig = _mockHash(`run:${id}`);
+    const metrics = { wall_time_ms: 388, function_calls: cube.io.functions.length * 100, db_execute_calls: 300 };
+    const verdict = { equivalent: true, compare_passed: true, faster: true, overall_passed: true };
+    const decision = tier === "manual"
+      ? { tier, decision: "hold", reason: "awaiting human approval", tally: null }
+      : { tier, decision: "swap", reason: "equivalent + faster (mock)", tally: null };
+    return {
+      baseline: { metrics, determinism_signature: sig },
+      candidate: { metrics: { ...metrics, wall_time_ms: 365 }, determinism_signature: sig },
+      verdict, decision,
+    };
   }
   return undefined;
 }
