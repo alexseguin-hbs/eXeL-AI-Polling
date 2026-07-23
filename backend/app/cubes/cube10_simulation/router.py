@@ -383,11 +383,14 @@ async def sim_cube_contract(cube_id: int):
             detail=f"Cube {cube_id} has no stand-alone harness yet.")
     from app.cubes.cube10_simulation.challenge_loop import _run_harness
 
+    from app.cubes.cube10_simulation.sections import sections_for
+
     r = await _run_harness(cube_id)
     if "io_contract" in r:  # Cube 1 emits a rich inputs→functions→outputs contract
         return {
             "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
             "io_contract": r["io_contract"], "inputs": r["inputs"], "sample_outputs": r["outputs"],
+            "sections": sections_for(cube_id),
         }
     # Cubes 2-9: compose a rich contract from the shared universal-function registry
     # (fn names + input/output schemas + path params) folded with the harness's real
@@ -409,6 +412,7 @@ async def sim_cube_contract(cube_id: int):
         "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
         "io_contract": {"inputs": sorted(inputs), "functions": functions, "outputs": sorted(outputs)},
         "inputs": sorted(inputs), "sample_outputs": r,
+        "sections": sections_for(cube_id),
     }
 
 
