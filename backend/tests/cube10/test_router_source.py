@@ -38,6 +38,13 @@ class TestResolveCubeSources:
                 if b["resolved"]:
                     assert "app/cubes/" in (b["path"] or ""), f"cube {cube} leaked {b['path']}"
 
+    def test_result_is_memoized(self):
+        # SSSES Efficiency: source is static at runtime → same (cube, section) is cached
+        # (the LIVE panel re-fetches on every section change without re-walking the package).
+        a = _resolve_cube_sources(1, "A")
+        b = _resolve_cube_sources(1, "A")
+        assert a is b  # lru_cache hit returns the identical object
+
 
 class TestSourceEndpoint:
     @pytest.mark.asyncio

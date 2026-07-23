@@ -16,6 +16,7 @@ Endpoints:
 
 import re
 import uuid
+from functools import lru_cache
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
@@ -466,12 +467,18 @@ def _iter_cube_callables(cube_id: int):
                     yield mname, meth
 
 
+@lru_cache(maxsize=64)
 def _resolve_cube_sources(cube_id: int, section: str | None) -> list[dict]:
     """Real source for each section function, whitelisted to app/cubes/**.
 
     Exact-name match first, then a prefix fallback within the cube tree (so a plain
     section label like 'validate_and_fit' resolves 'validate_and_fit_text_input').
-    Unresolved / out-of-tree functions return {resolved: False, source: None}."""
+    Unresolved / out-of-tree functions return {resolved: False, source: None}.
+
+    SSSES Efficiency: source is STATIC at runtime, so the result is memoized —
+    the LIVE panel re-fetches on every section change, but the expensive package
+    walk + inspect.getsource runs once per (cube, section). Read-only result
+    (serialized by FastAPI, never mutated)."""
     import inspect
 
     from app.cubes.cube10_simulation.sections import SECTIONS
