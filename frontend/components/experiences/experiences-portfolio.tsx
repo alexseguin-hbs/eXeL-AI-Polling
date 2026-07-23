@@ -265,7 +265,9 @@ function VideoVignettes() {
           </span>
           <div className="min-w-0">
             <div className="font-medium">{t("experiences.vignettes.title")}</div>
-            <p className="truncate text-[13px] text-muted-foreground">
+            {/* Collapsed: truncate to one line. Expanded: wrap so the full banner is readable
+                (operator: "can't read after …"). */}
+            <p className={`text-[13px] text-muted-foreground ${open ? "" : "truncate"}`}>
               {t("experiences.vignettes.banner")}
             </p>
           </div>

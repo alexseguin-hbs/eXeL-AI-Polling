@@ -1196,7 +1196,7 @@ const experiences: TranslationEntry[] = [
   { key: "experiences.card.ip1.title", englishDefault: "Sensor Fusion Patent", context: "Card title: Sensor Fusion Patent", cubeId: 50 },
   { key: "experiences.card.ip1.badge", englishDefault: "Cited 2× by Apple", context: "Card badge: Sensor Fusion Patent", cubeId: 50 },
   { key: "experiences.card.ip1.blurb", englishDefault: "My patent on multi-sensor fusion, independently cited twice by Apple in their own filings.", context: "Card blurb: Sensor Fusion Patent", cubeId: 50 },
-  { key: "experiences.egg.sensorFusion", englishDefault: "Sensor-Fusion deep-dive · hidden extra", context: "Hidden easter-egg PDF label inside the Sensor Fusion Patent card", cubeId: 50 },
+  { key: "experiences.egg.sensorFusion", englishDefault: "Sensor-Fusion deep-dive · Vision • 2525", context: "Hidden easter-egg PDF label inside the Sensor Fusion Patent card (Vision • 2525 is a literal brand)", cubeId: 50 },
   { key: "experiences.card.ip2.title", englishDefault: "Apple US 2024/0107160 A1", context: "Card title: Apple citation patent", cubeId: 50 },
   { key: "experiences.card.ip2.badge", englishDefault: "Apple citation", context: "Card badge: Apple citation patent", cubeId: 50 },
   { key: "experiences.card.ip2.blurb", englishDefault: "One of the Apple patents that cites the work above; the citation, in Apple's own words.", context: "Card blurb: Apple citation patent", cubeId: 50 },
