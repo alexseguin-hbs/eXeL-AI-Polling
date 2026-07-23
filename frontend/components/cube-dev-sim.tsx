@@ -413,7 +413,9 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
     cfg: { minPitch: 8, maxPitch: 86, minZoom: 0.5, maxZoom: 3.5 },
   });
   const { bearing, pitch, zoom } = cam;
-  const cell = fill ? 46 : 30, gap = fill ? 8 : 6, step = cell + gap;
+  // Small gap so mini-cube faces nearly TOUCH within a block (Lego rule) while still
+  // showing individual cubes; smaller cells so the exploded spread fits (FX-M).
+  const cell = fill ? 40 : 24, gap = 2, step = cell + gap;
   // Each building block is a DIFFERENT color (FX-I). The selected block fills solid +
   // bright; the other blocks show in their own color, dimmer (so all distinct blocks
   // read at a glance). Exploded → each block moves as a RIGID group along its centroid
@@ -430,7 +432,7 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
     }
     const dir: Record<number, [number, number, number]> = {};
     for (const k in sums) { const s = sums[k]; dir[k] = [s[0] / s[3] - 1, s[1] / s[3] - 1, s[2] / s[3] - 1]; }
-    const exStep = fill ? step * 1.7 : step * 1.15;
+    const exStep = fill ? step * 3.0 : step * 2.4;   // much more spacing between blocks (FX-M)
     const out: ReactNode[] = [];
     for (let i = 0; i < 27; i++) {
       const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
@@ -458,7 +460,7 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
       style={{ width: fill ? "100%" : px, height: fill ? "100%" : px, minWidth: fill ? undefined : px }}
       {...cam.handlers} onPointerLeave={cam.handlers.onPointerUp}>
       <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 55%",
-        transform: `perspective(900px) rotateX(${pitch}deg) scale(${0.85 * zoom})` }}>
+        transform: `perspective(900px) rotateX(${pitch}deg) scale(${(exploded ? 0.5 : 0.9) * zoom})` }}>
         <div className="absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", transform: `rotateZ(${bearing}rad)` }}>
           {blocks}
         </div>
