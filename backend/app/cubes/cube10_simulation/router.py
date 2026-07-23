@@ -681,8 +681,11 @@ async def sim_cube_submit(
     # candidate metrics payload is supplied. Equivalence is proven by signature match.
     candidate = payload.candidate or {"signature": base["signature"], "duration_ms": base["duration_ms"]}
     try:
+        # Reuse the baseline we just ran — run_challenge would otherwise re-run the
+        # harness a second time per submit (SSSES Efficiency).
         out = await run_challenge(
             cube_id, candidate, tier=payload.tier, human_approved=payload.human_approved,
+            baseline=base,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))

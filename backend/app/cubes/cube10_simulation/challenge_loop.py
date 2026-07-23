@@ -208,18 +208,23 @@ async def run_challenge(
     votes: list[dict] | None = None,
     total_holders: int = 0,
     crs_state: str | None = None,
+    baseline: dict | None = None,
 ) -> dict:
     """End-to-end: baseline (harness) → normalize candidate → evaluate → 3-tier swap decision.
 
     Foundation-of-Truth gate (R5): if `crs_state` is provided, simulation is BLOCKED
     unless the governing CRS has reached Simulation-Ready ("simulation only after
     Cube 2 completion"). Omitting it keeps the pre-CRS-lifecycle behavior (no gate).
+
+    SSSES Efficiency: a caller that already ran the baseline (e.g. /sim/.../submit)
+    may pass it in to avoid a redundant harness execution; omitted → run it here.
     """
     if crs_state is not None:
         from app.core.crs_lifecycle import assert_simulation_allowed
 
         assert_simulation_allowed(crs_state)  # raises CRSLifecycleError if not ready
-    baseline = await run_cube_baseline(cube_id)
+    if baseline is None:
+        baseline = await run_cube_baseline(cube_id)
     candidate = normalize_candidate(submitted_candidate, cube_id)
     verdict = evaluate_challenge(baseline, candidate)
     decision = decide_swap(

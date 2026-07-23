@@ -138,6 +138,18 @@ class TestIntegration:
         assert out["verdict"]["overall_passed"] is False
         assert out["decision"]["decision"] == "reject"
 
+    @pytest.mark.asyncio
+    async def test_run_challenge_reuses_provided_baseline(self):
+        # SSSES Efficiency: passing a precomputed baseline skips a second harness run
+        # (the /submit endpoint already ran it). The provided baseline is used verbatim.
+        sentinel = {"cube_id": 1, "signature": "s" * 64, "duration_ms": 1.0,
+                    "metrics": {"wall_time_ms": 1}}
+        out = await run_challenge(
+            1, {"signature": "s" * 64, "duration_ms": 1.0},
+            tier="manual", human_approved=True, baseline=sentinel,
+        )
+        assert out["baseline"] is sentinel
+
     def test_tiers_constant(self):
         assert CHALLENGE_TIERS == {"manual", "semi", "automated"}
 
