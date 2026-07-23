@@ -809,13 +809,27 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
     // Mirror the backend shape exactly: {cube_id, name, harness_available}. All 9 have harnesses.
     return { cubes: Object.entries(_SIM_CUBES).map(([id, c]) => ({ cube_id: Number(id), name: c.name, harness_available: true })) };
   }
-  const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay|check-in|submit)$/);
+  const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay|check-in|submit|source)$/);
   if (!m) return undefined;
   const id = Number(m[1]);
   const action = m[2];
   const cube = _SIM_CUBES[id] || { name: `Cube ${id}`, io: { inputs: [], functions: [], outputs: [] } };
   if (method === "GET" && action === "contract") {
     return { cube_id: id, name: cube.name, io_contract: cube.io, sections: _mockSections(id) };
+  }
+  if (method === "GET" && action === "source") {
+    // FX-B: LIVE source (representative real snippets under MOCK_MODE; the real backend
+    // returns inspect.getsource whitelisted to app/cubes/**).
+    const want = qs.get("section");
+    const secs = _mockSections(id).filter((s) => !want || s.key === want);
+    const blocks = secs.flatMap((s) =>
+      s.functions.map((fn) => ({
+        name: fn, section: s.key, resolved: true,
+        path: `app/cubes/cube${id}_.../service.py`,
+        source: `# ${cube.name} · section ${s.key} (${s.label})\nasync def ${fn}(self, *args, **kwargs):\n    """Live cube code running the platform (representative mock snippet).\n    The real backend returns the exact source via inspect.getsource."""\n    result = await self._run(*args, **kwargs)\n    return result`,
+      })),
+    );
+    return { cube_id: id, section: want || null, blocks };
   }
   if (method === "POST" && action === "check-in") {
     const b = (body as { section?: string; level?: number } | undefined) || {};

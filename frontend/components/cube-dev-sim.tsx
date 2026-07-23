@@ -31,6 +31,7 @@ type Contract = {
   io_contract: { inputs: string[]; functions: string[]; outputs: string[] };
   sections?: Section[];
 };
+type SourceBlock = { name: string; section: string; resolved: boolean; path: string | null; source: string | null };
 type Verdict = { equivalent: boolean; compare_passed: boolean; faster: boolean; overall_passed: boolean };
 type SubmitResult = {
   baseline: { metrics?: Record<string, number>; determinism_signature?: string };
@@ -53,6 +54,7 @@ export function CubeDevSim() {
   const [sel, setSel] = useState<number | null>(null);
   const [contract, setContract] = useState<Contract | null>(null);
   const [sectionKey, setSectionKey] = useState<string | null>(null);
+  const [liveBlocks, setLiveBlocks] = useState<SourceBlock[]>([]);
   const [candidate, setCandidate] = useState("");
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -94,6 +96,30 @@ export function CubeDevSim() {
     const set = new Set(activeSection?.highlight?.[String(FULL)] ?? []);
     return set;
   }, [activeSection]);
+
+  // FX-B: fetch the REAL live source for the selected section (backend inspect.getsource,
+  // whitelisted to app/cubes/**) so the LIVE panel shows the running code — not a
+  // placeholder. Prefill YOUR VERSION from it when empty, so the Dev edits from real code.
+  useEffect(() => {
+    if (!sel || !sectionKey) { setLiveBlocks([]); return; }
+    let alive = true;
+    api.get<{ blocks: SourceBlock[] }>(`/sim/cube/${sel}/source?section=${sectionKey}`)
+      .then((d) => {
+        if (!alive) return;
+        const blocks = d.blocks ?? [];
+        setLiveBlocks(blocks);
+        const src = composeLive(blocks);
+        if (src) setCandidate((cur) => (cur ? cur : src));
+      })
+      .catch(() => { if (alive) setLiveBlocks([]); });
+    return () => { alive = false; };
+  }, [sel, sectionKey]);
+
+  const liveSource = useMemo(
+    () => composeLive(liveBlocks)
+      || `# ${contract?.name ?? "cube"} · section ${activeSection?.key ?? ""}\n# live source unavailable (read-only)`,
+    [liveBlocks, contract, activeSection],
+  );
 
   const checkIn = useCallback(async () => {
     if (!sel) return;
@@ -169,7 +195,7 @@ export function CubeDevSim() {
           <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
             <span className="mr-1 text-xs font-semibold text-muted-foreground">{t("cube10.sim.level")}</span>
             {sections.map((s, i) => (
-              <button key={s.key} onClick={() => { setSectionKey(s.key); setResult(null); }}
+              <button key={s.key} onClick={() => { setSectionKey(s.key); setResult(null); setCandidate(""); }}
                 data-sim-section={s.key} data-sim-level={i + 1}
                 className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs transition ${
                   sectionKey === s.key ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
@@ -236,7 +262,7 @@ export function CubeDevSim() {
                     <span className="font-mono text-[11px] text-muted-foreground">{activeSection?.functions[0] ?? "cube"}() · running now</span>
                     <button onClick={() => setMaxCode("live")} className="ml-auto text-muted-foreground hover:text-primary"><Maximize2 className="h-3.5 w-3.5" /></button>
                   </div>
-                  <pre className="max-h-56 flex-1 overflow-auto p-3 font-mono text-[11px] text-muted-foreground">{`# ${contract.name} · section ${activeSection?.key}\n# functions: ${(activeSection?.functions ?? []).join(", ")}\n# this is the live cube running right now (read-only)`}</pre>
+                  <pre className={`flex-1 overflow-auto p-3 font-mono text-[11px] text-muted-foreground ${maxCode === "live" ? "max-h-[80vh]" : "max-h-56"}`}>{liveSource}</pre>
                 </div>
               )}
               {maxCode !== "live" && (
@@ -305,6 +331,14 @@ export function CubeDevSim() {
       )}
     </div>
   );
+}
+
+// Compose the LIVE panel text from the whitelisted backend source blocks.
+function composeLive(blocks: SourceBlock[]): string {
+  return blocks
+    .filter((b) => b.resolved && b.source)
+    .map((b) => `# ${b.path}\n${b.source}`)
+    .join("\n\n");
 }
 
 function col(title: string, items: string[], color: string) {

@@ -416,6 +416,112 @@ async def sim_cube_contract(cube_id: int):
     }
 
 
+# ---------------------------------------------------------------------------
+# FX-B — read-only LIVE source. The workbench LIVE panel must show the REAL code
+# running the website (not a placeholder), so a Dev can write a candidate against
+# it. inspect.getsource of each section's functions, WireGuard-whitelisted to
+# app/cubes/** ONLY (never core/config/secrets, never write).
+# ---------------------------------------------------------------------------
+
+_CUBE_PKG = {
+    1: "cube1_session", 2: "cube2_text", 3: "cube3_voice", 4: "cube4_collector",
+    5: "cube5_gateway", 6: "cube6_ai", 7: "cube7_ranking", 8: "cube8_tokens",
+    9: "cube9_reports",
+}
+_SOURCE_MAX = 8000  # cap per block — a slice, never a dump
+
+
+def _iter_cube_callables(cube_id: int):
+    """Yield (name, callable) for functions/methods DEFINED under app/cubes/<pkg>/**.
+
+    The WireGuard boundary: a callable is yielded only when its real source file is
+    inside app/cubes/ — re-exported core utilities (e.g. compute_response_hash from
+    app/core) resolve to their core file and are dropped, never leaked."""
+    import importlib
+    import inspect
+    import pkgutil
+
+    pkgname = _CUBE_PKG.get(cube_id)
+    if not pkgname:
+        return
+    try:
+        pkg = importlib.import_module(f"app.cubes.{pkgname}")
+    except Exception:  # noqa: BLE001 — a cube that can't import yields nothing
+        return
+    modules = [pkg]
+    try:
+        for info in pkgutil.walk_packages(pkg.__path__, prefix=f"app.cubes.{pkgname}."):
+            try:
+                modules.append(importlib.import_module(info.name))
+            except Exception:  # noqa: BLE001 — skip a module that needs an optional dep
+                continue
+    except Exception:  # noqa: BLE001
+        pass
+    for mod in modules:
+        for name, obj in inspect.getmembers(mod):
+            if inspect.isfunction(obj):
+                yield name, obj
+            elif inspect.isclass(obj):
+                for mname, meth in inspect.getmembers(obj, inspect.isfunction):
+                    yield mname, meth
+
+
+def _resolve_cube_sources(cube_id: int, section: str | None) -> list[dict]:
+    """Real source for each section function, whitelisted to app/cubes/**.
+
+    Exact-name match first, then a prefix fallback within the cube tree (so a plain
+    section label like 'validate_and_fit' resolves 'validate_and_fit_text_input').
+    Unresolved / out-of-tree functions return {resolved: False, source: None}."""
+    import inspect
+
+    from app.cubes.cube10_simulation.sections import SECTIONS
+
+    secs = [s for s in SECTIONS.get(cube_id, []) if not section or s["key"] == section]
+    exact: dict[str, object] = {}
+    pool: list[tuple[str, object]] = []
+    for name, obj in _iter_cube_callables(cube_id):
+        try:
+            src_file = inspect.getsourcefile(obj) or ""
+        except Exception:  # noqa: BLE001
+            continue
+        if "/app/cubes/" not in src_file.replace("\\", "/"):
+            continue  # WireGuard: cube tree only — drop core/config/secret paths
+        exact.setdefault(name, obj)
+        pool.append((name, obj))
+
+    blocks: list[dict] = []
+    for s in secs:
+        for fn in s["functions"]:
+            obj = exact.get(fn) or next((o for nm, o in pool if nm.startswith(fn)), None)
+            block = {"name": fn, "section": s["key"], "resolved": False,
+                     "path": None, "source": None}
+            if obj is not None:
+                try:
+                    path = inspect.getsourcefile(obj) or ""
+                    rel = path[path.index("app/"):] if "app/" in path else path
+                    block.update(resolved=True, path=rel,
+                                 source=inspect.getsource(obj)[:_SOURCE_MAX])
+                except Exception:  # noqa: BLE001
+                    pass
+            blocks.append(block)
+    return blocks
+
+
+@router.get("/sim/cube/{cube_id}/source")
+async def sim_cube_source(cube_id: int, section: str | None = None):
+    """Read-only LIVE source for a cube's section functions — the real code running
+    the platform, so the workbench LIVE panel is not a placeholder. inspect.getsource,
+    whitelisted to app/cubes/** (never secrets/env, never write)."""
+    from app.cubes.cube10_simulation.sections import SECTION_KEYS
+
+    if cube_id < 1 or cube_id > 9:
+        raise HTTPException(status_code=400, detail="cube_id must be 1-9")
+    if section is not None and section not in SECTION_KEYS:
+        raise HTTPException(status_code=400, detail=f"section must be one of {SECTION_KEYS} or omitted")
+    return {"cube_id": cube_id, "section": section,
+            "blocks": _resolve_cube_sources(cube_id, section)}
+
+
 @router.post("/sim/cube/{cube_id}/run")
 async def sim_cube_run(
     cube_id: int,
