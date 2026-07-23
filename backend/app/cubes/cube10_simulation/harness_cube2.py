@@ -116,7 +116,33 @@ def _load_dataset_texts(limit: int = 0) -> list[str]:
     return texts
 
 
-async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False) -> dict:
+# Cube 2 splits into 4 building-block SECTIONS (the workbench "levels"). Each maps to
+# the stage whose output the section-scoped replay fingerprints. section=None replays the
+# WHOLE cube (response_hash, unchanged). A section replays just that block → its own hash,
+# so a Dev-Master can beat one block at a time OR the whole cube.
+SECTIONS_CUBE2 = {
+    "A": {"label": "Clean & fit", "fn": "validate_and_fit"},
+    "B": {"label": "Find private info", "fn": "detect_pii"},
+    "C": {"label": "Hide it", "fn": "scrub_pii"},
+    "D": {"label": "Fingerprint", "fn": "compute_hash"},
+}
+
+
+def _section_token(section, validated, was_reprocessed, detections, clean, response_hash) -> str:
+    """The per-row value a section-scoped replay folds into its rolling signature.
+    None → the whole-cube response_hash (unchanged); each section → its stage's output."""
+    if section == "A":
+        return f"{len(validated)}|{int(was_reprocessed)}"
+    if section == "B":
+        return f"{len(detections)}|{detections!r}"
+    if section == "C":
+        return f"scrub:{compute_response_hash(clean)}"
+    if section == "D":
+        return f"fp:{response_hash}"
+    return response_hash  # whole cube
+
+
+async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False, section: str | None = None) -> dict:
     """R1: run the REAL Cube 2 pipeline over the 5,000-row MOCK dataset, streaming.
 
     Feeds each `Detailed_Results` response through validate → PII detect (regex) →
@@ -124,7 +150,12 @@ async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False) -> di
     in memory (Cube-10 architectural rule: no disk-heavy intermediates). Emits a
     determinism signature + a metrics baseline the Dev-Sim + challenge loop consume.
     Offline + deterministic (regex PII path); no billed API needed to prove plumbing.
+
+    `section` (A/B/C/D, or None = whole cube) scopes the determinism signature to one
+    building block so a block can be beaten on its own — the "sections as levels" model.
     """
+    if section is not None and section not in SECTIONS_CUBE2:
+        raise ValueError(f"unknown Cube 2 section: {section!r}")
     import app.cubes.cube2_text.service as svc
     _orig_ner = svc._get_ner_pipeline
     if not use_ner:
@@ -158,7 +189,8 @@ async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False) -> di
             if profanity:
                 profanity_responses += 1
             unique_hashes.add(response_hash)
-            hasher.update(f"{i}:{response_hash}".encode())
+            token = _section_token(section, validated, was_reprocessed, detections, clean, response_hash)
+            hasher.update(f"{i}:{token}".encode())
             if i < 5:  # keep a small visible sample, not all 5,000 rows
                 sample.append({"index": i, "raw_chars": len(raw),
                                "pii_detected": len(detections), "hash": response_hash[:12]})
@@ -169,6 +201,8 @@ async def run_harness_cube2_dataset(limit: int = 0, use_ner: bool = False) -> di
     return {
         "cube": "cube2_text",
         "dataset": os.path.basename(_DATASET_CSV),
+        "section": section,
+        "section_label": SECTIONS_CUBE2[section]["label"] if section else "whole cube",
         "total": total,
         "reprocessed": reprocessed,
         "pii_responses": pii_responses,

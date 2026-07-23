@@ -242,3 +242,40 @@ class TestCube2RealReplay:
         r2 = await replay_against_dataset(case, 2, "run_harness_cube2_dataset")
         # same rows in the same order → identical replay hash (the R-Core anchor)
         assert r1["replay_hash"] == r2["replay_hash"]
+
+
+class TestCube2SectionReplay:
+    """Beat ONE building block (a level) OR the whole cube — the sections-as-levels
+    model. Cube 2 has 4 sections A/B/C/D; each replays to its own reproducible hash."""
+
+    async def test_each_section_replays_scoped_and_deterministic(self):
+        from app.cubes.cube10_simulation.saved_use_cases import replay_against_dataset
+
+        case = _make_case(300)
+        for s in ("A", "B", "C", "D"):
+            r1 = await replay_against_dataset(case, 2, "run", section=s)
+            r2 = await replay_against_dataset(case, 2, "run", section=s)
+            assert r1["scope"] == "block"
+            assert r1["section"] == s
+            assert r1["section_label"]  # human label present
+            assert len(r1["replay_hash"]) == 64
+            assert r1["replay_hash"] == r2["replay_hash"]  # deterministic per block
+
+    async def test_sections_and_cube_have_distinct_hashes(self):
+        from app.cubes.cube10_simulation.saved_use_cases import replay_against_dataset
+
+        case = _make_case(300)
+        whole = await replay_against_dataset(case, 2, "run")  # section=None → whole cube
+        assert whole["scope"] == "cube"
+        hashes = {"cube": whole["replay_hash"]}
+        for s in ("A", "B", "C", "D"):
+            hashes[s] = (await replay_against_dataset(case, 2, "run", section=s))["replay_hash"]
+        # every block + the whole cube fingerprint differently (distinct levels)
+        assert len(set(hashes.values())) == len(hashes)
+
+    async def test_unknown_section_rejected(self):
+        import pytest as _pytest
+        from app.cubes.cube10_simulation.harness_cube2 import run_harness_cube2_dataset
+
+        with _pytest.raises(ValueError):
+            await run_harness_cube2_dataset(limit=5, section="Z")

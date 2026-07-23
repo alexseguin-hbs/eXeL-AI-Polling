@@ -236,11 +236,13 @@ async def replay_against_dataset(
     case: SavedUseCase,
     cube_id: int,
     function_name: str,
+    section: str | None = None,
 ) -> dict:
     """Run simulation replay of a specific function against a saved dataset.
 
     This is the core of Cube 10: test new code against real production data.
-    Returns metrics for comparison against baseline.
+    Returns metrics for comparison against baseline. `section` scopes the replay to
+    ONE building block (a level) instead of the whole cube — beat a block or the cube.
     """
     import time
 
@@ -270,12 +272,15 @@ async def replay_against_dataset(
         # replay hash — same rows in the same order → identical hash every run.
         from app.cubes.cube10_simulation.harness_cube2 import run_harness_cube2_dataset
 
-        sim = await run_harness_cube2_dataset(limit=_REPLAY_ROW_LIMIT)
+        sim = await run_harness_cube2_dataset(limit=_REPLAY_ROW_LIMIT, section=section)
         result = {
             "case_id": case.id,
             "response_count": sim["total"],
             "cube_id": cube_id,
             "function_name": function_name,
+            "section": sim["section"],
+            "section_label": sim["section_label"],
+            "scope": "block" if section else "cube",
             "status": "replayed",
             "signature": sim["determinism_signature"],
             "replay_hash": sim["determinism_signature"],
