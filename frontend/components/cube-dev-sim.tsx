@@ -63,6 +63,8 @@ export function CubeDevSim() {
   const [err, setErr] = useState("");
   const [maxCode, setMaxCode] = useState<"" | "split" | "live" | "yours">("");
   const [voxelMax, setVoxelMax] = useState(false);
+  const [secCount, setSecCount] = useState(4);   // FX-G granularity: 3 | 4 | 9 | 27
+  const [exploded, setExploded] = useState(false);
   const [verdictVote, setVerdictVote] = useState<"pass" | "revise" | "block">("pass");
   const [seconds, setSeconds] = useState(15 * 60);
 
@@ -80,30 +82,52 @@ export function CubeDevSim() {
       .catch(() => setErr("Simulation backend not reachable."));
   }, []);
 
-  const pick = useCallback(async (id: number) => {
-    setSel(id); setContract(null); setSectionKey(null); setResult(null); setCheckedIn(null);
-    setCandidate(""); setErr(""); setBusy("contract");
+  // Load a cube's contract at a chosen block granularity (FX-G): 4 = curated function
+  // sections · 3/9/27 = coherent block-segments. The backend sections_for is the source.
+  const loadContract = useCallback(async (id: number, count: number) => {
+    setContract(null); setSectionKey(null); setResult(null); setCheckedIn(null);
+    setCandidate(""); setBusy("contract");
     try {
-      const c = await api.get<Contract>(`/sim/cube/${id}/contract`);
+      const c = await api.get<Contract>(`/sim/cube/${id}/contract?sections=${count}`);
       setContract(c);
       setSectionKey(c.sections?.[0]?.key ?? null);
     } catch { setErr(`Cube ${id} contract unavailable.`); }
     finally { setBusy(""); }
   }, []);
 
+  const pick = useCallback((id: number) => {
+    setSel(id); setErr(""); setSecCount(4); setExploded(false);
+    void loadContract(id, 4);
+  }, [loadContract]);
+
+  const changeCount = useCallback((n: number) => {
+    setSecCount(n);
+    if (sel) void loadContract(sel, n);
+  }, [sel, loadContract]);
+
   const sections = contract?.sections ?? [];
   const activeSection = sections.find((s) => s.key === sectionKey) ?? null;
-  const activeIdx = sections.findIndex((s) => s.key === sectionKey);
   const litCells = useMemo(() => {
     const set = new Set(activeSection?.highlight?.[String(FULL)] ?? []);
     return set;
   }, [activeSection]);
 
+  const nSections = sections.length;
+  // Which block each of the 27 cells belongs to — drives the exploded-view offset.
+  const blockOf = useMemo(() => {
+    const arr = new Array(27).fill(0);
+    sections.forEach((s, i) => (s.highlight?.[String(FULL)] ?? []).forEach((c) => { arr[c] = i; }));
+    return arr;
+  }, [sections]);
+  const curated = !!sectionKey && /^[A-D]$/.test(sectionKey);   // Fn·4 view = editable source
+
   // FX-B: fetch the REAL live source for the selected section (backend inspect.getsource,
   // whitelisted to app/cubes/**) so the LIVE panel shows the running code — not a
   // placeholder. Prefill YOUR VERSION from it when empty, so the Dev edits from real code.
   useEffect(() => {
-    if (!sel || !sectionKey) { setLiveBlocks([]); return; }
+    // LIVE source is per curated function section (A-D). In block view (B1..BN) a block
+    // spans functions, so we skip the fetch and show the block's function list instead.
+    if (!sel || !sectionKey || !curated) { setLiveBlocks([]); return; }
     let alive = true;
     api.get<{ blocks: SourceBlock[] }>(`/sim/cube/${sel}/source?section=${sectionKey}`)
       .then((d) => {
@@ -117,11 +141,17 @@ export function CubeDevSim() {
     return () => { alive = false; };
   }, [sel, sectionKey]);
 
-  const liveSource = useMemo(
-    () => composeLive(liveBlocks)
-      || `# ${contract?.name ?? "cube"} · section ${activeSection?.key ?? ""}\n# live source unavailable (read-only)`,
-    [liveBlocks, contract, activeSection],
-  );
+  const liveSource = useMemo(() => {
+    const src = composeLive(liveBlocks);
+    if (src) return src;
+    const fns = activeSection?.functions ?? [];
+    if (fns.length) {
+      return `# ${activeSection?.label ?? "block"} · ${activeSection?.key ?? ""}\n`
+        + `# this block spans: ${fns.join(", ")}\n`
+        + `# switch to the Fn·4 view to read & edit a single function's live source`;
+    }
+    return `# ${contract?.name ?? "cube"} · section ${activeSection?.key ?? ""}\n# live source unavailable (read-only)`;
+  }, [liveBlocks, contract, activeSection]);
 
   const checkIn = useCallback(async () => {
     if (!sel) return;
@@ -194,29 +224,28 @@ export function CubeDevSim() {
 
       {contract && (
         <>
-          {/* Level strip — each of the 4 code sections IS a level (L1·A … L4·D).
-              Pick one → the voxel lights that whole section's blocks. No 3/6/9 density
-              dial here (that belongs to the theme viz, not the code-section model). */}
-          <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
+          {/* Section strip — one chip per section at the chosen granularity. Pick one →
+              the voxel lights that whole COHERENT block. Compact for many blocks. */}
+          <div className="flex flex-wrap items-center gap-1.5 rounded-xl border bg-card p-3">
             <span className="mr-1 text-xs font-semibold text-muted-foreground">{t("cube10.sim.level")}</span>
             {sections.map((s, i) => (
               <button key={s.key} onClick={() => { setSectionKey(s.key); setResult(null); setCandidate(""); }}
                 data-sim-section={s.key} data-sim-level={i + 1}
-                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs transition ${
+                className={`flex items-center gap-1.5 rounded-lg border transition ${nSections > 9 ? "px-2 py-1 text-[11px]" : "px-3 py-1.5 text-xs"} ${
                   sectionKey === s.key ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
                 style={sectionKey === s.key ? { background: SI, borderColor: SI } : undefined}>
                 <span className="font-mono font-bold">L{i + 1}·{s.key}</span>
-                <span className="opacity-80">{s.label}</span>
+                {nSections <= 9 && <span className="opacity-80">{s.label}</span>}
               </button>
             ))}
           </div>
 
-          {/* 27 stackable sub-cube blocks in real 3D — rotate by dragging (one-finger on
-              phone), pop out to view + rotate larger. Lit blocks = the selected section.
-              Reuses the shared Vision-2525 R-Core camera (useRCoreGestures). */}
+          {/* The 3×3×3 is ALWAYS a wireframe outline; the selected block's mini-cubes
+              fill solid (ON), the rest stay outline (OFF). Rotate by dragging; Explode
+              separates the blocks; ⤢ pops out. Reuses the R-Core camera. */}
           <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4">
             <div className="relative" data-sim-voxel={sel ?? ""}>
-              <CubeVoxel3D lit={litCells} px={200} />
+              <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} exploded={exploded} px={200} />
               <button onClick={() => setVoxelMax(true)} title="Pop out & rotate"
                 className="absolute right-1 top-1 rounded border bg-background/80 p-1 text-muted-foreground backdrop-blur hover:text-primary">
                 <Maximize2 className="h-3.5 w-3.5" />
@@ -224,25 +253,39 @@ export function CubeDevSim() {
             </div>
             <div className="min-w-[180px] flex-1">
               <div className="text-sm font-semibold">Cube {contract.cube_id} · {contract.name}</div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                27 blocks · {sections.length} sections · Level <b style={{ color: SI }}>{activeIdx >= 0 ? activeIdx + 1 : "—"}</b> · Section{" "}
-                <b style={{ color: SI }}>{activeSection?.key}</b> (<b>{activeSection?.label}</b>) — {litCells.size} blocks.
+              {/* Granularity + Explode — how many building blocks the 27 mini-cubes group into. */}
+              <div className="mt-2 flex flex-wrap items-center gap-1">
+                {[{ n: 3, l: "Lvl·3" }, { n: 4, l: "Fn·4" }, { n: 9, l: "9" }, { n: 27, l: "27" }].map(({ n, l }) => (
+                  <button key={n} onClick={() => changeCount(n)} disabled={busy === "contract"}
+                    className={`rounded border px-2 py-0.5 font-mono text-[11px] transition ${secCount === n ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
+                    style={secCount === n ? { background: AI, borderColor: AI } : undefined}>{l}</button>
+                ))}
+                <button onClick={() => setExploded((e) => !e)} title="Explode / assemble the blocks"
+                  className={`ml-1 rounded border px-2 py-0.5 text-[11px] transition ${exploded ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
+                  style={exploded ? { background: HI, borderColor: HI } : undefined}>Explode</button>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                27 mini-cubes · {nSections} {secCount === 3 ? "levels" : secCount === 4 ? "sections" : "blocks"} · selected{" "}
+                <b style={{ color: SI }}>{activeSection?.key}</b> (<b>{activeSection?.label}</b>) — {litCells.size} cubes ON.
               </p>
-              <p className="mt-1 text-[10px] text-muted-foreground/70">Drag to rotate · pinch/scroll to zoom · ⤢ pops out.</p>
+              <p className="mt-1 text-[10px] text-muted-foreground/70">Drag to rotate · pinch/scroll to zoom · Explode separates the blocks.</p>
             </div>
           </div>
 
-          {/* Pop-out: a large rotatable view of the same 27-block cube. */}
+          {/* Pop-out: a large rotatable/explodable view of the same cube. */}
           {voxelMax && (
             <div className="fixed inset-0 z-50 flex flex-col bg-background/95 p-4 pt-12 backdrop-blur">
               <div className="mb-2 flex items-center gap-2">
-                <b className="font-mono text-xs" style={{ color: AI }}>CUBE {contract.cube_id} · {contract.name} · 27 BLOCKS</b>
+                <b className="font-mono text-xs" style={{ color: AI }}>CUBE {contract.cube_id} · {contract.name} · {nSections} BLOCKS</b>
+                <button onClick={() => setExploded((e) => !e)}
+                  className={`rounded border px-2 py-0.5 text-[11px] ${exploded ? "text-black" : "text-muted-foreground"}`}
+                  style={exploded ? { background: HI, borderColor: HI } : undefined}>Explode</button>
                 <span className="text-[11px] text-muted-foreground">— drag to rotate · pinch/scroll to zoom</span>
                 <button onClick={() => setVoxelMax(false)} className="ml-auto rounded border px-2 py-1 text-xs">
                   <X className="mr-1 inline h-3 w-3" />Exit</button>
               </div>
               <div className="flex-1">
-                <CubeVoxel3D lit={litCells} px={0} fill />
+                <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} exploded={exploded} px={0} fill />
               </div>
             </div>
           )}
@@ -351,36 +394,43 @@ export function CubeDevSim() {
 // Vision-2525 R-Core camera. Reuses the voxel-house pattern (preserve-3d + perspective +
 // rotateX(pitch)/rotateZ(bearing)). Lit blocks glow (SI); the rest read as a dim lattice
 // so the whole 3×3×3 identity fingerprint is visible while the worked section stands out.
-function CubeVoxel3D({ lit, px = 200, fill = false }: { lit: Set<number>; px?: number; fill?: boolean }) {
+function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill = false }: {
+  lit: Set<number>; blockOf: number[]; nSections: number; exploded?: boolean; px?: number; fill?: boolean;
+}) {
   const cam = useRCoreGestures({
     initialBearing: -0.6, initialPitch: 60, initialZoom: 1, touchOrbit: true, pan: false,
     cfg: { minPitch: 8, maxPitch: 86, minZoom: 0.5, maxZoom: 3.5 },
   });
   const { bearing, pitch, zoom } = cam;
   const cell = fill ? 46 : 30, gap = fill ? 8 : 6, step = cell + gap;
-  // The 135 block faces depend ONLY on the lit set + size — NOT on the camera. Memoize
-  // so rotating/zooming (per-frame re-render) never rebuilds them (SSSES Efficiency).
+  // The 3×3×3 is ALWAYS a wireframe outline (OFF = transparent, thin dim border); the
+  // selected block's cubes fill solid SI (ON). Exploded → each cube offset along Z by
+  // its block index so the coherent segments separate. Memoized (not per-frame).
+  const OFF = "#31456a";
   const blocks = useMemo<ReactNode[]>(() => {
     const at = (t: string): CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
-    const face = (t: string, w: number, h: number, hex: string): CSSProperties =>
-      ({ ...at(t), width: w, height: h, border: `1px solid ${hex}` });
+    const face = (t: string, w: number, h: number, on: boolean, alpha: string): CSSProperties =>
+      ({ ...at(t), width: w, height: h, border: `1px solid ${on ? SI : OFF}`, background: on ? `${SI}${alpha}` : "transparent" });
+    const mid = (nSections - 1) / 2;
+    const explodeGap = fill ? 40 : 26;
     const out: ReactNode[] = [];
     for (let i = 0; i < 27; i++) {
       const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
-      const x = (col - 1) * step, y = (row - 1) * step, z = (layer - 1) * step;
+      const ez = exploded ? ((blockOf[i] ?? 0) - mid) * explodeGap : 0;
+      const x = (col - 1) * step, y = (row - 1) * step, z = (layer - 1) * step + ez;
       const on = lit.has(i);
       out.push(
-        <div key={i} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d", opacity: on ? 1 : 0.32 }}>
-          <div style={{ ...face(`translate3d(0px,0px,${cell / 2}px)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}cc` : "#16223a55" }} />
-          <div style={{ ...face(`translate3d(0px,${-cell / 2}px,0px) rotateX(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}99` : "#101a2e55" }} />
-          <div style={{ ...face(`translate3d(0px,${cell / 2}px,0px) rotateX(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}99` : "#101a2e55" }} />
-          <div style={{ ...face(`translate3d(${-cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}77` : "#0c1526aa" }} />
-          <div style={{ ...face(`translate3d(${cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}77` : "#0c1526aa" }} />
+        <div key={i} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d" }}>
+          <div style={face(`translate3d(0px,0px,${cell / 2}px)`, cell, cell, on, "cc")} />
+          <div style={face(`translate3d(0px,${-cell / 2}px,0px) rotateX(90deg)`, cell, cell, on, "99")} />
+          <div style={face(`translate3d(0px,${cell / 2}px,0px) rotateX(90deg)`, cell, cell, on, "99")} />
+          <div style={face(`translate3d(${-cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on, "77")} />
+          <div style={face(`translate3d(${cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on, "77")} />
         </div>,
       );
     }
     return out;
-  }, [lit, cell, step]);
+  }, [lit, blockOf, nSections, exploded, cell, step, fill]);
   return (
     <div className="relative touch-none select-none overflow-hidden rounded-lg"
       style={{ width: fill ? "100%" : px, height: fill ? "100%" : px, minWidth: fill ? undefined : px }}

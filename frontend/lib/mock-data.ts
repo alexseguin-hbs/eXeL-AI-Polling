@@ -767,28 +767,33 @@ const _SIM_SECTION_LABELS: Record<number, string[]> = {
   8: ["Dollars to tokens", "Mint the tokens", "Lifecycle", "Fix mistakes"],
   9: ["Build the CSV", "Fingerprint export", "Filter by tier", "Hand out results"],
 };
-// Mirror the backend voxel_highlight: deterministic partition of 27 cells into 4
-// sections seeded by cube_id, level scales density (3→⅓, 6→⅔, 9→all). Not byte-identical
-// to the Python sha256 (MOCK_MODE is a standalone demo) but same shape + deterministic.
-function _mockCellSection(cubeId: number, cell: number): number {
-  let h = (2166136261 ^ Math.imul(cubeId + 1, 2654435761)) >>> 0;
-  h = Math.imul(h ^ (cell + 1), 16777619) >>> 0;
-  return h % 4;
-}
-function _mockHighlight(cubeId: number, level: number, sectionIdx: number): number[] {
+// Mirror the backend segment_cells (FX-G): a section is a COHERENT contiguous slab of
+// cells (z-major), NOT a random scatter. n=3 → the 3 levels, n=4 → 4 stacked slabs,
+// n=9 → rows, n=27 → each mini-cube. Same coherent shape for every cube.
+const _SIM_ALLOWED_COUNTS = [3, 4, 9, 27];
+function _segmentCells(n: number, k: number): number[] {
+  const lo = Math.floor((k * 27) / n), hi = Math.floor(((k + 1) * 27) / n);
   const cells: number[] = [];
-  for (let c = 0; c < 27; c++) if (_mockCellSection(cubeId, c) === sectionIdx) cells.push(c);
-  const n = cells.length ? Math.ceil((cells.length * level) / 9) : 0;
-  return cells.slice(0, n);
+  for (let c = lo; c < hi; c++) cells.push(c);
+  return cells;
 }
-function _mockSections(cubeId: number) {
-  const labels = _SIM_SECTION_LABELS[cubeId] ?? ["Section A", "Section B", "Section C", "Section D"];
-  const io = _SIM_CUBES[cubeId]?.io.functions ?? [];
-  return _SIM_SECTION_KEYS.map((key, i) => ({
-    key, label: labels[i],
-    functions: io.length ? [io[i % io.length]] : [`fn_${key.toLowerCase()}`],
-    highlight: { "3": _mockHighlight(cubeId, 3, i), "6": _mockHighlight(cubeId, 6, i), "9": _mockHighlight(cubeId, 9, i) },
-  }));
+function _mockSections(cubeId: number, count = 4) {
+  if (count === 4) {
+    const labels = _SIM_SECTION_LABELS[cubeId] ?? ["Section A", "Section B", "Section C", "Section D"];
+    const io = _SIM_CUBES[cubeId]?.io.functions ?? [];
+    return _SIM_SECTION_KEYS.map((key, i) => {
+      const cells = _segmentCells(4, i);
+      return { key, label: labels[i], functions: io.length ? [io[i % io.length]] : [`fn_${key.toLowerCase()}`],
+        highlight: { "3": cells, "6": cells, "9": cells } };
+    });
+  }
+  const out = [];
+  for (let k = 0; k < count; k++) {
+    const cells = _segmentCells(count, k);
+    out.push({ key: `B${k + 1}`, label: count === 3 ? `Level ${k + 1}` : `Block ${k + 1}`,
+      functions: [] as string[], highlight: { "3": cells, "6": cells, "9": cells } });
+  }
+  return out;
 }
 
 function _mockHash(seed: string): string {
@@ -815,7 +820,8 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
   const action = m[2];
   const cube = _SIM_CUBES[id] || { name: `Cube ${id}`, io: { inputs: [], functions: [], outputs: [] } };
   if (method === "GET" && action === "contract") {
-    return { cube_id: id, name: cube.name, io_contract: cube.io, sections: _mockSections(id) };
+    const count = _SIM_ALLOWED_COUNTS.includes(Number(qs.get("sections"))) ? Number(qs.get("sections")) : 4;
+    return { cube_id: id, name: cube.name, io_contract: cube.io, sections: _mockSections(id, count) };
   }
   if (method === "GET" && action === "source") {
     // FX-B: LIVE source (representative real snippets under MOCK_MODE; the real backend
