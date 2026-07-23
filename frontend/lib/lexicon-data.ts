@@ -1171,7 +1171,7 @@ const experiences: TranslationEntry[] = [
   { key: "experiences.card.ind1.badge", englishDefault: "In the field", context: "Card badge: BD Spot MUVE C360", cubeId: 50 },
   { key: "experiences.card.ind1.blurb", englishDefault: "Gas-leak detection mounted on Boston Dynamics Spot; a shipped integration keeping people out of harm's way.", context: "Card blurb: BD Spot MUVE C360", cubeId: 50 },
   { key: "experiences.card.ind2.title", englishDefault: "Acoustic Imager · ii900", context: "Card title: Acoustic Imager ii900", cubeId: 50 },
-  { key: "experiences.card.ind2.badge", englishDefault: "Year Revenue: $20M", context: "Card badge suffix for ii900 (prefixed by superscript 1st)", cubeId: 50 },
+  { key: "experiences.card.ind2.badge", englishDefault: "Year 1 Revenue: $20M", context: "Card badge for ii900 acoustic imager — first-year revenue metric", cubeId: 50 },
   { key: "experiences.card.ind2.blurb", englishDefault: "Led a handheld acoustic-imaging product from first build to market; a new category customers could finally point and use.", context: "Card blurb: Acoustic Imager ii900", cubeId: 50 },
   { key: "experiences.card.ip1.title", englishDefault: "Sensor Fusion Patent", context: "Card title: Sensor Fusion Patent", cubeId: 50 },
   { key: "experiences.card.ip1.badge", englishDefault: "Cited 2× by Apple", context: "Card badge: Sensor Fusion Patent", cubeId: 50 },

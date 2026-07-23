@@ -15,7 +15,7 @@ import { LangSelect } from "@/components/experiences/lang-select";
 import { useLexicon } from "@/lib/lexicon-context";
 
 type CardKind = "pdf" | "link" | "video";
-type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; superBadge?: boolean; icon?: LucideIcon };
+type Item = { kind: CardKind; titleKey: string; blurbKey: string; href: string; badgeKey?: string; icon?: LucideIcon };
 
 // ── Presentation & Writeup — the AI/ML strategy documents ───────────────────────────────────
 const WRITEUPS: Item[] = [
@@ -67,7 +67,6 @@ const INDUSTRIAL: Item[] = [
     kind: "link",
     titleKey: "experiences.card.ind2.title",
     badgeKey: "experiences.card.ind2.badge",
-    superBadge: true,
     blurbKey: "experiences.card.ind2.blurb",
     href: "https://tinyurl.com/yc82z8v3",
   },
@@ -167,13 +166,7 @@ function Card({ item }: { item: Item }) {
           <div className="truncate font-medium">{t(item.titleKey)}</div>
           {item.badgeKey && (
             <span className="mt-1 inline-flex w-fit rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-              {item.superBadge ? (
-                <>
-                  1<sup className="align-super text-[9px]">st</sup> {t(item.badgeKey)}
-                </>
-              ) : (
-                t(item.badgeKey)
-              )}
+              {t(item.badgeKey)}
             </span>
           )}
           {open && (
