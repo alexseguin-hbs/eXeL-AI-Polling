@@ -2,10 +2,12 @@
 import pytest
 
 from app.cubes.cube10_simulation.sections import (
+    ALLOWED_SECTION_COUNTS,
     LEVELS,
     SECTION_KEYS,
     SECTIONS,
     sections_for,
+    segment_cells,
     voxel_highlight,
 )
 
@@ -49,16 +51,57 @@ class TestVoxelHighlight:
             assert n3 <= n6 <= n9 == 27
             assert n3 == 9 and n6 == 18  # ceil(27*3/9), ceil(27*6/9)
 
-    def test_unique_fingerprint_per_cube(self):
-        # No two cubes share the same section-A cell set (unique visual signature).
-        sigs = {c: tuple(voxel_highlight(c, 9, "A")) for c in ALL_CUBES}
-        assert len(set(sigs.values())) == len(ALL_CUBES)
+    def test_sections_are_coherent_contiguous_slabs(self):
+        # FX-G: a section is a COHERENT contiguous segment, the SAME shape for every
+        # cube (operator: "not a random pattern; a building block is a segment").
+        for c in ALL_CUBES:
+            for k, key in enumerate(SECTION_KEYS):
+                cells = voxel_highlight(c, 9, key)
+                assert cells == list(range(cells[0], cells[-1] + 1))  # contiguous
+                assert cells == segment_cells(4, k)                    # same across cubes
 
     def test_bad_level_and_section_raise(self):
         with pytest.raises(ValueError):
             voxel_highlight(1, 5, None)
         with pytest.raises(ValueError):
             voxel_highlight(1, 3, "Z")
+
+
+class TestSegmentCells:
+    def test_n3_is_the_three_levels(self):
+        assert segment_cells(3, 0) == list(range(0, 9))    # Level 1
+        assert segment_cells(3, 1) == list(range(9, 18))   # Level 2
+        assert segment_cells(3, 2) == list(range(18, 27))  # Level 3
+
+    def test_n27_is_singletons(self):
+        assert [segment_cells(27, k) for k in range(27)] == [[k] for k in range(27)]
+
+    @pytest.mark.parametrize("n", ALLOWED_SECTION_COUNTS)
+    def test_slabs_partition_all_27_once(self, n):
+        seen: list[int] = []
+        for k in range(n):
+            cells = segment_cells(n, k)
+            assert cells == list(range(cells[0], cells[-1] + 1)) if cells else True  # contiguous
+            seen += cells
+        assert sorted(seen) == list(range(27))
+
+
+class TestSectionsForCounts:
+    @pytest.mark.parametrize("n", ALLOWED_SECTION_COUNTS)
+    def test_sections_for_count(self, n):
+        secs = sections_for(5, n)
+        assert len(secs) == n
+        merged: list[int] = []
+        for s in secs:
+            merged += s["highlight"]["9"]
+        assert sorted(merged) == list(range(27))  # cover all 27 once
+
+    def test_n3_labels_are_levels(self):
+        assert [s["label"] for s in sections_for(5, 3)] == ["Level 1", "Level 2", "Level 3"]
+
+    def test_default_is_curated_four(self):
+        secs = sections_for(5)
+        assert [s["key"] for s in secs] == list(SECTION_KEYS)
 
 
 class TestSectionsFor:
