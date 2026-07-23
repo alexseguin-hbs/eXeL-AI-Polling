@@ -742,6 +742,61 @@ export function hydrateSessionFromKV(
   )!;
 }
 
+// ── Cube Simulation mock fixtures ───────────────────────────────────────────
+const _SIM_CUBES: Record<number, { name: string; io: { inputs: string[]; functions: string[]; outputs: string[] } }> = {
+  1: { name: "Session", io: { inputs: ["config", "moderator_id", "capacity"], functions: ["create_session", "generate_qr", "transition_state"], outputs: ["short_code", "qr_png", "session_id"] } },
+  2: { name: "Text Submission", io: { inputs: ["raw_text", "session_id", "participant", "language", "max_length"], functions: ["validate_and_fit", "detect_pii", "scrub_pii", "compute_response_hash"], outputs: ["clean_text", "pii_found", "response_hash", "replay_hash"] } },
+  3: { name: "Voice", io: { inputs: ["audio", "language", "provider"], functions: ["transcribe", "failover", "to_text_pipeline"], outputs: ["transcript", "confidence", "provider_used"] } },
+  4: { name: "Collector", io: { inputs: ["response", "session_id", "participant"], functions: ["aggregate", "track_presence", "persist"], outputs: ["response_count", "presence", "stored"] } },
+  5: { name: "Gateway", io: { inputs: ["session_id", "active_minutes", "action"], functions: ["calculate_tokens", "orchestrate_pipeline", "mot_cost_chart"], outputs: ["heart", "human", "unity", "dollars_per_min"] } },
+  6: { name: "AI Theming", io: { inputs: ["responses", "provider", "sample"], functions: ["embed", "cluster", "summarize", "assign_theme"], outputs: ["theme01", "theme02", "summaries", "replay_hash"] } },
+  7: { name: "Ranking", io: { inputs: ["ranked_ids", "votes", "level"], functions: ["borda", "anti_sybil", "aggregate"], outputs: ["ranking", "confidence", "winner"] } },
+  8: { name: "Tokens", io: { inputs: ["amount", "jurisdiction", "action"], functions: ["dollars_to_hi", "mint", "transition_lifecycle"], outputs: ["hi_tokens", "ledger_entry", "lifecycle_state"] } },
+  9: { name: "Reports", io: { inputs: ["session_id", "tier", "format"], functions: ["build_csv", "compute_export_hash", "distribute"], outputs: ["csv", "export_hash", "recipients"] } },
+};
+const _SIM_SECTIONS: Record<string, string> = { A: "Clean & fit", B: "Find private info", C: "Hide it", D: "Fingerprint" };
+
+function _mockHash(seed: string): string {
+  let h = 2166136261;
+  const out: string[] = [];
+  for (let i = 0; i < 64; i++) {
+    h = (h ^ (seed.charCodeAt((i + seed.length) % (seed.length || 1)) + i * 131)) >>> 0;
+    h = (h * 16777619) >>> 0;
+    out.push(((h >>> (i % 24)) & 15).toString(16));
+  }
+  return out.join("");
+}
+
+function handleSimMock(method: string, rawPath: string, body?: unknown): unknown {
+  const [path, query] = rawPath.split("?");
+  const qs = new URLSearchParams(query || "");
+  if (method === "GET" && path === "/sim/cubes") {
+    return { cubes: Object.entries(_SIM_CUBES).map(([id, c]) => ({ id: Number(id), name: c.name, level: "Level 1" })) };
+  }
+  const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay)$/);
+  if (!m) return undefined;
+  const id = Number(m[1]);
+  const action = m[2];
+  const cube = _SIM_CUBES[id] || { name: `Cube ${id}`, io: { inputs: [], functions: [], outputs: [] } };
+  if (method === "GET" && action === "contract") {
+    return { cube_id: id, name: cube.name, io_contract: cube.io };
+  }
+  if (method === "POST" && action === "run") {
+    const sig = _mockHash(`run:${id}`);
+    return { cube_id: id, metrics: { wall_time_ms: 388, function_calls: cube.io.functions.length * 100, db_execute_calls: 300 }, outputs: { total: 300, replay_hash: sig }, determinism_signature: sig };
+  }
+  if (method === "GET" && action === "replay") {
+    const section = qs.get("section");
+    const sig = _mockHash(`replay:${id}:${section || "cube"}`);
+    return { cube_id: id, section: section || null, section_label: section ? (_SIM_SECTIONS[section] || section) : "whole cube", scope: section ? "block" : "cube", status: "replayed", signature: sig, replay_hash: sig, row_count: 300, replay_hash_match: true };
+  }
+  if (method === "POST" && action === "challenge") {
+    const tier = (body as { tier?: string } | undefined)?.tier || "manual";
+    return { tier, decision: "swap", reason: "equivalent + faster (mock)", verdict: { equivalent: true, compare_passed: true, faster: true, overall_passed: true }, tally: null };
+  }
+  return undefined;
+}
+
 export async function handleMockRequest<T>(
   method: string,
   path: string,
@@ -749,6 +804,15 @@ export async function handleMockRequest<T>(
 ): Promise<T | null> {
   // ── Sync from localStorage (cross-tab state) on every read ────
   loadMockState();
+
+  // ── Cube Simulation (Dev-Sim / Manual Vision • 2525) mock fixtures ──────────
+  // Without these, /sim/* 404s under MOCK_MODE (the default deploy) and the
+  // workbench is inert. Real hashes/metrics come from the backend when
+  // NEXT_PUBLIC_MOCK_MODE=false. Deterministic so the UI is stable.
+  if (path.startsWith("/sim/")) {
+    const simRes = handleSimMock(method, path, body);
+    if (simRes !== undefined) return simRes as T;
+  }
 
   // GET /sessions (list) — reset 3 default test polls on every dashboard load
   if (method === "GET" && path === "/sessions") {
