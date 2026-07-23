@@ -434,3 +434,29 @@ async def sim_cube_challenge(
         cube_id, payload.candidate, tier=payload.tier,
         human_approved=payload.human_approved, human_selected=payload.human_selected,
     )
+
+
+@router.get("/sim/cube/{cube_id}/replay")
+async def sim_cube_replay(
+    cube_id: int,
+    section: str | None = None,
+    case_id: str = "demo",
+    user: CurrentUser = Depends(get_current_user),
+):
+    """Replay a cube against a dataset — the WHOLE cube (section=None) OR one building
+    block / level (section=A/B/C/D). Returns a reproducible replay_hash + scope so the
+    Dev-Master can beat a block or the whole cube (Manual Vision • 2525)."""
+    if cube_id not in _HARNESS_CUBES:
+        raise HTTPException(status_code=404,
+            detail=f"Cube {cube_id} has no dataset-replay harness yet.")
+    from app.cubes.cube10_simulation.saved_use_cases import (
+        SavedUseCaseManager, replay_against_dataset,
+    )
+    mgr = SavedUseCaseManager()
+    case = mgr.get_case(case_id) or mgr.demo
+    if not case:
+        raise HTTPException(status_code=404, detail="Dataset case not found")
+    try:
+        return await replay_against_dataset(case, cube_id, function_name="", section=section)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))

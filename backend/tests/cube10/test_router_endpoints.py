@@ -136,3 +136,52 @@ class TestReplayCase:
         """Dev mode returns moderator — which is not admin/lead, so 403 expected."""
         resp = await client.get("/api/v1/saved-cases/demo/replay")
         assert resp.status_code == 403
+
+
+class TestSimCubeReplayRoute:
+    """GET /sim/cube/{id}/replay — beat the WHOLE cube or ONE building block (section)."""
+
+    @staticmethod
+    def _auth(admin_user):
+        from app.core.auth import get_current_user
+        from app.main import app as test_app
+
+        async def override():
+            return admin_user
+
+        test_app.dependency_overrides[get_current_user] = override
+        return test_app, get_current_user
+
+    @pytest.mark.asyncio
+    async def test_cube2_whole_cube_replay(self, client, admin_user):
+        test_app, dep = self._auth(admin_user)
+        try:
+            resp = await client.get("/api/v1/sim/cube/2/replay")
+            assert resp.status_code == 200
+            body = resp.json()
+            assert body["scope"] == "cube"
+            assert len(body["replay_hash"]) == 64
+        finally:
+            test_app.dependency_overrides.pop(dep, None)
+
+    @pytest.mark.asyncio
+    async def test_cube2_section_replay(self, client, admin_user):
+        test_app, dep = self._auth(admin_user)
+        try:
+            resp = await client.get("/api/v1/sim/cube/2/replay?section=B")
+            assert resp.status_code == 200
+            body = resp.json()
+            assert body["scope"] == "block"
+            assert body["section"] == "B"
+            assert len(body["replay_hash"]) == 64
+        finally:
+            test_app.dependency_overrides.pop(dep, None)
+
+    @pytest.mark.asyncio
+    async def test_bad_section_returns_400(self, client, admin_user):
+        test_app, dep = self._auth(admin_user)
+        try:
+            resp = await client.get("/api/v1/sim/cube/2/replay?section=Z")
+            assert resp.status_code == 400
+        finally:
+            test_app.dependency_overrides.pop(dep, None)
