@@ -372,7 +372,10 @@ async def sim_list_cubes():
 
 @router.get("/sim/cube/{cube_id}/contract")
 async def sim_cube_contract(cube_id: int):
-    """Cube I/O contract — inputs → functions → outputs (Cube 1 from the live harness)."""
+    """Cube I/O contract — inputs → functions → outputs, RICH for ALL cubes 1-9.
+    Cube 1 emits its own io_contract from the harness; cubes 2-9 compose one from the
+    shared `core.universal` registry (per-fn input/output schemas) so the workbench
+    always has a real inputs·functions·outputs diagram."""
     if cube_id < 1 or cube_id > 9:
         raise HTTPException(status_code=400, detail="cube_id must be 1-9")
     if cube_id not in _HARNESS_CUBES:
@@ -386,11 +389,26 @@ async def sim_cube_contract(cube_id: int):
             "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
             "io_contract": r["io_contract"], "inputs": r["inputs"], "sample_outputs": r["outputs"],
         }
-    # Cubes 2/6/7: minimal contract from the harness result (R2 enriches the block diagram).
+    # Cubes 2-9: compose a rich contract from the shared universal-function registry
+    # (fn names + input/output schemas + path params) folded with the harness's real
+    # output keys — so every cube has non-empty inputs·functions·outputs.
+    from app.core.universal import get_by_cube
+
+    funcs = get_by_cube(cube_id)
+    inputs: set[str] = {f["input_schema"] for f in funcs if f.get("input_schema")}
+    for f in funcs:  # path-param cubes take a session_id
+        if "{id}" in (f.get("endpoint") or ""):
+            inputs.add("session_id")
+    functions = [f["name"] for f in funcs]
+    outputs: set[str] = {f["output_schema"] for f in funcs if f.get("output_schema")}
+    outputs |= {f["broadcasts_event"] for f in funcs if f.get("broadcasts_event")}
+    outputs |= {k for k in r if k not in ("metrics", "determinism_signature", "cube")}
+    if not inputs:
+        inputs = {"session_id"}
     return {
         "cube_id": cube_id, "name": _CUBE_NAMES[cube_id],
-        "io_contract": {"cube": r.get("cube", _CUBE_NAMES[cube_id])},
-        "inputs": {}, "sample_outputs": r,
+        "io_contract": {"inputs": sorted(inputs), "functions": functions, "outputs": sorted(outputs)},
+        "inputs": sorted(inputs), "sample_outputs": r,
     }
 
 

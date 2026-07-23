@@ -138,6 +138,21 @@ class TestReplayCase:
         assert resp.status_code == 403
 
 
+class TestSimContractRichness:
+    """GET /sim/cube/{id}/contract — every cube 1-9 returns a RICH inputs·functions·outputs."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("cube_id", [1, 2, 3, 4, 5, 6, 7, 8, 9])
+    async def test_contract_rich_for_all_cubes(self, client, cube_id):
+        resp = await client.get(f"/api/v1/sim/cube/{cube_id}/contract")
+        assert resp.status_code == 200
+        io = resp.json()["io_contract"]
+        # §2: cubes 2-9 compose from core.universal; cube 1 from its harness. All non-empty.
+        assert io.get("inputs"), f"cube {cube_id} inputs empty"
+        assert io.get("functions"), f"cube {cube_id} functions empty"
+        assert io.get("outputs"), f"cube {cube_id} outputs empty"
+
+
 class TestSimCubeReplayRoute:
     """GET /sim/cube/{id}/replay — beat the WHOLE cube or ONE building block (section)."""
 

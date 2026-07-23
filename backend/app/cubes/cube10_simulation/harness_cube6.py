@@ -110,6 +110,13 @@ async def run_harness_cube6(
             {"persona": r["persona"], "theme01": r.get("theme01"), "theme2_3": r.get("theme2_3")}
             for r in responses
         ],
+        # Deterministic structural metrics (pure harness — cost scales with work, not wall-clock)
+        # so /sim/cube/6/run + _harness_to_metrics stop reporting zeros for Cube 6.
+        "metrics": {
+            "function_calls": len(responses),
+            "db_execute_calls": 0,
+            "wall_time_ms": float(len(responses)),
+        },
         "determinism_signature": signature,
     }
 

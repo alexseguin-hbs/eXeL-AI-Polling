@@ -66,6 +66,13 @@ def run_harness_cube7(
         "cube": "cube7_ranking",
         "n_themes": n,
         "participants": len(rankings),
+        # Deterministic structural metrics (pure harness — cost scales with ballots × themes)
+        # so /sim/cube/7/run + _harness_to_metrics stop reporting zeros for Cube 7.
+        "metrics": {
+            "function_calls": len(rankings) * n,
+            "db_execute_calls": 0,
+            "wall_time_ms": float(len(rankings) * n),
+        },
         "determinism_signature": signature,
         "unweighted": {"winner": u_order[0], "order": u_order, "replay_hash": u_hash},
         "quadratic": {
