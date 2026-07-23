@@ -32,6 +32,17 @@ def _is_face_connected(cells: list[int]) -> bool:
     return seen == want
 
 
+def _all_planar(groups: list[list[int]]) -> bool:
+    """True iff every group is a flat axis-plane (a clean slab: all cells share x, y, or z)."""
+    for g in groups:
+        xs = {i % 3 for i in g}
+        ys = {(i // 3) % 3 for i in g}
+        zs = {i // 9 for i in g}
+        if not (len(xs) == 1 or len(ys) == 1 or len(zs) == 1):
+            return False
+    return True
+
+
 class TestSectionsMap:
     def test_all_9_cubes_have_4_sections(self):
         for c in ALL_CUBES:
@@ -124,24 +135,19 @@ class TestPartition:
     def test_n27_singletons(self):
         assert partition(5, 27) == [[k] for k in range(27)]
 
-    def test_n3_are_clean_slabs_of_9(self):
-        # Operator's example: 3 building blocks = 3 clean planar slabs (layers OR
-        # vertical planes), each 3×3 = 9 face-connected cells.
-        for c in ALL_CUBES:
+    def test_n3_supports_clean_slabs_AND_irregular(self):
+        # Operator: clean 3×3 slabs are valid, but "clean is not a need" — irregular
+        # connected shapes are also valid. Across cubes we get BOTH (seeded style).
+        planar = [_all_planar(partition(c, 3)) for c in range(1, 40)]
+        assert any(planar), "no clean slab config appeared"
+        assert any(not p for p in planar), "no irregular config appeared"
+        for c in range(1, 40):  # every config is always face-connected + covers
             groups = partition(c, 3)
-            assert [len(g) for g in groups] == [9, 9, 9]
+            assert sorted(x for g in groups for x in g) == list(range(27))
             for g in groups:
                 assert _is_face_connected(g)
 
-    def test_n9_are_columns_of_3(self):
-        for c in ALL_CUBES:
-            groups = partition(c, 9)
-            assert [len(g) for g in groups] == [3] * 9
-            for g in groups:
-                assert _is_face_connected(g)
-
-    def test_slab_orientation_varies_across_cubes(self):
-        # layers vs vertical planes — the seeded axis differs across cubes.
+    def test_shapes_vary_across_cubes(self):
         assert len({tuple(tuple(g) for g in partition(c, 3)) for c in ALL_CUBES}) > 1
 
     def test_deterministic(self):

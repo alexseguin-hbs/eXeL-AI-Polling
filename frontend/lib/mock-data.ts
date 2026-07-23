@@ -800,7 +800,8 @@ function _axisSlabs(seed: number, n: number): number[][] {
 function _connectedPartition(seed: number, n: number): number[][] {
   if (n <= 1) return [Array.from({ length: 27 }, (_, i) => i)];
   if (n >= 27) return Array.from({ length: 27 }, (_, i) => [i]);
-  if (n === 3 || n === 9) return _axisSlabs(seed, n);   // clean slabs/columns (FX-K)
+  // n=3/9: seeded-choose clean slabs OR irregular region-grow (FX-L: clean not required).
+  if ((n === 3 || n === 9) && (Math.imul(seed + 3, 2246822519) >>> 0) % 2 === 0) return _axisSlabs(seed, n);
   const key = (c: number) => { let h = (2166136261 ^ Math.imul(seed + 1, 2654435761)) >>> 0; h = Math.imul(h ^ (c + 1), 16777619) >>> 0; return h; };
   const order = Array.from({ length: 27 }, (_, c) => c).sort((a, b) => key(a) - key(b));
   const pos: Record<number, number> = {}; order.forEach((c, i) => { pos[c] = i; });

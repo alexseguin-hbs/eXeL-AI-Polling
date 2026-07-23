@@ -169,8 +169,14 @@ def partition(cube_id: int, n: int) -> list[list[int]]:
         return [list(range(27))]
     if n >= 27:
         return [[i] for i in range(27)]
-    if n == 3 or n == 9:
-        return _axis_slabs(cube_id, n)
+    # For counts that CAN form clean axis slabs (3, 9), seeded-choose per cube between a
+    # clean slab/column split and an IRREGULAR region-grown shape — clean is not required
+    # (operator: "clean tab is not a need; 3 bottom cubes + a stacked middle cube + a
+    # branch toward center is also possible"). Both are valid connected building blocks.
+    if n in (3, 9):
+        style = int(hashlib.sha256(f"{cube_id}:style".encode()).hexdigest(), 16) % 2
+        if style == 0:
+            return _axis_slabs(cube_id, n)
     order = _seeded_order(cube_id)
     pos = {c: i for i, c in enumerate(order)}
     seeds = order[:n]
