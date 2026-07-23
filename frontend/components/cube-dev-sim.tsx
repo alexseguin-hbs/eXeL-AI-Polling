@@ -265,7 +265,7 @@ export function CubeDevSim() {
               <div className="text-sm font-semibold">Cube {contract.cube_id} · {contract.name}</div>
               {/* Granularity + Explode — how many building blocks the 27 mini-cubes group into. */}
               <div className="mt-2 flex flex-wrap items-center gap-1">
-                {[{ n: 3, l: "Lvl·3" }, { n: 4, l: "Fn·4" }, { n: 9, l: "9" }, { n: 27, l: "27" }].map(({ n, l }) => (
+                {[{ n: 2, l: "2" }, { n: 3, l: "3" }, { n: 4, l: "Fn·4" }, { n: 6, l: "6" }, { n: 9, l: "9" }, { n: 27, l: "27" }].map(({ n, l }) => (
                   <button key={n} onClick={() => changeCount(n)} disabled={busy === "contract"}
                     className={`rounded border px-2 py-0.5 font-mono text-[11px] transition ${secCount === n ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
                     style={secCount === n ? { background: AI, borderColor: AI } : undefined}>{l}</button>
@@ -275,7 +275,7 @@ export function CubeDevSim() {
                   style={exploded ? { background: HI, borderColor: HI } : undefined}>Explode</button>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                27 mini-cubes · {nSections} {secCount === 3 ? "levels" : secCount === 4 ? "sections" : "blocks"} · selected{" "}
+                27 mini-cubes · {nSections} {secCount === 4 ? "sections" : "blocks"} · selected{" "}
                 <b style={{ color: SI }}>{activeSection?.key}</b> (<b>{activeSection?.label}</b>) — {litCells.size} cubes ON.
               </p>
               <p className="mt-1 text-[10px] text-muted-foreground/70">Drag to rotate · pinch/scroll to zoom · Explode separates the blocks.</p>

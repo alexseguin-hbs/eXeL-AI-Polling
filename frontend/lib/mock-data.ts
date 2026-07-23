@@ -770,7 +770,7 @@ const _SIM_SECTION_LABELS: Record<number, string[]> = {
 // Mirror the backend segment_cells (FX-G): a section is a COHERENT contiguous slab of
 // cells (z-major), NOT a random scatter. n=3 → the 3 levels, n=4 → 4 stacked slabs,
 // n=9 → rows, n=27 → each mini-cube. Same coherent shape for every cube.
-const _SIM_ALLOWED_COUNTS = [3, 4, 9, 27];
+const _SIM_ALLOWED_COUNTS = Array.from({ length: 26 }, (_, i) => i + 2); // 2..27
 // Mirror the backend partition (FX-I): each building block is FACE-CONNECTED (Lego rule),
 // varied per cube. n=3 → layers, n=9 → columns, n=27 → singletons, else seeded region-grow.
 function _faceNeighbors(i: number): number[] {
@@ -782,9 +782,8 @@ function _faceNeighbors(i: number): number[] {
   return o;
 }
 function _connectedPartition(seed: number, n: number): number[][] {
-  if (n === 3) return [0, 1, 2].map((L) => [0, 1, 2, 3, 4, 5, 6, 7, 8].map((c) => c + L * 9));
-  if (n === 27) return Array.from({ length: 27 }, (_, i) => [i]);
-  if (n === 9) return Array.from({ length: 9 }, (_, c) => [c, c + 9, c + 18]);
+  if (n <= 1) return [Array.from({ length: 27 }, (_, i) => i)];
+  if (n >= 27) return Array.from({ length: 27 }, (_, i) => [i]);
   const key = (c: number) => { let h = (2166136261 ^ Math.imul(seed + 1, 2654435761)) >>> 0; h = Math.imul(h ^ (c + 1), 16777619) >>> 0; return h; };
   const order = Array.from({ length: 27 }, (_, c) => c).sort((a, b) => key(a) - key(b));
   const pos: Record<number, number> = {}; order.forEach((c, i) => { pos[c] = i; });
@@ -822,11 +821,13 @@ function _mockSections(cubeId: number, count = 4) {
     });
   }
   const out = [];
+  const allf = cio.functions ?? [];
   for (let k = 0; k < count; k++) {
     const cells = groups[k];
-    out.push({ key: `B${k + 1}`, label: count === 3 ? `Level ${k + 1}` : `Block ${k + 1}`,
-      functions: [] as string[], highlight: { "3": cells, "6": cells, "9": cells },
-      io: { inputs: cio.inputs, functions: [] as string[], outputs: cio.outputs } });
+    const fns = allf.filter((_, j) => j % count === k);   // mirror real code across blocks
+    out.push({ key: `B${k + 1}`, label: `Block ${k + 1}`,
+      functions: fns, highlight: { "3": cells, "6": cells, "9": cells },
+      io: { inputs: cio.inputs, functions: fns, outputs: cio.outputs } });
   }
   return out;
 }
