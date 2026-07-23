@@ -26,7 +26,8 @@ import { useLexicon } from "@/lib/lexicon-context";
 import { useRCoreGestures } from "@/components/architect-2525/use-rcore-gestures";
 
 type CubeInfo = { cube_id: number; name: string; harness_available: boolean };
-type Section = { key: string; label: string; functions: string[]; highlight: Record<string, number[]> };
+type SectionIO = { inputs: string[]; functions: string[]; outputs: string[] };
+type Section = { key: string; label: string; functions: string[]; highlight: Record<string, number[]>; io?: SectionIO };
 type Contract = {
   cube_id: number; name: string;
   io_contract: { inputs: string[]; functions: string[]; outputs: string[] };
@@ -290,11 +291,12 @@ export function CubeDevSim() {
             </div>
           )}
 
-          {/* Block I·F·O */}
+          {/* Block I·F·O — the SELECTED building block's own inputs·functions·outputs
+              (FX-H), falling back to the whole-cube contract. */}
           <div className="grid gap-3 sm:grid-cols-3">
-            {col(t("cube10.sim.input"), contract.io_contract.inputs, SI)}
-            {col(t("cube10.sim.functions"), activeSection?.functions ?? contract.io_contract.functions, AI)}
-            {col(t("cube10.sim.output"), contract.io_contract.outputs, HI)}
+            {col(t("cube10.sim.input"), activeSection?.io?.inputs ?? contract.io_contract.inputs, SI)}
+            {col(t("cube10.sim.functions"), activeSection?.io?.functions ?? activeSection?.functions ?? contract.io_contract.functions, AI)}
+            {col(t("cube10.sim.output"), activeSection?.io?.outputs ?? contract.io_contract.outputs, HI)}
           </div>
 
           {/* LIVE ↔ YOUR VERSION code (maximizable) */}
@@ -412,7 +414,7 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
     const face = (t: string, w: number, h: number, on: boolean, alpha: string): CSSProperties =>
       ({ ...at(t), width: w, height: h, border: `1px solid ${on ? SI : OFF}`, background: on ? `${SI}${alpha}` : "transparent" });
     const mid = (nSections - 1) / 2;
-    const explodeGap = fill ? 40 : 26;
+    const explodeGap = fill ? 52 : 32;   // clear Lego/Tetris separation along the stack axis
     const out: ReactNode[] = [];
     for (let i = 0; i < 27; i++) {
       const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
@@ -428,6 +430,17 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
           <div style={face(`translate3d(${cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on, "77")} />
         </div>,
       );
+    }
+    // Exploded → 4 corner connector rods spanning the stack (the "screws" that hold the
+    // stacked plates, like the reference case exploded view).
+    if (exploded && nSections > 1) {
+      const totalH = 2 * step + (nSections - 1) * explodeGap + cell;
+      const r = step * 1.2;
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy], k) => {
+        out.push(<div key={`rod${k}`}
+          style={{ ...at(`translate3d(${sx * r}px,${sy * r}px,0px) rotateX(90deg)`),
+            width: 2, height: totalH, background: `${OFF}dd` }} />);
+      });
     }
     return out;
   }, [lit, blockOf, nSections, exploded, cell, step, fill]);

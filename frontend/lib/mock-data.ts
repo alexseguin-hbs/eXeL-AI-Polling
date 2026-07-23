@@ -778,20 +778,23 @@ function _segmentCells(n: number, k: number): number[] {
   return cells;
 }
 function _mockSections(cubeId: number, count = 4) {
+  const cio = _SIM_CUBES[cubeId]?.io ?? { inputs: [], functions: [], outputs: [] };
   if (count === 4) {
     const labels = _SIM_SECTION_LABELS[cubeId] ?? ["Section A", "Section B", "Section C", "Section D"];
-    const io = _SIM_CUBES[cubeId]?.io.functions ?? [];
+    const io = cio.functions ?? [];
     return _SIM_SECTION_KEYS.map((key, i) => {
       const cells = _segmentCells(4, i);
-      return { key, label: labels[i], functions: io.length ? [io[i % io.length]] : [`fn_${key.toLowerCase()}`],
-        highlight: { "3": cells, "6": cells, "9": cells } };
+      const fns = io.length ? [io[i % io.length]] : [`fn_${key.toLowerCase()}`];
+      return { key, label: labels[i], functions: fns, highlight: { "3": cells, "6": cells, "9": cells },
+        io: { inputs: cio.inputs, functions: fns, outputs: cio.outputs } };
     });
   }
   const out = [];
   for (let k = 0; k < count; k++) {
     const cells = _segmentCells(count, k);
     out.push({ key: `B${k + 1}`, label: count === 3 ? `Level ${k + 1}` : `Block ${k + 1}`,
-      functions: [] as string[], highlight: { "3": cells, "6": cells, "9": cells } });
+      functions: [] as string[], highlight: { "3": cells, "6": cells, "9": cells },
+      io: { inputs: cio.inputs, functions: [] as string[], outputs: cio.outputs } });
   }
   return out;
 }
