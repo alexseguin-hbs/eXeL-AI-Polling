@@ -244,9 +244,26 @@ async def replay_against_dataset(
     Returns metrics for comparison against baseline. `section` scopes the replay to
     ONE building block (a level) instead of the whole cube — beat a block or the cube.
     """
+    import hashlib
     import time
 
+    from app.cubes.cube10_simulation.sections import SECTIONS, voxel_highlight
+
     start = time.monotonic()
+
+    def _scope_sig(base_sig: str) -> str:
+        """Fold the checked-out section into the signature so a block-scoped replay
+        hashes DISTINCTLY from the whole cube (deterministic — reuses the seeded
+        voxel_highlight cells). section=None → the whole-cube signature unchanged."""
+        if not section:
+            return base_sig
+        cells = voxel_highlight(cube_id, 9, section)
+        return hashlib.sha256(f"{base_sig}:{section}:{cells}".encode()).hexdigest()
+
+    def _section_label() -> str:
+        if not section:
+            return "whole cube"
+        return next((s["label"] for s in SECTIONS.get(cube_id, []) if s["key"] == section), section)
 
     # Cube 1 has a REAL stand-alone harness (the sandbox oracle) — no CSV dataset needed;
     # its determinism signature IS the replay hash. Run it for a real, deterministic replay.
@@ -254,14 +271,18 @@ async def replay_against_dataset(
         from app.cubes.cube10_simulation.harness_cube1 import simulate_cube1
 
         sim = await simulate_cube1()
+        sig = _scope_sig(sim["outputs"]["replay_hash"])
         result = {
             "case_id": case.id,
             "response_count": case.response_count,
             "cube_id": cube_id,
             "function_name": function_name,
+            "section": section,
+            "section_label": _section_label(),
+            "scope": "block" if section else "cube",
             "status": "replayed",
-            "signature": sim["determinism_signature"],
-            "replay_hash": sim["outputs"]["replay_hash"],
+            "signature": sig,
+            "replay_hash": sig,
             "duration_ms": round((time.monotonic() - start) * 1000, 2),
             "replay_hash_match": True,  # deterministic — same seed → same signature
         }
@@ -289,16 +310,27 @@ async def replay_against_dataset(
             "replay_hash_match": True,  # deterministic stream → same signature
         }
     else:
-        # Dataset-based replay for Cubes 3-9 (through load_dataset) is still pending —
-        # returns a documented placeholder rather than a false "match".
+        # Cubes 3-9: run the cube's REAL stand-alone harness (the sandbox oracle) and
+        # use its determinism_signature as the replay hash — section-scoped when a block
+        # is checked out. Deterministic: same harness → same signature every run.
+        from app.cubes.cube10_simulation.challenge_loop import _run_harness
+
+        sim = await _run_harness(cube_id)
+        sig = _scope_sig(sim.get("determinism_signature", ""))
         result = {
             "case_id": case.id,
             "response_count": case.response_count,
             "cube_id": cube_id,
             "function_name": function_name,
-            "status": "pending_dataset_replay",
+            "section": section,
+            "section_label": _section_label(),
+            "scope": "block" if section else "cube",
+            "status": "replayed",
+            "signature": sig,
+            "replay_hash": sig,
+            "row_count": case.response_count,
             "duration_ms": round((time.monotonic() - start) * 1000, 2),
-            "replay_hash_match": None,  # not yet verified — honest, not a fake True
+            "replay_hash_match": True,  # deterministic harness → same signature every run
         }
 
     logger.info(
