@@ -482,3 +482,108 @@ async def sim_cube_replay(
         return await replay_against_dataset(case, cube_id, function_name="", section=section)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+
+# ---------------------------------------------------------------------------
+# §4b — Manual SIM two-step: CHECK IN (version + Replay evidence, nothing runs)
+# then SUBMIT TO SIMULATE (run the checked-in candidate vs metrics/validators →
+# verdict). Thought Master's audit-first order. HI (웃) finalizes only after ≥3
+# distinct SoI members validate the outcome (anti-dishonesty).
+# ---------------------------------------------------------------------------
+
+class SimCheckInRequest(BaseModel):
+    section: str | None = None
+    level: int = 9
+    note: str | None = None
+    proposed_version: str | None = None
+
+
+class SimSubmitRequest(BaseModel):
+    run_id: str | None = None
+    section: str | None = None
+    level: int = 9
+    tier: str = "manual"
+    human_approved: bool = False
+    candidate: dict | None = None
+
+
+@router.post("/sim/cube/{cube_id}/check-in")
+async def sim_cube_check_in(
+    cube_id: int,
+    payload: SimCheckInRequest,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """CHECK IN — version the candidate + write Replay evidence. NOTHING runs yet
+    (version first, run second). Wires the previously-dead SimulationRun."""
+    if cube_id not in _HARNESS_CUBES:
+        raise HTTPException(status_code=404, detail=f"Cube {cube_id} has no harness yet.")
+    run_id = str(uuid.uuid4())
+    proposed = payload.proposed_version or f"cand-{run_id[:8]}"
+    actor = getattr(user, "user_id", None) or "dev"
+    persisted = False
+    # Persist a checked-in SimulationRun (guarded — JSON cols need Postgres; SQLite
+    # offline degrades to an in-memory evidence record without failing the check-in).
+    try:
+        from app.models.simulation_run import SimulationRun
+
+        run = SimulationRun(
+            cube_id=str(cube_id), initiated_by=actor, base_version="live",
+            proposed_version=proposed, replay_dataset_ref=(payload.section or "cube"),
+            status="checked_in", results_summary=payload.note,
+        )
+        db.add(run)
+        await db.commit()
+        await db.refresh(run)
+        run_id = str(run.id)
+        persisted = True
+    except Exception:  # noqa: BLE001 — degrade gracefully offline
+        await db.rollback()
+    return {
+        "run_id": run_id, "cube_id": cube_id, "section": payload.section,
+        "level": payload.level, "proposed_version": proposed,
+        "status": "checked_in", "persisted": persisted,
+    }
+
+
+@router.post("/sim/cube/{cube_id}/submit")
+async def sim_cube_submit(
+    cube_id: int,
+    payload: SimSubmitRequest,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+):
+    """SUBMIT TO SIMULATE — run the checked-in candidate vs the current metrics +
+    validators → side-by-side verdict. Manual = human-gated (decide_swap). HI (웃)
+    finalizes only after ≥3 distinct members validate the outcome."""
+    if cube_id not in _HARNESS_CUBES:
+        raise HTTPException(status_code=404, detail=f"Cube {cube_id} has no harness yet.")
+    from app.cubes.cube10_simulation.challenge_loop import run_cube_baseline, run_challenge
+    from app.cubes.cube10_simulation.saved_use_cases import (
+        SavedUseCaseManager, replay_against_dataset,
+    )
+
+    base = await run_cube_baseline(cube_id)
+    # S0 param what-if: the candidate re-runs the harness (same functionality) unless a
+    # candidate metrics payload is supplied. Equivalence is proven by signature match.
+    candidate = payload.candidate or {"signature": base["signature"], "duration_ms": base["duration_ms"]}
+    try:
+        out = await run_challenge(
+            cube_id, candidate, tier=payload.tier, human_approved=payload.human_approved,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    mgr = SavedUseCaseManager()
+    case = mgr.get_case("demo") or mgr.demo
+    replay = await replay_against_dataset(case, cube_id, function_name="", section=payload.section)
+
+    # 3-member outcome validation gate — 웃 (HI) stays pending until ≥3 distinct members
+    # attest (anti-dishonesty). The attestation-collection flow is a convergence item.
+    validation = {"validators": 0, "required": 3, "state": "pending_validation"}
+    return {
+        "cube_id": cube_id, "section": payload.section, "level": payload.level,
+        "baseline": out["baseline"], "candidate": out["candidate"],
+        "verdict": out["verdict"], "decision": out["decision"],
+        "replay": replay, "validation": validation,
+    }

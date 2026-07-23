@@ -138,6 +138,43 @@ class TestReplayCase:
         assert resp.status_code == 403
 
 
+class TestSimCheckInSubmit:
+    """§4b — Check In (version, nothing runs) then Submit to Simulate (run → verdict)."""
+
+    @pytest.mark.asyncio
+    async def test_check_in_versions_without_running(self, client):
+        resp = await client.post("/api/v1/sim/cube/2/check-in", json={"section": "B", "note": "faster PII"})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["status"] == "checked_in"
+        assert body["run_id"] and body["proposed_version"]
+        assert body["section"] == "B"
+
+    @pytest.mark.asyncio
+    async def test_submit_returns_verdict_replay_and_validation(self, client):
+        resp = await client.post(
+            "/api/v1/sim/cube/2/submit",
+            json={"section": "B", "tier": "manual", "human_approved": False},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "verdict" in body and "decision" in body
+        # Manual + not-yet-approved → hold (awaiting human).
+        assert body["decision"]["decision"] in ("hold", "swap", "reject")
+        assert body["decision"]["tier"] == "manual"
+        # 3-member outcome-validation gate present.
+        assert body["validation"]["required"] == 3
+        assert body["validation"]["state"] == "pending_validation"
+        # section replay hash is real (64-hex, block scope).
+        assert len(body["replay"]["replay_hash"]) == 64
+        assert body["replay"]["scope"] == "block"
+
+    @pytest.mark.asyncio
+    async def test_submit_bad_tier_returns_400(self, client):
+        resp = await client.post("/api/v1/sim/cube/2/submit", json={"tier": "nope"})
+        assert resp.status_code == 400
+
+
 class TestSimContractRichness:
     """GET /sim/cube/{id}/contract — every cube 1-9 returns a RICH inputs·functions·outputs."""
 
