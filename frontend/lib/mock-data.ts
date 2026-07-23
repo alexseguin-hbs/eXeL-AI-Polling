@@ -755,6 +755,41 @@ const _SIM_CUBES: Record<number, { name: string; io: { inputs: string[]; functio
   9: { name: "Reports", io: { inputs: ["session_id", "tier", "format"], functions: ["build_csv", "compute_export_hash", "distribute"], outputs: ["csv", "export_hash", "recipients"] } },
 };
 const _SIM_SECTIONS: Record<string, string> = { A: "Clean & fit", B: "Find private info", C: "Hide it", D: "Fingerprint" };
+const _SIM_SECTION_KEYS = ["A", "B", "C", "D"] as const;
+const _SIM_SECTION_LABELS: Record<number, string[]> = {
+  1: ["Make the session", "QR & join link", "Fingerprint", "Open / close"],
+  2: ["Clean & fit", "Find private info", "Hide it", "Fingerprint"],
+  3: ["Listen (audio in)", "Turn speech to text", "Backup provider", "Send to pipeline"],
+  4: ["Gather answers", "Who's here", "Save it", "Read the room"],
+  5: ["Count the time", "Kick off the AI", "Cost per minute", "Profit math"],
+  6: ["Sort into buckets", "Pick samples", "Write the summary", "Tag each answer"],
+  7: ["Score the votes", "Stop cheating", "Add it all up", "Break ties"],
+  8: ["Dollars to tokens", "Mint the tokens", "Lifecycle", "Fix mistakes"],
+  9: ["Build the CSV", "Fingerprint export", "Filter by tier", "Hand out results"],
+};
+// Mirror the backend voxel_highlight: deterministic partition of 27 cells into 4
+// sections seeded by cube_id, level scales density (3→⅓, 6→⅔, 9→all). Not byte-identical
+// to the Python sha256 (MOCK_MODE is a standalone demo) but same shape + deterministic.
+function _mockCellSection(cubeId: number, cell: number): number {
+  let h = (2166136261 ^ Math.imul(cubeId + 1, 2654435761)) >>> 0;
+  h = Math.imul(h ^ (cell + 1), 16777619) >>> 0;
+  return h % 4;
+}
+function _mockHighlight(cubeId: number, level: number, sectionIdx: number): number[] {
+  const cells: number[] = [];
+  for (let c = 0; c < 27; c++) if (_mockCellSection(cubeId, c) === sectionIdx) cells.push(c);
+  const n = cells.length ? Math.ceil((cells.length * level) / 9) : 0;
+  return cells.slice(0, n);
+}
+function _mockSections(cubeId: number) {
+  const labels = _SIM_SECTION_LABELS[cubeId] ?? ["Section A", "Section B", "Section C", "Section D"];
+  const io = _SIM_CUBES[cubeId]?.io.functions ?? [];
+  return _SIM_SECTION_KEYS.map((key, i) => ({
+    key, label: labels[i],
+    functions: io.length ? [io[i % io.length]] : [`fn_${key.toLowerCase()}`],
+    highlight: { "3": _mockHighlight(cubeId, 3, i), "6": _mockHighlight(cubeId, 6, i), "9": _mockHighlight(cubeId, 9, i) },
+  }));
+}
 
 function _mockHash(seed: string): string {
   let h = 2166136261;
@@ -774,13 +809,38 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
     // Mirror the backend shape exactly: {cube_id, name, harness_available}. All 9 have harnesses.
     return { cubes: Object.entries(_SIM_CUBES).map(([id, c]) => ({ cube_id: Number(id), name: c.name, harness_available: true })) };
   }
-  const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay)$/);
+  const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay|check-in|submit)$/);
   if (!m) return undefined;
   const id = Number(m[1]);
   const action = m[2];
   const cube = _SIM_CUBES[id] || { name: `Cube ${id}`, io: { inputs: [], functions: [], outputs: [] } };
   if (method === "GET" && action === "contract") {
-    return { cube_id: id, name: cube.name, io_contract: cube.io };
+    return { cube_id: id, name: cube.name, io_contract: cube.io, sections: _mockSections(id) };
+  }
+  if (method === "POST" && action === "check-in") {
+    const b = (body as { section?: string; level?: number } | undefined) || {};
+    return { run_id: _mockHash(`checkin:${id}:${b.section || ""}`).slice(0, 32), cube_id: id,
+      section: b.section ?? null, level: b.level ?? 9, proposed_version: `cand-${id}`, status: "checked_in", persisted: false };
+  }
+  if (method === "POST" && action === "submit") {
+    const b = (body as { section?: string; level?: number; tier?: string; human_approved?: boolean } | undefined) || {};
+    const tier = b.tier || "manual";
+    if (!["manual", "semi", "automated"].includes(tier)) return { __status: 400 };
+    const sig = _mockHash(`run:${id}`);
+    const metrics = { wall_time_ms: 388, function_calls: cube.io.functions.length * 100, db_execute_calls: 300 };
+    const verdict = { equivalent: true, compare_passed: true, faster: true, overall_passed: true };
+    const decision = b.human_approved
+      ? { tier, decision: "swap", reason: "human approved the swap", tally: null }
+      : { tier, decision: "hold", reason: "awaiting human approval", tally: null };
+    const rsig = _mockHash(`replay:${id}:${b.section || "cube"}`);
+    return {
+      cube_id: id, section: b.section ?? null, level: b.level ?? 9,
+      baseline: { metrics, determinism_signature: sig },
+      candidate: { metrics: { ...metrics, wall_time_ms: 365 }, determinism_signature: sig },
+      verdict, decision,
+      replay: { replay_hash: rsig, scope: b.section ? "block" : "cube", section_label: b.section ? (_SIM_SECTIONS[b.section] || b.section) : "whole cube" },
+      validation: { validators: 0, required: 3, state: "pending_validation" },
+    };
   }
   if (method === "POST" && action === "run") {
     const sig = _mockHash(`run:${id}`);
