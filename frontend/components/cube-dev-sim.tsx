@@ -145,8 +145,11 @@ export function CubeDevSim() {
 
   const clk = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
+  // pb-48 on the root reserves space for the fixed easter-egg music HUD (3 Seed
+  // track-switchers + play/volume transport, all interactive) so the workbench
+  // Check In / Submit / Feedback controls always scroll clear of it (FX-C).
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 p-4">
+    <div className="mx-auto w-full max-w-4xl space-y-4 p-4 pb-48">
       {/* Top bar — title · timer · ♡웃◬ HUD */}
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card p-3">
         <div className="flex items-center gap-2">
