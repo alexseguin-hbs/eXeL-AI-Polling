@@ -358,24 +358,29 @@ function CubeVoxel3D({ lit, px = 200, fill = false }: { lit: Set<number>; px?: n
   });
   const { bearing, pitch, zoom } = cam;
   const cell = fill ? 46 : 30, gap = fill ? 8 : 6, step = cell + gap;
-  const at = (t: string): CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
-  const face = (t: string, w: number, h: number, hex: string): CSSProperties =>
-    ({ ...at(t), width: w, height: h, border: `1px solid ${hex}` });
-  const blocks: ReactNode[] = [];
-  for (let i = 0; i < 27; i++) {
-    const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
-    const x = (col - 1) * step, y = (row - 1) * step, z = (layer - 1) * step;
-    const on = lit.has(i);
-    blocks.push(
-      <div key={i} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d", opacity: on ? 1 : 0.32 }}>
-        <div style={{ ...face(`translate3d(0px,0px,${cell / 2}px)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}cc` : "#16223a55" }} />
-        <div style={{ ...face(`translate3d(0px,${-cell / 2}px,0px) rotateX(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}99` : "#101a2e55" }} />
-        <div style={{ ...face(`translate3d(0px,${cell / 2}px,0px) rotateX(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}99` : "#101a2e55" }} />
-        <div style={{ ...face(`translate3d(${-cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}77` : "#0c1526aa" }} />
-        <div style={{ ...face(`translate3d(${cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}77` : "#0c1526aa" }} />
-      </div>,
-    );
-  }
+  // The 135 block faces depend ONLY on the lit set + size — NOT on the camera. Memoize
+  // so rotating/zooming (per-frame re-render) never rebuilds them (SSSES Efficiency).
+  const blocks = useMemo<ReactNode[]>(() => {
+    const at = (t: string): CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
+    const face = (t: string, w: number, h: number, hex: string): CSSProperties =>
+      ({ ...at(t), width: w, height: h, border: `1px solid ${hex}` });
+    const out: ReactNode[] = [];
+    for (let i = 0; i < 27; i++) {
+      const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
+      const x = (col - 1) * step, y = (row - 1) * step, z = (layer - 1) * step;
+      const on = lit.has(i);
+      out.push(
+        <div key={i} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d", opacity: on ? 1 : 0.32 }}>
+          <div style={{ ...face(`translate3d(0px,0px,${cell / 2}px)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}cc` : "#16223a55" }} />
+          <div style={{ ...face(`translate3d(0px,${-cell / 2}px,0px) rotateX(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}99` : "#101a2e55" }} />
+          <div style={{ ...face(`translate3d(0px,${cell / 2}px,0px) rotateX(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}99` : "#101a2e55" }} />
+          <div style={{ ...face(`translate3d(${-cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}77` : "#0c1526aa" }} />
+          <div style={{ ...face(`translate3d(${cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}77` : "#0c1526aa" }} />
+        </div>,
+      );
+    }
+    return out;
+  }, [lit, cell, step]);
   return (
     <div className="relative touch-none select-none overflow-hidden rounded-lg"
       style={{ width: fill ? "100%" : px, height: fill ? "100%" : px, minWidth: fill ? undefined : px }}
