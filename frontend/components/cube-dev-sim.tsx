@@ -16,13 +16,14 @@
  * highlight[level]) — one source, no drift. Reuses the 3/6/9 dial concept from the
  * live theme viz. i18n (§7) routes the strings through t().
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import {
   Boxes, Loader2, Play, GitCommitHorizontal, Maximize2, X, Check, Pencil, Ban, Flag, Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { useLexicon } from "@/lib/lexicon-context";
+import { useRCoreGestures } from "@/components/architect-2525/use-rcore-gestures";
 
 type CubeInfo = { cube_id: number; name: string; harness_available: boolean };
 type Section = { key: string; label: string; functions: string[]; highlight: Record<string, number[]> };
@@ -61,6 +62,7 @@ export function CubeDevSim() {
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [maxCode, setMaxCode] = useState<"" | "split" | "live" | "yours">("");
+  const [voxelMax, setVoxelMax] = useState(false);
   const [verdictVote, setVerdictVote] = useState<"pass" | "revise" | "block">("pass");
   const [seconds, setSeconds] = useState(15 * 60);
 
@@ -209,32 +211,41 @@ export function CubeDevSim() {
             ))}
           </div>
 
-          {/* 27-voxel (3 layers × 9) lit by the deterministic backend highlight */}
+          {/* 27 stackable sub-cube blocks in real 3D — rotate by dragging (one-finger on
+              phone), pop out to view + rotate larger. Lit blocks = the selected section.
+              Reuses the shared Vision-2525 R-Core camera (useRCoreGestures). */}
           <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4">
-            <div className="flex gap-3" data-sim-voxel={sel ?? ""}>
-              {[0, 1, 2].map((layer) => (
-                <div key={layer} className="text-center">
-                  <div className="mb-1 font-mono text-[8px] tracking-widest text-muted-foreground">L{layer + 1}</div>
-                  <div className="grid grid-cols-3 gap-[3px]">
-                    {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((cell) => {
-                      const idx = layer * 9 + cell;
-                      const on = litCells.has(idx);
-                      return <span key={cell} className="h-4 w-4 rounded-[2px] border transition"
-                        style={{ background: on ? SI : "transparent", borderColor: on ? SI : "#263a5c",
-                          boxShadow: on ? `0 0 7px ${SI}` : "none", opacity: on ? 1 : 0.3 }} />;
-                    })}
-                  </div>
-                </div>
-              ))}
+            <div className="relative" data-sim-voxel={sel ?? ""}>
+              <CubeVoxel3D lit={litCells} px={200} />
+              <button onClick={() => setVoxelMax(true)} title="Pop out & rotate"
+                className="absolute right-1 top-1 rounded border bg-background/80 p-1 text-muted-foreground backdrop-blur hover:text-primary">
+                <Maximize2 className="h-3.5 w-3.5" />
+              </button>
             </div>
             <div className="min-w-[180px] flex-1">
               <div className="text-sm font-semibold">Cube {contract.cube_id} · {contract.name}</div>
               <p className="mt-1 text-xs text-muted-foreground">
-                27 blocks · 4 sections · Level <b style={{ color: SI }}>{activeIdx >= 0 ? activeIdx + 1 : "—"}</b> · Section{" "}
+                27 blocks · {sections.length} sections · Level <b style={{ color: SI }}>{activeIdx >= 0 ? activeIdx + 1 : "—"}</b> · Section{" "}
                 <b style={{ color: SI }}>{activeSection?.key}</b> (<b>{activeSection?.label}</b>) — {litCells.size} blocks.
               </p>
+              <p className="mt-1 text-[10px] text-muted-foreground/70">Drag to rotate · pinch/scroll to zoom · ⤢ pops out.</p>
             </div>
           </div>
+
+          {/* Pop-out: a large rotatable view of the same 27-block cube. */}
+          {voxelMax && (
+            <div className="fixed inset-0 z-50 flex flex-col bg-background/95 p-4 pt-12 backdrop-blur">
+              <div className="mb-2 flex items-center gap-2">
+                <b className="font-mono text-xs" style={{ color: AI }}>CUBE {contract.cube_id} · {contract.name} · 27 BLOCKS</b>
+                <span className="text-[11px] text-muted-foreground">— drag to rotate · pinch/scroll to zoom</span>
+                <button onClick={() => setVoxelMax(false)} className="ml-auto rounded border px-2 py-1 text-xs">
+                  <X className="mr-1 inline h-3 w-3" />Exit</button>
+              </div>
+              <div className="flex-1">
+                <CubeVoxel3D lit={litCells} px={0} fill />
+              </div>
+            </div>
+          )}
 
           {/* Block I·F·O */}
           <div className="grid gap-3 sm:grid-cols-3">
@@ -332,6 +343,49 @@ export function CubeDevSim() {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+// 27 stackable sub-cube BLOCKS in real CSS-3D (no WebGL), rotatable via the shared
+// Vision-2525 R-Core camera. Reuses the voxel-house pattern (preserve-3d + perspective +
+// rotateX(pitch)/rotateZ(bearing)). Lit blocks glow (SI); the rest read as a dim lattice
+// so the whole 3×3×3 identity fingerprint is visible while the worked section stands out.
+function CubeVoxel3D({ lit, px = 200, fill = false }: { lit: Set<number>; px?: number; fill?: boolean }) {
+  const cam = useRCoreGestures({
+    initialBearing: -0.6, initialPitch: 60, initialZoom: 1, touchOrbit: true, pan: false,
+    cfg: { minPitch: 8, maxPitch: 86, minZoom: 0.5, maxZoom: 3.5 },
+  });
+  const { bearing, pitch, zoom } = cam;
+  const cell = fill ? 46 : 30, gap = fill ? 8 : 6, step = cell + gap;
+  const at = (t: string): CSSProperties => ({ position: "absolute", left: "50%", top: "50%", transform: `translate(-50%,-50%) ${t}` });
+  const face = (t: string, w: number, h: number, hex: string): CSSProperties =>
+    ({ ...at(t), width: w, height: h, border: `1px solid ${hex}` });
+  const blocks: ReactNode[] = [];
+  for (let i = 0; i < 27; i++) {
+    const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
+    const x = (col - 1) * step, y = (row - 1) * step, z = (layer - 1) * step;
+    const on = lit.has(i);
+    blocks.push(
+      <div key={i} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d", opacity: on ? 1 : 0.32 }}>
+        <div style={{ ...face(`translate3d(0px,0px,${cell / 2}px)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}cc` : "#16223a55" }} />
+        <div style={{ ...face(`translate3d(0px,${-cell / 2}px,0px) rotateX(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}99` : "#101a2e55" }} />
+        <div style={{ ...face(`translate3d(0px,${cell / 2}px,0px) rotateX(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}99` : "#101a2e55" }} />
+        <div style={{ ...face(`translate3d(${-cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}77` : "#0c1526aa" }} />
+        <div style={{ ...face(`translate3d(${cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, on ? SI : "#31456a"), background: on ? `${SI}77` : "#0c1526aa" }} />
+      </div>,
+    );
+  }
+  return (
+    <div className="relative touch-none select-none overflow-hidden rounded-lg"
+      style={{ width: fill ? "100%" : px, height: fill ? "100%" : px, minWidth: fill ? undefined : px }}
+      {...cam.handlers} onPointerLeave={cam.handlers.onPointerUp}>
+      <div className="absolute inset-0" style={{ transformStyle: "preserve-3d", transformOrigin: "center 55%",
+        transform: `perspective(900px) rotateX(${pitch}deg) scale(${0.85 * zoom})` }}>
+        <div className="absolute left-1/2 top-1/2" style={{ transformStyle: "preserve-3d", transform: `rotateZ(${bearing}rad)` }}>
+          {blocks}
+        </div>
+      </div>
     </div>
   );
 }
