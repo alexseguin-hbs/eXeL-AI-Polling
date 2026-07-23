@@ -121,8 +121,7 @@ class TestPartition:
                 seen += g
             assert sorted(seen) == list(range(27))  # disjoint + cover all 27
 
-    def test_n3_is_levels_n27_singletons(self):
-        assert partition(5, 3) == [list(range(0, 9)), list(range(9, 18)), list(range(18, 27))]
+    def test_n27_singletons(self):
         assert partition(5, 27) == [[k] for k in range(27)]
 
     def test_deterministic(self):
@@ -143,8 +142,13 @@ class TestSectionsForCounts:
             merged += s["highlight"]["9"]
         assert sorted(merged) == list(range(27))  # cover all 27 once
 
-    def test_n3_labels_are_levels(self):
-        assert [s["label"] for s in sections_for(5, 3)] == ["Level 1", "Level 2", "Level 3"]
+    def test_block_labels_and_real_functions(self):
+        # FX-J: block-view sections are "Block k" and mirror the cube's REAL functions.
+        secs = sections_for(5, 3)
+        assert [s["label"] for s in secs] == ["Block 1", "Block 2", "Block 3"]
+        real = {fn for s in SECTIONS[5] for fn in s["functions"]}
+        distributed = {fn for s in secs for fn in s["functions"]}
+        assert distributed == real  # every real function lands in exactly one block
 
     def test_default_is_curated_four(self):
         secs = sections_for(5)

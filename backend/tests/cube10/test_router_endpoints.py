@@ -204,13 +204,19 @@ class TestSimContractGranularity:
         assert sorted(merged) == list(range(27))  # cover all 27 once
 
     @pytest.mark.asyncio
-    async def test_n3_are_levels(self, client):
-        resp = await client.get("/api/v1/sim/cube/2/contract?sections=3")
-        assert [s["label"] for s in resp.json()["sections"]] == ["Level 1", "Level 2", "Level 3"]
+    @pytest.mark.parametrize("n", [2, 5, 6, 13])
+    async def test_any_count_2_to_27_supported(self, client, n):
+        # FX-J: any count 2..27 works, blocks cover all 27 once.
+        resp = await client.get(f"/api/v1/sim/cube/2/contract?sections={n}")
+        assert resp.status_code == 200
+        secs = resp.json()["sections"]
+        assert len(secs) == n
+        merged = [c for s in secs for c in s["highlight"]["9"]]
+        assert sorted(merged) == list(range(27))
 
     @pytest.mark.asyncio
     async def test_bad_count_returns_400(self, client):
-        resp = await client.get("/api/v1/sim/cube/2/contract?sections=5")
+        resp = await client.get("/api/v1/sim/cube/2/contract?sections=28")
         assert resp.status_code == 400
 
     @pytest.mark.asyncio

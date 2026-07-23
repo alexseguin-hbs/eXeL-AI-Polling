@@ -24,15 +24,16 @@ from __future__ import annotations
 
 import hashlib
 import math
+from functools import lru_cache
 
 # The 3/6/9 dial values (theme-level parity with the live viz).
 LEVELS: tuple[int, ...] = (3, 6, 9)
 SECTION_KEYS: tuple[str, ...] = ("A", "B", "C", "D")
 
-# The dev may view the 27 mini-cubes at these granularities (FX-G). A section is a
-# COHERENT contiguous slab (not a random scatter): 3 → the 3 levels, 4 → the curated
-# function slabs, 9 → rows, 27 → each mini-cube is its own building block.
-ALLOWED_SECTION_COUNTS: tuple[int, ...] = (3, 4, 9, 27)
+# The dev may view the 27 mini-cubes at ANY granularity 2..27 (FX-J). Every block is a
+# UNIQUE FACE-CONNECTED shape (side-by-side or stacked), varied per cube; 27 → each
+# mini-cube is its own building block.
+ALLOWED_SECTION_COUNTS: tuple[int, ...] = tuple(range(2, 28))
 
 # Per-cube code sections → real ordered functions, in plain words.
 SECTIONS: dict[int, list[dict]] = {
@@ -123,20 +124,21 @@ def _seeded_order(cube_id: int) -> list[int]:
     return sorted(range(27), key=lambda c: hashlib.sha256(f"{cube_id}:{c}".encode()).hexdigest())
 
 
+@lru_cache(maxsize=1024)
 def partition(cube_id: int, n: int) -> list[list[int]]:
     """Split the 27 mini-cubes into n FACE-CONNECTED building blocks (the Lego rule:
-    a block's cubes always touch, so it could physically stack).
+    a block's cubes always touch — side-by-side OR stacked — so it could physically
+    stack into a unique shape).
 
-    n=3 → the 3 levels · n=9 → the 9 vertical columns · n=27 → each mini-cube. Other n
-    (incl. 4) → seeded multi-source region-growing: n seeds from a cube_id-seeded order,
-    each region grows round-robin by claiming an unassigned FACE-neighbor → connected +
-    balanced + a DIFFERENT pattern per cube (operator: "different patterns each time")."""
-    if n == 3:
-        return [list(range(0, 9)), list(range(9, 18)), list(range(18, 27))]
-    if n == 27:
+    Supports ANY n in 2..27. n≥27 → each mini-cube is its own block. Otherwise: seeded
+    multi-source region-growing — n seeds from a cube_id-seeded order, each region grows
+    round-robin by claiming an unassigned FACE-neighbor → connected + balanced + a UNIQUE
+    pattern per (cube, n). @lru_cache keeps every config "saved in memory" (deterministic,
+    reproduced identically)."""
+    if n <= 1:
+        return [list(range(27))]
+    if n >= 27:
         return [[i] for i in range(27)]
-    if n == 9:
-        return [[c, c + 9, c + 18] for c in range(9)]
     order = _seeded_order(cube_id)
     pos = {c: i for i, c in enumerate(order)}
     seeds = order[:n]
@@ -192,12 +194,13 @@ def _block_functions(cube_id: int, cells: list[int]) -> list[str]:
 
 
 def sections_for(cube_id: int, count: int = 4) -> list[dict]:
-    """Sections for a cube at the requested granularity, each with its highlight sets.
+    """Sections for a cube at the requested granularity (any count 2..27), each with
+    its highlight sets and the REAL functions it maps to.
 
     count == 4 → the curated function sections (A/B/C/D, real function labels).
-    count in {3, 9, 27} → coherent block-segments ("Level k" for 3, else "Block k"),
-    each carrying the curated functions its slab overlaps. Returns [] for an unknown
-    cube (never raises) — the workbench falls back to whole-cube scope.
+    other counts → N face-connected block-segments ("Block k"); the cube's real
+    functions are distributed round-robin across the blocks so every count mirrors the
+    actual LIVE code. Returns [] for an unknown cube (never raises).
     """
     if cube_id not in SECTIONS:
         return []
@@ -208,11 +211,15 @@ def sections_for(cube_id: int, count: int = 4) -> list[dict]:
         } for s in SECTIONS[cube_id]]
     out: list[dict] = []
     blocks = partition(cube_id, count)
+    # Distribute the cube's REAL functions across the N blocks round-robin, so every
+    # count's building blocks mirror the actual LIVE code (FX-J). Blocks past the
+    # function count are honestly empty/structural.
+    allfns = [fn for s in SECTIONS.get(cube_id, []) for fn in s["functions"]]
     for k in range(count):
         cells = blocks[k]
-        label = f"Level {k + 1}" if count == 3 else f"Block {k + 1}"
+        fns = [allfns[j] for j in range(len(allfns)) if j % count == k]
         out.append({
-            "key": f"B{k + 1}", "label": label, "functions": _block_functions(cube_id, cells),
+            "key": f"B{k + 1}", "label": f"Block {k + 1}", "functions": fns,
             "highlight": {"3": cells, "6": cells, "9": cells},  # ON/OFF whole block
         })
     return out
