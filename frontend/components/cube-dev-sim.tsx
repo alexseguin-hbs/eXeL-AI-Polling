@@ -41,8 +41,10 @@ type SubmitResult = {
   validation: { validators: number; required: number; state: string };
 };
 
-const LEVELS = [3, 6, 9] as const;
-type Level = (typeof LEVELS)[number];
+// The 4 code sections partition the 27 voxels; each section IS a level (L1·A … L4·D).
+// FULL=9 asks voxel_highlight for the whole section (no 3/6/9 density scaling here —
+// the 3/6/9 dial belongs to the theme viz, not the code-section model).
+const FULL = 9;
 const AI = "#19c8cf", SI = "#ffcf5a", HI = "#b98cff", GOOD = "#3ddc9a";
 
 export function CubeDevSim() {
@@ -50,7 +52,6 @@ export function CubeDevSim() {
   const [cubes, setCubes] = useState<CubeInfo[]>([]);
   const [sel, setSel] = useState<number | null>(null);
   const [contract, setContract] = useState<Contract | null>(null);
-  const [level, setLevel] = useState<Level>(9);
   const [sectionKey, setSectionKey] = useState<string | null>(null);
   const [candidate, setCandidate] = useState("");
   const [checkedIn, setCheckedIn] = useState<string | null>(null);
@@ -88,32 +89,33 @@ export function CubeDevSim() {
 
   const sections = contract?.sections ?? [];
   const activeSection = sections.find((s) => s.key === sectionKey) ?? null;
+  const activeIdx = sections.findIndex((s) => s.key === sectionKey);
   const litCells = useMemo(() => {
-    const set = new Set(activeSection?.highlight?.[String(level)] ?? []);
+    const set = new Set(activeSection?.highlight?.[String(FULL)] ?? []);
     return set;
-  }, [activeSection, level]);
+  }, [activeSection]);
 
   const checkIn = useCallback(async () => {
     if (!sel) return;
     setBusy("checkin"); setErr("");
     try {
       const r = await api.post<{ run_id: string; status: string }>(`/sim/cube/${sel}/check-in`,
-        { section: sectionKey, level, note: candidate.slice(0, 200) || null });
+        { section: sectionKey, level: FULL, note: candidate.slice(0, 200) || null });
       setCheckedIn(r.run_id);
     } catch { setErr("Check-in failed — sign in as a developer."); }
     finally { setBusy(""); }
-  }, [sel, sectionKey, level, candidate]);
+  }, [sel, sectionKey, candidate]);
 
   const submit = useCallback(async (humanApproved: boolean) => {
     if (!sel) return;
     setBusy("submit"); setErr(""); setResult(null);
     try {
       setResult(await api.post<SubmitResult>(`/sim/cube/${sel}/submit`,
-        { section: sectionKey, level, tier: "manual", human_approved: humanApproved,
+        { section: sectionKey, level: FULL, tier: "manual", human_approved: humanApproved,
           run_id: checkedIn }));
     } catch { setErr("Submit failed — check-in first, then submit."); }
     finally { setBusy(""); }
-  }, [sel, sectionKey, level, checkedIn]);
+  }, [sel, sectionKey, checkedIn]);
 
   const clk = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
@@ -161,27 +163,21 @@ export function CubeDevSim() {
 
       {contract && (
         <>
-          {/* Level dial (3/6/9) + section chips */}
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-3">
-            <span className="text-xs font-semibold text-muted-foreground">{t("cube10.sim.level")}</span>
-            <div className="inline-flex overflow-hidden rounded-lg border" role="group" aria-label="Theme level">
-              {LEVELS.map((lv) => (
-                <button key={lv} onClick={() => setLevel(lv)} data-sim-level={lv}
-                  className={`px-4 py-1.5 font-mono text-sm transition ${level === lv ? "text-black" : "text-muted-foreground"}`}
-                  style={level === lv ? { background: AI } : undefined}>{lv}</button>
-              ))}
-            </div>
-            <span className="ml-auto flex flex-wrap gap-1.5">
-              {sections.map((s) => (
-                <button key={s.key} onClick={() => { setSectionKey(s.key); setResult(null); }}
-                  data-sim-section={s.key}
-                  className={`rounded-full border px-2.5 py-1 text-xs transition ${
-                    sectionKey === s.key ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
-                  style={sectionKey === s.key ? { background: SI, borderColor: SI } : undefined}>
-                  {s.key} · {s.label}
-                </button>
-              ))}
-            </span>
+          {/* Level strip — each of the 4 code sections IS a level (L1·A … L4·D).
+              Pick one → the voxel lights that whole section's blocks. No 3/6/9 density
+              dial here (that belongs to the theme viz, not the code-section model). */}
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
+            <span className="mr-1 text-xs font-semibold text-muted-foreground">{t("cube10.sim.level")}</span>
+            {sections.map((s, i) => (
+              <button key={s.key} onClick={() => { setSectionKey(s.key); setResult(null); }}
+                data-sim-section={s.key} data-sim-level={i + 1}
+                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs transition ${
+                  sectionKey === s.key ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
+                style={sectionKey === s.key ? { background: SI, borderColor: SI } : undefined}>
+                <span className="font-mono font-bold">L{i + 1}·{s.key}</span>
+                <span className="opacity-80">{s.label}</span>
+              </button>
+            ))}
           </div>
 
           {/* 27-voxel (3 layers × 9) lit by the deterministic backend highlight */}
@@ -205,8 +201,8 @@ export function CubeDevSim() {
             <div className="min-w-[180px] flex-1">
               <div className="text-sm font-semibold">Cube {contract.cube_id} · {contract.name}</div>
               <p className="mt-1 text-xs text-muted-foreground">
-                27 blocks · 4 sections. Section <b style={{ color: SI }}>{activeSection?.key}</b>{" "}
-                (<b>{activeSection?.label}</b>) lit at level {level} — {litCells.size} blocks.
+                27 blocks · 4 sections · Level <b style={{ color: SI }}>{activeIdx >= 0 ? activeIdx + 1 : "—"}</b> · Section{" "}
+                <b style={{ color: SI }}>{activeSection?.key}</b> (<b>{activeSection?.label}</b>) — {litCells.size} blocks.
               </p>
             </div>
           </div>
