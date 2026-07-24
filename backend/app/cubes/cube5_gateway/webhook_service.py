@@ -193,6 +193,26 @@ async def deliver_event(
             "status_code": status_code,
         })
 
+    # Meter successful deliveries (0.99 ◬ each) into the per-org usage stream. Best-effort
+    # — a metering failure must never break webhook delivery. Org is the session's owner
+    # (v1 org = created_by), matching the scoping/api-key isolation model.
+    delivered = [d for d in deliveries if d["status"] == "delivered"]
+    if delivered:
+        try:
+            from app.core.usage_service import record_usage
+            from app.models.session import Session as _Session
+
+            _s = (await db.execute(select(_Session.created_by, _Session.scope_ref)
+                                   .where(_Session.id == session_id))).first()
+            if _s and _s[0]:
+                for _ in delivered:
+                    await record_usage(
+                        db, org_id=_s[0], metric="webhook_delivery", cost_tokens=0.99,
+                        session_id=session_id, scope_ref=_s[1],
+                    )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("cube5.webhook.usage_meter_failed error=%s", str(exc)[:200])
+
     await db.commit()
     return deliveries
 

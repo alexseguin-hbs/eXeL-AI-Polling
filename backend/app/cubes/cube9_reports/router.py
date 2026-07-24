@@ -141,6 +141,19 @@ async def export_csv(
     except Exception:
         pass  # never let a webhook affect the export response
 
+    # Meter the export into the per-org usage stream (v1 org = the exporting principal).
+    # Best-effort — a metering failure must never break the download.
+    try:
+        from app.core.usage_service import record_usage
+
+        await record_usage(
+            db, org_id=user.user_id or "anonymous", metric="export",
+            session_id=session_id, scope_ref=session.scope_ref,
+        )
+        await db.commit()
+    except Exception:
+        pass
+
     if response_count > 10_000:
         # Scale mode: streaming CSV (no full-memory DataFrame)
         return StreamingResponse(
