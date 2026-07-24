@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>eXeL AI Polling — Full-Embed demo</title>
+  <style>
+    body { font: 15px/1.5 system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #0a0f16; }
+    h1 { font-size: 1.4rem; } code, pre { background: #f2f4f7; border-radius: 6px; }
+    pre { padding: .75rem 1rem; overflow-x: auto; } code { padding: .1rem .3rem; }
+    exel-polling { display: block; border: 1px solid #1e2b3a22; border-radius: 12px; overflow: hidden; }
+    #log { background: #0a0f16; color: #19c8cf; padding: .75rem 1rem; border-radius: 8px; min-height: 3rem; font: 12px/1.5 ui-monospace, monospace; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>eXeL AI Polling — Full-Embed Web Component</h1>
+  <p>Include the SDK script, then drop the element with a session <code>code</code> and your <code>host</code>:</p>
+  <pre>&lt;script src="/embed/exel-polling.js"&gt;&lt;/script&gt;
+&lt;exel-polling code="DEMO2026" host="https://exel-ai-polling.explore-096.workers.dev"&gt;&lt;/exel-polling&gt;</pre>
+
+  <p>Events from the poll surface as DOM CustomEvents on the element (origin-checked):</p>
+  <script src="./exel-polling.js"></script>
+  <exel-polling id="poll" code="DEMO2026" host="https://exel-ai-polling.explore-096.workers.dev" style="height:560px"></exel-polling>
+
+  <h2 style="font-size:1rem">Event log</h2>
+  <div id="log">waiting for events…</div>
+
+  <script>
+    var el = document.getElementById("poll"), log = document.getElementById("log");
+    ["ready", "response", "themes-ready", "ranking-complete", "resize", "error"].forEach(function (t) {
+      el.addEventListener("exel:" + t, function (e) {
+        log.textContent = "exel:" + t + "  " + JSON.stringify(e.detail || {}) + "\n" + log.textContent;
+      });
+    });
+    // Host → poll command example (no-op unless the embedded app handles it):
+    // el.send("set-theme", { theme: "sunset" });
+  </script>
+</body>
+</html>
