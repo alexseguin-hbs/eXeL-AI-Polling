@@ -58,7 +58,13 @@ const AI = "#19c8cf", SI = "#ffcf5a", HI = "#b98cff", GOOD = "#3ddc9a";
 const BLOCK_PAL = [AI, SI, HI, GOOD, "#ff6b6b", "#4dabf7", "#f783ac", "#ffa94d", "#a9e34b",
   "#63e6be", "#748ffc", "#ffd43b", "#e599f7", "#66d9e8", "#ff8787", "#b2f2bb"];
 function blockColor(k: number): string {
-  return k < BLOCK_PAL.length ? BLOCK_PAL[k] : `hsl(${Math.round((k * 137.5) % 360)} 70% 62%)`;
+  if (k < BLOCK_PAL.length) return BLOCK_PAL[k];
+  // Past the named palette (13+ blocks): golden-angle hue PLUS lightness/saturation that
+  // alternate by index parity, so adjacent blocks stay distinct all the way to 27.
+  const hue = Math.round((k * 137.508) % 360);
+  const light = k % 2 === 0 ? 63 : 48;
+  const sat = k % 3 === 0 ? 78 : 62;
+  return `hsl(${hue} ${sat}% ${light}%)`;
 }
 
 export function CubeDevSim() {
@@ -441,8 +447,25 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
       const k = blockOf[i] ?? 0, x = i % 3, y = Math.floor(i / 3) % 3, z = Math.floor(i / 9);
       const s = (sums[k] ||= [0, 0, 0, 0]); s[0] += x; s[1] += y; s[2] += z; s[3] += 1;
     }
+    // Explode direction: NORMALIZE each block's centroid-from-center to a unit vector so
+    // every block clears its neighbors by a full step regardless of shape; a block centred
+    // on the middle (|dir|≈0) would never separate, so fall back to a golden-angle direction
+    // by index. A small per-index radius nudge separates blocks that share a direction.
     const dir: Record<number, [number, number, number]> = {};
-    for (const k in sums) { const s = sums[k]; dir[k] = [s[0] / s[3] - 1, s[1] / s[3] - 1, s[2] / s[3] - 1]; }
+    const keys = Object.keys(sums).map(Number).sort((a, b) => a - b);
+    keys.forEach((k, idx) => {
+      const s = sums[k];
+      let dx = s[0] / s[3] - 1, dy = s[1] / s[3] - 1, dz = s[2] / s[3] - 1;
+      const norm = Math.hypot(dx, dy, dz);
+      if (norm > 0.2) { dx /= norm; dy /= norm; dz /= norm; }
+      else {
+        const a = idx * 2.399963;                       // golden angle (rad)
+        dx = Math.cos(a); dy = Math.sin(a); dz = Math.cos(a * 1.7) * 0.7;
+        const n2 = Math.hypot(dx, dy, dz) || 1; dx /= n2; dy /= n2; dz /= n2;
+      }
+      const r = 0.85 + 0.5 * (idx / Math.max(1, keys.length - 1));   // per-index radius spread
+      dir[k] = [dx * r, dy * r, dz * r];
+    });
     const exStep = fill ? step * 3.0 : step * 2.4;   // much more spacing between blocks (FX-M)
     const out: ReactNode[] = [];
     for (let i = 0; i < 27; i++) {
