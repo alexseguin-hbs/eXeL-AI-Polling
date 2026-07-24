@@ -511,6 +511,31 @@ export function CubeDevSim() {
                   </div>
                 );
               })()}
+              {/* AGG — Community Aggregator readout: a proven win becomes a rankable item
+                  in eXeL AI polling (Cube 7), so the community prioritizes which cube/block
+                  improvements ship next. Producer for the platform's own governance loop. */}
+              {result.optimization?.win && (() => {
+                const o = result.optimization!;
+                const s = secMetrics?.ssses;
+                const sssesAvg = s
+                  ? Math.round((s.security + s.stability + s.scalability + s.efficiency + s.succinctness) / 5)
+                  : null;
+                const code = activeSection?.code ?? `${sel}`;
+                return (
+                  <div className="rounded-lg border p-3" style={{ borderColor: `${SI}44`, background: `${SI}0c` }}>
+                    <div className="mb-1.5 flex items-center gap-2 text-xs font-semibold" style={{ color: SI }}>
+                      → {t("cube10.sim.aggregator")}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs">
+                      <span className="rounded px-1.5 py-0.5" style={{ background: `${SI}22`, color: SI }}>{code}</span>
+                      <span style={{ color: GOOD }}>+{o.optimization_pct}% · {Math.round((1 - o.cube_scale) * 100)}% smaller</span>
+                      {sssesAvg !== null && <span className="text-muted-foreground">SSSES {sssesAvg}</span>}
+                      <span className="text-muted-foreground">· {t("cube10.sim.aggregator_pending")}</span>
+                    </div>
+                    <div className="mt-1.5 text-[11px] text-muted-foreground">{t("cube10.sim.aggregator_note")}</div>
+                  </div>
+                );
+              })()}
               <div className="text-sm">
                 <b style={{ color: result.decision.decision === "swap" ? GOOD : result.decision.decision === "hold" ? SI : "#ff5d6c" }}>
                   {result.decision.decision.toUpperCase()} · {result.decision.tier}
