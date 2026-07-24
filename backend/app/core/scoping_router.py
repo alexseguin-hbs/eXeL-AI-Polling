@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import CurrentUser, get_current_user
+from app.core.auth import CurrentUser, get_current_user, get_current_principal
 from app.core import scoping_service as svc
 from app.core.dependencies import get_db
 from app.core.permissions import require_role
@@ -87,7 +87,7 @@ async def create_project(
 async def list_projects(
     status: str = "active",
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(get_current_principal),
 ):
     if status not in ("active", "archived"):
         raise HTTPException(status_code=400, detail="status must be 'active' or 'archived'")
@@ -135,7 +135,7 @@ async def create_specification(
 async def scope_tree(
     project_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-    user: CurrentUser = Depends(get_current_user),
+    user: CurrentUser = Depends(get_current_principal),
 ):
     try:
         return await svc.get_scope_tree(db, project_id=project_id, org_id=_org(user))

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from app.core import usage_service as svc
-from app.core.auth import CurrentUser, get_current_user
+from app.core.auth import CurrentUser, get_current_principal, get_current_user
 from app.main import app
 from app.models.usage_record import USAGE_METRICS, UsageRecord
 
@@ -78,10 +78,12 @@ def _override(u):
     async def _o():
         return u
     app.dependency_overrides[get_current_user] = _o
+    app.dependency_overrides[get_current_principal] = _o
 
 
 def _clear():
     app.dependency_overrides.pop(get_current_user, None)
+    app.dependency_overrides.pop(get_current_principal, None)
 
 
 class TestRouter:
@@ -103,6 +105,19 @@ class TestRouter:
                 r = await client.get("/api/v1/usage")
             assert r.status_code == 200
             assert spy.await_args.kwargs["org_id"] == "moderator-1"
+        finally:
+            _clear()
+
+    @pytest.mark.asyncio
+    async def test_api_key_principal_can_read_own_usage(self, client):
+        # Headless-API: an org's API key (role "api_key") reads its own metered usage.
+        _override(_as("api_key"))
+        try:
+            spy = AsyncMock(return_value={"org_id": "api_key-1", "by_metric": {}, "total_quantity": 0})
+            with patch("app.core.usage_router.svc.summarize_usage", new=spy):
+                r = await client.get("/api/v1/usage")
+            assert r.status_code == 200
+            assert spy.await_args.kwargs["org_id"] == "api_key-1"
         finally:
             _clear()
 

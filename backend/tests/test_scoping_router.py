@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from app.core.auth import CurrentUser, get_current_user
+from app.core.auth import CurrentUser, get_current_principal, get_current_user
 from app.core.scoping_service import ScopeNotFound
 from app.main import app
 
@@ -23,11 +23,15 @@ def _as(role: str) -> CurrentUser:
 def _override(user: CurrentUser):
     async def _o():
         return user
+    # Reads use get_current_principal (JWT OR API key); writes use get_current_user via
+    # require_role — override both so the same principal drives every scoping endpoint.
     app.dependency_overrides[get_current_user] = _o
+    app.dependency_overrides[get_current_principal] = _o
 
 
 def _clear():
     app.dependency_overrides.pop(get_current_user, None)
+    app.dependency_overrides.pop(get_current_principal, None)
 
 
 def _proj(**kw):
