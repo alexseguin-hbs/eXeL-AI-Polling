@@ -701,16 +701,17 @@ class TestN99ScaleStress:
         """Security: N=99 verify security header constants never drift."""
         expected_headers = {
             "X-Content-Type-Options": "nosniff",
-            "X-Frame-Options": "DENY",
             "X-XSS-Protection": "1; mode=block",
             "Referrer-Policy": "strict-origin-when-cross-origin",
             "Permissions-Policy": "camera=(), microphone=(self), geolocation=()",
         }
-        from app.core.middleware import SecurityHeadersMiddleware
+        from app.core.middleware import SecurityHeadersMiddleware, _embed_origins
         for run in range(self.N):
             for key, val in expected_headers.items():
-                assert SecurityHeadersMiddleware._headers[key] == val, \
+                assert SecurityHeadersMiddleware._base_headers[key] == val, \
                     f"Run {run}: Security header {key} drifted"
+        # Framing default-safe: with no embed origins configured, DENY is the runtime policy.
+        assert _embed_origins() == []
 
     def test_hmac_anonymization_n99(self):
         """WireGuard-inspired: N=99 HMAC anonymization — same inputs = same hash."""

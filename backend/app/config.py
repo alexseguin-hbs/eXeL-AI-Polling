@@ -83,6 +83,9 @@ class Settings(BaseSettings):
     # Cloudflare deployment
     behind_cloudflare: bool = False          # Enable CF-Connecting-IP extraction
     allowed_origins: str = ""                # Comma-separated extra CORS origins
+    # Embed allowlist — comma-separated origins permitted to iframe the app (Full-Embed
+    # mode). Empty (default) keeps X-Frame-Options: DENY + CSP frame-ancestors 'none'.
+    embed_allowed_origins: str = ""
     cloudflare_turnstile_secret: str = ""    # Turnstile bot protection secret
     cloudflare_turnstile_site_key: str = ""  # Turnstile site key (sent to frontend)
 

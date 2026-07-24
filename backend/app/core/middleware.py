@@ -56,12 +56,24 @@ class TimingMiddleware(BaseHTTPMiddleware):
         return response
 
 
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """Inject standard security headers into every response."""
+def _embed_origins() -> list[str]:
+    """Configured origins allowed to iframe the app (Full-Embed mode). Empty by default."""
+    return [o.strip() for o in (settings.embed_allowed_origins or "").split(",") if o.strip()]
 
-    _headers = {
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Inject standard security headers into every response.
+
+    Framing (embed) policy is allowlist-driven and default-safe:
+      * No `EMBED_ALLOWED_ORIGINS` configured → `X-Frame-Options: DENY` + CSP
+        `frame-ancestors 'none'` (unchanged behavior — no site may iframe the app).
+      * Origins configured → drop X-Frame-Options (it can't express a multi-origin
+        allowlist) and emit CSP `frame-ancestors 'self' <origins…>`, so ONLY those
+        origins may embed. Clickjacking stays blocked for everyone else.
+    """
+
+    _base_headers = {
         "X-Content-Type-Options": "nosniff",
-        "X-Frame-Options": "DENY",
         "X-XSS-Protection": "1; mode=block",
         "Referrer-Policy": "strict-origin-when-cross-origin",
         "Permissions-Policy": "camera=(), microphone=(self), geolocation=()",
@@ -69,8 +81,20 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         response = await call_next(request)
-        for key, value in self._headers.items():
+        for key, value in self._base_headers.items():
             response.headers[key] = value
+
+        origins = _embed_origins()
+        if origins:
+            # Modern allowlist mechanism; X-Frame-Options is intentionally omitted so the
+            # single-origin ALLOW-FROM legacy can't silently override the CSP.
+            response.headers["Content-Security-Policy"] = (
+                "frame-ancestors 'self' " + " ".join(origins)
+            )
+        else:
+            response.headers["X-Frame-Options"] = "DENY"
+            response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
+
         if settings.behind_cloudflare:
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
