@@ -18,11 +18,27 @@ const PRESETS_CENTS = [111, 333, 999, 2525]; // $1.11 · $3.33 · $9.99 · $25.2
 export function DonateModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useLexicon();
   const [amount, setAmount] = useState(333);
+  const [amountStr, setAmountStr] = useState("3.33"); // raw editable text (can be empty)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [demoDone, setDemoDone] = useState(false);
 
   if (!open) return null;
+
+  const pickPreset = (cents: number) => {
+    setAmount(cents);
+    setAmountStr((cents / 100).toFixed(2));
+    setError("");
+  };
+
+  const onAmountChange = (v: string) => {
+    // Allow free typing incl. empty/partial ("", "1", "1."); only digits + one dot.
+    if (v !== "" && !/^\d*\.?\d{0,2}$/.test(v)) return;
+    setAmountStr(v);
+    const n = parseFloat(v);
+    setAmount(Number.isFinite(n) ? Math.round(n * 100) : 0);
+    setError("");
+  };
 
   const handleDonate = async () => {
     if (amount < 50) {
@@ -96,7 +112,7 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
           {PRESETS_CENTS.map((cents) => (
             <button
               key={cents}
-              onClick={() => { setAmount(cents); setError(""); }}
+              onClick={() => pickPreset(cents)}
               className={`rounded-lg border px-3 py-2 text-sm font-medium tabular-nums transition ${
                 amount === cents
                   ? "border-primary bg-primary/10 text-primary"
@@ -112,11 +128,11 @@ export function DonateModal({ open, onClose }: { open: boolean; onClose: () => v
         <div className="mb-4 flex items-center gap-2">
           <span className="text-sm">$</span>
           <input
-            type="number"
-            min={0.5}
-            step={0.5}
-            value={(amount / 100).toFixed(2)}
-            onChange={(e) => { setAmount(Math.round(parseFloat(e.target.value || "0") * 100)); setError(""); }}
+            type="text"
+            inputMode="decimal"
+            placeholder="0.00"
+            value={amountStr}
+            onChange={(e) => onAmountChange(e.target.value)}
             className="w-28 rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
           />
         </div>

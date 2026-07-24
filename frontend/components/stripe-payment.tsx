@@ -262,6 +262,7 @@ export function DonationPrompt({
 }: PaymentProps & { onDismiss?: () => void }) {
   const { t } = useLexicon();
   const [amount, setAmount] = useState(333); // $3.33 default
+  const [amountStr, setAmountStr] = useState("3.33"); // raw editable text (can be empty)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [demoDone, setDemoDone] = useState(false);
@@ -344,11 +345,11 @@ export function DonationPrompt({
       )}
 
       <div className="flex gap-2">
-        {[1111, 3333, 9999].map((cents) => (
+        {[111, 1111, 3333].map((cents) => (
           <button
             key={cents}
-            onClick={() => setAmount(cents)}
-            className={`px-3 py-1.5 rounded-md border text-sm ${
+            onClick={() => { setAmount(cents); setAmountStr((cents / 100).toFixed(2)); setError(""); }}
+            className={`px-3 py-1.5 rounded-md border text-sm tabular-nums ${
               amount === cents
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-input hover:bg-accent"
@@ -362,12 +363,19 @@ export function DonationPrompt({
       <div className="flex items-center gap-2">
         <span className="text-sm">$</span>
         <input
-          type="number"
-          min={0.5}
-          step={0.5}
-          value={(amount / 100).toFixed(2)}
-          onChange={(e) => setAmount(Math.round(parseFloat(e.target.value || "0") * 100))}
-          className="w-24 px-3 py-2 rounded-md border border-input bg-background text-sm"
+          type="text"
+          inputMode="decimal"
+          placeholder="0.00"
+          value={amountStr}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v !== "" && !/^\d*\.?\d{0,2}$/.test(v)) return; // digits + one dot, ≤2 decimals
+            setAmountStr(v);
+            const n = parseFloat(v);
+            setAmount(Number.isFinite(n) ? Math.round(n * 100) : 0);
+            setError("");
+          }}
+          className="w-24 px-3 py-2 rounded-md border border-input bg-background text-sm tabular-nums"
         />
       </div>
 
