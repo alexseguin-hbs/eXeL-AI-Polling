@@ -1,0 +1,878 @@
+{
+  "1": [
+    {
+      "code": "1.1",
+      "functions": [
+        "create_session"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "1.2",
+      "functions": [
+        "_generate_unique_short_code"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "1.3",
+      "functions": [
+        "generate_qr_png"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "1.4",
+      "functions": [
+        "join_session"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "1.5",
+      "functions": [
+        "_compute_replay_hash"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 100,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "1.6",
+      "functions": [
+        "transition_session"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    }
+  ],
+  "2": [
+    {
+      "code": "2.1",
+      "functions": [
+        "validate_text_input"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "2.2",
+      "functions": [
+        "validate_and_fit_text_input"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "2.3",
+      "functions": [
+        "detect_pii"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 80,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "2.4",
+      "functions": [
+        "detect_language"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "2.5",
+      "functions": [
+        "scrub_pii"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 80,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "2.6",
+      "functions": [
+        "anonymize_response"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "2.7",
+      "functions": [
+        "compute_response_hash"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 100,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "2.8",
+      "functions": [
+        "store_response"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    }
+  ],
+  "3": [
+    {
+      "code": "3.1",
+      "functions": [
+        "submit_voice_response"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "3.2",
+      "functions": [
+        "store_voice_response"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "3.3",
+      "functions": [
+        "transcribe_audio"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "3.4",
+      "functions": [
+        "handle_realtime_transcription"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "3.5",
+      "functions": [
+        "select_stt_provider"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "3.6",
+      "functions": [
+        "get_stt_provider_safe"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "3.7",
+      "functions": [
+        "run_text_pipeline"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    }
+  ],
+  "4": [
+    {
+      "code": "4.1",
+      "functions": [
+        "get_collected_responses"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "4.2",
+      "functions": [
+        "get_response_count"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "4.3",
+      "functions": [
+        "get_session_presence"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "4.4",
+      "functions": [
+        "update_presence"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "4.5",
+      "functions": [
+        "create_desired_outcome"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "4.6",
+      "functions": [
+        "record_confirmation"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "4.7",
+      "functions": [
+        "analyze_session"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "4.8",
+      "functions": [
+        "synthesize_analysis"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    }
+  ],
+  "5": [
+    {
+      "code": "5.1",
+      "functions": [
+        "calculate_tokens"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 80,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "5.2",
+      "functions": [
+        "start_time_tracking"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "5.3",
+      "functions": [
+        "trigger_ai_pipeline"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "5.4",
+      "functions": [
+        "orchestrate_post_polling"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "5.5",
+      "functions": [
+        "mot_cost_control_chart"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "5.6",
+      "functions": [
+        "dollars_per_min"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "5.7",
+      "functions": [
+        "session_profit"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    }
+  ],
+  "6": [
+    {
+      "code": "6.1",
+      "functions": [
+        "run_pipeline"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "6.2",
+      "functions": [
+        "run_ai_theming"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "6.3",
+      "functions": [
+        "sample_response_summaries"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "6.4",
+      "functions": [
+        "select_centroid_representatives"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "6.5",
+      "functions": [
+        "generate_summary_tiers"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "6.6",
+      "functions": [
+        "truncate_to_words"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "6.7",
+      "functions": [
+        "_assign_themes_llm"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    }
+  ],
+  "7": [
+    {
+      "code": "7.1",
+      "functions": [
+        "aggregate_rankings"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 100,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "7.2",
+      "functions": [
+        "submit_ranking"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "7.3",
+      "functions": [
+        "detect_voting_anomalies"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "7.4",
+      "functions": [
+        "_apply_influence_cap"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "7.5",
+      "functions": [
+        "_weighted_borda_scores"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 100,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "7.6",
+      "functions": [
+        "_borda_scores"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 100,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "7.7",
+      "functions": [
+        "_seeded_tiebreak_key"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "7.8",
+      "functions": [
+        "_compute_replay_hash"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 100,
+        "succinctness": 100
+      }
+    }
+  ],
+  "8": [
+    {
+      "code": "8.1",
+      "functions": [
+        "dollars_to_hi_tokens"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 80,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "8.2",
+      "functions": [
+        "resolve_human_rate"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "8.3",
+      "functions": [
+        "create_ledger_entry"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "8.4",
+      "functions": [
+        "dispatch_token_award"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 80,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "8.5",
+      "functions": [
+        "transition_lifecycle_state"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "8.6",
+      "functions": [
+        "reverse_entry"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "8.7",
+      "functions": [
+        "create_token_dispute"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 80,
+        "stability": 84,
+        "succinctness": 100
+      }
+    }
+  ],
+  "9": [
+    {
+      "code": "9.1",
+      "functions": [
+        "export_session_csv"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "9.2",
+      "functions": [
+        "export_csv"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "9.3",
+      "functions": [
+        "compute_export_hash"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 100,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "9.4",
+      "functions": [
+        "verify_export_hash"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 100,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "9.5",
+      "functions": [
+        "_apply_tier_filter"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "9.6",
+      "functions": [
+        "_tier_at_least"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "9.7",
+      "functions": [
+        "distribute_results"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    },
+    {
+      "code": "9.8",
+      "functions": [
+        "announce_reward_winner"
+      ],
+      "ssses": {
+        "efficiency": 100,
+        "scalability": 80,
+        "security": 96,
+        "stability": 84,
+        "succinctness": 100
+      }
+    }
+  ]
+}
