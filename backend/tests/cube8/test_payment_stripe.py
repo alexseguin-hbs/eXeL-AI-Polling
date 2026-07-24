@@ -1170,3 +1170,80 @@ CUBE8_PAYMENT_TEST_METHOD = {
         "webhook": "Signature verify → idempotency check → status update → token award",
     },
 }
+
+
+# ===========================================================================
+# SECTION: METERED USAGE BILLING (Thoth — pay-for-what-you-used from the ◬ stream)
+# ===========================================================================
+
+
+class TestMeteredUsageBilling:
+    """Bridge usage-metering → Stripe: charge a session's actual metered ◬ usage."""
+
+    def _cost_summary(self, usd, tokens):
+        return {
+            "cost": {
+                "billable_tokens": tokens,
+                "estimated_usd": usd,
+                "by_metric": {"ai_inference": {"quantity": 3, "unit_price_tokens": 0.5, "cost_tokens": 1.5}},
+            }
+        }
+
+    @pytest.mark.asyncio
+    async def test_estimate_metered_cost_prices_from_stream(self):
+        session = _mock_session(created_by="owner_user")
+        db = _mock_db(session=session)
+        with patch("app.core.usage_service.summarize_usage",
+                   new=AsyncMock(return_value=self._cost_summary(1.5, 1500.0))):
+            out = await payment_service.estimate_metered_cost(db, session.id)
+        assert out["billable_tokens"] == 1500.0
+        assert out["estimated_usd"] == 1.5
+        assert out["estimated_cost_cents"] == 150  # $1.50 → 150 cents
+
+    @pytest.mark.asyncio
+    async def test_billing_checkout_rejects_non_owner(self):
+        session = _mock_session(created_by="owner_user")
+        db = _mock_db(session=session)
+        with pytest.raises(Exception) as exc:
+            await payment_service.create_usage_billing_checkout(
+                db, session_id=session.id, user_id="intruder"
+            )
+        assert exc.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_billing_checkout_charges_metered_amount(self):
+        session = _mock_session(created_by="owner_user", short_code="MTR001", title="Metered")
+        db = _mock_db(session=session)
+        mock_checkout = MagicMock()
+        mock_checkout.id = "cs_usage_1"
+        mock_checkout.url = "https://checkout.stripe.com/pay/cs_usage_1"
+        with patch("app.core.usage_service.summarize_usage",
+                   new=AsyncMock(return_value=self._cost_summary(2.34, 2340.0))), \
+             patch("stripe.checkout.Session.create", return_value=mock_checkout) as mk:
+            result = await payment_service.create_usage_billing_checkout(
+                db, session_id=session.id, user_id="owner_user"
+            )
+        assert result["amount_cents"] == 234  # $2.34 metered → 234 cents
+        assert result["checkout_url"] == mock_checkout.url
+        assert result["billable_tokens"] == 2340.0
+        # Stripe charged exactly the metered amount + tagged as usage_billing.
+        kwargs = mk.call_args.kwargs
+        assert kwargs["line_items"][0]["price_data"]["unit_amount"] == 234
+        assert kwargs["metadata"]["transaction_type"] == "usage_billing"
+        db.add.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_billing_checkout_floors_at_stripe_minimum(self):
+        # Near-zero metered usage still floors at Stripe's $0.50 minimum.
+        session = _mock_session(created_by="owner_user")
+        db = _mock_db(session=session)
+        mock_checkout = MagicMock()
+        mock_checkout.id = "cs_min"
+        mock_checkout.url = "https://checkout.stripe.com/pay/cs_min"
+        with patch("app.core.usage_service.summarize_usage",
+                   new=AsyncMock(return_value=self._cost_summary(0.01, 10.0))), \
+             patch("stripe.checkout.Session.create", return_value=mock_checkout):
+            result = await payment_service.create_usage_billing_checkout(
+                db, session_id=session.id, user_id="owner_user"
+            )
+        assert result["amount_cents"] == 50  # floored to $0.50

@@ -83,6 +83,110 @@ async def estimate_session_cost(
     }
 
 
+async def estimate_metered_cost(db: AsyncSession, session_id: uuid.UUID) -> dict:
+    """Cost of a session's ACTUAL metered usage (◬ + USD), from the usage-metering stream.
+
+    Distinct from `estimate_session_cost` (an upfront per-user/per-response quote): this
+    prices what the session really consumed — webhook deliveries, exports, AI inference,
+    API calls — via the authoritative ◬ price table. The "pay for what you used" number.
+    """
+    from app.core import usage_service
+
+    session = await _get_session(db, session_id)
+    # Org isolation is v1 per-user: the session owner IS the org.
+    summary = await usage_service.summarize_usage(
+        db, org_id=session.created_by, session_id=session_id
+    )
+    cost = summary["cost"]
+    return {
+        "session_id": str(session_id),
+        "billable_tokens": cost["billable_tokens"],
+        "estimated_usd": cost["estimated_usd"],
+        "estimated_cost_cents": max(0, round(cost["estimated_usd"] * 100)),
+        "currency": "USD",
+        "by_metric": cost["by_metric"],
+    }
+
+
+async def create_usage_billing_checkout(
+    db: AsyncSession,
+    session_id: uuid.UUID,
+    user_id: str,
+    success_url: str = "",
+    cancel_url: str = "",
+) -> dict:
+    """Stripe Checkout for a session's ACTUAL metered ◬ usage (pay-for-what-you-used).
+
+    Bridges the usage-metering stream → billing: the amount is the metered ◬ estimate
+    converted to USD, not a flat upfront quote. Verifies session ownership. Floors at
+    $0.50 (Stripe minimum). Records a `usage_billing` transaction the webhook completes.
+    """
+    session = await _get_session(db, session_id)
+
+    if session.created_by != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the session creator can be billed for its usage",
+        )
+
+    metered = await estimate_metered_cost(db, session_id)
+    amount_cents = max(metered["estimated_cost_cents"], 50)  # Stripe minimum $0.50
+
+    checkout = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "usd",
+                "unit_amount": amount_cents,
+                "product_data": {
+                    "name": f"SoI Metered Usage: {session.title}",
+                    "description": (
+                        f"Session {session.short_code} — {metered['billable_tokens']} ◬ metered usage"
+                    ),
+                },
+            },
+            "quantity": 1,
+        }],
+        mode="payment",
+        success_url=success_url or f"{settings.frontend_url}/dashboard?session={session.short_code}&payment=success",
+        cancel_url=cancel_url or f"{settings.frontend_url}/dashboard?session={session.short_code}&payment=cancelled",
+        metadata={
+            "session_id": str(session_id),
+            "short_code": session.short_code,
+            "transaction_type": "usage_billing",
+            "billable_tokens": str(metered["billable_tokens"]),
+        },
+    )
+
+    tx = PaymentTransaction(
+        session_id=session_id,
+        transaction_type="usage_billing",
+        amount_cents=amount_cents,
+        currency="USD",
+        stripe_checkout_session_id=checkout.id,
+        status="pending",
+    )
+    db.add(tx)
+    await db.commit()
+
+    logger.info(
+        "cube8.payment.usage_billing_checkout_created",
+        extra={
+            "session_id": str(session_id),
+            "amount_cents": amount_cents,
+            "billable_tokens": metered["billable_tokens"],
+            "checkout_id": checkout.id,
+        },
+    )
+
+    return {
+        "checkout_url": checkout.url,
+        "checkout_id": checkout.id,
+        "amount_cents": amount_cents,
+        "billable_tokens": metered["billable_tokens"],
+    }
+
+
 # ---------------------------------------------------------------------------
 # Moderator Paid — Stripe Checkout Session
 # ---------------------------------------------------------------------------

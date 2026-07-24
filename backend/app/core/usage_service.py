@@ -70,9 +70,11 @@ async def record_usage(
 async def summarize_usage(
     db: AsyncSession, *, org_id: str,
     start: datetime | None = None, end: datetime | None = None,
+    session_id: uuid.UUID | None = None,
 ) -> dict:
     """Per-metric totals for an org over [start, end). Returns every known metric (0 when
-    unused) so a billing consumer sees a stable shape, plus overall totals."""
+    unused) so a billing consumer sees a stable shape, plus overall totals. Pass
+    `session_id` to scope the summary to a single session (per-session metered billing)."""
     stmt = (
         select(
             UsageRecord.metric,
@@ -86,6 +88,8 @@ async def summarize_usage(
         stmt = stmt.where(UsageRecord.occurred_at >= start)
     if end is not None:
         stmt = stmt.where(UsageRecord.occurred_at < end)
+    if session_id is not None:
+        stmt = stmt.where(UsageRecord.session_id == session_id)
 
     by_metric = {m: {"quantity": 0, "cost_tokens": 0.0} for m in USAGE_METRICS}
     total_qty, total_tokens = 0, 0.0
