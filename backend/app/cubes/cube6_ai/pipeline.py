@@ -239,6 +239,21 @@ async def run_pipeline(
     except Exception as e:
         logger.warning("cube6.cost_log.persist_failed", error=str(e))
 
+    # Meter AI inference into the per-org usage stream (the primary billing cost) — quantity
+    # = provider calls this run; USD cost stays in AICostLog. Best-effort, org = session owner.
+    try:
+        from app.core.usage_service import record_usage
+
+        _calls = int(cost_summary.get("total_calls", 0)) if isinstance(cost_summary, dict) else 0
+        if _calls > 0:
+            await record_usage(
+                db, org_id=session.created_by or "anonymous", metric="ai_inference",
+                quantity=_calls, session_id=session_id, scope_ref=getattr(session, "scope_ref", None),
+            )
+            await db.commit()
+    except Exception as e:  # noqa: BLE001
+        logger.warning("cube6.ai_inference.usage_meter_failed", error=str(e))
+
     # --- Task B4: Broadcast themes_ready after full pipeline success ---
     # Gate: only fires on full success (not partial). Dashboard transitions
     # to results view on receipt.
