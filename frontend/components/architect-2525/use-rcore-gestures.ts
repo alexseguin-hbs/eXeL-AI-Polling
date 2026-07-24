@@ -63,8 +63,13 @@ export function useRCoreGestures(opts: RCoreOpts = {}) {
     }
     const dx = e.clientX - px, dy = e.clientY - py;
     if (Math.abs(dx) + Math.abs(dy) > 0) moved.current = true;
-    // RIGHT-drag (mouse) OR one-finger TOUCH on a 3D voxel → rotate + tilt (natural on phones, no clunky pan).
-    if (rec.btn === 2 || (touchOrbit && e.pointerType === "touch")) {
+    // RIGHT-drag (mouse) OR a single-finger drag on a 3D-orbit surface → rotate + tilt.
+    // We DON'T gate on `pointerType === "touch"` — iOS private-browsing / in-app webviews
+    // report it as "" / "pen" / undefined, which silently broke one-finger rotate while
+    // two-finger (the ≥2-pointer path) still worked. Instead: any NON-mouse pointer orbits;
+    // a plain mouse orbits too when panning is disabled (the voxels). Only a left-mouse
+    // drag on a pan-enabled surface still pans.
+    if (rec.btn === 2 || (touchOrbit && (e.pointerType !== "mouse" || !panOn))) {
       const width = (e.currentTarget as Element).getBoundingClientRect().width || 1;
       const { dBearing, dPitch } = rightDrag(dx, dy, width, cfg);
       setBearing((b) => b + dBearing);
