@@ -25,6 +25,7 @@ from app.models.theme_sample import ThemeSample
 from app.models.time_tracking import TimeEntry
 from app.models.token_ledger import TokenDispute, TokenLedger
 from app.models.trend import TrendSnapshot, TrendSubscription
+from app.models.usage_record import UsageRecord
 from app.models.user import User
 from app.models.voice_response import VoiceResponse
 from app.models.webhook import WebhookDelivery, WebhookSubscription
@@ -64,6 +65,7 @@ __all__ = [
     "TokenLedger",
     "TrendSnapshot",
     "TrendSubscription",
+    "UsageRecord",
     "User",
     "VoiceResponse",
     "WebhookDelivery",
