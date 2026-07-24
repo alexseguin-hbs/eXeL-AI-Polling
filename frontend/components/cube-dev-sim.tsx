@@ -691,8 +691,11 @@ function CubeVoxel3D({ lit, blockOf, nSections, codes = [], exploded = false, px
         const s = sums[k], d = dir[k] ?? [0, 0, 0];
         const cx = s[0] / s[3] - 1, cy = s[1] / s[3] - 1, cz = s[2] / s[3] - 1;
         const x = cx * step + d[0] * exStep, y = cy * step + d[1] * exStep, z = cz * step + d[2] * exStep;
-        // Exploded: every block a SOLID cube (selected brightest, others solid in colour).
-        const a: [string, string, string, number] = onBlock[k] ? ["ff", "dd", "bb", 1] : ["7a", "58", "40", 0.92];
+        // Exploded: every block a SOLID 3D cube. All three faces must read (top>side>far) so a
+        // block never collapses to a flat diamond — the non-selected side/far alphas were too
+        // faint on the dark bg, so only the top showed. Selected is brightest; others are solid
+        // in their own colour, fully opaque, with clear face shading.
+        const a: [string, string, string, number] = onBlock[k] ? ["ff", "e6", "c8", 1] : ["cf", "9c", "72", 1];
         out.push(solidCube(`blk-${k}`, x, y, z, blockCell, blockColor(k), a));
       });
     } else {
