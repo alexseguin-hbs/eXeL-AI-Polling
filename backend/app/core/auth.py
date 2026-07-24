@@ -163,6 +163,16 @@ async def resolve_principal(token: str | None, db) -> CurrentUser:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or revoked API key",
             )
+        # Meter the authenticated API-key call (billable api_call ◬) — best-effort so a
+        # metering failure never blocks auth; org-scoped with key provenance.
+        try:
+            from app.core.usage_service import record_usage
+
+            await record_usage(
+                db, org_id=key.org_id, metric="api_call", api_key_id=key.id,
+            )
+        except Exception:  # pragma: no cover — metering is non-critical to the auth path
+            pass
         scopes = [s for s in (key.scopes or "*").split(",") if s]
         return CurrentUser(user_id=key.org_id, email=None, role="api_key", permissions=scopes)
     try:

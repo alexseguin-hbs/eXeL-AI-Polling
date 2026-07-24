@@ -181,6 +181,35 @@ class TestResolvePrincipal:
         assert p.permissions == ["sessions:write", "rankings:read"]
 
     @pytest.mark.asyncio
+    async def test_api_key_auth_meters_api_call(self):
+        # A successful API-key auth records a billable api_call, org-scoped with key provenance.
+        from app.core import auth
+
+        key = ApiKey(org_id="org-42", name="k", key_prefix="exel_x", key_hash="h",
+                     is_active=True, created_by="u", scopes="*")
+        rec = AsyncMock()
+        with patch.object(auth, "_dev_mode", False), \
+             patch("app.core.api_key_service.authenticate_api_key", new=AsyncMock(return_value=key)), \
+             patch("app.core.usage_service.record_usage", new=rec):
+            await auth.resolve_principal(f"{API_KEY_PREFIX}live", AsyncMock())
+        assert rec.await_count == 1
+        assert rec.await_args.kwargs["org_id"] == "org-42"
+        assert rec.await_args.kwargs["metric"] == "api_call"
+
+    @pytest.mark.asyncio
+    async def test_api_key_auth_survives_metering_failure(self):
+        # Metering is best-effort — a record_usage blow-up must not break auth.
+        from app.core import auth
+
+        key = ApiKey(org_id="org-42", name="k", key_prefix="exel_x", key_hash="h",
+                     is_active=True, created_by="u", scopes="*")
+        with patch.object(auth, "_dev_mode", False), \
+             patch("app.core.api_key_service.authenticate_api_key", new=AsyncMock(return_value=key)), \
+             patch("app.core.usage_service.record_usage", new=AsyncMock(side_effect=RuntimeError("db down"))):
+            p = await auth.resolve_principal(f"{API_KEY_PREFIX}live", AsyncMock())
+        assert p.user_id == "org-42" and p.role == "api_key"
+
+    @pytest.mark.asyncio
     async def test_invalid_api_key_401(self):
         from fastapi import HTTPException
         from app.core import auth
