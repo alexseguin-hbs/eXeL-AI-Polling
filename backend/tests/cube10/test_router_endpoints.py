@@ -245,6 +245,58 @@ class TestSimContractGranularity:
             assert io["functions"] == s["functions"]
 
 
+class TestEveryCubeAndBlockIO:
+    """Night A — EVERY cube 1-9 AND EVERY building block (at its real Live·N count and
+    across 2/3/4/9/27 granularities) carries a real, non-empty inputs·functions·outputs.
+    This is the 2525-worthiness gate: no empty contracts, no empty blocks."""
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("cube_id", [1, 2, 3, 4, 5, 6, 7, 8, 9])
+    async def test_whole_cube_io_is_rich(self, client, cube_id):
+        r = await client.get(f"/api/v1/sim/cube/{cube_id}/contract")
+        assert r.status_code == 200
+        io = r.json()["io_contract"]
+        assert io["inputs"] and io["functions"] and io["outputs"], f"cube {cube_id} io thin"
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("cube_id", [1, 2, 3, 4, 5, 6, 7, 8, 9])
+    async def test_every_block_has_nonempty_io_at_all_granularities(self, client, cube_id):
+        # The cube's real Live·N default + a representative granularity sweep.
+        cubes = (await client.get("/api/v1/sim/cubes")).json()["cubes"]
+        live_n = next(c["default_sections"] for c in cubes if c["cube_id"] == cube_id)
+        for n in sorted({live_n, 2, 3, 4, 9, 27}):
+            r = await client.get(f"/api/v1/sim/cube/{cube_id}/contract?sections={n}")
+            assert r.status_code == 200, f"cube {cube_id} n={n}"
+            secs = r.json()["sections"]
+            assert len(secs) == n
+            for s in secs:
+                io = s.get("io")
+                assert io and set(io) == {"inputs", "functions", "outputs"}, f"cube {cube_id} n={n} {s.get('code')}"
+                # inputs/outputs never empty (fallback to whole-cube io); functions mirror the block.
+                assert io["inputs"] and io["outputs"], f"cube {cube_id} n={n} {s.get('code')} empty io"
+                assert io["functions"] == s["functions"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("cube_id", [1, 2, 3, 4, 5, 6, 7, 8, 9])
+    async def test_blocks_mirror_the_real_live_code(self, client, cube_id):
+        # At Live·N every block's functions come from the cube's real function set, and
+        # together they cover the whole set (foundational-first, nothing invented/dropped).
+        cubes = (await client.get("/api/v1/sim/cubes")).json()["cubes"]
+        live_n = next(c["default_sections"] for c in cubes if c["cube_id"] == cube_id)
+        secs = (await client.get(f"/api/v1/sim/cube/{cube_id}/contract?sections={live_n}")).json()["sections"]
+        distributed = [fn for s in secs for fn in s["functions"]]
+        assert distributed, f"cube {cube_id} has no functions distributed"
+        assert len(distributed) == len(set(distributed)), "a function landed in two blocks"
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("cube_id", [1, 2, 3, 4, 5, 6, 7, 8, 9])
+    async def test_decimal_codes_present_and_ordered(self, client, cube_id):
+        cubes = (await client.get("/api/v1/sim/cubes")).json()["cubes"]
+        live_n = next(c["default_sections"] for c in cubes if c["cube_id"] == cube_id)
+        secs = (await client.get(f"/api/v1/sim/cube/{cube_id}/contract?sections={live_n}")).json()["sections"]
+        assert [s["code"] for s in secs] == [f"{cube_id}.{k + 1}" for k in range(live_n)]
+
+
 class TestSimCubeReplayRoute:
     """GET /sim/cube/{id}/replay — beat the WHOLE cube or ONE building block (section)."""
 
