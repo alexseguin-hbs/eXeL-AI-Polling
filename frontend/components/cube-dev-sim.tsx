@@ -262,19 +262,23 @@ export function CubeDevSim() {
           {/* The 3×3×3 is ALWAYS a wireframe outline; the selected block's mini-cubes
               fill solid (ON), the rest stay outline (OFF). Rotate by dragging; Explode
               separates the blocks; ⤢ pops out. Reuses the R-Core camera. */}
-          <div className="flex flex-wrap items-center justify-center gap-4 rounded-xl border bg-card p-4">
-            <div className="relative mx-auto" data-sim-voxel={sel ?? ""}>
-              <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} codes={sectionCodes} exploded={exploded} px={200} />
-              <button onClick={() => setVoxelMax(true)} title="Pop out & rotate"
-                className="absolute right-1 top-1 rounded border bg-background/80 p-1 text-muted-foreground backdrop-blur hover:text-primary">
-                <Maximize2 className="h-3.5 w-3.5" />
-              </button>
+          <div className="rounded-xl border bg-card p-4">
+            {/* Voxel gets its OWN centered row so the cube is centered at EVERY width
+                (mobile + desktop), never pushed off-center by a side panel. */}
+            <div className="flex justify-center">
+              <div className="relative mx-auto w-fit" data-sim-voxel={sel ?? ""}>
+                <CubeVoxel3D lit={litCells} blockOf={blockOf} nSections={nSections} codes={sectionCodes} exploded={exploded} px={200} />
+                <button onClick={() => setVoxelMax(true)} title="Pop out & rotate"
+                  className="absolute right-1 top-1 rounded border bg-background/80 p-1 text-muted-foreground backdrop-blur hover:text-primary">
+                  <Maximize2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
-            <div className="min-w-[180px] flex-1">
+            {/* LIVE code only — no granularity switching. The blocks ARE the cube's real
+                live-code sections; Explode separates them, assemble snaps back. */}
+            <div className="mt-3 text-center">
               <div className="text-sm font-semibold">Cube {contract.cube_id} · {contract.name}</div>
-              {/* LIVE code only — no granularity switching. The blocks ARE the cube's real
-                  live-code sections; Explode separates them, assemble snaps back. */}
-              <div className="mt-2 flex flex-wrap items-center gap-1">
+              <div className="mt-2 flex flex-wrap items-center justify-center gap-1">
                 <button onClick={() => setExploded((e) => !e)} title="Explode / assemble the blocks"
                   className={`rounded border px-2 py-0.5 text-[11px] transition ${exploded ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
                   style={exploded ? { background: HI, borderColor: HI } : undefined}>Explode</button>
