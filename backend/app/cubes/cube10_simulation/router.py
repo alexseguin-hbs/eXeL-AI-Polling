@@ -362,11 +362,22 @@ _CUBE_NAMES = {
 _HARNESS_CUBES = HARNESS_CUBES
 
 
+def _default_sections(cube_id: int) -> int:
+    """The cube's NATURAL section count = how many real functions it takes to run it
+    (one building block ≈ one real code unit), clamped 2..27. Reality, not a fixed 4."""
+    from app.cubes.cube10_simulation.sections import SECTIONS
+
+    n = len([fn for s in SECTIONS.get(cube_id, []) for fn in s["functions"]])
+    return max(2, min(27, n)) if n else 4
+
+
 @router.get("/sim/cubes")
 async def sim_list_cubes():
-    """List Cubes 1-9 for the Simulation option; flag which have a runnable harness."""
+    """List Cubes 1-9 for the Simulation option; flag which have a runnable harness and
+    each cube's default section count (its real LIVE code-unit count, not a fixed 4)."""
     return {"cubes": [
-        {"cube_id": i, "name": _CUBE_NAMES[i], "harness_available": i in _HARNESS_CUBES}
+        {"cube_id": i, "name": _CUBE_NAMES[i], "harness_available": i in _HARNESS_CUBES,
+         "default_sections": _default_sections(i)}
         for i in range(1, 10)
     ]}
 

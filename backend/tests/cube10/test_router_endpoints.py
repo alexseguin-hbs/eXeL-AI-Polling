@@ -190,6 +190,19 @@ class TestSimContractRichness:
         assert io.get("outputs"), f"cube {cube_id} outputs empty"
 
 
+class TestSimCubesDefaults:
+    """FX-N — /sim/cubes advertises each cube's real code-unit count (not a fixed 4)."""
+
+    @pytest.mark.asyncio
+    async def test_default_sections_is_real_and_not_fixed_four(self, client):
+        resp = await client.get("/api/v1/sim/cubes")
+        assert resp.status_code == 200
+        cubes = resp.json()["cubes"]
+        defs = {c["cube_id"]: c["default_sections"] for c in cubes}
+        assert all(2 <= d <= 27 for d in defs.values())
+        assert len(set(defs.values())) > 1  # varies by cube — reality, not a constant 4
+
+
 class TestSimContractGranularity:
     """FX-G — /contract?sections=N returns coherent block-segments."""
 

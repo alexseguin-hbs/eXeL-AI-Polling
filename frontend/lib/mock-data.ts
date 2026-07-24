@@ -865,8 +865,10 @@ function handleSimMock(method: string, rawPath: string, body?: unknown): unknown
   const [path, query] = rawPath.split("?");
   const qs = new URLSearchParams(query || "");
   if (method === "GET" && path === "/sim/cubes") {
-    // Mirror the backend shape exactly: {cube_id, name, harness_available}. All 9 have harnesses.
-    return { cubes: Object.entries(_SIM_CUBES).map(([id, c]) => ({ cube_id: Number(id), name: c.name, harness_available: true })) };
+    // Mirror the backend: {cube_id, name, harness_available, default_sections}. default_sections
+    // = each cube's real LIVE code-unit count (not a fixed 4) — matches the Python counts.
+    const _DEF: Record<number, number> = { 1: 6, 2: 8, 3: 7, 4: 8, 5: 7, 6: 7, 7: 8, 8: 7, 9: 8 };
+    return { cubes: Object.entries(_SIM_CUBES).map(([id, c]) => ({ cube_id: Number(id), name: c.name, harness_available: true, default_sections: _DEF[Number(id)] ?? 4 })) };
   }
   const m = path.match(/^\/sim\/cube\/(\d+)\/(contract|run|challenge|replay|check-in|submit|source)$/);
   if (!m) return undefined;

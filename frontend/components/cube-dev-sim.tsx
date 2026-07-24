@@ -25,7 +25,7 @@ import { api } from "@/lib/api";
 import { useLexicon } from "@/lib/lexicon-context";
 import { useRCoreGestures } from "@/components/architect-2525/use-rcore-gestures";
 
-type CubeInfo = { cube_id: number; name: string; harness_available: boolean };
+type CubeInfo = { cube_id: number; name: string; harness_available: boolean; default_sections?: number };
 type SectionIO = { inputs: string[]; functions: string[]; outputs: string[] };
 type Section = { key: string; label: string; functions: string[]; highlight: Record<string, number[]>; io?: SectionIO };
 type Contract = {
@@ -106,9 +106,12 @@ export function CubeDevSim() {
   }, []);
 
   const pick = useCallback((id: number) => {
-    setSel(id); setErr(""); setSecCount(4); setExploded(false);
-    void loadContract(id, 4);
-  }, [loadContract]);
+    // Default to the cube's REAL code-unit count (its LIVE code needed to run SIM),
+    // not a fixed 4 (operator: "use reality, do not default to 4").
+    const def = cubes.find((c) => c.cube_id === id)?.default_sections ?? 4;
+    setSel(id); setErr(""); setSecCount(def); setExploded(false);
+    void loadContract(id, def);
+  }, [cubes, loadContract]);
 
   const changeCount = useCallback((n: number) => {
     setSecCount(n);
@@ -265,11 +268,16 @@ export function CubeDevSim() {
               <div className="text-sm font-semibold">Cube {contract.cube_id} · {contract.name}</div>
               {/* Granularity + Explode — how many building blocks the 27 mini-cubes group into. */}
               <div className="mt-2 flex flex-wrap items-center gap-1">
-                {[{ n: 2, l: "2" }, { n: 3, l: "3" }, { n: 4, l: "Fn·4" }, { n: 6, l: "6" }, { n: 9, l: "9" }, { n: 27, l: "27" }].map(({ n, l }) => (
-                  <button key={n} onClick={() => changeCount(n)} disabled={busy === "contract"}
-                    className={`rounded border px-2 py-0.5 font-mono text-[11px] transition ${secCount === n ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
-                    style={secCount === n ? { background: AI, borderColor: AI } : undefined}>{l}</button>
-                ))}
+                {(() => {
+                  const liveN = cubes.find((c) => c.cube_id === sel)?.default_sections ?? 4;
+                  const opts = [liveN, 2, 3, 4, 6, 9, 27].filter((n, i, a) => a.indexOf(n) === i);
+                  return opts.map((n) => (
+                    <button key={n} onClick={() => changeCount(n)} disabled={busy === "contract"}
+                      className={`rounded border px-2 py-0.5 font-mono text-[11px] transition ${secCount === n ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
+                      style={secCount === n ? { background: AI, borderColor: AI } : undefined}>
+                      {n === liveN ? `Live·${n}` : n === 4 ? "Fn·4" : String(n)}</button>
+                  ));
+                })()}
                 <button onClick={() => setExploded((e) => !e)} title="Explode / assemble the blocks"
                   className={`ml-1 rounded border px-2 py-0.5 text-[11px] transition ${exploded ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
                   style={exploded ? { background: HI, borderColor: HI } : undefined}>Explode</button>
@@ -413,9 +421,10 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
     cfg: { minPitch: 8, maxPitch: 86, minZoom: 0.5, maxZoom: 3.5 },
   });
   const { bearing, pitch, zoom } = cam;
-  // Small gap so mini-cube faces nearly TOUCH within a block (Lego rule) while still
-  // showing individual cubes; smaller cells so the exploded spread fits (FX-M).
-  const cell = fill ? 40 : 24, gap = 2, step = cell + gap;
+  // Minimal 1px seam so mini-cubes read as ONE solid object (faces touch, Lego rule)
+  // while a thin black line still shows the divisions (FX-N); smaller cells so the
+  // exploded spread fits.
+  const cell = fill ? 40 : 24, gap = 1, step = cell + gap;
   // Each building block is a DIFFERENT color (FX-I). The selected block fills solid +
   // bright; the other blocks show in their own color, dimmer (so all distinct blocks
   // read at a glance). Exploded → each block moves as a RIGID group along its centroid
