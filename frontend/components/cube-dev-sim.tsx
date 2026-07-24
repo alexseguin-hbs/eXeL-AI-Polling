@@ -475,11 +475,15 @@ function CubeVoxel3D({ lit, blockOf, nSections, exploded = false, px = 200, fill
       const x = (col - 1) * step + ox, y = (row - 1) * step + oy, z = (layer - 1) * step + oz;
       const on = lit.has(i);
       const hex = blockColor(k);
-      // selected block bright/solid; others their color, dimmer
-      const [tA, sA, s2A, op] = on ? ["dd", "aa", "88", 1] : ["3a", "26", "1c", 0.6];
+      // EVERY mini-cube is a solid voxel CUBE in all views (operator: "always cubes like
+      // voxel · show each building block"). The three face brightnesses (top>side>far)
+      // give each cube its 3D shading; the SELECTED block is brightest, the others are
+      // dimmer but still fully solid cubes (never flat squares).
+      const [tA, sA, s2A, op] = on ? ["ee", "bb", "99", 1] : ["82", "5a", "3e", 0.92];
       out.push(
         <div key={i} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d", opacity: op }}>
           <div style={face(`translate3d(0px,0px,${cell / 2}px)`, cell, cell, hex, tA)} />
+          <div style={face(`translate3d(0px,0px,${-cell / 2}px)`, cell, cell, hex, s2A)} />
           <div style={face(`translate3d(0px,${-cell / 2}px,0px) rotateX(90deg)`, cell, cell, hex, sA)} />
           <div style={face(`translate3d(0px,${cell / 2}px,0px) rotateX(90deg)`, cell, cell, hex, sA)} />
           <div style={face(`translate3d(${-cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, hex, s2A)} />
