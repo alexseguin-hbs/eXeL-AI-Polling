@@ -236,7 +236,7 @@ export function CubeDevSim() {
   // track-switchers + play/volume transport, all interactive) so the workbench
   // Check In / Submit / Feedback controls always scroll clear of it (FX-C).
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 p-4 pb-48">
+    <div className="mx-auto w-full max-w-4xl space-y-4 overflow-x-clip p-4 pb-48">
       {/* Demo Play narration banner — fixed above the music HUD; tinted by tier. */}
       {play && (
         <div className="fixed inset-x-0 bottom-28 z-40 mx-auto max-w-2xl px-4">
@@ -422,7 +422,7 @@ export function CubeDevSim() {
             )}
             <div className={`grid gap-3 ${maxCode === "split" || !maxCode ? "md:grid-cols-2" : "grid-cols-1"}`}>
               {maxCode !== "yours" && (
-                <div className="flex flex-col rounded-lg border bg-[#080f1d]">
+                <div className="flex min-w-0 flex-col rounded-lg border bg-[#080f1d]">
                   <div className="flex items-center gap-2 border-b px-3 py-2">
                     <span className="rounded border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">LIVE</span>
                     <span className="font-mono text-[11px] text-muted-foreground">{activeSection?.functions[0] ?? "cube"}() · running now</span>
@@ -432,7 +432,7 @@ export function CubeDevSim() {
                 </div>
               )}
               {maxCode !== "live" && (
-                <div className="flex flex-col rounded-lg border" style={{ borderColor: AI }}>
+                <div className="flex min-w-0 flex-col rounded-lg border" style={{ borderColor: AI }}>
                   <div className="flex items-center gap-2 border-b px-3 py-2">
                     <span className="rounded px-1.5 py-0.5 font-mono text-[10px] text-black" style={{ background: AI }}>YOUR VERSION</span>
                     <span className="font-mono text-[11px] text-muted-foreground">editable</span>
@@ -662,39 +662,55 @@ function CubeVoxel3D({ lit, blockOf, nSections, codes = [], exploded = false, px
       const r = 0.85 + 0.5 * (idx / Math.max(1, keys.length - 1));   // per-index radius spread
       dir[k] = [dx * r, dy * r, dz * r];
     });
-    // Generous RADIAL spacing (operator: like a case exploded view) — every block flies
-    // outward from the cube's center with a wide gap, while each block stays a solid cube.
-    const exStep = fill ? step * 3.4 : step * 2.8;
-    const out: ReactNode[] = [];
-    for (let i = 0; i < 27; i++) {
-      const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
-      const k = blockOf[i] ?? 0, d = dir[k] ?? [0, 0, 0];
-      const ox = exploded ? d[0] * exStep : 0, oy = exploded ? d[1] * exStep : 0, oz = exploded ? d[2] * exStep : 0;
-      const x = (col - 1) * step + ox, y = (row - 1) * step + oy, z = (layer - 1) * step + oz;
-      const on = lit.has(i);
-      const hex = blockColor(k);
-      // EVERY mini-cube is a solid voxel CUBE in all views (operator: "always cubes like
-      // voxel · show each building block"). The three face brightnesses (top>side>far)
-      // give each cube its 3D shading; the SELECTED block is brightest, the others are
-      // dimmer but still fully solid cubes (never flat squares).
-      const [tA, sA, s2A, op] = on ? ["ff", "dd", "bb", 1] : ["2e", "1e", "14", 0.42];
-      out.push(
-        <div key={i} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d", opacity: op }}>
-          <div style={face(`translate3d(0px,0px,${cell / 2}px)`, cell, cell, hex, tA)} />
-          <div style={face(`translate3d(0px,0px,${-cell / 2}px)`, cell, cell, hex, s2A)} />
-          <div style={face(`translate3d(0px,${-cell / 2}px,0px) rotateX(90deg)`, cell, cell, hex, sA)} />
-          <div style={face(`translate3d(0px,${cell / 2}px,0px) rotateX(90deg)`, cell, cell, hex, sA)} />
-          <div style={face(`translate3d(${-cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, hex, s2A)} />
-          <div style={face(`translate3d(${cell / 2}px,0px,0px) rotateY(90deg)`, cell, cell, hex, s2A)} />
-        </div>,
+    // Which blocks are "on" (the selected section highlights its cells).
+    const onBlock: Record<number, boolean> = {};
+    for (let i = 0; i < 27; i++) if (lit.has(i)) onBlock[blockOf[i] ?? 0] = true;
+    // A solid 6-face voxel cube of side `s` at (x,y,z). `alphas` = [top,side,far,opacity].
+    const solidCube = (key: string | number, x: number, y: number, z: number, s: number, hex: string, alphas: [string, string, string, number]) => {
+      const [tA, sA, s2A, op] = alphas;
+      return (
+        <div key={key} style={{ ...at(`translate3d(${x}px,${y}px,${z}px)`), transformStyle: "preserve-3d", opacity: op }}>
+          <div style={face(`translate3d(0px,0px,${s / 2}px)`, s, s, hex, tA)} />
+          <div style={face(`translate3d(0px,0px,${-s / 2}px)`, s, s, hex, s2A)} />
+          <div style={face(`translate3d(0px,${-s / 2}px,0px) rotateX(90deg)`, s, s, hex, sA)} />
+          <div style={face(`translate3d(0px,${s / 2}px,0px) rotateX(90deg)`, s, s, hex, sA)} />
+          <div style={face(`translate3d(${-s / 2}px,0px,0px) rotateY(90deg)`, s, s, hex, s2A)} />
+          <div style={face(`translate3d(${s / 2}px,0px,0px) rotateY(90deg)`, s, s, hex, s2A)} />
+        </div>
       );
+    };
+    const out: ReactNode[] = [];
+    if (exploded) {
+      // EXPLODED = a clean "case exploded view": EACH building block becomes ONE uniform
+      // solid cube (operator: "appear as cubes not elongated · does not stretch"), flying
+      // outward from the centre with generous spacing. Every block shows — the selected one
+      // brightest, the others solid in their own colour (never flat plates).
+      const exStep = fill ? step * 4.2 : step * 3.4;
+      const blockCell = cell * 1.7;               // substantial, uniform cube per block
+      keys.forEach((k) => {
+        const s = sums[k], d = dir[k] ?? [0, 0, 0];
+        const cx = s[0] / s[3] - 1, cy = s[1] / s[3] - 1, cz = s[2] / s[3] - 1;
+        const x = cx * step + d[0] * exStep, y = cy * step + d[1] * exStep, z = cz * step + d[2] * exStep;
+        // Exploded: every block a SOLID cube (selected brightest, others solid in colour).
+        const a: [string, string, string, number] = onBlock[k] ? ["ff", "dd", "bb", 1] : ["7a", "58", "40", 0.92];
+        out.push(solidCube(`blk-${k}`, x, y, z, blockCell, blockColor(k), a));
+      });
+    } else {
+      // ASSEMBLED = the 27 mini-cubes as ONE solid object (thin seam). Selected block bright,
+      // the rest see-through so the selection stands out (operator: others more see-through).
+      for (let i = 0; i < 27; i++) {
+        const layer = Math.floor(i / 9), c9 = i % 9, row = Math.floor(c9 / 3), col = c9 % 3;
+        const k = blockOf[i] ?? 0;
+        const a: [string, string, string, number] = lit.has(i) ? ["ff", "dd", "bb", 1] : ["2e", "1e", "14", 0.42];
+        out.push(solidCube(i, (col - 1) * step, (row - 1) * step, (layer - 1) * step, cell, blockColor(k), a));
+      }
     }
-    // Per-block label anchors (block centroid + its explode offset) → each block gets its
-    // decimal code (1.1…) floating at its center in the exploded view.
+    // Per-block label anchors — each block's decimal code (1.1…) floats at its exploded cube.
+    const exStepA = fill ? step * 4.2 : step * 3.4;
     const anchors = keys.map((k) => {
       const s = sums[k], d = dir[k] ?? [0, 0, 0];
       const cx = s[0] / s[3] - 1, cy = s[1] / s[3] - 1, cz = s[2] / s[3] - 1;
-      return { code: codes[k] ?? `${k + 1}`, x: cx * step + d[0] * exStep, y: cy * step + d[1] * exStep, z: cz * step + d[2] * exStep };
+      return { code: codes[k] ?? `${k + 1}`, x: cx * step + d[0] * exStepA, y: cy * step + d[1] * exStepA, z: cz * step + d[2] * exStepA };
     });
     return { cubes: out, anchors };
   }, [lit, blockOf, nSections, codes, exploded, cell, step, fill]);
