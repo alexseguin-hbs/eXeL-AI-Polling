@@ -55,3 +55,35 @@ def test_payment_received_producer_wired():
     assert '"payment_received"' in src
     # Only session-scoped payments fire.
     assert "session_id" in src
+
+
+def test_export_ready_producer_wired():
+    """The last of the 5 declared events now has an emit site (Cube 9 CSV export)."""
+    from app.cubes.cube9_reports.router import export_csv
+
+    src = inspect.getsource(export_csv)
+    assert "safe_deliver_webhook" in src
+    assert '"export_ready"' in src
+    # Fire-and-forget: a webhook must never break the download.
+    assert "never let a webhook affect the export" in src
+
+
+def test_all_five_declared_events_have_producers():
+    """No declared webhook event may be dead (registerable but never fired)."""
+    import inspect as _i
+
+    from app.models.webhook import VALID_EVENT_TYPES
+    from app.cubes.cube1_session.service import transition_session
+    from app.cubes.cube6_ai.pipeline import run_pipeline
+    from app.cubes.cube7_ranking.ranking_governance import emit_ranking_complete
+    from app.cubes.cube8_tokens.payment_service import _fire_payment_received
+    from app.cubes.cube9_reports.router import export_csv
+
+    producers_src = "\n".join(
+        _i.getsource(f) for f in (
+            transition_session, run_pipeline, emit_ranking_complete,
+            _fire_payment_received, export_csv,
+        )
+    )
+    for ev in VALID_EVENT_TYPES:
+        assert f'"{ev}"' in producers_src, f"event {ev!r} has no producer/emit site"

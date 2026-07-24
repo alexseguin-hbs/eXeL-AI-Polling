@@ -120,6 +120,27 @@ async def export_csv(
         "X-Content-Tier": content_tier,
     }
 
+    # Fire the export_ready WEBHOOK to any registered subscriptions (API productization) —
+    # the last of the 5 declared events without an emit site. Fire-and-forget so a webhook
+    # can never break the download; safe_deliver_webhook early-returns when none exist.
+    try:
+        from app.cubes.cube5_gateway.webhook_service import safe_deliver_webhook
+
+        await safe_deliver_webhook(
+            db, session_id, "export_ready",
+            {
+                "session_id": str(session_id),
+                "short_code": session.short_code,
+                "content_tier": content_tier,
+                "summary_tier": summary_tier,
+                "response_count": response_count,
+                "filename": filename,
+                "format": "csv",
+            },
+        )
+    except Exception:
+        pass  # never let a webhook affect the export response
+
     if response_count > 10_000:
         # Scale mode: streaming CSV (no full-memory DataFrame)
         return StreamingResponse(
