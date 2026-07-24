@@ -206,17 +206,28 @@ def partition(cube_id: int, n: int) -> list[list[int]]:
     return [sorted(c for c in range(27) if owner[c] == k) for k in range(n)]
 
 
+def _ordered_partition(cube_id: int, n: int) -> list[list[int]]:
+    """`partition()` blocks reordered BASE-FIRST: the block sitting lowest (smallest
+    min-z, then smallest cell index) is index 0, so the most foundational code — which
+    `sections_for` assigns to block 0 — visibly anchors the bottom horizontal layer
+    (operator: "the more foundational code takes the horizontal .1 base position").
+    Deterministic; preserves coverage + face-connectivity (only the order changes)."""
+    blocks = partition(cube_id, n)
+    return sorted(blocks, key=lambda b: (min(i // 9 for i in b), b[0]))
+
+
 def voxel_highlight(cube_id: int, level: int, section: str | None) -> list[int]:
     """Pure, deterministic lit set of mini-cube indices (0..26).
 
     section=None → the whole cube; A/B/C/D → that curated function block — a
-    FACE-CONNECTED polycube (the Lego rule), varied per cube. level ∈ {3,6,9} scales
-    density within the eligible cells: 3 → ⅓, 6 → ⅔, 9 → all."""
+    FACE-CONNECTED polycube (the Lego rule), varied per cube, mapped BASE-FIRST so A
+    (the most foundational curated section) anchors the bottom layer. level ∈ {3,6,9}
+    scales density within the eligible cells: 3 → ⅓, 6 → ⅔, 9 → all."""
     if level not in LEVELS:
         raise ValueError(f"level must be one of {LEVELS}, got {level!r}")
     if section is not None and section not in SECTION_KEYS:
         raise ValueError(f"section must be one of {SECTION_KEYS} or None, got {section!r}")
-    cells = list(range(27)) if section is None else partition(cube_id, 4)[SECTION_KEYS.index(section)]
+    cells = list(range(27)) if section is None else _ordered_partition(cube_id, 4)[SECTION_KEYS.index(section)]
     n = math.ceil(len(cells) * level / 9) if cells else 0
     return sorted(cells)[:n]
 
@@ -233,31 +244,43 @@ def _block_functions(cube_id: int, cells: list[int]) -> list[str]:
 
 def sections_for(cube_id: int, count: int = 4) -> list[dict]:
     """Sections for a cube at the requested granularity (any count 2..27), each with
-    its highlight sets and the REAL functions it maps to.
+    its highlight sets, a decimal `code` (``{cube}.{k+1}`` — e.g. ``2.1 … 2.8``), and
+    the REAL functions it maps to.
 
-    count == 4 → the curated function sections (A/B/C/D, real function labels).
-    other counts → N face-connected block-segments ("Block k"); the cube's real
-    functions are distributed round-robin across the blocks so every count mirrors the
-    actual LIVE code. Returns [] for an unknown cube (never raises).
+    The `code` replaces the confusing ``L#·KEY`` display (which collided with the Level
+    tiers L1=Cubes 1-9 / L2=10-18 / L3=19-27). Section ``.1`` is the FOUNDATION: it holds
+    the earliest (most foundational) functions and anchors the voxel's base layer.
+
+    count == 4 → the curated function sections (A/B/C/D, real labels), base-first so A→.1.
+    other counts → N face-connected block-segments; the cube's real functions are
+    distributed CONTIGUOUSLY foundational-first (block 0/.1 = earliest functions), so
+    every count mirrors the actual LIVE code with the base holding the foundation. Blocks
+    past the function count are honestly empty/structural. Returns [] for an unknown cube.
     """
     if cube_id not in SECTIONS:
         return []
     if count == 4:
         return [{
-            "key": s["key"], "label": s["label"], "functions": s["functions"],
+            "key": s["key"], "code": f"{cube_id}.{k + 1}", "label": s["label"],
+            "functions": s["functions"],
             "highlight": {str(lvl): voxel_highlight(cube_id, lvl, s["key"]) for lvl in LEVELS},
-        } for s in SECTIONS[cube_id]]
+        } for k, s in enumerate(SECTIONS[cube_id])]
     out: list[dict] = []
-    blocks = partition(cube_id, count)
-    # Distribute the cube's REAL functions across the N blocks round-robin, so every
-    # count's building blocks mirror the actual LIVE code (FX-J). Blocks past the
-    # function count are honestly empty/structural.
+    blocks = _ordered_partition(cube_id, count)  # base-first: block 0 anchors the bottom
+    # Distribute the cube's REAL functions across the N blocks in CONTIGUOUS chunks in
+    # foundational order (SECTIONS lists base/setup first), so block 0 (.1) holds the most
+    # foundational code and later blocks hold downstream code — every count mirrors the
+    # actual LIVE code (FX-J). Blocks past the function count are honestly empty/structural.
     allfns = [fn for s in SECTIONS.get(cube_id, []) for fn in s["functions"]]
+    total = len(allfns)
+    # Assign function j to block floor(j*count/total): contiguous runs, foundational-first,
+    # and block 0 (.1) always holds allfns[0] even when count > total (later blocks empty).
     for k in range(count):
         cells = blocks[k]
-        fns = [allfns[j] for j in range(len(allfns)) if j % count == k]
+        fns = [allfns[j] for j in range(total) if (j * count) // total == k]
         out.append({
-            "key": f"B{k + 1}", "label": f"Block {k + 1}", "functions": fns,
+            "key": f"B{k + 1}", "code": f"{cube_id}.{k + 1}", "label": f"Block {k + 1}",
+            "functions": fns,
             "highlight": {"3": cells, "6": cells, "9": cells},  # ON/OFF whole block
         })
     return out

@@ -27,7 +27,7 @@ import { useRCoreGestures } from "@/components/architect-2525/use-rcore-gestures
 
 type CubeInfo = { cube_id: number; name: string; harness_available: boolean; default_sections?: number };
 type SectionIO = { inputs: string[]; functions: string[]; outputs: string[] };
-type Section = { key: string; label: string; functions: string[]; highlight: Record<string, number[]>; io?: SectionIO };
+type Section = { key: string; code?: string; label: string; functions: string[]; highlight: Record<string, number[]>; io?: SectionIO };
 type Contract = {
   cube_id: number; name: string;
   io_contract: { inputs: string[]; functions: string[]; outputs: string[] };
@@ -44,7 +44,9 @@ type SubmitResult = {
   validation: { validators: number; required: number; state: string };
 };
 
-// The 4 code sections partition the 27 voxels; each section IS a level (L1·A … L4·D).
+// Code sections partition the 27 voxels; each is labelled by a decimal code
+// ({cube}.{k} — e.g. 2.1 … 2.8), with .1 the foundational block anchored at the base
+// (the L1·A naming collided with the Level tiers L1/L2/L3 = Cubes 1-9/10-18/19-27).
 // FULL=9 asks voxel_highlight for the whole section (no 3/6/9 density scaling here —
 // the 3/6/9 dial belongs to the theme viz, not the code-section model).
 const FULL = 9;
@@ -247,7 +249,7 @@ export function CubeDevSim() {
                 className={`flex items-center gap-1.5 rounded-lg border transition ${nSections > 9 ? "px-2 py-1 text-[11px]" : "px-3 py-1.5 text-xs"} ${
                   sectionKey === s.key ? "text-black" : "text-muted-foreground hover:text-foreground"}`}
                 style={sectionKey === s.key ? { background: SI, borderColor: SI } : undefined}>
-                <span className="font-mono font-bold">L{i + 1}·{s.key}</span>
+                <span className="font-mono font-bold">{s.code ?? `${i + 1}·${s.key}`}</span>
                 {nSections <= 9 && <span className="opacity-80">{s.label}</span>}
               </button>
             ))}
@@ -284,7 +286,7 @@ export function CubeDevSim() {
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
                 27 mini-cubes · {nSections} {secCount === 4 ? "sections" : "blocks"} · selected{" "}
-                <b style={{ color: SI }}>{activeSection?.key}</b> (<b>{activeSection?.label}</b>) — {litCells.size} cubes ON.
+                <b style={{ color: SI }}>{activeSection?.code ?? activeSection?.key}</b> (<b>{activeSection?.label}</b>) — {litCells.size} cubes ON.
               </p>
               <p className="mt-1 text-[10px] text-muted-foreground/70">Drag to rotate · pinch/scroll to zoom · Explode separates the blocks.</p>
             </div>

@@ -181,6 +181,39 @@ class TestSectionsForCounts:
         assert [s["key"] for s in secs] == list(SECTION_KEYS)
 
 
+class TestDecimalCodesAndFoundationalBase:
+    """Slice 2 — sections carry a decimal `code` ({cube}.{k+1}); block .1 is the
+    FOUNDATION (earliest function) and anchors the voxel base (bottom z=0 layer)."""
+
+    @pytest.mark.parametrize("n", [2, 3, 4, 6, 9])
+    def test_codes_are_decimal_cube_dot_section(self, n):
+        for c in ALL_CUBES:
+            secs = sections_for(c, n)
+            assert [s["code"] for s in secs] == [f"{c}.{k + 1}" for k in range(n)]
+
+    @pytest.mark.parametrize("n", [2, 3, 6, 9])
+    def test_block_one_holds_the_most_foundational_function(self, n):
+        # .1 = block 0 = the earliest (most foundational) function in the cube's real order.
+        for c in ALL_CUBES:
+            allfns = [fn for s in SECTIONS[c] for fn in s["functions"]]
+            secs = sections_for(c, n)
+            assert secs[0]["functions"][0] == allfns[0]
+
+    @pytest.mark.parametrize("n", [2, 3, 4, 6, 9, 27])
+    def test_block_one_anchors_the_base_layer(self, n):
+        # .1's cells include a base cell (z == 0, cells 0-8) — the foundation sits at bottom.
+        for c in ALL_CUBES:
+            secs = sections_for(c, n)
+            base_cells = secs[0]["highlight"]["9"]
+            assert any(cell // 9 == 0 for cell in base_cells), f"cube {c} n={n} .1 not at base"
+
+    def test_curated_four_a_is_dot_one_and_foundational(self):
+        for c in ALL_CUBES:
+            secs = sections_for(c, 4)
+            assert secs[0]["key"] == "A" and secs[0]["code"] == f"{c}.1"
+            assert any(cell // 9 == 0 for cell in secs[0]["highlight"]["9"])
+
+
 class TestSectionsFor:
     def test_sections_for_carries_per_level_highlight(self):
         secs = sections_for(5)

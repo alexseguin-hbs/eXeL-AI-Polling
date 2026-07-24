@@ -825,25 +825,37 @@ function _connectedPartition(seed: number, n: number): number[][] {
   for (let c = 0; c < 27; c++) groups[owner[c]].push(c);
   return groups.map((g) => g.sort((a, b) => a - b));
 }
+// Mirror the backend _ordered_partition: blocks reordered BASE-FIRST (smallest min-z,
+// then smallest cell index) so block 0 / section .1 (the foundation) anchors the bottom.
+function _orderedPartition(seed: number, n: number): number[][] {
+  return _connectedPartition(seed, n).slice().sort((a, b) => {
+    const az = Math.min(...a.map((i) => Math.floor(i / 9))), bz = Math.min(...b.map((i) => Math.floor(i / 9)));
+    return az - bz || a[0] - b[0];
+  });
+}
 function _mockSections(cubeId: number, count = 4) {
   const cio = _SIM_CUBES[cubeId]?.io ?? { inputs: [], functions: [], outputs: [] };
-  const groups = _connectedPartition(cubeId, count);
+  const groups = _orderedPartition(cubeId, count);   // base-first: .1 anchors the bottom
   if (count === 4) {
     const labels = _SIM_SECTION_LABELS[cubeId] ?? ["Section A", "Section B", "Section C", "Section D"];
     const io = cio.functions ?? [];
     return _SIM_SECTION_KEYS.map((key, i) => {
       const cells = groups[i];
       const fns = io.length ? [io[i % io.length]] : [`fn_${key.toLowerCase()}`];
-      return { key, label: labels[i], functions: fns, highlight: { "3": cells, "6": cells, "9": cells },
+      return { key, code: `${cubeId}.${i + 1}`, label: labels[i], functions: fns,
+        highlight: { "3": cells, "6": cells, "9": cells },
         io: { inputs: cio.inputs, functions: fns, outputs: cio.outputs } };
     });
   }
   const out = [];
   const allf = cio.functions ?? [];
+  const total = allf.length;
   for (let k = 0; k < count; k++) {
     const cells = groups[k];
-    const fns = allf.filter((_, j) => j % count === k);   // mirror real code across blocks
-    out.push({ key: `B${k + 1}`, label: `Block ${k + 1}`,
+    // Assign fn j to block floor(j*count/total): contiguous, foundational-first, and
+    // block 0 (.1) always holds allf[0] even when count > total (later blocks empty).
+    const fns = allf.filter((_, j) => Math.floor((j * count) / total) === k);
+    out.push({ key: `B${k + 1}`, code: `${cubeId}.${k + 1}`, label: `Block ${k + 1}`,
       functions: fns, highlight: { "3": cells, "6": cells, "9": cells },
       io: { inputs: cio.inputs, functions: fns, outputs: cio.outputs } });
   }
