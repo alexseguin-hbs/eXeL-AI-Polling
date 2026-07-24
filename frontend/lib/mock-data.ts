@@ -7,6 +7,7 @@ import type {
 } from "./types";
 import { SPIRAL_TEST_WAVES } from "./sim-data/spiral-test-100-users";
 import { supabase } from "@/lib/supabase";
+import { orderedPartition as _orderedPartition } from "./sim-sections";
 
 // ── Test Moderator ──────────────────────────────────────────────
 export const MOCK_MODERATOR_ID = "google-oauth2|mock-moderator-001";
@@ -771,68 +772,8 @@ const _SIM_SECTION_LABELS: Record<number, string[]> = {
 // cells (z-major), NOT a random scatter. n=3 → the 3 levels, n=4 → 4 stacked slabs,
 // n=9 → rows, n=27 → each mini-cube. Same coherent shape for every cube.
 const _SIM_ALLOWED_COUNTS = Array.from({ length: 26 }, (_, i) => i + 2); // 2..27
-// Mirror the backend partition (FX-I): each building block is FACE-CONNECTED (Lego rule),
-// varied per cube. n=3 → layers, n=9 → columns, n=27 → singletons, else seeded region-grow.
-function _faceNeighbors(i: number): number[] {
-  const x = i % 3, y = Math.floor(i / 3) % 3, z = Math.floor(i / 9), o: number[] = [];
-  for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) {
-    const nx = x + dx, ny = y + dy, nz = z + dz;
-    if (nx >= 0 && nx < 3 && ny >= 0 && ny < 3 && nz >= 0 && nz < 3) o.push(nz * 9 + ny * 3 + nx);
-  }
-  return o;
-}
-function _axisSlabs(seed: number, n: number): number[][] {
-  const axis = (Math.imul(seed + 1, 2654435761) >>> 0) % 3;
-  const xyz = (i: number) => [i % 3, Math.floor(i / 3) % 3, Math.floor(i / 9)];
-  if (n === 3) {
-    const g: number[][] = [[], [], []];
-    for (let i = 0; i < 27; i++) g[xyz(i)[axis]].push(i);
-    return g;
-  }
-  const cols: Record<string, number[]> = {}; const keys: string[] = [];
-  for (let i = 0; i < 27; i++) {
-    const c = xyz(i); c[axis] = 0; const key = c.join(",");
-    if (!(key in cols)) { cols[key] = []; keys.push(key); }
-    cols[key].push(i);
-  }
-  return keys.map((k) => cols[k]);
-}
-function _connectedPartition(seed: number, n: number): number[][] {
-  if (n <= 1) return [Array.from({ length: 27 }, (_, i) => i)];
-  if (n >= 27) return Array.from({ length: 27 }, (_, i) => [i]);
-  // n=3/9: seeded-choose clean slabs OR irregular region-grow (FX-L: clean not required).
-  if ((n === 3 || n === 9) && (Math.imul(seed + 3, 2246822519) >>> 0) % 2 === 0) return _axisSlabs(seed, n);
-  const key = (c: number) => { let h = (2166136261 ^ Math.imul(seed + 1, 2654435761)) >>> 0; h = Math.imul(h ^ (c + 1), 16777619) >>> 0; return h; };
-  const order = Array.from({ length: 27 }, (_, c) => c).sort((a, b) => key(a) - key(b));
-  const pos: Record<number, number> = {}; order.forEach((c, i) => { pos[c] = i; });
-  const seeds = order.slice(0, n); const owner: Record<number, number> = {};
-  const members = seeds.map((s) => [s]); const assigned = new Set(seeds); seeds.forEach((s, k) => { owner[s] = k; });
-  let remaining = 27 - n;
-  while (remaining > 0) {
-    let progressed = false;
-    for (let k = 0; k < n; k++) {
-      const cands = new Set<number>();
-      for (const m of members[k]) for (const nb of _faceNeighbors(m)) if (!assigned.has(nb)) cands.add(nb);
-      if (cands.size) {
-        const nb = Array.from(cands).sort((a, b) => pos[a] - pos[b])[0];
-        owner[nb] = k; assigned.add(nb); members[k].push(nb); remaining -= 1; progressed = true;
-        if (remaining === 0) break;
-      }
-    }
-    if (!progressed) { for (let c = 0; c < 27; c++) if (!assigned.has(c)) { owner[c] = pos[c] % n; assigned.add(c); } remaining = 0; }
-  }
-  const groups: number[][] = Array.from({ length: n }, () => []);
-  for (let c = 0; c < 27; c++) groups[owner[c]].push(c);
-  return groups.map((g) => g.sort((a, b) => a - b));
-}
-// Mirror the backend _ordered_partition: blocks reordered BASE-FIRST (smallest min-z,
-// then smallest cell index) so block 0 / section .1 (the foundation) anchors the bottom.
-function _orderedPartition(seed: number, n: number): number[][] {
-  return _connectedPartition(seed, n).slice().sort((a, b) => {
-    const az = Math.min(...a.map((i) => Math.floor(i / 9))), bz = Math.min(...b.map((i) => Math.floor(i / 9)));
-    return az - bz || a[0] - b[0];
-  });
-}
+// Partition (face-connected Lego blocks, base-first ordering) lives in ./sim-sections —
+// the ONE source shared with the backend (SHA-256-seeded, byte-identical, parity-locked).
 function _mockSections(cubeId: number, count = 4) {
   const cio = _SIM_CUBES[cubeId]?.io ?? { inputs: [], functions: [], outputs: [] };
   const groups = _orderedPartition(cubeId, count);   // base-first: .1 anchors the bottom
