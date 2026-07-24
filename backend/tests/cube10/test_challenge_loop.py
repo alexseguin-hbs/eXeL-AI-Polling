@@ -122,9 +122,14 @@ class TestIntegration:
     async def test_run_challenge_equivalent_candidate_manual_swap(self):
         base = await run_cube_baseline(1)
         # A candidate matching the live signature + no slower → manual human-approved swap.
+        # Pass the SAME baseline in: otherwise run_challenge re-runs the harness (a second,
+        # differently-timed baseline) and the candidate's duration — taken from THIS run —
+        # is compared against that other run, so timing jitter between the two runs can flip
+        # the ≤120% duration gate. Comparing the candidate against the baseline it was derived
+        # from keeps the test deterministic while still proving equivalent+approved → swap.
         out = await run_challenge(
             1, {"signature": base["signature"], "duration_ms": base["duration_ms"]},
-            tier="manual", human_approved=True,
+            tier="manual", human_approved=True, baseline=base,
         )
         assert out["verdict"]["overall_passed"] is True
         assert out["decision"]["decision"] == "swap"
