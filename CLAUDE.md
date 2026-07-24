@@ -427,7 +427,7 @@ Track and optimize for:
 - **No Web Component** (`<exel-polling>`) exists yet — planned for SDK phase
 - **No postMessage API** — planned for iframe communication
 - **No API key management** — currently Auth0 JWT only; per-org API keys planned
-- **Scoping tables — IMPLEMENTED** — Project/Differentiator/Specification DB models (`app/models/scoping.py`, org-isolated, cascade subtree) + CRUD service (`app/core/scoping_service.py`) + REST API (`app/core/scoping_router.py`, `/api/v1/scoping/...`) + scope-ref helpers (`app/core/scoping.py`). Org isolation is v1 per-user (`user_id` as `org_id`) until a first-class org claim lands. Remaining: wire `session.scope_ref` FK so downstream data inherits scope.
+- **Scoping tables — IMPLEMENTED** — Project/Differentiator/Specification DB models (`app/models/scoping.py`, org-isolated, cascade subtree) + CRUD service (`app/core/scoping_service.py`) + REST API (`app/core/scoping_router.py`, `/api/v1/scoping/...`) + scope-ref helpers (`app/core/scoping.py`). Org isolation is v1 per-user (`user_id` as `org_id`) until a first-class org claim lands. **Session inheritance wired:** `Session.scope_ref` (nullable, indexed) is set at creation (`SessionCreate.scope_ref`, validated via `parse_scope_ref`, 400 on malformed) and surfaced in `SessionRead` — Level-1 sessions inherit a Project/Differentiator/Specification scope; downstream data inherits via `session_id`.
 - **No webhooks** — async event callbacks planned but not implemented
 - **No usage metering** — billing/usage tracking not yet built
 
