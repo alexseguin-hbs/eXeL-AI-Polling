@@ -427,7 +427,7 @@ Track and optimize for:
 - **No Web Component** (`<exel-polling>`) exists yet — planned for SDK phase
 - **No postMessage API** — planned for iframe communication
 - **No API key management** — currently Auth0 JWT only; per-org API keys planned
-- **No scoping tables** — Project/Differentiator/Specification DB tables not yet created
+- **Scoping tables — IMPLEMENTED** — Project/Differentiator/Specification DB models (`app/models/scoping.py`, org-isolated, cascade subtree) + CRUD service (`app/core/scoping_service.py`) + REST API (`app/core/scoping_router.py`, `/api/v1/scoping/...`) + scope-ref helpers (`app/core/scoping.py`). Org isolation is v1 per-user (`user_id` as `org_id`) until a first-class org claim lands. Remaining: wire `session.scope_ref` FK so downstream data inherits scope.
 - **No webhooks** — async event callbacks planned but not implemented
 - **No usage metering** — billing/usage tracking not yet built
 
