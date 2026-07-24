@@ -730,7 +730,9 @@ async def sim_cube_submit(
     finalizes only after ≥3 distinct members validate the outcome."""
     if cube_id not in _HARNESS_CUBES:
         raise HTTPException(status_code=404, detail=f"Cube {cube_id} has no harness yet.")
-    from app.cubes.cube10_simulation.challenge_loop import run_cube_baseline, run_challenge
+    from app.cubes.cube10_simulation.challenge_loop import (
+        compute_optimization, run_cube_baseline, run_challenge,
+    )
     from app.cubes.cube10_simulation.saved_use_cases import (
         SavedUseCaseManager, replay_against_dataset,
     )
@@ -756,9 +758,15 @@ async def sim_cube_submit(
     # 3-member outcome validation gate — 웃 (HI) stays pending until ≥3 distinct members
     # attest (anti-dishonesty). The attestation-collection flow is a convergence item.
     validation = {"validators": 0, "required": 3, "state": "pending_validation"}
+    # Parity+efficiency proof: a ≥10% win shrinks the candidate cube vs Live (8×8×8 for
+    # 10×10×10). Earned only when the verdict passed (parity) AND the candidate is faster.
+    optimization = compute_optimization(
+        out["baseline"], out["candidate"], passed=out["verdict"]["overall_passed"],
+    )
     return {
         "cube_id": cube_id, "section": payload.section, "level": payload.level,
         "baseline": out["baseline"], "candidate": out["candidate"],
         "verdict": out["verdict"], "decision": out["decision"],
+        "optimization": optimization,
         "replay": replay, "validation": validation,
     }

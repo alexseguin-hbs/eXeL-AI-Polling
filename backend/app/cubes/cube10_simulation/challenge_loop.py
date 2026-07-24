@@ -144,6 +144,44 @@ def evaluate_challenge(baseline: dict, candidate: dict) -> dict:
     }
 
 
+# ── Optimization → physical-cube shrink (the parity+efficiency proof) ──────────────────────────
+# Operator's north star: when a candidate BEATS the LIVE cube by ≥10% (same-or-better
+# output, less work), the candidate cube renders that much SMALLER than Live — an 8×8×8
+# that replaces 10×10×10: same result, less compute. The shrink is EARNED, never toggled,
+# and only when the verdict holds (parity first, then efficiency).
+WIN_THRESHOLD = 0.10          # ≥10% improvement = a "win"
+MIN_CUBE_SCALE = 0.5          # never shrink below half (stays legible next to Live)
+
+
+def compute_optimization(baseline: dict, candidate: dict, *, passed: bool) -> dict:
+    """Efficiency delta of candidate vs LIVE (basis = duration_ms — work per run) →
+    optimization_pct, win (≥10% AND the verdict passed), and cube_scale (candidate size
+    relative to Live). A candidate only shrinks the cube when it PASSES (parity) AND is
+    faster (efficiency); otherwise scale stays 1.0 (same size = no proven gain).
+
+    Pure + deterministic: same metrics in → same numbers out.
+    """
+    b = float(baseline.get("duration_ms", 0.0) or 0.0)
+    c = float(candidate.get("duration_ms", 0.0) or 0.0)
+    improvement = (b - c) / b if b > 0 else 0.0            # >0 = candidate did less work
+    pct = round(improvement * 100.0, 1)
+    win = bool(passed and improvement >= WIN_THRESHOLD)
+    # Shrink the candidate cube proportional to the proven efficiency gain; only when the
+    # verdict passed (parity) AND there is a real gain. Clamp so it never collapses.
+    if passed and improvement > 0:
+        scale = max(MIN_CUBE_SCALE, min(1.0, 1.0 - improvement))
+    else:
+        scale = 1.0
+    return {
+        "optimization_pct": pct,
+        "win": win,
+        "cube_scale": round(scale, 3),
+        "live_scale": 1.0,
+        "basis": "duration_ms",
+        "threshold_pct": round(WIN_THRESHOLD * 100.0, 1),
+    }
+
+
 # ── Decide: the 3 autonomy tiers (manual → semi → automated) ──────────────────────────────────
 def decide_swap(
     verdict: dict,

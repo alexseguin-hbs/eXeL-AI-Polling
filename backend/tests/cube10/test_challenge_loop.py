@@ -194,3 +194,50 @@ class TestHarnessRegistration:
             tier="manual", human_approved=True, crs_state="simulation_ready",
         )
         assert out["decision"]["decision"] == "swap"
+
+
+class TestComputeOptimization:
+    """Night B — the parity+efficiency proof: a ≥10% win shrinks the candidate cube vs Live
+    (8×8×8 replaces 10×10×10). Earned only when the verdict PASSES (parity first)."""
+
+    def test_ten_percent_faster_pass_is_a_win_and_shrinks_10pct(self):
+        from app.cubes.cube10_simulation.challenge_loop import compute_optimization
+        base = {"duration_ms": 100.0}
+        cand = {"duration_ms": 90.0}
+        opt = compute_optimization(base, cand, passed=True)
+        assert opt["optimization_pct"] == 10.0
+        assert opt["win"] is True
+        assert opt["cube_scale"] == 0.9          # 10% smaller cube
+        assert opt["basis"] == "duration_ms"
+
+    def test_below_threshold_is_not_a_win_but_still_shrinks_proportionally(self):
+        from app.cubes.cube10_simulation.challenge_loop import compute_optimization
+        opt = compute_optimization({"duration_ms": 100.0}, {"duration_ms": 95.0}, passed=True)
+        assert opt["optimization_pct"] == 5.0
+        assert opt["win"] is False               # < 10% → not a headline win
+        assert opt["cube_scale"] == 0.95
+
+    def test_not_passed_never_shrinks_even_if_faster(self):
+        # Parity first: a faster-but-failing candidate does NOT earn the smaller cube.
+        from app.cubes.cube10_simulation.challenge_loop import compute_optimization
+        opt = compute_optimization({"duration_ms": 100.0}, {"duration_ms": 50.0}, passed=False)
+        assert opt["win"] is False
+        assert opt["cube_scale"] == 1.0          # same size — no proven gain
+
+    def test_slower_candidate_stays_full_size(self):
+        from app.cubes.cube10_simulation.challenge_loop import compute_optimization
+        opt = compute_optimization({"duration_ms": 100.0}, {"duration_ms": 130.0}, passed=True)
+        assert opt["optimization_pct"] == -30.0
+        assert opt["win"] is False
+        assert opt["cube_scale"] == 1.0
+
+    def test_scale_clamped_to_half(self):
+        from app.cubes.cube10_simulation.challenge_loop import compute_optimization
+        opt = compute_optimization({"duration_ms": 100.0}, {"duration_ms": 1.0}, passed=True)
+        assert opt["cube_scale"] == 0.5          # never collapses below half
+
+    def test_deterministic(self):
+        from app.cubes.cube10_simulation.challenge_loop import compute_optimization
+        a = compute_optimization({"duration_ms": 100.0}, {"duration_ms": 88.0}, passed=True)
+        b = compute_optimization({"duration_ms": 100.0}, {"duration_ms": 88.0}, passed=True)
+        assert a == b

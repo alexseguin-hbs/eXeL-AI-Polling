@@ -174,6 +174,20 @@ class TestSimCheckInSubmit:
         resp = await client.post("/api/v1/sim/cube/2/submit", json={"tier": "nope"})
         assert resp.status_code == 400
 
+    @pytest.mark.asyncio
+    async def test_submit_returns_optimization_block(self, client):
+        # Night B: every submit carries the parity+efficiency proof (optimization_pct,
+        # win, cube_scale). The S0 self-replay is equivalent → 0% gain → cube stays 1.0.
+        resp = await client.post(
+            "/api/v1/sim/cube/2/submit",
+            json={"section": "B", "tier": "manual", "human_approved": False},
+        )
+        assert resp.status_code == 200
+        opt = resp.json()["optimization"]
+        assert set(opt) >= {"optimization_pct", "win", "cube_scale", "basis", "threshold_pct"}
+        assert 0.5 <= opt["cube_scale"] <= 1.0
+        assert opt["threshold_pct"] == 10.0
+
 
 class TestSimContractRichness:
     """GET /sim/cube/{id}/contract — every cube 1-9 returns a RICH inputs·functions·outputs."""
